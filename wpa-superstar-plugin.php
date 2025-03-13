@@ -75,3 +75,12 @@ function wpa_superstar_admin_assets() {
     );
 }
 add_action( 'admin_enqueue_scripts', 'wpa_superstar_admin_assets' );
+
+function lazyLoad_assets() {
+    // Enqueue styles for lazy loading
+    wp_enqueue_style( 
+        'wpa-superstar-lazy-load', 
+        plugins_url( 'public/css/wpa-superstar-lazy-load.css', __FILE__ ), 
+        [], 
+        WPA_SUPERSTAR_VERSION 
+    );
