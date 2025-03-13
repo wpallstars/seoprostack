@@ -11,6 +11,7 @@ A lean speed optimization plugin for WordPress. Speed Matters.
 1. Download or clone this repo.
 2. Upload to `/wp-content/plugins/`.
 3. Activate in WordPress Admin.
+4. Clean LocalWP sync
 
 ## Configuration
 - Go to Settings → WPA Superstar.
