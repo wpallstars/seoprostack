@@ -24,3 +24,7 @@
     background: #fff;
     border-bottom: 1px solid #fff;
 }
+.wpa-superstar-toggle label {
+    display: flex;
+    align-items: center;
+}
