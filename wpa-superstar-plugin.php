@@ -74,17 +74,28 @@ function wpa_superstar_admin_assets() {
 }
 add_action( 'admin_enqueue_scripts', 'wpa_superstar_admin_assets' );
 
-function lazyLoad_assets() {
+/**
+ * Register and enqueue lazy loading assets
+ */
+function wpa_superstar_lazy_load_assets() {
     // Enqueue styles for lazy loading
-    wp_enqueue_style( 
-        'wpa-superstar-lazy-load', 
-        plugins_url( 'public/css/wpa-superstar-lazy-load.css', __FILE__ ), 
-        [], 
-        WPA_SUPERSTAR_VERSION 
+    wp_enqueue_style(
+        'wpa-superstar-lazy-load',
+        plugins_url( 'public/css/wpa-superstar-lazy-load.css', __FILE__ ),
+        [],
+        WPA_SUPERSTAR_VERSION
     );
 }
+// Hook the function to appropriate WordPress action
+add_action( 'wp_enqueue_scripts', 'wpa_superstar_lazy_load_assets' );
 
-function minifyCSS($css) {
+/**
+ * Minify CSS content to reduce file size
+ *
+ * @param string $css The CSS content to minify
+ * @return string Minified CSS
+ */
+function wpa_superstar_minify_css($css) {
     // Remove comments
     $css = preg_replace('!/\*[^*]*\*+([^/][^*]*\*+)*/!', '', $css);
     // Remove space after colons
