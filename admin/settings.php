@@ -19,6 +19,7 @@ add_action( 'admin_menu', 'wpa_superstar_admin_menu' );
 function wpa_superstar_register_settings() {
     register_setting( 'wpa-superstar-settings', 'wpa_superstar_lazy_load' );
     register_setting( 'wpa-superstar-settings', 'wpa_superstar_minify_css' );
+    register_setting( 'wpa-superstar-settings', 'wpa_superstar_minify_js' );
 }
 add_action( 'admin_init', 'wpa_superstar_register_settings' );
 
@@ -34,26 +35,13 @@ add_action( 'wp_ajax_wpa_superstar_update_option', 'wpa_superstar_update_option'
 
 // Settings page HTML
 function wpa_superstar_settings_page() {
+    $active_tab = isset( $_GET['tab'] ) ? $_GET['tab'] : 'general';
     ?>
     <div class="wpa-superstar-wrap">
         <h1><?php echo esc_html( get_admin_page_title() ); ?></h1>
+        <h2 class="nav-tab-wrapper">
+            <a href="?page=wpa-superstar&tab=general" class="nav-tab <?php echo $active_tab == 'general' ? 'nav-tab-active' : ''; ?>">General</a>
+            <a href="?page=wpa-superstar&tab=advanced" class="nav-tab <?php echo $active_tab == 'advanced' ? 'nav-tab-active' : ''; ?>">Advanced</a>
+        </h2>
         <form method="post" action="options.php">
-            <?php settings_fields( 'wpa-superstar-settings' ); ?>
-            <?php do_settings_sections( 'wpa-superstar-settings' ); ?>
-            <div class="wpa-superstar-toggle">
-                <label>
-                    <input type="checkbox" name="wpa_superstar_lazy_load" value="1" <?php checked( get_option( 'wpa_superstar_lazy_load', 1 ) ); ?> />
-                    Enable lazy loading for images
-                </label>
-            </div>
-            <div class="wpa-superstar-toggle">
-                <label>
-                    <input type="checkbox" name="wpa_superstar_minify_css" value="1" <?php checked( get_option( 'wpa_superstar_minify_css', 0 ) ); ?> />
-                    Enable CSS minification
-                </label>
-            </div>
-            <?php submit_button(); ?>
-        </form>
-    </div>
-    <?php
-}
+            <?php settings_fields( 'wpa-superstar-settings' );

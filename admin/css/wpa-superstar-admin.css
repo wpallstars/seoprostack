@@ -12,3 +12,15 @@
 .wpa-superstar-toggle {
     margin: 10px 0;
 }
+.nav-tab-wrapper {
+    margin-bottom: 20px;
+}
+.nav-tab {
+    background: #f1f1f1;
+    padding: 8px 16px;
+    border-radius: 4px 4px 0 0;
+}
+.nav-tab-active {
+    background: #fff;
+    border-bottom: 1px solid #fff;
+}

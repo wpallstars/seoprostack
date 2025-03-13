@@ -29,3 +29,16 @@ function wpa_superstar_minify_css( $html ) {
     return trim( $html );
 }
 add_filter( 'style_loader_tag', 'wpa_superstar_minify_css' );
+
+function wpa_superstar_minify_js( $html ) {
+    if ( is_admin() || ! get_option( 'wpa_superstar_minify_js', 0 ) ) {
+        return $html;
+    }
+    $html = preg_replace(
+        array( '/\s+/', '/\/\*.*?\*\//s', '//.*?\n/' ),
+        array( ' ', '', '' ),
+        $html
+    );
+    return trim( $html );
+}
+add_filter( 'script_loader_tag', 'wpa_superstar_minify_js' );
