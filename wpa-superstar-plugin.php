@@ -1,3 +1,4 @@
+
 <?php
 /**
  * Plugin Name: WP ALLSTARS Superstar Plugin
@@ -51,7 +52,7 @@ function wpa_superstar_admin_assets() {
     wp_enqueue_style( 
         'wpa-superstar-admin', 
         plugins_url( 'admin/css/wpa-superstar-admin.css', __FILE__ ), 
-        [], 
+        array(), 
         WPA_SUPERSTAR_VERSION 
     );
 
@@ -59,20 +60,17 @@ function wpa_superstar_admin_assets() {
     wp_enqueue_script( 
         'wpa-superstar-admin', 
         plugins_url( 'admin/js/wpa-superstar-admin.js', __FILE__ ), 
-        [ 'jquery' ], 
+        array('jquery'), 
         WPA_SUPERSTAR_VERSION, 
         true 
     );
 
     // Localize script for AJAX
-    wp_localize_script( 
-        'wpa-superstar-admin', 
-        'wpaSuperstar', 
-        [
-            'ajaxurl' => admin_url( 'admin-ajax.php' ),
-            'nonce'   => wp_create_nonce( 'wpa-superstar-nonce' )
-        ]
+    $ajax_data = array(
+        'ajaxurl' => admin_url( 'admin-ajax.php' ),
+        'nonce'   => wp_create_nonce( 'wpa-superstar-nonce' )
     );
+    wp_localize_script( 'wpa-superstar-admin', 'wpaSuperstar', $ajax_data );
 }
 add_action( 'admin_enqueue_scripts', 'wpa_superstar_admin_assets' );
 
@@ -84,3 +82,14 @@ function lazyLoad_assets() {
         [], 
         WPA_SUPERSTAR_VERSION 
     );
+}
+
+function minifyCSS($css) {
+    // Remove comments
+    $css = preg_replace('!/\*[^*]*\*+([^/][^*]*\*+)*/!', '', $css);
+    // Remove space after colons
+    $css = str_replace(': ', ':', $css);
+    // Remove whitespace
+    $css = str_replace(["\r\n", "\r", "\n", "\t", '  ', '    ', '    '], '', $css);
+    return $css;
+}
