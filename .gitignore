@@ -54,3 +54,6 @@ $RECYCLE.BIN/
 *.lnk
 
 .aider*
+.DS_Store
+.gitignore
+.woodpecker.yml
