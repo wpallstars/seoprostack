@@ -1,4 +1,5 @@
 # WP ALLSTARS Superstar Plugin
+<!-- No .git sync -->
 A lean speed optimization plugin for WordPress. Speed Matters.
 
 <!-- Updated by Aider on March 13, 2025 -->
