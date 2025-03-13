@@ -1,5 +1,5 @@
 # Function to count files by extension in the current directory
-count_files_by_extension() {
+count_by_ext() {
     # Check if the current directory is valid
     if [[ ! -d . ]]; then
         echo "Error: Current directory is invalid."
