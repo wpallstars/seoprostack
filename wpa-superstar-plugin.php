@@ -35,3 +35,10 @@ require_once plugin_dir_path( __FILE__ ) . 'includes/speed-functions.php';
 if ( is_admin() ) {
     require_once plugin_dir_path( __FILE__ ) . 'admin/settings.php';
 }
+
+// Admin assets
+function wpa_superstar_admin_assets() {
+    wp_enqueue_style( 'wpa-superstar-admin', plugins_url( 'admin/css/wpa-superstar-admin.css', __FILE__ ), [], WPA_SUPERSTAR_VERSION );
+    wp_enqueue_script( 'wpa-superstar-admin', plugins_url( 'admin/js/wpa-superstar-admin.js', __FILE__ ), [ 'jquery' ], WPA_SUPERSTAR_VERSION, true );
+}
+add_action( 'admin_enqueue_scripts', 'wpa_superstar_admin_assets' );

@@ -18,28 +18,40 @@ add_action( 'admin_menu', 'wpa_superstar_admin_menu' );
 // Register settings
 function wpa_superstar_register_settings() {
     register_setting( 'wpa-superstar-settings', 'wpa_superstar_lazy_load' );
+    register_setting( 'wpa-superstar-settings', 'wpa_superstar_minify_css' );
 }
 add_action( 'admin_init', 'wpa_superstar_register_settings' );
+
+// AJAX handler
+function wpa_superstar_update_option() {
+    check_ajax_referer( 'wpa-superstar-nonce', 'nonce' );
+    $option = sanitize_text_field( $_POST['option'] );
+    $value = intval( $_POST['value'] );
+    update_option( $option, $value );
+    wp_send_json_success( 'Option updated' );
+}
+add_action( 'wp_ajax_wpa_superstar_update_option', 'wpa_superstar_update_option' );
 
 // Settings page HTML
 function wpa_superstar_settings_page() {
     ?>
-    <div class="wrap">
+    <div class="wpa-superstar-wrap">
         <h1><?php echo esc_html( get_admin_page_title() ); ?></h1>
         <form method="post" action="options.php">
             <?php settings_fields( 'wpa-superstar-settings' ); ?>
             <?php do_settings_sections( 'wpa-superstar-settings' ); ?>
-            <table class="form-table">
-                <tr>
-                    <th scope="row">Lazy Load Images</th>
-                    <td>
-                        <label>
-                            <input type="checkbox" name="wpa_superstar_lazy_load" value="1" <?php checked( get_option( 'wpa_superstar_lazy_load', 1 ) ); ?> />
-                            Enable lazy loading for images
-                        </label>
-                    </td>
-                </tr>
-            </table>
+            <div class="wpa-superstar-toggle">
+                <label>
+                    <input type="checkbox" name="wpa_superstar_lazy_load" value="1" <?php checked( get_option( 'wpa_superstar_lazy_load', 1 ) ); ?> />
+                    Enable lazy loading for images
+                </label>
+            </div>
+            <div class="wpa-superstar-toggle">
+                <label>
+                    <input type="checkbox" name="wpa_superstar_minify_css" value="1" <?php checked( get_option( 'wpa_superstar_minify_css', 0 ) ); ?> />
+                    Enable CSS minification
+                </label>
+            </div>
             <?php submit_button(); ?>
         </form>
     </div>

@@ -1,0 +1,14 @@
+.wpa-superstar-wrap {
+    max-width: 800px;
+    background: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+.wpa-superstar-wrap h1 {
+    font-size: 24px;
+    margin-bottom: 20px;
+}
+.wpa-superstar-toggle {
+    margin: 10px 0;
+}
