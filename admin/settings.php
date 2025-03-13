@@ -44,4 +44,31 @@ function wpa_superstar_settings_page() {
             <a href="?page=wpa-superstar&tab=advanced" class="nav-tab <?php echo $active_tab == 'advanced' ? 'nav-tab-active' : ''; ?>">Advanced</a>
         </h2>
         <form method="post" action="options.php">
-            <?php settings_fields( 'wpa-superstar-settings' );
+            <?php settings_fields( 'wpa-superstar-settings' ); ?>
+            <?php do_settings_sections( 'wpa-superstar-settings' ); ?>
+            <?php if ( $active_tab == 'general' ) : ?>
+                <div class="wpa-superstar-toggle">
+                    <label>
+                        <input type="checkbox" name="wpa_superstar_lazy_load" value="1" <?php checked( get_option( 'wpa_superstar_lazy_load', 1 ) ); ?> />
+                        Enable lazy loading for images
+                    </label>
+                </div>
+            <?php elseif ( $active_tab == 'advanced' ) : ?>
+                <div class="wpa-superstar-toggle">
+                    <label>
+                        <input type="checkbox" name="wpa_superstar_minify_css" value="1" <?php checked( get_option( 'wpa_superstar_minify_css', 0 ) ); ?> />
+                        Enable CSS minification
+                    </label>
+                </div>
+                <div class="wpa-superstar-toggle">
+                    <label>
+                        <input type="checkbox" name="wpa_superstar_minify_js" value="1" <?php checked( get_option( 'wpa_superstar_minify_js', 0 ) ); ?> />
+                        Enable JS minification
+                    </label>
+                </div>
+            <?php endif; ?>
+            <?php submit_button(); ?>
+        </form>
+    </div>
+    <?php
+}
