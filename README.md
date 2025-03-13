@@ -18,5 +18,6 @@ A lean speed optimization plugin for WordPress. Speed Matters.
 
 ## Logs
 - Errors are logged to `wp-content/wpa-superstar.log`.
+- Sync logging enabled
 
 <!-- Last Updated: March 13, 2025 -->
