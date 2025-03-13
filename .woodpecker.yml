@@ -1,0 +1,9 @@
+pipeline:
+  test:
+    image: php:7.4-cli
+    commands:
+      - apt-get update && apt-get install -y git
+      - php -l wpa-superstar-plugin.php  # Syntax check
+      - php -l admin/settings.php
+      - php -l includes/speed-functions.php
+      - echo "Basic linting passed"
