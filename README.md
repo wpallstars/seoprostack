@@ -15,6 +15,7 @@ A lean speed optimization plugin for WordPress. Speed Matters.
 ## Configuration
 - Go to Settings → WPA Superstar.
 - Toggle features in General and Advanced tabs.
+- No Aider files synced
 
 ## Logs
 - Errors are logged to `wp-content/wpa-superstar.log`.
