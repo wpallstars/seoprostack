@@ -5,6 +5,7 @@ A lean speed optimization plugin for WordPress. Speed Matters.
 <!-- Updated by Aider on March 13, 2025 -->
 <!-- Synced by Aider on March 13, 2025 -->
 <!-- Test sync 2 -->
+<!-- Clean sync test -->
 
 ## Features
 - Lazy loading of images
