@@ -16,11 +16,22 @@
 
 // If this file is called directly, abort.
 if ( ! defined( 'WPINC' ) ) {
-	die;
+    die;
 }
 
-/**
- * Currently plugin version.
- * Start at version 1.0.0 and use SemVer - https://semver.org
- */
+// Define plugin version
 define( 'WPA_SUPERSTAR_VERSION', '1.0.0' );
+
+// Activation hook
+function wpa_superstar_activate() {
+    // Add activation logic later if needed
+}
+register_activation_hook( __FILE__, 'wpa_superstar_activate' );
+
+// Load core functionality
+require_once plugin_dir_path( __FILE__ ) . 'includes/speed-functions.php';
+
+// Load admin UI
+if ( is_admin() ) {
+    require_once plugin_dir_path( __FILE__ ) . 'admin/settings.php';
+}
