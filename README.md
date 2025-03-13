@@ -1,13 +1,5 @@
 # WP ALLSTARS Superstar Plugin
-<!-- No .git sync -->
-<!-- Hook fixed -->
-<!-- All good now -->
 A lean speed optimization plugin for WordPress. Speed Matters.
-
-<!-- Updated by Aider on March 13, 2025 -->
-<!-- Synced by Aider on March 13, 2025 -->
-<!-- Test sync 2 -->
-<!-- Clean sync test -->
 
 ## Features
 - Lazy loading of images
@@ -26,4 +18,5 @@ A lean speed optimization plugin for WordPress. Speed Matters.
 
 ## Logs
 - Errors are logged to `wp-content/wpa-superstar.log`.
-- Logging works.
+
+<!-- Last Updated: March 13, 2025 -->
