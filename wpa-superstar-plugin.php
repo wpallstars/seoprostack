@@ -36,6 +36,15 @@ if ( is_admin() ) {
     require_once plugin_dir_path( __FILE__ ) . 'admin/settings.php';
 }
 
+// Localize script for AJAX
+function wpa_superstar_localize_script() {
+    wp_localize_script( 'wpa-superstar-admin', 'wpaSuperstar', [
+        'ajaxurl' => admin_url( 'admin-ajax.php' ),
+        'nonce' => wp_create_nonce( 'wpa-superstar-nonce' )
+    ] );
+}
+add_action( 'admin_enqueue_scripts', 'wpa_superstar_localize_script' );
+
 // Admin assets
 function wpa_superstar_admin_assets() {
     wp_enqueue_style( 'wpa-superstar-admin', plugins_url( 'admin/css/wpa-superstar-admin.css', __FILE__ ), [], WPA_SUPERSTAR_VERSION );
