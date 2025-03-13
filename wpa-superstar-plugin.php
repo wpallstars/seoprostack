@@ -47,7 +47,31 @@ add_action( 'admin_enqueue_scripts', 'wpa_superstar_localize_script' );
 
 // Admin assets
 function wpa_superstar_admin_assets() {
-    wp_enqueue_style( 'wpa-superstar-admin', plugins_url( 'admin/css/wpa-superstar-admin.css', __FILE__ ), [], WPA_SUPERSTAR_VERSION );
-    wp_enqueue_script( 'wpa-superstar-admin', plugins_url( 'admin/js/wpa-superstar-admin.js', __FILE__ ), [ 'jquery' ], WPA_SUPERSTAR_VERSION, true );
+    // Enqueue styles
+    wp_enqueue_style( 
+        'wpa-superstar-admin', 
+        plugins_url( 'admin/css/wpa-superstar-admin.css', __FILE__ ), 
+        [], 
+        WPA_SUPERSTAR_VERSION 
+    );
+
+    // Enqueue script
+    wp_enqueue_script( 
+        'wpa-superstar-admin', 
+        plugins_url( 'admin/js/wpa-superstar-admin.js', __FILE__ ), 
+        [ 'jquery' ], 
+        WPA_SUPERSTAR_VERSION, 
+        true 
+    );
+
+    // Localize script for AJAX
+    wp_localize_script( 
+        'wpa-superstar-admin', 
+        'wpaSuperstar', 
+        [
+            'ajaxurl' => admin_url( 'admin-ajax.php' ),
+            'nonce'   => wp_create_nonce( 'wpa-superstar-nonce' )
+        ]
+    );
 }
 add_action( 'admin_enqueue_scripts', 'wpa_superstar_admin_assets' );
