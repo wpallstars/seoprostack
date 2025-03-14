@@ -418,6 +418,37 @@ function wpa_superstar_clear_theme_cache() {
 add_action('upgrader_process_complete', 'wpa_superstar_clear_theme_cache', 10, 0);
 add_action('switch_theme', 'wpa_superstar_clear_theme_cache');
 
+// Add AJAX handler for theme activation
+function wpa_superstar_activate_theme() {
+    check_ajax_referer('updates');
+    
+    if (!current_user_can('switch_themes')) {
+        wp_send_json_error('Permission denied');
+        return;
+    }
+    
+    $theme = isset($_POST['theme']) ? sanitize_text_field($_POST['theme']) : '';
+    if (empty($theme)) {
+        wp_send_json_error('No theme specified');
+        return;
+    }
+    
+    // Switch the theme
+    switch_theme($theme);
+    
+    // Check if the switch was successful
+    $active_theme = wp_get_theme();
+    if ($active_theme->get_stylesheet() === $theme) {
+        wp_send_json_success(array(
+            'message' => 'Theme activated successfully',
+            'customize_url' => admin_url('customize.php')
+        ));
+    } else {
+        wp_send_json_error('Failed to activate theme');
+    }
+}
+add_action('wp_ajax_wpa_activate_theme', 'wpa_superstar_activate_theme');
+
 // Settings page HTML
 function wpa_superstar_settings_page() {
     global $tabs;
@@ -570,15 +601,19 @@ function wpa_superstar_settings_page() {
                                     url: ajaxurl,
                                     type: 'POST',
                                     data: {
-                                        action: 'switch_theme',
-                                        stylesheet: slug,
-                                        _wpnonce: '<?php echo wp_create_nonce("switch-theme_" . "kadence"); ?>'
+                                        action: 'wpa_activate_theme',
+                                        theme: slug,
+                                        _ajax_nonce: '<?php echo wp_create_nonce("updates"); ?>'
                                     },
                                     success: function(response) {
                                         if (response.success) {
                                             $button.removeClass('updating-message').text('Activated');
                                             setTimeout(function() {
-                                                window.location.href = '<?php echo admin_url("customize.php"); ?>';
+                                                if (response.data && response.data.customize_url) {
+                                                    window.location.href = response.data.customize_url;
+                                                } else {
+                                                    window.location.reload();
+                                                }
                                             }, 1000);
                                         } else {
                                             $button.removeClass('updating-message').text('Activate');
@@ -587,6 +622,7 @@ function wpa_superstar_settings_page() {
                                     },
                                     error: function(xhr, status, error) {
                                         $button.removeClass('updating-message').text('Activate');
+                                        console.error('Theme activation failed:', error);
                                         alert('Theme activation failed: ' + error);
                                     }
                                 });
