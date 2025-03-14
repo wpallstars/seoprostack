@@ -345,14 +345,11 @@ function wpa_superstar_ajax_get_theme() {
             position: absolute;
             right: 0;
             bottom: 0;
-            height: 100%;
-            padding: 0 15px;
-            background: #f6f7f7;
-            border-left: 1px solid #dcdcde;
+            height: 48px;
+            padding: 10px 15px;
             display: flex;
             align-items: flex-end;
             gap: 5px;
-            padding-bottom: 13px;
         }
         .theme-browser .theme .theme-actions .button {
             margin: 0;
