@@ -65,37 +65,72 @@ function wpa_superstar_get_recommended_plugins() {
 
 // Filter plugins API to show only our recommended plugins
 function wpa_superstar_plugins_api_result($res, $action, $args) {
-    if ($action !== 'query_plugins') {
+    // Only filter if we're on our plugin page and it's a plugin query
+    if (!is_admin() || 
+        empty($_GET['page']) || 
+        $_GET['page'] !== 'wpa-superstar' || 
+        $action !== 'query_plugins') {
         return $res;
     }
 
-    if (!empty($_GET['page']) && $_GET['page'] === 'wpa-superstar') {
-        $category = isset($_GET['category']) ? sanitize_key($_GET['category']) : 'minimal';
-        $recommended_plugins = wpa_superstar_get_recommended_plugins();
-        
-        if (isset($recommended_plugins[$category])) {
-            // Get plugin data for our recommended plugins
-            $args = (object) array(
-                'per_page' => 100,
+    // Get the current category
+    $category = isset($_GET['category']) ? sanitize_key($_GET['category']) : 'minimal';
+    $recommended_plugins = wpa_superstar_get_recommended_plugins();
+    
+    // Check if category exists and has plugins
+    if (!isset($recommended_plugins[$category]) || empty($recommended_plugins[$category])) {
+        return $res;
+    }
+
+    try {
+        // Get plugin data for each slug individually to prevent timeouts
+        $plugins = array();
+        foreach ($recommended_plugins[$category] as $slug) {
+            $plugin_data = plugins_api('plugin_information', array(
+                'slug' => $slug,
                 'fields' => array(
-                    'last_updated' => true,
-                    'active_installs' => true,
+                    'short_description' => true,
+                    'sections' => false,
+                    'requires' => true,
+                    'rating' => true,
+                    'ratings' => false,
                     'downloaded' => true,
+                    'last_updated' => true,
+                    'added' => false,
+                    'tags' => false,
+                    'compatibility' => false,
+                    'homepage' => true,
+                    'versions' => false,
+                    'donate_link' => false,
+                    'reviews' => false,
+                    'banners' => false,
                     'icons' => true,
-                ),
-                'locale' => get_user_locale(),
-                'slugs' => $recommended_plugins[$category]
-            );
+                    'active_installs' => true,
+                    'group' => false,
+                    'contributors' => false,
+                )
+            ));
             
-            $query = plugins_api('query_plugins', $args);
-            
-            if (!is_wp_error($query)) {
-                return $query;
+            if (!is_wp_error($plugin_data)) {
+                $plugins[] = $plugin_data;
             }
         }
+
+        // Create a valid response object
+        $res = (object) array(
+            'info' => array(
+                'page' => 1,
+                'pages' => 1,
+                'results' => count($plugins),
+            ),
+            'plugins' => $plugins
+        );
+
+        return $res;
+    } catch (Exception $e) {
+        // If something goes wrong, return original results
+        return $res;
     }
-    
-    return $res;
 }
 add_filter('plugins_api_result', 'wpa_superstar_plugins_api_result', 10, 3);
 
@@ -162,12 +197,24 @@ function wpa_superstar_settings_page() {
                     </div>
 
                     <div class="wp-list-table-container">
+                        <div class="wpa-loading-overlay" style="display: none;">
+                            <span class="spinner is-active"></span>
+                        </div>
                         <?php
                         $wp_list_table = _get_list_table('WP_Plugin_Install_List_Table');
                         $wp_list_table->prepare_items();
                         $wp_list_table->display();
                         ?>
                     </div>
+
+                    <script>
+                    jQuery(document).ready(function($) {
+                        // Show loading state when changing categories
+                        $('.wpa-plugin-filters a').on('click', function() {
+                            $('.wpa-loading-overlay').show();
+                        });
+                    });
+                    </script>
 
                 <?php elseif ($active_tab == 'general'): ?>
                     <div class="wpa-superstar-toggle">
