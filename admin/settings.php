@@ -258,92 +258,91 @@ function wpa_superstar_ajax_get_theme() {
     require_once ABSPATH . 'wp-admin/includes/theme.php';
     require_once ABSPATH . 'wp-admin/includes/class-wp-theme-install-list-table.php';
     
-    // Try to get cached data first
-    $cached_data = wpa_superstar_get_cached_theme();
-    if ($cached_data !== false) {
-        error_log('Using cached theme data');
-        // Setup the list table with cached data
-        $GLOBALS['tab'] = 'theme-install';
-        $_REQUEST['tab'] = 'theme-install';
-        $_REQUEST['type'] = 'theme-install';
-        
-        // Set up the list table
-        $wp_list_table = new WP_Theme_Install_List_Table();
-        $wp_list_table->prepare_items();
-        
-        // Override the items with our cached data
-        $wp_list_table->items = array($cached_data);
-        $wp_list_table->set_pagination_args(array(
-            'total_items' => 1,
-            'per_page' => 1,
-        ));
-        
-        ob_start();
-        $wp_list_table->display();
-        $html = ob_get_clean();
-        
-        wp_send_json_success($html);
-        return;
-    }
+    error_log('Starting theme fetch process');
     
-    error_log('Fetching fresh theme data for Kadence');
-    
-    // If no cache, get fresh data
     try {
+        // Get theme data
         $theme_data = themes_api('theme_information', array(
             'slug' => 'kadence',
             'fields' => array(
-                'sections' => true,
+                'sections' => false,
+                'description' => true,
                 'rating' => true,
                 'ratings' => true,
                 'downloaded' => true,
+                'download_link' => true,
                 'last_updated' => true,
                 'homepage' => true,
-                'description' => true,
+                'tags' => false,
                 'screenshot_url' => true,
                 'version' => true,
                 'requires' => true,
-                'downloadlink' => true,
+                'requires_php' => true,
                 'active_installs' => true,
             )
         ));
         
         if (is_wp_error($theme_data)) {
-            error_log('Error fetching theme data: ' . $theme_data->get_error_message());
-            wp_send_json_error('Failed to fetch theme data: ' . $theme_data->get_error_message());
+            error_log('Theme API Error: ' . $theme_data->get_error_message());
+            wp_send_json_error('Theme API Error: ' . $theme_data->get_error_message());
             return;
         }
         
         error_log('Successfully fetched theme data');
         
-        // Cache the results
-        wpa_superstar_set_cached_theme($theme_data);
-        
-        // Setup the list table
+        // Set up the necessary globals and requests
         $GLOBALS['tab'] = 'theme-install';
         $_REQUEST['tab'] = 'theme-install';
-        $_REQUEST['type'] = 'theme-install';
+        
+        // Create the list table
+        $wp_list_table = new WP_Theme_Install_List_Table();
+        
+        // Set up the theme data
+        $themes = array();
+        $theme = array(
+            'name' => $theme_data->name,
+            'slug' => $theme_data->slug,
+            'version' => $theme_data->version,
+            'author' => $theme_data->author,
+            'preview_url' => $theme_data->preview_url,
+            'screenshot_url' => $theme_data->screenshot_url,
+            'rating' => $theme_data->rating,
+            'num_ratings' => $theme_data->num_ratings,
+            'downloaded' => $theme_data->downloaded,
+            'last_updated' => $theme_data->last_updated,
+            'homepage' => $theme_data->homepage,
+            'description' => $theme_data->description,
+            'download_link' => $theme_data->download_link,
+            'active_installs' => $theme_data->active_installs,
+        );
+        $themes[] = (object) $theme;
         
         // Set up the list table
-        $wp_list_table = new WP_Theme_Install_List_Table();
-        $wp_list_table->prepare_items();
-        
-        // Set the items directly
-        $wp_list_table->items = array($theme_data);
+        $wp_list_table->items = $themes;
         $wp_list_table->set_pagination_args(array(
             'total_items' => 1,
             'per_page' => 1,
         ));
         
+        error_log('Preparing to display theme');
+        
+        // Get the HTML
         ob_start();
         $wp_list_table->display();
         $html = ob_get_clean();
         
+        if (empty($html)) {
+            error_log('Empty HTML generated');
+            wp_send_json_error('Failed to generate theme display');
+            return;
+        }
+        
+        error_log('Successfully generated theme display');
         wp_send_json_success($html);
         
     } catch (Exception $e) {
-        error_log('Failed to fetch theme data: ' . $e->getMessage());
-        wp_send_json_error('Failed to fetch theme data: ' . $e->getMessage());
+        error_log('Theme loading exception: ' . $e->getMessage());
+        wp_send_json_error('Theme loading error: ' . $e->getMessage());
     }
 }
 add_action('wp_ajax_wpa_get_theme', 'wpa_superstar_ajax_get_theme');
