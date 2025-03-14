@@ -202,6 +202,19 @@ function wpa_superstar_plugins_api_result($res, $action, $args) {
 }
 add_filter('plugins_api_result', 'wpa_superstar_plugins_api_result', 10, 3);
 
+// Clear plugin cache when plugins are updated, activated, or deactivated
+function wpa_superstar_clear_plugin_cache() {
+    $recommended_plugins = wpa_superstar_get_recommended_plugins();
+    foreach (array_keys($recommended_plugins) as $category) {
+        delete_transient('wpa_superstar_plugins_' . $category);
+    }
+}
+add_action('upgrader_process_complete', 'wpa_superstar_clear_plugin_cache', 10, 0);
+add_action('activated_plugin', 'wpa_superstar_clear_plugin_cache');
+add_action('deactivated_plugin', 'wpa_superstar_clear_plugin_cache');
+add_action('deleted_plugin', 'wpa_superstar_clear_plugin_cache');
+add_action('update_option_active_plugins', 'wpa_superstar_clear_plugin_cache');
+
 // Settings page HTML
 function wpa_superstar_settings_page() {
     global $tabs;
