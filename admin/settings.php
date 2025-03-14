@@ -329,50 +329,62 @@ function wpa_superstar_ajax_get_theme() {
         
         error_log('WPA Superstar: Successfully fetched theme data');
         
-        // Create the list table
-        $wp_list_table = _get_list_table('WP_Theme_Install_List_Table', array(
-            'screen' => get_current_screen()
-        ));
-        
-        if (!$wp_list_table) {
-            error_log('WPA Superstar: Failed to create list table instance');
-            wp_send_json_error('Failed to create theme list table');
-            return;
-        }
-        
-        // Set up the theme data
-        $theme = array(
-            'name' => $theme_data->name,
-            'slug' => $theme_data->slug,
-            'version' => $theme_data->version,
-            'author' => $theme_data->author,
-            'preview_url' => $theme_data->preview_url,
-            'screenshot_url' => $theme_data->screenshot_url,
-            'rating' => $theme_data->rating,
-            'num_ratings' => $theme_data->num_ratings,
-            'downloaded' => $theme_data->downloaded,
-            'last_updated' => $theme_data->last_updated,
-            'homepage' => $theme_data->homepage,
-            'description' => $theme_data->description,
-            'download_link' => $theme_data->download_link,
-            'active_installs' => $theme_data->active_installs,
-        );
-        
-        error_log('WPA Superstar: Theme data prepared');
-        
-        // Set up the list table
-        $wp_list_table->items = array((object) $theme);
-        $wp_list_table->set_pagination_args(array(
-            'total_items' => 1,
-            'per_page' => 1,
-        ));
-        
-        error_log('WPA Superstar: Preparing to display theme');
-        
-        // Get the HTML
+        // Generate custom HTML for the theme
         ob_start();
-        $wp_list_table->prepare_items();
-        $wp_list_table->display();
+        ?>
+        <div class="theme-browser">
+            <div class="themes wp-clearfix">
+                <div class="theme" tabindex="0">
+                    <div class="theme-screenshot">
+                        <img src="<?php echo esc_url($theme_data->screenshot_url); ?>" alt="">
+                    </div>
+                    <div class="theme-author"><?php printf(__('By %s'), wp_kses_post($theme_data->author)); ?></div>
+                    <h3 class="theme-name"><?php echo esc_html($theme_data->name); ?></h3>
+                    <div class="theme-actions">
+                        <?php if (current_user_can('install_themes')): ?>
+                            <?php 
+                            $installed_theme = wp_get_theme($theme_data->slug);
+                            if ($installed_theme->exists()): ?>
+                                <button type="button" class="button button-primary activate-theme" data-slug="<?php echo esc_attr($theme_data->slug); ?>">
+                                    <?php _e('Activate'); ?>
+                                </button>
+                            <?php else: ?>
+                                <button type="button" class="button button-primary install-theme" data-slug="<?php echo esc_attr($theme_data->slug); ?>">
+                                    <?php _e('Install'); ?>
+                                </button>
+                            <?php endif; ?>
+                        <?php endif; ?>
+                        <a class="button button-secondary preview install-theme-preview" href="<?php echo esc_url($theme_data->preview_url); ?>" target="_blank">
+                            <?php _e('Preview'); ?>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="theme-overlay" style="display: none;">
+            <div class="theme-backdrop"></div>
+            <div class="theme-wrap wp-clearfix">
+                <div class="theme-header">
+                    <button class="close dashicons dashicons-no"><span class="screen-reader-text"><?php _e('Close details dialog'); ?></span></button>
+                </div>
+                <div class="theme-about wp-clearfix">
+                    <div class="theme-screenshots">
+                        <div class="screenshot"><img src="<?php echo esc_url($theme_data->screenshot_url); ?>" alt=""></div>
+                    </div>
+                    <div class="theme-info">
+                        <h2 class="theme-name"><?php echo esc_html($theme_data->name); ?></h2>
+                        <p class="theme-author"><?php printf(__('By %s'), wp_kses_post($theme_data->author)); ?></p>
+                        <p class="theme-description"><?php echo wp_kses_post($theme_data->description); ?></p>
+                        <p class="theme-tags">
+                            <span class="version"><?php printf(__('Version: %s'), esc_html($theme_data->version)); ?></span>
+                            <span class="active-installs"><?php printf(__('Active Installations: %s'), number_format_i18n($theme_data->active_installs)); ?></span>
+                            <span class="last-updated"><?php printf(__('Last Updated: %s'), esc_html($theme_data->last_updated)); ?></span>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <?php
         $html = ob_get_clean();
         
         if (empty($html)) {
@@ -386,6 +398,11 @@ function wpa_superstar_ajax_get_theme() {
         
     } catch (Exception $e) {
         error_log('WPA Superstar Theme loading exception: ' . $e->getMessage());
+        error_log('WPA Superstar Theme loading exception trace: ' . $e->getTraceAsString());
+        wp_send_json_error('Theme loading error: ' . $e->getMessage());
+    } catch (Error $e) {
+        error_log('WPA Superstar Theme loading error: ' . $e->getMessage());
+        error_log('WPA Superstar Theme loading error trace: ' . $e->getTraceAsString());
         wp_send_json_error('Theme loading error: ' . $e->getMessage());
     }
 }
