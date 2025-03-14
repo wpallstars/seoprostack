@@ -1,4 +1,3 @@
-
 <?php
 /**
  * Plugin Name: WP ALLSTARS Superstar Plugin
@@ -88,19 +87,3 @@ function wpa_superstar_lazy_load_assets() {
 }
 // Hook the function to appropriate WordPress action
 add_action( 'wp_enqueue_scripts', 'wpa_superstar_lazy_load_assets' );
-
-/**
- * Minify CSS content to reduce file size
- *
- * @param string $css The CSS content to minify
- * @return string Minified CSS
- */
-function wpa_superstar_minify_css($css) {
-    // Remove comments
-    $css = preg_replace('!/\*[^*]*\*+([^/][^*]*\*+)*/!', '', $css);
-    // Remove space after colons
-    $css = str_replace(': ', ':', $css);
-    // Remove whitespace
-    $css = str_replace(["\r\n", "\r", "\n", "\t", '  ', '    ', '    '], '', $css);
-    return $css;
-}
