@@ -280,6 +280,8 @@ function wpa_superstar_ajax_get_theme() {
                 'requires' => true,
                 'requires_php' => true,
                 'active_installs' => true,
+                'author' => true,
+                'preview_url' => true,
             )
         ));
         
@@ -291,6 +293,14 @@ function wpa_superstar_ajax_get_theme() {
         
         error_log('WPA Superstar: Successfully fetched theme data');
         
+        // Format author data
+        $author = '';
+        if (is_string($theme_data->author)) {
+            $author = $theme_data->author;
+        } elseif (is_array($theme_data->author)) {
+            $author = isset($theme_data->author['display_name']) ? $theme_data->author['display_name'] : '';
+        }
+        
         // Generate custom HTML for the theme
         ob_start();
         ?>
@@ -300,7 +310,7 @@ function wpa_superstar_ajax_get_theme() {
                     <div class="theme-screenshot">
                         <img src="<?php echo esc_url($theme_data->screenshot_url); ?>" alt="">
                     </div>
-                    <div class="theme-author"><?php echo esc_html(sprintf(__('By %s'), strip_tags($theme_data->author))); ?></div>
+                    <div class="theme-author"><?php echo esc_html(sprintf(__('By %s'), $author)); ?></div>
                     <h3 class="theme-name"><?php echo esc_html($theme_data->name); ?></h3>
                     <div class="theme-actions">
                         <?php if (current_user_can('install_themes')): ?>
@@ -335,7 +345,7 @@ function wpa_superstar_ajax_get_theme() {
                     </div>
                     <div class="theme-info">
                         <h2 class="theme-name"><?php echo esc_html($theme_data->name); ?></h2>
-                        <p class="theme-author"><?php echo esc_html(sprintf(__('By %s'), strip_tags($theme_data->author))); ?></p>
+                        <p class="theme-author"><?php echo esc_html(sprintf(__('By %s'), $author)); ?></p>
                         <p class="theme-description"><?php echo esc_html($theme_data->description); ?></p>
                         <p class="theme-tags">
                             <span class="version"><?php echo esc_html(sprintf(__('Version: %s'), $theme_data->version)); ?></span>
