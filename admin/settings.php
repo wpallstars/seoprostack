@@ -314,7 +314,7 @@ function wpa_superstar_ajax_get_theme() {
             border: 1px solid #dcdcde;
             box-shadow: 0 1px 1px rgba(0,0,0,.04);
             background: #fff;
-            min-height: 330px;
+            min-height: 800px;
             padding-bottom: 50px;
         }
         .theme-browser .theme .theme-screenshot {
