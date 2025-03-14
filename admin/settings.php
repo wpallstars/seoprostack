@@ -320,8 +320,6 @@ function wpa_superstar_ajax_get_theme() {
             display: block;
             overflow: hidden;
             position: relative;
-            -webkit-backface-visibility: hidden;
-            transition: opacity .2s ease-in-out;
             background: #fff;
         }
         .theme-browser .theme .theme-screenshot img {
@@ -335,45 +333,29 @@ function wpa_superstar_ajax_get_theme() {
             height: 48px;
             margin: 0;
             padding: 15px;
+            padding-right: 180px;
             box-shadow: inset 0 1px 0 rgba(0,0,0,.1);
             overflow: hidden;
             white-space: nowrap;
             text-overflow: ellipsis;
-            background: #fff;
+            background: #f6f7f7;
             position: relative;
-            padding-right: 180px;
         }
         .theme-browser .theme .theme-actions {
             position: absolute;
             right: 0;
             bottom: 0;
-            padding: 10px 15px;
-            background: #f0f0f1;
-            border-left: 1px solid rgba(0,0,0,.05);
-            height: 46px;
+            height: 48px;
+            padding: 9px 15px;
             box-sizing: border-box;
-        }
-        .theme-browser .theme .theme-author {
-            background: rgba(0,0,0,.7);
-            color: #fff;
-            padding: 5px;
-            position: absolute;
-            bottom: 56px;
-            left: 0;
-            right: 0;
-            text-align: center;
-            opacity: 0;
-            transition: opacity .1s ease-in-out;
-        }
-        .theme-browser .theme:hover .theme-author {
-            opacity: 1;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            background: #f6f7f7;
+            border-left: 1px solid #dcdcde;
         }
         .theme-browser .theme .theme-actions .button {
-            float: none;
-            margin-left: 3px;
-        }
-        .theme-browser .theme .theme-actions .button:first-child {
-            margin-left: 0;
+            margin: 0;
         }
         </style>
         <div class="theme-browser">
