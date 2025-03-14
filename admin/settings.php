@@ -36,7 +36,7 @@ add_action('wp_ajax_wpa_superstar_update_option', 'wpa_superstar_update_option')
 // Define recommended plugins
 function wpa_superstar_get_recommended_plugins() {
     return array(
-        'recommended' => array(
+        'minimal' => array(
             'advanced-custom-fields',
             'admin-menu-editor',
             'antispam-bee',
@@ -64,26 +64,47 @@ function wpa_superstar_get_recommended_plugins() {
 }
 
 // Filter plugins API to show only our recommended plugins
-function wpa_superstar_plugins_api_filter($args) {
+function wpa_superstar_plugins_api_result($res, $action, $args) {
+    if ($action !== 'query_plugins') {
+        return $res;
+    }
+
     if (!empty($_GET['page']) && $_GET['page'] === 'wpa-superstar') {
-        $category = isset($_GET['category']) ? sanitize_key($_GET['category']) : 'recommended';
+        $category = isset($_GET['category']) ? sanitize_key($_GET['category']) : 'minimal';
         $recommended_plugins = wpa_superstar_get_recommended_plugins();
         
         if (isset($recommended_plugins[$category])) {
-            $args->per_page = 100;
-            $args->plugins = $recommended_plugins[$category];
+            // Get plugin data for our recommended plugins
+            $args = (object) array(
+                'per_page' => 100,
+                'fields' => array(
+                    'last_updated' => true,
+                    'active_installs' => true,
+                    'downloaded' => true,
+                    'icons' => true,
+                ),
+                'locale' => get_user_locale(),
+                'slugs' => $recommended_plugins[$category]
+            );
+            
+            $query = plugins_api('query_plugins', $args);
+            
+            if (!is_wp_error($query)) {
+                return $query;
+            }
         }
     }
-    return $args;
+    
+    return $res;
 }
-add_filter('plugins_api_args', 'wpa_superstar_plugins_api_filter');
+add_filter('plugins_api_result', 'wpa_superstar_plugins_api_result', 10, 3);
 
 // Settings page HTML
 function wpa_superstar_settings_page() {
     global $tabs;
     
     $active_tab = isset($_GET['tab']) ? $_GET['tab'] : 'recommended';
-    $active_category = isset($_GET['category']) ? $_GET['category'] : 'recommended';
+    $active_category = isset($_GET['category']) ? $_GET['category'] : 'minimal';
     
     // Ensure required files are loaded
     if ($active_tab === 'recommended') {
@@ -108,7 +129,7 @@ function wpa_superstar_settings_page() {
             <div class="wpa-superstar-nav">
                 <h2 class="nav-tab-wrapper">
                     <a href="?page=wpa-superstar&tab=recommended" class="nav-tab <?php echo $active_tab == 'recommended' ? 'nav-tab-active' : ''; ?>">
-                        <?php esc_html_e('Recommended', 'wpa-superstar'); ?>
+                        <?php esc_html_e('Free Plugins', 'wpa-superstar'); ?>
                     </a>
                     <a href="?page=wpa-superstar&tab=general" class="nav-tab <?php echo $active_tab == 'general' ? 'nav-tab-active' : ''; ?>">
                         <?php esc_html_e('General', 'wpa-superstar'); ?>
@@ -122,9 +143,9 @@ function wpa_superstar_settings_page() {
             <div class="wpa-settings-content">
                 <?php if ($active_tab == 'recommended'): ?>
                     <div class="wpa-plugin-filters">
-                        <a href="?page=wpa-superstar&tab=recommended&category=recommended" 
-                           class="button <?php echo $active_category == 'recommended' ? 'button-primary' : ''; ?>">
-                            <?php esc_html_e('Recommended', 'wpa-superstar'); ?>
+                        <a href="?page=wpa-superstar&tab=recommended&category=minimal" 
+                           class="button <?php echo $active_category == 'minimal' ? 'button-primary' : ''; ?>">
+                            <?php esc_html_e('Minimal', 'wpa-superstar'); ?>
                         </a>
                         <a href="?page=wpa-superstar&tab=recommended&category=advanced" 
                            class="button <?php echo $active_category == 'advanced' ? 'button-primary' : ''; ?>">
