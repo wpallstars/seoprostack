@@ -314,7 +314,6 @@ function wpa_superstar_ajax_get_theme() {
             border: 1px solid #dcdcde;
             box-shadow: 0 1px 1px rgba(0,0,0,.04);
             box-sizing: border-box;
-            min-height: 330px;
         }
         .theme-browser .theme .theme-screenshot {
             display: block;
@@ -322,8 +321,8 @@ function wpa_superstar_ajax_get_theme() {
             position: relative;
             -webkit-backface-visibility: hidden;
             transition: opacity .2s ease-in-out;
-            background-position: center;
-            background-size: cover;
+            background: #fff;
+            padding-top: 66.66666%; /* Enforces screenshot aspect ratio */
         }
         .theme-browser .theme .theme-screenshot img {
             height: auto;
@@ -331,7 +330,7 @@ function wpa_superstar_ajax_get_theme() {
             left: 0;
             top: 0;
             width: 100%;
-            transition: opacity .2s ease-in-out;
+            transform: translateZ(0);
         }
         .theme-browser .theme .theme-name {
             font-size: 15px;
@@ -343,7 +342,6 @@ function wpa_superstar_ajax_get_theme() {
             white-space: nowrap;
             text-overflow: ellipsis;
             background: #fff;
-            background: rgba(255,255,255,.65);
         }
         .theme-browser .theme .theme-actions {
             opacity: 0;
@@ -352,13 +350,11 @@ function wpa_superstar_ajax_get_theme() {
             bottom: 0;
             right: 0;
             padding: 9px 15px;
-            box-shadow: inset 0 1px 0 rgba(0,0,0,.1);
             background: rgba(244,244,244,.7);
-            height: auto;
-            z-index: 1;
+            border-left: 1px solid rgba(0,0,0,.05);
         }
-        .theme-browser .theme:hover .theme-actions,
-        .theme-browser .theme:focus .theme-actions {
+        .theme-browser .theme:focus .theme-actions,
+        .theme-browser .theme:hover .theme-actions {
             opacity: 1;
         }
         .theme-browser .theme .theme-author {
@@ -373,6 +369,7 @@ function wpa_superstar_ajax_get_theme() {
             opacity: 0;
             transition: opacity .1s ease-in-out;
         }
+        .theme-browser .theme:focus .theme-author,
         .theme-browser .theme:hover .theme-author {
             opacity: 1;
         }
