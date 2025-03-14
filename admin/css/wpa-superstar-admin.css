@@ -33,7 +33,7 @@
     margin-bottom: -1px;
 }
 
-/* ACF-style checkbox toggles */
+/* ACF-style toggle switches */
 .wpa-superstar-toggle {
     margin: 15px 0;
     padding: 15px;
@@ -53,39 +53,71 @@
     cursor: pointer;
 }
 
-.wpa-superstar-toggle input[type="checkbox"] {
-    margin: 0 8px 0 0;
-    border: 1px solid #7e8993;
-    border-radius: 4px;
-    background: #fff;
-    color: #555;
-    clear: none;
-    cursor: pointer;
-    display: inline-block;
-    line-height: 0;
-    height: 16px;
-    width: 16px;
-    min-width: 16px;
-    outline: 0;
-    padding: 0 !important;
-    text-align: center;
-    vertical-align: middle;
-    -webkit-appearance: none;
-    box-shadow: inset 0 1px 2px rgba(0,0,0,0.1);
-    transition: .05s border-color ease-in-out;
+.wpa-superstar-toggle .description {
+    margin: 5px 0 0 44px;
+    color: #666;
 }
 
-.wpa-superstar-toggle input[type="checkbox"]:checked {
-    background: #2271b1;
+/* Toggle Switch Container */
+.wpa-toggle-switch {
+    position: relative;
+    display: inline-block;
+    width: 36px;
+    height: 20px;
+    margin-right: 8px;
+}
+
+/* Hide default checkbox */
+.wpa-toggle-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+    margin: 0;
+}
+
+/* The slider */
+.wpa-toggle-slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccd0d4;
+    transition: .3s;
+    border-radius: 20px;
+    border: 2px solid #ccd0d4;
+}
+
+/* Slider knob */
+.wpa-toggle-slider:before {
+    position: absolute;
+    content: "";
+    height: 12px;
+    width: 12px;
+    left: 2px;
+    bottom: 2px;
+    background-color: white;
+    transition: .3s;
+    border-radius: 50%;
+}
+
+/* Active/checked state */
+.wpa-toggle-switch input:checked + .wpa-toggle-slider {
+    background-color: #2271b1;
     border-color: #2271b1;
 }
 
-.wpa-superstar-toggle input[type="checkbox"]:checked::before {
-    content: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path fill="%23fff" d="M14.83 4.89l1.34.94-5.81 8.38H9.02L5.78 9.67l1.34-1.25 2.57 2.4z"/></svg>');
-    float: left;
-    display: inline-block;
-    vertical-align: middle;
-    width: 16px;
-    height: 16px;
-    margin: -1px 0 0 -1px;
+.wpa-toggle-switch input:checked + .wpa-toggle-slider:before {
+    transform: translateX(16px);
+}
+
+/* Focus state */
+.wpa-toggle-switch input:focus + .wpa-toggle-slider {
+    box-shadow: 0 0 0 1px #fff, 0 0 0 3px #2271b1;
+}
+
+/* Hover state */
+.wpa-toggle-switch:hover .wpa-toggle-slider {
+    border-color: #2271b1;
 }

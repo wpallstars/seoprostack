@@ -56,12 +56,15 @@ function wpa_superstar_settings_page() {
             <?php if ( $active_tab == 'general' ) : ?>
                 <div class="wpa-superstar-toggle">
                     <label for="wpa_superstar_lazy_load">
-                        <input type="checkbox" 
-                               id="wpa_superstar_lazy_load"
-                               name="wpa_superstar_lazy_load" 
-                               value="1" 
-                               <?php checked( get_option( 'wpa_superstar_lazy_load', 1 ) ); ?> 
-                        />
+                        <div class="wpa-toggle-switch">
+                            <input type="checkbox" 
+                                   id="wpa_superstar_lazy_load"
+                                   name="wpa_superstar_lazy_load" 
+                                   value="1" 
+                                   <?php checked( get_option( 'wpa_superstar_lazy_load', 1 ) ); ?> 
+                            />
+                            <span class="wpa-toggle-slider"></span>
+                        </div>
                         <?php esc_html_e( 'Enable lazy loading for images', 'wpa-superstar' ); ?>
                     </label>
                     <p class="description">
@@ -71,12 +74,15 @@ function wpa_superstar_settings_page() {
             <?php elseif ( $active_tab == 'advanced' ) : ?>
                 <div class="wpa-superstar-toggle">
                     <label for="wpa_superstar_minify_css">
-                        <input type="checkbox" 
-                               id="wpa_superstar_minify_css"
-                               name="wpa_superstar_minify_css" 
-                               value="1" 
-                               <?php checked( get_option( 'wpa_superstar_minify_css', 0 ) ); ?> 
-                        />
+                        <div class="wpa-toggle-switch">
+                            <input type="checkbox" 
+                                   id="wpa_superstar_minify_css"
+                                   name="wpa_superstar_minify_css" 
+                                   value="1" 
+                                   <?php checked( get_option( 'wpa_superstar_minify_css', 0 ) ); ?> 
+                            />
+                            <span class="wpa-toggle-slider"></span>
+                        </div>
                         <?php esc_html_e( 'Enable CSS minification', 'wpa-superstar' ); ?>
                     </label>
                     <p class="description">
@@ -86,12 +92,15 @@ function wpa_superstar_settings_page() {
 
                 <div class="wpa-superstar-toggle">
                     <label for="wpa_superstar_minify_js">
-                        <input type="checkbox" 
-                               id="wpa_superstar_minify_js"
-                               name="wpa_superstar_minify_js" 
-                               value="1" 
-                               <?php checked( get_option( 'wpa_superstar_minify_js', 0 ) ); ?> 
-                        />
+                        <div class="wpa-toggle-switch">
+                            <input type="checkbox" 
+                                   id="wpa_superstar_minify_js"
+                                   name="wpa_superstar_minify_js" 
+                                   value="1" 
+                                   <?php checked( get_option( 'wpa_superstar_minify_js', 0 ) ); ?> 
+                            />
+                            <span class="wpa-toggle-slider"></span>
+                        </div>
                         <?php esc_html_e( 'Enable JS minification', 'wpa-superstar' ); ?>
                     </label>
                     <p class="description">
