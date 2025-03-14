@@ -80,12 +80,54 @@ function wpa_superstar_set_cached_plugins($category, $data) {
     set_transient($cache_key, $data, 12 * HOUR_IN_SECONDS);
 }
 
+// Add AJAX endpoint for plugin list
+function wpa_superstar_ajax_get_plugins() {
+    check_ajax_referer('updates');
+    
+    if (!current_user_can('install_plugins')) {
+        wp_die(-1);
+    }
+
+    $category = isset($_GET['category']) ? sanitize_key($_GET['category']) : 'minimal';
+    
+    require_once ABSPATH . 'wp-admin/includes/plugin-install.php';
+    
+    // Set up the query args to match our filter
+    $_GET['page'] = 'wpa-superstar'; // Set this so our filter knows to run
+    $_REQUEST['page'] = 'wpa-superstar';
+    
+    // Setup the list table
+    $wp_list_table = _get_list_table('WP_Plugin_Install_List_Table', array(
+        'screen' => 'plugin-install',
+    ));
+    
+    // Force per_page to match our category size
+    $recommended_plugins = wpa_superstar_get_recommended_plugins();
+    $per_page = isset($recommended_plugins[$category]) ? count($recommended_plugins[$category]) : 10;
+    
+    // Set up the query args
+    set_current_screen('plugin-install');
+    $_REQUEST['type'] = 'search';
+    $_REQUEST['s'] = ''; // Empty search to get all plugins
+    $_REQUEST['tab'] = 'search';
+    $_REQUEST['per_page'] = $per_page;
+    
+    $wp_list_table->prepare_items();
+    
+    ob_start();
+    $wp_list_table->display();
+    $html = ob_get_clean();
+    
+    wp_send_json_success($html);
+}
+add_action('wp_ajax_wpa_get_plugins', 'wpa_superstar_ajax_get_plugins');
+
 // Filter plugins API to show only our recommended plugins
 function wpa_superstar_plugins_api_result($res, $action, $args) {
     // Only filter if we're on our plugin page and it's a plugin query
     if (!is_admin() || 
-        empty($_GET['page']) || 
-        $_GET['page'] !== 'wpa-superstar' || 
+        empty($_REQUEST['page']) || 
+        $_REQUEST['page'] !== 'wpa-superstar' || 
         $action !== 'query_plugins') {
         return $res;
     }
@@ -159,30 +201,6 @@ function wpa_superstar_plugins_api_result($res, $action, $args) {
     }
 }
 add_filter('plugins_api_result', 'wpa_superstar_plugins_api_result', 10, 3);
-
-// Add AJAX endpoint for plugin list
-function wpa_superstar_ajax_get_plugins() {
-    check_ajax_referer('updates');
-    
-    if (!current_user_can('install_plugins')) {
-        wp_die(-1);
-    }
-
-    $category = isset($_GET['category']) ? sanitize_key($_GET['category']) : 'minimal';
-    
-    require_once ABSPATH . 'wp-admin/includes/plugin-install.php';
-    
-    // Setup the list table
-    $wp_list_table = _get_list_table('WP_Plugin_Install_List_Table', array('screen' => 'plugin-install'));
-    $wp_list_table->prepare_items();
-    
-    ob_start();
-    $wp_list_table->display();
-    $html = ob_get_clean();
-    
-    wp_send_json_success($html);
-}
-add_action('wp_ajax_wpa_get_plugins', 'wpa_superstar_ajax_get_plugins');
 
 // Settings page HTML
 function wpa_superstar_settings_page() {
