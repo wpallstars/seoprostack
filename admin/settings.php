@@ -253,51 +253,13 @@ function wpa_superstar_ajax_get_theme() {
     
     if (!current_user_can('install_themes')) {
         error_log('WPA Superstar: User does not have permission to install themes');
-        wp_die(-1);
+        wp_send_json_error('Permission denied');
+        return;
     }
     
     error_log('WPA Superstar: Starting theme fetch process');
     
     try {
-        // Make sure required files are loaded in the correct order
-        if (!class_exists('WP_List_Table')) {
-            error_log('WPA Superstar: Loading list table base class');
-            require_once ABSPATH . 'wp-admin/includes/class-wp-list-table.php';
-        }
-        
-        if (!class_exists('WP_Themes_List_Table')) {
-            error_log('WPA Superstar: Loading themes list table class');
-            require_once ABSPATH . 'wp-admin/includes/class-wp-themes-list-table.php';
-        }
-        
-        if (!class_exists('WP_Theme_Install_List_Table')) {
-            error_log('WPA Superstar: Loading theme install list table class');
-            require_once ABSPATH . 'wp-admin/includes/class-wp-theme-install-list-table.php';
-        }
-        
-        if (!function_exists('themes_api')) {
-            error_log('WPA Superstar: Loading theme.php');
-            require_once ABSPATH . 'wp-admin/includes/theme.php';
-        }
-        
-        // Set up the necessary globals and requests
-        $GLOBALS['tab'] = 'theme-install';
-        $_REQUEST['tab'] = 'theme-install';
-        $_REQUEST['type'] = 'theme-install';
-        
-        // Set up the screen
-        if (!function_exists('get_current_screen')) {
-            error_log('WPA Superstar: Loading admin screen functions');
-            require_once ABSPATH . 'wp-admin/includes/screen.php';
-        }
-        
-        if (!function_exists('set_current_screen')) {
-            error_log('WPA Superstar: Loading admin functions');
-            require_once ABSPATH . 'wp-admin/includes/admin.php';
-        }
-        
-        set_current_screen('theme-install');
-        
         error_log('WPA Superstar: Fetching theme data for kadence');
         
         // Get theme data with minimal fields
@@ -338,24 +300,24 @@ function wpa_superstar_ajax_get_theme() {
                     <div class="theme-screenshot">
                         <img src="<?php echo esc_url($theme_data->screenshot_url); ?>" alt="">
                     </div>
-                    <div class="theme-author"><?php printf(__('By %s'), wp_kses_post($theme_data->author)); ?></div>
+                    <div class="theme-author"><?php echo esc_html(sprintf(__('By %s'), strip_tags($theme_data->author))); ?></div>
                     <h3 class="theme-name"><?php echo esc_html($theme_data->name); ?></h3>
                     <div class="theme-actions">
                         <?php if (current_user_can('install_themes')): ?>
                             <?php 
-                            $installed_theme = wp_get_theme($theme_data->slug);
+                            $installed_theme = wp_get_theme('kadence');
                             if ($installed_theme->exists()): ?>
-                                <button type="button" class="button button-primary activate-theme" data-slug="<?php echo esc_attr($theme_data->slug); ?>">
-                                    <?php _e('Activate'); ?>
+                                <button type="button" class="button button-primary activate-theme" data-slug="kadence">
+                                    <?php esc_html_e('Activate'); ?>
                                 </button>
                             <?php else: ?>
-                                <button type="button" class="button button-primary install-theme" data-slug="<?php echo esc_attr($theme_data->slug); ?>">
-                                    <?php _e('Install'); ?>
+                                <button type="button" class="button button-primary install-theme" data-slug="kadence">
+                                    <?php esc_html_e('Install'); ?>
                                 </button>
                             <?php endif; ?>
                         <?php endif; ?>
                         <a class="button button-secondary preview install-theme-preview" href="<?php echo esc_url($theme_data->preview_url); ?>" target="_blank">
-                            <?php _e('Preview'); ?>
+                            <?php esc_html_e('Preview'); ?>
                         </a>
                     </div>
                 </div>
@@ -365,7 +327,7 @@ function wpa_superstar_ajax_get_theme() {
             <div class="theme-backdrop"></div>
             <div class="theme-wrap wp-clearfix">
                 <div class="theme-header">
-                    <button class="close dashicons dashicons-no"><span class="screen-reader-text"><?php _e('Close details dialog'); ?></span></button>
+                    <button class="close dashicons dashicons-no"><span class="screen-reader-text"><?php esc_html_e('Close details dialog'); ?></span></button>
                 </div>
                 <div class="theme-about wp-clearfix">
                     <div class="theme-screenshots">
@@ -373,12 +335,12 @@ function wpa_superstar_ajax_get_theme() {
                     </div>
                     <div class="theme-info">
                         <h2 class="theme-name"><?php echo esc_html($theme_data->name); ?></h2>
-                        <p class="theme-author"><?php printf(__('By %s'), wp_kses_post($theme_data->author)); ?></p>
-                        <p class="theme-description"><?php echo wp_kses_post($theme_data->description); ?></p>
+                        <p class="theme-author"><?php echo esc_html(sprintf(__('By %s'), strip_tags($theme_data->author))); ?></p>
+                        <p class="theme-description"><?php echo esc_html($theme_data->description); ?></p>
                         <p class="theme-tags">
-                            <span class="version"><?php printf(__('Version: %s'), esc_html($theme_data->version)); ?></span>
-                            <span class="active-installs"><?php printf(__('Active Installations: %s'), number_format_i18n($theme_data->active_installs)); ?></span>
-                            <span class="last-updated"><?php printf(__('Last Updated: %s'), esc_html($theme_data->last_updated)); ?></span>
+                            <span class="version"><?php echo esc_html(sprintf(__('Version: %s'), $theme_data->version)); ?></span>
+                            <span class="active-installs"><?php echo esc_html(sprintf(__('Active Installations: %s'), number_format_i18n($theme_data->active_installs))); ?></span>
+                            <span class="last-updated"><?php echo esc_html(sprintf(__('Last Updated: %s'), $theme_data->last_updated)); ?></span>
                         </p>
                     </div>
                 </div>
