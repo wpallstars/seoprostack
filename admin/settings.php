@@ -255,20 +255,28 @@ function wpa_superstar_ajax_get_theme() {
         wp_die(-1);
     }
     
-    require_once ABSPATH . 'wp-admin/includes/theme.php';
-    require_once ABSPATH . 'wp-admin/includes/class-wp-theme-install-list-table.php';
-    
-    error_log('Starting theme fetch process');
+    error_log('WPA Superstar: Starting theme fetch process');
     
     try {
-        // Get theme data
+        // Make sure required files are loaded
+        require_once ABSPATH . 'wp-admin/includes/theme.php';
+        require_once ABSPATH . 'wp-admin/includes/class-wp-theme-install-list-table.php';
+        
+        // Set up the necessary globals and requests
+        $GLOBALS['tab'] = 'theme-install';
+        $_REQUEST['tab'] = 'theme-install';
+        set_current_screen('theme-install');
+        
+        error_log('WPA Superstar: Fetching theme data for kadence');
+        
+        // Get theme data with minimal fields
         $theme_data = themes_api('theme_information', array(
             'slug' => 'kadence',
             'fields' => array(
                 'sections' => false,
                 'description' => true,
                 'rating' => true,
-                'ratings' => true,
+                'ratings' => false,
                 'downloaded' => true,
                 'download_link' => true,
                 'last_updated' => true,
@@ -283,22 +291,25 @@ function wpa_superstar_ajax_get_theme() {
         ));
         
         if (is_wp_error($theme_data)) {
-            error_log('Theme API Error: ' . $theme_data->get_error_message());
+            error_log('WPA Superstar Theme API Error: ' . $theme_data->get_error_message());
             wp_send_json_error('Theme API Error: ' . $theme_data->get_error_message());
             return;
         }
         
-        error_log('Successfully fetched theme data');
-        
-        // Set up the necessary globals and requests
-        $GLOBALS['tab'] = 'theme-install';
-        $_REQUEST['tab'] = 'theme-install';
+        error_log('WPA Superstar: Successfully fetched theme data');
         
         // Create the list table
-        $wp_list_table = new WP_Theme_Install_List_Table();
+        $wp_list_table = _get_list_table('WP_Theme_Install_List_Table', array(
+            'screen' => get_current_screen()
+        ));
+        
+        if (!$wp_list_table) {
+            error_log('WPA Superstar: Failed to create list table instance');
+            wp_send_json_error('Failed to create theme list table');
+            return;
+        }
         
         // Set up the theme data
-        $themes = array();
         $theme = array(
             'name' => $theme_data->name,
             'slug' => $theme_data->slug,
@@ -315,33 +326,35 @@ function wpa_superstar_ajax_get_theme() {
             'download_link' => $theme_data->download_link,
             'active_installs' => $theme_data->active_installs,
         );
-        $themes[] = (object) $theme;
+        
+        error_log('WPA Superstar: Theme data prepared');
         
         // Set up the list table
-        $wp_list_table->items = $themes;
+        $wp_list_table->items = array((object) $theme);
         $wp_list_table->set_pagination_args(array(
             'total_items' => 1,
             'per_page' => 1,
         ));
         
-        error_log('Preparing to display theme');
+        error_log('WPA Superstar: Preparing to display theme');
         
         // Get the HTML
         ob_start();
+        $wp_list_table->prepare_items();
         $wp_list_table->display();
         $html = ob_get_clean();
         
         if (empty($html)) {
-            error_log('Empty HTML generated');
+            error_log('WPA Superstar: Empty HTML generated');
             wp_send_json_error('Failed to generate theme display');
             return;
         }
         
-        error_log('Successfully generated theme display');
+        error_log('WPA Superstar: Successfully generated theme display');
         wp_send_json_success($html);
         
     } catch (Exception $e) {
-        error_log('Theme loading exception: ' . $e->getMessage());
+        error_log('WPA Superstar Theme loading exception: ' . $e->getMessage());
         wp_send_json_error('Theme loading error: ' . $e->getMessage());
     }
 }
