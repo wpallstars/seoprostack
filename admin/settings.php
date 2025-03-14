@@ -341,15 +341,18 @@ function wpa_superstar_ajax_get_theme() {
         }
         .theme-browser .theme .theme-actions {
             position: absolute;
-            top: 0;
+            top: 50%;
+            transform: translateY(-50%);
             left: 0;
             right: 0;
-            bottom: 48px;
+            bottom: auto;
+            height: auto;
             display: flex;
             align-items: center;
             justify-content: center;
             gap: 5px;
             background: rgba(255, 255, 255, 0.9);
+            padding: 20px 0;
         }
         .theme-browser .theme .theme-actions .button {
             margin: 0;
