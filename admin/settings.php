@@ -314,6 +314,7 @@ function wpa_superstar_ajax_get_theme() {
             border: 1px solid #dcdcde;
             box-shadow: 0 1px 1px rgba(0,0,0,.04);
             background: #fff;
+            min-height: 330px;
         }
         .theme-browser .theme .theme-screenshot {
             display: block;
@@ -326,6 +327,7 @@ function wpa_superstar_ajax_get_theme() {
             width: 100%;
             transform: translateZ(0);
             transition: opacity .2s ease-in-out;
+            display: block;
         }
         .theme-browser .theme .theme-name {
             font-size: 15px;
@@ -344,16 +346,17 @@ function wpa_superstar_ajax_get_theme() {
             position: absolute;
             bottom: 0;
             right: 0;
-            height: 38px;
-            padding: 9px 10px 0;
+            padding: 10px;
             background: rgba(244,244,244,.7);
             border-left: 1px solid rgba(0,0,0,.05);
+            height: auto;
+            z-index: 1;
         }
         .theme-browser .theme:hover .theme-actions {
             opacity: 1;
         }
         .theme-browser .theme .theme-author {
-            background: #23282d;
+            background: rgba(35, 40, 45, 0.85);
             color: #eee;
             font-size: 14px;
             margin: 0;
@@ -362,7 +365,6 @@ function wpa_superstar_ajax_get_theme() {
             bottom: 56px;
             left: 0;
             opacity: 0;
-            overflow: hidden;
             right: 0;
             text-align: center;
             text-shadow: 0 1px 0 rgba(0,0,0,.6);
