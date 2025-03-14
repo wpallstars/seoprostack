@@ -33,9 +33,108 @@ function wpa_superstar_update_option() {
 }
 add_action( 'wp_ajax_wpa_superstar_update_option', 'wpa_superstar_update_option' );
 
+// Define recommended plugins
+function wpa_superstar_get_recommended_plugins() {
+    return array(
+        'utilities' => array(
+            'name' => 'Recommended',
+            'plugins' => array(
+                array(
+                    'slug' => 'advanced-custom-fields',
+                    'name' => 'Advanced Custom Fields',
+                    'description' => 'Customize WordPress with powerful, professional and intuitive fields.',
+                    'author' => 'WP Engine',
+                    'category' => 'recommended'
+                ),
+                array(
+                    'slug' => 'admin-menu-editor',
+                    'name' => 'Admin Menu Editor',
+                    'description' => 'Customize the WordPress admin menu.',
+                    'author' => 'Janis Elsts',
+                    'category' => 'recommended'
+                ),
+                array(
+                    'slug' => 'antispam-bee',
+                    'name' => 'Antispam Bee',
+                    'description' => 'Antispam plugin with a sophisticated toolset for effective spam protection.',
+                    'author' => 'pluginkollektiv',
+                    'category' => 'recommended'
+                ),
+                array(
+                    'slug' => 'burst-statistics',
+                    'name' => 'Burst Statistics',
+                    'description' => 'Privacy-friendly analytics tool.',
+                    'author' => 'Really Simple Plugins',
+                    'category' => 'recommended'
+                )
+            )
+        ),
+        'fluent' => array(
+            'name' => 'Advanced',
+            'plugins' => array(
+                array(
+                    'slug' => 'fluent-crm',
+                    'name' => 'Fluent CRM',
+                    'description' => 'Marketing Automation for WordPress.',
+                    'author' => 'WP Fluent',
+                    'category' => 'advanced'
+                ),
+                array(
+                    'slug' => 'fluentform',
+                    'name' => 'Fluent Forms',
+                    'description' => 'Advanced Contact Form Plugin.',
+                    'author' => 'WP Fluent',
+                    'category' => 'advanced'
+                ),
+                array(
+                    'slug' => 'fluent-smtp',
+                    'name' => 'Fluent SMTP',
+                    'description' => 'The Most Advanced SMTP & Email Service Integration Plugin.',
+                    'author' => 'WP Fluent',
+                    'category' => 'advanced'
+                ),
+                array(
+                    'slug' => 'fluent-support',
+                    'name' => 'Fluent Support',
+                    'description' => 'Customer Support & Helpdesk Plugin.',
+                    'author' => 'WP Fluent',
+                    'category' => 'advanced'
+                )
+            )
+        ),
+        'ecommerce' => array(
+            'name' => 'Ecommerce',
+            'plugins' => array(
+                array(
+                    'slug' => 'woocommerce',
+                    'name' => 'WooCommerce',
+                    'description' => 'An eCommerce toolkit that helps you sell anything.',
+                    'author' => 'Automattic',
+                    'category' => 'ecommerce'
+                ),
+                array(
+                    'slug' => 'client-booking',
+                    'name' => 'Client Bookings',
+                    'description' => 'Appointment Scheduling & Booking.',
+                    'author' => 'WP Fluent',
+                    'category' => 'ecommerce'
+                )
+            )
+        ),
+        'lms' => array(
+            'name' => 'LMS',
+            'plugins' => array(
+                // Add LMS plugins here when needed
+            )
+        )
+    );
+}
+
 // Settings page HTML
 function wpa_superstar_settings_page() {
-    $active_tab = isset( $_GET['tab'] ) ? $_GET['tab'] : 'general';
+    $active_tab = isset( $_GET['tab'] ) ? $_GET['tab'] : 'recommended';
+    $active_category = isset( $_GET['category'] ) ? $_GET['category'] : 'recommended';
+    $recommended_plugins = wpa_superstar_get_recommended_plugins();
     ?>
     <div class="wrap wpa-superstar-wrap">
         <div class="wpa-superstar-header">
@@ -51,6 +150,9 @@ function wpa_superstar_settings_page() {
         <div class="wpa-settings-container">
             <div class="wpa-superstar-nav">
                 <h2 class="nav-tab-wrapper">
+                    <a href="?page=wpa-superstar&tab=recommended" class="nav-tab <?php echo $active_tab == 'recommended' ? 'nav-tab-active' : ''; ?>">
+                        <?php esc_html_e( 'Recommended', 'wpa-superstar' ); ?>
+                    </a>
                     <a href="?page=wpa-superstar&tab=general" class="nav-tab <?php echo $active_tab == 'general' ? 'nav-tab-active' : ''; ?>">
                         <?php esc_html_e( 'General', 'wpa-superstar' ); ?>
                     </a>
@@ -61,10 +163,78 @@ function wpa_superstar_settings_page() {
             </div>
 
             <div class="wpa-settings-content">
-                <?php settings_fields( 'wpa-superstar-settings' ); ?>
-                <?php do_settings_sections( 'wpa-superstar-settings' ); ?>
+                <?php if ( $active_tab == 'recommended' ) : ?>
+                    <div class="wpa-plugin-filters">
+                        <a href="?page=wpa-superstar&tab=recommended&category=recommended" 
+                           class="button <?php echo $active_category == 'recommended' ? 'button-primary' : ''; ?>">
+                            <?php esc_html_e( 'Recommended', 'wpa-superstar' ); ?>
+                        </a>
+                        <a href="?page=wpa-superstar&tab=recommended&category=advanced" 
+                           class="button <?php echo $active_category == 'advanced' ? 'button-primary' : ''; ?>">
+                            <?php esc_html_e( 'Advanced', 'wpa-superstar' ); ?>
+                        </a>
+                        <a href="?page=wpa-superstar&tab=recommended&category=ecommerce" 
+                           class="button <?php echo $active_category == 'ecommerce' ? 'button-primary' : ''; ?>">
+                            <?php esc_html_e( 'Ecommerce', 'wpa-superstar' ); ?>
+                        </a>
+                        <a href="?page=wpa-superstar&tab=recommended&category=lms" 
+                           class="button <?php echo $active_category == 'lms' ? 'button-primary' : ''; ?>">
+                            <?php esc_html_e( 'LMS', 'wpa-superstar' ); ?>
+                        </a>
+                    </div>
 
-                <?php if ( $active_tab == 'general' ) : ?>
+                    <div class="wpa-plugins-browser">
+                        <?php foreach ( $recommended_plugins as $section ) :
+                            foreach ( $section['plugins'] as $plugin ) :
+                                if ( $plugin['category'] === $active_category ) :
+                                    $installed = is_dir( WP_PLUGIN_DIR . '/' . $plugin['slug'] );
+                                    $install_url = wp_nonce_url(
+                                        add_query_arg(
+                                            array(
+                                                'action' => 'install-plugin',
+                                                'plugin' => $plugin['slug']
+                                            ),
+                                            admin_url( 'update.php' )
+                                        ),
+                                        'install-plugin_' . $plugin['slug']
+                                    );
+                        ?>
+                        <div class="plugin-card">
+                            <div class="plugin-card-top">
+                                <div class="name column-name">
+                                    <h3>
+                                        <?php echo esc_html( $plugin['name'] ); ?>
+                                        <span class="plugin-author">
+                                            <?php printf( esc_html__( 'By %s', 'wpa-superstar' ), esc_html( $plugin['author'] ) ); ?>
+                                        </span>
+                                    </h3>
+                                </div>
+                                <div class="desc column-description">
+                                    <p><?php echo esc_html( $plugin['description'] ); ?></p>
+                                </div>
+                                <div class="action-links">
+                                    <ul class="plugin-action-buttons">
+                                        <li>
+                                            <?php if ( $installed ) : ?>
+                                                <button class="button button-disabled" disabled><?php esc_html_e( 'Installed', 'wpa-superstar' ); ?></button>
+                                            <?php else : ?>
+                                                <a href="<?php echo esc_url( $install_url ); ?>" class="button button-primary">
+                                                    <?php esc_html_e( 'Install Now', 'wpa-superstar' ); ?>
+                                                </a>
+                                            <?php endif; ?>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        <?php 
+                                endif;
+                            endforeach;
+                        endforeach; 
+                        ?>
+                    </div>
+
+                <?php elseif ( $active_tab == 'general' ) : ?>
                     <div class="wpa-superstar-toggle">
                         <label for="wpa_superstar_lazy_load">
                             <div class="wpa-toggle-switch">
