@@ -49,7 +49,7 @@ function wpa_superstar_settings_page() {
             </a>
         </h2>
 
-        <form method="post" action="options.php">
+        <div class="wpa-settings-content">
             <?php settings_fields( 'wpa-superstar-settings' ); ?>
             <?php do_settings_sections( 'wpa-superstar-settings' ); ?>
 
@@ -108,9 +108,7 @@ function wpa_superstar_settings_page() {
                     </p>
                 </div>
             <?php endif; ?>
-
-            <?php submit_button( __( 'Save Changes', 'wpa-superstar' ) ); ?>
-        </form>
+        </div>
     </div>
     <?php
 }

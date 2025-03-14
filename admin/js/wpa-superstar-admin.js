@@ -3,19 +3,31 @@ jQuery(document).ready(function($) {
         var $input = $(this);
         var option = $input.attr('name');
         var value = $input.is(':checked') ? 1 : 0;
+        
+        // Remove any existing status messages
+        $('.wpa-status').remove();
+        
+        // Add a small notification that fades out
+        var $notification = $('<span class="wpa-status" style="position: fixed; bottom: 20px; right: 20px; background: #00a32a; color: white; padding: 8px 16px; border-radius: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">Setting saved</span>');
+        $('body').append($notification);
+        
         $.post(wpaSuperstar.ajaxurl, {
             action: 'wpa_superstar_update_option',
             option: option,
             value: value,
             nonce: wpaSuperstar.nonce
         }, function(response) {
-            if (response.success) {
-                $input.next('.wpa-status').remove();
-                $input.after('<span class="wpa-status" style="color: green; margin-left: 10px;">Saved</span>');
-                setTimeout(function() { $('.wpa-status').fadeOut(); }, 2000);
-            } else {
+            if (!response.success) {
                 console.error('Error:', response);
+                $notification.css('background', '#d63638').text('Error saving setting');
             }
+            
+            // Fade out and remove the notification after 2 seconds
+            setTimeout(function() {
+                $notification.fadeOut(300, function() {
+                    $(this).remove();
+                });
+            }, 2000);
         });
     });
 });
