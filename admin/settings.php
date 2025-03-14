@@ -95,12 +95,13 @@ function wpa_superstar_ajax_get_plugins() {
     // Get our recommended plugins for this category
     $recommended_plugins = wpa_superstar_get_recommended_plugins();
     if (!isset($recommended_plugins[$category])) {
-        wp_send_json_error('Invalid category');
+        wp_send_json_error('Invalid category: ' . $category);
     }
     
     // Try to get cached data first
     $cached_data = wpa_superstar_get_cached_plugins($category);
     if ($cached_data !== false) {
+        error_log('Using cached data for category: ' . $category);
         // Setup the list table with cached data
         $GLOBALS['tab'] = 'plugin-install';
         $_REQUEST['tab'] = 'plugin-install';
@@ -126,6 +127,9 @@ function wpa_superstar_ajax_get_plugins() {
         return;
     }
     
+    error_log('Fetching fresh data for category: ' . $category);
+    error_log('Plugins to fetch: ' . implode(', ', $recommended_plugins[$category]));
+    
     // If no cache, get fresh data
     try {
         $plugins = array();
@@ -133,6 +137,7 @@ function wpa_superstar_ajax_get_plugins() {
         // Only fetch plugins that are in our recommended list for this category
         foreach ($recommended_plugins[$category] as $slug) {
             try {
+                error_log('Fetching plugin data for: ' . $slug);
                 $plugin_data = plugins_api('plugin_information', array(
                     'slug' => $slug,
                     'fields' => array(
@@ -158,14 +163,19 @@ function wpa_superstar_ajax_get_plugins() {
                     )
                 ));
                 
-                if (!is_wp_error($plugin_data)) {
+                if (is_wp_error($plugin_data)) {
+                    error_log('Error fetching plugin data for ' . $slug . ': ' . $plugin_data->get_error_message());
+                } else {
                     $plugins[] = $plugin_data;
+                    error_log('Successfully fetched data for: ' . $slug);
                 }
             } catch (Exception $e) {
-                // Skip this plugin if there's an error
+                error_log('Exception fetching plugin data for ' . $slug . ': ' . $e->getMessage());
                 continue;
             }
         }
+        
+        error_log('Total plugins fetched: ' . count($plugins));
         
         // Create response object
         $res = (object) array(
@@ -204,6 +214,7 @@ function wpa_superstar_ajax_get_plugins() {
         wp_send_json_success($html);
         
     } catch (Exception $e) {
+        error_log('Failed to fetch plugin data: ' . $e->getMessage());
         wp_send_json_error('Failed to fetch plugin data: ' . $e->getMessage());
     }
 }
@@ -232,8 +243,9 @@ function wpa_superstar_settings_page() {
     $active_tab = isset($_GET['tab']) ? $_GET['tab'] : 'general';
     $active_category = isset($_GET['category']) ? $_GET['category'] : 'minimal';
     
-    // Ensure required files are loaded
+    // Clear cache when loading the recommended tab
     if ($active_tab === 'recommended') {
+        wpa_superstar_clear_plugin_cache();
         require_once ABSPATH . 'wp-admin/includes/plugin-install.php';
         wp_enqueue_script('plugin-install');
         wp_enqueue_script('updates');
@@ -328,12 +340,16 @@ function wpa_superstar_settings_page() {
                                             $('#wpa-plugin-list').html(response.data);
                                             $('.wpa-loading-overlay').fadeOut();
                                         });
+                                    } else {
+                                        console.error('Server returned error:', response);
+                                        $('.wpa-loading-overlay').fadeOut();
+                                        $('#wpa-plugin-list').html('<div class="notice notice-error"><p>Failed to load plugins: ' + (response.data || 'Unknown error') + '</p></div>');
                                     }
                                 },
                                 error: function(xhr, status, error) {
-                                    console.error('Failed to load plugins:', error);
+                                    console.error('Failed to load plugins:', {xhr: xhr, status: status, error: error});
                                     $('.wpa-loading-overlay').fadeOut();
-                                    $('#wpa-plugin-list').html('<div class="notice notice-error"><p>Failed to load plugins. Please try again.</p></div>');
+                                    $('#wpa-plugin-list').html('<div class="notice notice-error"><p>Failed to load plugins. Please try again. Error: ' + error + '</p></div>');
                                 }
                             });
                         }
@@ -351,8 +367,10 @@ function wpa_superstar_settings_page() {
                             }
                         }
                         
-                        // Load plugins on page load
-                        loadPlugins();
+                        // Load plugins on page load with current category from URL
+                        var urlParams = new URLSearchParams(window.location.search);
+                        var currentCategory = urlParams.get('category') || 'minimal';
+                        loadPlugins(currentCategory);
                         
                         // Handle category filter clicks
                         $('.wpa-plugin-filters a').on('click', function(e) {
