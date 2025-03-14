@@ -315,6 +315,8 @@ function wpa_superstar_ajax_get_theme() {
             box-shadow: 0 1px 1px rgba(0,0,0,.04);
             box-sizing: border-box;
             background: #fff;
+            display: flex;
+            flex-direction: column;
         }
         .theme-browser .theme .theme-screenshot {
             display: block;
@@ -323,6 +325,7 @@ function wpa_superstar_ajax_get_theme() {
             -webkit-backface-visibility: hidden;
             transition: opacity .2s ease-in-out;
             background: #fff;
+            flex: 1;
         }
         .theme-browser .theme .theme-screenshot img {
             display: block;
@@ -340,6 +343,8 @@ function wpa_superstar_ajax_get_theme() {
             white-space: nowrap;
             text-overflow: ellipsis;
             background: #fff;
+            position: relative;
+            z-index: 1;
         }
         .theme-browser .theme .theme-actions {
             opacity: 0;
@@ -351,8 +356,9 @@ function wpa_superstar_ajax_get_theme() {
             background: rgba(244,244,244,.9);
             border-left: 1px solid rgba(0,0,0,.05);
             text-align: right;
-            width: auto;
-            z-index: 10;
+            display: flex;
+            gap: 5px;
+            z-index: 2;
         }
         .theme-browser .theme:focus .theme-actions,
         .theme-browser .theme:hover .theme-actions {
@@ -369,6 +375,7 @@ function wpa_superstar_ajax_get_theme() {
             text-align: center;
             opacity: 0;
             transition: opacity .1s ease-in-out;
+            z-index: 2;
         }
         .theme-browser .theme:focus .theme-author,
         .theme-browser .theme:hover .theme-author {
@@ -376,10 +383,7 @@ function wpa_superstar_ajax_get_theme() {
         }
         .theme-browser .theme .theme-actions .button {
             float: none;
-            margin-left: 5px;
-        }
-        .theme-browser .theme .theme-actions .button:first-child {
-            margin-left: 0;
+            margin: 0;
         }
         </style>
         <div class="theme-browser">
