@@ -252,19 +252,50 @@ function wpa_superstar_ajax_get_theme() {
     check_ajax_referer('updates');
     
     if (!current_user_can('install_themes')) {
+        error_log('WPA Superstar: User does not have permission to install themes');
         wp_die(-1);
     }
     
     error_log('WPA Superstar: Starting theme fetch process');
     
     try {
-        // Make sure required files are loaded
-        require_once ABSPATH . 'wp-admin/includes/theme.php';
-        require_once ABSPATH . 'wp-admin/includes/class-wp-theme-install-list-table.php';
+        // Make sure required files are loaded in the correct order
+        if (!class_exists('WP_List_Table')) {
+            error_log('WPA Superstar: Loading list table base class');
+            require_once ABSPATH . 'wp-admin/includes/class-wp-list-table.php';
+        }
+        
+        if (!class_exists('WP_Themes_List_Table')) {
+            error_log('WPA Superstar: Loading themes list table class');
+            require_once ABSPATH . 'wp-admin/includes/class-wp-themes-list-table.php';
+        }
+        
+        if (!class_exists('WP_Theme_Install_List_Table')) {
+            error_log('WPA Superstar: Loading theme install list table class');
+            require_once ABSPATH . 'wp-admin/includes/class-wp-theme-install-list-table.php';
+        }
+        
+        if (!function_exists('themes_api')) {
+            error_log('WPA Superstar: Loading theme.php');
+            require_once ABSPATH . 'wp-admin/includes/theme.php';
+        }
         
         // Set up the necessary globals and requests
         $GLOBALS['tab'] = 'theme-install';
         $_REQUEST['tab'] = 'theme-install';
+        $_REQUEST['type'] = 'theme-install';
+        
+        // Set up the screen
+        if (!function_exists('get_current_screen')) {
+            error_log('WPA Superstar: Loading admin screen functions');
+            require_once ABSPATH . 'wp-admin/includes/screen.php';
+        }
+        
+        if (!function_exists('set_current_screen')) {
+            error_log('WPA Superstar: Loading admin functions');
+            require_once ABSPATH . 'wp-admin/includes/admin.php';
+        }
+        
         set_current_screen('theme-install');
         
         error_log('WPA Superstar: Fetching theme data for kadence');
