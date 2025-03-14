@@ -37,17 +37,17 @@ add_action('wp_ajax_wpa_superstar_update_option', 'wpa_superstar_update_option')
 function wpa_superstar_get_recommended_plugins() {
     return array(
         'minimal' => array(
+            'antispam-bee',
+            'turnstile'
+        ),
+        'advanced' => array(
             'advanced-custom-fields',
             'admin-menu-editor',
-            'antispam-bee',
             'burst-statistics',
             'freesoul-deactivate-plugins',
             'plugin-toggle',
             'pretty-links',
             'seo-by-rank-math',
-            'turnstile'
-        ),
-        'advanced' => array(
             'fluent-crm',
             'fluentform',
             'fluent-smtp',
@@ -160,11 +160,35 @@ function wpa_superstar_plugins_api_result($res, $action, $args) {
 }
 add_filter('plugins_api_result', 'wpa_superstar_plugins_api_result', 10, 3);
 
+// Add AJAX endpoint for plugin list
+function wpa_superstar_ajax_get_plugins() {
+    check_ajax_referer('updates');
+    
+    if (!current_user_can('install_plugins')) {
+        wp_die(-1);
+    }
+
+    $category = isset($_GET['category']) ? sanitize_key($_GET['category']) : 'minimal';
+    
+    require_once ABSPATH . 'wp-admin/includes/plugin-install.php';
+    
+    // Setup the list table
+    $wp_list_table = _get_list_table('WP_Plugin_Install_List_Table', array('screen' => 'plugin-install'));
+    $wp_list_table->prepare_items();
+    
+    ob_start();
+    $wp_list_table->display();
+    $html = ob_get_clean();
+    
+    wp_send_json_success($html);
+}
+add_action('wp_ajax_wpa_get_plugins', 'wpa_superstar_ajax_get_plugins');
+
 // Settings page HTML
 function wpa_superstar_settings_page() {
     global $tabs;
     
-    $active_tab = isset($_GET['tab']) ? $_GET['tab'] : 'recommended';
+    $active_tab = isset($_GET['tab']) ? $_GET['tab'] : 'general';
     $active_category = isset($_GET['category']) ? $_GET['category'] : 'minimal';
     
     // Ensure required files are loaded
@@ -226,50 +250,77 @@ function wpa_superstar_settings_page() {
                         <div class="wpa-loading-overlay">
                             <span class="spinner is-active"></span>
                         </div>
-                        <?php
-                        $wp_list_table = _get_list_table('WP_Plugin_Install_List_Table');
-                        $wp_list_table->prepare_items();
-                        $wp_list_table->display();
-                        ?>
+                        <div id="wpa-plugin-list"></div>
                     </div>
 
                     <script>
                     jQuery(document).ready(function($) {
                         var loadingStartTime;
+                        var currentRequest = null;
                         
-                        // Show loading overlay immediately
-                        $('.wpa-loading-overlay').show();
-                        loadingStartTime = Date.now();
+                        function loadPlugins(category) {
+                            // Show loading overlay
+                            $('.wpa-loading-overlay').fadeIn();
+                            loadingStartTime = Date.now();
+                            
+                            // Cancel previous request if it exists
+                            if (currentRequest) {
+                                currentRequest.abort();
+                            }
+                            
+                            // Make the AJAX request
+                            currentRequest = $.ajax({
+                                url: ajaxurl,
+                                data: {
+                                    action: 'wpa_get_plugins',
+                                    category: category || 'minimal',
+                                    _ajax_nonce: '<?php echo wp_create_nonce("updates"); ?>'
+                                },
+                                beforeSend: function() {
+                                    if (currentRequest) {
+                                        currentRequest.abort();
+                                    }
+                                },
+                                success: function(response) {
+                                    if (response.success) {
+                                        ensureMinLoadingTime(function() {
+                                            $('#wpa-plugin-list').html(response.data);
+                                            $('.wpa-loading-overlay').fadeOut();
+                                        });
+                                    }
+                                }
+                            });
+                        }
                         
                         // Function to ensure minimum loading time
                         function ensureMinLoadingTime(callback) {
                             var currentTime = Date.now();
                             var elapsed = currentTime - loadingStartTime;
-                            var minLoadingTime = 500; // minimum loading time in milliseconds
+                            var minLoadingTime = 500;
                             
                             if (elapsed < minLoadingTime) {
-                                setTimeout(function() {
-                                    callback();
-                                }, minLoadingTime - elapsed);
+                                setTimeout(callback, minLoadingTime - elapsed);
                             } else {
                                 callback();
                             }
                         }
                         
-                        // Hide loading overlay when content is loaded
-                        var checkLoading = setInterval(function() {
-                            if ($('.plugin-card').length > 0) {
-                                ensureMinLoadingTime(function() {
-                                    $('.wpa-loading-overlay').fadeOut();
-                                });
-                                clearInterval(checkLoading);
-                            }
-                        }, 100);
+                        // Load plugins on page load
+                        loadPlugins();
                         
-                        // Show loading state when changing categories
+                        // Handle category filter clicks
                         $('.wpa-plugin-filters a').on('click', function(e) {
-                            loadingStartTime = Date.now();
-                            $('.wpa-loading-overlay').fadeIn();
+                            e.preventDefault();
+                            var category = new URLSearchParams($(this).attr('href').split('?')[1]).get('category');
+                            loadPlugins(category);
+                            
+                            // Update URL without page reload
+                            var newUrl = $(this).attr('href');
+                            history.pushState({}, '', newUrl);
+                            
+                            // Update active state
+                            $('.wpa-plugin-filters a').removeClass('button-primary');
+                            $(this).addClass('button-primary');
                         });
                     });
                     </script>
