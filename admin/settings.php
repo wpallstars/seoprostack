@@ -304,13 +304,82 @@ function wpa_superstar_ajax_get_theme() {
         // Generate custom HTML for the theme
         ob_start();
         ?>
+        <style>
+        .theme-browser .theme {
+            position: relative;
+            display: inline-block;
+            box-sizing: border-box;
+            width: 100%;
+            margin: 0;
+            border: 1px solid #dcdcde;
+            box-shadow: 0 1px 1px rgba(0,0,0,.04);
+            background: #fff;
+        }
+        .theme-browser .theme .theme-screenshot {
+            display: block;
+            overflow: hidden;
+            position: relative;
+            background: #f0f0f1;
+        }
+        .theme-browser .theme .theme-screenshot img {
+            height: auto;
+            width: 100%;
+            transform: translateZ(0);
+            transition: opacity .2s ease-in-out;
+        }
+        .theme-browser .theme .theme-name {
+            font-size: 15px;
+            font-weight: 600;
+            height: 18px;
+            margin: 0;
+            padding: 15px;
+            box-shadow: inset 0 1px 0 rgba(0,0,0,.1);
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+            background: #fff;
+            background: rgba(255,255,255,.65);
+        }
+        .theme-browser .theme .theme-actions {
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            height: 38px;
+            padding: 9px 10px 0;
+            background: rgba(244,244,244,.7);
+            border-left: 1px solid rgba(0,0,0,.05);
+        }
+        .theme-browser .theme:hover .theme-actions {
+            opacity: 1;
+        }
+        .theme-browser .theme .theme-author {
+            background: #23282d;
+            color: #eee;
+            font-size: 14px;
+            margin: 0;
+            padding: 5px 10px;
+            position: absolute;
+            bottom: 56px;
+            left: 0;
+            opacity: 0;
+            overflow: hidden;
+            right: 0;
+            text-align: center;
+            text-shadow: 0 1px 0 rgba(0,0,0,.6);
+            transition: opacity .1s ease-in-out;
+            white-space: nowrap;
+        }
+        .theme-browser .theme:hover .theme-author {
+            opacity: 1;
+        }
+        </style>
         <div class="theme-browser">
             <div class="themes wp-clearfix">
                 <div class="theme" tabindex="0">
                     <div class="theme-screenshot">
                         <img src="<?php echo esc_url($theme_data->screenshot_url); ?>" alt="">
                     </div>
-                    <div class="theme-author"><?php echo esc_html(sprintf(__('By %s'), $author)); ?></div>
+                    <span class="theme-author"><?php echo esc_html(sprintf(__('By %s'), $author)); ?></span>
                     <h3 class="theme-name"><?php echo esc_html($theme_data->name); ?></h3>
                     <div class="theme-actions">
                         <?php if (current_user_can('install_themes')): ?>
@@ -329,29 +398,6 @@ function wpa_superstar_ajax_get_theme() {
                         <a class="button button-secondary preview install-theme-preview" href="<?php echo esc_url($theme_data->preview_url); ?>" target="_blank">
                             <?php esc_html_e('Preview'); ?>
                         </a>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="theme-overlay" style="display: none;">
-            <div class="theme-backdrop"></div>
-            <div class="theme-wrap wp-clearfix">
-                <div class="theme-header">
-                    <button class="close dashicons dashicons-no"><span class="screen-reader-text"><?php esc_html_e('Close details dialog'); ?></span></button>
-                </div>
-                <div class="theme-about wp-clearfix">
-                    <div class="theme-screenshots">
-                        <div class="screenshot"><img src="<?php echo esc_url($theme_data->screenshot_url); ?>" alt=""></div>
-                    </div>
-                    <div class="theme-info">
-                        <h2 class="theme-name"><?php echo esc_html($theme_data->name); ?></h2>
-                        <p class="theme-author"><?php echo esc_html(sprintf(__('By %s'), $author)); ?></p>
-                        <p class="theme-description"><?php echo esc_html($theme_data->description); ?></p>
-                        <p class="theme-tags">
-                            <span class="version"><?php echo esc_html(sprintf(__('Version: %s'), $theme_data->version)); ?></span>
-                            <span class="active-installs"><?php echo esc_html(sprintf(__('Active Installations: %s'), number_format_i18n($theme_data->active_installs))); ?></span>
-                            <span class="last-updated"><?php echo esc_html(sprintf(__('Last Updated: %s'), $theme_data->last_updated)); ?></span>
-                        </p>
                     </div>
                 </div>
             </div>
