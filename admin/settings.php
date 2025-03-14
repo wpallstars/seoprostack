@@ -314,7 +314,6 @@ function wpa_superstar_ajax_get_theme() {
             border: 1px solid #dcdcde;
             box-shadow: 0 1px 1px rgba(0,0,0,.04);
             box-sizing: border-box;
-            background: #fff;
         }
         .theme-browser .theme .theme-screenshot {
             display: block;
@@ -333,7 +332,6 @@ function wpa_superstar_ajax_get_theme() {
             height: 48px;
             margin: 0;
             padding: 15px;
-            padding-right: 180px;
             box-shadow: inset 0 1px 0 rgba(0,0,0,.1);
             overflow: hidden;
             white-space: nowrap;
@@ -343,13 +341,15 @@ function wpa_superstar_ajax_get_theme() {
         }
         .theme-browser .theme .theme-actions {
             position: absolute;
+            top: 0;
+            left: 0;
             right: 0;
-            bottom: 0;
-            height: 48px;
-            padding: 10px 15px;
+            bottom: 48px;
             display: flex;
-            align-items: flex-end;
+            align-items: center;
+            justify-content: center;
             gap: 5px;
+            background: rgba(255, 255, 255, 0.9);
         }
         .theme-browser .theme .theme-actions .button {
             margin: 0;
