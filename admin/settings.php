@@ -340,17 +340,17 @@ function wpa_superstar_ajax_get_theme() {
             white-space: nowrap;
             text-overflow: ellipsis;
             background: #fff;
+            position: relative;
         }
         .theme-browser .theme .theme-actions {
             position: absolute;
             bottom: 0;
             right: 0;
-            height: 38px;
-            padding: 9px 10px 0;
+            padding: 9px 15px;
             background: rgba(244,244,244,.7);
             border-left: 1px solid rgba(0,0,0,.05);
-            opacity: 0;
-            transition: opacity .1s ease-in-out;
+            height: 30px;
+            z-index: 1;
         }
         .theme-browser .theme:hover .theme-actions,
         .theme-browser .theme:focus .theme-actions,
