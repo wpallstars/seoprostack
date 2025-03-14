@@ -510,6 +510,9 @@ function wpa_superstar_settings_page() {
                                         ensureMinLoadingTime(function() {
                                             $('#wpa-theme-list').html(response.data);
                                             $('.wpa-loading-overlay').fadeOut();
+                                            
+                                            // Initialize theme installation handlers
+                                            initThemeHandlers();
                                         });
                                     } else {
                                         console.error('Server returned error:', response);
@@ -522,6 +525,75 @@ function wpa_superstar_settings_page() {
                                     $('.wpa-loading-overlay').fadeOut();
                                     $('#wpa-theme-list').html('<div class="notice notice-error"><p>Failed to load theme. Please try again. Error: ' + error + '</p></div>');
                                 }
+                            });
+                        }
+                        
+                        function initThemeHandlers() {
+                            // Handle theme installation
+                            $('.install-theme').on('click', function(e) {
+                                e.preventDefault();
+                                var $button = $(this);
+                                var slug = $button.data('slug');
+                                
+                                $button.addClass('updating-message').text('Installing...');
+                                
+                                wp.updates.installTheme({
+                                    slug: slug,
+                                    success: function(response) {
+                                        $button
+                                            .removeClass('updating-message install-theme')
+                                            .addClass('button-primary activate-theme')
+                                            .text('Activate');
+                                        
+                                        // Refresh the theme display
+                                        loadTheme();
+                                    },
+                                    error: function(error) {
+                                        $button.removeClass('updating-message');
+                                        console.error('Theme installation failed:', error);
+                                        if (error.errorMessage) {
+                                            alert(error.errorMessage);
+                                        }
+                                    }
+                                });
+                            });
+                            
+                            // Handle theme activation
+                            $('.activate-theme').on('click', function(e) {
+                                e.preventDefault();
+                                var $button = $(this);
+                                var slug = $button.data('slug');
+                                
+                                $button.addClass('updating-message').text('Activating...');
+                                
+                                $.ajax({
+                                    url: ajaxurl,
+                                    type: 'POST',
+                                    data: {
+                                        action: 'switch_theme',
+                                        stylesheet: slug,
+                                        _wpnonce: '<?php echo wp_create_nonce("switch-theme_" . "kadence"); ?>'
+                                    },
+                                    success: function(response) {
+                                        if (response.success) {
+                                            $button
+                                                .removeClass('updating-message')
+                                                .text('Activated');
+                                            
+                                            // Optionally redirect to customize page
+                                            window.location.href = '<?php echo admin_url("customize.php"); ?>';
+                                        } else {
+                                            $button.removeClass('updating-message');
+                                            console.error('Theme activation failed:', response);
+                                            alert('Theme activation failed. Please try again.');
+                                        }
+                                    },
+                                    error: function(xhr, status, error) {
+                                        $button.removeClass('updating-message');
+                                        console.error('Theme activation failed:', error);
+                                        alert('Theme activation failed. Please try again.');
+                                    }
+                                });
                             });
                         }
                         
