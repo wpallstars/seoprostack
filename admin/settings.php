@@ -347,9 +347,12 @@ function wpa_superstar_ajax_get_theme() {
             position: absolute;
             right: 0;
             bottom: 0;
-            padding: 9px 15px;
-            background: rgba(244,244,244,.7);
+            padding: 10px;
+            background: rgba(244,244,244,.9);
             border-left: 1px solid rgba(0,0,0,.05);
+            text-align: right;
+            width: auto;
+            z-index: 10;
         }
         .theme-browser .theme:focus .theme-actions,
         .theme-browser .theme:hover .theme-actions {
@@ -373,7 +376,7 @@ function wpa_superstar_ajax_get_theme() {
         }
         .theme-browser .theme .theme-actions .button {
             float: none;
-            margin-left: 3px;
+            margin-left: 5px;
         }
         .theme-browser .theme .theme-actions .button:first-child {
             margin-left: 0;
