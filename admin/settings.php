@@ -341,18 +341,17 @@ function wpa_superstar_ajax_get_theme() {
             text-overflow: ellipsis;
             background: #fff;
             position: relative;
+            padding-right: 180px;
         }
         .theme-browser .theme .theme-actions {
             position: absolute;
-            top: 50%;
             right: 0;
-            padding: 9px 15px;
-            background: rgba(244,244,244,.7);
+            bottom: 0;
+            padding: 10px 15px;
+            background: #f0f0f1;
             border-left: 1px solid rgba(0,0,0,.05);
-            transform: translateY(-50%);
-            height: 100%;
-            display: flex;
-            align-items: center;
+            height: 46px;
+            box-sizing: border-box;
         }
         .theme-browser .theme .theme-author {
             background: rgba(0,0,0,.7);
