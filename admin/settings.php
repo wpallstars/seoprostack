@@ -38,16 +38,26 @@ function wpa_superstar_settings_page() {
     $active_tab = isset( $_GET['tab'] ) ? $_GET['tab'] : 'general';
     ?>
     <div class="wrap wpa-superstar-wrap">
-        <h1><?php echo esc_html( get_admin_page_title() ); ?></h1>
+        <div class="wpa-superstar-header">
+            <h1><?php echo esc_html( get_admin_page_title() ); ?></h1>
+            <div class="wpa-superstar-header-actions">
+                <span class="wpa-superstar-version">Version <?php echo esc_html( WPA_SUPERSTAR_VERSION ); ?></span>
+                <a href="https://www.wpallstars.com/docs/superstar-plugin/" target="_blank" class="button button-secondary">
+                    <?php esc_html_e( 'Documentation', 'wpa-superstar' ); ?>
+                </a>
+            </div>
+        </div>
         
-        <h2 class="nav-tab-wrapper">
-            <a href="?page=wpa-superstar&tab=general" class="nav-tab <?php echo $active_tab == 'general' ? 'nav-tab-active' : ''; ?>">
-                <?php esc_html_e( 'General', 'wpa-superstar' ); ?>
-            </a>
-            <a href="?page=wpa-superstar&tab=advanced" class="nav-tab <?php echo $active_tab == 'advanced' ? 'nav-tab-active' : ''; ?>">
-                <?php esc_html_e( 'Advanced', 'wpa-superstar' ); ?>
-            </a>
-        </h2>
+        <div class="wpa-superstar-nav">
+            <h2 class="nav-tab-wrapper">
+                <a href="?page=wpa-superstar&tab=general" class="nav-tab <?php echo $active_tab == 'general' ? 'nav-tab-active' : ''; ?>">
+                    <?php esc_html_e( 'General', 'wpa-superstar' ); ?>
+                </a>
+                <a href="?page=wpa-superstar&tab=advanced" class="nav-tab <?php echo $active_tab == 'advanced' ? 'nav-tab-active' : ''; ?>">
+                    <?php esc_html_e( 'Advanced', 'wpa-superstar' ); ?>
+                </a>
+            </h2>
+        </div>
 
         <div class="wpa-settings-content">
             <?php settings_fields( 'wpa-superstar-settings' ); ?>
