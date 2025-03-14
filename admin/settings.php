@@ -306,34 +306,36 @@ function wpa_superstar_ajax_get_theme() {
         ?>
         <style>
         .theme-browser .theme {
-            position: relative;
-            display: inline-block;
-            box-sizing: border-box;
-            width: 100%;
+            cursor: pointer;
+            float: none;
             margin: 0;
+            position: relative;
+            width: 100%;
             border: 1px solid #dcdcde;
             box-shadow: 0 1px 1px rgba(0,0,0,.04);
-            background: #fff;
-            min-height: 800px;
-            padding-bottom: 50px;
+            box-sizing: border-box;
+            min-height: 330px;
         }
         .theme-browser .theme .theme-screenshot {
             display: block;
             overflow: hidden;
             position: relative;
-            background: #f0f0f1;
+            -webkit-backface-visibility: hidden;
+            transition: opacity .2s ease-in-out;
+            background-position: center;
+            background-size: cover;
         }
         .theme-browser .theme .theme-screenshot img {
             height: auto;
+            position: absolute;
+            left: 0;
+            top: 0;
             width: 100%;
-            transform: translateZ(0);
             transition: opacity .2s ease-in-out;
-            display: block;
         }
         .theme-browser .theme .theme-name {
             font-size: 15px;
             font-weight: 600;
-            height: 18px;
             margin: 0;
             padding: 15px;
             box-shadow: inset 0 1px 0 rgba(0,0,0,.1);
@@ -344,41 +346,42 @@ function wpa_superstar_ajax_get_theme() {
             background: rgba(255,255,255,.65);
         }
         .theme-browser .theme .theme-actions {
+            opacity: 0;
+            transition: opacity .1s ease-in-out;
             position: absolute;
             bottom: 0;
             right: 0;
-            left: 0;
-            height: 50px;
-            padding: 10px;
+            padding: 9px 15px;
+            box-shadow: inset 0 1px 0 rgba(0,0,0,.1);
             background: rgba(244,244,244,.7);
-            border-top: 1px solid rgba(0,0,0,.05);
-            text-align: right;
+            height: auto;
             z-index: 1;
         }
-        .theme-browser .theme:hover .theme-actions {
+        .theme-browser .theme:hover .theme-actions,
+        .theme-browser .theme:focus .theme-actions {
             opacity: 1;
         }
         .theme-browser .theme .theme-author {
-            background: rgba(35, 40, 45, 0.85);
-            color: #eee;
-            font-size: 14px;
-            margin: 0;
-            padding: 5px 10px;
+            background: rgba(0,0,0,.7);
+            color: #fff;
+            padding: 5px;
             position: absolute;
             bottom: 56px;
             left: 0;
-            opacity: 0;
             right: 0;
             text-align: center;
-            text-shadow: 0 1px 0 rgba(0,0,0,.6);
+            opacity: 0;
             transition: opacity .1s ease-in-out;
-            white-space: nowrap;
         }
         .theme-browser .theme:hover .theme-author {
             opacity: 1;
         }
         .theme-browser .theme .theme-actions .button {
-            margin-left: 5px;
+            float: none;
+            margin-left: 3px;
+        }
+        .theme-browser .theme .theme-actions .button:first-child {
+            margin-left: 0;
         }
         </style>
         <div class="theme-browser">
