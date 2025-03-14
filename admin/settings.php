@@ -58,9 +58,26 @@ function wpa_superstar_get_recommended_plugins() {
             'client-booking'
         ),
         'lms' => array(
-            // Add LMS plugins when needed
+            'tutor'
         )
     );
+}
+
+// Add transient caching for plugin data
+function wpa_superstar_get_cached_plugins($category) {
+    $cache_key = 'wpa_superstar_plugins_' . $category;
+    $cached_data = get_transient($cache_key);
+    
+    if ($cached_data !== false) {
+        return $cached_data;
+    }
+    
+    return false;
+}
+
+function wpa_superstar_set_cached_plugins($category, $data) {
+    $cache_key = 'wpa_superstar_plugins_' . $category;
+    set_transient($cache_key, $data, 12 * HOUR_IN_SECONDS);
 }
 
 // Filter plugins API to show only our recommended plugins
@@ -75,6 +92,13 @@ function wpa_superstar_plugins_api_result($res, $action, $args) {
 
     // Get the current category
     $category = isset($_GET['category']) ? sanitize_key($_GET['category']) : 'minimal';
+    
+    // Try to get cached data first
+    $cached_data = wpa_superstar_get_cached_plugins($category);
+    if ($cached_data !== false) {
+        return $cached_data;
+    }
+
     $recommended_plugins = wpa_superstar_get_recommended_plugins();
     
     // Check if category exists and has plugins
@@ -126,9 +150,11 @@ function wpa_superstar_plugins_api_result($res, $action, $args) {
             'plugins' => $plugins
         );
 
+        // Cache the results
+        wpa_superstar_set_cached_plugins($category, $res);
+
         return $res;
     } catch (Exception $e) {
-        // If something goes wrong, return original results
         return $res;
     }
 }
@@ -163,14 +189,14 @@ function wpa_superstar_settings_page() {
         <div class="wpa-settings-container">
             <div class="wpa-superstar-nav">
                 <h2 class="nav-tab-wrapper">
-                    <a href="?page=wpa-superstar&tab=recommended" class="nav-tab <?php echo $active_tab == 'recommended' ? 'nav-tab-active' : ''; ?>">
-                        <?php esc_html_e('Free Plugins', 'wpa-superstar'); ?>
-                    </a>
                     <a href="?page=wpa-superstar&tab=general" class="nav-tab <?php echo $active_tab == 'general' ? 'nav-tab-active' : ''; ?>">
                         <?php esc_html_e('General', 'wpa-superstar'); ?>
                     </a>
                     <a href="?page=wpa-superstar&tab=advanced" class="nav-tab <?php echo $active_tab == 'advanced' ? 'nav-tab-active' : ''; ?>">
                         <?php esc_html_e('Advanced', 'wpa-superstar'); ?>
+                    </a>
+                    <a href="?page=wpa-superstar&tab=recommended" class="nav-tab <?php echo $active_tab == 'recommended' ? 'nav-tab-active' : ''; ?>">
+                        <?php esc_html_e('Free Plugins', 'wpa-superstar'); ?>
                     </a>
                 </h2>
             </div>
@@ -197,7 +223,7 @@ function wpa_superstar_settings_page() {
                     </div>
 
                     <div class="wp-list-table-container">
-                        <div class="wpa-loading-overlay" style="display: none;">
+                        <div class="wpa-loading-overlay">
                             <span class="spinner is-active"></span>
                         </div>
                         <?php
@@ -209,9 +235,41 @@ function wpa_superstar_settings_page() {
 
                     <script>
                     jQuery(document).ready(function($) {
+                        var loadingStartTime;
+                        
+                        // Show loading overlay immediately
+                        $('.wpa-loading-overlay').show();
+                        loadingStartTime = Date.now();
+                        
+                        // Function to ensure minimum loading time
+                        function ensureMinLoadingTime(callback) {
+                            var currentTime = Date.now();
+                            var elapsed = currentTime - loadingStartTime;
+                            var minLoadingTime = 500; // minimum loading time in milliseconds
+                            
+                            if (elapsed < minLoadingTime) {
+                                setTimeout(function() {
+                                    callback();
+                                }, minLoadingTime - elapsed);
+                            } else {
+                                callback();
+                            }
+                        }
+                        
+                        // Hide loading overlay when content is loaded
+                        var checkLoading = setInterval(function() {
+                            if ($('.plugin-card').length > 0) {
+                                ensureMinLoadingTime(function() {
+                                    $('.wpa-loading-overlay').fadeOut();
+                                });
+                                clearInterval(checkLoading);
+                            }
+                        }, 100);
+                        
                         // Show loading state when changing categories
-                        $('.wpa-plugin-filters a').on('click', function() {
-                            $('.wpa-loading-overlay').show();
+                        $('.wpa-plugin-filters a').on('click', function(e) {
+                            loadingStartTime = Date.now();
+                            $('.wpa-loading-overlay').fadeIn();
                         });
                     });
                     </script>

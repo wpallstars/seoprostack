@@ -197,13 +197,13 @@
 
 /* Loading overlay */
 .wpa-loading-overlay {
-    position: absolute;
-    top: 0;
-    left: 0;
+    position: fixed;
+    top: 32px;
+    left: 160px;
     right: 0;
     bottom: 0;
-    background: rgba(255, 255, 255, 0.8);
-    z-index: 100;
+    background: rgba(255, 255, 255, 0.9);
+    z-index: 100000;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -211,5 +211,10 @@
 
 .wp-list-table-container {
     position: relative;
-    min-height: 200px;
+    min-height: 400px;
+}
+
+.wp-list-table-container .spinner {
+    float: none;
+    margin: 0;
 }
