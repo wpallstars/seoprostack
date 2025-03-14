@@ -48,76 +48,78 @@ function wpa_superstar_settings_page() {
             </div>
         </div>
         
-        <div class="wpa-superstar-nav">
-            <h2 class="nav-tab-wrapper">
-                <a href="?page=wpa-superstar&tab=general" class="nav-tab <?php echo $active_tab == 'general' ? 'nav-tab-active' : ''; ?>">
-                    <?php esc_html_e( 'General', 'wpa-superstar' ); ?>
-                </a>
-                <a href="?page=wpa-superstar&tab=advanced" class="nav-tab <?php echo $active_tab == 'advanced' ? 'nav-tab-active' : ''; ?>">
-                    <?php esc_html_e( 'Advanced', 'wpa-superstar' ); ?>
-                </a>
-            </h2>
-        </div>
+        <div class="wpa-settings-container">
+            <div class="wpa-superstar-nav">
+                <h2 class="nav-tab-wrapper">
+                    <a href="?page=wpa-superstar&tab=general" class="nav-tab <?php echo $active_tab == 'general' ? 'nav-tab-active' : ''; ?>">
+                        <?php esc_html_e( 'General', 'wpa-superstar' ); ?>
+                    </a>
+                    <a href="?page=wpa-superstar&tab=advanced" class="nav-tab <?php echo $active_tab == 'advanced' ? 'nav-tab-active' : ''; ?>">
+                        <?php esc_html_e( 'Advanced', 'wpa-superstar' ); ?>
+                    </a>
+                </h2>
+            </div>
 
-        <div class="wpa-settings-content">
-            <?php settings_fields( 'wpa-superstar-settings' ); ?>
-            <?php do_settings_sections( 'wpa-superstar-settings' ); ?>
+            <div class="wpa-settings-content">
+                <?php settings_fields( 'wpa-superstar-settings' ); ?>
+                <?php do_settings_sections( 'wpa-superstar-settings' ); ?>
 
-            <?php if ( $active_tab == 'general' ) : ?>
-                <div class="wpa-superstar-toggle">
-                    <label for="wpa_superstar_lazy_load">
-                        <div class="wpa-toggle-switch">
-                            <input type="checkbox" 
-                                   id="wpa_superstar_lazy_load"
-                                   name="wpa_superstar_lazy_load" 
-                                   value="1" 
-                                   <?php checked( get_option( 'wpa_superstar_lazy_load', 1 ) ); ?> 
-                            />
-                            <span class="wpa-toggle-slider"></span>
-                        </div>
-                        <?php esc_html_e( 'Enable lazy loading for images', 'wpa-superstar' ); ?>
-                    </label>
-                    <p class="description">
-                        <?php esc_html_e( 'Improves page load time by loading images only when they enter the viewport.', 'wpa-superstar' ); ?>
-                    </p>
-                </div>
-            <?php elseif ( $active_tab == 'advanced' ) : ?>
-                <div class="wpa-superstar-toggle">
-                    <label for="wpa_superstar_minify_css">
-                        <div class="wpa-toggle-switch">
-                            <input type="checkbox" 
-                                   id="wpa_superstar_minify_css"
-                                   name="wpa_superstar_minify_css" 
-                                   value="1" 
-                                   <?php checked( get_option( 'wpa_superstar_minify_css', 0 ) ); ?> 
-                            />
-                            <span class="wpa-toggle-slider"></span>
-                        </div>
-                        <?php esc_html_e( 'Enable CSS minification', 'wpa-superstar' ); ?>
-                    </label>
-                    <p class="description">
-                        <?php esc_html_e( 'Minifies CSS files to reduce file size and improve load times.', 'wpa-superstar' ); ?>
-                    </p>
-                </div>
+                <?php if ( $active_tab == 'general' ) : ?>
+                    <div class="wpa-superstar-toggle">
+                        <label for="wpa_superstar_lazy_load">
+                            <div class="wpa-toggle-switch">
+                                <input type="checkbox" 
+                                       id="wpa_superstar_lazy_load"
+                                       name="wpa_superstar_lazy_load" 
+                                       value="1" 
+                                       <?php checked( get_option( 'wpa_superstar_lazy_load', 1 ) ); ?> 
+                                />
+                                <span class="wpa-toggle-slider"></span>
+                            </div>
+                            <?php esc_html_e( 'Enable lazy loading for images', 'wpa-superstar' ); ?>
+                        </label>
+                        <p class="description">
+                            <?php esc_html_e( 'Improves page load time by loading images only when they enter the viewport.', 'wpa-superstar' ); ?>
+                        </p>
+                    </div>
+                <?php elseif ( $active_tab == 'advanced' ) : ?>
+                    <div class="wpa-superstar-toggle">
+                        <label for="wpa_superstar_minify_css">
+                            <div class="wpa-toggle-switch">
+                                <input type="checkbox" 
+                                       id="wpa_superstar_minify_css"
+                                       name="wpa_superstar_minify_css" 
+                                       value="1" 
+                                       <?php checked( get_option( 'wpa_superstar_minify_css', 0 ) ); ?> 
+                                />
+                                <span class="wpa-toggle-slider"></span>
+                            </div>
+                            <?php esc_html_e( 'Enable CSS minification', 'wpa-superstar' ); ?>
+                        </label>
+                        <p class="description">
+                            <?php esc_html_e( 'Minifies CSS files to reduce file size and improve load times.', 'wpa-superstar' ); ?>
+                        </p>
+                    </div>
 
-                <div class="wpa-superstar-toggle">
-                    <label for="wpa_superstar_minify_js">
-                        <div class="wpa-toggle-switch">
-                            <input type="checkbox" 
-                                   id="wpa_superstar_minify_js"
-                                   name="wpa_superstar_minify_js" 
-                                   value="1" 
-                                   <?php checked( get_option( 'wpa_superstar_minify_js', 0 ) ); ?> 
-                            />
-                            <span class="wpa-toggle-slider"></span>
-                        </div>
-                        <?php esc_html_e( 'Enable JS minification', 'wpa-superstar' ); ?>
-                    </label>
-                    <p class="description">
-                        <?php esc_html_e( 'Minifies JavaScript files to reduce file size and improve load times.', 'wpa-superstar' ); ?>
-                    </p>
-                </div>
-            <?php endif; ?>
+                    <div class="wpa-superstar-toggle">
+                        <label for="wpa_superstar_minify_js">
+                            <div class="wpa-toggle-switch">
+                                <input type="checkbox" 
+                                       id="wpa_superstar_minify_js"
+                                       name="wpa_superstar_minify_js" 
+                                       value="1" 
+                                       <?php checked( get_option( 'wpa_superstar_minify_js', 0 ) ); ?> 
+                                />
+                                <span class="wpa-toggle-slider"></span>
+                            </div>
+                            <?php esc_html_e( 'Enable JS minification', 'wpa-superstar' ); ?>
+                        </label>
+                        <p class="description">
+                            <?php esc_html_e( 'Minifies JavaScript files to reduce file size and improve load times.', 'wpa-superstar' ); ?>
+                        </p>
+                    </div>
+                <?php endif; ?>
+            </div>
         </div>
     </div>
     <?php
