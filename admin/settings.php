@@ -314,6 +314,7 @@ function wpa_superstar_ajax_get_theme() {
             border: 1px solid #dcdcde;
             box-shadow: 0 1px 1px rgba(0,0,0,.04);
             box-sizing: border-box;
+            background: #fff;
         }
         .theme-browser .theme .theme-screenshot {
             display: block;
@@ -322,15 +323,12 @@ function wpa_superstar_ajax_get_theme() {
             -webkit-backface-visibility: hidden;
             transition: opacity .2s ease-in-out;
             background: #fff;
-            padding-top: 66.66666%; /* Enforces screenshot aspect ratio */
         }
         .theme-browser .theme .theme-screenshot img {
-            height: auto;
-            position: absolute;
-            left: 0;
-            top: 0;
+            display: block;
             width: 100%;
-            transform: translateZ(0);
+            max-width: 100%;
+            height: auto;
         }
         .theme-browser .theme .theme-name {
             font-size: 15px;
@@ -347,8 +345,8 @@ function wpa_superstar_ajax_get_theme() {
             opacity: 0;
             transition: opacity .1s ease-in-out;
             position: absolute;
-            bottom: 0;
             right: 0;
+            bottom: 0;
             padding: 9px 15px;
             background: rgba(244,244,244,.7);
             border-left: 1px solid rgba(0,0,0,.05);
