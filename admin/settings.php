@@ -63,47 +63,35 @@ function wpa_superstar_get_recommended_plugins() {
     );
 }
 
-// Filter the plugins API results
-function wpa_superstar_filter_plugins_api($result, $action, $args) {
-    if ($action !== 'query_plugins') {
-        return $result;
+// Filter plugins API to show only our recommended plugins
+function wpa_superstar_plugins_api_filter($args) {
+    if (!empty($_GET['page']) && $_GET['page'] === 'wpa-superstar') {
+        $category = isset($_GET['category']) ? sanitize_key($_GET['category']) : 'recommended';
+        $recommended_plugins = wpa_superstar_get_recommended_plugins();
+        
+        if (isset($recommended_plugins[$category])) {
+            $args->per_page = 100;
+            $args->plugins = $recommended_plugins[$category];
+        }
     }
-
-    // Only filter on our page
-    if (!isset($_GET['page']) || $_GET['page'] !== 'wpa-superstar') {
-        return $result;
-    }
-
-    $category = isset($_GET['category']) ? sanitize_key($_GET['category']) : 'recommended';
-    $recommended_plugins = wpa_superstar_get_recommended_plugins();
-
-    if (!isset($recommended_plugins[$category])) {
-        return $result;
-    }
-
-    // Get the full plugin data for our recommended plugins
-    $args = array(
-        'per_page' => 100,
-        'fields' => array(
-            'last_updated' => true,
-            'active_installs' => true,
-            'downloaded' => true,
-            'icons' => true,
-        ),
-        'slug' => $recommended_plugins[$category]
-    );
-
-    $query = new WP_Plugin_Install_List_Table();
-    $query->prepare_items();
-
-    return plugins_api('query_plugins', $args);
+    return $args;
 }
-add_filter('plugins_api_result', 'wpa_superstar_filter_plugins_api', 10, 3);
+add_filter('plugins_api_args', 'wpa_superstar_plugins_api_filter');
 
 // Settings page HTML
 function wpa_superstar_settings_page() {
+    global $tabs;
+    
     $active_tab = isset($_GET['tab']) ? $_GET['tab'] : 'recommended';
     $active_category = isset($_GET['category']) ? $_GET['category'] : 'recommended';
+    
+    // Ensure required files are loaded
+    if ($active_tab === 'recommended') {
+        require_once ABSPATH . 'wp-admin/includes/plugin-install.php';
+        wp_enqueue_script('plugin-install');
+        wp_enqueue_script('updates');
+        add_thickbox();
+    }
     ?>
     <div class="wrap wpa-superstar-wrap">
         <div class="wpa-superstar-header">
@@ -152,19 +140,13 @@ function wpa_superstar_settings_page() {
                         </a>
                     </div>
 
-                    <?php
-                    require_once ABSPATH . 'wp-admin/includes/plugin-install.php';
-                    require_once ABSPATH . 'wp-admin/includes/class-wp-plugin-install-list-table.php';
-                    
-                    // Set up the plugin install table
-                    $plugin_table = new WP_Plugin_Install_List_Table();
-                    $plugin_table->prepare_items();
-                    
-                    // Display the plugin browser
-                    echo '<div class="wrap">';
-                    $plugin_table->display();
-                    echo '</div>';
-                    ?>
+                    <div class="wp-list-table-container">
+                        <?php
+                        $wp_list_table = _get_list_table('WP_Plugin_Install_List_Table');
+                        $wp_list_table->prepare_items();
+                        $wp_list_table->display();
+                        ?>
+                    </div>
 
                 <?php elseif ($active_tab == 'general'): ?>
                     <div class="wpa-superstar-toggle">
