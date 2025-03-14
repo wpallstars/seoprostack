@@ -236,6 +236,122 @@ add_action('deactivated_plugin', 'wpa_superstar_clear_plugin_cache');
 add_action('deleted_plugin', 'wpa_superstar_clear_plugin_cache');
 add_action('update_option_active_plugins', 'wpa_superstar_clear_plugin_cache');
 
+// Add transient caching for theme data
+function wpa_superstar_get_cached_theme() {
+    $cache_key = 'wpa_superstar_theme_kadence';
+    return get_transient($cache_key);
+}
+
+function wpa_superstar_set_cached_theme($data) {
+    $cache_key = 'wpa_superstar_theme_kadence';
+    set_transient($cache_key, $data, 12 * HOUR_IN_SECONDS);
+}
+
+// Add AJAX endpoint for theme
+function wpa_superstar_ajax_get_theme() {
+    check_ajax_referer('updates');
+    
+    if (!current_user_can('install_themes')) {
+        wp_die(-1);
+    }
+    
+    require_once ABSPATH . 'wp-admin/includes/theme.php';
+    
+    // Try to get cached data first
+    $cached_data = wpa_superstar_get_cached_theme();
+    if ($cached_data !== false) {
+        error_log('Using cached theme data');
+        // Setup the list table with cached data
+        $GLOBALS['tab'] = 'theme-install';
+        $_REQUEST['tab'] = 'theme-install';
+        $_REQUEST['type'] = 'theme-install';
+        set_current_screen('theme-install');
+        
+        $wp_list_table = _get_list_table('WP_Theme_Install_List_Table', array(
+            'screen' => 'theme-install'
+        ));
+        
+        // Override the items with our cached data
+        $wp_list_table->items = array($cached_data);
+        $wp_list_table->set_pagination_args(array(
+            'total_items' => 1,
+            'per_page' => 1,
+        ));
+        
+        ob_start();
+        $wp_list_table->display();
+        $html = ob_get_clean();
+        
+        wp_send_json_success($html);
+        return;
+    }
+    
+    error_log('Fetching fresh theme data for Kadence');
+    
+    // If no cache, get fresh data
+    try {
+        $theme_data = themes_api('theme_information', array(
+            'slug' => 'kadence',
+            'fields' => array(
+                'sections' => false,
+                'rating' => true,
+                'ratings' => false,
+                'downloaded' => true,
+                'last_updated' => true,
+                'homepage' => true,
+                'description' => true,
+                'screenshot_url' => true,
+            )
+        ));
+        
+        if (is_wp_error($theme_data)) {
+            error_log('Error fetching theme data: ' . $theme_data->get_error_message());
+            wp_send_json_error('Failed to fetch theme data: ' . $theme_data->get_error_message());
+            return;
+        }
+        
+        error_log('Successfully fetched theme data');
+        
+        // Cache the results
+        wpa_superstar_set_cached_theme($theme_data);
+        
+        // Setup the list table
+        $GLOBALS['tab'] = 'theme-install';
+        $_REQUEST['tab'] = 'theme-install';
+        $_REQUEST['type'] = 'theme-install';
+        set_current_screen('theme-install');
+        
+        $wp_list_table = _get_list_table('WP_Theme_Install_List_Table', array(
+            'screen' => 'theme-install'
+        ));
+        
+        // Set the items directly
+        $wp_list_table->items = array($theme_data);
+        $wp_list_table->set_pagination_args(array(
+            'total_items' => 1,
+            'per_page' => 1,
+        ));
+        
+        ob_start();
+        $wp_list_table->display();
+        $html = ob_get_clean();
+        
+        wp_send_json_success($html);
+        
+    } catch (Exception $e) {
+        error_log('Failed to fetch theme data: ' . $e->getMessage());
+        wp_send_json_error('Failed to fetch theme data: ' . $e->getMessage());
+    }
+}
+add_action('wp_ajax_wpa_get_theme', 'wpa_superstar_ajax_get_theme');
+
+// Clear theme cache when themes are updated
+function wpa_superstar_clear_theme_cache() {
+    delete_transient('wpa_superstar_theme_kadence');
+}
+add_action('upgrader_process_complete', 'wpa_superstar_clear_theme_cache', 10, 0);
+add_action('switch_theme', 'wpa_superstar_clear_theme_cache');
+
 // Settings page HTML
 function wpa_superstar_settings_page() {
     global $tabs;
@@ -243,11 +359,17 @@ function wpa_superstar_settings_page() {
     $active_tab = isset($_GET['tab']) ? $_GET['tab'] : 'general';
     $active_category = isset($_GET['category']) ? $_GET['category'] : 'minimal';
     
-    // Clear cache when loading the recommended tab
+    // Clear cache and load required files
     if ($active_tab === 'recommended') {
         wpa_superstar_clear_plugin_cache();
         require_once ABSPATH . 'wp-admin/includes/plugin-install.php';
         wp_enqueue_script('plugin-install');
+        wp_enqueue_script('updates');
+        add_thickbox();
+    } elseif ($active_tab === 'theme') {
+        wpa_superstar_clear_theme_cache();
+        require_once ABSPATH . 'wp-admin/includes/theme.php';
+        wp_enqueue_script('theme-install');
         wp_enqueue_script('updates');
         add_thickbox();
     }
@@ -275,11 +397,87 @@ function wpa_superstar_settings_page() {
                     <a href="?page=wpa-superstar&tab=recommended" class="nav-tab <?php echo $active_tab == 'recommended' ? 'nav-tab-active' : ''; ?>">
                         <?php esc_html_e('Free Plugins', 'wpa-superstar'); ?>
                     </a>
+                    <a href="?page=wpa-superstar&tab=theme" class="nav-tab <?php echo $active_tab == 'theme' ? 'nav-tab-active' : ''; ?>">
+                        <?php esc_html_e('Theme', 'wpa-superstar'); ?>
+                    </a>
                 </h2>
             </div>
 
             <div class="wpa-settings-content">
-                <?php if ($active_tab == 'recommended'): ?>
+                <?php if ($active_tab == 'theme'): ?>
+                    <div class="wp-list-table-container">
+                        <div class="wpa-loading-overlay">
+                            <span class="spinner is-active"></span>
+                        </div>
+                        <div id="wpa-theme-list"></div>
+                    </div>
+
+                    <script>
+                    jQuery(document).ready(function($) {
+                        var loadingStartTime;
+                        var currentRequest = null;
+                        
+                        function loadTheme() {
+                            // Show loading overlay
+                            $('.wpa-loading-overlay').fadeIn();
+                            loadingStartTime = Date.now();
+                            
+                            // Cancel previous request if it exists
+                            if (currentRequest) {
+                                currentRequest.abort();
+                            }
+                            
+                            // Make the AJAX request
+                            currentRequest = $.ajax({
+                                url: ajaxurl,
+                                data: {
+                                    action: 'wpa_get_theme',
+                                    _ajax_nonce: '<?php echo wp_create_nonce("updates"); ?>'
+                                },
+                                beforeSend: function() {
+                                    if (currentRequest) {
+                                        currentRequest.abort();
+                                    }
+                                },
+                                success: function(response) {
+                                    if (response.success) {
+                                        ensureMinLoadingTime(function() {
+                                            $('#wpa-theme-list').html(response.data);
+                                            $('.wpa-loading-overlay').fadeOut();
+                                        });
+                                    } else {
+                                        console.error('Server returned error:', response);
+                                        $('.wpa-loading-overlay').fadeOut();
+                                        $('#wpa-theme-list').html('<div class="notice notice-error"><p>Failed to load theme: ' + (response.data || 'Unknown error') + '</p></div>');
+                                    }
+                                },
+                                error: function(xhr, status, error) {
+                                    console.error('Failed to load theme:', {xhr: xhr, status: status, error: error});
+                                    $('.wpa-loading-overlay').fadeOut();
+                                    $('#wpa-theme-list').html('<div class="notice notice-error"><p>Failed to load theme. Please try again. Error: ' + error + '</p></div>');
+                                }
+                            });
+                        }
+                        
+                        // Function to ensure minimum loading time
+                        function ensureMinLoadingTime(callback) {
+                            var currentTime = Date.now();
+                            var elapsed = currentTime - loadingStartTime;
+                            var minLoadingTime = 500;
+                            
+                            if (elapsed < minLoadingTime) {
+                                setTimeout(callback, minLoadingTime - elapsed);
+                            } else {
+                                callback();
+                            }
+                        }
+                        
+                        // Load theme on page load
+                        loadTheme();
+                    });
+                    </script>
+
+                <?php elseif ($active_tab == 'recommended'): ?>
                     <div class="wpa-plugin-filters">
                         <a href="?page=wpa-superstar&tab=recommended&category=minimal" 
                            class="button <?php echo $active_category == 'minimal' ? 'button-primary' : ''; ?>">
