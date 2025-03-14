@@ -315,8 +315,6 @@ function wpa_superstar_ajax_get_theme() {
             box-shadow: 0 1px 1px rgba(0,0,0,.04);
             box-sizing: border-box;
             background: #fff;
-            display: flex;
-            flex-direction: column;
         }
         .theme-browser .theme .theme-screenshot {
             display: block;
@@ -325,17 +323,16 @@ function wpa_superstar_ajax_get_theme() {
             -webkit-backface-visibility: hidden;
             transition: opacity .2s ease-in-out;
             background: #fff;
-            flex: 1;
         }
         .theme-browser .theme .theme-screenshot img {
             display: block;
             width: 100%;
-            max-width: 100%;
             height: auto;
         }
         .theme-browser .theme .theme-name {
             font-size: 15px;
             font-weight: 600;
+            height: 18px;
             margin: 0;
             padding: 15px;
             box-shadow: inset 0 1px 0 rgba(0,0,0,.1);
@@ -343,25 +340,21 @@ function wpa_superstar_ajax_get_theme() {
             white-space: nowrap;
             text-overflow: ellipsis;
             background: #fff;
-            position: relative;
-            z-index: 1;
         }
         .theme-browser .theme .theme-actions {
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            height: 38px;
+            padding: 9px 10px 0;
+            background: rgba(244,244,244,.7);
+            border-left: 1px solid rgba(0,0,0,.05);
             opacity: 0;
             transition: opacity .1s ease-in-out;
-            position: absolute;
-            right: 0;
-            bottom: 0;
-            padding: 10px;
-            background: rgba(244,244,244,.9);
-            border-left: 1px solid rgba(0,0,0,.05);
-            text-align: right;
-            display: flex;
-            gap: 5px;
-            z-index: 2;
         }
+        .theme-browser .theme:hover .theme-actions,
         .theme-browser .theme:focus .theme-actions,
-        .theme-browser .theme:hover .theme-actions {
+        .theme-browser .theme .theme-actions:focus {
             opacity: 1;
         }
         .theme-browser .theme .theme-author {
@@ -375,15 +368,16 @@ function wpa_superstar_ajax_get_theme() {
             text-align: center;
             opacity: 0;
             transition: opacity .1s ease-in-out;
-            z-index: 2;
         }
-        .theme-browser .theme:focus .theme-author,
         .theme-browser .theme:hover .theme-author {
             opacity: 1;
         }
         .theme-browser .theme .theme-actions .button {
             float: none;
-            margin: 0;
+            margin-left: 3px;
+        }
+        .theme-browser .theme .theme-actions .button:first-child {
+            margin-left: 0;
         }
         </style>
         <div class="theme-browser">
