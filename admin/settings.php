@@ -256,6 +256,7 @@ function wpa_superstar_ajax_get_theme() {
     }
     
     require_once ABSPATH . 'wp-admin/includes/theme.php';
+    require_once ABSPATH . 'wp-admin/includes/class-wp-theme-install-list-table.php';
     
     // Try to get cached data first
     $cached_data = wpa_superstar_get_cached_theme();
@@ -265,11 +266,10 @@ function wpa_superstar_ajax_get_theme() {
         $GLOBALS['tab'] = 'theme-install';
         $_REQUEST['tab'] = 'theme-install';
         $_REQUEST['type'] = 'theme-install';
-        set_current_screen('theme-install');
         
-        $wp_list_table = _get_list_table('WP_Theme_Install_List_Table', array(
-            'screen' => 'theme-install'
-        ));
+        // Set up the list table
+        $wp_list_table = new WP_Theme_Install_List_Table();
+        $wp_list_table->prepare_items();
         
         // Override the items with our cached data
         $wp_list_table->items = array($cached_data);
@@ -293,14 +293,18 @@ function wpa_superstar_ajax_get_theme() {
         $theme_data = themes_api('theme_information', array(
             'slug' => 'kadence',
             'fields' => array(
-                'sections' => false,
+                'sections' => true,
                 'rating' => true,
-                'ratings' => false,
+                'ratings' => true,
                 'downloaded' => true,
                 'last_updated' => true,
                 'homepage' => true,
                 'description' => true,
                 'screenshot_url' => true,
+                'version' => true,
+                'requires' => true,
+                'downloadlink' => true,
+                'active_installs' => true,
             )
         ));
         
@@ -319,11 +323,10 @@ function wpa_superstar_ajax_get_theme() {
         $GLOBALS['tab'] = 'theme-install';
         $_REQUEST['tab'] = 'theme-install';
         $_REQUEST['type'] = 'theme-install';
-        set_current_screen('theme-install');
         
-        $wp_list_table = _get_list_table('WP_Theme_Install_List_Table', array(
-            'screen' => 'theme-install'
-        ));
+        // Set up the list table
+        $wp_list_table = new WP_Theme_Install_List_Table();
+        $wp_list_table->prepare_items();
         
         // Set the items directly
         $wp_list_table->items = array($theme_data);
