@@ -104,6 +104,7 @@ function wpa_superstar_ajax_get_plugins() {
         // Setup the list table with cached data
         $GLOBALS['tab'] = 'plugin-install';
         $_REQUEST['tab'] = 'plugin-install';
+        $_REQUEST['type'] = 'plugin-install';
         set_current_screen('plugin-install');
         
         $wp_list_table = _get_list_table('WP_Plugin_Install_List_Table', array(
@@ -128,34 +129,41 @@ function wpa_superstar_ajax_get_plugins() {
     // If no cache, get fresh data
     try {
         $plugins = array();
+        
+        // Only fetch plugins that are in our recommended list for this category
         foreach ($recommended_plugins[$category] as $slug) {
-            $plugin_data = plugins_api('plugin_information', array(
-                'slug' => $slug,
-                'fields' => array(
-                    'short_description' => true,
-                    'sections' => false,
-                    'requires' => true,
-                    'rating' => true,
-                    'ratings' => false,
-                    'downloaded' => true,
-                    'last_updated' => true,
-                    'added' => false,
-                    'tags' => false,
-                    'compatibility' => false,
-                    'homepage' => true,
-                    'versions' => false,
-                    'donate_link' => false,
-                    'reviews' => false,
-                    'banners' => false,
-                    'icons' => true,
-                    'active_installs' => true,
-                    'group' => false,
-                    'contributors' => false,
-                )
-            ));
-            
-            if (!is_wp_error($plugin_data)) {
-                $plugins[] = $plugin_data;
+            try {
+                $plugin_data = plugins_api('plugin_information', array(
+                    'slug' => $slug,
+                    'fields' => array(
+                        'short_description' => true,
+                        'sections' => false,
+                        'requires' => true,
+                        'rating' => true,
+                        'ratings' => false,
+                        'downloaded' => true,
+                        'last_updated' => true,
+                        'added' => false,
+                        'tags' => false,
+                        'compatibility' => false,
+                        'homepage' => true,
+                        'versions' => false,
+                        'donate_link' => false,
+                        'reviews' => false,
+                        'banners' => false,
+                        'icons' => true,
+                        'active_installs' => true,
+                        'group' => false,
+                        'contributors' => false,
+                    )
+                ));
+                
+                if (!is_wp_error($plugin_data)) {
+                    $plugins[] = $plugin_data;
+                }
+            } catch (Exception $e) {
+                // Skip this plugin if there's an error
+                continue;
             }
         }
         
@@ -175,6 +183,7 @@ function wpa_superstar_ajax_get_plugins() {
         // Setup the list table
         $GLOBALS['tab'] = 'plugin-install';
         $_REQUEST['tab'] = 'plugin-install';
+        $_REQUEST['type'] = 'plugin-install';
         set_current_screen('plugin-install');
         
         $wp_list_table = _get_list_table('WP_Plugin_Install_List_Table', array(
@@ -195,7 +204,7 @@ function wpa_superstar_ajax_get_plugins() {
         wp_send_json_success($html);
         
     } catch (Exception $e) {
-        wp_send_json_error('Failed to fetch plugin data');
+        wp_send_json_error('Failed to fetch plugin data: ' . $e->getMessage());
     }
 }
 add_action('wp_ajax_wpa_get_plugins', 'wpa_superstar_ajax_get_plugins');
