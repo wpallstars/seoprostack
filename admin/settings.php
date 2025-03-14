@@ -92,64 +92,41 @@ function wpa_superstar_ajax_get_plugins() {
     
     require_once ABSPATH . 'wp-admin/includes/plugin-install.php';
     
-    // Set up the query args to match our filter
-    $_GET['page'] = 'wpa-superstar'; // Set this so our filter knows to run
-    $_REQUEST['page'] = 'wpa-superstar';
-    
-    // Setup the list table
-    $wp_list_table = _get_list_table('WP_Plugin_Install_List_Table', array(
-        'screen' => 'plugin-install',
-    ));
-    
-    // Force per_page to match our category size
+    // Get our recommended plugins for this category
     $recommended_plugins = wpa_superstar_get_recommended_plugins();
-    $per_page = isset($recommended_plugins[$category]) ? count($recommended_plugins[$category]) : 10;
-    
-    // Set up the query args
-    set_current_screen('plugin-install');
-    $_REQUEST['type'] = 'search';
-    $_REQUEST['s'] = ''; // Empty search to get all plugins
-    $_REQUEST['tab'] = 'search';
-    $_REQUEST['per_page'] = $per_page;
-    
-    $wp_list_table->prepare_items();
-    
-    ob_start();
-    $wp_list_table->display();
-    $html = ob_get_clean();
-    
-    wp_send_json_success($html);
-}
-add_action('wp_ajax_wpa_get_plugins', 'wpa_superstar_ajax_get_plugins');
-
-// Filter plugins API to show only our recommended plugins
-function wpa_superstar_plugins_api_result($res, $action, $args) {
-    // Only filter if we're on our plugin page and it's a plugin query
-    if (!is_admin() || 
-        empty($_REQUEST['page']) || 
-        $_REQUEST['page'] !== 'wpa-superstar' || 
-        $action !== 'query_plugins') {
-        return $res;
+    if (!isset($recommended_plugins[$category])) {
+        wp_send_json_error('Invalid category');
     }
-
-    // Get the current category
-    $category = isset($_GET['category']) ? sanitize_key($_GET['category']) : 'minimal';
     
     // Try to get cached data first
     $cached_data = wpa_superstar_get_cached_plugins($category);
     if ($cached_data !== false) {
-        return $cached_data;
+        // Setup the list table with cached data
+        $GLOBALS['tab'] = 'plugin-install';
+        $_REQUEST['tab'] = 'plugin-install';
+        set_current_screen('plugin-install');
+        
+        $wp_list_table = _get_list_table('WP_Plugin_Install_List_Table', array(
+            'screen' => 'plugin-install'
+        ));
+        
+        // Override the items with our cached data
+        $wp_list_table->items = $cached_data->plugins;
+        $wp_list_table->set_pagination_args(array(
+            'total_items' => count($cached_data->plugins),
+            'per_page' => count($cached_data->plugins),
+        ));
+        
+        ob_start();
+        $wp_list_table->display();
+        $html = ob_get_clean();
+        
+        wp_send_json_success($html);
+        return;
     }
-
-    $recommended_plugins = wpa_superstar_get_recommended_plugins();
     
-    // Check if category exists and has plugins
-    if (!isset($recommended_plugins[$category]) || empty($recommended_plugins[$category])) {
-        return $res;
-    }
-
+    // If no cache, get fresh data
     try {
-        // Get plugin data for each slug individually to prevent timeouts
         $plugins = array();
         foreach ($recommended_plugins[$category] as $slug) {
             $plugin_data = plugins_api('plugin_information', array(
@@ -181,8 +158,8 @@ function wpa_superstar_plugins_api_result($res, $action, $args) {
                 $plugins[] = $plugin_data;
             }
         }
-
-        // Create a valid response object
+        
+        // Create response object
         $res = (object) array(
             'info' => array(
                 'page' => 1,
@@ -191,16 +168,39 @@ function wpa_superstar_plugins_api_result($res, $action, $args) {
             ),
             'plugins' => $plugins
         );
-
+        
         // Cache the results
         wpa_superstar_set_cached_plugins($category, $res);
-
-        return $res;
+        
+        // Setup the list table
+        $GLOBALS['tab'] = 'plugin-install';
+        $_REQUEST['tab'] = 'plugin-install';
+        set_current_screen('plugin-install');
+        
+        $wp_list_table = _get_list_table('WP_Plugin_Install_List_Table', array(
+            'screen' => 'plugin-install'
+        ));
+        
+        // Set the items directly
+        $wp_list_table->items = $plugins;
+        $wp_list_table->set_pagination_args(array(
+            'total_items' => count($plugins),
+            'per_page' => count($plugins),
+        ));
+        
+        ob_start();
+        $wp_list_table->display();
+        $html = ob_get_clean();
+        
+        wp_send_json_success($html);
+        
     } catch (Exception $e) {
-        return $res;
+        wp_send_json_error('Failed to fetch plugin data');
     }
 }
-add_filter('plugins_api_result', 'wpa_superstar_plugins_api_result', 10, 3);
+
+// Remove the old plugins API filter since we're handling everything in the AJAX endpoint
+remove_filter('plugins_api_result', 'wpa_superstar_plugins_api_result');
 
 // Clear plugin cache when plugins are updated, activated, or deactivated
 function wpa_superstar_clear_plugin_cache() {
