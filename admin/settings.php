@@ -198,6 +198,7 @@ function wpa_superstar_ajax_get_plugins() {
         wp_send_json_error('Failed to fetch plugin data');
     }
 }
+add_action('wp_ajax_wpa_get_plugins', 'wpa_superstar_ajax_get_plugins');
 
 // Remove the old plugins API filter since we're handling everything in the AJAX endpoint
 remove_filter('plugins_api_result', 'wpa_superstar_plugins_api_result');
@@ -319,6 +320,11 @@ function wpa_superstar_settings_page() {
                                             $('.wpa-loading-overlay').fadeOut();
                                         });
                                     }
+                                },
+                                error: function(xhr, status, error) {
+                                    console.error('Failed to load plugins:', error);
+                                    $('.wpa-loading-overlay').fadeOut();
+                                    $('#wpa-plugin-list').html('<div class="notice notice-error"><p>Failed to load plugins. Please try again.</p></div>');
                                 }
                             });
                         }
