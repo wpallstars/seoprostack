@@ -8,7 +8,7 @@ jQuery(document).ready(function($) {
         $('.wpa-status').remove();
         
         // Add a small notification that fades out
-        var $notification = $('<span class="wpa-status" style="position: fixed; bottom: 20px; right: 20px; background: #00a32a; color: white; padding: 8px 16px; border-radius: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">Setting saved</span>');
+        var $notification = $('<span class="wpa-status" style="position: fixed; top: 32px; left: 50%; transform: translateX(-50%); z-index: 99999; background: #00a32a; color: white; padding: 8px 16px; border-radius: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">Setting saved</span>');
         $('body').append($notification);
         
         $.post(wpaSuperstar.ajaxurl, {
