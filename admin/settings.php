@@ -38,7 +38,7 @@ function wpa_superstar_get_recommended_plugins() {
     return array(
         'minimal' => array(
             'antispam-bee',
-            'turnstile'
+            'simple-cloudflare-turnstile'
         ),
         'advanced' => array(
             'advanced-custom-fields',
