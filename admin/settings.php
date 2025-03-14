@@ -566,32 +566,28 @@ function wpa_superstar_settings_page() {
                                 
                                 $button.addClass('updating-message').text('Activating...');
                                 
-                                wp.updates.ajax('update-theme-settings', {
-                                    slug: slug,
-                                    success: function(response) {
-                                        wp.updates.ajax('activate-theme', {
-                                            slug: slug,
-                                            success: function() {
-                                                $button
-                                                    .removeClass('updating-message')
-                                                    .text('Activated');
-                                                
-                                                // Redirect to customize page after a short delay
-                                                setTimeout(function() {
-                                                    window.location.href = '<?php echo admin_url("customize.php"); ?>';
-                                                }, 1000);
-                                            },
-                                            error: function(response) {
-                                                $button.removeClass('updating-message');
-                                                console.error('Theme activation failed:', response);
-                                                alert(response.errorMessage || 'Theme activation failed. Please try again.');
-                                            }
-                                        });
+                                $.ajax({
+                                    url: ajaxurl,
+                                    type: 'POST',
+                                    data: {
+                                        action: 'switch_theme',
+                                        stylesheet: slug,
+                                        _wpnonce: '<?php echo wp_create_nonce("switch-theme_" . "kadence"); ?>'
                                     },
-                                    error: function(response) {
-                                        $button.removeClass('updating-message');
-                                        console.error('Theme settings update failed:', response);
-                                        alert(response.errorMessage || 'Theme activation failed. Please try again.');
+                                    success: function(response) {
+                                        if (response.success) {
+                                            $button.removeClass('updating-message').text('Activated');
+                                            setTimeout(function() {
+                                                window.location.href = '<?php echo admin_url("customize.php"); ?>';
+                                            }, 1000);
+                                        } else {
+                                            $button.removeClass('updating-message').text('Activate');
+                                            alert(response.data || 'Theme activation failed. Please try again.');
+                                        }
+                                    },
+                                    error: function(xhr, status, error) {
+                                        $button.removeClass('updating-message').text('Activate');
+                                        alert('Theme activation failed: ' + error);
                                     }
                                 });
                             });
