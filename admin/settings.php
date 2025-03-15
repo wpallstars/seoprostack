@@ -1108,7 +1108,7 @@ function wp_allstars_settings_page() {
                                 font-weight: normal;
                                 margin: 0;
                                 border: 1px solid #0071a1;
-                                border-radius: 3px;
+                                border-radius: 3px !important;
                                 background: #f6f7f7;
                                 color: #0071a1;
                                 display: inline-block;
