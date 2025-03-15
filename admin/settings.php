@@ -1106,6 +1106,7 @@ function wp_allstars_settings_page() {
                                 padding: 0 16px;
                                 font-size: 14px;
                                 font-weight: 500;
+                                margin: 0;
                             }
                             .wpa-pro-plugin .button-primary {
                                 background: #2271b1;
@@ -1119,7 +1120,7 @@ function wp_allstars_settings_page() {
                             .wpa-pro-plugin .button-group {
                                 display: flex;
                                 flex-wrap: wrap;
-                                gap: 8px;
+                                gap: 12px;
                                 margin-top: auto;
                             }
                             @media screen and (max-width: 960px) {
