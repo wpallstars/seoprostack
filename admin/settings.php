@@ -205,60 +205,48 @@ function wp_allstars_ajax_get_plugins() {
     $recommended_plugins = wp_allstars_get_recommended_plugins();
     if (!isset($recommended_plugins[$category])) {
         wp_send_json_error('Invalid category: ' . $category);
+        return;
     }
     
     // Try to get cached data first
     $cached_data = wp_allstars_get_cached_plugins($category);
     if ($cached_data !== false) {
         error_log('Using cached data for category: ' . $category);
-        // Setup the list table with cached data
-        $GLOBALS['tab'] = 'plugin-install';
-        $_REQUEST['tab'] = 'plugin-install';
-        $_REQUEST['type'] = 'plugin-install';
-        set_current_screen('plugin-install');
-        
-        $wp_list_table = _get_list_table('WP_Plugin_Install_List_Table', array(
-            'screen' => 'plugin-install'
-        ));
-        
-        // Override the items with our cached data
-        $wp_list_table->items = $cached_data->plugins;
-        $wp_list_table->set_pagination_args(array(
-            'total_items' => count($cached_data->plugins),
-            'per_page' => count($cached_data->plugins),
-        ));
-        
-        add_filter('plugin_install_action_links', function($action_links, $plugin) {
-            // Get pro plugins configuration
-            $pro_plugins = wp_allstars_get_pro_plugins_config();
+        try {
+            // Setup the list table with cached data
+            $GLOBALS['tab'] = 'plugin-install';
+            $_REQUEST['tab'] = 'plugin-install';
+            $_REQUEST['type'] = 'plugin-install';
+            set_current_screen('plugin-install');
             
-            // Check if this plugin has a pro version
-            foreach ($pro_plugins as $pro_plugin) {
-                if (isset($pro_plugin['free_slug']) && $pro_plugin['free_slug'] === $plugin['slug']) {
-                    $action_links[] = sprintf(
-                        '<a class="button button-primary" href="%s" target="_blank">%s</a>',
-                        esc_url($pro_plugin['url']),
-                        esc_html__('Go Pro', 'wp-allstars')
-                    );
-                    break;
-                }
-            }
+            $wp_list_table = _get_list_table('WP_Plugin_Install_List_Table', array(
+                'screen' => 'plugin-install'
+            ));
             
-            return $action_links;
-        }, 10, 2);
-        
-        ob_start();
-        $wp_list_table->display();
-        $html = ob_get_clean();
-        
-        wp_send_json_success($html);
-        return;
+            // Override the items with our cached data
+            $wp_list_table->items = $cached_data->plugins;
+            $wp_list_table->set_pagination_args(array(
+                'total_items' => count($cached_data->plugins),
+                'per_page' => count($cached_data->plugins),
+            ));
+            
+            add_filter('plugin_install_action_links', 'wp_allstars_add_pro_button', 10, 2);
+            
+            ob_start();
+            $wp_list_table->display();
+            $html = ob_get_clean();
+            
+            wp_send_json_success($html);
+            return;
+        } catch (Exception $e) {
+            error_log('Error displaying cached plugins: ' . $e->getMessage());
+            // Fall through to fetch fresh data
+        }
     }
     
     error_log('Fetching fresh data for category: ' . $category);
     error_log('Plugins to fetch: ' . implode(', ', $recommended_plugins[$category]));
     
-    // If no cache, get fresh data
     try {
         $plugins = array();
         
@@ -303,6 +291,11 @@ function wp_allstars_ajax_get_plugins() {
             }
         }
         
+        if (empty($plugins)) {
+            wp_send_json_error('No plugin data could be retrieved for category: ' . $category);
+            return;
+        }
+        
         error_log('Total plugins fetched: ' . count($plugins));
         
         // Create response object
@@ -335,28 +328,16 @@ function wp_allstars_ajax_get_plugins() {
             'per_page' => count($plugins),
         ));
         
-        add_filter('plugin_install_action_links', function($action_links, $plugin) {
-            // Get pro plugins configuration
-            $pro_plugins = wp_allstars_get_pro_plugins_config();
-            
-            // Check if this plugin has a pro version
-            foreach ($pro_plugins as $pro_plugin) {
-                if (isset($pro_plugin['free_slug']) && $pro_plugin['free_slug'] === $plugin['slug']) {
-                    $action_links[] = sprintf(
-                        '<a class="button button-primary" href="%s" target="_blank">%s</a>',
-                        esc_url($pro_plugin['url']),
-                        esc_html__('Go Pro', 'wp-allstars')
-                    );
-                    break;
-                }
-            }
-            
-            return $action_links;
-        }, 10, 2);
+        add_filter('plugin_install_action_links', 'wp_allstars_add_pro_button', 10, 2);
         
         ob_start();
         $wp_list_table->display();
         $html = ob_get_clean();
+        
+        if (empty($html)) {
+            wp_send_json_error('Failed to generate plugin display HTML');
+            return;
+        }
         
         wp_send_json_success($html);
         
@@ -366,6 +347,26 @@ function wp_allstars_ajax_get_plugins() {
     }
 }
 add_action('wp_ajax_wp_allstars_get_plugins', 'wp_allstars_ajax_get_plugins');
+
+// Helper function to add pro button to plugin cards
+function wp_allstars_add_pro_button($action_links, $plugin) {
+    // Get pro plugins configuration
+    $pro_plugins = wp_allstars_get_pro_plugins_config();
+    
+    // Check if this plugin has a pro version
+    foreach ($pro_plugins as $pro_plugin) {
+        if (isset($pro_plugin['free_slug']) && $pro_plugin['free_slug'] === $plugin['slug']) {
+            $action_links[] = sprintf(
+                '<a class="button button-primary" href="%s" target="_blank">%s</a>',
+                esc_url($pro_plugin['url']),
+                esc_html__('Go Pro', 'wp-allstars')
+            );
+            break;
+        }
+    }
+    
+    return $action_links;
+}
 
 // Remove the old plugins API filter since we're handling everything in the AJAX endpoint
 remove_filter('plugins_api_result', 'wp_allstars_plugins_api_result');

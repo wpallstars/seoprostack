@@ -31,8 +31,9 @@ register_activation_hook( __FILE__, 'wp_allstars_activate' );
 // Load core functionality
 require_once plugin_dir_path(__FILE__) . 'includes/class-wp-allstars-auto-upload.php';
 
-// Load admin UI
+// Load admin UI and configurations
 if ( is_admin() ) {
+    require_once plugin_dir_path( __FILE__ ) . 'admin/pro-plugins-config.php';
     require_once plugin_dir_path( __FILE__ ) . 'admin/settings.php';
 }
 
