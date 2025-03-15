@@ -1065,38 +1065,85 @@ function wp_allstars_settings_page() {
                             .wpa-pro-plugins {
                                 padding: 20px;
                                 display: grid;
-                                grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
-                                gap: 20px;
+                                grid-template-columns: repeat(auto-fill, minmax(450px, 1fr));
+                                gap: 24px;
+                                max-width: 1920px;
+                                margin: 0 auto;
                             }
                             .wpa-pro-plugin {
                                 background: #fff;
                                 border: 1px solid #ddd;
-                                padding: 20px;
-                                border-radius: 4px;
+                                padding: 24px;
+                                border-radius: 8px;
                                 height: 100%;
                                 display: flex;
                                 flex-direction: column;
+                                transition: all 0.2s ease;
+                                box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+                            }
+                            .wpa-pro-plugin:hover {
+                                border-color: #2271b1;
+                                box-shadow: 0 2px 6px rgba(0,0,0,0.15);
                             }
                             .wpa-pro-plugin h3 {
-                                margin: 0 0 10px;
-                                font-size: 1.2em;
+                                margin: 0 0 12px;
+                                font-size: 16px;
+                                font-weight: 600;
+                                color: #1d2327;
+                                line-height: 1.4;
                             }
                             .wpa-pro-plugin p {
-                                margin: 0 0 15px;
-                                color: #666;
+                                margin: 0 0 20px;
+                                color: #50575e;
+                                font-size: 14px;
+                                line-height: 1.6;
                                 flex-grow: 1;
                             }
                             .wpa-pro-plugin .button {
                                 text-decoration: none;
+                                min-width: 120px;
+                                text-align: center;
+                                height: 36px;
+                                line-height: 34px;
+                                padding: 0 16px;
+                                font-size: 14px;
+                                font-weight: 500;
+                            }
+                            .wpa-pro-plugin .button-primary {
+                                background: #2271b1;
+                                border-color: #2271b1;
+                                color: #fff;
+                            }
+                            .wpa-pro-plugin .button-primary:hover {
+                                background: #135e96;
+                                border-color: #135e96;
                             }
                             .wpa-pro-plugin .button-group {
                                 display: flex;
                                 flex-wrap: wrap;
-                                gap: 5px;
+                                gap: 8px;
+                            }
+                            @media screen and (max-width: 960px) {
+                                .wpa-pro-plugins {
+                                    grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+                                    gap: 20px;
+                                    padding: 16px;
+                                }
+                                .wpa-pro-plugin {
+                                    padding: 20px;
+                                }
                             }
                             @media screen and (max-width: 782px) {
                                 .wpa-pro-plugins {
                                     grid-template-columns: 1fr;
+                                    gap: 16px;
+                                    padding: 12px;
+                                }
+                                .wpa-pro-plugin {
+                                    padding: 16px;
+                                }
+                                .wpa-pro-plugin .button {
+                                    width: 100%;
                                 }
                             }
                         </style>
