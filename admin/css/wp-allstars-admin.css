@@ -286,14 +286,49 @@ input:checked + .wp-toggle-slider:before {
 }
 
 /* Plugin Filters */
-.wp-allstars-plugin-filters {
-    margin: 0 0 20px;
-    padding: 0 0 12px;
-    border-bottom: 1px solid #ddd;
+.wpa-plugin-filters {
+    margin: 0 0 30px;
+    padding: 20px;
+    background: #fff;
+    border: 1px solid #c3c4c7;
+    border-radius: 4px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
 }
 
-.wp-allstars-plugin-filters .button {
-    margin-right: 5px;
+.wpa-plugin-filters .button {
+    margin: 0;
+    padding: 6px 14px;
+    height: auto;
+    line-height: 1.4;
+    font-size: 13px;
+    font-weight: 500;
+    border: 1px solid #c3c4c7;
+    border-radius: 4px;
+    background: #f0f0f1;
+    color: #50575e;
+    transition: all 0.2s ease;
+    box-shadow: none;
+    min-width: 100px;
+    text-align: center;
+}
+
+.wpa-plugin-filters .button:hover {
+    background: #fff;
+    border-color: #2271b1;
+    color: #2271b1;
+}
+
+.wpa-plugin-filters .button.button-primary {
+    background: #2271b1;
+    border-color: #2271b1;
+    color: #fff;
+}
+
+.wpa-plugin-filters .button.button-primary:hover {
+    background: #135e96;
+    border-color: #135e96;
 }
 
 /* Plugin Cards */
@@ -301,11 +336,39 @@ input:checked + .wp-toggle-slider:before {
     border: 1px solid #ddd;
     box-shadow: 0 1px 4px rgba(0,0,0,0.02);
     transition: all 0.2s ease;
+    margin: 0 0 20px;
 }
 
 .plugin-card:hover {
     border-color: #2271b1;
     box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+.plugin-card .plugin-card-top {
+    padding: 20px;
+    min-height: 150px;
+}
+
+.plugin-card .plugin-icon {
+    border-radius: 4px;
+}
+
+.plugin-card .plugin-card-bottom {
+    background: #f6f7f7;
+    border-top: 1px solid #ddd;
+    padding: 12px 20px;
+}
+
+.plugin-card .column-rating {
+    display: none;
+}
+
+.plugin-card .column-downloaded {
+    display: none;
+}
+
+.plugin-card .column-updated {
+    display: none;
 }
 
 /* Responsive Adjustments */
@@ -331,6 +394,15 @@ input:checked + .wp-toggle-slider:before {
     .wp-allstars-toggle-settings {
         margin-top: 10px;
         padding: 12px;
+    }
+
+    .wpa-plugin-filters {
+        padding: 15px;
+    }
+
+    .wpa-plugin-filters .button {
+        width: calc(50% - 4px);
+        min-width: 0;
     }
 }
 
