@@ -102,7 +102,6 @@ function wp_allstars_get_recommended_plugins() {
             'post-meta-data-manager',
             'post-type-switcher',
             'pretty-link',
-            'query-monitor',
             'seo-by-rank-math',
             'really-simple-ssl',
             'remove-cpt-base',
@@ -141,6 +140,7 @@ function wp_allstars_get_recommended_plugins() {
         'debug' => array(
             'debug-log-manager',
             'gotmls',
+            'query-monitor',
             'string-locator',
             'user-switching',
             'wp-crontrol'
@@ -174,6 +174,8 @@ function wp_allstars_ajax_get_plugins() {
     }
 
     $category = isset($_GET['category']) ? sanitize_key($_GET['category']) : 'minimal';
+    $batch_size = isset($_GET['batch_size']) ? intval($_GET['batch_size']) : 5;
+    $offset = isset($_GET['offset']) ? intval($_GET['offset']) : 0;
     
     require_once ABSPATH . 'wp-admin/includes/plugin-install.php';
     
@@ -183,46 +185,17 @@ function wp_allstars_ajax_get_plugins() {
         wp_send_json_error('Invalid category: ' . $category);
     }
     
-    // Try to get cached data first
-    $cached_data = wp_allstars_get_cached_plugins($category);
-    if ($cached_data !== false) {
-        error_log('Using cached data for category: ' . $category);
-        // Setup the list table with cached data
-        $GLOBALS['tab'] = 'plugin-install';
-        $_REQUEST['tab'] = 'plugin-install';
-        $_REQUEST['type'] = 'plugin-install';
-        set_current_screen('plugin-install');
-        
-        $wp_list_table = _get_list_table('WP_Plugin_Install_List_Table', array(
-            'screen' => 'plugin-install'
-        ));
-        
-        // Override the items with our cached data
-        $wp_list_table->items = $cached_data->plugins;
-        $wp_list_table->set_pagination_args(array(
-            'total_items' => count($cached_data->plugins),
-            'per_page' => count($cached_data->plugins),
-        ));
-        
-        ob_start();
-        $wp_list_table->display();
-        $html = ob_get_clean();
-        
-        wp_send_json_success($html);
-        return;
-    }
+    // Get the total number of plugins for this category
+    $total_plugins = count($recommended_plugins[$category]);
     
-    error_log('Fetching fresh data for category: ' . $category);
-    error_log('Plugins to fetch: ' . implode(', ', $recommended_plugins[$category]));
+    // Get the current batch of plugins
+    $current_batch = array_slice($recommended_plugins[$category], $offset, $batch_size);
     
-    // If no cache, get fresh data
     try {
         $plugins = array();
         
-        // Only fetch plugins that are in our recommended list for this category
-        foreach ($recommended_plugins[$category] as $slug) {
+        foreach ($current_batch as $slug) {
             try {
-                error_log('Fetching plugin data for: ' . $slug);
                 $plugin_data = plugins_api('plugin_information', array(
                     'slug' => $slug,
                     'fields' => array(
@@ -252,28 +225,12 @@ function wp_allstars_ajax_get_plugins() {
                     error_log('Error fetching plugin data for ' . $slug . ': ' . $plugin_data->get_error_message());
                 } else {
                     $plugins[] = $plugin_data;
-                    error_log('Successfully fetched data for: ' . $slug);
                 }
             } catch (Exception $e) {
                 error_log('Exception fetching plugin data for ' . $slug . ': ' . $e->getMessage());
                 continue;
             }
         }
-        
-        error_log('Total plugins fetched: ' . count($plugins));
-        
-        // Create response object
-        $res = (object) array(
-            'info' => array(
-                'page' => 1,
-                'pages' => 1,
-                'results' => count($plugins),
-            ),
-            'plugins' => $plugins
-        );
-        
-        // Cache the results
-        wp_allstars_set_cached_plugins($category, $res);
         
         // Setup the list table
         $GLOBALS['tab'] = 'plugin-install';
@@ -296,7 +253,12 @@ function wp_allstars_ajax_get_plugins() {
         $wp_list_table->display();
         $html = ob_get_clean();
         
-        wp_send_json_success($html);
+        wp_send_json_success(array(
+            'html' => $html,
+            'total' => $total_plugins,
+            'remaining' => $total_plugins - ($offset + count($plugins)),
+            'offset' => $offset + count($plugins)
+        ));
         
     } catch (Exception $e) {
         error_log('Failed to fetch plugin data: ' . $e->getMessage());
@@ -860,21 +822,50 @@ function wp_allstars_settings_page() {
                     </div>
 
                     <div class="wp-list-table-container">
-                        <div class="wpa-loading-overlay">
-                            <span class="spinner is-active"></span>
-                        </div>
                         <div id="wpa-plugin-list"></div>
+                        <div class="wpa-load-more" style="display: none; text-align: center; margin: 20px 0;">
+                            <button class="button button-secondary">
+                                <?php esc_html_e('Load More Plugins', 'wp-allstars'); ?>
+                                <span class="spinner" style="float: none; margin-top: 4px;"></span>
+                            </button>
+                        </div>
                     </div>
+
+                    <style>
+                    .plugin-card {
+                        opacity: 0;
+                        transform: translateY(20px);
+                        animation: fadeInUp 0.3s ease forwards;
+                    }
+                    @keyframes fadeInUp {
+                        to {
+                            opacity: 1;
+                            transform: translateY(0);
+                        }
+                    }
+                    .wpa-load-more .spinner.is-active {
+                        visibility: visible;
+                        display: inline-block;
+                    }
+                    </style>
 
                     <script>
                     jQuery(document).ready(function($) {
-                        var loadingStartTime;
                         var currentRequest = null;
+                        var isLoading = false;
+                        var currentCategory = '<?php echo esc_js($active_category); ?>';
+                        var currentOffset = 0;
+                        var batchSize = 5;
                         
-                        function loadPlugins(category) {
-                            // Show loading overlay
-                            $('.wpa-loading-overlay').fadeIn();
-                            loadingStartTime = Date.now();
+                        function loadPlugins(category, offset = 0, append = false) {
+                            if (isLoading) return;
+                            isLoading = true;
+                            
+                            // Show loading indicator in load more button if appending
+                            if (append) {
+                                $('.wpa-load-more .spinner').addClass('is-active');
+                                $('.wpa-load-more button').prop('disabled', true);
+                            }
                             
                             // Cancel previous request if it exists
                             if (currentRequest) {
@@ -887,56 +878,57 @@ function wp_allstars_settings_page() {
                                 data: {
                                     action: 'wp_allstars_get_plugins',
                                     category: category || 'minimal',
+                                    offset: offset,
+                                    batch_size: batchSize,
                                     _ajax_nonce: '<?php echo wp_create_nonce("updates"); ?>'
-                                },
-                                beforeSend: function() {
-                                    if (currentRequest) {
-                                        currentRequest.abort();
-                                    }
                                 },
                                 success: function(response) {
                                     if (response.success) {
-                                        ensureMinLoadingTime(function() {
-                                            $('#wpa-plugin-list').html(response.data);
-                                            $('.wpa-loading-overlay').fadeOut();
+                                        // If this is a new category, clear the existing content
+                                        if (!append) {
+                                            $('#wpa-plugin-list').empty();
+                                            currentOffset = 0;
+                                        }
+                                        
+                                        // Append new content with staggered animation
+                                        var $content = $(response.data.html);
+                                        $content.find('.plugin-card').each(function(index) {
+                                            $(this).css('animation-delay', (index * 0.1) + 's');
                                         });
+                                        
+                                        $('#wpa-plugin-list').append($content);
+                                        
+                                        // Update offset and check if we need to show load more button
+                                        currentOffset = response.data.offset;
+                                        
+                                        if (response.data.remaining > 0) {
+                                            $('.wpa-load-more').show();
+                                        } else {
+                                            $('.wpa-load-more').hide();
+                                        }
                                     } else {
                                         console.error('Server returned error:', response);
-                                        $('.wpa-loading-overlay').fadeOut();
-                                        $('#wpa-plugin-list').html('<div class="notice notice-error"><p>Failed to load plugins: ' + (response.data || 'Unknown error') + '</p></div>');
                                     }
                                 },
                                 error: function(xhr, status, error) {
                                     console.error('Failed to load plugins:', {xhr: xhr, status: status, error: error});
-                                    $('.wpa-loading-overlay').fadeOut();
-                                    $('#wpa-plugin-list').html('<div class="notice notice-error"><p>Failed to load plugins. Please try again. Error: ' + error + '</p></div>');
+                                },
+                                complete: function() {
+                                    isLoading = false;
+                                    $('.wpa-load-more .spinner').removeClass('is-active');
+                                    $('.wpa-load-more button').prop('disabled', false);
                                 }
                             });
                         }
                         
-                        // Function to ensure minimum loading time
-                        function ensureMinLoadingTime(callback) {
-                            var currentTime = Date.now();
-                            var elapsed = currentTime - loadingStartTime;
-                            var minLoadingTime = 500;
-                            
-                            if (elapsed < minLoadingTime) {
-                                setTimeout(callback, minLoadingTime - elapsed);
-                            } else {
-                                callback();
-                            }
-                        }
-                        
-                        // Load plugins on page load with current category from URL
-                        var urlParams = new URLSearchParams(window.location.search);
-                        var currentCategory = urlParams.get('category') || 'minimal';
+                        // Load initial batch of plugins
                         loadPlugins(currentCategory);
                         
                         // Handle category filter clicks
                         $('.wpa-plugin-filters a').on('click', function(e) {
                             e.preventDefault();
                             var category = new URLSearchParams($(this).attr('href').split('?')[1]).get('category');
-                            loadPlugins(category);
+                            currentCategory = category;
                             
                             // Update URL without page reload
                             var newUrl = $(this).attr('href');
@@ -945,6 +937,14 @@ function wp_allstars_settings_page() {
                             // Update active state
                             $('.wpa-plugin-filters a').removeClass('button-primary');
                             $(this).addClass('button-primary');
+                            
+                            // Load new category
+                            loadPlugins(category);
+                        });
+                        
+                        // Handle load more button clicks
+                        $('.wpa-load-more button').on('click', function() {
+                            loadPlugins(currentCategory, currentOffset, true);
                         });
                     });
                     </script>
