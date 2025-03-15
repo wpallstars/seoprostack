@@ -70,7 +70,6 @@ function wp_allstars_get_recommended_plugins() {
             'flying-pages',
             'flying-scripts',
             'freesoul-deactivate-plugins',
-            'woocommerce-gateway-gocardless',
             'hide-admin-notices',
             'iframe-block',
             'image-copytrack',
@@ -81,6 +80,7 @@ function wp_allstars_get_recommended_plugins() {
         ),
         'ecommerce' => array(
             'woocommerce',
+            'woocommerce-gateway-gocardless',
             'pymntpl-paypal-woocommerce',
             'woo-stripe-payment',
             'client-booking'
