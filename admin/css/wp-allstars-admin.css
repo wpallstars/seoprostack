@@ -351,6 +351,8 @@ input:checked + .wp-toggle-slider:before {
     background-color: #fff;
     box-sizing: border-box;
     position: relative;
+    display: flex;
+    flex-direction: column;
 }
 
 .plugin-card:nth-child(2n+1) {
@@ -366,6 +368,9 @@ input:checked + .wp-toggle-slider:before {
     position: relative;
     padding: 20px 20px 10px;
     min-height: 135px;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
 }
 
 .plugin-card .name,
@@ -386,6 +391,7 @@ input:checked + .wp-toggle-slider:before {
     font-size: 13px;
     line-height: 1.5;
     color: #50575e;
+    flex-grow: 1;
 }
 
 .plugin-card .plugin-card-bottom {
@@ -526,28 +532,49 @@ input:checked + .wp-toggle-slider:before {
 }
 
 /* Responsive Adjustments */
+@media screen and (max-width: 1200px) {
+    .plugin-card .name,
+    .plugin-card .desc {
+        margin-right: 0;
+    }
+
+    .plugin-card .action-links {
+        position: static;
+        margin-left: 148px;
+        width: auto;
+        margin-top: 1em;
+    }
+
+    .plugin-card .action-links .button {
+        display: inline-block;
+        margin: 0 5px 5px 0;
+    }
+}
+
 @media screen and (max-width: 782px) {
-    .wp-allstars-header {
-        flex-direction: column;
-        align-items: flex-start;
-    }
-
-    .wp-allstars-header-actions {
-        margin-top: 10px;
-    }
-
-    .nav-tab {
-        margin-bottom: 5px;
-    }
-
-    .wp-allstars-toggle .description {
+    .plugin-card {
         margin-left: 0;
-        margin-top: 10px;
+        margin-right: 0;
+        width: 100%;
+        clear: both;
     }
 
-    .wp-allstars-toggle-settings {
-        margin-top: 10px;
-        padding: 12px;
+    .plugin-card .name,
+    .plugin-card .desc {
+        margin-left: 0;
+        margin-top: 140px;
+    }
+
+    .plugin-card .action-links {
+        margin-left: 0;
+    }
+
+    .plugin-card .plugin-icon {
+        position: absolute;
+        top: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        margin: 0;
     }
 
     .wpa-plugin-filters {
@@ -558,20 +585,18 @@ input:checked + .wp-toggle-slider:before {
         width: calc(50% - 4px);
         min-width: 0;
     }
+}
 
-    .wp-allstars-wrap {
-        padding-right: 10px;
-    }
-
-    .wpa-settings-content {
-        padding: 0 10px;
-    }
-
-    .plugin-card {
-        margin-left: 0;
-        margin-right: 0;
+@media screen and (max-width: 480px) {
+    .wpa-plugin-filters .button {
         width: 100%;
-        clear: both;
+    }
+
+    .plugin-card .action-links .button {
+        display: block;
+        margin: 0 0 5px 0;
+        width: 100%;
+        text-align: center;
     }
 }
 
