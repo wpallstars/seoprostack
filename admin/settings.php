@@ -40,87 +40,57 @@ function wp_allstars_get_recommended_plugins() {
             'antispam-bee',
             'compressx',
             'fluent-smtp',
-            'plugin-toggle',
+            'kadence-blocks',
             'simple-cloudflare-turnstile'
         ),
-        'advanced' => array(
-            'acf-better-search',
+        'admin' => array(
             'admin-bar-dashboard-control',
-            'advanced-custom-fields',
             'admin-menu-editor',
-            'ai-engine',
+            'hide-admin-notices',
+            'mainwp-child',
+            'mainwp-child-reports',
+            'magic-login',
+            'manage-notification-emails',
+            'plugin-toggle'
+        ),
+        'cms' => array(
             'auto-post-scheduler',
-            'avatar-privacy',
+            'block-options',
             'bookmark-card',
             'browser-shots',
             'bulk-actions-select-all',
             'bulk-edit-categories-tags',
             'bulk-edit-user-profiles-in-spreadsheet',
-            'burst-statistics',
             'carbon-copy',
-            'code-snippets',
+            'iframe-block',
+            'ics-calendar',
+            'mammoth-docx-converter',
+            'nav-menu-roles',
+            'ninja-tables',
+            'post-draft-preview',
+            'post-type-switcher',
+            'simple-custom-post-order',
+            'simple-icons',
+            'sticky-posts-switch',
+            'term-management-tools',
+            'the-paste',
+            'ultimate-addons-for-gutenberg',
+            'wikipedia-preview',
+            'wp-sheet-editor-bulk-spreadsheet-editor-for-posts-and-pages'
+        ),
+        'compliance' => array(
+            'avatar-privacy',
             'complianz-gdpr',
             'complianz-terms-conditions',
-            'disable-wordpress-updates',
-            'easy-video-reviews',
-            'easy-watermark',
-            'block-options',
-            'enable-media-replace',
-            'favorites',
+            'really-simple-ssl'
+        ),
+        'crm' => array(
             'fluent-boards',
             'fluent-booking',
             'fluent-crm',
             'fluentform',
             'fluentforms-pdf',
-            'fluent-support',
-            'flying-analytics',
-            'flying-pages',
-            'flying-scripts',
-            'freesoul-deactivate-plugins',
-            'hide-admin-notices',
-            'hreflang-manager-lite',
-            'ics-calendar',
-            'iframe-block',
-            'image-copytrack',
-            'imsanity',
-            'index-wp-mysql-for-speed',
-            'kadence-blocks',
-            'litespeed-cache',
-            'magic-login',
-            'mainwp-child',
-            'mainwp-child-reports',
-            'mammoth-docx-converter',
-            'manage-notification-emails',
-            'media-file-renamer',
-            'nav-menu-roles',
-            'ninja-tables',
-            'performant-translations',
-            'simple-icons',
-            'post-draft-preview',
-            'post-type-switcher',
-            'pretty-link',
-            'seo-by-rank-math',
-            'really-simple-ssl',
-            'remove-cpt-base',
-            'safe-svg',
-            'simple-custom-post-order',
-            'remove-old-slugspermalinks',
-            'social-engine',
-            'kadence-starter-templates',
-            'ultimate-addons-for-gutenberg',
-            'sticky-posts-switch',
-            'syndication-links',
-            'term-management-tools',
-            'the-paste',
-            'ultimate-410',
-            'webmention',
-            'wp-widget-disable',
-            'wikipedia-preview',
-            'wordpress-importer',
-            'wp-social-reviews',
-            'wp-optimize',
-            'wp-sheet-editor-bulk-spreadsheet-editor-for-posts-and-pages',
-            'yellow-pencil-visual-theme-customizer'
+            'fluent-support'
         ),
         'ecommerce' => array(
             'woocommerce',
@@ -133,6 +103,57 @@ function wp_allstars_get_recommended_plugins() {
         ),
         'lms' => array(
             'tutor'
+        ),
+        'media' => array(
+            'easy-watermark',
+            'enable-media-replace',
+            'image-copytrack',
+            'imsanity',
+            'media-file-renamer',
+            'safe-svg'
+        ),
+        'seo' => array(
+            'burst-statistics',
+            'pretty-link',
+            'seo-by-rank-math',
+            'syndication-links',
+            'ultimate-410',
+            'webmention'
+        ),
+        'setup' => array(
+            'kadence-starter-templates',
+            'wordpress-importer'
+        ),
+        'social' => array(),
+        'speed' => array(
+            'disable-wordpress-updates',
+            'flying-analytics',
+            'flying-pages',
+            'flying-scripts',
+            'freesoul-deactivate-plugins',
+            'index-wp-mysql-for-speed',
+            'litespeed-cache',
+            'performant-translations',
+            'wp-optimize',
+            'wp-widget-disable'
+        ),
+        'translation' => array(
+            'hreflang-manager-lite',
+            'performant-translations',
+            'translatepress-multilingual'
+        ),
+        'advanced' => array(
+            'acf-better-search',
+            'advanced-custom-fields',
+            'ai-engine',
+            'code-snippets',
+            'easy-video-reviews',
+            'favorites',
+            'remove-cpt-base',
+            'remove-old-slugspermalinks',
+            'social-engine',
+            'wp-social-reviews',
+            'yellow-pencil-visual-theme-customizer'
         ),
         'debug' => array(
             'debug-log-manager',
@@ -172,8 +193,6 @@ function wp_allstars_ajax_get_plugins() {
     }
 
     $category = isset($_GET['category']) ? sanitize_key($_GET['category']) : 'minimal';
-    $batch_size = isset($_GET['batch_size']) ? intval($_GET['batch_size']) : 5;
-    $offset = isset($_GET['offset']) ? intval($_GET['offset']) : 0;
     
     require_once ABSPATH . 'wp-admin/includes/plugin-install.php';
     
@@ -183,17 +202,46 @@ function wp_allstars_ajax_get_plugins() {
         wp_send_json_error('Invalid category: ' . $category);
     }
     
-    // Get the total number of plugins for this category
-    $total_plugins = count($recommended_plugins[$category]);
+    // Try to get cached data first
+    $cached_data = wp_allstars_get_cached_plugins($category);
+    if ($cached_data !== false) {
+        error_log('Using cached data for category: ' . $category);
+        // Setup the list table with cached data
+        $GLOBALS['tab'] = 'plugin-install';
+        $_REQUEST['tab'] = 'plugin-install';
+        $_REQUEST['type'] = 'plugin-install';
+        set_current_screen('plugin-install');
+        
+        $wp_list_table = _get_list_table('WP_Plugin_Install_List_Table', array(
+            'screen' => 'plugin-install'
+        ));
+        
+        // Override the items with our cached data
+        $wp_list_table->items = $cached_data->plugins;
+        $wp_list_table->set_pagination_args(array(
+            'total_items' => count($cached_data->plugins),
+            'per_page' => count($cached_data->plugins),
+        ));
+        
+        ob_start();
+        $wp_list_table->display();
+        $html = ob_get_clean();
+        
+        wp_send_json_success($html);
+        return;
+    }
     
-    // Get the current batch of plugins
-    $current_batch = array_slice($recommended_plugins[$category], $offset, $batch_size);
+    error_log('Fetching fresh data for category: ' . $category);
+    error_log('Plugins to fetch: ' . implode(', ', $recommended_plugins[$category]));
     
+    // If no cache, get fresh data
     try {
         $plugins = array();
         
-        foreach ($current_batch as $slug) {
+        // Only fetch plugins that are in our recommended list for this category
+        foreach ($recommended_plugins[$category] as $slug) {
             try {
+                error_log('Fetching plugin data for: ' . $slug);
                 $plugin_data = plugins_api('plugin_information', array(
                     'slug' => $slug,
                     'fields' => array(
@@ -223,12 +271,28 @@ function wp_allstars_ajax_get_plugins() {
                     error_log('Error fetching plugin data for ' . $slug . ': ' . $plugin_data->get_error_message());
                 } else {
                     $plugins[] = $plugin_data;
+                    error_log('Successfully fetched data for: ' . $slug);
                 }
             } catch (Exception $e) {
                 error_log('Exception fetching plugin data for ' . $slug . ': ' . $e->getMessage());
                 continue;
             }
         }
+        
+        error_log('Total plugins fetched: ' . count($plugins));
+        
+        // Create response object
+        $res = (object) array(
+            'info' => array(
+                'page' => 1,
+                'pages' => 1,
+                'results' => count($plugins),
+            ),
+            'plugins' => $plugins
+        );
+        
+        // Cache the results
+        wp_allstars_set_cached_plugins($category, $res);
         
         // Setup the list table
         $GLOBALS['tab'] = 'plugin-install';
@@ -251,12 +315,7 @@ function wp_allstars_ajax_get_plugins() {
         $wp_list_table->display();
         $html = ob_get_clean();
         
-        wp_send_json_success(array(
-            'html' => $html,
-            'total' => $total_plugins,
-            'remaining' => $total_plugins - ($offset + count($plugins)),
-            'offset' => $offset + count($plugins)
-        ));
+        wp_send_json_success($html);
         
     } catch (Exception $e) {
         error_log('Failed to fetch plugin data: ' . $e->getMessage());
@@ -801,9 +860,21 @@ function wp_allstars_settings_page() {
                            class="button <?php echo $active_category == 'minimal' ? 'button-primary' : ''; ?>">
                             <?php esc_html_e('Minimal', 'wp-allstars'); ?>
                         </a>
-                        <a href="?page=wp-allstars&tab=recommended&category=advanced" 
-                           class="button <?php echo $active_category == 'advanced' ? 'button-primary' : ''; ?>">
-                            <?php esc_html_e('Advanced', 'wp-allstars'); ?>
+                        <a href="?page=wp-allstars&tab=recommended&category=admin" 
+                           class="button <?php echo $active_category == 'admin' ? 'button-primary' : ''; ?>">
+                            <?php esc_html_e('Admin', 'wp-allstars'); ?>
+                        </a>
+                        <a href="?page=wp-allstars&tab=recommended&category=cms" 
+                           class="button <?php echo $active_category == 'cms' ? 'button-primary' : ''; ?>">
+                            <?php esc_html_e('CMS', 'wp-allstars'); ?>
+                        </a>
+                        <a href="?page=wp-allstars&tab=recommended&category=compliance" 
+                           class="button <?php echo $active_category == 'compliance' ? 'button-primary' : ''; ?>">
+                            <?php esc_html_e('Compliance', 'wp-allstars'); ?>
+                        </a>
+                        <a href="?page=wp-allstars&tab=recommended&category=crm" 
+                           class="button <?php echo $active_category == 'crm' ? 'button-primary' : ''; ?>">
+                            <?php esc_html_e('CRM', 'wp-allstars'); ?>
                         </a>
                         <a href="?page=wp-allstars&tab=recommended&category=ecommerce" 
                            class="button <?php echo $active_category == 'ecommerce' ? 'button-primary' : ''; ?>">
@@ -812,6 +883,34 @@ function wp_allstars_settings_page() {
                         <a href="?page=wp-allstars&tab=recommended&category=lms" 
                            class="button <?php echo $active_category == 'lms' ? 'button-primary' : ''; ?>">
                             <?php esc_html_e('LMS', 'wp-allstars'); ?>
+                        </a>
+                        <a href="?page=wp-allstars&tab=recommended&category=media" 
+                           class="button <?php echo $active_category == 'media' ? 'button-primary' : ''; ?>">
+                            <?php esc_html_e('Media', 'wp-allstars'); ?>
+                        </a>
+                        <a href="?page=wp-allstars&tab=recommended&category=seo" 
+                           class="button <?php echo $active_category == 'seo' ? 'button-primary' : ''; ?>">
+                            <?php esc_html_e('SEO', 'wp-allstars'); ?>
+                        </a>
+                        <a href="?page=wp-allstars&tab=recommended&category=setup" 
+                           class="button <?php echo $active_category == 'setup' ? 'button-primary' : ''; ?>">
+                            <?php esc_html_e('Setup', 'wp-allstars'); ?>
+                        </a>
+                        <a href="?page=wp-allstars&tab=recommended&category=social" 
+                           class="button <?php echo $active_category == 'social' ? 'button-primary' : ''; ?>">
+                            <?php esc_html_e('Social', 'wp-allstars'); ?>
+                        </a>
+                        <a href="?page=wp-allstars&tab=recommended&category=speed" 
+                           class="button <?php echo $active_category == 'speed' ? 'button-primary' : ''; ?>">
+                            <?php esc_html_e('Speed', 'wp-allstars'); ?>
+                        </a>
+                        <a href="?page=wp-allstars&tab=recommended&category=translation" 
+                           class="button <?php echo $active_category == 'translation' ? 'button-primary' : ''; ?>">
+                            <?php esc_html_e('Translation', 'wp-allstars'); ?>
+                        </a>
+                        <a href="?page=wp-allstars&tab=recommended&category=advanced" 
+                           class="button <?php echo $active_category == 'advanced' ? 'button-primary' : ''; ?>">
+                            <?php esc_html_e('Advanced', 'wp-allstars'); ?>
                         </a>
                         <a href="?page=wp-allstars&tab=recommended&category=debug" 
                            class="button <?php echo $active_category == 'debug' ? 'button-primary' : ''; ?>">
@@ -826,52 +925,15 @@ function wp_allstars_settings_page() {
                         <div id="wpa-plugin-list"></div>
                     </div>
 
-                    <style>
-                    .plugin-card {
-                        opacity: 0;
-                        transform: translateY(20px);
-                        animation: fadeInUp 0.3s ease forwards;
-                    }
-                    @keyframes fadeInUp {
-                        to {
-                            opacity: 1;
-                            transform: translateY(0);
-                        }
-                    }
-                    .wpa-loading-overlay {
-                        position: absolute;
-                        left: 0;
-                        right: 0;
-                        top: 0;
-                        bottom: 0;
-                        background: rgba(255, 255, 255, 0.8);
-                        display: flex;
-                        align-items: center;
-                        justify-content: center;
-                        z-index: 1;
-                    }
-                    .wpa-loading-overlay .spinner {
-                        float: none;
-                        visibility: visible;
-                    }
-                    /* Hide duplicate plugin counts */
-                    .plugin-install-php .subsubsub {
-                        display: none;
-                    }
-                    </style>
-
                     <script>
                     jQuery(document).ready(function($) {
+                        var loadingStartTime;
                         var currentRequest = null;
-                        var isLoading = false;
-                        var currentCategory = '<?php echo esc_js($active_category); ?>';
                         
                         function loadPlugins(category) {
-                            if (isLoading) return;
-                            isLoading = true;
-                            
                             // Show loading overlay
                             $('.wpa-loading-overlay').fadeIn();
+                            loadingStartTime = Date.now();
                             
                             // Cancel previous request if it exists
                             if (currentRequest) {
@@ -886,47 +948,54 @@ function wp_allstars_settings_page() {
                                     category: category || 'minimal',
                                     _ajax_nonce: '<?php echo wp_create_nonce("updates"); ?>'
                                 },
+                                beforeSend: function() {
+                                    if (currentRequest) {
+                                        currentRequest.abort();
+                                    }
+                                },
                                 success: function(response) {
                                     if (response.success) {
-                                        // Clear existing content
-                                        $('#wpa-plugin-list').empty();
-                                        
-                                        // Append new content with staggered animation
-                                        var $content = $(response.data.html);
-                                        
-                                        // Remove duplicate counts from new content
-                                        $content.find('.subsubsub').remove();
-                                        
-                                        // Add animation delay to new cards
-                                        $content.find('.plugin-card').each(function(index) {
-                                            $(this).css('animation-delay', (index * 0.1) + 's');
+                                        ensureMinLoadingTime(function() {
+                                            $('#wpa-plugin-list').html(response.data);
+                                            $('.wpa-loading-overlay').fadeOut();
                                         });
-                                        
-                                        $('#wpa-plugin-list').append($content);
-                                        $('.wpa-loading-overlay').fadeOut();
                                     } else {
                                         console.error('Server returned error:', response);
                                         $('.wpa-loading-overlay').fadeOut();
+                                        $('#wpa-plugin-list').html('<div class="notice notice-error"><p>Failed to load plugins: ' + (response.data || 'Unknown error') + '</p></div>');
                                     }
                                 },
                                 error: function(xhr, status, error) {
                                     console.error('Failed to load plugins:', {xhr: xhr, status: status, error: error});
                                     $('.wpa-loading-overlay').fadeOut();
-                                },
-                                complete: function() {
-                                    isLoading = false;
+                                    $('#wpa-plugin-list').html('<div class="notice notice-error"><p>Failed to load plugins. Please try again. Error: ' + error + '</p></div>');
                                 }
                             });
                         }
                         
-                        // Load initial plugins
+                        // Function to ensure minimum loading time
+                        function ensureMinLoadingTime(callback) {
+                            var currentTime = Date.now();
+                            var elapsed = currentTime - loadingStartTime;
+                            var minLoadingTime = 500;
+                            
+                            if (elapsed < minLoadingTime) {
+                                setTimeout(callback, minLoadingTime - elapsed);
+                            } else {
+                                callback();
+                            }
+                        }
+                        
+                        // Load plugins on page load with current category from URL
+                        var urlParams = new URLSearchParams(window.location.search);
+                        var currentCategory = urlParams.get('category') || 'minimal';
                         loadPlugins(currentCategory);
                         
                         // Handle category filter clicks
                         $('.wpa-plugin-filters a').on('click', function(e) {
                             e.preventDefault();
                             var category = new URLSearchParams($(this).attr('href').split('?')[1]).get('category');
-                            currentCategory = category;
+                            loadPlugins(category);
                             
                             // Update URL without page reload
                             var newUrl = $(this).attr('href');
@@ -935,9 +1004,6 @@ function wp_allstars_settings_page() {
                             // Update active state
                             $('.wpa-plugin-filters a').removeClass('button-primary');
                             $(this).addClass('button-primary');
-                            
-                            // Load new category
-                            loadPlugins(category);
                         });
                     });
                     </script>
