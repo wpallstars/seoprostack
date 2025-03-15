@@ -1,0 +1,125 @@
+.wp-allstars-wrap {
+    max-width: none;
+    margin: 0;
+    padding-right: 20px;
+}
+
+.wp-allstars-header {
+    background: #fff;
+    border-bottom: 1px solid #c3c4c7;
+    box-shadow: 0 1px 0 rgba(0,0,0,.04);
+    margin: 0 -20px 20px -20px;
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: auto;
+}
+
+.wp-allstars-header h1 {
+    font-size: 23px;
+    font-weight: 400;
+    margin: 0;
+    padding: 0;
+    line-height: 1.3;
+    color: #1d2327;
+}
+
+.wp-allstars-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.wp-allstars-version {
+    color: #646970;
+    font-size: 13px;
+    font-weight: 400;
+}
+
+.wp-allstars-toggle {
+    margin: 15px 0;
+    padding: 16px 20px;
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.02);
+    transition: all .15s ease-in-out;
+}
+
+.wp-allstars-toggle:hover {
+    border-color: #4caf50;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+}
+
+.wp-allstars-toggle label {
+    display: flex;
+    align-items: center;
+    font-size: 14px;
+    line-height: 1.4;
+    font-weight: 500;
+    color: #1d2327;
+    cursor: pointer;
+}
+
+.wp-allstars-toggle .description {
+    margin: 6px 0 0 52px;
+    color: #666;
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+.wp-allstars-loading-overlay {
+    position: fixed;
+    top: 32px;
+    left: 160px;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.9);
+    z-index: 100000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.wp-allstars-plugin-filters {
+    margin: 0 0 20px;
+    padding: 0 0 12px;
+    border-bottom: 1px solid #ddd;
+}
+
+.wp-allstars-settings-container {
+    padding: 0 20px;
+    max-width: 1100px;
+}
+
+.wp-allstars-settings-content {
+    margin-top: 20px;
+    padding: 0;
+}
+
+.wp-allstars-toggle-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+}
+
+.wp-allstars-toggle-settings {
+    margin-top: 15px;
+    padding-top: 15px;
+    border-top: 1px solid #ddd;
+}
+
+.wp-allstars-setting-row {
+    margin-bottom: 20px;
+}
+
+.wp-allstars-expand-settings {
+    background: none;
+    border: none;
+    padding: 4px;
+    cursor: pointer;
+    color: #787c82;
+    transition: color .15s ease-in-out;
+} 

@@ -1,25 +1,36 @@
-# WP ALLSTARS Superstar Plugin
-A lean speed optimization plugin for WordPress. Speed Matters.
+# WP ALLSTARS Plugin
+
+A WordPress plugin for optimizing website performance.
 
 ## Features
-- Lazy loading of images
-- CSS minification
-- JS minification
-- Modern, tabbed Admin UI with AJAX settings
+
+- Auto upload of external images
+- More features coming soon...
 
 ## Installation
-1. Download or clone this repo.
-2. Upload to `/wp-content/plugins/`.
-3. Activate in WordPress Admin.
-4. Clean LocalWP sync
 
-## Configuration
-- Go to Settings → WPA Superstar.
-- Toggle features in General and Advanced tabs.
-- No Aider files synced
+1. Download the plugin
+2. Upload to your WordPress site
+3. Activate the plugin
+4. Configure settings
 
-## Logs
-- Errors are logged to `wp-content/wpa-superstar.log`.
-- Sync logging enabled
+## Usage
+
+1. Go to Settings → WP ALLSTARS
+2. Configure auto upload settings
+3. Save changes
+
+## Debugging
+
+- Debug mode can be enabled in wp-config.php
+- Errors are logged to `wp-content/wp-allstars.log`
+
+## Support
+
+For support, please visit [wpallstars.com](https://www.wpallstars.com)
+
+## License
+
+GPL-2.0+
 
 <!-- Last Updated: March 13, 2025 -->

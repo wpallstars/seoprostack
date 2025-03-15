@@ -4,37 +4,37 @@
  */
 
 // Add menu item
-function wpa_superstar_admin_menu() {
+function wp_allstars_admin_menu() {
     add_options_page(
-        'WPA Superstar Settings',
-        'WPA Superstar',
+        'WP ALLSTARS Settings',
+        'WP ALLSTARS',
         'manage_options',
-        'wpa-superstar',
-        'wpa_superstar_settings_page'
+        'wp-allstars',
+        'wp_allstars_settings_page'
     );
 }
-add_action('admin_menu', 'wpa_superstar_admin_menu');
+add_action('admin_menu', 'wp_allstars_admin_menu');
 
 // Register settings
-function wpa_superstar_register_settings() {
-    register_setting('wpa-superstar-settings', 'wpa_superstar_lazy_load');
-    register_setting('wpa-superstar-settings', 'wpa_superstar_minify_css');
-    register_setting('wpa-superstar-settings', 'wpa_superstar_minify_js');
+function wp_allstars_register_settings() {
+    register_setting('wp-allstars-settings', 'wp_allstars_lazy_load');
+    register_setting('wp-allstars-settings', 'wp_allstars_minify_css');
+    register_setting('wp-allstars-settings', 'wp_allstars_minify_js');
 }
-add_action('admin_init', 'wpa_superstar_register_settings');
+add_action('admin_init', 'wp_allstars_register_settings');
 
 // AJAX handler for settings
-function wpa_superstar_update_option() {
-    check_ajax_referer('wpa-superstar-nonce', 'nonce');
+function wp_allstars_update_option() {
+    check_ajax_referer('wp-allstars-nonce', 'nonce');
     $option = sanitize_text_field($_POST['option']);
     $value = intval($_POST['value']);
     update_option($option, $value);
     wp_send_json_success('Option updated');
 }
-add_action('wp_ajax_wpa_superstar_update_option', 'wpa_superstar_update_option');
+add_action('wp_ajax_wp_allstars_update_option', 'wp_allstars_update_option');
 
 // Define recommended plugins
-function wpa_superstar_get_recommended_plugins() {
+function wp_allstars_get_recommended_plugins() {
     return array(
         'minimal' => array(
             'antispam-bee',
@@ -64,8 +64,8 @@ function wpa_superstar_get_recommended_plugins() {
 }
 
 // Add transient caching for plugin data
-function wpa_superstar_get_cached_plugins($category) {
-    $cache_key = 'wpa_superstar_plugins_' . $category;
+function wp_allstars_get_cached_plugins($category) {
+    $cache_key = 'wp_allstars_plugins_' . $category;
     $cached_data = get_transient($cache_key);
     
     if ($cached_data !== false) {
@@ -75,13 +75,13 @@ function wpa_superstar_get_cached_plugins($category) {
     return false;
 }
 
-function wpa_superstar_set_cached_plugins($category, $data) {
-    $cache_key = 'wpa_superstar_plugins_' . $category;
+function wp_allstars_set_cached_plugins($category, $data) {
+    $cache_key = 'wp_allstars_plugins_' . $category;
     set_transient($cache_key, $data, 12 * HOUR_IN_SECONDS);
 }
 
 // Add AJAX endpoint for plugin list
-function wpa_superstar_ajax_get_plugins() {
+function wp_allstars_ajax_get_plugins() {
     check_ajax_referer('updates');
     
     if (!current_user_can('install_plugins')) {
@@ -93,13 +93,13 @@ function wpa_superstar_ajax_get_plugins() {
     require_once ABSPATH . 'wp-admin/includes/plugin-install.php';
     
     // Get our recommended plugins for this category
-    $recommended_plugins = wpa_superstar_get_recommended_plugins();
+    $recommended_plugins = wp_allstars_get_recommended_plugins();
     if (!isset($recommended_plugins[$category])) {
         wp_send_json_error('Invalid category: ' . $category);
     }
     
     // Try to get cached data first
-    $cached_data = wpa_superstar_get_cached_plugins($category);
+    $cached_data = wp_allstars_get_cached_plugins($category);
     if ($cached_data !== false) {
         error_log('Using cached data for category: ' . $category);
         // Setup the list table with cached data
@@ -188,7 +188,7 @@ function wpa_superstar_ajax_get_plugins() {
         );
         
         // Cache the results
-        wpa_superstar_set_cached_plugins($category, $res);
+        wp_allstars_set_cached_plugins($category, $res);
         
         // Setup the list table
         $GLOBALS['tab'] = 'plugin-install';
@@ -218,49 +218,49 @@ function wpa_superstar_ajax_get_plugins() {
         wp_send_json_error('Failed to fetch plugin data: ' . $e->getMessage());
     }
 }
-add_action('wp_ajax_wpa_get_plugins', 'wpa_superstar_ajax_get_plugins');
+add_action('wp_ajax_wp_allstars_get_plugins', 'wp_allstars_ajax_get_plugins');
 
 // Remove the old plugins API filter since we're handling everything in the AJAX endpoint
-remove_filter('plugins_api_result', 'wpa_superstar_plugins_api_result');
+remove_filter('plugins_api_result', 'wp_allstars_plugins_api_result');
 
 // Clear plugin cache when plugins are updated, activated, or deactivated
-function wpa_superstar_clear_plugin_cache() {
-    $recommended_plugins = wpa_superstar_get_recommended_plugins();
+function wp_allstars_clear_plugin_cache() {
+    $recommended_plugins = wp_allstars_get_recommended_plugins();
     foreach (array_keys($recommended_plugins) as $category) {
-        delete_transient('wpa_superstar_plugins_' . $category);
+        delete_transient('wp_allstars_plugins_' . $category);
     }
 }
-add_action('upgrader_process_complete', 'wpa_superstar_clear_plugin_cache', 10, 0);
-add_action('activated_plugin', 'wpa_superstar_clear_plugin_cache');
-add_action('deactivated_plugin', 'wpa_superstar_clear_plugin_cache');
-add_action('deleted_plugin', 'wpa_superstar_clear_plugin_cache');
-add_action('update_option_active_plugins', 'wpa_superstar_clear_plugin_cache');
+add_action('upgrader_process_complete', 'wp_allstars_clear_plugin_cache', 10, 0);
+add_action('activated_plugin', 'wp_allstars_clear_plugin_cache');
+add_action('deactivated_plugin', 'wp_allstars_clear_plugin_cache');
+add_action('deleted_plugin', 'wp_allstars_clear_plugin_cache');
+add_action('update_option_active_plugins', 'wp_allstars_clear_plugin_cache');
 
 // Add transient caching for theme data
-function wpa_superstar_get_cached_theme() {
-    $cache_key = 'wpa_superstar_theme_kadence';
+function wp_allstars_get_cached_theme() {
+    $cache_key = 'wp_allstars_theme_kadence';
     return get_transient($cache_key);
 }
 
-function wpa_superstar_set_cached_theme($data) {
-    $cache_key = 'wpa_superstar_theme_kadence';
+function wp_allstars_set_cached_theme($data) {
+    $cache_key = 'wp_allstars_theme_kadence';
     set_transient($cache_key, $data, 12 * HOUR_IN_SECONDS);
 }
 
 // Add AJAX endpoint for theme
-function wpa_superstar_ajax_get_theme() {
+function wp_allstars_ajax_get_theme() {
     check_ajax_referer('updates');
     
     if (!current_user_can('install_themes')) {
-        error_log('WPA Superstar: User does not have permission to install themes');
+        error_log('WP ALLSTARS: User does not have permission to install themes');
         wp_send_json_error('Permission denied');
         return;
     }
     
-    error_log('WPA Superstar: Starting theme fetch process');
+    error_log('WP ALLSTARS: Starting theme fetch process');
     
     try {
-        error_log('WPA Superstar: Fetching theme data for kadence');
+        error_log('WP ALLSTARS: Fetching theme data for kadence');
         
         // Get theme data with minimal fields
         $theme_data = themes_api('theme_information', array(
@@ -286,12 +286,12 @@ function wpa_superstar_ajax_get_theme() {
         ));
         
         if (is_wp_error($theme_data)) {
-            error_log('WPA Superstar Theme API Error: ' . $theme_data->get_error_message());
+            error_log('WP ALLSTARS Theme API Error: ' . $theme_data->get_error_message());
             wp_send_json_error('Theme API Error: ' . $theme_data->get_error_message());
             return;
         }
         
-        error_log('WPA Superstar: Successfully fetched theme data');
+        error_log('WP ALLSTARS: Successfully fetched theme data');
         
         // Format author data
         $author = '';
@@ -391,35 +391,35 @@ function wpa_superstar_ajax_get_theme() {
         $html = ob_get_clean();
         
         if (empty($html)) {
-            error_log('WPA Superstar: Empty HTML generated');
+            error_log('WP ALLSTARS: Empty HTML generated');
             wp_send_json_error('Failed to generate theme display');
             return;
         }
         
-        error_log('WPA Superstar: Successfully generated theme display');
+        error_log('WP ALLSTARS: Successfully generated theme display');
         wp_send_json_success($html);
         
     } catch (Exception $e) {
-        error_log('WPA Superstar Theme loading exception: ' . $e->getMessage());
-        error_log('WPA Superstar Theme loading exception trace: ' . $e->getTraceAsString());
+        error_log('WP ALLSTARS Theme loading exception: ' . $e->getMessage());
+        error_log('WP ALLSTARS Theme loading exception trace: ' . $e->getTraceAsString());
         wp_send_json_error('Theme loading error: ' . $e->getMessage());
     } catch (Error $e) {
-        error_log('WPA Superstar Theme loading error: ' . $e->getMessage());
-        error_log('WPA Superstar Theme loading error trace: ' . $e->getTraceAsString());
+        error_log('WP ALLSTARS Theme loading error: ' . $e->getMessage());
+        error_log('WP ALLSTARS Theme loading error trace: ' . $e->getTraceAsString());
         wp_send_json_error('Theme loading error: ' . $e->getMessage());
     }
 }
-add_action('wp_ajax_wpa_get_theme', 'wpa_superstar_ajax_get_theme');
+add_action('wp_ajax_wp_allstars_get_theme', 'wp_allstars_ajax_get_theme');
 
 // Clear theme cache when themes are updated
-function wpa_superstar_clear_theme_cache() {
-    delete_transient('wpa_superstar_theme_kadence');
+function wp_allstars_clear_theme_cache() {
+    delete_transient('wp_allstars_theme_kadence');
 }
-add_action('upgrader_process_complete', 'wpa_superstar_clear_theme_cache', 10, 0);
-add_action('switch_theme', 'wpa_superstar_clear_theme_cache');
+add_action('upgrader_process_complete', 'wp_allstars_clear_theme_cache', 10, 0);
+add_action('switch_theme', 'wp_allstars_clear_theme_cache');
 
 // Add AJAX handler for theme activation
-function wpa_superstar_activate_theme() {
+function wp_allstars_activate_theme() {
     check_ajax_referer('updates');
     
     if (!current_user_can('switch_themes')) {
@@ -447,10 +447,10 @@ function wpa_superstar_activate_theme() {
         wp_send_json_error('Failed to activate theme');
     }
 }
-add_action('wp_ajax_wpa_activate_theme', 'wpa_superstar_activate_theme');
+add_action('wp_ajax_wp_allstars_activate_theme', 'wp_allstars_activate_theme');
 
 // Settings page HTML
-function wpa_superstar_settings_page() {
+function wp_allstars_settings_page() {
     global $tabs;
     
     $active_tab = isset($_GET['tab']) ? $_GET['tab'] : 'general';
@@ -458,47 +458,49 @@ function wpa_superstar_settings_page() {
     
     // Clear cache and load required files
     if ($active_tab === 'recommended') {
-        wpa_superstar_clear_plugin_cache();
+        wp_allstars_clear_plugin_cache();
         require_once ABSPATH . 'wp-admin/includes/plugin-install.php';
         wp_enqueue_script('plugin-install');
         wp_enqueue_script('updates');
         add_thickbox();
+        wp_enqueue_style('wp-allstars-admin', plugins_url('css/wp-allstars-admin.css', __FILE__));
     } elseif ($active_tab === 'theme') {
-        wpa_superstar_clear_theme_cache();
+        wp_allstars_clear_theme_cache();
         require_once ABSPATH . 'wp-admin/includes/theme.php';
         wp_enqueue_script('theme-install');
         wp_enqueue_script('updates');
         add_thickbox();
+        wp_enqueue_style('wp-allstars-admin', plugins_url('css/wp-allstars-admin.css', __FILE__));
     }
     ?>
-    <div class="wrap wpa-superstar-wrap">
-        <div class="wpa-superstar-header">
+    <div class="wrap wp-allstars-wrap">
+        <div class="wp-allstars-header">
             <h1><?php echo esc_html(get_admin_page_title()); ?></h1>
-            <div class="wpa-superstar-header-actions">
-                <span class="wpa-superstar-version">Version <?php echo esc_html(WPA_SUPERSTAR_VERSION); ?></span>
+            <div class="wp-allstars-header-actions">
+                <span class="wp-allstars-version">Version <?php echo esc_html(WP_ALLSTARS_VERSION); ?></span>
                 <a href="https://www.wpallstars.com/docs/superstar-plugin/" target="_blank" class="button button-secondary">
-                    <?php esc_html_e('Documentation', 'wpa-superstar'); ?>
+                    <?php esc_html_e('Documentation', 'wp-allstars'); ?>
                 </a>
             </div>
         </div>
         
         <div class="wpa-settings-container">
-            <div class="wpa-superstar-nav">
+            <div class="wp-allstars-nav">
                 <h2 class="nav-tab-wrapper">
-                    <a href="?page=wpa-superstar&tab=general" class="nav-tab <?php echo $active_tab == 'general' ? 'nav-tab-active' : ''; ?>">
-                        <?php esc_html_e('General', 'wpa-superstar'); ?>
+                    <a href="?page=wp-allstars&tab=general" class="nav-tab <?php echo $active_tab == 'general' ? 'nav-tab-active' : ''; ?>">
+                        <?php esc_html_e('General', 'wp-allstars'); ?>
                     </a>
-                    <a href="?page=wpa-superstar&tab=workflow" class="nav-tab <?php echo $active_tab == 'workflow' ? 'nav-tab-active' : ''; ?>">
-                        <?php esc_html_e('Workflow', 'wpa-superstar'); ?>
+                    <a href="?page=wp-allstars&tab=workflow" class="nav-tab <?php echo $active_tab == 'workflow' ? 'nav-tab-active' : ''; ?>">
+                        <?php esc_html_e('Workflow', 'wp-allstars'); ?>
                     </a>
-                    <a href="?page=wpa-superstar&tab=advanced" class="nav-tab <?php echo $active_tab == 'advanced' ? 'nav-tab-active' : ''; ?>">
-                        <?php esc_html_e('Advanced', 'wpa-superstar'); ?>
+                    <a href="?page=wp-allstars&tab=advanced" class="nav-tab <?php echo $active_tab == 'advanced' ? 'nav-tab-active' : ''; ?>">
+                        <?php esc_html_e('Advanced', 'wp-allstars'); ?>
                     </a>
-                    <a href="?page=wpa-superstar&tab=recommended" class="nav-tab <?php echo $active_tab == 'recommended' ? 'nav-tab-active' : ''; ?>">
-                        <?php esc_html_e('Free Plugins', 'wpa-superstar'); ?>
+                    <a href="?page=wp-allstars&tab=recommended" class="nav-tab <?php echo $active_tab == 'recommended' ? 'nav-tab-active' : ''; ?>">
+                        <?php esc_html_e('Free Plugins', 'wp-allstars'); ?>
                     </a>
-                    <a href="?page=wpa-superstar&tab=theme" class="nav-tab <?php echo $active_tab == 'theme' ? 'nav-tab-active' : ''; ?>">
-                        <?php esc_html_e('Theme', 'wpa-superstar'); ?>
+                    <a href="?page=wp-allstars&tab=theme" class="nav-tab <?php echo $active_tab == 'theme' ? 'nav-tab-active' : ''; ?>">
+                        <?php esc_html_e('Theme', 'wp-allstars'); ?>
                     </a>
                 </h2>
             </div>
@@ -506,20 +508,20 @@ function wpa_superstar_settings_page() {
             <div class="wpa-settings-content">
                 <?php if ($active_tab == 'workflow'): ?>
                     <form action="options.php" method="post">
-                        <?php settings_fields('wpa_superstar_workflow'); ?>
-                        <div class="wpa-superstar-toggle">
-                            <div class="wpa-toggle-header">
-                                <label for="wpa_superstar_auto_upload_images">
-                                    <div class="wpa-toggle-switch">
+                        <?php settings_fields('wp_allstars_workflow'); ?>
+                        <div class="wp-allstars-toggle">
+                            <div class="wp-toggle-header">
+                                <label for="wp_allstars_auto_upload_images">
+                                    <div class="wp-toggle-switch">
                                         <input type="checkbox" 
-                                               id="wpa_superstar_auto_upload_images"
-                                               name="wpa_superstar_workflow_options[auto_upload_images]" 
+                                               id="wp_allstars_auto_upload_images"
+                                               name="wp_allstars_workflow_options[auto_upload_images]" 
                                                value="1"
                                                <?php 
-                                               $options = get_option('wpa_superstar_workflow_options', array(
+                                               $options = get_option('wp_allstars_workflow_options', array(
                                                    'auto_upload_images' => false,
-                                                   'max_width' => 1920,
-                                                   'max_height' => 1080,
+                                                   'max_width' => 2560,
+                                                   'max_height' => 2560,
                                                    'exclude_urls' => '',
                                                    'exclude_post_types' => array(),
                                                    'image_name_pattern' => '%filename%',
@@ -528,71 +530,71 @@ function wpa_superstar_settings_page() {
                                                checked($options['auto_upload_images'], true); 
                                                ?> 
                                         />
-                                        <span class="wpa-toggle-slider"></span>
+                                        <span class="wp-toggle-slider"></span>
                                     </div>
-                                    <?php esc_html_e('Enable Auto Upload Images', 'wpa-superstar'); ?>
+                                    <?php esc_html_e('Enable Auto Upload Images', 'wp-allstars'); ?>
                                 </label>
-                                <button type="button" class="wpa-expand-settings" aria-expanded="false">
+                                <button type="button" class="wp-expand-settings" aria-expanded="false">
                                     <span class="dashicons dashicons-arrow-down-alt2"></span>
                                 </button>
                             </div>
                             <p class="description">
-                                <?php esc_html_e('Import images that have external URLs into your Media Library when saving. Consider disabling during large data imports with many external image URLs.', 'wpa-superstar'); ?>
+                                <?php esc_html_e('Import images that have external URLs into your Media Library when saving. Consider disabling during large data imports with many external image URLs.', 'wp-allstars'); ?>
                             </p>
-                            <div class="wpa-toggle-settings" style="display: none;">
-                                <div class="wpa-setting-row">
-                                    <label for="wpa_max_width"><?php esc_html_e('Max Width', 'wpa-superstar'); ?></label>
+                            <div class="wp-toggle-settings" style="display: none;">
+                                <div class="wp-setting-row">
+                                    <label for="wp_max_width"><?php esc_html_e('Max Width', 'wp-allstars'); ?></label>
                                     <input type="number" 
-                                           id="wpa_max_width"
-                                           name="wpa_superstar_workflow_options[max_width]"
+                                           id="wp_max_width"
+                                           name="wp_allstars_workflow_options[max_width]"
                                            value="<?php echo esc_attr($options['max_width']); ?>"
                                            min="0"
                                     />
-                                    <p class="description"><?php esc_html_e('Maximum width of uploaded images (px). Leave empty for no limit.', 'wpa-superstar'); ?></p>
+                                    <p class="description"><?php esc_html_e('Maximum width of uploaded images (px). Leave empty for no limit.', 'wp-allstars'); ?></p>
                                 </div>
 
-                                <div class="wpa-setting-row">
-                                    <label for="wpa_max_height"><?php esc_html_e('Max Height', 'wpa-superstar'); ?></label>
+                                <div class="wp-setting-row">
+                                    <label for="wp_max_height"><?php esc_html_e('Max Height', 'wp-allstars'); ?></label>
                                     <input type="number" 
-                                           id="wpa_max_height"
-                                           name="wpa_superstar_workflow_options[max_height]"
+                                           id="wp_max_height"
+                                           name="wp_allstars_workflow_options[max_height]"
                                            value="<?php echo esc_attr($options['max_height']); ?>"
                                            min="0"
                                     />
-                                    <p class="description"><?php esc_html_e('Maximum height of uploaded images (px). Leave empty for no limit.', 'wpa-superstar'); ?></p>
+                                    <p class="description"><?php esc_html_e('Maximum height of uploaded images (px). Leave empty for no limit.', 'wp-allstars'); ?></p>
                                 </div>
 
-                                <div class="wpa-setting-row">
-                                    <label for="wpa_exclude_urls"><?php esc_html_e('Exclude URLs', 'wpa-superstar'); ?></label>
-                                    <textarea id="wpa_exclude_urls"
-                                              name="wpa_superstar_workflow_options[exclude_urls]"
+                                <div class="wp-setting-row">
+                                    <label for="wp_exclude_urls"><?php esc_html_e('Exclude URLs', 'wp-allstars'); ?></label>
+                                    <textarea id="wp_exclude_urls"
+                                              name="wp_allstars_workflow_options[exclude_urls]"
                                               rows="3"
                                               placeholder="example.com&#10;another-domain.com"
                                     ><?php echo esc_textarea($options['exclude_urls']); ?></textarea>
-                                    <p class="description"><?php esc_html_e('Enter domains to exclude (one per line). Images from these domains will not be imported.', 'wpa-superstar'); ?></p>
+                                    <p class="description"><?php esc_html_e('Enter domains to exclude (one per line). Images from these domains will not be imported.', 'wp-allstars'); ?></p>
                                 </div>
 
-                                <div class="wpa-setting-row">
-                                    <label for="wpa_image_name"><?php esc_html_e('Image Name Pattern', 'wpa-superstar'); ?></label>
+                                <div class="wp-setting-row">
+                                    <label for="wp_image_name"><?php esc_html_e('Image Name Pattern', 'wp-allstars'); ?></label>
                                     <input type="text" 
-                                           id="wpa_image_name"
-                                           name="wpa_superstar_workflow_options[image_name_pattern]"
+                                           id="wp_image_name"
+                                           name="wp_allstars_workflow_options[image_name_pattern]"
                                            value="<?php echo esc_attr($options['image_name_pattern']); ?>"
                                     />
                                     <p class="description">
-                                        <?php esc_html_e('Available patterns:', 'wpa-superstar'); ?> %filename%, %post_id%, %postname%, %timestamp%, %date%, %year%, %month%, %day%
+                                        <?php esc_html_e('Available patterns:', 'wp-allstars'); ?> %filename%, %post_id%, %postname%, %timestamp%, %date%, %year%, %month%, %day%
                                     </p>
                                 </div>
 
-                                <div class="wpa-setting-row">
-                                    <label for="wpa_image_alt"><?php esc_html_e('Image Alt Pattern', 'wpa-superstar'); ?></label>
+                                <div class="wp-setting-row">
+                                    <label for="wp_image_alt"><?php esc_html_e('Image Alt Pattern', 'wp-allstars'); ?></label>
                                     <input type="text" 
-                                           id="wpa_image_alt"
-                                           name="wpa_superstar_workflow_options[image_alt_pattern]"
+                                           id="wp_image_alt"
+                                           name="wp_allstars_workflow_options[image_alt_pattern]"
                                            value="<?php echo esc_attr($options['image_alt_pattern']); ?>"
                                     />
                                     <p class="description">
-                                        <?php esc_html_e('Available patterns:', 'wpa-superstar'); ?> %filename%, %post_title%, %post_id%, %postname%, %timestamp%
+                                        <?php esc_html_e('Available patterns:', 'wp-allstars'); ?> %filename%, %post_title%, %post_id%, %postname%, %timestamp%
                                     </p>
                                 </div>
                             </div>
@@ -602,10 +604,10 @@ function wpa_superstar_settings_page() {
 
                     <script>
                     jQuery(document).ready(function($) {
-                        $('.wpa-expand-settings').on('click', function(e) {
+                        $('.wp-expand-settings').on('click', function(e) {
                             e.preventDefault();
                             var $button = $(this);
-                            var $settings = $button.closest('.wpa-superstar-toggle').find('.wpa-toggle-settings');
+                            var $settings = $button.closest('.wp-allstars-toggle').find('.wp-toggle-settings');
                             var isExpanded = $button.attr('aria-expanded') === 'true';
                             
                             $button.attr('aria-expanded', !isExpanded);
@@ -642,7 +644,7 @@ function wpa_superstar_settings_page() {
                             currentRequest = $.ajax({
                                 url: ajaxurl,
                                 data: {
-                                    action: 'wpa_get_theme',
+                                    action: 'wp_allstars_get_theme',
                                     _ajax_nonce: '<?php echo wp_create_nonce("updates"); ?>'
                                 },
                                 beforeSend: function() {
@@ -715,7 +717,7 @@ function wpa_superstar_settings_page() {
                                     url: ajaxurl,
                                     type: 'POST',
                                     data: {
-                                        action: 'wpa_activate_theme',
+                                        action: 'wp_allstars_activate_theme',
                                         theme: slug,
                                         _ajax_nonce: '<?php echo wp_create_nonce("updates"); ?>'
                                     },
@@ -763,21 +765,21 @@ function wpa_superstar_settings_page() {
 
                 <?php elseif ($active_tab == 'recommended'): ?>
                     <div class="wpa-plugin-filters">
-                        <a href="?page=wpa-superstar&tab=recommended&category=minimal" 
+                        <a href="?page=wp-allstars&tab=recommended&category=minimal" 
                            class="button <?php echo $active_category == 'minimal' ? 'button-primary' : ''; ?>">
-                            <?php esc_html_e('Minimal', 'wpa-superstar'); ?>
+                            <?php esc_html_e('Minimal', 'wp-allstars'); ?>
                         </a>
-                        <a href="?page=wpa-superstar&tab=recommended&category=advanced" 
+                        <a href="?page=wp-allstars&tab=recommended&category=advanced" 
                            class="button <?php echo $active_category == 'advanced' ? 'button-primary' : ''; ?>">
-                            <?php esc_html_e('Advanced', 'wpa-superstar'); ?>
+                            <?php esc_html_e('Advanced', 'wp-allstars'); ?>
                         </a>
-                        <a href="?page=wpa-superstar&tab=recommended&category=ecommerce" 
+                        <a href="?page=wp-allstars&tab=recommended&category=ecommerce" 
                            class="button <?php echo $active_category == 'ecommerce' ? 'button-primary' : ''; ?>">
-                            <?php esc_html_e('Ecommerce', 'wpa-superstar'); ?>
+                            <?php esc_html_e('Ecommerce', 'wp-allstars'); ?>
                         </a>
-                        <a href="?page=wpa-superstar&tab=recommended&category=lms" 
+                        <a href="?page=wp-allstars&tab=recommended&category=lms" 
                            class="button <?php echo $active_category == 'lms' ? 'button-primary' : ''; ?>">
-                            <?php esc_html_e('LMS', 'wpa-superstar'); ?>
+                            <?php esc_html_e('LMS', 'wp-allstars'); ?>
                         </a>
                     </div>
 
@@ -807,7 +809,7 @@ function wpa_superstar_settings_page() {
                             currentRequest = $.ajax({
                                 url: ajaxurl,
                                 data: {
-                                    action: 'wpa_get_plugins',
+                                    action: 'wp_allstars_get_plugins',
                                     category: category || 'minimal',
                                     _ajax_nonce: '<?php echo wp_create_nonce("updates"); ?>'
                                 },
@@ -872,58 +874,58 @@ function wpa_superstar_settings_page() {
                     </script>
 
                 <?php elseif ($active_tab == 'general'): ?>
-                <div class="wpa-superstar-toggle">
-                        <label for="wpa_superstar_lazy_load">
-                            <div class="wpa-toggle-switch">
+                <div class="wp-allstars-toggle">
+                        <label for="wp_allstars_lazy_load">
+                            <div class="wp-toggle-switch">
                                 <input type="checkbox" 
-                                       id="wpa_superstar_lazy_load"
-                                       name="wpa_superstar_lazy_load" 
+                                       id="wp_allstars_lazy_load"
+                                       name="wp_allstars_lazy_load" 
                                        value="1" 
-                                       <?php checked(get_option('wpa_superstar_lazy_load', 1)); ?> 
+                                       <?php checked(get_option('wp_allstars_lazy_load', 1)); ?> 
                                 />
-                                <span class="wpa-toggle-slider"></span>
+                                <span class="wp-toggle-slider"></span>
                             </div>
-                            <?php esc_html_e('Enable lazy loading for images', 'wpa-superstar'); ?>
+                            <?php esc_html_e('Enable lazy loading for images', 'wp-allstars'); ?>
                     </label>
                         <p class="description">
-                            <?php esc_html_e('Improves page load time by loading images only when they enter the viewport.', 'wpa-superstar'); ?>
+                            <?php esc_html_e('Improves page load time by loading images only when they enter the viewport.', 'wp-allstars'); ?>
                         </p>
                 </div>
 
                 <?php elseif ($active_tab == 'advanced'): ?>
-                <div class="wpa-superstar-toggle">
-                        <label for="wpa_superstar_minify_css">
-                            <div class="wpa-toggle-switch">
+                <div class="wp-allstars-toggle">
+                        <label for="wp_allstars_minify_css">
+                            <div class="wp-toggle-switch">
                                 <input type="checkbox" 
-                                       id="wpa_superstar_minify_css"
-                                       name="wpa_superstar_minify_css" 
+                                       id="wp_allstars_minify_css"
+                                       name="wp_allstars_minify_css" 
                                        value="1" 
-                                       <?php checked(get_option('wpa_superstar_minify_css', 0)); ?> 
+                                       <?php checked(get_option('wp_allstars_minify_css', 0)); ?> 
                                 />
-                                <span class="wpa-toggle-slider"></span>
+                                <span class="wp-toggle-slider"></span>
                             </div>
-                            <?php esc_html_e('Enable CSS minification', 'wpa-superstar'); ?>
+                            <?php esc_html_e('Enable CSS minification', 'wp-allstars'); ?>
                     </label>
                         <p class="description">
-                            <?php esc_html_e('Minifies CSS files to reduce file size and improve load times.', 'wpa-superstar'); ?>
+                            <?php esc_html_e('Minifies CSS files to reduce file size and improve load times.', 'wp-allstars'); ?>
                         </p>
                 </div>
 
-                <div class="wpa-superstar-toggle">
-                        <label for="wpa_superstar_minify_js">
-                            <div class="wpa-toggle-switch">
+                <div class="wp-allstars-toggle">
+                        <label for="wp_allstars_minify_js">
+                            <div class="wp-toggle-switch">
                                 <input type="checkbox" 
-                                       id="wpa_superstar_minify_js"
-                                       name="wpa_superstar_minify_js" 
+                                       id="wp_allstars_minify_js"
+                                       name="wp_allstars_minify_js" 
                                        value="1" 
-                                       <?php checked(get_option('wpa_superstar_minify_js', 0)); ?> 
+                                       <?php checked(get_option('wp_allstars_minify_js', 0)); ?> 
                                 />
-                                <span class="wpa-toggle-slider"></span>
+                                <span class="wp-toggle-slider"></span>
                             </div>
-                            <?php esc_html_e('Enable JS minification', 'wpa-superstar'); ?>
+                            <?php esc_html_e('Enable JS minification', 'wp-allstars'); ?>
                     </label>
                         <p class="description">
-                            <?php esc_html_e('Minifies JavaScript files to reduce file size and improve load times.', 'wpa-superstar'); ?>
+                            <?php esc_html_e('Minifies JavaScript files to reduce file size and improve load times.', 'wp-allstars'); ?>
                         </p>
                 </div>
             <?php endif; ?>

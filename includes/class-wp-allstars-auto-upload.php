@@ -2,16 +2,16 @@
 /**
  * Auto Upload Images functionality
  *
- * @package WPA_Superstar
+ * @package WP_Allstars
  */
 
-class WPA_Superstar_Auto_Upload {
+class WP_Allstars_Auto_Upload {
     /**
      * Initialize the class
      */
     public function __construct() {
         add_filter('content_save_pre', array($this, 'process_content'), 10, 1);
-        add_action('wpa_superstar_image_upload_error', array($this, 'log_error'), 10, 2);
+        add_action('wp_allstars_image_upload_error', array($this, 'log_error'), 10, 2);
     }
 
     /**
@@ -22,7 +22,7 @@ class WPA_Superstar_Auto_Upload {
      */
     public function process_content($content) {
         // Check if auto upload is enabled
-        $options = get_option('wpa_superstar_workflow_options', array('auto_upload_images' => false));
+        $options = get_option('wp_allstars_workflow_options', array('auto_upload_images' => false));
         if (!$options['auto_upload_images']) {
             return $content;
         }
@@ -57,7 +57,7 @@ class WPA_Superstar_Auto_Upload {
                 return str_replace($url, $local_url, $matches[0]);
             }
         } catch (Exception $e) {
-            do_action('wpa_superstar_image_upload_error', $url, $e->getMessage());
+            do_action('wp_allstars_image_upload_error', $url, $e->getMessage());
         }
 
         return $matches[0];
@@ -118,7 +118,7 @@ class WPA_Superstar_Auto_Upload {
      */
     public function log_error($url, $error) {
         error_log(sprintf(
-            '[WPA Superstar] Auto Upload Images Error - URL: %s, Error: %s',
+            '[WP ALLSTARS] Auto Upload Images Error - URL: %s, Error: %s',
             $url,
             $error
         ));
