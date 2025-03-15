@@ -30,6 +30,7 @@ register_activation_hook( __FILE__, 'wpa_superstar_activate' );
 
 // Load core functionality
 require_once plugin_dir_path( __FILE__ ) . 'includes/speed-functions.php';
+require_once plugin_dir_path(__FILE__) . 'includes/class-wpa-superstar-auto-upload.php';
 
 // Load admin UI
 if ( is_admin() ) {
@@ -87,3 +88,6 @@ function wpa_superstar_lazy_load_assets() {
 }
 // Hook the function to appropriate WordPress action
 add_action( 'wp_enqueue_scripts', 'wpa_superstar_lazy_load_assets' );
+
+// Initialize classes
+$wpa_superstar_auto_upload = new WPA_Superstar_Auto_Upload();

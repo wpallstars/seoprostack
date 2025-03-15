@@ -484,7 +484,7 @@ function wpa_superstar_settings_page() {
         
         <div class="wpa-settings-container">
             <div class="wpa-superstar-nav">
-                <h2 class="nav-tab-wrapper">
+        <h2 class="nav-tab-wrapper">
                     <a href="?page=wpa-superstar&tab=general" class="nav-tab <?php echo $active_tab == 'general' ? 'nav-tab-active' : ''; ?>">
                         <?php esc_html_e('General', 'wpa-superstar'); ?>
                     </a>
@@ -497,7 +497,7 @@ function wpa_superstar_settings_page() {
                     <a href="?page=wpa-superstar&tab=theme" class="nav-tab <?php echo $active_tab == 'theme' ? 'nav-tab-active' : ''; ?>">
                         <?php esc_html_e('Theme', 'wpa-superstar'); ?>
                     </a>
-                </h2>
+        </h2>
             </div>
 
             <div class="wpa-settings-content">
@@ -758,7 +758,7 @@ function wpa_superstar_settings_page() {
                     </script>
 
                 <?php elseif ($active_tab == 'general'): ?>
-                    <div class="wpa-superstar-toggle">
+                <div class="wpa-superstar-toggle">
                         <label for="wpa_superstar_lazy_load">
                             <div class="wpa-toggle-switch">
                                 <input type="checkbox" 
@@ -770,14 +770,14 @@ function wpa_superstar_settings_page() {
                                 <span class="wpa-toggle-slider"></span>
                             </div>
                             <?php esc_html_e('Enable lazy loading for images', 'wpa-superstar'); ?>
-                        </label>
+                    </label>
                         <p class="description">
                             <?php esc_html_e('Improves page load time by loading images only when they enter the viewport.', 'wpa-superstar'); ?>
                         </p>
-                    </div>
+                </div>
 
                 <?php elseif ($active_tab == 'advanced'): ?>
-                    <div class="wpa-superstar-toggle">
+                <div class="wpa-superstar-toggle">
                         <label for="wpa_superstar_minify_css">
                             <div class="wpa-toggle-switch">
                                 <input type="checkbox" 
@@ -789,13 +789,13 @@ function wpa_superstar_settings_page() {
                                 <span class="wpa-toggle-slider"></span>
                             </div>
                             <?php esc_html_e('Enable CSS minification', 'wpa-superstar'); ?>
-                        </label>
+                    </label>
                         <p class="description">
                             <?php esc_html_e('Minifies CSS files to reduce file size and improve load times.', 'wpa-superstar'); ?>
                         </p>
-                    </div>
+                </div>
 
-                    <div class="wpa-superstar-toggle">
+                <div class="wpa-superstar-toggle">
                         <label for="wpa_superstar_minify_js">
                             <div class="wpa-toggle-switch">
                                 <input type="checkbox" 
@@ -807,14 +807,63 @@ function wpa_superstar_settings_page() {
                                 <span class="wpa-toggle-slider"></span>
                             </div>
                             <?php esc_html_e('Enable JS minification', 'wpa-superstar'); ?>
-                        </label>
+                    </label>
                         <p class="description">
                             <?php esc_html_e('Minifies JavaScript files to reduce file size and improve load times.', 'wpa-superstar'); ?>
                         </p>
-                    </div>
-                <?php endif; ?>
+                </div>
+            <?php endif; ?>
             </div>
         </div>
     </div>
     <?php
 }
+
+// Register Workflow settings
+function wpa_superstar_workflow_section_callback() {
+    echo '<p>Configure workflow automation settings to enhance your content management process.</p>';
+}
+
+// Add Auto Upload Images setting
+function wpa_superstar_auto_upload_images_callback() {
+    $options = get_option('wpa_superstar_workflow_options', array(
+        'auto_upload_images' => false
+    ));
+    ?>
+    <label class="switch">
+        <input type="checkbox" name="wpa_superstar_workflow_options[auto_upload_images]" 
+               <?php checked($options['auto_upload_images'], true); ?>>
+        <span class="slider round"></span>
+    </label>
+    <p class="description">
+        Import images that have external URLs into your Media Library when saving. 
+        Consider disabling during large data imports with many external image URLs.
+    </p>
+    <?php
+}
+
+// Add Workflow section
+function wpa_superstar_workflow_section() {
+    // Register Workflow settings
+    register_setting('wpa_superstar_workflow', 'wpa_superstar_workflow_options');
+
+    // Add Workflow section
+    add_settings_section(
+        'wpa_superstar_workflow_section',
+        'Workflow Settings',
+        'wpa_superstar_workflow_section_callback',
+        'wpa_superstar_workflow'
+    );
+
+    // Add Auto Upload Images setting
+    add_settings_field(
+        'auto_upload_images',
+        'Enable Auto Upload Images',
+        'wpa_superstar_auto_upload_images_callback',
+        'wpa_superstar_workflow',
+        'wpa_superstar_workflow_section'
+    );
+}
+
+// Add Workflow section
+add_action('admin_init', 'wpa_superstar_workflow_section');
