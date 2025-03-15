@@ -836,11 +836,11 @@ function wpa_superstar_workflow_section() {
     // Register Workflow settings
     register_setting('wpa_superstar_workflow', 'wpa_superstar_workflow_options');
 
-    // Add Workflow section
+    // Add Workflow section without title or description
     add_settings_section(
         'wpa_superstar_workflow_section',
-        '', // Keep section title empty
-        'wpa_superstar_workflow_section_callback',
+        '',
+        '__return_empty_string',
         'wpa_superstar_workflow'
     );
 
@@ -854,22 +854,20 @@ function wpa_superstar_workflow_section() {
     );
 }
 
-function wpa_superstar_workflow_section_callback() {
-    echo '<p>Quality of life features to save time and from inconsistancies with your content management.</p>';
-}
-
-// Add Auto Upload Images setting
 function wpa_superstar_auto_upload_images_callback() {
     $options = get_option('wpa_superstar_workflow_options', array(
         'auto_upload_images' => false
     ));
     ?>
     <div class="wpa-superstar-toggle">
-        <label>
+        <label for="wpa_superstar_auto_upload_images">
             <div class="wpa-toggle-switch">
                 <input type="checkbox" 
+                       id="wpa_superstar_auto_upload_images"
                        name="wpa_superstar_workflow_options[auto_upload_images]" 
-                       <?php checked($options['auto_upload_images'], true); ?>>
+                       value="1"
+                       <?php checked($options['auto_upload_images'], true); ?> 
+                />
                 <span class="wpa-toggle-slider"></span>
             </div>
             <?php esc_html_e('Enable Auto Upload Images', 'wpa-superstar'); ?>
