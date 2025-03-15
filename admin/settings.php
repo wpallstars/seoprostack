@@ -831,9 +831,27 @@ function wpa_superstar_settings_page() {
     <?php
 }
 
-// Register Workflow settings
-function wpa_superstar_workflow_section_callback() {
-    echo '<p>Configure workflow automation settings to enhance your content management process.</p>';
+// Add Workflow section
+function wpa_superstar_workflow_section() {
+    // Register Workflow settings
+    register_setting('wpa_superstar_workflow', 'wpa_superstar_workflow_options');
+
+    // Add Workflow section
+    add_settings_section(
+        'wpa_superstar_workflow_section',
+        '', // Remove section title
+        '__return_empty_string', // Remove section description
+        'wpa_superstar_workflow'
+    );
+
+    // Add Auto Upload Images setting
+    add_settings_field(
+        'auto_upload_images',
+        '',
+        'wpa_superstar_auto_upload_images_callback',
+        'wpa_superstar_workflow',
+        'wpa_superstar_workflow_section'
+    );
 }
 
 // Add Auto Upload Images setting
@@ -857,29 +875,6 @@ function wpa_superstar_auto_upload_images_callback() {
         </p>
     </div>
     <?php
-}
-
-// Add Workflow section
-function wpa_superstar_workflow_section() {
-    // Register Workflow settings
-    register_setting('wpa_superstar_workflow', 'wpa_superstar_workflow_options');
-
-    // Add Workflow section
-    add_settings_section(
-        'wpa_superstar_workflow_section',
-        'Workflow Settings',
-        'wpa_superstar_workflow_section_callback',
-        'wpa_superstar_workflow'
-    );
-
-    // Add Auto Upload Images setting
-    add_settings_field(
-        'auto_upload_images',
-        '',
-        'wpa_superstar_auto_upload_images_callback',
-        'wpa_superstar_workflow',
-        'wpa_superstar_workflow_section'
-    );
 }
 
 // Add Workflow section
