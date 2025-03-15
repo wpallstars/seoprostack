@@ -37,6 +37,101 @@
     font-weight: 400;
 }
 
+/* Navigation Tabs */
+.wp-allstars-nav {
+    margin-bottom: 20px;
+}
+
+.wp-allstars-nav .nav-tab-wrapper {
+    border-bottom: 1px solid #c3c4c7;
+    padding-top: 0;
+    margin: 0;
+}
+
+.wp-allstars-nav .nav-tab {
+    font-size: 14px;
+    padding: 10px 15px;
+    margin-left: 0;
+    margin-right: 4px;
+    border: 1px solid #c3c4c7;
+    border-bottom: none;
+    background: #f0f0f1;
+    color: #50575e;
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+.wp-allstars-nav .nav-tab:hover {
+    background: #fff;
+    color: #1d2327;
+}
+
+.wp-allstars-nav .nav-tab-active {
+    background: #fff;
+    color: #1d2327;
+    border-bottom: 1px solid #fff;
+    margin-bottom: -1px;
+}
+
+/* Toggle Switches */
+.wp-toggle-switch {
+    position: relative;
+    display: inline-block;
+    width: 40px;
+    height: 20px;
+    margin-right: 12px;
+}
+
+.wp-toggle-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.wp-toggle-slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    transition: .3s;
+    border-radius: 20px;
+}
+
+.wp-toggle-slider:before {
+    position: absolute;
+    content: "";
+    height: 16px;
+    width: 16px;
+    left: 2px;
+    bottom: 2px;
+    background-color: white;
+    transition: .3s;
+    border-radius: 50%;
+}
+
+input:checked + .wp-toggle-slider {
+    background-color: #4caf50;
+}
+
+input:checked + .wp-toggle-slider:before {
+    transform: translateX(20px);
+}
+
+/* Settings Container */
+.wp-allstars-settings-container {
+    padding: 0 20px;
+    max-width: 1100px;
+}
+
+.wp-allstars-settings-content {
+    margin-top: 20px;
+    padding: 0;
+}
+
+/* Toggle Sections */
 .wp-allstars-toggle {
     margin: 15px 0;
     padding: 16px 20px;
@@ -69,35 +164,6 @@
     line-height: 1.5;
 }
 
-.wp-allstars-loading-overlay {
-    position: fixed;
-    top: 32px;
-    left: 160px;
-    right: 0;
-    bottom: 0;
-    background: rgba(255, 255, 255, 0.9);
-    z-index: 100000;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.wp-allstars-plugin-filters {
-    margin: 0 0 20px;
-    padding: 0 0 12px;
-    border-bottom: 1px solid #ddd;
-}
-
-.wp-allstars-settings-container {
-    padding: 0 20px;
-    max-width: 1100px;
-}
-
-.wp-allstars-settings-content {
-    margin-top: 20px;
-    padding: 0;
-}
-
 .wp-allstars-toggle-header {
     display: flex;
     justify-content: space-between;
@@ -115,6 +181,7 @@
     margin-bottom: 20px;
 }
 
+/* Expand/Collapse Button */
 .wp-allstars-expand-settings {
     background: none;
     border: none;
@@ -122,4 +189,87 @@
     cursor: pointer;
     color: #787c82;
     transition: color .15s ease-in-out;
+}
+
+.wp-allstars-expand-settings:hover {
+    color: #1d2327;
+}
+
+.wp-allstars-expand-settings .dashicons {
+    width: 20px;
+    height: 20px;
+    font-size: 20px;
+    transition: transform .15s ease-in-out;
+}
+
+.wp-allstars-expand-settings[aria-expanded="true"] .dashicons {
+    transform: rotate(180deg);
+}
+
+/* Form Elements */
+.wp-allstars-setting-row input[type="text"],
+.wp-allstars-setting-row input[type="number"],
+.wp-allstars-setting-row textarea {
+    width: 100%;
+    max-width: 400px;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    margin-top: 5px;
+}
+
+.wp-allstars-setting-row textarea {
+    min-height: 100px;
+}
+
+.wp-allstars-setting-row label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: 500;
+}
+
+/* Loading Overlay */
+.wp-allstars-loading-overlay {
+    position: fixed;
+    top: 32px;
+    left: 160px;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.9);
+    z-index: 100000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Plugin Filters */
+.wp-allstars-plugin-filters {
+    margin: 0 0 20px;
+    padding: 0 0 12px;
+    border-bottom: 1px solid #ddd;
+}
+
+.wp-allstars-plugin-filters .button {
+    margin-right: 5px;
+}
+
+/* Responsive Adjustments */
+@media screen and (max-width: 782px) {
+    .wp-allstars-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .wp-allstars-header-actions {
+        margin-top: 10px;
+    }
+
+    .wp-allstars-nav .nav-tab {
+        margin-bottom: 5px;
+    }
+
+    .wp-allstars-toggle .description {
+        margin-left: 0;
+        margin-top: 10px;
+    }
 } 
