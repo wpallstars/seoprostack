@@ -875,7 +875,7 @@ function wpa_superstar_workflow_section() {
     // Add Auto Upload Images setting
     add_settings_field(
         'auto_upload_images',
-        'Enable Auto Upload Images',
+        '',
         'wpa_superstar_auto_upload_images_callback',
         'wpa_superstar_workflow',
         'wpa_superstar_workflow_section'
