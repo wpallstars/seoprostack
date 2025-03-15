@@ -46,7 +46,6 @@ function wp_allstars_get_recommended_plugins() {
         'advanced' => array(
             'acf-better-search',
             'admin-bar-dashboard-control',
-            'admin-columns',
             'advanced-custom-fields',
             'admin-menu-editor',
             'ai-engine',
@@ -55,6 +54,8 @@ function wp_allstars_get_recommended_plugins() {
             'bookmark-card',
             'browser-shots',
             'bulk-actions-select-all',
+            'bulk-edit-categories-tags',
+            'bulk-edit-user-profiles-in-spreadsheet',
             'burst-statistics',
             'carbon-copy',
             'code-snippets',
@@ -71,21 +72,19 @@ function wp_allstars_get_recommended_plugins() {
             'fluent-crm',
             'fluentform',
             'fluentforms-pdf',
-            'signature-addon-for-wp-fluent-form',
             'fluent-support',
             'flying-analytics',
             'flying-pages',
             'flying-scripts',
             'freesoul-deactivate-plugins',
             'hide-admin-notices',
-            'hreflang-manager',
-            'ics-calandar',
+            'hreflang-manager-lite',
+            'ics-calendar',
             'iframe-block',
             'image-copytrack',
             'imsanity',
             'index-wp-mysql-for-speed',
             'kadence-blocks',
-            'kadence-simple-share',
             'litespeed-cache',
             'magic-login',
             'mainwp-child',
@@ -96,16 +95,13 @@ function wp_allstars_get_recommended_plugins() {
             'nav-menu-roles',
             'ninja-tables',
             'performant-translations',
-            'plugin-groups',
             'simple-icons',
             'post-draft-preview',
-            'post-meta-data-manager',
             'post-type-switcher',
             'pretty-link',
             'seo-by-rank-math',
             'really-simple-ssl',
             'remove-cpt-base',
-            'richtext-extension',
             'safe-svg',
             'simple-custom-post-order',
             'remove-old-slugspermalinks',
@@ -114,7 +110,6 @@ function wp_allstars_get_recommended_plugins() {
             'ultimate-addons-for-gutenberg',
             'sticky-posts-switch',
             'syndication-links',
-            'taxopress',
             'term-management-tools',
             'the-paste',
             'ultimate-410',
@@ -124,11 +119,13 @@ function wp_allstars_get_recommended_plugins() {
             'wordpress-importer',
             'wp-social-reviews',
             'wp-optimize',
-            'wp-sheet-editor',
+            'wp-sheet-editor-bulk-spreadsheet-editor-for-posts-and-pages',
             'yellow-pencil-visual-theme-customizer'
         ),
         'ecommerce' => array(
             'woocommerce',
+            'woo-bulk-edit-products',
+            'woo-coupons-bulk-editor',
             'woocommerce-gateway-gocardless',
             'kadence-woocommerce-email-designer',
             'pymntpl-paypal-woocommerce',
@@ -140,6 +137,7 @@ function wp_allstars_get_recommended_plugins() {
         'debug' => array(
             'debug-log-manager',
             'gotmls',
+            'plugin-groups',
             'query-monitor',
             'string-locator',
             'user-switching',
@@ -823,8 +821,11 @@ function wp_allstars_settings_page() {
 
                     <div class="wp-list-table-container">
                         <div id="wpa-plugin-list"></div>
-                        <div class="wpa-loading-indicator" style="display: none; text-align: center; margin: 20px 0;">
-                            <span class="spinner is-active"></span>
+                        <div class="wpa-load-more" style="display: none; text-align: center; margin: 20px 0;">
+                            <button class="button button-secondary">
+                                <?php esc_html_e('Load More Plugins', 'wp-allstars'); ?>
+                                <span class="spinner" style="float: none; margin-top: 4px;"></span>
+                            </button>
                         </div>
                     </div>
 
@@ -840,9 +841,9 @@ function wp_allstars_settings_page() {
                             transform: translateY(0);
                         }
                     }
-                    .wpa-loading-indicator .spinner {
-                        float: none;
+                    .wpa-load-more .spinner.is-active {
                         visibility: visible;
+                        display: inline-block;
                     }
                     /* Hide duplicate plugin counts */
                     .plugin-install-php .subsubsub {
@@ -857,15 +858,16 @@ function wp_allstars_settings_page() {
                         var currentCategory = '<?php echo esc_js($active_category); ?>';
                         var currentOffset = 0;
                         var batchSize = 10;
-                        var hasMorePlugins = true;
-                        var loadingObserver;
                         
                         function loadPlugins(category, offset = 0, append = false) {
-                            if (isLoading || !hasMorePlugins) return;
+                            if (isLoading) return;
                             isLoading = true;
                             
-                            // Show loading indicator
-                            $('.wpa-loading-indicator').show();
+                            // Show loading indicator in load more button if appending
+                            if (append) {
+                                $('.wpa-load-more .spinner').addClass('is-active');
+                                $('.wpa-load-more button').prop('disabled', true);
+                            }
                             
                             // Cancel previous request if it exists
                             if (currentRequest) {
@@ -903,13 +905,13 @@ function wp_allstars_settings_page() {
                                         
                                         $('#wpa-plugin-list').append($content);
                                         
-                                        // Update offset and check if we have more plugins
+                                        // Update offset and check if we need to show load more button
                                         currentOffset = response.data.offset;
-                                        hasMorePlugins = response.data.remaining > 0;
                                         
-                                        // Hide loading indicator if no more plugins
-                                        if (!hasMorePlugins) {
-                                            $('.wpa-loading-indicator').hide();
+                                        if (response.data.remaining > 0) {
+                                            $('.wpa-load-more').show();
+                                        } else {
+                                            $('.wpa-load-more').hide();
                                         }
                                     } else {
                                         console.error('Server returned error:', response);
@@ -920,34 +922,10 @@ function wp_allstars_settings_page() {
                                 },
                                 complete: function() {
                                     isLoading = false;
-                                    if (hasMorePlugins) {
-                                        setupIntersectionObserver();
-                                    }
+                                    $('.wpa-load-more .spinner').removeClass('is-active');
+                                    $('.wpa-load-more button').prop('disabled', false);
                                 }
                             });
-                        }
-                        
-                        function setupIntersectionObserver() {
-                            // Disconnect previous observer if it exists
-                            if (loadingObserver) {
-                                loadingObserver.disconnect();
-                            }
-                            
-                            // Create new observer
-                            loadingObserver = new IntersectionObserver((entries) => {
-                                entries.forEach(entry => {
-                                    if (entry.isIntersecting && !isLoading && hasMorePlugins) {
-                                        loadPlugins(currentCategory, currentOffset, true);
-                                    }
-                                });
-                            }, {
-                                root: null,
-                                rootMargin: '100px',
-                                threshold: 0.1
-                            });
-                            
-                            // Observe the loading indicator
-                            loadingObserver.observe($('.wpa-loading-indicator')[0]);
                         }
                         
                         // Load initial batch of plugins
@@ -958,7 +936,6 @@ function wp_allstars_settings_page() {
                             e.preventDefault();
                             var category = new URLSearchParams($(this).attr('href').split('?')[1]).get('category');
                             currentCategory = category;
-                            hasMorePlugins = true;
                             
                             // Update URL without page reload
                             var newUrl = $(this).attr('href');
@@ -970,6 +947,11 @@ function wp_allstars_settings_page() {
                             
                             // Load new category
                             loadPlugins(category);
+                        });
+                        
+                        // Handle load more button clicks
+                        $('.wpa-load-more button').on('click', function() {
+                            loadPlugins(currentCategory, currentOffset, true);
                         });
                     });
                     </script>
