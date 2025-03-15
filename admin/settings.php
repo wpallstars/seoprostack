@@ -839,8 +839,8 @@ function wpa_superstar_workflow_section() {
     // Add Workflow section
     add_settings_section(
         'wpa_superstar_workflow_section',
-        '', // Remove section title
-        '__return_empty_string', // Remove section description
+        '', // Keep section title empty
+        'wpa_superstar_workflow_section_callback',
         'wpa_superstar_workflow'
     );
 
@@ -852,6 +852,10 @@ function wpa_superstar_workflow_section() {
         'wpa_superstar_workflow',
         'wpa_superstar_workflow_section'
     );
+}
+
+function wpa_superstar_workflow_section_callback() {
+    echo '<p>Quality of life features to save time and from inconsistancies with your content management.</p>';
 }
 
 // Add Auto Upload Images setting
