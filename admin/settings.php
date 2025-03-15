@@ -41,24 +41,36 @@ function wp_allstars_get_recommended_plugins() {
             'simple-cloudflare-turnstile'
         ),
         'advanced' => array(
+            'acf-better-search',
+            'admin-bar-dashboard-control',
+            'admin-columns',
             'advanced-custom-fields',
             'admin-menu-editor',
             'burst-statistics',
+            'carbon-copy',
+            'compressx',
             'freesoul-deactivate-plugins',
+            'gotmls',
             'plugin-toggle',
             'pretty-links',
             'seo-by-rank-math',
             'fluent-crm',
             'fluentform',
             'fluent-smtp',
-            'fluent-support'
+            'fluent-support',
+            'ultimate-410'
         ),
         'ecommerce' => array(
             'woocommerce',
+            'pymntpl-paypal-woocommerce',
+            'woo-stripe-payment',
             'client-booking'
         ),
         'lms' => array(
             'tutor'
+        ),
+        'debug' => array(
+            'debug-log-manager'
         )
     );
 }
