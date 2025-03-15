@@ -39,6 +39,7 @@ function wp_allstars_get_recommended_plugins() {
         'minimal' => array(
             'antispam-bee',
             'compressx',
+            'fluent-smtp',
             'plugin-toggle',
             'simple-cloudflare-turnstile'
         ),
@@ -48,16 +49,34 @@ function wp_allstars_get_recommended_plugins() {
             'admin-columns',
             'advanced-custom-fields',
             'admin-menu-editor',
+            'bulk-actions-select-all',
             'burst-statistics',
             'carbon-copy',
-            'freesoul-deactivate-plugins',
-            'gotmls',
-            'pretty-links',
-            'seo-by-rank-math',
+            'complianz-terms-conditions',
+            'disable-wordpress-updates',
+            'easy-video-reviews',
+            'easy-watermark',
+            'block-options',
+            'enable-replace-media',
+            'favorites',
+            'fluent-boards',
+            'fluent-booking',
             'fluent-crm',
             'fluentform',
-            'fluent-smtp',
+            'fluentforms-pdf',
+            'signature-add-on-for-wp-fluentform',
             'fluent-support',
+            'flying-analytics',
+            'flying-pages',
+            'flying-scripts',
+            'freesoul-deactivate-plugins',
+            'woocommerce-gateway-gocardless',
+            'hide-admin-notices',
+            'iframe-block',
+            'image-copytrack',
+            'imsanity',
+            'pretty-links',
+            'seo-by-rank-math',
             'ultimate-410'
         ),
         'ecommerce' => array(
@@ -70,7 +89,8 @@ function wp_allstars_get_recommended_plugins() {
             'tutor'
         ),
         'debug' => array(
-            'debug-log-manager'
+            'debug-log-manager',
+            'gotmls'
         )
     );
 }
