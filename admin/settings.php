@@ -514,9 +514,6 @@ function wp_allstars_settings_page() {
                     <a href="?page=wp-allstars&tab=theme" class="nav-tab <?php echo $active_tab == 'theme' ? 'nav-tab-active' : ''; ?>">
                         <?php esc_html_e('Theme', 'wp-allstars'); ?>
                     </a>
-                    <a href="?page=wp-allstars&tab=debug" class="nav-tab <?php echo $active_tab == 'debug' ? 'nav-tab-active' : ''; ?>">
-                        <?php esc_html_e('Debug', 'wp-allstars'); ?>
-                    </a>
                 </h2>
             </div>
 
@@ -783,6 +780,10 @@ function wp_allstars_settings_page() {
                            class="button <?php echo $active_category == 'lms' ? 'button-primary' : ''; ?>">
                             <?php esc_html_e('LMS', 'wp-allstars'); ?>
                         </a>
+                        <a href="?page=wp-allstars&tab=recommended&category=debug" 
+                           class="button <?php echo $active_category == 'debug' ? 'button-primary' : ''; ?>">
+                            <?php esc_html_e('Debug', 'wp-allstars'); ?>
+                        </a>
                     </div>
 
                     <div class="wp-list-table-container">
@@ -930,30 +931,7 @@ function wp_allstars_settings_page() {
                             <?php esc_html_e('Minifies JavaScript files to reduce file size and improve load times.', 'wp-allstars'); ?>
                         </p>
                 </div>
-            <?php elseif ($active_tab == 'debug'): ?>
-                    <div class="wpa-plugin-filters">
-                        <a href="?page=wp-allstars&tab=debug&category=debug" 
-                           class="button <?php echo $active_category == 'debug' ? 'button-primary' : ''; ?>">
-                            <?php esc_html_e('Debug Tools', 'wp-allstars'); ?>
-                        </a>
-                    </div>
-
-                    <div class="wp-list-table-container">
-                        <div class="wpa-loading-overlay">
-                            <span class="spinner is-active"></span>
-                        </div>
-                        <div id="wpa-plugin-list"></div>
-                    </div>
-
-                    <script>
-                    jQuery(document).ready(function($) {
-                        // Load debug plugins on page load
-                        var currentCategory = 'debug';
-                        loadPlugins(currentCategory);
-                    });
-                    </script>
-
-                <?php endif; ?>
+            <?php endif; ?>
             </div>
         </div>
     </div>
