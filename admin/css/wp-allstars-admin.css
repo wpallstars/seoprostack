@@ -14,6 +14,7 @@
     align-items: center;
     justify-content: space-between;
     width: auto;
+    position: relative;
 }
 
 .wp-allstars-header h1 {
@@ -41,45 +42,45 @@
 .nav-tab-wrapper,
 .wrap h2.nav-tab-wrapper {
     border-bottom: 1px solid #c3c4c7;
-    margin: 0;
-    padding-top: 9px;
-    padding-bottom: 0;
-    line-height: inherit;
-    margin-bottom: 20px;
+    margin: 0 -20px;
+    padding: 0 20px;
+    background: #fff;
+    position: sticky;
+    top: 32px;
+    z-index: 100;
 }
 
 .nav-tab {
-    float: left;
-    border: 1px solid #c3c4c7;
-    border-bottom: none;
-    margin-left: 0.5em;
-    padding: 8px 12px;
+    margin: 0;
+    padding: 12px 20px;
     font-size: 14px;
-    line-height: 1.71428571;
-    font-weight: 600;
-    background: #f0f0f1;
+    line-height: 2;
+    font-weight: 400;
+    background: transparent;
     color: #50575e;
     text-decoration: none;
     white-space: nowrap;
+    border: none;
+    border-bottom: 2px solid transparent;
+    display: inline-block;
     transition: all 0.2s ease;
 }
 
 .nav-tab:hover,
 .nav-tab:focus {
-    background-color: #fff;
-    color: #1d2327;
-    border-color: #8c8f94;
+    color: #2271b1;
+    background: transparent;
+    border-color: #2271b1;
 }
 
 .nav-tab-active,
 .nav-tab-active:focus,
 .nav-tab-active:focus:active,
 .nav-tab-active:hover {
-    border-bottom: 1px solid #f0f0f1;
-    background: #f0f0f1;
+    border-bottom: 2px solid #2271b1;
+    background: transparent;
     color: #2271b1;
-    margin-bottom: -1px;
-    box-shadow: none;
+    font-weight: 600;
 }
 
 /* Toggle Switches */
@@ -331,4 +332,42 @@ input:checked + .wp-toggle-slider:before {
         margin-top: 10px;
         padding: 12px;
     }
+}
+
+/* Settings Notification */
+.wp-status {
+    position: absolute !important;
+    right: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: #00a32a;
+    color: white;
+    padding: 6px 12px;
+    border-radius: 12px;
+    font-size: 13px;
+    font-weight: 500;
+    z-index: 100;
+}
+
+.wp-status.error {
+    background: #d63638;
+}
+
+/* Settings Container */
+.wp-list-table-container {
+    position: relative;
+    min-height: 400px;
+}
+
+.wpa-loading-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.8);
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 } 

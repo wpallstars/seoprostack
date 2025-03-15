@@ -507,28 +507,16 @@ function wp_allstars_settings_page() {
 
             <div class="wpa-settings-content">
                 <?php if ($active_tab == 'workflow'): ?>
-                    <form action="options.php" method="post">
-                        <?php settings_fields('wp_allstars_workflow'); ?>
+                    <div class="wp-allstars-settings-content">
                         <div class="wp-allstars-toggle">
                             <div class="wp-allstars-toggle-header">
                                 <label for="wp_allstars_auto_upload_images">
                                     <div class="wp-toggle-switch">
                                         <input type="checkbox" 
                                                id="wp_allstars_auto_upload_images"
-                                               name="wp_allstars_workflow_options[auto_upload_images]" 
+                                               name="wp_allstars_auto_upload_images" 
                                                value="1"
-                                               <?php 
-                                               $options = get_option('wp_allstars_workflow_options', array(
-                                                   'auto_upload_images' => false,
-                                                   'max_width' => 1920,
-                                                   'max_height' => 1080,
-                                                   'exclude_urls' => '',
-                                                   'exclude_post_types' => array(),
-                                                   'image_name_pattern' => '%filename%',
-                                                   'image_alt_pattern' => '%filename%'
-                                               ));
-                                               checked($options['auto_upload_images'], true); 
-                                               ?> 
+                                               <?php checked(get_option('wp_allstars_auto_upload_images', false)); ?> 
                                         />
                                         <span class="wp-toggle-slider"></span>
                                     </div>
@@ -546,8 +534,8 @@ function wp_allstars_settings_page() {
                                     <label for="wp_max_width"><?php esc_html_e('Max Width', 'wp-allstars'); ?></label>
                                     <input type="number" 
                                            id="wp_max_width"
-                                           name="wp_allstars_workflow_options[max_width]"
-                                           value="<?php echo esc_attr($options['max_width']); ?>"
+                                           name="wp_max_width"
+                                           value="<?php echo esc_attr(get_option('wp_allstars_max_width', 1920)); ?>"
                                            min="0"
                                     />
                                     <p class="description"><?php esc_html_e('Maximum width of uploaded images (px). Leave empty for no limit.', 'wp-allstars'); ?></p>
@@ -557,8 +545,8 @@ function wp_allstars_settings_page() {
                                     <label for="wp_max_height"><?php esc_html_e('Max Height', 'wp-allstars'); ?></label>
                                     <input type="number" 
                                            id="wp_max_height"
-                                           name="wp_allstars_workflow_options[max_height]"
-                                           value="<?php echo esc_attr($options['max_height']); ?>"
+                                           name="wp_max_height"
+                                           value="<?php echo esc_attr(get_option('wp_allstars_max_height', 1080)); ?>"
                                            min="0"
                                     />
                                     <p class="description"><?php esc_html_e('Maximum height of uploaded images (px). Leave empty for no limit.', 'wp-allstars'); ?></p>
@@ -567,10 +555,10 @@ function wp_allstars_settings_page() {
                                 <div class="wp-allstars-setting-row">
                                     <label for="wp_exclude_urls"><?php esc_html_e('Exclude URLs', 'wp-allstars'); ?></label>
                                     <textarea id="wp_exclude_urls"
-                                              name="wp_allstars_workflow_options[exclude_urls]"
+                                              name="wp_exclude_urls"
                                               rows="3"
                                               placeholder="example.com&#10;another-domain.com"
-                                    ><?php echo esc_textarea($options['exclude_urls']); ?></textarea>
+                                    ><?php echo esc_textarea(get_option('wp_allstars_exclude_urls', '')); ?></textarea>
                                     <p class="description"><?php esc_html_e('Enter domains to exclude (one per line). Images from these domains will not be imported.', 'wp-allstars'); ?></p>
                                 </div>
 
@@ -578,8 +566,8 @@ function wp_allstars_settings_page() {
                                     <label for="wp_image_name"><?php esc_html_e('Image Name Pattern', 'wp-allstars'); ?></label>
                                     <input type="text" 
                                            id="wp_image_name"
-                                           name="wp_allstars_workflow_options[image_name_pattern]"
-                                           value="<?php echo esc_attr($options['image_name_pattern']); ?>"
+                                           name="wp_image_name"
+                                           value="<?php echo esc_attr(get_option('wp_allstars_image_name_pattern', '%filename%')); ?>"
                                     />
                                     <p class="description">
                                         <?php esc_html_e('Available patterns:', 'wp-allstars'); ?> %filename%, %post_id%, %postname%, %timestamp%, %date%, %year%, %month%, %day%
@@ -590,8 +578,8 @@ function wp_allstars_settings_page() {
                                     <label for="wp_image_alt"><?php esc_html_e('Image Alt Pattern', 'wp-allstars'); ?></label>
                                     <input type="text" 
                                            id="wp_image_alt"
-                                           name="wp_allstars_workflow_options[image_alt_pattern]"
-                                           value="<?php echo esc_attr($options['image_alt_pattern']); ?>"
+                                           name="wp_image_alt"
+                                           value="<?php echo esc_attr(get_option('wp_allstars_image_alt_pattern', '%filename%')); ?>"
                                     />
                                     <p class="description">
                                         <?php esc_html_e('Available patterns:', 'wp-allstars'); ?> %filename%, %post_title%, %post_id%, %postname%, %timestamp%
@@ -599,8 +587,7 @@ function wp_allstars_settings_page() {
                                 </div>
                             </div>
                         </div>
-                        <?php submit_button(); ?>
-                    </form>
+                    </div>
 
                     <script>
                     jQuery(document).ready(function($) {
