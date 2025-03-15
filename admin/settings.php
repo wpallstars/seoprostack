@@ -820,13 +820,10 @@ function wp_allstars_settings_page() {
                     </div>
 
                     <div class="wp-list-table-container">
-                        <div id="wpa-plugin-list"></div>
-                        <div class="wpa-load-more" style="display: none; text-align: center; margin: 20px 0;">
-                            <button class="button button-secondary">
-                                <?php esc_html_e('Load More Plugins', 'wp-allstars'); ?>
-                                <span class="spinner" style="float: none; margin-top: 4px;"></span>
-                            </button>
+                        <div class="wpa-loading-overlay">
+                            <span class="spinner is-active"></span>
                         </div>
+                        <div id="wpa-plugin-list"></div>
                     </div>
 
                     <style>
@@ -841,9 +838,21 @@ function wp_allstars_settings_page() {
                             transform: translateY(0);
                         }
                     }
-                    .wpa-load-more .spinner.is-active {
+                    .wpa-loading-overlay {
+                        position: absolute;
+                        left: 0;
+                        right: 0;
+                        top: 0;
+                        bottom: 0;
+                        background: rgba(255, 255, 255, 0.8);
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        z-index: 1;
+                    }
+                    .wpa-loading-overlay .spinner {
+                        float: none;
                         visibility: visible;
-                        display: inline-block;
                     }
                     /* Hide duplicate plugin counts */
                     .plugin-install-php .subsubsub {
@@ -856,18 +865,13 @@ function wp_allstars_settings_page() {
                         var currentRequest = null;
                         var isLoading = false;
                         var currentCategory = '<?php echo esc_js($active_category); ?>';
-                        var currentOffset = 0;
-                        var batchSize = 10;
                         
-                        function loadPlugins(category, offset = 0, append = false) {
+                        function loadPlugins(category) {
                             if (isLoading) return;
                             isLoading = true;
                             
-                            // Show loading indicator in load more button if appending
-                            if (append) {
-                                $('.wpa-load-more .spinner').addClass('is-active');
-                                $('.wpa-load-more button').prop('disabled', true);
-                            }
+                            // Show loading overlay
+                            $('.wpa-loading-overlay').fadeIn();
                             
                             // Cancel previous request if it exists
                             if (currentRequest) {
@@ -880,17 +884,12 @@ function wp_allstars_settings_page() {
                                 data: {
                                     action: 'wp_allstars_get_plugins',
                                     category: category || 'minimal',
-                                    offset: offset,
-                                    batch_size: batchSize,
                                     _ajax_nonce: '<?php echo wp_create_nonce("updates"); ?>'
                                 },
                                 success: function(response) {
                                     if (response.success) {
-                                        // If this is a new category, clear the existing content
-                                        if (!append) {
-                                            $('#wpa-plugin-list').empty();
-                                            currentOffset = 0;
-                                        }
+                                        // Clear existing content
+                                        $('#wpa-plugin-list').empty();
                                         
                                         // Append new content with staggered animation
                                         var $content = $(response.data.html);
@@ -904,31 +903,23 @@ function wp_allstars_settings_page() {
                                         });
                                         
                                         $('#wpa-plugin-list').append($content);
-                                        
-                                        // Update offset and check if we need to show load more button
-                                        currentOffset = response.data.offset;
-                                        
-                                        if (response.data.remaining > 0) {
-                                            $('.wpa-load-more').show();
-                                        } else {
-                                            $('.wpa-load-more').hide();
-                                        }
+                                        $('.wpa-loading-overlay').fadeOut();
                                     } else {
                                         console.error('Server returned error:', response);
+                                        $('.wpa-loading-overlay').fadeOut();
                                     }
                                 },
                                 error: function(xhr, status, error) {
                                     console.error('Failed to load plugins:', {xhr: xhr, status: status, error: error});
+                                    $('.wpa-loading-overlay').fadeOut();
                                 },
                                 complete: function() {
                                     isLoading = false;
-                                    $('.wpa-load-more .spinner').removeClass('is-active');
-                                    $('.wpa-load-more button').prop('disabled', false);
                                 }
                             });
                         }
                         
-                        // Load initial batch of plugins
+                        // Load initial plugins
                         loadPlugins(currentCategory);
                         
                         // Handle category filter clicks
@@ -947,11 +938,6 @@ function wp_allstars_settings_page() {
                             
                             // Load new category
                             loadPlugins(category);
-                        });
-                        
-                        // Handle load more button clicks
-                        $('.wpa-load-more button').on('click', function() {
-                            loadPlugins(currentCategory, currentOffset, true);
                         });
                     });
                     </script>
