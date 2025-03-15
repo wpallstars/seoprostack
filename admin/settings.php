@@ -510,7 +510,7 @@ function wp_allstars_settings_page() {
                     <form action="options.php" method="post">
                         <?php settings_fields('wp_allstars_workflow'); ?>
                         <div class="wp-allstars-toggle">
-                            <div class="wp-toggle-header">
+                            <div class="wp-allstars-toggle-header">
                                 <label for="wp_allstars_auto_upload_images">
                                     <div class="wp-toggle-switch">
                                         <input type="checkbox" 
@@ -520,8 +520,8 @@ function wp_allstars_settings_page() {
                                                <?php 
                                                $options = get_option('wp_allstars_workflow_options', array(
                                                    'auto_upload_images' => false,
-                                                   'max_width' => 2560,
-                                                   'max_height' => 2560,
+                                                   'max_width' => 1920,
+                                                   'max_height' => 1080,
                                                    'exclude_urls' => '',
                                                    'exclude_post_types' => array(),
                                                    'image_name_pattern' => '%filename%',
@@ -534,15 +534,15 @@ function wp_allstars_settings_page() {
                                     </div>
                                     <?php esc_html_e('Enable Auto Upload Images', 'wp-allstars'); ?>
                                 </label>
-                                <button type="button" class="wp-expand-settings" aria-expanded="false">
+                                <button type="button" class="wp-allstars-expand-settings" aria-expanded="false">
                                     <span class="dashicons dashicons-arrow-down-alt2"></span>
                                 </button>
                             </div>
                             <p class="description">
                                 <?php esc_html_e('Import images that have external URLs into your Media Library when saving. Consider disabling during large data imports with many external image URLs.', 'wp-allstars'); ?>
                             </p>
-                            <div class="wp-toggle-settings" style="display: none;">
-                                <div class="wp-setting-row">
+                            <div class="wp-allstars-toggle-settings">
+                                <div class="wp-allstars-setting-row">
                                     <label for="wp_max_width"><?php esc_html_e('Max Width', 'wp-allstars'); ?></label>
                                     <input type="number" 
                                            id="wp_max_width"
@@ -553,7 +553,7 @@ function wp_allstars_settings_page() {
                                     <p class="description"><?php esc_html_e('Maximum width of uploaded images (px). Leave empty for no limit.', 'wp-allstars'); ?></p>
                                 </div>
 
-                                <div class="wp-setting-row">
+                                <div class="wp-allstars-setting-row">
                                     <label for="wp_max_height"><?php esc_html_e('Max Height', 'wp-allstars'); ?></label>
                                     <input type="number" 
                                            id="wp_max_height"
@@ -564,7 +564,7 @@ function wp_allstars_settings_page() {
                                     <p class="description"><?php esc_html_e('Maximum height of uploaded images (px). Leave empty for no limit.', 'wp-allstars'); ?></p>
                                 </div>
 
-                                <div class="wp-setting-row">
+                                <div class="wp-allstars-setting-row">
                                     <label for="wp_exclude_urls"><?php esc_html_e('Exclude URLs', 'wp-allstars'); ?></label>
                                     <textarea id="wp_exclude_urls"
                                               name="wp_allstars_workflow_options[exclude_urls]"
@@ -574,7 +574,7 @@ function wp_allstars_settings_page() {
                                     <p class="description"><?php esc_html_e('Enter domains to exclude (one per line). Images from these domains will not be imported.', 'wp-allstars'); ?></p>
                                 </div>
 
-                                <div class="wp-setting-row">
+                                <div class="wp-allstars-setting-row">
                                     <label for="wp_image_name"><?php esc_html_e('Image Name Pattern', 'wp-allstars'); ?></label>
                                     <input type="text" 
                                            id="wp_image_name"
@@ -586,7 +586,7 @@ function wp_allstars_settings_page() {
                                     </p>
                                 </div>
 
-                                <div class="wp-setting-row">
+                                <div class="wp-allstars-setting-row">
                                     <label for="wp_image_alt"><?php esc_html_e('Image Alt Pattern', 'wp-allstars'); ?></label>
                                     <input type="text" 
                                            id="wp_image_alt"
@@ -604,10 +604,10 @@ function wp_allstars_settings_page() {
 
                     <script>
                     jQuery(document).ready(function($) {
-                        $('.wp-expand-settings').on('click', function(e) {
+                        $('.wp-allstars-expand-settings').on('click', function(e) {
                             e.preventDefault();
                             var $button = $(this);
-                            var $settings = $button.closest('.wp-allstars-toggle').find('.wp-toggle-settings');
+                            var $settings = $button.closest('.wp-allstars-toggle').find('.wp-allstars-toggle-settings');
                             var isExpanded = $button.attr('aria-expanded') === 'true';
                             
                             $button.attr('aria-expanded', !isExpanded);

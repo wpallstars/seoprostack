@@ -45,6 +45,7 @@
     padding-top: 9px;
     padding-bottom: 0;
     line-height: inherit;
+    margin-bottom: 20px;
 }
 
 .nav-tab {
@@ -52,20 +53,22 @@
     border: 1px solid #c3c4c7;
     border-bottom: none;
     margin-left: 0.5em;
-    padding: 5px 10px;
+    padding: 8px 12px;
     font-size: 14px;
     line-height: 1.71428571;
     font-weight: 600;
-    background: #dcdcde;
+    background: #f0f0f1;
     color: #50575e;
     text-decoration: none;
     white-space: nowrap;
+    transition: all 0.2s ease;
 }
 
 .nav-tab:hover,
 .nav-tab:focus {
     background-color: #fff;
     color: #1d2327;
+    border-color: #8c8f94;
 }
 
 .nav-tab-active,
@@ -74,8 +77,9 @@
 .nav-tab-active:hover {
     border-bottom: 1px solid #f0f0f1;
     background: #f0f0f1;
-    color: #000;
+    color: #2271b1;
     margin-bottom: -1px;
+    box-shadow: none;
 }
 
 /* Toggle Switches */
@@ -202,7 +206,8 @@ input:checked + .wp-toggle-slider:before {
 .wp-allstars-setting-row label {
     display: block;
     margin-bottom: 8px;
-    font-weight: 500;
+    font-weight: 600;
+    color: #1d2327;
 }
 
 .wp-allstars-setting-row input[type="text"],
@@ -243,8 +248,8 @@ input:checked + .wp-toggle-slider:before {
 
 .wp-allstars-expand-settings:hover {
     background: #fff;
-    border-color: #8c8f94;
-    color: #1d2327;
+    border-color: #2271b1;
+    color: #2271b1;
 }
 
 .wp-allstars-expand-settings .dashicons {
@@ -294,10 +299,12 @@ input:checked + .wp-toggle-slider:before {
 .plugin-card {
     border: 1px solid #ddd;
     box-shadow: 0 1px 4px rgba(0,0,0,0.02);
+    transition: all 0.2s ease;
 }
 
 .plugin-card:hover {
     border-color: #2271b1;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
 }
 
 /* Responsive Adjustments */
