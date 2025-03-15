@@ -1108,13 +1108,17 @@ function wp_allstars_settings_page() {
                                 font-weight: 500;
                                 margin: 0;
                                 border: 1px solid #2271b1;
+                                border-radius: 3px;
                                 background: #f6f7f7;
                                 color: #2271b1;
+                                display: inline-block;
+                                box-shadow: none;
                             }
                             .wpa-pro-plugin .button:hover {
                                 background: #f0f0f1;
                                 border-color: #0a4b78;
                                 color: #0a4b78;
+                                box-shadow: none;
                             }
                             .wpa-pro-plugin .button-primary {
                                 background: #2271b1;
