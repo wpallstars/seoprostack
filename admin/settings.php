@@ -1075,7 +1075,6 @@ function wp_allstars_settings_page() {
                                 border: 1px solid #ddd;
                                 padding: 24px;
                                 border-radius: 8px;
-                                height: 100%;
                                 display: flex;
                                 flex-direction: column;
                                 transition: all 0.2s ease;
@@ -1093,11 +1092,10 @@ function wp_allstars_settings_page() {
                                 line-height: 1.4;
                             }
                             .wpa-pro-plugin p {
-                                margin: 0 0 20px;
+                                margin: 0 0 16px;
                                 color: #50575e;
                                 font-size: 14px;
                                 line-height: 1.6;
-                                flex-grow: 1;
                             }
                             .wpa-pro-plugin .button {
                                 text-decoration: none;
@@ -1122,6 +1120,7 @@ function wp_allstars_settings_page() {
                                 display: flex;
                                 flex-wrap: wrap;
                                 gap: 8px;
+                                margin-top: auto;
                             }
                             @media screen and (max-width: 960px) {
                                 .wpa-pro-plugins {
@@ -1160,13 +1159,15 @@ function wp_allstars_settings_page() {
                                 <?php if (isset($plugin['button_group'])): ?>
                                     <div class="button-group">
                                         <?php foreach ($plugin['button_group'] as $button): ?>
-                                            <a href="<?php echo esc_url($button['url']); ?>" target="_blank" class="button">
+                                            <a href="<?php echo esc_url($button['url']); ?>" target="_blank" class="button <?php echo isset($button['primary']) && $button['primary'] ? 'button-primary' : ''; ?>">
                                                 <?php echo esc_html($button['text']); ?>
                                             </a>
                                         <?php endforeach; ?>
                                     </div>
                                 <?php else: ?>
-                                    <a href="<?php echo esc_url($plugin['url']); ?>" target="_blank" class="button button-primary">Learn More</a>
+                                    <div class="button-group">
+                                        <a href="<?php echo esc_url($plugin['url']); ?>" target="_blank" class="button button-primary">Learn More</a>
+                                    </div>
                                 <?php endif; ?>
                             </div>
                             <?php
