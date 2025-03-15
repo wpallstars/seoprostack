@@ -1101,39 +1101,40 @@ function wp_allstars_settings_page() {
                                 text-decoration: none;
                                 min-width: 120px;
                                 text-align: center;
-                                height: 36px;
-                                line-height: 34px;
-                                padding: 0 16px;
-                                font-size: 14px;
-                                font-weight: 500;
+                                height: 30px;
+                                line-height: 28px;
+                                padding: 0 12px;
+                                font-size: 13px;
+                                font-weight: normal;
                                 margin: 0;
-                                border: 1px solid #2271b1;
+                                border: 1px solid #0071a1;
                                 border-radius: 3px;
                                 background: #f6f7f7;
-                                color: #2271b1;
+                                color: #0071a1;
                                 display: inline-block;
+                                vertical-align: top;
                                 box-shadow: none;
+                                cursor: pointer;
                             }
                             .wpa-pro-plugin .button:hover {
                                 background: #f0f0f1;
-                                border-color: #0a4b78;
-                                color: #0a4b78;
-                                box-shadow: none;
+                                border-color: #0071a1;
+                                color: #0071a1;
                             }
                             .wpa-pro-plugin .button-primary {
-                                background: #2271b1;
-                                border-color: #2271b1;
+                                background: #0071a1;
+                                border-color: #0071a1;
                                 color: #fff;
                             }
                             .wpa-pro-plugin .button-primary:hover {
-                                background: #135e96;
-                                border-color: #135e96;
+                                background: #005d8c;
+                                border-color: #005d8c;
                                 color: #fff;
                             }
                             .wpa-pro-plugin .button-group {
                                 display: flex;
                                 flex-wrap: wrap;
-                                gap: 12px;
+                                gap: 8px;
                                 margin-top: auto;
                             }
                             @media screen and (max-width: 960px) {
