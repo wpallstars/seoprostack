@@ -132,13 +132,14 @@ input:checked + .wp-toggle-slider:before {
 
 /* Settings Container */
 .wpa-settings-container {
-    padding: 0 20px;
+    padding: 0;
     max-width: 1100px;
+    margin: 0 auto;
 }
 
 .wpa-settings-content {
     margin-top: 25px;
-    padding: 0;
+    padding: 0 20px;
 }
 
 /* Toggle Sections */
@@ -333,10 +334,11 @@ input:checked + .wp-toggle-slider:before {
 
 /* Plugin Cards */
 .plugin-card {
+    width: calc(50% - 8px);
+    margin: 0 16px 16px 0;
     border: 1px solid #ddd;
     box-shadow: 0 1px 4px rgba(0,0,0,0.02);
     transition: all 0.2s ease;
-    margin: 0 0 20px;
 }
 
 .plugin-card:hover {
@@ -369,6 +371,16 @@ input:checked + .wp-toggle-slider:before {
 
 .plugin-card .column-updated {
     display: none;
+}
+
+.plugin-card:nth-child(2n) {
+    margin-right: 0;
+}
+
+/* Theme Browser */
+.theme-browser .theme {
+    max-width: 1600px;
+    margin: 0 auto;
 }
 
 /* Responsive Adjustments */
@@ -404,6 +416,19 @@ input:checked + .wp-toggle-slider:before {
         width: calc(50% - 4px);
         min-width: 0;
     }
+
+    .wp-allstars-wrap {
+        padding-right: 10px;
+    }
+
+    .wpa-settings-content {
+        padding: 0 10px;
+    }
+
+    .plugin-card {
+        width: 100%;
+        margin-right: 0;
+    }
 }
 
 /* Settings Notification */
@@ -428,11 +453,15 @@ input:checked + .wp-toggle-slider:before {
 /* Plugin List Container */
 .wp-list-table-container {
     margin-top: 20px;
+    max-width: 1600px;
+    padding: 0;
 }
 
 /* Theme Container */
 #wpa-theme-list {
     margin-top: 20px;
+    max-width: 1600px;
+    padding: 0;
 }
 
 .wpa-loading-overlay {
