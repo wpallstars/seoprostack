@@ -484,9 +484,12 @@ function wpa_superstar_settings_page() {
         
         <div class="wpa-settings-container">
             <div class="wpa-superstar-nav">
-        <h2 class="nav-tab-wrapper">
+                <h2 class="nav-tab-wrapper">
                     <a href="?page=wpa-superstar&tab=general" class="nav-tab <?php echo $active_tab == 'general' ? 'nav-tab-active' : ''; ?>">
                         <?php esc_html_e('General', 'wpa-superstar'); ?>
+                    </a>
+                    <a href="?page=wpa-superstar&tab=workflow" class="nav-tab <?php echo $active_tab == 'workflow' ? 'nav-tab-active' : ''; ?>">
+                        <?php esc_html_e('Workflow', 'wpa-superstar'); ?>
                     </a>
                     <a href="?page=wpa-superstar&tab=advanced" class="nav-tab <?php echo $active_tab == 'advanced' ? 'nav-tab-active' : ''; ?>">
                         <?php esc_html_e('Advanced', 'wpa-superstar'); ?>
@@ -497,11 +500,20 @@ function wpa_superstar_settings_page() {
                     <a href="?page=wpa-superstar&tab=theme" class="nav-tab <?php echo $active_tab == 'theme' ? 'nav-tab-active' : ''; ?>">
                         <?php esc_html_e('Theme', 'wpa-superstar'); ?>
                     </a>
-        </h2>
+                </h2>
             </div>
 
             <div class="wpa-settings-content">
-                <?php if ($active_tab == 'theme'): ?>
+                <?php if ($active_tab == 'workflow'): ?>
+                    <form action="options.php" method="post">
+                        <?php
+                        settings_fields('wpa_superstar_workflow');
+                        do_settings_sections('wpa_superstar_workflow');
+                        submit_button();
+                        ?>
+                    </form>
+
+                <?php elseif ($active_tab == 'theme'): ?>
                     <div class="wp-list-table-container">
                         <div class="wpa-loading-overlay">
                             <span class="spinner is-active"></span>
