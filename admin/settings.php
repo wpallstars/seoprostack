@@ -45,6 +45,7 @@ function wp_allstars_get_recommended_plugins() {
         ),
         'admin' => array(
             'admin-bar-dashboard-control',
+            'codepress-admin-columns',
             'admin-menu-editor',
             'hide-admin-notices',
             'mainwp-child',
@@ -54,7 +55,9 @@ function wp_allstars_get_recommended_plugins() {
             'plugin-groups',
             'plugin-toggle'
         ),
-        'ai' => array(),
+        'ai' => array(
+            'ai-engine',
+        ),
         'cms' => array(
             'auto-post-scheduler',
             'block-options',
@@ -152,7 +155,6 @@ function wp_allstars_get_recommended_plugins() {
         'advanced' => array(
             'acf-better-search',
             'advanced-custom-fields',
-            'ai-engine',
             'code-snippets',
             'favorites',
             'remove-cpt-base',
@@ -225,6 +227,25 @@ function wp_allstars_ajax_get_plugins() {
             'total_items' => count($cached_data->plugins),
             'per_page' => count($cached_data->plugins),
         ));
+        
+        add_filter('plugin_install_action_links', function($action_links, $plugin) {
+            // Get pro plugins configuration
+            $pro_plugins = wp_allstars_get_pro_plugins_config();
+            
+            // Check if this plugin has a pro version
+            foreach ($pro_plugins as $pro_plugin) {
+                if (isset($pro_plugin['free_slug']) && $pro_plugin['free_slug'] === $plugin['slug']) {
+                    $action_links[] = sprintf(
+                        '<a class="button button-primary" href="%s" target="_blank">%s</a>',
+                        esc_url($pro_plugin['url']),
+                        esc_html__('Go Pro', 'wp-allstars')
+                    );
+                    break;
+                }
+            }
+            
+            return $action_links;
+        }, 10, 2);
         
         ob_start();
         $wp_list_table->display();
@@ -313,6 +334,25 @@ function wp_allstars_ajax_get_plugins() {
             'total_items' => count($plugins),
             'per_page' => count($plugins),
         ));
+        
+        add_filter('plugin_install_action_links', function($action_links, $plugin) {
+            // Get pro plugins configuration
+            $pro_plugins = wp_allstars_get_pro_plugins_config();
+            
+            // Check if this plugin has a pro version
+            foreach ($pro_plugins as $pro_plugin) {
+                if (isset($pro_plugin['free_slug']) && $pro_plugin['free_slug'] === $plugin['slug']) {
+                    $action_links[] = sprintf(
+                        '<a class="button button-primary" href="%s" target="_blank">%s</a>',
+                        esc_url($pro_plugin['url']),
+                        esc_html__('Go Pro', 'wp-allstars')
+                    );
+                    break;
+                }
+            }
+            
+            return $action_links;
+        }, 10, 2);
         
         ob_start();
         $wp_list_table->display();
@@ -1023,13 +1063,18 @@ function wp_allstars_settings_page() {
                         <style>
                             .wpa-pro-plugins {
                                 padding: 20px;
+                                display: grid;
+                                grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+                                gap: 20px;
                             }
                             .wpa-pro-plugin {
                                 background: #fff;
                                 border: 1px solid #ddd;
                                 padding: 20px;
-                                margin-bottom: 20px;
                                 border-radius: 4px;
+                                height: 100%;
+                                display: flex;
+                                flex-direction: column;
                             }
                             .wpa-pro-plugin h3 {
                                 margin: 0 0 10px;
@@ -1038,185 +1083,47 @@ function wp_allstars_settings_page() {
                             .wpa-pro-plugin p {
                                 margin: 0 0 15px;
                                 color: #666;
+                                flex-grow: 1;
                             }
                             .wpa-pro-plugin .button {
                                 text-decoration: none;
                             }
+                            .wpa-pro-plugin .button-group {
+                                display: flex;
+                                flex-wrap: wrap;
+                                gap: 5px;
+                            }
+                            @media screen and (max-width: 782px) {
+                                .wpa-pro-plugins {
+                                    grid-template-columns: 1fr;
+                                }
+                            }
                         </style>
                         
-                        <div class="wpa-pro-plugin">
-                            <h3>Admin Columns Pro</h3>
-                            <p>Advanced admin columns management with sorting, filtering, and editing capabilities.</p>
-                            <a href="https://www.admincolumns.com" target="_blank" class="button button-primary">Learn More</a>
-                        </div>
-
-                        <div class="wpa-pro-plugin">
-                            <h3>Admin Menu Editor Pro</h3>
-                            <p>Customize the WordPress admin menu with advanced features and role management.</p>
-                            <a href="https://adminmenueditor.com/upgrade-to-pro/" target="_blank" class="button button-primary">Learn More</a>
-                        </div>
-
-                        <div class="wpa-pro-plugin">
-                            <h3>Advanced Custom Fields PRO</h3>
-                            <p>Create custom fields and content types with advanced features and options.</p>
-                            <a href="https://www.advancedcustomfields.com/pro/" target="_blank" class="button button-primary">Learn More</a>
-                        </div>
-
-                        <div class="wpa-pro-plugin">
-                            <h3>Advanced Database Cleaner PRO</h3>
-                            <p>Clean and optimize your WordPress database with advanced tools and automation.</p>
-                            <a href="https://sigmaplugin.com/downloads/wordpress-advanced-database-cleaner" target="_blank" class="button button-primary">Learn More</a>
-                        </div>
-
-                        <div class="wpa-pro-plugin">
-                            <h3>AI Engine (Pro)</h3>
-                            <p>Enhanced AI capabilities for content generation, analysis, and automation.</p>
-                            <a href="https://meowapps.com/plugin/ai-engine/" target="_blank" class="button button-primary">Learn More</a>
-                        </div>
-
-                        <div class="wpa-pro-plugin">
-                            <h3>Code Profiler Pro</h3>
-                            <p>Advanced performance monitoring and debugging tools for WordPress.</p>
-                            <a href="https://codeprofiler.io/" target="_blank" class="button button-primary">Learn More</a>
-                        </div>
-
-                        <div class="wpa-pro-plugin">
-                            <h3>Code Snippets Pro</h3>
-                            <p>Add and manage custom code snippets with advanced features and management tools.</p>
-                            <a href="https://codesnippets.pro/" target="_blank" class="button button-primary">Learn More</a>
-                        </div>
-
-                        <div class="wpa-pro-plugin">
-                            <h3>Comment Goblin</h3>
-                            <p>Advanced comment management and spam protection system.</p>
-                            <a href="https://commentgoblin.com/" target="_blank" class="button button-primary">Learn More</a>
-                        </div>
-
-                        <div class="wpa-pro-plugin">
-                            <h3>Complianz Privacy Suite</h3>
-                            <p>Complete GDPR/CCPA compliance solution with advanced features.</p>
-                            <a href="https://complianz.io/pricing/" target="_blank" class="button button-primary">Learn More</a>
-                        </div>
-
-                        <div class="wpa-pro-plugin">
-                            <h3>Disable Bloat PRO</h3>
-                            <p>Advanced optimization for WordPress & WooCommerce with premium features.</p>
-                            <a href="https://disablebloat.com/" target="_blank" class="button button-primary">Learn More</a>
-                        </div>
-
-                        <div class="wpa-pro-plugin">
-                            <h3>Fluent Suite Pro</h3>
-                            <p>Premium extensions for Fluent Forms, CRM, Support, and Booking.</p>
-                            <div class="button-group">
-                                <a href="https://fluentboards.com/pricing/" target="_blank" class="button">Fluent Boards Pro</a>
-                                <a href="https://fluentforms.com/pricing/" target="_blank" class="button">Fluent Forms Pro</a>
-                                <a href="https://fluentforms.com/docs/fluent-forms-signature-add-on/" target="_blank" class="button">Signature Addon</a>
-                                <a href="https://fluentcrm.com/pricing/" target="_blank" class="button">FluentCRM Pro</a>
-                                <a href="https://fluentsupport.com/pricing/" target="_blank" class="button">Fluent Support Pro</a>
-                                <a href="https://fluentbooking.com/" target="_blank" class="button">FluentBooking Pro</a>
+                        <?php
+                        $pro_plugins = wp_allstars_get_pro_plugins_config();
+                        foreach ($pro_plugins as $key => $plugin) {
+                            // Skip WP Ultimo
+                            if ($key === 'wp-ultimo') continue;
+                            ?>
+                            <div class="wpa-pro-plugin">
+                                <h3><?php echo esc_html($plugin['name']); ?></h3>
+                                <p><?php echo esc_html($plugin['description']); ?></p>
+                                <?php if (isset($plugin['button_group'])): ?>
+                                    <div class="button-group">
+                                        <?php foreach ($plugin['button_group'] as $button): ?>
+                                            <a href="<?php echo esc_url($button['url']); ?>" target="_blank" class="button">
+                                                <?php echo esc_html($button['text']); ?>
+                                            </a>
+                                        <?php endforeach; ?>
+                                    </div>
+                                <?php else: ?>
+                                    <a href="<?php echo esc_url($plugin['url']); ?>" target="_blank" class="button button-primary">Learn More</a>
+                                <?php endif; ?>
                             </div>
-                        </div>
-
-                        <div class="wpa-pro-plugin">
-                            <h3>Freesoul Deactivate Plugins PRO</h3>
-                            <p>Advanced plugin management with conditional loading and optimization.</p>
-                            <a href="https://freesoul-deactivate-plugins.com/pro/" target="_blank" class="button button-primary">Learn More</a>
-                        </div>
-
-                        <div class="wpa-pro-plugin">
-                            <h3>Kadence Suite</h3>
-                            <p>Premium Kadence products for enhanced design and functionality.</p>
-                            <div class="button-group">
-                                <a href="https://www.kadencewp.com/kadence-blocks/pro/" target="_blank" class="button">Kadence Blocks Pro</a>
-                                <a href="https://www.kadencewp.com/child-theme-builder/" target="_blank" class="button">Child Theme Builder</a>
-                                <a href="https://www.kadencewp.com/kadence-conversions/" target="_blank" class="button">Conversions</a>
-                                <a href="https://www.kadencewp.com/pattern-hub/" target="_blank" class="button">Pattern Hub</a>
-                                <a href="https://www.kadencewp.com/kadence-theme/pro/" target="_blank" class="button">Kadence Pro</a>
-                                <a href="https://www.kadencewp.com/kadence-shop-kit/" target="_blank" class="button">Shop Kit</a>
-                                <a href="https://www.kadencewp.com/kadence-simple-share/" target="_blank" class="button">Simple Share</a>
-                            </div>
-                        </div>
-
-                        <div class="wpa-pro-plugin">
-                            <h3>Link Whisper</h3>
-                            <p>AI-powered internal linking suggestions and management.</p>
-                            <a href="https://linkwhisper.com/" target="_blank" class="button button-primary">Learn More</a>
-                        </div>
-
-                        <div class="wpa-pro-plugin">
-                            <h3>Media File Renamer Pro</h3>
-                            <p>AI-Powered media file renaming for better SEO.</p>
-                            <a href="https://meowapps.com/plugin/media-file-renamer/" target="_blank" class="button button-primary">Learn More</a>
-                        </div>
-
-                        <div class="wpa-pro-plugin">
-                            <h3>Ninja Tables Pro</h3>
-                            <p>Advanced table creation and management with premium features.</p>
-                            <a href="https://wpmanageninja.com/downloads/ninja-tables-pro-add-on/" target="_blank" class="button button-primary">Learn More</a>
-                        </div>
-
-                        <div class="wpa-pro-plugin">
-                            <h3>Rank Math SEO PRO</h3>
-                            <p>Advanced SEO tools and features for better search engine optimization.</p>
-                            <a href="https://rankmath.com/pricing/" target="_blank" class="button button-primary">Learn More</a>
-                        </div>
-
-                        <div class="wpa-pro-plugin">
-                            <h3>Really Simple SSL Pro</h3>
-                            <p>Advanced SSL management and security features.</p>
-                            <a href="https://really-simple-ssl.com/pro/" target="_blank" class="button button-primary">Learn More</a>
-                        </div>
-
-                        <div class="wpa-pro-plugin">
-                            <h3>Scalability Pro</h3>
-                            <p>Advanced performance optimization and scaling tools.</p>
-                            <a href="https://scalability.pro/" target="_blank" class="button button-primary">Learn More</a>
-                        </div>
-
-                        <div class="wpa-pro-plugin">
-                            <h3>Social Engine Pro</h3>
-                            <p>Advanced social media scheduling and management.</p>
-                            <a href="https://meowapps.com/plugin/social-engine/" target="_blank" class="button button-primary">Learn More</a>
-                        </div>
-
-                        <div class="wpa-pro-plugin">
-                            <h3>TaxoPress Pro</h3>
-                            <p>Advanced taxonomy and tag management tools.</p>
-                            <a href="https://taxopress.com/pro/" target="_blank" class="button button-primary">Learn More</a>
-                        </div>
-
-                        <div class="wpa-pro-plugin">
-                            <h3>Tutor LMS Pro Suite</h3>
-                            <p>Premium LMS features including certificate builder.</p>
-                            <div class="button-group">
-                                <a href="https://www.themeum.com/product/tutor-lms/" target="_blank" class="button">Tutor LMS Pro</a>
-                                <a href="https://www.themeum.com/product/certificate-builder/" target="_blank" class="button">Certificate Builder</a>
-                            </div>
-                        </div>
-
-                        <div class="wpa-pro-plugin">
-                            <h3>WP Migrate</h3>
-                            <p>Professional WordPress migration and backup solution.</p>
-                            <a href="https://deliciousbrains.com/wp-migrate-db-pro/" target="_blank" class="button button-primary">Learn More</a>
-                        </div>
-
-                        <div class="wpa-pro-plugin">
-                            <h3>WP Social Ninja Pro</h3>
-                            <p>Advanced social media integration and management tools.</p>
-                            <a href="https://wpsocialninja.com/pricing/" target="_blank" class="button button-primary">Learn More</a>
-                        </div>
-
-                        <div class="wpa-pro-plugin">
-                            <h3>WP Ultimo</h3>
-                            <p>Complete solution for creating WordPress multisite networks.</p>
-                            <a href="https://wpultimo.com/pricing/" target="_blank" class="button button-primary">Learn More</a>
-                        </div>
-
-                        <div class="wpa-pro-plugin">
-                            <h3>YellowPencil Pro</h3>
-                            <p>Advanced visual CSS style editor and customization tool.</p>
-                            <a href="https://yellowpencil.waspthemes.com/" target="_blank" class="button button-primary">Learn More</a>
-                        </div>
+                            <?php
+                        }
+                        ?>
                     </div>
                 <?php elseif ($active_tab == 'general'): ?>
                 <div class="wp-allstars-toggle">
