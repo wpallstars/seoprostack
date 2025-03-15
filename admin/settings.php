@@ -1097,6 +1097,12 @@ function wp_allstars_settings_page() {
                                 font-size: 14px;
                                 line-height: 1.6;
                             }
+                            .wpa-pro-plugin .button-group {
+                                display: flex;
+                                flex-wrap: wrap;
+                                gap: 8px;
+                                margin-top: auto;
+                            }
                             .wpa-pro-plugin .button {
                                 text-decoration: none;
                                 min-width: 120px;
@@ -1107,7 +1113,7 @@ function wp_allstars_settings_page() {
                                 font-size: 13px;
                                 font-weight: normal;
                                 margin: 0;
-                                border: 1px solid #0071a1;
+                                border: 1px solid #0071a1 !important;
                                 border-radius: 3px !important;
                                 background: #f6f7f7;
                                 color: #0071a1;
@@ -1130,15 +1136,6 @@ function wp_allstars_settings_page() {
                                 background: #005d8c;
                                 border-color: #005d8c;
                                 color: #fff;
-                            }
-                            .wpa-pro-plugin .button-group {
-                                display: flex;
-                                flex-wrap: wrap;
-                                gap: 8px;
-                                margin-top: auto;
-                            }
-                            .wpa-pro-plugin .button-group .button {
-                                border: 1px solid #0071a1;
                             }
                             @media screen and (max-width: 960px) {
                                 .wpa-pro-plugins {
