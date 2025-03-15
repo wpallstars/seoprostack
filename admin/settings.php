@@ -1137,6 +1137,9 @@ function wp_allstars_settings_page() {
                                 gap: 8px;
                                 margin-top: auto;
                             }
+                            .wpa-pro-plugin .button-group .button {
+                                border: 1px solid #0071a1;
+                            }
                             @media screen and (max-width: 960px) {
                                 .wpa-pro-plugins {
                                     grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
