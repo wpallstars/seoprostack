@@ -533,7 +533,7 @@ function wp_allstars_settings_page() {
         
         <div class="wpa-settings-container">
             <div class="wp-allstars-nav">
-                <h2 class="nav-tab-wrapper">
+        <h2 class="nav-tab-wrapper">
                     <a href="?page=wp-allstars&tab=general" class="nav-tab <?php echo $active_tab == 'general' ? 'nav-tab-active' : ''; ?>">
                         <?php esc_html_e('General', 'wp-allstars'); ?>
                     </a>
@@ -549,7 +549,7 @@ function wp_allstars_settings_page() {
                     <a href="?page=wp-allstars&tab=theme" class="nav-tab <?php echo $active_tab == 'theme' ? 'nav-tab-active' : ''; ?>">
                         <?php esc_html_e('Theme', 'wp-allstars'); ?>
                     </a>
-                </h2>
+        </h2>
             </div>
 
             <div class="wpa-settings-content">
@@ -823,11 +823,8 @@ function wp_allstars_settings_page() {
 
                     <div class="wp-list-table-container">
                         <div id="wpa-plugin-list"></div>
-                        <div class="wpa-load-more" style="display: none; text-align: center; margin: 20px 0;">
-                            <button class="button button-secondary">
-                                <?php esc_html_e('Load More Plugins', 'wp-allstars'); ?>
-                                <span class="spinner" style="float: none; margin-top: 4px;"></span>
-                            </button>
+                        <div class="wpa-loading-indicator" style="display: none; text-align: center; margin: 20px 0;">
+                            <span class="spinner is-active"></span>
                         </div>
                     </div>
 
@@ -843,9 +840,13 @@ function wp_allstars_settings_page() {
                             transform: translateY(0);
                         }
                     }
-                    .wpa-load-more .spinner.is-active {
+                    .wpa-loading-indicator .spinner {
+                        float: none;
                         visibility: visible;
-                        display: inline-block;
+                    }
+                    /* Hide duplicate plugin counts */
+                    .plugin-install-php .subsubsub {
+                        display: none;
                     }
                     </style>
 
@@ -855,17 +856,16 @@ function wp_allstars_settings_page() {
                         var isLoading = false;
                         var currentCategory = '<?php echo esc_js($active_category); ?>';
                         var currentOffset = 0;
-                        var batchSize = 5;
+                        var batchSize = 10;
+                        var hasMorePlugins = true;
+                        var loadingObserver;
                         
                         function loadPlugins(category, offset = 0, append = false) {
-                            if (isLoading) return;
+                            if (isLoading || !hasMorePlugins) return;
                             isLoading = true;
                             
-                            // Show loading indicator in load more button if appending
-                            if (append) {
-                                $('.wpa-load-more .spinner').addClass('is-active');
-                                $('.wpa-load-more button').prop('disabled', true);
-                            }
+                            // Show loading indicator
+                            $('.wpa-loading-indicator').show();
                             
                             // Cancel previous request if it exists
                             if (currentRequest) {
@@ -892,19 +892,24 @@ function wp_allstars_settings_page() {
                                         
                                         // Append new content with staggered animation
                                         var $content = $(response.data.html);
+                                        
+                                        // Remove duplicate counts from new content
+                                        $content.find('.subsubsub').remove();
+                                        
+                                        // Add animation delay to new cards
                                         $content.find('.plugin-card').each(function(index) {
                                             $(this).css('animation-delay', (index * 0.1) + 's');
                                         });
                                         
                                         $('#wpa-plugin-list').append($content);
                                         
-                                        // Update offset and check if we need to show load more button
+                                        // Update offset and check if we have more plugins
                                         currentOffset = response.data.offset;
+                                        hasMorePlugins = response.data.remaining > 0;
                                         
-                                        if (response.data.remaining > 0) {
-                                            $('.wpa-load-more').show();
-                                        } else {
-                                            $('.wpa-load-more').hide();
+                                        // Hide loading indicator if no more plugins
+                                        if (!hasMorePlugins) {
+                                            $('.wpa-loading-indicator').hide();
                                         }
                                     } else {
                                         console.error('Server returned error:', response);
@@ -915,10 +920,34 @@ function wp_allstars_settings_page() {
                                 },
                                 complete: function() {
                                     isLoading = false;
-                                    $('.wpa-load-more .spinner').removeClass('is-active');
-                                    $('.wpa-load-more button').prop('disabled', false);
+                                    if (hasMorePlugins) {
+                                        setupIntersectionObserver();
+                                    }
                                 }
                             });
+                        }
+                        
+                        function setupIntersectionObserver() {
+                            // Disconnect previous observer if it exists
+                            if (loadingObserver) {
+                                loadingObserver.disconnect();
+                            }
+                            
+                            // Create new observer
+                            loadingObserver = new IntersectionObserver((entries) => {
+                                entries.forEach(entry => {
+                                    if (entry.isIntersecting && !isLoading && hasMorePlugins) {
+                                        loadPlugins(currentCategory, currentOffset, true);
+                                    }
+                                });
+                            }, {
+                                root: null,
+                                rootMargin: '100px',
+                                threshold: 0.1
+                            });
+                            
+                            // Observe the loading indicator
+                            loadingObserver.observe($('.wpa-loading-indicator')[0]);
                         }
                         
                         // Load initial batch of plugins
@@ -929,6 +958,7 @@ function wp_allstars_settings_page() {
                             e.preventDefault();
                             var category = new URLSearchParams($(this).attr('href').split('?')[1]).get('category');
                             currentCategory = category;
+                            hasMorePlugins = true;
                             
                             // Update URL without page reload
                             var newUrl = $(this).attr('href');
@@ -940,11 +970,6 @@ function wp_allstars_settings_page() {
                             
                             // Load new category
                             loadPlugins(category);
-                        });
-                        
-                        // Handle load more button clicks
-                        $('.wpa-load-more button').on('click', function() {
-                            loadPlugins(currentCategory, currentOffset, true);
                         });
                     });
                     </script>
