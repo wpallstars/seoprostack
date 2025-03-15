@@ -38,6 +38,7 @@ function wp_allstars_get_recommended_plugins() {
     return array(
         'minimal' => array(
             'antispam-bee',
+            'compressx',
             'simple-cloudflare-turnstile'
         ),
         'advanced' => array(
@@ -48,7 +49,6 @@ function wp_allstars_get_recommended_plugins() {
             'admin-menu-editor',
             'burst-statistics',
             'carbon-copy',
-            'compressx',
             'freesoul-deactivate-plugins',
             'gotmls',
             'plugin-toggle',
