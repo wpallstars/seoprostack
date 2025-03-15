@@ -1,14 +1,14 @@
 jQuery(document).ready(function($) {
     // Function to show notification
     function showNotification(message, isError = false) {
-        // Remove any existing notifications
+        // Remove any existing notification
         $('.wp-status').remove();
         
-        // Add notification to header
+        // Create and append the new notification
         var $notification = $('<span class="wp-status' + (isError ? ' error' : '') + '">' + message + '</span>');
-        $('.wp-allstars-header').append($notification);
+        $('.wp-allstars-header h1').after($notification);
         
-        // Fade out and remove after delay
+        // Remove the notification after 2 seconds
         setTimeout(function() {
             $notification.fadeOut(300, function() {
                 $(this).remove();
@@ -37,14 +37,26 @@ jQuery(document).ready(function($) {
         var option = $input.attr('name');
         var value = $input.is(':checked') ? 1 : 0;
         
-        updateOption(option, value)
-            .then(function() {
-                showNotification('Setting saved');
-            })
-            .catch(function(error) {
-                console.error('Error:', error);
-                showNotification('Error saving setting', true);
-            });
+        $.ajax({
+            url: ajaxurl,
+            type: 'POST',
+            data: {
+                action: 'wp_allstars_update_option',
+                option: option,
+                value: value,
+                nonce: wpAllstarsData.nonce
+            },
+            success: function(response) {
+                if (response.success) {
+                    showNotification('Saved');
+                } else {
+                    showNotification('Error saving settings', true);
+                }
+            },
+            error: function() {
+                showNotification('Error saving settings', true);
+            }
+        });
     });
 
     // Handle text, number, and textarea inputs
@@ -78,5 +90,10 @@ jQuery(document).ready(function($) {
         } else {
             $settings.slideDown(200);
         }
+    });
+
+    // Handle form submission
+    $('form').on('submit', function() {
+        showNotification('Saved');
     });
 });
