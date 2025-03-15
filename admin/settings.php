@@ -842,15 +842,20 @@ function wpa_superstar_auto_upload_images_callback() {
         'auto_upload_images' => false
     ));
     ?>
-    <label class="switch">
-        <input type="checkbox" name="wpa_superstar_workflow_options[auto_upload_images]" 
-               <?php checked($options['auto_upload_images'], true); ?>>
-        <span class="slider round"></span>
-    </label>
-    <p class="description">
-        Import images that have external URLs into your Media Library when saving. 
-        Consider disabling during large data imports with many external image URLs.
-    </p>
+    <div class="wpa-superstar-toggle">
+        <label>
+            <div class="wpa-toggle-switch">
+                <input type="checkbox" 
+                       name="wpa_superstar_workflow_options[auto_upload_images]" 
+                       <?php checked($options['auto_upload_images'], true); ?>>
+                <span class="wpa-toggle-slider"></span>
+            </div>
+            <?php esc_html_e('Enable Auto Upload Images', 'wpa-superstar'); ?>
+        </label>
+        <p class="description">
+            <?php esc_html_e('Import images that have external URLs into your Media Library when saving. Consider disabling during large data imports with many external image URLs.', 'wpa-superstar'); ?>
+        </p>
+    </div>
     <?php
 }
 
