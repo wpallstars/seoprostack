@@ -261,3 +261,68 @@ input:checked + .slider:before {
     background: #fff;
     border-bottom: 1px solid #fff;
 }
+
+.wpa-toggle-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+}
+
+.wpa-expand-settings {
+    background: none;
+    border: none;
+    padding: 4px;
+    cursor: pointer;
+    color: #787c82;
+    transition: color .15s ease-in-out;
+}
+
+.wpa-expand-settings:hover {
+    color: #2271b1;
+}
+
+.wpa-expand-settings .dashicons {
+    width: 20px;
+    height: 20px;
+    font-size: 20px;
+}
+
+.wpa-toggle-settings {
+    margin-top: 15px;
+    padding-top: 15px;
+    border-top: 1px solid #ddd;
+}
+
+.wpa-setting-row {
+    margin-bottom: 20px;
+}
+
+.wpa-setting-row:last-child {
+    margin-bottom: 0;
+}
+
+.wpa-setting-row label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 5px;
+}
+
+.wpa-setting-row input[type="text"],
+.wpa-setting-row input[type="number"],
+.wpa-setting-row textarea {
+    width: 100%;
+    max-width: 400px;
+    margin-top: 5px;
+}
+
+.wpa-setting-row textarea {
+    min-height: 80px;
+}
+
+.wpa-setting-row .description {
+    margin-top: 5px;
+    margin-left: 0;
+    color: #666;
+    font-size: 13px;
+}

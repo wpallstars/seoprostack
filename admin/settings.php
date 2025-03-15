@@ -508,27 +508,112 @@ function wpa_superstar_settings_page() {
                     <form action="options.php" method="post">
                         <?php settings_fields('wpa_superstar_workflow'); ?>
                         <div class="wpa-superstar-toggle">
-                            <label for="wpa_superstar_auto_upload_images">
-                                <div class="wpa-toggle-switch">
-                                    <input type="checkbox" 
-                                           id="wpa_superstar_auto_upload_images"
-                                           name="wpa_superstar_workflow_options[auto_upload_images]" 
-                                           value="1"
-                                           <?php 
-                                           $options = get_option('wpa_superstar_workflow_options', array('auto_upload_images' => false));
-                                           checked($options['auto_upload_images'], true); 
-                                           ?> 
-                                    />
-                                    <span class="wpa-toggle-slider"></span>
-                                </div>
-                                <?php esc_html_e('Enable Auto Upload Images', 'wpa-superstar'); ?>
-                            </label>
+                            <div class="wpa-toggle-header">
+                                <label for="wpa_superstar_auto_upload_images">
+                                    <div class="wpa-toggle-switch">
+                                        <input type="checkbox" 
+                                               id="wpa_superstar_auto_upload_images"
+                                               name="wpa_superstar_workflow_options[auto_upload_images]" 
+                                               value="1"
+                                               <?php 
+                                               $options = get_option('wpa_superstar_workflow_options', array(
+                                                   'auto_upload_images' => false,
+                                                   'max_width' => 1920,
+                                                   'max_height' => 1080,
+                                                   'exclude_urls' => '',
+                                                   'exclude_post_types' => array(),
+                                                   'image_name_pattern' => '%filename%',
+                                                   'image_alt_pattern' => '%filename%'
+                                               ));
+                                               checked($options['auto_upload_images'], true); 
+                                               ?> 
+                                        />
+                                        <span class="wpa-toggle-slider"></span>
+                                    </div>
+                                    <?php esc_html_e('Enable Auto Upload Images', 'wpa-superstar'); ?>
+                                </label>
+                                <button type="button" class="wpa-expand-settings" aria-expanded="false">
+                                    <span class="dashicons dashicons-arrow-down-alt2"></span>
+                                </button>
+                            </div>
                             <p class="description">
                                 <?php esc_html_e('Import images that have external URLs into your Media Library when saving. Consider disabling during large data imports with many external image URLs.', 'wpa-superstar'); ?>
                             </p>
+                            <div class="wpa-toggle-settings" style="display: none;">
+                                <div class="wpa-setting-row">
+                                    <label for="wpa_max_width"><?php esc_html_e('Max Width', 'wpa-superstar'); ?></label>
+                                    <input type="number" 
+                                           id="wpa_max_width"
+                                           name="wpa_superstar_workflow_options[max_width]"
+                                           value="<?php echo esc_attr($options['max_width']); ?>"
+                                           min="0"
+                                    />
+                                    <p class="description"><?php esc_html_e('Maximum width of uploaded images (px). Leave empty for no limit.', 'wpa-superstar'); ?></p>
+                                </div>
+
+                                <div class="wpa-setting-row">
+                                    <label for="wpa_max_height"><?php esc_html_e('Max Height', 'wpa-superstar'); ?></label>
+                                    <input type="number" 
+                                           id="wpa_max_height"
+                                           name="wpa_superstar_workflow_options[max_height]"
+                                           value="<?php echo esc_attr($options['max_height']); ?>"
+                                           min="0"
+                                    />
+                                    <p class="description"><?php esc_html_e('Maximum height of uploaded images (px). Leave empty for no limit.', 'wpa-superstar'); ?></p>
+                                </div>
+
+                                <div class="wpa-setting-row">
+                                    <label for="wpa_exclude_urls"><?php esc_html_e('Exclude URLs', 'wpa-superstar'); ?></label>
+                                    <textarea id="wpa_exclude_urls"
+                                              name="wpa_superstar_workflow_options[exclude_urls]"
+                                              rows="3"
+                                              placeholder="example.com&#10;another-domain.com"
+                                    ><?php echo esc_textarea($options['exclude_urls']); ?></textarea>
+                                    <p class="description"><?php esc_html_e('Enter domains to exclude (one per line). Images from these domains will not be imported.', 'wpa-superstar'); ?></p>
+                                </div>
+
+                                <div class="wpa-setting-row">
+                                    <label for="wpa_image_name"><?php esc_html_e('Image Name Pattern', 'wpa-superstar'); ?></label>
+                                    <input type="text" 
+                                           id="wpa_image_name"
+                                           name="wpa_superstar_workflow_options[image_name_pattern]"
+                                           value="<?php echo esc_attr($options['image_name_pattern']); ?>"
+                                    />
+                                    <p class="description">
+                                        <?php esc_html_e('Available patterns:', 'wpa-superstar'); ?> %filename%, %post_id%, %postname%, %timestamp%, %date%, %year%, %month%, %day%
+                                    </p>
+                                </div>
+
+                                <div class="wpa-setting-row">
+                                    <label for="wpa_image_alt"><?php esc_html_e('Image Alt Pattern', 'wpa-superstar'); ?></label>
+                                    <input type="text" 
+                                           id="wpa_image_alt"
+                                           name="wpa_superstar_workflow_options[image_alt_pattern]"
+                                           value="<?php echo esc_attr($options['image_alt_pattern']); ?>"
+                                    />
+                                    <p class="description">
+                                        <?php esc_html_e('Available patterns:', 'wpa-superstar'); ?> %filename%, %post_title%, %post_id%, %postname%, %timestamp%
+                                    </p>
+                                </div>
+                            </div>
                         </div>
                         <?php submit_button(); ?>
                     </form>
+
+                    <script>
+                    jQuery(document).ready(function($) {
+                        $('.wpa-expand-settings').on('click', function(e) {
+                            e.preventDefault();
+                            var $button = $(this);
+                            var $settings = $button.closest('.wpa-superstar-toggle').find('.wpa-toggle-settings');
+                            var isExpanded = $button.attr('aria-expanded') === 'true';
+                            
+                            $button.attr('aria-expanded', !isExpanded);
+                            $button.find('.dashicons').toggleClass('dashicons-arrow-down-alt2 dashicons-arrow-up-alt2');
+                            $settings.slideToggle(200);
+                        });
+                    });
+                    </script>
 
                 <?php elseif ($active_tab == 'theme'): ?>
                     <div class="wp-list-table-container">
