@@ -1107,6 +1107,14 @@ function wp_allstars_settings_page() {
                                 font-size: 14px;
                                 font-weight: 500;
                                 margin: 0;
+                                border: 1px solid #2271b1;
+                                background: #f6f7f7;
+                                color: #2271b1;
+                            }
+                            .wpa-pro-plugin .button:hover {
+                                background: #f0f0f1;
+                                border-color: #0a4b78;
+                                color: #0a4b78;
                             }
                             .wpa-pro-plugin .button-primary {
                                 background: #2271b1;
@@ -1116,6 +1124,7 @@ function wp_allstars_settings_page() {
                             .wpa-pro-plugin .button-primary:hover {
                                 background: #135e96;
                                 border-color: #135e96;
+                                color: #fff;
                             }
                             .wpa-pro-plugin .button-group {
                                 display: flex;
