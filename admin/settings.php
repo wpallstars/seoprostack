@@ -741,45 +741,91 @@ function wp_allstars_settings_page() {
                     </div>
 
                     <style>
+                    /* Accordion Toggle Styles */
+                    .wp-allstars-toggle {
+                        background: #fff;
+                        border: 1px solid #ccd0d4;
+                        border-radius: 4px;
+                        margin-bottom: 15px;
+                    }
+
+                    .wp-allstars-toggle-header {
+                        padding: 15px;
+                    }
+
                     .wp-allstars-toggle-main {
                         display: flex;
                         flex-direction: column;
                         align-items: flex-start;
                         gap: 8px;
                     }
+
+                    .wp-allstars-toggle label {
+                        display: flex;
+                        align-items: center;
+                        gap: 10px;
+                        margin: 0;
+                        cursor: pointer;
+                    }
+
                     .wp-allstars-expand-settings {
                         background: none;
                         border: none;
                         padding: 4px;
                         cursor: pointer;
                         color: #2271b1;
+                        transition: transform 0.2s ease;
                     }
+
                     .wp-allstars-expand-settings:hover {
                         color: #135e96;
                     }
+
                     .wp-allstars-expand-settings:focus {
                         outline: 1px solid #2271b1;
                         box-shadow: none;
+                    }
+
+                    .wp-allstars-expand-settings[aria-expanded="true"] .dashicons {
+                        transform: rotate(180deg);
+                    }
+
+                    .wp-allstars-toggle-settings {
+                        border-top: 1px solid #ccd0d4;
+                        padding: 15px;
+                    }
+
+                    /* Description text */
+                    .wp-allstars-toggle .description {
+                        margin: 8px 0 0;
+                        color: #646970;
                     }
                     </style>
 
                     <script>
                     jQuery(document).ready(function($) {
-                        $('.wp-allstars-expand-settings').on('click', function() {
-                            var $button = $(this);
-                            var $settings = $button.closest('.wp-allstars-toggle').find('.wp-allstars-toggle-settings');
-                            var isExpanded = $button.attr('aria-expanded') === 'true';
+                        // Store references to frequently accessed elements
+                        const $expandButton = $('.wp-allstars-expand-settings');
+                        const $toggleSettings = $('.wp-allstars-toggle-settings');
+                        
+                        // Handle expand/collapse functionality
+                        $expandButton.on('click', function(e) {
+                            e.preventDefault();
+                            e.stopPropagation();
                             
-                            // Toggle aria-expanded state
+                            const $button = $(this);
+                            const isExpanded = $button.attr('aria-expanded') === 'true';
+                            
+                            // Update button state
                             $button.attr('aria-expanded', !isExpanded);
                             
-                            // Toggle icon
-                            $button.find('.dashicons')
-                                .removeClass(isExpanded ? 'dashicons-arrow-up-alt2' : 'dashicons-arrow-down-alt2')
-                                .addClass(isExpanded ? 'dashicons-arrow-down-alt2' : 'dashicons-arrow-up-alt2');
-                            
-                            // Toggle settings panel with animation
-                            $settings.slideToggle(200);
+                            // Animate the settings panel
+                            $toggleSettings.stop().slideToggle(200);
+                        });
+                        
+                        // Prevent settings panel from closing when clicking inside it
+                        $toggleSettings.on('click', function(e) {
+                            e.stopPropagation();
                         });
                     });
                     </script>
