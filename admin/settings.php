@@ -53,6 +53,11 @@ function wp_allstars_get_recommended_plugins() {
             'plugin-groups',
             'plugin-toggle'
         ),
+        'affiliates' => array(
+            'pretty-links',
+            'simple-urls',
+            'slicewp'
+        ),
         'ai' => array(
             'ai-engine',
         ),
@@ -91,9 +96,11 @@ function wp_allstars_get_recommended_plugins() {
         'crm' => array(
             'fluent-boards',
             'fluent-booking',
+            'fluent-community',
             'fluent-crm',
             'fluentform',
             'fluentforms-pdf',
+            'fluentform-block',
             'fluent-support'
         ),
         'ecommerce' => array(
@@ -106,7 +113,8 @@ function wp_allstars_get_recommended_plugins() {
             'woo-stripe-payment'
         ),
         'lms' => array(
-            'lifterlms',
+            'fluent-community',
+            'masterstudy-lms-learning-management-system',
             'tutor'
         ),
         'media' => array(
@@ -130,6 +138,7 @@ function wp_allstars_get_recommended_plugins() {
             'wordpress-importer'
         ),
         'social' => array(
+            'bit-social',
             'easy-video-reviews',
             'social-engine',
             'wp-social-reviews'
@@ -154,13 +163,18 @@ function wp_allstars_get_recommended_plugins() {
         'advanced' => array(
             'acf-better-search',
             'advanced-custom-fields',
+            'automatorwp',
+            'bit-pi',
+            'bit-integrations',
             'code-snippets',
+            'easy-code-manager',
             'favorites',
             'remove-cpt-base',
             'remove-old-slugspermalinks',
             'yellow-pencil-visual-theme-customizer'
         ),
         'debug' => array(
+            'advanced-database-cleaner',
             'debug-log-manager',
             'gotmls',
             'query-monitor',
