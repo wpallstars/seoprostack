@@ -94,24 +94,25 @@
     /* Move plugin icon to the right side */
     body.wp-admin .plugin-card .plugin-icon {
         position: absolute !important;
-        top: 20px !important;
-        right: 20px !important;
+        top: 15px !important;
+        right: 15px !important;
         left: auto !important;
         margin: 0 !important;
-        width: 128px !important;
-        height: 128px !important;
+        width: 100px !important;
+        height: 100px !important;
         z-index: 1 !important;
     }
     
     /* Keep name and description on the left */
     body.wp-admin .plugin-card .name.column-name {
-        margin-left: 15px !important;
-        margin-right: 150px !important;
+        margin-left: 20px !important;
+        margin-right: 120px !important;
         margin-bottom: 10px !important;
+        margin-top: 5px !important;
         text-align: left !important;
         display: block !important;
         width: auto !important;
-        max-width: 60% !important;
+        max-width: 65% !important;
     }
     
     body.wp-admin .plugin-card .name.column-name h3 {
@@ -140,12 +141,13 @@
     
     /* Fix description spacing */
     body.wp-admin .plugin-card-bottom {
-        padding: 12px 20px !important;
+        padding: 15px 20px !important;
         margin-top: 0 !important;
         text-align: left !important;
-        margin-left: 15px !important;
-        margin-right: 150px !important;
-        max-width: 60% !important;
+        margin-left: 20px !important;
+        margin-right: 120px !important;
+        max-width: 65% !important;
+        clear: left !important;
     }
     
     /* Remove excessive spacing between elements */
@@ -154,7 +156,7 @@
         margin-top: 0 !important;
         margin-bottom: 8px !important;
         text-align: left !important;
-        margin-left: 15px !important;
+        margin-left: 0 !important;
     }
     
     /* Fix compatibility check positioning */
