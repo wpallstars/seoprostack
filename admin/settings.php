@@ -740,6 +740,55 @@ function wp_allstars_settings_page() {
                         </div>
                     </div>
 
+                    <script>
+                    jQuery(document).ready(function($) {
+                        // Initialize accordion functionality
+                        function initAccordion() {
+                            const $button = $('.wp-allstars-expand-settings');
+                            const $settings = $('.wp-allstars-toggle-settings');
+                            let isAnimating = false;
+
+                            $button.on('click', function(e) {
+                                e.preventDefault();
+                                e.stopPropagation();
+
+                                // Prevent multiple clicks during animation
+                                if (isAnimating) return;
+
+                                const $thisButton = $(this);
+                                const isExpanded = $thisButton.attr('aria-expanded') === 'true';
+                                
+                                // Set animating flag
+                                isAnimating = true;
+
+                                // Toggle aria state
+                                $thisButton.attr('aria-expanded', !isExpanded);
+
+                                // Toggle icon rotation
+                                $thisButton.find('.dashicons')
+                                    .toggleClass('dashicons-arrow-down-alt2', isExpanded)
+                                    .toggleClass('dashicons-arrow-up-alt2', !isExpanded);
+
+                                // Animate panel
+                                $settings.slideToggle({
+                                    duration: 200,
+                                    complete: function() {
+                                        isAnimating = false;
+                                    }
+                                });
+                            });
+
+                            // Prevent panel closing when clicking inside
+                            $settings.on('click', function(e) {
+                                e.stopPropagation();
+                            });
+                        }
+
+                        // Initialize accordion
+                        initAccordion();
+                    });
+                    </script>
+
                     <style>
                     /* Accordion Toggle Styles */
                     .wp-allstars-toggle {
@@ -774,7 +823,6 @@ function wp_allstars_settings_page() {
                         padding: 4px;
                         cursor: pointer;
                         color: #2271b1;
-                        transition: transform 0.2s ease;
                     }
 
                     .wp-allstars-expand-settings:hover {
@@ -786,49 +834,26 @@ function wp_allstars_settings_page() {
                         box-shadow: none;
                     }
 
-                    .wp-allstars-expand-settings[aria-expanded="true"] .dashicons {
+                    .wp-allstars-expand-settings .dashicons {
+                        transition: transform 0.2s ease;
+                        display: block;
+                    }
+
+                    .wp-allstars-expand-settings .dashicons-arrow-up-alt2 {
                         transform: rotate(180deg);
                     }
 
                     .wp-allstars-toggle-settings {
                         border-top: 1px solid #ccd0d4;
                         padding: 15px;
+                        display: none;
                     }
 
-                    /* Description text */
                     .wp-allstars-toggle .description {
                         margin: 8px 0 0;
                         color: #646970;
                     }
                     </style>
-
-                    <script>
-                    jQuery(document).ready(function($) {
-                        // Store references to frequently accessed elements
-                        const $expandButton = $('.wp-allstars-expand-settings');
-                        const $toggleSettings = $('.wp-allstars-toggle-settings');
-                        
-                        // Handle expand/collapse functionality
-                        $expandButton.on('click', function(e) {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            
-                            const $button = $(this);
-                            const isExpanded = $button.attr('aria-expanded') === 'true';
-                            
-                            // Update button state
-                            $button.attr('aria-expanded', !isExpanded);
-                            
-                            // Animate the settings panel
-                            $toggleSettings.stop().slideToggle(200);
-                        });
-                        
-                        // Prevent settings panel from closing when clicking inside it
-                        $toggleSettings.on('click', function(e) {
-                            e.stopPropagation();
-                        });
-                    });
-                    </script>
 
                 <?php elseif ($active_tab == 'theme'): ?>
                     <div class="wp-list-table-container">
