@@ -742,31 +742,21 @@ function wp_allstars_settings_page() {
 
                     <script>
                     jQuery(document).ready(function($) {
-                        // Handle accordion functionality
-                        $('.wp-allstars-expand-settings').each(function() {
+                        $('.wp-allstars-expand-settings').on('click', function(e) {
+                            e.preventDefault();
+                            
                             var $button = $(this);
                             var $panel = $button.closest('.wp-allstars-toggle').find('.wp-allstars-toggle-settings');
                             var $icon = $button.find('.dashicons');
-                            
-                            // Set initial state without animation
                             var isExpanded = $button.attr('aria-expanded') === 'true';
-                            $panel.toggle(isExpanded);
+                            
+                            // Update state before animation
+                            isExpanded = !isExpanded;
+                            $button.attr('aria-expanded', isExpanded);
                             $icon.css('transform', isExpanded ? 'rotate(180deg)' : '');
                             
-                            // Handle click events
-                            $button.on('click', function(e) {
-                                e.preventDefault();
-                                
-                                // Toggle state
-                                isExpanded = !isExpanded;
-                                $button.attr('aria-expanded', isExpanded);
-                                
-                                // Update icon rotation
-                                $icon.css('transform', isExpanded ? 'rotate(180deg)' : '');
-                                
-                                // Animate panel only on click
-                                $panel.slideToggle(200);
-                            });
+                            // Animate panel
+                            $panel.slideToggle(200);
                         });
                     });
                     </script>
