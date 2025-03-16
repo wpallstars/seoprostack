@@ -157,7 +157,7 @@ input:checked + .wp-toggle-slider:before {
 }
 
 .wp-setting-title {
-    font-size: 14px;
+    font-size: 16px;
     font-weight: 600;
     color: #1d2327;
     margin: 0;
@@ -165,10 +165,10 @@ input:checked + .wp-toggle-slider:before {
 }
 
 .wp-setting-description {
-    margin: 4px 0 0;
+    margin: 8px 0 0;
     color: #50575e;
-    font-size: 13px;
-    line-height: 1.5;
+    font-size: 14px;
+    line-height: 1.6;
 }
 
 /* Expandable Panel Component */
