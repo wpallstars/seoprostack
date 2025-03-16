@@ -16,13 +16,17 @@ jQuery(document).ready(function($) {
         }, 2000);
     }
 
-    // Handle all settings changes
+    // Handle option updates
     function updateOption(option, value) {
-        return $.post(wpAllstars.ajaxurl, {
-            action: 'wp_allstars_update_option',
-            option: option,
-            value: value,
-            nonce: wpAllstars.nonce
+        return $.ajax({
+            url: ajaxurl,
+            type: 'POST',
+            data: {
+                action: 'wp_allstars_update_option',
+                option: option,
+                value: value,
+                _wpnonce: wpAllstars.nonce
+            }
         }).then(function(response) {
             if (!response.success) {
                 throw new Error(response.data || 'Error saving setting');
@@ -31,80 +35,79 @@ jQuery(document).ready(function($) {
         });
     }
 
-    // Handle toggle switch clicks
-    $('.wp-toggle-switch').on('click', function(e) {
-        e.stopPropagation();
-        var $checkbox = $(this).find('input[type="checkbox"]');
-        var isChecked = $checkbox.is(':checked');
-        
-        $checkbox.prop('checked', !isChecked).trigger('change');
-    });
+    // Initialize all toggle switches
+    function initToggleSwitches() {
+        // Handle toggle switch clicks
+        $('.wp-toggle-switch').on('click', function(e) {
+            e.stopPropagation();
+            var $checkbox = $(this).find('input[type="checkbox"]');
+            var isChecked = $checkbox.is(':checked');
+            $checkbox.prop('checked', !isChecked).trigger('change');
+        });
 
-    // Handle checkbox changes
-    $('.wp-toggle-switch input[type="checkbox"]').on('change', function(e) {
-        e.stopPropagation();
-        var $input = $(this);
-        var option = $input.attr('name');
-        var value = $input.is(':checked') ? 1 : 0;
-        
-        $.ajax({
-            url: ajaxurl,
-            type: 'POST',
-            data: {
-                action: 'wp_allstars_update_option',
-                option: option,
-                value: value,
-                _wpnonce: wpAllstars.nonce
-            },
-            success: function(response) {
-                if (response.success) {
+        // Handle checkbox changes
+        $('.wp-toggle-switch input[type="checkbox"]').on('change', function(e) {
+            e.stopPropagation();
+            var $input = $(this);
+            var option = $input.attr('name');
+            var value = $input.is(':checked') ? 1 : 0;
+            
+            updateOption(option, value)
+                .then(function() {
                     showNotification('Saved');
-                } else {
+                })
+                .catch(function() {
                     showNotification('Error saving settings', true);
-                }
-            },
-            error: function() {
-                showNotification('Error saving settings', true);
+                });
+        });
+    }
+
+    // Initialize expandable panels
+    function initExpandablePanels() {
+        // Handle panel toggle
+        $('.wp-allstars-toggle-header').on('click', function(e) {
+            if (!$(e.target).closest('.wp-toggle-switch').length) {
+                var $settings = $(this).closest('.wp-allstars-toggle').find('.wp-allstars-toggle-settings');
+                var isExpanded = $(this).attr('aria-expanded') === 'true';
+                
+                $(this).attr('aria-expanded', !isExpanded);
+                $settings.slideToggle();
             }
         });
-    });
 
-    // Handle panel toggle
-    $('.wp-allstars-toggle-header').on('click', function(e) {
-        if (!$(e.target).closest('.wp-toggle-switch').length) {
+        // Set initial panel states
+        $('.wp-allstars-toggle-header').each(function() {
             var $settings = $(this).closest('.wp-allstars-toggle').find('.wp-allstars-toggle-settings');
             var isExpanded = $(this).attr('aria-expanded') === 'true';
             
-            $(this).attr('aria-expanded', !isExpanded);
-            $settings.slideToggle();
-        }
-    });
+            if (!isExpanded) {
+                $settings.hide();
+            }
+        });
+    }
 
-    // Set initial state
-    $('.wp-allstars-toggle-header').each(function() {
-        var $settings = $(this).closest('.wp-allstars-toggle').find('.wp-allstars-toggle-settings');
-        var isExpanded = $(this).attr('aria-expanded') === 'true';
-        
-        if (!isExpanded) {
-            $settings.hide();
-        }
-    });
+    // Initialize text inputs
+    function initTextInputs() {
+        $('.wp-allstars-setting-row input[type="text"], .wp-allstars-setting-row input[type="number"], .wp-allstars-setting-row textarea').on('change', function() {
+            var $input = $(this);
+            var option = $input.attr('name');
+            var value = $input.val();
+            
+            updateOption(option, value)
+                .then(function() {
+                    showNotification('Setting saved');
+                })
+                .catch(function(error) {
+                    console.error('Error:', error);
+                    showNotification('Error saving setting', true);
+                });
+        });
+    }
 
-    // Handle text, number, and textarea inputs
-    $('.wp-allstars-setting-row input[type="text"], .wp-allstars-setting-row input[type="number"], .wp-allstars-setting-row textarea').on('change', function() {
-        var $input = $(this);
-        var option = $input.attr('name');
-        var value = $input.val();
-        
-        updateOption(option, value)
-            .then(function() {
-                showNotification('Setting saved');
-            })
-            .catch(function(error) {
-                console.error('Error:', error);
-                showNotification('Error saving setting', true);
-            });
-    });
+    // Initialize all components
+    initToggleSwitches();
+    initExpandablePanels();
+    initTextInputs();
 
     // Handle form submission
     $('form').on('submit', function() {

@@ -672,8 +672,8 @@ function wp_allstars_settings_page() {
                                         </div>
                                         <label for="wp_allstars_auto_upload_images">
                                             <?php esc_html_e('Enable Auto Upload Images', 'wp-allstars'); ?>
-                                        </label>
-                                    </div>
+                    </label>
+                </div>
                                 </div>
                                 <p class="description">
                                     <?php esc_html_e('Import images that have external URLs into your Media Library when saving. Consider disabling during large data imports with many external image URLs.', 'wp-allstars'); ?>
@@ -957,13 +957,54 @@ function wp_allstars_settings_page() {
                 <?php elseif ($active_tab == 'general'): ?>
                     <div class="wp-allstars-settings-section">
                         <div class="wp-allstars-settings-grid">
-                            <!-- Lazy load toggle removed -->
+                            <!-- Example of a simple toggle setting (no panel) -->
+                            <div class="wp-setting-row">
+                                <div class="wp-toggle-switch">
+                                    <input type="checkbox" 
+                                           id="wp_allstars_simple_setting"
+                                           name="wp_allstars_simple_setting" 
+                                           value="1"
+                                           <?php checked(get_option('wp_allstars_simple_setting', false)); ?> 
+                                    />
+                                    <span class="wp-toggle-slider"></span>
+                                </div>
+                                <div class="wp-setting-content">
+                                    <h4 class="wp-setting-title"><?php esc_html_e('Simple Toggle Setting', 'wp-allstars'); ?></h4>
+                                    <p class="wp-setting-description"><?php esc_html_e('This is an example of a simple toggle setting without an expandable panel.', 'wp-allstars'); ?></p>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 <?php elseif ($active_tab == 'advanced'): ?>
                     <div class="wp-allstars-settings-section">
                         <div class="wp-allstars-settings-grid">
-                            <!-- Minification toggles removed -->
+                            <!-- Example of an expandable panel setting -->
+                            <div class="wp-allstars-toggle">
+                                <div class="wp-allstars-toggle-header" aria-expanded="false">
+                                    <div class="wp-allstars-toggle-main">
+                                        <div class="wp-allstars-toggle-left">
+                                            <div class="wp-toggle-switch">
+                                                <input type="checkbox" 
+                                                       id="wp_allstars_auto_upload_images"
+                                                       name="wp_allstars_auto_upload_images" 
+                                                       value="1"
+                                                       <?php checked(get_option('wp_allstars_auto_upload_images', false)); ?> 
+                                                />
+                                                <span class="wp-toggle-slider"></span>
+                                            </div>
+                                            <label for="wp_allstars_auto_upload_images">
+                                                <?php esc_html_e('Enable Auto Upload Images', 'wp-allstars'); ?>
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <p class="description">
+                                        <?php esc_html_e('Import images that have external URLs into your Media Library when saving. Consider disabling during large data imports with many external image URLs.', 'wp-allstars'); ?>
+                                    </p>
+                                </div>
+                                <div class="wp-allstars-toggle-settings">
+                                    <!-- Additional settings content here -->
+                                </div>
+                            </div>
                         </div>
                     </div>
                 <?php endif; ?>
