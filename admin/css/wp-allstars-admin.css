@@ -247,6 +247,8 @@ input:checked + .wp-toggle-slider:before {
     font-size: 14px;
     font-weight: 600;
     color: #1d2327;
+    position: relative;
+    padding-right: 80px;
 }
 
 .wp-allstars-setting-row input[type="text"],
@@ -259,6 +261,7 @@ input:checked + .wp-toggle-slider:before {
     border-radius: 4px;
     box-shadow: 0 0 0 transparent;
     transition: border-color .15s ease-in-out;
+    display: block;
 }
 
 .wp-allstars-setting-row input[type="text"]:focus,
@@ -636,7 +639,7 @@ input:checked + .wp-toggle-slider:before {
 .wp-allstars-toggle-left label,
 .wp-allstars-setting-row label {
     position: relative;
-    padding-right: 40px;
+    padding-right: 20px;
     display: inline-block;
 }
 
@@ -644,7 +647,7 @@ input:checked + .wp-toggle-slider:before {
 .wp-allstars-toggle-left label .wp-setting-notification,
 .wp-allstars-setting-row label .wp-setting-notification {
     position: absolute;
-    right: -5px;
+    right: -60px;
     top: 50%;
     transform: translateY(-50%);
 }
