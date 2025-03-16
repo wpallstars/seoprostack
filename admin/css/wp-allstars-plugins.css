@@ -72,20 +72,17 @@
     }
 }
 
-/* Debug styling for all screens to help identify issues */
-body.wp-admin .wp-list-table.plugin-install #the-list .plugin-card {
-    border: 2px solid red !important;
-}
-
-/* Debug version of mobile styling */
+/* Mobile styles - now working with correct positioning */
 @media screen and (max-width: 782px) {
     body.wp-admin .wp-list-table.plugin-install #the-list .plugin-card {
-        border: 3px solid blue !important;
+        border: 1px solid #dcdcde !important;
         width: 100% !important;
         margin: 0 0 16px 0 !important;
         padding: 0 !important;
+        box-sizing: border-box !important;
     }
     
+    /* Card top section with proper positioning */
     body.wp-admin .wp-list-table.plugin-install #the-list .plugin-card .plugin-card-top {
         display: block !important;
         min-height: 135px !important;
@@ -93,22 +90,51 @@ body.wp-admin .wp-list-table.plugin-install #the-list .plugin-card {
         padding: 20px !important;
     }
     
+    /* Fix plugin icon positioning in top left */
     body.wp-admin .plugin-card .plugin-icon {
         position: absolute !important;
         top: 20px !important;
         left: 20px !important;
         margin: 0 !important;
+        width: 128px !important;
+        height: 128px !important;
     }
     
+    /* Fix name and heading positioning and spacing */
     body.wp-admin .plugin-card .name.column-name {
         margin-left: 148px !important;
+        margin-bottom: 0 !important;
         text-align: left !important;
     }
     
+    body.wp-admin .plugin-card .name.column-name h3 {
+        margin-bottom: 5px !important;
+    }
+    
+    /* Fix action buttons positioning */
     body.wp-admin .plugin-card .action-links {
         position: absolute !important;
         top: 20px !important;
         right: 20px !important;
+    }
+    
+    /* Fix description spacing */
+    body.wp-admin .plugin-card-bottom {
+        padding: 12px 20px !important;
+        margin-top: 0 !important;
+    }
+    
+    /* Remove excessive spacing between elements */
+    body.wp-admin .plugin-card p,
+    body.wp-admin .plugin-card .desc.column-description {
+        margin-top: 0 !important;
+        margin-bottom: 8px !important;
+    }
+    
+    /* Fix compatibility check positioning */
+    body.wp-admin .plugin-card .compatibility-compatible {
+        margin-top: 8px !important;
+        margin-bottom: 0 !important;
     }
 }
 
