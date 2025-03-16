@@ -347,7 +347,7 @@ function wp_allstars_generate_plugin_cards($plugins) {
                                 $pro_plugins = wp_allstars_get_pro_plugins_config();
                                 foreach ($pro_plugins as $pro_plugin) {
                                     if (isset($pro_plugin['free_slug']) && $pro_plugin['free_slug'] === $plugin->slug) {
-                                        echo '<li><a class="button go-pro-button" href="' . esc_url($pro_plugin['url']) . '" target="_blank">' . esc_html__('Go Pro', 'wp-allstars') . '</a></li>';
+                                        echo '<li><a class="button button-primary" href="' . esc_url($pro_plugin['url']) . '" target="_blank">' . esc_html__('Go Pro', 'wp-allstars') . '</a></li>';
                                         break;
                                     }
                                 }
