@@ -315,6 +315,7 @@ function wp_allstars_generate_plugin_cards($plugins) {
         <div id="the-list">
             <?php foreach ($plugins as $plugin): ?>
                 <div class="plugin-card plugin-card-<?php echo esc_attr($plugin->slug); ?>">
+                    <div class="plugin-card-inner">
                     <div class="plugin-card-top">
                         <div class="name column-name">
                             <h3>
@@ -392,6 +393,7 @@ function wp_allstars_generate_plugin_cards($plugins) {
                             }
                             ?>
                         </div>
+                    </div>
                     </div>
                 </div>
             <?php endforeach; ?>
@@ -671,42 +673,12 @@ function wp_allstars_settings_page() {
         wp_enqueue_style('wp-allstars-admin', plugins_url('css/wp-allstars-admin.css', __FILE__));
         wp_enqueue_style('wp-allstars-plugins', plugins_url('css/wp-allstars-plugins.css', __FILE__));
         
-        // Add inline script to load theme on page load
+        // Add inline script to trigger theme loading through the main JS function
         wp_add_inline_script('wp-allstars-admin', '
             jQuery(document).ready(function($) {
-                if ($("#wpa-theme-list").length && $("#wpa-theme-list").is(":empty")) {
-                    var $container = $("#wpa-theme-list");
-                    var $loadingOverlay = $("<div class=\"wp-allstars-loading-overlay\"><span class=\"spinner is-active\"></span></div>");
-                    
-                    // Show loading overlay
-                    $container.css("position", "relative").append($loadingOverlay);
-                    
-                    // AJAX request to get theme
-                    $.ajax({
-                        url: ajaxurl,
-                        type: "POST",
-                        data: {
-                            action: "wp_allstars_get_themes",
-                            _wpnonce: wpAllstars.nonce
-                        },
-                        success: function(response) {
-                            $loadingOverlay.remove();
-                            if (response.success) {
-                                $container.html(response.data);
-                                // Initialize theme action buttons
-                                if (typeof initThemeHandlers === "function") {
-                                    initThemeHandlers();
-                                }
-                            } else {
-                                $container.html("<div class=\"notice notice-error\"><p>" + response.data + "</p></div>");
-                            }
-                        },
-                        error: function(xhr, status, error) {
-                            $loadingOverlay.remove();
-                            $container.html("<div class=\"notice notice-error\"><p>Failed to load theme. Please try again. Error: " + error + "</p></div>");
-                            console.error("AJAX Error:", xhr.responseText);
-                        }
-                    });
+                // Use the main loadTheme function from wp-allstars-admin.js if available
+                if ($("#wpa-theme-list").length && $("#wpa-theme-list").is(":empty") && typeof loadTheme === "function") {
+                    loadTheme();
                 }
             });
         ');
