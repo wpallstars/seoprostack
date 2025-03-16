@@ -202,6 +202,38 @@ function wp_allstars_get_pro_plugins_config() {
             ),
             'free_slug' => 'fluentform'
         ),
+        'mainwp' => array(
+            'name' => 'MainWP Pro',
+            'description' => 'Manage multiple WordPress sites from a single dashboard with advanced features.',
+            'button_group' => array(
+                array(
+                    'text' => 'Go Pro',
+                    'url' => 'https://mainwp.com/upgrade/',
+                    'primary' => true
+                ),
+                array(
+                    'text' => 'Pricing',
+                    'url' => 'https://mainwp.com/purchase/'
+                )
+            ),
+            'free_slug' => 'mainwp-child'
+        ),
+        'revive-so' => array(
+            'name' => 'Revive.so Pro',
+            'description' => 'Advanced content optimization and SEO tool for WordPress.',
+            'button_group' => array(
+                array(
+                    'text' => 'Go Pro',
+                    'url' => 'https://revive.so/pricing/',
+                    'primary' => true
+                ),
+                array(
+                    'text' => 'Home Page',
+                    'url' => 'https://revive.so/'
+                )
+            ),
+            'free_slug' => 'revive-so'
+        ),
         'fluent-support' => array(
             'name' => 'Fluent Support Pro',
             'description' => 'Premium help desk and support ticket system.',
