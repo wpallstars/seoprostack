@@ -617,6 +617,48 @@ function wp_allstars_settings_page() {
         add_thickbox();
         wp_enqueue_style('wp-allstars-admin', plugins_url('css/wp-allstars-admin.css', __FILE__));
         wp_enqueue_style('wp-allstars-plugins', plugins_url('css/wp-allstars-plugins.css', __FILE__));
+        
+        // Add inline script to load plugins on page load
+        wp_add_inline_script('wp-allstars-admin', '
+            jQuery(document).ready(function($) {
+                if ($("#wpa-plugin-list").length && $("#wpa-plugin-list").is(":empty")) {
+                    var category = "' . esc_js($active_category) . '";
+                    var $container = $("#wpa-plugin-list");
+                    var $loadingOverlay = $("<div class=\"wp-allstars-loading-overlay\"><div class=\"wp-allstars-loading-spinner\"></div></div>");
+                    
+                    // Show loading overlay
+                    $container.css("position", "relative").append($loadingOverlay);
+                    
+                    // AJAX request to get plugins
+                    $.ajax({
+                        url: ajaxurl,
+                        type: "POST",
+                        data: {
+                            action: "wp_allstars_get_plugins",
+                            category: category,
+                            _wpnonce: wpAllstars.nonce
+                        },
+                        success: function(response) {
+                            $loadingOverlay.remove();
+                            if (response.success) {
+                                $container.html(response.data);
+                                // Initialize plugin action buttons
+                                if (typeof initPluginActions === "function") {
+                                    initPluginActions();
+                                }
+                            } else {
+                                $container.html("<div class=\"notice notice-error\"><p>" + response.data + "</p></div>");
+                            }
+                        },
+                        error: function(xhr, status, error) {
+                            $loadingOverlay.remove();
+                            $container.html("<div class=\"notice notice-error\"><p>Failed to load plugins. Please try again. Error: " + error + "</p></div>");
+                            console.error("AJAX Error:", xhr.responseText);
+                        }
+                    });
+                }
+            });
+        ');
     } elseif ($active_tab === 'theme') {
         wp_allstars_clear_theme_cache();
         require_once ABSPATH . 'wp-admin/includes/theme.php';
@@ -625,6 +667,46 @@ function wp_allstars_settings_page() {
         add_thickbox();
         wp_enqueue_style('wp-allstars-admin', plugins_url('css/wp-allstars-admin.css', __FILE__));
         wp_enqueue_style('wp-allstars-plugins', plugins_url('css/wp-allstars-plugins.css', __FILE__));
+        
+        // Add inline script to load theme on page load
+        wp_add_inline_script('wp-allstars-admin', '
+            jQuery(document).ready(function($) {
+                if ($("#wpa-theme-list").length && $("#wpa-theme-list").is(":empty")) {
+                    var $container = $("#wpa-theme-list");
+                    var $loadingOverlay = $("<div class=\"wp-allstars-loading-overlay\"><div class=\"wp-allstars-loading-spinner\"></div></div>");
+                    
+                    // Show loading overlay
+                    $container.css("position", "relative").append($loadingOverlay);
+                    
+                    // AJAX request to get theme
+                    $.ajax({
+                        url: ajaxurl,
+                        type: "POST",
+                        data: {
+                            action: "wp_allstars_get_themes",
+                            _wpnonce: wpAllstars.nonce
+                        },
+                        success: function(response) {
+                            $loadingOverlay.remove();
+                            if (response.success) {
+                                $container.html(response.data);
+                                // Initialize theme action buttons
+                                if (typeof initThemeHandlers === "function") {
+                                    initThemeHandlers();
+                                }
+                            } else {
+                                $container.html("<div class=\"notice notice-error\"><p>" + response.data + "</p></div>");
+                            }
+                        },
+                        error: function(xhr, status, error) {
+                            $loadingOverlay.remove();
+                            $container.html("<div class=\"notice notice-error\"><p>Failed to load theme. Please try again. Error: " + error + "</p></div>");
+                            console.error("AJAX Error:", xhr.responseText);
+                        }
+                    });
+                }
+            });
+        ');
     }
     ?>
     <div class="wrap wp-allstars-wrap">
@@ -641,22 +723,22 @@ function wp_allstars_settings_page() {
         <div class="wpa-settings-container">
             <div class="wp-allstars-nav">
         <h2 class="nav-tab-wrapper">
-                    <a href="?page=wp-allstars&tab=general" class="nav-tab <?php echo $active_tab == 'general' ? 'nav-tab-active' : ''; ?>" data-tab="general">
+                    <a href="?page=wp-allstars&tab=general" class="nav-tab <?php echo $active_tab == 'general' ? 'nav-tab-active' : ''; ?>">
                         <?php esc_html_e('General', 'wp-allstars'); ?>
                     </a>
-                    <a href="?page=wp-allstars&tab=advanced" class="nav-tab <?php echo $active_tab == 'advanced' ? 'nav-tab-active' : ''; ?>" data-tab="advanced">
+                    <a href="?page=wp-allstars&tab=advanced" class="nav-tab <?php echo $active_tab == 'advanced' ? 'nav-tab-active' : ''; ?>">
                         <?php esc_html_e('Advanced', 'wp-allstars'); ?>
                     </a>
-                    <a href="?page=wp-allstars&tab=workflow" class="nav-tab <?php echo $active_tab == 'workflow' ? 'nav-tab-active' : ''; ?>" data-tab="workflow">
+                    <a href="?page=wp-allstars&tab=workflow" class="nav-tab <?php echo $active_tab == 'workflow' ? 'nav-tab-active' : ''; ?>">
                         <?php esc_html_e('Workflow', 'wp-allstars'); ?>
                     </a>
-                    <a href="?page=wp-allstars&tab=recommended" class="nav-tab <?php echo $active_tab == 'recommended' ? 'nav-tab-active' : ''; ?>" data-tab="recommended">
+                    <a href="?page=wp-allstars&tab=recommended" class="nav-tab <?php echo $active_tab == 'recommended' ? 'nav-tab-active' : ''; ?>">
                         <?php esc_html_e('Free Plugins', 'wp-allstars'); ?>
                     </a>
-                    <a href="?page=wp-allstars&tab=pro" class="nav-tab <?php echo $active_tab == 'pro' ? 'nav-tab-active' : ''; ?>" data-tab="pro">
+                    <a href="?page=wp-allstars&tab=pro" class="nav-tab <?php echo $active_tab == 'pro' ? 'nav-tab-active' : ''; ?>">
                         <?php esc_html_e('Pro Plugins', 'wp-allstars'); ?>
                     </a>
-                    <a href="?page=wp-allstars&tab=theme" class="nav-tab <?php echo $active_tab == 'theme' ? 'nav-tab-active' : ''; ?>" data-tab="theme">
+                    <a href="?page=wp-allstars&tab=theme" class="nav-tab <?php echo $active_tab == 'theme' ? 'nav-tab-active' : ''; ?>">
                         <?php esc_html_e('Theme', 'wp-allstars'); ?>
                     </a>
         </h2>

@@ -64,40 +64,7 @@ jQuery(document).ready(function($) {
         e.stopPropagation();
     });
 
-    // Initialize tabs
-    $('.nav-tab-wrapper .nav-tab').on('click', function(e) {
-        e.preventDefault();
-        var target = $(this).data('tab');
-        
-        // Update active tab
-        $('.nav-tab-wrapper .nav-tab').removeClass('nav-tab-active');
-        $(this).addClass('nav-tab-active');
-        
-        // Show target tab content
-        $('.tab-content').hide();
-        $('#' + target).show();
-        
-        // Update URL hash
-        window.location.hash = target;
-        
-        // Load plugins if needed
-        if (target === 'recommended' && $('#wpa-plugin-list').length && $('#wpa-plugin-list').is(':empty')) {
-            loadPlugins('all');
-        }
-        
-        // Load themes if needed
-        if (target === 'theme' && $('#wpa-theme-list').length && $('#wpa-theme-list').is(':empty')) {
-            loadTheme();
-        }
-    });
-    
-    // Initialize based on hash
-    if (window.location.hash) {
-        var hash = window.location.hash.substring(1);
-        $('.nav-tab-wrapper .nav-tab[data-tab="' + hash + '"]').trigger('click');
-    } else {
-        $('.nav-tab-wrapper .nav-tab:first').trigger('click');
-    }
+    // Remove JavaScript-based tab switching - let the native WordPress tab links work
     
     // Plugin category filters
     if ($('#wpa-plugin-filters').length) {
@@ -115,7 +82,7 @@ jQuery(document).ready(function($) {
         
         // Load initial plugins if we're on the recommended tab
         if ($('#recommended').is(':visible') && $('#wpa-plugin-list').is(':empty')) {
-            loadPlugins('all');
+            loadPlugins('minimal');
         }
     }
     
