@@ -117,4 +117,55 @@ jQuery(document).ready(function($) {
     $('form').on('submit', function() {
         showNotification('Saved');
     });
+
+    // Load plugins on page load
+    if ($('#wpa-plugin-list').length) {
+        var urlParams = new URLSearchParams(window.location.search);
+        var currentCategory = urlParams.get('category') || 'minimal';
+        loadPlugins(currentCategory);
+        
+        // Handle category filter clicks
+        $('.wpa-plugin-filters a').on('click', function(e) {
+            e.preventDefault();
+            var category = new URLSearchParams($(this).attr('href').split('?')[1]).get('category');
+            loadPlugins(category);
+            
+            // Update URL without page reload
+            var newUrl = $(this).attr('href');
+            history.pushState({}, '', newUrl);
+            
+            // Update active state
+            $('.wpa-plugin-filters a').removeClass('button-primary');
+            $(this).addClass('button-primary');
+        });
+    }
+
+    // Function to load plugins
+    function loadPlugins(category) {
+        // Show loading overlay
+        $('.wpa-loading-overlay').fadeIn();
+        
+        $.ajax({
+            url: ajaxurl,
+            data: {
+                action: 'wp_allstars_get_plugins',
+                category: category || 'minimal',
+                _ajax_nonce: wpAllstarsData.nonce
+            },
+            success: function(response) {
+                if (response.success) {
+                    $('#wpa-plugin-list').html(response.data);
+                } else {
+                    console.error('Server returned error:', response);
+                    $('#wpa-plugin-list').html('<div class="notice notice-error"><p>Failed to load plugins: ' + (response.data || 'Unknown error') + '</p></div>');
+                }
+                $('.wpa-loading-overlay').fadeOut();
+            },
+            error: function(xhr, status, error) {
+                console.error('Failed to load plugins:', {xhr: xhr, status: status, error: error});
+                $('#wpa-plugin-list').html('<div class="notice notice-error"><p>Failed to load plugins. Please try again. Error: ' + error + '</p></div>');
+                $('.wpa-loading-overlay').fadeOut();
+            }
+        });
+    }
 });

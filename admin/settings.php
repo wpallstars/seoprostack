@@ -684,12 +684,56 @@ function wp_allstars_settings_page() {
                                 <div class="wp-allstars-setting-row">
                                     <label for="wp_max_width"><?php esc_html_e('Max Width', 'wp-allstars'); ?></label>
                                     <input type="number" 
-                                           id="wp_max_width" 
-                                           name="wp_allstars_max_width" 
-                                           value="<?php echo esc_attr(get_option('wp_allstars_max_width', '1920')); ?>"
+                                           id="wp_max_width"
+                                           name="wp_max_width"
+                                           value="<?php echo esc_attr(get_option('wp_allstars_max_width', 1920)); ?>"
+                                           min="0"
+                                    />
+                                    <p class="description"><?php esc_html_e('Maximum width of uploaded images (px). Leave empty for no limit.', 'wp-allstars'); ?></p>
+                                </div>
+
+                                <div class="wp-allstars-setting-row">
+                                    <label for="wp_max_height"><?php esc_html_e('Max Height', 'wp-allstars'); ?></label>
+                                    <input type="number" 
+                                           id="wp_max_height"
+                                           name="wp_max_height"
+                                           value="<?php echo esc_attr(get_option('wp_allstars_max_height', 1080)); ?>"
+                                           min="0"
+                                    />
+                                    <p class="description"><?php esc_html_e('Maximum height of uploaded images (px). Leave empty for no limit.', 'wp-allstars'); ?></p>
+                                </div>
+
+                                <div class="wp-allstars-setting-row">
+                                    <label for="wp_exclude_urls"><?php esc_html_e('Exclude URLs', 'wp-allstars'); ?></label>
+                                    <textarea id="wp_exclude_urls"
+                                              name="wp_exclude_urls"
+                                              rows="3"
+                                              placeholder="example.com&#10;another-domain.com"
+                                    ><?php echo esc_textarea(get_option('wp_allstars_exclude_urls', '')); ?></textarea>
+                                    <p class="description"><?php esc_html_e('Enter domains to exclude (one per line). Images from these domains will not be imported.', 'wp-allstars'); ?></p>
+                                </div>
+
+                                <div class="wp-allstars-setting-row">
+                                    <label for="wp_image_name"><?php esc_html_e('Image Name Pattern', 'wp-allstars'); ?></label>
+                                    <input type="text" 
+                                           id="wp_image_name"
+                                           name="wp_image_name"
+                                           value="<?php echo esc_attr(get_option('wp_allstars_image_name_pattern', '%filename%')); ?>"
                                     />
                                     <p class="description">
-                                        <?php esc_html_e('Maximum width for uploaded images. Images larger than this will be resized.', 'wp-allstars'); ?>
+                                        <?php esc_html_e('Available patterns:', 'wp-allstars'); ?> %filename%, %post_id%, %postname%, %timestamp%, %date%, %year%, %month%, %day%
+                                    </p>
+                                </div>
+
+                                <div class="wp-allstars-setting-row">
+                                    <label for="wp_image_alt"><?php esc_html_e('Image Alt Pattern', 'wp-allstars'); ?></label>
+                                    <input type="text" 
+                                           id="wp_image_alt"
+                                           name="wp_image_alt"
+                                           value="<?php echo esc_attr(get_option('wp_allstars_image_alt_pattern', '%filename%')); ?>"
+                                    />
+                                    <p class="description">
+                                        <?php esc_html_e('Available patterns:', 'wp-allstars'); ?> %filename%, %post_title%, %post_id%, %postname%, %timestamp%
                                     </p>
                                 </div>
                             </div>
@@ -785,16 +829,26 @@ function wp_allstars_settings_page() {
                             <div class="wpa-pro-plugin">
                                 <h3><?php echo esc_html($plugin['name']); ?></h3>
                                 <p><?php echo esc_html($plugin['description']); ?></p>
-                                <div class="button-group">
-                                    <?php if (!empty($plugin['demo_url'])): ?>
-                                        <a href="<?php echo esc_url($plugin['demo_url']); ?>" class="button" target="_blank">
-                                            <?php esc_html_e('View Demo', 'wp-allstars'); ?>
+                                <?php if (isset($plugin['button_group'])): ?>
+                                    <div class="button-group">
+                                        <?php foreach ($plugin['button_group'] as $button): ?>
+                                            <a href="<?php echo esc_url($button['url']); ?>" target="_blank" class="button <?php echo isset($button['primary']) && $button['primary'] ? 'button-primary' : ''; ?>">
+                                                <?php echo esc_html($button['text']); ?>
+                                            </a>
+                                        <?php endforeach; ?>
+                                    </div>
+                                <?php else: ?>
+                                    <div class="button-group">
+                                        <?php if (!empty($plugin['demo_url'])): ?>
+                                            <a href="<?php echo esc_url($plugin['demo_url']); ?>" class="button" target="_blank">
+                                                <?php esc_html_e('View Demo', 'wp-allstars'); ?>
+                                            </a>
+                                        <?php endif; ?>
+                                        <a href="<?php echo esc_url($plugin['url']); ?>" class="button button-primary" target="_blank">
+                                            <?php esc_html_e('Learn More', 'wp-allstars'); ?>
                                         </a>
-                                    <?php endif; ?>
-                                    <a href="<?php echo esc_url($plugin['url']); ?>" class="button button-primary" target="_blank">
-                                        <?php esc_html_e('Learn More', 'wp-allstars'); ?>
-                                    </a>
-                                </div>
+                                    </div>
+                                <?php endif; ?>
                             </div>
                             <?php
                         }
