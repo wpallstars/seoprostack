@@ -27,9 +27,9 @@
 }
 
 #the-list {
-    display: flex;
-    flex-wrap: wrap;
+    display: block;
     margin: 0 -8px; /* Negative margin to offset padding */
+    overflow: hidden; /* Clearfix for floats */
 }
 
 /* Plugin Cards */
@@ -42,6 +42,11 @@
     position: relative;
     display: flex;
     flex-direction: column;
+    float: left;
+}
+
+.plugin-card:nth-child(2n+1) {
+    clear: left;
 }
 
 .plugin-card .plugin-card-inner {
@@ -121,7 +126,6 @@
     clear: both;
     padding: 12px 20px;
     background-color: #f6f7f7;
-    border-top: 1px solid #dcdcde;
     display: flex;
     flex-wrap: wrap;
     border-radius: 0 0 3px 3px;
@@ -475,11 +479,6 @@
     .plugin-card-bottom > div {
         padding-top: 10px;
         padding-bottom: 10px;
-        border-top: 1px solid #dcdcde;
-    }
-    
-    .plugin-card-bottom > div:first-child {
-        border-top: none;
     }
     
     .column-downloaded,
