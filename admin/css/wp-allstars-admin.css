@@ -136,37 +136,49 @@ input:checked + .wp-toggle-slider:before {
 }
 
 /* Base Setting Styles (Shared between simple and expandable) */
-.wp-setting-base {
+.wp-setting-base, 
+.wp-setting-row,
+.wp-allstars-toggle {
     background: #fff;
     border: 1px solid #ccc;
     border-radius: 8px;
     margin-bottom: 15px;
 }
 
-.wp-setting-base:hover {
+.wp-setting-base:hover,
+.wp-setting-row:hover,
+.wp-allstars-toggle:hover {
     border-color: #2271b1;
     box-shadow: 0 2px 6px rgba(0,0,0,0.15);
 }
 
-.wp-setting-header {
+.wp-setting-header,
+.wp-allstars-toggle-header {
     padding: 15px;
     position: relative;
 }
 
-.wp-setting-main {
+.wp-setting-main,
+.wp-allstars-toggle-main {
     display: flex;
     align-items: center;
     justify-content: space-between;
     padding-right: 15px;
 }
 
-.wp-setting-left {
+.wp-allstars-toggle-main {
+    padding-right: 40px; /* Extra space for chevron */
+}
+
+.wp-setting-left,
+.wp-allstars-toggle-left {
     display: flex;
     align-items: center;
     gap: 10px;
 }
 
-.wp-setting-label {
+.wp-setting-label,
+.wp-allstars-toggle label {
     font-size: 16px;
     font-weight: 600;
     color: #1d2327;
@@ -175,25 +187,17 @@ input:checked + .wp-toggle-slider:before {
     cursor: default;
 }
 
-.wp-setting-description {
+.wp-setting-description,
+.wp-allstars-toggle .description,
+.description {
     margin: 8px 0 0;
     color: #50575e;
     font-size: 14px;
     line-height: 1.6;
 }
 
-/* Simple Setting Row (No Panel) */
-.wp-setting-row {
-    composes: wp-setting-base;
-}
-
 /* Expandable Panel Component */
-.wp-allstars-toggle {
-    composes: wp-setting-base;
-}
-
 .wp-allstars-toggle-header {
-    composes: wp-setting-header;
     cursor: pointer;
 }
 
@@ -212,23 +216,6 @@ input:checked + .wp-toggle-slider:before {
 
 .wp-allstars-toggle-header[aria-expanded="true"]::after {
     transform: translateY(-50%) rotate(180deg);
-}
-
-.wp-allstars-toggle-main {
-    composes: wp-setting-main;
-    padding-right: 40px; /* Extra space for chevron */
-}
-
-.wp-allstars-toggle-left {
-    composes: wp-setting-left;
-}
-
-.wp-allstars-toggle label {
-    composes: wp-setting-label;
-}
-
-.wp-allstars-toggle .description {
-    composes: wp-setting-description;
 }
 
 .wp-allstars-expand-settings {

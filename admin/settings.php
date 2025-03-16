@@ -658,7 +658,7 @@ function wp_allstars_settings_page() {
                 <?php if ($active_tab == 'workflow'): ?>
                     <div class="wp-allstars-settings-content">
                         <div class="wp-allstars-toggle">
-                            <div class="wp-allstars-toggle-header">
+                            <div class="wp-allstars-toggle-header" aria-expanded="false">
                                 <div class="wp-allstars-toggle-main">
                                     <div class="wp-allstars-toggle-left">
                                         <div class="wp-toggle-switch">
@@ -672,10 +672,10 @@ function wp_allstars_settings_page() {
                                         </div>
                                         <label for="wp_allstars_auto_upload_images">
                                             <?php esc_html_e('Enable Auto Upload Images', 'wp-allstars'); ?>
-                    </label>
-                </div>
+                                        </label>
+                                    </div>
                                 </div>
-                                <p class="description">
+                                <p class="wp-setting-description">
                                     <?php esc_html_e('Import images that have external URLs into your Media Library when saving. Consider disabling during large data imports with many external image URLs.', 'wp-allstars'); ?>
                                 </p>
                             </div>
