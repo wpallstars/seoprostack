@@ -463,6 +463,38 @@ function wp_allstars_get_pro_plugins_config() {
                 )
             ),
             'free_slug' => 'yellow-pencil-visual-theme-customizer'
+        ),
+        'fluent-boards' => array(
+            'name' => 'FluentBoards Pro',
+            'description' => 'Advanced dashboard and reporting solution for WordPress.',
+            'button_group' => array(
+                array(
+                    'text' => 'Home Page',
+                    'url' => 'https://fluentboards.com/',
+                    'primary' => true
+                ),
+                array(
+                    'text' => 'Pricing',
+                    'url' => 'https://fluentboards.com/pricing/'
+                )
+            ),
+            'free_slug' => 'fluent-boards'
+        ),
+        'fluent-community' => array(
+            'name' => 'FluentCommunity Pro',
+            'description' => 'Advanced community and membership platform for WordPress.',
+            'button_group' => array(
+                array(
+                    'text' => 'Home Page',
+                    'url' => 'https://fluentcommunity.com/',
+                    'primary' => true
+                ),
+                array(
+                    'text' => 'Pricing',
+                    'url' => 'https://fluentcommunity.com/pricing/'
+                )
+            ),
+            'free_slug' => 'fluent-community'
         )
     );
 } 
