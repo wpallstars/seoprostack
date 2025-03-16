@@ -699,19 +699,42 @@ function wp_allstars_settings_page() {
         wp_enqueue_style('wp-allstars-admin', plugins_url('css/wp-allstars-admin.css', __FILE__));
         wp_enqueue_style('wp-allstars-plugins', plugins_url('css/wp-allstars-plugins.css', __FILE__));
         
-        // Add inline script to trigger theme loading through the main JS function
+        // Add inline script to load themes directly - same approach as plugins tab
         wp_add_inline_script('wp-allstars-admin', '
             jQuery(document).ready(function($) {
-                console.log("Theme tab ready, checking if we need to load themes");
-                // Use the main loadTheme function from wp-allstars-admin.js if available
                 if ($("#wpa-theme-list").length && $("#wpa-theme-list").is(":empty")) {
-                    console.log("Theme list is empty, calling loadTheme()");
-                    if (typeof window.loadTheme === "function") {
-                        window.loadTheme();
-                    } else {
-                        console.error("loadTheme function not found");
-                        $("#wpa-theme-list").html("<div class=\"notice notice-error\"><p>Error: Theme loading function not available.</p></div>");
-                    }
+                    var $container = $("#wpa-theme-list");
+                    var $loadingOverlay = $("<div class=\"wp-allstars-loading-overlay\"><span class=\"spinner is-active\"></span></div>");
+                    
+                    // Show loading overlay
+                    $container.css("position", "relative").append($loadingOverlay);
+                    
+                    // AJAX request to get themes
+                    $.ajax({
+                        url: ajaxurl,
+                        type: "POST",
+                        data: {
+                            action: "wp_allstars_get_themes",
+                            _wpnonce: wpAllstars.nonce
+                        },
+                        success: function(response) {
+                            $loadingOverlay.remove();
+                            if (response.success) {
+                                $container.html(response.data);
+                                // Initialize theme action buttons
+                                if (typeof initThemeHandlers === "function") {
+                                    initThemeHandlers();
+                                }
+                            } else {
+                                $container.html("<div class=\"notice notice-error\"><p>" + response.data + "</p></div>");
+                            }
+                        },
+                        error: function(xhr, status, error) {
+                            $loadingOverlay.remove();
+                            $container.html("<div class=\"notice notice-error\"><p>Failed to load themes. Please try again. Error: " + error + "</p></div>");
+                            console.error("AJAX Error:", xhr.responseText);
+                        }
+                    });
                 }
             });
         ');
