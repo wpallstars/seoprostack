@@ -361,7 +361,19 @@ function wp_allstars_generate_plugin_cards($plugins) {
                                 $pro_plugins = wp_allstars_get_pro_plugins_config();
                                 foreach ($pro_plugins as $pro_plugin) {
                                     if (isset($pro_plugin['free_slug']) && $pro_plugin['free_slug'] === $plugin->slug) {
-                                        echo '<li><a class="button button-primary" href="' . esc_url($pro_plugin['url']) . '" target="_blank">' . esc_html__('Go Pro', 'wp-allstars') . '</a></li>';
+                                        // Find the primary button URL in the button_group array
+                                        $pro_url = '';
+                                        foreach ($pro_plugin['button_group'] as $button) {
+                                            if (isset($button['primary']) && $button['primary']) {
+                                                $pro_url = $button['url'];
+                                                break;
+                                            }
+                                        }
+                                        // If no primary button found, use the first button URL
+                                        if (empty($pro_url) && !empty($pro_plugin['button_group'][0]['url'])) {
+                                            $pro_url = $pro_plugin['button_group'][0]['url'];
+                                        }
+                                        echo '<li><a class="button button-primary" href="' . esc_url($pro_url) . '" target="_blank">' . esc_html__('Go Pro', 'wp-allstars') . '</a></li>';
                                         break;
                                     }
                                 }
@@ -425,7 +437,7 @@ function wp_allstars_add_pro_button($action_links, $plugin) {
         if (isset($pro_plugin['free_slug']) && $pro_plugin['free_slug'] === $plugin['slug']) {
             $action_links[] = sprintf(
                 '<a class="button button-primary" href="%s" target="_blank">%s</a>',
-                esc_url($pro_plugin['url']),
+                esc_url(wp_allstars_get_pro_plugin_url($pro_plugin)),
                 esc_html__('Go Pro', 'wp-allstars')
             );
             break;
@@ -433,6 +445,34 @@ function wp_allstars_add_pro_button($action_links, $plugin) {
     }
     
     return $action_links;
+}
+
+/**
+ * Helper function to get the pro plugin URL from the button_group array
+ *
+ * @param array $pro_plugin The pro plugin configuration array
+ * @return string The URL for the pro plugin
+ */
+function wp_allstars_get_pro_plugin_url($pro_plugin) {
+    // Find the primary button URL in the button_group array
+    $pro_url = '';
+    
+    if (!empty($pro_plugin['button_group'])) {
+        // First try to find a primary button
+        foreach ($pro_plugin['button_group'] as $button) {
+            if (isset($button['primary']) && $button['primary']) {
+                $pro_url = $button['url'];
+                break;
+            }
+        }
+        
+        // If no primary button found, use the first button URL
+        if (empty($pro_url) && !empty($pro_plugin['button_group'][0]['url'])) {
+            $pro_url = $pro_plugin['button_group'][0]['url'];
+        }
+    }
+    
+    return $pro_url;
 }
 
 // Remove the old plugins API filter since we're handling everything in the AJAX endpoint
