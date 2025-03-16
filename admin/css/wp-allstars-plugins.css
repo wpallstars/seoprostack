@@ -24,12 +24,14 @@
 .wp-list-table.plugin-install {
     margin-top: 20px;
     clear: both;
+    padding: 0;
 }
 
 #the-list {
     margin: 0;
     display: flex;
     flex-wrap: wrap;
+    padding: 0;
 }
 
 /* Plugin Cards */
@@ -42,7 +44,16 @@
     position: relative;
 }
 
-@media screen and (max-width: 1024px) {
+/* Ensure the right edge aligns with the navigation above */
+.plugin-card:nth-child(even) {
+    margin-right: 0;
+}
+
+.plugin-card:nth-child(odd) {
+    margin-left: 0;
+}
+
+@media screen and (max-width: 1260px) {
     .plugin-card {
         width: 100%;
         margin: 0 0 16px 0;
