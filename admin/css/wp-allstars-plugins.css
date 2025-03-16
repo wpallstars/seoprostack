@@ -205,6 +205,20 @@ body.wp-admin .wp-list-table.plugin-install #the-list .plugin-card a.thickbox {
     width: auto !important;
 }
 
+/* Standardize all button sizes across all screen widths */
+body.wp-admin .wp-list-table.plugin-install #the-list .plugin-card .action-links .button,
+body.wp-admin .wp-list-table.plugin-install #the-list .plugin-card .plugin-action-buttons .button,
+body.wp-admin .plugin-card .column-rating .active {
+    min-width: 85px !important;
+    width: 100% !important;
+    text-align: center !important;
+    display: block !important;
+    box-sizing: border-box !important;
+    padding: 4px 8px !important;
+    height: auto !important;
+    line-height: 2.15384615 !important;
+}
+
 /* Position Go Pro below More Details and center it */
 body.wp-admin .wp-list-table.plugin-install #the-list .plugin-card .action-links .button.go-pro {
     display: block !important;
