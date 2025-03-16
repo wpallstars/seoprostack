@@ -10,6 +10,14 @@
     margin: 0;
 }
 
+/* Filter Bar */
+#wpa-plugin-filters.wp-filter {
+    margin-left: 0;
+    margin-right: 0;
+    width: 100%;
+    box-sizing: border-box;
+}
+
 /* Plugin Cards */
 .plugin-card {
     width: calc(50% - 16px);
@@ -345,6 +353,41 @@
 
 .theme-browser .theme .theme-actions .button:first-child {
     margin-top: 0;
+}
+
+/* Pro Buttons */
+.go-pro-button {
+    background: #ff8c00;
+    border-color: #ff7b00;
+    color: #fff;
+    box-shadow: 0 1px 0 #ff7b00;
+    text-shadow: 0 -1px 1px #ff7b00, 1px 0 1px #ff7b00, 0 1px 1px #ff7b00, -1px 0 1px #ff7b00;
+}
+
+.go-pro-button:hover,
+.go-pro-button:focus {
+    background: #ff9d1c;
+    border-color: #ff7b00;
+    color: #fff;
+}
+
+/* More Details Link */
+.more-details {
+    display: inline-block;
+    margin-top: 5px;
+    text-decoration: none;
+    color: #2271b1;
+}
+
+.more-details:hover,
+.more-details:focus {
+    color: #135e96;
+    text-decoration: underline;
+}
+
+.plugin-action-buttons .more-details {
+    display: block;
+    text-align: right;
 }
 
 /* Responsive Adjustments */
