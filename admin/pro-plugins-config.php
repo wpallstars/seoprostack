@@ -64,9 +64,10 @@ function wp_allstars_get_pro_plugins_config() {
                 ),
                 array(
                     'text' => 'Pricing',
-                    'url' => 'https://sigmaplugin.com/downloads/wordpress-advanced-database-cleaner'
+                    'url' => 'https://sigmaplugin.com/downloads/wordpress-advanced-database-cleaner/#price_table'
                 )
-            )
+            ),
+            'free_slug' => 'advanced-database-cleaner'
         ),
         'ai-engine' => array(
             'name' => 'AI Engine (Pro)',
@@ -444,9 +445,10 @@ function wp_allstars_get_pro_plugins_config() {
                 ),
                 array(
                     'text' => 'Pricing',
-                    'url' => 'https://wpsocialninja.com/pricing/'
+                    'url' => 'https://wpsocialninja.com/price/'
                 )
-            )
+            ),
+            'free_slug' => 'wp-social-ninja'
         ),
         'yellow-pencil' => array(
             'name' => 'YellowPencil Pro',
@@ -495,6 +497,234 @@ function wp_allstars_get_pro_plugins_config() {
                 )
             ),
             'free_slug' => 'fluent-community'
+        ),
+        'wp-sheet-editor' => array(
+            'name' => 'WP Sheet Editor',
+            'description' => 'Edit WordPress content in spreadsheet-like interface with bulk editing capabilities.',
+            'button_group' => array(
+                array(
+                    'text' => 'Home Page',
+                    'url' => 'https://wpsheeteditor.com/',
+                    'primary' => true
+                )
+            ),
+            'free_slug' => 'wp-sheet-editor-bulk-spreadsheet-editor-for-posts-and-pages'
+        ),
+        'masterstudy-lms' => array(
+            'name' => 'MasterStudy LMS Pro',
+            'description' => 'Complete learning management system for WordPress with courses, lessons, quizzes, and more.',
+            'button_group' => array(
+                array(
+                    'text' => 'Home Page',
+                    'url' => 'https://stylemixthemes.com/wordpress-lms-plugin/',
+                    'primary' => true
+                ),
+                array(
+                    'text' => 'Pricing',
+                    'url' => 'https://stylemixthemes.com/wordpress-lms-plugin/pricing/'
+                )
+            ),
+            'free_slug' => 'masterstudy-lms-learning-management-system'
+        ),
+        'pretty-link' => array(
+            'name' => 'Pretty Links Pro',
+            'description' => 'Advanced link management, tracking, and marketing tools for WordPress.',
+            'button_group' => array(
+                array(
+                    'text' => 'Home Page',
+                    'url' => 'https://prettylinks.com/',
+                    'primary' => true
+                ),
+                array(
+                    'text' => 'Pricing',
+                    'url' => 'https://prettylinks.com/pricing/plans/'
+                )
+            ),
+            'free_slug' => 'pretty-link'
+        ),
+        'kadence-starter-templates' => array(
+            'name' => 'AI Powered Starter Templates by Kadence WP',
+            'description' => 'Premium AI-powered starter templates for WordPress with advanced customization options.',
+            'button_group' => array(
+                array(
+                    'text' => 'Home Page',
+                    'url' => 'https://www.kadencewp.com/',
+                    'primary' => true
+                )
+            ),
+            'free_slug' => 'kadence-starter-templates'
+        ),
+        'bit-social' => array(
+            'name' => 'Bit Social Pro',
+            'description' => 'Premium social networking features for WordPress with advanced community building tools.',
+            'button_group' => array(
+                array(
+                    'text' => 'Home Page',
+                    'url' => 'https://bit-social.com/',
+                    'primary' => true
+                ),
+                array(
+                    'text' => 'Pricing',
+                    'url' => 'https://bit-social.com/#pricing'
+                )
+            ),
+            'free_slug' => 'bit-social'
+        ),
+        'easy-video-reviews' => array(
+            'name' => 'Easy Video Reviews Pro',
+            'description' => 'Premium video review collection and display features for WordPress.',
+            'button_group' => array(
+                array(
+                    'text' => 'Home Page',
+                    'url' => 'https://wppool.dev/easy-video-reviews/',
+                    'primary' => true
+                ),
+                array(
+                    'text' => 'Pricing',
+                    'url' => 'https://wppool.dev/easy-video-reviews-pricing/'
+                )
+            ),
+            'free_slug' => 'easy-video-reviews'
+        ),
+        'flying-press' => array(
+            'name' => 'Flying Press',
+            'description' => 'Advanced WordPress performance optimization and speed enhancement suite.',
+            'button_group' => array(
+                array(
+                    'text' => 'Home Page',
+                    'url' => 'https://flyingpress.com/',
+                    'primary' => true
+                ),
+                array(
+                    'text' => 'Pricing',
+                    'url' => 'https://flyingpress.com/pricing/'
+                )
+            ),
+            'free_slug' => ['flying-analytics', 'flying-pages', 'flying-scripts']
+        ),
+        'translatepress' => array(
+            'name' => 'TranslatePress Pro',
+            'description' => 'Advanced WordPress translation plugin with premium features for multilingual websites.',
+            'button_group' => array(
+                array(
+                    'text' => 'Home Page',
+                    'url' => 'https://translatepress.com/',
+                    'primary' => true
+                ),
+                array(
+                    'text' => 'Pricing',
+                    'url' => 'https://translatepress.com/pricing/'
+                )
+            ),
+            'free_slug' => 'translatepress-multilingual'
+        ),
+        'hreflang-manager' => array(
+            'name' => 'Hreflang Manager Pro',
+            'description' => 'Advanced hreflang tag management for multilingual and multi-regional WordPress websites.',
+            'button_group' => array(
+                array(
+                    'text' => 'Home Page',
+                    'url' => 'https://daext.com/hreflang-manager/',
+                    'primary' => true
+                ),
+                array(
+                    'text' => 'Pricing',
+                    'url' => 'https://daext.com/hreflang-manager/#pricing'
+                )
+            ),
+            'free_slug' => 'hreflang-manager-lite'
+        ),
+        'automatorwp' => array(
+            'name' => 'AutomatorWP Pro',
+            'description' => 'Advanced WordPress automation toolkit with premium integrations and features.',
+            'button_group' => array(
+                array(
+                    'text' => 'Home Page',
+                    'url' => 'https://automatorwp.com/',
+                    'primary' => true
+                ),
+                array(
+                    'text' => 'Pricing',
+                    'url' => 'https://automatorwp.com/'
+                ),
+                array(
+                    'text' => 'Integrations',
+                    'url' => 'https://automatorwp.com/all-triggers-and-actions/'
+                )
+            ),
+            'free_slug' => 'automatorwp'
+        ),
+        'bit-integrations' => array(
+            'name' => 'Bit Integrations Pro',
+            'description' => 'Advanced WordPress integration platform with premium connectors and automation features.',
+            'button_group' => array(
+                array(
+                    'text' => 'Home Page',
+                    'url' => 'https://bit-integrations.com/',
+                    'primary' => true
+                ),
+                array(
+                    'text' => 'Pricing',
+                    'url' => 'https://bit-integrations.com/#pricing'
+                ),
+                array(
+                    'text' => 'Integrations',
+                    'url' => 'https://bit-integrations.com/all-integrations/'
+                )
+            ),
+            'free_slug' => 'bit-integrations'
+        ),
+        'bit-flows' => array(
+            'name' => 'Bit Flows Pro',
+            'description' => 'Advanced workflow automation platform for WordPress with premium features and integrations.',
+            'button_group' => array(
+                array(
+                    'text' => 'Home Page',
+                    'url' => 'https://bit-flows.com/',
+                    'primary' => true
+                ),
+                array(
+                    'text' => 'Pricing',
+                    'url' => 'https://bit-flows.com/pricing/'
+                ),
+                array(
+                    'text' => 'Integrations',
+                    'url' => 'https://bit-flows.com/integrations-list/'
+                )
+            ),
+            'free_slug' => 'bit-pi'
+        ),
+        'yellow-pencil' => array(
+            'name' => 'Yellow Pencil Pro',
+            'description' => 'Advanced visual CSS style editor for WordPress with premium features.',
+            'button_group' => array(
+                array(
+                    'text' => 'Home Page',
+                    'url' => 'https://yellowpencil.waspthemes.com/',
+                    'primary' => true
+                ),
+                array(
+                    'text' => 'Pricing',
+                    'url' => 'https://codecanyon.net/item/yellow-pencil-visual-css-style-editor/11322180'
+                )
+            ),
+            'free_slug' => 'yellow-pencil-visual-theme-customizer'
+        ),
+        'gotmls' => array(
+            'name' => 'Anti-Malware Pro',
+            'description' => 'Advanced WordPress malware scanner and security toolkit with premium features.',
+            'button_group' => array(
+                array(
+                    'text' => 'Home Page',
+                    'url' => 'https://gotmls.net/',
+                    'primary' => true
+                ),
+                array(
+                    'text' => 'Pricing',
+                    'url' => 'https://gotmls.net/donate/'
+                )
+            ),
+            'free_slug' => 'gotmls'
         )
     );
 } 

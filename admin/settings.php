@@ -31,6 +31,87 @@ function wp_allstars_update_option() {
 }
 add_action('wp_ajax_wp_allstars_update_option', 'wp_allstars_update_option');
 
+// Define hosting providers
+function wp_allstars_get_hosting_providers() {
+    return array(
+        'closte' => array(
+            'name' => 'Closte',
+            'description' => 'Managed WordPress hosting with advanced performance optimization and auto-scaling.',
+            'button_group' => array(
+                array(
+                    'text' => 'Home Page',
+                    'url' => 'https://closte.com/',
+                    'primary' => true
+                ),
+                array(
+                    'text' => 'Pricing',
+                    'url' => 'https://closte.com/pricing'
+                )
+            )
+        ),
+        'cloudron' => array(
+            'name' => 'Cloudron',
+            'description' => 'Self-hosted platform that makes it easy to run web applications like WordPress on your server.',
+            'button_group' => array(
+                array(
+                    'text' => 'Home Page',
+                    'url' => 'https://www.cloudron.io/',
+                    'primary' => true
+                ),
+                array(
+                    'text' => 'Pricing',
+                    'url' => 'https://www.cloudron.io/pricing.html'
+                )
+            )
+        ),
+        'hostinger' => array(
+            'name' => 'Hostinger',
+            'description' => 'Affordable WordPress hosting with good performance and user-friendly management tools.',
+            'button_group' => array(
+                array(
+                    'text' => 'Home Page',
+                    'url' => 'https://www.hostinger.com/',
+                    'primary' => true
+                ),
+                array(
+                    'text' => 'Pricing',
+                    'url' => 'https://www.hostinger.com/wordpress-hosting'
+                )
+            )
+        ),
+        'hetzner' => array(
+            'name' => 'Hetzner Cloud',
+            'description' => 'High-performance cloud servers with excellent price-to-performance ratio for self-managed WordPress hosting.',
+            'button_group' => array(
+                array(
+                    'text' => 'Home Page',
+                    'url' => 'https://www.hetzner.com/cloud/',
+                    'primary' => true
+                ),
+                array(
+                    'text' => 'Pricing',
+                    'url' => 'https://www.hetzner.com/cloud#pricing'
+                )
+            )
+        ),
+        'simplehost' => array(
+            'name' => 'SimpleHost',
+            'description' => 'Streamlined WordPress hosting with a focus on simplicity and performance.',
+            'button_group' => array(
+                array(
+                    'text' => 'Home Page',
+                    'url' => 'https://simplehost.so/',
+                    'primary' => true
+                ),
+                array(
+                    'text' => 'Pricing',
+                    'url' => 'https://simplehost.so/#pricing'
+                )
+            )
+        )
+    );
+}
+
 // Define recommended plugins
 function wp_allstars_get_recommended_plugins() {
     return array(
@@ -141,6 +222,7 @@ function wp_allstars_get_recommended_plugins() {
             'bit-social',
             'easy-video-reviews',
             'social-engine',
+            'wp-social-ninja',
             'wp-social-reviews'
         ),
         'speed' => array(
@@ -827,6 +909,9 @@ function wp_allstars_settings_page() {
                     <a href="?page=wp-allstars&tab=theme" class="nav-tab <?php echo $active_tab == 'theme' ? 'nav-tab-active' : ''; ?>">
                         <?php esc_html_e('Theme', 'wp-allstars'); ?>
                     </a>
+                    <a href="?page=wp-allstars&tab=hosting" class="nav-tab <?php echo $active_tab == 'hosting' ? 'nav-tab-active' : ''; ?>">
+                        <?php esc_html_e('Hosting', 'wp-allstars'); ?>
+                    </a>
         </h2>
             </div>
 
@@ -916,6 +1001,31 @@ function wp_allstars_settings_page() {
                     <div class="tab-content" id="theme">
                         <div class="wp-list-table-container">
                             <div id="wpa-theme-list"></div>
+                        </div>
+                    </div>
+                <?php elseif ($active_tab == 'hosting'): ?>
+                    <div class="tab-content" id="hosting">
+                        <div class="wpa-pro-plugins">
+                            <?php
+                            $hosting_providers = wp_allstars_get_hosting_providers();
+                            foreach ($hosting_providers as $provider) {
+                                ?>
+                                <div class="wpa-pro-plugin">
+                                    <h3><?php echo esc_html($provider['name']); ?></h3>
+                                    <p><?php echo esc_html($provider['description']); ?></p>
+                                    <?php if (isset($provider['button_group'])): ?>
+                                        <div class="button-group">
+                                            <?php foreach ($provider['button_group'] as $button): ?>
+                                                <a href="<?php echo esc_url($button['url']); ?>" target="_blank" class="button <?php echo isset($button['primary']) && $button['primary'] ? 'button-primary' : ''; ?>">
+                                                    <?php echo esc_html($button['text']); ?>
+                                                </a>
+                                            <?php endforeach; ?>
+                                        </div>
+                                    <?php endif; ?>
+                                </div>
+                                <?php
+                            }
+                            ?>
                         </div>
                     </div>
                 <?php elseif ($active_tab == 'recommended'): ?>
