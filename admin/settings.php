@@ -755,7 +755,7 @@ function wp_allstars_settings_page() {
                                 // Update state after animation completes
                                 var isExpanded = $panel.is(':visible');
                                 $button.attr('aria-expanded', isExpanded);
-                                $icon.toggleClass('is-expanded', isExpanded);
+                                $icon.css('transform', isExpanded ? 'rotate(180deg)' : 'rotate(0deg)');
                             });
                         });
                     });
@@ -823,10 +823,7 @@ function wp_allstars_settings_page() {
                         font-size: 16px;
                         line-height: 16px;
                         transition: transform 0.2s ease;
-                    }
-
-                    .wp-allstars-expand-settings .dashicons.is-expanded {
-                        transform: rotate(180deg);
+                        transform-origin: center;
                     }
 
                     .wp-allstars-toggle-settings {
