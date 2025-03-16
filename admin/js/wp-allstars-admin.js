@@ -106,10 +106,7 @@ jQuery(document).ready(function($) {
             var $input = $(this);
             var option = $input.attr('name');
             var value = $input.val();
-            var $label = $input.prev('label');
-            if (!$label.length) {
-                $label = $input.closest('.wp-allstars-setting-row').find('label');
-            }
+            var $label = $input.closest('.wp-allstars-setting-row').find('label').first();
             
             updateOption(option, value)
                 .then(function() {
@@ -159,13 +156,16 @@ jQuery(document).ready(function($) {
         // Show loading overlay
         $('.wpa-loading-overlay').fadeIn();
         
+        // Log the nonce for debugging
+        console.log('Using nonce:', wpAllstars.nonce);
+        
         $.ajax({
             url: ajaxurl,
             type: 'POST',
             data: {
                 action: 'wp_allstars_get_plugins',
                 category: category || 'minimal',
-                _ajax_nonce: wpAllstars.nonce
+                nonce: wpAllstars.nonce
             },
             success: function(response) {
                 if (response.success) {
@@ -199,7 +199,7 @@ jQuery(document).ready(function($) {
             type: 'POST',
             data: {
                 action: 'wp_allstars_get_theme',
-                _ajax_nonce: wpAllstars.nonce
+                nonce: wpAllstars.nonce
             },
             success: function(response) {
                 if (response.success) {
@@ -264,7 +264,7 @@ jQuery(document).ready(function($) {
                 data: {
                     action: 'wp_allstars_activate_theme',
                     theme: slug,
-                    _ajax_nonce: wpAllstars.nonce
+                    nonce: wpAllstars.nonce
                 },
                 success: function(response) {
                     if (response.success) {

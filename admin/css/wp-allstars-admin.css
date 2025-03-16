@@ -199,6 +199,8 @@ input:checked + .wp-toggle-slider:before {
 /* Expandable Panel Component */
 .wp-allstars-toggle-header {
     cursor: pointer;
+    position: relative;
+    z-index: 1;
 }
 
 .wp-allstars-toggle-header::after {
@@ -634,14 +636,15 @@ input:checked + .wp-toggle-slider:before {
 .wp-allstars-toggle-left label,
 .wp-allstars-setting-row label {
     position: relative;
-    padding-right: 80px;
+    padding-right: 40px;
+    display: inline-block;
 }
 
 .wp-setting-left label .wp-setting-notification,
 .wp-allstars-toggle-left label .wp-setting-notification,
 .wp-allstars-setting-row label .wp-setting-notification {
     position: absolute;
-    right: 0;
+    right: -5px;
     top: 50%;
     transform: translateY(-50%);
 }
@@ -662,4 +665,10 @@ input:checked + .wp-toggle-slider:before {
     display: flex;
     align-items: center;
     justify-content: center;
+}
+
+.wp-allstars-toggle-main {
+    padding-right: 40px; /* Space for chevron */
+    position: relative;
+    z-index: 1;
 } 
