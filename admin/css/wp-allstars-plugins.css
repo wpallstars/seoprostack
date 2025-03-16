@@ -20,10 +20,20 @@
     box-sizing: border-box;
 }
 
+/* Standard WordPress Plugin Grid Layout */
+.wp-list-table.plugin-install {
+    margin-top: 10px;
+}
+
+#the-list {
+    display: flex;
+    flex-wrap: wrap;
+}
+
 /* Plugin Cards */
 .plugin-card {
-    width: calc(50% - 16px);
-    margin: 8px;
+    width: 48.5%;
+    margin: 0 3% 3% 0;
     background-color: #fff;
     border: 1px solid #dcdcde;
     box-sizing: border-box;
@@ -31,6 +41,17 @@
     display: flex;
     flex-direction: column;
     border-radius: 3px;
+}
+
+.plugin-card:nth-child(even) {
+    margin-right: 0;
+}
+
+@media screen and (max-width: 782px) {
+    .plugin-card {
+        width: 100%;
+        margin-right: 0;
+    }
 }
 
 .plugin-card:hover {
