@@ -72,51 +72,75 @@
     }
 }
 
-/* Explicit mobile styling to match desktop */
+/* Force mobile styling to match desktop layout exactly */
 @media screen and (max-width: 782px) {
-    /* Preserve the core plugin card layout on mobile */
+    /* Override WordPress mobile styles with !important */
     .plugin-card {
-        width: 100%;
-        margin: 0 0 16px 0;
-        display: block;
-        position: relative;
-        box-sizing: border-box;
+        width: 100% !important;
+        margin: 0 0 16px 0 !important;
+        display: block !important;
+        position: relative !important;
+        text-align: left !important;
     }
     
-    /* Ensure plugin card top layout */
+    /* Ensure plugin card top has desktop-like structure */
     .plugin-card-top {
-        padding: 20px;
-        position: relative;
-        min-height: 135px;
+        padding: 20px !important;
+        position: relative !important;
+        min-height: 135px !important;
+        text-align: left !important;
+        display: block !important;
+        flex-direction: unset !important;
+        align-items: unset !important;
     }
     
-    /* Plugin icon - absolute position like desktop */
+    /* Force icon to left side */
     .plugin-icon {
-        position: absolute;
-        top: 20px;
-        left: 20px;
-        width: 128px;
-        height: 128px;
+        position: absolute !important;
+        top: 20px !important;
+        left: 20px !important;
+        width: 128px !important;
+        height: 128px !important;
+        margin: 0 !important;
+        display: inline-block !important;
     }
     
-    /* Plugin name - proper margin like desktop */
+    /* Force plugin name to appear next to icon */
     .name.column-name {
-        margin-left: 148px;
+        margin-left: 148px !important;
+        margin-right: 0 !important;
+        width: auto !important;
+        text-align: left !important;
     }
     
-    /* Action links - absolute position like desktop */
+    .name.column-name h3 {
+        text-align: left !important;
+        margin: 0 0 12px !important;
+    }
+    
+    /* Force action links position */
     .action-links {
-        position: absolute;
-        top: 20px;
-        right: 20px;
+        position: absolute !important;
+        top: 20px !important;
+        right: 20px !important;
+        width: auto !important;
+        margin: 0 !important;
     }
     
-    /* Plugin card bottom - standard styling */
+    .plugin-action-buttons {
+        float: right !important;
+        margin: 0 !important;
+        text-align: right !important;
+        display: block !important;
+    }
+    
+    /* Force card bottom styling */
     .plugin-card-bottom {
-        clear: both;
-        padding: 12px 20px;
-        background-color: #f6f7f7;
-        overflow: hidden;
+        clear: both !important;
+        padding: 12px 20px !important;
+        background-color: #f6f7f7 !important;
+        overflow: hidden !important;
+        text-align: left !important;
     }
 }
 
