@@ -696,6 +696,9 @@ function wp_allstars_ajax_get_themes() {
                         <a class="button button-secondary preview install-theme-preview" href="<?php echo esc_url($theme_data->preview_url); ?>" target="_blank">
                             <?php esc_html_e('Preview'); ?>
                         </a>
+                        <a class="button button-primary" href="https://www.kadencewp.com/kadence-theme/" target="_blank">
+                            <?php esc_html_e('Go Pro'); ?>
+                        </a>
                     </div>
                 </div>
             </div>
@@ -1005,12 +1008,44 @@ function wp_allstars_settings_page() {
                     </div>
                 <?php elseif ($active_tab == 'hosting'): ?>
                     <div class="tab-content" id="hosting">
-                        <div class="wpa-pro-plugins">
+                        <style>
+                            .wpa-hosting-providers {
+                                display: grid;
+                                grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+                                gap: 20px;
+                                margin-top: 20px;
+                            }
+                            .wpa-hosting-provider {
+                                background: #fff;
+                                border: 1px solid #ddd;
+                                border-radius: 5px;
+                                padding: 20px;
+                                box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+                            }
+                            .wpa-hosting-provider h3 {
+                                margin-top: 0;
+                                padding-bottom: 10px;
+                                border-bottom: 1px solid #eee;
+                            }
+                            .wpa-hosting-provider p {
+                                min-height: 80px;
+                                margin-bottom: 20px;
+                            }
+                            .wpa-hosting-provider .button-group {
+                                display: flex;
+                                gap: 10px;
+                            }
+                        </style>
+                        <div class="wpa-hosting-providers">
                             <?php
                             $hosting_providers = wp_allstars_get_hosting_providers();
+                            // Sort providers alphabetically by name
+                            uasort($hosting_providers, function($a, $b) {
+                                return strcmp($a['name'], $b['name']);
+                            });
                             foreach ($hosting_providers as $provider) {
                                 ?>
-                                <div class="wpa-pro-plugin">
+                                <div class="wpa-hosting-provider">
                                     <h3><?php echo esc_html($provider['name']); ?></h3>
                                     <p><?php echo esc_html($provider['description']); ?></p>
                                     <?php if (isset($provider['button_group'])): ?>
@@ -1092,6 +1127,10 @@ function wp_allstars_settings_page() {
                         <div class="wpa-pro-plugins">
                             <?php
                             $pro_plugins = wp_allstars_get_pro_plugins_config();
+                            // Sort plugins alphabetically by name
+                            uasort($pro_plugins, function($a, $b) {
+                                return strcmp($a['name'], $b['name']);
+                            });
                             foreach ($pro_plugins as $plugin) {
                                 ?>
                                 <div class="wpa-pro-plugin">
