@@ -84,6 +84,41 @@
     .plugin-card:nth-child(even) {
         margin: 0 0 16px 0;
     }
+    
+    /* Mobile fixes to override WordPress defaults */
+    .plugin-card-top {
+        display: block;
+        padding: 20px;
+        position: relative;
+        min-height: 135px;
+    }
+    
+    .plugin-icon {
+        position: absolute;
+        top: 20px;
+        left: 20px;
+        width: 128px;
+        height: 128px;
+    }
+    
+    .name.column-name {
+        margin-left: 148px;
+    }
+    
+    .action-links {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+    }
+    
+    /* Ensure plugin descriptions are properly displayed */
+    .plugin-card-bottom {
+        clear: both;
+        padding: 12px 20px;
+        background-color: #f6f7f7;
+        overflow: hidden;
+        text-align: left;
+    }
 }
 
 
