@@ -626,7 +626,7 @@ function wp_allstars_settings_page() {
                 if ($("#wpa-plugin-list").length && $("#wpa-plugin-list").is(":empty")) {
                     var category = "' . esc_js($active_category) . '";
                     var $container = $("#wpa-plugin-list");
-                    var $loadingOverlay = $("<div class=\"wp-allstars-loading-overlay\"><div style=\"display: flex; align-items: center; justify-content: center;\"><span class=\"spinner is-active\" style=\"margin-right: 10px;\"></span><p>Loading plugins...</p></div></div>");
+                    var $loadingOverlay = $("<div class=\"wp-allstars-loading-overlay\"><div style=\"display: flex; flex-direction: column; align-items: center; justify-content: center;\"><p style=\"margin-bottom: 50px;\">Loading plugins...</p><span class=\"spinner is-active\"></span></div></div>");
                     
                     // Show loading overlay
                     $container.css("position", "relative").append($loadingOverlay);
