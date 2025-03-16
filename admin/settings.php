@@ -742,33 +742,46 @@ function wp_allstars_settings_page() {
 
                     <script>
                     jQuery(document).ready(function($) {
-                        // Initialize accordion functionality
-                        $('.wp-allstars-expand-settings').each(function() {
-                            var $button = $(this);
-                            var $panel = $button.closest('.wp-allstars-toggle').find('.wp-allstars-toggle-settings');
+                        // Handle accordion functionality
+                        $('.wp-allstars-toggle').each(function() {
+                            var $toggle = $(this);
+                            var $button = $toggle.find('.wp-allstars-expand-settings');
+                            var $panel = $toggle.find('.wp-allstars-toggle-settings');
                             var $icon = $button.find('.dashicons');
                             
                             // Set initial state
                             var isExpanded = $button.attr('aria-expanded') === 'true';
                             $panel.toggle(isExpanded);
-                            $icon.toggleClass('dashicons-arrow-up-alt2', isExpanded)
-                                 .toggleClass('dashicons-arrow-down-alt2', !isExpanded);
+                            updateIconState($icon, isExpanded);
                             
                             // Handle click events
                             $button.on('click', function(e) {
                                 e.preventDefault();
                                 e.stopPropagation();
                                 
+                                // Toggle state
                                 isExpanded = !isExpanded;
+                                
+                                // Update ARIA state
                                 $button.attr('aria-expanded', isExpanded);
                                 
-                                // Update icon classes
-                                $icon.removeClass('dashicons-arrow-up-alt2 dashicons-arrow-down-alt2')
-                                     .addClass(isExpanded ? 'dashicons-arrow-up-alt2' : 'dashicons-arrow-down-alt2');
+                                // Update icon before animation
+                                updateIconState($icon, isExpanded);
                                 
                                 // Animate panel
-                                $panel.slideToggle(200);
+                                $panel.stop().slideToggle({
+                                    duration: 200,
+                                    queue: false
+                                });
                             });
+                            
+                            // Helper function to update icon state
+                            function updateIconState($icon, expanded) {
+                                $icon
+                                    .removeClass('dashicons-arrow-up-alt2 dashicons-arrow-down-alt2')
+                                    .addClass(expanded ? 'dashicons-arrow-up-alt2' : 'dashicons-arrow-down-alt2')
+                                    .css('transform', expanded ? 'rotate(180deg)' : 'rotate(0deg)');
+                            }
                         });
                     });
                     </script>
@@ -779,7 +792,6 @@ function wp_allstars_settings_page() {
                         border: 1px solid #ccd0d4;
                         border-radius: 4px;
                         margin-bottom: 15px;
-                        overflow: hidden;
                     }
 
                     .wp-allstars-toggle-header {
@@ -830,16 +842,13 @@ function wp_allstars_settings_page() {
                     }
 
                     .wp-allstars-expand-settings .dashicons {
-                        transition: transform 0.2s ease;
                         display: block;
                         width: 16px;
                         height: 16px;
                         font-size: 16px;
                         line-height: 16px;
-                    }
-
-                    .wp-allstars-expand-settings .dashicons-arrow-up-alt2 {
-                        transform: rotate(180deg);
+                        transition: transform 0.2s ease;
+                        transform-origin: center;
                     }
 
                     .wp-allstars-toggle-settings {
