@@ -57,3 +57,11 @@ $RECYCLE.BIN/
 .DS_Store
 .gitignore
 .woodpecker.yml
+
+# Exclude Reference Files
+.git_status_output.txt
+.git_status_temp.txt
+
+# Exclude Project Files
+project documents
+reference plugins

@@ -106,6 +106,7 @@ function wp_allstars_get_recommended_plugins() {
             'woo-stripe-payment'
         ),
         'lms' => array(
+            'lifterlms',
             'tutor'
         ),
         'media' => array(
