@@ -161,11 +161,11 @@ jQuery(document).ready(function($) {
         
         $.ajax({
             url: ajaxurl,
-            type: 'POST',
+            type: 'GET',
             data: {
                 action: 'wp_allstars_get_plugins',
                 category: category || 'minimal',
-                security: wpAllstars.nonce
+                _ajax_nonce: wpAllstars.nonce
             },
             success: function(response) {
                 if (response.success) {
@@ -196,10 +196,10 @@ jQuery(document).ready(function($) {
         
         $.ajax({
             url: ajaxurl,
-            type: 'POST',
+            type: 'GET',
             data: {
                 action: 'wp_allstars_get_theme',
-                security: wpAllstars.nonce
+                _ajax_nonce: wpAllstars.nonce
             },
             success: function(response) {
                 if (response.success) {
@@ -264,7 +264,7 @@ jQuery(document).ready(function($) {
                 data: {
                     action: 'wp_allstars_activate_theme',
                     theme: slug,
-                    security: wpAllstars.nonce
+                    _ajax_nonce: wpAllstars.nonce
                 },
                 success: function(response) {
                     if (response.success) {

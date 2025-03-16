@@ -672,8 +672,8 @@ function wp_allstars_settings_page() {
                                         </div>
                                         <label for="wp_allstars_auto_upload_images">
                                             <?php esc_html_e('Enable Auto Upload Images', 'wp-allstars'); ?>
-                                        </label>
-                                    </div>
+                    </label>
+                </div>
                                 </div>
                                 <p class="wp-setting-description">
                                     <?php esc_html_e('Import images that have external URLs into your Media Library when saving. Consider disabling during large data imports with many external image URLs.', 'wp-allstars'); ?>
@@ -681,25 +681,22 @@ function wp_allstars_settings_page() {
                             </div>
                             <div class="wp-allstars-toggle-settings">
                                 <div class="wp-allstars-setting-row">
-                                    <label for="wp_max_width"><?php esc_html_e('Max Width', 'wp-allstars'); ?></label>
+                                    <label for="wp_allstars_max_width"><?php esc_html_e('Max Width', 'wp-allstars'); ?></label>
                                     <input type="number" 
-                                           id="wp_max_width"
-                                           name="wp_max_width"
-                                           value="<?php echo esc_attr(get_option('wp_allstars_max_width', 1920)); ?>"
-                                           min="0"
+                                           id="wp_allstars_max_width"
+                                           name="wp_allstars_max_width" 
+                                           value="<?php echo esc_attr(get_option('wp_allstars_max_width', 2560)); ?>" 
                                     />
-                                    <p class="description"><?php esc_html_e('Maximum width of uploaded images (px). Leave empty for no limit.', 'wp-allstars'); ?></p>
+                                    <p class="description"><?php esc_html_e('Maximum width for uploaded images in pixels.', 'wp-allstars'); ?></p>
                                 </div>
-
                                 <div class="wp-allstars-setting-row">
-                                    <label for="wp_max_height"><?php esc_html_e('Max Height', 'wp-allstars'); ?></label>
+                                    <label for="wp_allstars_max_height"><?php esc_html_e('Max Height', 'wp-allstars'); ?></label>
                                     <input type="number" 
-                                           id="wp_max_height"
-                                           name="wp_max_height"
-                                           value="<?php echo esc_attr(get_option('wp_allstars_max_height', 1080)); ?>"
-                                           min="0"
+                                           id="wp_allstars_max_height"
+                                           name="wp_allstars_max_height" 
+                                           value="<?php echo esc_attr(get_option('wp_allstars_max_height', 2560)); ?>" 
                                     />
-                                    <p class="description"><?php esc_html_e('Maximum height of uploaded images (px). Leave empty for no limit.', 'wp-allstars'); ?></p>
+                                    <p class="description"><?php esc_html_e('Maximum height for uploaded images in pixels.', 'wp-allstars'); ?></p>
                                 </div>
 
                                 <div class="wp-allstars-setting-row">
@@ -973,8 +970,8 @@ function wp_allstars_settings_page() {
                                             </div>
                                             <label for="wp_allstars_simple_setting" class="wp-setting-label">
                                                 <?php esc_html_e('Example: Simple Toggle', 'wp-allstars'); ?>
-                                            </label>
-                                        </div>
+                    </label>
+                </div>
                                     </div>
                                     <p class="wp-setting-description">
                                         <?php esc_html_e('This is an example of a simple toggle setting without an expandable panel. Currently for demonstration purposes only.', 'wp-allstars'); ?>
@@ -1002,7 +999,7 @@ function wp_allstars_settings_page() {
                                             </div>
                                             <label for="wp_allstars_auto_upload_images">
                                                 <?php esc_html_e('Example: Expandable Panel', 'wp-allstars'); ?>
-                                            </label>
+                    </label>
                                         </div>
                                     </div>
                                     <p class="wp-setting-description">
@@ -1022,8 +1019,8 @@ function wp_allstars_settings_page() {
                                 </div>
                             </div>
                         </div>
-                    </div>
-                <?php endif; ?>
+                </div>
+            <?php endif; ?>
             </div>
         </div>
     </div>
