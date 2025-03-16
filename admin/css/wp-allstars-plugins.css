@@ -64,8 +64,26 @@
     }
 }
 
-/* Responsive behavior */
-@media screen and (max-width: 1260px) {
+/* Responsive behavior - only change layout below 1086px and above 768px */
+@media screen and (max-width: 1086px) and (min-width: 769px) {
+    /* Keep the desktop layout in this range */
+    .plugin-card {
+        width: calc(50% - 16px);
+        margin: 0 8px 16px;
+    }
+    
+    /* Maintain consistent edge alignment */
+    .plugin-card:nth-child(even) {
+        margin-right: 0;
+    }
+    
+    .plugin-card:nth-child(odd) {
+        margin-left: 0;
+    }
+}
+
+/* Full width layout only below 768px */
+@media screen and (max-width: 768px) {
     .plugin-card {
         width: 100%;
         margin: 0 0 16px 0;
@@ -73,7 +91,7 @@
 }
 
 /* Mobile styles - now working with correct positioning */
-@media screen and (max-width: 782px) {
+@media screen and (max-width: 768px) {
     body.wp-admin .wp-list-table.plugin-install #the-list .plugin-card {
         border: 1px solid #dcdcde !important;
         width: 100% !important;
