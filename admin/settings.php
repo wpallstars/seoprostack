@@ -752,7 +752,8 @@ function wp_allstars_settings_page() {
                                 // Set initial state
                                 var isExpanded = $button.attr('aria-expanded') === 'true';
                                 $panel.toggle(isExpanded);
-                                updateIconState($icon, isExpanded);
+                                $icon.toggleClass('dashicons-arrow-up-alt2', isExpanded)
+                                     .toggleClass('dashicons-arrow-down-alt2', !isExpanded);
                                 
                                 // Handle click events
                                 $button.off('click').on('click', function(e) {
@@ -762,19 +763,14 @@ function wp_allstars_settings_page() {
                                     isExpanded = !isExpanded;
                                     $button.attr('aria-expanded', isExpanded);
                                     
-                                    // Update icon state
-                                    updateIconState($icon, isExpanded);
+                                    // Update icon classes
+                                    $icon.removeClass('dashicons-arrow-up-alt2 dashicons-arrow-down-alt2')
+                                         .addClass(isExpanded ? 'dashicons-arrow-up-alt2' : 'dashicons-arrow-down-alt2');
                                     
                                     // Animate panel
                                     $panel.slideToggle(200);
                                 });
                             });
-                        }
-                        
-                        function updateIconState($icon, isExpanded) {
-                            $icon.removeClass('dashicons-arrow-up-alt2 dashicons-arrow-down-alt2')
-                                 .addClass(isExpanded ? 'dashicons-arrow-up-alt2' : 'dashicons-arrow-down-alt2')
-                                 .css('transform', isExpanded ? 'rotate(180deg)' : 'rotate(0deg)');
                         }
                         
                         // Initialize on page load
@@ -845,6 +841,10 @@ function wp_allstars_settings_page() {
                         height: 16px;
                         font-size: 16px;
                         line-height: 16px;
+                    }
+
+                    .wp-allstars-expand-settings .dashicons-arrow-up-alt2 {
+                        transform: rotate(180deg);
                     }
 
                     .wp-allstars-toggle-settings {
