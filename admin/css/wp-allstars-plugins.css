@@ -253,6 +253,37 @@ body.wp-admin .plugin-card-bottom .compatibility-untested *,
     color: #000 !important;
 }
 
+/* Loading overlay styling */
+.wp-allstars-loading-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.9);
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 200px;
+}
+
+.wp-allstars-loading-container {
+    text-align: center;
+    padding: 20px;
+}
+
+.wp-allstars-loading-container p {
+    font-size: 16px;
+    margin-bottom: 60px;
+}
+
+.wp-allstars-loading-container .spinner {
+    float: none;
+    margin: 0 auto;
+    display: block;
+}
+
 
 .plugin-card:hover {
     border-color: #999;

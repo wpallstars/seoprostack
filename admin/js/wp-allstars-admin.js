@@ -155,7 +155,7 @@ jQuery(document).ready(function($) {
     // Function to load plugins
     function loadPlugins(category) {
         var $container = $('#wpa-plugin-list');
-        var $loadingOverlay = $('<div class="wp-allstars-loading-overlay"><div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; display: flex; flex-direction: column; align-items: center; justify-content: center;"><p style="margin-top: 0;">Loading plugins...</p><span class="spinner is-active" style="margin-top: 50px;"></span></div></div>');
+        var $loadingOverlay = $('<div class="wp-allstars-loading-overlay"><div class="wp-allstars-loading-container"><p>Loading plugins...</p><span class="spinner is-active"></span></div></div>');
         
         // Show loading overlay
         $container.css('position', 'relative').append($loadingOverlay);
