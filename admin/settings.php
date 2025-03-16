@@ -1008,6 +1008,83 @@ function wp_allstars_settings_page() {
                     </div>
                 <?php elseif ($active_tab == 'hosting'): ?>
                     <div class="tab-content" id="hosting">
+                        <style>
+                        .wpa-pro-plugins {
+                            padding: 20px;
+                            display: grid;
+                            grid-template-columns: repeat(auto-fill, minmax(450px, 1fr));
+                            gap: 24px;
+                            max-width: 1920px;
+                            margin: 0 auto;
+                        }
+                        .wpa-pro-plugin {
+                            background: #fff;
+                            border: 1px solid #ddd;
+                            padding: 24px;
+                            border-radius: 8px;
+                            display: flex;
+                            flex-direction: column;
+                            transition: all 0.2s ease;
+                            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+                        }
+                        .wpa-pro-plugin:hover {
+                            border-color: #2271b1;
+                            box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+                        }
+                        .wpa-pro-plugin h3 {
+                            margin: 0 0 12px;
+                            font-size: 16px;
+                            font-weight: 600;
+                            color: #1d2327;
+                            line-height: 1.4;
+                        }
+                        .wpa-pro-plugin p {
+                            margin: 0 0 16px;
+                            color: #50575e;
+                            font-size: 14px;
+                            line-height: 1.6;
+                            min-height: 80px;
+                        }
+                        .wpa-pro-plugin .button-group {
+                            display: flex;
+                            flex-wrap: wrap;
+                            gap: 8px;
+                            margin-top: auto;
+                        }
+                        .wpa-pro-plugin .button {
+                            text-decoration: none;
+                            min-width: 120px;
+                            text-align: center;
+                            height: 30px;
+                            line-height: 28px;
+                            padding: 0 12px;
+                            font-size: 13px;
+                            font-weight: normal;
+                            margin: 0;
+                            border: 1px solid #0071a1 !important;
+                            border-radius: 3px !important;
+                            background: #f6f7f7;
+                            color: #0071a1;
+                            display: inline-block;
+                            vertical-align: top;
+                            box-shadow: none;
+                            cursor: pointer;
+                        }
+                        .wpa-pro-plugin .button:hover {
+                            background: #f0f0f1;
+                            border-color: #0071a1;
+                            color: #0071a1;
+                        }
+                        .wpa-pro-plugin .button.button-primary {
+                            background: #2271b1;
+                            border-color: #2271b1 !important;
+                            color: #fff;
+                        }
+                        .wpa-pro-plugin .button.button-primary:hover {
+                            background: #135e96;
+                            border-color: #135e96 !important;
+                        }
+                        </style>
                         <div class="wpa-pro-plugins">
                             <?php
                             $hosting_providers = wp_allstars_get_hosting_providers();
