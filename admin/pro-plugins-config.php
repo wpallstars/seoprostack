@@ -223,13 +223,13 @@ function wp_allstars_get_pro_plugins_config() {
             'description' => 'Advanced content optimization and SEO tool for WordPress.',
             'button_group' => array(
                 array(
-                    'text' => 'Go Pro',
-                    'url' => 'https://revive.so/pricing/',
+                    'text' => 'Home Page',
+                    'url' => 'https://revive.so/',
                     'primary' => true
                 ),
                 array(
-                    'text' => 'Home Page',
-                    'url' => 'https://revive.so/'
+                    'text' => 'Pricing',
+                    'url' => 'https://revive.so/pricing/'
                 )
             ),
             'free_slug' => 'revive-so'

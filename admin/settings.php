@@ -265,6 +265,39 @@ function wp_allstars_get_tools() {
                 )
             )
         ),
+        'cloudron' => array(
+            'name' => 'Cloudron',
+            'description' => 'Self-hosted platform that makes it easy to run web applications like WordPress on your server.',
+            'button_group' => array(
+                array(
+                    'text' => 'Home Page',
+                    'url' => 'https://www.cloudron.io/',
+                    'primary' => true
+                )
+            )
+        ),
+        'urlmonitor' => array(
+            'name' => 'URL Monitor',
+            'description' => 'Website monitoring service that tracks uptime, performance, and alerts you to issues.',
+            'button_group' => array(
+                array(
+                    'text' => 'Home Page',
+                    'url' => 'https://urlmonitor.com/',
+                    'primary' => true
+                )
+            )
+        ),
+        'speedyindex' => array(
+            'name' => 'Speedy Index',
+            'description' => 'Tool for monitoring website indexing speed and performance in search engines.',
+            'button_group' => array(
+                array(
+                    'text' => 'Home Page',
+                    'url' => 'https://en.speedyindex.com/',
+                    'primary' => true
+                )
+            )
+        ),
         'windsurf' => array(
             'name' => 'Codeium Windsurf',
             'description' => 'AI-powered IDE with advanced code completion and generation capabilities.',
