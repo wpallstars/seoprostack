@@ -627,7 +627,7 @@ function wp_allstars_settings_page() {
                 if ($("#wpa-plugin-list").length && $("#wpa-plugin-list").is(":empty")) {
                     var category = "' . esc_js($active_category) . '";
                     var $container = $("#wpa-plugin-list");
-                    var $loadingOverlay = $("<div class=\"wp-allstars-loading-overlay\"><span class=\"spinner is-active\"></span></div>");
+                    var $loadingOverlay = $("<div class=\"wp-allstars-loading-overlay\"><span class=\"spinner is-active\"></span><p>Loading plugins...</p></div>");
                     
                     // Show loading overlay
                     $container.css("position", "relative").append($loadingOverlay);
@@ -649,6 +649,14 @@ function wp_allstars_settings_page() {
                                 if (typeof initPluginActions === "function") {
                                     initPluginActions();
                                 }
+                                
+                                // Show standard WordPress spinner in each plugin card
+                                $(".plugin-card .plugin-spinner").addClass("is-active").show();
+                                
+                                // Hide spinners after all plugin details have loaded
+                                setTimeout(function() {
+                                    $(".plugin-card .plugin-spinner").removeClass("is-active").hide();
+                                }, 1000);
                             } else {
                                 $container.html("<div class=\"notice notice-error\"><p>" + response.data + "</p></div>");
                             }

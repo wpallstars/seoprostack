@@ -1,3 +1,6 @@
+// Define loadTheme in the global scope so it can be called from inline scripts
+var loadTheme;
+
 jQuery(document).ready(function($) {
     // Function to show notification
     function showNotification(message, $element, isError = false) {
@@ -20,6 +23,7 @@ jQuery(document).ready(function($) {
             $notification.fadeOut(300, function() {
                 $(this).remove();
             });
+
         }, 2000);
     }
 
@@ -40,6 +44,7 @@ jQuery(document).ready(function($) {
             }
             return response;
         });
+
     }
 
     // Handle toggle switch clicks
@@ -50,10 +55,12 @@ jQuery(document).ready(function($) {
         $checkbox.prop('checked', !isChecked).trigger('change');
     });
 
+
     // Prevent label clicks from toggling the checkbox directly
     $('.wp-setting-label, .wp-allstars-toggle-left label').on('click', function(e) {
         e.stopPropagation();
     });
+
 
     // Handle checkbox changes
     $('.wp-toggle-switch input[type="checkbox"]').on('change', function(e) {
@@ -70,7 +77,9 @@ jQuery(document).ready(function($) {
             .catch(function() {
                 showNotification('Error saving settings', $label, true);
             });
+
     });
+
 
     // Handle text input changes
     $('.wp-allstars-setting-row input[type="text"], .wp-allstars-setting-row input[type="number"], .wp-allstars-setting-row textarea').on('change', function() {
@@ -87,7 +96,9 @@ jQuery(document).ready(function($) {
                 console.error('Error:', error);
                 showNotification('Error saving setting', $label, true);
             });
+
     });
+
 
     // Toggle expandable panels
     $('.wp-allstars-toggle-header').on('click', function(e) {
@@ -101,6 +112,7 @@ jQuery(document).ready(function($) {
         }
     });
 
+
     // Set initial panel states
     $('.wp-allstars-toggle-header').each(function() {
         var $settings = $(this).closest('.wp-allstars-toggle').find('.wp-allstars-toggle-settings');
@@ -110,6 +122,7 @@ jQuery(document).ready(function($) {
             $settings.hide();
         }
     });
+
 
     // Remove JavaScript-based tab switching - let the native WordPress tab links work
     
@@ -126,6 +139,7 @@ jQuery(document).ready(function($) {
             // Load plugins for the selected category
             loadPlugins(category);
         });
+
         
         // Load initial plugins if we're on the recommended tab
         if ($('#recommended').is(':visible') && $('#wpa-plugin-list').is(':empty')) {
@@ -141,7 +155,7 @@ jQuery(document).ready(function($) {
     // Function to load plugins
     function loadPlugins(category) {
         var $container = $('#wpa-plugin-list');
-        var $loadingOverlay = $('<div class="wp-allstars-loading-overlay"><span class="spinner is-active"></span></div>');
+        var $loadingOverlay = $('<div class="wp-allstars-loading-overlay"><span class="spinner is-active"></span><p>Loading plugins...</p></div>');
         
         // Show loading overlay
         $container.css('position', 'relative').append($loadingOverlay);
@@ -168,6 +182,14 @@ jQuery(document).ready(function($) {
                     
                     // Initialize plugin action buttons
                     initPluginActions();
+                    
+                    // Show standard WordPress spinner in each plugin card
+                    $('.plugin-card .plugin-spinner').addClass('is-active').show();
+                    
+                    // Hide spinners after all plugin details have loaded
+                    setTimeout(function() {
+                        $('.plugin-card .plugin-spinner').removeClass('is-active').hide();
+                    }, 1000);
                 } else {
                     // Show error message
                     $container.html('<div class="notice notice-error"><p>' + response.data + '</p></div>');
@@ -182,17 +204,20 @@ jQuery(document).ready(function($) {
                 console.error('AJAX Error:', xhr.responseText);
             }
         });
+
     }
     
     // Function to load themes
-    function loadTheme() {
+    loadTheme = function() {
         var $container = $('#wpa-theme-list');
         
-        // Clear existing themes and show loading message
-        $container.empty().html('<div class="wp-allstars-loading-overlay"><span class="spinner is-active"></span><p>Loading themes...</p></div>');
-        var $loadingOverlay = $container.find('.wp-allstars-loading-overlay');
+        // Create loading overlay with clear visual indicator
+        var loadingHTML = '<div class="wp-allstars-loading-overlay" id="theme-loading-overlay"><span class="spinner is-active"></span><p>Loading themes...</p></div>';
         
-        // Ensure container has proper positioning for overlay
+        // Clear existing content and add loading overlay
+        $container.empty().html(loadingHTML);
+        
+        // Ensure container has relative positioning for the overlay
         $container.css('position', 'relative');
         
         // AJAX request to get themes
@@ -205,7 +230,7 @@ jQuery(document).ready(function($) {
             },
             success: function(response) {
                 if (response.success) {
-                    // Replace all content (including loading overlay) with new HTML
+                    // Replace all content with new HTML
                     $container.html(response.data);
                     
                     // Initialize theme action buttons
@@ -219,12 +244,9 @@ jQuery(document).ready(function($) {
                 // Show error message
                 $container.html('<div class="notice notice-error"><p>Failed to load themes. Please try again. Error: ' + error + '</p></div>');
                 console.error('AJAX Error:', xhr.responseText);
-            },
-            complete: function() {
-                // Ensure the loading overlay is removed in all cases
-                $loadingOverlay.remove();
             }
         });
+
     }
     
     // Initialize plugin action buttons
@@ -253,7 +275,9 @@ jQuery(document).ready(function($) {
                     alert(response.errorMessage);
                 }
             });
+
         });
+
         
         // Update plugin
         $('.plugin-card .update-now').on('click', function(e) {
@@ -278,7 +302,9 @@ jQuery(document).ready(function($) {
                     alert(response.errorMessage);
                 }
             });
+
         });
+
         
         // Activate plugin
         $('.plugin-card .activate-now').on('click', function(e) {
@@ -304,7 +330,9 @@ jQuery(document).ready(function($) {
                     alert('Failed to activate plugin. Please try again or activate from the Plugins page.');
                 }
             });
+
         });
+
     }
     
     // Initialize theme handlers
@@ -334,7 +362,9 @@ jQuery(document).ready(function($) {
                     alert(response.errorMessage);
                 }
             });
+
         });
+
         
         // Activate theme
         $('.theme-browser .theme-actions .activate-now').on('click', function(e) {
@@ -362,6 +392,8 @@ jQuery(document).ready(function($) {
                     alert('Failed to activate theme. Please try again or activate from the Themes page.');
                 }
             });
+
         });
+
     }
 });
