@@ -34,11 +34,39 @@ jQuery(document).ready(function($) {
     // Handle toggle switch clicks
     $('.wp-toggle-switch').on('click', function(e) {
         e.stopPropagation();
+        var $checkbox = $(this).find('input[type="checkbox"]');
+        var isChecked = $checkbox.is(':checked');
+        
+        $checkbox.prop('checked', !isChecked).trigger('change');
     });
 
     // Handle checkbox changes
     $('.wp-toggle-switch input[type="checkbox"]').on('change', function(e) {
         e.stopPropagation();
+        var $input = $(this);
+        var option = $input.attr('name');
+        var value = $input.is(':checked') ? 1 : 0;
+        
+        $.ajax({
+            url: ajaxurl,
+            type: 'POST',
+            data: {
+                action: 'wp_allstars_update_option',
+                option: option,
+                value: value,
+                _wpnonce: wpAllstars.nonce
+            },
+            success: function(response) {
+                if (response.success) {
+                    showNotification('Saved');
+                } else {
+                    showNotification('Error saving settings', true);
+                }
+            },
+            error: function() {
+                showNotification('Error saving settings', true);
+            }
+        });
     });
 
     // Handle panel toggle
