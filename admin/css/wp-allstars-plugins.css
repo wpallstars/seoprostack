@@ -85,45 +85,47 @@
     /* Card top section with proper positioning */
     body.wp-admin .wp-list-table.plugin-install #the-list .plugin-card .plugin-card-top {
         display: block !important;
-        min-height: 150px !important;
+        min-height: 100px !important;
         position: relative !important;
         padding: 20px !important;
         overflow: hidden !important;
     }
     
-    /* Move plugin icon to the right side */
+    /* Place plugin icon on the left of the plugin name */
     body.wp-admin .plugin-card .plugin-icon {
-        position: absolute !important;
-        top: 15px !important;
-        right: 15px !important;
+        position: relative !important;
+        float: left !important;
+        top: auto !important;
+        right: auto !important;
         left: auto !important;
-        margin: 0 !important;
-        width: 100px !important;
-        height: 100px !important;
+        margin: 0 20px 0 0 !important;
+        width: 64px !important;
+        height: 64px !important;
         z-index: 1 !important;
     }
     
-    /* Keep name and description on the left */
+    /* Position name next to the icon */
     body.wp-admin .plugin-card .name.column-name {
-        margin-left: 20px !important;
-        margin-right: 120px !important;
+        margin-left: 0 !important;
+        margin-right: 0 !important;
         margin-bottom: 10px !important;
-        margin-top: 5px !important;
+        margin-top: 0 !important;
         text-align: left !important;
-        display: block !important;
-        width: auto !important;
-        max-width: 65% !important;
+        display: inline-block !important;
+        width: calc(100% - 90px) !important;
+        max-width: none !important;
+        vertical-align: top !important;
     }
     
     body.wp-admin .plugin-card .name.column-name h3 {
         margin-bottom: 5px !important;
     }
     
-    /* Fix action buttons positioning to stay in top-right, stacked vertically */
+    /* Position action buttons to the right of plugin name */
     body.wp-admin .plugin-card .action-links {
         position: absolute !important;
         top: 20px !important;
-        right: 15px !important;
+        right: 20px !important;
         z-index: 2 !important;
         display: flex !important;
         flex-direction: column !important;
@@ -144,10 +146,12 @@
         padding: 15px 20px !important;
         margin-top: 0 !important;
         text-align: left !important;
-        margin-left: 20px !important;
-        margin-right: 120px !important;
-        max-width: 65% !important;
-        clear: left !important;
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+        max-width: none !important;
+        clear: both !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
     }
     
     /* Remove excessive spacing between elements */
@@ -159,10 +163,14 @@
         margin-left: 0 !important;
     }
     
-    /* Fix compatibility check positioning */
+    /* Fix compatibility check positioning and width */
     body.wp-admin .plugin-card .compatibility-compatible {
         margin-top: 8px !important;
         margin-bottom: 0 !important;
+        padding: 20px !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
+        text-align: center !important;
     }
 }
 
