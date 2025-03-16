@@ -742,55 +742,28 @@ function wp_allstars_settings_page() {
 
                     <script>
                     jQuery(document).ready(function($) {
-                        // Initialize accordion functionality
-                        function initAccordion() {
-                            const $button = $('.wp-allstars-expand-settings');
-                            const $settings = $('.wp-allstars-toggle-settings');
-                            let isAnimating = false;
-
-                            $button.on('click', function(e) {
-                                e.preventDefault();
-                                e.stopPropagation();
-
-                                // Prevent multiple clicks during animation
-                                if (isAnimating) return;
-
-                                const $thisButton = $(this);
-                                const isExpanded = $thisButton.attr('aria-expanded') === 'true';
-                                
-                                // Set animating flag
-                                isAnimating = true;
-
-                                // Toggle aria state
-                                $thisButton.attr('aria-expanded', !isExpanded);
-
-                                // Toggle icon rotation
-                                $thisButton.find('.dashicons')
-                                    .toggleClass('dashicons-arrow-down-alt2', isExpanded)
-                                    .toggleClass('dashicons-arrow-up-alt2', !isExpanded);
-
-                                // Animate panel
-                                $settings.slideToggle({
-                                    duration: 200,
-                                    complete: function() {
-                                        isAnimating = false;
-                                    }
-                                });
-                            });
-
-                            // Prevent panel closing when clicking inside
-                            $settings.on('click', function(e) {
-                                e.stopPropagation();
-                            });
-                        }
-
-                        // Initialize accordion
-                        initAccordion();
+                        $('.wp-allstars-expand-settings').on('click', function() {
+                            var $button = $(this);
+                            var $panel = $button.closest('.wp-allstars-toggle').find('.wp-allstars-toggle-settings');
+                            var isExpanded = $button.attr('aria-expanded') === 'true';
+                            
+                            // Update button state
+                            $button.attr('aria-expanded', !isExpanded);
+                            
+                            // Toggle icon
+                            $button.find('.dashicons')
+                                .removeClass('dashicons-arrow-down-alt2 dashicons-arrow-up-alt2')
+                                .addClass(isExpanded ? 'dashicons-arrow-down-alt2' : 'dashicons-arrow-up-alt2');
+                            
+                            // Toggle panel
+                            $panel.slideToggle(200);
+                            
+                            return false;
+                        });
                     });
                     </script>
 
                     <style>
-                    /* Accordion Toggle Styles */
                     .wp-allstars-toggle {
                         background: #fff;
                         border: 1px solid #ccd0d4;
