@@ -17,7 +17,6 @@ add_action('admin_menu', 'wp_allstars_admin_menu');
 
 // Register settings
 function wp_allstars_register_settings() {
-    register_setting('wp-allstars-settings', 'wp_allstars_lazy_load');
     register_setting('wp-allstars-settings', 'wp_allstars_minify_css');
     register_setting('wp-allstars-settings', 'wp_allstars_minify_js');
 }
@@ -1190,61 +1189,48 @@ function wp_allstars_settings_page() {
                         ?>
                     </div>
                 <?php elseif ($active_tab == 'general'): ?>
-                <div class="wp-allstars-toggle">
-                        <label for="wp_allstars_lazy_load">
-                            <div class="wp-toggle-switch">
-                                <input type="checkbox" 
-                                       id="wp_allstars_lazy_load"
-                                       name="wp_allstars_lazy_load" 
-                                       value="1" 
-                                       <?php checked(get_option('wp_allstars_lazy_load', 1)); ?> 
-                                />
-                                <span class="wp-toggle-slider"></span>
-                            </div>
-                            <?php esc_html_e('Enable lazy loading for images', 'wp-allstars'); ?>
-                    </label>
-                        <p class="description">
-                            <?php esc_html_e('Improves page load time by loading images only when they enter the viewport.', 'wp-allstars'); ?>
-                        </p>
-                </div>
-
+                    <div class="wp-allstars-settings-section">
+                        <div class="wp-allstars-settings-grid">
+                            <!-- Lazy load toggle removed -->
+                        </div>
+                    </div>
                 <?php elseif ($active_tab == 'advanced'): ?>
-                <div class="wp-allstars-toggle">
-                        <label for="wp_allstars_minify_css">
-                            <div class="wp-toggle-switch">
-                                <input type="checkbox" 
-                                       id="wp_allstars_minify_css"
-                                       name="wp_allstars_minify_css" 
-                                       value="1" 
-                                       <?php checked(get_option('wp_allstars_minify_css', 0)); ?> 
-                                />
-                                <span class="wp-toggle-slider"></span>
-                            </div>
-                            <?php esc_html_e('Enable CSS minification', 'wp-allstars'); ?>
-                    </label>
-                        <p class="description">
-                            <?php esc_html_e('Minifies CSS files to reduce file size and improve load times.', 'wp-allstars'); ?>
-                        </p>
-                </div>
+                    <div class="wp-allstars-toggle">
+                            <label for="wp_allstars_minify_css">
+                                <div class="wp-toggle-switch">
+                                    <input type="checkbox" 
+                                           id="wp_allstars_minify_css"
+                                           name="wp_allstars_minify_css" 
+                                           value="1" 
+                                           <?php checked(get_option('wp_allstars_minify_css', 0)); ?> 
+                                    />
+                                    <span class="wp-toggle-slider"></span>
+                                </div>
+                                <?php esc_html_e('Enable CSS minification', 'wp-allstars'); ?>
+                        </label>
+                            <p class="description">
+                                <?php esc_html_e('Minifies CSS files to reduce file size and improve load times.', 'wp-allstars'); ?>
+                            </p>
+                    </div>
 
-                <div class="wp-allstars-toggle">
-                        <label for="wp_allstars_minify_js">
-                            <div class="wp-toggle-switch">
-                                <input type="checkbox" 
-                                       id="wp_allstars_minify_js"
-                                       name="wp_allstars_minify_js" 
-                                       value="1" 
-                                       <?php checked(get_option('wp_allstars_minify_js', 0)); ?> 
-                                />
-                                <span class="wp-toggle-slider"></span>
-                            </div>
-                            <?php esc_html_e('Enable JS minification', 'wp-allstars'); ?>
-                    </label>
-                        <p class="description">
-                            <?php esc_html_e('Minifies JavaScript files to reduce file size and improve load times.', 'wp-allstars'); ?>
-                        </p>
-                </div>
-            <?php endif; ?>
+                    <div class="wp-allstars-toggle">
+                            <label for="wp_allstars_minify_js">
+                                <div class="wp-toggle-switch">
+                                    <input type="checkbox" 
+                                           id="wp_allstars_minify_js"
+                                           name="wp_allstars_minify_js" 
+                                           value="1" 
+                                           <?php checked(get_option('wp_allstars_minify_js', 0)); ?> 
+                                    />
+                                    <span class="wp-toggle-slider"></span>
+                                </div>
+                                <?php esc_html_e('Enable JS minification', 'wp-allstars'); ?>
+                        </label>
+                            <p class="description">
+                                <?php esc_html_e('Minifies JavaScript files to reduce file size and improve load times.', 'wp-allstars'); ?>
+                            </p>
+                    </div>
+                <?php endif; ?>
             </div>
         </div>
     </div>
