@@ -72,6 +72,54 @@
     }
 }
 
+/* Explicit mobile styling to match desktop */
+@media screen and (max-width: 782px) {
+    /* Preserve the core plugin card layout on mobile */
+    .plugin-card {
+        width: 100%;
+        margin: 0 0 16px 0;
+        display: block;
+        position: relative;
+        box-sizing: border-box;
+    }
+    
+    /* Ensure plugin card top layout */
+    .plugin-card-top {
+        padding: 20px;
+        position: relative;
+        min-height: 135px;
+    }
+    
+    /* Plugin icon - absolute position like desktop */
+    .plugin-icon {
+        position: absolute;
+        top: 20px;
+        left: 20px;
+        width: 128px;
+        height: 128px;
+    }
+    
+    /* Plugin name - proper margin like desktop */
+    .name.column-name {
+        margin-left: 148px;
+    }
+    
+    /* Action links - absolute position like desktop */
+    .action-links {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+    }
+    
+    /* Plugin card bottom - standard styling */
+    .plugin-card-bottom {
+        clear: both;
+        padding: 12px 20px;
+        background-color: #f6f7f7;
+        overflow: hidden;
+    }
+}
+
 
 .plugin-card:hover {
     border-color: #999;
