@@ -135,33 +135,44 @@ input:checked + .wp-toggle-slider:before {
     transform: translateX(16px);
 }
 
-/* Simple Setting Row (No Panel) */
-.wp-setting-row {
-    display: flex;
-    align-items: center;
-    padding: 15px;
+/* Base Setting Styles (Shared between simple and expandable) */
+.wp-setting-base {
     background: #fff;
     border: 1px solid #ccc;
     border-radius: 8px;
     margin-bottom: 15px;
 }
 
-.wp-setting-row:hover {
+.wp-setting-base:hover {
     border-color: #2271b1;
     box-shadow: 0 2px 6px rgba(0,0,0,0.15);
 }
 
-.wp-setting-content {
-    flex-grow: 1;
-    margin-left: 10px;
+.wp-setting-header {
+    padding: 15px;
+    position: relative;
 }
 
-.wp-setting-title {
+.wp-setting-main {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-right: 15px;
+}
+
+.wp-setting-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.wp-setting-label {
     font-size: 16px;
     font-weight: 600;
     color: #1d2327;
-    margin: 0;
     line-height: 1.4;
+    margin: 0;
+    cursor: default;
 }
 
 .wp-setting-description {
@@ -171,23 +182,19 @@ input:checked + .wp-toggle-slider:before {
     line-height: 1.6;
 }
 
-/* Expandable Panel Component */
-.wp-allstars-toggle {
-    background: #fff;
-    border: 1px solid #ccc;
-    border-radius: 8px;
-    margin-bottom: 15px;
+/* Simple Setting Row (No Panel) */
+.wp-setting-row {
+    composes: wp-setting-base;
 }
 
-.wp-allstars-toggle:hover {
-    border-color: #2271b1;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+/* Expandable Panel Component */
+.wp-allstars-toggle {
+    composes: wp-setting-base;
 }
 
 .wp-allstars-toggle-header {
-    padding: 15px;
+    composes: wp-setting-header;
     cursor: pointer;
-    position: relative;
 }
 
 .wp-allstars-toggle-header::after {
@@ -208,29 +215,20 @@ input:checked + .wp-toggle-slider:before {
 }
 
 .wp-allstars-toggle-main {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding-right: 40px;
+    composes: wp-setting-main;
+    padding-right: 40px; /* Extra space for chevron */
 }
 
 .wp-allstars-toggle-left {
-    display: flex;
-    align-items: center;
-    gap: 10px;
+    composes: wp-setting-left;
 }
 
 .wp-allstars-toggle label {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin: 0;
-    font-size: 16px;
-    font-weight: 600;
-    color: #1d2327;
-    line-height: 1.4;
-    cursor: default;
-    pointer-events: none;
+    composes: wp-setting-label;
+}
+
+.wp-allstars-toggle .description {
+    composes: wp-setting-description;
 }
 
 .wp-allstars-expand-settings {
@@ -244,13 +242,6 @@ input:checked + .wp-toggle-slider:before {
     display: none;
     border-bottom-left-radius: 8px;
     border-bottom-right-radius: 8px;
-}
-
-.wp-allstars-toggle .description {
-    margin: 8px 0 0;
-    color: #50575e;
-    font-size: 14px;
-    line-height: 1.6;
 }
 
 .wp-allstars-setting-row {

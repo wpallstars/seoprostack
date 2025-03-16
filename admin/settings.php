@@ -959,18 +959,26 @@ function wp_allstars_settings_page() {
                         <div class="wp-allstars-settings-grid">
                             <!-- Example of a simple toggle setting (no panel) -->
                             <div class="wp-setting-row">
-                                <div class="wp-toggle-switch">
-                                    <input type="checkbox" 
-                                           id="wp_allstars_simple_setting"
-                                           name="wp_allstars_simple_setting" 
-                                           value="1"
-                                           <?php checked(get_option('wp_allstars_simple_setting', false)); ?> 
-                                    />
-                                    <span class="wp-toggle-slider"></span>
-                                </div>
-                                <div class="wp-setting-content">
-                                    <h4 class="wp-setting-title"><?php esc_html_e('Simple Toggle Setting', 'wp-allstars'); ?></h4>
-                                    <p class="wp-setting-description"><?php esc_html_e('This is an example of a simple toggle setting without an expandable panel.', 'wp-allstars'); ?></p>
+                                <div class="wp-setting-header">
+                                    <div class="wp-setting-main">
+                                        <div class="wp-setting-left">
+                                            <div class="wp-toggle-switch">
+                                                <input type="checkbox" 
+                                                       id="wp_allstars_simple_setting"
+                                                       name="wp_allstars_simple_setting" 
+                                                       value="1"
+                                                       <?php checked(get_option('wp_allstars_simple_setting', false)); ?> 
+                                                />
+                                                <span class="wp-toggle-slider"></span>
+                                            </div>
+                                            <label for="wp_allstars_simple_setting" class="wp-setting-label">
+                                                <?php esc_html_e('Simple Toggle Setting', 'wp-allstars'); ?>
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <p class="wp-setting-description">
+                                        <?php esc_html_e('This is an example of a simple toggle setting without an expandable panel.', 'wp-allstars'); ?>
+                                    </p>
                                 </div>
                             </div>
                         </div>
@@ -997,7 +1005,7 @@ function wp_allstars_settings_page() {
                                             </label>
                                         </div>
                                     </div>
-                                    <p class="description">
+                                    <p class="wp-setting-description">
                                         <?php esc_html_e('Import images that have external URLs into your Media Library when saving. Consider disabling during large data imports with many external image URLs.', 'wp-allstars'); ?>
                                     </p>
                                 </div>
