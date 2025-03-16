@@ -659,25 +659,27 @@ function wp_allstars_settings_page() {
                     <div class="wp-allstars-settings-content">
                         <div class="wp-allstars-toggle">
                             <div class="wp-allstars-toggle-header">
-                                <label for="wp_allstars_auto_upload_images">
-                                    <div class="wp-toggle-switch">
-                                        <input type="checkbox" 
-                                               id="wp_allstars_auto_upload_images"
-                                               name="wp_allstars_auto_upload_images" 
-                                               value="1"
-                                               <?php checked(get_option('wp_allstars_auto_upload_images', false)); ?> 
-                                        />
-                                        <span class="wp-toggle-slider"></span>
-                                    </div>
-                                    <?php esc_html_e('Enable Auto Upload Images', 'wp-allstars'); ?>
-                                </label>
-                                <button type="button" class="wp-allstars-expand-settings" aria-expanded="false">
-                                    <span class="dashicons dashicons-arrow-down-alt2"></span>
-                                </button>
+                                <div class="wp-allstars-toggle-main">
+                                    <label for="wp_allstars_auto_upload_images">
+                                        <div class="wp-toggle-switch">
+                                            <input type="checkbox" 
+                                                   id="wp_allstars_auto_upload_images"
+                                                   name="wp_allstars_auto_upload_images" 
+                                                   value="1"
+                                                   <?php checked(get_option('wp_allstars_auto_upload_images', false)); ?> 
+                                            />
+                                            <span class="wp-toggle-slider"></span>
+                                        </div>
+                                        <?php esc_html_e('Enable Auto Upload Images', 'wp-allstars'); ?>
+                                    </label>
+                                    <button type="button" class="wp-allstars-expand-settings" aria-expanded="false">
+                                        <span class="dashicons dashicons-arrow-down-alt2"></span>
+                                    </button>
+                                </div>
+                                <p class="description">
+                                    <?php esc_html_e('Import images that have external URLs into your Media Library when saving. Consider disabling during large data imports with many external image URLs.', 'wp-allstars'); ?>
+                                </p>
                             </div>
-                            <p class="description">
-                                <?php esc_html_e('Import images that have external URLs into your Media Library when saving. Consider disabling during large data imports with many external image URLs.', 'wp-allstars'); ?>
-                            </p>
                             <div class="wp-allstars-toggle-settings" style="display: none;">
                                 <div class="wp-allstars-setting-row">
                                     <label for="wp_max_width"><?php esc_html_e('Max Width', 'wp-allstars'); ?></label>
@@ -738,12 +740,32 @@ function wp_allstars_settings_page() {
                         </div>
                     </div>
 
+                    <style>
+                    .wp-allstars-toggle-main {
+                        display: flex;
+                        flex-direction: column;
+                        align-items: flex-start;
+                        gap: 8px;
+                    }
+                    .wp-allstars-expand-settings {
+                        background: none;
+                        border: none;
+                        padding: 4px;
+                        cursor: pointer;
+                        color: #2271b1;
+                    }
+                    .wp-allstars-expand-settings:hover {
+                        color: #135e96;
+                    }
+                    .wp-allstars-expand-settings:focus {
+                        outline: 1px solid #2271b1;
+                        box-shadow: none;
+                    }
+                    </style>
+
                     <script>
                     jQuery(document).ready(function($) {
-                        $('.wp-allstars-expand-settings').on('click', function(e) {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            
+                        $('.wp-allstars-expand-settings').on('click', function() {
                             var $button = $(this);
                             var $settings = $button.closest('.wp-allstars-toggle').find('.wp-allstars-toggle-settings');
                             var isExpanded = $button.attr('aria-expanded') === 'true';
@@ -753,8 +775,8 @@ function wp_allstars_settings_page() {
                             
                             // Toggle icon
                             $button.find('.dashicons')
-                                .toggleClass('dashicons-arrow-down-alt2', isExpanded)
-                                .toggleClass('dashicons-arrow-up-alt2', !isExpanded);
+                                .removeClass(isExpanded ? 'dashicons-arrow-up-alt2' : 'dashicons-arrow-down-alt2')
+                                .addClass(isExpanded ? 'dashicons-arrow-down-alt2' : 'dashicons-arrow-up-alt2');
                             
                             // Toggle settings panel with animation
                             $settings.slideToggle(200);
