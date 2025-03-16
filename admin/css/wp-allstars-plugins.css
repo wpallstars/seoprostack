@@ -225,6 +225,10 @@ body.wp-admin .wp-list-table.plugin-install #the-list .plugin-card .action-links
     text-align: center !important;
     margin-top: 5px !important;
     margin-bottom: 5px !important;
+    height: 30px !important;
+    line-height: 28px !important;
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
 }
 
 /* Ensure consistent layout for action buttons */
