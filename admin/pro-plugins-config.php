@@ -486,12 +486,12 @@ function wp_allstars_get_pro_plugins_config() {
             'button_group' => array(
                 array(
                     'text' => 'Home Page',
-                    'url' => 'https://fluentcommunity.com/',
+                    'url' => 'https://fluentcommunity.co/',
                     'primary' => true
                 ),
                 array(
                     'text' => 'Pricing',
-                    'url' => 'https://fluentcommunity.com/pricing/'
+                    'url' => 'https://fluentcommunity.co/pricing/'
                 )
             ),
             'free_slug' => 'fluent-community'
