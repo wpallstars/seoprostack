@@ -684,56 +684,12 @@ function wp_allstars_settings_page() {
                                 <div class="wp-allstars-setting-row">
                                     <label for="wp_max_width"><?php esc_html_e('Max Width', 'wp-allstars'); ?></label>
                                     <input type="number" 
-                                           id="wp_max_width"
-                                           name="wp_max_width"
-                                           value="<?php echo esc_attr(get_option('wp_allstars_max_width', 1920)); ?>"
-                                           min="0"
-                                    />
-                                    <p class="description"><?php esc_html_e('Maximum width of uploaded images (px). Leave empty for no limit.', 'wp-allstars'); ?></p>
-                                </div>
-
-                                <div class="wp-allstars-setting-row">
-                                    <label for="wp_max_height"><?php esc_html_e('Max Height', 'wp-allstars'); ?></label>
-                                    <input type="number" 
-                                           id="wp_max_height"
-                                           name="wp_max_height"
-                                           value="<?php echo esc_attr(get_option('wp_allstars_max_height', 1080)); ?>"
-                                           min="0"
-                                    />
-                                    <p class="description"><?php esc_html_e('Maximum height of uploaded images (px). Leave empty for no limit.', 'wp-allstars'); ?></p>
-                                </div>
-
-                                <div class="wp-allstars-setting-row">
-                                    <label for="wp_exclude_urls"><?php esc_html_e('Exclude URLs', 'wp-allstars'); ?></label>
-                                    <textarea id="wp_exclude_urls"
-                                              name="wp_exclude_urls"
-                                              rows="3"
-                                              placeholder="example.com&#10;another-domain.com"
-                                    ><?php echo esc_textarea(get_option('wp_allstars_exclude_urls', '')); ?></textarea>
-                                    <p class="description"><?php esc_html_e('Enter domains to exclude (one per line). Images from these domains will not be imported.', 'wp-allstars'); ?></p>
-                                </div>
-
-                                <div class="wp-allstars-setting-row">
-                                    <label for="wp_image_name"><?php esc_html_e('Image Name Pattern', 'wp-allstars'); ?></label>
-                                    <input type="text" 
-                                           id="wp_image_name"
-                                           name="wp_image_name"
-                                           value="<?php echo esc_attr(get_option('wp_allstars_image_name_pattern', '%filename%')); ?>"
+                                           id="wp_max_width" 
+                                           name="wp_allstars_max_width" 
+                                           value="<?php echo esc_attr(get_option('wp_allstars_max_width', '1920')); ?>"
                                     />
                                     <p class="description">
-                                        <?php esc_html_e('Available patterns:', 'wp-allstars'); ?> %filename%, %post_id%, %postname%, %timestamp%, %date%, %year%, %month%, %day%
-                                    </p>
-                                </div>
-
-                                <div class="wp-allstars-setting-row">
-                                    <label for="wp_image_alt"><?php esc_html_e('Image Alt Pattern', 'wp-allstars'); ?></label>
-                                    <input type="text" 
-                                           id="wp_image_alt"
-                                           name="wp_image_alt"
-                                           value="<?php echo esc_attr(get_option('wp_allstars_image_alt_pattern', '%filename%')); ?>"
-                                    />
-                                    <p class="description">
-                                        <?php esc_html_e('Available patterns:', 'wp-allstars'); ?> %filename%, %post_title%, %post_id%, %postname%, %timestamp%
+                                        <?php esc_html_e('Maximum width for uploaded images. Images larger than this will be resized.', 'wp-allstars'); ?>
                                     </p>
                                 </div>
                             </div>
@@ -824,31 +780,127 @@ function wp_allstars_settings_page() {
                     <div class="wpa-pro-plugins">
                         <?php
                         $pro_plugins = wp_allstars_get_pro_plugins_config();
-                        foreach ($pro_plugins as $key => $plugin) {
-                            // Skip WP Ultimo
-                            if ($key === 'wp-ultimo') continue;
+                        foreach ($pro_plugins as $plugin) {
                             ?>
                             <div class="wpa-pro-plugin">
                                 <h3><?php echo esc_html($plugin['name']); ?></h3>
                                 <p><?php echo esc_html($plugin['description']); ?></p>
-                                <?php if (isset($plugin['button_group'])): ?>
-                                    <div class="button-group">
-                                        <?php foreach ($plugin['button_group'] as $button): ?>
-                                            <a href="<?php echo esc_url($button['url']); ?>" target="_blank" class="button <?php echo isset($button['primary']) && $button['primary'] ? 'button-primary' : ''; ?>">
-                                                <?php echo esc_html($button['text']); ?>
-                                            </a>
-                                        <?php endforeach; ?>
-                                    </div>
-                                <?php else: ?>
-                                    <div class="button-group">
-                                        <a href="<?php echo esc_url($plugin['url']); ?>" target="_blank" class="button button-primary">Learn More</a>
-                                    </div>
-                                <?php endif; ?>
+                                <div class="button-group">
+                                    <?php if (!empty($plugin['demo_url'])): ?>
+                                        <a href="<?php echo esc_url($plugin['demo_url']); ?>" class="button" target="_blank">
+                                            <?php esc_html_e('View Demo', 'wp-allstars'); ?>
+                                        </a>
+                                    <?php endif; ?>
+                                    <a href="<?php echo esc_url($plugin['url']); ?>" class="button button-primary" target="_blank">
+                                        <?php esc_html_e('Learn More', 'wp-allstars'); ?>
+                                    </a>
+                                </div>
                             </div>
                             <?php
                         }
                         ?>
                     </div>
+
+                    <style>
+                    .wpa-pro-plugins {
+                        padding: 20px;
+                        display: grid;
+                        grid-template-columns: repeat(auto-fill, minmax(450px, 1fr));
+                        gap: 24px;
+                        max-width: 1920px;
+                        margin: 0 auto;
+                    }
+                    .wpa-pro-plugin {
+                        background: #fff;
+                        border: 1px solid #ddd;
+                        padding: 24px;
+                        border-radius: 8px;
+                        display: flex;
+                        flex-direction: column;
+                        transition: all 0.2s ease;
+                        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+                    }
+                    .wpa-pro-plugin:hover {
+                        border-color: #2271b1;
+                        box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+                    }
+                    .wpa-pro-plugin h3 {
+                        margin: 0 0 12px;
+                        font-size: 16px;
+                        font-weight: 600;
+                        color: #1d2327;
+                        line-height: 1.4;
+                    }
+                    .wpa-pro-plugin p {
+                        margin: 0 0 16px;
+                        color: #50575e;
+                        font-size: 14px;
+                        line-height: 1.6;
+                    }
+                    .wpa-pro-plugin .button-group {
+                        display: flex;
+                        flex-wrap: wrap;
+                        gap: 8px;
+                        margin-top: auto;
+                    }
+                    .wpa-pro-plugin .button {
+                        text-decoration: none;
+                        min-width: 120px;
+                        text-align: center;
+                        height: 30px;
+                        line-height: 28px;
+                        padding: 0 12px;
+                        font-size: 13px;
+                        font-weight: normal;
+                        margin: 0;
+                        border: 1px solid #0071a1 !important;
+                        border-radius: 3px !important;
+                        background: #f6f7f7;
+                        color: #0071a1;
+                        display: inline-block;
+                        vertical-align: top;
+                        box-shadow: none;
+                        cursor: pointer;
+                    }
+                    .wpa-pro-plugin .button:hover {
+                        background: #f0f0f1;
+                        border-color: #0071a1;
+                        color: #0071a1;
+                    }
+                    .wpa-pro-plugin .button-primary {
+                        background: #0071a1;
+                        border-color: #0071a1;
+                        color: #fff;
+                    }
+                    .wpa-pro-plugin .button-primary:hover {
+                        background: #005d8c;
+                        border-color: #005d8c;
+                        color: #fff;
+                    }
+                    @media screen and (max-width: 960px) {
+                        .wpa-pro-plugins {
+                            grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+                            gap: 20px;
+                            padding: 16px;
+                        }
+                        .wpa-pro-plugin {
+                            padding: 20px;
+                        }
+                    }
+                    @media screen and (max-width: 782px) {
+                        .wpa-pro-plugins {
+                            grid-template-columns: 1fr;
+                            gap: 16px;
+                            padding: 12px;
+                        }
+                        .wpa-pro-plugin {
+                            padding: 16px;
+                        }
+                        .wpa-pro-plugin .button {
+                            width: 100%;
+                        }
+                    }
+                    </style>
                 <?php elseif ($active_tab == 'general'): ?>
                     <div class="wp-allstars-settings-section">
                         <div class="wp-allstars-settings-grid">
