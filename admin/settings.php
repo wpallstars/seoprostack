@@ -678,7 +678,7 @@ function wp_allstars_settings_page() {
                             <p class="description">
                                 <?php esc_html_e('Import images that have external URLs into your Media Library when saving. Consider disabling during large data imports with many external image URLs.', 'wp-allstars'); ?>
                             </p>
-                            <div class="wp-allstars-toggle-settings">
+                            <div class="wp-allstars-toggle-settings" style="display: none;">
                                 <div class="wp-allstars-setting-row">
                                     <label for="wp_max_width"><?php esc_html_e('Max Width', 'wp-allstars'); ?></label>
                                     <input type="number" 
@@ -742,12 +742,21 @@ function wp_allstars_settings_page() {
                     jQuery(document).ready(function($) {
                         $('.wp-allstars-expand-settings').on('click', function(e) {
                             e.preventDefault();
+                            e.stopPropagation();
+                            
                             var $button = $(this);
                             var $settings = $button.closest('.wp-allstars-toggle').find('.wp-allstars-toggle-settings');
                             var isExpanded = $button.attr('aria-expanded') === 'true';
                             
+                            // Toggle aria-expanded state
                             $button.attr('aria-expanded', !isExpanded);
-                            $button.find('.dashicons').toggleClass('dashicons-arrow-down-alt2 dashicons-arrow-up-alt2');
+                            
+                            // Toggle icon
+                            $button.find('.dashicons')
+                                .toggleClass('dashicons-arrow-down-alt2', isExpanded)
+                                .toggleClass('dashicons-arrow-up-alt2', !isExpanded);
+                            
+                            // Toggle settings panel with animation
                             $settings.slideToggle(200);
                         });
                     });
