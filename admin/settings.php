@@ -627,7 +627,7 @@ function wp_allstars_settings_page() {
                 if ($("#wpa-plugin-list").length && $("#wpa-plugin-list").is(":empty")) {
                     var category = "' . esc_js($active_category) . '";
                     var $container = $("#wpa-plugin-list");
-                    var $loadingOverlay = $("<div class=\"wp-allstars-loading-overlay\"><div class=\"wp-allstars-loading-spinner\"></div></div>");
+                    var $loadingOverlay = $("<div class=\"wp-allstars-loading-overlay\"><span class=\"spinner is-active\"></span></div>");
                     
                     // Show loading overlay
                     $container.css("position", "relative").append($loadingOverlay);
@@ -676,7 +676,7 @@ function wp_allstars_settings_page() {
             jQuery(document).ready(function($) {
                 if ($("#wpa-theme-list").length && $("#wpa-theme-list").is(":empty")) {
                     var $container = $("#wpa-theme-list");
-                    var $loadingOverlay = $("<div class=\"wp-allstars-loading-overlay\"><div class=\"wp-allstars-loading-spinner\"></div></div>");
+                    var $loadingOverlay = $("<div class=\"wp-allstars-loading-overlay\"><span class=\"spinner is-active\"></span></div>");
                     
                     // Show loading overlay
                     $container.css("position", "relative").append($loadingOverlay);
@@ -832,7 +832,7 @@ function wp_allstars_settings_page() {
                 <?php elseif ($active_tab == 'theme'): ?>
                     <div class="tab-content" id="theme">
                         <div class="wp-list-table-container">
-                            <div class="wpa-loading-overlay">
+                            <div class="wp-allstars-loading-overlay">
                                 <span class="spinner is-active"></span>
                             </div>
                             <div id="wpa-theme-list"></div>

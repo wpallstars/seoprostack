@@ -1,6 +1,7 @@
 /* Plugin Browser Styles */
 .wp-allstars-plugin-browser {
-    margin: 0 -16px;
+    margin: 0 -8px;
+    padding: 0 8px;
 }
 
 /* Plugin List Container */
@@ -8,6 +9,7 @@
     display: flex;
     flex-wrap: wrap;
     margin: 0;
+    width: 100%;
 }
 
 /* Filter Bar */
@@ -259,18 +261,10 @@
     z-index: 100;
 }
 
-.wp-allstars-loading-spinner {
-    width: 50px;
-    height: 50px;
-    border: 5px solid #f3f3f3;
-    border-top: 5px solid #3498db;
-    border-radius: 50%;
-    animation: spin 2s linear infinite;
-}
-
-@keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
+.wp-allstars-loading-overlay .spinner {
+    float: none;
+    visibility: visible;
+    margin: 0;
 }
 
 /* Theme Browser */
@@ -357,18 +351,18 @@
 
 /* Pro Buttons */
 .go-pro-button {
-    background: #ff8c00;
-    border-color: #ff7b00;
-    color: #fff;
-    box-shadow: 0 1px 0 #ff7b00;
-    text-shadow: 0 -1px 1px #ff7b00, 1px 0 1px #ff7b00, 0 1px 1px #ff7b00, -1px 0 1px #ff7b00;
+    background: #ff8c00 !important;
+    border-color: #ff7b00 !important;
+    color: #fff !important;
+    box-shadow: 0 1px 0 #ff7b00 !important;
+    text-shadow: 0 -1px 1px #ff7b00, 1px 0 1px #ff7b00, 0 1px 1px #ff7b00, -1px 0 1px #ff7b00 !important;
 }
 
 .go-pro-button:hover,
 .go-pro-button:focus {
-    background: #ff9d1c;
-    border-color: #ff7b00;
-    color: #fff;
+    background: #ff9d1c !important;
+    border-color: #ff7b00 !important;
+    color: #fff !important;
 }
 
 /* More Details Link */
@@ -388,6 +382,23 @@
 .plugin-action-buttons .more-details {
     display: block;
     text-align: right;
+}
+
+/* Settings Notifications */
+.wp-setting-notification {
+    display: inline-block;
+    background: #72aee6;
+    color: #fff;
+    padding: 5px 10px;
+    border-radius: 3px;
+    margin-left: 10px;
+    font-size: 12px;
+    line-height: 1.2;
+    vertical-align: middle;
+}
+
+.wp-setting-notification.error {
+    background: #d63638;
 }
 
 /* Responsive Adjustments */

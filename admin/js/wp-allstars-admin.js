@@ -1,6 +1,6 @@
 jQuery(document).ready(function($) {
     // Function to show notification
-    function showNotification(message, element, isError = false) {
+    function showNotification(message, $element, isError = false) {
         // Remove any existing notifications
         $('.wp-setting-notification').remove();
         
@@ -8,8 +8,8 @@ jQuery(document).ready(function($) {
         var $notification = $('<span class="wp-setting-notification' + (isError ? ' error' : '') + '">' + message + '</span>');
         
         // If element is provided, show notification next to it
-        if (element) {
-            $(element).after($notification);
+        if ($element && $element.length) {
+            $element.after($notification);
         } else {
             // Fallback to header if no element provided
             $('.wp-allstars-header h1').after($notification);
@@ -24,7 +24,7 @@ jQuery(document).ready(function($) {
     }
 
     // Handle option updates
-    function updateOption(option, value, element) {
+    function updateOption(option, value) {
         return $.ajax({
             url: ajaxurl,
             type: 'POST',
@@ -32,7 +32,7 @@ jQuery(document).ready(function($) {
                 action: 'wp_allstars_update_option',
                 option: option,
                 value: value,
-                _wpnonce: wpAllstars.nonce
+                nonce: wpAllstars.nonce
             }
         }).then(function(response) {
             if (!response.success) {
@@ -61,13 +61,31 @@ jQuery(document).ready(function($) {
         var $input = $(this);
         var option = $input.attr('name');
         var value = $input.is(':checked') ? 1 : 0;
+        var $label = $input.closest('.wp-setting-left, .wp-allstars-toggle-left').find('label');
         
         updateOption(option, value)
             .then(function() {
-                showNotification('Saved', $input.closest('.wp-setting-left, .wp-allstars-toggle-left'));
+                showNotification('Saved', $label);
             })
             .catch(function() {
-                showNotification('Error saving settings', $input.closest('.wp-setting-left, .wp-allstars-toggle-left'), true);
+                showNotification('Error saving settings', $label, true);
+            });
+    });
+
+    // Handle text input changes
+    $('.wp-allstars-setting-row input[type="text"], .wp-allstars-setting-row input[type="number"], .wp-allstars-setting-row textarea').on('change', function() {
+        var $input = $(this);
+        var option = $input.attr('name');
+        var value = $input.val();
+        var $label = $input.closest('.wp-allstars-setting-row').find('label').first();
+        
+        updateOption(option, value)
+            .then(function() {
+                showNotification('Saved', $label);
+            })
+            .catch(function(error) {
+                console.error('Error:', error);
+                showNotification('Error saving setting', $label, true);
             });
     });
 
@@ -123,7 +141,7 @@ jQuery(document).ready(function($) {
     // Function to load plugins
     function loadPlugins(category) {
         var $container = $('#wpa-plugin-list');
-        var $loadingOverlay = $('<div class="wp-allstars-loading-overlay"><div class="wp-allstars-loading-spinner"></div></div>');
+        var $loadingOverlay = $('<div class="wp-allstars-loading-overlay"><span class="spinner is-active"></span></div>');
         
         // Show loading overlay
         $container.css('position', 'relative').append($loadingOverlay);
@@ -169,7 +187,7 @@ jQuery(document).ready(function($) {
     // Function to load themes
     function loadTheme() {
         var $container = $('#wpa-theme-list');
-        var $loadingOverlay = $('<div class="wp-allstars-loading-overlay"><div class="wp-allstars-loading-spinner"></div></div>');
+        var $loadingOverlay = $('<div class="wp-allstars-loading-overlay"><span class="spinner is-active"></span></div>');
         
         // Show loading overlay
         $container.css('position', 'relative').append($loadingOverlay);
