@@ -34,33 +34,13 @@
     padding: 0;
 }
 
-/* Plugin Cards */
+/* Plugin Cards - essential layout only */
 .plugin-card {
     margin: 0 8px 16px;
     width: calc(50% - 16px);
     background-color: #fff;
     border: 1px solid #dcdcde;
     box-sizing: border-box;
-    position: relative;
-}
-
-/* Maintain consistent center gutter at all widths */
-@media screen and (min-width: 1600px) {
-    .plugin-card {
-        margin: 0 8px 16px;
-        width: calc(50% - 16px);
-    }
-    
-    /* Force equal spacing between all cards */
-    .plugin-card:nth-child(odd) {
-        margin-left: 0;
-        margin-right: 8px;
-    }
-    
-    .plugin-card:nth-child(even) {
-        margin-left: 8px;
-        margin-right: 0;
-    }
 }
 
 /* Ensure the right edge aligns with the navigation above */
@@ -72,52 +52,23 @@
     margin-left: 0;
 }
 
-/* Responsive behavior - single column for all sizes below 1260px */
+/* Maintain consistent center gutter at all widths */
+@media screen and (min-width: 1600px) {
+    /* Force equal spacing between all cards */
+    .plugin-card:nth-child(odd) {
+        margin-right: 8px;
+    }
+    
+    .plugin-card:nth-child(even) {
+        margin-left: 8px;
+    }
+}
+
+/* Responsive behavior */
 @media screen and (max-width: 1260px) {
     .plugin-card {
         width: 100%;
         margin: 0 0 16px 0;
-    }
-    
-    /* Reset the specific margin styles for single column */
-    .plugin-card:nth-child(odd),
-    .plugin-card:nth-child(even) {
-        margin: 0 0 16px 0;
-    }
-    
-    /* Mobile fixes to override WordPress defaults */
-    .plugin-card-top {
-        display: block;
-        padding: 20px;
-        position: relative;
-        min-height: 135px;
-    }
-    
-    .plugin-icon {
-        position: absolute;
-        top: 20px;
-        left: 20px;
-        width: 128px;
-        height: 128px;
-    }
-    
-    .name.column-name {
-        margin-left: 148px;
-    }
-    
-    .action-links {
-        position: absolute;
-        top: 20px;
-        right: 20px;
-    }
-    
-    /* Ensure plugin descriptions are properly displayed */
-    .plugin-card-bottom {
-        clear: both;
-        padding: 12px 20px;
-        background-color: #f6f7f7;
-        overflow: hidden;
-        text-align: left;
     }
 }
 
