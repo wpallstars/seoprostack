@@ -170,13 +170,16 @@
     body.wp-admin .plugin-card .compatibility-compatible {
         margin-top: 0 !important;
         margin-bottom: 0 !important;
-        padding: 3px 20px !important;
+        padding: 0 20px !important;
         width: 100% !important;
         box-sizing: border-box !important;
-        text-align: center !important;
+        text-align: right !important;
         max-width: none !important;
-        display: block !important;
-        line-height: 1.2 !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: flex-end !important;
+        height: 45px !important;
+        line-height: 45px !important;
     }
     
     /* Ensure compatibility text container has full width */
