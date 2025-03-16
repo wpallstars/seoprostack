@@ -756,25 +756,19 @@ function wp_allstars_settings_page() {
                                      .toggleClass('dashicons-arrow-down-alt2', !isExpanded);
                                 
                                 // Handle click events
-                                $button.on('click', function(e) {
+                                $button.off('click').on('click', function(e) {
                                     e.preventDefault();
                                     e.stopPropagation();
                                     
                                     isExpanded = !isExpanded;
                                     $button.attr('aria-expanded', isExpanded);
                                     
-                                    // Animate icon rotation
-                                    $icon.css('transform', isExpanded ? 'rotate(180deg)' : 'rotate(0deg)');
+                                    // Update icon classes
+                                    $icon.removeClass('dashicons-arrow-up-alt2 dashicons-arrow-down-alt2')
+                                         .addClass(isExpanded ? 'dashicons-arrow-up-alt2' : 'dashicons-arrow-down-alt2');
                                     
                                     // Animate panel
-                                    $panel.slideToggle(200, function() {
-                                        // Ensure panel is properly shown/hidden after animation
-                                        if (isExpanded) {
-                                            $panel.show();
-                                        } else {
-                                            $panel.hide();
-                                        }
-                                    });
+                                    $panel.slideToggle(200);
                                 });
                             });
                         }
@@ -849,10 +843,15 @@ function wp_allstars_settings_page() {
                         line-height: 16px;
                     }
 
+                    .wp-allstars-expand-settings .dashicons-arrow-up-alt2 {
+                        transform: rotate(180deg);
+                    }
+
                     .wp-allstars-toggle-settings {
                         border-top: 1px solid #ccd0d4;
                         padding: 15px;
                         background: #f9f9f9;
+                        display: none;
                     }
 
                     .wp-allstars-toggle .description {
