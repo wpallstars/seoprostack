@@ -260,7 +260,6 @@ body.wp-admin .plugin-card-bottom .compatibility-untested *,
     left: 0;
     right: 0;
     bottom: 0;
-    background: rgba(255, 255, 255, 0.9);
     z-index: 100;
     display: flex;
     align-items: center;
@@ -268,19 +267,9 @@ body.wp-admin .plugin-card-bottom .compatibility-untested *,
     min-height: 200px;
 }
 
-.wp-allstars-loading-container {
-    text-align: center;
-    padding: 20px;
-}
-
-.wp-allstars-loading-container p {
-    font-size: 16px;
-    margin-bottom: 60px;
-}
-
-.wp-allstars-loading-container .spinner {
+.wp-allstars-loading-overlay .spinner {
     float: none;
-    margin: 0 auto;
+    margin: 0;
     display: block;
 }
 
