@@ -98,18 +98,20 @@
         right: 20px !important;
         left: auto !important;
         margin: 0 !important;
-        width: 100px !important;
-        height: 100px !important;
+        width: 128px !important;
+        height: 128px !important;
+        z-index: 1 !important;
     }
     
     /* Keep name and description on the left */
     body.wp-admin .plugin-card .name.column-name {
-        margin-left: 0 !important;
-        margin-right: 120px !important;
+        margin-left: 15px !important;
+        margin-right: 150px !important;
         margin-bottom: 10px !important;
         text-align: left !important;
         display: block !important;
         width: auto !important;
+        max-width: 60% !important;
     }
     
     body.wp-admin .plugin-card .name.column-name h3 {
@@ -120,7 +122,8 @@
     body.wp-admin .plugin-card .action-links {
         position: absolute !important;
         top: 20px !important;
-        right: 140px !important;
+        right: 15px !important;
+        z-index: 2 !important;
         display: flex !important;
         flex-direction: column !important;
         align-items: flex-end !important;
@@ -139,6 +142,10 @@
     body.wp-admin .plugin-card-bottom {
         padding: 12px 20px !important;
         margin-top: 0 !important;
+        text-align: left !important;
+        margin-left: 15px !important;
+        margin-right: 150px !important;
+        max-width: 60% !important;
     }
     
     /* Remove excessive spacing between elements */
@@ -146,6 +153,8 @@
     body.wp-admin .plugin-card .desc.column-description {
         margin-top: 0 !important;
         margin-bottom: 8px !important;
+        text-align: left !important;
+        margin-left: 15px !important;
     }
     
     /* Fix compatibility check positioning */
