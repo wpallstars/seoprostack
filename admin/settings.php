@@ -461,33 +461,49 @@ function wp_allstars_ajax_get_themes() {
         return;
     }
     
+    // Add debugging
     error_log('WP ALLSTARS: Starting theme fetch process');
     
     try {
         error_log('WP ALLSTARS: Fetching theme data for kadence');
         
-        // Get theme data with minimal fields
-        $theme_data = themes_api('theme_information', array(
-            'slug' => 'kadence',
-            'fields' => array(
-                'sections' => false,
-                'description' => true,
-                'rating' => true,
-                'ratings' => false,
-                'downloaded' => true,
-                'download_link' => true,
-                'last_updated' => true,
-                'homepage' => true,
-                'tags' => false,
-                'screenshot_url' => true,
-                'version' => true,
-                'requires' => true,
-                'requires_php' => true,
-                'active_installs' => true,
-                'author' => true,
-                'preview_url' => true,
-            )
-        ));
+        // Check if we have cached data first
+        $theme_data = wp_allstars_get_cached_theme();
+        
+        // If no cached data, fetch from API
+        if (empty($theme_data)) {
+            error_log('WP ALLSTARS: No cached theme data, fetching from API');
+            
+            // Get theme data with minimal fields
+            $theme_data = themes_api('theme_information', array(
+                'slug' => 'kadence',
+                'fields' => array(
+                    'sections' => false,
+                    'description' => true,
+                    'rating' => true,
+                    'ratings' => false,
+                    'downloaded' => true,
+                    'download_link' => true,
+                    'last_updated' => true,
+                    'homepage' => true,
+                    'tags' => false,
+                    'screenshot_url' => true,
+                    'version' => true,
+                    'requires' => true,
+                    'requires_php' => true,
+                    'active_installs' => true,
+                    'author' => true,
+                    'preview_url' => true,
+                )
+            ));
+            
+            // Cache the result if successful
+            if (!is_wp_error($theme_data)) {
+                wp_allstars_set_cached_theme($theme_data);
+            }
+        } else {
+            error_log('WP ALLSTARS: Using cached theme data');
+        }
         
         if (is_wp_error($theme_data)) {
             error_log('WP ALLSTARS Theme API Error: ' . $theme_data->get_error_message());

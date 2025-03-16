@@ -205,14 +205,13 @@ jQuery(document).ready(function($) {
     loadTheme = function() {
         var $container = $('#wpa-theme-list');
         
-        // Create loading overlay with clear visual indicator
-        var loadingHTML = '<div class="wp-allstars-loading-overlay" id="theme-loading-overlay"><span class="spinner is-active"></span><p>Loading themes...</p></div>';
+        // Clear existing content
+        $container.empty();
         
-        // Clear existing content and add loading overlay
-        $container.empty().html(loadingHTML);
-        
-        // Ensure container has relative positioning for the overlay
+        // Show loading overlay
         $container.css('position', 'relative');
+        var $loadingOverlay = $('<div class="wp-allstars-loading-overlay"><span class="spinner is-active"></span></div>');
+        $container.append($loadingOverlay);
         
         // AJAX request to get themes
         $.ajax({
@@ -223,6 +222,9 @@ jQuery(document).ready(function($) {
                 _wpnonce: wpAllstars.nonce
             },
             success: function(response) {
+                // Remove loading overlay
+                $loadingOverlay.remove();
+                
                 if (response.success) {
                     // Replace all content with new HTML
                     $container.html(response.data);
@@ -235,6 +237,9 @@ jQuery(document).ready(function($) {
                 }
             },
             error: function(xhr, status, error) {
+                // Remove loading overlay
+                $loadingOverlay.remove();
+                
                 // Show error message
                 $container.html('<div class="notice notice-error"><p>Failed to load themes. Please try again. Error: ' + error + '</p></div>');
                 console.error('AJAX Error:', xhr.responseText);
