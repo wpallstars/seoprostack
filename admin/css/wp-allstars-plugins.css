@@ -183,17 +183,7 @@
         line-height: 13px !important;
     }
     
-    /* Make untested text black with more specific selectors */
-    body.wp-admin .plugin-card .compatibility-untested,
-    body.wp-admin .plugin-card .compatibility-untested span,
-    body.wp-admin .plugin-card .compatibility-untested strong,
-    body.wp-admin .plugin-card-bottom .compatibility-untested *,
-    .plugin-card .notice.compatibility-untested,
-    .plugin-card .compatibility-untested strong,
-    .plugin-card .notice.compatibility-untested p,
-    .plugin-card .notice.compatibility-untested span {
-        color: #000 !important;
-    }
+    /* Note: Text color moved outside media query to apply globally */
     
     /* Ensure compatibility text container has full width */
     body.wp-admin .plugin-card-bottom p,
@@ -249,6 +239,18 @@ body.wp-admin .wp-list-table.plugin-install #the-list .plugin-card .action-links
     display: block !important;
     margin-bottom: 5px !important;
     text-align: center !important;
+}
+
+/* Make untested text black at all window widths */
+body.wp-admin .plugin-card .compatibility-untested,
+body.wp-admin .plugin-card .compatibility-untested span,
+body.wp-admin .plugin-card .compatibility-untested strong,
+body.wp-admin .plugin-card-bottom .compatibility-untested *,
+.plugin-card .notice.compatibility-untested,
+.plugin-card .compatibility-untested strong,
+.plugin-card .notice.compatibility-untested p,
+.plugin-card .notice.compatibility-untested span {
+    color: #000 !important;
 }
 
 
