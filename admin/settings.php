@@ -660,7 +660,7 @@ function wp_allstars_settings_page() {
                         <div class="wp-allstars-toggle">
                             <div class="wp-allstars-toggle-header">
                                 <div class="wp-allstars-toggle-main">
-                                    <label for="wp_allstars_auto_upload_images">
+                                    <div class="wp-allstars-toggle-left">
                                         <div class="wp-toggle-switch">
                                             <input type="checkbox" 
                                                    id="wp_allstars_auto_upload_images"
@@ -670,11 +670,10 @@ function wp_allstars_settings_page() {
                                             />
                                             <span class="wp-toggle-slider"></span>
                                         </div>
-                                        <?php esc_html_e('Enable Auto Upload Images', 'wp-allstars'); ?>
-                                    </label>
-                                    <button type="button" class="wp-allstars-expand-settings" aria-expanded="false">
-                                        <span class="dashicons dashicons-arrow-down-alt2"></span>
-                                    </button>
+                                        <label for="wp_allstars_auto_upload_images">
+                                            <?php esc_html_e('Enable Auto Upload Images', 'wp-allstars'); ?>
+                                        </label>
+                                    </div>
                                 </div>
                                 <p class="description">
                                     <?php esc_html_e('Import images that have external URLs into your Media Library when saving. Consider disabling during large data imports with many external image URLs.', 'wp-allstars'); ?>

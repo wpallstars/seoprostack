@@ -31,37 +31,35 @@ jQuery(document).ready(function($) {
         });
     }
 
-    // Toggle switch functionality - stop propagation to prevent panel toggle
+    // Handle toggle switch clicks
     $('.wp-toggle-switch').on('click', function(e) {
-        e.stopPropagation(); // Prevent the click from bubbling to the header
+        e.stopPropagation();
     });
 
-    $('.wp-allstars-toggle input[type="checkbox"]').on('change', function(e) {
-        e.stopPropagation(); // Prevent the change from bubbling to the header
-        var $input = $(this);
-        var option = $input.attr('name');
-        var value = $input.is(':checked') ? 1 : 0;
+    // Handle checkbox changes
+    $('.wp-toggle-switch input[type="checkbox"]').on('change', function(e) {
+        e.stopPropagation();
+    });
+
+    // Handle panel toggle
+    $('.wp-allstars-toggle-header').on('click', function(e) {
+        if (!$(e.target).closest('.wp-toggle-switch').length) {
+            var $settings = $(this).closest('.wp-allstars-toggle').find('.wp-allstars-toggle-settings');
+            var isExpanded = $(this).attr('aria-expanded') === 'true';
+            
+            $(this).attr('aria-expanded', !isExpanded);
+            $settings.slideToggle();
+        }
+    });
+
+    // Set initial state
+    $('.wp-allstars-toggle-header').each(function() {
+        var $settings = $(this).closest('.wp-allstars-toggle').find('.wp-allstars-toggle-settings');
+        var isExpanded = $(this).attr('aria-expanded') === 'true';
         
-        $.ajax({
-            url: ajaxurl,
-            type: 'POST',
-            data: {
-                action: 'wp_allstars_update_option',
-                option: option,
-                value: value,
-                nonce: wpAllstars.nonce
-            },
-            success: function(response) {
-                if (response.success) {
-                    showNotification('Saved');
-                } else {
-                    showNotification('Error saving settings', true);
-                }
-            },
-            error: function() {
-                showNotification('Error saving settings', true);
-            }
-        });
+        if (!isExpanded) {
+            $settings.hide();
+        }
     });
 
     // Handle text, number, and textarea inputs
@@ -78,37 +76,6 @@ jQuery(document).ready(function($) {
                 console.error('Error:', error);
                 showNotification('Error saving setting', true);
             });
-    });
-
-    // Initialize accordion state
-    $('.wp-allstars-toggle-header').each(function() {
-        var $header = $(this);
-        var $panel = $header.closest('.wp-allstars-toggle').find('.wp-allstars-toggle-settings');
-        var isExpanded = $header.attr('aria-expanded') === 'true';
-        
-        // Set initial state
-        if (isExpanded) {
-            $panel.show();
-        } else {
-            $panel.hide();
-        }
-    });
-
-    // Handle accordion functionality
-    $('.wp-allstars-toggle-header').on('click', function(e) {
-        var $header = $(this);
-        var $panel = $header.closest('.wp-allstars-toggle').find('.wp-allstars-toggle-settings');
-        var isExpanded = $header.attr('aria-expanded') === 'true';
-        
-        // Toggle state
-        $header.attr('aria-expanded', !isExpanded);
-        
-        // Toggle panel with animation
-        if (!isExpanded) {
-            $panel.slideDown(200);
-        } else {
-            $panel.slideUp(200);
-        }
     });
 
     // Handle form submission
@@ -145,10 +112,11 @@ jQuery(document).ready(function($) {
         
         $.ajax({
             url: ajaxurl,
+            type: 'POST',
             data: {
                 action: 'wp_allstars_get_plugins',
                 category: category || 'minimal',
-                _ajax_nonce: wpAllstars.nonce
+                _wpnonce: wpAllstars.nonce
             },
             success: function(response) {
                 if (response.success) {
@@ -179,9 +147,10 @@ jQuery(document).ready(function($) {
         
         $.ajax({
             url: ajaxurl,
+            type: 'POST',
             data: {
                 action: 'wp_allstars_get_theme',
-                _ajax_nonce: wpAllstars.nonce
+                _wpnonce: wpAllstars.nonce
             },
             success: function(response) {
                 if (response.success) {
