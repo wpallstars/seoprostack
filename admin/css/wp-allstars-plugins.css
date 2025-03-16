@@ -72,75 +72,43 @@
     }
 }
 
-/* Force mobile styling to match desktop layout exactly */
+/* Debug styling for all screens to help identify issues */
+body.wp-admin .wp-list-table.plugin-install #the-list .plugin-card {
+    border: 2px solid red !important;
+}
+
+/* Debug version of mobile styling */
 @media screen and (max-width: 782px) {
-    /* Override WordPress mobile styles with !important */
-    .plugin-card {
+    body.wp-admin .wp-list-table.plugin-install #the-list .plugin-card {
+        border: 3px solid blue !important;
         width: 100% !important;
         margin: 0 0 16px 0 !important;
-        display: block !important;
-        position: relative !important;
-        text-align: left !important;
+        padding: 0 !important;
     }
     
-    /* Ensure plugin card top has desktop-like structure */
-    .plugin-card-top {
-        padding: 20px !important;
-        position: relative !important;
+    body.wp-admin .wp-list-table.plugin-install #the-list .plugin-card .plugin-card-top {
+        display: block !important;
         min-height: 135px !important;
-        text-align: left !important;
-        display: block !important;
-        flex-direction: unset !important;
-        align-items: unset !important;
+        position: relative !important;
+        padding: 20px !important;
     }
     
-    /* Force icon to left side */
-    .plugin-icon {
+    body.wp-admin .plugin-card .plugin-icon {
         position: absolute !important;
         top: 20px !important;
         left: 20px !important;
-        width: 128px !important;
-        height: 128px !important;
         margin: 0 !important;
-        display: inline-block !important;
     }
     
-    /* Force plugin name to appear next to icon */
-    .name.column-name {
+    body.wp-admin .plugin-card .name.column-name {
         margin-left: 148px !important;
-        margin-right: 0 !important;
-        width: auto !important;
         text-align: left !important;
     }
     
-    .name.column-name h3 {
-        text-align: left !important;
-        margin: 0 0 12px !important;
-    }
-    
-    /* Force action links position */
-    .action-links {
+    body.wp-admin .plugin-card .action-links {
         position: absolute !important;
         top: 20px !important;
         right: 20px !important;
-        width: auto !important;
-        margin: 0 !important;
-    }
-    
-    .plugin-action-buttons {
-        float: right !important;
-        margin: 0 !important;
-        text-align: right !important;
-        display: block !important;
-    }
-    
-    /* Force card bottom styling */
-    .plugin-card-bottom {
-        clear: both !important;
-        padding: 12px 20px !important;
-        background-color: #f6f7f7 !important;
-        overflow: hidden !important;
-        text-align: left !important;
     }
 }
 
