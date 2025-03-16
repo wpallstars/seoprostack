@@ -636,11 +636,11 @@ function wp_allstars_settings_page() {
                     <a href="?page=wp-allstars&tab=general" class="nav-tab <?php echo $active_tab == 'general' ? 'nav-tab-active' : ''; ?>">
                         <?php esc_html_e('General', 'wp-allstars'); ?>
                     </a>
-                    <a href="?page=wp-allstars&tab=workflow" class="nav-tab <?php echo $active_tab == 'workflow' ? 'nav-tab-active' : ''; ?>">
-                        <?php esc_html_e('Workflow', 'wp-allstars'); ?>
-                    </a>
                     <a href="?page=wp-allstars&tab=advanced" class="nav-tab <?php echo $active_tab == 'advanced' ? 'nav-tab-active' : ''; ?>">
                         <?php esc_html_e('Advanced', 'wp-allstars'); ?>
+                    </a>
+                    <a href="?page=wp-allstars&tab=workflow" class="nav-tab <?php echo $active_tab == 'workflow' ? 'nav-tab-active' : ''; ?>">
+                        <?php esc_html_e('Workflow', 'wp-allstars'); ?>
                     </a>
                     <a href="?page=wp-allstars&tab=recommended" class="nav-tab <?php echo $active_tab == 'recommended' ? 'nav-tab-active' : ''; ?>">
                         <?php esc_html_e('Free Plugins', 'wp-allstars'); ?>
@@ -972,12 +972,12 @@ function wp_allstars_settings_page() {
                                                 <span class="wp-toggle-slider"></span>
                                             </div>
                                             <label for="wp_allstars_simple_setting" class="wp-setting-label">
-                                                <?php esc_html_e('Simple Toggle Setting', 'wp-allstars'); ?>
+                                                <?php esc_html_e('Example: Simple Toggle', 'wp-allstars'); ?>
                                             </label>
                                         </div>
                                     </div>
                                     <p class="wp-setting-description">
-                                        <?php esc_html_e('This is an example of a simple toggle setting without an expandable panel.', 'wp-allstars'); ?>
+                                        <?php esc_html_e('This is an example of a simple toggle setting without an expandable panel. Currently for demonstration purposes only.', 'wp-allstars'); ?>
                                     </p>
                                 </div>
                             </div>
@@ -1001,16 +1001,24 @@ function wp_allstars_settings_page() {
                                                 <span class="wp-toggle-slider"></span>
                                             </div>
                                             <label for="wp_allstars_auto_upload_images">
-                                                <?php esc_html_e('Enable Auto Upload Images', 'wp-allstars'); ?>
+                                                <?php esc_html_e('Example: Expandable Panel', 'wp-allstars'); ?>
                                             </label>
                                         </div>
                                     </div>
                                     <p class="wp-setting-description">
-                                        <?php esc_html_e('Import images that have external URLs into your Media Library when saving. Consider disabling during large data imports with many external image URLs.', 'wp-allstars'); ?>
+                                        <?php esc_html_e('This is an example of an expandable panel setting. Currently for demonstration purposes only - no actual functionality.', 'wp-allstars'); ?>
                                     </p>
                                 </div>
                                 <div class="wp-allstars-toggle-settings">
-                                    <!-- Additional settings content here -->
+                                    <div class="wp-allstars-setting-row">
+                                        <label for="example_text"><?php esc_html_e('Example Text Field', 'wp-allstars'); ?></label>
+                                        <input type="text" 
+                                               id="example_text"
+                                               name="example_text"
+                                               value="Example value"
+                                        />
+                                        <p class="description"><?php esc_html_e('This is an example text field for demonstration purposes.', 'wp-allstars'); ?></p>
+                                    </div>
                                 </div>
                             </div>
                         </div>

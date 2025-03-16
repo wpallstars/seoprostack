@@ -1,14 +1,21 @@
 jQuery(document).ready(function($) {
     // Function to show notification
-    function showNotification(message, isError = false) {
-        // Remove any existing notification
-        $('.wp-status').remove();
+    function showNotification(message, element, isError = false) {
+        // Remove any existing notifications
+        $('.wp-setting-notification').remove();
         
-        // Create and append the new notification
-        var $notification = $('<span class="wp-status' + (isError ? ' error' : '') + '">' + message + '</span>');
-        $('.wp-allstars-header h1').after($notification);
+        // Create notification element
+        var $notification = $('<span class="wp-setting-notification' + (isError ? ' error' : '') + '">' + message + '</span>');
         
-        // Remove the notification after 2 seconds
+        // If element is provided, show notification next to it
+        if (element) {
+            $(element).after($notification);
+        } else {
+            // Fallback to header if no element provided
+            $('.wp-allstars-header h1').after($notification);
+        }
+        
+        // Fade out after delay
         setTimeout(function() {
             $notification.fadeOut(300, function() {
                 $(this).remove();
@@ -17,7 +24,7 @@ jQuery(document).ready(function($) {
     }
 
     // Handle option updates
-    function updateOption(option, value) {
+    function updateOption(option, value, element) {
         return $.ajax({
             url: ajaxurl,
             type: 'POST',
@@ -51,13 +58,14 @@ jQuery(document).ready(function($) {
             var $input = $(this);
             var option = $input.attr('name');
             var value = $input.is(':checked') ? 1 : 0;
+            var $label = $input.closest('.wp-setting-left').find('label');
             
             updateOption(option, value)
                 .then(function() {
-                    showNotification('Saved');
+                    showNotification('Saved', $label);
                 })
                 .catch(function() {
-                    showNotification('Error saving settings', true);
+                    showNotification('Error saving settings', $label, true);
                 });
         });
     }
@@ -92,14 +100,15 @@ jQuery(document).ready(function($) {
             var $input = $(this);
             var option = $input.attr('name');
             var value = $input.val();
+            var $label = $input.prev('label');
             
             updateOption(option, value)
                 .then(function() {
-                    showNotification('Setting saved');
+                    showNotification('Saved', $label);
                 })
                 .catch(function(error) {
                     console.error('Error:', error);
-                    showNotification('Error saving setting', true);
+                    showNotification('Error saving setting', $label, true);
                 });
         });
     }
