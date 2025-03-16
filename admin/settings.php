@@ -318,9 +318,8 @@ function wp_allstars_generate_plugin_cards($plugins) {
                     <div class="plugin-card-top">
                         <div class="name column-name">
                             <h3>
-                                <a href="<?php echo esc_url($plugin->homepage); ?>" target="_blank">
-                                    <?php echo esc_html($plugin->name); ?>
-                                </a>
+                                <?php echo esc_html($plugin->name); ?>
+                                <img src="<?php echo esc_url(admin_url('images/spinner.gif')); ?>" class="plugin-spinner spinner" alt="">
                             </h3>
                         </div>
                         <div class="action-links">
@@ -355,14 +354,17 @@ function wp_allstars_generate_plugin_cards($plugins) {
                                 ?>
                             </ul>
                         </div>
-                        <div class="desc column-description">
-                            <p><?php echo esc_html($plugin->short_description); ?></p>
-                        </div>
                         <?php if (!empty($plugin->icons) && !empty($plugin->icons['1x'])): ?>
                             <div class="plugin-icon">
                                 <img src="<?php echo esc_url($plugin->icons['1x']); ?>" alt="">
                             </div>
                         <?php endif; ?>
+                        <div class="desc column-description">
+                            <p><?php echo esc_html($plugin->short_description); ?></p>
+                            <p class="authors">
+                                <cite><?php printf(__('By %s'), $plugin->author); ?></cite>
+                            </p>
+                        </div>
                     </div>
                     <div class="plugin-card-bottom">
                         <div class="vers column-rating">
@@ -375,6 +377,17 @@ function wp_allstars_generate_plugin_cards($plugins) {
                         </div>
                         <div class="column-downloaded">
                             <?php echo sprintf(_n('%s download', '%s downloads', $plugin->downloaded), number_format_i18n($plugin->downloaded)); ?>
+                        </div>
+                        <div class="column-compatibility">
+                            <?php
+                            if (!empty($plugin->tested) && version_compare(substr($GLOBALS['wp_version'], 0, strlen($plugin->tested)), $plugin->tested, '>')) {
+                                echo '<span class="compatibility-untested">' . __('Untested with your version of WordPress') . '</span>';
+                            } elseif (!empty($plugin->requires) && version_compare($GLOBALS['wp_version'], $plugin->requires, '<')) {
+                                echo '<span class="compatibility-incompatible">' . __('Incompatible with your version of WordPress') . '</span>';
+                            } else {
+                                echo '<span class="compatibility-compatible">' . __('Compatible with your version of WordPress') . '</span>';
+                            }
+                            ?>
                         </div>
                     </div>
                 </div>

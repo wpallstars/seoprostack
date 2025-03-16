@@ -42,237 +42,312 @@ jQuery(document).ready(function($) {
         });
     }
 
-    // Initialize all toggle switches
-    function initToggleSwitches() {
-        // Handle toggle switch clicks
-        $('.wp-toggle-switch').on('click', function(e) {
-            e.stopPropagation();
-            var $checkbox = $(this).find('input[type="checkbox"]');
-            var isChecked = $checkbox.is(':checked');
-            $checkbox.prop('checked', !isChecked).trigger('change');
-        });
-
-        // Prevent label clicks from triggering the toggle
-        $('.wp-setting-label, .wp-allstars-toggle label').on('click', function(e) {
-            e.stopPropagation();
-            return false;
-        });
-
-        // Handle checkbox changes
-        $('.wp-toggle-switch input[type="checkbox"]').on('change', function(e) {
-            e.stopPropagation();
-            var $input = $(this);
-            var option = $input.attr('name');
-            var value = $input.is(':checked') ? 1 : 0;
-            var $label = $input.closest('.wp-setting-left, .wp-allstars-toggle-left').find('label');
-            
-            updateOption(option, value)
-                .then(function() {
-                    showNotification('Saved', $label);
-                })
-                .catch(function() {
-                    showNotification('Error saving settings', $label, true);
-                });
-        });
-    }
-
-    // Initialize expandable panels
-    function initExpandablePanels() {
-        // Handle panel toggle
-        $('.wp-allstars-toggle-header').on('click', function(e) {
-            if (!$(e.target).closest('.wp-toggle-switch').length) {
-                var $settings = $(this).closest('.wp-allstars-toggle').find('.wp-allstars-toggle-settings');
-                var isExpanded = $(this).attr('aria-expanded') === 'true';
-                
-                $(this).attr('aria-expanded', !isExpanded);
-                $settings.slideToggle();
-            }
-        });
-
-        // Set initial panel states
-        $('.wp-allstars-toggle-header').each(function() {
-            var $settings = $(this).closest('.wp-allstars-toggle').find('.wp-allstars-toggle-settings');
-            var isExpanded = $(this).attr('aria-expanded') === 'true';
-            
-            if (!isExpanded) {
-                $settings.hide();
-            }
-        });
-    }
-
-    // Initialize text inputs
-    function initTextInputs() {
-        $('.wp-allstars-setting-row input[type="text"], .wp-allstars-setting-row input[type="number"], .wp-allstars-setting-row textarea').on('change', function() {
-            var $input = $(this);
-            var option = $input.attr('name');
-            var value = $input.val();
-            var $label = $input.closest('.wp-allstars-setting-row').find('label').first();
-            
-            updateOption(option, value)
-                .then(function() {
-                    showNotification('Saved', $label);
-                })
-                .catch(function(error) {
-                    console.error('Error:', error);
-                    showNotification('Error saving setting', $label, true);
-                });
-        });
-    }
-
-    // Initialize all components
-    initToggleSwitches();
-    initExpandablePanels();
-    initTextInputs();
-
-    // Handle form submission
-    $('form').on('submit', function() {
-        showNotification('Saved');
+    // Toggle settings panel
+    $('.wp-allstars-toggle-switch').on('click', function(e) {
+        e.stopPropagation();
+        $(this).closest('.wp-allstars-toggle-main').find('.wp-allstars-toggle-settings').slideToggle(200);
+        $(this).closest('.wp-allstars-toggle-main').toggleClass('expanded');
     });
 
-    // Load plugins on page load
-    if ($('#wpa-plugin-list').length) {
-        var urlParams = new URLSearchParams(window.location.search);
-        var currentCategory = urlParams.get('category') || 'minimal';
-        loadPlugins(currentCategory);
+    // Handle click on the main toggle area (but not on the switch itself)
+    $('.wp-allstars-toggle-main').on('click', function(e) {
+        if (!$(e.target).hasClass('wp-allstars-toggle-switch') && 
+            !$(e.target).closest('.wp-allstars-toggle-switch').length && 
+            !$(e.target).closest('.wp-allstars-toggle-label').length) {
+            $(this).find('.wp-allstars-toggle-settings').slideToggle(200);
+            $(this).toggleClass('expanded');
+        }
+    });
+
+    // Prevent toggle when clicking on the label
+    $('.wp-allstars-toggle-label').on('click', function(e) {
+        e.stopPropagation();
+    });
+
+    // Initialize tabs
+    $('.nav-tab-wrapper .nav-tab').on('click', function(e) {
+        e.preventDefault();
+        var target = $(this).data('tab');
         
-        // Handle category filter clicks
-        $('.wpa-plugin-filters a').on('click', function(e) {
+        // Update active tab
+        $('.nav-tab-wrapper .nav-tab').removeClass('nav-tab-active');
+        $(this).addClass('nav-tab-active');
+        
+        // Show target tab content
+        $('.tab-content').hide();
+        $('#' + target).show();
+        
+        // Update URL hash
+        window.location.hash = target;
+        
+        // Load plugins if needed
+        if (target === 'recommended' && $('#wpa-plugin-list').length && $('#wpa-plugin-list').is(':empty')) {
+            loadPlugins('all');
+        }
+        
+        // Load themes if needed
+        if (target === 'theme' && $('#wpa-theme-list').length && $('#wpa-theme-list').is(':empty')) {
+            loadTheme();
+        }
+    });
+    
+    // Initialize based on hash
+    if (window.location.hash) {
+        var hash = window.location.hash.substring(1);
+        $('.nav-tab-wrapper .nav-tab[data-tab="' + hash + '"]').trigger('click');
+    } else {
+        $('.nav-tab-wrapper .nav-tab:first').trigger('click');
+    }
+    
+    // Plugin category filters
+    if ($('#wpa-plugin-filters').length) {
+        $('#wpa-plugin-filters a').on('click', function(e) {
             e.preventDefault();
-            var category = new URLSearchParams($(this).attr('href').split('?')[1]).get('category');
+            var category = $(this).data('category');
+            
+            // Update active filter
+            $('#wpa-plugin-filters a').removeClass('current');
+            $(this).addClass('current');
+            
+            // Load plugins for the selected category
             loadPlugins(category);
-            
-            // Update URL without page reload
-            var newUrl = $(this).attr('href');
-            history.pushState({}, '', newUrl);
-            
-            // Update active state
-            $('.wpa-plugin-filters a').removeClass('button-primary');
-            $(this).addClass('button-primary');
         });
-    }
-
-    // Function to load plugins
-    function loadPlugins(category) {
-        // Show loading overlay
-        $('.wpa-loading-overlay').fadeIn();
         
-        // Log the nonce for debugging
-        console.log('Using nonce:', wpAllstars.nonce);
-        
-        $.ajax({
-            url: ajaxurl,
-            type: 'GET',
-            data: {
-                action: 'wp_allstars_get_plugins',
-                category: category || 'minimal',
-                _wpnonce: wpAllstars.nonce
-            },
-            success: function(response) {
-                if (response.success) {
-                    $('#wpa-plugin-list').html(response.data);
-                } else {
-                    console.error('Server returned error:', response);
-                    $('#wpa-plugin-list').html('<div class="notice notice-error"><p>Failed to load plugins: ' + (response.data || 'Unknown error') + '</p></div>');
-                }
-                $('.wpa-loading-overlay').fadeOut();
-            },
-            error: function(xhr, status, error) {
-                console.error('Failed to load plugins:', {xhr: xhr, status: status, error: error});
-                $('#wpa-plugin-list').html('<div class="notice notice-error"><p>Failed to load plugins. Please try again. Error: ' + error + '</p></div>');
-                $('.wpa-loading-overlay').fadeOut();
-            }
-        });
+        // Load initial plugins if we're on the recommended tab
+        if ($('#recommended').is(':visible') && $('#wpa-plugin-list').is(':empty')) {
+            loadPlugins('all');
+        }
     }
-
-    // Load theme on page load
-    if ($('#wpa-theme-list').length) {
+    
+    // Load theme tab content if we're on the theme tab
+    if ($('#theme').is(':visible') && $('#wpa-theme-list').length && $('#wpa-theme-list').is(':empty')) {
         loadTheme();
     }
-
-    // Function to load theme
-    function loadTheme() {
-        // Show loading overlay
-        $('.wpa-loading-overlay').fadeIn();
+    
+    // Function to load plugins
+    function loadPlugins(category) {
+        var $container = $('#wpa-plugin-list');
+        var $loadingOverlay = $('<div class="wp-allstars-loading-overlay"><div class="wp-allstars-loading-spinner"></div></div>');
         
+        // Show loading overlay
+        $container.css('position', 'relative').append($loadingOverlay);
+        
+        // Clear existing plugins
+        $container.empty().append($loadingOverlay);
+        
+        // AJAX request to get plugins
         $.ajax({
             url: ajaxurl,
-            type: 'GET',
+            type: 'POST',
             data: {
-                action: 'wp_allstars_get_theme',
+                action: 'wp_allstars_get_plugins',
+                category: category,
                 _wpnonce: wpAllstars.nonce
             },
             success: function(response) {
+                // Remove loading overlay
+                $loadingOverlay.remove();
+                
                 if (response.success) {
-                    $('#wpa-theme-list').html(response.data);
-                    initThemeHandlers();
+                    // Append plugins HTML
+                    $container.html(response.data);
+                    
+                    // Initialize plugin action buttons
+                    initPluginActions();
                 } else {
-                    console.error('Server returned error:', response);
-                    $('#wpa-theme-list').html('<div class="notice notice-error"><p>Failed to load theme: ' + (response.data || 'Unknown error') + '</p></div>');
+                    // Show error message
+                    $container.html('<div class="notice notice-error"><p>' + response.data + '</p></div>');
                 }
-                $('.wpa-loading-overlay').fadeOut();
             },
             error: function(xhr, status, error) {
-                console.error('Failed to load theme:', {xhr: xhr, status: status, error: error});
-                $('#wpa-theme-list').html('<div class="notice notice-error"><p>Failed to load theme. Please try again. Error: ' + error + '</p></div>');
-                $('.wpa-loading-overlay').fadeOut();
+                // Remove loading overlay
+                $loadingOverlay.remove();
+                
+                // Show error message
+                $container.html('<div class="notice notice-error"><p>Failed to load plugins. Please try again. Error: ' + error + '</p></div>');
+                console.error('AJAX Error:', xhr.responseText);
             }
         });
     }
-
-    // Initialize theme handlers
-    function initThemeHandlers() {
-        // Handle theme installation
-        $('.install-theme').on('click', function() {
-            var slug = $(this).data('slug');
+    
+    // Function to load themes
+    function loadTheme() {
+        var $container = $('#wpa-theme-list');
+        var $loadingOverlay = $('<div class="wp-allstars-loading-overlay"><div class="wp-allstars-loading-spinner"></div></div>');
+        
+        // Show loading overlay
+        $container.css('position', 'relative').append($loadingOverlay);
+        
+        // Clear existing themes
+        $container.empty().append($loadingOverlay);
+        
+        // AJAX request to get themes
+        $.ajax({
+            url: ajaxurl,
+            type: 'POST',
+            data: {
+                action: 'wp_allstars_get_themes',
+                _wpnonce: wpAllstars.nonce
+            },
+            success: function(response) {
+                // Remove loading overlay
+                $loadingOverlay.remove();
+                
+                if (response.success) {
+                    // Append themes HTML
+                    $container.html(response.data);
+                    
+                    // Initialize theme action buttons
+                    initThemeHandlers();
+                } else {
+                    // Show error message
+                    $container.html('<div class="notice notice-error"><p>' + response.data + '</p></div>');
+                }
+            },
+            error: function(xhr, status, error) {
+                // Remove loading overlay
+                $loadingOverlay.remove();
+                
+                // Show error message
+                $container.html('<div class="notice notice-error"><p>Failed to load themes. Please try again. Error: ' + error + '</p></div>');
+                console.error('AJAX Error:', xhr.responseText);
+            }
+        });
+    }
+    
+    // Initialize plugin action buttons
+    function initPluginActions() {
+        // Install plugin
+        $('.plugin-card .install-now').on('click', function(e) {
+            e.preventDefault();
             var $button = $(this);
+            var slug = $button.data('slug');
             
-            $button.text('Installing...').prop('disabled', true);
+            $button.addClass('updating-message').text('Installing...');
             
-            wp.updates.installTheme({
+            wp.updates.installPlugin({
                 slug: slug,
                 success: function(response) {
-                    $button.text('Activate').removeClass('install-theme').addClass('activate-theme');
-                    $button.prop('disabled', false);
+                    $button.removeClass('updating-message').addClass('updated-message').text('Installed!');
+                    setTimeout(function() {
+                        $button.removeClass('updated-message install-now')
+                               .addClass('activate-now')
+                               .text('Activate')
+                               .attr('href', response.activateUrl);
+                    }, 1000);
                 },
                 error: function(response) {
-                    $button.text('Error').prop('disabled', false);
-                    console.error('Theme installation error:', response);
+                    $button.removeClass('updating-message').text('Install Now');
+                    alert(response.errorMessage);
                 }
             });
         });
         
-        // Handle theme activation
-        $('.activate-theme').on('click', function() {
-            var slug = $(this).data('slug');
+        // Update plugin
+        $('.plugin-card .update-now').on('click', function(e) {
+            e.preventDefault();
             var $button = $(this);
+            var slug = $button.data('slug');
             
-            $button.text('Activating...').prop('disabled', true);
+            $button.addClass('updating-message').text('Updating...');
+            
+            wp.updates.updatePlugin({
+                slug: slug,
+                success: function() {
+                    $button.removeClass('updating-message').addClass('updated-message').text('Updated!');
+                    setTimeout(function() {
+                        $button.removeClass('update-now updated-message')
+                               .addClass('button-disabled')
+                               .text('Active');
+                    }, 1000);
+                },
+                error: function(response) {
+                    $button.removeClass('updating-message').text('Update Now');
+                    alert(response.errorMessage);
+                }
+            });
+        });
+        
+        // Activate plugin
+        $('.plugin-card .activate-now').on('click', function(e) {
+            e.preventDefault();
+            var $button = $(this);
+            var url = $button.attr('href');
+            
+            $button.addClass('updating-message').text('Activating...');
             
             $.ajax({
-                url: ajaxurl,
-                type: 'POST',
-                data: {
-                    action: 'wp_allstars_activate_theme',
-                    theme: slug,
-                    _wpnonce: wpAllstars.nonce
+                url: url,
+                dataType: 'html',
+                success: function() {
+                    $button.removeClass('updating-message').addClass('updated-message').text('Activated!');
+                    setTimeout(function() {
+                        $button.removeClass('activate-now updated-message')
+                               .addClass('button-disabled')
+                               .text('Active');
+                    }, 1000);
                 },
+                error: function() {
+                    $button.removeClass('updating-message').text('Activate');
+                    alert('Failed to activate plugin. Please try again or activate from the Plugins page.');
+                }
+            });
+        });
+    }
+    
+    // Initialize theme handlers
+    function initThemeHandlers() {
+        // Install theme
+        $('.theme-browser .theme-actions .install-now').on('click', function(e) {
+            e.preventDefault();
+            var $button = $(this);
+            var slug = $button.data('slug');
+            var $themeCard = $button.closest('.theme');
+            
+            $button.addClass('updating-message').text('Installing...');
+            
+            wp.updates.installTheme({
+                slug: slug,
                 success: function(response) {
-                    if (response.success) {
-                        $button.text('Activated').prop('disabled', true);
-                        // Optionally redirect to customizer
-                        if (response.data && response.data.customize_url) {
-                            setTimeout(function() {
-                                window.location.href = response.data.customize_url;
-                            }, 1000);
-                        }
-                    } else {
-                        $button.text('Error').prop('disabled', false);
-                        console.error('Theme activation error:', response);
-                    }
+                    $button.removeClass('updating-message').addClass('updated-message').text('Installed!');
+                    setTimeout(function() {
+                        $button.removeClass('updated-message install-now')
+                               .addClass('activate-now')
+                               .text('Activate')
+                               .attr('href', response.activateUrl);
+                    }, 1000);
                 },
-                error: function(xhr, status, error) {
-                    $button.text('Error').prop('disabled', false);
-                    console.error('Theme activation AJAX error:', error);
+                error: function(response) {
+                    $button.removeClass('updating-message').text('Install Now');
+                    alert(response.errorMessage);
+                }
+            });
+        });
+        
+        // Activate theme
+        $('.theme-browser .theme-actions .activate-now').on('click', function(e) {
+            e.preventDefault();
+            var $button = $(this);
+            var url = $button.attr('href');
+            
+            $button.addClass('updating-message').text('Activating...');
+            
+            $.ajax({
+                url: url,
+                dataType: 'html',
+                success: function() {
+                    $button.removeClass('updating-message').addClass('updated-message').text('Activated!');
+                    setTimeout(function() {
+                        $('.theme-browser .theme').removeClass('active');
+                        $button.closest('.theme').addClass('active');
+                        $button.removeClass('activate-now updated-message')
+                               .addClass('button-disabled')
+                               .text('Active');
+                    }, 1000);
+                },
+                error: function() {
+                    $button.removeClass('updating-message').text('Activate');
+                    alert('Failed to activate theme. Please try again or activate from the Themes page.');
                 }
             });
         });
