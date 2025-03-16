@@ -1008,35 +1008,7 @@ function wp_allstars_settings_page() {
                     </div>
                 <?php elseif ($active_tab == 'hosting'): ?>
                     <div class="tab-content" id="hosting">
-                        <style>
-                            .wpa-hosting-providers {
-                                display: grid;
-                                grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-                                gap: 20px;
-                                margin-top: 20px;
-                            }
-                            .wpa-hosting-provider {
-                                background: #fff;
-                                border: 1px solid #ddd;
-                                border-radius: 5px;
-                                padding: 20px;
-                                box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-                            }
-                            .wpa-hosting-provider h3 {
-                                margin-top: 0;
-                                padding-bottom: 10px;
-                                border-bottom: 1px solid #eee;
-                            }
-                            .wpa-hosting-provider p {
-                                min-height: 80px;
-                                margin-bottom: 20px;
-                            }
-                            .wpa-hosting-provider .button-group {
-                                display: flex;
-                                gap: 10px;
-                            }
-                        </style>
-                        <div class="wpa-hosting-providers">
+                        <div class="wpa-pro-plugins">
                             <?php
                             $hosting_providers = wp_allstars_get_hosting_providers();
                             // Sort providers alphabetically by name
@@ -1045,7 +1017,7 @@ function wp_allstars_settings_page() {
                             });
                             foreach ($hosting_providers as $provider) {
                                 ?>
-                                <div class="wpa-hosting-provider">
+                                <div class="wpa-pro-plugin">
                                     <h3><?php echo esc_html($provider['name']); ?></h3>
                                     <p><?php echo esc_html($provider['description']); ?></p>
                                     <?php if (isset($provider['button_group'])): ?>
