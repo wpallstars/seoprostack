@@ -91,6 +91,8 @@
     height: 20px;
     flex-shrink: 0;
     cursor: pointer;
+    pointer-events: all;
+    z-index: 2;
 }
 
 .wp-toggle-switch input {
@@ -218,6 +220,11 @@ input:checked + .wp-toggle-slider:before {
 
 .wp-allstars-toggle-header[aria-expanded="true"]::after {
     transform: translateY(-50%) rotate(180deg);
+}
+
+/* Make sure the label doesn't interfere with clickability */
+.wp-allstars-toggle-left label {
+    pointer-events: none;
 }
 
 .wp-allstars-expand-settings {
@@ -648,8 +655,9 @@ input:checked + .wp-toggle-slider:before {
 .wp-allstars-setting-row label .wp-setting-notification {
     position: absolute;
     right: -60px;
-    top: 50%;
-    transform: translateY(-50%);
+    top: 0;
+    transform: translateY(0);
+    line-height: 1.4;
 }
 
 @keyframes fadeIn {

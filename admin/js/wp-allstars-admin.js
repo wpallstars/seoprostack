@@ -29,9 +29,9 @@ jQuery(document).ready(function($) {
             url: ajaxurl,
             type: 'POST',
             data: {
-                action: 'wp_allstars_update_option',
-                option: option,
-                value: value,
+            action: 'wp_allstars_update_option',
+            option: option,
+            value: value,
                 _wpnonce: wpAllstars.nonce
             }
         }).then(function(response) {
@@ -165,7 +165,7 @@ jQuery(document).ready(function($) {
             data: {
                 action: 'wp_allstars_get_plugins',
                 category: category || 'minimal',
-                nonce: wpAllstars.nonce
+                security: wpAllstars.nonce
             },
             success: function(response) {
                 if (response.success) {
@@ -199,7 +199,7 @@ jQuery(document).ready(function($) {
             type: 'POST',
             data: {
                 action: 'wp_allstars_get_theme',
-                nonce: wpAllstars.nonce
+                security: wpAllstars.nonce
             },
             success: function(response) {
                 if (response.success) {
@@ -264,7 +264,7 @@ jQuery(document).ready(function($) {
                 data: {
                     action: 'wp_allstars_activate_theme',
                     theme: slug,
-                    nonce: wpAllstars.nonce
+                    security: wpAllstars.nonce
                 },
                 success: function(response) {
                     if (response.success) {
