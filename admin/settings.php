@@ -742,24 +742,45 @@ function wp_allstars_settings_page() {
 
                     <script>
                     jQuery(document).ready(function($) {
-                        $('.wp-allstars-expand-settings').on('click', function() {
-                            var $button = $(this);
-                            var $panel = $button.closest('.wp-allstars-toggle').find('.wp-allstars-toggle-settings');
-                            var isExpanded = $button.attr('aria-expanded') === 'true';
-                            
-                            // Update button state
-                            $button.attr('aria-expanded', !isExpanded);
-                            
-                            // Toggle icon
-                            $button.find('.dashicons')
-                                .removeClass('dashicons-arrow-down-alt2 dashicons-arrow-up-alt2')
-                                .addClass(isExpanded ? 'dashicons-arrow-down-alt2' : 'dashicons-arrow-up-alt2');
-                            
-                            // Toggle panel
-                            $panel.slideToggle(200);
-                            
-                            return false;
-                        });
+                        // Initialize accordion functionality
+                        function initAccordion() {
+                            $('.wp-allstars-expand-settings').each(function() {
+                                var $button = $(this);
+                                var $panel = $button.closest('.wp-allstars-toggle').find('.wp-allstars-toggle-settings');
+                                var $icon = $button.find('.dashicons');
+                                
+                                // Set initial state
+                                var isExpanded = $button.attr('aria-expanded') === 'true';
+                                $panel.toggle(isExpanded);
+                                $icon.toggleClass('dashicons-arrow-up-alt2', isExpanded)
+                                     .toggleClass('dashicons-arrow-down-alt2', !isExpanded);
+                                
+                                // Handle click events
+                                $button.on('click', function(e) {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    
+                                    isExpanded = !isExpanded;
+                                    $button.attr('aria-expanded', isExpanded);
+                                    
+                                    // Animate icon rotation
+                                    $icon.css('transform', isExpanded ? 'rotate(180deg)' : 'rotate(0deg)');
+                                    
+                                    // Animate panel
+                                    $panel.slideToggle(200, function() {
+                                        // Ensure panel is properly shown/hidden after animation
+                                        if (isExpanded) {
+                                            $panel.show();
+                                        } else {
+                                            $panel.hide();
+                                        }
+                                    });
+                                });
+                            });
+                        }
+                        
+                        // Initialize on page load
+                        initAccordion();
                     });
                     </script>
 
@@ -769,17 +790,20 @@ function wp_allstars_settings_page() {
                         border: 1px solid #ccd0d4;
                         border-radius: 4px;
                         margin-bottom: 15px;
+                        overflow: hidden;
                     }
 
                     .wp-allstars-toggle-header {
                         padding: 15px;
+                        cursor: pointer;
+                        user-select: none;
                     }
 
                     .wp-allstars-toggle-main {
                         display: flex;
-                        flex-direction: column;
-                        align-items: flex-start;
-                        gap: 8px;
+                        align-items: center;
+                        justify-content: space-between;
+                        gap: 10px;
                     }
 
                     .wp-allstars-toggle label {
@@ -788,6 +812,7 @@ function wp_allstars_settings_page() {
                         gap: 10px;
                         margin: 0;
                         cursor: pointer;
+                        flex: 1;
                     }
 
                     .wp-allstars-expand-settings {
@@ -796,9 +821,17 @@ function wp_allstars_settings_page() {
                         padding: 4px;
                         cursor: pointer;
                         color: #2271b1;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        width: 24px;
+                        height: 24px;
+                        border-radius: 3px;
+                        transition: background-color 0.2s ease;
                     }
 
                     .wp-allstars-expand-settings:hover {
+                        background-color: #f0f0f1;
                         color: #135e96;
                     }
 
@@ -810,21 +843,42 @@ function wp_allstars_settings_page() {
                     .wp-allstars-expand-settings .dashicons {
                         transition: transform 0.2s ease;
                         display: block;
-                    }
-
-                    .wp-allstars-expand-settings .dashicons-arrow-up-alt2 {
-                        transform: rotate(180deg);
+                        width: 16px;
+                        height: 16px;
+                        font-size: 16px;
+                        line-height: 16px;
                     }
 
                     .wp-allstars-toggle-settings {
                         border-top: 1px solid #ccd0d4;
                         padding: 15px;
-                        display: none;
+                        background: #f9f9f9;
                     }
 
                     .wp-allstars-toggle .description {
                         margin: 8px 0 0;
                         color: #646970;
+                    }
+
+                    .wp-allstars-setting-row {
+                        margin-bottom: 15px;
+                    }
+
+                    .wp-allstars-setting-row:last-child {
+                        margin-bottom: 0;
+                    }
+
+                    .wp-allstars-setting-row label {
+                        display: block;
+                        margin-bottom: 5px;
+                        font-weight: 500;
+                    }
+
+                    .wp-allstars-setting-row input[type="text"],
+                    .wp-allstars-setting-row input[type="number"],
+                    .wp-allstars-setting-row textarea {
+                        width: 100%;
+                        max-width: 400px;
                     }
                     </style>
 
