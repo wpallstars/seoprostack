@@ -178,7 +178,7 @@
         display: flex !important;
         align-items: center !important;
         justify-content: flex-end !important;
-        height: 13px !important;
+        height: 0px !important;
         line-height: 13px !important;
     }
     
