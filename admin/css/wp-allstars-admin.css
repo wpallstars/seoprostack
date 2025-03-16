@@ -310,9 +310,15 @@ input:checked + .wp-toggle-slider:before {
     justify-content: center;
 }
 
+/* Settings Container */
+.wpa-settings-content {
+    margin-top: 20px;
+    padding: 0 20px;
+}
+
 /* Plugin Filters */
 .wpa-plugin-filters {
-    margin: 0;
+    margin: 20px 0;
     padding: 20px;
     background: #fff;
     border: 1px solid #c3c4c7;
