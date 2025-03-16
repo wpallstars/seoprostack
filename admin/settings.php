@@ -215,29 +215,8 @@ function wp_allstars_ajax_get_plugins() {
     if ($cached_data !== false) {
         error_log('Using cached data for category: ' . $category);
         try {
-            // Setup the list table with cached data
-            $GLOBALS['tab'] = 'plugin-install';
-            $_REQUEST['tab'] = 'plugin-install';
-            $_REQUEST['type'] = 'plugin-install';
-            set_current_screen('plugin-install');
-            
-            $wp_list_table = _get_list_table('WP_Plugin_Install_List_Table', array(
-                'screen' => 'plugin-install'
-            ));
-            
-            // Override the items with our cached data
-            $wp_list_table->items = $cached_data->plugins;
-            $wp_list_table->set_pagination_args(array(
-                'total_items' => count($cached_data->plugins),
-                'per_page' => count($cached_data->plugins),
-            ));
-            
-            add_filter('plugin_install_action_links', 'wp_allstars_add_pro_button', 10, 2);
-            
-            ob_start();
-            $wp_list_table->display();
-            $html = ob_get_clean();
-            
+            // Generate plugin cards HTML
+            $html = wp_allstars_generate_plugin_cards($cached_data->plugins);
             wp_send_json_success($html);
             return;
         } catch (Exception $e) {
@@ -313,34 +292,8 @@ function wp_allstars_ajax_get_plugins() {
         // Cache the results
         wp_allstars_set_cached_plugins($category, $res);
         
-        // Setup the list table
-        $GLOBALS['tab'] = 'plugin-install';
-        $_REQUEST['tab'] = 'plugin-install';
-        $_REQUEST['type'] = 'plugin-install';
-        set_current_screen('plugin-install');
-        
-        $wp_list_table = _get_list_table('WP_Plugin_Install_List_Table', array(
-            'screen' => 'plugin-install'
-        ));
-        
-        // Set the items directly
-        $wp_list_table->items = $plugins;
-        $wp_list_table->set_pagination_args(array(
-            'total_items' => count($plugins),
-            'per_page' => count($plugins),
-        ));
-        
-        add_filter('plugin_install_action_links', 'wp_allstars_add_pro_button', 10, 2);
-        
-        ob_start();
-        $wp_list_table->display();
-        $html = ob_get_clean();
-        
-        if (empty($html)) {
-            wp_send_json_error('Failed to generate plugin display HTML');
-            return;
-        }
-        
+        // Generate plugin cards HTML
+        $html = wp_allstars_generate_plugin_cards($plugins);
         wp_send_json_success($html);
         
     } catch (Exception $e) {
@@ -349,6 +302,88 @@ function wp_allstars_ajax_get_plugins() {
     }
 }
 add_action('wp_ajax_wp_allstars_get_plugins', 'wp_allstars_ajax_get_plugins');
+
+// Function to generate plugin cards HTML
+function wp_allstars_generate_plugin_cards($plugins) {
+    if (empty($plugins)) {
+        return '<div class="notice notice-error"><p>No plugins found.</p></div>';
+    }
+    
+    ob_start();
+    ?>
+    <div class="wp-list-table widefat plugin-install">
+        <div id="the-list">
+            <?php foreach ($plugins as $plugin): ?>
+                <div class="plugin-card plugin-card-<?php echo esc_attr($plugin->slug); ?>">
+                    <div class="plugin-card-top">
+                        <div class="name column-name">
+                            <h3>
+                                <a href="<?php echo esc_url($plugin->homepage); ?>" target="_blank">
+                                    <?php echo esc_html($plugin->name); ?>
+                                </a>
+                            </h3>
+                        </div>
+                        <div class="action-links">
+                            <ul class="plugin-action-buttons">
+                                <?php
+                                $status = install_plugin_install_status($plugin);
+                                switch ($status['status']) {
+                                    case 'install':
+                                        echo '<li><a class="button button-primary install-now" data-slug="' . esc_attr($plugin->slug) . '" href="' . esc_url($status['url']) . '" aria-label="' . esc_attr(sprintf(__('Install %s now'), $plugin->name)) . '">' . __('Install Now') . '</a></li>';
+                                        break;
+                                    case 'update_available':
+                                        echo '<li><a class="button button-primary update-now" data-slug="' . esc_attr($plugin->slug) . '" href="' . esc_url($status['url']) . '" aria-label="' . esc_attr(sprintf(__('Update %s now'), $plugin->name)) . '">' . __('Update Now') . '</a></li>';
+                                        break;
+                                    case 'latest_installed':
+                                    case 'newer_installed':
+                                        if (is_plugin_active($status['file'])) {
+                                            echo '<li><button type="button" class="button button-disabled" disabled="disabled">' . __('Active') . '</button></li>';
+                                        } else {
+                                            echo '<li><a class="button activate-now" href="' . esc_url(wp_nonce_url(admin_url('plugins.php?action=activate&plugin=' . $status['file']), 'activate-plugin_' . $status['file'])) . '" aria-label="' . esc_attr(sprintf(__('Activate %s'), $plugin->name)) . '">' . __('Activate') . '</a></li>';
+                                        }
+                                        break;
+                                }
+                                
+                                // Add "Go Pro" button if applicable
+                                $pro_plugins = wp_allstars_get_pro_plugins_config();
+                                foreach ($pro_plugins as $pro_plugin) {
+                                    if (isset($pro_plugin['free_slug']) && $pro_plugin['free_slug'] === $plugin->slug) {
+                                        echo '<li><a class="button button-primary" href="' . esc_url($pro_plugin['url']) . '" target="_blank">' . esc_html__('Go Pro', 'wp-allstars') . '</a></li>';
+                                        break;
+                                    }
+                                }
+                                ?>
+                            </ul>
+                        </div>
+                        <div class="desc column-description">
+                            <p><?php echo esc_html($plugin->short_description); ?></p>
+                        </div>
+                        <?php if (!empty($plugin->icons) && !empty($plugin->icons['1x'])): ?>
+                            <div class="plugin-icon">
+                                <img src="<?php echo esc_url($plugin->icons['1x']); ?>" alt="">
+                            </div>
+                        <?php endif; ?>
+                    </div>
+                    <div class="plugin-card-bottom">
+                        <div class="vers column-rating">
+                            <?php wp_star_rating(array('rating' => $plugin->rating, 'type' => 'percent', 'number' => $plugin->num_ratings)); ?>
+                            <span class="num-ratings">(<?php echo number_format_i18n($plugin->num_ratings); ?>)</span>
+                        </div>
+                        <div class="column-updated">
+                            <strong><?php _e('Last Updated:'); ?></strong> 
+                            <?php printf(__('%s ago'), human_time_diff(strtotime($plugin->last_updated))); ?>
+                        </div>
+                        <div class="column-downloaded">
+                            <?php echo sprintf(_n('%s download', '%s downloads', $plugin->downloaded), number_format_i18n($plugin->downloaded)); ?>
+                        </div>
+                    </div>
+                </div>
+            <?php endforeach; ?>
+        </div>
+    </div>
+    <?php
+    return ob_get_clean();
+}
 
 // Helper function to add pro button to plugin cards
 function wp_allstars_add_pro_button($action_links, $plugin) {
@@ -622,6 +657,7 @@ function wp_allstars_settings_page() {
         wp_enqueue_script('updates');
         add_thickbox();
         wp_enqueue_style('wp-allstars-admin', plugins_url('css/wp-allstars-admin.css', __FILE__));
+        wp_enqueue_style('wp-allstars-plugins', plugins_url('css/wp-allstars-plugins.css', __FILE__));
     } elseif ($active_tab === 'theme') {
         wp_allstars_clear_theme_cache();
         require_once ABSPATH . 'wp-admin/includes/theme.php';
@@ -629,6 +665,7 @@ function wp_allstars_settings_page() {
         wp_enqueue_script('updates');
         add_thickbox();
         wp_enqueue_style('wp-allstars-admin', plugins_url('css/wp-allstars-admin.css', __FILE__));
+        wp_enqueue_style('wp-allstars-plugins', plugins_url('css/wp-allstars-plugins.css', __FILE__));
     }
     ?>
     <div class="wrap wp-allstars-wrap">
