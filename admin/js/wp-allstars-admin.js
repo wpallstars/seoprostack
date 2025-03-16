@@ -76,21 +76,6 @@ jQuery(document).ready(function($) {
     });
 
     // Handle accordion functionality
-    $('.wp-allstars-expand-settings').each(function() {
-        var $button = $(this);
-        var $panel = $button.closest('.wp-allstars-toggle').find('.wp-allstars-toggle-settings');
-        var $icon = $button.find('.dashicons');
-        var isExpanded = $button.attr('aria-expanded') === 'true';
-        
-        // Set initial state
-        if (isExpanded) {
-            $panel.show();
-            $icon.css('transform', 'rotate(180deg)');
-        } else {
-            $panel.hide();
-        }
-    });
-
     $('.wp-allstars-expand-settings').on('click', function(e) {
         e.preventDefault();
         
@@ -106,11 +91,7 @@ jQuery(document).ready(function($) {
         $icon.css('transform', !isExpanded ? 'rotate(180deg)' : '');
         
         // Toggle panel
-        if (!isExpanded) {
-            $panel.slideDown(200);
-        } else {
-            $panel.slideUp(200);
-        }
+        $panel.slideToggle(200);
     });
 
     // Handle form submission
