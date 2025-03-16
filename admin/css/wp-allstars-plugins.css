@@ -183,8 +183,15 @@
         line-height: 13px !important;
     }
     
-    /* Make untested text black */
-    body.wp-admin .plugin-card .compatibility-untested span {
+    /* Make untested text black with more specific selectors */
+    body.wp-admin .plugin-card .compatibility-untested,
+    body.wp-admin .plugin-card .compatibility-untested span,
+    body.wp-admin .plugin-card .compatibility-untested strong,
+    body.wp-admin .plugin-card-bottom .compatibility-untested *,
+    .plugin-card .notice.compatibility-untested,
+    .plugin-card .compatibility-untested strong,
+    .plugin-card .notice.compatibility-untested p,
+    .plugin-card .notice.compatibility-untested span {
         color: #000 !important;
     }
     
