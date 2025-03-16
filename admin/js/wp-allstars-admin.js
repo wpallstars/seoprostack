@@ -29,9 +29,9 @@ jQuery(document).ready(function($) {
             url: ajaxurl,
             type: 'POST',
             data: {
-            action: 'wp_allstars_update_option',
-            option: option,
-            value: value,
+                action: 'wp_allstars_update_option',
+                option: option,
+                value: value,
                 _wpnonce: wpAllstars.nonce
             }
         }).then(function(response) {
@@ -42,26 +42,55 @@ jQuery(document).ready(function($) {
         });
     }
 
-    // Toggle settings panel
-    $('.wp-allstars-toggle-switch').on('click', function(e) {
+    // Handle toggle switch clicks
+    $('.wp-toggle-switch').on('click', function(e) {
         e.stopPropagation();
-        $(this).closest('.wp-allstars-toggle-main').find('.wp-allstars-toggle-settings').slideToggle(200);
-        $(this).closest('.wp-allstars-toggle-main').toggleClass('expanded');
+        var $checkbox = $(this).find('input[type="checkbox"]');
+        var isChecked = $checkbox.is(':checked');
+        $checkbox.prop('checked', !isChecked).trigger('change');
     });
 
-    // Handle click on the main toggle area (but not on the switch itself)
-    $('.wp-allstars-toggle-main').on('click', function(e) {
-        if (!$(e.target).hasClass('wp-allstars-toggle-switch') && 
-            !$(e.target).closest('.wp-allstars-toggle-switch').length && 
-            !$(e.target).closest('.wp-allstars-toggle-label').length) {
-            $(this).find('.wp-allstars-toggle-settings').slideToggle(200);
-            $(this).toggleClass('expanded');
+    // Prevent label clicks from toggling the checkbox directly
+    $('.wp-setting-label, .wp-allstars-toggle-left label').on('click', function(e) {
+        e.stopPropagation();
+    });
+
+    // Handle checkbox changes
+    $('.wp-toggle-switch input[type="checkbox"]').on('change', function(e) {
+        e.stopPropagation();
+        var $input = $(this);
+        var option = $input.attr('name');
+        var value = $input.is(':checked') ? 1 : 0;
+        
+        updateOption(option, value)
+            .then(function() {
+                showNotification('Saved', $input.closest('.wp-setting-left, .wp-allstars-toggle-left'));
+            })
+            .catch(function() {
+                showNotification('Error saving settings', $input.closest('.wp-setting-left, .wp-allstars-toggle-left'), true);
+            });
+    });
+
+    // Toggle expandable panels
+    $('.wp-allstars-toggle-header').on('click', function(e) {
+        if (!$(e.target).closest('.wp-toggle-switch').length && 
+            !$(e.target).closest('label').length) {
+            var $settings = $(this).closest('.wp-allstars-toggle').find('.wp-allstars-toggle-settings');
+            var isExpanded = $(this).attr('aria-expanded') === 'true';
+            
+            $(this).attr('aria-expanded', !isExpanded);
+            $settings.slideToggle(200);
         }
     });
 
-    // Prevent toggle when clicking on the label
-    $('.wp-allstars-toggle-label').on('click', function(e) {
-        e.stopPropagation();
+    // Set initial panel states
+    $('.wp-allstars-toggle-header').each(function() {
+        var $settings = $(this).closest('.wp-allstars-toggle').find('.wp-allstars-toggle-settings');
+        var isExpanded = $(this).attr('aria-expanded') === 'true';
+        
+        if (!isExpanded) {
+            $settings.hide();
+        }
     });
 
     // Remove JavaScript-based tab switching - let the native WordPress tab links work
