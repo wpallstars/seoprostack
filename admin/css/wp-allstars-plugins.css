@@ -104,9 +104,9 @@
         z-index: 1 !important;
     }
     
-    /* Position name next to the icon with consistent width */
+    /* Position name next to the icon with consistent width, moved 35px left */
     body.wp-admin .plugin-card .name.column-name {
-        margin-left: 0 !important;
+        margin-left: -35px !important;
         margin-right: 0 !important;
         margin-bottom: 10px !important;
         margin-top: 0 !important;
@@ -174,14 +174,28 @@
         width: 100% !important;
         box-sizing: border-box !important;
         text-align: center !important;
+        max-width: none !important;
+        display: block !important;
+    }
+    
+    /* Ensure compatibility text container has full width */
+    body.wp-admin .plugin-card-bottom p,
+    body.wp-admin .plugin-card-bottom div {
+        width: 100% !important;
+        max-width: none !important;
+        box-sizing: border-box !important;
+        margin-left: 0 !important;
+        margin-right: 0 !important;
     }
 }
 
 /* Center More Details under Install Now */
-body.wp-admin .wp-list-table.plugin-install #the-list .plugin-card .action-links a.thickbox {
+body.wp-admin .wp-list-table.plugin-install #the-list .plugin-card .action-links a.button + a.thickbox,
+body.wp-admin .wp-list-table.plugin-install #the-list .plugin-card .plugin-action-buttons a.thickbox {
     display: block !important;
     text-align: center !important;
-    margin-top: 5px !important;
+    margin: 5px auto !important;
+    float: none !important;
 }
 
 /* Position Go Pro below More Details and center it */
