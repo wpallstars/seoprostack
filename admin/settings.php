@@ -742,27 +742,34 @@ function wp_allstars_settings_page() {
 
                     <script>
                     jQuery(document).ready(function($) {
-                        // Handle accordion functionality
-                        $('.wp-allstars-expand-settings').on('click', function(e) {
-                            e.preventDefault();
+                        // Set initial state of panels
+                        $('.wp-allstars-toggle-settings').each(function() {
+                            var $panel = $(this);
+                            var $button = $panel.closest('.wp-allstars-toggle').find('.wp-allstars-expand-settings');
+                            var isExpanded = $button.attr('aria-expanded') === 'true';
                             
+                            // Set initial visibility without animation
+                            $panel.toggle(isExpanded);
+                            if (isExpanded) {
+                                $button.find('.dashicons').css('transform', 'rotate(180deg)');
+                            }
+                        });
+
+                        // Handle click events
+                        $('.wp-allstars-expand-settings').on('click', function() {
                             var $button = $(this);
                             var $panel = $button.closest('.wp-allstars-toggle').find('.wp-allstars-toggle-settings');
                             var $icon = $button.find('.dashicons');
                             var isExpanded = $button.attr('aria-expanded') === 'true';
                             
-                            // Toggle aria state
+                            // Update state
                             $button.attr('aria-expanded', !isExpanded);
                             
-                            // Rotate icon
+                            // Update icon
                             $icon.css('transform', !isExpanded ? 'rotate(180deg)' : '');
                             
-                            // Toggle panel visibility with animation
-                            if (!isExpanded) {
-                                $panel.css('display', 'block').hide().slideDown(200);
-                            } else {
-                                $panel.slideUp(200);
-                            }
+                            // Toggle panel
+                            $panel.slideToggle(200);
                         });
                     });
                     </script>
