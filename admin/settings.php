@@ -743,19 +743,29 @@ function wp_allstars_settings_page() {
                     <script>
                     jQuery(document).ready(function($) {
                         // Handle accordion functionality
-                        $('.wp-allstars-expand-settings').on('click', function(e) {
-                            e.preventDefault();
-                            
+                        $('.wp-allstars-expand-settings').each(function() {
                             var $button = $(this);
                             var $panel = $button.closest('.wp-allstars-toggle').find('.wp-allstars-toggle-settings');
                             var $icon = $button.find('.dashicons');
                             
-                            // Toggle panel
-                            $panel.slideToggle(200, function() {
-                                // Update state after animation completes
-                                var isExpanded = $panel.is(':visible');
+                            // Set initial state
+                            var isExpanded = $panel.is(':visible');
+                            $button.attr('aria-expanded', isExpanded);
+                            $icon.css('transform', isExpanded ? 'rotate(180deg)' : '');
+                            
+                            // Handle click events
+                            $button.on('click', function(e) {
+                                e.preventDefault();
+                                
+                                // Toggle panel
+                                $panel.slideToggle(200);
+                                
+                                // Toggle state
+                                isExpanded = !isExpanded;
                                 $button.attr('aria-expanded', isExpanded);
-                                $icon.css('transform', isExpanded ? 'rotate(180deg)' : 'rotate(0deg)');
+                                
+                                // Update icon rotation
+                                $icon.css('transform', isExpanded ? 'rotate(180deg)' : '');
                             });
                         });
                     });
