@@ -8,7 +8,7 @@ function wp_allstars_get_pro_plugins_config() {
         'admin-columns' => array(
             'name' => 'Admin Columns Pro',
             'description' => 'Advanced admin columns management with sorting, filtering, and editing capabilities.',
-            'url' => 'https://www.admincolumns.com/pricing/',
+            'url' => 'https://www.admincolumns.com/',
             'free_slug' => 'codepress-admin-columns'
         ),
         'admin-menu-editor' => array(
