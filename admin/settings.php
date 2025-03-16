@@ -860,9 +860,6 @@ function wp_allstars_settings_page() {
                 <?php elseif ($active_tab == 'theme'): ?>
                     <div class="tab-content" id="theme">
                         <div class="wp-list-table-container">
-                            <div class="wp-allstars-loading-overlay">
-                                <span class="spinner is-active"></span>
-                            </div>
                             <div id="wpa-theme-list"></div>
                         </div>
                     </div>
