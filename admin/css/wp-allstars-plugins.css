@@ -44,6 +44,25 @@
     position: relative;
 }
 
+/* Maintain consistent center gutter at all widths */
+@media screen and (min-width: 1600px) {
+    .plugin-card {
+        margin: 0 8px 16px;
+        width: calc(50% - 16px);
+    }
+    
+    /* Force equal spacing between all cards */
+    .plugin-card:nth-child(odd) {
+        margin-left: 0;
+        margin-right: 8px;
+    }
+    
+    .plugin-card:nth-child(even) {
+        margin-left: 8px;
+        margin-right: 0;
+    }
+}
+
 /* Ensure the right edge aligns with the navigation above */
 .plugin-card:nth-child(even) {
     margin-right: 0;
@@ -53,12 +72,54 @@
     margin-left: 0;
 }
 
+/* Responsive behavior */
 @media screen and (max-width: 1260px) {
     .plugin-card {
         width: 100%;
         margin: 0 0 16px 0;
     }
+    
+    /* Reset the specific margin styles for single column */
+    .plugin-card:nth-child(odd),
+    .plugin-card:nth-child(even) {
+        margin: 0 0 16px 0;
+    }
 }
+
+/* Improved mobile layout below 768px */
+@media screen and (max-width: 782px) {
+    .plugin-card-top {
+        padding: 16px;
+        min-height: auto;
+    }
+    
+    .plugin-icon {
+        position: relative;
+        top: 0;
+        left: 0;
+        margin: 0 auto 16px;
+        display: block;
+    }
+    
+    .name.column-name {
+        margin-right: 0;
+        margin-left: 0;
+        text-align: center;
+    }
+    
+    .action-links {
+        position: static;
+        width: 100%;
+        margin: 16px 0 0;
+    }
+    
+    .plugin-action-buttons {
+        float: none;
+        text-align: center;
+        margin: 16px 0 0;
+    }
+}
+
 
 .plugin-card:hover {
     border-color: #999;
