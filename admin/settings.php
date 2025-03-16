@@ -742,46 +742,24 @@ function wp_allstars_settings_page() {
 
                     <script>
                     jQuery(document).ready(function($) {
-                        // Handle accordion functionality
-                        $('.wp-allstars-toggle').each(function() {
-                            var $toggle = $(this);
-                            var $button = $toggle.find('.wp-allstars-expand-settings');
-                            var $panel = $toggle.find('.wp-allstars-toggle-settings');
+                        $('.wp-allstars-expand-settings').on('click', function(e) {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            
+                            var $button = $(this);
+                            var $panel = $button.closest('.wp-allstars-toggle').find('.wp-allstars-toggle-settings');
                             var $icon = $button.find('.dashicons');
+                            var isExpanded = $panel.is(':visible');
                             
-                            // Set initial state
-                            var isExpanded = $button.attr('aria-expanded') === 'true';
-                            $panel.toggle(isExpanded);
-                            updateIconState($icon, isExpanded);
+                            // Toggle panel with animation
+                            $panel.slideToggle(200);
                             
-                            // Handle click events
-                            $button.on('click', function(e) {
-                                e.preventDefault();
-                                e.stopPropagation();
-                                
-                                // Toggle state
-                                isExpanded = !isExpanded;
-                                
-                                // Update ARIA state
-                                $button.attr('aria-expanded', isExpanded);
-                                
-                                // Update icon before animation
-                                updateIconState($icon, isExpanded);
-                                
-                                // Animate panel
-                                $panel.stop().slideToggle({
-                                    duration: 200,
-                                    queue: false
-                                });
-                            });
+                            // Update button state
+                            $button.attr('aria-expanded', !isExpanded);
                             
-                            // Helper function to update icon state
-                            function updateIconState($icon, expanded) {
-                                $icon
-                                    .removeClass('dashicons-arrow-up-alt2 dashicons-arrow-down-alt2')
-                                    .addClass(expanded ? 'dashicons-arrow-up-alt2' : 'dashicons-arrow-down-alt2')
-                                    .css('transform', expanded ? 'rotate(180deg)' : 'rotate(0deg)');
-                            }
+                            // Update icon
+                            $icon.toggleClass('dashicons-arrow-down-alt2', isExpanded)
+                                 .toggleClass('dashicons-arrow-up-alt2', !isExpanded);
                         });
                     });
                     </script>
@@ -848,7 +826,6 @@ function wp_allstars_settings_page() {
                         font-size: 16px;
                         line-height: 16px;
                         transition: transform 0.2s ease;
-                        transform-origin: center;
                     }
 
                     .wp-allstars-toggle-settings {
