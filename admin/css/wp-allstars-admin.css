@@ -144,61 +144,83 @@ input:checked + .wp-toggle-slider:before {
 
 /* Toggle Sections */
 .wp-allstars-toggle {
-    margin: 0;
-    padding: 16px 20px;
     background: #fff;
-    border: 1px solid #ddd;
+    border: 1px solid #ccd0d4;
     border-radius: 4px;
-    box-shadow: 0 1px 4px rgba(0,0,0,0.02);
-    transition: all .15s ease-in-out;
+    margin-bottom: 15px;
 }
 
-.wp-allstars-toggle:hover {
-    border-color: #2271b1;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+.wp-allstars-toggle-header {
+    padding: 15px;
+    cursor: pointer;
+    user-select: none;
+}
+
+.wp-allstars-toggle-main {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
 }
 
 .wp-allstars-toggle label {
     display: flex;
     align-items: center;
-    font-size: 14px;
-    line-height: 1.4;
-    font-weight: 500;
-    color: #1d2327;
+    gap: 10px;
+    margin: 0;
     cursor: pointer;
+    flex: 1;
+}
+
+.wp-allstars-expand-settings {
+    background: none;
+    border: none;
+    padding: 4px;
+    cursor: pointer;
+    color: #2271b1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    border-radius: 3px;
+    transition: background-color 0.2s ease;
+}
+
+.wp-allstars-expand-settings:hover {
+    background-color: #f0f0f1;
+    color: #135e96;
+}
+
+.wp-allstars-expand-settings:focus {
+    outline: 1px solid #2271b1;
+    box-shadow: none;
+}
+
+.wp-allstars-expand-settings .dashicons {
+    display: block;
+    width: 16px;
+    height: 16px;
+    font-size: 16px;
+    line-height: 16px;
+    transition: transform 0.2s ease;
+    transform-origin: center;
+}
+
+.wp-allstars-toggle-settings {
+    border-top: 1px solid #ccd0d4;
+    padding: 15px;
+    background: #f9f9f9;
+    display: none;
 }
 
 .wp-allstars-toggle .description {
-    margin: 6px 0 0 52px;
-    color: #666;
-    font-size: 13px;
-    line-height: 1.5;
-}
-
-.wp-allstars-toggle-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    width: 100%;
-}
-
-/* Settings Dropdown */
-.wp-allstars-toggle-settings {
-    display: none;
-    margin-top: 15px;
-    padding: 15px;
-    background: #f6f7f7;
-    border: 1px solid #c3c4c7;
-    border-radius: 4px;
-}
-
-.wp-allstars-toggle-settings.is-open {
-    display: block;
+    margin: 8px 0 0;
+    color: #646970;
 }
 
 .wp-allstars-setting-row {
     margin-bottom: 15px;
-    padding: 0;
 }
 
 .wp-allstars-setting-row:last-child {
@@ -207,62 +229,15 @@ input:checked + .wp-toggle-slider:before {
 
 .wp-allstars-setting-row label {
     display: block;
-    margin-bottom: 8px;
-    font-weight: 600;
-    color: #1d2327;
+    margin-bottom: 5px;
+    font-weight: 500;
 }
 
 .wp-allstars-setting-row input[type="text"],
 .wp-allstars-setting-row input[type="number"],
-.wp-allstars-setting-row select,
 .wp-allstars-setting-row textarea {
     width: 100%;
     max-width: 400px;
-    padding: 8px;
-    border: 1px solid #8c8f94;
-    border-radius: 4px;
-    box-shadow: 0 0 0 transparent;
-    transition: border-color .15s ease-in-out;
-}
-
-.wp-allstars-setting-row input[type="text"]:focus,
-.wp-allstars-setting-row input[type="number"]:focus,
-.wp-allstars-setting-row select:focus,
-.wp-allstars-setting-row textarea:focus {
-    border-color: #2271b1;
-    box-shadow: 0 0 0 1px #2271b1;
-    outline: 2px solid transparent;
-}
-
-/* Expand/Collapse Button */
-.wp-allstars-expand-settings {
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    padding: 4px 8px;
-    background: #f0f0f1;
-    border: 1px solid #c3c4c7;
-    border-radius: 3px;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    color: #50575e;
-}
-
-.wp-allstars-expand-settings:hover {
-    background: #fff;
-    border-color: #2271b1;
-    color: #2271b1;
-}
-
-.wp-allstars-expand-settings .dashicons {
-    font-size: 16px;
-    width: 16px;
-    height: 16px;
-    transition: transform 0.2s ease;
-}
-
-.wp-allstars-expand-settings[aria-expanded="true"] .dashicons {
-    transform: rotate(180deg);
 }
 
 /* Clear floats after tabs */

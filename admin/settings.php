@@ -595,7 +595,7 @@ function wp_allstars_activate_theme() {
 }
 add_action('wp_ajax_wp_allstars_activate_theme', 'wp_allstars_activate_theme');
 
-// Settings page HTML
+// Register settings page HTML
 function wp_allstars_settings_page() {
     global $tabs;
     
@@ -671,7 +671,7 @@ function wp_allstars_settings_page() {
                                             <span class="wp-toggle-slider"></span>
                                         </div>
                                         <?php esc_html_e('Enable Auto Upload Images', 'wp-allstars'); ?>
-                    </label>
+                                    </label>
                                     <button type="button" class="wp-allstars-expand-settings" aria-expanded="false">
                                         <span class="dashicons dashicons-arrow-down-alt2"></span>
                                     </button>
@@ -680,7 +680,7 @@ function wp_allstars_settings_page() {
                                     <?php esc_html_e('Import images that have external URLs into your Media Library when saving. Consider disabling during large data imports with many external image URLs.', 'wp-allstars'); ?>
                                 </p>
                             </div>
-                            <div class="wp-allstars-toggle-settings" style="display: none;">
+                            <div class="wp-allstars-toggle-settings">
                                 <div class="wp-allstars-setting-row">
                                     <label for="wp_max_width"><?php esc_html_e('Max Width', 'wp-allstars'); ?></label>
                                     <input type="number" 
@@ -739,140 +739,6 @@ function wp_allstars_settings_page() {
                             </div>
                         </div>
                     </div>
-
-                    <script>
-                    jQuery(document).ready(function($) {
-                        // Set initial state of panels
-                        $('.wp-allstars-toggle-settings').each(function() {
-                            var $panel = $(this);
-                            var $button = $panel.closest('.wp-allstars-toggle').find('.wp-allstars-expand-settings');
-                            var isExpanded = $button.attr('aria-expanded') === 'true';
-                            
-                            // Set initial visibility without animation
-                            $panel.toggle(isExpanded);
-                            if (isExpanded) {
-                                $button.find('.dashicons').css('transform', 'rotate(180deg)');
-                            }
-                        });
-
-                        // Handle click events
-                        $('.wp-allstars-expand-settings').on('click', function() {
-                            var $button = $(this);
-                            var $panel = $button.closest('.wp-allstars-toggle').find('.wp-allstars-toggle-settings');
-                            var $icon = $button.find('.dashicons');
-                            var isExpanded = $button.attr('aria-expanded') === 'true';
-                            
-                            // Update state
-                            $button.attr('aria-expanded', !isExpanded);
-                            
-                            // Update icon
-                            $icon.css('transform', !isExpanded ? 'rotate(180deg)' : '');
-                            
-                            // Toggle panel
-                            $panel.slideToggle(200);
-                        });
-                    });
-                    </script>
-
-                    <style>
-                    .wp-allstars-toggle {
-                        background: #fff;
-                        border: 1px solid #ccd0d4;
-                        border-radius: 4px;
-                        margin-bottom: 15px;
-                    }
-
-                    .wp-allstars-toggle-header {
-                        padding: 15px;
-                        cursor: pointer;
-                        user-select: none;
-                    }
-
-                    .wp-allstars-toggle-main {
-                        display: flex;
-                        align-items: center;
-                        justify-content: space-between;
-                        gap: 10px;
-                    }
-
-                    .wp-allstars-toggle label {
-                        display: flex;
-                        align-items: center;
-                        gap: 10px;
-                        margin: 0;
-                        cursor: pointer;
-                        flex: 1;
-                    }
-
-                    .wp-allstars-expand-settings {
-                        background: none;
-                        border: none;
-                        padding: 4px;
-                        cursor: pointer;
-                        color: #2271b1;
-                        display: flex;
-                        align-items: center;
-                        justify-content: center;
-                        width: 24px;
-                        height: 24px;
-                        border-radius: 3px;
-                        transition: background-color 0.2s ease;
-                    }
-
-                    .wp-allstars-expand-settings:hover {
-                        background-color: #f0f0f1;
-                        color: #135e96;
-                    }
-
-                    .wp-allstars-expand-settings:focus {
-                        outline: 1px solid #2271b1;
-                        box-shadow: none;
-                    }
-
-                    .wp-allstars-expand-settings .dashicons {
-                        display: block;
-                        width: 16px;
-                        height: 16px;
-                        font-size: 16px;
-                        line-height: 16px;
-                        transition: transform 0.2s ease;
-                        transform-origin: center;
-                    }
-
-                    .wp-allstars-toggle-settings {
-                        border-top: 1px solid #ccd0d4;
-                        padding: 15px;
-                        background: #f9f9f9;
-                        display: none;
-                    }
-
-                    .wp-allstars-toggle .description {
-                        margin: 8px 0 0;
-                        color: #646970;
-                    }
-
-                    .wp-allstars-setting-row {
-                        margin-bottom: 15px;
-                    }
-
-                    .wp-allstars-setting-row:last-child {
-                        margin-bottom: 0;
-                    }
-
-                    .wp-allstars-setting-row label {
-                        display: block;
-                        margin-bottom: 5px;
-                        font-weight: 500;
-                    }
-
-                    .wp-allstars-setting-row input[type="text"],
-                    .wp-allstars-setting-row input[type="number"],
-                    .wp-allstars-setting-row textarea {
-                        width: 100%;
-                        max-width: 400px;
-                    }
-                    </style>
-
                 <?php elseif ($active_tab == 'theme'): ?>
                     <div class="wp-list-table-container">
                         <div class="wpa-loading-overlay">
@@ -880,145 +746,6 @@ function wp_allstars_settings_page() {
                         </div>
                         <div id="wpa-theme-list"></div>
                     </div>
-
-                    <script>
-                    jQuery(document).ready(function($) {
-                        var loadingStartTime;
-                        var currentRequest = null;
-                        
-                        function loadTheme() {
-                            // Show loading overlay
-                            $('.wpa-loading-overlay').fadeIn();
-                            loadingStartTime = Date.now();
-                            
-                            // Cancel previous request if it exists
-                            if (currentRequest) {
-                                currentRequest.abort();
-                            }
-                            
-                            // Make the AJAX request
-                            currentRequest = $.ajax({
-                                url: ajaxurl,
-                                data: {
-                                    action: 'wp_allstars_get_theme',
-                                    _ajax_nonce: '<?php echo wp_create_nonce("updates"); ?>'
-                                },
-                                beforeSend: function() {
-                                    if (currentRequest) {
-                                        currentRequest.abort();
-                                    }
-                                },
-                                success: function(response) {
-                                    if (response.success) {
-                                        ensureMinLoadingTime(function() {
-                                            $('#wpa-theme-list').html(response.data);
-                                            $('.wpa-loading-overlay').fadeOut();
-                                            
-                                            // Initialize theme installation handlers
-                                            initThemeHandlers();
-                                        });
-                                    } else {
-                                        console.error('Server returned error:', response);
-                                        $('.wpa-loading-overlay').fadeOut();
-                                        $('#wpa-theme-list').html('<div class="notice notice-error"><p>Failed to load theme: ' + (response.data || 'Unknown error') + '</p></div>');
-                                    }
-                                },
-                                error: function(xhr, status, error) {
-                                    console.error('Failed to load theme:', {xhr: xhr, status: status, error: error});
-                                    $('.wpa-loading-overlay').fadeOut();
-                                    $('#wpa-theme-list').html('<div class="notice notice-error"><p>Failed to load theme. Please try again. Error: ' + error + '</p></div>');
-                                }
-                            });
-                        }
-                        
-                        function initThemeHandlers() {
-                            // Handle theme installation
-                            $('.install-theme').on('click', function(e) {
-                                e.preventDefault();
-                                var $button = $(this);
-                                var slug = $button.data('slug');
-                                
-                                $button.addClass('updating-message').text('Installing...');
-                                
-                                wp.updates.installTheme({
-                                    slug: slug,
-                                    success: function(response) {
-                                        $button
-                                            .removeClass('updating-message install-theme')
-                                            .addClass('button-primary activate-theme')
-                                            .text('Activate');
-                                        
-                                        // Refresh the theme display
-                                        loadTheme();
-                                    },
-                                    error: function(error) {
-                                        $button.removeClass('updating-message');
-                                        console.error('Theme installation failed:', error);
-                                        if (error.errorMessage) {
-                                            alert(error.errorMessage);
-                                        }
-                                    }
-                                });
-                            });
-                            
-                            // Handle theme activation
-                            $('.activate-theme').on('click', function(e) {
-                                e.preventDefault();
-                                var $button = $(this);
-                                var slug = $button.data('slug');
-                                
-                                $button.addClass('updating-message').text('Activating...');
-                                
-                                $.ajax({
-                                    url: ajaxurl,
-                                    type: 'POST',
-                                    data: {
-                                        action: 'wp_allstars_activate_theme',
-                                        theme: slug,
-                                        _ajax_nonce: '<?php echo wp_create_nonce("updates"); ?>'
-                                    },
-                                    success: function(response) {
-                                        if (response.success) {
-                                            $button.removeClass('updating-message').text('Activated');
-                                            setTimeout(function() {
-                                                if (response.data && response.data.customize_url) {
-                                                    window.location.href = response.data.customize_url;
-                                                } else {
-                                                    window.location.reload();
-                                                }
-                                            }, 1000);
-                                        } else {
-                                            $button.removeClass('updating-message').text('Activate');
-                                            alert(response.data || 'Theme activation failed. Please try again.');
-                                        }
-                                    },
-                                    error: function(xhr, status, error) {
-                                        $button.removeClass('updating-message').text('Activate');
-                                        console.error('Theme activation failed:', error);
-                                        alert('Theme activation failed: ' + error);
-                                    }
-                                });
-                            });
-                        }
-                        
-                        // Function to ensure minimum loading time
-                        function ensureMinLoadingTime(callback) {
-                            var currentTime = Date.now();
-                            var elapsed = currentTime - loadingStartTime;
-                            var minLoadingTime = 500;
-                            
-                            if (elapsed < minLoadingTime) {
-                                setTimeout(callback, minLoadingTime - elapsed);
-                            } else {
-                                callback();
-                            }
-                        }
-                        
-                        // Load theme on page load
-                        loadTheme();
-                    });
-                    </script>
-
                 <?php elseif ($active_tab == 'recommended'): ?>
                     <div class="wpa-plugin-filters">
                         <a href="?page=wp-allstars&tab=recommended&category=minimal" 
@@ -1093,193 +820,8 @@ function wp_allstars_settings_page() {
                         </div>
                         <div id="wpa-plugin-list"></div>
                     </div>
-
-                    <script>
-                    jQuery(document).ready(function($) {
-                        var loadingStartTime;
-                        var currentRequest = null;
-                        
-                        function loadPlugins(category) {
-                            // Show loading overlay
-                            $('.wpa-loading-overlay').fadeIn();
-                            loadingStartTime = Date.now();
-                            
-                            // Cancel previous request if it exists
-                            if (currentRequest) {
-                                currentRequest.abort();
-                            }
-                            
-                            // Make the AJAX request
-                            currentRequest = $.ajax({
-                                url: ajaxurl,
-                                data: {
-                                    action: 'wp_allstars_get_plugins',
-                                    category: category || 'minimal',
-                                    _ajax_nonce: '<?php echo wp_create_nonce("updates"); ?>'
-                                },
-                                beforeSend: function() {
-                                    if (currentRequest) {
-                                        currentRequest.abort();
-                                    }
-                                },
-                                success: function(response) {
-                                    if (response.success) {
-                                        ensureMinLoadingTime(function() {
-                                            $('#wpa-plugin-list').html(response.data);
-                                            $('.wpa-loading-overlay').fadeOut();
-                                        });
-                                    } else {
-                                        console.error('Server returned error:', response);
-                                        $('.wpa-loading-overlay').fadeOut();
-                                        $('#wpa-plugin-list').html('<div class="notice notice-error"><p>Failed to load plugins: ' + (response.data || 'Unknown error') + '</p></div>');
-                                    }
-                                },
-                                error: function(xhr, status, error) {
-                                    console.error('Failed to load plugins:', {xhr: xhr, status: status, error: error});
-                                    $('.wpa-loading-overlay').fadeOut();
-                                    $('#wpa-plugin-list').html('<div class="notice notice-error"><p>Failed to load plugins. Please try again. Error: ' + error + '</p></div>');
-                                }
-                            });
-                        }
-                        
-                        // Function to ensure minimum loading time
-                        function ensureMinLoadingTime(callback) {
-                            var currentTime = Date.now();
-                            var elapsed = currentTime - loadingStartTime;
-                            var minLoadingTime = 500;
-                            
-                            if (elapsed < minLoadingTime) {
-                                setTimeout(callback, minLoadingTime - elapsed);
-                            } else {
-                                callback();
-                            }
-                        }
-                        
-                        // Load plugins on page load with current category from URL
-                        var urlParams = new URLSearchParams(window.location.search);
-                        var currentCategory = urlParams.get('category') || 'minimal';
-                        loadPlugins(currentCategory);
-                        
-                        // Handle category filter clicks
-                        $('.wpa-plugin-filters a').on('click', function(e) {
-                            e.preventDefault();
-                            var category = new URLSearchParams($(this).attr('href').split('?')[1]).get('category');
-                            loadPlugins(category);
-                            
-                            // Update URL without page reload
-                            var newUrl = $(this).attr('href');
-                            history.pushState({}, '', newUrl);
-                            
-                            // Update active state
-                            $('.wpa-plugin-filters a').removeClass('button-primary');
-                            $(this).addClass('button-primary');
-                        });
-                    });
-                    </script>
-
                 <?php elseif ($active_tab == 'pro'): ?>
                     <div class="wpa-pro-plugins">
-                        <style>
-                            .wpa-pro-plugins {
-                                padding: 20px;
-                                display: grid;
-                                grid-template-columns: repeat(auto-fill, minmax(450px, 1fr));
-                                gap: 24px;
-                                max-width: 1920px;
-                                margin: 0 auto;
-                            }
-                            .wpa-pro-plugin {
-                                background: #fff;
-                                border: 1px solid #ddd;
-                                padding: 24px;
-                                border-radius: 8px;
-                                display: flex;
-                                flex-direction: column;
-                                transition: all 0.2s ease;
-                                box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-                            }
-                            .wpa-pro-plugin:hover {
-                                border-color: #2271b1;
-                                box-shadow: 0 2px 6px rgba(0,0,0,0.15);
-                            }
-                            .wpa-pro-plugin h3 {
-                                margin: 0 0 12px;
-                                font-size: 16px;
-                                font-weight: 600;
-                                color: #1d2327;
-                                line-height: 1.4;
-                            }
-                            .wpa-pro-plugin p {
-                                margin: 0 0 16px;
-                                color: #50575e;
-                                font-size: 14px;
-                                line-height: 1.6;
-                            }
-                            .wpa-pro-plugin .button-group {
-                                display: flex;
-                                flex-wrap: wrap;
-                                gap: 8px;
-                                margin-top: auto;
-                            }
-                            .wpa-pro-plugin .button {
-                                text-decoration: none;
-                                min-width: 120px;
-                                text-align: center;
-                                height: 30px;
-                                line-height: 28px;
-                                padding: 0 12px;
-                                font-size: 13px;
-                                font-weight: normal;
-                                margin: 0;
-                                border: 1px solid #0071a1 !important;
-                                border-radius: 3px !important;
-                                background: #f6f7f7;
-                                color: #0071a1;
-                                display: inline-block;
-                                vertical-align: top;
-                                box-shadow: none;
-                                cursor: pointer;
-                            }
-                            .wpa-pro-plugin .button:hover {
-                                background: #f0f0f1;
-                                border-color: #0071a1;
-                                color: #0071a1;
-                            }
-                            .wpa-pro-plugin .button-primary {
-                                background: #0071a1;
-                                border-color: #0071a1;
-                                color: #fff;
-                            }
-                            .wpa-pro-plugin .button-primary:hover {
-                                background: #005d8c;
-                                border-color: #005d8c;
-                                color: #fff;
-                            }
-                            @media screen and (max-width: 960px) {
-                                .wpa-pro-plugins {
-                                    grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
-                                    gap: 20px;
-                                    padding: 16px;
-                                }
-                                .wpa-pro-plugin {
-                                    padding: 20px;
-                                }
-                            }
-                            @media screen and (max-width: 782px) {
-                                .wpa-pro-plugins {
-                                    grid-template-columns: 1fr;
-                                    gap: 16px;
-                                    padding: 12px;
-                                }
-                                .wpa-pro-plugin {
-                                    padding: 16px;
-                                }
-                                .wpa-pro-plugin .button {
-                                    width: 100%;
-                                }
-                            }
-                        </style>
-                        
                         <?php
                         $pro_plugins = wp_allstars_get_pro_plugins_config();
                         foreach ($pro_plugins as $key => $plugin) {
@@ -1312,16 +854,27 @@ function wp_allstars_settings_page() {
                         <div class="wp-allstars-settings-grid">
                             <!-- Lazy load toggle removed -->
                         </div>
-                </div>
+                    </div>
                 <?php elseif ($active_tab == 'advanced'): ?>
                     <div class="wp-allstars-settings-section">
                         <div class="wp-allstars-settings-grid">
                             <!-- Minification toggles removed -->
-                </div>
-                </div>
-            <?php endif; ?>
+                        </div>
+                    </div>
+                <?php endif; ?>
             </div>
         </div>
     </div>
     <?php
 }
+
+// Enqueue admin scripts and styles
+function wp_allstars_admin_enqueue_scripts($hook) {
+    if ('settings_page_wp-allstars' !== $hook) {
+        return;
+    }
+
+    wp_enqueue_style('wp-allstars-admin', plugins_url('css/wp-allstars-admin.css', __FILE__));
+    wp_enqueue_script('wp-allstars-admin', plugins_url('js/wp-allstars-admin.js', __FILE__), array('jquery'), WP_ALLSTARS_VERSION, true);
+}
+add_action('admin_enqueue_scripts', 'wp_allstars_admin_enqueue_scripts');

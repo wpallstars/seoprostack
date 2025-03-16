@@ -75,20 +75,41 @@ jQuery(document).ready(function($) {
             });
     });
 
-    // Expand/collapse settings functionality
-    $('.wp-allstars-expand-settings').on('click', function(e) {
-        e.preventDefault();
+    // Handle accordion functionality
+    $('.wp-allstars-expand-settings').each(function() {
         var $button = $(this);
-        var $settings = $button.closest('.wp-allstars-toggle').find('.wp-allstars-toggle-settings');
+        var $panel = $button.closest('.wp-allstars-toggle').find('.wp-allstars-toggle-settings');
+        var $icon = $button.find('.dashicons');
         var isExpanded = $button.attr('aria-expanded') === 'true';
         
-        $button.attr('aria-expanded', !isExpanded);
-        $button.find('.dashicons').toggleClass('dashicons-arrow-down-alt2 dashicons-arrow-up-alt2');
-        
+        // Set initial state
         if (isExpanded) {
-            $settings.slideUp(200);
+            $panel.show();
+            $icon.css('transform', 'rotate(180deg)');
         } else {
-            $settings.slideDown(200);
+            $panel.hide();
+        }
+    });
+
+    $('.wp-allstars-expand-settings').on('click', function(e) {
+        e.preventDefault();
+        
+        var $button = $(this);
+        var $panel = $button.closest('.wp-allstars-toggle').find('.wp-allstars-toggle-settings');
+        var $icon = $button.find('.dashicons');
+        var isExpanded = $button.attr('aria-expanded') === 'true';
+        
+        // Toggle state
+        $button.attr('aria-expanded', !isExpanded);
+        
+        // Rotate icon
+        $icon.css('transform', !isExpanded ? 'rotate(180deg)' : '');
+        
+        // Toggle panel
+        if (!isExpanded) {
+            $panel.slideDown(200);
+        } else {
+            $panel.slideUp(200);
         }
     });
 
