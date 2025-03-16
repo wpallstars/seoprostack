@@ -620,10 +620,30 @@ input:checked + .wp-toggle-slider:before {
     font-size: 12px;
     font-weight: 500;
     animation: fadeIn 0.3s ease-in-out;
+    height: 20px;
+    box-sizing: border-box;
+    position: relative;
 }
 
 .wp-setting-notification.error {
     background: #d63638;
+}
+
+/* Add space for notification to prevent layout shifts */
+.wp-setting-left label,
+.wp-allstars-toggle-left label,
+.wp-allstars-setting-row label {
+    position: relative;
+    padding-right: 80px;
+}
+
+.wp-setting-left label .wp-setting-notification,
+.wp-allstars-toggle-left label .wp-setting-notification,
+.wp-allstars-setting-row label .wp-setting-notification {
+    position: absolute;
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%);
 }
 
 @keyframes fadeIn {

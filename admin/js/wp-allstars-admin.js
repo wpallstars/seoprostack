@@ -52,13 +52,19 @@ jQuery(document).ready(function($) {
             $checkbox.prop('checked', !isChecked).trigger('change');
         });
 
+        // Prevent label clicks from triggering the toggle
+        $('.wp-setting-label, .wp-allstars-toggle label').on('click', function(e) {
+            e.stopPropagation();
+            return false;
+        });
+
         // Handle checkbox changes
         $('.wp-toggle-switch input[type="checkbox"]').on('change', function(e) {
             e.stopPropagation();
             var $input = $(this);
             var option = $input.attr('name');
             var value = $input.is(':checked') ? 1 : 0;
-            var $label = $input.closest('.wp-setting-left').find('label');
+            var $label = $input.closest('.wp-setting-left, .wp-allstars-toggle-left').find('label');
             
             updateOption(option, value)
                 .then(function() {
@@ -101,6 +107,9 @@ jQuery(document).ready(function($) {
             var option = $input.attr('name');
             var value = $input.val();
             var $label = $input.prev('label');
+            if (!$label.length) {
+                $label = $input.closest('.wp-allstars-setting-row').find('label');
+            }
             
             updateOption(option, value)
                 .then(function() {
@@ -156,7 +165,7 @@ jQuery(document).ready(function($) {
             data: {
                 action: 'wp_allstars_get_plugins',
                 category: category || 'minimal',
-                _wpnonce: wpAllstars.nonce
+                _ajax_nonce: wpAllstars.nonce
             },
             success: function(response) {
                 if (response.success) {
@@ -190,7 +199,7 @@ jQuery(document).ready(function($) {
             type: 'POST',
             data: {
                 action: 'wp_allstars_get_theme',
-                _wpnonce: wpAllstars.nonce
+                _ajax_nonce: wpAllstars.nonce
             },
             success: function(response) {
                 if (response.success) {
