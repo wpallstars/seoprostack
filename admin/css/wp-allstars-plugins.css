@@ -23,11 +23,22 @@
 /* Plugin Cards */
 /* Plugin Container */
 #the-list {
-    display: flex;
-    flex-wrap: wrap;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 16px;
     margin-top: 16px;
-    margin-left: -8px;
-    margin-right: -8px;
+}
+
+@media screen and (min-width: 600px) {
+    #the-list {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media screen and (min-width: 1200px) {
+    #the-list {
+        grid-template-columns: repeat(3, 1fr);
+    }
 }
 
 /* Plugin Cards */
@@ -39,9 +50,9 @@
     display: flex;
     flex-direction: column;
     border-radius: 3px;
-    width: 50%;
-    padding: 8px;
-    border-radius: 0;
+    width: 100%;
+    margin: 0;
+    height: 100%; /* Ensure all cards have equal height */
 }
 
 .plugin-card:hover {
@@ -52,7 +63,6 @@
     position: relative;
     padding: 20px 20px 10px;
     min-height: 135px;
-    border: none;
 }
 
 .plugin-icon {
