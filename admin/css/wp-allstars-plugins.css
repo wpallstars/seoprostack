@@ -91,20 +91,20 @@
         overflow: hidden !important;
     }
     
-    /* Place plugin icon on the left of the plugin name */
+    /* Place plugin icon on the left of the plugin name, moved 35px to the right */
     body.wp-admin .plugin-card .plugin-icon {
         position: relative !important;
         float: left !important;
         top: auto !important;
         right: auto !important;
-        left: auto !important;
+        left: 35px !important;
         margin: 0 20px 0 0 !important;
         width: 64px !important;
         height: 64px !important;
         z-index: 1 !important;
     }
     
-    /* Position name next to the icon */
+    /* Position name next to the icon with consistent width */
     body.wp-admin .plugin-card .name.column-name {
         margin-left: 0 !important;
         margin-right: 0 !important;
@@ -112,13 +112,16 @@
         margin-top: 0 !important;
         text-align: left !important;
         display: inline-block !important;
-        width: calc(100% - 90px) !important;
+        width: calc(100% - 155px) !important;
         max-width: none !important;
         vertical-align: top !important;
+        padding-left: 35px !important;
     }
     
     body.wp-admin .plugin-card .name.column-name h3 {
         margin-bottom: 5px !important;
+        word-wrap: break-word !important;
+        width: 100% !important;
     }
     
     /* Position action buttons to the right of plugin name */
@@ -167,11 +170,33 @@
     body.wp-admin .plugin-card .compatibility-compatible {
         margin-top: 8px !important;
         margin-bottom: 0 !important;
-        padding: 20px !important;
+        padding: 10px 20px !important;
         width: 100% !important;
         box-sizing: border-box !important;
         text-align: center !important;
     }
+}
+
+/* Center More Details under Install Now */
+body.wp-admin .wp-list-table.plugin-install #the-list .plugin-card .action-links a.thickbox {
+    display: block !important;
+    text-align: center !important;
+    margin-top: 5px !important;
+}
+
+/* Position Go Pro below More Details and center it */
+body.wp-admin .wp-list-table.plugin-install #the-list .plugin-card .action-links .button.go-pro {
+    display: block !important;
+    text-align: center !important;
+    margin-top: 5px !important;
+    margin-bottom: 5px !important;
+}
+
+/* Ensure consistent layout for action buttons */
+body.wp-admin .wp-list-table.plugin-install #the-list .plugin-card .action-links .plugin-action-buttons li {
+    display: block !important;
+    margin-bottom: 5px !important;
+    text-align: center !important;
 }
 
 
