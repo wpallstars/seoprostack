@@ -201,19 +201,23 @@ jQuery(document).ready(function($) {
 
     }
     
-    // Function to load themes
-    loadTheme = function() {
+    // Function to load themes - global function
+    window.loadTheme = function() {
+        console.log('Starting theme loading process');
         var $container = $('#wpa-theme-list');
         
         // Clear existing content
         $container.empty();
+        console.log('Container emptied');
         
         // Show loading overlay
         $container.css('position', 'relative');
         var $loadingOverlay = $('<div class="wp-allstars-loading-overlay"><span class="spinner is-active"></span></div>');
         $container.append($loadingOverlay);
+        console.log('Loading overlay added');
         
         // AJAX request to get themes
+        console.log('Sending AJAX request with nonce:', wpAllstars.nonce);
         $.ajax({
             url: ajaxurl,
             type: 'POST',
@@ -222,27 +226,32 @@ jQuery(document).ready(function($) {
                 _wpnonce: wpAllstars.nonce
             },
             success: function(response) {
+                console.log('AJAX success response:', response);
                 // Remove loading overlay
                 $loadingOverlay.remove();
                 
                 if (response.success) {
+                    console.log('Response success, updating container HTML');
                     // Replace all content with new HTML
                     $container.html(response.data);
                     
                     // Initialize theme action buttons
+                    console.log('Initializing theme handlers');
                     initThemeHandlers();
                 } else {
+                    console.error('Response indicates error:', response.data);
                     // Show error message
                     $container.html('<div class="notice notice-error"><p>' + response.data + '</p></div>');
                 }
             },
             error: function(xhr, status, error) {
+                console.error('AJAX error:', { xhr: xhr, status: status, error: error });
                 // Remove loading overlay
                 $loadingOverlay.remove();
                 
                 // Show error message
                 $container.html('<div class="notice notice-error"><p>Failed to load themes. Please try again. Error: ' + error + '</p></div>');
-                console.error('AJAX Error:', xhr.responseText);
+                console.error('AJAX Error Response Text:', xhr.responseText);
             }
         });
 

@@ -449,8 +449,17 @@ function wp_allstars_set_cached_theme($data) {
 
 // Add AJAX endpoint for theme
 function wp_allstars_ajax_get_themes() {
+    error_log('WP ALLSTARS: Theme AJAX handler started');
+    
     // Check nonce with the correct action name
+    if (!isset($_POST['_wpnonce'])) {
+        error_log('WP ALLSTARS: No nonce provided');
+        wp_send_json_error('No security token provided.');
+        return;
+    }
+    
     if (!check_ajax_referer('wp-allstars-nonce', '_wpnonce', false)) {
+        error_log('WP ALLSTARS: Invalid nonce: ' . sanitize_text_field($_POST['_wpnonce']));
         wp_send_json_error('Invalid security token sent.');
         return;
     }
@@ -461,7 +470,6 @@ function wp_allstars_ajax_get_themes() {
         return;
     }
     
-    // Add debugging
     error_log('WP ALLSTARS: Starting theme fetch process');
     
     try {
@@ -521,6 +529,8 @@ function wp_allstars_ajax_get_themes() {
             $author = isset($theme_data->author['display_name']) ? $theme_data->author['display_name'] : '';
         }
         
+        error_log('WP ALLSTARS: Theme data retrieved, generating HTML');
+        
         // Generate custom HTML for the theme
         ob_start();
         ?>
@@ -562,8 +572,9 @@ function wp_allstars_ajax_get_themes() {
             return;
         }
         
-        error_log('WP ALLSTARS: Successfully generated theme display');
+        error_log('WP ALLSTARS: Successfully generated theme display, HTML length: ' . strlen($html));
         wp_send_json_success($html);
+        exit; // Ensure we exit after sending the JSON response
         
     } catch (Exception $e) {
         error_log('WP ALLSTARS Theme loading exception: ' . $e->getMessage());
@@ -691,9 +702,16 @@ function wp_allstars_settings_page() {
         // Add inline script to trigger theme loading through the main JS function
         wp_add_inline_script('wp-allstars-admin', '
             jQuery(document).ready(function($) {
+                console.log("Theme tab ready, checking if we need to load themes");
                 // Use the main loadTheme function from wp-allstars-admin.js if available
-                if ($("#wpa-theme-list").length && $("#wpa-theme-list").is(":empty") && typeof loadTheme === "function") {
-                    loadTheme();
+                if ($("#wpa-theme-list").length && $("#wpa-theme-list").is(":empty")) {
+                    console.log("Theme list is empty, calling loadTheme()");
+                    if (typeof window.loadTheme === "function") {
+                        window.loadTheme();
+                    } else {
+                        console.error("loadTheme function not found");
+                        $("#wpa-theme-list").html("<div class=\"notice notice-error\"><p>Error: Theme loading function not available.</p></div>");
+                    }
                 }
             });
         ');

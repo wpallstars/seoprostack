@@ -37,14 +37,14 @@ if ( is_admin() ) {
     require_once plugin_dir_path( __FILE__ ) . 'admin/settings.php';
 }
 
-// Localize script for AJAX
-function wp_allstars_localize_script() {
-    wp_localize_script( 'wp-allstars-admin', 'wpAllstars', [
-        'ajaxurl' => admin_url( 'admin-ajax.php' ),
-        'nonce' => wp_create_nonce( 'wp-allstars-nonce' )
-    ] );
-}
-add_action( 'admin_enqueue_scripts', 'wp_allstars_localize_script' );
+// This function is not needed as we're localizing in wp_allstars_admin_assets
+// function wp_allstars_localize_script() {
+//     wp_localize_script( 'wp-allstars-admin', 'wpAllstars', [
+//         'ajaxurl' => admin_url( 'admin-ajax.php' ),
+//         'nonce' => wp_create_nonce( 'wp-allstars-nonce' )
+//     ] );
+// }
+// add_action( 'admin_enqueue_scripts', 'wp_allstars_localize_script' );
 
 // Admin assets
 function wp_allstars_admin_assets() {
