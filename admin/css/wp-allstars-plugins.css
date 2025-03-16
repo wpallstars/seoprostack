@@ -167,7 +167,8 @@
     }
     
     /* Fix compatibility check positioning and height */
-    body.wp-admin .plugin-card .compatibility-compatible {
+    body.wp-admin .plugin-card .compatibility-compatible,
+    body.wp-admin .plugin-card .compatibility-untested {
         margin-top: 0 !important;
         margin-bottom: 0 !important;
         padding: 0 20px !important;
@@ -180,6 +181,11 @@
         justify-content: flex-end !important;
         height: 0px !important;
         line-height: 13px !important;
+    }
+    
+    /* Make untested text black */
+    body.wp-admin .plugin-card .compatibility-untested span {
+        color: #000 !important;
     }
     
     /* Ensure compatibility text container has full width */
