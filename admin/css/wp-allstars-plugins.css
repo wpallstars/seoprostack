@@ -86,37 +86,94 @@
     }
 }
 
-/* Improved mobile layout below 768px */
+/* Mobile layout - completely revised for consistency */
 @media screen and (max-width: 782px) {
+    /* Fix container padding */
+    .wp-list-table.plugin-install {
+        padding: 0;
+        margin: 0;
+    }
+    
+    #the-list {
+        padding: 0;
+        margin: 0;
+    }
+    
+    /* Full-width cards with consistent margins */
+    .plugin-card {
+        width: 100%;
+        margin: 0 0 16px 0;
+        border-radius: 0;
+        border-left: none;
+        border-right: none;
+    }
+    
+    /* Card top section */
     .plugin-card-top {
-        padding: 16px;
+        padding: 20px;
         min-height: auto;
-    }
-    
-    .plugin-icon {
-        position: relative;
-        top: 0;
-        left: 0;
-        margin: 0 auto 16px;
-        display: block;
-    }
-    
-    .name.column-name {
-        margin-right: 0;
-        margin-left: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
         text-align: center;
     }
     
+    /* Plugin icon */
+    .plugin-icon {
+        position: relative;
+        top: auto;
+        left: auto;
+        margin: 0 0 20px 0;
+        display: block;
+        width: 100px;
+        height: 100px;
+    }
+    
+    /* Title area */
+    .name.column-name {
+        margin: 0;
+        width: 100%;
+        text-align: center;
+    }
+    
+    .name.column-name h3 {
+        font-size: 18px;
+        margin: 0 0 10px 0;
+    }
+    
+    /* Action buttons */
     .action-links {
         position: static;
         width: 100%;
-        margin: 16px 0 0;
+        margin: 20px 0 0;
     }
     
     .plugin-action-buttons {
         float: none;
         text-align: center;
-        margin: 16px 0 0;
+        margin: 0;
+        display: flex;
+        justify-content: center;
+    }
+    
+    /* Description and other elements */
+    .plugin-card-bottom {
+        padding: 15px 20px;
+        text-align: center;
+    }
+    
+    .plugin-card-bottom > div {
+        width: 100%;
+        text-align: center;
+        padding: 5px 0;
+    }
+    
+    /* Ensure buttons are full width on small screens */
+    .plugin-action-buttons .button {
+        display: block;
+        text-align: center;
+        width: 100%;
+        margin: 10px 0 0;
     }
 }
 
