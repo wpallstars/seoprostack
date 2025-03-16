@@ -742,27 +742,26 @@ function wp_allstars_settings_page() {
 
                     <script>
                     jQuery(document).ready(function($) {
-                        // Handle click events
+                        // Set initial state
+                        $('.wp-allstars-toggle-settings').hide();
+                        
                         $('.wp-allstars-expand-settings').on('click', function(e) {
                             e.preventDefault();
+                            e.stopPropagation();
                             
                             var $button = $(this);
                             var $panel = $button.closest('.wp-allstars-toggle').find('.wp-allstars-toggle-settings');
                             var $icon = $button.find('.dashicons');
-                            var isExpanded = $button.attr('aria-expanded') === 'true';
                             
-                            // Update state
+                            // Toggle panel visibility
+                            $panel.stop().slideToggle(200);
+                            
+                            // Toggle aria-expanded
+                            var isExpanded = $button.attr('aria-expanded') === 'true';
                             $button.attr('aria-expanded', !isExpanded);
                             
-                            // Update icon (keep the working rotation logic)
+                            // Rotate icon
                             $icon.css('transform', !isExpanded ? 'rotate(180deg)' : '');
-                            
-                            // Toggle panel with animation
-                            if (!isExpanded) {
-                                $panel.slideDown(200);
-                            } else {
-                                $panel.slideUp(200);
-                            }
                         });
                     });
                     </script>
