@@ -199,7 +199,7 @@ function wp_allstars_ajax_get_plugins() {
         wp_die(-1);
     }
 
-    $category = isset($_GET['category']) ? sanitize_key($_GET['category']) : 'minimal';
+    $category = isset($_POST['category']) ? sanitize_key($_POST['category']) : 'minimal';
     
     require_once ABSPATH . 'wp-admin/includes/plugin-install.php';
     
@@ -446,7 +446,7 @@ function wp_allstars_set_cached_theme($data) {
 }
 
 // Add AJAX endpoint for theme
-function wp_allstars_ajax_get_theme() {
+function wp_allstars_ajax_get_themes() {
     // Check nonce with the correct action name
     if (!check_ajax_referer('wp-allstars-nonce', '_wpnonce', false)) {
         wp_send_json_error('Invalid security token sent.');
@@ -506,60 +506,6 @@ function wp_allstars_ajax_get_theme() {
         // Generate custom HTML for the theme
         ob_start();
         ?>
-        <style>
-        .theme-browser .theme {
-            cursor: pointer;
-            float: none;
-            margin: 0;
-            position: relative;
-            width: 100%;
-            border: 1px solid #dcdcde;
-            box-shadow: 0 1px 1px rgba(0,0,0,.04);
-            box-sizing: border-box;
-        }
-        .theme-browser .theme .theme-screenshot {
-            display: block;
-            overflow: hidden;
-            position: relative;
-            background: #fff;
-        }
-        .theme-browser .theme .theme-screenshot img {
-            display: block;
-            width: 100%;
-            height: auto;
-        }
-        .theme-browser .theme .theme-name {
-            font-size: 15px;
-            font-weight: 600;
-            height: 48px;
-            margin: 0;
-            padding: 15px;
-            box-shadow: inset 0 1px 0 rgba(0,0,0,.1);
-            overflow: hidden;
-            white-space: nowrap;
-            text-overflow: ellipsis;
-            background: #f6f7f7;
-            position: relative;
-        }
-        .theme-browser .theme .theme-actions {
-            position: absolute;
-            top: 50%;
-            transform: translateY(-50%);
-            left: 0;
-            right: 0;
-            bottom: auto;
-            height: auto;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 5px;
-            background: rgba(255, 255, 255, 0.9);
-            padding: 20px 0;
-        }
-        .theme-browser .theme .theme-actions .button {
-            margin: 0;
-        }
-        </style>
         <div class="theme-browser">
             <div class="themes wp-clearfix">
                 <div class="theme" tabindex="0">
@@ -573,11 +519,11 @@ function wp_allstars_ajax_get_theme() {
                             <?php 
                             $installed_theme = wp_get_theme('kadence');
                             if ($installed_theme->exists()): ?>
-                                <button type="button" class="button button-primary activate-theme" data-slug="kadence">
+                                <button type="button" class="button button-primary activate-now" data-slug="kadence">
                                     <?php esc_html_e('Activate'); ?>
                                 </button>
                             <?php else: ?>
-                                <button type="button" class="button button-primary install-theme" data-slug="kadence">
+                                <button type="button" class="button button-primary install-now" data-slug="kadence">
                                     <?php esc_html_e('Install'); ?>
                                 </button>
                             <?php endif; ?>
@@ -611,7 +557,7 @@ function wp_allstars_ajax_get_theme() {
         wp_send_json_error('Theme loading error: ' . $e->getMessage());
     }
 }
-add_action('wp_ajax_wp_allstars_get_theme', 'wp_allstars_ajax_get_theme');
+add_action('wp_ajax_wp_allstars_get_themes', 'wp_allstars_ajax_get_themes');
 
 // Clear theme cache when themes are updated
 function wp_allstars_clear_theme_cache() {
@@ -695,22 +641,22 @@ function wp_allstars_settings_page() {
         <div class="wpa-settings-container">
             <div class="wp-allstars-nav">
         <h2 class="nav-tab-wrapper">
-                    <a href="?page=wp-allstars&tab=general" class="nav-tab <?php echo $active_tab == 'general' ? 'nav-tab-active' : ''; ?>">
+                    <a href="?page=wp-allstars&tab=general" class="nav-tab <?php echo $active_tab == 'general' ? 'nav-tab-active' : ''; ?>" data-tab="general">
                         <?php esc_html_e('General', 'wp-allstars'); ?>
                     </a>
-                    <a href="?page=wp-allstars&tab=advanced" class="nav-tab <?php echo $active_tab == 'advanced' ? 'nav-tab-active' : ''; ?>">
+                    <a href="?page=wp-allstars&tab=advanced" class="nav-tab <?php echo $active_tab == 'advanced' ? 'nav-tab-active' : ''; ?>" data-tab="advanced">
                         <?php esc_html_e('Advanced', 'wp-allstars'); ?>
                     </a>
-                    <a href="?page=wp-allstars&tab=workflow" class="nav-tab <?php echo $active_tab == 'workflow' ? 'nav-tab-active' : ''; ?>">
+                    <a href="?page=wp-allstars&tab=workflow" class="nav-tab <?php echo $active_tab == 'workflow' ? 'nav-tab-active' : ''; ?>" data-tab="workflow">
                         <?php esc_html_e('Workflow', 'wp-allstars'); ?>
                     </a>
-                    <a href="?page=wp-allstars&tab=recommended" class="nav-tab <?php echo $active_tab == 'recommended' ? 'nav-tab-active' : ''; ?>">
+                    <a href="?page=wp-allstars&tab=recommended" class="nav-tab <?php echo $active_tab == 'recommended' ? 'nav-tab-active' : ''; ?>" data-tab="recommended">
                         <?php esc_html_e('Free Plugins', 'wp-allstars'); ?>
                     </a>
-                    <a href="?page=wp-allstars&tab=pro" class="nav-tab <?php echo $active_tab == 'pro' ? 'nav-tab-active' : ''; ?>">
+                    <a href="?page=wp-allstars&tab=pro" class="nav-tab <?php echo $active_tab == 'pro' ? 'nav-tab-active' : ''; ?>" data-tab="pro">
                         <?php esc_html_e('Pro Plugins', 'wp-allstars'); ?>
                     </a>
-                    <a href="?page=wp-allstars&tab=theme" class="nav-tab <?php echo $active_tab == 'theme' ? 'nav-tab-active' : ''; ?>">
+                    <a href="?page=wp-allstars&tab=theme" class="nav-tab <?php echo $active_tab == 'theme' ? 'nav-tab-active' : ''; ?>" data-tab="theme">
                         <?php esc_html_e('Theme', 'wp-allstars'); ?>
                     </a>
         </h2>
@@ -718,7 +664,7 @@ function wp_allstars_settings_page() {
 
             <div class="wpa-settings-content">
                 <?php if ($active_tab == 'workflow'): ?>
-                    <div class="wp-allstars-settings-content">
+                    <div class="wp-allstars-settings-content tab-content" id="workflow">
                         <div class="wp-allstars-toggle">
                             <div class="wp-allstars-toggle-header" aria-expanded="false">
                                 <div class="wp-allstars-toggle-main">
@@ -735,305 +681,296 @@ function wp_allstars_settings_page() {
                                         <label for="wp_allstars_auto_upload_images">
                                             <?php esc_html_e('Enable Auto Upload Images', 'wp-allstars'); ?>
                     </label>
-                </div>
-                                </div>
-                                <p class="wp-setting-description">
-                                    <?php esc_html_e('Import images that have external URLs into your Media Library when saving. Consider disabling during large data imports with many external image URLs.', 'wp-allstars'); ?>
-                                </p>
-                            </div>
-                            <div class="wp-allstars-toggle-settings">
-                                <div class="wp-allstars-setting-row">
-                                    <label for="wp_allstars_max_width"><?php esc_html_e('Max Width', 'wp-allstars'); ?></label>
-                                    <input type="number" 
-                                           id="wp_allstars_max_width"
-                                           name="wp_allstars_max_width" 
-                                           value="<?php echo esc_attr(get_option('wp_allstars_max_width', 2560)); ?>" 
-                                    />
-                                    <p class="description"><?php esc_html_e('Maximum width for uploaded images in pixels.', 'wp-allstars'); ?></p>
-                                </div>
-                                <div class="wp-allstars-setting-row">
-                                    <label for="wp_allstars_max_height"><?php esc_html_e('Max Height', 'wp-allstars'); ?></label>
-                                    <input type="number" 
-                                           id="wp_allstars_max_height"
-                                           name="wp_allstars_max_height" 
-                                           value="<?php echo esc_attr(get_option('wp_allstars_max_height', 2560)); ?>" 
-                                    />
-                                    <p class="description"><?php esc_html_e('Maximum height for uploaded images in pixels.', 'wp-allstars'); ?></p>
-                                </div>
-
-                                <div class="wp-allstars-setting-row">
-                                    <label for="wp_exclude_urls"><?php esc_html_e('Exclude URLs', 'wp-allstars'); ?></label>
-                                    <textarea id="wp_exclude_urls"
-                                              name="wp_exclude_urls"
-                                              rows="3"
-                                              placeholder="example.com&#10;another-domain.com"
-                                    ><?php echo esc_textarea(get_option('wp_allstars_exclude_urls', '')); ?></textarea>
-                                    <p class="description"><?php esc_html_e('Enter domains to exclude (one per line). Images from these domains will not be imported.', 'wp-allstars'); ?></p>
-                                </div>
-
-                                <div class="wp-allstars-setting-row">
-                                    <label for="wp_image_name"><?php esc_html_e('Image Name Pattern', 'wp-allstars'); ?></label>
-                                    <input type="text" 
-                                           id="wp_image_name"
-                                           name="wp_image_name"
-                                           value="<?php echo esc_attr(get_option('wp_allstars_image_name_pattern', '%filename%')); ?>"
-                                    />
-                                    <p class="description">
-                                        <?php esc_html_e('Available patterns:', 'wp-allstars'); ?> %filename%, %post_id%, %postname%, %timestamp%, %date%, %year%, %month%, %day%
+                                    </div>
+                                    </div>
+                                    <p class="wp-setting-description">
+                                        <?php esc_html_e('Import images that have external URLs into your Media Library when saving. Consider disabling during large data imports with many external image URLs.', 'wp-allstars'); ?>
                                     </p>
                                 </div>
+                                <div class="wp-allstars-toggle-settings">
+                                    <div class="wp-allstars-setting-row">
+                                        <label for="wp_allstars_max_width"><?php esc_html_e('Max Width', 'wp-allstars'); ?></label>
+                                        <input type="number" 
+                                               id="wp_allstars_max_width"
+                                               name="wp_allstars_max_width" 
+                                               value="<?php echo esc_attr(get_option('wp_allstars_max_width', 2560)); ?>" 
+                                        />
+                                        <p class="description"><?php esc_html_e('Maximum width for uploaded images in pixels.', 'wp-allstars'); ?></p>
+                                    </div>
+                                    <div class="wp-allstars-setting-row">
+                                        <label for="wp_allstars_max_height"><?php esc_html_e('Max Height', 'wp-allstars'); ?></label>
+                                        <input type="number" 
+                                               id="wp_allstars_max_height"
+                                               name="wp_allstars_max_height" 
+                                               value="<?php echo esc_attr(get_option('wp_allstars_max_height', 2560)); ?>" 
+                                        />
+                                        <p class="description"><?php esc_html_e('Maximum height for uploaded images in pixels.', 'wp-allstars'); ?></p>
+                                    </div>
 
-                                <div class="wp-allstars-setting-row">
-                                    <label for="wp_image_alt"><?php esc_html_e('Image Alt Pattern', 'wp-allstars'); ?></label>
-                                    <input type="text" 
-                                           id="wp_image_alt"
-                                           name="wp_image_alt"
-                                           value="<?php echo esc_attr(get_option('wp_allstars_image_alt_pattern', '%filename%')); ?>"
-                                    />
-                                    <p class="description">
-                                        <?php esc_html_e('Available patterns:', 'wp-allstars'); ?> %filename%, %post_title%, %post_id%, %postname%, %timestamp%
-                                    </p>
+                                    <div class="wp-allstars-setting-row">
+                                        <label for="wp_exclude_urls"><?php esc_html_e('Exclude URLs', 'wp-allstars'); ?></label>
+                                        <textarea id="wp_exclude_urls"
+                                                  name="wp_exclude_urls"
+                                                  rows="3"
+                                                  placeholder="example.com&#10;another-domain.com"
+                                        ><?php echo esc_textarea(get_option('wp_allstars_exclude_urls', '')); ?></textarea>
+                                        <p class="description"><?php esc_html_e('Enter domains to exclude (one per line). Images from these domains will not be imported.', 'wp-allstars'); ?></p>
+                                    </div>
+
+                                    <div class="wp-allstars-setting-row">
+                                        <label for="wp_image_name"><?php esc_html_e('Image Name Pattern', 'wp-allstars'); ?></label>
+                                        <input type="text" 
+                                               id="wp_image_name"
+                                               name="wp_image_name"
+                                               value="<?php echo esc_attr(get_option('wp_allstars_image_name_pattern', '%filename%')); ?>"
+                                        />
+                                        <p class="description">
+                                            <?php esc_html_e('Available patterns:', 'wp-allstars'); ?> %filename%, %post_id%, %postname%, %timestamp%, %date%, %year%, %month%, %day%
+                                        </p>
+                                    </div>
+
+                                    <div class="wp-allstars-setting-row">
+                                        <label for="wp_image_alt"><?php esc_html_e('Image Alt Pattern', 'wp-allstars'); ?></label>
+                                        <input type="text" 
+                                               id="wp_image_alt"
+                                               name="wp_image_alt"
+                                               value="<?php echo esc_attr(get_option('wp_allstars_image_alt_pattern', '%filename%')); ?>"
+                                        />
+                                        <p class="description">
+                                            <?php esc_html_e('Available patterns:', 'wp-allstars'); ?> %filename%, %post_title%, %post_id%, %postname%, %timestamp%
+                                        </p>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
                 <?php elseif ($active_tab == 'theme'): ?>
-                    <div class="wp-list-table-container">
-                        <div class="wpa-loading-overlay">
-                            <span class="spinner is-active"></span>
+                    <div class="tab-content" id="theme">
+                        <div class="wp-list-table-container">
+                            <div class="wpa-loading-overlay">
+                                <span class="spinner is-active"></span>
+                            </div>
+                            <div id="wpa-theme-list"></div>
                         </div>
-                        <div id="wpa-theme-list"></div>
                     </div>
                 <?php elseif ($active_tab == 'recommended'): ?>
-                    <div class="wpa-plugin-filters">
-                        <a href="?page=wp-allstars&tab=recommended&category=minimal" 
-                           class="button <?php echo $active_category == 'minimal' ? 'button-primary' : ''; ?>">
-                            <?php esc_html_e('Minimal', 'wp-allstars'); ?>
-                        </a>
-                        <a href="?page=wp-allstars&tab=recommended&category=admin" 
-                           class="button <?php echo $active_category == 'admin' ? 'button-primary' : ''; ?>">
-                            <?php esc_html_e('Admin', 'wp-allstars'); ?>
-                        </a>
-                        <a href="?page=wp-allstars&tab=recommended&category=ai" 
-                           class="button <?php echo $active_category == 'ai' ? 'button-primary' : ''; ?>">
-                            <?php esc_html_e('AI', 'wp-allstars'); ?>
-                        </a>
-                        <a href="?page=wp-allstars&tab=recommended&category=cms" 
-                           class="button <?php echo $active_category == 'cms' ? 'button-primary' : ''; ?>">
-                            <?php esc_html_e('CMS', 'wp-allstars'); ?>
-                        </a>
-                        <a href="?page=wp-allstars&tab=recommended&category=compliance" 
-                           class="button <?php echo $active_category == 'compliance' ? 'button-primary' : ''; ?>">
-                            <?php esc_html_e('Compliance', 'wp-allstars'); ?>
-                        </a>
-                        <a href="?page=wp-allstars&tab=recommended&category=crm" 
-                           class="button <?php echo $active_category == 'crm' ? 'button-primary' : ''; ?>">
-                            <?php esc_html_e('CRM', 'wp-allstars'); ?>
-                        </a>
-                        <a href="?page=wp-allstars&tab=recommended&category=ecommerce" 
-                           class="button <?php echo $active_category == 'ecommerce' ? 'button-primary' : ''; ?>">
-                            <?php esc_html_e('Ecommerce', 'wp-allstars'); ?>
-                        </a>
-                        <a href="?page=wp-allstars&tab=recommended&category=lms" 
-                           class="button <?php echo $active_category == 'lms' ? 'button-primary' : ''; ?>">
-                            <?php esc_html_e('LMS', 'wp-allstars'); ?>
-                        </a>
-                        <a href="?page=wp-allstars&tab=recommended&category=media" 
-                           class="button <?php echo $active_category == 'media' ? 'button-primary' : ''; ?>">
-                            <?php esc_html_e('Media', 'wp-allstars'); ?>
-                        </a>
-                        <a href="?page=wp-allstars&tab=recommended&category=seo" 
-                           class="button <?php echo $active_category == 'seo' ? 'button-primary' : ''; ?>">
-                            <?php esc_html_e('SEO', 'wp-allstars'); ?>
-                        </a>
-                        <a href="?page=wp-allstars&tab=recommended&category=setup" 
-                           class="button <?php echo $active_category == 'setup' ? 'button-primary' : ''; ?>">
-                            <?php esc_html_e('Setup', 'wp-allstars'); ?>
-                        </a>
-                        <a href="?page=wp-allstars&tab=recommended&category=social" 
-                           class="button <?php echo $active_category == 'social' ? 'button-primary' : ''; ?>">
-                            <?php esc_html_e('Social', 'wp-allstars'); ?>
-                        </a>
-                        <a href="?page=wp-allstars&tab=recommended&category=speed" 
-                           class="button <?php echo $active_category == 'speed' ? 'button-primary' : ''; ?>">
-                            <?php esc_html_e('Speed', 'wp-allstars'); ?>
-                        </a>
-                        <a href="?page=wp-allstars&tab=recommended&category=translation" 
-                           class="button <?php echo $active_category == 'translation' ? 'button-primary' : ''; ?>">
-                            <?php esc_html_e('Translation', 'wp-allstars'); ?>
-                        </a>
-                        <a href="?page=wp-allstars&tab=recommended&category=advanced" 
-                           class="button <?php echo $active_category == 'advanced' ? 'button-primary' : ''; ?>">
-                            <?php esc_html_e('Advanced', 'wp-allstars'); ?>
-                        </a>
-                        <a href="?page=wp-allstars&tab=recommended&category=debug" 
-                           class="button <?php echo $active_category == 'debug' ? 'button-primary' : ''; ?>">
-                            <?php esc_html_e('Debug', 'wp-allstars'); ?>
-                        </a>
-                    </div>
-
-                    <div class="wp-list-table-container">
-                        <div class="wpa-loading-overlay">
-                            <span class="spinner is-active"></span>
+                    <div class="tab-content" id="recommended">
+                        <div id="wpa-plugin-filters" class="wp-filter">
+                            <ul class="filter-links">
+                                <li><a href="#" data-category="minimal" class="<?php echo $active_category == 'minimal' ? 'current' : ''; ?>">
+                                    <?php esc_html_e('Minimal', 'wp-allstars'); ?>
+                                </a></li>
+                                <li><a href="#" data-category="admin" class="<?php echo $active_category == 'admin' ? 'current' : ''; ?>">
+                                    <?php esc_html_e('Admin', 'wp-allstars'); ?>
+                                </a></li>
+                                <li><a href="#" data-category="ai" class="<?php echo $active_category == 'ai' ? 'current' : ''; ?>">
+                                    <?php esc_html_e('AI', 'wp-allstars'); ?>
+                                </a></li>
+                                <li><a href="#" data-category="cms" class="<?php echo $active_category == 'cms' ? 'current' : ''; ?>">
+                                    <?php esc_html_e('CMS', 'wp-allstars'); ?>
+                                </a></li>
+                                <li><a href="#" data-category="compliance" class="<?php echo $active_category == 'compliance' ? 'current' : ''; ?>">
+                                    <?php esc_html_e('Compliance', 'wp-allstars'); ?>
+                                </a></li>
+                                <li><a href="#" data-category="crm" class="<?php echo $active_category == 'crm' ? 'current' : ''; ?>">
+                                    <?php esc_html_e('CRM', 'wp-allstars'); ?>
+                                </a></li>
+                                <li><a href="#" data-category="ecommerce" class="<?php echo $active_category == 'ecommerce' ? 'current' : ''; ?>">
+                                    <?php esc_html_e('Ecommerce', 'wp-allstars'); ?>
+                                </a></li>
+                                <li><a href="#" data-category="lms" class="<?php echo $active_category == 'lms' ? 'current' : ''; ?>">
+                                    <?php esc_html_e('LMS', 'wp-allstars'); ?>
+                                </a></li>
+                                <li><a href="#" data-category="media" class="<?php echo $active_category == 'media' ? 'current' : ''; ?>">
+                                    <?php esc_html_e('Media', 'wp-allstars'); ?>
+                                </a></li>
+                                <li><a href="#" data-category="seo" class="<?php echo $active_category == 'seo' ? 'current' : ''; ?>">
+                                    <?php esc_html_e('SEO', 'wp-allstars'); ?>
+                                </a></li>
+                                <li><a href="#" data-category="setup" class="<?php echo $active_category == 'setup' ? 'current' : ''; ?>">
+                                    <?php esc_html_e('Setup', 'wp-allstars'); ?>
+                                </a></li>
+                                <li><a href="#" data-category="social" class="<?php echo $active_category == 'social' ? 'current' : ''; ?>">
+                                    <?php esc_html_e('Social', 'wp-allstars'); ?>
+                                </a></li>
+                                <li><a href="#" data-category="speed" class="<?php echo $active_category == 'speed' ? 'current' : ''; ?>">
+                                    <?php esc_html_e('Speed', 'wp-allstars'); ?>
+                                </a></li>
+                                <li><a href="#" data-category="translation" class="<?php echo $active_category == 'translation' ? 'current' : ''; ?>">
+                                    <?php esc_html_e('Translation', 'wp-allstars'); ?>
+                                </a></li>
+                                <li><a href="#" data-category="advanced" class="<?php echo $active_category == 'advanced' ? 'current' : ''; ?>">
+                                    <?php esc_html_e('Advanced', 'wp-allstars'); ?>
+                                </a></li>
+                                <li><a href="#" data-category="debug" class="<?php echo $active_category == 'debug' ? 'current' : ''; ?>">
+                                    <?php esc_html_e('Debug', 'wp-allstars'); ?>
+                                </a></li>
+                            </ul>
                         </div>
-                        <div id="wpa-plugin-list"></div>
+
+                        <div class="wp-allstars-plugin-browser">
+                            <div id="wpa-plugin-list"></div>
+                        </div>
                     </div>
                 <?php elseif ($active_tab == 'pro'): ?>
-                    <div class="wpa-pro-plugins">
-                        <?php
-                        $pro_plugins = wp_allstars_get_pro_plugins_config();
-                        foreach ($pro_plugins as $plugin) {
-                            ?>
-                            <div class="wpa-pro-plugin">
-                                <h3><?php echo esc_html($plugin['name']); ?></h3>
-                                <p><?php echo esc_html($plugin['description']); ?></p>
-                                <?php if (isset($plugin['button_group'])): ?>
-                                    <div class="button-group">
-                                        <?php foreach ($plugin['button_group'] as $button): ?>
-                                            <a href="<?php echo esc_url($button['url']); ?>" target="_blank" class="button <?php echo isset($button['primary']) && $button['primary'] ? 'button-primary' : ''; ?>">
-                                                <?php echo esc_html($button['text']); ?>
-                                            </a>
-                                        <?php endforeach; ?>
-                                    </div>
-                                <?php else: ?>
-                                    <div class="button-group">
-                                        <?php if (!empty($plugin['demo_url'])): ?>
-                                            <a href="<?php echo esc_url($plugin['demo_url']); ?>" class="button" target="_blank">
-                                                <?php esc_html_e('View Demo', 'wp-allstars'); ?>
-                                            </a>
-                                        <?php endif; ?>
-                                        <a href="<?php echo esc_url($plugin['url']); ?>" class="button button-primary" target="_blank">
-                                            <?php esc_html_e('Learn More', 'wp-allstars'); ?>
-                                        </a>
-                                    </div>
-                                <?php endif; ?>
-                            </div>
+                    <div class="tab-content" id="pro">
+                        <div class="wpa-pro-plugins">
                             <?php
-                        }
-                        ?>
-                    </div>
+                            $pro_plugins = wp_allstars_get_pro_plugins_config();
+                            foreach ($pro_plugins as $plugin) {
+                                ?>
+                                <div class="wpa-pro-plugin">
+                                    <h3><?php echo esc_html($plugin['name']); ?></h3>
+                                    <p><?php echo esc_html($plugin['description']); ?></p>
+                                    <?php if (isset($plugin['button_group'])): ?>
+                                        <div class="button-group">
+                                            <?php foreach ($plugin['button_group'] as $button): ?>
+                                                <a href="<?php echo esc_url($button['url']); ?>" target="_blank" class="button <?php echo isset($button['primary']) && $button['primary'] ? 'button-primary' : ''; ?>">
+                                                    <?php echo esc_html($button['text']); ?>
+                                                </a>
+                                            <?php endforeach; ?>
+                                        </div>
+                                    <?php else: ?>
+                                        <div class="button-group">
+                                            <?php if (!empty($plugin['demo_url'])): ?>
+                                                <a href="<?php echo esc_url($plugin['demo_url']); ?>" class="button" target="_blank">
+                                                    <?php esc_html_e('View Demo', 'wp-allstars'); ?>
+                                                </a>
+                                            <?php endif; ?>
+                                            <a href="<?php echo esc_url($plugin['url']); ?>" class="button button-primary" target="_blank">
+                                                <?php esc_html_e('Learn More', 'wp-allstars'); ?>
+                                            </a>
+                                        </div>
+                                    <?php endif; ?>
+                                </div>
+                                <?php
+                            }
+                            ?>
+                        </div>
 
-                    <style>
-                    .wpa-pro-plugins {
-                        padding: 20px;
-                        display: grid;
-                        grid-template-columns: repeat(auto-fill, minmax(450px, 1fr));
-                        gap: 24px;
-                        max-width: 1920px;
-                        margin: 0 auto;
-                    }
-                    .wpa-pro-plugin {
-                        background: #fff;
-                        border: 1px solid #ddd;
-                        padding: 24px;
-                        border-radius: 8px;
-                        display: flex;
-                        flex-direction: column;
-                        transition: all 0.2s ease;
-                        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-                    }
-                    .wpa-pro-plugin:hover {
-                        border-color: #2271b1;
-                        box-shadow: 0 2px 6px rgba(0,0,0,0.15);
-                    }
-                    .wpa-pro-plugin h3 {
-                        margin: 0 0 12px;
-                        font-size: 16px;
-                        font-weight: 600;
-                        color: #1d2327;
-                        line-height: 1.4;
-                    }
-                    .wpa-pro-plugin p {
-                        margin: 0 0 16px;
-                        color: #50575e;
-                        font-size: 14px;
-                        line-height: 1.6;
-                    }
-                    .wpa-pro-plugin .button-group {
-                        display: flex;
-                        flex-wrap: wrap;
-                        gap: 8px;
-                        margin-top: auto;
-                    }
-                    .wpa-pro-plugin .button {
-                        text-decoration: none;
-                        min-width: 120px;
-                        text-align: center;
-                        height: 30px;
-                        line-height: 28px;
-                        padding: 0 12px;
-                        font-size: 13px;
-                        font-weight: normal;
-                        margin: 0;
-                        border: 1px solid #0071a1 !important;
-                        border-radius: 3px !important;
-                        background: #f6f7f7;
-                        color: #0071a1;
-                        display: inline-block;
-                        vertical-align: top;
-                        box-shadow: none;
-                        cursor: pointer;
-                    }
-                    .wpa-pro-plugin .button:hover {
-                        background: #f0f0f1;
-                        border-color: #0071a1;
-                        color: #0071a1;
-                    }
-                    .wpa-pro-plugin .button-primary {
-                        background: #0071a1;
-                        border-color: #0071a1;
-                        color: #fff;
-                    }
-                    .wpa-pro-plugin .button-primary:hover {
-                        background: #005d8c;
-                        border-color: #005d8c;
-                        color: #fff;
-                    }
-                    @media screen and (max-width: 960px) {
+                        <style>
                         .wpa-pro-plugins {
-                            grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
-                            gap: 20px;
-                            padding: 16px;
-                        }
-                        .wpa-pro-plugin {
                             padding: 20px;
-                        }
-                    }
-                    @media screen and (max-width: 782px) {
-                        .wpa-pro-plugins {
-                            grid-template-columns: 1fr;
-                            gap: 16px;
-                            padding: 12px;
+                            display: grid;
+                            grid-template-columns: repeat(auto-fill, minmax(450px, 1fr));
+                            gap: 24px;
+                            max-width: 1920px;
+                            margin: 0 auto;
                         }
                         .wpa-pro-plugin {
-                            padding: 16px;
+                            background: #fff;
+                            border: 1px solid #ddd;
+                            padding: 24px;
+                            border-radius: 8px;
+                            display: flex;
+                            flex-direction: column;
+                            transition: all 0.2s ease;
+                            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+                        }
+                        .wpa-pro-plugin:hover {
+                            border-color: #2271b1;
+                            box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+                        }
+                        .wpa-pro-plugin h3 {
+                            margin: 0 0 12px;
+                            font-size: 16px;
+                            font-weight: 600;
+                            color: #1d2327;
+                            line-height: 1.4;
+                        }
+                        .wpa-pro-plugin p {
+                            margin: 0 0 16px;
+                            color: #50575e;
+                            font-size: 14px;
+                            line-height: 1.6;
+                        }
+                        .wpa-pro-plugin .button-group {
+                            display: flex;
+                            flex-wrap: wrap;
+                            gap: 8px;
+                            margin-top: auto;
                         }
                         .wpa-pro-plugin .button {
-                            width: 100%;
+                            text-decoration: none;
+                            min-width: 120px;
+                            text-align: center;
+                            height: 30px;
+                            line-height: 28px;
+                            padding: 0 12px;
+                            font-size: 13px;
+                            font-weight: normal;
+                            margin: 0;
+                            border: 1px solid #0071a1 !important;
+                            border-radius: 3px !important;
+                            background: #f6f7f7;
+                            color: #0071a1;
+                            display: inline-block;
+                            vertical-align: top;
+                            box-shadow: none;
+                            cursor: pointer;
                         }
-                    }
-                    </style>
+                        .wpa-pro-plugin .button:hover {
+                            background: #f0f0f1;
+                            border-color: #0071a1;
+                            color: #0071a1;
+                        }
+                        .wpa-pro-plugin .button-primary {
+                            background: #0071a1;
+                            border-color: #0071a1;
+                            color: #fff;
+                        }
+                        .wpa-pro-plugin .button-primary:hover {
+                            background: #005d8c;
+                            border-color: #005d8c;
+                            color: #fff;
+                        }
+                        @media screen and (max-width: 960px) {
+                            .wpa-pro-plugins {
+                                grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+                                gap: 20px;
+                                padding: 16px;
+                            }
+                            .wpa-pro-plugin {
+                                padding: 20px;
+                            }
+                        }
+                        @media screen and (max-width: 782px) {
+                            .wpa-pro-plugins {
+                                grid-template-columns: 1fr;
+                                gap: 16px;
+                                padding: 12px;
+                            }
+                            .wpa-pro-plugin {
+                                padding: 16px;
+                            }
+                            .wpa-pro-plugin .button {
+                                width: 100%;
+                            }
+                        }
+                        </style>
+                    </div>
                 <?php elseif ($active_tab == 'general'): ?>
-                    <div class="wp-allstars-settings-section">
-                        <div class="wp-allstars-settings-grid">
-                            <!-- Example of a simple toggle setting (no panel) -->
-                            <div class="wp-setting-row">
-                                <div class="wp-setting-header">
-                                    <div class="wp-setting-main">
-                                        <div class="wp-setting-left">
-                                            <div class="wp-toggle-switch">
-                                                <input type="checkbox" 
-                                                       id="wp_allstars_simple_setting"
-                                                       name="wp_allstars_simple_setting" 
-                                                       value="1"
-                                                       <?php checked(get_option('wp_allstars_simple_setting', false)); ?> 
-                                                />
-                                                <span class="wp-toggle-slider"></span>
-                                            </div>
-                                            <label for="wp_allstars_simple_setting" class="wp-setting-label">
-                                                <?php esc_html_e('Example: Simple Toggle', 'wp-allstars'); ?>
+                    <div class="tab-content" id="general">
+                        <div class="wp-allstars-settings-section">
+                            <div class="wp-allstars-settings-grid">
+                                <!-- Example of a simple toggle setting (no panel) -->
+                                <div class="wp-setting-row">
+                                    <div class="wp-setting-header">
+                                        <div class="wp-setting-main">
+                                            <div class="wp-setting-left">
+                                                <div class="wp-toggle-switch">
+                                                    <input type="checkbox" 
+                                                           id="wp_allstars_simple_setting"
+                                                           name="wp_allstars_simple_setting" 
+                                                           value="1"
+                                                           <?php checked(get_option('wp_allstars_simple_setting', false)); ?> 
+                                                    />
+                                                    <span class="wp-toggle-slider"></span>
+                                                </div>
+                                                <label for="wp_allstars_simple_setting" class="wp-setting-label">
+                                                    <?php esc_html_e('Example: Simple Toggle', 'wp-allstars'); ?>
                     </label>
-                </div>
+                                    </div>
                                     </div>
                                     <p class="wp-setting-description">
                                         <?php esc_html_e('This is an example of a simple toggle setting without an expandable panel. Currently for demonstration purposes only.', 'wp-allstars'); ?>
@@ -1043,46 +980,47 @@ function wp_allstars_settings_page() {
                         </div>
                     </div>
                 <?php elseif ($active_tab == 'advanced'): ?>
-                    <div class="wp-allstars-settings-section">
-                        <div class="wp-allstars-settings-grid">
-                            <!-- Example of an expandable panel setting -->
-                            <div class="wp-allstars-toggle">
-                                <div class="wp-allstars-toggle-header" aria-expanded="false">
-                                    <div class="wp-allstars-toggle-main">
-                                        <div class="wp-allstars-toggle-left">
-                                            <div class="wp-toggle-switch">
-                                                <input type="checkbox" 
-                                                       id="wp_allstars_auto_upload_images"
-                                                       name="wp_allstars_auto_upload_images" 
-                                                       value="1"
-                                                       <?php checked(get_option('wp_allstars_auto_upload_images', false)); ?> 
-                                                />
-                                                <span class="wp-toggle-slider"></span>
-                                            </div>
-                                            <label for="wp_allstars_auto_upload_images">
-                                                <?php esc_html_e('Example: Expandable Panel', 'wp-allstars'); ?>
+                    <div class="tab-content" id="advanced">
+                        <div class="wp-allstars-settings-section">
+                            <div class="wp-allstars-settings-grid">
+                                <!-- Example of an expandable panel setting -->
+                                <div class="wp-allstars-toggle">
+                                    <div class="wp-allstars-toggle-header" aria-expanded="false">
+                                        <div class="wp-allstars-toggle-main">
+                                            <div class="wp-allstars-toggle-left">
+                                                <div class="wp-toggle-switch">
+                                                    <input type="checkbox" 
+                                                           id="wp_allstars_auto_upload_images"
+                                                           name="wp_allstars_auto_upload_images" 
+                                                           value="1"
+                                                           <?php checked(get_option('wp_allstars_auto_upload_images', false)); ?> 
+                                                    />
+                                                    <span class="wp-toggle-slider"></span>
+                                                </div>
+                                                <label for="wp_allstars_auto_upload_images">
+                                                    <?php esc_html_e('Example: Expandable Panel', 'wp-allstars'); ?>
                     </label>
+                                            </div>
                                         </div>
+                                        <p class="wp-setting-description">
+                                            <?php esc_html_e('This is an example of an expandable panel setting. Currently for demonstration purposes only - no actual functionality.', 'wp-allstars'); ?>
+                                        </p>
                                     </div>
-                                    <p class="wp-setting-description">
-                                        <?php esc_html_e('This is an example of an expandable panel setting. Currently for demonstration purposes only - no actual functionality.', 'wp-allstars'); ?>
-                                    </p>
-                                </div>
-                                <div class="wp-allstars-toggle-settings">
-                                    <div class="wp-allstars-setting-row">
-                                        <label for="example_text"><?php esc_html_e('Example Text Field', 'wp-allstars'); ?></label>
-                                        <input type="text" 
-                                               id="example_text"
-                                               name="example_text"
-                                               value="Example value"
-                                        />
-                                        <p class="description"><?php esc_html_e('This is an example text field for demonstration purposes.', 'wp-allstars'); ?></p>
+                                    <div class="wp-allstars-toggle-settings">
+                                        <div class="wp-allstars-setting-row">
+                                            <label for="example_text"><?php esc_html_e('Example Text Field', 'wp-allstars'); ?></label>
+                                            <input type="text" 
+                                                   id="example_text"
+                                                   name="example_text"
+                                                   value="Example value"
+                                            />
+                                            <p class="description"><?php esc_html_e('This is an example text field for demonstration purposes.', 'wp-allstars'); ?></p>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
-                </div>
-            <?php endif; ?>
+                    </div>
+                <?php endif; ?>
             </div>
         </div>
     </div>
