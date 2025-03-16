@@ -31,8 +31,13 @@ jQuery(document).ready(function($) {
         });
     }
 
-    // Toggle switch functionality
-    $('.wp-allstars-toggle input[type="checkbox"]').on('change', function() {
+    // Toggle switch functionality - stop propagation to prevent panel toggle
+    $('.wp-toggle-switch').on('click', function(e) {
+        e.stopPropagation(); // Prevent the click from bubbling to the header
+    });
+
+    $('.wp-allstars-toggle input[type="checkbox"]').on('change', function(e) {
+        e.stopPropagation(); // Prevent the change from bubbling to the header
         var $input = $(this);
         var option = $input.attr('name');
         var value = $input.is(':checked') ? 1 : 0;
@@ -76,34 +81,27 @@ jQuery(document).ready(function($) {
     });
 
     // Initialize accordion state
-    $('.wp-allstars-toggle-settings').each(function() {
-        var $panel = $(this);
-        var $button = $panel.closest('.wp-allstars-toggle').find('.wp-allstars-expand-settings');
-        var isExpanded = $button.attr('aria-expanded') === 'true';
+    $('.wp-allstars-toggle-header').each(function() {
+        var $header = $(this);
+        var $panel = $header.closest('.wp-allstars-toggle').find('.wp-allstars-toggle-settings');
+        var isExpanded = $header.attr('aria-expanded') === 'true';
         
         // Set initial state
         if (isExpanded) {
             $panel.show();
-            $button.find('.dashicons').css('transform', 'rotate(180deg)');
         } else {
             $panel.hide();
         }
     });
 
     // Handle accordion functionality
-    $('.wp-allstars-expand-settings').on('click', function(e) {
-        e.preventDefault();
-        
-        var $button = $(this);
-        var $panel = $button.closest('.wp-allstars-toggle').find('.wp-allstars-toggle-settings');
-        var $icon = $button.find('.dashicons');
-        var isExpanded = $button.attr('aria-expanded') === 'true';
+    $('.wp-allstars-toggle-header').on('click', function(e) {
+        var $header = $(this);
+        var $panel = $header.closest('.wp-allstars-toggle').find('.wp-allstars-toggle-settings');
+        var isExpanded = $header.attr('aria-expanded') === 'true';
         
         // Toggle state
-        $button.attr('aria-expanded', !isExpanded);
-        
-        // Rotate icon
-        $icon.css('transform', !isExpanded ? 'rotate(180deg)' : '');
+        $header.attr('aria-expanded', !isExpanded);
         
         // Toggle panel with animation
         if (!isExpanded) {

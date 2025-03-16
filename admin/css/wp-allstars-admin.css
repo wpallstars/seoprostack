@@ -90,6 +90,7 @@
     width: 40px;
     height: 20px;
     margin-right: 12px;
+    cursor: pointer;
 }
 
 .wp-toggle-switch input {
@@ -145,13 +146,20 @@ input:checked + .wp-toggle-slider:before {
 /* Toggle Sections */
 .wp-allstars-toggle {
     background: #fff;
-    border: 1px solid #ccd0d4;
-    border-radius: 4px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
     margin-bottom: 15px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    transition: all 0.2s ease;
+}
+
+.wp-allstars-toggle:hover {
+    border-color: #2271b1;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.15);
 }
 
 .wp-allstars-toggle-header {
-    padding: 15px;
+    padding: 24px;
     cursor: pointer;
     user-select: none;
 }
@@ -168,59 +176,33 @@ input:checked + .wp-toggle-slider:before {
     align-items: center;
     gap: 10px;
     margin: 0;
-    cursor: pointer;
-    flex: 1;
+    font-size: 16px;
+    font-weight: 600;
+    color: #1d2327;
+    line-height: 1.4;
+    cursor: default;
 }
 
 .wp-allstars-expand-settings {
-    background: none;
-    border: none;
-    padding: 4px;
-    cursor: pointer;
-    color: #2271b1;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 24px;
-    height: 24px;
-    border-radius: 3px;
-    transition: background-color 0.2s ease;
-}
-
-.wp-allstars-expand-settings:hover {
-    background-color: #f0f0f1;
-    color: #135e96;
-}
-
-.wp-allstars-expand-settings:focus {
-    outline: 1px solid #2271b1;
-    box-shadow: none;
-}
-
-.wp-allstars-expand-settings .dashicons {
-    display: block;
-    width: 16px;
-    height: 16px;
-    font-size: 16px;
-    line-height: 16px;
-    transition: transform 0.2s ease;
-    transform-origin: center;
+    display: none;
 }
 
 .wp-allstars-toggle-settings {
-    border-top: 1px solid #ccd0d4;
-    padding: 15px;
+    border-top: 1px solid #ddd;
+    padding: 24px;
     background: #f9f9f9;
     display: none;
 }
 
 .wp-allstars-toggle .description {
     margin: 8px 0 0;
-    color: #646970;
+    color: #50575e;
+    font-size: 14px;
+    line-height: 1.6;
 }
 
 .wp-allstars-setting-row {
-    margin-bottom: 15px;
+    margin-bottom: 24px;
 }
 
 .wp-allstars-setting-row:last-child {
@@ -229,8 +211,10 @@ input:checked + .wp-toggle-slider:before {
 
 .wp-allstars-setting-row label {
     display: block;
-    margin-bottom: 5px;
-    font-weight: 500;
+    margin-bottom: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #1d2327;
 }
 
 .wp-allstars-setting-row input[type="text"],
@@ -238,6 +222,33 @@ input:checked + .wp-toggle-slider:before {
 .wp-allstars-setting-row textarea {
     width: 100%;
     max-width: 400px;
+    padding: 8px;
+    border: 1px solid #8c8f94;
+    border-radius: 4px;
+    box-shadow: 0 0 0 transparent;
+    transition: border-color .15s ease-in-out;
+}
+
+.wp-allstars-setting-row input[type="text"]:focus,
+.wp-allstars-setting-row input[type="number"]:focus,
+.wp-allstars-setting-row textarea:focus {
+    border-color: #2271b1;
+    box-shadow: 0 0 0 1px #2271b1;
+    outline: 2px solid transparent;
+}
+
+/* Add chevron icon using pseudo-element */
+.wp-allstars-toggle-header::after {
+    content: "";
+    display: block;
+    width: 16px;
+    height: 16px;
+    background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M17.5 11.6L12 16l-5.5-4.4.9-1.2L12 14l4.5-3.6 1 1.2z" fill="%232271b1"/></svg>') no-repeat center;
+    transition: transform 0.2s ease;
+}
+
+.wp-allstars-toggle-header[aria-expanded="true"]::after {
+    transform: rotate(180deg);
 }
 
 /* Clear floats after tabs */
