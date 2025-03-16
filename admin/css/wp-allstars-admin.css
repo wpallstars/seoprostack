@@ -192,6 +192,8 @@ input:checked + .wp-toggle-slider:before {
     padding: 24px;
     background: #f9f9f9;
     display: none;
+    border-bottom-left-radius: 8px;
+    border-bottom-right-radius: 8px;
 }
 
 .wp-allstars-toggle .description {
@@ -241,10 +243,11 @@ input:checked + .wp-toggle-slider:before {
 .wp-allstars-toggle-header::after {
     content: "";
     display: block;
-    width: 16px;
-    height: 16px;
+    width: 20px;
+    height: 20px;
     background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M17.5 11.6L12 16l-5.5-4.4.9-1.2L12 14l4.5-3.6 1 1.2z" fill="%232271b1"/></svg>') no-repeat center;
     transition: transform 0.2s ease;
+    background-size: 20px;
 }
 
 .wp-allstars-toggle-header[aria-expanded="true"]::after {

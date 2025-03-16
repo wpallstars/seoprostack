@@ -49,7 +49,7 @@ jQuery(document).ready(function($) {
                 action: 'wp_allstars_update_option',
                 option: option,
                 value: value,
-                nonce: wpAllstarsData.nonce
+                nonce: wpAllstars.nonce
             },
             success: function(response) {
                 if (response.success) {
@@ -148,7 +148,7 @@ jQuery(document).ready(function($) {
             data: {
                 action: 'wp_allstars_get_plugins',
                 category: category || 'minimal',
-                _ajax_nonce: wpAllstarsData.nonce
+                _ajax_nonce: wpAllstars.nonce
             },
             success: function(response) {
                 if (response.success) {
@@ -164,6 +164,111 @@ jQuery(document).ready(function($) {
                 $('#wpa-plugin-list').html('<div class="notice notice-error"><p>Failed to load plugins. Please try again. Error: ' + error + '</p></div>');
                 $('.wpa-loading-overlay').fadeOut();
             }
+        });
+    }
+
+    // Load theme on page load
+    if ($('#wpa-theme-list').length) {
+        loadTheme();
+    }
+
+    // Function to load theme
+    function loadTheme() {
+        // Show loading overlay
+        $('.wpa-loading-overlay').fadeIn();
+        
+        $.ajax({
+            url: ajaxurl,
+            data: {
+                action: 'wp_allstars_get_theme',
+                _ajax_nonce: wpAllstars.nonce
+            },
+            success: function(response) {
+                if (response.success) {
+                    $('#wpa-theme-list').html(response.data);
+                    initThemeHandlers();
+                } else {
+                    console.error('Server returned error:', response);
+                    $('#wpa-theme-list').html('<div class="notice notice-error"><p>Failed to load theme: ' + (response.data || 'Unknown error') + '</p></div>');
+                }
+                $('.wpa-loading-overlay').fadeOut();
+            },
+            error: function(xhr, status, error) {
+                console.error('Failed to load theme:', {xhr: xhr, status: status, error: error});
+                $('#wpa-theme-list').html('<div class="notice notice-error"><p>Failed to load theme. Please try again. Error: ' + error + '</p></div>');
+                $('.wpa-loading-overlay').fadeOut();
+            }
+        });
+    }
+
+    // Initialize theme handlers
+    function initThemeHandlers() {
+        // Handle theme installation
+        $('.install-theme').on('click', function(e) {
+            e.preventDefault();
+            var $button = $(this);
+            var slug = $button.data('slug');
+            
+            $button.addClass('updating-message').text('Installing...');
+            
+            wp.updates.installTheme({
+                slug: slug,
+                success: function(response) {
+                    $button
+                        .removeClass('updating-message install-theme')
+                        .addClass('button-primary activate-theme')
+                        .text('Activate');
+                    
+                    // Refresh the theme display
+                    loadTheme();
+                },
+                error: function(error) {
+                    $button.removeClass('updating-message');
+                    console.error('Theme installation failed:', error);
+                    if (error.errorMessage) {
+                        alert(error.errorMessage);
+                    }
+                }
+            });
+        });
+        
+        // Handle theme activation
+        $('.activate-theme').on('click', function(e) {
+            e.preventDefault();
+            var $button = $(this);
+            var slug = $button.data('slug');
+            
+            $button.addClass('updating-message').text('Activating...');
+            
+            $.ajax({
+                url: ajaxurl,
+                type: 'POST',
+                data: {
+                    action: 'wp_allstars_activate_theme',
+                    theme: slug,
+                    _ajax_nonce: wpAllstars.nonce
+                },
+                success: function(response) {
+                    if (response.success) {
+                        $button.removeClass('updating-message').text('Activated');
+                        setTimeout(function() {
+                            if (response.data && response.data.customize_url) {
+                                window.location.href = response.data.customize_url;
+                            } else {
+                                window.location.reload();
+                            }
+                        }, 1000);
+                    } else {
+                        $button.removeClass('updating-message').text('Activate');
+                        alert(response.data || 'Theme activation failed. Please try again.');
+                    }
+                },
+                error: function(xhr, status, error) {
+                    $button.removeClass('updating-message').text('Activate');
+                    console.error('Theme activation failed:', error);
+                    alert('Theme activation failed: ' + error);
+                }
+            });
         });
     }
 });
