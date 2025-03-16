@@ -155,7 +155,7 @@ jQuery(document).ready(function($) {
     // Function to load plugins
     function loadPlugins(category) {
         var $container = $('#wpa-plugin-list');
-        var $loadingOverlay = $('<div class="wp-allstars-loading-overlay"><span class="spinner is-active"></span><p>Loading plugins...</p></div>');
+        var $loadingOverlay = $('<div class="wp-allstars-loading-overlay"><div style="display: flex; align-items: center; justify-content: center;"><span class="spinner is-active" style="margin-right: 10px;"></span><p>Loading plugins...</p></div></div>');
         
         // Show loading overlay
         $container.css('position', 'relative').append($loadingOverlay);
@@ -183,13 +183,7 @@ jQuery(document).ready(function($) {
                     // Initialize plugin action buttons
                     initPluginActions();
                     
-                    // Show standard WordPress spinner in each plugin card
-                    $('.plugin-card .plugin-spinner').addClass('is-active').show();
-                    
-                    // Hide spinners after all plugin details have loaded
-                    setTimeout(function() {
-                        $('.plugin-card .plugin-spinner').removeClass('is-active').hide();
-                    }, 1000);
+                    // Individual plugin card spinners have been removed
                 } else {
                     // Show error message
                     $container.html('<div class="notice notice-error"><p>' + response.data + '</p></div>');

@@ -319,7 +319,6 @@ function wp_allstars_generate_plugin_cards($plugins) {
                         <div class="name column-name">
                             <h3>
                                 <?php echo esc_html($plugin->name); ?>
-                                <img src="<?php echo esc_url(admin_url('images/spinner.gif')); ?>" class="plugin-spinner spinner" alt="">
                             </h3>
                         </div>
                         <div class="action-links">
@@ -627,7 +626,7 @@ function wp_allstars_settings_page() {
                 if ($("#wpa-plugin-list").length && $("#wpa-plugin-list").is(":empty")) {
                     var category = "' . esc_js($active_category) . '";
                     var $container = $("#wpa-plugin-list");
-                    var $loadingOverlay = $("<div class=\"wp-allstars-loading-overlay\"><span class=\"spinner is-active\"></span><p>Loading plugins...</p></div>");
+                    var $loadingOverlay = $("<div class=\"wp-allstars-loading-overlay\"><div style=\"display: flex; align-items: center; justify-content: center;\"><span class=\"spinner is-active\" style=\"margin-right: 10px;\"></span><p>Loading plugins...</p></div></div>");
                     
                     // Show loading overlay
                     $container.css("position", "relative").append($loadingOverlay);
@@ -650,13 +649,7 @@ function wp_allstars_settings_page() {
                                     initPluginActions();
                                 }
                                 
-                                // Show standard WordPress spinner in each plugin card
-                                $(".plugin-card .plugin-spinner").addClass("is-active").show();
-                                
-                                // Hide spinners after all plugin details have loaded
-                                setTimeout(function() {
-                                    $(".plugin-card .plugin-spinner").removeClass("is-active").hide();
-                                }, 1000);
+                                // Spinners have been removed from individual cards
                             } else {
                                 $container.html("<div class=\"notice notice-error\"><p>" + response.data + "</p></div>");
                             }
