@@ -187,13 +187,13 @@ jQuery(document).ready(function($) {
     // Function to load themes
     function loadTheme() {
         var $container = $('#wpa-theme-list');
-        var $loadingOverlay = $('<div class="wp-allstars-loading-overlay"><span class="spinner is-active"></span></div>');
         
-        // Show loading overlay
-        $container.css('position', 'relative').append($loadingOverlay);
+        // Clear existing themes and show loading message
+        $container.empty().html('<div class="wp-allstars-loading-overlay"><span class="spinner is-active"></span><p>Loading themes...</p></div>');
+        var $loadingOverlay = $container.find('.wp-allstars-loading-overlay');
         
-        // Clear existing themes
-        $container.empty().append($loadingOverlay);
+        // Ensure container has proper positioning for overlay
+        $container.css('position', 'relative');
         
         // AJAX request to get themes
         $.ajax({
@@ -204,11 +204,8 @@ jQuery(document).ready(function($) {
                 _wpnonce: wpAllstars.nonce
             },
             success: function(response) {
-                // Remove loading overlay
-                $loadingOverlay.remove();
-                
                 if (response.success) {
-                    // Append themes HTML
+                    // Replace all content (including loading overlay) with new HTML
                     $container.html(response.data);
                     
                     // Initialize theme action buttons
@@ -219,12 +216,13 @@ jQuery(document).ready(function($) {
                 }
             },
             error: function(xhr, status, error) {
-                // Remove loading overlay
-                $loadingOverlay.remove();
-                
                 // Show error message
                 $container.html('<div class="notice notice-error"><p>Failed to load themes. Please try again. Error: ' + error + '</p></div>');
                 console.error('AJAX Error:', xhr.responseText);
+            },
+            complete: function() {
+                // Ensure the loading overlay is removed in all cases
+                $loadingOverlay.remove();
             }
         });
     }
