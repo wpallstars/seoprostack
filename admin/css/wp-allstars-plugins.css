@@ -104,7 +104,7 @@
         z-index: 1 !important;
     }
     
-    /* Position name next to the icon with consistent width, moved 35px left */
+    /* Position name next to the icon with consistent width, moved 35px left and narrower wrap */
     body.wp-admin .plugin-card .name.column-name {
         margin-left: -35px !important;
         margin-right: 0 !important;
@@ -112,7 +112,7 @@
         margin-top: 0 !important;
         text-align: left !important;
         display: inline-block !important;
-        width: calc(100% - 155px) !important;
+        width: calc(75% - 155px) !important;
         max-width: none !important;
         vertical-align: top !important;
         padding-left: 35px !important;
@@ -166,16 +166,17 @@
         margin-left: 0 !important;
     }
     
-    /* Fix compatibility check positioning and width */
+    /* Fix compatibility check positioning and height */
     body.wp-admin .plugin-card .compatibility-compatible {
-        margin-top: 8px !important;
+        margin-top: 0 !important;
         margin-bottom: 0 !important;
-        padding: 10px 20px !important;
+        padding: 3px 20px !important;
         width: 100% !important;
         box-sizing: border-box !important;
         text-align: center !important;
         max-width: none !important;
         display: block !important;
+        line-height: 1.2 !important;
     }
     
     /* Ensure compatibility text container has full width */
@@ -189,13 +190,16 @@
     }
 }
 
-/* Center More Details under Install Now */
-body.wp-admin .wp-list-table.plugin-install #the-list .plugin-card .action-links a.button + a.thickbox,
-body.wp-admin .wp-list-table.plugin-install #the-list .plugin-card .plugin-action-buttons a.thickbox {
+/* Center More Details under all buttons */
+body.wp-admin .wp-list-table.plugin-install #the-list .plugin-card .action-links a.thickbox,
+body.wp-admin .wp-list-table.plugin-install #the-list .plugin-card .plugin-action-buttons a.thickbox,
+body.wp-admin .wp-list-table.plugin-install #the-list .plugin-card a.thickbox {
     display: block !important;
     text-align: center !important;
     margin: 5px auto !important;
     float: none !important;
+    clear: both !important;
+    width: auto !important;
 }
 
 /* Position Go Pro below More Details and center it */
