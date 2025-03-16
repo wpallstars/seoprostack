@@ -72,7 +72,7 @@
     margin-left: 0;
 }
 
-/* Responsive behavior */
+/* Responsive behavior - single column for all sizes below 1260px */
 @media screen and (max-width: 1260px) {
     .plugin-card {
         width: 100%;
@@ -83,38 +83,6 @@
     .plugin-card:nth-child(odd),
     .plugin-card:nth-child(even) {
         margin: 0 0 16px 0;
-    }
-}
-
-/* Mobile layout - simplified */
-@media screen and (max-width: 782px) {
-    .plugin-card {
-        width: 100%;
-        margin: 0 0 16px 0;
-    }
-    
-    /* Make sure margins are reset for single column */
-    .plugin-card:nth-child(odd),
-    .plugin-card:nth-child(even) {
-        margin: 0 0 16px 0;
-    }
-    
-    /* Action links position adjustment */
-    .action-links {
-        position: relative;
-        top: 0;
-        right: 0;
-        margin-top: 1em;
-    }
-    
-    /* Adjust icon and heading alignment */
-    .plugin-icon {
-        width: 100px;
-        height: 100px;
-    }
-    
-    .name.column-name {
-        margin-right: 0;
     }
 }
 
