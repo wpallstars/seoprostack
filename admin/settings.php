@@ -353,7 +353,7 @@ function wp_allstars_generate_plugin_cards($plugins) {
                                 }
                                 
                                 // Add "More Details" link
-                                echo '<li><a class="more-details" href="' . esc_url(admin_url('plugin-install.php?tab=plugin-information&plugin=' . $plugin->slug . '&TB_iframe=true&width=600&height=550')) . '" class="thickbox open-plugin-details-modal" aria-label="' . esc_attr(sprintf(__('More information about %s'), $plugin->name)) . '">' . __('More Details') . '</a></li>';
+                                echo '<li><a class="more-details thickbox open-plugin-details-modal" href="' . esc_url(admin_url('plugin-install.php?tab=plugin-information&plugin=' . $plugin->slug . '&TB_iframe=true&width=600&height=550')) . '" aria-label="' . esc_attr(sprintf(__('More information about %s'), $plugin->name)) . '">' . __('More Details') . '</a></li>';
                                 ?>
                             </ul>
                         </div>
