@@ -671,7 +671,7 @@ function wp_allstars_settings_page() {
                                             <span class="wp-toggle-slider"></span>
                                         </div>
                                         <?php esc_html_e('Enable Auto Upload Images', 'wp-allstars'); ?>
-                                    </label>
+                    </label>
                                     <button type="button" class="wp-allstars-expand-settings" aria-expanded="false">
                                         <span class="dashicons dashicons-arrow-down-alt2"></span>
                                     </button>
@@ -742,26 +742,27 @@ function wp_allstars_settings_page() {
 
                     <script>
                     jQuery(document).ready(function($) {
-                        // Set initial state
-                        $('.wp-allstars-toggle-settings').hide();
-                        
+                        // Handle accordion functionality
                         $('.wp-allstars-expand-settings').on('click', function(e) {
                             e.preventDefault();
-                            e.stopPropagation();
                             
                             var $button = $(this);
                             var $panel = $button.closest('.wp-allstars-toggle').find('.wp-allstars-toggle-settings');
                             var $icon = $button.find('.dashicons');
-                            
-                            // Toggle panel visibility
-                            $panel.stop().slideToggle(200);
-                            
-                            // Toggle aria-expanded
                             var isExpanded = $button.attr('aria-expanded') === 'true';
+                            
+                            // Toggle aria state
                             $button.attr('aria-expanded', !isExpanded);
                             
                             // Rotate icon
                             $icon.css('transform', !isExpanded ? 'rotate(180deg)' : '');
+                            
+                            // Toggle panel visibility with animation
+                            if (!isExpanded) {
+                                $panel.css('display', 'block').hide().slideDown(200);
+                            } else {
+                                $panel.slideUp(200);
+                            }
                         });
                     });
                     </script>
@@ -1304,14 +1305,14 @@ function wp_allstars_settings_page() {
                         <div class="wp-allstars-settings-grid">
                             <!-- Lazy load toggle removed -->
                         </div>
-                    </div>
+                </div>
                 <?php elseif ($active_tab == 'advanced'): ?>
                     <div class="wp-allstars-settings-section">
                         <div class="wp-allstars-settings-grid">
                             <!-- Minification toggles removed -->
-                        </div>
-                    </div>
-                <?php endif; ?>
+                </div>
+                </div>
+            <?php endif; ?>
             </div>
         </div>
     </div>
