@@ -189,7 +189,11 @@ function wp_allstars_set_cached_plugins($category, $data) {
 
 // Add AJAX endpoint for plugin list
 function wp_allstars_ajax_get_plugins() {
-    check_ajax_referer('updates');
+    // Check nonce with the correct action name
+    if (!check_ajax_referer('wp-allstars-nonce', '_wpnonce', false)) {
+        wp_send_json_error('Invalid security token sent.');
+        return;
+    }
     
     if (!current_user_can('install_plugins')) {
         wp_die(-1);
@@ -395,7 +399,11 @@ function wp_allstars_set_cached_theme($data) {
 
 // Add AJAX endpoint for theme
 function wp_allstars_ajax_get_theme() {
-    check_ajax_referer('updates');
+    // Check nonce with the correct action name
+    if (!check_ajax_referer('wp-allstars-nonce', '_wpnonce', false)) {
+        wp_send_json_error('Invalid security token sent.');
+        return;
+    }
     
     if (!current_user_can('install_themes')) {
         error_log('WP ALLSTARS: User does not have permission to install themes');
@@ -566,7 +574,11 @@ add_action('switch_theme', 'wp_allstars_clear_theme_cache');
 
 // Add AJAX handler for theme activation
 function wp_allstars_activate_theme() {
-    check_ajax_referer('updates');
+    // Check nonce with the correct action name
+    if (!check_ajax_referer('wp-allstars-nonce', '_wpnonce', false)) {
+        wp_send_json_error('Invalid security token sent.');
+        return;
+    }
     
     if (!current_user_can('switch_themes')) {
         wp_send_json_error('Permission denied');
@@ -1035,5 +1047,11 @@ function wp_allstars_admin_enqueue_scripts($hook) {
 
     wp_enqueue_style('wp-allstars-admin', plugins_url('css/wp-allstars-admin.css', __FILE__));
     wp_enqueue_script('wp-allstars-admin', plugins_url('js/wp-allstars-admin.js', __FILE__), array('jquery'), WP_ALLSTARS_VERSION, true);
+    
+    // Localize the script with new data
+    wp_localize_script('wp-allstars-admin', 'wpAllstars', array(
+        'nonce' => wp_create_nonce('wp-allstars-nonce'),
+        'ajaxurl' => admin_url('admin-ajax.php')
+    ));
 }
 add_action('admin_enqueue_scripts', 'wp_allstars_admin_enqueue_scripts');

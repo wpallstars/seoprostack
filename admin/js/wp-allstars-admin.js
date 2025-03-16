@@ -165,7 +165,7 @@ jQuery(document).ready(function($) {
             data: {
                 action: 'wp_allstars_get_plugins',
                 category: category || 'minimal',
-                _ajax_nonce: wpAllstars.nonce
+                _wpnonce: wpAllstars.nonce
             },
             success: function(response) {
                 if (response.success) {
@@ -199,7 +199,7 @@ jQuery(document).ready(function($) {
             type: 'GET',
             data: {
                 action: 'wp_allstars_get_theme',
-                _ajax_nonce: wpAllstars.nonce
+                _wpnonce: wpAllstars.nonce
             },
             success: function(response) {
                 if (response.success) {
@@ -222,41 +222,31 @@ jQuery(document).ready(function($) {
     // Initialize theme handlers
     function initThemeHandlers() {
         // Handle theme installation
-        $('.install-theme').on('click', function(e) {
-            e.preventDefault();
+        $('.install-theme').on('click', function() {
+            var slug = $(this).data('slug');
             var $button = $(this);
-            var slug = $button.data('slug');
             
-            $button.addClass('updating-message').text('Installing...');
+            $button.text('Installing...').prop('disabled', true);
             
             wp.updates.installTheme({
                 slug: slug,
                 success: function(response) {
-                    $button
-                        .removeClass('updating-message install-theme')
-                        .addClass('button-primary activate-theme')
-                        .text('Activate');
-                    
-                    // Refresh the theme display
-                    loadTheme();
+                    $button.text('Activate').removeClass('install-theme').addClass('activate-theme');
+                    $button.prop('disabled', false);
                 },
-                error: function(error) {
-                    $button.removeClass('updating-message');
-                    console.error('Theme installation failed:', error);
-                    if (error.errorMessage) {
-                        alert(error.errorMessage);
-                    }
+                error: function(response) {
+                    $button.text('Error').prop('disabled', false);
+                    console.error('Theme installation error:', response);
                 }
             });
         });
         
         // Handle theme activation
-        $('.activate-theme').on('click', function(e) {
-            e.preventDefault();
+        $('.activate-theme').on('click', function() {
+            var slug = $(this).data('slug');
             var $button = $(this);
-            var slug = $button.data('slug');
             
-            $button.addClass('updating-message').text('Activating...');
+            $button.text('Activating...').prop('disabled', true);
             
             $.ajax({
                 url: ajaxurl,
@@ -264,27 +254,25 @@ jQuery(document).ready(function($) {
                 data: {
                     action: 'wp_allstars_activate_theme',
                     theme: slug,
-                    _ajax_nonce: wpAllstars.nonce
+                    _wpnonce: wpAllstars.nonce
                 },
                 success: function(response) {
                     if (response.success) {
-                        $button.removeClass('updating-message').text('Activated');
-                        setTimeout(function() {
-                            if (response.data && response.data.customize_url) {
+                        $button.text('Activated').prop('disabled', true);
+                        // Optionally redirect to customizer
+                        if (response.data && response.data.customize_url) {
+                            setTimeout(function() {
                                 window.location.href = response.data.customize_url;
-                            } else {
-                                window.location.reload();
-                            }
-                        }, 1000);
+                            }, 1000);
+                        }
                     } else {
-                        $button.removeClass('updating-message').text('Activate');
-                        alert(response.data || 'Theme activation failed. Please try again.');
+                        $button.text('Error').prop('disabled', false);
+                        console.error('Theme activation error:', response);
                     }
                 },
                 error: function(xhr, status, error) {
-                    $button.removeClass('updating-message').text('Activate');
-                    console.error('Theme activation failed:', error);
-                    alert('Theme activation failed: ' + error);
+                    $button.text('Error').prop('disabled', false);
+                    console.error('Theme activation AJAX error:', error);
                 }
             });
         });
