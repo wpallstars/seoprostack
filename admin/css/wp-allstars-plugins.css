@@ -20,48 +20,32 @@
     box-sizing: border-box;
 }
 
-/* Standard WordPress Plugin Grid Layout */
+/* Standard WordPress Plugin Grid Layout - exactly matching core */
 .wp-list-table.plugin-install {
-    margin-top: 10px;
+    margin-top: 20px;
     clear: both;
 }
 
 #the-list {
-    display: block;
-    margin: 0 -8px; /* Negative margin to offset padding */
-    overflow: hidden; /* Clearfix for floats */
+    margin: 0;
+    display: flex;
+    flex-wrap: wrap;
 }
 
 /* Plugin Cards */
 .plugin-card {
-    width: 50%;
-    padding: 0 8px 16px;
-    box-sizing: border-box;
-    background-color: transparent;
-    border: none;
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    float: left;
-}
-
-.plugin-card:nth-child(2n+1) {
-    clear: left;
-}
-
-.plugin-card .plugin-card-inner {
+    margin: 0 8px 16px;
+    width: calc(50% - 16px);
     background-color: #fff;
     border: 1px solid #dcdcde;
-    border-radius: 3px;
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
+    box-sizing: border-box;
+    position: relative;
 }
 
-@media screen and (max-width: 782px) {
+@media screen and (max-width: 1024px) {
     .plugin-card {
         width: 100%;
+        margin: 0 0 16px 0;
     }
 }
 
@@ -73,7 +57,6 @@
     position: relative;
     padding: 20px 20px 10px;
     min-height: 135px;
-    flex-grow: 1;
 }
 
 .plugin-icon {
@@ -126,9 +109,6 @@
     clear: both;
     padding: 12px 20px;
     background-color: #f6f7f7;
-    display: flex;
-    flex-wrap: wrap;
-    border-radius: 0 0 3px 3px;
 }
 
 .plugin-card-bottom > div {

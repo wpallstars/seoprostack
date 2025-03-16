@@ -315,7 +315,6 @@ function wp_allstars_generate_plugin_cards($plugins) {
         <div id="the-list">
             <?php foreach ($plugins as $plugin): ?>
                 <div class="plugin-card plugin-card-<?php echo esc_attr($plugin->slug); ?>">
-                    <div class="plugin-card-inner">
                     <div class="plugin-card-top">
                         <div class="name column-name">
                             <h3>
@@ -393,7 +392,6 @@ function wp_allstars_generate_plugin_cards($plugins) {
                             }
                             ?>
                         </div>
-                    </div>
                     </div>
                 </div>
             <?php endforeach; ?>
