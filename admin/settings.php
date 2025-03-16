@@ -742,24 +742,21 @@ function wp_allstars_settings_page() {
 
                     <script>
                     jQuery(document).ready(function($) {
+                        // Handle accordion functionality
                         $('.wp-allstars-expand-settings').on('click', function(e) {
                             e.preventDefault();
-                            e.stopPropagation();
                             
                             var $button = $(this);
                             var $panel = $button.closest('.wp-allstars-toggle').find('.wp-allstars-toggle-settings');
                             var $icon = $button.find('.dashicons');
-                            var isExpanded = $panel.is(':visible');
                             
-                            // Toggle panel with animation
-                            $panel.slideToggle(200);
-                            
-                            // Update button state
-                            $button.attr('aria-expanded', !isExpanded);
-                            
-                            // Update icon
-                            $icon.toggleClass('dashicons-arrow-down-alt2', isExpanded)
-                                 .toggleClass('dashicons-arrow-up-alt2', !isExpanded);
+                            // Toggle panel
+                            $panel.slideToggle(200, function() {
+                                // Update state after animation completes
+                                var isExpanded = $panel.is(':visible');
+                                $button.attr('aria-expanded', isExpanded);
+                                $icon.toggleClass('is-expanded', isExpanded);
+                            });
                         });
                     });
                     </script>
@@ -826,6 +823,10 @@ function wp_allstars_settings_page() {
                         font-size: 16px;
                         line-height: 16px;
                         transition: transform 0.2s ease;
+                    }
+
+                    .wp-allstars-expand-settings .dashicons.is-expanded {
+                        transform: rotate(180deg);
                     }
 
                     .wp-allstars-toggle-settings {
