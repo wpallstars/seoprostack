@@ -743,38 +743,33 @@ function wp_allstars_settings_page() {
                     <script>
                     jQuery(document).ready(function($) {
                         // Initialize accordion functionality
-                        function initAccordion() {
-                            $('.wp-allstars-expand-settings').each(function() {
-                                var $button = $(this);
-                                var $panel = $button.closest('.wp-allstars-toggle').find('.wp-allstars-toggle-settings');
-                                var $icon = $button.find('.dashicons');
+                        $('.wp-allstars-expand-settings').each(function() {
+                            var $button = $(this);
+                            var $panel = $button.closest('.wp-allstars-toggle').find('.wp-allstars-toggle-settings');
+                            var $icon = $button.find('.dashicons');
+                            
+                            // Set initial state
+                            var isExpanded = $button.attr('aria-expanded') === 'true';
+                            $panel.toggle(isExpanded);
+                            $icon.toggleClass('dashicons-arrow-up-alt2', isExpanded)
+                                 .toggleClass('dashicons-arrow-down-alt2', !isExpanded);
+                            
+                            // Handle click events
+                            $button.on('click', function(e) {
+                                e.preventDefault();
+                                e.stopPropagation();
                                 
-                                // Set initial state
-                                var isExpanded = $button.attr('aria-expanded') === 'true';
-                                $panel.toggle(isExpanded);
-                                $icon.toggleClass('dashicons-arrow-up-alt2', isExpanded)
-                                     .toggleClass('dashicons-arrow-down-alt2', !isExpanded);
+                                isExpanded = !isExpanded;
+                                $button.attr('aria-expanded', isExpanded);
                                 
-                                // Handle click events
-                                $button.off('click').on('click', function(e) {
-                                    e.preventDefault();
-                                    e.stopPropagation();
-                                    
-                                    isExpanded = !isExpanded;
-                                    $button.attr('aria-expanded', isExpanded);
-                                    
-                                    // Update icon classes
-                                    $icon.removeClass('dashicons-arrow-up-alt2 dashicons-arrow-down-alt2')
-                                         .addClass(isExpanded ? 'dashicons-arrow-up-alt2' : 'dashicons-arrow-down-alt2');
-                                    
-                                    // Animate panel
-                                    $panel.slideToggle(200);
-                                });
+                                // Update icon classes
+                                $icon.removeClass('dashicons-arrow-up-alt2 dashicons-arrow-down-alt2')
+                                     .addClass(isExpanded ? 'dashicons-arrow-up-alt2' : 'dashicons-arrow-down-alt2');
+                                
+                                // Animate panel
+                                $panel.slideToggle(200);
                             });
-                        }
-                        
-                        // Initialize on page load
-                        initAccordion();
+                        });
                     });
                     </script>
 
