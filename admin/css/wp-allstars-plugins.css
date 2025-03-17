@@ -260,17 +260,19 @@ body.wp-admin .plugin-card .plugin-icon {
     }
 }
 
-/* Mobile and Tablet styles (standard WordPress breakpoint) - Using desktop-like layout */
+/* Small screen styles (standard WordPress breakpoint) - Exact copy of desktop layout */
 @media screen and (max-width: 782px) {
-    /* Use same layout as desktop for consistency */
+    /* Copy of desktop card styles */
     body.wp-admin .wp-list-table.plugin-install #the-list .plugin-card {
-        width: 100% !important; /* Single column for mobile */
+        border: 1px solid #dcdcde !important;
+        border-radius: 8px !important;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
+        width: 100% !important;
         margin: 0 0 16px 0 !important;
         padding: 0 !important;
         box-sizing: border-box !important;
         transition: all 0.2s ease !important;
         overflow: hidden !important;
-        position: relative !important;
     }
     
     body.wp-admin .wp-list-table.plugin-install #the-list .plugin-card:hover {
@@ -278,8 +280,8 @@ body.wp-admin .plugin-card .plugin-icon {
         box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15) !important;
     }
     
-    /* Same card top section as desktop */
-    body.wp-admin .plugin-card .plugin-card-top {
+    /* Card top section - exact copy from desktop */
+    body.wp-admin .wp-list-table.plugin-install #the-list .plugin-card .plugin-card-top {
         display: block !important;
         min-height: 100px !important;
         position: relative !important;
@@ -287,19 +289,63 @@ body.wp-admin .plugin-card .plugin-icon {
         overflow: hidden !important;
     }
     
-    /* Icon positioning matches desktop */
+    /* Plugin icon - exact copy from desktop */
     body.wp-admin .plugin-card .plugin-icon {
         position: relative !important;
         float: left !important;
-        margin: 0 20px 0 0 !important; /* Same as desktop */
+        top: auto !important;
+        right: auto !important;
+        left: 0 !important;
+        margin: 0 20px 0 0 !important;
         width: 64px !important;
         height: 64px !important;
+        z-index: 1 !important;
     }
     
-    /* Name positioning matches desktop */
+    /* Plugin name - exact copy from desktop */
     body.wp-admin .plugin-card .name.column-name {
-        margin-left: 0 !important; /* Same as desktop */
-        width: calc(100% - 155px) !important;
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+        margin-bottom: 10px !important;
+        margin-top: 0 !important;
+        text-align: left !important;
+        display: inline-block !important;
+        width: calc(95% - 155px) !important;
+        max-width: none !important;
+        vertical-align: top !important;
+        padding-left: 0 !important;
+    }
+    
+    body.wp-admin .plugin-card .name.column-name h3 {
+        margin-bottom: 5px !important;
+        word-wrap: break-word !important;
+        width: 100% !important;
+    }
+    
+    /* Action buttons - exact copy from desktop */
+    body.wp-admin .plugin-card .action-links {
+        position: absolute !important;
+        top: 20px !important;
+        right: 20px !important;
+        z-index: 2 !important;
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: flex-end !important;
+        min-width: 120px !important;
+    }
+    
+    body.wp-admin .plugin-card .action-links .plugin-action-buttons {
+        margin-bottom: 8px !important;
+    }
+    
+    body.wp-admin .plugin-card .action-links .plugin-action-buttons li {
+        display: block !important;
+        margin-bottom: 5px !important;
+    }
+    
+    /* Card bottom - exact copy from desktop */
+    body.wp-admin .plugin-card-bottom {
+        padding: 15px 20px !important;
     }
 }
 
