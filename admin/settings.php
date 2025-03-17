@@ -1276,19 +1276,19 @@ function wp_allstars_ajax_get_themes() {
                                 <?php 
                                 $installed_theme = wp_get_theme('kadence');
                                 if ($installed_theme->exists()): ?>
-                                    <button type="button" class="button button-primary activate-now" data-slug="kadence">
+                                    <button type="button" class="button button-primary activate-now" data-slug="kadence" style="width: 120px;">
                                         <?php esc_html_e('Activate'); ?>
                                     </button>
                                 <?php else: ?>
-                                    <button type="button" class="button button-primary install-now" data-slug="kadence">
+                                    <button type="button" class="button button-primary install-now" data-slug="kadence" style="width: 120px;">
                                         <?php esc_html_e('Install'); ?>
                                     </button>
                                 <?php endif; ?>
                             <?php endif; ?>
-                            <a class="button button-secondary preview install-theme-preview" href="<?php echo esc_url($theme_data->preview_url); ?>" target="_blank">
+                            <a class="button button-secondary preview install-theme-preview" href="<?php echo esc_url($theme_data->preview_url); ?>" target="_blank" style="width: 120px;">
                                 <?php esc_html_e('Preview'); ?>
                             </a>
-                            <a class="button button-primary" href="https://www.kadencewp.com/kadence-theme/" target="_blank">
+                            <a class="button button-primary" href="https://www.kadencewp.com/kadence-theme/" target="_blank" style="width: 120px;">
                                 <?php esc_html_e('Go Pro'); ?>
                             </a>
                         </div>
@@ -1613,7 +1613,7 @@ function wp_allstars_settings_page() {
                             overflow: hidden;
                         }
                         #wpa-theme-list .theme-screenshot {
-                            height: 300px;
+                            height: 450px;
                         }
                         #wpa-theme-list .theme-screenshot img {
                             height: 100%;
