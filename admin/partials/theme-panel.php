@@ -31,22 +31,30 @@ if (!defined('ABSPATH')) {
                     <?php esc_html_e('Active'); ?>
                 </button>
             <?php elseif ($installed_theme->exists()): ?>
-                <button type="button" class="button button-primary activate-now" 
-                    data-slug="kadence" 
-                    data-nonce="<?php echo esc_attr($nonce); ?>">
+                <a href="<?php echo esc_url(wp_nonce_url(admin_url('themes.php?action=activate&stylesheet=kadence'), 'switch-theme_kadence')); ?>" 
+                   class="button button-primary activate-now" 
+                   data-slug="kadence" 
+                   data-name="Kadence"
+                   data-nonce="<?php echo esc_attr($nonce); ?>">
                     <?php esc_html_e('Activate'); ?>
-                </button>
-                <script>
-                console.log('Theme activation button initialized with:', {
-                    slug: 'kadence',
-                    nonce: '<?php echo esc_js($nonce); ?>'
-                });
-                </script>
+                </a>
             <?php else: ?>
-                <button type="button" class="button button-primary install-now" data-slug="kadence">
+                <a href="#" 
+                   class="button button-primary install-now" 
+                   data-slug="kadence" 
+                   data-name="Kadence">
                     <?php esc_html_e('Install'); ?>
-                </button>
+                </a>
             <?php endif; ?>
+            <script>
+            jQuery(document).ready(function($) {
+                // Make sure theme handlers are initialized
+                if (typeof initThemeHandlers === 'function') {
+                    console.log('Initializing theme handlers from template');
+                    initThemeHandlers();
+                }
+            });
+            </script>
         <?php endif; ?>
         <a class="button button-secondary preview install-theme-preview" href="<?php echo esc_url($theme_data->preview_url); ?>" target="_blank">
             <?php esc_html_e('Preview'); ?>
