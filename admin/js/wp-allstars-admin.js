@@ -301,15 +301,50 @@ jQuery(document).ready(function($) {
         $('.theme-actions .install-now').off('click');
         $('.theme-actions .activate-now').off('click');
         
-        // Install theme - use standard WordPress behavior
+        // Install theme - use WordPress AJAX-based installation
         $('.theme-actions .install-now').on('click', function(e) {
-            // We're not preventing default here - let the standard WordPress installer handle it
-            // Just add the updating message
+            e.preventDefault();
             var $button = $(this);
             var slug = $button.data('slug');
+            var themeName = $button.data('name') || slug;
+            
+            console.log('Installing theme via AJAX:', slug);
             $button.addClass('updating-message').text('Installing...');
-            console.log('Installing theme using standard WordPress URL:', $button.attr('href'));
-            // The rest will be handled by WordPress core
+            
+            // Use the WordPress core updates API for AJAX installation
+            wp.updates.installTheme({
+                slug: slug,
+                success: function(response) {
+                    console.log('Theme installed successfully:', response);
+                    $button.removeClass('updating-message').addClass('updated-message').text('Installed!');
+                    
+                    setTimeout(function() {
+                        // Replace the button with an activate button
+                        var $parent = $button.closest('.theme-actions');
+                        $button.remove();
+                        
+                        // Create a proper activation link
+                        var activateUrl = response.activateUrl || 
+                                         'themes.php?action=activate&stylesheet=' + slug + 
+                                         '&_wpnonce=' + wp.updates.data.activateNonce;
+                        
+                        var adminUrl = wpAllstars.adminUrl || ajaxurl.replace('/admin-ajax.php', '/');
+                        var $activateButton = $('<a class="button button-primary activate-now" href="' + adminUrl + activateUrl + '">Activate</a>');
+                        $activateButton.attr('data-slug', slug);
+                        $activateButton.attr('data-name', themeName);
+                        
+                        $parent.prepend($activateButton);
+                        
+                        // Re-initialize the event handlers
+                        initThemeHandlers();
+                    }, 1000);
+                },
+                error: function(response) {
+                    console.error('Theme installation failed:', response);
+                    $button.removeClass('updating-message').text('Install');
+                    alert(response.errorMessage || 'Failed to install theme. Please try again.');
+                }
+            });
         });
 
         // Activate theme - use standard WordPress behavior

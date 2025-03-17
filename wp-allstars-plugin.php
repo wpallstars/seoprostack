@@ -68,6 +68,7 @@ function wp_allstars_admin_assets() {
     // Localize script for AJAX
     $ajax_data = array(
         'ajaxurl' => admin_url( 'admin-ajax.php' ),
+        'adminUrl' => admin_url(),
         'nonce'   => wp_create_nonce( 'wp-allstars-nonce' )
     );
     wp_localize_script( 'wp-allstars-admin', 'wpAllstars', $ajax_data );
