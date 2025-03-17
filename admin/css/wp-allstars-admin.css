@@ -33,7 +33,7 @@
 }
 
 .wp-allstars-version {
-    color: #646970;
+    color: #2271b1; /* Updated to WordPress standard blue to match Documentation button */
     font-size: 13px;
     font-weight: 400;
 }
