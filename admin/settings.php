@@ -1764,7 +1764,7 @@ function wp_allstars_settings_page() {
                                 ?>
                                 <div class="wpa-pro-plugin">
                                     <h3><?php echo esc_html($provider['name']); ?></h3>
-                                    <p style="min-height: 80px; margin-bottom: 30px;"><?php echo esc_html($provider['description']); ?></p>
+                                    <p style="min-height: 80px; margin-bottom: 16px;"><?php echo esc_html($provider['description']); ?></p>
                                     <?php if (isset($provider['button_group'])): ?>
                                         <div class="button-group">
                                             <?php foreach ($provider['button_group'] as $button): ?>
@@ -2141,7 +2141,7 @@ function wp_allstars_settings_page() {
                                 ?>
                                 <div class="wpa-pro-plugin">
                                     <h3><?php echo esc_html($tool['name']); ?></h3>
-                                    <p style="min-height: 80px; margin-bottom: 30px;"><?php echo esc_html($tool['description']); ?></p>
+                                    <p style="min-height: 80px; margin-bottom: 16px;"><?php echo esc_html($tool['description']); ?></p>
                                     <?php if (isset($tool['button_group'])): ?>
                                         <div class="button-group">
                                             <?php foreach ($tool['button_group'] as $button): ?>
