@@ -1312,6 +1312,13 @@ function wp_allstars_activate_theme() {
         return;
     }
     
+    // Get the theme object
+    $theme_obj = wp_get_theme($theme);
+    if (!$theme_obj->exists() || $theme_obj->errors()) {
+        wp_send_json_error('Theme does not exist');
+        return;
+    }
+    
     // Switch the theme
     switch_theme($theme);
     

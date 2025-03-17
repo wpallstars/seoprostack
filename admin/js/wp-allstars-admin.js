@@ -206,6 +206,11 @@ jQuery(document).ready(function($) {
     
     // Initialize plugin action buttons
     function initPluginActions() {
+        // Remove any existing event handlers to prevent duplicates
+        $('.plugin-card .install-now').off('click');
+        $('.plugin-card .update-now').off('click');
+        $('.plugin-card .activate-now').off('click');
+        
         // Install plugin
         $('.plugin-card .install-now').on('click', function(e) {
             e.preventDefault();
@@ -219,10 +224,13 @@ jQuery(document).ready(function($) {
                 success: function(response) {
                     $button.removeClass('updating-message').addClass('updated-message').text('Installed!');
                     setTimeout(function() {
-                        $button.removeClass('updated-message install-now')
-                               .addClass('activate-now')
-                               .text('Activate')
-                               .attr('href', response.activateUrl);
+                        // Replace the button with an activate button
+                        var $parent = $button.parent();
+                        $button.remove();
+                        $parent.html('<a class="button activate-now" href="' + response.activateUrl + '" data-slug="' + slug + '" aria-label="Activate ' + slug + '">Activate</a>');
+                        
+                        // Re-initialize the event handlers
+                        initPluginActions();
                     }, 1000);
                 },
                 error: function(response) {
@@ -230,9 +238,7 @@ jQuery(document).ready(function($) {
                     alert(response.errorMessage);
                 }
             });
-
         });
-
         
         // Update plugin
         $('.plugin-card .update-now').on('click', function(e) {
@@ -257,15 +263,14 @@ jQuery(document).ready(function($) {
                     alert(response.errorMessage);
                 }
             });
-
         });
-
         
         // Activate plugin
         $('.plugin-card .activate-now').on('click', function(e) {
             e.preventDefault();
             var $button = $(this);
             var url = $button.attr('href');
+            var slug = $button.data('slug');
             
             $button.addClass('updating-message').text('Activating...');
             
@@ -275,9 +280,10 @@ jQuery(document).ready(function($) {
                 success: function() {
                     $button.removeClass('updating-message').addClass('updated-message').text('Activated!');
                     setTimeout(function() {
-                        $button.removeClass('activate-now updated-message')
-                               .addClass('button-disabled')
-                               .text('Active');
+                        // Replace the button with an active button
+                        var $parent = $button.parent();
+                        $button.remove();
+                        $parent.html('<button type="button" class="button button-disabled" disabled="disabled">Active</button>');
                     }, 1000);
                 },
                 error: function() {
@@ -285,13 +291,15 @@ jQuery(document).ready(function($) {
                     alert('Failed to activate plugin. Please try again or activate from the Plugins page.');
                 }
             });
-
         });
-
     }
     
     // Initialize theme handlers
     function initThemeHandlers() {
+        // Remove any existing event handlers to prevent duplicates
+        $('.theme-actions .install-now').off('click');
+        $('.theme-actions .activate-now').off('click');
+        
         // Install theme
         $('.theme-actions .install-now').on('click', function(e) {
             e.preventDefault();
@@ -306,10 +314,13 @@ jQuery(document).ready(function($) {
                 success: function(response) {
                     $button.removeClass('updating-message').addClass('updated-message').text('Installed!');
                     setTimeout(function() {
-                        $button.removeClass('updated-message install-now')
-                               .addClass('activate-now')
-                               .text('Activate')
-                               .attr('href', response.activateUrl);
+                        // Replace the button with an activate button
+                        var $parent = $button.closest('.theme-actions');
+                        $button.remove();
+                        $parent.prepend('<button type="button" class="button button-primary activate-now" data-slug="' + slug + '" data-nonce="' + wpAllstars.nonce + '">Activate</button>');
+                        
+                        // Re-initialize the event handlers
+                        initThemeHandlers();
                     }, 1000);
                 },
                 error: function(response) {
@@ -340,9 +351,10 @@ jQuery(document).ready(function($) {
                     if (response.success) {
                         $button.removeClass('updating-message').addClass('updated-message').text('Activated!');
                         setTimeout(function() {
-                            $button.removeClass('activate-now updated-message')
-                                   .addClass('button-disabled')
-                                   .text('Active');
+                            // Replace the button with an active button
+                            var $parent = $button.closest('.theme-actions');
+                            $button.remove();
+                            $parent.prepend('<button type="button" class="button button-disabled" disabled="disabled">Active</button>');
                         }, 1000);
                     } else {
                         $button.removeClass('updating-message').text('Activate');

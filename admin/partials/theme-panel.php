@@ -22,7 +22,14 @@ if (!defined('ABSPATH')) {
         <?php if (current_user_can('install_themes')): ?>
             <?php 
             $installed_theme = wp_get_theme('kadence');
-            if ($installed_theme->exists()): ?>
+            $current_theme = wp_get_theme();
+            $is_active = ($current_theme->get_stylesheet() === 'kadence');
+            
+            if ($is_active): ?>
+                <button type="button" class="button button-disabled" disabled="disabled">
+                    <?php esc_html_e('Active'); ?>
+                </button>
+            <?php elseif ($installed_theme->exists()): ?>
                 <button type="button" class="button button-primary activate-now" data-slug="kadence" data-nonce="<?php echo esc_attr(wp_create_nonce('wp-allstars-nonce')); ?>">
                     <?php esc_html_e('Activate'); ?>
                 </button>
