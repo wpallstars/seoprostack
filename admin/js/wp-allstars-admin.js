@@ -311,9 +311,19 @@ jQuery(document).ready(function($) {
             console.log('Installing theme via AJAX:', slug);
             $button.addClass('updating-message').text('Installing...');
             
+            // Make sure wp.updates is available
+            if (typeof wp === 'undefined' || typeof wp.updates === 'undefined' || typeof wp.updates.installTheme === 'undefined') {
+                console.error('WordPress updates API not available');
+                $button.removeClass('updating-message').text('Install');
+                alert('WordPress updates API not available. Please try again or install the theme from the Themes page.');
+                return;
+            }
+            
             // Use the WordPress core updates API for AJAX installation
             wp.updates.installTheme({
                 slug: slug,
+                // Make sure we pass the correct nonce
+                _ajax_nonce: $button.data('api-nonce') || wpAllstars.updateNonce,
                 success: function(response) {
                     console.log('Theme installed successfully:', response);
                     $button.removeClass('updating-message').addClass('updated-message').text('Installed!');
@@ -324,9 +334,13 @@ jQuery(document).ready(function($) {
                         $button.remove();
                         
                         // Create a proper activation link
-                        var activateUrl = response.activateUrl || 
-                                         'themes.php?action=activate&stylesheet=' + slug + 
-                                         '&_wpnonce=' + wp.updates.data.activateNonce;
+                        var activateUrl = '';
+                        if (response.activateUrl) {
+                            activateUrl = response.activateUrl;
+                        } else {
+                            var nonce = wp.updates.data.activateNonce || wpAllstars.nonce;
+                            activateUrl = 'themes.php?action=activate&stylesheet=' + slug + '&_wpnonce=' + nonce;
+                        }
                         
                         var adminUrl = wpAllstars.adminUrl || ajaxurl.replace('/admin-ajax.php', '/');
                         var $activateButton = $('<a class="button button-primary activate-now" href="' + adminUrl + activateUrl + '">Activate</a>');

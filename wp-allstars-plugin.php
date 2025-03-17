@@ -57,10 +57,13 @@ function wp_allstars_admin_assets() {
     );
 
     // Enqueue script
+    // Enqueue WordPress updates script for theme installation
+    wp_enqueue_script('updates');
+    
     wp_enqueue_script( 
         'wp-allstars-admin', 
         plugins_url( 'admin/js/wp-allstars-admin.js', __FILE__ ), 
-        array('jquery'), 
+        array('jquery', 'updates'), 
         WP_ALLSTARS_VERSION, 
         true 
     );
@@ -69,7 +72,8 @@ function wp_allstars_admin_assets() {
     $ajax_data = array(
         'ajaxurl' => admin_url( 'admin-ajax.php' ),
         'adminUrl' => admin_url(),
-        'nonce'   => wp_create_nonce( 'wp-allstars-nonce' )
+        'nonce'   => wp_create_nonce( 'wp-allstars-nonce' ),
+        'updateNonce' => wp_create_nonce( 'updates' )
     );
     wp_localize_script( 'wp-allstars-admin', 'wpAllstars', $ajax_data );
 }

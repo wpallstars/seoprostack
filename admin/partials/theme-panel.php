@@ -43,9 +43,17 @@ if (!defined('ABSPATH')) {
                    class="button button-primary install-now" 
                    data-slug="kadence" 
                    data-name="Kadence"
+                   data-api-nonce="<?php echo esc_attr(wp_create_nonce('updates')); ?>"
+                   data-nonce="<?php echo esc_attr($nonce); ?>"
                    aria-label="<?php esc_attr_e('Install Kadence'); ?>">
                     <?php esc_html_e('Install'); ?>
                 </button>
+                <script>
+                console.log('Theme installation button initialized with:', {
+                    slug: 'kadence',
+                    nonce: '<?php echo esc_js(wp_create_nonce("updates")); ?>'
+                });
+                </script>
             <?php endif; ?>
             <script>
             jQuery(document).ready(function($) {
