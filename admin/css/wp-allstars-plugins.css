@@ -77,23 +77,40 @@
 
 /* Responsive behavior is now handled in the mobile styles section below */
 
-/* Desktop specific adjustments for plugin name width */
+/* Desktop specific adjustments for plugin name width and action buttons position */
 @media screen and (min-width: 1201px) {
     body.wp-admin .plugin-card .name.column-name {
         width: calc(95% - 120px) !important;
+    }
+    
+    /* Position action buttons to align with description */
+    body.wp-admin .plugin-card .action-links {
+        top: 65px !important;
     }
 }
 
 /* Specific adjustments for very small screens */
 @media screen and (max-width: 768px) {
+    /* Force icon position for small screens */
     body.wp-admin .plugin-card .plugin-icon {
-        left: 35px !important;
+        position: absolute !important;
+        float: none !important;
+        left: 20px !important;
+        top: 20px !important;
+        margin: 0 !important;
     }
     
+    /* Adjust the name column for proper wrapping */
     body.wp-admin .plugin-card .name.column-name {
-        margin-left: -35px !important;
-        padding-left: 35px !important;
-        width: calc(90% - 155px) !important;
+        margin-left: 75px !important;
+        padding-left: 0 !important;
+        width: calc(75% - 155px) !important;
+    }
+    
+    /* Make images 100% important on small screens to override any other rules */
+    body.wp-admin .plugin-card img.plugin-icon {
+        position: absolute !important;
+        left: 20px !important;
     }
 }
 
@@ -125,7 +142,7 @@
         overflow: hidden !important;
     }
     
-    /* Place plugin icon on the left of the plugin name without the extra offset */
+    /* Place plugin icon on the left side in a consistent position */
     body.wp-admin .plugin-card .plugin-icon {
         position: relative !important;
         float: left !important;
@@ -220,13 +237,14 @@
         line-height: 13px !important;
     }
     
-    /* Fix checkmark and text alignment at small screen sizes */
-    @media screen and (max-width: 768px) {
-        body.wp-admin .plugin-card .compatibility-compatible::before,
-        body.wp-admin .plugin-card .compatibility-untested::before {
-            position: relative !important;
-            top: -5px !important;
-        }
+    /* Force direct checkmark alignment for all viewport sizes */
+    body.wp-admin .plugin-card .compatibility-compatible::before,
+    body.wp-admin .plugin-card .compatibility-untested::before {
+        vertical-align: middle !important;
+        display: inline-block !important;
+        position: relative !important;
+        top: -3px !important;
+        margin-right: 2px !important;
     }
     
     /* Note: Text color moved outside media query to apply globally */
