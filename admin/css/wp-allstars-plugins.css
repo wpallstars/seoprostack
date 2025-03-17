@@ -260,15 +260,23 @@ body.wp-admin .plugin-card .plugin-icon {
     }
 }
 
-/* Small screen styles (standard WordPress breakpoint) - Exact copy of desktop layout */
+/* Small screen styles with single column layout but desktop styling */
 @media screen and (max-width: 782px) {
-    /* Copy of desktop card styles */
+    /* Apply single column layout for mobile */
+    body.wp-admin .wp-list-table.plugin-install #the-list {
+        display: flex !important;
+        flex-wrap: wrap !important;
+        padding: 0 !important;
+        margin: 0 !important;
+    }
+    
+    /* Keep the same card styling but with full width for single column */
     body.wp-admin .wp-list-table.plugin-install #the-list .plugin-card {
         border: 1px solid #dcdcde !important;
         border-radius: 8px !important;
         box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
-        width: 100% !important;
-        margin: 0 0 16px 0 !important;
+        width: 100% !important; /* Single column layout */
+        margin: 0 0 16px 0 !important; /* No horizontal margins needed */
         padding: 0 !important;
         box-sizing: border-box !important;
         transition: all 0.2s ease !important;
