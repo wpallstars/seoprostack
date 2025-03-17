@@ -44,6 +44,7 @@
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
     box-sizing: border-box;
     transition: all 0.2s ease;
+    overflow: hidden;
 }
 
 .plugin-card:hover {
@@ -99,6 +100,7 @@
         padding: 0 !important;
         box-sizing: border-box !important;
         transition: all 0.2s ease !important;
+        overflow: hidden !important;
     }
     
     body.wp-admin .wp-list-table.plugin-install #the-list .plugin-card:hover {
@@ -360,6 +362,8 @@ body.wp-admin .plugin-card-bottom .compatibility-untested *,
     clear: both;
     padding: 12px 20px;
     background-color: #f6f7f7;
+    border-bottom-left-radius: 8px;
+    border-bottom-right-radius: 8px;
 }
 
 .plugin-card-bottom > div {
