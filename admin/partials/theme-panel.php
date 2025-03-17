@@ -39,7 +39,14 @@ if (!defined('ABSPATH')) {
                     <?php esc_html_e('Activate'); ?>
                 </a>
             <?php else: ?>
-                <a href="#" 
+                <?php 
+                // Use the standard WordPress theme installation URL format
+                $install_url = wp_nonce_url(
+                    admin_url('update.php?action=install-theme&theme=kadence'),
+                    'install-theme_kadence'
+                );
+                ?>
+                <a href="<?php echo esc_url($install_url); ?>" 
                    class="button button-primary install-now" 
                    data-slug="kadence" 
                    data-name="Kadence">

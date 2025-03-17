@@ -301,87 +301,26 @@ jQuery(document).ready(function($) {
         $('.theme-actions .install-now').off('click');
         $('.theme-actions .activate-now').off('click');
         
-        // Install theme
+        // Install theme - use standard WordPress behavior
         $('.theme-actions .install-now').on('click', function(e) {
-            e.preventDefault();
+            // We're not preventing default here - let the standard WordPress installer handle it
+            // Just add the updating message
             var $button = $(this);
             var slug = $button.data('slug');
-            var themeName = $button.data('name') || slug;
-            
-            console.log('Installing theme:', slug);
             $button.addClass('updating-message').text('Installing...');
-            
-            // Use the WordPress core update API
-            wp.updates.installTheme({
-                slug: slug,
-                success: function(response) {
-                    console.log('Theme installed successfully:', response);
-                    $button.removeClass('updating-message').addClass('updated-message').text('Installed!');
-                    
-                    setTimeout(function() {
-                        // Replace the button with an activate button
-                        var $parent = $button.closest('.theme-actions');
-                        $button.remove();
-                        
-                        // Create a proper activation link
-                        var activateUrl = response.activateUrl || 
-                                         wp.updates.adminUrl + 'themes.php?action=activate&stylesheet=' + slug + 
-                                         '&_wpnonce=' + wp.updates.data.nonce;
-                        
-                        var $activateButton = $('<a class="button button-primary activate-now" href="' + activateUrl + '">Activate</a>');
-                        $activateButton.attr('data-slug', slug);
-                        $activateButton.attr('data-name', themeName);
-                        $activateButton.attr('data-nonce', wpAllstars.nonce);
-                        
-                        $parent.prepend($activateButton);
-                        
-                        // Re-initialize the event handlers
-                        initThemeHandlers();
-                    }, 1000);
-                },
-                error: function(response) {
-                    console.error('Theme installation failed:', response);
-                    $button.removeClass('updating-message').text('Install');
-                    alert(response.errorMessage || 'Failed to install theme. Please try again.');
-                }
-            });
+            console.log('Installing theme using standard WordPress URL:', $button.attr('href'));
+            // The rest will be handled by WordPress core
         });
 
-        // Activate theme
+        // Activate theme - use standard WordPress behavior
         $('.theme-actions .activate-now').on('click', function(e) {
-            e.preventDefault();
+            // We're not preventing default here - let the standard WordPress activation handle it
+            // Just add the updating message
             var $button = $(this);
-            var url = $button.attr('href');
             var slug = $button.data('slug');
-            
-            console.log('Activating theme:', slug, 'with URL:', url);
             $button.addClass('updating-message').text('Activating...');
-            
-            // Use standard link-based activation like plugins
-            $.ajax({
-                url: url,
-                type: 'GET',
-                dataType: 'html',
-                success: function(response) {
-                    console.log('Theme activation successful');
-                    $button.removeClass('updating-message').addClass('updated-message').text('Activated!');
-                    
-                    setTimeout(function() {
-                        // Replace the button with an active button
-                        var $parent = $button.closest('.theme-actions');
-                        $button.remove();
-                        $parent.prepend('<button type="button" class="button button-disabled" disabled="disabled">Active</button>');
-                        
-                        // Optionally reload the page to show the active theme
-                        // window.location.reload();
-                    }, 1000);
-                },
-                error: function(jqXHR, textStatus, errorThrown) {
-                    console.error('Theme activation error:', textStatus, errorThrown);
-                    $button.removeClass('updating-message').text('Activate');
-                    alert('Failed to activate theme. Please try again or activate from the Themes page.');
-                }
-            });
+            console.log('Activating theme using standard WordPress URL:', $button.attr('href'));
+            // The rest will be handled by WordPress core
         });
     }
 });
