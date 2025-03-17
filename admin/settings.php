@@ -1605,20 +1605,23 @@ function wp_allstars_settings_page() {
                         }
                         #wpa-theme-list .theme {
                             width: 100%;
-                            max-width: 100%;
-                            margin: 0;
+                            max-width: 1200px;
+                            margin: 0 auto;
                             padding: 0;
                             box-shadow: 0 1px 3px rgba(0,0,0,0.1);
                             border-radius: 8px;
                             overflow: hidden;
                         }
                         #wpa-theme-list .theme-screenshot {
-                            height: 600px;
+                            height: auto;
+                            max-height: 900px;
                         }
                         #wpa-theme-list .theme-screenshot img {
-                            height: 100%;
+                            height: auto;
                             width: 100%;
-                            object-fit: cover;
+                            max-width: 1200px;
+                            max-height: 900px;
+                            object-fit: contain;
                         }
                         #wpa-theme-list .theme-name {
                             font-size: 18px;
