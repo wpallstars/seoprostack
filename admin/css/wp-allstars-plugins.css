@@ -1,11 +1,13 @@
 /* Plugin Browser Styles */
-.wp-allstars-plugin-browser {
-    margin: 0 -8px;
-    padding: 0 8px;
+.wp-allstars-wrap .wp-allstars-plugin-browser {
+    margin: 0 -8px !important;
+    padding: 0 8px !important;
+    width: 100% !important;
+    max-width: 100% !important;
 }
 
 /* Plugin List Container */
-#wpa-plugin-list {
+.wp-allstars-wrap #wpa-plugin-list {
     display: flex;
     flex-wrap: wrap;
     margin: 0;
@@ -13,7 +15,7 @@
 }
 
 /* Filter Bar */
-#wpa-plugin-filters.wp-filter {
+.wp-allstars-wrap #wpa-plugin-filters.wp-filter {
     margin-left: 0;
     margin-right: 0;
     width: 100%;
@@ -21,13 +23,13 @@
 }
 
 /* Standard WordPress Plugin Grid Layout - exactly matching core */
-.wp-list-table.plugin-install {
+.wp-allstars-wrap .wp-list-table.plugin-install {
     margin-top: 20px;
     clear: both;
     padding: 0;
 }
 
-#the-list {
+.wp-allstars-wrap #the-list {
     margin: 0;
     display: flex;
     flex-wrap: wrap;
@@ -73,24 +75,10 @@
     }
 }
 
-/* Responsive behavior */
-@media screen and (max-width: 1200px) {
-    .plugin-card {
-        width: 100%;
-        margin: 0 0 16px 0;
-        border-radius: 8px;
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-        transition: all 0.2s ease;
-    }
-    
-    .plugin-card:hover {
-        border-color: #2271b1 !important;
-        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
-    }
-}
+/* Responsive behavior is now handled in the mobile styles section below */
 
 /* Mobile styles - now working with correct positioning */
-@media screen and (max-width: 782px) {
+@media screen and (max-width: 1200px) {
     body.wp-admin .wp-list-table.plugin-install #the-list .plugin-card {
         border: 1px solid #dcdcde !important;
         border-radius: 8px !important;
