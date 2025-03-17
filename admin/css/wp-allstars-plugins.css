@@ -75,10 +75,26 @@
     }
 }
 
+/* Global plugin icon positioning that applies to all viewport sizes */
+body.wp-admin .plugin-card .plugin-icon {
+    position: relative !important;
+    float: left !important;
+    top: auto !important;
+    right: auto !important;
+    left: auto !important;
+    margin: 0 20px 0 0 !important;
+    width: 64px !important;
+    height: 64px !important;
+    z-index: 1 !important;
+    display: block !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+}
+
 /* Responsive behavior is now handled in the mobile styles section below */
 
 /* Desktop specific adjustments for plugin name width and action buttons position */
-@media screen and (min-width: 1201px) {
+@media screen and (min-width: 1200px) {
     body.wp-admin .plugin-card .name.column-name {
         width: calc(95% - 120px) !important;
     }
@@ -96,8 +112,8 @@
     }
 }
 
-/* Mobile styles - combined and simplified */
-@media screen and (max-width: 1200px) {
+/* Desktop styles (above 782px) */
+@media screen and (min-width: 783px) {
     body.wp-admin .wp-list-table.plugin-install #the-list .plugin-card {
         border: 1px solid #dcdcde !important;
         border-radius: 8px !important;
@@ -244,32 +260,46 @@
     }
 }
 
-/* Add special override for very small screens */
-@media screen and (max-width: 780px) {
-    /* Super specific selector to override WordPress core styles */
-    html body.wp-admin #wpbody-content .plugin-card .plugin-icon,
-    html body.wp-admin #wpbody .plugin-card img.plugin-icon,
-    body.wp-admin .plugin-card .plugin-icon,
-    html body.wp-admin #the-list .plugin-card img.plugin-icon {
+/* Mobile and Tablet styles (standard WordPress breakpoint) - Using desktop-like layout */
+@media screen and (max-width: 782px) {
+    /* Use same layout as desktop for consistency */
+    body.wp-admin .wp-list-table.plugin-install #the-list .plugin-card {
+        width: 100% !important; /* Single column for mobile */
+        margin: 0 0 16px 0 !important;
+        padding: 0 !important;
+        box-sizing: border-box !important;
+        transition: all 0.2s ease !important;
+        overflow: hidden !important;
+        position: relative !important;
+    }
+    
+    body.wp-admin .wp-list-table.plugin-install #the-list .plugin-card:hover {
+        border-color: #2271b1 !important;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15) !important;
+    }
+    
+    /* Same card top section as desktop */
+    body.wp-admin .plugin-card .plugin-card-top {
+        display: block !important;
+        min-height: 100px !important;
+        position: relative !important;
+        padding: 20px !important;
+        overflow: hidden !important;
+    }
+    
+    /* Icon positioning matches desktop */
+    body.wp-admin .plugin-card .plugin-icon {
         position: relative !important;
         float: left !important;
-        top: auto !important;
-        right: auto !important;
-        left: auto !important;
-        margin: 0 20px 0 20px !important; /* Add 20px left margin to match desktop view */
+        margin: 0 20px 0 0 !important; /* Same as desktop */
         width: 64px !important;
         height: 64px !important;
-        z-index: 10 !important;
     }
     
-    /* Ensure card has proper padding */
-    body.wp-admin .plugin-card .plugin-card-top {
-        padding-left: 20px !important;
-    }
-    
-    /* Adjust name column margin to coordinate with repositioned icon */
+    /* Name positioning matches desktop */
     body.wp-admin .plugin-card .name.column-name {
-        margin-left: 84px !important; /* 64px icon width + 20px left margin */
+        margin-left: 0 !important; /* Same as desktop */
+        width: calc(100% - 155px) !important;
     }
 }
 
