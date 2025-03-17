@@ -1618,6 +1618,7 @@ function wp_allstars_settings_page() {
                             display: block;
                             line-height: 0;
                             margin: 0;
+                            font-size: 0;
                         }
                         #wpa-theme-list .theme-screenshot img {
                             height: auto;
@@ -1634,15 +1635,17 @@ function wp_allstars_settings_page() {
                             margin: 0;
                         }
                         #wpa-theme-list .theme-actions {
-                            padding: 15px;
+                            padding: 0;
                             display: flex;
                             justify-content: center;
+                            align-items: center;
                             gap: 20px;
                             position: static;
                             opacity: 1;
                             background: #fff;
                             border-top: 1px solid #eee;
                             margin: 0;
+                            height: 60px;
                         }
                         #wpa-theme-list .theme-actions .button {
                             width: 120px;
@@ -1650,6 +1653,8 @@ function wp_allstars_settings_page() {
                             line-height: 34px;
                             text-align: center;
                             padding: 0 10px;
+                            vertical-align: middle;
+                            margin: 0;
                         }
                         </style>
                         <div class="wp-list-table-container" style="max-width: 100%;">
