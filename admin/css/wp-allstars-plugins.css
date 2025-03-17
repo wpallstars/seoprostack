@@ -40,7 +40,15 @@
     width: calc(50% - 16px);
     background-color: #fff;
     border: 1px solid #dcdcde;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
     box-sizing: border-box;
+    transition: all 0.2s ease;
+}
+
+.plugin-card:hover {
+    border-color: #2271b1;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
 }
 
 /* Ensure the right edge aligns with the navigation above */
@@ -69,6 +77,14 @@
     .plugin-card {
         width: 100%;
         margin: 0 0 16px 0;
+        border-radius: 8px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        transition: all 0.2s ease;
+    }
+    
+    .plugin-card:hover {
+        border-color: #2271b1;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
     }
 }
 
@@ -76,10 +92,18 @@
 @media screen and (max-width: 782px) {
     body.wp-admin .wp-list-table.plugin-install #the-list .plugin-card {
         border: 1px solid #dcdcde !important;
+        border-radius: 8px !important;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
         width: 100% !important;
         margin: 0 0 16px 0 !important;
         padding: 0 !important;
         box-sizing: border-box !important;
+        transition: all 0.2s ease !important;
+    }
+    
+    body.wp-admin .wp-list-table.plugin-install #the-list .plugin-card:hover {
+        border-color: #2271b1 !important;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15) !important;
     }
     
     /* Card top section with proper positioning */
