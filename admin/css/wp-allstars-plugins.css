@@ -96,58 +96,7 @@
     }
 }
 
-/* Mobile viewport specific icon positioning fixes */
-@media screen and (max-width: 768px) {
-    /* Add a global important style */
-    body.wp-admin .plugin-card {
-        position: relative !important;
-    }
-    /* Extra forceful positioning for small screens - targeting specific elements with highest specificity */
-    body.wp-admin .plugin-card .plugin-icon,
-    body.wp-admin .plugin-card img.plugin-icon,
-    .plugin-card img.plugin-icon,
-    .plugin-card .plugin-icon,
-    body.wp-admin #the-list .plugin-card .plugin-icon,
-    body.wp-admin .plugin-card-top .plugin-icon,
-    body#wpbody .plugin-card .plugin-icon,
-    html body.wp-admin .plugin-card-top img.plugin-icon {
-        position: absolute !important;
-        float: none !important;
-        display: block !important;
-        left: 35px !important; /* Adjusted to match the required position */
-        top: 20px !important;
-        /* Add extra positioning properties to override any other styles */
-        right: auto !important;
-        bottom: auto !important;
-        transform: none !important;
-        box-shadow: none !important;
-        opacity: 1 !important;
-        visibility: visible !important;
-        margin: 0 !important;
-        border: 0 !important;
-    }
-    
-    /* Adjust name column margin to align correctly with new icon position */
-    body.wp-admin .plugin-card .name.column-name {
-        margin-left: 80px !important;
-    }
-    
-    /* Make plugin card items arrange properly */
-    body.wp-admin .plugin-card .plugin-card-top {
-        padding-top: 20px !important;
-        padding-left: 20px !important;
-        position: relative !important;
-        min-height: 110px !important;
-    }
-    
-    /* Make plugin icon container and image have proper z-index */
-    body.wp-admin .plugin-card .plugin-icon-container {
-        position: relative !important;
-        z-index: 10 !important;
-    }
-}
-
-/* Mobile styles - now working with correct positioning */
+/* Mobile styles - combined and simplified */
 @media screen and (max-width: 1200px) {
     body.wp-admin .wp-list-table.plugin-install #the-list .plugin-card {
         border: 1px solid #dcdcde !important;
@@ -175,7 +124,7 @@
         overflow: hidden !important;
     }
     
-    /* Place plugin icon on the left side in a consistent position */
+    /* ADDING SUPER SPECIFIC MOBILE STYLING FOR ICONS - exact same as above 780px */
     body.wp-admin .plugin-card .plugin-icon {
         position: relative !important;
         float: left !important;
@@ -187,6 +136,8 @@
         height: 64px !important;
         z-index: 1 !important;
     }
+    
+    /* Removed duplicate plugin icon styling */
     
     /* Position name next to the icon with wider width for better text wrap */
     body.wp-admin .plugin-card .name.column-name {
@@ -290,6 +241,25 @@
         box-sizing: border-box !important;
         margin-left: 0 !important;
         margin-right: 0 !important;
+    }
+}
+
+/* Add special override for very small screens */
+@media screen and (max-width: 780px) {
+    /* Super specific selector to override WordPress core styles */
+    html body.wp-admin #wpbody-content .plugin-card .plugin-icon,
+    html body.wp-admin #wpbody .plugin-card img.plugin-icon,
+    body.wp-admin .plugin-card .plugin-icon,
+    html body.wp-admin #the-list .plugin-card img.plugin-icon {
+        position: relative !important;
+        float: left !important;
+        top: auto !important;
+        right: auto !important;
+        left: 0 !important;
+        margin: 0 20px 0 0 !important;
+        width: 64px !important;
+        height: 64px !important;
+        z-index: 10 !important;
     }
 }
 
