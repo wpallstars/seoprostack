@@ -3,7 +3,7 @@
  * Plugin Name: WP ALLSTARS Plugin
  * Plugin URI: https://www.wpallstars.com
  * Description: WP ALLSTARS Plugin for WordPress. Speed Matters.
- * Version: 0.1 (Beta)
+ * Version: 0.1.0 (Beta)
  * Author: WP ALLSTARS
  * Author URI: https://www.wpallstars.com
  * License: GPL-2.0+
