@@ -1615,6 +1615,9 @@ function wp_allstars_settings_page() {
                         #wpa-theme-list .theme-screenshot {
                             height: auto;
                             max-height: 900px;
+                            display: block;
+                            line-height: 0;
+                            margin: 0;
                         }
                         #wpa-theme-list .theme-screenshot img {
                             height: auto;
@@ -1622,10 +1625,13 @@ function wp_allstars_settings_page() {
                             max-width: 1200px;
                             max-height: 900px;
                             object-fit: contain;
+                            display: block;
+                            margin: 0;
                         }
                         #wpa-theme-list .theme-name {
                             font-size: 18px;
                             padding: 15px;
+                            margin: 0;
                         }
                         #wpa-theme-list .theme-actions {
                             padding: 15px;
@@ -1634,13 +1640,16 @@ function wp_allstars_settings_page() {
                             gap: 20px;
                             position: static;
                             opacity: 1;
-                            background: #f8f9fa;
+                            background: #fff;
                             border-top: 1px solid #eee;
+                            margin: 0;
                         }
                         #wpa-theme-list .theme-actions .button {
-                            width: auto;
-                            min-width: 100px;
+                            width: 120px;
+                            height: 36px;
+                            line-height: 34px;
                             text-align: center;
+                            padding: 0 10px;
                         }
                         </style>
                         <div class="wp-list-table-container" style="max-width: 100%;">
