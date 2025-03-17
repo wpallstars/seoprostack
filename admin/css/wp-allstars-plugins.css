@@ -63,16 +63,14 @@
     margin-left: 0;
 }
 
-/* Maintain consistent center gutter at all widths */
-@media screen and (min-width: 1600px) {
-    /* Force equal spacing between all cards */
-    .plugin-card:nth-child(odd) {
-        margin-right: 8px;
-    }
-    
-    .plugin-card:nth-child(even) {
-        margin-left: 8px;
-    }
+/* Consistent styling for all widths */
+/* Force equal spacing between all cards */
+.plugin-card:nth-child(odd) {
+    margin-right: 8px;
+}
+
+.plugin-card:nth-child(even) {
+    margin-left: 8px;
 }
 
 /* Global plugin icon positioning that applies to all viewport sizes */
@@ -91,271 +89,168 @@ body.wp-admin .plugin-card .plugin-icon {
     visibility: visible !important;
 }
 
-/* Responsive behavior is now handled in the mobile styles section below */
+/* All responsive behavior has been removed in favor of consistent desktop styling */
 
-/* Desktop specific adjustments for plugin name width and action buttons position */
-@media screen and (min-width: 1200px) {
-    body.wp-admin .plugin-card .name.column-name {
-        width: calc(95% - 120px) !important;
-    }
-    
-    /* Position action buttons at the bottom of the card top section */
-    body.wp-admin .plugin-card .action-links {
-        top: auto !important;
-        bottom: 20px !important;
-        right: 20px !important;
-    }
-    
-    /* Make description text stay below the name with proper margin */
-    body.wp-admin .plugin-card .desc.column-description {
-        margin-top: 10px !important;
-    }
+/* Global adjustments for plugin name width and action buttons position */
+body.wp-admin .plugin-card .name.column-name {
+    width: calc(95% - 120px) !important;
 }
 
-/* Desktop styles (above 782px) */
-@media screen and (min-width: 783px) {
-    body.wp-admin .wp-list-table.plugin-install #the-list .plugin-card {
-        border: 1px solid #dcdcde !important;
-        border-radius: 8px !important;
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
-        width: 100% !important;
-        margin: 0 0 16px 0 !important;
-        padding: 0 !important;
-        box-sizing: border-box !important;
-        transition: all 0.2s ease !important;
-        overflow: hidden !important;
-    }
-    
-    body.wp-admin .wp-list-table.plugin-install #the-list .plugin-card:hover {
-        border-color: #2271b1 !important;
-        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15) !important;
-    }
-    
-    /* Card top section with proper positioning */
-    body.wp-admin .wp-list-table.plugin-install #the-list .plugin-card .plugin-card-top {
-        display: block !important;
-        min-height: 100px !important;
-        position: relative !important;
-        padding: 20px !important;
-        overflow: hidden !important;
-    }
-    
-    /* ADDING SUPER SPECIFIC MOBILE STYLING FOR ICONS - exact same as above 780px */
-    body.wp-admin .plugin-card .plugin-icon {
-        position: relative !important;
-        float: left !important;
-        top: auto !important;
-        right: auto !important;
-        left: 0 !important;
-        margin: 0 20px 0 0 !important;
-        width: 64px !important;
-        height: 64px !important;
-        z-index: 1 !important;
-    }
-    
-    /* Removed duplicate plugin icon styling */
-    
-    /* Position name next to the icon with wider width for better text wrap */
-    body.wp-admin .plugin-card .name.column-name {
-        margin-left: 0 !important;
-        margin-right: 0 !important;
-        margin-bottom: 10px !important;
-        margin-top: 0 !important;
-        text-align: left !important;
-        display: inline-block !important;
-        width: calc(95% - 155px) !important;
-        max-width: none !important;
-        vertical-align: top !important;
-        padding-left: 0 !important;
-    }
-    
-    body.wp-admin .plugin-card .name.column-name h3 {
-        margin-bottom: 5px !important;
-        word-wrap: break-word !important;
-        width: 100% !important;
-    }
-    
-    /* Position action buttons to the right of plugin name */
-    body.wp-admin .plugin-card .action-links {
-        position: absolute !important;
-        top: 20px !important;
-        right: 20px !important;
-        z-index: 2 !important;
-        display: flex !important;
-        flex-direction: column !important;
-        align-items: flex-end !important;
-        min-width: 120px !important;
-    }
-    
-    body.wp-admin .plugin-card .action-links .plugin-action-buttons {
-        margin-bottom: 8px !important;
-    }
-    
-    body.wp-admin .plugin-card .action-links .plugin-action-buttons li {
-        display: block !important;
-        margin-bottom: 5px !important;
-    }
-    
-    /* Fix description spacing */
-    body.wp-admin .plugin-card-bottom {
-        padding: 15px 20px !important;
-        margin-top: 0 !important;
-        text-align: left !important;
-        margin-left: 0 !important;
-        margin-right: 0 !important;
-        max-width: none !important;
-        clear: both !important;
-        width: 100% !important;
-        box-sizing: border-box !important;
-        border-bottom-left-radius: 8px !important;
-        border-bottom-right-radius: 8px !important;
-    }
-    
-    /* Remove excessive spacing between elements */
-    body.wp-admin .plugin-card p,
-    body.wp-admin .plugin-card .desc.column-description {
-        margin-top: 0 !important;
-        margin-bottom: 8px !important;
-        text-align: left !important;
-        margin-left: 0 !important;
-    }
-    
-    /* Fix compatibility check positioning and height */
-    body.wp-admin .plugin-card .compatibility-compatible,
-    body.wp-admin .plugin-card .compatibility-untested {
-        margin-top: 0 !important;
-        margin-bottom: 0 !important;
-        padding: 0 20px !important;
-        width: 100% !important;
-        box-sizing: border-box !important;
-        text-align: right !important;
-        max-width: none !important;
-        display: flex !important;
-        align-items: center !important;
-        justify-content: flex-end !important;
-        height: 0px !important;
-        line-height: 13px !important;
-    }
-    
-    /* Force direct checkmark alignment for all viewport sizes */
-    body.wp-admin .plugin-card .compatibility-compatible::before,
-    body.wp-admin .plugin-card .compatibility-untested::before {
-        vertical-align: middle !important;
-        display: inline-block !important;
-        position: relative !important;
-        top: 0px !important; /* Adjusted from -3px to 0px */
-        margin-right: 2px !important;
-    }
-    
-    /* Note: Text color moved outside media query to apply globally */
-    
-    /* Ensure compatibility text container has full width */
-    body.wp-admin .plugin-card-bottom p,
-    body.wp-admin .plugin-card-bottom div {
-        width: 100% !important;
-        max-width: none !important;
-        box-sizing: border-box !important;
-        margin-left: 0 !important;
-        margin-right: 0 !important;
-    }
+/* Position action buttons at the bottom of the card top section */
+body.wp-admin .plugin-card .action-links {
+    top: auto !important;
+    bottom: 20px !important;
+    right: 20px !important;
 }
 
-/* Small screen styles with single column layout but desktop styling */
-@media screen and (max-width: 782px) {
-    /* Apply single column layout for mobile */
-    body.wp-admin .wp-list-table.plugin-install #the-list {
-        display: flex !important;
-        flex-wrap: wrap !important;
-        padding: 0 !important;
-        margin: 0 !important;
-    }
-    
-    /* Keep the same card styling but with full width for single column */
-    body.wp-admin .wp-list-table.plugin-install #the-list .plugin-card {
-        border: 1px solid #dcdcde !important;
-        border-radius: 8px !important;
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
-        width: 100% !important; /* Single column layout */
-        margin: 0 0 16px 0 !important; /* No horizontal margins needed */
-        padding: 0 !important;
-        box-sizing: border-box !important;
-        transition: all 0.2s ease !important;
-        overflow: hidden !important;
-    }
-    
-    body.wp-admin .wp-list-table.plugin-install #the-list .plugin-card:hover {
-        border-color: #2271b1 !important;
-        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15) !important;
-    }
-    
-    /* Card top section - exact copy from desktop */
-    body.wp-admin .wp-list-table.plugin-install #the-list .plugin-card .plugin-card-top {
-        display: block !important;
-        min-height: 100px !important;
-        position: relative !important;
-        padding: 20px !important;
-        overflow: hidden !important;
-    }
-    
-    /* Plugin icon - exact copy from desktop */
-    body.wp-admin .plugin-card .plugin-icon {
-        position: relative !important;
-        float: left !important;
-        top: auto !important;
-        right: auto !important;
-        left: 0 !important;
-        margin: 0 20px 0 0 !important;
-        width: 64px !important;
-        height: 64px !important;
-        z-index: 1 !important;
-    }
-    
-    /* Plugin name - exact copy from desktop */
-    body.wp-admin .plugin-card .name.column-name {
-        margin-left: 0 !important;
-        margin-right: 0 !important;
-        margin-bottom: 10px !important;
-        margin-top: 0 !important;
-        text-align: left !important;
-        display: inline-block !important;
-        width: calc(95% - 155px) !important;
-        max-width: none !important;
-        vertical-align: top !important;
-        padding-left: 0 !important;
-    }
-    
-    body.wp-admin .plugin-card .name.column-name h3 {
-        margin-bottom: 5px !important;
-        word-wrap: break-word !important;
-        width: 100% !important;
-    }
-    
-    /* Action buttons - exact copy from desktop */
-    body.wp-admin .plugin-card .action-links {
-        position: absolute !important;
-        top: 20px !important;
-        right: 20px !important;
-        z-index: 2 !important;
-        display: flex !important;
-        flex-direction: column !important;
-        align-items: flex-end !important;
-        min-width: 120px !important;
-    }
-    
-    body.wp-admin .plugin-card .action-links .plugin-action-buttons {
-        margin-bottom: 8px !important;
-    }
-    
-    body.wp-admin .plugin-card .action-links .plugin-action-buttons li {
-        display: block !important;
-        margin-bottom: 5px !important;
-    }
-    
-    /* Card bottom - exact copy from desktop */
-    body.wp-admin .plugin-card-bottom {
-        padding: 15px 20px !important;
-    }
+/* Make description text stay below the name with proper margin */
+body.wp-admin .plugin-card .desc.column-description {
+    margin-top: 10px !important;
 }
+
+/* Global styles for all viewport sizes - no breakpoints */
+body.wp-admin .wp-list-table.plugin-install #the-list .plugin-card {
+    border: 1px solid #dcdcde !important;
+    border-radius: 8px !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
+    width: 100% !important;
+    margin: 0 0 16px 0 !important;
+    padding: 0 !important;
+    box-sizing: border-box !important;
+    transition: all 0.2s ease !important;
+    overflow: hidden !important;
+}
+
+body.wp-admin .wp-list-table.plugin-install #the-list .plugin-card:hover {
+    border-color: #2271b1 !important;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15) !important;
+}
+
+/* Card top section with proper positioning */
+body.wp-admin .wp-list-table.plugin-install #the-list .plugin-card .plugin-card-top {
+    display: block !important;
+    min-height: 100px !important;
+    position: relative !important;
+    padding: 20px !important;
+    overflow: hidden !important;
+}
+
+/* Consistent icon styling for all viewport sizes */
+body.wp-admin .plugin-card .plugin-icon {
+    position: relative !important;
+    float: left !important;
+    top: auto !important;
+    right: auto !important;
+    left: 0 !important;
+    margin: 0 20px 0 0 !important;
+    width: 64px !important;
+    height: 64px !important;
+    z-index: 1 !important;
+}
+
+/* Position name next to the icon with wider width for better text wrap */
+body.wp-admin .plugin-card .name.column-name {
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    margin-bottom: 10px !important;
+    margin-top: 0 !important;
+    text-align: left !important;
+    display: inline-block !important;
+    width: calc(95% - 155px) !important;
+    max-width: none !important;
+    vertical-align: top !important;
+    padding-left: 0 !important;
+}
+
+body.wp-admin .plugin-card .name.column-name h3 {
+    margin-bottom: 5px !important;
+    word-wrap: break-word !important;
+    width: 100% !important;
+}
+
+/* Position action buttons to the right of plugin name */
+body.wp-admin .plugin-card .action-links {
+    position: absolute !important;
+    top: 20px !important;
+    right: 20px !important;
+    z-index: 2 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: flex-end !important;
+    min-width: 120px !important;
+}
+
+body.wp-admin .plugin-card .action-links .plugin-action-buttons {
+    margin-bottom: 8px !important;
+}
+
+body.wp-admin .plugin-card .action-links .plugin-action-buttons li {
+    display: block !important;
+    margin-bottom: 5px !important;
+}
+
+/* Fix description spacing */
+body.wp-admin .plugin-card-bottom {
+    padding: 15px 20px !important;
+    margin-top: 0 !important;
+    text-align: left !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    max-width: none !important;
+    clear: both !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+    border-bottom-left-radius: 8px !important;
+    border-bottom-right-radius: 8px !important;
+}
+
+/* Remove excessive spacing between elements */
+body.wp-admin .plugin-card p,
+body.wp-admin .plugin-card .desc.column-description {
+    margin-top: 0 !important;
+    margin-bottom: 8px !important;
+    text-align: left !important;
+    margin-left: 0 !important;
+}
+
+/* Fix compatibility check positioning and height */
+body.wp-admin .plugin-card .compatibility-compatible,
+body.wp-admin .plugin-card .compatibility-untested {
+    margin-top: 0 !important;
+    margin-bottom: 0 !important;
+    padding: 0 20px !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+    text-align: right !important;
+    max-width: none !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: flex-end !important;
+    height: 0px !important;
+    line-height: 13px !important;
+}
+
+/* Force direct checkmark alignment for all viewport sizes */
+body.wp-admin .plugin-card .compatibility-compatible::before,
+body.wp-admin .plugin-card .compatibility-untested::before {
+    vertical-align: middle !important;
+    display: inline-block !important;
+    position: relative !important;
+    top: 0px !important; /* Adjusted from -3px to 0px */
+    margin-right: 2px !important;
+}
+
+/* Ensure compatibility text container has full width */
+body.wp-admin .plugin-card-bottom p,
+body.wp-admin .plugin-card-bottom div {
+    width: 100% !important;
+    max-width: none !important;
+    box-sizing: border-box !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+}
+
+/* All styling applies consistently across all screen sizes with no breakpoints */
 
 /* Center More Details under all buttons */
 body.wp-admin .wp-list-table.plugin-install #the-list .plugin-card .action-links a.thickbox,
