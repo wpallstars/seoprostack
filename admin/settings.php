@@ -1764,9 +1764,9 @@ function wp_allstars_settings_page() {
                                 ?>
                                 <div class="wpa-pro-plugin">
                                     <h3><?php echo esc_html($provider['name']); ?></h3>
-                                    <p style="min-height: 80px; margin-bottom: 0;"><?php echo esc_html($provider['description']); ?></p>
+                                    <p style="min-height: 80px;"><?php echo esc_html($provider['description']); ?></p>
                                     <?php if (isset($provider['button_group'])): ?>
-                                        <div class="button-group" style="margin-top: 16px;">
+                                        <div class="button-group">
                                             <?php foreach ($provider['button_group'] as $button): ?>
                                                 <a href="<?php echo esc_url($button['url']); ?>" target="_blank" class="button <?php echo isset($button['primary']) && $button['primary'] ? 'button-primary' : ''; ?>">
                                                     <?php echo esc_html($button['text']); ?>
@@ -1854,7 +1854,7 @@ function wp_allstars_settings_page() {
                                     <h3><?php echo esc_html($plugin['name']); ?></h3>
                                     <p><?php echo esc_html($plugin['description']); ?></p>
                                     <?php if (isset($plugin['button_group'])): ?>
-                                        <div class="button-group" style="margin-top: 16px;">
+                                        <div class="button-group">
                                             <?php foreach ($plugin['button_group'] as $button): ?>
                                                 <a href="<?php echo esc_url($button['url']); ?>" target="_blank" class="button <?php echo isset($button['primary']) && $button['primary'] ? 'button-primary' : ''; ?>">
                                                     <?php echo esc_html($button['text']); ?>
@@ -1862,7 +1862,7 @@ function wp_allstars_settings_page() {
                                             <?php endforeach; ?>
                                         </div>
                                     <?php else: ?>
-                                        <div class="button-group" style="margin-top: 16px;">
+                                        <div class="button-group">
                                             <?php if (!empty($plugin['demo_url'])): ?>
                                                 <a href="<?php echo esc_url($plugin['demo_url']); ?>" class="button" target="_blank">
                                                     <?php esc_html_e('View Demo', 'wp-allstars'); ?>
@@ -2141,9 +2141,9 @@ function wp_allstars_settings_page() {
                                 ?>
                                 <div class="wpa-pro-plugin">
                                     <h3><?php echo esc_html($tool['name']); ?></h3>
-                                    <p style="min-height: 80px; margin-bottom: 0;"><?php echo esc_html($tool['description']); ?></p>
+                                    <p style="min-height: 80px;"><?php echo esc_html($tool['description']); ?></p>
                                     <?php if (isset($tool['button_group'])): ?>
-                                        <div class="button-group" style="margin-top: 16px;">
+                                        <div class="button-group">
                                             <?php foreach ($tool['button_group'] as $button): ?>
                                                 <a href="<?php echo esc_url($button['url']); ?>" target="_blank" class="button <?php echo isset($button['primary']) && $button['primary'] ? 'button-primary' : ''; ?>">
                                                     <?php echo esc_html($button['text']); ?>
