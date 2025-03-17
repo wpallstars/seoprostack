@@ -1605,11 +1605,9 @@ function wp_allstars_settings_page() {
                         }
                         #wpa-theme-list .theme {
                             width: 100%;
-                            max-width: 1200px;
+                            max-width: 100%;
                             margin: 0 auto;
                             padding: 0;
-                            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-                            border-radius: 8px;
                             overflow: hidden;
                             background: #fff;
                         }
@@ -1631,23 +1629,25 @@ function wp_allstars_settings_page() {
                             margin: 0;
                         }
                         #wpa-theme-list .theme-name {
-                            font-size: 18px;
-                            padding: 15px;
+                            font-size: 20px;
+                            padding: 20px 15px 5px;
                             margin: 0;
                             color: #333;
                             display: block;
                             background: #fff;
                             height: auto;
-                            min-height: 30px;
+                            min-height: 40px;
+                            font-weight: 600;
                         }
                         #wpa-theme-list .theme-author {
                             display: block;
-                            padding: 0 15px 15px;
+                            padding: 0 15px 20px;
                             color: #555;
                             margin: 0;
                             background: #fff;
                             height: auto;
-                            min-height: 20px;
+                            min-height: 30px;
+                            font-size: 14px;
                         }
                         #wpa-theme-list .theme-actions {
                             padding: 0;
@@ -1660,7 +1660,7 @@ function wp_allstars_settings_page() {
                             background: #fff;
                             border-top: 1px solid #eee;
                             margin: 0;
-                            height: 60px;
+                            height: 80px;
                         }
                         #wpa-theme-list .theme-actions .button {
                             width: 120px;
@@ -1671,8 +1671,20 @@ function wp_allstars_settings_page() {
                             vertical-align: middle;
                             margin: 0;
                         }
+                        @media (max-width: 782px) {
+                            #wpa-theme-list .theme-actions {
+                                flex-direction: column;
+                                height: auto;
+                                padding: 15px 0;
+                                gap: 10px;
+                            }
+                            #wpa-theme-list .theme-actions .button {
+                                width: 80%;
+                                max-width: 200px;
+                            }
+                        }
                         </style>
-                        <div class="wp-list-table-container" style="max-width: 1200px; margin: 0 auto; background: #fff;">
+                        <div class="wp-list-table-container" style="max-width: 1200px; margin: 0 auto; overflow: hidden; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
                             <div id="wpa-theme-list"></div>
                         </div>
                     </div>
