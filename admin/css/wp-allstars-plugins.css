@@ -428,11 +428,17 @@ body.wp-admin .plugin-card-bottom .compatibility-untested *,
     padding: 0 10px;
     background: #fff;
     border: 1px solid #dcdcde;
-    box-shadow: 0 1px 1px rgba(0, 0, 0, 0.04);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
     position: relative;
     box-sizing: border-box;
     width: 100%;
-    border-radius: 3px;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+}
+
+.wp-filter:hover {
+    border-color: #2271b1;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
 }
 
 .filter-links {
