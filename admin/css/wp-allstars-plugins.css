@@ -85,17 +85,12 @@
     
     /* Position action buttons to align with description */
     body.wp-admin .plugin-card .action-links {
-        top: auto !important;
-        bottom: auto !important;
-        position: relative !important;
-        float: right !important;
-        margin-top: -45px !important;
-        margin-right: 20px !important;
+        top: 95px !important; /* Positioned lower to align with description text */
     }
-
-    /* Ensure description stays below the name and doesn't overlap with buttons */
+    
+    /* Make description text stay below the name with proper margin */
     body.wp-admin .plugin-card .desc.column-description {
-        clear: left !important;
+        margin-top: 10px !important;
     }
 }
 
@@ -106,21 +101,21 @@
         position: static !important;
     }
     
-    /* Force complete icon positioning for small screens */
-    body.wp-admin .plugin-card .plugin-icon,
+    /* Force complete icon positioning for small screens using a more specific selector */
+    body.wp-admin .plugin-card .plugin-card-top .plugin-icon,
+    body.wp-admin #the-list .plugin-card .plugin-icon,
     body.wp-admin .plugin-card img.plugin-icon {
         position: absolute !important;
         float: none !important;
         top: 20px !important;
-        left: 55px !important; /* Added 35px to the left position */
+        left: 90px !important; /* Further increased left position to match required position */
         margin: 0 !important;
         z-index: 10 !important;
-        border: 1px solid #ddd !important;
     }
     
     /* Adjust the name column for proper wrapping */
     body.wp-admin .plugin-card .name.column-name {
-        margin-left: 110px !important; /* Adjusted for new icon position */
+        margin-left: 145px !important; /* Adjusted to match new icon position */
         padding-left: 0 !important;
         width: calc(75% - 155px) !important;
     }
