@@ -19,8 +19,12 @@ if ( ! defined( 'WPINC' ) ) {
     die;
 }
 
-// Define plugin version
-define( 'WP_ALLSTARS_VERSION', '0.1 (Beta)' );
+// Define plugin version - extract from plugin header
+function wp_allstars_get_plugin_version() {
+    $plugin_data = get_file_data(__FILE__, array('Version' => 'Version'));
+    return $plugin_data['Version'];
+}
+define( 'WP_ALLSTARS_VERSION', wp_allstars_get_plugin_version() );
 
 // Activation hook
 function wp_allstars_activate() {
