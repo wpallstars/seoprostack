@@ -96,7 +96,56 @@
     }
 }
 
-/* No custom styles for very small screens - they will use the same styles as 769px-1200px range */
+/* Mobile viewport specific icon positioning fixes */
+@media screen and (max-width: 768px) {
+    /* Add a global important style */
+    body.wp-admin .plugin-card {
+        position: relative !important;
+    }
+    /* Extra forceful positioning for small screens - targeting specific elements with highest specificity */
+    body.wp-admin .plugin-card .plugin-icon,
+    body.wp-admin .plugin-card img.plugin-icon,
+    .plugin-card img.plugin-icon,
+    .plugin-card .plugin-icon,
+    body.wp-admin #the-list .plugin-card .plugin-icon,
+    body.wp-admin .plugin-card-top .plugin-icon,
+    body#wpbody .plugin-card .plugin-icon,
+    html body.wp-admin .plugin-card-top img.plugin-icon {
+        position: absolute !important;
+        float: none !important;
+        display: block !important;
+        left: 35px !important; /* Adjusted to match the required position */
+        top: 20px !important;
+        /* Add extra positioning properties to override any other styles */
+        right: auto !important;
+        bottom: auto !important;
+        transform: none !important;
+        box-shadow: none !important;
+        opacity: 1 !important;
+        visibility: visible !important;
+        margin: 0 !important;
+        border: 0 !important;
+    }
+    
+    /* Adjust name column margin to align correctly with new icon position */
+    body.wp-admin .plugin-card .name.column-name {
+        margin-left: 80px !important;
+    }
+    
+    /* Make plugin card items arrange properly */
+    body.wp-admin .plugin-card .plugin-card-top {
+        padding-top: 20px !important;
+        padding-left: 20px !important;
+        position: relative !important;
+        min-height: 110px !important;
+    }
+    
+    /* Make plugin icon container and image have proper z-index */
+    body.wp-admin .plugin-card .plugin-icon-container {
+        position: relative !important;
+        z-index: 10 !important;
+    }
+}
 
 /* Mobile styles - now working with correct positioning */
 @media screen and (max-width: 1200px) {
