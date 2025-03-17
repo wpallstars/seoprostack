@@ -1636,12 +1636,18 @@ function wp_allstars_settings_page() {
                             margin: 0;
                             color: #333;
                             display: block;
+                            background: #fff;
+                            height: auto;
+                            min-height: 30px;
                         }
                         #wpa-theme-list .theme-author {
                             display: block;
-                            padding: 0 15px;
+                            padding: 0 15px 15px;
                             color: #555;
                             margin: 0;
+                            background: #fff;
+                            height: auto;
+                            min-height: 20px;
                         }
                         #wpa-theme-list .theme-actions {
                             padding: 0;
@@ -1666,7 +1672,7 @@ function wp_allstars_settings_page() {
                             margin: 0;
                         }
                         </style>
-                        <div class="wp-list-table-container" style="max-width: 100%; background: #fff;">
+                        <div class="wp-list-table-container" style="max-width: 1200px; margin: 0 auto; background: #fff;">
                             <div id="wpa-theme-list"></div>
                         </div>
                     </div>
