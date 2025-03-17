@@ -105,31 +105,31 @@
         overflow: hidden !important;
     }
     
-    /* Place plugin icon on the left of the plugin name, moved 35px to the right */
+    /* Place plugin icon on the left of the plugin name without the extra offset */
     body.wp-admin .plugin-card .plugin-icon {
         position: relative !important;
         float: left !important;
         top: auto !important;
         right: auto !important;
-        left: 35px !important;
+        left: 0 !important;
         margin: 0 20px 0 0 !important;
         width: 64px !important;
         height: 64px !important;
         z-index: 1 !important;
     }
     
-    /* Position name next to the icon with consistent width, moved 35px left and narrower wrap */
+    /* Position name next to the icon with wider width for better text wrap */
     body.wp-admin .plugin-card .name.column-name {
-        margin-left: -35px !important;
+        margin-left: 0 !important;
         margin-right: 0 !important;
         margin-bottom: 10px !important;
         margin-top: 0 !important;
         text-align: left !important;
         display: inline-block !important;
-        width: calc(75% - 155px) !important;
+        width: calc(95% - 155px) !important;
         max-width: none !important;
         vertical-align: top !important;
-        padding-left: 35px !important;
+        padding-left: 0 !important;
     }
     
     body.wp-admin .plugin-card .name.column-name h3 {
@@ -147,6 +147,7 @@
         display: flex !important;
         flex-direction: column !important;
         align-items: flex-end !important;
+        min-width: 120px !important;
     }
     
     body.wp-admin .plugin-card .action-links .plugin-action-buttons {

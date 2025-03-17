@@ -20,7 +20,7 @@ if ( ! defined( 'WPINC' ) ) {
 }
 
 // Define plugin version
-define( 'WP_ALLSTARS_VERSION', '1.0.0' );
+define( 'WP_ALLSTARS_VERSION', '0.1 (Beta)' );
 
 // Activation hook
 function wp_allstars_activate() {
