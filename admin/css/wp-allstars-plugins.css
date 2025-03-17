@@ -83,9 +83,11 @@
         width: calc(95% - 120px) !important;
     }
     
-    /* Position action buttons to align with description */
+    /* Position action buttons at the bottom of the card top section */
     body.wp-admin .plugin-card .action-links {
-        top: 95px !important; /* Positioned lower to align with description text */
+        top: auto !important;
+        bottom: 20px !important;
+        right: 20px !important;
     }
     
     /* Make description text stay below the name with proper margin */
@@ -94,46 +96,7 @@
     }
 }
 
-/* Specific adjustments for very small screens */
-@media screen and (max-width: 768px) {
-    /* Ensure proper card layout at small sizes */
-    body.wp-admin .plugin-card .plugin-card-top {
-        position: static !important;
-    }
-    
-    /* Force complete icon positioning for small screens using a more specific selector */
-    body.wp-admin .plugin-card .plugin-card-top .plugin-icon,
-    body.wp-admin #the-list .plugin-card .plugin-icon,
-    body.wp-admin .plugin-card img.plugin-icon {
-        position: absolute !important;
-        float: none !important;
-        top: 20px !important;
-        left: 90px !important; /* Further increased left position to match required position */
-        margin: 0 !important;
-        z-index: 10 !important;
-    }
-    
-    /* Adjust the name column for proper wrapping */
-    body.wp-admin .plugin-card .name.column-name {
-        margin-left: 145px !important; /* Adjusted to match new icon position */
-        padding-left: 0 !important;
-        width: calc(75% - 155px) !important;
-    }
-    
-    /* Add an !important style to override any plugin-specific styles */
-    body.wp-admin #the-list .plugin-card:before {
-        content: "" !important;
-        display: block !important;
-        clear: both !important;
-    }
-    
-    /* Force icon visibility */
-    body.wp-admin .plugin-card .plugin-icon {
-        opacity: 1 !important;
-        visibility: visible !important;
-        display: block !important;
-    }
-}
+/* No custom styles for very small screens - they will use the same styles as 769px-1200px range */
 
 /* Mobile styles - now working with correct positioning */
 @media screen and (max-width: 1200px) {
