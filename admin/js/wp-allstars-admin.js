@@ -293,11 +293,11 @@ jQuery(document).ready(function($) {
     // Initialize theme handlers
     function initThemeHandlers() {
         // Install theme
-        $('.theme-browser .theme-actions .install-now').on('click', function(e) {
+        $('.theme-actions .install-now').on('click', function(e) {
             e.preventDefault();
             var $button = $(this);
             var slug = $button.data('slug');
-            var $themeCard = $button.closest('.theme');
+            var $themeCard = $button.closest('.theme-card');
             
             $button.addClass('updating-message').text('Installing...');
             
@@ -317,38 +317,43 @@ jQuery(document).ready(function($) {
                     alert(response.errorMessage);
                 }
             });
-
         });
 
-        
         // Activate theme
-        $('.theme-browser .theme-actions .activate-now').on('click', function(e) {
+        $('.theme-actions .activate-now').on('click', function(e) {
             e.preventDefault();
             var $button = $(this);
-            var url = $button.attr('href');
+            var slug = $button.data('slug');
             
             $button.addClass('updating-message').text('Activating...');
             
+            // Use AJAX to activate the theme
             $.ajax({
-                url: url,
-                dataType: 'html',
-                success: function() {
-                    $button.removeClass('updating-message').addClass('updated-message').text('Activated!');
-                    setTimeout(function() {
-                        $('.theme-browser .theme').removeClass('active');
-                        $button.closest('.theme').addClass('active');
-                        $button.removeClass('activate-now updated-message')
-                               .addClass('button-disabled')
-                               .text('Active');
-                    }, 1000);
+                url: ajaxurl,
+                type: 'POST',
+                data: {
+                    action: 'wp_allstars_activate_theme',
+                    theme: slug,
+                    _wpnonce: wpAllstars.nonce
+                },
+                success: function(response) {
+                    if (response.success) {
+                        $button.removeClass('updating-message').addClass('updated-message').text('Activated!');
+                        setTimeout(function() {
+                            $button.removeClass('activate-now updated-message')
+                                   .addClass('button-disabled')
+                                   .text('Active');
+                        }, 1000);
+                    } else {
+                        $button.removeClass('updating-message').text('Activate');
+                        alert(response.data || 'Failed to activate theme');
+                    }
                 },
                 error: function() {
                     $button.removeClass('updating-message').text('Activate');
                     alert('Failed to activate theme. Please try again or activate from the Themes page.');
                 }
             });
-
         });
-
     }
 });
