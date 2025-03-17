@@ -298,6 +298,17 @@ function wp_allstars_get_tools() {
                 )
             )
         ),
+        'pagespeed' => array(
+            'name' => 'PageSpeed Insights',
+            'description' => 'Google tool that analyzes web page performance on mobile and desktop devices.',
+            'button_group' => array(
+                array(
+                    'text' => 'Home Page',
+                    'url' => 'https://pagespeed.web.dev/',
+                    'primary' => true
+                )
+            )
+        ),
         'windsurf' => array(
             'name' => 'Codeium Windsurf',
             'description' => 'AI-powered IDE with advanced code completion and generation capabilities.',
@@ -670,6 +681,21 @@ function wp_allstars_get_hosting_providers() {
                 array(
                     'text' => 'Pricing',
                     'url' => 'https://www.namecheap.com/hosting/shared/'
+                )
+            )
+        ),
+        'updownio' => array(
+            'name' => 'Updown.io',
+            'description' => 'Simple and affordable website monitoring service with uptime checks and performance metrics.',
+            'button_group' => array(
+                array(
+                    'text' => 'Home Page',
+                    'url' => 'https://updown.io/',
+                    'primary' => true
+                ),
+                array(
+                    'text' => 'Pricing',
+                    'url' => 'https://updown.io/pricing'
                 )
             )
         )
@@ -1570,7 +1596,47 @@ function wp_allstars_settings_page() {
                     </div>
                 <?php elseif ($active_tab == 'theme'): ?>
                     <div class="tab-content" id="theme">
-                        <div class="wp-list-table-container">
+                        <style>
+                        #wpa-theme-list .theme-browser .themes {
+                            display: block;
+                            max-width: 100%;
+                        }
+                        #wpa-theme-list .theme {
+                            width: 100%;
+                            max-width: 100%;
+                            margin: 0;
+                            padding: 0;
+                            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+                            border-radius: 8px;
+                            overflow: hidden;
+                        }
+                        #wpa-theme-list .theme-screenshot {
+                            height: 400px;
+                        }
+                        #wpa-theme-list .theme-screenshot img {
+                            height: 100%;
+                            width: 100%;
+                            object-fit: cover;
+                        }
+                        #wpa-theme-list .theme-name {
+                            font-size: 18px;
+                            padding: 15px;
+                        }
+                        #wpa-theme-list .theme-actions {
+                            padding: 15px;
+                            display: flex;
+                            gap: 10px;
+                            position: static;
+                            opacity: 1;
+                            background: #f8f9fa;
+                            border-top: 1px solid #eee;
+                        }
+                        #wpa-theme-list .theme-actions .button {
+                            min-width: 120px;
+                            text-align: center;
+                        }
+                        </style>
+                        <div class="wp-list-table-container" style="max-width: 100%;">
                             <div id="wpa-theme-list"></div>
                         </div>
                     </div>
