@@ -47,7 +47,7 @@
 }
 
 .plugin-card:hover {
-    border-color: #2271b1;
+    border-color: #2271b1 !important;
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
 }
 
@@ -83,7 +83,7 @@
     }
     
     .plugin-card:hover {
-        border-color: #2271b1;
+        border-color: #2271b1 !important;
         box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
     }
 }
@@ -179,6 +179,8 @@
         clear: both !important;
         width: 100% !important;
         box-sizing: border-box !important;
+        border-bottom-left-radius: 8px !important;
+        border-bottom-right-radius: 8px !important;
     }
     
     /* Remove excessive spacing between elements */
