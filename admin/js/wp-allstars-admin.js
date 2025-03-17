@@ -58,6 +58,7 @@ jQuery(document).ready(function($) {
 
     // Prevent label clicks from toggling the checkbox directly
     $('.wp-setting-label, .wp-allstars-toggle-left label').on('click', function(e) {
+        e.preventDefault();
         e.stopPropagation();
     });
 

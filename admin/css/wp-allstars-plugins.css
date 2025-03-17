@@ -74,7 +74,7 @@
 }
 
 /* Responsive behavior */
-@media screen and (max-width: 1260px) {
+@media screen and (max-width: 1200px) {
     .plugin-card {
         width: 100%;
         margin: 0 0 16px 0;

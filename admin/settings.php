@@ -1681,7 +1681,7 @@ function wp_allstars_settings_page() {
                             $hosting_providers = wp_allstars_get_hosting_providers();
                             // Sort providers alphabetically by name
                             uasort($hosting_providers, function($a, $b) {
-                                return strcmp($a['name'], $b['name']);
+                                return strcasecmp($a['name'], $b['name']);
                             });
                             foreach ($hosting_providers as $provider) {
                                 ?>
@@ -1769,7 +1769,7 @@ function wp_allstars_settings_page() {
                             $pro_plugins = wp_allstars_get_pro_plugins_config();
                             // Sort plugins alphabetically by name
                             uasort($pro_plugins, function($a, $b) {
-                                return strcmp($a['name'], $b['name']);
+                                return strcasecmp($a['name'], $b['name']);
                             });
                             foreach ($pro_plugins as $plugin) {
                                 ?>
@@ -2057,7 +2057,7 @@ function wp_allstars_settings_page() {
                             $tools = wp_allstars_get_tools();
                             // Sort tools alphabetically by name
                             uasort($tools, function($a, $b) {
-                                return strcmp($a['name'], $b['name']);
+                                return strcasecmp($a['name'], $b['name']);
                             });
                             foreach ($tools as $tool) {
                                 ?>

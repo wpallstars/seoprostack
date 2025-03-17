@@ -5,6 +5,22 @@
 
 function wp_allstars_get_pro_plugins_config() {
     return array(
+        'magic-login-pro' => array(
+            'name' => 'Magic Login Pro',
+            'description' => 'Enable passwordless authentication with magic login links and enhance WordPress site security.',
+            'button_group' => array(
+                array(
+                    'text' => 'Home Page',
+                    'url' => 'https://handyplugins.co/magic-login-pro/',
+                    'primary' => true
+                ),
+                array(
+                    'text' => 'Pricing',
+                    'url' => 'https://handyplugins.co/magic-login-pro/#pricing'
+                )
+            ),
+            'free_slug' => 'magic-login'
+        ),
         'admin-columns' => array(
             'name' => 'Admin Columns Pro',
             'description' => 'Advanced admin columns management with sorting, filtering, and editing capabilities.',
