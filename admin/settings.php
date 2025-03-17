@@ -1271,25 +1271,27 @@ function wp_allstars_ajax_get_themes() {
                     <span class="theme-author"><?php echo esc_html(sprintf(__('By %s'), $author)); ?></span>
                     <h3 class="theme-name"><?php echo esc_html($theme_data->name); ?></h3>
                     <div class="theme-actions">
-                        <?php if (current_user_can('install_themes')): ?>
-                            <?php 
-                            $installed_theme = wp_get_theme('kadence');
-                            if ($installed_theme->exists()): ?>
-                                <button type="button" class="button button-primary activate-now" data-slug="kadence">
-                                    <?php esc_html_e('Activate'); ?>
-                                </button>
-                            <?php else: ?>
-                                <button type="button" class="button button-primary install-now" data-slug="kadence">
-                                    <?php esc_html_e('Install'); ?>
-                                </button>
+                        <div style="display: flex; justify-content: center; gap: 15px;">
+                            <?php if (current_user_can('install_themes')): ?>
+                                <?php 
+                                $installed_theme = wp_get_theme('kadence');
+                                if ($installed_theme->exists()): ?>
+                                    <button type="button" class="button button-primary activate-now" data-slug="kadence">
+                                        <?php esc_html_e('Activate'); ?>
+                                    </button>
+                                <?php else: ?>
+                                    <button type="button" class="button button-primary install-now" data-slug="kadence">
+                                        <?php esc_html_e('Install'); ?>
+                                    </button>
+                                <?php endif; ?>
                             <?php endif; ?>
-                        <?php endif; ?>
-                        <a class="button button-secondary preview install-theme-preview" href="<?php echo esc_url($theme_data->preview_url); ?>" target="_blank">
-                            <?php esc_html_e('Preview'); ?>
-                        </a>
-                        <a class="button button-primary" href="https://www.kadencewp.com/kadence-theme/" target="_blank" style="text-align: center;">
-                            <?php esc_html_e('Go Pro'); ?>
-                        </a>
+                            <a class="button button-secondary preview install-theme-preview" href="<?php echo esc_url($theme_data->preview_url); ?>" target="_blank">
+                                <?php esc_html_e('Preview'); ?>
+                            </a>
+                            <a class="button button-primary" href="https://www.kadencewp.com/kadence-theme/" target="_blank">
+                                <?php esc_html_e('Go Pro'); ?>
+                            </a>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -1611,7 +1613,7 @@ function wp_allstars_settings_page() {
                             overflow: hidden;
                         }
                         #wpa-theme-list .theme-screenshot {
-                            height: 400px;
+                            height: 300px;
                         }
                         #wpa-theme-list .theme-screenshot img {
                             height: 100%;
@@ -1625,14 +1627,16 @@ function wp_allstars_settings_page() {
                         #wpa-theme-list .theme-actions {
                             padding: 15px;
                             display: flex;
-                            gap: 10px;
+                            justify-content: center;
+                            gap: 20px;
                             position: static;
                             opacity: 1;
                             background: #f8f9fa;
                             border-top: 1px solid #eee;
                         }
                         #wpa-theme-list .theme-actions .button {
-                            min-width: 120px;
+                            width: auto;
+                            min-width: 100px;
                             text-align: center;
                         }
                         </style>
