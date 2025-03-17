@@ -1259,44 +1259,9 @@ function wp_allstars_ajax_get_themes() {
         
         error_log('WP ALLSTARS: Theme data retrieved, generating HTML');
         
-        // Generate custom HTML for the theme
+        // Generate custom HTML for the theme using our template partial
         ob_start();
-        ?>
-        <div class="theme-browser">
-            <div class="themes wp-clearfix">
-                <div class="theme" tabindex="0">
-                    <div class="theme-screenshot">
-                        <img src="<?php echo esc_url($theme_data->screenshot_url); ?>" alt="">
-                    </div>
-                    <h3 class="theme-name"><?php echo esc_html($theme_data->name); ?></h3>
-                    <span class="theme-author"><?php echo esc_html(sprintf(__('By %s'), $author)); ?></span>
-                    <div class="theme-actions">
-                        <div style="display: flex; justify-content: center; gap: 15px;">
-                            <?php if (current_user_can('install_themes')): ?>
-                                <?php 
-                                $installed_theme = wp_get_theme('kadence');
-                                if ($installed_theme->exists()): ?>
-                                    <button type="button" class="button button-primary activate-now" data-slug="kadence" style="width: 120px;">
-                                        <?php esc_html_e('Activate'); ?>
-                                    </button>
-                                <?php else: ?>
-                                    <button type="button" class="button button-primary install-now" data-slug="kadence" style="width: 120px;">
-                                        <?php esc_html_e('Install'); ?>
-                                    </button>
-                                <?php endif; ?>
-                            <?php endif; ?>
-                            <a class="button button-secondary preview install-theme-preview" href="<?php echo esc_url($theme_data->preview_url); ?>" target="_blank" style="width: 120px;">
-                                <?php esc_html_e('Preview'); ?>
-                            </a>
-                            <a class="button button-primary" href="https://www.kadencewp.com/kadence-theme/" target="_blank" style="width: 120px;">
-                                <?php esc_html_e('Go Pro'); ?>
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <?php
+        include(plugin_dir_path(__FILE__) . 'partials/theme-panel.php');
         $html = ob_get_clean();
         
         if (empty($html)) {
@@ -1599,94 +1564,81 @@ function wp_allstars_settings_page() {
                 <?php elseif ($active_tab == 'theme'): ?>
                     <div class="tab-content" id="theme">
                         <style>
-                        #wpa-theme-list .theme-browser .themes {
-                            display: block;
-                            max-width: 100%;
-                        }
-                        #wpa-theme-list .theme {
-                            width: 100%;
-                            max-width: 100%;
-                            margin: 0 auto;
-                            padding: 0;
-                            overflow: hidden;
-                            background: #fff;
-                        }
-                        #wpa-theme-list .theme-screenshot {
-                            height: auto;
-                            max-height: 900px;
-                            display: block;
-                            line-height: 0;
-                            margin: 0;
-                            font-size: 0;
-                        }
-                        #wpa-theme-list .theme-screenshot img {
-                            height: auto;
-                            width: 100%;
+                        #wpa-theme-list {
                             max-width: 1200px;
-                            max-height: 900px;
-                            object-fit: contain;
-                            display: block;
-                            margin: 0;
+                            margin: 0 auto;
                         }
-                        #wpa-theme-list .theme-name {
-                            font-size: 20px;
-                            padding: 20px 15px 5px;
-                            margin: 0;
-                            color: #333;
-                            display: block;
+                        .theme-card {
                             background: #fff;
-                            height: auto;
-                            min-height: 40px;
-                            font-weight: 600;
+                            border-radius: 8px;
+                            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+                            overflow: hidden;
+                            margin-bottom: 30px;
                         }
-                        #wpa-theme-list .theme-author {
+                        .theme-image {
+                            position: relative;
+                            width: 100%;
+                            height: 0;
+                            padding-bottom: 75%; /* 4:3 aspect ratio */
+                            overflow: hidden;
+                            background-color: #f8f9fa;
+                        }
+                        .theme-image img {
+                            position: absolute;
+                            top: 0;
+                            left: 0;
+                            width: 100%;
+                            height: 100%;
+                            object-fit: cover;
+                            object-position: top center;
                             display: block;
-                            padding: 0 15px 20px;
+                        }
+                        .theme-info {
+                            padding: 20px;
+                            border-bottom: 1px solid #eee;
+                        }
+                        .theme-name {
+                            font-size: 22px;
+                            font-weight: 600;
+                            margin: 0 0 10px 0;
+                            color: #333;
+                            line-height: 1.3;
+                        }
+                        .theme-author {
+                            font-size: 14px;
                             color: #555;
                             margin: 0;
-                            background: #fff;
-                            height: auto;
-                            min-height: 30px;
-                            font-size: 14px;
+                            line-height: 1.5;
                         }
-                        #wpa-theme-list .theme-actions {
-                            padding: 0;
+                        .theme-actions {
                             display: flex;
                             justify-content: center;
                             align-items: center;
                             gap: 20px;
-                            position: static;
-                            opacity: 1;
+                            padding: 20px 0;
                             background: #fff;
-                            border-top: 1px solid #eee;
-                            margin: 0;
-                            height: 80px;
                         }
-                        #wpa-theme-list .theme-actions .button {
+                        .theme-actions .button {
                             width: 120px;
                             height: 36px;
                             line-height: 34px;
                             text-align: center;
                             padding: 0 10px;
-                            vertical-align: middle;
                             margin: 0;
                         }
                         @media (max-width: 782px) {
-                            #wpa-theme-list .theme-actions {
+                            .theme-actions {
                                 flex-direction: column;
-                                height: auto;
-                                padding: 15px 0;
                                 gap: 10px;
+                                padding: 15px 0;
                             }
-                            #wpa-theme-list .theme-actions .button {
+                            .theme-actions .button {
                                 width: 80%;
                                 max-width: 200px;
                             }
                         }
                         </style>
-                        <div class="wp-list-table-container" style="max-width: 1200px; margin: 0 auto; overflow: hidden; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
-                            <div id="wpa-theme-list"></div>
-                        </div>
+                        <div id="wpa-theme-list"></div>
                     </div>
                 <?php elseif ($active_tab == 'hosting'): ?>
                     <div class="tab-content" id="hosting">
