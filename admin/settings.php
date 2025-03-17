@@ -1914,6 +1914,7 @@ function wp_allstars_settings_page() {
                             color: #50575e;
                             font-size: 14px;
                             line-height: 1.6;
+                            min-height: 80px;
                         }
                         .wpa-pro-plugin .button-group {
                             display: flex;
