@@ -32,17 +32,36 @@ $RECYCLE.BIN/
 *.msp
 *.lnk
 
-# Custom files
+# Development & Local Environment
 .aider*
-.woodpecker.yml
 .git_status_output.txt
 .git_status_temp.txt
 project-documents/
 reference-plugins/
+*.bak
+node_modules/
+composer.lock
+package-lock.json
+vendor/
 
-# Optional common exclusions (uncomment as needed)
-# *.log
-# build/
-# dist/
-# .vscode/
-# .idea/
+# WordPress specific
+*.log
+wp-config.php
+wp-content/advanced-cache.php
+wp-content/backup-db/
+wp-content/backups/
+wp-content/blogs.dir/
+wp-content/cache/
+wp-content/upgrade/
+wp-content/uploads/
+
+# IDE & Editors
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+*.swp
+*.swo
+
+# Keep .woodpecker.yml if needed for CI/CD
+# .woodpecker.yml
