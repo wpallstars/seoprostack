@@ -296,6 +296,7 @@ jQuery(document).ready(function($) {
     
     // Initialize theme handlers
     function initThemeHandlers() {
+        console.log('Initializing theme handlers');
         // Remove any existing event handlers to prevent duplicates
         $('.theme-actions .install-now').off('click');
         $('.theme-actions .activate-now').off('click');
@@ -307,23 +308,29 @@ jQuery(document).ready(function($) {
             var slug = $button.data('slug');
             var $themeCard = $button.closest('.theme-card');
             
+            console.log('Installing theme:', slug);
             $button.addClass('updating-message').text('Installing...');
             
             wp.updates.installTheme({
                 slug: slug,
                 success: function(response) {
+                    console.log('Theme installed successfully:', response);
                     $button.removeClass('updating-message').addClass('updated-message').text('Installed!');
                     setTimeout(function() {
                         // Replace the button with an activate button
                         var $parent = $button.closest('.theme-actions');
                         $button.remove();
-                        $parent.prepend('<button type="button" class="button button-primary activate-now" data-slug="' + slug + '" data-nonce="' + wpAllstars.nonce + '">Activate</button>');
+                        var activateButton = $('<button type="button" class="button button-primary activate-now">Activate</button>');
+                        activateButton.attr('data-slug', slug);
+                        activateButton.attr('data-nonce', wpAllstars.nonce);
+                        $parent.prepend(activateButton);
                         
                         // Re-initialize the event handlers
                         initThemeHandlers();
                     }, 1000);
                 },
                 error: function(response) {
+                    console.error('Theme installation failed:', response);
                     $button.removeClass('updating-message').text('Install Now');
                     alert(response.errorMessage);
                 }
@@ -335,7 +342,9 @@ jQuery(document).ready(function($) {
             e.preventDefault();
             var $button = $(this);
             var slug = $button.data('slug');
+            var nonce = $button.data('nonce') || wpAllstars.nonce;
             
+            console.log('Activating theme:', slug, 'with nonce:', nonce);
             $button.addClass('updating-message').text('Activating...');
             
             // Use AJAX to activate the theme
@@ -345,9 +354,10 @@ jQuery(document).ready(function($) {
                 data: {
                     action: 'wp_allstars_activate_theme',
                     theme: slug,
-                    _wpnonce: $button.data('nonce') || wpAllstars.nonce
+                    _wpnonce: nonce
                 },
                 success: function(response) {
+                    console.log('Theme activation response:', response);
                     if (response.success) {
                         $button.removeClass('updating-message').addClass('updated-message').text('Activated!');
                         setTimeout(function() {
@@ -361,7 +371,8 @@ jQuery(document).ready(function($) {
                         alert(response.data || 'Failed to activate theme');
                     }
                 },
-                error: function() {
+                error: function(jqXHR, textStatus, errorThrown) {
+                    console.error('Theme activation AJAX error:', textStatus, errorThrown, jqXHR.responseText);
                     $button.removeClass('updating-message').text('Activate');
                     alert('Failed to activate theme. Please try again or activate from the Themes page.');
                 }

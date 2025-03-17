@@ -24,15 +24,24 @@ if (!defined('ABSPATH')) {
             $installed_theme = wp_get_theme('kadence');
             $current_theme = wp_get_theme();
             $is_active = ($current_theme->get_stylesheet() === 'kadence');
+            $nonce = wp_create_nonce('wp-allstars-nonce');
             
             if ($is_active): ?>
                 <button type="button" class="button button-disabled" disabled="disabled">
                     <?php esc_html_e('Active'); ?>
                 </button>
             <?php elseif ($installed_theme->exists()): ?>
-                <button type="button" class="button button-primary activate-now" data-slug="kadence" data-nonce="<?php echo esc_attr(wp_create_nonce('wp-allstars-nonce')); ?>">
+                <button type="button" class="button button-primary activate-now" 
+                    data-slug="kadence" 
+                    data-nonce="<?php echo esc_attr($nonce); ?>">
                     <?php esc_html_e('Activate'); ?>
                 </button>
+                <script>
+                console.log('Theme activation button initialized with:', {
+                    slug: 'kadence',
+                    nonce: '<?php echo esc_js($nonce); ?>'
+                });
+                </script>
             <?php else: ?>
                 <button type="button" class="button button-primary install-now" data-slug="kadence">
                     <?php esc_html_e('Install'); ?>

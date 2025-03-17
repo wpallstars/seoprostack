@@ -1295,41 +1295,68 @@ add_action('switch_theme', 'wp_allstars_clear_theme_cache');
 
 // Add AJAX handler for theme activation
 function wp_allstars_activate_theme() {
+    // Debug information
+    error_log('Theme activation AJAX request received: ' . print_r($_POST, true));
+    
     // Check nonce with the correct action name
     if (!check_ajax_referer('wp-allstars-nonce', '_wpnonce', false)) {
+        error_log('Theme activation failed: Invalid nonce');
         wp_send_json_error('Invalid security token sent.');
         return;
     }
     
     if (!current_user_can('switch_themes')) {
+        error_log('Theme activation failed: Permission denied');
         wp_send_json_error('Permission denied');
         return;
     }
     
     $theme = isset($_POST['theme']) ? sanitize_text_field($_POST['theme']) : '';
     if (empty($theme)) {
+        error_log('Theme activation failed: No theme specified');
         wp_send_json_error('No theme specified');
         return;
     }
     
     // Get the theme object
     $theme_obj = wp_get_theme($theme);
-    if (!$theme_obj->exists() || $theme_obj->errors()) {
+    if (!$theme_obj->exists()) {
+        error_log('Theme activation failed: Theme does not exist - ' . $theme);
         wp_send_json_error('Theme does not exist');
         return;
     }
     
+    if ($theme_obj->errors()) {
+        error_log('Theme activation failed: Theme has errors - ' . print_r($theme_obj->errors(), true));
+        wp_send_json_error('Theme has errors');
+        return;
+    }
+    
+    // Check if theme is already active
+    $current_theme = wp_get_theme();
+    if ($current_theme->get_stylesheet() === $theme) {
+        error_log('Theme is already active: ' . $theme);
+        wp_send_json_success(array(
+            'message' => 'Theme is already active',
+            'customize_url' => admin_url('customize.php')
+        ));
+        return;
+    }
+    
     // Switch the theme
+    error_log('Switching to theme: ' . $theme);
     switch_theme($theme);
     
     // Check if the switch was successful
     $active_theme = wp_get_theme();
     if ($active_theme->get_stylesheet() === $theme) {
+        error_log('Theme activated successfully: ' . $theme);
         wp_send_json_success(array(
             'message' => 'Theme activated successfully',
             'customize_url' => admin_url('customize.php')
         ));
     } else {
+        error_log('Failed to activate theme: ' . $theme . ', active theme is: ' . $active_theme->get_stylesheet());
         wp_send_json_error('Failed to activate theme');
     }
 }
