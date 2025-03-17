@@ -110,3 +110,4 @@ For support, please [create an issue](https://github.com/yourusername/wp-allstar
 - Errors are logged to `wp-content/wp-allstars.log`
 
 <!-- Last Updated: March 13, 2025 -->
+Test sync
