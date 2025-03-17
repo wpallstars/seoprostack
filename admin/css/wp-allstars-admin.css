@@ -498,56 +498,62 @@ input:checked + .wp-toggle-slider:before {
     min-height: 400px;
 }
 
-.theme-browser .theme {
-    float: none;
-    margin: 0 auto;
-    width: 100%;
-    max-width: none;
-}
-
-.theme-browser .theme .theme-screenshot {
-    display: block;
-    overflow: hidden;
+/* Theme Card Styles - Scoped to our plugin only */
+.theme-card {
     position: relative;
-    -webkit-backface-visibility: hidden;
-    backface-visibility: hidden;
-    -webkit-transform: translateZ(0);
-    transform: translateZ(0);
-}
-
-.theme-browser .theme .theme-screenshot img {
-    height: auto;
-    width: 100%;
-    transform: translateZ(0);
-    position: absolute;
-    left: 0;
-    top: 0;
-    object-fit: cover;
-    transition: opacity .2s ease-in-out;
-}
-
-.theme-browser .theme .theme-name {
-    font-size: 15px;
-    font-weight: 600;
-    margin: 0;
-    padding: 15px;
-    box-shadow: inset 0 1px 0 rgba(0,0,0,.1);
-    overflow: hidden;
-    white-space: nowrap;
-    text-overflow: ellipsis;
     background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 3px;
+    box-shadow: 0 1px 1px rgba(0,0,0,.04);
+    margin-bottom: 20px;
+    overflow: hidden;
 }
 
-.theme-browser .theme .theme-actions {
+.theme-image {
+    position: relative;
+    padding-bottom: 75%; /* 4:3 aspect ratio */
+    background: #f1f1f1;
+    overflow: hidden;
+}
+
+.theme-image img {
     position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
-    right: 0;
-    padding: 10px 15px;
-    box-shadow: inset 0 1px 0 rgba(0,0,0,.1);
-    -webkit-user-select: none;
-    user-select: none;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+}
+
+.theme-card:hover .theme-image img {
+    transform: scale(1.05);
+}
+
+.theme-info {
+    padding: 15px;
+    border-top: 1px solid #eee;
+}
+
+.theme-name {
+    font-size: 16px;
+    font-weight: 600;
+    margin: 0 0 5px;
+    color: #23282d;
+}
+
+.theme-author {
+    font-size: 13px;
+    color: #646970;
+    margin: 0;
+}
+
+.theme-actions {
+    padding: 15px;
+    border-top: 1px solid #eee;
     display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
     gap: 8px;
 }
 

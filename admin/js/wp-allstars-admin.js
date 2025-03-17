@@ -334,7 +334,7 @@ jQuery(document).ready(function($) {
                 data: {
                     action: 'wp_allstars_activate_theme',
                     theme: slug,
-                    _wpnonce: wpAllstars.nonce
+                    _wpnonce: $button.data('nonce') || wpAllstars.nonce
                 },
                 success: function(response) {
                     if (response.success) {

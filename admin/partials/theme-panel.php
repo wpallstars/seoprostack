@@ -23,7 +23,7 @@ if (!defined('ABSPATH')) {
             <?php 
             $installed_theme = wp_get_theme('kadence');
             if ($installed_theme->exists()): ?>
-                <button type="button" class="button button-primary activate-now" data-slug="kadence">
+                <button type="button" class="button button-primary activate-now" data-slug="kadence" data-nonce="<?php echo esc_attr(wp_create_nonce('wp-allstars-nonce')); ?>">
                     <?php esc_html_e('Activate'); ?>
                 </button>
             <?php else: ?>
