@@ -1268,8 +1268,8 @@ function wp_allstars_ajax_get_themes() {
                     <div class="theme-screenshot">
                         <img src="<?php echo esc_url($theme_data->screenshot_url); ?>" alt="">
                     </div>
-                    <span class="theme-author"><?php echo esc_html(sprintf(__('By %s'), $author)); ?></span>
                     <h3 class="theme-name"><?php echo esc_html($theme_data->name); ?></h3>
+                    <span class="theme-author"><?php echo esc_html(sprintf(__('By %s'), $author)); ?></span>
                     <div class="theme-actions">
                         <div style="display: flex; justify-content: center; gap: 15px;">
                             <?php if (current_user_can('install_themes')): ?>
@@ -1611,6 +1611,7 @@ function wp_allstars_settings_page() {
                             box-shadow: 0 1px 3px rgba(0,0,0,0.1);
                             border-radius: 8px;
                             overflow: hidden;
+                            background: #fff;
                         }
                         #wpa-theme-list .theme-screenshot {
                             height: auto;
@@ -1632,6 +1633,14 @@ function wp_allstars_settings_page() {
                         #wpa-theme-list .theme-name {
                             font-size: 18px;
                             padding: 15px;
+                            margin: 0;
+                            color: #333;
+                            display: block;
+                        }
+                        #wpa-theme-list .theme-author {
+                            display: block;
+                            padding: 0 15px;
+                            color: #555;
                             margin: 0;
                         }
                         #wpa-theme-list .theme-actions {
@@ -1657,7 +1666,7 @@ function wp_allstars_settings_page() {
                             margin: 0;
                         }
                         </style>
-                        <div class="wp-list-table-container" style="max-width: 100%;">
+                        <div class="wp-list-table-container" style="max-width: 100%; background: #fff;">
                             <div id="wpa-theme-list"></div>
                         </div>
                     </div>
