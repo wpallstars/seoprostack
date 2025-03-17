@@ -696,86 +696,17 @@ body.wp-admin .plugin-card-bottom .compatibility-untested *,
 }
 
 /* Responsive Adjustments */
-@media only screen and (max-width: 1120px) {
-    .plugin-card {
-        width: 100%;
-    }
-    
-    .theme-browser .theme {
-        width: 47%;
-        margin-right: 6%;
-    }
-    
-    .theme-browser .theme:nth-child(3n) {
-        margin-right: 6%;
-    }
-    
-    .theme-browser .theme:nth-child(2n) {
-        margin-right: 0;
-    }
+/* All responsive behavior has been removed to maintain consistent layout */
+/* Theme browser adjustments for consistent display */
+.theme-browser .theme {
+    width: 47%;
+    margin-right: 6%;
 }
 
-@media only screen and (max-width: 782px) {
-    .plugin-card-top {
-        min-height: 155px;
-    }
-    
-    .name.column-name {
-        margin-right: 0;
-    }
-    
-    .action-links {
-        position: static;
-        margin-left: 148px;
-        width: auto;
-    }
-    
-    .plugin-action-buttons {
-        float: none;
-        margin: 1em 0 0;
-        text-align: left;
-    }
-    
-    .plugin-action-buttons li {
-        display: inline-block;
-        margin-right: 10px;
-    }
-    
-    .plugin-card-bottom {
-        flex-direction: column;
-    }
-    
-    .plugin-card-bottom > div {
-        padding-top: 10px;
-        padding-bottom: 10px;
-    }
-    
-    .column-downloaded,
-    .column-updated,
-    .column-compatibility {
-        text-align: left;
-    }
+.theme-browser .theme:nth-child(3n) {
+    margin-right: 6%;
 }
 
-@media only screen and (max-width: 480px) {
-    .theme-browser .theme {
-        width: 100%;
-        margin-right: 0;
-    }
-    
-    .plugin-card-top {
-        padding-top: 146px;
-    }
-    
-    .plugin-icon {
-        top: 20px;
-        left: 50%;
-        transform: translateX(-50%);
-    }
-    
-    .name.column-name,
-    .desc.column-description,
-    .action-links {
-        margin-left: 0;
-    }
+.theme-browser .theme:nth-child(2n) {
+    margin-right: 0;
 } 
