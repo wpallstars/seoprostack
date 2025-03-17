@@ -39,7 +39,14 @@ if (!defined('ABSPATH')) {
                     <?php esc_html_e('Activate'); ?>
                 </a>
             <?php else: ?>
-                <button type="button" 
+                <?php 
+                // Use the standard WordPress theme installation URL format
+                $install_url = wp_nonce_url(
+                    admin_url('update.php?action=install-theme&theme=kadence'),
+                    'install-theme_kadence'
+                );
+                ?>
+                <a href="<?php echo esc_url($install_url); ?>" 
                    class="button button-primary install-now" 
                    data-slug="kadence" 
                    data-name="Kadence"
@@ -47,10 +54,11 @@ if (!defined('ABSPATH')) {
                    data-nonce="<?php echo esc_attr($nonce); ?>"
                    aria-label="<?php esc_attr_e('Install Kadence'); ?>">
                     <?php esc_html_e('Install'); ?>
-                </button>
+                </a>
                 <script>
                 console.log('Theme installation button initialized with:', {
                     slug: 'kadence',
+                    url: '<?php echo esc_js($install_url); ?>',
                     nonce: '<?php echo esc_js(wp_create_nonce("updates")); ?>'
                 });
                 </script>

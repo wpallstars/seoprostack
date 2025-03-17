@@ -301,64 +301,15 @@ jQuery(document).ready(function($) {
         $('.theme-actions .install-now').off('click');
         $('.theme-actions .activate-now').off('click');
         
-        // Install theme - use WordPress AJAX-based installation
+        // Install theme - use standard WordPress behavior
         $('.theme-actions .install-now').on('click', function(e) {
-            e.preventDefault();
+            // We're not preventing default here - let the standard WordPress installer handle it
+            // Just add the updating message
             var $button = $(this);
             var slug = $button.data('slug');
-            var themeName = $button.data('name') || slug;
-            
-            console.log('Installing theme via AJAX:', slug);
             $button.addClass('updating-message').text('Installing...');
-            
-            // Make sure wp.updates is available
-            if (typeof wp === 'undefined' || typeof wp.updates === 'undefined' || typeof wp.updates.installTheme === 'undefined') {
-                console.error('WordPress updates API not available');
-                $button.removeClass('updating-message').text('Install');
-                alert('WordPress updates API not available. Please try again or install the theme from the Themes page.');
-                return;
-            }
-            
-            // Use the WordPress core updates API for AJAX installation
-            wp.updates.installTheme({
-                slug: slug,
-                // Make sure we pass the correct nonce
-                _ajax_nonce: $button.data('api-nonce') || wpAllstars.updateNonce,
-                success: function(response) {
-                    console.log('Theme installed successfully:', response);
-                    $button.removeClass('updating-message').addClass('updated-message').text('Installed!');
-                    
-                    setTimeout(function() {
-                        // Replace the button with an activate button
-                        var $parent = $button.closest('.theme-actions');
-                        $button.remove();
-                        
-                        // Create a proper activation link
-                        var activateUrl = '';
-                        if (response.activateUrl) {
-                            activateUrl = response.activateUrl;
-                        } else {
-                            var nonce = wp.updates.data.activateNonce || wpAllstars.nonce;
-                            activateUrl = 'themes.php?action=activate&stylesheet=' + slug + '&_wpnonce=' + nonce;
-                        }
-                        
-                        var adminUrl = wpAllstars.adminUrl || ajaxurl.replace('/admin-ajax.php', '/');
-                        var $activateButton = $('<a class="button button-primary activate-now" href="' + adminUrl + activateUrl + '">Activate</a>');
-                        $activateButton.attr('data-slug', slug);
-                        $activateButton.attr('data-name', themeName);
-                        
-                        $parent.prepend($activateButton);
-                        
-                        // Re-initialize the event handlers
-                        initThemeHandlers();
-                    }, 1000);
-                },
-                error: function(response) {
-                    console.error('Theme installation failed:', response);
-                    $button.removeClass('updating-message').text('Install');
-                    alert(response.errorMessage || 'Failed to install theme. Please try again.');
-                }
-            });
+            console.log('Installing theme using standard WordPress URL:', $button.attr('href'));
+            // The rest will be handled by WordPress core
         });
 
         // Activate theme - use standard WordPress behavior
