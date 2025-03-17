@@ -1,0 +1,6 @@
+#!/bin/bash
+if [ -n "$(git status --porcelain)" ]; then
+  git add .
+  git commit -m "Auto-commit: Accepted AI change at $(date)"
+fi
+
