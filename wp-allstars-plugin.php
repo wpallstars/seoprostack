@@ -20,11 +20,21 @@ if ( ! defined( 'WPINC' ) ) {
 }
 
 // Define plugin version - extract from plugin header
-function wp_allstars_get_plugin_version() {
-    $plugin_data = get_file_data(__FILE__, array('Version' => 'Version'));
-    return $plugin_data['Version'];
+if (!function_exists('get_plugin_data')) {
+    require_once(ABSPATH . 'wp-admin/includes/plugin.php');
 }
-define( 'WP_ALLSTARS_VERSION', wp_allstars_get_plugin_version() );
+
+// Define the version constant - first try get_plugin_data() if available, 
+// otherwise fall back to direct string extraction
+if (function_exists('get_plugin_data')) {
+    $plugin_data = get_plugin_data(__FILE__, false, false);
+    define('WP_ALLSTARS_VERSION', $plugin_data['Version']);
+} else {
+    // Manual extraction as fallback
+    $plugin_file = file_get_contents(__FILE__);
+    preg_match('/Version:\s*([^\s]+)/i', $plugin_file, $matches);
+    define('WP_ALLSTARS_VERSION', isset($matches[1]) ? $matches[1] : '0.1.0 (Beta)');
+}
 
 // Activation hook
 function wp_allstars_activate() {
