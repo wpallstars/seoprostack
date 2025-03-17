@@ -1613,7 +1613,7 @@ function wp_allstars_settings_page() {
                             overflow: hidden;
                         }
                         #wpa-theme-list .theme-screenshot {
-                            height: 450px;
+                            height: 600px;
                         }
                         #wpa-theme-list .theme-screenshot img {
                             height: 100%;
