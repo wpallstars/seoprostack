@@ -844,6 +844,7 @@ function wp_allstars_get_recommended_plugins() {
             'favorites',
             'remove-cpt-base',
             'remove-old-slugspermalinks',
+            'secure-custom-fields',
             'yellow-pencil-visual-theme-customizer'
         ),
         'debug' => array(
