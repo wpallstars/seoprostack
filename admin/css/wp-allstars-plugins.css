@@ -20,6 +20,7 @@
     margin-right: 0;
     width: 100%;
     box-sizing: border-box;
+    text-align: center; /* Center align filter bar content */
 }
 
 /* Standard WordPress Plugin Grid Layout - exactly matching core */
@@ -27,6 +28,18 @@
     margin-top: 20px;
     clear: both;
     padding: 0;
+}
+
+/* Center filter links */
+.wp-filter .filter-links {
+    display: inline-block;
+    float: none !important;
+    margin: 0 auto;
+}
+
+.wp-filter .filter-links li {
+    float: none;
+    display: inline-block;
 }
 
 .wp-allstars-wrap #the-list {
