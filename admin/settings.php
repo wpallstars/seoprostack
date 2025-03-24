@@ -861,6 +861,99 @@ function wp_allstars_settings_page() {
                                 </div>
                             </div>
                     </div>
+                <?php elseif ($active_tab == 'theme'): ?>
+                    <div class="tab-content" id="theme">
+                        <div id="wpa-theme-list" class="wpa-theme-container">
+                            <!-- Theme content will be loaded via AJAX -->
+                            <div class="wp-allstars-loading-overlay">
+                                <span class="spinner is-active"></span>
+                                <p>Loading theme data...</p>
+                            </div>
+                        </div>
+                        <script>
+                        jQuery(document).ready(function($) {
+                            // Get the theme data
+                            var $container = $('#wpa-theme-list');
+                            var $loadingOverlay = $('<div class="wp-allstars-loading-overlay"><span class="spinner is-active"></span></div>');
+                            
+                            // Show loading overlay
+                            $container.css('position', 'relative').append($loadingOverlay);
+                            
+                            // AJAX request to get theme
+                            $.ajax({
+                                url: ajaxurl,
+                                type: 'POST',
+                                data: {
+                                    action: 'wp_allstars_get_themes',
+                                    _wpnonce: wpAllstars.nonce
+                                },
+                                success: function(response) {
+                                    // Remove loading overlay
+                                    $loadingOverlay.remove();
+                                    
+                                    if (response.success) {
+                                        // Append theme HTML
+                                        $container.html(response.data);
+                                        
+                                        // Initialize theme action buttons
+                                        initThemeHandlers();
+                                    } else {
+                                        // Show error message
+                                        $container.html('<div class="notice notice-error"><p>' + response.data + '</p></div>');
+                                    }
+                                },
+                                error: function(xhr, status, error) {
+                                    // Remove loading overlay
+                                    $loadingOverlay.remove();
+                                    
+                                    // Show error message
+                                    $container.html('<div class="notice notice-error"><p>Failed to load theme. Please try again. Error: ' + error + '</p></div>');
+                                    console.error('AJAX Error:', xhr.responseText);
+                                }
+                            });
+                            
+                            // Initialize theme handlers
+                            window.initThemeHandlers = function() {
+                                // Activate theme
+                                $('.activate-now').click(function(e) {
+                                    e.preventDefault();
+                                    
+                                    var $button = $(this);
+                                    var slug = $button.data('slug');
+                                    var name = $button.data('name');
+                                    var nonce = $button.data('nonce');
+                                    
+                                    $button.text('Activating...').addClass('updating-message').attr('disabled', true);
+                                    
+                                    $.ajax({
+                                        url: ajaxurl,
+                                        type: 'POST',
+                                        data: {
+                                            action: 'wp_allstars_activate_theme',
+                                            theme: slug,
+                                            _wpnonce: nonce
+                                        },
+                                        success: function(response) {
+                                            if (response.success) {
+                                                $button.removeClass('updating-message').addClass('updated-message').text('Activated');
+                                                setTimeout(function() {
+                                                    window.location.reload();
+                                                }, 1000);
+                                            } else {
+                                                $button.removeClass('updating-message').text('Error');
+                                                alert('Error: ' + response.data);
+                                            }
+                                        },
+                                        error: function(xhr, status, error) {
+                                            $button.removeClass('updating-message').text('Error');
+                                            alert('Error: ' + error);
+                                        }
+                                    });
+                                });
+                            };
+                        });
+                        </script>
+                    </div>
                 <?php elseif ($active_tab == 'tools'): ?>
                     <div class="tab-content" id="tools">
                         <style>
