@@ -81,11 +81,7 @@ class WP_Allstars_Free_Plugins_Manager {
         </div>
 
         <div class="wp-allstars-plugin-browser">
-            <div class="wp-list-table plugin-install">
-                <div id="wpa-plugin-list">
-                    <div id="the-list"></div>
-                </div>
-            </div>
+            <div id="wpa-plugin-list"></div>
             <div class="wp-allstars-loading-overlay">
                 <span class="spinner is-active"></span>
             </div>
@@ -107,7 +103,7 @@ class WP_Allstars_Free_Plugins_Manager {
                 $('.wp-allstars-loading-overlay').show();
                 
                 // Clear existing plugins
-                $('#the-list').empty();
+                $('#wpa-plugin-list').empty();
                 
                 // Load plugins in selected category
                 $.ajax({
@@ -124,7 +120,7 @@ class WP_Allstars_Free_Plugins_Manager {
                             $('.wp-allstars-loading-overlay').hide();
                             
                             // Add plugins to the container
-                            $('#the-list').html(response.data);
+                            $('#wpa-plugin-list').html(response.data);
                         } else {
                             console.error('Error loading plugins:', response.data);
                         }
