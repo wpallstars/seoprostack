@@ -363,7 +363,7 @@ function wp_allstars_settings_page() {
         <div class="wp-allstars-header">
             <h1><?php echo esc_html(get_admin_page_title()); ?></h1>
             <div class="wp-allstars-header-actions">
-                <span class="wp-allstars-version">Version <?php echo esc_html(WP_ALLSTARS_VERSION); ?></span>
+                <span class="wp-allstars-version"><?php echo esc_html(WP_ALLSTARS_VERSION); ?></span>
                 <a href="https://www.wpallstars.com/" target="_blank" class="button button-secondary">
                     <?php esc_html_e('Documentation', 'wp-allstars'); ?>
                 </a>
