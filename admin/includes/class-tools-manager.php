@@ -45,7 +45,7 @@ class WP_Allstars_Tools_Manager {
         <div class="wp-allstars-settings-content tab-content" id="tools">
         <style>
         .wpa-pro-plugins {
-            padding: 20px;
+            padding: 0;
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(450px, 1fr));
             gap: 24px;

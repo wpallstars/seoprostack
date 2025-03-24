@@ -142,6 +142,19 @@ input:checked + .wp-toggle-slider:before {
     padding-top: 20px;
 }
 
+/* Settings Content */
+.wp-allstars-settings-content {
+    padding-top: 0 !important; /* Override any padding to prevent double padding */
+}
+
+/* Fix padding in plugin sections */
+.wp-allstars-settings-content .wpa-pro-plugins,
+.wp-allstars-settings-content #wpa-plugin-filters,
+.wp-allstars-settings-content .wpa-theme-container {
+    margin-top: 0;
+    padding-top: 0;
+}
+
 /* Base Setting Styles (Shared between simple and expandable) */
 .wp-setting-base, 
 .wp-setting-row,

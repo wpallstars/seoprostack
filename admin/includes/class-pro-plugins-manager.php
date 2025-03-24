@@ -97,7 +97,7 @@ class WP_Allstars_Pro_Plugins_Manager {
         // Add inline CSS for pro plugins
         $custom_css = '
         .wpa-pro-plugins {
-            padding: 20px;
+            padding: 0;
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(450px, 1fr));
             gap: 24px;
