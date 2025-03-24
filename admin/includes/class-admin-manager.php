@@ -158,14 +158,17 @@ class WP_Allstars_Admin_Manager {
                     <a href="?page=wp-allstars&tab=advanced" class="nav-tab <?php echo $active_tab === 'advanced' ? 'nav-tab-active' : ''; ?>">
                         <?php esc_html_e('Advanced', 'wp-allstars'); ?>
                     </a>
-                    <a href="?page=wp-allstars&tab=pro" class="nav-tab <?php echo $active_tab === 'pro' ? 'nav-tab-active' : ''; ?>">
-                        <?php esc_html_e('Pro', 'wp-allstars'); ?>
+                    <a href="?page=wp-allstars&tab=workflow" class="nav-tab <?php echo $active_tab === 'workflow' ? 'nav-tab-active' : ''; ?>">
+                        <?php esc_html_e('Workflow', 'wp-allstars'); ?>
                     </a>
                     <a href="?page=wp-allstars&tab=theme" class="nav-tab <?php echo $active_tab === 'theme' ? 'nav-tab-active' : ''; ?>">
                         <?php esc_html_e('Theme', 'wp-allstars'); ?>
                     </a>
                     <a href="?page=wp-allstars&tab=recommended" class="nav-tab <?php echo $active_tab === 'recommended' ? 'nav-tab-active' : ''; ?>">
-                        <?php esc_html_e('Recommended Plugins', 'wp-allstars'); ?>
+                        <?php esc_html_e('Free Plugins', 'wp-allstars'); ?>
+                    </a>
+                    <a href="?page=wp-allstars&tab=pro" class="nav-tab <?php echo $active_tab === 'pro' ? 'nav-tab-active' : ''; ?>">
+                        <?php esc_html_e('Pro Plugins', 'wp-allstars'); ?>
                     </a>
                     <a href="?page=wp-allstars&tab=hosting" class="nav-tab <?php echo $active_tab === 'hosting' ? 'nav-tab-active' : ''; ?>">
                         <?php esc_html_e('Hosting', 'wp-allstars'); ?>
@@ -180,34 +183,134 @@ class WP_Allstars_Admin_Manager {
                     // Each tab's content is handled by its respective manager class
                     switch ($active_tab) {
                         case 'general':
-                            WP_Allstars_Settings_Manager::render_general_tab();
+                            WP_Allstars_Settings_Manager::display_general_tab();
                             break;
                             
                         case 'advanced':
-                            WP_Allstars_Settings_Manager::render_advanced_tab();
+                            WP_Allstars_Settings_Manager::display_advanced_tab();
                             break;
                             
-                        case 'pro':
-                            WP_Allstars_Pro_Plugins_Manager::render_tab();
+                        case 'workflow':
+                            self::display_workflow_tab();
                             break;
                             
                         case 'theme':
-                            WP_Allstars_Theme_Manager::render_tab();
+                            WP_Allstars_Theme_Manager::display_tab_content();
                             break;
                             
                         case 'recommended':
-                            WP_Allstars_Recommended_Plugins_Manager::render_tab($active_category);
+                            WP_Allstars_Recommended_Plugins_Manager::display_tab_content();
+                            break;
+                            
+                        case 'pro':
+                            WP_Allstars_Pro_Plugins_Manager::display_tab_content();
                             break;
                             
                         case 'hosting':
-                            WP_Allstars_Hosting_Manager::render_tab();
+                            WP_Allstars_Hosting_Manager::display_tab_content();
                             break;
                             
                         case 'tools':
-                            WP_Allstars_Tools_Manager::render_tab();
+                            WP_Allstars_Tools_Manager::display_tab_content();
                             break;
                     }
                     ?>
+                </div>
+            </div>
+        </div>
+        <?php
+    }
+    
+    /**
+     * Alias for enqueue_admin_scripts to maintain compatibility with settings.php
+     * 
+     * @param string $hook The current admin page hook
+     */
+    public static function enqueue_scripts($hook) {
+        self::enqueue_admin_scripts($hook);
+    }
+    
+    /**
+     * Display the Workflow tab content
+     */
+    public static function display_workflow_tab() {
+        ?>
+        <div class="wp-allstars-settings-content tab-content" id="workflow">
+            <div class="wp-allstars-toggle">
+                <div class="wp-allstars-toggle-header" aria-expanded="false">
+                    <div class="wp-allstars-toggle-main">
+                        <div class="wp-allstars-toggle-left">
+                            <div class="wp-toggle-switch">
+                                <input type="checkbox" 
+                                       id="wp_allstars_auto_upload_images"
+                                       name="wp_allstars_auto_upload_images" 
+                                       value="1"
+                                       <?php checked(get_option('wp_allstars_auto_upload_images', false)); ?> 
+                                />
+                                <span class="wp-toggle-slider"></span>
+                            </div>
+                            <label for="wp_allstars_auto_upload_images">
+                                <?php esc_html_e('Enable Auto Upload Images', 'wp-allstars'); ?>
+                            </label>
+                        </div>
+                    </div>
+                    <p class="wp-setting-description">
+                        <?php esc_html_e('Import images that have external URLs into your Media Library when saving. Consider disabling during large data imports with many external image URLs.', 'wp-allstars'); ?>
+                    </p>
+                </div>
+                <div class="wp-allstars-toggle-settings">
+                    <div class="wp-allstars-setting-row">
+                        <label for="wp_allstars_max_width"><?php esc_html_e('Max Width', 'wp-allstars'); ?></label>
+                        <input type="number" 
+                               id="wp_allstars_max_width"
+                               name="wp_allstars_max_width" 
+                               value="<?php echo esc_attr(get_option('wp_allstars_max_width', 2560)); ?>" 
+                        />
+                        <p class="description"><?php esc_html_e('Maximum width for uploaded images in pixels.', 'wp-allstars'); ?></p>
+                    </div>
+                    <div class="wp-allstars-setting-row">
+                        <label for="wp_allstars_max_height"><?php esc_html_e('Max Height', 'wp-allstars'); ?></label>
+                        <input type="number" 
+                               id="wp_allstars_max_height"
+                               name="wp_allstars_max_height" 
+                               value="<?php echo esc_attr(get_option('wp_allstars_max_height', 2560)); ?>" 
+                        />
+                        <p class="description"><?php esc_html_e('Maximum height for uploaded images in pixels.', 'wp-allstars'); ?></p>
+                    </div>
+
+                    <div class="wp-allstars-setting-row">
+                        <label for="wp_exclude_urls"><?php esc_html_e('Exclude URLs', 'wp-allstars'); ?></label>
+                        <textarea id="wp_exclude_urls"
+                                  name="wp_exclude_urls"
+                                  rows="3"
+                                  placeholder="example.com&#10;another-domain.com"
+                        ><?php echo esc_textarea(get_option('wp_allstars_exclude_urls', '')); ?></textarea>
+                        <p class="description"><?php esc_html_e('Enter domains to exclude (one per line). Images from these domains will not be imported.', 'wp-allstars'); ?></p>
+                    </div>
+
+                    <div class="wp-allstars-setting-row">
+                        <label for="wp_image_name"><?php esc_html_e('Image Name Pattern', 'wp-allstars'); ?></label>
+                        <input type="text" 
+                               id="wp_image_name"
+                               name="wp_image_name"
+                               value="<?php echo esc_attr(get_option('wp_allstars_image_name_pattern', '%filename%')); ?>"
+                        />
+                        <p class="description">
+                            <?php esc_html_e('Available patterns:', 'wp-allstars'); ?> %filename%, %post_id%, %postname%, %timestamp%, %date%, %year%, %month%, %day%
+                        </p>
+                    </div>
+
+                    <div class="wp-allstars-setting-row">
+                        <label for="wp_image_alt"><?php esc_html_e('Image Alt Pattern', 'wp-allstars'); ?></label>
+                        <input type="text" 
+                               id="wp_image_alt"
+                               name="wp_image_alt"
+                               value="<?php echo esc_attr(get_option('wp_allstars_image_alt_pattern', '%filename%')); ?>"
+                        />
+                        <p class="description">
+                            <?php esc_html_e('Available patterns:', 'wp-allstars'); ?> %filename%, %post_title%, %post_id%, %postname%, %timestamp%
+                        </p>
+                    </div>
                 </div>
             </div>
         </div>
