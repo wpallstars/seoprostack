@@ -114,9 +114,9 @@ class WP_Allstars_Free_Plugins_Manager {
                     url: ajaxurl,
                     type: 'POST',
                     data: {
-                        action: 'wp_allstars_load_plugins',
+                        action: 'wp_allstars_get_plugins',
                         category: category,
-                        nonce: '<?php echo wp_create_nonce('wp_allstars_load_plugins'); ?>'
+                        nonce: '<?php echo wp_create_nonce('wp-allstars-nonce'); ?>'
                     },
                     success: function(response) {
                         if (response.success) {

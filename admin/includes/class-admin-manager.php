@@ -107,6 +107,7 @@ class WP_Allstars_Admin_Manager {
         
         // Whitelist of allowed options to update for security
         $allowed_options = array(
+            'wp_allstars_simple_setting',
             'wp_allstars_auto_upload_images',
             'wp_allstars_max_width',
             'wp_allstars_max_height',
