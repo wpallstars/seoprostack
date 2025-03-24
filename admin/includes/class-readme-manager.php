@@ -93,6 +93,11 @@ class WP_Allstars_Readme_Manager {
         $markdown = preg_replace('/^\* (.*?)$/m', '<li>$1</li>', $markdown);
         $markdown = preg_replace('/(<li>.*?<\/li>\n)+/s', '<ul>$0</ul>', $markdown);
         
+        // Numbered Lists
+        $markdown = preg_replace('/^\d+\. (.*?)$/m', '<li>$1</li>', $markdown);
+        // Convert consecutive numbered list items to an ordered list
+        $markdown = preg_replace('/((?:<li>.*?<\/li>\n)+)(?!<\/ul>|<\/ol>)/s', '<ol>$1</ol>', $markdown);
+        
         // Links
         $markdown = preg_replace('/\[(.*?)\]\((.*?)\)/s', '<a href="$2" target="_blank">$1</a>', $markdown);
         
