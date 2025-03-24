@@ -1014,3 +1014,16 @@ body.wp-admin .button.pricing-button:hover,
         padding: 20px;
     }
 }
+
+/* Readme bullet list styling */
+#readme .wp-allstars-markdown-content ul {
+    list-style-type: disc;
+    padding-left: 20px;
+    margin: 10px 0;
+}
+
+#readme .wp-allstars-markdown-content li {
+    margin-bottom: 6px;
+    line-height: 1.4;
+    display: list-item;
+}
