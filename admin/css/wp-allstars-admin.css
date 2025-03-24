@@ -1016,17 +1016,15 @@ body.wp-admin .button.pricing-button:hover,
 }
 
 /* Readme list styling */
-#readme .wp-allstars-markdown-content ul,
-#readme .wp-allstars-markdown-content ol {
+#readme .wp-allstars-markdown-content ul {
     padding-left: 25px;
     margin: 10px 0;
-}
-
-#readme .wp-allstars-markdown-content ul {
     list-style-type: disc;
 }
 
 #readme .wp-allstars-markdown-content ol {
+    padding-left: 15px; /* Even less padding for ordered lists to match the visual alignment */
+    margin: 10px 0;
     list-style-type: decimal;
 }
 
