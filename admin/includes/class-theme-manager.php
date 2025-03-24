@@ -51,6 +51,15 @@ class WP_Allstars_Theme_Manager {
         wp_enqueue_style('wp-allstars-admin', plugins_url('css/wp-allstars-admin.css', dirname(__FILE__)));
         wp_enqueue_style('wp-allstars-plugins', plugins_url('css/wp-allstars-plugins.css', dirname(__FILE__)));
         
+        // Enqueue the main admin script before adding inline script
+        wp_enqueue_script('wp-allstars-admin', plugins_url('js/wp-allstars-admin.js', dirname(__FILE__)), array('jquery'), '1.0.0', true);
+        
+        // Localize the script with nonce data
+        wp_localize_script('wp-allstars-admin', 'wpAllstars', array(
+            'nonce' => wp_create_nonce('wp-allstars-nonce'),
+            'ajaxurl' => admin_url('admin-ajax.php')
+        ));
+        
         // Add inline script for theme loading and interaction
         wp_add_inline_script('wp-allstars-admin', self::get_theme_scripts());
     }
