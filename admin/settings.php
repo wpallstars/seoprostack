@@ -3,17 +3,12 @@
  * Admin settings page
  */
 
-// Add menu item
+// Add menu item - now handled by WP_Allstars_Admin_Manager class, but kept for backward compatibility
 function wp_allstars_admin_menu() {
-    add_options_page(
-        'WP ALLSTARS Settings',
-        'WP ALLSTARS',
-        'manage_options',
-        'wp-allstars',
-        'wp_allstars_settings_page'
-    );
+    // This function now redirects to the Admin Manager class
+    // Kept for backward compatibility
+    WP_Allstars_Admin_Manager::register_admin_menu();
 }
-add_action('admin_menu', 'wp_allstars_admin_menu');
 
 // Register settings
 function wp_allstars_register_settings() {
@@ -49,6 +44,7 @@ require_once dirname(__FILE__) . '/includes/class-tools-manager.php';
 require_once dirname(__FILE__) . '/includes/class-theme-manager.php';
 require_once dirname(__FILE__) . '/includes/class-hosting-manager.php';
 require_once dirname(__FILE__) . '/includes/class-recommended-plugins-manager.php';
+require_once dirname(__FILE__) . '/includes/class-admin-manager.php';
 
 // Initialize the managers
 WP_Allstars_Plugin_Manager::init();
@@ -58,6 +54,7 @@ WP_Allstars_Tools_Manager::init();
 WP_Allstars_Theme_Manager::init();
 WP_Allstars_Hosting_Manager::init();
 WP_Allstars_Recommended_Plugins_Manager::init();
+WP_Allstars_Admin_Manager::init();
 
 
 // Remove the old plugins API filter since we're handling everything in the AJAX endpoint
