@@ -1006,12 +1006,12 @@ body.wp-admin .button.pricing-button:hover,
 }
 
 /* Target the specific setting rows to limit their width */
-#general .wp-setting-row,
-#general .wp-allstars-toggle,
-#advanced .wp-setting-row,
-#advanced .wp-allstars-toggle,
-#workflow .wp-setting-row,
-#workflow .wp-allstars-toggle,
+.wp-allstars-settings-content#general .wp-setting-row,
+.wp-allstars-settings-content#general .wp-allstars-toggle,
+.wp-allstars-settings-content#advanced .wp-setting-row,
+.wp-allstars-settings-content#advanced .wp-allstars-toggle,
+.wp-allstars-settings-content#workflow .wp-setting-row,
+.wp-allstars-settings-content#workflow .wp-allstars-toggle,
 #readme .wpa-pro-plugin {
     max-width: 50%;
     margin: 0 auto;
@@ -1023,7 +1023,17 @@ body.wp-admin .button.pricing-button:hover,
     max-width: 50%;
     margin-left: auto;
     margin-right: auto;
+    margin-bottom: 20px; /* Add vertical spacing between cards */
+    padding: 0 10px; /* Add horizontal gutter */
     box-sizing: border-box;
+}
+
+/* Add gutters between Free Plugin tiles */
+#recommended .wpa-plugin-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    padding: 0 10px;
 }
 
 /* Prevent text from overlapping dropdown chevron icon */
@@ -1047,14 +1057,30 @@ body.wp-admin .button.pricing-button:hover,
     max-width: calc(100% - 40px); /* Ensure space for the chevron */
 }
 
-/* Increase breakpoint for responsive behavior */
+/* First breakpoint - 75% width */
 @media screen and (max-width: 1400px) {
-    #general .wp-setting-row,
-    #general .wp-allstars-toggle,
-    #advanced .wp-setting-row,
-    #advanced .wp-allstars-toggle,
-    #workflow .wp-setting-row,
-    #workflow .wp-allstars-toggle,
+    .wp-allstars-settings-content#general .wp-setting-row,
+    .wp-allstars-settings-content#general .wp-allstars-toggle,
+    .wp-allstars-settings-content#advanced .wp-setting-row,
+    .wp-allstars-settings-content#advanced .wp-allstars-toggle,
+    .wp-allstars-settings-content#workflow .wp-setting-row,
+    .wp-allstars-settings-content#workflow .wp-allstars-toggle,
+    #recommended .plugin-card,
+    #readme .wpa-pro-plugin {
+        max-width: 75%;
+        margin: 0 auto;
+        padding: 0;
+    }
+}
+
+/* Second breakpoint - 100% width */
+@media screen and (max-width: 1100px) {
+    .wp-allstars-settings-content#general .wp-setting-row,
+    .wp-allstars-settings-content#general .wp-allstars-toggle,
+    .wp-allstars-settings-content#advanced .wp-setting-row,
+    .wp-allstars-settings-content#advanced .wp-allstars-toggle,
+    .wp-allstars-settings-content#workflow .wp-setting-row,
+    .wp-allstars-settings-content#workflow .wp-allstars-toggle,
     #recommended .plugin-card,
     #readme .wpa-pro-plugin {
         max-width: calc(100% - 40px);
