@@ -203,7 +203,7 @@ class WP_Allstars_Plugin_Manager {
                                     $status = install_plugin_install_status($plugin);
                                     switch ($status['status']) {
                                         case 'install':
-                                            echo '<li><a class="button button-primary install-now" data-slug="' . esc_attr($plugin->slug) . '" href="' . esc_url($status['url']) . '" aria-label="' . esc_attr(sprintf(__('Install %s now'), $plugin->name)) . '">' . __('Install Now') . '</a></li>';
+                                            echo '<li><a class="button install-now" data-slug="' . esc_attr($plugin->slug) . '" href="' . esc_url($status['url']) . '" aria-label="' . esc_attr(sprintf(__('Install %s now'), $plugin->name)) . '">' . __('Install now') . '</a></li>';
                                             break;
                                         case 'update_available':
                                             echo '<li><a class="button button-primary update-now" data-plugin="' . esc_attr($status['file']) . '" data-slug="' . esc_attr($plugin->slug) . '" href="' . esc_url($status['url']) . '" aria-label="' . esc_attr(sprintf(__('Update %s now'), $plugin->name)) . '">' . __('Update Now') . '</a></li>';
@@ -213,7 +213,7 @@ class WP_Allstars_Plugin_Manager {
                                             if (is_plugin_active($status['file'])) {
                                                 echo '<li><button type="button" class="button button-disabled" disabled="disabled">' . __('Active') . '</button></li>';
                                             } else {
-                                                echo '<li><a class="button activate-now" href="' . esc_url(wp_nonce_url('plugins.php?action=activate&amp;plugin=' . $status['file'], 'activate-plugin_' . $status['file'])) . '" aria-label="' . esc_attr(sprintf(__('Activate %s'), $plugin->name)) . '">' . __('Activate') . '</a></li>';
+                                                echo '<li><a class="button button-primary activate-now" href="' . esc_url(wp_nonce_url('plugins.php?action=activate&amp;plugin=' . $status['file'], 'activate-plugin_' . $status['file'])) . '" aria-label="' . esc_attr(sprintf(__('Activate %s'), $plugin->name)) . '">' . __('Activate') . '</a></li>';
                                             }
                                             break;
                                     }
@@ -301,7 +301,7 @@ class WP_Allstars_Plugin_Manager {
             $pro_url = self::get_pro_plugin_url($pro_plugin);
             
             if (!empty($pro_url)) {
-                echo '<li><a href="' . esc_url($pro_url) . '" target="_blank" class="button button-primary" style="background-color: #2ecc71; border-color: #27ae60;">' . esc_html__('PRO', 'wp-allstars') . '</a></li>';
+                echo '<li><a href="' . esc_url($pro_url) . '" target="_blank" class="button button-primary" style="background-color: #27ae60; border-color: #219653;">' . esc_html__('Go Pro', 'wp-allstars') . '</a></li>';
             }
         }
     }
