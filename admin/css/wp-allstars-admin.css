@@ -137,6 +137,11 @@ input:checked + .wp-toggle-slider:before {
     transform: translateX(16px);
 }
 
+/* Tab Content Area */
+.wp-allstars-tab-content {
+    padding-top: 20px;
+}
+
 /* Base Setting Styles (Shared between simple and expandable) */
 .wp-setting-base, 
 .wp-setting-row,

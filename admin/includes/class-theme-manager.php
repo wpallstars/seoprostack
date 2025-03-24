@@ -70,16 +70,13 @@ class WP_Allstars_Theme_Manager {
     private static function get_theme_scripts() {
         return '
             jQuery(document).ready(function($) {
-                if ($("#wpa-theme-list").length && $("#wpa-theme-list").is(":empty")) {
+                if ($("#wpa-theme-list").length) {
                     var $container = $("#wpa-theme-list");
-                    var $loadingOverlay = $("<div class=\"wp-allstars-loading-overlay\"><span class=\"spinner is-active\"></span></div>");
-                    
-                    // Show loading overlay
-                    $container.css("position", "relative").append($loadingOverlay);
+                    var $loadingOverlay = $container.find(".wp-allstars-loading-overlay");
                     
                     // AJAX request to get themes
                     $.ajax({
-                        url: ajaxurl,
+                        url: wpAllstars.ajaxurl,
                         type: "POST",
                         data: {
                             action: "wp_allstars_get_themes",
@@ -153,11 +150,13 @@ class WP_Allstars_Theme_Manager {
      */
     public static function display_tab_content() {
         ?>
-        <div id="wpa-theme-list" class="wpa-theme-container">
-            <!-- Theme content will be loaded via AJAX -->
-            <div class="wp-allstars-loading-overlay">
-                <span class="spinner is-active"></span>
-                <p>Loading theme data...</p>
+        <div class="wp-allstars-settings-content tab-content" id="theme">
+            <div id="wpa-theme-list" class="wpa-theme-container">
+                <!-- Theme content will be loaded via AJAX -->
+                <div class="wp-allstars-loading-overlay">
+                    <span class="spinner is-active"></span>
+                    <p>Loading theme data...</p>
+                </div>
             </div>
         </div>
         <?php
@@ -199,7 +198,8 @@ class WP_Allstars_Theme_Manager {
             return;
         }
         
-        if (!check_ajax_referer('wp-allstars-nonce', '_wpnonce', false)) {
+        // Use verify_nonce instead of check_ajax_referer for more reliable verification
+        if (!wp_verify_nonce($_POST['_wpnonce'], 'wp-allstars-nonce')) {
             error_log('WP ALLSTARS: Invalid nonce: ' . sanitize_text_field($_POST['_wpnonce']));
             wp_send_json_error('Invalid security token sent.');
             return;
