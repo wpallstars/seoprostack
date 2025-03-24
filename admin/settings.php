@@ -44,8 +44,12 @@ require_once dirname(__FILE__) . '/data/recommended-plugins.php';
 // Include the Plugin Manager class
 require_once dirname(__FILE__) . '/includes/class-plugin-manager.php';
 
-// Initialize the Plugin Manager
+// Include the Pro Plugins Manager class
+require_once dirname(__FILE__) . '/includes/class-pro-plugins-manager.php';
+
+// Initialize the managers
 WP_Allstars_Plugin_Manager::init();
+WP_Allstars_Pro_Plugins_Manager::init();
 
 
 // Remove the old plugins API filter since we're handling everything in the AJAX endpoint
@@ -651,144 +655,7 @@ function wp_allstars_settings_page() {
                     </div>
                 <?php elseif ($active_tab == 'pro'): ?>
                     <div class="tab-content" id="pro">
-                        <div class="wpa-pro-plugins">
-                            <?php
-                            $pro_plugins = wp_allstars_get_pro_plugins_config();
-                            // Sort plugins alphabetically by name
-                            uasort($pro_plugins, function($a, $b) {
-                                return strcasecmp($a['name'], $b['name']);
-                            });
-                            foreach ($pro_plugins as $plugin) {
-                                ?>
-                                <div class="wpa-pro-plugin">
-                                    <h3><?php echo esc_html($plugin['name']); ?></h3>
-                                    <p><?php echo esc_html($plugin['description']); ?></p>
-                                    <?php if (isset($plugin['button_group'])): ?>
-                                        <div class="button-group">
-                                            <?php foreach ($plugin['button_group'] as $button): ?>
-                                                <a href="<?php echo esc_url($button['url']); ?>" target="_blank" class="button <?php echo isset($button['primary']) && $button['primary'] ? 'button-primary' : ''; ?>">
-                                                    <?php echo esc_html($button['text']); ?>
-                                                </a>
-                                            <?php endforeach; ?>
-                                        </div>
-                                    <?php else: ?>
-                                        <div class="button-group">
-                                            <?php if (!empty($plugin['demo_url'])): ?>
-                                                <a href="<?php echo esc_url($plugin['demo_url']); ?>" class="button" target="_blank">
-                                                    <?php esc_html_e('View Demo', 'wp-allstars'); ?>
-                                                </a>
-                                            <?php endif; ?>
-                                            <a href="<?php echo esc_url($plugin['url']); ?>" class="button button-primary" target="_blank">
-                                                <?php esc_html_e('Learn More', 'wp-allstars'); ?>
-                                            </a>
-                                        </div>
-                                    <?php endif; ?>
-                                </div>
-                                <?php
-                            }
-                            ?>
-                        </div>
-
-                        <style>
-                        .wpa-pro-plugins {
-                            padding: 20px;
-                            display: grid;
-                            grid-template-columns: repeat(auto-fill, minmax(450px, 1fr));
-                            gap: 24px;
-                            max-width: 1920px;
-                            margin: 0 auto;
-                        }
-                        .wpa-pro-plugin {
-                            background: #fff;
-                            border: 1px solid #ddd;
-                            padding: 24px;
-                            border-radius: 8px;
-                            display: flex;
-                            flex-direction: column;
-                            transition: all 0.2s ease;
-                            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-                        }
-                        .wpa-pro-plugin:hover {
-                            border-color: #2271b1;
-                            box-shadow: 0 2px 6px rgba(0,0,0,0.15);
-                        }
-                        .wpa-pro-plugin h3 {
-                            margin: 0 0 12px;
-                            font-size: 16px;
-                            font-weight: 600;
-                            color: #1d2327;
-                            line-height: 1.4;
-                        }
-                        .wpa-pro-plugin p {
-                            margin: 0 0 16px;
-                            color: #50575e;
-                            font-size: 14px;
-                            line-height: 1.6;
-                        }
-                        .wpa-pro-plugin .button-group {
-                            display: flex;
-                            flex-wrap: wrap;
-                            gap: 8px;
-                            margin-top: auto;
-                        }
-                        .wpa-pro-plugin .button {
-                            text-decoration: none;
-                            min-width: 120px;
-                            text-align: center;
-                            height: 30px;
-                            line-height: 28px;
-                            padding: 0 12px;
-                            font-size: 13px;
-                            font-weight: normal;
-                            margin: 0;
-                            border: 1px solid #0071a1 !important;
-                            border-radius: 3px !important;
-                            background: #f6f7f7;
-                            color: #0071a1;
-                            display: inline-block;
-                            vertical-align: top;
-                            box-shadow: none;
-                            cursor: pointer;
-                        }
-                        .wpa-pro-plugin .button:hover {
-                            background: #f0f0f1;
-                            border-color: #0071a1;
-                            color: #0071a1;
-                        }
-                        .wpa-pro-plugin .button-primary {
-                            background: #0071a1;
-                            border-color: #0071a1;
-                            color: #fff;
-                        }
-                        .wpa-pro-plugin .button-primary:hover {
-                            background: #005d8c;
-                            border-color: #005d8c;
-                            color: #fff;
-                        }
-                        @media screen and (max-width: 960px) {
-                            .wpa-pro-plugins {
-                                grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
-                                gap: 20px;
-                                padding: 16px;
-                            }
-                            .wpa-pro-plugin {
-                                padding: 20px;
-                            }
-                        }
-                        @media screen and (max-width: 782px) {
-                            .wpa-pro-plugins {
-                                grid-template-columns: 1fr;
-                                gap: 16px;
-                                padding: 12px;
-                            }
-                            .wpa-pro-plugin {
-                                padding: 16px;
-                            }
-                            .wpa-pro-plugin .button {
-                                width: 100%;
-                            }
-                        }
-                        </style>
+                        <?php WP_Allstars_Pro_Plugins_Manager::display_tab_content(); ?>
                     </div>
                 <?php elseif ($active_tab == 'general'): ?>
                     <div class="tab-content" id="general">
