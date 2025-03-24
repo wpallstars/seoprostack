@@ -1,6 +1,6 @@
 /* Plugin Browser Styles */
 .wp-allstars-wrap .wp-allstars-plugin-browser {
-    margin: 22px -8px 0 -8px !important;
+    margin: 0 -8px !important;
     padding: 0 8px !important;
     width: 100% !important;
     max-width: 100% !important;
@@ -18,6 +18,7 @@
 .wp-allstars-wrap #wpa-plugin-filters.wp-filter {
     margin-left: 0;
     margin-right: 0;
+    margin-bottom: 22px !important; /* Enforce exact 22px spacing */
     width: 100%;
     box-sizing: border-box;
     text-align: center; /* Center align filter bar content */
@@ -25,7 +26,7 @@
 
 /* Standard WordPress Plugin Grid Layout - exactly matching core */
 .wp-allstars-wrap .wp-list-table.plugin-install {
-    margin-top: 22px;
+    margin-top: 0; /* Removed to prevent double spacing with container */
     clear: both;
     padding: 0;
 }
@@ -570,7 +571,7 @@ body.wp-admin .plugin-card-bottom .compatibility-untested *,
 .wp-filter {
     display: flex;
     flex-wrap: wrap;
-    margin: 12px 0 22px;
+    margin: 12px 0 0;
     padding: 0 10px;
     background: #fff;
     border: 1px solid #dcdcde;
