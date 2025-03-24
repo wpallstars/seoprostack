@@ -88,15 +88,23 @@ class WP_Allstars_Readme_Manager {
         $markdown = preg_replace('/\*\*(.*?)\*\*/s', '<strong>$1</strong>', $markdown);
         $markdown = preg_replace('/\*(.*?)\*/s', '<em>$1</em>', $markdown);
         
-        // Lists
-        $markdown = preg_replace('/^- (.*?)$/m', '<li>$1</li>', $markdown);
-        $markdown = preg_replace('/^\* (.*?)$/m', '<li>$1</li>', $markdown);
-        $markdown = preg_replace('/(<li>.*?<\/li>\n)+/s', '<ul>$0</ul>', $markdown);
+        // Process lists first - identify all list items
+        $markdown = preg_replace('/^- (.*?)$/m', '<li class="bullet-item">$1</li>', $markdown);
+        $markdown = preg_replace('/^\* (.*?)$/m', '<li class="bullet-item">$1</li>', $markdown);
+        $markdown = preg_replace('/^\d+\. (.*?)$/m', '<li class="number-item">$1</li>', $markdown);
         
-        // Numbered Lists
-        $markdown = preg_replace('/^\d+\. (.*?)$/m', '<li>$1</li>', $markdown);
-        // Convert consecutive numbered list items to an ordered list
-        $markdown = preg_replace('/((?:<li>.*?<\/li>\n)+)(?!<\/ul>|<\/ol>)/s', '<ol>$1</ol>', $markdown);
+        // Group consecutive list items into appropriate list types
+        // First group bullet items into unordered lists
+        $markdown = preg_replace('/((?:<li class="bullet-item">.*?<\/li>\n)+)/s', '<ul class="wp-allstars-ul">$1</ul>', $markdown);
+        
+        // Then group numbered items into ordered lists
+        $markdown = preg_replace('/((?:<li class="number-item">.*?<\/li>\n)+)/s', '<ol class="wp-allstars-ol">$1</ol>', $markdown);
+        
+        // Clean up the classes from the final output
+        $markdown = str_replace('class="bullet-item"', '', $markdown);
+        $markdown = str_replace('class="number-item"', '', $markdown);
+        $markdown = str_replace('class="wp-allstars-ul"', 'class="wp-allstars-list"', $markdown);
+        $markdown = str_replace('class="wp-allstars-ol"', 'class="wp-allstars-list"', $markdown);
         
         // Links
         $markdown = preg_replace('/\[(.*?)\]\((.*?)\)/s', '<a href="$2" target="_blank">$1</a>', $markdown);
