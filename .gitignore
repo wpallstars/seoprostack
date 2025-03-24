@@ -38,7 +38,7 @@ $RECYCLE.BIN/
 .git_status_temp.txt
 project-documents/
 reference-plugins/
-*.bak
+*.bak*
 node_modules/
 composer.lock
 package-lock.json

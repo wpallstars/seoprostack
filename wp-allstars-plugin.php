@@ -22,14 +22,11 @@
  * Requires PHP: 7.2
  */
 
-// If this file is called directly, abort.
 if (!defined('WPINC')) {
-    die;
+    exit;
 }
 
-/**
- * Define plugin version from the file header
- */
+// Define plugin version from the file header
 if (!function_exists('get_plugin_data')) {
     require_once(ABSPATH . 'wp-admin/includes/plugin.php');
 }
@@ -39,14 +36,9 @@ define('WP_ALLSTARS_VERSION', $plugin_data['Version']);
 
 /**
  * Plugin activation hook
- * 
- * Called when the plugin is activated.
- * Initialize plugin settings and defaults here.
  */
 function wp_allstars_activate() {
-    // Create initial plugin settings
-    // Register cron jobs if needed
-    // Initialize defaults
+    // Setup initial configuration when needed
 }
 register_activation_hook(__FILE__, 'wp_allstars_activate');
 
@@ -55,60 +47,41 @@ register_activation_hook(__FILE__, 'wp_allstars_activate');
  */
 require_once plugin_dir_path(__FILE__) . 'includes/class-wp-allstars-auto-upload.php';
 
-/**
- * Load admin-specific components
- */
+// Load admin-specific components
 if (is_admin()) {
-    require_once plugin_dir_path(__FILE__) . 'admin/pro-plugins-config.php';
+    // Include manager classes
+    require_once plugin_dir_path(__FILE__) . 'admin/includes/class-admin-manager.php';
+    require_once plugin_dir_path(__FILE__) . 'admin/includes/class-settings-manager.php';
+    require_once plugin_dir_path(__FILE__) . 'admin/includes/class-theme-manager.php';
+    require_once plugin_dir_path(__FILE__) . 'admin/includes/class-workflow-manager.php';
+    require_once plugin_dir_path(__FILE__) . 'admin/includes/class-tools-manager.php';
+    require_once plugin_dir_path(__FILE__) . 'admin/includes/class-hosting-manager.php';
+    require_once plugin_dir_path(__FILE__) . 'admin/includes/class-pro-plugins-manager.php';
+    require_once plugin_dir_path(__FILE__) . 'admin/includes/class-plugin-manager.php';
+    require_once plugin_dir_path(__FILE__) . 'admin/includes/class-free-plugins-manager.php';
+    
+    // Initialize the admin manager
+    add_action('plugins_loaded', array('WP_Allstars_Admin_Manager', 'init'));
+    
+    // Legacy files (for backward compatibility)
+    require_once plugin_dir_path(__FILE__) . 'admin/data/pro-plugins.php';
     require_once plugin_dir_path(__FILE__) . 'admin/settings.php';
 }
 
 
 
 /**
- * Enqueue admin assets
+ * Auto Upload feature initialization
  * 
- * Loads the CSS and JavaScript files for the admin interface.
- * Localizes the JavaScript with necessary data for AJAX operations.
+ * Initialize the Auto Upload feature when a user is logged in
  */
-function wp_allstars_admin_assets() {
-    // Only load assets on plugin pages to avoid conflicts
-    $screen = get_current_screen();
-    if (!isset($screen->id) || strpos($screen->id, 'wp-allstars') === false) {
-        return;
+function wp_allstars_init_auto_upload() {
+    // Only initialize for logged-in users
+    if (is_user_logged_in()) {
+        new WP_Allstars_Auto_Upload();
     }
-    
-    // Enqueue CSS
-    wp_enqueue_style(
-        'wp-allstars-admin', 
-        plugins_url('admin/css/wp-allstars-admin.css', __FILE__), 
-        [], 
-        WP_ALLSTARS_VERSION 
-    );
-
-    // Enqueue WordPress updates script for theme/plugin installation
-    wp_enqueue_script('updates');
-    
-    // Enqueue main admin script
-    wp_enqueue_script(
-        'wp-allstars-admin', 
-        plugins_url('admin/js/wp-allstars-admin.js', __FILE__), 
-        ['jquery', 'updates'], 
-        WP_ALLSTARS_VERSION, 
-        true
-    );
-
-    // Localize script with AJAX and security data
-    $ajax_data = [
-        'ajaxurl' => admin_url('admin-ajax.php'),
-        'adminUrl' => admin_url(),
-        'nonce' => wp_create_nonce('wp-allstars-nonce'),
-        'updateNonce' => wp_create_nonce('updates')
-    ];
-    
-    wp_localize_script('wp-allstars-admin', 'wpAllstars', $ajax_data);
 }
-add_action('admin_enqueue_scripts', 'wp_allstars_admin_assets');
+add_action('init', 'wp_allstars_init_auto_upload');
 
 /**
  * Initialize core plugin classes

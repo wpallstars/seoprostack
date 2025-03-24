@@ -91,7 +91,7 @@ class WP_Allstars_Plugin_Manager {
         require_once ABSPATH . 'wp-admin/includes/plugin-install.php';
         
         // Get our recommended plugins for this category
-        $recommended_plugins = wp_allstars_get_recommended_plugins();
+        $recommended_plugins = wp_allstars_get_free_plugins();
         if (!isset($recommended_plugins[$category])) {
             wp_send_json_error('Invalid category: ' . $category);
             return;
@@ -309,7 +309,7 @@ class WP_Allstars_Plugin_Manager {
      * @param object $plugin The plugin object
      */
     public static function add_pro_button($plugin) {
-        $pro_plugins = wp_allstars_get_pro_plugins_config();
+        $pro_plugins = wp_allstars_get_pro_plugins();
         
         if (isset($pro_plugins[$plugin->slug])) {
             $pro_plugin = $pro_plugins[$plugin->slug];
@@ -355,7 +355,7 @@ class WP_Allstars_Plugin_Manager {
      * Clear plugin cache when plugins are updated, activated, or deactivated
      */
     public static function clear_plugin_cache() {
-        $recommended_plugins = wp_allstars_get_recommended_plugins();
+        $recommended_plugins = wp_allstars_get_free_plugins();
         foreach (array_keys($recommended_plugins) as $category) {
             delete_transient('wp_allstars_plugins_' . $category);
         }

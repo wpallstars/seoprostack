@@ -1,53 +1,42 @@
 <?php
 /**
  * WP ALLSTARS Admin Manager
- * 
- * Main controller for the plugin's admin interface. Responsible for:
- * - Registering the admin menu item
- * - Enqueueing admin scripts and styles
- * - Handling AJAX requests for settings updates
- * - Rendering the admin page with tabs
- * - Managing plugin settings registration
  *
  * @package WP_ALLSTARS
  * @since 0.2.0
  */
 
 if (!defined('ABSPATH')) {
-    exit; // Exit if accessed directly
+    exit;
 }
 
-/**
- * WP_Allstars_Admin_Manager class
- * 
- * Centralizes all admin-related functionality for the WP ALLSTARS plugin.
- */
 class WP_Allstars_Admin_Manager {
     
     /**
-     * Initialize the class and register all hooks
-     * 
-     * @return void
+     * Initialize the class and register hooks
      */
     public static function init() {
-        // Register admin hooks
         add_action('admin_menu', array(__CLASS__, 'register_admin_menu'));
         add_action('wp_ajax_wp_allstars_update_option', array(__CLASS__, 'update_option'));
         add_action('admin_init', array(__CLASS__, 'register_settings'));
         add_action('admin_enqueue_scripts', array(__CLASS__, 'enqueue_admin_scripts'));
+        
+        // Initialize all manager classes
+        WP_Allstars_Settings_Manager::init();
+        WP_Allstars_Theme_Manager::init();
+        WP_Allstars_Workflow_Manager::init();
+        WP_Allstars_Pro_Plugins_Manager::init();
+        WP_Allstars_Tools_Manager::init();
+        WP_Allstars_Hosting_Manager::init();
+        WP_Allstars_Free_Plugins_Manager::init();
     }
     
     /**
      * Enqueue admin scripts and styles
-     * 
-     * Loads CSS and JavaScript only on the plugin admin page
-     * to avoid conflicts with other plugins.
-     * 
+     *
      * @param string $hook The current admin page hook
-     * @return void
      */
     public static function enqueue_admin_scripts($hook) {
-        // Only load on our plugin's admin page
         if ('settings_page_wp-allstars' !== $hook) {
             return;
         }
@@ -77,39 +66,79 @@ class WP_Allstars_Admin_Manager {
     }
     
     /**
-     * Register plugin settings
-     * 
-     * Registers all settings fields with the WordPress Settings API
-     * for proper data sanitization and storage.
-     *
-     * @return void
+     * Register core plugin settings
      */
     public static function register_settings() {
-        // Register settings for each tab as needed
+        // Core settings groups - tab-specific settings are registered in their respective manager classes
         register_setting('wp_allstars_general', 'wp_allstars_general_settings');
         register_setting('wp_allstars_advanced', 'wp_allstars_advanced_settings');
-        
-        // Add additional settings as needed for future functionality
     }
     
     /**
      * AJAX handler for updating options
      */
     public static function update_option() {
+        // Verify nonce for security
         check_ajax_referer('wp-allstars-nonce', 'nonce');
+        
+        // Check if user has proper permissions
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error('Insufficient permissions');
+            return;
+        }
+        
+        // Validate and sanitize input
+        if (!isset($_POST['option']) || !isset($_POST['value'])) {
+            wp_send_json_error('Missing required parameters');
+            return;
+        }
+        
         $option = sanitize_text_field($_POST['option']);
-        $value = intval($_POST['value']);
-        update_option($option, $value);
-        wp_send_json_success('Option updated');
+        
+        // Different sanitization based on expected value type
+        $value = $_POST['value'];
+        if (is_numeric($value)) {
+            $value = intval($value);
+        } elseif (is_string($value)) {
+            $value = sanitize_text_field($value);
+        } elseif (is_array($value)) {
+            $value = array_map('sanitize_text_field', $value);
+        }
+        
+        // Whitelist of allowed options to update for security
+        $allowed_options = array(
+            'wp_allstars_auto_upload_images',
+            'wp_allstars_max_width',
+            'wp_allstars_max_height',
+            'wp_allstars_exclude_urls',
+            'wp_allstars_image_name_pattern',
+            'wp_allstars_image_alt_pattern'
+        );
+        
+        if (!in_array($option, $allowed_options)) {
+            wp_send_json_error('Invalid option');
+            return;
+        }
+        
+        // Update the option
+        $result = update_option($option, $value);
+        
+        if ($result) {
+            wp_send_json_success(array(
+                'message' => 'Option updated successfully',
+                'option' => $option,
+                'value' => $value
+            ));
+        } else {
+            wp_send_json_success(array(
+                'message' => 'No changes made to option',
+                'option' => $option
+            ));
+        }
     }
     
     /**
      * Register the admin menu item
-     * 
-     * Adds the WP ALLSTARS menu item under the Settings menu
-     * in the WordPress admin dashboard.
-     * 
-     * @return void
      */
     public static function register_admin_menu() {
         add_options_page(
@@ -130,14 +159,12 @@ class WP_Allstars_Admin_Manager {
         $active_tab = isset($_GET['tab']) ? $_GET['tab'] : 'general';
         $active_category = isset($_GET['category']) ? $_GET['category'] : 'minimal';
         
-        // Clear cache and load required files
+        // Tab-specific resources
         if ($active_tab === 'recommended') {
             WP_Allstars_Plugin_Manager::clear_plugin_cache();
-            require_once ABSPATH . 'wp-admin/includes/plugin-install.php';
             wp_enqueue_script('plugin-install');
             wp_enqueue_script('updates');
             add_thickbox();
-            wp_enqueue_style('wp-allstars-admin', plugins_url('css/wp-allstars-admin.css', dirname(__FILE__)));
             wp_enqueue_style('wp-allstars-plugins', plugins_url('css/wp-allstars-plugins.css', dirname(__FILE__)));
             
             // Add inline script to load plugins on page load
@@ -237,7 +264,7 @@ class WP_Allstars_Admin_Manager {
                             break;
                             
                         case 'workflow':
-                            self::display_workflow_tab();
+                            WP_Allstars_Workflow_Manager::display_tab_content();
                             break;
                             
                         case 'theme':
@@ -245,7 +272,7 @@ class WP_Allstars_Admin_Manager {
                             break;
                             
                         case 'recommended':
-                            WP_Allstars_Recommended_Plugins_Manager::display_tab_content();
+                            WP_Allstars_Free_Plugins_Manager::display_tab_content();
                             break;
                             
                         case 'pro':
@@ -274,92 +301,5 @@ class WP_Allstars_Admin_Manager {
      */
     public static function enqueue_scripts($hook) {
         self::enqueue_admin_scripts($hook);
-    }
-    
-    /**
-     * Display the Workflow tab content
-     */
-    public static function display_workflow_tab() {
-        ?>
-        <div class="wp-allstars-settings-content tab-content" id="workflow">
-            <div class="wp-allstars-toggle">
-                <div class="wp-allstars-toggle-header" aria-expanded="false">
-                    <div class="wp-allstars-toggle-main">
-                        <div class="wp-allstars-toggle-left">
-                            <div class="wp-toggle-switch">
-                                <input type="checkbox" 
-                                       id="wp_allstars_auto_upload_images"
-                                       name="wp_allstars_auto_upload_images" 
-                                       value="1"
-                                       <?php checked(get_option('wp_allstars_auto_upload_images', false)); ?> 
-                                />
-                                <span class="wp-toggle-slider"></span>
-                            </div>
-                            <label for="wp_allstars_auto_upload_images">
-                                <?php esc_html_e('Enable Auto Upload Images', 'wp-allstars'); ?>
-                            </label>
-                        </div>
-                    </div>
-                    <p class="wp-setting-description">
-                        <?php esc_html_e('Import images that have external URLs into your Media Library when saving. Consider disabling during large data imports with many external image URLs.', 'wp-allstars'); ?>
-                    </p>
-                </div>
-                <div class="wp-allstars-toggle-settings">
-                    <div class="wp-allstars-setting-row">
-                        <label for="wp_allstars_max_width"><?php esc_html_e('Max Width', 'wp-allstars'); ?></label>
-                        <input type="number" 
-                               id="wp_allstars_max_width"
-                               name="wp_allstars_max_width" 
-                               value="<?php echo esc_attr(get_option('wp_allstars_max_width', 2560)); ?>" 
-                        />
-                        <p class="description"><?php esc_html_e('Maximum width for uploaded images in pixels.', 'wp-allstars'); ?></p>
-                    </div>
-                    <div class="wp-allstars-setting-row">
-                        <label for="wp_allstars_max_height"><?php esc_html_e('Max Height', 'wp-allstars'); ?></label>
-                        <input type="number" 
-                               id="wp_allstars_max_height"
-                               name="wp_allstars_max_height" 
-                               value="<?php echo esc_attr(get_option('wp_allstars_max_height', 2560)); ?>" 
-                        />
-                        <p class="description"><?php esc_html_e('Maximum height for uploaded images in pixels.', 'wp-allstars'); ?></p>
-                    </div>
-
-                    <div class="wp-allstars-setting-row">
-                        <label for="wp_exclude_urls"><?php esc_html_e('Exclude URLs', 'wp-allstars'); ?></label>
-                        <textarea id="wp_exclude_urls"
-                                  name="wp_exclude_urls"
-                                  rows="3"
-                                  placeholder="example.com&#10;another-domain.com"
-                        ><?php echo esc_textarea(get_option('wp_allstars_exclude_urls', '')); ?></textarea>
-                        <p class="description"><?php esc_html_e('Enter domains to exclude (one per line). Images from these domains will not be imported.', 'wp-allstars'); ?></p>
-                    </div>
-
-                    <div class="wp-allstars-setting-row">
-                        <label for="wp_image_name"><?php esc_html_e('Image Name Pattern', 'wp-allstars'); ?></label>
-                        <input type="text" 
-                               id="wp_image_name"
-                               name="wp_image_name"
-                               value="<?php echo esc_attr(get_option('wp_allstars_image_name_pattern', '%filename%')); ?>"
-                        />
-                        <p class="description">
-                            <?php esc_html_e('Available patterns:', 'wp-allstars'); ?> %filename%, %post_id%, %postname%, %timestamp%, %date%, %year%, %month%, %day%
-                        </p>
-                    </div>
-
-                    <div class="wp-allstars-setting-row">
-                        <label for="wp_image_alt"><?php esc_html_e('Image Alt Pattern', 'wp-allstars'); ?></label>
-                        <input type="text" 
-                               id="wp_image_alt"
-                               name="wp_image_alt"
-                               value="<?php echo esc_attr(get_option('wp_allstars_image_alt_pattern', '%filename%')); ?>"
-                        />
-                        <p class="description">
-                            <?php esc_html_e('Available patterns:', 'wp-allstars'); ?> %filename%, %post_title%, %post_id%, %postname%, %timestamp%
-                        </p>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <?php
     }
 }

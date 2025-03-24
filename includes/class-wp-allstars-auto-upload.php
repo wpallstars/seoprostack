@@ -2,15 +2,20 @@
 /**
  * Auto Upload Images functionality
  *
- * @package WP_Allstars
+ * @package WP_ALLSTARS
+ * @since 0.2.0
  */
+
+if (!defined('ABSPATH')) {
+    exit;
+}
 
 class WP_Allstars_Auto_Upload {
     /**
      * Initialize the class
      */
     public function __construct() {
-        add_filter('content_save_pre', array($this, 'process_content'), 10, 1);
+        add_filter('content_save_pre', array($this, 'process_content'));
         add_action('wp_allstars_image_upload_error', array($this, 'log_error'), 10, 2);
     }
 
@@ -57,7 +62,8 @@ class WP_Allstars_Auto_Upload {
                 return str_replace($url, $local_url, $matches[0]);
             }
         } catch (Exception $e) {
-            do_action('wp_allstars_image_upload_error', $url, $e->getMessage());
+            // Trigger error action for logging
+            do_action('wp_allstars_image_upload_error', esc_url($url), $e->getMessage());
         }
 
         return $matches[0];
@@ -80,11 +86,12 @@ class WP_Allstars_Auto_Upload {
      *
      * @param string $url External image URL
      * @return string|false Local URL on success, false on failure
+     * @throws Exception If download or upload fails
      */
     private function upload_image($url) {
-        // Get file info
-        $file_array = array();
-        $file_array['name'] = basename($url);
+        $file_array = array(
+            'name' => sanitize_file_name(basename($url))
+        );
 
         // Download file to temp location
         $file_array['tmp_name'] = download_url($url);
@@ -93,17 +100,18 @@ class WP_Allstars_Auto_Upload {
             throw new Exception('Failed to download image: ' . $file_array['tmp_name']->get_error_message());
         }
 
-        // Check file type
+        // Check file type for security
         $wp_filetype = wp_check_filetype_and_ext($file_array['tmp_name'], $file_array['name']);
         if (!$wp_filetype['type']) {
             unlink($file_array['tmp_name']);
             throw new Exception('Invalid file type');
         }
 
-        // Upload the file
+        // Upload the file to media library
         $attachment_id = media_handle_sideload($file_array, 0);
 
         if (is_wp_error($attachment_id)) {
+            unlink($file_array['tmp_name']);
             throw new Exception('Failed to upload image: ' . $attachment_id->get_error_message());
         }
 
@@ -117,10 +125,12 @@ class WP_Allstars_Auto_Upload {
      * @param string $error Error message
      */
     public function log_error($url, $error) {
-        error_log(sprintf(
-            '[WP ALLSTARS] Auto Upload Images Error - URL: %s, Error: %s',
-            $url,
-            $error
-        ));
+        if (WP_DEBUG) {
+            error_log(sprintf(
+                '[WP ALLSTARS] Auto Upload Images Error - URL: %s, Error: %s',
+                esc_url_raw($url),
+                sanitize_text_field($error)
+            ));
+        }
     }
-} 
+}

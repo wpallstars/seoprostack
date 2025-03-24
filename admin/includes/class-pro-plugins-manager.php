@@ -43,8 +43,8 @@ class WP_Allstars_Pro_Plugins_Manager {
      * @return array Array of premium plugin data
      */
     public static function get_pro_plugins() {
-        // Load pro plugin configuration from the function defined in pro-plugins-config.php
-        return wp_allstars_get_pro_plugins_config();
+        // Load pro plugin configuration from the data file
+        return wp_allstars_get_pro_plugins();
     }
     
     /**

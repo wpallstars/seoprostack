@@ -342,6 +342,40 @@ body.wp-admin .wp-list-table.plugin-install #the-list .plugin-card .action-links
     line-height: 28px !important;
     padding-top: 0 !important;
     padding-bottom: 0 !important;
+    background-color: #d35400 !important;
+    color: #fff !important;
+    border-color: #c24e00 !important;
+    transition: all 0.3s ease !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2) !important;
+    position: relative !important;
+    overflow: hidden !important;
+}
+
+body.wp-admin .wp-list-table.plugin-install #the-list .plugin-card .action-links .button.go-pro::before {
+    content: '' !important;
+    position: absolute !important;
+    top: 0 !important;
+    left: -100% !important;
+    width: 100% !important;
+    height: 100% !important;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent) !important;
+    transition: all 0.5s ease !important;
+}
+
+body.wp-admin .wp-list-table.plugin-install #the-list .plugin-card .action-links .button.go-pro:hover {
+    background-color: #aa4300 !important;
+    border-color: #953b00 !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3) !important;
+}
+
+body.wp-admin .wp-list-table.plugin-install #the-list .plugin-card .action-links .button.go-pro:hover::before {
+    left: 100% !important;
+}
+
+body.wp-admin .wp-list-table.plugin-install #the-list .plugin-card .action-links .button.go-pro:active {
+    transform: translateY(0) !important;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3) !important;
 }
 
 /* Ensure consistent layout for action buttons */
