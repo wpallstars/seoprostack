@@ -1020,15 +1020,33 @@ body.wp-admin .button.pricing-button:hover,
     padding: 15px;
     display: inline-block;
     vertical-align: top;
+    position: relative; /* For absolute positioning of compatibility row */
+    padding-bottom: 50px; /* Make room for compatibility row */
+    height: calc(100% - 20px); /* Set consistent height */
 }
 
 /* Ensure plugin cards have proper spacing */
 #recommended .wpa-plugin-container {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
     gap: 20px; /* Creates vertical and horizontal gaps */
     padding: 0 10px;
+}
+
+/* Fix compatibility row alignment to bottom of card */
+#recommended .plugin-card .plugin-card-bottom {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 10px 15px;
+    background-color: #f8f8f8;
+    border-top: 1px solid #ddd;
+}
+
+/* Ensure consistent card heights */
+#recommended .plugin-card .plugin-card-top {
+    min-height: 180px;
 }
 
 /* Explicitly target readme content */
@@ -1046,6 +1064,23 @@ body.wp-admin .button.pricing-button:hover,
 .wp-allstars-toggle-header::after {
     right: 15px;
     z-index: 1; /* Ensure chevron stays above text */
+}
+
+/* Fix gaps in advanced settings accordion */
+.wp-allstars-toggle-settings {
+    padding: 15px;
+    margin: 0;
+    background-color: #f8f8f8;
+    border: 1px solid #eee;
+    border-top: none;
+}
+
+.wp-allstars-setting-row {
+    margin-bottom: 15px;
+}
+
+.wp-allstars-setting-row:last-child {
+    margin-bottom: 0;
 }
 
 /* Ensure text doesn't overflow */
@@ -1083,6 +1118,10 @@ body.wp-admin .button.pricing-button:hover,
         max-width: calc(100% - 40px);
         margin-left: auto;
         margin-right: auto;
+    }
+    
+    #recommended .wpa-plugin-container {
+        grid-template-columns: 1fr;
     }
     
     #recommended .plugin-card {
