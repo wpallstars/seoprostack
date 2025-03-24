@@ -28,8 +28,8 @@ class WP_Allstars_Recommended_Plugins_Manager {
      * @return void
      */
     public static function init() {
-        // Register AJAX handlers if needed for future functionality
-        add_action('wp_ajax_wp_allstars_load_recommended_plugins', array(self::class, 'ajax_load_recommended_plugins'));
+        // We'll implement AJAX handlers in a future update if needed
+        // add_action('wp_ajax_wp_allstars_load_recommended_plugins', array(self::class, 'ajax_load_recommended_plugins'));
     }
     
     /**

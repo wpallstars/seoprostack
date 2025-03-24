@@ -59,6 +59,7 @@ require_once plugin_dir_path(__FILE__) . 'includes/class-wp-allstars-auto-upload
  * Load admin-specific components
  */
 if (is_admin()) {
+    require_once plugin_dir_path(__FILE__) . 'admin/pro-plugins-config.php';
     require_once plugin_dir_path(__FILE__) . 'admin/settings.php';
 }
 
