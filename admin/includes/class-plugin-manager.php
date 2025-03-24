@@ -62,7 +62,7 @@ class WP_Allstars_Plugin_Manager {
      */
     public static function ajax_get_plugins() {
         // Check nonce with the correct action name
-        if (!check_ajax_referer('wp-allstars-nonce', '_wpnonce', false)) {
+        if (!check_ajax_referer('wp-allstars-nonce', false, false)) {
             wp_send_json_error('Invalid security token sent.');
             return;
         }
@@ -220,9 +220,17 @@ class WP_Allstars_Plugin_Manager {
                                     
                                     // Add PRO button if available
                                     self::add_pro_button($plugin);
+                                    
+                                    // Add "More Details" link
+                                    echo '<li><a class="thickbox open-plugin-details-modal" href="' . esc_url(admin_url('plugin-install.php?tab=plugin-information&plugin=' . $plugin->slug . '&TB_iframe=true&width=600&height=550')) . '" aria-label="' . esc_attr(sprintf(__('More information about %s'), $plugin->name)) . '">' . __('More Details') . '</a></li>';
                                     ?>
                                 </ul>
                             </div>
+                            <?php if (!empty($plugin->icons) && !empty($plugin->icons['1x'])): ?>
+                                <div class="plugin-icon">
+                                    <img src="<?php echo esc_url($plugin->icons['1x']); ?>" alt="">
+                                </div>
+                            <?php endif; ?>
                             <div class="desc column-description">
                                 <p><?php echo esc_html($plugin->short_description); ?></p>
                                 <p class="authors">
@@ -338,6 +346,3 @@ class WP_Allstars_Plugin_Manager {
         }
     }
 }
-
-// Initialize the class
-WP_Allstars_Plugin_Manager::init();

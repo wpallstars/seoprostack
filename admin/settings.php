@@ -45,8 +45,7 @@ require_once dirname(__FILE__) . '/data/recommended-plugins.php';
 require_once dirname(__FILE__) . '/includes/class-plugin-manager.php';
 
 // Initialize the Plugin Manager
-global $wp_allstars_plugin_manager;
-$wp_allstars_plugin_manager = new WP_Allstars_Plugin_Manager();
+WP_Allstars_Plugin_Manager::init();
 
 
 // Remove the old plugins API filter since we're handling everything in the AJAX endpoint
@@ -259,8 +258,7 @@ function wp_allstars_settings_page() {
     
     // Clear cache and load required files
     if ($active_tab === 'recommended') {
-        global $wp_allstars_plugin_manager;
-        $wp_allstars_plugin_manager->clear_plugin_cache();
+        WP_Allstars_Plugin_Manager::clear_plugin_cache();
         require_once ABSPATH . 'wp-admin/includes/plugin-install.php';
         wp_enqueue_script('plugin-install');
         wp_enqueue_script('updates');
