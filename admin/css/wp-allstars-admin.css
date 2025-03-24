@@ -1004,9 +1004,13 @@ body.wp-admin .button.pricing-button:hover,
     padding: 20px;
 }
 
-#general .wp-allstars-settings-grid,
-#advanced .wp-allstars-settings-grid,
-#workflow .wp-allstars-settings-grid,
+/* Target the specific setting rows to limit their width */
+#general .wp-setting-row,
+#general .wp-allstars-toggle,
+#advanced .wp-setting-row,
+#advanced .wp-allstars-toggle,
+#workflow .wp-setting-row,
+#workflow .wp-allstars-toggle,
 #readme .wpa-pro-plugin {
     max-width: 50%;
     margin: 0 auto;
@@ -1014,13 +1018,15 @@ body.wp-admin .button.pricing-button:hover,
 }
 
 @media screen and (max-width: 960px) {
-    #general .wp-allstars-settings-grid,
-    #advanced .wp-allstars-settings-grid,
-    #workflow .wp-allstars-settings-grid,
+    #general .wp-setting-row,
+    #general .wp-allstars-toggle,
+    #advanced .wp-setting-row,
+    #advanced .wp-allstars-toggle,
+    #workflow .wp-setting-row,
+    #workflow .wp-allstars-toggle,
     #readme .wpa-pro-plugin {
         max-width: 100%;
         margin: 0 auto;
-        padding: 20px;
     }
 }
 
