@@ -47,6 +47,7 @@ require_once dirname(__FILE__) . '/includes/class-pro-plugins-manager.php';
 require_once dirname(__FILE__) . '/includes/class-settings-manager.php';
 require_once dirname(__FILE__) . '/includes/class-tools-manager.php';
 require_once dirname(__FILE__) . '/includes/class-theme-manager.php';
+require_once dirname(__FILE__) . '/includes/class-hosting-manager.php';
 
 // Initialize the managers
 WP_Allstars_Plugin_Manager::init();
@@ -54,6 +55,7 @@ WP_Allstars_Pro_Plugins_Manager::init();
 WP_Allstars_Settings_Manager::init();
 WP_Allstars_Tools_Manager::init();
 WP_Allstars_Theme_Manager::init();
+WP_Allstars_Hosting_Manager::init();
 
 
 // Remove the old plugins API filter since we're handling everything in the AJAX endpoint
@@ -328,32 +330,7 @@ function wp_allstars_settings_page() {
                     </div>
                 <?php elseif ($active_tab == 'hosting'): ?>
                      <div class="tab-content" id="hosting">
-                        <div class="wpa-pro-plugins">
-                            <?php
-                            $hosting_providers = wp_allstars_get_hosting_providers();
-                            // Sort providers alphabetically by name
-                            uasort($hosting_providers, function($a, $b) {
-                                return strcasecmp($a['name'], $b['name']);
-                            });
-                            foreach ($hosting_providers as $provider) {
-                                ?>
-                                <div class="wpa-pro-plugin">
-                                    <h3><?php echo esc_html($provider['name']); ?></h3>
-                                    <p><?php echo esc_html($provider['description']); ?></p>
-                                    <?php if (isset($provider['button_group'])): ?>
-                                        <div class="button-group">
-                                            <?php foreach ($provider['button_group'] as $button): ?>
-                                                <a href="<?php echo esc_url($button['url']); ?>" target="_blank" class="button <?php echo isset($button['primary']) && $button['primary'] ? 'button-primary' : ''; ?>">
-                                                    <?php echo esc_html($button['text']); ?>
-                                                </a>
-                                            <?php endforeach; ?>
-                                        </div>
-                                    <?php endif; ?>
-                                </div>
-                                <?php
-                            }
-                            ?>
-                        </div>
+                        <?php WP_Allstars_Hosting_Manager::display_tab_content(); ?>
                     </div>
                 <?php elseif ($active_tab == 'recommended'): ?>
                     <div class="tab-content" id="recommended">
