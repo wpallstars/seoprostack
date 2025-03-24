@@ -147,7 +147,7 @@ input:checked + .wp-toggle-slider:before {
 
 /* Settings Content */
 .wp-allstars-settings-content {
-    padding-top: 22px !important; /* Consistent spacing below tabs */
+    padding-top: 0 !important; /* Prevent double padding with parent */
 }
 
 /* Fix padding in plugin sections */
