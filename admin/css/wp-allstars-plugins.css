@@ -570,7 +570,7 @@ body.wp-admin .plugin-card-bottom .compatibility-untested *,
 .wp-filter {
     display: flex;
     flex-wrap: wrap;
-    margin: 12px 0 25px;
+    margin: 12px 0 22px;
     padding: 0 10px;
     background: #fff;
     border: 1px solid #dcdcde;
