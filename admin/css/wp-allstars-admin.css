@@ -1043,6 +1043,7 @@ body.wp-admin .button.pricing-button:hover,
 /* Basic plugin card elements */
 #recommended .plugin-card-top {
     margin-bottom: 20px;
+    text-align: left;
 }
 
 #recommended .plugin-card .name h3 {
@@ -1055,6 +1056,7 @@ body.wp-admin .button.pricing-button:hover,
     font-size: 13px;
     line-height: 1.5;
     clear: both;
+    text-align: left;
 }
 
 #recommended .plugin-card .plugin-icon {
@@ -1080,9 +1082,12 @@ body.wp-admin .button.pricing-button:hover,
 /* Center the plugin container */
 #recommended .wpa-plugin-container {
     width: 100%;
-    max-width: 800px;
+    max-width: 1000px;
     margin: 0 auto;
     padding: 15px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
 }
 
 /* Explicitly target readme content */
