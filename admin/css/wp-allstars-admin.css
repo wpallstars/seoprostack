@@ -995,12 +995,18 @@ body.wp-admin .button.pricing-button:hover,
     background-color: rgba(33, 150, 83, 0.05) !important;
 }
 
-/* Read Me Tab Panel */
+/* Limit width of content in General, Advanced, Workflow, and Read Me tabs */
+#general .wp-allstars-settings-section,
+#advanced .wp-allstars-settings-section,
+#workflow .wp-allstars-settings-section,
 #readme .wpa-pro-plugins {
     display: block;
     padding: 20px;
 }
 
+#general .wp-allstars-settings-grid,
+#advanced .wp-allstars-settings-grid,
+#workflow .wp-allstars-settings-grid,
 #readme .wpa-pro-plugin {
     max-width: 50%;
     margin: 0 auto;
@@ -1008,6 +1014,9 @@ body.wp-admin .button.pricing-button:hover,
 }
 
 @media screen and (max-width: 960px) {
+    #general .wp-allstars-settings-grid,
+    #advanced .wp-allstars-settings-grid,
+    #workflow .wp-allstars-settings-grid,
     #readme .wpa-pro-plugin {
         max-width: 100%;
         margin: 0 auto;
