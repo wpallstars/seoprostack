@@ -995,10 +995,11 @@ body.wp-admin .button.pricing-button:hover,
     background-color: rgba(33, 150, 83, 0.05) !important;
 }
 
-/* Limit width of content in General, Advanced, Workflow, and Read Me tabs */
+/* Limit width of content in all main tabs */
 #general .wp-allstars-settings-section,
 #advanced .wp-allstars-settings-section,
 #workflow .wp-allstars-settings-section,
+#recommended .wp-allstars-settings-section,
 #readme .wpa-pro-plugins {
     display: block;
     padding: 20px;
@@ -1017,16 +1018,48 @@ body.wp-admin .button.pricing-button:hover,
     box-sizing: border-box;
 }
 
-@media screen and (max-width: 960px) {
+/* Free Plugins cards need specific targeting */
+#recommended .plugin-card {
+    max-width: 50%;
+    margin-left: auto;
+    margin-right: auto;
+    box-sizing: border-box;
+}
+
+/* Prevent text from overlapping dropdown chevron icon */
+.wp-allstars-toggle-header {
+    position: relative;
+    padding-right: 40px; /* Make room for chevron */
+}
+
+.wp-allstars-toggle-header::after {
+    right: 15px;
+    z-index: 1; /* Ensure chevron stays above text */
+}
+
+/* Ensure text doesn't overflow */
+.wp-setting-label,
+.wp-allstars-toggle-header label,
+.wp-setting-description {
+    white-space: normal;
+    word-wrap: break-word;
+    padding-right: 25px;
+    max-width: calc(100% - 40px); /* Ensure space for the chevron */
+}
+
+/* Increase breakpoint for responsive behavior */
+@media screen and (max-width: 1400px) {
     #general .wp-setting-row,
     #general .wp-allstars-toggle,
     #advanced .wp-setting-row,
     #advanced .wp-allstars-toggle,
     #workflow .wp-setting-row,
     #workflow .wp-allstars-toggle,
+    #recommended .plugin-card,
     #readme .wpa-pro-plugin {
-        max-width: 100%;
+        max-width: calc(100% - 40px);
         margin: 0 auto;
+        padding: 0;
     }
 }
 
