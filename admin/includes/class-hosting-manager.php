@@ -46,6 +46,10 @@ class WP_Allstars_Hosting_Manager {
                                 } else {
                                     // Add green styling to secondary buttons
                                     $button_class .= ' green-button-secondary';
+                                    // Special handling for Pricing buttons
+                                    if ($button['text'] === 'Pricing') {
+                                        $button_class .= ' pricing-button';
+                                    }
                                 }
                                 ?>
                                 <a href="<?php echo esc_url($button['url']); ?>" target="_blank" class="<?php echo esc_attr($button_class); ?>">

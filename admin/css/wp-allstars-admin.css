@@ -970,6 +970,31 @@ body.wp-admin .button.button-secondary:hover {
     justify-content: center !important;
 }
 
+/* Specific styling for Pricing buttons */
+.pricing-button, 
+a.button.pricing-button, 
+body.wp-admin .button.pricing-button, 
+#pro a.button.pricing-button, 
+#hosting a.button.pricing-button, 
+#tools a.button.pricing-button, 
+#readme a.button.pricing-button {
+    color: #219653 !important;
+    border-color: #219653 !important;
+    background-color: transparent !important;
+}
+
+.pricing-button:hover, 
+a.button.pricing-button:hover, 
+body.wp-admin .button.pricing-button:hover, 
+#pro a.button.pricing-button:hover, 
+#hosting a.button.pricing-button:hover, 
+#tools a.button.pricing-button:hover, 
+#readme a.button.pricing-button:hover {
+    color: #1b7b42 !important;
+    border-color: #1b7b42 !important;
+    background-color: rgba(33, 150, 83, 0.05) !important;
+}
+
 /* Read Me Tab Panel */
 #readme .wpa-pro-plugins {
     display: block;
