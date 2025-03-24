@@ -928,7 +928,13 @@ input:checked + .wp-toggle-slider:before {
 #hosting .button.button-secondary,
 #tools .button.button-secondary,
 #readme .button.button-secondary,
-.button.button-secondary {
+.button.button-secondary,
+/* More specific selectors to override WP defaults */
+.wp-allstars-tabs-wrapper .button.button-secondary,
+.wp-allstars-settings-content .button.button-secondary,
+.wpa-pro-plugins .button.button-secondary,
+.wpa-pro-plugin .button.button-secondary,
+body.wp-admin .button.button-secondary {
     transition: all 0.3s ease !important;
     color: #219653 !important; /* Darker green */
     border-color: #219653 !important; /* Darker green */
@@ -945,7 +951,12 @@ input:checked + .wp-toggle-slider:before {
 #hosting .button.button-secondary:hover,
 #tools .button.button-secondary:hover,
 #readme .button.button-secondary:hover,
-.button.button-secondary:hover {
+.button.button-secondary:hover,
+.wp-allstars-tabs-wrapper .button.button-secondary:hover,
+.wp-allstars-settings-content .button.button-secondary:hover,
+.wpa-pro-plugins .button.button-secondary:hover,
+.wpa-pro-plugin .button.button-secondary:hover,
+body.wp-admin .button.button-secondary:hover {
     color: #1b7b42 !important; /* Even darker green on hover */
     border-color: #1b7b42 !important; /* Even darker green on hover */
     background-color: rgba(33, 150, 83, 0.05) !important; /* Very light green background */
