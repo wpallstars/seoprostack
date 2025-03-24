@@ -47,8 +47,13 @@ class WP_Allstars_Free_Plugins_Manager {
         // Get all available plugin categories from the data file
         $plugin_categories = wp_allstars_get_free_plugins();
         
-        // Define priority categories to display first
-        $priority_categories = array('minimal', 'admin');
+        // Define all categories in the desired display order
+        $priority_categories = array(
+            'minimal', 'admin', 'affiliates', 'ai', 'cms',
+            'compliance', 'crm', 'ecommerce', 'lms', 'media',
+            'seo', 'setup', 'social', 'speed', 'translation',
+            'advanced', 'debug'
+        );
         
         // Start HTML output
         ?>
@@ -73,7 +78,7 @@ class WP_Allstars_Free_Plugins_Manager {
                     }
                 }
                 
-                // Then output all other categories alphabetically
+                // Add any new categories that might have been added to the data file but aren't in our priority list
                 $remaining_categories = array_diff(array_keys($plugin_categories), $priority_categories);
                 sort($remaining_categories);
                 
