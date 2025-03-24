@@ -2,27 +2,46 @@
 /**
  * WP ALLSTARS Recommended Plugins Manager
  * 
- * Manages the recommended plugins tab and functionality
+ * Manages the Recommended Plugins tab including:
+ * - Category filtering system
+ * - Plugin recommendations by use case
+ * - Plugin installation functionality
+ * 
+ * @package WP_ALLSTARS
+ * @since 0.2.0
  */
 
 if (!defined('ABSPATH')) {
     exit; // Exit if accessed directly
 }
 
+/**
+ * WP_Allstars_Recommended_Plugins_Manager class
+ * 
+ * Provides categorized plugin recommendations based on website needs
+ */
 class WP_Allstars_Recommended_Plugins_Manager {
     
     /**
-     * Initialize the class
+     * Initialize the class and register hooks if needed
+     *
+     * @return void
      */
     public static function init() {
-        // No specific initialization needed currently
+        // Register AJAX handlers if needed for future functionality
+        add_action('wp_ajax_wp_allstars_load_recommended_plugins', array(self::class, 'ajax_load_recommended_plugins'));
     }
     
     /**
      * Display the recommended plugins tab content
+     * 
+     * Renders the category filter bar and plugin list container.
+     * Initial view shows 'minimal' category plugins by default.
+     *
+     * @return void
      */
     public static function display_tab_content() {
-        // Get the active category from query params or default to 'minimal'
+        // Get the active category from query params or use default
         $active_category = isset($_GET['category']) ? sanitize_text_field($_GET['category']) : 'minimal';
         ?>
         <div class="wp-allstars-settings-content tab-content" id="recommended">

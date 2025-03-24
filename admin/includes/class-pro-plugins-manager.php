@@ -1,53 +1,79 @@
 <?php
 /**
- * Pro Plugins Manager Class
+ * WP ALLSTARS Pro Plugins Manager
  * 
- * Handles the display and management of pro plugin recommendations.
+ * Handles premium plugin recommendations including:
+ * - Premium plugin information display
+ * - Purchase links and affiliate management
+ * - Plugin feature highlighting
+ * - Price and promotion display
+ *
+ * @package WP_ALLSTARS
+ * @since 0.2.0
  */
 
 // If this file is called directly, abort.
-if ( ! defined( 'WPINC' ) ) {
+if (!defined('WPINC')) {
     die;
 }
 
+/**
+ * WP_Allstars_Pro_Plugins_Manager class
+ * 
+ * Responsible for the Pro Plugins tab in the plugin interface.
+ */
 class WP_Allstars_Pro_Plugins_Manager {
     
     /**
-     * Initialize the class
+     * Initialize the class and register required hooks
+     *
+     * @return void
      */
     public static function init() {
-        // Hook into WordPress if needed
+        // Enqueue pro plugins specific styles
         add_action('admin_enqueue_scripts', array(self::class, 'enqueue_styles'));
     }
     
     /**
      * Get all pro plugin configurations
      * 
-     * @return array Pro plugin configurations
+     * Retrieves premium plugin information from configuration,
+     * including pricing, features, and purchase links.
+     * 
+     * @return array Array of premium plugin data
      */
     public static function get_pro_plugins() {
-        // Using the existing function to maintain compatibility
-        return wp_allstars_get_pro_plugins_config();
+        // Load pro plugin configuration from data file
+        global $wp_allstars_pro_plugins;
+        return $wp_allstars_pro_plugins;
     }
     
     /**
      * Display the pro plugins tab content
+     * 
+     * Renders the premium plugins tab with plugin cards
+     * in alphabetical order by name.
+     *
+     * @return void
      */
     public static function display_tab_content() {
+        // Get premium plugin data
         $pro_plugins = self::get_pro_plugins();
         
-        // Sort plugins alphabetically by name
+        // Sort plugins alphabetically by name for consistent display
         uasort($pro_plugins, function($a, $b) {
             return strcasecmp($a['name'], $b['name']);
         });
         
-        // Output the HTML for the pro plugins tab
+        // Start the tab content container
         echo '<div class="wp-allstars-settings-content tab-content" id="pro"><div class="wpa-pro-plugins">';
         
+        // Render each plugin card
         foreach ($pro_plugins as $plugin) {
             self::display_plugin_card($plugin);
         }
         
+        // Close the container
         echo '</div></div>';
     }
     

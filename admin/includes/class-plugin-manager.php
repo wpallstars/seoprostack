@@ -2,10 +2,14 @@
 /**
  * WP ALLSTARS Plugin Manager
  *
- * Handles all plugin-related functionality including:
- * - Plugin data caching
- * - AJAX handlers for plugin data
- * - Plugin card generation
+ * Core class for handling WordPress plugin data and operations:
+ * - Plugin data retrieval and caching mechanism
+ * - AJAX handlers for asynchronous plugin data loading
+ * - Plugin card UI generation with install/update actions
+ * - Cache clearing on plugin changes
+ *
+ * @package WP_ALLSTARS
+ * @since 0.2.0
  */
 
 // Exit if accessed directly
@@ -13,15 +17,23 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
+/**
+ * WP_Allstars_Plugin_Manager class
+ * 
+ * Manages the Free Plugins tab and provides core plugin functionality
+ * for other plugin-related managers.
+ */
 class WP_Allstars_Plugin_Manager {
     /**
-     * Initialize the class
+     * Initialize the class and register all action hooks
+     *
+     * @return void
      */
     public static function init() {
-        // Add AJAX handlers
+        // Register AJAX handler for plugin data retrieval
         add_action('wp_ajax_wp_allstars_get_plugins', [self::class, 'ajax_get_plugins']);
         
-        // Plugin cache clearing
+        // Register hooks for automatic cache clearing when plugins change
         add_action('upgrader_process_complete', [self::class, 'clear_plugin_cache'], 10, 0);
         add_action('activated_plugin', [self::class, 'clear_plugin_cache']);
         add_action('deactivated_plugin', [self::class, 'clear_plugin_cache']);
@@ -30,13 +42,16 @@ class WP_Allstars_Plugin_Manager {
     }
     
     /**
-     * Get cached plugin data for a category
+     * Get cached plugin data for a specific category
      *
-     * @param string $category The plugin category
-     * @return mixed The cached plugin data or false if no cache
+     * Uses the WordPress transients API to store plugin data
+     * for improved performance and reduced API calls.
+     *
+     * @param string $category The plugin category to retrieve (e.g., 'featured', 'popular')
+     * @return mixed Array of plugin data if cache exists, false otherwise
      */
     public static function get_cached_plugins($category) {
-        $cache_key = 'wp_allstars_plugins_' . $category;
+        $cache_key = 'wp_allstars_plugins_' . sanitize_key($category);
         $cached_data = get_transient($cache_key);
         
         if ($cached_data !== false) {

@@ -1,8 +1,15 @@
 <?php
 /**
- * Theme Manager Class
+ * WP ALLSTARS Theme Manager
  * 
- * Handles the display and management of recommended themes.
+ * Manages the Theme tab functionality including:
+ * - Theme data retrieval and caching
+ * - AJAX handlers for theme browsing
+ * - Theme activation and installation
+ * - Theme UI rendering
+ *
+ * @package WP_ALLSTARS
+ * @since 0.2.0
  */
 
 // If this file is called directly, abort.
@@ -10,45 +17,66 @@ if (!defined('WPINC')) {
     die;
 }
 
+/**
+ * WP_Allstars_Theme_Manager class
+ * 
+ * Provides theme discovery and management functionality
+ */
 class WP_Allstars_Theme_Manager {
     
     /**
-     * Initialize the class
+     * Initialize the class and register all action hooks
+     *
+     * @return void
      */
     public static function init() {
-        // Register AJAX handlers
+        // Register AJAX handlers for theme operations
         add_action('wp_ajax_wp_allstars_get_themes', array(self::class, 'ajax_get_themes'));
         add_action('wp_ajax_wp_allstars_activate_theme', array(self::class, 'activate_theme'));
         
-        // Cache clearing hooks
+        // Register hooks for automatic cache clearing when themes change
         add_action('upgrader_process_complete', array(self::class, 'clear_theme_cache'), 10, 0);
         add_action('switch_theme', array(self::class, 'clear_theme_cache'));
         
-        // Enqueue assets when needed
+        // Enqueue theme-specific assets when needed
         add_action('admin_enqueue_scripts', array(self::class, 'enqueue_scripts'));
     }
     
     /**
      * Enqueue scripts and styles for the theme tab
+     *
+     * Loads necessary WordPress core scripts and stylesheets
+     * required for theme browsing and installation.
+     * 
+     * @param string $hook The current admin page hook
+     * @return void
      */
     public static function enqueue_scripts($hook) {
+        // Only load on plugin pages
         if (strpos($hook, 'wp-allstars') === false) {
             return;
         }
         
-        // Only load on theme tab
+        // Only load when theme tab is active
         if (!isset($_GET['tab']) || $_GET['tab'] !== 'theme') {
             return;
         }
         
-        // Required for theme installation
+        // Load WordPress core theme functionality
         require_once ABSPATH . 'wp-admin/includes/theme.php';
+        
+        // Enqueue core WordPress scripts for theme operations
         wp_enqueue_script('theme-install');
         wp_enqueue_script('updates');
         add_thickbox();
         
-        // Styles
-        wp_enqueue_style('wp-allstars-admin', plugins_url('css/wp-allstars-admin.css', dirname(__FILE__)));
+        // Enqueue theme tab specific styles
+        wp_enqueue_style(
+            'wp-allstars-admin', 
+            plugins_url('css/wp-allstars-admin.css', dirname(__FILE__)),
+            array(),
+            WP_ALLSTARS_VERSION
+        );
         wp_enqueue_style('wp-allstars-plugins', plugins_url('css/wp-allstars-plugins.css', dirname(__FILE__)));
         
         // Enqueue the main admin script before adding inline script

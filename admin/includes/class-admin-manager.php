@@ -2,21 +2,35 @@
 /**
  * WP ALLSTARS Admin Manager
  * 
- * Handles admin-related functionality including menu registration, 
- * script enqueueing, and admin page rendering.
+ * Main controller for the plugin's admin interface. Responsible for:
+ * - Registering the admin menu item
+ * - Enqueueing admin scripts and styles
+ * - Handling AJAX requests for settings updates
+ * - Rendering the admin page with tabs
+ * - Managing plugin settings registration
+ *
+ * @package WP_ALLSTARS
+ * @since 0.2.0
  */
 
 if (!defined('ABSPATH')) {
     exit; // Exit if accessed directly
 }
 
+/**
+ * WP_Allstars_Admin_Manager class
+ * 
+ * Centralizes all admin-related functionality for the WP ALLSTARS plugin.
+ */
 class WP_Allstars_Admin_Manager {
     
     /**
-     * Initialize the class
+     * Initialize the class and register all hooks
+     * 
+     * @return void
      */
     public static function init() {
-        // Register hooks - we'll add more as we refactor each function
+        // Register admin hooks
         add_action('admin_menu', array(__CLASS__, 'register_admin_menu'));
         add_action('wp_ajax_wp_allstars_update_option', array(__CLASS__, 'update_option'));
         add_action('admin_init', array(__CLASS__, 'register_settings'));
@@ -26,17 +40,36 @@ class WP_Allstars_Admin_Manager {
     /**
      * Enqueue admin scripts and styles
      * 
+     * Loads CSS and JavaScript only on the plugin admin page
+     * to avoid conflicts with other plugins.
+     * 
      * @param string $hook The current admin page hook
+     * @return void
      */
     public static function enqueue_admin_scripts($hook) {
+        // Only load on our plugin's admin page
         if ('settings_page_wp-allstars' !== $hook) {
             return;
         }
 
-        wp_enqueue_style('wp-allstars-admin', plugins_url('css/wp-allstars-admin.css', dirname(__FILE__)));
-        wp_enqueue_script('wp-allstars-admin', plugins_url('js/wp-allstars-admin.js', dirname(__FILE__)), array('jquery'), WP_ALLSTARS_VERSION, true);
+        // Enqueue admin stylesheet
+        wp_enqueue_style(
+            'wp-allstars-admin', 
+            plugins_url('css/wp-allstars-admin.css', dirname(__FILE__)),
+            array(),
+            WP_ALLSTARS_VERSION
+        );
         
-        // Localize the script with new data
+        // Enqueue admin JavaScript
+        wp_enqueue_script(
+            'wp-allstars-admin', 
+            plugins_url('js/wp-allstars-admin.js', dirname(__FILE__)), 
+            array('jquery'), 
+            WP_ALLSTARS_VERSION, 
+            true
+        );
+        
+        // Localize the script with necessary data for AJAX
         wp_localize_script('wp-allstars-admin', 'wpAllstars', array(
             'nonce' => wp_create_nonce('wp-allstars-nonce'),
             'ajaxurl' => admin_url('admin-ajax.php')
@@ -45,10 +78,18 @@ class WP_Allstars_Admin_Manager {
     
     /**
      * Register plugin settings
+     * 
+     * Registers all settings fields with the WordPress Settings API
+     * for proper data sanitization and storage.
+     *
+     * @return void
      */
     public static function register_settings() {
-        // Removed minification settings
-        // This is a placeholder for future settings registration
+        // Register settings for each tab as needed
+        register_setting('wp_allstars_general', 'wp_allstars_general_settings');
+        register_setting('wp_allstars_advanced', 'wp_allstars_advanced_settings');
+        
+        // Add additional settings as needed for future functionality
     }
     
     /**
