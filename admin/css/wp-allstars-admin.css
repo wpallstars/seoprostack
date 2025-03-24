@@ -147,7 +147,7 @@ input:checked + .wp-toggle-slider:before {
 
 /* Settings Content */
 .wp-allstars-settings-content {
-    padding-top: 0 !important; /* Override any padding to prevent double padding */
+    padding-top: 22px !important; /* Consistent spacing below tabs */
 }
 
 /* Fix padding in plugin sections */
@@ -160,10 +160,7 @@ input:checked + .wp-toggle-slider:before {
     padding-top: 0;
 }
 
-/* Ensure consistent spacing for all tabs */
-.wp-allstars-tab-content {
-    padding-top: 22px;
-}
+/* This duplicate rule was removed */
 
 /* Ensure any AJAX-loaded content follows the same padding rules */
 .wp-allstars-loading-overlay {
@@ -526,7 +523,7 @@ input:checked + .wp-toggle-slider:before {
 
 /* Theme Container */
 #wpa-theme-list {
-    margin-top: 22px !important;
+    margin-top: 0;
     padding: 0 20px;
     position: relative;
     min-height: 400px;
