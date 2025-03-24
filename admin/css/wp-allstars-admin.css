@@ -1032,7 +1032,7 @@ body.wp-admin .button.pricing-button:hover,
 
 /* Special styling for numbered lists to align with bullet lists */
 #readme .wp-allstars-markdown-content ol.numbered-list {
-    padding-left: 19px; /* Adjusted to better align with bullets */
+    padding-left: 21px; /* Moved 2px to the right as requested */
 }
 
 #readme .wp-allstars-markdown-content ol.numbered-list li {
