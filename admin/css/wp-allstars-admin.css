@@ -919,7 +919,15 @@ input:checked + .wp-toggle-slider:before {
 
 /* Green Secondary Button Styles */
 .green-button-secondary, 
-.green-visit-website {
+.green-visit-website,
+#pro .button-group .button.button-secondary,
+#hosting .button-group .button.button-secondary,
+#tools .button-group .button.button-secondary,
+#readme .button-group .button.button-secondary,
+#pro .button.button-secondary,
+#hosting .button.button-secondary,
+#tools .button.button-secondary,
+#readme .button.button-secondary {
     transition: all 0.3s ease !important;
     color: #219653 !important; /* Darker green */
     border-color: #219653 !important; /* Darker green */
@@ -927,7 +935,15 @@ input:checked + .wp-toggle-slider:before {
 }
 
 .green-button-secondary:hover,
-.green-visit-website:hover {
+.green-visit-website:hover,
+#pro .button-group .button.button-secondary:hover,
+#hosting .button-group .button.button-secondary:hover,
+#tools .button-group .button.button-secondary:hover,
+#readme .button-group .button.button-secondary:hover,
+#pro .button.button-secondary:hover,
+#hosting .button.button-secondary:hover,
+#tools .button.button-secondary:hover,
+#readme .button.button-secondary:hover {
     color: #1b7b42 !important; /* Even darker green on hover */
     border-color: #1b7b42 !important; /* Even darker green on hover */
     background-color: rgba(33, 150, 83, 0.05) !important; /* Very light green background */
