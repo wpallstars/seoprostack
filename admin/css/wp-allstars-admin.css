@@ -1025,18 +1025,18 @@ body.wp-admin .button.pricing-button:hover,
 
 #readme .wp-allstars-markdown-content ol.wp-allstars-list,
 #readme .wp-allstars-markdown-content ol {
-    padding-left: 25px; /* Same padding as bullet lists for consistent indentation */
+    padding-left: 25px; /* Same as bullets */
     margin: 10px 0;
     list-style-type: decimal;
 }
 
-/* Adjust for the wider numbers to align text with bullet lists */
-#readme .wp-allstars-markdown-content ol.wp-allstars-list li,
-#readme .wp-allstars-markdown-content ol li {
-    padding-left: 0; /* Remove extra padding */
-    margin-left: -5px; /* Subtle adjustment to align text with bullet lists */
-    text-indent: -5px; /* Adjust text indent to align with bullet text */
-    padding-right: 10px; /* Prevent text from being too close to the edge */
+/* Special styling for numbered lists to align with bullet lists */
+#readme .wp-allstars-markdown-content ol.numbered-list {
+    padding-left: 19px; /* Adjusted to better align with bullets */
+}
+
+#readme .wp-allstars-markdown-content ol.numbered-list li {
+    margin-left: 4px; /* Fine-tune the alignment */
 }
 
 #readme .wp-allstars-markdown-content li {

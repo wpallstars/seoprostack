@@ -97,14 +97,14 @@ class WP_Allstars_Readme_Manager {
         // First group bullet items into unordered lists
         $markdown = preg_replace('/((?:<li class="bullet-item">.*?<\/li>\n)+)/s', '<ul class="wp-allstars-ul">$1</ul>', $markdown);
         
-        // Then group numbered items into ordered lists
-        $markdown = preg_replace('/((?:<li class="number-item">.*?<\/li>\n)+)/s', '<ol class="wp-allstars-ol">$1</ol>', $markdown);
+        // Then group numbered items into ordered lists with a special class for indentation
+        $markdown = preg_replace('/((?:<li class="number-item">.*?<\/li>\n)+)/s', '<ol class="wp-allstars-ol numbered-list">$1</ol>', $markdown);
         
         // Clean up the classes from the final output
         $markdown = str_replace('class="bullet-item"', '', $markdown);
         $markdown = str_replace('class="number-item"', '', $markdown);
         $markdown = str_replace('class="wp-allstars-ul"', 'class="wp-allstars-list"', $markdown);
-        $markdown = str_replace('class="wp-allstars-ol"', 'class="wp-allstars-list"', $markdown);
+        $markdown = str_replace('class="wp-allstars-ol numbered-list"', 'class="wp-allstars-list numbered-list"', $markdown);
         
         // Links
         $markdown = preg_replace('/\[(.*?)\]\((.*?)\)/s', '<a href="$2" target="_blank">$1</a>', $markdown);
