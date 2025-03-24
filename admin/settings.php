@@ -16,15 +16,12 @@ function wp_allstars_register_settings() {
 }
 add_action('admin_init', 'wp_allstars_register_settings');
 
-// AJAX handler for settings
+// AJAX handler for settings - now handled by WP_Allstars_Admin_Manager class, but kept for backward compatibility
 function wp_allstars_update_option() {
-    check_ajax_referer('wp-allstars-nonce', 'nonce');
-    $option = sanitize_text_field($_POST['option']);
-    $value = intval($_POST['value']);
-    update_option($option, $value);
-    wp_send_json_success('Option updated');
+    // This function now redirects to the Admin Manager class
+    // Kept for backward compatibility
+    WP_Allstars_Admin_Manager::update_option();
 }
-add_action('wp_ajax_wp_allstars_update_option', 'wp_allstars_update_option');
 
 // Include tools data
 require_once dirname(__FILE__) . '/data/tools.php';
