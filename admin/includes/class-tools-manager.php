@@ -92,10 +92,18 @@ class WP_Allstars_Tools_Manager {
                 <div class="button-group">
                     <?php foreach ($tool['button_group'] as $button): ?>
                         <?php if (!empty($button['url']) && !empty($button['text'])): ?>
+                            <?php
+                            $button_class = 'button';
+                            if (!empty($button['primary'])) {
+                                $button_class .= ' button-primary go-pro-button';
+                            } else {
+                                $button_class .= ' green-button-secondary';
+                            }
+                            ?>
                             <a 
                                 href="<?php echo esc_url($button['url']); ?>" 
                                 target="_blank" 
-                                class="button <?php echo !empty($button['primary']) ? 'button-primary' : ''; ?>"
+                                class="<?php echo esc_attr($button_class); ?>"
                             >
                                 <?php echo esc_html($button['text']); ?>
                             </a>

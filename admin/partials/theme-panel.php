@@ -73,19 +73,19 @@ if (!defined('ABSPATH')) {
             });
             </script>
         <?php endif; ?>
-        <a class="button button-secondary preview install-theme-preview" href="<?php echo esc_url($theme_data->preview_url); ?>" target="_blank">
+        <a class="button button-secondary green-button-secondary preview install-theme-preview" href="<?php echo esc_url($theme_data->preview_url); ?>" target="_blank">
             <?php esc_html_e('Preview'); ?>
         </a>
-        <a class="button button-secondary" href="https://www.kadencewp.com/kadence-theme/starter-templates/" target="_blank">
+        <a class="button button-secondary green-button-secondary" href="https://www.kadencewp.com/kadence-theme/starter-templates/" target="_blank">
             <?php esc_html_e('Templates'); ?>
         </a>
-        <a class="button button-secondary" href="https://www.kadencewp.com/wordpress-solutions/kadence-ai/" target="_blank">
+        <a class="button button-secondary green-button-secondary" href="https://www.kadencewp.com/wordpress-solutions/kadence-ai/" target="_blank">
             <?php esc_html_e('Starter AI'); ?>
         </a>
-        <a class="button button-secondary" href="https://www.kadencewp.com/kadence-theme/marketplace/" target="_blank">
+        <a class="button button-secondary green-button-secondary" href="https://www.kadencewp.com/kadence-theme/marketplace/" target="_blank">
             <?php esc_html_e('Marketplace'); ?>
         </a>
-        <a class="button button-secondary" href="https://www.kadencewp.com/pricing/" target="_blank">
+        <a class="button button-secondary green-button-secondary" href="https://www.kadencewp.com/pricing/" target="_blank">
             <?php esc_html_e('Pricing'); ?>
         </a>
         <a class="button button-primary go-pro-button" href="https://www.kadencewp.com/kadence-theme/" target="_blank">

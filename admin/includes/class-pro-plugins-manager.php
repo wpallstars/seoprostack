@@ -97,6 +97,9 @@ class WP_Allstars_Pro_Plugins_Manager {
                             if ($button['text'] === 'Go Pro') {
                                 $button_class .= ' go-pro-button';
                             }
+                        } else {
+                            // Add green styling to secondary buttons
+                            $button_class .= ' green-button-secondary';
                         }
                         ?>
                         <a href="<?php echo esc_url($button['url']); ?>" target="_blank" class="<?php echo esc_attr($button_class); ?>">
@@ -107,11 +110,11 @@ class WP_Allstars_Pro_Plugins_Manager {
             <?php else: ?>
                 <div class="button-group">
                     <?php if (!empty($plugin['demo_url'])): ?>
-                        <a href="<?php echo esc_url($plugin['demo_url']); ?>" class="button" target="_blank">
+                        <a href="<?php echo esc_url($plugin['demo_url']); ?>" class="button green-button-secondary" target="_blank">
                             <?php esc_html_e('View Demo', 'wp-allstars'); ?>
                         </a>
                     <?php endif; ?>
-                    <a href="<?php echo esc_url($plugin['url']); ?>" class="button button-primary" target="_blank">
+                    <a href="<?php echo esc_url($plugin['url']); ?>" class="button button-primary go-pro-button" target="_blank">
                         <?php esc_html_e('Learn More', 'wp-allstars'); ?>
                     </a>
                 </div>

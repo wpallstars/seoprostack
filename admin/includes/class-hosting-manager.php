@@ -39,7 +39,16 @@ class WP_Allstars_Hosting_Manager {
                     <?php if (isset($provider['button_group'])): ?>
                         <div class="button-group">
                             <?php foreach ($provider['button_group'] as $button): ?>
-                                <a href="<?php echo esc_url($button['url']); ?>" target="_blank" class="button <?php echo isset($button['primary']) && $button['primary'] ? 'button-primary' : ''; ?>">
+                                <?php 
+                                $button_class = 'button';
+                                if (isset($button['primary']) && $button['primary']) {
+                                    $button_class .= ' button-primary go-pro-button';
+                                } else {
+                                    // Add green styling to secondary buttons
+                                    $button_class .= ' green-button-secondary';
+                                }
+                                ?>
+                                <a href="<?php echo esc_url($button['url']); ?>" target="_blank" class="<?php echo esc_attr($button_class); ?>">
                                     <?php echo esc_html($button['text']); ?>
                                 </a>
                             <?php endforeach; ?>

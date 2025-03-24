@@ -218,7 +218,7 @@ class WP_Allstars_Admin_Manager {
                 <h1><?php echo esc_html(get_admin_page_title()); ?></h1>
                 <div class="wp-allstars-header-actions">
                     <span class="wp-allstars-version"><?php echo esc_html(WP_ALLSTARS_VERSION); ?></span>
-                    <a href="https://www.wpallstars.com/" target="_blank" class="button button-secondary">
+                    <a href="https://www.wpallstars.com/" target="_blank" class="button button-secondary green-button-secondary green-visit-website">
                         <?php esc_html_e('Visit Website', 'wp-allstars'); ?>
                     </a>
                 </div>

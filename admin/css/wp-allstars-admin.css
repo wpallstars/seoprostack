@@ -917,6 +917,23 @@ input:checked + .wp-toggle-slider:before {
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2) !important;
 }
 
+/* Green Secondary Button Styles */
+.green-button-secondary, 
+.green-visit-website {
+    transition: all 0.3s ease !important;
+    color: #219653 !important; /* Darker green */
+    border-color: #219653 !important; /* Darker green */
+    background-color: transparent !important;
+}
+
+.green-button-secondary:hover,
+.green-visit-website:hover {
+    color: #1b7b42 !important; /* Even darker green on hover */
+    border-color: #1b7b42 !important; /* Even darker green on hover */
+    background-color: rgba(33, 150, 83, 0.05) !important; /* Very light green background */
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1) !important;
+}
+
 /* Read Me Tab Panel */
 #readme .wpa-pro-plugins {
     display: block;
