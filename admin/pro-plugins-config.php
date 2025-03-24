@@ -3,7 +3,7 @@
  * Pro Plugins Configuration
  */
 
- function wp_allstars_get_pro_plugins() {
+function wp_allstars_get_pro_plugins_config() {
     return array(
         'magic-login-pro' => array(
             'name' => 'Magic Login Pro',
