@@ -1013,36 +1013,18 @@ body.wp-admin .button.pricing-button:hover,
     padding: 0; /* Remove padding here, add it to inner elements */
 }
 
-/* Free Plugins grid layout with improved spacing */
-#recommended .wpa-plugin-container {
-    display: grid;
-    grid-template-columns: 1fr; /* Default to single column */
-    gap: 20px; /* Creates vertical and horizontal gaps */
-    padding: 0 15px;
-    margin: 15px auto;
-    max-width: 800px; /* Fixed max-width to keep centered layout at all breakpoints */
-}
-
-/* Switch to 2-column layout on screens wider than 1200px */
-@media screen and (min-width: 1200px) {
-    #recommended .wpa-plugin-container {
-        grid-template-columns: repeat(2, 1fr);
-        max-width: 1200px;
-    }
-}
-
-/* Free Plugins card styling improvements */
+/* Free Plugins - Simple centered tile layout */
 #recommended .plugin-card {
+    width: 800px;
+    max-width: 100%;
+    margin: 0 auto 20px;
+    padding: 20px;
     box-sizing: border-box;
-    padding: 15px 15px 90px; /* Increased bottom padding for compatibility message + room for buttons */
-    position: relative; /* For absolute positioning of compatibility message */
-    height: 100%; /* Full height to ensure all cards in a row have same height */
-    margin: 0; /* Remove margin since grid takes care of spacing */
-    display: flex;
-    flex-direction: column;
     border: 1px solid #ddd;
-    border-radius: 3px;
     box-shadow: 0 1px 1px rgba(0, 0, 0, 0.04);
+    position: relative;
+    padding-bottom: 60px;
+    background: #fff;
 }
 
 /* Fix compatibility row alignment to bottom of card */
@@ -1051,52 +1033,56 @@ body.wp-admin .button.pricing-button:hover,
     bottom: 0;
     left: 0;
     right: 0;
-    padding: 12px 15px;
-    background-color: #f7f7f7;
-    border-top: 1px solid #ddd;
+    padding: 15px;
+    border-top: 1px solid #eee;
     text-align: center;
+    background: #f9f9f9;
+    height: 30px;
 }
 
-/* Ensure consistent card heights */
-#recommended .plugin-card .plugin-card-top {
-    flex-grow: 1;
-    display: flex;
-    flex-direction: column;
+/* Basic plugin card elements */
+#recommended .plugin-card-top {
+    margin-bottom: 20px;
 }
 
-/* Style compatibility message */
-#recommended .plugin-card .column-compatibility {
-    margin-top: 10px;
-    text-align: center;
-    font-size: 13px;
-    line-height: 1.5;
-}
-
-#recommended .plugin-card .compatibility-compatible {
-    color: #00a32a;
-}
-
-/* Improve plugin card elements */
 #recommended .plugin-card .name h3 {
-    margin: 0 0 12px;
+    margin: 0 0 15px;
     font-size: 16px;
 }
 
 #recommended .plugin-card .desc {
-    margin: 10px 0;
+    margin: 15px 0;
     font-size: 13px;
     line-height: 1.5;
+    clear: both;
 }
 
 #recommended .plugin-card .plugin-icon {
     float: left;
-    margin: 0 15px 5px 0;
-    width: 128px;
-    height: 128px;
+    margin: 0 15px 10px 0;
+    width: 100px;
+    height: 100px;
 }
 
 #recommended .plugin-card .action-links {
-    margin-top: 15px;
+    margin: 15px 0 25px;
+    text-align: right;
+}
+
+/* Style compatibility message */
+#recommended .plugin-card .column-compatibility {
+    text-align: center;
+    font-size: 13px;
+    color: #00a32a;
+    margin: 5px 0;
+}
+
+/* Center the plugin container */
+#recommended .wpa-plugin-container {
+    width: 100%;
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 15px;
 }
 
 /* Explicitly target readme content */
