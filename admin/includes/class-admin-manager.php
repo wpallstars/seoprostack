@@ -19,6 +19,15 @@ class WP_Allstars_Admin_Manager {
         // Register hooks - we'll add more as we refactor each function
         add_action('admin_menu', array(__CLASS__, 'register_admin_menu'));
         add_action('wp_ajax_wp_allstars_update_option', array(__CLASS__, 'update_option'));
+        add_action('admin_init', array(__CLASS__, 'register_settings'));
+    }
+    
+    /**
+     * Register plugin settings
+     */
+    public static function register_settings() {
+        // Removed minification settings
+        // This is a placeholder for future settings registration
     }
     
     /**

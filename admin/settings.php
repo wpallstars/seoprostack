@@ -10,11 +10,12 @@ function wp_allstars_admin_menu() {
     WP_Allstars_Admin_Manager::register_admin_menu();
 }
 
-// Register settings
+// Register settings - now handled by WP_Allstars_Admin_Manager class, but kept for backward compatibility
 function wp_allstars_register_settings() {
-    // Removed minification settings
+    // This function now redirects to the Admin Manager class
+    // Kept for backward compatibility
+    WP_Allstars_Admin_Manager::register_settings();
 }
-add_action('admin_init', 'wp_allstars_register_settings');
 
 // AJAX handler for settings - now handled by WP_Allstars_Admin_Manager class, but kept for backward compatibility
 function wp_allstars_update_option() {
