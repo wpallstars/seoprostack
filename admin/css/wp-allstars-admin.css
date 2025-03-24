@@ -1031,6 +1031,17 @@ body.wp-admin .button.pricing-button:hover,
 #readme .wp-allstars-markdown-content li {
     margin-bottom: 5px;
     line-height: 1.4;
-    display: list-item;
+    display: list-item !important;
     padding-left: 5px; /* Add consistent padding for all list items */
+}
+
+/* Ensure consistent styling for all lists across sections */
+#readme .wp-allstars-markdown-content h2 + ul,
+#readme .wp-allstars-markdown-content h3 + ul,
+#readme .wp-allstars-markdown-content p + ul,
+#readme .wp-allstars-markdown-content h2 + ol,
+#readme .wp-allstars-markdown-content h3 + ol,
+#readme .wp-allstars-markdown-content p + ol {
+    margin-top: 10px;
+    margin-bottom: 15px;
 }
