@@ -59,12 +59,16 @@ if (is_admin()) {
     require_once plugin_dir_path(__FILE__) . 'admin/includes/class-pro-plugins-manager.php';
     require_once plugin_dir_path(__FILE__) . 'admin/includes/class-plugin-manager.php';
     require_once plugin_dir_path(__FILE__) . 'admin/includes/class-free-plugins-manager.php';
+    require_once plugin_dir_path(__FILE__) . 'admin/includes/class-about-manager.php';
     
     // Initialize the admin manager
     add_action('plugins_loaded', array('WP_Allstars_Admin_Manager', 'init'));
     
-    // Legacy files (for backward compatibility)
+    // Data files
     require_once plugin_dir_path(__FILE__) . 'admin/data/pro-plugins.php';
+    require_once plugin_dir_path(__FILE__) . 'admin/data/about.php';
+    
+    // Legacy files (for backward compatibility)
     require_once plugin_dir_path(__FILE__) . 'admin/settings.php';
 }
 

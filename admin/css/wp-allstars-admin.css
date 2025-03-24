@@ -848,3 +848,57 @@ input:checked + .wp-toggle-slider:before {
         width: 100%;
     }
 }
+
+/* Markdown Content Styles for About Tab */
+.wp-allstars-markdown-content {
+    line-height: 1.6;
+    color: #333;
+}
+
+.wp-allstars-markdown-content h1 {
+    font-size: 2em;
+    margin: 0.67em 0;
+    border-bottom: 1px solid #eaecef;
+    padding-bottom: 0.3em;
+}
+
+.wp-allstars-markdown-content h2 {
+    font-size: 1.5em;
+    margin: 0.83em 0;
+    border-bottom: 1px solid #eaecef;
+    padding-bottom: 0.3em;
+}
+
+.wp-allstars-markdown-content h3 {
+    font-size: 1.25em;
+    margin: 1em 0;
+}
+
+.wp-allstars-markdown-content ul {
+    padding-left: 2em;
+    margin: 1em 0;
+}
+
+.wp-allstars-markdown-content li {
+    margin: 0.5em 0;
+}
+
+.wp-allstars-markdown-content a {
+    color: #0073aa;
+    text-decoration: none;
+}
+
+.wp-allstars-markdown-content a:hover {
+    color: #00a0d2;
+    text-decoration: underline;
+}
+
+.wp-allstars-markdown-content p {
+    margin: 1em 0;
+}
+
+/* About Tab Panel */
+#about .wpa-pro-plugin {
+    max-width: 800px;
+    margin: 0 auto;
+}

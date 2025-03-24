@@ -250,6 +250,9 @@ class WP_Allstars_Admin_Manager {
                     <a href="?page=wp-allstars&tab=tools" class="nav-tab <?php echo $active_tab === 'tools' ? 'nav-tab-active' : ''; ?>">
                         <?php esc_html_e('Tools', 'wp-allstars'); ?>
                     </a>
+                    <a href="?page=wp-allstars&tab=about" class="nav-tab <?php echo $active_tab === 'about' ? 'nav-tab-active' : ''; ?>">
+                        <?php esc_html_e('About', 'wp-allstars'); ?>
+                    </a>
                 </h2>
                 
                 <div class="wp-allstars-tab-content">
@@ -286,6 +289,10 @@ class WP_Allstars_Admin_Manager {
                             
                         case 'tools':
                             WP_Allstars_Tools_Manager::display_tab_content();
+                            break;
+                            
+                        case 'about':
+                            WP_Allstars_About_Manager::display_tab_content();
                             break;
                     }
                     ?>
