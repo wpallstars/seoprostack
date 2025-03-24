@@ -1013,25 +1013,27 @@ body.wp-admin .button.pricing-button:hover,
     padding: 0; /* Remove padding here, add it to inner elements */
 }
 
-/* Free Plugins cards need specific targeting */
-#recommended .plugin-card {
-    max-width: 48%; /* Slightly less than 50% to create space between columns */
-    margin: 0 1% 20px 1%; /* Create gutters between cards */
-    box-sizing: border-box;
-    padding: 15px;
-    display: inline-block;
-    vertical-align: top;
-    position: relative; /* For absolute positioning of compatibility row */
-    padding-bottom: 50px; /* Make room for compatibility row */
-    height: calc(100% - 20px); /* Set consistent height */
-}
-
-/* Ensure plugin cards have proper spacing */
+/* Free Plugins grid layout with improved spacing */
 #recommended .wpa-plugin-container {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
     gap: 20px; /* Creates vertical and horizontal gaps */
-    padding: 0 10px;
+    padding: 0 15px;
+    margin-top: 15px;
+}
+
+/* Free Plugins card styling improvements */
+#recommended .plugin-card {
+    box-sizing: border-box;
+    padding: 15px 15px 65px; /* Increased bottom padding for compatibility message */
+    position: relative; /* For absolute positioning of compatibility message */
+    height: 100%; /* Full height to ensure all cards in a row have same height */
+    margin: 0; /* Remove margin since grid takes care of spacing */
+    display: flex;
+    flex-direction: column;
+    border: 1px solid #ddd;
+    border-radius: 3px;
+    box-shadow: 0 1px 1px rgba(0, 0, 0, 0.04);
 }
 
 /* Fix compatibility row alignment to bottom of card */
@@ -1040,14 +1042,52 @@ body.wp-admin .button.pricing-button:hover,
     bottom: 0;
     left: 0;
     right: 0;
-    padding: 10px 15px;
-    background-color: #f8f8f8;
+    padding: 12px 15px;
+    background-color: #f7f7f7;
     border-top: 1px solid #ddd;
+    text-align: center;
 }
 
 /* Ensure consistent card heights */
 #recommended .plugin-card .plugin-card-top {
-    min-height: 180px;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Style compatibility message */
+#recommended .plugin-card .column-compatibility {
+    margin-top: 10px;
+    text-align: center;
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+#recommended .plugin-card .compatibility-compatible {
+    color: #00a32a;
+}
+
+/* Improve plugin card elements */
+#recommended .plugin-card .name h3 {
+    margin: 0 0 12px;
+    font-size: 16px;
+}
+
+#recommended .plugin-card .desc {
+    margin: 10px 0;
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+#recommended .plugin-card .plugin-icon {
+    float: left;
+    margin: 0 15px 5px 0;
+    width: 128px;
+    height: 128px;
+}
+
+#recommended .plugin-card .action-links {
+    margin-top: 15px;
 }
 
 /* Explicitly target readme content */
