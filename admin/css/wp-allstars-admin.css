@@ -33,7 +33,7 @@
 }
 
 .wp-allstars-version {
-    color: #d35400; /* Updated to dark orange */
+    color: #0073aa; /* Changed to WordPress blue */
     font-size: 13px;
     font-weight: 400;
 }
@@ -927,7 +927,8 @@ input:checked + .wp-toggle-slider:before {
 #pro .button.button-secondary,
 #hosting .button.button-secondary,
 #tools .button.button-secondary,
-#readme .button.button-secondary {
+#readme .button.button-secondary,
+.button.button-secondary {
     transition: all 0.3s ease !important;
     color: #219653 !important; /* Darker green */
     border-color: #219653 !important; /* Darker green */
@@ -943,11 +944,19 @@ input:checked + .wp-toggle-slider:before {
 #pro .button.button-secondary:hover,
 #hosting .button.button-secondary:hover,
 #tools .button.button-secondary:hover,
-#readme .button.button-secondary:hover {
+#readme .button.button-secondary:hover,
+.button.button-secondary:hover {
     color: #1b7b42 !important; /* Even darker green on hover */
     border-color: #1b7b42 !important; /* Even darker green on hover */
     background-color: rgba(33, 150, 83, 0.05) !important; /* Very light green background */
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1) !important;
+}
+
+/* Button text vertical alignment */
+.button, .button-primary, .button-secondary {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
 }
 
 /* Read Me Tab Panel */
