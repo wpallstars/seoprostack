@@ -16,8 +16,7 @@ class WP_Allstars_Tools_Manager {
      * Initialize the class
      */
     public static function init() {
-        // Hook into WordPress if needed
-        add_action('admin_enqueue_scripts', array(self::class, 'enqueue_styles'));
+        // No hooks needed currently as styles are included directly in the HTML output
     }
     
     /**
@@ -41,53 +40,10 @@ class WP_Allstars_Tools_Manager {
             return strcasecmp($a['name'], $b['name']);
         });
         
-        // Output the HTML for the tools tab
+        // Output the CSS and HTML for the tools tab
         ?>
-        <div class="wpa-tools-grid">
-            <?php
-            foreach ($tools as $tool) {
-                self::display_tool_card($tool);
-            }
-            ?>
-        </div>
-        <?php
-    }
-    
-    /**
-     * Display a single tool card
-     * 
-     * @param array $tool Tool configuration
-     */
-    public static function display_tool_card($tool) {
-        ?>
-        <div class="wpa-tool-card">
-            <h3><?php echo esc_html($tool['name']); ?></h3>
-            <p><?php echo esc_html($tool['description']); ?></p>
-            <?php if (isset($tool['button_group'])): ?>
-                <div class="button-group">
-                    <?php foreach ($tool['button_group'] as $button): ?>
-                        <a href="<?php echo esc_url($button['url']); ?>" target="_blank" class="button <?php echo isset($button['primary']) && $button['primary'] ? 'button-primary' : ''; ?>">
-                            <?php echo esc_html($button['text']); ?>
-                        </a>
-                    <?php endforeach; ?>
-                </div>
-            <?php endif; ?>
-        </div>
-        <?php
-    }
-    
-    /**
-     * Enqueue styles specific to tools
-     */
-    public static function enqueue_styles($hook) {
-        // Only load on the plugin settings page
-        if (strpos($hook, 'wp-allstars') === false) {
-            return;
-        }
-        
-        // Add inline CSS for tools
-        $custom_css = '
-        .wpa-tools-grid {
+        <style>
+        .wpa-pro-plugins {
             padding: 20px;
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(450px, 1fr));
@@ -95,7 +51,7 @@ class WP_Allstars_Tools_Manager {
             max-width: 1920px;
             margin: 0 auto;
         }
-        .wpa-tool-card {
+        .wpa-pro-plugin {
             background: #fff;
             border: 1px solid #ddd;
             padding: 24px;
@@ -105,30 +61,30 @@ class WP_Allstars_Tools_Manager {
             transition: all 0.2s ease;
             box-shadow: 0 1px 3px rgba(0,0,0,0.1);
         }
-        .wpa-tool-card:hover {
+        .wpa-pro-plugin:hover {
             border-color: #2271b1;
             box-shadow: 0 2px 6px rgba(0,0,0,0.15);
         }
-        .wpa-tool-card h3 {
+        .wpa-pro-plugin h3 {
             margin: 0 0 12px;
             font-size: 16px;
             font-weight: 600;
             color: #1d2327;
             line-height: 1.4;
         }
-        .wpa-tool-card p {
+        .wpa-pro-plugin p {
             margin: 0 0 16px;
             color: #50575e;
             font-size: 14px;
             line-height: 1.6;
         }
-        .wpa-tool-card .button-group {
+        .wpa-pro-plugin .button-group {
             display: flex;
             flex-wrap: wrap;
             gap: 8px;
             margin-top: auto;
         }
-        .wpa-tool-card .button {
+        .wpa-pro-plugin .button {
             text-decoration: none;
             min-width: 120px;
             text-align: center;
@@ -147,12 +103,12 @@ class WP_Allstars_Tools_Manager {
             box-shadow: none;
             cursor: pointer;
         }
-        .wpa-tool-card .button:hover {
+        .wpa-pro-plugin .button:hover {
             background: #f0f0f1;
             border-color: #0071a1;
             color: #0071a1;
         }
-        .wpa-tool-card .button.button-primary {
+        .wpa-pro-plugin .button.button-primary {
             background: #2271b1;
             border-color: #2271b1 !important;
             color: #fff;
@@ -167,7 +123,7 @@ class WP_Allstars_Tools_Manager {
                 gap: 20px;
                 padding: 16px;
             }
-            .wpa-tool-card {
+            .wpa-pro-plugin {
                 padding: 20px;
             }
         }
@@ -177,15 +133,56 @@ class WP_Allstars_Tools_Manager {
                 gap: 16px;
                 padding: 12px;
             }
-            .wpa-tool-card {
+            .wpa-pro-plugin {
                 padding: 16px;
             }
-            .wpa-tool-card .button {
+            .wpa-pro-plugin .button {
                 width: 100%;
             }
         }
-        ';
-        
-        wp_add_inline_style('wp-allstars-admin', $custom_css);
+        </style>
+
+        <div class="wpa-pro-plugins">
+            <?php
+            foreach ($tools as $tool) {
+                self::display_tool_card($tool);
+            }
+            ?>
+        </div>
+        <?php
+    }
+    
+    /**
+     * Display a single tool card
+     * 
+     * @param array $tool Tool configuration
+     */
+    public static function display_tool_card($tool) {
+        ?>
+        <div class="wpa-pro-plugin">
+            <h3><?php echo esc_html($tool['name']); ?></h3>
+            <p><?php echo esc_html($tool['description']); ?></p>
+            <?php if (isset($tool['button_group'])): ?>
+                <div class="button-group">
+                    <?php foreach ($tool['button_group'] as $button): ?>
+                        <a href="<?php echo esc_url($button['url']); ?>" target="_blank" class="button <?php echo isset($button['primary']) && $button['primary'] ? 'button-primary' : ''; ?>">
+                            <?php echo esc_html($button['text']); ?>
+                        </a>
+                    <?php endforeach; ?>
+                </div>
+            <?php endif; ?>
+        </div>
+        <?php
+    }
+    
+    /**
+     * Enqueue styles specific to tools
+     * 
+     * Note: This method is no longer used as styles are now directly included in the display_tab_content method
+     * for immediate application. Kept for reference or future use if needed.
+     */
+    public static function enqueue_styles($hook) {
+        // This method is currently not in use as styles are directly included in the HTML output
+        // to ensure immediate application without relying on the WordPress hook system timing
     }
 }
