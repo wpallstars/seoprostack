@@ -147,6 +147,21 @@ function wp_allstars_get_hosting_providers() {
                     'url' => 'https://updown.io/pricing'
                 )
             )
+        ),
+        'coolify' => array(
+            'name' => 'Coolify',
+            'description' => 'Self-hostable Heroku & Netlify alternative for developers. Deploy your apps, databases, and services with ease.',
+            'button_group' => array(
+                array(
+                    'text' => 'Home Page',
+                    'url' => 'https://coolify.io/',
+                    'primary' => true
+                ),
+                array(
+                    'text' => 'Pricing',
+                    'url' => 'https://coolify.io/pricing/'
+                )
+            )
         )
     );
 }
