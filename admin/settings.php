@@ -48,6 +48,7 @@ require_once dirname(__FILE__) . '/includes/class-settings-manager.php';
 require_once dirname(__FILE__) . '/includes/class-tools-manager.php';
 require_once dirname(__FILE__) . '/includes/class-theme-manager.php';
 require_once dirname(__FILE__) . '/includes/class-hosting-manager.php';
+require_once dirname(__FILE__) . '/includes/class-recommended-plugins-manager.php';
 
 // Initialize the managers
 WP_Allstars_Plugin_Manager::init();
@@ -56,6 +57,7 @@ WP_Allstars_Settings_Manager::init();
 WP_Allstars_Tools_Manager::init();
 WP_Allstars_Theme_Manager::init();
 WP_Allstars_Hosting_Manager::init();
+WP_Allstars_Recommended_Plugins_Manager::init();
 
 
 // Remove the old plugins API filter since we're handling everything in the AJAX endpoint
@@ -334,62 +336,7 @@ function wp_allstars_settings_page() {
                     </div>
                 <?php elseif ($active_tab == 'recommended'): ?>
                     <div class="tab-content" id="recommended">
-                        <div id="wpa-plugin-filters" class="wp-filter">
-                            <ul class="filter-links">
-                                <li><a href="#" data-category="minimal" class="<?php echo $active_category == 'minimal' ? 'current' : ''; ?>">
-                                    <?php esc_html_e('Minimal', 'wp-allstars'); ?>
-                                </a></li>
-                                <li><a href="#" data-category="admin" class="<?php echo $active_category == 'admin' ? 'current' : ''; ?>">
-                                    <?php esc_html_e('Admin', 'wp-allstars'); ?>
-                                </a></li>
-                                <li><a href="#" data-category="ai" class="<?php echo $active_category == 'ai' ? 'current' : ''; ?>">
-                                    <?php esc_html_e('AI', 'wp-allstars'); ?>
-                                </a></li>
-                                <li><a href="#" data-category="cms" class="<?php echo $active_category == 'cms' ? 'current' : ''; ?>">
-                                    <?php esc_html_e('CMS', 'wp-allstars'); ?>
-                                </a></li>
-                                <li><a href="#" data-category="compliance" class="<?php echo $active_category == 'compliance' ? 'current' : ''; ?>">
-                                    <?php esc_html_e('Compliance', 'wp-allstars'); ?>
-                                </a></li>
-                                <li><a href="#" data-category="crm" class="<?php echo $active_category == 'crm' ? 'current' : ''; ?>">
-                                    <?php esc_html_e('CRM', 'wp-allstars'); ?>
-                                </a></li>
-                                <li><a href="#" data-category="ecommerce" class="<?php echo $active_category == 'ecommerce' ? 'current' : ''; ?>">
-                                    <?php esc_html_e('Ecommerce', 'wp-allstars'); ?>
-                                </a></li>
-                                <li><a href="#" data-category="lms" class="<?php echo $active_category == 'lms' ? 'current' : ''; ?>">
-                                    <?php esc_html_e('LMS', 'wp-allstars'); ?>
-                                </a></li>
-                                <li><a href="#" data-category="media" class="<?php echo $active_category == 'media' ? 'current' : ''; ?>">
-                                    <?php esc_html_e('Media', 'wp-allstars'); ?>
-                                </a></li>
-                                <li><a href="#" data-category="seo" class="<?php echo $active_category == 'seo' ? 'current' : ''; ?>">
-                                    <?php esc_html_e('SEO', 'wp-allstars'); ?>
-                                </a></li>
-                                <li><a href="#" data-category="setup" class="<?php echo $active_category == 'setup' ? 'current' : ''; ?>">
-                                    <?php esc_html_e('Setup', 'wp-allstars'); ?>
-                                </a></li>
-                                <li><a href="#" data-category="social" class="<?php echo $active_category == 'social' ? 'current' : ''; ?>">
-                                    <?php esc_html_e('Social', 'wp-allstars'); ?>
-                                </a></li>
-                                <li><a href="#" data-category="speed" class="<?php echo $active_category == 'speed' ? 'current' : ''; ?>">
-                                    <?php esc_html_e('Speed', 'wp-allstars'); ?>
-                                </a></li>
-                                <li><a href="#" data-category="translation" class="<?php echo $active_category == 'translation' ? 'current' : ''; ?>">
-                                    <?php esc_html_e('Translation', 'wp-allstars'); ?>
-                                </a></li>
-                                <li><a href="#" data-category="advanced" class="<?php echo $active_category == 'advanced' ? 'current' : ''; ?>">
-                                    <?php esc_html_e('Advanced', 'wp-allstars'); ?>
-                                </a></li>
-                                <li><a href="#" data-category="debug" class="<?php echo $active_category == 'debug' ? 'current' : ''; ?>">
-                                    <?php esc_html_e('Debug', 'wp-allstars'); ?>
-                                </a></li>
-                            </ul>
-                        </div>
-
-                        <div class="wp-allstars-plugin-browser">
-                            <div id="wpa-plugin-list"></div>
-                        </div>
+                        <?php WP_Allstars_Recommended_Plugins_Manager::display_tab_content(); ?>
                     </div>
                 <?php elseif ($active_tab == 'pro'): ?>
                     <div class="tab-content" id="pro">
