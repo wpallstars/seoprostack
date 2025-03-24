@@ -42,6 +42,7 @@ class WP_Allstars_Tools_Manager {
         
         // Output the CSS and HTML for the tools tab
         ?>
+        <div class="wp-allstars-settings-content tab-content" id="tools">
         <style>
         .wpa-pro-plugins {
             padding: 20px;
@@ -148,6 +149,7 @@ class WP_Allstars_Tools_Manager {
                 self::display_tool_card($tool);
             }
             ?>
+        </div>
         </div>
         <?php
     }

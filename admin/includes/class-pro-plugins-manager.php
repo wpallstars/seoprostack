@@ -42,13 +42,13 @@ class WP_Allstars_Pro_Plugins_Manager {
         });
         
         // Output the HTML for the pro plugins tab
-        echo '<div class="wpa-pro-plugins">';
+        echo '<div class="wp-allstars-settings-content tab-content" id="pro"><div class="wpa-pro-plugins">';
         
         foreach ($pro_plugins as $plugin) {
             self::display_plugin_card($plugin);
         }
         
-        echo '</div>';
+        echo '</div></div>';
     }
     
     /**

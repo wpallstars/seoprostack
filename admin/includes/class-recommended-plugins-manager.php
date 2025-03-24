@@ -25,6 +25,7 @@ class WP_Allstars_Recommended_Plugins_Manager {
         // Get the active category from query params or default to 'minimal'
         $active_category = isset($_GET['category']) ? sanitize_text_field($_GET['category']) : 'minimal';
         ?>
+        <div class="wp-allstars-settings-content tab-content" id="recommended">
         <div id="wpa-plugin-filters" class="wp-filter">
             <ul class="filter-links">
                 <li><a href="#" data-category="minimal" class="<?php echo $active_category == 'minimal' ? 'current' : ''; ?>">
@@ -80,6 +81,7 @@ class WP_Allstars_Recommended_Plugins_Manager {
 
         <div class="wp-allstars-plugin-browser">
             <div id="wpa-plugin-list"></div>
+        </div>
         </div>
         <?php
     }

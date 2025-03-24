@@ -23,7 +23,8 @@ class WP_Allstars_Hosting_Manager {
      */
     public static function display_tab_content() {
         ?>
-        <div class="wpa-pro-plugins">
+        <div class="wp-allstars-settings-content tab-content" id="hosting">
+            <div class="wpa-pro-plugins">
             <?php
             $hosting_providers = self::get_hosting_providers();
             // Sort providers alphabetically by name
@@ -48,6 +49,7 @@ class WP_Allstars_Hosting_Manager {
                 <?php
             }
             ?>
+            </div>
         </div>
         <?php
     }
