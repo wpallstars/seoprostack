@@ -41,15 +41,17 @@ require_once dirname(__FILE__) . '/data/hosting-providers.php';
 // Include recommended plugins data
 require_once dirname(__FILE__) . '/data/recommended-plugins.php';
 
-// Include the Plugin Manager class
+// Include manager classes
 require_once dirname(__FILE__) . '/includes/class-plugin-manager.php';
-
-// Include the Pro Plugins Manager class
 require_once dirname(__FILE__) . '/includes/class-pro-plugins-manager.php';
+require_once dirname(__FILE__) . '/includes/class-settings-manager.php';
+require_once dirname(__FILE__) . '/includes/class-tools-manager.php';
 
 // Initialize the managers
 WP_Allstars_Plugin_Manager::init();
 WP_Allstars_Pro_Plugins_Manager::init();
+WP_Allstars_Settings_Manager::init();
+WP_Allstars_Tools_Manager::init();
 
 
 // Remove the old plugins API filter since we're handling everything in the AJAX endpoint
@@ -659,74 +661,11 @@ function wp_allstars_settings_page() {
                     </div>
                 <?php elseif ($active_tab == 'general'): ?>
                     <div class="tab-content" id="general">
-                        <div class="wp-allstars-settings-section">
-                            <div class="wp-allstars-settings-grid">
-                                <!-- Example of a simple toggle setting (no panel) -->
-                                <div class="wp-setting-row">
-                                    <div class="wp-setting-header">
-                                        <div class="wp-setting-main">
-                                            <div class="wp-setting-left">
-                                                <div class="wp-toggle-switch">
-                                                    <input type="checkbox" 
-                                                           id="wp_allstars_simple_setting"
-                                                           name="wp_allstars_simple_setting" 
-                                                           value="1"
-                                                           <?php checked(get_option('wp_allstars_simple_setting', false)); ?> 
-                                                    />
-                                                    <span class="wp-toggle-slider"></span>
-                                                </div>
-                                                <label for="wp_allstars_simple_setting" class="wp-setting-label">
-                                                    <?php esc_html_e('Example: Simple Toggle', 'wp-allstars'); ?>
-                    </label>
-                                    </div>
-                                    </div>
-                                    <p class="wp-setting-description">
-                                        <?php esc_html_e('This is an example of a simple toggle setting without an expandable panel. Currently for demonstration purposes only.', 'wp-allstars'); ?>
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
+                        <?php WP_Allstars_Settings_Manager::display_general_tab(); ?>
                     </div>
                 <?php elseif ($active_tab == 'advanced'): ?>
                     <div class="tab-content" id="advanced">
-                        <div class="wp-allstars-settings-section">
-                            <div class="wp-allstars-settings-grid">
-                                <!-- Example of an expandable panel setting -->
-                                <div class="wp-allstars-toggle">
-                                    <div class="wp-allstars-toggle-header" aria-expanded="false">
-                                        <div class="wp-allstars-toggle-main">
-                                            <div class="wp-allstars-toggle-left">
-                                                <div class="wp-toggle-switch">
-                                                    <input type="checkbox" 
-                                                           id="wp_allstars_auto_upload_images"
-                                                           name="wp_allstars_auto_upload_images" 
-                                                           value="1"
-                                                           <?php checked(get_option('wp_allstars_auto_upload_images', false)); ?> 
-                                                    />
-                                                    <span class="wp-toggle-slider"></span>
-                                                </div>
-                                                <label for="wp_allstars_auto_upload_images">
-                                                    <?php esc_html_e('Example: Expandable Panel', 'wp-allstars'); ?>
-                    </label>
-                                            </div>
-                                        </div>
-                                        <p class="wp-setting-description">
-                                            <?php esc_html_e('This is an example of an expandable panel setting. Currently for demonstration purposes only - no actual functionality.', 'wp-allstars'); ?>
-                                        </p>
-                                    </div>
-                                    <div class="wp-allstars-toggle-settings">
-                                        <div class="wp-allstars-setting-row">
-                                            <label for="example_text"><?php esc_html_e('Example Text Field', 'wp-allstars'); ?></label>
-                                            <input type="text" 
-                                                   id="example_text"
-                                                   name="example_text"
-                                                   value="Example value"
-                                            />
-                                            <p class="description"><?php esc_html_e('This is an example text field for demonstration purposes.', 'wp-allstars'); ?></p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
+                        <?php WP_Allstars_Settings_Manager::display_advanced_tab(); ?>
                     </div>
                 <?php elseif ($active_tab == 'theme'): ?>
                     <div class="tab-content" id="theme">
@@ -823,108 +762,7 @@ function wp_allstars_settings_page() {
                     </div>
                 <?php elseif ($active_tab == 'tools'): ?>
                     <div class="tab-content" id="tools">
-                        <style>
-                        .wpa-pro-plugins {
-                            padding: 20px;
-                            display: grid;
-                            grid-template-columns: repeat(auto-fill, minmax(450px, 1fr));
-                            gap: 24px;
-                            max-width: 1920px;
-                            margin: 0 auto;
-                        }
-                        .wpa-pro-plugin {
-                            background: #fff;
-                            border: 1px solid #ddd;
-                            padding: 24px;
-                            border-radius: 8px;
-                            display: flex;
-                            flex-direction: column;
-                            transition: all 0.2s ease;
-                            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-                        }
-                        .wpa-pro-plugin:hover {
-                            border-color: #2271b1;
-                            box-shadow: 0 2px 6px rgba(0,0,0,0.15);
-                        }
-                        .wpa-pro-plugin h3 {
-                            margin: 0 0 12px;
-                            font-size: 16px;
-                            font-weight: 600;
-                            color: #1d2327;
-                            line-height: 1.4;
-                        }
-                        .wpa-pro-plugin p {
-                            margin: 0 0 16px;
-                            color: #50575e;
-                            font-size: 14px;
-                            line-height: 1.6;
-                        }
-                        .wpa-pro-plugin .button-group {
-                            display: flex;
-                            flex-wrap: wrap;
-                            gap: 8px;
-                            margin-top: auto;
-                        }
-                        .wpa-pro-plugin .button {
-                            text-decoration: none;
-                            min-width: 120px;
-                            text-align: center;
-                            height: 30px;
-                            line-height: 28px;
-                            padding: 0 12px;
-                            font-size: 13px;
-                            font-weight: normal;
-                            margin: 0;
-                            border: 1px solid #0071a1 !important;
-                            border-radius: 3px !important;
-                            background: #f6f7f7;
-                            color: #0071a1;
-                            display: inline-block;
-                            vertical-align: top;
-                            box-shadow: none;
-                            cursor: pointer;
-                        }
-                        .wpa-pro-plugin .button:hover {
-                            background: #f0f0f1;
-                            border-color: #0071a1;
-                            color: #0071a1;
-                        }
-                        .wpa-pro-plugin .button.button-primary {
-                            background: #2271b1;
-                            border-color: #2271b1 !important;
-                            color: #fff;
-                        }
-                        .wpa-pro-plugin .button.button-primary:hover {
-                            background: #135e96;
-                            border-color: #135e96 !important;
-                        }
-                        </style>
-                        <div class="wpa-pro-plugins">
-                            <?php
-                            $tools = wp_allstars_get_tools();
-                            // Sort tools alphabetically by name
-                            uasort($tools, function($a, $b) {
-                                return strcasecmp($a['name'], $b['name']);
-                            });
-                            foreach ($tools as $tool) {
-                                ?>
-                                <div class="wpa-pro-plugin">
-                                    <h3><?php echo esc_html($tool['name']); ?></h3>
-                                    <p><?php echo esc_html($tool['description']); ?></p>
-                                    <?php if (isset($tool['button_group'])): ?>
-                                        <div class="button-group">
-                                            <?php foreach ($tool['button_group'] as $button): ?>
-                                                <a href="<?php echo esc_url($button['url']); ?>" target="_blank" class="button <?php echo isset($button['primary']) && $button['primary'] ? 'button-primary' : ''; ?>">
-                                                    <?php echo esc_html($button['text']); ?>
-                                                </a>
-                                            <?php endforeach; ?>
-                                        </div>
-                                    <?php endif; ?>
-                                </div>
-                                <?php
-                            }
-                            ?>
-                        </div>
+                        <?php WP_Allstars_Tools_Manager::display_tab_content(); ?>
                     </div>
                 <?php endif; ?>
             </div>
