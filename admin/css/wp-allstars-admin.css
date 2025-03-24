@@ -1009,7 +1009,7 @@ body.wp-admin .button.pricing-button:hover,
     max-width: 50%;
     margin: 0 auto 20px auto; /* Added bottom margin for spacing */
     box-sizing: border-box;
-    padding: 0 10px; /* Add consistent padding */
+    padding: 0; /* Remove padding here, add it to inner elements */
 }
 
 /* Free Plugins cards need specific targeting */
@@ -1058,6 +1058,7 @@ body.wp-admin .button.pricing-button:hover,
 /* Prevent text from overlapping dropdown chevron icon */
 .wp-allstars-toggle-header {
     position: relative;
+    padding: 15px;
     padding-right: 40px; /* Make room for chevron */
 }
 
@@ -1068,19 +1069,29 @@ body.wp-admin .button.pricing-button:hover,
 
 /* Fix gaps in advanced settings accordion */
 .wp-allstars-toggle-settings {
-    padding: 15px;
+    padding: 15px 0;
     margin: 0;
     background-color: #f8f8f8;
     border: 1px solid #eee;
     border-top: none;
+    width: 100%;
 }
 
 .wp-allstars-setting-row {
     margin-bottom: 15px;
+    padding: 0 15px;
 }
 
 .wp-allstars-setting-row:last-child {
     margin-bottom: 0;
+}
+
+/* Remove side gaps in text inputs and textareas */
+.wp-allstars-toggle-settings input[type="text"],
+.wp-allstars-toggle-settings textarea {
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
 }
 
 /* Ensure text doesn't overflow */
