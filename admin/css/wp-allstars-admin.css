@@ -142,7 +142,7 @@ input:checked + .wp-toggle-slider:before {
 
 /* Tab Content Area */
 .wp-allstars-tab-content {
-    padding-top: 20px;
+    padding-top: 22px;
 }
 
 /* Settings Content */
@@ -162,7 +162,7 @@ input:checked + .wp-toggle-slider:before {
 
 /* Ensure consistent spacing for all tabs */
 .wp-allstars-tab-content {
-    padding-top: 20px;
+    padding-top: 22px;
 }
 
 /* Ensure any AJAX-loaded content follows the same padding rules */
