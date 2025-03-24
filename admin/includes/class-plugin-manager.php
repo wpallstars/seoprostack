@@ -316,7 +316,7 @@ class WP_Allstars_Plugin_Manager {
             $pro_url = self::get_pro_plugin_url($pro_plugin);
             
             if (!empty($pro_url)) {
-                echo '<li><a href="' . esc_url($pro_url) . '" target="_blank" class="button button-primary" style="background-color: #27ae60; border-color: #219653;">' . esc_html__('Go Pro', 'wp-allstars') . '</a></li>';
+                echo '<li><a href="' . esc_url($pro_url) . '" target="_blank" class="button button-primary go-pro-button">' . esc_html__('Go Pro', 'wp-allstars') . '</a></li>';
             }
         }
     }

@@ -88,7 +88,7 @@ if (!defined('ABSPATH')) {
         <a class="button button-secondary" href="https://www.kadencewp.com/pricing/" target="_blank">
             <?php esc_html_e('Pricing'); ?>
         </a>
-        <a class="button button-primary" href="https://www.kadencewp.com/kadence-theme/" target="_blank">
+        <a class="button button-primary go-pro-button" href="https://www.kadencewp.com/kadence-theme/" target="_blank">
             <?php esc_html_e('Go Pro'); ?>
         </a>
     </div>
