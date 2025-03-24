@@ -20,6 +20,27 @@ class WP_Allstars_Admin_Manager {
         add_action('admin_menu', array(__CLASS__, 'register_admin_menu'));
         add_action('wp_ajax_wp_allstars_update_option', array(__CLASS__, 'update_option'));
         add_action('admin_init', array(__CLASS__, 'register_settings'));
+        add_action('admin_enqueue_scripts', array(__CLASS__, 'enqueue_admin_scripts'));
+    }
+    
+    /**
+     * Enqueue admin scripts and styles
+     * 
+     * @param string $hook The current admin page hook
+     */
+    public static function enqueue_admin_scripts($hook) {
+        if ('settings_page_wp-allstars' !== $hook) {
+            return;
+        }
+
+        wp_enqueue_style('wp-allstars-admin', plugins_url('css/wp-allstars-admin.css', dirname(__FILE__)));
+        wp_enqueue_script('wp-allstars-admin', plugins_url('js/wp-allstars-admin.js', dirname(__FILE__)), array('jquery'), WP_ALLSTARS_VERSION, true);
+        
+        // Localize the script with new data
+        wp_localize_script('wp-allstars-admin', 'wpAllstars', array(
+            'nonce' => wp_create_nonce('wp-allstars-nonce'),
+            'ajaxurl' => admin_url('admin-ajax.php')
+        ));
     }
     
     /**

@@ -360,19 +360,9 @@ function wp_allstars_settings_page() {
     <?php
 }
 
-// Enqueue admin scripts and styles
+// Enqueue admin scripts and styles - now handled by WP_Allstars_Admin_Manager class, but kept for backward compatibility
 function wp_allstars_admin_enqueue_scripts($hook) {
-    if ('settings_page_wp-allstars' !== $hook) {
-        return;
-    }
-
-    wp_enqueue_style('wp-allstars-admin', plugins_url('css/wp-allstars-admin.css', __FILE__));
-    wp_enqueue_script('wp-allstars-admin', plugins_url('js/wp-allstars-admin.js', __FILE__), array('jquery'), WP_ALLSTARS_VERSION, true);
-    
-    // Localize the script with new data
-    wp_localize_script('wp-allstars-admin', 'wpAllstars', array(
-        'nonce' => wp_create_nonce('wp-allstars-nonce'),
-        'ajaxurl' => admin_url('admin-ajax.php')
-    ));
+    // This function now redirects to the Admin Manager class
+    // Kept for backward compatibility
+    WP_Allstars_Admin_Manager::enqueue_admin_scripts($hook);
 }
-add_action('admin_enqueue_scripts', 'wp_allstars_admin_enqueue_scripts');
