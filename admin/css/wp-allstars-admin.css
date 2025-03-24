@@ -1016,16 +1016,25 @@ body.wp-admin .button.pricing-button:hover,
 /* Free Plugins grid layout with improved spacing */
 #recommended .wpa-plugin-container {
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: 1fr; /* Default to single column */
     gap: 20px; /* Creates vertical and horizontal gaps */
     padding: 0 15px;
-    margin-top: 15px;
+    margin: 15px auto;
+    max-width: 800px; /* Fixed max-width to keep centered layout at all breakpoints */
+}
+
+/* Switch to 2-column layout on screens wider than 1200px */
+@media screen and (min-width: 1200px) {
+    #recommended .wpa-plugin-container {
+        grid-template-columns: repeat(2, 1fr);
+        max-width: 1200px;
+    }
 }
 
 /* Free Plugins card styling improvements */
 #recommended .plugin-card {
     box-sizing: border-box;
-    padding: 15px 15px 65px; /* Increased bottom padding for compatibility message */
+    padding: 15px 15px 90px; /* Increased bottom padding for compatibility message + room for buttons */
     position: relative; /* For absolute positioning of compatibility message */
     height: 100%; /* Full height to ensure all cards in a row have same height */
     margin: 0; /* Remove margin since grid takes care of spacing */
