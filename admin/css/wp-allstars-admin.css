@@ -709,7 +709,7 @@ input:checked + .wp-toggle-slider:before {
 .wp-allstars-setting-row label .wp-setting-notification {
     position: absolute;
     right: -60px;
-    top: -2px;
+    top: -5px;
     transform: translateY(0);
     line-height: 1.4;
 }
