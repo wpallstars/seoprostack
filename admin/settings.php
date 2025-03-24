@@ -388,14 +388,14 @@ function wp_allstars_settings_page() {
                     <a href="?page=wp-allstars&tab=workflow" class="nav-tab <?php echo $active_tab == 'workflow' ? 'nav-tab-active' : ''; ?>">
                         <?php esc_html_e('Workflow', 'wp-allstars'); ?>
                     </a>
+                    <a href="?page=wp-allstars&tab=theme" class="nav-tab <?php echo $active_tab == 'theme' ? 'nav-tab-active' : ''; ?>">
+                        <?php esc_html_e('Theme', 'wp-allstars'); ?>
+                    </a>
                     <a href="?page=wp-allstars&tab=recommended" class="nav-tab <?php echo $active_tab == 'recommended' ? 'nav-tab-active' : ''; ?>">
                         <?php esc_html_e('Free Plugins', 'wp-allstars'); ?>
                     </a>
                     <a href="?page=wp-allstars&tab=pro" class="nav-tab <?php echo $active_tab == 'pro' ? 'nav-tab-active' : ''; ?>">
                         <?php esc_html_e('Pro Plugins', 'wp-allstars'); ?>
-                    </a>
-                    <a href="?page=wp-allstars&tab=theme" class="nav-tab <?php echo $active_tab == 'theme' ? 'nav-tab-active' : ''; ?>">
-                        <?php esc_html_e('Theme', 'wp-allstars'); ?>
                     </a>
                     <a href="?page=wp-allstars&tab=hosting" class="nav-tab <?php echo $active_tab == 'hosting' ? 'nav-tab-active' : ''; ?>">
                         <?php esc_html_e('Hosting', 'wp-allstars'); ?>
