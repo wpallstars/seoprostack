@@ -897,6 +897,25 @@ input:checked + .wp-toggle-slider:before {
     margin: 1em 0;
 }
 
+/* Go Pro Button Styles */
+.button.button-primary[style*="background-color: #27ae60"],
+.theme-install-actions .button.button-primary,
+.wpa-pro-plugin .button-group .button.button-primary,
+.go-pro-button {
+    transition: all 0.3s ease !important;
+    background-color: #27ae60 !important;
+    border-color: #219653 !important;
+}
+
+.button.button-primary[style*="background-color: #27ae60"]:hover,
+.theme-install-actions .button.button-primary:hover,
+.wpa-pro-plugin .button-group .button.button-primary:hover,
+.go-pro-button:hover {
+    background-color: #219653 !important;
+    border-color: #1e874b !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2) !important;
+}
+
 /* Read Me Tab Panel */
 #readme .wpa-pro-plugins {
     display: block;

@@ -89,7 +89,17 @@ class WP_Allstars_Pro_Plugins_Manager {
             <?php if (isset($plugin['button_group'])): ?>
                 <div class="button-group">
                     <?php foreach ($plugin['button_group'] as $button): ?>
-                        <a href="<?php echo esc_url($button['url']); ?>" target="_blank" class="button <?php echo isset($button['primary']) && $button['primary'] ? 'button-primary' : ''; ?>">
+                        <?php 
+                        $button_class = 'button';
+                        if (isset($button['primary']) && $button['primary']) {
+                            $button_class .= ' button-primary';
+                            // Add green color to 'Go Pro' buttons
+                            if ($button['text'] === 'Go Pro') {
+                                $button_class .= ' go-pro-button';
+                            }
+                        }
+                        ?>
+                        <a href="<?php echo esc_url($button['url']); ?>" target="_blank" class="<?php echo esc_attr($button_class); ?>">
                             <?php echo esc_html($button['text']); ?>
                         </a>
                     <?php endforeach; ?>
