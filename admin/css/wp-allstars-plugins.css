@@ -25,7 +25,7 @@
 
 /* Standard WordPress Plugin Grid Layout - exactly matching core */
 .wp-allstars-wrap .wp-list-table.plugin-install {
-    margin-top: 20px;
+    margin-top: 22px;
     clear: both;
     padding: 0;
 }
@@ -157,7 +157,7 @@ body.wp-admin .wp-list-table.plugin-install #the-list .plugin-card .plugin-card-
     min-height: 100px !important;
     position: relative !important;
     padding: 20px !important;
-    padding-top: 20px !important; /* Force top padding to stay at 20px */
+    padding-top: 22px !important; /* Force top padding to stay at 22px */
     overflow: hidden !important;
 }
 
@@ -165,7 +165,7 @@ body.wp-admin .wp-list-table.plugin-install #the-list .plugin-card .plugin-card-
 @supports (display: flex) {
     body.wp-admin .wp-list-table.plugin-install #the-list .plugin-card .plugin-card-top {
         padding: 20px !important;
-        padding-top: 20px !important;
+        padding-top: 22px !important;
         min-height: 100px !important;
     }
 }

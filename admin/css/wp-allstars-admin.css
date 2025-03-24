@@ -336,7 +336,7 @@ input:checked + .wp-toggle-slider:before {
 
 /* Settings Container */
 .wpa-settings-content {
-    margin-top: 20px;
+    margin-top: 22px;
     padding: 0 20px;
 }
 
@@ -388,7 +388,7 @@ input:checked + .wp-toggle-slider:before {
 
 /* Plugin List Container */
 .wp-list-table-container {
-    margin-top: 20px;
+    margin-top: 22px;
     padding: 0 20px;
     position: relative;
     min-height: 400px;
@@ -526,7 +526,7 @@ input:checked + .wp-toggle-slider:before {
 
 /* Theme Container */
 #wpa-theme-list {
-    margin-top: 20px;
+    margin-top: 22px;
     padding: 0 20px;
     position: relative;
     min-height: 400px;
