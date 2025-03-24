@@ -1,6 +1,6 @@
 <?php
 /**
- * About Page Manager Class
+ * Read Me Manager Class
  * 
  * @package WP_ALLSTARS
  * @since 0.2.0
@@ -10,7 +10,7 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-class WP_Allstars_About_Manager {
+class WP_Allstars_Readme_Manager {
     
     /**
      * Initialize the class
@@ -20,7 +20,7 @@ class WP_Allstars_About_Manager {
     }
     
     /**
-     * Enqueue styles for the about tab
+     * Enqueue styles for the readme tab
      *
      * @param string $hook Current admin page hook
      */
@@ -38,28 +38,28 @@ class WP_Allstars_About_Manager {
     }
     
     /**
-     * Get the about page content
+     * Get the readme content
      * 
      * @return array
      */
-    public static function get_about_content() {
-        return wp_allstars_get_about_content();
+    public static function get_readme_content() {
+        return wp_allstars_get_readme_content();
     }
     
     /**
-     * Display the about tab content
+     * Display the readme tab content
      */
     public static function display_tab_content() {
-        $about = self::get_about_content();
+        $readme = self::get_readme_content();
         
         ?>
-        <div class="wp-allstars-settings-content tab-content" id="about">
+        <div class="wp-allstars-settings-content tab-content" id="readme">
             <div class="wpa-pro-plugins">
                 <div class="wpa-pro-plugin">
-                    <h3><?php echo esc_html($about['title']); ?></h3>
+                    <h3><?php echo esc_html($readme['title']); ?></h3>
                     
                     <div class="wp-allstars-markdown-content">
-                        <?php echo self::parse_markdown($about['content']); ?>
+                        <?php echo self::parse_markdown($readme['content']); ?>
                     </div>
                 </div>
             </div>
@@ -89,6 +89,7 @@ class WP_Allstars_About_Manager {
         $markdown = preg_replace('/\*(.*?)\*/s', '<em>$1</em>', $markdown);
         
         // Lists
+        $markdown = preg_replace('/^- (.*?)$/m', '<li>$1</li>', $markdown);
         $markdown = preg_replace('/^\* (.*?)$/m', '<li>$1</li>', $markdown);
         $markdown = preg_replace('/(<li>.*?<\/li>\n)+/s', '<ul>$0</ul>', $markdown);
         
@@ -111,4 +112,4 @@ class WP_Allstars_About_Manager {
 }
 
 // Initialize the class
-WP_Allstars_About_Manager::init();
+WP_Allstars_Readme_Manager::init();

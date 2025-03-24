@@ -897,20 +897,20 @@ input:checked + .wp-toggle-slider:before {
     margin: 1em 0;
 }
 
-/* About Tab Panel */
-#about .wpa-pro-plugins {
+/* Read Me Tab Panel */
+#readme .wpa-pro-plugins {
     display: block;
     padding: 20px;
 }
 
-#about .wpa-pro-plugin {
+#readme .wpa-pro-plugin {
     max-width: 50%;
     margin: 0 auto;
     box-sizing: border-box;
 }
 
 @media screen and (max-width: 960px) {
-    #about .wpa-pro-plugin {
+    #readme .wpa-pro-plugin {
         max-width: 100%;
         margin: 0 auto;
         padding: 20px;
