@@ -81,7 +81,7 @@ class WP_Allstars_Free_Plugins_Manager {
         </div>
 
         <div class="wp-allstars-plugin-browser">
-            <div id="wpa-plugin-list" class="wpa-plugin-container">
+            <div id="wpa-plugin-list" class="wpa-plugin-container" style="position: relative; min-height: 200px;">
                 <!-- Plugin content will be loaded via AJAX -->
                 <div class="wp-allstars-loading-overlay">
                     <span class="spinner is-active"></span>
