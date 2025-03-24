@@ -105,6 +105,11 @@ class WP_Allstars_Admin_Manager {
     
     /**
      * Register the admin menu item
+     * 
+     * Adds the WP ALLSTARS menu item under the Settings menu
+     * in the WordPress admin dashboard.
+     * 
+     * @return void
      */
     public static function register_admin_menu() {
         add_options_page(
@@ -112,7 +117,7 @@ class WP_Allstars_Admin_Manager {
             'WP ALLSTARS',
             'manage_options',
             'wp-allstars',
-            'wp_allstars_settings_page'
+            array(__CLASS__, 'render_settings_page')
         );
     }
     
