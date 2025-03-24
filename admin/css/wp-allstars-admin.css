@@ -996,44 +996,45 @@ body.wp-admin .button.pricing-button:hover,
 }
 
 /* Limit width of content in all main tabs */
-#general .wp-allstars-settings-section,
-#advanced .wp-allstars-settings-section,
-#workflow .wp-allstars-settings-section,
-#recommended .wp-allstars-settings-section,
+.wp-allstars-tab-content .wp-allstars-settings-section,
 #readme .wpa-pro-plugins {
     display: block;
     padding: 20px;
 }
 
 /* Target the specific setting rows to limit their width */
-.wp-allstars-settings-content#general .wp-setting-row,
-.wp-allstars-settings-content#general .wp-allstars-toggle,
-.wp-allstars-settings-content#advanced .wp-setting-row,
-.wp-allstars-settings-content#advanced .wp-allstars-toggle,
-.wp-allstars-settings-content#workflow .wp-setting-row,
-.wp-allstars-settings-content#workflow .wp-allstars-toggle,
+.wp-allstars-tab-content .wp-setting-row,
+.wp-allstars-tab-content .wp-allstars-toggle,
 #readme .wpa-pro-plugin {
     max-width: 50%;
-    margin: 0 auto;
+    margin: 0 auto 20px auto; /* Added bottom margin for spacing */
     box-sizing: border-box;
+    padding: 0 10px; /* Add consistent padding */
 }
 
 /* Free Plugins cards need specific targeting */
 #recommended .plugin-card {
-    max-width: 50%;
-    margin-left: auto;
-    margin-right: auto;
-    margin-bottom: 20px; /* Add vertical spacing between cards */
-    padding: 0 10px; /* Add horizontal gutter */
+    max-width: 48%; /* Slightly less than 50% to create space between columns */
+    margin: 0 1% 20px 1%; /* Create gutters between cards */
     box-sizing: border-box;
+    padding: 15px;
+    display: inline-block;
+    vertical-align: top;
 }
 
-/* Add gutters between Free Plugin tiles */
+/* Ensure plugin cards have proper spacing */
 #recommended .wpa-plugin-container {
     display: flex;
     flex-wrap: wrap;
-    justify-content: space-between;
+    justify-content: center;
+    gap: 20px; /* Creates vertical and horizontal gaps */
     padding: 0 10px;
+}
+
+/* Explicitly target readme content */
+#readme .wp-allstars-markdown-content {
+    padding: 20px;
+    box-sizing: border-box;
 }
 
 /* Prevent text from overlapping dropdown chevron icon */
@@ -1059,33 +1060,39 @@ body.wp-admin .button.pricing-button:hover,
 
 /* First breakpoint - 75% width */
 @media screen and (max-width: 1400px) {
-    .wp-allstars-settings-content#general .wp-setting-row,
-    .wp-allstars-settings-content#general .wp-allstars-toggle,
-    .wp-allstars-settings-content#advanced .wp-setting-row,
-    .wp-allstars-settings-content#advanced .wp-allstars-toggle,
-    .wp-allstars-settings-content#workflow .wp-setting-row,
-    .wp-allstars-settings-content#workflow .wp-allstars-toggle,
+    .wp-allstars-tab-content .wp-setting-row,
+    .wp-allstars-tab-content .wp-allstars-toggle,
     #recommended .plugin-card,
     #readme .wpa-pro-plugin {
         max-width: 75%;
-        margin: 0 auto;
-        padding: 0;
+        margin-left: auto;
+        margin-right: auto;
+    }
+    
+    #readme .wp-allstars-markdown-content {
+        padding: 15px;
     }
 }
 
 /* Second breakpoint - 100% width */
 @media screen and (max-width: 1100px) {
-    .wp-allstars-settings-content#general .wp-setting-row,
-    .wp-allstars-settings-content#general .wp-allstars-toggle,
-    .wp-allstars-settings-content#advanced .wp-setting-row,
-    .wp-allstars-settings-content#advanced .wp-allstars-toggle,
-    .wp-allstars-settings-content#workflow .wp-setting-row,
-    .wp-allstars-settings-content#workflow .wp-allstars-toggle,
+    .wp-allstars-tab-content .wp-setting-row,
+    .wp-allstars-tab-content .wp-allstars-toggle,
     #recommended .plugin-card,
     #readme .wpa-pro-plugin {
         max-width: calc(100% - 40px);
-        margin: 0 auto;
-        padding: 0;
+        margin-left: auto;
+        margin-right: auto;
+    }
+    
+    #recommended .plugin-card {
+        max-width: 100%;
+        margin-left: 0;
+        margin-right: 0;
+    }
+    
+    #readme .wp-allstars-markdown-content {
+        padding: 10px;
     }
 }
 
