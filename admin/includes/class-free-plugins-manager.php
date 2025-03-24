@@ -81,9 +81,12 @@ class WP_Allstars_Free_Plugins_Manager {
         </div>
 
         <div class="wp-allstars-plugin-browser">
-            <div id="wpa-plugin-list"></div>
-            <div class="wp-allstars-loading-overlay">
-                <span class="spinner is-active"></span>
+            <div id="wpa-plugin-list" class="wpa-plugin-container">
+                <!-- Plugin content will be loaded via AJAX -->
+                <div class="wp-allstars-loading-overlay">
+                    <span class="spinner is-active"></span>
+                    <p>Loading plugin data...</p>
+                </div>
             </div>
         </div>
 
@@ -94,16 +97,16 @@ class WP_Allstars_Free_Plugins_Manager {
                 e.preventDefault();
                 
                 var category = $(this).data('category');
+                var $container = $('#wpa-plugin-list');
                 
                 // Update filter UI
                 $('#wpa-plugin-filters .filter-links a').removeClass('current');
                 $(this).addClass('current');
                 
-                // Show loading spinner
-                $('.wp-allstars-loading-overlay').show();
-                
-                // Clear existing plugins
-                $('#wpa-plugin-list').empty();
+                // Create new loading overlay
+                $container.empty();
+                var $loadingOverlay = $('<div class="wp-allstars-loading-overlay"><span class="spinner is-active"></span><p>Loading plugin data...</p></div>');
+                $container.append($loadingOverlay);
                 
                 // Load plugins in selected category
                 $.ajax({
@@ -115,18 +118,20 @@ class WP_Allstars_Free_Plugins_Manager {
                         nonce: '<?php echo wp_create_nonce('wp-allstars-nonce'); ?>'
                     },
                     success: function(response) {
+                        $loadingOverlay.remove();
+                        
                         if (response.success) {
-                            // Hide loading spinner
-                            $('.wp-allstars-loading-overlay').hide();
-                            
                             // Add plugins to the container
-                            $('#wpa-plugin-list').html(response.data);
+                            $container.html(response.data);
                         } else {
+                            $container.html('<div class="notice notice-error"><p>' + response.data + '</p></div>');
                             console.error('Error loading plugins:', response.data);
                         }
                     },
                     error: function(xhr, status, error) {
-                        console.error('AJAX error:', error);
+                        $loadingOverlay.remove();
+                        $container.html('<div class="notice notice-error"><p>Failed to load plugins. Please try again. Error: ' + error + '</p></div>');
+                        console.error('AJAX error:', xhr.responseText);
                     }
                 });
             });
