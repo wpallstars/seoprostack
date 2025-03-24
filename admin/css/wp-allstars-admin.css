@@ -689,6 +689,7 @@ input:checked + .wp-toggle-slider:before {
     height: 20px;
     box-sizing: border-box;
     position: relative;
+    transform: translateY(-3px);
 }
 
 .wp-setting-notification.error {
