@@ -1072,9 +1072,10 @@ body.wp-admin .button.pricing-button:hover,
     padding: 15px 0;
     margin: 0;
     background-color: #f8f8f8;
-    border: 1px solid #eee;
-    border-top: none;
-    width: 100%;
+    border-top: 1px solid #ddd;
+    width: calc(100% - 2px); /* Account for parent border */
+    margin-left: 1px; /* Center within parent borders */
+    box-sizing: border-box;
 }
 
 .wp-allstars-setting-row {
