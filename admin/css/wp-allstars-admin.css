@@ -1025,6 +1025,7 @@ body.wp-admin .button.pricing-button:hover,
     position: relative;
     padding-bottom: 60px;
     background: #fff;
+    justify-self: center;
 }
 
 /* Fix compatibility row alignment to bottom of card */
@@ -1080,14 +1081,19 @@ body.wp-admin .button.pricing-button:hover,
 }
 
 /* Center the plugin container */
-#recommended .wpa-plugin-container {
-    width: 100%;
-    max-width: 1000px;
-    margin: 0 auto;
-    padding: 15px;
+#recommended #the-list {
     display: flex;
     flex-direction: column;
     align-items: center;
+    width: 100%;
+}
+
+#recommended .wpa-plugin-container {
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 15px;
+    text-align: center;
 }
 
 /* Explicitly target readme content */
