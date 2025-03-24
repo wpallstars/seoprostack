@@ -115,7 +115,7 @@ class WP_Allstars_Free_Plugins_Manager {
                     data: {
                         action: 'wp_allstars_get_plugins',
                         category: category,
-                        nonce: '<?php echo wp_create_nonce('wp-allstars-nonce'); ?>'
+                        _wpnonce: '<?php echo wp_create_nonce('wp-allstars-nonce'); ?>'
                     },
                     success: function(response) {
                         $loadingOverlay.remove();
