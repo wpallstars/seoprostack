@@ -107,41 +107,10 @@ class WP_Allstars_Settings_Manager {
         ?>
         <div class="wp-allstars-settings-section">
             <div class="wp-allstars-settings-grid">
-                <!-- Example of an expandable panel setting -->
-                <div class="wp-allstars-toggle">
-                    <div class="wp-allstars-toggle-header" aria-expanded="false">
-                        <div class="wp-allstars-toggle-main">
-                            <div class="wp-allstars-toggle-left">
-                                <div class="wp-toggle-switch">
-                                    <input type="checkbox" 
-                                           id="wp_allstars_auto_upload_images"
-                                           name="wp_allstars_auto_upload_images" 
-                                           value="1"
-                                           <?php checked(get_option('wp_allstars_auto_upload_images', false)); ?> 
-                                    />
-                                    <span class="wp-toggle-slider"></span>
-                                </div>
-                                <label for="wp_allstars_auto_upload_images">
-                                    <?php esc_html_e('Example: Expandable Panel', 'wp-allstars'); ?>
-                                </label>
-                            </div>
-                        </div>
-                        <p class="wp-setting-description">
-                            <?php esc_html_e('This is an example of an expandable panel setting. Currently for demonstration purposes only - no actual functionality.', 'wp-allstars'); ?>
-                        </p>
-                    </div>
-                    <div class="wp-allstars-toggle-settings">
-                        <div class="wp-allstars-setting-row">
-                            <label for="example_text"><?php esc_html_e('Example Text Field', 'wp-allstars'); ?></label>
-                            <input type="text" 
-                                   id="example_text"
-                                   name="example_text"
-                                   value="Example value"
-                            />
-                            <p class="description"><?php esc_html_e('This is an example text field for demonstration purposes.', 'wp-allstars'); ?></p>
-                        </div>
-                    </div>
-                </div>
+                <?php
+                // Display access control settings
+                WP_Allstars_Access_Manager::display_access_settings();
+                ?>
             </div>
         </div>
         <?php

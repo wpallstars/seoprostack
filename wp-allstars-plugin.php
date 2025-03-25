@@ -6,18 +6,31 @@
  * site performance, improve workflow, and provide recommendations for plugins and hosting.
  *
  * @package WP_ALLSTARS
- * @version v0.2.3
+ * @version v0.2.4
  *
- * Plugin Name: WP ALLSTARS Plugin
- * Plugin URI: https://www.wpallstars.com
- * Description: WP ALLSTARS Plugin for WordPress. Speed Matters.
- * Version: v0.2.3 (Beta)
- * Author: WP ALLSTARS
- * Author URI: https://www.wpallstars.com
- * License: GPL-2.0+
- * License URI: http://www.gnu.org/licenses/gpl-2.0.txt
+ * Plugin Name: WP Allstars
+ * Plugin URI: https://wpallstars.com
+ * Description: A superstar stack of premium WordPress functionality, designed for SEO pros.
+ * Author: Marcus Quinn
+ * Author URI: https://wpallstars.com
  * Text Domain: wp-allstars
  * Domain Path: /languages
+ * @version v0.2.4
+ * 
+ * WP Allstars is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 2 of the License, or
+ * any later version.
+ * Version: v0.2.4 (Beta)
+ *
+ * WP Allstars is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with WP Allstars. If not, see https://www.gnu.org/licenses/gpl-2.0.html.
+ *
  * Requires at least: 5.0
  * Requires PHP: 7.2
  */
@@ -61,6 +74,7 @@ if (is_admin()) {
     require_once plugin_dir_path(__FILE__) . 'admin/includes/class-plugin-manager.php';
     require_once plugin_dir_path(__FILE__) . 'admin/includes/class-free-plugins-manager.php';
     require_once plugin_dir_path(__FILE__) . 'admin/includes/class-readme-manager.php';
+    require_once plugin_dir_path(__FILE__) . 'admin/includes/class-access-manager.php';
     
     // Initialize the admin manager
     add_action('plugins_loaded', array('WP_Allstars_Admin_Manager', 'init'));
@@ -92,6 +106,9 @@ add_action('init', 'wp_allstars_init_auto_upload');
 function wp_allstars_init_features() {
     // Initialize the Admin Colors feature
     new WP_Allstars_Admin_Colors();
+    
+    // Initialize the Access Manager
+    WP_Allstars_Access_Manager::init();
 }
 add_action('plugins_loaded', 'wp_allstars_init_features');
 
