@@ -81,7 +81,7 @@
 /* Name and description positioning - improved text wrapping */
 .name.column-name {
     margin: 0 0 12px 84px !important;
-    margin-right: 130px !important; /* Increased to prevent text going behind buttons */
+    margin-right: 150px !important; /* Increased to prevent text going behind buttons */
 }
 
 .name.column-name h3 {
@@ -95,7 +95,7 @@
 
 .desc.column-description {
     margin: 0 0 16px 84px !important;
-    margin-right: 130px !important; /* Increased to prevent text going behind buttons */
+    margin-right: 150px !important; /* Increased to prevent text going behind buttons */
     font-size: 14px !important;
     line-height: 1.6 !important;
     color: #50575e !important;
@@ -105,13 +105,13 @@
 .action-links {
     position: absolute !important;
     top: 24px !important;
-    right: 24px !important;
-    width: 120px !important;
+    right: 0 !important;
+    width: 140px !important; /* Increased width for buttons */
     display: flex !important;
     flex-direction: column !important;
     align-items: flex-end !important;
     gap: 8px !important;
-    padding-right: 20px !important; /* Added padding to give text more space */
+    padding-right: 20px !important; /* Keep padding to give text more space */
 }
 
 .plugin-action-buttons {
@@ -920,4 +920,13 @@ body.wp-admin .plugin-card-bottom .compatibility-untested *,
 
 .theme-browser .theme:nth-child(2n) {
     margin-right: 0;
+}
+
+/* Additional rule for wider screens */
+@media screen and (min-width: 1100px) {
+    /* Ensure text doesn't overlap buttons on wide screens */
+    .name.column-name,
+    .desc.column-description {
+        margin-right: 160px !important;
+    }
 } 
