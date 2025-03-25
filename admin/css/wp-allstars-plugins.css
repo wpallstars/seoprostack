@@ -78,10 +78,10 @@
     margin: 0 20px 0 0 !important;
 }
 
-/* Name and description positioning */
+/* Name and description positioning - improved text wrapping */
 .name.column-name {
     margin: 0 0 12px 84px !important;
-    margin-right: 120px !important; /* Ensure no overlap with action buttons */
+    margin-right: 130px !important; /* Increased to prevent text going behind buttons */
 }
 
 .name.column-name h3 {
@@ -90,11 +90,12 @@
     line-height: 1.4 !important;
     margin: 0 0 12px !important;
     color: #1d2327 !important;
+    word-wrap: break-word !important; /* Ensure text wrapping */
 }
 
 .desc.column-description {
     margin: 0 0 16px 84px !important;
-    margin-right: 120px !important; /* Ensure no overlap with action buttons */
+    margin-right: 130px !important; /* Increased to prevent text going behind buttons */
     font-size: 14px !important;
     line-height: 1.6 !important;
     color: #50575e !important;
@@ -110,6 +111,7 @@
     flex-direction: column !important;
     align-items: flex-end !important;
     gap: 8px !important;
+    padding-right: 20px !important; /* Added padding to give text more space */
 }
 
 .plugin-action-buttons {
@@ -147,7 +149,7 @@
     z-index: 100;
 }
 
-/* Responsive Adjustments */
+/* Responsive Adjustments - improved mobile layout */
 @media screen and (max-width: 782px) {
     .wp-allstars-wrap #wpa-plugin-list {
         padding: 16px;
@@ -160,30 +162,38 @@
     .name.column-name,
     .desc.column-description {
         margin-right: 0 !important; /* Allow full width on mobile */
-        margin-bottom: 60px !important; /* Space for action buttons below */
     }
     
     .action-links {
-        position: absolute !important;
+        position: relative !important;
+        width: 100% !important;
         top: auto !important;
-        bottom: 15px !important;
-        left: 16px !important;
-        right: 16px !important;
-        width: auto !important;
+        right: auto !important;
+        padding-right: 0 !important;
+        margin-top: 16px !important;
         flex-direction: row !important;
+        justify-content: flex-end !important;
     }
     
     .plugin-action-buttons {
-        width: 100% !important;
+        width: auto !important;
+    }
+    
+    .plugin-action-buttons .button {
+        width: auto !important;
+        min-width: 120px !important;
     }
 }
 
 /* Extra small screens */
 @media screen and (max-width: 480px) {
+    .plugin-card {
+        padding-top: 80px !important; /* Space for icon at top */
+    }
+    
     .name.column-name,
     .desc.column-description {
         margin-left: 0 !important;
-        margin-top: 80px !important; /* Space for icon above */
     }
     
     .plugin-icon {
@@ -191,6 +201,19 @@
         top: 16px !important;
         left: 16px !important;
         float: none !important;
+    }
+    
+    .action-links {
+        flex-direction: column !important;
+        align-items: stretch !important;
+    }
+    
+    .plugin-action-buttons {
+        width: 100% !important;
+    }
+    
+    .plugin-action-buttons .button {
+        width: 100% !important;
     }
 }
 
