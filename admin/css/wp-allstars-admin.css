@@ -733,6 +733,9 @@ input:checked + .wp-toggle-slider:before {
     box-sizing: border-box;
     position: relative;
     transform: translateY(-3px);
+    white-space: nowrap;
+    min-width: 60px;
+    justify-content: center;
 }
 
 .wp-setting-notification.error {
@@ -744,18 +747,80 @@ input:checked + .wp-toggle-slider:before {
 .wp-allstars-toggle-left label,
 .wp-allstars-setting-row label {
     position: relative;
-    padding-right: 20px;
+    padding-right: 80px; /* Increased padding to accommodate notification */
     display: inline-block;
+    min-width: 200px; /* Ensure minimum width for labels */
 }
 
-.wp-setting-left label .wp-setting-notification,
-.wp-allstars-toggle-left label .wp-setting-notification,
-.wp-allstars-setting-row label .wp-setting-notification {
-    position: absolute;
-    right: -60px;
-    top: -5px;
-    transform: translateY(0);
-    line-height: 1.4;
+/* Ensure toggle switches don't wrap with notifications */
+.wp-allstars-toggle-left {
+    display: flex;
+    align-items: center;
+    flex-wrap: nowrap;
+    gap: 10px;
+}
+
+.wp-allstars-toggle-left label {
+    flex: 1;
+    margin: 0;
+    padding-right: 80px;
+}
+
+/* Role Checkboxes */
+.wp-allstars-role-checkboxes {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.wp-allstars-role-checkbox {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px;
+    background: #f8f9fa;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.wp-allstars-role-checkbox:hover {
+    background: #f0f0f1;
+    border-color: #2271b1;
+}
+
+.wp-allstars-role-checkbox input[type="checkbox"] {
+    margin: 0;
+}
+
+.wp-allstars-role-checkbox span {
+    font-size: 13px;
+    color: #50575e;
+}
+
+/* Responsive adjustments for role checkboxes */
+@media screen and (max-width: 782px) {
+    .wp-allstars-role-checkboxes {
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        gap: 8px;
+    }
+    
+    .wp-allstars-role-checkbox {
+        padding: 6px;
+    }
+    
+    .wp-allstars-role-checkbox span {
+        font-size: 12px;
+    }
+    
+    /* Adjust label padding on mobile */
+    .wp-setting-left label,
+    .wp-allstars-toggle-left label,
+    .wp-allstars-setting-row label {
+        padding-right: 70px;
+    }
 }
 
 @keyframes fadeIn {
@@ -1573,54 +1638,4 @@ body.wp-admin .button.pricing-button:hover,
     flex-direction: column !important;
     position: relative !important;
     box-sizing: border-box !important;
-}
-
-/* Role Checkboxes */
-.wp-allstars-role-checkboxes {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-    gap: 10px;
-    margin-top: 10px;
-}
-
-.wp-allstars-role-checkbox {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 8px;
-    background: #f8f9fa;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    cursor: pointer;
-    transition: all 0.2s ease;
-}
-
-.wp-allstars-role-checkbox:hover {
-    background: #f0f0f1;
-    border-color: #2271b1;
-}
-
-.wp-allstars-role-checkbox input[type="checkbox"] {
-    margin: 0;
-}
-
-.wp-allstars-role-checkbox span {
-    font-size: 13px;
-    color: #50575e;
-}
-
-/* Responsive adjustments for role checkboxes */
-@media screen and (max-width: 782px) {
-    .wp-allstars-role-checkboxes {
-        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-        gap: 8px;
-    }
-    
-    .wp-allstars-role-checkbox {
-        padding: 6px;
-    }
-    
-    .wp-allstars-role-checkbox span {
-        font-size: 12px;
-    }
 }
