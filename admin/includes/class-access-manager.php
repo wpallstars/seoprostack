@@ -56,19 +56,13 @@ class WP_Allstars_Access_Manager {
         // Add inline JS for handling settings updates
         $access_js = '
         jQuery(document).ready(function($) {
-            // Stop propagation on toggle switches to prevent multiple events
-            $(".wp-toggle-switch").on("click", function(e) {
-                e.stopPropagation();
-            });
-            
-            // Handle main toggle switches
+            // Handle main toggle switches using the standard update_option AJAX call
             $("#wp_allstars_hide_admin_bar, #wp_allstars_restrict_dashboard").on("change", function(e) {
-                // Stop event propagation to prevent double triggering
                 e.stopPropagation();
                 
                 var $this = $(this);
                 var setting = $this.attr("id");
-                var value = $this.is(":checked");
+                var value = $this.is(":checked") ? 1 : 0;
                 
                 // Clear any existing notifications
                 $(".wp-setting-notification").remove();
@@ -77,14 +71,15 @@ class WP_Allstars_Access_Manager {
                     url: ajaxurl,
                     type: "POST",
                     data: {
-                        action: "wp_allstars_update_access_setting",
-                        setting: setting,
+                        action: "wp_allstars_update_option",
+                        option: setting,
                         value: value,
-                        nonce: "' . wp_create_nonce('wp-allstars-nonce') . '"
+                        nonce: wpAllstars.nonce
                     },
                     success: function(response) {
                         if (response.success) {
-                            showSavedNotification($this);
+                            // Show success notification
+                            showNotification("Saved", $this);
                             
                             // Update UI based on toggle state
                             var $container = $this.closest(".wp-allstars-toggle");
@@ -94,6 +89,23 @@ class WP_Allstars_Access_Manager {
                             if (value) {
                                 // Set default roles (subscriber, customer) as checked when enabled
                                 $settingsArea.find("input[value=\'subscriber\'], input[value=\'customer\']").prop("checked", true);
+                                
+                                // Update role settings via AJAX
+                                var setting_key = setting === "wp_allstars_hide_admin_bar" ? 
+                                    "wp_allstars_hide_admin_bar_roles" : 
+                                    "wp_allstars_restrict_dashboard_roles";
+                                
+                                $.ajax({
+                                    url: ajaxurl,
+                                    type: "POST",
+                                    data: {
+                                        action: "wp_allstars_update_access_setting",
+                                        setting: setting_key,
+                                        value: ["subscriber", "customer"],
+                                        nonce: wpAllstars.nonce
+                                    }
+                                });
+                                
                                 // Expand the section if it was toggled on
                                 if ($header.attr("aria-expanded") === "false") {
                                     $header.attr("aria-expanded", "true");
@@ -102,103 +114,111 @@ class WP_Allstars_Access_Manager {
                             } else {
                                 // Clear all role checkboxes when disabled
                                 $settingsArea.find("input[type=checkbox]").prop("checked", false);
+                                
+                                // Update role settings via AJAX
+                                var setting_key = setting === "wp_allstars_hide_admin_bar" ? 
+                                    "wp_allstars_hide_admin_bar_roles" : 
+                                    "wp_allstars_restrict_dashboard_roles";
+                                
+                                $.ajax({
+                                    url: ajaxurl,
+                                    type: "POST",
+                                    data: {
+                                        action: "wp_allstars_update_access_setting",
+                                        setting: setting_key,
+                                        value: [],
+                                        nonce: wpAllstars.nonce
+                                    }
+                                });
                             }
                         } else {
-                            showErrorNotification($this);
+                            // Show error notification
+                            showNotification("Error Saving", $this, "error");
+                            
                             // Revert the toggle to its previous state
-                            $this.prop("checked", !value);
+                            $this.prop("checked", !$this.is(":checked"));
                         }
                     },
                     error: function() {
-                        showErrorNotification($this);
+                        // Show error notification
+                        showNotification("Error Saving", $this, "error");
+                        
                         // Revert the toggle to its previous state
-                        $this.prop("checked", !value);
+                        $this.prop("checked", !$this.is(":checked"));
                     }
                 });
             });
             
             // Handle role checkbox changes
             $(".wp-allstars-role-checkbox input").on("change", function(e) {
-                // Stop event propagation to prevent double triggering
                 e.stopPropagation();
                 
                 var $this = $(this);
                 var $container = $this.closest(".wp-allstars-role-checkboxes");
-                var setting = $container.find("input").first().attr("name");
+                var settingName = $container.find("input").first().attr("name");
+                var settingKey = settingName.replace("[]", "");
                 var selectedRoles = [];
                 
-                // Clear any existing notifications
-                $(".wp-setting-notification").remove();
-                
+                // Get all checked roles
                 $container.find("input:checked").each(function() {
                     selectedRoles.push($(this).val());
                 });
                 
+                // Clear any existing notifications
+                $(".wp-setting-notification").remove();
+                
+                // Find the main toggle for this section
+                var $mainToggle = $this.closest(".wp-allstars-toggle").find(".wp-toggle-switch input");
+                
+                // Update the setting via AJAX
                 $.ajax({
                     url: ajaxurl,
                     type: "POST",
                     data: {
                         action: "wp_allstars_update_access_setting",
-                        setting: setting,
+                        setting: settingKey,
                         value: selectedRoles,
-                        nonce: "' . wp_create_nonce('wp-allstars-nonce') . '"
+                        nonce: wpAllstars.nonce
                     },
                     success: function(response) {
                         if (response.success) {
-                            // Find the main toggle for this section
-                            var $mainToggle = $this.closest(".wp-allstars-toggle").find(".wp-toggle-switch input");
-                            
                             // Update the main toggle based on role selection
-                            if (selectedRoles.length > 0) {
-                                $mainToggle.prop("checked", true);
-                            } else {
-                                $mainToggle.prop("checked", false);
-                            }
+                            $mainToggle.prop("checked", selectedRoles.length > 0);
                             
-                            showSavedNotification($this);
+                            // Show success notification
+                            showNotification("Saved", $mainToggle);
                         } else {
-                            showErrorNotification($this);
+                            // Show error notification
+                            showNotification("Error Saving", $mainToggle, "error");
+                            
                             // Revert the checkbox to its previous state
                             $this.prop("checked", !$this.prop("checked"));
                         }
                     },
                     error: function() {
-                        showErrorNotification($this);
+                        // Show error notification
+                        showNotification("Error Saving", $mainToggle, "error");
+                        
                         // Revert the checkbox to its previous state
                         $this.prop("checked", !$this.prop("checked"));
                     }
                 });
             });
             
-            function showSavedNotification($element) {
+            // Utility function to show notifications
+            function showNotification(message, $element, type) {
+                type = type || "success"; // Default to success
+                
                 // Find the nearest toggle header for notification placement
                 var $toggleHeader = $element.closest(".wp-allstars-toggle").find(".wp-allstars-toggle-header");
-                var $notification = $("<span>").addClass("wp-setting-notification success").text("Saved");
+                var $label = $toggleHeader.find("label");
+                var $notification = $("<span>").addClass("wp-setting-notification " + type).text(message);
                 
                 // Remove any existing notifications
                 $toggleHeader.find(".wp-setting-notification").remove();
                 
                 // Add the notification
-                $toggleHeader.find("label").append($notification);
-                
-                // Remove notification after delay
-                setTimeout(function() {
-                    $notification.fadeOut(300, function() {
-                        $(this).remove();
-                    });
-                }, 2000);
-            }
-            
-            function showErrorNotification($element) {
-                // Find the nearest toggle header for notification placement
-                var $toggleHeader = $element.closest(".wp-allstars-toggle").find(".wp-allstars-toggle-header");
-                var $notification = $("<span>").addClass("wp-setting-notification error").text("Error Saving");
-                
-                // Remove any existing notifications
-                $toggleHeader.find(".wp-setting-notification").remove();
-                
-                // Add the notification
-                $toggleHeader.find("label").append($notification);
+                $label.append($notification);
                 
                 // Remove notification after delay
                 setTimeout(function() {
@@ -238,55 +258,32 @@ class WP_Allstars_Access_Manager {
             return;
         }
         
-        // Handle different setting types
-        $result = false;
-        
-        switch ($setting) {
-            case 'wp_allstars_hide_admin_bar':
-                // When the main toggle is changed, update the roles option
-                if ($value) {
-                    $default_roles = array('guest', 'subscriber', 'customer');
-                    $result = update_option('wp_allstars_hide_admin_bar_roles', $default_roles);
-                } else {
-                    $result = update_option('wp_allstars_hide_admin_bar_roles', array());
+        // Handle the role settings update
+        if ($setting === 'wp_allstars_hide_admin_bar_roles' || $setting === 'wp_allstars_restrict_dashboard_roles') {
+            // Sanitize the array of roles
+            if (is_array($value)) {
+                $value = array_map('sanitize_text_field', $value);
+            } else {
+                $value = array();
+            }
+            
+            // Update the option
+            $result = update_option($setting, $value);
+            
+            if ($result) {
+                // Also update the corresponding toggle setting for consistency
+                if ($setting === 'wp_allstars_hide_admin_bar_roles') {
+                    update_option('wp_allstars_hide_admin_bar', !empty($value) ? 1 : 0);
+                } else if ($setting === 'wp_allstars_restrict_dashboard_roles') {
+                    update_option('wp_allstars_restrict_dashboard', !empty($value) ? 1 : 0);
                 }
-                break;
                 
-            case 'wp_allstars_restrict_dashboard':
-                // When the main toggle is changed, update the roles option
-                if ($value) {
-                    $default_roles = array('guest', 'subscriber', 'customer');
-                    $result = update_option('wp_allstars_restrict_dashboard_roles', $default_roles);
-                } else {
-                    $result = update_option('wp_allstars_restrict_dashboard_roles', array());
-                }
-                break;
-                
-            case 'wp_allstars_hide_admin_bar_roles[]':
-                // For role checkboxes, update the complete array
-                if (is_array($value)) {
-                    $value = array_map('sanitize_text_field', $value);
-                    $result = update_option('wp_allstars_hide_admin_bar_roles', $value);
-                }
-                break;
-                
-            case 'wp_allstars_restrict_dashboard_roles[]':
-                // For role checkboxes, update the complete array
-                if (is_array($value)) {
-                    $value = array_map('sanitize_text_field', $value);
-                    $result = update_option('wp_allstars_restrict_dashboard_roles', $value);
-                }
-                break;
-                
-            default:
-                wp_send_json_error(array('message' => 'Invalid setting name'));
-                return;
-        }
-        
-        if ($result) {
-            wp_send_json_success(array('message' => 'Setting updated successfully'));
+                wp_send_json_success(array('message' => 'Setting updated successfully'));
+            } else {
+                wp_send_json_error(array('message' => 'Error Saving'));
+            }
         } else {
-            wp_send_json_error(array('message' => 'Error Saving'));
+            wp_send_json_error(array('message' => 'Invalid setting name'));
         }
     }
     
@@ -294,11 +291,6 @@ class WP_Allstars_Access_Manager {
      * Set up access control hooks
      */
     public static function setup_access_control() {
-        // Only run if the feature is enabled
-        if (!get_option('wp_allstars_hide_admin_bar_roles') && !get_option('wp_allstars_restrict_dashboard_roles')) {
-            return;
-        }
-        
         // Get current user
         $user = wp_get_current_user();
         if (!$user->exists()) {
@@ -338,9 +330,33 @@ class WP_Allstars_Access_Manager {
      * Display the access control settings in the advanced tab
      */
     public static function display_access_settings() {
+        // Register the additional toggle settings (matching the working toggle switches format)
+        register_setting('wp_allstars_access', 'wp_allstars_hide_admin_bar');
+        register_setting('wp_allstars_access', 'wp_allstars_restrict_dashboard');
+        
         // Get current settings
-        $hide_admin_bar_roles = get_option('wp_allstars_hide_admin_bar_roles', array('guest', 'subscriber', 'customer'));
-        $restrict_dashboard_roles = get_option('wp_allstars_restrict_dashboard_roles', array('guest', 'subscriber', 'customer'));
+        $hide_admin_bar = get_option('wp_allstars_hide_admin_bar', 0);
+        $restrict_dashboard = get_option('wp_allstars_restrict_dashboard', 0);
+        
+        $hide_admin_bar_roles = get_option('wp_allstars_hide_admin_bar_roles', array());
+        $restrict_dashboard_roles = get_option('wp_allstars_restrict_dashboard_roles', array());
+        
+        // Ensure the toggle state matches the role array
+        if (!empty($hide_admin_bar_roles) && !$hide_admin_bar) {
+            update_option('wp_allstars_hide_admin_bar', 1);
+            $hide_admin_bar = 1;
+        } else if (empty($hide_admin_bar_roles) && $hide_admin_bar) {
+            update_option('wp_allstars_hide_admin_bar', 0);
+            $hide_admin_bar = 0;
+        }
+        
+        if (!empty($restrict_dashboard_roles) && !$restrict_dashboard) {
+            update_option('wp_allstars_restrict_dashboard', 1);
+            $restrict_dashboard = 1;
+        } else if (empty($restrict_dashboard_roles) && $restrict_dashboard) {
+            update_option('wp_allstars_restrict_dashboard', 0);
+            $restrict_dashboard = 0;
+        }
         
         // Get all available roles
         $roles = wp_roles()->get_names();
@@ -348,7 +364,7 @@ class WP_Allstars_Access_Manager {
         ?>
         <!-- Admin Bar Control -->
         <div class="wp-allstars-toggle">
-            <div class="wp-allstars-toggle-header" aria-expanded="false">
+            <div class="wp-allstars-toggle-header" aria-expanded="<?php echo !empty($hide_admin_bar_roles) ? 'true' : 'false'; ?>">
                 <div class="wp-allstars-toggle-main">
                     <div class="wp-allstars-toggle-left">
                         <div class="wp-toggle-switch">
@@ -356,7 +372,7 @@ class WP_Allstars_Access_Manager {
                                    id="wp_allstars_hide_admin_bar"
                                    name="wp_allstars_hide_admin_bar" 
                                    value="1"
-                                   <?php checked(!empty($hide_admin_bar_roles)); ?> 
+                                   <?php checked($hide_admin_bar); ?> 
                             />
                             <span class="wp-toggle-slider"></span>
                         </div>
@@ -369,7 +385,7 @@ class WP_Allstars_Access_Manager {
                     <?php esc_html_e('Remove the Admin Bar from showing for logged-in Users that have consumer Roles, where Admin is not relevant to.', 'wp-allstars'); ?>
                 </p>
             </div>
-            <div class="wp-allstars-toggle-settings">
+            <div class="wp-allstars-toggle-settings" style="<?php echo !empty($hide_admin_bar_roles) ? 'display: block;' : 'display: none;'; ?>">
                 <div class="wp-allstars-setting-row">
                     <label><?php esc_html_e('Select User Roles', 'wp-allstars'); ?></label>
                     <div class="wp-allstars-role-checkboxes">
@@ -390,7 +406,7 @@ class WP_Allstars_Access_Manager {
 
         <!-- Dashboard Access Control -->
         <div class="wp-allstars-toggle">
-            <div class="wp-allstars-toggle-header" aria-expanded="false">
+            <div class="wp-allstars-toggle-header" aria-expanded="<?php echo !empty($restrict_dashboard_roles) ? 'true' : 'false'; ?>">
                 <div class="wp-allstars-toggle-main">
                     <div class="wp-allstars-toggle-left">
                         <div class="wp-toggle-switch">
@@ -398,7 +414,7 @@ class WP_Allstars_Access_Manager {
                                    id="wp_allstars_restrict_dashboard"
                                    name="wp_allstars_restrict_dashboard" 
                                    value="1"
-                                   <?php checked(!empty($restrict_dashboard_roles)); ?> 
+                                   <?php checked($restrict_dashboard); ?> 
                             />
                             <span class="wp-toggle-slider"></span>
                         </div>
@@ -411,7 +427,7 @@ class WP_Allstars_Access_Manager {
                     <?php esc_html_e('Prevent the Admin Dashboard from being accessed by consumer Roles, where WP Admin is not relevant.', 'wp-allstars'); ?>
                 </p>
             </div>
-            <div class="wp-allstars-toggle-settings">
+            <div class="wp-allstars-toggle-settings" style="<?php echo !empty($restrict_dashboard_roles) ? 'display: block;' : 'display: none;'; ?>">
                 <div class="wp-allstars-setting-row">
                     <label><?php esc_html_e('Select User Roles', 'wp-allstars'); ?></label>
                     <div class="wp-allstars-role-checkboxes">

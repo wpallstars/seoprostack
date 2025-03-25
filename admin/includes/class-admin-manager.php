@@ -113,7 +113,9 @@ class WP_Allstars_Admin_Manager {
             'wp_allstars_max_height',
             'wp_allstars_exclude_urls',
             'wp_allstars_image_name_pattern',
-            'wp_allstars_image_alt_pattern'
+            'wp_allstars_image_alt_pattern',
+            'wp_allstars_hide_admin_bar',
+            'wp_allstars_restrict_dashboard'
         );
         
         if (!in_array($option, $allowed_options)) {
