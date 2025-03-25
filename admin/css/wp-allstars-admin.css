@@ -156,7 +156,7 @@
 }
 
 input:checked + .wp-toggle-slider {
-    background-color: #2271b1;
+    background-color: #00a32a; /* WordPress standard green color */
 }
 
 input:checked + .wp-toggle-slider:before {
@@ -209,7 +209,7 @@ input:checked + .wp-toggle-slider:before {
 .wp-setting-base:hover,
 .wp-setting-row:hover,
 .wp-allstars-toggle:hover {
-    border-color: #2271b1;
+    border-color: #00a32a;
     box-shadow: 0 2px 6px rgba(0,0,0,0.15);
 }
 
@@ -333,8 +333,8 @@ input:checked + .wp-toggle-slider:before {
 .wp-allstars-setting-row input[type="text"]:focus,
 .wp-allstars-setting-row input[type="number"]:focus,
 .wp-allstars-setting-row textarea:focus {
-    border-color: #2271b1;
-    box-shadow: 0 0 0 1px #2271b1;
+    border-color: #00a32a;
+    box-shadow: 0 0 0 1px #00a32a;
     outline: 2px solid transparent;
 }
 
