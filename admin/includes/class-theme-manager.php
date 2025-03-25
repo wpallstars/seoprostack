@@ -114,9 +114,9 @@ class WP_Allstars_Theme_Manager {
                             $loadingOverlay.remove();
                             if (response.success) {
                                 $container.html(response.data);
-                                // Initialize theme action buttons
-                                if (typeof initThemeHandlers === "function") {
-                                    initThemeHandlers();
+                                // Initialize theme handlers - use the global function from admin.js
+                                if (typeof window.initThemeHandlers === "function") {
+                                    window.initThemeHandlers();
                                 }
                             } else {
                                 $container.html("<div class=\"notice notice-error\"><p>" + response.data + "</p></div>");
@@ -129,46 +129,6 @@ class WP_Allstars_Theme_Manager {
                         }
                     });
                 }
-                
-                // Initialize theme handlers
-                window.initThemeHandlers = function() {
-                    // Activate theme
-                    $(".activate-now").click(function(e) {
-                        e.preventDefault();
-                        
-                        var $button = $(this);
-                        var slug = $button.data("slug");
-                        var name = $button.data("name");
-                        var nonce = $button.data("nonce");
-                        
-                        $button.text("Activating...").addClass("updating-message").attr("disabled", true);
-                        
-                        $.ajax({
-                            url: ajaxurl,
-                            type: "POST",
-                            data: {
-                                action: "wp_allstars_activate_theme",
-                                theme: slug,
-                                _wpnonce: nonce
-                            },
-                            success: function(response) {
-                                if (response.success) {
-                                    $button.removeClass("updating-message").addClass("updated-message").text("Activated");
-                                    setTimeout(function() {
-                                        window.location.reload();
-                                    }, 1000);
-                                } else {
-                                    $button.removeClass("updating-message").text("Error");
-                                    alert("Error: " + response.data);
-                                }
-                            },
-                            error: function(xhr, status, error) {
-                                $button.removeClass("updating-message").text("Error");
-                                alert("Error: " + error);
-                            }
-                        });
-                    });
-                };
             });
         ';
     }
