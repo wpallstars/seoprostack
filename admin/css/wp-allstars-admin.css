@@ -164,7 +164,26 @@ input:checked + .wp-toggle-slider:before {
 
 /* Tab Content Area */
 .wp-allstars-tab-content {
-    padding-top: 25px;
+    padding-top: 12px !important; /* Use important to override any other styles */
+}
+
+/* Consistency fix for tabs with extra spacing */
+#general .wp-allstars-tab-content,
+#advanced .wp-allstars-tab-content, 
+#readme .wp-allstars-tab-content,
+#workflow .wp-allstars-tab-content,
+#theme .wp-allstars-tab-content {
+    padding-top: 12px !important;
+}
+
+/* Directly target the settings sections in problematic tabs */
+#general .wp-allstars-settings-section,
+#advanced .wp-allstars-settings-section,
+#readme .wp-allstars-settings-section,
+#workflow .wp-allstars-settings-section,
+#theme .wp-allstars-settings-section {
+    padding-top: 0 !important;
+    margin-top: 0 !important;
 }
 
 /* Settings Content */
@@ -1048,9 +1067,14 @@ body.wp-admin .button.pricing-button:hover,
     text-align: center;
 }
 
+/* Target free plugins tab specifically to maintain its current spacing */
+#recommended .wp-allstars-tab-content {
+    padding-top: 12px !important; /* Match other tabs */
+}
+
 /* Free Plugins - Single Column Centered Layout */
 #recommended .wpa-plugin-container {
-    padding: 10px 20px 20px 20px; /* Restore padding to how it was */
+    padding: 0 20px 20px 20px !important; /* Adjust top padding to 0 */
     display: flex;
     flex-direction: column;
     align-items: center;
