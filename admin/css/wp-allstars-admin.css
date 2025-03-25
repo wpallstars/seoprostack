@@ -1358,4 +1358,35 @@ body.wp-admin .button.pricing-button:hover,
     list-style-type: disc !important;
 }
 
-/* General, Advanced, ReadMe and Workflow Tab Spacing Fix - CAN BE REMOVED NOW */
+/* Global setting for all content panels width - apply to ALL tabs */
+.wp-allstars-settings-content,
+.wp-allstars-tab-content > div,
+.wp-allstars-settings-section,
+.wpa-pro-plugins,
+.wpa-pro-plugin,
+#wpa-plugin-list,
+#wpa-theme-list,
+.wp-allstars-markdown-content,
+.wpa-plugin-container,
+#readme .wpa-pro-plugin,
+.wp-allstars-toggle {
+    max-width: 700px !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+}
+
+/* Fix specific tab content */
+#general .wp-setting-row,
+#advanced .wp-setting-row,
+#advanced .wp-allstars-toggle,
+#workflow .wp-allstars-toggle,
+#workflow .wp-setting-row,
+#readme .wp-allstars-markdown-content {
+    max-width: 700px !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+}

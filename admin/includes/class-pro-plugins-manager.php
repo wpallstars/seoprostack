@@ -184,7 +184,7 @@ class WP_Allstars_Pro_Plugins_Manager {
             flex-wrap: wrap;
             gap: 8px;
             margin-top: auto;
-            justify-content: flex-end;
+            justify-content: flex-start;
         }
         .wpa-pro-plugin .button {
             text-decoration: none;

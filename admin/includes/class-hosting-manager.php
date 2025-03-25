@@ -125,7 +125,7 @@ class WP_Allstars_Hosting_Manager {
             margin-bottom: 0;
         }
         #hosting .wpa-pro-plugin .button-group {
-            justify-content: flex-end;
+            justify-content: flex-start;
         }
         ';
         

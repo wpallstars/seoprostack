@@ -63,7 +63,7 @@ class WP_Allstars_Tools_Manager {
             margin-bottom: 0;
         }
         #tools .wpa-pro-plugin .button-group {
-            justify-content: flex-end;
+            justify-content: flex-start;
         }
         ';
         
