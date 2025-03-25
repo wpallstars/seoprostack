@@ -1545,3 +1545,20 @@ body.wp-admin .button.pricing-button:hover,
     align-items: center;
     box-sizing: border-box !important;
 }
+
+/* Set the individual plugin cards to max 700px width */
+#recommended .plugin-card {
+    width: 100% !important;
+    max-width: 700px !important;
+    margin: 0 auto 24px auto !important;
+    padding: 24px !important;
+    border: 1px solid #ddd !important;
+    border-radius: 8px !important;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1) !important;
+    background: #fff !important;
+    transition: all 0.2s ease !important;
+    display: flex !important;
+    flex-direction: column !important;
+    position: relative !important;
+    box-sizing: border-box !important;
+}
