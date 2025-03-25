@@ -1071,7 +1071,6 @@ body.wp-admin .button.pricing-button:hover,
     justify-content: center;
     gap: 10px;
     margin: 0;
-    border-bottom: 1px solid #c3c4c7;
     padding-bottom: 0;
 }
 
@@ -1106,13 +1105,19 @@ body.wp-admin .button.pricing-button:hover,
     font-weight: 600;
 }
 
+/* Override max-width for free plugins specific elements */
+#wpa-plugin-filters,
+#recommended .wpa-plugin-container {
+    max-width: 900px !important;
+    width: 100% !important;
+}
+
 /* Free Plugins - Single Column Centered Layout */
 #recommended .wpa-plugin-container {
     padding: 15px 20px 20px 20px !important;
     display: flex;
     flex-direction: column;
     align-items: center;
-    max-width: 900px !important; /* Match filter container width */
     margin: 0 auto;
 }
 
