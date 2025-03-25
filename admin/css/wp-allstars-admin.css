@@ -1062,7 +1062,7 @@ body.wp-admin .button.pricing-button:hover,
 
 /* Free Plugins - Single Column Centered Layout */
 #recommended .wpa-plugin-container {
-    padding: 10px 20px 20px 20px !important; /* Change top padding from 25px to 10px */
+    padding: 15px 20px 20px 20px !important; /* Change top padding from 10px to 15px */
     display: flex;
     flex-direction: column;
     align-items: center;
