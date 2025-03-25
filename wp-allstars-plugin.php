@@ -6,12 +6,12 @@
  * site performance, improve workflow, and provide recommendations for plugins and hosting.
  *
  * @package WP_ALLSTARS
- * @version v0.2.2
+ * @version v0.2.3
  *
  * Plugin Name: WP ALLSTARS Plugin
  * Plugin URI: https://www.wpallstars.com
  * Description: WP ALLSTARS Plugin for WordPress. Speed Matters.
- * Version: v0.2.2 (Beta)
+ * Version: v0.2.3 (Beta)
  * Author: WP ALLSTARS
  * Author URI: https://www.wpallstars.com
  * License: GPL-2.0+
