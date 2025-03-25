@@ -1377,6 +1377,12 @@ body.wp-admin .button.pricing-button:hover,
     box-sizing: border-box !important;
 }
 
+/* Fix general tab width to use full content width */
+#general .wp-allstars-settings-section {
+    max-width: 100% !important;
+    width: 100% !important;
+}
+
 /* Fix specific tab content */
 #general .wp-setting-row,
 #advanced .wp-setting-row,
@@ -1389,4 +1395,20 @@ body.wp-admin .button.pricing-button:hover,
     box-sizing: border-box !important;
     margin-left: auto !important;
     margin-right: auto !important;
+}
+
+/* Make sure advanced tab content matches workflow tab width */
+#advanced .wp-allstars-settings-section {
+    max-width: 700px !important;
+    width: 100% !important;
+}
+
+/* Keep free plugins navigation full width */
+#recommended .nav-tab-wrapper,
+#recommended .subsubsub {
+    max-width: 100% !important;
+    width: 100% !important;
+    box-sizing: border-box;
+    margin: 0 0 25px 0 !important;
+    text-align: center;
 }

@@ -83,7 +83,7 @@ jQuery(document).ready(function($) {
 
 
     // Handle text input changes
-    $('.wp-allstars-setting-row input[type="text"], .wp-allstars-setting-row input[type="number"], .wp-allstars-setting-row textarea').on('change', function() {
+    $('.wp-allstars-setting-row input[type="text"], .wp-allstars-setting-row input[type="number"], .wp-allstars-setting-row textarea').on('blur change', function() {
         var $input = $(this);
         var option = $input.attr('name');
         var value = $input.val();
