@@ -5,7 +5,7 @@
  * Handles setting the admin color scheme based on user preferences
  *
  * @package WP_ALLSTARS
- * @since 0.2.3
+ * @since 0.2.4
  */
 
 if (!defined('ABSPATH')) {
