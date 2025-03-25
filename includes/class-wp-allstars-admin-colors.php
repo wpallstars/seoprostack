@@ -78,7 +78,75 @@ class WP_Allstars_Admin_Colors {
                 // Define the color schemes 
                 var scheme = enableModern ? "modern" : "fresh";
                 
-                // AJAX request to update color scheme
+                // Get all admin color stylesheets currently in the DOM
+                var colorStylesheets = [];
+                $("link[href*=\'colors\']").each(function() {
+                    var href = $(this).attr("href");
+                    colorStylesheets.push({
+                        element: this,
+                        href: href
+                    });
+                });
+                
+                console.log("Found color stylesheets:", colorStylesheets.length);
+                
+                // Immediately apply color change by forcing stylesheet reload
+                colorStylesheets.forEach(function(sheet) {
+                    // Create the replacement URL by substituting scheme name
+                    var newHref = sheet.href.replace(
+                        /\/([^\/]+)\/colors/,
+                        "/" + scheme + "/colors"
+                    );
+                    
+                    console.log("Replacing stylesheet:", sheet.href, "with", newHref);
+                    
+                    // Forcefully reload the stylesheet by adding timestamp
+                    var timestamp = "?t=" + new Date().getTime();
+                    
+                    // Create and append the new stylesheet
+                    var newStyle = document.createElement("link");
+                    newStyle.rel = "stylesheet";
+                    newStyle.type = "text/css";
+                    newStyle.href = newHref + timestamp;
+                    document.head.appendChild(newStyle);
+                    
+                    // Remove the old stylesheet immediately
+                    sheet.element.parentNode.removeChild(sheet.element);
+                });
+                
+                // Also update the admin-css colors
+                $("#colors-css, #colors-rtl-css, #admin-colors-css").each(function() {
+                    var $this = $(this);
+                    var href = $this.attr("href");
+                    if (href) {
+                        var newHref = href.replace(
+                            /\/([^\/]+)\/colors/,
+                            "/" + scheme + "/colors"
+                        );
+                        
+                        console.log("Replacing admin colors:", href, "with", newHref);
+                        
+                        // Create timestamp to prevent caching
+                        var timestamp = "?t=" + new Date().getTime();
+                        
+                        // Force reload by creating new element
+                        var newStyle = document.createElement("link");
+                        newStyle.rel = "stylesheet";
+                        newStyle.id = $this.attr("id");
+                        newStyle.href = newHref + timestamp;
+                        document.head.appendChild(newStyle);
+                        
+                        // Remove the old stylesheet
+                        $this.remove();
+                    }
+                });
+                
+                // Add body class for the new scheme
+                $("body")
+                    .removeClass("admin-color-fresh admin-color-modern")
+                    .addClass("admin-color-" + scheme);
+                
+                // AJAX request to save the color scheme setting
                 $.ajax({
                     url: ajaxurl,
                     type: "POST",
@@ -89,44 +157,13 @@ class WP_Allstars_Admin_Colors {
                     },
                     success: function(response) {
                         if (response.success) {
-                            // Get the list of stylesheets to update
-                            var oldScheme = response.data.previousScheme;
-                            var newScheme = response.data.currentScheme;
-                            
-                            console.log("Switching from " + oldScheme + " to " + newScheme);
-                            
-                            // Update body class - this is the WordPress way of handling color scheme changes
-                            $("body")
-                                .removeClass(oldScheme)
-                                .addClass(newScheme);
-                            
-                            // Replace admin-colors.css
-                            var $adminColors = $("#admin-colors-css, link[href*=\'colors-\']");
-                            if ($adminColors.length) {
-                                // Get the new URL by replacing the scheme in the existing URL
-                                var oldUrl = $adminColors.first().attr("href");
-                                var newUrl = oldUrl.replace(
-                                    /\/([^\/]+)\/colors/,
-                                    "/" + newScheme + "/colors"
-                                );
-                                
-                                // Create a new stylesheet
-                                var $newStyle = $("<link>", {
-                                    rel: "stylesheet",
-                                    id: "admin-colors-css",
-                                    href: newUrl,
-                                    type: "text/css"
-                                });
-                                
-                                // Add the new stylesheet and remove old ones
-                                $("head").append($newStyle);
-                                
-                                // After a short delay, remove old stylesheets
-                                setTimeout(function() {
-                                    $adminColors.remove();
-                                }, 200);
-                            }
+                            console.log("Color scheme updated successfully");
+                        } else {
+                            console.error("Error updating color scheme");
                         }
+                    },
+                    error: function(xhr, status, error) {
+                        console.error("AJAX error:", error);
                     }
                 });
             }
