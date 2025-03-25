@@ -1062,7 +1062,6 @@ body.wp-admin .button.pricing-button:hover,
     padding: 15px;
     border-radius: 8px;
     background: #fff;
-    border-bottom: 1px solid #c3c4c7;
 }
 
 /* Filter links should be centered within container */
@@ -1072,9 +1071,11 @@ body.wp-admin .button.pricing-button:hover,
     justify-content: center;
     gap: 10px;
     margin: 0;
+    border-bottom: 1px solid #c3c4c7;
+    padding-bottom: 0;
 }
 
-/* Style the filter links similar to main tabs */
+/* Style the filter links similar to main tabs with proper border */
 #wpa-plugin-filters .filter-links a {
     margin: 0;
     padding: 10px 15px;
@@ -1095,7 +1096,7 @@ body.wp-admin .button.pricing-button:hover,
 #wpa-plugin-filters .filter-links a:focus {
     color: #2271b1;
     background: transparent;
-    border-bottom-color: #2271b1;
+    border-bottom: 2px solid #2271b1;
 }
 
 #wpa-plugin-filters .filter-links a.current {
@@ -1105,28 +1106,13 @@ body.wp-admin .button.pricing-button:hover,
     font-weight: 600;
 }
 
-/* Keep free plugins subsubsub navigation full width */
-#recommended .nav-tab-wrapper,
-#recommended .subsubsub {
-    max-width: 100% !important;
-    width: 100% !important;
-    box-sizing: border-box;
-    margin: 0 0 25px 0 !important;
-    text-align: center;
-}
-
-/* Remove redundant spacing adjustments */
-#recommended .wp-allstars-tab-content {
-    padding-top: 0 !important; /* Match global setting */
-}
-
 /* Free Plugins - Single Column Centered Layout */
 #recommended .wpa-plugin-container {
-    padding: 15px 20px 20px 20px !important; /* Change top padding from 10px to 15px */
+    padding: 15px 20px 20px 20px !important;
     display: flex;
     flex-direction: column;
     align-items: center;
-    max-width: 900px; /* Changed from 700px to 900px to match the navigation */
+    max-width: 900px !important; /* Match filter container width */
     margin: 0 auto;
 }
 
