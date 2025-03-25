@@ -49,15 +49,15 @@ class WP_Allstars_Admin_Colors {
         // Add script to handle the toggle
         add_action('admin_enqueue_scripts', array($this, 'enqueue_color_scripts'));
         
-        // Add admin notice for setting saved feedback
-        add_action('admin_notices', array($this, 'show_saved_notice'));
+        // Add script for showing saved notification
+        add_action('admin_footer', array($this, 'add_saved_notification_script'));
     }
     
     /**
-     * Show saved notice when color scheme has been updated
+     * Add script to show saved notification after page refresh
      */
-    public function show_saved_notice() {
-        // Only show on our settings page
+    public function add_saved_notification_script() {
+        // Only add on our settings page
         $screen = get_current_screen();
         if (!$screen || strpos($screen->id, 'wp-allstars') === false) {
             return;
@@ -68,10 +68,31 @@ class WP_Allstars_Admin_Colors {
         $transient_name = 'wp_allstars_colors_updated_' . $user_id;
         
         if (get_transient($transient_name)) {
-            // Show the notice
-            echo '<div class="notice notice-success is-dismissible"><p>' . 
-                 esc_html__('Color scheme setting saved successfully.', 'wp-allstars') . 
-                 '</p></div>';
+            // Add inline script to show the notification
+            ?>
+            <script type="text/javascript">
+            jQuery(document).ready(function($) {
+                // Get the label element
+                var $label = $('label[for="wp_allstars_simple_setting"]');
+                
+                // Show notification using the plugin's existing showNotification function
+                if (typeof showNotification === 'function') {
+                    showNotification('Saved', $label);
+                } else {
+                    // Fallback implementation if showNotification isn't available
+                    $('.wp-setting-notification').remove();
+                    var $notification = $('<span class="wp-setting-notification">Saved</span>');
+                    $label.after($notification);
+                    
+                    setTimeout(function() {
+                        $notification.fadeOut(300, function() {
+                            $(this).remove();
+                        });
+                    }, 2000);
+                }
+            });
+            </script>
+            <?php
             
             // Delete the transient so it only shows once
             delete_transient($transient_name);
