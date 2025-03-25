@@ -402,6 +402,22 @@ function wp_allstars_get_tools() {
                 )
             )
         ),
+        'searchatlas' => array(
+            'name' => 'Search Atlas',
+            'description' => 'Comprehensive SEO platform with keyword research, rank tracking, and content optimization tools.',
+            'button_group' => array(
+                array(
+                    'text' => 'Home Page',
+                    'url' => 'https://searchatlas.com/',
+                    'primary' => true
+                ),
+                array(
+                    'text' => 'Pricing',
+                    'url' => 'https://searchatlas.com/pricing/',
+                    'primary' => false
+                )
+            )
+        ),
         'seoptimer' => array(
             'name' => 'SEOptimer',
             'description' => 'Website audit tool that provides SEO, usability, and performance recommendations.',
