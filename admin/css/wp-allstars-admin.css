@@ -52,6 +52,7 @@
     display: flex;
     flex-wrap: wrap; /* Enable wrapping */
     justify-content: center; /* Ensure better centering for tabs */
+    margin-bottom: 15px !important; /* This controls spacing below ALL tab navigation */
 }
 
 .nav-tab {
@@ -162,51 +163,37 @@ input:checked + .wp-toggle-slider:before {
     transform: translateX(16px);
 }
 
-/* Tab Content Area */
+/* Tab Content Area - GLOBAL SETTINGS - All tab spacing should inherit from here */
 .wp-allstars-tab-content {
-    padding-top: 12px !important; /* Use important to override any other styles */
+    padding-top: 0 !important; /* Remove all padding-top from tab content */
 }
 
-/* Consistency fix for tabs with extra spacing */
-#general .wp-allstars-tab-content,
-#advanced .wp-allstars-tab-content, 
-#readme .wp-allstars-tab-content,
-#workflow .wp-allstars-tab-content,
-#theme .wp-allstars-tab-content {
-    padding-top: 12px !important;
+/* Reset all tab content padding */
+.wp-allstars-settings-content {
+    padding-top: 0 !important;
 }
 
-/* Directly target the settings sections in problematic tabs */
+/* Remove previous spacing attempts */
 #general .wp-allstars-settings-section,
 #advanced .wp-allstars-settings-section,
 #readme .wp-allstars-settings-section,
 #workflow .wp-allstars-settings-section,
-#theme .wp-allstars-settings-section {
+#theme .wp-allstars-settings-section,
+#recommended .wp-allstars-settings-section,
+#pro .wp-allstars-settings-section,
+#hosting .wp-allstars-settings-section,
+#tools .wp-allstars-settings-section {
     padding-top: 0 !important;
     margin-top: 0 !important;
 }
 
-/* Settings Content */
-.wp-allstars-settings-content {
-    padding-top: 0 !important; /* Prevent double padding with parent */
-}
-
-/* Fix padding in plugin sections */
-.wp-allstars-settings-content .wpa-pro-plugins,
-.wp-allstars-settings-content #wpa-plugin-filters,
-.wp-allstars-settings-content .wpa-theme-container,
-.wp-allstars-settings-content #wpa-theme-list,
-.wp-allstars-settings-content > * {
-    margin-top: 0;
-    padding-top: 0;
-}
-
-/* This duplicate rule was removed */
-
-/* Ensure any AJAX-loaded content follows the same padding rules */
-.wp-allstars-loading-overlay {
-    padding: 0;
-    margin-top: 0;
+/* Apply consistent spacing to the container for all tab types */
+.wp-allstars-settings-section,
+.wpa-plugin-container,
+.wpa-pro-plugins,
+.wp-allstars-markdown-content {
+    padding-top: 0 !important;
+    margin-top: 0 !important;
 }
 
 /* Base Setting Styles (Shared between simple and expandable) */
@@ -898,6 +885,7 @@ input:checked + .wp-toggle-slider:before {
 .wp-allstars-markdown-content {
     line-height: 1.6;
     color: #333;
+    padding: 0 20px 20px 20px !important; /* No top padding, consistent with other containers */
 }
 
 .wp-allstars-markdown-content h1 {
@@ -1063,18 +1051,18 @@ body.wp-admin .button.pricing-button:hover,
     max-width: 100%;
     width: 100%;
     box-sizing: border-box;
-    margin: 0 0 20px 0; /* Increase from 10px to 20px to restore original spacing */
+    margin: 0 0 15px 0 !important; /* Match the global margin setting */
     text-align: center;
 }
 
-/* Target free plugins tab specifically to maintain its current spacing */
+/* Remove redundant spacing adjustments */
 #recommended .wp-allstars-tab-content {
-    padding-top: 12px !important; /* Match other tabs */
+    padding-top: 0 !important; /* Match global setting */
 }
 
 /* Free Plugins - Single Column Centered Layout */
 #recommended .wpa-plugin-container {
-    padding: 0 20px 20px 20px !important; /* Adjust top padding to 0 */
+    padding: 0 20px 20px 20px !important; /* No top padding */
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -1241,7 +1229,7 @@ body.wp-admin .button.pricing-button:hover,
 
 /* Explicitly target readme content */
 #readme .wp-allstars-markdown-content {
-    padding: 0 20px 20px 20px; /* Remove top padding */
+    padding: 0 20px 20px 20px !important; /* No top padding, consistent with other containers */
 }
 
 /* Prevent text from overlapping dropdown chevron icon */
@@ -1361,21 +1349,4 @@ body.wp-admin .button.pricing-button:hover,
     list-style-type: disc !important;
 }
 
-/* General, Advanced, ReadMe and Workflow Tab Spacing Fix */
-#general .wp-allstars-settings-section,
-#advanced .wp-allstars-settings-section,
-#readme .wp-allstars-settings-section,
-#workflow .wp-allstars-settings-section {
-    padding-top: 0; /* Remove extra padding that's causing double spacing */
-}
-
-/* Target specific content sections that need adjustment */
-#general .wp-setting-row:first-child,
-#advanced .wp-setting-row:first-child,
-#advanced .wp-allstars-toggle:first-child,
-#workflow .wp-setting-row:first-child,
-#workflow .wp-allstars-toggle:first-child,
-#readme .wpa-pro-plugin:first-child,
-#readme .wp-allstars-markdown-content {
-    margin-top: 5px; /* Add a small margin to align with other tabs */
-}
+/* General, Advanced, ReadMe and Workflow Tab Spacing Fix - CAN BE REMOVED NOW */
