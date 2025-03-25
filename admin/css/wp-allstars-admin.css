@@ -1404,7 +1404,7 @@ body.wp-admin .button.pricing-button:hover,
 
 /* Fix to ensure consistent tab structure - "Enable Auto Upload Images" panel */
 #workflow.tab-content {
-    padding: 20px !important;
+    padding: 0 20px 20px 20px !important; /* Changed from 20px to 0 20px 20px 20px to remove top padding */
 }
 
 /* Fix spacing in workflow tab to match other tabs */
