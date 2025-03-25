@@ -56,8 +56,16 @@ class WP_Allstars_Access_Manager {
         // Add inline JS for handling settings updates
         $access_js = '
         jQuery(document).ready(function($) {
+            // Stop propagation on toggle switches to prevent multiple events
+            $(".wp-toggle-switch").on("click", function(e) {
+                e.stopPropagation();
+            });
+            
             // Handle main toggle switches
-            $("#wp_allstars_hide_admin_bar, #wp_allstars_restrict_dashboard").on("change", function() {
+            $("#wp_allstars_hide_admin_bar, #wp_allstars_restrict_dashboard").on("change", function(e) {
+                // Stop event propagation to prevent double triggering
+                e.stopPropagation();
+                
                 var $this = $(this);
                 var setting = $this.attr("id");
                 var value = $this.is(":checked");
@@ -94,14 +102,6 @@ class WP_Allstars_Access_Manager {
                             } else {
                                 // Clear all role checkboxes when disabled
                                 $settingsArea.find("input[type=checkbox]").prop("checked", false);
-                                // Optionally collapse the section if it was toggled off
-                                // Uncomment this if you want the section to collapse when disabled
-                                /*
-                                if ($header.attr("aria-expanded") === "true") {
-                                    $header.attr("aria-expanded", "false");
-                                    $settingsArea.slideUp(200);
-                                }
-                                */
                             }
                         } else {
                             showErrorNotification($this);
@@ -118,7 +118,10 @@ class WP_Allstars_Access_Manager {
             });
             
             // Handle role checkbox changes
-            $(".wp-allstars-role-checkbox input").on("change", function() {
+            $(".wp-allstars-role-checkbox input").on("change", function(e) {
+                // Stop event propagation to prevent double triggering
+                e.stopPropagation();
+                
                 var $this = $(this);
                 var $container = $this.closest(".wp-allstars-role-checkboxes");
                 var setting = $container.find("input").first().attr("name");
@@ -148,11 +151,11 @@ class WP_Allstars_Access_Manager {
                             // Update the main toggle based on role selection
                             if (selectedRoles.length > 0) {
                                 $mainToggle.prop("checked", true);
-                                showSavedNotification($mainToggle);
                             } else {
                                 $mainToggle.prop("checked", false);
-                                showSavedNotification($mainToggle);
                             }
+                            
+                            showSavedNotification($this);
                         } else {
                             showErrorNotification($this);
                             // Revert the checkbox to its previous state
@@ -204,19 +207,6 @@ class WP_Allstars_Access_Manager {
                     });
                 }, 2000);
             }
-            
-            // Toggle expandable settings panels
-            $(".wp-allstars-toggle-header").on("click", function() {
-                var $this = $(this);
-                var $settings = $this.closest(".wp-allstars-toggle").find(".wp-allstars-toggle-settings");
-                var isExpanded = $this.attr("aria-expanded") === "true";
-                
-                // Toggle aria-expanded attribute
-                $this.attr("aria-expanded", !isExpanded);
-                
-                // Toggle settings visibility
-                $settings.slideToggle(200);
-            });
         });
         ';
         
@@ -229,13 +219,13 @@ class WP_Allstars_Access_Manager {
     public static function handle_access_setting_update() {
         // Verify nonce
         if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'wp-allstars-nonce')) {
-            wp_send_json_error('Invalid nonce');
+            wp_send_json_error(array('message' => 'Invalid nonce'));
             return;
         }
         
         // Check user capabilities
         if (!current_user_can('manage_options')) {
-            wp_send_json_error('Insufficient permissions');
+            wp_send_json_error(array('message' => 'Insufficient permissions'));
             return;
         }
         
@@ -244,23 +234,32 @@ class WP_Allstars_Access_Manager {
         $value = isset($_POST['value']) ? $_POST['value'] : '';
         
         if (empty($setting)) {
-            wp_send_json_error('Invalid setting');
+            wp_send_json_error(array('message' => 'Invalid setting'));
             return;
         }
         
         // Handle different setting types
         $result = false;
+        
         switch ($setting) {
             case 'wp_allstars_hide_admin_bar':
                 // When the main toggle is changed, update the roles option
-                $default_roles = array('guest', 'subscriber', 'customer');
-                $result = update_option('wp_allstars_hide_admin_bar_roles', $value ? $default_roles : array());
+                if ($value) {
+                    $default_roles = array('guest', 'subscriber', 'customer');
+                    $result = update_option('wp_allstars_hide_admin_bar_roles', $default_roles);
+                } else {
+                    $result = update_option('wp_allstars_hide_admin_bar_roles', array());
+                }
                 break;
                 
             case 'wp_allstars_restrict_dashboard':
                 // When the main toggle is changed, update the roles option
-                $default_roles = array('guest', 'subscriber', 'customer');
-                $result = update_option('wp_allstars_restrict_dashboard_roles', $value ? $default_roles : array());
+                if ($value) {
+                    $default_roles = array('guest', 'subscriber', 'customer');
+                    $result = update_option('wp_allstars_restrict_dashboard_roles', $default_roles);
+                } else {
+                    $result = update_option('wp_allstars_restrict_dashboard_roles', array());
+                }
                 break;
                 
             case 'wp_allstars_hide_admin_bar_roles[]':
@@ -280,14 +279,14 @@ class WP_Allstars_Access_Manager {
                 break;
                 
             default:
-                wp_send_json_error('Invalid setting name');
+                wp_send_json_error(array('message' => 'Invalid setting name'));
                 return;
         }
         
         if ($result) {
             wp_send_json_success(array('message' => 'Setting updated successfully'));
         } else {
-            wp_send_json_error(array('message' => 'Failed to save setting'));
+            wp_send_json_error(array('message' => 'Error Saving'));
         }
     }
     
