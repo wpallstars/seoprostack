@@ -62,6 +62,10 @@ class WP_Allstars_Tools_Manager {
         #tools .wpa-pro-plugin:last-child {
             margin-bottom: 0;
         }
+        #tools .wpa-pro-plugin:hover {
+            border-color: #2271b1;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+        }
         #tools .wpa-pro-plugin .button-group {
             justify-content: flex-start;
         }

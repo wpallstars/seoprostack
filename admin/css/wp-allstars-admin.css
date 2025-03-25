@@ -1428,3 +1428,14 @@ body.wp-admin .button.pricing-button:hover,
     margin: 0 0 25px 0 !important;
     text-align: center;
 }
+
+/* Ensure consistent hover styles across all tab tile layouts */
+.wpa-pro-plugin:hover,
+#pro .wpa-pro-plugin:hover,
+#hosting .wpa-pro-plugin:hover,
+#tools .wpa-pro-plugin:hover,
+#recommended .plugin-card:hover {
+    border-color: #2271b1 !important;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.15) !important;
+    transition: all 0.2s ease !important;
+}

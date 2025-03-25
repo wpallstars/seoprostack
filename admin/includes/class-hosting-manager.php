@@ -124,6 +124,10 @@ class WP_Allstars_Hosting_Manager {
         #hosting .wpa-pro-plugin:last-child {
             margin-bottom: 0;
         }
+        #hosting .wpa-pro-plugin:hover {
+            border-color: #2271b1;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+        }
         #hosting .wpa-pro-plugin .button-group {
             justify-content: flex-start;
         }
