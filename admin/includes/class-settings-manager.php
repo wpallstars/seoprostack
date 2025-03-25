@@ -91,7 +91,7 @@ class WP_Allstars_Settings_Manager {
                             </div>
                         </div>
                         <p class="wp-setting-description">
-                            <?php esc_html_e('Switch to the Modern Admin colour scheme, to remind that you\'re using an SEO Pro Stack :)', 'wp-allstars'); ?>
+                            <?php esc_html_e('Switch to the Modern Admin colours, to remind that you\'re using an SEO Pro Stack :)', 'wp-allstars'); ?>
                         </p>
                     </div>
                 </div>

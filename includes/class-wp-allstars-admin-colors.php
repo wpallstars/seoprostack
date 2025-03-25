@@ -73,8 +73,7 @@ class WP_Allstars_Admin_Colors {
             
             // Function to dynamically apply admin color scheme
             function applyAdminColorScheme(enableModern) {
-                // Get the stylesheets we need to replace
-                var $adminColors = $("link[href*=\'colors\']");
+                console.log("Applying admin color scheme:", enableModern ? "modern" : "default");
                 
                 // AJAX request to get the new color scheme URLs
                 $.ajax({
@@ -87,24 +86,38 @@ class WP_Allstars_Admin_Colors {
                     },
                     success: function(response) {
                         if (response.success && response.data) {
+                            console.log("Received color scheme data:", response.data);
+                            
                             // Replace the stylesheets
                             $.each(response.data, function(index, styleData) {
-                                var $oldStyle = $("link[href*=\'" + styleData.id + "\']");
-                                if ($oldStyle.length) {
-                                    // Create a new link element
-                                    var $newStyle = $("<link>", {
-                                        rel: "stylesheet",
-                                        id: styleData.id,
-                                        href: styleData.url,
-                                        type: "text/css"
-                                    });
-                                    
-                                    // Replace the old style with the new one
-                                    $oldStyle.after($newStyle);
-                                    $oldStyle.remove();
-                                }
+                                // Find any style with "colors" in the URL or ID
+                                var colorStyleSelector = "link[href*=\'colors\'], link[id*=\'colors\']";
+                                var $oldStyles = $(colorStyleSelector);
+                                
+                                console.log("Found color stylesheets:", $oldStyles.length);
+                                
+                                // Create a new link element
+                                var $newStyle = $("<link>", {
+                                    rel: "stylesheet",
+                                    id: styleData.id,
+                                    href: styleData.url,
+                                    type: "text/css"
+                                });
+                                
+                                // Add new style at the end of head
+                                $("head").append($newStyle);
+                                
+                                // Remove old styles after a short delay to ensure new one loads
+                                setTimeout(function() {
+                                    $oldStyles.remove();
+                                }, 100);
                             });
+                        } else {
+                            console.error("Error getting color scheme data:", response);
                         }
+                    },
+                    error: function(xhr, status, error) {
+                        console.error("AJAX error:", error);
                     }
                 });
             }
