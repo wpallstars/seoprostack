@@ -747,38 +747,35 @@ input:checked + .wp-toggle-slider:before {
 .wp-allstars-toggle-left label,
 .wp-allstars-setting-row label {
     position: relative;
-    padding-right: 80px; /* Increased padding to accommodate notification */
+    padding-right: 20px;
     display: inline-block;
-    min-width: 200px; /* Ensure minimum width for labels */
 }
 
-/* Ensure toggle switches don't wrap with notifications */
-.wp-allstars-toggle-left {
-    display: flex;
-    align-items: center;
-    flex-wrap: nowrap;
-    gap: 10px;
+.wp-setting-left label .wp-setting-notification,
+.wp-allstars-toggle-left label .wp-setting-notification,
+.wp-allstars-setting-row label .wp-setting-notification {
+    position: absolute;
+    right: -60px;
+    top: -5px;
+    transform: translateY(0);
+    line-height: 1.4;
 }
 
-.wp-allstars-toggle-left label {
-    flex: 1;
-    margin: 0;
-    padding-right: 80px;
-}
-
-/* Role Checkboxes */
+/* Role Checkboxes - Consistent component design */
 .wp-allstars-role-checkboxes {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    display: flex;
+    flex-wrap: wrap;
     gap: 10px;
     margin-top: 10px;
 }
 
 .wp-allstars-role-checkbox {
+    flex: 0 0 calc(33.333% - 10px);
+    max-width: calc(33.333% - 10px);
     display: flex;
     align-items: center;
     gap: 8px;
-    padding: 8px;
+    padding: 8px 10px;
     background: #f8f9fa;
     border: 1px solid #ddd;
     border-radius: 4px;
@@ -800,20 +797,67 @@ input:checked + .wp-toggle-slider:before {
     color: #50575e;
 }
 
-/* Responsive adjustments for role checkboxes */
-@media screen and (max-width: 782px) {
-    .wp-allstars-role-checkboxes {
-        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-        gap: 8px;
-    }
-    
+/* Responsive adjustments */
+@media screen and (max-width: 992px) {
     .wp-allstars-role-checkbox {
-        padding: 6px;
+        flex: 0 0 calc(50% - 10px);
+        max-width: calc(50% - 10px);
+    }
+}
+
+@media screen and (max-width: 782px) {
+    .wp-allstars-role-checkbox {
+        flex: 0 0 calc(50% - 8px);
+        max-width: calc(50% - 8px);
+        padding: 6px 8px;
     }
     
     .wp-allstars-role-checkbox span {
         font-size: 12px;
     }
+}
+
+@media screen and (max-width: 480px) {
+    .wp-allstars-role-checkbox {
+        flex: 0 0 100%;
+        max-width: 100%;
+    }
+}
+
+/* Enhanced toggle component */
+.wp-allstars-toggle {
+    position: relative;
+    overflow: hidden;
+}
+
+.wp-allstars-toggle-header[aria-expanded="true"] {
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+}
+
+/* Better settings panel styling */
+.wp-allstars-toggle-settings {
+    padding: 20px;
+    background: #f8f9fa;
+    border-top: 1px solid #ddd;
+    border-bottom-left-radius: 8px;
+    border-bottom-right-radius: 8px;
+}
+
+.wp-allstars-setting-row {
+    margin-bottom: 20px;
+}
+
+.wp-allstars-setting-row:last-child {
+    margin-bottom: 0;
+}
+
+.wp-allstars-setting-row label {
+    display: block;
+    margin-bottom: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #1d2327;
 }
 
 @keyframes fadeIn {
