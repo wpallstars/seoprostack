@@ -162,31 +162,14 @@ input:checked + .wp-toggle-slider:before {
     transform: translateX(16px);
 }
 
-/* Tab Content Area - Global Styling */
+/* Tab Content Area */
 .wp-allstars-tab-content {
-    padding-top: 10px; /* Reduce from 25px to 10px to match the Free Plugins tab */
-}
-
-/* Make General, Advanced, and Read Me tabs consistent with Free Plugins */
-#general .wp-allstars-settings-section,
-#advanced .wp-allstars-settings-section,
-#readme .wp-allstars-settings-section,
-#theme .wp-allstars-settings-section,
-#workflow .wp-allstars-settings-section,
-#tools .wp-allstars-settings-section,
-#hosting .wp-allstars-settings-section,
-#pro .wp-allstars-settings-section {
-    padding-top: 10px;
+    padding-top: 25px;
 }
 
 /* Settings Content */
 .wp-allstars-settings-content {
     padding-top: 0 !important; /* Prevent double padding with parent */
-}
-
-/* Explicitly set padding for content sections */
-.wp-allstars-settings-section {
-    padding-top: 10px;
 }
 
 /* Fix padding in plugin sections */
