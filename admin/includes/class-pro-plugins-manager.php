@@ -139,11 +139,11 @@ class WP_Allstars_Pro_Plugins_Manager {
         // Add inline CSS for pro plugins
         $custom_css = '
         .wpa-pro-plugins {
-            padding: 0;
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(450px, 1fr));
-            gap: 24px;
-            max-width: 1920px;
+            padding: 15px 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            max-width: 700px;
             margin: 0 auto;
         }
         .wpa-pro-plugin {
@@ -155,6 +155,12 @@ class WP_Allstars_Pro_Plugins_Manager {
             flex-direction: column;
             transition: all 0.2s ease;
             box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            width: 100%;
+            margin-bottom: 24px;
+            max-width: 100%;
+        }
+        .wpa-pro-plugin:last-child {
+            margin-bottom: 0;
         }
         .wpa-pro-plugin:hover {
             border-color: #2271b1;
@@ -178,6 +184,7 @@ class WP_Allstars_Pro_Plugins_Manager {
             flex-wrap: wrap;
             gap: 8px;
             margin-top: auto;
+            justify-content: flex-end;
         }
         .wpa-pro-plugin .button {
             text-decoration: none;

@@ -15,7 +15,7 @@ class WP_Allstars_Hosting_Manager {
      * Initialize the class
      */
     public static function init() {
-        // No specific initialization needed currently
+        add_action('admin_enqueue_scripts', array(__CLASS__, 'enqueue_styles'));
     }
     
     /**
@@ -79,5 +79,56 @@ class WP_Allstars_Hosting_Manager {
         }
         
         return wp_allstars_get_hosting_providers();
+    }
+    
+    /**
+     * Enqueue styles for the hosting tab
+     *
+     * @param string $hook Current admin page hook
+     */
+    public static function enqueue_styles($hook) {
+        if ('settings_page_wp-allstars' !== $hook) {
+            return;
+        }
+        
+        wp_enqueue_style(
+            'wp-allstars-admin',
+            plugins_url('css/wp-allstars-admin.css', dirname(__FILE__)),
+            array(),
+            WP_ALLSTARS_VERSION
+        );
+        
+        // Add inline CSS for hosting to match the single column layout
+        $custom_css = '
+        #hosting .wpa-pro-plugins {
+            padding: 15px 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            max-width: 700px;
+            margin: 0 auto;
+        }
+        #hosting .wpa-pro-plugin {
+            background: #fff;
+            border: 1px solid #ddd;
+            padding: 24px;
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            transition: all 0.2s ease;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            width: 100%;
+            margin-bottom: 24px;
+            max-width: 100%;
+        }
+        #hosting .wpa-pro-plugin:last-child {
+            margin-bottom: 0;
+        }
+        #hosting .wpa-pro-plugin .button-group {
+            justify-content: flex-end;
+        }
+        ';
+        
+        wp_add_inline_style('wp-allstars-admin', $custom_css);
     }
 }

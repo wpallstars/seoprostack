@@ -35,6 +35,39 @@ class WP_Allstars_Tools_Manager {
             array(),
             WP_ALLSTARS_VERSION
         );
+        
+        // Add inline CSS for tools to match the single column layout
+        $custom_css = '
+        #tools .wpa-pro-plugins {
+            padding: 15px 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            max-width: 700px;
+            margin: 0 auto;
+        }
+        #tools .wpa-pro-plugin {
+            background: #fff;
+            border: 1px solid #ddd;
+            padding: 24px;
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            transition: all 0.2s ease;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            width: 100%;
+            margin-bottom: 24px;
+            max-width: 100%;
+        }
+        #tools .wpa-pro-plugin:last-child {
+            margin-bottom: 0;
+        }
+        #tools .wpa-pro-plugin .button-group {
+            justify-content: flex-end;
+        }
+        ';
+        
+        wp_add_inline_style('wp-allstars-admin', $custom_css);
     }
     
     /**
