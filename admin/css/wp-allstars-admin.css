@@ -1397,6 +1397,26 @@ body.wp-admin .button.pricing-button:hover,
 #workflow .wp-allstars-toggle {
     max-width: 700px !important;
     width: 100% !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+    box-sizing: border-box !important;
+}
+
+/* Fix to ensure consistent tab structure - "Enable Auto Upload Images" panel */
+#workflow.tab-content {
+    padding: 20px !important;
+}
+
+/* Fix spacing in workflow tab to match other tabs */
+#workflow .wp-allstars-toggle {
+    margin-bottom: 15px !important;
+}
+
+/* Consistent padding for toggle headers across all tabs */
+#workflow .wp-allstars-toggle-header,
+#general .wp-setting-header,
+#advanced .wp-allstars-toggle-header {
+    padding: 15px !important;
 }
 
 /* Keep free plugins navigation full width */
