@@ -1546,10 +1546,10 @@ body.wp-admin .button.pricing-button:hover,
     box-sizing: border-box !important;
 }
 
-/* Set the individual plugin cards to max 700px width */
+/* Set the individual plugin cards to max 660px width */
 #recommended .plugin-card {
     width: 100% !important;
-    max-width: 700px !important;
+    max-width: 660px !important;
     margin: 0 auto 24px auto !important;
     padding: 24px !important;
     border: 1px solid #ddd !important;
