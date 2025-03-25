@@ -295,6 +295,9 @@ jQuery(document).ready(function($) {
         });
     }
     
+    // Expose initPluginActions to global scope for use in other scripts
+    window.initPluginActions = initPluginActions;
+
     // Initialize theme handlers
     function initThemeHandlers() {
         console.log('Initializing theme handlers');

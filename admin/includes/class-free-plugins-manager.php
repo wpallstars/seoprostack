@@ -142,6 +142,13 @@ class WP_Allstars_Free_Plugins_Manager {
                         if (response.success) {
                             // Add plugins to the container
                             $container.html(response.data);
+                            
+                            // Initialize plugin action buttons (fix for AJAX install/activate functionality)
+                            if (typeof initPluginActions === "function") {
+                                initPluginActions();
+                            } else if (typeof window.initPluginActions === "function") {
+                                window.initPluginActions();
+                            }
                         } else {
                             $container.html('<div class="notice notice-error"><p>' + response.data + '</p></div>');
                             console.error('Error loading plugins:', response.data);
