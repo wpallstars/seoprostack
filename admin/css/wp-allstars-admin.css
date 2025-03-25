@@ -770,13 +770,13 @@ input:checked + .wp-toggle-slider:before {
     z-index: 1;
 } 
 
-/* Panel styles for Pro Plugins, Hosting, and Tools tabs */
+/* Panel styles for Pro Plugins, Hosting, and Tools tabs - Single Column Layout */
 .wpa-pro-plugins {
     padding: 20px;
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(450px, 1fr));
-    gap: 24px;
-    max-width: 1920px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    max-width: 700px; /* Match Free Plugins max-width */
     margin: 0 auto;
 }
 
@@ -789,6 +789,13 @@ input:checked + .wp-toggle-slider:before {
     flex-direction: column;
     transition: all 0.2s ease;
     box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    width: 100%; /* Full width of container */
+    margin-bottom: 24px; /* Match Free Plugins spacing */
+    max-width: 100%; /* Ensure it doesn't exceed container */
+}
+
+.wpa-pro-plugin:last-child {
+    margin-bottom: 0;
 }
 
 .wpa-pro-plugin:hover {
@@ -816,6 +823,7 @@ input:checked + .wp-toggle-slider:before {
     flex-wrap: wrap;
     gap: 8px;
     margin-top: auto;
+    justify-content: flex-end; /* Right-align buttons like Free Plugins */
 }
 
 .wpa-pro-plugin .button {
@@ -856,10 +864,16 @@ input:checked + .wp-toggle-slider:before {
     color: #fff;
 }
 
+/* Adjust spacing between pro plugins content and tabs navigation */
+#pro .wpa-pro-plugins,
+#hosting .wpa-pro-plugins,
+#tools .wpa-pro-plugins {
+    padding-top: 15px; /* Match Free Plugins padding */
+}
+
+/* Simplify media queries since we're using single column at all widths */
 @media screen and (max-width: 960px) {
     .wpa-pro-plugins {
-        grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
-        gap: 20px;
         padding: 16px;
     }
     .wpa-pro-plugin {
@@ -869,15 +883,10 @@ input:checked + .wp-toggle-slider:before {
 
 @media screen and (max-width: 782px) {
     .wpa-pro-plugins {
-        grid-template-columns: 1fr;
-        gap: 16px;
         padding: 12px;
     }
     .wpa-pro-plugin {
         padding: 16px;
-    }
-    .wpa-pro-plugin .button {
-        width: 100%;
     }
 }
 
