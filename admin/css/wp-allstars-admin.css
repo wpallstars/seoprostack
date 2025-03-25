@@ -1130,7 +1130,8 @@ body.wp-admin .button.pricing-button:hover,
 
 /* Increase right padding for compatibility text */
 #recommended .plugin-card .column-compatibility {
-    padding-right: 25px;
+    padding-right: 0;
+    padding-left: 25px;
 }
 
 /* Style compatibility message */

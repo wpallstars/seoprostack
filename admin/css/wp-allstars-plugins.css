@@ -137,7 +137,8 @@
 
 /* Move compatibility text to the right */
 .column-compatibility {
-    padding-right: 25px !important;
+    padding-right: 0 !important;
+    padding-left: 25px !important;
 }
 
 /* Loading Overlay without white background */
