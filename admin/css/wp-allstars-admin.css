@@ -1128,6 +1128,19 @@ body.wp-admin .button.pricing-button:hover,
     margin-top: auto;
 }
 
+/* Increase right padding for compatibility text */
+#recommended .plugin-card .column-compatibility {
+    padding-right: 25px;
+}
+
+/* Style compatibility message */
+#recommended .plugin-card .column-compatibility {
+    text-align: center;
+    font-size: 13px;
+    color: #00a32a;
+    margin: 5px 0;
+}
+
 /* Loading spinner without background */
 .wpa-loading-overlay {
     position: absolute;
@@ -1172,14 +1185,6 @@ body.wp-admin .button.pricing-button:hover,
     #recommended .plugin-card .plugin-action-buttons .button {
         width: 100%;
     }
-}
-
-/* Style compatibility message */
-#recommended .plugin-card .column-compatibility {
-    text-align: center;
-    font-size: 13px;
-    color: #00a32a;
-    margin: 5px 0;
 }
 
 /* Center the plugin container */

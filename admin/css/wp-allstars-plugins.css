@@ -135,6 +135,11 @@
     margin-top: auto !important;
 }
 
+/* Move compatibility text to the right */
+.column-compatibility {
+    padding-right: 25px !important;
+}
+
 /* Loading Overlay without white background */
 .wp-allstars-loading-overlay {
     position: absolute;
