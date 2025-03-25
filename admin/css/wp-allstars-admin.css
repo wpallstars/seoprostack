@@ -1044,7 +1044,7 @@ body.wp-admin .button.pricing-button:hover,
     max-width: 100%;
     width: 100%;
     box-sizing: border-box;
-    margin: 0 0 10px 0; /* Restore the 10px bottom margin */
+    margin: 0 0 20px 0; /* Increase from 10px to 20px to restore original spacing */
     text-align: center;
 }
 
