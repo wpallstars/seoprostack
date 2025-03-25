@@ -183,18 +183,18 @@ class WP_Allstars_Access_Manager {
         // Handle different setting types
         switch ($setting) {
             case 'wp_allstars_hide_admin_bar':
-                update_option('wp_allstars_hide_admin_bar_roles', $value ? array('guest', 'subscriber', 'customer') : array());
+                $result = update_option('wp_allstars_hide_admin_bar_roles', $value ? array('guest', 'subscriber', 'customer') : array());
                 break;
                 
             case 'wp_allstars_restrict_dashboard':
-                update_option('wp_allstars_restrict_dashboard_roles', $value ? array('guest', 'subscriber', 'customer') : array());
+                $result = update_option('wp_allstars_restrict_dashboard_roles', $value ? array('guest', 'subscriber', 'customer') : array());
                 break;
                 
             case 'wp_allstars_hide_admin_bar_roles':
             case 'wp_allstars_restrict_dashboard_roles':
                 if (is_array($value)) {
                     $value = array_map('sanitize_text_field', $value);
-                    update_option($setting, $value);
+                    $result = update_option($setting, $value);
                 }
                 break;
                 
@@ -202,13 +202,22 @@ class WP_Allstars_Access_Manager {
                 wp_send_json_error('Invalid setting name');
         }
         
-        wp_send_json_success();
+        if ($result) {
+            wp_send_json_success();
+        } else {
+            wp_send_json_error('Failed to save setting');
+        }
     }
     
     /**
      * Set up access control hooks
      */
     public static function setup_access_control() {
+        // Only run if the feature is enabled
+        if (!get_option('wp_allstars_hide_admin_bar_roles') && !get_option('wp_allstars_restrict_dashboard_roles')) {
+            return;
+        }
+        
         // Get current user
         $user = wp_get_current_user();
         if (!$user->exists()) {
@@ -219,8 +228,8 @@ class WP_Allstars_Access_Manager {
         $user_roles = $user->roles;
         
         // Get restricted roles from settings
-        $hide_admin_bar_roles = get_option('wp_allstars_hide_admin_bar_roles', array('guest', 'subscriber', 'customer'));
-        $restrict_dashboard_roles = get_option('wp_allstars_restrict_dashboard_roles', array('guest', 'subscriber', 'customer'));
+        $hide_admin_bar_roles = get_option('wp_allstars_hide_admin_bar_roles', array());
+        $restrict_dashboard_roles = get_option('wp_allstars_restrict_dashboard_roles', array());
         
         // Check if user's role is in restricted roles
         $should_hide_admin_bar = array_intersect($user_roles, $hide_admin_bar_roles);

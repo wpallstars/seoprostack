@@ -814,13 +814,6 @@ input:checked + .wp-toggle-slider:before {
     .wp-allstars-role-checkbox span {
         font-size: 12px;
     }
-    
-    /* Adjust label padding on mobile */
-    .wp-setting-left label,
-    .wp-allstars-toggle-left label,
-    .wp-allstars-setting-row label {
-        padding-right: 70px;
-    }
 }
 
 @keyframes fadeIn {
