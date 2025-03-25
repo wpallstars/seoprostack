@@ -38,7 +38,7 @@
     display: inline-block;
 }
 
-/* Plugin Cards */
+/* Plugin Cards - Use consistent layout similar to 768px width for all screens */
 .plugin-card {
     margin: 0 0 24px 0 !important;
     width: 100% !important;
@@ -75,13 +75,13 @@
     float: left !important;
     width: 64px !important;
     height: 64px !important;
-    margin: 0 20px 0 0 !important;
+    margin: 0 20px 15px 0 !important;
 }
 
-/* Name and description positioning - improved text wrapping */
+/* Name and description positioning - 768px style */
 .name.column-name {
     margin: 0 0 12px 84px !important;
-    margin-right: 150px !important; /* Increased to prevent text going behind buttons */
+    margin-right: 0 !important; /* Full width content */
 }
 
 .name.column-name h3 {
@@ -90,38 +90,39 @@
     line-height: 1.4 !important;
     margin: 0 0 12px !important;
     color: #1d2327 !important;
-    word-wrap: break-word !important; /* Ensure text wrapping */
+    word-wrap: break-word !important;
 }
 
 .desc.column-description {
-    margin: 0 0 16px 84px !important;
-    margin-right: 150px !important; /* Increased to prevent text going behind buttons */
+    margin: 0 0 20px 84px !important;
+    margin-right: 0 !important; /* Full width content */
     font-size: 14px !important;
     line-height: 1.6 !important;
     color: #50575e !important;
 }
 
-/* Action Links */
+/* Action Links - Position below content */
 .action-links {
-    position: absolute !important;
-    top: 24px !important;
-    right: 0 !important;
-    width: 140px !important; /* Increased width for buttons */
+    position: relative !important;
+    width: 100% !important;
     display: flex !important;
-    flex-direction: column !important;
-    align-items: flex-end !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    justify-content: flex-end !important;
     gap: 8px !important;
-    padding-right: 20px !important; /* Keep padding to give text more space */
+    padding: 0 !important;
+    margin-top: 10px !important;
 }
 
 .plugin-action-buttons {
     margin: 0 !important;
     float: none !important;
-    width: 100% !important;
+    width: auto !important;
 }
 
 .plugin-action-buttons .button {
-    width: 100% !important;
+    width: auto !important;
+    min-width: 120px !important;
     text-align: center !important;
 }
 
@@ -149,43 +150,7 @@
     z-index: 100;
 }
 
-/* Responsive Adjustments - improved mobile layout */
-@media screen and (max-width: 782px) {
-    .wp-allstars-wrap #wpa-plugin-list {
-        padding: 16px;
-    }
-    
-    .plugin-card-top {
-        padding: 16px !important;
-    }
-    
-    .name.column-name,
-    .desc.column-description {
-        margin-right: 0 !important; /* Allow full width on mobile */
-    }
-    
-    .action-links {
-        position: relative !important;
-        width: 100% !important;
-        top: auto !important;
-        right: auto !important;
-        padding-right: 0 !important;
-        margin-top: 16px !important;
-        flex-direction: row !important;
-        justify-content: flex-end !important;
-    }
-    
-    .plugin-action-buttons {
-        width: auto !important;
-    }
-    
-    .plugin-action-buttons .button {
-        width: auto !important;
-        min-width: 120px !important;
-    }
-}
-
-/* Extra small screens */
+/* Extra small screens only */
 @media screen and (max-width: 480px) {
     .plugin-card {
         padding-top: 80px !important; /* Space for icon at top */
@@ -922,11 +887,9 @@ body.wp-admin .plugin-card-bottom .compatibility-untested *,
     margin-right: 0;
 }
 
-/* Additional rule for wider screens */
-@media screen and (min-width: 1100px) {
-    /* Ensure text doesn't overlap buttons on wide screens */
-    .name.column-name,
-    .desc.column-description {
-        margin-right: 160px !important;
-    }
-} 
+/* Theme browser proper layout */
+.theme-browser .theme:nth-child(2n) {
+    margin-right: 0;
+}
+
+/* Remove media query for wider screens since we're using consistent layout */ 
