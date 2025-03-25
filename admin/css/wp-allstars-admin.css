@@ -1471,3 +1471,77 @@ body.wp-admin .button.pricing-button:hover,
     box-shadow: 0 2px 6px rgba(0,0,0,0.15) !important;
     transition: all 0.2s ease !important;
 }
+
+/* Direct override for free plugins tab width - setting the tab content container to 900px */
+#recommended.wp-allstars-settings-content,
+#recommended.tab-content {
+    max-width: 900px !important;
+    width: 100% !important;
+}
+
+/* Target the specific filter container directly with !important */
+#wpa-plugin-filters {
+    max-width: 900px !important;
+    width: 900px !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+    box-sizing: border-box !important;
+    padding: 15px !important;
+    border-radius: 8px !important;
+    background: #fff !important;
+}
+
+/* Filter links should be centered within container */
+#wpa-plugin-filters .filter-links {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+    margin: 0;
+    padding-bottom: 0;
+}
+
+/* Style the filter links similar to main tabs with proper border */
+#wpa-plugin-filters .filter-links a {
+    margin: 0;
+    padding: 10px 15px;
+    font-size: 14px;
+    line-height: 1.6;
+    font-weight: 400;
+    background: transparent;
+    color: #50575e;
+    text-decoration: none;
+    white-space: nowrap;
+    border: none;
+    border-bottom: 2px solid transparent;
+    display: inline-block;
+    transition: all 0.2s ease;
+}
+
+#wpa-plugin-filters .filter-links a:hover,
+#wpa-plugin-filters .filter-links a:focus {
+    color: #2271b1;
+    background: transparent;
+    border-bottom: 2px solid #2271b1;
+}
+
+#wpa-plugin-filters .filter-links a.current {
+    border-bottom: 2px solid #2271b1;
+    background: transparent;
+    color: #2271b1;
+    font-weight: 600;
+}
+
+/* Target the plugin container directly with !important for 900px width */
+#recommended .wpa-plugin-container,
+#wpa-plugin-list.wpa-plugin-container {
+    max-width: 900px !important;
+    width: 900px !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+    padding: 15px 20px 20px 20px !important;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    box-sizing: border-box !important;
+}
