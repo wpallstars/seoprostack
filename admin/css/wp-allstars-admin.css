@@ -1054,13 +1054,31 @@ body.wp-admin .button.pricing-button:hover,
     padding: 0;
 }
 
-/* Filter navigation - full width */
+/* Filter navigation - container at max-width to match other tabs */
+#wpa-plugin-filters {
+    max-width: 700px !important;
+    margin: 0 auto 25px auto !important;
+    box-sizing: border-box;
+    padding: 15px;
+    border-radius: 8px;
+}
+
+/* Filter links should be centered within container */
+#wpa-plugin-filters .filter-links {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+    margin: 0;
+}
+
+/* Keep free plugins subsubsub navigation full width */
 #recommended .nav-tab-wrapper,
 #recommended .subsubsub {
-    max-width: 100%;
-    width: 100%;
+    max-width: 100% !important;
+    width: 100% !important;
     box-sizing: border-box;
-    margin: 0 0 25px 0 !important; /* Match the global margin setting of 25px */
+    margin: 0 0 25px 0 !important;
     text-align: center;
 }
 
