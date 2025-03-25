@@ -1337,10 +1337,11 @@ body.wp-admin .button.pricing-button:hover,
     list-style-type: disc !important;
 }
 
-/* General, Advanced, and ReadMe Tab Spacing Fix */
+/* General, Advanced, ReadMe and Workflow Tab Spacing Fix */
 #general .wp-allstars-settings-section,
 #advanced .wp-allstars-settings-section,
-#readme .wp-allstars-settings-section {
+#readme .wp-allstars-settings-section,
+#workflow .wp-allstars-settings-section {
     padding-top: 0; /* Remove extra padding that's causing double spacing */
 }
 
@@ -1348,6 +1349,8 @@ body.wp-admin .button.pricing-button:hover,
 #general .wp-setting-row:first-child,
 #advanced .wp-setting-row:first-child,
 #advanced .wp-allstars-toggle:first-child,
+#workflow .wp-setting-row:first-child,
+#workflow .wp-allstars-toggle:first-child,
 #readme .wpa-pro-plugin:first-child,
 #readme .wp-allstars-markdown-content {
     margin-top: 5px; /* Add a small margin to align with other tabs */
