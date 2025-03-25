@@ -623,17 +623,29 @@ input:checked + .wp-toggle-slider:before {
     gap: 8px;
 }
 
-/* Make theme buttons match size of plugin buttons */
+/* Fix theme buttons to maintain consistent size and prevent layout jumps */
 .theme-actions .button {
-    margin: 0;
-    padding: 6px 14px;
-    height: auto;
-    line-height: 1.4;
-    font-size: 13px;
-    font-weight: 500;
-    min-width: 100px;
-    text-align: center;
-    border-radius: 4px;
+    min-width: 80px !important;
+    text-align: center !important;
+    position: relative !important;
+    padding-left: 12px !important;
+    padding-right: 12px !important;
+}
+
+/* Style for the updating message with spinner */
+.theme-actions .button.updating-message:before,
+.theme-actions .button.updated-message:before {
+    margin-top: 0 !important;
+    padding-right: 3px !important;
+    vertical-align: bottom !important;
+}
+
+/* Style theme actions container spacing */
+.theme-actions {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 8px !important;
+    padding: 15px !important;
 }
 
 /* Responsive Adjustments */

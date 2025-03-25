@@ -310,13 +310,14 @@ jQuery(document).ready(function($) {
             e.preventDefault();
             var $button = $(this);
             var slug = $button.data('slug');
+            var buttonText = $button.text();
             
-            $button.addClass('updating-message').text('Installing...');
+            $button.addClass('updating-message').attr('aria-label', wp.updates.l10n.installing);
             
             wp.updates.installTheme({
                 slug: slug,
                 success: function(response) {
-                    $button.removeClass('updating-message').addClass('updated-message').text('Installed!');
+                    $button.removeClass('updating-message').addClass('updated-message').attr('aria-label', wp.updates.l10n.installed);
                     setTimeout(function() {
                         // Replace the button with an activate button
                         var $parent = $button.parent();
@@ -332,7 +333,7 @@ jQuery(document).ready(function($) {
                     }, 1000);
                 },
                 error: function(response) {
-                    $button.removeClass('updating-message').text('Install');
+                    $button.removeClass('updating-message').text(buttonText);
                     alert(response.errorMessage || 'Error installing theme');
                 }
             });
@@ -344,8 +345,9 @@ jQuery(document).ready(function($) {
             var $button = $(this);
             var slug = $button.data('slug');
             var nonce = $button.data('nonce');
+            var buttonText = $button.text();
             
-            $button.addClass('updating-message').text('Activating...');
+            $button.addClass('updating-message').attr('aria-label', 'Activating...');
             
             $.ajax({
                 url: ajaxurl,
@@ -357,7 +359,7 @@ jQuery(document).ready(function($) {
                 },
                 success: function(response) {
                     if (response.success) {
-                        $button.removeClass('updating-message').addClass('updated-message').text('Activated!');
+                        $button.removeClass('updating-message').addClass('updated-message').attr('aria-label', 'Activated');
                         setTimeout(function() {
                             // Replace the button with an active button
                             var $parent = $button.parent();
@@ -368,12 +370,12 @@ jQuery(document).ready(function($) {
                             // window.location.reload();
                         }, 1000);
                     } else {
-                        $button.removeClass('updating-message').text('Activate');
+                        $button.removeClass('updating-message').text(buttonText);
                         alert(response.data || 'Error activating theme');
                     }
                 },
                 error: function(xhr, status, error) {
-                    $button.removeClass('updating-message').text('Activate');
+                    $button.removeClass('updating-message').text(buttonText);
                     alert('Failed to activate theme. Please try again or activate from the Themes page. Error: ' + error);
                 }
             });
