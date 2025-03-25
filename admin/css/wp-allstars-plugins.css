@@ -778,6 +778,12 @@ body.wp-admin .plugin-card-bottom .compatibility-untested *,
 }
 
 /* Theme Browser */
+.theme-browser {
+    max-width: 800px;
+    margin: 0 auto;
+    width: 100%;
+}
+
 .theme-browser .theme {
     cursor: pointer;
     float: left;

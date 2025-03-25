@@ -549,6 +549,8 @@ input:checked + .wp-toggle-slider:before {
     padding: 0 20px;
     position: relative;
     min-height: 400px;
+    max-width: 800px;
+    margin: 0 auto;
 }
 
 /* Theme Card Styles - Scoped to our plugin only */
@@ -561,6 +563,7 @@ input:checked + .wp-toggle-slider:before {
     margin-bottom: 20px;
     overflow: hidden;
     transition: all 0.2s ease;
+    width: 100%;
 }
 
 .theme-card:hover {
