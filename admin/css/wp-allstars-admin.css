@@ -1056,7 +1056,7 @@ body.wp-admin .button.pricing-button:hover,
 
 /* Filter navigation - container at max-width to match other tabs */
 #wpa-plugin-filters {
-    max-width: 700px !important;
+    max-width: 900px !important;
     margin: 0 auto 25px auto !important;
     box-sizing: border-box;
     padding: 15px;
@@ -1126,7 +1126,7 @@ body.wp-admin .button.pricing-button:hover,
     display: flex;
     flex-direction: column;
     align-items: center;
-    max-width: 700px;
+    max-width: 900px; /* Changed from 700px to 900px to match the navigation */
     margin: 0 auto;
 }
 
@@ -1468,16 +1468,6 @@ body.wp-admin .button.pricing-button:hover,
 #general .wp-setting-header,
 #advanced .wp-allstars-toggle-header {
     padding: 15px !important;
-}
-
-/* Keep free plugins navigation full width */
-#recommended .nav-tab-wrapper,
-#recommended .subsubsub {
-    max-width: 100% !important;
-    width: 100% !important;
-    box-sizing: border-box;
-    margin: 0 0 25px 0 !important;
-    text-align: center;
 }
 
 /* Ensure consistent hover styles across all tab tile layouts */
