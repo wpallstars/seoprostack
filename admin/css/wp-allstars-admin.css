@@ -1056,13 +1056,14 @@ body.wp-admin .button.pricing-button:hover,
     margin: 15px 0;
     font-size: 13px;
     line-height: 1.5;
-    clear: both;
+    clear: none;
     text-align: left;
+    margin-left: 115px;
 }
 
 #recommended .plugin-card .plugin-icon {
     float: left;
-    margin: 0 15px 10px 0;
+    margin: 0 15px 15px 0;
     width: 100px;
     height: 100px;
 }
