@@ -1038,24 +1038,24 @@ body.wp-admin .button.pricing-button:hover,
     padding: 0;
 }
 
-/* Free Plugins - Single Column Centered Layout */
-#recommended .wpa-plugin-container {
-    padding: 0 20px 20px 20px; /* Removed top padding completely */
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    max-width: 700px;
-    margin: 0 auto;
-}
-
 /* Filter navigation - full width */
 #recommended .nav-tab-wrapper,
 #recommended .subsubsub {
     max-width: 100%;
     width: 100%;
     box-sizing: border-box;
-    margin: 0 0 0 0; /* Removed bottom margin completely */
+    margin: 0 0 10px 0; /* Restore the 10px bottom margin */
     text-align: center;
+}
+
+/* Free Plugins - Single Column Centered Layout */
+#recommended .wpa-plugin-container {
+    padding: 10px 20px 20px 20px; /* Restore padding to how it was */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    max-width: 700px;
+    margin: 0 auto;
 }
 
 /* Use consistent layout similar to 768px width for all screen sizes */
@@ -1151,17 +1151,6 @@ body.wp-admin .button.pricing-button:hover,
     border-top: 1px solid #ddd;
     text-align: right;
     margin-top: auto;
-    position: relative;
-}
-
-/* Position compatibility text with transform instead of margin */
-#recommended .plugin-card .column-compatibility {
-    padding-right: 0;
-    padding-left: 0;
-    text-align: right;
-    margin-right: 0;
-    transform: translateX(-45px);
-    display: inline-block;
 }
 
 /* Style compatibility message */
