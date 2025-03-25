@@ -1392,6 +1392,13 @@ body.wp-admin .button.pricing-button:hover,
     margin-right: auto !important;
 }
 
+/* Specific fix for workflow tab container */
+#workflow.wp-allstars-settings-content,
+#workflow .wp-allstars-toggle {
+    max-width: 700px !important;
+    width: 100% !important;
+}
+
 /* Keep free plugins navigation full width */
 #recommended .nav-tab-wrapper,
 #recommended .subsubsub {
