@@ -164,7 +164,7 @@ input:checked + .wp-toggle-slider:before {
 
 /* Tab Content Area */
 .wp-allstars-tab-content {
-    padding-top: 0;
+    padding-top: 25px;
 }
 
 /* Settings Content */
