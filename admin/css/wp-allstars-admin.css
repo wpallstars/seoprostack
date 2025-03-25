@@ -1217,8 +1217,7 @@ body.wp-admin .button.pricing-button:hover,
 
 /* Explicitly target readme content */
 #readme .wp-allstars-markdown-content {
-    padding: 20px;
-    box-sizing: border-box;
+    padding: 0 20px 20px 20px; /* Remove top padding */
 }
 
 /* Prevent text from overlapping dropdown chevron icon */
@@ -1336,4 +1335,20 @@ body.wp-admin .button.pricing-button:hover,
     padding-left: 25px !important;
     margin-left: 0 !important;
     list-style-type: disc !important;
+}
+
+/* General, Advanced, and ReadMe Tab Spacing Fix */
+#general .wp-allstars-settings-section,
+#advanced .wp-allstars-settings-section,
+#readme .wp-allstars-settings-section {
+    padding-top: 0; /* Remove extra padding that's causing double spacing */
+}
+
+/* Target specific content sections that need adjustment */
+#general .wp-setting-row:first-child,
+#advanced .wp-setting-row:first-child,
+#advanced .wp-allstars-toggle:first-child,
+#readme .wpa-pro-plugin:first-child,
+#readme .wp-allstars-markdown-content {
+    margin-top: 5px; /* Add a small margin to align with other tabs */
 }
