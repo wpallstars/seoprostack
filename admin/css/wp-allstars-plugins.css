@@ -1,34 +1,28 @@
 /* Plugin Browser Styles */
 .wp-allstars-wrap .wp-allstars-plugin-browser {
-    margin: 0 -8px !important;
-    padding: 0 8px !important;
+    margin: 0 !important;
+    padding: 0 !important;
     width: 100% !important;
     max-width: 100% !important;
 }
 
 /* Plugin List Container */
 .wp-allstars-wrap #wpa-plugin-list {
-    display: flex;
-    flex-wrap: wrap;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(450px, 1fr));
+    gap: 24px;
     margin: 0;
-    width: 100%;
+    padding: 20px;
+    max-width: 1920px;
+    margin: 0 auto;
 }
 
 /* Filter Bar */
 .wp-allstars-wrap #wpa-plugin-filters.wp-filter {
-    margin-left: 0;
-    margin-right: 0;
-    margin-bottom: 22px !important; /* Enforce exact 22px spacing */
+    margin: 0 0 22px 0 !important;
     width: 100%;
     box-sizing: border-box;
-    text-align: center; /* Center align filter bar content */
-}
-
-/* Standard WordPress Plugin Grid Layout - exactly matching core */
-.wp-allstars-wrap .wp-list-table.plugin-install {
-    margin-top: 0; /* Removed to prevent double spacing with container */
-    clear: both;
-    padding: 0;
+    text-align: center;
 }
 
 /* Center filter links */
@@ -43,17 +37,10 @@
     display: inline-block;
 }
 
-.wp-allstars-wrap #the-list {
-    margin: 0;
-    display: flex;
-    flex-wrap: wrap;
-    padding: 0;
-}
-
-/* Plugin Cards - essential layout only */
+/* Plugin Cards */
 .plugin-card {
-    margin: 0 8px 16px;
-    width: calc(50% - 16px);
+    margin: 0 !important;
+    width: 100% !important;
     background-color: #fff;
     border: 1px solid #dcdcde;
     border-radius: 8px;
@@ -61,6 +48,8 @@
     box-sizing: border-box;
     transition: all 0.2s ease;
     overflow: hidden;
+    display: flex;
+    flex-direction: column;
 }
 
 .plugin-card:hover {
@@ -68,23 +57,90 @@
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
 }
 
-/* Ensure the right edge aligns with the navigation above */
-.plugin-card:nth-child(even) {
-    margin-right: 0;
+/* Card Content */
+.plugin-card-top {
+    padding: 24px !important;
+    position: relative;
+    flex-grow: 1;
 }
 
-.plugin-card:nth-child(odd) {
-    margin-left: 0;
+.plugin-icon {
+    position: relative !important;
+    float: left !important;
+    width: 64px !important;
+    height: 64px !important;
+    margin: 0 20px 0 0 !important;
 }
 
-/* Consistent styling for all widths */
-/* Force equal spacing between all cards */
-.plugin-card:nth-child(odd) {
-    margin-right: 8px;
+.name.column-name {
+    margin: 0 0 12px 84px !important;
 }
 
-.plugin-card:nth-child(even) {
-    margin-left: 8px;
+.name.column-name h3 {
+    font-size: 16px !important;
+    font-weight: 600 !important;
+    line-height: 1.4 !important;
+    margin: 0 0 12px !important;
+    color: #1d2327 !important;
+}
+
+.desc.column-description {
+    margin: 0 0 16px 84px !important;
+    font-size: 14px !important;
+    line-height: 1.6 !important;
+    color: #50575e !important;
+}
+
+/* Action Links */
+.action-links {
+    position: static !important;
+    margin-top: 16px !important;
+    width: auto !important;
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 8px !important;
+}
+
+.plugin-action-buttons {
+    margin: 0 !important;
+    float: none !important;
+}
+
+.plugin-card-bottom {
+    background: #f6f7f7 !important;
+    padding: 15px !important;
+    border-top: 1px solid #ddd !important;
+    text-align: center !important;
+    margin-top: auto !important;
+}
+
+/* Responsive Adjustments */
+@media screen and (max-width: 960px) {
+    .wp-allstars-wrap #wpa-plugin-list {
+        grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+        gap: 20px;
+        padding: 16px;
+    }
+    
+    .plugin-card-top {
+        padding: 20px !important;
+    }
+}
+
+@media screen and (max-width: 782px) {
+    .wp-allstars-wrap #wpa-plugin-list {
+        grid-template-columns: 1fr;
+        gap: 16px;
+        padding: 12px;
+    }
+    
+    .plugin-card-top {
+        padding: 16px !important;
+    }
+    
+    .action-links .button {
+        width: 100% !important;
+    }
 }
 
 /* Global plugin icon positioning that applies to all viewport sizes */
@@ -250,13 +306,6 @@ body.wp-admin .plugin-card-bottom {
     margin-top: 0 !important;
     text-align: left !important;
     margin-left: 0 !important;
-    margin-right: 0 !important;
-    max-width: none !important;
-    clear: both !important;
-    width: 100% !important;
-    box-sizing: border-box !important;
-    border-bottom-left-radius: 8px !important;
-    border-bottom-right-radius: 8px !important;
 }
 
 /* Remove excessive spacing between elements */
@@ -417,7 +466,6 @@ body.wp-admin .plugin-card-bottom .compatibility-untested *,
     margin: 0;
     display: block;
 }
-
 
 .plugin-card:hover {
     border-color: #999;

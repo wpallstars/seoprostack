@@ -1008,69 +1008,122 @@ body.wp-admin .button.pricing-button:hover,
 .wp-allstars-tab-content .wp-allstars-toggle,
 #readme .wpa-pro-plugin {
     max-width: 50%;
-    margin: 0 auto 20px auto; /* Added bottom margin for spacing */
+    margin: 0 auto 20px auto;
     box-sizing: border-box;
-    padding: 0; /* Remove padding here, add it to inner elements */
+    padding: 0;
 }
 
-/* Free Plugins - Simple centered tile layout */
-#recommended .plugin-card {
-    width: 800px;
-    max-width: 100%;
-    margin: 0 auto 20px;
+/* Free Plugins - Grid Layout matching Pro Plugins */
+#recommended .wpa-plugin-container {
     padding: 20px;
-    box-sizing: border-box;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(450px, 1fr));
+    gap: 24px;
+    max-width: 1920px;
+    margin: 0 auto;
+}
+
+#recommended .plugin-card {
+    width: 100%;
+    margin: 0;
+    padding: 24px;
     border: 1px solid #ddd;
-    box-shadow: 0 1px 1px rgba(0, 0, 0, 0.04);
-    position: relative;
-    padding-bottom: 60px;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
     background: #fff;
-    justify-self: center;
+    transition: all 0.2s ease;
+    display: flex;
+    flex-direction: column;
+    position: relative;
 }
 
-/* Fix compatibility row alignment to bottom of card */
-#recommended .plugin-card .plugin-card-bottom {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    padding: 15px;
-    border-top: 1px solid #eee;
-    text-align: center;
-    background: #f9f9f9;
-    height: 30px;
+#recommended .plugin-card:hover {
+    border-color: #2271b1;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.15);
 }
 
-/* Basic plugin card elements */
 #recommended .plugin-card-top {
+    padding: 0;
     margin-bottom: 20px;
-    text-align: left;
-}
-
-#recommended .plugin-card .name h3 {
-    margin: 0 0 15px;
-    font-size: 16px;
-}
-
-#recommended .plugin-card .desc {
-    margin: 15px 0;
-    font-size: 13px;
-    line-height: 1.5;
-    clear: none;
-    text-align: left;
-    margin-left: 115px;
+    min-height: auto;
+    flex-grow: 1;
 }
 
 #recommended .plugin-card .plugin-icon {
+    position: relative;
     float: left;
-    margin: 0 15px 15px 0;
-    width: 100px;
-    height: 100px;
+    width: 64px;
+    height: 64px;
+    margin: 0 20px 0 0;
+}
+
+#recommended .plugin-card .name,
+#recommended .plugin-card .desc {
+    margin-left: 84px;
+    margin-right: 0;
+}
+
+#recommended .plugin-card .name h3 {
+    margin: 0 0 12px;
+    font-size: 16px;
+    font-weight: 600;
+    color: #1d2327;
+    line-height: 1.4;
+}
+
+#recommended .plugin-card .desc {
+    margin-top: 0;
+    color: #50575e;
+    font-size: 14px;
+    line-height: 1.6;
 }
 
 #recommended .plugin-card .action-links {
-    margin: 15px 0 25px;
-    text-align: right;
+    position: static;
+    margin-top: 16px;
+    width: auto;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+#recommended .plugin-card .plugin-action-buttons {
+    margin: 0;
+    float: none;
+}
+
+#recommended .plugin-card .plugin-card-bottom {
+    background: #f6f7f7;
+    padding: 15px;
+    border-top: 1px solid #ddd;
+    text-align: center;
+    margin-top: auto;
+}
+
+/* Responsive adjustments */
+@media screen and (max-width: 960px) {
+    #recommended .wpa-plugin-container {
+        grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+        gap: 20px;
+        padding: 16px;
+    }
+    #recommended .plugin-card {
+        padding: 20px;
+    }
+}
+
+@media screen and (max-width: 782px) {
+    #recommended .wpa-plugin-container {
+        grid-template-columns: 1fr;
+        gap: 16px;
+        padding: 12px;
+    }
+    #recommended .plugin-card {
+        padding: 16px;
+    }
+    #recommended .plugin-card .action-links .button {
+        width: 100%;
+    }
 }
 
 /* Style compatibility message */
@@ -1087,14 +1140,6 @@ body.wp-admin .button.pricing-button:hover,
     flex-direction: column;
     align-items: center;
     width: 100%;
-}
-
-#recommended .wpa-plugin-container {
-    width: 100%;
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 15px;
-    text-align: center;
 }
 
 /* Explicitly target readme content */
