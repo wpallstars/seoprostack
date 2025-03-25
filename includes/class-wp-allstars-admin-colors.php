@@ -60,92 +60,136 @@ class WP_Allstars_Admin_Colors {
             return;
         }
         
+        // Get the available color schemes
+        global $_wp_admin_css_colors;
+        
+        // Get URLs for the fresh and modern schemes
+        $fresh_url = '';
+        $modern_url = '';
+        
+        if (isset($_wp_admin_css_colors['fresh'])) {
+            $fresh_url = $_wp_admin_css_colors['fresh']->url;
+        }
+        
+        if (isset($_wp_admin_css_colors['modern'])) {
+            $modern_url = $_wp_admin_css_colors['modern']->url;
+        }
+        
         // Add inline JS for handling dynamic color scheme changes
         $color_js = '
         jQuery(document).ready(function($) {
+            // Store color scheme URLs for direct access
+            var colorSchemes = {
+                "fresh": "' . esc_js($fresh_url) . '",
+                "modern": "' . esc_js($modern_url) . '"
+            };
+            
             // Special handler for admin color scheme toggle
             $("#wp_allstars_simple_setting").on("change", function() {
                 var isEnabled = $(this).is(":checked");
                 
                 // Apply the color scheme dynamically
-                applyAdminColorScheme(isEnabled);
+                if (isEnabled) {
+                    switchColorScheme("modern");
+                } else {
+                    switchColorScheme("fresh");
+                }
             });
             
-            // Function to dynamically apply admin color scheme
-            function applyAdminColorScheme(enableModern) {
-                console.log("Applying admin color scheme:", enableModern ? "modern" : "default");
+            // Function to switch admin color scheme without page reload
+            function switchColorScheme(newScheme) {
+                console.log("Switching to color scheme:", newScheme);
                 
-                // Define the color schemes 
-                var scheme = enableModern ? "modern" : "fresh";
+                // Exit if we dont have URL for this scheme
+                if (!colorSchemes[newScheme]) {
+                    console.error("No URL found for color scheme:", newScheme);
+                    return;
+                }
                 
-                // Get all admin color stylesheets currently in the DOM
-                var colorStylesheets = [];
-                $("link[href*=\'colors\']").each(function() {
-                    var href = $(this).attr("href");
-                    colorStylesheets.push({
-                        element: this,
-                        href: href
+                try {
+                    // 1. Update the body class first
+                    var $body = $("body");
+                    $body.removeClass(function(index, className) {
+                        return (className.match(/(^|\s)admin-color-\S+/g) || []).join(" ");
                     });
-                });
-                
-                console.log("Found color stylesheets:", colorStylesheets.length);
-                
-                // Immediately apply color change by forcing stylesheet reload
-                colorStylesheets.forEach(function(sheet) {
-                    // Create the replacement URL by substituting scheme name
-                    var newHref = sheet.href.replace(
-                        /\/([^\/]+)\/colors/,
-                        "/" + scheme + "/colors"
-                    );
+                    $body.addClass("admin-color-" + newScheme);
                     
-                    console.log("Replacing stylesheet:", sheet.href, "with", newHref);
+                    // 2. Directly replace color stylesheet URLs
+                    var baseUrl = colorSchemes[newScheme];
+                    if (!baseUrl) return;
                     
-                    // Forcefully reload the stylesheet by adding timestamp
-                    var timestamp = "?t=" + new Date().getTime();
+                    // Force cache-busting
+                    var cacheBuster = "?_=" + new Date().getTime();
                     
-                    // Create and append the new stylesheet
-                    var newStyle = document.createElement("link");
-                    newStyle.rel = "stylesheet";
-                    newStyle.type = "text/css";
-                    newStyle.href = newHref + timestamp;
-                    document.head.appendChild(newStyle);
+                    // Replace all stylesheets with colors in their URL
+                    var $adminColorLinks = $("link[href*=\'colors-\'], link[href*=\'/colors.\'], link#colors, link#colors-css, link#admin-colors-css");
                     
-                    // Remove the old stylesheet immediately
-                    sheet.element.parentNode.removeChild(sheet.element);
-                });
-                
-                // Also update the admin-css colors
-                $("#colors-css, #colors-rtl-css, #admin-colors-css").each(function() {
-                    var $this = $(this);
-                    var href = $this.attr("href");
-                    if (href) {
-                        var newHref = href.replace(
-                            /\/([^\/]+)\/colors/,
-                            "/" + scheme + "/colors"
+                    // Log what we found
+                    console.log("Found admin color links:", $adminColorLinks.length);
+                    $adminColorLinks.each(function() {
+                        console.log(" - Link:", $(this).attr("href"));
+                    });
+                    
+                    // For each stylesheet, create and inject a new one with the correct scheme
+                    $adminColorLinks.each(function() {
+                        var $oldLink = $(this);
+                        var oldHref = $oldLink.attr("href");
+                        var id = $oldLink.attr("id") || "";
+                        
+                        // Skip if not a stylesheet
+                        if (!oldHref || $oldLink.attr("rel") !== "stylesheet") return;
+                        
+                        // Determine what file is being loaded
+                        var fileType = "";
+                        if (oldHref.indexOf("colors-rtl") !== -1) {
+                            fileType = "colors-rtl.min.css";
+                        } else if (oldHref.indexOf("colors.min") !== -1) {
+                            fileType = "colors.min.css";
+                        } else {
+                            fileType = "colors.css";
+                        }
+                        
+                        // Create the new URL
+                        var newUrl = baseUrl + fileType + cacheBuster;
+                        console.log("Replacing", oldHref, "with", newUrl);
+                        
+                        // Create a new stylesheet element
+                        var $newLink = $("<link />", {
+                            rel: "stylesheet",
+                            type: "text/css",
+                            id: id,
+                            href: newUrl
+                        });
+                        
+                        // Insert new stylesheet and remove old one
+                        $oldLink.after($newLink);
+                        setTimeout(function() {
+                            $oldLink.remove();
+                        }, 100);
+                    });
+                    
+                    // If we found no stylesheets, inject the main one
+                    if ($adminColorLinks.length === 0) {
+                        console.log("No admin color stylesheets found, injecting new one");
+                        $("head").append(
+                            $("<link />", {
+                                rel: "stylesheet",
+                                type: "text/css",
+                                id: "colors-css",
+                                href: baseUrl + "colors.min.css" + cacheBuster
+                            })
                         );
-                        
-                        console.log("Replacing admin colors:", href, "with", newHref);
-                        
-                        // Create timestamp to prevent caching
-                        var timestamp = "?t=" + new Date().getTime();
-                        
-                        // Force reload by creating new element
-                        var newStyle = document.createElement("link");
-                        newStyle.rel = "stylesheet";
-                        newStyle.id = $this.attr("id");
-                        newStyle.href = newHref + timestamp;
-                        document.head.appendChild(newStyle);
-                        
-                        // Remove the old stylesheet
-                        $this.remove();
                     }
-                });
-                
-                // Add body class for the new scheme
-                $("body")
-                    .removeClass("admin-color-fresh admin-color-modern")
-                    .addClass("admin-color-" + scheme);
-                
+                    
+                    // 3. Save the setting via AJAX
+                    saveColorScheme(newScheme);
+                    
+                } catch (e) {
+                    console.error("Error switching color scheme:", e);
+                }
+            }
+            
+            function saveColorScheme(scheme) {
                 // AJAX request to save the color scheme setting
                 $.ajax({
                     url: ajaxurl,
@@ -159,7 +203,7 @@ class WP_Allstars_Admin_Colors {
                         if (response.success) {
                             console.log("Color scheme updated successfully");
                         } else {
-                            console.error("Error updating color scheme");
+                            console.error("Error updating color scheme:", response);
                         }
                     },
                     error: function(xhr, status, error) {
