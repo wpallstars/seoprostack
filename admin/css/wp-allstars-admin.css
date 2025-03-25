@@ -1151,14 +1151,17 @@ body.wp-admin .button.pricing-button:hover,
     border-top: 1px solid #ddd;
     text-align: right;
     margin-top: auto;
+    position: relative;
 }
 
-/* Increase right padding for compatibility text */
+/* Position compatibility text with transform instead of margin */
 #recommended .plugin-card .column-compatibility {
     padding-right: 0;
     padding-left: 0;
     text-align: right;
-    margin-right: 45px;
+    margin-right: 0;
+    transform: translateX(-45px);
+    display: inline-block;
 }
 
 /* Style compatibility message */

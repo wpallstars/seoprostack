@@ -151,14 +151,17 @@
     border-top: 1px solid #ddd !important;
     text-align: right !important;
     margin-top: auto !important;
+    position: relative !important;
 }
 
-/* Move compatibility text to the right */
+/* Move compatibility text with transform */
 .column-compatibility {
     padding-right: 0 !important;
     padding-left: 0 !important;
     text-align: right !important;
-    margin-right: 45px !important;
+    margin-right: 0 !important;
+    transform: translateX(-45px) !important;
+    display: inline-block !important;
 }
 
 /* Loading Overlay without white background */
