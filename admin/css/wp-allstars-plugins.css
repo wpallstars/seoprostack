@@ -17,14 +17,13 @@
     margin: 0 auto;
 }
 
-/* Filter Bar */
+/* Filter Bar - Full Width */
 .wp-allstars-wrap #wpa-plugin-filters.wp-filter {
     margin: 0 0 22px 0 !important;
-    width: 100%;
-    max-width: 700px;
+    width: 100% !important;
+    max-width: 100% !important;
     box-sizing: border-box;
     text-align: center;
-    margin: 0 auto !important;
 }
 
 /* Center filter links */
@@ -52,6 +51,7 @@
     overflow: hidden;
     display: flex;
     flex-direction: column;
+    position: relative !important;
 }
 
 .plugin-card:last-child {
@@ -78,8 +78,10 @@
     margin: 0 20px 0 0 !important;
 }
 
+/* Name and description positioning */
 .name.column-name {
     margin: 0 0 12px 84px !important;
+    margin-right: 120px !important; /* Ensure no overlap with action buttons */
 }
 
 .name.column-name h3 {
@@ -92,6 +94,7 @@
 
 .desc.column-description {
     margin: 0 0 16px 84px !important;
+    margin-right: 120px !important; /* Ensure no overlap with action buttons */
     font-size: 14px !important;
     line-height: 1.6 !important;
     color: #50575e !important;
@@ -99,29 +102,52 @@
 
 /* Action Links */
 .action-links {
-    position: static !important;
-    margin-top: 16px !important;
-    width: auto !important;
+    position: absolute !important;
+    top: 24px !important;
+    right: 24px !important;
+    width: 120px !important;
     display: flex !important;
-    flex-wrap: wrap !important;
+    flex-direction: column !important;
+    align-items: flex-end !important;
     gap: 8px !important;
-    justify-content: flex-end !important;
 }
 
 .plugin-action-buttons {
     margin: 0 !important;
     float: none !important;
+    width: 100% !important;
 }
 
+.plugin-action-buttons .button {
+    width: 100% !important;
+    text-align: center !important;
+}
+
+/* Card Bottom - Right aligned compatibility text */
 .plugin-card-bottom {
     background: #f6f7f7 !important;
-    padding: 15px !important;
+    padding: 15px 20px !important;
     border-top: 1px solid #ddd !important;
-    text-align: center !important;
+    text-align: right !important;
     margin-top: auto !important;
 }
 
-/* Responsive Adjustments - maintain single column but adjust padding */
+/* Loading Overlay without white background */
+.wp-allstars-loading-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: transparent !important;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 100;
+}
+
+/* Responsive Adjustments */
 @media screen and (max-width: 782px) {
     .wp-allstars-wrap #wpa-plugin-list {
         padding: 16px;
@@ -131,8 +157,40 @@
         padding: 16px !important;
     }
     
-    .action-links .button {
+    .name.column-name,
+    .desc.column-description {
+        margin-right: 0 !important; /* Allow full width on mobile */
+        margin-bottom: 60px !important; /* Space for action buttons below */
+    }
+    
+    .action-links {
+        position: absolute !important;
+        top: auto !important;
+        bottom: 15px !important;
+        left: 16px !important;
+        right: 16px !important;
+        width: auto !important;
+        flex-direction: row !important;
+    }
+    
+    .plugin-action-buttons {
         width: 100% !important;
+    }
+}
+
+/* Extra small screens */
+@media screen and (max-width: 480px) {
+    .name.column-name,
+    .desc.column-description {
+        margin-left: 0 !important;
+        margin-top: 80px !important; /* Space for icon above */
+    }
+    
+    .plugin-icon {
+        position: absolute !important;
+        top: 16px !important;
+        left: 16px !important;
+        float: none !important;
     }
 }
 
