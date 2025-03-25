@@ -1061,6 +1061,8 @@ body.wp-admin .button.pricing-button:hover,
     box-sizing: border-box;
     padding: 15px;
     border-radius: 8px;
+    background: #fff;
+    border-bottom: 1px solid #c3c4c7;
 }
 
 /* Filter links should be centered within container */
@@ -1070,6 +1072,37 @@ body.wp-admin .button.pricing-button:hover,
     justify-content: center;
     gap: 10px;
     margin: 0;
+}
+
+/* Style the filter links similar to main tabs */
+#wpa-plugin-filters .filter-links a {
+    margin: 0;
+    padding: 10px 15px;
+    font-size: 14px;
+    line-height: 1.6;
+    font-weight: 400;
+    background: transparent;
+    color: #50575e;
+    text-decoration: none;
+    white-space: nowrap;
+    border: none;
+    border-bottom: 2px solid transparent;
+    display: inline-block;
+    transition: all 0.2s ease;
+}
+
+#wpa-plugin-filters .filter-links a:hover,
+#wpa-plugin-filters .filter-links a:focus {
+    color: #2271b1;
+    background: transparent;
+    border-bottom-color: #2271b1;
+}
+
+#wpa-plugin-filters .filter-links a.current {
+    border-bottom: 2px solid #2271b1;
+    background: transparent;
+    color: #2271b1;
+    font-weight: 600;
 }
 
 /* Keep free plugins subsubsub navigation full width */
