@@ -56,8 +56,6 @@ class WP_Allstars_Readme_Manager {
         <div class="wp-allstars-settings-content tab-content" id="readme">
             <div class="wpa-pro-plugins">
                 <div class="wpa-pro-plugin">
-                    <h3><?php echo esc_html($readme['title']); ?></h3>
-                    
                     <div class="wp-allstars-markdown-content">
                         <?php echo self::parse_markdown($readme['content']); ?>
                     </div>
