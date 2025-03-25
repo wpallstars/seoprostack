@@ -1048,7 +1048,7 @@ body.wp-admin .button.pricing-button:hover,
 .wp-allstars-tab-content .wp-setting-row,
 .wp-allstars-tab-content .wp-allstars-toggle,
 #readme .wpa-pro-plugin {
-    max-width: 50%;
+    max-width: 700px; /* Change from 50% to match global 700px width */
     margin: 0 auto 20px auto;
     box-sizing: border-box;
     padding: 0;
@@ -1377,30 +1377,19 @@ body.wp-admin .button.pricing-button:hover,
     box-sizing: border-box !important;
 }
 
-/* Fix general tab width to use full content width */
-#general .wp-allstars-settings-section {
-    max-width: 100% !important;
-    width: 100% !important;
-}
-
-/* Fix specific tab content */
+/* Fix specific tab content - ensure all sections use the same width */
 #general .wp-setting-row,
+#general .wp-allstars-toggle,
 #advanced .wp-setting-row,
 #advanced .wp-allstars-toggle,
-#workflow .wp-allstars-toggle,
 #workflow .wp-setting-row,
+#workflow .wp-allstars-toggle,
 #readme .wp-allstars-markdown-content {
     max-width: 700px !important;
     width: 100% !important;
     box-sizing: border-box !important;
     margin-left: auto !important;
     margin-right: auto !important;
-}
-
-/* Make sure advanced tab content matches workflow tab width */
-#advanced .wp-allstars-settings-section {
-    max-width: 700px !important;
-    width: 100% !important;
 }
 
 /* Keep free plugins navigation full width */
