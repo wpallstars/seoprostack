@@ -50,6 +50,7 @@
     z-index: 100;
     text-align: center; /* Center align the tabs */
     display: flex;
+    flex-wrap: wrap; /* Enable wrapping */
     justify-content: center; /* Ensure better centering for tabs */
 }
 
@@ -84,6 +85,27 @@
     background: transparent;
     color: #2271b1;
     font-weight: 600;
+}
+
+/* Responsive nav tabs */
+@media screen and (max-width: 782px) {
+    .nav-tab-wrapper,
+    .wrap h2.nav-tab-wrapper {
+        padding: 0 10px;
+    }
+
+    .nav-tab {
+        padding: 10px 15px;
+        font-size: 13px;
+        line-height: 1.8;
+    }
+}
+
+@media screen and (max-width: 600px) {
+    .nav-tab {
+        padding: 8px 12px;
+        font-size: 12px;
+    }
 }
 
 /* Base Toggle Switch Component */

@@ -28,14 +28,32 @@
 
 /* Center filter links */
 .wp-filter .filter-links {
-    display: inline-block;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
     float: none !important;
     margin: 0 auto;
+    width: 100%;
 }
 
 .wp-filter .filter-links li {
     float: none;
     display: inline-block;
+}
+
+/* Responsive filters */
+@media screen and (max-width: 782px) {
+    .wp-filter .filter-links li > a {
+        padding: 12px 8px;
+        font-size: 13px;
+    }
+}
+
+@media screen and (max-width: 600px) {
+    .wp-filter .filter-links li > a {
+        padding: 10px 6px;
+        font-size: 12px;
+    }
 }
 
 /* Plugin Cards - Use consistent layout similar to 768px width for all screens */
