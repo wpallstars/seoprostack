@@ -46,6 +46,7 @@ register_activation_hook(__FILE__, 'wp_allstars_activate');
  * Load core plugin components
  */
 require_once plugin_dir_path(__FILE__) . 'includes/class-wp-allstars-auto-upload.php';
+require_once plugin_dir_path(__FILE__) . 'includes/class-wp-allstars-admin-colors.php';
 
 // Load admin-specific components
 if (is_admin()) {
@@ -72,8 +73,6 @@ if (is_admin()) {
     require_once plugin_dir_path(__FILE__) . 'admin/settings.php';
 }
 
-
-
 /**
  * Auto Upload feature initialization
  * 
@@ -86,6 +85,15 @@ function wp_allstars_init_auto_upload() {
     }
 }
 add_action('init', 'wp_allstars_init_auto_upload');
+
+/**
+ * Initialize core features
+ */
+function wp_allstars_init_features() {
+    // Initialize the Admin Colors feature
+    new WP_Allstars_Admin_Colors();
+}
+add_action('plugins_loaded', 'wp_allstars_init_features');
 
 /**
  * Initialize core plugin classes

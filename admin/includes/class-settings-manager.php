@@ -71,7 +71,7 @@ class WP_Allstars_Settings_Manager {
         ?>
         <div class="wp-allstars-settings-section">
             <div class="wp-allstars-settings-grid">
-                <!-- Example of a simple toggle setting (no panel) -->
+                <!-- Modern Admin Colors Setting -->
                 <div class="wp-setting-row">
                     <div class="wp-setting-header">
                         <div class="wp-setting-main">
@@ -86,12 +86,12 @@ class WP_Allstars_Settings_Manager {
                                     <span class="wp-toggle-slider"></span>
                                 </div>
                                 <label for="wp_allstars_simple_setting" class="wp-setting-label">
-                                    <?php esc_html_e('Example: Simple Toggle', 'wp-allstars'); ?>
+                                    <?php esc_html_e('Modern Admin Colors', 'wp-allstars'); ?>
                                 </label>
                             </div>
                         </div>
                         <p class="wp-setting-description">
-                            <?php esc_html_e('This is an example of a simple toggle setting without an expandable panel. Currently for demonstration purposes only.', 'wp-allstars'); ?>
+                            <?php esc_html_e('Toggle the Modern Admin colour scheme on & off to remind yourself you\'re in an SEO Pro Stack :)', 'wp-allstars'); ?>
                         </p>
                     </div>
                 </div>
