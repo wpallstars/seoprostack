@@ -6,33 +6,37 @@
  * site performance, improve workflow, and provide recommendations for plugins and hosting.
  *
  * @package WP_ALLSTARS
- * @version v0.2.3
+ * @version v0.2.3.1
  *
- * Plugin Name: WP ALLSTARS Plugin
- * Plugin URI: https://www.wpallstars.com
- * Description: WP ALLSTARS Plugin for WordPress. Speed Matters.
- * Version: v0.2.3 (Beta)
- * Author: WP ALLSTARS
- * Author URI: https://www.wpallstars.com
- * License: GPL-2.0+
- * License URI: http://www.gnu.org/licenses/gpl-2.0.txt
+ * Plugin Name: WP Allstars
+ * Plugin URI: https://wpallstars.com
+ * Description: A superstar stack of premium WordPress functionality, designed for SEO pros.
+ * Author: Marcus Quinn
+ * Author URI: https://wpallstars.com
  * Text Domain: wp-allstars
  * Domain Path: /languages
- * Requires at least: 5.0
- * Requires PHP: 7.2
+ * @version v0.2.3.1
+ * 
+ * WP Allstars is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 2 of the License, or
+ * any later version.
+ * Version: v0.2.3.1 (Beta)
+ *
+ * WP Allstars is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with WP Allstars. If not, see https://www.gnu.org/licenses/gpl-2.0.html.
  */
 
 if (!defined('WPINC')) {
     exit;
 }
 
-// Define plugin version from the file header
-if (!function_exists('get_plugin_data')) {
-    require_once(ABSPATH . 'wp-admin/includes/plugin.php');
-}
-
-$plugin_data = get_plugin_data(__FILE__, false, false);
-define('WP_ALLSTARS_VERSION', $plugin_data['Version']);
+define('WP_ALLSTARS_VERSION', 'v0.2.3.1');
 
 /**
  * Load files safely by checking if they exist first
@@ -46,19 +50,38 @@ function wp_allstars_require_if_exists($file) {
 }
 
 /**
+ * Check for sync operations before loading the plugin
+ */
+// Simple sync detection - check for .syncing file
+if (file_exists(__DIR__ . '/.syncing')) {
+    // Only load the minimal code needed for admin notice
+    if (is_admin()) {
+        add_action('admin_notices', function() {
+            echo '<div class="notice notice-warning is-dismissible">';
+            echo '<p><strong>WP Allstars:</strong> Plugin files are currently syncing. The plugin functionality is temporarily disabled to prevent errors. Please try again in a moment.</p>';
+            echo '</div>';
+        });
+    }
+    // Exit early to prevent loading other files
+    return;
+}
+
+// Load the sync guard for future use and more advanced sync detection
+wp_allstars_require_if_exists(plugin_dir_path(__FILE__) . 'includes/class-wp-allstars-sync-guard.php');
+
+/**
  * Plugin activation hook
  */
 function wp_allstars_activate() {
-    // Setup initial configuration when needed
+    // Setup initial config
 }
 register_activation_hook(__FILE__, 'wp_allstars_activate');
 
 // Core includes
 wp_allstars_require_if_exists(plugin_dir_path(__FILE__) . 'includes/class-wp-allstars-auto-upload.php');
 
-// Load admin-specific components
+// Admin includes
 if (is_admin()) {
-    // Include manager classes
     $admin_includes = array(
         'admin/includes/class-admin-manager.php',
         'admin/includes/class-settings-manager.php',
@@ -76,14 +99,11 @@ if (is_admin()) {
         wp_allstars_require_if_exists(plugin_dir_path(__FILE__) . $file);
     }
     
-    // Initialize the admin manager
-    add_action('plugins_loaded', array('WP_Allstars_Admin_Manager', 'init'));
-    
-    // Data files
+    // Settings and data
     wp_allstars_require_if_exists(plugin_dir_path(__FILE__) . 'admin/data/pro-plugins.php');
     wp_allstars_require_if_exists(plugin_dir_path(__FILE__) . 'admin/data/readme.php');
     
-    // Legacy files (for backward compatibility)
+    // Admin settings
     wp_allstars_require_if_exists(plugin_dir_path(__FILE__) . 'admin/settings.php');
 }
 
