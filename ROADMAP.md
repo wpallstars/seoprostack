@@ -7,7 +7,7 @@ This document outlines features from later versions that we plan to integrate in
 | Feature | Source Version | Priority | Complexity | Risk | Status |
 |---------|----------------|----------|------------|------|--------|
 | Multisite Category | v0.2.6 | High | Low | Low | ✅ Implemented in v0.2.3-stable |
-| Sync Guard | v0.2.6-fix | High | Low | Low | 🔄 To be implemented |
+| Sync Guard | v0.2.6-fix | High | Low | Low | ✅ Implemented in v0.2.3.1-stable |
 | More Robust File Loading | v0.2.6-fix | High | Low | Low | ✅ Implemented in v0.2.3-stable |
 | Enhanced Admin UI | v0.2.4+ | Medium | Medium | Medium | 🔄 To be implemented |
 | Plugin Dashboard | v0.2.6-fix | Medium | Medium | Medium | 🔄 To be implemented |
