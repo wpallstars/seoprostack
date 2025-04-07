@@ -35,6 +35,17 @@ $plugin_data = get_plugin_data(__FILE__, false, false);
 define('WP_ALLSTARS_VERSION', $plugin_data['Version']);
 
 /**
+ * Load files safely by checking if they exist first
+ */
+function wp_allstars_require_if_exists($file) {
+    if (file_exists($file)) {
+        require_once $file;
+        return true;
+    }
+    return false;
+}
+
+/**
  * Plugin activation hook
  */
 function wp_allstars_activate() {
@@ -42,37 +53,39 @@ function wp_allstars_activate() {
 }
 register_activation_hook(__FILE__, 'wp_allstars_activate');
 
-/**
- * Load core plugin components
- */
-require_once plugin_dir_path(__FILE__) . 'includes/class-wp-allstars-auto-upload.php';
+// Core includes
+wp_allstars_require_if_exists(plugin_dir_path(__FILE__) . 'includes/class-wp-allstars-auto-upload.php');
 
 // Load admin-specific components
 if (is_admin()) {
     // Include manager classes
-    require_once plugin_dir_path(__FILE__) . 'admin/includes/class-admin-manager.php';
-    require_once plugin_dir_path(__FILE__) . 'admin/includes/class-settings-manager.php';
-    require_once plugin_dir_path(__FILE__) . 'admin/includes/class-theme-manager.php';
-    require_once plugin_dir_path(__FILE__) . 'admin/includes/class-workflow-manager.php';
-    require_once plugin_dir_path(__FILE__) . 'admin/includes/class-tools-manager.php';
-    require_once plugin_dir_path(__FILE__) . 'admin/includes/class-hosting-manager.php';
-    require_once plugin_dir_path(__FILE__) . 'admin/includes/class-pro-plugins-manager.php';
-    require_once plugin_dir_path(__FILE__) . 'admin/includes/class-plugin-manager.php';
-    require_once plugin_dir_path(__FILE__) . 'admin/includes/class-free-plugins-manager.php';
-    require_once plugin_dir_path(__FILE__) . 'admin/includes/class-readme-manager.php';
+    $admin_includes = array(
+        'admin/includes/class-admin-manager.php',
+        'admin/includes/class-settings-manager.php',
+        'admin/includes/class-theme-manager.php',
+        'admin/includes/class-workflow-manager.php',
+        'admin/includes/class-tools-manager.php',
+        'admin/includes/class-hosting-manager.php',
+        'admin/includes/class-pro-plugins-manager.php',
+        'admin/includes/class-plugin-manager.php',
+        'admin/includes/class-free-plugins-manager.php',
+        'admin/includes/class-readme-manager.php'
+    );
+    
+    foreach ($admin_includes as $file) {
+        wp_allstars_require_if_exists(plugin_dir_path(__FILE__) . $file);
+    }
     
     // Initialize the admin manager
     add_action('plugins_loaded', array('WP_Allstars_Admin_Manager', 'init'));
     
     // Data files
-    require_once plugin_dir_path(__FILE__) . 'admin/data/pro-plugins.php';
-    require_once plugin_dir_path(__FILE__) . 'admin/data/readme.php';
+    wp_allstars_require_if_exists(plugin_dir_path(__FILE__) . 'admin/data/pro-plugins.php');
+    wp_allstars_require_if_exists(plugin_dir_path(__FILE__) . 'admin/data/readme.php');
     
     // Legacy files (for backward compatibility)
-    require_once plugin_dir_path(__FILE__) . 'admin/settings.php';
+    wp_allstars_require_if_exists(plugin_dir_path(__FILE__) . 'admin/settings.php');
 }
-
-
 
 /**
  * Auto Upload feature initialization
