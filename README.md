@@ -1,6 +1,7 @@
 # WP Allstars
 
 A WordPress plugin that enhances your WordPress experience with curated plugins, themes, and optimization tools.
+Testing a stable v0.2.3 version with rsync deployment.
 
 ## Description
 
