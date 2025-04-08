@@ -27,6 +27,9 @@ class WP_Allstars_UI_Enhancements {
         
         // Initialize UI components
         $this->init_components();
+        
+        // Ensure toggle functionality works
+        add_action('admin_footer', array($this, 'ensure_toggle_functionality'), 99);
     }
     
     /**
@@ -88,6 +91,139 @@ class WP_Allstars_UI_Enhancements {
         
         // Add notification system
         add_action('admin_footer', array($this, 'render_notification_template'));
+    }
+    
+    /**
+     * Ensure toggle switch functionality
+     * This adds JS to reinitialize toggle switch handlers after our enhanced UI is applied
+     */
+    public function ensure_toggle_functionality() {
+        // Only on WP Allstars pages
+        if (!isset($_GET['page']) || strpos($_GET['page'], 'wp-allstars') === false) {
+            return;
+        }
+        
+        ?>
+        <script type="text/javascript">
+        jQuery(document).ready(function($) {
+            // Re-bind toggle switch handlers to ensure they work with enhanced UI
+            $('.wp-toggle-switch input[type="checkbox"]').off('change').on('change', function() {
+                var $this = $(this);
+                var option = $this.attr('id');
+                var value = $this.is(':checked') ? 1 : 0;
+                
+                // Don't handle the admin color scheme toggle here - it has its own handler
+                if (option === 'wp_allstars_admin_color_scheme') {
+                    return;
+                }
+                
+                // Show update notification
+                var $notification = $this.closest('label').find('.wp-setting-notification');
+                if ($notification.length === 0) {
+                    $notification = $('<span class="wp-setting-notification">Saving...</span>');
+                    $this.closest('label').append($notification);
+                } else {
+                    $notification.text('Saving...').removeClass('error').show();
+                }
+                
+                // Save the option via AJAX
+                $.ajax({
+                    url: wpAllstars.ajaxurl,
+                    type: 'POST',
+                    data: {
+                        action: 'wp_allstars_update_option',
+                        nonce: wpAllstars.nonce,
+                        option: option,
+                        value: value
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            $notification.text('Saved!');
+                            setTimeout(function() {
+                                $notification.fadeOut(300);
+                            }, 2000);
+                        } else {
+                            $notification.text('Error').addClass('error');
+                            console.error('Error saving option:', response.data);
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        $notification.text('Error').addClass('error');
+                        console.error('AJAX error:', error);
+                    }
+                });
+            });
+            
+            // Re-bind expandable panels
+            $('.wp-allstars-toggle-header').off('click').on('click', function() {
+                var $this = $(this);
+                var $settings = $this.next('.wp-allstars-toggle-settings');
+                var isExpanded = $this.attr('aria-expanded') === 'true';
+                
+                // Toggle aria-expanded attribute
+                $this.attr('aria-expanded', !isExpanded);
+                
+                // Toggle settings visibility
+                $settings.slideToggle(200);
+            });
+            
+            // Special handling for admin color scheme toggle if exists
+            var $colorToggle = $('#wp_allstars_admin_color_scheme');
+            if ($colorToggle.length && typeof wpAllstarsColors !== 'undefined') {
+                $colorToggle.off('change').on('change', function() {
+                    var isModern = $(this).is(':checked');
+                    
+                    // Show saving notification
+                    var $notification = $(this).closest('label').find('.wp-setting-notification');
+                    if ($notification.length === 0) {
+                        $notification = $('<span class="wp-setting-notification">Saving...</span>');
+                        $(this).closest('label').append($notification);
+                    } else {
+                        $notification.text('Saving...').removeClass('error').show();
+                    }
+                    
+                    // Save the option via AJAX
+                    $.ajax({
+                        url: wpAllstarsColors.ajaxurl,
+                        type: 'POST',
+                        data: {
+                            action: 'wp_allstars_update_color_scheme',
+                            nonce: wpAllstarsColors.nonce,
+                            is_modern: isModern ? 1 : 0
+                        },
+                        success: function(response) {
+                            if (response.success) {
+                                if (isModern) {
+                                    $('body').addClass('wp-allstars-modern-admin');
+                                } else {
+                                    $('body').removeClass('wp-allstars-modern-admin');
+                                }
+                                
+                                $notification.text('Saved!');
+                                setTimeout(function() {
+                                    $notification.fadeOut(300);
+                                }, 2000);
+                            } else {
+                                $notification.text('Error').addClass('error');
+                                console.error('Error updating color scheme:', response.data);
+                                
+                                // Revert toggle
+                                $colorToggle.prop('checked', !isModern);
+                            }
+                        },
+                        error: function(xhr, status, error) {
+                            $notification.text('Error').addClass('error');
+                            console.error('AJAX error:', error);
+                            
+                            // Revert toggle
+                            $colorToggle.prop('checked', !isModern);
+                        }
+                    });
+                });
+            }
+        });
+        </script>
+        <?php
     }
     
     /**
