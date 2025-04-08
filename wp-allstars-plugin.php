@@ -6,7 +6,7 @@
  * site performance, improve workflow, and provide recommendations for plugins and hosting.
  *
  * @package WP_ALLSTARS
- * @version v0.2.3.1
+ * @version v0.2.3.3
  *
  * Plugin Name: WP Allstars
  * Plugin URI: https://wpallstars.com
@@ -15,13 +15,13 @@
  * Author URI: https://wpallstars.com
  * Text Domain: wp-allstars
  * Domain Path: /languages
- * @version v0.2.3.1
+ * @version v0.2.3.3
  * 
  * WP Allstars is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 2 of the License, or
  * any later version.
- * Version: v0.2.3.1 (Beta)
+ * Version: v0.2.3.3 (Beta)
  *
  * WP Allstars is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -36,7 +36,7 @@ if (!defined('WPINC')) {
     exit;
 }
 
-define('WP_ALLSTARS_VERSION', 'v0.2.3.1');
+define('WP_ALLSTARS_VERSION', 'v0.2.3.3');
 
 /**
  * Load files safely by checking if they exist first
@@ -79,6 +79,8 @@ register_activation_hook(__FILE__, 'wp_allstars_activate');
 
 // Core includes
 wp_allstars_require_if_exists(plugin_dir_path(__FILE__) . 'includes/class-wp-allstars-auto-upload.php');
+wp_allstars_require_if_exists(plugin_dir_path(__FILE__) . 'includes/class-wp-allstars-admin-colors.php');
+wp_allstars_require_if_exists(plugin_dir_path(__FILE__) . 'includes/class-wp-allstars-ui-enhancements.php');
 
 // Admin includes
 if (is_admin()) {
@@ -121,6 +123,17 @@ function wp_allstars_init_auto_upload() {
 add_action('init', 'wp_allstars_init_auto_upload');
 
 /**
- * Initialize core plugin classes
+ * Initialize core features
  */
-$wp_allstars_auto_upload = new WP_Allstars_Auto_Upload();
+function wp_allstars_init_features() {
+    // Initialize Admin Colors feature if the class exists
+    if (class_exists('WP_Allstars_Admin_Colors')) {
+        new WP_Allstars_Admin_Colors();
+    }
+    
+    // Initialize UI Enhancements if the class exists
+    if (class_exists('WP_Allstars_UI_Enhancements')) {
+        new WP_Allstars_UI_Enhancements();
+    }
+}
+add_action('plugins_loaded', 'wp_allstars_init_features');

@@ -1,7 +1,7 @@
 # WP Allstars
 
 A WordPress plugin that enhances your WordPress experience with curated plugins, themes, and optimization tools.
-Testing a stable v0.2.3 version with rsync deployment.
+Current version: v0.2.3.3 (stable)
 
 ## Description
 
@@ -9,6 +9,8 @@ WP Allstars is a powerful WordPress plugin designed to help site owners and deve
 
 ## Features
 
+- **Modern Admin UI**: Enhanced admin interface with responsive design and interactive components.
+- **Admin Color Schemes**: Switch between default and modern admin color schemes.
 - **Curated Plugin Recommendations**: Browse and install recommended free plugins organized by category.
 - **Pro Plugin Showcase**: Discover premium plugins with direct links to purchase.
 - **Theme Integration**: Easily install and activate the Kadence theme.
@@ -29,6 +31,8 @@ After activation, you'll find the WP Allstars menu in your WordPress admin sideb
 ### General
 
 Basic settings for the plugin, including:
+- Admin UI Enhancements
+- Admin Color Schemes
 - Auto Upload Images
 - Image Optimization
 - Cache Management
@@ -77,6 +81,15 @@ Discover premium plugins with direct links to purchase.
 ### Theme
 
 Easily install and activate the Kadence theme.
+
+## UI Components
+
+The plugin includes several enhanced UI components:
+
+- **Cards**: Flexible containers for displaying content with optional headers and footers
+- **Accordions**: Collapsible content panels for presenting information in a limited space
+- **Notifications**: Stylish notifications for providing user feedback
+- **Enhanced Form Elements**: Improved styling for inputs, buttons, and toggles
 
 ## Development
 
