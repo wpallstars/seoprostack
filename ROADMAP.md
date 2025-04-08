@@ -9,7 +9,10 @@ This document outlines features from later versions that we plan to integrate in
 | Multisite Category | v0.2.6 | High | Low | Low | ✅ Implemented in v0.2.3-stable |
 | Sync Guard | v0.2.6-fix | High | Low | Low | ✅ Implemented in v0.2.3.1-stable |
 | More Robust File Loading | v0.2.6-fix | High | Low | Low | ✅ Implemented in v0.2.3-stable |
-| Enhanced Admin UI | v0.2.4+ | Medium | Medium | Medium | 🔄 To be implemented |
+| Admin Colors Feature | v0.2.4 | High | Low | Low | 🔄 To be implemented |
+| Basic Admin UI Enhancements | v0.2.5 | High | Medium | Medium | 🔄 To be implemented |
+| Advanced Admin UI Components | v0.2.5 | Medium | Medium | Medium | 🔄 To be implemented |
+| Access Manager Improvements | v0.2.5 | Medium | Medium | Medium | 🔄 To be implemented |
 | Plugin Dashboard | v0.2.6-fix | Medium | Medium | Medium | 🔄 To be implemented |
 | New Category Pages | v0.2.4+ | Medium | Low | Low | 🔄 To be implemented |
 
@@ -30,22 +33,51 @@ This document outlines features from later versions that we plan to integrate in
   3. Use file flag to signal when sync is in progress
 - **Testing criteria**: Verify plugin doesn't attempt to load during sync operations
 
-### Enhanced Admin UI
-- **Description**: Improve the admin interface with better styling and more intuitive navigation
-- **Why it failed before**: Too many changes at once without proper testing
+### Admin Colors Feature
+- **Description**: Allow users to switch between default and modern admin color schemes
+- **Why it's valuable**: Provides visual distinction and improves user experience
 - **Implementation plan**:
-  1. Small, incremental UI improvements
-  2. Focus on one component at a time
-  3. Thorough testing after each change
-- **Testing criteria**: UI changes shouldn't affect functionality, should be responsive
+  1. Create class-wp-allstars-admin-colors.php
+  2. Add toggle in settings to switch color schemes
+  3. Register the feature in the main plugin file
+- **Testing criteria**: Verify color scheme changes when toggled
+
+### Basic Admin UI Enhancements
+- **Description**: Improve the basic styling of admin interfaces
+- **Why it's valuable**: Better user experience and modern look
+- **Implementation plan**:
+  1. Create/update wp-allstars-admin.css
+  2. Implement basic styling for cards, panels, and buttons
+  3. Add responsive design improvements
+- **Testing criteria**: Verify UI looks consistent across different screen sizes
+
+### Advanced Admin UI Components
+- **Description**: Add more sophisticated UI elements and interactions
+- **Why it's valuable**: Enhanced usability and professional appearance
+- **Implementation plan**:
+  1. Implement enhanced toggles and accordions
+  2. Add notification styling
+  3. Improve plugin cards and layouts
+- **Testing criteria**: Verify all UI components work correctly across browsers
+
+### Access Manager Improvements
+- **Description**: Enhance user role and permission management
+- **Why it's valuable**: More granular control over plugin features
+- **Implementation plan**:
+  1. Update class-access-manager.php
+  2. Add role checkboxes in UI
+  3. Implement proper access restriction handling
+- **Testing criteria**: Verify correct permissions are applied based on user roles
 
 ## Development Order
 
 The suggested implementation order is:
 
-1. Sync Guard 
-2. Enhanced Admin UI (component by component)
-3. Plugin Dashboard improvements
-4. New Category Pages
+1. Admin Colors Feature (low complexity, enhances UI)
+2. Basic Admin UI Enhancements (foundation for other UI improvements)
+3. Advanced Admin UI Components (builds on basic UI)
+4. Access Manager Improvements (depends on UI components)
+5. Plugin Dashboard improvements
+6. New Category Pages
 
 Each feature should be developed in its own branch and only merged after thorough testing. 
