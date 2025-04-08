@@ -109,6 +109,7 @@ class WP_Allstars_Admin_Manager {
         $allowed_options = array(
             'wp_allstars_simple_setting',
             'wp_allstars_auto_upload_images',
+            'wp_allstars_admin_color_scheme',
             'wp_allstars_max_width',
             'wp_allstars_max_height',
             'wp_allstars_exclude_urls',

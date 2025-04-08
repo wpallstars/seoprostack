@@ -29,6 +29,7 @@ class WP_Allstars_Settings_Manager {
     public static function register_settings() {
         // General settings
         register_setting('wp_allstars_settings', 'wp_allstars_simple_setting');
+        register_setting('wp_allstars_settings', 'wp_allstars_admin_color_scheme');
         
         // Advanced settings
         register_setting('wp_allstars_settings', 'wp_allstars_auto_upload_images');
@@ -71,6 +72,31 @@ class WP_Allstars_Settings_Manager {
         ?>
         <div class="wp-allstars-settings-section">
             <div class="wp-allstars-settings-grid">
+                <!-- Admin Color Scheme Setting -->
+                <div class="wp-setting-row">
+                    <div class="wp-setting-header">
+                        <div class="wp-setting-main">
+                            <div class="wp-setting-left">
+                                <div class="wp-toggle-switch">
+                                    <input type="checkbox" 
+                                           id="wp_allstars_admin_color_scheme"
+                                           name="wp_allstars_admin_color_scheme" 
+                                           value="1"
+                                           <?php checked(get_option('wp_allstars_admin_color_scheme', false)); ?> 
+                                    />
+                                    <span class="wp-toggle-slider"></span>
+                                </div>
+                                <label for="wp_allstars_admin_color_scheme" class="wp-setting-label">
+                                    <?php esc_html_e('Modern Admin Colors', 'wp-allstars'); ?>
+                                </label>
+                            </div>
+                        </div>
+                        <p class="wp-setting-description">
+                            <?php esc_html_e('Switch to the Modern Admin colors, to remind that you\'re using WP Allstars.', 'wp-allstars'); ?>
+                        </p>
+                    </div>
+                </div>
+                
                 <!-- Example of a simple toggle setting (no panel) -->
                 <div class="wp-setting-row">
                     <div class="wp-setting-header">
@@ -158,6 +184,7 @@ class WP_Allstars_Settings_Manager {
         
         // Save general settings
         update_option('wp_allstars_simple_setting', isset($_POST['wp_allstars_simple_setting']) ? 1 : 0);
+        update_option('wp_allstars_admin_color_scheme', isset($_POST['wp_allstars_admin_color_scheme']) ? 1 : 0);
         
         // Save advanced settings
         update_option('wp_allstars_auto_upload_images', isset($_POST['wp_allstars_auto_upload_images']) ? 1 : 0);
