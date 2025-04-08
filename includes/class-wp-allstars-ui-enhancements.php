@@ -103,11 +103,27 @@ class WP_Allstars_UI_Enhancements {
             return;
         }
         
+        // Get the nonce value
+        $nonce = wp_create_nonce('wp-allstars-nonce');
+        
         ?>
         <script type="text/javascript">
         jQuery(document).ready(function($) {
-            // Re-bind toggle switch handlers to ensure they work with enhanced UI
-            $('.wp-toggle-switch input[type="checkbox"]').off('change').on('change', function() {
+            // Make sure the wpAllstars object is available
+            if (typeof wpAllstars === 'undefined') {
+                window.wpAllstars = {
+                    ajaxurl: '<?php echo esc_url(admin_url('admin-ajax.php')); ?>',
+                    nonce: '<?php echo esc_js($nonce); ?>'
+                };
+            }
+            
+            // Remove any existing handlers first to prevent duplicates
+            $('.wp-toggle-switch input[type="checkbox"]').off('change');
+            $('.wp-allstars-toggle-header').off('click');
+            
+            // Re-bind toggle switch handlers
+            $('.wp-toggle-switch input[type="checkbox"]').on('change', function() {
+                console.log('Toggle switch changed:', this.id);
                 var $this = $(this);
                 var option = $this.attr('id');
                 var value = $this.is(':checked') ? 1 : 0;
@@ -118,10 +134,10 @@ class WP_Allstars_UI_Enhancements {
                 }
                 
                 // Show update notification
-                var $notification = $this.closest('label').find('.wp-setting-notification');
+                var $notification = $this.closest('.wp-setting-left').find('.wp-setting-notification');
                 if ($notification.length === 0) {
                     $notification = $('<span class="wp-setting-notification">Saving...</span>');
-                    $this.closest('label').append($notification);
+                    $this.closest('.wp-setting-left').append($notification);
                 } else {
                     $notification.text('Saving...').removeClass('error').show();
                 }
@@ -155,7 +171,7 @@ class WP_Allstars_UI_Enhancements {
             });
             
             // Re-bind expandable panels
-            $('.wp-allstars-toggle-header').off('click').on('click', function() {
+            $('.wp-allstars-toggle-header').on('click', function() {
                 var $this = $(this);
                 var $settings = $this.next('.wp-allstars-toggle-settings');
                 var isExpanded = $this.attr('aria-expanded') === 'true';
@@ -168,58 +184,60 @@ class WP_Allstars_UI_Enhancements {
             });
             
             // Special handling for admin color scheme toggle if exists
-            var $colorToggle = $('#wp_allstars_admin_color_scheme');
-            if ($colorToggle.length && typeof wpAllstarsColors !== 'undefined') {
-                $colorToggle.off('change').on('change', function() {
-                    var isModern = $(this).is(':checked');
-                    
-                    // Show saving notification
-                    var $notification = $(this).closest('label').find('.wp-setting-notification');
-                    if ($notification.length === 0) {
-                        $notification = $('<span class="wp-setting-notification">Saving...</span>');
-                        $(this).closest('label').append($notification);
-                    } else {
-                        $notification.text('Saving...').removeClass('error').show();
-                    }
-                    
-                    // Save the option via AJAX
-                    $.ajax({
-                        url: wpAllstarsColors.ajaxurl,
-                        type: 'POST',
-                        data: {
-                            action: 'wp_allstars_update_color_scheme',
-                            nonce: wpAllstarsColors.nonce,
-                            is_modern: isModern ? 1 : 0
-                        },
-                        success: function(response) {
-                            if (response.success) {
-                                if (isModern) {
-                                    $('body').addClass('wp-allstars-modern-admin');
+            if (typeof wpAllstarsColors !== 'undefined') {
+                var $colorToggle = $('#wp_allstars_admin_color_scheme');
+                if ($colorToggle.length) {
+                    $colorToggle.off('change').on('change', function() {
+                        var isModern = $(this).is(':checked');
+                        
+                        // Show saving notification
+                        var $notification = $colorToggle.closest('.wp-setting-left').find('.wp-setting-notification');
+                        if ($notification.length === 0) {
+                            $notification = $('<span class="wp-setting-notification">Saving...</span>');
+                            $colorToggle.closest('.wp-setting-left').append($notification);
+                        } else {
+                            $notification.text('Saving...').removeClass('error').show();
+                        }
+                        
+                        // Save the option via AJAX
+                        $.ajax({
+                            url: wpAllstarsColors.ajaxurl,
+                            type: 'POST',
+                            data: {
+                                action: 'wp_allstars_update_color_scheme',
+                                nonce: wpAllstarsColors.nonce,
+                                is_modern: isModern ? 1 : 0
+                            },
+                            success: function(response) {
+                                if (response.success) {
+                                    if (isModern) {
+                                        $('body').addClass('wp-allstars-modern-admin');
+                                    } else {
+                                        $('body').removeClass('wp-allstars-modern-admin');
+                                    }
+                                    
+                                    $notification.text('Saved!');
+                                    setTimeout(function() {
+                                        $notification.fadeOut(300);
+                                    }, 2000);
                                 } else {
-                                    $('body').removeClass('wp-allstars-modern-admin');
+                                    $notification.text('Error').addClass('error');
+                                    console.error('Error updating color scheme:', response.data);
+                                    
+                                    // Revert toggle
+                                    $colorToggle.prop('checked', !isModern);
                                 }
-                                
-                                $notification.text('Saved!');
-                                setTimeout(function() {
-                                    $notification.fadeOut(300);
-                                }, 2000);
-                            } else {
+                            },
+                            error: function(xhr, status, error) {
                                 $notification.text('Error').addClass('error');
-                                console.error('Error updating color scheme:', response.data);
+                                console.error('AJAX error:', error);
                                 
                                 // Revert toggle
                                 $colorToggle.prop('checked', !isModern);
                             }
-                        },
-                        error: function(xhr, status, error) {
-                            $notification.text('Error').addClass('error');
-                            console.error('AJAX error:', error);
-                            
-                            // Revert toggle
-                            $colorToggle.prop('checked', !isModern);
-                        }
+                        });
                     });
-                });
+                }
             }
         });
         </script>
