@@ -773,6 +773,36 @@
                 )
             ),
             'free_slug' => 'gotmls'
+        ),
+        'content-control' => array(
+            'name' => 'Content Control',
+            'description' => 'Advanced content restriction and user permissions management for WordPress.',
+            'button_group' => array(
+                array(
+                    'text' => 'Home Page',
+                    'url' => 'https://contentcontrolplugin.com/',
+                    'primary' => true
+                ),
+                array(
+                    'text' => 'Pricing',
+                    'url' => 'https://contentcontrolplugin.com/pricing/'
+                )
+            )
+        ),
+        'eventon' => array(
+            'name' => 'EventON',
+            'description' => 'Premium WordPress event calendar plugin with advanced features and add-ons.',
+            'button_group' => array(
+                array(
+                    'text' => 'Home Page',
+                    'url' => 'https://www.myeventon.com/',
+                    'primary' => true
+                ),
+                array(
+                    'text' => 'Add-ons',
+                    'url' => 'https://www.myeventon.com/addons/'
+                )
+            )
         )
     );
 } 
