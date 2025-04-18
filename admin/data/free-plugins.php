@@ -84,6 +84,9 @@ function wp_allstars_get_free_plugins() {
             'pymntpl-paypal-woocommerce',
             'woo-stripe-payment'
         ),
+        'events' => array(
+            'eventon-lite'
+        ),
         'lms' => array(
             'fluent-community',
             'masterstudy-lms-learning-management-system',
@@ -96,6 +99,9 @@ function wp_allstars_get_free_plugins() {
             'imsanity',
             'media-file-renamer',
             'safe-svg'
+        ),
+        'members' => array(
+            'content-control'
         ),
         'seo' => array(
             'burst-statistics',
@@ -123,6 +129,7 @@ function wp_allstars_get_free_plugins() {
             'flying-pages',
             'flying-scripts',
             'freesoul-deactivate-plugins',
+            'http-requests-manager',
             'index-wp-mysql-for-speed',
             'litespeed-cache',
             'performant-translations',
