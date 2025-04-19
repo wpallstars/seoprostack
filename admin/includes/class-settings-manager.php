@@ -1,195 +1,329 @@
 <?php
 /**
- * Settings Manager Class
- * 
- * Handles the display and management of plugin settings tabs (General and Advanced).
+ * WPALLSTARS Settings Manager
+ *
+ * Manages the plugin's settings using the WordPress Settings API.
+ *
+ * @package WPALLSTARS
+ * @subpackage Admin
+ * @since      1.0.0
  */
 
-// If this file is called directly, abort.
-if ( ! defined( 'WPINC' ) ) {
-    die;
+if (!defined('ABSPATH')) {
+    exit; // Exit if accessed directly.
 }
 
-class WP_Allstars_Settings_Manager {
-    
+class WPALLSTARS_Settings_Manager {
+
     /**
-     * Initialize the class
+     * Option group name.
+     * Used for register_setting() and settings_fields().
+     * @var string
+     */
+    public static $option_group = 'wpallstars_settings_group';
+
+    /**
+     * Option name stored in the wp_options table.
+     * @var string
+     */
+    public static $option_name = 'wpallstars_options';
+
+    /**
+     * Initialize the settings manager.
      */
     public static function init() {
-        // Register settings
-        add_action('admin_init', array(self::class, 'register_settings'));
-        
-        // Enqueue scripts and styles if needed
-        add_action('admin_enqueue_scripts', array(self::class, 'enqueue_scripts'));
+        add_action('admin_init', array(__CLASS__, 'register_settings'));
+        add_action('admin_enqueue_scripts', array(__CLASS__, 'enqueue_scripts'));
     }
-    
+
     /**
-     * Register plugin settings
+     * Register plugin settings, sections, and fields using the Settings API.
      */
     public static function register_settings() {
-        // General settings
-        register_setting('wp_allstars_settings', 'wp_allstars_simple_setting');
-        register_setting('wp_allstars_settings', 'wp_allstars_admin_color_scheme');
-        
-        // Advanced settings
-        register_setting('wp_allstars_settings', 'wp_allstars_auto_upload_images');
+        // Register the single option array
+        register_setting(
+            self::$option_group,      // Option group
+            self::$option_name,       // Option name
+            array(__CLASS__, 'sanitize_settings') // Sanitization callback
+        );
+
+        // --- General Settings Section ---
+        add_settings_section(
+            'wpallstars_general_settings_section', // Section ID
+            __('General Settings', WPALLSTARS_TEXT_DOMAIN), // Title
+            null, // Callback function (optional)
+            'wpallstars_general_settings_page' // Page slug where this section appears
+        );
+
+        add_settings_field(
+            'admin_color_scheme', // Field ID (should match key in $options array)
+            __('Modern Admin Colors', WPALLSTARS_TEXT_DOMAIN), // Title
+            array(__CLASS__, 'render_admin_color_field'), // Callback function to render the field
+            'wpallstars_general_settings_page', // Page
+            'wpallstars_general_settings_section' // Section
+        );
+
+        add_settings_field(
+            'simple_setting', // Field ID
+            __('Example: Simple Toggle', WPALLSTARS_TEXT_DOMAIN), // Title
+            array(__CLASS__, 'render_simple_setting_field'), // Callback
+            'wpallstars_general_settings_page', // Page
+            'wpallstars_general_settings_section' // Section
+        );
+
+        // --- Advanced Settings Section ---
+        add_settings_section(
+            'wpallstars_advanced_settings_section', // Section ID
+            __('Advanced Settings', WPALLSTARS_TEXT_DOMAIN), // Title
+            null, // Callback
+            'wpallstars_advanced_settings_page' // Page slug
+        );
+
+        add_settings_field(
+            'auto_upload_images', // Field ID
+            __('Example: Expandable Panel', WPALLSTARS_TEXT_DOMAIN), // Title
+            array(__CLASS__, 'render_auto_upload_images_field'), // Callback
+            'wpallstars_advanced_settings_page', // Page
+            'wpallstars_advanced_settings_section' // Section
+        );
+
+        add_settings_field(
+            'example_text', // Field ID
+            __('Example Text Field', WPALLSTARS_TEXT_DOMAIN), // Title
+            array(__CLASS__, 'render_example_text_field'), // Callback
+            'wpallstars_advanced_settings_page', // Page
+            'wpallstars_advanced_settings_section' // Section
+        );
+
+        // Add more fields and sections as needed...
     }
-    
+
     /**
-     * Enqueue scripts and styles needed for settings
+     * Sanitize the settings array before saving.
+     *
+     * @param array $input The input array from the settings form.
+     * @return array Sanitized array of options.
+     */
+    public static function sanitize_settings($input) {
+        $sanitized_options = array();
+        $current_options = get_option(self::$option_name, array());
+
+        // Sanitize each expected setting
+        if (isset($input['admin_color_scheme'])) {
+            // Assuming it's a class name/slug
+            $sanitized_options['admin_color_scheme'] = sanitize_html_class($input['admin_color_scheme']);
+        } else {
+            $sanitized_options['admin_color_scheme'] = isset($current_options['admin_color_scheme']) ? $current_options['admin_color_scheme'] : 'default';
+        }
+
+        if (isset($input['simple_setting'])) {
+            $sanitized_options['simple_setting'] = true; // Checkbox value is '1' if checked
+        } else {
+            $sanitized_options['simple_setting'] = false; // Not present if unchecked
+        }
+
+        if (isset($input['auto_upload_images'])) {
+            $sanitized_options['auto_upload_images'] = true; // Checkbox value is '1' if checked
+        } else {
+            $sanitized_options['auto_upload_images'] = false; // Not present if unchecked
+        }
+
+        if (isset($input['example_text'])) {
+            $sanitized_options['example_text'] = sanitize_text_field($input['example_text']);
+        } else {
+            $sanitized_options['example_text'] = isset($current_options['example_text']) ? $current_options['example_text'] : '';
+        }
+
+        // Add sanitization for other fields...
+
+        // You can add settings errors here if validation fails
+        // Example:
+        // if ($sanitized_options['max_image_width'] < 100) {
+        //     add_settings_error(
+        //         'max_image_width',
+        //         'max_image_width_error',
+        //         __('Max image width must be at least 100px.', WPALLSTARS_TEXT_DOMAIN),
+        //         'error'
+        //     );
+        //     // Revert to old value or a default if error
+        //     $sanitized_options['max_image_width'] = isset($current_options['max_image_width']) ? $current_options['max_image_width'] : 1920;
+        // }
+
+        return $sanitized_options;
+    }
+
+    /**
+     * Enqueue scripts and styles needed for the settings page.
+     *
+     * @param string $hook The current admin page hook.
      */
     public static function enqueue_scripts($hook) {
-        // Only load on the plugin settings page
-        if (strpos($hook, 'wp-allstars') === false) {
+        // Use the original hook based on add_options_page slug ('wpallstars')
+        // The hook is typically 'settings_page_{menu_slug}' for pages added under Settings
+        $settings_page_hook = 'settings_page_wpallstars'; 
+
+        if ($settings_page_hook !== $hook) {
             return;
         }
-        
-        // Add inline JS for toggle functionality
-        $toggle_js = '
-        jQuery(document).ready(function($) {
-            // Toggle expandable settings panels
-            $(".wp-allstars-toggle-header").on("click", function() {
-                var $this = $(this);
-                var $settings = $this.next(".wp-allstars-toggle-settings");
-                var isExpanded = $this.attr("aria-expanded") === "true";
-                
-                // Toggle aria-expanded attribute
-                $this.attr("aria-expanded", !isExpanded);
-                
-                // Toggle settings visibility
-                $settings.slideToggle(200);
-            });
-        });
-        ';
-        
-        wp_add_inline_script('wp-allstars-admin', $toggle_js);
+
+        // Enqueue specific CSS/JS if needed for settings page elements (e.g., color picker)
+        // wp_enqueue_style('wp-color-picker');
+        // wp_enqueue_script('wp-color-picker-alpha', plugins_url('path/to/wp-color-picker-alpha.min.js', __FILE__), array('wp-color-picker'), null, true);
     }
-    
+
     /**
-     * Display the general tab content
+     * Display the content for the General Settings tab.
      */
     public static function display_general_tab() {
         ?>
-        <div class="wp-allstars-settings-section">
-            <div class="wp-allstars-settings-grid">
-                <!-- Admin Color Scheme Setting -->
-                <div class="wp-setting-row">
-                    <div class="wp-setting-header">
-                        <div class="wp-setting-main">
-                            <div class="wp-setting-left">
-                                <div class="wp-toggle-switch">
-                                    <input type="checkbox" 
-                                           id="wp_allstars_admin_color_scheme"
-                                           name="wp_allstars_admin_color_scheme" 
-                                           value="1"
-                                           <?php checked(get_option('wp_allstars_admin_color_scheme', false)); ?> 
-                                    />
-                                    <span class="wp-toggle-slider"></span>
-                                </div>
-                                <label for="wp_allstars_admin_color_scheme" class="wp-setting-label">
-                                    <?php esc_html_e('Modern Admin Colors', 'wp-allstars'); ?>
-                                </label>
-                            </div>
-                        </div>
-                        <p class="wp-setting-description">
-                            <?php esc_html_e('Switch to the Modern Admin colors, to remind that you\'re using WP Allstars.', 'wp-allstars'); ?>
-                        </p>
-                    </div>
-                </div>
-                
-                <!-- Example of a simple toggle setting (no panel) -->
-                <div class="wp-setting-row">
-                    <div class="wp-setting-header">
-                        <div class="wp-setting-main">
-                            <div class="wp-setting-left">
-                                <div class="wp-toggle-switch">
-                                    <input type="checkbox" 
-                                           id="wp_allstars_simple_setting"
-                                           name="wp_allstars_simple_setting" 
-                                           value="1"
-                                           <?php checked(get_option('wp_allstars_simple_setting', false)); ?> 
-                                    />
-                                    <span class="wp-toggle-slider"></span>
-                                </div>
-                                <label for="wp_allstars_simple_setting" class="wp-setting-label">
-                                    <?php esc_html_e('Example: Simple Toggle', 'wp-allstars'); ?>
-                                </label>
-                            </div>
-                        </div>
-                        <p class="wp-setting-description">
-                            <?php esc_html_e('This is an example of a simple toggle setting without an expandable panel. Currently for demonstration purposes only.', 'wp-allstars'); ?>
-                        </p>
-                    </div>
-                </div>
-            </div>
-        </div>
+        <form method="post" action="options.php">
+            <?php
+            // Output necessary hidden fields for the settings API
+            settings_fields(self::$option_group);
+            
+            // Output the settings sections and fields for this page
+            do_settings_sections('wpallstars_general_settings_page');
+            
+            // Add the submit button
+            submit_button(__('Save General Settings', WPALLSTARS_TEXT_DOMAIN));
+            ?>
+        </form>
         <?php
     }
-    
+
     /**
-     * Display the advanced tab content
+     * Display the content for the Advanced Settings tab.
      */
     public static function display_advanced_tab() {
         ?>
-        <div class="wp-allstars-settings-section">
-            <div class="wp-allstars-settings-grid">
-                <!-- Example of an expandable panel setting -->
-                <div class="wp-allstars-toggle">
-                    <div class="wp-allstars-toggle-header" aria-expanded="false">
-                        <div class="wp-allstars-toggle-main">
-                            <div class="wp-allstars-toggle-left">
-                                <div class="wp-toggle-switch">
-                                    <input type="checkbox" 
-                                           id="wp_allstars_auto_upload_images"
-                                           name="wp_allstars_auto_upload_images" 
-                                           value="1"
-                                           <?php checked(get_option('wp_allstars_auto_upload_images', false)); ?> 
-                                    />
-                                    <span class="wp-toggle-slider"></span>
-                                </div>
-                                <label for="wp_allstars_auto_upload_images">
-                                    <?php esc_html_e('Example: Expandable Panel', 'wp-allstars'); ?>
-                                </label>
-                            </div>
-                        </div>
-                        <p class="wp-setting-description">
-                            <?php esc_html_e('This is an example of an expandable panel setting. Currently for demonstration purposes only - no actual functionality.', 'wp-allstars'); ?>
-                        </p>
-                    </div>
-                    <div class="wp-allstars-toggle-settings">
-                        <div class="wp-allstars-setting-row">
-                            <label for="example_text"><?php esc_html_e('Example Text Field', 'wp-allstars'); ?></label>
-                            <input type="text" 
-                                   id="example_text"
-                                   name="example_text"
-                                   value="Example value"
-                            />
-                            <p class="description"><?php esc_html_e('This is an example text field for demonstration purposes.', 'wp-allstars'); ?></p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+        <form method="post" action="options.php">
+            <?php
+            settings_fields(self::$option_group); // Same option group
+            do_settings_sections('wpallstars_advanced_settings_page');
+            submit_button(__('Save Advanced Settings', WPALLSTARS_TEXT_DOMAIN));
+            ?>
+        </form>
+        <?php
+    }
+
+    /**
+     * Helper function to get a specific setting's value.
+     *
+     * @param string $key The key of the setting within the options array.
+     * @param mixed $default Optional default value if the key isn't set.
+     * @return mixed The value of the setting or the default.
+     */
+    public static function get_setting_value($key, $default = null) {
+        $options = get_option(self::$option_name, array());
+        return isset($options[$key]) ? $options[$key] : $default;
+    }
+
+    // --- Field Rendering Callbacks ---
+
+    /**
+     * Render the 'Modern Admin Colors' setting field (Example: Select Dropdown)
+     */
+    public static function render_admin_color_field() {
+        $setting_key = 'admin_color_scheme';
+        $value = self::get_setting_value($setting_key, 'default'); // Default value
+        $field_id = self::$option_name . '_' . $setting_key;
+
+        $color_schemes = array(
+            'default' => __('Default', WPALLSTARS_TEXT_DOMAIN),
+            'light' => __('Light', WPALLSTARS_TEXT_DOMAIN),
+            'blue' => __('Blue', WPALLSTARS_TEXT_DOMAIN),
+            'coffee' => __('Coffee', WPALLSTARS_TEXT_DOMAIN),
+            'ectoplasm' => __('Ectoplasm', WPALLSTARS_TEXT_DOMAIN),
+            'midnight' => __('Midnight', WPALLSTARS_TEXT_DOMAIN),
+            'ocean' => __('Ocean', WPALLSTARS_TEXT_DOMAIN),
+            'sunrise' => __('Sunrise', WPALLSTARS_TEXT_DOMAIN),
+            'modern' => __('Modern (WPAllstars)', WPALLSTARS_TEXT_DOMAIN),
+        );
+        ?>
+        <select 
+            id="<?php echo esc_attr($field_id); ?>" 
+            name="<?php echo esc_attr(self::$option_name . '[' . $setting_key . ']'); ?>" 
+        >
+            <?php foreach ($color_schemes as $scheme_slug => $scheme_name) : ?>
+                <option value="<?php echo esc_attr($scheme_slug); ?>" <?php selected($value, $scheme_slug); ?>>
+                    <?php echo esc_html($scheme_name); ?>
+                </option>
+            <?php endforeach; ?>
+        </select>
+        <p class="description">
+            <?php esc_html_e('Select an admin color scheme.', WPALLSTARS_TEXT_DOMAIN); ?>
+        </p>
+        <?php
+    }
+
+    /**
+     * Render the 'Example: Simple Toggle' setting field (Example: Checkbox)
+     */
+    public static function render_simple_setting_field() {
+        $setting_key = 'simple_setting';
+        $value = (bool) self::get_setting_value($setting_key, false); // Default to false
+        $field_id = self::$option_name . '_' . $setting_key;
+        ?>
+        <label for="<?php echo esc_attr($field_id); ?>">
+            <input 
+                type="checkbox" 
+                id="<?php echo esc_attr($field_id); ?>" 
+                name="<?php echo esc_attr(self::$option_name . '[' . $setting_key . ']'); ?>" 
+                value="1" 
+                <?php checked($value); ?>
+            >
+            <?php esc_html_e('This is an example of a simple toggle setting without an expandable panel. Currently for demonstration purposes only.', WPALLSTARS_TEXT_DOMAIN); ?>
+        </label>
+        <p class="description">
+            <?php esc_html_e('This setting does not have any actual functionality.', WPALLSTARS_TEXT_DOMAIN); ?>
+        </p>
+        <?php
+    }
+
+    /**
+     * Render the 'Example: Expandable Panel' setting field (Example: Checkbox)
+     */
+    public static function render_auto_upload_images_field() {
+        $setting_key = 'auto_upload_images';
+        $value = (bool) self::get_setting_value($setting_key, false); // Default to false
+        $field_id = self::$option_name . '_' . $setting_key;
+        ?>
+        <label for="<?php echo esc_attr($field_id); ?>">
+            <input 
+                type="checkbox" 
+                id="<?php echo esc_attr($field_id); ?>" 
+                name="<?php echo esc_attr(self::$option_name . '[' . $setting_key . ']'); ?>" 
+                value="1" 
+                <?php checked($value); ?>
+            >
+            <?php esc_html_e('This is an example of an expandable panel setting. Currently for demonstration purposes only - no actual functionality.', WPALLSTARS_TEXT_DOMAIN); ?>
+        </label>
+        <p class="description">
+            <?php esc_html_e('This setting does not have any actual functionality.', WPALLSTARS_TEXT_DOMAIN); ?>
+        </p>
+        <?php
+    }
+
+    /**
+     * Render the 'Example Text Field' setting field (Example: Text Input)
+     */
+    public static function render_example_text_field() {
+        $setting_key = 'example_text';
+        $value = self::get_setting_value($setting_key, ''); // Default value
+        $field_id = self::$option_name . '_' . $setting_key;
+        ?>
+        <input 
+            type="text" 
+            id="<?php echo esc_attr($field_id); ?>" 
+            name="<?php echo esc_attr(self::$option_name . '[' . $setting_key . ']'); ?>" 
+            value="<?php echo esc_attr($value); ?>" 
+        >
+        <p class="description">
+            <?php esc_html_e('This is an example text field for demonstration purposes.', WPALLSTARS_TEXT_DOMAIN); ?>
+        </p>
         <?php
     }
     
-    /**
-     * Save settings
-     */
-    public static function save_settings() {
-        // Check for nonce
-        if (!isset($_POST['wp_allstars_settings_nonce']) || !wp_verify_nonce($_POST['wp_allstars_settings_nonce'], 'wp_allstars_save_settings')) {
-            return;
-        }
-        
-        // Save general settings
-        update_option('wp_allstars_simple_setting', isset($_POST['wp_allstars_simple_setting']) ? 1 : 0);
-        update_option('wp_allstars_admin_color_scheme', isset($_POST['wp_allstars_admin_color_scheme']) ? 1 : 0);
-        
-        // Save advanced settings
-        update_option('wp_allstars_auto_upload_images', isset($_POST['wp_allstars_auto_upload_images']) ? 1 : 0);
-        
-        // Add settings saved notice
-        add_settings_error('wp_allstars_settings', 'settings_updated', __('Settings saved.', 'wp-allstars'), 'updated');
-    }
+    // Add rendering callbacks for other fields...
+
 }

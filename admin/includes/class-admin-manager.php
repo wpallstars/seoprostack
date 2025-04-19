@@ -17,18 +17,19 @@ class WP_Allstars_Admin_Manager {
      */
     public static function init() {
         add_action('admin_menu', array(__CLASS__, 'register_admin_menu'));
-        add_action('wp_ajax_wp_allstars_update_option', array(__CLASS__, 'update_option'));
-        add_action('admin_init', array(__CLASS__, 'register_settings'));
         add_action('admin_enqueue_scripts', array(__CLASS__, 'enqueue_admin_scripts'));
         
         // Initialize all manager classes
-        WP_Allstars_Settings_Manager::init();
+        WP_Allstars_Settings_Manager::init(); 
         WP_Allstars_Theme_Manager::init();
         WP_Allstars_Workflow_Manager::init();
         WP_Allstars_Pro_Plugins_Manager::init();
         WP_Allstars_Tools_Manager::init();
         WP_Allstars_Hosting_Manager::init();
         WP_Allstars_Free_Plugins_Manager::init();
+        
+        // Register AJAX actions
+        add_action('wp_ajax_wp_allstars_update_option', array(__CLASS__, 'update_option'));
     }
     
     /**
