@@ -50,14 +50,14 @@ class WP_Allstars_Readme_Manager {
      * Display the readme tab content
      */
     public static function display_tab_content() {
-        $readme_content = self::get_readme_content();
+        $readme = self::get_readme_content();
         
         ?>
         <div class="wp-allstars-settings-content tab-content" id="readme">
-            <div class="wpallstars-pro-plugins">
-                <div class="wpallstars-pro-plugin">
+            <div class="wpa-pro-plugins">
+                <div class="wpa-pro-plugin">
                     <div class="wp-allstars-markdown-content">
-                        <?php echo self::parse_markdown($readme_content['content']); ?>
+                        <?php echo self::parse_markdown($readme['content']); ?>
                     </div>
                 </div>
             </div>

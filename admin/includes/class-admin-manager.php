@@ -1,40 +1,34 @@
 <?php
 /**
- * WPALLSTARS Admin Manager
+ * WP ALLSTARS Admin Manager
  *
- * Manages the overall admin interface for the WPALLSTARS plugin, including menus, scripts, styles, and AJAX handlers.
- * Uses WPALLSTARS for class names/package/strings and wpallstars for slugs/handles/actions/nonces/options/textdomain/js vars/css classes.
- *
- * @package WPALLSTARS
- * @subpackage Admin
- * @since 1.0.0
+ * @package WP_ALLSTARS
+ * @since 0.2.0
  */
 
 if (!defined('ABSPATH')) {
     exit;
 }
 
-class WPALLSTARS_Admin_Manager {
+class WP_Allstars_Admin_Manager {
     
     /**
      * Initialize the class and register hooks
      */
     public static function init() {
         add_action('admin_menu', array(__CLASS__, 'register_admin_menu'));
-        add_action('wp_ajax_wpallstars_update_option', array(__CLASS__, 'update_option'));
-        // remove settings registration from here, it's handled by Settings_Manager
-        // add_action('admin_init', array(__CLASS__, 'register_settings')); 
+        add_action('wp_ajax_wp_allstars_update_option', array(__CLASS__, 'update_option'));
+        add_action('admin_init', array(__CLASS__, 'register_settings'));
         add_action('admin_enqueue_scripts', array(__CLASS__, 'enqueue_admin_scripts'));
         
         // Initialize all manager classes
-        WPALLSTARS_Settings_Manager::init();
-        WPALLSTARS_Theme_Manager::init();
-        WPALLSTARS_Workflow_Manager::init();
-        WPALLSTARS_Pro_Plugins_Manager::init();
-        WPALLSTARS_Tools_Manager::init();
-        WPALLSTARS_Hosting_Manager::init();
-        WPALLSTARS_Free_Plugins_Manager::init();
-        WPALLSTARS_Readme_Manager::init(); // Ensure Readme Manager is initialized
+        WP_Allstars_Settings_Manager::init();
+        WP_Allstars_Theme_Manager::init();
+        WP_Allstars_Workflow_Manager::init();
+        WP_Allstars_Pro_Plugins_Manager::init();
+        WP_Allstars_Tools_Manager::init();
+        WP_Allstars_Hosting_Manager::init();
+        WP_Allstars_Free_Plugins_Manager::init();
     }
     
     /**
@@ -43,309 +37,278 @@ class WPALLSTARS_Admin_Manager {
      * @param string $hook The current admin page hook
      */
     public static function enqueue_admin_scripts($hook) {
-        // Correct hook for the settings submenu page
-        $settings_page_hook = 'wpallstars_page_wpallstars-settings';
-
-        // Only load specific assets on our settings page
-        if ($settings_page_hook !== $hook) {
-            // Maybe load global assets on all wpallstars pages?
-            // if (strpos($hook, 'wpallstars') === false) return;
-            return; // Exit if not the settings page for now
+        if ('settings_page_wp-allstars' !== $hook) {
+            return;
         }
 
-        // Enqueue main admin stylesheet
+        // Enqueue admin stylesheet
         wp_enqueue_style(
-            'wpallstars-admin', // Handle for the main admin CSS
-            WPALLSTARS_URL . 'admin/css/wpallstars-admin.css', // Use constant defined in main plugin file
+            'wp-allstars-admin', 
+            plugins_url('css/wp-allstars-admin.css', dirname(__FILE__)),
             array(),
-            WPALLSTARS_VERSION // Use constant defined in main plugin file
+            WP_ALLSTARS_VERSION
         );
-
-        // Enqueue main admin JavaScript (likely contains toggle functionality)
-        wp_enqueue_script(
-            'wpallstars-admin', // Handle for the main admin JS
-            WPALLSTARS_URL . 'admin/js/wpallstars-admin.js', // Use constant for URL
-            array('jquery'), // Dependencies
-            WPALLSTARS_VERSION, // Use constant for version
-            true // Load in footer
-        );
-
-        // Localize script with data for AJAX and other JS needs
-        wp_localize_script('wpallstars-admin', 'wpallstars', array(
-            'ajaxurl' => admin_url('admin-ajax.php'),
-            'nonce' => wp_create_nonce('wpallstars-nonce'), // Generic nonce for general actions
-            'update_option_nonce' => wp_create_nonce('wpallstars_update_option'), // Specific nonce for updating options via AJAX (if still needed)
-            'l10n' => array( // Localization strings for JS
-                'updating' => __('Updating...', WPALLSTARS_TEXT_DOMAIN),
-                'error' => __('Error', WPALLSTARS_TEXT_DOMAIN),
-                'success' => __('Success', WPALLSTARS_TEXT_DOMAIN),
-            ),
-            // Add any other data needed by wpallstars-admin.js
-        ));
-
-        // Settings Manager handles its own enqueuing via its init hook
-        // WPALLSTARS_Settings_Manager::enqueue_settings_scripts($hook); // Removed
         
-        // Other managers can still enqueue specific assets if needed
-        // Example:
-        // WPALLSTARS_Theme_Manager::enqueue_theme_scripts($hook); 
-        // WPALLSTARS_Free_Plugins_Manager::enqueue_free_plugins_scripts($hook); 
-
-        // Combine inline styles from various managers
-        $inline_styles = ''; // Initialize
-        // Uncomment and adjust class/method names as needed
-        // $inline_styles .= WPALLSTARS_Pro_Plugins_Manager::get_inline_styles();
-        // $inline_styles .= WPALLSTARS_Hosting_Manager::get_inline_styles();
-        // $inline_styles .= WPALLSTARS_Tools_Manager::get_inline_styles();
-        if (!empty($inline_styles)) {
-            wp_add_inline_style('wpallstars-admin', $inline_styles);
+        // Enqueue admin JavaScript
+        wp_enqueue_script(
+            'wp-allstars-admin', 
+            plugins_url('js/wp-allstars-admin.js', dirname(__FILE__)), 
+            array('jquery'), 
+            WP_ALLSTARS_VERSION, 
+            true
+        );
+        
+        // Localize the script with necessary data for AJAX
+        wp_localize_script('wp-allstars-admin', 'wpAllstars', array(
+            'nonce' => wp_create_nonce('wp-allstars-nonce'),
+            'ajaxurl' => admin_url('admin-ajax.php')
+        ));
+    }
+    
+    /**
+     * Register core plugin settings
+     */
+    public static function register_settings() {
+        // Core settings groups - tab-specific settings are registered in their respective manager classes
+        register_setting('wp_allstars_general', 'wp_allstars_general_settings');
+        register_setting('wp_allstars_advanced', 'wp_allstars_advanced_settings');
+    }
+    
+    /**
+     * AJAX handler for updating options
+     */
+    public static function update_option() {
+        // Verify nonce for security
+        check_ajax_referer('wp-allstars-nonce', 'nonce');
+        
+        // Check if user has proper permissions
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error('Insufficient permissions');
+            return;
         }
-
-        // Combine inline scripts from various managers (use with caution)
-        $inline_scripts = ''; // Initialize
-        // $inline_scripts .= WPALLSTARS_Theme_Manager::get_theme_scripts(); 
-        // $inline_scripts .= WPALLSTARS_Free_Plugins_Manager::get_plugin_scripts(); 
-        // $inline_scripts .= WPALLSTARS_Settings_Manager::get_settings_scripts(); // Removed
-        if (!empty($inline_scripts)) {
-            wp_add_inline_script('wpallstars-admin', $inline_scripts);
+        
+        // Validate and sanitize input
+        if (!isset($_POST['option']) || !isset($_POST['value'])) {
+            wp_send_json_error('Missing required parameters');
+            return;
+        }
+        
+        $option = sanitize_text_field($_POST['option']);
+        
+        // Different sanitization based on expected value type
+        $value = $_POST['value'];
+        if (is_numeric($value)) {
+            $value = intval($value);
+        } elseif (is_string($value)) {
+            $value = sanitize_text_field($value);
+        } elseif (is_array($value)) {
+            $value = array_map('sanitize_text_field', $value);
+        }
+        
+        // Whitelist of allowed options to update for security
+        $allowed_options = array(
+            'wp_allstars_simple_setting',
+            'wp_allstars_auto_upload_images',
+            'wp_allstars_admin_color_scheme',
+            'wp_allstars_max_width',
+            'wp_allstars_max_height',
+            'wp_allstars_exclude_urls',
+            'wp_allstars_image_name_pattern',
+            'wp_allstars_image_alt_pattern'
+        );
+        
+        if (!in_array($option, $allowed_options)) {
+            wp_send_json_error('Invalid option');
+            return;
+        }
+        
+        // Update the option
+        $result = update_option($option, $value);
+        
+        if ($result) {
+            wp_send_json_success(array(
+                'message' => 'Option updated successfully',
+                'option' => $option,
+                'value' => $value
+            ));
+        } else {
+            wp_send_json_success(array(
+                'message' => 'No changes made to option',
+                'option' => $option
+            ));
         }
     }
     
     /**
-     * Register core plugin settings - REMOVED
-     * Settings registration is now handled by WPALLSTARS_Settings_Manager::register_settings
-     */
-    // public static function register_settings() { ... } 
-
-    /**
-     * AJAX handler for updating options (Generic handler, specific validation can be added)
-     * Note: This is likely NOT used for the main settings form save action anymore,
-     * which is handled by options.php via the Settings API.
-     * Keep it if it's used for dynamic updates elsewhere.
-     * Handles saving *individual* setting keys within the 'wpallstars_options' array via AJAX.
-     */
-    public static function update_option() {
-        // Check nonce
-        check_ajax_referer('wpallstars_update_option', 'nonce');
-
-        // Check user capabilities
-        if (!current_user_can('manage_options')) {
-            wp_send_json_error(__('You do not have permission to perform this action.', WPALLSTARS_TEXT_DOMAIN));
-            return;
-        }
-
-        // Get setting key and value from POST data
-        $setting_key = isset($_POST['setting_key']) ? sanitize_key($_POST['setting_key']) : '';
-        // Don't sanitize value yet, do it based on the key type later
-        $setting_value = isset($_POST['setting_value']) ? wp_unslash($_POST['setting_value']) : null;
-
-        if (empty($setting_key) || is_null($setting_value)) {
-            wp_send_json_error(__('Setting key or value is missing.', WPALLSTARS_TEXT_DOMAIN));
-            return;
-        }
-
-        // --- Security & Validation --- 
-        // Whitelist setting KEYS within 'wpallstars_options' that can be updated via this AJAX handler
-        $allowed_options = array(
-            'admin_color_scheme', // Example: Key for admin color scheme
-            'enable_auto_upload', // Example: Key for auto-upload toggle
-            'max_image_width',    // Example: Key for max image width
-            // Add other keys registered in Settings_Manager that should be AJAX-updatable
-        );
-
-        if (!in_array($setting_key, $allowed_options, true)) {
-            wp_send_json_error(__('Invalid setting key specified for AJAX update.', WPALLSTARS_TEXT_DOMAIN));
-            return;
-        }
-
-        // Sanitize the value based on the specific setting key
-        $sanitized_value = '';
-        switch ($setting_key) {
-            case 'admin_color_scheme':
-                // Assuming it's a class name or identifier
-                $sanitized_value = sanitize_html_class($setting_value);
-                // If it was intended to be a hex color, use sanitize_hex_color($setting_value);
-                break;
-            case 'enable_auto_upload':
-                // Boolean toggle (common JS values are 'true'/'false' strings)
-                $sanitized_value = rest_sanitize_boolean($setting_value);
-                break;
-            case 'max_image_width':
-                // Positive integer
-                $sanitized_value = absint($setting_value);
-                break;
-            // Add cases for other allowed keys
-            default:
-                // Should not happen due to whitelist check, but as a fallback:
-                $sanitized_value = sanitize_text_field($setting_value);
-                break;
-        }
-
-        // Get the existing options array
-        $options = get_option(WPALLSTARS_Settings_Manager::$option_name, array());
-
-        // Store the old value for comparison
-        $old_value = isset($options[$setting_key]) ? $options[$setting_key] : null;
-
-        // Update the specific key in the options array
-        $options[$setting_key] = $sanitized_value;
-
-        // Save the entire options array back
-        // update_option handles serialization and DB storage
-        $result = update_option(WPALLSTARS_Settings_Manager::$option_name, $options);
-
-        if ($result) {
-            wp_send_json_success(__('Option updated successfully.', WPALLSTARS_TEXT_DOMAIN));
-        } else {
-            // Option might not have changed, or error occurred
-            // Check if the value is the same as the old value (update_option returns false if value hasn't changed)
-            if ($old_value === $sanitized_value) {
-                wp_send_json_success(__('Option unchanged.', WPALLSTARS_TEXT_DOMAIN));
-            } else {
-                wp_send_json_error(__('Failed to update option.', WPALLSTARS_TEXT_DOMAIN));
-            }
-        }
-    }
-
-    /**
      * Register the admin menu item
      */
     public static function register_admin_menu() {
-        add_menu_page(
-            __('WP Allstars', WPALLSTARS_TEXT_DOMAIN),
-            __('WP Allstars', WPALLSTARS_TEXT_DOMAIN),
+        add_options_page(
+            'WP ALLSTARS Settings',
+            'WP ALLSTARS',
             'manage_options',
-            'wpallstars-dashboard', // Main dashboard slug
-            array(__CLASS__, 'render_settings_page'), // Default to settings page for now
-            'dashicons-star-filled',
-            85
+            'wp-allstars',
+            array(__CLASS__, 'render_settings_page')
         );
-
-        // Add actual settings submenu
-        add_submenu_page(
-            'wpallstars-dashboard', // Parent slug
-            __('Settings', WPALLSTARS_TEXT_DOMAIN), // Page title
-            __('Settings', WPALLSTARS_TEXT_DOMAIN), // Menu title
-            'manage_options', // Capability
-            'wpallstars-settings', // Settings slug << THIS IS THE SLUG TO USE
-            array(__CLASS__, 'render_settings_page') // Callback function
-        );
-
-        // Add other submenus here using their respective managers or callbacks
     }
-
+    
     /**
-     * Render the settings page container and handle tab navigation.
-     * Content for each tab is rendered by the respective manager class.
+     * Render the settings page
      */
     public static function render_settings_page() {
-        // Check user capabilities
-        if (!current_user_can('manage_options')) {
-            wp_die(__('You do not have sufficient permissions to access this page.', WPALLSTARS_TEXT_DOMAIN));
+        global $tabs;
+        
+        $active_tab = isset($_GET['tab']) ? $_GET['tab'] : 'general';
+        $active_category = isset($_GET['category']) ? $_GET['category'] : 'minimal';
+        
+        // Tab-specific resources
+        if ($active_tab === 'recommended') {
+            WP_Allstars_Plugin_Manager::clear_plugin_cache();
+            wp_enqueue_script('plugin-install');
+            wp_enqueue_script('updates');
+            add_thickbox();
+            wp_enqueue_style('wp-allstars-plugins', plugins_url('css/wp-allstars-plugins.css', dirname(__FILE__)));
+            
+            // Add inline script to load plugins on page load
+            wp_add_inline_script('wp-allstars-admin', '
+                jQuery(document).ready(function($) {
+                    if ($("#wpa-plugin-list").length && $("#wpa-plugin-list").is(":empty")) {
+                        var category = "' . esc_js($active_category) . '";
+                        var $container = $("#wpa-plugin-list");
+                        var $loadingOverlay = $("<div class=\"wp-allstars-loading-overlay\"><span class=\"spinner is-active\"></span></div>");
+                        
+                        // Show loading overlay
+                        $container.css("position", "relative").append($loadingOverlay);
+                        
+                        // AJAX request to get plugins
+                        $.ajax({
+                            url: ajaxurl,
+                            type: "POST",
+                            data: {
+                                action: "wp_allstars_get_plugins",
+                                category: category,
+                                _wpnonce: wpAllstars.nonce
+                            },
+                            success: function(response) {
+                                $loadingOverlay.remove();
+                                if (response.success) {
+                                    $container.html(response.data);
+                                    // Initialize plugin action buttons
+                                    if (typeof initPluginActions === "function") {
+                                        initPluginActions();
+                                    }
+                                    
+                                    // Spinners have been removed from individual cards
+                                } else {
+                                    $container.html("<div class=\"notice notice-error\"><p>" + response.data + "</p></div>");
+                                }
+                            },
+                            error: function(xhr, status, error) {
+                                $loadingOverlay.remove();
+                                $container.html("<div class=\"notice notice-error\"><p>Failed to load plugins. Please try again. Error: " + error + "</p></div>");
+                                console.error("AJAX Error:", xhr.responseText);
+                            }
+                        });
+                    }
+                });
+            ');
         }
-
-        // Whitelist of valid tabs
-        $valid_tabs = array(
-            'general'     => __('General', WPALLSTARS_TEXT_DOMAIN),
-            'advanced'    => __('Advanced', WPALLSTARS_TEXT_DOMAIN),
-            'workflow'    => __('Workflow', WPALLSTARS_TEXT_DOMAIN),
-            'theme'       => __('Theme', WPALLSTARS_TEXT_DOMAIN),
-            'recommended' => __('Free Plugins', WPALLSTARS_TEXT_DOMAIN),
-            'pro'         => __('Pro Plugins', WPALLSTARS_TEXT_DOMAIN),
-            'hosting'     => __('Hosting', WPALLSTARS_TEXT_DOMAIN),
-            'tools'       => __('Tools', WPALLSTARS_TEXT_DOMAIN),
-            'readme'      => __('Read Me', WPALLSTARS_TEXT_DOMAIN),
-        );
-
-        // Get current tab from URL, default to 'general'
-        $current_tab = isset($_GET['tab']) ? sanitize_key($_GET['tab']) : 'general';
-
-        // Fallback to 'general' if the tab is not in the whitelist
-        if (!array_key_exists($current_tab, $valid_tabs)) {
-            $current_tab = 'general';
-        }
-
         ?>
-        <div class="wrap wpallstars-wrap wpallstars-settings-wrap">
-            <h1><?php esc_html_e('WP Allstars Settings', WPALLSTARS_TEXT_DOMAIN); ?></h1>
-
-            <?php settings_errors(); // Display any settings errors registered by the Settings API ?>
-
-            <div class="wpallstars-settings-container">
+        <div class="wrap wp-allstars-wrap">
+            <div class="wp-allstars-header">
+                <h1><?php echo esc_html(get_admin_page_title()); ?></h1>
+                <div class="wp-allstars-header-actions">
+                    <span class="wp-allstars-version"><?php echo esc_html(WP_ALLSTARS_VERSION); ?></span>
+                    <a href="https://www.wpallstars.com/" target="_blank" class="button button-secondary green-button-secondary green-visit-website">
+                        <?php esc_html_e('Visit Website', 'wp-allstars'); ?>
+                    </a>
+                </div>
+            </div>
+            
+            <div class="wp-allstars-tabs-wrapper">
                 <h2 class="nav-tab-wrapper">
-                    <?php
-                    // Define tabs with their labels (already defined in $valid_tabs)
-                    $tabs = $valid_tabs;
-
-                    // Output tab navigation links using the correct settings page slug
-                    foreach ($tabs as $tab_slug => $tab_label) {
-                        $tab_url = add_query_arg(array('page' => 'wpallstars-settings', 'tab' => $tab_slug), admin_url('admin.php'));
-                        $class = ($current_tab === $tab_slug) ? 'nav-tab nav-tab-active' : 'nav-tab';
-                        echo '<a href="' . esc_url($tab_url) . '" class="' . esc_attr($class) . '">' . esc_html($tab_label) . '</a>';
-                    }
-                    ?>
+                    <a href="?page=wp-allstars&tab=general" class="nav-tab <?php echo $active_tab === 'general' ? 'nav-tab-active' : ''; ?>">
+                        <?php esc_html_e('General', 'wp-allstars'); ?>
+                    </a>
+                    <a href="?page=wp-allstars&tab=advanced" class="nav-tab <?php echo $active_tab === 'advanced' ? 'nav-tab-active' : ''; ?>">
+                        <?php esc_html_e('Advanced', 'wp-allstars'); ?>
+                    </a>
+                    <a href="?page=wp-allstars&tab=workflow" class="nav-tab <?php echo $active_tab === 'workflow' ? 'nav-tab-active' : ''; ?>">
+                        <?php esc_html_e('Workflow', 'wp-allstars'); ?>
+                    </a>
+                    <a href="?page=wp-allstars&tab=theme" class="nav-tab <?php echo $active_tab === 'theme' ? 'nav-tab-active' : ''; ?>">
+                        <?php esc_html_e('Theme', 'wp-allstars'); ?>
+                    </a>
+                    <a href="?page=wp-allstars&tab=recommended" class="nav-tab <?php echo $active_tab === 'recommended' ? 'nav-tab-active' : ''; ?>">
+                        <?php esc_html_e('Free Plugins', 'wp-allstars'); ?>
+                    </a>
+                    <a href="?page=wp-allstars&tab=pro" class="nav-tab <?php echo $active_tab === 'pro' ? 'nav-tab-active' : ''; ?>">
+                        <?php esc_html_e('Pro Plugins', 'wp-allstars'); ?>
+                    </a>
+                    <a href="?page=wp-allstars&tab=hosting" class="nav-tab <?php echo $active_tab === 'hosting' ? 'nav-tab-active' : ''; ?>">
+                        <?php esc_html_e('Hosting', 'wp-allstars'); ?>
+                    </a>
+                    <a href="?page=wp-allstars&tab=tools" class="nav-tab <?php echo $active_tab === 'tools' ? 'nav-tab-active' : ''; ?>">
+                        <?php esc_html_e('Tools', 'wp-allstars'); ?>
+                    </a>
+                    <a href="?page=wp-allstars&tab=readme" class="nav-tab <?php echo $active_tab === 'readme' ? 'nav-tab-active' : ''; ?>">
+                        <?php esc_html_e('Read Me', 'wp-allstars'); ?>
+                    </a>
                 </h2>
-
-                <div class="wpallstars-tab-content-container">
+                
+                <div class="wp-allstars-tab-content">
                     <?php
-                    // Display content based on the active tab by calling the appropriate manager's display method
-                    // Using a switch statement for clarity
-                    switch ($current_tab) {
+                    // Each tab's content is handled by its respective manager class
+                    switch ($active_tab) {
                         case 'general':
-                            if (class_exists('WPALLSTARS_Settings_Manager')) WPALLSTARS_Settings_Manager::display_general_tab();
+                            WP_Allstars_Settings_Manager::display_general_tab();
                             break;
+                            
                         case 'advanced':
-                            if (class_exists('WPALLSTARS_Settings_Manager')) WPALLSTARS_Settings_Manager::display_advanced_tab();
+                            WP_Allstars_Settings_Manager::display_advanced_tab();
                             break;
+                            
                         case 'workflow':
-                            if (class_exists('WPALLSTARS_Workflow_Manager')) WPALLSTARS_Workflow_Manager::display_tab_content();
+                            WP_Allstars_Workflow_Manager::display_tab_content();
                             break;
+                            
                         case 'theme':
-                            if (class_exists('WPALLSTARS_Theme_Manager')) WPALLSTARS_Theme_Manager::display_tab_content();
+                            WP_Allstars_Theme_Manager::display_tab_content();
                             break;
+                            
                         case 'recommended':
-                            if (class_exists('WPALLSTARS_Free_Plugins_Manager')) WPALLSTARS_Free_Plugins_Manager::display_tab_content();
+                            WP_Allstars_Free_Plugins_Manager::display_tab_content();
                             break;
+                            
                         case 'pro':
-                            if (class_exists('WPALLSTARS_Pro_Plugins_Manager')) WPALLSTARS_Pro_Plugins_Manager::display_tab_content();
+                            WP_Allstars_Pro_Plugins_Manager::display_tab_content();
                             break;
+                            
                         case 'hosting':
-                            if (class_exists('WPALLSTARS_Hosting_Manager')) WPALLSTARS_Hosting_Manager::display_tab_content();
+                            WP_Allstars_Hosting_Manager::display_tab_content();
                             break;
+                            
                         case 'tools':
-                            if (class_exists('WPALLSTARS_Tools_Manager')) WPALLSTARS_Tools_Manager::display_tab_content();
+                            WP_Allstars_Tools_Manager::display_tab_content();
                             break;
+                            
                         case 'readme':
-                            if (class_exists('WPALLSTARS_Readme_Manager')) WPALLSTARS_Readme_Manager::display_tab_content();
-                            break;
-                        default:
-                            // Should not happen due to whitelist check, but good practice
-                            if (class_exists('WPALLSTARS_Settings_Manager')) WPALLSTARS_Settings_Manager::display_general_tab();
+                            WP_Allstars_Readme_Manager::display_tab_content();
                             break;
                     }
                     ?>
-                </div><!-- .wpallstars-tab-content-container -->
-            </div><!-- .wpallstars-settings-container -->
-        </div><!-- .wrap -->
+                </div>
+            </div>
+        </div>
         <?php
     }
-
+    
     /**
-     * Alias for enqueue_admin_scripts to potentially maintain compatibility
-     * if other parts of the codebase mistakenly call this.
-     *
-     * @deprecated Prefer calling enqueue_admin_scripts directly.
-     * @param string $hook The current admin page hook.
+     * Alias for enqueue_admin_scripts to maintain compatibility with settings.php
+     * 
+     * @param string $hook The current admin page hook
      */
     public static function enqueue_scripts($hook) {
         self::enqueue_admin_scripts($hook);
-    }
-}
-
-// Instantiate the Admin Manager when the admin area is loaded
-if (is_admin()) {
-    // Ensure the class exists before calling init (optional safety check)
-    if (class_exists('WPALLSTARS_Admin_Manager')) {
-        WPALLSTARS_Admin_Manager::init();
     }
 }

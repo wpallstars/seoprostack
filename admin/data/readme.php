@@ -11,10 +11,10 @@ if (!defined('ABSPATH')) {
 // Define readme content
 function wp_allstars_get_readme_content() {
     // Get README.md content
-    $readme_path = WP_PLUGIN_DIR . '/wpallstars-superstar-plugin/README.md';
+    $readme_path = WP_PLUGIN_DIR . '/wpa-superstar-plugin/README.md';
     $readme_content = '';
     
-    if (file_exists($readme_path) && is_readable($readme_path)) {
+    if (file_exists($readme_path)) {
         $readme_content = file_get_contents($readme_path);
     } else {
         // Fallback content if README.md is not found

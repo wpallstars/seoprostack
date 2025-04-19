@@ -65,7 +65,7 @@ class WP_Allstars_Pro_Plugins_Manager {
         });
         
         // Start the tab content container
-        echo '<div class="wp-allstars-settings-content tab-content" id="pro"><div class="wpallstars-pro-plugins">';
+        echo '<div class="wp-allstars-settings-content tab-content" id="pro"><div class="wpa-pro-plugins">';
         
         // Render each plugin card
         foreach ($pro_plugins as $plugin) {
@@ -83,7 +83,7 @@ class WP_Allstars_Pro_Plugins_Manager {
      */
     public static function display_plugin_card($plugin) {
         ?>
-        <div class="wpallstars-pro-plugin">
+        <div class="wpa-pro-plugin">
             <h3><?php echo esc_html($plugin['name']); ?></h3>
             <p><?php echo esc_html($plugin['description']); ?></p>
             <?php if (isset($plugin['button_group'])): ?>
@@ -138,7 +138,7 @@ class WP_Allstars_Pro_Plugins_Manager {
         
         // Add inline CSS for pro plugins
         $custom_css = '
-        .wpallstars-pro-plugins {
+        .wpa-pro-plugins {
             padding: 15px 20px;
             display: flex;
             flex-direction: column;
@@ -146,7 +146,7 @@ class WP_Allstars_Pro_Plugins_Manager {
             max-width: 700px;
             margin: 0 auto;
         }
-        .wpallstars-pro-plugin {
+        .wpa-pro-plugin {
             background: #fff;
             border: 1px solid #ddd;
             padding: 24px;
@@ -159,34 +159,34 @@ class WP_Allstars_Pro_Plugins_Manager {
             margin-bottom: 24px;
             max-width: 100%;
         }
-        .wpallstars-pro-plugin:last-child {
+        .wpa-pro-plugin:last-child {
             margin-bottom: 0;
         }
-        .wpallstars-pro-plugin:hover {
+        .wpa-pro-plugin:hover {
             border-color: #2271b1;
             box-shadow: 0 2px 6px rgba(0,0,0,0.15);
         }
-        .wpallstars-pro-plugin h3 {
+        .wpa-pro-plugin h3 {
             margin: 0 0 12px;
             font-size: 16px;
             font-weight: 600;
             color: #1d2327;
             line-height: 1.4;
         }
-        .wpallstars-pro-plugin p {
+        .wpa-pro-plugin p {
             margin: 0 0 16px;
             color: #50575e;
             font-size: 14px;
             line-height: 1.6;
         }
-        .wpallstars-pro-plugin .button-group {
+        .wpa-pro-plugin .button-group {
             display: flex;
             flex-wrap: wrap;
             gap: 8px;
             margin-top: auto;
             justify-content: flex-start;
         }
-        .wpallstars-pro-plugin .button {
+        .wpa-pro-plugin .button {
             text-decoration: none;
             min-width: 120px;
             text-align: center;
@@ -205,17 +205,17 @@ class WP_Allstars_Pro_Plugins_Manager {
             box-shadow: none;
             cursor: pointer;
         }
-        .wpallstars-pro-plugin .button:hover {
+        .wpa-pro-plugin .button:hover {
             background: #f0f0f1;
             border-color: #0071a1;
             color: #0071a1;
         }
-        .wpallstars-pro-plugin .button-primary {
+        .wpa-pro-plugin .button-primary {
             background: #0071a1;
             border-color: #0071a1;
             color: #fff;
         }
-        .wpallstars-pro-plugin .button-primary:hover {
+        .wpa-pro-plugin .button-primary:hover {
             background: #006291;
             border-color: #006291;
             color: #fff;

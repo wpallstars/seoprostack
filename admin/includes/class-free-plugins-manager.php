@@ -50,15 +50,15 @@ class WP_Allstars_Free_Plugins_Manager {
         // Define all categories in the desired display order
         $priority_categories = array(
             'minimal', 'admin', 'affiliates', 'ai', 'cms',
-            'compliance', 'crm', 'ecommerce', 'events', 'lms', 'media',
-            'members', 'seo', 'setup', 'social', 'speed', 'translation',
+            'compliance', 'crm', 'ecommerce', 'lms', 'media',
+            'seo', 'setup', 'social', 'speed', 'translation',
             'advanced', 'debug'
         );
         
         // Start HTML output
         ?>
         <div class="wp-allstars-settings-content tab-content" id="recommended">
-        <div id="wpallstars-plugin-filters" class="wp-filter">
+        <div id="wpa-plugin-filters" class="wp-filter">
             <ul class="filter-links">
                 <?php
                 // First output priority categories
@@ -100,7 +100,7 @@ class WP_Allstars_Free_Plugins_Manager {
         </div>
 
         <div class="wp-allstars-plugin-browser" style="margin-top: 22px;">
-            <div id="wpallstars-plugin-list" class="wpallstars-plugin-container" style="position: relative; min-height: 200px;">
+            <div id="wpa-plugin-list" class="wpa-plugin-container" style="position: relative; min-height: 200px;">
                 <!-- Plugin content will be loaded via AJAX -->
                 <div class="wp-allstars-loading-overlay">
                     <span class="spinner is-active"></span>
@@ -112,14 +112,14 @@ class WP_Allstars_Free_Plugins_Manager {
         <script>
         jQuery(document).ready(function($) {
             // Filter tab click handler
-            $('#wpallstars-plugin-filters .filter-links a').on('click', function(e) {
+            $('#wpa-plugin-filters .filter-links a').on('click', function(e) {
                 e.preventDefault();
                 
                 var category = $(this).data('category');
-                var $container = $('#wpallstars-plugin-list');
+                var $container = $('#wpa-plugin-list');
                 
                 // Update filter UI
-                $('#wpallstars-plugin-filters .filter-links a').removeClass('current');
+                $('#wpa-plugin-filters .filter-links a').removeClass('current');
                 $(this).addClass('current');
                 
                 // Create new loading overlay
@@ -163,7 +163,7 @@ class WP_Allstars_Free_Plugins_Manager {
             });
             
             // Load initial category (minimal or from URL)
-            $('#wpallstars-plugin-filters .filter-links a.current').trigger('click');
+            $('#wpa-plugin-filters .filter-links a.current').trigger('click');
         });
         </script>
         </div>

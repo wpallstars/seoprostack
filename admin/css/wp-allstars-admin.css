@@ -1,10 +1,10 @@
-.wpallstars-wrap {
+.wp-allstars-wrap {
     max-width: none;
     margin: 0;
     padding-right: 20px;
 }
 
-.wpallstars-header {
+.wp-allstars-header {
     background: #fff;
     border-bottom: 1px solid #c3c4c7;
     box-shadow: 0 1px 0 rgba(0,0,0,.04);
@@ -17,7 +17,7 @@
     position: relative;
 }
 
-.wpallstars-header h1 {
+.wp-allstars-header h1 {
     font-size: 23px;
     font-weight: 400;
     margin: 0;
@@ -26,13 +26,13 @@
     color: #1d2327;
 }
 
-.wpallstars-header-actions {
+.wp-allstars-header-actions {
     display: flex;
     align-items: center;
     gap: 10px;
 }
 
-.wpallstars-version {
+.wp-allstars-version {
     color: #0073aa; /* Changed to WordPress blue */
     font-size: 13px;
     font-weight: 400;
@@ -110,7 +110,7 @@
 }
 
 /* Setting notification */
-.wpallstars-setting-notification {
+.wp-setting-notification {
     display: inline-flex;
     align-items: center;
     margin-left: 10px;
@@ -130,7 +130,7 @@
     justify-content: center;
 }
 
-.wpallstars-setting-notification.error {
+.wp-setting-notification.error {
     background: #d63638;
 }
 
@@ -140,7 +140,7 @@
 }
 
 /* Toggle Switch */
-.wpallstars-toggle-switch {
+.wp-toggle-switch {
     position: relative;
     display: inline-block;
     width: 40px;
@@ -149,13 +149,13 @@
     margin-right: 8px;
 }
 
-.wpallstars-toggle-switch input {
+.wp-toggle-switch input {
     opacity: 0;
     width: 0;
     height: 0;
 }
 
-.wpallstars-toggle-slider {
+.wp-toggle-slider {
     position: absolute;
     cursor: pointer;
     top: 0;
@@ -167,7 +167,7 @@
     border-radius: 34px;
 }
 
-.wpallstars-toggle-slider:before {
+.wp-toggle-slider:before {
     position: absolute;
     content: "";
     height: 16px;
@@ -179,20 +179,20 @@
     border-radius: 50%;
 }
 
-input:checked + .wpallstars-toggle-slider {
+input:checked + .wp-toggle-slider {
     background-color: #2271b1;
 }
 
-input:focus + .wpallstars-toggle-slider {
+input:focus + .wp-toggle-slider {
     box-shadow: 0 0 1px #2271b1;
 }
 
-input:checked + .wpallstars-toggle-slider:before {
+input:checked + .wp-toggle-slider:before {
     transform: translateX(20px);
 }
 
 /* Settings layout */
-.wpallstars-setting-row {
+.wp-setting-row {
     background: #fff;
     border: 1px solid #e5e5e5;
     box-shadow: 0 1px 1px rgba(0,0,0,.04);
@@ -201,110 +201,110 @@ input:checked + .wpallstars-toggle-slider:before {
     border-radius: 3px;
 }
 
-.wpallstars-setting-header {
+.wp-setting-header {
     position: relative;
 }
 
-.wpallstars-setting-main {
+.wp-setting-main {
     display: flex;
     justify-content: space-between;
     align-items: center;
 }
 
-.wpallstars-setting-left {
+.wp-setting-left {
     display: flex;
     align-items: center;
 }
 
-.wpallstars-setting-label {
+.wp-setting-label {
     font-weight: 600;
     margin: 0;
     font-size: 14px;
 }
 
-.wpallstars-setting-description {
+.wp-setting-description {
     margin: 10px 0 0;
     color: #666;
     font-size: 13px;
 }
 
 /* Tab Content Area - GLOBAL SETTINGS - All tab spacing should inherit from here */
-.wpallstars-tab-content {
+.wp-allstars-tab-content {
     padding-top: 0 !important; /* Remove all padding-top from tab content */
 }
 
 /* Reset all tab content padding */
-.wpallstars-settings-content {
+.wp-allstars-settings-content {
     padding-top: 0 !important;
 }
 
 /* Remove previous spacing attempts */
-#general .wpallstars-settings-section,
-#advanced .wpallstars-settings-section,
-#readme .wpallstars-settings-section,
-#workflow .wpallstars-settings-section,
-#theme .wpallstars-settings-section,
-#recommended .wpallstars-settings-section,
-#pro .wpallstars-settings-section,
-#hosting .wpallstars-settings-section,
-#tools .wpallstars-settings-section {
+#general .wp-allstars-settings-section,
+#advanced .wp-allstars-settings-section,
+#readme .wp-allstars-settings-section,
+#workflow .wp-allstars-settings-section,
+#theme .wp-allstars-settings-section,
+#recommended .wp-allstars-settings-section,
+#pro .wp-allstars-settings-section,
+#hosting .wp-allstars-settings-section,
+#tools .wp-allstars-settings-section {
     padding-top: 0 !important;
     margin-top: 0 !important;
 }
 
 /* Apply consistent spacing to the container for all tab types */
-.wpallstars-settings-section,
-.wpallstars-plugin-container,
-.wpallstars-pro-plugins,
-.wpallstars-markdown-content {
+.wp-allstars-settings-section,
+.wpa-plugin-container,
+.wpa-pro-plugins,
+.wp-allstars-markdown-content {
     padding-top: 0 !important;
     margin-top: 0 !important;
 }
 
 /* Base Setting Styles (Shared between simple and expandable) */
-.wpallstars-setting-base, 
-.wpallstars-setting-row,
-.wpallstars-toggle {
+.wp-setting-base, 
+.wp-setting-row,
+.wp-allstars-toggle {
     background: #fff;
     border: 1px solid #ccc;
     border-radius: 8px;
     margin-bottom: 15px;
 }
 
-.wpallstars-setting-base:hover,
-.wpallstars-setting-row:hover,
-.wpallstars-toggle:hover {
+.wp-setting-base:hover,
+.wp-setting-row:hover,
+.wp-allstars-toggle:hover {
     border-color: #2271b1;
     box-shadow: 0 2px 6px rgba(0,0,0,0.15);
 }
 
-.wpallstars-setting-header,
-.wpallstars-toggle-header {
+.wp-setting-header,
+.wp-allstars-toggle-header {
     padding: 15px;
     position: relative;
 }
 
-.wpallstars-setting-main,
-.wpallstars-toggle-main {
+.wp-setting-main,
+.wp-allstars-toggle-main {
     display: flex;
     align-items: center;
     justify-content: space-between;
     padding-right: 15px;
 }
 
-.wpallstars-toggle-main {
+.wp-allstars-toggle-main {
     padding-right: 40px; /* Extra space for chevron */
 }
 
-.wpallstars-setting-left,
-.wpallstars-toggle-left {
+.wp-setting-left,
+.wp-allstars-toggle-left {
     display: flex;
     align-items: center;
     gap: 10px;
 }
 
-.wpallstars-setting-label,
-.wpallstars-toggle label {
+.wp-setting-label,
+.wp-allstars-toggle label {
     font-size: 16px;
     font-weight: 600;
     color: #1d2327;
@@ -313,8 +313,8 @@ input:checked + .wpallstars-toggle-slider:before {
     cursor: default;
 }
 
-.wpallstars-setting-description,
-.wpallstars-toggle .description,
+.wp-setting-description,
+.wp-allstars-toggle .description,
 .description {
     margin: 8px 0 0;
     color: #50575e;
@@ -323,13 +323,13 @@ input:checked + .wpallstars-toggle-slider:before {
 }
 
 /* Expandable Panel Component */
-.wpallstars-toggle-header {
+.wp-allstars-toggle-header {
     cursor: pointer;
     position: relative;
     z-index: 1;
 }
 
-.wpallstars-toggle-header::after {
+.wp-allstars-toggle-header::after {
     content: '';
     position: absolute;
     right: 15px;
@@ -342,20 +342,20 @@ input:checked + .wpallstars-toggle-slider:before {
     transition: transform 0.3s ease;
 }
 
-.wpallstars-toggle-header[aria-expanded="true"]::after {
+.wp-allstars-toggle-header[aria-expanded="true"]::after {
     transform: translateY(-50%) rotate(180deg);
 }
 
 /* Make sure the label doesn't interfere with clickability */
-.wpallstars-toggle-left label {
+.wp-allstars-toggle-left label {
     pointer-events: none;
 }
 
-.wpallstars-expand-settings {
+.wp-allstars-expand-settings {
     display: none;
 }
 
-.wpallstars-toggle-settings {
+.wp-allstars-toggle-settings {
     border-top: 1px solid #ddd;
     padding: 24px;
     background: #f9f9f9;
@@ -364,15 +364,15 @@ input:checked + .wpallstars-toggle-slider:before {
     border-bottom-right-radius: 8px;
 }
 
-.wpallstars-setting-row {
+.wp-allstars-setting-row {
     margin-bottom: 24px;
 }
 
-.wpallstars-setting-row:last-child {
+.wp-allstars-setting-row:last-child {
     margin-bottom: 0;
 }
 
-.wpallstars-setting-row label {
+.wp-allstars-setting-row label {
     display: block;
     margin-bottom: 8px;
     font-size: 14px;
@@ -382,9 +382,9 @@ input:checked + .wpallstars-toggle-slider:before {
     padding-right: 80px;
 }
 
-.wpallstars-setting-row input[type="text"],
-.wpallstars-setting-row input[type="number"],
-.wpallstars-setting-row textarea {
+.wp-allstars-setting-row input[type="text"],
+.wp-allstars-setting-row input[type="number"],
+.wp-allstars-setting-row textarea {
     width: 100%;
     max-width: 400px;
     padding: 8px;
@@ -395,9 +395,9 @@ input:checked + .wpallstars-toggle-slider:before {
     display: block;
 }
 
-.wpallstars-setting-row input[type="text"]:focus,
-.wpallstars-setting-row input[type="number"]:focus,
-.wpallstars-setting-row textarea:focus {
+.wp-allstars-setting-row input[type="text"]:focus,
+.wp-allstars-setting-row input[type="number"]:focus,
+.wp-allstars-setting-row textarea:focus {
     border-color: #2271b1;
     box-shadow: 0 0 0 1px #2271b1;
     outline: 2px solid transparent;
@@ -411,7 +411,7 @@ input:checked + .wpallstars-toggle-slider:before {
 }
 
 /* Loading Overlay */
-.wpallstars-loading-overlay {
+.wp-allstars-loading-overlay {
     position: fixed;
     top: 32px;
     left: 160px;
@@ -425,13 +425,13 @@ input:checked + .wpallstars-toggle-slider:before {
 }
 
 /* Settings Container */
-.wpallstars-settings-content {
+.wpa-settings-content {
     margin-top: 22px;
     padding: 0 20px;
 }
 
 /* Plugin Filters */
-.wpallstars-plugin-filters {
+.wpa-plugin-filters {
     margin: 20px 0;
     padding: 20px;
     background: #fff;
@@ -442,7 +442,7 @@ input:checked + .wpallstars-toggle-slider:before {
     gap: 8px;
 }
 
-.wpallstars-plugin-filters .button {
+.wpa-plugin-filters .button {
     margin: 0;
     padding: 6px 14px;
     height: auto;
@@ -459,19 +459,19 @@ input:checked + .wpallstars-toggle-slider:before {
     text-align: center;
 }
 
-.wpallstars-plugin-filters .button:hover {
+.wpa-plugin-filters .button:hover {
     background: #fff;
     border-color: #2271b1;
     color: #2271b1;
 }
 
-.wpallstars-plugin-filters .button.button-primary {
+.wpa-plugin-filters .button.button-primary {
     background: #2271b1;
     border-color: #2271b1;
     color: #fff;
 }
 
-.wpallstars-plugin-filters .button.button-primary:hover {
+.wpa-plugin-filters .button.button-primary:hover {
     background: #135e96;
     border-color: #135e96;
 }
@@ -485,7 +485,7 @@ input:checked + .wpallstars-toggle-slider:before {
 }
 
 /* Plugin Cards */
-.wpallstars-plugin-card {
+.plugin-card {
     float: left;
     margin: 0 8px 16px;
     padding: 0;
@@ -499,16 +499,16 @@ input:checked + .wpallstars-toggle-slider:before {
     flex-direction: column;
 }
 
-.wpallstars-plugin-card:nth-child(2n+1) {
+.plugin-card:nth-child(2n+1) {
     clear: both;
     margin-left: 0;
 }
 
-.wpallstars-plugin-card:nth-child(2n) {
+.plugin-card:nth-child(2n) {
     margin-right: 0;
 }
 
-.wpallstars-plugin-card-top {
+.plugin-card-top {
     position: relative;
     padding: 20px 20px 10px;
     min-height: 135px;
@@ -517,19 +517,19 @@ input:checked + .wpallstars-toggle-slider:before {
     flex-direction: column;
 }
 
-.wpallstars-plugin-card .name,
-.wpallstars-plugin-card .desc {
+.plugin-card .name,
+.plugin-card .desc {
     margin-left: 148px;
     margin-right: 120px;
 }
 
-.wpallstars-plugin-card .name h3 {
+.plugin-card .name h3 {
     margin: 0 0 12px;
     font-size: 18px;
     line-height: 1.3;
 }
 
-.wpallstars-plugin-card .desc {
+.plugin-card .desc {
     margin-top: 0;
     margin-bottom: 12px;
     font-size: 13px;
@@ -538,7 +538,15 @@ input:checked + .wpallstars-toggle-slider:before {
     flex-grow: 1;
 }
 
-.wpallstars-plugin-card .wpallstars-plugin-icon {
+.plugin-card .plugin-card-bottom {
+    clear: both;
+    padding: 12px 20px;
+    background-color: #f6f7f7;
+    border-top: 1px solid #ddd;
+    overflow: hidden;
+}
+
+.plugin-card .plugin-icon {
     position: absolute;
     top: 20px;
     left: 20px;
@@ -547,7 +555,7 @@ input:checked + .wpallstars-toggle-slider:before {
     margin: 0 20px 20px 0;
 }
 
-.wpallstars-plugin-action-buttons {
+.plugin-action-buttons {
     clear: right;
     float: right;
     margin-left: 2em;
@@ -555,52 +563,52 @@ input:checked + .wpallstars-toggle-slider:before {
     text-align: right;
 }
 
-.wpallstars-plugin-action-buttons div {
+.plugin-action-buttons div {
     margin-top: 10px;
 }
 
-.wpallstars-plugin-card .column-rating,
-.wpallstars-plugin-card .column-downloaded,
-.wpallstars-plugin-card .column-updated {
+.plugin-card .column-rating,
+.plugin-card .column-downloaded,
+.plugin-card .column-updated {
     display: none;
 }
 
-.wpallstars-plugin-card .wpallstars-action-links {
+.plugin-card .action-links {
     position: absolute;
     top: 20px;
     right: 20px;
     width: 120px;
 }
 
-.wpallstars-plugin-card .wpallstars-action-links .button {
+.plugin-card .action-links .button {
     display: block;
     text-align: center;
     margin-bottom: 5px;
 }
 
-.wpallstars-plugin-card .wpallstars-action-links .button.button-primary {
+.plugin-card .action-links .button.button-primary {
     background: #2271b1;
     border-color: #2271b1;
     color: #fff;
 }
 
-.wpallstars-plugin-card .wpallstars-action-links .button.button-primary:hover {
+.plugin-card .action-links .button.button-primary:hover {
     background: #135e96;
     border-color: #135e96;
 }
 
-.wpallstars-plugin-card .name a,
-.wpallstars-plugin-card .wpallstars-action-links a {
+.plugin-card .name a,
+.plugin-card .action-links a {
     text-decoration: none;
 }
 
-.wpallstars-plugin-card .desc,
-.wpallstars-plugin-card .author {
+.plugin-card .desc,
+.plugin-card .author {
     margin: 0 0 12px;
     color: #646970;
 }
 
-.wpallstars-plugin-card .author {
+.plugin-card .author {
     color: #646970;
     font-size: 13px;
     margin-left: 148px;
@@ -617,7 +625,7 @@ input:checked + .wpallstars-toggle-slider:before {
 }
 
 /* Theme Card Styles - Scoped to our plugin only */
-.wpallstars-theme-card {
+.theme-card {
     position: relative;
     background: #fff;
     border: 1px solid #ddd;
@@ -629,19 +637,19 @@ input:checked + .wpallstars-toggle-slider:before {
     width: 100%;
 }
 
-.wpallstars-theme-card:hover {
+.theme-card:hover {
     border-color: #2271b1;
     box-shadow: 0 2px 6px rgba(0,0,0,0.15);
 }
 
-.wpallstars-theme-image {
+.theme-image {
     position: relative;
     padding-bottom: 75%; /* 4:3 aspect ratio */
     background: #f1f1f1;
     overflow: hidden;
 }
 
-.wpallstars-theme-image img {
+.theme-image img {
     position: absolute;
     top: 0;
     left: 0;
@@ -653,25 +661,25 @@ input:checked + .wpallstars-toggle-slider:before {
 
 /* Removed hover zoom effect */
 
-.wpallstars-theme-info {
+.theme-info {
     padding: 15px;
     border-top: 1px solid #eee;
 }
 
-.wpallstars-theme-name {
+.theme-name {
     font-size: 16px;
     font-weight: 600;
     margin: 0 0 5px;
     color: #23282d;
 }
 
-.wpallstars-theme-author {
+.theme-author {
     font-size: 13px;
     color: #646970;
     margin: 0;
 }
 
-.wpallstars-theme-actions {
+.theme-actions {
     padding: 15px;
     border-top: 1px solid #eee;
     display: flex;
@@ -681,7 +689,7 @@ input:checked + .wpallstars-toggle-slider:before {
 }
 
 /* Fix theme buttons to maintain consistent size and prevent layout jumps */
-.wpallstars-theme-actions .button {
+.theme-actions .button {
     min-width: 80px !important;
     text-align: center !important;
     position: relative !important;
@@ -690,15 +698,15 @@ input:checked + .wpallstars-toggle-slider:before {
 }
 
 /* Style for the updating message with spinner */
-.wpallstars-theme-actions .button.updating-message:before,
-.wpallstars-theme-actions .button.updated-message:before {
+.theme-actions .button.updating-message:before,
+.theme-actions .button.updated-message:before {
     margin-top: 0 !important;
     padding-right: 3px !important;
     vertical-align: bottom !important;
 }
 
 /* Style theme actions container spacing */
-.wpallstars-theme-actions {
+.theme-actions {
     display: flex !important;
     flex-wrap: wrap !important;
     gap: 8px !important;
@@ -707,43 +715,43 @@ input:checked + .wpallstars-toggle-slider:before {
 
 /* Responsive Adjustments */
 @media screen and (max-width: 1200px) {
-    .wpallstars-plugin-card .name,
-    .wpallstars-plugin-card .desc {
+    .plugin-card .name,
+    .plugin-card .desc {
         margin-right: 0;
     }
 
-    .wpallstars-plugin-card .wpallstars-action-links {
+    .plugin-card .action-links {
         position: static;
         margin-left: 148px;
         width: auto;
         margin-top: 1em;
     }
 
-    .wpallstars-plugin-card .wpallstars-action-links .button {
+    .plugin-card .action-links .button {
         display: inline-block;
         margin: 0 5px 5px 0;
     }
 }
 
 @media screen and (max-width: 782px) {
-    .wpallstars-plugin-card {
+    .plugin-card {
         margin-left: 0;
         margin-right: 0;
         width: 100%;
         clear: both;
     }
 
-    .wpallstars-plugin-card .name,
-    .wpallstars-plugin-card .desc {
+    .plugin-card .name,
+    .plugin-card .desc {
         margin-left: 0;
         margin-top: 140px;
     }
 
-    .wpallstars-plugin-card .wpallstars-action-links {
+    .plugin-card .action-links {
         margin-left: 0;
     }
 
-    .wpallstars-plugin-card .wpallstars-plugin-icon {
+    .plugin-card .plugin-icon {
         position: absolute;
         top: 20px;
         left: 50%;
@@ -751,22 +759,22 @@ input:checked + .wpallstars-toggle-slider:before {
         margin: 0;
     }
 
-    .wpallstars-plugin-filters {
+    .wpa-plugin-filters {
         padding: 15px;
     }
 
-    .wpallstars-plugin-filters .button {
+    .wpa-plugin-filters .button {
         width: calc(50% - 4px);
         min-width: 0;
     }
 }
 
 @media screen and (max-width: 480px) {
-    .wpallstars-plugin-filters .button {
+    .wpa-plugin-filters .button {
         width: 100%;
     }
 
-    .wpallstars-plugin-card .wpallstars-action-links .button {
+    .plugin-card .action-links .button {
         display: block;
         margin: 0 0 5px 0;
         width: 100%;
@@ -775,17 +783,17 @@ input:checked + .wpallstars-toggle-slider:before {
 }
 
 /* Add space for notification to prevent layout shifts */
-.wpallstars-setting-left label,
-.wpallstars-toggle-left label,
-.wpallstars-setting-row label {
+.wp-setting-left label,
+.wp-allstars-toggle-left label,
+.wp-allstars-setting-row label {
     position: relative;
     padding-right: 20px;
     display: inline-block;
 }
 
-.wpallstars-setting-left label .wpallstars-setting-notification,
-.wpallstars-toggle-left label .wpallstars-setting-notification,
-.wpallstars-setting-row label .wpallstars-setting-notification {
+.wp-setting-left label .wp-setting-notification,
+.wp-allstars-toggle-left label .wp-setting-notification,
+.wp-allstars-setting-row label .wp-setting-notification {
     position: absolute;
     right: -60px;
     top: -5px;
@@ -793,7 +801,7 @@ input:checked + .wpallstars-toggle-slider:before {
     line-height: 1.4;
 }
 
-.wpallstars-loading-overlay {
+.wpa-loading-overlay {
     position: absolute;
     top: 0;
     left: 0;
@@ -806,14 +814,14 @@ input:checked + .wpallstars-toggle-slider:before {
     justify-content: center;
 }
 
-.wpallstars-toggle-main {
+.wp-allstars-toggle-main {
     padding-right: 40px; /* Space for chevron */
     position: relative;
     z-index: 1;
 } 
 
 /* Panel styles for Pro Plugins, Hosting, and Tools tabs - Single Column Layout */
-.wpallstars-pro-plugins {
+.wpa-pro-plugins {
     padding: 20px;
     display: flex;
     flex-direction: column;
@@ -822,7 +830,7 @@ input:checked + .wpallstars-toggle-slider:before {
     margin: 0 auto;
 }
 
-.wpallstars-pro-plugin {
+.wpa-pro-plugin {
     background: #fff;
     border: 1px solid #ddd;
     padding: 24px;
@@ -836,16 +844,16 @@ input:checked + .wpallstars-toggle-slider:before {
     max-width: 100%; /* Ensure it doesn't exceed container */
 }
 
-.wpallstars-pro-plugin:last-child {
+.wpa-pro-plugin:last-child {
     margin-bottom: 0;
 }
 
-.wpallstars-pro-plugin:hover {
+.wpa-pro-plugin:hover {
     border-color: #2271b1;
     box-shadow: 0 2px 6px rgba(0,0,0,0.15);
 }
 
-.wpallstars-pro-plugin h3 {
+.wpa-pro-plugin h3 {
     margin: 0 0 12px;
     font-size: 16px;
     font-weight: 600;
@@ -853,14 +861,14 @@ input:checked + .wpallstars-toggle-slider:before {
     line-height: 1.4;
 }
 
-.wpallstars-pro-plugin p {
+.wpa-pro-plugin p {
     margin: 0 0 16px;
     color: #50575e;
     font-size: 14px;
     line-height: 1.6;
 }
 
-.wpallstars-pro-plugin .button-group {
+.wpa-pro-plugin .button-group {
     display: flex;
     flex-wrap: wrap;
     gap: 8px;
@@ -868,7 +876,7 @@ input:checked + .wpallstars-toggle-slider:before {
     justify-content: flex-end; /* Right-align buttons like Free Plugins */
 }
 
-.wpallstars-pro-plugin .button {
+.wpa-pro-plugin .button {
     text-decoration: none;
     min-width: 120px;
     text-align: center;
@@ -888,104 +896,104 @@ input:checked + .wpallstars-toggle-slider:before {
     cursor: pointer;
 }
 
-.wpallstars-pro-plugin .button:hover {
+.wpa-pro-plugin .button:hover {
     background: #f0f0f1;
     border-color: #0071a1;
     color: #0071a1;
 }
 
-.wpallstars-pro-plugin .button.button-primary {
+.wpa-pro-plugin .button.button-primary {
     background: #2271b1;
     border-color: #2271b1 !important;
     color: #fff;
 }
 
-.wpallstars-pro-plugin .button.button-primary:hover {
+.wpa-pro-plugin .button.button-primary:hover {
     background: #135e96;
     border-color: #135e96 !important;
     color: #fff;
 }
 
 /* Adjust spacing between pro plugins content and tabs navigation */
-#pro .wpallstars-pro-plugins,
-#hosting .wpallstars-pro-plugins,
-#tools .wpallstars-pro-plugins {
+#pro .wpa-pro-plugins,
+#hosting .wpa-pro-plugins,
+#tools .wpa-pro-plugins {
     padding-top: 15px; /* Match Free Plugins padding */
 }
 
-/* Responsive adjustments for Pro Panels */
+/* Simplify media queries since we're using single column at all widths */
 @media screen and (max-width: 960px) {
-    .wpallstars-pro-plugins {
+    .wpa-pro-plugins {
         padding: 16px;
     }
-    .wpallstars-pro-plugin {
+    .wpa-pro-plugin {
         padding: 20px;
     }
 }
 
 @media screen and (max-width: 782px) {
-    .wpallstars-pro-plugins {
+    .wpa-pro-plugins {
         padding: 12px;
     }
-    .wpallstars-pro-plugin {
+    .wpa-pro-plugin {
         padding: 16px;
     }
 }
 
 /* Markdown Content Styles for About Tab */
-.wpallstars-markdown-content {
+.wp-allstars-markdown-content {
     line-height: 1.6;
     color: #333;
     padding: 0 20px 20px 20px !important; /* No top padding, consistent with other containers */
 }
 
-.wpallstars-markdown-content h1 {
+.wp-allstars-markdown-content h1 {
     font-size: 2em;
     margin: 0.67em 0;
     border-bottom: 1px solid #eaecef;
     padding-bottom: 0.3em;
 }
 
-.wpallstars-markdown-content h2 {
+.wp-allstars-markdown-content h2 {
     font-size: 1.5em;
     margin: 0.83em 0;
     border-bottom: 1px solid #eaecef;
     padding-bottom: 0.3em;
 }
 
-.wpallstars-markdown-content h3 {
+.wp-allstars-markdown-content h3 {
     font-size: 1.25em;
     margin: 1em 0;
 }
 
-.wpallstars-markdown-content ul {
+.wp-allstars-markdown-content ul {
     padding-left: 2em;
     margin: 1em 0;
 }
 
-.wpallstars-markdown-content li {
+.wp-allstars-markdown-content li {
     margin: 0.5em 0;
 }
 
-.wpallstars-markdown-content a {
+.wp-allstars-markdown-content a {
     color: #0073aa;
     text-decoration: none;
 }
 
-.wpallstars-markdown-content a:hover {
+.wp-allstars-markdown-content a:hover {
     color: #00a0d2;
     text-decoration: underline;
 }
 
-.wpallstars-markdown-content p {
+.wp-allstars-markdown-content p {
     margin: 1em 0;
 }
 
 /* Go Pro Button Styles */
 .button.button-primary[style*="background-color: #27ae60"],
-.wpallstars-theme-install-actions .button.button-primary,
-.wpallstars-pro-plugin .button-group .button.button-primary,
-.wpallstars-go-pro-button {
+.theme-install-actions .button.button-primary,
+.wpa-pro-plugin .button-group .button.button-primary,
+.go-pro-button {
     transition: all 0.3s ease !important;
     background-color: #219653 !important; /* Darker green */
     border-color: #1e874b !important; /* Even darker for border */
@@ -993,9 +1001,9 @@ input:checked + .wpallstars-toggle-slider:before {
 }
 
 .button.button-primary[style*="background-color: #27ae60"]:hover,
-.wpallstars-theme-install-actions .button.button-primary:hover,
-.wpallstars-pro-plugin .button-group .button.button-primary:hover,
-.wpallstars-go-pro-button:hover {
+.theme-install-actions .button.button-primary:hover,
+.wpa-pro-plugin .button-group .button.button-primary:hover,
+.go-pro-button:hover {
     background-color: #1b7b42 !important; /* Even darker green on hover */
     border-color: #186a39 !important; /* Darkest for border */
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2) !important;
@@ -1014,10 +1022,10 @@ input:checked + .wpallstars-toggle-slider:before {
 #readme .button.button-secondary,
 .button.button-secondary,
 /* More specific selectors to override WP defaults */
-.wpallstars-tabs-wrapper .button.button-secondary,
-.wpallstars-settings-content .button.button-secondary,
-.wpallstars-pro-plugins .button.button-secondary,
-.wpallstars-pro-plugin .button.button-secondary,
+.wp-allstars-tabs-wrapper .button.button-secondary,
+.wp-allstars-settings-content .button.button-secondary,
+.wpa-pro-plugins .button.button-secondary,
+.wpa-pro-plugin .button.button-secondary,
 body.wp-admin .button.button-secondary {
     transition: all 0.3s ease !important;
     color: #219653 !important; /* Darker green */
@@ -1036,10 +1044,10 @@ body.wp-admin .button.button-secondary {
 #tools .button.button-secondary:hover,
 #readme .button.button-secondary:hover,
 .button.button-secondary:hover,
-.wpallstars-tabs-wrapper .button.button-secondary:hover,
-.wpallstars-settings-content .button.button-secondary:hover,
-.wpallstars-pro-plugins .button.button-secondary:hover,
-.wpallstars-pro-plugin .button.button-secondary:hover,
+.wp-allstars-tabs-wrapper .button.button-secondary:hover,
+.wp-allstars-settings-content .button.button-secondary:hover,
+.wpa-pro-plugins .button.button-secondary:hover,
+.wpa-pro-plugin .button.button-secondary:hover,
 body.wp-admin .button.button-secondary:hover {
     color: #1b7b42 !important; /* Even darker green on hover */
     border-color: #1b7b42 !important; /* Even darker green on hover */
@@ -1080,16 +1088,16 @@ body.wp-admin .button.pricing-button:hover,
 }
 
 /* Limit width of content in all main tabs */
-.wpallstars-tab-content .wpallstars-settings-section,
-#readme .wpallstars-pro-plugins {
+.wp-allstars-tab-content .wp-allstars-settings-section,
+#readme .wpa-pro-plugins {
     display: block;
     padding: 20px;
 }
 
 /* Target the specific setting rows to limit their width */
-.wpallstars-tab-content .wpallstars-setting-row,
-.wpallstars-tab-content .wpallstars-toggle,
-#readme .wpallstars-pro-plugin {
+.wp-allstars-tab-content .wp-setting-row,
+.wp-allstars-tab-content .wp-allstars-toggle,
+#readme .wpa-pro-plugin {
     max-width: 700px; /* Change from 50% to match global 700px width */
     margin: 0 auto 20px auto;
     box-sizing: border-box;
@@ -1149,13 +1157,13 @@ body.wp-admin .button.pricing-button:hover,
 
 /* Override max-width for free plugins specific elements */
 #wpa-plugin-filters,
-#recommended .wpallstars-plugin-container {
+#recommended .wpa-plugin-container {
     max-width: 900px !important;
     width: 100% !important;
 }
 
 /* Free Plugins - Single Column Centered Layout */
-#recommended .wpallstars-plugin-container {
+#recommended .wpa-plugin-container {
     padding: 15px 20px 20px 20px !important;
     display: flex;
     flex-direction: column;
@@ -1164,7 +1172,7 @@ body.wp-admin .button.pricing-button:hover,
 }
 
 /* Use consistent layout similar to 768px width for all screen sizes */
-#recommended .wpallstars-plugin-card {
+#recommended .plugin-card {
     width: 100%;
     margin: 0 0 24px 0;
     padding: 24px;
@@ -1178,22 +1186,22 @@ body.wp-admin .button.pricing-button:hover,
     position: relative;
 }
 
-#recommended .wpallstars-plugin-card:last-child {
+#recommended .plugin-card:last-child {
     margin-bottom: 0;
 }
 
-#recommended .wpallstars-plugin-card:hover {
+#recommended .plugin-card:hover {
     border-color: #2271b1;
     box-shadow: 0 2px 6px rgba(0,0,0,0.15);
 }
 
-#recommended .wpallstars-plugin-card-top {
+#recommended .plugin-card-top {
     padding: 0;
     min-height: auto;
     flex-grow: 1;
 }
 
-#recommended .wpallstars-plugin-card .wpallstars-plugin-icon {
+#recommended .plugin-card .plugin-icon {
     position: relative;
     float: left;
     width: 64px;
@@ -1201,13 +1209,13 @@ body.wp-admin .button.pricing-button:hover,
     margin: 0 20px 15px 0;
 }
 
-#recommended .wpallstars-plugin-card .name,
-#recommended .wpallstars-plugin-card .desc {
+#recommended .plugin-card .name,
+#recommended .plugin-card .desc {
     margin-left: 84px;
     margin-right: 0; /* Full width content */
 }
 
-#recommended .wpallstars-plugin-card .name h3 {
+#recommended .plugin-card .name h3 {
     margin: 0 0 12px;
     font-size: 16px;
     font-weight: 600;
@@ -1216,7 +1224,7 @@ body.wp-admin .button.pricing-button:hover,
     word-wrap: break-word;
 }
 
-#recommended .wpallstars-plugin-card .desc {
+#recommended .plugin-card .desc {
     margin-top: 0;
     color: #50575e;
     font-size: 14px;
@@ -1225,7 +1233,7 @@ body.wp-admin .button.pricing-button:hover,
 }
 
 /* Position action links below content, not absolute */
-#recommended .wpallstars-plugin-card .wpallstars-action-links {
+#recommended .plugin-card .action-links {
     position: relative;
     width: 100%;
     display: flex;
@@ -1237,20 +1245,20 @@ body.wp-admin .button.pricing-button:hover,
     margin-top: 10px;
 }
 
-#recommended .wpallstars-plugin-card .wpallstars-plugin-action-buttons {
+#recommended .plugin-card .plugin-action-buttons {
     margin: 0;
     float: none;
     width: auto;
 }
 
-#recommended .wpallstars-plugin-card .wpallstars-plugin-action-buttons .button {
+#recommended .plugin-card .plugin-action-buttons .button {
     width: auto;
     min-width: 120px;
     text-align: center;
 }
 
 /* Plugin card bottom with right-aligned compatibility text */
-#recommended .wpallstars-plugin-card .wpallstars-plugin-card-bottom {
+#recommended .plugin-card .plugin-card-bottom {
     background: #f6f7f7;
     padding: 15px 20px;
     border-top: 1px solid #ddd;
@@ -1259,7 +1267,7 @@ body.wp-admin .button.pricing-button:hover,
 }
 
 /* Style compatibility message */
-#recommended .wpallstars-plugin-card .column-compatibility {
+#recommended .plugin-card .column-compatibility {
     text-align: center;
     font-size: 13px;
     color: #00a32a;
@@ -1267,7 +1275,7 @@ body.wp-admin .button.pricing-button:hover,
 }
 
 /* Loading spinner without background */
-.wpallstars-loading-overlay {
+.wpa-loading-overlay {
     position: absolute;
     top: 0;
     left: 0;
@@ -1282,32 +1290,32 @@ body.wp-admin .button.pricing-button:hover,
 
 /* Extra small screens only */
 @media screen and (max-width: 480px) {
-    #recommended .wpallstars-plugin-card {
+    #recommended .plugin-card {
         padding-top: 80px; /* Add space for icon */
     }
     
-    #recommended .wpallstars-plugin-card .name,
-    #recommended .wpallstars-plugin-card .desc {
+    #recommended .plugin-card .name,
+    #recommended .plugin-card .desc {
         margin-left: 0;
     }
     
-    #recommended .wpallstars-plugin-card .wpallstars-plugin-icon {
+    #recommended .plugin-card .plugin-icon {
         position: absolute;
         top: 16px;
         left: 16px;
         float: none;
     }
     
-    #recommended .wpallstars-plugin-card .wpallstars-action-links {
+    #recommended .plugin-card .action-links {
         flex-direction: column;
         align-items: stretch;
     }
     
-    #recommended .wpallstars-plugin-card .wpallstars-plugin-action-buttons {
+    #recommended .plugin-card .plugin-action-buttons {
         width: 100%;
     }
     
-    #recommended .wpallstars-plugin-card .wpallstars-plugin-action-buttons .button {
+    #recommended .plugin-card .plugin-action-buttons .button {
         width: 100%;
     }
 }
@@ -1321,24 +1329,24 @@ body.wp-admin .button.pricing-button:hover,
 }
 
 /* Explicitly target readme content */
-#readme .wpallstars-markdown-content {
+#readme .wp-allstars-markdown-content {
     padding: 0 20px 20px 20px !important; /* No top padding, consistent with other containers */
 }
 
 /* Prevent text from overlapping dropdown chevron icon */
-.wpallstars-toggle-header {
+.wp-allstars-toggle-header {
     position: relative;
     padding: 15px;
     padding-right: 40px; /* Make room for chevron */
 }
 
-.wpallstars-toggle-header::after {
+.wp-allstars-toggle-header::after {
     right: 15px;
     z-index: 1; /* Ensure chevron stays above text */
 }
 
 /* Fix gaps in advanced settings accordion */
-.wpallstars-toggle-settings {
+.wp-allstars-toggle-settings {
     padding: 15px 0;
     margin: 0;
     background-color: #f8f8f8;
@@ -1348,27 +1356,27 @@ body.wp-admin .button.pricing-button:hover,
     box-sizing: border-box;
 }
 
-.wpallstars-setting-row {
+.wp-allstars-setting-row {
     margin-bottom: 15px;
     padding: 0 15px;
 }
 
-.wpallstars-setting-row:last-child {
+.wp-allstars-setting-row:last-child {
     margin-bottom: 0;
 }
 
 /* Remove side gaps in text inputs and textareas */
-.wpallstars-toggle-settings input[type="text"],
-.wpallstars-toggle-settings textarea {
+.wp-allstars-toggle-settings input[type="text"],
+.wp-allstars-toggle-settings textarea {
     width: 100%;
     max-width: 100%;
     box-sizing: border-box;
 }
 
 /* Ensure text doesn't overflow */
-.wpallstars-setting-label,
-.wpallstars-toggle-header label,
-.wpallstars-setting-description {
+.wp-setting-label,
+.wp-allstars-toggle-header label,
+.wp-setting-description {
     white-space: normal;
     word-wrap: break-word;
     padding-right: 25px;
@@ -1377,43 +1385,43 @@ body.wp-admin .button.pricing-button:hover,
 
 /* First breakpoint - 75% width */
 @media screen and (max-width: 1400px) {
-    #readme .wpallstars-markdown-content {
+    #readme .wp-allstars-markdown-content {
         padding: 15px;
     }
 }
 
 /* Second breakpoint - 100% width */
 @media screen and (max-width: 1100px) {
-    #readme .wpallstars-markdown-content {
+    #readme .wp-allstars-markdown-content {
         padding: 10px;
     }
 }
 
 /* Readme list styling */
-#readme .wpallstars-markdown-content ul.wpallstars-list,
-#readme .wpallstars-markdown-content ul {
+#readme .wp-allstars-markdown-content ul.wp-allstars-list,
+#readme .wp-allstars-markdown-content ul {
     padding-left: 25px;
     margin: 10px 0;
     list-style-type: disc;
 }
 
-#readme .wpallstars-markdown-content ol.wpallstars-list,
-#readme .wpallstars-markdown-content ol {
+#readme .wp-allstars-markdown-content ol.wp-allstars-list,
+#readme .wp-allstars-markdown-content ol {
     padding-left: 25px; /* Same as bullets */
     margin: 10px 0;
     list-style-type: decimal;
 }
 
 /* Special styling for numbered lists to align with bullet lists */
-#readme .wpallstars-markdown-content ol.numbered-list {
+#readme .wp-allstars-markdown-content ol.numbered-list {
     padding-left: 21px; /* Moved 2px to the right as requested */
 }
 
-#readme .wpallstars-markdown-content ol.numbered-list li {
+#readme .wp-allstars-markdown-content ol.numbered-list li {
     margin-left: 4px; /* Fine-tune the alignment */
 }
 
-#readme .wpallstars-markdown-content li {
+#readme .wp-allstars-markdown-content li {
     margin-bottom: 5px;
     line-height: 1.4;
     display: list-item !important;
@@ -1421,39 +1429,39 @@ body.wp-admin .button.pricing-button:hover,
 }
 
 /* Ensure consistent spacing for all lists across sections */
-#readme .wpallstars-markdown-content h2 + ul,
-#readme .wpallstars-markdown-content h3 + ul,
-#readme .wpallstars-markdown-content p + ul,
-#readme .wpallstars-markdown-content h2 + ol,
-#readme .wpallstars-markdown-content h3 + ol,
-#readme .wpallstars-markdown-content p + ol,
-#readme .wpallstars-markdown-content h2 + .wpallstars-list,
-#readme .wpallstars-markdown-content h3 + .wpallstars-list,
-#readme .wpallstars-markdown-content p + .wpallstars-list {
+#readme .wp-allstars-markdown-content h2 + ul,
+#readme .wp-allstars-markdown-content h3 + ul,
+#readme .wp-allstars-markdown-content p + ul,
+#readme .wp-allstars-markdown-content h2 + ol,
+#readme .wp-allstars-markdown-content h3 + ol,
+#readme .wp-allstars-markdown-content p + ol,
+#readme .wp-allstars-markdown-content h2 + .wp-allstars-list,
+#readme .wp-allstars-markdown-content h3 + .wp-allstars-list,
+#readme .wp-allstars-markdown-content p + .wp-allstars-list {
     margin-top: 10px;
     margin-bottom: 15px;
 }
 
 /* Additional fix for specific sections that need help */
-#readme .wpallstars-markdown-content h2 + ul,
-#readme .wpallstars-markdown-content h3 + ul {
+#readme .wp-allstars-markdown-content h2 + ul,
+#readme .wp-allstars-markdown-content h3 + ul {
     padding-left: 25px !important;
     margin-left: 0 !important;
     list-style-type: disc !important;
 }
 
 /* Global setting for all content panels width - apply to ALL tabs */
-.wpallstars-settings-content,
-.wpallstars-tab-content > div,
-.wpallstars-settings-section,
-.wpallstars-pro-plugins,
-.wpallstars-pro-plugin,
+.wp-allstars-settings-content,
+.wp-allstars-tab-content > div,
+.wp-allstars-settings-section,
+.wpa-pro-plugins,
+.wpa-pro-plugin,
 #wpa-plugin-list,
 #wpa-theme-list,
-.wpallstars-markdown-content,
-.wpallstars-plugin-container,
-#readme .wpallstars-pro-plugin,
-.wpallstars-toggle {
+.wp-allstars-markdown-content,
+.wpa-plugin-container,
+#readme .wpa-pro-plugin,
+.wp-allstars-toggle {
     max-width: 700px !important;
     margin-left: auto !important;
     margin-right: auto !important;
@@ -1462,13 +1470,13 @@ body.wp-admin .button.pricing-button:hover,
 }
 
 /* Fix specific tab content - ensure all sections use the same width */
-#general .wpallstars-setting-row,
-#general .wpallstars-toggle,
-#advanced .wpallstars-setting-row,
-#advanced .wpallstars-toggle,
-#workflow .wpallstars-setting-row,
-#workflow .wpallstars-toggle,
-#readme .wpallstars-markdown-content {
+#general .wp-setting-row,
+#general .wp-allstars-toggle,
+#advanced .wp-setting-row,
+#advanced .wp-allstars-toggle,
+#workflow .wp-setting-row,
+#workflow .wp-allstars-toggle,
+#readme .wp-allstars-markdown-content {
     max-width: 700px !important;
     width: 100% !important;
     box-sizing: border-box !important;
@@ -1477,8 +1485,8 @@ body.wp-admin .button.pricing-button:hover,
 }
 
 /* Specific fix for workflow tab container */
-#workflow.wpallstars-settings-content,
-#workflow .wpallstars-toggle {
+#workflow.wp-allstars-settings-content,
+#workflow .wp-allstars-toggle {
     max-width: 700px !important;
     width: 100% !important;
     margin-left: auto !important;
@@ -1492,30 +1500,30 @@ body.wp-admin .button.pricing-button:hover,
 }
 
 /* Fix spacing in workflow tab to match other tabs */
-#workflow .wpallstars-toggle {
+#workflow .wp-allstars-toggle {
     margin-bottom: 15px !important;
 }
 
 /* Consistent padding for toggle headers across all tabs */
-#workflow .wpallstars-toggle-header,
-#general .wpallstars-setting-header,
-#advanced .wpallstars-toggle-header {
+#workflow .wp-allstars-toggle-header,
+#general .wp-setting-header,
+#advanced .wp-allstars-toggle-header {
     padding: 15px !important;
 }
 
 /* Ensure consistent hover styles across all tab tile layouts */
-.wpallstars-pro-plugin:hover,
-#pro .wpallstars-pro-plugin:hover,
-#hosting .wpallstars-pro-plugin:hover,
-#tools .wpallstars-pro-plugin:hover,
-#recommended .wpallstars-plugin-card:hover {
+.wpa-pro-plugin:hover,
+#pro .wpa-pro-plugin:hover,
+#hosting .wpa-pro-plugin:hover,
+#tools .wpa-pro-plugin:hover,
+#recommended .plugin-card:hover {
     border-color: #2271b1 !important;
     box-shadow: 0 2px 6px rgba(0,0,0,0.15) !important;
     transition: all 0.2s ease !important;
 }
 
 /* Direct override for free plugins tab width - setting the tab content container to 900px */
-#recommended.wpallstars-settings-content,
+#recommended.wp-allstars-settings-content,
 #recommended.tab-content {
     max-width: 900px !important;
     width: 100% !important;
@@ -1575,8 +1583,8 @@ body.wp-admin .button.pricing-button:hover,
 }
 
 /* Target the plugin container directly with !important for 900px width */
-#recommended .wpallstars-plugin-container,
-#wpa-plugin-list.wpallstars-plugin-container {
+#recommended .wpa-plugin-container,
+#wpa-plugin-list.wpa-plugin-container {
     max-width: 900px !important;
     width: 900px !important;
     margin-left: auto !important;
@@ -1589,7 +1597,7 @@ body.wp-admin .button.pricing-button:hover,
 }
 
 /* Set the individual plugin cards to max 660px width */
-#recommended .wpallstars-plugin-card {
+#recommended .plugin-card {
     width: 100% !important;
     max-width: 660px !important;
     margin: 0 auto 24px auto !important;

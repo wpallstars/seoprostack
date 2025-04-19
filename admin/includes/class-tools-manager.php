@@ -38,7 +38,7 @@ class WP_Allstars_Tools_Manager {
         
         // Add inline CSS for tools to match the single column layout
         $custom_css = '
-        #tools .wpallstars-pro-plugins {
+        #tools .wpa-pro-plugins {
             padding: 15px 20px;
             display: flex;
             flex-direction: column;
@@ -46,7 +46,7 @@ class WP_Allstars_Tools_Manager {
             max-width: 700px;
             margin: 0 auto;
         }
-        #tools .wpallstars-pro-plugin {
+        #tools .wpa-pro-plugin {
             background: #fff;
             border: 1px solid #ddd;
             padding: 24px;
@@ -59,14 +59,14 @@ class WP_Allstars_Tools_Manager {
             margin-bottom: 24px;
             max-width: 100%;
         }
-        #tools .wpallstars-pro-plugin:last-child {
+        #tools .wpa-pro-plugin:last-child {
             margin-bottom: 0;
         }
-        #tools .wpallstars-pro-plugin:hover {
+        #tools .wpa-pro-plugin:hover {
             border-color: #2271b1;
             box-shadow: 0 2px 6px rgba(0,0,0,0.15);
         }
-        #tools .wpallstars-pro-plugin .button-group {
+        #tools .wpa-pro-plugin .button-group {
             justify-content: flex-start;
         }
         ';
@@ -96,7 +96,7 @@ class WP_Allstars_Tools_Manager {
         
         ?>
         <div class="wp-allstars-settings-content tab-content" id="tools">
-            <div class="wpallstars-pro-plugins">
+            <div class="wpa-pro-plugins">
                 <?php
                 foreach ($tools as $tool) {
                     self::display_tool_card(self::sanitize_tool_data($tool));
@@ -118,7 +118,7 @@ class WP_Allstars_Tools_Manager {
             return;
         }
         ?>
-        <div class="wpallstars-pro-plugin">
+        <div class="wpa-pro-plugin">
             <h3><?php echo esc_html($tool['name']); ?></h3>
             
             <?php if (!empty($tool['description'])): ?>

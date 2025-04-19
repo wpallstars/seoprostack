@@ -98,8 +98,8 @@ class WP_Allstars_Theme_Manager {
     private static function get_theme_scripts() {
         return '
             jQuery(document).ready(function($) {
-                if ($("#wpallstars-theme-list").length) {
-                    var $container = $("#wpallstars-theme-list");
+                if ($("#wpa-theme-list").length) {
+                    var $container = $("#wpa-theme-list");
                     var $loadingOverlay = $container.find(".wp-allstars-loading-overlay");
                     
                     // AJAX request to get themes
@@ -139,7 +139,7 @@ class WP_Allstars_Theme_Manager {
     public static function display_tab_content() {
         ?>
         <div class="wp-allstars-settings-content tab-content" id="theme">
-            <div id="wpallstars-theme-list" class="wpallstars-theme-container">
+            <div id="wpa-theme-list" class="wpa-theme-container">
                 <!-- Theme content will be loaded via AJAX -->
                 <div class="wp-allstars-loading-overlay">
                     <span class="spinner is-active"></span>
