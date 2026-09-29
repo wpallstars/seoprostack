@@ -9,22 +9,6 @@ if (!defined('ABSPATH')) {
 
  function allstars_get_pro_plugins() {
     return array(
-        'magic-login-pro' => array(
-            'name' => 'Magic Login Pro',
-            'description' => 'Enable passwordless authentication with magic login links and enhance WordPress site security.',
-            'button_group' => array(
-                array(
-                    'text' => 'Home Page',
-                    'url' => 'https://handyplugins.co/magic-login-pro/',
-                    'primary' => true
-                ),
-                array(
-                    'text' => 'Pricing',
-                    'url' => 'https://handyplugins.co/magic-login-pro/#pricing'
-                )
-            ),
-            'free_slug' => 'magic-login'
-        ),
         'admin-columns' => array(
             'name' => 'Admin Columns Pro',
             'description' => 'Advanced admin columns management with sorting, filtering, and editing capabilities.',
@@ -56,22 +40,6 @@ if (!defined('ABSPATH')) {
                 )
             ),
             'free_slug' => 'admin-menu-editor'
-        ),
-        'advanced-custom-fields' => array(
-            'name' => 'Advanced Custom Fields PRO',
-            'description' => 'Create custom fields and content types with advanced features and options.',
-            'button_group' => array(
-                array(
-                    'text' => 'Home Page',
-                    'url' => 'https://www.advancedcustomfields.com/pro/',
-                    'primary' => true
-                ),
-                array(
-                    'text' => 'Pricing',
-                    'url' => 'https://www.advancedcustomfields.com/pro/#pricing'
-                )
-            ),
-            'free_slug' => 'advanced-custom-fields'
         ),
         'advanced-database-cleaner' => array(
             'name' => 'Advanced Database Cleaner PRO',
@@ -500,7 +468,7 @@ if (!defined('ABSPATH')) {
                     'url' => 'https://wpsocialninja.com/price/'
                 )
             ),
-            'free_slug' => 'wp-social-ninja'
+            'free_slug' => 'wp-social-reviews'
         ),
         'yellow-pencil' => array(
             'name' => 'YellowPencil Pro',

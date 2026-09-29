@@ -33,8 +33,8 @@ class Allstars_Auto_Upload extends Allstars_Feature {
                 'type'        => 'bool',
                 'default'     => false,
                 'tab'         => 'workflow',
-                'label'       => __('Auto upload images', 'allstars'),
-                'description' => __('When a post is saved, copy external images into the Media Library and point the content at the local copy.', 'allstars'),
+                'label'       => __('Copy linked images to Media Library', 'allstars'),
+                'description' => __('When a post is saved, copy images from any external image links into the Media Library, resize, and change the link to serve the local copy.', 'allstars'),
             ),
             'auto_upload_max_width' => array(
                 'type'        => 'int',

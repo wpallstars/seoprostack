@@ -22,7 +22,7 @@ Everything is off by default. Settings save instantly from **Settings → Allsta
 * **Magic login links**: adds “Email me a login link” to the login screen. Links work once, expire after 5–60 minutes (10 by default) and only log in after the person presses a button, so email scanners that open links cannot use them up. Passwords keep working, administrators can be excluded, and core’s `wp_login` and `login_redirect` hooks run so activity logs, redirect rules and two-factor plugins that use `wp_login` (such as Two Factor) still apply. Requests are rate limited and never reveal whether an account exists.
 * **Publishing queue**: publishing a post from the editor without choosing a date schedules it for the next free time slot (for example weekdays at 09:00 and 15:00). Dates you choose yourself, updates to published posts, imports and WP-CLI are left alone. Posts become normal “Scheduled” posts, so WordPress publishes them.
 * **iFrame block**: embed any page with control over width and height or aspect ratio, lazy loading, sandbox, permissions (camera, autoplay, full screen…), referrer policy and border, and optionally pass the page’s URL parameters (such as UTM tags) to the embedded page. Limit it to a list of domains and to the roles you choose.
-* **Auto upload images**: when a post is saved, images hosted on other sites are copied into the Media Library, attached to the post, and the content is updated to the local copy. Supports excluded domains, maximum dimensions, and file name and alt text patterns. Existing alt text is kept and repeat images are reused.
+* **Copy linked images to Media Library**: when a post is saved, images linked from other sites are copied into the Media Library, resized, attached to the post, and the content is changed to serve the local copy. Supports excluded domains, maximum dimensions, and file name and alt text patterns. Existing alt text is kept and repeat images are reused.
 
 = Discover =
 
@@ -40,7 +40,7 @@ This plugin contacts the following services, only from the admin screen and only
 
 * **WordPress.org Plugins and Themes API** (api.wordpress.org) to list recommended plugins and the Kadence theme, the same as Plugins → Add New. See the [WordPress.org privacy policy](https://wordpress.org/about/privacy/).
 
-When **Auto upload images** is on, saving a post downloads images from the addresses already in that post’s content.
+When **Copy linked images to Media Library** is on, saving a post downloads images from the addresses already in that post’s content.
 
 When **Magic login links** is on, login links are sent with your site’s normal email (`wp_mail()`), the same way as password reset emails.
 
@@ -90,7 +90,7 @@ They stay scheduled and publish at their times. Turning it off only stops new po
 * New admin screen with grouped tabs, instant-save setting cards, accessible switches and expandable options.
 * Settings stored in one option with automatic migration from earlier versions.
 * Modern admin colours switches live and updates your profile preference.
-* Auto upload images rewritten: safer downloads, de-duplication, domain exclusions, resizing, name and alt patterns.
+* Auto upload images rewritten and renamed “Copy linked images to Media Library”: safer downloads, de-duplication, domain exclusions, resizing, name and alt patterns.
 * Free plugin cards use core install and activate buttons; theme installs in place.
 * Filterable Pro Plugins, Hosting and Tools directories.
 * Uninstall cleanup, including multisite.

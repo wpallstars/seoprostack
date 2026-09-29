@@ -24,13 +24,12 @@ function allstars_get_free_plugins() {
             'hide-admin-notices',
             'mainwp-child',
             'mainwp-child-reports',
-            'magic-login',
             'manage-notification-emails',
             'plugin-groups',
             'plugin-toggle'
         ),
         'affiliates' => array(
-            'pretty-links',
+            'pretty-link',
             'simple-urls',
             'slicewp'
         ),
@@ -38,7 +37,6 @@ function allstars_get_free_plugins() {
             'ai-engine',
         ),
         'cms' => array(
-            'auto-post-scheduler',
             'block-options',
             'bookmark-card',
             'browser-shots',
@@ -47,7 +45,6 @@ function allstars_get_free_plugins() {
             'bulk-edit-user-profiles-in-spreadsheet',
             'carbon-copy',
             'code-block-pro',
-            'iframe-block',
             'ics-calendar',
             'mammoth-docx-converter',
             'nav-menu-roles',
@@ -104,9 +101,6 @@ function allstars_get_free_plugins() {
             'media-file-renamer',
             'safe-svg'
         ),
-        'members' => array(
-            'content-control'
-        ),
         'seo' => array(
             'burst-statistics',
             'pretty-link',
@@ -122,9 +116,7 @@ function allstars_get_free_plugins() {
         ),
         'social' => array(
             'bit-social',
-            'easy-video-reviews',
             'social-engine',
-            'wp-social-ninja',
             'wp-social-reviews'
         ),
         'speed' => array(
@@ -146,8 +138,6 @@ function allstars_get_free_plugins() {
             'translatepress-multilingual'
         ),
         'advanced' => array(
-            'acf-better-search',
-            'advanced-custom-fields',
             'automatorwp',
             'bit-pi',
             'bit-integrations',
@@ -155,7 +145,6 @@ function allstars_get_free_plugins() {
             'easy-code-manager',
             'favorites',
             'remove-cpt-base',
-            'remove-old-slugspermalinks',
             'secure-custom-fields',
             'yellow-pencil-visual-theme-customizer'
         ),

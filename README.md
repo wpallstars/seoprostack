@@ -50,9 +50,9 @@ Adds an **iFrame** block to the editor (Embed category).
 - Who can add iFrames: contributors, authors, editors, or only users who can add any HTML. Checked in the editor and again when the page is shown, using the post author’s role.
 - Output is built on the server from validated settings, so stored content cannot inject HTML. Turning the feature off hides existing iFrame blocks.
 
-### Auto upload images (Workflow)
+### Copy linked images to Media Library (Workflow)
 
-When a post is saved, images hosted on other sites are copied into the Media Library, attached to the post, and the content is updated to use the local copy.
+When a post is saved, images linked from other sites are copied into the Media Library, resized, attached to the post, and the content is changed to serve the local copy.
 
 - Works with the block editor, the classic editor and programmatic saves by users who can upload files.
 - Images already imported from the same address are reused instead of uploaded again.
@@ -80,7 +80,7 @@ Developers can add settings, tabs and directory entries with filters:
 - `allstars_settings_schema`: add or change settings. Each entry sets `type` (bool, int, text, domains, select, multi or times), `default`, `label`, `description` and either `tab` or `parent`; select and multi also take `options` (an array or a callable). Settings render and save automatically.
 - `allstars_admin_tabs`: add or reorder admin tabs. Each tab sets `label`, `group` (settings, discover or about), a `render` callback and an optional `capability`; tabs the current user lacks the capability for are hidden.
 - `allstars_pro_items`, `allstars_hosting_items`, `allstars_tools_items`: change directory entries.
-- `allstars_auto_upload_process_post`: skip auto upload for specific posts.
+- `allstars_auto_upload_process_post`: skip image copying for specific posts.
 - `allstars_auto_upload_limit`: change the per-save import limit.
 - `allstars_magic_login_allowed`: allow or refuse login links for a user.
 - `allstars_magic_login_email`: change the login link email.
@@ -115,7 +115,7 @@ Deleting the plugin removes its settings and cached data. Imported media stays i
 - Modern admin colours switches live, sets your profile to Modern (on) or the WordPress default (off), and leaves other users’ choices alone.
 - Setting cards: save status sits beside the title; clicking a card header opens its options.
 - Tools: Tabby replaces iTerm2.
-- Auto upload images rewritten: safer downloads, de-duplication, domain exclusions, resizing, name and alt patterns.
+- Auto upload images rewritten and renamed “Copy linked images to Media Library”: safer downloads, de-duplication, domain exclusions, resizing, name and alt patterns.
 - Free plugin cards use core install and activate buttons; theme installs in place.
 - Filterable Pro Plugins, Hosting and Tools directories.
 - Removed unused debug files and duplicate scripts and styles; added uninstall cleanup.
