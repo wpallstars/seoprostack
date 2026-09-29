@@ -1,9 +1,11 @@
-pipeline:
-  test:
+# Syntax checks for every PHP file (on the minimum supported PHP) and admin JS.
+steps:
+  php-lint:
     image: php:7.4-cli
     commands:
-      - apt-get update && apt-get install -y git
-      - php -l wpa-superstar-plugin.php  # Syntax check
-      - php -l admin/settings.php
-      - php -l includes/speed-functions.php
-      - echo "Basic linting passed"
+      - find . -name '*.php' -not -path './vendor/*' -not -path './reference-plugins/*' -print0 | xargs -0 -n1 php -l
+
+  js-lint:
+    image: node:20-alpine
+    commands:
+      - find admin/js -name '*.js' -print0 | xargs -0 -n1 node --check

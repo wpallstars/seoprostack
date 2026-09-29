@@ -13,6 +13,7 @@ This document tracks the stability status of different versions of the WP Allsta
 
 | Version | Status | Notes |
 |---------|--------|-------|
+| v0.3.0 | **[EXPERIMENTAL]** | Rebuilt admin screen, settings schema with migration, auto-upload rewrite. Browser and end-to-end checks pass on a LocalWP single site; not yet run on multisite or production. |
 | v0.2.3.3 | **[FUNCTIONAL]** | Stable version with Basic Admin UI Enhancements - adds improved components and responsive design. |
 | v0.2.3.2 | **[STABLE]** | Stable version with Admin Colors feature properly implemented. |
 | v0.2.3.1 | **[STABLE]** | Stable version with Sync Guard feature implemented. |
@@ -31,6 +32,7 @@ Current development is based on the v0.2.3-stable-base version with incremental 
 2. Sync Guard (v0.2.3.1)
 3. Admin Colors Feature (v0.2.3.2)
 4. Basic Admin UI Enhancements (v0.2.3.3)
+5. Settings schema, rebuilt admin screen and auto-upload rewrite (v0.3.0)
 
 ## Stability Guidelines
 

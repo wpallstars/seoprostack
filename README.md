@@ -1,126 +1,80 @@
 # WP Allstars
 
-A WordPress plugin that enhances your WordPress experience with curated plugins, themes, and optimization tools.
-Current version: v0.2.3.3 (stable)
+Curated plugins, themes, hosting and workflow tools for WordPress, plus a few small quality-of-life features.
 
-## Description
+Version: {WP_ALLSTARS_VERSION}
 
-WP Allstars is a powerful WordPress plugin designed to help site owners and developers optimize their WordPress installations. It provides a curated collection of recommended plugins, themes, and optimization tools all in one place.
+## Where to find it
+
+Go to **Settings → WP Allstars**. The screen has three groups of tabs:
+
+- **Settings**: General and Workflow. Changes save instantly; there is no Save button.
+- **Discover**: Theme, Free Plugins, Pro Plugins, Hosting and Tools.
+- **About**: this Read Me.
 
 ## Features
 
-- **Modern Admin UI**: Enhanced admin interface with responsive design and interactive components.
-- **Admin Color Schemes**: Switch between default and modern admin color schemes.
-- **Curated Plugin Recommendations**: Browse and install recommended free plugins organized by category.
-- **Pro Plugin Showcase**: Discover premium plugins with direct links to purchase.
-- **Theme Integration**: Easily install and activate the Kadence theme.
-- **Workflow Optimization**: Tools to streamline your WordPress workflow.
-- **Advanced Settings**: Fine-tune your WordPress installation with advanced configuration options.
+### Modern admin colours (General)
 
-## Installation
+Uses the WordPress “Modern” admin colour scheme for every user while enabled. Each user’s own choice is never changed, so turning the setting off restores it.
 
-1. Download the plugin zip file
-2. Go to WordPress Admin > Plugins > Add New
-3. Click "Upload Plugin" and select the downloaded zip file
-4. Activate the plugin after installation
+### Auto upload images (Workflow)
 
-## Usage
+When a post is saved, images hosted on other sites are copied into the Media Library, attached to the post, and the content is updated to use the local copy.
 
-After activation, you'll find the WP Allstars menu in your WordPress admin sidebar. The plugin includes several tabs:
+- Works with the block editor, the classic editor and programmatic saves by users who can upload files.
+- Images already imported from the same address are reused instead of uploaded again.
+- Optional maximum width and height: larger images are scaled down before upload.
+- Excluded domains (and their subdomains) are left alone. Your own site is always excluded.
+- File name and alt text patterns support tokens such as `%filename%`, `%post_title%` and `%date%`. Existing alt text is kept.
+- Up to 10 images are imported per save; the rest are imported on the next save.
 
-### General
+### Discover
 
-Basic settings for the plugin, including:
-- Admin UI Enhancements
-- Admin Color Schemes
-- Auto Upload Images
-- Image Optimization
-- Cache Management
+- **Theme**: install, activate or customise the Kadence theme.
+- **Free Plugins**: recommended plugins from WordPress.org by category, with the same Install and Activate buttons as Plugins → Add New. Shown only to users who can install plugins (on multisite, super admins).
+- **Pro Plugins, Hosting, Tools**: filterable directories with links to each product. Pro plugins show a badge when their free version is already on the site.
 
-### Advanced
+## Requirements
 
-Advanced configuration options for WordPress optimization:
+- WordPress 6.2 or later
+- PHP 7.4 or later
 
-- Performance Settings
-- Security Enhancements
-- Development Tools
+## Extending
 
-### Workflow
+Developers can add settings, tabs and directory entries with filters:
 
-Tools to improve your WordPress workflow:
+- `wp_allstars_settings_schema`: add or change settings. Each entry sets `type` (bool, int, text or domains), `default`, `label`, `description` and either `tab` or `parent`. Settings render and save automatically.
+- `wp_allstars_admin_tabs`: add or reorder admin tabs. Each tab sets `label`, `group` (settings, discover or about), a `render` callback and an optional `capability`; tabs the current user lacks the capability for are hidden.
+- `wp_allstars_pro_items`, `wp_allstars_hosting_items`, `wp_allstars_tools_items`: change directory entries.
+- `wp_allstars_auto_upload_process_post`: skip auto upload for specific posts.
+- `wp_allstars_auto_upload_limit`: change the per-save import limit.
 
-- Content Management
-- Media Handling
-- Site Maintenance
+Actions:
 
-### Free Plugins
+- `wp_allstars_setting_saved`: a setting was saved from the admin screen.
+- `wp_allstars_image_imported`: an external image was imported.
+- `wp_allstars_image_upload_error`: an image could not be imported.
 
-Browse and install recommended free plugins organized by categories:
+Read a setting with `WP_Allstars_Settings::get( 'key' )`.
 
-- Minimal
-- Admin
-- AI
-- CMS
-- Compliance
-- CRM
-- Ecommerce
-- LMS
-- Media
-- SEO
-- Setup
-- Social
-- Speed
-- Translation
-- Advanced
-- Debug
+## Uninstall
 
-### Pro Plugins
+Deleting the plugin removes its settings and cached data. Imported media stays in the Media Library because your posts use it.
 
-Discover premium plugins with direct links to purchase.
+## Changelog
 
-### Theme
+### 0.3.0
 
-Easily install and activate the Kadence theme.
-
-## UI Components
-
-The plugin includes several enhanced UI components:
-
-- **Cards**: Flexible containers for displaying content with optional headers and footers
-- **Accordions**: Collapsible content panels for presenting information in a limited space
-- **Notifications**: Stylish notifications for providing user feedback
-- **Enhanced Form Elements**: Improved styling for inputs, buttons, and toggles
-
-## Development
-
-### Requirements
-
-- WordPress 5.8 or higher
-- PHP 7.4 or higher
-
-### Contributing
-
-1. Fork the repository
-2. Create a feature branch: `git checkout -b feature/your-feature-name`
-3. Commit your changes: `git commit -am 'Add some feature'`
-4. Push to the branch: `git push origin feature/your-feature-name`
-5. Submit a pull request
+- New admin screen: grouped tabs, instant-save setting cards, accessible switches and expandable options.
+- Settings stored in one option with automatic migration from earlier versions.
+- Modern admin colours no longer changes each user’s saved colour scheme.
+- Auto upload images rewritten: safer downloads, de-duplication, domain exclusions, resizing, name and alt patterns.
+- Free plugin cards use core install and activate buttons; theme installs in place.
+- Filterable Pro Plugins, Hosting and Tools directories.
+- Removed unused debug files and duplicate scripts and styles; added uninstall cleanup.
+- Removed Closte from hosting recommendations.
 
 ## License
 
-This plugin is licensed under the GPL v2 or later.
-
-## Credits
-
-Developed by [Your Name/Company]
-
-## Support
-
-For support, please [create an issue](https://github.com/yourusername/wp-allstars/issues) on the GitHub repository.
-
-## Debugging
-
-- Debug mode can be enabled in wp-config.php
-- Errors are logged to `wp-content/wp-allstars.log`
-
-#
+GPL-2.0-or-later.

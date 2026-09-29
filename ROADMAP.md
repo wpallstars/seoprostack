@@ -6,17 +6,17 @@ This document outlines features from later versions that we plan to integrate in
 
 | Feature | Source Version | Priority | Complexity | Risk | Status |
 |---------|----------------|----------|------------|------|--------|
-| Multisite Category | v0.2.6 | High | Low | Low | ✅ Implemented in v0.2.3-stable |
+| Multisite Category | v0.2.6 | High | Low | Low | ⏸ Not present in code; network-plugin-auditor has had no release since 2016, so the category needs new picks |
 | Sync Guard | v0.2.6-fix | High | Low | Low | ✅ Implemented in v0.2.3.1-stable |
 | More Robust File Loading | v0.2.6-fix | High | Low | Low | ✅ Implemented in v0.2.3-stable |
 | Admin Colors Feature | v0.2.4 | High | Low | Low | ✅ Implemented in v0.2.3.2-stable |
 | Basic Admin UI Enhancements | v0.2.5 | High | Medium | Medium | ✅ Implemented in v0.2.3.3-stable |
-| Advanced Admin UI Components | v0.2.5 | Medium | Medium | Medium | 🔄 To be implemented |
+| Advanced Admin UI Components | v0.2.5 | Medium | Medium | Medium | ✅ v0.3.0 (setting cards, switches, expandable options, directories) |
 | Access Manager Improvements | v0.2.5 | Medium | Medium | Medium | 🔄 To be implemented |
 | Role-Based Access Controls | v0.2.5.1 | High | Medium | Medium | 🔄 To be implemented |
-| Improved Plugin Structure | v0.2.5 | Medium | Medium | High | 🔄 To be implemented |
+| Improved Plugin Structure | v0.2.5 | Medium | Medium | High | ✅ v0.3.0 (settings schema, tab registry, filters) |
 | Performance Optimizations | v0.2.6 | Medium | Medium | Medium | 🔄 To be implemented |
-| Enhanced Plugin Filtering | v0.2.6 | Medium | Medium | Low | 🔄 To be implemented |
+| Enhanced Plugin Filtering | v0.2.6 | Medium | Medium | Low | 🟡 v0.3.0: text filter on Pro, Hosting and Tools; Free Plugins still by category only |
 | Plugin Settings Export/Import | v0.2.6 | Low | High | Medium | 🔄 To be implemented |
 | Plugin Dashboard | v0.2.6-fix | Medium | Medium | Medium | 🔄 To be implemented |
 | New Category Pages | v0.2.4+ | Medium | Low | Low | 🔄 To be implemented |

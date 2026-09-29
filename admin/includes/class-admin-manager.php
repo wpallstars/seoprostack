@@ -57,14 +57,17 @@ class WP_Allstars_Admin_Manager {
                 'render' => array('WP_Allstars_Settings_Manager', 'render_advanced_tab'),
             ),
             'theme' => array(
-                'label'  => __('Theme', 'wp-allstars'),
-                'group'  => 'discover',
-                'render' => array('WP_Allstars_Theme_Manager', 'display_tab_content'),
+                'label'      => __('Theme', 'wp-allstars'),
+                'group'      => 'discover',
+                'render'     => array('WP_Allstars_Theme_Manager', 'display_tab_content'),
+                'capability' => 'switch_themes',
             ),
             'recommended' => array(
-                'label'  => __('Free Plugins', 'wp-allstars'),
-                'group'  => 'discover',
-                'render' => array('WP_Allstars_Free_Plugins_Manager', 'display_tab_content'),
+                'label'      => __('Free Plugins', 'wp-allstars'),
+                'group'      => 'discover',
+                'render'     => array('WP_Allstars_Free_Plugins_Manager', 'display_tab_content'),
+                // On multisite only super admins can install plugins.
+                'capability' => 'install_plugins',
             ),
             'pro' => array(
                 'label'  => __('Pro Plugins', 'wp-allstars'),
@@ -98,9 +101,15 @@ class WP_Allstars_Admin_Manager {
         /**
          * Filter the admin tabs.
          *
-         * @param array $tabs Tabs keyed by slug: label, group (settings|discover|about), render callback.
+         * @param array $tabs Tabs keyed by slug: label, group (settings|discover|about),
+         *                    render callback, optional capability.
          */
-        return (array) apply_filters('wp_allstars_admin_tabs', $tabs);
+        $tabs = (array) apply_filters('wp_allstars_admin_tabs', $tabs);
+
+        // Hide tabs the current user cannot use.
+        return array_filter($tabs, function ($tab) {
+            return empty($tab['capability']) || current_user_can($tab['capability']);
+        });
     }
 
     /**
@@ -249,6 +258,9 @@ class WP_Allstars_Admin_Manager {
                     </div>
                 <?php endforeach; ?>
             </nav>
+
+            <?php // Core moves admin notices after this marker instead of into the header. ?>
+            <hr class="wp-header-end" />
 
             <?php settings_errors(); ?>
 
