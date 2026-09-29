@@ -1,6 +1,6 @@
 <?php
 /**
- * Hosting providers data for Allstars plugin
+ * Hosting providers data for SEO Pro Stack plugin
  */
 
 if (!defined('ABSPATH')) {
@@ -8,7 +8,7 @@ if (!defined('ABSPATH')) {
 }
 
 // Define hosting providers
-function allstars_get_hosting_providers() {
+function seoprostack_get_hosting_providers() {
     return array(
         'cloudron' => array(
             'name' => 'Cloudron',

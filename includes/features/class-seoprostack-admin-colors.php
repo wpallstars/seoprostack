@@ -8,7 +8,7 @@
  * default. Other users' saved preferences are never modified and return when
  * the setting is turned off.
  *
- * @package Allstars
+ * @package SEOProStack
  * @since 0.2.3.1
  */
 
@@ -16,7 +16,7 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-class Allstars_Admin_Colors extends Allstars_Feature {
+class SEOProStack_Admin_Colors extends SEOProStack_Feature {
 
     const KEY = 'modern_admin_colors';
 
@@ -37,8 +37,8 @@ class Allstars_Admin_Colors extends Allstars_Feature {
                 'type'        => 'bool',
                 'default'     => false,
                 'tab'         => 'general',
-                'label'       => __('Modern admin colours', 'allstars'),
-                'description' => __('Use the WordPress “Modern” admin colour scheme for everyone. Your profile is set to Modern when on and back to the WordPress default when off; other users keep their own choice.', 'allstars'),
+                'label'       => __('Modern admin colours', 'seoprostack'),
+                'description' => __('Use the WordPress “Modern” admin colour scheme for everyone. Your profile is set to Modern when on and back to the WordPress default when off; other users keep their own choice.', 'seoprostack'),
             ),
         );
     }
@@ -48,7 +48,7 @@ class Allstars_Admin_Colors extends Allstars_Feature {
      */
     public static function boot() {
         // Always listen for the switch so turning it off can reset the profile.
-        add_action('allstars_setting_saved', array(__CLASS__, 'sync_current_user'), 10, 2);
+        add_action('seoprostack_setting_saved', array(__CLASS__, 'sync_current_user'), 10, 2);
 
         if (self::enabled()) {
             add_filter('get_user_option_admin_color', array(__CLASS__, 'filter_admin_color'));

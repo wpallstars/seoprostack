@@ -1,13 +1,13 @@
 <?php
 /**
- * Remove Allstars options, caches and pending login links on uninstall
+ * Remove SEO Pro Stack options, caches and pending login links on uninstall
  * (every site on multisite).
  *
- * Imported media (and its `_allstars_source_url` / legacy
+ * Imported media (and its `_seoprostack_source_url` / legacy
  * `_wp_allstars_source_url` meta) is left in place because posts reference it.
  * Scheduled posts stay scheduled; WordPress publishes them as normal.
  *
- * @package Allstars
+ * @package SEOProStack
  */
 
 if (!defined('WP_UNINSTALL_PLUGIN')) {
@@ -15,14 +15,14 @@ if (!defined('WP_UNINSTALL_PLUGIN')) {
 }
 
 /**
- * Delete Allstars options and transients for the current site.
+ * Delete SEO Pro Stack options and transients for the current site.
  */
-function allstars_uninstall_site() {
+function seoprostack_uninstall_site() {
     global $wpdb;
 
     $options = array(
-        'allstars_options',
-        'allstars_db_version',
+        'seoprostack_options',
+        'seoprostack_db_version',
         // Development builds released as "WP Allstars".
         'wp_allstars_options',
         'wp_allstars_db_version',
@@ -47,7 +47,7 @@ function allstars_uninstall_site() {
         delete_option($option);
     }
 
-    $patterns = array('_transient_allstars_', '_transient_timeout_allstars_', '_transient_wp_allstars_', '_transient_timeout_wp_allstars_');
+    $patterns = array('_transient_seoprostack_', '_transient_timeout_seoprostack_', '_transient_wp_allstars_', '_transient_timeout_wp_allstars_');
     foreach ($patterns as $pattern) {
         // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- one-off cleanup of our transients.
         $wpdb->query($wpdb->prepare("DELETE FROM {$wpdb->options} WHERE option_name LIKE %s", $wpdb->esc_like($pattern) . '%'));
@@ -55,14 +55,14 @@ function allstars_uninstall_site() {
 }
 
 if (is_multisite()) {
-    foreach (get_sites(array('fields' => 'ids', 'number' => 0)) as $allstars_site_id) {
-        switch_to_blog($allstars_site_id);
-        allstars_uninstall_site();
+    foreach (get_sites(array('fields' => 'ids', 'number' => 0)) as $seoprostack_site_id) {
+        switch_to_blog($seoprostack_site_id);
+        seoprostack_uninstall_site();
         restore_current_blog();
     }
 } else {
-    allstars_uninstall_site();
+    seoprostack_uninstall_site();
 }
 
 // Unused magic login links (user meta is network-wide).
-delete_metadata('user', 0, '_allstars_magic_login', '', true);
+delete_metadata('user', 0, '_seoprostack_magic_login', '', true);

@@ -1,12 +1,12 @@
 <?php
 /**
- * Allstars plugin directory data.
+ * SEO Pro Stack plugin directory data.
  *
  * Fetches wordpress.org data for the curated free plugins, caches it per
  * category and renders cards with the same markup as Plugins → Add New so
  * core's `updates` script provides in-place install/update/activate.
  *
- * @package Allstars
+ * @package SEOProStack
  * @since 0.2.0
  */
 
@@ -14,16 +14,16 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-class Allstars_Plugin_Manager {
+class SEOProStack_Plugin_Manager {
 
     /** Transient prefix; bump the version to invalidate old caches. */
-    const CACHE_PREFIX = 'allstars_plugins_v3_';
+    const CACHE_PREFIX = 'seoprostack_plugins_v3_';
 
     /**
      * Register hooks.
      */
     public static function init() {
-        add_action('wp_ajax_allstars_get_plugins', array(__CLASS__, 'ajax_get_plugins'));
+        add_action('wp_ajax_seoprostack_get_plugins', array(__CLASS__, 'ajax_get_plugins'));
     }
 
     /**
@@ -33,28 +33,28 @@ class Allstars_Plugin_Manager {
      */
     public static function get_category_labels() {
         $labels = array(
-            'minimal'     => __('Minimal', 'allstars'),
-            'admin'       => __('Admin', 'allstars'),
-            'affiliates'  => __('Affiliates', 'allstars'),
-            'ai'          => __('AI', 'allstars'),
-            'cms'         => __('CMS', 'allstars'),
-            'compliance'  => __('Compliance', 'allstars'),
-            'crm'         => __('CRM', 'allstars'),
-            'ecommerce'   => __('eCommerce', 'allstars'),
-            'events'      => __('Events', 'allstars'),
-            'lms'         => __('LMS', 'allstars'),
-            'media'       => __('Media', 'allstars'),
-            'members'     => __('Members', 'allstars'),
-            'seo'         => __('SEO', 'allstars'),
-            'setup'       => __('Setup', 'allstars'),
-            'social'      => __('Social', 'allstars'),
-            'speed'       => __('Speed', 'allstars'),
-            'translation' => __('Translation', 'allstars'),
-            'advanced'    => __('Advanced', 'allstars'),
-            'debug'       => __('Debug', 'allstars'),
+            'minimal'     => __('Minimal', 'seoprostack'),
+            'admin'       => __('Admin', 'seoprostack'),
+            'affiliates'  => __('Affiliates', 'seoprostack'),
+            'ai'          => __('AI', 'seoprostack'),
+            'cms'         => __('CMS', 'seoprostack'),
+            'compliance'  => __('Compliance', 'seoprostack'),
+            'crm'         => __('CRM', 'seoprostack'),
+            'ecommerce'   => __('eCommerce', 'seoprostack'),
+            'events'      => __('Events', 'seoprostack'),
+            'lms'         => __('LMS', 'seoprostack'),
+            'media'       => __('Media', 'seoprostack'),
+            'members'     => __('Members', 'seoprostack'),
+            'seo'         => __('SEO', 'seoprostack'),
+            'setup'       => __('Setup', 'seoprostack'),
+            'social'      => __('Social', 'seoprostack'),
+            'speed'       => __('Speed', 'seoprostack'),
+            'translation' => __('Translation', 'seoprostack'),
+            'advanced'    => __('Advanced', 'seoprostack'),
+            'debug'       => __('Debug', 'seoprostack'),
         );
 
-        $categories = array_keys(allstars_get_free_plugins());
+        $categories = array_keys(seoprostack_get_free_plugins());
         $ordered    = array();
         foreach ($labels as $slug => $label) {
             if (in_array($slug, $categories, true)) {
@@ -74,16 +74,16 @@ class Allstars_Plugin_Manager {
      * AJAX: plugin cards for one category.
      */
     public static function ajax_get_plugins() {
-        check_ajax_referer(Allstars_Settings::NONCE, 'nonce');
+        check_ajax_referer(SEOProStack_Settings::NONCE, 'nonce');
 
         if (!current_user_can('install_plugins')) {
-            wp_send_json_error(array('message' => __('You are not allowed to install plugins on this site.', 'allstars')), 403);
+            wp_send_json_error(array('message' => __('You are not allowed to install plugins on this site.', 'seoprostack')), 403);
         }
 
         $category   = isset($_POST['category']) ? sanitize_key(wp_unslash($_POST['category'])) : 'minimal';
-        $categories = allstars_get_free_plugins();
+        $categories = seoprostack_get_free_plugins();
         if (!isset($categories[$category])) {
-            wp_send_json_error(array('message' => __('Unknown category.', 'allstars')), 400);
+            wp_send_json_error(array('message' => __('Unknown category.', 'seoprostack')), 400);
         }
 
         $plugins = get_transient(self::CACHE_PREFIX . $category);
@@ -97,7 +97,7 @@ class Allstars_Plugin_Manager {
         }
 
         if (!$plugins) {
-            wp_send_json_error(array('message' => __('Plugin information could not be retrieved from WordPress.org.', 'allstars')), 502);
+            wp_send_json_error(array('message' => __('Plugin information could not be retrieved from WordPress.org.', 'seoprostack')), 502);
         }
 
         wp_send_json_success(array('html' => self::generate_plugin_cards($plugins)));
@@ -116,7 +116,7 @@ class Allstars_Plugin_Manager {
     private static function fetch_plugins(array $slugs, &$complete = true) {
         require_once ABSPATH . 'wp-admin/includes/plugin-install.php';
 
-        $removed  = allstars_get_removed_plugins();
+        $removed  = seoprostack_get_removed_plugins();
         $plugins  = array();
         $complete = true;
         foreach (array_unique($slugs) as $slug) {
@@ -163,7 +163,7 @@ class Allstars_Plugin_Manager {
      * Card data for a plugin that is no longer on wordpress.org.
      *
      * @param string $slug wordpress.org slug.
-     * @param array  $data Entry from allstars_get_removed_plugins(), or empty.
+     * @param array  $data Entry from seoprostack_get_removed_plugins(), or empty.
      * @return object
      */
     private static function removed_stub($slug, array $data) {
@@ -201,34 +201,34 @@ class Allstars_Plugin_Manager {
     private static function removed_card($plugin) {
         $file = self::installed_file($plugin->slug);
         if ($file && is_plugin_active($file)) {
-            $state = _x('Active', 'plugin', 'allstars');
+            $state = _x('Active', 'plugin', 'seoprostack');
         } elseif ($file) {
-            $state = _x('Installed', 'plugin', 'allstars');
+            $state = _x('Installed', 'plugin', 'seoprostack');
         } else {
-            $state = __('Unavailable', 'allstars');
+            $state = __('Unavailable', 'seoprostack');
         }
 
         if ($plugin->closed) {
             $status = sprintf(
                 /* translators: %s: closure date */
-                __('Removed from WordPress.org on %s.', 'allstars'),
+                __('Removed from WordPress.org on %s.', 'seoprostack'),
                 date_i18n(get_option('date_format'), strtotime($plugin->closed))
             );
         } else {
-            $status = __('Not currently available from WordPress.org.', 'allstars');
+            $status = __('Not currently available from WordPress.org.', 'seoprostack');
         }
         $pro_url = self::get_pro_url_for_free_slug($plugin->slug);
         ?>
-        <div class="plugin-card plugin-card-<?php echo esc_attr(sanitize_html_class($plugin->slug)); ?> wpa-plugin-removed">
+        <div class="plugin-card plugin-card-<?php echo esc_attr(sanitize_html_class($plugin->slug)); ?> sps-plugin-removed">
             <div class="plugin-card-top">
                 <div class="name column-name">
-                    <h3><?php echo esc_html($plugin->name); ?> <span class="wpa-removed-icon dashicons dashicons-warning" aria-hidden="true"></span></h3>
+                    <h3><?php echo esc_html($plugin->name); ?> <span class="sps-removed-icon dashicons dashicons-warning" aria-hidden="true"></span></h3>
                 </div>
                 <div class="action-links">
                     <ul class="plugin-action-buttons">
                         <li><button type="button" class="button button-disabled" disabled="disabled"><?php echo esc_html($state); ?></button></li>
                         <?php if ($pro_url) : ?>
-                            <li><a class="button" href="<?php echo esc_url($pro_url); ?>" target="_blank" rel="noopener noreferrer"><?php esc_html_e('Vendor Site', 'allstars'); ?><span class="screen-reader-text"> <?php echo esc_html(sprintf(/* translators: %s: plugin name */ __('for %s (opens in a new tab)', 'allstars'), $plugin->name)); ?></span></a></li>
+                            <li><a class="button" href="<?php echo esc_url($pro_url); ?>" target="_blank" rel="noopener noreferrer"><?php esc_html_e('Vendor Site', 'seoprostack'); ?><span class="screen-reader-text"> <?php echo esc_html(sprintf(/* translators: %s: plugin name */ __('for %s (opens in a new tab)', 'seoprostack'), $plugin->name)); ?></span></a></li>
                         <?php endif; ?>
                     </ul>
                 </div>
@@ -242,11 +242,11 @@ class Allstars_Plugin_Manager {
                 </div>
             </div>
             <div class="plugin-card-bottom">
-                <p class="wpa-removed-status">
+                <p class="sps-removed-status">
                     <strong><?php echo esc_html($status); ?></strong>
                     <?php echo esc_html($plugin->reason); ?>
                     <?php if ($file) : ?>
-                        <?php esc_html_e('It will not receive updates; plan a replacement.', 'allstars'); ?>
+                        <?php esc_html_e('It will not receive updates; plan a replacement.', 'seoprostack'); ?>
                     <?php endif; ?>
                 </p>
             </div>
@@ -307,8 +307,8 @@ class Allstars_Plugin_Manager {
                         <ul class="plugin-action-buttons">
                             <?php echo self::action_buttons($plugin, $name); // phpcs:ignore WordPress.Security.EscapeOutput -- escaped in method. ?>
                             <li>
-                                <a href="<?php echo esc_url($details); ?>" class="thickbox open-plugin-details-modal" aria-label="<?php echo esc_attr(sprintf(/* translators: %s: plugin name */ __('More information about %s', 'allstars'), $name)); ?>" data-title="<?php echo esc_attr($name); ?>">
-                                    <?php esc_html_e('More Details', 'allstars'); ?>
+                                <a href="<?php echo esc_url($details); ?>" class="thickbox open-plugin-details-modal" aria-label="<?php echo esc_attr(sprintf(/* translators: %s: plugin name */ __('More information about %s', 'seoprostack'), $name)); ?>" data-title="<?php echo esc_attr($name); ?>">
+                                    <?php esc_html_e('More Details', 'seoprostack'); ?>
                                 </a>
                             </li>
                         </ul>
@@ -316,7 +316,7 @@ class Allstars_Plugin_Manager {
                     <div class="desc column-description">
                         <p><?php echo esc_html(isset($plugin->short_description) ? $plugin->short_description : ''); ?></p>
                         <?php if (!empty($plugin->author)) : ?>
-                            <p class="authors"><cite><?php echo wp_kses(sprintf(/* translators: %s: author */ __('By %s', 'allstars'), $plugin->author), $allowed_author); ?></cite></p>
+                            <p class="authors"><cite><?php echo wp_kses(sprintf(/* translators: %s: author */ __('By %s', 'seoprostack'), $plugin->author), $allowed_author); ?></cite></p>
                         <?php endif; ?>
                     </div>
                 </div>
@@ -335,19 +335,19 @@ class Allstars_Plugin_Manager {
                     </div>
                     <div class="column-updated">
                         <?php if (!empty($plugin->last_updated)) : ?>
-                            <strong><?php esc_html_e('Last Updated:', 'allstars'); ?></strong>
-                            <?php echo esc_html(sprintf(/* translators: %s: time since */ __('%s ago', 'allstars'), human_time_diff(strtotime($plugin->last_updated)))); ?>
+                            <strong><?php esc_html_e('Last Updated:', 'seoprostack'); ?></strong>
+                            <?php echo esc_html(sprintf(/* translators: %s: time since */ __('%s ago', 'seoprostack'), human_time_diff(strtotime($plugin->last_updated)))); ?>
                         <?php endif; ?>
                     </div>
                     <div class="column-downloaded"><?php echo esc_html(self::installs_text(isset($plugin->active_installs) ? (int) $plugin->active_installs : 0)); ?></div>
                     <div class="column-compatibility">
                         <?php
                         if (!empty($plugin->requires) && version_compare($wp_version, $plugin->requires, '<')) {
-                            echo '<span class="compatibility-incompatible">' . esc_html__('Incompatible with your version of WordPress', 'allstars') . '</span>';
+                            echo '<span class="compatibility-incompatible">' . esc_html__('Incompatible with your version of WordPress', 'seoprostack') . '</span>';
                         } elseif (!empty($plugin->tested) && version_compare(substr($wp_version, 0, strlen($plugin->tested)), $plugin->tested, '>')) {
-                            echo '<span class="compatibility-untested">' . esc_html__('Untested with your version of WordPress', 'allstars') . '</span>';
+                            echo '<span class="compatibility-untested">' . esc_html__('Untested with your version of WordPress', 'seoprostack') . '</span>';
                         } else {
-                            echo '<span class="compatibility-compatible">' . wp_kses(__('<strong>Compatible</strong> with your version of WordPress', 'allstars'), array('strong' => array())) . '</span>';
+                            echo '<span class="compatibility-compatible">' . wp_kses(__('<strong>Compatible</strong> with your version of WordPress', 'seoprostack'), array('strong' => array())) . '</span>';
                         }
                         ?>
                     </div>
@@ -376,9 +376,9 @@ class Allstars_Plugin_Manager {
                         '<li><a class="install-now button" data-slug="%1$s" href="%2$s" aria-label="%3$s" data-name="%4$s">%5$s</a></li>',
                         esc_attr($plugin->slug),
                         esc_url($status['url']),
-                        esc_attr(sprintf(/* translators: %s: plugin name */ _x('Install %s now', 'plugin', 'allstars'), $name)),
+                        esc_attr(sprintf(/* translators: %s: plugin name */ _x('Install %s now', 'plugin', 'seoprostack'), $name)),
                         esc_attr($name),
-                        esc_html_x('Install Now', 'plugin', 'allstars')
+                        esc_html_x('Install Now', 'plugin', 'seoprostack')
                     );
                 }
                 break;
@@ -390,9 +390,9 @@ class Allstars_Plugin_Manager {
                         esc_attr($status['file']),
                         esc_attr($plugin->slug),
                         esc_url($status['url']),
-                        esc_attr(sprintf(/* translators: %s: plugin name */ __('Update %s now', 'allstars'), $name)),
+                        esc_attr(sprintf(/* translators: %s: plugin name */ __('Update %s now', 'seoprostack'), $name)),
                         esc_attr($name),
-                        esc_html__('Update Now', 'allstars')
+                        esc_html__('Update Now', 'seoprostack')
                     );
                 }
                 break;
@@ -400,17 +400,17 @@ class Allstars_Plugin_Manager {
             case 'latest_installed':
             case 'newer_installed':
                 if (is_plugin_active($status['file'])) {
-                    $html .= '<li><button type="button" class="button button-disabled" disabled="disabled">' . esc_html_x('Active', 'plugin', 'allstars') . '</button></li>';
+                    $html .= '<li><button type="button" class="button button-disabled" disabled="disabled">' . esc_html_x('Active', 'plugin', 'seoprostack') . '</button></li>';
                 } elseif (current_user_can('activate_plugin', $status['file'])) {
                     $url   = wp_nonce_url(self_admin_url('plugins.php?action=activate&plugin=' . rawurlencode($status['file'])), 'activate-plugin_' . $status['file']);
                     $html .= sprintf(
                         '<li><a href="%1$s" class="button button-primary activate-now" aria-label="%2$s">%3$s</a></li>',
                         esc_url($url),
-                        esc_attr(sprintf(/* translators: %s: plugin name */ _x('Activate %s', 'plugin', 'allstars'), $name)),
-                        esc_html__('Activate', 'allstars')
+                        esc_attr(sprintf(/* translators: %s: plugin name */ _x('Activate %s', 'plugin', 'seoprostack'), $name)),
+                        esc_html__('Activate', 'seoprostack')
                     );
                 } else {
-                    $html .= '<li><button type="button" class="button button-disabled" disabled="disabled">' . esc_html_x('Installed', 'plugin', 'allstars') . '</button></li>';
+                    $html .= '<li><button type="button" class="button button-disabled" disabled="disabled">' . esc_html_x('Installed', 'plugin', 'seoprostack') . '</button></li>';
                 }
                 break;
         }
@@ -418,10 +418,10 @@ class Allstars_Plugin_Manager {
         $pro_url = self::get_pro_url_for_free_slug($plugin->slug);
         if ($pro_url) {
             $html .= sprintf(
-                '<li><a class="button wpa-go-pro" href="%1$s" target="_blank" rel="noopener noreferrer">%2$s<span class="screen-reader-text"> %3$s</span></a></li>',
+                '<li><a class="button sps-go-pro" href="%1$s" target="_blank" rel="noopener noreferrer">%2$s<span class="screen-reader-text"> %3$s</span></a></li>',
                 esc_url($pro_url),
-                esc_html__('Go Pro', 'allstars'),
-                esc_html(sprintf(/* translators: %s: plugin name */ __('for %s (opens in a new tab)', 'allstars'), $name))
+                esc_html__('Go Pro', 'seoprostack'),
+                esc_html(sprintf(/* translators: %s: plugin name */ __('for %s (opens in a new tab)', 'seoprostack'), $name))
             );
         }
 
@@ -438,13 +438,13 @@ class Allstars_Plugin_Manager {
         if ($installs >= 1000000) {
             $millions = (int) floor($installs / 1000000);
             /* translators: %s: number of millions */
-            return sprintf(_nx('%s+ Million Active Installation', '%s+ Million Active Installations', $millions, 'Active plugin installations', 'allstars'), number_format_i18n($millions));
+            return sprintf(_nx('%s+ Million Active Installation', '%s+ Million Active Installations', $millions, 'Active plugin installations', 'seoprostack'), number_format_i18n($millions));
         }
         if (0 === $installs) {
-            return _x('Less Than 10 Active Installations', 'Active plugin installations', 'allstars');
+            return _x('Less Than 10 Active Installations', 'Active plugin installations', 'seoprostack');
         }
         /* translators: %s: number of installs */
-        return sprintf(_n('%s+ Active Installation', '%s+ Active Installations', $installs, 'allstars'), number_format_i18n($installs));
+        return sprintf(_n('%s+ Active Installation', '%s+ Active Installations', $installs, 'seoprostack'), number_format_i18n($installs));
     }
 
     /**
@@ -454,7 +454,7 @@ class Allstars_Plugin_Manager {
      * @return string
      */
     public static function get_pro_url_for_free_slug($free_slug) {
-        foreach (allstars_get_pro_plugins() as $key => $pro) {
+        foreach (seoprostack_get_pro_plugins() as $key => $pro) {
             // free_slug may be one slug or a list (e.g. Flying Press covers three free plugins).
             $matches = (isset($pro['free_slug']) && in_array($free_slug, (array) $pro['free_slug'], true)) || $key === $free_slug;
             if ($matches) {
@@ -488,7 +488,7 @@ class Allstars_Plugin_Manager {
      * Delete cached category data.
      */
     public static function clear_plugin_cache() {
-        foreach (array_keys(allstars_get_free_plugins()) as $category) {
+        foreach (array_keys(seoprostack_get_free_plugins()) as $category) {
             delete_transient(self::CACHE_PREFIX . $category);
         }
     }

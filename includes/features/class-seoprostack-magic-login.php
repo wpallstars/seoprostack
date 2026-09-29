@@ -18,7 +18,7 @@
  * - Login uses wp_set_auth_cookie() and fires `wp_login` and `login_redirect`
  *   like core, so two-factor, audit and redirect plugins keep working.
  *
- * @package Allstars
+ * @package SEOProStack
  * @since 0.3.0
  */
 
@@ -26,15 +26,15 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-class Allstars_Magic_Login extends Allstars_Feature {
+class SEOProStack_Magic_Login extends SEOProStack_Feature {
 
     const KEY = 'magic_login';
 
     /** wp-login.php action. */
-    const ACTION = 'allstars_magic_link';
+    const ACTION = 'seoprostack_magic_link';
 
     /** User meta holding the pending token hash. */
-    const META = '_allstars_magic_login';
+    const META = '_seoprostack_magic_login';
 
     /** Requests allowed per IP address per window. */
     const IP_LIMIT = 5;
@@ -56,36 +56,36 @@ class Allstars_Magic_Login extends Allstars_Feature {
                 'type'        => 'bool',
                 'default'     => false,
                 'tab'         => 'general',
-                'label'       => __('Magic login links', 'allstars'),
-                'description' => __('Adds “Email me a login link” to the login screen. The link works once and expires after a few minutes. Passwords keep working.', 'allstars'),
+                'label'       => __('Magic login links', 'seoprostack'),
+                'description' => __('Adds “Email me a login link” to the login screen. The link works once and expires after a few minutes. Passwords keep working.', 'seoprostack'),
             ),
             'magic_login_expiry' => array(
                 'type'        => 'int',
                 'default'     => 10,
                 'min'         => 5,
                 'max'         => 60,
-                'unit'        => __('minutes', 'allstars'),
+                'unit'        => __('minutes', 'seoprostack'),
                 'parent'      => self::KEY,
-                'label'       => __('Link expires after', 'allstars'),
-                'description' => __('Between 5 and 60 minutes.', 'allstars'),
+                'label'       => __('Link expires after', 'seoprostack'),
+                'description' => __('Between 5 and 60 minutes.', 'seoprostack'),
             ),
             'magic_login_users' => array(
                 'type'        => 'select',
                 'default'     => 'all',
                 'parent'      => self::KEY,
-                'label'       => __('Who can use it', 'allstars'),
-                'description' => __('Administrators can be required to use their password.', 'allstars'),
+                'label'       => __('Who can use it', 'seoprostack'),
+                'description' => __('Administrators can be required to use their password.', 'seoprostack'),
                 'options'     => array(
-                    'all'       => __('Everyone', 'allstars'),
-                    'no_admins' => __('Everyone except administrators', 'allstars'),
+                    'all'       => __('Everyone', 'seoprostack'),
+                    'no_admins' => __('Everyone except administrators', 'seoprostack'),
                 ),
             ),
             'magic_login_remember' => array(
                 'type'        => 'bool',
                 'default'     => false,
                 'parent'      => self::KEY,
-                'label'       => __('Remember me', 'allstars'),
-                'description' => __('Keep people signed in for 14 days, like ticking “Remember Me”.', 'allstars'),
+                'label'       => __('Remember me', 'seoprostack'),
+                'description' => __('Keep people signed in for 14 days, like ticking “Remember Me”.', 'seoprostack'),
             ),
         );
     }
@@ -113,15 +113,15 @@ class Allstars_Magic_Login extends Allstars_Feature {
         if (!empty($_REQUEST['redirect_to'])) {
             $url = add_query_arg('redirect_to', rawurlencode(self::redirect_from_request()), $url);
         }
-        return $html . ' <span class="allstars-magic-sep" aria-hidden="true">|</span> ' . sprintf(
-            '<a class="allstars-magic-link" href="%s">%s</a>',
+        return $html . ' <span class="seoprostack-magic-sep" aria-hidden="true">|</span> ' . sprintf(
+            '<a class="seoprostack-magic-link" href="%s">%s</a>',
             esc_url($url),
-            esc_html__('Email me a login link', 'allstars')
+            esc_html__('Email me a login link', 'seoprostack')
         );
     }
 
     /**
-     * wp-login.php?action=allstars_magic_link
+     * wp-login.php?action=seoprostack_magic_link
      */
     public static function handle() {
         if (is_user_logged_in()) {
@@ -167,24 +167,24 @@ class Allstars_Magic_Login extends Allstars_Feature {
         $login = isset($_POST['user_login']) ? sanitize_text_field(wp_unslash($_POST['user_login'])) : '';
 
         if (!$message) {
-            $message = '<p class="message">' . esc_html__('Enter your username or email address and we will email you a link to log in.', 'allstars') . '</p>';
+            $message = '<p class="message">' . esc_html__('Enter your username or email address and we will email you a link to log in.', 'seoprostack') . '</p>';
         }
 
-        login_header(__('Email me a login link', 'allstars'), $message, $errors);
+        login_header(__('Email me a login link', 'seoprostack'), $message, $errors);
         ?>
-        <form name="allstarsmagicform" id="allstarsmagicform" action="<?php echo esc_url(self::url()); ?>" method="post">
+        <form name="seoprostackmagicform" id="seoprostackmagicform" action="<?php echo esc_url(self::url()); ?>" method="post">
             <p>
-                <label for="user_login"><?php esc_html_e('Username or Email Address', 'allstars'); ?></label>
+                <label for="user_login"><?php esc_html_e('Username or Email Address', 'seoprostack'); ?></label>
                 <input type="text" name="user_login" id="user_login" class="input" value="<?php echo esc_attr($login); ?>" size="20" autocapitalize="off" autocomplete="username" required="required" />
             </p>
-            <?php wp_nonce_field(self::ACTION . '_request', '_allstars_nonce'); ?>
+            <?php wp_nonce_field(self::ACTION . '_request', '_seoprostack_nonce'); ?>
             <input type="hidden" name="redirect_to" value="<?php echo esc_attr($redirect); ?>" />
             <p class="submit">
-                <input type="submit" name="wp-submit" id="wp-submit" class="button button-primary button-large" value="<?php esc_attr_e('Email me a login link', 'allstars'); ?>" />
+                <input type="submit" name="wp-submit" id="wp-submit" class="button button-primary button-large" value="<?php esc_attr_e('Email me a login link', 'seoprostack'); ?>" />
             </p>
         </form>
         <p id="nav">
-            <a href="<?php echo esc_url(wp_login_url($redirect)); ?>"><?php esc_html_e('Log in with a password', 'allstars'); ?></a>
+            <a href="<?php echo esc_url(wp_login_url($redirect)); ?>"><?php esc_html_e('Log in with a password', 'seoprostack'); ?></a>
         </p>
         <?php
         login_footer('user_login');
@@ -194,20 +194,20 @@ class Allstars_Magic_Login extends Allstars_Feature {
      * Handle the request form: always respond the same way.
      */
     private static function handle_request() {
-        $nonce = isset($_POST['_allstars_nonce']) ? sanitize_text_field(wp_unslash($_POST['_allstars_nonce'])) : '';
+        $nonce = isset($_POST['_seoprostack_nonce']) ? sanitize_text_field(wp_unslash($_POST['_seoprostack_nonce'])) : '';
         if (!wp_verify_nonce($nonce, self::ACTION . '_request')) {
-            self::render_request_form(new WP_Error('allstars_nonce', __('The form expired. Please try again.', 'allstars')));
+            self::render_request_form(new WP_Error('seoprostack_nonce', __('The form expired. Please try again.', 'seoprostack')));
             return;
         }
 
         $login = isset($_POST['user_login']) ? sanitize_text_field(wp_unslash($_POST['user_login'])) : '';
         if ('' === trim($login)) {
-            self::render_request_form(new WP_Error('allstars_empty', __('Please enter a username or email address.', 'allstars')));
+            self::render_request_form(new WP_Error('seoprostack_empty', __('Please enter a username or email address.', 'seoprostack')));
             return;
         }
 
         if (!self::within_ip_limit()) {
-            self::render_request_form(new WP_Error('allstars_limit', __('Too many requests. Please wait a few minutes and try again.', 'allstars')));
+            self::render_request_form(new WP_Error('seoprostack_limit', __('Too many requests. Please wait a few minutes and try again.', 'seoprostack')));
             return;
         }
 
@@ -216,10 +216,10 @@ class Allstars_Magic_Login extends Allstars_Feature {
             self::send_link($user, self::redirect_from_request());
         }
 
-        $message = '<p class="message">' . esc_html__('If that account can use login links, we have emailed one to its address. Check your inbox and spam folder.', 'allstars') . '</p>';
-        login_header(__('Check your email', 'allstars'), $message);
+        $message = '<p class="message">' . esc_html__('If that account can use login links, we have emailed one to its address. Check your inbox and spam folder.', 'seoprostack') . '</p>';
+        login_header(__('Check your email', 'seoprostack'), $message);
         ?>
-        <p id="nav"><a href="<?php echo esc_url(wp_login_url()); ?>"><?php esc_html_e('Back to log in', 'allstars'); ?></a></p>
+        <p id="nav"><a href="<?php echo esc_url(wp_login_url()); ?>"><?php esc_html_e('Back to log in', 'seoprostack'); ?></a></p>
         <?php
         login_footer();
     }
@@ -238,7 +238,7 @@ class Allstars_Magic_Login extends Allstars_Feature {
         }
 
         $token   = wp_generate_password(43, false, false);
-        $minutes = (int) Allstars_Settings::get('magic_login_expiry');
+        $minutes = (int) SEOProStack_Settings::get('magic_login_expiry');
         update_user_meta($user->ID, self::META, array(
             'hash'     => self::hash($token, $user->ID),
             'created'  => time(),
@@ -250,10 +250,10 @@ class Allstars_Magic_Login extends Allstars_Feature {
         $site = wp_specialchars_decode(get_bloginfo('name'), ENT_QUOTES);
 
         /* translators: %s: site name */
-        $subject = sprintf(__('[%s] Your login link', 'allstars'), $site);
+        $subject = sprintf(__('[%s] Your login link', 'seoprostack'), $site);
         $body    = sprintf(
             /* translators: 1: site name, 2: login link, 3: minutes until expiry */
-            __("Someone asked to log in to %1\$s with this email address.\n\nTo log in, open this link and press “Log in”:\n%2\$s\n\nThe link works once and expires in %3\$d minutes.\n\nIf this wasn't you, ignore this email. Your account is safe and your password has not changed.", 'allstars'),
+            __("Someone asked to log in to %1\$s with this email address.\n\nTo log in, open this link and press “Log in”:\n%2\$s\n\nThe link works once and expires in %3\$d minutes.\n\nIf this wasn't you, ignore this email. Your account is safe and your password has not changed.", 'seoprostack'),
             $site,
             $link,
             $minutes
@@ -266,7 +266,7 @@ class Allstars_Magic_Login extends Allstars_Feature {
          * @param WP_User $user  Recipient.
          * @param string  $link  Login link.
          */
-        $email = apply_filters('allstars_magic_login_email', array(
+        $email = apply_filters('seoprostack_magic_login_email', array(
             'to'      => $user->user_email,
             'subject' => $subject,
             'message' => $body,
@@ -281,7 +281,7 @@ class Allstars_Magic_Login extends Allstars_Feature {
          * @param WP_User $user User.
          * @param bool    $sent Whether wp_mail() reported success.
          */
-        do_action('allstars_magic_login_link_sent', $user, $sent);
+        do_action('seoprostack_magic_login_link_sent', $user, $sent);
 
         return (bool) $sent;
     }
@@ -302,15 +302,15 @@ class Allstars_Magic_Login extends Allstars_Feature {
         }
 
         /* translators: %s: site name */
-        $message = '<p class="message">' . esc_html(sprintf(__('Press the button to log in to %s.', 'allstars'), get_bloginfo('name'))) . '</p>';
-        login_header(__('Log in', 'allstars'), $message);
+        $message = '<p class="message">' . esc_html(sprintf(__('Press the button to log in to %s.', 'seoprostack'), get_bloginfo('name'))) . '</p>';
+        login_header(__('Log in', 'seoprostack'), $message);
         ?>
-        <form name="allstarsmagicconfirm" id="allstarsmagicconfirm" action="<?php echo esc_url(self::url()); ?>" method="post">
+        <form name="seoprostackmagicconfirm" id="seoprostackmagicconfirm" action="<?php echo esc_url(self::url()); ?>" method="post">
             <input type="hidden" name="uid" value="<?php echo esc_attr((string) $user->ID); ?>" />
             <input type="hidden" name="token" value="<?php echo esc_attr($token); ?>" />
-            <?php wp_nonce_field(self::ACTION . '_confirm', '_allstars_nonce'); ?>
+            <?php wp_nonce_field(self::ACTION . '_confirm', '_seoprostack_nonce'); ?>
             <p class="submit">
-                <input type="submit" name="wp-submit" id="wp-submit" class="button button-primary button-large" value="<?php esc_attr_e('Log in', 'allstars'); ?>" />
+                <input type="submit" name="wp-submit" id="wp-submit" class="button button-primary button-large" value="<?php esc_attr_e('Log in', 'seoprostack'); ?>" />
             </p>
         </form>
         <?php
@@ -321,13 +321,13 @@ class Allstars_Magic_Login extends Allstars_Feature {
      * Log the user in after the confirm button is pressed.
      */
     private static function handle_confirm() {
-        $nonce = isset($_POST['_allstars_nonce']) ? sanitize_text_field(wp_unslash($_POST['_allstars_nonce'])) : '';
+        $nonce = isset($_POST['_seoprostack_nonce']) ? sanitize_text_field(wp_unslash($_POST['_seoprostack_nonce'])) : '';
         if (!wp_verify_nonce($nonce, self::ACTION . '_confirm')) {
-            self::render_link_error(new WP_Error('allstars_nonce', __('The page expired. Please open the link from your email again.', 'allstars')));
+            self::render_link_error(new WP_Error('seoprostack_nonce', __('The page expired. Please open the link from your email again.', 'seoprostack')));
             return;
         }
         if (!self::within_ip_limit()) {
-            self::render_link_error(new WP_Error('allstars_limit', __('Too many attempts. Please wait a few minutes and try again.', 'allstars')));
+            self::render_link_error(new WP_Error('seoprostack_limit', __('Too many attempts. Please wait a few minutes and try again.', 'seoprostack')));
             return;
         }
 
@@ -341,7 +341,7 @@ class Allstars_Magic_Login extends Allstars_Feature {
         $pending = get_user_meta($user->ID, self::META, true);
         delete_user_meta($user->ID, self::META); // Single use.
 
-        $remember = (bool) Allstars_Settings::get('magic_login_remember');
+        $remember = (bool) SEOProStack_Settings::get('magic_login_remember');
         wp_set_current_user($user->ID);
         wp_set_auth_cookie($user->ID, $remember, is_ssl());
 
@@ -374,12 +374,12 @@ class Allstars_Magic_Login extends Allstars_Feature {
      * @param WP_Error $error Error.
      */
     private static function render_link_error(WP_Error $error) {
-        login_header(__('Login link', 'allstars'), '', $error);
+        login_header(__('Login link', 'seoprostack'), '', $error);
         ?>
         <p id="nav">
-            <a href="<?php echo esc_url(self::url()); ?>"><?php esc_html_e('Email me a new link', 'allstars'); ?></a>
+            <a href="<?php echo esc_url(self::url()); ?>"><?php esc_html_e('Email me a new link', 'seoprostack'); ?></a>
             <span aria-hidden="true">|</span>
-            <a href="<?php echo esc_url(wp_login_url()); ?>"><?php esc_html_e('Log in with a password', 'allstars'); ?></a>
+            <a href="<?php echo esc_url(wp_login_url()); ?>"><?php esc_html_e('Log in with a password', 'seoprostack'); ?></a>
         </p>
         <?php
         login_footer();
@@ -393,7 +393,7 @@ class Allstars_Magic_Login extends Allstars_Feature {
      * @return true|WP_Error
      */
     private static function verify($user, $token) {
-        $invalid = new WP_Error('allstars_invalid', __('This login link is invalid or has already been used.', 'allstars'));
+        $invalid = new WP_Error('seoprostack_invalid', __('This login link is invalid or has already been used.', 'seoprostack'));
 
         if (!$user instanceof WP_User || '' === $token || !self::user_allowed($user)) {
             return $invalid;
@@ -406,7 +406,7 @@ class Allstars_Magic_Login extends Allstars_Feature {
 
         if (empty($pending['expires']) || time() > (int) $pending['expires']) {
             delete_user_meta($user->ID, self::META);
-            return new WP_Error('allstars_expired', __('This login link has expired.', 'allstars'));
+            return new WP_Error('seoprostack_expired', __('This login link has expired.', 'seoprostack'));
         }
 
         return true;
@@ -457,7 +457,7 @@ class Allstars_Magic_Login extends Allstars_Feature {
      */
     private static function user_allowed(WP_User $user) {
         $allowed = true;
-        if ('no_admins' === Allstars_Settings::get('magic_login_users') && ($user->has_cap('manage_options') || is_super_admin($user->ID))) {
+        if ('no_admins' === SEOProStack_Settings::get('magic_login_users') && ($user->has_cap('manage_options') || is_super_admin($user->ID))) {
             $allowed = false;
         }
         if (is_multisite() && is_user_spammy($user)) {
@@ -470,7 +470,7 @@ class Allstars_Magic_Login extends Allstars_Feature {
          * @param bool    $allowed Whether allowed.
          * @param WP_User $user    User.
          */
-        return (bool) apply_filters('allstars_magic_login_allowed', $allowed, $user);
+        return (bool) apply_filters('seoprostack_magic_login_allowed', $allowed, $user);
     }
 
     /**
@@ -491,10 +491,10 @@ class Allstars_Magic_Login extends Allstars_Feature {
      */
     private static function within_ip_limit() {
         $ip  = isset($_SERVER['REMOTE_ADDR']) ? sanitize_text_field(wp_unslash($_SERVER['REMOTE_ADDR'])) : '';
-        $key = 'allstars_ml_' . substr(hash_hmac('sha256', $ip, wp_salt('nonce')), 0, 32);
+        $key = 'seoprostack_ml_' . substr(hash_hmac('sha256', $ip, wp_salt('nonce')), 0, 32);
 
         $count = (int) get_transient($key);
-        if ($count >= (int) apply_filters('allstars_magic_login_ip_limit', self::IP_LIMIT)) {
+        if ($count >= (int) apply_filters('seoprostack_magic_login_ip_limit', self::IP_LIMIT)) {
             return false;
         }
         set_transient($key, $count + 1, self::WINDOW);

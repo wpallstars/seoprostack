@@ -1,8 +1,8 @@
 <?php
 /**
- * Allstars Hosting tab.
+ * SEO Pro Stack Hosting tab.
  *
- * @package Allstars
+ * @package SEOProStack
  * @since 0.2.0
  */
 
@@ -10,7 +10,7 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-class Allstars_Hosting_Manager {
+class SEOProStack_Hosting_Manager {
 
     /**
      * Hosting provider data (admin/data/hosting-providers.php).
@@ -18,16 +18,16 @@ class Allstars_Hosting_Manager {
      * @return array
      */
     public static function get_hosting_providers() {
-        return allstars_get_hosting_providers();
+        return seoprostack_get_hosting_providers();
     }
 
     /**
      * Render the tab.
      */
     public static function display_tab_content() {
-        Allstars_Link_Cards::render(self::get_hosting_providers(), 'hosting', array(
-            'intro'        => __('Hosting, DNS, domains and monitoring services we recommend.', 'allstars'),
-            'search_label' => __('Filter providers…', 'allstars'),
+        SEOProStack_Link_Cards::render(self::get_hosting_providers(), 'hosting', array(
+            'intro'        => __('Hosting, DNS, domains and monitoring services we recommend.', 'seoprostack'),
+            'search_label' => __('Filter providers…', 'seoprostack'),
         ));
     }
 }

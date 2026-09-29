@@ -1,6 +1,6 @@
-# Allstars Plugin Stability Status
+# SEO Pro Stack Plugin Stability Status
 
-This document tracks the stability status of different versions of the Allstars Plugin.
+This document tracks the stability status of different versions of the SEO Pro Stack Plugin.
 
 ## Stability Classification
 

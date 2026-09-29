@@ -1,11 +1,11 @@
 <?php
 /**
- * Allstars Read Me tab.
+ * SEO Pro Stack Read Me tab.
  *
  * Renders README.md with a small, escaping Markdown subset
  * (headings, lists, bold, italic, inline code and http(s) links).
  *
- * @package Allstars
+ * @package SEOProStack
  * @since 0.2.0
  */
 
@@ -13,15 +13,15 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-class Allstars_Readme_Manager {
+class SEOProStack_Readme_Manager {
 
     /**
      * Render the tab.
      */
     public static function display_tab_content() {
-        $readme = allstars_get_readme_content();
+        $readme = seoprostack_get_readme_content();
         ?>
-        <article class="wpa-card wpa-readme">
+        <article class="sps-card sps-readme">
             <?php echo self::parse_markdown($readme['content']); // phpcs:ignore WordPress.Security.EscapeOutput -- built from escaped text. ?>
         </article>
         <?php
@@ -35,7 +35,7 @@ class Allstars_Readme_Manager {
      * @return string HTML.
      */
     public static function parse_markdown($markdown) {
-        $markdown = str_replace('{ALLSTARS_VERSION}', ALLSTARS_VERSION, $markdown);
+        $markdown = str_replace('{SEOPROSTACK_VERSION}', SEOPROSTACK_VERSION, $markdown);
         $lines    = preg_split('/\r\n|\r|\n/', $markdown);
         $html     = '';
         $list     = '';

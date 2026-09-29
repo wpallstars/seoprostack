@@ -1,18 +1,18 @@
 <?php
 /**
- * Allstars admin loader.
+ * SEO Pro Stack admin loader.
  *
  * Loads admin data files and tab managers, then initialises the admin
  * screen once. Included from the main plugin file for admin requests only.
  *
- * @package Allstars
+ * @package SEOProStack
  */
 
 if (!defined('ABSPATH')) {
     exit;
 }
 
-$allstars_admin_files = array(
+$seoprostack_admin_files = array(
     'admin/data/free-plugins.php',
     'admin/data/pro-plugins.php',
     'admin/data/hosting-providers.php',
@@ -30,9 +30,9 @@ $allstars_admin_files = array(
     'admin/includes/class-admin-manager.php',
 );
 
-foreach ($allstars_admin_files as $allstars_file) {
-    require_once ALLSTARS_DIR . $allstars_file;
+foreach ($seoprostack_admin_files as $seoprostack_file) {
+    require_once SEOPROSTACK_DIR . $seoprostack_file;
 }
-unset($allstars_admin_files, $allstars_file);
+unset($seoprostack_admin_files, $seoprostack_file);
 
-Allstars_Admin_Manager::init();
+SEOProStack_Admin_Manager::init();

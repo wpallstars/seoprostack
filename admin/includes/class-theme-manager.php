@@ -1,11 +1,11 @@
 <?php
 /**
- * Allstars Theme tab (Kadence).
+ * SEO Pro Stack Theme tab (Kadence).
  *
  * Theme data is fetched from wordpress.org and cached. Installation uses
  * core's wp.updates.installTheme(); activation uses core's nonce'd URL.
  *
- * @package Allstars
+ * @package SEOProStack
  * @since 0.2.0
  */
 
@@ -13,19 +13,19 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-class Allstars_Theme_Manager {
+class SEOProStack_Theme_Manager {
 
     /** Recommended theme slug. */
     const SLUG = 'kadence';
 
     /** Cache key. */
-    const CACHE_KEY = 'allstars_theme_kadence';
+    const CACHE_KEY = 'seoprostack_theme_kadence';
 
     /**
      * Register hooks.
      */
     public static function init() {
-        add_action('wp_ajax_allstars_get_themes', array(__CLASS__, 'ajax_get_themes'));
+        add_action('wp_ajax_seoprostack_get_themes', array(__CLASS__, 'ajax_get_themes'));
         add_action('switch_theme', array(__CLASS__, 'clear_theme_cache'));
     }
 
@@ -34,13 +34,13 @@ class Allstars_Theme_Manager {
      */
     public static function display_tab_content() {
         ?>
-        <div class="wpa-section">
-            <div class="wpa-section__intro">
-                <h2 class="wpa-section__title"><?php esc_html_e('Recommended theme', 'allstars'); ?></h2>
-                <p class="wpa-section__desc"><?php esc_html_e('Kadence is a fast, flexible block theme with a large starter template library.', 'allstars'); ?></p>
+        <div class="sps-section">
+            <div class="sps-section__intro">
+                <h2 class="sps-section__title"><?php esc_html_e('Recommended theme', 'seoprostack'); ?></h2>
+                <p class="sps-section__desc"><?php esc_html_e('Kadence is a fast, flexible block theme with a large starter template library.', 'seoprostack'); ?></p>
             </div>
-            <div id="wpa-theme" data-wpa-theme aria-live="polite" aria-busy="true">
-                <div class="wpa-loading"><span class="spinner is-active"></span> <?php esc_html_e('Loading theme…', 'allstars'); ?></div>
+            <div id="sps-theme" data-sps-theme aria-live="polite" aria-busy="true">
+                <div class="sps-loading"><span class="spinner is-active"></span> <?php esc_html_e('Loading theme…', 'seoprostack'); ?></div>
             </div>
         </div>
         <?php
@@ -57,10 +57,10 @@ class Allstars_Theme_Manager {
      * AJAX: render the theme card.
      */
     public static function ajax_get_themes() {
-        check_ajax_referer(Allstars_Settings::NONCE, 'nonce');
+        check_ajax_referer(SEOProStack_Settings::NONCE, 'nonce');
 
         if (!current_user_can('install_themes') && !current_user_can('switch_themes')) {
-            wp_send_json_error(array('message' => __('You are not allowed to manage themes on this site.', 'allstars')), 403);
+            wp_send_json_error(array('message' => __('You are not allowed to manage themes on this site.', 'seoprostack')), 403);
         }
 
         $theme_data = get_transient(self::CACHE_KEY);
@@ -92,7 +92,7 @@ class Allstars_Theme_Manager {
         }
 
         ob_start();
-        include ALLSTARS_DIR . 'admin/partials/theme-panel.php';
+        include SEOPROSTACK_DIR . 'admin/partials/theme-panel.php';
         wp_send_json_success(array('html' => ob_get_clean()));
     }
 }

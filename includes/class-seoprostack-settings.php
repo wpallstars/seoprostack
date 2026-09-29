@@ -1,15 +1,15 @@
 <?php
 /**
- * Allstars settings store.
+ * SEO Pro Stack settings store.
  *
- * Every setting lives in a single `allstars_options` array and is described
+ * Every setting lives in a single `seoprostack_options` array and is described
  * by a schema entry (type, default, UI metadata) declared by its feature.
- * Features read values with Allstars_Settings::get(); the admin UI renders
+ * Features read values with SEOProStack_Settings::get(); the admin UI renders
  * cards from the same schema; the AJAX endpoint and the Settings API sanitize
- * through it. Add settings with the `allstars_settings_schema` filter or by
- * registering a feature (see Allstars_Feature).
+ * through it. Add settings with the `seoprostack_settings_schema` filter or by
+ * registering a feature (see SEOProStack_Feature).
  *
- * @package Allstars
+ * @package SEOProStack
  * @since 0.3.0
  */
 
@@ -17,19 +17,19 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-class Allstars_Settings {
+class SEOProStack_Settings {
 
     /** Option that stores every setting. */
-    const OPTION = 'allstars_options';
+    const OPTION = 'seoprostack_options';
 
     /** Settings API group. */
-    const GROUP = 'allstars_settings';
+    const GROUP = 'seoprostack_settings';
 
     /** Nonce action shared by admin AJAX requests. */
-    const NONCE = 'allstars_admin';
+    const NONCE = 'seoprostack_admin';
 
     /** Stored schema version, used for one-off migrations. */
-    const DB_VERSION_OPTION = 'allstars_db_version';
+    const DB_VERSION_OPTION = 'seoprostack_db_version';
     const DB_VERSION = 2;
 
     /**
@@ -52,7 +52,7 @@ class Allstars_Settings {
     public static function init() {
         add_action('init', array(__CLASS__, 'maybe_migrate'), 5);
         add_action('admin_init', array(__CLASS__, 'register_setting'));
-        add_action('wp_ajax_allstars_save_setting', array(__CLASS__, 'ajax_save'));
+        add_action('wp_ajax_seoprostack_save_setting', array(__CLASS__, 'ajax_save'));
     }
 
     /**
@@ -74,7 +74,7 @@ class Allstars_Settings {
         }
 
         $schema = array();
-        foreach (Allstars::features() as $class) {
+        foreach (SEOProStack::features() as $class) {
             $schema += (array) $class::settings();
         }
 
@@ -83,7 +83,7 @@ class Allstars_Settings {
          *
          * @param array $schema Setting definitions keyed by setting key.
          */
-        self::$schema = (array) apply_filters('allstars_settings_schema', $schema);
+        self::$schema = (array) apply_filters('seoprostack_settings_schema', $schema);
 
         return self::$schema;
     }
@@ -154,7 +154,7 @@ class Allstars_Settings {
     public static function set($key, $value) {
         $schema = self::schema();
         if (!isset($schema[$key])) {
-            return new WP_Error('allstars_unknown_setting', __('Unknown setting.', 'allstars'));
+            return new WP_Error('seoprostack_unknown_setting', __('Unknown setting.', 'seoprostack'));
         }
 
         $options       = self::all();
@@ -352,7 +352,7 @@ class Allstars_Settings {
         check_ajax_referer(self::NONCE, 'nonce');
 
         if (!current_user_can('manage_options')) {
-            wp_send_json_error(array('message' => __('You are not allowed to change these settings.', 'allstars')), 403);
+            wp_send_json_error(array('message' => __('You are not allowed to change these settings.', 'seoprostack')), 403);
         }
 
         $key = isset($_POST['key']) ? sanitize_key(wp_unslash($_POST['key'])) : '';
@@ -370,12 +370,12 @@ class Allstars_Settings {
          * @param string $key   Setting key.
          * @param mixed  $value Sanitized value.
          */
-        do_action('allstars_setting_saved', $key, $value);
+        do_action('seoprostack_setting_saved', $key, $value);
 
         wp_send_json_success(array(
             'key'     => $key,
             'value'   => $value,
-            'message' => __('Saved', 'allstars'),
+            'message' => __('Saved', 'seoprostack'),
         ));
     }
 
@@ -383,8 +383,8 @@ class Allstars_Settings {
      * One-off migrations.
      *
      * v1: copy pre-0.3.0 individual `wp_allstars_*` options into the array.
-     * v2: the plugin was renamed from "WP Allstars" to "Allstars"; copy the
-     *     development `wp_allstars_options` array into `allstars_options`.
+     * v2: the plugin was renamed from "WP Allstars" to "SEO Pro Stack"; copy the
+     *     development `wp_allstars_options` array into `seoprostack_options`.
      *
      * Old options are left in place so a downgrade keeps working;
      * uninstall.php removes them.

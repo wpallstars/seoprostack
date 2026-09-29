@@ -1,6 +1,6 @@
 <?php
 /**
- * Tools data for Allstars plugin
+ * Tools data for SEO Pro Stack plugin
  */
 
 if (!defined('ABSPATH')) {
@@ -8,7 +8,7 @@ if (!defined('ABSPATH')) {
 }
 
 // Define tools
-function allstars_get_tools() {
+function seoprostack_get_tools() {
     return array(
         'advise' => array(
             'name' => 'Advise.so',

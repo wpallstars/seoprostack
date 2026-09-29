@@ -7,7 +7,7 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
- function allstars_get_pro_plugins() {
+ function seoprostack_get_pro_plugins() {
     return array(
         'admin-columns' => array(
             'name' => 'Admin Columns Pro',

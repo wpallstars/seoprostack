@@ -2,7 +2,7 @@
 /**
  * Script dependencies for view.js.
  *
- * @package Allstars
+ * @package SEOProStack
  */
 
 if (!defined('ABSPATH')) {

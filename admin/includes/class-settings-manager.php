@@ -1,12 +1,12 @@
 <?php
 /**
- * Allstars settings tabs.
+ * SEO Pro Stack settings tabs.
  *
- * Renders setting cards from Allstars_Settings::schema(). Each top-level
+ * Renders setting cards from SEOProStack_Settings::schema(). Each top-level
  * setting is a card with a switch; child settings appear in an expandable
- * panel. Controls save instantly via AJAX (see admin/js/allstars-admin.js).
+ * panel. Controls save instantly via AJAX (see admin/js/seoprostack-admin.js).
  *
- * @package Allstars
+ * @package SEOProStack
  * @since 0.2.0
  */
 
@@ -14,27 +14,27 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-class Allstars_Settings_Manager {
+class SEOProStack_Settings_Manager {
 
     /**
      * General tab.
      */
     public static function render_general_tab() {
-        self::render_tab('general', __('General', 'allstars'), __('Site-wide admin preferences.', 'allstars'));
+        self::render_tab('general', __('General', 'seoprostack'), __('Site-wide admin preferences.', 'seoprostack'));
     }
 
     /**
      * Workflow tab.
      */
     public static function render_workflow_tab() {
-        self::render_tab('workflow', __('Workflow', 'allstars'), __('Automations that run while you edit content.', 'allstars'));
+        self::render_tab('workflow', __('Workflow', 'seoprostack'), __('Automations that run while you edit content.', 'seoprostack'));
     }
 
     /**
      * Advanced tab.
      */
     public static function render_advanced_tab() {
-        self::render_tab('advanced', __('Advanced', 'allstars'), '');
+        self::render_tab('advanced', __('Advanced', 'seoprostack'), '');
     }
 
     /**
@@ -45,17 +45,17 @@ class Allstars_Settings_Manager {
      * @param string $description Section intro.
      */
     public static function render_tab($tab, $title, $description) {
-        $fields = Allstars_Settings::fields_for_tab($tab);
+        $fields = SEOProStack_Settings::fields_for_tab($tab);
         ?>
-        <div class="wpa-section">
-            <div class="wpa-section__intro">
-                <h2 class="wpa-section__title"><?php echo esc_html($title); ?></h2>
+        <div class="sps-section">
+            <div class="sps-section__intro">
+                <h2 class="sps-section__title"><?php echo esc_html($title); ?></h2>
                 <?php if ($description) : ?>
-                    <p class="wpa-section__desc"><?php echo esc_html($description); ?></p>
+                    <p class="sps-section__desc"><?php echo esc_html($description); ?></p>
                 <?php endif; ?>
-                <p class="wpa-section__hint"><?php esc_html_e('Changes are saved automatically.', 'allstars'); ?></p>
+                <p class="sps-section__hint"><?php esc_html_e('Changes are saved automatically.', 'seoprostack'); ?></p>
             </div>
-            <div class="wpa-cards">
+            <div class="sps-cards">
                 <?php
                 foreach ($fields as $key => $field) {
                     self::render_card($key, $field);
@@ -73,53 +73,53 @@ class Allstars_Settings_Manager {
      * @param array  $field Schema entry.
      */
     public static function render_card($key, array $field) {
-        $children = Allstars_Settings::children_of($key);
-        $value    = Allstars_Settings::get($key);
-        $id       = 'wpa-' . $key;
+        $children = SEOProStack_Settings::children_of($key);
+        $value    = SEOProStack_Settings::get($key);
+        $id       = 'sps-' . $key;
         $panel_id = $id . '-panel';
         $is_bool  = 'bool' === $field['type'];
         ?>
-        <section class="wpa-card wpa-setting<?php echo ($is_bool && $value) ? ' is-on' : ''; ?><?php echo $children ? ' has-panel' : ''; ?>" data-setting-card="<?php echo esc_attr($key); ?>">
+        <section class="sps-card sps-setting<?php echo ($is_bool && $value) ? ' is-on' : ''; ?><?php echo $children ? ' has-panel' : ''; ?>" data-setting-card="<?php echo esc_attr($key); ?>">
             <?php // Clicking the header (outside the switch) opens the options; only the switch changes the value. ?>
-            <div class="wpa-setting__header"<?php echo $children ? ' data-wpa-panel-toggle' : ''; ?>>
+            <div class="sps-setting__header"<?php echo $children ? ' data-sps-panel-toggle' : ''; ?>>
                 <?php if ($is_bool) : ?>
-                    <span class="wpa-switch">
+                    <span class="sps-switch">
                         <input type="checkbox"
                                role="switch"
-                               class="wpa-switch__input"
+                               class="sps-switch__input"
                                id="<?php echo esc_attr($id); ?>"
-                               data-wpa-setting="<?php echo esc_attr($key); ?>"
+                               data-sps-setting="<?php echo esc_attr($key); ?>"
                                aria-labelledby="<?php echo esc_attr($id); ?>-title"
                                aria-describedby="<?php echo esc_attr($id); ?>-desc"
                                <?php checked((bool) $value); ?> />
-                        <span class="wpa-switch__track" aria-hidden="true"></span>
+                        <span class="sps-switch__track" aria-hidden="true"></span>
                     </span>
                 <?php endif; ?>
 
-                <div class="wpa-setting__text">
-                    <div class="wpa-setting__title-row">
-                        <span class="wpa-setting__title" id="<?php echo esc_attr($id); ?>-title"><?php echo esc_html($field['label']); ?></span>
-                        <span class="wpa-status" data-wpa-status="<?php echo esc_attr($key); ?>" aria-hidden="true"></span>
+                <div class="sps-setting__text">
+                    <div class="sps-setting__title-row">
+                        <span class="sps-setting__title" id="<?php echo esc_attr($id); ?>-title"><?php echo esc_html($field['label']); ?></span>
+                        <span class="sps-status" data-sps-status="<?php echo esc_attr($key); ?>" aria-hidden="true"></span>
                     </div>
                     <?php if (!empty($field['description'])) : ?>
-                        <p class="wpa-setting__desc" id="<?php echo esc_attr($id); ?>-desc"><?php echo esc_html($field['description']); ?></p>
+                        <p class="sps-setting__desc" id="<?php echo esc_attr($id); ?>-desc"><?php echo esc_html($field['description']); ?></p>
                     <?php endif; ?>
                 </div>
 
                 <?php if ($children) : ?>
                     <button type="button"
-                            class="wpa-setting__expand button-link"
+                            class="sps-setting__expand button-link"
                             aria-expanded="false"
                             aria-controls="<?php echo esc_attr($panel_id); ?>">
-                        <span class="wpa-setting__expand-label"><?php esc_html_e('Options', 'allstars'); ?></span>
+                        <span class="sps-setting__expand-label"><?php esc_html_e('Options', 'seoprostack'); ?></span>
                         <span class="dashicons dashicons-arrow-down-alt2" aria-hidden="true"></span>
-                        <span class="screen-reader-text"><?php echo esc_html(sprintf(/* translators: %s: setting name */ __('for %s', 'allstars'), $field['label'])); ?></span>
+                        <span class="screen-reader-text"><?php echo esc_html(sprintf(/* translators: %s: setting name */ __('for %s', 'seoprostack'), $field['label'])); ?></span>
                     </button>
                 <?php endif; ?>
             </div>
 
             <?php if ($children) : ?>
-                <div class="wpa-setting__panel" id="<?php echo esc_attr($panel_id); ?>" hidden>
+                <div class="sps-setting__panel" id="<?php echo esc_attr($panel_id); ?>" hidden>
                     <?php
                     foreach ($children as $child_key => $child) {
                         self::render_field($child_key, $child);
@@ -138,24 +138,24 @@ class Allstars_Settings_Manager {
      * @param array  $field Schema entry.
      */
     public static function render_field($key, array $field) {
-        $value   = Allstars_Settings::get($key);
-        $id      = 'wpa-' . $key;
+        $value   = SEOProStack_Settings::get($key);
+        $id      = 'sps-' . $key;
         $desc_id = $id . '-desc';
-        $attrs   = sprintf('id="%1$s" data-wpa-setting="%2$s" aria-describedby="%3$s"', esc_attr($id), esc_attr($key), esc_attr($desc_id));
+        $attrs   = sprintf('id="%1$s" data-sps-setting="%2$s" aria-describedby="%3$s"', esc_attr($id), esc_attr($key), esc_attr($desc_id));
         $is_multi = 'multi' === $field['type'];
         ?>
-        <div class="wpa-field">
+        <div class="sps-field">
             <?php if ($is_multi) : ?>
-                <span class="wpa-field__label" id="<?php echo esc_attr($id); ?>-label"><?php echo esc_html($field['label']); ?></span>
+                <span class="sps-field__label" id="<?php echo esc_attr($id); ?>-label"><?php echo esc_html($field['label']); ?></span>
             <?php else : ?>
-                <label class="wpa-field__label" for="<?php echo esc_attr($id); ?>"><?php echo esc_html($field['label']); ?></label>
+                <label class="sps-field__label" for="<?php echo esc_attr($id); ?>"><?php echo esc_html($field['label']); ?></label>
             <?php endif; ?>
-            <div class="wpa-field__control">
+            <div class="sps-field__control">
                 <?php
                 switch ($field['type']) {
                     case 'select':
                         printf('<select %s>', $attrs); // phpcs:ignore WordPress.Security.EscapeOutput -- escaped above.
-                        foreach (Allstars_Settings::options_for($field) as $option_value => $option_label) {
+                        foreach (SEOProStack_Settings::options_for($field) as $option_value => $option_label) {
                             printf(
                                 '<option value="%1$s"%2$s>%3$s</option>',
                                 esc_attr((string) $option_value),
@@ -167,15 +167,15 @@ class Allstars_Settings_Manager {
                         break;
 
                     case 'multi':
-                        // The group carries data-wpa-setting; the JS saves every checked value.
+                        // The group carries data-sps-setting; the JS saves every checked value.
                         printf(
-                            '<fieldset class="wpa-checkboxes" data-wpa-multi %1$s aria-labelledby="%2$s">',
+                            '<fieldset class="sps-checkboxes" data-sps-multi %1$s aria-labelledby="%2$s">',
                             $attrs, // phpcs:ignore WordPress.Security.EscapeOutput -- escaped above.
                             esc_attr($id . '-label')
                         );
-                        foreach (Allstars_Settings::options_for($field) as $option_value => $option_label) {
+                        foreach (SEOProStack_Settings::options_for($field) as $option_value => $option_label) {
                             printf(
-                                '<label class="wpa-checkbox"><input type="checkbox" value="%1$s"%2$s /> %3$s</label>',
+                                '<label class="sps-checkbox"><input type="checkbox" value="%1$s"%2$s /> %3$s</label>',
                                 esc_attr((string) $option_value),
                                 checked(in_array((string) $option_value, array_map('strval', (array) $value), true), true, false),
                                 esc_html($option_label)
@@ -202,7 +202,7 @@ class Allstars_Settings_Manager {
                             esc_attr(isset($field['max']) ? (string) $field['max'] : '')
                         );
                         if (!empty($field['unit'])) {
-                            echo ' <span class="wpa-field__unit">' . esc_html($field['unit']) . '</span>';
+                            echo ' <span class="sps-field__unit">' . esc_html($field['unit']) . '</span>';
                         }
                         break;
 
@@ -217,7 +217,7 @@ class Allstars_Settings_Manager {
 
                     case 'bool':
                         printf(
-                            '<span class="wpa-switch"><input type="checkbox" role="switch" class="wpa-switch__input" %1$s %2$s /><span class="wpa-switch__track" aria-hidden="true"></span></span>',
+                            '<span class="sps-switch"><input type="checkbox" role="switch" class="sps-switch__input" %1$s %2$s /><span class="sps-switch__track" aria-hidden="true"></span></span>',
                             $attrs, // phpcs:ignore WordPress.Security.EscapeOutput -- escaped above.
                             checked((bool) $value, true, false)
                         );
@@ -234,15 +234,15 @@ class Allstars_Settings_Manager {
                         break;
                 }
                 ?>
-                <span class="wpa-status" data-wpa-status="<?php echo esc_attr($key); ?>" aria-hidden="true"></span>
+                <span class="sps-status" data-sps-status="<?php echo esc_attr($key); ?>" aria-hidden="true"></span>
                 <?php if (!empty($field['description']) || !empty($field['tokens'])) : ?>
                     <p class="description" id="<?php echo esc_attr($desc_id); ?>">
                         <?php echo esc_html(isset($field['description']) ? $field['description'] : ''); ?>
                         <?php if (!empty($field['tokens'])) : ?>
-                            <span class="wpa-tokens">
-                                <?php esc_html_e('Tokens:', 'allstars'); ?>
+                            <span class="sps-tokens">
+                                <?php esc_html_e('Tokens:', 'seoprostack'); ?>
                                 <?php foreach ($field['tokens'] as $token) : ?>
-                                    <button type="button" class="wpa-token" data-token="<?php echo esc_attr($token); ?>" data-target="<?php echo esc_attr($id); ?>" title="<?php esc_attr_e('Insert token', 'allstars'); ?>"><code><?php echo esc_html($token); ?></code></button>
+                                    <button type="button" class="sps-token" data-token="<?php echo esc_attr($token); ?>" data-target="<?php echo esc_attr($id); ?>" title="<?php esc_attr_e('Insert token', 'seoprostack'); ?>"><code><?php echo esc_html($token); ?></code></button>
                                 <?php endforeach; ?>
                             </span>
                         <?php endif; ?>

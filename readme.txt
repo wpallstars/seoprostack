@@ -1,4 +1,4 @@
-=== Allstars ===
+=== SEO Pro Stack ===
 Contributors: marcusquinn
 Tags: magic login, iframe, schedule posts, auto upload images, admin
 Requires at least: 6.2
@@ -12,9 +12,9 @@ Curated plugins, themes, hosting and tools for WordPress, plus small opt-in qual
 
 == Description ==
 
-Allstars is free and open source. There is no pro version and nothing is locked.
+SEO Pro Stack is free and open source. There is no pro version and nothing is locked.
 
-Everything is off by default. Settings save instantly from **Settings → Allstars**.
+Everything is off by default. Settings save instantly from **Settings → SEO Pro Stack**.
 
 = Features =
 
@@ -50,13 +50,13 @@ No other data is sent.
 
 = Developers =
 
-Settings, tabs and directory entries can be extended with filters such as `allstars_settings_schema`, `allstars_admin_tabs` and `allstars_tools_items`. See the Read Me tab in the plugin for the full list.
+Settings, tabs and directory entries can be extended with filters such as `seoprostack_settings_schema`, `seoprostack_admin_tabs` and `seoprostack_tools_items`. See the Read Me tab in the plugin for the full list.
 
 == Installation ==
 
 1. Install from Plugins → Add New, or upload the plugin folder to `/wp-content/plugins/`.
 2. Activate the plugin.
-3. Go to Settings → Allstars and turn on the features you want.
+3. Go to Settings → SEO Pro Stack and turn on the features you want.
 
 == Frequently Asked Questions ==
 
@@ -83,7 +83,7 @@ They stay scheduled and publish at their times. Turning it off only stops new po
 == Changelog ==
 
 = 0.3.0 =
-* Renamed from WP Allstars to Allstars. Settings are migrated automatically.
+* Renamed from WP Allstars to SEO Pro Stack. Settings are migrated automatically.
 * New: magic login links, publishing queue and iFrame block (all off by default).
 * Kadence links point to the current Kadence pages at Liquid Web.
 * Setting cards keep their rounded corners and “on” marker when hovered.
@@ -98,4 +98,4 @@ They stay scheduled and publish at their times. Turning it off only stops new po
 == Upgrade Notice ==
 
 = 0.3.0 =
-Settings migrate automatically. Review Settings → Allstars after updating.
+Settings migrate automatically. Review Settings → SEO Pro Stack after updating.

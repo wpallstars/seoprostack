@@ -1,6 +1,6 @@
 /**
- * allstars/iframe: pass the page's query string (e.g. UTM tags) to iframes
- * that opt in with data-allstars-pass-params. Existing parameters on the
+ * seoprostack/iframe: pass the page's query string (e.g. UTM tags) to iframes
+ * that opt in with data-seoprostack-pass-params. Existing parameters on the
  * iframe URL win. Runs in the browser so cached pages keep working.
  */
 (function () {
@@ -11,7 +11,7 @@
 			return;
 		}
 		var params = new URLSearchParams(window.location.search);
-		var frames = document.querySelectorAll('iframe[data-allstars-pass-params]');
+		var frames = document.querySelectorAll('iframe[data-seoprostack-pass-params]');
 		Array.prototype.forEach.call(frames, function (frame) {
 			try {
 				var url = new URL(frame.getAttribute('src'), window.location.href);

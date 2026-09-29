@@ -2,7 +2,7 @@
 /**
  * iFrame block.
  *
- * A dynamic block (allstars/iframe) for embedding any page, with the controls
+ * A dynamic block (seoprostack/iframe) for embedding any page, with the controls
  * core's Embed block lacks: size or aspect ratio, lazy loading, sandbox
  * tokens, permissions policy, referrer policy, border and passing the page's
  * query string (e.g. UTM tags) through to the embedded page.
@@ -11,7 +11,7 @@
  * cannot inject HTML. Site owners can limit which domains may be embedded and
  * who may use the block.
  *
- * @package Allstars
+ * @package SEOProStack
  * @since 0.3.0
  */
 
@@ -19,12 +19,12 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-class Allstars_Iframe_Block extends Allstars_Feature {
+class SEOProStack_Iframe_Block extends SEOProStack_Feature {
 
     const KEY = 'iframe_block';
 
     /** Block name. */
-    const BLOCK = 'allstars/iframe';
+    const BLOCK = 'seoprostack/iframe';
 
     /** Sandbox tokens offered in the editor. */
     const SANDBOX_TOKENS = array(
@@ -79,28 +79,28 @@ class Allstars_Iframe_Block extends Allstars_Feature {
                 'type'        => 'bool',
                 'default'     => false,
                 'tab'         => 'workflow',
-                'label'       => __('iFrame block', 'allstars'),
-                'description' => __('Adds an iFrame block to the editor with size, loading, sandbox, permission and referrer controls. Turning it off hides existing iFrame blocks.', 'allstars'),
+                'label'       => __('iFrame block', 'seoprostack'),
+                'description' => __('Adds an iFrame block to the editor with size, loading, sandbox, permission and referrer controls. Turning it off hides existing iFrame blocks.', 'seoprostack'),
             ),
             'iframe_block_domains' => array(
                 'type'        => 'domains',
                 'default'     => '',
                 'parent'      => self::KEY,
-                'label'       => __('Allowed domains', 'allstars'),
-                'description' => __('One domain per line; subdomains are included. Leave empty to allow any site.', 'allstars'),
+                'label'       => __('Allowed domains', 'seoprostack'),
+                'description' => __('One domain per line; subdomains are included. Leave empty to allow any site.', 'seoprostack'),
                 'placeholder' => "youtube.com\ncalendly.com",
             ),
             'iframe_block_capability' => array(
                 'type'        => 'select',
                 'default'     => 'edit_posts',
                 'parent'      => self::KEY,
-                'label'       => __('Who can add iFrames', 'allstars'),
-                'description' => __('Checked in the editor and again when the page is shown, using the post author’s role.', 'allstars'),
+                'label'       => __('Who can add iFrames', 'seoprostack'),
+                'description' => __('Checked in the editor and again when the page is shown, using the post author’s role.', 'seoprostack'),
                 'options'     => array(
-                    'edit_posts'      => __('Contributors and above', 'allstars'),
-                    'publish_posts'   => __('Authors and above', 'allstars'),
-                    'edit_others_posts' => __('Editors and above', 'allstars'),
-                    'unfiltered_html' => __('Only people who can add any HTML', 'allstars'),
+                    'edit_posts'      => __('Contributors and above', 'seoprostack'),
+                    'publish_posts'   => __('Authors and above', 'seoprostack'),
+                    'edit_others_posts' => __('Editors and above', 'seoprostack'),
+                    'unfiltered_html' => __('Only people who can add any HTML', 'seoprostack'),
                 ),
             ),
         );
@@ -114,7 +114,7 @@ class Allstars_Iframe_Block extends Allstars_Feature {
             return;
         }
         // boot() runs on init, which is where blocks are registered.
-        register_block_type(ALLSTARS_DIR . 'blocks/iframe');
+        register_block_type(SEOPROSTACK_DIR . 'blocks/iframe');
         add_filter('allowed_block_types_all', array(__CLASS__, 'restrict_inserter'), 10, 2);
         add_action('enqueue_block_editor_assets', array(__CLASS__, 'editor_settings'));
     }
@@ -142,7 +142,7 @@ class Allstars_Iframe_Block extends Allstars_Feature {
      */
     public static function editor_settings() {
         $handle = generate_block_asset_handle(self::BLOCK, 'editorScript');
-        wp_add_inline_script($handle, 'window.allstarsIframe = ' . wp_json_encode(array(
+        wp_add_inline_script($handle, 'window.seoprostackIframe = ' . wp_json_encode(array(
             'domains' => self::allowed_domains(),
         )) . ';', 'before');
     }
@@ -153,7 +153,7 @@ class Allstars_Iframe_Block extends Allstars_Feature {
      * @return string
      */
     public static function capability() {
-        $cap = (string) Allstars_Settings::get('iframe_block_capability');
+        $cap = (string) SEOProStack_Settings::get('iframe_block_capability');
         return '' !== $cap ? $cap : 'edit_posts';
     }
 
@@ -163,7 +163,7 @@ class Allstars_Iframe_Block extends Allstars_Feature {
      * @return string[]
      */
     public static function allowed_domains() {
-        return Allstars_Settings::parse_domains(Allstars_Settings::get('iframe_block_domains'));
+        return SEOProStack_Settings::parse_domains(SEOProStack_Settings::get('iframe_block_domains'));
     }
 
     /**
@@ -182,7 +182,7 @@ class Allstars_Iframe_Block extends Allstars_Feature {
             return '';
         }
         $domains = self::allowed_domains();
-        if ($domains && !Allstars_Settings::host_matches($host, $domains)) {
+        if ($domains && !SEOProStack_Settings::host_matches($host, $domains)) {
             return '';
         }
         return $url;
@@ -218,7 +218,7 @@ class Allstars_Iframe_Block extends Allstars_Feature {
         $ratio = isset($attributes['aspectRatio']) && in_array($attributes['aspectRatio'], self::RATIOS, true) ? $attributes['aspectRatio'] : '';
         $attrs = array(
             'src'            => $url,
-            'title'          => isset($attributes['title']) && '' !== trim($attributes['title']) ? sanitize_text_field($attributes['title']) : __('Embedded content', 'allstars'),
+            'title'          => isset($attributes['title']) && '' !== trim($attributes['title']) ? sanitize_text_field($attributes['title']) : __('Embedded content', 'seoprostack'),
             'loading'        => !isset($attributes['lazy']) || $attributes['lazy'] ? 'lazy' : 'eager',
             'referrerpolicy' => isset($attributes['referrerPolicy']) && in_array($attributes['referrerPolicy'], self::REFERRER_POLICIES, true) ? $attributes['referrerPolicy'] : 'strict-origin-when-cross-origin',
         );
@@ -250,7 +250,7 @@ class Allstars_Iframe_Block extends Allstars_Feature {
         }
 
         if (!empty($attributes['passParams'])) {
-            $attrs['data-allstars-pass-params'] = '';
+            $attrs['data-seoprostack-pass-params'] = '';
         }
 
         return $attrs;

@@ -1,14 +1,14 @@
 {
 	"$schema": "https://schemas.wp.org/trunk/block.json",
 	"apiVersion": 3,
-	"name": "allstars/iframe",
+	"name": "seoprostack/iframe",
 	"version": "0.3.0",
 	"title": "iFrame",
 	"category": "embed",
 	"icon": "embed-generic",
 	"description": "Embed any web page with control over size, loading, sandbox, permissions and referrer.",
 	"keywords": [ "iframe", "embed", "frame", "form", "calendar", "map" ],
-	"textdomain": "allstars",
+	"textdomain": "seoprostack",
 	"attributes": {
 		"url": { "type": "string", "default": "" },
 		"title": { "type": "string", "default": "" },

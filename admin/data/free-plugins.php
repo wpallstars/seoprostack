@@ -1,6 +1,6 @@
 <?php
 /**
- * Recommended plugins data for Allstars plugin
+ * Recommended plugins data for SEO Pro Stack plugin
  */
 
 if (!defined('ABSPATH')) {
@@ -8,7 +8,7 @@ if (!defined('ABSPATH')) {
 }
 
 // Define recommended plugins
-function allstars_get_free_plugins() {
+function seoprostack_get_free_plugins() {
     return array(
         'minimal' => array(
             'antispam-bee',
@@ -173,7 +173,7 @@ function allstars_get_free_plugins() {
  *
  * @return array<string,array{name:string,description:string,closed:string,reason:string,replacement:string}>
  */
-function allstars_get_removed_plugins() {
+function seoprostack_get_removed_plugins() {
     return array(
         'content-control' => array(
             'name'        => 'Content Control',
@@ -194,7 +194,7 @@ function allstars_get_removed_plugins() {
             'description' => 'List and delete the old slugs WordPress stores for redirects.',
             'closed'      => '2026-04-27',
             'reason'      => 'Guideline violation.',
-            'replacement' => 'Candidate for a lightweight Allstars feature.',
+            'replacement' => 'Candidate for a lightweight SEO Pro Stack feature.',
         ),
     );
 }

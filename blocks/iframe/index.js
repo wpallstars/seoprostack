@@ -1,5 +1,5 @@
 /**
- * allstars/iframe editor script.
+ * seoprostack/iframe editor script.
  *
  * Plain ES5 with wp.element.createElement so the plugin needs no build step.
  * The saved content is empty: render.php builds the iframe on the server.
@@ -25,34 +25,34 @@
 	var ToolbarGroup = components.ToolbarGroup;
 	var ToolbarButton = components.ToolbarButton;
 
-	var cfg = window.allstarsIframe || { domains: [] };
+	var cfg = window.seoprostackIframe || { domains: [] };
 
 	var SANDBOX = [
-		['allow-scripts', __('Run scripts', 'allstars')],
-		['allow-same-origin', __('Treat as its own site (cookies, storage)', 'allstars')],
-		['allow-forms', __('Submit forms', 'allstars')],
-		['allow-popups', __('Open pop-ups', 'allstars')],
-		['allow-popups-to-escape-sandbox', __('Pop-ups without restrictions', 'allstars')],
-		['allow-presentation', __('Presentation mode', 'allstars')],
-		['allow-modals', __('Alerts and dialogs', 'allstars')],
-		['allow-downloads', __('Downloads', 'allstars')],
-		['allow-top-navigation-by-user-activation', __('Navigate this page when clicked', 'allstars')]
+		['allow-scripts', __('Run scripts', 'seoprostack')],
+		['allow-same-origin', __('Treat as its own site (cookies, storage)', 'seoprostack')],
+		['allow-forms', __('Submit forms', 'seoprostack')],
+		['allow-popups', __('Open pop-ups', 'seoprostack')],
+		['allow-popups-to-escape-sandbox', __('Pop-ups without restrictions', 'seoprostack')],
+		['allow-presentation', __('Presentation mode', 'seoprostack')],
+		['allow-modals', __('Alerts and dialogs', 'seoprostack')],
+		['allow-downloads', __('Downloads', 'seoprostack')],
+		['allow-top-navigation-by-user-activation', __('Navigate this page when clicked', 'seoprostack')]
 	];
 
 	var ALLOW = [
-		['autoplay', __('Autoplay', 'allstars')],
-		['camera', __('Camera', 'allstars')],
-		['microphone', __('Microphone', 'allstars')],
-		['geolocation', __('Location', 'allstars')],
-		['clipboard-write', __('Copy to clipboard', 'allstars')],
-		['encrypted-media', __('Protected media', 'allstars')],
-		['picture-in-picture', __('Picture-in-picture', 'allstars')],
-		['payment', __('Payments', 'allstars')],
-		['web-share', __('Share', 'allstars')]
+		['autoplay', __('Autoplay', 'seoprostack')],
+		['camera', __('Camera', 'seoprostack')],
+		['microphone', __('Microphone', 'seoprostack')],
+		['geolocation', __('Location', 'seoprostack')],
+		['clipboard-write', __('Copy to clipboard', 'seoprostack')],
+		['encrypted-media', __('Protected media', 'seoprostack')],
+		['picture-in-picture', __('Picture-in-picture', 'seoprostack')],
+		['payment', __('Payments', 'seoprostack')],
+		['web-share', __('Share', 'seoprostack')]
 	];
 
 	var RATIOS = [
-		{ value: '', label: __('Fixed size', 'allstars') },
+		{ value: '', label: __('Fixed size', 'seoprostack') },
 		{ value: '16/9', label: '16:9' },
 		{ value: '4/3', label: '4:3' },
 		{ value: '3/2', label: '3:2' },
@@ -82,10 +82,10 @@
 		try {
 			parsed = new URL(url);
 		} catch (e) {
-			return __('Enter a full web address starting with https://', 'allstars');
+			return __('Enter a full web address starting with https://', 'seoprostack');
 		}
 		if (parsed.protocol !== 'https:' && parsed.protocol !== 'http:') {
-			return __('Only http and https addresses can be embedded.', 'allstars');
+			return __('Only http and https addresses can be embedded.', 'seoprostack');
 		}
 		if (cfg.domains && cfg.domains.length) {
 			var host = parsed.hostname.toLowerCase().replace(/^www\./, '');
@@ -93,7 +93,7 @@
 				return host === domain || host.slice(-(domain.length + 1)) === '.' + domain;
 			});
 			if (!ok) {
-				return __('This domain is not on the allowed list in Settings → Allstars, so it will not be shown.', 'allstars');
+				return __('This domain is not on the allowed list in Settings → SEO Pro Stack, so it will not be shown.', 'seoprostack');
 			}
 		}
 		return '';
@@ -141,11 +141,11 @@
 			return el('div', blockProps,
 				el(Placeholder, {
 					icon: 'embed-generic',
-					label: __('iFrame', 'allstars'),
-					instructions: __('Paste the address of the page to embed.', 'allstars')
+					label: __('iFrame', 'seoprostack'),
+					instructions: __('Paste the address of the page to embed.', 'seoprostack')
 				},
 					el('form', {
-						className: 'allstars-iframe-url-form',
+						className: 'seoprostack-iframe-url-form',
 						style: { display: 'flex', gap: '8px', width: '100%', flexWrap: 'wrap' },
 						onSubmit: function (event) {
 							event.preventDefault();
@@ -160,13 +160,13 @@
 								type: 'url',
 								value: draft,
 								placeholder: 'https://',
-								label: __('Page address', 'allstars'),
+								label: __('Page address', 'seoprostack'),
 								hideLabelFromVision: true,
 								onChange: setDraft,
 								__nextHasNoMarginBottom: true
 							})
 						),
-						el(Button, { variant: 'primary', type: 'submit', disabled: !draft || !!draftProblem }, __('Embed', 'allstars'))
+						el(Button, { variant: 'primary', type: 'submit', disabled: !draft || !!draftProblem }, __('Embed', 'seoprostack'))
 					),
 					draftProblem ? el('p', { className: 'components-placeholder__instructions', style: { color: '#cc1818', marginTop: '8px' } }, draftProblem) : null
 				)
@@ -182,7 +182,7 @@
 				el(ToolbarGroup, {},
 					el(ToolbarButton, {
 						icon: 'edit',
-						label: __('Change address', 'allstars'),
+						label: __('Change address', 'seoprostack'),
 						onClick: function () {
 							setDraft(a.url);
 							setEditing(true);
@@ -191,40 +191,40 @@
 				)
 			),
 			el(InspectorControls, {},
-				el(PanelBody, { title: __('Page', 'allstars') },
+				el(PanelBody, { title: __('Page', 'seoprostack') },
 					el(TextControl, {
-						label: __('Title', 'allstars'),
-						help: __('Describes the embed for screen readers.', 'allstars'),
+						label: __('Title', 'seoprostack'),
+						help: __('Describes the embed for screen readers.', 'seoprostack'),
 						value: a.title,
 						onChange: function (value) { set({ title: value }); },
 						__nextHasNoMarginBottom: true
 					}),
 					el(ToggleControl, {
-						label: __('Pass page URL parameters', 'allstars'),
-						help: __('Adds this page’s query string (for example UTM tags) to the embedded address.', 'allstars'),
+						label: __('Pass page URL parameters', 'seoprostack'),
+						help: __('Adds this page’s query string (for example UTM tags) to the embedded address.', 'seoprostack'),
 						checked: a.passParams,
 						onChange: function (value) { set({ passParams: value }); },
 						__nextHasNoMarginBottom: true
 					})
 				),
-				el(PanelBody, { title: __('Size', 'allstars') },
+				el(PanelBody, { title: __('Size', 'seoprostack') },
 					el(SelectControl, {
-						label: __('Aspect ratio', 'allstars'),
+						label: __('Aspect ratio', 'seoprostack'),
 						value: a.aspectRatio,
 						options: RATIOS,
 						onChange: function (value) { set({ aspectRatio: value }); },
 						__nextHasNoMarginBottom: true
 					}),
 					a.aspectRatio ? null : el(TextControl, {
-						label: __('Width', 'allstars'),
-						help: __('Pixels (e.g. 600) or a percentage (e.g. 100%).', 'allstars'),
+						label: __('Width', 'seoprostack'),
+						help: __('Pixels (e.g. 600) or a percentage (e.g. 100%).', 'seoprostack'),
 						value: a.width,
 						onChange: function (value) { set({ width: value }); },
 						__nextHasNoMarginBottom: true
 					}),
 					a.aspectRatio ? null : el(TextControl, {
 						type: 'number',
-						label: __('Height (px)', 'allstars'),
+						label: __('Height (px)', 'seoprostack'),
 						min: 50,
 						max: 5000,
 						value: a.height,
@@ -232,43 +232,43 @@
 						__nextHasNoMarginBottom: true
 					}),
 					el(ToggleControl, {
-						label: __('Show border', 'allstars'),
+						label: __('Show border', 'seoprostack'),
 						checked: a.showBorder,
 						onChange: function (value) { set({ showBorder: value }); },
 						__nextHasNoMarginBottom: true
 					})
 				),
-				el(PanelBody, { title: __('Loading and permissions', 'allstars'), initialOpen: false },
+				el(PanelBody, { title: __('Loading and permissions', 'seoprostack'), initialOpen: false },
 					el(ToggleControl, {
-						label: __('Lazy load', 'allstars'),
-						help: __('Load the page only when it scrolls into view.', 'allstars'),
+						label: __('Lazy load', 'seoprostack'),
+						help: __('Load the page only when it scrolls into view.', 'seoprostack'),
 						checked: a.lazy,
 						onChange: function (value) { set({ lazy: value }); },
 						__nextHasNoMarginBottom: true
 					}),
 					el(ToggleControl, {
-						label: __('Allow full screen', 'allstars'),
+						label: __('Allow full screen', 'seoprostack'),
 						checked: a.allowFullscreen,
 						onChange: function (value) { set({ allowFullscreen: value }); },
 						__nextHasNoMarginBottom: true
 					}),
-					el('p', { style: { fontWeight: 600, margin: '16px 0 8px' } }, __('Allow the embedded page to use', 'allstars')),
+					el('p', { style: { fontWeight: 600, margin: '16px 0 8px' } }, __('Allow the embedded page to use', 'seoprostack')),
 					checkboxes(ALLOW, a.allow, function (value) { set({ allow: value }); }),
 					el(SelectControl, {
-						label: __('Referrer policy', 'allstars'),
-						help: __('How much of this page’s address is sent to the embedded site.', 'allstars'),
+						label: __('Referrer policy', 'seoprostack'),
+						help: __('How much of this page’s address is sent to the embedded site.', 'seoprostack'),
 						value: a.referrerPolicy,
 						options: REFERRER,
 						onChange: function (value) { set({ referrerPolicy: value }); },
 						__nextHasNoMarginBottom: true
 					})
 				),
-				el(PanelBody, { title: __('Sandbox', 'allstars'), initialOpen: false },
+				el(PanelBody, { title: __('Sandbox', 'seoprostack'), initialOpen: false },
 					el(ToggleControl, {
-						label: __('Sandbox the embedded page', 'allstars'),
+						label: __('Sandbox the embedded page', 'seoprostack'),
 						help: a.sandbox
-							? __('Recommended. The page can only do what is ticked below.', 'allstars')
-							: __('The embedded page is not restricted. Only turn this off for sites you trust.', 'allstars'),
+							? __('Recommended. The page can only do what is ticked below.', 'seoprostack')
+							: __('The embedded page is not restricted. Only turn this off for sites you trust.', 'seoprostack'),
 						checked: a.sandbox,
 						onChange: function (value) { set({ sandbox: value }); },
 						__nextHasNoMarginBottom: true
@@ -281,8 +281,8 @@
 				el('div', { style: { position: 'relative' } },
 					el('iframe', {
 						src: a.url,
-						title: a.title || __('Embedded content', 'allstars'),
-						className: 'wp-block-allstars-iframe__frame' + (a.showBorder ? ' has-border' : ''),
+						title: a.title || __('Embedded content', 'seoprostack'),
+						className: 'wp-block-seoprostack-iframe__frame' + (a.showBorder ? ' has-border' : ''),
 						style: frameStyle,
 						sandbox: 'allow-scripts allow-same-origin',
 						loading: 'lazy',
@@ -295,7 +295,7 @@
 		);
 	}
 
-	blocks.registerBlockType('allstars/iframe', {
+	blocks.registerBlockType('seoprostack/iframe', {
 		edit: Edit,
 		save: function () {
 			return null;

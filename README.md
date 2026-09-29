@@ -1,12 +1,12 @@
-# Allstars
+# SEO Pro Stack
 
 Curated plugins, themes, hosting and workflow tools for WordPress, plus a few small quality-of-life features.
 
-Version: {ALLSTARS_VERSION}
+Version: {SEOPROSTACK_VERSION}
 
 ## Where to find it
 
-Go to **Settings → Allstars**. The screen has three groups of tabs:
+Go to **Settings → SEO Pro Stack**. The screen has three groups of tabs:
 
 - **Settings**: General and Workflow. Changes save instantly; there is no Save button.
 - **Discover**: Theme, Free Plugins, Pro Plugins, Hosting and Tools.
@@ -76,26 +76,26 @@ When a post is saved, images linked from other sites are copied into the Media L
 
 Developers can add settings, tabs and directory entries with filters:
 
-- `allstars_features`: register a feature class that extends `Allstars_Feature` (declare settings in `settings()`, add hooks in `boot()`).
-- `allstars_settings_schema`: add or change settings. Each entry sets `type` (bool, int, text, domains, select, multi or times), `default`, `label`, `description` and either `tab` or `parent`; select and multi also take `options` (an array or a callable). Settings render and save automatically.
-- `allstars_admin_tabs`: add or reorder admin tabs. Each tab sets `label`, `group` (settings, discover or about), a `render` callback and an optional `capability`; tabs the current user lacks the capability for are hidden.
-- `allstars_pro_items`, `allstars_hosting_items`, `allstars_tools_items`: change directory entries.
-- `allstars_auto_upload_process_post`: skip image copying for specific posts.
-- `allstars_auto_upload_limit`: change the per-save import limit.
-- `allstars_magic_login_allowed`: allow or refuse login links for a user.
-- `allstars_magic_login_email`: change the login link email.
-- `allstars_magic_login_ip_limit`: requests allowed per IP address per 15 minutes (default 5).
-- `allstars_post_scheduler_applies`: skip the publishing queue for specific posts.
+- `seoprostack_features`: register a feature class that extends `SEOProStack_Feature` (declare settings in `settings()`, add hooks in `boot()`).
+- `seoprostack_settings_schema`: add or change settings. Each entry sets `type` (bool, int, text, domains, select, multi or times), `default`, `label`, `description` and either `tab` or `parent`; select and multi also take `options` (an array or a callable). Settings render and save automatically.
+- `seoprostack_admin_tabs`: add or reorder admin tabs. Each tab sets `label`, `group` (settings, discover or about), a `render` callback and an optional `capability`; tabs the current user lacks the capability for are hidden.
+- `seoprostack_pro_items`, `seoprostack_hosting_items`, `seoprostack_tools_items`: change directory entries.
+- `seoprostack_auto_upload_process_post`: skip image copying for specific posts.
+- `seoprostack_auto_upload_limit`: change the per-save import limit.
+- `seoprostack_magic_login_allowed`: allow or refuse login links for a user.
+- `seoprostack_magic_login_email`: change the login link email.
+- `seoprostack_magic_login_ip_limit`: requests allowed per IP address per 15 minutes (default 5).
+- `seoprostack_post_scheduler_applies`: skip the publishing queue for specific posts.
 
 Actions:
 
-- `allstars_setting_saved`: a setting was saved from the admin screen.
-- `allstars_magic_login_link_sent`: a login link was emailed.
-- `allstars_post_queued`: a post was scheduled by the publishing queue.
-- `allstars_image_imported`: an external image was imported.
-- `allstars_image_upload_error`: an image could not be imported.
+- `seoprostack_setting_saved`: a setting was saved from the admin screen.
+- `seoprostack_magic_login_link_sent`: a login link was emailed.
+- `seoprostack_post_queued`: a post was scheduled by the publishing queue.
+- `seoprostack_image_imported`: an external image was imported.
+- `seoprostack_image_upload_error`: an image could not be imported.
 
-Read a setting with `Allstars_Settings::get( 'key' )`.
+Read a setting with `SEOProStack_Settings::get( 'key' )`.
 
 ## Uninstall
 
@@ -105,9 +105,9 @@ Deleting the plugin removes its settings and cached data. Imported media stays i
 
 ### 0.3.0
 
-- Renamed from WP Allstars to Allstars (slug `allstars`). Settings, and images imported by earlier versions, carry over automatically.
+- Renamed from WP Allstars to SEO Pro Stack (slug `seoprostack`). Settings, and images imported by earlier versions, carry over automatically.
 - New features, all off by default: magic login links, publishing queue, iFrame block.
-- Features are self-contained classes registered with `allstars_features`; settings support select, multi-choice and time-list fields.
+- Features are self-contained classes registered with `seoprostack_features`; settings support select, multi-choice and time-list fields.
 - Setting cards keep their rounded corners and “on” marker when hovered.
 - Kadence links point to the current Kadence pages at Liquid Web.
 - New admin screen: grouped tabs, instant-save setting cards, accessible switches and expandable options.

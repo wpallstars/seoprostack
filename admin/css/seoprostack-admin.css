@@ -1,58 +1,58 @@
 /**
- * Allstars admin screen.
+ * SEO Pro Stack admin screen.
  *
- * Scoped to .wpa-wrap. Uses core admin tokens so the screen follows the
+ * Scoped to .sps-wrap. Uses core admin tokens so the screen follows the
  * active admin colour scheme; core buttons, notices and plugin cards keep
  * their native styles. Logical properties keep RTL working without a
  * separate stylesheet.
  */
 
-.wpa-wrap {
-	--wpa-accent: var(--wp-admin-theme-color, #2271b1);
-	--wpa-accent-dark: var(--wp-admin-theme-color-darker-10, #135e96);
-	--wpa-text: #1d2327;
-	--wpa-muted: #646970;
-	--wpa-border: #dcdcde;
-	--wpa-surface: #fff;
-	--wpa-subtle: #f6f7f7;
-	--wpa-success: #008a20;
-	--wpa-error: #d63638;
-	--wpa-radius: 8px;
-	--wpa-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
-	--wpa-focus: 0 0 0 2px var(--wpa-surface), 0 0 0 4px var(--wpa-accent);
+.sps-wrap {
+	--sps-accent: var(--wp-admin-theme-color, #2271b1);
+	--sps-accent-dark: var(--wp-admin-theme-color-darker-10, #135e96);
+	--sps-text: #1d2327;
+	--sps-muted: #646970;
+	--sps-border: #dcdcde;
+	--sps-surface: #fff;
+	--sps-subtle: #f6f7f7;
+	--sps-success: #008a20;
+	--sps-error: #d63638;
+	--sps-radius: 8px;
+	--sps-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+	--sps-focus: 0 0 0 2px var(--sps-surface), 0 0 0 4px var(--sps-accent);
 
 	margin-block-start: 0;
 	margin-inline-start: -20px;
 	margin-inline-end: 0;
-	color: var(--wpa-text);
+	color: var(--sps-text);
 }
 
-.wpa-wrap *,
-.wpa-wrap *::before,
-.wpa-wrap *::after {
+.sps-wrap *,
+.sps-wrap *::before,
+.sps-wrap *::after {
 	box-sizing: border-box;
 }
 
 /* Header ------------------------------------------------------------- */
 
-.wpa-header {
+.sps-header {
 	display: flex;
 	flex-wrap: wrap;
 	align-items: center;
 	justify-content: space-between;
 	gap: 12px;
 	padding: 14px 24px;
-	background: var(--wpa-surface);
-	border-block-end: 1px solid var(--wpa-border);
+	background: var(--sps-surface);
+	border-block-end: 1px solid var(--sps-border);
 }
 
-.wpa-header__brand {
+.sps-header__brand {
 	display: flex;
 	align-items: center;
 	gap: 10px;
 }
 
-.wpa-header__logo {
+.sps-header__logo {
 	display: inline-flex;
 	align-items: center;
 	justify-content: center;
@@ -60,11 +60,11 @@
 	height: 32px;
 	font-size: 20px;
 	color: #fff;
-	background: var(--wpa-accent);
+	background: var(--sps-accent);
 	border-radius: 6px;
 }
 
-.wpa-wrap .wpa-header__title {
+.sps-wrap .sps-header__title {
 	margin: 0;
 	padding: 0;
 	font-size: 20px;
@@ -74,127 +74,127 @@
 
 /* Navigation --------------------------------------------------------- */
 
-.wpa-nav {
+.sps-nav {
 	display: flex;
 	flex-wrap: wrap;
 	align-items: stretch;
 	padding-inline: 12px;
-	background: var(--wpa-surface);
-	border-block-end: 1px solid var(--wpa-border);
+	background: var(--sps-surface);
+	border-block-end: 1px solid var(--sps-border);
 	overflow-x: auto;
 }
 
-.wpa-nav__group {
+.sps-nav__group {
 	display: flex;
 	align-items: stretch;
 }
 
-.wpa-nav__group + .wpa-nav__group {
+.sps-nav__group + .sps-nav__group {
 	margin-inline-start: 8px;
 	padding-inline-start: 8px;
-	border-inline-start: 1px solid var(--wpa-border);
+	border-inline-start: 1px solid var(--sps-border);
 }
 
-.wpa-nav__tab {
+.sps-nav__tab {
 	display: inline-flex;
 	align-items: center;
 	padding: 14px 12px 11px;
 	font-size: 14px;
 	font-weight: 500;
-	color: var(--wpa-muted);
+	color: var(--sps-muted);
 	text-decoration: none;
 	white-space: nowrap;
 	border-block-end: 3px solid transparent;
 	transition: color 0.1s ease, border-color 0.1s ease;
 }
 
-.wpa-nav__tab:hover {
-	color: var(--wpa-text);
+.sps-nav__tab:hover {
+	color: var(--sps-text);
 }
 
-.wpa-nav__tab:focus {
+.sps-nav__tab:focus {
 	outline: none;
 	box-shadow: none;
 }
 
-.wpa-nav__tab:focus-visible {
-	outline: 2px solid var(--wpa-accent);
+.sps-nav__tab:focus-visible {
+	outline: 2px solid var(--sps-accent);
 	outline-offset: -4px;
 	border-radius: 4px;
 }
 
-.wpa-nav__tab.is-active {
-	color: var(--wpa-text);
+.sps-nav__tab.is-active {
+	color: var(--sps-text);
 	font-weight: 600;
-	border-block-end-color: var(--wpa-accent);
+	border-block-end-color: var(--sps-accent);
 }
 
 /* Main --------------------------------------------------------------- */
 
-.wpa-wrap > .notice,
-.wpa-wrap > div.updated,
-.wpa-wrap > div.error {
+.sps-wrap > .notice,
+.sps-wrap > div.updated,
+.sps-wrap > div.error {
 	margin: 16px 24px 0;
 }
 
-.wpa-main {
+.sps-main {
 	max-width: 1200px;
 	padding: 24px;
 }
 
-.wpa-section {
+.sps-section {
 	max-width: 860px;
 }
 
-.wpa-section__intro {
+.sps-section__intro {
 	margin-block-end: 16px;
 }
 
-.wpa-wrap .wpa-section__title {
+.sps-wrap .sps-section__title {
 	margin: 0 0 4px;
 	font-size: 18px;
 	font-weight: 600;
 }
 
-.wpa-section__desc,
-.wpa-section__hint {
+.sps-section__desc,
+.sps-section__hint {
 	margin: 0;
-	color: var(--wpa-muted);
+	color: var(--sps-muted);
 }
 
-.wpa-section__hint {
+.sps-section__hint {
 	margin-block-start: 4px;
 	font-size: 12px;
 }
 
 /* Cards -------------------------------------------------------------- */
 
-.wpa-card {
-	background: var(--wpa-surface);
-	border: 1px solid var(--wpa-border);
-	border-radius: var(--wpa-radius);
-	box-shadow: var(--wpa-shadow);
+.sps-card {
+	background: var(--sps-surface);
+	border: 1px solid var(--sps-border);
+	border-radius: var(--sps-radius);
+	box-shadow: var(--sps-shadow);
 }
 
-.wpa-cards {
+.sps-cards {
 	display: grid;
 	gap: 12px;
 }
 
-.wpa-badge {
+.sps-badge {
 	display: inline-block;
 	padding: 2px 8px;
 	font-size: 11px;
 	font-weight: 500;
 	line-height: 1.6;
-	color: var(--wpa-muted);
+	color: var(--sps-muted);
 	vertical-align: middle;
-	background: var(--wpa-subtle);
-	border: 1px solid var(--wpa-border);
+	background: var(--sps-subtle);
+	border: 1px solid var(--sps-border);
 	border-radius: 999px;
 }
 
-.wpa-badge--success {
+.sps-badge--success {
 	color: #00450c;
 	background: #edfaef;
 	border-color: #b8e6bf;
@@ -203,30 +203,30 @@
 /* Setting cards ------------------------------------------------------ */
 
 /* Clip the header hover and panel backgrounds to the rounded corners. */
-.wpa-setting {
+.sps-setting {
 	position: relative;
 	overflow: hidden;
 }
 
 /* "On" stripe drawn above the header/panel backgrounds so hover never hides it. */
-.wpa-setting::before {
+.sps-setting::before {
 	content: "";
 	position: absolute;
 	z-index: 1;
 	inset-block: 0;
 	inset-inline-start: 0;
 	width: 3px;
-	background: var(--wpa-accent);
+	background: var(--sps-accent);
 	opacity: 0;
 	pointer-events: none;
 	transition: opacity 0.15s ease;
 }
 
-.wpa-setting.is-on::before {
+.sps-setting.is-on::before {
 	opacity: 1;
 }
 
-.wpa-setting__header {
+.sps-setting__header {
 	display: grid;
 	grid-template-columns: auto 1fr auto;
 	align-items: center;
@@ -234,20 +234,20 @@
 	padding: 16px 20px;
 }
 
-.wpa-setting.has-panel .wpa-setting__header {
+.sps-setting.has-panel .sps-setting__header {
 	cursor: pointer;
 }
 
-.wpa-setting.has-panel .wpa-setting__header:hover {
+.sps-setting.has-panel .sps-setting__header:hover {
 	background: #fcfcfc;
 }
 
-.wpa-setting__text {
+.sps-setting__text {
 	min-width: 0;
 }
 
 /* Status sits beside the title so showing/hiding it never reflows the description. */
-.wpa-setting__title-row {
+.sps-setting__title-row {
 	display: flex;
 	flex-wrap: wrap;
 	align-items: center;
@@ -255,84 +255,84 @@
 	min-height: 20px;
 }
 
-.wpa-setting__title {
+.sps-setting__title {
 	font-size: 14px;
 	font-weight: 600;
 }
 
-.wpa-setting__desc {
+.sps-setting__desc {
 	margin: 2px 0 0;
-	color: var(--wpa-muted);
+	color: var(--sps-muted);
 }
 
-.wpa-wrap .wpa-setting__expand {
+.sps-wrap .sps-setting__expand {
 	display: inline-flex;
 	align-items: center;
 	gap: 4px;
 	padding: 6px 8px;
-	color: var(--wpa-accent);
+	color: var(--sps-accent);
 	text-decoration: none;
 	border-radius: 4px;
 }
 
-.wpa-wrap .wpa-setting__expand:hover {
-	background: var(--wpa-subtle);
+.sps-wrap .sps-setting__expand:hover {
+	background: var(--sps-subtle);
 }
 
-.wpa-wrap .wpa-setting__expand:focus-visible {
+.sps-wrap .sps-setting__expand:focus-visible {
 	outline: none;
-	box-shadow: var(--wpa-focus);
+	box-shadow: var(--sps-focus);
 }
 
-.wpa-setting__expand .dashicons {
+.sps-setting__expand .dashicons {
 	transition: transform 0.15s ease;
 }
 
-.wpa-setting__expand[aria-expanded="true"] .dashicons {
+.sps-setting__expand[aria-expanded="true"] .dashicons {
 	transform: rotate(180deg);
 }
 
-.wpa-setting__panel {
+.sps-setting__panel {
 	padding: 4px 20px 8px;
-	border-block-start: 1px solid var(--wpa-border);
+	border-block-start: 1px solid var(--sps-border);
 	background: #fcfcfc;
 }
 
-.wpa-setting__panel[hidden] {
+.sps-setting__panel[hidden] {
 	display: none;
 }
 
 /* Fields ------------------------------------------------------------- */
 
-.wpa-field {
+.sps-field {
 	display: grid;
 	grid-template-columns: 200px 1fr;
 	gap: 8px 24px;
 	padding: 16px 0;
 }
 
-.wpa-field + .wpa-field {
+.sps-field + .sps-field {
 	border-block-start: 1px solid #f0f0f1;
 }
 
-.wpa-field__label {
+.sps-field__label {
 	padding-block-start: 6px;
 	font-weight: 600;
 }
 
-.wpa-field__control .description {
+.sps-field__control .description {
 	margin-block-start: 6px;
 }
 
-.wpa-field__unit {
-	color: var(--wpa-muted);
+.sps-field__unit {
+	color: var(--sps-muted);
 }
 
-.wpa-field__control textarea.large-text {
+.sps-field__control textarea.large-text {
 	max-width: 480px;
 }
 
-.wpa-checkboxes {
+.sps-checkboxes {
 	display: flex;
 	flex-wrap: wrap;
 	gap: 6px 20px;
@@ -341,18 +341,18 @@
 	border: 0;
 }
 
-.wpa-checkbox {
+.sps-checkbox {
 	display: inline-flex;
 	align-items: center;
 	gap: 6px;
 }
 
-.wpa-tokens {
+.sps-tokens {
 	display: block;
 	margin-block-start: 6px;
 }
 
-.wpa-wrap .wpa-token {
+.sps-wrap .sps-token {
 	margin: 2px 4px 2px 0;
 	padding: 0;
 	cursor: pointer;
@@ -360,28 +360,28 @@
 	border: 0;
 }
 
-.wpa-token code {
+.sps-token code {
 	display: inline-block;
 	padding: 1px 6px;
 	font-size: 12px;
-	background: var(--wpa-subtle);
-	border: 1px solid var(--wpa-border);
+	background: var(--sps-subtle);
+	border: 1px solid var(--sps-border);
 	border-radius: 4px;
 }
 
-.wpa-token:hover code,
-.wpa-token:focus-visible code {
-	color: var(--wpa-accent);
-	border-color: var(--wpa-accent);
+.sps-token:hover code,
+.sps-token:focus-visible code {
+	color: var(--sps-accent);
+	border-color: var(--sps-accent);
 }
 
-.wpa-token:focus {
+.sps-token:focus {
 	outline: none;
 }
 
 /* Switch ------------------------------------------------------------- */
 
-.wpa-switch {
+.sps-switch {
 	position: relative;
 	display: inline-block;
 	flex: none;
@@ -390,7 +390,7 @@
 	vertical-align: middle;
 }
 
-.wpa-wrap .wpa-switch__input {
+.sps-wrap .sps-switch__input {
 	position: absolute;
 	inset: 0;
 	z-index: 1;
@@ -401,7 +401,7 @@
 	opacity: 0;
 }
 
-.wpa-switch__track {
+.sps-switch__track {
 	position: absolute;
 	inset: 0;
 	background: #fff;
@@ -410,7 +410,7 @@
 	transition: background-color 0.15s ease, border-color 0.15s ease;
 }
 
-.wpa-switch__track::after {
+.sps-switch__track::after {
 	content: "";
 	position: absolute;
 	inset-block-start: 3px;
@@ -422,69 +422,69 @@
 	transition: transform 0.15s ease, background-color 0.15s ease;
 }
 
-.wpa-switch__input:checked + .wpa-switch__track {
-	background: var(--wpa-accent);
-	border-color: var(--wpa-accent);
+.sps-switch__input:checked + .sps-switch__track {
+	background: var(--sps-accent);
+	border-color: var(--sps-accent);
 }
 
-.wpa-switch__input:checked + .wpa-switch__track::after {
+.sps-switch__input:checked + .sps-switch__track::after {
 	background: #fff;
 	transform: translateX(16px);
 }
 
-[dir="rtl"] .wpa-switch__input:checked + .wpa-switch__track::after {
+[dir="rtl"] .sps-switch__input:checked + .sps-switch__track::after {
 	transform: translateX(-16px);
 }
 
-.wpa-switch__input:focus-visible + .wpa-switch__track {
-	box-shadow: var(--wpa-focus);
+.sps-switch__input:focus-visible + .sps-switch__track {
+	box-shadow: var(--sps-focus);
 }
 
-.wpa-switch__input:disabled + .wpa-switch__track {
+.sps-switch__input:disabled + .sps-switch__track {
 	opacity: 0.5;
 }
 
 /* Save status -------------------------------------------------------- */
 
-.wpa-status {
+.sps-status {
 	display: inline-flex;
 	align-items: center;
 	gap: 4px;
 	min-height: 20px;
 	font-size: 12px;
-	color: var(--wpa-muted);
+	color: var(--sps-muted);
 	white-space: nowrap;
 }
 
-.wpa-field__control .wpa-status {
+.sps-field__control .sps-status {
 	margin-inline-start: 8px;
 }
 
-.wpa-status.is-saving::before {
+.sps-status.is-saving::before {
 	content: "";
 	width: 12px;
 	height: 12px;
-	border: 2px solid var(--wpa-border);
-	border-block-start-color: var(--wpa-accent);
+	border: 2px solid var(--sps-border);
+	border-block-start-color: var(--sps-accent);
 	border-radius: 50%;
-	animation: wpa-spin 0.8s linear infinite;
+	animation: sps-spin 0.8s linear infinite;
 }
 
-.wpa-status.is-saved {
-	color: var(--wpa-success);
+.sps-status.is-saved {
+	color: var(--sps-success);
 }
 
-.wpa-status.is-saved::before {
+.sps-status.is-saved::before {
 	content: "\f147";
 	font: normal 18px/1 dashicons;
 }
 
-.wpa-status.is-error {
-	color: var(--wpa-error);
+.sps-status.is-error {
+	color: var(--sps-error);
 	white-space: normal;
 }
 
-@keyframes wpa-spin {
+@keyframes sps-spin {
 	to {
 		transform: rotate(360deg);
 	}
@@ -492,7 +492,7 @@
 
 /* Directory (Pro / Hosting / Tools) ---------------------------------- */
 
-.wpa-directory__bar {
+.sps-directory__bar {
 	display: flex;
 	flex-wrap: wrap;
 	align-items: center;
@@ -500,46 +500,46 @@
 	margin-block-end: 16px;
 }
 
-.wpa-directory__intro {
+.sps-directory__intro {
 	flex: 1 1 320px;
 	margin: 0;
-	color: var(--wpa-muted);
+	color: var(--sps-muted);
 }
 
-.wpa-wrap .wpa-directory__search {
+.sps-wrap .sps-directory__search {
 	width: 260px;
 	max-width: 100%;
 	min-height: 32px;
 }
 
-.wpa-directory__count {
+.sps-directory__count {
 	font-size: 12px;
-	color: var(--wpa-muted);
+	color: var(--sps-muted);
 }
 
-.wpa-grid {
+.sps-grid {
 	display: grid;
 	grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
 	gap: 16px;
 }
 
-.wpa-link-card {
+.sps-link-card {
 	display: flex;
 	flex-direction: column;
 	padding: 20px;
 	transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
-.wpa-link-card[hidden] {
+.sps-link-card[hidden] {
 	display: none;
 }
 
-.wpa-link-card:hover {
+.sps-link-card:hover {
 	border-color: #c3c4c7;
 	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
 }
 
-.wpa-wrap .wpa-link-card__title {
+.sps-wrap .sps-link-card__title {
 	display: flex;
 	flex-wrap: wrap;
 	align-items: center;
@@ -549,33 +549,33 @@
 	font-weight: 600;
 }
 
-.wpa-link-card__desc {
+.sps-link-card__desc {
 	flex: 1 0 auto;
 	margin: 0 0 16px;
-	color: var(--wpa-muted);
+	color: var(--sps-muted);
 }
 
-.wpa-link-card__actions {
+.sps-link-card__actions {
 	display: flex;
 	flex-wrap: wrap;
 	gap: 8px;
 }
 
-.wpa-directory__empty {
+.sps-directory__empty {
 	padding: 32px;
-	color: var(--wpa-muted);
+	color: var(--sps-muted);
 	text-align: center;
 }
 
 /* Free plugins ------------------------------------------------------- */
 
-.wpa-wrap .wpa-filter {
+.sps-wrap .sps-filter {
 	margin: 0 0 16px;
 	padding: 0 12px;
-	border-radius: var(--wpa-radius);
+	border-radius: var(--sps-radius);
 }
 
-.wpa-wrap .wpa-filter .filter-links {
+.sps-wrap .sps-filter .filter-links {
 	display: flex;
 	flex-wrap: wrap;
 	float: none;
@@ -583,70 +583,70 @@
 }
 
 /* Denser than core's 15px tabs so wrapped rows stay compact. */
-.wpa-wrap .wpa-filter .filter-links li > a {
+.sps-wrap .sps-filter .filter-links li > a {
 	margin: 0 8px;
 	padding: 10px 0 8px;
 }
 
-.wpa-plugins #the-list {
+.sps-plugins #the-list {
 	display: grid;
 	grid-template-columns: repeat(auto-fill, minmax(420px, 1fr));
 	gap: 16px;
 }
 
-.wpa-plugins #the-list > .notice,
-.wpa-plugins #the-list > .wpa-loading {
+.sps-plugins #the-list > .notice,
+.sps-plugins #the-list > .sps-loading {
 	grid-column: 1 / -1;
 }
 
 /* Column layout so the grey meta row sits at the bottom of equal-height cards. */
-.wpa-wrap .wpa-plugins .plugin-card {
+.sps-wrap .sps-plugins .plugin-card {
 	display: flex;
 	flex-direction: column;
 	float: none;
 	width: auto;
 	margin: 0;
-	border-radius: var(--wpa-radius);
+	border-radius: var(--sps-radius);
 	overflow: hidden;
 }
 
-.wpa-wrap .wpa-plugins .plugin-card-top {
+.sps-wrap .sps-plugins .plugin-card-top {
 	flex: 1 0 auto;
 }
 
-.wpa-wrap .wpa-plugins .plugin-card-bottom {
+.sps-wrap .sps-plugins .plugin-card-bottom {
 	flex: none;
 }
 
-.wpa-wrap .wpa-plugins .plugin-card-bottom {
-	background: var(--wpa-subtle);
+.sps-wrap .sps-plugins .plugin-card-bottom {
+	background: var(--sps-subtle);
 }
 
 /* Closed on wordpress.org: kept as a reminder, never installable. */
-.wpa-wrap .wpa-plugins .wpa-plugin-removed {
+.sps-wrap .sps-plugins .sps-plugin-removed {
 	border-inline-start: 4px solid #dba617;
 }
 
 /* No icon on removed cards, so drop core's 148px icon gutter. */
-.wpa-wrap .wpa-plugins .wpa-plugin-removed .name,
-.wpa-wrap .wpa-plugins .wpa-plugin-removed .desc > p {
+.sps-wrap .sps-plugins .sps-plugin-removed .name,
+.sps-wrap .sps-plugins .sps-plugin-removed .desc > p {
 	margin-inline-start: 0;
 }
 
-.wpa-wrap .wpa-removed-icon {
+.sps-wrap .sps-removed-icon {
 	color: #996800;
 	vertical-align: -2px;
 }
 
-.wpa-wrap .wpa-plugins .wpa-plugin-removed .plugin-card-bottom {
+.sps-wrap .sps-plugins .sps-plugin-removed .plugin-card-bottom {
 	background: #fcf9e8;
 }
 
-.wpa-wrap .wpa-removed-status {
+.sps-wrap .sps-removed-status {
 	margin: 0;
 }
 
-.wpa-wrap .wpa-go-pro::before {
+.sps-wrap .sps-go-pro::before {
 	content: "\f155";
 	margin-inline-end: 4px;
 	font: normal 16px/1 dashicons;
@@ -656,28 +656,28 @@
 
 /* Theme -------------------------------------------------------------- */
 
-.wpa-theme-card {
+.sps-theme-card {
 	display: grid;
 	grid-template-columns: minmax(240px, 380px) 1fr;
 	overflow: hidden;
 }
 
-.wpa-theme-card__media {
-	background: var(--wpa-subtle);
-	border-inline-end: 1px solid var(--wpa-border);
+.sps-theme-card__media {
+	background: var(--sps-subtle);
+	border-inline-end: 1px solid var(--sps-border);
 }
 
-.wpa-theme-card__media img {
+.sps-theme-card__media img {
 	display: block;
 	width: 100%;
 	height: auto;
 }
 
-.wpa-theme-card__body {
+.sps-theme-card__body {
 	padding: 24px;
 }
 
-.wpa-wrap .wpa-theme-card__title {
+.sps-wrap .sps-theme-card__title {
 	display: flex;
 	align-items: center;
 	gap: 8px;
@@ -685,90 +685,90 @@
 	font-size: 18px;
 }
 
-.wpa-theme-card__meta {
+.sps-theme-card__meta {
 	margin: 0 0 16px;
-	color: var(--wpa-muted);
+	color: var(--sps-muted);
 }
 
-.wpa-theme-card__actions {
+.sps-theme-card__actions {
 	display: flex;
 	flex-wrap: wrap;
 	gap: 8px;
 	margin-block-end: 20px;
 }
 
-.wpa-theme-card__links {
+.sps-theme-card__links {
 	display: flex;
 	flex-wrap: wrap;
 	gap: 6px 16px;
 	margin: 0;
 	padding-block-start: 16px;
-	border-block-start: 1px solid var(--wpa-border);
+	border-block-start: 1px solid var(--sps-border);
 	list-style: none;
 }
 
-.wpa-theme-card__links li {
+.sps-theme-card__links li {
 	margin: 0;
 }
 
-.wpa-inline-error {
+.sps-inline-error {
 	flex-basis: 100%;
 	margin: 4px 0 0;
-	color: var(--wpa-error);
+	color: var(--sps-error);
 }
 
 /* Read Me ------------------------------------------------------------ */
 
-.wpa-readme {
+.sps-readme {
 	max-width: 820px;
 	padding: 24px 32px;
 	font-size: 14px;
 	line-height: 1.65;
 }
 
-.wpa-wrap .wpa-readme h2 {
+.sps-wrap .sps-readme h2 {
 	margin: 0 0 8px;
 	font-size: 22px;
 }
 
-.wpa-wrap .wpa-readme h3 {
+.sps-wrap .sps-readme h3 {
 	margin: 24px 0 8px;
 	padding-block-start: 16px;
 	font-size: 16px;
 	border-block-start: 1px solid #f0f0f1;
 }
 
-.wpa-wrap .wpa-readme h4 {
+.sps-wrap .sps-readme h4 {
 	margin: 16px 0 6px;
 	font-size: 14px;
 }
 
-.wpa-readme ul,
-.wpa-readme ol {
+.sps-readme ul,
+.sps-readme ol {
 	margin: 8px 0 12px;
 	padding-inline-start: 22px;
 }
 
-.wpa-readme ul {
+.sps-readme ul {
 	list-style: disc;
 }
 
-.wpa-readme ol {
+.sps-readme ol {
 	list-style: decimal;
 }
 
 /* Loading ------------------------------------------------------------ */
 
-.wpa-loading {
+.sps-loading {
 	display: flex;
 	align-items: center;
 	justify-content: center;
 	gap: 4px;
 	min-height: 160px;
-	color: var(--wpa-muted);
+	color: var(--sps-muted);
 }
 
-.wpa-loading .spinner {
+.sps-loading .spinner {
 	float: none;
 	margin: 0;
 }
@@ -776,50 +776,50 @@
 /* Responsive --------------------------------------------------------- */
 
 @media screen and (max-width: 782px) {
-	.wpa-wrap {
+	.sps-wrap {
 		margin-inline-start: -10px;
 	}
 
-	.wpa-header,
-	.wpa-main {
+	.sps-header,
+	.sps-main {
 		padding-inline: 12px;
 	}
 
-	.wpa-nav {
+	.sps-nav {
 		flex-wrap: nowrap;
 	}
 
-	.wpa-setting__header {
+	.sps-setting__header {
 		grid-template-columns: auto 1fr;
 	}
 
-	.wpa-setting__expand {
+	.sps-setting__expand {
 		grid-column: 2;
 		justify-self: start;
 	}
 
-	.wpa-field {
+	.sps-field {
 		grid-template-columns: 1fr;
 	}
 
-	.wpa-plugins #the-list {
+	.sps-plugins #the-list {
 		grid-template-columns: 1fr;
 	}
 
-	.wpa-theme-card {
+	.sps-theme-card {
 		grid-template-columns: 1fr;
 	}
 
-	.wpa-theme-card__media {
+	.sps-theme-card__media {
 		border-inline-end: 0;
-		border-block-end: 1px solid var(--wpa-border);
+		border-block-end: 1px solid var(--sps-border);
 	}
 }
 
 @media (prefers-reduced-motion: reduce) {
-	.wpa-wrap *,
-	.wpa-wrap *::before,
-	.wpa-wrap *::after {
+	.sps-wrap *,
+	.sps-wrap *::before,
+	.sps-wrap *::after {
 		transition: none !important;
 		animation: none !important;
 	}

@@ -11,7 +11,7 @@
  * post and WordPress publishes it on time. Dates you set yourself, updates to
  * published posts, and imports/WP-CLI/cron saves are never changed.
  *
- * @package Allstars
+ * @package SEOProStack
  * @since 0.3.0
  */
 
@@ -19,7 +19,7 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-class Allstars_Post_Scheduler extends Allstars_Feature {
+class SEOProStack_Post_Scheduler extends SEOProStack_Feature {
 
     const KEY = 'post_scheduler';
 
@@ -40,32 +40,32 @@ class Allstars_Post_Scheduler extends Allstars_Feature {
                 'type'        => 'bool',
                 'default'     => false,
                 'tab'         => 'workflow',
-                'label'       => __('Publishing queue', 'allstars'),
-                'description' => __('Publishing a post without choosing a date schedules it for the next free time slot. Dates you set yourself are kept.', 'allstars'),
+                'label'       => __('Publishing queue', 'seoprostack'),
+                'description' => __('Publishing a post without choosing a date schedules it for the next free time slot. Dates you set yourself are kept.', 'seoprostack'),
             ),
             'post_scheduler_times' => array(
                 'type'        => 'times',
                 'default'     => '09:00, 15:00',
                 'parent'      => self::KEY,
-                'label'       => __('Time slots', 'allstars'),
+                'label'       => __('Time slots', 'seoprostack'),
                 /* translators: %s: site timezone */
-                'description' => sprintf(__('Times of day in your site timezone (%s), separated by commas. Each slot takes one post.', 'allstars'), wp_timezone_string()),
+                'description' => sprintf(__('Times of day in your site timezone (%s), separated by commas. Each slot takes one post.', 'seoprostack'), wp_timezone_string()),
                 'placeholder' => '09:00, 15:00',
             ),
             'post_scheduler_days' => array(
                 'type'        => 'multi',
                 'default'     => array('1', '2', '3', '4', '5'),
                 'parent'      => self::KEY,
-                'label'       => __('Days', 'allstars'),
-                'description' => __('Days of the week that have slots.', 'allstars'),
+                'label'       => __('Days', 'seoprostack'),
+                'description' => __('Days of the week that have slots.', 'seoprostack'),
                 'options'     => array(__CLASS__, 'day_options'),
             ),
             'post_scheduler_post_types' => array(
                 'type'        => 'multi',
                 'default'     => array('post'),
                 'parent'      => self::KEY,
-                'label'       => __('Content types', 'allstars'),
-                'description' => __('Types that go through the queue.', 'allstars'),
+                'label'       => __('Content types', 'seoprostack'),
+                'description' => __('Types that go through the queue.', 'seoprostack'),
                 'options'     => array(__CLASS__, 'post_type_options'),
             ),
         );
@@ -141,7 +141,7 @@ class Allstars_Post_Scheduler extends Allstars_Feature {
          * @param int               $post_id Post ID (0 for a new post).
          * @param DateTimeImmutable $slot    Scheduled time (site timezone).
          */
-        do_action('allstars_post_queued', $post_id, $slot);
+        do_action('seoprostack_post_queued', $post_id, $slot);
 
         return $data;
     }
@@ -157,7 +157,7 @@ class Allstars_Post_Scheduler extends Allstars_Feature {
         if ('publish' !== $data['post_status']) {
             return false;
         }
-        if (!in_array($data['post_type'], (array) Allstars_Settings::get('post_scheduler_post_types'), true)) {
+        if (!in_array($data['post_type'], (array) SEOProStack_Settings::get('post_scheduler_post_types'), true)) {
             return false;
         }
 
@@ -197,7 +197,7 @@ class Allstars_Post_Scheduler extends Allstars_Feature {
          * @param array $data    Post data.
          * @param array $postarr Raw post data.
          */
-        return (bool) apply_filters('allstars_post_scheduler_applies', true, $data, $postarr);
+        return (bool) apply_filters('seoprostack_post_scheduler_applies', true, $data, $postarr);
     }
 
     /**
@@ -208,8 +208,8 @@ class Allstars_Post_Scheduler extends Allstars_Feature {
      * @return DateTimeImmutable|null
      */
     public static function next_slot($post_type, $post_id = 0) {
-        $times = Allstars_Settings::parse_times(Allstars_Settings::get('post_scheduler_times'));
-        $days  = array_map('intval', (array) Allstars_Settings::get('post_scheduler_days'));
+        $times = SEOProStack_Settings::parse_times(SEOProStack_Settings::get('post_scheduler_times'));
+        $days  = array_map('intval', (array) SEOProStack_Settings::get('post_scheduler_days'));
         if (!$times || !$days) {
             return null;
         }
@@ -246,7 +246,7 @@ class Allstars_Post_Scheduler extends Allstars_Feature {
      */
     private static function taken_slots($exclude) {
         $posts = get_posts(array(
-            'post_type'              => (array) Allstars_Settings::get('post_scheduler_post_types'),
+            'post_type'              => (array) SEOProStack_Settings::get('post_scheduler_post_types'),
             'post_status'            => 'future',
             'posts_per_page'         => 500,
             'orderby'                => 'date',

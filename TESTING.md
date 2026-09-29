@@ -1,6 +1,6 @@
-# Allstars Plugin Testing Guide
+# SEO Pro Stack Plugin Testing Guide
 
-This document provides testing checklist for the Allstars Plugin to ensure stability and functionality.
+This document provides testing checklist for the SEO Pro Stack Plugin to ensure stability and functionality.
 
 ## General Testing Guidelines
 

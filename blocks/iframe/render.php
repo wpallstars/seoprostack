@@ -1,8 +1,8 @@
 <?php
 /**
- * Server render for the allstars/iframe block.
+ * Server render for the seoprostack/iframe block.
  *
- * @package Allstars
+ * @package SEOProStack
  *
  * @var array    $attributes Block attributes.
  * @var string   $content    Inner content (unused).
@@ -13,28 +13,28 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-if (!Allstars_Iframe_Block::author_allowed(isset($block) ? $block : null)) {
+if (!SEOProStack_Iframe_Block::author_allowed(isset($block) ? $block : null)) {
     return;
 }
 
-$allstars_iframe = Allstars_Iframe_Block::iframe_attributes((array) $attributes);
-if (!$allstars_iframe) {
+$seoprostack_iframe = SEOProStack_Iframe_Block::iframe_attributes((array) $attributes);
+if (!$seoprostack_iframe) {
     return;
 }
 
-$allstars_classes = array('wp-block-allstars-iframe__frame');
+$seoprostack_classes = array('wp-block-seoprostack-iframe__frame');
 if (!empty($attributes['showBorder'])) {
-    $allstars_classes[] = 'has-border';
+    $seoprostack_classes[] = 'has-border';
 }
-$allstars_iframe['class'] = implode(' ', $allstars_classes);
+$seoprostack_iframe['class'] = implode(' ', $seoprostack_classes);
 
-$allstars_html = '';
-foreach ($allstars_iframe as $allstars_name => $allstars_value) {
-    $allstars_html .= '' === $allstars_value
-        ? ' ' . esc_attr($allstars_name)
-        : sprintf(' %s="%s"', esc_attr($allstars_name), 'src' === $allstars_name ? esc_url($allstars_value) : esc_attr($allstars_value));
+$seoprostack_html = '';
+foreach ($seoprostack_iframe as $seoprostack_name => $seoprostack_value) {
+    $seoprostack_html .= '' === $seoprostack_value
+        ? ' ' . esc_attr($seoprostack_name)
+        : sprintf(' %s="%s"', esc_attr($seoprostack_name), 'src' === $seoprostack_name ? esc_url($seoprostack_value) : esc_attr($seoprostack_value));
 }
 ?>
 <figure <?php echo get_block_wrapper_attributes(); // phpcs:ignore WordPress.Security.EscapeOutput -- core-escaped wrapper attributes. ?>>
-    <iframe<?php echo $allstars_html; // phpcs:ignore WordPress.Security.EscapeOutput -- each attribute escaped above. ?>></iframe>
+    <iframe<?php echo $seoprostack_html; // phpcs:ignore WordPress.Security.EscapeOutput -- each attribute escaped above. ?>></iframe>
 </figure>

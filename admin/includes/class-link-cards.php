@@ -7,7 +7,7 @@
  *       array( 'text' => '', 'url' => '', 'primary' => true ),
  *   ), 'free_slug' => '' | array( '', ... ) )
  *
- * @package Allstars
+ * @package SEOProStack
  * @since 0.3.0
  */
 
@@ -15,7 +15,7 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-class Allstars_Link_Cards {
+class SEOProStack_Link_Cards {
 
     /**
      * Render a filterable card grid.
@@ -30,36 +30,36 @@ class Allstars_Link_Cards {
          *
          * @param array $items Items keyed by slug.
          */
-        $items = (array) apply_filters("allstars_{$id}_items", $items);
+        $items = (array) apply_filters("seoprostack_{$id}_items", $items);
 
         uasort($items, function ($a, $b) {
             return strcasecmp(isset($a['name']) ? $a['name'] : '', isset($b['name']) ? $b['name'] : '');
         });
 
-        $search_id = 'wpa-search-' . $id;
+        $search_id = 'sps-search-' . $id;
         ?>
-        <div class="wpa-directory" data-wpa-directory="<?php echo esc_attr($id); ?>">
-            <div class="wpa-directory__bar">
+        <div class="sps-directory" data-sps-directory="<?php echo esc_attr($id); ?>">
+            <div class="sps-directory__bar">
                 <?php if (!empty($args['intro'])) : ?>
-                    <p class="wpa-directory__intro"><?php echo esc_html($args['intro']); ?></p>
+                    <p class="sps-directory__intro"><?php echo esc_html($args['intro']); ?></p>
                 <?php endif; ?>
                 <label class="screen-reader-text" for="<?php echo esc_attr($search_id); ?>">
-                    <?php echo esc_html(isset($args['search_label']) ? $args['search_label'] : __('Filter', 'allstars')); ?>
+                    <?php echo esc_html(isset($args['search_label']) ? $args['search_label'] : __('Filter', 'seoprostack')); ?>
                 </label>
                 <input type="search"
                        id="<?php echo esc_attr($search_id); ?>"
-                       class="wpa-directory__search"
-                       data-wpa-filter="<?php echo esc_attr($id); ?>"
-                       placeholder="<?php echo esc_attr(isset($args['search_label']) ? $args['search_label'] : __('Filter…', 'allstars')); ?>" />
-                <span class="wpa-directory__count" aria-live="polite"><?php echo esc_html(sprintf(/* translators: %d: number of items */ _n('%d item', '%d items', count($items), 'allstars'), count($items))); ?></span>
+                       class="sps-directory__search"
+                       data-sps-filter="<?php echo esc_attr($id); ?>"
+                       placeholder="<?php echo esc_attr(isset($args['search_label']) ? $args['search_label'] : __('Filter…', 'seoprostack')); ?>" />
+                <span class="sps-directory__count" aria-live="polite"><?php echo esc_html(sprintf(/* translators: %d: number of items */ _n('%d item', '%d items', count($items), 'seoprostack'), count($items))); ?></span>
             </div>
 
-            <div class="wpa-grid">
+            <div class="sps-grid">
                 <?php foreach ($items as $slug => $item) : ?>
                     <?php self::render_card((string) $slug, $item); ?>
                 <?php endforeach; ?>
             </div>
-            <p class="wpa-directory__empty" hidden><?php esc_html_e('No matches.', 'allstars'); ?></p>
+            <p class="sps-directory__empty" hidden><?php esc_html_e('No matches.', 'seoprostack'); ?></p>
         </div>
         <?php
     }
@@ -77,20 +77,20 @@ class Allstars_Link_Cards {
 
         $buttons = isset($item['button_group']) && is_array($item['button_group']) ? $item['button_group'] : array();
         if (!$buttons && !empty($item['url'])) {
-            $buttons = array(array('text' => __('Learn more', 'allstars'), 'url' => $item['url'], 'primary' => true));
+            $buttons = array(array('text' => __('Learn more', 'seoprostack'), 'url' => $item['url'], 'primary' => true));
         }
         $search = strtolower($item['name'] . ' ' . (isset($item['description']) ? $item['description'] : ''));
         ?>
-        <article class="wpa-card wpa-link-card" data-wpa-search="<?php echo esc_attr($search); ?>">
-            <h3 class="wpa-link-card__title">
+        <article class="sps-card sps-link-card" data-sps-search="<?php echo esc_attr($search); ?>">
+            <h3 class="sps-link-card__title">
                 <?php echo esc_html($item['name']); ?>
                 <?php echo self::free_version_badge($item); // phpcs:ignore WordPress.Security.EscapeOutput -- escaped in method. ?>
             </h3>
             <?php if (!empty($item['description'])) : ?>
-                <p class="wpa-link-card__desc"><?php echo esc_html($item['description']); ?></p>
+                <p class="sps-link-card__desc"><?php echo esc_html($item['description']); ?></p>
             <?php endif; ?>
             <?php if ($buttons) : ?>
-                <div class="wpa-link-card__actions">
+                <div class="sps-link-card__actions">
                     <?php foreach ($buttons as $button) : ?>
                         <?php
                         if (empty($button['url']) || empty($button['text'])) {
@@ -100,7 +100,7 @@ class Allstars_Link_Cards {
                         ?>
                         <a class="<?php echo esc_attr($class); ?>" href="<?php echo esc_url($button['url']); ?>" target="_blank" rel="noopener noreferrer">
                             <?php echo esc_html($button['text']); ?>
-                            <span class="screen-reader-text"><?php echo esc_html(sprintf(/* translators: %s: item name */ __('for %s (opens in a new tab)', 'allstars'), $item['name'])); ?></span>
+                            <span class="screen-reader-text"><?php echo esc_html(sprintf(/* translators: %s: item name */ __('for %s (opens in a new tab)', 'seoprostack'), $item['name'])); ?></span>
                         </a>
                     <?php endforeach; ?>
                 </div>
@@ -145,9 +145,9 @@ class Allstars_Link_Cards {
         }
 
         return sprintf(
-            '<span class="wpa-badge %1$s">%2$s</span>',
-            $active ? 'wpa-badge--success' : '',
-            esc_html($active ? __('Free version active', 'allstars') : __('Free version installed', 'allstars'))
+            '<span class="sps-badge %1$s">%2$s</span>',
+            $active ? 'sps-badge--success' : '',
+            esc_html($active ? __('Free version active', 'seoprostack') : __('Free version installed', 'seoprostack'))
         );
     }
 }

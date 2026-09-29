@@ -1,15 +1,15 @@
 /**
- * Allstars admin screen.
+ * SEO Pro Stack admin screen.
  *
  * One delegated controller per concern:
- * - Settings: instant save for [data-wpa-setting] controls.
+ * - Settings: instant save for [data-sps-setting] controls.
  * - Panels: expandable setting options.
  * - Tokens: insert pattern tokens into text fields.
  * - Directories: client-side filter for Pro/Hosting/Tools cards.
  * - Plugins: AJAX category loading into core's #plugin-filter list.
  * - Theme: AJAX theme card and in-place install via wp.updates.
  *
- * Localized data: window.allstarsAdmin (see Allstars_Admin_Manager::enqueue_assets()).
+ * Localized data: window.seoprostackAdmin (see SEOProStack_Admin_Manager::enqueue_assets()).
  */
 (function ($, wp, cfg) {
 	'use strict';
@@ -52,13 +52,13 @@
 		sequence: 0,
 
 		init: function () {
-			$(document).on('change', '[data-wpa-setting]', function () {
+			$(document).on('change', '[data-sps-setting]', function () {
 				Settings.save($(this));
 			});
 		},
 
 		valueOf: function ($input) {
-			if ($input.is('[data-wpa-multi]')) {
+			if ($input.is('[data-sps-multi]')) {
 				return $input.find(':checkbox:checked').map(function () {
 					return this.value;
 				}).get();
@@ -70,7 +70,7 @@
 		},
 
 		status: function (key, state, text) {
-			var $status = $('[data-wpa-status="' + key + '"]');
+			var $status = $('[data-sps-status="' + key + '"]');
 			$status.removeClass('is-saving is-saved is-error').addClass(state ? 'is-' + state : '').text(text || '');
 			clearTimeout($status.data('timer'));
 			if (state === 'saved') {
@@ -81,9 +81,9 @@
 		},
 
 		save: function ($input) {
-			var key = $input.data('wpa-setting');
+			var key = $input.data('sps-setting');
 			var value = this.valueOf($input);
-			var previous = $input.data('wpa-saved');
+			var previous = $input.data('sps-saved');
 			var seq = ++this.sequence;
 
 			if (previous === undefined) {
@@ -93,7 +93,7 @@
 			this.pending[key] = seq;
 			this.status(key, 'saving', i18n.saving);
 
-			post('allstars_save_setting', { key: key, value: value })
+			post('seoprostack_save_setting', { key: key, value: value })
 				.done(function (response) {
 					if (Settings.pending[key] !== seq) {
 						return; // A newer save for this key is in flight.
@@ -103,22 +103,22 @@
 						return;
 					}
 					var saved = response.data.value;
-					if ($input.is('[data-wpa-multi]')) {
+					if ($input.is('[data-sps-multi]')) {
 						var chosen = $.map(saved || [], String);
 						$input.find(':checkbox').each(function () {
 							this.checked = $.inArray(this.value, chosen) !== -1;
 						});
 					} else if ($input.is(':checkbox')) {
-						$input.data('wpa-saved', saved ? '1' : '0');
+						$input.data('sps-saved', saved ? '1' : '0');
 					} else if (saved !== undefined && String(saved) !== String($input.val())) {
 						$input.val(saved); // Show the sanitized value.
 					}
 					if (!$input.is(':checkbox')) {
-						$input.data('wpa-saved', $input.val());
+						$input.data('sps-saved', $input.val());
 					}
 					Settings.status(key, 'saved', i18n.saved);
 					speak(i18n.saved);
-					$(document).trigger('allstars:setting-saved', [key, saved]);
+					$(document).trigger('seoprostack:setting-saved', [key, saved]);
 				})
 				.fail(function (xhr) {
 					if (Settings.pending[key] === seq) {
@@ -150,7 +150,7 @@
 
 	var Colors = {
 		init: function () {
-			$(document).on('allstars:setting-saved', function (event, key, value) {
+			$(document).on('seoprostack:setting-saved', function (event, key, value) {
 				if (key === 'modern_admin_colors' && cfg.colorSchemes) {
 					Colors.apply(value ? cfg.colorSchemes.enabled : cfg.colorSchemes.disabled);
 				}
@@ -188,11 +188,11 @@
 			if (panel) {
 				panel.hidden = expanded;
 			}
-			$button.closest('.wpa-setting').toggleClass('is-expanded', !expanded);
+			$button.closest('.sps-setting').toggleClass('is-expanded', !expanded);
 		},
 
 		init: function () {
-			$(document).on('click', '.wpa-setting__expand', function (event) {
+			$(document).on('click', '.sps-setting__expand', function (event) {
 				event.stopPropagation();
 				Panels.toggle($(this));
 			});
@@ -200,17 +200,17 @@
 			// Mouse convenience: clicking anywhere on the header opens/closes the
 			// options. The switch (and any other control) keeps its own behaviour;
 			// keyboard users use the Options button.
-			$(document).on('click', '[data-wpa-panel-toggle]', function (event) {
-				if ($(event.target).closest('input, button, a, label, select, textarea, .wpa-switch').length) {
+			$(document).on('click', '[data-sps-panel-toggle]', function (event) {
+				if ($(event.target).closest('input, button, a, label, select, textarea, .sps-switch').length) {
 					return;
 				}
 				if (window.getSelection && String(window.getSelection()).length) {
 					return; // Let people select text.
 				}
-				Panels.toggle($(this).find('.wpa-setting__expand').first());
+				Panels.toggle($(this).find('.sps-setting__expand').first());
 			});
 
-			$(document).on('click', '.wpa-token', function () {
+			$(document).on('click', '.sps-token', function () {
 				var input = document.getElementById($(this).data('target'));
 				var token = String($(this).data('token'));
 				if (!input) {
@@ -232,18 +232,18 @@
 
 	var Directory = {
 		init: function () {
-			$(document).on('input', '[data-wpa-filter]', function () {
+			$(document).on('input', '[data-sps-filter]', function () {
 				var query = String($(this).val() || '').trim().toLowerCase();
-				var $dir = $(this).closest('[data-wpa-directory]');
+				var $dir = $(this).closest('[data-sps-directory]');
 				var visible = 0;
-				$dir.find('[data-wpa-search]').each(function () {
-					var match = !query || String($(this).data('wpa-search')).indexOf(query) !== -1;
+				$dir.find('[data-sps-search]').each(function () {
+					var match = !query || String($(this).data('sps-search')).indexOf(query) !== -1;
 					this.hidden = !match;
 					visible += match ? 1 : 0;
 				});
-				$dir.find('.wpa-directory__empty').prop('hidden', visible > 0);
-				$dir.find('.wpa-directory__count').text(
-					wp && wp.i18n ? wp.i18n.sprintf(wp.i18n._n('%d item', '%d items', visible, 'allstars'), visible) : visible
+				$dir.find('.sps-directory__empty').prop('hidden', visible > 0);
+				$dir.find('.sps-directory__count').text(
+					wp && wp.i18n ? wp.i18n.sprintf(wp.i18n._n('%d item', '%d items', visible, 'seoprostack'), visible) : visible
 				);
 			});
 		}
@@ -257,12 +257,12 @@
 		request: null,
 
 		init: function () {
-			var $list = $('[data-wpa-plugin-list]');
+			var $list = $('[data-sps-plugin-list]');
 			if (!$list.length) {
 				return;
 			}
 
-			$('.wpa-filter .filter-links').on('click', 'a[data-category]', function (event) {
+			$('.sps-filter .filter-links').on('click', 'a[data-category]', function (event) {
 				event.preventDefault();
 				Plugins.select($(this).data('category'), this.href, true);
 			});
@@ -276,7 +276,7 @@
 		},
 
 		select: function (category, href, push) {
-			var $links = $('.wpa-filter .filter-links a');
+			var $links = $('.sps-filter .filter-links a');
 			$links.removeClass('current').removeAttr('aria-current');
 			$links.filter('[data-category="' + category + '"]').addClass('current').attr('aria-current', 'page');
 			if (push && href && window.history && window.history.pushState) {
@@ -286,15 +286,15 @@
 		},
 
 		load: function (category) {
-			var $list = $('[data-wpa-plugin-list]');
+			var $list = $('[data-sps-plugin-list]');
 			if (this.request) {
 				this.request.abort();
 			}
 			$list.attr('aria-busy', 'true').html(
-				'<div class="wpa-loading"><span class="spinner is-active"></span></div>'
+				'<div class="sps-loading"><span class="spinner is-active"></span></div>'
 			);
 
-			this.request = post('allstars_get_plugins', { category: category })
+			this.request = post('seoprostack_get_plugins', { category: category })
 				.done(function (response) {
 					if (response && response.success) {
 						$list.html(response.data.html);
@@ -323,12 +323,12 @@
 
 	var Theme = {
 		init: function () {
-			var $theme = $('[data-wpa-theme]');
+			var $theme = $('[data-sps-theme]');
 			if (!$theme.length) {
 				return;
 			}
 
-			post('allstars_get_themes', {})
+			post('seoprostack_get_themes', {})
 				.done(function (response) {
 					$theme.html(response && response.success ? response.data.html : Plugins.notice(i18n.loadFailed));
 				})
@@ -339,7 +339,7 @@
 					$theme.attr('aria-busy', 'false');
 				});
 
-			$theme.on('click', '.wpa-theme-install', function (event) {
+			$theme.on('click', '.sps-theme-install', function (event) {
 				var $button = $(this);
 				if (!wp || !wp.updates || !wp.updates.installTheme) {
 					return; // Fall back to the core install screen link.
@@ -353,16 +353,16 @@
 				wp.updates.installTheme({
 					slug: $button.data('slug'),
 					success: function (response) {
-						$button.removeClass('updating-message wpa-theme-install').addClass('updated-message');
+						$button.removeClass('updating-message sps-theme-install').addClass('updated-message');
 						if (response.activateUrl) {
-							$button.attr('href', response.activateUrl).text(wp.i18n ? wp.i18n.__('Activate', 'allstars') : 'Activate');
+							$button.attr('href', response.activateUrl).text(wp.i18n ? wp.i18n.__('Activate', 'seoprostack') : 'Activate');
 							$button.removeClass('updated-message');
 						}
 					},
 					error: function (response) {
 						$button.removeClass('updating-message');
 						var message = (response && response.errorMessage) || i18n.saveFailed;
-						$button.after($('<p class="wpa-inline-error"></p>').text(message));
+						$button.after($('<p class="sps-inline-error"></p>').text(message));
 						speak(message, 'assertive');
 					}
 				});
@@ -378,4 +378,4 @@
 		Plugins.init();
 		Theme.init();
 	});
-})(jQuery, window.wp, window.allstarsAdmin);
+})(jQuery, window.wp, window.seoprostackAdmin);
