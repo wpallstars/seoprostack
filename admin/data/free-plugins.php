@@ -140,6 +140,7 @@ function allstars_get_free_plugins() {
             'translatepress-multilingual'
         ),
         'advanced' => array(
+            'acf-better-search',
             'automatorwp',
             'bit-pi',
             'bit-integrations',
