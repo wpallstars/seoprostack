@@ -3,6 +3,10 @@
  * Tools data for WP ALLSTARS plugin
  */
 
+if (!defined('ABSPATH')) {
+    exit;
+}
+
 // Define tools
 function wp_allstars_get_tools() {
     return array(

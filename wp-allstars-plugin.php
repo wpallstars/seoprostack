@@ -11,7 +11,6 @@
  * License:           GPL-2.0-or-later
  * License URI:       https://www.gnu.org/licenses/gpl-2.0.html
  * Text Domain:       wp-allstars
- * Domain Path:       /languages
  *
  * WP Allstars is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -60,11 +59,4 @@ function wp_allstars_init_features() {
 }
 add_action('plugins_loaded', 'wp_allstars_init_features');
 
-/**
- * Load translations.
- */
-function wp_allstars_load_textdomain() {
-    load_plugin_textdomain('wp-allstars', false, dirname(plugin_basename(__FILE__)) . '/languages');
-}
-// Priority 1: the settings schema (built at init:5) uses translated labels.
-add_action('init', 'wp_allstars_load_textdomain', 1);
+// Translations load just-in-time from WordPress.org language packs (WP 4.6+).

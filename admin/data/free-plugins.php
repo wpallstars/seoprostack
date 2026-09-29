@@ -3,6 +3,10 @@
  * Recommended plugins data for WP ALLSTARS plugin
  */
 
+if (!defined('ABSPATH')) {
+    exit;
+}
+
 // Define recommended plugins
 function wp_allstars_get_free_plugins() {
     return array(

@@ -3,6 +3,10 @@
  * Pro Plugins Configuration
  */
 
+if (!defined('ABSPATH')) {
+    exit;
+}
+
  function wp_allstars_get_pro_plugins() {
     return array(
         'magic-login-pro' => array(

@@ -1,0 +1,19 @@
+# Files excluded from the WordPress.org / release build (wp dist-archive).
+.git
+.gitattributes
+.gitignore
+.distignore
+.woodpecker.yml
+.DS_Store
+.aider*
+.metadata_never_index
+.syncing
+DEVELOPMENT.md
+ROADMAP.md
+STABILITY.md
+TESTING.md
+scripts
+reference-plugins
+project-documents
+node_modules
+vendor

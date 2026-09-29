@@ -16,7 +16,7 @@ Go to **Settings → WP Allstars**. The screen has three groups of tabs:
 
 ### Modern admin colours (General)
 
-Uses the WordPress “Modern” admin colour scheme for every user while enabled. Each user’s own choice is never changed, so turning the setting off restores it.
+Uses the WordPress “Modern” admin colour scheme for every user while enabled. Switching it also updates your own profile: on selects Modern, off selects the WordPress default. Other users’ saved choices are not changed and return when the setting is off.
 
 ### Auto upload images (Workflow)
 
@@ -68,7 +68,9 @@ Deleting the plugin removes its settings and cached data. Imported media stays i
 
 - New admin screen: grouped tabs, instant-save setting cards, accessible switches and expandable options.
 - Settings stored in one option with automatic migration from earlier versions.
-- Modern admin colours no longer changes each user’s saved colour scheme.
+- Modern admin colours switches live, sets your profile to Modern (on) or the WordPress default (off), and leaves other users’ choices alone.
+- Setting cards: save status sits beside the title; clicking a card header opens its options.
+- Tools: Tabby replaces iTerm2.
 - Auto upload images rewritten: safer downloads, de-duplication, domain exclusions, resizing, name and alt patterns.
 - Free plugin cards use core install and activate buttons; theme installs in place.
 - Filterable Pro Plugins, Hosting and Tools directories.

@@ -3,6 +3,10 @@
  * Hosting providers data for WP ALLSTARS plugin
  */
 
+if (!defined('ABSPATH')) {
+    exit;
+}
+
 // Define hosting providers
 function wp_allstars_get_hosting_providers() {
     return array(
@@ -72,12 +76,12 @@ function wp_allstars_get_hosting_providers() {
             'button_group' => array(
                 array(
                     'text' => 'Home Page',
-                    'url' => 'https://www.cloudflare.com/en-gb/',
+                    'url' => 'https://www.cloudflare.com/', // phpcs:ignore PluginCheck.CodeAnalysis.Offloading.OffloadedContent -- product page link, not a loaded asset.
                     'primary' => true
                 ),
                 array(
                     'text' => 'Pricing',
-                    'url' => 'https://www.cloudflare.com/en-gb/plans/'
+                    'url' => 'https://www.cloudflare.com/plans/' // phpcs:ignore PluginCheck.CodeAnalysis.Offloading.OffloadedContent -- product page link, not a loaded asset.
                 )
             )
         ),
