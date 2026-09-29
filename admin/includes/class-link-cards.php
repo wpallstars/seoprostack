@@ -5,7 +5,7 @@
  * Items use the data-file shape:
  *   array( 'name' => '', 'description' => '', 'button_group' => array(
  *       array( 'text' => '', 'url' => '', 'primary' => true ),
- *   ), 'free_slug' => '' )
+ *   ), 'free_slug' => '' | array( '', ... ) )
  *
  * @package WP_ALLSTARS
  * @since 0.3.0
@@ -131,12 +131,19 @@ class WP_Allstars_Link_Cards {
             }
         }
 
-        $slug = $item['free_slug'];
-        if (!isset($installed[$slug])) {
+        // free_slug may be one slug or a list of related free plugins.
+        $found  = false;
+        $active = false;
+        foreach ((array) $item['free_slug'] as $slug) {
+            if (is_string($slug) && isset($installed[$slug])) {
+                $found  = true;
+                $active = $active || is_plugin_active($installed[$slug]);
+            }
+        }
+        if (!$found) {
             return '';
         }
 
-        $active = is_plugin_active($installed[$slug]);
         return sprintf(
             '<span class="wpa-badge %1$s">%2$s</span>',
             $active ? 'wpa-badge--success' : '',

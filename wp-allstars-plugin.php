@@ -66,4 +66,5 @@ add_action('plugins_loaded', 'wp_allstars_init_features');
 function wp_allstars_load_textdomain() {
     load_plugin_textdomain('wp-allstars', false, dirname(plugin_basename(__FILE__)) . '/languages');
 }
-add_action('init', 'wp_allstars_load_textdomain');
+// Priority 1: the settings schema (built at init:5) uses translated labels.
+add_action('init', 'wp_allstars_load_textdomain', 1);

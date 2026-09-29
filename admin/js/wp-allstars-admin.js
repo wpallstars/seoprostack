@@ -203,7 +203,7 @@
 	var Directory = {
 		init: function () {
 			$(document).on('input', '[data-wpa-filter]', function () {
-				var query = $.trim($(this).val()).toLowerCase();
+				var query = String($(this).val() || '').trim().toLowerCase();
 				var $dir = $(this).closest('[data-wpa-directory]');
 				var visible = 0;
 				$dir.find('[data-wpa-search]').each(function () {

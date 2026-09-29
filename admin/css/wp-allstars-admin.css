@@ -535,6 +535,13 @@
 	display: flex;
 	flex-wrap: wrap;
 	float: none;
+	padding-block: 4px;
+}
+
+/* Denser than core's 15px tabs so wrapped rows stay compact. */
+.wpa-wrap .wpa-filter .filter-links li > a {
+	margin: 0 8px;
+	padding: 10px 0 8px;
 }
 
 .wpa-plugins #the-list {
@@ -711,6 +718,11 @@
 	.wpa-setting__expand {
 		grid-column: 2;
 		justify-self: start;
+	}
+
+	/* Idle status would otherwise reserve an empty grid row. */
+	.wpa-setting__header .wpa-status:empty {
+		display: none;
 	}
 
 	.wpa-field {

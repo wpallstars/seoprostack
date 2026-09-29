@@ -252,13 +252,14 @@ class WP_Allstars_Admin_Manager {
 
             <?php settings_errors(); ?>
 
-            <main class="wpa-main wpa-tab-<?php echo esc_attr($active); ?>" id="wpa-tab-<?php echo esc_attr($active); ?>">
+            <?php // Not <main>: core's #wpbody already carries role="main". ?>
+            <div class="wpa-main wpa-tab-<?php echo esc_attr($active); ?>" id="wpa-tab-<?php echo esc_attr($active); ?>">
                 <?php
                 if (isset($tabs[$active]['render']) && is_callable($tabs[$active]['render'])) {
                     call_user_func($tabs[$active]['render']);
                 }
                 ?>
-            </main>
+            </div>
         </div>
         <?php
     }

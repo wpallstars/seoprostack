@@ -28,10 +28,35 @@ class WP_Allstars_Auto_Upload {
     private $uploaded = array();
 
     /**
+     * Attachments imported for a post that had no ID yet (new post).
+     *
+     * @var int[]
+     */
+    private $orphans = array();
+
+    /**
      * Register hooks.
      */
     public function __construct() {
         add_filter('wp_insert_post_data', array($this, 'filter_post_data'), 10, 2);
+        add_action('wp_insert_post', array($this, 'attach_orphans'), 10, 2);
+    }
+
+    /**
+     * Attach images imported before a new post had an ID.
+     *
+     * @param int     $post_id Saved post ID.
+     * @param WP_Post $post    Saved post.
+     */
+    public function attach_orphans($post_id, $post) {
+        if (!$this->orphans || 'attachment' === $post->post_type || wp_is_post_revision($post_id)) {
+            return;
+        }
+        $orphans       = $this->orphans;
+        $this->orphans = array();
+        foreach ($orphans as $attachment_id) {
+            wp_update_post(array('ID' => $attachment_id, 'post_parent' => $post_id));
+        }
     }
 
     /**
@@ -115,7 +140,13 @@ class WP_Allstars_Auto_Upload {
 
         while ($tags->next_tag('img')) {
             $src = $tags->get_attribute('src');
-            if (!is_string($src) || !$this->is_importable($src)) {
+            if (!is_string($src)) {
+                continue;
+            }
+            $src = trim($src);
+            // Protocol-relative sources ("//cdn.example.com/a.jpg") are fetched over https.
+            $fetch_url = 0 === strpos($src, '//') ? 'https:' . $src : $src;
+            if (!$this->is_importable($fetch_url)) {
                 continue;
             }
 
@@ -124,7 +155,7 @@ class WP_Allstars_Auto_Upload {
                     continue;
                 }
                 $processed++;
-                $local = $this->import($src, $post_id, $post);
+                $local = $this->import($fetch_url, $post_id, $post);
                 if (is_wp_error($local)) {
                     $this->log($src, $local->get_error_message());
                     continue;
@@ -140,7 +171,7 @@ class WP_Allstars_Auto_Upload {
 
             $alt = $tags->get_attribute('alt');
             if (!is_string($alt) || '' === trim($alt)) {
-                $new_alt = $this->alt_text($src, $post_id, $post);
+                $new_alt = $this->alt_text($fetch_url, $post_id, $post);
                 if ('' !== $new_alt) {
                     $tags->set_attribute('alt', $new_alt);
                 }
@@ -153,11 +184,19 @@ class WP_Allstars_Auto_Upload {
 
         // Links to the original file (e.g. "link to media file") follow the image.
         foreach ($replaced as $remote => $local) {
-            $content = str_replace(
-                array($remote, esc_attr($remote)),
-                array($local, esc_attr($local)),
-                $content
-            );
+            $remote = (string) $remote;
+            $forms  = array($remote);
+            if (0 === strpos($remote, '//')) {
+                // Scheme-qualified forms first, so "//host/x" never matches inside "https://host/x".
+                $forms = array('https:' . $remote, 'http:' . $remote, $remote);
+            }
+            foreach ($forms as $form) {
+                $content = str_replace(
+                    array($form, esc_attr($form)),
+                    array($local, esc_attr($local)),
+                    $content
+                );
+            }
         }
 
         return $content;
@@ -247,6 +286,9 @@ class WP_Allstars_Auto_Upload {
         }
 
         update_post_meta($attachment_id, self::SOURCE_META, esc_url_raw($url));
+        if (!$post_id) {
+            $this->orphans[] = (int) $attachment_id;
+        }
 
         $alt = $this->alt_text($url, $post_id, $post);
         if ('' !== $alt) {

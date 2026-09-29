@@ -742,22 +742,6 @@
             ),
             'free_slug' => 'bit-pi'
         ),
-        'yellow-pencil' => array(
-            'name' => 'Yellow Pencil Pro',
-            'description' => 'Advanced visual CSS style editor for WordPress with premium features.',
-            'button_group' => array(
-                array(
-                    'text' => 'Home Page',
-                    'url' => 'https://yellowpencil.waspthemes.com/',
-                    'primary' => true
-                ),
-                array(
-                    'text' => 'Pricing',
-                    'url' => 'https://codecanyon.net/item/yellow-pencil-visual-css-style-editor/11322180'
-                )
-            ),
-            'free_slug' => 'yellow-pencil-visual-theme-customizer'
-        ),
         'gotmls' => array(
             'name' => 'Anti-Malware Pro',
             'description' => 'Advanced WordPress malware scanner and security toolkit with premium features.',
