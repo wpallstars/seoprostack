@@ -1,1614 +1,741 @@
-.wp-allstars-wrap {
-    max-width: none;
-    margin: 0;
-    padding-right: 20px;
-}
-
-.wp-allstars-header {
-    background: #fff;
-    border-bottom: 1px solid #c3c4c7;
-    box-shadow: 0 1px 0 rgba(0,0,0,.04);
-    margin: 0 -20px 0 -20px;
-    padding: 20px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    width: auto;
-    position: relative;
-}
-
-.wp-allstars-header h1 {
-    font-size: 23px;
-    font-weight: 400;
-    margin: 0;
-    padding: 0;
-    line-height: 1.3;
-    color: #1d2327;
-}
-
-.wp-allstars-header-actions {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-.wp-allstars-version {
-    color: #0073aa; /* Changed to WordPress blue */
-    font-size: 13px;
-    font-weight: 400;
-}
-
-/* Navigation Tabs */
-.nav-tab-wrapper,
-.wrap h2.nav-tab-wrapper {
-    border-bottom: 1px solid #c3c4c7;
-    margin: 0 -20px;
-    padding: 0 20px;
-    background: #fff;
-    position: sticky;
-    top: 32px;
-    z-index: 100;
-    text-align: center; /* Center align the tabs */
-    display: flex;
-    flex-wrap: wrap; /* Enable wrapping */
-    justify-content: center; /* Ensure better centering for tabs */
-    margin-bottom: 25px !important; /* Increase from 15px to 25px for all tabs */
-}
-
-.nav-tab {
-    margin: 0;
-    padding: 12px 20px;
-    font-size: 14px;
-    line-height: 2;
-    font-weight: 400;
-    background: transparent;
-    color: #50575e;
-    text-decoration: none;
-    white-space: nowrap;
-    border: none;
-    border-bottom: 2px solid transparent;
-    display: inline-block;
-    transition: all 0.2s ease;
-}
-
-.nav-tab:hover,
-.nav-tab:focus {
-    color: #2271b1;
-    background: transparent;
-    border-color: #2271b1;
-}
-
-.nav-tab-active,
-.nav-tab-active:focus,
-.nav-tab-active:focus:active,
-.nav-tab-active:hover {
-    border-bottom: 2px solid #2271b1;
-    background: transparent;
-    color: #2271b1;
-    font-weight: 600;
-}
-
-/* Responsive nav tabs */
-@media screen and (max-width: 782px) {
-    .nav-tab-wrapper,
-    .wrap h2.nav-tab-wrapper {
-        padding: 0 10px;
-    }
-
-    .nav-tab {
-        padding: 10px 15px;
-        font-size: 13px;
-        line-height: 1.8;
-    }
-}
+/**
+ * WP Allstars admin screen.
+ *
+ * Scoped to .wpa-wrap. Uses core admin tokens so the screen follows the
+ * active admin colour scheme; core buttons, notices and plugin cards keep
+ * their native styles. Logical properties keep RTL working without a
+ * separate stylesheet.
+ */
+
+.wpa-wrap {
+	--wpa-accent: var(--wp-admin-theme-color, #2271b1);
+	--wpa-accent-dark: var(--wp-admin-theme-color-darker-10, #135e96);
+	--wpa-text: #1d2327;
+	--wpa-muted: #646970;
+	--wpa-border: #dcdcde;
+	--wpa-surface: #fff;
+	--wpa-subtle: #f6f7f7;
+	--wpa-success: #008a20;
+	--wpa-error: #d63638;
+	--wpa-radius: 8px;
+	--wpa-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+	--wpa-focus: 0 0 0 2px var(--wpa-surface), 0 0 0 4px var(--wpa-accent);
+
+	margin-block-start: 0;
+	margin-inline-start: -20px;
+	margin-inline-end: 0;
+	color: var(--wpa-text);
+}
+
+.wpa-wrap *,
+.wpa-wrap *::before,
+.wpa-wrap *::after {
+	box-sizing: border-box;
+}
+
+/* Header ------------------------------------------------------------- */
+
+.wpa-header {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px;
+	padding: 14px 24px;
+	background: var(--wpa-surface);
+	border-block-end: 1px solid var(--wpa-border);
+}
+
+.wpa-header__brand {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+}
+
+.wpa-header__logo {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 32px;
+	height: 32px;
+	font-size: 20px;
+	color: #fff;
+	background: var(--wpa-accent);
+	border-radius: 6px;
+}
+
+.wpa-wrap .wpa-header__title {
+	margin: 0;
+	padding: 0;
+	font-size: 20px;
+	font-weight: 600;
+	line-height: 1.3;
+}
+
+/* Navigation --------------------------------------------------------- */
+
+.wpa-nav {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: stretch;
+	padding-inline: 12px;
+	background: var(--wpa-surface);
+	border-block-end: 1px solid var(--wpa-border);
+	overflow-x: auto;
+}
+
+.wpa-nav__group {
+	display: flex;
+	align-items: stretch;
+}
+
+.wpa-nav__group + .wpa-nav__group {
+	margin-inline-start: 8px;
+	padding-inline-start: 8px;
+	border-inline-start: 1px solid var(--wpa-border);
+}
+
+.wpa-nav__tab {
+	display: inline-flex;
+	align-items: center;
+	padding: 14px 12px 11px;
+	font-size: 14px;
+	font-weight: 500;
+	color: var(--wpa-muted);
+	text-decoration: none;
+	white-space: nowrap;
+	border-block-end: 3px solid transparent;
+	transition: color 0.1s ease, border-color 0.1s ease;
+}
+
+.wpa-nav__tab:hover {
+	color: var(--wpa-text);
+}
+
+.wpa-nav__tab:focus {
+	outline: none;
+	box-shadow: none;
+}
+
+.wpa-nav__tab:focus-visible {
+	outline: 2px solid var(--wpa-accent);
+	outline-offset: -4px;
+	border-radius: 4px;
+}
+
+.wpa-nav__tab.is-active {
+	color: var(--wpa-text);
+	font-weight: 600;
+	border-block-end-color: var(--wpa-accent);
+}
 
-@media screen and (max-width: 600px) {
-    .nav-tab {
-        padding: 8px 12px;
-        font-size: 12px;
-    }
+/* Main --------------------------------------------------------------- */
+
+.wpa-wrap > .notice,
+.wpa-wrap > div.updated,
+.wpa-wrap > div.error {
+	margin: 16px 24px 0;
+}
+
+.wpa-main {
+	max-width: 1200px;
+	padding: 24px;
+}
+
+.wpa-section {
+	max-width: 860px;
+}
+
+.wpa-section__intro {
+	margin-block-end: 16px;
+}
+
+.wpa-wrap .wpa-section__title {
+	margin: 0 0 4px;
+	font-size: 18px;
+	font-weight: 600;
+}
+
+.wpa-section__desc,
+.wpa-section__hint {
+	margin: 0;
+	color: var(--wpa-muted);
+}
+
+.wpa-section__hint {
+	margin-block-start: 4px;
+	font-size: 12px;
+}
+
+/* Cards -------------------------------------------------------------- */
+
+.wpa-card {
+	background: var(--wpa-surface);
+	border: 1px solid var(--wpa-border);
+	border-radius: var(--wpa-radius);
+	box-shadow: var(--wpa-shadow);
 }
 
-/* Setting notification */
-.wp-setting-notification {
-    display: inline-flex;
-    align-items: center;
-    margin-left: 10px;
-    background: #00a32a;
-    color: white;
-    padding: 3px 10px;
-    border-radius: 12px;
-    font-size: 12px;
-    font-weight: 500;
-    animation: fadeIn 0.3s ease-in-out;
-    height: 20px;
-    box-sizing: border-box;
-    position: relative;
-    transform: translateY(-3px);
-    white-space: nowrap;
-    min-width: 60px;
-    justify-content: center;
+.wpa-cards {
+	display: grid;
+	gap: 12px;
 }
 
-.wp-setting-notification.error {
-    background: #d63638;
+.wpa-badge {
+	display: inline-block;
+	padding: 2px 8px;
+	font-size: 11px;
+	font-weight: 500;
+	line-height: 1.6;
+	color: var(--wpa-muted);
+	vertical-align: middle;
+	background: var(--wpa-subtle);
+	border: 1px solid var(--wpa-border);
+	border-radius: 999px;
 }
 
-@keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
+.wpa-badge--success {
+	color: #00450c;
+	background: #edfaef;
+	border-color: #b8e6bf;
 }
 
-/* Toggle Switch */
-.wp-toggle-switch {
-    position: relative;
-    display: inline-block;
-    width: 40px;
-    height: 20px;
-    vertical-align: middle;
-    margin-right: 8px;
+/* Setting cards ------------------------------------------------------ */
+
+.wpa-setting {
+	transition: box-shadow 0.15s ease;
 }
 
-.wp-toggle-switch input {
-    opacity: 0;
-    width: 0;
-    height: 0;
+.wpa-setting.is-on {
+	box-shadow: inset 3px 0 0 var(--wpa-accent), var(--wpa-shadow);
 }
 
-.wp-toggle-slider {
-    position: absolute;
-    cursor: pointer;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: #ccc;
-    transition: .3s;
-    border-radius: 34px;
+.wpa-setting__header {
+	display: grid;
+	grid-template-columns: auto 1fr auto auto;
+	align-items: center;
+	gap: 16px;
+	padding: 16px 20px;
 }
 
-.wp-toggle-slider:before {
-    position: absolute;
-    content: "";
-    height: 16px;
-    width: 16px;
-    left: 2px;
-    bottom: 2px;
-    background-color: white;
-    transition: .3s;
-    border-radius: 50%;
+.wpa-setting__text {
+	min-width: 0;
 }
 
-input:checked + .wp-toggle-slider {
-    background-color: #2271b1;
+.wpa-setting__title {
+	display: block;
+	font-size: 14px;
+	font-weight: 600;
+	cursor: pointer;
 }
 
-input:focus + .wp-toggle-slider {
-    box-shadow: 0 0 1px #2271b1;
+.wpa-setting__desc {
+	margin: 2px 0 0;
+	color: var(--wpa-muted);
 }
 
-input:checked + .wp-toggle-slider:before {
-    transform: translateX(20px);
+.wpa-wrap .wpa-setting__expand {
+	display: inline-flex;
+	align-items: center;
+	gap: 4px;
+	padding: 6px 8px;
+	color: var(--wpa-accent);
+	text-decoration: none;
+	border-radius: 4px;
 }
 
-/* Settings layout */
-.wp-setting-row {
-    background: #fff;
-    border: 1px solid #e5e5e5;
-    box-shadow: 0 1px 1px rgba(0,0,0,.04);
-    padding: 20px;
-    margin-bottom: 20px;
-    border-radius: 3px;
+.wpa-wrap .wpa-setting__expand:hover {
+	background: var(--wpa-subtle);
 }
 
-.wp-setting-header {
-    position: relative;
+.wpa-wrap .wpa-setting__expand:focus-visible {
+	outline: none;
+	box-shadow: var(--wpa-focus);
 }
 
-.wp-setting-main {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+.wpa-setting__expand .dashicons {
+	transition: transform 0.15s ease;
 }
 
-.wp-setting-left {
-    display: flex;
-    align-items: center;
+.wpa-setting__expand[aria-expanded="true"] .dashicons {
+	transform: rotate(180deg);
 }
 
-.wp-setting-label {
-    font-weight: 600;
-    margin: 0;
-    font-size: 14px;
+.wpa-setting__panel {
+	padding: 4px 20px 8px;
+	border-block-start: 1px solid var(--wpa-border);
+	background: #fcfcfc;
+	border-end-start-radius: var(--wpa-radius);
+	border-end-end-radius: var(--wpa-radius);
 }
 
-.wp-setting-description {
-    margin: 10px 0 0;
-    color: #666;
-    font-size: 13px;
+.wpa-setting__panel[hidden] {
+	display: none;
 }
+
+/* Fields ------------------------------------------------------------- */
 
-/* Tab Content Area - GLOBAL SETTINGS - All tab spacing should inherit from here */
-.wp-allstars-tab-content {
-    padding-top: 0 !important; /* Remove all padding-top from tab content */
+.wpa-field {
+	display: grid;
+	grid-template-columns: 200px 1fr;
+	gap: 8px 24px;
+	padding: 16px 0;
 }
 
-/* Reset all tab content padding */
-.wp-allstars-settings-content {
-    padding-top: 0 !important;
+.wpa-field + .wpa-field {
+	border-block-start: 1px solid #f0f0f1;
 }
 
-/* Remove previous spacing attempts */
-#general .wp-allstars-settings-section,
-#advanced .wp-allstars-settings-section,
-#readme .wp-allstars-settings-section,
-#workflow .wp-allstars-settings-section,
-#theme .wp-allstars-settings-section,
-#recommended .wp-allstars-settings-section,
-#pro .wp-allstars-settings-section,
-#hosting .wp-allstars-settings-section,
-#tools .wp-allstars-settings-section {
-    padding-top: 0 !important;
-    margin-top: 0 !important;
+.wpa-field__label {
+	padding-block-start: 6px;
+	font-weight: 600;
 }
 
-/* Apply consistent spacing to the container for all tab types */
-.wp-allstars-settings-section,
-.wpa-plugin-container,
-.wpa-pro-plugins,
-.wp-allstars-markdown-content {
-    padding-top: 0 !important;
-    margin-top: 0 !important;
+.wpa-field__control .description {
+	margin-block-start: 6px;
 }
 
-/* Base Setting Styles (Shared between simple and expandable) */
-.wp-setting-base, 
-.wp-setting-row,
-.wp-allstars-toggle {
-    background: #fff;
-    border: 1px solid #ccc;
-    border-radius: 8px;
-    margin-bottom: 15px;
+.wpa-field__unit {
+	color: var(--wpa-muted);
 }
 
-.wp-setting-base:hover,
-.wp-setting-row:hover,
-.wp-allstars-toggle:hover {
-    border-color: #2271b1;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+.wpa-field__control textarea.large-text {
+	max-width: 480px;
 }
 
-.wp-setting-header,
-.wp-allstars-toggle-header {
-    padding: 15px;
-    position: relative;
+.wpa-tokens {
+	display: block;
+	margin-block-start: 6px;
 }
 
-.wp-setting-main,
-.wp-allstars-toggle-main {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding-right: 15px;
+.wpa-wrap .wpa-token {
+	margin: 2px 4px 2px 0;
+	padding: 0;
+	cursor: pointer;
+	background: none;
+	border: 0;
 }
 
-.wp-allstars-toggle-main {
-    padding-right: 40px; /* Extra space for chevron */
+.wpa-token code {
+	display: inline-block;
+	padding: 1px 6px;
+	font-size: 12px;
+	background: var(--wpa-subtle);
+	border: 1px solid var(--wpa-border);
+	border-radius: 4px;
 }
 
-.wp-setting-left,
-.wp-allstars-toggle-left {
-    display: flex;
-    align-items: center;
-    gap: 10px;
+.wpa-token:hover code,
+.wpa-token:focus-visible code {
+	color: var(--wpa-accent);
+	border-color: var(--wpa-accent);
 }
 
-.wp-setting-label,
-.wp-allstars-toggle label {
-    font-size: 16px;
-    font-weight: 600;
-    color: #1d2327;
-    line-height: 1.4;
-    margin: 0;
-    cursor: default;
+.wpa-token:focus {
+	outline: none;
 }
 
-.wp-setting-description,
-.wp-allstars-toggle .description,
-.description {
-    margin: 8px 0 0;
-    color: #50575e;
-    font-size: 14px;
-    line-height: 1.6;
+/* Switch ------------------------------------------------------------- */
+
+.wpa-switch {
+	position: relative;
+	display: inline-block;
+	flex: none;
+	width: 36px;
+	height: 20px;
+	vertical-align: middle;
 }
 
-/* Expandable Panel Component */
-.wp-allstars-toggle-header {
-    cursor: pointer;
-    position: relative;
-    z-index: 1;
+.wpa-wrap .wpa-switch__input {
+	position: absolute;
+	inset: 0;
+	z-index: 1;
+	width: 100%;
+	height: 100%;
+	margin: 0;
+	cursor: pointer;
+	opacity: 0;
 }
 
-.wp-allstars-toggle-header::after {
-    content: '';
-    position: absolute;
-    right: 15px;
-    top: 50%;
-    transform: translateY(-50%);
-    width: 24px;
-    height: 24px;
-    background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z"/></svg>') no-repeat center;
-    background-size: 24px;
-    transition: transform 0.3s ease;
+.wpa-switch__track {
+	position: absolute;
+	inset: 0;
+	background: #fff;
+	border: 1px solid #1e1e1e;
+	border-radius: 999px;
+	transition: background-color 0.15s ease, border-color 0.15s ease;
 }
 
-.wp-allstars-toggle-header[aria-expanded="true"]::after {
-    transform: translateY(-50%) rotate(180deg);
+.wpa-switch__track::after {
+	content: "";
+	position: absolute;
+	inset-block-start: 3px;
+	inset-inline-start: 3px;
+	width: 12px;
+	height: 12px;
+	background: #1e1e1e;
+	border-radius: 50%;
+	transition: transform 0.15s ease, background-color 0.15s ease;
 }
 
-/* Make sure the label doesn't interfere with clickability */
-.wp-allstars-toggle-left label {
-    pointer-events: none;
+.wpa-switch__input:checked + .wpa-switch__track {
+	background: var(--wpa-accent);
+	border-color: var(--wpa-accent);
 }
 
-.wp-allstars-expand-settings {
-    display: none;
+.wpa-switch__input:checked + .wpa-switch__track::after {
+	background: #fff;
+	transform: translateX(16px);
 }
 
-.wp-allstars-toggle-settings {
-    border-top: 1px solid #ddd;
-    padding: 24px;
-    background: #f9f9f9;
-    display: none;
-    border-bottom-left-radius: 8px;
-    border-bottom-right-radius: 8px;
+[dir="rtl"] .wpa-switch__input:checked + .wpa-switch__track::after {
+	transform: translateX(-16px);
 }
 
-.wp-allstars-setting-row {
-    margin-bottom: 24px;
+.wpa-switch__input:focus-visible + .wpa-switch__track {
+	box-shadow: var(--wpa-focus);
 }
 
-.wp-allstars-setting-row:last-child {
-    margin-bottom: 0;
+.wpa-switch__input:disabled + .wpa-switch__track {
+	opacity: 0.5;
 }
 
-.wp-allstars-setting-row label {
-    display: block;
-    margin-bottom: 8px;
-    font-size: 14px;
-    font-weight: 600;
-    color: #1d2327;
-    position: relative;
-    padding-right: 80px;
+/* Save status -------------------------------------------------------- */
+
+.wpa-status {
+	display: inline-flex;
+	align-items: center;
+	gap: 4px;
+	min-height: 20px;
+	font-size: 12px;
+	color: var(--wpa-muted);
+	white-space: nowrap;
 }
 
-.wp-allstars-setting-row input[type="text"],
-.wp-allstars-setting-row input[type="number"],
-.wp-allstars-setting-row textarea {
-    width: 100%;
-    max-width: 400px;
-    padding: 8px;
-    border: 1px solid #8c8f94;
-    border-radius: 4px;
-    box-shadow: 0 0 0 transparent;
-    transition: border-color .15s ease-in-out;
-    display: block;
+.wpa-field__control .wpa-status {
+	margin-inline-start: 8px;
 }
 
-.wp-allstars-setting-row input[type="text"]:focus,
-.wp-allstars-setting-row input[type="number"]:focus,
-.wp-allstars-setting-row textarea:focus {
-    border-color: #2271b1;
-    box-shadow: 0 0 0 1px #2271b1;
-    outline: 2px solid transparent;
+.wpa-status.is-saving::before {
+	content: "";
+	width: 12px;
+	height: 12px;
+	border: 2px solid var(--wpa-border);
+	border-block-start-color: var(--wpa-accent);
+	border-radius: 50%;
+	animation: wpa-spin 0.8s linear infinite;
 }
 
-/* Clear floats after tabs */
-.nav-tab-wrapper::after {
-    content: "";
-    display: table;
-    clear: both;
+.wpa-status.is-saved {
+	color: var(--wpa-success);
 }
 
-/* Loading Overlay */
-.wp-allstars-loading-overlay {
-    position: fixed;
-    top: 32px;
-    left: 160px;
-    right: 0;
-    bottom: 0;
-    background: rgba(255, 255, 255, 0.9);
-    z-index: 100000;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+.wpa-status.is-saved::before {
+	content: "\f147";
+	font: normal 18px/1 dashicons;
 }
 
-/* Settings Container */
-.wpa-settings-content {
-    margin-top: 22px;
-    padding: 0 20px;
+.wpa-status.is-error {
+	color: var(--wpa-error);
+	white-space: normal;
 }
 
-/* Plugin Filters */
-.wpa-plugin-filters {
-    margin: 20px 0;
-    padding: 20px;
-    background: #fff;
-    border: 1px solid #c3c4c7;
-    border-radius: 4px;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
+@keyframes wpa-spin {
+	to {
+		transform: rotate(360deg);
+	}
 }
+
+/* Directory (Pro / Hosting / Tools) ---------------------------------- */
 
-.wpa-plugin-filters .button {
-    margin: 0;
-    padding: 6px 14px;
-    height: auto;
-    line-height: 1.4;
-    font-size: 13px;
-    font-weight: 500;
-    border: 1px solid #c3c4c7;
-    border-radius: 4px;
-    background: #f0f0f1;
-    color: #50575e;
-    transition: all 0.2s ease;
-    box-shadow: none;
-    min-width: 100px;
-    text-align: center;
+.wpa-directory__bar {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 12px;
+	margin-block-end: 16px;
 }
 
-.wpa-plugin-filters .button:hover {
-    background: #fff;
-    border-color: #2271b1;
-    color: #2271b1;
+.wpa-directory__intro {
+	flex: 1 1 320px;
+	margin: 0;
+	color: var(--wpa-muted);
 }
 
-.wpa-plugin-filters .button.button-primary {
-    background: #2271b1;
-    border-color: #2271b1;
-    color: #fff;
+.wpa-wrap .wpa-directory__search {
+	width: 260px;
+	max-width: 100%;
+	min-height: 32px;
 }
 
-.wpa-plugin-filters .button.button-primary:hover {
-    background: #135e96;
-    border-color: #135e96;
+.wpa-directory__count {
+	font-size: 12px;
+	color: var(--wpa-muted);
 }
 
-/* Plugin List Container */
-.wp-list-table-container {
-    margin-top: 22px;
-    padding: 0 20px;
-    position: relative;
-    min-height: 400px;
+.wpa-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+	gap: 16px;
 }
 
-/* Plugin Cards */
-.plugin-card {
-    float: left;
-    margin: 0 8px 16px;
-    padding: 0;
-    width: calc(50% - 16px);
-    border: 1px solid #ddd;
-    box-shadow: 0 1px 1px rgba(0,0,0,.04);
-    background-color: #fff;
-    box-sizing: border-box;
-    position: relative;
-    display: flex;
-    flex-direction: column;
+.wpa-link-card {
+	display: flex;
+	flex-direction: column;
+	padding: 20px;
+	transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
-.plugin-card:nth-child(2n+1) {
-    clear: both;
-    margin-left: 0;
+.wpa-link-card[hidden] {
+	display: none;
 }
 
-.plugin-card:nth-child(2n) {
-    margin-right: 0;
+.wpa-link-card:hover {
+	border-color: #c3c4c7;
+	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
 }
 
-.plugin-card-top {
-    position: relative;
-    padding: 20px 20px 10px;
-    min-height: 135px;
-    flex-grow: 1;
-    display: flex;
-    flex-direction: column;
+.wpa-wrap .wpa-link-card__title {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 8px;
+	margin: 0 0 8px;
+	font-size: 15px;
+	font-weight: 600;
 }
 
-.plugin-card .name,
-.plugin-card .desc {
-    margin-left: 148px;
-    margin-right: 120px;
+.wpa-link-card__desc {
+	flex: 1 0 auto;
+	margin: 0 0 16px;
+	color: var(--wpa-muted);
 }
 
-.plugin-card .name h3 {
-    margin: 0 0 12px;
-    font-size: 18px;
-    line-height: 1.3;
+.wpa-link-card__actions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
 }
 
-.plugin-card .desc {
-    margin-top: 0;
-    margin-bottom: 12px;
-    font-size: 13px;
-    line-height: 1.5;
-    color: #50575e;
-    flex-grow: 1;
+.wpa-directory__empty {
+	padding: 32px;
+	color: var(--wpa-muted);
+	text-align: center;
 }
 
-.plugin-card .plugin-card-bottom {
-    clear: both;
-    padding: 12px 20px;
-    background-color: #f6f7f7;
-    border-top: 1px solid #ddd;
-    overflow: hidden;
+/* Free plugins ------------------------------------------------------- */
+
+.wpa-wrap .wpa-filter {
+	margin: 0 0 16px;
+	padding: 0 12px;
+	border-radius: var(--wpa-radius);
 }
 
-.plugin-card .plugin-icon {
-    position: absolute;
-    top: 20px;
-    left: 20px;
-    width: 128px;
-    height: 128px;
-    margin: 0 20px 20px 0;
+.wpa-wrap .wpa-filter .filter-links {
+	display: flex;
+	flex-wrap: wrap;
+	float: none;
 }
 
-.plugin-action-buttons {
-    clear: right;
-    float: right;
-    margin-left: 2em;
-    margin-bottom: 1em;
-    text-align: right;
+.wpa-plugins #the-list {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(420px, 1fr));
+	gap: 16px;
 }
 
-.plugin-action-buttons div {
-    margin-top: 10px;
+.wpa-plugins #the-list > .notice,
+.wpa-plugins #the-list > .wpa-loading {
+	grid-column: 1 / -1;
 }
 
-.plugin-card .column-rating,
-.plugin-card .column-downloaded,
-.plugin-card .column-updated {
-    display: none;
+.wpa-wrap .wpa-plugins .plugin-card {
+	float: none;
+	width: auto;
+	margin: 0;
+	border-radius: var(--wpa-radius);
+	overflow: hidden;
 }
 
-.plugin-card .action-links {
-    position: absolute;
-    top: 20px;
-    right: 20px;
-    width: 120px;
+.wpa-wrap .wpa-plugins .plugin-card-bottom {
+	background: var(--wpa-subtle);
 }
 
-.plugin-card .action-links .button {
-    display: block;
-    text-align: center;
-    margin-bottom: 5px;
+.wpa-wrap .wpa-go-pro::before {
+	content: "\f155";
+	margin-inline-end: 4px;
+	font: normal 16px/1 dashicons;
+	vertical-align: -3px;
+	color: #dba617;
 }
+
+/* Theme -------------------------------------------------------------- */
 
-.plugin-card .action-links .button.button-primary {
-    background: #2271b1;
-    border-color: #2271b1;
-    color: #fff;
+.wpa-theme-card {
+	display: grid;
+	grid-template-columns: minmax(240px, 380px) 1fr;
+	overflow: hidden;
 }
 
-.plugin-card .action-links .button.button-primary:hover {
-    background: #135e96;
-    border-color: #135e96;
+.wpa-theme-card__media {
+	background: var(--wpa-subtle);
+	border-inline-end: 1px solid var(--wpa-border);
 }
 
-.plugin-card .name a,
-.plugin-card .action-links a {
-    text-decoration: none;
+.wpa-theme-card__media img {
+	display: block;
+	width: 100%;
+	height: auto;
 }
 
-.plugin-card .desc,
-.plugin-card .author {
-    margin: 0 0 12px;
-    color: #646970;
+.wpa-theme-card__body {
+	padding: 24px;
 }
 
-.plugin-card .author {
-    color: #646970;
-    font-size: 13px;
-    margin-left: 148px;
+.wpa-wrap .wpa-theme-card__title {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	margin: 0 0 4px;
+	font-size: 18px;
 }
 
-/* Theme Container */
-#wpa-theme-list {
-    margin-top: 0;
-    padding: 0 20px;
-    position: relative;
-    min-height: 400px;
-    max-width: 800px;
-    margin: 0 auto;
+.wpa-theme-card__meta {
+	margin: 0 0 16px;
+	color: var(--wpa-muted);
 }
 
-/* Theme Card Styles - Scoped to our plugin only */
-.theme-card {
-    position: relative;
-    background: #fff;
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-    margin-bottom: 20px;
-    overflow: hidden;
-    transition: all 0.2s ease;
-    width: 100%;
+.wpa-theme-card__actions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+	margin-block-end: 20px;
 }
 
-.theme-card:hover {
-    border-color: #2271b1;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+.wpa-theme-card__links {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 6px 16px;
+	margin: 0;
+	padding-block-start: 16px;
+	border-block-start: 1px solid var(--wpa-border);
+	list-style: none;
 }
 
-.theme-image {
-    position: relative;
-    padding-bottom: 75%; /* 4:3 aspect ratio */
-    background: #f1f1f1;
-    overflow: hidden;
+.wpa-theme-card__links li {
+	margin: 0;
 }
 
-.theme-image img {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    transition: transform 0.3s ease;
+.wpa-inline-error {
+	flex-basis: 100%;
+	margin: 4px 0 0;
+	color: var(--wpa-error);
 }
 
-/* Removed hover zoom effect */
+/* Read Me ------------------------------------------------------------ */
 
-.theme-info {
-    padding: 15px;
-    border-top: 1px solid #eee;
+.wpa-readme {
+	max-width: 820px;
+	padding: 24px 32px;
+	font-size: 14px;
+	line-height: 1.65;
 }
 
-.theme-name {
-    font-size: 16px;
-    font-weight: 600;
-    margin: 0 0 5px;
-    color: #23282d;
+.wpa-wrap .wpa-readme h2 {
+	margin: 0 0 8px;
+	font-size: 22px;
 }
 
-.theme-author {
-    font-size: 13px;
-    color: #646970;
-    margin: 0;
+.wpa-wrap .wpa-readme h3 {
+	margin: 24px 0 8px;
+	padding-block-start: 16px;
+	font-size: 16px;
+	border-block-start: 1px solid #f0f0f1;
 }
 
-.theme-actions {
-    padding: 15px;
-    border-top: 1px solid #eee;
-    display: flex;
-    justify-content: center;
-    flex-wrap: wrap;
-    gap: 8px;
+.wpa-wrap .wpa-readme h4 {
+	margin: 16px 0 6px;
+	font-size: 14px;
 }
 
-/* Fix theme buttons to maintain consistent size and prevent layout jumps */
-.theme-actions .button {
-    min-width: 80px !important;
-    text-align: center !important;
-    position: relative !important;
-    padding-left: 12px !important;
-    padding-right: 12px !important;
+.wpa-readme ul,
+.wpa-readme ol {
+	margin: 8px 0 12px;
+	padding-inline-start: 22px;
 }
 
-/* Style for the updating message with spinner */
-.theme-actions .button.updating-message:before,
-.theme-actions .button.updated-message:before {
-    margin-top: 0 !important;
-    padding-right: 3px !important;
-    vertical-align: bottom !important;
+.wpa-readme ul {
+	list-style: disc;
 }
 
-/* Style theme actions container spacing */
-.theme-actions {
-    display: flex !important;
-    flex-wrap: wrap !important;
-    gap: 8px !important;
-    padding: 15px !important;
+.wpa-readme ol {
+	list-style: decimal;
 }
 
-/* Responsive Adjustments */
-@media screen and (max-width: 1200px) {
-    .plugin-card .name,
-    .plugin-card .desc {
-        margin-right: 0;
-    }
+/* Loading ------------------------------------------------------------ */
 
-    .plugin-card .action-links {
-        position: static;
-        margin-left: 148px;
-        width: auto;
-        margin-top: 1em;
-    }
+.wpa-loading {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 4px;
+	min-height: 160px;
+	color: var(--wpa-muted);
+}
 
-    .plugin-card .action-links .button {
-        display: inline-block;
-        margin: 0 5px 5px 0;
-    }
+.wpa-loading .spinner {
+	float: none;
+	margin: 0;
 }
+
+/* Responsive --------------------------------------------------------- */
 
 @media screen and (max-width: 782px) {
-    .plugin-card {
-        margin-left: 0;
-        margin-right: 0;
-        width: 100%;
-        clear: both;
-    }
-
-    .plugin-card .name,
-    .plugin-card .desc {
-        margin-left: 0;
-        margin-top: 140px;
-    }
-
-    .plugin-card .action-links {
-        margin-left: 0;
-    }
-
-    .plugin-card .plugin-icon {
-        position: absolute;
-        top: 20px;
-        left: 50%;
-        transform: translateX(-50%);
-        margin: 0;
-    }
-
-    .wpa-plugin-filters {
-        padding: 15px;
-    }
-
-    .wpa-plugin-filters .button {
-        width: calc(50% - 4px);
-        min-width: 0;
-    }
-}
-
-@media screen and (max-width: 480px) {
-    .wpa-plugin-filters .button {
-        width: 100%;
-    }
-
-    .plugin-card .action-links .button {
-        display: block;
-        margin: 0 0 5px 0;
-        width: 100%;
-        text-align: center;
-    }
-}
-
-/* Add space for notification to prevent layout shifts */
-.wp-setting-left label,
-.wp-allstars-toggle-left label,
-.wp-allstars-setting-row label {
-    position: relative;
-    padding-right: 20px;
-    display: inline-block;
-}
-
-.wp-setting-left label .wp-setting-notification,
-.wp-allstars-toggle-left label .wp-setting-notification,
-.wp-allstars-setting-row label .wp-setting-notification {
-    position: absolute;
-    right: -60px;
-    top: -5px;
-    transform: translateY(0);
-    line-height: 1.4;
-}
-
-.wpa-loading-overlay {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(255, 255, 255, 0.8);
-    z-index: 10;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.wp-allstars-toggle-main {
-    padding-right: 40px; /* Space for chevron */
-    position: relative;
-    z-index: 1;
-} 
-
-/* Panel styles for Pro Plugins, Hosting, and Tools tabs - Single Column Layout */
-.wpa-pro-plugins {
-    padding: 20px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    max-width: 700px; /* Match Free Plugins max-width */
-    margin: 0 auto;
-}
-
-.wpa-pro-plugin {
-    background: #fff;
-    border: 1px solid #ddd;
-    padding: 24px;
-    border-radius: 8px;
-    display: flex;
-    flex-direction: column;
-    transition: all 0.2s ease;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-    width: 100%; /* Full width of container */
-    margin-bottom: 24px; /* Match Free Plugins spacing */
-    max-width: 100%; /* Ensure it doesn't exceed container */
-}
-
-.wpa-pro-plugin:last-child {
-    margin-bottom: 0;
-}
-
-.wpa-pro-plugin:hover {
-    border-color: #2271b1;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.15);
-}
-
-.wpa-pro-plugin h3 {
-    margin: 0 0 12px;
-    font-size: 16px;
-    font-weight: 600;
-    color: #1d2327;
-    line-height: 1.4;
-}
-
-.wpa-pro-plugin p {
-    margin: 0 0 16px;
-    color: #50575e;
-    font-size: 14px;
-    line-height: 1.6;
-}
-
-.wpa-pro-plugin .button-group {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    margin-top: auto;
-    justify-content: flex-end; /* Right-align buttons like Free Plugins */
-}
-
-.wpa-pro-plugin .button {
-    text-decoration: none;
-    min-width: 120px;
-    text-align: center;
-    height: 30px;
-    line-height: 28px;
-    padding: 0 12px;
-    font-size: 13px;
-    font-weight: normal;
-    margin: 0;
-    border: 1px solid #0071a1 !important;
-    border-radius: 3px !important;
-    background: #f6f7f7;
-    color: #0071a1;
-    display: inline-block;
-    vertical-align: top;
-    box-shadow: none;
-    cursor: pointer;
-}
-
-.wpa-pro-plugin .button:hover {
-    background: #f0f0f1;
-    border-color: #0071a1;
-    color: #0071a1;
-}
-
-.wpa-pro-plugin .button.button-primary {
-    background: #2271b1;
-    border-color: #2271b1 !important;
-    color: #fff;
-}
-
-.wpa-pro-plugin .button.button-primary:hover {
-    background: #135e96;
-    border-color: #135e96 !important;
-    color: #fff;
-}
-
-/* Adjust spacing between pro plugins content and tabs navigation */
-#pro .wpa-pro-plugins,
-#hosting .wpa-pro-plugins,
-#tools .wpa-pro-plugins {
-    padding-top: 15px; /* Match Free Plugins padding */
-}
-
-/* Simplify media queries since we're using single column at all widths */
-@media screen and (max-width: 960px) {
-    .wpa-pro-plugins {
-        padding: 16px;
-    }
-    .wpa-pro-plugin {
-        padding: 20px;
-    }
-}
-
-@media screen and (max-width: 782px) {
-    .wpa-pro-plugins {
-        padding: 12px;
-    }
-    .wpa-pro-plugin {
-        padding: 16px;
-    }
-}
-
-/* Markdown Content Styles for About Tab */
-.wp-allstars-markdown-content {
-    line-height: 1.6;
-    color: #333;
-    padding: 0 20px 20px 20px !important; /* No top padding, consistent with other containers */
-}
-
-.wp-allstars-markdown-content h1 {
-    font-size: 2em;
-    margin: 0.67em 0;
-    border-bottom: 1px solid #eaecef;
-    padding-bottom: 0.3em;
-}
-
-.wp-allstars-markdown-content h2 {
-    font-size: 1.5em;
-    margin: 0.83em 0;
-    border-bottom: 1px solid #eaecef;
-    padding-bottom: 0.3em;
-}
-
-.wp-allstars-markdown-content h3 {
-    font-size: 1.25em;
-    margin: 1em 0;
-}
-
-.wp-allstars-markdown-content ul {
-    padding-left: 2em;
-    margin: 1em 0;
-}
-
-.wp-allstars-markdown-content li {
-    margin: 0.5em 0;
-}
-
-.wp-allstars-markdown-content a {
-    color: #0073aa;
-    text-decoration: none;
-}
-
-.wp-allstars-markdown-content a:hover {
-    color: #00a0d2;
-    text-decoration: underline;
-}
-
-.wp-allstars-markdown-content p {
-    margin: 1em 0;
-}
-
-/* Go Pro Button Styles */
-.button.button-primary[style*="background-color: #27ae60"],
-.theme-install-actions .button.button-primary,
-.wpa-pro-plugin .button-group .button.button-primary,
-.go-pro-button {
-    transition: all 0.3s ease !important;
-    background-color: #219653 !important; /* Darker green */
-    border-color: #1e874b !important; /* Even darker for border */
-    color: #ffffff !important;
-}
-
-.button.button-primary[style*="background-color: #27ae60"]:hover,
-.theme-install-actions .button.button-primary:hover,
-.wpa-pro-plugin .button-group .button.button-primary:hover,
-.go-pro-button:hover {
-    background-color: #1b7b42 !important; /* Even darker green on hover */
-    border-color: #186a39 !important; /* Darkest for border */
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2) !important;
-}
-
-/* Green Secondary Button Styles */
-.green-button-secondary, 
-.green-visit-website,
-#pro .button-group .button.button-secondary,
-#hosting .button-group .button.button-secondary,
-#tools .button-group .button.button-secondary,
-#readme .button-group .button.button-secondary,
-#pro .button.button-secondary,
-#hosting .button.button-secondary,
-#tools .button.button-secondary,
-#readme .button.button-secondary,
-.button.button-secondary,
-/* More specific selectors to override WP defaults */
-.wp-allstars-tabs-wrapper .button.button-secondary,
-.wp-allstars-settings-content .button.button-secondary,
-.wpa-pro-plugins .button.button-secondary,
-.wpa-pro-plugin .button.button-secondary,
-body.wp-admin .button.button-secondary {
-    transition: all 0.3s ease !important;
-    color: #219653 !important; /* Darker green */
-    border-color: #219653 !important; /* Darker green */
-    background-color: transparent !important;
-}
-
-.green-button-secondary:hover,
-.green-visit-website:hover,
-#pro .button-group .button.button-secondary:hover,
-#hosting .button-group .button.button-secondary:hover,
-#tools .button-group .button.button-secondary:hover,
-#readme .button-group .button.button-secondary:hover,
-#pro .button.button-secondary:hover,
-#hosting .button.button-secondary:hover,
-#tools .button.button-secondary:hover,
-#readme .button.button-secondary:hover,
-.button.button-secondary:hover,
-.wp-allstars-tabs-wrapper .button.button-secondary:hover,
-.wp-allstars-settings-content .button.button-secondary:hover,
-.wpa-pro-plugins .button.button-secondary:hover,
-.wpa-pro-plugin .button.button-secondary:hover,
-body.wp-admin .button.button-secondary:hover {
-    color: #1b7b42 !important; /* Even darker green on hover */
-    border-color: #1b7b42 !important; /* Even darker green on hover */
-    background-color: rgba(33, 150, 83, 0.05) !important; /* Very light green background */
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1) !important;
-}
-
-/* Button text vertical alignment */
-.button, .button-primary, .button-secondary {
-    display: inline-flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-}
-
-/* Specific styling for Pricing buttons */
-.pricing-button, 
-a.button.pricing-button, 
-body.wp-admin .button.pricing-button, 
-#pro a.button.pricing-button, 
-#hosting a.button.pricing-button, 
-#tools a.button.pricing-button, 
-#readme a.button.pricing-button {
-    color: #219653 !important;
-    border-color: #219653 !important;
-    background-color: transparent !important;
-}
-
-.pricing-button:hover, 
-a.button.pricing-button:hover, 
-body.wp-admin .button.pricing-button:hover, 
-#pro a.button.pricing-button:hover, 
-#hosting a.button.pricing-button:hover, 
-#tools a.button.pricing-button:hover, 
-#readme a.button.pricing-button:hover {
-    color: #1b7b42 !important;
-    border-color: #1b7b42 !important;
-    background-color: rgba(33, 150, 83, 0.05) !important;
-}
-
-/* Limit width of content in all main tabs */
-.wp-allstars-tab-content .wp-allstars-settings-section,
-#readme .wpa-pro-plugins {
-    display: block;
-    padding: 20px;
-}
-
-/* Target the specific setting rows to limit their width */
-.wp-allstars-tab-content .wp-setting-row,
-.wp-allstars-tab-content .wp-allstars-toggle,
-#readme .wpa-pro-plugin {
-    max-width: 700px; /* Change from 50% to match global 700px width */
-    margin: 0 auto 20px auto;
-    box-sizing: border-box;
-    padding: 0;
-}
-
-/* Filter navigation - container at max-width to match other tabs */
-#wpa-plugin-filters {
-    max-width: 900px !important;
-    margin: 0 auto 25px auto !important;
-    box-sizing: border-box;
-    padding: 15px;
-    border-radius: 8px;
-    background: #fff;
-}
-
-/* Filter links should be centered within container */
-#wpa-plugin-filters .filter-links {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 10px;
-    margin: 0;
-    padding-bottom: 0;
-}
-
-/* Style the filter links similar to main tabs with proper border */
-#wpa-plugin-filters .filter-links a {
-    margin: 0;
-    padding: 10px 15px;
-    font-size: 14px;
-    line-height: 1.6;
-    font-weight: 400;
-    background: transparent;
-    color: #50575e;
-    text-decoration: none;
-    white-space: nowrap;
-    border: none;
-    border-bottom: 2px solid transparent;
-    display: inline-block;
-    transition: all 0.2s ease;
-}
-
-#wpa-plugin-filters .filter-links a:hover,
-#wpa-plugin-filters .filter-links a:focus {
-    color: #2271b1;
-    background: transparent;
-    border-bottom: 2px solid #2271b1;
-}
-
-#wpa-plugin-filters .filter-links a.current {
-    border-bottom: 2px solid #2271b1;
-    background: transparent;
-    color: #2271b1;
-    font-weight: 600;
-}
-
-/* Override max-width for free plugins specific elements */
-#wpa-plugin-filters,
-#recommended .wpa-plugin-container {
-    max-width: 900px !important;
-    width: 100% !important;
-}
-
-/* Free Plugins - Single Column Centered Layout */
-#recommended .wpa-plugin-container {
-    padding: 15px 20px 20px 20px !important;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    margin: 0 auto;
-}
-
-/* Use consistent layout similar to 768px width for all screen sizes */
-#recommended .plugin-card {
-    width: 100%;
-    margin: 0 0 24px 0;
-    padding: 24px;
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-    background: #fff;
-    transition: all 0.2s ease;
-    display: flex;
-    flex-direction: column;
-    position: relative;
-}
-
-#recommended .plugin-card:last-child {
-    margin-bottom: 0;
-}
-
-#recommended .plugin-card:hover {
-    border-color: #2271b1;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.15);
-}
-
-#recommended .plugin-card-top {
-    padding: 0;
-    min-height: auto;
-    flex-grow: 1;
-}
-
-#recommended .plugin-card .plugin-icon {
-    position: relative;
-    float: left;
-    width: 64px;
-    height: 64px;
-    margin: 0 20px 15px 0;
-}
-
-#recommended .plugin-card .name,
-#recommended .plugin-card .desc {
-    margin-left: 84px;
-    margin-right: 0; /* Full width content */
-}
-
-#recommended .plugin-card .name h3 {
-    margin: 0 0 12px;
-    font-size: 16px;
-    font-weight: 600;
-    color: #1d2327;
-    line-height: 1.4;
-    word-wrap: break-word;
-}
-
-#recommended .plugin-card .desc {
-    margin-top: 0;
-    color: #50575e;
-    font-size: 14px;
-    line-height: 1.6;
-    margin-bottom: 20px;
-}
-
-/* Position action links below content, not absolute */
-#recommended .plugin-card .action-links {
-    position: relative;
-    width: 100%;
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    justify-content: flex-end;
-    gap: 8px;
-    padding: 0;
-    margin-top: 10px;
-}
-
-#recommended .plugin-card .plugin-action-buttons {
-    margin: 0;
-    float: none;
-    width: auto;
-}
-
-#recommended .plugin-card .plugin-action-buttons .button {
-    width: auto;
-    min-width: 120px;
-    text-align: center;
-}
-
-/* Plugin card bottom with right-aligned compatibility text */
-#recommended .plugin-card .plugin-card-bottom {
-    background: #f6f7f7;
-    padding: 15px 20px;
-    border-top: 1px solid #ddd;
-    text-align: right;
-    margin-top: auto;
-}
-
-/* Style compatibility message */
-#recommended .plugin-card .column-compatibility {
-    text-align: center;
-    font-size: 13px;
-    color: #00a32a;
-    margin: 5px 0;
-}
-
-/* Loading spinner without background */
-.wpa-loading-overlay {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: transparent;
-    z-index: 10;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-/* Extra small screens only */
-@media screen and (max-width: 480px) {
-    #recommended .plugin-card {
-        padding-top: 80px; /* Add space for icon */
-    }
-    
-    #recommended .plugin-card .name,
-    #recommended .plugin-card .desc {
-        margin-left: 0;
-    }
-    
-    #recommended .plugin-card .plugin-icon {
-        position: absolute;
-        top: 16px;
-        left: 16px;
-        float: none;
-    }
-    
-    #recommended .plugin-card .action-links {
-        flex-direction: column;
-        align-items: stretch;
-    }
-    
-    #recommended .plugin-card .plugin-action-buttons {
-        width: 100%;
-    }
-    
-    #recommended .plugin-card .plugin-action-buttons .button {
-        width: 100%;
-    }
-}
-
-/* Center the plugin container */
-#recommended #the-list {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    width: 100%;
-}
-
-/* Explicitly target readme content */
-#readme .wp-allstars-markdown-content {
-    padding: 0 20px 20px 20px !important; /* No top padding, consistent with other containers */
-}
-
-/* Prevent text from overlapping dropdown chevron icon */
-.wp-allstars-toggle-header {
-    position: relative;
-    padding: 15px;
-    padding-right: 40px; /* Make room for chevron */
-}
-
-.wp-allstars-toggle-header::after {
-    right: 15px;
-    z-index: 1; /* Ensure chevron stays above text */
-}
-
-/* Fix gaps in advanced settings accordion */
-.wp-allstars-toggle-settings {
-    padding: 15px 0;
-    margin: 0;
-    background-color: #f8f8f8;
-    border-top: 1px solid #ddd;
-    width: calc(100% - 2px); /* Account for parent border */
-    margin-left: 1px; /* Center within parent borders */
-    box-sizing: border-box;
-}
-
-.wp-allstars-setting-row {
-    margin-bottom: 15px;
-    padding: 0 15px;
-}
-
-.wp-allstars-setting-row:last-child {
-    margin-bottom: 0;
-}
-
-/* Remove side gaps in text inputs and textareas */
-.wp-allstars-toggle-settings input[type="text"],
-.wp-allstars-toggle-settings textarea {
-    width: 100%;
-    max-width: 100%;
-    box-sizing: border-box;
-}
-
-/* Ensure text doesn't overflow */
-.wp-setting-label,
-.wp-allstars-toggle-header label,
-.wp-setting-description {
-    white-space: normal;
-    word-wrap: break-word;
-    padding-right: 25px;
-    max-width: calc(100% - 40px); /* Ensure space for the chevron */
-}
-
-/* First breakpoint - 75% width */
-@media screen and (max-width: 1400px) {
-    #readme .wp-allstars-markdown-content {
-        padding: 15px;
-    }
-}
-
-/* Second breakpoint - 100% width */
-@media screen and (max-width: 1100px) {
-    #readme .wp-allstars-markdown-content {
-        padding: 10px;
-    }
-}
-
-/* Readme list styling */
-#readme .wp-allstars-markdown-content ul.wp-allstars-list,
-#readme .wp-allstars-markdown-content ul {
-    padding-left: 25px;
-    margin: 10px 0;
-    list-style-type: disc;
-}
-
-#readme .wp-allstars-markdown-content ol.wp-allstars-list,
-#readme .wp-allstars-markdown-content ol {
-    padding-left: 25px; /* Same as bullets */
-    margin: 10px 0;
-    list-style-type: decimal;
-}
-
-/* Special styling for numbered lists to align with bullet lists */
-#readme .wp-allstars-markdown-content ol.numbered-list {
-    padding-left: 21px; /* Moved 2px to the right as requested */
-}
-
-#readme .wp-allstars-markdown-content ol.numbered-list li {
-    margin-left: 4px; /* Fine-tune the alignment */
-}
-
-#readme .wp-allstars-markdown-content li {
-    margin-bottom: 5px;
-    line-height: 1.4;
-    display: list-item !important;
-    padding-left: 5px; /* Add consistent padding for all list items */
-}
-
-/* Ensure consistent spacing for all lists across sections */
-#readme .wp-allstars-markdown-content h2 + ul,
-#readme .wp-allstars-markdown-content h3 + ul,
-#readme .wp-allstars-markdown-content p + ul,
-#readme .wp-allstars-markdown-content h2 + ol,
-#readme .wp-allstars-markdown-content h3 + ol,
-#readme .wp-allstars-markdown-content p + ol,
-#readme .wp-allstars-markdown-content h2 + .wp-allstars-list,
-#readme .wp-allstars-markdown-content h3 + .wp-allstars-list,
-#readme .wp-allstars-markdown-content p + .wp-allstars-list {
-    margin-top: 10px;
-    margin-bottom: 15px;
-}
-
-/* Additional fix for specific sections that need help */
-#readme .wp-allstars-markdown-content h2 + ul,
-#readme .wp-allstars-markdown-content h3 + ul {
-    padding-left: 25px !important;
-    margin-left: 0 !important;
-    list-style-type: disc !important;
-}
-
-/* Global setting for all content panels width - apply to ALL tabs */
-.wp-allstars-settings-content,
-.wp-allstars-tab-content > div,
-.wp-allstars-settings-section,
-.wpa-pro-plugins,
-.wpa-pro-plugin,
-#wpa-plugin-list,
-#wpa-theme-list,
-.wp-allstars-markdown-content,
-.wpa-plugin-container,
-#readme .wpa-pro-plugin,
-.wp-allstars-toggle {
-    max-width: 700px !important;
-    margin-left: auto !important;
-    margin-right: auto !important;
-    width: 100% !important;
-    box-sizing: border-box !important;
-}
-
-/* Fix specific tab content - ensure all sections use the same width */
-#general .wp-setting-row,
-#general .wp-allstars-toggle,
-#advanced .wp-setting-row,
-#advanced .wp-allstars-toggle,
-#workflow .wp-setting-row,
-#workflow .wp-allstars-toggle,
-#readme .wp-allstars-markdown-content {
-    max-width: 700px !important;
-    width: 100% !important;
-    box-sizing: border-box !important;
-    margin-left: auto !important;
-    margin-right: auto !important;
-}
-
-/* Specific fix for workflow tab container */
-#workflow.wp-allstars-settings-content,
-#workflow .wp-allstars-toggle {
-    max-width: 700px !important;
-    width: 100% !important;
-    margin-left: auto !important;
-    margin-right: auto !important;
-    box-sizing: border-box !important;
-}
-
-/* Fix to ensure consistent tab structure - "Enable Auto Upload Images" panel */
-#workflow.tab-content {
-    padding: 0 20px 20px 20px !important; /* Changed from 20px to 0 20px 20px 20px to remove top padding */
-}
-
-/* Fix spacing in workflow tab to match other tabs */
-#workflow .wp-allstars-toggle {
-    margin-bottom: 15px !important;
-}
-
-/* Consistent padding for toggle headers across all tabs */
-#workflow .wp-allstars-toggle-header,
-#general .wp-setting-header,
-#advanced .wp-allstars-toggle-header {
-    padding: 15px !important;
-}
-
-/* Ensure consistent hover styles across all tab tile layouts */
-.wpa-pro-plugin:hover,
-#pro .wpa-pro-plugin:hover,
-#hosting .wpa-pro-plugin:hover,
-#tools .wpa-pro-plugin:hover,
-#recommended .plugin-card:hover {
-    border-color: #2271b1 !important;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.15) !important;
-    transition: all 0.2s ease !important;
-}
-
-/* Direct override for free plugins tab width - setting the tab content container to 900px */
-#recommended.wp-allstars-settings-content,
-#recommended.tab-content {
-    max-width: 900px !important;
-    width: 100% !important;
-}
-
-/* Target the specific filter container directly with !important */
-#wpa-plugin-filters {
-    max-width: 900px !important;
-    width: 900px !important;
-    margin-left: auto !important;
-    margin-right: auto !important;
-    box-sizing: border-box !important;
-    padding: 15px !important;
-    border-radius: 8px !important;
-    background: #fff !important;
-}
-
-/* Filter links should be centered within container */
-#wpa-plugin-filters .filter-links {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 10px;
-    margin: 0;
-    padding-bottom: 0;
-}
-
-/* Style the filter links similar to main tabs with proper border */
-#wpa-plugin-filters .filter-links a {
-    margin: 0;
-    padding: 10px 15px;
-    font-size: 14px;
-    line-height: 1.6;
-    font-weight: 400;
-    background: transparent;
-    color: #50575e;
-    text-decoration: none;
-    white-space: nowrap;
-    border: none;
-    border-bottom: 2px solid transparent;
-    display: inline-block;
-    transition: all 0.2s ease;
-}
-
-#wpa-plugin-filters .filter-links a:hover,
-#wpa-plugin-filters .filter-links a:focus {
-    color: #2271b1;
-    background: transparent;
-    border-bottom: 2px solid #2271b1;
-}
-
-#wpa-plugin-filters .filter-links a.current {
-    border-bottom: 2px solid #2271b1;
-    background: transparent;
-    color: #2271b1;
-    font-weight: 600;
-}
-
-/* Target the plugin container directly with !important for 900px width */
-#recommended .wpa-plugin-container,
-#wpa-plugin-list.wpa-plugin-container {
-    max-width: 900px !important;
-    width: 900px !important;
-    margin-left: auto !important;
-    margin-right: auto !important;
-    padding: 15px 20px 20px 20px !important;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    box-sizing: border-box !important;
-}
-
-/* Set the individual plugin cards to max 660px width */
-#recommended .plugin-card {
-    width: 100% !important;
-    max-width: 660px !important;
-    margin: 0 auto 24px auto !important;
-    padding: 24px !important;
-    border: 1px solid #ddd !important;
-    border-radius: 8px !important;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.1) !important;
-    background: #fff !important;
-    transition: all 0.2s ease !important;
-    display: flex !important;
-    flex-direction: column !important;
-    position: relative !important;
-    box-sizing: border-box !important;
+	.wpa-wrap {
+		margin-inline-start: -10px;
+	}
+
+	.wpa-header,
+	.wpa-main {
+		padding-inline: 12px;
+	}
+
+	.wpa-nav {
+		flex-wrap: nowrap;
+	}
+
+	.wpa-setting__header {
+		grid-template-columns: auto 1fr;
+	}
+
+	.wpa-setting__header .wpa-status,
+	.wpa-setting__expand {
+		grid-column: 2;
+		justify-self: start;
+	}
+
+	.wpa-field {
+		grid-template-columns: 1fr;
+	}
+
+	.wpa-plugins #the-list {
+		grid-template-columns: 1fr;
+	}
+
+	.wpa-theme-card {
+		grid-template-columns: 1fr;
+	}
+
+	.wpa-theme-card__media {
+		border-inline-end: 0;
+		border-block-end: 1px solid var(--wpa-border);
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.wpa-wrap *,
+	.wpa-wrap *::before,
+	.wpa-wrap *::after {
+		transition: none !important;
+		animation: none !important;
+	}
 }

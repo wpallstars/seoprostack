@@ -1,95 +1,70 @@
 <?php
 /**
- * Theme panel template for WP Allstars
+ * Theme card template.
  *
- * @package WP_Allstars
+ * Variables: $theme_data (themes_api object), $author (string).
+ *
+ * @package WP_ALLSTARS
  */
 
-// Prevent direct access
 if (!defined('ABSPATH')) {
     exit;
 }
+
+$wpa_slug      = WP_Allstars_Theme_Manager::SLUG;
+$wpa_installed = wp_get_theme($wpa_slug);
+$wpa_is_active = get_stylesheet() === $wpa_slug;
+$wpa_links     = array(
+    array('text' => __('Starter templates', 'wp-allstars'), 'url' => 'https://www.kadencewp.com/kadence-theme/starter-templates/'),
+    array('text' => __('Kadence AI', 'wp-allstars'), 'url' => 'https://www.kadencewp.com/wordpress-solutions/kadence-ai/'),
+    array('text' => __('Marketplace', 'wp-allstars'), 'url' => 'https://www.kadencewp.com/kadence-theme/marketplace/'),
+    array('text' => __('Pricing', 'wp-allstars'), 'url' => 'https://www.kadencewp.com/pricing/'),
+);
 ?>
-<div class="theme-card">
-    <div class="theme-image">
-        <img src="<?php echo esc_url($theme_data->screenshot_url); ?>" alt="<?php echo esc_attr($theme_data->name); ?>">
+<article class="wpa-card wpa-theme-card">
+    <div class="wpa-theme-card__media">
+        <img src="<?php echo esc_url($theme_data->screenshot_url); ?>" alt="<?php echo esc_attr(sprintf(/* translators: %s: theme name */ __('%s screenshot', 'wp-allstars'), $theme_data->name)); ?>" loading="lazy" />
     </div>
-    <div class="theme-info">
-        <h3 class="theme-name"><?php echo esc_html($theme_data->name); ?></h3>
-        <p class="theme-author"><?php echo esc_html(sprintf(__('By %s'), $author)); ?></p>
-    </div>
-    <div class="theme-actions">
-        <?php if (current_user_can('install_themes')): ?>
-            <?php 
-            $installed_theme = wp_get_theme('kadence');
-            $current_theme = wp_get_theme();
-            $is_active = ($current_theme->get_stylesheet() === 'kadence');
-            $nonce = wp_create_nonce('wp-allstars-nonce');
-            
-            if ($is_active): ?>
-                <button type="button" class="button button-disabled" disabled="disabled">
-                    <?php esc_html_e('Active'); ?>
-                </button>
-            <?php elseif ($installed_theme->exists()): ?>
-                <a href="<?php echo esc_url(wp_nonce_url(admin_url('themes.php?action=activate&stylesheet=kadence'), 'switch-theme_kadence')); ?>" 
-                   class="button button-primary activate-now" 
-                   data-slug="kadence" 
-                   data-name="Kadence"
-                   data-nonce="<?php echo esc_attr($nonce); ?>">
-                    <?php esc_html_e('Activate'); ?>
-                </a>
-            <?php else: ?>
-                <?php 
-                // Use the standard WordPress theme installation URL format
-                $install_url = wp_nonce_url(
-                    admin_url('update.php?action=install-theme&theme=kadence'),
-                    'install-theme_kadence'
-                );
-                ?>
-                <a href="<?php echo esc_url($install_url); ?>" 
-                   class="button button-primary install-now" 
-                   data-slug="kadence" 
-                   data-name="Kadence"
-                   data-api-nonce="<?php echo esc_attr(wp_create_nonce('updates')); ?>"
-                   data-nonce="<?php echo esc_attr($nonce); ?>"
-                   aria-label="<?php esc_attr_e('Install Kadence'); ?>">
-                    <?php esc_html_e('Install'); ?>
-                </a>
-                <script>
-                console.log('Theme installation button initialized with:', {
-                    slug: 'kadence',
-                    url: '<?php echo esc_js($install_url); ?>',
-                    nonce: '<?php echo esc_js(wp_create_nonce("updates")); ?>'
-                });
-                </script>
+    <div class="wpa-theme-card__body">
+        <h3 class="wpa-theme-card__title">
+            <?php echo esc_html($theme_data->name); ?>
+            <?php if ($wpa_is_active) : ?>
+                <span class="wpa-badge wpa-badge--success"><?php esc_html_e('Active', 'wp-allstars'); ?></span>
+            <?php elseif ($wpa_installed->exists()) : ?>
+                <span class="wpa-badge"><?php esc_html_e('Installed', 'wp-allstars'); ?></span>
             <?php endif; ?>
-            <script>
-            jQuery(document).ready(function($) {
-                // Make sure theme handlers are initialized
-                if (typeof initThemeHandlers === 'function') {
-                    console.log('Initializing theme handlers from template');
-                    initThemeHandlers();
-                }
-            });
-            </script>
+        </h3>
+        <?php if ($author) : ?>
+            <p class="wpa-theme-card__meta"><?php echo esc_html(sprintf(/* translators: %s: author */ __('By %s', 'wp-allstars'), $author)); ?>
+                <?php if (!empty($theme_data->version)) : ?>
+                    · <?php echo esc_html(sprintf(/* translators: %s: version */ __('Version %s', 'wp-allstars'), $theme_data->version)); ?>
+                <?php endif; ?>
+            </p>
         <?php endif; ?>
-        <a class="button button-secondary green-button-secondary preview install-theme-preview" href="<?php echo esc_url($theme_data->preview_url); ?>" target="_blank">
-            <?php esc_html_e('Preview'); ?>
-        </a>
-        <a class="button button-secondary green-button-secondary" href="https://www.kadencewp.com/kadence-theme/starter-templates/" target="_blank">
-            <?php esc_html_e('Templates'); ?>
-        </a>
-        <a class="button button-secondary green-button-secondary" href="https://www.kadencewp.com/wordpress-solutions/kadence-ai/" target="_blank">
-            <?php esc_html_e('Starter AI'); ?>
-        </a>
-        <a class="button button-secondary green-button-secondary" href="https://www.kadencewp.com/kadence-theme/marketplace/" target="_blank">
-            <?php esc_html_e('Marketplace'); ?>
-        </a>
-        <a class="button button-secondary green-button-secondary" href="https://www.kadencewp.com/pricing/" target="_blank">
-            <?php esc_html_e('Pricing'); ?>
-        </a>
-        <a class="button button-primary go-pro-button" href="https://www.kadencewp.com/kadence-theme/" target="_blank">
-            <?php esc_html_e('Go Pro'); ?>
-        </a>
+
+        <div class="wpa-theme-card__actions">
+            <?php if ($wpa_is_active) : ?>
+                <a class="button button-primary" href="<?php echo esc_url(admin_url(wp_is_block_theme() ? 'site-editor.php' : 'customize.php')); ?>"><?php esc_html_e('Customize', 'wp-allstars'); ?></a>
+            <?php elseif ($wpa_installed->exists() && current_user_can('switch_themes')) : ?>
+                <a class="button button-primary" href="<?php echo esc_url(wp_nonce_url(admin_url('themes.php?action=activate&stylesheet=' . rawurlencode($wpa_slug)), 'switch-theme_' . $wpa_slug)); ?>"><?php esc_html_e('Activate', 'wp-allstars'); ?></a>
+            <?php elseif (current_user_can('install_themes')) : ?>
+                <a class="button button-primary wpa-theme-install"
+                   data-slug="<?php echo esc_attr($wpa_slug); ?>"
+                   href="<?php echo esc_url(wp_nonce_url(self_admin_url('update.php?action=install-theme&theme=' . rawurlencode($wpa_slug)), 'install-theme_' . $wpa_slug)); ?>">
+                    <?php esc_html_e('Install', 'wp-allstars'); ?>
+                </a>
+            <?php endif; ?>
+
+            <?php if (!empty($theme_data->preview_url)) : ?>
+                <a class="button" href="<?php echo esc_url($theme_data->preview_url); ?>" target="_blank" rel="noopener noreferrer"><?php esc_html_e('Preview', 'wp-allstars'); ?><span class="screen-reader-text"> <?php esc_html_e('(opens in a new tab)', 'wp-allstars'); ?></span></a>
+            <?php endif; ?>
+        </div>
+
+        <ul class="wpa-theme-card__links">
+            <?php foreach ($wpa_links as $wpa_link) : ?>
+                <li><a href="<?php echo esc_url($wpa_link['url']); ?>" target="_blank" rel="noopener noreferrer"><?php echo esc_html($wpa_link['text']); ?><span class="screen-reader-text"> <?php esc_html_e('(opens in a new tab)', 'wp-allstars'); ?></span></a></li>
+            <?php endforeach; ?>
+            <li><a href="https://www.kadencewp.com/kadence-theme/" target="_blank" rel="noopener noreferrer"><strong><?php esc_html_e('Kadence Pro', 'wp-allstars'); ?></strong><span class="screen-reader-text"> <?php esc_html_e('(opens in a new tab)', 'wp-allstars'); ?></span></a></li>
+        </ul>
     </div>
-</div>
+</article>

@@ -1,4 +1,0 @@
-#!/bin/zsh
-echo "Hook running at $(date)" >> ~/sync-log.txt
-rsync -av --delete --exclude='.git' --exclude-from=/Users/marcusquinn/Git/wpa-superstar-plugin/.gitignore ~/Git/wpa-superstar-plugin/ ~/Local/plugin-testing/app/public/wp-content/plugins/wpa-superstar-plugin/ >> ~/sync-log.txt 2>&1
-echo "Sync complete" >> ~/sync-log.txt

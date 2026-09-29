@@ -6,21 +6,6 @@
 // Define hosting providers
 function wp_allstars_get_hosting_providers() {
     return array(
-        'closte' => array(
-            'name' => 'Closte',
-            'description' => 'Managed WordPress hosting with advanced performance optimization and auto-scaling.',
-            'button_group' => array(
-                array(
-                    'text' => 'Home Page',
-                    'url' => 'https://closte.com/',
-                    'primary' => true
-                ),
-                array(
-                    'text' => 'Pricing',
-                    'url' => 'https://closte.com/pricing'
-                )
-            )
-        ),
         'cloudron' => array(
             'name' => 'Cloudron',
             'description' => 'Self-hosted platform that makes it easy to run web applications like WordPress on your server.',
