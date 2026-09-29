@@ -17,7 +17,7 @@ if (!defined('ABSPATH')) {
 class Allstars_Plugin_Manager {
 
     /** Transient prefix; bump the version to invalidate old caches. */
-    const CACHE_PREFIX = 'allstars_plugins_v2_';
+    const CACHE_PREFIX = 'allstars_plugins_v3_';
 
     /**
      * Register hooks.
@@ -88,8 +88,10 @@ class Allstars_Plugin_Manager {
 
         $plugins = get_transient(self::CACHE_PREFIX . $category);
         if (!is_array($plugins)) {
-            $plugins = self::fetch_plugins($categories[$category]);
-            if ($plugins) {
+            $complete = true;
+            $plugins  = self::fetch_plugins($categories[$category], $complete);
+            // Don't pin a partial list from a network hiccup for 12 hours.
+            if ($plugins && $complete) {
                 set_transient(self::CACHE_PREFIX . $category, $plugins, 12 * HOUR_IN_SECONDS);
             }
         }
@@ -104,14 +106,25 @@ class Allstars_Plugin_Manager {
     /**
      * Fetch plugin information from wordpress.org.
      *
-     * @param string[] $slugs Plugin slugs.
+     * Known-closed slugs skip the API. Slugs the API reports as closed or
+     * missing become "unavailable" stubs rather than silently vanishing.
+     *
+     * @param string[] $slugs    Plugin slugs.
+     * @param bool     $complete Set to false when a request failed for another reason.
      * @return object[]
      */
-    private static function fetch_plugins(array $slugs) {
+    private static function fetch_plugins(array $slugs, &$complete = true) {
         require_once ABSPATH . 'wp-admin/includes/plugin-install.php';
 
-        $plugins = array();
+        $removed  = allstars_get_removed_plugins();
+        $plugins  = array();
+        $complete = true;
         foreach (array_unique($slugs) as $slug) {
+            if (isset($removed[$slug])) {
+                $plugins[] = self::removed_stub($slug, $removed[$slug]);
+                continue;
+            }
+
             $info = plugins_api('plugin_information', array(
                 'slug'   => $slug,
                 'fields' => array(
@@ -136,10 +149,109 @@ class Allstars_Plugin_Manager {
 
             if (!is_wp_error($info) && !empty($info->slug)) {
                 $plugins[] = $info;
+            } elseif (is_wp_error($info) && in_array($info->get_error_message(), array('closed', 'Plugin not found.'), true)) {
+                $plugins[] = self::removed_stub($slug, array());
+            } else {
+                $complete = false;
             }
         }
 
         return $plugins;
+    }
+
+    /**
+     * Card data for a plugin that is no longer on wordpress.org.
+     *
+     * @param string $slug wordpress.org slug.
+     * @param array  $data Entry from allstars_get_removed_plugins(), or empty.
+     * @return object
+     */
+    private static function removed_stub($slug, array $data) {
+        return (object) array(
+            'slug'              => $slug,
+            'name'              => !empty($data['name']) ? $data['name'] : ucwords(str_replace('-', ' ', $slug)),
+            'short_description' => isset($data['description']) ? $data['description'] : '',
+            'removed'           => true,
+            'closed'            => isset($data['closed']) ? $data['closed'] : '',
+            'reason'            => isset($data['reason']) ? $data['reason'] : '',
+            'replacement'       => isset($data['replacement']) ? $data['replacement'] : '',
+        );
+    }
+
+    /**
+     * Installed plugin file for a slug, if any.
+     *
+     * @param string $slug Plugin directory slug.
+     * @return string Plugin file relative to the plugins directory, or ''.
+     */
+    private static function installed_file($slug) {
+        foreach (array_keys(get_plugins()) as $file) {
+            if (0 === strpos($file, $slug . '/')) {
+                return $file;
+            }
+        }
+        return '';
+    }
+
+    /**
+     * Card for a plugin WordPress.org no longer serves: no install, clear status.
+     *
+     * @param object $plugin Stub from removed_stub().
+     */
+    private static function removed_card($plugin) {
+        $file = self::installed_file($plugin->slug);
+        if ($file && is_plugin_active($file)) {
+            $state = _x('Active', 'plugin', 'allstars');
+        } elseif ($file) {
+            $state = _x('Installed', 'plugin', 'allstars');
+        } else {
+            $state = __('Unavailable', 'allstars');
+        }
+
+        if ($plugin->closed) {
+            $status = sprintf(
+                /* translators: %s: closure date */
+                __('Removed from WordPress.org on %s.', 'allstars'),
+                date_i18n(get_option('date_format'), strtotime($plugin->closed))
+            );
+        } else {
+            $status = __('Not currently available from WordPress.org.', 'allstars');
+        }
+        $pro_url = self::get_pro_url_for_free_slug($plugin->slug);
+        ?>
+        <div class="plugin-card plugin-card-<?php echo esc_attr(sanitize_html_class($plugin->slug)); ?> wpa-plugin-removed">
+            <div class="plugin-card-top">
+                <div class="name column-name">
+                    <h3><?php echo esc_html($plugin->name); ?> <span class="wpa-removed-icon dashicons dashicons-warning" aria-hidden="true"></span></h3>
+                </div>
+                <div class="action-links">
+                    <ul class="plugin-action-buttons">
+                        <li><button type="button" class="button button-disabled" disabled="disabled"><?php echo esc_html($state); ?></button></li>
+                        <?php if ($pro_url) : ?>
+                            <li><a class="button" href="<?php echo esc_url($pro_url); ?>" target="_blank" rel="noopener noreferrer"><?php esc_html_e('Vendor Site', 'allstars'); ?><span class="screen-reader-text"> <?php echo esc_html(sprintf(/* translators: %s: plugin name */ __('for %s (opens in a new tab)', 'allstars'), $plugin->name)); ?></span></a></li>
+                        <?php endif; ?>
+                    </ul>
+                </div>
+                <div class="desc column-description">
+                    <?php if ($plugin->short_description) : ?>
+                        <p><?php echo esc_html($plugin->short_description); ?></p>
+                    <?php endif; ?>
+                    <?php if ($plugin->replacement) : ?>
+                        <p><em><?php echo esc_html($plugin->replacement); ?></em></p>
+                    <?php endif; ?>
+                </div>
+            </div>
+            <div class="plugin-card-bottom">
+                <p class="wpa-removed-status">
+                    <strong><?php echo esc_html($status); ?></strong>
+                    <?php echo esc_html($plugin->reason); ?>
+                    <?php if ($file) : ?>
+                        <?php esc_html_e('It will not receive updates; plan a replacement.', 'allstars'); ?>
+                    <?php endif; ?>
+                </p>
+            </div>
+        </div>
+        <?php
     }
 
     /**
@@ -161,7 +273,11 @@ class Allstars_Plugin_Manager {
 
         ob_start();
         foreach ($plugins as $plugin) {
-            $plugin  = (object) $plugin;
+            $plugin = (object) $plugin;
+            if (!empty($plugin->removed)) {
+                self::removed_card($plugin);
+                continue;
+            }
             $name    = wp_strip_all_tags($plugin->name);
             $details = self_admin_url('plugin-install.php?tab=plugin-information&plugin=' . $plugin->slug . '&TB_iframe=true&width=600&height=550');
             $icon    = '';
@@ -339,7 +455,8 @@ class Allstars_Plugin_Manager {
      */
     public static function get_pro_url_for_free_slug($free_slug) {
         foreach (allstars_get_pro_plugins() as $key => $pro) {
-            $matches = (isset($pro['free_slug']) && $pro['free_slug'] === $free_slug) || $key === $free_slug;
+            // free_slug may be one slug or a list (e.g. Flying Press covers three free plugins).
+            $matches = (isset($pro['free_slug']) && in_array($free_slug, (array) $pro['free_slug'], true)) || $key === $free_slug;
             if ($matches) {
                 return self::get_pro_plugin_url($pro);
             }

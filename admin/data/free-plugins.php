@@ -101,6 +101,9 @@ function allstars_get_free_plugins() {
             'media-file-renamer',
             'safe-svg'
         ),
+        'members' => array(
+            'content-control'
+        ),
         'seo' => array(
             'burst-statistics',
             'pretty-link',
@@ -116,6 +119,7 @@ function allstars_get_free_plugins() {
         ),
         'social' => array(
             'bit-social',
+            'easy-video-reviews',
             'social-engine',
             'wp-social-reviews'
         ),
@@ -128,13 +132,11 @@ function allstars_get_free_plugins() {
             'http-requests-manager',
             'index-wp-mysql-for-speed',
             'litespeed-cache',
-            'performant-translations',
             'wp-optimize',
             'wp-widget-disable'
         ),
         'translation' => array(
             'hreflang-manager-lite',
-            'performant-translations',
             'translatepress-multilingual'
         ),
         'advanced' => array(
@@ -145,6 +147,7 @@ function allstars_get_free_plugins() {
             'easy-code-manager',
             'favorites',
             'remove-cpt-base',
+            'remove-old-slugspermalinks',
             'secure-custom-fields',
             'yellow-pencil-visual-theme-customizer'
         ),
@@ -157,5 +160,40 @@ function allstars_get_free_plugins() {
             'user-switching',
             'wp-crontrol'
         )
+    );
+}
+
+/**
+ * Listed plugins that WordPress.org has closed.
+ *
+ * They stay listed as reminders to find or build a replacement. Cards show
+ * the closure and never offer an install. Any other listed slug the API
+ * reports as closed or missing gets a generic "unavailable" card.
+ *
+ * @return array<string,array{name:string,description:string,closed:string,reason:string,replacement:string}>
+ */
+function allstars_get_removed_plugins() {
+    return array(
+        'content-control' => array(
+            'name'        => 'Content Control',
+            'description' => 'Restrict content, menus and blocks by user role or login status.',
+            'closed'      => '2026-08-12',
+            'reason'      => 'Temporary closure pending a full review.',
+            'replacement' => 'Needs an alternative for restricting content by role or login status.',
+        ),
+        'easy-video-reviews' => array(
+            'name'        => 'Easy Video Reviews',
+            'description' => 'Collect and display video testimonials.',
+            'closed'      => '2026-08-05',
+            'reason'      => 'Temporary closure pending a full review.',
+            'replacement' => 'Needs an alternative for collecting video testimonials.',
+        ),
+        'remove-old-slugspermalinks' => array(
+            'name'        => 'Slugs Manager: Delete Old Permalinks',
+            'description' => 'List and delete the old slugs WordPress stores for redirects.',
+            'closed'      => '2026-04-27',
+            'reason'      => 'Guideline violation.',
+            'replacement' => 'Candidate for a lightweight Allstars feature.',
+        ),
     );
 }

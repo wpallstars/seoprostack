@@ -622,6 +622,30 @@
 	background: var(--wpa-subtle);
 }
 
+/* Closed on wordpress.org: kept as a reminder, never installable. */
+.wpa-wrap .wpa-plugins .wpa-plugin-removed {
+	border-inline-start: 4px solid #dba617;
+}
+
+/* No icon on removed cards, so drop core's 148px icon gutter. */
+.wpa-wrap .wpa-plugins .wpa-plugin-removed .name,
+.wpa-wrap .wpa-plugins .wpa-plugin-removed .desc > p {
+	margin-inline-start: 0;
+}
+
+.wpa-wrap .wpa-removed-icon {
+	color: #996800;
+	vertical-align: -2px;
+}
+
+.wpa-wrap .wpa-plugins .wpa-plugin-removed .plugin-card-bottom {
+	background: #fcf9e8;
+}
+
+.wpa-wrap .wpa-removed-status {
+	margin: 0;
+}
+
 .wpa-wrap .wpa-go-pro::before {
 	content: "\f155";
 	margin-inline-end: 4px;
