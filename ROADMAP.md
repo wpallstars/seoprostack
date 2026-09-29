@@ -1,4 +1,4 @@
-# WP Allstars Plugin Development Roadmap
+# Allstars Plugin Development Roadmap
 
 This document outlines features from later versions that we plan to integrate into our stable development branch. The goal is to incrementally implement these features in a stable manner, without introducing critical errors.
 
@@ -42,7 +42,7 @@ This document outlines features from later versions that we plan to integrate in
 - **Description**: Allow users to switch between default and modern admin color schemes
 - **Why it's valuable**: Provides visual distinction and improves user experience
 - **Implementation plan**:
-  1. Create class-wp-allstars-admin-colors.php
+  1. Create class-allstars-admin-colors.php
   2. Add toggle in settings to switch color schemes
   3. Register the feature in the main plugin file
 - **Testing criteria**: Verify color scheme changes when toggled
@@ -51,7 +51,7 @@ This document outlines features from later versions that we plan to integrate in
 - **Description**: Improve the basic styling of admin interfaces
 - **Why it's valuable**: Better user experience and modern look
 - **Implementation plan**:
-  1. Create class-wp-allstars-ui-enhancements.php
+  1. Create class-allstars-ui-enhancements.php
   2. Implement UI components like cards, accordions, and notifications
   3. Add responsive design improvements
 - **Testing criteria**: Verify UI components work correctly across different screen sizes

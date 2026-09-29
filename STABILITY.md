@@ -1,6 +1,6 @@
-# WP Allstars Plugin Stability Status
+# Allstars Plugin Stability Status
 
-This document tracks the stability status of different versions of the WP Allstars Plugin.
+This document tracks the stability status of different versions of the Allstars Plugin.
 
 ## Stability Classification
 

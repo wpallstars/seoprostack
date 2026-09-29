@@ -1,12 +1,12 @@
 <?php
 /**
- * WP Allstars plugin directory data.
+ * Allstars plugin directory data.
  *
  * Fetches wordpress.org data for the curated free plugins, caches it per
  * category and renders cards with the same markup as Plugins → Add New so
  * core's `updates` script provides in-place install/update/activate.
  *
- * @package WP_ALLSTARS
+ * @package Allstars
  * @since 0.2.0
  */
 
@@ -14,16 +14,16 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-class WP_Allstars_Plugin_Manager {
+class Allstars_Plugin_Manager {
 
     /** Transient prefix; bump the version to invalidate old caches. */
-    const CACHE_PREFIX = 'wp_allstars_plugins_v2_';
+    const CACHE_PREFIX = 'allstars_plugins_v2_';
 
     /**
      * Register hooks.
      */
     public static function init() {
-        add_action('wp_ajax_wp_allstars_get_plugins', array(__CLASS__, 'ajax_get_plugins'));
+        add_action('wp_ajax_allstars_get_plugins', array(__CLASS__, 'ajax_get_plugins'));
     }
 
     /**
@@ -33,28 +33,28 @@ class WP_Allstars_Plugin_Manager {
      */
     public static function get_category_labels() {
         $labels = array(
-            'minimal'     => __('Minimal', 'wp-allstars'),
-            'admin'       => __('Admin', 'wp-allstars'),
-            'affiliates'  => __('Affiliates', 'wp-allstars'),
-            'ai'          => __('AI', 'wp-allstars'),
-            'cms'         => __('CMS', 'wp-allstars'),
-            'compliance'  => __('Compliance', 'wp-allstars'),
-            'crm'         => __('CRM', 'wp-allstars'),
-            'ecommerce'   => __('eCommerce', 'wp-allstars'),
-            'events'      => __('Events', 'wp-allstars'),
-            'lms'         => __('LMS', 'wp-allstars'),
-            'media'       => __('Media', 'wp-allstars'),
-            'members'     => __('Members', 'wp-allstars'),
-            'seo'         => __('SEO', 'wp-allstars'),
-            'setup'       => __('Setup', 'wp-allstars'),
-            'social'      => __('Social', 'wp-allstars'),
-            'speed'       => __('Speed', 'wp-allstars'),
-            'translation' => __('Translation', 'wp-allstars'),
-            'advanced'    => __('Advanced', 'wp-allstars'),
-            'debug'       => __('Debug', 'wp-allstars'),
+            'minimal'     => __('Minimal', 'allstars'),
+            'admin'       => __('Admin', 'allstars'),
+            'affiliates'  => __('Affiliates', 'allstars'),
+            'ai'          => __('AI', 'allstars'),
+            'cms'         => __('CMS', 'allstars'),
+            'compliance'  => __('Compliance', 'allstars'),
+            'crm'         => __('CRM', 'allstars'),
+            'ecommerce'   => __('eCommerce', 'allstars'),
+            'events'      => __('Events', 'allstars'),
+            'lms'         => __('LMS', 'allstars'),
+            'media'       => __('Media', 'allstars'),
+            'members'     => __('Members', 'allstars'),
+            'seo'         => __('SEO', 'allstars'),
+            'setup'       => __('Setup', 'allstars'),
+            'social'      => __('Social', 'allstars'),
+            'speed'       => __('Speed', 'allstars'),
+            'translation' => __('Translation', 'allstars'),
+            'advanced'    => __('Advanced', 'allstars'),
+            'debug'       => __('Debug', 'allstars'),
         );
 
-        $categories = array_keys(wp_allstars_get_free_plugins());
+        $categories = array_keys(allstars_get_free_plugins());
         $ordered    = array();
         foreach ($labels as $slug => $label) {
             if (in_array($slug, $categories, true)) {
@@ -74,16 +74,16 @@ class WP_Allstars_Plugin_Manager {
      * AJAX: plugin cards for one category.
      */
     public static function ajax_get_plugins() {
-        check_ajax_referer(WP_Allstars_Settings::NONCE, 'nonce');
+        check_ajax_referer(Allstars_Settings::NONCE, 'nonce');
 
         if (!current_user_can('install_plugins')) {
-            wp_send_json_error(array('message' => __('You are not allowed to install plugins on this site.', 'wp-allstars')), 403);
+            wp_send_json_error(array('message' => __('You are not allowed to install plugins on this site.', 'allstars')), 403);
         }
 
         $category   = isset($_POST['category']) ? sanitize_key(wp_unslash($_POST['category'])) : 'minimal';
-        $categories = wp_allstars_get_free_plugins();
+        $categories = allstars_get_free_plugins();
         if (!isset($categories[$category])) {
-            wp_send_json_error(array('message' => __('Unknown category.', 'wp-allstars')), 400);
+            wp_send_json_error(array('message' => __('Unknown category.', 'allstars')), 400);
         }
 
         $plugins = get_transient(self::CACHE_PREFIX . $category);
@@ -95,7 +95,7 @@ class WP_Allstars_Plugin_Manager {
         }
 
         if (!$plugins) {
-            wp_send_json_error(array('message' => __('Plugin information could not be retrieved from WordPress.org.', 'wp-allstars')), 502);
+            wp_send_json_error(array('message' => __('Plugin information could not be retrieved from WordPress.org.', 'allstars')), 502);
         }
 
         wp_send_json_success(array('html' => self::generate_plugin_cards($plugins)));
@@ -191,8 +191,8 @@ class WP_Allstars_Plugin_Manager {
                         <ul class="plugin-action-buttons">
                             <?php echo self::action_buttons($plugin, $name); // phpcs:ignore WordPress.Security.EscapeOutput -- escaped in method. ?>
                             <li>
-                                <a href="<?php echo esc_url($details); ?>" class="thickbox open-plugin-details-modal" aria-label="<?php echo esc_attr(sprintf(/* translators: %s: plugin name */ __('More information about %s', 'wp-allstars'), $name)); ?>" data-title="<?php echo esc_attr($name); ?>">
-                                    <?php esc_html_e('More Details', 'wp-allstars'); ?>
+                                <a href="<?php echo esc_url($details); ?>" class="thickbox open-plugin-details-modal" aria-label="<?php echo esc_attr(sprintf(/* translators: %s: plugin name */ __('More information about %s', 'allstars'), $name)); ?>" data-title="<?php echo esc_attr($name); ?>">
+                                    <?php esc_html_e('More Details', 'allstars'); ?>
                                 </a>
                             </li>
                         </ul>
@@ -200,7 +200,7 @@ class WP_Allstars_Plugin_Manager {
                     <div class="desc column-description">
                         <p><?php echo esc_html(isset($plugin->short_description) ? $plugin->short_description : ''); ?></p>
                         <?php if (!empty($plugin->author)) : ?>
-                            <p class="authors"><cite><?php echo wp_kses(sprintf(/* translators: %s: author */ __('By %s', 'wp-allstars'), $plugin->author), $allowed_author); ?></cite></p>
+                            <p class="authors"><cite><?php echo wp_kses(sprintf(/* translators: %s: author */ __('By %s', 'allstars'), $plugin->author), $allowed_author); ?></cite></p>
                         <?php endif; ?>
                     </div>
                 </div>
@@ -219,19 +219,19 @@ class WP_Allstars_Plugin_Manager {
                     </div>
                     <div class="column-updated">
                         <?php if (!empty($plugin->last_updated)) : ?>
-                            <strong><?php esc_html_e('Last Updated:', 'wp-allstars'); ?></strong>
-                            <?php echo esc_html(sprintf(/* translators: %s: time since */ __('%s ago', 'wp-allstars'), human_time_diff(strtotime($plugin->last_updated)))); ?>
+                            <strong><?php esc_html_e('Last Updated:', 'allstars'); ?></strong>
+                            <?php echo esc_html(sprintf(/* translators: %s: time since */ __('%s ago', 'allstars'), human_time_diff(strtotime($plugin->last_updated)))); ?>
                         <?php endif; ?>
                     </div>
                     <div class="column-downloaded"><?php echo esc_html(self::installs_text(isset($plugin->active_installs) ? (int) $plugin->active_installs : 0)); ?></div>
                     <div class="column-compatibility">
                         <?php
                         if (!empty($plugin->requires) && version_compare($wp_version, $plugin->requires, '<')) {
-                            echo '<span class="compatibility-incompatible">' . esc_html__('Incompatible with your version of WordPress', 'wp-allstars') . '</span>';
+                            echo '<span class="compatibility-incompatible">' . esc_html__('Incompatible with your version of WordPress', 'allstars') . '</span>';
                         } elseif (!empty($plugin->tested) && version_compare(substr($wp_version, 0, strlen($plugin->tested)), $plugin->tested, '>')) {
-                            echo '<span class="compatibility-untested">' . esc_html__('Untested with your version of WordPress', 'wp-allstars') . '</span>';
+                            echo '<span class="compatibility-untested">' . esc_html__('Untested with your version of WordPress', 'allstars') . '</span>';
                         } else {
-                            echo '<span class="compatibility-compatible">' . wp_kses(__('<strong>Compatible</strong> with your version of WordPress', 'wp-allstars'), array('strong' => array())) . '</span>';
+                            echo '<span class="compatibility-compatible">' . wp_kses(__('<strong>Compatible</strong> with your version of WordPress', 'allstars'), array('strong' => array())) . '</span>';
                         }
                         ?>
                     </div>
@@ -260,9 +260,9 @@ class WP_Allstars_Plugin_Manager {
                         '<li><a class="install-now button" data-slug="%1$s" href="%2$s" aria-label="%3$s" data-name="%4$s">%5$s</a></li>',
                         esc_attr($plugin->slug),
                         esc_url($status['url']),
-                        esc_attr(sprintf(/* translators: %s: plugin name */ _x('Install %s now', 'plugin', 'wp-allstars'), $name)),
+                        esc_attr(sprintf(/* translators: %s: plugin name */ _x('Install %s now', 'plugin', 'allstars'), $name)),
                         esc_attr($name),
-                        esc_html_x('Install Now', 'plugin', 'wp-allstars')
+                        esc_html_x('Install Now', 'plugin', 'allstars')
                     );
                 }
                 break;
@@ -274,9 +274,9 @@ class WP_Allstars_Plugin_Manager {
                         esc_attr($status['file']),
                         esc_attr($plugin->slug),
                         esc_url($status['url']),
-                        esc_attr(sprintf(/* translators: %s: plugin name */ __('Update %s now', 'wp-allstars'), $name)),
+                        esc_attr(sprintf(/* translators: %s: plugin name */ __('Update %s now', 'allstars'), $name)),
                         esc_attr($name),
-                        esc_html__('Update Now', 'wp-allstars')
+                        esc_html__('Update Now', 'allstars')
                     );
                 }
                 break;
@@ -284,17 +284,17 @@ class WP_Allstars_Plugin_Manager {
             case 'latest_installed':
             case 'newer_installed':
                 if (is_plugin_active($status['file'])) {
-                    $html .= '<li><button type="button" class="button button-disabled" disabled="disabled">' . esc_html_x('Active', 'plugin', 'wp-allstars') . '</button></li>';
+                    $html .= '<li><button type="button" class="button button-disabled" disabled="disabled">' . esc_html_x('Active', 'plugin', 'allstars') . '</button></li>';
                 } elseif (current_user_can('activate_plugin', $status['file'])) {
                     $url   = wp_nonce_url(self_admin_url('plugins.php?action=activate&plugin=' . rawurlencode($status['file'])), 'activate-plugin_' . $status['file']);
                     $html .= sprintf(
                         '<li><a href="%1$s" class="button button-primary activate-now" aria-label="%2$s">%3$s</a></li>',
                         esc_url($url),
-                        esc_attr(sprintf(/* translators: %s: plugin name */ _x('Activate %s', 'plugin', 'wp-allstars'), $name)),
-                        esc_html__('Activate', 'wp-allstars')
+                        esc_attr(sprintf(/* translators: %s: plugin name */ _x('Activate %s', 'plugin', 'allstars'), $name)),
+                        esc_html__('Activate', 'allstars')
                     );
                 } else {
-                    $html .= '<li><button type="button" class="button button-disabled" disabled="disabled">' . esc_html_x('Installed', 'plugin', 'wp-allstars') . '</button></li>';
+                    $html .= '<li><button type="button" class="button button-disabled" disabled="disabled">' . esc_html_x('Installed', 'plugin', 'allstars') . '</button></li>';
                 }
                 break;
         }
@@ -304,8 +304,8 @@ class WP_Allstars_Plugin_Manager {
             $html .= sprintf(
                 '<li><a class="button wpa-go-pro" href="%1$s" target="_blank" rel="noopener noreferrer">%2$s<span class="screen-reader-text"> %3$s</span></a></li>',
                 esc_url($pro_url),
-                esc_html__('Go Pro', 'wp-allstars'),
-                esc_html(sprintf(/* translators: %s: plugin name */ __('for %s (opens in a new tab)', 'wp-allstars'), $name))
+                esc_html__('Go Pro', 'allstars'),
+                esc_html(sprintf(/* translators: %s: plugin name */ __('for %s (opens in a new tab)', 'allstars'), $name))
             );
         }
 
@@ -322,13 +322,13 @@ class WP_Allstars_Plugin_Manager {
         if ($installs >= 1000000) {
             $millions = (int) floor($installs / 1000000);
             /* translators: %s: number of millions */
-            return sprintf(_nx('%s+ Million Active Installation', '%s+ Million Active Installations', $millions, 'Active plugin installations', 'wp-allstars'), number_format_i18n($millions));
+            return sprintf(_nx('%s+ Million Active Installation', '%s+ Million Active Installations', $millions, 'Active plugin installations', 'allstars'), number_format_i18n($millions));
         }
         if (0 === $installs) {
-            return _x('Less Than 10 Active Installations', 'Active plugin installations', 'wp-allstars');
+            return _x('Less Than 10 Active Installations', 'Active plugin installations', 'allstars');
         }
         /* translators: %s: number of installs */
-        return sprintf(_n('%s+ Active Installation', '%s+ Active Installations', $installs, 'wp-allstars'), number_format_i18n($installs));
+        return sprintf(_n('%s+ Active Installation', '%s+ Active Installations', $installs, 'allstars'), number_format_i18n($installs));
     }
 
     /**
@@ -338,7 +338,7 @@ class WP_Allstars_Plugin_Manager {
      * @return string
      */
     public static function get_pro_url_for_free_slug($free_slug) {
-        foreach (wp_allstars_get_pro_plugins() as $key => $pro) {
+        foreach (allstars_get_pro_plugins() as $key => $pro) {
             $matches = (isset($pro['free_slug']) && $pro['free_slug'] === $free_slug) || $key === $free_slug;
             if ($matches) {
                 return self::get_pro_plugin_url($pro);
@@ -371,7 +371,7 @@ class WP_Allstars_Plugin_Manager {
      * Delete cached category data.
      */
     public static function clear_plugin_cache() {
-        foreach (array_keys(wp_allstars_get_free_plugins()) as $category) {
+        foreach (array_keys(allstars_get_free_plugins()) as $category) {
             delete_transient(self::CACHE_PREFIX . $category);
         }
     }

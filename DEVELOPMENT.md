@@ -1,6 +1,6 @@
-# WP Allstars Plugin Development Workflow
+# Allstars Plugin Development Workflow
 
-This document outlines the development workflow for the WP Allstars Plugin to ensure stable and reliable feature implementation.
+This document outlines the development workflow for the Allstars Plugin to ensure stable and reliable feature implementation.
 
 ## Development Principles
 

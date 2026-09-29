@@ -1,0 +1,23 @@
+/* allstars/iframe front-end and editor styles. */
+.wp-block-allstars-iframe {
+	margin-inline: 0;
+	max-width: 100%;
+}
+
+.wp-block-allstars-iframe.aligncenter {
+	text-align: center;
+}
+
+.wp-block-allstars-iframe__frame {
+	display: block;
+	max-width: 100%;
+	border: 0;
+}
+
+.wp-block-allstars-iframe.aligncenter .wp-block-allstars-iframe__frame {
+	margin-inline: auto;
+}
+
+.wp-block-allstars-iframe__frame.has-border {
+	border: 1px solid currentColor;
+}

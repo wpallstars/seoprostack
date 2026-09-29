@@ -1,6 +1,6 @@
 <?php
 /**
- * Hosting providers data for WP ALLSTARS plugin
+ * Hosting providers data for Allstars plugin
  */
 
 if (!defined('ABSPATH')) {
@@ -8,7 +8,7 @@ if (!defined('ABSPATH')) {
 }
 
 // Define hosting providers
-function wp_allstars_get_hosting_providers() {
+function allstars_get_hosting_providers() {
     return array(
         'cloudron' => array(
             'name' => 'Cloudron',

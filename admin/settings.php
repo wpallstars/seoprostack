@@ -1,18 +1,18 @@
 <?php
 /**
- * WP Allstars admin loader.
+ * Allstars admin loader.
  *
  * Loads admin data files and tab managers, then initialises the admin
  * screen once. Included from the main plugin file for admin requests only.
  *
- * @package WP_ALLSTARS
+ * @package Allstars
  */
 
 if (!defined('ABSPATH')) {
     exit;
 }
 
-$wp_allstars_admin_files = array(
+$allstars_admin_files = array(
     'admin/data/free-plugins.php',
     'admin/data/pro-plugins.php',
     'admin/data/hosting-providers.php',
@@ -30,9 +30,9 @@ $wp_allstars_admin_files = array(
     'admin/includes/class-admin-manager.php',
 );
 
-foreach ($wp_allstars_admin_files as $wp_allstars_file) {
-    require_once WP_ALLSTARS_DIR . $wp_allstars_file;
+foreach ($allstars_admin_files as $allstars_file) {
+    require_once ALLSTARS_DIR . $allstars_file;
 }
-unset($wp_allstars_admin_files, $wp_allstars_file);
+unset($allstars_admin_files, $allstars_file);
 
-WP_Allstars_Admin_Manager::init();
+Allstars_Admin_Manager::init();

@@ -1,5 +1,5 @@
 /**
- * WP Allstars admin screen.
+ * Allstars admin screen.
  *
  * Scoped to .wpa-wrap. Uses core admin tokens so the screen follows the
  * active admin colour scheme; core buttons, notices and plugin cards keep
@@ -202,12 +202,28 @@
 
 /* Setting cards ------------------------------------------------------ */
 
+/* Clip the header hover and panel backgrounds to the rounded corners. */
 .wpa-setting {
-	transition: box-shadow 0.15s ease;
+	position: relative;
+	overflow: hidden;
 }
 
-.wpa-setting.is-on {
-	box-shadow: inset 3px 0 0 var(--wpa-accent), var(--wpa-shadow);
+/* "On" stripe drawn above the header/panel backgrounds so hover never hides it. */
+.wpa-setting::before {
+	content: "";
+	position: absolute;
+	z-index: 1;
+	inset-block: 0;
+	inset-inline-start: 0;
+	width: 3px;
+	background: var(--wpa-accent);
+	opacity: 0;
+	pointer-events: none;
+	transition: opacity 0.15s ease;
+}
+
+.wpa-setting.is-on::before {
+	opacity: 1;
 }
 
 .wpa-setting__header {
@@ -280,8 +296,6 @@
 	padding: 4px 20px 8px;
 	border-block-start: 1px solid var(--wpa-border);
 	background: #fcfcfc;
-	border-end-start-radius: var(--wpa-radius);
-	border-end-end-radius: var(--wpa-radius);
 }
 
 .wpa-setting__panel[hidden] {
@@ -316,6 +330,21 @@
 
 .wpa-field__control textarea.large-text {
 	max-width: 480px;
+}
+
+.wpa-checkboxes {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 6px 20px;
+	margin: 0;
+	padding: 6px 0 0;
+	border: 0;
+}
+
+.wpa-checkbox {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
 }
 
 .wpa-tokens {

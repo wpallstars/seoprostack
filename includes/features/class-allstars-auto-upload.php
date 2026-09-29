@@ -1,13 +1,13 @@
 <?php
 /**
- * WP Allstars auto upload images.
+ * Allstars auto upload images.
  *
  * When a post is saved, external <img> sources are downloaded into the Media
  * Library (attached to the post) and the content is rewritten to use the
  * local copy. Works for the block editor (REST), the classic editor and
  * programmatic wp_insert_post() calls made by users who can upload files.
  *
- * @package WP_ALLSTARS
+ * @package Allstars
  * @since 0.2.0
  */
 
@@ -15,10 +15,85 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-class WP_Allstars_Auto_Upload {
+class Allstars_Auto_Upload extends Allstars_Feature {
+
+    const KEY = 'auto_upload_images';
 
     /** Attachment meta holding the original remote URL (for de-duplication). */
-    const SOURCE_META = '_wp_allstars_source_url';
+    const SOURCE_META = '_allstars_source_url';
+
+    /**
+     * Settings.
+     *
+     * @return array
+     */
+    public static function settings() {
+        return array(
+            self::KEY => array(
+                'type'        => 'bool',
+                'default'     => false,
+                'tab'         => 'workflow',
+                'label'       => __('Auto upload images', 'allstars'),
+                'description' => __('When a post is saved, copy external images into the Media Library and point the content at the local copy.', 'allstars'),
+            ),
+            'auto_upload_max_width' => array(
+                'type'        => 'int',
+                'default'     => 2560,
+                'min'         => 0,
+                'max'         => 10000,
+                'unit'        => 'px',
+                'parent'      => self::KEY,
+                'label'       => __('Maximum width', 'allstars'),
+                'description' => __('Larger images are scaled down before upload. 0 keeps the original size.', 'allstars'),
+            ),
+            'auto_upload_max_height' => array(
+                'type'        => 'int',
+                'default'     => 2560,
+                'min'         => 0,
+                'max'         => 10000,
+                'unit'        => 'px',
+                'parent'      => self::KEY,
+                'label'       => __('Maximum height', 'allstars'),
+                'description' => __('Larger images are scaled down before upload. 0 keeps the original size.', 'allstars'),
+            ),
+            'auto_upload_exclude_domains' => array(
+                'type'        => 'domains',
+                'default'     => '',
+                'parent'      => self::KEY,
+                'label'       => __('Excluded domains', 'allstars'),
+                'description' => __('One domain per line. Images from these domains (and their subdomains) stay external.', 'allstars'),
+                'placeholder' => "cdn.example.com\nimages.example.org",
+            ),
+            'auto_upload_filename_pattern' => array(
+                'type'        => 'text',
+                'default'     => '%filename%',
+                'parent'      => self::KEY,
+                'label'       => __('File name pattern', 'allstars'),
+                'description' => __('Name given to uploaded files.', 'allstars'),
+                'tokens'      => array('%filename%', '%post_id%', '%postname%', '%post_title%', '%timestamp%', '%date%', '%year%', '%month%', '%day%'),
+            ),
+            'auto_upload_alt_pattern' => array(
+                'type'        => 'text',
+                'default'     => '%post_title%',
+                'parent'      => self::KEY,
+                'label'       => __('Alt text pattern', 'allstars'),
+                'description' => __('Used when an image has no alt text. Leave empty to keep images without alt text unchanged.', 'allstars'),
+                'tokens'      => array('%filename%', '%post_id%', '%postname%', '%post_title%'),
+            ),
+        );
+    }
+
+    /**
+     * Register hooks when enabled.
+     */
+    public static function boot() {
+        if (!self::enabled()) {
+            return;
+        }
+        $instance = new self();
+        add_filter('wp_insert_post_data', array($instance, 'filter_post_data'), 10, 2);
+        add_action('wp_insert_post', array($instance, 'attach_orphans'), 10, 2);
+    }
 
     /**
      * Remote URL => local URL map for the current request.
@@ -33,14 +108,6 @@ class WP_Allstars_Auto_Upload {
      * @var int[]
      */
     private $orphans = array();
-
-    /**
-     * Register hooks.
-     */
-    public function __construct() {
-        add_filter('wp_insert_post_data', array($this, 'filter_post_data'), 10, 2);
-        add_action('wp_insert_post', array($this, 'attach_orphans'), 10, 2);
-    }
 
     /**
      * Attach images imported before a new post had an ID.
@@ -89,7 +156,7 @@ class WP_Allstars_Auto_Upload {
      * @return bool
      */
     private function should_process($data) {
-        if (!WP_Allstars_Settings::get('auto_upload_images')) {
+        if (!self::enabled()) {
             return false;
         }
         if (empty($data['post_content']) || false === stripos($data['post_content'], '<img')) {
@@ -111,7 +178,7 @@ class WP_Allstars_Auto_Upload {
          * @param bool  $process Whether to process.
          * @param array $data    Post data.
          */
-        return (bool) apply_filters('wp_allstars_auto_upload_process_post', true, $data);
+        return (bool) apply_filters('allstars_auto_upload_process_post', true, $data);
     }
 
     /**
@@ -133,7 +200,7 @@ class WP_Allstars_Auto_Upload {
          *
          * @param int $limit Default 10.
          */
-        $limit     = (int) apply_filters('wp_allstars_auto_upload_limit', 10);
+        $limit     = (int) apply_filters('allstars_auto_upload_limit', 10);
         $processed = 0;
         $replaced  = array();
         $tags      = new WP_HTML_Tag_Processor($content);
@@ -225,19 +292,11 @@ class WP_Allstars_Auto_Upload {
             wp_parse_url(content_url(), PHP_URL_HOST),
         ));
         $excluded = array_merge(
-            array_map('strtolower', $local_hosts),
-            WP_Allstars_Settings::parse_domains(WP_Allstars_Settings::get('auto_upload_exclude_domains'))
+            Allstars_Settings::parse_domains(implode("\n", $local_hosts)),
+            Allstars_Settings::parse_domains(Allstars_Settings::get('auto_upload_exclude_domains'))
         );
 
-        foreach ($excluded as $domain) {
-            $domain = preg_replace('/^www\./', '', $domain);
-            $bare   = preg_replace('/^www\./', '', $host);
-            if ($bare === $domain || substr($bare, -strlen('.' . $domain)) === '.' . $domain) {
-                return false;
-            }
-        }
-
-        return true;
+        return !Allstars_Settings::host_matches($host, $excluded);
     }
 
     /**
@@ -268,7 +327,7 @@ class WP_Allstars_Auto_Upload {
         $allowed = get_allowed_mime_types();
         if (!$mime || !in_array($mime, $allowed, true)) {
             wp_delete_file($tmp);
-            return new WP_Error('wp_allstars_not_image', __('The file is not an allowed image type.', 'wp-allstars'));
+            return new WP_Error('allstars_not_image', __('The file is not an allowed image type.', 'allstars'));
         }
 
         $extension = wp_get_default_extension_for_mime_type($mime);
@@ -302,7 +361,7 @@ class WP_Allstars_Auto_Upload {
          * @param string $url           Original URL.
          * @param int    $post_id       Parent post ID.
          */
-        do_action('wp_allstars_image_imported', $attachment_id, $url, $post_id);
+        do_action('allstars_image_imported', $attachment_id, $url, $post_id);
 
         return wp_get_attachment_url($attachment_id);
     }
@@ -314,17 +373,22 @@ class WP_Allstars_Auto_Upload {
      * @return string|false Local URL.
      */
     private function find_existing($url) {
-        $ids = get_posts(array(
-            'post_type'      => 'attachment',
-            'post_status'    => 'inherit',
-            'posts_per_page' => 1,
-            'fields'         => 'ids',
-            'no_found_rows'  => true,
-            'meta_key'       => self::SOURCE_META, // phpcs:ignore WordPress.DB.SlowDBQuery
-            'meta_value'     => esc_url_raw($url), // phpcs:ignore WordPress.DB.SlowDBQuery
-        ));
-
-        return $ids ? wp_get_attachment_url($ids[0]) : false;
+        // The legacy key was written by releases named "WP Allstars".
+        foreach (array(self::SOURCE_META, '_wp_allstars_source_url') as $meta_key) {
+            $ids = get_posts(array(
+                'post_type'      => 'attachment',
+                'post_status'    => 'inherit',
+                'posts_per_page' => 1,
+                'fields'         => 'ids',
+                'no_found_rows'  => true,
+                'meta_key'       => $meta_key, // phpcs:ignore WordPress.DB.SlowDBQuery
+                'meta_value'     => esc_url_raw($url), // phpcs:ignore WordPress.DB.SlowDBQuery
+            ));
+            if ($ids) {
+                return wp_get_attachment_url($ids[0]);
+            }
+        }
+        return false;
     }
 
     /**
@@ -336,8 +400,8 @@ class WP_Allstars_Auto_Upload {
      * @return string Path to use for the sideload.
      */
     private function maybe_resize($tmp, $mime, $extension) {
-        $max_w = (int) WP_Allstars_Settings::get('auto_upload_max_width');
-        $max_h = (int) WP_Allstars_Settings::get('auto_upload_max_height');
+        $max_w = (int) Allstars_Settings::get('auto_upload_max_width');
+        $max_h = (int) Allstars_Settings::get('auto_upload_max_height');
         if ($max_w <= 0 && $max_h <= 0) {
             return $tmp;
         }
@@ -376,7 +440,7 @@ class WP_Allstars_Auto_Upload {
      * @return string
      */
     private function file_name($url, $post_id, array $post, $extension) {
-        $pattern = (string) WP_Allstars_Settings::get('auto_upload_filename_pattern');
+        $pattern = (string) Allstars_Settings::get('auto_upload_filename_pattern');
         $name    = $this->replace_tokens('' !== $pattern ? $pattern : '%filename%', $url, $post_id, $post);
         $name    = sanitize_file_name($name);
 
@@ -396,7 +460,7 @@ class WP_Allstars_Auto_Upload {
      * @return string
      */
     private function alt_text($url, $post_id, array $post) {
-        $pattern = (string) WP_Allstars_Settings::get('auto_upload_alt_pattern');
+        $pattern = (string) Allstars_Settings::get('auto_upload_alt_pattern');
         if ('' === trim($pattern)) {
             return '';
         }
@@ -445,11 +509,11 @@ class WP_Allstars_Auto_Upload {
          * @param string $url   Remote URL.
          * @param string $error Error message.
          */
-        do_action('wp_allstars_image_upload_error', $url, $error);
+        do_action('allstars_image_upload_error', $url, $error);
 
         if (defined('WP_DEBUG') && WP_DEBUG && defined('WP_DEBUG_LOG') && WP_DEBUG_LOG) {
             // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
-            error_log(sprintf('[WP Allstars] Auto upload failed for %s: %s', esc_url_raw($url), $error));
+            error_log(sprintf('[Allstars] Auto upload failed for %s: %s', esc_url_raw($url), $error));
         }
     }
 }

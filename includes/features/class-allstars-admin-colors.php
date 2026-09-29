@@ -1,14 +1,14 @@
 <?php
 /**
- * WP Allstars modern admin colours.
+ * Modern admin colours.
  *
- * While `modern_admin_colors` is on, every user sees the core "Modern" scheme
- * (including in the Profile colour picker). Toggling the setting also writes
- * the choice to the toggling user's profile: on selects "Modern", off selects
- * the WordPress default ("Default"/fresh). Other users' saved preferences are
- * never modified and return when the setting is turned off.
+ * While on, every user sees the core "Modern" scheme (including in the
+ * Profile colour picker). Toggling the setting also writes the choice to the
+ * toggling user's profile: on selects "Modern", off selects the WordPress
+ * default. Other users' saved preferences are never modified and return when
+ * the setting is turned off.
  *
- * @package WP_ALLSTARS
+ * @package Allstars
  * @since 0.2.3.1
  */
 
@@ -16,7 +16,9 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-class WP_Allstars_Admin_Colors {
+class Allstars_Admin_Colors extends Allstars_Feature {
+
+    const KEY = 'modern_admin_colors';
 
     /** Scheme applied while enabled. */
     const SCHEME = 'modern';
@@ -25,30 +27,42 @@ class WP_Allstars_Admin_Colors {
     const DEFAULT_SCHEME = 'fresh';
 
     /**
+     * Settings.
+     *
+     * @return array
+     */
+    public static function settings() {
+        return array(
+            self::KEY => array(
+                'type'        => 'bool',
+                'default'     => false,
+                'tab'         => 'general',
+                'label'       => __('Modern admin colours', 'allstars'),
+                'description' => __('Use the WordPress “Modern” admin colour scheme for everyone. Your profile is set to Modern when on and back to the WordPress default when off; other users keep their own choice.', 'allstars'),
+            ),
+        );
+    }
+
+    /**
      * Register hooks.
      */
-    public function __construct() {
-        add_filter('get_user_option_admin_color', array($this, 'filter_admin_color'));
-        add_action('wp_allstars_setting_saved', array($this, 'sync_current_user'), 10, 2);
+    public static function boot() {
+        // Always listen for the switch so turning it off can reset the profile.
+        add_action('allstars_setting_saved', array(__CLASS__, 'sync_current_user'), 10, 2);
+
+        if (self::enabled()) {
+            add_filter('get_user_option_admin_color', array(__CLASS__, 'filter_admin_color'));
+        }
     }
 
     /**
-     * Whether the override is on.
-     *
-     * @return bool
-     */
-    public static function is_enabled() {
-        return (bool) WP_Allstars_Settings::get('modern_admin_colors');
-    }
-
-    /**
-     * Force the modern scheme when enabled.
+     * Force the modern scheme in the admin.
      *
      * @param string|false $color Stored scheme.
      * @return string|false
      */
-    public function filter_admin_color($color) {
-        if (!is_admin() || !self::is_enabled()) {
+    public static function filter_admin_color($color) {
+        if (!is_admin() || !self::enabled()) {
             return $color;
         }
         return self::SCHEME;
@@ -60,8 +74,8 @@ class WP_Allstars_Admin_Colors {
      * @param string $key   Setting key.
      * @param mixed  $value Sanitized value.
      */
-    public function sync_current_user($key, $value) {
-        if ('modern_admin_colors' !== $key) {
+    public static function sync_current_user($key, $value) {
+        if (self::KEY !== $key) {
             return;
         }
         $user_id = get_current_user_id();

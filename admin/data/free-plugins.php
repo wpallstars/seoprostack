@@ -1,6 +1,6 @@
 <?php
 /**
- * Recommended plugins data for WP ALLSTARS plugin
+ * Recommended plugins data for Allstars plugin
  */
 
 if (!defined('ABSPATH')) {
@@ -8,7 +8,7 @@ if (!defined('ABSPATH')) {
 }
 
 // Define recommended plugins
-function wp_allstars_get_free_plugins() {
+function allstars_get_free_plugins() {
     return array(
         'minimal' => array(
             'antispam-bee',

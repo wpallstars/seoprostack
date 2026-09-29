@@ -1,12 +1,12 @@
 <?php
 /**
- * WP Allstars admin screen.
+ * Allstars admin screen.
  *
- * Owns the Settings → WP Allstars page: tab registry, page chrome and the
+ * Owns the Settings → Allstars page: tab registry, page chrome and the
  * single admin script/stylesheet. Tab content is delegated to the manager
- * classes. Add tabs with the `wp_allstars_admin_tabs` filter.
+ * classes. Add tabs with the `allstars_admin_tabs` filter.
  *
- * @package WP_ALLSTARS
+ * @package Allstars
  * @since 0.2.0
  */
 
@@ -14,13 +14,13 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-class WP_Allstars_Admin_Manager {
+class Allstars_Admin_Manager {
 
     /** Menu/page slug. */
-    const PAGE = 'wp-allstars';
+    const PAGE = 'allstars';
 
     /** Hook suffix returned by add_options_page(). */
-    const HOOK = 'settings_page_wp-allstars';
+    const HOOK = 'settings_page_allstars';
 
     /**
      * Register hooks and initialise tab managers (once).
@@ -28,10 +28,10 @@ class WP_Allstars_Admin_Manager {
     public static function init() {
         add_action('admin_menu', array(__CLASS__, 'register_admin_menu'));
         add_action('admin_enqueue_scripts', array(__CLASS__, 'enqueue_assets'));
-        add_filter('plugin_action_links_' . plugin_basename(WP_ALLSTARS_FILE), array(__CLASS__, 'plugin_action_links'));
+        add_filter('plugin_action_links_' . plugin_basename(ALLSTARS_FILE), array(__CLASS__, 'plugin_action_links'));
 
-        WP_Allstars_Theme_Manager::init();
-        WP_Allstars_Plugin_Manager::init();
+        Allstars_Theme_Manager::init();
+        Allstars_Plugin_Manager::init();
     }
 
     /**
@@ -42,58 +42,58 @@ class WP_Allstars_Admin_Manager {
     public static function get_tabs() {
         $tabs = array(
             'general' => array(
-                'label'  => __('General', 'wp-allstars'),
+                'label'  => __('General', 'allstars'),
                 'group'  => 'settings',
-                'render' => array('WP_Allstars_Settings_Manager', 'render_general_tab'),
+                'render' => array('Allstars_Settings_Manager', 'render_general_tab'),
             ),
             'workflow' => array(
-                'label'  => __('Workflow', 'wp-allstars'),
+                'label'  => __('Workflow', 'allstars'),
                 'group'  => 'settings',
-                'render' => array('WP_Allstars_Settings_Manager', 'render_workflow_tab'),
+                'render' => array('Allstars_Settings_Manager', 'render_workflow_tab'),
             ),
             'advanced' => array(
-                'label'  => __('Advanced', 'wp-allstars'),
+                'label'  => __('Advanced', 'allstars'),
                 'group'  => 'settings',
-                'render' => array('WP_Allstars_Settings_Manager', 'render_advanced_tab'),
+                'render' => array('Allstars_Settings_Manager', 'render_advanced_tab'),
             ),
             'theme' => array(
-                'label'      => __('Theme', 'wp-allstars'),
+                'label'      => __('Theme', 'allstars'),
                 'group'      => 'discover',
-                'render'     => array('WP_Allstars_Theme_Manager', 'display_tab_content'),
+                'render'     => array('Allstars_Theme_Manager', 'display_tab_content'),
                 'capability' => 'switch_themes',
             ),
             'recommended' => array(
-                'label'      => __('Free Plugins', 'wp-allstars'),
+                'label'      => __('Free Plugins', 'allstars'),
                 'group'      => 'discover',
-                'render'     => array('WP_Allstars_Free_Plugins_Manager', 'display_tab_content'),
+                'render'     => array('Allstars_Free_Plugins_Manager', 'display_tab_content'),
                 // On multisite only super admins can install plugins.
                 'capability' => 'install_plugins',
             ),
             'pro' => array(
-                'label'  => __('Pro Plugins', 'wp-allstars'),
+                'label'  => __('Pro Plugins', 'allstars'),
                 'group'  => 'discover',
-                'render' => array('WP_Allstars_Pro_Plugins_Manager', 'display_tab_content'),
+                'render' => array('Allstars_Pro_Plugins_Manager', 'display_tab_content'),
             ),
             'hosting' => array(
-                'label'  => __('Hosting', 'wp-allstars'),
+                'label'  => __('Hosting', 'allstars'),
                 'group'  => 'discover',
-                'render' => array('WP_Allstars_Hosting_Manager', 'display_tab_content'),
+                'render' => array('Allstars_Hosting_Manager', 'display_tab_content'),
             ),
             'tools' => array(
-                'label'  => __('Tools', 'wp-allstars'),
+                'label'  => __('Tools', 'allstars'),
                 'group'  => 'discover',
-                'render' => array('WP_Allstars_Tools_Manager', 'display_tab_content'),
+                'render' => array('Allstars_Tools_Manager', 'display_tab_content'),
             ),
             'readme' => array(
-                'label'  => __('Read Me', 'wp-allstars'),
+                'label'  => __('Read Me', 'allstars'),
                 'group'  => 'about',
-                'render' => array('WP_Allstars_Readme_Manager', 'display_tab_content'),
+                'render' => array('Allstars_Readme_Manager', 'display_tab_content'),
             ),
         );
 
         // Settings tabs without settings are hidden (they can be filled via the schema filter).
         foreach (array('general', 'workflow', 'advanced') as $slug) {
-            if (!WP_Allstars_Settings::fields_for_tab($slug)) {
+            if (!Allstars_Settings::fields_for_tab($slug)) {
                 unset($tabs[$slug]);
             }
         }
@@ -104,7 +104,7 @@ class WP_Allstars_Admin_Manager {
          * @param array $tabs Tabs keyed by slug: label, group (settings|discover|about),
          *                    render callback, optional capability.
          */
-        $tabs = (array) apply_filters('wp_allstars_admin_tabs', $tabs);
+        $tabs = (array) apply_filters('allstars_admin_tabs', $tabs);
 
         // Hide tabs the current user cannot use.
         return array_filter($tabs, function ($tab) {
@@ -145,17 +145,17 @@ class WP_Allstars_Admin_Manager {
      * @return array
      */
     public static function plugin_action_links($links) {
-        array_unshift($links, sprintf('<a href="%s">%s</a>', esc_url(self::tab_url('general')), esc_html__('Settings', 'wp-allstars')));
+        array_unshift($links, sprintf('<a href="%s">%s</a>', esc_url(self::tab_url('general')), esc_html__('Settings', 'allstars')));
         return $links;
     }
 
     /**
-     * Register Settings → WP Allstars.
+     * Register Settings → Allstars.
      */
     public static function register_admin_menu() {
         add_options_page(
-            __('WP Allstars', 'wp-allstars'),
-            __('WP Allstars', 'wp-allstars'),
+            __('Allstars', 'allstars'),
+            __('Allstars', 'allstars'),
             'manage_options',
             self::PAGE,
             array(__CLASS__, 'render_settings_page')
@@ -173,10 +173,10 @@ class WP_Allstars_Admin_Manager {
         }
 
         $tab = self::get_active_tab();
-        $css = file_exists(WP_ALLSTARS_DIR . 'admin/css/wp-allstars-admin.css') ? filemtime(WP_ALLSTARS_DIR . 'admin/css/wp-allstars-admin.css') : WP_ALLSTARS_VERSION;
-        $js  = file_exists(WP_ALLSTARS_DIR . 'admin/js/wp-allstars-admin.js') ? filemtime(WP_ALLSTARS_DIR . 'admin/js/wp-allstars-admin.js') : WP_ALLSTARS_VERSION;
+        $css = file_exists(ALLSTARS_DIR . 'admin/css/allstars-admin.css') ? filemtime(ALLSTARS_DIR . 'admin/css/allstars-admin.css') : ALLSTARS_VERSION;
+        $js  = file_exists(ALLSTARS_DIR . 'admin/js/allstars-admin.js') ? filemtime(ALLSTARS_DIR . 'admin/js/allstars-admin.js') : ALLSTARS_VERSION;
 
-        wp_enqueue_style('wp-allstars-admin', WP_ALLSTARS_URL . 'admin/css/wp-allstars-admin.css', array('dashicons'), $css);
+        wp_enqueue_style('allstars-admin', ALLSTARS_URL . 'admin/css/allstars-admin.css', array('dashicons'), $css);
 
         $deps = array('jquery', 'wp-a11y', 'wp-i18n');
         if (in_array($tab, array('recommended', 'theme'), true)) {
@@ -187,21 +187,21 @@ class WP_Allstars_Admin_Manager {
             $deps[] = 'updates';
         }
 
-        wp_enqueue_script('wp-allstars-admin', WP_ALLSTARS_URL . 'admin/js/wp-allstars-admin.js', $deps, $js, true);
-        wp_set_script_translations('wp-allstars-admin', 'wp-allstars');
+        wp_enqueue_script('allstars-admin', ALLSTARS_URL . 'admin/js/allstars-admin.js', $deps, $js, true);
+        wp_set_script_translations('allstars-admin', 'allstars');
 
-        wp_localize_script('wp-allstars-admin', 'wpAllstars', array(
+        wp_localize_script('allstars-admin', 'allstarsAdmin', array(
             'ajaxUrl'      => admin_url('admin-ajax.php'),
-            'nonce'        => wp_create_nonce(WP_Allstars_Settings::NONCE),
+            'nonce'        => wp_create_nonce(Allstars_Settings::NONCE),
             'tab'          => $tab,
-            'colorSchemes' => WP_Allstars_Admin_Colors::scheme_urls(),
+            'colorSchemes' => Allstars_Admin_Colors::scheme_urls(),
             'i18n'         => array(
-                'saving'     => __('Saving…', 'wp-allstars'),
-                'saved'      => __('Saved', 'wp-allstars'),
-                'saveFailed' => __('Could not save. Please try again.', 'wp-allstars'),
-                'loadFailed' => __('Could not load this list. Please reload the page.', 'wp-allstars'),
-                'noMatches'  => __('No matches.', 'wp-allstars'),
-                'activated'  => __('Activated', 'wp-allstars'),
+                'saving'     => __('Saving…', 'allstars'),
+                'saved'      => __('Saved', 'allstars'),
+                'saveFailed' => __('Could not save. Please try again.', 'allstars'),
+                'loadFailed' => __('Could not load this list. Please reload the page.', 'allstars'),
+                'noMatches'  => __('No matches.', 'allstars'),
+                'activated'  => __('Activated', 'allstars'),
             ),
         ));
     }
@@ -217,27 +217,27 @@ class WP_Allstars_Admin_Manager {
         $tabs   = self::get_tabs();
         $active = self::get_active_tab();
         $groups = array(
-            'settings' => __('Settings', 'wp-allstars'),
-            'discover' => __('Discover', 'wp-allstars'),
-            'about'    => __('About', 'wp-allstars'),
+            'settings' => __('Settings', 'allstars'),
+            'discover' => __('Discover', 'allstars'),
+            'about'    => __('About', 'allstars'),
         );
         ?>
         <div class="wrap wpa-wrap">
             <header class="wpa-header">
                 <div class="wpa-header__brand">
                     <span class="wpa-header__logo dashicons dashicons-star-filled" aria-hidden="true"></span>
-                    <h1 class="wpa-header__title"><?php esc_html_e('WP Allstars', 'wp-allstars'); ?></h1>
-                    <span class="wpa-badge"><?php echo esc_html('v' . WP_ALLSTARS_VERSION); ?></span>
+                    <h1 class="wpa-header__title"><?php esc_html_e('Allstars', 'allstars'); ?></h1>
+                    <span class="wpa-badge"><?php echo esc_html('v' . ALLSTARS_VERSION); ?></span>
                 </div>
                 <div class="wpa-header__actions">
                     <a class="button" href="https://www.wpallstars.com/" target="_blank" rel="noopener noreferrer">
-                        <?php esc_html_e('Visit website', 'wp-allstars'); ?>
-                        <span class="screen-reader-text"><?php esc_html_e('(opens in a new tab)', 'wp-allstars'); ?></span>
+                        <?php esc_html_e('Visit website', 'allstars'); ?>
+                        <span class="screen-reader-text"><?php esc_html_e('(opens in a new tab)', 'allstars'); ?></span>
                     </a>
                 </div>
             </header>
 
-            <nav class="wpa-nav" aria-label="<?php esc_attr_e('WP Allstars sections', 'wp-allstars'); ?>">
+            <nav class="wpa-nav" aria-label="<?php esc_attr_e('Allstars sections', 'allstars'); ?>">
                 <?php foreach ($groups as $group => $group_label) : ?>
                     <?php
                     $group_tabs = array_filter($tabs, function ($tab) use ($group) {

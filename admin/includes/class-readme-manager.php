@@ -1,11 +1,11 @@
 <?php
 /**
- * WP Allstars Read Me tab.
+ * Allstars Read Me tab.
  *
  * Renders README.md with a small, escaping Markdown subset
  * (headings, lists, bold, italic, inline code and http(s) links).
  *
- * @package WP_ALLSTARS
+ * @package Allstars
  * @since 0.2.0
  */
 
@@ -13,13 +13,13 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-class WP_Allstars_Readme_Manager {
+class Allstars_Readme_Manager {
 
     /**
      * Render the tab.
      */
     public static function display_tab_content() {
-        $readme = wp_allstars_get_readme_content();
+        $readme = allstars_get_readme_content();
         ?>
         <article class="wpa-card wpa-readme">
             <?php echo self::parse_markdown($readme['content']); // phpcs:ignore WordPress.Security.EscapeOutput -- built from escaped text. ?>
@@ -35,7 +35,7 @@ class WP_Allstars_Readme_Manager {
      * @return string HTML.
      */
     public static function parse_markdown($markdown) {
-        $markdown = str_replace('{WP_ALLSTARS_VERSION}', WP_ALLSTARS_VERSION, $markdown);
+        $markdown = str_replace('{ALLSTARS_VERSION}', ALLSTARS_VERSION, $markdown);
         $lines    = preg_split('/\r\n|\r|\n/', $markdown);
         $html     = '';
         $list     = '';

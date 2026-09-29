@@ -1,6 +1,6 @@
 <?php
 /**
- * Tools data for WP ALLSTARS plugin
+ * Tools data for Allstars plugin
  */
 
 if (!defined('ABSPATH')) {
@@ -8,7 +8,7 @@ if (!defined('ABSPATH')) {
 }
 
 // Define tools
-function wp_allstars_get_tools() {
+function allstars_get_tools() {
     return array(
         'advise' => array(
             'name' => 'Advise.so',

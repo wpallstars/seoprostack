@@ -1,11 +1,13 @@
 <?php
 /**
- * Remove WP Allstars options and caches on uninstall (every site on multisite).
+ * Remove Allstars options, caches and pending login links on uninstall
+ * (every site on multisite).
  *
- * Imported media (and its `_wp_allstars_source_url` meta) is left in place
- * because posts reference it.
+ * Imported media (and its `_allstars_source_url` / legacy
+ * `_wp_allstars_source_url` meta) is left in place because posts reference it.
+ * Scheduled posts stay scheduled; WordPress publishes them as normal.
  *
- * @package WP_ALLSTARS
+ * @package Allstars
  */
 
 if (!defined('WP_UNINSTALL_PLUGIN')) {
@@ -13,12 +15,15 @@ if (!defined('WP_UNINSTALL_PLUGIN')) {
 }
 
 /**
- * Delete WP Allstars options and transients for the current site.
+ * Delete Allstars options and transients for the current site.
  */
-function wp_allstars_uninstall_site() {
+function allstars_uninstall_site() {
     global $wpdb;
 
     $options = array(
+        'allstars_options',
+        'allstars_db_version',
+        // Development builds released as "WP Allstars".
         'wp_allstars_options',
         'wp_allstars_db_version',
         // Pre-0.3.0 options.
@@ -42,22 +47,22 @@ function wp_allstars_uninstall_site() {
         delete_option($option);
     }
 
-    // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- one-off cleanup of our transients.
-    $wpdb->query(
-        $wpdb->prepare(
-            "DELETE FROM {$wpdb->options} WHERE option_name LIKE %s OR option_name LIKE %s",
-            $wpdb->esc_like('_transient_wp_allstars_') . '%',
-            $wpdb->esc_like('_transient_timeout_wp_allstars_') . '%'
-        )
-    );
+    $patterns = array('_transient_allstars_', '_transient_timeout_allstars_', '_transient_wp_allstars_', '_transient_timeout_wp_allstars_');
+    foreach ($patterns as $pattern) {
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- one-off cleanup of our transients.
+        $wpdb->query($wpdb->prepare("DELETE FROM {$wpdb->options} WHERE option_name LIKE %s", $wpdb->esc_like($pattern) . '%'));
+    }
 }
 
 if (is_multisite()) {
-    foreach (get_sites(array('fields' => 'ids', 'number' => 0)) as $wp_allstars_site_id) {
-        switch_to_blog($wp_allstars_site_id);
-        wp_allstars_uninstall_site();
+    foreach (get_sites(array('fields' => 'ids', 'number' => 0)) as $allstars_site_id) {
+        switch_to_blog($allstars_site_id);
+        allstars_uninstall_site();
         restore_current_blog();
     }
 } else {
-    wp_allstars_uninstall_site();
+    allstars_uninstall_site();
 }
+
+// Unused magic login links (user meta is network-wide).
+delete_metadata('user', 0, '_allstars_magic_login', '', true);

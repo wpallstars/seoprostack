@@ -1,5 +1,5 @@
 /**
- * WP Allstars admin screen.
+ * Allstars admin screen.
  *
  * One delegated controller per concern:
  * - Settings: instant save for [data-wpa-setting] controls.
@@ -9,7 +9,7 @@
  * - Plugins: AJAX category loading into core's #plugin-filter list.
  * - Theme: AJAX theme card and in-place install via wp.updates.
  *
- * Localized data: window.wpAllstars (see WP_Allstars_Admin_Manager::enqueue_assets()).
+ * Localized data: window.allstarsAdmin (see Allstars_Admin_Manager::enqueue_assets()).
  */
 (function ($, wp, cfg) {
 	'use strict';
@@ -58,6 +58,11 @@
 		},
 
 		valueOf: function ($input) {
+			if ($input.is('[data-wpa-multi]')) {
+				return $input.find(':checkbox:checked').map(function () {
+					return this.value;
+				}).get();
+			}
 			if ($input.is(':checkbox')) {
 				return $input.is(':checked') ? '1' : '0';
 			}
@@ -88,7 +93,7 @@
 			this.pending[key] = seq;
 			this.status(key, 'saving', i18n.saving);
 
-			post('wp_allstars_save_setting', { key: key, value: value })
+			post('allstars_save_setting', { key: key, value: value })
 				.done(function (response) {
 					if (Settings.pending[key] !== seq) {
 						return; // A newer save for this key is in flight.
@@ -98,7 +103,12 @@
 						return;
 					}
 					var saved = response.data.value;
-					if ($input.is(':checkbox')) {
+					if ($input.is('[data-wpa-multi]')) {
+						var chosen = $.map(saved || [], String);
+						$input.find(':checkbox').each(function () {
+							this.checked = $.inArray(this.value, chosen) !== -1;
+						});
+					} else if ($input.is(':checkbox')) {
 						$input.data('wpa-saved', saved ? '1' : '0');
 					} else if (saved !== undefined && String(saved) !== String($input.val())) {
 						$input.val(saved); // Show the sanitized value.
@@ -108,7 +118,7 @@
 					}
 					Settings.status(key, 'saved', i18n.saved);
 					speak(i18n.saved);
-					$(document).trigger('wpallstars:setting-saved', [key, saved]);
+					$(document).trigger('allstars:setting-saved', [key, saved]);
 				})
 				.fail(function (xhr) {
 					if (Settings.pending[key] === seq) {
@@ -140,7 +150,7 @@
 
 	var Colors = {
 		init: function () {
-			$(document).on('wpallstars:setting-saved', function (event, key, value) {
+			$(document).on('allstars:setting-saved', function (event, key, value) {
 				if (key === 'modern_admin_colors' && cfg.colorSchemes) {
 					Colors.apply(value ? cfg.colorSchemes.enabled : cfg.colorSchemes.disabled);
 				}
@@ -233,7 +243,7 @@
 				});
 				$dir.find('.wpa-directory__empty').prop('hidden', visible > 0);
 				$dir.find('.wpa-directory__count').text(
-					wp && wp.i18n ? wp.i18n.sprintf(wp.i18n._n('%d item', '%d items', visible, 'wp-allstars'), visible) : visible
+					wp && wp.i18n ? wp.i18n.sprintf(wp.i18n._n('%d item', '%d items', visible, 'allstars'), visible) : visible
 				);
 			});
 		}
@@ -284,7 +294,7 @@
 				'<div class="wpa-loading"><span class="spinner is-active"></span></div>'
 			);
 
-			this.request = post('wp_allstars_get_plugins', { category: category })
+			this.request = post('allstars_get_plugins', { category: category })
 				.done(function (response) {
 					if (response && response.success) {
 						$list.html(response.data.html);
@@ -318,7 +328,7 @@
 				return;
 			}
 
-			post('wp_allstars_get_themes', {})
+			post('allstars_get_themes', {})
 				.done(function (response) {
 					$theme.html(response && response.success ? response.data.html : Plugins.notice(i18n.loadFailed));
 				})
@@ -345,7 +355,7 @@
 					success: function (response) {
 						$button.removeClass('updating-message wpa-theme-install').addClass('updated-message');
 						if (response.activateUrl) {
-							$button.attr('href', response.activateUrl).text(wp.i18n ? wp.i18n.__('Activate', 'wp-allstars') : 'Activate');
+							$button.attr('href', response.activateUrl).text(wp.i18n ? wp.i18n.__('Activate', 'allstars') : 'Activate');
 							$button.removeClass('updated-message');
 						}
 					},
@@ -368,4 +378,4 @@
 		Plugins.init();
 		Theme.init();
 	});
-})(jQuery, window.wp, window.wpAllstars);
+})(jQuery, window.wp, window.allstarsAdmin);

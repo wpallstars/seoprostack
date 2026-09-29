@@ -7,7 +7,7 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
- function wp_allstars_get_pro_plugins() {
+ function allstars_get_pro_plugins() {
     return array(
         'magic-login-pro' => array(
             'name' => 'Magic Login Pro',
@@ -304,20 +304,20 @@ if (!defined('ABSPATH')) {
         ),
         'kadence-blocks' => array(
             'name' => 'Kadence Blocks Pro',
-            'description' => 'Premium blocks and templates for the WordPress editor.',
+            'description' => 'Premium blocks, theme and templates for the WordPress editor, sold together as Kadence bundles.',
             'button_group' => array(
                 array(
                     'text' => 'Home Page',
-                    'url' => 'https://www.kadencewp.com/kadence-blocks/pro/',
+                    'url' => 'https://www.liquidweb.com/software/kadence/blocks/',
                     'primary' => true
                 ),
                 array(
                     'text' => 'Pricing',
-                    'url' => 'https://www.kadencewp.com/pricing/'
+                    'url' => 'https://www.liquidweb.com/software/kadence/#pricing'
                 ),
                 array(
                     'text' => 'Theme Pro',
-                    'url' => 'https://www.kadencewp.com/kadence-theme/pro/'
+                    'url' => 'https://www.liquidweb.com/software/kadence/theme/'
                 )
             ),
             'free_slug' => 'kadence-blocks'
@@ -600,7 +600,7 @@ if (!defined('ABSPATH')) {
             'button_group' => array(
                 array(
                     'text' => 'Home Page',
-                    'url' => 'https://www.kadencewp.com/',
+                    'url' => 'https://www.liquidweb.com/software/kadence/kadence-template-gallery/',
                     'primary' => true
                 )
             ),

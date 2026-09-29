@@ -7,7 +7,7 @@
  *       array( 'text' => '', 'url' => '', 'primary' => true ),
  *   ), 'free_slug' => '' | array( '', ... ) )
  *
- * @package WP_ALLSTARS
+ * @package Allstars
  * @since 0.3.0
  */
 
@@ -15,7 +15,7 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-class WP_Allstars_Link_Cards {
+class Allstars_Link_Cards {
 
     /**
      * Render a filterable card grid.
@@ -30,7 +30,7 @@ class WP_Allstars_Link_Cards {
          *
          * @param array $items Items keyed by slug.
          */
-        $items = (array) apply_filters("wp_allstars_{$id}_items", $items);
+        $items = (array) apply_filters("allstars_{$id}_items", $items);
 
         uasort($items, function ($a, $b) {
             return strcasecmp(isset($a['name']) ? $a['name'] : '', isset($b['name']) ? $b['name'] : '');
@@ -44,14 +44,14 @@ class WP_Allstars_Link_Cards {
                     <p class="wpa-directory__intro"><?php echo esc_html($args['intro']); ?></p>
                 <?php endif; ?>
                 <label class="screen-reader-text" for="<?php echo esc_attr($search_id); ?>">
-                    <?php echo esc_html(isset($args['search_label']) ? $args['search_label'] : __('Filter', 'wp-allstars')); ?>
+                    <?php echo esc_html(isset($args['search_label']) ? $args['search_label'] : __('Filter', 'allstars')); ?>
                 </label>
                 <input type="search"
                        id="<?php echo esc_attr($search_id); ?>"
                        class="wpa-directory__search"
                        data-wpa-filter="<?php echo esc_attr($id); ?>"
-                       placeholder="<?php echo esc_attr(isset($args['search_label']) ? $args['search_label'] : __('Filter…', 'wp-allstars')); ?>" />
-                <span class="wpa-directory__count" aria-live="polite"><?php echo esc_html(sprintf(/* translators: %d: number of items */ _n('%d item', '%d items', count($items), 'wp-allstars'), count($items))); ?></span>
+                       placeholder="<?php echo esc_attr(isset($args['search_label']) ? $args['search_label'] : __('Filter…', 'allstars')); ?>" />
+                <span class="wpa-directory__count" aria-live="polite"><?php echo esc_html(sprintf(/* translators: %d: number of items */ _n('%d item', '%d items', count($items), 'allstars'), count($items))); ?></span>
             </div>
 
             <div class="wpa-grid">
@@ -59,7 +59,7 @@ class WP_Allstars_Link_Cards {
                     <?php self::render_card((string) $slug, $item); ?>
                 <?php endforeach; ?>
             </div>
-            <p class="wpa-directory__empty" hidden><?php esc_html_e('No matches.', 'wp-allstars'); ?></p>
+            <p class="wpa-directory__empty" hidden><?php esc_html_e('No matches.', 'allstars'); ?></p>
         </div>
         <?php
     }
@@ -77,7 +77,7 @@ class WP_Allstars_Link_Cards {
 
         $buttons = isset($item['button_group']) && is_array($item['button_group']) ? $item['button_group'] : array();
         if (!$buttons && !empty($item['url'])) {
-            $buttons = array(array('text' => __('Learn more', 'wp-allstars'), 'url' => $item['url'], 'primary' => true));
+            $buttons = array(array('text' => __('Learn more', 'allstars'), 'url' => $item['url'], 'primary' => true));
         }
         $search = strtolower($item['name'] . ' ' . (isset($item['description']) ? $item['description'] : ''));
         ?>
@@ -100,7 +100,7 @@ class WP_Allstars_Link_Cards {
                         ?>
                         <a class="<?php echo esc_attr($class); ?>" href="<?php echo esc_url($button['url']); ?>" target="_blank" rel="noopener noreferrer">
                             <?php echo esc_html($button['text']); ?>
-                            <span class="screen-reader-text"><?php echo esc_html(sprintf(/* translators: %s: item name */ __('for %s (opens in a new tab)', 'wp-allstars'), $item['name'])); ?></span>
+                            <span class="screen-reader-text"><?php echo esc_html(sprintf(/* translators: %s: item name */ __('for %s (opens in a new tab)', 'allstars'), $item['name'])); ?></span>
                         </a>
                     <?php endforeach; ?>
                 </div>
@@ -147,7 +147,7 @@ class WP_Allstars_Link_Cards {
         return sprintf(
             '<span class="wpa-badge %1$s">%2$s</span>',
             $active ? 'wpa-badge--success' : '',
-            esc_html($active ? __('Free version active', 'wp-allstars') : __('Free version installed', 'wp-allstars'))
+            esc_html($active ? __('Free version active', 'allstars') : __('Free version installed', 'allstars'))
         );
     }
 }

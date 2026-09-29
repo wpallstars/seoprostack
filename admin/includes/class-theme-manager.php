@@ -1,11 +1,11 @@
 <?php
 /**
- * WP Allstars Theme tab (Kadence).
+ * Allstars Theme tab (Kadence).
  *
  * Theme data is fetched from wordpress.org and cached. Installation uses
  * core's wp.updates.installTheme(); activation uses core's nonce'd URL.
  *
- * @package WP_ALLSTARS
+ * @package Allstars
  * @since 0.2.0
  */
 
@@ -13,19 +13,19 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-class WP_Allstars_Theme_Manager {
+class Allstars_Theme_Manager {
 
     /** Recommended theme slug. */
     const SLUG = 'kadence';
 
     /** Cache key. */
-    const CACHE_KEY = 'wp_allstars_theme_kadence';
+    const CACHE_KEY = 'allstars_theme_kadence';
 
     /**
      * Register hooks.
      */
     public static function init() {
-        add_action('wp_ajax_wp_allstars_get_themes', array(__CLASS__, 'ajax_get_themes'));
+        add_action('wp_ajax_allstars_get_themes', array(__CLASS__, 'ajax_get_themes'));
         add_action('switch_theme', array(__CLASS__, 'clear_theme_cache'));
     }
 
@@ -36,11 +36,11 @@ class WP_Allstars_Theme_Manager {
         ?>
         <div class="wpa-section">
             <div class="wpa-section__intro">
-                <h2 class="wpa-section__title"><?php esc_html_e('Recommended theme', 'wp-allstars'); ?></h2>
-                <p class="wpa-section__desc"><?php esc_html_e('Kadence is a fast, flexible block theme with a large starter template library.', 'wp-allstars'); ?></p>
+                <h2 class="wpa-section__title"><?php esc_html_e('Recommended theme', 'allstars'); ?></h2>
+                <p class="wpa-section__desc"><?php esc_html_e('Kadence is a fast, flexible block theme with a large starter template library.', 'allstars'); ?></p>
             </div>
             <div id="wpa-theme" data-wpa-theme aria-live="polite" aria-busy="true">
-                <div class="wpa-loading"><span class="spinner is-active"></span> <?php esc_html_e('Loading theme…', 'wp-allstars'); ?></div>
+                <div class="wpa-loading"><span class="spinner is-active"></span> <?php esc_html_e('Loading theme…', 'allstars'); ?></div>
             </div>
         </div>
         <?php
@@ -57,10 +57,10 @@ class WP_Allstars_Theme_Manager {
      * AJAX: render the theme card.
      */
     public static function ajax_get_themes() {
-        check_ajax_referer(WP_Allstars_Settings::NONCE, 'nonce');
+        check_ajax_referer(Allstars_Settings::NONCE, 'nonce');
 
         if (!current_user_can('install_themes') && !current_user_can('switch_themes')) {
-            wp_send_json_error(array('message' => __('You are not allowed to manage themes on this site.', 'wp-allstars')), 403);
+            wp_send_json_error(array('message' => __('You are not allowed to manage themes on this site.', 'allstars')), 403);
         }
 
         $theme_data = get_transient(self::CACHE_KEY);
@@ -92,7 +92,7 @@ class WP_Allstars_Theme_Manager {
         }
 
         ob_start();
-        include WP_ALLSTARS_DIR . 'admin/partials/theme-panel.php';
+        include ALLSTARS_DIR . 'admin/partials/theme-panel.php';
         wp_send_json_success(array('html' => ob_get_clean()));
     }
 }

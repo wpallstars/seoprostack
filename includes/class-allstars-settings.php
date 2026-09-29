@@ -1,14 +1,15 @@
 <?php
 /**
- * WP Allstars settings store.
+ * Allstars settings store.
  *
- * Every plugin setting lives in a single `wp_allstars_options` array and is
- * described by a schema entry (type, default, UI metadata). Features read
- * values with WP_Allstars_Settings::get(); the admin UI renders cards from
- * the same schema; the AJAX endpoint and the Settings API sanitize through
- * it. Add settings with the `wp_allstars_settings_schema` filter.
+ * Every setting lives in a single `allstars_options` array and is described
+ * by a schema entry (type, default, UI metadata) declared by its feature.
+ * Features read values with Allstars_Settings::get(); the admin UI renders
+ * cards from the same schema; the AJAX endpoint and the Settings API sanitize
+ * through it. Add settings with the `allstars_settings_schema` filter or by
+ * registering a feature (see Allstars_Feature).
  *
- * @package WP_ALLSTARS
+ * @package Allstars
  * @since 0.3.0
  */
 
@@ -16,20 +17,20 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-class WP_Allstars_Settings {
+class Allstars_Settings {
 
     /** Option that stores every setting. */
-    const OPTION = 'wp_allstars_options';
+    const OPTION = 'allstars_options';
 
     /** Settings API group. */
-    const GROUP = 'wp_allstars_settings';
+    const GROUP = 'allstars_settings';
 
     /** Nonce action shared by admin AJAX requests. */
-    const NONCE = 'wp_allstars_admin';
+    const NONCE = 'allstars_admin';
 
     /** Stored schema version, used for one-off migrations. */
-    const DB_VERSION_OPTION = 'wp_allstars_db_version';
-    const DB_VERSION = 1;
+    const DB_VERSION_OPTION = 'allstars_db_version';
+    const DB_VERSION = 2;
 
     /**
      * Request-level cache of the resolved schema.
@@ -39,22 +40,30 @@ class WP_Allstars_Settings {
     private static $schema = null;
 
     /**
+     * Request-level cache of defaults.
+     *
+     * @var array|null
+     */
+    private static $defaults = null;
+
+    /**
      * Register hooks.
      */
     public static function init() {
         add_action('init', array(__CLASS__, 'maybe_migrate'), 5);
         add_action('admin_init', array(__CLASS__, 'register_setting'));
-        add_action('wp_ajax_wp_allstars_save_setting', array(__CLASS__, 'ajax_save'));
+        add_action('wp_ajax_allstars_save_setting', array(__CLASS__, 'ajax_save'));
     }
 
     /**
-     * Setting definitions.
+     * Setting definitions, collected from the registered features.
      *
      * Keys:
-     * - type:        bool | int | text | domains
+     * - type:        bool | int | text | domains | select | multi | times
      * - default:     default value
      * - tab:         admin tab slug (top-level settings only)
      * - parent:      parent setting key (renders inside the parent's panel)
+     * - options:     value => label array, or a callable returning one (select, multi)
      * - label, description, placeholder, min, max, unit, tokens: UI metadata
      *
      * @return array<string,array>
@@ -64,75 +73,36 @@ class WP_Allstars_Settings {
             return self::$schema;
         }
 
-        $schema = array(
-            'modern_admin_colors' => array(
-                'type'        => 'bool',
-                'default'     => false,
-                'tab'         => 'general',
-                'label'       => __('Modern admin colours', 'wp-allstars'),
-                'description' => __('Use the WordPress “Modern” admin colour scheme for everyone. Your profile is set to Modern when on and back to the WordPress default when off; other users keep their own choice.', 'wp-allstars'),
-            ),
-            'auto_upload_images' => array(
-                'type'        => 'bool',
-                'default'     => false,
-                'tab'         => 'workflow',
-                'label'       => __('Auto upload images', 'wp-allstars'),
-                'description' => __('When a post is saved, copy external images into the Media Library and point the content at the local copy.', 'wp-allstars'),
-            ),
-            'auto_upload_max_width' => array(
-                'type'        => 'int',
-                'default'     => 2560,
-                'min'         => 0,
-                'max'         => 10000,
-                'unit'        => 'px',
-                'parent'      => 'auto_upload_images',
-                'label'       => __('Maximum width', 'wp-allstars'),
-                'description' => __('Larger images are scaled down before upload. 0 keeps the original size.', 'wp-allstars'),
-            ),
-            'auto_upload_max_height' => array(
-                'type'        => 'int',
-                'default'     => 2560,
-                'min'         => 0,
-                'max'         => 10000,
-                'unit'        => 'px',
-                'parent'      => 'auto_upload_images',
-                'label'       => __('Maximum height', 'wp-allstars'),
-                'description' => __('Larger images are scaled down before upload. 0 keeps the original size.', 'wp-allstars'),
-            ),
-            'auto_upload_exclude_domains' => array(
-                'type'        => 'domains',
-                'default'     => '',
-                'parent'      => 'auto_upload_images',
-                'label'       => __('Excluded domains', 'wp-allstars'),
-                'description' => __('One domain per line. Images from these domains (and their subdomains) stay external.', 'wp-allstars'),
-                'placeholder' => "cdn.example.com\nimages.example.org",
-            ),
-            'auto_upload_filename_pattern' => array(
-                'type'        => 'text',
-                'default'     => '%filename%',
-                'parent'      => 'auto_upload_images',
-                'label'       => __('File name pattern', 'wp-allstars'),
-                'description' => __('Name given to uploaded files.', 'wp-allstars'),
-                'tokens'      => array('%filename%', '%post_id%', '%postname%', '%post_title%', '%timestamp%', '%date%', '%year%', '%month%', '%day%'),
-            ),
-            'auto_upload_alt_pattern' => array(
-                'type'        => 'text',
-                'default'     => '%post_title%',
-                'parent'      => 'auto_upload_images',
-                'label'       => __('Alt text pattern', 'wp-allstars'),
-                'description' => __('Used when an image has no alt text. Leave empty to keep images without alt text unchanged.', 'wp-allstars'),
-                'tokens'      => array('%filename%', '%post_id%', '%postname%', '%post_title%'),
-            ),
-        );
+        $schema = array();
+        foreach (Allstars::features() as $class) {
+            $schema += (array) $class::settings();
+        }
 
         /**
          * Filter the settings schema to add or adjust settings.
          *
          * @param array $schema Setting definitions keyed by setting key.
          */
-        self::$schema = (array) apply_filters('wp_allstars_settings_schema', $schema);
+        self::$schema = (array) apply_filters('allstars_settings_schema', $schema);
 
         return self::$schema;
+    }
+
+    /**
+     * Resolve a select/multi field's options.
+     *
+     * Options may be a callable so they can depend on data registered at
+     * `init` (post types, roles) without building it for every request.
+     *
+     * @param array $field Schema entry.
+     * @return array<string,string> value => label
+     */
+    public static function options_for(array $field) {
+        if (empty($field['options'])) {
+            return array();
+        }
+        $options = is_callable($field['options']) ? call_user_func($field['options']) : $field['options'];
+        return is_array($options) ? $options : array();
     }
 
     /**
@@ -141,11 +111,13 @@ class WP_Allstars_Settings {
      * @return array
      */
     public static function defaults() {
-        $defaults = array();
-        foreach (self::schema() as $key => $field) {
-            $defaults[$key] = isset($field['default']) ? $field['default'] : null;
+        if (null === self::$defaults) {
+            self::$defaults = array();
+            foreach (self::schema() as $key => $field) {
+                self::$defaults[$key] = isset($field['default']) ? $field['default'] : null;
+            }
         }
-        return $defaults;
+        return self::$defaults;
     }
 
     /**
@@ -182,7 +154,7 @@ class WP_Allstars_Settings {
     public static function set($key, $value) {
         $schema = self::schema();
         if (!isset($schema[$key])) {
-            return new WP_Error('wp_allstars_unknown_setting', __('Unknown setting.', 'wp-allstars'));
+            return new WP_Error('allstars_unknown_setting', __('Unknown setting.', 'allstars'));
         }
 
         $options       = self::all();
@@ -219,19 +191,23 @@ class WP_Allstars_Settings {
     /**
      * Sanitize a value according to its schema entry.
      *
+     * Must be idempotent: update_option() re-runs sanitize_all() on the
+     * already-sanitized array.
+     *
      * @param mixed $value Raw value.
      * @param array $field Schema entry.
      * @return mixed
      */
     public static function sanitize_value($value, array $field) {
-        $type = isset($field['type']) ? $field['type'] : 'text';
+        $type    = isset($field['type']) ? $field['type'] : 'text';
+        $default = isset($field['default']) ? $field['default'] : null;
 
         switch ($type) {
             case 'bool':
                 return rest_sanitize_boolean($value);
 
             case 'int':
-                $value = is_numeric($value) ? (int) $value : (int) $field['default'];
+                $value = is_numeric($value) ? (int) $value : (int) $default;
                 if (isset($field['min'])) {
                     $value = max((int) $field['min'], $value);
                 }
@@ -243,10 +219,21 @@ class WP_Allstars_Settings {
             case 'domains':
                 return implode("\n", self::parse_domains($value));
 
+            case 'select':
+                $value = is_scalar($value) ? (string) $value : '';
+                return array_key_exists($value, self::options_for($field)) ? $value : $default;
+
+            case 'multi':
+                $values = is_array($value) ? $value : preg_split('/\s*,\s*/', (string) $value, -1, PREG_SPLIT_NO_EMPTY);
+                $values = array_map('strval', array_filter((array) $values, 'is_scalar'));
+                // Keep the options' order so stored values are stable.
+                return array_values(array_intersect(array_map('strval', array_keys(self::options_for($field))), $values));
+
+            case 'times':
+                return implode(', ', self::parse_times($value));
+
             case 'text':
             default:
-                // Callers pass unslashed input; keep this idempotent because
-                // update_option() re-runs sanitize_all() on the stored array.
                 return sanitize_text_field((string) $value);
         }
     }
@@ -274,6 +261,56 @@ class WP_Allstars_Settings {
         }
 
         return array_values(array_unique($domains));
+    }
+
+    /**
+     * Whether a host is one of the domains or a subdomain of one.
+     *
+     * @param string   $host    Host name.
+     * @param string[] $domains Normalised domains from parse_domains().
+     * @return bool
+     */
+    public static function host_matches($host, array $domains) {
+        $host = strtolower(preg_replace('/^www\./i', '', (string) $host));
+        foreach ($domains as $domain) {
+            if ($host === $domain || substr($host, -strlen('.' . $domain)) === '.' . $domain) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Normalise a list of times of day to sorted, unique 24-hour "HH:MM".
+     *
+     * Accepts "9", "9:30", "09:30", "9.30", "9pm", "9:30 am" separated by
+     * commas, spaces or new lines.
+     *
+     * @param mixed $value Raw list.
+     * @return string[]
+     */
+    public static function parse_times($value) {
+        preg_match_all('/(\d{1,2})(?:[:.](\d{2}))?\s*(am|pm)?/i', (string) $value, $matches, PREG_SET_ORDER);
+        $times = array();
+
+        foreach ($matches as $match) {
+            $hour   = (int) $match[1];
+            $minute = isset($match[2]) && '' !== $match[2] ? (int) $match[2] : 0;
+            $suffix = isset($match[3]) ? strtolower($match[3]) : '';
+            if ('pm' === $suffix && $hour < 12) {
+                $hour += 12;
+            } elseif ('am' === $suffix && 12 === $hour) {
+                $hour = 0;
+            }
+            if ($hour > 23 || $minute > 59) {
+                continue;
+            }
+            $times[] = sprintf('%02d:%02d', $hour, $minute);
+        }
+
+        $times = array_values(array_unique($times));
+        sort($times);
+        return $times;
     }
 
     /**
@@ -315,7 +352,7 @@ class WP_Allstars_Settings {
         check_ajax_referer(self::NONCE, 'nonce');
 
         if (!current_user_can('manage_options')) {
-            wp_send_json_error(array('message' => __('You are not allowed to change these settings.', 'wp-allstars')), 403);
+            wp_send_json_error(array('message' => __('You are not allowed to change these settings.', 'allstars')), 403);
         }
 
         $key = isset($_POST['key']) ? sanitize_key(wp_unslash($_POST['key'])) : '';
@@ -333,19 +370,23 @@ class WP_Allstars_Settings {
          * @param string $key   Setting key.
          * @param mixed  $value Sanitized value.
          */
-        do_action('wp_allstars_setting_saved', $key, $value);
+        do_action('allstars_setting_saved', $key, $value);
 
         wp_send_json_success(array(
             'key'     => $key,
             'value'   => $value,
-            'message' => __('Saved', 'wp-allstars'),
+            'message' => __('Saved', 'allstars'),
         ));
     }
 
     /**
-     * Copy pre-0.3.0 individual options into the settings array once.
+     * One-off migrations.
      *
-     * Legacy options are left in place so a downgrade keeps working;
+     * v1: copy pre-0.3.0 individual `wp_allstars_*` options into the array.
+     * v2: the plugin was renamed from "WP Allstars" to "Allstars"; copy the
+     *     development `wp_allstars_options` array into `allstars_options`.
+     *
+     * Old options are left in place so a downgrade keeps working;
      * uninstall.php removes them.
      */
     public static function maybe_migrate() {
@@ -355,6 +396,11 @@ class WP_Allstars_Settings {
 
         $options = get_option(self::OPTION, array());
         $options = is_array($options) ? $options : array();
+
+        $renamed = get_option('wp_allstars_options', array());
+        if (is_array($renamed)) {
+            $options += $renamed;
+        }
 
         $legacy_map = array(
             'wp_allstars_admin_color_scheme' => 'modern_admin_colors',
@@ -369,12 +415,12 @@ class WP_Allstars_Settings {
         $schema = self::schema();
         foreach ($legacy_map as $legacy => $key) {
             $legacy_value = get_option($legacy, null);
-            if (null !== $legacy_value && '' !== $legacy_value && !array_key_exists($key, $options)) {
+            if (null !== $legacy_value && '' !== $legacy_value && !array_key_exists($key, $options) && isset($schema[$key])) {
                 $options[$key] = self::sanitize_value($legacy_value, $schema[$key]);
             }
         }
 
-        update_option(self::OPTION, array_merge(self::defaults(), $options));
+        update_option(self::OPTION, self::sanitize_all($options));
         update_option(self::DB_VERSION_OPTION, self::DB_VERSION);
     }
 }
