@@ -70,7 +70,7 @@ class WP_Allstars_Settings {
                 'default'     => false,
                 'tab'         => 'general',
                 'label'       => __('Modern admin colours', 'wp-allstars'),
-                'description' => __('Use the WordPress “Modern” admin colour scheme for everyone while enabled. Turning it off restores each user’s own choice.', 'wp-allstars'),
+                'description' => __('Use the WordPress “Modern” admin colour scheme for everyone. Your profile is set to Modern when on and back to the WordPress default when off; other users keep their own choice.', 'wp-allstars'),
             ),
             'auto_upload_images' => array(
                 'type'        => 'bool',

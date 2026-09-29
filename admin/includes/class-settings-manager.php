@@ -79,8 +79,9 @@ class WP_Allstars_Settings_Manager {
         $panel_id = $id . '-panel';
         $is_bool  = 'bool' === $field['type'];
         ?>
-        <section class="wpa-card wpa-setting<?php echo ($is_bool && $value) ? ' is-on' : ''; ?>" data-setting-card="<?php echo esc_attr($key); ?>">
-            <div class="wpa-setting__header">
+        <section class="wpa-card wpa-setting<?php echo ($is_bool && $value) ? ' is-on' : ''; ?><?php echo $children ? ' has-panel' : ''; ?>" data-setting-card="<?php echo esc_attr($key); ?>">
+            <?php // Clicking the header (outside the switch) opens the options; only the switch changes the value. ?>
+            <div class="wpa-setting__header"<?php echo $children ? ' data-wpa-panel-toggle' : ''; ?>>
                 <?php if ($is_bool) : ?>
                     <span class="wpa-switch">
                         <input type="checkbox"
@@ -88,6 +89,7 @@ class WP_Allstars_Settings_Manager {
                                class="wpa-switch__input"
                                id="<?php echo esc_attr($id); ?>"
                                data-wpa-setting="<?php echo esc_attr($key); ?>"
+                               aria-labelledby="<?php echo esc_attr($id); ?>-title"
                                aria-describedby="<?php echo esc_attr($id); ?>-desc"
                                <?php checked((bool) $value); ?> />
                         <span class="wpa-switch__track" aria-hidden="true"></span>
@@ -95,13 +97,14 @@ class WP_Allstars_Settings_Manager {
                 <?php endif; ?>
 
                 <div class="wpa-setting__text">
-                    <label class="wpa-setting__title" for="<?php echo esc_attr($id); ?>"><?php echo esc_html($field['label']); ?></label>
+                    <div class="wpa-setting__title-row">
+                        <span class="wpa-setting__title" id="<?php echo esc_attr($id); ?>-title"><?php echo esc_html($field['label']); ?></span>
+                        <span class="wpa-status" data-wpa-status="<?php echo esc_attr($key); ?>" aria-hidden="true"></span>
+                    </div>
                     <?php if (!empty($field['description'])) : ?>
                         <p class="wpa-setting__desc" id="<?php echo esc_attr($id); ?>-desc"><?php echo esc_html($field['description']); ?></p>
                     <?php endif; ?>
                 </div>
-
-                <span class="wpa-status" data-wpa-status="<?php echo esc_attr($key); ?>" aria-hidden="true"></span>
 
                 <?php if ($children) : ?>
                     <button type="button"

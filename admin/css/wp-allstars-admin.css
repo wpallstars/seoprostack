@@ -212,21 +212,36 @@
 
 .wpa-setting__header {
 	display: grid;
-	grid-template-columns: auto 1fr auto auto;
+	grid-template-columns: auto 1fr auto;
 	align-items: center;
 	gap: 16px;
 	padding: 16px 20px;
+}
+
+.wpa-setting.has-panel .wpa-setting__header {
+	cursor: pointer;
+}
+
+.wpa-setting.has-panel .wpa-setting__header:hover {
+	background: #fcfcfc;
 }
 
 .wpa-setting__text {
 	min-width: 0;
 }
 
+/* Status sits beside the title so showing/hiding it never reflows the description. */
+.wpa-setting__title-row {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 4px 10px;
+	min-height: 20px;
+}
+
 .wpa-setting__title {
-	display: block;
 	font-size: 14px;
 	font-weight: 600;
-	cursor: pointer;
 }
 
 .wpa-setting__desc {
@@ -555,12 +570,23 @@
 	grid-column: 1 / -1;
 }
 
+/* Column layout so the grey meta row sits at the bottom of equal-height cards. */
 .wpa-wrap .wpa-plugins .plugin-card {
+	display: flex;
+	flex-direction: column;
 	float: none;
 	width: auto;
 	margin: 0;
 	border-radius: var(--wpa-radius);
 	overflow: hidden;
+}
+
+.wpa-wrap .wpa-plugins .plugin-card-top {
+	flex: 1 0 auto;
+}
+
+.wpa-wrap .wpa-plugins .plugin-card-bottom {
+	flex: none;
 }
 
 .wpa-wrap .wpa-plugins .plugin-card-bottom {
@@ -714,15 +740,9 @@
 		grid-template-columns: auto 1fr;
 	}
 
-	.wpa-setting__header .wpa-status,
 	.wpa-setting__expand {
 		grid-column: 2;
 		justify-self: start;
-	}
-
-	/* Idle status would otherwise reserve an empty grid row. */
-	.wpa-setting__header .wpa-status:empty {
-		display: none;
 	}
 
 	.wpa-field {

@@ -168,16 +168,36 @@
 	/* ------------------------------------------------------------------ */
 
 	var Panels = {
+		toggle: function ($button) {
+			if (!$button.length) {
+				return;
+			}
+			var expanded = $button.attr('aria-expanded') === 'true';
+			var panel = document.getElementById($button.attr('aria-controls'));
+			$button.attr('aria-expanded', expanded ? 'false' : 'true');
+			if (panel) {
+				panel.hidden = expanded;
+			}
+			$button.closest('.wpa-setting').toggleClass('is-expanded', !expanded);
+		},
+
 		init: function () {
-			$(document).on('click', '.wpa-setting__expand', function () {
-				var $button = $(this);
-				var expanded = $button.attr('aria-expanded') === 'true';
-				var panel = document.getElementById($button.attr('aria-controls'));
-				$button.attr('aria-expanded', expanded ? 'false' : 'true');
-				if (panel) {
-					panel.hidden = expanded;
+			$(document).on('click', '.wpa-setting__expand', function (event) {
+				event.stopPropagation();
+				Panels.toggle($(this));
+			});
+
+			// Mouse convenience: clicking anywhere on the header opens/closes the
+			// options. The switch (and any other control) keeps its own behaviour;
+			// keyboard users use the Options button.
+			$(document).on('click', '[data-wpa-panel-toggle]', function (event) {
+				if ($(event.target).closest('input, button, a, label, select, textarea, .wpa-switch').length) {
+					return;
 				}
-				$button.closest('.wpa-setting').toggleClass('is-expanded', !expanded);
+				if (window.getSelection && String(window.getSelection()).length) {
+					return; // Let people select text.
+				}
+				Panels.toggle($(this).find('.wpa-setting__expand').first());
 			});
 
 			$(document).on('click', '.wpa-token', function () {
