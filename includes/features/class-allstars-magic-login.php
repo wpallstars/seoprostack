@@ -345,13 +345,15 @@ class Allstars_Magic_Login extends Allstars_Feature {
         wp_set_current_user($user->ID);
         wp_set_auth_cookie($user->ID, $remember, is_ssl());
 
+        // Core hooks fired on purpose, exactly as wp_signon() and wp-login.php
+        // do, so security, audit and redirect plugins treat this as a login.
         /** This action is documented in wp-includes/user.php */
-        do_action('wp_login', $user->user_login, $user);
+        do_action('wp_login', $user->user_login, $user); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound
 
         $requested = (is_array($pending) && !empty($pending['redirect'])) ? $pending['redirect'] : '';
         $redirect  = $requested ? $requested : admin_url();
         /** This filter is documented in wp-login.php */
-        $redirect = apply_filters('login_redirect', $redirect, $requested, $user);
+        $redirect = apply_filters('login_redirect', $redirect, $requested, $user); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound
 
         // Same fallbacks as wp-login.php for users who cannot use the dashboard.
         if (empty($redirect) || admin_url() === $redirect) {

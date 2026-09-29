@@ -252,7 +252,6 @@ class Allstars_Post_Scheduler extends Allstars_Feature {
             'orderby'                => 'date',
             'order'                  => 'ASC',
             'no_found_rows'          => true,
-            'suppress_filters'       => true,
             'update_post_meta_cache' => false,
             'update_post_term_cache' => false,
         ));
