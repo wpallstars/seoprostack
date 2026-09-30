@@ -14,7 +14,7 @@ Curated plugins, themes, hosting and tools for WordPress, plus small opt-in qual
 
 SEO Pro Stack is free and open source. There is no pro version and nothing is locked.
 
-Everything is off by default. Settings save instantly from **Settings → SEO Pro Stack**, grouped into Admin, Content, Media, Links and Speed tabs. Use **Search features** to find a setting by name or by the plugin it replaces.
+Everything is off by default. Settings save instantly from **Settings → SEO Pro Stack**, grouped into Admin, Content, Media, Links, Speed and Plugins tabs. Use **Search features** to find a setting by name or by the plugin it replaces.
 
 = Features =
 
@@ -33,6 +33,9 @@ Everything is off by default. Settings save instantly from **Settings → SEO Pr
 * **Select all across pages**: apply a bulk action to every post that matches the list’s filters, not just the visible page.
 * **410 Gone for removed pages**: tell search engines that removed addresses are gone for good.
 * **Speed**: load pages before the click (Speculation Rules), delay chosen scripts until interaction, and add Google Analytics 4 without slowing the page.
+* **Plugins menu in the admin bar**: switch any plugin on or off from the admin bar after confirming, then return to the page you were on.
+* **Plugin sizes**: a Size column on the Plugins screen shows each plugin’s PHP, JavaScript, CSS, media and other files, measured in the background and sortable.
+* **Clean up deleted plugins**: when plugin folders were deleted outside the Plugins screen, opening that screen removes their leftover uninstall and “Recently active” entries.
 
 Features that replace another plugin (for example Carbon Copy, Flying Pages or Ultimate 410) import its settings once and show “Replaces: …” on their card. The other plugin’s settings are left untouched.
 
@@ -99,6 +102,8 @@ They stay scheduled and publish at their times. Turning it off only stops new po
 = Unreleased =
 * Settings are grouped into Admin, Content, Media, Links and Speed tabs. Old links still open the right tab.
 * New: search features by name, description or the plugin they replace, and change them from the results.
+* New Plugins tab, all off by default: a Plugins menu in the admin bar (replaces Plugin Toggle), a Size column on the Plugins screen, and cleanup of leftover entries for deleted plugins.
+* Free Plugins no longer lists Plugin Toggle or String Locator.
 
 = 0.3.1 =
 * Free plugin lists show changes straight away instead of after the 12-hour cache expires.

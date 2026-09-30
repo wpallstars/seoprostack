@@ -11,7 +11,10 @@ if (!defined('ABSPATH')) {
 // Plugins that SEO Pro Stack features replace are not listed (see each
 // feature's "replaces"): Admin Bar & Dashboard Control, Manage Notification
 // E-mails, Bulk Actions Select All, Carbon Copy, Post Draft Preview, Sticky
-// Posts Switch, Ultimate 410, Flying Analytics/Pages/Scripts, Widget Disable.
+// Posts Switch, Ultimate 410, Flying Analytics/Pages/Scripts, Widget Disable,
+// Plugin Toggle.
+// String Locator is not listed: searching code is better done in an editor
+// or with WP-CLI than from wp-admin.
 function seoprostack_get_free_plugins() {
     return array(
         'minimal' => array(
@@ -27,8 +30,7 @@ function seoprostack_get_free_plugins() {
             'hide-admin-notices',
             'mainwp-child',
             'mainwp-child-reports',
-            'plugin-groups',
-            'plugin-toggle'
+            'plugin-groups'
         ),
         'affiliates' => array(
             'pretty-link',
@@ -150,7 +152,6 @@ function seoprostack_get_free_plugins() {
             'debug-log-manager',
             'gotmls',
             'query-monitor',
-            'string-locator',
             'user-switching',
             'wp-crontrol'
         )
