@@ -548,8 +548,9 @@ class SEOProStack_Settings {
      *     Gravatar), after 0.3.1 shipped at v4. Also Safe SVG (SVG uploads),
      *     Imsanity (Resize large uploads) and Enable Media Replace (Replace
      *     media files), CompressX (WebP and AVIF images; its resize limit
-     *     goes to Resize large uploads) and Easy Watermark's image
-     *     watermark (Watermark pictures).
+     *     goes to Resize large uploads), Easy Watermark's image
+     *     watermark (Watermark pictures) and Remove CPT base's post types
+     *     (Short addresses for custom post types).
      *
      * Old options are left in place so a downgrade keeps working;
      * uninstall.php removes ours. Other plugins' options are never touched.
