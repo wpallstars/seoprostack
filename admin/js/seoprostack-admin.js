@@ -50,6 +50,8 @@
 	var Settings = {
 		pending: {},
 		sequence: 0,
+		// Saves run one at a time so each reads the settings the last one wrote.
+		queue: $.Deferred().resolve().promise(),
 
 		init: function () {
 			$(document).on('change', '[data-sps-setting]', function () {
@@ -93,38 +95,45 @@
 			this.pending[key] = seq;
 			this.status(key, 'saving', i18n.saving);
 
-			post('seoprostack_save_setting', { key: key, value: value })
-				.done(function (response) {
-					if (Settings.pending[key] !== seq) {
-						return; // A newer save for this key is in flight.
-					}
-					if (!response || !response.success) {
-						Settings.fail($input, key, previous, i18n.saveFailed);
-						return;
-					}
-					var saved = response.data.value;
-					if ($input.is('[data-sps-multi]')) {
-						var chosen = $.map(saved || [], String);
-						$input.find(':checkbox').each(function () {
-							this.checked = $.inArray(this.value, chosen) !== -1;
-						});
-					} else if ($input.is(':checkbox')) {
-						$input.data('sps-saved', saved ? '1' : '0');
-					} else if (saved !== undefined && String(saved) !== String($input.val())) {
-						$input.val(saved); // Show the sanitized value.
-					}
-					if (!$input.is(':checkbox')) {
-						$input.data('sps-saved', $input.val());
-					}
-					Settings.status(key, 'saved', i18n.saved);
-					speak(i18n.saved);
-					$(document).trigger('seoprostack:setting-saved', [key, saved]);
-				})
-				.fail(function (xhr) {
-					if (Settings.pending[key] === seq) {
-						Settings.fail($input, key, previous, errorMessage(xhr, i18n.saveFailed));
-					}
-				});
+			var run = function () {
+				return post('seoprostack_save_setting', { key: key, value: value })
+					.done(done)
+					.fail(failed);
+			};
+			var done = function (response) {
+				if (Settings.pending[key] !== seq) {
+					return; // A newer save for this key is queued.
+				}
+				if (!response || !response.success) {
+					Settings.fail($input, key, previous, i18n.saveFailed);
+					return;
+				}
+				var saved = response.data.value;
+				if ($input.is('[data-sps-multi]')) {
+					var chosen = $.map(saved || [], String);
+					$input.find(':checkbox').each(function () {
+						this.checked = $.inArray(this.value, chosen) !== -1;
+					});
+				} else if ($input.is(':checkbox')) {
+					$input.data('sps-saved', saved ? '1' : '0');
+				} else if (saved !== undefined && String(saved) !== String($input.val())) {
+					$input.val(saved); // Show the sanitized value.
+				}
+				if (!$input.is(':checkbox')) {
+					$input.data('sps-saved', $input.val());
+				}
+				Settings.status(key, 'saved', i18n.saved);
+				speak(i18n.saved);
+				$(document).trigger('seoprostack:setting-saved', [key, saved]);
+			};
+			var failed = function (xhr) {
+				if (Settings.pending[key] === seq) {
+					Settings.fail($input, key, previous, errorMessage(xhr, i18n.saveFailed));
+				}
+			};
+
+			// A failed save must not block the ones after it.
+			this.queue = this.queue.then(run, run);
 
 			if ($input.is(':checkbox')) {
 				$input.closest('[data-setting-card]').filter(function () {

@@ -165,11 +165,39 @@ class SEOProStack_Settings {
             return new WP_Error('seoprostack_unknown_setting', __('Unknown setting.', 'seoprostack'));
         }
 
+        // Read what is stored now, not the copy loaded when this request
+        // began, so a save made meanwhile is not overwritten.
+        self::flush_cache();
         $options       = self::all();
         $options[$key] = self::sanitize_value($value, $schema[$key]);
         update_option(self::OPTION, $options);
 
+        if (!self::stored($key, $options[$key])) {
+            return new WP_Error('seoprostack_not_saved', __('The setting could not be saved. Please try again.', 'seoprostack'));
+        }
         return $options[$key];
+    }
+
+    /**
+     * Drop cached copies of the settings so the next read hits the database.
+     */
+    private static function flush_cache() {
+        wp_cache_delete(self::OPTION, 'options');
+        wp_cache_delete('alloptions', 'options');
+    }
+
+    /**
+     * Whether the database holds a value for a setting (update_option()
+     * returns false both for "unchanged" and for a failed write).
+     *
+     * @param string $key   Setting key.
+     * @param mixed  $value Expected value.
+     * @return bool
+     */
+    private static function stored($key, $value) {
+        self::flush_cache();
+        $stored = get_option(self::OPTION);
+        return is_array($stored) && array_key_exists($key, $stored) && $stored[$key] === $value;
     }
 
     /**
@@ -465,7 +493,15 @@ class SEOProStack_Settings {
             $options = (array) $class::migrate($options, $from);
         }
 
-        update_option(self::OPTION, self::sanitize_all($options));
+        $clean = self::sanitize_all($options);
+        update_option(self::OPTION, $clean);
+
+        // Only record the version once the settings are stored, so a failed
+        // write is retried on the next request instead of losing imports.
+        self::flush_cache();
+        if (get_option(self::OPTION) != $clean) { // phpcs:ignore Universal.Operators.StrictComparisons -- key order may differ.
+            return;
+        }
         update_option(self::DB_VERSION_OPTION, self::DB_VERSION);
     }
 }
