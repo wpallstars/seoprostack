@@ -27,14 +27,21 @@ class SEOProStack_Settings_Manager {
      * Workflow tab.
      */
     public static function render_workflow_tab() {
-        self::render_tab('workflow', __('Workflow', 'seoprostack'), __('Automations that run while you edit content.', 'seoprostack'));
+        self::render_tab('workflow', __('Workflow', 'seoprostack'), __('Tools and automations for editing content.', 'seoprostack'));
+    }
+
+    /**
+     * Speed tab.
+     */
+    public static function render_speed_tab() {
+        self::render_tab('speed', __('Speed', 'seoprostack'), __('Front-end loading for visitors. Logged-in users are not affected.', 'seoprostack'));
     }
 
     /**
      * Advanced tab.
      */
     public static function render_advanced_tab() {
-        self::render_tab('advanced', __('Advanced', 'seoprostack'), '');
+        self::render_tab('advanced', __('Advanced', 'seoprostack'), __('Server responses and site-wide rules.', 'seoprostack'));
     }
 
     /**

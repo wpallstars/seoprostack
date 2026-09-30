@@ -30,7 +30,7 @@ class SEOProStack_Settings {
 
     /** Stored schema version, used for one-off migrations. */
     const DB_VERSION_OPTION = 'seoprostack_db_version';
-    const DB_VERSION = 3;
+    const DB_VERSION = 4;
 
     /**
      * Request-level cache of the resolved schema.

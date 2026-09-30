@@ -51,6 +51,11 @@ class SEOProStack_Admin_Manager {
                 'group'  => 'settings',
                 'render' => array('SEOProStack_Settings_Manager', 'render_workflow_tab'),
             ),
+            'speed' => array(
+                'label'  => __('Speed', 'seoprostack'),
+                'group'  => 'settings',
+                'render' => array('SEOProStack_Settings_Manager', 'render_speed_tab'),
+            ),
             'advanced' => array(
                 'label'  => __('Advanced', 'seoprostack'),
                 'group'  => 'settings',
@@ -92,7 +97,7 @@ class SEOProStack_Admin_Manager {
         );
 
         // Settings tabs without settings are hidden (they can be filled via the schema filter).
-        foreach (array('general', 'workflow', 'advanced') as $slug) {
+        foreach (array('general', 'workflow', 'speed', 'advanced') as $slug) {
             if (!SEOProStack_Settings::fields_for_tab($slug)) {
                 unset($tabs[$slug]);
             }
