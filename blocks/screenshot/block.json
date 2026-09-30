@@ -1,0 +1,44 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "seoprostack/screenshot",
+	"version": "0.4.0",
+	"title": "Screenshot",
+	"category": "embed",
+	"icon": "camera",
+	"description": "A screenshot of any web page, saved to your Media Library and shown from your site.",
+	"keywords": [ "screenshot", "browser shots", "website", "capture", "thumbnail", "preview" ],
+	"textdomain": "seoprostack",
+	"attributes": {
+		"url": { "type": "string", "default": "" },
+		"alt": { "type": "string", "default": "" },
+		"caption": { "type": "string", "default": "" },
+		"aspectRatio": { "type": "string", "default": "" },
+		"width": { "type": "number", "default": 0 },
+		"linkTo": { "type": "string", "default": "page" },
+		"href": { "type": "string", "default": "" },
+		"newTab": { "type": "boolean", "default": false },
+		"nofollow": { "type": "boolean", "default": false },
+		"sponsored": { "type": "boolean", "default": false },
+		"ugc": { "type": "boolean", "default": false }
+	},
+	"usesContext": [ "postId" ],
+	"supports": {
+		"html": false,
+		"anchor": true,
+		"align": [ "left", "center", "right", "wide", "full" ],
+		"spacing": { "margin": true },
+		"__experimentalBorder": {
+			"color": true,
+			"radius": true,
+			"width": true,
+			"style": true,
+			"__experimentalSkipSerialization": true,
+			"__experimentalDefaultControls": { "color": true, "radius": true, "width": true }
+		},
+		"shadow": { "__experimentalSkipSerialization": true }
+	},
+	"editorScript": "file:./index.js",
+	"style": "file:./style.css",
+	"render": "file:./render.php"
+}
