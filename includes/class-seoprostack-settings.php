@@ -30,7 +30,7 @@ class SEOProStack_Settings {
 
     /** Stored schema version, used for one-off migrations. */
     const DB_VERSION_OPTION = 'seoprostack_db_version';
-    const DB_VERSION = 4;
+    const DB_VERSION = 5;
 
     /**
      * Tab slugs renamed in 0.4.0, old => new. Settings that still use an
@@ -526,6 +526,7 @@ class SEOProStack_Settings {
      *     (SEOProStack_Feature::migrate()).
      * v4: re-run feature imports for development builds at v3, after
      *     notification, duplicate and later replacement features were added.
+     * v5: 0.4.0 imports Disable All WordPress Updates' Security Mode.
      *
      * Old options are left in place so a downgrade keeps working;
      * uninstall.php removes ours. Other plugins' options are never touched.

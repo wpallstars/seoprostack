@@ -23,6 +23,7 @@ final class SEOProStack {
         'SEOProStack_Admin_Access',
         'SEOProStack_Widget_Control',
         'SEOProStack_Notification_Emails',
+        'SEOProStack_Admin_Notices',
         'SEOProStack_Magic_Login',
         'SEOProStack_Duplicate_Posts',
         'SEOProStack_Post_Versions',
@@ -39,6 +40,7 @@ final class SEOProStack {
         'SEOProStack_Plugin_Toggle',
         'SEOProStack_Plugin_Sizes',
         'SEOProStack_Plugin_References',
+        'SEOProStack_Disable_Updates',
     );
 
     /**
