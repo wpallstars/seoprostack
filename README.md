@@ -15,7 +15,7 @@ Go to **Settings → SEO Pro Stack**. The screen has three groups of tabs:
 
 ## Features
 
-Every feature is off by default. Features that replace a separate plugin say so on their card (“Replaces: …”) and import that plugin’s settings once when SEO Pro Stack is updated. The other plugin’s own settings are never changed or deleted, so you can compare, then deactivate it.
+Every feature is off by default. Features that replace a separate plugin say so on their card (“Replaces: …”) and import that plugin’s settings once when SEO Pro Stack is updated. The other plugin’s own settings are never changed or deleted. While that plugin is active, the feature waits and the plugin keeps doing the job, so the two never run side by side; the card says so, with a deactivate link. Deactivate the plugin to switch over.
 
 | Feature | Tab | Replaces |
 | --- | --- | --- |
@@ -70,7 +70,7 @@ Stop routine emails one by one: new user notices, password and email change noti
 
 Moves plugin and theme notices into a **Notices (n)** button next to Screen Options and Help, so pages open at their content. The button opens a panel with the notices, which can still be read and dismissed there; the count follows.
 
-- Kept on the page: messages about what you just did (such as “Settings saved”), inline notices inside forms, and notices added after the page has loaded.
+- Kept on the page: messages about what you just did (such as “Settings saved”), inline notices inside the page’s content (inline notices printed above the page are moved), and notices added after the page has loaded.
 - Optionally keep errors, or warnings and the WordPress update message, on the page.
 - Notices are hidden with CSS until they are moved, so they do not flash or push the page down.
 - The block editor has its own notices and is left alone.
@@ -253,6 +253,9 @@ Deleting the plugin removes its settings and cached data, and the profile pictur
 - New, off by default: Hide admin notices (Admin tab) moves plugin and theme notices behind a “Notices” button. Replaces Hide Admin Notices, which Free Plugins no longer lists.
 - New, off by default: Paste into the Media Library (Media tab) uploads screenshots, pictures and files pasted into the Media Library, the media dialog and the classic editor. Replaces The Paste and imports its settings (settings version 5); Free Plugins no longer lists it.
 - New, off by default: Avatars without Gravatar (Admin tab) serves avatars from your own site, with profile picture uploads and locally drawn defaults. Replaces Avatar Privacy and copies its uploaded profile pictures (settings version 5); Free Plugins no longer lists it.
+- Changed: while a plugin that a feature replaces is active, the feature waits and that plugin keeps doing the job, so the two no longer run side by side (for example two Plugins menus in the admin bar, or Google Analytics loaded twice with Flying Analytics). The card says so, with a deactivate link. `SEOProStack_Feature::enabled()` is false while waiting; `switched_on()` reads the switch alone, and `replaced_active( $key )` lists the active plugins.
+- Changed: Hide admin notices also moves inline notices printed above the page. Inline notices inside a page’s content stay where they are.
+- Fixed: the Notices button no longer narrows the SEO Pro Stack header.
 - Fixed: pattern settings with tokens (such as Copy linked images’ file name and alt text) lost `%date%` and `%day%` when saved, because WordPress’s text sanitiser removes “%” followed by two hex digits.
 
 ### 0.3.1

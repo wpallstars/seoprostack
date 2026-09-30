@@ -117,7 +117,7 @@ class SEOProStack_Admin_Access extends SEOProStack_Feature {
         if (self::enabled()) {
             add_filter('show_admin_bar', array(__CLASS__, 'filter_admin_bar'), 20);
         }
-        if (SEOProStack_Settings::get(self::DASHBOARD_KEY)) {
+        if (SEOProStack_Settings::get(self::DASHBOARD_KEY) && !self::replaced_active(self::DASHBOARD_KEY)) {
             add_action('admin_init', array(__CLASS__, 'maybe_block_dashboard'), 0);
         }
     }

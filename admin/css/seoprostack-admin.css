@@ -25,6 +25,8 @@
 	margin-inline-start: -20px;
 	margin-inline-end: 0;
 	color: var(--sps-text);
+	/* Start below the Screen Options / Notices tabs, so they never narrow the header. */
+	clear: both;
 }
 
 .sps-wrap *,

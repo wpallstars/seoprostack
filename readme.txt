@@ -40,7 +40,7 @@ Everything is off by default. Settings save instantly from **Settings → SEO Pr
 * **Plugin sizes**: a Size column on the Plugins screen shows each plugin’s PHP, JavaScript, CSS, media and other files, measured in the background and sortable.
 * **Clean up deleted plugins**: when plugin folders were deleted outside the Plugins screen, opening that screen removes their leftover uninstall and “Recently active” entries.
 
-Features that replace another plugin (for example Carbon Copy, Flying Pages or Ultimate 410) import its settings once and show “Replaces: …” on their card. The other plugin’s settings are left untouched.
+Features that replace another plugin (for example Carbon Copy, Flying Pages or Ultimate 410) import its settings once and show “Replaces: …” on their card. The other plugin’s settings are left untouched. While the other plugin is active, the feature waits and that plugin keeps doing the job; deactivate it to switch over.
 
 = Discover =
 
@@ -112,7 +112,10 @@ They stay scheduled and publish at their times. Turning it off only stops new po
 * New, off by default: Hide admin notices moves plugin and theme notices behind a “Notices” button (replaces Hide Admin Notices).
 * New, off by default: Paste into the Media Library uploads pasted screenshots, pictures and files (replaces The Paste and imports its settings).
 * New, off by default: Avatars without Gravatar serves avatars from your own site, with profile picture uploads (replaces Avatar Privacy and copies its profile pictures).
+* Change: while a plugin that a feature replaces is active, the feature waits, so the two no longer run side by side (such as two Plugins menus, or analytics loaded twice). The card says so, with a deactivate link.
+* Change: Hide admin notices also moves inline notices printed above the page.
 * Fix: `%date%` and `%day%` in Copy linked images’ file name and alt text patterns are no longer lost when saved.
+* Fix: the Notices button no longer narrows the settings header.
 
 = 0.3.1 =
 * Free plugin lists show changes straight away instead of after the 12-hour cache expires.

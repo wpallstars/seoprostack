@@ -70,7 +70,7 @@ class SEOProStack_Avatar_Privacy extends SEOProStack_Feature {
                 'default'     => false,
                 'tab'         => 'admin',
                 'label'       => __('Avatars without Gravatar', 'seoprostack'),
-                'description' => __('Show avatars from this site instead of Gravatar, so visitors’ browsers never contact Gravatar and email hashes are not published. People without a picture get a silhouette, a pattern or nothing, as chosen under Settings → Discussion. While Avatar Privacy is active, it keeps handling avatars.', 'seoprostack'),
+                'description' => __('Show avatars from this site instead of Gravatar, so visitors’ browsers never contact Gravatar and email hashes are not published. People without a picture get a silhouette, a pattern or nothing, as chosen under Settings → Discussion.', 'seoprostack'),
                 'replaces'    => array('avatar-privacy' => 'Avatar Privacy'),
             ),
             'avatar_privacy_uploads' => array(
@@ -110,15 +110,16 @@ class SEOProStack_Avatar_Privacy extends SEOProStack_Feature {
      * Register hooks.
      */
     public static function boot() {
-        if (!self::enabled()) {
+        if (!self::switched_on()) {
             return;
         }
 
+        // Also while waiting, so pictures are copied when Avatar Privacy is deactivated.
         add_action('deactivated_plugin', array(__CLASS__, 'plugin_deactivated'));
         add_action(is_multisite() ? 'wpmu_delete_user' : 'delete_user', array(__CLASS__, 'delete_picture'));
 
         // Avatar Privacy keeps handling avatars until it is deactivated.
-        if (defined('AVATAR_PRIVACY_PLUGIN_FILE')) {
+        if (!self::enabled() || defined('AVATAR_PRIVACY_PLUGIN_FILE')) {
             return;
         }
 
