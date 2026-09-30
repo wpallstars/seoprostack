@@ -37,6 +37,7 @@ final class SEOProStack {
         'SEOProStack_Resize_Uploads',
         'SEOProStack_Replace_Media',
         'SEOProStack_Nextgen_Images',
+        'SEOProStack_Watermark_Images',
         'SEOProStack_Post_Scheduler',
         'SEOProStack_Iframe_Block',
         'SEOProStack_Gone_Urls',

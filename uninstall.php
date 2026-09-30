@@ -6,6 +6,8 @@
  *
  * Imported media (and its `_seoprostack_source_url` / legacy
  * `_wp_allstars_source_url` meta) is left in place because posts reference it.
+ * Watermarked pictures stay marked, and the folder of unmarked originals
+ * (uploads/seoprostack-originals-*) is kept.
  * Scheduled posts stay scheduled; WordPress publishes them as normal.
  * Sticky items stay in core's sticky list. Other plugins' settings that
  * features imported from are never touched.
@@ -48,6 +50,7 @@ function seoprostack_uninstall_site() {
 
     $options[] = 'seoprostack_dashboard_widgets';
     $options[] = 'seoprostack_nextgen_synced';
+    $options[] = 'seoprostack_watermark_dir';
     foreach ($options as $option) {
         delete_option($option);
     }
@@ -58,6 +61,11 @@ function seoprostack_uninstall_site() {
     seoprostack_uninstall_nextgen_copies();
     delete_post_meta_by_key('_seoprostack_nextgen');
     delete_post_meta_by_key('_seoprostack_nextgen_done');
+
+    // Watermarks stay on pictures. The unmarked originals are the site
+    // owner's pictures, so their folder (uploads/seoprostack-originals-*)
+    // is kept; only the records linking them to pictures go.
+    delete_post_meta_by_key('_seoprostack_watermark');
 
     // Shareable preview links stop working; staged versions and duplicates
     // become ordinary drafts and posts.

@@ -82,8 +82,9 @@ class SEOProStack_Settings {
      * - replaces:    top-level only; plugin slug => name this setting replaces
      * - label, description, placeholder, min, max, unit, tokens, rows: UI metadata
      *
-     * Types also include `url` (one URL or site path) and `lines` (one entry
-     * per line, sanitized as plain text).
+     * Types also include `url` (one URL or site path), `lines` (one entry
+     * per line, sanitized as plain text) and `media` (a Media Library
+     * picture's ID, chosen with the media dialog).
      *
      * @return array<string,array>
      */
@@ -328,6 +329,11 @@ class SEOProStack_Settings {
             case 'domains':
                 return implode("\n", self::parse_domains($value));
 
+            case 'media':
+                // A Media Library picture's ID, or 0.
+                $value = is_numeric($value) ? absint($value) : 0;
+                return $value && wp_attachment_is_image($value) ? $value : 0;
+
             case 'select':
                 $value = is_scalar($value) ? (string) $value : '';
                 return array_key_exists($value, self::options_for($field)) ? $value : $default;
@@ -541,8 +547,9 @@ class SEOProStack_Settings {
      *     Avatar Privacy's switch and profile pictures (Avatars without
      *     Gravatar), after 0.3.1 shipped at v4. Also Safe SVG (SVG uploads),
      *     Imsanity (Resize large uploads) and Enable Media Replace (Replace
-     *     media files), and CompressX (WebP and AVIF images; its resize
-     *     limit goes to Resize large uploads).
+     *     media files), CompressX (WebP and AVIF images; its resize limit
+     *     goes to Resize large uploads) and Easy Watermark's image
+     *     watermark (Watermark pictures).
      *
      * Old options are left in place so a downgrade keeps working;
      * uninstall.php removes ours. Other plugins' options are never touched.

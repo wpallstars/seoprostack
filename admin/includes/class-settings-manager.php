@@ -343,6 +343,36 @@ class SEOProStack_Settings_Manager {
                         );
                         break;
 
+                    case 'media':
+                        // The hidden input carries data-sps-setting; the JS sets it
+                        // from the media dialog and saves it.
+                        $image_id = (int) $value;
+                        $preview  = $image_id ? wp_get_attachment_image_url($image_id, 'thumbnail') : '';
+                        echo '<div class="sps-media" data-sps-media>';
+                        printf(
+                            '<input type="hidden" data-sps-setting="%1$s" value="%2$s" />',
+                            esc_attr($key),
+                            esc_attr((string) $image_id)
+                        );
+                        if ($preview) {
+                            printf('<img class="sps-media__preview" src="%s" alt="" />', esc_url($preview));
+                        } else {
+                            echo '<img class="sps-media__preview" alt="" hidden />';
+                        }
+                        printf(
+                            '<button type="button" class="button sps-media__choose" id="%1$s" aria-describedby="%2$s">%3$s</button>',
+                            esc_attr($id),
+                            esc_attr($desc_id),
+                            esc_html__('Choose picture', 'seoprostack')
+                        );
+                        printf(
+                            '<button type="button" class="button-link sps-media__remove"%1$s>%2$s</button>',
+                            $image_id ? '' : ' hidden',
+                            esc_html__('Remove', 'seoprostack')
+                        );
+                        echo '</div>';
+                        break;
+
                     case 'bool':
                         printf(
                             '<span class="sps-switch"><input type="checkbox" role="switch" class="sps-switch__input" %1$s %2$s /><span class="sps-switch__track" aria-hidden="true"></span></span>',

@@ -28,6 +28,7 @@ Everything is off by default. Settings save instantly from **Settings → SEO Pr
 * **Resize large uploads**: scale pictures larger than a set size down as they are uploaded, instead of keeping the huge original next to a smaller copy. BMP files (and optionally PNG photos) are saved as JPEG. Resize existing pictures from Media → Library or with WP-CLI.
 * **Replace media files**: upload a new file for a Media Library item, keeping or changing its file name. The item keeps its title, alt text and every place it is used, and links to the old file in posts and custom fields are changed to the new one.
 * **WebP and AVIF images**: save a smaller WebP and AVIF copy of every picture in the Media Library, in the background, and send it to browsers that support it at the same address. Originals and pages are not changed. Works on Apache and LiteSpeed by itself; on Nginx the settings show the lines to add. On multisite one set of rules serves every site.
+* **Watermark pictures**: add your site icon, logo or a chosen picture faintly (30% by default) to a corner of pictures as they are uploaded. Small sizes such as thumbnails stay clean. An unmarked original is kept, so watermarks can be removed or changed later from Media → Library or with WP-CLI.
 * **Admin bar and dashboard access**: hide the front-end admin bar and block wp-admin for chosen roles, such as subscribers and customers. Administrators are never affected.
 * **Dashboard and sidebar widgets**: hide Dashboard boxes and disable classic widgets you never use.
 * **Notification emails**: stop routine emails one by one, such as auto-update reports and new user notices.
@@ -92,7 +93,7 @@ No. The plugin is free and open source under the GPL.
 
 = What happens to my images if I deactivate or delete the plugin? =
 
-Imported images stay in the Media Library because your posts use them. Deactivating the plugin stops sending WebP and AVIF copies, so browsers get the originals. Deleting the plugin removes its settings and cached data, the profile pictures uploaded with Avatars without Gravatar, and the WebP and AVIF copies.
+Imported images stay in the Media Library because your posts use them. Deactivating the plugin stops sending WebP and AVIF copies, so browsers get the originals. Deleting the plugin removes its settings and cached data, the profile pictures uploaded with Avatars without Gravatar, and the WebP and AVIF copies. Watermarked pictures stay marked; their unmarked originals are kept in a `seoprostack-originals-…` folder in uploads, which you can delete if you do not need them.
 
 = Does it work on multisite? =
 
@@ -118,6 +119,7 @@ They stay scheduled and publish at their times. Turning it off only stops new po
 * New, off by default: Avatars without Gravatar serves avatars from your own site, with profile picture uploads (replaces Avatar Privacy and copies its profile pictures).
 * New, off by default: SVG uploads (replaces Safe SVG), Resize large uploads (replaces Imsanity) and Replace media files (replaces Enable Media Replace), each importing that plugin’s settings.
 * New, off by default: WebP and AVIF images makes smaller copies of every picture and sends them to browsers that support them (replaces CompressX, imports its settings and reuses the copies it made).
+* New, off by default: Watermark pictures adds the site icon, logo or a chosen picture to uploaded pictures and keeps unmarked originals so watermarks can be removed (replaces Easy Watermark and imports its image watermark).
 * Change: while a plugin that a feature replaces is active, the feature waits, so the two no longer run side by side (such as two Plugins menus, or analytics loaded twice). The card says so, with a deactivate link.
 * Change: Hide admin notices also moves inline notices printed above the page.
 * Fix: `%date%` and `%day%` in Copy linked images’ file name and alt text patterns are no longer lost when saved.
