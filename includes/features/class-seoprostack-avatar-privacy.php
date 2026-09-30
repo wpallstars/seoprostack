@@ -438,6 +438,9 @@ class SEOProStack_Avatar_Privacy extends SEOProStack_Feature {
         if (is_array($meta) && !isset($meta['from'])) {
             return false;
         }
+        if (is_array($meta) && isset($meta['retry']) && time() < (int) $meta['retry']) {
+            return false;
+        }
         $theirs = get_user_meta($user_id, self::AP_META, true);
         if (!is_array($theirs) || empty($theirs['file']) || !is_string($theirs['file'])) {
             return false;
@@ -456,15 +459,37 @@ class SEOProStack_Avatar_Privacy extends SEOProStack_Feature {
         if (!is_array($theirs) || empty($theirs['file']) || !is_string($theirs['file'])) {
             return '';
         }
+        $before = get_user_meta($user_id, self::META, true);
         $from   = basename($theirs['file']);
         $source = self::ap_file($theirs['file']);
         $stored = $source ? self::store_picture($user_id, $source) : null;
-        // Record the attempt either way, so a missing file is not retried
-        // on every page.
-        $meta = is_array($stored) ? $stored : array('files' => array());
-        $meta['from'] = $from;
+        $keep   = false;
 
-        self::remove_files(get_user_meta($user_id, self::META, true));
+        if (null === $source) {
+            // Missing file: record it, so it is not looked for on every page.
+            $meta = array('files' => array(), 'from' => $from);
+        } elseif (is_wp_error($stored)) {
+            // Could not process it: keep any earlier copy and try again tomorrow.
+            $meta          = is_array($before) ? $before : array('files' => array(), 'from' => '');
+            $meta['retry'] = time() + DAY_IN_SECONDS;
+            $stored        = null;
+            $keep          = true;
+        } else {
+            $meta         = $stored;
+            $meta['from'] = $from;
+        }
+
+        // A picture uploaded or removed while this was copying wins.
+        wp_cache_delete($user_id, 'user_meta');
+        $current = get_user_meta($user_id, self::META, true);
+        if ($current !== $before) {
+            self::remove_files($stored);
+            return $current;
+        }
+
+        if (!$keep) {
+            self::remove_files($before);
+        }
         update_user_meta($user_id, self::META, $meta);
         return $meta;
     }
