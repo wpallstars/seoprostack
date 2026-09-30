@@ -23,6 +23,7 @@ Everything is off by default. Settings save instantly from **Settings → SEO Pr
 * **Publishing queue**: publishing a post from the editor without choosing a date schedules it for the next free time slot (for example weekdays at 09:00 and 15:00). Dates you choose yourself, updates to published posts, imports and WP-CLI are left alone. Posts become normal “Scheduled” posts, so WordPress publishes them.
 * **iFrame block**: embed any page with control over width and height or aspect ratio, lazy loading, sandbox, permissions (camera, autoplay, full screen…), referrer policy and border, and optionally pass the page’s URL parameters (such as UTM tags) to the embedded page. Limit it to a list of domains and to the roles you choose.
 * **Copy linked images to Media Library**: when a post is saved, images linked from other sites are copied into the Media Library, resized, attached to the post, and the content is changed to serve the local copy. Supports excluded domains, maximum dimensions, and file name and alt text patterns. Existing alt text is kept and repeat images are reused.
+* **Paste into the Media Library**: paste screenshots, pictures and files into the Media Library, the media dialog or the classic editor and they upload straight away, through WordPress’s own uploader. Pasted pictures get a name from a pattern and can be saved as JPEG or WebP.
 * **Admin bar and dashboard access**: hide the front-end admin bar and block wp-admin for chosen roles, such as subscribers and customers. Administrators are never affected.
 * **Dashboard and sidebar widgets**: hide Dashboard boxes and disable classic widgets you never use.
 * **Notification emails**: stop routine emails one by one, such as auto-update reports and new user notices.
@@ -106,6 +107,8 @@ They stay scheduled and publish at their times. Turning it off only stops new po
 * New Plugins tab, all off by default: a Plugins menu in the admin bar (replaces Plugin Toggle), a Size column on the Plugins screen, and cleanup of leftover entries for deleted plugins.
 * Free Plugins no longer lists Plugin Toggle or String Locator.
 * New, off by default: Hide admin notices moves plugin and theme notices behind a “Notices” button (replaces Hide Admin Notices).
+* New, off by default: Paste into the Media Library uploads pasted screenshots, pictures and files (replaces The Paste and imports its settings).
+* Fix: `%date%` and `%day%` in Copy linked images’ file name and alt text patterns are no longer lost when saved.
 
 = 0.3.1 =
 * Free plugin lists show changes straight away instead of after the 12-hour cache expires.

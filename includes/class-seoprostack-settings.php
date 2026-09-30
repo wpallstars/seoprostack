@@ -30,7 +30,7 @@ class SEOProStack_Settings {
 
     /** Stored schema version, used for one-off migrations. */
     const DB_VERSION_OPTION = 'seoprostack_db_version';
-    const DB_VERSION = 4;
+    const DB_VERSION = 5;
 
     /**
      * Tab slugs renamed in 0.4.0, old => new. Settings that still use an
@@ -371,7 +371,18 @@ class SEOProStack_Settings {
 
             case 'text':
             default:
-                return sanitize_text_field((string) $value);
+                $value = (string) $value;
+                if (empty($field['tokens'])) {
+                    return sanitize_text_field($value);
+                }
+                // sanitize_text_field() drops "%" plus two hex digits, which
+                // breaks tokens such as %date% and %day%; set them aside.
+                $tokens = array();
+                foreach (array_values((array) $field['tokens']) as $i => $token) {
+                    $tokens["\u{E000}{$i}\u{E001}"] = (string) $token;
+                }
+                $value = str_replace(array_values($tokens), array_keys($tokens), $value);
+                return str_replace(array_keys($tokens), array_values($tokens), sanitize_text_field($value));
         }
     }
 
@@ -526,6 +537,8 @@ class SEOProStack_Settings {
      *     (SEOProStack_Feature::migrate()).
      * v4: re-run feature imports for development builds at v3, after
      *     notification, duplicate and later replacement features were added.
+     * v5: import The Paste settings (Paste into the Media Library), after
+     *     0.3.1 shipped at v4.
      *
      * Old options are left in place so a downgrade keeps working;
      * uninstall.php removes ours. Other plugins' options are never touched.
