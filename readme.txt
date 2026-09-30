@@ -22,6 +22,7 @@ Everything is off by default. Settings save instantly from **Settings → SEO Pr
 * **Magic login links**: adds “Email me a login link” to the login screen. Links work once, expire after 5–60 minutes (10 by default) and only log in after the person presses a button, so email scanners that open links cannot use them up. Passwords keep working, administrators can be excluded, and core’s `wp_login` and `login_redirect` hooks run so activity logs, redirect rules and two-factor plugins that use `wp_login` (such as Two Factor) still apply. Requests are rate limited and never reveal whether an account exists.
 * **Publishing queue**: publishing a post from the editor without choosing a date schedules it for the next free time slot (for example weekdays at 09:00 and 15:00). Dates you choose yourself, updates to published posts, imports and WP-CLI are left alone. Posts become normal “Scheduled” posts, so WordPress publishes them.
 * **iFrame block**: embed any page with control over width and height or aspect ratio, lazy loading, sandbox, permissions (camera, autoplay, full screen…), referrer policy and border, and optionally pass the page’s URL parameters (such as UTM tags) to the embedded page. Limit it to a list of domains and to the roles you choose.
+* **Website screenshots**: a Screenshot block and the `[browser-shot]` shortcode. Each page is captured once in a 1920 × 1080 browser window, saved to the Media Library and shown from your site, so visitors never contact the screenshot service. Screenshots are renewed in the background after 30 days. Browser Shots content keeps working.
 * **Copy linked images to Media Library**: when a post is saved, images linked from other sites are copied into the Media Library, resized, attached to the post, and the content is changed to serve the local copy. Supports excluded domains, maximum dimensions, and file name and alt text patterns. Existing alt text is kept and repeat images are reused.
 * **Paste into the Media Library**: paste screenshots, pictures and files into the Media Library, the media dialog or the classic editor and they upload straight away, through WordPress’s own uploader. Pasted pictures get a name from a pattern and can be saved as JPEG or WebP.
 * **SVG uploads**: let chosen roles upload SVG files. Every SVG is cleaned as it is uploaded: scripts, event handlers, HTML, links to other files and anything that is not a drawing are removed, and files that cannot be cleaned safely are refused.
@@ -76,6 +77,15 @@ When **Delayed Google Analytics** is on and a measurement ID is entered, visitor
 
 When **Avatars without Gravatar** is on, WordPress no longer loads avatars from Gravatar (gravatar.com), which it does by default. Nothing is sent anywhere: uploaded profile pictures and generated avatars are stored in your uploads folder.
 
+When **Website screenshots** is on, your site sends the address of each page to capture to the screenshot service you choose, from the server, once per screenshot and again when it is renewed. The picture is saved in your Media Library; visitors’ browsers never contact the service. Services:
+
+* **Thum.io** (image.thum.io), the default, no account needed. See [Thum.io](https://www.thum.io/).
+* **Microlink** (api.microlink.io, or pro.microlink.io with a key). See the [Microlink terms](https://microlink.io/tos) and [privacy policy](https://microlink.io/privacy).
+* **ApiFlash** (api.apiflash.com), with your access key. See the [ApiFlash terms](https://apiflash.com/terms_of_service) and [privacy policy](https://apiflash.com/privacy_policy).
+* **Screenshot Machine** (api.screenshotmachine.com), with your key. See the [Screenshot Machine terms](https://www.screenshotmachine.com/termsandconditions.php) and [privacy policy](https://www.screenshotmachine.com/privacypolicy.php).
+
+Before a screenshot is taken, your site also checks that the page can be reached by requesting it once.
+
 When **Short links** counts clicks, a visitor who follows a short link gets a cookie for your site (`sps_link_` and the link’s ID, kept for a year, holding only “1”) so they are counted as a unique visitor once. Only the totals are stored; no IP addresses or other visitor details are kept, and nothing is sent anywhere.
 
 No other data is sent.
@@ -98,7 +108,7 @@ No. The plugin is free and open source under the GPL.
 
 = What happens to my images if I deactivate or delete the plugin? =
 
-Imported images stay in the Media Library because your posts use them. Deactivating the plugin stops sending WebP and AVIF copies, so browsers get the originals. Deleting the plugin removes its settings and cached data, the profile pictures uploaded with Avatars without Gravatar, the WebP and AVIF copies, short links, and the must-use file of Load plugins only where needed. Watermarked pictures stay marked; their unmarked originals are kept in a `seoprostack-originals-…` folder in uploads, which you can delete if you do not need them.
+Imported images and screenshots stay in the Media Library because your posts use them. Deactivating the plugin stops sending WebP and AVIF copies, so browsers get the originals. Deleting the plugin removes its settings and cached data, the profile pictures uploaded with Avatars without Gravatar, the WebP and AVIF copies, short links, and the must-use file of Load plugins only where needed. Watermarked pictures stay marked; their unmarked originals are kept in a `seoprostack-originals-…` folder in uploads, which you can delete if you do not need them.
 
 = Does it work on multisite? =
 
@@ -129,6 +139,7 @@ They stay scheduled and publish at their times. Turning it off only stops new po
 * New, off by default: Short addresses for custom post types serves items at /item-name/ instead of /type/item-name/ and redirects the old addresses (replaces Remove CPT base and imports its post types).
 * New, off by default: Short links (Links tab) makes short addresses that redirect elsewhere, with categories and click counts (replaces Pretty Links: imports its links, click counts and categories, and its defaults for new links).
 * New, off by default: Load plugins only where needed (Plugins tab) makes wp-admin faster on sites with many plugins by loading ticked plugins only on the screens that need them.
+* New, off by default: Website screenshots adds a Screenshot block and the `[browser-shot]` shortcode, with pictures saved to the Media Library and served from your site (replaces Browser Shots, whose shortcode and blocks keep working).
 * Change: while a plugin that a feature replaces is active, the feature waits, so the two no longer run side by side (such as two Plugins menus, or analytics loaded twice). The card says so, with a deactivate link.
 * Change: Hide admin notices also moves inline notices printed above the page.
 * Fix: `%date%` and `%day%` in Copy linked images’ file name and alt text patterns are no longer lost when saved.

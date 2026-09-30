@@ -14,7 +14,7 @@ if (!defined('ABSPATH')) {
 // Posts Switch, Ultimate 410, Flying Analytics/Pages/Scripts, Widget Disable,
 // Plugin Toggle, Hide Admin Notices, The Paste, Avatar Privacy, Safe SVG,
 // Imsanity, Enable Media Replace, CompressX, Easy Watermark, Remove CPT base,
-// Pretty Links.
+// Pretty Links, Browser Shots.
 // String Locator is not listed: searching code is better done in an editor
 // or with WP-CLI than from wp-admin.
 // EditorsKit (block-options) is not listed: its last update was in May 2024,
@@ -45,7 +45,6 @@ function seoprostack_get_free_plugins() {
         ),
         'cms' => array(
             'bookmark-card',
-            'browser-shots',
             'bulk-edit-categories-tags',
             'bulk-edit-user-profiles-in-spreadsheet',
             'code-block-pro',

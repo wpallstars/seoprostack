@@ -6,6 +6,8 @@
  *
  * Imported media (and its `_seoprostack_source_url` / legacy
  * `_wp_allstars_source_url` meta) is left in place because posts reference it.
+ * Screenshots also stay in the Media Library; their `_seoprostack_screenshot*`
+ * meta is removed.
  * Watermarked pictures stay marked, and the folder of unmarked originals
  * (uploads/seoprostack-originals-*) is kept.
  * Scheduled posts stay scheduled; WordPress publishes them as normal.
@@ -85,6 +87,13 @@ function seoprostack_uninstall_site() {
     // owner's pictures, so their folder (uploads/seoprostack-originals-*)
     // is kept; only the records linking them to pictures go.
     delete_post_meta_by_key('_seoprostack_watermark');
+
+    // Screenshots stay in the Media Library because posts may use them;
+    // only the records that matched them to pages go.
+    wp_unschedule_hook('seoprostack_screenshot');
+    foreach (array('_seoprostack_screenshot', '_seoprostack_screenshot_url', '_seoprostack_screenshot_taken') as $meta_key) {
+        delete_post_meta_by_key($meta_key);
+    }
 
     // Shareable preview links stop working; staged versions and duplicates
     // become ordinary drafts and posts.

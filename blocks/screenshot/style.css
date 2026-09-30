@@ -1,0 +1,40 @@
+/* seoprostack/screenshot and [browser-shot] front-end and editor styles. */
+.seoprostack-screenshot {
+	box-sizing: border-box;
+	max-width: 100%;
+	margin-inline: 0;
+}
+
+.seoprostack-screenshot.aligncenter {
+	margin-inline: auto;
+}
+
+.seoprostack-screenshot a {
+	display: block;
+}
+
+.seoprostack-screenshot__image {
+	display: block;
+	box-sizing: border-box;
+	max-width: 100%;
+	height: auto;
+}
+
+.seoprostack-screenshot.is-fill .seoprostack-screenshot__image {
+	width: 100%;
+}
+
+.seoprostack-screenshot__pending {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	align-items: center;
+	justify-content: center;
+	box-sizing: border-box;
+	width: 100%;
+	padding: 16px;
+	background: rgba(127, 127, 127, 0.12);
+	color: inherit;
+	text-align: center;
+	overflow-wrap: anywhere;
+}
