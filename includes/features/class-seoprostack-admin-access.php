@@ -39,7 +39,7 @@ class SEOProStack_Admin_Access extends SEOProStack_Feature {
             self::KEY => array(
                 'type'        => 'bool',
                 'default'     => false,
-                'tab'         => 'general',
+                'tab'         => 'admin',
                 'label'       => __('Hide the admin bar', 'seoprostack'),
                 'description' => __('Hide the toolbar on the front end for roles that never need the admin, such as subscribers and customers. Administrators always keep it.', 'seoprostack'),
                 'replaces'    => $replace,
@@ -55,7 +55,7 @@ class SEOProStack_Admin_Access extends SEOProStack_Feature {
             self::DASHBOARD_KEY => array(
                 'type'        => 'bool',
                 'default'     => false,
-                'tab'         => 'general',
+                'tab'         => 'admin',
                 'label'       => __('Block dashboard access', 'seoprostack'),
                 'description' => __('Send chosen roles to the site when they open wp-admin. Forms, uploads and other background requests keep working. Administrators are never blocked.', 'seoprostack'),
                 'replaces'    => $replace,

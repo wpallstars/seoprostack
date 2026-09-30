@@ -32,7 +32,7 @@ class SEOProStack_Auto_Upload extends SEOProStack_Feature {
             self::KEY => array(
                 'type'        => 'bool',
                 'default'     => false,
-                'tab'         => 'workflow',
+                'tab'         => 'media',
                 'label'       => __('Copy linked images to Media Library', 'seoprostack'),
                 'description' => __('When a post is saved, copy images from any external image links into the Media Library, resize, and change the link to serve the local copy.', 'seoprostack'),
             ),

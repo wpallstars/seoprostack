@@ -35,7 +35,7 @@ class SEOProStack_Duplicate_Posts extends SEOProStack_Feature {
             self::KEY => array(
                 'type'        => 'bool',
                 'default'     => false,
-                'tab'         => 'workflow',
+                'tab'         => 'content',
                 'label'       => __('Duplicate posts', 'seoprostack'),
                 'description' => __('Copy any post, page or custom post type to a new draft with one click. The original is never changed.', 'seoprostack'),
                 'replaces'    => array(

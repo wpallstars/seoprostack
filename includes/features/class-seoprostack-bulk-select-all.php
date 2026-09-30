@@ -33,7 +33,7 @@ class SEOProStack_Bulk_Select_All extends SEOProStack_Feature {
             self::KEY => array(
                 'type'        => 'bool',
                 'default'     => false,
-                'tab'         => 'workflow',
+                'tab'         => 'content',
                 'label'       => __('Select all across pages', 'seoprostack'),
                 'description' => __('In post lists, select every item that matches the current filters, not just the page you can see, and apply a bulk action to all of them.', 'seoprostack'),
                 'replaces'    => array('bulk-actions-select-all' => 'Bulk Actions Select All'),

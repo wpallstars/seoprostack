@@ -36,7 +36,7 @@ class SEOProStack_Admin_Colors extends SEOProStack_Feature {
             self::KEY => array(
                 'type'        => 'bool',
                 'default'     => false,
-                'tab'         => 'general',
+                'tab'         => 'admin',
                 'label'       => __('Modern admin colours', 'seoprostack'),
                 'description' => __('Use the WordPress “Modern” admin colour scheme for everyone. Your profile is set to Modern when on and back to the WordPress default when off; other users keep their own choice.', 'seoprostack'),
             ),

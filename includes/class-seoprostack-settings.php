@@ -33,6 +33,17 @@ class SEOProStack_Settings {
     const DB_VERSION = 4;
 
     /**
+     * Tab slugs renamed in 0.4.0, old => new. Settings that still use an
+     * old slug (for example from the schema filter) land on the new tab,
+     * and old admin links open the new tab.
+     */
+    const LEGACY_TABS = array(
+        'general'  => 'admin',
+        'workflow' => 'content',
+        'advanced' => 'links',
+    );
+
+    /**
      * Request-level cache of the resolved schema.
      *
      * @var array|null
@@ -91,7 +102,15 @@ class SEOProStack_Settings {
          *
          * @param array $schema Setting definitions keyed by setting key.
          */
-        self::$schema = (array) apply_filters('seoprostack_settings_schema', $schema);
+        $schema = (array) apply_filters('seoprostack_settings_schema', $schema);
+
+        foreach ($schema as $key => $field) {
+            if (isset($field['tab']) && is_string($field['tab'])) {
+                $schema[$key]['tab'] = self::resolve_tab($field['tab']);
+            }
+        }
+
+        self::$schema = $schema;
 
         return self::$schema;
     }
@@ -210,6 +229,60 @@ class SEOProStack_Settings {
         return array_filter(self::schema(), function ($field) use ($tab) {
             return empty($field['parent']) && isset($field['tab']) && $field['tab'] === $tab;
         });
+    }
+
+    /**
+     * Map a renamed tab slug to its current slug.
+     *
+     * @param string $tab Tab slug.
+     * @return string
+     */
+    public static function resolve_tab($tab) {
+        $legacy = self::LEGACY_TABS;
+        return array_key_exists($tab, $legacy) ? $legacy[$tab] : $tab;
+    }
+
+    /**
+     * Top-level settings that match a search, in schema order.
+     *
+     * Matches the label, description, replaced plugin names and the labels
+     * of child options, ignoring case.
+     *
+     * @param string $query Search text.
+     * @return array
+     */
+    public static function search($query) {
+        $query = trim((string) $query);
+        if ('' === $query) {
+            return array();
+        }
+
+        $matches = array();
+        foreach (self::schema() as $key => $field) {
+            if (!empty($field['parent']) || empty($field['tab'])) {
+                continue;
+            }
+
+            $haystack = array(
+                $key,
+                isset($field['label']) ? $field['label'] : '',
+                isset($field['description']) ? $field['description'] : '',
+            );
+            if (!empty($field['replaces']) && is_array($field['replaces'])) {
+                $haystack = array_merge($haystack, array_keys($field['replaces']), array_values($field['replaces']));
+            }
+            foreach (self::children_of($key) as $child) {
+                $haystack[] = isset($child['label']) ? (string) $child['label'] : '';
+            }
+
+            $text = implode(' ', array_map('strval', $haystack));
+            $found = function_exists('mb_stripos') ? mb_stripos($text, $query) : stripos($text, $query);
+            if (false !== $found) {
+                $matches[$key] = $field;
+            }
+        }
+
+        return $matches;
     }
 
     /**
