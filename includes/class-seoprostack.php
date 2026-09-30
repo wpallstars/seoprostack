@@ -27,9 +27,12 @@ final class SEOProStack {
         'SEOProStack_Duplicate_Posts',
         'SEOProStack_Post_Versions',
         'SEOProStack_Preview_Links',
+        'SEOProStack_Sticky_Posts',
+        'SEOProStack_Bulk_Select_All',
         'SEOProStack_Auto_Upload',
         'SEOProStack_Post_Scheduler',
         'SEOProStack_Iframe_Block',
+        'SEOProStack_Gone_Urls',
     );
 
     /**

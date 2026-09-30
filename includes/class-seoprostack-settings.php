@@ -262,8 +262,9 @@ class SEOProStack_Settings {
 
             case 'lines':
                 $lines = preg_split('/[\r\n]+/', (string) $value);
+                // Not sanitize_text_field(): it strips %xx, which URL paths need.
                 $lines = array_filter(array_map(function ($line) {
-                    return trim(sanitize_text_field($line));
+                    return trim(preg_replace('/[\x00-\x1F\x7F]+/', '', wp_strip_all_tags($line)));
                 }, $lines), 'strlen');
                 return implode("\n", array_values(array_unique($lines)));
 
