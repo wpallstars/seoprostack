@@ -241,9 +241,9 @@ class SEOProStack_Plugin_Toggle extends SEOProStack_Feature {
         if (!in_array($action, array('activate', 'deactivate'), true)) {
             return $location;
         }
-        $return = wp_unslash($_REQUEST[self::RETURN_ARG]);
+        $return = is_string($_REQUEST[self::RETURN_ARG]) ? wp_sanitize_redirect(wp_unslash($_REQUEST[self::RETURN_ARG])) : '';
         // phpcs:enable
-        $return = is_string($return) ? wp_validate_redirect(wp_sanitize_redirect($return), '') : '';
+        $return = '' !== $return ? wp_validate_redirect($return, '') : '';
         if ('' === $return || 0 !== strpos($return, '/') || 0 === strpos($return, '//')) {
             return $location;
         }
