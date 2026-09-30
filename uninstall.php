@@ -51,6 +51,7 @@ function seoprostack_uninstall_site() {
     $options[] = 'seoprostack_dashboard_widgets';
     $options[] = 'seoprostack_nextgen_synced';
     $options[] = 'seoprostack_watermark_dir';
+    $options[] = 'seoprostack_cpt_base_taken';
     foreach ($options as $option) {
         delete_option($option);
     }
