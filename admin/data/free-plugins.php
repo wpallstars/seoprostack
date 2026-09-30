@@ -13,7 +13,7 @@ if (!defined('ABSPATH')) {
 // E-mails, Bulk Actions Select All, Carbon Copy, Post Draft Preview, Sticky
 // Posts Switch, Ultimate 410, Flying Analytics/Pages/Scripts, Widget Disable,
 // Plugin Toggle, Hide Admin Notices, The Paste, Avatar Privacy, Safe SVG,
-// Imsanity, Enable Media Replace, CompressX.
+// Imsanity, Enable Media Replace, CompressX, Easy Watermark.
 // String Locator is not listed: searching code is better done in an editor
 // or with WP-CLI than from wp-admin.
 function seoprostack_get_free_plugins() {
@@ -91,7 +91,6 @@ function seoprostack_get_free_plugins() {
             'tutor'
         ),
         'media' => array(
-            'easy-watermark',
             'image-copytrack',
             'media-file-renamer'
         ),

@@ -238,6 +238,10 @@ class SEOProStack_Admin_Manager {
             $deps[] = 'updates';
         }
 
+        if (self::shows_media_field($tab)) {
+            wp_enqueue_media();
+        }
+
         wp_enqueue_script('seoprostack-admin', SEOPROSTACK_URL . 'admin/js/seoprostack-admin.js', $deps, $js, true);
         wp_set_script_translations('seoprostack-admin', 'seoprostack');
 
@@ -247,14 +251,43 @@ class SEOProStack_Admin_Manager {
             'tab'          => $tab,
             'colorSchemes' => SEOProStack_Admin_Colors::scheme_urls(),
             'i18n'         => array(
-                'saving'     => __('Saving…', 'seoprostack'),
-                'saved'      => __('Saved', 'seoprostack'),
-                'saveFailed' => __('Could not save. Please try again.', 'seoprostack'),
-                'loadFailed' => __('Could not load this list. Please reload the page.', 'seoprostack'),
-                'noMatches'  => __('No matches.', 'seoprostack'),
-                'activated'  => __('Activated', 'seoprostack'),
+                'saving'      => __('Saving…', 'seoprostack'),
+                'saved'       => __('Saved', 'seoprostack'),
+                'saveFailed'  => __('Could not save. Please try again.', 'seoprostack'),
+                'loadFailed'  => __('Could not load this list. Please reload the page.', 'seoprostack'),
+                'noMatches'   => __('No matches.', 'seoprostack'),
+                'activated'   => __('Activated', 'seoprostack'),
+                'chooseImage' => __('Choose a picture', 'seoprostack'),
+                'useImage'    => __('Use this picture', 'seoprostack'),
             ),
         ));
+    }
+
+    /**
+     * Whether a tab (or the search results) may show a media field, which
+     * needs the media dialog.
+     *
+     * @param string $tab Tab slug.
+     * @return bool
+     */
+    private static function shows_media_field($tab) {
+        $schema = SEOProStack_Settings::schema();
+        foreach ($schema as $field) {
+            if (!isset($field['type']) || 'media' !== $field['type']) {
+                continue;
+            }
+            if (self::SEARCH === $tab) {
+                return true;
+            }
+            $field_tab = isset($field['tab']) ? $field['tab'] : '';
+            if (!$field_tab && isset($field['parent'], $schema[$field['parent']]['tab'])) {
+                $field_tab = $schema[$field['parent']]['tab'];
+            }
+            if ($field_tab === $tab) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**

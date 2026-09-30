@@ -5,6 +5,7 @@
  * - Settings: instant save for [data-sps-setting] controls.
  * - Panels: expandable setting options.
  * - Tokens: insert pattern tokens into text fields.
+ * - Media fields: choose a Media Library picture with the media dialog.
  * - Directories: client-side filter for Pro/Hosting/Tools cards.
  * - Plugins: AJAX category loading into core's #plugin-filter list.
  * - Theme: AJAX theme card and in-place install via wp.updates.
@@ -236,6 +237,70 @@
 	};
 
 	/* ------------------------------------------------------------------ */
+	/* Media fields: choose a Media Library picture                        */
+	/* ------------------------------------------------------------------ */
+
+	var MediaField = {
+		init: function () {
+			$(document).on('click', '.sps-media__choose', function () {
+				MediaField.open($(this).closest('[data-sps-media]'));
+			});
+			$(document).on('click', '.sps-media__remove', function () {
+				MediaField.set($(this).closest('[data-sps-media]'), 0, '');
+				$(this).siblings('.sps-media__choose').trigger('focus');
+			});
+			// A saved 0 means the choice was not a picture.
+			$(document).on('seoprostack:setting-saved', function (event, key, value) {
+				var $field = $('[data-sps-media]').has('[data-sps-setting="' + key + '"]');
+				if ($field.length && !parseInt(value, 10)) {
+					MediaField.preview($field, '');
+				}
+			});
+		},
+
+		open: function ($field) {
+			if (!wp || !wp.media) {
+				return;
+			}
+			var frame = $field.data('sps-frame');
+			if (!frame) {
+				frame = wp.media({
+					title: i18n.chooseImage,
+					library: { type: 'image' },
+					multiple: false,
+					button: { text: i18n.useImage }
+				});
+				frame.on('select', function () {
+					var item = frame.state().get('selection').first();
+					if (!item) {
+						return;
+					}
+					var data = item.toJSON();
+					var url = data.sizes && data.sizes.thumbnail ? data.sizes.thumbnail.url : data.url;
+					MediaField.set($field, data.id, url);
+				});
+				$field.data('sps-frame', frame);
+			}
+			frame.open();
+		},
+
+		set: function ($field, id, url) {
+			this.preview($field, url);
+			$field.find('[data-sps-setting]').val(String(id || 0)).trigger('change');
+		},
+
+		preview: function ($field, url) {
+			var $img = $field.find('.sps-media__preview');
+			if (url) {
+				$img.attr('src', url).prop('hidden', false);
+			} else {
+				$img.removeAttr('src').prop('hidden', true);
+			}
+			$field.find('.sps-media__remove').prop('hidden', !url);
+		}
+	};
+
+	/* ------------------------------------------------------------------ */
 	/* Directory filter (Pro / Hosting / Tools)                            */
 	/* ------------------------------------------------------------------ */
 
@@ -383,6 +448,7 @@
 		Settings.init();
 		Colors.init();
 		Panels.init();
+		MediaField.init();
 		Directory.init();
 		Plugins.init();
 		Theme.init();
