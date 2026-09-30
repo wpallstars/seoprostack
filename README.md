@@ -32,6 +32,7 @@ Every feature is off by default. Features that replace a separate plugin say so 
 | SVG uploads | Media | Safe SVG |
 | Resize large uploads | Media | Imsanity |
 | Replace media files | Media | Enable Media Replace |
+| WebP and AVIF images | Media | CompressX |
 | Load pages before the click | Speed | Flying Pages |
 | Delay scripts until interaction | Speed | Flying Scripts |
 | Delayed Google Analytics | Speed | Flying Analytics |
@@ -201,7 +202,7 @@ Scales pictures larger than a set width or height (default 2560, WordPress’s o
 - Animated GIFs and files with “noresize” in their name are left alone. Pictures are turned upright, and camera details, captions and credits are kept.
 - Optionally delete the original WordPress keeps for pictures it scales, rotates or converts, after it has made the smaller sizes.
 - Existing pictures: **Resize to … px** row and bulk actions in Media → Library (list view), or `wp seoprostack resize-images [--dry-run]`. Files keep their names and addresses; bulk resizing stops after 20 seconds and says how many are left.
-- Imports Imsanity’s largest size limit, quality, BMP and PNG conversion and “delete originals”, and switches on if Imsanity is active.
+- Imports Imsanity’s largest size limit, quality, BMP and PNG conversion and “delete originals”, and switches on if Imsanity is active. When CompressX is active with its resizing on, switches on with CompressX’s limit, since WebP and AVIF images replaces the rest of CompressX.
 
 ### Replace media files (Media)
 
@@ -214,6 +215,21 @@ Adds **Replace file** to Media Library items (row action in list view, and a but
 - The new file goes through the normal upload checks, so allowed file types, SVG cleaning and Resize large uploads apply.
 - Only people who can upload files and edit the item can replace it.
 - Imports Enable Media Replace’s last-used choices (file name and date), and switches on if it is active.
+
+### WebP and AVIF images (Media)
+
+Saves a smaller WebP and AVIF copy of every JPEG and PNG picture in the Media Library, and of every size of it, next to the file (`photo.jpg.webp`, `photo.jpg.avif`; WebP pictures get an AVIF copy). Browsers that accept those formats are sent the copy at the same address, so pages, the editors and the Media Library keep the original addresses and nothing else changes. Originals are never changed.
+
+- Pictures are converted in the background with WP-Cron, newest first, 20 seconds at a time: new uploads, edited and replaced pictures, and every existing picture. The settings panel shows progress; the attachment details show each copy’s size.
+- A copy is only kept when it is smaller than the original. Animated WebP and PNG pictures are left alone. Pictures are turned upright.
+- Quality: WebP 80 and AVIF 60 by default; changes apply to pictures converted afterwards (`wp seoprostack convert-images --force` makes every copy again). PNG conversion can be turned off.
+- AVIF needs WordPress 6.5 or later and an image library that can write it; the setting says whether this server can. Without it only WebP copies are made.
+- **Apache and LiteSpeed**: rules in the uploads folder’s `.htaccess` send the copy when the browser’s `Accept` header allows it, with `Vary: Accept`. **Keep pictures out of shared caches** (on by default) also sends `Cache-Control: private`, so CDNs that ignore `Vary`, such as Cloudflare’s free plan, never give AVIF to a browser that cannot show it. If the file cannot be written, the panel shows the lines to add.
+- **Nginx** does not read `.htaccess`; the panel shows the configuration lines to add.
+- **Multisite**: every site’s uploads are below the main site’s uploads folder, so one block of rules serves the whole network. It serves the formats any site uses and is removed when no site uses the feature. Each site converts its own pictures with its own settings.
+- Existing pictures: **Make WebP and AVIF copies** bulk action in Media → Library (list view), or `wp seoprostack convert-images [--force] [--dry-run]`.
+- Deleting a picture deletes its copies. Deactivating the plugin removes the rules, so browsers get the originals; deleting it also deletes the copies.
+- Imports CompressX’s formats, quality level, PNG exclusion and cache setting, and its resize limit into Resize large uploads, and switches on if CompressX is active. Copies CompressX made in `wp-content/compressx-nextgen` are moved next to the pictures instead of being made again, so they keep working after CompressX is deleted.
 
 ### Plugins menu in the admin bar (Plugins)
 
@@ -266,6 +282,7 @@ Developers can add settings, tabs and directory entries with filters:
 Actions:
 
 - `seoprostack_setting_saved`: a setting was saved from the admin screen.
+- `seoprostack_setting_panel`: print status at the top of a setting’s options panel (setting key, schema entry); wrap it in `<div class="sps-panel-note">`.
 - `seoprostack_magic_login_link_sent`: a login link was emailed.
 - `seoprostack_post_queued`: a post was scheduled by the publishing queue.
 - `seoprostack_post_duplicated`: a post was duplicated.
@@ -278,7 +295,9 @@ Read a setting with `SEOProStack_Settings::get( 'key' )`.
 
 ## Uninstall
 
-Deleting the plugin removes its settings and cached data, and the profile pictures and generated avatars in `uploads/seoprostack-avatars/`. Imported media stays in the Media Library because your posts use it.
+Deleting the plugin removes its settings and cached data, the profile pictures and generated avatars in `uploads/seoprostack-avatars/`, and the WebP and AVIF copies of pictures, including copies left by pictures deleted while the plugin was inactive. Imported media stays in the Media Library because your posts use it.
+
+Deactivating the plugin removes the WebP and AVIF rules from the uploads folder’s `.htaccess` (for every site when network-deactivated).
 
 ## Changelog
 
@@ -293,6 +312,8 @@ Deleting the plugin removes its settings and cached data, and the profile pictur
 - New, off by default: Paste into the Media Library (Media tab) uploads screenshots, pictures and files pasted into the Media Library, the media dialog and the classic editor. Replaces The Paste and imports its settings (settings version 5); Free Plugins no longer lists it.
 - New, off by default: Avatars without Gravatar (Admin tab) serves avatars from your own site, with profile picture uploads and locally drawn defaults. Replaces Avatar Privacy and copies its uploaded profile pictures (settings version 5); Free Plugins no longer lists it.
 - New, off by default, on the Media tab: SVG uploads (replaces Safe SVG) cleans every SVG as it is uploaded; Resize large uploads (replaces Imsanity) scales big pictures down on upload, with row and bulk actions and `wp seoprostack resize-images` for existing ones; Replace media files (replaces Enable Media Replace) uploads a new file for a Media Library item and updates links to it. Each imports the replaced plugin’s settings (settings version 5); Free Plugins no longer lists them.
+- New, off by default: WebP and AVIF images (Media tab) saves smaller WebP and AVIF copies of every picture in the background and sends them to browsers that support them at the same address, through `.htaccess` rules (Apache, LiteSpeed) or shown Nginx lines, with one set of rules for a whole multisite network. Bulk action and `wp seoprostack convert-images`. Replaces CompressX: imports its settings (settings version 5), moves its copies next to the pictures, and passes its resize limit to Resize large uploads; Free Plugins no longer lists it.
+- New for developers: the `seoprostack_setting_panel` action prints status in a setting’s options panel, and features may define a static `deactivate( $network_wide )` method that runs when the plugin is deactivated.
 - Changed: while a plugin that a feature replaces is active, the feature waits and that plugin keeps doing the job, so the two no longer run side by side (for example two Plugins menus in the admin bar, or Google Analytics loaded twice with Flying Analytics). The card says so, with a deactivate link. `SEOProStack_Feature::enabled()` is false while waiting; `switched_on()` reads the switch alone, and `replaced_active( $key )` lists the active plugins.
 - Changed: Hide admin notices also moves inline notices printed above the page. Inline notices inside a page’s content stay where they are.
 - Fixed: the Notices button no longer narrows the SEO Pro Stack header.

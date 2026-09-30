@@ -155,6 +155,14 @@ class SEOProStack_Settings_Manager {
             <?php if ($children) : ?>
                 <div class="sps-setting__panel" id="<?php echo esc_attr($panel_id); ?>" hidden>
                     <?php
+                    /**
+                     * Fires at the top of a setting's options panel, for status
+                     * such as progress (wrap output in .sps-panel-note).
+                     *
+                     * @param string $key   Setting key.
+                     * @param array  $field Schema entry.
+                     */
+                    do_action('seoprostack_setting_panel', $key, $field);
                     foreach ($children as $child_key => $child) {
                         self::render_field($child_key, $child);
                     }

@@ -346,6 +346,35 @@
 	display: none;
 }
 
+/* Status a feature prints above its options (seoprostack_setting_panel). */
+.sps-panel-note {
+	padding: 12px 0;
+	border-block-end: 1px solid #f0f0f1;
+	color: var(--sps-muted);
+}
+
+.sps-panel-note p {
+	margin: 0 0 6px;
+}
+
+.sps-panel-note p:last-child {
+	margin-block-end: 0;
+}
+
+.sps-code {
+	max-width: 100%;
+	margin: 6px 0 0;
+	padding: 10px 12px;
+	overflow-x: auto;
+	font-size: 12px;
+	line-height: 1.5;
+	color: #1d2327;
+	background: #f6f7f7;
+	border: 1px solid var(--sps-border);
+	border-radius: 4px;
+	white-space: pre;
+}
+
 /* Fields ------------------------------------------------------------- */
 
 .sps-field {
