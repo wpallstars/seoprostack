@@ -29,6 +29,9 @@ Every feature is off by default. Features that replace a separate plugin say so 
 | Sticky posts for any post type | Content | Sticky Posts Switch |
 | Select all across pages | Content | Bulk Actions Select All |
 | Paste into the Media Library | Media | The Paste |
+| SVG uploads | Media | Safe SVG |
+| Resize large uploads | Media | Imsanity |
+| Replace media files | Media | Enable Media Replace |
 | Load pages before the click | Speed | Flying Pages |
 | Delay scripts until interaction | Speed | Flying Scripts |
 | Delayed Google Analytics | Speed | Flying Analytics |
@@ -177,6 +180,41 @@ Paste screenshots, pictures and files from the clipboard (Cmd/Ctrl+V) and they u
 - The block editor already uploads pasted images and is left alone.
 - Imports The Paste’s image quality, classic editor switch and file name, and switches on if The Paste is active. Its per-user options are not imported. While The Paste is active it keeps handling the classic editor, so images are not uploaded twice.
 
+### SVG uploads (Media)
+
+Lets chosen roles upload SVG files, and cleans every SVG as it is uploaded.
+
+- Only known SVG drawing elements and attributes are kept. Scripts, event handlers, `<foreignObject>` and HTML, `set` and `animate` (which can change links), comments, style sheets that import or load other files, `data-*` attributes and links to other files are removed. Links on `<a>` may go to web and email addresses; `<image>` may only hold embedded PNG, JPEG, GIF or WebP pictures.
+- Files are refused when they are not well-formed SVG, use a DOCTYPE with entities, use an encoding other than UTF-8 or Latin-1, are larger than 10 MB, or repeat shapes with `<use>` so often (or in a loop) that browsers would hang.
+- Uploads through the Media Library, the editors, REST and sideloads are cleaned before they are stored. Files added without an upload (importers, XML-RPC) are cleaned when WordPress makes their metadata.
+- SVGs get a width and height from their `width`/`height` or `viewBox`, so they show and insert like other images; every image size points at the same file.
+- Who can upload SVGs: chosen roles (default administrators and editors) who can also upload files. On multisite, network admins always can.
+- Imports Safe SVG’s upload roles (or, when it had none, every role that can upload files), and switches on if Safe SVG is active. The Safe SVG block is not replaced; none of the surveyed sites used it.
+
+### Resize large uploads (Media)
+
+Scales pictures larger than a set width or height (default 2560, WordPress’s own limit) down when they are uploaded. WordPress keeps the huge original next to a scaled copy; this saves only the smaller picture, under the uploaded name.
+
+- Works for the Media Library, the editors, REST and sideloads. The same limit is used as WordPress’s “big image” limit, so WordPress 7.1 uploads that the browser processes are scaled to it too.
+- JPEG and WebP quality (default 82). A resized picture is only kept when its file is smaller.
+- BMP pictures are saved as JPEG (on by default). PNG photos can be saved as JPEG when that is smaller; PNGs with transparency are left alone.
+- Animated GIFs and files with “noresize” in their name are left alone. Pictures are turned upright, and camera details, captions and credits are kept.
+- Optionally delete the original WordPress keeps for pictures it scales, rotates or converts, after it has made the smaller sizes.
+- Existing pictures: **Resize to … px** row and bulk actions in Media → Library (list view), or `wp seoprostack resize-images [--dry-run]`. Files keep their names and addresses; bulk resizing stops after 20 seconds and says how many are left.
+- Imports Imsanity’s largest size limit, quality, BMP and PNG conversion and “delete originals”, and switches on if Imsanity is active.
+
+### Replace media files (Media)
+
+Adds **Replace file** to Media Library items (row action in list view, and a button in the attachment details). Upload a new file and the item keeps its ID, title, alt text, caption and every place it is used.
+
+- **Keep the file name**: the new file takes the old name and address, so links from other sites keep working. It must be the same type. Browsers may show the old file until their cache clears.
+- **Use the new file’s name**: any type; the file is saved in the old file’s folder.
+- The old file, its smaller sizes and any edited copies are deleted, and new sizes are made. The upload date can be kept or changed to now.
+- Links to the old file and each size are changed to the new file (and the same size, or the full file when the new file has no such size) in post content and excerpts, and in custom fields holding text, JSON (page builders) or serialized arrays. Published, scheduled, draft, pending and private posts are updated; custom fields holding objects are left alone.
+- The new file goes through the normal upload checks, so allowed file types, SVG cleaning and Resize large uploads apply.
+- Only people who can upload files and edit the item can replace it.
+- Imports Enable Media Replace’s last-used choices (file name and date), and switches on if it is active.
+
 ### Plugins menu in the admin bar (Plugins)
 
 Adds a **Plugins** menu to the admin bar, in wp-admin and on the site, listing every plugin; active ones are bold. Choosing one asks “Activate …?” or “Deactivate …?”, then runs WordPress’s own activate or deactivate action and returns you to the page you were on.
@@ -234,6 +272,7 @@ Actions:
 - `seoprostack_version_published`: a staged new version was copied over its original.
 - `seoprostack_image_imported`: an external image was imported.
 - `seoprostack_image_upload_error`: an image could not be imported.
+- `seoprostack_media_replaced`: a Media Library item’s file was replaced (attachment ID, old path, new path, IDs of posts whose links changed). Use it to purge caches.
 
 Read a setting with `SEOProStack_Settings::get( 'key' )`.
 
@@ -253,6 +292,7 @@ Deleting the plugin removes its settings and cached data, and the profile pictur
 - New, off by default: Hide admin notices (Admin tab) moves plugin and theme notices behind a “Notices” button. Replaces Hide Admin Notices, which Free Plugins no longer lists.
 - New, off by default: Paste into the Media Library (Media tab) uploads screenshots, pictures and files pasted into the Media Library, the media dialog and the classic editor. Replaces The Paste and imports its settings (settings version 5); Free Plugins no longer lists it.
 - New, off by default: Avatars without Gravatar (Admin tab) serves avatars from your own site, with profile picture uploads and locally drawn defaults. Replaces Avatar Privacy and copies its uploaded profile pictures (settings version 5); Free Plugins no longer lists it.
+- New, off by default, on the Media tab: SVG uploads (replaces Safe SVG) cleans every SVG as it is uploaded; Resize large uploads (replaces Imsanity) scales big pictures down on upload, with row and bulk actions and `wp seoprostack resize-images` for existing ones; Replace media files (replaces Enable Media Replace) uploads a new file for a Media Library item and updates links to it. Each imports the replaced plugin’s settings (settings version 5); Free Plugins no longer lists them.
 - Changed: while a plugin that a feature replaces is active, the feature waits and that plugin keeps doing the job, so the two no longer run side by side (for example two Plugins menus in the admin bar, or Google Analytics loaded twice with Flying Analytics). The card says so, with a deactivate link. `SEOProStack_Feature::enabled()` is false while waiting; `switched_on()` reads the switch alone, and `replaced_active( $key )` lists the active plugins.
 - Changed: Hide admin notices also moves inline notices printed above the page. Inline notices inside a page’s content stay where they are.
 - Fixed: the Notices button no longer narrows the SEO Pro Stack header.

@@ -539,7 +539,9 @@ class SEOProStack_Settings {
      *     notification, duplicate and later replacement features were added.
      * v5: import The Paste settings (Paste into the Media Library) and
      *     Avatar Privacy's switch and profile pictures (Avatars without
-     *     Gravatar), after 0.3.1 shipped at v4.
+     *     Gravatar), after 0.3.1 shipped at v4. Also Safe SVG (SVG uploads),
+     *     Imsanity (Resize large uploads) and Enable Media Replace (Replace
+     *     media files).
      *
      * Old options are left in place so a downgrade keeps working;
      * uninstall.php removes ours. Other plugins' options are never touched.
