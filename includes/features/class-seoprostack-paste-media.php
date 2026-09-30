@@ -428,6 +428,8 @@ class SEOProStack_Paste_Media extends SEOProStack_Feature {
     function uploadToEditor(editor, file, marker) {
         var body = new FormData();
         body.append("file", file, file.name);
+        // Older WordPress titles REST uploads from the sanitised file name.
+        body.append("title", file.name.replace(/\.[^.]+$/, ""));
         if (cfg.postId) {
             body.append("post", cfg.postId);
         }
