@@ -515,22 +515,22 @@ class SEOProStack_Replace_Media extends SEOProStack_Feature {
             $replace[str_replace('/', '\\/', $from)] = str_replace('/', '\\/', $to);
         }
 
-        $likes = array();
-        foreach (array_keys($replace) as $from) {
-            $likes[] = '%' . $wpdb->esc_like($from) . '%';
-        }
-        $statuses = "'publish', 'future', 'draft', 'pending', 'private'";
-        $updated  = array();
+        // Every file shares the folder and usually the start of the name, so
+        // two searches (plain and JSON) find every post; the exact paths are
+        // matched in PHP.
+        $plain   = '%' . $wpdb->esc_like(self::common_prefix(array_keys($map))) . '%';
+        $escaped = '%' . $wpdb->esc_like(str_replace('/', '\\/', self::common_prefix(array_keys($map)))) . '%';
+        $updated = array();
 
         // Post content and excerpts.
-        $where = implode(' OR ', array_fill(0, count($likes), 'post_content LIKE %s OR post_excerpt LIKE %s'));
-        $args  = array();
-        foreach ($likes as $like) {
-            $args[] = $like;
-            $args[] = $like;
-        }
-        // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery -- placeholders built above.
-        $rows = $wpdb->get_results($wpdb->prepare("SELECT ID, post_content, post_excerpt FROM {$wpdb->posts} WHERE post_type NOT IN ('revision', 'attachment') AND post_status IN ($statuses) AND ($where)", $args));
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- a one-off search; results are not cacheable.
+        $rows = $wpdb->get_results($wpdb->prepare(
+            "SELECT ID, post_content, post_excerpt FROM {$wpdb->posts} WHERE post_type NOT IN ('revision', 'attachment') AND post_status IN ('publish', 'future', 'draft', 'pending', 'private') AND (post_content LIKE %s OR post_excerpt LIKE %s OR post_content LIKE %s OR post_excerpt LIKE %s)",
+            $plain,
+            $plain,
+            $escaped,
+            $escaped
+        ));
         foreach ((array) $rows as $row) {
             $content = strtr($row->post_content, $replace);
             $excerpt = strtr($row->post_excerpt, $replace);
@@ -541,9 +541,12 @@ class SEOProStack_Replace_Media extends SEOProStack_Feature {
         }
 
         // Custom fields.
-        $where = implode(' OR ', array_fill(0, count($likes), 'm.meta_value LIKE %s'));
-        // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery -- placeholders built above.
-        $rows = $wpdb->get_results($wpdb->prepare("SELECT m.meta_id, m.post_id, m.meta_key, m.meta_value FROM {$wpdb->postmeta} m JOIN {$wpdb->posts} p ON p.ID = m.post_id WHERE p.post_type NOT IN ('revision', 'attachment') AND p.post_status IN ($statuses) AND ($where)", $likes));
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- a one-off search; results are not cacheable.
+        $rows = $wpdb->get_results($wpdb->prepare(
+            "SELECT m.meta_id, m.post_id, m.meta_value FROM {$wpdb->postmeta} m JOIN {$wpdb->posts} p ON p.ID = m.post_id WHERE p.post_type NOT IN ('revision', 'attachment') AND p.post_status IN ('publish', 'future', 'draft', 'pending', 'private') AND (m.meta_value LIKE %s OR m.meta_value LIKE %s)",
+            $plain,
+            $escaped
+        ));
         foreach ((array) $rows as $row) {
             $value = self::replace_value($row->meta_value, $replace);
             if (null !== $value && $value !== $row->meta_value) {
@@ -557,6 +560,25 @@ class SEOProStack_Replace_Media extends SEOProStack_Feature {
             clean_post_cache($post_id);
         }
         return array_keys($updated);
+    }
+
+    /**
+     * Longest start shared by all strings.
+     *
+     * @param string[] $strings Strings.
+     * @return string
+     */
+    private static function common_prefix(array $strings) {
+        $prefix = (string) array_shift($strings);
+        foreach ($strings as $string) {
+            $i   = 0;
+            $max = min(strlen($prefix), strlen($string));
+            while ($i < $max && $prefix[$i] === $string[$i]) {
+                $i++;
+            }
+            $prefix = substr($prefix, 0, $i);
+        }
+        return $prefix;
     }
 
     /**

@@ -233,7 +233,7 @@ class SEOProStack_Svg_Uploads extends SEOProStack_Feature {
      * @return true|WP_Error
      */
     public static function clean_file($path) {
-        if (!is_readable($path) || !is_writable($path)) {
+        if (!is_readable($path) || !wp_is_writable($path)) {
             return new WP_Error('svg_unreadable', __('the file could not be read.', 'seoprostack'));
         }
         if (filesize($path) > self::MAX_BYTES) {

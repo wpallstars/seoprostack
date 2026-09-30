@@ -24,6 +24,9 @@ Everything is off by default. Settings save instantly from **Settings → SEO Pr
 * **iFrame block**: embed any page with control over width and height or aspect ratio, lazy loading, sandbox, permissions (camera, autoplay, full screen…), referrer policy and border, and optionally pass the page’s URL parameters (such as UTM tags) to the embedded page. Limit it to a list of domains and to the roles you choose.
 * **Copy linked images to Media Library**: when a post is saved, images linked from other sites are copied into the Media Library, resized, attached to the post, and the content is changed to serve the local copy. Supports excluded domains, maximum dimensions, and file name and alt text patterns. Existing alt text is kept and repeat images are reused.
 * **Paste into the Media Library**: paste screenshots, pictures and files into the Media Library, the media dialog or the classic editor and they upload straight away, through WordPress’s own uploader. Pasted pictures get a name from a pattern and can be saved as JPEG or WebP.
+* **SVG uploads**: let chosen roles upload SVG files. Every SVG is cleaned as it is uploaded: scripts, event handlers, HTML, links to other files and anything that is not a drawing are removed, and files that cannot be cleaned safely are refused.
+* **Resize large uploads**: scale pictures larger than a set size down as they are uploaded, instead of keeping the huge original next to a smaller copy. BMP files (and optionally PNG photos) are saved as JPEG. Resize existing pictures from Media → Library or with WP-CLI.
+* **Replace media files**: upload a new file for a Media Library item, keeping or changing its file name. The item keeps its title, alt text and every place it is used, and links to the old file in posts and custom fields are changed to the new one.
 * **Admin bar and dashboard access**: hide the front-end admin bar and block wp-admin for chosen roles, such as subscribers and customers. Administrators are never affected.
 * **Dashboard and sidebar widgets**: hide Dashboard boxes and disable classic widgets you never use.
 * **Notification emails**: stop routine emails one by one, such as auto-update reports and new user notices.
@@ -40,7 +43,7 @@ Everything is off by default. Settings save instantly from **Settings → SEO Pr
 * **Plugin sizes**: a Size column on the Plugins screen shows each plugin’s PHP, JavaScript, CSS, media and other files, measured in the background and sortable.
 * **Clean up deleted plugins**: when plugin folders were deleted outside the Plugins screen, opening that screen removes their leftover uninstall and “Recently active” entries.
 
-Features that replace another plugin (for example Carbon Copy, Flying Pages or Ultimate 410) import its settings once and show “Replaces: …” on their card. The other plugin’s settings are left untouched. While the other plugin is active, the feature waits and that plugin keeps doing the job; deactivate it to switch over.
+Features that replace another plugin (for example Carbon Copy, Imsanity or Ultimate 410) import its settings once and show “Replaces: …” on their card. The other plugin’s settings are left untouched. While the other plugin is active, the feature waits and that plugin keeps doing the job; deactivate it to switch over.
 
 = Discover =
 
@@ -112,6 +115,7 @@ They stay scheduled and publish at their times. Turning it off only stops new po
 * New, off by default: Hide admin notices moves plugin and theme notices behind a “Notices” button (replaces Hide Admin Notices).
 * New, off by default: Paste into the Media Library uploads pasted screenshots, pictures and files (replaces The Paste and imports its settings).
 * New, off by default: Avatars without Gravatar serves avatars from your own site, with profile picture uploads (replaces Avatar Privacy and copies its profile pictures).
+* New, off by default: SVG uploads (replaces Safe SVG), Resize large uploads (replaces Imsanity) and Replace media files (replaces Enable Media Replace), each importing that plugin’s settings.
 * Change: while a plugin that a feature replaces is active, the feature waits, so the two no longer run side by side (such as two Plugins menus, or analytics loaded twice). The card says so, with a deactivate link.
 * Change: Hide admin notices also moves inline notices printed above the page.
 * Fix: `%date%` and `%day%` in Copy linked images’ file name and alt text patterns are no longer lost when saved.
