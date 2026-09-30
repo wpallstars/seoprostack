@@ -265,6 +265,16 @@
 	color: var(--sps-muted);
 }
 
+.sps-replaces {
+	margin: 4px 0 0;
+	font-size: 12px;
+	color: var(--sps-muted);
+}
+
+.sps-replaces__active {
+	color: #996800;
+}
+
 .sps-wrap .sps-setting__expand {
 	display: inline-flex;
 	align-items: center;

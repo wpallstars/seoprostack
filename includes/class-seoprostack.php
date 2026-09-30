@@ -13,12 +13,15 @@ if (!defined('ABSPATH')) {
 final class SEOProStack {
 
     /**
-     * Built-in features, in the order their cards appear.
+     * Built-in features, in the order their cards appear within each tab.
+     * Each lives in includes/features/class-{lowercase-hyphenated-name}.php.
      *
      * @var string[]
      */
     private static $core_features = array(
         'SEOProStack_Admin_Colors',
+        'SEOProStack_Admin_Access',
+        'SEOProStack_Widget_Control',
         'SEOProStack_Magic_Login',
         'SEOProStack_Auto_Upload',
         'SEOProStack_Post_Scheduler',
@@ -36,22 +39,16 @@ final class SEOProStack {
      * Load files and register hooks.
      */
     public static function load() {
-        $files = array(
-            'includes/class-seoprostack-settings.php',
-            'includes/class-seoprostack-feature.php',
-            'includes/features/class-seoprostack-admin-colors.php',
-            'includes/features/class-seoprostack-magic-login.php',
-            'includes/features/class-seoprostack-auto-upload.php',
-            'includes/features/class-seoprostack-post-scheduler.php',
-            'includes/features/class-seoprostack-iframe-block.php',
-        );
-        foreach ($files as $file) {
-            require_once SEOPROSTACK_DIR . $file;
+        require_once SEOPROSTACK_DIR . 'includes/class-seoprostack-settings.php';
+        require_once SEOPROSTACK_DIR . 'includes/class-seoprostack-feature.php';
+        foreach (self::$core_features as $class) {
+            require_once SEOPROSTACK_DIR . 'includes/features/class-' . str_replace('_', '-', strtolower($class)) . '.php';
         }
 
         SEOProStack_Settings::init();
-        // After SEOProStack_Settings::maybe_migrate() (init:5) so features read migrated values.
-        add_action('init', array(__CLASS__, 'boot_features'), 10);
+        // Priority 0, added after SEOProStack_Settings::maybe_migrate() so features
+        // read migrated values, and early enough to hook widgets_init (init:1).
+        add_action('init', array(__CLASS__, 'boot_features'), 0);
 
         if (is_admin()) {
             require_once SEOPROSTACK_DIR . 'admin/settings.php';

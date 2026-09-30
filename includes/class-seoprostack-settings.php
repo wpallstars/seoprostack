@@ -30,7 +30,7 @@ class SEOProStack_Settings {
 
     /** Stored schema version, used for one-off migrations. */
     const DB_VERSION_OPTION = 'seoprostack_db_version';
-    const DB_VERSION = 2;
+    const DB_VERSION = 3;
 
     /**
      * Request-level cache of the resolved schema.
@@ -50,7 +50,9 @@ class SEOProStack_Settings {
      * Register hooks.
      */
     public static function init() {
-        add_action('init', array(__CLASS__, 'maybe_migrate'), 5);
+        // Priority 0, before SEOProStack::boot_features() so features read
+        // migrated values, and before widgets_init (init:1).
+        add_action('init', array(__CLASS__, 'maybe_migrate'), 0);
         add_action('admin_init', array(__CLASS__, 'register_setting'));
         add_action('wp_ajax_seoprostack_save_setting', array(__CLASS__, 'ajax_save'));
     }
@@ -64,7 +66,13 @@ class SEOProStack_Settings {
      * - tab:         admin tab slug (top-level settings only)
      * - parent:      parent setting key (renders inside the parent's panel)
      * - options:     value => label array, or a callable returning one (select, multi)
-     * - label, description, placeholder, min, max, unit, tokens: UI metadata
+     * - open:        multi only; also keep key-like values that are not (yet)
+     *                in options, e.g. post types or widgets registered later
+     * - replaces:    top-level only; plugin slug => name this setting replaces
+     * - label, description, placeholder, min, max, unit, tokens, rows: UI metadata
+     *
+     * Types also include `url` (one URL or site path) and `lines` (one entry
+     * per line, sanitized as plain text).
      *
      * @return array<string,array>
      */
@@ -227,10 +235,37 @@ class SEOProStack_Settings {
                 $values = is_array($value) ? $value : preg_split('/\s*,\s*/', (string) $value, -1, PREG_SPLIT_NO_EMPTY);
                 $values = array_map('strval', array_filter((array) $values, 'is_scalar'));
                 // Keep the options' order so stored values are stable.
-                return array_values(array_intersect(array_map('strval', array_keys(self::options_for($field))), $values));
+                $known = array_values(array_intersect(array_map('strval', array_keys(self::options_for($field))), $values));
+                if (empty($field['open'])) {
+                    return $known;
+                }
+                // Open lists also keep identifiers that are not registered right now
+                // (class names may contain namespace separators).
+                $extra = array_filter(array_diff($values, $known), function ($item) {
+                    return strlen($item) <= 200 && (bool) preg_match('/^[A-Za-z0-9_\\\\-]+$/', $item);
+                });
+                return array_values(array_unique(array_merge($known, $extra)));
 
             case 'times':
                 return implode(', ', self::parse_times($value));
+
+            case 'url':
+                $value = trim((string) $value);
+                if ('' === $value) {
+                    return '';
+                }
+                if ('/' === $value[0] && '/' !== substr($value, 1, 1)) {
+                    // Site path: keep it relative so it survives domain changes.
+                    return '/' . ltrim(preg_replace('/\s+/', '', sanitize_text_field($value)), '/');
+                }
+                return esc_url_raw($value, array('http', 'https'));
+
+            case 'lines':
+                $lines = preg_split('/[\r\n]+/', (string) $value);
+                $lines = array_filter(array_map(function ($line) {
+                    return trim(sanitize_text_field($line));
+                }, $lines), 'strlen');
+                return implode("\n", array_values(array_unique($lines)));
 
             case 'text':
             default:
@@ -385,12 +420,15 @@ class SEOProStack_Settings {
      * v1: copy pre-0.3.0 individual `wp_allstars_*` options into the array.
      * v2: the plugin was renamed from "WP Allstars" to "SEO Pro Stack"; copy the
      *     development `wp_allstars_options` array into `seoprostack_options`.
+     * v3: features import settings from the plugins they replace
+     *     (SEOProStack_Feature::migrate()).
      *
      * Old options are left in place so a downgrade keeps working;
-     * uninstall.php removes them.
+     * uninstall.php removes ours. Other plugins' options are never touched.
      */
     public static function maybe_migrate() {
-        if ((int) get_option(self::DB_VERSION_OPTION, 0) >= self::DB_VERSION) {
+        $from = (int) get_option(self::DB_VERSION_OPTION, 0);
+        if ($from >= self::DB_VERSION) {
             return;
         }
 
@@ -418,6 +456,10 @@ class SEOProStack_Settings {
             if (null !== $legacy_value && '' !== $legacy_value && !array_key_exists($key, $options) && isset($schema[$key])) {
                 $options[$key] = self::sanitize_value($legacy_value, $schema[$key]);
             }
+        }
+
+        foreach (SEOProStack::features() as $class) {
+            $options = (array) $class::migrate($options, $from);
         }
 
         update_option(self::OPTION, self::sanitize_all($options));

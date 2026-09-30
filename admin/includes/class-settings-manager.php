@@ -104,6 +104,7 @@ class SEOProStack_Settings_Manager {
                     <?php if (!empty($field['description'])) : ?>
                         <p class="sps-setting__desc" id="<?php echo esc_attr($id); ?>-desc"><?php echo esc_html($field['description']); ?></p>
                     <?php endif; ?>
+                    <?php self::render_replaces($field); ?>
                 </div>
 
                 <?php if ($children) : ?>
@@ -129,6 +130,62 @@ class SEOProStack_Settings_Manager {
             <?php endif; ?>
         </section>
         <?php
+    }
+
+    /**
+     * Note which plugins a setting replaces, with a deactivate link for any
+     * that are still active.
+     *
+     * @param array $field Schema entry.
+     */
+    private static function render_replaces(array $field) {
+        if (empty($field['replaces']) || !is_array($field['replaces'])) {
+            return;
+        }
+
+        $active = self::active_plugins_by_slug();
+        $items  = array();
+        foreach ($field['replaces'] as $slug => $name) {
+            $item = esc_html($name);
+            if (isset($active[$slug]) && current_user_can('deactivate_plugin', $active[$slug])) {
+                $url   = wp_nonce_url(
+                    add_query_arg(array('action' => 'deactivate', 'plugin' => rawurlencode($active[$slug])), self_admin_url('plugins.php')),
+                    'deactivate-plugin_' . $active[$slug]
+                );
+                $item .= sprintf(
+                    ' <span class="sps-replaces__active">(%1$s <a href="%2$s">%3$s</a>)</span>',
+                    esc_html__('still active,', 'seoprostack'),
+                    esc_url($url),
+                    esc_html__('deactivate', 'seoprostack')
+                );
+            }
+            $items[] = $item;
+        }
+
+        printf(
+            '<p class="sps-replaces">%1$s %2$s</p>',
+            esc_html__('Replaces:', 'seoprostack'),
+            implode(', ', $items) // phpcs:ignore WordPress.Security.EscapeOutput -- escaped above.
+        );
+    }
+
+    /**
+     * Plugins active on this site (not network-wide) keyed by directory slug.
+     *
+     * @return array<string,string> slug => plugin file
+     */
+    private static function active_plugins_by_slug() {
+        static $active = null;
+        if (null === $active) {
+            $active = array();
+            foreach ((array) get_option('active_plugins', array()) as $file) {
+                $slug = dirname((string) $file);
+                if ('.' !== $slug) {
+                    $active[$slug] = (string) $file;
+                }
+            }
+        }
+        return $active;
     }
 
     /**
@@ -173,15 +230,32 @@ class SEOProStack_Settings_Manager {
                             $attrs, // phpcs:ignore WordPress.Security.EscapeOutput -- escaped above.
                             esc_attr($id . '-label')
                         );
-                        foreach (SEOProStack_Settings::options_for($field) as $option_value => $option_label) {
+                        $chosen  = array_map('strval', (array) $value);
+                        $choices = SEOProStack_Settings::options_for($field);
+                        if (!empty($field['open'])) {
+                            // Saved items that are not registered right now stay visible so they can be unticked.
+                            foreach (array_diff($chosen, array_map('strval', array_keys($choices))) as $missing) {
+                                $choices[$missing] = $missing;
+                            }
+                        }
+                        foreach ($choices as $option_value => $option_label) {
                             printf(
                                 '<label class="sps-checkbox"><input type="checkbox" value="%1$s"%2$s /> %3$s</label>',
                                 esc_attr((string) $option_value),
-                                checked(in_array((string) $option_value, array_map('strval', (array) $value), true), true, false),
+                                checked(in_array((string) $option_value, $chosen, true), true, false),
                                 esc_html($option_label)
                             );
                         }
                         echo '</fieldset>';
+                        break;
+
+                    case 'url':
+                        printf(
+                            '<input type="text" class="regular-text code" inputmode="url" %1$s value="%2$s" placeholder="%3$s" />',
+                            $attrs, // phpcs:ignore WordPress.Security.EscapeOutput -- escaped above.
+                            esc_attr((string) $value),
+                            esc_attr(isset($field['placeholder']) ? $field['placeholder'] : '')
+                        );
                         break;
 
                     case 'times':
@@ -206,9 +280,11 @@ class SEOProStack_Settings_Manager {
                         }
                         break;
 
+                    case 'lines':
                     case 'domains':
                         printf(
-                            '<textarea class="large-text code" rows="3" %1$s placeholder="%2$s">%3$s</textarea>',
+                            '<textarea class="large-text code" rows="%1$d" %2$s placeholder="%3$s">%4$s</textarea>',
+                            isset($field['rows']) ? (int) $field['rows'] : 3,
                             $attrs, // phpcs:ignore WordPress.Security.EscapeOutput -- escaped above.
                             esc_attr(isset($field['placeholder']) ? $field['placeholder'] : ''),
                             esc_textarea((string) $value)
