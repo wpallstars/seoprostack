@@ -133,6 +133,7 @@ They stay scheduled and publish at their times. Turning it off only stops new po
 * Change: Hide admin notices also moves inline notices printed above the page.
 * Fix: `%date%` and `%day%` in Copy linked images’ file name and alt text patterns are no longer lost when saved.
 * Fix: the Notices button no longer narrows the settings header.
+* Fix: Hide admin notices catches notices inside other plugins’ wrappers, notices added by scripts while the page loads, and WooCommerce’s script-drawn notices. On screens with their own top bar, such as WooCommerce, ACF and Rank Math, the Notices button no longer covers the bar.
 
 = 0.3.1 =
 * Free plugin lists show changes straight away instead of after the 12-hour cache expires.

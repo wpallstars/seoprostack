@@ -77,8 +77,10 @@ Stop routine emails one by one: new user notices, password and email change noti
 
 Moves plugin and theme notices into a **Notices (n)** button next to Screen Options and Help, so pages open at their content. The button opens a panel with the notices, which can still be read and dismissed there; the count follows.
 
-- Kept on the page: messages about what you just did (such as “Settings saved”), inline notices inside the page’s content (inline notices printed above the page are moved), and notices added after the page has loaded.
-- Optionally keep errors, or warnings and the WordPress update message, on the page.
+- Kept on the page: messages about what you just did (such as “Settings saved”), inline notices inside the page’s content (inline notices printed above the page are moved), and notices that scripts add after you first click or type, since they answer what you did.
+- Optionally keep errors, or warnings and the WordPress update message, on the page. On screens that hide every notice themselves, such as WooCommerce’s and Rank Math’s, kept notices go in the panel so they can still be read.
+- Also caught: notices printed inside another plugin’s wrapper, and notices that scripts add while the page loads. A notice drawn by React or Vue (such as WooCommerce Analytics’) stays hidden in its place and the panel shows a copy; dismissing the copy dismisses the original.
+- On screens with their own top bar and no Screen Options (such as WooCommerce, ACF and Rank Math), the button gets a row of its own above the bar, so it covers nothing.
 - Notices are hidden with CSS until they are moved, so they do not flash or push the page down.
 - The block editor has its own notices and is left alone.
 - Add the class `sps-keep` to a notice to keep it on the page.
@@ -384,6 +386,7 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folder�
 - Changed: while a plugin that a feature replaces is active, the feature waits and that plugin keeps doing the job, so the two no longer run side by side (for example two Plugins menus in the admin bar, or Google Analytics loaded twice with Flying Analytics). The card says so, with a deactivate link. `SEOProStack_Feature::enabled()` is false while waiting; `switched_on()` reads the switch alone, and `replaced_active( $key )` lists the active plugins.
 - Changed: Hide admin notices also moves inline notices printed above the page. Inline notices inside a page’s content stay where they are.
 - Fixed: the Notices button no longer narrows the SEO Pro Stack header.
+- Fixed: Hide admin notices now catches notices inside other plugins’ wrappers, notices that scripts add while the page loads, and React-drawn notices (shown as a copy in the panel). On screens with their own top bar and no Screen Options, such as WooCommerce, ACF and Rank Math, the Notices button gets its own row instead of covering the bar. The script moved to `admin/js/seoprostack-admin-notices.js`.
 - Fixed: pattern settings with tokens (such as Copy linked images’ file name and alt text) lost `%date%` and `%day%` when saved, because WordPress’s text sanitiser removes “%” followed by two hex digits.
 
 ### 0.3.1
