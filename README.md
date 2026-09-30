@@ -159,9 +159,9 @@ When a post is saved, images linked from other sites are copied into the Media L
 Paste screenshots, pictures and files from the clipboard (Cmd/Ctrl+V) and they upload straight away.
 
 - **Media Library, media dialog and Add New Media File**: pasted files go through WordPress’s own uploader, the same way as dropped files, so allowed file types, size limits and permissions are unchanged and progress shows as usual. The media dialog works in the block and classic editors.
-- **Classic editor**: pictures are uploaded, attached to the post and inserted as a normal image (large size where there is one). Pasted text, and HTML copied from web pages or office apps, is left to the editor. This part can be turned off.
-- Pictures from the clipboard have no name of their own, so they are named from a pattern (`%post_title%`, `%user%`, `%date%`, `%time%`); without a post title they are called `pasted-image`. Copied files keep their names.
-- Optionally save pasted pictures as JPEG or WebP at a chosen quality. The original is kept when the converted file is not smaller, when the browser cannot write the format, or when the site does not allow it. GIFs and copied files are never converted.
+- **Classic editor**: pictures are uploaded, attached to the post and inserted as a normal image (large size where there is one). Anything copied with text, such as part of a web page or document, is left to the editor. This part can be turned off.
+- Pictures from the clipboard have no name of their own, so they are named from a pattern (`%post_title%`, `%user%`, `%date%`, `%time%`); without a post title, `%post_title%` becomes `pasted-image`. Copied files keep their names.
+- Optionally save pasted pictures as JPEG or WebP at a chosen quality. WebP falls back to JPEG when the site does not allow WebP uploads. The original is kept when the converted file is not smaller or the browser cannot write the format. GIFs and copied files are never converted.
 - The block editor already uploads pasted images and is left alone.
 - Imports The Paste’s image quality, classic editor switch and file name, and switches on if The Paste is active. Its per-user options are not imported. While The Paste is active it keeps handling the classic editor, so images are not uploaded twice.
 
@@ -240,6 +240,7 @@ Deleting the plugin removes its settings and cached data. Imported media stays i
 - Free Plugins no longer lists Plugin Toggle, which the Plugins tab replaces, or String Locator: searching code is better done in an editor or with WP-CLI.
 - New, off by default: Hide admin notices (Admin tab) moves plugin and theme notices behind a “Notices” button. Replaces Hide Admin Notices, which Free Plugins no longer lists.
 - New, off by default: Paste into the Media Library (Media tab) uploads screenshots, pictures and files pasted into the Media Library, the media dialog and the classic editor. Replaces The Paste and imports its settings (settings version 5); Free Plugins no longer lists it.
+- Fixed: pattern settings with tokens (such as Copy linked images’ file name and alt text) lost `%date%` and `%day%` when saved, because WordPress’s text sanitiser removes “%” followed by two hex digits.
 
 ### 0.3.1
 

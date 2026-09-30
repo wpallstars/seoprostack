@@ -66,7 +66,7 @@ class SEOProStack_Paste_Media extends SEOProStack_Feature {
                 'default'     => 'keep',
                 'parent'      => self::KEY,
                 'label'       => __('Save pasted pictures as', 'seoprostack'),
-                'description' => __('Screenshots are usually PNG. JPEG and WebP are much smaller. The original is kept when the converted file is not smaller, and animated GIFs are never converted.', 'seoprostack'),
+                'description' => __('Screenshots are usually PNG. JPEG and WebP are much smaller for photos. The original is kept when the converted file is not smaller. GIFs and copied files are never converted.', 'seoprostack'),
                 'options'     => array(__CLASS__, 'format_options'),
             ),
             'paste_media_quality' => array(
@@ -263,7 +263,7 @@ class SEOProStack_Paste_Media extends SEOProStack_Feature {
     function baseName() {
         var now = new Date();
         var name = cfg.filename
-            .replace(/%post_title%/g, postTitle())
+            .replace(/%post_title%/g, postTitle() || cfg.fallback)
             .replace(/%user%/g, cfg.user || "")
             .replace(/%date%/g, now.getFullYear() + "-" + pad(now.getMonth() + 1) + "-" + pad(now.getDate()))
             .replace(/%time%/g, pad(now.getHours()) + "-" + pad(now.getMinutes()) + "-" + pad(now.getSeconds()));
@@ -455,6 +455,12 @@ class SEOProStack_Paste_Media extends SEOProStack_Feature {
             return;
         }
         editor.seoprostackPaste = true;
+        // Upload placeholders are never saved, even if the post is saved mid-upload.
+        editor.on("GetContent", function (event) {
+            if (event.content && event.content.indexOf("sps-paste-uploading") > -1) {
+                event.content = event.content.replace(/<span[^>]*\bsps-paste-uploading\b[^>]*>[\s\S]*?<\/span>/g, "");
+            }
+        });
         // Prepended so it runs before the paste plugin, which then only tidies up.
         editor.on("paste", function (event) {
             var data = event.clipboardData;
@@ -469,7 +475,7 @@ class SEOProStack_Paste_Media extends SEOProStack_Feature {
             window.setTimeout(function () {
                 files.forEach(function (file) {
                     var marker = "sps-paste-" + (++count);
-                    editor.insertContent('<span id="' + marker + '" class="sps-paste-uploading" data-mce-bogus="all" contenteditable="false">' + $("<i>").text(cfg.uploading).html() + "</span>&nbsp;");
+                    editor.insertContent('<span id="' + marker + '" class="sps-paste-uploading" contenteditable="false">' + $("<i>").text(cfg.uploading).html() + "</span>");
                     prepare(file).then(function (ready) {
                         return uploadToEditor(editor, ready, marker);
                     });

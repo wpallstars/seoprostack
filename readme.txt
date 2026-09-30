@@ -108,6 +108,7 @@ They stay scheduled and publish at their times. Turning it off only stops new po
 * Free Plugins no longer lists Plugin Toggle or String Locator.
 * New, off by default: Hide admin notices moves plugin and theme notices behind a “Notices” button (replaces Hide Admin Notices).
 * New, off by default: Paste into the Media Library uploads pasted screenshots, pictures and files (replaces The Paste and imports its settings).
+* Fix: `%date%` and `%day%` in Copy linked images’ file name and alt text patterns are no longer lost when saved.
 
 = 0.3.1 =
 * Free plugin lists show changes straight away instead of after the 12-hour cache expires.

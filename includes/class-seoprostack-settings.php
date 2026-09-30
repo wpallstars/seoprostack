@@ -371,7 +371,18 @@ class SEOProStack_Settings {
 
             case 'text':
             default:
-                return sanitize_text_field((string) $value);
+                $value = (string) $value;
+                if (empty($field['tokens'])) {
+                    return sanitize_text_field($value);
+                }
+                // sanitize_text_field() drops "%" plus two hex digits, which
+                // breaks tokens such as %date% and %day%; set them aside.
+                $tokens = array();
+                foreach (array_values((array) $field['tokens']) as $i => $token) {
+                    $tokens["\u{E000}{$i}\u{E001}"] = (string) $token;
+                }
+                $value = str_replace(array_values($tokens), array_keys($tokens), $value);
+                return str_replace(array_keys($tokens), array_values($tokens), sanitize_text_field($value));
         }
     }
 
