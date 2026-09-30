@@ -76,3 +76,8 @@ if (is_multisite()) {
 
 // Unused magic login links (user meta is network-wide).
 delete_metadata('user', 0, '_seoprostack_magic_login', '', true);
+
+// Plugin caches, network-wide because plugins are shared by every site. On
+// single sites these calls remove the ordinary option and transient.
+delete_site_option('seoprostack_plugin_sizes');
+delete_site_transient('seoprostack_plugin_names');

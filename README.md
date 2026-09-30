@@ -8,7 +8,7 @@ Version: {SEOPROSTACK_VERSION}
 
 Go to **Settings → SEO Pro Stack**. The screen has three groups of tabs:
 
-- **Settings**: Admin, Content, Media, Links and Speed (Plugins and Maintenance appear once they have features). Changes save instantly; there is no Save button.
+- **Settings**: Admin, Content, Media, Links, Speed and Plugins (Maintenance appears once it has features). Changes save instantly; there is no Save button.
 - **Search features** (top right) finds settings on every tab by name, description or the plugin they replace. Results can be switched on and changed in place.
 - **Discover**: Theme, Free Plugins, Pro Plugins, Hosting and Tools.
 - **About**: this Read Me.
@@ -30,6 +30,8 @@ Every feature is off by default. Features that replace a separate plugin say so 
 | Delay scripts until interaction | Speed | Flying Scripts |
 | Delayed Google Analytics | Speed | Flying Analytics |
 | 410 Gone for removed pages | Links | Ultimate 410 |
+| Plugins menu in the admin bar | Plugins | Plugin Toggle |
+| Clean up deleted plugins | Plugins | Fix ‘Plugin file does not exist’ Notices |
 
 ### Modern admin colours (Admin)
 
@@ -140,6 +142,26 @@ When a post is saved, images linked from other sites are copied into the Media L
 - File name and alt text patterns support tokens such as `%filename%`, `%post_title%` and `%date%`. Existing alt text is kept.
 - Up to 10 images are imported per save; the rest are imported on the next save.
 
+### Plugins menu in the admin bar (Plugins)
+
+Adds a **Plugins** menu to the admin bar, in wp-admin and on the site, listing every plugin; active ones are bold. Choosing one asks “Activate …?” or “Deactivate …?”, then runs WordPress’s own activate or deactivate action and returns you to the page you were on.
+
+- Only shown to people who can activate plugins, and only lists plugins they may switch.
+- If the page you were on belonged to the plugin you switched off, you land on the Plugins screen instead of an error.
+- Network-activated plugins are left to the Network Plugins screen.
+- Plugin names are cached and refreshed when plugins change or the Plugins screen opens, so page loads do not read plugin files.
+
+### Plugin sizes (Plugins)
+
+Adds a **Size** column to the Plugins screen: each plugin’s total disk use, split into PHP, JavaScript, CSS, media and other files. Click the heading to sort largest or smallest first. Large PHP and JavaScript totals often, but not always, mean more work on every page.
+
+- The screen opens straight away; missing sizes are measured in the background a few seconds at a time.
+- Sizes are kept until the plugin’s version changes.
+
+### Clean up deleted plugins (Plugins)
+
+When plugin folders are deleted outside the Plugins screen (by FTP, a file manager or a migration), WordPress keeps their uninstall entries, which load on every request, and their “Recently active” entries. With this on, opening the Plugins screen removes entries for plugins that no longer exist and says which ones. WordPress itself already switches off missing active plugins on that screen.
+
 ### Discover
 
 - **Theme**: install, activate or customise the Kadence theme.
@@ -191,6 +213,8 @@ Deleting the plugin removes its settings and cached data. Imported media stays i
 - Settings tabs regrouped by area: Admin, Content, Media, Links and Speed, with Plugins and Maintenance ready for new features. Old tab links and the `general`, `workflow` and `advanced` tab slugs still work.
 - New feature search: find a setting on any tab by name, description or the plugin it replaces, and change it from the results.
 - `SEOProStack_Settings_Manager::render_general_tab()` and the other per-tab render methods are gone; settings tabs render through `render_tab()`.
+- New Plugins tab, all off by default: a Plugins menu in the admin bar (replaces Plugin Toggle), a Size column on the Plugins screen, and cleanup of leftover entries for deleted plugins (replaces Fix ‘Plugin file does not exist’ Notices).
+- Free Plugins no longer lists Plugin Toggle, which the Plugins tab replaces, or String Locator: searching code is better done in an editor or with WP-CLI.
 
 ### 0.3.1
 
