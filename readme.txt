@@ -119,6 +119,7 @@ They stay scheduled and publish at their times. Turning it off only stops new po
 * New: search features by name, description or the plugin they replace, and change them from the results.
 * New Plugins tab, all off by default: a Plugins menu in the admin bar (replaces Plugin Toggle), a Size column on the Plugins screen, and cleanup of leftover entries for deleted plugins.
 * Free Plugins no longer lists Plugin Toggle or String Locator.
+* Free Plugins no longer lists EditorsKit, last updated in May 2024. WordPress and Kadence Blocks cover its features.
 * New, off by default: Hide admin notices moves plugin and theme notices behind a “Notices” button (replaces Hide Admin Notices).
 * New, off by default: Paste into the Media Library uploads pasted screenshots, pictures and files (replaces The Paste and imports its settings).
 * New, off by default: Avatars without Gravatar serves avatars from your own site, with profile picture uploads (replaces Avatar Privacy and copies its profile pictures).

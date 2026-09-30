@@ -17,6 +17,10 @@ if (!defined('ABSPATH')) {
 // Pretty Links.
 // String Locator is not listed: searching code is better done in an editor
 // or with WP-CLI than from wp-admin.
+// EditorsKit (block-options) is not listed: its last update was in May 2024,
+// tested up to WordPress 6.5, and WordPress and Kadence Blocks cover its
+// features (block visibility by login state and device, underline, highlight,
+// letter case, nofollow links).
 function seoprostack_get_free_plugins() {
     return array(
         'minimal' => array(
@@ -40,7 +44,6 @@ function seoprostack_get_free_plugins() {
             'ai-engine',
         ),
         'cms' => array(
-            'block-options',
             'bookmark-card',
             'browser-shots',
             'bulk-edit-categories-tags',
