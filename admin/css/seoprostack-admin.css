@@ -462,6 +462,34 @@
 	gap: 6px;
 }
 
+/* Long lists, such as every active plugin: columns that scroll. */
+.sps-checkboxes.is-long {
+	display: block;
+	max-height: 320px;
+	overflow-y: auto;
+	columns: 16em auto;
+	column-gap: 20px;
+	padding: 6px 8px;
+	border: 1px solid #dcdcde;
+	border-radius: 4px;
+}
+
+.sps-checkboxes.is-long .sps-checkbox {
+	display: flex;
+	align-items: flex-start;
+	margin-block-end: 6px;
+	break-inside: avoid;
+}
+
+.sps-checkboxes.is-long .sps-checkbox input {
+	margin-block-start: 2px;
+}
+
+.sps-checkboxes__all {
+	display: block;
+	margin-block-end: 4px;
+}
+
 .sps-tokens {
 	display: block;
 	margin-block-start: 6px;

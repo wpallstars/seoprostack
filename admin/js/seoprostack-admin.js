@@ -58,6 +58,13 @@
 			$(document).on('change', '[data-sps-setting]', function () {
 				Settings.save($(this));
 			});
+			// "Select all" and "Clear" for long checkbox lists: one save for the lot.
+			$(document).on('click', '[data-sps-check-all], [data-sps-check-none]', function () {
+				var all = this.hasAttribute('data-sps-check-all');
+				var $group = $('#' + $(this).attr(all ? 'data-sps-check-all' : 'data-sps-check-none'));
+				$group.find(':checkbox').prop('checked', all);
+				Settings.save($group);
+			});
 		},
 
 		valueOf: function ($input) {

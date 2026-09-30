@@ -46,6 +46,7 @@ final class SEOProStack {
         'SEOProStack_Preload_Pages',
         'SEOProStack_Delay_Scripts',
         'SEOProStack_Delayed_Analytics',
+        'SEOProStack_Plugin_Loading',
         'SEOProStack_Plugin_Toggle',
         'SEOProStack_Plugin_Sizes',
         'SEOProStack_Plugin_References',
