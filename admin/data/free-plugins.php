@@ -1,10 +1,18 @@
 <?php
 /**
- * Recommended plugins data for WP ALLSTARS plugin
+ * Recommended plugins data for SEO Pro Stack plugin
  */
 
-// Define recommended plugins
-function wp_allstars_get_free_plugins() {
+if (!defined('ABSPATH')) {
+    exit;
+}
+
+// Define recommended plugins.
+// Plugins that SEO Pro Stack features replace are not listed (see each
+// feature's "replaces"): Admin Bar & Dashboard Control, Manage Notification
+// E-mails, Bulk Actions Select All, Carbon Copy, Post Draft Preview, Sticky
+// Posts Switch, Ultimate 410, Flying Analytics/Pages/Scripts, Widget Disable.
+function seoprostack_get_free_plugins() {
     return array(
         'minimal' => array(
             'antispam-bee',
@@ -14,19 +22,16 @@ function wp_allstars_get_free_plugins() {
             'simple-cloudflare-turnstile'
         ),
         'admin' => array(
-            'admin-bar-dashboard-control',
             'codepress-admin-columns',
             'admin-menu-editor',
             'hide-admin-notices',
             'mainwp-child',
             'mainwp-child-reports',
-            'magic-login',
-            'manage-notification-emails',
             'plugin-groups',
             'plugin-toggle'
         ),
         'affiliates' => array(
-            'pretty-links',
+            'pretty-link',
             'simple-urls',
             'slicewp'
         ),
@@ -34,25 +39,19 @@ function wp_allstars_get_free_plugins() {
             'ai-engine',
         ),
         'cms' => array(
-            'auto-post-scheduler',
             'block-options',
             'bookmark-card',
             'browser-shots',
-            'bulk-actions-select-all',
             'bulk-edit-categories-tags',
             'bulk-edit-user-profiles-in-spreadsheet',
-            'carbon-copy',
             'code-block-pro',
-            'iframe-block',
             'ics-calendar',
             'mammoth-docx-converter',
             'nav-menu-roles',
             'ninja-tables',
-            'post-draft-preview',
             'post-type-switcher',
             'simple-custom-post-order',
             'simple-icons',
-            'sticky-posts-switch',
             'term-management-tools',
             'the-paste',
             'ultimate-addons-for-gutenberg',
@@ -84,6 +83,9 @@ function wp_allstars_get_free_plugins() {
             'pymntpl-paypal-woocommerce',
             'woo-stripe-payment'
         ),
+        'events' => array(
+            'eventon-lite'
+        ),
         'lms' => array(
             'fluent-community',
             'masterstudy-lms-learning-management-system',
@@ -97,13 +99,15 @@ function wp_allstars_get_free_plugins() {
             'media-file-renamer',
             'safe-svg'
         ),
+        'members' => array(
+            'content-control'
+        ),
         'seo' => array(
             'burst-statistics',
             'pretty-link',
             'revive-so',
             'seo-by-rank-math',
             'syndication-links',
-            'ultimate-410',
             'webmention'
         ),
         'setup' => array(
@@ -114,29 +118,22 @@ function wp_allstars_get_free_plugins() {
             'bit-social',
             'easy-video-reviews',
             'social-engine',
-            'wp-social-ninja',
             'wp-social-reviews'
         ),
         'speed' => array(
             'disable-wordpress-updates',
-            'flying-analytics',
-            'flying-pages',
-            'flying-scripts',
             'freesoul-deactivate-plugins',
+            'http-requests-manager',
             'index-wp-mysql-for-speed',
             'litespeed-cache',
-            'performant-translations',
-            'wp-optimize',
-            'wp-widget-disable'
+            'wp-optimize'
         ),
         'translation' => array(
             'hreflang-manager-lite',
-            'performant-translations',
             'translatepress-multilingual'
         ),
         'advanced' => array(
             'acf-better-search',
-            'advanced-custom-fields',
             'automatorwp',
             'bit-pi',
             'bit-integrations',
@@ -157,5 +154,40 @@ function wp_allstars_get_free_plugins() {
             'user-switching',
             'wp-crontrol'
         )
+    );
+}
+
+/**
+ * Listed plugins that WordPress.org has closed.
+ *
+ * They stay listed as reminders to find or build a replacement. Cards show
+ * the closure and never offer an install. Any other listed slug the API
+ * reports as closed or missing gets a generic "unavailable" card.
+ *
+ * @return array<string,array{name:string,description:string,closed:string,reason:string,replacement:string}>
+ */
+function seoprostack_get_removed_plugins() {
+    return array(
+        'content-control' => array(
+            'name'        => 'Content Control',
+            'description' => 'Restrict content, menus and blocks by user role or login status.',
+            'closed'      => '2026-08-12',
+            'reason'      => 'Temporary closure pending a full review.',
+            'replacement' => 'Needs an alternative for restricting content by role or login status.',
+        ),
+        'easy-video-reviews' => array(
+            'name'        => 'Easy Video Reviews',
+            'description' => 'Collect and display video testimonials.',
+            'closed'      => '2026-08-05',
+            'reason'      => 'Temporary closure pending a full review.',
+            'replacement' => 'Needs an alternative for collecting video testimonials.',
+        ),
+        'remove-old-slugspermalinks' => array(
+            'name'        => 'Slugs Manager: Delete Old Permalinks',
+            'description' => 'List and delete the old slugs WordPress stores for redirects.',
+            'closed'      => '2026-04-27',
+            'reason'      => 'Guideline violation.',
+            'replacement' => 'Candidate for a lightweight SEO Pro Stack feature.',
+        ),
     );
 }

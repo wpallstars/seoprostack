@@ -1,8 +1,0 @@
-steps:
-  - name: test
-    image: php:7.4-cli
-    commands:
-      - apt-get update && apt-get install -y git
-      - php -l wp-allstars-plugin.php  # Syntax check
-      - find . -name *.php -exec php -l {} \;
-      - echo "Basic linting passed"

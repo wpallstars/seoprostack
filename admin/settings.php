@@ -1,39 +1,38 @@
 <?php
 /**
- * WP ALLSTARS Admin System Loader
+ * SEO Pro Stack admin loader.
  *
- * Loads all admin components and initializes manager classes
- * responsible for different tabs in the plugin interface.
+ * Loads admin data files and tab managers, then initialises the admin
+ * screen once. Included from the main plugin file for admin requests only.
  *
- * @package WP_ALLSTARS
+ * @package SEOProStack
  */
 
-// Include data configuration files
-require_once dirname(__FILE__) . '/data/tools.php';
-require_once dirname(__FILE__) . '/data/hosting-providers.php';
-require_once dirname(__FILE__) . '/data/free-plugins.php';
+if (!defined('ABSPATH')) {
+    exit;
+}
 
-// Include manager classes - each handles a specific plugin functionality area
-require_once dirname(__FILE__) . '/includes/class-plugin-manager.php';
-require_once dirname(__FILE__) . '/includes/class-pro-plugins-manager.php';
-require_once dirname(__FILE__) . '/includes/class-settings-manager.php';
-require_once dirname(__FILE__) . '/includes/class-tools-manager.php';
-require_once dirname(__FILE__) . '/includes/class-theme-manager.php';
-require_once dirname(__FILE__) . '/includes/class-hosting-manager.php';
-require_once dirname(__FILE__) . '/includes/class-free-plugins-manager.php';
-require_once dirname(__FILE__) . '/includes/class-admin-manager.php';
+$seoprostack_admin_files = array(
+    'admin/data/free-plugins.php',
+    'admin/data/pro-plugins.php',
+    'admin/data/hosting-providers.php',
+    'admin/data/tools.php',
+    'admin/data/readme.php',
+    'admin/includes/class-link-cards.php',
+    'admin/includes/class-settings-manager.php',
+    'admin/includes/class-plugin-manager.php',
+    'admin/includes/class-free-plugins-manager.php',
+    'admin/includes/class-pro-plugins-manager.php',
+    'admin/includes/class-hosting-manager.php',
+    'admin/includes/class-tools-manager.php',
+    'admin/includes/class-theme-manager.php',
+    'admin/includes/class-readme-manager.php',
+    'admin/includes/class-admin-manager.php',
+);
 
-/**
- * Initialize all manager classes
- * 
- * Each manager is responsible for a specific tab or functionality area
- * within the plugin's admin interface.
- */
-WP_Allstars_Plugin_Manager::init();
-WP_Allstars_Pro_Plugins_Manager::init();
-WP_Allstars_Settings_Manager::init();
-WP_Allstars_Tools_Manager::init();
-WP_Allstars_Theme_Manager::init();
-WP_Allstars_Hosting_Manager::init();
-WP_Allstars_Free_Plugins_Manager::init();
-WP_Allstars_Admin_Manager::init();
+foreach ($seoprostack_admin_files as $seoprostack_file) {
+    require_once SEOPROSTACK_DIR . $seoprostack_file;
+}
+unset($seoprostack_admin_files, $seoprostack_file);
+
+SEOProStack_Admin_Manager::init();

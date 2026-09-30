@@ -1,10 +1,14 @@
 <?php
 /**
- * Tools data for WP ALLSTARS plugin
+ * Tools data for SEO Pro Stack plugin
  */
 
+if (!defined('ABSPATH')) {
+    exit;
+}
+
 // Define tools
-function wp_allstars_get_tools() {
+function seoprostack_get_tools() {
     return array(
         'advise' => array(
             'name' => 'Advise.so',
@@ -226,14 +230,18 @@ function wp_allstars_get_tools() {
                 )
             )
         ),
-        'iterm2' => array(
-            'name' => 'iTerm2',
-            'description' => 'Terminal emulator for macOS with advanced features beyond the default Terminal app.',
+        'tabby' => array(
+            'name' => 'Tabby',
+            'description' => 'Free, open-source terminal for macOS, Windows and Linux with tabs, split panes, and a built-in SSH and SFTP client.',
             'button_group' => array(
                 array(
                     'text' => 'Home Page',
-                    'url' => 'https://iterm2.com/',
+                    'url' => 'https://tabby.sh/',
                     'primary' => true
+                ),
+                array(
+                    'text' => 'GitHub',
+                    'url' => 'https://github.com/Eugeny/tabby'
                 )
             )
         ),

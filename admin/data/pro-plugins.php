@@ -3,24 +3,12 @@
  * Pro Plugins Configuration
  */
 
- function wp_allstars_get_pro_plugins() {
+if (!defined('ABSPATH')) {
+    exit;
+}
+
+ function seoprostack_get_pro_plugins() {
     return array(
-        'magic-login-pro' => array(
-            'name' => 'Magic Login Pro',
-            'description' => 'Enable passwordless authentication with magic login links and enhance WordPress site security.',
-            'button_group' => array(
-                array(
-                    'text' => 'Home Page',
-                    'url' => 'https://handyplugins.co/magic-login-pro/',
-                    'primary' => true
-                ),
-                array(
-                    'text' => 'Pricing',
-                    'url' => 'https://handyplugins.co/magic-login-pro/#pricing'
-                )
-            ),
-            'free_slug' => 'magic-login'
-        ),
         'admin-columns' => array(
             'name' => 'Admin Columns Pro',
             'description' => 'Advanced admin columns management with sorting, filtering, and editing capabilities.',
@@ -52,22 +40,6 @@
                 )
             ),
             'free_slug' => 'admin-menu-editor'
-        ),
-        'advanced-custom-fields' => array(
-            'name' => 'Advanced Custom Fields PRO',
-            'description' => 'Create custom fields and content types with advanced features and options.',
-            'button_group' => array(
-                array(
-                    'text' => 'Home Page',
-                    'url' => 'https://www.advancedcustomfields.com/pro/',
-                    'primary' => true
-                ),
-                array(
-                    'text' => 'Pricing',
-                    'url' => 'https://www.advancedcustomfields.com/pro/#pricing'
-                )
-            ),
-            'free_slug' => 'advanced-custom-fields'
         ),
         'advanced-database-cleaner' => array(
             'name' => 'Advanced Database Cleaner PRO',
@@ -300,20 +272,20 @@
         ),
         'kadence-blocks' => array(
             'name' => 'Kadence Blocks Pro',
-            'description' => 'Premium blocks and templates for the WordPress editor.',
+            'description' => 'Premium blocks, theme and templates for the WordPress editor, sold together as Kadence bundles.',
             'button_group' => array(
                 array(
                     'text' => 'Home Page',
-                    'url' => 'https://www.kadencewp.com/kadence-blocks/pro/',
+                    'url' => 'https://www.liquidweb.com/software/kadence/blocks/',
                     'primary' => true
                 ),
                 array(
                     'text' => 'Pricing',
-                    'url' => 'https://www.kadencewp.com/pricing/'
+                    'url' => 'https://www.liquidweb.com/software/kadence/#pricing'
                 ),
                 array(
                     'text' => 'Theme Pro',
-                    'url' => 'https://www.kadencewp.com/kadence-theme/pro/'
+                    'url' => 'https://www.liquidweb.com/software/kadence/theme/'
                 )
             ),
             'free_slug' => 'kadence-blocks'
@@ -496,7 +468,7 @@
                     'url' => 'https://wpsocialninja.com/price/'
                 )
             ),
-            'free_slug' => 'wp-social-ninja'
+            'free_slug' => 'wp-social-reviews'
         ),
         'yellow-pencil' => array(
             'name' => 'YellowPencil Pro',
@@ -596,7 +568,7 @@
             'button_group' => array(
                 array(
                     'text' => 'Home Page',
-                    'url' => 'https://www.kadencewp.com/',
+                    'url' => 'https://www.liquidweb.com/software/kadence/kadence-template-gallery/',
                     'primary' => true
                 )
             ),
@@ -742,22 +714,6 @@
             ),
             'free_slug' => 'bit-pi'
         ),
-        'yellow-pencil' => array(
-            'name' => 'Yellow Pencil Pro',
-            'description' => 'Advanced visual CSS style editor for WordPress with premium features.',
-            'button_group' => array(
-                array(
-                    'text' => 'Home Page',
-                    'url' => 'https://yellowpencil.waspthemes.com/',
-                    'primary' => true
-                ),
-                array(
-                    'text' => 'Pricing',
-                    'url' => 'https://codecanyon.net/item/yellow-pencil-visual-css-style-editor/11322180'
-                )
-            ),
-            'free_slug' => 'yellow-pencil-visual-theme-customizer'
-        ),
         'gotmls' => array(
             'name' => 'Anti-Malware Pro',
             'description' => 'Advanced WordPress malware scanner and security toolkit with premium features.',
@@ -773,6 +729,36 @@
                 )
             ),
             'free_slug' => 'gotmls'
+        ),
+        'content-control' => array(
+            'name' => 'Content Control',
+            'description' => 'Advanced content restriction and user permissions management for WordPress.',
+            'button_group' => array(
+                array(
+                    'text' => 'Home Page',
+                    'url' => 'https://contentcontrolplugin.com/',
+                    'primary' => true
+                ),
+                array(
+                    'text' => 'Pricing',
+                    'url' => 'https://contentcontrolplugin.com/pricing/'
+                )
+            )
+        ),
+        'eventon' => array(
+            'name' => 'EventON',
+            'description' => 'Premium WordPress event calendar plugin with advanced features and add-ons.',
+            'button_group' => array(
+                array(
+                    'text' => 'Home Page',
+                    'url' => 'https://www.myeventon.com/',
+                    'primary' => true
+                ),
+                array(
+                    'text' => 'Add-ons',
+                    'url' => 'https://www.myeventon.com/addons/'
+                )
+            )
         )
     );
 } 

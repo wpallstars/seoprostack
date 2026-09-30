@@ -1,26 +1,15 @@
 <?php
 /**
- * Hosting providers data for WP ALLSTARS plugin
+ * Hosting providers data for SEO Pro Stack plugin
  */
 
+if (!defined('ABSPATH')) {
+    exit;
+}
+
 // Define hosting providers
-function wp_allstars_get_hosting_providers() {
+function seoprostack_get_hosting_providers() {
     return array(
-        'closte' => array(
-            'name' => 'Closte',
-            'description' => 'Managed WordPress hosting with advanced performance optimization and auto-scaling.',
-            'button_group' => array(
-                array(
-                    'text' => 'Home Page',
-                    'url' => 'https://closte.com/',
-                    'primary' => true
-                ),
-                array(
-                    'text' => 'Pricing',
-                    'url' => 'https://closte.com/pricing'
-                )
-            )
-        ),
         'cloudron' => array(
             'name' => 'Cloudron',
             'description' => 'Self-hosted platform that makes it easy to run web applications like WordPress on your server.',
@@ -87,12 +76,12 @@ function wp_allstars_get_hosting_providers() {
             'button_group' => array(
                 array(
                     'text' => 'Home Page',
-                    'url' => 'https://www.cloudflare.com/en-gb/',
+                    'url' => 'https://www.cloudflare.com/', // phpcs:ignore PluginCheck.CodeAnalysis.Offloading.OffloadedContent -- product page link, not a loaded asset.
                     'primary' => true
                 ),
                 array(
                     'text' => 'Pricing',
-                    'url' => 'https://www.cloudflare.com/en-gb/plans/'
+                    'url' => 'https://www.cloudflare.com/plans/' // phpcs:ignore PluginCheck.CodeAnalysis.Offloading.OffloadedContent -- product page link, not a loaded asset.
                 )
             )
         ),

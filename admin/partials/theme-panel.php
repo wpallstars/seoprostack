@@ -1,95 +1,71 @@
 <?php
 /**
- * Theme panel template for WP Allstars
+ * Theme card template.
  *
- * @package WP_Allstars
+ * Variables: $theme_data (themes_api object), $author (string).
+ *
+ * @package SEOProStack
  */
 
-// Prevent direct access
 if (!defined('ABSPATH')) {
     exit;
 }
+
+$seoprostack_slug      = SEOProStack_Theme_Manager::SLUG;
+$seoprostack_installed = wp_get_theme($seoprostack_slug);
+$seoprostack_is_active = get_stylesheet() === $seoprostack_slug;
+$seoprostack_links     = array(
+    // Kadence moved to Liquid Web in 2026; kadencewp.com pages redirect there.
+    array('text' => __('Starter templates', 'seoprostack'), 'url' => 'https://www.liquidweb.com/software/kadence/kadence-template-gallery/'),
+    array('text' => __('Kadence Blocks', 'seoprostack'), 'url' => 'https://www.liquidweb.com/software/kadence/blocks/'),
+    array('text' => __('Shop Kit', 'seoprostack'), 'url' => 'https://www.liquidweb.com/software/kadence/shop-kit/'),
+    array('text' => __('Pricing', 'seoprostack'), 'url' => 'https://www.liquidweb.com/software/kadence/#pricing'),
+);
 ?>
-<div class="theme-card">
-    <div class="theme-image">
-        <img src="<?php echo esc_url($theme_data->screenshot_url); ?>" alt="<?php echo esc_attr($theme_data->name); ?>">
+<article class="sps-card sps-theme-card">
+    <div class="sps-theme-card__media">
+        <img src="<?php echo esc_url($theme_data->screenshot_url); ?>" alt="<?php echo esc_attr(sprintf(/* translators: %s: theme name */ __('%s screenshot', 'seoprostack'), $theme_data->name)); ?>" loading="lazy" />
     </div>
-    <div class="theme-info">
-        <h3 class="theme-name"><?php echo esc_html($theme_data->name); ?></h3>
-        <p class="theme-author"><?php echo esc_html(sprintf(__('By %s'), $author)); ?></p>
-    </div>
-    <div class="theme-actions">
-        <?php if (current_user_can('install_themes')): ?>
-            <?php 
-            $installed_theme = wp_get_theme('kadence');
-            $current_theme = wp_get_theme();
-            $is_active = ($current_theme->get_stylesheet() === 'kadence');
-            $nonce = wp_create_nonce('wp-allstars-nonce');
-            
-            if ($is_active): ?>
-                <button type="button" class="button button-disabled" disabled="disabled">
-                    <?php esc_html_e('Active'); ?>
-                </button>
-            <?php elseif ($installed_theme->exists()): ?>
-                <a href="<?php echo esc_url(wp_nonce_url(admin_url('themes.php?action=activate&stylesheet=kadence'), 'switch-theme_kadence')); ?>" 
-                   class="button button-primary activate-now" 
-                   data-slug="kadence" 
-                   data-name="Kadence"
-                   data-nonce="<?php echo esc_attr($nonce); ?>">
-                    <?php esc_html_e('Activate'); ?>
-                </a>
-            <?php else: ?>
-                <?php 
-                // Use the standard WordPress theme installation URL format
-                $install_url = wp_nonce_url(
-                    admin_url('update.php?action=install-theme&theme=kadence'),
-                    'install-theme_kadence'
-                );
-                ?>
-                <a href="<?php echo esc_url($install_url); ?>" 
-                   class="button button-primary install-now" 
-                   data-slug="kadence" 
-                   data-name="Kadence"
-                   data-api-nonce="<?php echo esc_attr(wp_create_nonce('updates')); ?>"
-                   data-nonce="<?php echo esc_attr($nonce); ?>"
-                   aria-label="<?php esc_attr_e('Install Kadence'); ?>">
-                    <?php esc_html_e('Install'); ?>
-                </a>
-                <script>
-                console.log('Theme installation button initialized with:', {
-                    slug: 'kadence',
-                    url: '<?php echo esc_js($install_url); ?>',
-                    nonce: '<?php echo esc_js(wp_create_nonce("updates")); ?>'
-                });
-                </script>
+    <div class="sps-theme-card__body">
+        <h3 class="sps-theme-card__title">
+            <?php echo esc_html($theme_data->name); ?>
+            <?php if ($seoprostack_is_active) : ?>
+                <span class="sps-badge sps-badge--success"><?php esc_html_e('Active', 'seoprostack'); ?></span>
+            <?php elseif ($seoprostack_installed->exists()) : ?>
+                <span class="sps-badge"><?php esc_html_e('Installed', 'seoprostack'); ?></span>
             <?php endif; ?>
-            <script>
-            jQuery(document).ready(function($) {
-                // Make sure theme handlers are initialized
-                if (typeof initThemeHandlers === 'function') {
-                    console.log('Initializing theme handlers from template');
-                    initThemeHandlers();
-                }
-            });
-            </script>
+        </h3>
+        <?php if ($author) : ?>
+            <p class="sps-theme-card__meta"><?php echo esc_html(sprintf(/* translators: %s: author */ __('By %s', 'seoprostack'), $author)); ?>
+                <?php if (!empty($theme_data->version)) : ?>
+                    · <?php echo esc_html(sprintf(/* translators: %s: version */ __('Version %s', 'seoprostack'), $theme_data->version)); ?>
+                <?php endif; ?>
+            </p>
         <?php endif; ?>
-        <a class="button button-secondary green-button-secondary preview install-theme-preview" href="<?php echo esc_url($theme_data->preview_url); ?>" target="_blank">
-            <?php esc_html_e('Preview'); ?>
-        </a>
-        <a class="button button-secondary green-button-secondary" href="https://www.kadencewp.com/kadence-theme/starter-templates/" target="_blank">
-            <?php esc_html_e('Templates'); ?>
-        </a>
-        <a class="button button-secondary green-button-secondary" href="https://www.kadencewp.com/wordpress-solutions/kadence-ai/" target="_blank">
-            <?php esc_html_e('Starter AI'); ?>
-        </a>
-        <a class="button button-secondary green-button-secondary" href="https://www.kadencewp.com/kadence-theme/marketplace/" target="_blank">
-            <?php esc_html_e('Marketplace'); ?>
-        </a>
-        <a class="button button-secondary green-button-secondary" href="https://www.kadencewp.com/pricing/" target="_blank">
-            <?php esc_html_e('Pricing'); ?>
-        </a>
-        <a class="button button-primary go-pro-button" href="https://www.kadencewp.com/kadence-theme/" target="_blank">
-            <?php esc_html_e('Go Pro'); ?>
-        </a>
+
+        <div class="sps-theme-card__actions">
+            <?php if ($seoprostack_is_active) : ?>
+                <a class="button button-primary" href="<?php echo esc_url(admin_url(wp_is_block_theme() ? 'site-editor.php' : 'customize.php')); ?>"><?php esc_html_e('Customize', 'seoprostack'); ?></a>
+            <?php elseif ($seoprostack_installed->exists() && current_user_can('switch_themes')) : ?>
+                <a class="button button-primary" href="<?php echo esc_url(wp_nonce_url(admin_url('themes.php?action=activate&stylesheet=' . rawurlencode($seoprostack_slug)), 'switch-theme_' . $seoprostack_slug)); ?>"><?php esc_html_e('Activate', 'seoprostack'); ?></a>
+            <?php elseif (current_user_can('install_themes')) : ?>
+                <a class="button button-primary sps-theme-install"
+                   data-slug="<?php echo esc_attr($seoprostack_slug); ?>"
+                   href="<?php echo esc_url(wp_nonce_url(self_admin_url('update.php?action=install-theme&theme=' . rawurlencode($seoprostack_slug)), 'install-theme_' . $seoprostack_slug)); ?>">
+                    <?php esc_html_e('Install', 'seoprostack'); ?>
+                </a>
+            <?php endif; ?>
+
+            <?php if (!empty($theme_data->preview_url)) : ?>
+                <a class="button" href="<?php echo esc_url($theme_data->preview_url); ?>" target="_blank" rel="noopener noreferrer"><?php esc_html_e('Preview', 'seoprostack'); ?><span class="screen-reader-text"> <?php esc_html_e('(opens in a new tab)', 'seoprostack'); ?></span></a>
+            <?php endif; ?>
+        </div>
+
+        <ul class="sps-theme-card__links">
+            <?php foreach ($seoprostack_links as $seoprostack_link) : ?>
+                <li><a href="<?php echo esc_url($seoprostack_link['url']); ?>" target="_blank" rel="noopener noreferrer"><?php echo esc_html($seoprostack_link['text']); ?><span class="screen-reader-text"> <?php esc_html_e('(opens in a new tab)', 'seoprostack'); ?></span></a></li>
+            <?php endforeach; ?>
+            <li><a href="https://www.liquidweb.com/software/kadence/theme/" target="_blank" rel="noopener noreferrer"><strong><?php esc_html_e('Kadence Pro', 'seoprostack'); ?></strong><span class="screen-reader-text"> <?php esc_html_e('(opens in a new tab)', 'seoprostack'); ?></span></a></li>
+        </ul>
     </div>
-</div>
+</article>

@@ -65,3 +65,6 @@ wp-content/uploads/
 
 # Keep .woodpecker.yml if needed for CI/CD
 # .woodpecker.yml
+
+# aidevops runtime state
+.agents/loop-state/

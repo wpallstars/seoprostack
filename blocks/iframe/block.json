@@ -1,0 +1,46 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "seoprostack/iframe",
+	"version": "0.3.0",
+	"title": "iFrame",
+	"category": "embed",
+	"icon": "embed-generic",
+	"description": "Embed any web page with control over size, loading, sandbox, permissions and referrer.",
+	"keywords": [ "iframe", "embed", "frame", "form", "calendar", "map" ],
+	"textdomain": "seoprostack",
+	"attributes": {
+		"url": { "type": "string", "default": "" },
+		"title": { "type": "string", "default": "" },
+		"aspectRatio": { "type": "string", "default": "" },
+		"width": { "type": "string", "default": "100%" },
+		"height": { "type": "number", "default": 500 },
+		"lazy": { "type": "boolean", "default": true },
+		"allowFullscreen": { "type": "boolean", "default": true },
+		"showBorder": { "type": "boolean", "default": false },
+		"passParams": { "type": "boolean", "default": false },
+		"sandbox": { "type": "boolean", "default": true },
+		"sandboxAllow": {
+			"type": "array",
+			"items": { "type": "string" },
+			"default": [ "allow-scripts", "allow-same-origin", "allow-forms", "allow-popups", "allow-presentation" ]
+		},
+		"allow": {
+			"type": "array",
+			"items": { "type": "string" },
+			"default": []
+		},
+		"referrerPolicy": { "type": "string", "default": "strict-origin-when-cross-origin" }
+	},
+	"usesContext": [ "postId" ],
+	"supports": {
+		"html": false,
+		"anchor": true,
+		"align": [ "left", "center", "right", "wide", "full" ],
+		"spacing": { "margin": true }
+	},
+	"editorScript": "file:./index.js",
+	"viewScript": "file:./view.js",
+	"style": "file:./style.css",
+	"render": "file:./render.php"
+}

@@ -1,186 +1,61 @@
 <?php
 /**
- * WP ALLSTARS Free Plugins Manager
- * 
- * Manages the Free Plugins tab including:
- * - Category filtering system
- * - Plugin recommendations by use case
- * - Plugin installation functionality
- * 
- * @package WP_ALLSTARS
+ * SEO Pro Stack Free Plugins tab.
+ *
+ * Category filter plus a `#plugin-filter` container: core's updates.js binds
+ * its install/update handlers to that id, so cards loaded into it install in
+ * place exactly like Plugins → Add New.
+ *
+ * @package SEOProStack
  * @since 0.2.0
  */
 
 if (!defined('ABSPATH')) {
-    exit; // Exit if accessed directly
+    exit;
 }
 
-/**
- * WP_Allstars_Free_Plugins_Manager class
- * 
- * Provides categorized plugin recommendations based on website needs
- */
-class WP_Allstars_Free_Plugins_Manager {
-    
+class SEOProStack_Free_Plugins_Manager {
+
     /**
-     * Initialize the class and register hooks if needed
-     *
-     * @return void
-     */
-    public static function init() {
-        // We'll implement AJAX handlers in a future update if needed
-        // add_action('wp_ajax_wp_allstars_load_free_plugins', array(self::class, 'ajax_load_free_plugins'));
-    }
-    
-    /**
-     * Display the free plugins tab content
-     * 
-     * Renders the category filter bar and plugin list container.
-     * Initial view shows 'minimal' category plugins by default.
-     *
-     * @return void
+     * Render the tab.
      */
     public static function display_tab_content() {
-        // Get the active category from query params or use default
-        $active_category = isset($_GET['category']) ? sanitize_text_field($_GET['category']) : 'minimal';
-        
-        // Get all available plugin categories from the data file
-        $plugin_categories = wp_allstars_get_free_plugins();
-        
-        // Define all categories in the desired display order
-        $priority_categories = array(
-            'minimal', 'admin', 'affiliates', 'ai', 'cms',
-            'compliance', 'crm', 'ecommerce', 'lms', 'media',
-            'seo', 'setup', 'social', 'speed', 'translation',
-            'advanced', 'debug'
-        );
-        
-        // Start HTML output
+        $labels = SEOProStack_Plugin_Manager::get_category_labels();
+        // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- read-only navigation.
+        $active = isset($_GET['category']) ? sanitize_key(wp_unslash($_GET['category'])) : 'minimal';
+        if (!isset($labels[$active])) {
+            $active = (string) key($labels);
+        }
+
+        if (!current_user_can('install_plugins')) {
+            echo '<div class="notice notice-info inline"><p>' . esc_html__('Only users who can install plugins can browse these recommendations.', 'seoprostack') . '</p></div>';
+            return;
+        }
         ?>
-        <div class="wp-allstars-settings-content tab-content" id="recommended">
-        <div id="wpa-plugin-filters" class="wp-filter">
-            <ul class="filter-links">
-                <?php
-                // First output priority categories
-                foreach ($priority_categories as $category) {
-                    if (isset($plugin_categories[$category])) {
-                        $category_name = ucfirst($category);
-                        if ($category == 'cms') $category_name = 'CMS';
-                        if ($category == 'crm') $category_name = 'CRM';
-                        if ($category == 'ecommerce') $category_name = 'eCommerce';
-                        if ($category == 'lms') $category_name = 'LMS';
-                        if ($category == 'seo') $category_name = 'SEO';
-                        ?>
-                        <li><a href="#" data-category="<?php echo esc_attr($category); ?>" class="<?php echo $active_category == $category ? 'current' : ''; ?>">
-                            <?php echo esc_html($category_name); ?>
-                        </a></li>
-                        <?php
-                    }
-                }
-                
-                // Add any new categories that might have been added to the data file but aren't in our priority list
-                $remaining_categories = array_diff(array_keys($plugin_categories), $priority_categories);
-                sort($remaining_categories);
-                
-                foreach ($remaining_categories as $category) {
-                    $category_name = ucfirst($category);
-                    if ($category == 'cms') $category_name = 'CMS';
-                    if ($category == 'crm') $category_name = 'CRM';
-                    if ($category == 'ecommerce') $category_name = 'eCommerce';
-                    if ($category == 'lms') $category_name = 'LMS';
-                    if ($category == 'seo') $category_name = 'SEO';
-                    ?>
-                    <li><a href="#" data-category="<?php echo esc_attr($category); ?>" class="<?php echo $active_category == $category ? 'current' : ''; ?>">
-                        <?php echo esc_html($category_name); ?>
-                    </a></li>
-                    <?php
-                }
-                ?>
-            </ul>
-        </div>
-
-        <div class="wp-allstars-plugin-browser" style="margin-top: 22px;">
-            <div id="wpa-plugin-list" class="wpa-plugin-container" style="position: relative; min-height: 200px;">
-                <!-- Plugin content will be loaded via AJAX -->
-                <div class="wp-allstars-loading-overlay">
-                    <span class="spinner is-active"></span>
-                    <p>Loading plugin data...</p>
-                </div>
+        <div class="sps-plugins">
+            <div class="wp-filter sps-filter">
+                <ul class="filter-links" role="list">
+                    <?php foreach ($labels as $slug => $label) : ?>
+                        <li>
+                            <a href="<?php echo esc_url(SEOProStack_Admin_Manager::tab_url('recommended', array('category' => $slug))); ?>"
+                               data-category="<?php echo esc_attr($slug); ?>"
+                               class="<?php echo $slug === $active ? 'current' : ''; ?>"
+                               <?php echo $slug === $active ? 'aria-current="page"' : ''; ?>>
+                                <?php echo esc_html($label); ?>
+                            </a>
+                        </li>
+                    <?php endforeach; ?>
+                </ul>
             </div>
-        </div>
 
-        <script>
-        jQuery(document).ready(function($) {
-            // Filter tab click handler
-            $('#wpa-plugin-filters .filter-links a').on('click', function(e) {
-                e.preventDefault();
-                
-                var category = $(this).data('category');
-                var $container = $('#wpa-plugin-list');
-                
-                // Update filter UI
-                $('#wpa-plugin-filters .filter-links a').removeClass('current');
-                $(this).addClass('current');
-                
-                // Create new loading overlay
-                $container.empty();
-                var $loadingOverlay = $('<div class="wp-allstars-loading-overlay"><span class="spinner is-active"></span><p>Loading plugin data...</p></div>');
-                $container.append($loadingOverlay);
-                
-                // Load plugins in selected category
-                $.ajax({
-                    url: ajaxurl,
-                    type: 'POST',
-                    data: {
-                        action: 'wp_allstars_get_plugins',
-                        category: category,
-                        _wpnonce: '<?php echo wp_create_nonce('wp-allstars-nonce'); ?>'
-                    },
-                    success: function(response) {
-                        $loadingOverlay.remove();
-                        
-                        if (response.success) {
-                            // Add plugins to the container
-                            $container.html(response.data);
-                            
-                            // Initialize plugin action buttons (fix for AJAX install/activate functionality)
-                            if (typeof initPluginActions === "function") {
-                                initPluginActions();
-                            } else if (typeof window.initPluginActions === "function") {
-                                window.initPluginActions();
-                            }
-                        } else {
-                            $container.html('<div class="notice notice-error"><p>' + response.data + '</p></div>');
-                            console.error('Error loading plugins:', response.data);
-                        }
-                    },
-                    error: function(xhr, status, error) {
-                        $loadingOverlay.remove();
-                        $container.html('<div class="notice notice-error"><p>Failed to load plugins. Please try again. Error: ' + error + '</p></div>');
-                        console.error('AJAX error:', xhr.responseText);
-                    }
-                });
-            });
-            
-            // Load initial category (minimal or from URL)
-            $('#wpa-plugin-filters .filter-links a.current').trigger('click');
-        });
-        </script>
+            <form id="plugin-filter" method="post" onsubmit="return false;">
+                <div class="wp-list-table widefat plugin-install">
+                    <div id="the-list" data-sps-plugin-list data-category="<?php echo esc_attr($active); ?>" aria-live="polite" aria-busy="true">
+                        <div class="sps-loading"><span class="spinner is-active"></span> <?php esc_html_e('Loading plugins…', 'seoprostack'); ?></div>
+                    </div>
+                </div>
+            </form>
         </div>
         <?php
-    }
-    
-    /**
-     * Get the recommended plugins data
-     *
-     * @return array Array of recommended plugins by category
-     */
-    public static function get_recommended_plugins() {
-        // Define the plugins data if it hasn't been included yet
-        if (!function_exists('wp_allstars_get_free_plugins')) {
-            require_once dirname(dirname(__FILE__)) . '/data/free-plugins.php';
-        }
-        
-        return wp_allstars_get_free_plugins();
     }
 }

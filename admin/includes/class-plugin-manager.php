@@ -1,363 +1,495 @@
 <?php
 /**
- * WP ALLSTARS Plugin Manager
+ * SEO Pro Stack plugin directory data.
  *
- * Core class for handling WordPress plugin data and operations:
- * - Plugin data retrieval and caching mechanism
- * - AJAX handlers for asynchronous plugin data loading
- * - Plugin card UI generation with install/update actions
- * - Cache clearing on plugin changes
+ * Fetches wordpress.org data for the curated free plugins, caches it per
+ * category and renders cards with the same markup as Plugins → Add New so
+ * core's `updates` script provides in-place install/update/activate.
  *
- * @package WP_ALLSTARS
+ * @package SEOProStack
  * @since 0.2.0
  */
 
-// Exit if accessed directly
 if (!defined('ABSPATH')) {
     exit;
 }
 
-/**
- * WP_Allstars_Plugin_Manager class
- * 
- * Manages the Free Plugins tab and provides core plugin functionality
- * for other plugin-related managers.
- */
-class WP_Allstars_Plugin_Manager {
+class SEOProStack_Plugin_Manager {
+
+    /** Transient prefix; bump the version to invalidate old caches. */
+    const CACHE_PREFIX = 'seoprostack_plugins_v3_';
+
     /**
-     * Initialize the class and register all action hooks
-     *
-     * @return void
+     * Register hooks.
      */
     public static function init() {
-        // Register AJAX handler for plugin data retrieval
-        add_action('wp_ajax_wp_allstars_get_plugins', [self::class, 'ajax_get_plugins']);
-        
-        // Register hooks for automatic cache clearing when plugins change
-        add_action('upgrader_process_complete', [self::class, 'clear_plugin_cache'], 10, 0);
-        add_action('activated_plugin', [self::class, 'clear_plugin_cache']);
-        add_action('deactivated_plugin', [self::class, 'clear_plugin_cache']);
-        add_action('deleted_plugin', [self::class, 'clear_plugin_cache']);
-        add_action('update_option_active_plugins', [self::class, 'clear_plugin_cache']);
+        add_action('wp_ajax_seoprostack_get_plugins', array(__CLASS__, 'ajax_get_plugins'));
     }
-    
+
     /**
-     * Get cached plugin data for a specific category
+     * Category slug => label.
      *
-     * Uses the WordPress transients API to store plugin data
-     * for improved performance and reduced API calls.
-     *
-     * @param string $category The plugin category to retrieve (e.g., 'featured', 'popular')
-     * @return mixed Array of plugin data if cache exists, false otherwise
+     * @return array<string,string>
      */
-    public static function get_cached_plugins($category) {
-        $cache_key = 'wp_allstars_plugins_' . sanitize_key($category);
-        $cached_data = get_transient($cache_key);
-        
-        if ($cached_data !== false) {
-            return $cached_data;
+    public static function get_category_labels() {
+        $labels = array(
+            'minimal'     => __('Minimal', 'seoprostack'),
+            'admin'       => __('Admin', 'seoprostack'),
+            'affiliates'  => __('Affiliates', 'seoprostack'),
+            'ai'          => __('AI', 'seoprostack'),
+            'cms'         => __('CMS', 'seoprostack'),
+            'compliance'  => __('Compliance', 'seoprostack'),
+            'crm'         => __('CRM', 'seoprostack'),
+            'ecommerce'   => __('eCommerce', 'seoprostack'),
+            'events'      => __('Events', 'seoprostack'),
+            'lms'         => __('LMS', 'seoprostack'),
+            'media'       => __('Media', 'seoprostack'),
+            'members'     => __('Members', 'seoprostack'),
+            'seo'         => __('SEO', 'seoprostack'),
+            'setup'       => __('Setup', 'seoprostack'),
+            'social'      => __('Social', 'seoprostack'),
+            'speed'       => __('Speed', 'seoprostack'),
+            'translation' => __('Translation', 'seoprostack'),
+            'advanced'    => __('Advanced', 'seoprostack'),
+            'debug'       => __('Debug', 'seoprostack'),
+        );
+
+        $categories = array_keys(seoprostack_get_free_plugins());
+        $ordered    = array();
+        foreach ($labels as $slug => $label) {
+            if (in_array($slug, $categories, true)) {
+                $ordered[$slug] = $label;
+            }
         }
-        
-        return false;
+        foreach ($categories as $slug) {
+            if (!isset($ordered[$slug])) {
+                $ordered[$slug] = ucwords(str_replace(array('-', '_'), ' ', $slug));
+            }
+        }
+
+        return $ordered;
     }
-    
+
     /**
-     * Set cached plugin data for a category
-     *
-     * @param string $category The plugin category
-     * @param mixed $data The data to cache
-     */
-    public static function set_cached_plugins($category, $data) {
-        $cache_key = 'wp_allstars_plugins_' . $category;
-        set_transient($cache_key, $data, 12 * HOUR_IN_SECONDS);
-    }
-    
-    /**
-     * AJAX handler for getting plugin data
+     * AJAX: plugin cards for one category.
      */
     public static function ajax_get_plugins() {
-        // Check nonce with the correct action name
-        if (!check_ajax_referer('wp-allstars-nonce', false, false)) {
-            wp_send_json_error('Invalid security token sent.');
-            return;
-        }
-        
+        check_ajax_referer(SEOProStack_Settings::NONCE, 'nonce');
+
         if (!current_user_can('install_plugins')) {
-            wp_die(-1);
+            wp_send_json_error(array('message' => __('You are not allowed to install plugins on this site.', 'seoprostack')), 403);
         }
-    
-        $category = isset($_POST['category']) ? sanitize_key($_POST['category']) : 'minimal';
-        
-        require_once ABSPATH . 'wp-admin/includes/plugin-install.php';
-        
-        // Get our recommended plugins for this category
-        $recommended_plugins = wp_allstars_get_free_plugins();
-        if (!isset($recommended_plugins[$category])) {
-            wp_send_json_error('Invalid category: ' . $category);
-            return;
+
+        $category   = isset($_POST['category']) ? sanitize_key(wp_unslash($_POST['category'])) : 'minimal';
+        $categories = seoprostack_get_free_plugins();
+        if (!isset($categories[$category])) {
+            wp_send_json_error(array('message' => __('Unknown category.', 'seoprostack')), 400);
         }
-        
-        // Try to get cached data first
-        $cached_data = self::get_cached_plugins($category);
-        if ($cached_data !== false) {
-            error_log('Using cached data for category: ' . $category);
-            try {
-                // Generate plugin cards HTML
-                $html = self::generate_plugin_cards($cached_data->plugins);
-                wp_send_json_success($html);
-                return;
-            } catch (Exception $e) {
-                error_log('Error displaying cached plugins: ' . $e->getMessage());
-                // Fall through to fetch fresh data
+
+        $plugins = get_transient(self::CACHE_PREFIX . $category);
+        if (!is_array($plugins)) {
+            $complete = true;
+            $plugins  = self::fetch_plugins($categories[$category], $complete);
+            // Don't pin a partial list from a network hiccup for 12 hours.
+            if ($plugins && $complete) {
+                set_transient(self::CACHE_PREFIX . $category, $plugins, 12 * HOUR_IN_SECONDS);
             }
         }
-        
-        error_log('Fetching fresh data for category: ' . $category);
-        error_log('Plugins to fetch: ' . implode(', ', $recommended_plugins[$category]));
-        
-        try {
-            $plugins = array();
-            
-            // Only fetch plugins that are in our recommended list for this category
-            foreach ($recommended_plugins[$category] as $slug) {
-                try {
-                    error_log('Fetching plugin data for: ' . $slug);
-                    $plugin_data = plugins_api('plugin_information', array(
-                        'slug' => $slug,
-                        'fields' => array(
-                            'short_description' => true,
-                            'sections' => false,
-                            'requires' => true,
-                            'rating' => true,
-                            'ratings' => false,
-                            'downloaded' => true,
-                            'last_updated' => true,
-                            'added' => false,
-                            'tags' => false,
-                            'compatibility' => false,
-                            'homepage' => true,
-                            'versions' => false,
-                            'donate_link' => false,
-                            'reviews' => false,
-                            'banners' => false,
-                            'icons' => true,
-                            'active_installs' => true,
-                            'group' => false,
-                            'contributors' => false,
-                        )
-                    ));
-                    
-                    if (is_wp_error($plugin_data)) {
-                        error_log('Error fetching plugin data for ' . $slug . ': ' . $plugin_data->get_error_message());
-                    } else {
-                        $plugins[] = $plugin_data;
-                        error_log('Successfully fetched data for: ' . $slug);
-                    }
-                } catch (Exception $e) {
-                    error_log('Exception fetching plugin data for ' . $slug . ': ' . $e->getMessage());
-                    continue;
-                }
-            }
-            
-            if (empty($plugins)) {
-                wp_send_json_error('No plugin data could be retrieved for category: ' . $category);
-                return;
-            }
-            
-            error_log('Total plugins fetched: ' . count($plugins));
-            
-            // Create response object
-            $res = (object) array(
-                'info' => array(
-                    'page' => 1,
-                    'pages' => 1,
-                    'results' => count($plugins),
-                ),
-                'plugins' => $plugins
-            );
-            
-            // Cache the results
-            self::set_cached_plugins($category, $res);
-            
-            // Generate plugin cards HTML
-            $html = self::generate_plugin_cards($plugins);
-            wp_send_json_success($html);
-            
-        } catch (Exception $e) {
-            error_log('Failed to fetch plugin data: ' . $e->getMessage());
-            wp_send_json_error('Failed to fetch plugin data: ' . $e->getMessage());
+
+        if (!$plugins) {
+            wp_send_json_error(array('message' => __('Plugin information could not be retrieved from WordPress.org.', 'seoprostack')), 502);
         }
+
+        wp_send_json_success(array('html' => self::generate_plugin_cards($plugins)));
     }
-    
+
     /**
-     * Generate HTML for plugin cards
+     * Fetch plugin information from wordpress.org.
      *
-     * @param array $plugins Array of plugin data
-     * @return string HTML for the plugin cards
+     * Known-closed slugs skip the API. Slugs the API reports as closed or
+     * missing become "unavailable" stubs rather than silently vanishing.
+     *
+     * @param string[] $slugs    Plugin slugs.
+     * @param bool     $complete Set to false when a request failed for another reason.
+     * @return object[]
      */
-    public static function generate_plugin_cards($plugins) {
-        if (empty($plugins)) {
-            return '<div class="notice notice-error"><p>No plugins found.</p></div>';
+    private static function fetch_plugins(array $slugs, &$complete = true) {
+        require_once ABSPATH . 'wp-admin/includes/plugin-install.php';
+
+        $removed  = seoprostack_get_removed_plugins();
+        $plugins  = array();
+        $complete = true;
+        foreach (array_unique($slugs) as $slug) {
+            if (isset($removed[$slug])) {
+                $plugins[] = self::removed_stub($slug, $removed[$slug]);
+                continue;
+            }
+
+            $info = plugins_api('plugin_information', array(
+                'slug'   => $slug,
+                'fields' => array(
+                    'short_description' => true,
+                    'sections'          => false,
+                    'icons'             => true,
+                    'active_installs'   => true,
+                    'last_updated'      => true,
+                    'rating'            => true,
+                    'num_ratings'       => true,
+                    'requires'          => true,
+                    'requires_php'      => true,
+                    'tested'            => true,
+                    'banners'           => false,
+                    'reviews'           => false,
+                    'versions'          => false,
+                    'contributors'      => false,
+                    'donate_link'       => false,
+                    'tags'              => false,
+                ),
+            ));
+
+            if (!is_wp_error($info) && !empty($info->slug)) {
+                $plugins[] = $info;
+            } elseif (is_wp_error($info) && in_array($info->get_error_message(), array('closed', 'Plugin not found.'), true)) {
+                $plugins[] = self::removed_stub($slug, array());
+            } else {
+                $complete = false;
+            }
         }
-        
-        ob_start();
+
+        return $plugins;
+    }
+
+    /**
+     * Card data for a plugin that is no longer on wordpress.org.
+     *
+     * @param string $slug wordpress.org slug.
+     * @param array  $data Entry from seoprostack_get_removed_plugins(), or empty.
+     * @return object
+     */
+    private static function removed_stub($slug, array $data) {
+        return (object) array(
+            'slug'              => $slug,
+            'name'              => !empty($data['name']) ? $data['name'] : ucwords(str_replace('-', ' ', $slug)),
+            'short_description' => isset($data['description']) ? $data['description'] : '',
+            'removed'           => true,
+            'closed'            => isset($data['closed']) ? $data['closed'] : '',
+            'reason'            => isset($data['reason']) ? $data['reason'] : '',
+            'replacement'       => isset($data['replacement']) ? $data['replacement'] : '',
+        );
+    }
+
+    /**
+     * Installed plugin file for a slug, if any.
+     *
+     * @param string $slug Plugin directory slug.
+     * @return string Plugin file relative to the plugins directory, or ''.
+     */
+    private static function installed_file($slug) {
+        foreach (array_keys(get_plugins()) as $file) {
+            if (0 === strpos($file, $slug . '/')) {
+                return $file;
+            }
+        }
+        return '';
+    }
+
+    /**
+     * Card for a plugin WordPress.org no longer serves: no install, clear status.
+     *
+     * @param object $plugin Stub from removed_stub().
+     */
+    private static function removed_card($plugin) {
+        $file = self::installed_file($plugin->slug);
+        if ($file && is_plugin_active($file)) {
+            $state = _x('Active', 'plugin', 'seoprostack');
+        } elseif ($file) {
+            $state = _x('Installed', 'plugin', 'seoprostack');
+        } else {
+            $state = __('Unavailable', 'seoprostack');
+        }
+
+        if ($plugin->closed) {
+            $status = sprintf(
+                /* translators: %s: closure date */
+                __('Removed from WordPress.org on %s.', 'seoprostack'),
+                date_i18n(get_option('date_format'), strtotime($plugin->closed))
+            );
+        } else {
+            $status = __('Not currently available from WordPress.org.', 'seoprostack');
+        }
+        $pro_url = self::get_pro_url_for_free_slug($plugin->slug);
         ?>
-        <div class="wp-list-table widefat plugin-install">
-            <div id="the-list">
-                <?php foreach ($plugins as $plugin): ?>
-                    <div class="plugin-card plugin-card-<?php echo esc_attr($plugin->slug); ?>">
-                        <div class="plugin-card-top">
-                            <div class="name column-name">
-                                <h3>
-                                    <?php echo esc_html($plugin->name); ?>
-                                </h3>
-                            </div>
-                            <div class="action-links">
-                                <ul class="plugin-action-buttons">
-                                    <?php
-                                    $status = install_plugin_install_status($plugin);
-                                    switch ($status['status']) {
-                                        case 'install':
-                                            echo '<li><a class="button install-now" data-slug="' . esc_attr($plugin->slug) . '" href="' . esc_url($status['url']) . '" aria-label="' . esc_attr(sprintf(__('Install %s now'), $plugin->name)) . '">' . __('Install now') . '</a></li>';
-                                            break;
-                                        case 'update_available':
-                                            echo '<li><a class="button button-primary update-now" data-plugin="' . esc_attr($status['file']) . '" data-slug="' . esc_attr($plugin->slug) . '" href="' . esc_url($status['url']) . '" aria-label="' . esc_attr(sprintf(__('Update %s now'), $plugin->name)) . '">' . __('Update Now') . '</a></li>';
-                                            break;
-                                        case 'latest_installed':
-                                        case 'newer_installed':
-                                            if (is_plugin_active($status['file'])) {
-                                                echo '<li><button type="button" class="button button-disabled" disabled="disabled">' . __('Active') . '</button></li>';
-                                            } else {
-                                                echo '<li><a class="button button-primary activate-now" href="' . esc_url(wp_nonce_url('plugins.php?action=activate&amp;plugin=' . $status['file'], 'activate-plugin_' . $status['file'])) . '" aria-label="' . esc_attr(sprintf(__('Activate %s'), $plugin->name)) . '">' . __('Activate') . '</a></li>';
-                                            }
-                                            break;
-                                    }
-                                    
-                                    // Add PRO button if available
-                                    self::add_pro_button($plugin);
-                                    
-                                    // Add "More Details" link
-                                    echo '<li><a class="thickbox open-plugin-details-modal" href="' . esc_url(admin_url('plugin-install.php?tab=plugin-information&plugin=' . $plugin->slug . '&TB_iframe=true&width=600&height=550')) . '" aria-label="' . esc_attr(sprintf(__('More information about %s'), $plugin->name)) . '">' . __('More Details') . '</a></li>';
-                                    ?>
-                                </ul>
-                            </div>
-                            <?php if (!empty($plugin->icons) && !empty($plugin->icons['1x'])): ?>
-                                <div class="plugin-icon">
-                                    <img src="<?php echo esc_url($plugin->icons['1x']); ?>" alt="">
-                                </div>
-                            <?php endif; ?>
-                            <div class="desc column-description">
-                                <p><?php echo esc_html($plugin->short_description); ?></p>
-                                <p class="authors">
-                                    <cite><?php printf(__('By %s'), $plugin->author); ?></cite>
-                                </p>
-                            </div>
-                        </div>
-                        <div class="plugin-card-bottom">
-                            <div class="vers column-rating">
-                                <?php wp_star_rating(array('rating' => $plugin->rating, 'type' => 'percent', 'number' => $plugin->num_ratings)); ?>
-                                <span class="num-ratings" aria-hidden="true">(<?php echo number_format_i18n($plugin->num_ratings); ?>)</span>
-                            </div>
-                            <div class="column-updated">
-                                <strong><?php _e('Last Updated:'); ?></strong> 
-                                <?php printf(__('%s ago'), human_time_diff(strtotime($plugin->last_updated))); ?>
-                            </div>
-                            <div class="column-downloaded">
-                                <?php 
-                                if ($plugin->active_installs >= 1000000) {
-                                    $active_installs_millions = floor($plugin->active_installs / 1000000);
-                                    $active_installs_text = sprintf(
-                                        _n('%s+ Million Active Installations', '%s+ Million Active Installations', $active_installs_millions),
-                                        number_format_i18n($active_installs_millions)
-                                    );
-                                } elseif (0 == $plugin->active_installs) {
-                                    $active_installs_text = _x('Less Than 10 Active Installations', 'Active plugin installations');
-                                } else {
-                                    $active_installs_text = sprintf(
-                                        _n('%s+ Active Installation', '%s+ Active Installations', $plugin->active_installs),
-                                        number_format_i18n($plugin->active_installs)
-                                    );
-                                }
-                                /* translators: %s: number of active installations */
-                                echo esc_html($active_installs_text);
-                                ?>
-                            </div>
-                            <div class="column-compatibility">
-                                <?php
-                                $version = get_bloginfo('version');
-                                if (!empty($plugin->tested) && version_compare($version, $plugin->tested, '>')) {
-                                    echo '<span class="compatibility-untested">' . __('Untested with your version of WordPress') . '</span>';
-                                } elseif (!empty($plugin->requires) && version_compare($version, $plugin->requires, '<')) {
-                                    echo '<span class="compatibility-incompatible">' . __('Incompatible with your version of WordPress') . '</span>';
-                                } else {
-                                    echo '<span class="compatibility-compatible">' . __('Compatible with your version of WordPress') . '</span>';
-                                }
-                                ?>
-                            </div>
-                        </div>
-                    </div>
-                <?php endforeach; ?>
+        <div class="plugin-card plugin-card-<?php echo esc_attr(sanitize_html_class($plugin->slug)); ?> sps-plugin-removed">
+            <div class="plugin-card-top">
+                <div class="name column-name">
+                    <h3><?php echo esc_html($plugin->name); ?> <span class="sps-removed-icon dashicons dashicons-warning" aria-hidden="true"></span></h3>
+                </div>
+                <div class="action-links">
+                    <ul class="plugin-action-buttons">
+                        <li><button type="button" class="button button-disabled" disabled="disabled"><?php echo esc_html($state); ?></button></li>
+                        <?php if ($pro_url) : ?>
+                            <li><a class="button" href="<?php echo esc_url($pro_url); ?>" target="_blank" rel="noopener noreferrer"><?php esc_html_e('Vendor Site', 'seoprostack'); ?><span class="screen-reader-text"> <?php echo esc_html(sprintf(/* translators: %s: plugin name */ __('for %s (opens in a new tab)', 'seoprostack'), $plugin->name)); ?></span></a></li>
+                        <?php endif; ?>
+                    </ul>
+                </div>
+                <div class="desc column-description">
+                    <?php if ($plugin->short_description) : ?>
+                        <p><?php echo esc_html($plugin->short_description); ?></p>
+                    <?php endif; ?>
+                    <?php if ($plugin->replacement) : ?>
+                        <p><em><?php echo esc_html($plugin->replacement); ?></em></p>
+                    <?php endif; ?>
+                </div>
+            </div>
+            <div class="plugin-card-bottom">
+                <p class="sps-removed-status">
+                    <strong><?php echo esc_html($status); ?></strong>
+                    <?php echo esc_html($plugin->reason); ?>
+                    <?php if ($file) : ?>
+                        <?php esc_html_e('It will not receive updates; plan a replacement.', 'seoprostack'); ?>
+                    <?php endif; ?>
+                </p>
             </div>
         </div>
         <?php
+    }
+
+    /**
+     * Cards in core Plugins → Add New markup.
+     *
+     * @param object[] $plugins Plugin info objects.
+     * @return string HTML.
+     */
+    public static function generate_plugin_cards(array $plugins) {
+        if (!function_exists('install_plugin_install_status')) {
+            require_once ABSPATH . 'wp-admin/includes/plugin-install.php';
+        }
+        if (!function_exists('is_plugin_active')) {
+            require_once ABSPATH . 'wp-admin/includes/plugin.php';
+        }
+
+        $allowed_author = array('a' => array('href' => array()));
+        $wp_version     = get_bloginfo('version');
+
+        ob_start();
+        foreach ($plugins as $plugin) {
+            $plugin = (object) $plugin;
+            if (!empty($plugin->removed)) {
+                self::removed_card($plugin);
+                continue;
+            }
+            $name    = wp_strip_all_tags($plugin->name);
+            $details = self_admin_url('plugin-install.php?tab=plugin-information&plugin=' . $plugin->slug . '&TB_iframe=true&width=600&height=550');
+            $icon    = '';
+            if (!empty($plugin->icons['svg'])) {
+                $icon = $plugin->icons['svg'];
+            } elseif (!empty($plugin->icons['2x'])) {
+                $icon = $plugin->icons['2x'];
+            } elseif (!empty($plugin->icons['1x'])) {
+                $icon = $plugin->icons['1x'];
+            } elseif (!empty($plugin->icons['default'])) {
+                $icon = $plugin->icons['default'];
+            }
+            ?>
+            <div class="plugin-card plugin-card-<?php echo esc_attr(sanitize_html_class($plugin->slug)); ?>">
+                <div class="plugin-card-top">
+                    <div class="name column-name">
+                        <h3>
+                            <a href="<?php echo esc_url($details); ?>" class="thickbox open-plugin-details-modal">
+                                <?php echo esc_html($name); ?>
+                                <?php if ($icon) : ?>
+                                    <img src="<?php echo esc_url($icon); ?>" class="plugin-icon" alt="" loading="lazy" />
+                                <?php endif; ?>
+                            </a>
+                        </h3>
+                    </div>
+                    <div class="action-links">
+                        <ul class="plugin-action-buttons">
+                            <?php echo self::action_buttons($plugin, $name); // phpcs:ignore WordPress.Security.EscapeOutput -- escaped in method. ?>
+                            <li>
+                                <a href="<?php echo esc_url($details); ?>" class="thickbox open-plugin-details-modal" aria-label="<?php echo esc_attr(sprintf(/* translators: %s: plugin name */ __('More information about %s', 'seoprostack'), $name)); ?>" data-title="<?php echo esc_attr($name); ?>">
+                                    <?php esc_html_e('More Details', 'seoprostack'); ?>
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="desc column-description">
+                        <p><?php echo esc_html(isset($plugin->short_description) ? $plugin->short_description : ''); ?></p>
+                        <?php if (!empty($plugin->author)) : ?>
+                            <p class="authors"><cite><?php echo wp_kses(sprintf(/* translators: %s: author */ __('By %s', 'seoprostack'), $plugin->author), $allowed_author); ?></cite></p>
+                        <?php endif; ?>
+                    </div>
+                </div>
+                <div class="plugin-card-bottom">
+                    <div class="vers column-rating">
+                        <?php
+                        if (function_exists('wp_star_rating')) {
+                            wp_star_rating(array(
+                                'rating' => isset($plugin->rating) ? $plugin->rating : 0,
+                                'type'   => 'percent',
+                                'number' => isset($plugin->num_ratings) ? $plugin->num_ratings : 0,
+                            ));
+                        }
+                        ?>
+                        <span class="num-ratings" aria-hidden="true">(<?php echo esc_html(number_format_i18n(isset($plugin->num_ratings) ? $plugin->num_ratings : 0)); ?>)</span>
+                    </div>
+                    <div class="column-updated">
+                        <?php if (!empty($plugin->last_updated)) : ?>
+                            <strong><?php esc_html_e('Last Updated:', 'seoprostack'); ?></strong>
+                            <?php echo esc_html(sprintf(/* translators: %s: time since */ __('%s ago', 'seoprostack'), human_time_diff(strtotime($plugin->last_updated)))); ?>
+                        <?php endif; ?>
+                    </div>
+                    <div class="column-downloaded"><?php echo esc_html(self::installs_text(isset($plugin->active_installs) ? (int) $plugin->active_installs : 0)); ?></div>
+                    <div class="column-compatibility">
+                        <?php
+                        if (!empty($plugin->requires) && version_compare($wp_version, $plugin->requires, '<')) {
+                            echo '<span class="compatibility-incompatible">' . esc_html__('Incompatible with your version of WordPress', 'seoprostack') . '</span>';
+                        } elseif (!empty($plugin->tested) && version_compare(substr($wp_version, 0, strlen($plugin->tested)), $plugin->tested, '>')) {
+                            echo '<span class="compatibility-untested">' . esc_html__('Untested with your version of WordPress', 'seoprostack') . '</span>';
+                        } else {
+                            echo '<span class="compatibility-compatible">' . wp_kses(__('<strong>Compatible</strong> with your version of WordPress', 'seoprostack'), array('strong' => array())) . '</span>';
+                        }
+                        ?>
+                    </div>
+                </div>
+            </div>
+            <?php
+        }
         return ob_get_clean();
     }
-    
+
     /**
-     * Add PRO button to plugin cards if a pro version exists
+     * Install/Update/Activate/Active buttons plus an optional Go Pro link.
      *
-     * @param object $plugin The plugin object
+     * @param object $plugin Plugin info.
+     * @param string $name   Plain-text name.
+     * @return string HTML list items.
      */
-    public static function add_pro_button($plugin) {
-        $pro_plugins = wp_allstars_get_pro_plugins();
-        
-        if (isset($pro_plugins[$plugin->slug])) {
-            $pro_plugin = $pro_plugins[$plugin->slug];
-            $pro_url = self::get_pro_plugin_url($pro_plugin);
-            
-            if (!empty($pro_url)) {
-                echo '<li><a href="' . esc_url($pro_url) . '" target="_blank" class="button button-primary go-pro-button">' . esc_html__('Go Pro', 'wp-allstars') . '</a></li>';
+    private static function action_buttons($plugin, $name) {
+        $html   = '';
+        $status = install_plugin_install_status($plugin);
+
+        switch ($status['status']) {
+            case 'install':
+                if (!empty($status['url'])) {
+                    $html .= sprintf(
+                        '<li><a class="install-now button" data-slug="%1$s" href="%2$s" aria-label="%3$s" data-name="%4$s">%5$s</a></li>',
+                        esc_attr($plugin->slug),
+                        esc_url($status['url']),
+                        esc_attr(sprintf(/* translators: %s: plugin name */ _x('Install %s now', 'plugin', 'seoprostack'), $name)),
+                        esc_attr($name),
+                        esc_html_x('Install Now', 'plugin', 'seoprostack')
+                    );
+                }
+                break;
+
+            case 'update_available':
+                if (!empty($status['url'])) {
+                    $html .= sprintf(
+                        '<li><a class="update-now button aria-button-if-js" data-plugin="%1$s" data-slug="%2$s" href="%3$s" aria-label="%4$s" data-name="%5$s">%6$s</a></li>',
+                        esc_attr($status['file']),
+                        esc_attr($plugin->slug),
+                        esc_url($status['url']),
+                        esc_attr(sprintf(/* translators: %s: plugin name */ __('Update %s now', 'seoprostack'), $name)),
+                        esc_attr($name),
+                        esc_html__('Update Now', 'seoprostack')
+                    );
+                }
+                break;
+
+            case 'latest_installed':
+            case 'newer_installed':
+                if (is_plugin_active($status['file'])) {
+                    $html .= '<li><button type="button" class="button button-disabled" disabled="disabled">' . esc_html_x('Active', 'plugin', 'seoprostack') . '</button></li>';
+                } elseif (current_user_can('activate_plugin', $status['file'])) {
+                    $url   = wp_nonce_url(self_admin_url('plugins.php?action=activate&plugin=' . rawurlencode($status['file'])), 'activate-plugin_' . $status['file']);
+                    $html .= sprintf(
+                        '<li><a href="%1$s" class="button button-primary activate-now" aria-label="%2$s">%3$s</a></li>',
+                        esc_url($url),
+                        esc_attr(sprintf(/* translators: %s: plugin name */ _x('Activate %s', 'plugin', 'seoprostack'), $name)),
+                        esc_html__('Activate', 'seoprostack')
+                    );
+                } else {
+                    $html .= '<li><button type="button" class="button button-disabled" disabled="disabled">' . esc_html_x('Installed', 'plugin', 'seoprostack') . '</button></li>';
+                }
+                break;
+        }
+
+        $pro_url = self::get_pro_url_for_free_slug($plugin->slug);
+        if ($pro_url) {
+            $html .= sprintf(
+                '<li><a class="button sps-go-pro" href="%1$s" target="_blank" rel="noopener noreferrer">%2$s<span class="screen-reader-text"> %3$s</span></a></li>',
+                esc_url($pro_url),
+                esc_html__('Go Pro', 'seoprostack'),
+                esc_html(sprintf(/* translators: %s: plugin name */ __('for %s (opens in a new tab)', 'seoprostack'), $name))
+            );
+        }
+
+        return $html;
+    }
+
+    /**
+     * Active installs text (core wording).
+     *
+     * @param int $installs Active installs.
+     * @return string
+     */
+    private static function installs_text($installs) {
+        if ($installs >= 1000000) {
+            $millions = (int) floor($installs / 1000000);
+            /* translators: %s: number of millions */
+            return sprintf(_nx('%s+ Million Active Installation', '%s+ Million Active Installations', $millions, 'Active plugin installations', 'seoprostack'), number_format_i18n($millions));
+        }
+        if (0 === $installs) {
+            return _x('Less Than 10 Active Installations', 'Active plugin installations', 'seoprostack');
+        }
+        /* translators: %s: number of installs */
+        return sprintf(_n('%s+ Active Installation', '%s+ Active Installations', $installs, 'seoprostack'), number_format_i18n($installs));
+    }
+
+    /**
+     * Pro upgrade URL for a wordpress.org slug (matches pro data by free_slug or key).
+     *
+     * @param string $free_slug wordpress.org slug.
+     * @return string
+     */
+    public static function get_pro_url_for_free_slug($free_slug) {
+        foreach (seoprostack_get_pro_plugins() as $key => $pro) {
+            // free_slug may be one slug or a list (e.g. Flying Press covers three free plugins).
+            $matches = (isset($pro['free_slug']) && in_array($free_slug, (array) $pro['free_slug'], true)) || $key === $free_slug;
+            if ($matches) {
+                return self::get_pro_plugin_url($pro);
             }
         }
+        return '';
     }
-    
+
     /**
-     * Get the URL for a pro plugin from its config
+     * Primary URL from a pro item.
      *
-     * @param array $pro_plugin The pro plugin configuration array
-     * @return string The URL for the pro plugin
+     * @param array $pro_plugin Pro item.
+     * @return string
      */
     public static function get_pro_plugin_url($pro_plugin) {
-        // First check if there's a button_group defined
-        if (isset($pro_plugin['button_group']) && is_array($pro_plugin['button_group'])) {
+        if (!empty($pro_plugin['button_group']) && is_array($pro_plugin['button_group'])) {
             foreach ($pro_plugin['button_group'] as $button) {
-                // Return the URL for the primary button if available
-                if (isset($button['primary']) && $button['primary'] && !empty($button['url'])) {
+                if (!empty($button['primary']) && !empty($button['url'])) {
                     return $button['url'];
                 }
             }
-            
-            // If no primary button found, return the first button URL
             if (!empty($pro_plugin['button_group'][0]['url'])) {
                 return $pro_plugin['button_group'][0]['url'];
             }
         }
-        
-        // Fall back to the main URL if available
-        if (!empty($pro_plugin['url'])) {
-            return $pro_plugin['url'];
-        }
-        
-        return '';
+        return !empty($pro_plugin['url']) ? $pro_plugin['url'] : '';
     }
-    
+
     /**
-     * Clear plugin cache when plugins are updated, activated, or deactivated
+     * Delete cached category data.
      */
     public static function clear_plugin_cache() {
-        $recommended_plugins = wp_allstars_get_free_plugins();
-        foreach (array_keys($recommended_plugins) as $category) {
-            delete_transient('wp_allstars_plugins_' . $category);
+        foreach (array_keys(seoprostack_get_free_plugins()) as $category) {
+            delete_transient(self::CACHE_PREFIX . $category);
         }
     }
 }

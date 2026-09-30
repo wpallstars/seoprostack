@@ -1,0 +1,23 @@
+/* seoprostack/iframe front-end and editor styles. */
+.wp-block-seoprostack-iframe {
+	margin-inline: 0;
+	max-width: 100%;
+}
+
+.wp-block-seoprostack-iframe.aligncenter {
+	text-align: center;
+}
+
+.wp-block-seoprostack-iframe__frame {
+	display: block;
+	max-width: 100%;
+	border: 0;
+}
+
+.wp-block-seoprostack-iframe.aligncenter .wp-block-seoprostack-iframe__frame {
+	margin-inline: auto;
+}
+
+.wp-block-seoprostack-iframe__frame.has-border {
+	border: 1px solid currentColor;
+}
