@@ -1,8 +1,8 @@
 <?php
 /**
  * Remove SEO Pro Stack options, caches, pending login links, uploaded profile
- * pictures, generated avatars and WebP/AVIF copies of pictures on uninstall
- * (every site on multisite).
+ * pictures, generated avatars, WebP/AVIF copies of pictures and short links
+ * on uninstall (every site on multisite).
  *
  * Imported media (and its `_seoprostack_source_url` / legacy
  * `_wp_allstars_source_url` meta) is left in place because posts reference it.
@@ -52,8 +52,24 @@ function seoprostack_uninstall_site() {
     $options[] = 'seoprostack_nextgen_synced';
     $options[] = 'seoprostack_watermark_dir';
     $options[] = 'seoprostack_cpt_base_taken';
+    $options[] = 'seoprostack_short_links';
     foreach ($options as $option) {
         delete_option($option);
+    }
+
+    // Short links and their categories. Pretty Links' own links, if any
+    // were imported, are untouched.
+    register_taxonomy('sps_short_link_cat', 'sps_short_link');
+    do {
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- one-off cleanup, in batches.
+        $ids = $wpdb->get_col("SELECT ID FROM {$wpdb->posts} WHERE post_type = 'sps_short_link' LIMIT 200");
+        foreach ($ids as $id) {
+            wp_delete_post((int) $id, true);
+        }
+    } while ($ids);
+    $terms = get_terms(array('taxonomy' => 'sps_short_link_cat', 'hide_empty' => false, 'fields' => 'ids'));
+    foreach (is_array($terms) ? $terms : array() as $term_id) {
+        wp_delete_term((int) $term_id, 'sps_short_link_cat');
     }
 
     // WebP and AVIF copies (photo.jpg.webp, photo.jpg.avif) of every picture

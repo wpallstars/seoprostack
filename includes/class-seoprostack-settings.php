@@ -549,8 +549,9 @@ class SEOProStack_Settings {
      *     Imsanity (Resize large uploads) and Enable Media Replace (Replace
      *     media files), CompressX (WebP and AVIF images; its resize limit
      *     goes to Resize large uploads), Easy Watermark's image
-     *     watermark (Watermark pictures) and Remove CPT base's post types
-     *     (Short addresses for custom post types).
+     *     watermark (Watermark pictures), Remove CPT base's post types
+     *     (Short addresses for custom post types) and Pretty Links' defaults
+     *     for new links (Short links; its links are imported separately).
      *
      * Old options are left in place so a downgrade keeps working;
      * uninstall.php removes ours. Other plugins' options are never touched.
