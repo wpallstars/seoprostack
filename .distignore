@@ -8,6 +8,7 @@
 .aider*
 .metadata_never_index
 .syncing
+AGENTS.md
 DEVELOPMENT.md
 ROADMAP.md
 STABILITY.md

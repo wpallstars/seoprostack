@@ -423,6 +423,8 @@ class SEOProStack_Settings {
      *     development `wp_allstars_options` array into `seoprostack_options`.
      * v3: features import settings from the plugins they replace
      *     (SEOProStack_Feature::migrate()).
+     * v4: re-run feature imports for development builds at v3, after
+     *     notification, duplicate and later replacement features were added.
      *
      * Old options are left in place so a downgrade keeps working;
      * uninstall.php removes ours. Other plugins' options are never touched.
