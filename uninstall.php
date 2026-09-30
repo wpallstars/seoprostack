@@ -1,7 +1,8 @@
 <?php
 /**
  * Remove SEO Pro Stack options, caches, pending login links, uploaded profile
- * pictures and generated avatars on uninstall (every site on multisite).
+ * pictures, generated avatars and WebP/AVIF copies of pictures on uninstall
+ * (every site on multisite).
  *
  * Imported media (and its `_seoprostack_source_url` / legacy
  * `_wp_allstars_source_url` meta) is left in place because posts reference it.
@@ -46,9 +47,17 @@ function seoprostack_uninstall_site() {
     );
 
     $options[] = 'seoprostack_dashboard_widgets';
+    $options[] = 'seoprostack_nextgen_synced';
     foreach ($options as $option) {
         delete_option($option);
     }
+
+    // WebP and AVIF copies (photo.jpg.webp, photo.jpg.avif) of every picture
+    // and size. Deactivation already removed the rules that served them.
+    wp_unschedule_hook('seoprostack_nextgen_batch');
+    seoprostack_uninstall_nextgen_copies();
+    delete_post_meta_by_key('_seoprostack_nextgen');
+    delete_post_meta_by_key('_seoprostack_nextgen_done');
 
     // Shareable preview links stop working; staged versions and duplicates
     // become ordinary drafts and posts.
@@ -73,6 +82,103 @@ function seoprostack_uninstall_site() {
     }
 }
 
+/**
+ * Delete the WebP and AVIF copies made next to the current site's pictures.
+ * Files that are Media Library items themselves are kept.
+ */
+function seoprostack_uninstall_nextgen_copies() {
+    global $wpdb;
+
+    $last = 0;
+    do {
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- one-off cleanup, in batches.
+        $ids = $wpdb->get_col($wpdb->prepare(
+            "SELECT ID FROM {$wpdb->posts} WHERE post_type = 'attachment' AND post_mime_type IN ('image/jpeg', 'image/png', 'image/webp') AND ID > %d ORDER BY ID LIMIT 200",
+            $last
+        ));
+        foreach ($ids as $id) {
+            $last = (int) $id;
+            $file = get_attached_file($last);
+            if (!$file) {
+                continue;
+            }
+            $meta  = wp_get_attachment_metadata($last);
+            $names = array(wp_basename($file));
+            if (is_array($meta)) {
+                foreach (isset($meta['sizes']) && is_array($meta['sizes']) ? $meta['sizes'] : array() as $size) {
+                    if (!empty($size['file'])) {
+                        $names[] = wp_basename($size['file']);
+                    }
+                }
+                if (!empty($meta['original_image'])) {
+                    $names[] = wp_basename($meta['original_image']);
+                }
+            }
+            foreach (array_unique($names) as $name) {
+                foreach (array('webp', 'avif') as $format) {
+                    $copy = dirname($file) . '/' . $name . '.' . $format;
+                    if (!is_file($copy)) {
+                        continue;
+                    }
+                    // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- only when such a file exists.
+                    $item = $wpdb->get_var($wpdb->prepare("SELECT post_id FROM {$wpdb->postmeta} WHERE meta_key = '_wp_attached_file' AND meta_value = %s LIMIT 1", _wp_relative_upload_path($copy)));
+                    if (!$item) {
+                        wp_delete_file($copy);
+                    }
+                }
+            }
+        }
+        wp_cache_flush_runtime();
+    } while ($ids);
+
+    seoprostack_uninstall_orphan_copies();
+}
+
+/**
+ * Delete copies whose picture is gone: pictures deleted while the plugin was
+ * inactive leave theirs behind. Only photo.jpg.webp-style files whose
+ * photo.jpg no longer exists, and that are not Media Library items.
+ */
+function seoprostack_uninstall_orphan_copies() {
+    global $wpdb;
+
+    $uploads = wp_get_upload_dir();
+    if (!empty($uploads['error']) || empty($uploads['basedir']) || !is_dir($uploads['basedir'])) {
+        return;
+    }
+    $base = untrailingslashit(wp_normalize_path($uploads['basedir']));
+    // Other sites' folders are below the main site's; each site sweeps its own.
+    $skip = is_multisite() && is_main_site() ? array($base . '/sites') : array();
+
+    $filter = new RecursiveCallbackFilterIterator(
+        new RecursiveDirectoryIterator($base, FilesystemIterator::SKIP_DOTS),
+        function ($current) use ($skip) {
+            return !$current->isDir() || !in_array(wp_normalize_path($current->getPathname()), $skip, true);
+        }
+    );
+    $files = new RecursiveIteratorIterator($filter, RecursiveIteratorIterator::LEAVES_ONLY, RecursiveIteratorIterator::CATCH_GET_CHILD);
+    try {
+        foreach ($files as $file) {
+            $name = $file->getFilename();
+            if (!preg_match('/\.(jpe?g|png|webp)\.(webp|avif)$/i', $name)) {
+                continue;
+            }
+            $copy = wp_normalize_path($file->getPathname());
+            if (is_file(substr($copy, 0, strrpos($copy, '.')))) {
+                continue;
+            }
+            // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- only for orphan-looking files.
+            $item = $wpdb->get_var($wpdb->prepare("SELECT post_id FROM {$wpdb->postmeta} WHERE meta_key = '_wp_attached_file' AND meta_value = %s LIMIT 1", ltrim(substr($copy, strlen($base)), '/')));
+            if (!$item) {
+                wp_delete_file($copy);
+            }
+        }
+    } catch (Exception $e) {
+        // An unreadable folder: leave what is left.
+        return;
+    }
+}
+
 if (is_multisite()) {
     foreach (get_sites(array('fields' => 'ids', 'number' => 0)) as $seoprostack_site_id) {
         switch_to_blog($seoprostack_site_id);
@@ -91,3 +197,4 @@ delete_metadata('user', 0, 'seoprostack_avatar', '', true);
 // single sites these calls remove the ordinary option and transient.
 delete_site_option('seoprostack_plugin_sizes');
 delete_site_transient('seoprostack_plugin_names');
+delete_site_option('seoprostack_nextgen_rules');

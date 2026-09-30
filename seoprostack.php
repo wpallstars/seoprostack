@@ -36,5 +36,6 @@ define('SEOPROSTACK_URL', plugin_dir_url(__FILE__));
 
 require_once SEOPROSTACK_DIR . 'includes/class-seoprostack.php';
 SEOProStack::load();
+register_deactivation_hook(__FILE__, array('SEOProStack', 'deactivate'));
 
 // Translations load just-in-time from WordPress.org language packs (WP 4.6+).

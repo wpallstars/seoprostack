@@ -36,6 +36,7 @@ final class SEOProStack {
         'SEOProStack_Svg_Uploads',
         'SEOProStack_Resize_Uploads',
         'SEOProStack_Replace_Media',
+        'SEOProStack_Nextgen_Images',
         'SEOProStack_Post_Scheduler',
         'SEOProStack_Iframe_Block',
         'SEOProStack_Gone_Urls',
@@ -100,6 +101,20 @@ final class SEOProStack {
     public static function boot_features() {
         foreach (self::features() as $class) {
             $class::boot();
+        }
+    }
+
+    /**
+     * Plugin deactivated: let features that changed files or scheduled
+     * work outside WordPress's options undo it (a static deactivate() method).
+     *
+     * @param bool $network_wide Deactivated for the whole network.
+     */
+    public static function deactivate($network_wide = false) {
+        foreach (self::features() as $class) {
+            if (method_exists($class, 'deactivate')) {
+                $class::deactivate((bool) $network_wide);
+            }
         }
     }
 }

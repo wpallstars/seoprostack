@@ -151,6 +151,21 @@ class SEOProStack_Resize_Uploads extends SEOProStack_Feature {
                 $options = self::import_setting($options, $ours, (bool) $value);
             }
         }
+
+        // CompressX also resizes uploads (on unless switched off, 2560 by
+        // default); WebP and AVIF images replaces the rest of it.
+        if (isset(self::active_plugins()['compressx'])) {
+            $general = SEOProStack_Nextgen_Images::compressx_option('compressx_general_settings');
+            $resize  = is_array($general) && isset($general['resize']) && is_array($general['resize']) ? $general['resize'] : array();
+            if (!isset($resize['enable']) || $resize['enable']) {
+                $options = self::import_setting($options, self::KEY, true);
+                $width   = isset($resize['width']) ? (int) $resize['width'] : 2560;
+                $height  = isset($resize['height']) ? (int) $resize['height'] : 2560;
+                if (max($width, $height) > 0) {
+                    $options = self::import_setting($options, 'resize_uploads_max', max($width, $height));
+                }
+            }
+        }
         return $options;
     }
 

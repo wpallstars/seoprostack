@@ -541,7 +541,8 @@ class SEOProStack_Settings {
      *     Avatar Privacy's switch and profile pictures (Avatars without
      *     Gravatar), after 0.3.1 shipped at v4. Also Safe SVG (SVG uploads),
      *     Imsanity (Resize large uploads) and Enable Media Replace (Replace
-     *     media files).
+     *     media files), and CompressX (WebP and AVIF images; its resize
+     *     limit goes to Resize large uploads).
      *
      * Old options are left in place so a downgrade keeps working;
      * uninstall.php removes ours. Other plugins' options are never touched.
