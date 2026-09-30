@@ -619,8 +619,9 @@ if (!defined('ABSPATH')) {
                     'text' => 'Pricing',
                     'url' => 'https://flyingpress.com/pricing/'
                 )
-            ),
-            'free_slug' => ['flying-analytics', 'flying-pages', 'flying-scripts']
+            )
+            // No free_slug: SEO Pro Stack's Speed tab replaces Flying Analytics,
+            // Flying Pages and Flying Scripts, so they are not recommended.
         ),
         'translatepress' => array(
             'name' => 'TranslatePress Pro',
