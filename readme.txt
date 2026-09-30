@@ -41,6 +41,7 @@ Everything is off by default. Settings save instantly from **Settings → SEO Pr
 * **Select all across pages**: apply a bulk action to every post that matches the list’s filters, not just the visible page.
 * **410 Gone for removed pages**: tell search engines that removed addresses are gone for good.
 * **Short addresses for custom post types**: serve products and other custom post types at /item-name/ instead of /product/item-name/. Old addresses redirect, and pages keep their address when names clash.
+* **Short links**: short addresses on your site, such as /go/offer/, that send visitors elsewhere with a 301, 302 or 307 redirect, with nofollow and sponsored options, categories and click counts. Imports links, click counts and categories from Pretty Links.
 * **Speed**: load pages before the click (Speculation Rules), delay chosen scripts until interaction, and add Google Analytics 4 without slowing the page.
 * **Plugins menu in the admin bar**: switch any plugin on or off from the admin bar after confirming, then return to the page you were on.
 * **Plugin sizes**: a Size column on the Plugins screen shows each plugin’s PHP, JavaScript, CSS, media and other files, measured in the background and sortable.
@@ -74,6 +75,8 @@ When **Delayed Google Analytics** is on and a measurement ID is entered, visitor
 
 When **Avatars without Gravatar** is on, WordPress no longer loads avatars from Gravatar (gravatar.com), which it does by default. Nothing is sent anywhere: uploaded profile pictures and generated avatars are stored in your uploads folder.
 
+When **Short links** counts clicks, a visitor who follows a short link gets a cookie for your site (`sps_link_` and the link’s ID, kept for a year, holding only “1”) so they are counted as a unique visitor once. Only the totals are stored; no IP addresses or other visitor details are kept, and nothing is sent anywhere.
+
 No other data is sent.
 
 = Developers =
@@ -94,7 +97,7 @@ No. The plugin is free and open source under the GPL.
 
 = What happens to my images if I deactivate or delete the plugin? =
 
-Imported images stay in the Media Library because your posts use them. Deactivating the plugin stops sending WebP and AVIF copies, so browsers get the originals. Deleting the plugin removes its settings and cached data, the profile pictures uploaded with Avatars without Gravatar, and the WebP and AVIF copies. Watermarked pictures stay marked; their unmarked originals are kept in a `seoprostack-originals-…` folder in uploads, which you can delete if you do not need them.
+Imported images stay in the Media Library because your posts use them. Deactivating the plugin stops sending WebP and AVIF copies, so browsers get the originals. Deleting the plugin removes its settings and cached data, the profile pictures uploaded with Avatars without Gravatar, the WebP and AVIF copies, and short links. Watermarked pictures stay marked; their unmarked originals are kept in a `seoprostack-originals-…` folder in uploads, which you can delete if you do not need them.
 
 = Does it work on multisite? =
 
@@ -122,6 +125,7 @@ They stay scheduled and publish at their times. Turning it off only stops new po
 * New, off by default: WebP and AVIF images makes smaller copies of every picture and sends them to browsers that support them (replaces CompressX, imports its settings and reuses the copies it made).
 * New, off by default: Watermark pictures adds the site icon, logo or a chosen picture to uploaded pictures and keeps unmarked originals so watermarks can be removed (replaces Easy Watermark and imports its image watermark).
 * New, off by default: Short addresses for custom post types serves items at /item-name/ instead of /type/item-name/ and redirects the old addresses (replaces Remove CPT base and imports its post types).
+* New, off by default: Short links (Links tab) makes short addresses that redirect elsewhere, with categories and click counts (replaces Pretty Links: imports its links, click counts and categories, and its defaults for new links).
 * Change: while a plugin that a feature replaces is active, the feature waits, so the two no longer run side by side (such as two Plugins menus, or analytics loaded twice). The card says so, with a deactivate link.
 * Change: Hide admin notices also moves inline notices printed above the page.
 * Fix: `%date%` and `%day%` in Copy linked images’ file name and alt text patterns are no longer lost when saved.
