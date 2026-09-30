@@ -115,10 +115,11 @@ class SEOProStack_Preview_Links extends SEOProStack_Feature {
         $posts[0]->post_status = 'publish';
 
         // Page caches (LiteSpeed, WP Rocket, W3TC...) must not keep a copy.
+        // Names are set by the cache plugins, so they cannot carry our prefix.
         if (!defined('DONOTCACHEPAGE')) {
-            define('DONOTCACHEPAGE', true);
+            define('DONOTCACHEPAGE', true); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedConstantFound -- shared page-cache flag.
         }
-        do_action('litespeed_control_set_nocache', 'seoprostack preview link');
+        do_action('litespeed_control_set_nocache', 'seoprostack preview link'); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- LiteSpeed Cache API.
 
         // SEO plugins that print their own robots tag see a published post.
         add_filter('wp_robots', 'wp_robots_no_robots');

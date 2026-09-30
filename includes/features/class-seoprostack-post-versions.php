@@ -143,8 +143,7 @@ class SEOProStack_Post_Versions extends SEOProStack_Feature {
                 'posts_per_page'   => 200,
                 'orderby'          => 'ID',
                 'order'            => 'ASC',
-                'suppress_filters' => true,
-            ));
+            )); // get_posts() skips query filters by default.
             foreach ($drafts as $draft) {
                 self::$pending[(int) get_post_meta($draft->ID, self::META, true)] = $draft;
             }
