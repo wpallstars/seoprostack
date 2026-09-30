@@ -33,6 +33,9 @@ final class SEOProStack {
         'SEOProStack_Post_Scheduler',
         'SEOProStack_Iframe_Block',
         'SEOProStack_Gone_Urls',
+        'SEOProStack_Preload_Pages',
+        'SEOProStack_Delay_Scripts',
+        'SEOProStack_Delayed_Analytics',
     );
 
     /**

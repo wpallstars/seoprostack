@@ -42,6 +42,8 @@ class SEOProStack_Gone_Urls extends SEOProStack_Feature {
             'gone_urls_list' => array(
                 'type'        => 'lines',
                 'default'     => '',
+                'rows'        => 8,
+                'placeholder' => "/old-page/\n/old-shop/*",
                 'parent'      => self::KEY,
                 'label'       => __('Removed addresses', 'seoprostack'),
                 'description' => __('One per line, as a path such as /old-page/ or a full address on this site. End with * to include everything below it, such as /old-shop/*.', 'seoprostack'),
