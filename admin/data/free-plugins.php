@@ -12,7 +12,7 @@ if (!defined('ABSPATH')) {
 // feature's "replaces"): Admin Bar & Dashboard Control, Manage Notification
 // E-mails, Bulk Actions Select All, Carbon Copy, Post Draft Preview, Sticky
 // Posts Switch, Ultimate 410, Flying Analytics/Pages/Scripts, Widget Disable,
-// Plugin Toggle.
+// Plugin Toggle, Hide Admin Notices.
 // String Locator is not listed: searching code is better done in an editor
 // or with WP-CLI than from wp-admin.
 function seoprostack_get_free_plugins() {
@@ -27,7 +27,6 @@ function seoprostack_get_free_plugins() {
         'admin' => array(
             'codepress-admin-columns',
             'admin-menu-editor',
-            'hide-admin-notices',
             'mainwp-child',
             'mainwp-child-reports',
             'plugin-groups'

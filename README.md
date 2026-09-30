@@ -22,6 +22,7 @@ Every feature is off by default. Features that replace a separate plugin say so 
 | Hide the admin bar, Block dashboard access | Admin | Admin Bar & Dashboard Access Control |
 | Hide dashboard widgets, Disable sidebar widgets | Admin | Widget Disable |
 | Notification emails | Admin | Manage Notification E-mails |
+| Hide admin notices | Admin | Hide Admin Notices |
 | Duplicate posts | Content | Carbon Copy, Yoast Duplicate Post |
 | Staged new versions, Shareable preview links | Content | Post Draft Preview, Public Post Preview |
 | Sticky posts for any post type | Content | Sticky Posts Switch |
@@ -62,6 +63,16 @@ Adds “Email me a login link” to the login screen, next to “Lost your passw
 ### Notification emails (Admin)
 
 Stop routine emails one by one: new user notices, password and email change notices, comment notices, and WordPress, plugin and theme auto-update reports. Each is stopped with the core filter that sends it, so nothing else changes. Password reset links are only ever stopped for administrators, and failed core updates are still reported.
+
+### Hide admin notices (Admin)
+
+Moves plugin and theme notices into a **Notices (n)** button next to Screen Options and Help, so pages open at their content. The button opens a panel with the notices, which can still be read and dismissed there; the count follows.
+
+- Kept on the page: messages about what you just did (such as “Settings saved”), inline notices inside forms, and notices added after the page has loaded.
+- Optionally keep errors, or warnings and the WordPress update message, on the page.
+- Notices are hidden with CSS until they are moved, so they do not flash or push the page down.
+- The block editor has its own notices and is left alone.
+- Add the class `sps-keep` to a notice to keep it on the page.
 
 ### Duplicate posts (Content)
 
@@ -215,6 +226,7 @@ Deleting the plugin removes its settings and cached data. Imported media stays i
 - `SEOProStack_Settings_Manager::render_general_tab()` and the other per-tab render methods are gone; settings tabs render through `render_tab()`.
 - New Plugins tab, all off by default: a Plugins menu in the admin bar (replaces Plugin Toggle), a Size column on the Plugins screen, and cleanup of leftover entries for deleted plugins (replaces Fix ‘Plugin file does not exist’ Notices).
 - Free Plugins no longer lists Plugin Toggle, which the Plugins tab replaces, or String Locator: searching code is better done in an editor or with WP-CLI.
+- New, off by default: Hide admin notices (Admin tab) moves plugin and theme notices behind a “Notices” button. Replaces Hide Admin Notices, which Free Plugins no longer lists.
 
 ### 0.3.1
 
