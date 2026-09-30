@@ -86,13 +86,14 @@ class SEOProStack_Plugin_Manager {
             wp_send_json_error(array('message' => __('Unknown category.', 'seoprostack')), 400);
         }
 
-        $plugins = get_transient(self::CACHE_PREFIX . $category);
+        $cache_key = self::cache_key($category, $categories[$category]);
+        $plugins   = get_transient($cache_key);
         if (!is_array($plugins)) {
             $complete = true;
             $plugins  = self::fetch_plugins($categories[$category], $complete);
             // Don't pin a partial list from a network hiccup for 12 hours.
             if ($plugins && $complete) {
-                set_transient(self::CACHE_PREFIX . $category, $plugins, 12 * HOUR_IN_SECONDS);
+                set_transient($cache_key, $plugins, 12 * HOUR_IN_SECONDS);
             }
         }
 
@@ -485,11 +486,26 @@ class SEOProStack_Plugin_Manager {
     }
 
     /**
+     * Transient name for a category's cards.
+     *
+     * The name includes a hash of the category's slugs, so adding or
+     * removing a plugin in admin/data/free-plugins.php shows at once
+     * instead of after the cache expires.
+     *
+     * @param string   $category Category slug.
+     * @param string[] $slugs    Plugin slugs in the category.
+     * @return string
+     */
+    private static function cache_key($category, array $slugs) {
+        return self::CACHE_PREFIX . $category . '_' . substr(md5(implode(',', $slugs)), 0, 8);
+    }
+
+    /**
      * Delete cached category data.
      */
     public static function clear_plugin_cache() {
-        foreach (array_keys(seoprostack_get_free_plugins()) as $category) {
-            delete_transient(self::CACHE_PREFIX . $category);
+        foreach (seoprostack_get_free_plugins() as $category => $slugs) {
+            delete_transient(self::cache_key($category, $slugs));
         }
     }
 }
