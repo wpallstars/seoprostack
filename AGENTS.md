@@ -31,6 +31,10 @@ Minimums: **WordPress 6.2, PHP 7.4** (`readme.txt`, plugin header). User docs:
 - Capability and nonce checks on every admin action and AJAX handler; escape on
   output; sanitise through the schema.
 - Admin copy: short, plain words, sentence case, no jargon.
+- Do not change WordPress update behaviour (update transients, `auto_update_*`
+  filters, update checks). Plugin Check reports `plugin_updater_detected` as an
+  error, and WordPress.org asks plugins not to interfere with the updater. A
+  parked example is on the `feature/disable-updates-parked` branch.
 
 ## Testing
 
