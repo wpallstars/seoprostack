@@ -1,8 +1,8 @@
 <?php
 /**
  * Remove SEO Pro Stack options, caches, pending login links, uploaded profile
- * pictures, generated avatars, WebP/AVIF copies of pictures and short links
- * on uninstall (every site on multisite).
+ * pictures, generated avatars, WebP/AVIF copies of pictures, short links and
+ * the plugin-loading must-use file on uninstall (every site on multisite).
  *
  * Imported media (and its `_seoprostack_source_url` / legacy
  * `_wp_allstars_source_url` meta) is left in place because posts reference it.
@@ -53,6 +53,8 @@ function seoprostack_uninstall_site() {
     $options[] = 'seoprostack_watermark_dir';
     $options[] = 'seoprostack_cpt_base_taken';
     $options[] = 'seoprostack_short_links';
+    $options[] = 'seoprostack_plugin_map';
+    $options[] = 'seoprostack_plugin_menu';
     foreach ($options as $option) {
         delete_option($option);
     }
@@ -223,3 +225,14 @@ delete_metadata('user', 0, 'seoprostack_avatar', '', true);
 delete_site_option('seoprostack_plugin_sizes');
 delete_site_transient('seoprostack_plugin_names');
 delete_site_option('seoprostack_nextgen_rules');
+
+// The must-use file of "Load plugins only where needed", if it is ours.
+$seoprostack_loader = WPMU_PLUGIN_DIR . '/seoprostack-plugin-loading.php';
+if (is_file($seoprostack_loader)) {
+    require_once ABSPATH . 'wp-admin/includes/class-wp-filesystem-base.php';
+    require_once ABSPATH . 'wp-admin/includes/class-wp-filesystem-direct.php';
+    $seoprostack_fs = new WP_Filesystem_Direct(null);
+    if (false !== strpos((string) $seoprostack_fs->get_contents($seoprostack_loader), 'seoprostack-plugin-loading')) {
+        $seoprostack_fs->delete($seoprostack_loader);
+    }
+}

@@ -276,12 +276,6 @@ class SEOProStack_Settings_Manager {
                         break;
 
                     case 'multi':
-                        // The group carries data-sps-setting; the JS saves every checked value.
-                        printf(
-                            '<fieldset class="sps-checkboxes" data-sps-multi %1$s aria-labelledby="%2$s">',
-                            $attrs, // phpcs:ignore WordPress.Security.EscapeOutput -- escaped above.
-                            esc_attr($id . '-label')
-                        );
                         $chosen  = array_map('strval', (array) $value);
                         $choices = SEOProStack_Settings::options_for($field);
                         if (!empty($field['open'])) {
@@ -290,6 +284,23 @@ class SEOProStack_Settings_Manager {
                                 $choices[$missing] = $missing;
                             }
                         }
+                        $long = count($choices) > 12;
+                        if ($long) {
+                            // Long lists (such as every active plugin) scroll, with quick choices.
+                            printf(
+                                '<span class="sps-checkboxes__all"><button type="button" class="button-link" data-sps-check-all="%1$s">%2$s</button> · <button type="button" class="button-link" data-sps-check-none="%1$s">%3$s</button></span>',
+                                esc_attr($id),
+                                esc_html__('Select all', 'seoprostack'),
+                                esc_html__('Clear', 'seoprostack')
+                            );
+                        }
+                        // The group carries data-sps-setting; the JS saves every checked value.
+                        printf(
+                            '<fieldset class="sps-checkboxes%3$s" data-sps-multi %1$s aria-labelledby="%2$s">',
+                            $attrs, // phpcs:ignore WordPress.Security.EscapeOutput -- escaped above.
+                            esc_attr($id . '-label'),
+                            $long ? ' is-long' : ''
+                        );
                         foreach ($choices as $option_value => $option_label) {
                             printf(
                                 '<label class="sps-checkbox"><input type="checkbox" value="%1$s"%2$s /> %3$s</label>',

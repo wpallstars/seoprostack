@@ -46,6 +46,7 @@ Everything is off by default. Settings save instantly from **Settings → SEO Pr
 * **Plugins menu in the admin bar**: switch any plugin on or off from the admin bar after confirming, then return to the page you were on.
 * **Plugin sizes**: a Size column on the Plugins screen shows each plugin’s PHP, JavaScript, CSS, media and other files, measured in the background and sortable.
 * **Clean up deleted plugins**: when plugin folders were deleted outside the Plugins screen, opening that screen removes their leftover uninstall and “Recently active” entries.
+* **Load plugins only where needed**: makes wp-admin faster on sites with many plugins. Plugins you tick load only on their own screens, on post, term and list screens where they add boxes, fields or blocks, and where plugins that need them load. Screens are learned the first time they open, the menu stays the same, and saving, background tasks, the Plugins and settings screens and the site itself always load every plugin. A screen that fails loads every plugin from then on. Uses a small must-use file that it writes and removes itself.
 
 Features that replace another plugin (for example Carbon Copy, Imsanity or Ultimate 410) import its settings once and show “Replaces: …” on their card. The other plugin’s settings are left untouched. While the other plugin is active, the feature waits and that plugin keeps doing the job; deactivate it to switch over.
 
@@ -97,7 +98,7 @@ No. The plugin is free and open source under the GPL.
 
 = What happens to my images if I deactivate or delete the plugin? =
 
-Imported images stay in the Media Library because your posts use them. Deactivating the plugin stops sending WebP and AVIF copies, so browsers get the originals. Deleting the plugin removes its settings and cached data, the profile pictures uploaded with Avatars without Gravatar, the WebP and AVIF copies, and short links. Watermarked pictures stay marked; their unmarked originals are kept in a `seoprostack-originals-…` folder in uploads, which you can delete if you do not need them.
+Imported images stay in the Media Library because your posts use them. Deactivating the plugin stops sending WebP and AVIF copies, so browsers get the originals. Deleting the plugin removes its settings and cached data, the profile pictures uploaded with Avatars without Gravatar, the WebP and AVIF copies, short links, and the must-use file of Load plugins only where needed. Watermarked pictures stay marked; their unmarked originals are kept in a `seoprostack-originals-…` folder in uploads, which you can delete if you do not need them.
 
 = Does it work on multisite? =
 
@@ -126,6 +127,7 @@ They stay scheduled and publish at their times. Turning it off only stops new po
 * New, off by default: Watermark pictures adds the site icon, logo or a chosen picture to uploaded pictures and keeps unmarked originals so watermarks can be removed (replaces Easy Watermark and imports its image watermark).
 * New, off by default: Short addresses for custom post types serves items at /item-name/ instead of /type/item-name/ and redirects the old addresses (replaces Remove CPT base and imports its post types).
 * New, off by default: Short links (Links tab) makes short addresses that redirect elsewhere, with categories and click counts (replaces Pretty Links: imports its links, click counts and categories, and its defaults for new links).
+* New, off by default: Load plugins only where needed (Plugins tab) makes wp-admin faster on sites with many plugins by loading ticked plugins only on the screens that need them.
 * Change: while a plugin that a feature replaces is active, the feature waits, so the two no longer run side by side (such as two Plugins menus, or analytics loaded twice). The card says so, with a deactivate link.
 * Change: Hide admin notices also moves inline notices printed above the page.
 * Fix: `%date%` and `%day%` in Copy linked images’ file name and alt text patterns are no longer lost when saved.
