@@ -33,7 +33,6 @@ Every feature is off by default. Features that replace a separate plugin say so 
 | 410 Gone for removed pages | Links | Ultimate 410 |
 | Plugins menu in the admin bar | Plugins | Plugin Toggle |
 | Clean up deleted plugins | Plugins | Fix ‘Plugin file does not exist’ Notices |
-| Turn off updates | Maintenance | Disable All WordPress Updates |
 
 ### Modern admin colours (Admin)
 
@@ -174,17 +173,6 @@ Adds a **Size** column to the Plugins screen: each plugin’s total disk use, sp
 
 When plugin folders are deleted outside the Plugins screen (by FTP, a file manager or a migration), WordPress keeps their uninstall entries, which load on every request, and their “Recently active” entries. With this on, opening the Plugins screen removes entries for plugins that no longer exist and says which ones. WordPress itself already switches off missing active plugins on that screen.
 
-### Turn off updates (Maintenance)
-
-Stops WordPress checking WordPress.org for new versions of WordPress, plugins or themes (choose which), and stops them updating by themselves. For sites whose updates are handled another way, such as by the host or a deploy process.
-
-- **Still install WordPress security releases** is on by default: WordPress keeps checking and installs minor releases such as 6.2.1, but not new major versions.
-- WordPress runs automatic plugin and theme updates after its own check, so turning off WordPress checks without security releases also stops those.
-- The checks, their scheduled tasks and the update counts are removed; any request to the update check addresses is answered without contacting WordPress.org. The Updates screen says that checks are off.
-- Updating by uploading a new version still works. Premium plugins that check their own servers are not affected.
-- Uses filters only, so turning it off restores the normal checks on the next page load.
-- On multisite it is set on the main site and applies to the network.
-
 ### Discover
 
 - **Theme**: install, activate or customise the Kadence theme.
@@ -238,8 +226,7 @@ Deleting the plugin removes its settings and cached data. Imported media stays i
 - `SEOProStack_Settings_Manager::render_general_tab()` and the other per-tab render methods are gone; settings tabs render through `render_tab()`.
 - New Plugins tab, all off by default: a Plugins menu in the admin bar (replaces Plugin Toggle), a Size column on the Plugins screen, and cleanup of leftover entries for deleted plugins (replaces Fix ‘Plugin file does not exist’ Notices).
 - Free Plugins no longer lists Plugin Toggle, which the Plugins tab replaces, or String Locator: searching code is better done in an editor or with WP-CLI.
-- New, off by default: Hide admin notices (Admin tab, replaces Hide Admin Notices) and Turn off updates (Maintenance tab, replaces Disable All WordPress Updates, whose Security Mode setting is imported). Free Plugins no longer lists either plugin.
-- Settings version 5 runs the imports again once so the new Security Mode import applies to existing sites.
+- New, off by default: Hide admin notices (Admin tab) moves plugin and theme notices behind a “Notices” button. Replaces Hide Admin Notices, which Free Plugins no longer lists.
 
 ### 0.3.1
 

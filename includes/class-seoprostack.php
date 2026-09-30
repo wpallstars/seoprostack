@@ -40,7 +40,6 @@ final class SEOProStack {
         'SEOProStack_Plugin_Toggle',
         'SEOProStack_Plugin_Sizes',
         'SEOProStack_Plugin_References',
-        'SEOProStack_Disable_Updates',
     );
 
     /**

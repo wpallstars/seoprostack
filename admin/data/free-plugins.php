@@ -12,7 +12,7 @@ if (!defined('ABSPATH')) {
 // feature's "replaces"): Admin Bar & Dashboard Control, Manage Notification
 // E-mails, Bulk Actions Select All, Carbon Copy, Post Draft Preview, Sticky
 // Posts Switch, Ultimate 410, Flying Analytics/Pages/Scripts, Widget Disable,
-// Plugin Toggle, Hide Admin Notices, Disable All WordPress Updates.
+// Plugin Toggle, Hide Admin Notices.
 // String Locator is not listed: searching code is better done in an editor
 // or with WP-CLI than from wp-admin.
 function seoprostack_get_free_plugins() {
@@ -122,6 +122,7 @@ function seoprostack_get_free_plugins() {
             'wp-social-reviews'
         ),
         'speed' => array(
+            'disable-wordpress-updates',
             'freesoul-deactivate-plugins',
             'http-requests-manager',
             'index-wp-mysql-for-speed',

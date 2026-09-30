@@ -14,7 +14,7 @@ Curated plugins, themes, hosting and tools for WordPress, plus small opt-in qual
 
 SEO Pro Stack is free and open source. There is no pro version and nothing is locked.
 
-Everything is off by default. Settings save instantly from **Settings → SEO Pro Stack**, grouped into Admin, Content, Media, Links, Speed, Plugins and Maintenance tabs. Use **Search features** to find a setting by name or by the plugin it replaces.
+Everything is off by default. Settings save instantly from **Settings → SEO Pro Stack**, grouped into Admin, Content, Media, Links, Speed and Plugins tabs. Use **Search features** to find a setting by name or by the plugin it replaces.
 
 = Features =
 
@@ -37,7 +37,6 @@ Everything is off by default. Settings save instantly from **Settings → SEO Pr
 * **Plugins menu in the admin bar**: switch any plugin on or off from the admin bar after confirming, then return to the page you were on.
 * **Plugin sizes**: a Size column on the Plugins screen shows each plugin’s PHP, JavaScript, CSS, media and other files, measured in the background and sortable.
 * **Clean up deleted plugins**: when plugin folders were deleted outside the Plugins screen, opening that screen removes their leftover uninstall and “Recently active” entries.
-* **Turn off updates**: stop WordPress checking for and installing new versions of WordPress, plugins or themes, for sites whose updates are handled another way. WordPress security releases still install unless you turn that off. Updating by upload still works.
 
 Features that replace another plugin (for example Carbon Copy, Flying Pages or Ultimate 410) import its settings once and show “Replaces: …” on their card. The other plugin’s settings are left untouched.
 
@@ -106,7 +105,7 @@ They stay scheduled and publish at their times. Turning it off only stops new po
 * New: search features by name, description or the plugin they replace, and change them from the results.
 * New Plugins tab, all off by default: a Plugins menu in the admin bar (replaces Plugin Toggle), a Size column on the Plugins screen, and cleanup of leftover entries for deleted plugins.
 * Free Plugins no longer lists Plugin Toggle or String Locator.
-* New, off by default: Hide admin notices (replaces Hide Admin Notices) and Turn off updates (replaces Disable All WordPress Updates; its Security Mode setting is imported).
+* New, off by default: Hide admin notices moves plugin and theme notices behind a “Notices” button (replaces Hide Admin Notices).
 
 = 0.3.1 =
 * Free plugin lists show changes straight away instead of after the 12-hour cache expires.
