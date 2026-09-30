@@ -9,8 +9,9 @@
  * Help, using core's own screen meta toggle.
  *
  * Kept in place: messages about what you just did (#message, settings
- * errors), inline notices, hidden notices, notices added after the page has
- * loaded, and any types chosen in the settings. Until the move runs, the
+ * errors), inline notices inside the page's content (inline notices printed
+ * above the page are moved), hidden notices, notices added after the page
+ * has loaded, and any types chosen in the settings. Until the move runs, the
  * notices are hidden with CSS, so they do not flash or push the page down.
  * The block editor has its own notices and is left alone.
  *
@@ -105,21 +106,27 @@ class SEOProStack_Admin_Notices extends SEOProStack_Feature {
     /**
      * Selectors that pick the notices to move (mirrors common.js).
      *
-     * @return array{notices:string,skip:string,nag:string}
+     * `kinds` are kept wherever they are. `skip` adds inline notices, which
+     * are kept only inside the page's own content: an inline notice printed
+     * on `admin_notices` sits above the page, where it only gets in the way.
+     *
+     * @return array{notices:string,skip:string,kinds:string,nag:string}
      */
     private static function selectors() {
-        $skip = array('.inline', '.below-h2', '#message', '.settings-error', '.hidden', '.sps-keep');
-        $keep = array_flip((array) SEOProStack_Settings::get('hide_admin_notices_keep'));
+        $kinds = array('#message', '.settings-error', '.hidden', '.sps-keep');
+        $keep  = array_flip((array) SEOProStack_Settings::get('hide_admin_notices_keep'));
         if (isset($keep['error'])) {
-            $skip[] = '.notice-error';
-            $skip[] = 'div.error';
+            $kinds[] = '.notice-error';
+            $kinds[] = 'div.error';
         }
         if (isset($keep['warning'])) {
-            $skip[] = '.notice-warning';
+            $kinds[] = '.notice-warning';
+            $kinds[] = '.update-nag';
         }
         return array(
             'notices' => 'div.updated, div.error, div.notice',
-            'skip'    => implode(', ', $skip),
+            'skip'    => implode(', ', array_merge(array('.inline', '.below-h2'), $kinds)),
+            'kinds'   => implode(', ', $kinds),
             'nag'     => isset($keep['warning']) ? '' : '#wpbody-content > .update-nag',
         );
     }
@@ -133,9 +140,15 @@ class SEOProStack_Admin_Notices extends SEOProStack_Feature {
         foreach (explode(', ', $s['skip']) as $selector) {
             $not .= ':not(' . $selector . ')';
         }
+        $not_kind = '';
+        foreach (explode(', ', $s['kinds']) as $selector) {
+            $not_kind .= ':not(' . $selector . ')';
+        }
         $hide = array();
         foreach (explode(', ', $s['notices']) as $selector) {
             $hide[] = 'body.' . self::LOADING . ' #wpbody-content ' . $selector . $not;
+            // Inline notices printed above the page.
+            $hide[] = 'body.' . self::LOADING . ' #wpbody-content > ' . $selector . $not_kind;
         }
         if ('' !== $s['nag']) {
             $hide[] = 'body.' . self::LOADING . ' ' . $s['nag'];
@@ -159,6 +172,7 @@ class SEOProStack_Admin_Notices extends SEOProStack_Feature {
         $data = array(
             'notices' => $s['notices'],
             'skip'    => $s['skip'],
+            'kinds'   => $s['kinds'],
             'nag'     => $s['nag'],
             'loading' => self::LOADING,
             /* translators: %d: number of notices */
@@ -172,8 +186,21 @@ class SEOProStack_Admin_Notices extends SEOProStack_Feature {
         var $body = $(document.body);
         try {
             var $content = $("#wpbody-content");
-            var $notices = $content.find(cfg.notices).not(cfg.skip)
-                .filter(function () { return this.style.display !== "none"; });
+            var shown = function () { return this.style.display !== "none"; };
+            var $notices = $content.find(cfg.notices).not(cfg.skip).filter(shown);
+            // Notices printed above the page (admin_notices), even when marked
+            // inline, up to where the page itself starts.
+            var top = [];
+            $content.children().each(function () {
+                var $el = $(this);
+                if ($el.is(".wrap") || $el.find(".wp-header-end, h1").length) {
+                    return false;
+                }
+                if ($el.is(cfg.notices) && !$el.is(cfg.kinds)) {
+                    top.push(this);
+                }
+            });
+            $notices = $notices.add($(top).filter(shown));
             if (cfg.nag) {
                 $notices = $notices.add($(cfg.nag));
             }

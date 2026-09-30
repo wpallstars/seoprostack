@@ -166,8 +166,9 @@ class SEOProStack_Settings_Manager {
     }
 
     /**
-     * Note which plugins a setting replaces, with a deactivate link for any
-     * that are still active.
+     * Note which plugins a setting replaces. While one is active the setting
+     * waits (SEOProStack_Feature::replaced_active()); say so, with a
+     * deactivate link where the user can deactivate it here.
      *
      * @param array $field Schema entry.
      */
@@ -176,23 +177,25 @@ class SEOProStack_Settings_Manager {
             return;
         }
 
-        $active = self::active_plugins_by_slug();
+        $active = SEOProStack_Feature::active_plugins();
+        $site   = self::active_plugins_by_slug();
         $items  = array();
+        $links  = array();
+        $busy   = array();
         foreach ($field['replaces'] as $slug => $name) {
-            $item = esc_html($name);
-            if (isset($active[$slug]) && current_user_can('deactivate_plugin', $active[$slug])) {
-                $url   = wp_nonce_url(
-                    add_query_arg(array('action' => 'deactivate', 'plugin' => rawurlencode($active[$slug])), self_admin_url('plugins.php')),
-                    'deactivate-plugin_' . $active[$slug]
-                );
-                $item .= sprintf(
-                    ' <span class="sps-replaces__active">(%1$s <a href="%2$s">%3$s</a>)</span>',
-                    esc_html__('still active,', 'seoprostack'),
-                    esc_url($url),
-                    esc_html__('deactivate', 'seoprostack')
-                );
+            $items[] = esc_html($name);
+            if (!isset($active[$slug])) {
+                continue;
             }
-            $items[] = $item;
+            $busy[] = (string) $name;
+            if (isset($site[$slug]) && current_user_can('deactivate_plugin', $site[$slug])) {
+                $url     = wp_nonce_url(
+                    add_query_arg(array('action' => 'deactivate', 'plugin' => rawurlencode($site[$slug])), self_admin_url('plugins.php')),
+                    'deactivate-plugin_' . $site[$slug]
+                );
+                /* translators: %s: plugin name */
+                $links[] = sprintf('<a href="%1$s">%2$s</a>', esc_url($url), esc_html(sprintf(__('Deactivate %s', 'seoprostack'), $name)));
+            }
         }
 
         printf(
@@ -200,6 +203,14 @@ class SEOProStack_Settings_Manager {
             esc_html__('Replaces:', 'seoprostack'),
             implode(', ', $items) // phpcs:ignore WordPress.Security.EscapeOutput -- escaped above.
         );
+        if ($busy) {
+            printf(
+                '<p class="sps-replaces sps-replaces__active">%1$s %2$s</p>',
+                /* translators: %s: plugin names */
+                esc_html(sprintf(__('%s is still active, so it does this job and this setting waits until it is deactivated.', 'seoprostack'), implode(', ', $busy))),
+                implode(' · ', $links) // phpcs:ignore WordPress.Security.EscapeOutput -- escaped above.
+            );
+        }
     }
 
     /**

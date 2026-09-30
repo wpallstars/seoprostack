@@ -123,7 +123,7 @@ class SEOProStack_Widget_Control extends SEOProStack_Feature {
         // Capture names for the settings screen, then unregister before core
         // turns widget classes into instances (WP_Widget_Factory, priority 100).
         add_action('widgets_init', array(__CLASS__, 'capture_sidebar_widgets'), 98);
-        if (SEOProStack_Settings::get(self::SIDEBAR_KEY)) {
+        if (SEOProStack_Settings::get(self::SIDEBAR_KEY) && !self::replaced_active(self::SIDEBAR_KEY)) {
             add_action('widgets_init', array(__CLASS__, 'unregister_sidebar_widgets'), 99);
         }
     }

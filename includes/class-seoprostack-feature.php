@@ -10,6 +10,11 @@
  *   return early so they cost nothing;
  * - optionally imports settings from the plugin it replaces in migrate().
  *
+ * While a plugin that a setting replaces is active, the setting waits:
+ * enabled() is false and that plugin keeps doing the job, so the two never
+ * run side by side (two admin bar menus, analytics loaded twice). The
+ * settings card says so, with a deactivate link.
+ *
  * Register extra features with the `seoprostack_features` filter.
  *
  * @package SEOProStack
@@ -35,12 +40,59 @@ abstract class SEOProStack_Feature {
     }
 
     /**
-     * Whether the feature is switched on.
+     * Whether the feature is switched on and not waiting for a plugin it
+     * replaces to be deactivated.
      *
      * @return bool
      */
     public static function enabled() {
+        return static::switched_on() && !self::replaced_active(static::KEY);
+    }
+
+    /**
+     * Whether the feature's switch is on, even if it is waiting.
+     *
+     * @return bool
+     */
+    public static function switched_on() {
         return '' !== static::KEY && (bool) SEOProStack_Settings::get(static::KEY);
+    }
+
+    /**
+     * Names of the active plugins that a setting replaces.
+     *
+     * @param string $key Setting key.
+     * @return array<string,string> slug => name
+     */
+    public static function replaced_active($key) {
+        $schema = SEOProStack_Settings::schema();
+        if (empty($schema[$key]['replaces']) || !is_array($schema[$key]['replaces'])) {
+            return array();
+        }
+        return array_intersect_key($schema[$key]['replaces'], self::active_plugins());
+    }
+
+    /**
+     * Plugins active on this site or network-wide, keyed by folder name.
+     *
+     * @return array<string,string> slug => plugin file
+     */
+    public static function active_plugins() {
+        static $active = null;
+        if (null === $active) {
+            $files = (array) get_option('active_plugins', array());
+            if (is_multisite()) {
+                $files = array_merge($files, array_keys((array) get_site_option('active_sitewide_plugins', array())));
+            }
+            $active = array();
+            foreach ($files as $file) {
+                $slug = dirname((string) $file);
+                if ('.' !== $slug) {
+                    $active[$slug] = (string) $file;
+                }
+            }
+        }
+        return $active;
     }
 
     /**
