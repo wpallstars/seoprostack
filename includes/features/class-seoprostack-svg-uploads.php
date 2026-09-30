@@ -258,7 +258,12 @@ class SEOProStack_Svg_Uploads extends SEOProStack_Feature {
      */
     public static function clean($dirty) {
         $invalid = new WP_Error('svg_invalid', __('it is not a valid SVG file.', 'seoprostack'));
-        if (!is_string($dirty) || '' === trim($dirty) || strlen($dirty) > self::MAX_BYTES) {
+        // NUL bytes mean UTF-16 or UTF-32, where the checks below cannot see.
+        if (!is_string($dirty) || '' === trim($dirty) || strlen($dirty) > self::MAX_BYTES || false !== strpos($dirty, "\0")) {
+            return $invalid;
+        }
+        // Other encodings (UTF-7 and the like) could hide what is checked next.
+        if (preg_match('/<\?xml[^>]*encoding\s*=\s*["\']([^"\']*)/i', $dirty, $m) && !in_array(strtolower($m[1]), array('utf-8', 'us-ascii', 'ascii', 'iso-8859-1', 'windows-1252'), true)) {
             return $invalid;
         }
         // Entity definitions can expand without limit; SVGs never need them.
@@ -304,10 +309,11 @@ class SEOProStack_Svg_Uploads extends SEOProStack_Feature {
      * @param string  $ns   Namespace of the root element.
      */
     private static function clean_children(DOMNode $node, $ns) {
+        $doc      = $node instanceof DOMDocument ? $node : $node->ownerDocument;
         $children = iterator_to_array($node->childNodes, false);
         foreach ($children as $child) {
             if ($child instanceof DOMElement) {
-                if ($child === $node->ownerDocument->documentElement) {
+                if ($child === $doc->documentElement) {
                     continue;
                 }
                 if (!self::keep_element($child, $ns)) {
@@ -316,7 +322,7 @@ class SEOProStack_Svg_Uploads extends SEOProStack_Feature {
                 }
                 self::clean_element($child, $ns);
             } elseif ($child instanceof DOMCdataSection) {
-                $node->replaceChild($node->ownerDocument->createTextNode($child->data), $child);
+                $node->replaceChild($doc->createTextNode($child->data), $child);
             } elseif (!$child instanceof DOMText) {
                 $node->removeChild($child);
             }
@@ -382,7 +388,9 @@ class SEOProStack_Svg_Uploads extends SEOProStack_Feature {
             return false;
         }
 
-        if (!isset(self::attributes()[$name]) && 0 !== strpos($name, 'aria-') && 0 !== strpos($name, 'data-')) {
+        // Not data-*: drawings do not need them, and scripts on a page that
+        // shows the SVG inline may act on them.
+        if (!isset(self::attributes()[$name]) && 0 !== strpos($name, 'aria-')) {
             return false;
         }
 
@@ -403,7 +411,8 @@ class SEOProStack_Svg_Uploads extends SEOProStack_Feature {
 
     /**
      * Whether a link target is safe: same-document references anywhere, web
-     * and mail links on <a>, and web or embedded pictures on <image>.
+     * and mail links on <a>, and embedded pictures on <image> (pictures from
+     * other sites would let them see who views the drawing).
      *
      * @param string $href Target, lower case, without whitespace.
      * @param string $tag  Element name, lower case.
@@ -417,7 +426,7 @@ class SEOProStack_Svg_Uploads extends SEOProStack_Feature {
             return (bool) preg_match('#^(https?://|mailto:)#', $href);
         }
         if ('image' === $tag) {
-            return (bool) preg_match('#^(https?://|data:image/(png|jpe?g|gif|webp);base64,)#', $href);
+            return (bool) preg_match('#^data:image/(png|jpe?g|gif|webp);base64,#', $href);
         }
         return false;
     }
