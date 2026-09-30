@@ -185,7 +185,7 @@ Deleting the plugin removes its settings and cached data. Imported media stays i
 
 ## Changelog
 
-### Unreleased
+### 0.3.1
 
 - Free plugin cards are cached under a name that includes a hash of the category's slugs, so edits to `admin/data/free-plugins.php` show straight away instead of after the 12-hour cache expires.
 - The Flying Press card no longer recommends Flying Analytics, Flying Pages or Flying Scripts, which the Speed tab replaces.
