@@ -96,6 +96,10 @@ They stay scheduled and publish at their times. Turning it off only stops new po
 
 == Changelog ==
 
+= Unreleased =
+* Free plugin lists show changes straight away instead of after the 12-hour cache expires.
+* The Flying Press card no longer recommends Flying Analytics, Flying Pages or Flying Scripts, which the Speed tab replaces.
+
 = 0.3.0 =
 * Renamed from WP Allstars to SEO Pro Stack. Settings are migrated automatically.
 * New: magic login links, publishing queue and iFrame block (all off by default).
