@@ -34,33 +34,70 @@ class SEOProStack_Admin_Manager {
         SEOProStack_Plugin_Manager::init();
     }
 
+    /** Slug of the search results screen (not shown in the navigation). */
+    const SEARCH = 'search';
+
+    /**
+     * Settings tabs, in navigation order.
+     *
+     * @return array<string,array{label:string,description:string}>
+     */
+    public static function settings_tabs() {
+        return array(
+            'admin' => array(
+                'label'       => __('Admin', 'seoprostack'),
+                'description' => __('The dashboard, admin bar, logins and emails.', 'seoprostack'),
+            ),
+            'content' => array(
+                'label'       => __('Content', 'seoprostack'),
+                'description' => __('Writing, editing and publishing posts.', 'seoprostack'),
+            ),
+            'media' => array(
+                'label'       => __('Media', 'seoprostack'),
+                'description' => __('Images and other uploads.', 'seoprostack'),
+            ),
+            'links' => array(
+                'label'       => __('Links', 'seoprostack'),
+                'description' => __('Redirects, removed pages and short links.', 'seoprostack'),
+            ),
+            'speed' => array(
+                'label'       => __('Speed', 'seoprostack'),
+                'description' => __('Front-end loading for visitors. Logged-in users are not affected.', 'seoprostack'),
+            ),
+            'plugins' => array(
+                'label'       => __('Plugins', 'seoprostack'),
+                'description' => __('The Plugins screen and plugin settings.', 'seoprostack'),
+            ),
+            'maintenance' => array(
+                'label'       => __('Maintenance', 'seoprostack'),
+                'description' => __('Updates, repairs and housekeeping.', 'seoprostack'),
+            ),
+        );
+    }
+
     /**
      * Registered tabs.
      *
      * @return array<string,array{label:string,group:string,render:callable}>
      */
     public static function get_tabs() {
-        $tabs = array(
-            'general' => array(
-                'label'  => __('General', 'seoprostack'),
+        $tabs = array();
+
+        // Settings tabs without settings are hidden (they can be filled via the schema filter).
+        foreach (self::settings_tabs() as $slug => $tab) {
+            if (!SEOProStack_Settings::fields_for_tab($slug)) {
+                continue;
+            }
+            $tabs[$slug] = array(
+                'label'  => $tab['label'],
                 'group'  => 'settings',
-                'render' => array('SEOProStack_Settings_Manager', 'render_general_tab'),
-            ),
-            'workflow' => array(
-                'label'  => __('Workflow', 'seoprostack'),
-                'group'  => 'settings',
-                'render' => array('SEOProStack_Settings_Manager', 'render_workflow_tab'),
-            ),
-            'speed' => array(
-                'label'  => __('Speed', 'seoprostack'),
-                'group'  => 'settings',
-                'render' => array('SEOProStack_Settings_Manager', 'render_speed_tab'),
-            ),
-            'advanced' => array(
-                'label'  => __('Advanced', 'seoprostack'),
-                'group'  => 'settings',
-                'render' => array('SEOProStack_Settings_Manager', 'render_advanced_tab'),
-            ),
+                'render' => function () use ($slug, $tab) {
+                    SEOProStack_Settings_Manager::render_tab($slug, $tab['label'], $tab['description']);
+                },
+            );
+        }
+
+        $tabs += array(
             'theme' => array(
                 'label'      => __('Theme', 'seoprostack'),
                 'group'      => 'discover',
@@ -96,13 +133,6 @@ class SEOProStack_Admin_Manager {
             ),
         );
 
-        // Settings tabs without settings are hidden (they can be filled via the schema filter).
-        foreach (array('general', 'workflow', 'speed', 'advanced') as $slug) {
-            if (!SEOProStack_Settings::fields_for_tab($slug)) {
-                unset($tabs[$slug]);
-            }
-        }
-
         /**
          * Filter the admin tabs.
          *
@@ -123,13 +153,29 @@ class SEOProStack_Admin_Manager {
      * @return string
      */
     public static function get_active_tab() {
-        $tabs = self::get_tabs();
         // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- read-only navigation.
         $tab = isset($_GET['tab']) ? sanitize_key(wp_unslash($_GET['tab'])) : '';
+        if (self::SEARCH === $tab && '' !== self::search_query()) {
+            return $tab;
+        }
+
+        $tabs = self::get_tabs();
+        $tab  = SEOProStack_Settings::resolve_tab($tab);
         if (!isset($tabs[$tab])) {
             $tab = (string) key($tabs);
         }
         return $tab;
+    }
+
+    /**
+     * Current settings search text.
+     *
+     * @return string
+     */
+    public static function search_query() {
+        // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- read-only search.
+        $query = isset($_GET['s']) ? sanitize_text_field(wp_unslash($_GET['s'])) : '';
+        return trim(function_exists('mb_substr') ? mb_substr($query, 0, 100) : substr($query, 0, 100));
     }
 
     /**
@@ -150,7 +196,7 @@ class SEOProStack_Admin_Manager {
      * @return array
      */
     public static function plugin_action_links($links) {
-        array_unshift($links, sprintf('<a href="%s">%s</a>', esc_url(self::tab_url('general')), esc_html__('Settings', 'seoprostack')));
+        array_unshift($links, sprintf('<a href="%s">%s</a>', esc_url(add_query_arg('page', self::PAGE, admin_url('options-general.php'))), esc_html__('Settings', 'seoprostack')));
         return $links;
     }
 
@@ -235,6 +281,19 @@ class SEOProStack_Admin_Manager {
                     <span class="sps-badge"><?php echo esc_html('v' . SEOPROSTACK_VERSION); ?></span>
                 </div>
                 <div class="sps-header__actions">
+                    <form class="sps-search" role="search" method="get" action="<?php echo esc_url(admin_url('options-general.php')); ?>">
+                        <input type="hidden" name="page" value="<?php echo esc_attr(self::PAGE); ?>" />
+                        <input type="hidden" name="tab" value="<?php echo esc_attr(self::SEARCH); ?>" />
+                        <label class="screen-reader-text" for="sps-search-input"><?php esc_html_e('Search features', 'seoprostack'); ?></label>
+                        <input type="search"
+                               id="sps-search-input"
+                               class="sps-search__input"
+                               name="s"
+                               maxlength="100"
+                               value="<?php echo esc_attr(self::search_query()); ?>"
+                               placeholder="<?php esc_attr_e('Search features', 'seoprostack'); ?>" />
+                        <button type="submit" class="button"><?php esc_html_e('Search', 'seoprostack'); ?></button>
+                    </form>
                     <a class="button" href="https://www.wpallstars.com/" target="_blank" rel="noopener noreferrer">
                         <?php esc_html_e('Visit website', 'seoprostack'); ?>
                         <span class="screen-reader-text"><?php esc_html_e('(opens in a new tab)', 'seoprostack'); ?></span>
@@ -272,7 +331,9 @@ class SEOProStack_Admin_Manager {
             <?php // Not <main>: core's #wpbody already carries role="main". ?>
             <div class="sps-main sps-tab-<?php echo esc_attr($active); ?>" id="sps-tab-<?php echo esc_attr($active); ?>">
                 <?php
-                if (isset($tabs[$active]['render']) && is_callable($tabs[$active]['render'])) {
+                if (self::SEARCH === $active) {
+                    SEOProStack_Settings_Manager::render_search(self::search_query(), $tabs);
+                } elseif (isset($tabs[$active]['render']) && is_callable($tabs[$active]['render'])) {
                     call_user_func($tabs[$active]['render']);
                 }
                 ?>

@@ -14,7 +14,7 @@ Curated plugins, themes, hosting and tools for WordPress, plus small opt-in qual
 
 SEO Pro Stack is free and open source. There is no pro version and nothing is locked.
 
-Everything is off by default. Settings save instantly from **Settings → SEO Pro Stack**.
+Everything is off by default. Settings save instantly from **Settings → SEO Pro Stack**, grouped into Admin, Content, Media, Links and Speed tabs. Use **Search features** to find a setting by name or by the plugin it replaces.
 
 = Features =
 
@@ -95,6 +95,10 @@ Each link is random, stored only as a hash, works once and expires within an hou
 They stay scheduled and publish at their times. Turning it off only stops new posts from being queued.
 
 == Changelog ==
+
+= Unreleased =
+* Settings are grouped into Admin, Content, Media, Links and Speed tabs. Old links still open the right tab.
+* New: search features by name, description or the plugin they replace, and change them from the results.
 
 = 0.3.1 =
 * Free plugin lists show changes straight away instead of after the 12-hour cache expires.

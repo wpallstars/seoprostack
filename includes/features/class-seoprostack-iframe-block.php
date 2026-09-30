@@ -78,7 +78,7 @@ class SEOProStack_Iframe_Block extends SEOProStack_Feature {
             self::KEY => array(
                 'type'        => 'bool',
                 'default'     => false,
-                'tab'         => 'workflow',
+                'tab'         => 'content',
                 'label'       => __('iFrame block', 'seoprostack'),
                 'description' => __('Adds an iFrame block to the editor with size, loading, sandbox, permission and referrer controls. Turning it off hides existing iFrame blocks.', 'seoprostack'),
             ),

@@ -8,7 +8,8 @@ Version: {SEOPROSTACK_VERSION}
 
 Go to **Settings → SEO Pro Stack**. The screen has three groups of tabs:
 
-- **Settings**: General, Workflow, Speed and Advanced. Changes save instantly; there is no Save button.
+- **Settings**: Admin, Content, Media, Links and Speed (Plugins and Maintenance appear once they have features). Changes save instantly; there is no Save button.
+- **Search features** (top right) finds settings on every tab by name, description or the plugin they replace. Results can be switched on and changed in place.
 - **Discover**: Theme, Free Plugins, Pro Plugins, Hosting and Tools.
 - **About**: this Read Me.
 
@@ -18,23 +19,23 @@ Every feature is off by default. Features that replace a separate plugin say so 
 
 | Feature | Tab | Replaces |
 | --- | --- | --- |
-| Hide the admin bar, Block dashboard access | General | Admin Bar & Dashboard Access Control |
-| Hide dashboard widgets, Disable sidebar widgets | General | Widget Disable |
-| Notification emails | General | Manage Notification E-mails |
-| Duplicate posts | Workflow | Carbon Copy, Yoast Duplicate Post |
-| Staged new versions, Shareable preview links | Workflow | Post Draft Preview, Public Post Preview |
-| Sticky posts for any post type | Workflow | Sticky Posts Switch |
-| Select all across pages | Workflow | Bulk Actions Select All |
+| Hide the admin bar, Block dashboard access | Admin | Admin Bar & Dashboard Access Control |
+| Hide dashboard widgets, Disable sidebar widgets | Admin | Widget Disable |
+| Notification emails | Admin | Manage Notification E-mails |
+| Duplicate posts | Content | Carbon Copy, Yoast Duplicate Post |
+| Staged new versions, Shareable preview links | Content | Post Draft Preview, Public Post Preview |
+| Sticky posts for any post type | Content | Sticky Posts Switch |
+| Select all across pages | Content | Bulk Actions Select All |
 | Load pages before the click | Speed | Flying Pages |
 | Delay scripts until interaction | Speed | Flying Scripts |
 | Delayed Google Analytics | Speed | Flying Analytics |
-| 410 Gone for removed pages | Advanced | Ultimate 410 |
+| 410 Gone for removed pages | Links | Ultimate 410 |
 
-### Modern admin colours (General)
+### Modern admin colours (Admin)
 
 Uses the WordPress “Modern” admin colour scheme for every user while enabled. Switching it also updates your own profile: on selects Modern, off selects the WordPress default. Other users’ saved choices are not changed and return when the setting is off.
 
-### Magic login links (General)
+### Magic login links (Admin)
 
 Adds “Email me a login link” to the login screen, next to “Lost your password?”.
 
@@ -45,26 +46,26 @@ Adds “Email me a login link” to the login screen, next to “Lost your passw
 - Passwords keep working. Administrators can be required to use their password.
 - Uses the core login screen and core `wp_login` / `login_redirect` hooks, so activity logs, redirect rules and two-factor plugins that use `wp_login` still apply. Two-factor plugins that only check the password step are not asked; on those sites exclude administrators or leave the feature off.
 
-### Admin bar and dashboard access (General)
+### Admin bar and dashboard access (Admin)
 
 - **Hide the admin bar** on the front end for chosen roles (subscribers and customers by default).
 - **Block dashboard access** for chosen roles: opening wp-admin sends them to the home page or a page you choose, such as `/my-account/`. AJAX, uploads and other background requests keep working.
 - People who can manage options are never affected.
 
-### Dashboard and sidebar widgets (General)
+### Dashboard and sidebar widgets (Admin)
 
 - **Hide dashboard widgets** for everyone, such as WordPress Events and News, the welcome panel or plugin promotions. Widgets added by plugins appear in the list after the Dashboard is next opened.
 - **Disable sidebar widgets** you never use (the Meta widget by default); they disappear from the Widgets screen, the Customizer and sidebars.
 
-### Notification emails (General)
+### Notification emails (Admin)
 
 Stop routine emails one by one: new user notices, password and email change notices, comment notices, and WordPress, plugin and theme auto-update reports. Each is stopped with the core filter that sends it, so nothing else changes. Password reset links are only ever stopped for administrators, and failed core updates are still reported.
 
-### Duplicate posts (Workflow)
+### Duplicate posts (Content)
 
 Adds **Duplicate** to post lists, the editor and the admin bar for the post types you choose. The copy is always a new draft; the original is never changed. Choose what else is copied: excerpt, author, featured image, terms, custom fields (including SEO settings), template, format, menu order, password and date.
 
-### Staged new versions (Workflow)
+### Staged new versions (Content)
 
 **New version** on a published post creates a draft copy that remembers its original. Edit, preview or share it while the live post stays as it is. Publishing the copy, now or scheduled, copies it over the original — title, content, excerpt, terms, custom fields, featured image, template and format — so the address, comments and publish date are kept and WordPress stores a revision. The copy is then deleted.
 
@@ -72,18 +73,18 @@ Adds **Duplicate** to post lists, the editor and the admin bar for the post type
 - In the block editor, custom field boxes are saved before the copy is merged. If the tab closes first, a background task finishes the merge within minutes.
 - If the original cannot be updated, the copy stays as a draft so no edits are lost.
 
-### Shareable preview links (Workflow)
+### Shareable preview links (Content)
 
 Tick **Share a preview link** in the editor of a draft, pending or scheduled post to get an address anyone can open without an account.
 
 - Links expire after 1–90 days (7 by default) and stop working when turned off or when the post is published.
 - Preview pages send `noindex`, `no-referrer` and no-cache headers and ask page caches not to store them.
 
-### Sticky posts for any post type (Workflow)
+### Sticky posts for any post type (Content)
 
 Adds a star column to the lists of the post types you choose, and a **Stick to the top** option in the editor for types other than posts. Sticky items lead the first page of the blog home, their post type archive and chosen term archives (categories, tags or custom taxonomies). It uses core’s sticky list, so existing sticky posts, themes and blocks keep working.
 
-### Select all across pages (Workflow)
+### Select all across pages (Content)
 
 Tick the “select all” box in a post list with more than one page and a bar offers **Select all N items**: every item matching the current filters, search and status. Bulk actions (Move to Bin, Restore, Delete Permanently, Edit and plugin actions) then apply to all of them, still checked against each item’s permissions. Unticking any row clears the choice.
 
@@ -99,7 +100,7 @@ Scripts whose tag or code contains a keyword you list (for example a chat widget
 
 Adds Google Analytics 4 (standard gtag.js) with your measurement ID, loaded after the first interaction or after a few seconds so it does not compete with the page. Logged-in users are not tracked. Turn off any other plugin that adds the same ID.
 
-### 410 Gone for removed pages (Advanced)
+### 410 Gone for removed pages (Links)
 
 Answers “410 Gone” instead of “404 Not Found” for addresses you list, so search engines drop them sooner. Visitors still see the theme’s not-found page.
 
@@ -107,7 +108,7 @@ Answers “410 Gone” instead of “404 Not Found” for addresses you list, so
 - Only addresses that would otherwise be “not found” are affected, so a live page cannot be taken down by mistake.
 - Optionally, published content deleted from the bin is added to the list automatically.
 
-### Publishing queue (Workflow)
+### Publishing queue (Content)
 
 Publishing a post from the editor without choosing a date schedules it for the next free time slot instead.
 
@@ -116,7 +117,7 @@ Publishing a post from the editor without choosing a date schedules it for the n
 - Queued posts are normal “Scheduled” posts and WordPress publishes them. Turning the feature off leaves them scheduled.
 - Choose which content types use the queue.
 
-### iFrame block (Workflow)
+### iFrame block (Content)
 
 Adds an **iFrame** block to the editor (Embed category).
 
@@ -128,7 +129,7 @@ Adds an **iFrame** block to the editor (Embed category).
 - Who can add iFrames: contributors, authors, editors, or only users who can add any HTML. Checked in the editor and again when the page is shown, using the post author’s role.
 - Output is built on the server from validated settings, so stored content cannot inject HTML. Turning the feature off hides existing iFrame blocks.
 
-### Copy linked images to Media Library (Workflow)
+### Copy linked images to Media Library (Media)
 
 When a post is saved, images linked from other sites are copied into the Media Library, resized, attached to the post, and the content is changed to serve the local copy.
 
@@ -155,7 +156,7 @@ When a post is saved, images linked from other sites are copied into the Media L
 Developers can add settings, tabs and directory entries with filters:
 
 - `seoprostack_features`: register a feature class that extends `SEOProStack_Feature` (declare settings in `settings()`, add hooks in `boot()`, and optionally import another plugin’s settings in `migrate()`).
-- `seoprostack_settings_schema`: add or change settings. Each entry sets `type` (bool, int, text, url, lines, domains, select, multi or times), `default`, `label`, `description` and either `tab` or `parent`; select and multi also take `options` (an array or a callable), and multi takes `open` to keep saved values that are not currently registered. `replaces` (slug => name) shows which plugin a feature replaces. Settings render and save automatically.
+- `seoprostack_settings_schema`: add or change settings. Each entry sets `type` (bool, int, text, url, lines, domains, select, multi or times), `default`, `label`, `description` and either `tab` or `parent`; select and multi also take `options` (an array or a callable), and multi takes `open` to keep saved values that are not currently registered. `replaces` (slug => name) shows which plugin a feature replaces. Settings render and save automatically. Tabs are `admin`, `content`, `media`, `links`, `speed`, `plugins` and `maintenance`; the pre-0.4 slugs `general`, `workflow` and `advanced` still work and map to `admin`, `content` and `links`.
 - `seoprostack_admin_tabs`: add or reorder admin tabs. Each tab sets `label`, `group` (settings, discover or about), a `render` callback and an optional `capability`; tabs the current user lacks the capability for are hidden.
 - `seoprostack_pro_items`, `seoprostack_hosting_items`, `seoprostack_tools_items`: change directory entries.
 - `seoprostack_auto_upload_process_post`: skip image copying for specific posts.
@@ -184,6 +185,12 @@ Read a setting with `SEOProStack_Settings::get( 'key' )`.
 Deleting the plugin removes its settings and cached data. Imported media stays in the Media Library because your posts use it.
 
 ## Changelog
+
+### Unreleased
+
+- Settings tabs regrouped by area: Admin, Content, Media, Links and Speed, with Plugins and Maintenance ready for new features. Old tab links and the `general`, `workflow` and `advanced` tab slugs still work.
+- New feature search: find a setting on any tab by name, description or the plugin it replaces, and change it from the results.
+- `SEOProStack_Settings_Manager::render_general_tab()` and the other per-tab render methods are gone; settings tabs render through `render_tab()`.
 
 ### 0.3.1
 

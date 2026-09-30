@@ -17,31 +17,57 @@ if (!defined('ABSPATH')) {
 class SEOProStack_Settings_Manager {
 
     /**
-     * General tab.
+     * Render matching settings from every tab, grouped by tab.
+     *
+     * Cards are the same as on their own tab, so they can be switched on
+     * and changed here.
+     *
+     * @param string $query Search text.
+     * @param array  $tabs  Registered tabs (see SEOProStack_Admin_Manager::get_tabs()).
      */
-    public static function render_general_tab() {
-        self::render_tab('general', __('General', 'seoprostack'), __('Site-wide admin preferences.', 'seoprostack'));
-    }
-
-    /**
-     * Workflow tab.
-     */
-    public static function render_workflow_tab() {
-        self::render_tab('workflow', __('Workflow', 'seoprostack'), __('Tools and automations for editing content.', 'seoprostack'));
-    }
-
-    /**
-     * Speed tab.
-     */
-    public static function render_speed_tab() {
-        self::render_tab('speed', __('Speed', 'seoprostack'), __('Front-end loading for visitors. Logged-in users are not affected.', 'seoprostack'));
-    }
-
-    /**
-     * Advanced tab.
-     */
-    public static function render_advanced_tab() {
-        self::render_tab('advanced', __('Advanced', 'seoprostack'), __('Server responses and site-wide rules.', 'seoprostack'));
+    public static function render_search($query, array $tabs) {
+        $groups = array();
+        foreach (SEOProStack_Settings::search($query) as $key => $field) {
+            if (isset($tabs[$field['tab']])) {
+                $groups[$field['tab']][$key] = $field;
+            }
+        }
+        $count = array_sum(array_map('count', $groups));
+        ?>
+        <div class="sps-section">
+            <div class="sps-section__intro">
+                <h2 class="sps-section__title">
+                    <?php
+                    /* translators: %s: search text */
+                    echo esc_html(sprintf(__('Results for “%s”', 'seoprostack'), $query));
+                    ?>
+                </h2>
+                <p class="sps-section__desc" role="status">
+                    <?php
+                    echo esc_html($count
+                        /* translators: %d: number of matching features */
+                        ? sprintf(_n('%d feature found.', '%d features found.', $count, 'seoprostack'), $count)
+                        : __('No features match. Try another word.', 'seoprostack'));
+                    ?>
+                </p>
+                <?php if ($count) : ?>
+                    <p class="sps-section__hint"><?php esc_html_e('Changes are saved automatically.', 'seoprostack'); ?></p>
+                <?php endif; ?>
+            </div>
+            <?php foreach ($groups as $tab => $fields) : ?>
+                <h3 class="sps-search__group">
+                    <a href="<?php echo esc_url(SEOProStack_Admin_Manager::tab_url($tab)); ?>"><?php echo esc_html($tabs[$tab]['label']); ?></a>
+                </h3>
+                <div class="sps-cards">
+                    <?php
+                    foreach ($fields as $key => $field) {
+                        self::render_card($key, $field);
+                    }
+                    ?>
+                </div>
+            <?php endforeach; ?>
+        </div>
+        <?php
     }
 
     /**

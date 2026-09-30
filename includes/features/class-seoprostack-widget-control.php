@@ -48,7 +48,7 @@ class SEOProStack_Widget_Control extends SEOProStack_Feature {
             self::KEY => array(
                 'type'        => 'bool',
                 'default'     => false,
-                'tab'         => 'general',
+                'tab'         => 'admin',
                 'label'       => __('Hide dashboard widgets', 'seoprostack'),
                 'description' => __('Remove Dashboard boxes nobody uses, such as WordPress Events and News or plugin promotions. Applies to everyone.', 'seoprostack'),
                 'replaces'    => $replace,
@@ -65,7 +65,7 @@ class SEOProStack_Widget_Control extends SEOProStack_Feature {
             self::SIDEBAR_KEY => array(
                 'type'        => 'bool',
                 'default'     => false,
-                'tab'         => 'general',
+                'tab'         => 'admin',
                 'label'       => __('Disable sidebar widgets', 'seoprostack'),
                 'description' => __('Remove classic widgets you never use from the Widgets screen and the Customizer, and stop them showing in sidebars.', 'seoprostack'),
                 'replaces'    => $replace,

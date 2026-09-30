@@ -34,7 +34,7 @@ class SEOProStack_Gone_Urls extends SEOProStack_Feature {
             self::KEY => array(
                 'type'        => 'bool',
                 'default'     => false,
-                'tab'         => 'advanced',
+                'tab'         => 'links',
                 'label'       => __('410 Gone for removed pages', 'seoprostack'),
                 'description' => __('Tell search engines that removed addresses are gone for good, so they drop them sooner. Only addresses that would otherwise show “not found” are affected.', 'seoprostack'),
                 'replaces'    => array('ultimate-410' => 'Ultimate 410'),

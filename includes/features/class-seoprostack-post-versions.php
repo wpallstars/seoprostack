@@ -64,7 +64,7 @@ class SEOProStack_Post_Versions extends SEOProStack_Feature {
             self::KEY => array(
                 'type'        => 'bool',
                 'default'     => false,
-                'tab'         => 'workflow',
+                'tab'         => 'content',
                 'label'       => __('Staged new versions', 'seoprostack'),
                 'description' => __('Edit a published post as a draft copy while the live post stays unchanged. Publishing the copy replaces the original and keeps its address, comments and date.', 'seoprostack'),
             ),

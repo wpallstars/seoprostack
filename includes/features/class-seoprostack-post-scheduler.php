@@ -39,7 +39,7 @@ class SEOProStack_Post_Scheduler extends SEOProStack_Feature {
             self::KEY => array(
                 'type'        => 'bool',
                 'default'     => false,
-                'tab'         => 'workflow',
+                'tab'         => 'content',
                 'label'       => __('Publishing queue', 'seoprostack'),
                 'description' => __('Publishing a post without choosing a date schedules it for the next free time slot. Dates you set yourself are kept.', 'seoprostack'),
             ),

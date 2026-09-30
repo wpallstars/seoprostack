@@ -41,7 +41,7 @@ class SEOProStack_Preview_Links extends SEOProStack_Feature {
             self::KEY => array(
                 'type'        => 'bool',
                 'default'     => false,
-                'tab'         => 'workflow',
+                'tab'         => 'content',
                 'label'       => __('Shareable preview links', 'seoprostack'),
                 'description' => __('Share a draft with people who do not have an account. Turn the link on in the editor; it stops working when it expires, when you turn it off, or when the post is published.', 'seoprostack'),
                 'replaces'    => array(

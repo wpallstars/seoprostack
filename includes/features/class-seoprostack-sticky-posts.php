@@ -44,7 +44,7 @@ class SEOProStack_Sticky_Posts extends SEOProStack_Feature {
             self::KEY => array(
                 'type'        => 'bool',
                 'default'     => false,
-                'tab'         => 'workflow',
+                'tab'         => 'content',
                 'label'       => __('Sticky posts for any post type', 'seoprostack'),
                 'description' => __('Pin pages, products and custom post types to the top of their lists, like sticky blog posts. Adds a star to post lists and a “Stick to the top” option in the editor.', 'seoprostack'),
                 'replaces'    => array('sticky-posts-switch' => 'Sticky Posts Switch'),
