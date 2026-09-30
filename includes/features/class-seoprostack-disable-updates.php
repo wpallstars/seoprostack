@@ -60,11 +60,16 @@ class SEOProStack_Disable_Updates extends SEOProStack_Feature {
     );
 
     /**
-     * Settings.
+     * Settings. Update data is shared by the whole network, so on multisite
+     * the feature is only offered on the main site, which the network admin
+     * uses too.
      *
      * @return array
      */
     public static function settings() {
+        if (is_multisite() && !is_main_site()) {
+            return array();
+        }
         return array(
             self::KEY => array(
                 'type'        => 'bool',

@@ -143,6 +143,7 @@ class SEOProStack_Admin_Notices extends SEOProStack_Feature {
         ?>
         <style id="seoprostack-admin-notices">
             <?php echo implode(",\n", $hide); // phpcs:ignore WordPress.Security.EscapeOutput -- fixed selectors. ?> { display: none !important; }
+            #sps-notices-link-wrap { float: left; margin: 0 0 0 6px; }
             #sps-notices-wrap { padding: 8px 20px 12px; }
             #sps-notices-wrap > .notice, #sps-notices-wrap > .updated, #sps-notices-wrap > .error, #sps-notices-wrap > .update-nag { display: block; margin: 12px 0 0; }
             #sps-notices-wrap > .update-nag { max-width: none; }
@@ -177,11 +178,11 @@ class SEOProStack_Admin_Notices extends SEOProStack_Feature {
                 $notices = $notices.add($(cfg.nag));
             }
             $notices = $notices.not("#screen-meta *");
-            if (!$notices.length) {
+            var $meta = $("#screen-meta");
+            if (!$notices.length || !$meta.length) {
                 return;
             }
 
-            var $meta = $("#screen-meta");
             var $links = $("#screen-meta-links");
             if (!$links.length) {
                 $links = $("<div id=\"screen-meta-links\"></div>").insertAfter($meta);
@@ -190,7 +191,7 @@ class SEOProStack_Admin_Notices extends SEOProStack_Feature {
             var buttonClass = $links.find(".show-settings").first().attr("class") || "button show-settings";
             var $button = $("<button type=\"button\" id=\"sps-notices-link\" aria-controls=\"sps-notices-wrap\" aria-expanded=\"false\"></button>")
                 .attr("class", buttonClass.replace(/\bscreen-meta-active\b/, ""));
-            var $wrap = $("<div id=\"sps-notices-link-wrap\" class=\"hide-if-no-js screen-meta-toggle\"></div>").append($button).appendTo($links);
+            var $wrap = $("<div id=\"sps-notices-link-wrap\" class=\"hide-if-no-js screen-meta-toggle\"></div>").append($button).prependTo($links);
 
             $notices.appendTo($panel);
 
