@@ -120,12 +120,37 @@ class SEOProStack_Preview_Links extends SEOProStack_Feature {
         }
         do_action('litespeed_control_set_nocache', 'seoprostack preview link');
 
+        // SEO plugins that print their own robots tag see a published post.
         add_filter('wp_robots', 'wp_robots_no_robots');
+        add_filter('rank_math/frontend/robots', array(__CLASS__, 'rank_math_robots'));
+        add_filter('wpseo_robots', array(__CLASS__, 'noindex_string'));
         add_filter('comments_open', '__return_false');
         add_filter('pings_open', '__return_false');
         add_action('send_headers', 'nocache_headers');
         add_filter('wp_headers', array(__CLASS__, 'headers'));
         return $posts;
+    }
+
+    /**
+     * Rank Math robots tag for preview pages.
+     *
+     * @param array $robots Directives keyed by name.
+     * @return array
+     */
+    public static function rank_math_robots($robots) {
+        $robots           = is_array($robots) ? $robots : array();
+        $robots['index']  = 'noindex';
+        $robots['follow'] = 'nofollow';
+        return $robots;
+    }
+
+    /**
+     * Robots tag string for SEO plugins that take one (Yoast SEO).
+     *
+     * @return string
+     */
+    public static function noindex_string() {
+        return 'noindex, nofollow';
     }
 
     /**
