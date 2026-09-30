@@ -8,11 +8,27 @@ Version: {SEOPROSTACK_VERSION}
 
 Go to **Settings → SEO Pro Stack**. The screen has three groups of tabs:
 
-- **Settings**: General and Workflow. Changes save instantly; there is no Save button.
+- **Settings**: General, Workflow, Speed and Advanced. Changes save instantly; there is no Save button.
 - **Discover**: Theme, Free Plugins, Pro Plugins, Hosting and Tools.
 - **About**: this Read Me.
 
 ## Features
+
+Every feature is off by default. Features that replace a separate plugin say so on their card (“Replaces: …”) and import that plugin’s settings once when SEO Pro Stack is updated. The other plugin’s own settings are never changed or deleted, so you can compare, then deactivate it.
+
+| Feature | Tab | Replaces |
+| --- | --- | --- |
+| Hide the admin bar, Block dashboard access | General | Admin Bar & Dashboard Access Control |
+| Hide dashboard widgets, Disable sidebar widgets | General | Widget Disable |
+| Notification emails | General | Manage Notification E-mails |
+| Duplicate posts | Workflow | Carbon Copy, Yoast Duplicate Post |
+| Staged new versions, Shareable preview links | Workflow | Post Draft Preview, Public Post Preview |
+| Sticky posts for any post type | Workflow | Sticky Posts Switch |
+| Select all across pages | Workflow | Bulk Actions Select All |
+| Load pages before the click | Speed | Flying Pages |
+| Delay scripts until interaction | Speed | Flying Scripts |
+| Delayed Google Analytics | Speed | Flying Analytics |
+| 410 Gone for removed pages | Advanced | Ultimate 410 |
 
 ### Modern admin colours (General)
 
@@ -28,6 +44,68 @@ Adds “Email me a login link” to the login screen, next to “Lost your passw
 - Links are stored only as a keyed hash and are removed when used, when they expire, and on uninstall.
 - Passwords keep working. Administrators can be required to use their password.
 - Uses the core login screen and core `wp_login` / `login_redirect` hooks, so activity logs, redirect rules and two-factor plugins that use `wp_login` still apply. Two-factor plugins that only check the password step are not asked; on those sites exclude administrators or leave the feature off.
+
+### Admin bar and dashboard access (General)
+
+- **Hide the admin bar** on the front end for chosen roles (subscribers and customers by default).
+- **Block dashboard access** for chosen roles: opening wp-admin sends them to the home page or a page you choose, such as `/my-account/`. AJAX, uploads and other background requests keep working.
+- People who can manage options are never affected.
+
+### Dashboard and sidebar widgets (General)
+
+- **Hide dashboard widgets** for everyone, such as WordPress Events and News, the welcome panel or plugin promotions. Widgets added by plugins appear in the list after the Dashboard is next opened.
+- **Disable sidebar widgets** you never use (the Meta widget by default); they disappear from the Widgets screen, the Customizer and sidebars.
+
+### Notification emails (General)
+
+Stop routine emails one by one: new user notices, password and email change notices, comment notices, and WordPress, plugin and theme auto-update reports. Each is stopped with the core filter that sends it, so nothing else changes. Password reset links are only ever stopped for administrators, and failed core updates are still reported.
+
+### Duplicate posts (Workflow)
+
+Adds **Duplicate** to post lists, the editor and the admin bar for the post types you choose. The copy is always a new draft; the original is never changed. Choose what else is copied: excerpt, author, featured image, terms, custom fields (including SEO settings), template, format, menu order, password and date.
+
+### Staged new versions (Workflow)
+
+**New version** on a published post creates a draft copy that remembers its original. Edit, preview or share it while the live post stays as it is. Publishing the copy, now or scheduled, copies it over the original — title, content, excerpt, terms, custom fields, featured image, template and format — so the address, comments and publish date are kept and WordPress stores a revision. The copy is then deleted.
+
+- The copy never goes live at its own address, so sharing, pings and sitemaps are not triggered for it.
+- In the block editor, custom field boxes are saved before the copy is merged. If the tab closes first, a background task finishes the merge within minutes.
+- If the original cannot be updated, the copy stays as a draft so no edits are lost.
+
+### Shareable preview links (Workflow)
+
+Tick **Share a preview link** in the editor of a draft, pending or scheduled post to get an address anyone can open without an account.
+
+- Links expire after 1–90 days (7 by default) and stop working when turned off or when the post is published.
+- Preview pages send `noindex`, `no-referrer` and no-cache headers and ask page caches not to store them.
+
+### Sticky posts for any post type (Workflow)
+
+Adds a star column to the lists of the post types you choose, and a **Stick to the top** option in the editor for types other than posts. Sticky items lead the first page of the blog home, their post type archive and chosen term archives (categories, tags or custom taxonomies). It uses core’s sticky list, so existing sticky posts, themes and blocks keep working.
+
+### Select all across pages (Workflow)
+
+Tick the “select all” box in a post list with more than one page and a bar offers **Select all N items**: every item matching the current filters, search and status. Bulk actions (Move to Bin, Restore, Delete Permanently, Edit and plugin actions) then apply to all of them, still checked against each item’s permissions. Unticking any row clears the choice.
+
+### Load pages before the click (Speed)
+
+Uses the browser’s Speculation Rules to download (or fully prepare) a page when a visitor points at or starts to tap a link to it. On WordPress 6.8 and later it tunes core’s built-in speculative loading; earlier versions get the rules added directly. Admin, login, file and query-string links are always skipped; add your own exclusions such as `/cart` or `logout`. Browsers without Speculation Rules ignore it. Logged-in users are not affected.
+
+### Delay scripts until interaction (Speed)
+
+Scripts whose tag or code contains a keyword you list (for example a chat widget) are held back until the visitor moves, scrolls, taps or types, or until a time limit passes, then run in their original order. Pages can be excluded by address. Add `data-seoprostack-nodelay` to a script tag to never delay it. Logged-in users, previews and feeds are not affected.
+
+### Delayed Google Analytics (Speed)
+
+Adds Google Analytics 4 (standard gtag.js) with your measurement ID, loaded after the first interaction or after a few seconds so it does not compete with the page. Logged-in users are not tracked. Turn off any other plugin that adds the same ID.
+
+### 410 Gone for removed pages (Advanced)
+
+Answers “410 Gone” instead of “404 Not Found” for addresses you list, so search engines drop them sooner. Visitors still see the theme’s not-found page.
+
+- One address per line, as a path (`/old-page/`) or a full address on this site. End with `*` to include everything below it (`/old-shop/*`).
+- Only addresses that would otherwise be “not found” are affected, so a live page cannot be taken down by mistake.
+- Optionally, published content deleted from the bin is added to the list automatically.
 
 ### Publishing queue (Workflow)
 
@@ -76,8 +154,8 @@ When a post is saved, images linked from other sites are copied into the Media L
 
 Developers can add settings, tabs and directory entries with filters:
 
-- `seoprostack_features`: register a feature class that extends `SEOProStack_Feature` (declare settings in `settings()`, add hooks in `boot()`).
-- `seoprostack_settings_schema`: add or change settings. Each entry sets `type` (bool, int, text, domains, select, multi or times), `default`, `label`, `description` and either `tab` or `parent`; select and multi also take `options` (an array or a callable). Settings render and save automatically.
+- `seoprostack_features`: register a feature class that extends `SEOProStack_Feature` (declare settings in `settings()`, add hooks in `boot()`, and optionally import another plugin’s settings in `migrate()`).
+- `seoprostack_settings_schema`: add or change settings. Each entry sets `type` (bool, int, text, url, lines, domains, select, multi or times), `default`, `label`, `description` and either `tab` or `parent`; select and multi also take `options` (an array or a callable), and multi takes `open` to keep saved values that are not currently registered. `replaces` (slug => name) shows which plugin a feature replaces. Settings render and save automatically.
 - `seoprostack_admin_tabs`: add or reorder admin tabs. Each tab sets `label`, `group` (settings, discover or about), a `render` callback and an optional `capability`; tabs the current user lacks the capability for are hidden.
 - `seoprostack_pro_items`, `seoprostack_hosting_items`, `seoprostack_tools_items`: change directory entries.
 - `seoprostack_auto_upload_process_post`: skip image copying for specific posts.
@@ -86,12 +164,16 @@ Developers can add settings, tabs and directory entries with filters:
 - `seoprostack_magic_login_email`: change the login link email.
 - `seoprostack_magic_login_ip_limit`: requests allowed per IP address per 15 minutes (default 5).
 - `seoprostack_post_scheduler_applies`: skip the publishing queue for specific posts.
+- `seoprostack_duplicate_post_data`: change the data of a duplicated post before it is created.
+- `seoprostack_duplicate_skip_meta`: custom field keys that are never copied (by Duplicate posts and Staged new versions).
 
 Actions:
 
 - `seoprostack_setting_saved`: a setting was saved from the admin screen.
 - `seoprostack_magic_login_link_sent`: a login link was emailed.
 - `seoprostack_post_queued`: a post was scheduled by the publishing queue.
+- `seoprostack_post_duplicated`: a post was duplicated.
+- `seoprostack_version_published`: a staged new version was copied over its original.
 - `seoprostack_image_imported`: an external image was imported.
 - `seoprostack_image_upload_error`: an image could not be imported.
 
@@ -107,7 +189,9 @@ Deleting the plugin removes its settings and cached data. Imported media stays i
 
 - Renamed from WP Allstars to SEO Pro Stack (slug `seoprostack`). Settings, and images imported by earlier versions, carry over automatically.
 - New features, all off by default: magic login links, publishing queue, iFrame block.
-- Features are self-contained classes registered with `seoprostack_features`; settings support select, multi-choice and time-list fields.
+- New features that replace separate plugins and import their settings once: admin bar and dashboard access by role, dashboard and sidebar widget control, notification emails, duplicate posts, staged new versions, shareable preview links, sticky posts for any post type, select all across pages, 410 Gone addresses, page preloading, delayed scripts and delayed Google Analytics.
+- New Speed tab. Replaced plugins are no longer listed under Free Plugins.
+- Features are self-contained classes registered with `seoprostack_features`; settings support select, multi-choice, time-list, address and line-list fields.
 - Setting cards keep their rounded corners and “on” marker when hovered.
 - Kadence links point to the current Kadence pages at Liquid Web.
 - New admin screen: grouped tabs, instant-save setting cards, accessible switches and expandable options.

@@ -60,6 +60,7 @@ class SEOProStack_Preload_Pages extends SEOProStack_Feature {
             'preload_pages_exclude' => array(
                 'type'        => 'lines',
                 'default'     => "/cart\n/checkout\n/my-account\nadd-to-cart\nlogout",
+                'rows'        => 5,
                 'parent'      => self::KEY,
                 'label'       => __('Never preload links containing', 'seoprostack'),
                 'description' => __('One per line: a path such as /cart or any text in the address such as logout. Admin, login, file and query-string links are always skipped.', 'seoprostack'),

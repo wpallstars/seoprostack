@@ -23,6 +23,18 @@ Everything is off by default. Settings save instantly from **Settings → SEO Pr
 * **Publishing queue**: publishing a post from the editor without choosing a date schedules it for the next free time slot (for example weekdays at 09:00 and 15:00). Dates you choose yourself, updates to published posts, imports and WP-CLI are left alone. Posts become normal “Scheduled” posts, so WordPress publishes them.
 * **iFrame block**: embed any page with control over width and height or aspect ratio, lazy loading, sandbox, permissions (camera, autoplay, full screen…), referrer policy and border, and optionally pass the page’s URL parameters (such as UTM tags) to the embedded page. Limit it to a list of domains and to the roles you choose.
 * **Copy linked images to Media Library**: when a post is saved, images linked from other sites are copied into the Media Library, resized, attached to the post, and the content is changed to serve the local copy. Supports excluded domains, maximum dimensions, and file name and alt text patterns. Existing alt text is kept and repeat images are reused.
+* **Admin bar and dashboard access**: hide the front-end admin bar and block wp-admin for chosen roles, such as subscribers and customers. Administrators are never affected.
+* **Dashboard and sidebar widgets**: hide Dashboard boxes and disable classic widgets you never use.
+* **Notification emails**: stop routine emails one by one, such as auto-update reports and new user notices.
+* **Duplicate posts**: copy any post, page or custom post type to a new draft from lists, the editor or the admin bar.
+* **Staged new versions**: edit a published post as a draft copy, then publish the copy over the original, keeping its address, comments and date.
+* **Shareable preview links**: share a draft with people who do not have an account. Links expire and stop working when the post is published.
+* **Sticky posts for any post type**: pin pages, products and custom post types to the top of their archives and term pages.
+* **Select all across pages**: apply a bulk action to every post that matches the list’s filters, not just the visible page.
+* **410 Gone for removed pages**: tell search engines that removed addresses are gone for good.
+* **Speed**: load pages before the click (Speculation Rules), delay chosen scripts until interaction, and add Google Analytics 4 without slowing the page.
+
+Features that replace another plugin (for example Carbon Copy, Flying Pages or Ultimate 410) import its settings once and show “Replaces: …” on their card. The other plugin’s settings are left untouched.
 
 = Discover =
 
@@ -45,6 +57,8 @@ When **Copy linked images to Media Library** is on, saving a post downloads imag
 When **Magic login links** is on, login links are sent with your site’s normal email (`wp_mail()`), the same way as password reset emails.
 
 The **iFrame block** shows pages from the addresses your editors enter. Visitors’ browsers load those pages directly, so the embedded site’s own privacy policy applies. Use the allowed domains setting to control which sites can be embedded.
+
+When **Delayed Google Analytics** is on and a measurement ID is entered, visitors’ browsers load Google’s gtag.js from www.googletagmanager.com and send page views to Google Analytics, under Google’s privacy policy. Logged-in users are not tracked.
 
 No other data is sent.
 
@@ -85,6 +99,8 @@ They stay scheduled and publish at their times. Turning it off only stops new po
 = 0.3.0 =
 * Renamed from WP Allstars to SEO Pro Stack. Settings are migrated automatically.
 * New: magic login links, publishing queue and iFrame block (all off by default).
+* New, replacing separate plugins and importing their settings: admin bar and dashboard access, widget control, notification emails, duplicate posts, staged new versions, shareable preview links, sticky posts for any post type, select all across pages, 410 Gone addresses, page preloading, delayed scripts and delayed Google Analytics.
+* New Speed tab.
 * Kadence links point to the current Kadence pages at Liquid Web.
 * Setting cards keep their rounded corners and “on” marker when hovered.
 * New admin screen with grouped tabs, instant-save setting cards, accessible switches and expandable options.

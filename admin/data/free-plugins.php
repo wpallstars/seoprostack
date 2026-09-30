@@ -7,7 +7,11 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-// Define recommended plugins
+// Define recommended plugins.
+// Plugins that SEO Pro Stack features replace are not listed (see each
+// feature's "replaces"): Admin Bar & Dashboard Control, Manage Notification
+// E-mails, Bulk Actions Select All, Carbon Copy, Post Draft Preview, Sticky
+// Posts Switch, Ultimate 410, Flying Analytics/Pages/Scripts, Widget Disable.
 function seoprostack_get_free_plugins() {
     return array(
         'minimal' => array(
@@ -18,13 +22,11 @@ function seoprostack_get_free_plugins() {
             'simple-cloudflare-turnstile'
         ),
         'admin' => array(
-            'admin-bar-dashboard-control',
             'codepress-admin-columns',
             'admin-menu-editor',
             'hide-admin-notices',
             'mainwp-child',
             'mainwp-child-reports',
-            'manage-notification-emails',
             'plugin-groups',
             'plugin-toggle'
         ),
@@ -40,20 +42,16 @@ function seoprostack_get_free_plugins() {
             'block-options',
             'bookmark-card',
             'browser-shots',
-            'bulk-actions-select-all',
             'bulk-edit-categories-tags',
             'bulk-edit-user-profiles-in-spreadsheet',
-            'carbon-copy',
             'code-block-pro',
             'ics-calendar',
             'mammoth-docx-converter',
             'nav-menu-roles',
             'ninja-tables',
-            'post-draft-preview',
             'post-type-switcher',
             'simple-custom-post-order',
             'simple-icons',
-            'sticky-posts-switch',
             'term-management-tools',
             'the-paste',
             'ultimate-addons-for-gutenberg',
@@ -110,7 +108,6 @@ function seoprostack_get_free_plugins() {
             'revive-so',
             'seo-by-rank-math',
             'syndication-links',
-            'ultimate-410',
             'webmention'
         ),
         'setup' => array(
@@ -125,15 +122,11 @@ function seoprostack_get_free_plugins() {
         ),
         'speed' => array(
             'disable-wordpress-updates',
-            'flying-analytics',
-            'flying-pages',
-            'flying-scripts',
             'freesoul-deactivate-plugins',
             'http-requests-manager',
             'index-wp-mysql-for-speed',
             'litespeed-cache',
-            'wp-optimize',
-            'wp-widget-disable'
+            'wp-optimize'
         ),
         'translation' => array(
             'hreflang-manager-lite',

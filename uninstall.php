@@ -6,6 +6,8 @@
  * Imported media (and its `_seoprostack_source_url` / legacy
  * `_wp_allstars_source_url` meta) is left in place because posts reference it.
  * Scheduled posts stay scheduled; WordPress publishes them as normal.
+ * Sticky items stay in core's sticky list. Other plugins' settings that
+ * features imported from are never touched.
  *
  * @package SEOProStack
  */
@@ -43,9 +45,17 @@ function seoprostack_uninstall_site() {
         'wp_allstars_plugins_cached',
     );
 
+    $options[] = 'seoprostack_dashboard_widgets';
     foreach ($options as $option) {
         delete_option($option);
     }
+
+    // Shareable preview links stop working; staged versions and duplicates
+    // become ordinary drafts and posts.
+    foreach (array('_seoprostack_preview', '_seoprostack_version_of', '_seoprostack_original') as $meta_key) {
+        delete_post_meta_by_key($meta_key);
+    }
+    wp_unschedule_hook('seoprostack_merge_version');
 
     $patterns = array('_transient_seoprostack_', '_transient_timeout_seoprostack_', '_transient_wp_allstars_', '_transient_timeout_wp_allstars_');
     foreach ($patterns as $pattern) {
