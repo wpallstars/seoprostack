@@ -308,7 +308,7 @@ final class SEOProStack_Plugin_Loader {
         // phpcs:disable WordPress.Security.NonceVerification.Recommended -- only reading which screen this is.
         if (isset($_GET['page'])) {
             // A plugin's own page, wherever its menu entry is (Settings, Tools).
-            $page = is_string($_GET['page']) ? wp_unslash($_GET['page']) : '';
+            $page = is_string($_GET['page']) ? sanitize_text_field(wp_unslash($_GET['page'])) : '';
             if (in_array($script, self::NEVER_PAGES, true) || !preg_match('#^[A-Za-z0-9_.\-/]{1,200}$#', $page)) {
                 return '';
             }
