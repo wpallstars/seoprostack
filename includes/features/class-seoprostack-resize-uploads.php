@@ -48,6 +48,14 @@ class SEOProStack_Resize_Uploads extends SEOProStack_Feature {
     private static $client_processed = false;
 
     /**
+     * Whether this request records the sizes the browser made (the last step
+     * of WordPress 7.1 client-side media processing).
+     *
+     * @var bool
+     */
+    private static $finalizing = false;
+
+    /**
      * Image metadata read before resizing, by new file path.
      *
      * @var array<string,array>
@@ -74,8 +82,9 @@ class SEOProStack_Resize_Uploads extends SEOProStack_Feature {
                 'default'     => 2560,
                 'min'         => 320,
                 'max'         => 20000,
+                'unit'        => 'px',
                 'parent'      => self::KEY,
-                'label'       => __('Largest width or height, in pixels', 'seoprostack'),
+                'label'       => __('Largest width or height', 'seoprostack'),
                 'description' => __('WordPress uses 2560. Pictures with “noresize” in the file name are left alone.', 'seoprostack'),
             ),
             'resize_uploads_quality' => array(
@@ -202,6 +211,9 @@ class SEOProStack_Resize_Uploads extends SEOProStack_Feature {
                 || ('/wp/v2/media' === $route && 'POST' === $request->get_method() && false === $request->get_param('generate_sub_sizes'))
             ) {
                 self::$client_processed = true;
+            }
+            if (preg_match('#^/wp/v2/media/\d+/finalize#', $route)) {
+                self::$finalizing = true;
             }
         }
         return $response;
@@ -399,8 +411,8 @@ class SEOProStack_Resize_Uploads extends SEOProStack_Feature {
     }
 
     /**
-     * After WordPress has made every size of a new upload, delete the
-     * original it kept, if chosen.
+     * After WordPress (or the browser) has made every size of a new upload,
+     * delete the original it kept, if chosen.
      *
      * @param array  $metadata      Metadata.
      * @param int    $attachment_id Attachment ID.
@@ -408,7 +420,7 @@ class SEOProStack_Resize_Uploads extends SEOProStack_Feature {
      * @return array
      */
     public static function after_generate($metadata, $attachment_id, $context = 'create') {
-        if ('create' === $context && is_array($metadata)) {
+        if (('create' === $context || self::$finalizing) && is_array($metadata)) {
             $metadata = self::delete_original($attachment_id, $metadata);
         }
         return $metadata;
@@ -454,7 +466,7 @@ class SEOProStack_Resize_Uploads extends SEOProStack_Feature {
         $max  = self::max();
         $meta = wp_get_attachment_metadata($attachment_id);
         return $max > 0 && is_array($meta) && 'image/svg+xml' !== get_post_mime_type($attachment_id)
-            && (!empty($meta['width']) && (int) $meta['width'] > $max || !empty($meta['height']) && (int) $meta['height'] > $max);
+            && ((!empty($meta['width']) && (int) $meta['width'] > $max) || (!empty($meta['height']) && (int) $meta['height'] > $max));
     }
 
     /**
