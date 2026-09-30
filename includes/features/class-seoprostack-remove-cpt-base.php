@@ -116,15 +116,15 @@ class SEOProStack_Remove_Cpt_Base extends SEOProStack_Feature {
         if (is_admin()) {
             add_action('seoprostack_setting_panel', array(__CLASS__, 'panel_status'), 10, 2);
         }
-        if (!self::enabled()) {
-            // Not kept while off: posts may change meanwhile.
-            if (false !== get_option(self::TAKEN_OPTION)) {
-                delete_option(self::TAKEN_OPTION);
-            }
-            return;
-        }
-        foreach (array('save_post', 'deleted_post', 'trashed_post', 'untrashed_post') as $hook) {
+        // The taken list goes stale when posts or settings change, also while
+        // the feature is off. These run only on writes, so reading pages
+        // costs nothing (a get_option() of a missing option is a query on
+        // every request before WordPress 6.4).
+        foreach (array('save_post', 'deleted_post', 'trashed_post', 'untrashed_post', 'update_option_' . SEOProStack_Settings::OPTION) as $hook) {
             add_action($hook, array(__CLASS__, 'forget_taken'));
+        }
+        if (!self::enabled()) {
+            return;
         }
         add_filter('post_type_link', array(__CLASS__, 'short_link'), 10, 2);
         add_filter('request', array(__CLASS__, 'resolve'));
@@ -311,12 +311,11 @@ class SEOProStack_Remove_Cpt_Base extends SEOProStack_Feature {
     }
 
     /**
-     * Posts changed: work out the taken addresses again when next needed.
+     * Posts or settings changed: work out the taken addresses again when
+     * next needed.
      */
     public static function forget_taken() {
-        if (false !== get_option(self::TAKEN_OPTION)) {
-            delete_option(self::TAKEN_OPTION);
-        }
+        delete_option(self::TAKEN_OPTION);
     }
 
     /**
