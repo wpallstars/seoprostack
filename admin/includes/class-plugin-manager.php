@@ -455,7 +455,7 @@ class SEOProStack_Plugin_Manager {
      */
     public static function get_pro_url_for_free_slug($free_slug) {
         foreach (seoprostack_get_pro_plugins() as $key => $pro) {
-            // free_slug may be one slug or a list (e.g. Flying Press covers three free plugins).
+            // free_slug may be one slug or a list of related free plugins.
             $matches = (isset($pro['free_slug']) && in_array($free_slug, (array) $pro['free_slug'], true)) || $key === $free_slug;
             if ($matches) {
                 return self::get_pro_plugin_url($pro);
