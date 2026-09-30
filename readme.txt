@@ -4,7 +4,7 @@ Tags: magic login, iframe, schedule posts, auto upload images, admin
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 0.3.0
+Stable tag: 0.3.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -96,7 +96,7 @@ They stay scheduled and publish at their times. Turning it off only stops new po
 
 == Changelog ==
 
-= Unreleased =
+= 0.3.1 =
 * Free plugin lists show changes straight away instead of after the 12-hour cache expires.
 * The Flying Press card no longer recommends Flying Analytics, Flying Pages or Flying Scripts, which the Speed tab replaces.
 
@@ -116,6 +116,9 @@ They stay scheduled and publish at their times. Turning it off only stops new po
 * Uninstall cleanup, including multisite.
 
 == Upgrade Notice ==
+
+= 0.3.1 =
+Recommendation fixes: free plugin lists update straight away, and plugins now built in are no longer suggested.
 
 = 0.3.0 =
 Settings migrate automatically. Review Settings → SEO Pro Stack after updating.
