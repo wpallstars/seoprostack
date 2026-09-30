@@ -607,17 +607,15 @@ class SEOProStack_Nextgen_Images extends SEOProStack_Feature {
     }
 
     /**
-     * SQL condition and values for the pictures that get copies.
+     * Values for the three "p.post_mime_type IN (%s, %s, %s)" placeholders:
+     * source_types() has one to three types, so the first is repeated. The
+     * queries stay fixed strings, with every value passed to prepare().
      *
-     * @param string[] $types MIME types.
-     * @return string
+     * @param string[] $types MIME types (one to three).
+     * @return string[]
      */
-    private static function type_sql(array $types) {
-        global $wpdb;
-        return $wpdb->prepare(
-            "p.post_type = 'attachment' AND p.post_mime_type IN (" . implode(',', array_fill(0, count($types), '%s')) . ')', // phpcs:ignore WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare -- placeholders built above.
-            $types
-        );
+    private static function type_args(array $types) {
+        return array_slice(array_pad(array_values($types), 3, reset($types)), 0, 3);
     }
 
     /**
@@ -632,15 +630,17 @@ class SEOProStack_Nextgen_Images extends SEOProStack_Feature {
         if (!$types) {
             return array();
         }
-        $where = self::type_sql($types);
-        // phpcs:disable WordPress.DB.DirectDatabaseQuery, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- queue lookup; $where is prepared.
+        $types = self::type_args($types);
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- queue lookup.
         return array_map('intval', $wpdb->get_col($wpdb->prepare(
-            "SELECT p.ID FROM {$wpdb->posts} p LEFT JOIN {$wpdb->postmeta} m ON m.post_id = p.ID AND m.meta_key = %s AND m.meta_value = %s WHERE {$where} AND m.meta_id IS NULL ORDER BY p.ID DESC LIMIT %d",
+            "SELECT p.ID FROM {$wpdb->posts} p LEFT JOIN {$wpdb->postmeta} m ON m.post_id = p.ID AND m.meta_key = %s AND m.meta_value = %s WHERE p.post_type = 'attachment' AND p.post_mime_type IN (%s, %s, %s) AND m.meta_id IS NULL ORDER BY p.ID DESC LIMIT %d",
             self::DONE,
             self::signature(),
+            $types[0],
+            $types[1],
+            $types[2],
             (int) $limit
         )));
-        // phpcs:enable
     }
 
     /**
@@ -654,13 +654,21 @@ class SEOProStack_Nextgen_Images extends SEOProStack_Feature {
         if (!$types) {
             return array('done' => 0, 'total' => 0);
         }
-        $where = self::type_sql($types);
-        // phpcs:disable WordPress.DB.DirectDatabaseQuery, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- settings screen only; $where is prepared.
-        $total = (int) $wpdb->get_var("SELECT COUNT(*) FROM {$wpdb->posts} p WHERE {$where}");
+        $types = self::type_args($types);
+        // phpcs:disable WordPress.DB.DirectDatabaseQuery -- settings screen only.
+        $total = (int) $wpdb->get_var($wpdb->prepare(
+            "SELECT COUNT(*) FROM {$wpdb->posts} p WHERE p.post_type = 'attachment' AND p.post_mime_type IN (%s, %s, %s)",
+            $types[0],
+            $types[1],
+            $types[2]
+        ));
         $done  = (int) $wpdb->get_var($wpdb->prepare(
-            "SELECT COUNT(*) FROM {$wpdb->posts} p JOIN {$wpdb->postmeta} m ON m.post_id = p.ID AND m.meta_key = %s AND m.meta_value = %s WHERE {$where}",
+            "SELECT COUNT(*) FROM {$wpdb->posts} p JOIN {$wpdb->postmeta} m ON m.post_id = p.ID AND m.meta_key = %s AND m.meta_value = %s WHERE p.post_type = 'attachment' AND p.post_mime_type IN (%s, %s, %s)",
             self::DONE,
-            self::signature()
+            self::signature(),
+            $types[0],
+            $types[1],
+            $types[2]
         ));
         // phpcs:enable
         return array('done' => min($done, $total), 'total' => $total);

@@ -424,6 +424,7 @@ class SEOProStack_Watermark_Images extends SEOProStack_Feature {
             'WP_Image_Editor_GD'      => 'SEOProStack_Watermark_GD',
         );
         $classes = array();
+        // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- core hook, read to follow WordPress's choice.
         foreach ((array) apply_filters('wp_image_editors', array('WP_Image_Editor_Imagick', 'WP_Image_Editor_GD')) as $class) {
             if (is_string($class) && isset($ours[$class])) {
                 $classes[] = $ours[$class];
@@ -1220,7 +1221,8 @@ class SEOProStack_Watermark_Images extends SEOProStack_Feature {
         do {
             // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- paged by ID, so pictures that change are not skipped or repeated.
             $ids = $wpdb->get_col($wpdb->prepare(
-                "SELECT ID FROM {$wpdb->posts} WHERE post_type = 'attachment' AND post_mime_type LIKE 'image/%%' AND ID > %d ORDER BY ID LIMIT 100",
+                "SELECT ID FROM {$wpdb->posts} WHERE post_type = 'attachment' AND post_mime_type LIKE %s AND ID > %d ORDER BY ID LIMIT 100",
+                $wpdb->esc_like('image/') . '%',
                 $last
             ));
             foreach ($ids as $id) {
