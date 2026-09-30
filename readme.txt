@@ -28,6 +28,7 @@ Everything is off by default. Settings save instantly from **Settings → SEO Pr
 * **Dashboard and sidebar widgets**: hide Dashboard boxes and disable classic widgets you never use.
 * **Notification emails**: stop routine emails one by one, such as auto-update reports and new user notices.
 * **Hide admin notices**: move plugin and theme notices into a “Notices” button next to Screen Options, with a count. Messages about what you just did, such as “Settings saved”, stay on the page.
+* **Avatars without Gravatar**: serve every avatar from your own site, so visitors’ browsers never contact Gravatar. People can upload a profile picture; everyone else gets a silhouette, a pattern that differs per person, or nothing.
 * **Duplicate posts**: copy any post, page or custom post type to a new draft from lists, the editor or the admin bar.
 * **Staged new versions**: edit a published post as a draft copy, then publish the copy over the original, keeping its address, comments and date.
 * **Shareable preview links**: share a draft with people who do not have an account. Links expire and stop working when the post is published.
@@ -65,6 +66,8 @@ The **iFrame block** shows pages from the addresses your editors enter. Visitors
 
 When **Delayed Google Analytics** is on and a measurement ID is entered, visitors’ browsers load Google’s gtag.js from www.googletagmanager.com and send page views to Google Analytics, under Google’s privacy policy. Logged-in users are not tracked.
 
+When **Avatars without Gravatar** is on, WordPress no longer loads avatars from Gravatar (gravatar.com), which it does by default. Nothing is sent anywhere: uploaded profile pictures and generated avatars are stored in your uploads folder.
+
 No other data is sent.
 
 = Developers =
@@ -85,7 +88,7 @@ No. The plugin is free and open source under the GPL.
 
 = What happens to my images if I deactivate or delete the plugin? =
 
-Imported images stay in the Media Library because your posts use them. Deleting the plugin removes its settings and cached data.
+Imported images stay in the Media Library because your posts use them. Deleting the plugin removes its settings and cached data, and the profile pictures uploaded with Avatars without Gravatar.
 
 = Does it work on multisite? =
 
@@ -108,6 +111,7 @@ They stay scheduled and publish at their times. Turning it off only stops new po
 * Free Plugins no longer lists Plugin Toggle or String Locator.
 * New, off by default: Hide admin notices moves plugin and theme notices behind a “Notices” button (replaces Hide Admin Notices).
 * New, off by default: Paste into the Media Library uploads pasted screenshots, pictures and files (replaces The Paste and imports its settings).
+* New, off by default: Avatars without Gravatar serves avatars from your own site, with profile picture uploads (replaces Avatar Privacy and copies its profile pictures).
 * Fix: `%date%` and `%day%` in Copy linked images’ file name and alt text patterns are no longer lost when saved.
 
 = 0.3.1 =

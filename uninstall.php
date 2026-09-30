@@ -1,7 +1,7 @@
 <?php
 /**
- * Remove SEO Pro Stack options, caches and pending login links on uninstall
- * (every site on multisite).
+ * Remove SEO Pro Stack options, caches, pending login links, uploaded profile
+ * pictures and generated avatars on uninstall (every site on multisite).
  *
  * Imported media (and its `_seoprostack_source_url` / legacy
  * `_wp_allstars_source_url` meta) is left in place because posts reference it.
@@ -57,6 +57,15 @@ function seoprostack_uninstall_site() {
     }
     wp_unschedule_hook('seoprostack_merge_version');
 
+    // Generated avatars, and on the main site uploaded profile pictures.
+    $uploads = wp_get_upload_dir();
+    if (empty($uploads['error']) && !empty($uploads['basedir']) && is_dir($uploads['basedir'] . '/seoprostack-avatars')) {
+        require_once ABSPATH . 'wp-admin/includes/class-wp-filesystem-base.php';
+        require_once ABSPATH . 'wp-admin/includes/class-wp-filesystem-direct.php';
+        $filesystem = new WP_Filesystem_Direct(null);
+        $filesystem->delete($uploads['basedir'] . '/seoprostack-avatars', true, 'd');
+    }
+
     $patterns = array('_transient_seoprostack_', '_transient_timeout_seoprostack_', '_transient_wp_allstars_', '_transient_timeout_wp_allstars_');
     foreach ($patterns as $pattern) {
         // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- one-off cleanup of our transients.
@@ -74,8 +83,9 @@ if (is_multisite()) {
     seoprostack_uninstall_site();
 }
 
-// Unused magic login links (user meta is network-wide).
+// Unused magic login links and profile pictures (user meta is network-wide).
 delete_metadata('user', 0, '_seoprostack_magic_login', '', true);
+delete_metadata('user', 0, 'seoprostack_avatar', '', true);
 
 // Plugin caches, network-wide because plugins are shared by every site. On
 // single sites these calls remove the ordinary option and transient.

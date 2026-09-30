@@ -537,8 +537,9 @@ class SEOProStack_Settings {
      *     (SEOProStack_Feature::migrate()).
      * v4: re-run feature imports for development builds at v3, after
      *     notification, duplicate and later replacement features were added.
-     * v5: import The Paste settings (Paste into the Media Library), after
-     *     0.3.1 shipped at v4.
+     * v5: import The Paste settings (Paste into the Media Library) and
+     *     Avatar Privacy's switch and profile pictures (Avatars without
+     *     Gravatar), after 0.3.1 shipped at v4.
      *
      * Old options are left in place so a downgrade keeps working;
      * uninstall.php removes ours. Other plugins' options are never touched.

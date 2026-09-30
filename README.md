@@ -23,6 +23,7 @@ Every feature is off by default. Features that replace a separate plugin say so 
 | Hide dashboard widgets, Disable sidebar widgets | Admin | Widget Disable |
 | Notification emails | Admin | Manage Notification E-mails |
 | Hide admin notices | Admin | Hide Admin Notices |
+| Avatars without Gravatar | Admin | Avatar Privacy |
 | Duplicate posts | Content | Carbon Copy, Yoast Duplicate Post |
 | Staged new versions, Shareable preview links | Content | Post Draft Preview, Public Post Preview |
 | Sticky posts for any post type | Content | Sticky Posts Switch |
@@ -74,6 +75,17 @@ Moves plugin and theme notices into a **Notices (n)** button next to Screen Opti
 - Notices are hidden with CSS until they are moved, so they do not flash or push the page down.
 - The block editor has its own notices and is left alone.
 - Add the class `sps-keep` to a notice to keep it on the page.
+
+### Avatars without Gravatar (Admin)
+
+Serves every avatar from your own site. By default WordPress loads avatars from Gravatar, which tells Gravatar who visits your pages and publishes a hash of each commenter’s email address. With this on, nothing is loaded from or sent to Gravatar.
+
+- **Profile pictures**: people upload a picture on their profile screen (Users → Profile), where WordPress would otherwise point them to Gravatar. It is cropped to a square, stored in four sizes (64 to 512 pixels) and the smallest size that fits is used. Photo details such as location are removed. JPEG, PNG, GIF and WebP are accepted. Replacing or removing a picture, or deleting the user, deletes the files. This part can be turned off.
+- **Everyone else** gets the default chosen under Settings → Discussion, drawn on your site: a silhouette, a pattern that differs per person (made from a keyed hash of the email address, so it cannot be traced back), or nothing. Other stored styles, such as Identicon, Retro or Avatar Privacy’s Birds, show the pattern; Mystery Person and the rest show the silhouette.
+- Guests are never matched to accounts by email address, so a guest cannot show someone else’s picture.
+- Avatars that other plugins set (anything not from Gravatar) are kept. The admin bar, comment and user lists, the REST API (`avatar_urls`) and the block editor all use the same avatars.
+- Generated files keep their names, so cached pages keep working. Files are stored in `uploads/seoprostack-avatars/` (on multisite, profile pictures are in the main site’s uploads).
+- Switches on if Avatar Privacy is active, and copies its uploaded profile pictures, since deleting Avatar Privacy deletes them. Pictures are also copied when Avatar Privacy is deactivated, and otherwise the first time they are shown. Avatar Privacy lets people opt in to Gravatar; this feature never uses Gravatar, so that choice is not imported. While Avatar Privacy is active, it keeps handling avatars.
 
 ### Duplicate posts (Content)
 
@@ -227,7 +239,7 @@ Read a setting with `SEOProStack_Settings::get( 'key' )`.
 
 ## Uninstall
 
-Deleting the plugin removes its settings and cached data. Imported media stays in the Media Library because your posts use it.
+Deleting the plugin removes its settings and cached data, and the profile pictures and generated avatars in `uploads/seoprostack-avatars/`. Imported media stays in the Media Library because your posts use it.
 
 ## Changelog
 
@@ -240,6 +252,7 @@ Deleting the plugin removes its settings and cached data. Imported media stays i
 - Free Plugins no longer lists Plugin Toggle, which the Plugins tab replaces, or String Locator: searching code is better done in an editor or with WP-CLI.
 - New, off by default: Hide admin notices (Admin tab) moves plugin and theme notices behind a “Notices” button. Replaces Hide Admin Notices, which Free Plugins no longer lists.
 - New, off by default: Paste into the Media Library (Media tab) uploads screenshots, pictures and files pasted into the Media Library, the media dialog and the classic editor. Replaces The Paste and imports its settings (settings version 5); Free Plugins no longer lists it.
+- New, off by default: Avatars without Gravatar (Admin tab) serves avatars from your own site, with profile picture uploads and locally drawn defaults. Replaces Avatar Privacy and copies its uploaded profile pictures (settings version 5); Free Plugins no longer lists it.
 - Fixed: pattern settings with tokens (such as Copy linked images’ file name and alt text) lost `%date%` and `%day%` when saved, because WordPress’s text sanitiser removes “%” followed by two hex digits.
 
 ### 0.3.1
