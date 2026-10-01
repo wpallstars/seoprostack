@@ -13,7 +13,7 @@
  * opened, and its AI wizard settings the same way.
  *
  * @package SEOProStack
- * @since 0.5.1
+ * @since 0.6.0
  */
 
 if (!defined('ABSPATH')) {
