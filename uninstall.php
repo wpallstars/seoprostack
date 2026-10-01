@@ -248,7 +248,7 @@ delete_metadata('user', 0, '_seoprostack_magic_login', '', true);
 delete_metadata('user', 0, 'seoprostack_avatar', '', true);
 // Dismissed "Install Git Updater" notices (GitHub builds).
 delete_metadata('user', 0, 'seoprostack_git_updater_dismissed', '', true);
-// "Ask me tomorrow" in Ask before licence checks.
+// "Ask me again" in Ask before licence checks.
 delete_metadata('user', 0, 'seoprostack_licence_later', '', true);
 
 // Plugin caches, network-wide because plugins are shared by every site. On

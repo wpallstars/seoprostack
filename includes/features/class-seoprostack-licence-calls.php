@@ -14,9 +14,11 @@
  * Until then the check is held: the plugin gets a "request failed" error
  * saying why, as if the server could not be reached, and nothing is sent.
  *
- * Administrators are asked in a dialog on the next admin screen. The Plugins
+ * Administrators are asked in a dialog on the next admin screen, or can be
+ * asked again tomorrow, in a week, a month or a year (checks stay held, and
+ * plugins that start checking meanwhile are still asked about). The Plugins
  * screen has a Licence checks link in each such plugin's row and above the
- * list, to see the choices and choose again.
+ * list, to see the choices, choose again or forget them.
  *
  * Only licence calls: addresses or forms that name a licence (licence,
  * license, licensing, EDD's check, activate and deactivate actions), or that
@@ -27,7 +29,7 @@
  *
  * Stored: choices and times in the seoprostack_licence_calls option (not
  * autoloaded), one day's answers in seoprostack_lc_* transients, and who
- * chose "Ask me tomorrow" in the seoprostack_licence_later user meta. Request
+ * chose "Ask me again" in the seoprostack_licence_later user meta. Request
  * bodies, which can hold licence keys, are never stored; only a hash of them
  * tells answers apart.
  *
@@ -49,7 +51,7 @@ class SEOProStack_Licence_Calls extends SEOProStack_Feature {
     /** Transient prefix of cached answers. */
     const CACHE = 'seoprostack_lc_';
 
-    /** User meta: hide the dialog until this time. */
+    /** User meta: hide the dialog until this time ("since" and "until"). */
     const LATER = 'seoprostack_licence_later';
 
     /** admin-post action. */
@@ -621,11 +623,24 @@ class SEOProStack_Licence_Calls extends SEOProStack_Feature {
         $back = remove_query_arg(self::OPEN, $back ? $back : admin_url());
 
         if ('later' === $do) {
-            update_user_meta(get_current_user_id(), self::LATER, time() + DAY_IN_SECONDS);
+            // Hide the dialog for a while. Checks stay held, and plugins that
+            // start checking meanwhile are still asked about.
+            $spans = self::later_spans();
+            $for   = isset($_POST['for']) ? sanitize_key(wp_unslash($_POST['for'])) : 'day';
+            $span  = isset($spans[$for]) ? $spans[$for]['seconds'] : DAY_IN_SECONDS;
+            update_user_meta(get_current_user_id(), self::LATER, array('since' => time(), 'until' => time() + $span));
             wp_safe_redirect($back);
             exit;
         }
-        if (!in_array($do, array('once', 'daily', 'never'), true)) {
+        if ('forget_all' === $do) {
+            // Start again: every plugin is asked about at its next check.
+            delete_option(self::OPTION);
+            self::$entries = null;
+            self::forget_answers('');
+            wp_safe_redirect($back);
+            exit;
+        }
+        if (!in_array($do, array('once', 'daily', 'never', 'forget'), true)) {
             wp_die(esc_html__('Unknown choice.', 'seoprostack'), '', array('response' => 400));
         }
 
@@ -635,8 +650,10 @@ class SEOProStack_Licence_Calls extends SEOProStack_Feature {
             wp_safe_redirect($back);
             exit;
         }
-        $now                    = time();
-        $previous               = self::mode($stored[$id]);
+        $now      = time();
+        $previous = self::mode($stored[$id]);
+        // Forget: back to asking, at the plugin's next check.
+        $do                     = 'forget' === $do ? 'ask' : $do;
         $stored[$id]['mode']    = $do;
         $stored[$id]['until']   = 'once' === $do ? $now + HOUR_IN_SECONDS : 0;
         $stored[$id]['used']    = 0;
@@ -655,9 +672,23 @@ class SEOProStack_Licence_Calls extends SEOProStack_Feature {
     }
 
     /**
-     * Drop an entry's kept answers, so its next check makes a fresh call.
+     * How long "Ask me again" can hide the dialog.
      *
-     * @param string $id Entry ID.
+     * @return array<string,array{label:string,seconds:int}>
+     */
+    private static function later_spans() {
+        return array(
+            'day'   => array('label' => __('tomorrow', 'seoprostack'), 'seconds' => DAY_IN_SECONDS),
+            'week'  => array('label' => __('in a week', 'seoprostack'), 'seconds' => WEEK_IN_SECONDS),
+            'month' => array('label' => __('in a month', 'seoprostack'), 'seconds' => MONTH_IN_SECONDS),
+            'year'  => array('label' => __('in a year', 'seoprostack'), 'seconds' => YEAR_IN_SECONDS),
+        );
+    }
+
+    /**
+     * Drop kept answers, so the next check makes a fresh call.
+     *
+     * @param string $id Entry ID, or '' for every entry.
      */
     private static function forget_answers($id) {
         global $wpdb;
@@ -666,11 +697,12 @@ class SEOProStack_Licence_Calls extends SEOProStack_Feature {
             // within a day, and is reused only while "once a day" stands.
             return;
         }
+        $prefix = '' === $id ? self::CACHE : self::CACHE . $id . '_';
         // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- removes this feature's own transients when a choice changes.
         $wpdb->query($wpdb->prepare(
             "DELETE FROM {$wpdb->options} WHERE option_name LIKE %s OR option_name LIKE %s",
-            $wpdb->esc_like('_transient_' . self::CACHE . $id . '_') . '%',
-            $wpdb->esc_like('_transient_timeout_' . self::CACHE . $id . '_') . '%'
+            $wpdb->esc_like('_transient_' . $prefix) . '%',
+            $wpdb->esc_like('_transient_timeout_' . $prefix) . '%'
         ));
     }
 
@@ -785,20 +817,30 @@ class SEOProStack_Licence_Calls extends SEOProStack_Feature {
      * @return array<string,array>
      */
     private static function shown_entries() {
-        // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- only chooses what to show.
-        $open    = isset($_GET[self::OPEN]) ? sanitize_text_field(wp_unslash($_GET[self::OPEN])) : '';
+        $open    = self::opened();
         $entries = self::entries();
         if ('' !== $open) {
             return 'all' === $open ? $entries : array_filter($entries, function ($entry) use ($open) {
                 return 'plugin:' . $open === $entry['source'];
             });
         }
-        if ((int) get_user_meta(get_current_user_id(), self::LATER, true) > time()) {
-            return array();
-        }
-        return array_filter($entries, function ($entry) {
-            return 'ask' === self::mode($entry) && !empty($entry['first']);
+        // While "Ask me again" stands, only plugins that started checking
+        // since are asked about (from the same second, to be safe).
+        $later = get_user_meta(get_current_user_id(), self::LATER, true);
+        $since = is_array($later) && isset($later['until'], $later['since']) && (int) $later['until'] > time() ? (int) $later['since'] : 0;
+        return array_filter($entries, function ($entry) use ($since) {
+            return 'ask' === self::mode($entry) && !empty($entry['first']) && (int) $entry['first'] >= $since;
         });
+    }
+
+    /**
+     * What the Plugins screen asked to show: a plugin folder, "all" or ''.
+     *
+     * @return string
+     */
+    private static function opened() {
+        // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- only chooses what to show.
+        return isset($_GET[self::OPEN]) ? sanitize_text_field(wp_unslash($_GET[self::OPEN])) : '';
     }
 
     /**
@@ -888,15 +930,28 @@ class SEOProStack_Licence_Calls extends SEOProStack_Feature {
                             <?php foreach ($buttons as $do => $label) : ?>
                                 <button type="submit" name="do" value="<?php echo esc_attr($do); ?>" class="button<?php echo 'once' === $do ? ' button-primary' : ''; ?>" aria-pressed="<?php echo $do === $mode ? 'true' : 'false'; ?>"><?php echo esc_html($label); ?></button>
                             <?php endforeach; ?>
+                            <?php if ('ask' !== $mode) : ?>
+                                <button type="submit" name="do" value="forget" class="button-link sps-licence__forget"><?php esc_html_e('Forget my choice', 'seoprostack'); ?></button>
+                            <?php endif; ?>
                         </form>
                     </li>
                 <?php endforeach; ?>
             </ul>
-            <p class="sps-licence__note"><?php esc_html_e('Allow once now lets the plugin’s next check through when it next asks (within the hour), then asks you again. Once a day lets the first check each day through and gives the plugin that answer for the rest of the day, so pages do not wait. Update checks are never held. Choose again from the Licence checks link on the Plugins screen.', 'seoprostack'); ?></p>
+            <p class="sps-licence__note"><?php esc_html_e('Allow once now lets the plugin’s next check through when it next asks (within the hour), then asks you again. Once a day lets the first check each day through and gives the plugin that answer for the rest of the day, so pages do not wait. Update checks are never held. Choose again, or forget your choices, from the Licence checks link on the Plugins screen.', 'seoprostack'); ?></p>
             <form method="post" action="<?php echo esc_url($action); ?>" class="sps-licence__later">
                 <?php self::hidden_fields(); ?>
-                <input type="hidden" name="do" value="later" />
-                <button type="submit" class="button-link"><?php esc_html_e('Ask me tomorrow', 'seoprostack'); ?></button>
+                <?php if ('' === self::opened()) : ?>
+                    <input type="hidden" name="do" value="later" />
+                    <span><?php esc_html_e('Ask me again:', 'seoprostack'); ?></span>
+                    <?php foreach (self::later_spans() as $for => $span) : ?>
+                        <button type="submit" name="for" value="<?php echo esc_attr($for); ?>" class="button-link"><?php echo esc_html($span['label']); ?></button>
+                    <?php endforeach; ?>
+                    <span class="sps-licence__aside"><?php esc_html_e('Checks stay held until you choose.', 'seoprostack'); ?></span>
+                <?php else : ?>
+                    <input type="hidden" name="do" value="forget_all" />
+                    <button type="submit" class="button-link sps-licence__forget"><?php esc_html_e('Forget all choices', 'seoprostack'); ?></button>
+                    <span class="sps-licence__aside"><?php esc_html_e('Every plugin is asked about again at its next check.', 'seoprostack'); ?></span>
+                <?php endif; ?>
             </form>
         </dialog>
         <style>
@@ -913,6 +968,9 @@ class SEOProStack_Licence_Calls extends SEOProStack_Feature {
             .sps-licence__choices { display: flex; flex-wrap: wrap; gap: 6px; }
             .sps-licence__choices .button[aria-pressed="true"] { box-shadow: inset 0 0 0 2px #2271b1; }
             .sps-licence__note { color: #646970; }
+            .sps-licence__choices .sps-licence__forget { align-self: center; margin-left: auto !important; }
+            .sps-licence__later { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; }
+            .sps-licence__aside { flex-basis: 100%; color: #646970; }
         </style>
         <script>
         (function () {
