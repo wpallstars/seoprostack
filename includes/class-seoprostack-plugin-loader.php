@@ -22,6 +22,9 @@
  * - on post, term, list, profile, user, Tools and media upload screens
  *   where it adds boxes, fields, blocks or editor features, or saves
  *   profile fields (learned per screen with every plugin loaded);
+ * - on SEO Pro Stack's settings page when it registers a post type,
+ *   taxonomy or widget, changes permissions or uses SEO Pro Stack's hooks
+ *   (the settings offer those as choices);
  * - wherever a plugin that needs it loads (`Requires Plugins`,
  *   `WC requires at least`, `Elementor tested up to`).
  * Plugins that need a ticked plugin follow it: they load where it loads.
@@ -57,7 +60,10 @@ final class SEOProStack_Plugin_Loader {
     const LIST_KEY   = 'plugin_loading_only';
 
     /** Map format; a change makes SEO Pro Stack learn again. */
-    const MAP_VERSION = 2;
+    const MAP_VERSION = 3;
+
+    /** SEO Pro Stack's own settings page (Settings > SEO Pro Stack). */
+    const SETTINGS_PAGE = 'seoprostack';
 
     /**
      * Hooks whose callbacks show that a plugin adds boxes, fields, blocks or
@@ -388,9 +394,6 @@ final class SEOProStack_Plugin_Loader {
             if (in_array($script, self::NEVER_PAGES, true) || !preg_match('#^[A-Za-z0-9_.\-/]{1,200}$#', $page)) {
                 return '';
             }
-            if ('seoprostack' === $page) {
-                return ''; // SEO Pro Stack's settings, where it also learns.
-            }
             return 'page:' . $page;
         }
         // Core settings screens show fields from many plugins, and saving
@@ -484,6 +487,9 @@ final class SEOProStack_Plugin_Loader {
                 return null;
             }
             $wanted = (array) $map['pages'][$name];
+            if (self::SETTINGS_PAGE === $name) {
+                $wanted = array_merge($wanted, self::settings_plugins($map));
+            }
         } else {
             if (!isset($map['screens'][$screen])) {
                 return null;
@@ -535,6 +541,28 @@ final class SEOProStack_Plugin_Loader {
         } while ($added);
 
         return array_keys($loaded);
+    }
+
+    /**
+     * Plugins SEO Pro Stack's settings page needs besides its own: its
+     * settings offer post types, taxonomies, roles and widgets, so the
+     * plugins that register them load, and so do plugins that add to its
+     * settings or tabs through its hooks.
+     *
+     * @param array $map Learned map.
+     * @return string[]
+     */
+    private static function settings_plugins(array $map) {
+        $plugins = array_merge(
+            array_values((array) $map['types']),
+            array_values((array) $map['taxes']),
+            isset($map['permissions']) ? (array) $map['permissions'] : array(),
+            isset($map['settings']) ? (array) $map['settings'] : array(),
+            isset($map['widgets']) ? (array) $map['widgets'] : array()
+        );
+        return array_values(array_unique(array_filter($plugins, function ($plugin) {
+            return is_string($plugin) && '' !== $plugin; // Core post types and taxonomies have no plugin.
+        })));
     }
 
     /**
@@ -799,6 +827,50 @@ final class SEOProStack_Plugin_Loader {
         }
         $basename = (string) $object->get_plugin_basename();
         return '' !== $basename ? self::plugin_for_file(trailingslashit(WP_PLUGIN_DIR) . $basename) : '';
+    }
+
+    /**
+     * Active plugin files as stored, including any skipped on this request.
+     * SEO Pro Stack's own code uses this wherever it shows or decides
+     * something about which plugins are active, so a skipped plugin still
+     * counts as active (get_option('active_plugins') and is_plugin_active()
+     * leave skipped plugins out).
+     *
+     * @return string[]
+     */
+    public static function stored_active_plugins() {
+        if ('filter' === self::$mode) {
+            return self::$raw;
+        }
+        $raw = get_option('active_plugins', array());
+        return is_array($raw) ? array_values(array_filter($raw, 'is_string')) : array();
+    }
+
+    /**
+     * Whether a plugin is active, here or network-wide, even when it was
+     * skipped on this request.
+     *
+     * @param string $file Plugin file, such as "akismet/akismet.php".
+     * @return bool
+     */
+    public static function is_active($file) {
+        if (in_array((string) $file, self::stored_active_plugins(), true)) {
+            return true;
+        }
+        if (!is_multisite()) {
+            return false;
+        }
+        $network = get_site_option('active_sitewide_plugins', array());
+        return is_array($network) && isset($network[$file]);
+    }
+
+    /**
+     * Whether this request loads fewer plugins.
+     *
+     * @return bool
+     */
+    public static function is_filtered() {
+        return 'filter' === self::$mode;
     }
 
     /**

@@ -420,7 +420,7 @@ class SEOProStack_Hosting_Needs extends SEOProStack_Feature {
      * @return string[] Plugin files.
      */
     private static function active_files() {
-        $active = (array) get_option('active_plugins', array());
+        $active = SEOProStack_Plugin_Loader::stored_active_plugins();
         if (is_multisite()) {
             $active = array_merge($active, array_keys((array) get_site_option('active_sitewide_plugins', array())));
         }

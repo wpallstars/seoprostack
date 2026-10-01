@@ -93,7 +93,7 @@ class SEOProStack_Avatar_Privacy extends SEOProStack_Feature {
      * @return array
      */
     public static function migrate(array $options, $from_version) {
-        $active = in_array(self::AP_FILE, (array) get_option('active_plugins', array()), true);
+        $active = in_array(self::AP_FILE, SEOProStack_Plugin_Loader::stored_active_plugins(), true);
         if (!$active && is_multisite()) {
             $active = array_key_exists(self::AP_FILE, (array) get_site_option('active_sitewide_plugins', array()));
         }

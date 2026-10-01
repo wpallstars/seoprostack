@@ -130,7 +130,7 @@ class SEOProStack_Github_Updates extends SEOProStack_Feature {
         if ('' === $file) {
             return false;
         }
-        return is_multisite() ? is_plugin_active_for_network($file) : is_plugin_active($file);
+        return is_multisite() ? is_plugin_active_for_network($file) : SEOProStack_Plugin_Loader::is_active($file);
     }
 
     /**

@@ -80,7 +80,8 @@ abstract class SEOProStack_Feature {
     public static function active_plugins() {
         static $active = null;
         if (null === $active) {
-            $files = (array) get_option('active_plugins', array());
+            // As stored: a plugin skipped on this screen is still active.
+            $files = SEOProStack_Plugin_Loader::stored_active_plugins();
             if (is_multisite()) {
                 $files = array_merge($files, array_keys((array) get_site_option('active_sitewide_plugins', array())));
             }

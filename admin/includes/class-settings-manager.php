@@ -230,7 +230,7 @@ class SEOProStack_Settings_Manager {
         static $active = null;
         if (null === $active) {
             $active = array();
-            foreach ((array) get_option('active_plugins', array()) as $file) {
+            foreach (SEOProStack_Plugin_Loader::stored_active_plugins() as $file) {
                 $slug = dirname((string) $file);
                 if ('.' !== $slug) {
                     $active[$slug] = (string) $file;
@@ -278,7 +278,9 @@ class SEOProStack_Settings_Manager {
                     case 'multi':
                         $chosen  = array_map('strval', (array) $value);
                         $choices = SEOProStack_Settings::options_for($field);
-                        if (!empty($field['open'])) {
+                        // With fewer plugins loaded ("Load plugins only where needed"), a
+                        // saved choice may belong to a plugin skipped here; keep it too.
+                        if (!empty($field['open']) || SEOProStack_Plugin_Loader::is_filtered()) {
                             // Saved items that are not registered right now stay visible so they can be unticked.
                             foreach (array_diff($chosen, array_map('strval', array_keys($choices))) as $missing) {
                                 $choices[$missing] = $missing;

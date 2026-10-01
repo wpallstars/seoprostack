@@ -257,7 +257,7 @@ class SEOProStack_Admin_Bar_More extends SEOProStack_Feature {
         foreach (SEOProStack_Feature::active_plugins() as $slug => $file) {
             $active[$slug] = isset($names[$file]) ? $names[$file] : $slug;
         }
-        foreach ((array) get_option('active_plugins', array()) as $file) {
+        foreach (SEOProStack_Plugin_Loader::stored_active_plugins() as $file) {
             $file = (string) $file;
             if (false === strpos($file, '/')) {
                 $active[preg_replace('/\.php$/', '', $file)] = isset($names[$file]) ? $names[$file] : $file;

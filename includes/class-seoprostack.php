@@ -88,6 +88,11 @@ final class SEOProStack {
         require_once SEOPROSTACK_DIR . 'includes/class-seoprostack-settings.php';
         require_once SEOPROSTACK_DIR . 'includes/class-seoprostack-feature.php';
         require_once SEOPROSTACK_DIR . 'includes/class-seoprostack-admin-bar.php';
+        // Usually loaded already by the must-use file of "Load plugins only
+        // where needed"; features ask it which plugins are active.
+        if (!class_exists('SEOProStack_Plugin_Loader', false)) {
+            require_once SEOPROSTACK_DIR . 'includes/class-seoprostack-plugin-loader.php';
+        }
         foreach (self::$core_features as $class) {
             require_once self::feature_file($class);
         }

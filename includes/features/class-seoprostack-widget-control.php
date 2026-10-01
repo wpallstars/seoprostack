@@ -138,6 +138,9 @@ class SEOProStack_Widget_Control extends SEOProStack_Feature {
     public static function remember_dashboard_widgets() {
         global $wp_meta_boxes;
 
+        if (SEOProStack_Plugin_Loader::is_filtered()) {
+            return; // Skipped plugins' widgets are missing here; keep the full list.
+        }
         $seen = array();
         if (!empty($wp_meta_boxes['dashboard']) && is_array($wp_meta_boxes['dashboard'])) {
             foreach ($wp_meta_boxes['dashboard'] as $priorities) {
