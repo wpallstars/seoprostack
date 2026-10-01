@@ -1,0 +1,14 @@
+{
+    "name": "Lasso Lite (Simple URLs)",
+    "tested": "159",
+    "updated": "2026-10-01",
+    "notes": "Hides Lasso's affiliate programme promotions: the bar at the foot of its screens and the banner on the Dashboard. Links, redirects and click counts are not changed.",
+    "options": {
+        "surl_affiliate_promotions": "0",
+        "surl_dismiss_aff_promotions_notice": "1"
+    },
+    "defaults": {
+        "surl_affiliate_promotions": "1",
+        "surl_dismiss_aff_promotions_notice": "0"
+    }
+}

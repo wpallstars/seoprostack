@@ -1,0 +1,22 @@
+{
+    "name": "Kadence Blocks",
+    "tested": "3.7.12",
+    "updated": "2026-10-01",
+    "notes": "Serves the Google Fonts chosen in Kadence blocks from your own site instead of fonts.googleapis.com, so visitors' browsers do not contact Google and pages need one connection less. Kadence downloads each font once, when a page first uses it. With the Kadence theme, the theme loads the blocks' fonts too, so its own Load Google Fonts Locally setting (Customizer › General › Performance) is turned on as well. With a Kadence child theme, turn that setting on in the Customizer.",
+    "options": {
+        "kadence_blocks_font_settings": {
+            "load_fonts_local": "true"
+        },
+        "theme_mods_kadence": {
+            "load_fonts_local": true
+        }
+    },
+    "defaults": {
+        "kadence_blocks_font_settings": {
+            "load_fonts_local": null
+        },
+        "theme_mods_kadence": {
+            "load_fonts_local": null
+        }
+    }
+}
