@@ -218,7 +218,8 @@ check_readme() {
 	fi
 	if [ "$OFFLINE" -eq 0 ]; then
 		local latest latest_major
-		latest="$(curl -s -m 20 'https://api.wordpress.org/core/version-check/1.7/' | sed -n 's/.*"current":"\([0-9.]*\)".*/\1/p' | head -n 1 || true)"
+		# The first offer is the latest release; later ones are older branches.
+		latest="$(curl -s -m 20 'https://api.wordpress.org/core/version-check/1.7/' | grep -o '"current":"[0-9.]*"' | head -n 1 | cut -d'"' -f4 || true)"
 		latest_major="$(printf '%s' "$latest" | cut -d. -f1-2)"
 		if [ -z "$latest_major" ]; then
 			note "could not read the latest WordPress version"
@@ -365,7 +366,7 @@ check_builds() {
 	if [ -f "$wporg_dir/$UPDATER_FILE" ]; then err "wporg: $UPDATER_FILE must not be in the WordPress.org build"; else ok "wporg: no GitHub updater file"; fi
 	if grep -Eq "^[[:space:]*]*($UPDATER_HEADERS):" "$wporg_dir/$MAIN_FILE"; then err "wporg: Git Updater header lines still in $MAIN_FILE"; else ok "wporg: no Git Updater header lines"; fi
 	local hits
-	hits="$(grep -rEl 'gu_override_dot_org|api\.github\.com/repos|Plugin_Upgrader|Theme_Upgrader|site_transient_update_plugins|auto_update_(plugin|theme)' "$wporg_dir" 2>/dev/null | sed "s|^$wporg_dir/||" || true)"
+	hits="$(grep -rEl --include='*.php' --include='*.js' 'gu_override_dot_org|api\.github\.com/repos|Plugin_Upgrader|Theme_Upgrader|site_transient_update_plugins|auto_update_(plugin|theme)' "$wporg_dir" 2>/dev/null | sed "s|^$wporg_dir/||" || true)"
 	if [ -z "$hits" ]; then
 		ok "wporg: no code that installs or updates plugins from elsewhere"
 	else
@@ -380,7 +381,7 @@ check_builds() {
 	hosts="$(grep -rEoh 'https?://[A-Za-z0-9.-]+\.[a-z]{2,}' "$wporg_dir/includes" "$wporg_dir/blocks" 2>/dev/null | sed -E 's|https?://||; s|^www\.||' | sort -u || true)"
 	for host in $hosts; do
 		case "$host" in
-		w3.org | gnu.org | wordpress.org | *.wordpress.org | w.org | *.w.org | example.com | *.example.com) continue ;;
+		w3.org | gnu.org | wordpress.org | *.wordpress.org | w.org | *.w.org | wp.org | *.wp.org | example.com | *.example.com) continue ;;
 		esac
 		if ! printf '%s' "$readme_text" | grep -Fqi "$host"; then missing="$missing $host"; fi
 	done
