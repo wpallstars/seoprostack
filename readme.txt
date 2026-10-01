@@ -25,6 +25,7 @@ Everything is off by default except Hide admin bar items (Comments and + New), N
 * **Admin bar and dashboard access**: hide the admin bar and block wp-admin for roles such as subscribers and customers, never administrators.
 * **Magic login links**: “Email me a login link” on the login screen, with one-time links that email scanners cannot use up.
 * **Modern admin colours**, **No fade between admin screens** (on by default), **Readable list columns** and **Notification emails**, which stops routine emails one by one.
+* **Tidy admin screens**, **Tidy WooCommerce admin** and **Tidy the login screen**: no WordPress and WooCommerce promotions and prompts. With **Simpler block editor**, **Remove WordPress extras** and **Lighter WooCommerce pages**, they do most of Disable Bloat’s job.
 
 = Writing and publishing =
 
@@ -114,6 +115,7 @@ Copies from WordPress.org update from there. New versions come out on GitHub fir
 == Changelog ==
 
 = Unreleased =
+* New, off by default: six features that do most of Disable Bloat’s job, importing its settings.
 * New: starter data for Fluent Forms: four forms that feed FluentCRM lists and tags.
 * Change: Freesoul Deactivate Plugins is no longer recommended.
 * Change: Apply preset names each setting in plain words.

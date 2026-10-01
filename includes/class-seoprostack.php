@@ -25,6 +25,9 @@ final class SEOProStack {
         'SEOProStack_Admin_Menu',
         'SEOProStack_Widget_Control',
         'SEOProStack_Dashboard_Layout',
+        'SEOProStack_Admin_Tidy',
+        'SEOProStack_Woo_Tidy',
+        'SEOProStack_Login_Screen',
         'SEOProStack_Notification_Emails',
         'SEOProStack_Admin_Notices',
         'SEOProStack_Freemius_Quiet',
@@ -38,6 +41,7 @@ final class SEOProStack {
         'SEOProStack_Preview_Links',
         'SEOProStack_Sticky_Posts',
         'SEOProStack_Bulk_Select_All',
+        'SEOProStack_Editor_Tidy',
         'SEOProStack_Auto_Upload',
         'SEOProStack_Paste_Media',
         'SEOProStack_Svg_Uploads',
@@ -55,6 +59,8 @@ final class SEOProStack {
         'SEOProStack_Preload_Pages',
         'SEOProStack_Delay_Scripts',
         'SEOProStack_Delayed_Analytics',
+        'SEOProStack_Wp_Extras',
+        'SEOProStack_Woo_Light',
         'SEOProStack_Kadence_Library',
         'SEOProStack_Plugin_Loading',
         'SEOProStack_Plugin_Toggle',
@@ -90,6 +96,7 @@ final class SEOProStack {
         require_once SEOPROSTACK_DIR . 'includes/class-seoprostack-settings.php';
         require_once SEOPROSTACK_DIR . 'includes/class-seoprostack-feature.php';
         require_once SEOPROSTACK_DIR . 'includes/class-seoprostack-admin-bar.php';
+        require_once SEOPROSTACK_DIR . 'includes/class-seoprostack-disable-bloat.php';
         // Usually loaded already by the must-use file of "Load plugins only
         // where needed"; features ask it which plugins are active.
         if (!class_exists('SEOProStack_Plugin_Loader', false)) {
@@ -107,6 +114,7 @@ final class SEOProStack {
 
         SEOProStack_Settings::init();
         SEOProStack_Admin_Bar::init();
+        SEOProStack_Disable_Bloat::init();
         // Priority 0, added after SEOProStack_Settings::maybe_migrate() so features
         // read migrated values, and early enough to hook widgets_init (init:1).
         add_action('init', array(__CLASS__, 'boot_features'), 0);

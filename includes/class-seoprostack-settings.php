@@ -30,7 +30,7 @@ class SEOProStack_Settings {
 
     /** Stored schema version, used for one-off migrations. */
     const DB_VERSION_OPTION = 'seoprostack_db_version';
-    const DB_VERSION = 5;
+    const DB_VERSION = 6;
 
     /**
      * Tab slugs renamed in 0.4.0, old => new. Settings that still use an
@@ -586,6 +586,12 @@ class SEOProStack_Settings {
      *     and Browser Shots' switch (Website screenshots; it has no settings).
      *     Spectra block replacements switch on while Spectra is active and
      *     its blocks are in use.
+     * v6: import Disable Bloat's switches, while it is active, after 0.7.0
+     *     shipped at v5 (SEOProStack_Disable_Bloat): Tidy WooCommerce admin,
+     *     Lighter WooCommerce pages, Remove WordPress extras, Tidy the login
+     *     screen, Tidy admin screens and Simpler block editor, plus its
+     *     W logo (Hide admin bar items), widgets and Dashboard boxes
+     *     (Dashboard and sidebar widgets).
      *
      * Old options are left in place so a downgrade keeps working;
      * uninstall.php removes ours. Other plugins' options are never touched.

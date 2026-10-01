@@ -10,6 +10,9 @@
  * - installed but inactive, with every replacing setting on: no longer
  *   needed, with a Delete link (single sites; on multisite a plugin may be
  *   active on another site).
+ * While an active plugin does things here that SEO Pro Stack does not (the
+ * `seoprostack_replaced_plugin_extras` filter), the notice names them
+ * instead of saying the plugin can go.
  *
  * Shown on the Plugins screen to people who can activate plugins. "Hide"
  * hides the plugins listed at the time for that person; a plugin that needs
@@ -118,12 +121,28 @@ class SEOProStack_Replaced_Plugins {
             if ('switch_on' === $step && !SEOProStack_Settings::can_change()) {
                 continue;
             }
+            $extras = array();
+            if ('delete' !== $step) {
+                /**
+                 * What a replaced plugin does on this site that SEO Pro Stack,
+                 * as set up, does not. When there is any, the notice lists it
+                 * instead of saying the plugin can go.
+                 *
+                 * @param string[] $extras Plain names.
+                 * @param string   $slug   Plugin folder.
+                 */
+                $extras = array_values(array_filter(array_map('strval', (array) apply_filters('seoprostack_replaced_plugin_extras', array(), (string) $slug))));
+            }
+            if ($extras) {
+                $step = 'deactivate' === $step ? 'partial' : 'switch_on_partial';
+            }
             $items[] = array(
                 'slug'     => (string) $slug,
                 'file'     => $file,
                 'name'     => $plugin['name'],
                 'step'     => $step,
                 'settings' => $plugin['settings'],
+                'extras'   => $extras,
             );
         }
 
@@ -186,6 +205,24 @@ class SEOProStack_Replaced_Plugins {
             return $text;
         }
 
+        if ('partial' === $item['step'] || 'switch_on_partial' === $item['step']) {
+            $extras = esc_html(implode(', ', $item['extras']));
+            if ('partial' === $item['step']) {
+                /* translators: 1: plugin name, 2: SEO Pro Stack setting names, 3: the plugin's settings SEO Pro Stack does not have */
+                $text = sprintf(esc_html__('%1$s: %2$s is on and takes over once you deactivate it, except for these, which SEO Pro Stack does not do: %3$s. Deactivate it only if you no longer need them.', 'seoprostack'), $name, esc_html($labels), $extras);
+                if (current_user_can('deactivate_plugin', $item['file'])) {
+                    $url   = wp_nonce_url(add_query_arg(array('action' => 'deactivate', 'plugin' => rawurlencode($item['file'])), $base), 'deactivate-plugin_' . $item['file']);
+                    /* translators: %s: plugin name */
+                    $text .= sprintf(' <a href="%1$s">%2$s</a>', esc_url($url), esc_html(sprintf(__('Deactivate %s', 'seoprostack'), $item['name'])));
+                }
+                return $text;
+            }
+            /* translators: 1: plugin name, 2: SEO Pro Stack setting names, 3: the plugin's settings SEO Pro Stack does not have */
+            $text = sprintf(esc_html__('%1$s: %2$s can do part of its job. SEO Pro Stack does not do these, which it has on: %3$s.', 'seoprostack'), $name, esc_html($labels), $extras);
+            $url  = SEOProStack_Admin_Manager::tab_url(SEOProStack_Admin_Manager::SEARCH, array('s' => $item['name']));
+            return $text . sprintf(' <a href="%1$s">%2$s</a>', esc_url($url), esc_html__('Show the setting', 'seoprostack'));
+        }
+
         if ('delete' === $item['step']) {
             /* translators: 1: plugin name, 2: SEO Pro Stack setting names */
             $text = sprintf(esc_html__('%1$s is inactive and no longer needed: %2$s does its job.', 'seoprostack'), $name, esc_html($labels));
@@ -213,7 +250,7 @@ class SEOProStack_Replaced_Plugins {
         }
         $items  = isset($_GET['items']) ? explode(',', sanitize_text_field(wp_unslash($_GET['items']))) : array();
         $items  = array_filter($items, function ($item) {
-            return (bool) preg_match('/^[A-Za-z0-9._-]+:(deactivate|switch_on|delete)$/', $item);
+            return (bool) preg_match('/^[A-Za-z0-9._-]+:(deactivate|switch_on|delete|partial|switch_on_partial)$/', $item);
         });
         $hidden = (array) get_user_meta(get_current_user_id(), self::HIDDEN, true);
         update_user_meta(get_current_user_id(), self::HIDDEN, array_values(array_unique(array_filter(array_merge($hidden, $items)))));
