@@ -8,7 +8,7 @@ Version: {SEOPROSTACK_VERSION}
 
 Go to **Settings → SEO Pro Stack**. The screen has three groups of tabs:
 
-- **Settings**: Admin, Content, Media, Links, Speed and Plugins (Maintenance appears once it has features). Changes save instantly; there is no Save button.
+- **Settings**: Admin, Content, Media, Links, Speed and Plugins, plus Maintenance in builds from GitHub releases. Changes save instantly; there is no Save button.
 - **Search features** (next to the plugin name) finds settings on every tab by name, description or the plugin they replace. Results can be switched on and changed in place.
 - **Discover**: Theme, Free Plugins, Pro Plugins, Hosting and Tools.
 - **About**: this Read Me.
@@ -381,16 +381,43 @@ Other screens, such as the Dashboard, skip them. On a test site with 191 active 
 - Plugins that change the login address or the list of active plugins always load. Plugins that change user permissions are marked in the list; leave security, login and role plugins unticked.
 - Works from a small must-use file, `wp-content/mu-plugins/seoprostack-plugin-loading.php`, written when the feature is switched on and removed when it is switched off or SEO Pro Stack is deactivated or deleted. If that folder is not writable, the settings say so. On multisite the file serves every site and filters only where the feature is on; network-activated plugins always load.
 
+### Early updates from GitHub (Maintenance)
+
+Only in builds from GitHub releases (see [Updates and releases](#updates-and-releases)). Off by default.
+
+SEO Pro Stack gets its updates from GitHub through [Git Updater](https://git-updater.com/), a free plugin that reads the `GitHub Plugin URI` header and offers each GitHub release on the Updates screen like any other update. SEO Pro Stack never checks for updates itself.
+
+- **Install prompt.** While Git Updater is not active, people who can install plugins (on multisite, super admins in the network admin) see a notice on the Dashboard, Plugins, Updates and SEO Pro Stack screens. **Install and activate Git Updater** downloads its latest release from GitHub, installs it and activates it (network-wide on multisite, which Git Updater needs). If it is installed but inactive, the button activates it. **Dismiss** hides the notice for that person. Git Updater needs PHP 8.0; on older PHP the notice says so instead of offering the button.
+- **Free Plugins** lists Git Updater first in Minimal, with the same install button.
+- **The setting.** Once SEO Pro Stack is on WordPress.org, Git Updater takes its updates from there, a little later than GitHub. Switch this on to stay on GitHub releases, which come out first. It adds the plugin to Git Updater’s `gu_override_dot_org` filter. Until SEO Pro Stack is on WordPress.org, every update comes from GitHub whether it is on or off.
+
 ### Discover
 
 - **Theme**: install, activate or customise the Kadence theme.
-- **Free Plugins**: recommended plugins from WordPress.org by category, with the same Install and Activate buttons as Plugins → Add New. Shown only to users who can install plugins (on multisite, super admins).
+- **Free Plugins**: recommended plugins from WordPress.org by category, with the same Install and Activate buttons as Plugins → Add New. Shown only to users who can install plugins (on multisite, super admins). Builds from GitHub releases also list Git Updater, which is not on WordPress.org.
 - **Pro Plugins, Hosting, Tools**: filterable directories with links to each product. Pro plugins show a badge when their free version is already on the site.
 
 ## Requirements
 
 - WordPress 6.2 or later
 - PHP 7.4 or later
+
+## Updates and releases
+
+There are two builds of each version:
+
+- **GitHub release** (`seoprostack-X.Y.Z.zip` on the repository’s Releases page): everything, including Early updates from GitHub (`includes/features/class-seoprostack-github-updates.php`). With Git Updater, sites get each release as a normal update.
+- **WordPress.org** (once listed): the same files without `includes/features/class-seoprostack-github-updates.php`, because plugins hosted there may not install or update code from elsewhere. SEO Pro Stack loads that file only when it is present. The plugin header lines for Git Updater stay; they do nothing without it.
+
+GitHub releases can go out as often as needed, so they work as the early channel; WordPress.org gets the versions that have settled.
+
+Releasing on GitHub:
+
+1. Merge the version change (`Version:` and `SEOPROSTACK_VERSION` in `seoprostack.php`, `Stable tag:` in `readme.txt`) to `main`.
+2. Straight away, tag that commit `vX.Y.Z` and publish a GitHub release with `seoprostack-X.Y.Z.zip` attached. Build the zip from the tag with `.distignore` applied (as in AGENTS.md → Testing), with everything inside a `seoprostack/` folder. Git Updater picks the newest release whose tag has no letters and whose asset name starts with `seoprostack`.
+3. Git Updater compares the `Version:` header of `seoprostack.php` on `main` with the installed version, and installs the newest release zip. Until the release exists, sites that check in between are offered the new version but get the previous zip, so publish the release in the same sitting as the merge.
+
+Do not put pre-release versions (`-beta1`, `-rc1`) in the `Version:` header on `main`: Git Updater would offer them to every site. Do not add an `Update URI` header: WordPress.org rejects it, and Plugin Check reports it as an updater.
 
 ## Extending
 
@@ -400,6 +427,8 @@ Developers can add settings, tabs and directory entries with filters:
 - `seoprostack_settings_schema`: add or change settings. Each entry sets `type` (bool, int, text, url, lines, domains, select, multi, times or media, a picture from the Media Library stored as its attachment ID), `default`, `label`, `description` and either `tab` or `parent`; select and multi also take `options` (an array or a callable), and multi takes `open` to keep saved values that are not currently registered. `reload` (true) makes the saved message ask to reload the page, for changes that show only after a page load. `replaces` (slug => name) shows which plugin a feature replaces. Settings render and save automatically. Tabs are `admin`, `content`, `media`, `links`, `speed`, `plugins` and `maintenance`; the pre-0.4 slugs `general`, `workflow` and `advanced` still work and map to `admin`, `content` and `links`.
 - `seoprostack_admin_tabs`: add or reorder admin tabs. Each tab sets `label`, `group` (settings, discover or about), a `render` callback and an optional `capability`; tabs the current user lacks the capability for are hidden.
 - `seoprostack_pro_items`, `seoprostack_hosting_items`, `seoprostack_tools_items`: change directory entries.
+- `seoprostack_free_plugins`: change the Free Plugins list (category => slugs).
+- `seoprostack_external_plugins`: card data for listed plugins that are not on WordPress.org (slug => `name`, `description`, `author`, `url`, `file` when installed, `network`, `install_url`, `requires_php`, `source`). Their cards are built from this data instead of the WordPress.org API, with an Install Now link to `install_url`.
 - `seoprostack_auto_upload_process_post`: skip image copying for specific posts.
 - `seoprostack_auto_upload_limit`: change the per-save import limit.
 - `seoprostack_magic_login_allowed`: allow or refuse login links for a user.
@@ -433,7 +462,7 @@ Read a setting with `SEOProStack_Settings::get( 'key' )`.
 
 ## Uninstall
 
-Deleting the plugin removes its settings and cached data, the profile pictures and generated avatars in `uploads/seoprostack-avatars/`, the WebP and AVIF copies of pictures, including copies left by pictures deleted while the plugin was inactive, and short links with their categories and click counts (Pretty Links’ own links are left alone), and the must-use file of Load plugins only where needed. Imported media and screenshots stay in the Media Library because your posts use them. Watermarked pictures stay marked, and their unmarked originals stay in the `uploads/seoprostack-originals-…` folder so they are not lost; delete that folder if you do not need them.
+Deleting the plugin removes its settings and cached data, the profile pictures and generated avatars in `uploads/seoprostack-avatars/`, the WebP and AVIF copies of pictures, including copies left by pictures deleted while the plugin was inactive, and short links with their categories and click counts (Pretty Links’ own links are left alone), and the must-use file of Load plugins only where needed, and who dismissed the Git Updater notice. Git Updater itself stays installed. Imported media and screenshots stay in the Media Library because your posts use them. Watermarked pictures stay marked, and their unmarked originals stay in the `uploads/seoprostack-originals-…` folder so they are not lost; delete that folder if you do not need them.
 
 Deactivating the plugin removes the WebP and AVIF rules from the uploads folder’s `.htaccess` (for every site when network-deactivated) and the must-use file of Load plugins only where needed (on multisite, when network-deactivated).
 
@@ -441,6 +470,9 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folder�
 
 ### Unreleased
 
+- New: updates from GitHub. The plugin header names the repository for Git Updater (`GitHub Plugin URI`, `Primary Branch`, `Release Asset`), so sites with Git Updater get each GitHub release on the Updates screen. Builds from GitHub releases show a notice, while Git Updater is not active, that installs and activates its latest release in one click (nonce-checked `seoprostack_install_git_updater` and `seoprostack_dismiss_git_updater` admin-post actions; `seoprostack_git_updater_dismissed` user meta, removed on uninstall), and list it first in Free Plugins → Minimal.
+- New, off by default, GitHub builds only: Early updates from GitHub (Maintenance tab) keeps the site on GitHub releases once SEO Pro Stack is also on WordPress.org.
+- New: `seoprostack_free_plugins` and `seoprostack_external_plugins` filters; Free Plugins can list plugins from outside WordPress.org. Features in `SEOProStack::$optional_features` load only when their file is present, so the WordPress.org build can leave out GitHub updates.
 - New, off by default: More menu in the admin bar (Admin tab) moves the items plugins and themes add to the left of the admin bar into one … menu, last on that side, so the bar stays on one line instead of wrapping over the page. It opens on hover, like the other admin bar menus. Keep on the bar lists the plugins that add items; ticked ones keep theirs on the bar. New `seoprostack_admin_bar_more_items` filter, and a `reload` schema key that makes the saved message ask to reload the page.
 - New, on by default: Hide admin bar items (Admin tab) removes chosen WordPress items from the admin bar for everyone; Comments and + New are ticked by default. It is on by default, so sites that update get a tidier bar; switch it off to keep every item. The account menu is never offered.
 - New, on by default: No fade between admin screens (Admin tab) stops the fade WordPress 7.0 added between wp-admin screens, which can flash, so screens change straight away. It removes core’s `wp-view-transitions-admin` style and prints `@view-transition { navigation: none; }` on admin screens. Switch it off to keep the fade.

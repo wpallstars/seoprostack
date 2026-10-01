@@ -234,6 +234,8 @@ if (is_multisite()) {
 // Unused magic login links and profile pictures (user meta is network-wide).
 delete_metadata('user', 0, '_seoprostack_magic_login', '', true);
 delete_metadata('user', 0, 'seoprostack_avatar', '', true);
+// Dismissed "Install Git Updater" notices (GitHub builds).
+delete_metadata('user', 0, 'seoprostack_git_updater_dismissed', '', true);
 
 // Plugin caches, network-wide because plugins are shared by every site. On
 // single sites these calls remove the ordinary option and transient.

@@ -38,6 +38,30 @@ Minimums: **WordPress 6.2, PHP 7.4** (`readme.txt`, plugin header). User docs:
   filters, update checks). Plugin Check reports `plugin_updater_detected` as an
   error, and WordPress.org asks plugins not to interfere with the updater. A
   parked example is on the `feature/disable-updates-parked` branch.
+- The one exception, at the owner's request: updates from GitHub through Git
+  Updater, all in `includes/features/class-seoprostack-github-updates.php`
+  (listed in `SEOProStack::$optional_features`, loaded only when present). It
+  uses Git Updater's own `gu_*` filters and installs Git Updater on request;
+  it never touches core update transients or bundles an updater. Keep
+  anything that installs or updates code from outside WordPress.org in that
+  file, because the WordPress.org build leaves it out. Never add an
+  `Update URI` header.
+
+## Releases
+
+GitHub releases are the early channel; WordPress.org gets settled versions.
+Git Updater compares the `Version:` header of `seoprostack.php` on `main`
+with installed copies and installs the newest release asset, so:
+
+- Publish the GitHub release (tag `vX.Y.Z`, asset `seoprostack-X.Y.Z.zip`
+  with a `seoprostack/` folder, built with `.distignore`) straight after the
+  version change reaches `main`.
+- Never put a pre-release version (`-beta1`, `-rc1`) in `Version:` on `main`;
+  every site with Git Updater would be offered it.
+- The WordPress.org build is the release build without
+  `includes/features/class-seoprostack-github-updates.php`.
+
+Details: `README.md` → Updates and releases.
 
 ## Front-end styling and dark mode
 

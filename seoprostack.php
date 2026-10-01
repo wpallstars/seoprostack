@@ -11,6 +11,9 @@
  * License:           GPL-2.0-or-later
  * License URI:       https://www.gnu.org/licenses/gpl-2.0.html
  * Text Domain:       seoprostack
+ * GitHub Plugin URI: wpallstars/seoprostack
+ * Primary Branch:    main
+ * Release Asset:     true
  *
  * SEO Pro Stack is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
