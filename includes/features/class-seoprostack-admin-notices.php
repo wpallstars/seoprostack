@@ -127,8 +127,9 @@ class SEOProStack_Admin_Notices extends SEOProStack_Feature {
         add_filter('admin_body_class', array(__CLASS__, 'body_class'));
         add_action('admin_head', array(__CLASS__, 'style'));
         add_action('admin_enqueue_scripts', array(__CLASS__, 'script'));
-        // Late, so it sits left of the account menu and other plugins' items.
         add_action('admin_bar_menu', array(__CLASS__, 'bell'), 90);
+        // Next to the account menu, with the Plugins menu and then other plugins' items to its left.
+        SEOProStack_Admin_Bar::pin(self::NODE, 0);
         if (SEOProStack_Settings::get(self::EXAMPLES)) {
             add_action('admin_notices', array(__CLASS__, 'examples'));
         }
