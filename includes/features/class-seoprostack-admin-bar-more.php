@@ -6,7 +6,8 @@
  * into one "…" menu, last on the left: after WordPress's own items (+ New,
  * Edit and the like) and any kept items, so the bar stays on one line
  * instead of wrapping over the page.
- * Clicking "…" opens the menu; the moved items keep their own submenus.
+ * "…" opens like any admin bar menu, on hover; the moved items keep their
+ * own submenus.
  * The right of the bar (account menu, notices bell, Plugins menu) is not
  * changed.
  *
@@ -59,7 +60,7 @@ class SEOProStack_Admin_Bar_More extends SEOProStack_Feature {
                 'default'     => false,
                 'tab'         => 'admin',
                 'label'       => __('More menu in the admin bar', 'seoprostack'),
-                'description' => __('Put the items plugins and themes add to the left of the admin bar in one … menu, last on that side, so the bar stays on one line and never covers the page. Click … to open it. Works in wp-admin and on the site.', 'seoprostack'),
+                'description' => __('Put the items plugins and themes add to the left of the admin bar in one … menu, last on that side, so the bar stays on one line and never covers the page. Point at … to open it. Works in wp-admin and on the site.', 'seoprostack'),
                 // The bar on this page was drawn before the change.
                 'reload'      => true,
             ),
@@ -175,11 +176,17 @@ class SEOProStack_Admin_Bar_More extends SEOProStack_Feature {
         $label = __('More', 'seoprostack');
         // No tooltip, like core's menus: it would cover the open menu. Screen
         // readers read the hidden text, and the menu is labelled by menu_title.
+        // No link: it is an ordinary menu, so core's admin bar script opens it
+        // on hover, Enter or a tap and closes it with Escape. tabindex 0 makes
+        // it reachable from the keyboard.
         $wp_admin_bar->add_node(array(
             'id'    => self::NODE,
             'title' => '<span class="ab-icon" aria-hidden="true"></span><span class="screen-reader-text">' . esc_html($label) . '</span>',
-            'href'  => '#',
-            'meta'  => array('menu_title' => $label),
+            'href'  => false,
+            'meta'  => array(
+                'menu_title' => $label,
+                'tabindex'   => 0,
+            ),
         ));
         // Nodes keep their place in the list, so moved items stay in bar order.
         // Their own menus point at their IDs and move with them.
@@ -310,15 +317,14 @@ class SEOProStack_Admin_Bar_More extends SEOProStack_Feature {
     }
 
     /**
-     * Styles and the click handling, added to the admin bar's own assets.
+     * Styles and a screen reader fix, added to the admin bar's own assets.
+     * Opening and closing is core's, as for every admin bar menu.
      */
     public static function assets() {
         $m = '#wpadminbar #wp-admin-bar-' . self::NODE;
         $css = "{$m}>.ab-item .ab-icon{margin-right:0}"
             . "{$m}>.ab-item .ab-icon:before{content:\"\\f11c\";top:2px}"
-            // Opens on click, not on hover (without JavaScript, hover still works).
-            . "#wpadminbar:not(.nojs) #wp-admin-bar-" . self::NODE . ":not(.sps-open)>.ab-sub-wrapper{display:none}"
-            . "{$m}.sps-open>.ab-sub-wrapper{display:block}"
+            . "{$m}>.ab-item{cursor:default}"
             . "{$m}>.ab-sub-wrapper{min-width:12rem}"
             // Moved items are built for the bar: let titles and icons size to the row.
             . "{$m} .ab-submenu>li>.ab-item{height:auto;min-height:26px;white-space:nowrap}"
@@ -330,7 +336,7 @@ class SEOProStack_Admin_Bar_More extends SEOProStack_Feature {
             // Phones and tablets: core hides plugin items there; the menu shows them.
             . "@media screen and (max-width:782px){"
             . "#wpadminbar li#wp-admin-bar-" . self::NODE . "{display:block;position:static}"
-            . "{$m}.sps-open li{display:list-item}"
+            . "{$m}.hover li{display:list-item}"
             . "{$m}>.ab-sub-wrapper{max-height:calc(100vh - 46px);overflow-y:auto;overscroll-behavior:contain}"
             . "{$m} .ab-submenu .ab-label{position:static;width:auto;height:auto;margin:0;clip-path:none;overflow:visible}"
             . "{$m} .ab-submenu .ab-icon,{$m} .ab-submenu .ab-item:before{width:auto;height:auto;font-size:20px!important;line-height:1!important;text-indent:0}"
@@ -340,25 +346,23 @@ class SEOProStack_Admin_Bar_More extends SEOProStack_Feature {
             . "}";
         wp_add_inline_style('admin-bar', $css);
 
-        // Core's "hover" class gives the highlight in every admin colour scheme;
-        // keep it while the menu is open, and keep aria-expanded in step with
-        // the click state (core sets it on hover).
+        // Core sets aria-expanded on the first link inside an opened menu.
+        // "…" is not a link, so that would mark a moved item open instead.
+        // Keep every toggle in the menu in step with its own open state.
         $js = '(function(id){'
-            . 'function li(){return document.getElementById("wp-admin-bar-"+id);}'
-            . 'function sync(m){var open=m.classList.contains("sps-open"),a=m.querySelector(".ab-item"),v=open?"true":"false";'
-            . 'if(open&&!m.classList.contains("hover")){m.classList.add("hover");}'
-            . 'if(a&&a.getAttribute("aria-expanded")!==v){a.setAttribute("aria-expanded",v);}}'
-            . 'function set(m,open){m.classList.toggle("sps-open",open);m.classList.toggle("hover",open);sync(m);}'
-            . 'function watch(){var m=li();if(!m){return;}sync(m);if(window.MutationObserver){new MutationObserver(function(){sync(m);}).observe(m,{attributes:true,attributeFilter:["class"]});}}'
+            . 'function sync(m){var t=m.querySelectorAll(".menupop>.ab-item"),i,a;'
+            . 'for(i=0;i<t.length;i++){a=t[i];if(a.parentNode===m||a.hasAttribute("aria-expanded")){'
+            . 'var v=a.parentNode.classList.contains("hover")?"true":"false";if(a.getAttribute("aria-expanded")!==v){a.setAttribute("aria-expanded",v);}}}}'
+            . 'function watch(){var m=document.getElementById("wp-admin-bar-"+id);if(!m){return;}sync(m);'
+            . 'if(window.MutationObserver){new MutationObserver(function(){sync(m);}).observe(m,{attributes:true,attributeFilter:["class"],subtree:true});}}'
             . 'if("loading"===document.readyState){document.addEventListener("DOMContentLoaded",watch);}else{watch();}'
-            . 'document.addEventListener("click",function(e){var m=li();if(!m){return;}'
-            . 'var t=e.target.closest?e.target.closest("#wp-admin-bar-"+id+">.ab-item"):null;'
-            . 'if(t){e.preventDefault();set(m,!m.classList.contains("sps-open"));return;}'
-            . 'if(m.classList.contains("sps-open")&&!m.contains(e.target)){set(m,false);}});'
-            . 'document.addEventListener("keydown",function(e){var m=li();if(!m){return;}'
-            . 'if("Escape"===e.key&&m.classList.contains("sps-open")){set(m,false);var a=m.querySelector(".ab-item");if(a){a.focus();}return;}'
-            . 'if(("Enter"===e.key||" "===e.key)&&e.target===m.querySelector(".ab-item")){e.preventDefault();e.stopPropagation();set(m,!m.classList.contains("sps-open"));}'
-            . '},true);'
+            // Escape on a moved item with its own submenu only closes that
+            // submenu in core; when it is already closed, close "…" instead.
+            . 'document.addEventListener("keydown",function(e){if("Escape"!==e.key&&27!==e.which){return;}'
+            . 'var m=document.getElementById("wp-admin-bar-"+id),w=m?m.querySelector(".ab-sub-wrapper"):null;'
+            . 'if(!w||!m.classList.contains("hover")||!e.target.closest||!w.contains(e.target)){return;}'
+            . 'var p=e.target.closest(".menupop");if(!p||p===m||p.classList.contains("hover")){return;}'
+            . 'e.stopPropagation();m.classList.remove("hover");var t=m.querySelector(".ab-item");if(t){t.focus();}},true);'
             . '})(' . wp_json_encode(self::NODE) . ');';
         wp_add_inline_script('admin-bar', $js);
     }
