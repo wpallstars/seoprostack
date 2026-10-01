@@ -400,7 +400,7 @@ Checks whether the hosting fits the site, and says what to ask the host for. It 
 
 - Visits open 2.5 pages; the busiest hour is 3 times the average hour, with bursts 3 times that; a quarter more requests reach PHP for the REST API, AJAX, cron and bots.
 - A page cache serves all but 15% of page views (40% on shop, membership and course sites). With no page cache found, every view reaches PHP.
-- Time per request is the time 95% of sampled pages took (all sampled requests until 30 pages are sampled); until 30 requests are sampled, 0.5 seconds (1 second on shop and similar sites).
+- Time per request is the time 95% of sampled visitor pages took, once 30 are sampled; until then 0.5 seconds (1 second on shop and similar sites). Admin screens, the REST API and cron are timed and shown in Site Health, but not used: they take far longer and are not what visitor traffic needs.
 - PHP workers = requests per second that reach PHP in a burst × time per request, plus one for cron and the admin, with at least 2, 4 and 8 for low, medium and high traffic. RAM = workers × memory per worker + OPcache + the database (its size plus a fifth, 128 MB to 4 GB) + the system (0.5 to 1.5 GB) + an object cache from medium traffic (at any traffic on sites with a lot of data), with a quarter extra for bursts, rounded up to a common plan size. CPU cores allow 0.7 of a core per busy worker, with at least 1, 2 and 4.
 
 These are starting points to compare plans with, not guarantees: hosts count workers, memory and CPU differently. The constants are in `includes/class-seoprostack-hosting-plans.php`.
