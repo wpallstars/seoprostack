@@ -195,7 +195,7 @@ class SEOProStack_Plugin_Sizes extends SEOProStack_Feature {
         $totals = array('installed' => $zero, 'active' => $zero);
         foreach ($plugins as $file => $plugin) {
             $sizes  = self::valid($cache, $file, (array) $plugin);
-            $active = $network ? is_plugin_active_for_network($file) : is_plugin_active($file);
+            $active = $network ? is_plugin_active_for_network($file) : SEOProStack_Plugin_Loader::is_active($file);
             foreach ($active ? array('installed', 'active') : array('installed') as $key) {
                 $totals[$key]['count']++;
                 if (null === $sizes) {

@@ -459,12 +459,13 @@ Makes wp-admin faster on sites with many plugins. Tick the plugins that should l
 - on post, term and list screens where they add boxes, fields, blocks, editor features or Quick Edit fields, for that post type or taxonomy only;
 - on the Profile, Add user and Edit user screens where they show or save profile fields, or change roles and permissions;
 - on Tools and Media › Add New where they add tools or change the upload form;
+- on SEO Pro Stack’s own settings where they register post types, taxonomies or widgets that the settings offer as choices, change permissions, or add to the settings through `seoprostack_*` hooks;
 - wherever a plugin that needs them loads.
 
 Other screens, such as the Dashboard and the About screens, skip them. On a test site with 191 active plugins, all ticked, the Dashboard went from about 5.2 to 0.15 seconds, the Posts list from 3.9 to 0.7 seconds, and a plugin’s own page to about 0.25 seconds. The post editor gains least, because most of those plugins add something to it.
 
 - **Learned, not configured.** The first time an administrator opens a screen, it loads every plugin and SEO Pro Stack notes what the screen needs. What was learned is forgotten when plugins are activated, deactivated or updated.
-- **Always every plugin**: saving (form posts, links with an action or nonce, admin-ajax, REST), cron, WP-CLI, the site itself, and the Plugins, updates, settings, widgets, menus, Customizer, Site Health, import and export screens, and SEO Pro Stack’s own settings. Saving a profile loads every plugin too, so a plugin that saves profile fields always loads on the profile screens and its fields are never left out of the form.
+- **Always every plugin**: saving (form posts, links with an action or nonce, admin-ajax, REST), cron, WP-CLI, the site itself, and the Plugins, updates, settings, widgets, menus, Customizer, Site Health, import and export screens. SEO Pro Stack’s own settings save through admin-ajax, so they are checked with every plugin loaded, and on a screen with fewer plugins a list of choices also shows saved choices it cannot offer there, so saving never drops them. Saving a profile loads every plugin too, so a plugin that saves profile fields always loads on the profile screens and its fields are never left out of the form.
 - **The menu stays the same.** Skipped plugins’ entries are put back as links; opening one loads what that page needs. Each person only gets back entries they could open. Administrators also see entries for capabilities that a skipped plugin grants itself; the page checks access when it opens. A logo that a skipped plugin puts in its menu title as a picture becomes the entry’s icon, since the plugin’s styles for it are not loaded.
 - **Shared code.** Plugins that bundle Freemius share one copy, loaded from whichever plugin has the newest, and Freemius takes over their welcome and opt-in pages. Those pages load the plugin Freemius works for, not the plugin that holds the shared copy.
 - **Dependencies follow.** Plugins that need a ticked plugin (`Requires Plugins`, `WC requires at least`, `Elementor tested up to`, or named as a WooCommerce, Elementor or Contact Form 7 add-on) load where it loads, and a ticked plugin loads wherever a plugin that needs it loads.
@@ -568,6 +569,11 @@ Deleting the plugin removes its settings and cached data, the profile pictures a
 Deactivating the plugin removes the WebP and AVIF rules from the uploads folder’s `.htaccess` (for every site when network-deactivated) and the must-use file of Load plugins only where needed (on multisite, when network-deactivated).
 
 ## Changelog
+
+### Unreleased
+
+- Changed: with Load plugins only where needed, SEO Pro Stack’s own settings no longer load every plugin. They load the plugins whose public post types, taxonomies or widgets the settings offer as choices, plugins that change permissions and plugins that use `seoprostack_*` hooks. On a test site with 85 active plugins, every tab went from 2.0–4.2 seconds and about 4.5 MB to 1.2–1.8 seconds and 2.9 MB with 30 plugins, showing the same settings, choices, text and menu. SEO Pro Stack now reads the stored list of active plugins wherever it shows or decides what is active, so plugins skipped on a screen still count as active (replaced plugins, the Plugin loading list, Free Plugins, Plugin sizes, Hosting needs, More menu sources and Git Updater). What every screen needs is learned again once after updating.
+- Fixed: Tidy the dashboard forgot dashboard widgets of plugins skipped on the Dashboard, so they were no longer offered to hide.
 
 ### 0.6.0
 

@@ -429,7 +429,7 @@ class SEOProStack_Plugin_Manager {
 
         if (is_multisite() && is_plugin_active_for_network($file)) {
             $state['status'] = 'network-active';
-        } elseif (is_plugin_active($file)) {
+        } elseif (SEOProStack_Plugin_Loader::is_active($file)) {
             $state['status'] = 'active';
         } else {
             $state['status'] = 'inactive';
@@ -609,7 +609,7 @@ class SEOProStack_Plugin_Manager {
         $network = !empty($data['network']);
         $php     = isset($data['requires_php']) ? (string) $data['requires_php'] : '';
 
-        $active  = $file && ($network ? is_plugin_active_for_network($file) : is_plugin_active($file));
+        $active  = $file && ($network ? is_plugin_active_for_network($file) : SEOProStack_Plugin_Loader::is_active($file));
         $php_bad = !$active && $php && !is_php_version_compatible($php);
         if ($active) {
             $label = _x('Active', 'plugin', 'seoprostack');

@@ -322,7 +322,9 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
         $self    = plugin_basename(SEOPROSTACK_FILE);
 
         $options = array();
-        foreach ((array) get_option('active_plugins', array()) as $file) {
+        // As stored: plugins skipped on this screen must stay in the list, or
+        // saving it would untick them.
+        foreach (SEOProStack_Plugin_Loader::stored_active_plugins() as $file) {
             if (!is_string($file) || $self === $file) {
                 continue;
             }
@@ -613,12 +615,19 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
                 'deps'        => self::dependencies($state['active']),
                 'always'      => $always,
                 'permissions' => $permissions,
+                'settings'    => self::plugins_on_hooks(function ($name) {
+                    return 0 === strpos($name, 'seoprostack_');
+                }),
+                'widgets'     => self::widget_plugins(),
                 'pages'       => array(),
                 'screens'     => array(),
                 'load_all'    => array(),
             );
         } else {
             return; // Plugins changed during this request; the next one learns.
+        }
+        if ($state['attributing']) {
+            $map['choices'] = self::choice_plugins($map);
         }
 
         if (null !== self::$pages) {
@@ -707,6 +716,58 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
                 return in_array($name, SEOProStack_Plugin_Loader::PERMISSION_HOOKS, true);
             }),
         );
+    }
+
+    /**
+     * Plugins whose post types or taxonomies SEO Pro Stack's settings can
+     * offer as choices: post types that are public or have screens, and
+     * public taxonomies with screens. Internal ones are left out.
+     *
+     * @param array $map Learned map.
+     * @return string[]
+     */
+    private static function choice_plugins(array $map) {
+        $plugins = array();
+        foreach ((array) $map['types'] as $name => $plugin) {
+            $object = get_post_type_object((string) $name);
+            if ('' !== $plugin && $object && ($object->public || $object->show_ui)) {
+                $plugins[$plugin] = true;
+            }
+        }
+        foreach ((array) $map['taxes'] as $name => $plugin) {
+            $object = get_taxonomy((string) $name);
+            if ('' !== $plugin && $object && $object->public && $object->show_ui) {
+                $plugins[$plugin] = true;
+            }
+        }
+        return array_keys($plugins);
+    }
+
+    /**
+     * Plugins that register sidebar widgets, including widgets SEO Pro
+     * Stack hides (Widget control lists them as choices).
+     *
+     * @return string[]
+     */
+    private static function widget_plugins() {
+        $classes = array();
+        if (isset($GLOBALS['wp_widget_factory']->widgets) && is_array($GLOBALS['wp_widget_factory']->widgets)) {
+            $classes = array_keys($GLOBALS['wp_widget_factory']->widgets);
+        }
+        $hidden  = SEOProStack_Settings::get('disabled_sidebar_widgets');
+        $classes = array_merge($classes, is_array($hidden) ? $hidden : array());
+
+        $plugins = array();
+        foreach (array_unique(array_map('strval', $classes)) as $class) {
+            if (!class_exists($class, false)) {
+                continue;
+            }
+            $plugin = SEOProStack_Plugin_Loader::plugin_for_file((string) (new ReflectionClass($class))->getFileName());
+            if ('' !== $plugin) {
+                $plugins[$plugin] = true;
+            }
+        }
+        return array_keys($plugins);
     }
 
     /**

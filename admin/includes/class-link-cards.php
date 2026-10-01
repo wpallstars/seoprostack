@@ -137,7 +137,7 @@ class SEOProStack_Link_Cards {
         foreach ((array) $item['free_slug'] as $slug) {
             if (is_string($slug) && isset($installed[$slug])) {
                 $found  = true;
-                $active = $active || is_plugin_active($installed[$slug]);
+                $active = $active || SEOProStack_Plugin_Loader::is_active($installed[$slug]);
             }
         }
         if (!$found) {

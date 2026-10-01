@@ -104,7 +104,7 @@ class SEOProStack_Paste_Media extends SEOProStack_Feature {
      */
     public static function migrate(array $options, $from_version) {
         $file   = 'the-paste/index.php';
-        $active = in_array($file, (array) get_option('active_plugins', array()), true);
+        $active = in_array($file, SEOProStack_Plugin_Loader::stored_active_plugins(), true);
         if (!$active && is_multisite()) {
             $active = array_key_exists($file, (array) get_site_option('active_sitewide_plugins', array()));
         }
