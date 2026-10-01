@@ -77,7 +77,7 @@ Other features contact only addresses you choose. Copy linked images downloads i
 
 = Developers =
 
-Settings, tabs and directory entries can be extended with filters such as `seoprostack_settings_schema`, `seoprostack_admin_tabs` and `seoprostack_tools_items`. See the Read Me tab in the plugin for the full list.
+Settings, tabs and directory entries can be extended with filters such as `seoprostack_settings_schema`. See the Read Me tab for the full list.
 
 == Installation ==
 
