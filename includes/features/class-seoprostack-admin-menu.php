@@ -1389,7 +1389,8 @@ class SEOProStack_Admin_Menu extends SEOProStack_Feature {
         }
         foreach ($args as $name => $value) {
             // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- only compared with menu addresses.
-            if (!isset($_GET[$name]) || !is_scalar($_GET[$name]) || (string) wp_unslash($_GET[$name]) !== $value) {
+            $got = isset($_GET[$name]) && is_scalar($_GET[$name]) ? sanitize_text_field(wp_unslash((string) $_GET[$name])) : null;
+            if (null === $got || sanitize_text_field($value) !== $got) {
                 return 0;
             }
         }
