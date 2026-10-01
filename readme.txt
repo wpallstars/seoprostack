@@ -14,7 +14,7 @@ Curated plugins, themes, hosting and tools for WordPress, plus small opt-in qual
 
 SEO Pro Stack is free and open source. There is no pro version and nothing is locked.
 
-Everything is off by default. Settings save instantly from **Settings → SEO Pro Stack**, grouped into Admin, Content, Media, Links, Speed and Plugins tabs. Use **Search features** to find a setting by name or by the plugin it replaces.
+Everything is off by default except Hide admin bar items, which hides Comments and + New from the admin bar. Settings save instantly from **Settings → SEO Pro Stack**, grouped into Admin, Content, Media, Links, Speed and Plugins tabs. Use **Search features** to find a setting by name or by the plugin it replaces.
 
 = Features =
 
@@ -35,8 +35,8 @@ Everything is off by default. Settings save instantly from **Settings → SEO Pr
 * **Dashboard and sidebar widgets**: hide Dashboard boxes and disable classic widgets you never use.
 * **Notification emails**: stop routine emails one by one, such as auto-update reports and new user notices.
 * **Hide admin notices**: move plugin and theme notices behind a bell in the admin bar, with a count. Messages about what you just did, such as “Settings saved”, stay on the page.
-* **More menu in the admin bar**: put the items plugins and themes add to the left of the admin bar in one … menu after + New, so the bar stays on one line and never covers the page. Choose plugins whose items stay on the bar.
-* **Hide admin bar items**: remove WordPress items you do not use from the admin bar, such as Comments and + New (ticked by default), the WordPress logo menu or Search. The account menu always stays.
+* **More menu in the admin bar**: put the items plugins and themes add to the left of the admin bar in one … menu, last on that side, so the bar stays on one line and never covers the page. Choose plugins whose items stay on the bar.
+* **Hide admin bar items** (on by default): remove WordPress items you do not use from the admin bar, such as Comments and + New (ticked by default), the WordPress logo menu or Search. The account menu always stays.
 * **Avatars without Gravatar**: serve every avatar from your own site, so visitors’ browsers never contact Gravatar. People can upload a profile picture; everyone else gets a silhouette, a pattern that differs per person, or nothing.
 * **Duplicate posts**: copy any post, page or custom post type to a new draft from lists, the editor or the admin bar.
 * **Staged new versions**: edit a published post as a draft copy, then publish the copy over the original, keeping its address, comments and date.
@@ -128,8 +128,8 @@ They stay scheduled and publish at their times. Turning it off only stops new po
 == Changelog ==
 
 = Unreleased =
-* New, off by default: More menu in the admin bar (Admin tab) puts the items plugins and themes add to the left of the admin bar in one … menu after + New, so the bar no longer wraps over the page. Choose plugins whose items stay on the bar. On phones the menu also reaches plugin items WordPress hides there.
-* New, off by default: Hide admin bar items (Admin tab) removes WordPress items you do not use from the admin bar, for everyone. Comments and + New are ticked by default.
+* New, off by default: More menu in the admin bar (Admin tab) puts the items plugins and themes add to the left of the admin bar in one … menu, last on that side, so the bar no longer wraps over the page. Choose plugins whose items stay on the bar. On phones the menu also reaches plugin items WordPress hides there.
+* New, on by default: Hide admin bar items (Admin tab) removes WordPress items you do not use from the admin bar, for everyone. Comments and + New are ticked by default. Switch it off to keep every item.
 * New: Load pages before the click can also preload admin screens (off by default). Only the page is downloaded, and links that change something are skipped.
 * Change: Hide the admin bar and Block dashboard access no longer offer Administrator, since administrators are never affected.
 * Change: roles that plugins add, such as WooCommerce’s Customer, are ticked in Hide the admin bar and Block dashboard access unless they can write posts. With WooCommerce, blocked users go to My Account unless you chose another page.

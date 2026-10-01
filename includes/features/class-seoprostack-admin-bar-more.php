@@ -3,8 +3,9 @@
  * More menu in the admin bar.
  *
  * Moves the items that plugins and themes add on the left of the admin bar
- * into one "…" menu after WordPress's own items (+ New, Edit and the
- * like), so the bar stays on one line instead of wrapping over the page.
+ * into one "…" menu, last on the left: after WordPress's own items (+ New,
+ * Edit and the like) and any kept items, so the bar stays on one line
+ * instead of wrapping over the page.
  * Clicking "…" opens the menu; the moved items keep their own submenus.
  * The right of the bar (account menu, notices bell, Plugins menu) is not
  * changed.
@@ -58,7 +59,7 @@ class SEOProStack_Admin_Bar_More extends SEOProStack_Feature {
                 'default'     => false,
                 'tab'         => 'admin',
                 'label'       => __('More menu in the admin bar', 'seoprostack'),
-                'description' => __('Put the items plugins and themes add to the left of the admin bar in one … menu after + New, so the bar stays on one line and never covers the page. Click … to open it. Works in wp-admin and on the site.', 'seoprostack'),
+                'description' => __('Put the items plugins and themes add to the left of the admin bar in one … menu, last on that side, so the bar stays on one line and never covers the page. Click … to open it. Works in wp-admin and on the site.', 'seoprostack'),
                 // The bar on this page was drawn before the change.
                 'reload'      => true,
             ),
