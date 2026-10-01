@@ -429,6 +429,7 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folder�
 - Changed: Resize large uploads no longer imports Imsanity’s default limit (1920), so 2560 is used unless Imsanity was set to something else.
 - Changed: on the right of the admin bar, the Plugins menu always sits next to the account menu, with the notices bell to its left and other plugins’ items further left. The bell shows only once notices are counted, so on that side it never moves the Plugins or account menus. New `SEOProStack_Admin_Bar::pin( $id, $rank )` keeps a `top-secondary` node there (rank 0 nearest the account menu).
 - Changed: the notices panel opens when you point at the bell and closes when you move away, like the other admin bar menus. Keys and taps still open it until you close it.
+- Changed: the notices bell and the Plugins icon no longer show a browser tooltip, which covered their open menus. Screen readers still hear “Notices (N)” and “Plugins: N of M active” from hidden text, as with core’s icons; the plugin count is at the top of the Plugins menu.
 - New: Short links adds three review links once, `/googlereview/`, `/facebookreview/` and `/trustpilotreview/`, as 302 redirects to the services’ home pages, with advice under **Goes to** on replacing them with the brand’s own review page. Addresses already in use are skipped, and deleted links do not come back. New `seoprostack_short_links_presets` option, removed on uninstall.
 
 ### 0.4.0
