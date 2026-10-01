@@ -114,6 +114,7 @@ Copies from WordPress.org update from there. New versions come out on GitHub fir
 == Changelog ==
 
 = Unreleased =
+* New: starter data for Fluent Forms: four forms that feed FluentCRM lists and tags.
 * Change: Freesoul Deactivate Plugins is no longer recommended.
 
 = 0.7.0 =

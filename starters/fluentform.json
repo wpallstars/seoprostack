@@ -1,0 +1,2940 @@
+{
+    "name": "Fluent Forms",
+    "tested": "6.2.15",
+    "updated": "2026-10-01",
+    "notes": "Four forms named for what they are for. With FluentCRM active, each sends people to the FluentCRM list named after the form (Website Contact Form, Website Booking Form, Website Newsletter Subscription Form, Data Subject Access Request Form), so a contact’s lists show where they came from, and ticks and choices on the form add tags: the newsletter tick box adds Website Newsletter Subscriber, and the access request’s “Data Subject Access Type(s)” adds Customer / Client, Supplier, Contractor, Employee or Website User. The Discovery Call Form also fills the Company, Role and Website contact fields. The lists and tags are added with the forms when they are missing, so it does not matter whether FluentCRM’s starter data is added first. Forms added while FluentCRM is inactive have no feed: remove and add them again once it is active, or set one up under the form’s Integrations. Phone numbers and the access request’s proof of identity and address uploads need Fluent Forms Pro; without it the forms are added without them, so ask for proof when you reply to a request. Notifications and styles are Fluent Forms’ own defaults; set the consent wording and the confirmation messages to suit the site. The access request form keeps entries for 10 years and then deletes them.",
+    "items": {
+        "fluentcrm_lists": [
+            {
+                "slug": "website-contact-form",
+                "title": "Website Contact Form",
+                "when": "fluent-crm"
+            },
+            {
+                "slug": "website-booking-form",
+                "title": "Website Booking Form",
+                "when": "fluent-crm"
+            },
+            {
+                "slug": "website-newsletter-subscription-form",
+                "title": "Website Newsletter Subscription Form",
+                "when": "fluent-crm"
+            },
+            {
+                "slug": "data-subject-access-request-form",
+                "title": "Data Subject Access Request Form",
+                "when": "fluent-crm"
+            }
+        ],
+        "fluentcrm_tags": [
+            {
+                "slug": "customer-client",
+                "title": "Customer / Client",
+                "when": "fluent-crm"
+            },
+            {
+                "slug": "supplier",
+                "title": "Supplier",
+                "when": "fluent-crm"
+            },
+            {
+                "slug": "employee",
+                "title": "Employee",
+                "when": "fluent-crm"
+            },
+            {
+                "slug": "contractor",
+                "title": "Contractor",
+                "when": "fluent-crm"
+            },
+            {
+                "slug": "website-user",
+                "title": "Website User",
+                "when": "fluent-crm"
+            },
+            {
+                "slug": "website-newsletter-subscriber",
+                "title": "Website Newsletter Subscriber",
+                "when": "fluent-crm"
+            }
+        ],
+        "fluentform_forms": [
+            {
+                "title": "Contact Form",
+                "template": "basic_contact_form",
+                "settings": {
+                    "confirmation": {
+                        "messageToShow": "Thank you for your message. We will get in touch with you shortly"
+                    }
+                },
+                "crm_feed": {
+                    "list": "website-contact-form",
+                    "tags": [],
+                    "tag_routers": [
+                        {
+                            "tag": "website-newsletter-subscriber",
+                            "field": "subscribe",
+                            "value": "Subscribe to our email newsletter."
+                        }
+                    ],
+                    "first_name": "{inputs.names.first_name}",
+                    "last_name": "{inputs.names.last_name}",
+                    "full_name": "{inputs.names}",
+                    "email": "email",
+                    "other_fields": [
+                        {
+                            "item_value": "{inputs.phone}",
+                            "label": "phone"
+                        },
+                        {
+                            "item_value": "{submission.source_url}",
+                            "label": "source"
+                        }
+                    ],
+                    "double_opt_in": false,
+                    "force_subscribe": false
+                },
+                "form_fields": {
+                    "fields": [
+                        {
+                            "index": 0,
+                            "element": "input_name",
+                            "attributes": {
+                                "name": "names",
+                                "data-type": "name-element"
+                            },
+                            "settings": {
+                                "container_class": "",
+                                "admin_field_label": "Name",
+                                "conditional_logics": {
+                                    "type": "any",
+                                    "status": false,
+                                    "conditions": [
+                                        {
+                                            "field": "",
+                                            "value": "",
+                                            "operator": ""
+                                        }
+                                    ]
+                                },
+                                "label_placement": "hide_label"
+                            },
+                            "fields": {
+                                "first_name": {
+                                    "element": "input_text",
+                                    "attributes": {
+                                        "type": "text",
+                                        "name": "first_name",
+                                        "value": "",
+                                        "id": "",
+                                        "class": "",
+                                        "placeholder": "First Name*"
+                                    },
+                                    "settings": {
+                                        "container_class": "",
+                                        "label": "First Name",
+                                        "help_message": "",
+                                        "visible": true,
+                                        "validation_rules": {
+                                            "required": {
+                                                "value": false,
+                                                "message": "This field is required",
+                                                "global": false,
+                                                "global_message": "This field is required"
+                                            }
+                                        },
+                                        "conditional_logics": []
+                                    },
+                                    "editor_options": {
+                                        "template": "inputText"
+                                    }
+                                },
+                                "middle_name": {
+                                    "element": "input_text",
+                                    "attributes": {
+                                        "type": "text",
+                                        "name": "middle_name",
+                                        "value": "",
+                                        "id": "",
+                                        "class": "",
+                                        "placeholder": "",
+                                        "required": false
+                                    },
+                                    "settings": {
+                                        "container_class": "",
+                                        "label": "Middle Name",
+                                        "help_message": "",
+                                        "error_message": "",
+                                        "visible": false,
+                                        "validation_rules": {
+                                            "required": {
+                                                "value": false,
+                                                "message": "This field is required",
+                                                "global": false,
+                                                "global_message": "This field is required"
+                                            }
+                                        },
+                                        "conditional_logics": []
+                                    },
+                                    "editor_options": {
+                                        "template": "inputText"
+                                    }
+                                },
+                                "last_name": {
+                                    "element": "input_text",
+                                    "attributes": {
+                                        "type": "text",
+                                        "name": "last_name",
+                                        "value": "",
+                                        "id": "",
+                                        "class": "",
+                                        "placeholder": "Last Name*",
+                                        "required": false
+                                    },
+                                    "settings": {
+                                        "container_class": "",
+                                        "label": "Last Name*",
+                                        "help_message": "",
+                                        "error_message": "",
+                                        "visible": true,
+                                        "validation_rules": {
+                                            "required": {
+                                                "value": true,
+                                                "message": "This field is required",
+                                                "global": false,
+                                                "global_message": "This field is required"
+                                            }
+                                        },
+                                        "conditional_logics": []
+                                    },
+                                    "editor_options": {
+                                        "template": "inputText"
+                                    }
+                                }
+                            },
+                            "editor_options": {
+                                "title": "Name Fields",
+                                "element": "name-fields",
+                                "icon_class": "ff-edit-name",
+                                "template": "nameFields"
+                            },
+                            "uniqElKey": "el_1570866006692"
+                        },
+                        {
+                            "index": 1,
+                            "element": "input_email",
+                            "attributes": {
+                                "type": "email",
+                                "name": "email",
+                                "value": "",
+                                "id": "",
+                                "class": "",
+                                "placeholder": "Email Address*"
+                            },
+                            "settings": {
+                                "container_class": "",
+                                "label": "Email",
+                                "label_placement": "hide_label",
+                                "help_message": "",
+                                "admin_field_label": "Email",
+                                "validation_rules": {
+                                    "required": {
+                                        "value": true,
+                                        "message": "This field is required",
+                                        "global": false,
+                                        "global_message": "This field is required"
+                                    },
+                                    "email": {
+                                        "value": true,
+                                        "message": "This field must contain a valid email",
+                                        "global": false,
+                                        "global_message": "This field must contain a valid email"
+                                    }
+                                },
+                                "conditional_logics": {
+                                    "type": "any",
+                                    "status": false,
+                                    "conditions": [
+                                        {
+                                            "field": "",
+                                            "value": "",
+                                            "operator": ""
+                                        }
+                                    ]
+                                },
+                                "is_unique": "no",
+                                "unique_validation_message": "Email address need to be unique.",
+                                "prefix_label": "",
+                                "suffix_label": ""
+                            },
+                            "editor_options": {
+                                "title": "Email Address",
+                                "icon_class": "ff-edit-email",
+                                "template": "inputText"
+                            },
+                            "uniqElKey": "el_1570866012914"
+                        },
+                        {
+                            "when": "fluentform-pro",
+                            "index": 18,
+                            "element": "phone",
+                            "attributes": {
+                                "name": "phone",
+                                "class": "",
+                                "value": "",
+                                "type": "tel",
+                                "placeholder": "Phone/Mobile Number"
+                            },
+                            "settings": {
+                                "container_class": "",
+                                "placeholder": "",
+                                "auto_select_country": "no",
+                                "label": "Phone/Mobile",
+                                "label_placement": "hide_label",
+                                "help_message": "",
+                                "admin_field_label": "Phone/Mobile",
+                                "phone_country_list": {
+                                    "active_list": "all",
+                                    "visible_list": [],
+                                    "hidden_list": []
+                                },
+                                "default_country": "",
+                                "validation_rules": {
+                                    "required": {
+                                        "value": false,
+                                        "global": true,
+                                        "message": "This field is required",
+                                        "global_message": "This field is required"
+                                    },
+                                    "valid_phone_number": {
+                                        "value": false,
+                                        "global": true,
+                                        "message": "Phone number is not valid",
+                                        "global_message": "Phone number is not valid"
+                                    }
+                                },
+                                "conditional_logics": {
+                                    "type": "any",
+                                    "status": false,
+                                    "conditions": [
+                                        {
+                                            "field": "",
+                                            "value": "",
+                                            "operator": ""
+                                        }
+                                    ]
+                                }
+                            },
+                            "editor_options": {
+                                "title": "Phone/Mobile",
+                                "icon_class": "el-icon-phone-outline",
+                                "template": "inputText"
+                            },
+                            "uniqElKey": "el_1720833391693"
+                        },
+                        {
+                            "index": 3,
+                            "element": "textarea",
+                            "attributes": {
+                                "name": "message",
+                                "value": "",
+                                "id": "",
+                                "class": "",
+                                "placeholder": "Your Message*",
+                                "rows": "6",
+                                "cols": 2,
+                                "maxlength": ""
+                            },
+                            "settings": {
+                                "container_class": "",
+                                "label": "Your Message",
+                                "admin_field_label": "Message",
+                                "label_placement": "hide_label",
+                                "help_message": "",
+                                "validation_rules": {
+                                    "required": {
+                                        "value": true,
+                                        "message": "This field is required",
+                                        "global": false,
+                                        "global_message": "This field is required"
+                                    }
+                                },
+                                "conditional_logics": {
+                                    "type": "any",
+                                    "status": false,
+                                    "conditions": [
+                                        {
+                                            "field": "",
+                                            "value": "",
+                                            "operator": ""
+                                        }
+                                    ]
+                                }
+                            },
+                            "editor_options": {
+                                "title": "Text Area",
+                                "icon_class": "ff-edit-textarea",
+                                "template": "inputTextarea"
+                            },
+                            "uniqElKey": "el_1570879001207"
+                        },
+                        {
+                            "index": 10,
+                            "element": "gdpr_agreement",
+                            "attributes": {
+                                "type": "checkbox",
+                                "name": "gdpr-agreement",
+                                "value": false,
+                                "class": "ff_gdpr_field"
+                            },
+                            "settings": {
+                                "label": "GDPR Agreement",
+                                "tnc_html": "I consent to my information being stored and processed under this site’s privacy policy.",
+                                "admin_field_label": "GDPR Agreement",
+                                "has_checkbox": true,
+                                "container_class": "",
+                                "validation_rules": {
+                                    "required": {
+                                        "value": true,
+                                        "message": "This field is required",
+                                        "global_message": "This field is required",
+                                        "global": true
+                                    }
+                                },
+                                "required_field_message": "",
+                                "conditional_logics": {
+                                    "type": "any",
+                                    "status": false,
+                                    "conditions": [
+                                        {
+                                            "field": "",
+                                            "value": "",
+                                            "operator": ""
+                                        }
+                                    ]
+                                }
+                            },
+                            "editor_options": {
+                                "title": "GDPR Agreement",
+                                "icon_class": "ff-edit-gdpr",
+                                "template": "termsCheckbox"
+                            },
+                            "uniqElKey": "el_1720833417348"
+                        },
+                        {
+                            "index": 9,
+                            "element": "input_checkbox",
+                            "attributes": {
+                                "type": "checkbox",
+                                "name": "subscribe",
+                                "value": []
+                            },
+                            "settings": {
+                                "dynamic_default_value": "",
+                                "container_class": "",
+                                "label": "Subscribe",
+                                "admin_field_label": "Subscribe",
+                                "label_placement": "hide_label",
+                                "display_type": "",
+                                "help_message": "",
+                                "advanced_options": [
+                                    {
+                                        "label": "Subscribe to our email newsletter.",
+                                        "value": "Subscribe to our email newsletter.",
+                                        "calc_value": "",
+                                        "image": "",
+                                        "id": 0
+                                    }
+                                ],
+                                "calc_value_status": false,
+                                "enable_image_input": false,
+                                "values_visible": false,
+                                "randomize_options": "no",
+                                "validation_rules": {
+                                    "required": {
+                                        "value": false,
+                                        "message": "This field is required",
+                                        "global_message": "This field is required",
+                                        "global": true
+                                    }
+                                },
+                                "conditional_logics": {
+                                    "type": "any",
+                                    "status": false,
+                                    "conditions": [
+                                        {
+                                            "field": "",
+                                            "value": "",
+                                            "operator": ""
+                                        }
+                                    ]
+                                },
+                                "layout_class": ""
+                            },
+                            "editor_options": {
+                                "title": "Checkbox",
+                                "icon_class": "ff-edit-checkbox-1",
+                                "template": "inputCheckable"
+                            },
+                            "uniqElKey": "el_1720914840067"
+                        }
+                    ],
+                    "submitButton": {
+                        "uniqElKey": "el_1524065200616",
+                        "element": "button",
+                        "attributes": {
+                            "type": "submit",
+                            "class": ""
+                        },
+                        "settings": {
+                            "align": "center",
+                            "button_style": "no_style",
+                            "container_class": "",
+                            "help_message": "",
+                            "background_color": "##1a7efb",
+                            "button_size": "lg",
+                            "color": "#ffffff",
+                            "button_ui": {
+                                "type": "default",
+                                "text": "Submit Form",
+                                "img_url": ""
+                            },
+                            "normal_styles": {
+                                "backgroundColor": "#1a7efb",
+                                "borderColor": "#1a7efb",
+                                "color": "#ffffff",
+                                "borderRadius": "",
+                                "minWidth": ""
+                            },
+                            "hover_styles": {
+                                "backgroundColor": "#ffffff",
+                                "borderColor": "#1a7efb",
+                                "color": "#1a7efb",
+                                "borderRadius": "",
+                                "minWidth": ""
+                            },
+                            "current_state": "normal_styles"
+                        },
+                        "editor_options": {
+                            "title": "Submit Button"
+                        }
+                    }
+                }
+            },
+            {
+                "title": "Subscription Form",
+                "template": "inline_subscription",
+                "settings": {
+                    "confirmation": {
+                        "messageToShow": "Thank you for your message. We will get in touch with you shortly"
+                    }
+                },
+                "crm_feed": {
+                    "list": "website-newsletter-subscription-form",
+                    "tags": [
+                        "website-newsletter-subscriber"
+                    ],
+                    "tag_routers": [],
+                    "first_name": "{inputs.names.first_name}",
+                    "last_name": "",
+                    "full_name": "",
+                    "email": "email",
+                    "other_fields": [
+                        {
+                            "item_value": "{submission.source_url}",
+                            "label": "source"
+                        }
+                    ],
+                    "double_opt_in": true,
+                    "force_subscribe": true
+                },
+                "form_fields": {
+                    "fields": [
+                        {
+                            "index": 0,
+                            "element": "input_name",
+                            "attributes": {
+                                "name": "names",
+                                "data-type": "name-element"
+                            },
+                            "settings": {
+                                "container_class": "",
+                                "admin_field_label": "Name",
+                                "conditional_logics": {
+                                    "type": "any",
+                                    "status": false,
+                                    "conditions": [
+                                        {
+                                            "field": "",
+                                            "value": "",
+                                            "operator": ""
+                                        }
+                                    ]
+                                },
+                                "label_placement": ""
+                            },
+                            "fields": {
+                                "first_name": {
+                                    "element": "input_text",
+                                    "attributes": {
+                                        "type": "text",
+                                        "name": "first_name",
+                                        "value": "",
+                                        "id": "",
+                                        "class": "",
+                                        "placeholder": "First Name*",
+                                        "maxlength": ""
+                                    },
+                                    "settings": {
+                                        "container_class": "",
+                                        "label": "First Name",
+                                        "help_message": "",
+                                        "visible": true,
+                                        "label_placement": "hide_label",
+                                        "label_placement_options": [
+                                            {
+                                                "value": "",
+                                                "label": "Default"
+                                            },
+                                            {
+                                                "value": "top",
+                                                "label": "Top"
+                                            },
+                                            {
+                                                "value": "right",
+                                                "label": "Right"
+                                            },
+                                            {
+                                                "value": "bottom",
+                                                "label": "Bottom"
+                                            },
+                                            {
+                                                "value": "left",
+                                                "label": "Left"
+                                            },
+                                            {
+                                                "value": "hide_label",
+                                                "label": "Hidden"
+                                            }
+                                        ],
+                                        "validation_rules": {
+                                            "required": {
+                                                "value": true,
+                                                "message": "This field is required",
+                                                "global_message": "This field is required",
+                                                "global": true
+                                            }
+                                        },
+                                        "conditional_logics": []
+                                    },
+                                    "editor_options": {
+                                        "template": "inputText"
+                                    }
+                                },
+                                "middle_name": {
+                                    "element": "input_text",
+                                    "attributes": {
+                                        "type": "text",
+                                        "name": "middle_name",
+                                        "value": "",
+                                        "id": "",
+                                        "class": "",
+                                        "placeholder": "Middle Name",
+                                        "required": false,
+                                        "maxlength": ""
+                                    },
+                                    "settings": {
+                                        "container_class": "",
+                                        "label": "Middle Name",
+                                        "help_message": "",
+                                        "error_message": "",
+                                        "label_placement": "hide_label",
+                                        "label_placement_options": [
+                                            {
+                                                "value": "",
+                                                "label": "Default"
+                                            },
+                                            {
+                                                "value": "top",
+                                                "label": "Top"
+                                            },
+                                            {
+                                                "value": "right",
+                                                "label": "Right"
+                                            },
+                                            {
+                                                "value": "bottom",
+                                                "label": "Bottom"
+                                            },
+                                            {
+                                                "value": "left",
+                                                "label": "Left"
+                                            },
+                                            {
+                                                "value": "hide_label",
+                                                "label": "Hidden"
+                                            }
+                                        ],
+                                        "visible": false,
+                                        "validation_rules": {
+                                            "required": {
+                                                "value": false,
+                                                "message": "This field is required",
+                                                "global_message": "This field is required",
+                                                "global": true
+                                            }
+                                        },
+                                        "conditional_logics": []
+                                    },
+                                    "editor_options": {
+                                        "template": "inputText"
+                                    }
+                                },
+                                "last_name": {
+                                    "element": "input_text",
+                                    "attributes": {
+                                        "type": "text",
+                                        "name": "last_name",
+                                        "value": "",
+                                        "id": "",
+                                        "class": "",
+                                        "placeholder": "Last Name",
+                                        "required": false,
+                                        "maxlength": ""
+                                    },
+                                    "settings": {
+                                        "container_class": "",
+                                        "label": "Last Name",
+                                        "help_message": "",
+                                        "error_message": "",
+                                        "label_placement": "hide_label",
+                                        "label_placement_options": [
+                                            {
+                                                "value": "",
+                                                "label": "Default"
+                                            },
+                                            {
+                                                "value": "top",
+                                                "label": "Top"
+                                            },
+                                            {
+                                                "value": "right",
+                                                "label": "Right"
+                                            },
+                                            {
+                                                "value": "bottom",
+                                                "label": "Bottom"
+                                            },
+                                            {
+                                                "value": "left",
+                                                "label": "Left"
+                                            },
+                                            {
+                                                "value": "hide_label",
+                                                "label": "Hidden"
+                                            }
+                                        ],
+                                        "visible": true,
+                                        "validation_rules": {
+                                            "required": {
+                                                "value": false,
+                                                "message": "This field is required",
+                                                "global_message": "This field is required",
+                                                "global": true
+                                            }
+                                        },
+                                        "conditional_logics": []
+                                    },
+                                    "editor_options": {
+                                        "template": "inputText"
+                                    }
+                                }
+                            },
+                            "editor_options": {
+                                "title": "Name Fields",
+                                "element": "name-fields",
+                                "icon_class": "ff-edit-name",
+                                "template": "nameFields"
+                            },
+                            "uniqElKey": "el_1720833992349"
+                        },
+                        {
+                            "index": 1,
+                            "element": "input_email",
+                            "attributes": {
+                                "type": "email",
+                                "name": "email",
+                                "value": "",
+                                "id": "",
+                                "class": "",
+                                "placeholder": "Email Address*"
+                            },
+                            "settings": {
+                                "container_class": "",
+                                "label": "Email",
+                                "label_placement": "hide_label",
+                                "help_message": "",
+                                "admin_field_label": "",
+                                "prefix_label": "",
+                                "suffix_label": "",
+                                "validation_rules": {
+                                    "required": {
+                                        "value": true,
+                                        "message": "This field is required",
+                                        "global_message": "This field is required",
+                                        "global": true
+                                    },
+                                    "email": {
+                                        "value": true,
+                                        "message": "This field must contain a valid email",
+                                        "global_message": "This field must contain a valid email",
+                                        "global": true
+                                    }
+                                },
+                                "conditional_logics": {
+                                    "type": "any",
+                                    "status": false,
+                                    "conditions": [
+                                        {
+                                            "field": "",
+                                            "value": "",
+                                            "operator": ""
+                                        }
+                                    ]
+                                },
+                                "is_unique": "no",
+                                "unique_validation_message": "Email address need to be unique."
+                            },
+                            "editor_options": {
+                                "title": "Email",
+                                "icon_class": "ff-edit-email",
+                                "template": "inputText"
+                            },
+                            "uniqElKey": "el_1720834021215"
+                        }
+                    ],
+                    "submitButton": {
+                        "uniqElKey": "el_1524065200616",
+                        "element": "button",
+                        "attributes": {
+                            "type": "submit",
+                            "class": ""
+                        },
+                        "settings": {
+                            "align": "center",
+                            "button_style": "no_style",
+                            "container_class": "",
+                            "help_message": "",
+                            "background_color": "##1a7efb",
+                            "button_size": "lg",
+                            "color": "#ffffff",
+                            "button_ui": {
+                                "type": "default",
+                                "text": "Subscribe",
+                                "img_url": ""
+                            },
+                            "normal_styles": {
+                                "backgroundColor": "#1a7efb",
+                                "borderColor": "#1a7efb",
+                                "color": "#ffffff",
+                                "borderRadius": "",
+                                "minWidth": ""
+                            },
+                            "hover_styles": {
+                                "backgroundColor": "#ffffff",
+                                "borderColor": "#1a7efb",
+                                "color": "#1a7efb",
+                                "borderRadius": "",
+                                "minWidth": ""
+                            },
+                            "current_state": "normal_styles"
+                        },
+                        "editor_options": {
+                            "title": "Submit Button"
+                        }
+                    }
+                }
+            },
+            {
+                "title": "Discovery Call Form",
+                "template": "basic_contact_form",
+                "settings": {
+                    "confirmation": {
+                        "messageToShow": "<p>Thank you for your message. We will get back to you ASAP.</p>"
+                    }
+                },
+                "crm_feed": {
+                    "list": "website-booking-form",
+                    "tags": [],
+                    "tag_routers": [
+                        {
+                            "tag": "website-newsletter-subscriber",
+                            "field": "newsletter",
+                            "value": "Subscribe to our newsletter"
+                        }
+                    ],
+                    "first_name": "{inputs.names.first_name}",
+                    "last_name": "{inputs.names.last_name}",
+                    "full_name": "{inputs.names}",
+                    "email": "email",
+                    "other_fields": [
+                        {
+                            "item_value": "{inputs.company}",
+                            "label": "company"
+                        },
+                        {
+                            "item_value": "{inputs.role}",
+                            "label": "role"
+                        },
+                        {
+                            "item_value": "{inputs.website}",
+                            "label": "website"
+                        },
+                        {
+                            "item_value": "{inputs.phone}",
+                            "label": "phone"
+                        }
+                    ],
+                    "double_opt_in": false,
+                    "force_subscribe": false
+                },
+                "form_fields": {
+                    "fields": [
+                        {
+                            "index": 0,
+                            "element": "input_name",
+                            "attributes": {
+                                "name": "names",
+                                "data-type": "name-element"
+                            },
+                            "settings": {
+                                "container_class": "",
+                                "admin_field_label": "Name",
+                                "conditional_logics": {
+                                    "type": "any",
+                                    "status": false,
+                                    "conditions": [
+                                        {
+                                            "field": "",
+                                            "value": "",
+                                            "operator": ""
+                                        }
+                                    ]
+                                },
+                                "label_placement": "hide_label"
+                            },
+                            "fields": {
+                                "first_name": {
+                                    "element": "input_text",
+                                    "attributes": {
+                                        "type": "text",
+                                        "name": "first_name",
+                                        "value": "",
+                                        "id": "",
+                                        "class": "",
+                                        "placeholder": "First Name*"
+                                    },
+                                    "settings": {
+                                        "container_class": "",
+                                        "label": "First Name",
+                                        "help_message": "",
+                                        "visible": true,
+                                        "validation_rules": {
+                                            "required": {
+                                                "value": true,
+                                                "message": "How should we address you?",
+                                                "global": false,
+                                                "global_message": "This field is required"
+                                            }
+                                        },
+                                        "conditional_logics": []
+                                    },
+                                    "editor_options": {
+                                        "template": "inputText"
+                                    }
+                                },
+                                "middle_name": {
+                                    "element": "input_text",
+                                    "attributes": {
+                                        "type": "text",
+                                        "name": "middle_name",
+                                        "value": "",
+                                        "id": "",
+                                        "class": "",
+                                        "placeholder": "",
+                                        "required": false
+                                    },
+                                    "settings": {
+                                        "container_class": "",
+                                        "label": "Middle Name",
+                                        "help_message": "",
+                                        "error_message": "",
+                                        "visible": false,
+                                        "validation_rules": {
+                                            "required": {
+                                                "value": false,
+                                                "message": "This field is required",
+                                                "global": false,
+                                                "global_message": "This field is required"
+                                            }
+                                        },
+                                        "conditional_logics": []
+                                    },
+                                    "editor_options": {
+                                        "template": "inputText"
+                                    }
+                                },
+                                "last_name": {
+                                    "element": "input_text",
+                                    "attributes": {
+                                        "type": "text",
+                                        "name": "last_name",
+                                        "value": "",
+                                        "id": "",
+                                        "class": "",
+                                        "placeholder": "Last Name",
+                                        "required": false
+                                    },
+                                    "settings": {
+                                        "container_class": "",
+                                        "label": "Last Name",
+                                        "help_message": "",
+                                        "error_message": "",
+                                        "visible": true,
+                                        "validation_rules": {
+                                            "required": {
+                                                "value": false,
+                                                "message": "This field is required",
+                                                "global": false,
+                                                "global_message": "This field is required"
+                                            }
+                                        },
+                                        "conditional_logics": []
+                                    },
+                                    "editor_options": {
+                                        "template": "inputText"
+                                    }
+                                }
+                            },
+                            "editor_options": {
+                                "title": "Name Fields",
+                                "element": "name-fields",
+                                "icon_class": "ff-edit-name",
+                                "template": "nameFields"
+                            },
+                            "uniqElKey": "el_1570866006692"
+                        },
+                        {
+                            "index": 2,
+                            "element": "input_text",
+                            "attributes": {
+                                "type": "text",
+                                "name": "company",
+                                "value": "",
+                                "class": "",
+                                "placeholder": "Company*",
+                                "maxlength": ""
+                            },
+                            "settings": {
+                                "container_class": "",
+                                "label": "Company",
+                                "label_placement": "hide_label",
+                                "admin_field_label": "Company",
+                                "help_message": "",
+                                "validation_rules": {
+                                    "required": {
+                                        "value": true,
+                                        "message": "This field is required",
+                                        "global": false,
+                                        "global_message": "This field is required"
+                                    }
+                                },
+                                "conditional_logics": {
+                                    "type": "any",
+                                    "status": false,
+                                    "conditions": [
+                                        {
+                                            "field": "",
+                                            "value": "",
+                                            "operator": ""
+                                        }
+                                    ]
+                                },
+                                "is_unique": "no",
+                                "unique_validation_message": "This field value need to be unique.",
+                                "prefix_label": "",
+                                "suffix_label": ""
+                            },
+                            "editor_options": {
+                                "title": "Simple Text",
+                                "icon_class": "ff-edit-text",
+                                "template": "inputText"
+                            },
+                            "uniqElKey": "el_1719137972188"
+                        },
+                        {
+                            "index": 2,
+                            "element": "input_text",
+                            "attributes": {
+                                "type": "text",
+                                "name": "role",
+                                "value": "",
+                                "class": "",
+                                "placeholder": "Role*",
+                                "maxlength": ""
+                            },
+                            "settings": {
+                                "container_class": "",
+                                "label": "Role",
+                                "label_placement": "hide_label",
+                                "admin_field_label": "Role",
+                                "help_message": "",
+                                "validation_rules": {
+                                    "required": {
+                                        "value": true,
+                                        "message": "This field is required",
+                                        "global": true,
+                                        "global_message": "This field is required"
+                                    }
+                                },
+                                "conditional_logics": {
+                                    "type": "any",
+                                    "status": false,
+                                    "conditions": [
+                                        {
+                                            "field": "",
+                                            "value": "",
+                                            "operator": ""
+                                        }
+                                    ]
+                                },
+                                "is_unique": "no",
+                                "unique_validation_message": "This field value need to be unique.",
+                                "prefix_label": "",
+                                "suffix_label": ""
+                            },
+                            "editor_options": {
+                                "title": "Simple Text",
+                                "icon_class": "ff-edit-text",
+                                "template": "inputText"
+                            },
+                            "uniqElKey": "el_1719137974281"
+                        },
+                        {
+                            "index": 1,
+                            "element": "input_email",
+                            "attributes": {
+                                "type": "email",
+                                "name": "email",
+                                "value": "",
+                                "id": "",
+                                "class": "",
+                                "placeholder": "name@company.com*"
+                            },
+                            "settings": {
+                                "container_class": "",
+                                "label": "Email",
+                                "label_placement": "hide_label",
+                                "help_message": "",
+                                "admin_field_label": "",
+                                "validation_rules": {
+                                    "required": {
+                                        "value": true,
+                                        "message": "Please enter your email address",
+                                        "global": false,
+                                        "global_message": "This field is required"
+                                    },
+                                    "email": {
+                                        "value": true,
+                                        "message": "Please check your email address is correct",
+                                        "global": false,
+                                        "global_message": "This field must contain a valid email"
+                                    }
+                                },
+                                "conditional_logics": [],
+                                "is_unique": "no",
+                                "unique_validation_message": "Email address need to be unique.",
+                                "prefix_label": "",
+                                "suffix_label": ""
+                            },
+                            "editor_options": {
+                                "title": "Email Address",
+                                "icon_class": "ff-edit-email",
+                                "template": "inputText"
+                            },
+                            "uniqElKey": "el_1570866012914"
+                        },
+                        {
+                            "when": "fluentform-pro",
+                            "index": 18,
+                            "element": "phone",
+                            "attributes": {
+                                "name": "phone",
+                                "class": "",
+                                "value": "",
+                                "type": "tel",
+                                "placeholder": "Direct/Mobile Phone"
+                            },
+                            "settings": {
+                                "container_class": "",
+                                "placeholder": "",
+                                "auto_select_country": "no",
+                                "label": "Direct/Mobile Phone",
+                                "label_placement": "hide_label",
+                                "help_message": "",
+                                "admin_field_label": "Direct/Mobile Phone",
+                                "phone_country_list": {
+                                    "active_list": "all",
+                                    "visible_list": [],
+                                    "hidden_list": []
+                                },
+                                "default_country": "",
+                                "validation_rules": {
+                                    "required": {
+                                        "value": false,
+                                        "global": true,
+                                        "message": "This field is required",
+                                        "global_message": "This field is required"
+                                    },
+                                    "valid_phone_number": {
+                                        "value": false,
+                                        "global": true,
+                                        "message": "Phone number is not valid",
+                                        "global_message": "Phone number is not valid"
+                                    }
+                                },
+                                "conditional_logics": {
+                                    "type": "any",
+                                    "status": false,
+                                    "conditions": [
+                                        {
+                                            "field": "",
+                                            "value": "",
+                                            "operator": ""
+                                        }
+                                    ]
+                                }
+                            },
+                            "editor_options": {
+                                "title": "Phone/Mobile",
+                                "icon_class": "el-icon-phone-outline",
+                                "template": "inputText"
+                            },
+                            "uniqElKey": "el_1719137870827"
+                        },
+                        {
+                            "index": 11,
+                            "element": "input_url",
+                            "attributes": {
+                                "type": "url",
+                                "name": "website",
+                                "value": "",
+                                "class": "",
+                                "placeholder": "Website*"
+                            },
+                            "settings": {
+                                "container_class": "",
+                                "label": "Website",
+                                "admin_field_label": "Website",
+                                "label_placement": "hide_label",
+                                "help_message": "",
+                                "validation_rules": {
+                                    "required": {
+                                        "value": true,
+                                        "message": "This field is required",
+                                        "global_message": "This field is required",
+                                        "global": true
+                                    },
+                                    "url": {
+                                        "value": true,
+                                        "message": "This field must contain a valid url",
+                                        "global_message": "This field must contain a valid url",
+                                        "global": true
+                                    }
+                                },
+                                "conditional_logics": {
+                                    "type": "any",
+                                    "status": false,
+                                    "conditions": [
+                                        {
+                                            "field": "",
+                                            "value": "",
+                                            "operator": ""
+                                        }
+                                    ]
+                                }
+                            },
+                            "editor_options": {
+                                "title": "Website URL",
+                                "icon_class": "ff-edit-website-url",
+                                "template": "inputText"
+                            },
+                            "uniqElKey": "el_1718990979717"
+                        },
+                        {
+                            "index": 3,
+                            "element": "textarea",
+                            "attributes": {
+                                "name": "message",
+                                "value": "",
+                                "id": "",
+                                "class": "",
+                                "placeholder": "Tell us about your needs and interests...*",
+                                "rows": "6",
+                                "cols": 2,
+                                "maxlength": ""
+                            },
+                            "settings": {
+                                "container_class": "",
+                                "label": "Your Message",
+                                "admin_field_label": "",
+                                "label_placement": "hide_label",
+                                "help_message": "",
+                                "validation_rules": {
+                                    "required": {
+                                        "value": true,
+                                        "message": "What would you like to discuss?",
+                                        "global": false,
+                                        "global_message": "This field is required"
+                                    }
+                                },
+                                "conditional_logics": {
+                                    "type": "any",
+                                    "status": false,
+                                    "conditions": [
+                                        {
+                                            "field": "",
+                                            "value": "",
+                                            "operator": ""
+                                        }
+                                    ]
+                                }
+                            },
+                            "editor_options": {
+                                "title": "Text Area",
+                                "icon_class": "ff-edit-textarea",
+                                "template": "inputTextarea"
+                            },
+                            "uniqElKey": "el_1570879001207"
+                        },
+                        {
+                            "index": 3,
+                            "element": "textarea",
+                            "attributes": {
+                                "name": "time_preferences",
+                                "value": "",
+                                "id": "",
+                                "class": "",
+                                "placeholder": "What are the best days and times to discuss?*",
+                                "rows": 3,
+                                "cols": 2,
+                                "maxlength": ""
+                            },
+                            "settings": {
+                                "container_class": "",
+                                "label": "Time Preferences",
+                                "admin_field_label": "Time Preferences",
+                                "label_placement": "hide_label",
+                                "help_message": "",
+                                "validation_rules": {
+                                    "required": {
+                                        "value": true,
+                                        "message": "This field is required",
+                                        "global_message": "This field is required",
+                                        "global": true
+                                    }
+                                },
+                                "conditional_logics": {
+                                    "type": "any",
+                                    "status": false,
+                                    "conditions": [
+                                        {
+                                            "field": "",
+                                            "value": "",
+                                            "operator": ""
+                                        }
+                                    ]
+                                }
+                            },
+                            "editor_options": {
+                                "title": "Text Area",
+                                "icon_class": "ff-edit-textarea",
+                                "template": "inputTextarea"
+                            },
+                            "uniqElKey": "el_1718989748293"
+                        },
+                        {
+                            "index": 10,
+                            "element": "gdpr_agreement",
+                            "attributes": {
+                                "type": "checkbox",
+                                "name": "gdpr-agreement",
+                                "value": false,
+                                "class": "ff_gdpr_field"
+                            },
+                            "settings": {
+                                "label": "GDPR Agreement",
+                                "tnc_html": "I consent to my information being stored and processed under this site’s privacy policy.",
+                                "admin_field_label": "GDPR Agreement",
+                                "has_checkbox": true,
+                                "container_class": "",
+                                "validation_rules": {
+                                    "required": {
+                                        "value": true,
+                                        "message": "This field is required",
+                                        "global_message": "This field is required",
+                                        "global": true
+                                    }
+                                },
+                                "required_field_message": "",
+                                "conditional_logics": []
+                            },
+                            "editor_options": {
+                                "title": "GDPR Agreement",
+                                "icon_class": "ff-edit-gdpr",
+                                "template": "termsCheckbox"
+                            },
+                            "uniqElKey": "el_1718985277521"
+                        },
+                        {
+                            "index": 9,
+                            "element": "input_checkbox",
+                            "attributes": {
+                                "type": "checkbox",
+                                "name": "newsletter",
+                                "value": []
+                            },
+                            "settings": {
+                                "dynamic_default_value": "",
+                                "container_class": "",
+                                "label": "Newsletter",
+                                "admin_field_label": "Newsletter",
+                                "label_placement": "hide_label",
+                                "display_type": "",
+                                "help_message": "",
+                                "advanced_options": [
+                                    {
+                                        "label": "Subscribe to our newsletter",
+                                        "value": "Subscribe to our newsletter",
+                                        "calc_value": "",
+                                        "image": "",
+                                        "id": 0
+                                    }
+                                ],
+                                "calc_value_status": false,
+                                "enable_image_input": false,
+                                "values_visible": false,
+                                "randomize_options": "no",
+                                "validation_rules": {
+                                    "required": {
+                                        "value": false,
+                                        "message": "This field is required",
+                                        "global_message": "This field is required",
+                                        "global": true
+                                    }
+                                },
+                                "conditional_logics": {
+                                    "type": "any",
+                                    "status": false,
+                                    "conditions": [
+                                        {
+                                            "field": "",
+                                            "value": "",
+                                            "operator": ""
+                                        }
+                                    ]
+                                },
+                                "layout_class": ""
+                            },
+                            "editor_options": {
+                                "title": "Checkbox",
+                                "icon_class": "ff-edit-checkbox-1",
+                                "template": "inputCheckable"
+                            },
+                            "uniqElKey": "el_1718985191449"
+                        }
+                    ],
+                    "submitButton": {
+                        "uniqElKey": "el_1524065200616",
+                        "element": "button",
+                        "attributes": {
+                            "type": "submit",
+                            "class": ""
+                        },
+                        "settings": {
+                            "align": "center",
+                            "button_style": "no_style",
+                            "container_class": "",
+                            "help_message": "",
+                            "background_color": "##1a7efb",
+                            "button_size": "lg",
+                            "color": "#ffffff",
+                            "button_ui": {
+                                "type": "default",
+                                "text": "Send",
+                                "img_url": ""
+                            },
+                            "normal_styles": {
+                                "backgroundColor": "#1a7efb",
+                                "borderColor": "#1a7efb",
+                                "color": "#ffffff",
+                                "borderRadius": "",
+                                "minWidth": ""
+                            },
+                            "hover_styles": {
+                                "backgroundColor": "#ffffff",
+                                "borderColor": "#1a7efb",
+                                "color": "#1a7efb",
+                                "borderRadius": "",
+                                "minWidth": ""
+                            },
+                            "current_state": "normal_styles"
+                        },
+                        "editor_options": {
+                            "title": "Submit Button"
+                        }
+                    }
+                }
+            },
+            {
+                "title": "Data Subject Access Request Form",
+                "template": "basic_contact_form",
+                "settings": {
+                    "confirmation": {
+                        "messageToShow": "<p>Thank you for your Data Subject Access Request Form submission. We will get in touch with you shortly...</p>"
+                    },
+                    "delete_after_x_days": "yes",
+                    "auto_delete_days": 3650
+                },
+                "crm_feed": {
+                    "list": "data-subject-access-request-form",
+                    "tags": [],
+                    "tag_routers": [
+                        {
+                            "tag": "contractor",
+                            "field": "dataSubjectAccessTypes",
+                            "value": "Contractor"
+                        },
+                        {
+                            "tag": "customer-client",
+                            "field": "dataSubjectAccessTypes",
+                            "value": "Customer"
+                        },
+                        {
+                            "tag": "employee",
+                            "field": "dataSubjectAccessTypes",
+                            "value": "Employee"
+                        },
+                        {
+                            "tag": "supplier",
+                            "field": "dataSubjectAccessTypes",
+                            "value": "Supplier Contact"
+                        },
+                        {
+                            "tag": "website-user",
+                            "field": "dataSubjectAccessTypes",
+                            "value": "Website User"
+                        }
+                    ],
+                    "first_name": "{inputs.names.first_name}",
+                    "last_name": "{inputs.names.last_name}",
+                    "full_name": "{inputs.names}",
+                    "email": "email",
+                    "other_fields": [
+                        {
+                            "item_value": "{inputs.correspondenceAddress.address_line_1}",
+                            "label": "address_line_1"
+                        },
+                        {
+                            "item_value": "{inputs.correspondenceAddress.address_line_2}",
+                            "label": "address_line_2"
+                        },
+                        {
+                            "item_value": "{inputs.correspondenceAddress.city}",
+                            "label": "city"
+                        },
+                        {
+                            "item_value": "{inputs.correspondenceAddress.state}",
+                            "label": "state"
+                        },
+                        {
+                            "item_value": "{inputs.correspondenceAddress.zip}",
+                            "label": "postal_code"
+                        },
+                        {
+                            "item_value": "{inputs.correspondenceAddress.country}",
+                            "label": "country"
+                        },
+                        {
+                            "item_value": "{inputs.phone}",
+                            "label": "phone"
+                        }
+                    ],
+                    "double_opt_in": true,
+                    "force_subscribe": false
+                },
+                "form_fields": {
+                    "fields": [
+                        {
+                            "index": 1,
+                            "element": "section_break",
+                            "attributes": {
+                                "id": "",
+                                "class": ""
+                            },
+                            "settings": {
+                                "label": "",
+                                "description": "<h2>GRPR Data Subject Access Request Form</h2>",
+                                "align": "left",
+                                "conditional_logics": []
+                            },
+                            "editor_options": {
+                                "title": "Section Break",
+                                "icon_class": "ff-edit-section-break",
+                                "template": "sectionBreak"
+                            },
+                            "uniqElKey": "el_1681058119317"
+                        },
+                        {
+                            "index": 8,
+                            "element": "input_radio",
+                            "attributes": {
+                                "type": "radio",
+                                "name": "onbehalfof",
+                                "value": ""
+                            },
+                            "settings": {
+                                "dynamic_default_value": "",
+                                "container_class": "",
+                                "label": "On behalf of",
+                                "admin_field_label": "",
+                                "label_placement": "",
+                                "display_type": "",
+                                "help_message": "Who are you requesting for personal data for?",
+                                "randomize_options": "no",
+                                "advanced_options": [
+                                    {
+                                        "label": "Myself",
+                                        "value": "Myself",
+                                        "calc_value": "",
+                                        "image": "",
+                                        "id": 0
+                                    },
+                                    {
+                                        "label": "Someone Else",
+                                        "value": "Someone Else",
+                                        "calc_value": "",
+                                        "image": "",
+                                        "id": 1
+                                    }
+                                ],
+                                "calc_value_status": false,
+                                "enable_image_input": false,
+                                "values_visible": true,
+                                "validation_rules": {
+                                    "required": {
+                                        "value": true,
+                                        "message": "This field is required",
+                                        "global": false,
+                                        "global_message": "This field is required"
+                                    }
+                                },
+                                "conditional_logics": {
+                                    "type": "any",
+                                    "status": false,
+                                    "conditions": [
+                                        {
+                                            "field": "",
+                                            "value": "",
+                                            "operator": ""
+                                        }
+                                    ]
+                                },
+                                "layout_class": ""
+                            },
+                            "editor_options": {
+                                "title": "Radio Field",
+                                "icon_class": "ff-edit-radio",
+                                "element": "input-radio",
+                                "template": "inputCheckable"
+                            },
+                            "uniqElKey": "el_1681056268453"
+                        },
+                        {
+                            "when": "fluentform-pro",
+                            "index": 16,
+                            "element": "input_file",
+                            "attributes": {
+                                "type": "file",
+                                "name": "3rdPartyAuthorisationLetter",
+                                "value": "",
+                                "id": "",
+                                "class": ""
+                            },
+                            "settings": {
+                                "container_class": "",
+                                "label": "3rd-Party Authorisation Letter",
+                                "admin_field_label": "",
+                                "label_placement": "",
+                                "btn_text": "Choose File",
+                                "help_message": "Please either have the Data Subject sign the application, or attach a letter confirming the Data Subject's full name, address, date of birth, and authorisation for the 3rd-Party named applicant to request access to specified or all of the Data Subject's personal data to be made available under this request.",
+                                "upload_file_location": "default",
+                                "file_location_type": "follow_global_settings",
+                                "validation_rules": {
+                                    "required": {
+                                        "value": false,
+                                        "message": "This field is required",
+                                        "global": false,
+                                        "global_message": "This field is required"
+                                    },
+                                    "max_file_size": {
+                                        "value": 2097152,
+                                        "_valueFrom": "MB",
+                                        "message": "Maximum file size limit is 2MB",
+                                        "global": false,
+                                        "global_message": "Validation fails for maximum file size"
+                                    },
+                                    "max_file_count": {
+                                        "value": 1,
+                                        "message": "You can upload maximum 1 file",
+                                        "global": false,
+                                        "global_message": "Validation fails for maximum file count"
+                                    },
+                                    "allowed_file_types": {
+                                        "value": [
+                                            "jpg|jpeg|gif|png|bmp",
+                                            "pdf",
+                                            "doc|ppt|pps|xls|mdb|docx|xlsx|pptx|odt|odp|ods|odg|odc|odb|odf|rtf|txt"
+                                        ],
+                                        "message": "Invalid file type",
+                                        "global": false,
+                                        "global_message": "Invalid file type"
+                                    }
+                                },
+                                "conditional_logics": {
+                                    "type": "any",
+                                    "status": true,
+                                    "conditions": [
+                                        {
+                                            "field": "onbehalfof",
+                                            "value": "Someone Else",
+                                            "operator": "="
+                                        }
+                                    ]
+                                }
+                            },
+                            "editor_options": {
+                                "title": "File Upload",
+                                "icon_class": "ff-edit-files",
+                                "template": "inputFile"
+                            },
+                            "uniqElKey": "el_1681056904588"
+                        },
+                        {
+                            "index": 9,
+                            "element": "input_checkbox",
+                            "attributes": {
+                                "type": "checkbox",
+                                "name": "dataSubjectAccessTypes",
+                                "value": []
+                            },
+                            "settings": {
+                                "dynamic_default_value": "",
+                                "container_class": "",
+                                "label": "Data Subject Access Type(s)",
+                                "admin_field_label": "",
+                                "label_placement": "",
+                                "display_type": "",
+                                "help_message": "What personal data storage or processing relationships do you have with us?",
+                                "advanced_options": [
+                                    {
+                                        "label": "Contractor",
+                                        "value": "Contractor",
+                                        "calc_value": "",
+                                        "image": "",
+                                        "id": 0
+                                    },
+                                    {
+                                        "label": "Customer",
+                                        "value": "Customer",
+                                        "calc_value": "",
+                                        "image": "",
+                                        "id": 1
+                                    },
+                                    {
+                                        "label": "Employee",
+                                        "value": "Employee",
+                                        "calc_value": "",
+                                        "image": "",
+                                        "id": 2
+                                    },
+                                    {
+                                        "label": "Supplier Contact",
+                                        "value": "Supplier Contact",
+                                        "calc_value": "",
+                                        "image": "",
+                                        "id": 3
+                                    },
+                                    {
+                                        "label": "Website User",
+                                        "value": "Website User",
+                                        "calc_value": "",
+                                        "image": "",
+                                        "id": 4
+                                    }
+                                ],
+                                "calc_value_status": false,
+                                "enable_image_input": false,
+                                "values_visible": false,
+                                "randomize_options": "no",
+                                "validation_rules": {
+                                    "required": {
+                                        "value": true,
+                                        "message": "This field is required",
+                                        "global": false,
+                                        "global_message": "This field is required"
+                                    }
+                                },
+                                "conditional_logics": {
+                                    "type": "any",
+                                    "status": false,
+                                    "conditions": [
+                                        {
+                                            "field": "",
+                                            "value": "",
+                                            "operator": ""
+                                        }
+                                    ]
+                                },
+                                "layout_class": ""
+                            },
+                            "editor_options": {
+                                "title": "Check Box",
+                                "icon_class": "ff-edit-checkbox-1",
+                                "template": "inputCheckable"
+                            },
+                            "uniqElKey": "el_1681057098647"
+                        },
+                        {
+                            "index": 9,
+                            "element": "input_checkbox",
+                            "attributes": {
+                                "type": "checkbox",
+                                "name": "requests",
+                                "value": []
+                            },
+                            "settings": {
+                                "dynamic_default_value": "",
+                                "container_class": "",
+                                "label": "Requests",
+                                "admin_field_label": "",
+                                "label_placement": "",
+                                "display_type": "",
+                                "help_message": "What would you like us to do with your personal data?",
+                                "advanced_options": [
+                                    {
+                                        "label": "Provide a copy of personal data",
+                                        "value": "Provide a copy of personal data",
+                                        "calc_value": "",
+                                        "image": "",
+                                        "id": 0
+                                    },
+                                    {
+                                        "label": "Forward a copy of personal data to another registered business",
+                                        "value": "Forward a copy of personal data to another registered business",
+                                        "calc_value": "",
+                                        "image": "",
+                                        "id": 1
+                                    },
+                                    {
+                                        "label": "Delete all personal data",
+                                        "value": "Delete all personal data",
+                                        "calc_value": "",
+                                        "image": "",
+                                        "id": 2
+                                    }
+                                ],
+                                "calc_value_status": false,
+                                "enable_image_input": false,
+                                "values_visible": false,
+                                "randomize_options": "no",
+                                "validation_rules": {
+                                    "required": {
+                                        "value": true,
+                                        "message": "This field is required",
+                                        "global": false,
+                                        "global_message": "This field is required"
+                                    }
+                                },
+                                "conditional_logics": {
+                                    "type": "any",
+                                    "status": false,
+                                    "conditions": [
+                                        {
+                                            "field": "",
+                                            "value": "",
+                                            "operator": ""
+                                        }
+                                    ]
+                                },
+                                "layout_class": ""
+                            },
+                            "editor_options": {
+                                "title": "Check Box",
+                                "icon_class": "ff-edit-checkbox-1",
+                                "template": "inputCheckable"
+                            },
+                            "uniqElKey": "el_1681057339878"
+                        },
+                        {
+                            "index": 0,
+                            "element": "input_name",
+                            "attributes": {
+                                "name": "names",
+                                "data-type": "name-element"
+                            },
+                            "settings": {
+                                "container_class": "",
+                                "admin_field_label": "Name",
+                                "conditional_logics": {
+                                    "type": "any",
+                                    "status": false,
+                                    "conditions": [
+                                        {
+                                            "field": "",
+                                            "value": "",
+                                            "operator": ""
+                                        }
+                                    ]
+                                },
+                                "label_placement": ""
+                            },
+                            "fields": {
+                                "first_name": {
+                                    "element": "input_text",
+                                    "attributes": {
+                                        "type": "text",
+                                        "name": "first_name",
+                                        "value": "",
+                                        "id": "",
+                                        "class": "",
+                                        "placeholder": "First Name"
+                                    },
+                                    "settings": {
+                                        "container_class": "",
+                                        "label": "First Name",
+                                        "help_message": "",
+                                        "visible": true,
+                                        "validation_rules": {
+                                            "required": {
+                                                "value": true,
+                                                "message": "This field is required",
+                                                "global": false,
+                                                "global_message": "This field is required"
+                                            }
+                                        },
+                                        "conditional_logics": []
+                                    },
+                                    "editor_options": {
+                                        "template": "inputText"
+                                    }
+                                },
+                                "middle_name": {
+                                    "element": "input_text",
+                                    "attributes": {
+                                        "type": "text",
+                                        "name": "middle_name",
+                                        "value": "",
+                                        "id": "",
+                                        "class": "",
+                                        "placeholder": "",
+                                        "required": false
+                                    },
+                                    "settings": {
+                                        "container_class": "",
+                                        "label": "Middle Name",
+                                        "help_message": "",
+                                        "error_message": "",
+                                        "visible": false,
+                                        "validation_rules": {
+                                            "required": {
+                                                "value": false,
+                                                "message": "This field is required",
+                                                "global": false,
+                                                "global_message": "This field is required"
+                                            }
+                                        },
+                                        "conditional_logics": []
+                                    },
+                                    "editor_options": {
+                                        "template": "inputText"
+                                    }
+                                },
+                                "last_name": {
+                                    "element": "input_text",
+                                    "attributes": {
+                                        "type": "text",
+                                        "name": "last_name",
+                                        "value": "",
+                                        "id": "",
+                                        "class": "",
+                                        "placeholder": "Last Name",
+                                        "required": false
+                                    },
+                                    "settings": {
+                                        "container_class": "",
+                                        "label": "Last Name",
+                                        "help_message": "",
+                                        "error_message": "",
+                                        "visible": true,
+                                        "validation_rules": {
+                                            "required": {
+                                                "value": false,
+                                                "message": "This field is required",
+                                                "global": false,
+                                                "global_message": "This field is required"
+                                            }
+                                        },
+                                        "conditional_logics": []
+                                    },
+                                    "editor_options": {
+                                        "template": "inputText"
+                                    }
+                                }
+                            },
+                            "editor_options": {
+                                "title": "Name Fields",
+                                "element": "name-fields",
+                                "icon_class": "ff-edit-name",
+                                "template": "nameFields"
+                            },
+                            "uniqElKey": "el_1570866006692"
+                        },
+                        {
+                            "index": 13,
+                            "element": "input_date",
+                            "attributes": {
+                                "type": "text",
+                                "name": "dateofbirth",
+                                "value": "",
+                                "id": "",
+                                "class": "",
+                                "placeholder": ""
+                            },
+                            "settings": {
+                                "container_class": "",
+                                "label": "Date of Birth",
+                                "admin_field_label": "",
+                                "label_placement": "",
+                                "date_config": "",
+                                "date_format": "d/m/Y",
+                                "help_message": "",
+                                "is_time_enabled": true,
+                                "validation_rules": {
+                                    "required": {
+                                        "value": true,
+                                        "message": "This field is required",
+                                        "global": false,
+                                        "global_message": "This field is required"
+                                    }
+                                },
+                                "conditional_logics": {
+                                    "type": "any",
+                                    "status": false,
+                                    "conditions": [
+                                        {
+                                            "field": "",
+                                            "value": "",
+                                            "operator": ""
+                                        }
+                                    ]
+                                }
+                            },
+                            "editor_options": {
+                                "title": "Time & Date",
+                                "icon_class": "ff-edit-date",
+                                "template": "inputText"
+                            },
+                            "uniqElKey": "el_1681056388947"
+                        },
+                        {
+                            "index": 1,
+                            "element": "input_email",
+                            "attributes": {
+                                "type": "email",
+                                "name": "email",
+                                "value": "",
+                                "id": "",
+                                "class": "",
+                                "placeholder": "Email Address"
+                            },
+                            "settings": {
+                                "container_class": "",
+                                "label": "Email",
+                                "label_placement": "",
+                                "help_message": "",
+                                "admin_field_label": "",
+                                "validation_rules": {
+                                    "required": {
+                                        "value": true,
+                                        "message": "This field is required",
+                                        "global": false,
+                                        "global_message": "This field is required"
+                                    },
+                                    "email": {
+                                        "value": true,
+                                        "message": "This field must contain a valid email",
+                                        "global": false,
+                                        "global_message": "This field must contain a valid email"
+                                    }
+                                },
+                                "conditional_logics": [],
+                                "is_unique": "no",
+                                "unique_validation_message": "Email address need to be unique.",
+                                "prefix_label": "",
+                                "suffix_label": ""
+                            },
+                            "editor_options": {
+                                "title": "Email Address",
+                                "icon_class": "ff-edit-email",
+                                "template": "inputText"
+                            },
+                            "uniqElKey": "el_1570866012914"
+                        },
+                        {
+                            "when": "fluentform-pro",
+                            "index": 18,
+                            "element": "phone",
+                            "attributes": {
+                                "name": "phone",
+                                "class": "",
+                                "value": "",
+                                "type": "tel",
+                                "placeholder": "Phone/Mobile Number"
+                            },
+                            "settings": {
+                                "container_class": "",
+                                "placeholder": "",
+                                "auto_select_country": "no",
+                                "label": "Phone/Mobile",
+                                "label_placement": "",
+                                "help_message": "",
+                                "admin_field_label": "",
+                                "phone_country_list": {
+                                    "active_list": "priority_based",
+                                    "visible_list": [],
+                                    "hidden_list": [],
+                                    "priority_based": []
+                                },
+                                "default_country": "",
+                                "validation_rules": {
+                                    "required": {
+                                        "value": false,
+                                        "message": "This field is required",
+                                        "global": false,
+                                        "global_message": "This field is required"
+                                    },
+                                    "valid_phone_number": {
+                                        "value": false,
+                                        "message": "This phone number doesn't seem valid to our system. Please let us know in the message if you think this error is incorrect.",
+                                        "global": false,
+                                        "global_message": "Phone number is not valid"
+                                    }
+                                },
+                                "conditional_logics": []
+                            },
+                            "editor_options": {
+                                "title": "Phone/Mobile Field",
+                                "icon_class": "el-icon-phone-outline",
+                                "template": "inputText"
+                            },
+                            "uniqElKey": "el_1680737940532"
+                        },
+                        {
+                            "index": 4,
+                            "element": "address",
+                            "attributes": {
+                                "id": "",
+                                "class": "",
+                                "name": "correspondenceAddress",
+                                "data-type": "address-element"
+                            },
+                            "settings": {
+                                "label": "Correspondence Address",
+                                "enable_g_autocomplete": "yes",
+                                "admin_field_label": "Correspondence Address",
+                                "field_order": [
+                                    {
+                                        "id": 1,
+                                        "value": "address_line_1"
+                                    },
+                                    {
+                                        "id": 2,
+                                        "value": "address_line_2"
+                                    },
+                                    {
+                                        "id": 3,
+                                        "value": "city"
+                                    },
+                                    {
+                                        "id": 4,
+                                        "value": "state"
+                                    },
+                                    {
+                                        "id": 5,
+                                        "value": "zip"
+                                    },
+                                    {
+                                        "id": 6,
+                                        "value": "country"
+                                    }
+                                ],
+                                "conditional_logics": {
+                                    "type": "any",
+                                    "status": false,
+                                    "conditions": [
+                                        {
+                                            "field": "",
+                                            "value": "",
+                                            "operator": ""
+                                        }
+                                    ]
+                                },
+                                "enable_g_map": "yes",
+                                "enable_auto_locate": "on_click"
+                            },
+                            "fields": {
+                                "address_line_1": {
+                                    "element": "input_text",
+                                    "attributes": {
+                                        "type": "text",
+                                        "name": "address_line_1",
+                                        "value": "",
+                                        "id": "",
+                                        "class": "",
+                                        "placeholder": "Address Line 1"
+                                    },
+                                    "settings": {
+                                        "container_class": "",
+                                        "label": "Address Line 1",
+                                        "admin_field_label": "",
+                                        "help_message": "",
+                                        "visible": true,
+                                        "validation_rules": {
+                                            "required": {
+                                                "value": true,
+                                                "message": "This field is required",
+                                                "global": false,
+                                                "global_message": "This field is required"
+                                            }
+                                        },
+                                        "conditional_logics": [],
+                                        "label_placement": "",
+                                        "label_placement_options": [
+                                            {
+                                                "value": "",
+                                                "label": "Default"
+                                            },
+                                            {
+                                                "value": "top",
+                                                "label": "Top"
+                                            },
+                                            {
+                                                "value": "right",
+                                                "label": "Right"
+                                            },
+                                            {
+                                                "value": "bottom",
+                                                "label": "Bottom"
+                                            },
+                                            {
+                                                "value": "left",
+                                                "label": "Left"
+                                            },
+                                            {
+                                                "value": "hide_label",
+                                                "label": "Hidden"
+                                            }
+                                        ]
+                                    },
+                                    "editor_options": {
+                                        "template": "inputText"
+                                    }
+                                },
+                                "address_line_2": {
+                                    "element": "input_text",
+                                    "attributes": {
+                                        "type": "text",
+                                        "name": "address_line_2",
+                                        "value": "",
+                                        "id": "",
+                                        "class": "",
+                                        "placeholder": "Address Line 2"
+                                    },
+                                    "settings": {
+                                        "container_class": "",
+                                        "label": "Address Line 2",
+                                        "admin_field_label": "",
+                                        "help_message": "",
+                                        "visible": true,
+                                        "validation_rules": {
+                                            "required": {
+                                                "value": false,
+                                                "message": "This field is required",
+                                                "global": false,
+                                                "global_message": "This field is required"
+                                            }
+                                        },
+                                        "conditional_logics": [],
+                                        "label_placement": "",
+                                        "label_placement_options": [
+                                            {
+                                                "value": "",
+                                                "label": "Default"
+                                            },
+                                            {
+                                                "value": "top",
+                                                "label": "Top"
+                                            },
+                                            {
+                                                "value": "right",
+                                                "label": "Right"
+                                            },
+                                            {
+                                                "value": "bottom",
+                                                "label": "Bottom"
+                                            },
+                                            {
+                                                "value": "left",
+                                                "label": "Left"
+                                            },
+                                            {
+                                                "value": "hide_label",
+                                                "label": "Hidden"
+                                            }
+                                        ]
+                                    },
+                                    "editor_options": {
+                                        "template": "inputText"
+                                    }
+                                },
+                                "city": {
+                                    "element": "input_text",
+                                    "attributes": {
+                                        "type": "text",
+                                        "name": "city",
+                                        "value": "",
+                                        "id": "",
+                                        "class": "",
+                                        "placeholder": "Town/City"
+                                    },
+                                    "settings": {
+                                        "container_class": "",
+                                        "label": "Town/City",
+                                        "admin_field_label": "",
+                                        "help_message": "",
+                                        "error_message": "",
+                                        "visible": true,
+                                        "validation_rules": {
+                                            "required": {
+                                                "value": true,
+                                                "message": "This field is required",
+                                                "global": false,
+                                                "global_message": "This field is required"
+                                            }
+                                        },
+                                        "conditional_logics": [],
+                                        "label_placement": "",
+                                        "label_placement_options": [
+                                            {
+                                                "value": "",
+                                                "label": "Default"
+                                            },
+                                            {
+                                                "value": "top",
+                                                "label": "Top"
+                                            },
+                                            {
+                                                "value": "right",
+                                                "label": "Right"
+                                            },
+                                            {
+                                                "value": "bottom",
+                                                "label": "Bottom"
+                                            },
+                                            {
+                                                "value": "left",
+                                                "label": "Left"
+                                            },
+                                            {
+                                                "value": "hide_label",
+                                                "label": "Hidden"
+                                            }
+                                        ]
+                                    },
+                                    "editor_options": {
+                                        "template": "inputText"
+                                    }
+                                },
+                                "state": {
+                                    "element": "input_text",
+                                    "attributes": {
+                                        "type": "text",
+                                        "name": "state",
+                                        "value": "",
+                                        "id": "",
+                                        "class": "",
+                                        "placeholder": "Region/State"
+                                    },
+                                    "settings": {
+                                        "container_class": "",
+                                        "label": "Region/State",
+                                        "admin_field_label": "",
+                                        "help_message": "",
+                                        "error_message": "",
+                                        "visible": true,
+                                        "validation_rules": {
+                                            "required": {
+                                                "value": true,
+                                                "message": "This field is required",
+                                                "global": false,
+                                                "global_message": "This field is required"
+                                            }
+                                        },
+                                        "conditional_logics": [],
+                                        "label_placement": "",
+                                        "label_placement_options": [
+                                            {
+                                                "value": "",
+                                                "label": "Default"
+                                            },
+                                            {
+                                                "value": "top",
+                                                "label": "Top"
+                                            },
+                                            {
+                                                "value": "right",
+                                                "label": "Right"
+                                            },
+                                            {
+                                                "value": "bottom",
+                                                "label": "Bottom"
+                                            },
+                                            {
+                                                "value": "left",
+                                                "label": "Left"
+                                            },
+                                            {
+                                                "value": "hide_label",
+                                                "label": "Hidden"
+                                            }
+                                        ]
+                                    },
+                                    "editor_options": {
+                                        "template": "inputText"
+                                    }
+                                },
+                                "zip": {
+                                    "element": "input_text",
+                                    "attributes": {
+                                        "type": "text",
+                                        "name": "zip",
+                                        "value": "",
+                                        "id": "",
+                                        "class": "",
+                                        "placeholder": "Postcode",
+                                        "required": false
+                                    },
+                                    "settings": {
+                                        "container_class": "",
+                                        "label": "Postcode",
+                                        "admin_field_label": "",
+                                        "help_message": "",
+                                        "error_message": "",
+                                        "visible": true,
+                                        "validation_rules": {
+                                            "required": {
+                                                "value": true,
+                                                "message": "This field is required",
+                                                "global": false,
+                                                "global_message": "This field is required"
+                                            }
+                                        },
+                                        "conditional_logics": [],
+                                        "label_placement": "",
+                                        "label_placement_options": [
+                                            {
+                                                "value": "",
+                                                "label": "Default"
+                                            },
+                                            {
+                                                "value": "top",
+                                                "label": "Top"
+                                            },
+                                            {
+                                                "value": "right",
+                                                "label": "Right"
+                                            },
+                                            {
+                                                "value": "bottom",
+                                                "label": "Bottom"
+                                            },
+                                            {
+                                                "value": "left",
+                                                "label": "Left"
+                                            },
+                                            {
+                                                "value": "hide_label",
+                                                "label": "Hidden"
+                                            }
+                                        ]
+                                    },
+                                    "editor_options": {
+                                        "template": "inputText"
+                                    }
+                                },
+                                "country": {
+                                    "element": "select_country",
+                                    "attributes": {
+                                        "name": "country",
+                                        "value": "",
+                                        "id": "",
+                                        "class": "",
+                                        "placeholder": "Select Country",
+                                        "required": false
+                                    },
+                                    "settings": {
+                                        "container_class": "",
+                                        "label": "Country",
+                                        "admin_field_label": "",
+                                        "help_message": "",
+                                        "error_message": "",
+                                        "visible": true,
+                                        "validation_rules": {
+                                            "required": {
+                                                "value": true,
+                                                "message": "This field is required",
+                                                "global": false,
+                                                "global_message": "This field is required"
+                                            }
+                                        },
+                                        "country_list": {
+                                            "active_list": "priority_based",
+                                            "visible_list": [],
+                                            "hidden_list": [],
+                                            "priority_based": []
+                                        },
+                                        "conditional_logics": [],
+                                        "label_placement": "",
+                                        "label_placement_options": [
+                                            {
+                                                "value": "",
+                                                "label": "Default"
+                                            },
+                                            {
+                                                "value": "top",
+                                                "label": "Top"
+                                            },
+                                            {
+                                                "value": "right",
+                                                "label": "Right"
+                                            },
+                                            {
+                                                "value": "bottom",
+                                                "label": "Bottom"
+                                            },
+                                            {
+                                                "value": "left",
+                                                "label": "Left"
+                                            },
+                                            {
+                                                "value": "hide_label",
+                                                "label": "Hidden"
+                                            }
+                                        ]
+                                    },
+                                    "options": {
+                                        "US": "US of America",
+                                        "UK": "United Kingdom"
+                                    },
+                                    "editor_options": {
+                                        "title": "Country List",
+                                        "element": "country-list",
+                                        "icon_class": "icon-text-width",
+                                        "template": "selectCountry"
+                                    }
+                                }
+                            },
+                            "editor_options": {
+                                "title": "Address Fields",
+                                "element": "address-fields",
+                                "icon_class": "ff-edit-address",
+                                "template": "addressFields"
+                            },
+                            "uniqElKey": "el_1681056516598"
+                        },
+                        {
+                            "when": "fluentform-pro",
+                            "index": 16,
+                            "element": "input_file",
+                            "attributes": {
+                                "type": "file",
+                                "name": "proofofidentity",
+                                "value": "",
+                                "id": "",
+                                "class": ""
+                            },
+                            "settings": {
+                                "container_class": "",
+                                "label": "Proof of Identity",
+                                "admin_field_label": "",
+                                "label_placement": "",
+                                "btn_text": "Choose File(s)...",
+                                "help_message": "Alternatively, drag & drop files onto this area.",
+                                "upload_file_location": "default",
+                                "file_location_type": "follow_global_settings",
+                                "validation_rules": {
+                                    "required": {
+                                        "value": true,
+                                        "message": "This field is required",
+                                        "global": false,
+                                        "global_message": "This field is required"
+                                    },
+                                    "max_file_size": {
+                                        "value": 5242880,
+                                        "_valueFrom": "MB",
+                                        "message": "Maximum file size limit is 5MB",
+                                        "global": false,
+                                        "global_message": "Validation fails for maximum file size"
+                                    },
+                                    "max_file_count": {
+                                        "value": "2",
+                                        "message": "You can upload maximum 2 files",
+                                        "global": false,
+                                        "global_message": "Validation fails for maximum file count"
+                                    },
+                                    "allowed_file_types": {
+                                        "value": [
+                                            "jpg|jpeg|gif|png|bmp",
+                                            "pdf",
+                                            "doc|ppt|pps|xls|mdb|docx|xlsx|pptx|odt|odp|ods|odg|odc|odb|odf|rtf|txt"
+                                        ],
+                                        "message": "Invalid file type",
+                                        "global": false,
+                                        "global_message": "Invalid file type"
+                                    }
+                                },
+                                "conditional_logics": {
+                                    "type": "any",
+                                    "status": false,
+                                    "conditions": [
+                                        {
+                                            "field": "",
+                                            "value": "",
+                                            "operator": ""
+                                        }
+                                    ]
+                                }
+                            },
+                            "editor_options": {
+                                "title": "File Upload",
+                                "icon_class": "ff-edit-files",
+                                "template": "inputFile"
+                            },
+                            "uniqElKey": "el_1681056832592"
+                        },
+                        {
+                            "when": "fluentform-pro",
+                            "index": 16,
+                            "element": "input_file",
+                            "attributes": {
+                                "type": "file",
+                                "name": "proofofaddress",
+                                "value": "",
+                                "id": "",
+                                "class": ""
+                            },
+                            "settings": {
+                                "container_class": "",
+                                "label": "Proof of Address",
+                                "admin_field_label": "",
+                                "label_placement": "",
+                                "btn_text": "Choose File(s)...",
+                                "help_message": "Alternatively, drag & drop files onto this area.",
+                                "upload_file_location": "default",
+                                "file_location_type": "follow_global_settings",
+                                "validation_rules": {
+                                    "required": {
+                                        "value": true,
+                                        "message": "This field is required",
+                                        "global": false,
+                                        "global_message": "This field is required"
+                                    },
+                                    "max_file_size": {
+                                        "value": 5242880,
+                                        "_valueFrom": "MB",
+                                        "message": "Maximum file size limit is 5MB",
+                                        "global": false,
+                                        "global_message": "Validation fails for maximum file size"
+                                    },
+                                    "max_file_count": {
+                                        "value": "2",
+                                        "message": "You can upload maximum 2 files",
+                                        "global": false,
+                                        "global_message": "Validation fails for maximum file count"
+                                    },
+                                    "allowed_file_types": {
+                                        "value": [
+                                            "jpg|jpeg|gif|png|bmp",
+                                            "pdf",
+                                            "doc|ppt|pps|xls|mdb|docx|xlsx|pptx|odt|odp|ods|odg|odc|odb|odf|rtf|txt"
+                                        ],
+                                        "message": "Invalid file type",
+                                        "global": false,
+                                        "global_message": "Invalid file type"
+                                    }
+                                },
+                                "conditional_logics": {
+                                    "type": "any",
+                                    "status": false,
+                                    "conditions": [
+                                        {
+                                            "field": "",
+                                            "value": "",
+                                            "operator": ""
+                                        }
+                                    ]
+                                }
+                            },
+                            "editor_options": {
+                                "title": "File Upload",
+                                "icon_class": "ff-edit-files",
+                                "template": "inputFile"
+                            },
+                            "uniqElKey": "el_1681056834737"
+                        },
+                        {
+                            "index": 3,
+                            "element": "textarea",
+                            "attributes": {
+                                "name": "notes",
+                                "value": "",
+                                "id": "",
+                                "class": "",
+                                "placeholder": "Your Message",
+                                "rows": "10",
+                                "cols": 2,
+                                "maxlength": ""
+                            },
+                            "settings": {
+                                "container_class": "",
+                                "label": "Notes",
+                                "admin_field_label": "",
+                                "label_placement": "",
+                                "help_message": "Is there anything else we should know about your request, or anything specific you are seeking or expecting?",
+                                "validation_rules": {
+                                    "required": {
+                                        "value": true,
+                                        "message": "This field is required",
+                                        "global": false,
+                                        "global_message": "This field is required"
+                                    }
+                                },
+                                "conditional_logics": {
+                                    "type": "any",
+                                    "status": false,
+                                    "conditions": [
+                                        {
+                                            "field": "",
+                                            "value": "",
+                                            "operator": ""
+                                        }
+                                    ]
+                                }
+                            },
+                            "editor_options": {
+                                "title": "Text Area",
+                                "icon_class": "ff-edit-textarea",
+                                "template": "inputTextarea"
+                            },
+                            "uniqElKey": "el_1570879001207"
+                        },
+                        {
+                            "index": 0,
+                            "element": "input_hidden",
+                            "attributes": {
+                                "type": "hidden",
+                                "name": "url",
+                                "value": "{wp.site_url}"
+                            },
+                            "settings": {
+                                "admin_field_label": "URL"
+                            },
+                            "editor_options": {
+                                "title": "Hidden Field",
+                                "icon_class": "ff-edit-hidden-field",
+                                "template": "inputHidden"
+                            },
+                            "uniqElKey": "el_1680098714317"
+                        },
+                        {
+                            "index": 0,
+                            "element": "input_hidden",
+                            "attributes": {
+                                "type": "hidden",
+                                "name": "ip",
+                                "value": "{ip}"
+                            },
+                            "settings": {
+                                "admin_field_label": "User IP Address"
+                            },
+                            "editor_options": {
+                                "title": "Hidden Field",
+                                "icon_class": "ff-edit-hidden-field",
+                                "template": "inputHidden"
+                            },
+                            "uniqElKey": "el_1680098747350"
+                        },
+                        {
+                            "index": 0,
+                            "element": "input_hidden",
+                            "attributes": {
+                                "type": "hidden",
+                                "name": "http_referer",
+                                "value": "{http_referer}"
+                            },
+                            "settings": {
+                                "admin_field_label": "Referer"
+                            },
+                            "editor_options": {
+                                "title": "Hidden Field",
+                                "icon_class": "ff-edit-hidden-field",
+                                "template": "inputHidden"
+                            },
+                            "uniqElKey": "el_1680098804176"
+                        },
+                        {
+                            "index": 0,
+                            "element": "input_hidden",
+                            "attributes": {
+                                "type": "hidden",
+                                "name": "browser",
+                                "value": "{browser.name}"
+                            },
+                            "settings": {
+                                "admin_field_label": "Browser"
+                            },
+                            "editor_options": {
+                                "title": "Hidden Field",
+                                "icon_class": "ff-edit-hidden-field",
+                                "template": "inputHidden"
+                            },
+                            "uniqElKey": "el_16800988431010.12253215061291212"
+                        },
+                        {
+                            "index": 0,
+                            "element": "input_hidden",
+                            "attributes": {
+                                "type": "hidden",
+                                "name": "os",
+                                "value": "{browser.platform}"
+                            },
+                            "settings": {
+                                "admin_field_label": "User OS"
+                            },
+                            "editor_options": {
+                                "title": "Hidden Field",
+                                "icon_class": "ff-edit-hidden-field",
+                                "template": "inputHidden"
+                            },
+                            "uniqElKey": "el_16800988811270.5147149216435986"
+                        },
+                        {
+                            "index": 10,
+                            "element": "gdpr_agreement",
+                            "attributes": {
+                                "type": "checkbox",
+                                "name": "gdpr-agreement",
+                                "value": false,
+                                "class": "ff_gdpr_field"
+                            },
+                            "settings": {
+                                "label": "GDPR Agreement",
+                                "tnc_html": "I confirm the details submitted are true and authorised. I consent to my information being stored and processed for this request, under this site’s privacy policy.",
+                                "admin_field_label": "GDPR Agreement",
+                                "has_checkbox": true,
+                                "container_class": "",
+                                "validation_rules": {
+                                    "required": {
+                                        "value": true,
+                                        "message": "This field is required",
+                                        "global": false,
+                                        "global_message": "This field is required"
+                                    }
+                                },
+                                "required_field_message": "",
+                                "conditional_logics": {
+                                    "type": "any",
+                                    "status": false,
+                                    "conditions": [
+                                        {
+                                            "field": "",
+                                            "value": "",
+                                            "operator": ""
+                                        }
+                                    ]
+                                }
+                            },
+                            "editor_options": {
+                                "title": "GDPR Agreement",
+                                "icon_class": "ff-edit-gdpr",
+                                "template": "termsCheckbox"
+                            },
+                            "uniqElKey": "el_1680098396747"
+                        }
+                    ],
+                    "submitButton": {
+                        "uniqElKey": "el_1524065200616",
+                        "element": "button",
+                        "attributes": {
+                            "type": "submit",
+                            "class": ""
+                        },
+                        "settings": {
+                            "align": "center",
+                            "button_style": "no_style",
+                            "container_class": "",
+                            "help_message": "",
+                            "background_color": "#409EFF",
+                            "button_size": "lg",
+                            "color": "#ffffff",
+                            "button_ui": {
+                                "type": "default",
+                                "text": "Submit Form",
+                                "img_url": ""
+                            },
+                            "normal_styles": {
+                                "backgroundColor": "#409EFF",
+                                "borderColor": "#409EFF",
+                                "color": "#ffffff",
+                                "borderRadius": "",
+                                "minWidth": ""
+                            },
+                            "hover_styles": {
+                                "backgroundColor": "#ffffff",
+                                "borderColor": "#409EFF",
+                                "color": "#409EFF",
+                                "borderRadius": "",
+                                "minWidth": ""
+                            },
+                            "current_state": "normal_styles"
+                        },
+                        "editor_options": {
+                            "title": "Submit Button"
+                        }
+                    }
+                }
+            }
+        ]
+    }
+}
