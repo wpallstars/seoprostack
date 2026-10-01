@@ -29,12 +29,24 @@
  *   `WC requires at least`, `Elementor tested up to`).
  * Plugins that need a ticked plugin follow it: they load where it loads.
  *
+ * On the site itself, plugins ticked for the site ("Plugins to skip on the
+ * site") are skipped on GET requests for pages (index.php, not the REST
+ * API) whose query arguments are only search, page numbers and campaign
+ * tags, for visitors who are not logged in, and for logged-in people too
+ * when chosen. Plugins that change logins or the plugin list, or replace
+ * a core (pluggable) function, always load, and so does a ticked plugin
+ * that a loading plugin needs. What each plugin adds to the site is
+ * learned once per set of active plugins, on a page view that loads every
+ * plugin (SEOProStack_Plugin_Loading::learn_front()).
+ *
  * Safety: nothing is ever deactivated (writes to `active_plugins` during a
- * filtered request keep every plugin), and a screen that hits a fatal
- * error or makes a plugin try to deactivate itself loads every plugin
- * from then on. `?seoprostack-load-all=1` loads every plugin for one
- * request and learns that screen again; the SEOPROSTACK_LOAD_ALL_PLUGINS
- * constant turns filtering off.
+ * filtered request keep every plugin), rewrite rules generated with fewer
+ * plugins are never saved, and a screen that hits a fatal error or makes
+ * a plugin try to deactivate itself loads every plugin from then on (on
+ * the site: every page, until the list of plugins for the site is saved
+ * again). `?seoprostack-load-all=1` loads every plugin for one request and
+ * learns that screen again; the SEOPROSTACK_LOAD_ALL_PLUGINS constant
+ * turns filtering off.
  *
  * @package SEOProStack
  * @since 0.4.0
@@ -64,6 +76,30 @@ final class SEOProStack_Plugin_Loader {
 
     /** SEO Pro Stack's own settings page (Settings > SEO Pro Stack). */
     const SETTINGS_PAGE = 'seoprostack';
+
+    /** What each plugin adds to the site, learned on a page view. Autoloaded. */
+    const FRONT = 'seoprostack_plugin_front';
+
+    /** Time the site's learning started, so one request at a time learns. Not autoloaded. */
+    const FRONT_LOCK = 'seoprostack_plugin_front_lock';
+
+    /** Settings keys for the site: plugins to skip, and whether for logged-in people too. */
+    const FRONT_KEY       = 'plugin_loading_front';
+    const FRONT_USERS_KEY = 'plugin_loading_front_users';
+
+    /** Format of what is learned on the site; a change makes it learn again. */
+    const FRONT_VERSION = 1;
+
+    /**
+     * Query arguments that leave a page of the site as it is: search, page
+     * numbers and campaign tags. Any other argument may be a link that a
+     * plugin acts on (unsubscribe, download, login, add to cart), so such
+     * requests load every plugin.
+     */
+    const FRONT_ARGS = array(
+        's', 'paged', 'page', 'cpage', 'p', 'page_id',
+        'gclid', 'gbraid', 'wbraid', 'fbclid', 'msclkid', 'dclid', 'twclid', 'ttclid', 'mc_cid', 'mc_eid', '_ga', '_gl',
+    );
 
     /**
      * Hooks whose callbacks show that a plugin adds boxes, fields, blocks or
@@ -231,6 +267,9 @@ final class SEOProStack_Plugin_Loader {
     /** @var bool Whether the current screen has been marked to load everything. */
     private static $flagged = false;
 
+    /** @var bool Whether someone asked a page of the site to learn again (?seoprostack-load-all=1). */
+    private static $relearn = false;
+
     /**
      * Why a 'full' request loads every plugin: 'always' (a screen that is
      * never filtered), 'learning' (not learned yet, or learned again),
@@ -262,7 +301,14 @@ final class SEOProStack_Plugin_Loader {
         }
 
         $options = get_option('seoprostack_options', array());
-        if (!is_array($options) || empty($options[self::SWITCH_KEY]) || empty($options[self::LIST_KEY]) || !is_array($options[self::LIST_KEY])) {
+        if (!is_array($options) || empty($options[self::SWITCH_KEY])) {
+            return;
+        }
+        if (!is_admin()) {
+            self::start_front($options);
+            return;
+        }
+        if (empty($options[self::LIST_KEY]) || !is_array($options[self::LIST_KEY])) {
             return;
         }
         $chosen = array_values(array_intersect(self::$raw, $options[self::LIST_KEY]));
@@ -279,11 +325,7 @@ final class SEOProStack_Plugin_Loader {
         // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- only loads more plugins.
         $relearn = isset($_GET[self::LOAD_ALL_ARG]);
         if (!self::$map || $relearn) {
-            // Learn which plugin registers each post type, taxonomy and block.
-            self::$attributing = true;
-            add_action('registered_post_type', array(__CLASS__, 'note_post_type'));
-            add_action('registered_taxonomy', array(__CLASS__, 'note_taxonomy'));
-            add_filter('register_block_type_args', array(__CLASS__, 'note_block'), 10, 2);
+            self::attribute();
         }
         if ('' === self::$screen) {
             self::$reason = 'always';
@@ -308,19 +350,199 @@ final class SEOProStack_Plugin_Loader {
             self::$reason = 'needed';
             return;
         }
+        self::filter();
+        // A page whose plugin was skipped is not registered: core would say
+        // "not allowed". Load it again with every plugin instead.
+        add_action('admin_page_access_denied', array(__CLASS__, 'reload_denied'), 0);
+    }
 
+    /**
+     * Skip self::$skipped for the rest of this request, safely.
+     */
+    private static function filter() {
         self::$mode   = 'filter';
         self::$reason = '';
         add_filter('option_active_plugins', array(__CLASS__, 'filter_active'), PHP_INT_MAX);
         add_filter('pre_update_option_active_plugins', array(__CLASS__, 'keep_active'), PHP_INT_MAX, 2);
+        // Rules generated now would leave out the skipped plugins' addresses
+        // for everyone, so only a request with every plugin saves them.
+        add_filter('pre_update_option_rewrite_rules', array(__CLASS__, 'keep_rewrite_rules'), PHP_INT_MAX, 2);
         add_action('deactivate_plugin', array(__CLASS__, 'flag_screen'));
-        // A page whose plugin was skipped is not registered: core would say
-        // "not allowed". Load it again with every plugin instead.
-        add_action('admin_page_access_denied', array(__CLASS__, 'reload_denied'), 0);
         // Core's fatal error handler shows its message, then exits before
         // later shutdown functions run, so mark the screen from its message.
         add_filter('wp_php_error_message', array(__CLASS__, 'fatal_message'));
         register_shutdown_function(array(__CLASS__, 'on_shutdown'));
+    }
+
+    /**
+     * Learn which plugin registers each post type, taxonomy and block.
+     */
+    private static function attribute() {
+        self::$attributing = true;
+        add_action('registered_post_type', array(__CLASS__, 'note_post_type'));
+        add_action('registered_taxonomy', array(__CLASS__, 'note_taxonomy'));
+        add_filter('register_block_type_args', array(__CLASS__, 'note_block'), 10, 2);
+    }
+
+    /**
+     * Start on a page of the site: skip the plugins ticked for the site, or
+     * learn what each plugin adds there.
+     *
+     * @param array $options SEO Pro Stack's stored settings.
+     */
+    private static function start_front(array $options) {
+        if (!self::front_request()) {
+            return;
+        }
+        $logged_in    = self::has_login_cookie();
+        self::$screen = 'front';
+        // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- only loads more plugins.
+        if (isset($_GET[self::LOAD_ALL_ARG])) {
+            // Every plugin for this request. For an administrator (checked
+            // when learning) it also learns the site again.
+            self::$mode    = 'full';
+            self::$reason  = 'learning';
+            self::$relearn = $logged_in;
+            if ($logged_in) {
+                self::attribute();
+            }
+            return;
+        }
+        if (!self::front_current()) {
+            // Learn once per set of active plugins, one request at a time.
+            if (self::take_front_lock()) {
+                self::$mode   = 'full';
+                self::$reason = 'learning';
+                self::attribute();
+            }
+            return;
+        }
+        $front = get_option(self::FRONT, array());
+        if (!empty($front['failed']) || ($logged_in && empty($options[self::FRONT_USERS_KEY]))) {
+            return;
+        }
+        $chosen = isset($options[self::FRONT_KEY]) && is_array($options[self::FRONT_KEY]) ? array_values(array_intersect(self::$raw, $options[self::FRONT_KEY])) : array();
+        self::$skipped = self::front_skipped($chosen, $front);
+        if (self::$skipped) {
+            self::filter();
+        }
+    }
+
+    /**
+     * Whether this request is a page of the site that may skip plugins:
+     * GET for index.php, not the REST API, with harmless query arguments.
+     *
+     * @return bool
+     */
+    private static function front_request() {
+        if (is_admin() || wp_doing_ajax() || wp_doing_cron() || (defined('WP_CLI') && WP_CLI) || (defined('XMLRPC_REQUEST') && XMLRPC_REQUEST)
+            || (defined('REST_REQUEST') && REST_REQUEST) || (defined('IFRAME_REQUEST') && IFRAME_REQUEST) || (defined('WP_INSTALLING') && WP_INSTALLING)) {
+            return false;
+        }
+        if (defined('SEOPROSTACK_LOAD_ALL_PLUGINS') && SEOPROSTACK_LOAD_ALL_PLUGINS) {
+            return false;
+        }
+        $method = isset($_SERVER['REQUEST_METHOD']) ? strtoupper(sanitize_key(wp_unslash($_SERVER['REQUEST_METHOD']))) : '';
+        if ('GET' !== $method && 'HEAD' !== $method) {
+            return false;
+        }
+        // Only the site's own front controller: not wp-login.php, wp-signup.php,
+        // wp-activate.php, xmlrpc.php, wp-cron.php or a file of a plugin.
+        $script = isset($_SERVER['SCRIPT_NAME']) ? str_replace('\\', '/', (string) wp_unslash($_SERVER['SCRIPT_NAME'])) : ''; // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- only compared.
+        if ('index.php' !== basename($script) || '/wp-admin' === substr(dirname($script), -9) || false !== strpos($script, '/wp-content/') || false !== strpos($script, '/wp-includes/')) {
+            return false;
+        }
+        $uri    = isset($_SERVER['REQUEST_URI']) ? (string) wp_unslash($_SERVER['REQUEST_URI']) : ''; // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- only compared.
+        $path   = (string) strtok($uri, '?');
+        $prefix = function_exists('rest_get_url_prefix') ? rest_get_url_prefix() : 'wp-json';
+        if (false !== strpos($path, '/' . trim($prefix, '/'))) {
+            return false; // The REST API, before core has said so.
+        }
+        // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- only reading which arguments there are.
+        foreach (array_keys($_GET) as $name) {
+            $name = (string) $name;
+            if (self::LOAD_ALL_ARG !== $name && !in_array($name, self::FRONT_ARGS, true) && 0 !== strpos($name, 'utm_')) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
+     * Whether the request carries a login cookie (checked before WordPress
+     * knows who is logged in; a stale cookie counts, which loads more).
+     *
+     * @return bool
+     */
+    private static function has_login_cookie() {
+        foreach (array_keys($_COOKIE) as $name) {
+            if (0 === strpos((string) $name, 'wordpress_logged_in_')) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Whether what each plugin adds to the site was learned for the current
+     * set of active plugins.
+     *
+     * @return bool
+     */
+    public static function front_current() {
+        $front = get_option(self::FRONT, array());
+        return is_array($front)
+            && isset($front['version'], $front['active'], $front['deps'], $front['always'], $front['notes'])
+            && self::FRONT_VERSION === $front['version']
+            && self::fingerprint(self::stored_active_plugins()) === $front['active'];
+    }
+
+    /**
+     * Start learning the site unless another request is (for two minutes at
+     * most, in case that request failed). Two requests at once may both
+     * learn, which does no harm.
+     *
+     * @return bool
+     */
+    private static function take_front_lock() {
+        $now = time();
+        if (add_option(self::FRONT_LOCK, $now, '', false)) {
+            return true;
+        }
+        if ((int) get_option(self::FRONT_LOCK, 0) > $now - 2 * MINUTE_IN_SECONDS) {
+            return false;
+        }
+        update_option(self::FRONT_LOCK, $now, false);
+        return true;
+    }
+
+    /**
+     * Ticked plugins this page of the site skips: not those that always
+     * load, and not those a loading plugin needs.
+     *
+     * @param string[] $chosen Ticked plugins that are active.
+     * @param array    $front  What was learned on the site.
+     * @return string[]
+     */
+    private static function front_skipped(array $chosen, array $front) {
+        $never = array_merge(array(self::$self), (array) $front['always']);
+        $skip  = array_fill_keys(array_diff($chosen, $never), true);
+        $deps  = (array) $front['deps'];
+        do {
+            $added = false;
+            foreach (self::$raw as $file) {
+                if (isset($skip[$file]) || empty($deps[$file])) {
+                    continue;
+                }
+                foreach ((array) $deps[$file] as $dep) {
+                    if (isset($skip[$dep])) {
+                        unset($skip[$dep]);
+                        $added = true; // It loads now, so what it needs must load too.
+                    }
+                }
+            }
+        } while ($added);
+        return array_keys($skip);
     }
 
     /**
@@ -626,13 +848,34 @@ final class SEOProStack_Plugin_Loader {
     }
 
     /**
-     * Mark the current screen to load every plugin from now on.
+     * During a filtered request, keep the stored rewrite rules: rules made
+     * now would leave out the skipped plugins' addresses. Emptying them (the
+     * first step of a flush) is let through, so the next request that loads
+     * every plugin makes them again.
+     *
+     * @param mixed $value New value.
+     * @param mixed $old   Stored value.
+     * @return mixed
      */
-    public static function flag_screen() {
+    public static function keep_rewrite_rules($value, $old) {
+        return is_array($value) && $value ? $old : $value;
+    }
+
+    /**
+     * Mark the current screen to load every plugin from now on; on the
+     * site, every page, until the list of plugins for the site is saved.
+     *
+     * @param string $plugin Plugin that tried to deactivate, if any.
+     */
+    public static function flag_screen($plugin = '') {
         if ('filter' !== self::$mode || self::$flagged || '' === self::$screen) {
             return;
         }
         self::$flagged = true;
+        if ('front' === self::$screen) {
+            self::flag_front(is_string($plugin) ? $plugin : '');
+            return;
+        }
         wp_cache_delete(self::MAP, 'options');
         wp_cache_delete('alloptions', 'options');
         $map = get_option(self::MAP, array());
@@ -640,6 +883,32 @@ final class SEOProStack_Plugin_Loader {
             $map['load_all'][self::$screen] = time();
             update_option(self::MAP, $map, true);
         }
+    }
+
+    /**
+     * A page of the site failed with fewer plugins: note when, where and in
+     * which plugin, so the site loads every plugin and the settings say so.
+     *
+     * @param string $plugin Plugin that tried to deactivate, if any.
+     */
+    private static function flag_front($plugin) {
+        wp_cache_delete(self::FRONT, 'options');
+        wp_cache_delete('alloptions', 'options');
+        $front = get_option(self::FRONT, array());
+        if (!is_array($front) || !isset($front['version'])) {
+            return;
+        }
+        if ('' === $plugin) {
+            $error  = error_get_last();
+            $plugin = $error && !empty($error['file']) ? self::plugin_for_file((string) $error['file']) : '';
+        }
+        $uri             = isset($_SERVER['REQUEST_URI']) ? esc_url_raw(wp_unslash($_SERVER['REQUEST_URI'])) : '';
+        $front['failed'] = array(
+            'time'   => time(),
+            'plugin' => $plugin,
+            'path'   => (string) strtok($uri, '?'),
+        );
+        update_option(self::FRONT, $front, true);
     }
 
     /**
@@ -680,7 +949,10 @@ final class SEOProStack_Plugin_Loader {
     public static function fatal_message($message) {
         self::flag_screen();
         if (self::$flagged) {
-            $message .= '<p>' . esc_html__('SEO Pro Stack loaded fewer plugins on this screen. Reload the page: it now loads every plugin here.', 'seoprostack') . '</p>';
+            $text     = 'front' === self::$screen
+                ? __('SEO Pro Stack loaded fewer plugins on this page. Reload it: the site now loads every plugin.', 'seoprostack')
+                : __('SEO Pro Stack loaded fewer plugins on this screen. Reload the page: it now loads every plugin here.', 'seoprostack');
+            $message .= '<p>' . esc_html($text) . '</p>';
         }
         return $message;
     }
@@ -878,13 +1150,14 @@ final class SEOProStack_Plugin_Loader {
     /**
      * Current request state for SEO Pro Stack's own code.
      *
-     * @return array{mode: string, reason: string, screen: string, active: string[], skipped: string[], map: array, attributing: bool, registered: array}
+     * @return array{mode: string, reason: string, screen: string, relearn: bool, active: string[], skipped: string[], map: array, attributing: bool, registered: array}
      */
     public static function state() {
         return array(
             'mode'        => self::$mode,
             'reason'      => self::$reason,
             'screen'      => self::$screen,
+            'relearn'     => self::$relearn,
             'active'      => self::$raw,
             'skipped'     => self::$skipped,
             'map'         => self::$map,
