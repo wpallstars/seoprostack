@@ -1,9 +1,12 @@
-# Files excluded from the WordPress.org / release build (wp dist-archive).
+# Files excluded from the release builds (scripts/build-release.sh, wp dist-archive).
+# The WordPress.org build also leaves out the files in .distignore-wporg.
 .git
 .gitattributes
 .gitignore
 .distignore
+.distignore-wporg
 .woodpecker.yml
+/dist
 .DS_Store
 .aider*
 # Local AI tooling state (aidevops), never part of the plugin.
@@ -14,6 +17,7 @@
 .syncing
 AGENTS.md
 DEVELOPMENT.md
+RELEASING.md
 ROADMAP.md
 STABILITY.md
 TESTING.md
