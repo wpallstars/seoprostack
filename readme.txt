@@ -46,7 +46,7 @@ Everything is off by default. Settings save instantly from **Settings → SEO Pr
 * **Short links**: short addresses on your site, such as /go/offer/, that send visitors elsewhere with a 301, 302 or 307 redirect, with nofollow and sponsored options, categories and click counts. Imports links, click counts and categories from Pretty Links.
 * **Speed**: load pages before the click (Speculation Rules), delay chosen scripts until interaction, and add Google Analytics 4 without slowing the page.
 * **Plugins menu in the admin bar**: a plugin icon on the right of the admin bar lists every plugin. Switch any plugin on or off after confirming, then return to the page you were on.
-* **Plugin sizes**: a Size column on the Plugins screen shows each plugin’s PHP, JavaScript, CSS, media and other files, measured in the background and sortable.
+* **Plugin sizes**: a Size column on the Plugins screen shows each plugin’s PHP, JavaScript, CSS, media and other files, measured in the background and sortable, with totals for installed and active plugins below the list.
 * **Clean up deleted plugins**: when plugin folders were deleted outside the Plugins screen, opening that screen removes their leftover uninstall and “Recently active” entries.
 * **Load plugins only where needed**: makes wp-admin faster on sites with many plugins. Plugins you tick load only on their own screens, on post, term and list screens where they add boxes, fields or blocks, and where plugins that need them load. Screens are learned the first time they open, the menu stays the same, and saving, background tasks, the Plugins and settings screens and the site itself always load every plugin. A screen that fails loads every plugin from then on. Uses a small must-use file that it writes and removes itself.
 
@@ -128,7 +128,7 @@ They stay scheduled and publish at their times. Turning it off only stops new po
 = 0.4.0 =
 * Settings are grouped into Admin, Content, Media, Links and Speed tabs. Old links still open the right tab.
 * New: search features by name, description or the plugin they replace, and change them from the results.
-* New Plugins tab, all off by default: a Plugins menu in the admin bar (replaces Plugin Toggle), a Size column on the Plugins screen, and cleanup of leftover entries for deleted plugins.
+* New Plugins tab, all off by default: a Plugins menu in the admin bar (replaces Plugin Toggle), a Size column on the Plugins screen with totals for installed and active plugins, and cleanup of leftover entries for deleted plugins.
 * Free Plugins no longer lists Plugin Toggle or String Locator.
 * Free Plugins no longer lists EditorsKit, last updated in May 2024. WordPress and Kadence Blocks cover its features.
 * New, off by default: Hide admin notices moves plugin and theme notices behind a bell in the admin bar, with a count (replaces Hide Admin Notices). “Show example notices” adds one of each kind to try it.

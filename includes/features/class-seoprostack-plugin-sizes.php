@@ -8,6 +8,7 @@
  *
  * Sizes are measured in the background: the screen renders from the cache,
  * and the script asks for missing sizes in small, time-limited batches.
+ * Rows below the list total every installed plugin and the active ones.
  * Each plugin's size is kept until its version changes. Cached in one
  * network-wide option (plugins are shared by every site), removed on
  * uninstall.
@@ -51,7 +52,7 @@ class SEOProStack_Plugin_Sizes extends SEOProStack_Feature {
                 'default'     => false,
                 'tab'         => 'plugins',
                 'label'       => __('Plugin sizes', 'seoprostack'),
-                'description' => __('Add a Size column to the Plugins screen with each plugin’s PHP, JavaScript, CSS, media and other files, so heavy plugins stand out. Click the column heading to sort.', 'seoprostack'),
+                'description' => __('Add a Size column to the Plugins screen with each plugin’s PHP, JavaScript, CSS, media and other files, so heavy plugins stand out. Click the column heading to sort. Totals for installed and active plugins are shown below the list.', 'seoprostack'),
             ),
         );
     }
@@ -155,10 +156,85 @@ class SEOProStack_Plugin_Sizes extends SEOProStack_Feature {
             $cache   = (array) get_site_option(self::CACHE, array());
             $plugins = get_plugins();
         }
-        if (!isset($plugins[$file], $cache[$file]['v'], $cache[$file]['s'])) {
+        return isset($plugins[$file]) ? self::valid($cache, $file, $plugins[$file]) : null;
+    }
+
+    /**
+     * A cache entry's sizes, if it matches the installed version.
+     *
+     * @param array  $cache  Cache option.
+     * @param string $file   Plugin file.
+     * @param array  $plugin Plugin headers.
+     * @return array|null
+     */
+    private static function valid(array $cache, $file, array $plugin) {
+        if (!isset($cache[$file]['v'], $cache[$file]['s'])) {
             return null;
         }
-        return $cache[$file]['v'] === (string) $plugins[$file]['Version'] ? (array) $cache[$file]['s'] : null;
+        $version = isset($plugin['Version']) ? (string) $plugin['Version'] : '';
+        return $cache[$file]['v'] === $version ? (array) $cache[$file]['s'] : null;
+    }
+
+    /**
+     * Totals rows for all installed plugins and the active ones.
+     *
+     * Covers every plugin, not only those in the current view, so the
+     * numbers are the same on every tab of the Plugins screen.
+     *
+     * @param array $cache   Cache option.
+     * @param array $plugins Installed plugins, from get_plugins().
+     * @param bool  $network Count network-activated plugins as active (Network Plugins screen).
+     * @return array|null Rows keyed installed and active, each with label, cell and missing; null with no plugins.
+     */
+    private static function totals(array $cache, array $plugins, $network) {
+        if (!$plugins) {
+            return null;
+        }
+        $zero   = array('sizes' => array_fill_keys(array_merge(self::GROUPS, array('total')), 0), 'count' => 0, 'missing' => 0);
+        $totals = array('installed' => $zero, 'active' => $zero);
+        foreach ($plugins as $file => $plugin) {
+            $sizes  = self::valid($cache, $file, (array) $plugin);
+            $active = $network ? is_plugin_active_for_network($file) : is_plugin_active($file);
+            foreach ($active ? array('installed', 'active') : array('installed') as $key) {
+                $totals[$key]['count']++;
+                if (null === $sizes) {
+                    $totals[$key]['missing']++;
+                    continue;
+                }
+                foreach (array_keys($totals[$key]['sizes']) as $group) {
+                    $totals[$key]['sizes'][$group] += isset($sizes[$group]) ? (int) $sizes[$group] : 0;
+                }
+            }
+        }
+
+        $rows = array();
+        foreach ($totals as $key => $total) {
+            $count = number_format_i18n($total['count']);
+            if ('installed' === $key) {
+                /* translators: %s: number of plugins. */
+                $label = sprintf(_n('%s installed plugin', '%s installed plugins', $total['count'], 'seoprostack'), $count);
+            } elseif ($network) {
+                /* translators: %s: number of plugins. */
+                $label = sprintf(_n('%s network active plugin', '%s network active plugins', $total['count'], 'seoprostack'), $count);
+            } else {
+                /* translators: %s: number of plugins. */
+                $label = sprintf(_n('%s active plugin', '%s active plugins', $total['count'], 'seoprostack'), $count);
+            }
+            $cell = $total['sizes']['total'] ? self::cell($total['sizes']) : ''; // Nothing measured yet, or no plugins.
+            if ($total['missing']) {
+                $cell .= sprintf(
+                    '<span class="sps-size__missing">%s</span>',
+                    /* translators: %s: number of plugins. */
+                    esc_html(sprintf(_n('%s plugin not measured', '%s plugins not measured', $total['missing'], 'seoprostack'), number_format_i18n($total['missing'])))
+                );
+            }
+            $rows[$key] = array(
+                'label'   => esc_html($label),
+                'cell'    => $cell,
+                'missing' => $total['missing'],
+            );
+        }
+        return $rows;
     }
 
     /**
@@ -177,8 +253,18 @@ class SEOProStack_Plugin_Sizes extends SEOProStack_Feature {
         $files   = isset($_POST['files']) ? array_map('sanitize_text_field', (array) wp_unslash($_POST['files'])) : array();
         $cache   = (array) get_site_option(self::CACHE, array());
         $cache   = array_intersect_key($cache, $plugins); // Forget deleted plugins.
+        $network = is_multisite() && !empty($_POST['network']);
         $start   = microtime(true);
         $done    = array();
+
+        if (!$files && !empty($_POST['rest'])) {
+            // Nothing left on screen: measure plugins outside the current view, for the totals.
+            foreach ($plugins as $file => $plugin) {
+                if (null === self::valid($cache, $file, (array) $plugin)) {
+                    $files[] = $file;
+                }
+            }
+        }
 
         foreach (array_slice(array_unique($files), 0, 50) as $file) {
             if (!isset($plugins[$file])) {
@@ -197,7 +283,10 @@ class SEOProStack_Plugin_Sizes extends SEOProStack_Feature {
         } else {
             update_option(self::CACHE, $cache, false); // Only the Plugins screen needs it.
         }
-        wp_send_json_success(array('cells' => $done));
+        wp_send_json_success(array(
+            'cells'  => $done,
+            'totals' => self::totals($cache, $plugins, $network),
+        ));
     }
 
     /**
@@ -263,6 +352,14 @@ class SEOProStack_Plugin_Sizes extends SEOProStack_Feature {
             .sps-size-sort { padding: 0; font: inherit; color: inherit; background: none; border: 0; cursor: pointer; }
             .sps-size-sort:hover, .sps-size-sort:focus { color: var(--wp-admin-theme-color, #2271b1); }
             .sps-size-sort .dashicons { font-size: 16px; width: 16px; height: 16px; vertical-align: text-bottom; }
+            .sps-size-totals td { background: #f6f7f7; }
+            .sps-size-totals tr:first-child td { border-top: 2px solid #c3c4c7; }
+            .sps-size-totals tr + tr td { border-top: 1px solid #dcdcde; }
+            .sps-size__missing { display: block; margin-top: 2px; font-size: 12px; color: #646970; font-style: italic; }
+            @media screen and (max-width: 782px) {
+                .sps-size-totals td:not(.column-primary):not(.column-<?php echo esc_attr(self::COLUMN); ?>) { display: none !important; }
+                .sps-size-totals td.column-<?php echo esc_attr(self::COLUMN); ?>:not(.hidden) { display: block !important; }
+            }
         </style>
         <?php
     }
@@ -271,11 +368,14 @@ class SEOProStack_Plugin_Sizes extends SEOProStack_Feature {
      * Fill in missing sizes, and sort by size when the heading is clicked.
      */
     public static function script() {
-        $data = array(
+        $network = is_network_admin();
+        $data    = array(
             'ajaxUrl' => admin_url('admin-ajax.php'),
             'action'  => self::AJAX,
             'nonce'   => wp_create_nonce(self::AJAX),
             'column'  => self::COLUMN,
+            'network' => $network,
+            'totals'  => self::totals((array) get_site_option(self::CACHE, array()), get_plugins(), $network),
             'i18n'    => array(
                 'failed'   => __('Could not measure', 'seoprostack'),
                 'sort'     => __('Sort by size', 'seoprostack'),
@@ -289,23 +389,53 @@ class SEOProStack_Plugin_Sizes extends SEOProStack_Feature {
             var $table = $('.wp-list-table.plugins');
             if (!$table.length) { return; }
 
+            // Totals for all installed plugins and the active ones, below the list.
+            var $totals = $('<tbody class="sps-size-totals"></tbody>');
+            var missing = cfg.totals ? cfg.totals.installed.missing : 0;
+            function totals(rows) {
+                if (!rows) { return; }
+                var $columns = $table.find('thead tr').first().children();
+                $totals.empty();
+                $.each(['installed', 'active'], function (i, key) {
+                    var $tr = $('<tr></tr>');
+                    $columns.each(function () {
+                        var $head = $(this);
+                        var $td = $('<td></td>').addClass('column-' + this.id);
+                        if ('cb' === this.id) { $td.addClass('check-column'); }
+                        if ($head.hasClass('column-primary')) { $td.addClass('column-primary').html('<strong>' + rows[key].label + '</strong>'); }
+                        if ($head.hasClass('hidden')) { $td.addClass('hidden'); }
+                        if (cfg.column === this.id) { $td.html(rows[key].cell); }
+                        $tr.append($td);
+                    });
+                    $totals.append($tr);
+                });
+                if (!$totals.parent().length) { $table.find('tbody#the-list').after($totals); }
+            }
+            totals(cfg.totals);
+
             // Measure missing sizes a batch at a time; the server stops after a few seconds.
+            // Plugins on screen go first, then the rest so the totals are complete.
             function measure() {
                 var files = $table.find('[data-sps-size-file]').map(function () { return $(this).data('sps-size-file'); }).get();
-                if (!files.length) { return; }
-                $.post(cfg.ajaxUrl, { action: cfg.action, nonce: cfg.nonce, files: files.slice(0, 20) })
+                if (!files.length && !missing) { return; }
+                $.post(cfg.ajaxUrl, { action: cfg.action, nonce: cfg.nonce, files: files.slice(0, 20), rest: files.length ? 0 : 1, network: cfg.network ? 1 : 0 })
                     .done(function (response) {
-                        var cells = (response && response.success && response.data.cells) || {};
+                        var data = (response && response.success && response.data) || {};
                         var measured = 0;
-                        $.each(cells, function (file, html) {
+                        $.each(data.cells || {}, function (file, html) {
                             $table.find('[data-sps-size-file]').filter(function () { return $(this).data('sps-size-file') === file; }).replaceWith(html);
                             measured++;
                         });
+                        if (data.totals) {
+                            totals(data.totals);
+                            missing = data.totals.installed.missing;
+                        }
                         if (measured) { measure(); } else { fail(); }
                     })
                     .fail(fail);
             }
             function fail() {
+                missing = 0;
                 $table.find('[data-sps-size-file]').removeAttr('data-sps-size-file').text(cfg.i18n.failed);
             }
             measure();
