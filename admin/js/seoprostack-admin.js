@@ -391,13 +391,56 @@
 
 			PluginActions.init();
 			Bulk.init();
+			this.filterBar();
 			this.show(String($list.data('category')));
+		},
+
+		// The category links stay on one line and scroll sideways when they do
+		// not fit. A fade marks each side with more links, and the current link
+		// is scrolled into view.
+		filterBar: function () {
+			var bar = document.querySelector('.sps-filter .filter-links');
+			if (!bar) {
+				return;
+			}
+			var update = function () {
+				var max = bar.scrollWidth - bar.clientWidth;
+				// scrollLeft is negative in right-to-left layouts.
+				var pos = Math.abs(bar.scrollLeft);
+				bar.classList.toggle('has-more-start', max > 1 && pos > 1);
+				bar.classList.toggle('has-more-end', max > 1 && pos < max - 1);
+			};
+			bar.addEventListener('scroll', update, { passive: true });
+			window.addEventListener('resize', update);
+			this.updateFilterBar = update;
+			this.revealCurrent();
+			update();
+		},
+
+		revealCurrent: function () {
+			var bar = document.querySelector('.sps-filter .filter-links');
+			var link = bar && bar.querySelector('a.current');
+			if (!link || bar.scrollWidth <= bar.clientWidth) {
+				return;
+			}
+			var barBox = bar.getBoundingClientRect();
+			var box = link.getBoundingClientRect();
+			var pad = 48;
+			if (box.left < barBox.left + pad) {
+				bar.scrollLeft -= barBox.left + pad - box.left;
+			} else if (box.right > barBox.right - pad) {
+				bar.scrollLeft += box.right - (barBox.right - pad);
+			}
+			if (this.updateFilterBar) {
+				this.updateFilterBar();
+			}
 		},
 
 		select: function (category, href, push) {
 			var $links = $('.sps-filter .filter-links a');
 			$links.removeClass('current').removeAttr('aria-current');
 			$links.filter('[data-category="' + category + '"]').addClass('current').attr('aria-current', 'page');
+			this.revealCurrent();
 			if (push && href && window.history && window.history.pushState) {
 				window.history.pushState({ category: category }, '', href);
 			}

@@ -226,6 +226,11 @@
 	padding: 24px;
 }
 
+/* Free Plugins uses the whole screen: more cards per row, a wider list. */
+.sps-main.sps-tab-recommended {
+	max-width: none;
+}
+
 .sps-section {
 	max-width: 860px;
 }
@@ -768,22 +773,65 @@
 	border-radius: var(--sps-radius);
 }
 
+/* One line that scrolls sideways when the categories do not fit, rather than
+   wrapping a word or two onto a second line. The script adds has-more-start
+   and has-more-end, which fade the side with more links. */
 .sps-wrap .sps-filter .filter-links {
 	display: flex;
-	flex-wrap: wrap;
+	flex-wrap: nowrap;
 	float: none;
 	padding-block: 4px;
+	overflow-x: auto;
+	overflow-y: hidden;
+	overscroll-behavior-x: contain;
+	scrollbar-width: thin;
 }
 
-/* Denser than core's 15px tabs so wrapped rows stay compact. */
+.sps-wrap .sps-filter .filter-links li {
+	flex: none;
+}
+
+.sps-wrap .sps-filter .filter-links.has-more-end {
+	-webkit-mask-image: linear-gradient(to right, #000 calc(100% - 48px), transparent);
+	mask-image: linear-gradient(to right, #000 calc(100% - 48px), transparent);
+}
+
+.sps-wrap .sps-filter .filter-links.has-more-start {
+	-webkit-mask-image: linear-gradient(to right, transparent, #000 48px);
+	mask-image: linear-gradient(to right, transparent, #000 48px);
+}
+
+.sps-wrap .sps-filter .filter-links.has-more-start.has-more-end {
+	-webkit-mask-image: linear-gradient(to right, transparent, #000 48px, #000 calc(100% - 48px), transparent);
+	mask-image: linear-gradient(to right, transparent, #000 48px, #000 calc(100% - 48px), transparent);
+}
+
+.rtl .sps-wrap .sps-filter .filter-links.has-more-end {
+	-webkit-mask-image: linear-gradient(to left, #000 calc(100% - 48px), transparent);
+	mask-image: linear-gradient(to left, #000 calc(100% - 48px), transparent);
+}
+
+.rtl .sps-wrap .sps-filter .filter-links.has-more-start {
+	-webkit-mask-image: linear-gradient(to left, transparent, #000 48px);
+	mask-image: linear-gradient(to left, transparent, #000 48px);
+}
+
+.rtl .sps-wrap .sps-filter .filter-links.has-more-start.has-more-end {
+	-webkit-mask-image: linear-gradient(to left, transparent, #000 48px, #000 calc(100% - 48px), transparent);
+	mask-image: linear-gradient(to left, transparent, #000 48px, #000 calc(100% - 48px), transparent);
+}
+
+/* Denser than core's 15px tabs, so more categories fit before scrolling. */
 .sps-wrap .sps-filter .filter-links li > a {
 	margin: 0 8px;
 	padding: 10px 0 8px;
+	white-space: nowrap;
 }
 
 .sps-plugins #the-list {
 	display: grid;
-	grid-template-columns: repeat(auto-fill, minmax(420px, 1fr));
+	/* Core's card layout (icon, text, buttons) gets cramped below ~520px. */
+	grid-template-columns: repeat(auto-fill, minmax(min(520px, 100%), 1fr));
 	gap: 16px;
 }
 

@@ -138,7 +138,7 @@ Copies installed from WordPress.org update from WordPress.org. New versions are 
 == Changelog ==
 
 = Unreleased =
-* New: Free Plugins installs, activates, deactivates and uninstalls plugins without leaving the page. Activate becomes Deactivate, and a deactivated plugin offers Uninstall.
+* New: Free Plugins installs, activates, deactivates and uninstalls plugins without leaving the page. Activate becomes Deactivate, and a deactivated plugin offers Uninstall. It uses the full screen width, and its categories stay on one line.
 * New: the All view in Free Plugins lists every recommended plugin by category, with checkboxes and bulk actions (Install and activate, Install, Activate, Deactivate, Uninstall) for setting up new sites quickly.
 * New, off by default: Tidy the dashboard (Admin tab) lays out the Dashboard the same way on every site, hides the Welcome panel, news and plugin promotions, and shows Site Health to developers only and statistics to people who can publish.
 * New: copies installed from GitHub releases get updates from GitHub through the free Git Updater plugin. A notice, and Free Plugins, offer to install and activate it in one click.
