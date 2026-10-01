@@ -858,25 +858,14 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
     }
 
     /**
-     * The two items shown above the plugin list, or under the stand-alone
-     * count: how many plugins this screen loads, and a reload with every
-     * plugin, which also learns again what the screen needs.
+     * The link that reloads the screen with every plugin, which also learns
+     * again what the screen needs.
      *
      * @param WP_Admin_Bar $bar    Admin bar.
      * @param string       $parent Parent node or group.
+     * @param string       $url    Address with every plugin.
      */
-    private static function bar_items($bar, $parent) {
-        list($loaded, $total, $url) = self::bar_counts();
-        $bar->add_node(array(
-            'id'     => self::NODE . '-count',
-            'parent' => $parent,
-            'title'  => esc_html(sprintf(
-                /* translators: 1: plugins loaded, 2: active plugins */
-                _n('%1$d of %2$d plugin loaded on this screen', '%1$d of %2$d plugins loaded on this screen', $total, 'seoprostack'),
-                $loaded,
-                $total
-            )),
-        ));
+    private static function reload_item($bar, $parent, $url) {
         $bar->add_node(array(
             'id'     => self::NODE . '-all',
             'parent' => $parent,
@@ -898,11 +887,23 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
         if (!current_user_can('activate_plugins')) {
             return;
         }
+        list($loaded, $total, $url) = self::bar_counts();
+        $group = self::NODE . '-menu';
         $bar->add_group(array(
-            'id'     => self::NODE . '-menu',
+            'id'     => $group,
             'parent' => SEOProStack_Plugin_Toggle::NODE,
         ));
-        self::bar_items($bar, self::NODE . '-menu');
+        $bar->add_node(array(
+            'id'     => self::NODE . '-count',
+            'parent' => $group,
+            'title'  => esc_html(sprintf(
+                /* translators: 1: plugins loaded, 2: active plugins */
+                _n('%1$d of %2$d plugin loaded on this screen', '%1$d of %2$d plugins loaded on this screen', $total, 'seoprostack'),
+                $loaded,
+                $total
+            )),
+        ));
+        self::reload_item($bar, $group, $url);
     }
 
     /**
@@ -919,7 +920,7 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
 
         $menu = $bar->get_node(SEOProStack_Plugin_Toggle::NODE);
         if ($menu) {
-            $title = isset($menu->meta['title']) ? $menu->meta['title'] . ' ' : '';
+            $title = isset($menu->meta['title']) && '' !== $menu->meta['title'] ? rtrim($menu->meta['title'], '. ') . '. ' : '';
             $bar->add_node(array(
                 'id'   => SEOProStack_Plugin_Toggle::NODE,
                 /* translators: %d: plugins loaded */
@@ -929,6 +930,7 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
         }
 
         $bar->remove_node(self::NODE . '-menu');
+        $bar->remove_node(self::NODE . '-count');
         $bar->add_node(array(
             'id'     => self::NODE,
             'parent' => 'top-secondary',
@@ -937,7 +939,7 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
             'href'   => $url,
             'meta'   => array('title' => __('Only the plugins this screen needs are loaded. Choose to reload with every plugin.', 'seoprostack')),
         ));
-        self::bar_items($bar, self::NODE);
+        self::reload_item($bar, self::NODE, $url);
     }
 
     /**
