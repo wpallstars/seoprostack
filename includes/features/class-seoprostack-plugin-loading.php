@@ -1353,10 +1353,26 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
         $bar->add_node(array(
             'id'     => self::NODE . '-all',
             'parent' => $parent,
-            'title'  => esc_html__('Reload with every plugin and check this screen again', 'seoprostack'),
+            'title'  => self::on_site()
+                ? esc_html__('Reload with every plugin and check the site again', 'seoprostack')
+                : esc_html__('Reload with every plugin and check this screen again', 'seoprostack'),
             'href'   => $url,
         ));
-        self::reset_item($bar, $parent, $url);
+        // Admin screens are learned one by one; the site is learned as a
+        // whole, so the reload above already checks it all again.
+        if (!self::on_site()) {
+            self::reset_item($bar, $parent, $url);
+        }
+    }
+
+    /**
+     * Whether this request is a page of the site, not an admin screen.
+     *
+     * @return bool
+     */
+    private static function on_site() {
+        $state = SEOProStack_Plugin_Loader::state();
+        return 'front' === $state['screen'];
     }
 
     /**
@@ -1405,8 +1421,11 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
             'id'     => self::NODE . '-count',
             'parent' => $group,
             'title'  => esc_html(sprintf(
-                /* translators: 1: plugins loaded, 2: active plugins */
-                _n('%1$d of %2$d plugin loaded on this screen', '%1$d of %2$d plugins loaded on this screen', $total, 'seoprostack'),
+                self::on_site()
+                    /* translators: 1: plugins loaded, 2: active plugins */
+                    ? _n('%1$d of %2$d plugin loaded on this page', '%1$d of %2$d plugins loaded on this page', $total, 'seoprostack')
+                    /* translators: 1: plugins loaded, 2: active plugins */
+                    : _n('%1$d of %2$d plugin loaded on this screen', '%1$d of %2$d plugins loaded on this screen', $total, 'seoprostack'),
                 $loaded,
                 $total
             )),
@@ -1486,7 +1505,9 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
             /* translators: 1: plugins loaded, 2: active plugins */
             'title'  => esc_html(sprintf(__('%1$d of %2$d plugins', 'seoprostack'), $loaded, $total)),
             'href'   => $url,
-            'meta'   => array('title' => __('Only the plugins this screen needs are loaded. Choose to reload with every plugin.', 'seoprostack')),
+            'meta'   => array('title' => self::on_site()
+                ? __('The plugins you chose to skip on the site are not loaded. Choose to reload with every plugin.', 'seoprostack')
+                : __('Only the plugins this screen needs are loaded. Choose to reload with every plugin.', 'seoprostack')),
         ));
         self::reload_item($bar, self::NODE, $url);
     }
@@ -1511,8 +1532,11 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
      */
     public static function admin_bar_script() {
         $i18n = array(
-            'screen' => __('Reload this screen with every plugin?', 'seoprostack') . "\n\n"
-                . __('Every active plugin loads on this screen once, so it may take a little longer. SEO Pro Stack then checks again which plugins this screen needs. Use this when a box, field, block or menu item is missing here. Other screens do not change.', 'seoprostack'),
+            'screen' => self::on_site()
+                ? __('Reload this page with every plugin?', 'seoprostack') . "\n\n"
+                    . __('Every active plugin loads on this page once, so it may take a little longer. SEO Pro Stack then checks again what each plugin adds to the site. If something is missing from the page, untick its plugin under "Plugins to skip on the site".', 'seoprostack')
+                : __('Reload this screen with every plugin?', 'seoprostack') . "\n\n"
+                    . __('Every active plugin loads on this screen once, so it may take a little longer. SEO Pro Stack then checks again which plugins this screen needs. Use this when a box, field, block or menu item is missing here. Other screens do not change.', 'seoprostack'),
             'reset'  => __('Reload with every plugin and check every screen again?', 'seoprostack') . "\n\n"
                 . __('SEO Pro Stack forgets which plugins each admin screen needs. This screen reloads with every plugin now. Every other screen also loads every plugin until an administrator next opens it and it is checked again, so the first visit to each screen is slower.', 'seoprostack') . "\n\n"
                 . __('Screens set to load every plugin after an error are checked again too. Your settings and the plugins you ticked do not change.', 'seoprostack'),
