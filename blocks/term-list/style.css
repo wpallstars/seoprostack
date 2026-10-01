@@ -1,0 +1,88 @@
+/* seoprostack/term-list. Colours, fonts and list spacing come from the theme unless set on the block. */
+
+/* Space below the block; :where() keeps it weaker than the block's own margin setting and theme layouts. */
+:where(.wp-block-seoprostack-term-list) {
+	margin-bottom: 1.5em;
+}
+
+.wp-block-seoprostack-term-list .wp-block-seoprostack-term-list__count {
+	opacity: 0.8;
+}
+
+.wp-block-seoprostack-term-list.has-sps-link-color a {
+	color: var(--sps-term-link);
+}
+
+.wp-block-seoprostack-term-list.has-sps-hover-color a:hover,
+.wp-block-seoprostack-term-list.has-sps-hover-color a:focus {
+	color: var(--sps-term-link-hover);
+}
+
+.wp-block-seoprostack-term-list.has-sps-gap .wp-block-seoprostack-term-list__item {
+	margin-bottom: var(--sps-term-gap);
+}
+
+.wp-block-seoprostack-term-list .wp-block-seoprostack-term-list__children {
+	margin-top: 0.25em;
+	margin-bottom: 0;
+}
+
+.sps-term-list--marker-none .wp-block-seoprostack-term-list__list,
+.sps-term-list--marker-none .wp-block-seoprostack-term-list__children {
+	list-style: none;
+	padding-left: 0;
+}
+
+.sps-term-list--marker-none .wp-block-seoprostack-term-list__children {
+	padding-left: 1em;
+}
+
+.sps-term-list--marker-disc ul { list-style-type: disc; }
+.sps-term-list--marker-circle ul { list-style-type: circle; }
+.sps-term-list--marker-square ul { list-style-type: square; }
+.sps-term-list--marker-decimal ul { list-style-type: decimal; }
+
+/* Grid: one box per top-level term. */
+.sps-term-list--grid .wp-block-seoprostack-term-list__list {
+	display: grid;
+	grid-template-columns: repeat(var(--sps-term-columns, 3), minmax(0, 1fr));
+	gap: var(--sps-term-gap, 1.25em);
+	list-style: none;
+	margin: 0;
+	padding: 0;
+}
+
+.sps-term-list--grid .wp-block-seoprostack-term-list__list > .wp-block-seoprostack-term-list__item {
+	margin: 0;
+	padding: 1em 1.25em;
+	/* Translucent so it suits light and dark palettes (Kadence's switcher included). */
+	border: 1px solid rgba(127, 127, 127, 0.3);
+	border-radius: 3px;
+}
+
+.sps-term-list--grid .wp-block-seoprostack-term-list__list > li > .wp-block-seoprostack-term-list__count {
+	display: block;
+	font-size: 0.875em;
+}
+
+.sps-term-list--grid .wp-block-seoprostack-term-list__children {
+	list-style: none;
+	padding-left: 0;
+	font-size: 0.875em;
+}
+
+@media (max-width: 1024px) {
+	.sps-term-list--grid .wp-block-seoprostack-term-list__list {
+		grid-template-columns: repeat(var(--sps-term-columns-small, 2), minmax(0, 1fr));
+	}
+}
+
+@media (max-width: 600px) {
+	.sps-term-list--grid .wp-block-seoprostack-term-list__list {
+		grid-template-columns: minmax(0, 1fr);
+	}
+}
+
+.wp-block-seoprostack-term-list__select {
+	max-width: 100%;
+}

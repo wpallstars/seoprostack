@@ -14,7 +14,8 @@ if (!defined('ABSPATH')) {
 // Posts Switch, Ultimate 410, Flying Analytics/Pages/Scripts, Widget Disable,
 // Plugin Toggle, Hide Admin Notices, The Paste, Avatar Privacy, Safe SVG,
 // Imsanity, Enable Media Replace, CompressX, Easy Watermark, Remove CPT base,
-// Pretty Links, Browser Shots.
+// Pretty Links, Browser Shots, Spectra (ultimate-addons-for-gutenberg;
+// Kadence Blocks is listed for page building).
 // String Locator is not listed: searching code is better done in an editor
 // or with WP-CLI than from wp-admin.
 // EditorsKit (block-options) is not listed: its last update was in May 2024,
@@ -56,7 +57,6 @@ function seoprostack_get_free_plugins() {
             'simple-custom-post-order',
             'simple-icons',
             'term-management-tools',
-            'ultimate-addons-for-gutenberg',
             'wikipedia-preview',
             'wp-sheet-editor-bulk-spreadsheet-editor-for-posts-and-pages'
         ),
