@@ -1,12 +1,13 @@
 <?php
 /**
- * Move admin notices behind a "Notices" button.
+ * Move admin notices behind a bell in the admin bar.
  *
  * WordPress's common.js moves every notice (div.notice, .updated, .error
  * that is not .inline or .below-h2) under the page heading when the page is
  * ready. This feature takes the same set, plus the core update nag, and puts
- * it in a panel opened from a "Notices (n)" button next to Screen Options and
- * Help, using core's own screen meta toggle.
+ * it in a panel that drops down from a bell with a count at the right of the
+ * admin bar. The admin bar is the one place every admin screen leaves alone,
+ * so the bell never sits on a plugin's own header.
  *
  * Everything printed on the notice hooks is caught too, whatever its markup
  * or wrapper (WooCommerce wraps all notices in a hidden list): markers around
@@ -15,16 +16,18 @@
  * person first clicks or types; ones drawn by React or Vue stay in place,
  * hidden, and a copy in the panel passes clicks back to them.
  *
- * The button sits with Screen Options and Help. On pages without them it has
- * a row of its own, so it never covers the page, and it stays visible where
- * a page hides that area behind its own top bar (WooCommerce).
+ * The panel stays inside #wpbody-content, where the notices were printed, so
+ * plugin styles and click handlers scoped to that area keep working.
  *
  * Kept in place: messages about what you just did (#message, settings
  * errors), inline notices inside the page's content (inline notices printed
  * above the page are moved), hidden notices, notices added after a click or
  * key press, and any types chosen in the settings. Until the move runs, the
- * notices are hidden with CSS, so they do not flash or push the page down.
+ * notices are hidden with CSS, so they do not flash or push the page down;
+ * without JavaScript they are not hidden at all.
  * The block editor has its own notices and is left alone.
+ *
+ * "Show example notices" prints one notice of each kind, to try it out.
  *
  * Replaces "Hide Admin Notices", which has no settings to import.
  *
@@ -52,6 +55,12 @@ class SEOProStack_Admin_Notices extends SEOProStack_Feature {
     /** Attribute set on everything printed on the notice hooks that is moved or kept. */
     const MARK = 'data-sps-notice';
 
+    /** Admin bar node; its list item's id is "wp-admin-bar-" followed by this. */
+    const NODE = 'sps-notices';
+
+    /** Setting that prints example notices. */
+    const EXAMPLES = 'hide_admin_notices_examples';
+
     /**
      * Settings.
      *
@@ -64,7 +73,7 @@ class SEOProStack_Admin_Notices extends SEOProStack_Feature {
                 'default'     => false,
                 'tab'         => 'admin',
                 'label'       => __('Hide admin notices', 'seoprostack'),
-                'description' => __('Move plugin and theme notices into a “Notices” button next to Screen Options, with a count. Messages about what you just did, such as “Settings saved”, stay on the page.', 'seoprostack'),
+                'description' => __('Move plugin and theme notices behind a bell in the admin bar, with a count. Messages about what you just did, such as “Settings saved”, stay on the page.', 'seoprostack'),
                 'replaces'    => array('hide-admin-notices' => 'Hide Admin Notices'),
             ),
             'hide_admin_notices_keep' => array(
@@ -73,6 +82,13 @@ class SEOProStack_Admin_Notices extends SEOProStack_Feature {
                 'parent'      => self::KEY,
                 'label'       => __('Keep on the page', 'seoprostack'),
                 'options'     => array(__CLASS__, 'keep_options'),
+            ),
+            self::EXAMPLES => array(
+                'type'        => 'bool',
+                'default'     => false,
+                'parent'      => self::KEY,
+                'label'       => __('Show example notices', 'seoprostack'),
+                'description' => __('Add one notice of each kind to every admin screen, to see where they go. Reload the page after changing this.', 'seoprostack'),
             ),
         );
     }
@@ -111,8 +127,69 @@ class SEOProStack_Admin_Notices extends SEOProStack_Feature {
         add_filter('admin_body_class', array(__CLASS__, 'body_class'));
         add_action('admin_head', array(__CLASS__, 'style'));
         add_action('admin_enqueue_scripts', array(__CLASS__, 'script'));
+        // Late, so it sits left of the account menu and other plugins' items.
+        add_action('admin_bar_menu', array(__CLASS__, 'bell'), 90);
+        if (SEOProStack_Settings::get(self::EXAMPLES)) {
+            add_action('admin_notices', array(__CLASS__, 'examples'));
+        }
         // Last on the last notice hook: everything the notice hooks printed is on the page.
         add_action('all_admin_notices', array(__CLASS__, 'mark'), PHP_INT_MAX);
+    }
+
+    /**
+     * Print one notice of each kind, from the "Show example notices" setting.
+     *
+     * Four go behind the bell; the last carries `sps-keep` and stays on the
+     * page, as messages about what you just did do.
+     */
+    public static function examples() {
+        if (!current_user_can('manage_options')) {
+            return;
+        }
+        $off = sprintf(
+            /* translators: %s: link to the setting */
+            __('Turn these off under %s.', 'seoprostack'),
+            sprintf(
+                '<a href="%1$s">%2$s</a>',
+                esc_url(admin_url('options-general.php?page=seoprostack&tab=admin')),
+                esc_html__('Hide admin notices', 'seoprostack')
+            )
+        );
+        $notices = array(
+            'notice-info is-dismissible' => __('Example information notice.', 'seoprostack'),
+            'notice-success'             => __('Example success notice.', 'seoprostack'),
+            'notice-warning'             => __('Example warning notice.', 'seoprostack'),
+            'notice-error'               => __('Example error notice.', 'seoprostack'),
+            'notice-info sps-keep'       => __('Example notice that stays on the page: add the class sps-keep to a notice to keep it here.', 'seoprostack'),
+        );
+        foreach ($notices as $class => $text) {
+            printf(
+                '<div class="notice %1$s sps-example"><p>%2$s %3$s</p></div>',
+                esc_attr($class),
+                esc_html($text),
+                wp_kses($off, array('a' => array('href' => array())))
+            );
+        }
+    }
+
+    /**
+     * Add the bell to the right of the admin bar.
+     *
+     * It stays hidden until the script has moved notices into the panel.
+     *
+     * @param WP_Admin_Bar $bar Admin bar.
+     */
+    public static function bell($bar) {
+        $bar->add_node(array(
+            'id'     => self::NODE,
+            'parent' => 'top-secondary',
+            'title'  => '<span class="ab-icon" aria-hidden="true"></span><span class="ab-label" aria-hidden="true">0</span>',
+            'href'   => '#',
+            'meta'   => array(
+                'class' => 'sps-notices-empty',
+                'title' => __('Notices', 'seoprostack'),
+            ),
+        ));
     }
 
     /**
@@ -154,7 +231,10 @@ class SEOProStack_Admin_Notices extends SEOProStack_Feature {
     }
 
     /**
-     * Hide the notices until they are moved, and style the button and panel.
+     * Hide the notices until they are moved, and style the bell and panel.
+     *
+     * Hiding needs the "js" body class, which core sets as the page starts to
+     * draw, so without JavaScript the notices stay on the page.
      */
     public static function style() {
         $s    = self::selectors();
@@ -166,7 +246,7 @@ class SEOProStack_Admin_Notices extends SEOProStack_Feature {
         foreach (explode(', ', $s['kinds']) as $selector) {
             $not_kind .= ':not(' . $selector . ')';
         }
-        $loading = 'body.' . self::LOADING . ' ';
+        $loading = 'body.js.' . self::LOADING . ' ';
         $hide    = array($loading . '[' . self::MARK . '="move"]');
         foreach (explode(', ', $s['notices']) as $selector) {
             $hide[] = $loading . '#wpbody-content ' . $selector . $not;
@@ -180,14 +260,24 @@ class SEOProStack_Admin_Notices extends SEOProStack_Feature {
         <style id="seoprostack-admin-notices">
             <?php echo implode(",\n", $hide); // phpcs:ignore WordPress.Security.EscapeOutput -- fixed selectors. ?>,
             .sps-notice-away { display: none !important; }
-            #sps-notices-link-wrap { float: left; float: inline-start; margin: 0; margin-inline-start: 6px; }
-            /* No Screen Options or Help, or the page hid them: a row of its own, so the button never covers the page. */
-            #screen-meta-links.sps-notices-only, #screen-meta-links.sps-has-notices[style*="none"] { display: flow-root !important; float: none; }
-            #screen-meta-links.sps-notices-only #sps-notices-link-wrap, #screen-meta-links.sps-has-notices[style*="none"] #sps-notices-link-wrap { float: right; float: inline-end; }
-            #screen-meta-links.sps-has-notices[style*="none"] > :not(#sps-notices-link-wrap) { display: none !important; }
-            #sps-notices-wrap { padding: 8px 20px 12px; }
+            /* Bell: hidden while there is nothing to show, like core's Updates item. */
+            #wpadminbar #wp-admin-bar-sps-notices.sps-notices-empty { display: none; }
+            #wpadminbar #wp-admin-bar-sps-notices .ab-icon:before { content: "\f16d"; content: "\f16d" / ""; top: 2px; }
+            /* Panel: drops down from the bell over the page, scrolling when long. */
+            #sps-notices-wrap { position: fixed; top: 32px; right: 0; z-index: 99998; box-sizing: border-box; width: 640px; max-width: 100%; max-height: calc(100vh - 32px); overflow-y: auto; padding: 0 16px 16px; background: #f0f0f1; border: 1px solid #c3c4c7; border-top: 0; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2); }
+            #sps-notices-wrap.hidden { display: none; }
+            #sps-notices-wrap:focus { outline: none; }
             #sps-notices-wrap > .notice, #sps-notices-wrap > .updated, #sps-notices-wrap > .error, #sps-notices-wrap > .update-nag, #sps-notices-wrap > [<?php echo self::MARK; // phpcs:ignore WordPress.Security.EscapeOutput -- constant. ?>] { display: block; margin: 12px 0 0; }
             #sps-notices-wrap > .update-nag { max-width: none; }
+            @media screen and (max-width: 782px) {
+                /* Core shows only its own items here; the bell joins them, the count in a bubble. */
+                #wpadminbar li#wp-admin-bar-sps-notices { display: block; position: static; }
+                #wpadminbar li#wp-admin-bar-sps-notices.sps-notices-empty { display: none; }
+                #wpadminbar #wp-admin-bar-sps-notices > .ab-item { position: relative; }
+                #wpadminbar #wp-admin-bar-sps-notices .ab-icon:before { display: block; font-size: 34px; height: 46px; line-height: 1.38235294; top: 0; }
+                #wpadminbar #wp-admin-bar-sps-notices .ab-label { position: absolute; top: 5px; right: 4px; width: auto; height: auto; min-width: 18px; margin: 0; padding: 0 5px; overflow: visible; clip-path: none; box-sizing: border-box; border-radius: 9px; background: #d63638; color: #fff; font-size: 11px; line-height: 18px; text-align: center; }
+                #sps-notices-wrap { top: 46px; max-height: calc(100vh - 46px); padding: 0 10px 10px; }
+            }
         </style>
         <?php
     }
@@ -240,6 +330,7 @@ class SEOProStack_Admin_Notices extends SEOProStack_Feature {
 
     /**
      * The script runs after common.js has moved the notices under the heading.
+     * `label` names the bell for screen readers, with the count.
      */
     public static function script() {
         $s    = self::selectors();
@@ -253,6 +344,7 @@ class SEOProStack_Admin_Notices extends SEOProStack_Feature {
             'nag'     => $s['nag'],
             'mark'    => self::MARK,
             'loading' => self::LOADING,
+            'node'    => 'wp-admin-bar-' . self::NODE,
             /* translators: %d: number of notices */
             'label'   => __('Notices (%d)', 'seoprostack'),
             'panel'   => __('Notices', 'seoprostack'),

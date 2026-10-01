@@ -23,6 +23,7 @@ Everything is off by default. Settings save instantly from **Settings → SEO Pr
 * **Publishing queue**: publishing a post from the editor without choosing a date schedules it for the next free time slot (for example weekdays at 09:00 and 15:00). Dates you choose yourself, updates to published posts, imports and WP-CLI are left alone. Posts become normal “Scheduled” posts, so WordPress publishes them.
 * **iFrame block**: embed any page with control over width and height or aspect ratio, lazy loading, sandbox, permissions (camera, autoplay, full screen…), referrer policy and border, and optionally pass the page’s URL parameters (such as UTM tags) to the embedded page. Limit it to a list of domains and to the roles you choose.
 * **Website screenshots**: a Screenshot block and the `[browser-shot]` shortcode. Each page is captured once in a 1920 × 1080 browser window, saved to the Media Library and shown from your site, so visitors never contact the screenshot service. Screenshots are renewed in the background after 30 days. Browser Shots content keeps working.
+* **Spectra block replacements**: a Term list block shows the terms of any taxonomy as a list, a grid or a drop-down. Pages built with Spectra keep working after it is deactivated, and in the editor its Heading, Image, Buttons, Testimonial and Taxonomy List blocks convert to core blocks with one click. Nothing changes until you save, and the Spectra version is kept as a revision.
 * **Copy linked images to Media Library**: when a post is saved, images linked from other sites are copied into the Media Library, resized, attached to the post, and the content is changed to serve the local copy. Supports excluded domains, maximum dimensions, and file name and alt text patterns. Existing alt text is kept and repeat images are reused.
 * **Paste into the Media Library**: paste screenshots, pictures and files into the Media Library, the media dialog or the classic editor and they upload straight away, through WordPress’s own uploader. Pasted pictures get a name from a pattern and can be saved as JPEG or WebP.
 * **SVG uploads**: let chosen roles upload SVG files. Every SVG is cleaned as it is uploaded: scripts, event handlers, HTML, links to other files and anything that is not a drawing are removed, and files that cannot be cleaned safely are refused.
@@ -33,7 +34,7 @@ Everything is off by default. Settings save instantly from **Settings → SEO Pr
 * **Admin bar and dashboard access**: hide the front-end admin bar and block wp-admin for chosen roles, such as subscribers and customers. Administrators are never affected.
 * **Dashboard and sidebar widgets**: hide Dashboard boxes and disable classic widgets you never use.
 * **Notification emails**: stop routine emails one by one, such as auto-update reports and new user notices.
-* **Hide admin notices**: move plugin and theme notices into a “Notices” button next to Screen Options, with a count. Messages about what you just did, such as “Settings saved”, stay on the page.
+* **Hide admin notices**: move plugin and theme notices behind a bell in the admin bar, with a count. Messages about what you just did, such as “Settings saved”, stay on the page.
 * **Avatars without Gravatar**: serve every avatar from your own site, so visitors’ browsers never contact Gravatar. People can upload a profile picture; everyone else gets a silhouette, a pattern that differs per person, or nothing.
 * **Duplicate posts**: copy any post, page or custom post type to a new draft from lists, the editor or the admin bar.
 * **Staged new versions**: edit a published post as a draft copy, then publish the copy over the original, keeping its address, comments and date.
@@ -130,7 +131,7 @@ They stay scheduled and publish at their times. Turning it off only stops new po
 * New Plugins tab, all off by default: a Plugins menu in the admin bar (replaces Plugin Toggle), a Size column on the Plugins screen, and cleanup of leftover entries for deleted plugins.
 * Free Plugins no longer lists Plugin Toggle or String Locator.
 * Free Plugins no longer lists EditorsKit, last updated in May 2024. WordPress and Kadence Blocks cover its features.
-* New, off by default: Hide admin notices moves plugin and theme notices behind a “Notices” button (replaces Hide Admin Notices).
+* New, off by default: Hide admin notices moves plugin and theme notices behind a bell in the admin bar, with a count (replaces Hide Admin Notices). “Show example notices” adds one of each kind to try it.
 * New, off by default: Paste into the Media Library uploads pasted screenshots, pictures and files (replaces The Paste and imports its settings).
 * New, off by default: Avatars without Gravatar serves avatars from your own site, with profile picture uploads (replaces Avatar Privacy and copies its profile pictures).
 * New, off by default: SVG uploads (replaces Safe SVG), Resize large uploads (replaces Imsanity) and Replace media files (replaces Enable Media Replace), each importing that plugin’s settings.
@@ -140,11 +141,10 @@ They stay scheduled and publish at their times. Turning it off only stops new po
 * New, off by default: Short links (Links tab) makes short addresses that redirect elsewhere, with categories and click counts (replaces Pretty Links: imports its links, click counts and categories, and its defaults for new links).
 * New, off by default: Load plugins only where needed (Plugins tab) makes wp-admin faster on sites with many plugins by loading ticked plugins only on the screens that need them.
 * New, off by default: Website screenshots adds a Screenshot block and the `[browser-shot]` shortcode, with pictures saved to the Media Library and served from your site (replaces Browser Shots, whose shortcode and blocks keep working).
+* New, off by default: Spectra block replacements adds a Term list block and keeps pages built with Spectra working after it is deactivated, with a Convert button for its blocks in the editor (replaces Spectra).
 * Change: while a plugin that a feature replaces is active, the feature waits, so the two no longer run side by side (such as two Plugins menus, or analytics loaded twice). The card says so, with a deactivate link.
-* Change: Hide admin notices also moves inline notices printed above the page.
+* Change: Hide admin notices also moves inline notices printed above the page, notices inside other plugins’ wrappers, notices added by scripts while the page loads, and WooCommerce’s script-drawn notices.
 * Fix: `%date%` and `%day%` in Copy linked images’ file name and alt text patterns are no longer lost when saved.
-* Fix: the Notices button no longer narrows the settings header.
-* Fix: Hide admin notices catches notices inside other plugins’ wrappers, notices added by scripts while the page loads, and WooCommerce’s script-drawn notices. On screens with their own top bar, such as WooCommerce, ACF and Rank Math, the Notices button no longer covers the bar.
 
 = 0.3.1 =
 * Free plugin lists show changes straight away instead of after the 12-hour cache expires.

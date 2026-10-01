@@ -1,0 +1,37 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "seoprostack/term-list",
+	"version": "0.4.0",
+	"title": "Term list",
+	"category": "widgets",
+	"icon": "tag",
+	"description": "List the categories, tags or terms of any taxonomy, as a list, grid or drop-down.",
+	"keywords": [ "taxonomy", "terms", "categories", "tags", "list" ],
+	"textdomain": "seoprostack",
+	"attributes": {
+		"taxonomy": { "type": "string", "default": "category" },
+		"layout": { "type": "string", "enum": [ "list", "grid", "dropdown" ], "default": "list" },
+		"showCount": { "type": "boolean", "default": false },
+		"showEmpty": { "type": "boolean", "default": false },
+		"showChildren": { "type": "boolean", "default": true },
+		"columns": { "type": "number", "default": 3 },
+		"marker": { "type": "string", "default": "" },
+		"linkColor": { "type": "string", "default": "" },
+		"linkHoverColor": { "type": "string", "default": "" },
+		"gap": { "type": "number" },
+		"emptyText": { "type": "string", "default": "" }
+	},
+	"supports": {
+		"html": false,
+		"anchor": true,
+		"align": [ "wide", "full" ],
+		"color": { "background": true, "text": true },
+		"spacing": { "margin": true, "padding": true },
+		"typography": { "fontSize": true, "lineHeight": true }
+	},
+	"editorScript": "file:./index.js",
+	"viewScript": "file:./view.js",
+	"style": "file:./style.css",
+	"render": "file:./render.php"
+}

@@ -553,6 +553,8 @@ class SEOProStack_Settings {
      *     (Short addresses for custom post types), Pretty Links' defaults
      *     for new links (Short links; its links are imported separately)
      *     and Browser Shots' switch (Website screenshots; it has no settings).
+     *     Spectra block replacements switch on while Spectra is active and
+     *     its blocks are in use.
      *
      * Old options are left in place so a downgrade keeps working;
      * uninstall.php removes ours. Other plugins' options are never touched.

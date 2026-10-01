@@ -41,6 +41,7 @@ final class SEOProStack {
         'SEOProStack_Post_Scheduler',
         'SEOProStack_Iframe_Block',
         'SEOProStack_Screenshots',
+        'SEOProStack_Spectra_Blocks',
         'SEOProStack_Short_Links',
         'SEOProStack_Remove_Cpt_Base',
         'SEOProStack_Gone_Urls',
