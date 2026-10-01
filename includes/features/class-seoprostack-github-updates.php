@@ -163,11 +163,19 @@ class SEOProStack_Github_Updates extends SEOProStack_Feature {
          *
          * @param array $found Plugin file => array(repo, asset_only, version, name).
          */
-        $found = (array) apply_filters('seoprostack_github_plugins', $found);
-        foreach ($found as $file => $plugin) {
-            if (!is_array($plugin) || '' === self::repo_name(isset($plugin['repo']) ? $plugin['repo'] : '')) {
-                unset($found[$file]);
+        $filtered = (array) apply_filters('seoprostack_github_plugins', $found);
+        $found    = array();
+        foreach ($filtered as $file => $plugin) {
+            $repo = is_array($plugin) && isset($plugin['repo']) ? self::repo_name($plugin['repo']) : '';
+            if ('' === $repo || '.' === dirname((string) $file)) {
+                continue;
             }
+            $found[(string) $file] = array(
+                'repo'       => $repo,
+                'asset_only' => !empty($plugin['asset_only']),
+                'version'    => isset($plugin['version']) ? (string) $plugin['version'] : '',
+                'name'       => isset($plugin['name']) ? (string) $plugin['name'] : (string) $file,
+            );
         }
         return $found;
     }
@@ -519,6 +527,11 @@ class SEOProStack_Github_Updates extends SEOProStack_Feature {
             $current = isset($transient->checked[$file]) ? (string) $transient->checked[$file] : $plugin['version'];
             if (!$release) {
                 // Keep WordPress.org's answer, or say nothing.
+                continue;
+            }
+            $dot_org = isset($transient->response[$file]->new_version) ? (string) $transient->response[$file]->new_version : '';
+            if ('' !== $dot_org && 0 !== strpos((string) ($transient->response[$file]->id ?? ''), self::ID_PREFIX) && version_compare($dot_org, $release['version'], '>=')) {
+                // WordPress.org already offers this version or a newer one.
                 continue;
             }
 
