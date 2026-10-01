@@ -473,7 +473,7 @@ class SEOProStack_Plugin_Presets extends SEOProStack_Feature {
         // Settings ticked in the row's list; without it (no JavaScript, or every one ticked) all change.
         $only = null;
         if ('apply' === $do && isset($_GET['only']) && is_array($_GET['only'])) {
-            $only = array_values(array_filter(array_map('sanitize_text_field', array_map('strval', wp_unslash($_GET['only'])))));
+            $only = array_values(array_filter(array_map('sanitize_text_field', wp_unslash($_GET['only']))));
         }
         if ('undo' === $do) {
             $result = SEOProStack_Presets::undo($slug);
