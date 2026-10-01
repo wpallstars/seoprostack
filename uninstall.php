@@ -64,6 +64,9 @@ function seoprostack_uninstall_site() {
         delete_option($option);
     }
 
+    // Notices kept for each person from plugins that some screens skip.
+    delete_metadata('user', 0, $wpdb->get_blog_prefix() . 'seoprostack_stored_notices', '', true);
+
     // Short links and their categories. Pretty Links' own links, if any
     // were imported, are untouched.
     register_taxonomy('sps_short_link_cat', 'sps_short_link');

@@ -34,7 +34,7 @@ Everything is off by default except Hide admin bar items, which hides Comments a
 * **Admin bar and dashboard access**: hide the front-end admin bar and block wp-admin for chosen roles, such as subscribers and customers. Administrators are never affected.
 * **Dashboard and sidebar widgets**: hide Dashboard boxes and disable classic widgets you never use.
 * **Notification emails**: stop routine emails one by one, such as auto-update reports and new user notices.
-* **Hide admin notices**: move plugin and theme notices behind a bell in the admin bar, with a count. Messages about what you just did, such as “Settings saved”, stay on the page.
+* **Hide admin notices**: move plugin and theme notices behind a bell in the admin bar, with a dot while there are notices. With Load plugins only where needed, notices of plugins a screen skips still show there. Messages about what you just did, such as “Settings saved”, stay on the page.
 * **More menu in the admin bar**: put the items plugins and themes add to the left of the admin bar in one … menu, last on that side, so the bar stays on one line and never covers the page. Choose plugins whose items stay on the bar.
 * **Hide admin bar items** (on by default): remove WordPress items you do not use from the admin bar, such as Comments and + New (ticked by default), the WordPress logo menu or Search. The account menu always stays.
 * **Avatars without Gravatar**: serve every avatar from your own site, so visitors’ browsers never contact Gravatar. People can upload a profile picture; everyone else gets a silhouette, a pattern that differs per person, or nothing.
@@ -135,7 +135,9 @@ They stay scheduled and publish at their times. Turning it off only stops new po
 * Change: roles that plugins add, such as WooCommerce’s Customer, are ticked in Hide the admin bar and Block dashboard access unless they can write posts. With WooCommerce, blocked users go to My Account unless you chose another page.
 * Change: on new sites, SVG uploads also allows authors, contributors and shop managers, and watermarks are 10% of the picture. Existing settings are kept.
 * Change: Resize large uploads no longer imports Imsanity’s default limit (1920), so 2560 is used.
-* Change: the Plugins menu always sits next to the account menu in the admin bar, with the notices bell to its left and other plugins’ items further left, so the bell appearing never moves them.
+* Change: the Plugins menu always sits next to the account menu in the admin bar, with the notices bell to its left and other plugins’ items further left.
+* Change: the notices bell is on every admin screen, with a white dot instead of a count while there are notices, so nothing on the admin bar moves as the page loads. With no notices, its panel says so.
+* New: with Load plugins only where needed, the notices of plugins a screen skips are kept and shown behind the bell there, so they can be read and dismissed from any screen.
 * Change: the notices panel opens when you point at the bell and closes when you move away, like the other admin bar menus.
 * Change: the notices bell, the Plugins icon and the More menu no longer show a tooltip over their open menus. Screen readers still announce them.
 * New: Short links starts you with /googlereview/, /facebookreview/ and /trustpilotreview/ links in a Review Requests category. Point them at your own review pages, then use them in email signatures and review requests.

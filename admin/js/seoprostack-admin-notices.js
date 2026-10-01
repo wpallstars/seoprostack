@@ -14,6 +14,10 @@
  * scoped to it keep working, and is fixed under the bell. Like core's admin
  * bar menus, it opens while the mouse points at the bell and closes when the
  * mouse moves away; keys and taps open it until Escape or a press elsewhere.
+ * The bell is on every screen, with a dot while the panel has notices.
+ *
+ * Notices kept from plugins this screen skipped carry data-sps-stored; using
+ * one's dismiss control tells the server to stop showing it (dismissed()).
  *
  * @package SEOProStack
  */
@@ -196,6 +200,8 @@
 			return null;
 		}
 		$panel = $('<div id="sps-notices-wrap" class="hidden" tabindex="-1" role="region"></div>').attr('aria-label', cfg.panel).prependTo($content);
+		// Shown by CSS only while it is the panel's one child.
+		$('<p class="sps-notices-none"></p>').text(cfg.none).appendTo($panel);
 		$button.attr({ role: 'button', 'aria-controls': 'sps-notices-wrap', 'aria-expanded': 'false' });
 
 		hover();
@@ -237,22 +243,54 @@
 		if (window.MutationObserver) {
 			new MutationObserver(count).observe($panel[0], { childList: true });
 		}
+		$panel.on('click', '[' + cfg.stored + ']', dismissed);
 		return $panel;
 	}
 
 	/**
-	 * Show the count, and hide the bell while the panel is empty.
+	 * Show the dot while the panel has notices, and the count to screen
+	 * readers. The bell stays, so the bar never moves.
 	 */
 	function count() {
 		if (!$panel) {
 			return;
 		}
-		var n = $panel.children().length;
-		$button.children('.ab-label').text(n);
+		var n = $panel.children().not('.sps-notices-none').length;
 		$button.attr('aria-label', cfg.label.replace('%d', n));
 		$item.toggleClass('sps-notices-empty', !n);
-		if (!n) {
-			close();
+	}
+
+	/** Controls that dismiss a notice, by class, link or words. */
+	var DISMISS = /dismiss|(^|[\s_-])(hide|close|later|skip)([\s_-]|$)|no,? thanks|don.t show/i;
+
+	/**
+	 * A kept notice of a plugin this screen skipped was dismissed: stop
+	 * showing it on screens that skip that plugin. Its plugin is not loaded,
+	 * so a dismiss button that needs its script just takes the notice away;
+	 * a link goes on to its address, which loads every plugin.
+	 *
+	 * @param {Event} e Click inside a kept notice.
+	 */
+	function dismissed(e) {
+		var $control = $(e.target).closest('a, button, [role="button"], .notice-dismiss');
+		if (!$control.length || !$.contains(this, $control[0]) && $control[0] !== this) {
+			return;
+		}
+		var el = $control[0];
+		var words = [el.className, el.getAttribute('href') || '', el.getAttribute('aria-label') || '', $control.text()].join(' ');
+		if (!$control.is('.notice-dismiss') && !DISMISS.test(words)) {
+			return;
+		}
+		var notice = this;
+		$.post(cfg.ajax, { action: cfg.forget, nonce: cfg.nonce, hash: notice.getAttribute(cfg.stored) });
+		var href = el.getAttribute('href');
+		if (!$control.is('.notice-dismiss') && (!href || '#' === href.charAt(0) || /^javascript:/i.test(href))) {
+			e.preventDefault();
+			$(notice).fadeTo(100, 0, function () {
+				$(notice).slideUp(100, function () {
+					$(notice).remove();
+				});
+			});
 		}
 	}
 
@@ -452,6 +490,8 @@
 		$notices = $notices.filter(function () {
 			return !$(this).parents().filter($all).length;
 		});
+		// The bell is on every screen; with no notices its panel says so.
+		ui();
 		$notices.each(function () {
 			take(this);
 		});
