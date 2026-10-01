@@ -31,7 +31,8 @@ class SEOProStack_Admin_Bar_Hide extends SEOProStack_Feature {
         return array(
             self::KEY => array(
                 'type'        => 'bool',
-                'default'     => false,
+                // The one feature on by default: a tidier bar out of the box.
+                'default'     => true,
                 'tab'         => 'admin',
                 'label'       => __('Hide admin bar items', 'seoprostack'),
                 'description' => __('Remove WordPress items you do not use from the admin bar, such as Comments and + New, for everyone. Works in wp-admin and on the site.', 'seoprostack'),

@@ -11,7 +11,10 @@ Minimums: **WordPress 6.2, PHP 7.4** (`readme.txt`, plugin header). User docs:
   `SEOProStack::$core_features` (`includes/class-seoprostack.php`).
 - `settings()` declares the schema; the admin UI renders and saves it with no
   extra code. Field types and keys: `README.md` → Developers.
-- `boot()` returns early unless `self::enabled()`. Features are **off by default**.
+- `boot()` returns early unless `self::enabled()`. Features are **off by
+  default**. The only exception, at the owner's request, is Hide admin bar
+  items, which hides Comments and + New. Turning another feature on by
+  default needs the owner's say.
 - A feature that replaces another plugin sets `'replaces' => array(slug => name)`,
   imports that plugin's settings in `migrate()` with `self::import_setting()`
   (fills only unset keys), never writes or deletes the other plugin's options,
