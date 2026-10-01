@@ -138,6 +138,23 @@ abstract class SEOProStack_Feature {
     }
 
     /**
+     * Role options for settings that restrict people, without roles that can
+     * manage options (such as Administrator): current_user_in_roles() never
+     * matches them, so offering them would only mislead.
+     *
+     * @return array<string,string>
+     */
+    public static function restrictable_role_options() {
+        $roles = array();
+        foreach (wp_roles()->roles as $role => $data) {
+            if (empty($data['capabilities']['manage_options'])) {
+                $roles[$role] = translate_user_role($data['name']);
+            }
+        }
+        return $roles;
+    }
+
+    /**
      * Whether the current user has one of the roles. Users who can manage
      * options are never matched, so admins cannot lock themselves out.
      *

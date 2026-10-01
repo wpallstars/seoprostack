@@ -31,7 +31,8 @@ class SEOProStack_Admin_Access extends SEOProStack_Feature {
      * @return array
      */
     public static function settings() {
-        $roles   = array(__CLASS__, 'role_options');
+        // Administrators are never affected, so they are not offered.
+        $roles   = array(__CLASS__, 'restrictable_role_options');
         $default = array('subscriber', 'customer');
         $replace = array('admin-bar-dashboard-control' => 'Admin Bar & Dashboard Access Control');
 
