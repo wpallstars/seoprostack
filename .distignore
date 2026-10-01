@@ -6,6 +6,10 @@
 .woodpecker.yml
 .DS_Store
 .aider*
+# Local AI tooling state (aidevops), never part of the plugin.
+.agents
+.security-analysis
+*.bak
 .metadata_never_index
 .syncing
 AGENTS.md
