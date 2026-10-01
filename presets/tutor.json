@@ -1,0 +1,28 @@
+{
+    "name": "Tutor LMS",
+    "tested": "4.1.0",
+    "updated": "2026-10-01",
+    "notes": "Keeps students' profile pages private, so their names and courses are not public (Tutor already does this until its settings are first saved, then shows them). Course reviews wait for an admin's approval before they show. Courses are written in the block editor, so Kadence blocks work in them. A quiz whose time runs out is submitted with the answers given; a fresh install stores 'autosubmit', which is not one of Tutor's choices, so nothing is selected on the settings screen. Teaching: students finish a course by completing every lesson, quiz and assignment (strict), the course completes on its own when they do, and they can retake it. Taken from the settings on our own course site. Instructor profiles, permalinks, payments and pages are left alone: they differ per site, and Tutor updates permalinks and instructor permissions only when its own screen saves them.",
+    "options": {
+        "tutor_option": {
+            "quiz_when_time_expires": "auto_submit",
+            "student_public_profile_layout": "private",
+            "enable_course_review_moderation": "on",
+            "enable_gutenberg_course_edit": "on",
+            "course_completion_process": "strict",
+            "auto_course_complete_on_all_lesson_completion": "on",
+            "course_retake_feature": "on"
+        }
+    },
+    "defaults": {
+        "tutor_option": {
+            "quiz_when_time_expires": "autosubmit",
+            "student_public_profile_layout": null,
+            "enable_course_review_moderation": null,
+            "enable_gutenberg_course_edit": null,
+            "course_completion_process": null,
+            "auto_course_complete_on_all_lesson_completion": null,
+            "course_retake_feature": null
+        }
+    }
+}

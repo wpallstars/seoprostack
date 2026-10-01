@@ -117,7 +117,7 @@ Copies from WordPress.org update from WordPress.org. New versions come out on Gi
 * New: GitHub copies update without Git Updater.
 * New: Plugins screen lists plugins it replaces.
 * Change: Tutor LMS replaces MasterStudy LMS in the recommended plugins.
-* New: presets for seven more plugins; starter lists, tags and a board for FluentCRM and Fluent Boards.
+* New: presets for eight more plugins; starter lists, tags and a board for FluentCRM and Fluent Boards.
 * New, on by default: Quiet Freemius prompts.
 * Change: Tidy the dashboard hides Debug Log Manager.
 * Fix: fewer GitHub requests from Git Updater.
