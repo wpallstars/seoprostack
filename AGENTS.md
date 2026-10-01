@@ -73,33 +73,40 @@ dark mode switcher (and themes that switch palettes the same way).
 No automated suite ships with the plugin. Verify on real WordPress:
 
 1. `php -l` every PHP file and `node --check` every JS file.
-2. Copy the worktree you are working in into a local test site. Use this
-   instead of Git hooks: hooks are shared by every worktree and would deploy
-   the wrong checkout.
+2. The user reviews on one local test site, shared by every session and
+   worktree. It shows a **combined preview**: `origin/main` plus every open
+   pull request from this repository, merged together. Update it only with
+   the script, from any worktree:
 
    ```bash
-   rsync -a --delete --delete-excluded --exclude-from=.distignore ./ "<site>/wp-content/plugins/seoprostack/"
+   scripts/preview-site.sh             # the first run on a clone takes the site: scripts/preview-site.sh "<site>"
+   scripts/preview-site.sh --dry-run   # report what would be included, copy nothing
    ```
 
-   The site then holds exactly what a release build contains.
+   It fetches `origin`, merges each open PR's branch onto `origin/main` in PR
+   order without touching any checkout, leaves out branches that conflict
+   (and lists them), copies the result with `.distignore` applied (exactly
+   what a release build contains), and writes
+   `<site>/wp-content/seoprostack-synced-from.txt` listing what is included.
+   A lock stops two runs at once. Because every run includes everyone's
+   pushed work, no session hides another's.
 
-   The local test site is shared by every session and worktree, and the
-   last copy wins. Each copy replaces the whole folder, so one cut before a
-   merge removes the merged work, and the user sees old behaviour.
-
-   - Before copying, run `git fetch origin && git merge origin/main` in your
-     worktree, so the site never goes back past merged work.
-   - Read `<site>/wp-content/seoprostack-synced-from.txt` first. If another
-     worktree copied there recently, it may still be testing; say so in
-     your report.
-   - After copying, overwrite that file with your worktree path, branch,
-     commit and the time. It sits outside the plugin folder, so the copy
-     does not delete it and it never reaches a release.
-   - After merging a PR, copy `main` and check the stamp again before telling
-     the user to look.
-   - For checks the user will not look at, prefer a throwaway site of your
-     own (step 4's Docker image on a free port), which no one else
-     overwrites.
+   - **Never** `rsync` your worktree into the shared site: it hides every
+     other session's work until the next run. Do not use Git hooks either:
+     they are shared by every worktree and would deploy the wrong checkout.
+   - Only pushed work with an open PR is included. Before asking the user to
+     look at unmerged work, push the branch and open a draft PR, then run the
+     script. It says so if the branch you run it from is missing or has
+     commits that are not pushed.
+   - After merging a PR, run the script again, then check that the stamp
+     lists your merge in `main` before telling the user to look.
+   - If your branch is left out because it conflicts, merge `origin/main`
+     into it (or wait for the other PR), push and run the script again. Tell
+     the user which PRs are left out.
+   - To check your branch on its own, or for checks the user will not look
+     at, use a throwaway site of your own (step 4's Docker image on a free
+     port), which no one else overwrites:
+     `rsync -a --delete --delete-excluded --exclude-from=.distignore ./ "<site>/wp-content/plugins/seoprostack/"`.
 
 3. Exercise the changed feature through the admin UI or HTTP, and check
    `wp-content/debug.log`. For settings imports, seed the replaced plugin's
