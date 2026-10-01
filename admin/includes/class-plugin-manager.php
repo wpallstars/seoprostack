@@ -295,9 +295,12 @@ class SEOProStack_Plugin_Manager {
         $url     = isset($data['url']) ? (string) $data['url'] : '';
         $php     = isset($data['requires_php']) ? (string) $data['requires_php'] : '';
 
-        $active = $file && ($network ? is_plugin_active_for_network($file) : is_plugin_active($file));
+        $active  = $file && ($network ? is_plugin_active_for_network($file) : is_plugin_active($file));
+        $php_bad = !$active && $php && !is_php_version_compatible($php);
         if ($active) {
             $button = '<button type="button" class="button button-disabled" disabled="disabled">' . esc_html_x('Active', 'plugin', 'seoprostack') . '</button>';
+        } elseif ($php_bad) {
+            $button = '<button type="button" class="button button-disabled" disabled="disabled">' . ($file ? esc_html__('Cannot Activate', 'seoprostack') : esc_html__('Cannot Install', 'seoprostack')) . '</button>';
         } elseif ($file && current_user_can($network ? 'manage_network_plugins' : 'activate_plugin', $file)) {
             $base   = $network ? network_admin_url('plugins.php') : admin_url('plugins.php');
             $link   = wp_nonce_url(add_query_arg(array('action' => 'activate', 'plugin' => rawurlencode($file)), $base), 'activate-plugin_' . $file);
@@ -309,8 +312,6 @@ class SEOProStack_Plugin_Manager {
             );
         } elseif ($file) {
             $button = '<button type="button" class="button button-disabled" disabled="disabled">' . esc_html_x('Installed', 'plugin', 'seoprostack') . '</button>';
-        } elseif ($php && !is_php_version_compatible($php)) {
-            $button = '<button type="button" class="button button-disabled" disabled="disabled">' . esc_html__('Cannot Install', 'seoprostack') . '</button>';
         } elseif (!empty($data['install_url'])) {
             $button = sprintf(
                 '<a class="button" href="%1$s" aria-label="%2$s">%3$s</a>',
@@ -357,7 +358,7 @@ class SEOProStack_Plugin_Manager {
                     <?php if (!empty($data['source'])) : ?>
                         <?php echo esc_html((string) $data['source']); ?>
                     <?php endif; ?>
-                    <?php if (!$file && $php && !is_php_version_compatible($php)) : ?>
+                    <?php if ($php_bad) : ?>
                         <strong>
                             <?php
                             echo esc_html(sprintf(

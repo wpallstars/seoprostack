@@ -80,9 +80,14 @@ class SEOProStack_Github_Updates extends SEOProStack_Feature {
         add_filter('seoprostack_external_plugins', array(__CLASS__, 'external_plugins'));
         add_action('admin_post_' . self::INSTALL, array(__CLASS__, 'install'));
         add_action('admin_post_' . self::DISMISS, array(__CLASS__, 'dismiss'));
-        // On multisite only super admins install plugins, and Git Updater
-        // must be network-activated.
-        add_action(is_multisite() ? 'network_admin_notices' : 'admin_notices', array(__CLASS__, 'notice'));
+        // On multisite the prompt shows in the network admin only (only super
+        // admins install plugins, and Git Updater must be network-activated),
+        // but the result of an install started from a site's Free Plugins tab
+        // shows where it was started.
+        add_action('admin_notices', array(__CLASS__, 'notice'));
+        if (is_multisite()) {
+            add_action('network_admin_notices', array(__CLASS__, 'notice'));
+        }
     }
 
     /**
@@ -201,6 +206,9 @@ class SEOProStack_Github_Updates extends SEOProStack_Feature {
             return;
         }
 
+        if (is_multisite() && !is_network_admin()) {
+            return;
+        }
         $file = self::installed_file();
         if (self::is_active($file) || get_user_meta($user, self::DISMISSED, true)) {
             return;
@@ -211,7 +219,7 @@ class SEOProStack_Github_Updates extends SEOProStack_Feature {
                 <strong><?php esc_html_e('SEO Pro Stack gets its updates from GitHub.', 'seoprostack'); ?></strong>
                 <?php esc_html_e('Install the free Git Updater plugin to see them on the Updates screen, like any other update.', 'seoprostack'); ?>
             </p>
-            <?php if (!$file && !self::php_ok()) : ?>
+            <?php if (!self::php_ok()) : ?>
                 <p>
                     <?php
                     echo esc_html(sprintf(
@@ -224,9 +232,11 @@ class SEOProStack_Github_Updates extends SEOProStack_Feature {
                 </p>
             <?php endif; ?>
             <p>
-                <?php if ($file) : ?>
+                <?php if (!self::php_ok()) : ?>
+                    <?php // No button: WordPress would refuse to activate it. ?>
+                <?php elseif ($file) : ?>
                     <a class="button button-primary" href="<?php echo esc_url(self::activate_url($file)); ?>"><?php esc_html_e('Activate Git Updater', 'seoprostack'); ?></a>
-                <?php elseif (self::php_ok()) : ?>
+                <?php else : ?>
                     <a class="button button-primary" href="<?php echo esc_url(self::action_url(self::INSTALL)); ?>"><?php esc_html_e('Install and activate Git Updater', 'seoprostack'); ?></a>
                 <?php endif; ?>
                 <a class="button" href="<?php echo esc_url(self::action_url(self::DISMISS)); ?>"><?php esc_html_e('Dismiss', 'seoprostack'); ?></a>
