@@ -821,7 +821,8 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
             for ($n = 1; isset($menu[$key]); $n++) {
                 $key = (string) ((float) $position + $n / 10000);
             }
-            $menu[$key] = $grant($item); // phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited -- as above.
+            // The skipped plugin's CSS for a logo in the title is missing here.
+            $menu[$key] = SEOProStack_Admin_Menu::image_title($grant($item)); // phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited -- as above.
         }
 
         foreach ($copy['submenu'] as $parent => $items) {

@@ -13,6 +13,7 @@
  *            menus, matched to the plugin that handles the page. Plugins
  *            placed in super-admin are also hidden from the Plugins screen
  *            for people who are not developers while safeguards are on.
+ * - hidden:  addresses of entries left out of the menu (see below).
  *
  * A place is a section (top, content, communications, seo, shop,
  * admin-heading, admin, super-admin) or the address of another menu, to go
@@ -155,8 +156,8 @@ return array(
         'edit.php?post_type=acf-field-group'    => 'super-admin',
         'da_hm_connections'                     => 'super-admin',
         'daexthrmal_connections'                => 'super-admin',
-        // WP Sheet Editor add-ons' welcome pages; their editors sit in
-        // Posts, Products, Users and WooCommerce.
+        // WP Sheet Editor add-ons' welcome pages (also hidden, below);
+        // their editors sit in Posts, Products, Users and WooCommerce.
         'wpsett_welcome_page'                   => 'super-admin',
         'wpseu_welcome_page'                    => 'super-admin',
         'wpsewcc_welcome_page'                  => 'super-admin',
@@ -289,5 +290,23 @@ return array(
         'performant-translations'               => 'super-admin',
         'action-scheduler'                      => 'super-admin',
         'wp-fix-plugin-does-not-exist-notices'  => 'super-admin',
+    ),
+
+    // Entries left out of the menu. Their pages still open, and keep the
+    // place given above for the safeguards. Upgrade links (Upgrade, Go Pro,
+    // Get Pro, Unlock Pro and the like) and pages without a name are left
+    // out without being listed.
+    'hidden' => array(
+        // Freesoul's holder for its pages; Freesoul hides it too, but only
+        // after the organised menu is built.
+        'fdp_hidden_menu',
+        // Freemius opt-in prompts that WP Sheet Editor add-ons show as menus
+        // until someone opts in or skips.
+        'wpsett_welcome_page',
+        'wpseu_welcome_page',
+        'wpsewcc_welcome_page',
+        'wpsewcp_welcome_page',
+        // AutomatorWP's advert for another plugin.
+        'https://wordpress.org/plugins/shortlinkspro',
     ),
 );

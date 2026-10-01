@@ -56,7 +56,7 @@ final class SEOProStack_Plugin_Loader {
     const LIST_KEY   = 'plugin_loading_only';
 
     /** Map format; a change makes SEO Pro Stack learn again. */
-    const MAP_VERSION = 1;
+    const MAP_VERSION = 2;
 
     /**
      * Hooks whose callbacks show that a plugin adds boxes, fields, blocks or
@@ -669,6 +669,10 @@ final class SEOProStack_Plugin_Loader {
                 $callback = explode('::', $callback, 2);
             }
             if (is_array($callback) && 2 === count($callback)) {
+                $owner = self::plugin_for_sdk($callback[0]);
+                if ('' !== $owner) {
+                    return $owner;
+                }
                 $class = is_object($callback[0]) ? get_class($callback[0]) : (string) $callback[0];
                 if (!method_exists($class, (string) $callback[1])) {
                     return is_object($callback[0]) ? self::plugin_for_file((string) (new ReflectionClass($callback[0]))->getFileName()) : '';
@@ -686,6 +690,24 @@ final class SEOProStack_Plugin_Loader {
         }
         $file = $reflection->getFileName();
         return $file ? self::plugin_for_file($file) : '';
+    }
+
+    /**
+     * The plugin a shared SDK object works for, or ''. Plugins that bundle
+     * the Freemius SDK share the newest copy, loaded from whichever plugin
+     * holds it, and Freemius replaces a plugin's welcome or opt-in page with
+     * its own callback. That page belongs to the plugin the object serves,
+     * not to the plugin whose folder the SDK code was loaded from.
+     *
+     * @param mixed $object Callback object or class.
+     * @return string
+     */
+    private static function plugin_for_sdk($object) {
+        if (!is_object($object) || !class_exists('Freemius', false) || !($object instanceof Freemius) || !method_exists($object, 'get_plugin_basename')) {
+            return '';
+        }
+        $basename = (string) $object->get_plugin_basename();
+        return '' !== $basename ? self::plugin_for_file(trailingslashit(WP_PLUGIN_DIR) . $basename) : '';
     }
 
     /**
