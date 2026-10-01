@@ -97,13 +97,22 @@ Moves plugin and theme notices behind a bell with a count at the right of the ad
 When many plugins add items to the admin bar, it wraps onto a second line that covers the top of the page and makes it hard to click. With this on, the items plugins and themes add to the left of the bar go into one **…** menu after WordPress’s own items (+ New, Edit and the like), in wp-admin and on the site. Click **…** to open it; click elsewhere or press Escape to close it. Moved items keep their own submenus.
 
 - **Keep on the bar**: tick plugins (or a theme or must-use plugin) whose items should stay where they are. Those that have added items are listed first, marked “adds items”. SEO Pro Stack’s own items (such as Duplicate) stay by default.
-- **Hide WordPress items**: tick WordPress’s own items to remove from the bar for everyone, such as the WordPress logo menu, Comments, + New, Customise or Search. All show by default. The account menu (with Log Out) and the menu button on phones in wp-admin cannot be hidden.
 - Settings save straight away, but the bar on the settings page was drawn before the change, so the saved message asks you to reload the page.
-- WordPress’s own items and the right of the bar (the account menu, the notices bell, the Plugins menu) are not moved.
+- WordPress’s own items and the right of the bar (the account menu, the notices bell, the Plugins menu) are not moved. To remove WordPress items, use Hide admin bar items.
 - Items are matched to the plugin that added them. If another plugin replaces WordPress’s admin bar class, WordPress’s own items are recognised by name, every other item goes in the menu, and Keep on the bar does not apply.
 - Items that show only an icon or numbers get their plugin’s name added in the menu.
 - On phones and tablets WordPress hides plugins’ items; the menu shows them, with their submenus open.
 - Opens from the keyboard with Enter or Space. Without JavaScript it opens on hover.
+
+### Hide admin bar items (Admin)
+
+Removes WordPress items you do not use from the admin bar, for everyone, in wp-admin and on the site.
+
+- **Hide**: Comments and + New are ticked by default. Also offered: the WordPress logo menu, My Sites, Site name, Edit site, Customise, Updates, the command palette, Edit, View and Preview, Shortlink and Search. Their submenus go with them.
+- The account menu (with Log Out) and the menu button on phones in wp-admin are never offered, so they always stay.
+- Some items appear only on certain screens, such as Edit on the site or View in the editor.
+- Reload the page after a change to see it; the saved message says so.
+- Works with or without the More menu.
 
 ### Avatars without Gravatar (Admin)
 
@@ -421,7 +430,8 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folder�
 
 ### Unreleased
 
-- New, off by default: More menu in the admin bar (Admin tab) moves the items plugins and themes add to the left of the admin bar into one … menu after WordPress’s own items, so the bar stays on one line instead of wrapping over the page. Keep on the bar lists the plugins that add items; ticked ones keep theirs on the bar. Hide WordPress items removes chosen WordPress items, such as Comments or + New. New `seoprostack_admin_bar_more_items` filter, and a `reload` schema key that makes the saved message ask to reload the page.
+- New, off by default: More menu in the admin bar (Admin tab) moves the items plugins and themes add to the left of the admin bar into one … menu after WordPress’s own items, so the bar stays on one line instead of wrapping over the page. Keep on the bar lists the plugins that add items; ticked ones keep theirs on the bar. New `seoprostack_admin_bar_more_items` filter, and a `reload` schema key that makes the saved message ask to reload the page.
+- New, off by default: Hide admin bar items (Admin tab) removes chosen WordPress items from the admin bar for everyone; Comments and + New are ticked by default. The account menu is never offered.
 - New: Load pages before the click can also preload admin screens (**Also in the admin**, off by default). Only the page is downloaded; links that act, carry a nonce, dismiss or download, and screens that change something when opened, are skipped.
 - Changed: Hide the admin bar and Block dashboard access no longer offer Administrator (or any role that can manage options), since those roles are never affected.
 - Changed: Hide the admin bar and Block dashboard access tick roles that plugins add, such as WooCommerce’s Customer, unless they can write posts. Lists still at the 0.4.0 default get the roles added since they were saved. With WooCommerce active, an empty “Send them to” is set to its My Account page.
