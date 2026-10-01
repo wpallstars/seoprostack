@@ -128,7 +128,7 @@ They stay scheduled and publish at their times. Turning it off only stops new po
 == Changelog ==
 
 = Unreleased =
-* New, off by default: More menu in the admin bar (Admin tab) puts the items plugins and themes add to the left of the admin bar in one … menu, last on that side, so the bar no longer wraps over the page. Choose plugins whose items stay on the bar. On phones the menu also reaches plugin items WordPress hides there.
+* New, off by default: More menu in the admin bar (Admin tab) puts the items plugins and themes add to the left of the admin bar in one … menu, last on that side, so the bar no longer wraps over the page. It opens on hover, like the other admin bar menus. Choose plugins whose items stay on the bar. On phones the menu also reaches plugin items WordPress hides there.
 * New, on by default: Hide admin bar items (Admin tab) removes WordPress items you do not use from the admin bar, for everyone. Comments and + New are ticked by default. Switch it off to keep every item.
 * New: Load pages before the click can also preload admin screens (off by default). Only the page is downloaded, and links that change something are skipped.
 * Change: Hide the admin bar and Block dashboard access no longer offer Administrator, since administrators are never affected.
