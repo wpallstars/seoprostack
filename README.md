@@ -426,7 +426,21 @@ SEO Pro Stack keeps its chosen settings for other plugins, chosen for speed, pri
 
 Each asks first, naming the plugin. **Apply presets** and **Reset presets to defaults** are also bulk actions; plugins without a preset are skipped. Presets never store or change licence keys, API keys, site keys, passwords, tokens or similar: option names and keys that look like one are left out wherever they appear, and stay as they are when settings change or are undone. Only people who can manage options and activate plugins see this; on multisite it works on each site’s Plugins screen.
 
-Presets so far: Antispam Bee and Simple CAPTCHA with Cloudflare Turnstile. They are JSON files in `presets/`, one per plugin folder. AGENTS.md → Plugin presets explains how they are made and checked.
+Presets so far:
+
+| Plugin | What the preset does |
+|---|---|
+| Antispam Bee | Time check on with the other spam checks; no Gravatar checks, Dashboard spam chart or count, or email per spam comment. |
+| EventON Lite | Scripts and styles only on pages with a calendar or event; no Google Fonts. |
+| FluentCRM | Contacts' IP addresses anonymised; FluentCRM's own avatar instead of Gravatar and ui-avatars.com. |
+| Fluent Forms | No weekly email summary, no IP address stored with entries, no admin bar menu. |
+| Kadence Blocks | Google Fonts served from the site, in the blocks and (with the Kadence theme) the theme. |
+| Lasso Lite (Simple URLs) | No affiliate programme bar or Dashboard banner. |
+| LiteSpeed Cache | No news and promotions fetched from LiteSpeed and shown in the admin. |
+| Simple CAPTCHA with Cloudflare Turnstile | Login, registration, lost password, comment and Fluent Forms protected; widget follows light or dark mode and shows only when needed. |
+| WooCommerce | No usage data, remote error logs, marketplace suggestions or Order attribution tracking. |
+
+They are JSON files in `presets/`, one per plugin folder. AGENTS.md → Plugin presets explains how they are made and checked. A setting named in a preset whose defaults are all "not stored" is removed again on reset, and an option left empty that way is deleted, so the plugin's own defaults apply as on a fresh install.
 
 WP-CLI works whether or not the setting is on:
 
@@ -594,6 +608,8 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folder�
 
 ### Unreleased
 
+- New: plugin presets for EventON Lite, FluentCRM, Fluent Forms, Kadence Blocks, Lasso Lite (Simple URLs), LiteSpeed Cache and WooCommerce, chosen on a fresh test install of each plugin's current version from its source (where it reads each setting and what its save code does) and checked there with apply, reset and undo: EventON Lite loads its files only on calendar pages (three fewer stylesheets on other pages) and drops its Google Fonts; Kadence Blocks serves Google Fonts from the site (`kadence_blocks_font_settings` and the Kadence theme's `load_fonts_local` theme mod, since the theme prints the blocks' fonts); FluentCRM anonymises IP addresses and stops Gravatar and ui-avatars.com requests; Fluent Forms stops the weekly summary, IP logging and its admin bar menu; WooCommerce stops remote logging, marketplace suggestions and Order attribution; LiteSpeed Cache and Lasso Lite stop their promotions. Settings that only work when saved in the plugin (they schedule cron, write files or call a service) were left out.
+- Fixed: Plugin presets: resetting a preset whose defaults are "not stored" left an empty array behind (`a:0:{}`), and an option the preset had created stayed stored. Named keys that are all "not stored" now store nothing, and an option left empty by a reset is deleted.
 - New, on by default: Quiet Freemius prompts (Admin tab) turns off the opt-in notices, Opt In, Upgrade and Add-Ons links, trial and affiliate offers, activation redirect and deactivation survey of plugins that bundle Freemius, through Freemius’s own `fs_{tag}_{plugin}` filters, and removes the survey and opt-out dialogs it prints on the Plugins screen for plugins that are not opted in. Nothing is stored in Freemius or the other plugins. On a test site with six Freemius plugins, the Plugins screen went from nine hidden Freemius dialogs, five notices and three Freemius stylesheets to two dialogs (Git Updater’s licence ones), no notices and two stylesheets.
 - New: Load plugins only where needed can also skip chosen plugins on the site (**Plugins to skip on the site**, off until you tick plugins, and **Also skip them for people who are logged in**). One page view with every plugin notes what each plugin adds to the site, shown next to each plugin; plugins that change logins or replace WordPress functions, and plugins a loading plugin needs, always load. Only plain page views skip plugins. A page that fails while plugins are skipped makes the whole site load every plugin until the list is saved again. On a test site with 85 active plugins and 15 admin tools ticked, 14 pages (posts, pages, shop, courses, events, archives, search, 404, feed, sitemap and robots.txt) gave the same output with and without them. New `seoprostack_plugin_front` and `seoprostack_plugin_front_lock` options, removed on uninstall.
 - Changed: with Load plugins only where needed, SEO Pro Stack’s own settings no longer load every plugin. They load the plugins whose public post types, taxonomies or widgets the settings offer as choices, plugins that change permissions and plugins that use `seoprostack_*` hooks. On a test site with 85 active plugins, every tab went from 2.0–4.2 seconds and about 4.5 MB to 1.2–1.8 seconds and 2.9 MB with 30 plugins, showing the same settings, choices, text and menu. SEO Pro Stack now reads the stored list of active plugins wherever it shows or decides what is active, so plugins skipped on a screen still count as active (replaced plugins, the Plugin loading list, Free Plugins, Plugin sizes, Hosting needs, More menu sources and Git Updater). What every screen needs is learned again once after updating.

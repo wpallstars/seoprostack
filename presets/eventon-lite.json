@@ -1,0 +1,18 @@
+{
+    "name": "EventON Lite",
+    "tested": "2.5.9",
+    "updated": "2026-10-01",
+    "notes": "Loads EventON's scripts and styles only on pages that show a calendar or event, instead of on every page, and stops loading its Google Fonts, so visitors' browsers do not contact Google. Calendars then show Poppins and Noto Sans only where the visitor has them installed, and a plain sans-serif font elsewhere.",
+    "options": {
+        "evcal_options_evcal_1": {
+            "evo_load_scripts_only_onevo": "yes",
+            "evo_googlefonts": "yes"
+        }
+    },
+    "defaults": {
+        "evcal_options_evcal_1": {
+            "evo_load_scripts_only_onevo": null,
+            "evo_googlefonts": null
+        }
+    }
+}

@@ -11,7 +11,8 @@
  * - options:  option name => value to set. Arrays with named keys are
  *             merged into what is stored, so settings the preset does not
  *             name stay as they are; lists and plain values replace what is
- *             stored. null means "not stored": the key or option is removed;
+ *             stored. null means "not stored": the key or option is removed
+ *             (an option left as an empty array by that is deleted);
  * - defaults: the plugin's own values for the same settings, in the same
  *             form (null where the plugin stores nothing until a setting is
  *             changed). "Reset to defaults" writes them.
@@ -254,18 +255,31 @@ final class SEOProStack_Presets {
         if (!is_array($wanted)) {
             return $wanted;
         }
-        if (self::is_list($wanted) || !is_array($current)) {
+        if (self::is_list($wanted)) {
             return self::without_nulls($wanted);
+        }
+        if (!is_array($current)) {
+            // Named keys that are all "not stored" leave nothing to store,
+            // so resetting a setting that was never saved stores nothing.
+            $value = array();
+            foreach ($wanted as $key => $item) {
+                $item = self::merge(null, $item);
+                if (null !== $item && !self::is_secret($key)) {
+                    $value[$key] = $item;
+                }
+            }
+            return $value || !$wanted ? $value : null;
         }
         foreach ($wanted as $key => $value) {
             if (self::is_secret($key)) {
                 continue;
             }
+            $value = self::merge(array_key_exists($key, $current) ? $current[$key] : null, $value);
             if (null === $value) {
                 unset($current[$key]);
-                continue;
+            } else {
+                $current[$key] = $value;
             }
-            $current[$key] = self::merge(array_key_exists($key, $current) ? $current[$key] : null, $value);
         }
         return $current;
     }
@@ -368,7 +382,7 @@ final class SEOProStack_Presets {
             }
             return;
         }
-        $wanted = is_array($wanted) ? self::without_nulls($wanted) : $wanted;
+        $wanted = is_array($wanted) ? self::merge(null, $wanted) : $wanted;
         if (!self::same($current, $wanted)) {
             $diffs[$path] = array($current, $wanted);
         }
@@ -402,7 +416,11 @@ final class SEOProStack_Presets {
                 continue;
             }
             $backup[$name] = array('existed' => $exists, 'value' => self::strip_secrets($current));
-            self::store($name, self::merge($current, $wanted), $exists, $current);
+            $value         = self::merge($current, $wanted);
+            if (array() === $value && is_array($wanted) && $wanted && !self::is_list($wanted)) {
+                $value = null; // Every named setting removed: the plugin's defaults apply.
+            }
+            self::store($name, $value, $exists, $current);
         }
 
         $undo        = self::undo_data();

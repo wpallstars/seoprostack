@@ -1,0 +1,20 @@
+{
+    "name": "FluentCRM",
+    "tested": "3.2.5",
+    "updated": "2026-10-01",
+    "notes": "Stores contacts' IP addresses anonymised and shows FluentCRM's own avatar instead of loading pictures from Gravatar and ui-avatars.com, which would receive a hash of each contact's email address or their name. Email open and click tracking stay as FluentCRM sets them.",
+    "options": {
+        "_fluentcrm_compliance_settings": {
+            "anonymize_ip": "yes",
+            "enable_gravatar": "no",
+            "gravatar_fallback": "no"
+        }
+    },
+    "defaults": {
+        "_fluentcrm_compliance_settings": {
+            "anonymize_ip": null,
+            "enable_gravatar": null,
+            "gravatar_fallback": null
+        }
+    }
+}

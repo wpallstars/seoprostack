@@ -1,0 +1,28 @@
+{
+    "name": "Fluent Forms",
+    "tested": "6.2.15",
+    "updated": "2026-10-01",
+    "notes": "Stops the weekly email summary of form entries, does not store the visitor's IP address with each entry, and removes the Fluent Forms menu from the admin bar. Form view counting stays off, as it is by default.",
+    "options": {
+        "_fluentform_global_form_settings": {
+            "misc": {
+                "isIpLogingDisabled": true,
+                "admin_top_nav_status": "no"
+            }
+        },
+        "_fluentform_email_report_summary": {
+            "status": "no"
+        }
+    },
+    "defaults": {
+        "_fluentform_global_form_settings": {
+            "misc": {
+                "isIpLogingDisabled": false,
+                "admin_top_nav_status": "yes"
+            }
+        },
+        "_fluentform_email_report_summary": {
+            "status": null
+        }
+    }
+}

@@ -1,0 +1,12 @@
+{
+    "name": "LiteSpeed Cache",
+    "tested": "7.9.1",
+    "updated": "2026-10-01",
+    "notes": "Turns off LiteSpeed's notifications: the news and promotions it fetches from LiteSpeed's servers and shows on its screens and the Plugins screen. Caching and every other setting stay as they are; choose those for your host.",
+    "options": {
+        "litespeed.conf.news": ""
+    },
+    "defaults": {
+        "litespeed.conf.news": "1"
+    }
+}
