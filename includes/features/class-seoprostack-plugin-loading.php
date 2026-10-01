@@ -864,6 +864,9 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
             if ('menus' === $kind) {
                 $map['screens'][$screen] = self::menu_plugins($map);
                 $map['menu_locations']   = array_keys(get_registered_nav_menus());
+            } elseif ('site-editor' === $kind) {
+                $map['screens'][$screen]  = self::site_editor_plugins($map);
+                $map['site_editor_theme'] = get_option('stylesheet');
             } else {
                 $map['screens'][$screen] = self::form_plugins($kind, $name);
             }
@@ -1083,12 +1086,39 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
         if ('dashboard' === $kind) {
             return self::dashboard_plugins();
         }
-        if (!in_array($kind, array('post', 'terms', 'list', 'user', 'tools', 'media-new', 'menus'), true)) {
+        if (!in_array($kind, array('post', 'terms', 'list', 'user', 'tools', 'media-new', 'menus', 'site-editor'), true)) {
             return array();
         }
         return self::plugins_on_hooks(function ($hook) use ($kind, $name) {
             return SEOProStack_Plugin_Loader::screen_needs_hook($kind, $name, $hook);
         });
+    }
+
+    /**
+     * Plugins Appearance > Editor needs besides block owners (added when
+     * the screen loads): those on SITE_EDITOR_HOOKS, and with a block theme
+     * the owners of post types and taxonomies people view, since it offers
+     * templates for them. With a classic theme it shows only styles and
+     * patterns.
+     *
+     * @param array $map Learned map.
+     * @return string[]
+     */
+    private static function site_editor_plugins(array $map) {
+        $plugins = self::form_plugins('site-editor', '');
+        if (function_exists('wp_is_block_theme') && wp_is_block_theme()) {
+            foreach (get_post_types(array('public' => true)) as $type) {
+                if (!empty($map['types'][$type]) && is_string($map['types'][$type])) {
+                    $plugins[] = $map['types'][$type];
+                }
+            }
+            foreach (get_taxonomies(array('public' => true)) as $tax) {
+                if (!empty($map['taxes'][$tax]) && is_string($map['taxes'][$tax])) {
+                    $plugins[] = $map['taxes'][$tax];
+                }
+            }
+        }
+        return array_values(array_unique($plugins));
     }
 
     /**
