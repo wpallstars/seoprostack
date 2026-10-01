@@ -5,7 +5,8 @@
  * For each plugin SEO Pro Stack has a preset for (presets/{folder}.json, see
  * SEOProStack_Presets), the Plugins screen says whether its settings match
  * and offers, after a confirmation:
- * - Apply preset: set SEO Pro Stack's preferred settings;
+ * - Apply preset: set SEO Pro Stack's preferred settings (only the ones
+ *   left ticked in the row's list of settings that differ);
  * - Reset to defaults: set the plugin's own defaults for the same settings;
  * - Undo: put back the settings from before the last apply or reset.
  * Apply and Reset are also bulk actions. Licence keys, API keys, passwords
@@ -53,7 +54,7 @@ class SEOProStack_Plugin_Presets extends SEOProStack_Feature {
                 'default'     => false,
                 'tab'         => 'plugins',
                 'label'       => __('Plugin presets', 'seoprostack'),
-                'description' => __('On the Plugins screen, see whether a plugin’s settings match SEO Pro Stack’s choice, apply them, reset them to the plugin’s defaults or undo the last change. For FluentCRM and Fluent Boards, add example lists, tags, fields and boards to start from. Each asks first. Licence keys, API keys and passwords are never stored or changed.', 'seoprostack'),
+                'description' => __('On the Plugins screen, see whether a plugin’s settings match SEO Pro Stack’s choice, apply all or only the ones you tick, reset them to the plugin’s defaults or undo the last change. For FluentCRM and Fluent Boards, add example lists, tags, fields and boards to start from. Each asks first. Licence keys, API keys and passwords are never stored or changed.', 'seoprostack'),
             ),
         );
     }
@@ -140,11 +141,13 @@ class SEOProStack_Plugin_Presets extends SEOProStack_Feature {
         $differs = count(SEOProStack_Presets::differences($slug));
         if ($differs) {
             $links['seoprostack-preset-apply'] = sprintf(
-                '<a href="%1$s" data-sps-confirm="%2$s">%3$s</a>',
+                '<a href="%1$s" data-sps-confirm="%2$s" data-sps-apply="%4$s" data-sps-name="%5$s">%3$s</a>',
                 esc_url(self::action_url('apply', $slug)),
                 /* translators: 1: number of settings, 2: plugin name */
                 esc_attr(sprintf(_n('Change %1$d setting of %2$s to SEO Pro Stack’s preset? You can undo this.', 'Change %1$d settings of %2$s to SEO Pro Stack’s preset? You can undo this.', $differs, 'seoprostack'), $differs, $name)),
-                esc_html__('Apply preset', 'seoprostack')
+                esc_html__('Apply preset', 'seoprostack'),
+                esc_attr($slug),
+                esc_attr($name)
             );
         }
         if ($preset['defaults'] && count(SEOProStack_Presets::differences($slug, 'defaults'))) {
@@ -188,10 +191,14 @@ class SEOProStack_Plugin_Presets extends SEOProStack_Feature {
             $meta[] = '<span class="sps-preset is-match">' . esc_html__('Preset: settings match', 'seoprostack') . '</span>';
             return $meta;
         }
+        // Each setting has a tickbox (no name, so the bulk form ignores it):
+        // Apply changes only the ticked ones. Without JavaScript, all change.
         $items = '';
         foreach ($diffs as $path => $values) {
             $items .= sprintf(
-                '<li><code>%1$s</code>: %2$s → %3$s</li>',
+                '<li><label><input type="checkbox" class="sps-preset-pick" data-sps-plugin="%1$s" value="%2$s" checked> <code>%3$s</code>: %4$s → %5$s</label></li>',
+                esc_attr($slug),
+                esc_attr($path),
                 esc_html($path),
                 esc_html(self::show($values[0])),
                 esc_html(self::show($values[1]))
@@ -203,10 +210,13 @@ class SEOProStack_Plugin_Presets extends SEOProStack_Feature {
             $notes .= '<p>' . esc_html(sprintf(__('Chosen with version %s.', 'seoprostack'), $preset['tested'])) . '</p>';
         }
         $meta[] = sprintf(
-            '<details class="sps-preset"><summary>%1$s</summary><ul>%2$s</ul>%3$s</details>',
+            '<details class="sps-preset"><summary>%1$s</summary><p class="sps-preset-hint">%2$s</p><ul class="sps-preset-picks">%3$s</ul><p class="sps-preset-go" hidden><button type="button" class="button button-small" data-sps-apply-picked="%4$s">%5$s</button></p>%6$s</details>',
             /* translators: %d: number of settings */
             esc_html(sprintf(_n('Preset: %d setting differs', 'Preset: %d settings differ', count($diffs), 'seoprostack'), count($diffs))),
+            esc_html__('Now → preset. Untick any setting you want to keep as it is.', 'seoprostack'),
             $items,
+            esc_attr($slug),
+            esc_html__('Apply ticked settings', 'seoprostack'),
             $notes
         );
         return $meta;
@@ -369,10 +379,15 @@ class SEOProStack_Plugin_Presets extends SEOProStack_Feature {
             wp_safe_redirect(add_query_arg(self::RESULT, rawurlencode(implode(':', array($do, $first, $second, $slug))), remove_query_arg(self::RESULT, $back)));
             exit;
         }
+        // Settings ticked in the row's list; without it (no JavaScript, or every one ticked) all change.
+        $only = null;
+        if ('apply' === $do && isset($_GET['only']) && is_array($_GET['only'])) {
+            $only = array_values(array_filter(array_map('sanitize_text_field', array_map('strval', wp_unslash($_GET['only'])))));
+        }
         if ('undo' === $do) {
             $result = SEOProStack_Presets::undo($slug);
         } else {
-            $result = SEOProStack_Presets::write($slug, 'apply' === $do ? 'options' : 'defaults');
+            $result = SEOProStack_Presets::write($slug, 'apply' === $do ? 'options' : 'defaults', $only);
         }
         if (is_wp_error($result)) {
             wp_safe_redirect(add_query_arg(self::RESULT, rawurlencode($do . ':error:' . $result->get_error_code()), $back));
@@ -493,6 +508,9 @@ class SEOProStack_Plugin_Presets extends SEOProStack_Feature {
             .sps-preset[open] { display: block; margin-top: 4px; }
             .sps-preset ul { margin: 4px 0 4px 1.5em; list-style: disc; }
             .sps-preset li { margin: 0; }
+            .sps-preset ul.sps-preset-picks { list-style: none; margin-left: 0; }
+            .sps-preset-picks input[type="checkbox"] { margin: 0 4px 0 0; }
+            .sps-preset-picks li:has(input:not(:checked)) { opacity: 0.6; }
             .sps-preset p { margin: 4px 0; }
             .sps-preset.is-match { color: #646970; }
         </style>
@@ -508,12 +526,39 @@ class SEOProStack_Plugin_Presets extends SEOProStack_Feature {
             'apply' => __('Apply SEO Pro Stack’s presets to %d plugins? Only plugins with a preset change. You can undo each one.', 'seoprostack'),
             /* translators: %d: number of plugins */
             'reset' => __('Reset the preset settings of %d plugins to their defaults? Only plugins with a preset change. You can undo each one.', 'seoprostack'),
+            /* translators: 1: number of ticked settings, 2: number of settings that differ, 3: plugin name */
+            'some'  => __('Change %1$s of %2$s settings of %3$s to SEO Pro Stack’s preset? The unticked ones stay as they are. You can undo this.', 'seoprostack'),
+            'none'  => __('Tick at least one setting to apply.', 'seoprostack'),
         );
         $bulk = array('apply' => self::BULK_APPLY, 'reset' => self::BULK_RESET);
         ?>
         <script>
         (function (t, bulk) {
+            document.querySelectorAll('.sps-preset-go').forEach(function (p) { p.hidden = false; });
+            // Apply with only the ticked settings of one plugin's list.
+            function apply(slug) {
+                var link = document.querySelector('a[data-sps-apply="' + slug + '"]');
+                if (!link) { return; }
+                var picks = Array.prototype.filter.call(document.querySelectorAll('.sps-preset-pick'), function (box) {
+                    return box.getAttribute('data-sps-plugin') === slug;
+                });
+                var ticked = picks.filter(function (box) { return box.checked; });
+                if (!ticked.length) { window.alert(t.none); return; }
+                var url = link.href;
+                var ask = link.getAttribute('data-sps-confirm');
+                if (ticked.length < picks.length) {
+                    ticked.forEach(function (box) { url += '&only[]=' + encodeURIComponent(box.value); });
+                    ask = t.some.replace('%1$s', ticked.length).replace('%2$s', picks.length).replace('%3$s', link.getAttribute('data-sps-name'));
+                }
+                if (window.confirm(ask)) { window.location.href = url; }
+            }
             document.addEventListener('click', function (e) {
+                var go = e.target.closest && e.target.closest('[data-sps-apply-picked], a[data-sps-apply]');
+                if (go) {
+                    e.preventDefault();
+                    apply(go.getAttribute('data-sps-apply-picked') || go.getAttribute('data-sps-apply'));
+                    return;
+                }
                 var a = e.target.closest && e.target.closest('a[data-sps-confirm]');
                 if (a && !window.confirm(a.getAttribute('data-sps-confirm'))) { e.preventDefault(); }
             });

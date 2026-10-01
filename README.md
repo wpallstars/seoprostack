@@ -418,9 +418,9 @@ Adds a **Size** column to the Plugins screen: each plugin’s total disk use, sp
 
 ### Plugin presets (Plugins)
 
-SEO Pro Stack keeps its chosen settings for other plugins, chosen for speed, privacy and quiet admin screens. With this on, each plugin that has a preset says on the Plugins screen whether its settings match (**Preset: settings match**, or **Preset: 3 settings differ**, which opens to list them, what the preset changes and why). Its row offers:
+SEO Pro Stack keeps its chosen settings for other plugins, chosen for speed, privacy and quiet admin screens. With this on, each plugin that has a preset says on the Plugins screen whether its settings match (**Preset: settings match**, or **Preset: 3 settings differ**, which opens to list them, what the preset changes and why). Each setting in that list has a tickbox, ticked to start. Its row offers:
 
-- **Apply preset**: set the chosen settings. Other settings stay as they are.
+- **Apply preset** (or **Apply ticked settings** under the list): set the ticked settings. Unticked ones and the plugin's other settings stay as they are; the confirmation says how many of the settings change. Without JavaScript, all of them change.
 - **Reset to defaults**: set the same settings to the plugin’s own defaults.
 - **Undo preset** or **Undo reset**: put back the settings from before the last apply or reset.
 
@@ -447,7 +447,7 @@ WP-CLI works whether or not the setting is on:
 
 - `wp seoprostack presets list`: each preset, the version it was chosen with, the installed version, how many settings differ and what can be undone.
 - `wp seoprostack presets diff <plugin> [--defaults]`: the settings that differ from the preset or from the defaults.
-- `wp seoprostack presets apply <plugin>… | --all`, `reset <plugin>… | --all`, `undo <plugin>…`.
+- `wp seoprostack presets apply <plugin>… | --all [--only=<settings>]` (`--only` takes settings as `diff` names them, comma-separated, such as `tutor_option.course_retake_feature`), `reset <plugin>… | --all`, `undo <plugin>…`.
 - `wp seoprostack presets export <plugin> [--options=<names>] [--like=<patterns>] [--compare=<file>]`: print settings as a preset, without secrets, warning about values that hold the site’s address or an email address. With `--compare` (an earlier export from a fresh install) only changed settings are kept, with the earlier values as the defaults.
 
 #### Starter data
@@ -636,6 +636,7 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folder�
 
 ### Unreleased
 
+- New: Plugin presets: each setting in a plugin's **Preset: N settings differ** list has a tickbox (ticked to start), and **Apply preset** or **Apply ticked settings** changes only the ticked ones, so you can see and choose exactly what changes. `SEOProStack_Presets::write()` takes the chosen paths (as `differences()` names them) and builds the part of the preset that covers them, so named keys in the same option still merge and the rest stay as stored; undo puts back the whole option as before. WP-CLI: `wp seoprostack presets apply <plugin> --only=<settings>`.
 - Changed: Tidy the dashboard also hides WooCommerce Setup (`wc_admin_dashboard_setup`), which repeats the task list on WooCommerce → Home.
 - Changed: Tidy the dashboard hides Debug Log Manager's box (`debug_log_manager_widget`) for everyone instead of showing it to developers. It reads and parses the whole debug log on every Dashboard load: on a test site with a 32 MB log it took 6.3 of the Dashboard's 7 seconds. Debug Log Manager keeps its log in files, with no database queries to index. With Load plugins only where needed, the Dashboard also skips the plugin once its box is gone. Tools › Debug Log Manager shows the same entries.
 - New, on by default (GitHub builds): Updates from GitHub replaces Git Updater. SEO Pro Stack adds the latest GitHub release of itself and of any installed plugin with a `GitHub Plugin URI` header to WordPress’s own update check (`pre_set_site_transient_update_plugins`), with View details (`plugins_api`) and auto-updates; WordPress downloads, installs and rolls back. Releases are asked for at most every 12 hours per plugin and on Check again (`seoprostack_github_releases` site transient, removed on uninstall). Works on PHP 7.4, which Git Updater does not. Private repositories take a token from `SEOPROSTACK_GITHUB_TOKEN` or the `seoprostack_github_token` filter, sent only to api.github.com. New `seoprostack_github_plugins` filter. Early updates from GitHub now applies to every such plugin that is also on WordPress.org, unless WordPress.org already offers the same or a newer version. While Git Updater is active it keeps the job. Removed: the Install and activate Git Updater notice, its installer and its Free Plugins card.

@@ -3,6 +3,7 @@
 Every change to SEO Pro Stack. readme.txt lists the latest version in short.
 
 = Unreleased =
+* New: Plugin presets: untick any setting in a plugin's list of settings that differ, and Apply changes only the ticked ones.
 * Change: Tidy the dashboard also hides WooCommerce Setup, which repeats the task list on WooCommerce → Home.
 * Change: MasterStudy LMS is no longer recommended; Tutor LMS is the recommended LMS. Free Plugins, Pro Plugins, Organise the admin menu and Tidy the dashboard drop their MasterStudy entries.
 * New, on by default in copies from GitHub: Updates from GitHub. SEO Pro Stack, and other plugins that name their GitHub repository, now update from GitHub on the Updates screen without the Git Updater plugin, also on PHP 7.4. Auto-updates and View details work as for other plugins. GitHub is asked at most twice a day. While Git Updater is active it keeps doing the job; you can then deactivate and delete it. The prompt to install Git Updater is gone.
