@@ -115,8 +115,8 @@ Copies from WordPress.org update from WordPress.org. New versions come out on Gi
 
 = Unreleased =
 * New, off by default: Ask before licence checks.
-* Change: Tutor LMS replaces MasterStudy LMS as recommended.
-* New: presets for eight more plugins; starter lists, tags and a board for FluentCRM and Fluent Boards.
+* Change: Tutor LMS replaces MasterStudy LMS.
+* New: presets for eight more plugins, applied setting by setting; starter data for FluentCRM and Fluent Boards.
 * New: GitHub copies update without Git Updater.
 * New: Plugins screen lists plugins it replaces.
 * New, on by default: Quiet Freemius prompts.
