@@ -80,6 +80,24 @@ No automated suite ships with the plugin. Verify on real WordPress:
 
    The site then holds exactly what a release build contains.
 
+   The local test site is shared by every session and worktree, and the
+   last copy wins. Each copy replaces the whole folder, so one cut before a
+   merge removes the merged work, and the user sees old behaviour.
+
+   - Before copying, run `git fetch origin && git merge origin/main` in your
+     worktree, so the site never goes back past merged work.
+   - Read `<site>/wp-content/seoprostack-synced-from.txt` first. If another
+     worktree copied there recently, it may still be testing; say so in
+     your report.
+   - After copying, overwrite that file with your worktree path, branch,
+     commit and the time. It sits outside the plugin folder, so the copy
+     does not delete it and it never reaches a release.
+   - After merging a PR, copy `main` and check the stamp again before telling
+     the user to look.
+   - For checks the user will not look at, prefer a throwaway site of your
+     own (step 4's Docker image on a free port), which no one else
+     overwrites.
+
 3. Exercise the changed feature through the admin UI or HTTP, and check
    `wp-content/debug.log`. For settings imports, seed the replaced plugin's
    options and delete `seoprostack_options` and `seoprostack_db_version` while
