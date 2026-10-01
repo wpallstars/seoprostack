@@ -56,7 +56,7 @@ class SEOProStack_Wp_Extras extends SEOProStack_Feature {
      */
     public static function item_options() {
         return array(
-            'emoji'          => __('Emoji script and styles, which load pictures from s.w.org (browsers show emoji themselves)', 'seoprostack'),
+            'emoji'          => __('Emoji script and styles, which load pictures from WordPress.org (browsers show emoji themselves)', 'seoprostack'),
             'generator'      => __('WordPress version in the page head and feeds', 'seoprostack'),
             'rsd'            => __('RSD link, for old blogging apps', 'seoprostack'),
             'wlw'            => __('Windows Live Writer link (WordPress before 6.3)', 'seoprostack'),
@@ -104,11 +104,10 @@ class SEOProStack_Wp_Extras extends SEOProStack_Feature {
             remove_action('enqueue_embed_scripts', 'wp_enqueue_emoji_styles');
             remove_action('wp_print_styles', 'print_emoji_styles');
             remove_action('admin_print_styles', 'print_emoji_styles');
-            // Feeds and emails turn emoji into pictures from s.w.org.
+            // Feeds and emails turn emoji into pictures from WordPress.org.
             remove_filter('the_content_feed', 'wp_staticize_emoji');
             remove_filter('comment_text_rss', 'wp_staticize_emoji');
             remove_filter('wp_mail', 'wp_staticize_emoji_for_email');
-            add_filter('wp_resource_hints', array(__CLASS__, 'remove_emoji_hint'), 10, 2);
         }
         if (isset($items['generator'])) {
             remove_action('wp_head', 'wp_generator');
@@ -151,27 +150,6 @@ class SEOProStack_Wp_Extras extends SEOProStack_Feature {
         if (isset($items['jquery_migrate'])) {
             add_action('wp_enqueue_scripts', array(__CLASS__, 'jquery_migrate'), 999);
         }
-    }
-
-    /**
-     * Leave the emoji address out of the DNS prefetch hints.
-     *
-     * @param array  $urls          Hints.
-     * @param string $relation_type Relation type.
-     * @return array
-     */
-    public static function remove_emoji_hint($urls, $relation_type) {
-        if ('dns-prefetch' !== $relation_type || !is_array($urls)) {
-            return $urls;
-        }
-        /** This filter is documented in wp-includes/formatting.php */
-        $emoji = (string) apply_filters('emoji_svg_url', 'https://s.w.org/images/core/emoji/');
-        $host  = (string) wp_parse_url($emoji, PHP_URL_HOST);
-        return array_values(array_filter($urls, function ($url) use ($host) {
-            $url = is_array($url) ? (isset($url['href']) ? $url['href'] : '') : $url;
-            $url = (string) $url;
-            return '' === $host || $host !== (string) wp_parse_url(0 === strpos($url, '//') ? 'https:' . $url : $url, PHP_URL_HOST);
-        }));
     }
 
     /**

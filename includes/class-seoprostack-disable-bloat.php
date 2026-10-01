@@ -49,7 +49,6 @@ class SEOProStack_Disable_Bloat {
         'wc_stripe_scripts_disable'        => array('woo_light', 'woo_light_items', 'stripe'),
         // Remove WordPress extras.
         'remove_emoji_scripts'             => array('wp_extras', 'wp_extras_items', 'emoji'),
-        'remove_dns_prefetch'              => array('wp_extras', 'wp_extras_items', 'emoji'),
         'wp_meta_generator_disable'        => array('wp_extras', 'wp_extras_items', 'generator'),
         'remove_feed_generator_tag'        => array('wp_extras', 'wp_extras_items', 'generator'),
         'disable_rsd_link'                 => array('wp_extras', 'wp_extras_items', 'rsd'),
@@ -168,17 +167,11 @@ class SEOProStack_Disable_Bloat {
      * @return string[] Plain names of the switches.
      */
     public static function uncovered() {
-        global $wpdb;
-        $rows = $wpdb->get_col($wpdb->prepare(
-            "SELECT option_name FROM {$wpdb->options} WHERE option_name LIKE %s AND option_value = 'yes'",
-            $wpdb->esc_like('wcbloat_') . '%'
-        ));
-
         $names     = self::names();
         $uncovered = array();
-        foreach ((array) $rows as $name) {
-            $option = substr((string) $name, strlen('wcbloat_'));
-            if ('uninstall_cleanup' === $option) {
+        // Its switches as of version 4.0; each is one autoloaded option.
+        foreach (array_unique(array_merge(array_keys(self::MAP), array_keys($names))) as $option) {
+            if (!self::on($option)) {
                 continue;
             }
             if (isset(self::MAP[$option])) {
@@ -187,7 +180,7 @@ class SEOProStack_Disable_Bloat {
                     continue;
                 }
             }
-            $uncovered[] = isset($names[$option]) ? $names[$option] : str_replace('_', ' ', $option);
+            $uncovered[] = isset($names[$option]) ? $names[$option] : $option;
         }
         if ('yes' === get_option('disable_admin_dashboard_setup_widget')
             && !(SEOProStack_Settings::get('hide_dashboard_widgets') && in_array('wc_admin_dashboard_setup', (array) SEOProStack_Settings::get('hidden_dashboard_widgets'), true))) {
@@ -217,6 +210,7 @@ class SEOProStack_Disable_Bloat {
             'wc_blocks_backend_disable'      => __('Disable WooCommerce blocks in the editor', 'seoprostack'),
             'wc_blocks_frontend_disable'     => __('Disable WooCommerce block styles', 'seoprostack'),
             'password_meter_disable'         => __('Disable the password strength meter', 'seoprostack'),
+            'remove_dns_prefetch'            => __('Remove resource hints', 'seoprostack'),
             'disable_wp_embed'               => __('Disable embeds', 'seoprostack'),
             'themes_auto_update_disable'     => __('Disable theme auto-updates', 'seoprostack'),
             'plugins_auto_update_disable'    => __('Disable plugin auto-updates', 'seoprostack'),

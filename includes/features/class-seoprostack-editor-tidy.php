@@ -8,9 +8,10 @@
  * the Pattern Directory's, the template editor of classic themes, and
  * fullscreen mode.
  *
- * Welcome guides and fullscreen mode are each person's editor preferences:
- * when one is on as an editor opens, it is switched off and saved, as if
- * the person had closed it. The rest use core hooks; nothing is stored.
+ * Welcome guides and fullscreen mode are each person's editor preferences,
+ * which core prints into each admin screen from user meta. They are read
+ * as off, so every editor opens without them; Help still opens the guide
+ * for that visit. The rest use core hooks. Nothing is stored.
  *
  * Replaces part of Disable Bloat; its matching switches are imported once.
  *
@@ -78,7 +79,7 @@ class SEOProStack_Editor_Tidy extends SEOProStack_Feature {
      */
     public static function item_options() {
         return array(
-            'welcome_guide'   => __('Welcome guides: closed for each person the next time an editor opens', 'seoprostack'),
+            'welcome_guide'   => __('Welcome guides, whenever an editor opens (Help still opens them)', 'seoprostack'),
             'block_directory' => __('Block directory: installing blocks from WordPress.org while searching for a block', 'seoprostack'),
             'core_patterns'   => __('WordPress’s own block patterns and those from the Pattern Directory (theme and plugin patterns stay)', 'seoprostack'),
             'template_editor' => __('Template editor in the post editor (classic themes only)', 'seoprostack'),
@@ -123,70 +124,49 @@ class SEOProStack_Editor_Tidy extends SEOProStack_Feature {
             // Block themes need templates; classic themes only add the editor.
             remove_theme_support('block-templates');
         }
-        if (isset($items['welcome_guide']) || isset($items['fullscreen'])) {
-            add_action('enqueue_block_editor_assets', array(__CLASS__, 'preferences_script'));
+        if ((isset($items['welcome_guide']) || isset($items['fullscreen'])) && is_admin()) {
+            add_filter('get_user_metadata', array(__CLASS__, 'preferences'), 10, 4);
         }
     }
 
     /**
-     * Switch off the chosen editor preferences as the editor starts.
+     * Read the current person's editor preferences with the chosen ones off.
+     *
+     * Core prints them into each admin screen (`wp-preferences`), and they
+     * win over each editor's defaults whenever they arrive, so the editors
+     * open with them off. Changes made in the editor are still saved, but
+     * read as off again on the next screen.
+     *
+     * @param mixed  $value    Value from an earlier filter, or null.
+     * @param int    $user_id  User ID.
+     * @param string $meta_key Meta key.
+     * @param bool   $single   Whether one value was asked for.
+     * @return mixed
      */
-    public static function preferences_script() {
-        $items = (array) SEOProStack_Settings::get(self::ITEMS_KEY);
-        $prefs = array();
-        foreach (self::PREFERENCES as $choice => $list) {
-            if (in_array($choice, $items, true)) {
-                $prefs = array_merge($prefs, $list);
-            }
-        }
-        if (!$prefs) {
-            return;
+    public static function preferences($value, $user_id, $meta_key, $single) {
+        global $wpdb;
+        if (null !== $value || $wpdb->get_blog_prefix() . 'persisted_preferences' !== $meta_key || (int) $user_id !== get_current_user_id() || !$user_id) {
+            return $value;
         }
 
-        wp_register_script('seoprostack-editor-tidy', false, array('wp-data'), SEOPROSTACK_VERSION, true);
-        wp_enqueue_script('seoprostack-editor-tidy');
-        // Each editor sets its defaults as it starts, so wait for a value
-        // before switching it off; preferences of other editors stay unread.
-        $js = <<<'JS'
-(function (wp, prefs) {
-    if (!wp || !wp.data || !wp.data.subscribe) {
-        return;
-    }
-    var data = wp.data, done = [], left = prefs.length, stop = null;
-    function check() {
-        var get = data.select('core/preferences'), set = data.dispatch('core/preferences');
-        if (!get || !set || !set.set) {
-            return;
-        }
-        prefs.forEach(function (pref, i) {
-            if (done[i]) {
-                return;
+        remove_filter('get_user_metadata', array(__CLASS__, 'preferences'), 10);
+        $stored = get_user_meta($user_id, $meta_key, true);
+        add_filter('get_user_metadata', array(__CLASS__, 'preferences'), 10, 4);
+
+        $stored = is_array($stored) ? $stored : array();
+        $items  = (array) SEOProStack_Settings::get(self::ITEMS_KEY);
+        foreach (self::PREFERENCES as $choice => $list) {
+            if (!in_array($choice, $items, true)) {
+                continue;
             }
-            var value = get.get(pref[0], pref[1]);
-            if (undefined === value) {
-                return;
+            foreach ($list as $pref) {
+                if (!isset($stored[$pref[0]]) || !is_array($stored[$pref[0]])) {
+                    $stored[$pref[0]] = array();
+                }
+                $stored[$pref[0]][$pref[1]] = false;
             }
-            done[i] = true;
-            left--;
-            if (value) {
-                set.set(pref[0], pref[1], false);
-            }
-        });
-        if (left <= 0 && stop) {
-            stop();
-            stop = null;
         }
-    }
-    stop = data.subscribe(check);
-    check();
-    setTimeout(function () {
-        if (stop) {
-            stop();
-            stop = null;
-        }
-    }, 30000);
-})(window.wp, %s);
-JS;
-        wp_add_inline_script('seoprostack-editor-tidy', sprintf($js, wp_json_encode($prefs)));
+        // A list of values: get_metadata() returns its first for a single value.
+        return array($stored);
     }
 }

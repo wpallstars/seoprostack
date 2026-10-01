@@ -89,9 +89,8 @@ class SEOProStack_Admin_Tidy extends SEOProStack_Feature {
         }
         $items = array_flip((array) SEOProStack_Settings::get(self::ITEMS_KEY));
 
-        if (isset($items['file_editor']) && !defined('DISALLOW_FILE_EDIT')) {
-            // Read when capabilities are checked, so defining it on init works.
-            define('DISALLOW_FILE_EDIT', true);
+        if (isset($items['file_editor'])) {
+            add_filter('map_meta_cap', array(__CLASS__, 'no_file_editor'), 10, 2);
         }
         if (!is_admin()) {
             return;
@@ -102,6 +101,21 @@ class SEOProStack_Admin_Tidy extends SEOProStack_Feature {
         if (isset($items['update_nag'])) {
             add_action('admin_init', array(__CLASS__, 'update_nag'));
         }
+    }
+
+    /**
+     * Refuse the theme and plugin file editors to everyone, as core does
+     * when `DISALLOW_FILE_EDIT` is set.
+     *
+     * @param string[] $caps Capabilities the check needs.
+     * @param string   $cap  Capability checked.
+     * @return string[]
+     */
+    public static function no_file_editor($caps, $cap) {
+        if (in_array($cap, array('edit_files', 'edit_plugins', 'edit_themes'), true)) {
+            return array('do_not_allow');
+        }
+        return $caps;
     }
 
     /**

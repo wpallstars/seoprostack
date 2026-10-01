@@ -177,7 +177,7 @@ Removes WordPress items you do not use from the admin bar, for everyone, in wp-a
 
 Removes WordPress text and tools from wp-admin that most people never need, for everyone. Core hooks and constants only; nothing is stored.
 
-- **Remove**: the “Thank you for creating with WordPress” footer and the “WordPress X is available” notice for people who cannot update WordPress (both ticked by default), and the theme and plugin file editors (defines `DISALLOW_FILE_EDIT`, for developers too; a value already set in `wp-config.php` wins).
+- **Remove**: the “Thank you for creating with WordPress” footer and the “WordPress X is available” notice for people who cannot update WordPress (both ticked by default), and the theme and plugin file editors, for developers too (refused through `map_meta_cap` as `DISALLOW_FILE_EDIT` does, so switching it off brings them back).
 - Replaces part of Disable Bloat: its matching switches are imported once while it is active.
 
 ### Tidy WooCommerce admin (Admin)
@@ -243,11 +243,11 @@ Tick the “select all” box in a post list with more than one page and a bar o
 
 Turns off parts of the block editor most people never use, for everyone.
 
-- **Welcome guides** (ticked by default): closed for each person the next time an editor opens (post, site, widgets and Customizer widgets editors). They are each person’s editor preferences, so a small script switches them off as the editor starts, as if the person had closed them; Help → Welcome Guide still opens them.
+- **Welcome guides** (ticked by default): closed whenever an editor opens (post, site, widgets and Customizer widgets editors). They are each person’s editor preferences, which core prints into admin screens from the `{prefix}persisted_preferences` user meta; SEO Pro Stack reads them as off (`get_user_metadata`), so no script runs and nothing is saved. Help → Welcome Guide still opens a guide for that visit.
 - **Block directory** (ticked by default): searching for a block no longer offers blocks to install from WordPress.org.
 - **WordPress’s own block patterns** and those from the Pattern Directory: the theme’s and plugins’ patterns stay.
 - **Template editor** in the post editor, for classic themes only (block themes need it).
-- **Fullscreen mode**: the editor opens with the admin menu, switched off per person the same way as the welcome guides.
+- **Fullscreen mode**: the post editor opens with the admin menu, read as off the same way as the welcome guides.
 - Replaces part of Disable Bloat: its matching switches are imported once while it is active.
 
 ### Load pages before the click (Speed)
@@ -268,7 +268,7 @@ Adds Google Analytics 4 (standard gtag.js) with your measurement ID, loaded afte
 
 Leaves out scripts and tags WordPress adds to every page that most sites never use, with core’s own hooks. Nothing is stored.
 
-- **Ticked by default**: the emoji script and styles (browsers show emoji themselves; feeds and emails no longer swap emoji for pictures from s.w.org), the WordPress version in the page head and feeds, the RSD and Windows Live Writer links, the shortlink tag and header, and the comment reply script on pages without comments to reply to.
+- **Ticked by default**: the emoji script and styles (browsers show emoji themselves; feeds and emails no longer swap emoji for pictures from WordPress.org), the WordPress version in the page head and feeds, the RSD and Windows Live Writer links, the shortlink tag and header, and the comment reply script on pages without comments to reply to.
 - **Also offered**: Dashicons for visitors who do not see the admin bar (a style that needs it still loads it), jQuery Migrate on the site (old plugin and theme code may need it), links made from web addresses typed in comments, feed links in the page head, and feeds themselves (sent to the home page with a 301).
 - Replaces part of Disable Bloat: its matching switches are imported once while it is active.
 
@@ -707,7 +707,7 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folder�
 ### Unreleased
 
 - New, off by default: six features that take over most of Disable Bloat (#90): Tidy admin screens, Tidy WooCommerce admin and Tidy the login screen (Admin tab), Simpler block editor (Content tab), Remove WordPress extras and Lighter WooCommerce pages (Speed tab). Each uses core’s or WooCommerce’s own hooks and stores nothing. While Disable Bloat (free or PRO) is active, its switches are imported once (settings version 6, `SEOProStack_Disable_Bloat::MAP`), including its W logo (Hide admin bar items), Dashboard boxes and widgets (Dashboard and sidebar widgets); the features wait until it is deactivated. Tested on a throwaway site with WooCommerce 11.1.2 and Disable Bloat 4.0.0: imports matched the seeded switches; a plain page lost WooCommerce’s scripts, styles, emoji and shortlink, while the shop, product and a page with a WooCommerce block kept them.
-- Changed: the Plugins screen names what a replaced plugin still does on the site that SEO Pro Stack does not (new `seoprostack_replaced_plugin_extras` filter), instead of saying it can go. Disable Bloat’s Heartbeat, XML-RPC, REST API, revisions, auto-update and third-party plugin switches are not covered.
+- Changed: the Plugins screen names what a replaced plugin still does on the site that SEO Pro Stack does not (new `seoprostack_replaced_plugin_extras` filter), instead of saying it can go. Disable Bloat’s Heartbeat, XML-RPC, REST API, resource hints, revisions, auto-update and third-party plugin switches are not covered.
 - Removed: Pro Plugins no longer lists Disable Bloat PRO.
 - New: starter data for Fluent Forms (`starters/fluentform.json`, item type `fluentform_forms`): Contact Form, Discovery Call Form, Subscription Form and Data Subject Access Request Form, taken from our own sites. Forms are created as Fluent Forms' own screens do: `FormService::store()` from a template, for its default settings and notification, then `Updater::update()` with our fields, which sanitises them and sets the primary email field. With FluentCRM active each gets a FluentCRM feed to the list named after it, with tag routing from its answers; the lists and tags it uses come with the starter (`"when": "fluent-crm"`), so it does not matter whether FluentCRM's starter data is added first. A field can have `"when"` too: phone and file upload fields need Fluent Forms Pro, which the free plugin does not show but would still require, so they are left out without it. Remove keeps forms with entries, forms placed in a post, page or block, and forms changed since, and keeps FluentCRM lists and tags that any Fluent Forms feed still uses. Items of a plugin that is inactive are left for later instead of stopping Add or Remove. Tested on a site with 85 plugins: 13 items added, a second run added none, a form whose title was taken was left alone; visitor submissions joined the right list with the right tags (contact form newsletter tick; access request types Customer and Supplier Contact); Remove kept the form with an entry, forms on pages and the tags and lists contacts hold; without FluentCRM, forms were added without feeds and FluentCRM's records left alone.
 - Removed: Free Plugins and Pro Plugins no longer list Freesoul Deactivate Plugins. Load plugins only where needed does its job in wp-admin and for the whole site. The Plugins screen does not suggest removing it yet: its page-by-page rules on the site are not covered so far.
