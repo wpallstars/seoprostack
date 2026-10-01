@@ -553,9 +553,11 @@ final class SEOProStack_Plugin_Loader {
      * @return string[]
      */
     private static function settings_plugins(array $map) {
+        // Owners of post types and taxonomies offered as choices; every
+        // owner when that was not learned.
+        $choices = isset($map['choices']) ? (array) $map['choices'] : array_merge(array_values((array) $map['types']), array_values((array) $map['taxes']));
         $plugins = array_merge(
-            array_values((array) $map['types']),
-            array_values((array) $map['taxes']),
+            $choices,
             isset($map['permissions']) ? (array) $map['permissions'] : array(),
             isset($map['settings']) ? (array) $map['settings'] : array(),
             isset($map['widgets']) ? (array) $map['widgets'] : array()

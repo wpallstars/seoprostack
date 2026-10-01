@@ -626,6 +626,9 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
         } else {
             return; // Plugins changed during this request; the next one learns.
         }
+        if ($state['attributing']) {
+            $map['choices'] = self::choice_plugins($map);
+        }
 
         if (null !== self::$pages) {
             foreach (self::$pages as $slug => $page) {
@@ -713,6 +716,31 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
                 return in_array($name, SEOProStack_Plugin_Loader::PERMISSION_HOOKS, true);
             }),
         );
+    }
+
+    /**
+     * Plugins whose post types or taxonomies SEO Pro Stack's settings can
+     * offer as choices: post types that are public or have screens, and
+     * public taxonomies with screens. Internal ones are left out.
+     *
+     * @param array $map Learned map.
+     * @return string[]
+     */
+    private static function choice_plugins(array $map) {
+        $plugins = array();
+        foreach ((array) $map['types'] as $name => $plugin) {
+            $object = get_post_type_object((string) $name);
+            if ('' !== $plugin && $object && ($object->public || $object->show_ui)) {
+                $plugins[$plugin] = true;
+            }
+        }
+        foreach ((array) $map['taxes'] as $name => $plugin) {
+            $object = get_taxonomy((string) $name);
+            if ('' !== $plugin && $object && $object->public && $object->show_ui) {
+                $plugins[$plugin] = true;
+            }
+        }
+        return array_keys($plugins);
     }
 
     /**
