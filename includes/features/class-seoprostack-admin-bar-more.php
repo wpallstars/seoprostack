@@ -30,6 +30,9 @@ class SEOProStack_Admin_Bar_More extends SEOProStack_Feature {
     /** Sources whose items stay on the bar. */
     const KEEP_KEY = 'admin_bar_more_keep';
 
+    /** WordPress items to hide. */
+    const HIDE_KEY = 'admin_bar_more_hide';
+
     /** Option: sources seen adding items to the left of the bar. */
     const SEEN = 'seoprostack_admin_bar_items';
 
@@ -59,6 +62,8 @@ class SEOProStack_Admin_Bar_More extends SEOProStack_Feature {
                 'tab'         => 'admin',
                 'label'       => __('More menu in the admin bar', 'seoprostack'),
                 'description' => __('Put the items plugins and themes add to the left of the admin bar in one … menu after + New, so the bar stays on one line and never covers the page. Click … to open it. Works in wp-admin and on the site.', 'seoprostack'),
+                // The bar on this page was drawn before the change.
+                'reload'      => true,
             ),
             self::KEEP_KEY => array(
                 'type'        => 'multi',
@@ -69,8 +74,85 @@ class SEOProStack_Admin_Bar_More extends SEOProStack_Feature {
                 'options'     => array(__CLASS__, 'source_options'),
                 // Keep choices for plugins that are switched off for now.
                 'open'        => true,
+                'reload'      => true,
+            ),
+            self::HIDE_KEY => array(
+                'type'        => 'multi',
+                'default'     => array(),
+                'parent'      => self::KEY,
+                'label'       => __('Hide WordPress items', 'seoprostack'),
+                'description' => __('Ticked items are removed from the bar for everyone. All show by default; some appear only on certain screens.', 'seoprostack'),
+                'options'     => array(__CLASS__, 'core_options'),
+                'reload'      => true,
             ),
         );
+    }
+
+    /**
+     * WordPress's own items that can be hidden: choice => node IDs.
+     * The account menu (with Log Out) and the admin menu button on phones
+     * are left out.
+     *
+     * @return array<string,string[]>
+     */
+    private static function hideable() {
+        return array(
+            'wp-logo'         => array('wp-logo'),
+            'my-sites'        => array('my-sites'),
+            'site-name'       => array('site-name'),
+            'site-editor'     => array('site-editor'),
+            'customize'       => array('customize'),
+            'updates'         => array('updates'),
+            'command-palette' => array('command-palette'),
+            'comments'        => array('comments'),
+            'new-content'     => array('new-content'),
+            'edit'            => array('edit'),
+            'view'            => array('view', 'preview', 'archive'),
+            'get-shortlink'   => array('get-shortlink'),
+            'search'          => array('search'),
+        );
+    }
+
+    /**
+     * Choices for "Hide WordPress items", in bar order.
+     *
+     * @return array<string,string>
+     */
+    public static function core_options() {
+        return array(
+            'wp-logo'         => __('WordPress logo menu', 'seoprostack'),
+            'my-sites'        => __('My Sites (multisite)', 'seoprostack'),
+            'site-name'       => __('Site name (Visit site and Dashboard links)', 'seoprostack'),
+            'site-editor'     => __('Edit site (block themes)', 'seoprostack'),
+            'customize'       => __('Customise', 'seoprostack'),
+            'updates'         => __('Updates', 'seoprostack'),
+            'command-palette' => __('Command palette (⌘K or Ctrl+K)', 'seoprostack'),
+            'comments'        => __('Comments', 'seoprostack'),
+            'new-content'     => __('+ New', 'seoprostack'),
+            'edit'            => __('Edit (on the site)', 'seoprostack'),
+            'view'            => __('View and Preview (in wp-admin)', 'seoprostack'),
+            'get-shortlink'   => __('Shortlink', 'seoprostack'),
+            'search'          => __('Search (on the site)', 'seoprostack'),
+        );
+    }
+
+    /**
+     * Remove the WordPress items chosen in "Hide WordPress items".
+     *
+     * @param WP_Admin_Bar $bar Admin bar.
+     */
+    private static function hide(WP_Admin_Bar $bar) {
+        $map = self::hideable();
+        foreach ((array) SEOProStack_Settings::get(self::HIDE_KEY) as $choice) {
+            $choice = (string) $choice;
+            if (!isset($map[$choice])) {
+                continue;
+            }
+            foreach ($map[$choice] as $id) {
+                // Their submenus are left without a parent and are not shown.
+                $bar->remove_node($id);
+            }
+        }
     }
 
     /**
@@ -121,8 +203,12 @@ class SEOProStack_Admin_Bar_More extends SEOProStack_Feature {
         if (!($wp_admin_bar instanceof WP_Admin_Bar)) {
             return;
         }
+        if ($wp_admin_bar->get_node(self::NODE)) {
+            return;
+        }
+        self::hide($wp_admin_bar);
         $nodes = $wp_admin_bar->get_nodes();
-        if (!$nodes || isset($nodes[self::NODE])) {
+        if (!$nodes) {
             return;
         }
 
