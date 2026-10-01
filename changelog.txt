@@ -8,6 +8,8 @@ Every change to SEO Pro Stack. readme.txt lists the latest version in short.
 * Fix: Tidy the dashboard keeps offering widgets of plugins that the Dashboard does not load.
 * Fix: Organise the admin menu opens the right menu on Kadence Blocks’ Forms, Navigations and Headers, and on other plugins’ lists shown in their own menu.
 * Fix: with Load plugins only where needed, a screen that failed while Query Monitor was active kept failing (such as Admin Columns’ settings). It now loads every plugin after the first failure.
+* Fix: Hide admin notices keeps empty boxes that plugins fill later hidden, so admin screens no longer move down as they load. MasterStudy LMS’s announcements left an empty gap under the admin bar on every screen.
+* Fix: Tidy the dashboard no longer leaves a large empty space in a column without boxes, which pushed the boxes below down as the Dashboard loaded.
 
 = 0.6.0 =
 * Change: Load plugins only where needed also speeds up the Profile, Edit user and Add user screens, Tools, Media › Add New and the About screens. Plugins that show or save profile fields still load on the profile screens. The Plugins menu in the admin bar says why a screen loads every plugin.

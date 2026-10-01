@@ -10,6 +10,9 @@
  * would break the script that owns it. The panel shows a copy that passes
  * clicks back, and follows the original until it goes away.
  *
+ * Empty boxes the notice hooks printed, for a script to fill, stay hidden
+ * while empty (see wait()).
+ *
  * The panel stays inside #wpbody-content, so plugin styles and handlers
  * scoped to it keep working, and is fixed under the bell. Like core's admin
  * bar menus, it opens while the mouse points at the bell and closes when the
@@ -339,7 +342,7 @@
 	 */
 	function render(item) {
 		var orig = item.orig;
-		if (!inPage(orig) || orig.hidden || orig.style.display === 'none') {
+		if (!inPage(orig) || orig.hidden || orig.style.display === 'none' || !filled(orig)) {
 			if (item.clone) {
 				$(item.clone).remove();
 				item.clone = null;
@@ -393,6 +396,75 @@
 			});
 			goneWatch.observe($content[0], { childList: true, subtree: true });
 		}
+	}
+
+	/** Class or id words that mean a notice or banner (as in the marking script). */
+	var BANNER = /(^|[\s_-])(notices?|nag|notification|alert|banner|promo|announcement)([\s_-]|$)/i;
+
+	/**
+	 * Whether an element shows anything: text, images or embeds.
+	 *
+	 * @param {Element} el Element.
+	 * @return {boolean}
+	 */
+	function filled(el) {
+		return !!$.trim(el.textContent) || !!el.querySelector('img, svg, iframe, video, canvas, object, embed');
+	}
+
+	/**
+	 * Whether a box is, or holds, a notice or banner.
+	 *
+	 * @param {Element} el Box.
+	 * @return {boolean}
+	 */
+	function noticeLike(el) {
+		if ($(el).is(cfg.notices) || $(el).find(cfg.notices).length) {
+			return true;
+		}
+		var all = [el].concat($(el).find('[class], [id]').get());
+		for (var i = 0; i < all.length; i++) {
+			if (BANNER.test((all[i].getAttribute('class') || '') + ' ' + all[i].id)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	/**
+	 * An empty box the notice hooks printed, for a script to fill: keep it
+	 * hidden while it is empty, so it never pushes the page down. Filled with
+	 * a notice or banner, it goes behind the bell; filled with anything else
+	 * (a dialog, a toolbar), it shows where it is.
+	 *
+	 * @param {Element} el Box.
+	 */
+	function wait(el) {
+		var watch = null;
+		var check = function () {
+			if (!inPage(el)) {
+				if (watch) {
+					watch.disconnect();
+				}
+				return;
+			}
+			// Empty, or what it holds was taken already (a copy is in the panel).
+			if (!filled(el) || $(el).find('.sps-notice-away').length) {
+				el.classList.add('sps-notice-away');
+				return;
+			}
+			if (watch) {
+				watch.disconnect();
+			}
+			el.classList.remove('sps-notice-away');
+			if (noticeLike(el) && !$(el).find(AWAY).length && take(el)) {
+				$(document).trigger('wp-notice-added');
+			}
+		};
+		if (window.MutationObserver) {
+			watch = new MutationObserver(check);
+			watch.observe(el, { childList: true, subtree: true, characterData: true });
+		}
+		check();
 	}
 
 	/**
@@ -494,6 +566,15 @@
 		ui();
 		$notices.each(function () {
 			take(this);
+		});
+		$content.find('[' + cfg.mark + '="wait"]').each(function () {
+			wait(this);
+		});
+		// A box a script put in place of a waiting one (marked by the marking script).
+		document.addEventListener('sps-notice-wait', function (e) {
+			if (e.detail && 1 === e.detail.nodeType) {
+				wait(e.detail);
+			}
 		});
 		count();
 		watchLate();

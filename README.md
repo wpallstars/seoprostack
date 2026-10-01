@@ -131,6 +131,7 @@ Moves plugin and theme notices behind a bell at the right of the admin bar, so p
 - Like the other admin bar menus, pointing at the bell opens the panel and moving the mouse away closes it. It stays open while you type in a field inside it.
 - The bell works from the keyboard and on touch screens: Enter, Space or a tap opens the panel and keeps it open; Escape, the bell again or clicking elsewhere closes it.
 - Notices are hidden with CSS until they are moved, so they do not flash or push the page down. Without JavaScript they stay on the page.
+- Empty boxes printed on the notice hooks, which a plugin’s script fills later (MasterStudy LMS’s announcements), stay hidden while empty. Filled with a notice or banner, they go behind the bell.
 - The block editor has its own notices and is left alone.
 - Add the class `sps-keep` to a notice to keep it on the page.
 - **Show example notices** (off by default) adds one notice of each kind to every admin screen for administrators, to see where they go: information, success, warning and error behind the bell, and one with `sps-keep` on the page. Reload the page after changing it.
@@ -583,6 +584,8 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folder�
 - Fixed: Tidy the dashboard forgot dashboard widgets of plugins skipped on the Dashboard, so they were no longer offered to hide.
 - Fixed: Organise the admin menu did not open the Administrators or Developers menu, or mark the entry, on lists of post types that a plugin shows in its own menu (Kadence Blocks’ Forms, Navigations and Headers). Core passes such a list’s own address to `parent_file` and finds the real menu only afterwards; the menu now uses the entry that matches the page.
 - Fixed: with Load plugins only where needed, a screen whose fatal error was shown by Query Monitor kept failing (Admin Columns’ settings, where Admin Columns calls WooCommerce’s `OrderUtil` while WooCommerce is skipped). Query Monitor shows the error and exits, so WordPress’s error message never runs and no last error is left; a 500 status at shutdown now also sets the screen to load every plugin.
+- Fixed: Hide admin notices left empty boxes printed on the notice hooks in place, so a script that filled them later moved the page down. MasterStudy LMS prints an empty box on `all_admin_notices` on every screen and loads a script from stylemixthemes.com that puts an empty 8px announcements box in it once loaded. Empty boxes printed straight above the page are now marked `data-sps-notice="wait"` and stay hidden while empty; if a script fills one with a notice or banner it goes behind the bell, and anything else shows where it is.
+- Fixed: Tidy the dashboard (with rearranging off) left core’s 250px drop area in a column without boxes once core’s script marked it empty, which pushed the next column’s boxes down as the Dashboard loaded. The empty column now takes no space, and the style is printed in the page head.
 
 ### 0.6.0
 

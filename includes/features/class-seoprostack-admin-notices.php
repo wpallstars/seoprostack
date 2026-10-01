@@ -614,7 +614,7 @@ class SEOProStack_Admin_Notices extends SEOProStack_Feature {
             $not_kind .= ':not(' . $selector . ')';
         }
         $loading = 'body.js.' . self::LOADING . ' ';
-        $hide    = array($loading . '[' . self::MARK . '="move"]');
+        $hide    = array($loading . '[' . self::MARK . '="move"]', $loading . '[' . self::MARK . '="wait"]');
         foreach (explode(', ', $s['notices']) as $selector) {
             $hide[] = $loading . '#wpbody-content ' . $selector . $not;
             // Inline notices printed above the page.
@@ -662,7 +662,10 @@ class SEOProStack_Admin_Notices extends SEOProStack_Feature {
      * says they are a notice or banner, or when, printed straight above the
      * page, they are only text, links and images (such as MainWP Child's
      * "connect this site" box); other output, such as a plugin's own header,
-     * tabs or buttons, stays.
+     * tabs or buttons, stays. Empty boxes printed straight above the page
+     * wait for a script to fill them (MasterStudy LMS's announcements, for
+     * example, add an empty 8px box once its script has loaded): they stay
+     * hidden while empty, and go behind the bell if they fill with a notice.
      *
      * Kept notices of skipped plugins (see replay()) are unwrapped first, each
      * element taking the wrapper's hash, so they are treated like the rest.
@@ -710,10 +713,36 @@ class SEOProStack_Admin_Notices extends SEOProStack_Feature {
                 el.setAttribute(cfg.mark, "move");
             } else if (parent === content && "DIV" === el.tagName && el.getClientRects().length && el.textContent.trim().length >= 40 && !el.querySelector(structure)) {
                 el.setAttribute(cfg.mark, "move");
+            } else if (parent === content && !el.firstElementChild && !el.textContent.trim()) {
+                // An empty box that a script fills later, such as a plugin\'s announcements: it waits, hidden.
+                el.setAttribute(cfg.mark, "wait");
             }
         }
     };
     walk(content);
+    // A script may replace a waiting box with its own (Vue 2 replaces the element it mounts on):
+    // the new one waits too, marked before the page is next drawn.
+    if (window.MutationObserver && content.querySelector("[" + cfg.mark + "=\"wait\"]")) {
+        new MutationObserver(function (records) {
+            // Inserting the new box and removing the old one may be two records of one batch.
+            var r, i, gone = false;
+            for (r = 0; r < records.length; r++) {
+                for (i = 0; i < records[r].removedNodes.length; i++) {
+                    var old = records[r].removedNodes[i];
+                    gone = gone || (1 === old.nodeType && "wait" === old.getAttribute(cfg.mark));
+                }
+            }
+            for (r = 0; gone && r < records.length; r++) {
+                for (i = 0; i < records[r].addedNodes.length; i++) {
+                    var el = records[r].addedNodes[i];
+                    if (1 === el.nodeType && !el.hasAttribute(cfg.mark) && el.parentNode === content && !skip.test(el.tagName) && el.id !== "sps-notices-wrap") {
+                        el.setAttribute(cfg.mark, "wait");
+                        document.dispatchEvent(new CustomEvent("sps-notice-wait", { detail: el }));
+                    }
+                }
+            }
+        }).observe(content, { childList: true });
+    }
 })(' . wp_json_encode($data) . ');';
         wp_print_inline_script_tag($js, array('id' => 'seoprostack-admin-notices-mark'));
     }
