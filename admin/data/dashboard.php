@@ -60,6 +60,9 @@ return array(
         'woocommerce_dashboard_status',     // Repeats WooCommerce → Home.
         'prli_quick_add',                   // Pretty Links quick add.
         'wpil_link_health_widget',          // Link Whisper promotion.
+        'pearl_dashboard_announcement',     // StylemixThemes (MasterStudy) announcements.
+        'pearl_dashboard_news',             // StylemixThemes (MasterStudy) news.
+        'vg_sheet_editor_usage_stats',      // WP Sheet Editor edit counts.
     ),
     'developers' => array(
         'dashboard_site_health',

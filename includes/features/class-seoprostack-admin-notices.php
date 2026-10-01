@@ -28,8 +28,8 @@
  * The panel stays inside #wpbody-content, where the notices were printed, so
  * plugin styles and click handlers scoped to that area keep working.
  *
- * Kept in place: messages about what you just did (#message, settings
- * errors), inline notices inside the page's content (inline notices printed
+ * Kept in place: messages about what you just did (#message, but not
+ * WooCommerce's lasting notices, which use it too; settings errors), inline notices inside the page's content (inline notices printed
  * above the page are moved), hidden notices, notices added after a click or
  * key press, and any types chosen in the settings. Until the move runs, the
  * notices are hidden with CSS, so they do not flash or push the page down;
@@ -576,7 +576,9 @@ class SEOProStack_Admin_Notices extends SEOProStack_Feature {
      * @return array{notices:string,skip:string,kinds:string,nag:string}
      */
     private static function selectors() {
-        $kinds = array('#message', '.settings-error', '.hidden', '.sps-keep');
+        // WooCommerce prints its lasting notices (connect prompts, database
+        // updates) as #message.woocommerce-message; they go behind the bell.
+        $kinds = array('#message:not(.woocommerce-message)', '.settings-error', '.hidden', '.sps-keep');
         $keep  = array_flip((array) SEOProStack_Settings::get('hide_admin_notices_keep'));
         if (isset($keep['error'])) {
             $kinds[] = '.notice-error';
@@ -656,8 +658,10 @@ class SEOProStack_Admin_Notices extends SEOProStack_Feature {
      * output. Notices are marked wherever they sit, including inside a hidden
      * wrapper (WooCommerce puts every notice in one on its own screens).
      * Plugin boxes without notice classes are marked when their class or id
-     * says they are a notice or banner; other output, such as buttons a
-     * plugin prints here, stays.
+     * says they are a notice or banner, or when, printed straight above the
+     * page, they are only text, links and images (such as MainWP Child's
+     * "connect this site" box); other output, such as a plugin's own header,
+     * tabs or buttons, stays.
      *
      * Kept notices of skipped plugins (see replay()) are unwrapped first, each
      * element taking the wrapper's hash, so they are treated like the rest.
@@ -688,6 +692,8 @@ class SEOProStack_Admin_Notices extends SEOProStack_Feature {
     }
     var banner = /(^|[\s_-])(notices?|nag|notification|alert|banner|promo|announcement)([\s_-]|$)/i;
     var skip = /^(SCRIPT|STYLE|LINK|TEMPLATE|NOSCRIPT|META|BR|HR)$/;
+    // A plain box of text, links and images is a message; anything with these is a plugin\'s own header or tools.
+    var structure = "h1, h2, h3, nav, ul, ol, form, input, button, select, textarea, table, iframe, video, canvas, .nav-tab, .button";
     var walk = function (parent) {
         for (var el = parent.firstElementChild; el; el = el.nextElementSibling) {
             if (skip.test(el.tagName) || el.id === "screen-meta" || el.id === "screen-meta-links" || el.hasAttribute(cfg.mark)) {
@@ -700,6 +706,8 @@ class SEOProStack_Admin_Notices extends SEOProStack_Feature {
             } else if (el.querySelector(cfg.notices)) {
                 walk(el);
             } else if (banner.test((el.getAttribute("class") || "") + " " + el.id) && el.textContent.trim() && (parent !== content || el.getClientRects().length)) {
+                el.setAttribute(cfg.mark, "move");
+            } else if (parent === content && "DIV" === el.tagName && el.getClientRects().length && el.textContent.trim().length >= 40 && !el.querySelector(structure)) {
                 el.setAttribute(cfg.mark, "move");
             }
         }
