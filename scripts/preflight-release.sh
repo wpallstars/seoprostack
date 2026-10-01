@@ -20,6 +20,7 @@ set -euo pipefail
 
 readonly SLUG="seoprostack"
 readonly MAIN_FILE="seoprostack.php"
+readonly VERSION_CONSTANT="SEOPROSTACK_VERSION"
 readonly UPDATER_FILE="includes/features/class-seoprostack-github-updates.php"
 readonly UPDATER_HEADERS='GitHub Plugin URI|Primary Branch|Release Asset'
 # Development files that must never be in a release zip (paths inside the slug folder).
@@ -118,7 +119,10 @@ version_lt() {
 # HTTP status of a URL (000 when offline or unreachable).
 http_status() {
 	local url="$1"
-	curl -sL -o /dev/null -m 20 -w '%{http_code}' "$url" || printf '000'
+	local code
+	# curl prints 000 itself when it cannot connect, and exits non-zero.
+	code="$(curl -sL -o /dev/null -m 20 -w '%{http_code}' "$url" || true)"
+	printf '%s' "${code:-000}"
 	return 0
 }
 
@@ -130,7 +134,7 @@ check_versions() {
 
 	local version constant stable
 	version="$(field "$plugin_header" "Version")"
-	constant="$(printf '%s\n' "$main_php" | sed -nE "s/.*define\([[:space:]]*['\"][A-Z_]*_VERSION['\"][[:space:]]*,[[:space:]]*['\"]([^'\"]+)['\"].*/\1/p" | head -n 1)"
+	constant="$(printf '%s\n' "$main_php" | sed -nE "/define\([[:space:]]*['\"]${VERSION_CONSTANT}['\"]/{s/.*,[[:space:]]*['\"]([^'\"]+)['\"].*/\1/p;q;}")"
 	stable="$(field "$readme" "Stable tag")"
 
 	if printf '%s' "$version" | grep -Eq '^[0-9]+\.[0-9]+(\.[0-9]+)?$'; then
@@ -206,7 +210,7 @@ check_readme() {
 
 	local tags tag_count
 	tags="$(field "$readme" "Tags")"
-	tag_count="$(printf '%s' "$tags" | awk -F',' '{ print ($0 == "") ? 0 : NF }')"
+	tag_count="$(printf '%s\n' "$tags" | awk -F',' '{ print ($0 == "") ? 0 : NF }')"
 	if [ "$tag_count" -ge 1 ] && [ "$tag_count" -le "$MAX_TAGS" ]; then ok "$tag_count tags"; else warn "$tag_count tags; WordPress.org shows at most $MAX_TAGS"; fi
 
 	local tested
@@ -297,17 +301,35 @@ check_wporg() {
 check_syntax() {
 	local dir="$1"
 	local label="$2"
-	local out
+	local out php_label
+	local expected
+	expected="$(find "$dir" -name '*.php' | wc -l | tr -d ' ')"
 	if [ "$USE_DOCKER" -eq 1 ] && command -v docker >/dev/null 2>&1 && docker info >/dev/null 2>&1; then
 		local image="php:7.4-cli"
 		if docker image inspect wordpress:php7.4-apache >/dev/null 2>&1; then image="wordpress:php7.4-apache"; fi
-		out="$(docker run --rm -v "$dir:/src:ro" "$image" sh -c 'find /src -name "*.php" -exec php -l {} \; 2>&1 | grep -v "^No syntax errors"' || true)"
-		if [ -z "$out" ]; then ok "$label: PHP 7.4 syntax ($image)"; else err "$label: PHP 7.4 syntax errors:"; printf '%s\n' "$out" | sed 's/^/           /'; fi
+		out="$(docker run --rm -v "$dir:/src:ro" "$image" sh -c 'find /src -name "*.php" -exec php -l {} \;' 2>&1 || true)"
+		php_label="PHP 7.4 syntax ($image)"
 	elif command -v php >/dev/null 2>&1; then
-		out="$(find "$dir" -name '*.php' -exec php -l {} \; 2>&1 | grep -v '^No syntax errors' || true)"
-		if [ -z "$out" ]; then ok "$label: PHP syntax ($(php -r 'echo PHP_VERSION;'); not 7.4)"; else err "$label: PHP syntax errors:"; printf '%s\n' "$out" | sed 's/^/           /'; fi
+		out="$(find "$dir" -name '*.php' -exec php -l {} \; 2>&1 || true)"
+		php_label="PHP syntax ($(php -r 'echo PHP_VERSION;'); not 7.4)"
 	else
+		out=""
+		php_label=""
 		warn "$label: no PHP to lint with"
+	fi
+	if [ -n "$php_label" ]; then
+		# Count the files php -l passed, so a lint that never ran cannot pass.
+		local passed problems
+		passed="$(printf '%s\n' "$out" | grep -c '^No syntax errors' || true)"
+		problems="$(printf '%s\n' "$out" | grep -v '^No syntax errors' | grep -v '^[[:space:]]*$' || true)"
+		if [ -z "$problems" ] && [ "$passed" -eq "$expected" ] && [ "$expected" -gt 0 ]; then
+			ok "$label: $php_label, $passed files"
+		elif [ -z "$problems" ]; then
+			err "$label: PHP lint checked $passed of $expected files"
+		else
+			err "$label: $php_label errors:"
+			printf '%s\n' "$problems" | sed 's/^/           /'
+		fi
 	fi
 	if command -v node >/dev/null 2>&1; then
 		out="$(find "$dir" -name '*.js' -exec node --check {} \; 2>&1 || true)"

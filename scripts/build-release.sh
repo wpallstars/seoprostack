@@ -23,6 +23,8 @@
 # Needs git, rsync, zip, unzip and shasum or sha256sum.
 
 set -euo pipefail
+umask 022
+export TZ=UTC
 
 readonly SLUG="seoprostack"
 readonly MAIN_FILE="seoprostack.php"
@@ -73,12 +75,15 @@ sha256_of() {
 	return 0
 }
 
-# Zip <folder>/<SLUG> as <zip>, with the slug folder at the top.
+# Zip <folder>/<SLUG> as <zip>, with the slug folder at the top. Fixed times,
+# modes (umask) and entry order make the same ref give the same zip anywhere.
 make_zip() {
 	local folder="$1"
 	local zip_path="$2"
-	rm -f "$zip_path"
-	(cd "$folder" && find "$SLUG" -exec touch -h -t 202001010000 {} + && zip -qrX "$zip_path" "$SLUG")
+	local partial="$zip_path.partial"
+	rm -f "$zip_path" "$partial"
+	(cd "$folder" && find "$SLUG" -exec touch -h -t 202001010000 {} + && find "$SLUG" | LC_ALL=C sort | zip -qX "$partial" -@)
+	mv "$partial" "$zip_path"
 	return 0
 }
 

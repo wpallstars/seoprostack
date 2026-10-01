@@ -31,11 +31,12 @@ attached to a GitHub release.
    Numbers only (`1.2.3`): Git Updater offers a `Version:` on `main` to every site.
 2. On the pull request's branch: `scripts/preflight-release.sh` (no errors) and
    `scripts/plugin-check.sh` (no errors).
-3. Merge, then straight away, from an up-to-date `main` checkout:
+3. Merge, then straight away:
 
    ```bash
-   git fetch origin && git tag -a vX.Y.Z origin/main -m "SEO Pro Stack X.Y.Z"
-   scripts/preflight-release.sh --ref vX.Y.Z
+   git fetch origin
+   scripts/preflight-release.sh --ref origin/main   # no errors before tagging
+   git tag -a vX.Y.Z origin/main -m "SEO Pro Stack X.Y.Z"
    scripts/build-release.sh --ref vX.Y.Z
    git push origin vX.Y.Z
    gh release create vX.Y.Z dist/seoprostack-X.Y.Z.zip --title "SEO Pro Stack X.Y.Z" --notes-file <notes>
@@ -120,9 +121,11 @@ Reviewers read the code. Check each against the guidelines before submitting:
 
 ### Submitting
 
-1. `scripts/preflight-release.sh --strict` passes, or every warning is
-   accepted.
-2. `scripts/plugin-check.sh` reports no errors; read every warning.
+1. `scripts/build-release.sh --ref vX.Y.Z` (a version already released on
+   GitHub), then `scripts/preflight-release.sh --ref vX.Y.Z --strict` passes,
+   or every warning is accepted.
+2. `scripts/plugin-check.sh --ref vX.Y.Z` reports no errors; read every
+   warning.
 3. Test the WordPress.org zip on a clean site (latest WordPress and 6.2 with
    PHP 7.4), with `WP_DEBUG` on: activate, turn each feature on and off,
    deactivate, delete. `debug.log` stays empty.

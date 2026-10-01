@@ -37,9 +37,22 @@ usage() {
 
 cleanup() {
 	if [ "$STARTED" -eq 1 ]; then
-		docker rm -f "$NAME-db" >/dev/null 2>&1 || true
-		docker volume rm "$NAME-wp" >/dev/null 2>&1 || true
-		docker network rm "$NAME" >/dev/null 2>&1 || true
+		local attempt id
+		# wp-cli containers still stopping (after Ctrl-C) keep the volume and
+		# network in use, so remove them first and retry.
+		for attempt in 1 2 3; do
+			docker ps -aq --filter "volume=$NAME-wp" | while IFS= read -r id; do
+				docker rm -f "$id" >/dev/null 2>&1 || true
+			done
+			docker rm -f "$NAME-db" >/dev/null 2>&1 || true
+			docker volume rm "$NAME-wp" >/dev/null 2>&1 || true
+			docker network rm "$NAME" >/dev/null 2>&1 || true
+			if ! docker volume inspect "$NAME-wp" >/dev/null 2>&1 && ! docker network inspect "$NAME" >/dev/null 2>&1; then
+				break
+			fi
+			[ "$attempt" -eq 3 ] && printf 'plugin-check: could not remove %s-wp or network %s\n' "$NAME" "$NAME" >&2
+			sleep 2
+		done
 	fi
 	if [ -n "$TMP_DIR" ] && [ -d "$TMP_DIR" ]; then
 		rm -rf "$TMP_DIR"
@@ -65,8 +78,10 @@ start_site() {
 	# The volume starts owned by root; let www-data (33) write to it.
 	docker run --rm -v "$NAME-wp:/var/www/html" --user 0:0 "$CLI_IMAGE" chown 33:33 /var/www/html
 
+	# Ping over TCP: the image's first, socket-only server answers on the
+	# socket before the real server is listening.
 	local waited=0
-	until docker exec "$NAME-db" mariadb-admin ping -uroot -p"$DB_PASSWORD" --silent >/dev/null 2>&1; do
+	until docker exec "$NAME-db" mariadb-admin ping -h127.0.0.1 -uroot -p"$DB_PASSWORD" --silent >/dev/null 2>&1; do
 		[ "$waited" -lt 90 ] || die "the database did not start"
 		sleep 2
 		waited=$((waited + 2))
@@ -87,7 +102,10 @@ check_zip() {
 	local keep="$2"
 	local report errors warnings
 	printf '\n== %s ==\n' "$zip_name"
-	wp_cli plugin install "/zips/$zip_name" --force --quiet
+	if ! wp_cli plugin install "/zips/$zip_name" --force --quiet; then
+		printf 'Could not install %s.\n' "$zip_name"
+		return 1
+	fi
 	report="$(wp_cli plugin check "$SLUG" --format=json 2>&1 || true)"
 	if [ -n "$keep" ]; then
 		printf '%s\n' "$report" >"$keep/${zip_name%.zip}-plugin-check.json"
@@ -98,8 +116,8 @@ check_zip() {
 		wp_cli plugin delete "$SLUG" --quiet || true
 		return 1
 	fi
-	errors="$(printf '%s\n' "$report" | grep -o '"type":"ERROR"' | wc -l | tr -d ' ')"
-	warnings="$(printf '%s\n' "$report" | grep -o '"type":"WARNING"' | wc -l | tr -d ' ')"
+	errors="$( (printf '%s\n' "$report" | grep -o '"type":"ERROR"' || true) | wc -l | tr -d ' ')"
+	warnings="$( (printf '%s\n' "$report" | grep -o '"type":"WARNING"' || true) | wc -l | tr -d ' ')"
 	# Readable summary: one line per finding (type, code, file:line).
 	printf '%s\n' "$report" | awk '
 		/^FILE: / { file = substr($0, 7); next }

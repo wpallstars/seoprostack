@@ -21,8 +21,8 @@ RELEASING.md
 ROADMAP.md
 STABILITY.md
 TESTING.md
-scripts
+/scripts
 reference-plugins
 project-documents
 node_modules
-vendor
+/vendor
