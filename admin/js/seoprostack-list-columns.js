@@ -29,7 +29,8 @@
 	var FLOOR_SHARE = 0.15;
 	// A column narrower than this has been squeezed out.
 	var SQUEEZED = 24;
-	// Columns given this width or less (checkboxes, icons, counts) keep it.
+	// Columns given this width or less, if their content fits (checkboxes,
+	// icons, counts), keep it.
 	var SMALL = 48;
 	// Below this window width WordPress stacks list columns under the title.
 	var STACKED = 782;
@@ -116,14 +117,15 @@
 
 		// Each column wants the width it was given, and never less than its
 		// narrowest; a squeezed-out column wants its narrowest. Small columns
-		// (checkboxes, icons, counts) keep the width they were given.
+		// whose content fits (checkboxes, icons, counts) keep the width they
+		// were given.
 		var want = [];
 		var keep = [];
 		var sumWant = 0;
 		var sumNarrow = 0;
 		var sumKeep = 0;
 		for (var k = 0; k < others.length; k++) {
-			keep.push(given[k] >= SQUEEZED && given[k] <= SMALL);
+			keep.push(given[k] <= SMALL && narrow[k] <= given[k]);
 			if (keep[k]) {
 				narrow[k] = given[k];
 				sumKeep += given[k];
