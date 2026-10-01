@@ -34,6 +34,7 @@ WARNINGS=0
 TMP_DIR=""
 OFFLINE=0
 USE_DOCKER=1
+CHANGELOG_TXT=""
 
 die() {
 	local message="$1"
@@ -179,6 +180,23 @@ check_versions() {
 	return 0
 }
 
+# Changelog text (a readme section or changelog.txt): an entry for the version,
+# and no Unreleased section left.
+check_changelog() {
+	local label="$1"
+	local text="$2"
+	local version="$3"
+	if printf '%s\n' "$text" | grep -Eq "^= *v?$version *="; then
+		ok "$label changelog has $version"
+	else
+		warn "$label changelog has no '= $version =' entry"
+	fi
+	if printf '%s\n' "$text" | grep -Eiq '^= *unreleased *='; then
+		warn "$label changelog still has an Unreleased section; name it $version when releasing"
+	fi
+	return 0
+}
+
 check_readme() {
 	local readme="$1"
 	local plugin_header="$2"
@@ -234,13 +252,9 @@ check_readme() {
 		fi
 	fi
 
-	if printf '%s\n' "$readme" | grep -Eq "^= *v?$version *="; then
-		ok "changelog has $version"
-	else
-		warn "changelog has no '= $version =' entry"
-	fi
-	if printf '%s\n' "$readme" | grep -Eiq '^= *unreleased *='; then
-		warn "changelog still has an Unreleased section; name it $version when releasing"
+	check_changelog "readme.txt" "$(printf '%s\n' "$readme" | awk '/^== *[Cc]hangelog *==/ { c = 1; next } c && /^== / { exit } c')" "$version"
+	if [ -n "$CHANGELOG_TXT" ]; then
+		check_changelog "changelog.txt" "$CHANGELOG_TXT" "$version"
 	fi
 	if printf '%s\n' "$readme" | grep -Eiq '^== *upgrade notice *=='; then
 		if printf '%s\n' "$readme" | awk '/^== *[Uu]pgrade [Nn]otice *==/ { u = 1; next } u && /^== / { exit } u' | grep -Eq "^= *v?$version *="; then
@@ -471,6 +485,9 @@ main() {
 	local main_php readme plugin_header
 	main_php="$(git show "$sha:$MAIN_FILE")"
 	readme="$(git show "$sha:readme.txt")" || die "readme.txt missing at $ref"
+	if git cat-file -e "$sha:changelog.txt" 2>/dev/null; then
+		CHANGELOG_TXT="$(git show "$sha:changelog.txt")"
+	fi
 	plugin_header="$(printf '%s\n' "$main_php" | sed -n '1,/\*\//p')"
 
 	printf 'SEO Pro Stack preflight: %s (%s)\n' "$ref" "${sha:0:12}"
