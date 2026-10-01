@@ -15,7 +15,7 @@ Go to **Settings → SEO Pro Stack**. The screen has three groups of tabs:
 
 ## Features
 
-Every feature is off by default except Hide admin bar items, which hides Comments and + New from the admin bar. Features that replace a separate plugin say so on their card (“Replaces: …”) and import that plugin’s settings once when SEO Pro Stack is updated. The other plugin’s own settings are never changed or deleted. While that plugin is active, the feature waits and the plugin keeps doing the job, so the two never run side by side; the card says so, with a deactivate link. Deactivate the plugin to switch over.
+Every feature is off by default except two: Hide admin bar items, which hides Comments and + New from the admin bar, and No fade between admin screens. Features that replace a separate plugin say so on their card (“Replaces: …”) and import that plugin’s settings once when SEO Pro Stack is updated. The other plugin’s own settings are never changed or deleted. While that plugin is active, the feature waits and the plugin keeps doing the job, so the two never run side by side; the card says so, with a deactivate link. Deactivate the plugin to switch over.
 
 | Feature | Tab | Replaces |
 | --- | --- | --- |
@@ -48,6 +48,15 @@ Every feature is off by default except Hide admin bar items, which hides Comment
 ### Modern admin colours (Admin)
 
 Uses the WordPress “Modern” admin colour scheme for every user while enabled. Switching it also updates your own profile: on selects Modern, off selects the WordPress default. Other users’ saved choices are not changed and return when the setting is off.
+
+### No fade between admin screens (Admin)
+
+WordPress 7.0 fades from one wp-admin screen to the next, using the browser’s view transitions. The fade can flash, and each screen change waits for it. With this on, screens change straight away, as before 7.0. **On by default**; switch it off to get the fade back.
+
+- Removes core’s `wp-view-transitions-admin` style and adds `@view-transition { navigation: none; }` to admin screens, so fades that other plugins add the same way stop too.
+- Only page changes are affected. Animations inside a screen, such as in the site editor, stay.
+- No effect before WordPress 7.0, which has no fade, or for people whose system asks for reduced motion, who never get it.
+- Goes well with Load pages before the click’s **Also in the admin**, which downloads admin screens when you point at their links.
 
 ### Magic login links (Admin)
 
@@ -107,7 +116,7 @@ When many plugins add items to the admin bar, it wraps onto a second line that c
 
 ### Hide admin bar items (Admin)
 
-Removes WordPress items you do not use from the admin bar, for everyone, in wp-admin and on the site. **On by default**, the only feature that is, so the bar starts tidy; switch it off to get every item back.
+Removes WordPress items you do not use from the admin bar, for everyone, in wp-admin and on the site. **On by default**, so the bar starts tidy; switch it off to get every item back.
 
 - **Hide**: Comments and + New are ticked by default. Also offered: the WordPress logo menu, My Sites, Site name, Edit site, Customise, Updates, the command palette, Edit, View and Preview, Shortlink and Search. Their submenus go with them.
 - The account menu (with Log Out) and the menu button on phones in wp-admin are never offered, so they always stay.
@@ -433,7 +442,8 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folder�
 ### Unreleased
 
 - New, off by default: More menu in the admin bar (Admin tab) moves the items plugins and themes add to the left of the admin bar into one … menu, last on that side, so the bar stays on one line instead of wrapping over the page. It opens on hover, like the other admin bar menus. Keep on the bar lists the plugins that add items; ticked ones keep theirs on the bar. New `seoprostack_admin_bar_more_items` filter, and a `reload` schema key that makes the saved message ask to reload the page.
-- New, on by default: Hide admin bar items (Admin tab) removes chosen WordPress items from the admin bar for everyone; Comments and + New are ticked by default. It is the only feature on by default, so sites that update get a tidier bar; switch it off to keep every item. The account menu is never offered.
+- New, on by default: Hide admin bar items (Admin tab) removes chosen WordPress items from the admin bar for everyone; Comments and + New are ticked by default. It is on by default, so sites that update get a tidier bar; switch it off to keep every item. The account menu is never offered.
+- New, on by default: No fade between admin screens (Admin tab) stops the fade WordPress 7.0 added between wp-admin screens, which can flash, so screens change straight away. It removes core’s `wp-view-transitions-admin` style and prints `@view-transition { navigation: none; }` on admin screens. Switch it off to keep the fade.
 - New: Load pages before the click can also preload admin screens (**Also in the admin**, off by default). Only the page is downloaded; links that act, carry a nonce, dismiss or download, and screens that change something when opened, are skipped.
 - Changed: Hide the admin bar and Block dashboard access no longer offer Administrator (or any role that can manage options), since those roles are never affected.
 - Changed: Hide the admin bar and Block dashboard access tick roles that plugins add, such as WooCommerce’s Customer, unless they can write posts. Lists still at the 0.4.0 default get the roles added since they were saved. With WooCommerce active, an empty “Send them to” is set to its My Account page.

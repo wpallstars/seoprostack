@@ -14,11 +14,12 @@ Curated plugins, themes, hosting and tools for WordPress, plus small opt-in qual
 
 SEO Pro Stack is free and open source. There is no pro version and nothing is locked.
 
-Everything is off by default except Hide admin bar items, which hides Comments and + New from the admin bar. Settings save instantly from **Settings → SEO Pro Stack**, grouped into Admin, Content, Media, Links, Speed and Plugins tabs. Use **Search features** to find a setting by name or by the plugin it replaces.
+Everything is off by default except two: Hide admin bar items, which hides Comments and + New from the admin bar, and No fade between admin screens. Settings save instantly from **Settings → SEO Pro Stack**, grouped into Admin, Content, Media, Links, Speed and Plugins tabs. Use **Search features** to find a setting by name or by the plugin it replaces.
 
 = Features =
 
 * **Modern admin colours**: use the core “Modern” admin colour scheme for everyone. Switching it sets your own profile to Modern (on) or the WordPress default (off); other users’ choices are left alone.
+* **No fade between admin screens** (on by default): wp-admin screens change straight away, without the fade added in WordPress 7.0, which can flash.
 * **Magic login links**: adds “Email me a login link” to the login screen. Links work once, expire after 5–60 minutes (10 by default) and only log in after the person presses a button, so email scanners that open links cannot use them up. Passwords keep working, administrators can be excluded, and core’s `wp_login` and `login_redirect` hooks run so activity logs, redirect rules and two-factor plugins that use `wp_login` (such as Two Factor) still apply. Requests are rate limited and never reveal whether an account exists.
 * **Publishing queue**: publishing a post from the editor without choosing a date schedules it for the next free time slot (for example weekdays at 09:00 and 15:00). Dates you choose yourself, updates to published posts, imports and WP-CLI are left alone. Posts become normal “Scheduled” posts, so WordPress publishes them.
 * **iFrame block**: embed any page with control over width and height or aspect ratio, lazy loading, sandbox, permissions (camera, autoplay, full screen…), referrer policy and border, and optionally pass the page’s URL parameters (such as UTM tags) to the embedded page. Limit it to a list of domains and to the roles you choose.
@@ -130,6 +131,7 @@ They stay scheduled and publish at their times. Turning it off only stops new po
 = Unreleased =
 * New, off by default: More menu in the admin bar (Admin tab) puts the items plugins and themes add to the left of the admin bar in one … menu, last on that side, so the bar no longer wraps over the page. It opens on hover, like the other admin bar menus. Choose plugins whose items stay on the bar. On phones the menu also reaches plugin items WordPress hides there.
 * New, on by default: Hide admin bar items (Admin tab) removes WordPress items you do not use from the admin bar, for everyone. Comments and + New are ticked by default. Switch it off to keep every item.
+* New, on by default: No fade between admin screens (Admin tab) stops the fade WordPress 7.0 added between wp-admin screens, which can flash, so screens change straight away. Switch it off to keep the fade.
 * New: Load pages before the click can also preload admin screens (off by default). Only the page is downloaded, and links that change something are skipped.
 * Change: Hide the admin bar and Block dashboard access no longer offer Administrator, since administrators are never affected.
 * Change: roles that plugins add, such as WooCommerce’s Customer, are ticked in Hide the admin bar and Block dashboard access unless they can write posts. With WooCommerce, blocked users go to My Account unless you chose another page.
