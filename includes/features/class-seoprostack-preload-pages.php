@@ -63,8 +63,30 @@ class SEOProStack_Preload_Pages extends SEOProStack_Feature {
                 'rows'        => 5,
                 'parent'      => self::KEY,
                 'label'       => __('Never preload links containing', 'seoprostack'),
-                'description' => __('One per line: a path such as /cart or any text in the address such as logout. Admin, login, file and query-string links are always skipped.', 'seoprostack'),
+                'description' => __('One per line: a path such as /cart or any text in the address such as logout. Admin, login, file and query-string links on the site are always skipped.', 'seoprostack'),
             ),
+            'preload_pages_admin' => array(
+                'type'        => 'bool',
+                'default'     => false,
+                'parent'      => self::KEY,
+                'label'       => __('Also in the admin', 'seoprostack'),
+                'description' => __('Download admin screens when you point at their links, so they open faster. Only the page is downloaded. Links that edit, add, change or download something are skipped, as are updates and the Customizer.', 'seoprostack'),
+            ),
+        );
+    }
+
+    /**
+     * Admin screens never preloaded: opening them changes something (a new
+     * draft, an editing lock, update checks, database upgrades), they handle
+     * requests rather than show a page, or they are slow to build.
+     *
+     * @return string[] File names in wp-admin.
+     */
+    private static function admin_skipped_screens() {
+        return array(
+            'post.php', 'post-new.php', 'customize.php', 'site-editor.php',
+            'update-core.php', 'update.php', 'upgrade.php', 'plugin-install.php', 'theme-install.php',
+            'admin-ajax.php', 'admin-post.php', 'async-upload.php',
         );
     }
 
@@ -100,7 +122,13 @@ class SEOProStack_Preload_Pages extends SEOProStack_Feature {
      * Register hooks.
      */
     public static function boot() {
-        if (!self::enabled() || is_admin()) {
+        if (!self::enabled()) {
+            return;
+        }
+        if (is_admin()) {
+            if (SEOProStack_Settings::get('preload_pages_admin')) {
+                add_action('admin_print_footer_scripts', array(__CLASS__, 'print_admin_rules'));
+            }
             return;
         }
         if (function_exists('wp_get_speculation_rules_configuration')) {
@@ -191,6 +219,47 @@ class SEOProStack_Preload_Pages extends SEOProStack_Feature {
                             array('not' => array('href_matches' => $exclude)),
                             array('not' => array('selector_matches' => 'a[rel~="nofollow"]')),
                             array('not' => array('selector_matches' => '.no-prefetch, .no-prefetch a')),
+                        ),
+                    ),
+                    'eagerness' => (string) SEOProStack_Settings::get('preload_pages_eagerness'),
+                ),
+            ),
+        );
+        printf('<script type="speculationrules">%s</script>' . "\n", wp_json_encode($rules, JSON_UNESCAPED_SLASHES));
+    }
+
+    /**
+     * Print rules on admin screens. Always a download (prefetch): preparing
+     * a screen in full would run its scripts, such as autosave and the
+     * heartbeat, before the click.
+     */
+    public static function print_admin_rules() {
+        $home  = untrailingslashit((string) wp_parse_url(home_url('/'), PHP_URL_PATH));
+        $admin = trailingslashit((string) wp_parse_url(admin_url(), PHP_URL_PATH));
+
+        $exclude = array();
+        foreach (self::admin_skipped_screens() as $screen) {
+            $exclude[] = $admin . '*' . $screen;
+        }
+        // Query strings that act (action=, bulk actions), carry a nonce
+        // (anything that changes something), dismiss a notice (some plugins
+        // do this without a nonce) or download a file.
+        foreach (array('action', 'nonce', 'dismiss', 'download') as $word) {
+            $exclude[] = $admin . '*\\?*' . $word . '*';
+        }
+        foreach (self::patterns() as $pattern) {
+            $exclude[] = $home . $pattern;
+        }
+
+        $rules = array(
+            'prefetch' => array(
+                array(
+                    'source'    => 'document',
+                    'where'     => array(
+                        'and' => array(
+                            array('href_matches' => $admin . '*'),
+                            array('not' => array('href_matches' => $exclude)),
+                            array('not' => array('selector_matches' => 'a[href^="#"], a[download], .no-prefetch, .no-prefetch a')),
                         ),
                     ),
                     'eagerness' => (string) SEOProStack_Settings::get('preload_pages_eagerness'),

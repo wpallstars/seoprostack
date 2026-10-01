@@ -62,7 +62,7 @@ class SEOProStack_Admin_Manager {
             ),
             'speed' => array(
                 'label'       => __('Speed', 'seoprostack'),
-                'description' => __('Front-end loading for visitors. Logged-in users are not affected.', 'seoprostack'),
+                'description' => __('Front-end loading for visitors. Logged-in users are not affected, unless you also preload pages in the admin.', 'seoprostack'),
             ),
             'plugins' => array(
                 'label'       => __('Plugins', 'seoprostack'),

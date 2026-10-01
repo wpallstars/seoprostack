@@ -75,7 +75,7 @@ class SEOProStack_Svg_Uploads extends SEOProStack_Feature {
             ),
             'svg_uploads_roles' => array(
                 'type'        => 'multi',
-                'default'     => array('administrator', 'editor'),
+                'default'     => array('administrator', 'editor', 'author', 'contributor', 'shop_manager'),
                 'parent'      => self::KEY,
                 'label'       => __('Who can upload SVG files', 'seoprostack'),
                 'description' => __('People also need permission to upload files. Network admins always can.', 'seoprostack'),

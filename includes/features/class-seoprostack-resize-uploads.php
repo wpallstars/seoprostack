@@ -39,6 +39,9 @@ class SEOProStack_Resize_Uploads extends SEOProStack_Feature {
     /** Seconds a bulk resize may run before leaving the rest for later. */
     const BUDGET = 20;
 
+    /** Imsanity's default limit, which is not imported. */
+    const IMSANITY_DEFAULT_MAX = 1920;
+
     /**
      * Whether this request's uploads are processed by the browser (WordPress
      * 7.1 client-side media processing) or are sub-sizes it sends.
@@ -123,6 +126,8 @@ class SEOProStack_Resize_Uploads extends SEOProStack_Feature {
     /**
      * Import Imsanity's settings, and switch on while it is active. Its three
      * size pairs (posts, Media Library, other) become one limit: the largest.
+     * Imsanity's own default (1920) is not imported, so WordPress's 2560 is
+     * used unless a different limit was chosen.
      *
      * @param array $options      Stored settings.
      * @param int   $from_version Stored settings version.
@@ -137,7 +142,7 @@ class SEOProStack_Resize_Uploads extends SEOProStack_Feature {
         foreach (array('imsanity_max_width', 'imsanity_max_height', 'imsanity_max_width_library', 'imsanity_max_height_library', 'imsanity_max_width_other', 'imsanity_max_height_other') as $name) {
             $max = max($max, (int) get_option($name, 0));
         }
-        if ($max > 0) {
+        if ($max > 0 && self::IMSANITY_DEFAULT_MAX !== $max) {
             $options = self::import_setting($options, 'resize_uploads_max', $max);
         }
 
