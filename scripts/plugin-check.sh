@@ -92,6 +92,12 @@ check_zip() {
 	if [ -n "$keep" ]; then
 		printf '%s\n' "$report" >"$keep/${zip_name%.zip}-plugin-check.json"
 	fi
+	if ! printf '%s\n' "$report" | grep -Eq '^(FILE: |Success: )'; then
+		# Neither findings nor the success line: Plugin Check did not run.
+		printf 'Plugin Check did not run:\n%s\n' "$report"
+		wp_cli plugin delete "$SLUG" --quiet || true
+		return 1
+	fi
 	errors="$(printf '%s\n' "$report" | grep -o '"type":"ERROR"' | wc -l | tr -d ' ')"
 	warnings="$(printf '%s\n' "$report" | grep -o '"type":"WARNING"' | wc -l | tr -d ' ')"
 	# Readable summary: one line per finding (type, code, file:line).
