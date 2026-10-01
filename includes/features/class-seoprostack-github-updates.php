@@ -1,22 +1,36 @@
 <?php
 /**
- * Updates from GitHub, through Git Updater.
+ * Updates from GitHub releases, for SEO Pro Stack and any other plugin that
+ * names its GitHub repository.
  *
  * Only in builds made from GitHub releases. The WordPress.org build leaves
  * this file out (see SEOProStack::$optional_features), because plugins
  * hosted there may not install or update code from anywhere else.
  *
- * - The plugin header names the GitHub repository for Git Updater, which
- *   then offers each GitHub release as a normal update. SEO Pro Stack never
- *   checks for updates or changes WordPress's update data itself.
- * - Without Git Updater, people who can install plugins get a notice on the
- *   Dashboard, Plugins, Updates and SEO Pro Stack screens, with a button that
- *   installs and activates its latest release from GitHub. Free Plugins lists
- *   it too. The notice is not a setting: it shows until Git Updater is active
- *   or the person dismisses it.
- * - Once SEO Pro Stack is on WordPress.org, Git Updater takes its updates
- *   from there. "Early updates from GitHub" keeps the site on GitHub
- *   releases, which come out first.
+ * - A plugin takes part by naming its repository in its main file's header:
+ *   `GitHub Plugin URI: owner/repo` (the header Git Updater reads, so the
+ *   two stay compatible). `Release Asset: true` means "install only the zip
+ *   attached to the release, never the source code".
+ * - WordPress does the rest itself: this only tells it that a newer release
+ *   exists and where its zip is. The Updates screen, auto-updates, "View
+ *   details", the download, the install and the rollback on failure are
+ *   WordPress's own.
+ * - The latest release of each repository is asked for at most every 12
+ *   hours (an hour after a failure), when WordPress checks for updates, and
+ *   again when someone presses "Check again" on the Updates screen.
+ * - Public repositories are read from github.com's own pages (the
+ *   releases/latest redirect, the asset's download address and the main
+ *   file on raw.githubusercontent.com), not the API: without a token the API
+ *   allows 60 requests an hour per server address, shared by every site on
+ *   a host. The asset must be named {folder}-{version}.zip.
+ * - Private repositories need a GitHub token in wp-config.php
+ *   (SEOPROSTACK_GITHUB_TOKEN) or from the `seoprostack_github_token` filter,
+ *   and are read through the API. The token is sent only to api.github.com,
+ *   never stored and never shown.
+ * - Plugins also on WordPress.org keep updating from there unless "Early
+ *   updates from GitHub" is on.
+ * - Replaces Git Updater: while Git Updater is active, this waits and Git
+ *   Updater keeps doing the job.
  *
  * @package SEOProStack
  * @since 0.5.0
@@ -28,24 +42,26 @@ if (!defined('ABSPATH')) {
 
 class SEOProStack_Github_Updates extends SEOProStack_Feature {
 
-    const KEY = 'github_early_updates';
+    const KEY   = 'github_updates';
+    const EARLY = 'github_early_updates';
 
-    /** Git Updater's repository and plugin folder. */
-    const REPO = 'afragen/git-updater';
-    const SLUG = 'git-updater';
+    /** Site transient: latest release of each repository, keyed by owner/repo. */
+    const CACHE = 'seoprostack_github_releases';
 
-    /** PHP version Git Updater needs (its "Requires PHP" header). */
-    const REQUIRES_PHP = '8.0';
+    /** How long a release answer and a failed request are kept. */
+    const FRESH  = 12 * HOUR_IN_SECONDS;
+    const RETRY  = HOUR_IN_SECONDS;
+    const RECENT = MINUTE_IN_SECONDS;
 
-    /** admin-post actions, also used as nonce actions. */
-    const INSTALL = 'seoprostack_install_git_updater';
-    const DISMISS = 'seoprostack_dismiss_git_updater';
+    /** Update IDs this file adds, so its own entries can be told apart. */
+    const ID_PREFIX = 'github.com/';
 
-    /** User meta: when the person dismissed the notice. */
-    const DISMISSED = 'seoprostack_git_updater_dismissed';
-
-    /** Transient prefix (plus user ID): result of the last install. */
-    const RESULT = 'seoprostack_git_updater_result_';
+    /**
+     * Release answers read this request.
+     *
+     * @var array|null
+     */
+    private static $cache = null;
 
     /**
      * Settings.
@@ -54,12 +70,22 @@ class SEOProStack_Github_Updates extends SEOProStack_Feature {
      */
     public static function settings() {
         return array(
-            self::KEY => array(
+            self::KEY   => array(
+                'type'        => 'bool',
+                // On by default at the owner's request: without it, copies
+                // installed from GitHub would never hear of a new version.
+                'default'     => true,
+                'tab'         => 'maintenance',
+                'label'       => __('Updates from GitHub', 'seoprostack'),
+                'description' => __('New releases of SEO Pro Stack, and of other plugins that name their GitHub repository, show on the Updates screen like any other update. Auto-updates work too. GitHub is asked at most twice a day.', 'seoprostack'),
+                'replaces'    => array('git-updater' => 'Git Updater'),
+            ),
+            self::EARLY => array(
                 'type'        => 'bool',
                 'default'     => false,
-                'tab'         => 'maintenance',
+                'parent'      => self::KEY,
                 'label'       => __('Early updates from GitHub', 'seoprostack'),
-                'description' => __('Get each new version of SEO Pro Stack from GitHub as soon as it is released, instead of waiting for WordPress.org. Needs the free Git Updater plugin. Until SEO Pro Stack is on WordPress.org, all its updates come from GitHub.', 'seoprostack'),
+                'description' => __('For plugins that are also on WordPress.org: take each version from GitHub as soon as it is released, instead of waiting for WordPress.org.', 'seoprostack'),
             ),
         );
     }
@@ -68,379 +94,641 @@ class SEOProStack_Github_Updates extends SEOProStack_Feature {
      * Register hooks.
      */
     public static function boot() {
-        // Git Updater reads this wherever it checks for updates (admin, cron, WP-CLI).
-        if (self::enabled()) {
-            add_filter('gu_override_dot_org', array(__CLASS__, 'override_dot_org'));
-        }
-
-        if (!is_admin()) {
+        if (!self::enabled()) {
+            // While Git Updater does the job, keep this plugin on its GitHub
+            // releases when asked to.
+            if (self::switched_on() && SEOProStack_Settings::get(self::EARLY)) {
+                add_filter('gu_override_dot_org', array(__CLASS__, 'git_updater_override'));
+            }
             return;
         }
-        add_filter('seoprostack_free_plugins', array(__CLASS__, 'free_plugins'));
-        add_filter('seoprostack_external_plugins', array(__CLASS__, 'external_plugins'));
-        add_action('admin_post_' . self::INSTALL, array(__CLASS__, 'install'));
-        add_action('admin_post_' . self::DISMISS, array(__CLASS__, 'dismiss'));
-        // On multisite the prompt shows in the network admin only (only super
-        // admins install plugins, and Git Updater must be network-activated),
-        // but the result of an install started from a site's Free Plugins tab
-        // shows where it was started.
-        add_action('admin_notices', array(__CLASS__, 'notice'));
-        if (is_multisite()) {
-            add_action('network_admin_notices', array(__CLASS__, 'notice'));
-        }
+        // Update checks run in the admin, in cron and in WP-CLI.
+        add_filter('pre_set_site_transient_update_plugins', array(__CLASS__, 'add_updates'));
+        add_filter('plugins_api', array(__CLASS__, 'plugin_information'), 20, 3);
+        add_filter('upgrader_pre_download', array(__CLASS__, 'private_download'), 10, 3);
+        add_filter('upgrader_source_selection', array(__CLASS__, 'fix_folder'), 10, 4);
     }
 
     /**
-     * Keep this plugin on Git Updater's GitHub releases once it is also on
+     * Git Updater: update this plugin from GitHub even once it is on
      * WordPress.org.
      *
-     * @param mixed $plugins Plugin files Git Updater updates instead of WordPress.org.
+     * @param mixed $plugins Plugin files.
      * @return array
      */
-    public static function override_dot_org($plugins) {
+    public static function git_updater_override($plugins) {
         $plugins   = (array) $plugins;
         $plugins[] = plugin_basename(SEOPROSTACK_FILE);
         return array_values(array_unique($plugins));
     }
 
     /**
-     * Git Updater's plugin file, if installed.
+     * Installed plugins that name a GitHub repository.
      *
-     * @return string Plugin file relative to the plugins folder, or ''.
+     * @return array<string,array{repo:string,asset_only:bool,version:string,name:string}> Plugin file => details.
      */
-    public static function installed_file() {
+    public static function plugins() {
+        static $found = null;
+        if (null !== $found) {
+            return $found;
+        }
         if (!function_exists('get_plugins')) {
             require_once ABSPATH . 'wp-admin/includes/plugin.php';
         }
+
+        $found = array();
         foreach (get_plugins() as $file => $data) {
-            if (self::SLUG . '/git-updater.php' === $file || (isset($data['Name']) && 'Git Updater' === $data['Name'])) {
-                return $file;
+            // Plugins in a folder only: an update replaces the whole folder.
+            if ('.' === dirname($file)) {
+                continue;
+            }
+            $headers = get_file_data(WP_PLUGIN_DIR . '/' . $file, array(
+                'repo'  => 'GitHub Plugin URI',
+                'asset' => 'Release Asset',
+            ));
+            $repo = self::repo_name($headers['repo']);
+            if ('' === $repo) {
+                continue;
+            }
+            $found[$file] = array(
+                'repo'       => $repo,
+                'asset_only' => in_array(strtolower(trim($headers['asset'])), array('true', 'yes', '1'), true),
+                'version'    => isset($data['Version']) ? (string) $data['Version'] : '',
+                'name'       => isset($data['Name']) ? (string) $data['Name'] : $file,
+            );
+        }
+
+        /**
+         * Filter the plugins updated from GitHub releases.
+         *
+         * @param array $found Plugin file => array(repo, asset_only, version, name).
+         */
+        $found = (array) apply_filters('seoprostack_github_plugins', $found);
+        foreach ($found as $file => $plugin) {
+            if (!is_array($plugin) || '' === self::repo_name(isset($plugin['repo']) ? $plugin['repo'] : '')) {
+                unset($found[$file]);
+            }
+        }
+        return $found;
+    }
+
+    /**
+     * owner/repo from a header value ("owner/repo" or a github.com address).
+     *
+     * @param mixed $value Header value.
+     * @return string owner/repo, or '' when it is not one.
+     */
+    public static function repo_name($value) {
+        $value = trim((string) $value);
+        $value = preg_replace('#^(?:https?://)?(?:www\.)?github\.com/#i', '', $value);
+        $value = preg_replace('#(?:\.git)?/*$#', '', (string) $value);
+        return preg_match('#^[A-Za-z0-9](?:[A-Za-z0-9-]{0,38})/[A-Za-z0-9._-]{1,100}$#', (string) $value) ? (string) $value : '';
+    }
+
+    /**
+     * Token for a repository, if the site has one.
+     *
+     * @param string $repo owner/repo.
+     * @return string
+     */
+    private static function token($repo) {
+        $token = defined('SEOPROSTACK_GITHUB_TOKEN') ? (string) SEOPROSTACK_GITHUB_TOKEN : '';
+        /**
+         * Filter the GitHub token used for a repository (private repositories
+         * need one with read access to its contents). Return '' for none.
+         *
+         * @param string $token Token.
+         * @param string $repo  owner/repo.
+         */
+        return trim((string) apply_filters('seoprostack_github_token', $token, $repo));
+    }
+
+    /**
+     * GET from the GitHub API.
+     *
+     * @param string $repo   owner/repo (for the token).
+     * @param string $path   Path after /repos/{repo}.
+     * @param string $accept Accept header.
+     * @return array|WP_Error
+     */
+    private static function api_get($repo, $path, $accept = 'application/vnd.github+json') {
+        $headers = array(
+            'Accept'               => $accept,
+            'X-GitHub-Api-Version' => '2022-11-28',
+        );
+        $token = self::token($repo);
+        if ('' !== $token) {
+            $headers['Authorization'] = 'Bearer ' . $token;
+        }
+        return wp_safe_remote_get('https://api.github.com/repos/' . $repo . $path, array(
+            'timeout' => 10,
+            'headers' => $headers,
+        ));
+    }
+
+    /**
+     * Stored release answers.
+     *
+     * @return array
+     */
+    private static function cache() {
+        if (null === self::$cache) {
+            $stored      = get_site_transient(self::CACHE);
+            self::$cache = is_array($stored) ? $stored : array();
+        }
+        return self::$cache;
+    }
+
+    /**
+     * Whether someone pressed "Check again" on the Updates screen.
+     *
+     * @return bool
+     */
+    private static function forced() {
+        global $pagenow;
+        // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- core's own link; it only refreshes data.
+        return is_admin() && 'update-core.php' === $pagenow && !empty($_GET['force-check']) && current_user_can('update_plugins');
+    }
+
+    /**
+     * Latest release of a repository, from the cache or GitHub.
+     *
+     * @param string $repo    owner/repo.
+     * @param string $folder  Plugin folder (picks the release asset).
+     * @param string $main    Main file name in the folder (reads its requirements).
+     * @return array|null Release, or null when there is none or GitHub did not answer.
+     */
+    public static function release($repo, $folder, $main) {
+        $cache = self::cache();
+        $entry = isset($cache[$repo]) && is_array($cache[$repo]) ? $cache[$repo] : null;
+        $age   = $entry && isset($entry['checked']) ? time() - (int) $entry['checked'] : PHP_INT_MAX;
+        $keep  = $entry && !empty($entry['failed']) ? self::RETRY : self::FRESH;
+
+        if ($entry && $age < $keep && !(self::forced() && $age > self::RECENT)) {
+            return isset($entry['release']) ? $entry['release'] : null;
+        }
+
+        $release = self::fetch($repo, $folder, $main);
+        if (is_wp_error($release)) {
+            // Keep the last good answer, and try again in an hour.
+            $entry = array(
+                'checked' => time(),
+                'failed'  => $release->get_error_message(),
+                'release' => $entry && isset($entry['release']) ? $entry['release'] : null,
+            );
+        } else {
+            $entry = array('checked' => time(), 'release' => $release);
+        }
+
+        self::$cache[$repo] = $entry;
+        set_site_transient(self::CACHE, self::$cache, 2 * DAY_IN_SECONDS);
+        return $entry['release'];
+    }
+
+    /**
+     * Ask GitHub for a repository's latest release.
+     *
+     * @param string $repo   owner/repo.
+     * @param string $folder Plugin folder.
+     * @param string $main   Main file name.
+     * @return array|null|WP_Error Release, null when there is no usable one, or the error.
+     */
+    private static function fetch($repo, $folder, $main) {
+        return '' !== self::token($repo) ? self::fetch_api($repo, $folder, $main) : self::fetch_web($repo, $folder, $main);
+    }
+
+    /**
+     * Latest release from github.com's own pages, for public repositories.
+     * The GitHub API allows 60 requests an hour per server address without
+     * a token, which hosts share between many sites; these pages do not
+     * count towards it.
+     *
+     * @param string $repo   owner/repo.
+     * @param string $folder Plugin folder.
+     * @param string $main   Main file name.
+     * @return array|null|WP_Error
+     */
+    private static function fetch_web($repo, $folder, $main) {
+        // Redirects to the newest release that is not a draft or pre-release.
+        $response = wp_safe_remote_head('https://github.com/' . $repo . '/releases/latest', array(
+            'timeout'     => 10,
+            'redirection' => 0,
+        ));
+        if (is_wp_error($response)) {
+            return $response;
+        }
+        $code     = (int) wp_remote_retrieve_response_code($response);
+        $location = (string) wp_remote_retrieve_header($response, 'location');
+        if (404 === $code) {
+            // No such public repository (private ones need a token).
+            return null;
+        }
+        if ($code < 300 || $code > 399) {
+            /* translators: %d: HTTP status code */
+            return new WP_Error('seoprostack_github', sprintf(__('GitHub answered with status %d.', 'seoprostack'), $code));
+        }
+        if (!preg_match('#^https://github\.com/' . preg_quote($repo, '#') . '/releases/tag/([^/?\#]+)$#i', $location, $match)) {
+            // No releases yet: GitHub sends the releases list instead.
+            return null;
+        }
+
+        $tag     = rawurldecode($match[1]);
+        $version = preg_replace('/^v/i', '', $tag);
+        if (!preg_match('/^[0-9]+(\.[0-9]+)*$/', $version)) {
+            return null;
+        }
+
+        // The release zip, by its usual name: {folder}-{version}.zip.
+        $asset    = null;
+        $download = 'https://github.com/' . $repo . '/releases/download/' . rawurlencode($tag) . '/' . rawurlencode($folder . '-' . $version . '.zip');
+        $head     = wp_safe_remote_head($download, array('timeout' => 10, 'redirection' => 0));
+        if (is_wp_error($head)) {
+            return $head;
+        }
+        $code = (int) wp_remote_retrieve_response_code($head);
+        if ($code >= 300 && $code < 400) {
+            $asset = array('public' => $download, 'api' => '');
+        } elseif (404 !== $code) {
+            /* translators: %d: HTTP status code */
+            return new WP_Error('seoprostack_github', sprintf(__('GitHub answered with status %d.', 'seoprostack'), $code));
+        }
+
+        $release = array(
+            'tag'       => $tag,
+            'version'   => $version,
+            'url'       => $location,
+            'published' => '',
+            'notes'     => '',
+            'asset'     => $asset,
+            'zipball'   => 'https://github.com/' . $repo . '/archive/refs/tags/' . rawurlencode($tag) . '.zip',
+        );
+        $file = wp_safe_remote_get('https://raw.githubusercontent.com/' . $repo . '/' . rawurlencode($tag) . '/' . rawurlencode($main), array(
+            'timeout' => 10,
+            'headers' => array('Range' => 'bytes=0-8191'),
+        ));
+        $body = !is_wp_error($file) && in_array((int) wp_remote_retrieve_response_code($file), array(200, 206), true) ? (string) wp_remote_retrieve_body($file) : '';
+        return $release + self::requirements($body);
+    }
+
+    /**
+     * Latest release from the GitHub API, with a token (private repositories).
+     *
+     * @param string $repo   owner/repo.
+     * @param string $folder Plugin folder.
+     * @param string $main   Main file name.
+     * @return array|null|WP_Error
+     */
+    private static function fetch_api($repo, $folder, $main) {
+        // The newest release that is not a draft or pre-release.
+        $response = self::api_get($repo, '/releases/latest');
+        if (is_wp_error($response)) {
+            return $response;
+        }
+        $code = (int) wp_remote_retrieve_response_code($response);
+        if (404 === $code) {
+            // No releases yet, or a private repository without a token.
+            return null;
+        }
+        if (200 !== $code) {
+            /* translators: %d: HTTP status code */
+            return new WP_Error('seoprostack_github', sprintf(__('GitHub answered with status %d.', 'seoprostack'), $code));
+        }
+
+        $data    = json_decode(wp_remote_retrieve_body($response), true);
+        $tag     = is_array($data) && isset($data['tag_name']) ? (string) $data['tag_name'] : '';
+        $version = preg_replace('/^v/i', '', $tag);
+        // Numbers only: anything else is not a finished version.
+        if (!preg_match('/^[0-9]+(\.[0-9]+)*$/', $version)) {
+            return null;
+        }
+
+        $release = array(
+            'tag'       => $tag,
+            'version'   => $version,
+            'url'       => isset($data['html_url']) ? (string) $data['html_url'] : 'https://github.com/' . $repo . '/releases',
+            'published' => isset($data['published_at']) ? (string) $data['published_at'] : '',
+            'notes'     => isset($data['body']) ? substr((string) $data['body'], 0, 20000) : '',
+            'asset'     => self::pick_asset($repo, $folder, isset($data['assets']) && is_array($data['assets']) ? $data['assets'] : array()),
+            'zipball'   => 'https://api.github.com/repos/' . $repo . '/zipball/' . rawurlencode($tag),
+        );
+        $file = self::api_get($repo, '/contents/' . rawurlencode($main) . '?ref=' . rawurlencode($tag), 'application/vnd.github.raw+json');
+        $body = !is_wp_error($file) && 200 === (int) wp_remote_retrieve_response_code($file) ? (string) wp_remote_retrieve_body($file) : '';
+        return $release + self::requirements($body);
+    }
+
+    /**
+     * The release zip for a plugin folder: a .zip asset whose name starts
+     * with the folder name (never the "wordpress-org-…" build).
+     *
+     * @param string $repo   owner/repo.
+     * @param string $folder Plugin folder.
+     * @param array  $assets Release assets.
+     * @return array{public:string,api:string}|null Download addresses.
+     */
+    private static function pick_asset($repo, $folder, array $assets) {
+        foreach ($assets as $asset) {
+            $name = isset($asset['name']) ? (string) $asset['name'] : '';
+            if (0 !== stripos($name, $folder) || '.zip' !== strtolower(substr($name, -4))) {
+                continue;
+            }
+            $public = isset($asset['browser_download_url']) ? (string) $asset['browser_download_url'] : '';
+            $api    = isset($asset['id']) ? 'https://api.github.com/repos/' . $repo . '/releases/assets/' . (int) $asset['id'] : '';
+            if (0 === strpos($public, 'https://github.com/' . $repo . '/releases/download/')) {
+                return array('public' => $public, 'api' => $api);
+            }
+        }
+        return null;
+    }
+
+    /**
+     * "Requires at least" and "Requires PHP" of the released main file, so
+     * WordPress does not offer an update the site cannot run.
+     *
+     * @param string $file Start of the released main file ('' when unknown).
+     * @return array{requires:string,requires_php:string}
+     */
+    private static function requirements($file) {
+        $found = array('requires' => '', 'requires_php' => '');
+        $head  = substr((string) $file, 0, 8192);
+        foreach (array('requires' => 'Requires at least', 'requires_php' => 'Requires PHP') as $key => $header) {
+            if (preg_match('/^(?:[ \t]*<\?php)?[ \t\/*#@]*' . preg_quote($header, '/') . ':(.*)$/mi', $head, $match)) {
+                $value = trim(preg_replace('/\s*(?:\*\/|\?>).*/', '', $match[1]));
+                if (preg_match('/^[0-9]+(\.[0-9]+)*$/', $value)) {
+                    $found[$key] = $value;
+                }
+            }
+        }
+        return $found;
+    }
+
+    /**
+     * Download address WordPress installs from.
+     *
+     * @param string $repo       owner/repo.
+     * @param array  $release    Release.
+     * @param bool   $asset_only Install the release asset only.
+     * @return string '' when the release has nothing to install.
+     */
+    private static function package($repo, array $release, $asset_only) {
+        $private = '' !== self::token($repo);
+        if (!empty($release['asset'])) {
+            // Assets of private repositories download through the API (see private_download()).
+            return $private && $release['asset']['api'] ? $release['asset']['api'] : $release['asset']['public'];
+        }
+        return $asset_only ? '' : (string) $release['zipball'];
+    }
+
+    /**
+     * Whether WordPress.org offers updates for a plugin.
+     *
+     * @param object $transient update_plugins.
+     * @param string $file      Plugin file.
+     * @return bool
+     */
+    private static function on_wordpress_org($transient, $file) {
+        foreach (array('response', 'no_update') as $list) {
+            if (isset($transient->{$list}[$file])) {
+                $item = (object) $transient->{$list}[$file];
+                $id   = isset($item->id) ? (string) $item->id : '';
+                if (0 !== strpos($id, self::ID_PREFIX)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Tell WordPress about GitHub releases when it saves its update check.
+     *
+     * @param mixed $transient update_plugins.
+     * @return mixed
+     */
+    public static function add_updates($transient) {
+        if (!is_object($transient)) {
+            return $transient;
+        }
+        $early = (bool) SEOProStack_Settings::get(self::EARLY);
+
+        foreach (self::plugins() as $file => $plugin) {
+            if (!$early && self::on_wordpress_org($transient, $file)) {
+                continue;
+            }
+            $folder  = dirname($file);
+            $release = self::release($plugin['repo'], $folder, basename($file));
+            $current = isset($transient->checked[$file]) ? (string) $transient->checked[$file] : $plugin['version'];
+            if (!$release) {
+                // Keep WordPress.org's answer, or say nothing.
+                continue;
+            }
+
+            $item = (object) array(
+                'id'            => self::ID_PREFIX . $plugin['repo'],
+                'slug'          => $folder,
+                'plugin'        => $file,
+                'new_version'   => $release['version'],
+                'url'           => 'https://github.com/' . $plugin['repo'],
+                'package'       => self::package($plugin['repo'], $release, $plugin['asset_only']),
+                'requires'      => $release['requires'],
+                'requires_php'  => $release['requires_php'],
+                'tested'        => '',
+                'icons'         => array(),
+                'banners'       => array(),
+                'banners_rtl'   => array(),
+                'compatibility' => new stdClass(),
+            );
+
+            if (!is_array($transient->response ?? null)) {
+                $transient->response = array();
+            }
+            if (!is_array($transient->no_update ?? null)) {
+                $transient->no_update = array();
+            }
+            unset($transient->response[$file], $transient->no_update[$file]);
+            if ('' !== $item->package && version_compare($release['version'], $current, '>')) {
+                $transient->response[$file] = $item;
+            } else {
+                // Listed as up to date, so the Plugins screen offers auto-updates.
+                $transient->no_update[$file] = $item;
+            }
+        }
+        return $transient;
+    }
+
+    /**
+     * The plugin a "View details" request is about, if it is ours to answer.
+     *
+     * @param string $slug Plugin folder.
+     * @return string Plugin file, or ''.
+     */
+    private static function file_for_slug($slug) {
+        $updates = get_site_transient('update_plugins');
+        foreach (self::plugins() as $file => $plugin) {
+            if (dirname($file) !== $slug) {
+                continue;
+            }
+            foreach (array('response', 'no_update') as $list) {
+                if (is_object($updates) && isset($updates->{$list}[$file]->id) && 0 === strpos((string) $updates->{$list}[$file]->id, self::ID_PREFIX)) {
+                    return $file;
+                }
             }
         }
         return '';
     }
 
     /**
-     * Whether Git Updater is installed and active (network-wide on multisite).
+     * "View details" for plugins updated from GitHub.
      *
-     * @param string $file Plugin file from installed_file().
-     * @return bool
+     * @param false|object|array $result Result so far.
+     * @param string             $action plugins_api action.
+     * @param object             $args   Request arguments.
+     * @return false|object|array
      */
-    private static function is_active($file) {
-        if ('' === $file) {
-            return false;
+    public static function plugin_information($result, $action, $args) {
+        if ('plugin_information' !== $action || !is_object($args) || empty($args->slug)) {
+            return $result;
         }
-        return is_multisite() ? is_plugin_active_for_network($file) : SEOProStack_Plugin_Loader::is_active($file);
-    }
+        $file = self::file_for_slug((string) $args->slug);
+        if ('' === $file) {
+            return $result;
+        }
+        $plugins = self::plugins();
+        $plugin  = $plugins[$file];
+        $release = self::release($plugin['repo'], dirname($file), basename($file));
+        $data    = get_plugin_data(WP_PLUGIN_DIR . '/' . $file, false, true);
 
-    /**
-     * Whether the current person may install and activate Git Updater.
-     *
-     * @return bool
-     */
-    private static function can_install() {
-        return current_user_can('install_plugins') && current_user_can(is_multisite() ? 'manage_network_plugins' : 'activate_plugins');
-    }
+        $sections = array(
+            'description' => wpautop(esc_html(isset($data['Description']) ? wp_strip_all_tags($data['Description']) : '')),
+        );
+        if ($release) {
+            $sections['changelog'] = '<h4>' . esc_html($release['version']) . '</h4>'
+                . ('' !== trim($release['notes']) ? self::notes_html($release['notes']) : '')
+                . sprintf('<p><a href="%1$s" target="_blank" rel="noopener noreferrer">%2$s</a></p>', esc_url($release['url']), esc_html__('Release notes on GitHub', 'seoprostack'));
+        }
 
-    /**
-     * Whether this server's PHP can run Git Updater.
-     *
-     * @return bool
-     */
-    private static function php_ok() {
-        return version_compare(PHP_VERSION, self::REQUIRES_PHP, '>=');
-    }
-
-    /**
-     * Nonce-protected admin-post URL.
-     *
-     * @param string $action INSTALL or DISMISS.
-     * @return string
-     */
-    private static function action_url($action) {
-        return wp_nonce_url(add_query_arg('action', $action, admin_url('admin-post.php')), $action);
-    }
-
-    /**
-     * Core's activation link for Git Updater (network-wide on multisite).
-     *
-     * @param string $file Plugin file.
-     * @return string
-     */
-    public static function activate_url($file) {
-        $base = is_multisite() ? network_admin_url('plugins.php') : admin_url('plugins.php');
-        return wp_nonce_url(add_query_arg(array('action' => 'activate', 'plugin' => rawurlencode($file)), $base), 'activate-plugin_' . $file);
-    }
-
-    /**
-     * Screens that show the notice.
-     *
-     * @return string[]
-     */
-    private static function notice_screens() {
-        return array(
-            'dashboard',
-            'dashboard-network',
-            'plugins',
-            'plugins-network',
-            'update-core',
-            'update-core-network',
-            'settings_page_seoprostack',
+        return (object) array(
+            'name'          => $plugin['name'],
+            'slug'          => dirname($file),
+            'version'       => $release ? $release['version'] : $plugin['version'],
+            'author'        => isset($data['Author']) ? $data['Author'] : '',
+            'homepage'      => 'https://github.com/' . $plugin['repo'],
+            'requires'      => $release ? $release['requires'] : '',
+            'requires_php'  => $release ? $release['requires_php'] : '',
+            'last_updated'  => $release ? $release['published'] : '',
+            'download_link' => $release ? self::package($plugin['repo'], $release, $plugin['asset_only']) : '',
+            'sections'      => $sections,
+            'banners'       => array(),
+            'external'      => true,
         );
     }
 
     /**
-     * Notice: the result of an install, or a prompt to install Git Updater.
-     */
-    public static function notice() {
-        $screen = function_exists('get_current_screen') ? get_current_screen() : null;
-        if (!$screen || !in_array($screen->id, self::notice_screens(), true) || !self::can_install()) {
-            return;
-        }
-
-        $user   = get_current_user_id();
-        $result = get_transient(self::RESULT . $user);
-        if (false !== $result) {
-            delete_transient(self::RESULT . $user);
-            self::result_notice((string) $result);
-            return;
-        }
-
-        if (is_multisite() && !is_network_admin()) {
-            return;
-        }
-        $file = self::installed_file();
-        if (self::is_active($file) || get_user_meta($user, self::DISMISSED, true)) {
-            return;
-        }
-        ?>
-        <div class="notice notice-info sps-git-updater-notice">
-            <p>
-                <strong><?php esc_html_e('SEO Pro Stack gets its updates from GitHub.', 'seoprostack'); ?></strong>
-                <?php esc_html_e('Install the free Git Updater plugin to see them on the Updates screen, like any other update.', 'seoprostack'); ?>
-            </p>
-            <?php if (!self::php_ok()) : ?>
-                <p>
-                    <?php
-                    echo esc_html(sprintf(
-                        /* translators: 1: PHP version Git Updater needs, 2: this server's PHP version */
-                        __('Git Updater needs PHP %1$s or later; this site runs PHP %2$s. Until PHP is updated, install new versions of SEO Pro Stack by uploading them from GitHub.', 'seoprostack'),
-                        self::REQUIRES_PHP,
-                        PHP_VERSION
-                    ));
-                    ?>
-                </p>
-            <?php endif; ?>
-            <p>
-                <?php if (!self::php_ok()) : ?>
-                    <?php // No button: WordPress would refuse to activate it. ?>
-                <?php elseif ($file) : ?>
-                    <a class="button button-primary" href="<?php echo esc_url(self::activate_url($file)); ?>"><?php esc_html_e('Activate Git Updater', 'seoprostack'); ?></a>
-                <?php else : ?>
-                    <a class="button button-primary" href="<?php echo esc_url(self::action_url(self::INSTALL)); ?>"><?php esc_html_e('Install and activate Git Updater', 'seoprostack'); ?></a>
-                <?php endif; ?>
-                <a class="button" href="<?php echo esc_url(self::action_url(self::DISMISS)); ?>"><?php esc_html_e('Dismiss', 'seoprostack'); ?></a>
-            </p>
-        </div>
-        <?php
-    }
-
-    /**
-     * Say how an install went.
+     * Release notes (Markdown) as simple HTML: headings, lists, paragraphs,
+     * bold and code. Everything is escaped first.
      *
-     * @param string $result 'ok' or an error message.
+     * @param string $markdown Release notes.
+     * @return string
      */
-    private static function result_notice($result) {
-        if ('ok' === $result) {
-            printf('<div class="notice notice-success is-dismissible"><p>%s</p></div>', esc_html__('Git Updater is installed and active. SEO Pro Stack updates from GitHub will show on the Updates screen.', 'seoprostack'));
-            return;
-        }
-        ?>
-        <div class="notice notice-error is-dismissible">
-            <p>
-                <strong><?php esc_html_e('Git Updater could not be installed.', 'seoprostack'); ?></strong>
-                <?php echo esc_html($result); ?>
-            </p>
-            <p>
-                <?php
-                printf(
-                    /* translators: %s: link to Git Updater's releases on GitHub */
-                    esc_html__('You can download it from %s and upload it from Plugins → Add New.', 'seoprostack'),
-                    '<a href="' . esc_url('https://github.com/' . self::REPO . '/releases/latest') . '" target="_blank" rel="noopener noreferrer">' . esc_html__('its GitHub releases', 'seoprostack') . '</a>'
-                );
-                ?>
-            </p>
-        </div>
-        <?php
-    }
-
-    /**
-     * admin-post: install (if needed) and activate Git Updater.
-     */
-    public static function install() {
-        check_admin_referer(self::INSTALL);
-        if (!self::can_install()) {
-            wp_die(esc_html__('You are not allowed to install plugins on this site.', 'seoprostack'), '', array('response' => 403));
-        }
-
-        $file = self::installed_file();
-        if ('' === $file) {
-            $installed = self::install_latest();
-            if (is_wp_error($installed)) {
-                self::finish($installed);
+    private static function notes_html($markdown) {
+        $html = '';
+        $list = false;
+        foreach (preg_split('/\r\n|\r|\n/', (string) $markdown) as $line) {
+            $line = rtrim($line);
+            $text = esc_html(ltrim(preg_replace('/^(#{1,6}|[-*+])\s+/', '', trim($line))));
+            $text = preg_replace('/\*\*(.+?)\*\*/', '<strong>$1</strong>', $text);
+            $text = preg_replace('/`([^`]+)`/', '<code>$1</code>', $text);
+            $item = (bool) preg_match('/^\s*[-*+]\s+/', $line);
+            if ($list && !$item) {
+                $html .= '</ul>';
+                $list  = false;
             }
-            $file = $installed;
+            if ('' === trim($line)) {
+                continue;
+            }
+            if ($item) {
+                if (!$list) {
+                    $html .= '<ul>';
+                    $list  = true;
+                }
+                $html .= '<li>' . $text . '</li>';
+            } elseif (preg_match('/^#{1,6}\s/', $line)) {
+                $html .= '<h4>' . $text . '</h4>';
+            } else {
+                $html .= '<p>' . $text . '</p>';
+            }
         }
-
-        $activated = activate_plugin($file, '', is_multisite());
-        self::finish(is_wp_error($activated) ? $activated : true);
+        return $html . ($list ? '</ul>' : '');
     }
 
     /**
-     * Download and install Git Updater's latest GitHub release.
+     * Downloads from private repositories: ask the API with the token, then
+     * fetch the file from where GitHub sends us without it.
      *
-     * @return string|WP_Error Plugin file, or the reason it failed.
+     * @param mixed       $reply    False to let WordPress download.
+     * @param string      $package  Download address.
+     * @param WP_Upgrader $upgrader Upgrader.
+     * @return mixed File path, WP_Error or $reply.
      */
-    private static function install_latest() {
-        if (!self::php_ok()) {
-            return new WP_Error('seoprostack_git_updater_php', sprintf(
-                /* translators: 1: PHP version Git Updater needs, 2: this server's PHP version */
-                __('Git Updater needs PHP %1$s or later; this site runs PHP %2$s.', 'seoprostack'),
-                self::REQUIRES_PHP,
-                PHP_VERSION
-            ));
+    public static function private_download($reply, $package, $upgrader) {
+        if (false !== $reply || !is_string($package) || !preg_match('#^https://api\.github\.com/repos/([^/]+/[^/]+)/(?:releases/assets/[0-9]+|zipball/[^/?]+)$#', $package, $match)) {
+            return $reply;
+        }
+        $repo  = $match[1];
+        $known = false;
+        foreach (self::plugins() as $plugin) {
+            $known = $known || $plugin['repo'] === $repo;
+        }
+        $token = self::token($repo);
+        if (!$known || '' === $token) {
+            return $reply;
         }
 
-        $package = self::package_url();
-        if (is_wp_error($package)) {
-            return $package;
-        }
-
-        require_once ABSPATH . 'wp-admin/includes/class-wp-upgrader.php';
-        $skin      = new WP_Ajax_Upgrader_Skin();
-        $upgrader  = new Plugin_Upgrader($skin);
-        $installed = $upgrader->install($package);
-
-        if (is_wp_error($installed)) {
-            return $installed;
-        }
-        if (is_wp_error($skin->result)) {
-            return $skin->result;
-        }
-        if ($skin->get_errors()->has_errors()) {
-            return new WP_Error('seoprostack_git_updater_install', $skin->get_error_messages());
-        }
-        if (!$installed) {
-            return new WP_Error('seoprostack_git_updater_install', __('WordPress could not write to the plugins folder.', 'seoprostack'));
-        }
-
-        $file = $upgrader->plugin_info();
-        if (!$file) {
-            return new WP_Error('seoprostack_git_updater_install', __('The download did not contain a plugin.', 'seoprostack'));
-        }
-        return $file;
-    }
-
-    /**
-     * Download address of Git Updater's latest release.
-     *
-     * @return string|WP_Error
-     */
-    private static function package_url() {
-        $response = wp_safe_remote_get('https://api.github.com/repos/' . self::REPO . '/releases/latest', array(
-            'timeout' => 15,
-            'headers' => array('Accept' => 'application/vnd.github+json'),
+        $response = wp_safe_remote_get($package, array(
+            'timeout'     => 30,
+            'redirection' => 0,
+            'headers'     => array(
+                'Accept'        => false !== strpos($package, '/releases/assets/') ? 'application/octet-stream' : 'application/vnd.github+json',
+                'Authorization' => 'Bearer ' . $token,
+            ),
         ));
         if (is_wp_error($response)) {
             return $response;
         }
-        if (200 !== (int) wp_remote_retrieve_response_code($response)) {
-            return new WP_Error('seoprostack_git_updater_github', __('GitHub did not answer. Please try again in a few minutes.', 'seoprostack'));
+        $location = (string) wp_remote_retrieve_header($response, 'location');
+        if ('' === $location || !in_array((int) wp_remote_retrieve_response_code($response), array(301, 302, 303, 307, 308), true)) {
+            return new WP_Error('seoprostack_github_download', __('GitHub did not give a download address. Check the token’s access to the repository.', 'seoprostack'));
         }
-
-        $release = json_decode(wp_remote_retrieve_body($response), true);
-        $assets  = is_array($release) && isset($release['assets']) && is_array($release['assets']) ? $release['assets'] : array();
-        $prefix  = 'https://github.com/' . self::REPO . '/releases/download/';
-        foreach ($assets as $asset) {
-            $name = isset($asset['name']) ? (string) $asset['name'] : '';
-            $url  = isset($asset['browser_download_url']) ? (string) $asset['browser_download_url'] : '';
-            if (preg_match('/^git-updater-[0-9][0-9.]*\.zip$/', $name) && 0 === strpos($url, $prefix)) {
-                return $url;
-            }
-        }
-        return new WP_Error('seoprostack_git_updater_github', __('The latest Git Updater release has no download.', 'seoprostack'));
+        // A signed, short-lived address: no token needed (or wanted) there.
+        return download_url($location, 300);
     }
 
     /**
-     * Remember the result for the next screen and go back.
+     * Keep a plugin in its folder when the zip's top folder has another name
+     * (GitHub's source zips are named owner-repo-commit).
      *
-     * @param true|WP_Error $result Result.
+     * @param string|WP_Error $source        Unpacked folder.
+     * @param string          $remote_source Folder it was unpacked in.
+     * @param WP_Upgrader     $upgrader      Upgrader.
+     * @param array           $hook_extra    Context.
+     * @return string|WP_Error
      */
-    private static function finish($result) {
-        set_transient(self::RESULT . get_current_user_id(), is_wp_error($result) ? $result->get_error_message() : 'ok', 5 * MINUTE_IN_SECONDS);
-        wp_safe_redirect(self::back_url());
-        exit;
-    }
-
-    /**
-     * admin-post: hide the notice for this person.
-     */
-    public static function dismiss() {
-        check_admin_referer(self::DISMISS);
-        if (!self::can_install()) {
-            wp_die(esc_html__('You are not allowed to install plugins on this site.', 'seoprostack'), '', array('response' => 403));
+    public static function fix_folder($source, $remote_source, $upgrader, $hook_extra = array()) {
+        global $wp_filesystem;
+        if (is_wp_error($source) || empty($hook_extra['plugin']) || !$wp_filesystem) {
+            return $source;
         }
-        update_user_meta(get_current_user_id(), self::DISMISSED, time());
-        wp_safe_redirect(self::back_url());
-        exit;
-    }
-
-    /**
-     * The screen the person came from, or the Plugins screen.
-     *
-     * @return string
-     */
-    private static function back_url() {
-        $referer = wp_get_referer();
-        if ($referer) {
-            return $referer;
+        $file = (string) $hook_extra['plugin'];
+        if (!isset(self::plugins()[$file])) {
+            return $source;
         }
-        return is_multisite() ? network_admin_url('plugins.php') : admin_url('plugins.php');
-    }
-
-    /**
-     * Free Plugins: list Git Updater first in Minimal, the tab that opens first.
-     *
-     * @param array $categories Category => slugs.
-     * @return array
-     */
-    public static function free_plugins($categories) {
-        $categories = (array) $categories;
-        if (isset($categories['minimal']) && !in_array(self::SLUG, (array) $categories['minimal'], true)) {
-            array_unshift($categories['minimal'], self::SLUG);
+        $folder = dirname($file);
+        if (basename(untrailingslashit($source)) === $folder) {
+            return $source;
         }
-        return $categories;
-    }
-
-    /**
-     * Free Plugins: card data for Git Updater, which is not on WordPress.org.
-     *
-     * @param array $plugins Slug => card data.
-     * @return array
-     */
-    public static function external_plugins($plugins) {
-        $plugins             = (array) $plugins;
-        $plugins[self::SLUG] = array(
-            'name'         => 'Git Updater',
-            'description'  => __('Updates plugins and themes from GitHub, GitLab, Bitbucket and Gitea, like those from WordPress.org. SEO Pro Stack uses it for updates from GitHub.', 'seoprostack'),
-            'author'       => 'Andy Fragen',
-            'url'          => 'https://git-updater.com/',
-            'file'         => self::installed_file(),
-            'network'      => is_multisite(),
-            'install_url'  => self::can_install() ? self::action_url(self::INSTALL) : '',
-            'requires_php' => self::REQUIRES_PHP,
-            'source'       => __('Not on WordPress.org. Install Now gets the latest release from GitHub and activates it.', 'seoprostack'),
-        );
-        return $plugins;
+        $target = trailingslashit($remote_source) . $folder . '/';
+        if (!$wp_filesystem->move(untrailingslashit($source), untrailingslashit($target), true)) {
+            return new WP_Error('seoprostack_github_folder', __('The update could not be unpacked into the plugin’s folder.', 'seoprostack'));
+        }
+        return $target;
     }
 }
