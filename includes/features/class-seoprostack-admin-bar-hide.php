@@ -52,6 +52,22 @@ class SEOProStack_Admin_Bar_Hide extends SEOProStack_Feature {
     }
 
     /**
+     * Import Disable Bloat's "Remove the WordPress logo" switch.
+     *
+     * @param array $options      Stored settings.
+     * @param int   $from_version Previous settings version.
+     * @return array
+     */
+    public static function migrate(array $options, $from_version) {
+        if (SEOProStack_Disable_Bloat::choices(self::ITEMS_KEY)) {
+            $options = self::import_setting($options, self::KEY, true);
+            // Only when no choice is stored yet: the default items plus the logo.
+            $options = self::import_setting($options, self::ITEMS_KEY, array('wp-logo', 'comments', 'new-content'));
+        }
+        return $options;
+    }
+
+    /**
      * Register hooks.
      */
     public static function boot() {

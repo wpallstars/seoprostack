@@ -104,6 +104,79 @@ class SEOProStack_Widget_Control extends SEOProStack_Feature {
             }, array_keys($sidebar)));
         }
 
+        return self::import_disable_bloat($options);
+    }
+
+    /**
+     * Import Disable Bloat's WooCommerce and WordPress widget switches and
+     * its WooCommerce and WordPress Dashboard boxes.
+     *
+     * @param array $options Stored settings.
+     * @return array
+     */
+    private static function import_disable_bloat(array $options) {
+        $boxes = SEOProStack_Disable_Bloat::choices('hidden_dashboard_widgets');
+        // Stored without the plugin's prefix.
+        if (SEOProStack_Disable_Bloat::active() && 'yes' === get_option('disable_admin_dashboard_setup_widget')) {
+            $boxes[] = 'wc_admin_dashboard_setup';
+        }
+        $core_boxes = array(
+            'welcome'     => self::WELCOME,
+            'site_health' => 'dashboard_site_health',
+            'at_a_glance' => 'dashboard_right_now',
+            'activity'    => 'dashboard_activity',
+            'draft'       => 'dashboard_quick_press',
+            'news'        => 'dashboard_primary',
+        );
+        foreach (SEOProStack_Disable_Bloat::list_option('wp_dashboard_widgets_disable') as $box) {
+            if (isset($core_boxes[$box])) {
+                $boxes[] = $core_boxes[$box];
+            }
+        }
+        if ($boxes) {
+            $options = self::import_setting($options, self::KEY, true);
+            $options = self::import_setting($options, 'hidden_dashboard_widgets', array_values(array_unique($boxes)));
+        }
+
+        $widgets = array();
+        if (SEOProStack_Disable_Bloat::choices('disabled_sidebar_widgets')) {
+            $widgets = array(
+                'WC_Widget_Products', 'WC_Widget_Product_Categories', 'WC_Widget_Product_Tag_Cloud',
+                'WC_Widget_Cart', 'WC_Widget_Layered_Nav', 'WC_Widget_Layered_Nav_Filters',
+                'WC_Widget_Price_Filter', 'WC_Widget_Product_Search', 'WC_Widget_Recently_Viewed',
+                'WC_Widget_Recent_Reviews', 'WC_Widget_Top_Rated_Products', 'WC_Widget_Rating_Filter',
+            );
+        }
+        $core_widgets = array(
+            'archives'   => 'WP_Widget_Archives',
+            'audio'      => 'WP_Widget_Media_Audio',
+            'block'      => 'WP_Widget_Block',
+            'calendar'   => 'WP_Widget_Calendar',
+            'categories' => 'WP_Widget_Categories',
+            'html'       => 'WP_Widget_Custom_HTML',
+            'gallery'    => 'WP_Widget_Media_Gallery',
+            'image'      => 'WP_Widget_Media_Image',
+            'meta'       => 'WP_Widget_Meta',
+            'navigation' => 'WP_Nav_Menu_Widget',
+            'pages'      => 'WP_Widget_Pages',
+            'rss'        => 'WP_Widget_RSS',
+            'comments'   => 'WP_Widget_Recent_Comments',
+            'posts'      => 'WP_Widget_Recent_Posts',
+            'search'     => 'WP_Widget_Search',
+            'tag'        => 'WP_Widget_Tag_Cloud',
+            'text'       => 'WP_Widget_Text',
+            'video'      => 'WP_Widget_Media_Video',
+        );
+        foreach (SEOProStack_Disable_Bloat::list_option('wp_sidebar_widgets_disable') as $widget) {
+            if (isset($core_widgets[$widget])) {
+                $widgets[] = $core_widgets[$widget];
+            }
+        }
+        if ($widgets) {
+            $options = self::import_setting($options, self::SIDEBAR_KEY, true);
+            $options = self::import_setting($options, 'disabled_sidebar_widgets', $widgets);
+        }
+
         return $options;
     }
 

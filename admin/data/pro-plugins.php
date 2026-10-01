@@ -135,21 +135,9 @@ if (!defined('ABSPATH')) {
             ),
             'free_slug' => 'complianz-gdpr'
         ),
-        'disable-bloat' => array(
-            'name' => 'Disable Bloat PRO',
-            'description' => 'Advanced optimization for WordPress & WooCommerce with premium features.',
-            'button_group' => array(
-                array(
-                    'text' => 'Home Page',
-                    'url' => 'https://disablebloat.com/',
-                    'primary' => true
-                ),
-                array(
-                    'text' => 'Pricing',
-                    'url' => 'https://disablebloat.com/#pricing'
-                )
-            )
-        ),
+        // Disable Bloat PRO: replaced by Tidy WooCommerce admin, Lighter
+        // WooCommerce pages, Remove WordPress extras, Tidy the login screen,
+        // Tidy admin screens and Simpler block editor.
         'fluent-crm' => array(
             'name' => 'FluentCRM Pro',
             'description' => 'Advanced CRM and email marketing automation.',
