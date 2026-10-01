@@ -528,6 +528,10 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folderâ
 
 ## Changelog
 
+### Unreleased
+
+- Change: `readme.txt` is under 10 KB for WordPress.org, with one line per feature and only the newest version's changelog, in short. Every version's changelog is in the new `changelog.txt`, which ships in both zips; preflight checks both for the version. Contributors is `wpallstars`, the WordPress.org account.
+
 ### 0.5.0
 
 - New: Free Plugins installs, activates, deactivates and uninstalls plugins without leaving the page. Activate becomes Deactivate, and a deactivated plugin offers Uninstall. A new **All** view lists every recommended plugin by category with checkboxes and bulk actions (Install and activate, Install, Activate, Deactivate, Uninstall) for setting up new sites quickly. A request that a just-activated plugin redirects to its welcome screen is retried once. Free Plugins uses the full screen width, and its categories stay on one line, scrolling sideways when they do not fit.

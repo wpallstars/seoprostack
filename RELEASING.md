@@ -26,8 +26,10 @@ attached to a GitHub release.
 
 1. In a pull request, set the version in `seoprostack.php` (`Version:` and
    `SEOPROSTACK_VERSION`) and `readme.txt` (`Stable tag:`), rename the
-   changelog's Unreleased section to the version in `readme.txt` and
-   `README.md`, and add an upgrade notice if people need to act.
+   changelog's Unreleased section to the version in `readme.txt`,
+   `changelog.txt` and `README.md`, and add an upgrade notice if people need
+   to act. `readme.txt` keeps only the newest version, in short, and must stay
+   under 10 KB; `changelog.txt` keeps every version in full.
    Numbers only (`1.2.3`): Git Updater offers a `Version:` on `main` to every site.
 2. On the pull request's branch: `scripts/preflight-release.sh` (no errors) and
    `scripts/plugin-check.sh` (no errors).
@@ -58,24 +60,24 @@ Guidelines: [Detailed Plugin Guidelines](https://developer.wordpress.org/plugins
 [Plugin assets](https://developer.wordpress.org/plugins/wordpress-org/plugin-assets/),
 [Using Subversion](https://developer.wordpress.org/plugins/wordpress-org/how-to-use-subversion/).
 
-### To do before submitting (state at 0.4.0)
+### To do before submitting (state at 0.5.0)
 
 `scripts/preflight-release.sh --strict` reports these:
 
-- [ ] **readme.txt is 27 KB.** WordPress.org says readmes over 10 KB may cause
-      errors. Keep the description to what each feature does, keep only the
-      current version in the changelog and move older entries to
-      `changelog.txt` (or link to the GitHub releases).
+- [x] **readme.txt under 10 KB** (WordPress.org says larger readmes may cause
+      errors): one line per feature, the newest version's changelog in short,
+      every version in `changelog.txt`. Keep it under 10 KB as features are
+      added; details belong in `README.md`, which the Read Me tab shows.
 - [ ] **Slug.** WordPress.org makes the slug from the Plugin Name:
       "SEO Pro Stack" becomes `seo-pro-stack`. The text domain and folder are
       `seoprostack`, so ask for `seoprostack` in the submission notes. It can
       change only before approval.
-- [ ] **Contributors.** `marcusquinn` has no WordPress.org profile. Contributors
-      must be WordPress.org usernames (case-sensitive); use the account that
-      submits the plugin (for example `wpallstars`, if that is it).
+- [x] **Contributors: `wpallstars`**, the WordPress.org account that submits
+      the plugin. Contributors must be WordPress.org usernames (case-sensitive).
 - [ ] **Plugin URI** is the same as Author URI. Point it at a page about this
       plugin, or remove it.
-- [ ] **Changelog**: name the Unreleased section for the version submitted.
+- [ ] **Changelog**: name the Unreleased section for the version submitted, in
+      `readme.txt` and `changelog.txt`.
 - [ ] **Assets** for the SVN `assets/` folder (not in the plugin zip):
       `banner-772x250` and `banner-1544x500` (PNG or JPG, up to 4 MB),
       `icon-128x128` and `icon-256x256` (PNG, JPG or GIF, up to 1 MB) and
