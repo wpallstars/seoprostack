@@ -29,7 +29,8 @@
  * plugin styles and click handlers scoped to that area keep working.
  *
  * Kept in place: messages about what you just did (#message, but not
- * WooCommerce's lasting notices, which use it too; settings errors), inline notices inside the page's content (inline notices printed
+ * WooCommerce's lasting notices, which use it too; settings errors), inline
+ * notices inside the page's content (inline notices printed
  * above the page are moved), hidden notices, notices added after a click or
  * key press, and any types chosen in the settings. Until the move runs, the
  * notices are hidden with CSS, so they do not flash or push the page down;
