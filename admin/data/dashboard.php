@@ -58,6 +58,7 @@ return array(
     'hidden'     => array(
         'dashboard_primary',                // WordPress Events and News.
         'woocommerce_dashboard_status',     // Repeats WooCommerce → Home.
+        'wc_admin_dashboard_setup',         // WooCommerce Setup: repeats WooCommerce → Home's task list.
         'prli_quick_add',                   // Pretty Links quick add.
         'wpil_link_health_widget',          // Link Whisper promotion.
         'vg_sheet_editor_usage_stats',      // WP Sheet Editor edit counts.
