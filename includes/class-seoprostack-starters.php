@@ -325,10 +325,22 @@ final class SEOProStack_Starters {
         $removed = 0;
         $kept    = array();
         $left    = array();
+        $in_use  = null;
         try {
             foreach (array_reverse(self::TYPES) as $type) {
+                $by_id = in_array($type, array('fluentcrm_tags', 'fluentcrm_lists'), true);
+                if ($by_id && null === $in_use) {
+                    // Settings go first; tags and lists the remaining ones still point at stay.
+                    $in_use = self::setting_ids($slug);
+                }
                 foreach (isset($records[$type]) ? (array) $records[$type] : array() as $record) {
-                    $result = self::delete($type, (array) $record);
+                    $record = (array) $record;
+                    if ($by_id && isset($record['id'], $in_use[(int) $record['id']])) {
+                        $kept[]        = isset($record['name']) ? (string) $record['name'] : '';
+                        $left[$type][] = $record;
+                        continue;
+                    }
+                    $result = self::delete($type, $record);
                     if (true === $result) {
                         ++$removed;
                     } elseif (is_string($result)) {
@@ -343,6 +355,39 @@ final class SEOProStack_Starters {
         }
         self::save_added($slug, $left);
         return array('removed' => $removed, 'kept' => $kept);
+    }
+
+    /**
+     * Numbers stored in the FluentCRM settings a starter covers, as tag or
+     * list IDs those settings may still use. Over-matching only keeps more.
+     *
+     * @param string $slug Plugin folder.
+     * @return array<int,true>
+     */
+    private static function setting_ids($slug) {
+        $starter = self::get($slug);
+        $out     = array();
+        if (!$starter || empty($starter['items']['fluentcrm_settings']) || !function_exists('fluentcrm_get_option')) {
+            return $out;
+        }
+        foreach ((array) $starter['items']['fluentcrm_settings'] as $item) {
+            if (!is_array($item) || empty($item['option'])) {
+                continue;
+            }
+            $stored = fluentcrm_get_option((string) $item['option'], null);
+            if (!is_array($stored)) {
+                continue;
+            }
+            array_walk_recursive(
+                $stored,
+                function ($value) use (&$out) {
+                    if (is_int($value) || (is_string($value) && '' !== $value && ctype_digit($value))) {
+                        $out[(int) $value] = true;
+                    }
+                }
+            );
+        }
+        return $out;
     }
 
     /**

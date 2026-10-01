@@ -454,7 +454,7 @@ WP-CLI works whether or not the setting is on:
 Some plugins keep the way you organise your data in their own tables rather than in settings. For those, SEO Pro Stack has **starter data**: the lists, tags, fields and boards we start our own sites with, so a new site begins organised and shows by example how to add more. An active plugin with starter data says on the Plugins screen what the site does not have yet (**Starter data: 35 items to add**, which opens to list them and explain the pattern) and offers:
 
 - **Add starter data**: add the missing items. Items already there, matched by slug (lists, tags, fields) or title (boards), stay exactly as they are, and settings already stored are not changed.
-- **Remove starter data**: remove what SEO Pro Stack added, while it is unused. Lists and tags with contacts, contact fields with values, boards with tasks and settings changed since stay, and the message says how many.
+- **Remove starter data**: remove what SEO Pro Stack added, while it is unused. Lists and tags with contacts, contact fields with values, boards with tasks and settings changed since stay, and so do lists and tags a remaining FluentCRM setting still points at (role-based tagging, WooCommerce or Tutor LMS sync). The message says how many stay.
 
 Each asks first. Items are added through the plugin's own models, with its own created and deleted actions.
 
