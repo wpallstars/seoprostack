@@ -9,7 +9,7 @@
  * change straight away, as before 7.0.
  *
  * @package SEOProStack
- * @since 0.4.1
+ * @since 0.5.0
  */
 
 if (!defined('ABSPATH')) {
