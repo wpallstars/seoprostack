@@ -114,6 +114,7 @@ Copies from WordPress.org update from WordPress.org. New versions come out on Gi
 
 = Unreleased =
 * New, off by default: Faster editor with Kadence Blocks loads Kadence’s design library only when you open it.
+* Fix: admin menu, Dashboard and notices with many plugins active.
 
 = 0.5.0 =
 * New, off by default: Organise the admin menu (replaces Admin Menu Editor), Tidy the dashboard, More menu in the admin bar and Hosting needs.
