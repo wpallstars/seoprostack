@@ -4,7 +4,7 @@ Tags: magic login, iframe, schedule posts, auto upload images, admin
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 0.6.0
+Stable tag: 0.7.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -113,7 +113,7 @@ Copies from WordPress.org update from WordPress.org. New versions come out on Gi
 
 == Changelog ==
 
-= Unreleased =
+= 0.7.0 =
 * Change: Tutor LMS replaces MasterStudy LMS.
 * New: presets for eight more plugins, applied setting by setting; starter data for FluentCRM and Fluent Boards.
 * New: GitHub copies update without Git Updater.
@@ -127,14 +127,9 @@ Copies from WordPress.org update from WordPress.org. New versions come out on Gi
 * Fix: admin screens no longer jump as they load.
 * Change: Tidy the dashboard hides WooCommerce Setup.
 
-= 0.6.0 =
-* New, off by default: Faster editor with Kadence Blocks loads Kadence’s design library only when you open it. Plugin presets. Readable list columns.
-* Fix: admin menu, Dashboard, notices and blank pages with many plugins active. The menu leaves out upgrade links.
-* Change: Load plugins only where needed also speeds up profile, user, Tools and Media › Add New screens.
-
-Every change: `changelog.txt` in the plugin folder.
+Every change, and earlier versions: `changelog.txt` in the plugin folder.
 
 == Upgrade Notice ==
 
-= 0.6.0 =
-New, off by default: Plugin presets, Faster editor with Kadence Blocks and Readable list columns. A tidier admin menu and fewer blank pages with many plugins active.
+= 0.7.0 =
+Copies from GitHub now update without Git Updater: once updated, you can deactivate and delete it. Plugin presets for eight more plugins.

@@ -636,7 +636,7 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folderâ
 
 ## Changelog
 
-### Unreleased
+### 0.7.0
 
 - New: Plugin presets: each setting in a plugin's **Preset: N settings differ** list has a tickbox (ticked to start), and **Apply preset** or **Apply ticked settings** changes only the ticked ones, so you can see and choose exactly what changes. `SEOProStack_Presets::write()` takes the chosen paths (as `differences()` names them) and builds the part of the preset that covers them, so named keys in the same option still merge and the rest stay as stored; undo puts back the whole option as before. WP-CLI: `wp seoprostack presets apply <plugin> --only=<settings>`.
 - Development: `scripts/preflight-release.sh` checks that every preset and starter file is valid JSON and that no setting is in both a preset and starter data, so Apply preset and Add starter data never depend on the order they are used in.

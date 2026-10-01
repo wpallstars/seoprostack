@@ -2,7 +2,7 @@
 
 Every change to SEO Pro Stack. readme.txt lists the latest version in short.
 
-= Unreleased =
+= 0.7.0 =
 * New: Plugin presets: untick any setting in a plugin's list of settings that differ, and Apply changes only the ticked ones.
 * Change: Tidy the dashboard also hides WooCommerce Setup, which repeats the task list on WooCommerce → Home.
 * Change: MasterStudy LMS is no longer recommended; Tutor LMS is the recommended LMS. Free Plugins, Pro Plugins, Organise the admin menu and Tidy the dashboard drop their MasterStudy entries.
