@@ -107,7 +107,7 @@ class SEOProStack_Admin_Notices extends SEOProStack_Feature {
                 'default'     => false,
                 'tab'         => 'admin',
                 'label'       => __('Hide admin notices', 'seoprostack'),
-                'description' => __('Move plugin and theme notices behind a bell in the admin bar, with a count. Messages about what you just did, such as “Settings saved”, stay on the page.', 'seoprostack'),
+                'description' => __('Move plugin and theme notices behind a bell in the admin bar, with a dot while there are notices. Messages about what you just did, such as “Settings saved”, stay on the page.', 'seoprostack'),
                 'replaces'    => array('hide-admin-notices' => 'Hide Admin Notices'),
             ),
             'hide_admin_notices_keep' => array(
@@ -545,7 +545,7 @@ class SEOProStack_Admin_Notices extends SEOProStack_Feature {
             /* Bell: on every screen, with a dot in the bar's text colour while there are notices. */
             #wpadminbar #wp-admin-bar-sps-notices .ab-icon { margin-right: 0; }
             #wpadminbar #wp-admin-bar-sps-notices .ab-icon:before { content: "\f16d"; content: "\f16d" / ""; top: 2px; }
-            #wpadminbar #wp-admin-bar-sps-notices .sps-notices-dot { position: absolute; top: 5px; right: -1px; width: 7px; height: 7px; border-radius: 50%; background: currentColor; pointer-events: none; }
+            #wpadminbar #wp-admin-bar-sps-notices .sps-notices-dot { position: absolute; top: 4px; right: -3px; width: 7px; height: 7px; border-radius: 50%; background: currentColor; pointer-events: none; }
             #wpadminbar #wp-admin-bar-sps-notices.sps-notices-empty .sps-notices-dot { display: none; }
             #sps-notices-wrap > .sps-notices-none { margin: 16px 0 0; }
             #sps-notices-wrap > .sps-notices-none:not(:only-child) { display: none; }
@@ -559,7 +559,7 @@ class SEOProStack_Admin_Notices extends SEOProStack_Feature {
                 /* Core shows only its own items here; the bell joins them. */
                 #wpadminbar li#wp-admin-bar-sps-notices { display: block; position: static; }
                 #wpadminbar #wp-admin-bar-sps-notices .ab-icon:before { display: block; font-size: 34px; height: 46px; line-height: 1.38235294; top: 0; }
-                #wpadminbar #wp-admin-bar-sps-notices .sps-notices-dot { top: 9px; right: 11px; width: 9px; height: 9px; }
+                #wpadminbar #wp-admin-bar-sps-notices .sps-notices-dot { top: 7px; right: 8px; width: 9px; height: 9px; }
                 #sps-notices-wrap { top: 46px; max-height: calc(100vh - 46px); padding: 0 10px 10px; }
             }
         </style>
