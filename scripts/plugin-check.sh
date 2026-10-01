@@ -47,10 +47,11 @@ cleanup() {
 	return 0
 }
 
-# wp-cli in the disposable site; zips are mounted at /zips.
+# wp-cli in the disposable site; zips are mounted at /zips. The image's
+# 128 MB PHP memory limit is too small to unpack WordPress.
 wp_cli() {
 	docker run --rm --network "$NAME" -v "$NAME-wp:/var/www/html" -v "$TMP_DIR/zips:/zips:ro" \
-		-e WORDPRESS_DB_HOST="$NAME-db" --user 33:33 "$CLI_IMAGE" wp "$@"
+		--user 33:33 "$CLI_IMAGE" php -d memory_limit=1G /usr/local/bin/wp "$@"
 	return $?
 }
 
