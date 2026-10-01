@@ -14,7 +14,7 @@ Curated plugins, themes, hosting and tools for WordPress, plus small opt-in qual
 
 SEO Pro Stack is free and open source. There is no pro version and nothing is locked.
 
-Everything is off by default except two: Hide admin bar items, which hides Comments and + New from the admin bar, and No fade between admin screens. Settings save instantly from **Settings → SEO Pro Stack**, grouped into Admin, Content, Media, Links, Speed and Plugins tabs. Use **Search features** to find a setting by name or by the plugin it replaces.
+Everything is off by default except two: Hide admin bar items, which hides Comments and + New from the admin bar, and No fade between admin screens. Settings save instantly from **Settings → SEO Pro Stack** (or the star in the admin bar), grouped into Admin, Content, Media, Links, Speed and Plugins tabs. Use **Search features** to find a setting by name or by the plugin it replaces.
 
 = Features =
 
@@ -33,6 +33,7 @@ Everything is off by default except two: Hide admin bar items, which hides Comme
 * **WebP and AVIF images**: save a smaller WebP and AVIF copy of every picture in the Media Library, in the background, and send it to browsers that support it at the same address. Originals and pages are not changed. Works on Apache and LiteSpeed by itself; on Nginx the settings show the lines to add. On multisite one set of rules serves every site.
 * **Watermark pictures**: add your site icon, logo or a chosen picture faintly (30% by default) to a corner of pictures as they are uploaded. Small sizes such as thumbnails stay clean. An unmarked original is kept, so watermarks can be removed or changed later from Media → Library or with WP-CLI.
 * **Admin bar and dashboard access**: hide the front-end admin bar and block wp-admin for chosen roles, such as subscribers and customers. Administrators are never affected.
+* **Organise the admin menu**: group the menu into Content, Communications, SEO, Shop and Admin, the same way on every site, with WordPress’s entries first and plugins’ in A–Z order. Under Admin, Administrators and Developers are menus that open to the side, then Users; developer tools moved out of Settings and Tools share one Settings entry in Developers. Entries keep their flyout menus, sections can fold (off by default), and you can choose any entry’s place from a list. Preview the admin as any role, or as a client administrator, in a new tab. Client safeguards keep people who are not developers out of Developers, plugin and theme installs and code editing, developer accounts and these settings; updates still work. Replaces Admin Menu Editor.
 * **Dashboard and sidebar widgets**: hide Dashboard boxes and disable classic widgets you never use.
 * **Notification emails**: stop routine emails one by one, such as auto-update reports and new user notices.
 * **Hide admin notices**: move plugin and theme notices behind a bell in the admin bar, with a dot while there are notices. With Load plugins only where needed, notices of plugins a screen skips still show there. Messages about what you just did, such as “Settings saved”, stay on the page.
@@ -138,6 +139,8 @@ Copies installed from WordPress.org update from WordPress.org. New versions are 
 = Unreleased =
 * New: copies installed from GitHub releases get updates from GitHub through the free Git Updater plugin. A notice, and Free Plugins, offer to install and activate it in one click.
 * New, off by default, GitHub copies only: Early updates from GitHub (Maintenance tab) keeps the site on GitHub releases, which come out before WordPress.org.
+* New: a star in the admin bar, next to your name, opens SEO Pro Stack’s settings, for people who can change them.
+* New, off by default: Organise the admin menu (Admin tab) groups the menu into sections, with Administrators and Developers menus and Users under Admin, the same way on every site, with places chosen from a list, sections that can fold and role previews, with client safeguards for people who are not developers (on by default). Replaces Admin Menu Editor.
 * New, off by default: More menu in the admin bar (Admin tab) puts the items plugins and themes add to the left of the admin bar in one … menu, last on that side, so the bar no longer wraps over the page. It opens on hover, like the other admin bar menus. Choose plugins whose items stay on the bar. On phones the menu also reaches plugin items WordPress hides there.
 * New, on by default: Hide admin bar items (Admin tab) removes WordPress items you do not use from the admin bar, for everyone. Comments and + New are ticked by default. Switch it off to keep every item.
 * New, on by default: No fade between admin screens (Admin tab) stops the fade WordPress 7.0 added between wp-admin screens, which can flash, so screens change straight away. Switch it off to keep the fade.

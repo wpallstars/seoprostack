@@ -22,6 +22,7 @@ final class SEOProStack {
         'SEOProStack_Admin_Colors',
         'SEOProStack_Admin_Page_Fade',
         'SEOProStack_Admin_Access',
+        'SEOProStack_Admin_Menu',
         'SEOProStack_Widget_Control',
         'SEOProStack_Notification_Emails',
         'SEOProStack_Admin_Notices',
@@ -94,6 +95,7 @@ final class SEOProStack {
         }
 
         SEOProStack_Settings::init();
+        SEOProStack_Admin_Bar::init();
         // Priority 0, added after SEOProStack_Settings::maybe_migrate() so features
         // read migrated values, and early enough to hook widgets_init (init:1).
         add_action('init', array(__CLASS__, 'boot_features'), 0);
