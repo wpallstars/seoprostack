@@ -207,6 +207,24 @@ body.sps-menu-measure #adminmenu li.sps-menu-folded {
 	display: block;
 }
 
+/*
+ * Submenus that open to the side are as wide as their longest entry (up
+ * to 300px), instead of wrapping names at the 160px of the sidebar.
+ */
+@media screen and (min-width: 783px) {
+	body.sps-menu-fit #adminmenu .wp-not-current-submenu .wp-submenu,
+	body.sps-menu-fit.folded #adminmenu .wp-submenu,
+	body.sps-menu-fit #adminmenu .wp-submenu li.sps-menu-has-sub > ul.sps-menu-flyout {
+		width: max-content;
+		max-width: 300px;
+	}
+
+	body.sps-menu-fit #adminmenu .wp-has-current-submenu .wp-submenu li.current.sps-menu-has-sub > ul.sps-menu-flyout {
+		width: auto;
+		max-width: none;
+	}
+}
+
 @media only screen and (min-width: 961px) {
 	body.sps-menu-fit:not(.folded) #adminmenuback,
 	body.sps-menu-fit:not(.folded) #adminmenuwrap,

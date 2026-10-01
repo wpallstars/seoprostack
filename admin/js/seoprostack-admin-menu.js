@@ -111,6 +111,8 @@
 		if (fitted || !cfg || !cfg.fit || !body || !menu) {
 			return;
 		}
+		// Submenus that open to the side fit their names (stylesheet).
+		body.classList.add('sps-menu-fit');
 		// Collapsed or narrow: names are hidden, so measure later.
 		if (body.classList.contains('folded') || !window.matchMedia('(min-width: 961px)').matches) {
 			return;
@@ -132,7 +134,6 @@
 		var width = Math.max(FIT_MIN, Math.min(FIT_MAX, Math.ceil(need) + 4));
 		if (width > FIT_MIN) {
 			body.style.setProperty('--sps-menu-width', width + 'px');
-			body.classList.add('sps-menu-fit');
 		}
 	}
 
