@@ -13,14 +13,15 @@
  * and only once SEO Pro Stack has seen the screen with every plugin
  * loaded ("learning"). Everything else loads every plugin: saving
  * (POST), links carrying a nonce or an action, AJAX, REST, cron, WP-CLI,
- * the Plugins, update, settings and profile screens, the Customizer,
- * screens of plugins it does not know yet, and the site itself.
+ * the Plugins, update, settings, menus and widgets screens, the
+ * Customizer, screens of plugins it does not know yet, and the site itself.
  *
  * A ticked plugin loads:
  * - on its own screens: pages it added to the menu, and the posts and
  *   terms of post types and taxonomies it registered;
- * - on post, term and list screens where it adds boxes, fields, blocks or
- *   editor features (learned per screen with every plugin loaded);
+ * - on post, term, list, profile, user, Tools and media upload screens
+ *   where it adds boxes, fields, blocks or editor features, or saves
+ *   profile fields (learned per screen with every plugin loaded);
  * - wherever a plugin that needs it loads (`Requires Plugins`,
  *   `WC requires at least`, `Elementor tested up to`).
  * Plugins that need a ticked plugin follow it: they load where it loads.
@@ -91,16 +92,56 @@ final class SEOProStack_Plugin_Loader {
     const LIST_HOOKS = array('bulk_edit_custom_box', 'quick_edit_custom_box', 'add_inline_data');
 
     /**
+     * Hooks that add fields to the profile, edit user and add user forms,
+     * or save them. Saving loads every plugin, so a plugin that saves
+     * profile fields must show them too, or saving would clear them.
+     */
+    const USER_HOOKS = array(
+        'user_edit_form_tag', 'admin_color_scheme_picker', 'personal_options', 'profile_personal_options',
+        'show_user_profile', 'edit_user_profile', 'user_contactmethods', 'user_profile_picture_description',
+        'show_password_fields', 'additional_capabilities_display', 'wp_create_application_password_form',
+        'enable_edit_any_user_configuration', 'user_new_form', 'user_new_form_tag',
+        'personal_options_update', 'edit_user_profile_update', 'user_profile_update_errors', 'edit_user_created_user',
+    );
+
+    /** Hooks that add tools to Tools > Available tools. */
+    const TOOLS_HOOKS = array('tool_box');
+
+    /** Hooks that change the upload form on Media > Add New. */
+    const UPLOAD_HOOKS = array(
+        'pre-upload-ui', 'pre-plupload-upload-ui', 'post-plupload-upload-ui', 'pre-html-upload-ui',
+        'post-html-upload-ui', 'post-upload-ui', 'upload_post_params', 'plupload_init',
+        'plupload_default_settings', 'plupload_default_params', 'upload_ui_over_quota',
+    );
+
+    /** wp-admin scripts of each screen kind learned from hooks. */
+    const KIND_SCRIPTS = array(
+        'user'      => array('profile.php', 'user-edit.php', 'user-new.php'),
+        'tools'     => array('tools.php'),
+        'media-new' => array('media-new.php'),
+    );
+
+    /**
      * Whether a hook's callbacks mean a plugin must load on a screen, so
      * forms there keep every field. Hooks for other post types and
      * taxonomies do not count.
      *
-     * @param string $kind Screen kind: "post", "terms" or "list".
+     * @param string $kind Screen kind: "post", "terms", "list", "user", "tools" or "media-new".
      * @param string $name Post type or taxonomy of the screen.
      * @param string $hook Hook name.
      * @return bool
      */
     public static function screen_needs_hook($kind, $name, $hook) {
+        // Hooks for these screens only, such as "load-profile.php" or
+        // "admin_footer-tools.php".
+        if (array_key_exists($kind, self::KIND_SCRIPTS)) {
+            foreach (self::KIND_SCRIPTS[$kind] as $script) {
+                $suffix = '-' . $script;
+                if (strlen($hook) > strlen($suffix) && substr($hook, -strlen($suffix)) === $suffix) {
+                    return true;
+                }
+            }
+        }
         switch ($kind) {
             case 'post':
                 return in_array($hook, self::EDITOR_HOOKS, true)
@@ -114,8 +155,16 @@ final class SEOProStack_Plugin_Loader {
                     && in_array(substr($hook, strlen($name)), self::TERM_HOOK_SUFFIXES, true);
             case 'list':
                 return in_array($hook, self::LIST_HOOKS, true);
+            case 'user':
+                // Labels of contact fields: "user_{field}_label".
+                return in_array($hook, self::USER_HOOKS, true)
+                    || (0 === strpos($hook, 'user_') && '_label' === substr($hook, -6) && strlen($hook) > 11);
+            case 'tools':
+                return in_array($hook, self::TOOLS_HOOKS, true);
+            case 'media-new':
+                return in_array($hook, self::UPLOAD_HOOKS, true);
         }
-        return false; // Dashboard, comments, users and themes add no fields to forms.
+        return false; // Dashboard, comments, the users list, themes and About add no fields to forms.
     }
 
     /**
@@ -137,10 +186,12 @@ final class SEOProStack_Plugin_Loader {
     const NEVER = array(
         'plugins.php', 'plugin-install.php', 'plugin-editor.php', 'update.php', 'update-core.php',
         'upgrade.php', 'customize.php', 'options.php', 'admin-post.php', 'admin-ajax.php',
-        'async-upload.php', 'site-health.php', 'profile.php', 'user-edit.php', 'user-new.php',
-        'import.php', 'export.php', 'widgets.php', 'nav-menus.php', 'theme-editor.php',
-        'site-editor.php', 'privacy.php',
+        'async-upload.php', 'site-health.php', 'import.php', 'export.php', 'widgets.php',
+        'nav-menus.php', 'theme-editor.php', 'site-editor.php',
     );
+
+    /** Read-only About screens: they need no plugin. */
+    const ABOUT = array('about.php', 'credits.php', 'freedoms.php', 'privacy.php', 'contribute.php');
 
     /**
      * Request state: '' (not started or off), 'full' (every plugin
@@ -173,6 +224,16 @@ final class SEOProStack_Plugin_Loader {
 
     /** @var bool Whether the current screen has been marked to load everything. */
     private static $flagged = false;
+
+    /**
+     * Why a 'full' request loads every plugin: 'always' (a screen that is
+     * never filtered), 'learning' (not learned yet, or learned again),
+     * 'error' (a plugin failed here with fewer plugins) or 'needed' (the
+     * screen needs every ticked plugin).
+     *
+     * @var string
+     */
+    private static $reason = '';
 
     /**
      * Start: decide whether this request may be filtered.
@@ -218,8 +279,17 @@ final class SEOProStack_Plugin_Loader {
             add_action('registered_taxonomy', array(__CLASS__, 'note_taxonomy'));
             add_filter('register_block_type_args', array(__CLASS__, 'note_block'), 10, 2);
         }
+        if ('' === self::$screen) {
+            self::$reason = 'always';
+            return;
+        }
         // Asked to load every plugin: this request learns the screen again.
-        if (!self::$map || $relearn || '' === self::$screen || isset(self::$map['load_all'][self::$screen])) {
+        self::$reason = 'learning';
+        if (!self::$map || $relearn) {
+            return;
+        }
+        if (isset(self::$map['load_all'][self::$screen])) {
+            self::$reason = 'error';
             return;
         }
 
@@ -229,10 +299,12 @@ final class SEOProStack_Plugin_Loader {
         }
         self::$skipped = array_values(array_diff(self::$raw, $loaded));
         if (!self::$skipped) {
+            self::$reason = 'needed';
             return;
         }
 
-        self::$mode = 'filter';
+        self::$mode   = 'filter';
+        self::$reason = '';
         add_filter('option_active_plugins', array(__CLASS__, 'filter_active'), PHP_INT_MAX);
         add_filter('pre_update_option_active_plugins', array(__CLASS__, 'keep_active'), PHP_INT_MAX, 2);
         add_action('deactivate_plugin', array(__CLASS__, 'flag_screen'));
@@ -321,10 +393,13 @@ final class SEOProStack_Plugin_Loader {
             }
             return 'page:' . $page;
         }
-        // Core settings and profile screens show fields from many plugins,
-        // and saving them without those fields would clear their values.
+        // Core settings screens show fields from many plugins, and saving
+        // them without those fields would clear their values.
         if (in_array($script, self::NEVER, true) || 0 === strpos($script, 'options-')) {
             return '';
+        }
+        if (in_array($script, self::ABOUT, true)) {
+            return 'about';
         }
 
         $post_type = isset($_GET['post_type']) && is_string($_GET['post_type']) ? sanitize_key(wp_unslash($_GET['post_type'])) : 'post';
@@ -356,6 +431,18 @@ final class SEOProStack_Plugin_Loader {
                 return 'users';
             case 'themes.php':
                 return 'themes';
+            // Profile and user forms: learned from the plugins that show or
+            // save fields there (USER_HOOKS).
+            case 'profile.php':
+                return 'user:profile';
+            case 'user-edit.php':
+                return 'user:edit';
+            case 'user-new.php':
+                return 'user:new';
+            case 'tools.php':
+                return 'tools';
+            case 'media-new.php':
+                return 'media-new';
         }
         // phpcs:enable
         return '';
@@ -415,6 +502,10 @@ final class SEOProStack_Plugin_Loader {
             }
             if ('post' === $kind) {
                 $wanted = array_merge($wanted, $map['blocks']);
+            } elseif ('user' === $kind && isset($map['permissions'])) {
+                // Role and permission plugins change which roles and
+                // capabilities these forms offer.
+                $wanted = array_merge($wanted, (array) $map['permissions']);
             }
         }
 
@@ -713,11 +804,12 @@ final class SEOProStack_Plugin_Loader {
     /**
      * Current request state for SEO Pro Stack's own code.
      *
-     * @return array{mode: string, screen: string, active: string[], skipped: string[], map: array, attributing: bool, registered: array}
+     * @return array{mode: string, reason: string, screen: string, active: string[], skipped: string[], map: array, attributing: bool, registered: array}
      */
     public static function state() {
         return array(
             'mode'        => self::$mode,
+            'reason'      => self::$reason,
             'screen'      => self::$screen,
             'active'      => self::$raw,
             'skipped'     => self::$skipped,

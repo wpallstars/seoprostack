@@ -115,6 +115,7 @@ Copies from WordPress.org update from WordPress.org. New versions come out on Gi
 = Unreleased =
 * New, off by default: Faster editor with Kadence Blocks loads Kadence’s design library only when you open it. Plugin presets. Readable list columns.
 * Fix: admin menu, Dashboard, notices and blank pages with many plugins active. The menu leaves out upgrade links.
+* Change: Load plugins only where needed also speeds up profile, user, Tools and Media › Add New screens.
 
 = 0.5.0 =
 * New admin menu, dashboard, admin bar, Hosting needs and Free Plugins features. On by default: Hide admin bar items and No fade between admin screens.
