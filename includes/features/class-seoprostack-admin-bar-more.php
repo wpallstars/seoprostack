@@ -255,14 +255,13 @@ class SEOProStack_Admin_Bar_More extends SEOProStack_Feature {
         }
 
         $label = __('More', 'seoprostack');
+        // No tooltip, like core's menus: it would cover the open menu. Screen
+        // readers read the hidden text, and the menu is labelled by menu_title.
         $wp_admin_bar->add_node(array(
             'id'    => self::NODE,
             'title' => '<span class="ab-icon" aria-hidden="true"></span><span class="screen-reader-text">' . esc_html($label) . '</span>',
             'href'  => '#',
-            'meta'  => array(
-                'title'      => $label,
-                'menu_title' => $label,
-            ),
+            'meta'  => array('menu_title' => $label),
         ));
         // Nodes keep their place in the list, so moved items stay in bar order.
         // Their own menus point at their IDs and move with them.
