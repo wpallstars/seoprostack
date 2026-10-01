@@ -72,7 +72,7 @@ Some links in the Pro Plugins, Hosting and Tools directories may be affiliate li
 * **Screenshot Machine** (api.screenshotmachine.com): [terms](https://www.screenshotmachine.com/termsandconditions.php), [privacy policy](https://www.screenshotmachine.com/privacypolicy.php).
 * **GitHub** (api.github.com, github.com), in copies installed from GitHub releases only: pressing Install and activate Git Updater downloads its latest release. Nothing about your site is sent beyond the request. See the [GitHub privacy statement](https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement).
 
-Other features contact only addresses you choose. Copy linked images downloads images already linked in a post when it is saved. The iFrame block makes visitors’ browsers load the pages your editors embed. Magic login links are sent with your site’s normal email. Avatars without Gravatar stops WordPress loading avatars from gravatar.com. Short links that count clicks set a cookie on your site (`sps_link_` and the link’s ID, for a year, holding only “1”); only totals are kept. No other data is sent.
+Other features contact only addresses you choose. Copy linked images downloads images already linked in a post when it is saved. The iFrame block makes visitors’ browsers load the pages your editors embed, under those sites’ privacy policies. Magic login links are sent with your site’s normal email. Avatars without Gravatar stops WordPress loading avatars from gravatar.com. Short links that count clicks set a cookie on your site (`sps_link_` and the link’s ID, for a year, holding only “1”); only totals are kept, never IP addresses. No other data is sent.
 
 = Developers =
 
