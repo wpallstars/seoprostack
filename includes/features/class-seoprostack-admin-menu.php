@@ -1129,6 +1129,17 @@ class SEOProStack_Admin_Menu extends SEOProStack_Feature {
         $self      = isset($GLOBALS['self']) ? $GLOBALS['self'] : null;
         $sub_file  = isset($submenu_file) ? (string) $submenu_file : null;
 
+        if ($current && !isset($current['parent_file']) && isset($current['from']) && empty($current['hidden']) && !self::is_top($layout['entries'], (string) $parent_file)) {
+            // A post type listed in another plugin's menu (such as Kadence's
+            // Headers): core passes its own list address here and finds the
+            // real menu only after this filter. Use that menu now, so the
+            // Admin and Developers menus see which entry holds the page.
+            $parent_file = $current['from'];
+            if (null === $sub_file) {
+                $sub_file = $current['slug'];
+            }
+        }
+
         if ($current && isset($current['parent_file'])) {
             // The current page moved: open its new place.
             $parent_file        = $current['parent_file'];
@@ -1514,6 +1525,22 @@ class SEOProStack_Admin_Menu extends SEOProStack_Feature {
             }
             self::$original = null;
         }
+    }
+
+    /**
+     * Whether an address is a top-level menu entry.
+     *
+     * @param array  $entries Entries from layout().
+     * @param string $slug    Address.
+     * @return bool
+     */
+    private static function is_top(array $entries, $slug) {
+        foreach ($entries as $entry) {
+            if (!empty($entry['top']) && $entry['slug'] === $slug) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**

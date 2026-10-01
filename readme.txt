@@ -114,6 +114,7 @@ Copies from WordPress.org update from WordPress.org. New versions come out on Gi
 
 = Unreleased =
 * Change: Load plugins only where needed also speeds up SEO Pro Stack’s own settings.
+* Fix: the admin menu opens on Kadence Blocks’ lists. Screens that fail with fewer plugins recover when Query Monitor is active.
 
 = 0.6.0 =
 * New, off by default: Faster editor with Kadence Blocks loads Kadence’s design library only when you open it. Plugin presets. Readable list columns.
