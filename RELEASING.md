@@ -8,7 +8,7 @@ None of the scripts below tags, publishes, uploads or commits anything.
 | Script | What it does |
 |--------|--------------|
 | `scripts/build-release.sh [--ref REF] [--out DIR]` | Builds both zips from a Git ref (default `HEAD`) into `dist/` (gitignored), with `SHA256SUMS`. Files come from Git, never the working tree. |
-| `scripts/preflight-release.sh [--ref REF] [--strict] [--offline]` | Checks versions, headers, readme, both zips (layout, development files, PHP 7.4 and JS syntax, updater code), remote assets and the Git tag. Errors stop a release; `--strict` also fails on warnings, for a WordPress.org submission. |
+| `scripts/preflight-release.sh [--ref REF] [--strict] [--offline]` | Checks versions, headers, readme, both zips (layout, development files, PHP 7.4 and JS syntax, updater code), remote assets, that presets and starter data parse and never set the same setting, and the Git tag. Errors stop a release; `--strict` also fails on warnings, for a WordPress.org submission. |
 | `scripts/plugin-check.sh [--ref REF] [--zip FILE]` | Runs Plugin Check on both zips in a disposable WordPress in Docker, then removes it. |
 
 The two builds of each version:
