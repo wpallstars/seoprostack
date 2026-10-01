@@ -1,0 +1,74 @@
+<?php
+/**
+ * How "Tidy the dashboard" lays out Dashboard widgets.
+ *
+ * Built from the Dashboard settings of 12 sites arranged by hand with Admin
+ * Menu Editor Pro, so the layout matches what people already know.
+ *
+ * - columns:    column => widget IDs, top to bottom. normal is the first
+ *               column, side the second, column3 the third. Widgets that
+ *               are not listed stay in the column their plugin chose,
+ *               below the listed ones.
+ * - hidden:     widgets nobody sees: news, plugin promotions and boxes
+ *               that repeat a plugin's own screen.
+ * - developers: widgets only developers see (see Organise the admin menu;
+ *               without it, people who can manage options).
+ * - reports:    statistics only people who can publish see (not
+ *               contributors).
+ *
+ * People who cannot edit posts (subscribers, customers) see no widgets,
+ * and the Welcome panel is hidden for everyone.
+ *
+ * Filter with `seoprostack_dashboard_layout`.
+ *
+ * @package SEOProStack
+ * @since 0.5.0
+ */
+
+if (!defined('ABSPATH')) {
+    exit;
+}
+
+return array(
+    'columns'    => array(
+        // Writing and what is happening on the site.
+        'normal'  => array(
+            // Core's warnings stay at the top, where WordPress puts them.
+            'dashboard_browser_nag',
+            'dashboard_php_nag',
+            'dashboard_quick_press',
+            'dashboard_activity',
+            'woocommerce_dashboard_recent_reviews',
+        ),
+        // Forms, support and email.
+        'side'    => array(
+            'fluentform_stat_widget',
+            'fluent_support_reports_widget',
+            'fluentsmtp_reports_widget',
+        ),
+        // Visitors, SEO and the site itself.
+        'column3' => array(
+            'dashboard_widget_burst',
+            'rank_math_dashboard_widget',
+            'dashboard_right_now',
+            'dashboard_site_health',
+            'debug_log_manager_widget',
+        ),
+    ),
+    'hidden'     => array(
+        'dashboard_primary',                // WordPress Events and News.
+        'woocommerce_dashboard_status',     // Repeats WooCommerce → Home.
+        'prli_quick_add',                   // Pretty Links quick add.
+        'wpil_link_health_widget',          // Link Whisper promotion.
+    ),
+    'developers' => array(
+        'dashboard_site_health',
+        'debug_log_manager_widget',
+    ),
+    'reports'    => array(
+        'dashboard_right_now',
+        'fluentform_stat_widget',
+        'fluent_support_reports_widget',
+        'fluentsmtp_reports_widget',
+    ),
+);
