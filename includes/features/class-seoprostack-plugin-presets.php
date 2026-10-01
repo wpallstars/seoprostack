@@ -5,8 +5,8 @@
  * For each plugin SEO Pro Stack has a preset for (presets/{folder}.json, see
  * SEOProStack_Presets), the Plugins screen says whether its settings match
  * and offers, after a confirmation:
- * - Apply preset: set SEO Pro Stack's preferred settings (only the ones
- *   left ticked in the row's list of settings that differ);
+ * - Apply preset: opens a dialog listing the settings that differ (now and
+ *   preset), each with a tickbox, and applies the ticked ones;
  * - Reset to defaults: set the plugin's own defaults for the same settings;
  * - Undo: put back the settings from before the last apply or reset.
  * Apply and Reset are also bulk actions. Licence keys, API keys, passwords
@@ -105,6 +105,7 @@ class SEOProStack_Plugin_Presets extends SEOProStack_Feature {
         add_filter('handle_bulk_actions-plugins', array(__CLASS__, 'handle_bulk'), 10, 3);
         add_filter('removable_query_args', array(__CLASS__, 'removable_query_args'));
         add_action('admin_notices', array(__CLASS__, 'notice'));
+        add_action('admin_footer', array(__CLASS__, 'dialogs'));
         add_action('admin_print_footer_scripts', array(__CLASS__, 'script'));
         add_action('admin_head', array(__CLASS__, 'style'));
     }
@@ -140,14 +141,12 @@ class SEOProStack_Plugin_Presets extends SEOProStack_Feature {
         $name    = '' !== $preset['name'] ? $preset['name'] : $slug;
         $differs = count(SEOProStack_Presets::differences($slug));
         if ($differs) {
+            // Opens the preset's dialog; without JavaScript, asks nothing and applies all.
             $links['seoprostack-preset-apply'] = sprintf(
-                '<a href="%1$s" data-sps-confirm="%2$s" data-sps-apply="%4$s" data-sps-name="%5$s">%3$s</a>',
+                '<a href="%1$s" data-sps-dialog="%2$s">%3$s</a>',
                 esc_url(self::action_url('apply', $slug)),
-                /* translators: 1: number of settings, 2: plugin name */
-                esc_attr(sprintf(_n('Change %1$d setting of %2$s to SEO Pro Stack’s preset? You can undo this.', 'Change %1$d settings of %2$s to SEO Pro Stack’s preset? You can undo this.', $differs, 'seoprostack'), $differs, $name)),
-                esc_html__('Apply preset', 'seoprostack'),
                 esc_attr($slug),
-                esc_attr($name)
+                esc_html__('Apply preset', 'seoprostack')
             );
         }
         if ($preset['defaults'] && count(SEOProStack_Presets::differences($slug, 'defaults'))) {
@@ -191,35 +190,103 @@ class SEOProStack_Plugin_Presets extends SEOProStack_Feature {
             $meta[] = '<span class="sps-preset is-match">' . esc_html__('Preset: settings match', 'seoprostack') . '</span>';
             return $meta;
         }
-        // Each setting has a tickbox (no name, so the bulk form ignores it):
-        // Apply changes only the ticked ones. Without JavaScript, all change.
-        $items = '';
-        foreach ($diffs as $path => $values) {
-            $items .= sprintf(
-                '<li><label><input type="checkbox" class="sps-preset-pick" data-sps-plugin="%1$s" value="%2$s" checked> <code>%3$s</code>: %4$s → %5$s</label></li>',
-                esc_attr($slug),
-                esc_attr($path),
-                esc_html($path),
-                esc_html(self::show($values[0])),
-                esc_html(self::show($values[1]))
-            );
-        }
-        $notes = '' !== $preset['notes'] ? '<p>' . esc_html($preset['notes']) . '</p>' : '';
-        if ('' !== $preset['tested']) {
-            /* translators: %s: plugin version */
-            $notes .= '<p>' . esc_html(sprintf(__('Chosen with version %s.', 'seoprostack'), $preset['tested'])) . '</p>';
-        }
+        // The dialog with the settings is printed in the footer (dialogs()).
+        self::$dialogs[$slug] = array('preset' => $preset, 'diffs' => $diffs);
         $meta[] = sprintf(
-            '<details class="sps-preset"><summary>%1$s</summary><p class="sps-preset-hint">%2$s</p><ul class="sps-preset-picks">%3$s</ul><p class="sps-preset-go" hidden><button type="button" class="button button-small" data-sps-apply-picked="%4$s">%5$s</button></p>%6$s</details>',
-            /* translators: %d: number of settings */
-            esc_html(sprintf(_n('Preset: %d setting differs', 'Preset: %d settings differ', count($diffs), 'seoprostack'), count($diffs))),
-            esc_html__('Now → preset. Untick any setting you want to keep as it is.', 'seoprostack'),
-            $items,
+            '<a href="#sps-preset-%1$s" class="sps-preset" data-sps-dialog="%1$s">%2$s</a>',
             esc_attr($slug),
-            esc_html__('Apply ticked settings', 'seoprostack'),
-            $notes
+            /* translators: %d: number of settings */
+            esc_html(sprintf(_n('Preset: %d setting differs', 'Preset: %d settings differ', count($diffs), 'seoprostack'), count($diffs)))
         );
         return $meta;
+    }
+
+    /**
+     * Presets whose settings differ on this screen, for their dialogs.
+     *
+     * @var array<string,array{preset:array,diffs:array}>
+     */
+    private static $dialogs = array();
+
+    /**
+     * One dialog per preset that differs: what each setting is now and what
+     * the preset sets, each with a tickbox, the preset's notes, and Apply for
+     * the ticked ones. Sent to admin-post as only[], with the row's nonce.
+     */
+    public static function dialogs() {
+        if (!self::$dialogs) {
+            return;
+        }
+        $action = admin_url('admin-post.php');
+        foreach (self::$dialogs as $slug => $data) {
+            $preset = $data['preset'];
+            $diffs  = $data['diffs'];
+            $name   = '' !== $preset['name'] ? $preset['name'] : $slug;
+            $count  = count($diffs);
+            ?>
+            <dialog id="sps-preset-<?php echo esc_attr($slug); ?>" class="sps-preset-dialog" aria-labelledby="sps-preset-title-<?php echo esc_attr($slug); ?>">
+                <form method="dialog" class="sps-preset-dialog__close">
+                    <button type="submit" class="button-link" aria-label="<?php esc_attr_e('Close', 'seoprostack'); ?>"><span class="dashicons dashicons-no-alt" aria-hidden="true"></span></button>
+                </form>
+                <h2 id="sps-preset-title-<?php echo esc_attr($slug); ?>">
+                    <?php
+                    /* translators: %s: plugin name */
+                    echo esc_html(sprintf(__('%s preset', 'seoprostack'), $name));
+                    ?>
+                </h2>
+                <?php if ('' !== $preset['notes']) : ?>
+                    <p><?php echo esc_html($preset['notes']); ?></p>
+                <?php endif; ?>
+                <form method="get" action="<?php echo esc_url($action); ?>" class="sps-preset-dialog__form">
+                    <input type="hidden" name="action" value="<?php echo esc_attr(self::ACTION); ?>" />
+                    <input type="hidden" name="do" value="apply" />
+                    <input type="hidden" name="plugin" value="<?php echo esc_attr($slug); ?>" />
+                    <input type="hidden" name="_wpnonce" value="<?php echo esc_attr(wp_create_nonce(self::ACTION . '_apply_' . $slug)); ?>" />
+                    <p class="sps-preset-dialog__hint">
+                        <?php
+                        /* translators: %d: number of settings */
+                        echo esc_html(sprintf(_n('%d setting differs from the preset. Untick any you want to keep as it is.', '%d settings differ from the preset. Untick any you want to keep as they are.', $count, 'seoprostack'), $count));
+                        ?>
+                    </p>
+                    <ul class="sps-preset-dialog__list">
+                        <?php foreach ($diffs as $path => $values) : ?>
+                            <li>
+                                <label>
+                                    <input type="checkbox" name="only[]" value="<?php echo esc_attr($path); ?>" checked />
+                                    <code><?php echo esc_html($path); ?></code>
+                                    <span class="sps-preset-dialog__values">
+                                        <?php
+                                        /* translators: 1: value now, 2: value the preset sets */
+                                        echo esc_html(sprintf(__('Now %1$s → preset %2$s', 'seoprostack'), self::show($values[0]), self::show($values[1])));
+                                        ?>
+                                    </span>
+                                </label>
+                            </li>
+                        <?php endforeach; ?>
+                    </ul>
+                    <p class="sps-preset-dialog__note">
+                        <?php
+                        $note = __('The plugin’s other settings stay as they are. Undo preset in its row puts back what changed.', 'seoprostack');
+                        if ('' !== $preset['tested']) {
+                            /* translators: %s: plugin version */
+                            $note .= ' ' . sprintf(__('Chosen with version %s.', 'seoprostack'), $preset['tested']);
+                        }
+                        echo esc_html($note);
+                        ?>
+                    </p>
+                    <p class="sps-preset-dialog__actions">
+                        <button type="submit" class="button button-primary">
+                            <?php
+                            /* translators: %d: number of settings */
+                            echo esc_html(sprintf(_n('Apply %d setting', 'Apply %d settings', $count, 'seoprostack'), $count));
+                            ?>
+                        </button>
+                        <button type="button" class="button" data-sps-dialog-cancel><?php esc_html_e('Cancel', 'seoprostack'); ?></button>
+                    </p>
+                </form>
+            </dialog>
+            <?php
+        }
     }
 
     /**
@@ -508,11 +575,22 @@ class SEOProStack_Plugin_Presets extends SEOProStack_Feature {
             .sps-preset[open] { display: block; margin-top: 4px; }
             .sps-preset ul { margin: 4px 0 4px 1.5em; list-style: disc; }
             .sps-preset li { margin: 0; }
-            .sps-preset ul.sps-preset-picks { list-style: none; margin-left: 0; }
-            .sps-preset-picks input[type="checkbox"] { margin: 0 4px 0 0; }
-            .sps-preset-picks li:has(input:not(:checked)) { opacity: 0.6; }
             .sps-preset p { margin: 4px 0; }
             .sps-preset.is-match { color: #646970; }
+            .sps-preset-dialog { box-sizing: border-box; max-width: 640px; width: calc(100% - 32px); padding: 20px 24px; border: 0; border-radius: 4px; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3); }
+            .sps-preset-dialog::backdrop { background: rgba(0, 0, 0, 0.5); }
+            .sps-preset-dialog h2 { margin: 0 32px 8px 0; }
+            .sps-preset-dialog__close { position: absolute; top: 12px; right: 12px; }
+            .sps-preset-dialog__close .button-link { color: inherit; }
+            .sps-preset-dialog__list { margin: 8px 0 12px; max-height: 50vh; overflow: auto; }
+            .sps-preset-dialog__list li { margin: 0; padding: 8px 0; border-top: 1px solid rgba(127, 127, 127, 0.25); }
+            .sps-preset-dialog__list label { display: block; padding-left: 26px; text-indent: -26px; }
+            .sps-preset-dialog__list input[type="checkbox"] { margin: 0 6px 0 0; }
+            .sps-preset-dialog__list code { word-break: break-all; }
+            .sps-preset-dialog__values { display: block; margin-top: 2px; text-indent: 0; color: #646970; }
+            .sps-preset-dialog__list li:has(input:not(:checked)) { opacity: 0.6; }
+            .sps-preset-dialog__note { color: #646970; }
+            .sps-preset-dialog__actions { display: flex; gap: 8px; margin-bottom: 0; }
         </style>
         <?php
     }
@@ -526,37 +604,38 @@ class SEOProStack_Plugin_Presets extends SEOProStack_Feature {
             'apply' => __('Apply SEO Pro Stack’s presets to %d plugins? Only plugins with a preset change. You can undo each one.', 'seoprostack'),
             /* translators: %d: number of plugins */
             'reset' => __('Reset the preset settings of %d plugins to their defaults? Only plugins with a preset change. You can undo each one.', 'seoprostack'),
-            /* translators: 1: number of ticked settings, 2: number of settings that differ, 3: plugin name */
-            'some'  => __('Change %1$s of %2$s settings of %3$s to SEO Pro Stack’s preset? The unticked ones stay as they are. You can undo this.', 'seoprostack'),
-            'none'  => __('Tick at least one setting to apply.', 'seoprostack'),
+            /* translators: %d: number of settings */
+            'many'  => __('Apply %d settings', 'seoprostack'),
+            'one'   => __('Apply 1 setting', 'seoprostack'),
+            'none'  => __('Tick a setting to apply', 'seoprostack'),
         );
         $bulk = array('apply' => self::BULK_APPLY, 'reset' => self::BULK_RESET);
         ?>
         <script>
         (function (t, bulk) {
-            document.querySelectorAll('.sps-preset-go').forEach(function (p) { p.hidden = false; });
-            // Apply with only the ticked settings of one plugin's list.
-            function apply(slug) {
-                var link = document.querySelector('a[data-sps-apply="' + slug + '"]');
-                if (!link) { return; }
-                var picks = Array.prototype.filter.call(document.querySelectorAll('.sps-preset-pick'), function (box) {
-                    return box.getAttribute('data-sps-plugin') === slug;
-                });
-                var ticked = picks.filter(function (box) { return box.checked; });
-                if (!ticked.length) { window.alert(t.none); return; }
-                var url = link.href;
-                var ask = link.getAttribute('data-sps-confirm');
-                if (ticked.length < picks.length) {
-                    ticked.forEach(function (box) { url += '&only[]=' + encodeURIComponent(box.value); });
-                    ask = t.some.replace('%1$s', ticked.length).replace('%2$s', picks.length).replace('%3$s', link.getAttribute('data-sps-name'));
-                }
-                if (window.confirm(ask)) { window.location.href = url; }
+            // Apply preset and the row's status open the preset's dialog.
+            function dialogOf(slug) {
+                return document.getElementById('sps-preset-' + slug);
             }
+            // The Apply button says how many settings change, and waits for at least one.
+            document.querySelectorAll('.sps-preset-dialog__form').forEach(function (form) {
+                var button = form.querySelector('button[type="submit"]');
+                function count() {
+                    var n = form.querySelectorAll('input[name="only[]"]:checked').length;
+                    button.disabled = !n;
+                    button.textContent = !n ? t.none : (1 === n ? t.one : t.many.replace('%d', n));
+                }
+                form.addEventListener('change', count);
+                form.querySelector('[data-sps-dialog-cancel]').addEventListener('click', function () {
+                    form.closest('dialog').close();
+                });
+            });
             document.addEventListener('click', function (e) {
-                var go = e.target.closest && e.target.closest('[data-sps-apply-picked], a[data-sps-apply]');
-                if (go) {
+                var open = e.target.closest && e.target.closest('[data-sps-dialog]');
+                var d = open ? dialogOf(open.getAttribute('data-sps-dialog')) : null;
+                if (d && typeof d.showModal === 'function') {
                     e.preventDefault();
-                    apply(go.getAttribute('data-sps-apply-picked') || go.getAttribute('data-sps-apply'));
+                    d.showModal();
                     return;
                 }
                 var a = e.target.closest && e.target.closest('a[data-sps-confirm]');
