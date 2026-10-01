@@ -41,8 +41,7 @@
 	display: flex;
 	flex-wrap: wrap;
 	align-items: center;
-	justify-content: space-between;
-	gap: 12px;
+	gap: 12px 24px;
 	padding: 14px 24px;
 	background: var(--sps-surface);
 	border-block-end: 1px solid var(--sps-border);
@@ -79,20 +78,71 @@
 	flex-wrap: wrap;
 	align-items: center;
 	gap: 8px;
+	margin-inline-start: auto;
 }
 
 /* Search ------------------------------------------------------------- */
 
+/* Stretch, so the field always matches the button's height, whatever
+   size the admin colour scheme or WordPress version gives buttons. */
 .sps-search {
 	display: flex;
-	align-items: center;
-	gap: 4px;
+	align-items: stretch;
+	gap: 6px;
+}
+
+.sps-search__field {
+	position: relative;
+	display: flex;
+	align-items: stretch;
+}
+
+.sps-wrap .sps-search__icon {
+	position: absolute;
+	inset-block: 0;
+	inset-inline-start: 9px;
+	margin-block: auto;
+	color: var(--sps-muted);
+	pointer-events: none;
 }
 
 .sps-wrap .sps-search__input {
-	width: 220px;
+	width: 260px;
 	max-width: 100%;
+	height: auto;
 	min-height: 30px;
+	margin: 0;
+	padding-block: 0;
+	padding-inline: 34px 10px;
+	font-size: 14px;
+	line-height: normal;
+	color: var(--sps-text);
+	background: var(--sps-surface);
+	/* Border and corners stay core's, so they match core buttons in each version. */
+	box-shadow: none;
+	transition: border-color 0.1s ease-in-out, box-shadow 0.1s ease-in-out;
+}
+
+.sps-wrap .sps-search__input::placeholder {
+	color: var(--sps-muted);
+	opacity: 1;
+}
+
+.sps-wrap .sps-search__input:hover {
+	border-color: var(--sps-accent);
+}
+
+.sps-wrap .sps-search__input:focus {
+	border-color: var(--sps-accent);
+	box-shadow: 0 0 0 1px var(--sps-accent);
+	outline: 2px solid transparent;
+}
+
+.sps-wrap .sps-search__field:focus-within .sps-search__icon {
+	color: var(--sps-accent);
+}
+
+.sps-wrap .sps-search__button {
 	margin: 0;
 }
 
@@ -932,12 +982,15 @@
 		flex-wrap: nowrap;
 	}
 
-	.sps-header__actions {
+	/* Brand and website link on the first row, search across the second. */
+	.sps-search {
+		order: 1;
 		flex: 1 1 100%;
+		min-width: 0;
 	}
 
-	.sps-search {
-		flex: 1 1 260px;
+	.sps-search__field {
+		flex: 1 1 0;
 		min-width: 0;
 	}
 
@@ -946,6 +999,7 @@
 		width: auto;
 		min-width: 0;
 		min-height: 40px;
+		font-size: 16px;
 	}
 
 	.sps-search .button {

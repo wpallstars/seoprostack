@@ -9,7 +9,7 @@ Version: {SEOPROSTACK_VERSION}
 Go to **Settings → SEO Pro Stack**. The screen has three groups of tabs:
 
 - **Settings**: Admin, Content, Media, Links, Speed and Plugins (Maintenance appears once it has features). Changes save instantly; there is no Save button.
-- **Search features** (top right) finds settings on every tab by name, description or the plugin they replace. Results can be switched on and changed in place.
+- **Search features** (next to the plugin name) finds settings on every tab by name, description or the plugin they replace. Results can be switched on and changed in place.
 - **Discover**: Theme, Free Plugins, Pro Plugins, Hosting and Tools.
 - **About**: this Read Me.
 
