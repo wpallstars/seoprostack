@@ -27,6 +27,7 @@ final class SEOProStack {
         'SEOProStack_Dashboard_Layout',
         'SEOProStack_Notification_Emails',
         'SEOProStack_Admin_Notices',
+        'SEOProStack_Freemius_Quiet',
         'SEOProStack_Admin_Bar_More',
         'SEOProStack_Admin_Bar_Hide',
         'SEOProStack_List_Columns',

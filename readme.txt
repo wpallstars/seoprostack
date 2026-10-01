@@ -21,6 +21,7 @@ Everything is off by default except Hide admin bar items, which hides Comments a
 * **Organise the admin menu**: the same menu sections on every site, with places chosen from a list, role previews and client safeguards. Replaces Admin Menu Editor.
 * **Tidy the dashboard** and **Dashboard and sidebar widgets**: the same Dashboard on every site, without boxes and widgets you never use.
 * **Hide admin bar items** (on by default), a **More menu** for plugin items in the admin bar, and **Hide admin notices**, which moves plugin and theme notices behind a bell.
+* **Quiet Freemius prompts**: no opt-in nags, upgrade offers or deactivation surveys from plugins that use Freemius.
 * **Admin bar and dashboard access**: hide the admin bar and block wp-admin for roles such as subscribers and customers. Administrators are never affected.
 * **Magic login links**: “Email me a login link” on the login screen. Links work once, expire, and log in only after a button press, so email scanners cannot use them up.
 * **Modern admin colours**, **No fade between admin screens** (on by default), **Readable list columns** and **Notification emails**, which stops routine emails one by one.
@@ -113,6 +114,7 @@ Copies from WordPress.org update from WordPress.org. New versions come out on Gi
 == Changelog ==
 
 = Unreleased =
+* New, off by default: Quiet Freemius prompts.
 * New: Load plugins only where needed can also skip chosen admin tools on the site.
 * Change: Load plugins only where needed also speeds up SEO Pro Stack’s own settings.
 * Fix: the admin menu opens on Kadence Blocks’ lists. Screens that fail with fewer plugins recover when Query Monitor is active.
