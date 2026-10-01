@@ -68,3 +68,6 @@ wp-content/uploads/
 
 # aidevops runtime state
 .agents/loop-state/
+
+# Release builds (scripts/build-release.sh)
+/dist/

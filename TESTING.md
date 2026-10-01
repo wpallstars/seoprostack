@@ -90,6 +90,7 @@ When testing a new version:
 - [ ] Changelog updated
 - [ ] Documentation reflects new features
 - [ ] All scripts and styles properly enqueued
+- [ ] `scripts/preflight-release.sh` and `scripts/plugin-check.sh` report no errors (steps and the WordPress.org checklist: `RELEASING.md`)
 
 ## Regression Testing
 
