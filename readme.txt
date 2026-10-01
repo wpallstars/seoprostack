@@ -130,7 +130,7 @@ They stay scheduled and publish at their times. Turning it off only stops new po
 * Change: Hide the admin bar and Block dashboard access no longer offer Administrator, since administrators are never affected.
 * Change: on new sites, SVG uploads also allows authors, contributors and shop managers, and watermarks are 10% of the picture. Existing settings are kept.
 * Change: Resize large uploads no longer imports Imsanity’s default limit (1920), so 2560 is used.
-* Change: the notices bell always sits next to the account menu in the admin bar, with the Plugins menu to its left and other plugins’ items further left.
+* Change: the Plugins menu always sits next to the account menu in the admin bar, with the notices bell to its left and other plugins’ items further left, so the bell appearing never moves them.
 
 = 0.4.0 =
 * Settings are grouped into Admin, Content, Media, Links and Speed tabs. Old links still open the right tab.
