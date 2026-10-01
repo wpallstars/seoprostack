@@ -55,6 +55,9 @@ class SEOProStack_Admin_Menu extends SEOProStack_Feature {
     /** Setting: section headings fold. */
     const FOLD_KEY = 'admin_menu_fold';
 
+    /** Setting: the menu widens to fit its names. */
+    const FIT_KEY = 'admin_menu_fit';
+
     /** Option: which plugin owns each admin page, until plugins change. */
     const CACHE = 'seoprostack_admin_menu';
 
@@ -232,6 +235,14 @@ class SEOProStack_Admin_Menu extends SEOProStack_Feature {
                 'reload'      => true,
                 'label'       => __('Fold sections', 'seoprostack'),
                 'description' => __('Click a section heading to hide its entries. Each person’s folded sections are remembered.', 'seoprostack'),
+            ),
+            self::FIT_KEY => array(
+                'type'        => 'bool',
+                'default'     => true,
+                'parent'      => self::KEY,
+                'reload'      => true,
+                'label'       => __('Fit the menu to its names', 'seoprostack'),
+                'description' => __('The menu widens, up to 280 pixels, so entry names fit on one line.', 'seoprostack'),
             ),
         );
 
@@ -1621,6 +1632,7 @@ class SEOProStack_Admin_Menu extends SEOProStack_Feature {
                 wp_localize_script(self::HANDLE, 'seoprostackAdminMenu', array(
                     'setting' => self::FOLD,
                     'fold'    => (bool) SEOProStack_Settings::get(self::FOLD_KEY),
+                    'fit'     => (bool) SEOProStack_Settings::get(self::FIT_KEY),
                 ));
             }
         }

@@ -193,6 +193,42 @@
 	display: block;
 }
 
+/*
+ * Fit the menu to its names: the script measures with names on one line
+ * (and folded sections shown), then sets --sps-menu-width on <body>.
+ * Logical properties, so right-to-left languages work too.
+ */
+body.sps-menu-measure #adminmenu .wp-menu-name,
+body.sps-menu-measure #adminmenu .wp-submenu a {
+	white-space: nowrap;
+}
+
+body.sps-menu-measure #adminmenu li.sps-menu-folded {
+	display: block;
+}
+
+@media only screen and (min-width: 961px) {
+	body.sps-menu-fit:not(.folded) #adminmenuback,
+	body.sps-menu-fit:not(.folded) #adminmenuwrap,
+	body.sps-menu-fit:not(.folded) #adminmenu {
+		width: var(--sps-menu-width, 160px);
+	}
+
+	body.sps-menu-fit:not(.folded) #wpcontent,
+	body.sps-menu-fit:not(.folded) #wpfooter {
+		margin-inline-start: var(--sps-menu-width, 160px);
+	}
+
+	body.sps-menu-fit:not(.folded) #adminmenu .wp-not-current-submenu .wp-submenu {
+		inset-inline-start: var(--sps-menu-width, 160px);
+	}
+
+	/* Block editor, when not full screen. */
+	body.sps-menu-fit:not(.folded):not(.is-fullscreen-mode) .interface-interface-skeleton {
+		inset-inline-start: var(--sps-menu-width, 160px);
+	}
+}
+
 /* Phones: no room to the side; the current page's list still shows. */
 @media screen and (max-width: 782px) {
 	#adminmenu .wp-submenu li.sps-menu-has-sub:hover > ul.sps-menu-flyout,

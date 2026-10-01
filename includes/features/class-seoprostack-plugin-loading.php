@@ -144,6 +144,21 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
     private static $pages = null;
 
     /**
+     * Plugins seen changing the list on this request: plugin file => true,
+     * or the column keys it added.
+     *
+     * @var array<string,true|string[]>
+     */
+    private static $table_seen = array();
+
+    /**
+     * List hook callbacks already watched: "hook|priority|id" => true.
+     *
+     * @var array<string,true>
+     */
+    private static $table_watched = array();
+
+    /**
      * Settings.
      *
      * @return array
@@ -221,6 +236,10 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
                 add_action('admin_menu', array(__CLASS__, 'capture_menu'), PHP_INT_MAX);
                 add_action('adminmenu', array(__CLASS__, 'prune_menu'));
                 add_action('admin_footer', array(__CLASS__, 'learn'), PHP_INT_MAX);
+                if (self::table_hooks($state['screen'])) {
+                    // Before each list hook runs: see which plugins change it.
+                    add_action('all', array(__CLASS__, 'watch_table_hook'));
+                }
             }
         }
     }
@@ -835,6 +854,7 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
                 'widgets'     => self::widget_plugins(),
                 'pages'       => array(),
                 'screens'     => array(),
+                'tables'      => array(),
                 'load_all'    => array(),
             );
         } else {
@@ -869,6 +889,14 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
                 $map['site_editor_theme'] = get_option('stylesheet');
             } else {
                 $map['screens'][$screen] = self::form_plugins($kind, $name);
+            }
+            if (self::table_hooks($screen)) {
+                // Added to what was seen before: rows, and with them row links,
+                // only show when the list has items.
+                $tables          = isset($map['tables']) ? (array) $map['tables'] : array();
+                $before          = isset($tables[$screen]) ? (array) $tables[$screen] : array();
+                $tables[$screen] = array_values(array_unique(array_merge($before, self::table_plugins())));
+                $map['tables']   = $tables;
             }
         }
 
@@ -1092,6 +1120,174 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
         return self::plugins_on_hooks(function ($hook) use ($kind, $name) {
             return SEOProStack_Plugin_Loader::screen_needs_hook($kind, $name, $hook);
         });
+    }
+
+    /**
+     * Hooks through which plugins add to a list screen, and how to tell
+     * whether a callback added something: "columns" (column keys it adds),
+     * "filter" (it changes the value or prints) or "action" (it prints).
+     * Hooks for both post and page lists are listed: only those that run count.
+     *
+     * @param string $screen Screen key.
+     * @return array<string,string> Hook => kind; empty for screens without a list.
+     */
+    private static function table_hooks($screen) {
+        list($kind, $name) = array_pad(explode(':', (string) $screen, 2), 2, '');
+        if ('list' === $kind && 'attachment' === $name) {
+            return array(
+                'manage_media_columns'        => 'columns',
+                'manage_upload_columns'       => 'columns',
+                'media_row_actions'           => 'filter',
+                'views_upload'                => 'filter',
+                'bulk_actions-upload'         => 'filter',
+                'restrict_manage_posts'       => 'action',
+                'manage_posts_extra_tablenav' => 'action',
+                'manage_media_custom_column'  => 'action',
+            );
+        }
+        if ('list' === $kind && '' !== $name) {
+            return array(
+                'manage_posts_columns'                     => 'columns',
+                'manage_pages_columns'                     => 'columns',
+                'manage_' . $name . '_posts_columns'       => 'columns',
+                'manage_edit-' . $name . '_columns'        => 'columns',
+                'post_row_actions'                         => 'filter',
+                'page_row_actions'                         => 'filter',
+                'views_edit-' . $name                      => 'filter',
+                'bulk_actions-edit-' . $name               => 'filter',
+                'restrict_manage_posts'                    => 'action',
+                'manage_posts_extra_tablenav'              => 'action',
+                'manage_posts_custom_column'               => 'action',
+                'manage_pages_custom_column'               => 'action',
+                'manage_' . $name . '_posts_custom_column' => 'action',
+            );
+        }
+        if ('terms' === $kind && '' !== $name) {
+            return array(
+                'manage_edit-' . $name . '_columns'  => 'columns',
+                $name . '_row_actions'               => 'filter',
+                'views_edit-' . $name                => 'filter',
+                'bulk_actions-edit-' . $name         => 'filter',
+                'manage_' . $name . '_custom_column' => 'filter',
+            );
+        }
+        if ('users' === $kind) {
+            return array(
+                'manage_users_columns'        => 'columns',
+                'user_row_actions'            => 'filter',
+                'views_users'                 => 'filter',
+                'bulk_actions-users'          => 'filter',
+                'manage_users_custom_column'  => 'filter',
+                'restrict_manage_users'       => 'action',
+                'manage_users_extra_tablenav' => 'action',
+            );
+        }
+        return array();
+    }
+
+    /**
+     * Just before a list hook runs (on the `all` hook, while learning a list
+     * screen): wrap each plugin's callback on it, so that what it adds is
+     * noted. The callbacks keep their keys, so removing them still works.
+     *
+     * @param string $hook Hook about to run.
+     */
+    public static function watch_table_hook($hook) {
+        global $wp_filter;
+        static $hooks = null;
+        if (null === $hooks) {
+            $state = SEOProStack_Plugin_Loader::state();
+            $hooks = self::table_hooks($state['screen']);
+        }
+        if (!is_string($hook) || !isset($hooks[$hook]) || empty($wp_filter[$hook]) || !($wp_filter[$hook] instanceof WP_Hook)) {
+            return;
+        }
+        $type = $hooks[$hook];
+        $self = plugin_basename(SEOPROSTACK_FILE);
+        foreach ($wp_filter[$hook]->callbacks as $priority => $callbacks) {
+            foreach ($callbacks as $id => $callback) {
+                $key = $hook . '|' . $priority . '|' . $id;
+                if (isset(self::$table_watched[$key])) {
+                    continue;
+                }
+                self::$table_watched[$key] = true;
+                $plugin = SEOProStack_Plugin_Loader::plugin_for_callback($callback['function']);
+                if ('' === $plugin || $self === $plugin) {
+                    continue;
+                }
+                $wp_filter[$hook]->callbacks[$priority][$id]['function'] = self::table_watcher($callback['function'], $plugin, $type);
+            }
+        }
+    }
+
+    /**
+     * A callback that runs the plugin's own and notes what it added.
+     *
+     * @param callable $original Plugin's callback.
+     * @param string   $plugin   Plugin file.
+     * @param string   $type     "columns", "filter" or "action".
+     * @return Closure
+     */
+    private static function table_watcher($original, $plugin, $type) {
+        return function (...$args) use ($original, $plugin, $type) {
+            ob_start();
+            $value  = call_user_func_array($original, $args);
+            $output = (string) ob_get_clean();
+            echo $output; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- the plugin's own output, passed on as it was.
+            $before  = isset($args[0]) ? $args[0] : null;
+            $printed = '' !== trim($output);
+            if ('columns' === $type && is_array($value)) {
+                $added = array_diff(array_map('strval', array_keys($value)), is_array($before) ? array_map('strval', array_keys($before)) : array());
+                if ($added) {
+                    self::table_saw($plugin, array_values($added));
+                } elseif ($printed) {
+                    self::table_saw($plugin, true);
+                }
+            } elseif ($printed || ('filter' === $type && $value !== $before)) {
+                self::table_saw($plugin, true);
+            }
+            return $value;
+        };
+    }
+
+    /**
+     * Note that a plugin added to the list.
+     *
+     * @param string        $plugin Plugin file.
+     * @param true|string[] $what   True, or the column keys it added.
+     */
+    private static function table_saw($plugin, $what) {
+        $seen = isset(self::$table_seen[$plugin]) ? self::$table_seen[$plugin] : array();
+        if (true === $seen || true === $what) {
+            self::$table_seen[$plugin] = true;
+            return;
+        }
+        self::$table_seen[$plugin] = array_values(array_unique(array_merge($seen, $what)));
+    }
+
+    /**
+     * Plugins that added to the list on this request. A plugin that only
+     * added columns counts when one of them shows (not removed later, by
+     * Readable list columns or another plugin).
+     *
+     * @return string[]
+     */
+    private static function table_plugins() {
+        $shown  = null;
+        $result = array();
+        foreach (self::$table_seen as $plugin => $what) {
+            if (true !== $what) {
+                if (null === $shown) {
+                    $screen = function_exists('get_current_screen') ? get_current_screen() : null;
+                    $shown  = $screen && function_exists('get_column_headers') ? array_map('strval', array_keys((array) get_column_headers($screen))) : array();
+                }
+                if (!array_intersect($what, $shown)) {
+                    continue;
+                }
+            }
+            $result[] = $plugin;
+        }
+        return $result;
     }
 
     /**

@@ -22,6 +22,10 @@
  * - on post, term, list, profile, user, Tools and media upload screens
  *   where it adds boxes, fields, blocks or editor features, or saves
  *   profile fields (learned per screen with every plugin loaded);
+ * - on post, media, term and user lists where it adds a column that shows,
+ *   a filter, a view, a row link or a bulk action (seen in what it changes
+ *   or prints there while every plugin loads, so plugins whose columns are
+ *   removed do not count);
  * - on the Dashboard when one of its boxes shows there (after Tidy the
  *   dashboard has hidden the ones nobody sees);
  * - on Appearance > Menus when it changes menus or their items there,
@@ -81,7 +85,7 @@ final class SEOProStack_Plugin_Loader {
     const LIST_KEY   = 'plugin_loading_only';
 
     /** Map format; a change makes SEO Pro Stack learn again. */
-    const MAP_VERSION = 4;
+    const MAP_VERSION = 5;
 
     /** SEO Pro Stack's own settings page (Settings > SEO Pro Stack). */
     const SETTINGS_PAGE = 'seoprostack';
@@ -805,6 +809,10 @@ final class SEOProStack_Plugin_Loader {
                 return null;
             }
             $wanted = (array) $map['screens'][$screen];
+            // Columns, filters and links plugins add to lists.
+            if (isset($map['tables'][$screen])) {
+                $wanted = array_merge($wanted, (array) $map['tables'][$screen]);
+            }
             if ('site-editor' === $kind && (!isset($map['site_editor_theme']) || get_option('stylesheet') !== $map['site_editor_theme'])) {
                 return null; // Learned with another theme: what it offers differs.
             }
