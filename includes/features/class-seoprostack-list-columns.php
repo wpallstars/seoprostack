@@ -18,7 +18,7 @@
  * are switched on or off in Screen Options and when the window changes size.
  *
  * @package SEOProStack
- * @since 0.5.1
+ * @since 0.6.0
  */
 
 if (!defined('ABSPATH')) {
