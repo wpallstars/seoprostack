@@ -900,7 +900,7 @@ class SEOProStack_Licence_Calls extends SEOProStack_Feature {
             </form>
         </dialog>
         <style>
-            .sps-licence { max-width: 560px; width: calc(100% - 32px); padding: 20px 24px; border: 0; border-radius: 4px; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3); }
+            .sps-licence { box-sizing: border-box; max-width: 560px; width: calc(100% - 32px); padding: 20px 24px; border: 0; border-radius: 4px; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3); }
             .sps-licence::backdrop { background: rgba(0, 0, 0, 0.5); }
             .sps-licence h2 { margin: 0 32px 8px 0; }
             .sps-licence__close { position: absolute; top: 12px; right: 12px; }
