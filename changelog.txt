@@ -4,6 +4,11 @@ Every change to SEO Pro Stack. readme.txt lists the latest version in short.
 
 = Unreleased =
 * New, off by default: Faster editor with Kadence Blocks (Speed tab) loads Kadence’s design library when you open it, instead of in every editor page. On a test site the new post screen went from about 24 MB to under 9 MB.
+* Fix: with Load plugins only where needed, Organise the admin menu puts the entries of plugins a screen skips in the same places as on other screens.
+* Fix: the admin menu keeps its order when a plugin’s script moves entries (MasterStudy LMS moved WooCommerce Analytics above Posts).
+* Change: Organise the admin menu knows more plugins: MasterStudy LMS (Content), Lasso Lite and Revive.so (SEO), and GOTMLS, FluentSnippets, Easy Code Manager, Hreflang Manager Lite, Plugin Check, Git Updater, Disable WordPress Updates and WP Sheet Editor’s welcome pages (Developers).
+* Change: Tidy the dashboard also hides MasterStudy’s announcements and news and WP Sheet Editor’s usage stats.
+* Fix: Hide admin notices moves WooCommerce’s lasting notices and plain message boxes such as MainWP Child’s behind the bell.
 
 = 0.5.0 =
 * New: Free Plugins installs, activates, deactivates and uninstalls plugins without leaving the page. Activate becomes Deactivate, and a deactivated plugin offers Uninstall. It uses the full screen width, and its categories stay on one line.
