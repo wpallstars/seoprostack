@@ -118,9 +118,10 @@ Copies from WordPress.org update from WordPress.org. New versions come out on Gi
 * New: presets for EventON Lite, FluentCRM, Fluent Forms, Kadence Blocks, Lasso Lite, LiteSpeed Cache and WooCommerce.
 * New, on by default: Quiet Freemius prompts.
 * New: Load plugins only where needed can also skip chosen admin tools on the site.
-* Change: Load plugins only where needed also speeds up SEO Pro Stack’s own settings, Appearance › Menus and Appearance › Editor.
+* Change: Load plugins only where needed also speeds up SEO Pro Stack’s own settings, Appearance › Menus and Editor.
 * Fix: the admin menu opens on Kadence Blocks’ lists. Screens that fail with fewer plugins recover with Query Monitor. The Dashboard shows plugins’ boxes again.
-* Fix: admin screens no longer jump as they load with Hide admin notices or Tidy the dashboard.
+* Fix: admin screens no longer jump as they load.
+* Change: Tidy the dashboard hides WooCommerce Setup.
 
 = 0.6.0 =
 * New, off by default: Faster editor with Kadence Blocks loads Kadence’s design library only when you open it. Plugin presets. Readable list columns.

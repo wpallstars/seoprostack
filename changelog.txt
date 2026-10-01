@@ -3,6 +3,7 @@
 Every change to SEO Pro Stack. readme.txt lists the latest version in short.
 
 = Unreleased =
+* Change: Tidy the dashboard also hides WooCommerce Setup, which repeats the task list on WooCommerce → Home.
 * Change: MasterStudy LMS is no longer recommended; Tutor LMS is the recommended LMS. Free Plugins, Pro Plugins, Organise the admin menu and Tidy the dashboard drop their MasterStudy entries.
 * New: Plugin presets for EventON Lite (its files only on calendar pages, no Google Fonts), FluentCRM (anonymised IP addresses, no Gravatar), Fluent Forms (no weekly summary, IP logging or admin bar menu), Kadence Blocks (Google Fonts from your own site), Lasso Lite and LiteSpeed Cache (no promotions) and WooCommerce (no remote logging, marketplace suggestions or Order attribution tracking).
 * Fix: Plugin presets: Reset to defaults now removes settings the plugin had not stored before, instead of leaving them empty.
