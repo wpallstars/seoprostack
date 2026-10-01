@@ -2,6 +2,9 @@
 
 Every change to SEO Pro Stack. readme.txt lists the latest version in short.
 
+= Unreleased =
+* New: starter data for Fluent Forms: a Contact Form, Discovery Call Form, Subscription Form and Data Subject Access Request Form, named for what they are for. With FluentCRM active, each sends people to the FluentCRM list named after it and tags them from their answers (the newsletter tick box, or who they are on the access request). Phone fields and proof uploads need Fluent Forms Pro and are left out without it. Remove keeps forms with entries, forms placed on a page and forms changed since.
+
 = 0.7.0 =
 * New, off by default: Ask before licence checks (Plugins tab). Premium plugins and themes stop checking their licence with their maker’s server until you choose, per plugin: allow it once now, once a day (the answer is reused for the rest of the day, so pages do not wait) or never. You are asked on the next admin screen, or again tomorrow, in a week, a month or a year, and can choose again or forget your choices from the Licence checks link on the Plugins screen. Update checks are left alone.
 * New: Plugin presets: untick any setting in a plugin's list of settings that differ, and Apply changes only the ticked ones.

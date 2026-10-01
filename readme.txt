@@ -113,6 +113,9 @@ Copies from WordPress.org update from there. New versions come out on GitHub fir
 
 == Changelog ==
 
+= Unreleased =
+* New: starter data for Fluent Forms: four forms that feed FluentCRM lists and tags.
+
 = 0.7.0 =
 * New, off by default: Ask before licence checks.
 * New: presets for eight more plugins, applied setting by setting; starter data for FluentCRM and Fluent Boards.
