@@ -90,6 +90,10 @@ class SEOProStack_Presets_CLI {
      * [--all]
      * : Every plugin with a preset that is installed.
      *
+     * [--only=<settings>]
+     * : Comma-separated settings to change, as `diff` names them
+     * (tutor_option.course_retake_feature). The preset's others stay as they are.
+     *
      * @param array $args       Arguments.
      * @param array $assoc_args Options.
      */
@@ -242,8 +246,12 @@ class SEOProStack_Presets_CLI {
         if (!$args) {
             WP_CLI::error('Name a plugin, or use --all.');
         }
+        $only = null;
+        if ('options' === $set && !empty($assoc_args['only'])) {
+            $only = array_values(array_filter(array_map('trim', explode(',', (string) $assoc_args['only']))));
+        }
         foreach ($args as $slug) {
-            $result = SEOProStack_Presets::write($slug, $set);
+            $result = SEOProStack_Presets::write($slug, $set, $only);
             if (is_wp_error($result)) {
                 WP_CLI::warning($slug . ': ' . $result->get_error_message());
                 continue;

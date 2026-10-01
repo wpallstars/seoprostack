@@ -389,14 +389,49 @@ final class SEOProStack_Presets {
     }
 
     /**
+     * The part of a wanted value that covers the chosen paths. Walks the
+     * value as diff_into() does, so paths match differences().
+     *
+     * @param string $path    Path of the value.
+     * @param mixed  $current Stored value.
+     * @param mixed  $wanted  Wanted value.
+     * @param array  $chosen  Chosen paths (as keys).
+     * @return array{0:mixed}|null The wanted part, wrapped; null when nothing is chosen.
+     */
+    private static function pick($path, $current, $wanted, array $chosen) {
+        if (isset($chosen[$path])) {
+            return array($wanted);
+        }
+        if (!is_array($wanted) || self::is_list($wanted) || !is_array($current)) {
+            return null;
+        }
+        $part = array();
+        foreach ($wanted as $key => $value) {
+            if (self::is_secret($key)) {
+                continue;
+            }
+            $picked = self::pick($path . '.' . $key, array_key_exists($key, $current) ? $current[$key] : null, $value, $chosen);
+            if (null !== $picked) {
+                $part[$key] = $picked[0];
+            }
+        }
+        return $part ? array($part) : null;
+    }
+
+    /**
      * Write a preset's options (apply) or defaults (reset), keeping a copy
      * of what was there so it can be undone.
      *
-     * @param string $slug Plugin folder.
-     * @param string $set  options or defaults.
+     * With $only, just those settings change (paths as differences() names
+     * them, such as tutor_option.course_retake_feature); the preset's other
+     * settings stay as they are.
+     *
+     * @param string        $slug Plugin folder.
+     * @param string        $set  options or defaults.
+     * @param string[]|null $only Paths of the settings to change; null for all.
      * @return int|WP_Error Number of settings changed.
      */
-    public static function write($slug, $set = 'options') {
+    public static function write($slug, $set = 'options', $only = null) {
         $preset = self::get($slug);
         if (!$preset) {
             return new WP_Error('seoprostack_no_preset', __('There is no preset for this plugin.', 'seoprostack'));
@@ -404,13 +439,26 @@ final class SEOProStack_Presets {
         if (empty($preset[$set])) {
             return new WP_Error('seoprostack_no_defaults', __('This preset does not list the plugin’s defaults.', 'seoprostack'));
         }
-        $changed = count(self::differences($slug, $set));
+        $diffs = self::differences($slug, $set);
+        $wants = $preset[$set];
+        if (is_array($only)) {
+            $diffs = array_intersect_key($diffs, array_flip(array_map('strval', $only)));
+            $wants = array();
+            foreach ($preset[$set] as $name => $wanted) {
+                list(, $current) = self::read($name);
+                $picked = self::pick((string) $name, $current, $wanted, $diffs);
+                if (null !== $picked) {
+                    $wants[$name] = $picked[0];
+                }
+            }
+        }
+        $changed = count($diffs);
         if (!$changed) {
             return 0; // Keep the copy from the change that made it so.
         }
 
         $backup = array();
-        foreach ($preset[$set] as $name => $wanted) {
+        foreach ($wants as $name => $wanted) {
             list($exists, $current) = self::read($name);
             if (is_object($current)) {
                 continue;
