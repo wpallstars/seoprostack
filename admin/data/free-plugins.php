@@ -22,8 +22,18 @@ if (!defined('ABSPATH')) {
 // tested up to WordPress 6.5, and WordPress and Kadence Blocks cover its
 // features (block visibility by login state and device, underline, highlight,
 // letter case, nofollow links).
+// Git Updater is not listed here: builds from GitHub releases add it to
+// Minimal (includes/features/class-seoprostack-github-updates.php), and the
+// WordPress.org build may not offer plugins from elsewhere.
 function seoprostack_get_free_plugins() {
-    return array(
+    /**
+     * Filter the recommended plugins by category. Slugs are WordPress.org
+     * slugs, or keys of `seoprostack_external_plugins` for plugins from
+     * elsewhere.
+     *
+     * @param array<string,string[]> $plugins Category => slugs.
+     */
+    return (array) apply_filters('seoprostack_free_plugins', array(
         'minimal' => array(
             'antispam-bee',
             'fluent-smtp',
@@ -147,7 +157,7 @@ function seoprostack_get_free_plugins() {
             'user-switching',
             'wp-crontrol'
         )
-    );
+    ));
 }
 
 /**

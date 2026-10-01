@@ -95,6 +95,8 @@ Before a screenshot is taken, your site also checks that the page can be reached
 
 When **Short links** counts clicks, a visitor who follows a short link gets a cookie for your site (`sps_link_` and the link’s ID, kept for a year, holding only “1”) so they are counted as a unique visitor once. Only the totals are stored; no IP addresses or other visitor details are kept, and nothing is sent anywhere.
 
+Copies installed from GitHub releases (not the WordPress.org version) can install Git Updater: when you press **Install and activate Git Updater** or its Install Now button, your site asks the GitHub API (api.github.com) for Git Updater’s latest release and downloads it from github.com. Nothing about your site is sent beyond the request itself. Git Updater then checks GitHub for updates by itself, under its own settings. See the [GitHub privacy statement](https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement).
+
 No other data is sent.
 
 = Developers =
@@ -129,10 +131,16 @@ Each link is random, stored only as a hash, works once and expires within an hou
 
 They stay scheduled and publish at their times. Turning it off only stops new posts from being queued.
 
+= Where do updates come from? =
+
+Copies installed from WordPress.org update from WordPress.org. New versions are released on GitHub first. Copies installed from a GitHub release zip update from GitHub through the free Git Updater plugin; SEO Pro Stack offers to install it. Those copies also have **Early updates from GitHub** (Maintenance tab), which keeps them on GitHub releases once the plugin is on WordPress.org.
+
 == Changelog ==
 
 = Unreleased =
 * New, off by default: Tidy the dashboard (Admin tab) lays out the Dashboard the same way on every site, hides the Welcome panel, news and plugin promotions, and shows Site Health to developers only and statistics to people who can publish.
+* New: copies installed from GitHub releases get updates from GitHub through the free Git Updater plugin. A notice, and Free Plugins, offer to install and activate it in one click.
+* New, off by default, GitHub copies only: Early updates from GitHub (Maintenance tab) keeps the site on GitHub releases, which come out before WordPress.org.
 * New: a star in the admin bar, next to your name, opens SEO Pro Stack’s settings, for people who can change them.
 * New, off by default: Organise the admin menu (Admin tab) groups the menu into sections, with Administrators and Developers menus and Users under Admin, the same way on every site, with places chosen from a list, sections that can fold and role previews, with client safeguards for people who are not developers (on by default). Replaces Admin Menu Editor.
 * New, off by default: More menu in the admin bar (Admin tab) puts the items plugins and themes add to the left of the admin bar in one … menu, last on that side, so the bar no longer wraps over the page. It opens on hover, like the other admin bar menus. Choose plugins whose items stay on the bar. On phones the menu also reaches plugin items WordPress hides there.
