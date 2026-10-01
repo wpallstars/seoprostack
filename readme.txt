@@ -143,6 +143,7 @@ They stay scheduled and publish at their times. Turning it off only stops new po
 * Change: the Plugins menu always sits next to the account menu in the admin bar, with the notices bell to its left and other plugins’ items further left.
 * Change: the notices bell is on every admin screen, with a white dot instead of a count while there are notices, so nothing on the admin bar moves as the page loads. With no notices, its panel says so.
 * New: with Load plugins only where needed, the notices of plugins a screen skips are kept and shown behind the bell there, so they can be read and dismissed from any screen.
+* Fix: only notices are kept from skipped plugins, so buttons a plugin prints above its own list (such as Kadence Blocks’ Export All and Import) no longer appear on the Dashboard and other screens.
 * Change: the notices panel opens when you point at the bell and closes when you move away, like the other admin bar menus.
 * Change: the notices bell, the Plugins icon and the More menu no longer show a tooltip over their open menus. Screen readers still announce them.
 * New: with Load plugins only where needed, the admin bar can also check every screen again. Both reload options ask first and explain what will happen.
