@@ -71,7 +71,7 @@ Some links in the Pro Plugins, Hosting and Tools directories may be affiliate li
 * **Microlink** (api.microlink.io, or pro.microlink.io with a key): [terms](https://microlink.io/tos), [privacy policy](https://microlink.io/privacy).
 * **ApiFlash** (api.apiflash.com): [terms](https://apiflash.com/terms_of_service), [privacy policy](https://apiflash.com/privacy_policy).
 * **Screenshot Machine** (api.screenshotmachine.com): [terms](https://www.screenshotmachine.com/termsandconditions.php), [privacy policy](https://www.screenshotmachine.com/privacypolicy.php).
-* **GitHub** (api.github.com, github.com), in copies installed from GitHub releases only: with Updates from GitHub on (the default), up to twice a day the site asks for the latest release of SEO Pro Stack and of plugins that name a GitHub repository, and downloads updates you install. Nothing about your site is sent beyond the request. See the [GitHub privacy statement](https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement).
+* **GitHub** (github.com, api.github.com), in copies from GitHub releases only: up to twice a day, asks for new releases of plugins that name a GitHub repository. Nothing about your site is sent. See the [GitHub privacy statement](https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement).
 
 Other features contact only addresses you choose. Copy linked images downloads images already linked in a post when it is saved. The iFrame block makes visitors’ browsers load the pages your editors embed, under those sites’ privacy policies. Magic login links are sent with your site’s normal email. Avatars without Gravatar stops WordPress loading avatars from gravatar.com. Short links that count clicks set a cookie on your site (`sps_link_` and the link’s ID, for a year, holding only “1”); only totals are kept, never IP addresses. No other data is sent.
 
@@ -109,13 +109,13 @@ They stay scheduled and publish at their times.
 
 = Where do updates come from? =
 
-Copies from WordPress.org update from WordPress.org. New versions come out on GitHub first; copies installed from a GitHub release update themselves from GitHub, on the Updates screen like any other plugin. Git Updater is not needed.
+Copies from WordPress.org update from WordPress.org. New versions come out on GitHub first; copies from a GitHub release update from GitHub on the Updates screen.
 
 == Changelog ==
 
 = Unreleased =
-* New: copies from GitHub update without Git Updater, also on PHP 7.4.
-* New: the Plugins screen lists plugins SEO Pro Stack can replace.
+* New: GitHub copies update without Git Updater.
+* New: the Plugins screen lists plugins it replaces.
 * Change: Tutor LMS replaces MasterStudy LMS in the recommended plugins.
 * New: presets for seven more plugins; starter lists, tags and a board for FluentCRM and Fluent Boards.
 * New, on by default: Quiet Freemius prompts.

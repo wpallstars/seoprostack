@@ -23,7 +23,8 @@ from GitHub, and Git Updater where it is still active), so the WordPress.org
 zip is named differently and must never be attached to a GitHub release.
 
 Plugin Check reports Updates from GitHub as an updater
-(`plugin_updater_detected`, `update_modification_detected`) in the GitHub zip;
+(`plugin_updater_detected`, `update_modification_detected`, and
+`OffloadedContent` for its raw.githubusercontent.com address) in the GitHub zip;
 `scripts/plugin-check.sh` lists those as expected there and fails on them in
 the WordPress.org zip.
 

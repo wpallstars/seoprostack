@@ -130,7 +130,7 @@ check_zip() {
 			/^\[/ && current == file {
 				n = split($0, items, "},{")
 				for (i = 1; i <= n; i++) {
-					if (items[i] ~ /"type":"ERROR"/ && items[i] ~ /"code":"(plugin_updater_detected|update_modification_detected)"/) { count++ }
+					if (items[i] ~ /"type":"ERROR"/ && items[i] ~ /"code":"(plugin_updater_detected|update_modification_detected|PluginCheck\.CodeAnalysis\.Offloading\.OffloadedContent)"/) { count++ }
 				}
 			}
 			END { print count + 0 }')"
