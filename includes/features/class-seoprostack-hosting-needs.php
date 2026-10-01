@@ -582,7 +582,8 @@ class SEOProStack_Hosting_Needs extends SEOProStack_Feature {
      *
      * @param float $budget Seconds to spend measuring plugin code.
      * @return array code, opcache, memory, worker (bytes per PHP worker, or 0), traffic, facts,
-     *               dynamic (plugin names), page_cache, measured (time per request), plans and
+     *               dynamic (plugin names), page_cache, measured (time per request), seconds
+     *               (per request, as the plans use it), plans and
      *               advice (list of status => sentence).
      */
     public static function assess($budget) {
@@ -622,6 +623,7 @@ class SEOProStack_Hosting_Needs extends SEOProStack_Feature {
             'dynamic'    => $dynamic,
             'page_cache' => $page_cache,
             'measured'   => null !== $seconds,
+            'seconds'    => $site['seconds'],
             'plans'      => SEOProStack_Hosting_Plans::plans($site, $now_rps),
         );
         $needs['advice'] = self::advice($needs);
@@ -660,7 +662,8 @@ class SEOProStack_Hosting_Needs extends SEOProStack_Feature {
                     'seoprostack'
                 ),
                 number_format_i18n($traffic['peak_hour']),
-                number_format_i18n($traffic['p95'], 2),
+                // The time the plans use: pages when enough were sampled.
+                number_format_i18n($needs['seconds'], 2),
                 number_format_i18n($now['workers'])
             ));
         } else {
