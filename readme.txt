@@ -44,7 +44,7 @@ Everything is off by default. Settings save instantly from **Settings → SEO Pr
 * **Select all across pages**: apply a bulk action to every post that matches the list’s filters, not just the visible page.
 * **410 Gone for removed pages**: tell search engines that removed addresses are gone for good.
 * **Short addresses for custom post types**: serve products and other custom post types at /item-name/ instead of /product/item-name/. Old addresses redirect, and pages keep their address when names clash.
-* **Short links**: short addresses on your site, such as /go/offer/, that send visitors elsewhere with a 301, 302 or 307 redirect, with nofollow and sponsored options, categories and click counts. Imports links, click counts and categories from Pretty Links.
+* **Short links**: short addresses on your site, such as /go/offer/, that send visitors elsewhere with a 301, 302 or 307 redirect, with nofollow and sponsored options, categories and click counts. Starts with Google, Facebook and Trustpilot review links to point at your own review pages. Imports links, click counts and categories from Pretty Links.
 * **Speed**: load pages before the click (Speculation Rules), on the site and optionally in the admin, delay chosen scripts until interaction, and add Google Analytics 4 without slowing the page.
 * **Plugins menu in the admin bar**: a plugin icon on the right of the admin bar lists every plugin. Switch any plugin on or off after confirming, then return to the page you were on.
 * **Plugin sizes**: a Size column on the Plugins screen shows each plugin’s PHP, JavaScript, CSS, media and other files, measured in the background and sortable, with totals for installed and active plugins below the list.
@@ -135,6 +135,7 @@ They stay scheduled and publish at their times. Turning it off only stops new po
 * Change: Resize large uploads no longer imports Imsanity’s default limit (1920), so 2560 is used.
 * Change: the Plugins menu always sits next to the account menu in the admin bar, with the notices bell to its left and other plugins’ items further left, so the bell appearing never moves them.
 * Change: the notices panel opens when you point at the bell and closes when you move away, like the other admin bar menus.
+* New: Short links starts you with /googlereview/, /facebookreview/ and /trustpilotreview/ links. Point them at your own review pages, then use them in email signatures and review requests.
 
 = 0.4.0 =
 * Settings are grouped into Admin, Content, Media, Links and Speed tabs. Old links still open the right tab.
