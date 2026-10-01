@@ -1294,7 +1294,11 @@ class SEOProStack_Admin_Menu extends SEOProStack_Feature {
                         $first = $url;
                     }
                     $is_current = false;
-                    if ($here) {
+                    // On a post type's screen, core sets the menu itself as
+                    // the entry when it finds no Add New entry (Kadence's Add
+                    // New Header marked its Settings page); the post type's
+                    // list is marked below instead.
+                    if ($here && !($sub_file === $slug && !empty($GLOBALS['typenow']))) {
                         $is_current = null !== $sub_file
                             ? $sub_file === $child_slug
                             : (isset($plugin_page) ? $plugin_page === $child_slug : $self === $child_slug);
