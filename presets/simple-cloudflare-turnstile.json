@@ -1,0 +1,26 @@
+{
+    "name": "Simple CAPTCHA with Cloudflare Turnstile",
+    "tested": "1.44.0",
+    "updated": "2026-10-01",
+    "notes": "Protects the login, registration, lost password and comment forms and Fluent Forms. The widget follows the visitor's light or dark mode, fills the form's width and only shows when Cloudflare needs the visitor to do something. The site key and secret key are never part of the preset: add them in the plugin's settings, then use its Test button.",
+    "options": {
+        "cfturnstile_theme": "auto",
+        "cfturnstile_appearance": "interaction-only",
+        "cfturnstile_size": "flexible",
+        "cfturnstile_login": "on",
+        "cfturnstile_register": "on",
+        "cfturnstile_reset": "on",
+        "cfturnstile_comment": "on",
+        "cfturnstile_fluent": "on"
+    },
+    "defaults": {
+        "cfturnstile_theme": null,
+        "cfturnstile_appearance": null,
+        "cfturnstile_size": null,
+        "cfturnstile_login": null,
+        "cfturnstile_register": null,
+        "cfturnstile_reset": null,
+        "cfturnstile_comment": null,
+        "cfturnstile_fluent": null
+    }
+}

@@ -30,6 +30,42 @@ Minimums: **WordPress 6.2, PHP 7.4** (`readme.txt`, plugin header). User docs:
   feature, every service the plugin contacts under External services, and only
   the newest version's changelog, in short. Details go in `README.md`.
 
+## Plugin presets
+
+`presets/{plugin-folder}.json` holds SEO Pro Stack's chosen settings for other
+plugins: the reference point the owner iterates on. Format and merge rules:
+`includes/class-seoprostack-presets.php`. Users apply, reset and undo them on
+the Plugins screen (Plugin presets, Plugins tab) or with
+`wp seoprostack presets list|diff|apply|reset|undo`. These are the only places
+SEO Pro Stack writes other plugins' settings, and only when someone asks.
+
+To add or update a preset, on a throwaway site (never a live one):
+
+1. Install the plugin's current version, activate it and do not configure it.
+   Save `wp seoprostack presets export <folder> --like='<prefix>\_%'` as the
+   fresh snapshot.
+2. Choose the settings in the plugin's own screen, so its save code runs.
+   Choose for speed, privacy (no calls to outside services that are not the
+   point of the plugin), quiet admin screens (no dashboard boxes, promotions
+   or emails that nobody reads), and the Kadence light and dark modes.
+3. Run the export again with `--compare=<snapshot>`. Only changed settings
+   are kept, with the fresh values as `defaults` (`null` means "not stored":
+   the plugin's own default applies).
+4. Remove what is not a preference: state (activation redirects, "tested",
+   version and timestamp options, caches, counters), anything site-specific
+   (addresses, emails, page or post IDs) and anything the export warned about.
+   Secrets are left out automatically; never add them by hand.
+5. Leave out settings that only work when saved through the plugin's screen
+   (it schedules cron, writes files, calls a service or clears a cache kept
+   under another name in that code; a cache under the option's own name is
+   cleared for you). Read its save handler to check; say so in `notes` if users
+   must save once in the plugin.
+6. Write `notes` in plain words: what the preset does and why. Keep `tested`
+   at the version you checked.
+7. Check on a second fresh site: `diff`, `apply`, confirm the plugin behaves
+   as intended, `reset`, `undo`.
+8. Add a changelog line in `README.md`, `changelog.txt` and `readme.txt`.
+
 ## Code rules
 
 - PHP 7.4 syntax and WordPress 6.2 APIs. Guard newer core APIs with

@@ -9,6 +9,7 @@ Every change to SEO Pro Stack. readme.txt lists the latest version in short.
 * Change: Organise the admin menu knows more plugins: MasterStudy LMS (Content), Lasso Lite and Revive.so (SEO), and GOTMLS, FluentSnippets, Easy Code Manager, Hreflang Manager Lite, Plugin Check, Git Updater, Disable WordPress Updates and WP Sheet Editor’s welcome pages (Developers).
 * Change: Tidy the dashboard also hides MasterStudy’s announcements and news and WP Sheet Editor’s usage stats.
 * Fix: Hide admin notices moves WooCommerce’s lasting notices and plain message boxes such as MainWP Child’s behind the bell.
+* New, off by default: Plugin presets (Plugins tab) applies SEO Pro Stack’s chosen settings to other plugins from the Plugins screen, resets them to the plugin’s defaults or undoes the last change, each after a confirmation, also as bulk actions. Licence keys, API keys and passwords are never stored or changed. First presets: Antispam Bee and Simple CAPTCHA with Cloudflare Turnstile. New `wp seoprostack presets` command (list, diff, apply, reset, undo, export).
 
 = 0.5.0 =
 * New: Free Plugins installs, activates, deactivates and uninstalls plugins without leaving the page. Activate becomes Deactivate, and a deactivated plugin offers Uninstall. It uses the full screen width, and its categories stay on one line.
