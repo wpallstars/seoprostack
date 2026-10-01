@@ -958,11 +958,17 @@ final class SEOProStack_Plugin_Loader {
     }
 
     /**
-     * Fallback when core's error handler is switched off.
+     * Fallback when core's error handler does not run: it is switched off,
+     * or another handler (such as Query Monitor's) shows an uncaught error
+     * and exits, which leaves no last error but a 500 status.
      */
     public static function on_shutdown() {
         $error = error_get_last();
         if ($error && in_array($error['type'], array(E_ERROR, E_PARSE, E_CORE_ERROR, E_COMPILE_ERROR, E_USER_ERROR, E_RECOVERABLE_ERROR), true)) {
+            self::flag_screen();
+            return;
+        }
+        if (http_response_code() >= 500) {
             self::flag_screen();
         }
     }
