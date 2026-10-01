@@ -66,6 +66,32 @@ class SEOProStack_Settings {
         add_action('init', array(__CLASS__, 'maybe_migrate'), 0);
         add_action('admin_init', array(__CLASS__, 'register_setting'));
         add_action('wp_ajax_seoprostack_save_setting', array(__CLASS__, 'ajax_save'));
+        add_filter('option_page_capability_' . self::GROUP, array(__CLASS__, 'capability'));
+    }
+
+    /**
+     * Whether the current user may change SEO Pro Stack's settings.
+     *
+     * @return bool
+     */
+    public static function can_change() {
+        /**
+         * Filter whether the current user may change SEO Pro Stack's settings
+         * (on top of the manage_options check).
+         *
+         * @param bool $can Whether they may.
+         */
+        return current_user_can('manage_options') && (bool) apply_filters('seoprostack_can_change_settings', true);
+    }
+
+    /**
+     * Capability options.php checks before saving the settings.
+     *
+     * @param string $capability Capability.
+     * @return string
+     */
+    public static function capability($capability) {
+        return self::can_change() ? $capability : 'do_not_allow';
     }
 
     /**
@@ -507,7 +533,7 @@ class SEOProStack_Settings {
     public static function ajax_save() {
         check_ajax_referer(self::NONCE, 'nonce');
 
-        if (!current_user_can('manage_options')) {
+        if (!self::can_change()) {
             wp_send_json_error(array('message' => __('You are not allowed to change these settings.', 'seoprostack')), 403);
         }
 

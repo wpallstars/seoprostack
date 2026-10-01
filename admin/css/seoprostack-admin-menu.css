@@ -1,0 +1,219 @@
+/**
+ * Organise the admin menu: section headings, dividers and folding.
+ *
+ * Colours follow the admin colour scheme (currentColor and translucent
+ * neutrals), so every scheme, light or dark, works.
+ *
+ * @package SEOProStack
+ */
+
+/* Section headings. */
+#adminmenu li.sps-menu-heading {
+	margin-top: 6px;
+}
+
+#adminmenu li.sps-menu-heading > a {
+	display: flex;
+	align-items: center;
+	min-height: 0;
+	padding: 6px 12px 4px;
+	font-size: 11px;
+	font-weight: 600;
+	line-height: 1.4;
+	letter-spacing: 0.06em;
+	text-transform: uppercase;
+	opacity: 0.75;
+	background: transparent;
+	box-shadow: none;
+}
+
+#adminmenu li.sps-menu-heading > a:hover,
+#adminmenu li.sps-menu-heading > a:focus {
+	opacity: 1;
+	background: transparent;
+}
+
+#adminmenu li.sps-menu-heading .wp-menu-image {
+	display: none;
+}
+
+#adminmenu li.sps-menu-heading .wp-menu-name {
+	flex: 1;
+	padding: 0;
+}
+
+/* Chevron: down when open, right when folded. */
+#adminmenu li.sps-menu-heading > a::after {
+	content: "";
+	width: 6px;
+	height: 6px;
+	margin-right: 4px;
+	border-right: 1.5px solid currentColor;
+	border-bottom: 1.5px solid currentColor;
+	transform: rotate(45deg);
+}
+
+#adminmenu li.sps-menu-heading.is-folded > a::after {
+	transform: rotate(-45deg);
+}
+
+/* Headings that do not fold: labels only. */
+#adminmenu li.sps-menu-static > a {
+	cursor: default;
+}
+
+#adminmenu li.sps-menu-static > a::after {
+	display: none;
+}
+
+#adminmenu li.sps-menu-static > a:hover {
+	opacity: 0.75;
+}
+
+/* Administrators and Developers menus: entries with their icons. */
+#adminmenu .sps-menu-icon {
+	display: inline-block;
+	width: 20px;
+	height: 20px;
+	margin: -2px 6px -2px 0;
+	vertical-align: middle;
+	background: no-repeat center / 18px auto;
+	opacity: 0.7;
+}
+
+#adminmenu .sps-menu-icon.dashicons-before::before {
+	width: 20px;
+	height: 20px;
+	font-size: 18px;
+	line-height: 20px;
+}
+
+#adminmenu .wp-submenu li.sps-menu-has-sub {
+	position: relative;
+}
+
+/* Chevron for entries that open a third level. */
+#adminmenu .wp-submenu li.sps-menu-has-sub > a {
+	position: relative;
+	padding-right: 24px;
+}
+
+#adminmenu .wp-submenu li.sps-menu-has-sub > a::after {
+	content: "";
+	position: absolute;
+	top: 50%;
+	right: 12px;
+	width: 5px;
+	height: 5px;
+	margin-top: -3px;
+	border-right: 1.5px solid currentColor;
+	border-bottom: 1.5px solid currentColor;
+	transform: rotate(-45deg);
+	opacity: 0.6;
+}
+
+/* Third level: opens to the side on hover or keyboard focus. */
+#adminmenu .wp-submenu li.sps-menu-has-sub > ul.sps-menu-flyout {
+	display: none;
+	position: absolute;
+	top: -7px;
+	left: 100%;
+	z-index: 10000;
+	min-width: 180px;
+	margin: 0;
+	padding: 7px 0 8px;
+	list-style: none;
+	box-shadow: 0 3px 5px rgba(0, 0, 0, 0.2);
+}
+
+#adminmenu .wp-submenu li.sps-menu-has-sub:hover > ul.sps-menu-flyout,
+#adminmenu .wp-submenu li.sps-menu-has-sub:focus-within > ul.sps-menu-flyout {
+	display: block;
+}
+
+#adminmenu .wp-submenu ul.sps-menu-flyout li {
+	margin: 0;
+}
+
+/* The current page's list shows in place, under its entry. */
+#adminmenu .wp-has-current-submenu .wp-submenu li.current.sps-menu-has-sub > ul.sps-menu-flyout {
+	display: block;
+	position: static;
+	min-width: 0;
+	margin-top: 0 !important;
+	padding: 0 0 4px;
+	box-shadow: none;
+	background: transparent !important;
+}
+
+#adminmenu .wp-has-current-submenu .wp-submenu li.current.sps-menu-has-sub > ul.sps-menu-flyout a {
+	padding-left: 38px;
+}
+
+#adminmenu .wp-has-current-submenu .wp-submenu li.current.sps-menu-has-sub > a::after {
+	transform: rotate(45deg);
+}
+
+/* The current entry is in bold; its own list says which page. */
+#adminmenu .wp-submenu li.current.sps-menu-has-sub > ul.sps-menu-flyout li:not(.current) > a {
+	font-weight: 400;
+	opacity: 0.8;
+}
+
+#adminmenu .wp-submenu li.current.sps-menu-has-sub > ul.sps-menu-flyout li:not(.current) > a:hover,
+#adminmenu .wp-submenu li.current.sps-menu-has-sub > ul.sps-menu-flyout li:not(.current) > a:focus {
+	opacity: 1;
+}
+
+/* Folded entries. */
+#adminmenu li.sps-menu-folded {
+	display: none;
+}
+
+/* Between WordPress's own entries and plugins' entries. */
+#adminmenu li.menu-top.sps-menu-divider {
+	border-top: 1px solid rgba(127, 127, 127, 0.25);
+}
+
+#adminmenu .wp-submenu li.sps-menu-divider {
+	margin-top: 4px;
+	padding-top: 4px;
+	border-top: 1px solid rgba(127, 127, 127, 0.3);
+}
+
+/* Collapsed sidebar: no room for headings, so show every entry. */
+.folded #adminmenu li.sps-menu-heading > a {
+	height: 0;
+	padding: 0;
+	overflow: hidden;
+	border-top: 1px solid rgba(127, 127, 127, 0.25);
+}
+
+.folded #adminmenu li.sps-menu-folded {
+	display: block;
+}
+
+/* Phones: no room to the side; the current page's list still shows. */
+@media screen and (max-width: 782px) {
+	#adminmenu .wp-submenu li.sps-menu-has-sub:hover > ul.sps-menu-flyout,
+	#adminmenu .wp-submenu li.sps-menu-has-sub:focus-within > ul.sps-menu-flyout {
+		display: none;
+	}
+
+	#adminmenu .wp-has-current-submenu .wp-submenu li.current.sps-menu-has-sub > ul.sps-menu-flyout {
+		display: block;
+	}
+}
+
+@media only screen and (max-width: 960px) and (min-width: 783px) {
+	.auto-fold #adminmenu li.sps-menu-heading > a {
+		height: 0;
+		padding: 0;
+		overflow: hidden;
+		border-top: 1px solid rgba(127, 127, 127, 0.25);
+	}
+
+	.auto-fold #adminmenu li.sps-menu-folded {
+		display: block;
+	}
+}
