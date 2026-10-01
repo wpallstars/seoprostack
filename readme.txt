@@ -59,7 +59,7 @@ Features that replace another plugin (for example Carbon Copy, Imsanity or Ultim
 = Discover =
 
 * **Theme**: install, activate or customise the Kadence theme.
-* **Free Plugins**: recommended plugins from WordPress.org by category, using the core Install and Activate buttons. Only shown to users who can install plugins.
+* **Free Plugins**: recommended plugins from WordPress.org by category. Install, activate, deactivate and uninstall them without leaving the page. The All view lists every recommended plugin by category, with checkboxes and bulk actions for setting up a new site in one go. Only shown to users who can install plugins.
 * **Pro Plugins, Hosting, Tools**: filterable directories of products we use and recommend.
 
 = Affiliate disclosure =
@@ -130,6 +130,8 @@ They stay scheduled and publish at their times. Turning it off only stops new po
 == Changelog ==
 
 = Unreleased =
+* New: Free Plugins installs, activates, deactivates and uninstalls plugins without leaving the page. Activate becomes Deactivate, and a deactivated plugin offers Uninstall.
+* New: the All view in Free Plugins lists every recommended plugin by category, with checkboxes and bulk actions (Install and activate, Install, Activate, Deactivate, Uninstall) for setting up new sites quickly.
 * New, off by default: More menu in the admin bar (Admin tab) puts the items plugins and themes add to the left of the admin bar in one … menu, last on that side, so the bar no longer wraps over the page. It opens on hover, like the other admin bar menus. Choose plugins whose items stay on the bar. On phones the menu also reaches plugin items WordPress hides there.
 * New, on by default: Hide admin bar items (Admin tab) removes WordPress items you do not use from the admin bar, for everyone. Comments and + New are ticked by default. Switch it off to keep every item.
 * New, on by default: No fade between admin screens (Admin tab) stops the fade WordPress 7.0 added between wp-admin screens, which can flash, so screens change straight away. Switch it off to keep the fade.
