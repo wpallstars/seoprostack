@@ -13,7 +13,7 @@
  * because slow outside calls and imports hold workers for longer.
  *
  * @package SEOProStack
- * @since 0.4.1
+ * @since 0.5.0
  */
 
 if (!defined('ABSPATH')) {
@@ -207,7 +207,7 @@ class SEOProStack_Hosting_Plans {
             number_format_i18n(self::PEAK_HOUR),
             number_format_i18n(self::BURST),
             $cached,
-            $measured ? __('measured on this site', 'seoprostack') : __('typical for this kind of site, until enough requests are measured', 'seoprostack')
+            $measured ? __('measured from this site’s pages', 'seoprostack') : __('typical for this kind of site, until enough pages are timed', 'seoprostack')
         );
     }
 

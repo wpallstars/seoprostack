@@ -7,7 +7,8 @@
  * - Tokens: insert pattern tokens into text fields.
  * - Media fields: choose a Media Library picture with the media dialog.
  * - Directories: client-side filter for Pro/Hosting/Tools cards.
- * - Plugins: AJAX category loading into core's #plugin-filter list.
+ * - Plugins: AJAX category cards, the All list, in-place install, activate,
+ *   deactivate and uninstall, and bulk actions.
  * - Theme: AJAX theme card and in-place install via wp.updates.
  *
  * Localized data: window.seoprostackAdmin (see SEOProStack_Admin_Manager::enqueue_assets()).
@@ -27,13 +28,36 @@
 		}
 	}
 
+	// Some plugins redirect the first admin request after activation to a
+	// welcome screen, and admin-ajax.php runs admin_init too. The redirect
+	// happens once, so a reply that is a page instead of JSON is retried
+	// once. Every action here is safe to repeat.
 	function post(action, data) {
-		return $.ajax({
-			url: cfg.ajaxUrl,
-			type: 'POST',
-			dataType: 'json',
-			data: $.extend({ action: action, nonce: cfg.nonce }, data)
-		});
+		var deferred = $.Deferred();
+		var current;
+		var send = function (retry) {
+			current = $.ajax({
+				url: cfg.ajaxUrl,
+				type: 'POST',
+				dataType: 'json',
+				data: $.extend({ action: action, nonce: cfg.nonce }, data)
+			})
+				.done(deferred.resolve)
+				.fail(function (xhr, status, error) {
+					if (status === 'parsererror' && retry) {
+						send(false);
+					} else {
+						deferred.reject(xhr, status, error);
+					}
+				});
+		};
+		send(true);
+
+		var promise = deferred.promise();
+		promise.abort = function () {
+			current.abort();
+		};
+		return promise;
 	}
 
 	function errorMessage(xhr, fallback) {
@@ -337,8 +361,13 @@
 	/* Free plugins                                                        */
 	/* ------------------------------------------------------------------ */
 
+	var __ = wp && wp.i18n ? wp.i18n.__ : function (text) { return text; };
+	var _n = wp && wp.i18n ? wp.i18n._n : function (single, plural, n) { return n === 1 ? single : plural; };
+	var sprintf = wp && wp.i18n ? wp.i18n.sprintf : function (format) { return format; };
+
 	var Plugins = {
 		request: null,
+		generation: 0,
 
 		init: function () {
 			var $list = $('[data-sps-plugin-list]');
@@ -348,6 +377,10 @@
 
 			$('.sps-filter .filter-links').on('click', 'a[data-category]', function (event) {
 				event.preventDefault();
+				if (Bulk.running) {
+					Bulk.progress(__('Wait for the bulk action to finish, or stop it.', 'seoprostack'));
+					return;
+				}
 				Plugins.select($(this).data('category'), this.href, true);
 			});
 
@@ -356,17 +389,76 @@
 				Plugins.select(match ? decodeURIComponent(match[1]) : 'minimal', null, false);
 			});
 
-			this.load(String($list.data('category')));
+			PluginActions.init();
+			Bulk.init();
+			this.filterBar();
+			this.show(String($list.data('category')));
+		},
+
+		// The category links stay on one line and scroll sideways when they do
+		// not fit. A fade marks each side with more links, and the current link
+		// is scrolled into view.
+		filterBar: function () {
+			var bar = document.querySelector('.sps-filter .filter-links');
+			if (!bar) {
+				return;
+			}
+			var update = function () {
+				var max = bar.scrollWidth - bar.clientWidth;
+				// scrollLeft is negative in right-to-left layouts.
+				var pos = Math.abs(bar.scrollLeft);
+				bar.classList.toggle('has-more-start', max > 1 && pos > 1);
+				bar.classList.toggle('has-more-end', max > 1 && pos < max - 1);
+			};
+			bar.addEventListener('scroll', update, { passive: true });
+			window.addEventListener('resize', update);
+			this.updateFilterBar = update;
+			this.revealCurrent();
+			update();
+		},
+
+		revealCurrent: function () {
+			var bar = document.querySelector('.sps-filter .filter-links');
+			var link = bar && bar.querySelector('a.current');
+			if (!link || bar.scrollWidth <= bar.clientWidth) {
+				return;
+			}
+			var barBox = bar.getBoundingClientRect();
+			var box = link.getBoundingClientRect();
+			var pad = 48;
+			if (box.left < barBox.left + pad) {
+				bar.scrollLeft -= barBox.left + pad - box.left;
+			} else if (box.right > barBox.right - pad) {
+				bar.scrollLeft += box.right - (barBox.right - pad);
+			}
+			if (this.updateFilterBar) {
+				this.updateFilterBar();
+			}
 		},
 
 		select: function (category, href, push) {
 			var $links = $('.sps-filter .filter-links a');
 			$links.removeClass('current').removeAttr('aria-current');
 			$links.filter('[data-category="' + category + '"]').addClass('current').attr('aria-current', 'page');
+			this.revealCurrent();
 			if (push && href && window.history && window.history.pushState) {
 				window.history.pushState({ category: category }, '', href);
 			}
-			this.load(category);
+			this.show(category);
+		},
+
+		show: function (category) {
+			var all = category === 'all';
+			$('[data-sps-plugin-cards]').prop('hidden', all);
+			$('[data-sps-plugin-table]').prop('hidden', !all);
+			if (all) {
+				if (this.request) {
+					this.request.abort();
+				}
+				this.loadRows();
+			} else {
+				this.load(category);
+			}
 		},
 
 		load: function (category) {
@@ -396,8 +488,529 @@
 				});
 		},
 
+		// The All list: one request per category (each uses its card cache),
+		// a few at a time, so groups fill in as they arrive.
+		loadRows: function () {
+			var generation = ++this.generation;
+			var $groups = $('[data-sps-plugin-group]');
+			var queue = $groups.get();
+			var running = 0;
+
+			$groups.find('tr.sps-plugin-row, tr.sps-plugin-error').remove();
+			$groups.find('[data-sps-group-state]').html('<span class="spinner is-active"></span>');
+			$groups.find('[data-sps-group-check]').prop({ checked: false, indeterminate: false, disabled: true });
+
+			var next = function () {
+				while (running < 4 && queue.length) {
+					running++;
+					Plugins.loadGroup($(queue.shift()), generation).always(function () {
+						running--;
+						next();
+					});
+				}
+			};
+			next();
+		},
+
+		loadGroup: function ($group, generation) {
+			var $state = $group.find('[data-sps-group-state]');
+			var failed = function (message) {
+				$state.empty();
+				$group.append($('<tr class="sps-plugin-error"><td colspan="4"></td></tr>').find('td').append(Plugins.notice(message)).end());
+			};
+
+			return post('seoprostack_get_plugins', { category: $group.data('sps-plugin-group'), view: 'rows' })
+				.done(function (response) {
+					if (generation !== Plugins.generation) {
+						return;
+					}
+					if (!response || !response.success) {
+						failed(i18n.loadFailed);
+						return;
+					}
+					$group.append(response.data.html);
+					var count = $group.find('tr.sps-plugin-row').length;
+					$state.text(sprintf(_n('%d plugin', '%d plugins', count, 'seoprostack'), count));
+					Bulk.refresh();
+				})
+				.fail(function (xhr) {
+					if (generation === Plugins.generation) {
+						failed(errorMessage(xhr, i18n.loadFailed));
+					}
+				});
+		},
+
 		notice: function (message) {
 			return $('<div class="notice notice-error inline"><p></p></div>').find('p').text(message).end();
+		}
+	};
+
+	/* ------------------------------------------------------------------ */
+	/* Install, activate, deactivate and uninstall in place                */
+	/* ------------------------------------------------------------------ */
+
+	// Cards and list rows carry data-sps-plugin="slug" and the same state
+	// buttons. Install and Uninstall use core's AJAX (wp.updates), which also
+	// asks for FTP details where needed; Activate and Deactivate use ours.
+	// Every change ends by applying the server's state for the plugin.
+	var PluginActions = {
+		busy: {},
+		cancel: {},
+
+		init: function () {
+			$('.sps-plugins').on('click', '[data-sps-plugin-action]', function (event) {
+				var $button = $(this);
+				var slug = String($button.data('slug'));
+				var action = String($button.data('sps-plugin-action'));
+				event.preventDefault();
+				if (Bulk.running || PluginActions.busy[slug]) {
+					return;
+				}
+				if (action === 'uninstall' && !window.confirm(sprintf(
+					/* translators: %s: plugin name */
+					__('Uninstall %s? This deletes its files, and the plugin may delete its settings and data.', 'seoprostack'),
+					PluginActions.name(slug)
+				))) {
+					return;
+				}
+				PluginActions.credentials(event, action);
+				PluginActions.run(slug, action);
+			});
+
+			// Core's Update Now: show the updated state after its "Updated!".
+			$(document).on('wp-plugin-update-success', function (event, response) {
+				if (response && response.slug) {
+					setTimeout(function () {
+						PluginActions.refresh([response.slug]);
+					}, 1500);
+				}
+			});
+
+			// The details dialog can install or activate on its own.
+			$(document.body).on('thickbox:removed', function () {
+				PluginActions.refresh(PluginActions.visibleSlugs());
+			});
+
+			// FTP details dialog closed without details: nothing will run.
+			$(document).on('credential-modal-cancel', function () {
+				if (Bulk.running) {
+					Bulk.stopped = true;
+				}
+				$.each($.extend({}, PluginActions.cancel), function (slug, fail) {
+					fail(__('Cancelled.', 'seoprostack'));
+				});
+			});
+		},
+
+		items: function (slug) {
+			return $('[data-sps-plugin="' + slug + '"]');
+		},
+
+		name: function (slug) {
+			return String(this.items(slug).first().data('name') || slug);
+		},
+
+		status: function (slug) {
+			return String(this.items(slug).first().attr('data-status') || '');
+		},
+
+		visibleSlugs: function () {
+			var slugs = {};
+			$('[data-sps-plugin]').each(function () {
+				slugs[$(this).attr('data-sps-plugin')] = true;
+			});
+			return Object.keys(slugs);
+		},
+
+		// Ask for FTP or SSH details first where WordPress needs them.
+		credentials: function (event, action) {
+			if ((action === 'install' || action === 'uninstall' || action === 'install-activate') &&
+				wp && wp.updates && wp.updates.shouldRequestFilesystemCredentials && !wp.updates.ajaxLocked) {
+				wp.updates.requestFilesystemCredentials(event);
+			}
+		},
+
+		message: function (slug, text) {
+			this.items(slug).find('[data-sps-plugin-message]').text(text || '').prop('hidden', !text);
+		},
+
+		setBusy: function (slug, action) {
+			var texts = {
+				install: __('Installing…', 'seoprostack'),
+				activate: __('Activating…', 'seoprostack'),
+				deactivate: __('Deactivating…', 'seoprostack'),
+				uninstall: __('Uninstalling…', 'seoprostack')
+			};
+			var $items = this.items(slug);
+			this.busy[slug] = true;
+			this.message(slug, '');
+			$items.addClass('is-busy');
+			$items.find('[data-sps-plugin-action]').prop('disabled', true);
+			$items.find('[data-sps-plugin-action="' + action + '"]').addClass('updating-message').text(texts[action]);
+			$items.find('[data-sps-plugin-status]').text(texts[action]);
+		},
+
+		apply: function (state) {
+			if (!state || !state.slug) {
+				return;
+			}
+			var $items = this.items(state.slug);
+			$items.attr({ 'data-status': state.status, 'data-file': state.file }).removeClass('is-busy');
+			$items.find('.plugin-action-buttons > li.sps-state').remove();
+			$items.find('.plugin-action-buttons').prepend(state.html);
+			$items.find('[data-sps-plugin-status]').text(state.label);
+			$items.find('[data-sps-plugin-check]').prop('disabled', !state.usable);
+		},
+
+		refresh: function (slugs) {
+			slugs = $.grep(slugs, function (slug) {
+				return !PluginActions.busy[slug];
+			});
+			if (!slugs.length) {
+				return $.Deferred().resolve().promise();
+			}
+			return post('seoprostack_plugin_action', { do: 'state', slugs: slugs }).done(function (response) {
+				if (response && response.success) {
+					$.each(response.data.states, function (index, state) {
+						PluginActions.apply(state);
+					});
+					Bulk.refresh();
+				}
+			});
+		},
+
+		/**
+		 * Run one action on one plugin.
+		 *
+		 * @return {jQuery.Promise} Resolves with the new state, rejects with a message.
+		 */
+		run: function (slug, action) {
+			var deferred = $.Deferred();
+			var name = this.name(slug);
+			var done = {
+				install: __('%s installed.', 'seoprostack'),
+				activate: __('%s activated.', 'seoprostack'),
+				deactivate: __('%s deactivated.', 'seoprostack'),
+				uninstall: __('%s uninstalled.', 'seoprostack')
+			};
+
+			var settle = function () {
+				delete PluginActions.busy[slug];
+				delete PluginActions.cancel[slug];
+			};
+			var succeed = function (state) {
+				settle();
+				PluginActions.apply(state);
+				Bulk.refresh();
+				speak(sprintf(done[action], name));
+				deferred.resolve(state);
+			};
+			// Show what is actually true now, then the reason.
+			var fail = function (message, state) {
+				var shown;
+				settle();
+				if (state) {
+					PluginActions.apply(state);
+					shown = $.Deferred().resolve().promise();
+				} else {
+					shown = PluginActions.refresh([slug]);
+				}
+				shown.always(function () {
+					if (PluginActions.items(slug).hasClass('is-busy')) {
+						PluginActions.items(slug).removeClass('is-busy').find('[data-sps-plugin-action]').prop('disabled', false).removeClass('updating-message');
+					}
+					PluginActions.message(slug, message);
+					speak(message, 'assertive');
+					deferred.reject(message);
+				});
+			};
+			// After core's AJAX, fetch the state ours reports.
+			var refreshed = function () {
+				post('seoprostack_plugin_action', { do: 'state', slugs: [slug] })
+					.done(function (response) {
+						var state = response && response.success && response.data.states[0];
+						if (state) {
+							succeed(state);
+						} else {
+							fail(i18n.saveFailed);
+						}
+					})
+					.fail(function (xhr) {
+						fail(errorMessage(xhr, i18n.saveFailed));
+					});
+			};
+			// Core would retry a credentials failure with its own callbacks,
+			// which would leave this one waiting; ask again on the next try.
+			var coreError = function (response) {
+				if (response && response.errorCode === 'unable_to_connect_to_filesystem' && wp.updates.filesystemCredentials) {
+					wp.updates.filesystemCredentials.available = false;
+				}
+				fail((response && response.errorMessage) || i18n.saveFailed);
+			};
+			// Core's install and delete AJAX, retried once when a page comes
+			// back instead of JSON (see post()). The redirect happens in
+			// admin_init, before anything is installed or deleted.
+			var core = function (retry) {
+				var args = {
+					slug: slug,
+					success: refreshed,
+					error: function (response) {
+						if (retry && typeof response === 'string') {
+							core(false);
+						} else {
+							coreError(response);
+						}
+					}
+				};
+				if (action === 'install') {
+					wp.updates.installPlugin(args);
+				} else {
+					args.plugin = String(PluginActions.items(slug).first().attr('data-file') || '');
+					wp.updates.deletePlugin(args);
+				}
+			};
+
+			this.setBusy(slug, action);
+
+			if (action === 'install' || action === 'uninstall') {
+				if (!wp || !wp.updates) {
+					fail(i18n.saveFailed);
+					return deferred.promise();
+				}
+				this.cancel[slug] = fail;
+				core(true);
+				return deferred.promise();
+			}
+
+			post('seoprostack_plugin_action', { do: action, slug: slug })
+				.done(function (response) {
+					if (response && response.success) {
+						succeed(response.data.state);
+					} else {
+						fail((response && response.data && response.data.message) || i18n.saveFailed, response && response.data && response.data.state);
+					}
+				})
+				.fail(function (xhr) {
+					var data = xhr && xhr.responseJSON && xhr.responseJSON.data;
+					// A plugin that redirects or prints on activation still
+					// changes state; fail() shows the real state.
+					fail(errorMessage(xhr, i18n.saveFailed), data && data.state);
+				});
+
+			return deferred.promise();
+		}
+	};
+
+	/* ------------------------------------------------------------------ */
+	/* All list: select and bulk actions                                   */
+	/* ------------------------------------------------------------------ */
+
+	var Bulk = {
+		running: false,
+		stopped: false,
+		selected: {},
+
+		init: function () {
+			var $root = $('[data-sps-plugin-table]');
+			if (!$root.length) {
+				return;
+			}
+			this.$root = $root;
+
+			$root.on('change', '[data-sps-plugin-check]', function () {
+				Bulk.selected[this.value] = this.checked;
+				Bulk.refresh();
+			});
+			$root.on('change', '[data-sps-group-check]', function () {
+				Bulk.select($(this).closest('[data-sps-plugin-group]').find('[data-sps-plugin-check]'), this.checked);
+			});
+			$root.on('change', '[data-sps-check-all-plugins]', function () {
+				Bulk.select($root.find('[data-sps-plugin-check]'), this.checked);
+			});
+			$root.on('click', '[data-sps-bulk-apply]', function (event) {
+				Bulk.apply(event);
+			});
+			$root.on('click', '[data-sps-bulk-stop]', function () {
+				Bulk.stopped = true;
+				$(this).prop('disabled', true);
+				Bulk.progress(__('Stopping after this plugin…', 'seoprostack'));
+			});
+			window.addEventListener('beforeunload', function (event) {
+				if (Bulk.running) {
+					event.preventDefault();
+					event.returnValue = '';
+				}
+			});
+			this.refresh();
+		},
+
+		select: function ($boxes, checked) {
+			$boxes.filter(':enabled').each(function () {
+				Bulk.selected[this.value] = checked;
+			});
+			this.refresh();
+		},
+
+		// Selected slugs, once each, in screen order.
+		slugs: function () {
+			var seen = {};
+			var slugs = [];
+			this.$root.find('[data-sps-plugin-check]:enabled').each(function () {
+				if (Bulk.selected[this.value] && !seen[this.value]) {
+					seen[this.value] = true;
+					slugs.push(this.value);
+				}
+			});
+			return slugs;
+		},
+
+		// Sync checkboxes (a plugin can sit in two groups), group boxes and the count.
+		refresh: function () {
+			if (!this.$root) {
+				return;
+			}
+			var tally = function ($boxes, $check) {
+				var $usable = $boxes.filter(':enabled');
+				var checked = $usable.filter(':checked').length;
+				$check.prop({
+					disabled: !$usable.length,
+					checked: $usable.length > 0 && checked === $usable.length,
+					indeterminate: checked > 0 && checked < $usable.length
+				});
+			};
+
+			var $boxes = this.$root.find('[data-sps-plugin-check]');
+			$boxes.each(function () {
+				this.checked = !this.disabled && !!Bulk.selected[this.value];
+			});
+			this.$root.find('[data-sps-plugin-group]').each(function () {
+				tally($(this).find('[data-sps-plugin-check]'), $(this).find('[data-sps-group-check]'));
+			});
+			tally($boxes, this.$root.find('[data-sps-check-all-plugins]'));
+
+			var count = this.slugs().length;
+			this.$root.find('[data-sps-bulk-count]').text(
+				count ? sprintf(_n('%d selected', '%d selected', count, 'seoprostack'), count) : ''
+			);
+		},
+
+		progress: function (text) {
+			this.$root.find('[data-sps-bulk-progress]').text(text);
+		},
+
+		// What one plugin needs for a bulk action, from its current state.
+		steps: function (action, status) {
+			var plan = {
+				'install-activate': { 'not-installed': ['install', 'activate'], inactive: ['activate'] },
+				install: { 'not-installed': ['install'] },
+				activate: { inactive: ['activate'] },
+				deactivate: { active: ['deactivate'] },
+				uninstall: { active: ['deactivate', 'uninstall'], inactive: ['uninstall'] }
+			};
+			return (plan[action] && plan[action][status]) || [];
+		},
+
+		apply: function (event) {
+			if (this.running) {
+				return;
+			}
+			var action = String(this.$root.find('[data-sps-bulk-action]').val() || '');
+			var slugs = this.slugs();
+			if (!action) {
+				this.progress(__('Choose a bulk action.', 'seoprostack'));
+				return;
+			}
+			if (!slugs.length) {
+				this.progress(__('Select at least one plugin.', 'seoprostack'));
+				return;
+			}
+			if (action === 'uninstall' && !window.confirm(sprintf(
+				/* translators: %d: number of plugins */
+				_n(
+					'Uninstall %d plugin? If it is active, it is deactivated first. This deletes its files, and the plugin may delete its settings and data.',
+					'Uninstall %d plugins? Active ones are deactivated first. This deletes their files, and the plugins may delete their settings and data.',
+					slugs.length,
+					'seoprostack'
+				),
+				slugs.length
+			))) {
+				return;
+			}
+
+			PluginActions.credentials(event, action);
+			this.start();
+
+			var total = slugs.length;
+			var index = 0;
+			var counts = { changed: 0, skipped: 0, failed: 0 };
+
+			var next = function () {
+				if (Bulk.stopped || index >= total) {
+					Bulk.finish(counts);
+					return;
+				}
+				var slug = slugs[index++];
+				var steps = Bulk.steps(action, PluginActions.status(slug));
+				if (!steps.length) {
+					counts.skipped++;
+					next();
+					return;
+				}
+				Bulk.progress(sprintf(
+					/* translators: 1: position, 2: total, 3: plugin name */
+					__('%1$d of %2$d: %3$s', 'seoprostack'),
+					index,
+					total,
+					PluginActions.name(slug)
+				));
+
+				var step = 0;
+				var runStep = function () {
+					if (step >= steps.length) {
+						counts.changed++;
+						next();
+						return;
+					}
+					PluginActions.run(slug, steps[step++])
+						.done(runStep)
+						.fail(function () {
+							counts.failed++;
+							next();
+						});
+				};
+				runStep();
+			};
+			next();
+		},
+
+		start: function () {
+			this.running = true;
+			this.stopped = false;
+			this.$root.addClass('is-running');
+			this.$root.find('[data-sps-bulk-apply], [data-sps-bulk-action]').prop('disabled', true);
+			this.$root.find('[data-sps-bulk-stop]').prop({ hidden: false, disabled: false });
+			this.refresh();
+		},
+
+		finish: function (counts) {
+			var stopped = this.stopped;
+			this.running = false;
+			this.stopped = false;
+			this.$root.removeClass('is-running');
+			this.$root.find('[data-sps-bulk-apply], [data-sps-bulk-action]').prop('disabled', false);
+			this.$root.find('[data-sps-bulk-stop]').prop('hidden', true);
+			this.refresh();
+
+			var summary = sprintf(
+				/* translators: 1: plugins changed, 2: plugins skipped, 3: plugins that failed */
+				__('Changed %1$d, skipped %2$d, failed %3$d.', 'seoprostack'),
+				counts.changed,
+				counts.skipped,
+				counts.failed
+			);
+			summary = (stopped ? __('Stopped.', 'seoprostack') : __('Done.', 'seoprostack')) + ' ' + summary;
+			this.progress(summary);
+			speak(summary);
 		}
 	};
 
