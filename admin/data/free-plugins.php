@@ -15,15 +15,25 @@ if (!defined('ABSPATH')) {
 // Plugin Toggle, Hide Admin Notices, The Paste, Avatar Privacy, Safe SVG,
 // Imsanity, Enable Media Replace, CompressX, Easy Watermark, Remove CPT base,
 // Pretty Links, Browser Shots, Spectra (ultimate-addons-for-gutenberg;
-// Kadence Blocks is listed for page building).
+// Kadence Blocks is listed for page building), Admin Menu Editor.
 // String Locator is not listed: searching code is better done in an editor
 // or with WP-CLI than from wp-admin.
 // EditorsKit (block-options) is not listed: its last update was in May 2024,
 // tested up to WordPress 6.5, and WordPress and Kadence Blocks cover its
 // features (block visibility by login state and device, underline, highlight,
 // letter case, nofollow links).
+// Git Updater is not listed here: builds from GitHub releases add it to
+// Minimal (includes/features/class-seoprostack-github-updates.php), and the
+// WordPress.org build may not offer plugins from elsewhere.
 function seoprostack_get_free_plugins() {
-    return array(
+    /**
+     * Filter the recommended plugins by category. Slugs are WordPress.org
+     * slugs, or keys of `seoprostack_external_plugins` for plugins from
+     * elsewhere.
+     *
+     * @param array<string,string[]> $plugins Category => slugs.
+     */
+    return (array) apply_filters('seoprostack_free_plugins', array(
         'minimal' => array(
             'antispam-bee',
             'fluent-smtp',
@@ -32,7 +42,6 @@ function seoprostack_get_free_plugins() {
         ),
         'admin' => array(
             'codepress-admin-columns',
-            'admin-menu-editor',
             'mainwp-child',
             'mainwp-child-reports',
             'plugin-groups'
@@ -148,7 +157,7 @@ function seoprostack_get_free_plugins() {
             'user-switching',
             'wp-crontrol'
         )
-    );
+    ));
 }
 
 /**

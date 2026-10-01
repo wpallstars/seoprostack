@@ -6,9 +6,9 @@ Version: {SEOPROSTACK_VERSION}
 
 ## Where to find it
 
-Go to **Settings → SEO Pro Stack**. The screen has three groups of tabs:
+Go to **Settings → SEO Pro Stack**, or click the star next to your name in the admin bar (shown to people who can change these settings). The screen has three groups of tabs:
 
-- **Settings**: Admin, Content, Media, Links, Speed and Plugins (Maintenance appears once it has features). Changes save instantly; there is no Save button.
+- **Settings**: Admin, Content, Media, Links, Speed and Plugins, plus Maintenance in builds from GitHub releases. Changes save instantly; there is no Save button.
 - **Search features** (next to the plugin name) finds settings on every tab by name, description or the plugin they replace. Results can be switched on and changed in place.
 - **Discover**: Theme, Free Plugins, Pro Plugins, Hosting and Tools.
 - **About**: this Read Me.
@@ -20,6 +20,7 @@ Every feature is off by default except two: Hide admin bar items, which hides Co
 | Feature | Tab | Replaces |
 | --- | --- | --- |
 | Hide the admin bar, Block dashboard access | Admin | Admin Bar & Dashboard Access Control |
+| Organise the admin menu | Admin | Admin Menu Editor (Pro) |
 | Hide dashboard widgets, Disable sidebar widgets | Admin | Widget Disable |
 | Notification emails | Admin | Manage Notification E-mails |
 | Hide admin notices | Admin | Hide Admin Notices |
@@ -75,6 +76,23 @@ Adds “Email me a login link” to the login screen, next to “Lost your passw
 - **Block dashboard access** for chosen roles: opening wp-admin sends them to the home page or a page you choose, such as `/my-account/`. AJAX, uploads and other background requests keep working. With WooCommerce active and no page chosen, its My Account page is filled in.
 - Both lists start with every role that can neither manage options nor write posts (subscribers, customers and similar roles from plugins). Roles that plugins add later are ticked in both lists unless they can write posts, so staff roles such as Shop manager are never locked out. The roles seen so far are kept in the `seoprostack_access_roles` option.
 - People who can manage options are never affected, so roles that can (such as Administrator) are not offered.
+
+### Organise the admin menu (Admin)
+
+Groups the admin menu under the headings **Content**, **Communications**, **SEO**, **Shop** and **Admin**, the same way on every site, so plugins’ entries are where you expect them. Dashboard stays at the top. Under **Admin** come two menus, **Administrators** and **Developers**, then **Users**.
+
+- Within a section, WordPress’s own entries come first, then plugins’ in A–Z order, with a thin line between them. Settings, Tools and Appearance are sorted the same way.
+- Entries under the headings keep their normal flyout submenus. **Administrators** and **Developers** open to the side like any menu, listing their entries with icons; each entry’s own submenu opens one level further to the side. On a page inside them, the menu opens in place with the page’s list shown under its entry.
+- In **Developers**, plugin pages moved out of WordPress’s menus (such as Scheduled Actions, WP Crontrol or a debug log viewer) share one **Settings** entry instead of each showing a cog. SEO Pro Stack keeps its own entry, with a star icon.
+- **Fold sections** (off by default): click a heading to fold it; folded sections are remembered for each person, and the section of the page you are on always opens. With the sidebar collapsed, headings become lines and every entry shows.
+- **Preview the admin as** a role: the options panel links to each role, and to **Client administrator** (an administrator who is not a developer). Each opens the admin in a new tab with only that role’s permissions, never more than your own, and a **Stop** link in the corner and the admin bar. The preview is kept in a signed cookie in this browser, so every tab shows it until you stop it or two hours pass. Only developers who can manage options can start one.
+- Places come from a list of common menus and plugins (`admin/data/admin-menu.php`), made from real sites. Plugin pages under Settings or Tools that belong elsewhere move too: SEO plugins to SEO; caching, security and developer tools to Developers. Pages inside a plugin’s own menu stay there. Unknown plugins go to Administrators; post types to Content.
+- **Choose places**: the options panel lists this site’s entries (every top-level entry, and plugins’ pages in WordPress’s menus) with a **Place** list for each: a section, or for pages, inside any menu. Choosing a place writes its line in **Move menu entries**; choosing the usual place removes it. Reload to see the menu change.
+- **Move menu entries**: one per line, a menu address or plugin folder, `=`, then a place: `top`, `content`, `communications`, `seo`, `shop`, `admin-heading` (under the Admin heading, after the two menus), `administrators` (or `admin`), `developers` (or `super-admin`), or another menu’s address to go inside it, for example `elementor = content` or `wpcf7 = administrators`. To move one page out of a menu, write `menu>page = place`.
+- Moved pages keep their usual addresses, and WordPress checks access to them as before: the menu is only rearranged while it is printed. Nothing runs on the front end. Which plugin owns each page is worked out once and kept in the `seoprostack_admin_menu` option until plugins change.
+- **Client safeguards** (on by default): people who are not developers do not see the Developers menu or open its pages, cannot install, delete or edit the code of plugins and themes, do not see or switch developer plugins (those placed in Developers, and SEO Pro Stack) on the Plugins screen, cannot edit or delete developers, cannot make anyone an administrator or change an administrator’s role, and cannot change SEO Pro Stack’s settings. Updates keep working.
+- **Developers** are super admins on multisite. On single sites, tick them under **Developers**; when the feature is switched on with nobody ticked, every administrator is ticked, so untick client accounts. You always stay on the list, and if no ticked person is an administrator any more, every administrator counts as a developer, so nobody is locked out.
+- Replaces Admin Menu Editor and Admin Menu Editor Pro. Their settings are not imported: places come from the rules above, so every site gets the same menu. Admin Menu Editor’s own settings are left alone; while it is active, this feature waits.
 
 ### Dashboard and sidebar widgets (Admin)
 
@@ -395,16 +413,43 @@ Other screens, such as the Dashboard, skip them. On a test site with 191 active 
 - Plugins that change the login address or the list of active plugins always load. Plugins that change user permissions are marked in the list; leave security, login and role plugins unticked.
 - Works from a small must-use file, `wp-content/mu-plugins/seoprostack-plugin-loading.php`, written when the feature is switched on and removed when it is switched off or SEO Pro Stack is deactivated or deleted. If that folder is not writable, the settings say so. On multisite the file serves every site and filters only where the feature is on; network-activated plugins always load.
 
+### Early updates from GitHub (Maintenance)
+
+Only in builds from GitHub releases (see [Updates and releases](#updates-and-releases)). Off by default.
+
+SEO Pro Stack gets its updates from GitHub through [Git Updater](https://git-updater.com/), a free plugin that reads the `GitHub Plugin URI` header and offers each GitHub release on the Updates screen like any other update. SEO Pro Stack never checks for updates itself.
+
+- **Install prompt.** While Git Updater is not active, people who can install plugins (on multisite, super admins in the network admin) see a notice on the Dashboard, Plugins, Updates and SEO Pro Stack screens. **Install and activate Git Updater** downloads its latest release from GitHub, installs it and activates it (network-wide on multisite, which Git Updater needs). If it is installed but inactive, the button activates it. **Dismiss** hides the notice for that person. Git Updater needs PHP 8.0; on older PHP the notice says so instead of offering a button. On multisite the prompt is in the network admin; an install started from a site’s Free Plugins tab reports back on that tab.
+- **Free Plugins** lists Git Updater first in Minimal, with the same install button.
+- **The setting.** Once SEO Pro Stack is on WordPress.org, Git Updater takes its updates from there, a little later than GitHub. Switch this on to stay on GitHub releases, which come out first. It adds the plugin to Git Updater’s `gu_override_dot_org` filter. Until SEO Pro Stack is on WordPress.org, every update comes from GitHub whether it is on or off.
+
 ### Discover
 
 - **Theme**: install, activate or customise the Kadence theme.
-- **Free Plugins**: recommended plugins from WordPress.org by category. Install, Activate, Deactivate and Uninstall all work in place, so you can set up many in a row without leaving the page: an installed plugin shows Activate and Uninstall, an active one shows Deactivate. **All** lists every recommended plugin grouped by category, with a checkbox per plugin and per group and bulk actions (Install and activate, Install, Activate, Deactivate, Uninstall) that run one plugin at a time with progress, and can be stopped. Bulk Uninstall deactivates active plugins first. Plugins that need a newer WordPress or PHP, or that WordPress.org has closed, cannot be selected. Activate and Deactivate accept only plugins on the recommended list; install and uninstall use WordPress’s own requests, so FTP details are asked for where needed. Shown only to users who can install plugins (on multisite, super admins); plugins active for the whole network are left alone.
+- **Free Plugins**: recommended plugins from WordPress.org by category. Install, Activate, Deactivate and Uninstall all work in place, so you can set up many in a row without leaving the page: an installed plugin shows Activate and Uninstall, an active one shows Deactivate. **All** lists every recommended plugin grouped by category, with a checkbox per plugin and per group and bulk actions (Install and activate, Install, Activate, Deactivate, Uninstall) that run one plugin at a time with progress, and can be stopped. Bulk Uninstall deactivates active plugins first. Plugins that need a newer WordPress or PHP, or that WordPress.org has closed, cannot be selected. Activate and Deactivate accept only WordPress.org plugins on the recommended list; install and uninstall use WordPress’s own requests, so FTP details are asked for where needed. Shown only to users who can install plugins (on multisite, super admins); plugins active for the whole network are left alone. Builds from GitHub releases also list Git Updater, which is not on WordPress.org; it keeps its own Install and Activate links and is not part of bulk actions.
 - **Pro Plugins, Hosting, Tools**: filterable directories with links to each product. Pro plugins show a badge when their free version is already on the site.
 
 ## Requirements
 
 - WordPress 6.2 or later
 - PHP 7.4 or later
+
+## Updates and releases
+
+There are two builds of each version:
+
+- **GitHub release** (`seoprostack-X.Y.Z.zip` on the repository’s Releases page): everything, including Early updates from GitHub (`includes/features/class-seoprostack-github-updates.php`). With Git Updater, sites get each release as a normal update.
+- **WordPress.org** (once listed): the same files without `includes/features/class-seoprostack-github-updates.php`, because plugins hosted there may not install or update code from elsewhere. SEO Pro Stack loads that file only when it is present. The plugin header lines for Git Updater stay; they do nothing without it.
+
+GitHub releases can go out as often as needed, so they work as the early channel; WordPress.org gets the versions that have settled.
+
+Releasing on GitHub:
+
+1. Merge the version change (`Version:` and `SEOPROSTACK_VERSION` in `seoprostack.php`, `Stable tag:` in `readme.txt`) to `main`.
+2. Straight away, tag that commit `vX.Y.Z` and publish a GitHub release with `seoprostack-X.Y.Z.zip` attached. Build the zip from the tag with `.distignore` applied (as in AGENTS.md → Testing), with everything inside a `seoprostack/` folder. Git Updater picks the newest release whose tag has no letters and whose asset name starts with `seoprostack`.
+3. Git Updater compares the `Version:` header of `seoprostack.php` on `main` with the installed version, and installs the newest release zip. Until the release exists, sites that check in between are offered the new version but get the previous zip, so publish the release in the same sitting as the merge.
+
+Do not put pre-release versions (`-beta1`, `-rc1`) in the `Version:` header on `main`: Git Updater would offer them to every site. Do not add an `Update URI` header: WordPress.org rejects it, and Plugin Check reports it as an updater.
 
 ## Extending
 
@@ -414,6 +459,8 @@ Developers can add settings, tabs and directory entries with filters:
 - `seoprostack_settings_schema`: add or change settings. Each entry sets `type` (bool, int, text, url, lines, domains, select, multi, times or media, a picture from the Media Library stored as its attachment ID), `default`, `label`, `description` and either `tab` or `parent`; select and multi also take `options` (an array or a callable), and multi takes `open` to keep saved values that are not currently registered. `reload` (true) makes the saved message ask to reload the page, for changes that show only after a page load. `replaces` (slug => name) shows which plugin a feature replaces. Settings render and save automatically. Tabs are `admin`, `content`, `media`, `links`, `speed`, `plugins` and `maintenance`; the pre-0.4 slugs `general`, `workflow` and `advanced` still work and map to `admin`, `content` and `links`.
 - `seoprostack_admin_tabs`: add or reorder admin tabs. Each tab sets `label`, `group` (settings, discover or about), a `render` callback and an optional `capability`; tabs the current user lacks the capability for are hidden.
 - `seoprostack_pro_items`, `seoprostack_hosting_items`, `seoprostack_tools_items`: change directory entries.
+- `seoprostack_free_plugins`: change the Free Plugins list (category => slugs).
+- `seoprostack_external_plugins`: card data for listed plugins that are not on WordPress.org (slug => `name`, `description`, `author`, `url`, `file` when installed, `network`, `install_url`, `requires_php`, `source`). Their cards are built from this data instead of the WordPress.org API, with an Install Now link to `install_url`.
 - `seoprostack_auto_upload_process_post`: skip image copying for specific posts.
 - `seoprostack_auto_upload_limit`: change the per-save import limit.
 - `seoprostack_magic_login_allowed`: allow or refuse login links for a user.
@@ -428,6 +475,10 @@ Developers can add settings, tabs and directory entries with filters:
 - `seoprostack_screenshot_request`: change the request sent to the screenshot service (`url`, `headers`, `json`; page URL, browser width, height, service), for example to use another service. The response must be a JPEG, PNG or WebP picture, or JSON with `data.screenshot.url` when `json` is true.
 - `seoprostack_term_list_args`: change the `get_terms()` arguments of a Term list (arguments, block attributes), for example to order by count or exclude terms.
 - `seoprostack_admin_bar_more_items`: change which top-level admin bar items go in the More menu (item IDs in bar order, `WP_Admin_Bar`).
+- `seoprostack_admin_menu_catalog`: change where Organise the admin menu puts entries: `menus` (address => place) and `plugins` (plugin folder => place); a place is a section key or another menu’s address.
+- `seoprostack_is_developer`: whether a user is a developer for the admin menu’s client safeguards (bool, user ID).
+- `seoprostack_can_change_settings`: return false to stop the current user changing SEO Pro Stack’s settings (on top of `manage_options`).
+- `seoprostack_admin_bar_star`: return false to hide the admin bar star that opens SEO Pro Stack’s settings.
 
 Actions:
 
@@ -447,7 +498,7 @@ Read a setting with `SEOProStack_Settings::get( 'key' )`.
 
 ## Uninstall
 
-Deleting the plugin removes its settings and cached data, the profile pictures and generated avatars in `uploads/seoprostack-avatars/`, the WebP and AVIF copies of pictures, including copies left by pictures deleted while the plugin was inactive, and short links with their categories and click counts (Pretty Links’ own links are left alone), and the must-use file of Load plugins only where needed. Imported media and screenshots stay in the Media Library because your posts use them. Watermarked pictures stay marked, and their unmarked originals stay in the `uploads/seoprostack-originals-…` folder so they are not lost; delete that folder if you do not need them.
+Deleting the plugin removes its settings and cached data, the profile pictures and generated avatars in `uploads/seoprostack-avatars/`, the WebP and AVIF copies of pictures, including copies left by pictures deleted while the plugin was inactive, and short links with their categories and click counts (Pretty Links’ own links are left alone), and the must-use file of Load plugins only where needed, and who dismissed the Git Updater notice. Git Updater itself stays installed. Imported media and screenshots stay in the Media Library because your posts use them. Watermarked pictures stay marked, and their unmarked originals stay in the `uploads/seoprostack-originals-…` folder so they are not lost; delete that folder if you do not need them.
 
 Deactivating the plugin removes the WebP and AVIF rules from the uploads folder’s `.htaccess` (for every site when network-deactivated) and the must-use file of Load plugins only where needed (on multisite, when network-deactivated).
 
@@ -456,6 +507,11 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folder�
 ### Unreleased
 
 - New: Free Plugins installs, activates, deactivates and uninstalls plugins without leaving the page. Activate becomes Deactivate, and a deactivated plugin offers Uninstall. A new **All** view lists every recommended plugin by category with checkboxes and bulk actions (Install and activate, Install, Activate, Deactivate, Uninstall) for setting up new sites quickly. A request that a just-activated plugin redirects to its welcome screen is retried once.
+- New: updates from GitHub. The plugin header names the repository for Git Updater (`GitHub Plugin URI`, `Primary Branch`, `Release Asset`), so sites with Git Updater get each GitHub release on the Updates screen. Builds from GitHub releases show a notice, while Git Updater is not active, that installs and activates its latest release in one click (nonce-checked `seoprostack_install_git_updater` and `seoprostack_dismiss_git_updater` admin-post actions; `seoprostack_git_updater_dismissed` user meta, removed on uninstall), and list it first in Free Plugins → Minimal.
+- New, off by default, GitHub builds only: Early updates from GitHub (Maintenance tab) keeps the site on GitHub releases once SEO Pro Stack is also on WordPress.org.
+- New: `seoprostack_free_plugins` and `seoprostack_external_plugins` filters; Free Plugins can list plugins from outside WordPress.org. Features in `SEOProStack::$optional_features` load only when their file is present, so the WordPress.org build can leave out GitHub updates.
+- New: a star in the admin bar, next to your name, opens SEO Pro Stack’s settings, for people who can change them. New `seoprostack_admin_bar_star` filter.
+- New, off by default: Organise the admin menu (Admin tab) groups the menu into Content, Communications, SEO, Shop and Admin, the same way on every site, with WordPress’s entries first and plugins’ in A–Z order. Under Admin, Administrators and Developers are menus with side flyouts, then Users; in Developers, plugin pages moved out of WordPress’s menus share one Settings entry, and SEO Pro Stack gets a star icon. Sections can fold (Fold sections, off by default). Places can be chosen from a list per entry or written in Move menu entries. Preview the admin as a role or a client administrator in a new tab (signed cookie, two hours). Client safeguards (on by default) keep people who are not developers out of Developers, plugin and theme installs and code editing, developer accounts and SEO Pro Stack’s settings. Replaces Admin Menu Editor (Pro), without importing its settings; Free Plugins no longer lists it. New `seoprostack_admin_menu_catalog`, `seoprostack_is_developer` and `seoprostack_can_change_settings` filters and `seoprostack_admin_menu` option, removed on uninstall.
 - New, off by default: More menu in the admin bar (Admin tab) moves the items plugins and themes add to the left of the admin bar into one … menu, last on that side, so the bar stays on one line instead of wrapping over the page. It opens on hover, like the other admin bar menus. Keep on the bar lists the plugins that add items; ticked ones keep theirs on the bar. New `seoprostack_admin_bar_more_items` filter, and a `reload` schema key that makes the saved message ask to reload the page.
 - New, on by default: Hide admin bar items (Admin tab) removes chosen WordPress items from the admin bar for everyone; Comments and + New are ticked by default. It is on by default, so sites that update get a tidier bar; switch it off to keep every item. The account menu is never offered.
 - New, on by default: No fade between admin screens (Admin tab) stops the fade WordPress 7.0 added between wp-admin screens, which can flash, so screens change straight away. It removes core’s `wp-view-transitions-admin` style and prints `@view-transition { navigation: none; }` on admin screens. Switch it off to keep the fade.

@@ -22,6 +22,7 @@ final class SEOProStack {
         'SEOProStack_Admin_Colors',
         'SEOProStack_Admin_Page_Fade',
         'SEOProStack_Admin_Access',
+        'SEOProStack_Admin_Menu',
         'SEOProStack_Widget_Control',
         'SEOProStack_Notification_Emails',
         'SEOProStack_Admin_Notices',
@@ -59,6 +60,17 @@ final class SEOProStack {
     );
 
     /**
+     * Features that some builds leave out, loaded only when their file is
+     * present. The WordPress.org build drops GitHub updates: plugins hosted
+     * there may not install or update code from anywhere else.
+     *
+     * @var string[]
+     */
+    private static $optional_features = array(
+        'SEOProStack_Github_Updates',
+    );
+
+    /**
      * Resolved feature classes.
      *
      * @var string[]|null
@@ -73,10 +85,17 @@ final class SEOProStack {
         require_once SEOPROSTACK_DIR . 'includes/class-seoprostack-feature.php';
         require_once SEOPROSTACK_DIR . 'includes/class-seoprostack-admin-bar.php';
         foreach (self::$core_features as $class) {
-            require_once SEOPROSTACK_DIR . 'includes/features/class-' . str_replace('_', '-', strtolower($class)) . '.php';
+            require_once self::feature_file($class);
+        }
+        foreach (self::$optional_features as $class) {
+            if (is_readable(self::feature_file($class))) {
+                require_once self::feature_file($class);
+                self::$core_features[] = $class;
+            }
         }
 
         SEOProStack_Settings::init();
+        SEOProStack_Admin_Bar::init();
         // Priority 0, added after SEOProStack_Settings::maybe_migrate() so features
         // read migrated values, and early enough to hook widgets_init (init:1).
         add_action('init', array(__CLASS__, 'boot_features'), 0);
@@ -84,6 +103,16 @@ final class SEOProStack {
         if (is_admin()) {
             require_once SEOPROSTACK_DIR . 'admin/settings.php';
         }
+    }
+
+    /**
+     * File of a feature class.
+     *
+     * @param string $class Class name.
+     * @return string
+     */
+    private static function feature_file($class) {
+        return SEOPROSTACK_DIR . 'includes/features/class-' . str_replace('_', '-', strtolower($class)) . '.php';
     }
 
     /**
