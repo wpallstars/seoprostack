@@ -313,11 +313,12 @@ class SEOProStack_Admin_Manager {
                     <h1 class="sps-header__title"><?php esc_html_e('SEO Pro Stack', 'seoprostack'); ?></h1>
                     <span class="sps-badge"><?php echo esc_html('v' . SEOPROSTACK_VERSION); ?></span>
                 </div>
-                <div class="sps-header__actions">
-                    <form class="sps-search" role="search" method="get" action="<?php echo esc_url(admin_url('options-general.php')); ?>">
-                        <input type="hidden" name="page" value="<?php echo esc_attr(self::PAGE); ?>" />
-                        <input type="hidden" name="tab" value="<?php echo esc_attr(self::SEARCH); ?>" />
-                        <label class="screen-reader-text" for="sps-search-input"><?php esc_html_e('Search features', 'seoprostack'); ?></label>
+                <form class="sps-search" role="search" method="get" action="<?php echo esc_url(admin_url('options-general.php')); ?>">
+                    <input type="hidden" name="page" value="<?php echo esc_attr(self::PAGE); ?>" />
+                    <input type="hidden" name="tab" value="<?php echo esc_attr(self::SEARCH); ?>" />
+                    <label class="screen-reader-text" for="sps-search-input"><?php esc_html_e('Search features', 'seoprostack'); ?></label>
+                    <span class="sps-search__field">
+                        <span class="sps-search__icon dashicons dashicons-search" aria-hidden="true"></span>
                         <input type="search"
                                id="sps-search-input"
                                class="sps-search__input"
@@ -325,8 +326,10 @@ class SEOProStack_Admin_Manager {
                                maxlength="100"
                                value="<?php echo esc_attr(self::search_query()); ?>"
                                placeholder="<?php esc_attr_e('Search features', 'seoprostack'); ?>" />
-                        <button type="submit" class="button"><?php esc_html_e('Search', 'seoprostack'); ?></button>
-                    </form>
+                    </span>
+                    <button type="submit" class="button sps-search__button"><?php esc_html_e('Search', 'seoprostack'); ?></button>
+                </form>
+                <div class="sps-header__actions">
                     <a class="button" href="https://www.wpallstars.com/" target="_blank" rel="noopener noreferrer">
                         <?php esc_html_e('Visit website', 'seoprostack'); ?>
                         <span class="screen-reader-text"><?php esc_html_e('(opens in a new tab)', 'seoprostack'); ?></span>
