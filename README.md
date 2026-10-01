@@ -391,6 +391,25 @@ Adds a **Size** column to the Plugins screen: each plugin’s total disk use, sp
 - The screen opens straight away; missing sizes are measured in the background a few seconds at a time.
 - Sizes are kept until the plugin’s version changes.
 
+### Plugin presets (Plugins)
+
+SEO Pro Stack keeps its chosen settings for other plugins, chosen for speed, privacy and quiet admin screens. With this on, each plugin that has a preset says on the Plugins screen whether its settings match (**Preset: settings match**, or **Preset: 3 settings differ**, which opens to list them, what the preset changes and why). Its row offers:
+
+- **Apply preset**: set the chosen settings. Other settings stay as they are.
+- **Reset to defaults**: set the same settings to the plugin’s own defaults.
+- **Undo preset** or **Undo reset**: put back the settings from before the last apply or reset.
+
+Each asks first, naming the plugin. **Apply presets** and **Reset presets to defaults** are also bulk actions; plugins without a preset are skipped. Presets never store or change licence keys, API keys, site keys, passwords, tokens or similar: option names and keys that look like one are left out wherever they appear, and stay as they are when settings change or are undone. Only people who can manage options and activate plugins see this; on multisite it works on each site’s Plugins screen.
+
+Presets so far: Antispam Bee and Simple CAPTCHA with Cloudflare Turnstile. They are JSON files in `presets/`, one per plugin folder. AGENTS.md → Plugin presets explains how they are made and checked.
+
+WP-CLI works whether or not the setting is on:
+
+- `wp seoprostack presets list`: each preset, the version it was chosen with, the installed version, how many settings differ and what can be undone.
+- `wp seoprostack presets diff <plugin> [--defaults]`: the settings that differ from the preset or from the defaults.
+- `wp seoprostack presets apply <plugin>… | --all`, `reset <plugin>… | --all`, `undo <plugin>…`.
+- `wp seoprostack presets export <plugin> [--options=<names>] [--like=<patterns>] [--compare=<file>]`: print settings as a preset, without secrets, warning about values that hold the site’s address or an email address. With `--compare` (an earlier export from a fresh install) only changed settings are kept, with the earlier values as the defaults.
+
 ### Hosting needs (Plugins)
 
 Checks whether the hosting fits the site, and says what to ask the host for. It uses numbers PHP reports, not rules of thumb:
@@ -508,6 +527,7 @@ Developers can add settings, tabs and directory entries with filters:
 - `seoprostack_can_change_settings`: return false to stop the current user changing SEO Pro Stack’s settings (on top of `manage_options`).
 - `seoprostack_admin_bar_star`: return false to hide the admin bar star that opens SEO Pro Stack’s settings.
 - `seoprostack_hosting_sample_rate`: Hosting needs records the time of 1 in this many requests (default 20; 0 stops recording traffic).
+- `seoprostack_plugin_presets`: add or change plugin presets (plugin folder => `name`, `tested`, `updated`, `notes`, `options` and `defaults`, as in `presets/*.json`). Secret-looking names are removed after the filter runs.
 
 Actions:
 
@@ -541,6 +561,7 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folder�
 - Changed: Organise the admin menu places MasterStudy LMS in Content, Lasso Lite and Revive.so in SEO, and GOTMLS, FluentSnippets, Easy Code Manager, Hreflang Manager Lite, Plugin Check, Git Updater, Disable WordPress Updates, the Hreflang Manager connections page and WP Sheet Editor add-ons’ welcome pages in Developers.
 - Changed: Tidy the dashboard also hides StylemixThemes’ (MasterStudy) announcements and news and WP Sheet Editor’s usage stats.
 - Fixed: Hide admin notices moves WooCommerce’s lasting notices and plain message boxes printed without notice classes (such as MainWP Child’s) behind the bell.
+- New, off by default: Plugin presets (Plugins tab). The Plugins screen says whether a plugin’s settings match SEO Pro Stack’s preset and offers Apply preset, Reset to defaults and Undo, each after a confirmation, plus Apply presets and Reset presets to defaults bulk actions. Licence keys, API keys, passwords and similar are never stored or changed. First presets: Antispam Bee and Simple CAPTCHA with Cloudflare Turnstile. New `wp seoprostack presets` command (list, diff, apply, reset, undo, export), `seoprostack_plugin_presets` filter, nonce-checked `seoprostack_plugin_preset` admin-post action and `seoprostack_plugin_presets_undo` option (not autoloaded), removed on uninstall.
 - Change: `readme.txt` is under 10 KB for WordPress.org, with one line per feature and only the newest version's changelog, in short. Every version's changelog is in the new `changelog.txt`, which ships in both zips; preflight checks both for the version. Contributors is `wpallstars`, the WordPress.org account.
 
 ### 0.5.0

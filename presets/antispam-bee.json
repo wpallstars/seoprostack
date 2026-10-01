@@ -1,0 +1,32 @@
+{
+    "name": "Antispam Bee",
+    "tested": "2.11.13",
+    "updated": "2026-10-01",
+    "notes": "Turns on the time check, which stops comments sent faster than a person can type, and keeps every other spam check on. Leaves Gravatar checks off, so commenters' email hashes are not sent to Gravatar, and keeps the Dashboard and inbox quiet: no spam chart, no spam count, no email for each spam comment.",
+    "options": {
+        "antispam_bee": {
+            "time_check": 1,
+            "regexp_check": 1,
+            "spam_ip": 1,
+            "already_commented": 1,
+            "bbcode_check": 1,
+            "gravatar_check": 0,
+            "dashboard_chart": 0,
+            "dashboard_count": 0,
+            "email_notify": 0
+        }
+    },
+    "defaults": {
+        "antispam_bee": {
+            "time_check": null,
+            "regexp_check": null,
+            "spam_ip": null,
+            "already_commented": null,
+            "bbcode_check": null,
+            "gravatar_check": null,
+            "dashboard_chart": null,
+            "dashboard_count": null,
+            "email_notify": null
+        }
+    }
+}
