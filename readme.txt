@@ -61,7 +61,7 @@ Features that replace another plugin (for example Carbon Copy, Imsanity or Ultim
 = Discover =
 
 * **Theme**: install, activate or customise the Kadence theme.
-* **Free Plugins**: recommended plugins from WordPress.org by category, using the core Install and Activate buttons. Only shown to users who can install plugins.
+* **Free Plugins**: recommended plugins from WordPress.org by category. Install, activate, deactivate and uninstall them without leaving the page. The All view lists every recommended plugin by category, with checkboxes and bulk actions for setting up a new site in one go. Only shown to users who can install plugins.
 * **Pro Plugins, Hosting, Tools**: filterable directories of products we use and recommend.
 
 = Affiliate disclosure =
@@ -138,6 +138,8 @@ Copies installed from WordPress.org update from WordPress.org. New versions are 
 == Changelog ==
 
 = 0.5.0 =
+* New: Free Plugins installs, activates, deactivates and uninstalls plugins without leaving the page. Activate becomes Deactivate, and a deactivated plugin offers Uninstall. It uses the full screen width, and its categories stay on one line.
+* New: the All view in Free Plugins lists every recommended plugin by category, with checkboxes and bulk actions (Install and activate, Install, Activate, Deactivate, Uninstall) for setting up new sites quickly.
 * New, off by default: Tidy the dashboard (Admin tab) lays out the Dashboard the same way on every site, hides the Welcome panel, news and plugin promotions, and shows Site Health to developers only and statistics to people who can publish.
 * New: copies installed from GitHub releases get updates from GitHub through the free Git Updater plugin. A notice, and Free Plugins, offer to install and activate it in one click.
 * New, off by default, GitHub copies only: Early updates from GitHub (Maintenance tab) keeps the site on GitHub releases, which come out before WordPress.org.
@@ -204,7 +206,7 @@ Copies installed from WordPress.org update from WordPress.org. New versions are 
 == Upgrade Notice ==
 
 = 0.5.0 =
-New admin menu, dashboard, admin bar and Hosting needs features, off by default, and updates from GitHub releases through Git Updater. Two small changes are on by default: Comments and + New leave the admin bar, and WordPress 7.0’s fade between admin screens stops. Switch either off on the Admin tab.
+New admin menu, dashboard, admin bar and Hosting needs features, off by default, updates from GitHub releases through Git Updater, and Free Plugins that install, activate and remove plugins in place or in bulk. Two small changes are on by default: Comments and + New leave the admin bar, and WordPress 7.0’s fade between admin screens stops. Switch either off on the Admin tab.
 
 = 0.4.0 =
 New tabs and many new features that replace other plugins and import their settings. Everything new is off by default; existing settings are kept.
