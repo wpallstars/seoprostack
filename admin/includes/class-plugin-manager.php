@@ -611,7 +611,14 @@ class SEOProStack_Plugin_Manager {
 
         $active  = $file && ($network ? is_plugin_active_for_network($file) : is_plugin_active($file));
         $php_bad = !$active && $php && !is_php_version_compatible($php);
-        $label   = $active ? _x('Active', 'plugin', 'seoprostack') : ($file ? _x('Inactive', 'plugin', 'seoprostack') : __('Not installed', 'seoprostack'));
+        if ($active) {
+            $label = _x('Active', 'plugin', 'seoprostack');
+        } elseif ($php_bad) {
+            /* translators: %s: PHP version the plugin needs */
+            $label = sprintf(__('Needs PHP %s or later', 'seoprostack'), $php);
+        } else {
+            $label = $file ? _x('Inactive', 'plugin', 'seoprostack') : __('Not installed', 'seoprostack');
+        }
         if ($active) {
             $button = '<button type="button" class="button button-disabled" disabled="disabled">' . esc_html_x('Active', 'plugin', 'seoprostack') . '</button>';
         } elseif ($php_bad) {
