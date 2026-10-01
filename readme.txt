@@ -48,7 +48,7 @@ Everything is off by default except Hide admin bar items, which hides Comments a
 * **Short links** such as /go/offer/, with redirects, categories and click counts, and **Short addresses for custom post types**. **410 Gone** for removed pages.
 * **Speed**: load pages before the click, delay chosen scripts until interaction, add Google Analytics 4 without slowing the page, open the editor faster with Kadence Blocks, and **Ask before licence checks** (once now, once a day or never).
 * **Load plugins only where needed**: a faster wp-admin on sites with many plugins, and admin tools you choose skipped on the site, through a must-use file it manages itself.
-* **Plugins menu** in the admin bar, **Plugin sizes**, **Clean up deleted plugins**, **Hosting needs** (what to ask your host for) and **Plugin presets**: our settings for other plugins, on request.
+* **Plugins menu** in the admin bar, **Plugin sizes**, **Clean up deleted plugins**, **Hosting needs** (what to ask your host for) and **Plugin presets**: our settings and starter data for other plugins, on request.
 
 Features that replace another plugin import its settings once, never change that plugin’s settings, and wait while it is active.
 
@@ -71,13 +71,13 @@ Some links in the Pro Plugins, Hosting and Tools directories may be affiliate li
 * **Microlink** (api.microlink.io, or pro.microlink.io with a key): [terms](https://microlink.io/tos), [privacy policy](https://microlink.io/privacy).
 * **ApiFlash** (api.apiflash.com): [terms](https://apiflash.com/terms_of_service), [privacy policy](https://apiflash.com/privacy_policy).
 * **Screenshot Machine** (api.screenshotmachine.com): [terms](https://www.screenshotmachine.com/termsandconditions.php), [privacy policy](https://www.screenshotmachine.com/privacypolicy.php).
-* **GitHub** (api.github.com, github.com), in copies installed from GitHub releases only: pressing Install and activate Git Updater downloads its latest release. Nothing about your site is sent beyond the request. See the [GitHub privacy statement](https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement).
+* **GitHub** (github.com, api.github.com), in copies from GitHub releases only: up to twice a day, asks for new releases of plugins that name a GitHub repository. Nothing about your site is sent. See the [GitHub privacy statement](https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement).
 
 Other features contact only addresses you choose. Copy linked images downloads images already linked in a post when it is saved. The iFrame block makes visitors’ browsers load the pages your editors embed, under those sites’ privacy policies. Magic login links are sent with your site’s normal email. Avatars without Gravatar stops WordPress loading avatars from gravatar.com. Short links that count clicks set a cookie on your site (`sps_link_` and the link’s ID, for a year, holding only “1”); only totals are kept, never IP addresses. No other data is sent.
 
 = Developers =
 
-Settings, tabs and directory entries can be extended with filters such as `seoprostack_settings_schema`, `seoprostack_admin_tabs` and `seoprostack_tools_items`. See the Read Me tab in the plugin for the full list.
+Settings, tabs and directory entries can be extended with filters such as `seoprostack_settings_schema`. See the Read Me tab for the full list.
 
 == Installation ==
 
@@ -109,15 +109,19 @@ They stay scheduled and publish at their times.
 
 = Where do updates come from? =
 
-Copies from WordPress.org update from WordPress.org. New versions come out on GitHub first; copies installed from a GitHub release update from GitHub through the free Git Updater plugin, which SEO Pro Stack offers to install.
+Copies from WordPress.org update from WordPress.org. New versions come out on GitHub first; copies from a GitHub release update from GitHub on the Updates screen.
 
 == Changelog ==
 
 = Unreleased =
 * New, off by default: Ask before licence checks.
 * Change: Tutor LMS replaces MasterStudy LMS in the recommended plugins.
-* New: presets for EventON Lite, FluentCRM, Fluent Forms, Kadence Blocks, Lasso Lite, LiteSpeed Cache and WooCommerce.
+* New: presets for eight more plugins; starter lists, tags and a board for FluentCRM and Fluent Boards.
+* New: GitHub copies update without Git Updater.
+* New: Plugins screen lists plugins it replaces.
 * New, on by default: Quiet Freemius prompts.
+* Change: Tidy the dashboard hides Debug Log Manager.
+* Fix: fewer GitHub requests from Git Updater.
 * New: Load plugins only where needed can also skip chosen admin tools on the site.
 * Change: Load plugins only where needed also speeds up SEO Pro Stack’s settings, Menus and Editor. Tidy the dashboard hides WooCommerce Setup.
 * Fix: the admin menu on Kadence Blocks’ lists, recovery with Query Monitor, plugins’ Dashboard boxes, screens jumping as they load.
@@ -127,7 +131,7 @@ Copies from WordPress.org update from WordPress.org. New versions come out on Gi
 * Fix: admin menu, Dashboard, notices and blank pages with many plugins active. The menu leaves out upgrade links.
 * Change: Load plugins only where needed also speeds up profile, user, Tools and Media › Add New screens.
 
-Every change, and earlier versions: `changelog.txt` in the plugin folder.
+Every change: `changelog.txt` in the plugin folder.
 
 == Upgrade Notice ==
 

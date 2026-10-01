@@ -10,12 +10,14 @@
 #   --keep-output DIR  Save each full report as JSON in DIR.
 #
 # Exit status: 0 when no zip has Plugin Check errors. Warnings are listed;
-# review them before a WordPress.org submission.
+# review them before a WordPress.org submission. Updater findings in the
+# GitHub zip's Updates from GitHub file are expected and not counted.
 # Needs Docker and internet access (WordPress and Plugin Check are downloaded).
 
 set -euo pipefail
 
 readonly SLUG="seoprostack"
+readonly UPDATER_FILE="includes/features/class-seoprostack-github-updates.php"
 readonly CLI_IMAGE="${SEOPROSTACK_CLI_IMAGE:-wordpress:cli-php8.3}"
 readonly DB_IMAGE="${SEOPROSTACK_DB_IMAGE:-mariadb:10.6}"
 readonly DB_PASSWORD="plugincheck"
@@ -31,7 +33,7 @@ die() {
 }
 
 usage() {
-	sed -n '2,15p' "$0" | sed 's/^# \{0,1\}//'
+	sed -n '2,16p' "$0" | sed 's/^# \{0,1\}//'
 	return 0
 }
 
@@ -117,6 +119,27 @@ check_zip() {
 		return 1
 	fi
 	errors="$( (printf '%s\n' "$report" | grep -o '"type":"ERROR"' || true) | wc -l | tr -d ' ')"
+	# The GitHub zip carries Updates from GitHub on purpose; Plugin Check
+	# reports it as an updater. Those findings are expected there (and only
+	# in that file); in the WordPress.org zip they stay errors.
+	local expected=0
+	case "$zip_name" in
+	"$SLUG"-*)
+		expected="$(printf '%s\n' "$report" | awk -v file="$UPDATER_FILE" '
+			/^FILE: / { current = substr($0, 7); next }
+			/^\[/ && current == file {
+				n = split($0, items, "},{")
+				for (i = 1; i <= n; i++) {
+					if (items[i] ~ /"type":"ERROR"/ && items[i] ~ /"code":"(plugin_updater_detected|update_modification_detected|PluginCheck\.CodeAnalysis\.Offloading\.OffloadedContent)"/) { count++ }
+				}
+			}
+			END { print count + 0 }')"
+		;;
+	esac
+	if [ "$expected" -gt 0 ]; then
+		printf '%s updater finding(s) in %s are expected in the GitHub zip.\n' "$expected" "$UPDATER_FILE"
+		errors=$((errors - expected))
+	fi
 	warnings="$( (printf '%s\n' "$report" | grep -o '"type":"WARNING"' || true) | wc -l | tr -d ' ')"
 	# Readable summary: one line per finding (type, code, file:line).
 	printf '%s\n' "$report" | awk '

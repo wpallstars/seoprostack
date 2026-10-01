@@ -72,6 +72,9 @@ function seoprostack_uninstall_site() {
     // Plugin presets' undo copies. Settings presets changed in other plugins
     // are those plugins' settings now, and stay.
     $options[] = 'seoprostack_plugin_presets_undo';
+    // Record of starter data added to other plugins. The lists, tags, fields
+    // and boards themselves are that plugin's data now, and stay.
+    $options[] = 'seoprostack_starters_added';
     foreach ($options as $option) {
         delete_option($option);
     }
@@ -246,6 +249,8 @@ if (is_multisite()) {
 // Unused magic login links and profile pictures (user meta is network-wide).
 delete_metadata('user', 0, '_seoprostack_magic_login', '', true);
 delete_metadata('user', 0, 'seoprostack_avatar', '', true);
+// Hidden "SEO Pro Stack can do the job of these plugins" lines.
+delete_metadata('user', 0, 'seoprostack_replaced_plugins_hidden', '', true);
 // Dismissed "Install Git Updater" notices (GitHub builds).
 delete_metadata('user', 0, 'seoprostack_git_updater_dismissed', '', true);
 // "Ask me again" in Ask before licence checks.
@@ -256,6 +261,8 @@ delete_metadata('user', 0, 'seoprostack_licence_later', '', true);
 delete_site_option('seoprostack_plugin_sizes');
 delete_site_transient('seoprostack_plugin_names');
 delete_site_option('seoprostack_nextgen_rules');
+// Latest GitHub releases (Updates from GitHub).
+delete_site_transient('seoprostack_github_releases');
 
 // The must-use file of "Load plugins only where needed", if it is ours.
 $seoprostack_loader = WPMU_PLUGIN_DIR . '/seoprostack-plugin-loading.php';
