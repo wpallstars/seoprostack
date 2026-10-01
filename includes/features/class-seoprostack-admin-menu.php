@@ -920,8 +920,10 @@ class SEOProStack_Admin_Menu extends SEOProStack_Feature {
      * @return string
      */
     private static function plain_title($title) {
-        $title = (string) preg_replace('#<span\b.*$#s', '', (string) $title);
-        return trim(wp_strip_all_tags($title));
+        // Counts come after the name in a span; a title that is all in a
+        // span (such as a styled "Upgrade" link) keeps its text.
+        $plain = trim(wp_strip_all_tags((string) preg_replace('#<span\b.*$#s', '', (string) $title)));
+        return '' !== $plain ? $plain : trim(wp_strip_all_tags((string) $title));
     }
 
     /**

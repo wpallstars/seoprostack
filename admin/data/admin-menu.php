@@ -45,7 +45,7 @@ return array(
         'link-manager.php'                      => 'content',
         'tutor'                                 => 'content',
         'stm-lms-settings'                      => 'content',
-        'revenue'                               => 'content',
+        'revenue'                               => 'content', // MasterStudy's Analytics.
         'vg_sheet_editor_setup'                 => 'content',
         'propertyhive'                          => 'content',
 
