@@ -173,7 +173,14 @@ EOF
 # A note when the branch this runs from is not in the preview as it is here.
 branch_note() {
 	local current="$1"
+	local merged
 	if [ -z "$current" ] || [ "$current" = "main" ]; then
+		return 0
+	fi
+	# Nothing to add: its work is already in the preview, through main (after
+	# a squash merge its commits are not ancestors of main) or its open PR.
+	merged="$(git merge-tree --write-tree --no-messages "$PREVIEW_COMMIT" HEAD 2>/dev/null || true)"
+	if [ "$merged" = "$(git rev-parse "$PREVIEW_COMMIT^{tree}")" ]; then
 		return 0
 	fi
 	if ! printf '%s' "$INCLUDED" | grep -q " $current "; then
