@@ -3,8 +3,9 @@
 Every change to SEO Pro Stack. readme.txt lists the latest version in short.
 
 = Unreleased =
-* Change: Tidy the dashboard also hides WooCommerce Setup, which repeats the task list on WooCommerce → Home, and Debug Log Manager’s box, which read the whole debug log on every Dashboard load (6 of 7 seconds on a test site). Tools › Debug Log Manager shows the same entries.
+* Change: Tidy the dashboard also hides WooCommerce Setup, which repeats the task list on WooCommerce → Home.
 * Change: MasterStudy LMS is no longer recommended; Tutor LMS is the recommended LMS. Free Plugins, Pro Plugins, Organise the admin menu and Tidy the dashboard drop their MasterStudy entries.
+* Change: Tidy the dashboard also hides Debug Log Manager’s box, which read the whole debug log on every Dashboard load (6 of 7 seconds on a test site). Tools › Debug Log Manager shows the same entries.
 * New: starter data for FluentCRM and Fluent Boards, on the Plugins screen with Plugin presets on. One click adds the lists, tags and contact fields we organise contacts with (lists say where someone came from, tags who they are to you and on the website), tags by WordPress role, and a Website board for requests with a "please check" step. Only what is missing is added, and Remove takes back what was added while it is unused.
 * New: Plugin presets for EventON Lite (its files only on calendar pages, no Google Fonts), FluentCRM (anonymised IP addresses, no Gravatar), Fluent Forms (no weekly summary, IP logging or admin bar menu), Kadence Blocks (Google Fonts from your own site), Lasso Lite and LiteSpeed Cache (no promotions) and WooCommerce (no remote logging, marketplace suggestions or Order attribution tracking).
 * Fix: Plugin presets: Reset to defaults now removes settings the plugin had not stored before, instead of leaving them empty.

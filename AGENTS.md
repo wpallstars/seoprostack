@@ -83,12 +83,6 @@ site with `wp seoprostack starters diff|add|remove`, with items in use.
 - Capability and nonce checks on every admin action and AJAX handler; escape on
   output; sanitise through the schema.
 - Admin copy: short, plain words, sentence case, no jargon.
-- Leave no PHP errors, warnings, notices or deprecations behind. Fix any that
-  SEO Pro Stack causes as you find them, in the same change when it is small,
-  or as a tracked issue. That includes ones in other plugins that only happen
-  because of SEO Pro Stack (for example a plugin skipped by Load plugins only
-  where needed). Messages that other plugins cause on their own are theirs:
-  mention them, do not hide them.
 - Do not change WordPress update behaviour (update transients, `auto_update_*`
   filters, update checks). Plugin Check reports `plugin_updater_detected` as an
   error, and WordPress.org asks plugins not to interfere with the updater. A
@@ -101,6 +95,12 @@ site with `wp seoprostack starters diff|add|remove`, with items in use.
   anything that installs or updates code from outside WordPress.org in that
   file, because the WordPress.org build leaves it out. Never add an
   `Update URI` header.
+- Leave no PHP errors, warnings, notices or deprecations behind. Fix any that
+  SEO Pro Stack causes as you find them, in the same change when it is small,
+  or as a tracked issue. That includes ones in other plugins that only happen
+  because of SEO Pro Stack (for example a plugin skipped by Load plugins only
+  where needed). Messages that other plugins cause on their own are theirs:
+  mention them, do not hide them.
 
 ## Releases
 
