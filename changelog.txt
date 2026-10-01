@@ -3,7 +3,7 @@
 Every change to SEO Pro Stack. readme.txt lists the latest version in short.
 
 = Unreleased =
-* New, off by default: Quiet Freemius prompts. Plugins that use Freemius, such as WP Sheet Editor and Git Updater, stop asking you to opt in, offering upgrades, add-ons and trials, opening their opt-in page when activated and asking why you deactivate them. The Plugins screen also drops the hidden dialogs they add. Licences, accounts and support stay, and nothing is changed in those plugins.
+* New, on by default: Quiet Freemius prompts. Plugins that use Freemius, such as WP Sheet Editor and Git Updater, stop asking you to opt in, offering upgrades, add-ons and trials, opening their opt-in page when activated and asking why you deactivate them. The Plugins screen also drops the hidden dialogs they add. Licences, accounts and support stay, and nothing is changed in those plugins. Switch it off to get the prompts back.
 * New: Load plugins only where needed can also skip admin tools you choose when people view the site, so pages that are not cached open faster. SEO Pro Stack checks what each plugin adds to the site and says so next to it. Plugins that handle logins or that other plugins need always load, and logins, forms and links with extra arguments still load every plugin. If a page fails, the site loads every plugin again and the settings say where.
 * Change: with Load plugins only where needed, SEO Pro Stack’s own settings load only the plugins they need, so each tab opens faster (on a test site with 85 plugins, about 1.3 seconds instead of 2 to 4).
 * Fix: Tidy the dashboard keeps offering widgets of plugins that the Dashboard does not load.

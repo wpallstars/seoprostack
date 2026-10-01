@@ -107,8 +107,15 @@ Reviewers read the code. Check each against the guidelines before submitting:
 - [ ] **Admin notices** (guideline 11): the plugin's own notices are
       contextual and dismissible; no promotions in the dashboard.
 - [ ] **Defaults** (guideline 11 and the owner's rule): only Hide admin bar
-      items and No fade between admin screens are on after activation. Say so
-      in the description, as now.
+      items, No fade between admin screens and Quiet Freemius prompts are on
+      after activation. Say so in the description, as now.
+- [ ] **Quiet Freemius prompts** (guidelines 7, 9 and 11): it uses the
+      filters Freemius provides for this, stores nothing in the other plugins
+      (none is opted in or out), keeps their licence, account and support
+      features working, and switches off in one click. It only stops prompts
+      that guideline 11 asks plugins to keep few, and it means fewer opt-ins
+      to Freemius's data collection, not more. If a reviewer asks, offer to
+      make it off by default.
 - [ ] **Files outside the plugin folder**: Load plugins only where needed
       writes a loader to `wp-content/mu-plugins`, and WebP and AVIF images and
       Watermark write `.htaccess` files in uploads. All are opt-in and removed
