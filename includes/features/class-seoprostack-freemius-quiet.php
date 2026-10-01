@@ -75,8 +75,6 @@ class SEOProStack_Freemius_Quiet extends SEOProStack_Feature {
         if (!wp_doing_ajax()) {
             // After Freemius's own admin_init hooks have added the dialogs.
             add_action('admin_init', array(__CLASS__, 'unhook'), PHP_INT_MAX);
-            add_filter('plugin_action_links', array(__CLASS__, 'action_links'), 20, 2);
-            add_filter('network_admin_plugin_action_links', array(__CLASS__, 'action_links'), 20, 2);
         }
     }
 
@@ -167,15 +165,21 @@ class SEOProStack_Freemius_Quiet extends SEOProStack_Feature {
     /**
      * Remove the dialogs Freemius prints in the Plugins screen's footer: the
      * deactivation survey of plugins that are not opted in (so they have no
-     * subscription to cancel), and the opt-in dialog behind the hidden link.
+     * subscription to cancel), and the opt-in dialog behind the Opt In link,
+     * which is removed too.
      */
     public static function unhook() {
         foreach (self::instances() as $fs) {
             if (method_exists($fs, 'is_registered') && !$fs->is_registered()) {
                 remove_action('admin_footer', array($fs, '_add_deactivation_feedback_dialog_box'));
             }
-            if (!self::opted_in($fs)) {
+            if (!self::opted_in($fs) && method_exists($fs, 'get_plugin_basename')) {
                 remove_action('admin_footer', array($fs, '_add_optout_dialog'));
+                // Freemius adds its links on the plugin's own filter, which
+                // runs after the general plugin_action_links one.
+                $file = $fs->get_plugin_basename();
+                add_filter('plugin_action_links_' . $file, array(__CLASS__, 'action_links'), 20, 2);
+                add_filter('network_admin_plugin_action_links_' . $file, array(__CLASS__, 'action_links'), 20, 2);
             }
         }
     }
