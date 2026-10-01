@@ -51,8 +51,14 @@ class SEOProStack_Short_Links extends SEOProStack_Feature {
     /** Seconds an import in the admin may run; the rest follows next time. */
     const IMPORT_BUDGET = 20;
 
-    /** Option: the starter review links were added (once per site). */
+    /** Option: version of the starter review links this site has had. */
     const PRESETS_OPTION = 'seoprostack_short_links_presets';
+
+    /**
+     * Starter review links version: 1 added the links, 2 puts them in the
+     * Review Requests category.
+     */
+    const PRESETS_VERSION = 2;
 
     /**
      * Whether the map is rebuilt at the end of this request.
@@ -637,11 +643,14 @@ class SEOProStack_Short_Links extends SEOProStack_Feature {
     }
 
     /**
-     * Add the starter review links the first time someone who can add links
-     * opens the admin with the feature on. Deleted ones do not come back.
+     * Add the starter review links, in the Review Requests category, the
+     * first time someone who can add links opens the admin with the feature
+     * on. Deleted ones do not come back. Sites that got the links before the
+     * category have them filed there once, unless they were given a category.
      */
     public static function maybe_add_presets() {
-        if (get_option(self::PRESETS_OPTION) || wp_doing_ajax()) {
+        $done = (int) get_option(self::PRESETS_OPTION);
+        if ($done >= self::PRESETS_VERSION || wp_doing_ajax()) {
             return;
         }
         $type = get_post_type_object(self::TYPE);
@@ -649,8 +658,17 @@ class SEOProStack_Short_Links extends SEOProStack_Feature {
             return;
         }
         // Set first, so two admin requests at once do not both add them.
-        update_option(self::PRESETS_OPTION, 1, false);
+        update_option(self::PRESETS_OPTION, self::PRESETS_VERSION, false);
+        if ($done < 1) {
+            self::add_presets();
+        }
+        self::categorise_presets();
+    }
 
+    /**
+     * Create the starter review links whose addresses are free.
+     */
+    private static function add_presets() {
         // Addresses Pretty Links has and that are still to be imported.
         $prli = array();
         foreach (self::pretty_links_rows() as $row) {
@@ -685,6 +703,39 @@ class SEOProStack_Short_Links extends SEOProStack_Feature {
         }
         if ($added) {
             self::build_map();
+        }
+    }
+
+    /**
+     * Put starter review links that have no category in Review Requests,
+     * using the category of that name if the site already has one.
+     */
+    private static function categorise_presets() {
+        $ids = get_posts(array(
+            'post_type'   => self::TYPE,
+            'post_status' => 'any',
+            'numberposts' => -1,
+            'fields'      => 'ids',
+            'meta_key'    => self::META . 'preset', // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key -- once per site.
+        ));
+        $term_id = 0;
+        foreach ($ids as $id) {
+            $terms = wp_get_object_terms($id, self::TAX, array('fields' => 'ids'));
+            if (is_wp_error($terms) || $terms) {
+                continue;
+            }
+            if (!$term_id) {
+                $name = __('Review Requests', 'seoprostack');
+                $term = term_exists($name, self::TAX);
+                if (!$term) {
+                    $term = wp_insert_term($name, self::TAX);
+                }
+                if (is_wp_error($term) || !is_array($term)) {
+                    return;
+                }
+                $term_id = (int) $term['term_id'];
+            }
+            wp_set_object_terms($id, array($term_id), self::TAX);
         }
     }
 
