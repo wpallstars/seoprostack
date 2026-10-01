@@ -130,6 +130,7 @@ They stay scheduled and publish at their times. Turning it off only stops new po
 * New, off by default: More menu in the admin bar (Admin tab) puts the items plugins and themes add to the left of the admin bar in one … menu after + New, so the bar no longer wraps over the page. Choose plugins whose items stay on the bar. On phones the menu also reaches plugin items WordPress hides there.
 * New: Load pages before the click can also preload admin screens (off by default). Only the page is downloaded, and links that change something are skipped.
 * Change: Hide the admin bar and Block dashboard access no longer offer Administrator, since administrators are never affected.
+* Change: roles that plugins add, such as WooCommerce’s Customer, are ticked in Hide the admin bar and Block dashboard access unless they can write posts. With WooCommerce, blocked users go to My Account unless you chose another page.
 * Change: on new sites, SVG uploads also allows authors, contributors and shop managers, and watermarks are 10% of the picture. Existing settings are kept.
 * Change: Resize large uploads no longer imports Imsanity’s default limit (1920), so 2560 is used.
 * Change: the Plugins menu always sits next to the account menu in the admin bar, with the notices bell to its left and other plugins’ items further left, so the bell appearing never moves them.
