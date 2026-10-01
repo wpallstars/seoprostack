@@ -23,7 +23,7 @@ Everything is off by default except Hide admin bar items, which hides Comments a
 * **Hide admin bar items** (on by default), a **More menu** for plugin items in the admin bar, and **Hide admin notices**, which moves plugin and theme notices behind a bell.
 * **Admin bar and dashboard access**: hide the admin bar and block wp-admin for roles such as subscribers and customers. Administrators are never affected.
 * **Magic login links**: “Email me a login link” on the login screen. Links work once, expire, and log in only after a button press, so email scanners cannot use them up.
-* **Modern admin colours**, **No fade between admin screens** (on by default) and **Notification emails**, which stops routine emails one by one.
+* **Modern admin colours**, **No fade between admin screens** (on by default), **Readable list columns** and **Notification emails**, which stops routine emails one by one.
 
 = Writing and publishing =
 
@@ -113,8 +113,8 @@ Copies from WordPress.org update from WordPress.org. New versions come out on Gi
 == Changelog ==
 
 = Unreleased =
-* New, off by default: Faster editor with Kadence Blocks loads Kadence’s design library only when you open it. Plugin presets.
-* Fix: admin menu, Dashboard and notices with many plugins active.
+* New, off by default: Faster editor with Kadence Blocks loads Kadence’s design library only when you open it. Plugin presets. Readable list columns.
+* Fix: admin menu, Dashboard, notices and blank pages with many plugins active. The menu leaves out upgrade links.
 
 = 0.5.0 =
 * New admin menu, dashboard, admin bar, Hosting needs and Free Plugins features. On by default: Hide admin bar items and No fade between admin screens.

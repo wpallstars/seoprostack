@@ -436,14 +436,68 @@ class SEOProStack_Admin_Menu extends SEOProStack_Feature {
             /**
              * Filter where menu entries go.
              *
-             * @param array $catalog `menus` (address => place) and `plugins`
-             *                       (plugin folder => place). A place is a
-             *                       section key or another menu's address.
+             * @param array $catalog `menus` (address => place), `plugins`
+             *                       (plugin folder => place) and `hidden`
+             *                       (addresses left out of the menu). A place
+             *                       is a section key or another menu's address.
              */
             $catalog = (array) apply_filters('seoprostack_admin_menu_catalog', $data);
-            $catalog += array('menus' => array(), 'plugins' => array());
+            $catalog += array('menus' => array(), 'plugins' => array(), 'hidden' => array());
+            // A list of addresses, or address => true.
+            $hidden = array();
+            foreach ((array) $catalog['hidden'] as $k => $v) {
+                $hidden[is_string($k) ? $k : (string) $v] = true;
+            }
+            $catalog['hidden'] = $hidden;
         }
         return $catalog;
+    }
+
+    /**
+     * Whether an entry is left out of the menu: listed as hidden, an
+     * upgrade link, or a page without a title. Its page still opens, and
+     * keeps its place for the safeguards. A place chosen by hand shows it.
+     *
+     * @param string $slug   Entry address.
+     * @param string $parent Menu it is in ('' for top-level entries).
+     * @param array  $item   Menu entry.
+     * @return bool
+     */
+    private static function is_hidden($slug, $parent, array $item) {
+        if (null === self::$moves) {
+            self::$moves = self::moves();
+        }
+        foreach (array($parent . '>' . $slug, $slug) as $key) {
+            if (isset(self::$moves[$key])) {
+                return false;
+            }
+        }
+        $hidden = self::catalog()['hidden'];
+        if (isset($hidden[$slug]) || ('' !== $parent && isset($hidden[$parent . '>' . $slug]))) {
+            return true;
+        }
+        if ('' === $parent) {
+            return false;
+        }
+        $title = isset($item[0]) ? (string) $item[0] : '';
+        if ('' === trim(wp_strip_all_tags($title)) && false === stripos($title, '<img')) {
+            return true;
+        }
+        return self::is_upsell($title);
+    }
+
+    /**
+     * Whether a submenu title is only an upgrade link: Upgrade, Upgrade to
+     * Pro, Go Pro, Get Pro, Unlock Pro, Premium Upgrade and the like,
+     * whatever the case, arrows or exclamation marks.
+     *
+     * @param string $title Menu title.
+     * @return bool
+     */
+    private static function is_upsell($title) {
+        $plain = html_entity_decode(self::plain_title($title), ENT_QUOTES, 'UTF-8');
+        $plain = strtolower(trim((string) preg_replace('/[^a-z]+/i', ' ', $plain)));
+        return (bool) preg_match('/^(upgrade( to (pro|premium))?|premium upgrade|(go|get|buy|unlock) pro|pricing)$/', $plain);
     }
 
     /**
@@ -762,6 +816,7 @@ class SEOProStack_Admin_Menu extends SEOProStack_Feature {
             if (!is_array($item) || !isset($item[2]) || self::is_separator($item)) {
                 continue;
             }
+            $item  = self::image_title($item);
             $slug  = (string) $item[2];
             $place = self::place($slug, '');
             if (!isset($sections[$place]) && isset($renamed[$slug])) {
@@ -771,14 +826,29 @@ class SEOProStack_Admin_Menu extends SEOProStack_Feature {
                 // Top-level entries go into sections only.
                 $place = self::fallback_section($slug, $parents);
             }
+            $top[$slug] = $place;
+            if (self::is_hidden($slug, '', $item)) {
+                $entries[] = array('slug' => $slug, 'section' => $place, 'top' => true, 'hidden' => true);
+                continue;
+            }
             $groups[$place][] = $item;
-            $top[$slug]       = $place;
             $entries[]        = array('slug' => $slug, 'section' => $place, 'top' => true);
         }
 
         foreach ($out_sub as $parent => $items) {
             $parent = (string) $parent;
-            $own    = isset($top[$parent]) ? $top[$parent] : '';
+            if (!isset($top[$parent])) {
+                // Pages registered without a menu ('' or options.php, such as
+                // setup wizards): core never shows them, so neither does this.
+                foreach ((array) $items as $item) {
+                    if (is_array($item) && isset($item[2])) {
+                        $place     = self::place((string) $item[2], $parent);
+                        $entries[] = array('slug' => (string) $item[2], 'section' => isset($sections[$place]) ? $place : '', 'from' => $parent, 'hidden' => true);
+                    }
+                }
+                continue;
+            }
+            $own    = $top[$parent];
             $first  = true;
             foreach ((array) $items as $position => $item) {
                 if (!is_array($item) || !isset($item[2])) {
@@ -787,6 +857,11 @@ class SEOProStack_Admin_Menu extends SEOProStack_Feature {
                 $slug     = (string) $item[2];
                 $is_first = $first;
                 $first    = false;
+                if (!$is_first && $slug !== $parent && self::is_hidden($slug, $parent, $item)) {
+                    unset($out_sub[$parent][$position]);
+                    $entries[] = array('slug' => $slug, 'section' => $own, 'from' => $parent, 'hidden' => true);
+                    continue;
+                }
                 $place    = $is_first || $slug === $parent ? '' : self::place($slug, $parent);
 
                 if ('' === $place || $place === $parent || $place === $own || (!isset($sections[$place]) && !isset($top[$place]))) {
@@ -810,6 +885,7 @@ class SEOProStack_Admin_Menu extends SEOProStack_Feature {
                         'menu-top sps-menu-moved' . (isset(self::ICONS[$slug]) ? '' : ' sps-menu-plain'),
                         'sps-menu-moved-' . sanitize_html_class($slug),
                         isset(self::ICONS[$slug]) ? self::ICONS[$slug] : 'dashicons-admin-generic',
+                        'from' => $parent,
                     );
                     $entries[] = array('slug' => $slug, 'section' => $place, 'parent_file' => $url, 'submenu_file' => null, 'from' => $parent);
                 } else {
@@ -924,6 +1000,43 @@ class SEOProStack_Admin_Menu extends SEOProStack_Feature {
         // span (such as a styled "Upgrade" link) keeps its text.
         $plain = trim(wp_strip_all_tags((string) preg_replace('#<span\b.*$#s', '', (string) $title)));
         return '' !== $plain ? $plain : trim(wp_strip_all_tags((string) $title));
+    }
+
+    /**
+     * A top-level entry whose logo is an image in its title (such as Meow
+     * Apps), with the logo moved to the icon. The plugin's own CSS places
+     * such an image, only on screens that load the plugin and only in its
+     * own menu, so elsewhere it shows full size next to a cog. An SVG logo
+     * becomes the icon when the entry has none of its own; core then draws
+     * it like every other icon. Other images are left as they are.
+     *
+     * @param array $item Top-level menu entry.
+     * @return array
+     */
+    public static function image_title(array $item) {
+        if (!isset($item[0]) || !is_string($item[0]) || false === stripos($item[0], '<img')) {
+            return $item;
+        }
+        if (!preg_match('#<img\b[^>]*\bsrc=(["\'])(data:image/svg\+xml;base64,[A-Za-z0-9+/=]+)\1[^>]*>#i', $item[0], $img)) {
+            return $item;
+        }
+        $icon    = isset($item[6]) ? (string) $item[6] : '';
+        $class   = isset($item[4]) ? (string) $item[4] : '';
+        $default = '' === $icon || 'none' === $icon || 'div' === $icon
+            || ('dashicons-admin-generic' === $icon && preg_match('/(^|\s)menu-icon-generic(\s|$)/', $class));
+        if (!$default) {
+            return $item;
+        }
+        $title = trim((string) preg_replace('#<img\b[^>]*>#i', '', $item[0]));
+        if ('' === trim(wp_strip_all_tags($title))) {
+            // A logo alone: its alt text, else the page title.
+            $title = preg_match('#\balt=(["\'])([^"\']+)\1#i', $img[0], $alt) ? esc_html($alt[2]) : (isset($item[3]) ? (string) $item[3] : '');
+        }
+        $item[0] = $title;
+        // Core hides every icon image on entries marked generic.
+        $item[4] = trim((string) preg_replace('/(^|\s)menu-icon-generic(?=\s|$)/', ' ', $class));
+        $item[6] = $img[2];
+        return $item;
     }
 
     /**
@@ -1286,10 +1399,11 @@ class SEOProStack_Admin_Menu extends SEOProStack_Feature {
             if (false !== strpos($class, 'sps-menu-plain')) {
                 if (current_user_can($item[1])) {
                     $kids[] = array(
-                        't' => $item[0],
-                        'u' => esc_url_raw(str_replace(array('&#038;', '&amp;'), '&', (string) $item[2])),
-                        'c' => (string) $item[2] === $parent_file,
-                        'd' => false,
+                        't'    => $item[0],
+                        'u'    => esc_url_raw(str_replace(array('&#038;', '&amp;'), '&', (string) $item[2])),
+                        'c'    => (string) $item[2] === $parent_file,
+                        'd'    => false,
+                        'from' => isset($item['from']) ? (string) $item['from'] : '',
                     );
                 }
             } elseif (isset($order[(string) $item[2]])) {
@@ -1299,6 +1413,7 @@ class SEOProStack_Admin_Menu extends SEOProStack_Feature {
             }
         }
         if ($kids) {
+            $kids   = self::name_twins($kids);
             $title  = esc_html__('Settings', 'seoprostack');
             $core[] = array(
                 $title,
@@ -1315,6 +1430,34 @@ class SEOProStack_Admin_Menu extends SEOProStack_Feature {
             $other[0][4] .= ' sps-menu-divider';
         }
         return array_merge($core, $other);
+    }
+
+    /**
+     * Pages with the same name (such as Plugin Check under Tools and under
+     * Settings) get the name of the menu they came from after it.
+     *
+     * @param array $kids Third-level entries, with `from`.
+     * @return array The entries, without `from`.
+     */
+    private static function name_twins(array $kids) {
+        global $menu;
+        $count = array_count_values(array_map(function ($kid) {
+            return strtolower(self::plain_title($kid['t']));
+        }, $kids));
+        $names = array();
+        foreach ((array) $menu as $item) {
+            if (is_array($item) && isset($item[2])) {
+                $names[(string) $item[2]] = self::plain_title($item[0]);
+            }
+        }
+        foreach ($kids as $k => $kid) {
+            $from = $kid['from'];
+            unset($kids[$k]['from']);
+            if ($count[strtolower(self::plain_title($kid['t']))] > 1 && isset($names[$from]) && '' !== $names[$from]) {
+                $kids[$k]['t'] = $kid['t'] . ' (' . esc_html($names[$from]) . ')';
+            }
+        }
+        return $kids;
     }
 
     /**
@@ -1646,6 +1789,10 @@ class SEOProStack_Admin_Menu extends SEOProStack_Feature {
             $title = '' === $from
                 ? (isset($names[$entry['slug']]) ? $names[$entry['slug']] : $entry['slug'])
                 : (isset($names[$from]) ? $names[$from] . ' › ' : '') . (isset($titles[$from . '>' . $entry['slug']]) ? $titles[$from . '>' . $entry['slug']] : $entry['slug']);
+            if (!empty($entry['hidden'])) {
+                /* translators: %s: menu entry name. */
+                $title = sprintf(__('%s (hidden)', 'seoprostack'), $title);
+            }
             $rows[] = array(
                 'slug'  => $entry['slug'],
                 'from'  => $from,
@@ -1661,7 +1808,7 @@ class SEOProStack_Admin_Menu extends SEOProStack_Feature {
 
         echo '<div class="sps-panel-note sps-menu-places">';
         echo '<p><strong>' . esc_html__('Menu entries on this site', 'seoprostack') . '</strong></p>';
-        echo '<p class="description">' . esc_html__('Choose where each entry goes. Reload the page to see the menu change.', 'seoprostack') . '</p>';
+        echo '<p class="description">' . esc_html__('Choose where each entry goes. Reload the page to see the menu change. Upgrade links, pages without a name and setup prompts are hidden; another place, or a typed line, shows them.', 'seoprostack') . '</p>';
         echo '<table class="widefat striped"><thead><tr><th scope="col">' . esc_html__('Entry', 'seoprostack') . '</th><th scope="col">' . esc_html__('Address', 'seoprostack') . '</th><th scope="col">' . esc_html__('Place', 'seoprostack') . '</th></tr></thead><tbody>';
         foreach ($rows as $n => $row) {
             $label = 'sps-menu-place-' . $n;

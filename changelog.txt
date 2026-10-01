@@ -3,10 +3,14 @@
 Every change to SEO Pro Stack. readme.txt lists the latest version in short.
 
 = Unreleased =
+* New, off by default: Readable list columns (Admin tab) keeps the title column of post, page, user and other lists wide enough to read when plugins add columns of their own, and stops other columns being squeezed out. The other columns get narrower instead.
+* Fix: with Load plugins only where needed, WP Sheet Editor’s pages opened blank. Pages that Freemius takes over now load the plugin they belong to.
+* Fix: Meow Apps’ logo showed full size next to a cog on some screens. It now shows as the menu icon.
+* Change: Organise the admin menu leaves out upgrade links (Upgrade, Go Pro, Get Pro and the like), entries without a name, setup pages WordPress never shows (WooCommerce’s Setup Wizard), Freesoul Deactivate Plugins’ second menu, Freemius opt-in prompts and MasterStudy’s “Unlock this addon” pages. Their pages still open; choose a place for an entry to show it again. Pages with the same name in Developers › Settings show the menu they came from.
 * New, off by default: Faster editor with Kadence Blocks (Speed tab) loads Kadence’s design library when you open it, instead of in every editor page. On a test site the new post screen went from about 24 MB to under 9 MB.
 * Fix: with Load plugins only where needed, Organise the admin menu puts the entries of plugins a screen skips in the same places as on other screens.
 * Fix: the admin menu keeps its order when a plugin’s script moves entries (MasterStudy LMS moved WooCommerce Analytics above Posts).
-* Change: Organise the admin menu knows more plugins: MasterStudy LMS (Content), Lasso Lite and Revive.so (SEO), and GOTMLS, FluentSnippets, Easy Code Manager, Hreflang Manager Lite, Plugin Check, Git Updater, Disable WordPress Updates and WP Sheet Editor’s welcome pages (Developers).
+* Change: Organise the admin menu knows more plugins: MasterStudy LMS (Content), Lasso Lite and Revive.so (SEO), and GOTMLS, FluentSnippets, Easy Code Manager, Hreflang Manager Lite, Plugin Check, Git Updater and Disable WordPress Updates (Developers).
 * Change: Tidy the dashboard also hides MasterStudy’s announcements and news and WP Sheet Editor’s usage stats.
 * Fix: Hide admin notices moves WooCommerce’s lasting notices and plain message boxes such as MainWP Child’s behind the bell.
 * New, off by default: Plugin presets (Plugins tab) applies SEO Pro Stack’s chosen settings to other plugins from the Plugins screen, resets them to the plugin’s defaults or undoes the last change, each after a confirmation, also as bulk actions. Licence keys, API keys and passwords are never stored or changed. First presets: Antispam Bee and Simple CAPTCHA with Cloudflare Turnstile. New `wp seoprostack presets` command (list, diff, apply, reset, undo, export).

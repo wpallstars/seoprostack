@@ -13,6 +13,7 @@
  *            menus, matched to the plugin that handles the page. Plugins
  *            placed in super-admin are also hidden from the Plugins screen
  *            for people who are not developers while safeguards are on.
+ * - hidden:  addresses (or menu>address) of entries left out of the menu.
  *
  * A place is a section (top, content, communications, seo, shop,
  * admin-heading, admin, super-admin) or the address of another menu, to go
@@ -155,8 +156,8 @@ return array(
         'edit.php?post_type=acf-field-group'    => 'super-admin',
         'da_hm_connections'                     => 'super-admin',
         'daexthrmal_connections'                => 'super-admin',
-        // WP Sheet Editor add-ons' welcome pages; their editors sit in
-        // Posts, Products, Users and WooCommerce.
+        // WP Sheet Editor add-ons' welcome pages (also hidden, below);
+        // their editors sit in Posts, Products, Users and WooCommerce.
         'wpsett_welcome_page'                   => 'super-admin',
         'wpseu_welcome_page'                    => 'super-admin',
         'wpsewcc_welcome_page'                  => 'super-admin',
@@ -289,5 +290,56 @@ return array(
         'performant-translations'               => 'super-admin',
         'action-scheduler'                      => 'super-admin',
         'wp-fix-plugin-does-not-exist-notices'  => 'super-admin',
+    ),
+
+    // Entries left out of the menu. Their pages still open, and keep the
+    // place given above for the safeguards. Upgrade links (Upgrade, Go Pro,
+    // Get Pro, Unlock Pro and the like) and pages without a name are left
+    // out without being listed.
+    'hidden' => array(
+        // Freesoul's holder for its pages; Freesoul hides it too, but only
+        // after the organised menu is built.
+        'fdp_hidden_menu',
+        // Freemius opt-in prompts that WP Sheet Editor add-ons show as menus
+        // until someone opts in or skips.
+        'wpsett_welcome_page',
+        'wpseu_welcome_page',
+        'wpsewcc_welcome_page',
+        'wpsewcp_welcome_page',
+        // AutomatorWP's advert for another plugin.
+        'https://wordpress.org/plugins/shortlinkspro',
+        // MasterStudy without Pro: one "Unlock this addon" page per Pro
+        // addon (add_submenu_pages() in _core/settings/main_settings.php).
+        // Menu > address, as the addresses are common words. PRO Addons
+        // still lists them all.
+        'stm-lms-settings>email-manager',
+        'stm-lms-settings>lms-form-editor',
+        'stm-lms-settings>media-file-manager',
+        'stm-lms-settings>group-courses',
+        'stm-lms-settings>scorm',
+        'stm-lms-settings>course-bundles',
+        'stm-lms-settings>upcoming-course-status',
+        'stm-lms-settings>drip-content',
+        'stm-lms-settings>assignments',
+        'stm-lms-settings>google-meet',
+        'stm-lms-settings>zoom-video-conferencing',
+        'stm-lms-settings>certificate-builder',
+        'stm-lms-settings>subscriptions',
+        'stm-lms-settings>notifications',
+        'stm-lms-settings>ai-lab',
+        'stm-lms-settings>calendar',
+        'stm-lms-settings>grades',
+        'stm-lms-settings>prerequisites',
+        'stm-lms-settings>question-media-addon',
+        'stm-lms-settings>social-login',
+        'stm-lms-settings>the-gradebook',
+        'stm-lms-settings>multi-instructors',
+        'stm-lms-settings>statistics-and-payouts',
+        'stm-lms-settings>trial-courses',
+        'stm-lms-settings>audio-lesson',
+        'stm-lms-settings>live-streaming',
+        'stm-lms-settings>point-system',
+        'stm-lms-settings>google-classroom',
+        'stm-lms-settings>online-testing',
     ),
 );
