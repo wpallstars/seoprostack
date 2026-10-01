@@ -48,7 +48,7 @@ Everything is off by default except Hide admin bar items, which hides Comments a
 * **Short links** such as /go/offer/, with redirects, categories and click counts, and **Short addresses for custom post types**. **410 Gone** for removed pages.
 * **Speed**: load pages before the click, delay chosen scripts until interaction, add Google Analytics 4 without slowing the page, and open the editor faster with Kadence Blocks.
 * **Load plugins only where needed**: a faster wp-admin on sites with many plugins, and admin tools you choose skipped on the site, through a must-use file it manages itself.
-* **Plugins menu** in the admin bar, **Plugin sizes**, **Clean up deleted plugins**, **Hosting needs** (what to ask your host for) and **Plugin presets**: our settings for other plugins, on request.
+* **Plugins menu** in the admin bar, **Plugin sizes**, **Clean up deleted plugins**, **Hosting needs** (what to ask your host for) and **Plugin presets**: our settings and starter data for other plugins, on request.
 
 Features that replace another plugin import its settings once, never change that plugin’s settings, and wait while it is active.
 
@@ -115,7 +115,7 @@ Copies from WordPress.org update from WordPress.org. New versions come out on Gi
 
 = Unreleased =
 * Change: Tutor LMS replaces MasterStudy LMS in the recommended plugins.
-* New: presets for EventON Lite, FluentCRM, Fluent Forms, Kadence Blocks, Lasso Lite, LiteSpeed Cache and WooCommerce.
+* New: presets for seven more plugins; starter lists, tags and a board for FluentCRM and Fluent Boards.
 * New, on by default: Quiet Freemius prompts.
 * New: Load plugins only where needed can also skip chosen admin tools on the site.
 * Change: Load plugins only where needed also speeds up SEO Pro Stack’s own settings, Appearance › Menus and Appearance › Editor.

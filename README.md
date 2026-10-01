@@ -449,6 +449,27 @@ WP-CLI works whether or not the setting is on:
 - `wp seoprostack presets apply <plugin>… | --all`, `reset <plugin>… | --all`, `undo <plugin>…`.
 - `wp seoprostack presets export <plugin> [--options=<names>] [--like=<patterns>] [--compare=<file>]`: print settings as a preset, without secrets, warning about values that hold the site’s address or an email address. With `--compare` (an earlier export from a fresh install) only changed settings are kept, with the earlier values as the defaults.
 
+#### Starter data
+
+Some plugins keep the way you organise your data in their own tables rather than in settings. For those, SEO Pro Stack has **starter data**: the lists, tags, fields and boards we start our own sites with, so a new site begins organised and shows by example how to add more. An active plugin with starter data says on the Plugins screen what the site does not have yet (**Starter data: 35 items to add**, which opens to list them and explain the pattern) and offers:
+
+- **Add starter data**: add the missing items. Items already there, matched by slug (lists, tags, fields) or title (boards), stay exactly as they are, and settings already stored are not changed.
+- **Remove starter data**: remove what SEO Pro Stack added, while it is unused. Lists and tags with contacts, contact fields with values, boards with tasks and settings changed since stay, and the message says how many.
+
+Each asks first. Items are added through the plugin's own models, with its own created and deleted actions.
+
+| Plugin | Starter data |
+|---|---|
+| FluentCRM | Lists named after where a contact came from: Website Contact Form, Booking Form, Newsletter Subscription Form, User Registration Form, Post Comment Form and Data Subject Access Request Form, plus Website Shop Customers with WooCommerce and free and paid course lists with Tutor LMS. Tags for who the contact is to you (Customer / Client, VIP, Supplier, Partner, Distributor, Reseller, Job Applicant, Staff, Employee, Contractor, Quote Requested) and what they are on the website (Website User, Admin, Editor, Author, Contributor, Commenter, Newsletter Subscriber, and Shop Manager, Course Student and Tutor where those plugins are active). Contact fields Company, Role and Website. Role-based tagging (FluentCRM Pro) tags contacts by WordPress role; WooCommerce customers and Tutor LMS students go to their list and tag as pending. Signing up from comments, checkout and registration stays off. |
+| Fluent Boards | A **Website** board for requests and feedback, with To-Do, In Progress, Done (please check) and Closed (closes tasks) and the default colour labels. |
+
+They are JSON files in `starters/`, one per plugin folder; `includes/class-seoprostack-starters.php` describes the format. What was added is recorded in the `seoprostack_starters_added` option (not autoloaded); uninstalling SEO Pro Stack removes the record but leaves the lists, tags, fields and boards, which are that plugin's data.
+
+- `wp seoprostack starters list`: each starter, whether its plugin is active, how many items are missing and how many SEO Pro Stack added.
+- `wp seoprostack starters diff <plugin>`: the items this site does not have yet.
+- `wp seoprostack starters add <plugin>… | --all`: add the missing items. Boards are created by `--user`, or the first administrator.
+- `wp seoprostack starters remove <plugin>…`: remove what was added, while unused.
+
 ### Hosting needs (Plugins)
 
 Checks whether the hosting fits the site, and says what to ask the host for. It uses numbers PHP reports, not rules of thumb:
@@ -581,6 +602,7 @@ Developers can add settings, tabs and directory entries with filters:
 - `seoprostack_admin_bar_star`: return false to hide the admin bar star that opens SEO Pro Stack’s settings.
 - `seoprostack_hosting_sample_rate`: Hosting needs records the time of 1 in this many requests (default 20; 0 stops recording traffic).
 - `seoprostack_plugin_presets`: add or change plugin presets (plugin folder => `name`, `tested`, `updated`, `notes`, `options` and `defaults`, as in `presets/*.json`). Secret-looking names are removed after the filter runs.
+- `seoprostack_starters`: add or change starter data (plugin folder => `name`, `tested`, `updated`, `notes` and `items`, as in `starters/*.json`).
 
 Actions:
 
@@ -609,6 +631,7 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folder�
 ### Unreleased
 
 - Removed: MasterStudy LMS is no longer recommended; Tutor LMS is the recommended LMS. Free Plugins and Pro Plugins no longer list it, and Organise the admin menu and Tidy the dashboard no longer carry rules for it (its menu place, its “Unlock this addon” pages and its StylemixThemes dashboard boxes). The general fixes found with it stay: empty notice boxes filled later stay hidden, and the menu keeps its order when a plugin’s script moves entries.
+- New: starter data for FluentCRM and Fluent Boards, with Plugin presets on (Plugins tab): **Add starter data** and **Remove starter data** on the Plugins screen and `wp seoprostack starters list|diff|add|remove`. It adds the lists, tags, contact fields, role-based tagging and WooCommerce and Tutor LMS sync settings we organise FluentCRM with, and a Website board with a "Done (please check)" step, taken from our own sites. Only missing items are added; existing ones and stored settings are left alone. Remove takes away only what was added and is still unused. Tested on a site with 85 plugins: 35 items added, a second run added none, an existing tag kept its title, Remove kept the list and tag holding a contact, the field holding a value, a changed setting and the board holding a task, and removed the rest; shop and course items are left out without WooCommerce and Tutor LMS. New `starters/` folder, `seoprostack_starters` filter and `seoprostack_starters_added` option (not autoloaded), removed on uninstall.
 - New: plugin presets for EventON Lite, FluentCRM, Fluent Forms, Kadence Blocks, Lasso Lite (Simple URLs), LiteSpeed Cache and WooCommerce, chosen on a fresh test install of each plugin's current version from its source (where it reads each setting and what its save code does) and checked there with apply, reset and undo: EventON Lite loads its files only on calendar pages (three fewer stylesheets on other pages) and drops its Google Fonts; Kadence Blocks serves Google Fonts from the site (`kadence_blocks_font_settings` and the Kadence theme's `load_fonts_local` theme mod, since the theme prints the blocks' fonts); FluentCRM anonymises IP addresses and stops Gravatar and ui-avatars.com requests; Fluent Forms stops the weekly summary, IP logging and its admin bar menu; WooCommerce stops remote logging, marketplace suggestions and Order attribution; LiteSpeed Cache and Lasso Lite stop their promotions. Settings that only work when saved in the plugin (they schedule cron, write files or call a service) were left out.
 - Fixed: Plugin presets: resetting a preset whose defaults are "not stored" left an empty array behind (`a:0:{}`), and an option the preset had created stayed stored. Named keys that are all "not stored" now store nothing, and an option left empty by a reset is deleted.
 - New, on by default: Quiet Freemius prompts (Admin tab) turns off the opt-in notices, Opt In, Upgrade and Add-Ons links, trial and affiliate offers, activation redirect and deactivation survey of plugins that bundle Freemius, through Freemius’s own `fs_{tag}_{plugin}` filters, and removes the survey and opt-out dialogs it prints on the Plugins screen for plugins that are not opted in. Nothing is stored in Freemius or the other plugins. On a test site with six Freemius plugins, the Plugins screen went from nine hidden Freemius dialogs, five notices and three Freemius stylesheets to two dialogs (Git Updater’s licence ones), no notices and two stylesheets.

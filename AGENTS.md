@@ -67,6 +67,15 @@ To add or update a preset, on a throwaway site (never a live one):
    as intended, `reset`, `undo`.
 8. Add a changelog line in `README.md`, `changelog.txt` and `readme.txt`.
 
+`starters/{plugin-folder}.json` holds starter data: the lists, tags, fields
+and boards the owner organises plugins' own tables with (FluentCRM, Fluent
+Boards). Format: `includes/class-seoprostack-starters.php`. Take it from the
+owner's own sites, read-only (structure only: names, slugs, how they link;
+never contacts, entries or messages), and write `notes` that explain the
+pattern so people can extend it. Adding only fills what is missing; Remove
+takes back only unused items SEO Pro Stack added. Check both on a throwaway
+site with `wp seoprostack starters diff|add|remove`, with items in use.
+
 ## Code rules
 
 - PHP 7.4 syntax and WordPress 6.2 APIs. Guard newer core APIs with

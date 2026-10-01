@@ -14,6 +14,11 @@
  * WP-CLI (`wp seoprostack presets`) lists, compares, applies, resets, undoes
  * and exports presets whether or not this setting is on.
  *
+ * Plugins with starter data (starters/{folder}.json, see
+ * SEOProStack_Starters) also offer Add starter data (example lists, tags,
+ * fields or boards the site does not have yet) and Remove starter data
+ * (what SEO Pro Stack added, while unused). WP-CLI: `wp seoprostack starters`.
+ *
  * @package SEOProStack
  * @since 0.5.0
  */
@@ -48,7 +53,7 @@ class SEOProStack_Plugin_Presets extends SEOProStack_Feature {
                 'default'     => false,
                 'tab'         => 'plugins',
                 'label'       => __('Plugin presets', 'seoprostack'),
-                'description' => __('On the Plugins screen, see whether a plugin’s settings match SEO Pro Stack’s choice, apply them, reset them to the plugin’s defaults or undo the last change. Each asks first. Licence keys, API keys and passwords are never stored or changed.', 'seoprostack'),
+                'description' => __('On the Plugins screen, see whether a plugin’s settings match SEO Pro Stack’s choice, apply them, reset them to the plugin’s defaults or undo the last change. For FluentCRM and Fluent Boards, add example lists, tags, fields and boards to start from. Each asks first. Licence keys, API keys and passwords are never stored or changed.', 'seoprostack'),
             ),
         );
     }
@@ -61,6 +66,9 @@ class SEOProStack_Plugin_Presets extends SEOProStack_Feature {
             require_once SEOPROSTACK_DIR . 'includes/class-seoprostack-presets.php';
             require_once SEOPROSTACK_DIR . 'includes/class-seoprostack-presets-cli.php';
             WP_CLI::add_command('seoprostack presets', 'SEOProStack_Presets_CLI');
+            require_once SEOPROSTACK_DIR . 'includes/class-seoprostack-starters.php';
+            require_once SEOPROSTACK_DIR . 'includes/class-seoprostack-starters-cli.php';
+            WP_CLI::add_command('seoprostack starters', 'SEOProStack_Starters_CLI');
         }
         if (!self::enabled() || !is_admin()) {
             return;
@@ -86,7 +94,8 @@ class SEOProStack_Plugin_Presets extends SEOProStack_Feature {
             return;
         }
         require_once SEOPROSTACK_DIR . 'includes/class-seoprostack-presets.php';
-        if (!SEOProStack_Presets::all()) {
+        require_once SEOPROSTACK_DIR . 'includes/class-seoprostack-starters.php';
+        if (!SEOProStack_Presets::all() && !SEOProStack_Starters::all()) {
             return;
         }
         add_filter('plugin_action_links', array(__CLASS__, 'action_links'), 20, 2);
@@ -122,6 +131,7 @@ class SEOProStack_Plugin_Presets extends SEOProStack_Feature {
      */
     public static function action_links($links, $file) {
         $slug   = SEOProStack_Presets::slug_of($file);
+        $links  = self::starter_links($links, $slug);
         $preset = SEOProStack_Presets::get($slug);
         if (!$preset) {
             return $links;
@@ -168,6 +178,7 @@ class SEOProStack_Plugin_Presets extends SEOProStack_Feature {
      */
     public static function row_meta($meta, $file) {
         $slug   = SEOProStack_Presets::slug_of($file);
+        $meta   = self::starter_meta($meta, $slug);
         $preset = SEOProStack_Presets::get($slug);
         if (!$preset) {
             return $meta;
@@ -195,6 +206,76 @@ class SEOProStack_Plugin_Presets extends SEOProStack_Feature {
             '<details class="sps-preset"><summary>%1$s</summary><ul>%2$s</ul>%3$s</details>',
             /* translators: %d: number of settings */
             esc_html(sprintf(_n('Preset: %d setting differs', 'Preset: %d settings differ', count($diffs), 'seoprostack'), count($diffs))),
+            $items,
+            $notes
+        );
+        return $meta;
+    }
+
+    /**
+     * Add and Remove starter data links in an active plugin's row.
+     *
+     * @param string[] $links Action links.
+     * @param string   $slug  Plugin folder.
+     * @return string[]
+     */
+    private static function starter_links($links, $slug) {
+        $starter = SEOProStack_Starters::get($slug);
+        if (!$starter || !SEOProStack_Starters::ready($slug)) {
+            return $links;
+        }
+        $missing = SEOProStack_Starters::missing_count($slug);
+        if ($missing) {
+            $links['seoprostack-starter-add'] = sprintf(
+                '<a href="%1$s" data-sps-confirm="%2$s">%3$s</a>',
+                esc_url(self::action_url('starter-add', $slug)),
+                /* translators: 1: number of items, 2: plugin name */
+                esc_attr(sprintf(_n('Add %1$d example item to %2$s? Nothing already there is changed. You can remove what was added while it is unused.', 'Add %1$d example items to %2$s? Nothing already there is changed. You can remove what was added while it is unused.', $missing, 'seoprostack'), $missing, $starter['name'])),
+                esc_html__('Add starter data', 'seoprostack')
+            );
+        }
+        if (SEOProStack_Starters::added_count($slug)) {
+            $links['seoprostack-starter-remove'] = sprintf(
+                '<a href="%1$s" data-sps-confirm="%2$s">%3$s</a>',
+                esc_url(self::action_url('starter-remove', $slug)),
+                /* translators: %s: plugin name */
+                esc_attr(sprintf(__('Remove the starter data SEO Pro Stack added to %s? Lists and tags with contacts, fields with values, boards with tasks and changed settings stay.', 'seoprostack'), $starter['name'])),
+                esc_html__('Remove starter data', 'seoprostack')
+            );
+        }
+        return $links;
+    }
+
+    /**
+     * Starter data status in an active plugin's description.
+     *
+     * @param string[] $meta Row meta.
+     * @param string   $slug Plugin folder.
+     * @return string[]
+     */
+    private static function starter_meta($meta, $slug) {
+        $starter = SEOProStack_Starters::get($slug);
+        if (!$starter || !SEOProStack_Starters::ready($slug)) {
+            return $meta;
+        }
+        $missing = SEOProStack_Starters::missing($slug);
+        $notes   = '' !== $starter['notes'] ? '<p>' . esc_html($starter['notes']) . '</p>' : '';
+        if (!$missing) {
+            $meta[] = sprintf('<details class="sps-preset is-match"><summary>%1$s</summary>%2$s</details>', esc_html__('Starter data: all there', 'seoprostack'), $notes);
+            return $meta;
+        }
+        $items = '';
+        $count = 0;
+        foreach ($missing as $names) {
+            foreach ($names as $name) {
+                $items .= '<li>' . esc_html($name) . '</li>';
+                ++$count;
+            }
+        }
+        $meta[] = sprintf(
+            '<details class="sps-preset"><summary>%1$s</summary><ul>%2$s</ul>%3$s</details>',
+            /* translators: %d: number of items */
+            esc_html(sprintf(_n('Starter data: %d item to add', 'Starter data: %d items to add', $count, 'seoprostack'), $count)),
             $items,
             $notes
         );
@@ -266,7 +347,7 @@ class SEOProStack_Plugin_Presets extends SEOProStack_Feature {
         $do   = isset($_GET['do']) ? sanitize_key(wp_unslash($_GET['do'])) : '';
         $slug = isset($_GET['plugin']) ? sanitize_text_field(wp_unslash($_GET['plugin'])) : '';
         // phpcs:enable
-        if (!in_array($do, array('apply', 'reset', 'undo'), true) || '' === $slug) {
+        if (!in_array($do, array('apply', 'reset', 'undo', 'starter-add', 'starter-remove'), true) || '' === $slug) {
             wp_die(esc_html__('Unknown preset action.', 'seoprostack'), '', array('response' => 400));
         }
         check_admin_referer(self::ACTION . '_' . $do . '_' . $slug);
@@ -274,12 +355,25 @@ class SEOProStack_Plugin_Presets extends SEOProStack_Feature {
             wp_die(esc_html__('You are not allowed to change plugin settings.', 'seoprostack'), '', array('response' => 403));
         }
         require_once SEOPROSTACK_DIR . 'includes/class-seoprostack-presets.php';
+        require_once SEOPROSTACK_DIR . 'includes/class-seoprostack-starters.php';
+        $back = self_admin_url('plugins.php');
+        if ('starter-add' === $do || 'starter-remove' === $do) {
+            $result = 'starter-add' === $do ? SEOProStack_Starters::add($slug) : SEOProStack_Starters::remove($slug);
+            if (is_wp_error($result)) {
+                wp_safe_redirect(add_query_arg(self::RESULT, rawurlencode($do . ':error:' . $result->get_error_code()), $back));
+                exit;
+            }
+            // starter-add:0:added:slug, starter-remove:kept:removed:slug.
+            $first  = is_array($result) ? count($result['kept']) : 0;
+            $second = is_array($result) ? $result['removed'] : (int) $result;
+            wp_safe_redirect(add_query_arg(self::RESULT, rawurlencode(implode(':', array($do, $first, $second, $slug))), remove_query_arg(self::RESULT, $back)));
+            exit;
+        }
         if ('undo' === $do) {
             $result = SEOProStack_Presets::undo($slug);
         } else {
             $result = SEOProStack_Presets::write($slug, 'apply' === $do ? 'options' : 'defaults');
         }
-        $back = self_admin_url('plugins.php');
         if (is_wp_error($result)) {
             wp_safe_redirect(add_query_arg(self::RESULT, rawurlencode($do . ':error:' . $result->get_error_code()), $back));
             exit;
@@ -327,9 +421,13 @@ class SEOProStack_Plugin_Presets extends SEOProStack_Feature {
         $do    = $parts[0];
         if (isset($parts[1]) && 'error' === $parts[1]) {
             $messages = array(
-                'seoprostack_no_preset'   => __('There is no preset for this plugin.', 'seoprostack'),
-                'seoprostack_no_defaults' => __('This preset does not list the plugin’s defaults.', 'seoprostack'),
-                'seoprostack_no_undo'     => __('There is nothing to undo for this plugin.', 'seoprostack'),
+                'seoprostack_no_preset'        => __('There is no preset for this plugin.', 'seoprostack'),
+                'seoprostack_no_defaults'      => __('This preset does not list the plugin’s defaults.', 'seoprostack'),
+                'seoprostack_no_undo'          => __('There is nothing to undo for this plugin.', 'seoprostack'),
+                'seoprostack_no_starter'       => __('There is no starter data for this plugin.', 'seoprostack'),
+                'seoprostack_starter_inactive' => __('Activate the plugin first.', 'seoprostack'),
+                'seoprostack_nothing_added'    => __('SEO Pro Stack has not added anything to this plugin.', 'seoprostack'),
+                'seoprostack_starter_failed'   => __('The plugin could not save the starter data. Check that it is up to date.', 'seoprostack'),
             );
             $code = isset($parts[2]) ? $parts[2] : '';
             printf('<div class="notice notice-error is-dismissible sps-keep"><p>%s</p></div>', esc_html(isset($messages[$code]) ? $messages[$code] : __('The preset could not be changed.', 'seoprostack')));
@@ -340,6 +438,28 @@ class SEOProStack_Plugin_Presets extends SEOProStack_Feature {
         $slug    = isset($parts[3]) ? $parts[3] : '';
         $preset  = '' !== $slug ? SEOProStack_Presets::get($slug) : null;
         $name    = $preset && '' !== $preset['name'] ? $preset['name'] : $slug;
+
+        if ('starter-add' === $do || 'starter-remove' === $do) {
+            require_once SEOPROSTACK_DIR . 'includes/class-seoprostack-starters.php';
+            $starter = SEOProStack_Starters::get($slug);
+            $name    = $starter ? $starter['name'] : $slug;
+            if ('starter-add' === $do) {
+                $text = $changed
+                    /* translators: 1: number of items, 2: plugin name */
+                    ? sprintf(_n('Added %1$d example item to %2$s.', 'Added %1$d example items to %2$s.', $changed, 'seoprostack'), $changed, $name)
+                    /* translators: %s: plugin name */
+                    : sprintf(__('%s already has every starter item. Nothing changed.', 'seoprostack'), $name);
+            } else {
+                /* translators: 1: number of items, 2: plugin name */
+                $text = sprintf(_n('Removed %1$d starter item from %2$s.', 'Removed %1$d starter items from %2$s.', $changed, 'seoprostack'), $changed, $name);
+                if ($plugins) {
+                    /* translators: %d: number of items */
+                    $text .= ' ' . sprintf(_n('%d is in use or was changed, so it stays.', '%d are in use or were changed, so they stay.', $plugins, 'seoprostack'), $plugins);
+                }
+            }
+            printf('<div class="notice notice-success is-dismissible sps-keep"><p>%s</p></div>', esc_html($text));
+            return;
+        }
 
         if ('undo' === $do) {
             /* translators: %s: plugin name */
