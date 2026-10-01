@@ -84,7 +84,8 @@ Moves plugin and theme notices behind a bell with a count at the right of the ad
 - Also caught: notices printed inside another plugin’s wrapper, and notices that scripts add while the page loads. A notice drawn by React or Vue (such as WooCommerce Analytics’) stays hidden in its place and the panel shows a copy; dismissing the copy dismisses the original.
 - The bell sits next to the account menu (“Hi, …”), or left of the Plugins menu when that is on. It appears only after the notices are counted, so it sits on the outer side, where appearing never moves the other two. Other plugins’ admin bar items go to the left of it.
 - The bell is hidden while there are no notices. On phones it shows with the count in a bubble, and the panel fills the width.
-- The bell works from the keyboard: Enter or Space opens the panel, Escape closes it. Clicking elsewhere closes it too.
+- Like the other admin bar menus, pointing at the bell opens the panel and moving the mouse away closes it. It stays open while you type in a field inside it.
+- The bell works from the keyboard and on touch screens: Enter, Space or a tap opens the panel and keeps it open; Escape, the bell again or clicking elsewhere closes it.
 - Notices are hidden with CSS until they are moved, so they do not flash or push the page down. Without JavaScript they stay on the page.
 - The block editor has its own notices and is left alone.
 - Add the class `sps-keep` to a notice to keep it on the page.
@@ -422,6 +423,7 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folder�
 - Changed: new defaults on new sites: SVG uploads also allows authors, contributors and shop managers, and Watermark pictures uses 10% of the picture. Sites that already have the plugin keep their settings.
 - Changed: Resize large uploads no longer imports Imsanity’s default limit (1920), so 2560 is used unless Imsanity was set to something else.
 - Changed: on the right of the admin bar, the Plugins menu always sits next to the account menu, with the notices bell to its left and other plugins’ items further left. The bell shows only once notices are counted, so on that side it never moves the Plugins or account menus. New `SEOProStack_Admin_Bar::pin( $id, $rank )` keeps a `top-secondary` node there (rank 0 nearest the account menu).
+- Changed: the notices panel opens when you point at the bell and closes when you move away, like the other admin bar menus. Keys and taps still open it until you close it.
 
 ### 0.4.0
 
