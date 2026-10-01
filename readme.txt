@@ -117,6 +117,10 @@ Copies from WordPress.org update from there. New versions come out on GitHub fir
 * New: starter data for Fluent Forms: four forms that feed FluentCRM lists and tags.
 * Change: Freesoul Deactivate Plugins is no longer recommended.
 * Change: Apply preset names each setting in plain words.
+* Fix: plugins that add list columns load on those lists.
+* Fix: WP Sheet Editor spreadsheets no longer blank with Load plugins only where needed.
+* New: remove unneeded list columns; Author and Date last.
+* New: the admin menu widens to fit its names.
 
 = 0.7.0 =
 * New, off by default: Ask before licence checks.

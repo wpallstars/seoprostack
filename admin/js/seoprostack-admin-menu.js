@@ -92,6 +92,65 @@
 		observer.observe(menu, { childList: true });
 	}
 
+	/** Widest the menu grows, and its usual width. */
+	var FIT_MAX = 280;
+	var FIT_MIN = 160;
+	var fitted = false;
+
+	/**
+	 * Widen the menu so entry names fit on one line ("Fit the menu to its
+	 * names"). Measured once, with names unwrapped and folded sections
+	 * shown, so the width stays the same when a section opens. The width
+	 * goes in --sps-menu-width on <body>; the stylesheet applies it only
+	 * where the full menu shows (wide screens, menu not collapsed). Runs
+	 * straight after the menu is printed, before the content is drawn.
+	 */
+	function fit() {
+		var body = document.body;
+		var menu = document.getElementById('adminmenu');
+		if (fitted || !cfg || !cfg.fit || !body || !menu) {
+			return;
+		}
+		// Submenus that open to the side fit their names (stylesheet).
+		body.classList.add('sps-menu-fit');
+		// Collapsed or narrow: names are hidden, so measure later.
+		if (body.classList.contains('folded') || !window.matchMedia('(min-width: 961px)').matches) {
+			return;
+		}
+		body.classList.add('sps-menu-measure');
+		var left = menu.getBoundingClientRect().left;
+		var need = 0;
+		menu.querySelectorAll('li.menu-top > a .wp-menu-name, li.wp-has-current-submenu .wp-submenu a').forEach(function (el) {
+			if (!el.offsetParent) {
+				return;
+			}
+			var width = el.getBoundingClientRect().left - left + el.scrollWidth;
+			if (width > need) {
+				need = width;
+			}
+		});
+		body.classList.remove('sps-menu-measure');
+		fitted = true;
+		var width = Math.max(FIT_MIN, Math.min(FIT_MAX, Math.ceil(need) + 4));
+		if (width > FIT_MIN) {
+			body.style.setProperty('--sps-menu-width', width + 'px');
+		}
+	}
+
+	if (cfg && cfg.fit) {
+		// Menu expanded again, or the window made wider.
+		if (window.jQuery) {
+			window.jQuery(document).on('wp-collapse-menu', function () {
+				window.setTimeout(fit, 0);
+			});
+		}
+		window.addEventListener('resize', function () {
+			if (!fitted) {
+				fit();
+			}
+		});
+	}
+
 	window.seoprostackMenuFlyouts = function (data) {
 		keepOrder(document.getElementById('adminmenu'));
 		// Headings that do not fold are labels, not links.
@@ -129,6 +188,7 @@
 				paint(item, list);
 			});
 		});
+		fit();
 	};
 
 	if (!cfg || !cfg.fold) {

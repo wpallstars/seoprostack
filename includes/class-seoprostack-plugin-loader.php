@@ -22,6 +22,10 @@
  * - on post, term, list, profile, user, Tools and media upload screens
  *   where it adds boxes, fields, blocks or editor features, or saves
  *   profile fields (learned per screen with every plugin loaded);
+ * - on post, media, term and user lists where it adds a column that shows,
+ *   a filter, a view, a row link or a bulk action (seen in what it changes
+ *   or prints there while every plugin loads, so plugins whose columns are
+ *   removed do not count);
  * - on the Dashboard when one of its boxes shows there (after Tidy the
  *   dashboard has hidden the ones nobody sees);
  * - on Appearance > Menus when it changes menus or their items there,
@@ -81,7 +85,7 @@ final class SEOProStack_Plugin_Loader {
     const LIST_KEY   = 'plugin_loading_only';
 
     /** Map format; a change makes SEO Pro Stack learn again. */
-    const MAP_VERSION = 4;
+    const MAP_VERSION = 5;
 
     /** SEO Pro Stack's own settings page (Settings > SEO Pro Stack). */
     const SETTINGS_PAGE = 'seoprostack';
@@ -805,6 +809,10 @@ final class SEOProStack_Plugin_Loader {
                 return null;
             }
             $wanted = (array) $map['screens'][$screen];
+            // Columns, filters and links plugins add to lists.
+            if (isset($map['tables'][$screen])) {
+                $wanted = array_merge($wanted, (array) $map['tables'][$screen]);
+            }
             if ('site-editor' === $kind && (!isset($map['site_editor_theme']) || get_option('stylesheet') !== $map['site_editor_theme'])) {
                 return null; // Learned with another theme: what it offers differs.
             }
@@ -1180,6 +1188,68 @@ final class SEOProStack_Plugin_Loader {
         }
         $file = $reflection->getFileName();
         return $file ? self::plugin_for_file($file) : '';
+    }
+
+    /**
+     * Other active plugins that bundle the same shared code as a callback.
+     * Some plugin families each ship a copy of one framework and use the
+     * copy that loads first (WP Sheet Editor and its spreadsheets for posts,
+     * users, products and terms): the framework registers every sheet's
+     * page, but a sheet only works when the plugin it belongs to loads too.
+     * A copy counts when another plugin has the same file, at the same place
+     * in its folder, declaring the same class or function. Files at the top
+     * of a plugin's folder and Freemius (see plugin_for_sdk()) do not count.
+     *
+     * @param mixed $callback Callback.
+     * @return string[] Plugin files, without the one the code was loaded from.
+     */
+    public static function plugins_sharing_callback($callback) {
+        try {
+            if (is_string($callback) && false !== strpos($callback, '::')) {
+                $callback = explode('::', $callback, 2);
+            }
+            if (is_array($callback) && 2 === count($callback)) {
+                if ('' !== self::plugin_for_sdk($callback[0])) {
+                    return array();
+                }
+                $reflection = new ReflectionClass($callback[0]);
+                $declares   = 'class\s+' . preg_quote($reflection->getShortName(), '/');
+            } elseif (is_string($callback)) {
+                $reflection = new ReflectionFunction($callback);
+                $declares   = 'function\s+' . preg_quote($reflection->getShortName(), '/');
+            } else {
+                return array();
+            }
+        } catch (ReflectionException $e) {
+            return array();
+        }
+        static $seen = array();
+        $file = $reflection->getFileName();
+        $own  = $file ? self::plugin_for_file($file) : '';
+        if ('' === $own || false === strpos($own, '/')) {
+            return array();
+        }
+        $key = $file . '|' . $declares;
+        if (isset($seen[$key])) {
+            return $seen[$key];
+        }
+        $dir      = trailingslashit(wp_normalize_path(WP_PLUGIN_DIR));
+        $folder   = substr($own, 0, strpos($own, '/'));
+        $relative = substr(wp_normalize_path($file), strlen($dir . $folder . '/'));
+        $shared = array();
+        if (false === strpos($relative, '/')) {
+            return $seen[$key] = $shared;
+        }
+        foreach (self::$raw as $plugin) {
+            if ($plugin === $own || false === strpos($plugin, '/')) {
+                continue;
+            }
+            $copy = $dir . substr($plugin, 0, strpos($plugin, '/')) . '/' . $relative;
+            if (is_readable($copy) && preg_match('/\b' . $declares . '\b/i', (string) file_get_contents($copy))) {
+                $shared[] = $plugin;
+            }
+        }
+        return $seen[$key] = $shared;
     }
 
     /**
