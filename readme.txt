@@ -136,7 +136,7 @@ They stay scheduled and publish at their times. Turning it off only stops new po
 * Change: the Plugins menu always sits next to the account menu in the admin bar, with the notices bell to its left and other plugins’ items further left, so the bell appearing never moves them.
 * Change: the notices panel opens when you point at the bell and closes when you move away, like the other admin bar menus.
 * Change: the notices bell and the Plugins icon no longer show a tooltip over their open menus. Screen readers still announce them.
-* New: Short links starts you with /googlereview/, /facebookreview/ and /trustpilotreview/ links. Point them at your own review pages, then use them in email signatures and review requests.
+* New: Short links starts you with /googlereview/, /facebookreview/ and /trustpilotreview/ links in a Review Requests category. Point them at your own review pages, then use them in email signatures and review requests.
 
 = 0.4.0 =
 * Settings are grouped into Admin, Content, Media, Links and Speed tabs. Old links still open the right tab.
