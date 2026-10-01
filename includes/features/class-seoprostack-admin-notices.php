@@ -13,7 +13,8 @@
  *
  * With "Load plugins only where needed", a screen may skip the plugin that
  * prints a notice. Notices those plugins print on screens that load every
- * plugin are kept for each person (see capture()), and shown behind the
+ * plugin are kept for each person (see capture(); only notices, see
+ * notices()), and shown behind the
  * bell on screens that skip them, until they stop printing them, they are
  * dismissed, or 12 hours pass (links in them carry nonces).
  *
@@ -298,24 +299,28 @@ class SEOProStack_Admin_Notices extends SEOProStack_Feature {
             }
         }
         foreach (self::$printed as $printed) {
-            list($plugin, $html) = $printed;
-            $html = trim($html);
-            if ('' === $html || strlen($html) > self::STORE_SIZE) {
+            list($plugin, $output) = $printed;
+            if (strlen($output) > 4 * self::STORE_SIZE) {
                 continue;
             }
-            $hash = self::hash($plugin, $html);
-            if (isset($store['dismissed'][$hash])) {
-                continue;
+            foreach (self::notices($output) as $html) {
+                if (strlen($html) > self::STORE_SIZE) {
+                    continue;
+                }
+                $hash = self::hash($plugin, $html);
+                if (isset($store['dismissed'][$hash])) {
+                    continue;
+                }
+                $old  = isset($before['notices'][$hash]) ? $before['notices'][$hash] : null;
+                // Only rewrite the option for a new notice, or once an hour.
+                $time = $old && $old['html'] === $html && $old['screen'] === $where && $now - $old['time'] < HOUR_IN_SECONDS ? $old['time'] : $now;
+                $store['notices'][$hash] = array(
+                    'plugin' => $plugin,
+                    'html'   => $html,
+                    'screen' => $where,
+                    'time'   => $time,
+                );
             }
-            $old  = isset($before['notices'][$hash]) ? $before['notices'][$hash] : null;
-            // Only rewrite the option for a new notice, or once an hour.
-            $time = $old && $old['html'] === $html && $old['screen'] === $where && $now - $old['time'] < HOUR_IN_SECONDS ? $old['time'] : $now;
-            $store['notices'][$hash] = array(
-                'plugin' => $plugin,
-                'html'   => $html,
-                'screen' => $where,
-                'time'   => $time,
-            );
         }
         if ($store !== $before) {
             self::save($store);
@@ -323,19 +328,96 @@ class SEOProStack_Admin_Notices extends SEOProStack_Feature {
     }
 
     /**
+     * The notices in what a plugin printed on the notice hooks, each as
+     * markup of its own. They are picked as mark() picks them on the page:
+     * visible notice boxes, wherever they sit, and boxes with text whose
+     * class or id says they are a notice or banner.
+     *
+     * Anything else belongs to the screen it was printed on and is not kept:
+     * buttons or forms a plugin prints above its own list (Kadence Blocks'
+     * Export All and Import), hidden notices that its scripts show there,
+     * and half a wrapper opened on one hook and closed on another
+     * (WooCommerce's notice list), which would break the page elsewhere.
+     *
+     * @param string $output What the plugin printed.
+     * @return string[]
+     */
+    private static function notices($output) {
+        $output = trim((string) $output);
+        if ('' === $output || !class_exists('DOMDocument')) {
+            return array();
+        }
+        $doc  = new DOMDocument();
+        $prev = libxml_use_internal_errors(true);
+        $doc->loadHTML('<?xml encoding="utf-8"?><html><body><div id="sps-notices-root">' . $output . '</div></body></html>', LIBXML_NONET);
+        libxml_clear_errors();
+        libxml_use_internal_errors($prev);
+        $xpath = new DOMXPath($doc);
+        $root  = $xpath->query('//div[@id="sps-notices-root"]')->item(0);
+        $found = array();
+        if ($root) {
+            self::find_notices($root, $xpath, $found);
+        }
+        return $found;
+    }
+
+    /**
+     * Add the notices among an element's children to $found, looking inside
+     * children that hold notices (see notices()).
+     *
+     * @param DOMNode   $parent Element to look in.
+     * @param DOMXPath  $xpath  Query object for its document.
+     * @param string[]  $found  Markup of the notices found so far.
+     */
+    private static function find_notices(DOMNode $parent, DOMXPath $xpath, array &$found) {
+        $classes = function ($names) {
+            $test = array();
+            foreach ($names as $name) {
+                $test[] = 'contains(concat(" ", normalize-space(@class), " "), " ' . $name . ' ")';
+            }
+            return implode(' or ', $test);
+        };
+        $inside = './/div[' . $classes(array('updated', 'error', 'notice')) . '] | .//*[' . $classes(array('update-nag')) . ']';
+        foreach ($parent->childNodes as $el) {
+            if (!($el instanceof DOMElement) || preg_match('/^(script|style|link|template|noscript|meta|br|hr)$/i', $el->tagName)) {
+                continue;
+            }
+            $class  = ' ' . preg_replace('/\s+/', ' ', $el->getAttribute('class')) . ' ';
+            $notice = ('div' === strtolower($el->tagName) && preg_match('/ (updated|error|notice) /', $class)) || false !== strpos($class, ' update-nag ');
+            $hidden = $el->hasAttribute('hidden') || false !== strpos($class, ' hidden ') || preg_match('/display\s*:\s*none/i', $el->getAttribute('style'));
+            if ($notice) {
+                if (!$hidden) {
+                    $found[] = trim((string) $el->ownerDocument->saveHTML($el));
+                }
+            } elseif ($xpath->query($inside, $el)->length) {
+                self::find_notices($el, $xpath, $found);
+            } elseif (!$hidden && '' !== trim($el->textContent) && preg_match('/(^|[\s_-])(notices?|nag|notification|alert|banner|promo|announcement)([\s_-]|$)/i', $el->getAttribute('class') . ' ' . $el->getAttribute('id'))) {
+                $found[] = trim((string) $el->ownerDocument->saveHTML($el));
+            }
+        }
+    }
+
+    /**
      * On a screen that skips plugins, print their kept notices. They are
      * marked and moved behind the bell like any other (see mark()).
+     *
+     * Each is checked again with notices(), which drops anything kept before
+     * that check existed.
      */
     public static function replay() {
         $state   = SEOProStack_Plugin_Loader::state();
         $skipped = array_flip($state['skipped']);
         foreach (self::stored()['notices'] as $hash => $notice) {
-            if (isset($skipped[$notice['plugin']])) {
+            if (!isset($skipped[$notice['plugin']])) {
+                continue;
+            }
+            $html = implode("\n", self::notices($notice['html']));
+            if ('' !== $html) {
                 printf(
                     '<div class="sps-stored-notice" %1$s="%2$s">%3$s</div>',
                     self::STORED, // phpcs:ignore WordPress.Security.EscapeOutput -- constant.
                     esc_attr($hash),
-                    $notice['html'] // phpcs:ignore WordPress.Security.EscapeOutput -- what the plugin printed for this person on another screen.
+                    $html // phpcs:ignore WordPress.Security.EscapeOutput -- notices the plugin printed for this person on another screen.
                 );
             }
         }
