@@ -58,10 +58,19 @@ with installed copies and installs the newest release asset, so:
   version change reaches `main`.
 - Never put a pre-release version (`-beta1`, `-rc1`) in `Version:` on `main`;
   every site with Git Updater would be offered it.
-- The WordPress.org build is the release build without
-  `includes/features/class-seoprostack-github-updates.php`.
+- The WordPress.org build is the release build without the files in
+  `.distignore-wporg` (`includes/features/class-seoprostack-github-updates.php`)
+  and the Git Updater header lines. Its zip is named
+  `wordpress-org-seoprostack-X.Y.Z.zip` so Git Updater never picks it; never
+  attach it to a GitHub release.
+- Build both zips with `scripts/build-release.sh`, check them with
+  `scripts/preflight-release.sh` and `scripts/plugin-check.sh`. None of them
+  tags, publishes or uploads anything.
+- Releasing and submitting to WordPress.org need the owner's say. The
+  repository is private until then, so Git Updater cannot read it yet.
 
-Details: `README.md` → Updates and releases.
+Details: `RELEASING.md` (steps and WordPress.org checklist), `README.md` →
+Updates and releases.
 
 ## Front-end styling and dark mode
 
