@@ -570,6 +570,12 @@
 		$content.find('[' + cfg.mark + '="wait"]').each(function () {
 			wait(this);
 		});
+		// A box a script put in place of a waiting one (marked by the marking script).
+		document.addEventListener('sps-notice-wait', function (e) {
+			if (e.detail && 1 === e.detail.nodeType) {
+				wait(e.detail);
+			}
+		});
 		count();
 		watchLate();
 	}

@@ -226,13 +226,14 @@ class SEOProStack_Dashboard_Layout extends SEOProStack_Feature {
      * Hide the arrow buttons and the empty drop areas, in the page head so
      * nothing moves while the page loads. Core's script marks empty columns
      * once the page is ready, and core gives them a 250px drop area, which
-     * pushed the boxes below down.
+     * pushed the boxes below down. They keep the space they had before
+     * (the column's own bottom margin).
      */
     public static function lock_style() {
         if (!self::on_dashboard()) {
             return;
         }
-        echo '<style id="seoprostack-dashboard-layout">#dashboard-widgets .handle-order-higher,#dashboard-widgets .handle-order-lower{display:none}#dashboard-widgets .postbox .hndle{cursor:default}#dashboard-widgets .postbox-container .meta-box-sortables.empty-container{border:0;outline:0;height:0;min-height:0}#dashboard-widgets .postbox-container .meta-box-sortables.empty-container:after{content:none;display:none}</style>' . "\n";
+        echo '<style id="seoprostack-dashboard-layout">#dashboard-widgets .handle-order-higher,#dashboard-widgets .handle-order-lower{display:none}#dashboard-widgets .postbox .hndle{cursor:default}#dashboard-widgets .postbox-container .meta-box-sortables.empty-container{border:0;outline:0;height:0;min-height:0;margin:0 8px 20px}#dashboard-widgets .postbox-container .meta-box-sortables.empty-container:after{content:none;display:none}</style>' . "\n";
     }
 
     /**

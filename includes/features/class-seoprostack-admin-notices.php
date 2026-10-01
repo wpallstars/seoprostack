@@ -720,6 +720,29 @@ class SEOProStack_Admin_Notices extends SEOProStack_Feature {
         }
     };
     walk(content);
+    // A script may replace a waiting box with its own (Vue 2 replaces the element it mounts on):
+    // the new one waits too, marked before the page is next drawn.
+    if (window.MutationObserver && content.querySelector("[" + cfg.mark + "=\"wait\"]")) {
+        new MutationObserver(function (records) {
+            // Inserting the new box and removing the old one may be two records of one batch.
+            var r, i, gone = false;
+            for (r = 0; r < records.length; r++) {
+                for (i = 0; i < records[r].removedNodes.length; i++) {
+                    var old = records[r].removedNodes[i];
+                    gone = gone || (1 === old.nodeType && "wait" === old.getAttribute(cfg.mark));
+                }
+            }
+            for (r = 0; gone && r < records.length; r++) {
+                for (i = 0; i < records[r].addedNodes.length; i++) {
+                    var el = records[r].addedNodes[i];
+                    if (1 === el.nodeType && !el.hasAttribute(cfg.mark) && el.parentNode === content && !skip.test(el.tagName) && el.id !== "sps-notices-wrap") {
+                        el.setAttribute(cfg.mark, "wait");
+                        document.dispatchEvent(new CustomEvent("sps-notice-wait", { detail: el }));
+                    }
+                }
+            }
+        }).observe(content, { childList: true });
+    }
 })(' . wp_json_encode($data) . ');';
         wp_print_inline_script_tag($js, array('id' => 'seoprostack-admin-notices-mark'));
     }
