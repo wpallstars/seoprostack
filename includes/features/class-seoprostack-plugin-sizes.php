@@ -168,7 +168,8 @@ class SEOProStack_Plugin_Sizes extends SEOProStack_Feature {
      * @return array|null
      */
     private static function valid(array $cache, $file, array $plugin) {
-        if (!isset($cache[$file]['v'], $cache[$file]['s'])) {
+        // Entries from before PHP files were counted are measured again.
+        if (!isset($cache[$file]['v'], $cache[$file]['s']['php_files'])) {
             return null;
         }
         $version = isset($plugin['Version']) ? (string) $plugin['Version'] : '';
@@ -278,11 +279,7 @@ class SEOProStack_Plugin_Sizes extends SEOProStack_Feature {
             $done[$file]  = self::cell($sizes);
         }
 
-        if (is_multisite()) {
-            update_site_option(self::CACHE, $cache);
-        } else {
-            update_option(self::CACHE, $cache, false); // Only the Plugins screen needs it.
-        }
+        self::save($cache);
         wp_send_json_success(array(
             'cells'  => $done,
             'totals' => self::totals($cache, $plugins, $network),
@@ -290,10 +287,64 @@ class SEOProStack_Plugin_Sizes extends SEOProStack_Feature {
     }
 
     /**
+     * Store the cache.
+     *
+     * @param array $cache Cache option.
+     */
+    private static function save(array $cache) {
+        if (is_multisite()) {
+            update_site_option(self::CACHE, $cache);
+        } else {
+            update_option(self::CACHE, $cache, false); // Only the Plugins screen and Hosting needs read it.
+        }
+    }
+
+    /**
+     * PHP code in some plugins, from the cache, measuring missing plugins
+     * until the time budget runs out. Used by Hosting needs, which works
+     * whether or not the Size column is on.
+     *
+     * @param string[] $files  Plugin files.
+     * @param float    $budget Seconds to spend measuring; 0 reads the cache only.
+     * @return array bytes, files (PHP files) and missing (plugins not measured).
+     */
+    public static function php_code(array $files, $budget) {
+        if (!function_exists('get_plugins')) {
+            require_once ABSPATH . 'wp-admin/includes/plugin.php';
+        }
+        $plugins = get_plugins();
+        $cache   = (array) get_site_option(self::CACHE, array());
+        $start   = microtime(true);
+        $changed = false;
+        $code    = array('bytes' => 0, 'files' => 0, 'missing' => 0);
+        foreach (array_unique($files) as $file) {
+            if (!isset($plugins[$file])) {
+                continue;
+            }
+            $sizes = self::valid($cache, $file, (array) $plugins[$file]);
+            if (null === $sizes && $budget > 0 && microtime(true) - $start < $budget) {
+                $sizes        = self::measure($file);
+                $cache[$file] = array('v' => (string) $plugins[$file]['Version'], 's' => $sizes);
+                $changed      = true;
+            }
+            if (null === $sizes) {
+                $code['missing']++;
+                continue;
+            }
+            $code['bytes'] += isset($sizes['php']) ? (int) $sizes['php'] : 0;
+            $code['files'] += isset($sizes['php_files']) ? (int) $sizes['php_files'] : 0;
+        }
+        if ($changed) {
+            self::save(array_intersect_key($cache, $plugins));
+        }
+        return $code;
+    }
+
+    /**
      * Add up a plugin's files by type.
      *
      * @param string $file Plugin file, relative to the plugins directory.
-     * @return array Bytes per group, plus total.
+     * @return array Bytes per group, plus total, and php_files (number of PHP files).
      */
     public static function measure($file) {
         $sizes = array_fill_keys(self::GROUPS, 0);
@@ -310,11 +361,13 @@ class SEOProStack_Plugin_Sizes extends SEOProStack_Feature {
             }
         }
 
-        $dir = dirname($file);
+        $php_files = 0; // For OPcache's file limit (Hosting needs).
+        $dir       = dirname($file);
         if ('.' === $dir) {
             // Single-file plugin such as Hello Dolly.
-            $path = WP_PLUGIN_DIR . '/' . $file;
+            $path         = WP_PLUGIN_DIR . '/' . $file;
             $sizes['php'] = is_file($path) ? (int) filesize($path) : 0;
+            $php_files    = $sizes['php'] ? 1 : 0;
         } else {
             try {
                 $iterator = new RecursiveIteratorIterator(
@@ -327,6 +380,9 @@ class SEOProStack_Plugin_Sizes extends SEOProStack_Feature {
                         $extension = strtolower($item->getExtension());
                         $group     = isset($group_of[$extension]) ? $group_of[$extension] : 'other';
                         $sizes[$group] += (int) $item->getSize();
+                        if ('php' === $group) {
+                            $php_files++;
+                        }
                     }
                 }
             } catch (Exception $e) {
@@ -335,7 +391,8 @@ class SEOProStack_Plugin_Sizes extends SEOProStack_Feature {
             }
         }
 
-        $sizes['total'] = array_sum($sizes);
+        $sizes['total']     = array_sum($sizes);
+        $sizes['php_files'] = $php_files;
         return $sizes;
     }
 
