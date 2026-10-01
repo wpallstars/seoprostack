@@ -57,6 +57,7 @@ function seoprostack_uninstall_site() {
     $options[] = 'seoprostack_short_links';
     $options[] = 'seoprostack_plugin_map';
     $options[] = 'seoprostack_plugin_menu';
+    $options[] = 'seoprostack_admin_bar_items';
     foreach ($options as $option) {
         delete_option($option);
     }

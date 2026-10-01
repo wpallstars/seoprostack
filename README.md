@@ -89,6 +89,17 @@ Moves plugin and theme notices behind a bell with a count at the right of the ad
 - Add the class `sps-keep` to a notice to keep it on the page.
 - **Show example notices** (off by default) adds one notice of each kind to every admin screen for administrators, to see where they go: information, success, warning and error behind the bell, and one with `sps-keep` on the page. Reload the page after changing it.
 
+### More menu in the admin bar (Admin)
+
+When many plugins add items to the admin bar, it wraps onto a second line that covers the top of the page and makes it hard to click. With this on, the items plugins and themes add to the left of the bar go into one **…** menu after WordPress’s own items (+ New, Edit and the like), in wp-admin and on the site. Click **…** to open it; click elsewhere or press Escape to close it. Moved items keep their own submenus.
+
+- **Keep on the bar**: tick plugins (or a theme or must-use plugin) whose items should stay where they are. Those that have added items are listed first, marked “adds items”. SEO Pro Stack’s own items (such as Duplicate) stay by default.
+- WordPress’s own items and the right of the bar (the account menu, the notices bell, the Plugins menu) are not moved.
+- Items are matched to the plugin that added them. If another plugin replaces WordPress’s admin bar class, WordPress’s own items are recognised by name, every other item goes in the menu, and Keep on the bar does not apply.
+- Items that show only an icon or numbers get their plugin’s name added in the menu.
+- On phones and tablets WordPress hides plugins’ items; the menu shows them, with their submenus open.
+- Opens from the keyboard with Enter or Space. Without JavaScript it opens on hover.
+
 ### Avatars without Gravatar (Admin)
 
 Serves every avatar from your own site. By default WordPress loads avatars from Gravatar, which tells Gravatar who visits your pages and publishes a hash of each commenter’s email address. With this on, nothing is loaded from or sent to Gravatar.
@@ -375,6 +386,7 @@ Developers can add settings, tabs and directory entries with filters:
 - `seoprostack_short_link_count_click`: return false to not count a click (link post ID).
 - `seoprostack_screenshot_request`: change the request sent to the screenshot service (`url`, `headers`, `json`; page URL, browser width, height, service), for example to use another service. The response must be a JPEG, PNG or WebP picture, or JSON with `data.screenshot.url` when `json` is true.
 - `seoprostack_term_list_args`: change the `get_terms()` arguments of a Term list (arguments, block attributes), for example to order by count or exclude terms.
+- `seoprostack_admin_bar_more_items`: change which top-level admin bar items go in the More menu (item IDs in bar order, `WP_Admin_Bar`).
 
 Actions:
 
@@ -402,6 +414,7 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folder�
 
 ### Unreleased
 
+- New, off by default: More menu in the admin bar (Admin tab) moves the items plugins and themes add to the left of the admin bar into one … menu after WordPress’s own items, so the bar stays on one line instead of wrapping over the page. Keep on the bar lists the plugins that add items; ticked ones keep theirs on the bar. New `seoprostack_admin_bar_more_items` filter.
 - New: Load pages before the click can also preload admin screens (**Also in the admin**, off by default). Only the page is downloaded; links that act, carry a nonce, dismiss or download, and screens that change something when opened, are skipped.
 - Changed: Hide the admin bar and Block dashboard access no longer offer Administrator (or any role that can manage options), since those roles are never affected.
 - Changed: new defaults on new sites: SVG uploads also allows authors, contributors and shop managers, and Watermark pictures uses 10% of the picture. Sites that already have the plugin keep their settings.
