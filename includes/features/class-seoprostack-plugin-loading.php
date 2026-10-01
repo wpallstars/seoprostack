@@ -908,7 +908,8 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
 
     /**
      * Without the Plugins menu, "N of M plugins" on its own in the admin bar,
-     * with the reload under it. With the menu, its tooltip gets the count.
+     * with the reload under it. With the menu, the count is already at the
+     * top of it (admin_bar_in_menu()).
      *
      * @param WP_Admin_Bar $bar Admin bar.
      */
@@ -916,18 +917,10 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
         if (!current_user_can('activate_plugins')) {
             return;
         }
-        list($loaded, $total, $url) = self::bar_counts();
-
-        $menu = $bar->get_node(SEOProStack_Plugin_Toggle::NODE);
-        if ($menu) {
-            $title = isset($menu->meta['title']) && '' !== $menu->meta['title'] ? rtrim($menu->meta['title'], '. ') . '. ' : '';
-            $bar->add_node(array(
-                'id'   => SEOProStack_Plugin_Toggle::NODE,
-                /* translators: %d: plugins loaded */
-                'meta' => array('title' => $title . sprintf(__('%d loaded on this screen.', 'seoprostack'), $loaded)),
-            ));
+        if ($bar->get_node(SEOProStack_Plugin_Toggle::NODE)) {
             return;
         }
+        list($loaded, $total, $url) = self::bar_counts();
 
         $bar->remove_node(self::NODE . '-menu');
         $bar->remove_node(self::NODE . '-count');
