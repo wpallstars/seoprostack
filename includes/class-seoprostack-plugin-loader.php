@@ -28,8 +28,9 @@
  * Safety: nothing is ever deactivated (writes to `active_plugins` during a
  * filtered request keep every plugin), and a screen that hits a fatal
  * error or makes a plugin try to deactivate itself loads every plugin
- * from then on. `?seoprostack-load-all=1` or the
- * SEOPROSTACK_LOAD_ALL_PLUGINS constant turn filtering off.
+ * from then on. `?seoprostack-load-all=1` loads every plugin for one
+ * request and learns that screen again; the SEOPROSTACK_LOAD_ALL_PLUGINS
+ * constant turns filtering off.
  *
  * @package SEOProStack
  * @since 0.4.0
@@ -208,15 +209,17 @@ final class SEOProStack_Plugin_Loader {
         self::$screen = '' !== $script ? self::screen_key($script) : '';
         $map          = get_option(self::MAP, array());
         self::$map    = self::map_is_current($map) ? $map : array();
-        if (!self::$map) {
+        // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- only loads more plugins.
+        $relearn = isset($_GET[self::LOAD_ALL_ARG]);
+        if (!self::$map || $relearn) {
             // Learn which plugin registers each post type, taxonomy and block.
             self::$attributing = true;
             add_action('registered_post_type', array(__CLASS__, 'note_post_type'));
             add_action('registered_taxonomy', array(__CLASS__, 'note_taxonomy'));
             add_filter('register_block_type_args', array(__CLASS__, 'note_block'), 10, 2);
-            return;
         }
-        if ('' === self::$screen || isset(self::$map['load_all'][self::$screen])) {
+        // Asked to load every plugin: this request learns the screen again.
+        if (!self::$map || $relearn || '' === self::$screen || isset(self::$map['load_all'][self::$screen])) {
             return;
         }
 
@@ -243,7 +246,8 @@ final class SEOProStack_Plugin_Loader {
     }
 
     /**
-     * Whether this request is one that may load fewer plugins.
+     * Whether this request is one that may load fewer plugins, or learn
+     * what its screen needs.
      *
      * @return bool
      */
@@ -262,7 +266,7 @@ final class SEOProStack_Plugin_Loader {
             return false;
         }
         // phpcs:disable WordPress.Security.NonceVerification.Recommended -- only reading which screen this is.
-        if (isset($_GET[self::LOAD_ALL_ARG]) || isset($_GET['_wpnonce']) || isset($_GET['bulk_edit']) || isset($_GET['doaction'])) {
+        if (isset($_GET['_wpnonce']) || isset($_GET['bulk_edit']) || isset($_GET['doaction'])) {
             return false;
         }
         foreach (array('action', 'action2') as $arg) {

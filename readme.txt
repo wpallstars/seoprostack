@@ -48,7 +48,7 @@ Everything is off by default. Settings save instantly from **Settings → SEO Pr
 * **Plugins menu in the admin bar**: a plugin icon on the right of the admin bar lists every plugin. Switch any plugin on or off after confirming, then return to the page you were on.
 * **Plugin sizes**: a Size column on the Plugins screen shows each plugin’s PHP, JavaScript, CSS, media and other files, measured in the background and sortable, with totals for installed and active plugins below the list.
 * **Clean up deleted plugins**: when plugin folders were deleted outside the Plugins screen, opening that screen removes their leftover uninstall and “Recently active” entries.
-* **Load plugins only where needed**: makes wp-admin faster on sites with many plugins. Plugins you tick load only on their own screens, on post, term and list screens where they add boxes, fields or blocks, and where plugins that need them load. Screens are learned the first time they open, the menu stays the same, and saving, background tasks, the Plugins and settings screens and the site itself always load every plugin. A screen that fails loads every plugin from then on. Uses a small must-use file that it writes and removes itself.
+* **Load plugins only where needed**: makes wp-admin faster on sites with many plugins. Plugins you tick load only on their own screens, on post, term and list screens where they add boxes, fields or blocks, and where plugins that need them load. Screens are learned the first time they open, the menu stays the same, and saving, background tasks, the Plugins and settings screens and the site itself always load every plugin. A screen that fails loads every plugin from then on, and any screen can be reloaded with every plugin and checked again from the admin bar. Uses a small must-use file that it writes and removes itself.
 
 Features that replace another plugin (for example Carbon Copy, Imsanity or Ultimate 410) import its settings once and show “Replaces: …” on their card. The other plugin’s settings are left untouched. While the other plugin is active, the feature waits and that plugin keeps doing the job; deactivate it to switch over.
 
@@ -131,7 +131,7 @@ They stay scheduled and publish at their times. Turning it off only stops new po
 * Change: roles that plugins add, such as WooCommerce’s Customer, are ticked in Hide the admin bar and Block dashboard access unless they can write posts. With WooCommerce, blocked users go to My Account unless you chose another page.
 * Change: on new sites, SVG uploads also allows authors, contributors and shop managers, and watermarks are 10% of the picture. Existing settings are kept.
 * Change: Resize large uploads no longer imports Imsanity’s default limit (1920), so 2560 is used.
-* Change: the notices bell always sits next to the account menu in the admin bar, with the Plugins menu to its left and other plugins’ items further left.
+* Change: the Plugins menu always sits next to the account menu in the admin bar, with the notices bell to its left and other plugins’ items further left, so the bell appearing never moves them.
 
 = 0.4.0 =
 * Settings are grouped into Admin, Content, Media, Links and Speed tabs. Old links still open the right tab.
@@ -147,7 +147,7 @@ They stay scheduled and publish at their times. Turning it off only stops new po
 * New, off by default: Watermark pictures adds the site icon, logo or a chosen picture to uploaded pictures and keeps unmarked originals so watermarks can be removed (replaces Easy Watermark and imports its image watermark).
 * New, off by default: Short addresses for custom post types serves items at /item-name/ instead of /type/item-name/ and redirects the old addresses (replaces Remove CPT base and imports its post types).
 * New, off by default: Short links (Links tab) makes short addresses that redirect elsewhere, with categories and click counts (replaces Pretty Links: imports its links, click counts and categories, and its defaults for new links).
-* New, off by default: Load plugins only where needed (Plugins tab) makes wp-admin faster on sites with many plugins by loading ticked plugins only on the screens that need them.
+* New, off by default: Load plugins only where needed (Plugins tab) makes wp-admin faster on sites with many plugins by loading ticked plugins only on the screens that need them. The Plugins menu in the admin bar shows how many loaded and can reload a screen with every plugin to check it again.
 * New, off by default: Website screenshots adds a Screenshot block and the `[browser-shot]` shortcode, with pictures saved to the Media Library and served from your site (replaces Browser Shots, whose shortcode and blocks keep working).
 * New, off by default: Spectra block replacements adds a Term list block and keeps pages built with Spectra working after it is deactivated, with a Convert button for its blocks in the editor (replaces Spectra).
 * Change: while a plugin that a feature replaces is active, the feature waits, so the two no longer run side by side (such as two Plugins menus, or analytics loaded twice). The card says so, with a deactivate link.
