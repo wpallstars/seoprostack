@@ -60,6 +60,7 @@ final class SEOProStack {
         'SEOProStack_Plugin_Toggle',
         'SEOProStack_Plugin_Sizes',
         'SEOProStack_Plugin_Presets',
+        'SEOProStack_Licence_Calls',
         'SEOProStack_Hosting_Needs',
         'SEOProStack_Plugin_References',
     );
