@@ -16,6 +16,12 @@
  * - defaults: the plugin's own values for the same settings, in the same
  *             form (null where the plugin stores nothing until a setting is
  *             changed). "Reset to defaults" writes them.
+ * - settings: optional, what each setting is called, for the Apply preset
+ *             dialog: setting path (option name, then keys, joined with
+ *             dots, as in differences()) => label (the plugin's own wording),
+ *             description (one short sentence) and values (stored value =>
+ *             what it means; "null" for not stored, "true"/"false" for
+ *             booleans, "" for an empty string).
  *
  * Secrets are never stored or changed: option names and keys that look like
  * licence keys, API keys, tokens, passwords or similar are skipped when a
@@ -105,7 +111,28 @@ final class SEOProStack_Presets {
             'notes'    => isset($preset['notes']) ? (string) $preset['notes'] : '',
             'options'  => array(),
             'defaults' => array(),
+            'settings' => array(),
         );
+        if (!empty($preset['settings']) && is_array($preset['settings'])) {
+            foreach ($preset['settings'] as $path => $about) {
+                if (!is_string($path) || !is_array($about)) {
+                    continue;
+                }
+                $values = array();
+                if (!empty($about['values']) && is_array($about['values'])) {
+                    foreach ($about['values'] as $value => $meaning) {
+                        if (is_scalar($meaning)) {
+                            $values[(string) $value] = (string) $meaning;
+                        }
+                    }
+                }
+                $clean['settings'][$path] = array(
+                    'label'       => isset($about['label']) && is_scalar($about['label']) ? (string) $about['label'] : '',
+                    'description' => isset($about['description']) && is_scalar($about['description']) ? (string) $about['description'] : '',
+                    'values'      => $values,
+                );
+            }
+        }
         foreach (array('options', 'defaults') as $set) {
             if (empty($preset[$set]) || !is_array($preset[$set])) {
                 continue;
@@ -374,7 +401,9 @@ final class SEOProStack_Presets {
             }
             return;
         }
-        if (is_array($wanted) && !self::is_list($wanted) && is_array($current)) {
+        if (is_array($wanted) && !self::is_list($wanted) && (is_array($current) || null === $current)) {
+            // Not stored yet counts as empty, so each setting is listed on its own.
+            $current = (array) $current;
             foreach ($wanted as $key => $value) {
                 if (!self::is_secret($key)) {
                     self::diff_into($diffs, $path . '.' . $key, array_key_exists($key, $current) ? $current[$key] : null, $value);
@@ -402,10 +431,11 @@ final class SEOProStack_Presets {
         if (isset($chosen[$path])) {
             return array($wanted);
         }
-        if (!is_array($wanted) || self::is_list($wanted) || !is_array($current)) {
+        if (!is_array($wanted) || self::is_list($wanted) || !(is_array($current) || null === $current)) {
             return null;
         }
-        $part = array();
+        $current = (array) $current;
+        $part    = array();
         foreach ($wanted as $key => $value) {
             if (self::is_secret($key)) {
                 continue;

@@ -18,11 +18,18 @@
  *   value that hold tag or list slugs ("tags", "lists"; "*" matches any key),
  *   turned into the site's IDs. Keys under "tag_mappings" that are not roles
  *   on this site are left out. Added only when the setting is not stored.
+ * - fluentform_forms: title, template (a Fluent Forms template the form starts
+ *   from, for its default settings and notifications), form_fields (as in a
+ *   Fluent Forms export), settings (merged into its form settings) and
+ *   crm_feed: a FluentCRM feed with list and tags as slugs and tag_routers
+ *   (tag, field, value), added only with FluentCRM active. Matched by title.
  * - fluentboards_boards: title, type, description, stages (title, closed).
  *   Matched by title among boards that are not archived.
  *
  * Any item can have "when": a plugin folder that must be active, so shop
- * lists only appear on shops.
+ * lists only appear on shops. A starter can include another plugin's items
+ * it relies on (the lists its forms feed) with "when"; they are matched as
+ * usual, so the order starters are added in does not matter.
  *
  * Adding never changes or removes anything already there: items that exist
  * are skipped. What was added is recorded, and Remove takes away only those
@@ -44,7 +51,7 @@ final class SEOProStack_Starters {
     const ADDED = 'seoprostack_starters_added';
 
     /** Item types, in the order they are added. Removal runs in reverse. */
-    const TYPES = array('fluentcrm_lists', 'fluentcrm_tags', 'fluentcrm_contact_fields', 'fluentcrm_settings', 'fluentboards_boards');
+    const TYPES = array('fluentcrm_lists', 'fluentcrm_tags', 'fluentcrm_contact_fields', 'fluentcrm_settings', 'fluentform_forms', 'fluentboards_boards');
 
     /**
      * Loaded starters.
@@ -125,8 +132,12 @@ final class SEOProStack_Starters {
         if (!$starter) {
             return false;
         }
-        foreach (array_keys($starter['items']) as $type) {
-            if (!self::type_ready($type)) {
+        foreach ($starter['items'] as $type => $items) {
+            // Types whose items all name a "when" plugin are optional.
+            $optional = !in_array(true, array_map(function ($item) {
+                return empty($item['when']);
+            }, $items), true);
+            if (!$optional && !self::type_ready($type)) {
                 return false;
             }
         }
@@ -146,6 +157,9 @@ final class SEOProStack_Starters {
         if (0 === strpos($type, 'fluentboards_')) {
             return class_exists('FluentBoards\App\Services\BoardService') && class_exists('FluentBoards\App\Models\Board');
         }
+        if (0 === strpos($type, 'fluentform_')) {
+            return class_exists('FluentForm\App\Services\Form\FormService') && class_exists('FluentForm\App\Models\Form');
+        }
         return false;
     }
 
@@ -163,6 +177,9 @@ final class SEOProStack_Starters {
         $active = self::active_folders();
         $out    = array();
         foreach ($starter['items'] as $type => $items) {
+            if (!self::type_ready($type)) {
+                continue;
+            }
             foreach ($items as $item) {
                 if (!empty($item['when']) && !isset($active[(string) $item['when']])) {
                     continue;
@@ -328,10 +345,15 @@ final class SEOProStack_Starters {
         $in_use  = null;
         try {
             foreach (array_reverse(self::TYPES) as $type) {
+                if (!empty($records[$type]) && !self::type_ready($type)) {
+                    // Its plugin is inactive (FluentCRM lists a form starter added): keep them for later.
+                    $left[$type] = $records[$type];
+                    continue;
+                }
                 $by_id = in_array($type, array('fluentcrm_tags', 'fluentcrm_lists'), true);
                 if ($by_id && null === $in_use) {
-                    // Settings go first; tags and lists the remaining ones still point at stay.
-                    $in_use = self::setting_ids($slug);
+                    // Settings and forms go first; tags and lists the remaining ones still point at stay.
+                    $in_use = self::setting_ids($slug) + self::feed_ids();
                 }
                 foreach (isset($records[$type]) ? (array) $records[$type] : array() as $record) {
                     $record = (array) $record;
@@ -378,15 +400,55 @@ final class SEOProStack_Starters {
             if (!is_array($stored)) {
                 continue;
             }
-            array_walk_recursive(
-                $stored,
-                function ($value) use (&$out) {
-                    if (is_int($value) || (is_string($value) && '' !== $value && ctype_digit($value))) {
-                        $out[(int) $value] = true;
-                    }
-                }
-            );
+            $out += self::numbers($stored);
         }
+        return $out;
+    }
+
+    /**
+     * List and tag IDs used by any Fluent Forms FluentCRM feed on the site,
+     * whoever made the form. Over-matching only keeps more.
+     *
+     * @return array<int,true>
+     */
+    private static function feed_ids() {
+        if (!class_exists('FluentForm\App\Models\FormMeta')) {
+            return array();
+        }
+        $out = array();
+        foreach (\FluentForm\App\Models\FormMeta::where('meta_key', 'fluentcrm_feeds')->pluck('value') as $value) {
+            $feed = json_decode((string) $value, true);
+            if (is_array($feed)) {
+                $out += self::numbers(array(
+                    isset($feed['list_id']) ? $feed['list_id'] : null,
+                    isset($feed['tag_ids']) ? $feed['tag_ids'] : null,
+                    isset($feed['tag_routers']) ? array_column((array) $feed['tag_routers'], 'input_value') : null,
+                    isset($feed['remove_tags']) ? $feed['remove_tags'] : null,
+                ));
+            }
+        }
+        return $out;
+    }
+
+    /**
+     * Whole numbers anywhere in a value.
+     *
+     * @param mixed $value Value.
+     * @return array<int,true>
+     */
+    private static function numbers($value) {
+        $out = array();
+        if (!is_array($value)) {
+            $value = array($value);
+        }
+        array_walk_recursive(
+            $value,
+            function ($v) use (&$out) {
+                if (is_int($v) || (is_string($v) && '' !== $v && ctype_digit($v))) {
+                    $out[(int) $v] = true;
+                }
+            }
+        );
         return $out;
     }
 
@@ -407,6 +469,8 @@ final class SEOProStack_Starters {
                 return sprintf(/* translators: %s: field name */ __('Contact field: %s', 'seoprostack'), (string) $item['label']);
             case 'fluentcrm_settings':
                 return sprintf(/* translators: %s: setting name */ __('Setting: %s', 'seoprostack'), (string) $item['option']);
+            case 'fluentform_forms':
+                return sprintf(/* translators: %s: form name */ __('Form: %s', 'seoprostack'), (string) $item['title']);
             case 'fluentboards_boards':
                 return sprintf(/* translators: %s: board name */ __('Board: %s', 'seoprostack'), (string) $item['title']);
         }
@@ -436,6 +500,8 @@ final class SEOProStack_Starters {
             case 'fluentcrm_settings':
                 $stored = fluentcrm_get_option((string) $item['option'], null);
                 return null !== $stored && '' !== $stored && array() !== $stored;
+            case 'fluentform_forms':
+                return null !== \FluentForm\App\Models\Form::where('title', (string) $item['title'])->first();
             case 'fluentboards_boards':
                 return null !== \FluentBoards\App\Models\Board::where('title', (string) $item['title'])->whereNull('archived_at')->first();
         }
@@ -485,10 +551,179 @@ final class SEOProStack_Starters {
                 fluentcrm_update_option((string) $item['option'], $value);
                 return array('option' => (string) $item['option'], 'hash' => md5((string) wp_json_encode($value)), 'name' => (string) $item['option']);
 
+            case 'fluentform_forms':
+                return self::create_form($item);
+
             case 'fluentboards_boards':
                 return self::create_board($item);
         }
         return null;
+    }
+
+    /**
+     * Create a Fluent Forms form as its own screens do: from a template (its
+     * default settings and notifications), then saved with our fields through
+     * its editor's save code, which sanitises them and sets the primary email.
+     *
+     * @param array $item Form item.
+     * @return array|null
+     */
+    private static function create_form(array $item) {
+        if (empty($item['title']) || empty($item['form_fields']) || !is_array($item['form_fields'])) {
+            return null;
+        }
+        $title    = sanitize_text_field((string) $item['title']);
+        $template = isset($item['template']) ? sanitize_key((string) $item['template']) : 'blank_form';
+        $form     = (new \FluentForm\App\Services\Form\FormService())->store(array('predefined' => $template, 'type' => 'form'));
+        if (!$form || empty($form->id)) {
+            return null;
+        }
+        $id     = (int) $form->id;
+        $fields = $item['form_fields'];
+        if (isset($fields['fields']) && is_array($fields['fields'])) {
+            $fields['fields'] = self::usable_fields($fields['fields'], self::active_folders());
+        }
+        (new \FluentForm\App\Services\Form\Updater())->update(array(
+            'form_id'    => $id,
+            'title'      => $title,
+            'status'     => 'published',
+            'formFields' => wp_json_encode($fields),
+        ));
+
+        if (!empty($item['settings']) && is_array($item['settings'])) {
+            $settings = \FluentForm\App\Models\FormMeta::retrieve('formSettings', $id);
+            $settings = is_array($settings) ? $settings : \FluentForm\App\Models\Form::getFormsDefaultSettings();
+            \FluentForm\App\Models\FormMeta::persist($id, 'formSettings', self::merge_settings($settings, $item['settings']));
+        }
+
+        if (!empty($item['crm_feed']) && is_array($item['crm_feed']) && self::type_ready('fluentcrm_lists')) {
+            \FluentForm\App\Models\FormMeta::insert(array(
+                'form_id'  => $id,
+                'meta_key' => 'fluentcrm_feeds', // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key -- Fluent Forms' own table, one row per feed.
+                'value'    => wp_json_encode(self::crm_feed($item['crm_feed'])),
+            ));
+        }
+
+        $stored = \FluentForm\App\Models\Form::find($id);
+        return array('id' => $id, 'hash' => md5((string) ($stored ? $stored->form_fields : '')), 'name' => $title);
+    }
+
+    /**
+     * Form fields without those whose "when" plugin is inactive (Fluent Forms
+     * Pro fields such as file uploads, which the free plugin does not show but
+     * would still require), and without the "when" keys themselves.
+     *
+     * @param array               $fields Fields, columns included.
+     * @param array<string,true>  $active Active plugin folders.
+     * @return array
+     */
+    private static function usable_fields(array $fields, array $active) {
+        $out = array();
+        foreach ($fields as $field) {
+            if (!is_array($field)) {
+                continue;
+            }
+            if (!empty($field['when']) && !isset($active[(string) $field['when']])) {
+                continue;
+            }
+            unset($field['when']);
+            if (isset($field['columns']) && is_array($field['columns'])) {
+                foreach ($field['columns'] as $i => $column) {
+                    if (is_array($column) && isset($column['fields']) && is_array($column['fields'])) {
+                        $field['columns'][$i]['fields'] = self::usable_fields($column['fields'], $active);
+                    }
+                }
+            }
+            $out[] = $field;
+        }
+        return $out;
+    }
+
+    /**
+     * Settings with our values put in, key by key; lists are replaced whole.
+     *
+     * @param array $settings Current.
+     * @param array $ours     Ours.
+     * @return array
+     */
+    private static function merge_settings(array $settings, array $ours) {
+        foreach ($ours as $key => $value) {
+            if (is_array($value) && isset($settings[$key]) && is_array($settings[$key]) && !wp_is_numeric_array($value)) {
+                $settings[$key] = self::merge_settings($settings[$key], $value);
+            } else {
+                $settings[$key] = is_string($value) ? wp_kses_post($value) : $value;
+            }
+        }
+        return $settings;
+    }
+
+    /**
+     * A FluentCRM feed for Fluent Forms, with list and tag slugs turned into
+     * this site's IDs, in the shape Fluent Forms' integration screen saves.
+     *
+     * @param array $feed Feed item.
+     * @return array
+     */
+    private static function crm_feed(array $feed) {
+        $lists = \FluentCrm\App\Models\Lists::pluck('id', 'slug');
+        $tags  = \FluentCrm\App\Models\Tag::pluck('id', 'slug');
+        $lists = is_object($lists) && method_exists($lists, 'toArray') ? $lists->toArray() : (array) $lists;
+        $tags  = is_object($tags) && method_exists($tags, 'toArray') ? $tags->toArray() : (array) $tags;
+
+        $tag_ids = array();
+        foreach (isset($feed['tags']) ? (array) $feed['tags'] : array() as $slug) {
+            if (isset($tags[$slug])) {
+                $tag_ids[] = (string) $tags[$slug];
+            }
+        }
+        $routers = array();
+        foreach (isset($feed['tag_routers']) ? (array) $feed['tag_routers'] : array() as $router) {
+            if (is_array($router) && isset($router['tag'], $tags[$router['tag']])) {
+                $routers[] = array(
+                    'input_value' => (string) $tags[$router['tag']],
+                    // Fluent Forms' editor save (Updater) passes field names through sanitize_key(), and routing is case-sensitive.
+                    'field'       => isset($router['field']) ? sanitize_key((string) $router['field']) : '',
+                    'operator'    => '=',
+                    'value'       => isset($router['value']) ? sanitize_text_field((string) $router['value']) : '',
+                );
+            }
+        }
+        $text = function ($key) use ($feed) {
+            return isset($feed[$key]) ? sanitize_text_field((string) $feed[$key]) : '';
+        };
+        $other = array();
+        foreach (isset($feed['other_fields']) ? (array) $feed['other_fields'] : array() as $field) {
+            if (is_array($field) && isset($field['item_value'], $field['label'])) {
+                $other[] = array('item_value' => sanitize_text_field((string) $field['item_value']), 'label' => sanitize_key((string) $field['label']));
+            }
+        }
+        $list = isset($feed['list'], $lists[$feed['list']]) ? (string) $lists[$feed['list']] : '';
+
+        return array(
+            'name'                   => __('FluentCRM Integration Feed', 'seoprostack'),
+            'first_name'             => $text('first_name'),
+            'last_name'              => $text('last_name'),
+            'full_name'              => $text('full_name'),
+            'email'                  => $text('email'),
+            'other_fields'           => $other,
+            'list_id'                => $list,
+            'tag_ids'                => $routers ? array() : $tag_ids,
+            'tag_ids_selection_type' => $routers ? 'routing' : 'simple',
+            'tag_routers'            => $routers,
+            'skip_if_exists'         => false,
+            'double_opt_in'          => !empty($feed['double_opt_in']),
+            'force_subscribe'        => !empty($feed['force_subscribe']),
+            'skip_primary_data'      => false,
+            'conditionals'           => array(
+                'conditions' => array(array('field' => null, 'operator' => '=', 'value' => null)),
+                'status'     => false,
+                'type'       => 'all',
+            ),
+            'run_events_only'        => array(),
+            'remove_tags'            => array(),
+            'enabled'                => true,
+            'CustomFields'           => array(),
+        );
     }
 
     /**
@@ -671,7 +906,48 @@ final class SEOProStack_Starters {
                 }
                 (new \FluentBoards\App\Services\BoardService())->deleteBoard((int) $board->id);
                 return true;
+
+            case 'fluentform_forms':
+                $form = \FluentForm\App\Models\Form::find((int) $record['id']);
+                if (!$form) {
+                    return false;
+                }
+                $id = (int) $form->id;
+                if (\FluentForm\App\Models\Submission::where('form_id', $id)->count() > 0
+                    || md5((string) $form->form_fields) !== (string) $record['hash']
+                    || self::form_embedded($id)) {
+                    return $name;
+                }
+                \FluentForm\App\Models\Form::remove($id);
+                return true;
         }
         return false;
+    }
+
+    /**
+     * Whether a form is placed in any post, page or block (shortcode or block).
+     *
+     * @param int $id Form ID.
+     * @return bool
+     */
+    private static function form_embedded($id) {
+        global $wpdb;
+        $like = array(
+            '%' . $wpdb->esc_like('fluentform id="' . $id . '"') . '%',
+            '%' . $wpdb->esc_like("fluentform id='" . $id . "'") . '%',
+            '%' . $wpdb->esc_like('"formId":"' . $id . '"') . '%',
+            '%' . $wpdb->esc_like('"formId":' . $id . ',') . '%',
+            '%' . $wpdb->esc_like('"formId":' . $id . '}') . '%',
+        );
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- one check before deleting, on request.
+        $found = $wpdb->get_var($wpdb->prepare(
+            "SELECT ID FROM {$wpdb->posts} WHERE post_status NOT IN ('trash', 'auto-draft') AND post_type <> 'revision' AND (post_content LIKE %s OR post_content LIKE %s OR post_content LIKE %s OR post_content LIKE %s OR post_content LIKE %s) LIMIT 1",
+            $like[0],
+            $like[1],
+            $like[2],
+            $like[3],
+            $like[4]
+        ));
+        return null !== $found;
     }
 }

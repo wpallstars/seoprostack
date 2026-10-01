@@ -18,5 +18,28 @@
         "theme_mods_kadence": {
             "load_fonts_local": null
         }
+    },
+    "settings": {
+        "kadence_blocks_font_settings.load_fonts_local": {
+            "label": "Load Google Fonts Locally",
+            "description": "Kadence Blocks serves Google fonts from this site instead of Google’s servers.",
+            "values": {
+                "true": "On",
+                "false": "Off",
+                "": "Off",
+                "null": "Off (not set)"
+            }
+        },
+        "theme_mods_kadence.load_fonts_local": {
+            "label": "Load Google Fonts Locally (Kadence theme)",
+            "description": "The Kadence theme serves Google fonts from this site instead of Google’s servers.",
+            "values": {
+                "true": "On",
+                "false": "Off",
+                "1": "On",
+                "": "Off",
+                "null": "Off (not set)"
+            }
+        }
     }
 }

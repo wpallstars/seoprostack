@@ -420,7 +420,7 @@ Adds a **Size** column to the Plugins screen: each plugin’s total disk use, sp
 
 SEO Pro Stack keeps its chosen settings for other plugins, chosen for speed, privacy and quiet admin screens. With this on, each plugin that has a preset says on the Plugins screen whether its settings match (**Preset: settings match**, or **Preset: 3 settings differ**). Its row offers:
 
-- **Apply preset** (or clicking **Preset: 3 settings differ**): opens a dialog with the preset's notes and each setting that differs, its value now and the preset's, with a tickbox, ticked to start. **Apply 3 settings** changes the ticked ones (the button counts them); unticked ones and the plugin's other settings stay as they are. **Cancel** or Esc closes it with nothing changed. Without JavaScript, Apply preset applies all of them.
+- **Apply preset** (or clicking **Preset: 3 settings differ**): opens a dialog with the preset's notes and each setting that differs, with a tickbox, ticked to start. Each is named as on the plugin's own settings screen, with a line on what it does and its value now and the preset's in the same words (**Now: Off (not set) → Preset: On**); the stored name is shown small underneath. **Apply 3 settings** changes the ticked ones (the button counts them); unticked ones and the plugin's other settings stay as they are. **Cancel** or Esc closes it with nothing changed. Without JavaScript, Apply preset applies all of them.
 - **Reset to defaults**: set the same settings to the plugin’s own defaults.
 - **Undo preset** or **Undo reset**: put back the settings from before the last apply or reset.
 
@@ -441,12 +441,12 @@ Presets so far:
 | Tutor LMS | Student profile pages private; course reviews wait for approval; courses written in the block editor; a quiz is submitted when its time runs out; courses complete when every lesson, quiz and assignment is done, and can be retaken. |
 | WooCommerce | No usage data, remote error logs, marketplace suggestions or Order attribution tracking. |
 
-They are JSON files in `presets/`, one per plugin folder. AGENTS.md → Plugin presets explains how they are made and checked. A setting named in a preset whose defaults are all "not stored" is removed again on reset, and an option left empty that way is deleted, so the plugin's own defaults apply as on a fresh install.
+They are JSON files in `presets/`, one per plugin folder. Each names its settings for the dialog under `settings`: setting path => `label` (the plugin's own wording), `description` and `values` (stored value => what it means, with `"null"` for not stored). AGENTS.md → Plugin presets explains how they are made and checked. A setting named in a preset whose defaults are all "not stored" is removed again on reset, and an option left empty that way is deleted, so the plugin's own defaults apply as on a fresh install.
 
 WP-CLI works whether or not the setting is on:
 
 - `wp seoprostack presets list`: each preset, the version it was chosen with, the installed version, how many settings differ and what can be undone.
-- `wp seoprostack presets diff <plugin> [--defaults]`: the settings that differ from the preset or from the defaults.
+- `wp seoprostack presets diff <plugin> [--defaults]`: the settings that differ from the preset or from the defaults, with their names.
 - `wp seoprostack presets apply <plugin>… | --all [--only=<settings>]` (`--only` takes settings as `diff` names them, comma-separated, such as `tutor_option.course_retake_feature`), `reset <plugin>… | --all`, `undo <plugin>…`.
 - `wp seoprostack presets export <plugin> [--options=<names>] [--like=<patterns>] [--compare=<file>]`: print settings as a preset, without secrets, warning about values that hold the site’s address or an email address. With `--compare` (an earlier export from a fresh install) only changed settings are kept, with the earlier values as the defaults.
 
@@ -454,8 +454,8 @@ WP-CLI works whether or not the setting is on:
 
 Some plugins keep the way you organise your data in their own tables rather than in settings. For those, SEO Pro Stack has **starter data**: the lists, tags, fields and boards we start our own sites with, so a new site begins organised and shows by example how to add more. An active plugin with starter data says on the Plugins screen what the site does not have yet (**Starter data: 35 items to add**, which opens to list them and explain the pattern) and offers:
 
-- **Add starter data**: add the missing items. Items already there, matched by slug (lists, tags, fields) or title (boards), stay exactly as they are, and settings already stored are not changed.
-- **Remove starter data**: remove what SEO Pro Stack added, while it is unused. Lists and tags with contacts, contact fields with values, boards with tasks and settings changed since stay, and so do lists and tags a remaining FluentCRM setting still points at (role-based tagging, WooCommerce or Tutor LMS sync). The message says how many stay.
+- **Add starter data**: add the missing items. Items already there, matched by slug (lists, tags, fields) or title (boards, forms), stay exactly as they are, and settings already stored are not changed.
+- **Remove starter data**: remove what SEO Pro Stack added, while it is unused. Lists and tags with contacts, contact fields with values, boards with tasks, forms with entries or placed on a page, and settings and forms changed since stay, and so do lists and tags a remaining FluentCRM setting or Fluent Forms feed still points at (role-based tagging, WooCommerce or Tutor LMS sync). The message says how many stay.
 
 A plugin's preset and its starter data never set the same setting, so they can be used in either order, or only one of them. `scripts/preflight-release.sh` stops a release if one setting is in both.
 
@@ -464,6 +464,7 @@ Each asks first. Items are added through the plugin's own models, with its own c
 | Plugin | Starter data |
 |---|---|
 | FluentCRM | Lists named after where a contact came from: Website Contact Form, Booking Form, Newsletter Subscription Form, User Registration Form, Post Comment Form and Data Subject Access Request Form, plus Website Shop Customers with WooCommerce and free and paid course lists with Tutor LMS. Tags for who the contact is to you (Customer / Client, VIP, Supplier, Partner, Distributor, Reseller, Job Applicant, Staff, Employee, Contractor, Quote Requested) and what they are on the website (Website User, Admin, Editor, Author, Contributor, Commenter, Newsletter Subscriber, and Shop Manager, Course Student and Tutor where those plugins are active). Contact fields Company, Role and Website. Role-based tagging (FluentCRM Pro) tags contacts by WordPress role; WooCommerce customers and Tutor LMS students go to their list and tag as pending. Signing up from comments, checkout and registration stays off. |
+| Fluent Forms | A **Contact Form**, **Discovery Call Form** (company, role, website, message and preferred times), **Subscription Form** and **Data Subject Access Request Form** (who is asking, what they want, and entries deleted after 10 years). With FluentCRM active, each sends people to the FluentCRM list named after it, and tags them from their answers: the newsletter tick box adds Website Newsletter Subscriber, and the access request's types add Customer / Client, Supplier, Employee, Contractor or Website User. Without Fluent Forms Pro, phone fields and the proof of identity and address uploads are left out. |
 | Fluent Boards | A **Website** board for requests and feedback, with To-Do, In Progress, Done (please check) and Closed (closes tasks) and the default colour labels. |
 
 They are JSON files in `starters/`, one per plugin folder; `includes/class-seoprostack-starters.php` describes the format. What was added is recorded in the `seoprostack_starters_added` option (not autoloaded); uninstalling SEO Pro Stack removes the record but leaves the lists, tags, fields and boards, which are that plugin's data.
@@ -653,7 +654,10 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folder�
 
 ### Unreleased
 
+- New: starter data for Fluent Forms (`starters/fluentform.json`, item type `fluentform_forms`): Contact Form, Discovery Call Form, Subscription Form and Data Subject Access Request Form, taken from our own sites. Forms are created as Fluent Forms' own screens do: `FormService::store()` from a template, for its default settings and notification, then `Updater::update()` with our fields, which sanitises them and sets the primary email field. With FluentCRM active each gets a FluentCRM feed to the list named after it, with tag routing from its answers; the lists and tags it uses come with the starter (`"when": "fluent-crm"`), so it does not matter whether FluentCRM's starter data is added first. A field can have `"when"` too: phone and file upload fields need Fluent Forms Pro, which the free plugin does not show but would still require, so they are left out without it. Remove keeps forms with entries, forms placed in a post, page or block, and forms changed since, and keeps FluentCRM lists and tags that any Fluent Forms feed still uses. Items of a plugin that is inactive are left for later instead of stopping Add or Remove. Tested on a site with 85 plugins: 13 items added, a second run added none, a form whose title was taken was left alone; visitor submissions joined the right list with the right tags (contact form newsletter tick; access request types Customer and Supplier Contact); Remove kept the form with an entry, forms on pages and the tags and lists contacts hold; without FluentCRM, forms were added without feeds and FluentCRM's records left alone.
 - Removed: Free Plugins and Pro Plugins no longer list Freesoul Deactivate Plugins. Load plugins only where needed does its job in wp-admin and for the whole site. The Plugins screen does not suggest removing it yet: its page-by-page rules on the site are not covered so far.
+- Changed: the Apply preset dialog names each setting as the plugin's own screen does, says what it does in a line, and shows values in words (**Now: Off (not set) → Preset: On** instead of `null` and `on`), with the stored name small underneath. Presets gain a `settings` section (path => `label`, `description`, `values`); all ten presets have it. An option the plugin has not stored yet is now listed setting by setting too (FluentCRM showed one row of JSON), and its settings can be applied one at a time. `wp seoprostack presets diff` adds a name column. Plugin Check no longer warns about the dialog's `only[]` input.
+- Development: `scripts/preflight-release.sh` also fails when a setting a preset changes has no label, or a label names a setting the preset does not change.
 
 ### 0.7.0
 

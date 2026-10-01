@@ -68,15 +68,17 @@ class SEOProStack_Presets_CLI {
     public function diff($args, $assoc_args) {
         $slug = $this->preset_slug($args[0]);
         $set  = WP_CLI\Utils\get_flag_value($assoc_args, 'defaults') ? 'defaults' : 'options';
-        $rows = array();
+        $preset = SEOProStack_Presets::get($slug);
+        $rows   = array();
         foreach (SEOProStack_Presets::differences($slug, $set) as $path => $values) {
-            $rows[] = array('setting' => $path, 'now' => $this->show($values[0]), 'preset' => $this->show($values[1]));
+            $label  = isset($preset['settings'][$path]) ? $preset['settings'][$path]['label'] : '';
+            $rows[] = array('setting' => $path, 'name' => $label, 'now' => $this->show($values[0]), 'preset' => $this->show($values[1]));
         }
         if (!$rows) {
             WP_CLI::success('defaults' === $set ? 'Settings are at the defaults.' : 'Settings match the preset.');
             return;
         }
-        WP_CLI\Utils\format_items('table', $rows, array('setting', 'now', 'preset'));
+        WP_CLI\Utils\format_items('table', $rows, array('setting', 'name', 'now', 'preset'));
     }
 
     /**

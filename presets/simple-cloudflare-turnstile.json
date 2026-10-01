@@ -22,5 +22,81 @@
         "cfturnstile_reset": null,
         "cfturnstile_comment": null,
         "cfturnstile_fluent": null
+    },
+    "settings": {
+        "cfturnstile_theme": {
+            "label": "Theme",
+            "description": "Auto follows the visitor’s light or dark setting.",
+            "values": {
+                "light": "Light",
+                "dark": "Dark",
+                "auto": "Auto",
+                "null": "Light (not set)"
+            }
+        },
+        "cfturnstile_appearance": {
+            "label": "Appearance Mode",
+            "description": "Interaction Only shows the check only when Cloudflare needs the visitor to click.",
+            "values": {
+                "always": "Always",
+                "interaction-only": "Interaction Only",
+                "null": "Always (not set)"
+            }
+        },
+        "cfturnstile_size": {
+            "label": "Widget Size",
+            "description": "Flexible fits the width of the form.",
+            "values": {
+                "normal": "Normal (300px)",
+                "flexible": "Flexible (100%)",
+                "compact": "Compact (150px)",
+                "null": "Normal (not set)"
+            }
+        },
+        "cfturnstile_login": {
+            "label": "WordPress Login",
+            "description": "Turnstile on the login form.",
+            "values": {
+                "on": "On",
+                "": "Off",
+                "null": "Off (not set)"
+            }
+        },
+        "cfturnstile_register": {
+            "label": "WordPress Register",
+            "description": "Turnstile on the registration form.",
+            "values": {
+                "on": "On",
+                "": "Off",
+                "null": "Off (not set)"
+            }
+        },
+        "cfturnstile_reset": {
+            "label": "WordPress Reset Password",
+            "description": "Turnstile on the lost password form.",
+            "values": {
+                "on": "On",
+                "": "Off",
+                "null": "Off (not set)"
+            }
+        },
+        "cfturnstile_comment": {
+            "label": "WordPress Comment",
+            "description": "Turnstile on the comment form.",
+            "values": {
+                "on": "On",
+                "": "Off",
+                "null": "Off (not set)"
+            }
+        },
+        "cfturnstile_fluent": {
+            "label": "Enable on all Fluent Forms",
+            "description": "Turnstile on every Fluent Forms form.",
+            "values": {
+                "on": "On",
+                "": "Off",
+                "null": "Off (not set)"
+            }
+        }
     }
 }
