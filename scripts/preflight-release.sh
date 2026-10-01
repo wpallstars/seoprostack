@@ -206,7 +206,7 @@ check_readme() {
 	local bytes
 	bytes="$(printf '%s' "$readme" | wc -c | tr -d ' ')"
 	if [ "$bytes" -le "$README_MAX_BYTES" ]; then
-		ok "size ${bytes} bytes"
+		ok "size ${bytes} bytes ($((README_MAX_BYTES - bytes)) left)"
 	else
 		warn "size ${bytes} bytes; WordPress.org says over 10 KB may cause errors (keep the current changelog, move older entries to changelog.txt, trim the description)"
 	fi
