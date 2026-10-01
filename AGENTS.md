@@ -83,6 +83,12 @@ site with `wp seoprostack starters diff|add|remove`, with items in use.
 - Capability and nonce checks on every admin action and AJAX handler; escape on
   output; sanitise through the schema.
 - Admin copy: short, plain words, sentence case, no jargon.
+- Leave no PHP errors, warnings, notices or deprecations behind. Fix any that
+  SEO Pro Stack causes as you find them, in the same change when it is small,
+  or as a tracked issue. That includes ones in other plugins that only happen
+  because of SEO Pro Stack (for example a plugin skipped by Load plugins only
+  where needed). Messages that other plugins cause on their own are theirs:
+  mention them, do not hide them.
 - Do not change WordPress update behaviour (update transients, `auto_update_*`
   filters, update checks). Plugin Check reports `plugin_updater_detected` as an
   error, and WordPress.org asks plugins not to interfere with the updater. A
@@ -191,7 +197,10 @@ No automated suite ships with the plugin. Verify on real WordPress:
      `rsync -a --delete --delete-excluded --exclude-from=.distignore ./ "<site>/wp-content/plugins/seoprostack/"`.
 
 3. Exercise the changed feature through the admin UI or HTTP, and check
-   `wp-content/debug.log`. For settings imports, seed the replaced plugin's
+   the debug log for new messages mentioning `seoprostack` or a plugin it
+   skipped (`wp-content/debug.log`, or the file Debug Log Manager writes in
+   `wp-content/uploads/debug-log-manager/` when it is active, as on the shared
+   test site). For settings imports, seed the replaced plugin's
    options and delete `seoprostack_options` and `seoprostack_db_version` while
    the plugin is inactive, then activate it.
 4. For changes that touch core APIs, also smoke-test on WordPress 6.2 with
