@@ -9,9 +9,10 @@
  * title, until it is a letter wide and the title runs down the page.
  *
  * When the main column of a list gets narrower than a fifth of the table,
- * or any column is squeezed to nothing, this measures how wide each column
- * wants to be, keeps narrow ones (checkboxes, icons) as they are, narrows
- * the rest in proportion and leaves the main column at least a quarter.
+ * or any column is squeezed to nothing, this gives the main column a
+ * quarter and narrows the others towards the narrowest they can be without
+ * breaking words; if that is not enough, the main column gives up some of
+ * its quarter (down to 120 px) first.
  * Lists with room to spare are left as they are, and so are phone-sized
  * screens, where WordPress stacks the columns. It checks again when columns
  * are switched on or off in Screen Options and when the window changes size.
