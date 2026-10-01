@@ -78,6 +78,11 @@ pattern so people can extend it. Adding only fills what is missing; Remove
 takes back only unused items SEO Pro Stack added. Check both on a throwaway
 site with `wp seoprostack starters diff|add|remove`, with items in use.
 
+A preset and starter data never set the same setting, so the order they are
+used in never matters: Add starter data leaves stored settings alone and Apply
+preset overwrites them. A setting goes in one or the other.
+`scripts/preflight-release.sh` fails if one is in both.
+
 ## Code rules
 
 - PHP 7.4 syntax and WordPress 6.2 APIs. Guard newer core APIs with
