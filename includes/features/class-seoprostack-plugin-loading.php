@@ -801,6 +801,10 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
                         if ('' !== $plugin) {
                             $found[$plugin] = true;
                         }
+                        // A shared framework's page needs every plugin that bundles it.
+                        foreach (SEOProStack_Plugin_Loader::plugins_sharing_callback($callback['function']) as $shared) {
+                            $found[$shared] = true;
+                        }
                     }
                 }
             }
