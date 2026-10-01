@@ -52,7 +52,8 @@ class SEOProStack_Freemius_Quiet extends SEOProStack_Feature {
         return array(
             self::KEY => array(
                 'type'        => 'bool',
-                'default'     => false,
+                // On by default at the owner's request: fewer nags out of the box.
+                'default'     => true,
                 'tab'         => 'admin',
                 'label'       => __('Quiet Freemius prompts', 'seoprostack'),
                 'description' => __('Plugins that use Freemius, such as WP Sheet Editor, stop asking you to opt in, offering upgrades, add-ons and trials, and asking why you deactivate them. Licences, accounts and support pages stay, and their settings are not changed.', 'seoprostack'),
