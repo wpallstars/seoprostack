@@ -14,16 +14,16 @@ Curated plugins, themes, hosting and tools for WordPress, plus small opt-in qual
 
 SEO Pro Stack is free and open source. There is no pro version and nothing is locked.
 
-Everything is off by default except Hide admin bar items, which hides Comments and + New, No fade between admin screens and Quiet Freemius prompts. Turn features on in **Settings → SEO Pro Stack** (or the star in the admin bar); they save straight away. **Search features** finds a setting by name or by the plugin it replaces. The plugin’s Read Me tab describes every feature in full.
+Everything is off by default except Hide admin bar items (Comments and + New), No fade between admin screens and Quiet Freemius prompts. Turn features on in **Settings → SEO Pro Stack**; **Search features** finds one by name or by the plugin it replaces. The Read Me tab there describes each in full.
 
 = Admin screens =
 
-* **Organise the admin menu**: the same menu sections on every site, with places chosen from a list, role previews and client safeguards. Replaces Admin Menu Editor.
-* **Tidy the dashboard** and **Dashboard and sidebar widgets**: the same Dashboard on every site, without boxes and widgets you never use.
+* **Organise the admin menu**: the same menu sections on every site, with role previews and client safeguards. Replaces Admin Menu Editor.
+* **Tidy the dashboard** and **Dashboard and sidebar widgets**: no Dashboard boxes or widgets you never use.
 * **Hide admin bar items** (on by default), a **More menu** for plugin items in the admin bar, and **Hide admin notices**, which moves plugin and theme notices behind a bell.
 * **Quiet Freemius prompts** (on by default): no opt-in nags, upgrade offers or deactivation surveys from plugins that use Freemius.
-* **Admin bar and dashboard access**: hide the admin bar and block wp-admin for roles such as subscribers and customers. Administrators are never affected.
-* **Magic login links**: “Email me a login link” on the login screen. Links work once, expire, and log in only after a button press, so email scanners cannot use them up.
+* **Admin bar and dashboard access**: hide the admin bar and block wp-admin for roles such as subscribers and customers, never administrators.
+* **Magic login links**: “Email me a login link” on the login screen, with one-time links that email scanners cannot use up.
 * **Modern admin colours**, **No fade between admin screens** (on by default), **Readable list columns** and **Notification emails**, which stops routine emails one by one.
 
 = Writing and publishing =
@@ -32,7 +32,7 @@ Everything is off by default except Hide admin bar items, which hides Comments a
 * **Duplicate posts**, **Staged new versions** (edit a published post as a draft copy) and **Shareable preview links** for people without an account.
 * **Sticky posts for any post type** and **Select all across pages** for bulk actions.
 * **iFrame block**: embed pages with size, sandbox and permission settings, limited to the domains and roles you choose.
-* **Spectra block replacements**: a Term list block, pages built with Spectra that keep working after it is deactivated, and one-click conversion of its blocks.
+* **Spectra block replacements**: a Term list block, and Spectra pages that keep working after it is deactivated or convert in one click.
 
 = Media =
 
@@ -55,25 +55,25 @@ Features that replace another plugin import its settings once, never change that
 = Discover =
 
 * **Theme**: install, activate or customise the Kadence theme.
-* **Free Plugins**: recommended plugins from WordPress.org by category, installed and activated in place, for users who can install plugins.
+* **Free Plugins**: recommended plugins from WordPress.org by category, installed and activated in place.
 * **Pro Plugins, Hosting, Tools**: directories of products we use and recommend.
 
 = Affiliate disclosure =
 
-Some links in the Pro Plugins, Hosting and Tools directories may be affiliate links. They link directly to the product and never change what is recommended; using them may earn a commission that funds development. Nothing is shown on your public site.
+Some links in the Pro Plugins, Hosting and Tools directories may be affiliate links, which may earn a commission that funds development. They never change what is recommended, and nothing is shown on your public site.
 
 = External services =
 
 * **WordPress.org** (api.wordpress.org): lists recommended plugins and the Kadence theme when you open those tabs, as Plugins → Add New does. See the [WordPress.org privacy policy](https://wordpress.org/about/privacy/).
 * **Google Analytics** (www.googletagmanager.com): with Delayed Google Analytics on and a measurement ID entered, visitors’ browsers load gtag.js and send page views to Google Analytics, under Google’s privacy policy. Logged-in users are not tracked.
-* **Screenshot services**: with Website screenshots on, your server sends the address of each page to capture to the service you choose, once per screenshot and again when it is renewed, after requesting the page once to check it can be reached. Visitors never contact the service.
+* **Screenshot services**: with Website screenshots on, your server sends the address of each page to capture to the service you choose, when a screenshot is made or renewed. Visitors never contact the service.
 * **Thum.io** (image.thum.io), the default: see [Thum.io](https://www.thum.io/).
 * **Microlink** (api.microlink.io, or pro.microlink.io with a key): [terms](https://microlink.io/tos), [privacy policy](https://microlink.io/privacy).
 * **ApiFlash** (api.apiflash.com): [terms](https://apiflash.com/terms_of_service), [privacy policy](https://apiflash.com/privacy_policy).
 * **Screenshot Machine** (api.screenshotmachine.com): [terms](https://www.screenshotmachine.com/termsandconditions.php), [privacy policy](https://www.screenshotmachine.com/privacypolicy.php).
 * **GitHub** (github.com, api.github.com), in copies from GitHub releases only: up to twice a day, asks for new releases of plugins that name a GitHub repository. Nothing about your site is sent. See the [GitHub privacy statement](https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement).
 
-Other features contact only addresses you choose. Copy linked images downloads images already linked in a post when it is saved. The iFrame block makes visitors’ browsers load the pages your editors embed, under those sites’ privacy policies. Magic login links are sent with your site’s normal email. Avatars without Gravatar stops WordPress loading avatars from gravatar.com. Short links that count clicks set a cookie on your site (`sps_link_` and the link’s ID, for a year, holding only “1”); only totals are kept, never IP addresses. No other data is sent.
+Other features contact only addresses you choose. Copy linked images downloads images already linked in a post when it is saved. The iFrame block makes visitors’ browsers load the pages your editors embed, under those sites’ privacy policies. Avatars without Gravatar stops WordPress loading avatars from gravatar.com. Short links that count clicks set a cookie on your site (`sps_link_` and the link’s ID, for a year, holding only “1”); only totals are kept, never IP addresses. No other data is sent.
 
 = Developers =
 
@@ -93,7 +93,7 @@ No. The plugin is free and open source under the GPL.
 
 = What happens if I deactivate or delete the plugin? =
 
-Imported images and screenshots stay in the Media Library because your posts use them. Deactivating stops serving WebP and AVIF copies. Deleting removes the settings, cached data, uploaded profile pictures, WebP and AVIF copies, short links and the must-use file. Watermarked pictures stay marked; their originals stay in a `seoprostack-originals-…` folder in uploads.
+Imported images and screenshots stay in the Media Library. Deleting removes the settings, cached data, uploaded profile pictures, WebP and AVIF copies, short links and the must-use file. Watermarked pictures stay marked; originals stay in a `seoprostack-originals-…` folder in uploads.
 
 = Does it work on multisite? =
 
@@ -101,7 +101,7 @@ Yes. Settings are per site, and Free Plugins is shown only to super admins.
 
 = Is the magic login safe? =
 
-Each link is random, stored only as a hash, works once and expires within an hour. A new link cancels the old one. Passwords, cookies and the admin work as before. Two-factor plugins that check the password step itself (rather than `wp_login`) are not asked, so on those sites choose “Everyone except administrators” or leave the feature off.
+Each link is random, stored only as a hash, works once and expires within an hour. Two-factor plugins that check only the password step are not asked, so with those choose “Everyone except administrators” or leave it off.
 
 = What happens to queued posts if I turn the publishing queue off? =
 
@@ -109,22 +109,17 @@ They stay scheduled and publish at their times.
 
 = Where do updates come from? =
 
-Copies from WordPress.org update from WordPress.org. New versions come out on GitHub first; copies from a GitHub release update from GitHub on the Updates screen.
+Copies from WordPress.org update from there. New versions come out on GitHub first, and copies from GitHub update from GitHub.
 
 == Changelog ==
 
 = Unreleased =
 * New, off by default: Ask before licence checks.
-* Change: Tutor LMS replaces MasterStudy LMS.
 * New: presets for eight more plugins, applied setting by setting; starter data for FluentCRM and Fluent Boards.
-* New: GitHub copies update without Git Updater.
-* New: Plugins screen lists plugins it replaces.
+* New: GitHub copies update without Git Updater; the Plugins screen lists plugins this one replaces.
 * New, on by default: Quiet Freemius prompts.
-* Change: Tidy the dashboard hides Debug Log Manager.
-* Fix: fewer GitHub requests from Git Updater.
-* New: Load plugins only where needed can also skip chosen admin tools on the site.
-* Change: Load plugins only where needed also speeds up SEO Pro Stack’s settings, Menus and Editor. Tidy the dashboard hides WooCommerce Setup.
-* Fix: the admin menu on Kadence Blocks’ lists, recovery with Query Monitor, plugins’ Dashboard boxes, screens jumping as they load.
+* Change: Load plugins only where needed covers more screens and can skip admin tools on the site. Tidy the dashboard hides Debug Log Manager and WooCommerce Setup. Tutor LMS replaces MasterStudy LMS.
+* Fix: admin menu, Dashboard boxes and screens that jumped while loading; fewer GitHub requests.
 
 = 0.6.0 =
 * New, off by default: Faster editor with Kadence Blocks loads Kadence’s design library only when you open it. Plugin presets. Readable list columns.
