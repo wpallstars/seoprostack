@@ -85,11 +85,23 @@ Moves plugin and theme notices behind a bell with a count at the right of the ad
 - Also caught: notices printed inside another plugin’s wrapper, and notices that scripts add while the page loads. A notice drawn by React or Vue (such as WooCommerce Analytics’) stays hidden in its place and the panel shows a copy; dismissing the copy dismisses the original.
 - The bell sits next to the account menu (“Hi, …”), or left of the Plugins menu when that is on. It appears only after the notices are counted, so it sits on the outer side, where appearing never moves the other two. Other plugins’ admin bar items go to the left of it.
 - The bell is hidden while there are no notices. On phones it shows with the count in a bubble, and the panel fills the width.
-- The bell works from the keyboard: Enter or Space opens the panel, Escape closes it. Clicking elsewhere closes it too.
+- Like the other admin bar menus, pointing at the bell opens the panel and moving the mouse away closes it. It stays open while you type in a field inside it.
+- The bell works from the keyboard and on touch screens: Enter, Space or a tap opens the panel and keeps it open; Escape, the bell again or clicking elsewhere closes it.
 - Notices are hidden with CSS until they are moved, so they do not flash or push the page down. Without JavaScript they stay on the page.
 - The block editor has its own notices and is left alone.
 - Add the class `sps-keep` to a notice to keep it on the page.
 - **Show example notices** (off by default) adds one notice of each kind to every admin screen for administrators, to see where they go: information, success, warning and error behind the bell, and one with `sps-keep` on the page. Reload the page after changing it.
+
+### More menu in the admin bar (Admin)
+
+When many plugins add items to the admin bar, it wraps onto a second line that covers the top of the page and makes it hard to click. With this on, the items plugins and themes add to the left of the bar go into one **…** menu after WordPress’s own items (+ New, Edit and the like), in wp-admin and on the site. Click **…** to open it; click elsewhere or press Escape to close it. Moved items keep their own submenus.
+
+- **Keep on the bar**: tick plugins (or a theme or must-use plugin) whose items should stay where they are. Those that have added items are listed first, marked “adds items”. SEO Pro Stack’s own items (such as Duplicate) stay by default.
+- WordPress’s own items and the right of the bar (the account menu, the notices bell, the Plugins menu) are not moved.
+- Items are matched to the plugin that added them. If another plugin replaces WordPress’s admin bar class, WordPress’s own items are recognised by name, every other item goes in the menu, and Keep on the bar does not apply.
+- Items that show only an icon or numbers get their plugin’s name added in the menu.
+- On phones and tablets WordPress hides plugins’ items; the menu shows them, with their submenus open.
+- Opens from the keyboard with Enter or Space. Without JavaScript it opens on hover.
 
 ### Avatars without Gravatar (Admin)
 
@@ -378,6 +390,7 @@ Developers can add settings, tabs and directory entries with filters:
 - `seoprostack_short_link_count_click`: return false to not count a click (link post ID).
 - `seoprostack_screenshot_request`: change the request sent to the screenshot service (`url`, `headers`, `json`; page URL, browser width, height, service), for example to use another service. The response must be a JPEG, PNG or WebP picture, or JSON with `data.screenshot.url` when `json` is true.
 - `seoprostack_term_list_args`: change the `get_terms()` arguments of a Term list (arguments, block attributes), for example to order by count or exclude terms.
+- `seoprostack_admin_bar_more_items`: change which top-level admin bar items go in the More menu (item IDs in bar order, `WP_Admin_Bar`).
 
 Actions:
 
@@ -405,12 +418,14 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folder�
 
 ### Unreleased
 
+- New, off by default: More menu in the admin bar (Admin tab) moves the items plugins and themes add to the left of the admin bar into one … menu after WordPress’s own items, so the bar stays on one line instead of wrapping over the page. Keep on the bar lists the plugins that add items; ticked ones keep theirs on the bar. New `seoprostack_admin_bar_more_items` filter.
 - New: Load pages before the click can also preload admin screens (**Also in the admin**, off by default). Only the page is downloaded; links that act, carry a nonce, dismiss or download, and screens that change something when opened, are skipped.
 - Changed: Hide the admin bar and Block dashboard access no longer offer Administrator (or any role that can manage options), since those roles are never affected.
 - Changed: Hide the admin bar and Block dashboard access tick roles that plugins add, such as WooCommerce’s Customer, unless they can write posts. Lists still at the 0.4.0 default get the roles added since they were saved. With WooCommerce active, an empty “Send them to” is set to its My Account page.
 - Changed: new defaults on new sites: SVG uploads also allows authors, contributors and shop managers, and Watermark pictures uses 10% of the picture. Sites that already have the plugin keep their settings.
 - Changed: Resize large uploads no longer imports Imsanity’s default limit (1920), so 2560 is used unless Imsanity was set to something else.
 - Changed: on the right of the admin bar, the Plugins menu always sits next to the account menu, with the notices bell to its left and other plugins’ items further left. The bell shows only once notices are counted, so on that side it never moves the Plugins or account menus. New `SEOProStack_Admin_Bar::pin( $id, $rank )` keeps a `top-secondary` node there (rank 0 nearest the account menu).
+- Changed: the notices panel opens when you point at the bell and closes when you move away, like the other admin bar menus. Keys and taps still open it until you close it.
 
 ### 0.4.0
 
