@@ -24,5 +24,73 @@
             "auto_course_complete_on_all_lesson_completion": null,
             "course_retake_feature": null
         }
+    },
+    "settings": {
+        "tutor_option.quiz_when_time_expires": {
+            "label": "When time expires",
+            "description": "What happens to a quiz when its time runs out.",
+            "values": {
+                "auto_submit": "Auto Submit: the answers given are submitted",
+                "auto_abandon": "Auto Abandon: the attempt is not counted",
+                "autosubmit": "Nothing chosen",
+                "null": "Auto Abandon (not set)"
+            }
+        },
+        "tutor_option.student_public_profile_layout": {
+            "label": "Student Public Profile Layout",
+            "description": "Private keeps students’ profile pages, names and courses off the site.",
+            "values": {
+                "private": "Private",
+                "pp-circle": "Modern",
+                "no-cp": "Minimal",
+                "pp-rectangle": "Classic",
+                "null": "Not set"
+            }
+        },
+        "tutor_option.enable_course_review_moderation": {
+            "label": "Publish Course Review on Admin’s Approval",
+            "description": "Course reviews show only after an admin approves them.",
+            "values": {
+                "on": "On",
+                "off": "Off",
+                "null": "Off (not set)"
+            }
+        },
+        "tutor_option.enable_gutenberg_course_edit": {
+            "label": "Gutenberg Editor",
+            "description": "Write courses in the block editor.",
+            "values": {
+                "on": "On",
+                "off": "Off",
+                "null": "Off (not set)"
+            }
+        },
+        "tutor_option.course_completion_process": {
+            "label": "Course Completion Process",
+            "description": "When students can mark a course complete.",
+            "values": {
+                "flexible": "Flexible: any time",
+                "strict": "Strict: after every lesson, quiz and assignment",
+                "null": "Flexible (not set)"
+            }
+        },
+        "tutor_option.auto_course_complete_on_all_lesson_completion": {
+            "label": "Auto Complete Course on All Lesson Completion",
+            "description": "The course completes on its own when every lesson, quiz and assignment is done.",
+            "values": {
+                "on": "On",
+                "off": "Off",
+                "null": "Off (not set)"
+            }
+        },
+        "tutor_option.course_retake_feature": {
+            "label": "Course Retake",
+            "description": "Students can reset their progress and start a course again.",
+            "values": {
+                "on": "On",
+                "off": "Off",
+                "null": "Off (not set)"
+            }
+        }
     }
 }

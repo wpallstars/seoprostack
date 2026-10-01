@@ -64,7 +64,11 @@ To add or update a preset, on a throwaway site (never a live one):
    cleared for you). Read its save handler to check; say so in `notes` if users
    must save once in the plugin.
 6. Write `notes` in plain words: what the preset does and why. Keep `tested`
-   at the version you checked.
+   at the version you checked. Name every setting under `settings` for the
+   Apply preset dialog: `label` as the plugin's screen words it, a short
+   `description`, and `values` (stored value => what it shows, `"null"` for
+   not stored, saying the plugin's default). Take them from the plugin's
+   settings screen code; `scripts/preflight-release.sh` fails on a missing one.
 7. Check on a second fresh site: `diff`, `apply`, confirm the plugin behaves
    as intended, `reset`, `undo`.
 8. Add a changelog line in `README.md`, `changelog.txt` and `readme.txt`.

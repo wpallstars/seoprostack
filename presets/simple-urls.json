@@ -10,5 +10,25 @@
     "defaults": {
         "surl_affiliate_promotions": "1",
         "surl_dismiss_aff_promotions_notice": "0"
+    },
+    "settings": {
+        "surl_affiliate_promotions": {
+            "label": "Affiliate promotions",
+            "description": "Lasso Lite’s promotion bar at the bottom of its screens.",
+            "values": {
+                "1": "Shown",
+                "0": "Hidden",
+                "null": "Shown (not set)"
+            }
+        },
+        "surl_dismiss_aff_promotions_notice": {
+            "label": "Affiliate promotions notice",
+            "description": "Lasso Lite’s notice about its affiliate promotions.",
+            "values": {
+                "1": "Dismissed",
+                "0": "Shown",
+                "null": "Shown (not set)"
+            }
+        }
     }
 }

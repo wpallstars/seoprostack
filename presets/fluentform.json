@@ -24,5 +24,34 @@
         "_fluentform_email_report_summary": {
             "status": null
         }
+    },
+    "settings": {
+        "_fluentform_global_form_settings.misc.isIpLogingDisabled": {
+            "label": "Disable IP Logging",
+            "description": "If this option is turned on, the user’s IP address will not be saved with the form data.",
+            "values": {
+                "true": "On",
+                "false": "Off",
+                "null": "Off (not set)"
+            }
+        },
+        "_fluentform_global_form_settings.misc.admin_top_nav_status": {
+            "label": "Admin Top Navigation",
+            "description": "The Fluent Forms menu in the admin bar.",
+            "values": {
+                "yes": "On",
+                "no": "Off",
+                "null": "On (not set)"
+            }
+        },
+        "_fluentform_email_report_summary.status": {
+            "label": "Enable Email Summaries",
+            "description": "A weekly email on how your forms are performing.",
+            "values": {
+                "yes": "On",
+                "no": "Off",
+                "null": "On (not set)"
+            }
+        }
     }
 }

@@ -400,6 +400,13 @@ check_presets_starters() {
 		const presets = load("presets"), starters = load("starters");
 		for (const [file, data] of presets) {
 			for (const name of Object.keys((data && data.options) || {})) (presetOptions[name] = presetOptions[name] || []).push(file);
+			// Every setting the preset changes is named in the dialog, by the paths the dialog uses.
+			const paths = new Set();
+			const walk = (p, v) => (v && typeof v === "object" && !Array.isArray(v) && Object.keys(v).length) ? Object.entries(v).forEach(([k, w]) => walk(p + "." + k, w)) : paths.add(p);
+			for (const [name, value] of Object.entries((data && data.options) || {})) walk(name, value);
+			const named = (data && data.settings) || {};
+			for (const p of paths) if (!named[p] || !named[p].label) problems.push("ERROR " + file + " has no settings label for " + p);
+			for (const p of Object.keys(named)) if (!paths.has(p)) problems.push("ERROR " + file + " names a setting it does not set: " + p);
 		}
 		let settings = 0;
 		for (const [file, data] of starters) {

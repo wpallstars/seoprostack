@@ -249,17 +249,30 @@ class SEOProStack_Plugin_Presets extends SEOProStack_Feature {
                         ?>
                     </p>
                     <ul class="sps-preset-dialog__list">
-                        <?php foreach ($diffs as $path => $values) : ?>
+                        <?php
+                        foreach ($diffs as $path => $values) :
+                            $about = isset($preset['settings'][$path]) ? $preset['settings'][$path] : array('label' => '', 'description' => '', 'values' => array());
+                            ?>
                             <li>
                                 <label>
                                     <input type="checkbox" name="only[]" value="<?php echo esc_attr($path); ?>" checked />
-                                    <code><?php echo esc_html($path); ?></code>
+                                    <?php if ('' !== $about['label']) : ?>
+                                        <strong><?php echo esc_html($about['label']); ?></strong>
+                                    <?php else : ?>
+                                        <code><?php echo esc_html($path); ?></code>
+                                    <?php endif; ?>
+                                    <?php if ('' !== $about['description']) : ?>
+                                        <span class="sps-preset-dialog__about"><?php echo esc_html($about['description']); ?></span>
+                                    <?php endif; ?>
                                     <span class="sps-preset-dialog__values">
                                         <?php
                                         /* translators: 1: value now, 2: value the preset sets */
-                                        echo esc_html(sprintf(__('Now %1$s → preset %2$s', 'seoprostack'), self::show($values[0]), self::show($values[1])));
+                                        echo esc_html(sprintf(__('Now: %1$s → Preset: %2$s', 'seoprostack'), self::show($values[0], $about['values']), self::show($values[1], $about['values'])));
                                         ?>
                                     </span>
+                                    <?php if ('' !== $about['label']) : ?>
+                                        <code class="sps-preset-dialog__path"><?php echo esc_html($path); ?></code>
+                                    <?php endif; ?>
                                 </label>
                             </li>
                         <?php endforeach; ?>
@@ -360,12 +373,23 @@ class SEOProStack_Plugin_Presets extends SEOProStack_Feature {
     }
 
     /**
-     * A setting's value as short text.
+     * A setting's value as short text: what it means, when the preset says.
      *
-     * @param mixed $value Value.
+     * @param mixed                $value    Value.
+     * @param array<string,string> $meanings Stored value => what it means (preset `settings`).
      * @return string
      */
-    private static function show($value) {
+    private static function show($value, $meanings = array()) {
+        if (null === $value) {
+            $key = 'null';
+        } elseif (is_bool($value)) {
+            $key = $value ? 'true' : 'false';
+        } else {
+            $key = is_scalar($value) ? (string) $value : null;
+        }
+        if (null !== $key && isset($meanings[$key]) && '' !== $meanings[$key]) {
+            return $meanings[$key];
+        }
         if (null === $value) {
             return __('not set', 'seoprostack');
         }
@@ -449,7 +473,7 @@ class SEOProStack_Plugin_Presets extends SEOProStack_Feature {
         // Settings ticked in the row's list; without it (no JavaScript, or every one ticked) all change.
         $only = null;
         if ('apply' === $do && isset($_GET['only']) && is_array($_GET['only'])) {
-            $only = array_values(array_filter(array_map('sanitize_text_field', array_map('strval', wp_unslash($_GET['only'])))));
+            $only = array_values(array_filter(array_map('sanitize_text_field', wp_unslash($_GET['only']))));
         }
         if ('undo' === $do) {
             $result = SEOProStack_Presets::undo($slug);
@@ -587,7 +611,9 @@ class SEOProStack_Plugin_Presets extends SEOProStack_Feature {
             .sps-preset-dialog__list label { display: block; padding-left: 26px; text-indent: -26px; }
             .sps-preset-dialog__list input[type="checkbox"] { margin: 0 6px 0 0; }
             .sps-preset-dialog__list code { word-break: break-all; }
-            .sps-preset-dialog__values { display: block; margin-top: 2px; text-indent: 0; color: #646970; }
+            .sps-preset-dialog__about, .sps-preset-dialog__values, .sps-preset-dialog__path { display: block; margin-top: 2px; text-indent: 0; }
+            .sps-preset-dialog__values { color: #646970; }
+            .sps-preset-dialog__path { width: fit-content; font-size: 11px; color: #646970; background: none; padding: 0; }
             .sps-preset-dialog__list li:has(input:not(:checked)) { opacity: 0.6; }
             .sps-preset-dialog__note { color: #646970; }
             .sps-preset-dialog__actions { display: flex; gap: 8px; margin-bottom: 0; }
