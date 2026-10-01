@@ -449,20 +449,6 @@ WP-CLI works whether or not the setting is on:
 - `wp seoprostack presets apply <plugin>… | --all`, `reset <plugin>… | --all`, `undo <plugin>…`.
 - `wp seoprostack presets export <plugin> [--options=<names>] [--like=<patterns>] [--compare=<file>]`: print settings as a preset, without secrets, warning about values that hold the site’s address or an email address. With `--compare` (an earlier export from a fresh install) only changed settings are kept, with the earlier values as the defaults.
 
-### Ask before licence checks (Plugins)
-
-Premium plugins and themes check their licence with their maker’s server, often while a page loads, so the page waits for that server (on owner sites, some checked on every admin screen or every visit). With this on, each plugin’s licence check waits for the site owner’s say. The first time a plugin tries, an administrator is asked in a dialog on the next admin screen, per plugin and server:
-
-- **Allow once now**: the plugin’s next check goes through when it next asks (within the hour; checks made of several calls get five minutes), then the owner is asked again.
-- **Once a day**: the first check each day goes through, and the plugin gets that same answer for the rest of the day without waiting. A failed check is tried again after an hour.
-- **Never**: no check is made.
-
-Until a choice is made the check is held: nothing is sent, and the plugin gets WordPress’s usual “request failed” error (`http_request_failed`, saying SEO Pro Stack held it), as if the server could not be reached. Plugins already handle that, usually by keeping their last known licence state. **Ask me tomorrow** hides the dialog for a day. The Plugins screen has a **Licence checks** link above the list and in each such plugin’s row, to see the choices and choose again.
-
-Licence checks are calls whose address or form names a licence (`licence`, `license`, `licensing`, a `license` or `license_key` field, EDD’s check, activate and deactivate actions), plus any request the `seoprostack_licence_call` filter marks. Never held: WordPress’s update checks, update details and downloads (by call stack, and addresses that ask for versions, update data or packages), so updates keep working; WordPress.org; the site itself; and calls made by WordPress or SEO Pro Stack. It runs after other `pre_http_request` filters, so a request another plugin (such as HTTP Requests Manager) already answered or blocked is left alone.
-
-Stored: the choices and times in `seoprostack_licence_calls` (not autoloaded, written when something changes, “last seen” at most once a minute), one day’s answers in `seoprostack_lc_*` transients and “Ask me tomorrow” in the `seoprostack_licence_later` user meta, all removed on uninstall. Request forms, which can hold licence keys, are never stored; a hash tells answers apart. Tested with a stand-in licence server on WordPress 6.2 and PHP 7.4; check a real premium plugin’s behaviour with its checks held before relying on Never.
-
 ### Hosting needs (Plugins)
 
 Checks whether the hosting fits the site, and says what to ask the host for. It uses numbers PHP reports, not rules of thumb:
@@ -491,6 +477,20 @@ Shown in three places:
 ### Clean up deleted plugins (Plugins)
 
 When plugin folders are deleted outside the Plugins screen (by FTP, a file manager or a migration), WordPress keeps their uninstall entries, which load on every request, and their “Recently active” entries. With this on, opening the Plugins screen removes entries for plugins that no longer exist and says which ones. WordPress itself already switches off missing active plugins on that screen.
+
+### Ask before licence checks (Plugins)
+
+Premium plugins and themes check their licence with their maker’s server, often while a page loads, so the page waits for that server (on owner sites, some checked on every admin screen or every visit). With this on, each plugin’s licence check waits for the site owner’s say. The first time a plugin tries, an administrator is asked in a dialog on the next admin screen, per plugin and server:
+
+- **Allow once now**: the plugin’s next check goes through when it next asks (within the hour; checks made of several calls get five minutes), then the owner is asked again.
+- **Once a day**: the first check each day goes through, and the plugin gets that same answer for the rest of the day without waiting. A failed check is tried again after an hour.
+- **Never**: no check is made.
+
+Until a choice is made the check is held: nothing is sent, and the plugin gets WordPress’s usual “request failed” error (`http_request_failed`, saying SEO Pro Stack held it), as if the server could not be reached. Plugins already handle that, usually by keeping their last known licence state. **Ask me tomorrow** hides the dialog for a day. The Plugins screen has a **Licence checks** link above the list and in each such plugin’s row, to see the choices and choose again.
+
+Licence checks are calls whose address or form names a licence (`licence`, `license`, `licensing`, a `license` or `license_key` field, EDD’s check, activate and deactivate actions), plus any request the `seoprostack_licence_call` filter marks. Never held: WordPress’s update checks, update details and downloads (by call stack, and addresses that ask for versions, update data or packages), so updates keep working; WordPress.org; the site itself; and calls made by WordPress or SEO Pro Stack. It runs after other `pre_http_request` filters, so a request another plugin (such as HTTP Requests Manager) already answered or blocked is left alone.
+
+Stored: the choices and times in `seoprostack_licence_calls` (not autoloaded, written when something changes, “last seen” at most once a minute), one day’s answers in `seoprostack_lc_*` transients and “Ask me tomorrow” in the `seoprostack_licence_later` user meta, all removed on uninstall. Request forms, which can hold licence keys, are never stored; a hash tells answers apart. Tested with a stand-in licence server on WordPress 6.2 and PHP 7.4; check a real premium plugin’s behaviour with its checks held before relying on Never.
 
 ### Load plugins only where needed (Plugins)
 
@@ -593,8 +593,8 @@ Developers can add settings, tabs and directory entries with filters:
 - `seoprostack_dashboard_layout`: change how Tidy the dashboard lays out widgets: `columns` (column => widget IDs), `hidden`, `developers` and `reports` (widget IDs).
 - `seoprostack_can_change_settings`: return false to stop the current user changing SEO Pro Stack’s settings (on top of `manage_options`).
 - `seoprostack_admin_bar_star`: return false to hide the admin bar star that opens SEO Pro Stack’s settings.
-- `seoprostack_hosting_sample_rate`: Hosting needs records the time of 1 in this many requests (default 20; 0 stops recording traffic).
 - `seoprostack_licence_call`: whether an outgoing request is a licence check that Ask before licence checks holds (bool, address, request arguments). Update checks are never held, whatever it returns.
+- `seoprostack_hosting_sample_rate`: Hosting needs records the time of 1 in this many requests (default 20; 0 stops recording traffic).
 - `seoprostack_plugin_presets`: add or change plugin presets (plugin folder => `name`, `tested`, `updated`, `notes`, `options` and `defaults`, as in `presets/*.json`). Secret-looking names are removed after the filter runs.
 
 Actions:
