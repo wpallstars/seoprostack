@@ -8,10 +8,11 @@
  *
  * When the main column (the one WordPress marks as primary) is narrower than
  * a fifth of the table, or any column has been squeezed to nothing, this
- * measures how wide each column wants to be, keeps narrow ones (checkboxes,
- * icons) as they are, narrows the rest in proportion and leaves the main
- * column at least a quarter. Lists that already fit are left alone. Checked
- * again after Screen Options changes and window resizes.
+ * gives the main column a quarter of the table and narrows the others
+ * towards the narrowest they can be without breaking words. If that is not
+ * enough, the main column gives up some of its quarter (down to FLOOR)
+ * before other columns break words. Lists that already fit are left alone.
+ * Checked again after Screen Options changes and window resizes.
  *
  * @package SEOProStack
  */
@@ -20,11 +21,15 @@
 
 	// The main column should have at least this share of the table...
 	var MIN = 0.2;
-	// ...and gets this share when it needs room.
+	// ...and gets this share when it needs room...
 	var GIVE = 0.25;
+	// ...giving up to this many pixels, or this share, before other columns
+	// break words.
+	var FLOOR = 160;
+	var FLOOR_SHARE = 0.15;
 	// A column narrower than this has been squeezed out.
 	var SQUEEZED = 24;
-	// Columns this narrow or less (checkboxes, icons, counts) keep their width.
+	// Columns given this width or less (checkboxes, icons, counts) keep it.
 	var SMALL = 48;
 	// Below this window width WordPress stacks list columns under the title.
 	var STACKED = 782;
@@ -80,11 +85,16 @@
 		if (total <= 0 || cols.length < 2) {
 			return;
 		}
+		var others = [];
+		var given = [];
 		var squeezed = false;
-		var fixed = [];
 		for (var i = 0; i < cols.length; i++) {
-			fixed.push(width(cols[i]));
-			if (cols[i] !== head && fixed[i] < SQUEEZED) {
+			if (cols[i] === head) {
+				continue;
+			}
+			others.push(cols[i]);
+			given.push(width(cols[i]));
+			if (given[given.length - 1] < SQUEEZED) {
 				squeezed = true;
 			}
 		}
@@ -92,40 +102,67 @@
 			return;
 		}
 
-		// How wide each column wants to be, laid out by its content. Small
-		// columns keep the larger of that and the width they were given.
+		// The narrowest each column can be without breaking words.
 		var layout = table.style.tableLayout;
+		var tableWidth = table.style.width;
 		table.style.tableLayout = 'auto';
-		var natural = [];
-		for (var j = 0; j < cols.length; j++) {
-			var w = width(cols[j]);
-			natural.push(w <= SMALL ? Math.max(w, Math.min(fixed[j], SMALL)) : w);
+		table.style.width = '1px';
+		var narrow = [];
+		for (var j = 0; j < others.length; j++) {
+			narrow.push(width(others[j]));
 		}
 		table.style.tableLayout = layout;
+		table.style.width = tableWidth;
 
-		var room = total - Math.max(total * GIVE, Math.min(natural[cols.indexOf(head)], total * 0.4));
-		var flexible = 0;
-		for (var k = 0; k < cols.length; k++) {
-			if (cols[k] === head) {
-				continue;
+		// Each column wants the width it was given, and never less than its
+		// narrowest; a squeezed-out column wants its narrowest. Small columns
+		// (checkboxes, icons, counts) keep the width they were given.
+		var want = [];
+		var keep = [];
+		var sumWant = 0;
+		var sumNarrow = 0;
+		var sumKeep = 0;
+		for (var k = 0; k < others.length; k++) {
+			keep.push(given[k] >= SQUEEZED && given[k] <= SMALL);
+			if (keep[k]) {
+				narrow[k] = given[k];
+				sumKeep += given[k];
 			}
-			if (natural[k] <= SMALL) {
-				room -= natural[k];
-			} else {
-				flexible += natural[k];
+			want.push(Math.max(given[k], narrow[k]));
+			sumWant += want[k];
+			sumNarrow += narrow[k];
+		}
+
+		var ideal = total * GIVE;
+		var floor = Math.min(ideal, Math.max(FLOOR, total * FLOOR_SHARE));
+		var widths = [];
+		var n;
+		if (sumWant + ideal <= total) {
+			// Room for everything: the main column gets the rest.
+			widths = want;
+		} else if (sumNarrow + ideal <= total) {
+			// Narrow the others towards their narrowest, in proportion.
+			var share = (total - ideal - sumNarrow) / (sumWant - sumNarrow);
+			for (n = 0; n < others.length; n++) {
+				widths.push(narrow[n] + (want[n] - narrow[n]) * share);
+			}
+		} else if (sumNarrow + floor <= total) {
+			// The main column gives up some of its quarter first.
+			widths = narrow;
+		} else {
+			// Too many columns for the screen: some words have to break.
+			var scale = (total - floor - sumKeep) / (sumNarrow - sumKeep);
+			if (scale <= 0 || !isFinite(scale)) {
+				return;
+			}
+			for (n = 0; n < others.length; n++) {
+				widths.push(keep[n] ? narrow[n] : narrow[n] * scale);
 			}
 		}
-		if (room <= 0 || flexible <= 0) {
-			return;
-		}
-		var scale = Math.min(1, room / flexible);
 
 		// Every other column gets a width; the main column takes what is left.
-		for (var n = 0; n < cols.length; n++) {
-			if (cols[n] === head) {
-				continue;
-			}
-			setWidth(cols[n], natural[n] <= SMALL ? natural[n] : natural[n] * scale);
+		for (n = 0; n < others.length; n++) {
+			setWidth(others[n], widths[n]);
 		}
 	}
 
