@@ -614,7 +614,7 @@ class SEOProStack_Admin_Notices extends SEOProStack_Feature {
             $not_kind .= ':not(' . $selector . ')';
         }
         $loading = 'body.js.' . self::LOADING . ' ';
-        $hide    = array($loading . '[' . self::MARK . '="move"]');
+        $hide    = array($loading . '[' . self::MARK . '="move"]', $loading . '[' . self::MARK . '="wait"]');
         foreach (explode(', ', $s['notices']) as $selector) {
             $hide[] = $loading . '#wpbody-content ' . $selector . $not;
             // Inline notices printed above the page.
@@ -662,7 +662,10 @@ class SEOProStack_Admin_Notices extends SEOProStack_Feature {
      * says they are a notice or banner, or when, printed straight above the
      * page, they are only text, links and images (such as MainWP Child's
      * "connect this site" box); other output, such as a plugin's own header,
-     * tabs or buttons, stays.
+     * tabs or buttons, stays. Empty boxes printed straight above the page
+     * wait for a script to fill them (MasterStudy LMS's announcements, for
+     * example, add an empty 8px box once its script has loaded): they stay
+     * hidden while empty, and go behind the bell if they fill with a notice.
      *
      * Kept notices of skipped plugins (see replay()) are unwrapped first, each
      * element taking the wrapper's hash, so they are treated like the rest.
@@ -710,6 +713,9 @@ class SEOProStack_Admin_Notices extends SEOProStack_Feature {
                 el.setAttribute(cfg.mark, "move");
             } else if (parent === content && "DIV" === el.tagName && el.getClientRects().length && el.textContent.trim().length >= 40 && !el.querySelector(structure)) {
                 el.setAttribute(cfg.mark, "move");
+            } else if (parent === content && !el.firstElementChild && !el.textContent.trim()) {
+                // An empty box that a script fills later, such as a plugin\'s announcements: it waits, hidden.
+                el.setAttribute(cfg.mark, "wait");
             }
         }
     };

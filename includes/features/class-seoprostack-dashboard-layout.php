@@ -165,6 +165,8 @@ class SEOProStack_Dashboard_Layout extends SEOProStack_Feature {
 
         add_filter('get_user_option_meta-box-order_dashboard', array(__CLASS__, 'order'));
         if (!SEOProStack_Settings::get(self::REARRANGE_KEY)) {
+            // wp_dashboard_setup runs before the page header is printed.
+            add_action('admin_head', array(__CLASS__, 'lock_style'));
             add_action('admin_print_footer_scripts', array(__CLASS__, 'lock'), 20);
         }
     }
@@ -212,13 +214,34 @@ class SEOProStack_Dashboard_Layout extends SEOProStack_Feature {
     }
 
     /**
-     * Stop boxes being dragged or moved with the arrow buttons.
+     * Whether this is the Dashboard screen.
+     *
+     * @return bool
      */
-    public static function lock() {
-        if (!function_exists('get_current_screen') || !get_current_screen() || 'dashboard' !== get_current_screen()->id) {
+    private static function on_dashboard() {
+        return function_exists('get_current_screen') && get_current_screen() && 'dashboard' === get_current_screen()->id;
+    }
+
+    /**
+     * Hide the arrow buttons and the empty drop areas, in the page head so
+     * nothing moves while the page loads. Core's script marks empty columns
+     * once the page is ready, and core gives them a 250px drop area, which
+     * pushed the boxes below down.
+     */
+    public static function lock_style() {
+        if (!self::on_dashboard()) {
             return;
         }
-        echo '<style id="seoprostack-dashboard-layout">#dashboard-widgets .handle-order-higher,#dashboard-widgets .handle-order-lower{display:none}#dashboard-widgets .postbox .hndle{cursor:default}#dashboard-widgets .meta-box-sortables.empty-container{border:0;min-height:0}#dashboard-widgets .meta-box-sortables.empty-container:after{content:none}</style>' . "\n";
+        echo '<style id="seoprostack-dashboard-layout">#dashboard-widgets .handle-order-higher,#dashboard-widgets .handle-order-lower{display:none}#dashboard-widgets .postbox .hndle{cursor:default}#dashboard-widgets .postbox-container .meta-box-sortables.empty-container{border:0;outline:0;height:0;min-height:0}#dashboard-widgets .postbox-container .meta-box-sortables.empty-container:after{content:none;display:none}</style>' . "\n";
+    }
+
+    /**
+     * Stop boxes being dragged.
+     */
+    public static function lock() {
+        if (!self::on_dashboard()) {
+            return;
+        }
         // Dragging starts on mousedown on a box's header (touch is turned into
         // mouse events). Stopping it on the way down works whenever core sets
         // up dragging; clicks still open and close boxes.
