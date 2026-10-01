@@ -228,9 +228,11 @@ class SEOProStack_Github_Updates extends SEOProStack_Feature {
         if ('' !== $token) {
             $headers['Authorization'] = 'Bearer ' . $token;
         }
+        // No redirects: the token must never travel to another address.
         return wp_safe_remote_get('https://api.github.com/repos/' . $repo . $path, array(
-            'timeout' => 10,
-            'headers' => $headers,
+            'timeout'     => 10,
+            'redirection' => 0,
+            'headers'     => $headers,
         ));
     }
 
@@ -268,7 +270,9 @@ class SEOProStack_Github_Updates extends SEOProStack_Feature {
      */
     public static function release($repo, $folder, $main) {
         $cache = self::cache();
-        $entry = isset($cache[$repo]) && is_array($cache[$repo]) ? $cache[$repo] : null;
+        // The asset and requirements depend on the plugin, not only the repository.
+        $key   = $repo . '|' . $folder . '/' . $main;
+        $entry = isset($cache[$key]) && is_array($cache[$key]) ? $cache[$key] : null;
         $age   = $entry && isset($entry['checked']) ? time() - (int) $entry['checked'] : PHP_INT_MAX;
         $keep  = $entry && !empty($entry['failed']) ? self::RETRY : self::FRESH;
 
@@ -288,7 +292,7 @@ class SEOProStack_Github_Updates extends SEOProStack_Feature {
             $entry = array('checked' => time(), 'release' => $release);
         }
 
-        self::$cache[$repo] = $entry;
+        self::$cache[$key] = $entry;
         set_site_transient(self::CACHE, self::$cache, 2 * DAY_IN_SECONDS);
         return $entry['release'];
     }
@@ -557,6 +561,10 @@ class SEOProStack_Github_Updates extends SEOProStack_Feature {
             if (!is_array($transient->no_update ?? null)) {
                 $transient->no_update = array();
             }
+            if ('' === $item->package && self::on_wordpress_org($transient, $file)) {
+                // Nothing to install from GitHub: keep WordPress.org's answer.
+                continue;
+            }
             unset($transient->response[$file], $transient->no_update[$file]);
             if ('' !== $item->package && version_compare($release['version'], $current, '>')) {
                 $transient->response[$file] = $item;
@@ -739,7 +747,15 @@ class SEOProStack_Github_Updates extends SEOProStack_Feature {
             return $source;
         }
         $target = trailingslashit($remote_source) . $folder . '/';
-        if (!$wp_filesystem->move(untrailingslashit($source), untrailingslashit($target), true)) {
+        $from   = untrailingslashit($source);
+        if ($from === untrailingslashit($remote_source)) {
+            // A zip without a top folder: move its files aside, then into the folder.
+            $from = untrailingslashit($remote_source) . '-seoprostack';
+            if (!$wp_filesystem->move(untrailingslashit($remote_source), $from, true) || !$wp_filesystem->mkdir(untrailingslashit($remote_source), FS_CHMOD_DIR)) {
+                return new WP_Error('seoprostack_github_folder', __('The update could not be unpacked into the plugin’s folder.', 'seoprostack'));
+            }
+        }
+        if (!$wp_filesystem->move($from, untrailingslashit($target), true)) {
             return new WP_Error('seoprostack_github_folder', __('The update could not be unpacked into the plugin’s folder.', 'seoprostack'));
         }
         return $target;
