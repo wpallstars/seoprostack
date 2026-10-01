@@ -66,6 +66,9 @@ function seoprostack_uninstall_site() {
     $options[] = 'seoprostack_hosting_memory';
     $options[] = 'seoprostack_hosting_code';
     $options[] = 'seoprostack_hosting_traffic';
+    // Ask before licence checks: choices and times. Kept answers are
+    // seoprostack_lc_* transients, removed with the others below.
+    $options[] = 'seoprostack_licence_calls';
     // Plugin presets' undo copies. Settings presets changed in other plugins
     // are those plugins' settings now, and stay.
     $options[] = 'seoprostack_plugin_presets_undo';
@@ -250,6 +253,8 @@ delete_metadata('user', 0, 'seoprostack_avatar', '', true);
 delete_metadata('user', 0, 'seoprostack_replaced_plugins_hidden', '', true);
 // Dismissed "Install Git Updater" notices (GitHub builds).
 delete_metadata('user', 0, 'seoprostack_git_updater_dismissed', '', true);
+// "Ask me again" in Ask before licence checks.
+delete_metadata('user', 0, 'seoprostack_licence_later', '', true);
 
 // Plugin caches, network-wide because plugins are shared by every site. On
 // single sites these calls remove the ordinary option and transient.
