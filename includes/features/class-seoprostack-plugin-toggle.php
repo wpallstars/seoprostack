@@ -217,7 +217,13 @@ class SEOProStack_Plugin_Toggle extends SEOProStack_Feature {
      */
     private static function current_url() {
         $uri = isset($_SERVER['REQUEST_URI']) ? esc_url_raw(wp_unslash($_SERVER['REQUEST_URI'])) : '/';
-        return remove_query_arg(array('_wpnonce', 'activate', 'deactivate', 'error', self::REVIVE_ARG), $uri);
+        $args = array('_wpnonce', 'activate', 'deactivate', 'error', self::REVIVE_ARG);
+        if (class_exists('SEOProStack_Plugin_Loader', false)) {
+            // The "reload with every plugin" link: switching a plugin makes
+            // every screen load every plugin once anyway.
+            $args[] = SEOProStack_Plugin_Loader::LOAD_ALL_ARG;
+        }
+        return remove_query_arg($args, $uri);
     }
 
     /**
