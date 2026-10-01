@@ -90,6 +90,15 @@ preset overwrites them. A setting goes in one or the other.
 - Capability and nonce checks on every admin action and AJAX handler; escape on
   output; sanitise through the schema.
 - Admin copy: short, plain words, sentence case, no jargon.
+- Site owner in control, performance first: the owner decides what their site
+  sends, contacts and shows. Calls to outside services are opt-in where they
+  are not the point of the feature, made only as often and for as long as
+  needed (cache answers, never on every page load), and never block a visitor's
+  page when they can run later. SEO Pro Stack's own features follow this, and
+  features that rein in other plugins (Ask before licence checks, Quiet
+  Freemius prompts) hand the choice to the owner instead of deciding for them.
+  WordPress update checks and downloads are the exception: leave them alone
+  (next rule).
 - Do not change WordPress update behaviour (update transients, `auto_update_*`
   filters, update checks) outside the file below. Plugin Check reports
   `plugin_updater_detected` as an error, and WordPress.org asks plugins not to
