@@ -1,5 +1,5 @@
 /**
- * Hide admin notices: move notices into a "Notices (n)" panel.
+ * Hide admin notices: move notices into a panel under a bell in the admin bar.
  *
  * Runs when the page is ready, after common.js has moved the notices under
  * the heading. Takes the notices marked while the page was drawn (see
@@ -10,6 +10,9 @@
  * would break the script that owns it. The panel shows a copy that passes
  * clicks back, and follows the original until it goes away.
  *
+ * The panel stays inside #wpbody-content, so plugin styles and handlers
+ * scoped to it keep working, and is fixed under the bell.
+ *
  * @package SEOProStack
  */
 (function ($, cfg) {
@@ -19,18 +22,16 @@
 		return;
 	}
 
-	/** Places a late notice is left alone: our panel, snackbars, dialogs. */
-	var AWAY = '#screen-meta, .components-snackbar-list, .components-modal__frame, .media-modal, [role="dialog"], [role="alertdialog"]';
+	/** Places a late notice is left alone: our panel, core's Help, snackbars, dialogs. */
+	var AWAY = '#sps-notices-wrap, #screen-meta, .components-snackbar-list, .components-modal__frame, .media-modal, [role="dialog"], [role="alertdialog"]';
 
 	/** Properties React and Vue set on the elements they draw. */
 	var OWNED = /^(__react|__vue|__vnode|_vnode)/;
 
 	var $content = $();
-	var $meta = $();
-	var $links = $();
 	var $panel = null;
+	var $item = null;
 	var $button = null;
-	var $wrap = null;
 	var proxies = [];
 	var goneWatch = null;
 
@@ -60,38 +61,91 @@
 		return false;
 	}
 
+	function isOpen() {
+		return !!$panel && !$panel.hasClass('hidden');
+	}
+
 	/**
-	 * The button and panel, made on first use.
+	 * Line the panel up under the bell, kept on screen.
+	 */
+	function place() {
+		var r = $button[0].getBoundingClientRect();
+		var width = document.documentElement.clientWidth;
+		if ($(document.body).hasClass('rtl')) {
+			$panel.css({ left: Math.max(0, Math.min(r.left, width - $panel.outerWidth())), right: 'auto' });
+		} else {
+			$panel.css({ right: Math.max(0, Math.min(width - r.right, width - $panel.outerWidth())), left: 'auto' });
+		}
+	}
+
+	function open() {
+		$panel.removeClass('hidden');
+		place();
+		$item.addClass('hover sps-notices-open');
+		$button.attr('aria-expanded', 'true');
+		$panel[0].focus({ preventScroll: true });
+	}
+
+	/**
+	 * @param {boolean} [refocus] Put focus back on the bell.
+	 */
+	function close(refocus) {
+		if (!isOpen()) {
+			return;
+		}
+		$panel.addClass('hidden');
+		$item.removeClass('hover sps-notices-open');
+		$button.attr('aria-expanded', 'false');
+		if (refocus) {
+			$button[0].focus();
+		}
+	}
+
+	/**
+	 * The bell's panel, made on first use.
 	 *
-	 * @return {jQuery|null} The panel, or null when the page has no Screen Options area.
+	 * @return {jQuery|null} The panel, or null when the admin bar has no bell.
 	 */
 	function ui() {
 		if ($panel) {
 			return $panel;
 		}
-		$meta = $('#screen-meta');
-		if (!$meta.length) {
+		$item = $(document.getElementById(cfg.node));
+		$button = $item.children('.ab-item').first();
+		if (!$button.length) {
 			return null;
 		}
-		$links = $('#screen-meta-links');
-		if (!$links.length) {
-			$links = $('<div id="screen-meta-links"></div>').insertAfter($meta);
-		}
-		// Without Screen Options or Help the button gets a row of its own.
-		$links.toggleClass('sps-notices-only', !$links.children('.screen-meta-toggle').length).addClass('sps-has-notices');
+		$panel = $('<div id="sps-notices-wrap" class="hidden" tabindex="-1" role="region"></div>').attr('aria-label', cfg.panel).prependTo($content);
+		$button.attr({ role: 'button', 'aria-controls': 'sps-notices-wrap', 'aria-expanded': 'false' });
 
-		$panel = $('<div id="sps-notices-wrap" class="hidden" tabindex="-1"></div>').attr('aria-label', cfg.panel).appendTo($meta);
-		var buttonClass = $links.find('.show-settings').first().attr('class') || 'button button-compact show-settings';
-		$button = $('<button type="button" id="sps-notices-link" aria-controls="sps-notices-wrap" aria-expanded="false"></button>')
-			.attr('class', buttonClass.replace(/\bscreen-meta-active\b/, ''));
-		$wrap = $('<div id="sps-notices-link-wrap" class="hide-if-no-js screen-meta-toggle"></div>').append($button).prependTo($links);
-
-		$button.on('click', function () {
-			if (window.screenMeta) {
-				window.screenMeta.toggleEvent.call(this);
+		$button.on('click', function (e) {
+			e.preventDefault();
+			if (isOpen()) {
+				close();
 			} else {
-				$meta.toggle();
-				$panel.toggleClass('hidden');
+				open();
+			}
+		}).on('keydown', function (e) {
+			// A link acts on Enter; as a button it also answers Space.
+			if (' ' === e.key) {
+				e.preventDefault();
+				$(this).trigger('click');
+			}
+		});
+		// Pressed outside: checked on press, before a click handler can remove its target.
+		document.addEventListener('pointerdown', function (e) {
+			if (isOpen() && !$panel[0].contains(e.target) && !$item[0].contains(e.target)) {
+				close();
+			}
+		}, true);
+		$(document).on('keydown', function (e) {
+			if ('Escape' === e.key && isOpen()) {
+				close(true);
+			}
+		});
+		$(window).on('resize', function () {
+			if (isOpen()) {
+				place();
 			}
 		});
 		if (window.MutationObserver) {
@@ -101,26 +155,19 @@
 	}
 
 	/**
-	 * Show the count, and hide the button while the panel is empty.
+	 * Show the count, and hide the bell while the panel is empty.
 	 */
 	function count() {
 		if (!$panel) {
 			return;
 		}
 		var n = $panel.children().length;
-		$button.text(cfg.label.replace('%d', n));
-		if (n) {
-			if (!$wrap.parent().length) {
-				$wrap.prependTo($links);
-				$links.addClass('sps-has-notices');
-			}
-			return;
+		$button.children('.ab-label').text(n);
+		$button.attr('aria-label', cfg.label.replace('%d', n));
+		$item.toggleClass('sps-notices-empty', !n);
+		if (!n) {
+			close();
 		}
-		if ($panel.is(':visible') && window.screenMeta) {
-			window.screenMeta.close($panel, $button);
-		}
-		$wrap.detach();
-		$links.removeClass('sps-has-notices');
 	}
 
 	/**
@@ -313,7 +360,7 @@
 		if (cfg.nag) {
 			$notices = $notices.add($(cfg.nag));
 		}
-		$notices = $notices.not('#screen-meta, #screen-meta *');
+		$notices = $notices.not('#screen-meta, #screen-meta *, #sps-notices-wrap, #sps-notices-wrap *');
 		// Outermost only: a wrapper takes the notices inside it along.
 		var $all = $notices;
 		$notices = $notices.filter(function () {
