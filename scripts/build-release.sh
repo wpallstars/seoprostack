@@ -6,8 +6,8 @@
 #       GitHub release asset: the files in Git, less .distignore.
 #   wordpress-org-seoprostack-X.Y.Z.zip
 #       WordPress.org build: the same, less the files in .distignore-wporg and
-#       the Git Updater header lines. Its name does not start with
-#       "seoprostack", so Git Updater never picks it even if it is attached to
+#       the GitHub updater header lines. Its name does not start with
+#       "seoprostack", so no updater picks it even if it is attached to
 #       a GitHub release by mistake (it takes the first asset whose name starts
 #       with the plugin slug). Never attach it to a GitHub release.
 #   SHA256SUMS
@@ -29,7 +29,7 @@ export TZ=UTC
 readonly SLUG="seoprostack"
 readonly MAIN_FILE="seoprostack.php"
 readonly WPORG_IGNORE=".distignore-wporg"
-# Header lines read only by Git Updater; left out of the WordPress.org build.
+# Header lines read only by GitHub updaters (ours and Git Updater); left out of the WordPress.org build.
 readonly WPORG_STRIP_HEADERS='GitHub Plugin URI|Primary Branch|Release Asset'
 
 TMP_DIR=""
@@ -87,7 +87,7 @@ make_zip() {
 	return 0
 }
 
-# Remove the Git Updater header lines from the main file of a build.
+# Remove the GitHub updater header lines from the main file of a build.
 strip_updater_headers() {
 	local main="$1"
 	local stripped="$main.tmp"

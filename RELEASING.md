@@ -16,11 +16,17 @@ The two builds of each version:
 | Zip | Contents | Goes to |
 |-----|----------|---------|
 | `seoprostack-X.Y.Z.zip` | Files in Git, less `.distignore` | GitHub release asset |
-| `wordpress-org-seoprostack-X.Y.Z.zip` | The same, less `.distignore-wporg` (the GitHub updater feature) and the Git Updater header lines | WordPress.org only |
+| `wordpress-org-seoprostack-X.Y.Z.zip` | The same, less `.distignore-wporg` (Updates from GitHub) and the `GitHub Plugin URI`, `Primary Branch` and `Release Asset` header lines | WordPress.org only |
 
-Git Updater installs the first release asset whose name starts with
-`seoprostack`, so the WordPress.org zip is named differently and must never be
-attached to a GitHub release.
+Sites install the release asset whose name starts with `seoprostack` (Updates
+from GitHub, and Git Updater where it is still active), so the WordPress.org
+zip is named differently and must never be attached to a GitHub release.
+
+Plugin Check reports Updates from GitHub as an updater
+(`plugin_updater_detected`, `update_modification_detected`, and
+`OffloadedContent` for its raw.githubusercontent.com address) in the GitHub zip;
+`scripts/plugin-check.sh` lists those as expected there and fails on them in
+the WordPress.org zip.
 
 ## GitHub release
 
@@ -30,7 +36,8 @@ attached to a GitHub release.
    `changelog.txt` and `README.md`, and add an upgrade notice if people need
    to act. `readme.txt` keeps only the newest version, in short, and must stay
    under 10 KB; `changelog.txt` keeps every version in full.
-   Numbers only (`1.2.3`): Git Updater offers a `Version:` on `main` to every site.
+   Numbers only (`1.2.3`): sites still on Git Updater offer a `Version:` on
+   `main` to every site, and Updates from GitHub skips tags with letters.
 2. On the pull request's branch: `scripts/preflight-release.sh` (no errors) and
    `scripts/plugin-check.sh` (no errors).
 3. Merge, then straight away:
@@ -44,13 +51,16 @@ attached to a GitHub release.
    gh release create vX.Y.Z dist/seoprostack-X.Y.Z.zip --title "SEO Pro Stack X.Y.Z" --notes-file <notes>
    ```
 
-   Until the release exists, sites that check in are offered the new version
-   but get the previous zip, so do this in the same sitting as the merge.
+   Sites with Updates from GitHub see the release when they next check.
+   Sites still on Git Updater are offered the `Version:` on `main` before the
+   release exists, so do this in the same sitting as the merge.
 4. Check the release has exactly one asset, `seoprostack-X.Y.Z.zip`, and on a
-   site with Git Updater that the update shows and installs.
+   site with the previous version that **Check again** on the Updates screen
+   shows the update and that it installs.
 
-Git Updater reads the repository without signing in, so the repository must be
-public for sites to get updates. It is private for now.
+Sites read the repository without signing in, so it must be public for sites
+to get updates. It is private for now; a test site can use a read-only token
+in `SEOPROSTACK_GITHUB_TOKEN` (`wp-config.php`) meanwhile.
 
 ## WordPress.org preflight
 
@@ -91,7 +101,7 @@ Guidelines: [Detailed Plugin Guidelines](https://developer.wordpress.org/plugins
 Reviewers read the code. Check each against the guidelines before submitting:
 
 - [ ] **No code from elsewhere** (guideline 8): the WordPress.org zip has no
-      GitHub updater, no Git Updater headers and no other installer; Free
+      GitHub updater, no `GitHub Plugin URI` headers and no other installer; Free
       Plugins installs only WordPress.org plugins through core. Preflight
       checks this.
 - [ ] **External services** (guidelines 6 and 7): every service the plugin
@@ -108,7 +118,7 @@ Reviewers read the code. Check each against the guidelines before submitting:
       contextual and dismissible; no promotions in the dashboard.
 - [ ] **Defaults** (guideline 11 and the owner's rule): only Hide admin bar
       items, No fade between admin screens and Quiet Freemius prompts are on
-      after activation. Say so in the description, as now.
+      after activation (Updates from GitHub, also on, is not in this build). Say so in the description, as now.
 - [ ] **Quiet Freemius prompts** (guidelines 7, 9 and 11): it uses the
       filters Freemius provides for this, stores nothing in the other plugins
       (none is opted in or out), keeps their licence, account and support
@@ -167,6 +177,6 @@ Each later WordPress.org release: build from the tag that is already on GitHub,
 `--strict` preflight, Plugin Check, then steps 2 to 5. Readme-only changes
 (such as raising Tested up to) go to trunk and the current tag.
 
-Once listed, Git Updater gives sites with the GitHub build updates from GitHub
-before WordPress.org, through `gu_override_dot_org`
+Once listed, sites with the GitHub build update from WordPress.org unless
+**Early updates from GitHub** is on, which keeps them on GitHub releases
 (`includes/features/class-seoprostack-github-updates.php`).

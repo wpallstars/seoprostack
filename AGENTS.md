@@ -13,13 +13,15 @@ Minimums: **WordPress 6.2, PHP 7.4** (`readme.txt`, plugin header). User docs:
   extra code. Field types and keys: `README.md` → Developers.
 - `boot()` returns early unless `self::enabled()`. Features are **off by
   default**. The only exceptions, at the owner's request, are Hide admin bar
-  items, which hides Comments and + New, No fade between admin screens and
-  Quiet Freemius prompts. Turning another feature on by default needs the
-  owner's say.
+  items, which hides Comments and + New, No fade between admin screens,
+  Quiet Freemius prompts and Updates from GitHub (GitHub builds only).
+  Turning another feature on by default needs the owner's say.
 - A feature that replaces another plugin sets `'replaces' => array(slug => name)`,
   imports that plugin's settings in `migrate()` with `self::import_setting()`
   (fills only unset keys), never writes or deletes the other plugin's options,
-  and removes the slug from `admin/data/free-plugins.php` with a comment.
+  and removes the slug from `admin/data/free-plugins.php` with a comment. The
+  Plugins screen then suggests deactivating and deleting that plugin
+  (`admin/includes/class-replaced-plugins.php`) with no extra code.
 - Migrations run once per `SEOProStack_Settings::DB_VERSION`. After a release,
   a new or changed import needs a version bump and a line in the
   `maybe_migrate()` docblock.
@@ -84,17 +86,24 @@ site with `wp seoprostack starters diff|add|remove`, with items in use.
   output; sanitise through the schema.
 - Admin copy: short, plain words, sentence case, no jargon.
 - Do not change WordPress update behaviour (update transients, `auto_update_*`
-  filters, update checks). Plugin Check reports `plugin_updater_detected` as an
-  error, and WordPress.org asks plugins not to interfere with the updater. A
-  parked example is on the `feature/disable-updates-parked` branch.
-- The one exception, at the owner's request: updates from GitHub through Git
-  Updater, all in `includes/features/class-seoprostack-github-updates.php`
-  (listed in `SEOProStack::$optional_features`, loaded only when present). It
-  uses Git Updater's own `gu_*` filters and installs Git Updater on request;
-  it never touches core update transients or bundles an updater. Keep
-  anything that installs or updates code from outside WordPress.org in that
-  file, because the WordPress.org build leaves it out. Never add an
-  `Update URI` header.
+  filters, update checks) outside the file below. Plugin Check reports
+  `plugin_updater_detected` as an error, and WordPress.org asks plugins not to
+  interfere with the updater. A parked example of turning updates off is on
+  the `feature/disable-updates-parked` branch.
+- The one exception, at the owner's request (for speed, reliability and site
+  owners' control, and because more plugins will be released on GitHub):
+  Updates from GitHub, all in
+  `includes/features/class-seoprostack-github-updates.php` (listed in
+  `SEOProStack::$optional_features`, loaded only when present). It replaces
+  Git Updater: it adds GitHub releases of any plugin with a
+  `GitHub Plugin URI` header to core's own update check and `plugins_api`,
+  and leaves the download, install, auto-updates and rollback to core. It
+  only adds entries for those plugins; it never removes or blocks other
+  updates. Keep anything that installs or updates code from outside
+  WordPress.org in that file, because the WordPress.org build leaves it out.
+  Never add an `Update URI` header. Tokens for private repositories come only
+  from `wp-config.php` or a filter, go only to api.github.com and are never
+  stored.
 - Leave no PHP errors, warnings, notices or deprecations behind. Fix any that
   SEO Pro Stack causes as you find them, in the same change when it is small,
   or as a tracked issue. That includes ones in other plugins that only happen
@@ -105,24 +114,29 @@ site with `wp seoprostack starters diff|add|remove`, with items in use.
 ## Releases
 
 GitHub releases are the early channel; WordPress.org gets settled versions.
-Git Updater compares the `Version:` header of `seoprostack.php` on `main`
-with installed copies and installs the newest release asset, so:
+Sites install the latest GitHub release whose tag is a plain version and the
+asset whose name starts with the plugin folder (Updates from GitHub; Git
+Updater, where still active, reads `Version:` on `main` instead), so:
 
 - Publish the GitHub release (tag `vX.Y.Z`, asset `seoprostack-X.Y.Z.zip`
   with a `seoprostack/` folder, built with `.distignore`) straight after the
   version change reaches `main`.
 - Never put a pre-release version (`-beta1`, `-rc1`) in `Version:` on `main`;
-  every site with Git Updater would be offered it.
+  mark test releases as pre-releases on GitHub.
 - The WordPress.org build is the release build without the files in
   `.distignore-wporg` (`includes/features/class-seoprostack-github-updates.php`)
-  and the Git Updater header lines. Its zip is named
-  `wordpress-org-seoprostack-X.Y.Z.zip` so Git Updater never picks it; never
-  attach it to a GitHub release.
+  and the `GitHub Plugin URI`, `Primary Branch` and `Release Asset` header
+  lines. Its zip is named `wordpress-org-seoprostack-X.Y.Z.zip` so no updater
+  picks it; never attach it to a GitHub release.
+- Other plugins released on GitHub follow the same pattern: a
+  `GitHub Plugin URI: owner/repo` header (and `Release Asset: true`), plain
+  version tags, and a `{folder}-X.Y.Z.zip` asset with a `{folder}/` inside.
 - Build both zips with `scripts/build-release.sh`, check them with
   `scripts/preflight-release.sh` and `scripts/plugin-check.sh`. None of them
   tags, publishes or uploads anything.
 - Releasing and submitting to WordPress.org need the owner's say. The
-  repository is private until then, so Git Updater cannot read it yet.
+  repository is private until then, so sites cannot read it without a token
+  (`SEOPROSTACK_GITHUB_TOKEN`).
 
 Details: `RELEASING.md` (steps and WordPress.org checklist), `README.md` →
 Updates and releases.

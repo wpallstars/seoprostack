@@ -22,9 +22,8 @@ if (!defined('ABSPATH')) {
 // tested up to WordPress 6.5, and WordPress and Kadence Blocks cover its
 // features (block visibility by login state and device, underline, highlight,
 // letter case, nofollow links).
-// Git Updater is not listed here: builds from GitHub releases add it to
-// Minimal (includes/features/class-seoprostack-github-updates.php), and the
-// WordPress.org build may not offer plugins from elsewhere.
+// Git Updater is not listed: Updates from GitHub replaces it in builds from
+// GitHub releases (includes/features/class-seoprostack-github-updates.php).
 function seoprostack_get_free_plugins() {
     /**
      * Filter the recommended plugins by category. Slugs are WordPress.org

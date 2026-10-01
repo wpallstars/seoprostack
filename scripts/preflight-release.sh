@@ -139,9 +139,9 @@ check_versions() {
 	stable="$(field "$readme" "Stable tag")"
 
 	if printf '%s' "$version" | grep -Eq '^[0-9]+\.[0-9]+(\.[0-9]+)?$'; then
-		ok "Version: $version (numbers only, so Git Updater and WordPress.org treat it as stable)"
+		ok "Version: $version (numbers only, so GitHub updates and WordPress.org treat it as stable)"
 	else
-		err "Version: '$version' is not X.Y.Z; pre-release versions on main are offered to every site with Git Updater"
+		err "Version: '$version' is not X.Y.Z; pre-release versions on main are offered to sites still using Git Updater"
 	fi
 	if [ "$constant" = "$version" ]; then ok "version constant matches ($constant)"; else err "version constant is '$constant', Version: is '$version'"; fi
 	if [ "$stable" = "$version" ]; then ok "readme.txt Stable tag matches"; else err "readme.txt Stable tag is '$stable', Version: is '$version'"; fi
@@ -382,12 +382,12 @@ check_builds() {
 	section "Release zips"
 
 	if [ "$(basename "$github_zip")" = "$SLUG-$version.zip" ]; then
-		ok "GitHub asset name $SLUG-$version.zip (Git Updater picks assets starting with $SLUG)"
+		ok "GitHub asset name $SLUG-$version.zip (sites pick assets starting with $SLUG)"
 	else
 		err "GitHub asset is $(basename "$github_zip"), expected $SLUG-$version.zip"
 	fi
 	case "$(basename "$wporg_zip")" in
-	"$SLUG"*) err "WordPress.org zip name starts with $SLUG; Git Updater could install it" ;;
+	"$SLUG"*) err "WordPress.org zip name starts with $SLUG; sites could install it from GitHub" ;;
 	*) ok "WordPress.org zip name does not start with $SLUG" ;;
 	esac
 
@@ -395,12 +395,12 @@ check_builds() {
 	check_zip "$github_zip" "github"
 	local github_dir="$UNPACKED"
 	if [ -f "$github_dir/$UPDATER_FILE" ]; then ok "github: has $UPDATER_FILE"; else err "github: $UPDATER_FILE missing"; fi
-	if grep -Eq "^[[:space:]*]*GitHub Plugin URI:" "$github_dir/$MAIN_FILE"; then ok "github: has the Git Updater headers"; else err "github: no GitHub Plugin URI header, Git Updater cannot update it"; fi
+	if grep -Eq "^[[:space:]*]*GitHub Plugin URI:" "$github_dir/$MAIN_FILE"; then ok "github: has the GitHub Plugin URI header"; else err "github: no GitHub Plugin URI header, sites cannot update it from GitHub"; fi
 
 	check_zip "$wporg_zip" "wporg"
 	local wporg_dir="$UNPACKED"
 	if [ -f "$wporg_dir/$UPDATER_FILE" ]; then err "wporg: $UPDATER_FILE must not be in the WordPress.org build"; else ok "wporg: no GitHub updater file"; fi
-	if grep -Eq "^[[:space:]*]*($UPDATER_HEADERS):" "$wporg_dir/$MAIN_FILE"; then err "wporg: Git Updater header lines still in $MAIN_FILE"; else ok "wporg: no Git Updater header lines"; fi
+	if grep -Eq "^[[:space:]*]*($UPDATER_HEADERS):" "$wporg_dir/$MAIN_FILE"; then err "wporg: GitHub updater header lines still in $MAIN_FILE"; else ok "wporg: no GitHub updater header lines"; fi
 	local hits
 	hits="$(grep -rEl --include='*.php' --include='*.js' 'gu_override_dot_org|api\.github\.com/repos|Plugin_Upgrader|Theme_Upgrader|site_transient_update_plugins|auto_update_(plugin|theme)' "$wporg_dir" 2>/dev/null | sed "s|^$wporg_dir/||" || true)"
 	if [ -z "$hits" ]; then
