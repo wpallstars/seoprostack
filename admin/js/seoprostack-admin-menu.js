@@ -37,8 +37,8 @@
 
 	/**
 	 * Keep the menu in the order it was printed. Some plugins move menu
-	 * entries with their own scripts, matching them by name (MasterStudy
-	 * moves any entry called "Analytics" above Posts), which would pull
+	 * entries with their own scripts, matching them by name (for example
+	 * any entry called "Analytics" moved above Posts), which would pull
 	 * entries out of their sections. Entries they add or remove are left
 	 * alone; only the order of the printed ones is put back, a few times
 	 * at most, before the page is drawn.

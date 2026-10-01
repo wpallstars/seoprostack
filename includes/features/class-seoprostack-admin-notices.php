@@ -663,8 +663,8 @@ class SEOProStack_Admin_Notices extends SEOProStack_Feature {
      * page, they are only text, links and images (such as MainWP Child's
      * "connect this site" box); other output, such as a plugin's own header,
      * tabs or buttons, stays. Empty boxes printed straight above the page
-     * wait for a script to fill them (MasterStudy LMS's announcements, for
-     * example, add an empty 8px box once its script has loaded): they stay
+     * wait for a script to fill them (some plugins print an empty box and
+     * fill it with announcements once a remote script has loaded): they stay
      * hidden while empty, and go behind the bell if they fill with a notice.
      *
      * Kept notices of skipped plugins (see replay()) are unwrapped first, each
