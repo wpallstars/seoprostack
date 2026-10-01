@@ -4,7 +4,7 @@ Every change to SEO Pro Stack. readme.txt lists the latest version in short.
 
 = Unreleased =
 * Change: Load plugins only where needed also speeds up the Profile, Edit user and Add user screens, Tools, Media › Add New and the About screens. Plugins that show or save profile fields still load on the profile screens. The Plugins menu in the admin bar says why a screen loads every plugin.
-* New, off by default: Readable list columns (Admin tab) keeps the title column of post, page, user and other lists wide enough to read when plugins add columns of their own, and stops other columns being squeezed out. The other columns get narrower instead.
+* New, off by default: Readable list columns (Admin tab) keeps the title column of post, page, user and other lists wide enough to read when plugins add columns of their own, and stops other columns being squeezed out. The other columns get narrower instead. Lists are fitted before they show, so they never flash up squeezed.
 * Fix: with Load plugins only where needed, WP Sheet Editor’s pages opened blank. Pages that Freemius takes over now load the plugin they belong to.
 * Fix: Meow Apps’ logo showed full size next to a cog on some screens. It now shows as the menu icon.
 * Change: Organise the admin menu leaves out upgrade links (Upgrade, Go Pro, Get Pro and the like), entries without a name, setup pages WordPress never shows (WooCommerce’s Setup Wizard), Freesoul Deactivate Plugins’ second menu, Freemius opt-in prompts and MasterStudy’s “Unlock this addon” pages. Their pages still open; choose a place for an entry to show it again. Pages with the same name in Developers › Settings show the menu they came from.

@@ -14,6 +14,11 @@
  * before other columns break words. Lists that already fit are left alone.
  * Checked again after Screen Options changes and window resizes.
  *
+ * Loaded in the page head, it fits each list as soon as its rows are in,
+ * before the browser paints it. Until then the list is hidden by a style
+ * from the PHP side, which shows it anyway after a moment if this script
+ * never runs.
+ *
  * @package SEOProStack
  */
 (function () {
@@ -36,6 +41,8 @@
 	var STACKED = 782;
 	var MARK = 'data-seoprostack-width';
 	var MEASURE = 'seoprostack-measuring';
+	// Must match SEOProStack_List_Columns::FITTED.
+	var FITTED = 'seoprostack-fitted';
 
 	function width(el) {
 		return el.getBoundingClientRect().width;
@@ -186,10 +193,26 @@
 		}
 	}
 
-	function fit() {
-		var tables = document.querySelectorAll('table.wp-list-table.fixed');
+	// Whether the page has gone on past the table, so all its rows are in.
+	function complete(el) {
+		for (; el && el !== document.body; el = el.parentElement) {
+			if (el.nextElementSibling) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	// Fits tables; with `fresh`, only those not fitted yet whose rows are
+	// all in. Fitted tables are marked, which shows them (see the PHP side).
+	function fit(fresh) {
+		var tables = document.querySelectorAll('table.wp-list-table.fixed' + (fresh ? ':not(.' + FITTED + ')' : ''));
 		for (var i = 0; i < tables.length; i++) {
+			if (fresh && !complete(tables[i])) {
+				continue;
+			}
 			fitTable(tables[i]);
+			tables[i].classList.add(FITTED);
 		}
 	}
 
@@ -201,14 +224,29 @@
 		queued = true;
 		window.requestAnimationFrame(function () {
 			queued = false;
-			fit();
+			fit(false);
 		});
 	}
 
 	if ('loading' === document.readyState) {
-		document.addEventListener('DOMContentLoaded', fit);
+		// Loaded in the page head: fit each table as soon as the page goes on
+		// past it, before the browser paints it with the squeezed columns.
+		// Changes reach the observer before the next paint.
+		var observer = window.MutationObserver ? new window.MutationObserver(function () {
+			fit(true);
+		}) : null;
+		if (observer) {
+			observer.observe(document.documentElement, { childList: true, subtree: true });
+		}
+		document.addEventListener('DOMContentLoaded', function () {
+			if (observer) {
+				observer.disconnect();
+			}
+			// Again with the whole page: scrollbars and late styles.
+			fit(false);
+		});
 	} else {
-		fit();
+		fit(false);
 	}
 	// Columns some plugins add with their scripts.
 	window.addEventListener('load', later);
