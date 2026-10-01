@@ -357,6 +357,20 @@ Adds a **Size** column to the Plugins screen: each plugin’s total disk use, sp
 - The screen opens straight away; missing sizes are measured in the background a few seconds at a time.
 - Sizes are kept until the plugin’s version changes.
 
+### Hosting needs (Plugins)
+
+Checks whether the hosting fits the site, and says what to ask the host for. It uses numbers PHP reports, not rules of thumb:
+
+- **OPcache**, which keeps compiled PHP in memory so it is not compiled again on every request. Its memory, file and shared-string limits are compared with how full it is and with the PHP code that can load: WordPress, the theme, must-use plugins, drop-ins and active plugins (not all of it loads on every request, so this is an upper limit). When it is nearly full, has had to start again, or has fewer file slots than the site has PHP files, it suggests `opcache.memory_consumption`, `opcache.max_accelerated_files` or `opcache.interned_strings_buffer` values. Hosts that keep OPcache’s status private (`opcache.restrict_api`) get a check against the code size only.
+- **PHP memory**: the most memory a request used in the last 7 days, for pages, the admin (with AJAX) and the REST API with cron, against the limit that request ran under. From 80% of the limit it suggests a higher `memory_limit` (`WP_MAX_MEMORY_LIMIT` for the admin). Each request compares its peak with the day’s highest when it ends and writes only a new highest, so there are a few writes a day, to one small option. WP-CLI is not recorded.
+- **Memory per PHP worker**: the highest use plus 32 MB for PHP itself, with OPcache’s memory shared by all workers. How many workers a site needs depends on the traffic its page cache does not serve, which PHP cannot see, so it is explained, not guessed.
+
+Shown in three places:
+
+- A **Hosting needs** row below the plugin list (after the Size totals when Plugin sizes is on). It fills in after the screen opens, measuring plugins’ code a few seconds at a time, from the same cache as the Size column.
+- Two **Site Health** tests (Tools → Site Health): OPcache size and PHP memory, with the settings to ask for. On WordPress 7.0 and later, core’s own test reports OPcache being off.
+- A **Hosting needs** section on the Site Health **Info** tab, included when you copy the site info for your host.
+
 ### Clean up deleted plugins (Plugins)
 
 When plugin folders are deleted outside the Plugins screen (by FTP, a file manager or a migration), WordPress keeps their uninstall entries, which load on every request, and their “Recently active” entries. With this on, opening the Plugins screen removes entries for plugins that no longer exist and says which ones. WordPress itself already switches off missing active plugins on that screen.
@@ -456,6 +470,8 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folder�
 - New: with Load plugins only where needed, Hide admin notices keeps the notices of skipped plugins (from screens that load them, per person, for up to 12 hours) and shows them behind the bell on screens that skip those plugins, where they can be dismissed. New `{prefix}seoprostack_stored_notices` user option and `seoprostack_forget_notice` AJAX action; the option is removed on uninstall.
 - Fixed: kept notices of skipped plugins are only visible notice boxes, as the bell picks them on the page. Before, everything those plugins printed on the notice hooks was kept, so Kadence Blocks’ Export All and Import buttons from its Forms list showed above the Dashboard and other screens, and half of WooCommerce’s notice wrapper could be printed elsewhere. Entries kept before the fix are checked again when shown.
 - New: with Load plugins only where needed, the admin bar also offers **Reload with every plugin and check every screen again**, which forgets what every screen needs and learns each again as administrators open it (nonce-checked `seoprostack_plugin_loading_reset` admin-post action). Both reload links, and the stand-alone “N of M plugins” count, now ask first and explain what will happen, instead of a tooltip.
+- New, off by default: Hosting needs (Plugins tab) checks whether the hosting fits the site: OPcache’s memory, file and string limits against how full it is and the PHP code that can load, and the PHP memory limit against the highest use per kind of request over 7 days. It suggests settings to ask the host for and the memory each PHP worker needs, in a row below the plugin list, two Site Health tests and a section on the Site Health Info tab. New `seoprostack_hosting_memory` (autoloaded, a few writes a day) and `seoprostack_hosting_code` options, removed on uninstall.
+- Changed: Plugin sizes also counts each plugin’s PHP files, for Hosting needs. Sizes measured before this are measured again once.
 - New: Short links adds three review links once, `/googlereview/`, `/facebookreview/` and `/trustpilotreview/`, as 302 redirects to the services’ home pages in the Review Requests category, with advice under **Goes to** on replacing them with the brand’s own review page. Addresses already in use are skipped, and deleted links do not come back. New `seoprostack_short_links_presets` option, removed on uninstall.
 
 ### 0.4.0
