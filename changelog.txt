@@ -2,7 +2,7 @@
 
 Every change to SEO Pro Stack. readme.txt lists the latest version in short.
 
-= Unreleased =
+= 0.7.0 =
 * New, off by default: Ask before licence checks (Plugins tab). Premium plugins and themes stop checking their licence with their maker’s server until you choose, per plugin: allow it once now, once a day (the answer is reused for the rest of the day, so pages do not wait) or never. You are asked on the next admin screen, or again tomorrow, in a week, a month or a year, and can choose again or forget your choices from the Licence checks link on the Plugins screen. Update checks are left alone.
 * New: Plugin presets: untick any setting in a plugin's list of settings that differ, and Apply changes only the ticked ones.
 * Change: Tidy the dashboard also hides WooCommerce Setup, which repeats the task list on WooCommerce → Home.

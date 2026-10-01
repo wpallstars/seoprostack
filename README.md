@@ -651,7 +651,7 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folder�
 
 ## Changelog
 
-### Unreleased
+### 0.7.0
 
 - New, off by default: Ask before licence checks (Plugins tab). Premium plugins’ and themes’ licence checks wait for the site owner’s say, per plugin and server: Allow once now, Once a day (the day’s answer is reused, so pages do not wait for the maker’s server) or Never. Until then nothing is sent and the plugin gets `http_request_failed`. Asked in a dialog on the next admin screen, or again tomorrow, in a week, a month or a year; a Licence checks link on the Plugins screen shows the choices, changes them and forgets them. WordPress’s update checks and downloads, WordPress.org and the site itself are never held. New `seoprostack_licence_call` filter, nonce-checked `seoprostack_licence_calls` admin-post action, `seoprostack_licence_calls` option (not autoloaded), `seoprostack_lc_*` transients and `seoprostack_licence_later` user meta, removed on uninstall.
 - New: Plugin presets: each setting in a plugin's **Preset: N settings differ** list has a tickbox (ticked to start), and **Apply preset** or **Apply ticked settings** changes only the ticked ones, so you can see and choose exactly what changes. `SEOProStack_Presets::write()` takes the chosen paths (as `differences()` names them) and builds the part of the preset that covers them, so named keys in the same option still merge and the rest stay as stored; undo puts back the whole option as before. WP-CLI: `wp seoprostack presets apply <plugin> --only=<settings>`.
