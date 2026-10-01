@@ -67,6 +67,7 @@ final class SEOProStack {
     public static function load() {
         require_once SEOPROSTACK_DIR . 'includes/class-seoprostack-settings.php';
         require_once SEOPROSTACK_DIR . 'includes/class-seoprostack-feature.php';
+        require_once SEOPROSTACK_DIR . 'includes/class-seoprostack-admin-bar.php';
         foreach (self::$core_features as $class) {
             require_once SEOPROSTACK_DIR . 'includes/features/class-' . str_replace('_', '-', strtolower($class)) . '.php';
         }
