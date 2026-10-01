@@ -123,7 +123,7 @@ class SEOProStack_Watermark_Images extends SEOProStack_Feature {
             ),
             'watermark_images_size' => array(
                 'type'        => 'int',
-                'default'     => 20,
+                'default'     => 10,
                 'min'         => 2,
                 'max'         => 100,
                 'unit'        => '%',

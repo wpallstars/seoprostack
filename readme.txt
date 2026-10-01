@@ -43,7 +43,7 @@ Everything is off by default. Settings save instantly from **Settings → SEO Pr
 * **410 Gone for removed pages**: tell search engines that removed addresses are gone for good.
 * **Short addresses for custom post types**: serve products and other custom post types at /item-name/ instead of /product/item-name/. Old addresses redirect, and pages keep their address when names clash.
 * **Short links**: short addresses on your site, such as /go/offer/, that send visitors elsewhere with a 301, 302 or 307 redirect, with nofollow and sponsored options, categories and click counts. Imports links, click counts and categories from Pretty Links.
-* **Speed**: load pages before the click (Speculation Rules), delay chosen scripts until interaction, and add Google Analytics 4 without slowing the page.
+* **Speed**: load pages before the click (Speculation Rules), on the site and optionally in the admin, delay chosen scripts until interaction, and add Google Analytics 4 without slowing the page.
 * **Plugins menu in the admin bar**: a plugin icon on the right of the admin bar lists every plugin. Switch any plugin on or off after confirming, then return to the page you were on.
 * **Plugin sizes**: a Size column on the Plugins screen shows each plugin’s PHP, JavaScript, CSS, media and other files, measured in the background and sortable.
 * **Clean up deleted plugins**: when plugin folders were deleted outside the Plugins screen, opening that screen removes their leftover uninstall and “Recently active” entries.
@@ -142,6 +142,8 @@ They stay scheduled and publish at their times. Turning it off only stops new po
 * New, off by default: Website screenshots adds a Screenshot block and the `[browser-shot]` shortcode, with pictures saved to the Media Library and served from your site (replaces Browser Shots, whose shortcode and blocks keep working).
 * Change: while a plugin that a feature replaces is active, the feature waits, so the two no longer run side by side (such as two Plugins menus, or analytics loaded twice). The card says so, with a deactivate link.
 * Change: Hide admin notices also moves inline notices printed above the page.
+* New: Load pages before the click can also preload admin screens (off by default). Only the page is downloaded, and links that change something are skipped.
+* Change: Hide the admin bar and Block dashboard access no longer offer Administrator, since administrators are never affected.
 * Fix: `%date%` and `%day%` in Copy linked images’ file name and alt text patterns are no longer lost when saved.
 * Fix: the Notices button no longer narrows the settings header.
 * Fix: Hide admin notices catches notices inside other plugins’ wrappers, notices added by scripts while the page loads, and WooCommerce’s script-drawn notices. On screens with their own top bar, such as WooCommerce, ACF and Rank Math, the Notices button no longer covers the bar.
