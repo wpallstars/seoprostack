@@ -63,6 +63,7 @@ function seoprostack_uninstall_site() {
     $options[] = 'seoprostack_admin_menu';
     $options[] = 'seoprostack_hosting_memory';
     $options[] = 'seoprostack_hosting_code';
+    $options[] = 'seoprostack_hosting_traffic';
     foreach ($options as $option) {
         delete_option($option);
     }
