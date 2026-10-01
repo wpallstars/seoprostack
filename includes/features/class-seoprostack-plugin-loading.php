@@ -155,7 +155,7 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
                 'default'     => false,
                 'tab'         => 'plugins',
                 'label'       => __('Load plugins only where needed', 'seoprostack'),
-                'description' => __('Makes wp-admin faster on sites with many plugins. The plugins you tick load only on their own screens, and on post, term and list screens where they add boxes, fields or blocks. Elsewhere, such as the Dashboard, they do not load, so their boxes and notices do not show there (with Hide admin notices on, their notices still show behind the bell). The menu stays the same. Saving, background tasks, and the Plugins and settings screens always load every plugin. So does the site, unless you choose plugins to skip there.', 'seoprostack'),
+                'description' => __('Makes wp-admin faster on sites with many plugins. The plugins you tick load only on their own screens, on post, term and list screens where they add boxes, fields or blocks, and on the Dashboard when they show a box there. Elsewhere they do not load, so their notices do not show there (with Hide admin notices on, their notices still show behind the bell). To load fewer plugins on the Dashboard, hide their boxes with Tidy the dashboard or Hide dashboard widgets. The menu stays the same. Saving, background tasks, and the Plugins and settings screens always load every plugin. So does the site, unless you choose plugins to skip there.', 'seoprostack'),
             ),
             self::LIST_KEY => array(
                 'type'        => 'multi',
@@ -1067,20 +1067,55 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
 
     /**
      * Plugins that add boxes, fields or editor features to a screen
-     * ("post", "terms", "list", "user", "tools", "media-new"; none for
-     * other screens).
+     * ("post", "terms", "list", "user", "tools", "media-new"), or boxes
+     * to the Dashboard ("dashboard"); none for other screens.
      *
      * @param string $kind Screen kind.
      * @param string $name Post type or taxonomy.
      * @return string[]
      */
     private static function form_plugins($kind, $name) {
+        if ('dashboard' === $kind) {
+            return self::dashboard_plugins();
+        }
         if (!in_array($kind, array('post', 'terms', 'list', 'user', 'tools', 'media-new'), true)) {
             return array();
         }
         return self::plugins_on_hooks(function ($hook) use ($kind, $name) {
             return SEOProStack_Plugin_Loader::screen_needs_hook($kind, $name, $hook);
         });
+    }
+
+    /**
+     * Plugins whose boxes show on the Dashboard: the widgets left once every
+     * plugin and Tidy the dashboard have added and removed theirs, as seen
+     * by the administrator learning the screen (who sees the most). Boxes
+     * someone hid in Screen Options still count: they can show them again.
+     *
+     * @return string[]
+     */
+    private static function dashboard_plugins() {
+        global $wp_meta_boxes;
+        $self    = plugin_basename(SEOPROSTACK_FILE);
+        $plugins = array();
+        if (empty($wp_meta_boxes['dashboard']) || !is_array($wp_meta_boxes['dashboard'])) {
+            return array();
+        }
+        foreach ($wp_meta_boxes['dashboard'] as $priorities) {
+            foreach ((array) $priorities as $boxes) {
+                foreach ((array) $boxes as $box) {
+                    // Removed boxes are left as false.
+                    if (!is_array($box) || empty($box['callback'])) {
+                        continue;
+                    }
+                    $plugin = SEOProStack_Plugin_Loader::plugin_for_callback($box['callback']);
+                    if ('' !== $plugin && $self !== $plugin) {
+                        $plugins[$plugin] = true;
+                    }
+                }
+            }
+        }
+        return array_keys($plugins);
     }
 
     /**

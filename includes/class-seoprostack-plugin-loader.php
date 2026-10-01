@@ -22,6 +22,8 @@
  * - on post, term, list, profile, user, Tools and media upload screens
  *   where it adds boxes, fields, blocks or editor features, or saves
  *   profile fields (learned per screen with every plugin loaded);
+ * - on the Dashboard when one of its boxes shows there (after Tidy the
+ *   dashboard has hidden the ones nobody sees);
  * - on SEO Pro Stack's settings page when it registers a post type,
  *   taxonomy or widget, changes permissions or uses SEO Pro Stack's hooks
  *   (the settings offer those as choices);
@@ -72,7 +74,7 @@ final class SEOProStack_Plugin_Loader {
     const LIST_KEY   = 'plugin_loading_only';
 
     /** Map format; a change makes SEO Pro Stack learn again. */
-    const MAP_VERSION = 3;
+    const MAP_VERSION = 4;
 
     /** SEO Pro Stack's own settings page (Settings > SEO Pro Stack). */
     const SETTINGS_PAGE = 'seoprostack';
@@ -206,7 +208,7 @@ final class SEOProStack_Plugin_Loader {
             case 'media-new':
                 return in_array($hook, self::UPLOAD_HOOKS, true);
         }
-        return false; // Dashboard, comments, the users list, themes and About add no fields to forms.
+        return false; // Comments, the users list, themes and About add no fields to forms; Dashboard boxes are learned from the boxes themselves.
     }
 
     /**
