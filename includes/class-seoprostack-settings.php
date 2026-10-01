@@ -80,6 +80,8 @@ class SEOProStack_Settings {
      * - open:        multi only; also keep key-like values that are not (yet)
      *                in options, e.g. post types or widgets registered later
      * - replaces:    top-level only; plugin slug => name this setting replaces
+     * - reload:      true when the change shows only after a page load; the
+     *                saved message then asks to reload the page
      * - label, description, placeholder, min, max, unit, tokens, rows: UI metadata
      *
      * Types also include `url` (one URL or site path), `lines` (one entry
@@ -526,10 +528,13 @@ class SEOProStack_Settings {
          */
         do_action('seoprostack_setting_saved', $key, $value);
 
+        $schema = self::schema();
+        $reload = !empty($schema[$key]['reload']);
         wp_send_json_success(array(
             'key'     => $key,
             'value'   => $value,
-            'message' => __('Saved', 'seoprostack'),
+            'message' => $reload ? __('Saved. Reload the page to see the change.', 'seoprostack') : __('Saved', 'seoprostack'),
+            'reload'  => $reload,
         ));
     }
 

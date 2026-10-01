@@ -79,11 +79,12 @@
 			return $input.val();
 		},
 
-		status: function (key, state, text) {
+		status: function (key, state, text, keep) {
 			var $status = $('[data-sps-status="' + key + '"]');
 			$status.removeClass('is-saving is-saved is-error').addClass(state ? 'is-' + state : '').text(text || '');
 			clearTimeout($status.data('timer'));
-			if (state === 'saved') {
+			// "Reload the page" stays until the next change.
+			if (state === 'saved' && !keep) {
 				$status.data('timer', setTimeout(function () {
 					$status.removeClass('is-saved').text('');
 				}, 2000));
@@ -130,8 +131,10 @@
 				if (!$input.is(':checkbox')) {
 					$input.data('sps-saved', $input.val());
 				}
-				Settings.status(key, 'saved', i18n.saved);
-				speak(i18n.saved);
+				var reload = !!response.data.reload;
+				var message = reload && response.data.message ? response.data.message : i18n.saved;
+				Settings.status(key, 'saved', message, reload);
+				speak(message);
 				$(document).trigger('seoprostack:setting-saved', [key, saved]);
 			};
 			var failed = function (xhr) {
