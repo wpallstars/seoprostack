@@ -45,7 +45,7 @@ Everything is off by default except Hide admin bar items, which hides Comments a
 = Links, speed and plugins =
 
 * **Short links** such as /go/offer/, with redirects, categories and click counts, and **Short addresses for custom post types**. **410 Gone** for removed pages.
-* **Speed**: load pages before the click, delay chosen scripts until interaction, and add Google Analytics 4 without slowing the page.
+* **Speed**: load pages before the click, delay chosen scripts until interaction, add Google Analytics 4 without slowing the page, and open the editor faster with Kadence Blocks.
 * **Load plugins only where needed**: a faster wp-admin on sites with many plugins, through a small must-use file it writes and removes itself.
 * **Plugins menu** in the admin bar, **Plugin sizes**, **Clean up deleted plugins** and **Hosting needs**, which shows whether your hosting fits the site and what to ask your host for.
 
@@ -111,6 +111,9 @@ They stay scheduled and publish at their times.
 Copies from WordPress.org update from WordPress.org. New versions come out on GitHub first; copies installed from a GitHub release update from GitHub through the free Git Updater plugin, which SEO Pro Stack offers to install.
 
 == Changelog ==
+
+= Unreleased =
+* New, off by default: Faster editor with Kadence Blocks loads Kadence’s design library only when you open it.
 
 = 0.5.0 =
 * New, off by default: Organise the admin menu (replaces Admin Menu Editor), Tidy the dashboard, More menu in the admin bar and Hosting needs.
