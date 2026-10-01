@@ -36,6 +36,35 @@ Minimums: **WordPress 6.2, PHP 7.4** (`readme.txt`, plugin header). User docs:
   error, and WordPress.org asks plugins not to interfere with the updater. A
   parked example is on the `feature/disable-updates-parked` branch.
 
+## Front-end styling and dark mode
+
+Block, shortcode and other front-end styles must work with the Kadence Pro
+dark mode switcher (and themes that switch palettes the same way).
+
+- How it switches: Kadence adds `color-switch-dark` or `color-switch-light` to
+  `<body>`. The dark class sets `color-scheme: dark` and redefines
+  `--global-palette1`…`15` and `--wp--preset--color--theme-palette-N` **on
+  `<body>`**. `<html>` stays `color-scheme: light`. Palette 3 is the strongest
+  text and palette 9 the page background in light mode; dark mode swaps them.
+- Use `currentColor`, `inherit`, translucent neutrals (for example
+  `rgba(127, 127, 127, 0.12)`) or palette variables, never fixed light or dark
+  colours for text, backgrounds or borders.
+- Do not use `@media (prefers-color-scheme)` to follow the site: it tracks the
+  visitor's system, not the switcher.
+- Do not define custom properties on `:root` from palette variables; they
+  resolve above `<body>` and keep the light values. Read palette variables
+  where they are used, or define derived ones on the block.
+- Preset references (`var:preset|color|theme-palette3`) become CSS variables
+  with kebab-cased slugs, as core does: `--wp--preset--color--theme-palette-3`.
+  Use `_wp_to_kebab_case()` in PHP and the same rule in editor JS (see
+  `css_value()` in `class-seoprostack-screenshots.php` and `cssValue()` in
+  `blocks/screenshot/index.js`).
+- Embedded pages (iframes) do not follow the switcher: they see the visitor's
+  system setting, and the browser paints their own background behind them, so
+  they stay readable in both modes. Do not make iframes transparent or tint them.
+- Test light and dark with the Kadence theme by toggling the body class (see
+  Testing, step 5).
+
 ## Testing
 
 No automated suite ships with the plugin. Verify on real WordPress:
@@ -58,6 +87,14 @@ No automated suite ships with the plugin. Verify on real WordPress:
 4. For changes that touch core APIs, also smoke-test on WordPress 6.2 with
    PHP 7.4, for example the `wordpress:php7.4-apache` Docker image with
    `wp core download --version=6.2 --force`.
+5. For front-end styling, view the page with the Kadence theme in light and
+   dark mode. Without Kadence Pro, simulate the switcher: print a
+   `body.color-switch-dark { color-scheme: dark; --global-palette1: …; }`
+   rule with a dark palette (palette 3 light, palette 9 dark, and the matching
+   `--wp--preset--color--theme-palette-N: var(--global-paletteN)` lines), then
+   swap the body class between `color-switch-light` and `color-switch-dark`.
+   Check text, backgrounds, borders and palette colours chosen in block
+   settings in both.
 
 Note: since WordPress 5.6, posts restored from the Bin become drafts. Republish
 test posts after bulk-trash tests.

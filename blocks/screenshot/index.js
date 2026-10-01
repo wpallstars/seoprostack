@@ -66,11 +66,25 @@
 	}
 
 	/**
+	 * "theme-palette3" → "theme-palette-3", as WordPress names preset
+	 * variables (Kadence's palette slugs end in a number).
+	 */
+	function kebab(value) {
+		return String(value)
+			.replace(/([a-z])([A-Z])/g, '$1-$2')
+			.replace(/([a-zA-Z])([0-9])/g, '$1-$2')
+			.replace(/([0-9])([a-zA-Z])/g, '$1-$2')
+			.replace(/[^a-zA-Z0-9]+/g, '-')
+			.replace(/^-+|-+$/g, '')
+			.toLowerCase();
+	}
+
+	/**
 	 * "var:preset|shadow|natural" → "var(--wp--preset--shadow--natural)".
 	 */
 	function cssValue(value) {
 		return typeof value === 'string' && value.indexOf('var:') === 0
-			? 'var(--wp--' + value.slice(4).split('|').join('--') + ')'
+			? 'var(--wp--' + value.slice(4).split('|').map(kebab).join('--') + ')'
 			: value;
 	}
 
@@ -81,7 +95,7 @@
 		var style = a.style || {};
 		var border = style.border || {};
 		var css = {};
-		var color = a.borderColor ? 'var(--wp--preset--color--' + a.borderColor + ')' : cssValue(border.color);
+		var color = a.borderColor ? cssValue('var:preset|color|' + a.borderColor) : cssValue(border.color);
 		if (border.width) {
 			css.borderWidth = border.width;
 		}

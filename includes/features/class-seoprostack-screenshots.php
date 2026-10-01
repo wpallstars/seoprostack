@@ -452,7 +452,9 @@ class SEOProStack_Screenshots extends SEOProStack_Feature {
 
     /**
      * Turn a preset reference ("var:preset|shadow|natural") into a CSS
-     * variable; other values pass through.
+     * variable; other values pass through. Slugs are kebab-cased as core
+     * does, so Kadence's "theme-palette3" becomes "theme-palette-3", the
+     * variable its dark mode switches.
      *
      * @param string $value Value.
      * @return string
@@ -462,7 +464,7 @@ class SEOProStack_Screenshots extends SEOProStack_Feature {
             return $value;
         }
         $parts = array_map(function ($part) {
-            return preg_replace('/[^a-z0-9-]/i', '', $part);
+            return preg_replace('/[^a-z0-9-]/i', '', _wp_to_kebab_case($part));
         }, explode('|', substr($value, 4)));
         return 'var(--wp--' . implode('--', $parts) . ')';
     }
