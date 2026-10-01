@@ -103,12 +103,13 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
         'wp_get_attachment_url', 'wp_get_attachment_image_attributes', 'wp_calculate_image_srcset', 'wp_content_img_tag',
         'dynamic_sidebar_params', 'sidebars_widgets', 'rewrite_rules_array', 'generate_rewrite_rules', 'get_header',
         'get_footer', 'get_sidebar', 'shortcode_atts', 'do_shortcode_tag', 'pre_do_shortcode_tag', 'final_output',
+        'pre_get_posts', 'pre_get_document_title', 'pre_get_avatar_data', 'pre_get_terms', 'pre_get_shortlink',
     );
 
     /** Prefixes and suffixes of hooks that change pages of the site. */
     const FRONT_PAGE_PREFIXES = array(
         'the_', 'get_the_', 'wp_sitemaps_', 'wp_robots', 'comment_form', 'comments_', 'widget_', 'render_block', 'pre_render_block',
-        'wp_print_', 'wp_enqueue_', 'oembed_', 'embed_', 'nav_menu_', 'redirect_', 'posts_', 'pre_get_', 'script_loader_',
+        'wp_print_', 'wp_enqueue_', 'oembed_', 'embed_', 'nav_menu_', 'redirect_', 'posts_', 'script_loader_',
         'style_loader_', 'rss', 'atom_', 'rdf_', 'do_feed', 'wp_feed',
     );
     const FRONT_PAGE_SUFFIXES = array('_template', '_template_hierarchy');
