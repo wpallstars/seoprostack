@@ -60,7 +60,7 @@ Guidelines: [Detailed Plugin Guidelines](https://developer.wordpress.org/plugins
 [Plugin assets](https://developer.wordpress.org/plugins/wordpress-org/plugin-assets/),
 [Using Subversion](https://developer.wordpress.org/plugins/wordpress-org/how-to-use-subversion/).
 
-### To do before submitting (state at 0.4.0)
+### To do before submitting (state at 0.5.0)
 
 `scripts/preflight-release.sh --strict` reports these:
 

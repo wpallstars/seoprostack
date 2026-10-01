@@ -18,7 +18,7 @@
  * recognised by ID and every other item moves.
  *
  * @package SEOProStack
- * @since 0.4.1
+ * @since 0.5.0
  */
 
 if (!defined('ABSPATH')) {

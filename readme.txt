@@ -4,7 +4,7 @@ Tags: magic login, iframe, schedule posts, auto upload images, admin
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 0.4.0
+Stable tag: 0.5.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -112,7 +112,7 @@ Copies from WordPress.org update from WordPress.org. New versions come out on Gi
 
 == Changelog ==
 
-= Unreleased =
+= 0.5.0 =
 * New, off by default: Organise the admin menu (replaces Admin Menu Editor), Tidy the dashboard, More menu in the admin bar and Hosting needs.
 * New, on by default: Hide admin bar items (Comments and + New) and No fade between admin screens. Switch them off to keep WordPress’s own behaviour.
 * New: Free Plugins installs, activates, deactivates and uninstalls in place, with an All view and bulk actions.
@@ -125,5 +125,5 @@ Every change, and earlier versions: `changelog.txt` in the plugin folder.
 
 == Upgrade Notice ==
 
-= 0.4.0 =
-New tabs and many new features that replace other plugins and import their settings. Everything new is off by default; existing settings are kept.
+= 0.5.0 =
+New admin menu, dashboard, admin bar and Hosting needs features (off by default), and Free Plugins that work in place and in bulk. On by default: Comments and + New leave the admin bar, and the fade between admin screens stops (Admin tab).
