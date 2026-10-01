@@ -66,12 +66,12 @@ function seoprostack_uninstall_site() {
     $options[] = 'seoprostack_hosting_memory';
     $options[] = 'seoprostack_hosting_code';
     $options[] = 'seoprostack_hosting_traffic';
-    // Plugin presets' undo copies. Settings presets changed in other plugins
-    // are those plugins' settings now, and stay.
-    $options[] = 'seoprostack_plugin_presets_undo';
     // Ask before licence checks: choices and times. Kept answers are
     // seoprostack_lc_* transients, removed with the others below.
     $options[] = 'seoprostack_licence_calls';
+    // Plugin presets' undo copies. Settings presets changed in other plugins
+    // are those plugins' settings now, and stay.
+    $options[] = 'seoprostack_plugin_presets_undo';
     foreach ($options as $option) {
         delete_option($option);
     }
