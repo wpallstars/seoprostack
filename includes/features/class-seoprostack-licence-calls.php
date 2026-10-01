@@ -51,7 +51,7 @@ class SEOProStack_Licence_Calls extends SEOProStack_Feature {
     /** Transient prefix of cached answers. */
     const CACHE = 'seoprostack_lc_';
 
-    /** User meta: hide the dialog until this time ("since" and "until"). */
+    /** User meta: "until" a time, the checks the dialog hid ("hidden": ID => when their hold began). */
     const LATER = 'seoprostack_licence_later';
 
     /** admin-post action. */
@@ -623,12 +623,21 @@ class SEOProStack_Licence_Calls extends SEOProStack_Feature {
         $back = remove_query_arg(self::OPEN, $back ? $back : admin_url());
 
         if ('later' === $do) {
-            // Hide the dialog for a while. Checks stay held, and plugins that
-            // start checking meanwhile are still asked about.
-            $spans = self::later_spans();
-            $for   = isset($_POST['for']) ? sanitize_key(wp_unslash($_POST['for'])) : 'day';
-            $span  = isset($spans[$for]) ? $spans[$for]['seconds'] : DAY_IN_SECONDS;
-            update_user_meta(get_current_user_id(), self::LATER, array('since' => time(), 'until' => time() + $span));
+            // Hide the dialog for a while. Checks stay held. Only the checks
+            // the dialog showed are hidden, each by when its hold began, so a
+            // plugin that starts checking meanwhile, or is asked about again
+            // after Forget, still shows.
+            $spans  = self::later_spans();
+            $for    = isset($_POST['for']) ? sanitize_key(wp_unslash($_POST['for'])) : 'day';
+            $span   = isset($spans[$for]) ? $spans[$for]['seconds'] : DAY_IN_SECONDS;
+            $shown  = isset($_POST['ids']) ? array_map('sanitize_key', explode(',', sanitize_text_field(wp_unslash($_POST['ids'])))) : array();
+            $hidden = array();
+            foreach (self::entries() as $entry_id => $entry) {
+                if (in_array((string) $entry_id, $shown, true) && !empty($entry['first'])) {
+                    $hidden[$entry_id] = (int) $entry['first'];
+                }
+            }
+            update_user_meta(get_current_user_id(), self::LATER, array('until' => time() + $span, 'hidden' => $hidden));
             wp_safe_redirect($back);
             exit;
         }
@@ -824,13 +833,16 @@ class SEOProStack_Licence_Calls extends SEOProStack_Feature {
                 return 'plugin:' . $open === $entry['source'];
             });
         }
-        // While "Ask me again" stands, only plugins that started checking
-        // since are asked about (from the same second, to be safe).
-        $later = get_user_meta(get_current_user_id(), self::LATER, true);
-        $since = is_array($later) && isset($later['until'], $later['since']) && (int) $later['until'] > time() ? (int) $later['since'] : 0;
-        return array_filter($entries, function ($entry) use ($since) {
-            return 'ask' === self::mode($entry) && !empty($entry['first']) && (int) $entry['first'] >= $since;
-        });
+        // While "Ask me again" stands, the checks it hid stay hidden; any
+        // other waiting check is asked about.
+        $later  = get_user_meta(get_current_user_id(), self::LATER, true);
+        $hidden = is_array($later) && isset($later['until'], $later['hidden']) && (int) $later['until'] > time() && is_array($later['hidden']) ? $later['hidden'] : array();
+        return array_filter($entries, function ($entry, $id) use ($hidden) {
+            if ('ask' !== self::mode($entry) || empty($entry['first'])) {
+                return false;
+            }
+            return !isset($hidden[$id]) || (int) $hidden[$id] !== (int) $entry['first'];
+        }, ARRAY_FILTER_USE_BOTH);
     }
 
     /**
@@ -942,6 +954,7 @@ class SEOProStack_Licence_Calls extends SEOProStack_Feature {
                 <?php self::hidden_fields(); ?>
                 <?php if ('' === self::opened()) : ?>
                     <input type="hidden" name="do" value="later" />
+                    <input type="hidden" name="ids" value="<?php echo esc_attr(implode(',', array_keys($entries))); ?>" />
                     <span><?php esc_html_e('Ask me again:', 'seoprostack'); ?></span>
                     <?php foreach (self::later_spans() as $for => $span) : ?>
                         <button type="submit" name="for" value="<?php echo esc_attr($for); ?>" class="button-link"><?php echo esc_html($span['label']); ?></button>
