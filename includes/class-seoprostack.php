@@ -20,6 +20,7 @@ final class SEOProStack {
      */
     private static $core_features = array(
         'SEOProStack_Admin_Colors',
+        'SEOProStack_Admin_Page_Fade',
         'SEOProStack_Admin_Access',
         'SEOProStack_Widget_Control',
         'SEOProStack_Notification_Emails',

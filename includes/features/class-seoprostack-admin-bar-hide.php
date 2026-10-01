@@ -31,7 +31,7 @@ class SEOProStack_Admin_Bar_Hide extends SEOProStack_Feature {
         return array(
             self::KEY => array(
                 'type'        => 'bool',
-                // The one feature on by default: a tidier bar out of the box.
+                // On by default at the owner's request: a tidier bar out of the box.
                 'default'     => true,
                 'tab'         => 'admin',
                 'label'       => __('Hide admin bar items', 'seoprostack'),
