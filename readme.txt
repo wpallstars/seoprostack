@@ -117,13 +117,7 @@ Copies from WordPress.org update from WordPress.org. New versions come out on Gi
 * Fix: admin menu, Dashboard and notices with many plugins active.
 
 = 0.5.0 =
-* New, off by default: Organise the admin menu (replaces Admin Menu Editor), Tidy the dashboard, More menu in the admin bar and Hosting needs.
-* New, on by default: Hide admin bar items (Comments and + New) and No fade between admin screens. Switch them off to keep WordPress’s own behaviour.
-* New: Free Plugins installs, activates, deactivates and uninstalls in place, with an All view and bulk actions.
-* New: a star in the admin bar opens these settings, Load pages before the click can preload admin screens, and Short links starts with Google, Facebook and Trustpilot review links.
-* New: copies from GitHub releases get updates from GitHub through Git Updater.
-* Change: the notices bell is on every screen, shows a dot, opens on hover and, with Load plugins only where needed, keeps notices from skipped plugins.
-* Change: Hide the admin bar and Block dashboard access no longer offer Administrator and tick plugin roles such as Customer. New sites get wider SVG upload roles and 10% watermarks. Resize large uploads uses 2560 instead of Imsanity’s default.
+* New admin menu, dashboard, admin bar, Hosting needs and Free Plugins features. On by default: Hide admin bar items and No fade between admin screens.
 
 Every change, and earlier versions: `changelog.txt` in the plugin folder.
 
