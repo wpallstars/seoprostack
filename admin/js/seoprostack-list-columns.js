@@ -23,10 +23,10 @@
 	var MIN = 0.2;
 	// ...and gets this share when it needs room...
 	var GIVE = 0.25;
-	// ...giving up to this many pixels, or this share, before other columns
-	// break words.
-	var FLOOR = 160;
-	var FLOOR_SHARE = 0.15;
+	// ...giving it up, down to this many pixels or this share, before other
+	// columns break words.
+	var FLOOR = 120;
+	var FLOOR_SHARE = 0.12;
 	// A column narrower than this has been squeezed out.
 	var SQUEEZED = 24;
 	// Columns given this width or less, if their content fits (checkboxes,
@@ -35,9 +35,22 @@
 	// Below this window width WordPress stacks list columns under the title.
 	var STACKED = 782;
 	var MARK = 'data-seoprostack-width';
+	var MEASURE = 'seoprostack-measuring';
 
 	function width(el) {
 		return el.getBoundingClientRect().width;
+	}
+
+	// While measuring, words stay whole.
+	function measureStyle() {
+		if (document.getElementById(MEASURE)) {
+			return;
+		}
+		var style = document.createElement('style');
+		style.id = MEASURE;
+		style.textContent = 'table.' + MEASURE + ', table.' + MEASURE + ' * {' +
+			'overflow-wrap: normal !important; word-wrap: normal !important; word-break: normal !important; }';
+		document.head.appendChild(style);
 	}
 
 	// Sets a cell's outer width, whatever its box-sizing.
@@ -103,9 +116,12 @@
 			return;
 		}
 
-		// The narrowest each column can be without breaking words.
+		// The narrowest each column can be without breaking words. List cells
+		// may break inside words, which would make that look narrower.
+		measureStyle();
 		var layout = table.style.tableLayout;
 		var tableWidth = table.style.width;
+		table.classList.add(MEASURE);
 		table.style.tableLayout = 'auto';
 		table.style.width = '1px';
 		var narrow = [];
@@ -114,6 +130,7 @@
 		}
 		table.style.tableLayout = layout;
 		table.style.width = tableWidth;
+		table.classList.remove(MEASURE);
 
 		// Each column wants the width it was given, and never less than its
 		// narrowest; a squeezed-out column wants its narrowest. Small columns
