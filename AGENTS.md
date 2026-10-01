@@ -73,9 +73,11 @@ To add or update a preset, on a throwaway site (never a live one):
    as intended, `reset`, `undo`.
 8. Add a changelog line in `README.md`, `changelog.txt` and `readme.txt`.
 
-`starters/{plugin-folder}.json` holds starter data: the lists, tags, fields
-and boards the owner organises plugins' own tables with (FluentCRM, Fluent
-Boards). Format: `includes/class-seoprostack-starters.php`. Take it from the
+`starters/{plugin-folder}.json` holds starter data: the lists, tags, fields,
+boards and forms the owner organises plugins' own tables with (FluentCRM,
+Fluent Boards, Fluent Forms). Format: `includes/class-seoprostack-starters.php`.
+Forms must work with only the free plugin: mark Pro-only fields with
+`"when"`, and submit each form as a visitor on the throwaway site. Take it from the
 owner's own sites, read-only (structure only: names, slugs, how they link;
 never contacts, entries or messages), and write `notes` that explain the
 pattern so people can extend it. Adding only fills what is missing; Remove

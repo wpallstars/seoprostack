@@ -24,6 +24,10 @@ if (!defined('ABSPATH')) {
 // letter case, nofollow links).
 // Git Updater is not listed: Updates from GitHub replaces it in builds from
 // GitHub releases (includes/features/class-seoprostack-github-updates.php).
+// Freesoul Deactivate Plugins (free and PRO) is not listed: Load plugins only
+// where needed does its job in wp-admin and for the whole site. It does not
+// set "replaces" yet, so the Plugins screen does not suggest removing it,
+// until page-by-page rules on the site are covered too (GitHub issue #90).
 function seoprostack_get_free_plugins() {
     /**
      * Filter the recommended plugins by category. Slugs are WordPress.org
@@ -125,7 +129,6 @@ function seoprostack_get_free_plugins() {
         ),
         'speed' => array(
             'disable-wordpress-updates',
-            'freesoul-deactivate-plugins',
             'http-requests-manager',
             'index-wp-mysql-for-speed',
             'litespeed-cache',
