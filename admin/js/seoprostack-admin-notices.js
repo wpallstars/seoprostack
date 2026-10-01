@@ -11,7 +11,9 @@
  * clicks back, and follows the original until it goes away.
  *
  * The panel stays inside #wpbody-content, so plugin styles and handlers
- * scoped to it keep working, and is fixed under the bell.
+ * scoped to it keep working, and is fixed under the bell. Like core's admin
+ * bar menus, it opens while the mouse points at the bell and closes when the
+ * mouse moves away; keys and taps open it until Escape or a press elsewhere.
  *
  * @package SEOProStack
  */
@@ -78,12 +80,25 @@
 		}
 	}
 
-	function open() {
-		$panel.removeClass('hidden');
-		place();
-		$item.addClass('hover sps-notices-open');
-		$button.attr('aria-expanded', 'true');
-		$panel[0].focus({ preventScroll: true });
+	/** Opened by key or tap: stays open until Escape, the bell or a press elsewhere. */
+	var pinned = false;
+
+	/**
+	 * @param {boolean} [pin] Opened by key or tap: move focus into the panel
+	 *                        and keep it open when a mouse leaves. Pointing
+	 *                        does not move focus, so typing elsewhere goes on.
+	 */
+	function open(pin) {
+		if (!isOpen()) {
+			$panel.removeClass('hidden');
+			place();
+			$item.addClass('hover sps-notices-open');
+			$button.attr('aria-expanded', 'true');
+		}
+		if (pin) {
+			pinned = true;
+			$panel[0].focus({ preventScroll: true });
+		}
 	}
 
 	/**
@@ -93,12 +108,77 @@
 		if (!isOpen()) {
 			return;
 		}
+		pinned = false;
+		// A hidden panel (or bell) sends no pointerleave; the next pointerenter sets these again.
+		overBell = false;
+		overPanel = false;
 		$panel.addClass('hidden');
 		$item.removeClass('hover sps-notices-open');
 		$button.attr('aria-expanded', 'false');
 		if (refocus) {
 			$button[0].focus();
 		}
+	}
+
+	/** Delays matching core's admin bar menus (hoverIntent interval and timeout). */
+	var OPEN_DELAY = 100;
+	var CLOSE_DELAY = 180;
+
+	var overBell = false;
+	var overPanel = false;
+	var hoverTimer = null;
+	var byMouse = false;
+
+	/**
+	 * Whether someone is typing in a field inside the panel.
+	 *
+	 * @return {boolean}
+	 */
+	function typing() {
+		var el = document.activeElement;
+		return !!el && el !== $panel[0] && $panel[0].contains(el) && $(el).is('input, textarea, select, [contenteditable]');
+	}
+
+	/**
+	 * Open the panel while a mouse points at the bell or the panel, and close
+	 * it when the mouse moves away, as core's admin bar menus do. Touch and
+	 * keys open it with a click (see ui()) and pin it.
+	 */
+	function hover() {
+		var settle = function () {
+			clearTimeout(hoverTimer);
+			hoverTimer = null;
+			if (overBell && !isOpen()) {
+				open();
+			} else if (!overBell && !overPanel && isOpen() && !pinned && !typing()) {
+				close();
+			}
+		};
+		var track = function (el, set) {
+			el.addEventListener('pointerenter', function (e) {
+				if ('mouse' === e.pointerType) {
+					set(true);
+					clearTimeout(hoverTimer);
+					hoverTimer = setTimeout(settle, isOpen() ? 0 : OPEN_DELAY);
+				}
+			});
+			el.addEventListener('pointerleave', function (e) {
+				if ('mouse' === e.pointerType) {
+					set(false);
+					clearTimeout(hoverTimer);
+					hoverTimer = setTimeout(settle, CLOSE_DELAY);
+				}
+			});
+		};
+		track($item[0], function (on) {
+			overBell = on;
+		});
+		track($panel[0], function (on) {
+			overPanel = on;
+		});
+		$button[0].addEventListener('pointerdown', function (e) {
+			byMouse = 'mouse' === e.pointerType;
+		});
 	}
 
 	/**
@@ -118,14 +198,20 @@
 		$panel = $('<div id="sps-notices-wrap" class="hidden" tabindex="-1" role="region"></div>').attr('aria-label', cfg.panel).prependTo($content);
 		$button.attr({ role: 'button', 'aria-controls': 'sps-notices-wrap', 'aria-expanded': 'false' });
 
+		hover();
 		$button.on('click', function (e) {
 			e.preventDefault();
-			if (isOpen()) {
+			if (byMouse) {
+				// Pointing opens it already; a click (also before the delay) only opens it.
+				byMouse = false;
+				open();
+			} else if (isOpen()) {
 				close();
 			} else {
-				open();
+				open(true);
 			}
 		}).on('keydown', function (e) {
+			byMouse = false;
 			// A link acts on Enter; as a button it also answers Space.
 			if (' ' === e.key) {
 				e.preventDefault();
