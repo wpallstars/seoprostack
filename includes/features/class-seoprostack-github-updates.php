@@ -96,10 +96,11 @@ class SEOProStack_Github_Updates extends SEOProStack_Feature {
     public static function boot() {
         if (!self::enabled()) {
             // While Git Updater does the job, keep this plugin on its GitHub
-            // releases when asked to.
+            // releases when asked to, and stop it asking GitHub on every page.
             if (self::switched_on() && SEOProStack_Settings::get(self::EARLY)) {
                 add_filter('gu_override_dot_org', array(__CLASS__, 'git_updater_override'));
             }
+            add_filter('pre_update_site_option_' . self::error_cache_key(), array(__CLASS__, 'renew_error_cache'));
             return;
         }
         // Update checks run in the admin, in cron and in WP-CLI.
@@ -120,6 +121,35 @@ class SEOProStack_Github_Updates extends SEOProStack_Feature {
         $plugins   = (array) $plugins;
         $plugins[] = plugin_basename(SEOPROSTACK_FILE);
         return array_values(array_unique($plugins));
+    }
+
+    /**
+     * Git Updater's cache of GitHub errors for this plugin (the site option
+     * its get_cache_key() makes from our folder and "_error").
+     *
+     * @return string
+     */
+    private static function error_cache_key() {
+        return 'ghu-' . md5(dirname(plugin_basename(SEOPROSTACK_FILE)) . '_error');
+    }
+
+    /**
+     * When GitHub answers with an error (rate limit, or Not Found while the
+     * repository is private), Git Updater caches it for 5 or 60 minutes so
+     * it stops asking. Git Updater 14.4.2 keeps the first expiry time when it
+     * caches the next error, so after one expiry every page load asked GitHub
+     * again (and logged "Git Updater Error"). Give a new error its own expiry,
+     * as Git Updater's develop branch does. Only this plugin's error cache.
+     *
+     * @param mixed $value Cache Git Updater is saving.
+     * @return mixed
+     */
+    public static function renew_error_cache($value) {
+        if (is_array($value) && isset($value['error_cache']['timeout'], $value['timeout'])
+            && (int) $value['timeout'] <= time()) {
+            $value['timeout'] = time() + max(1, (int) $value['error_cache']['timeout']) * MINUTE_IN_SECONDS;
+        }
+        return $value;
     }
 
     /**

@@ -77,7 +77,7 @@ Other features contact only addresses you choose. Copy linked images downloads i
 
 = Developers =
 
-Settings, tabs and directory entries can be extended with filters such as `seoprostack_settings_schema`, `seoprostack_admin_tabs` and `seoprostack_tools_items`. See the Read Me tab in the plugin for the full list.
+Settings, tabs and directory entries can be extended with filters such as `seoprostack_settings_schema`. See the Read Me tab for the full list.
 
 == Installation ==
 
@@ -115,10 +115,12 @@ Copies from WordPress.org update from WordPress.org. New versions come out on Gi
 
 = Unreleased =
 * New: GitHub copies update without Git Updater.
-* New: the Plugins screen lists plugins it replaces.
+* New: Plugins screen lists plugins it replaces.
 * Change: Tutor LMS replaces MasterStudy LMS in the recommended plugins.
 * New: presets for seven more plugins; starter lists, tags and a board for FluentCRM and Fluent Boards.
 * New, on by default: Quiet Freemius prompts.
+* Change: Tidy the dashboard hides Debug Log Manager.
+* Fix: fewer GitHub requests from Git Updater.
 * New: Load plugins only where needed can also skip chosen admin tools on the site.
 * Change: Load plugins only where needed also speeds up SEO Pro Stack’s own settings, Appearance › Menus and Editor.
 * Fix: the admin menu opens on Kadence Blocks’ lists. Screens that fail with fewer plugins recover with Query Monitor. The Dashboard shows plugins’ boxes again.
@@ -130,7 +132,7 @@ Copies from WordPress.org update from WordPress.org. New versions come out on Gi
 * Fix: admin menu, Dashboard, notices and blank pages with many plugins active. The menu leaves out upgrade links.
 * Change: Load plugins only where needed also speeds up profile, user, Tools and Media › Add New screens.
 
-Every change, and earlier versions: `changelog.txt` in the plugin folder.
+Every change: `changelog.txt` in the plugin folder.
 
 == Upgrade Notice ==
 

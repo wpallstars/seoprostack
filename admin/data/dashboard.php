@@ -52,7 +52,6 @@ return array(
             'rank_math_dashboard_widget',
             'dashboard_right_now',
             'dashboard_site_health',
-            'debug_log_manager_widget',
         ),
     ),
     'hidden'     => array(
@@ -62,10 +61,13 @@ return array(
         'prli_quick_add',                   // Pretty Links quick add.
         'wpil_link_health_widget',          // Link Whisper promotion.
         'vg_sheet_editor_usage_stats',      // WP Sheet Editor edit counts.
+        // Debug Log Manager reads and parses the whole debug log on every
+        // Dashboard load (6 of 7 seconds with a 32 MB log). Its own screen
+        // under Tools shows the same entries.
+        'debug_log_manager_widget',
     ),
     'developers' => array(
         'dashboard_site_health',
-        'debug_log_manager_widget',
     ),
     'reports'    => array(
         'dashboard_right_now',
