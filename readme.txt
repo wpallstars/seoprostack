@@ -51,7 +51,7 @@ Everything is off by default except two: Hide admin bar items, which hides Comme
 * **Plugins menu in the admin bar**: a plugin icon on the right of the admin bar lists every plugin. Switch any plugin on or off after confirming, then return to the page you were on.
 * **Plugin sizes**: a Size column on the Plugins screen shows each plugin’s PHP, JavaScript, CSS, media and other files, measured in the background and sortable, with totals for installed and active plugins below the list.
 * **Clean up deleted plugins**: when plugin folders were deleted outside the Plugins screen, opening that screen removes their leftover uninstall and “Recently active” entries.
-* **Load plugins only where needed**: makes wp-admin faster on sites with many plugins. Plugins you tick load only on their own screens, on post, term and list screens where they add boxes, fields or blocks, and where plugins that need them load. Screens are learned the first time they open, the menu stays the same, and saving, background tasks, the Plugins and settings screens and the site itself always load every plugin. A screen that fails loads every plugin from then on, and any screen can be reloaded with every plugin and checked again from the admin bar. Uses a small must-use file that it writes and removes itself.
+* **Load plugins only where needed**: makes wp-admin faster on sites with many plugins. Plugins you tick load only on their own screens, on post, term and list screens where they add boxes, fields or blocks, and where plugins that need them load. Screens are learned the first time they open, the menu stays the same, and saving, background tasks, the Plugins and settings screens and the site itself always load every plugin. A screen that fails loads every plugin from then on, and any screen, or every screen at once, can be reloaded with every plugin and checked again from the admin bar. Uses a small must-use file that it writes and removes itself.
 
 Features that replace another plugin (for example Carbon Copy, Imsanity or Ultimate 410) import its settings once and show “Replaces: …” on their card. The other plugin’s settings are left untouched. While the other plugin is active, the feature waits and that plugin keeps doing the job; deactivate it to switch over.
 
@@ -142,6 +142,7 @@ They stay scheduled and publish at their times. Turning it off only stops new po
 * New: with Load plugins only where needed, the notices of plugins a screen skips are kept and shown behind the bell there, so they can be read and dismissed from any screen.
 * Change: the notices panel opens when you point at the bell and closes when you move away, like the other admin bar menus.
 * Change: the notices bell, the Plugins icon and the More menu no longer show a tooltip over their open menus. Screen readers still announce them.
+* New: with Load plugins only where needed, the admin bar can also check every screen again. Both reload options ask first and explain what will happen.
 * New: Short links starts you with /googlereview/, /facebookreview/ and /trustpilotreview/ links in a Review Requests category. Point them at your own review pages, then use them in email signatures and review requests.
 
 = 0.4.0 =

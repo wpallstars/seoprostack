@@ -15,10 +15,10 @@
  *   which plugins add boxes, fields or blocks to each post, term and list
  *   screen, which plugins need which, and the full admin menu;
  * - on screens that load fewer plugins, puts the skipped plugins' menu
- *   entries back as links and shows how many plugins loaded, with a link
- *   that reloads the screen with every plugin and learns it again: at the
- *   top of the Plugins menu in the admin bar, or as "N of M plugins" on its
- *   own when that menu is off.
+ *   entries back as links and shows how many plugins loaded, with links
+ *   that reload the screen with every plugin and learn it, or every
+ *   screen, again (each asks first): at the top of the Plugins menu in the
+ *   admin bar, or under "N of M plugins" on its own when that menu is off.
  *
  * What was learned is forgotten when plugins are activated, deactivated or
  * updated, so screens load every plugin once more while it is relearned.
@@ -50,6 +50,12 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
 
     /** Admin bar node ID. */
     const NODE = 'seoprostack-plugin-loading';
+
+    /** admin-post.php action (and nonce action) that checks every screen again. */
+    const RESET = 'seoprostack_plugin_loading_reset';
+
+    /** Query arg: the screen to return to after checking every screen again. */
+    const RETURN_ARG = 'return';
 
     /**
      * Admin menu captured on this request.
@@ -107,6 +113,7 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
             return;
         }
         add_filter('removable_query_args', array(__CLASS__, 'removable_query_args'));
+        add_action('admin_post_' . self::RESET, array(__CLASS__, 'reset'));
         $state = SEOProStack_Plugin_Loader::state();
         if ('filter' === $state['mode']) {
             add_action('admin_menu', array(__CLASS__, 'restore_menu'), PHP_INT_MAX);
@@ -115,6 +122,7 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
             add_action('admin_bar_menu', array(__CLASS__, 'admin_bar_in_menu'), 99);
             add_action('admin_bar_menu', array(__CLASS__, 'admin_bar'), 999);
             add_action('admin_bar_init', array(__CLASS__, 'admin_bar_style'));
+            add_action('admin_bar_init', array(__CLASS__, 'admin_bar_script'));
         } elseif ('full' === $state['mode'] && current_user_can('manage_options')) {
             add_action('admin_menu', array(__CLASS__, 'capture_menu'), PHP_INT_MAX);
             add_action('adminmenu', array(__CLASS__, 'prune_menu'));
@@ -250,6 +258,31 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
     }
 
     /**
+     * "Check every screen again" from the admin bar: forget what was learned,
+     * then return to the screen it was chosen on. With nothing learned, that
+     * screen loads every plugin and is learned again, and so is every other
+     * screen the next time an administrator opens it.
+     */
+    public static function reset() {
+        if (!current_user_can('activate_plugins')) {
+            wp_die(esc_html__('Sorry, you are not allowed to do that.', 'seoprostack'), '', array('response' => 403));
+        }
+        check_admin_referer(self::RESET);
+        self::forget();
+
+        // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- verified above.
+        $back       = isset($_GET[self::RETURN_ARG]) && is_string($_GET[self::RETURN_ARG]) ? wp_sanitize_redirect(wp_unslash($_GET[self::RETURN_ARG])) : '';
+        $back       = '' !== $back ? wp_validate_redirect($back, '') : '';
+        $admin_path = (string) wp_parse_url(admin_url(), PHP_URL_PATH);
+        // Only a path in wp-admin on this site.
+        if ('' === $back || '' === $admin_path || 0 !== strpos($back, $admin_path) || 0 === strpos($back, '//')) {
+            $back = admin_url();
+        }
+        wp_safe_redirect($back);
+        exit;
+    }
+
+    /**
      * Filesystem access for the must-use file (wp-content is written the
      * same way as the uploads folder elsewhere in SEO Pro Stack).
      *
@@ -336,7 +369,7 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
                 )) . '</p>';
             }
         }
-        echo '<p>' . esc_html__('If something is missing from a screen, reload it with every plugin from the plugin icon in the admin bar (or the plugin count, when the Plugins menu is off). The screen is then checked again.', 'seoprostack') . '</p>';
+        echo '<p>' . esc_html__('If something is missing from a screen, reload it with every plugin from the plugin icon in the admin bar (or the plugin count, when the Plugins menu is off). The screen is then checked again. The same menu can also check every screen again.', 'seoprostack') . '</p>';
         echo '</div>';
     }
 
@@ -858,8 +891,9 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
     }
 
     /**
-     * The link that reloads the screen with every plugin, which also learns
-     * again what the screen needs.
+     * The links that reload the screen with every plugin: one learns again
+     * what this screen needs, the other forgets what every screen needs.
+     * Both ask first (admin_bar_script()), which explains what happens.
      *
      * @param WP_Admin_Bar $bar    Admin bar.
      * @param string       $parent Parent node or group.
@@ -871,7 +905,20 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
             'parent' => $parent,
             'title'  => esc_html__('Reload with every plugin and check this screen again', 'seoprostack'),
             'href'   => $url,
-            'meta'   => array('title' => __('Loads every plugin once and learns again which ones this screen needs.', 'seoprostack')),
+        ));
+        // This screen without one-off args (removable_query_args() adds the load-all one).
+        $here = remove_query_arg(wp_removable_query_args(), $url);
+        $bar->add_node(array(
+            'id'     => self::NODE . '-reset',
+            'parent' => $parent,
+            'title'  => esc_html__('Reload with every plugin and check every screen again', 'seoprostack'),
+            'href'   => wp_nonce_url(
+                add_query_arg(array(
+                    'action'         => self::RESET,
+                    self::RETURN_ARG => rawurlencode($here),
+                ), admin_url('admin-post.php')),
+                self::RESET
+            ),
         ));
     }
 
@@ -946,6 +993,27 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
             "{$menu}+.ab-submenu{border-top:1px solid rgba(240,246,252,.2)}"
             . "#wpadminbar #wp-admin-bar-" . self::NODE . "-count>.ab-item{opacity:.7}"
         );
+    }
+
+    /**
+     * Ask before reloading with every plugin, and say what will happen.
+     * Covers both reload links and the stand-alone "N of M plugins" count,
+     * which reloads this screen too.
+     */
+    public static function admin_bar_script() {
+        $i18n = array(
+            'screen' => __('Reload this screen with every plugin?', 'seoprostack') . "\n\n"
+                . __('Every active plugin loads on this screen once, so it may take a little longer. SEO Pro Stack then checks again which plugins this screen needs. Use this when a box, field, block or menu item is missing here. Other screens do not change.', 'seoprostack'),
+            'reset'  => __('Reload with every plugin and check every screen again?', 'seoprostack') . "\n\n"
+                . __('SEO Pro Stack forgets which plugins each admin screen needs. This screen reloads with every plugin now. Every other screen also loads every plugin until an administrator next opens it and it is checked again, so the first visit to each screen is slower.', 'seoprostack') . "\n\n"
+                . __('Screens set to load every plugin after an error are checked again too. Your settings and the plugins you ticked do not change.', 'seoprostack'),
+        );
+        $js = '(function(n,t){document.addEventListener("click",function(e){'
+            . 'if(e.defaultPrevented||!e.target.closest){return;}'
+            . 'var a=e.target.closest("#wp-admin-bar-"+n+">a,#wp-admin-bar-"+n+"-all>a,#wp-admin-bar-"+n+"-reset>a");if(!a){return;}'
+            . 'if(!window.confirm(a.parentNode.id==="wp-admin-bar-"+n+"-reset"?t.reset:t.screen)){e.preventDefault();}'
+            . '});})(' . wp_json_encode(self::NODE) . ',' . wp_json_encode($i18n) . ');';
+        wp_add_inline_script('admin-bar', $js);
     }
 
     /**
