@@ -29,8 +29,11 @@ class SEOProStack_List_Columns extends SEOProStack_Feature {
 
     const KEY = 'list_columns';
 
-    /** Script handle. */
+    /** Script and style handle. */
     const HANDLE = 'seoprostack-list-columns';
+
+    /** Class the script puts on a list once fitted (also in the script). */
+    const FITTED = 'seoprostack-fitted';
 
     /**
      * Settings.
@@ -61,6 +64,12 @@ class SEOProStack_List_Columns extends SEOProStack_Feature {
 
     /**
      * The script, on screens with a list table. It does nothing elsewhere.
+     *
+     * It loads in the page head so that it can fit each list before the
+     * browser paints it with squeezed columns. Until then the list is
+     * hidden; if the script never gets to it, the list shows after two
+     * seconds anyway. Without JavaScript (no `js` class on the body) the
+     * list shows as WordPress lays it out.
      */
     public static function assets() {
         $screen = function_exists('get_current_screen') ? get_current_screen() : null;
@@ -69,6 +78,14 @@ class SEOProStack_List_Columns extends SEOProStack_Feature {
         }
         $file = 'admin/js/seoprostack-list-columns.js';
         $ver  = file_exists(SEOPROSTACK_DIR . $file) ? (string) filemtime(SEOPROSTACK_DIR . $file) : SEOPROSTACK_VERSION;
-        wp_enqueue_script(self::HANDLE, SEOPROSTACK_URL . $file, array(), $ver, true);
+        wp_enqueue_script(self::HANDLE, SEOPROSTACK_URL . $file, array(), $ver, false);
+
+        wp_register_style(self::HANDLE, false, array(), $ver);
+        wp_enqueue_style(self::HANDLE);
+        wp_add_inline_style(
+            self::HANDLE,
+            'body.js table.wp-list-table.fixed:not(.' . self::FITTED . '){visibility:hidden;animation:seoprostack-list-show 0s 2s forwards}'
+            . '@keyframes seoprostack-list-show{to{visibility:visible}}'
+        );
     }
 }
