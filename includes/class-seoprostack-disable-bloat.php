@@ -213,6 +213,7 @@ class SEOProStack_Disable_Bloat {
             'admin_disable_features'         => __('WooCommerce Admin features', 'seoprostack'),
             'marketing_disable'              => __('Disable WooCommerce Marketing Hub', 'seoprostack'),
             'hide_payment_providers'         => __('Hide payment providers', 'seoprostack'),
+            'woo_merchant_email_notifications' => __('WooCommerce merchant emails', 'seoprostack'),
             'wc_blocks_backend_disable'      => __('Disable WooCommerce blocks in the editor', 'seoprostack'),
             'wc_blocks_frontend_disable'     => __('Disable WooCommerce block styles', 'seoprostack'),
             'password_meter_disable'         => __('Disable the password strength meter', 'seoprostack'),
