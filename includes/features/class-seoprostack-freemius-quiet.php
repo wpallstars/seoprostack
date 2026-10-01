@@ -67,10 +67,12 @@ class SEOProStack_Freemius_Quiet extends SEOProStack_Feature {
         if (!self::enabled() || !is_admin()) {
             return;
         }
-        // admin_menu runs before admin_init and builds Freemius's menu
-        // entries; admin_init (priority 10) adds its links, notices and
-        // redirect. Both run filter(), so instances made late are caught.
+        // admin_menu (network_admin_menu in the network admin) runs before
+        // admin_init and builds Freemius's menu entries; admin_init
+        // (priority 10) adds its links, notices and redirect. Each runs
+        // filter(), so instances made late are caught.
         add_action('admin_menu', array(__CLASS__, 'filter'), 0);
+        add_action('network_admin_menu', array(__CLASS__, 'filter'), 0);
         add_action('admin_init', array(__CLASS__, 'filter'), 0);
         if (!wp_doing_ajax()) {
             // After Freemius's own admin_init hooks have added the dialogs.
