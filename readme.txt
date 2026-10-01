@@ -113,6 +113,9 @@ Copies from WordPress.org update from there. New versions come out on GitHub fir
 
 == Changelog ==
 
+= Unreleased =
+* Change: Freesoul Deactivate Plugins is no longer recommended.
+
 = 0.7.0 =
 * New, off by default: Ask before licence checks.
 * New: presets for eight more plugins, applied setting by setting; starter data for FluentCRM and Fluent Boards.
