@@ -1,0 +1,21 @@
+{
+    "name": "Fluent Boards",
+    "tested": "2.1.0",
+    "updated": "2026-10-01",
+    "notes": "One board for the website, where the team and clients put requests and feedback. Work moves from To-Do to In Progress, then to Done (please check) so the person who asked can confirm, and only then to Closed. Add more boards the same way: one per area of work, with a check step before Closed.",
+    "items": {
+        "fluentboards_boards": [
+            {
+                "title": "Website",
+                "type": "to-do",
+                "description": "Plans, requests and feedback on the website's design, features and user experience.",
+                "stages": [
+                    { "title": "To-Do" },
+                    { "title": "In Progress" },
+                    { "title": "Done (please check)" },
+                    { "title": "Closed", "closed": true }
+                ]
+            }
+        ]
+    }
+}

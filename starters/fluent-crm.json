@@ -1,0 +1,80 @@
+{
+    "name": "FluentCRM",
+    "tested": "3.2.5",
+    "updated": "2026-10-01",
+    "notes": "Lists say where a contact came from: one per form or source, named after it (Website Contact Form, Website Newsletter Subscription Form). Tags say who the contact is to you (Customer / Client, Supplier, Staff) and what they are on the website (Website User, Website Editor). Keep both rules when you add more, so any contact's lists and tags read as a short history. Role-based tagging (FluentCRM Pro) tags contacts by their WordPress role. Shop customers and course students (FluentCRM Pro) go to their own list and tag as pending, not subscribed. Signing up from comments, checkout and registration stays off; turn it on in FluentCRM, Settings, and pick the list named after that source.",
+    "items": {
+        "fluentcrm_lists": [
+            { "slug": "website-contact-form", "title": "Website Contact Form" },
+            { "slug": "website-booking-form", "title": "Website Booking Form" },
+            { "slug": "website-newsletter-subscription-form", "title": "Website Newsletter Subscription Form" },
+            { "slug": "data-subject-access-request-form", "title": "Data Subject Access Request Form" },
+            { "slug": "website-user-registration-form", "title": "Website User Registration Form" },
+            { "slug": "website-post-comment-form", "title": "Website Post Comment Form" },
+            { "slug": "website-shop-customers", "title": "Website Shop Customers", "when": "woocommerce" },
+            { "slug": "website-course-free-subscription", "title": "Website Course Free Subscription", "when": "tutor" },
+            { "slug": "website-course-paid-subscription", "title": "Website Course Paid Subscription", "when": "tutor" }
+        ],
+        "fluentcrm_tags": [
+            { "slug": "quote-requested", "title": "Quote Requested" },
+            { "slug": "customer-client", "title": "Customer / Client" },
+            { "slug": "vip", "title": "VIP" },
+            { "slug": "supplier", "title": "Supplier" },
+            { "slug": "partner", "title": "Partner" },
+            { "slug": "distributor", "title": "Distributor" },
+            { "slug": "reseller", "title": "Reseller" },
+            { "slug": "job-applicant", "title": "Job Applicant" },
+            { "slug": "staff", "title": "Staff" },
+            { "slug": "employee", "title": "Employee" },
+            { "slug": "contractor", "title": "Contractor" },
+            { "slug": "website-user", "title": "Website User" },
+            { "slug": "website-newsletter-subscriber", "title": "Website Newsletter Subscriber" },
+            { "slug": "website-commenter", "title": "Website Commenter" },
+            { "slug": "website-contributor", "title": "Website Contributor" },
+            { "slug": "website-author", "title": "Website Author" },
+            { "slug": "website-editor", "title": "Website Editor" },
+            { "slug": "website-admin", "title": "Website Admin" },
+            { "slug": "website-shop-manager", "title": "Website Shop Manager", "when": "woocommerce" },
+            { "slug": "website-course-student", "title": "Website Course Student", "when": "tutor" },
+            { "slug": "website-tutor", "title": "Website Tutor", "when": "tutor" }
+        ],
+        "fluentcrm_contact_fields": [
+            { "slug": "company", "label": "Company", "type": "text" },
+            { "slug": "role", "label": "Role", "type": "text" },
+            { "slug": "website", "label": "Website", "type": "text" }
+        ],
+        "fluentcrm_settings": [
+            {
+                "option": "role_based_tagging_settings",
+                "value": {
+                    "status": "yes",
+                    "tag_mappings": {
+                        "administrator": { "add_tags": ["staff", "website-admin", "website-user"] },
+                        "editor": { "add_tags": ["staff", "website-editor", "website-user"] },
+                        "author": { "add_tags": ["staff", "website-author", "website-user"] },
+                        "contributor": { "add_tags": ["website-contributor", "website-user"] },
+                        "subscriber": { "add_tags": ["website-newsletter-subscriber", "website-user"] },
+                        "customer": { "add_tags": ["customer-client", "website-user"] },
+                        "shop_manager": { "add_tags": ["staff", "website-shop-manager", "website-user"] },
+                        "tutor_instructor": { "add_tags": ["staff", "website-tutor", "website-user"] }
+                    }
+                },
+                "tags": ["tag_mappings.*.add_tags"]
+            },
+            {
+                "option": "_woo_sync_settings",
+                "when": "woocommerce",
+                "value": { "tags": ["customer-client"], "lists": ["website-shop-customers"], "contact_status": "pending" },
+                "tags": ["tags"],
+                "lists": ["lists"]
+            },
+            {
+                "option": "_tutorlms_sync_settings",
+                "when": "tutor",
+                "value": { "tags": ["website-course-student"], "lists": ["website-course-free-subscription"], "contact_status": "pending" },
+                "tags": ["tags"],
+                "lists": ["lists"]
+            }
+        ]
+    }
+}
