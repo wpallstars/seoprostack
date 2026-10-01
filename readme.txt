@@ -49,7 +49,7 @@ Everything is off by default except two: Hide admin bar items, which hides Comme
 * **410 Gone for removed pages**: tell search engines that removed addresses are gone for good.
 * **Short addresses for custom post types**: serve products and other custom post types at /item-name/ instead of /product/item-name/. Old addresses redirect, and pages keep their address when names clash.
 * **Short links**: short addresses on your site, such as /go/offer/, that send visitors elsewhere with a 301, 302 or 307 redirect, with nofollow and sponsored options, categories and click counts. Starts with Google, Facebook and Trustpilot review links to point at your own review pages. Imports links, click counts and categories from Pretty Links.
-* **Speed**: load pages before the click (Speculation Rules), on the site and optionally in the admin, delay chosen scripts until interaction, and add Google Analytics 4 without slowing the page.
+* **Speed**: load pages before the click (Speculation Rules), on the site and optionally in the admin, delay chosen scripts until interaction, add Google Analytics 4 without slowing the page, and open the block editor faster with Kadence Blocks by loading its design library only when you open it.
 * **Plugins menu in the admin bar**: a plugin icon on the right of the admin bar lists every plugin. Switch any plugin on or off after confirming, then return to the page you were on.
 * **Plugin sizes**: a Size column on the Plugins screen shows each plugin’s PHP, JavaScript, CSS, media and other files, measured in the background and sortable, with totals for installed and active plugins below the list.
 * **Hosting needs**: checks whether your hosting fits the site and what to ask your host for: OPcache room for the PHP code your plugins and theme can load, the PHP memory limit against the most memory a request used in the last 7 days, and the memory each PHP worker needs. A table suggests hosting to buy for low, medium and high traffic and for the traffic measured now (PHP workers, RAM, CPU cores and object cache), from the site’s own memory use, request times and database, saying what it assumes. Shown below the plugin list and in Tools → Site Health. Nothing is sent anywhere.
@@ -138,6 +138,7 @@ Copies installed from WordPress.org update from WordPress.org. New versions are 
 == Changelog ==
 
 = Unreleased =
+* New, off by default: Faster editor with Kadence Blocks (Speed tab) loads Kadence’s design library when you open it, instead of in every editor page. On a test site the new post screen went from about 24 MB to under 9 MB.
 * New: Free Plugins installs, activates, deactivates and uninstalls plugins without leaving the page. Activate becomes Deactivate, and a deactivated plugin offers Uninstall. It uses the full screen width, and its categories stay on one line.
 * New: the All view in Free Plugins lists every recommended plugin by category, with checkboxes and bulk actions (Install and activate, Install, Activate, Deactivate, Uninstall) for setting up new sites quickly.
 * New, off by default: Tidy the dashboard (Admin tab) lays out the Dashboard the same way on every site, hides the Welcome panel, news and plugin promotions, and shows Site Health to developers only and statistics to people who can publish.
