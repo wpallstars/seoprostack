@@ -12,6 +12,9 @@
  * they were added; earlier versions float them right, so the first added
  * is furthest right. The order is built for whichever applies.
  *
+ * Also adds a star next to the account menu that opens SEO Pro Stack's
+ * settings, for people who can change them.
+ *
  * @package SEOProStack
  * @since 0.4.0
  */
@@ -24,6 +27,54 @@ final class SEOProStack_Admin_Bar {
 
     /** WordPress's own right-hand items, which keep their places. */
     const CORE = array('my-account', 'recovery-mode', 'search');
+
+    /** The star that opens SEO Pro Stack's settings. */
+    const STAR = 'seoprostack-settings';
+
+    /**
+     * Register hooks.
+     */
+    public static function init() {
+        add_action('admin_bar_init', array(__CLASS__, 'star_init'));
+    }
+
+    /**
+     * Add the star for people who can change SEO Pro Stack's settings.
+     */
+    public static function star_init() {
+        if (is_network_admin() || !SEOProStack_Settings::can_change()) {
+            return;
+        }
+        /**
+         * Filter whether the admin bar shows a star that opens SEO Pro
+         * Stack's settings.
+         *
+         * @param bool $show Whether to show it.
+         */
+        if (!apply_filters('seoprostack_admin_bar_star', true)) {
+            return;
+        }
+        add_action('admin_bar_menu', array(__CLASS__, 'star'), 100);
+        // Nearest the account menu, to the right of the plugins menu.
+        self::pin(self::STAR, -1);
+        $node = '#wpadminbar #wp-admin-bar-' . self::STAR;
+        wp_add_inline_style('admin-bar', "{$node}>.ab-item .ab-icon{margin-right:0}{$node}>.ab-item .ab-icon:before{content:\"\\f155\";top:2px}");
+    }
+
+    /**
+     * The star.
+     *
+     * @param WP_Admin_Bar $bar Admin bar.
+     */
+    public static function star($bar) {
+        $bar->add_node(array(
+            'id'     => self::STAR,
+            'parent' => 'top-secondary',
+            'title'  => '<span class="ab-icon" aria-hidden="true"></span><span class="screen-reader-text">' . esc_html__('SEO Pro Stack', 'seoprostack') . '</span>',
+            'href'   => admin_url('options-general.php?page=seoprostack'),
+            'meta'   => array('title' => __('SEO Pro Stack', 'seoprostack')),
+        ));
+    }
 
     /**
      * Pinned node ID => rank (0 is nearest to WordPress's own items).
