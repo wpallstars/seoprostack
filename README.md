@@ -135,6 +135,18 @@ Moves plugin and theme notices behind a bell at the right of the admin bar, so p
 - Add the class `sps-keep` to a notice to keep it on the page.
 - **Show example notices** (off by default) adds one notice of each kind to every admin screen for administrators, to see where they go: information, success, warning and error behind the bell, and one with `sps-keep` on the page. Reload the page after changing it.
 
+### Quiet Freemius prompts (Admin)
+
+Freemius is a sales and licensing kit that some plugins bundle, such as WP Sheet Editor and its add-ons and Git Updater. Each copy asks for attention on its own: an “Opt in to make … better!” notice on every admin screen, Opt In, Upgrade and Add-Ons links on the Plugins screen, trial and affiliate offers, a jump to its opt-in page when the plugin is activated, and a “Quick feedback” survey when it is deactivated. The Plugins screen carries a hidden copy of the survey or opt-in dialog for each of them.
+
+This turns those prompts off. On a test site with six such plugins, the five opt-in notices went from every screen, the Opt In and Upgrade links from the Plugins screen, and the hidden dialogs there from nine to two (Git Updater’s licence dialogs). Deactivating goes straight through, and activating stays on the Plugins screen.
+
+- Freemius itself still loads: the plugins call it to check licences and build their menus, so stopping it would break them. Only its prompts are turned off, through the per-plugin filters Freemius provides.
+- Nothing is saved in the other plugins: none is opted in or out, and turning this off brings every prompt back.
+- Kept: licence activation and its dialogs, the Account, Contact Us and Support pages, licence, trial-ending and payment notices, Opt Out for plugins you opted in to, and “Complete activation now” for plugins that only work with a licence.
+- A plugin that has not been opted in or skipped yet still shows its opt-in page in place of its own first screen. Choose **Skip** there once; the plugin keeps that choice.
+- Upgrade links that plugins add themselves, without Freemius, are not touched. Organise the admin menu leaves many of them out of the menu.
+
 ### More menu in the admin bar (Admin)
 
 When many plugins add items to the admin bar, it wraps onto a second line that covers the top of the page and makes it hard to click. With this on, the items plugins and themes add to the left of the bar go into one **…** menu, last on the left side: after WordPress’s own items (+ New, Edit and the like) and any items you keep on the bar, in wp-admin and on the site. Point at **…** to open it, like the other admin bar menus; it closes when you move away. Moved items keep their own submenus.
@@ -578,6 +590,7 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folder�
 
 ### Unreleased
 
+- New, off by default: Quiet Freemius prompts (Admin tab) turns off the opt-in notices, Opt In, Upgrade and Add-Ons links, trial and affiliate offers, activation redirect and deactivation survey of plugins that bundle Freemius, through Freemius’s own `fs_{tag}_{plugin}` filters, and removes the survey and opt-out dialogs it prints on the Plugins screen for plugins that are not opted in. Nothing is stored in Freemius or the other plugins. On a test site with six Freemius plugins, the Plugins screen went from nine hidden Freemius dialogs, five notices and three Freemius stylesheets to two dialogs (Git Updater’s licence ones), no notices and two stylesheets.
 - New: Load plugins only where needed can also skip chosen plugins on the site (**Plugins to skip on the site**, off until you tick plugins, and **Also skip them for people who are logged in**). One page view with every plugin notes what each plugin adds to the site, shown next to each plugin; plugins that change logins or replace WordPress functions, and plugins a loading plugin needs, always load. Only plain page views skip plugins. A page that fails while plugins are skipped makes the whole site load every plugin until the list is saved again. On a test site with 85 active plugins and 15 admin tools ticked, 14 pages (posts, pages, shop, courses, events, archives, search, 404, feed, sitemap and robots.txt) gave the same output with and without them. New `seoprostack_plugin_front` and `seoprostack_plugin_front_lock` options, removed on uninstall.
 - Changed: with Load plugins only where needed, SEO Pro Stack’s own settings no longer load every plugin. They load the plugins whose public post types, taxonomies or widgets the settings offer as choices, plugins that change permissions and plugins that use `seoprostack_*` hooks. On a test site with 85 active plugins, every tab went from 2.0–4.2 seconds and about 4.5 MB to 1.2–1.8 seconds and 2.9 MB with 30 plugins, showing the same settings, choices, text and menu. SEO Pro Stack now reads the stored list of active plugins wherever it shows or decides what is active, so plugins skipped on a screen still count as active (replaced plugins, the Plugin loading list, Free Plugins, Plugin sizes, Hosting needs, More menu sources and Git Updater). What every screen needs is learned again once after updating.
 - Fixed: Tidy the dashboard forgot dashboard widgets of plugins skipped on the Dashboard, so they were no longer offered to hide.
