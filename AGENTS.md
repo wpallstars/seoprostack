@@ -24,8 +24,11 @@ Minimums: **WordPress 6.2, PHP 7.4** (`readme.txt`, plugin header). User docs:
   `maybe_migrate()` docblock.
 - New options, post meta, transients or cron hooks must be removed in
   `uninstall.php`.
-- Update `README.md` (feature section, hooks, changelog) and `readme.txt`
-  (description, privacy if it contacts a service, changelog) in the same change.
+- Update `README.md` (feature section, hooks, changelog), `changelog.txt`
+  (the user-facing changelog entry) and `readme.txt` in the same change.
+  `readme.txt` must stay under 10 KB for WordPress.org: one short line per
+  feature, every service the plugin contacts under External services, and only
+  the newest version's changelog, in short. Details go in `README.md`.
 
 ## Code rules
 

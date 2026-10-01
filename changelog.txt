@@ -1,0 +1,72 @@
+== Changelog ==
+
+Every change to SEO Pro Stack. readme.txt lists the latest version in short.
+
+= Unreleased =
+* New, off by default: Faster editor with Kadence Blocks (Speed tab) loads Kadence’s design library when you open it, instead of in every editor page. On a test site the new post screen went from about 24 MB to under 9 MB.
+
+= 0.5.0 =
+* New: Free Plugins installs, activates, deactivates and uninstalls plugins without leaving the page. Activate becomes Deactivate, and a deactivated plugin offers Uninstall. It uses the full screen width, and its categories stay on one line.
+* New: the All view in Free Plugins lists every recommended plugin by category, with checkboxes and bulk actions (Install and activate, Install, Activate, Deactivate, Uninstall) for setting up new sites quickly.
+* New, off by default: Tidy the dashboard (Admin tab) lays out the Dashboard the same way on every site, hides the Welcome panel, news and plugin promotions, and shows Site Health to developers only and statistics to people who can publish.
+* New: copies installed from GitHub releases get updates from GitHub through the free Git Updater plugin. A notice, and Free Plugins, offer to install and activate it in one click.
+* New, off by default, GitHub copies only: Early updates from GitHub (Maintenance tab) keeps the site on GitHub releases, which come out before WordPress.org.
+* New: a star in the admin bar, next to your name, opens SEO Pro Stack’s settings, for people who can change them.
+* New, off by default: Organise the admin menu (Admin tab) groups the menu into sections, with Administrators and Developers menus and Users under Admin, the same way on every site, with places chosen from a list, sections that can fold and role previews, with client safeguards for people who are not developers (on by default). Replaces Admin Menu Editor.
+* New, off by default: More menu in the admin bar (Admin tab) puts the items plugins and themes add to the left of the admin bar in one … menu, last on that side, so the bar no longer wraps over the page. It opens on hover, like the other admin bar menus. Choose plugins whose items stay on the bar. On phones the menu also reaches plugin items WordPress hides there.
+* New, on by default: Hide admin bar items (Admin tab) removes WordPress items you do not use from the admin bar, for everyone. Comments and + New are ticked by default. Switch it off to keep every item.
+* New, on by default: No fade between admin screens (Admin tab) stops the fade WordPress 7.0 added between wp-admin screens, which can flash, so screens change straight away. Switch it off to keep the fade.
+* New: Load pages before the click can also preload admin screens (off by default). Only the page is downloaded, and links that change something are skipped.
+* Change: Hide the admin bar and Block dashboard access no longer offer Administrator, since administrators are never affected.
+* Change: roles that plugins add, such as WooCommerce’s Customer, are ticked in Hide the admin bar and Block dashboard access unless they can write posts. With WooCommerce, blocked users go to My Account unless you chose another page.
+* Change: on new sites, SVG uploads also allows authors, contributors and shop managers, and watermarks are 10% of the picture. Existing settings are kept.
+* Change: Resize large uploads no longer imports Imsanity’s default limit (1920), so 2560 is used.
+* Change: the Plugins menu always sits next to the account menu in the admin bar, with the notices bell to its left and other plugins’ items further left.
+* Change: the notices bell is on every admin screen, with a white dot instead of a count while there are notices, so nothing on the admin bar moves as the page loads. With no notices, its panel says so.
+* New: with Load plugins only where needed, the notices of plugins a screen skips are kept and shown behind the bell there, so they can be read and dismissed from any screen.
+* Fix: only notices are kept from skipped plugins, so buttons a plugin prints above its own list (such as Kadence Blocks’ Export All and Import) no longer appear on the Dashboard and other screens.
+* Change: the notices panel opens when you point at the bell and closes when you move away, like the other admin bar menus.
+* Change: the notices bell, the Plugins icon and the More menu no longer show a tooltip over their open menus. Screen readers still announce them.
+* New: with Load plugins only where needed, the admin bar can also check every screen again. Both reload options ask first and explain what will happen.
+* New, off by default: Hosting needs (Plugins tab) shows whether your hosting fits the site, with the OPcache and PHP memory settings to ask your host for, the memory each PHP worker needs, and hosting to buy for low, medium and high traffic and for the traffic measured now. Shown below the plugin list, as two Site Health tests and on the Site Health Info tab.
+* New: Short links starts you with /googlereview/, /facebookreview/ and /trustpilotreview/ links in a Review Requests category. Point them at your own review pages, then use them in email signatures and review requests.
+
+= 0.4.0 =
+* Settings are grouped into Admin, Content, Media, Links and Speed tabs. Old links still open the right tab.
+* New: search features by name, description or the plugin they replace, and change them from the results.
+* New Plugins tab, all off by default: a Plugins menu in the admin bar (replaces Plugin Toggle), a Size column on the Plugins screen with totals for installed and active plugins, and cleanup of leftover entries for deleted plugins.
+* Free Plugins no longer lists Plugin Toggle or String Locator.
+* Free Plugins no longer lists EditorsKit, last updated in May 2024. WordPress and Kadence Blocks cover its features.
+* New, off by default: Hide admin notices moves plugin and theme notices behind a bell in the admin bar, with a count (replaces Hide Admin Notices). “Show example notices” adds one of each kind to try it.
+* New, off by default: Paste into the Media Library uploads pasted screenshots, pictures and files (replaces The Paste and imports its settings).
+* New, off by default: Avatars without Gravatar serves avatars from your own site, with profile picture uploads (replaces Avatar Privacy and copies its profile pictures).
+* New, off by default: SVG uploads (replaces Safe SVG), Resize large uploads (replaces Imsanity) and Replace media files (replaces Enable Media Replace), each importing that plugin’s settings.
+* New, off by default: WebP and AVIF images makes smaller copies of every picture and sends them to browsers that support them (replaces CompressX, imports its settings and reuses the copies it made).
+* New, off by default: Watermark pictures adds the site icon, logo or a chosen picture to uploaded pictures and keeps unmarked originals so watermarks can be removed (replaces Easy Watermark and imports its image watermark).
+* New, off by default: Short addresses for custom post types serves items at /item-name/ instead of /type/item-name/ and redirects the old addresses (replaces Remove CPT base and imports its post types).
+* New, off by default: Short links (Links tab) makes short addresses that redirect elsewhere, with categories and click counts (replaces Pretty Links: imports its links, click counts and categories, and its defaults for new links).
+* New, off by default: Load plugins only where needed (Plugins tab) makes wp-admin faster on sites with many plugins by loading ticked plugins only on the screens that need them. The Plugins menu in the admin bar shows how many loaded and can reload a screen with every plugin to check it again.
+* New, off by default: Website screenshots adds a Screenshot block and the `[browser-shot]` shortcode, with pictures saved to the Media Library and served from your site (replaces Browser Shots, whose shortcode and blocks keep working).
+* New, off by default: Spectra block replacements adds a Term list block and keeps pages built with Spectra working after it is deactivated, with a Convert button for its blocks in the editor (replaces Spectra).
+* Change: while a plugin that a feature replaces is active, the feature waits, so the two no longer run side by side (such as two Plugins menus, or analytics loaded twice). The card says so, with a deactivate link.
+* Change: Hide admin notices also moves inline notices printed above the page, notices inside other plugins’ wrappers, notices added by scripts while the page loads, and WooCommerce’s script-drawn notices.
+* Fix: `%date%` and `%day%` in Copy linked images’ file name and alt text patterns are no longer lost when saved.
+
+= 0.3.1 =
+* Free plugin lists show changes straight away instead of after the 12-hour cache expires.
+* The Flying Press card no longer recommends Flying Analytics, Flying Pages or Flying Scripts, which the Speed tab replaces.
+
+= 0.3.0 =
+* Renamed from WP Allstars to SEO Pro Stack. Settings are migrated automatically.
+* New: magic login links, publishing queue and iFrame block (all off by default).
+* New, replacing separate plugins and importing their settings: admin bar and dashboard access, widget control, notification emails, duplicate posts, staged new versions, shareable preview links, sticky posts for any post type, select all across pages, 410 Gone addresses, page preloading, delayed scripts and delayed Google Analytics.
+* New Speed tab.
+* Kadence links point to the current Kadence pages at Liquid Web.
+* Setting cards keep their rounded corners and “on” marker when hovered.
+* New admin screen with grouped tabs, instant-save setting cards, accessible switches and expandable options.
+* Settings stored in one option with automatic migration from earlier versions.
+* Modern admin colours switches live and updates your profile preference.
+* Auto upload images rewritten and renamed “Copy linked images to Media Library”: safer downloads, de-duplication, domain exclusions, resizing, name and alt patterns.
+* Free plugin cards use core install and activate buttons; theme installs in place.
+* Filterable Pro Plugins, Hosting and Tools directories.
+* Uninstall cleanup, including multisite.
