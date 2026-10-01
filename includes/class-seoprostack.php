@@ -24,6 +24,7 @@ final class SEOProStack {
         'SEOProStack_Admin_Access',
         'SEOProStack_Admin_Menu',
         'SEOProStack_Widget_Control',
+        'SEOProStack_Dashboard_Layout',
         'SEOProStack_Notification_Emails',
         'SEOProStack_Admin_Notices',
         'SEOProStack_Admin_Bar_More',
