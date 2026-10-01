@@ -14,5 +14,25 @@
             "evo_load_scripts_only_onevo": null,
             "evo_googlefonts": null
         }
+    },
+    "settings": {
+        "evcal_options_evcal_1.evo_load_scripts_only_onevo": {
+            "label": "Load eventON scripts and styles only on eventON pages",
+            "description": "Loads EventON’s scripts, styles and Google Maps only on pages with a calendar.",
+            "values": {
+                "yes": "Yes",
+                "no": "No",
+                "null": "No (not set)"
+            }
+        },
+        "evcal_options_evcal_1.evo_googlefonts": {
+            "label": "Disable google web fonts",
+            "description": "Stops loading the Google fonts EventON’s calendar uses.",
+            "values": {
+                "yes": "Yes",
+                "no": "No",
+                "null": "No (not set)"
+            }
+        }
     }
 }

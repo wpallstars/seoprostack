@@ -8,5 +8,17 @@
     },
     "defaults": {
         "litespeed.conf.news": "1"
+    },
+    "settings": {
+        "litespeed.conf.news": {
+            "label": "Notifications",
+            "description": "Shows LiteSpeed news in the admin: hotfixes, new releases, beta versions and promotions.",
+            "values": {
+                "1": "On",
+                "": "Off",
+                "0": "Off",
+                "null": "On (not set)"
+            }
+        }
     }
 }

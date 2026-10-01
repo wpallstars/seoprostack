@@ -16,5 +16,34 @@
             "enable_gravatar": null,
             "gravatar_fallback": null
         }
+    },
+    "settings": {
+        "_fluentcrm_compliance_settings.anonymize_ip": {
+            "label": "Anonymize IP addresses in activity logs",
+            "description": "Shortens visitors’ IP addresses before FluentCRM stores them.",
+            "values": {
+                "yes": "Enable",
+                "no": "Disable",
+                "null": "Disable (not set)"
+            }
+        },
+        "_fluentcrm_compliance_settings.enable_gravatar": {
+            "label": "Enable Gravatar Service",
+            "description": "Loads contacts’ photos from Gravatar, which sends a hash of each email to Gravatar.",
+            "values": {
+                "yes": "Enable",
+                "no": "Disable",
+                "null": "Enable (not set)"
+            }
+        },
+        "_fluentcrm_compliance_settings.gravatar_fallback": {
+            "label": "Use Gravatar fallback image",
+            "description": "Uses Gravatar’s picture for contacts without a photo.",
+            "values": {
+                "yes": "Enable",
+                "no": "Disable",
+                "null": "Enable (not set)"
+            }
+        }
     }
 }

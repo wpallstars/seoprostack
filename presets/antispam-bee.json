@@ -28,5 +28,88 @@
             "dashboard_count": null,
             "email_notify": null
         }
+    },
+    "settings": {
+        "antispam_bee.time_check": {
+            "label": "Consider the comment time",
+            "description": "Treats comments sent faster than a person can type as spam. Antispam Bee warns against it with page caching.",
+            "values": {
+                "1": "On",
+                "0": "Off",
+                "null": "Off (not set)"
+            }
+        },
+        "antispam_bee.regexp_check": {
+            "label": "Use regular expressions",
+            "description": "Checks comments against spam patterns.",
+            "values": {
+                "1": "On",
+                "0": "Off",
+                "null": "On (not set)"
+            }
+        },
+        "antispam_bee.spam_ip": {
+            "label": "Look in the local spam database",
+            "description": "Checks for spam already caught on this site.",
+            "values": {
+                "1": "On",
+                "0": "Off",
+                "null": "On (not set)"
+            }
+        },
+        "antispam_bee.already_commented": {
+            "label": "Trust approved commenters",
+            "description": "Does not check people with an approved comment.",
+            "values": {
+                "1": "On",
+                "0": "Off",
+                "null": "On (not set)"
+            }
+        },
+        "antispam_bee.bbcode_check": {
+            "label": "BBCode links are spam",
+            "description": "Treats comments with BBCode links as spam.",
+            "values": {
+                "1": "On",
+                "0": "Off",
+                "null": "On (not set)"
+            }
+        },
+        "antispam_bee.gravatar_check": {
+            "label": "Trust commenters with a Gravatar",
+            "description": "Sends a hash of each commenter’s email to Gravatar to check.",
+            "values": {
+                "1": "On",
+                "0": "Off",
+                "null": "Off (not set)"
+            }
+        },
+        "antispam_bee.dashboard_chart": {
+            "label": "Generate statistics as a dashboard widget",
+            "description": "A daily spam chart on the Dashboard.",
+            "values": {
+                "1": "On",
+                "0": "Off",
+                "null": "Off (not set)"
+            }
+        },
+        "antispam_bee.dashboard_count": {
+            "label": "Spam counter on the dashboard",
+            "description": "The number of spam comments caught, in At a Glance.",
+            "values": {
+                "1": "On",
+                "0": "Off",
+                "null": "Off (not set)"
+            }
+        },
+        "antispam_bee.email_notify": {
+            "label": "Spam-Notification by email",
+            "description": "Emails admins about each spam comment.",
+            "values": {
+                "1": "On",
+                "0": "Off",
+                "null": "Off (not set)"
+            }
+        }
     }
 }

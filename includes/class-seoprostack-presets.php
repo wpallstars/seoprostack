@@ -16,6 +16,12 @@
  * - defaults: the plugin's own values for the same settings, in the same
  *             form (null where the plugin stores nothing until a setting is
  *             changed). "Reset to defaults" writes them.
+ * - settings: optional, what each setting is called, for the Apply preset
+ *             dialog: setting path (option name, then keys, joined with
+ *             dots, as in differences()) => label (the plugin's own wording),
+ *             description (one short sentence) and values (stored value =>
+ *             what it means; "null" for not stored, "true"/"false" for
+ *             booleans, "" for an empty string).
  *
  * Secrets are never stored or changed: option names and keys that look like
  * licence keys, API keys, tokens, passwords or similar are skipped when a
@@ -105,7 +111,28 @@ final class SEOProStack_Presets {
             'notes'    => isset($preset['notes']) ? (string) $preset['notes'] : '',
             'options'  => array(),
             'defaults' => array(),
+            'settings' => array(),
         );
+        if (!empty($preset['settings']) && is_array($preset['settings'])) {
+            foreach ($preset['settings'] as $path => $about) {
+                if (!is_string($path) || !is_array($about)) {
+                    continue;
+                }
+                $values = array();
+                if (!empty($about['values']) && is_array($about['values'])) {
+                    foreach ($about['values'] as $value => $meaning) {
+                        if (is_scalar($meaning)) {
+                            $values[(string) $value] = (string) $meaning;
+                        }
+                    }
+                }
+                $clean['settings'][$path] = array(
+                    'label'       => isset($about['label']) && is_scalar($about['label']) ? (string) $about['label'] : '',
+                    'description' => isset($about['description']) && is_scalar($about['description']) ? (string) $about['description'] : '',
+                    'values'      => $values,
+                );
+            }
+        }
         foreach (array('options', 'defaults') as $set) {
             if (empty($preset[$set]) || !is_array($preset[$set])) {
                 continue;

@@ -14,5 +14,43 @@
         "woocommerce_feature_remote_logging_enabled": "yes",
         "woocommerce_show_marketplace_suggestions": "yes",
         "woocommerce_feature_order_attribution_enabled": "yes"
+    },
+    "settings": {
+        "woocommerce_allow_tracking": {
+            "label": "Enable tracking",
+            "description": "Sends WooCommerce usage data to WooCommerce.",
+            "values": {
+                "yes": "On",
+                "no": "Off",
+                "null": "Not set"
+            }
+        },
+        "woocommerce_feature_remote_logging_enabled": {
+            "label": "Remote Logging",
+            "description": "Sends error logs and diagnostic data to WooCommerce.",
+            "values": {
+                "yes": "On",
+                "no": "Off",
+                "null": "Not set"
+            }
+        },
+        "woocommerce_show_marketplace_suggestions": {
+            "label": "Show Suggestions",
+            "description": "Suggestions for extensions from WooCommerce.com, inside WooCommerce.",
+            "values": {
+                "yes": "On",
+                "no": "Off",
+                "null": "Not set"
+            }
+        },
+        "woocommerce_feature_order_attribution_enabled": {
+            "label": "Order Attribution",
+            "description": "Tracks which channels and campaigns lead to orders.",
+            "values": {
+                "yes": "On",
+                "no": "Off",
+                "null": "Not set"
+            }
+        }
     }
 }
