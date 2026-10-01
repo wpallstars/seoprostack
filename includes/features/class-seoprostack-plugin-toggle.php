@@ -154,12 +154,13 @@ class SEOProStack_Plugin_Toggle extends SEOProStack_Feature {
         $active_count = count(array_filter(wp_list_pluck($items, 'active')));
         /* translators: 1: active plugins, 2: all plugins */
         $summary = sprintf(__('Plugins: %1$d of %2$d active', 'seoprostack'), $active_count, count($items));
+        // No tooltip, like core's menus: it would cover the open list. Screen
+        // readers read the summary from the hidden text.
         $bar->add_node(array(
             'id'     => self::NODE,
             'parent' => 'top-secondary',
             'title'  => '<span class="ab-icon" aria-hidden="true"></span><span class="screen-reader-text">' . esc_html($summary) . '</span>',
             'href'   => self_admin_url('plugins.php'),
-            'meta'   => array('title' => $summary),
         ));
         $bar->add_group(array(
             'id'     => self::NODE . '-list',

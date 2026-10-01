@@ -179,6 +179,9 @@ class SEOProStack_Admin_Notices extends SEOProStack_Feature {
      * Add the bell to the right of the admin bar.
      *
      * It stays hidden until the script has moved notices into the panel.
+     * No tooltip, like core's menus: it would cover the open panel. Screen
+     * readers get the name from the hidden text, and the script's aria-label
+     * adds the count.
      *
      * @param WP_Admin_Bar $bar Admin bar.
      */
@@ -186,12 +189,9 @@ class SEOProStack_Admin_Notices extends SEOProStack_Feature {
         $bar->add_node(array(
             'id'     => self::NODE,
             'parent' => 'top-secondary',
-            'title'  => '<span class="ab-icon" aria-hidden="true"></span><span class="ab-label" aria-hidden="true">0</span>',
+            'title'  => '<span class="ab-icon" aria-hidden="true"></span><span class="ab-label" aria-hidden="true">0</span><span class="screen-reader-text">' . esc_html__('Notices', 'seoprostack') . '</span>',
             'href'   => '#',
-            'meta'   => array(
-                'class' => 'sps-notices-empty',
-                'title' => __('Notices', 'seoprostack'),
-            ),
+            'meta'   => array('class' => 'sps-notices-empty'),
         ));
     }
 
