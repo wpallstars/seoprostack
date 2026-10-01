@@ -123,10 +123,16 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
             add_action('admin_bar_menu', array(__CLASS__, 'admin_bar'), 999);
             add_action('admin_bar_init', array(__CLASS__, 'admin_bar_style'));
             add_action('admin_bar_init', array(__CLASS__, 'admin_bar_script'));
-        } elseif ('full' === $state['mode'] && current_user_can('manage_options')) {
-            add_action('admin_menu', array(__CLASS__, 'capture_menu'), PHP_INT_MAX);
-            add_action('adminmenu', array(__CLASS__, 'prune_menu'));
-            add_action('admin_footer', array(__CLASS__, 'learn'), PHP_INT_MAX);
+        } elseif ('full' === $state['mode']) {
+            // Say in the Plugins menu why this screen loads every plugin.
+            add_action('admin_bar_menu', array(__CLASS__, 'admin_bar_full'), 99);
+            add_action('admin_bar_init', array(__CLASS__, 'admin_bar_style'));
+            add_action('admin_bar_init', array(__CLASS__, 'admin_bar_script'));
+            if (current_user_can('manage_options')) {
+                add_action('admin_menu', array(__CLASS__, 'capture_menu'), PHP_INT_MAX);
+                add_action('adminmenu', array(__CLASS__, 'prune_menu'));
+                add_action('admin_footer', array(__CLASS__, 'learn'), PHP_INT_MAX);
+            }
         }
     }
 
@@ -671,14 +677,15 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
 
     /**
      * Plugins that add boxes, fields or editor features to a screen
-     * ("post", "terms", "list"; none for other screens).
+     * ("post", "terms", "list", "user", "tools", "media-new"; none for
+     * other screens).
      *
      * @param string $kind Screen kind.
      * @param string $name Post type or taxonomy.
      * @return string[]
      */
     private static function form_plugins($kind, $name) {
-        if (!in_array($kind, array('post', 'terms', 'list'), true)) {
+        if (!in_array($kind, array('post', 'terms', 'list', 'user', 'tools', 'media-new'), true)) {
             return array();
         }
         return self::plugins_on_hooks(function ($hook) use ($kind, $name) {
@@ -907,6 +914,17 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
             'title'  => esc_html__('Reload with every plugin and check this screen again', 'seoprostack'),
             'href'   => $url,
         ));
+        self::reset_item($bar, $parent, $url);
+    }
+
+    /**
+     * The link that forgets what every screen needs and reloads this one.
+     *
+     * @param WP_Admin_Bar $bar    Admin bar.
+     * @param string       $parent Parent node or group.
+     * @param string       $url    This screen's address.
+     */
+    private static function reset_item($bar, $parent, $url) {
         // This screen without one-off args (removable_query_args() adds the load-all one).
         $here = remove_query_arg(wp_removable_query_args(), $url);
         $bar->add_node(array(
@@ -952,6 +970,54 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
             )),
         ));
         self::reload_item($bar, $group, $url);
+    }
+
+    /**
+     * On a screen that loads every plugin, say why at the top of the
+     * Plugins menu, so it is clear the setting is working. Without that
+     * menu nothing is added: these screens look as they would without the
+     * setting.
+     *
+     * @param WP_Admin_Bar $bar Admin bar.
+     */
+    public static function admin_bar_full($bar) {
+        if (!current_user_can('activate_plugins')) {
+            return;
+        }
+        $state = SEOProStack_Plugin_Loader::state();
+        $total = count($state['active']);
+        switch ($state['reason']) {
+            case 'learning':
+                /* translators: %d: active plugins */
+                $title = _n('%d plugin loaded while SEO Pro Stack checks this screen', 'All %d plugins loaded while SEO Pro Stack checks this screen', $total, 'seoprostack');
+                break;
+            case 'error':
+                /* translators: %d: active plugins */
+                $title = _n('%d plugin loads here: a plugin failed when fewer were loaded', 'All %d plugins load here: a plugin failed when fewer were loaded', $total, 'seoprostack');
+                break;
+            case 'needed':
+                /* translators: %d: active plugins */
+                $title = _n('%d plugin loaded: this screen needs it', 'All %d plugins loaded: this screen needs them all', $total, 'seoprostack');
+                break;
+            default:
+                /* translators: %d: active plugins */
+                $title = _n('This screen always loads its %d plugin', 'This screen always loads all %d plugins', $total, 'seoprostack');
+        }
+        $group = self::NODE . '-menu';
+        $bar->add_group(array(
+            'id'     => $group,
+            'parent' => SEOProStack_Plugin_Toggle::NODE,
+        ));
+        $bar->add_node(array(
+            'id'     => self::NODE . '-count',
+            'parent' => $group,
+            'title'  => esc_html(sprintf($title, $total)),
+        ));
+        if ('error' === $state['reason']) {
+            // Checking every screen again also clears this screen's mark.
+            $uri = isset($_SERVER['REQUEST_URI']) ? esc_url_raw(wp_unslash($_SERVER['REQUEST_URI'])) : '';
+            self::reset_item($bar, $group, $uri);
+        }
     }
 
     /**
