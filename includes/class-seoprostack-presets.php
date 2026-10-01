@@ -401,7 +401,9 @@ final class SEOProStack_Presets {
             }
             return;
         }
-        if (is_array($wanted) && !self::is_list($wanted) && is_array($current)) {
+        if (is_array($wanted) && !self::is_list($wanted) && (is_array($current) || null === $current)) {
+            // Not stored yet counts as empty, so each setting is listed on its own.
+            $current = (array) $current;
             foreach ($wanted as $key => $value) {
                 if (!self::is_secret($key)) {
                     self::diff_into($diffs, $path . '.' . $key, array_key_exists($key, $current) ? $current[$key] : null, $value);
@@ -429,10 +431,11 @@ final class SEOProStack_Presets {
         if (isset($chosen[$path])) {
             return array($wanted);
         }
-        if (!is_array($wanted) || self::is_list($wanted) || !is_array($current)) {
+        if (!is_array($wanted) || self::is_list($wanted) || !(is_array($current) || null === $current)) {
             return null;
         }
-        $part = array();
+        $current = (array) $current;
+        $part    = array();
         foreach ($wanted as $key => $value) {
             if (self::is_secret($key)) {
                 continue;

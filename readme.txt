@@ -115,7 +115,7 @@ Copies from WordPress.org update from there. New versions come out on GitHub fir
 
 = 0.7.0 =
 * New, off by default: Ask before licence checks.
-* New: presets for eight more plugins, applied setting by setting; starter data for FluentCRM and Fluent Boards.
+* New: presets for eight more plugins, applied setting by setting, each named in plain words; starter data for FluentCRM and Fluent Boards.
 * New: GitHub copies update without Git Updater; the Plugins screen lists plugins this one replaces.
 * New, on by default: Quiet Freemius prompts.
 * Change: Load plugins only where needed covers more screens and can skip admin tools on the site. Tidy the dashboard hides Debug Log Manager and WooCommerce Setup. Tutor LMS replaces MasterStudy LMS.
