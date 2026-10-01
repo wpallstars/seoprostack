@@ -55,6 +55,7 @@ function seoprostack_uninstall_site() {
     $options[] = 'seoprostack_watermark_dir';
     $options[] = 'seoprostack_cpt_base_taken';
     $options[] = 'seoprostack_short_links';
+    $options[] = 'seoprostack_short_links_presets';
     $options[] = 'seoprostack_plugin_map';
     $options[] = 'seoprostack_plugin_menu';
     $options[] = 'seoprostack_access_roles';

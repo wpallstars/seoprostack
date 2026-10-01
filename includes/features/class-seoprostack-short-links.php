@@ -9,7 +9,9 @@
  * - live links are kept in one small autoloaded option, so a request that
  *   is not a short link costs an array lookup and no query;
  * - clicks and unique visitors (a cookie per link) are counted after the
- *   redirect has been sent; known bots are not counted.
+ *   redirect has been sent; known bots are not counted;
+ * - three review links (/googlereview/, /facebookreview/, /trustpilotreview/)
+ *   are added once, pointing at placeholders until the site owner sets them.
  *
  * Replaces "Pretty Links": imports its links with their click counts and
  * categories (button, WP-CLI, or when Pretty Links is deactivated) and its
@@ -48,6 +50,9 @@ class SEOProStack_Short_Links extends SEOProStack_Feature {
 
     /** Seconds an import in the admin may run; the rest follows next time. */
     const IMPORT_BUDGET = 20;
+
+    /** Option: the starter review links were added (once per site). */
+    const PRESETS_OPTION = 'seoprostack_short_links_presets';
 
     /**
      * Whether the map is rebuilt at the end of this request.
@@ -192,6 +197,7 @@ class SEOProStack_Short_Links extends SEOProStack_Feature {
         add_action('transition_post_status', array(__CLASS__, 'status_changed'), 10, 3);
         add_action('delete_post', array(__CLASS__, 'deleted'));
         if (is_admin()) {
+            add_action('admin_init', array(__CLASS__, 'maybe_add_presets'));
             add_action('admin_post_' . self::IMPORT, array(__CLASS__, 'handle_import'));
             add_action('add_meta_boxes_' . self::TYPE, array(__CLASS__, 'add_box'));
             add_action('save_post_' . self::TYPE, array(__CLASS__, 'save'), 10, 2);
@@ -598,6 +604,109 @@ class SEOProStack_Short_Links extends SEOProStack_Feature {
     }
 
     /* --------------------------------------------------------------------- */
+    /* Starter review links                                                   */
+    /* --------------------------------------------------------------------- */
+
+    /**
+     * Review links every site gets once: address, placeholder target, name
+     * and where to find the real target.
+     *
+     * @return array<string,array{slug:string,url:string,title:string,advice:string}>
+     */
+    public static function presets() {
+        return array(
+            'google'     => array(
+                'slug'   => 'googlereview',
+                'url'    => 'https://google.com',
+                'title'  => __('Google review', 'seoprostack'),
+                'advice' => __('Replace this with the link to your Google Business Profile’s review form. In your profile, choose Ask for reviews and copy the link.', 'seoprostack'),
+            ),
+            'facebook'   => array(
+                'slug'   => 'facebookreview',
+                'url'    => 'https://facebook.com',
+                'title'  => __('Facebook review', 'seoprostack'),
+                'advice' => __('Replace this with the link to your Facebook page’s reviews, such as https://www.facebook.com/yourpage/reviews.', 'seoprostack'),
+            ),
+            'trustpilot' => array(
+                'slug'   => 'trustpilotreview',
+                'url'    => 'https://trustpilot.com',
+                'title'  => __('Trustpilot review', 'seoprostack'),
+                'advice' => __('Replace this with the link to your Trustpilot review form, such as https://www.trustpilot.com/evaluate/example.com.', 'seoprostack'),
+            ),
+        );
+    }
+
+    /**
+     * Add the starter review links the first time someone who can add links
+     * opens the admin with the feature on. Deleted ones do not come back.
+     */
+    public static function maybe_add_presets() {
+        if (get_option(self::PRESETS_OPTION) || wp_doing_ajax()) {
+            return;
+        }
+        $type = get_post_type_object(self::TYPE);
+        if (!$type || !current_user_can($type->cap->create_posts)) {
+            return;
+        }
+        // Set first, so two admin requests at once do not both add them.
+        update_option(self::PRESETS_OPTION, 1, false);
+
+        // Addresses Pretty Links has and that are still to be imported.
+        $prli = array();
+        foreach (self::pretty_links_rows() as $row) {
+            $prli[self::key(self::clean_slug((string) $row['slug']))] = true;
+        }
+        $added = 0;
+        foreach (self::presets() as $preset => $link) {
+            $slug = $link['slug'];
+            if (isset($prli[self::key($slug)]) || self::slug_owner($slug) || self::page_at($slug)) {
+                continue;
+            }
+            $post_id = wp_insert_post(wp_slash(array(
+                'post_type'   => self::TYPE,
+                'post_status' => 'publish',
+                'post_title'  => $link['title'],
+                'post_author' => get_current_user_id(),
+                'meta_input'  => array(
+                    self::META . 'slug'      => $slug,
+                    self::META . 'url'       => $link['url'],
+                    self::META . 'status'    => '302',
+                    self::META . 'nofollow'  => SEOProStack_Settings::get('short_links_nofollow') ? 1 : 0,
+                    self::META . 'sponsored' => 0,
+                    self::META . 'track'     => SEOProStack_Settings::get('short_links_track') ? 1 : 0,
+                    self::META . 'clicks'    => 0,
+                    self::META . 'uniques'   => 0,
+                    self::META . 'preset'    => $preset,
+                ),
+            )), true);
+            if (!is_wp_error($post_id) && $post_id) {
+                $added++;
+            }
+        }
+        if ($added) {
+            self::build_map();
+        }
+    }
+
+    /**
+     * Help under "Goes to" for a starter review link.
+     *
+     * @param int    $post_id Post ID.
+     * @param string $url     Current target.
+     * @return string Empty for other links.
+     */
+    private static function preset_advice($post_id, $url) {
+        $presets = self::presets();
+        $preset  = (string) get_post_meta($post_id, self::META . 'preset', true);
+        if (!isset($presets[$preset])) {
+            return '';
+        }
+        $share = __('Use this short link in your email signature and when you ask happy customers for a review.', 'seoprostack');
+        $same  = untrailingslashit(strtolower(trim($url))) === $presets[$preset]['url'];
+        return $same ? $presets[$preset]['advice'] . ' ' . $share : $share;
+    }
+
+    /* --------------------------------------------------------------------- */
     /* Edit screen                                                            */
     /* --------------------------------------------------------------------- */
 
@@ -659,6 +768,7 @@ class SEOProStack_Short_Links extends SEOProStack_Feature {
             $link['sponsored'] = (bool) SEOProStack_Settings::get('short_links_sponsored');
             $link['track']     = (bool) SEOProStack_Settings::get('short_links_track');
         }
+        $advice = $new ? '' : self::preset_advice($post->ID, $link['url']);
         wp_nonce_field('seoprostack_short_link_' . $post->ID, '_seoprostack_short_link');
         ?>
         <table class="form-table" role="presentation">
@@ -673,7 +783,12 @@ class SEOProStack_Short_Links extends SEOProStack_Feature {
             </tr>
             <tr>
                 <th scope="row"><label for="sps-link-url"><?php esc_html_e('Goes to', 'seoprostack'); ?></label></th>
-                <td><input type="url" id="sps-link-url" name="sps_link[url]" class="large-text code" value="<?php echo esc_attr($link['url']); ?>" placeholder="https://" required /></td>
+                <td>
+                    <input type="url" id="sps-link-url" name="sps_link[url]" class="large-text code" value="<?php echo esc_attr($link['url']); ?>" placeholder="https://" required<?php echo '' !== $advice ? ' aria-describedby="sps-link-url-help"' : ''; ?> />
+                    <?php if ('' !== $advice) : ?>
+                        <p class="description" id="sps-link-url-help"><?php echo esc_html($advice); ?></p>
+                    <?php endif; ?>
+                </td>
             </tr>
             <tr>
                 <th scope="row"><label for="sps-link-status"><?php esc_html_e('Redirect', 'seoprostack'); ?></label></th>
