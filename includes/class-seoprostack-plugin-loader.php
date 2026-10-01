@@ -13,7 +13,7 @@
  * and only once SEO Pro Stack has seen the screen with every plugin
  * loaded ("learning"). Everything else loads every plugin: saving
  * (POST), links carrying a nonce or an action, AJAX, REST, cron, WP-CLI,
- * the Plugins, update, settings, menus and widgets screens, the
+ * the Plugins, update, settings and widgets screens, the
  * Customizer, screens of plugins it does not know yet, and the site itself.
  *
  * A ticked plugin loads:
@@ -22,6 +22,12 @@
  * - on post, term, list, profile, user, Tools and media upload screens
  *   where it adds boxes, fields, blocks or editor features, or saves
  *   profile fields (learned per screen with every plugin loaded);
+ * - on the Dashboard when one of its boxes shows there (after Tidy the
+ *   dashboard has hidden the ones nobody sees);
+ * - on Appearance > Menus when it changes menus or their items there,
+ *   saves item fields, or owns a post type or taxonomy that can be added
+ *   to menus or is in one (every plugin when a skipped one adds a menu
+ *   location: check_menu_locations());
  * - on SEO Pro Stack's settings page when it registers a post type,
  *   taxonomy or widget, changes permissions or uses SEO Pro Stack's hooks
  *   (the settings offer those as choices);
@@ -72,7 +78,7 @@ final class SEOProStack_Plugin_Loader {
     const LIST_KEY   = 'plugin_loading_only';
 
     /** Map format; a change makes SEO Pro Stack learn again. */
-    const MAP_VERSION = 3;
+    const MAP_VERSION = 4;
 
     /** SEO Pro Stack's own settings page (Settings > SEO Pro Stack). */
     const SETTINGS_PAGE = 'seoprostack';
@@ -156,11 +162,24 @@ final class SEOProStack_Plugin_Loader {
         'plupload_default_settings', 'plupload_default_params', 'upload_ui_over_quota',
     );
 
+    /**
+     * Hooks that add fields, columns or boxes to Appearance > Menus, change
+     * menus or their items as shown there, or save them. Saving loads every
+     * plugin, so a plugin that saves item fields must show them too.
+     */
+    const MENU_HOOKS = array(
+        'wp_nav_menu_item_custom_fields', 'wp_edit_nav_menu_walker', 'wp_setup_nav_menu_item', 'nav_menu_meta_box_object',
+        'manage_nav-menus_columns', 'wp_update_nav_menu_item', 'wp_update_nav_menu', 'wp_add_nav_menu_item',
+        'wp_create_nav_menu', 'wp_get_nav_menu_items', 'wp_get_nav_menus', 'wp_get_nav_menu_object', 'wp_get_nav_menu_name',
+        'theme_mod_nav_menu_locations', 'pre_set_theme_mod_nav_menu_locations', 'wp_nav_menu_max_depth',
+    );
+
     /** wp-admin scripts of each screen kind learned from hooks. */
     const KIND_SCRIPTS = array(
         'user'      => array('profile.php', 'user-edit.php', 'user-new.php'),
         'tools'     => array('tools.php'),
         'media-new' => array('media-new.php'),
+        'menus'     => array('nav-menus.php'),
     );
 
     /**
@@ -168,7 +187,7 @@ final class SEOProStack_Plugin_Loader {
      * forms there keep every field. Hooks for other post types and
      * taxonomies do not count.
      *
-     * @param string $kind Screen kind: "post", "terms", "list", "user", "tools" or "media-new".
+     * @param string $kind Screen kind: "post", "terms", "list", "user", "tools", "media-new" or "menus".
      * @param string $name Post type or taxonomy of the screen.
      * @param string $hook Hook name.
      * @return bool
@@ -205,8 +224,11 @@ final class SEOProStack_Plugin_Loader {
                 return in_array($hook, self::TOOLS_HOOKS, true);
             case 'media-new':
                 return in_array($hook, self::UPLOAD_HOOKS, true);
+            case 'menus':
+                // Items of each kind in the Add menu items boxes: "nav_menu_items_{type}".
+                return in_array($hook, self::MENU_HOOKS, true) || 0 === strpos($hook, 'nav_menu_items_');
         }
-        return false; // Dashboard, comments, the users list, themes and About add no fields to forms.
+        return false; // Comments, the users list, themes and About add no fields to forms; Dashboard boxes are learned from the boxes themselves.
     }
 
     /**
@@ -228,8 +250,11 @@ final class SEOProStack_Plugin_Loader {
     const NEVER = array(
         'plugins.php', 'plugin-install.php', 'plugin-editor.php', 'update.php', 'update-core.php',
         'upgrade.php', 'customize.php', 'options.php', 'admin-post.php', 'admin-ajax.php',
-        'async-upload.php', 'site-health.php', 'import.php', 'export.php', 'widgets.php',
-        'nav-menus.php', 'theme-editor.php', 'site-editor.php',
+        'async-upload.php', 'site-health.php', 'import.php', 'export.php', 'theme-editor.php', 'site-editor.php',
+        // Opening Widgets saves the sidebars without widgets and sidebars
+        // that are not registered (retrieve_widgets()), so a skipped plugin's
+        // widgets would be dropped.
+        'widgets.php',
     );
 
     /** Read-only About screens: they need no plugin. */
@@ -354,6 +379,41 @@ final class SEOProStack_Plugin_Loader {
         // A page whose plugin was skipped is not registered: core would say
         // "not allowed". Load it again with every plugin instead.
         add_action('admin_page_access_denied', array(__CLASS__, 'reload_denied'), 0);
+        if ('menus' === self::$screen) {
+            add_action('load-nav-menus.php', array(__CLASS__, 'check_menu_locations'), 0);
+        }
+    }
+
+    /**
+     * Appearance > Menus without a menu location that was there with every
+     * plugin: a skipped plugin adds it. Saving a menu (which loads every
+     * plugin) would take the menu out of locations that were not shown, so
+     * the screen needs every plugin from now on. Reload it that way.
+     */
+    public static function check_menu_locations() {
+        if ('filter' !== self::$mode || !function_exists('get_registered_nav_menus')) {
+            return;
+        }
+        $learned = isset(self::$map['menu_locations']) ? (array) self::$map['menu_locations'] : array();
+        if (!array_diff($learned, array_keys(get_registered_nav_menus()))) {
+            return;
+        }
+        wp_cache_delete(self::MAP, 'options');
+        wp_cache_delete('alloptions', 'options');
+        $map = get_option(self::MAP, array());
+        $uri = isset($_SERVER['REQUEST_URI']) ? esc_url_raw(wp_unslash($_SERVER['REQUEST_URI'])) : '';
+        if ('' === $uri) {
+            return;
+        }
+        $saved = false;
+        if (self::map_is_current($map)) {
+            $map['screens'][self::$screen] = self::$raw;
+            $saved = get_option(self::MAP) === $map || update_option(self::MAP, $map, true);
+        }
+        // Not saved: this once, with every plugin.
+        if (wp_safe_redirect($saved ? $uri : add_query_arg(self::LOAD_ALL_ARG, '1', $uri))) {
+            exit;
+        }
     }
 
     /**
@@ -668,6 +728,10 @@ final class SEOProStack_Plugin_Loader {
                 return 'tools';
             case 'media-new.php':
                 return 'media-new';
+            // Appearance > Menus: learned from the plugins that change menus
+            // there (MENU_HOOKS) and own what can be added to them.
+            case 'nav-menus.php':
+                return 'menus';
         }
         // phpcs:enable
         return '';

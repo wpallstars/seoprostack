@@ -155,7 +155,7 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
                 'default'     => false,
                 'tab'         => 'plugins',
                 'label'       => __('Load plugins only where needed', 'seoprostack'),
-                'description' => __('Makes wp-admin faster on sites with many plugins. The plugins you tick load only on their own screens, and on post, term and list screens where they add boxes, fields or blocks. Elsewhere, such as the Dashboard, they do not load, so their boxes and notices do not show there (with Hide admin notices on, their notices still show behind the bell). The menu stays the same. Saving, background tasks, and the Plugins and settings screens always load every plugin. So does the site, unless you choose plugins to skip there.', 'seoprostack'),
+                'description' => __('Makes wp-admin faster on sites with many plugins. The plugins you tick load only on their own screens, on post, term and list screens where they add boxes, fields or blocks, and on the Dashboard when they show a box there. Elsewhere they do not load, so their notices do not show there (with Hide admin notices on, their notices still show behind the bell). To load fewer plugins on the Dashboard, hide their boxes with Tidy the dashboard or Hide dashboard widgets. The menu stays the same. Saving, background tasks, and the Plugins and settings screens always load every plugin. So does the site, unless you choose plugins to skip there.', 'seoprostack'),
             ),
             self::LIST_KEY => array(
                 'type'        => 'multi',
@@ -860,8 +860,13 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
 
         $screen = $state['screen'];
         if ('' !== $screen && 0 !== strpos($screen, 'page:')) {
-            list($kind, $name)       = array_pad(explode(':', $screen, 2), 2, '');
-            $map['screens'][$screen] = self::form_plugins($kind, $name);
+            list($kind, $name) = array_pad(explode(':', $screen, 2), 2, '');
+            if ('menus' === $kind) {
+                $map['screens'][$screen] = self::menu_plugins($map);
+                $map['menu_locations']   = array_keys(get_registered_nav_menus());
+            } else {
+                $map['screens'][$screen] = self::form_plugins($kind, $name);
+            }
         }
 
         if ($map !== $stored) {
@@ -1067,20 +1072,101 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
 
     /**
      * Plugins that add boxes, fields or editor features to a screen
-     * ("post", "terms", "list", "user", "tools", "media-new"; none for
-     * other screens).
+     * ("post", "terms", "list", "user", "tools", "media-new"), or boxes
+     * to the Dashboard ("dashboard"); none for other screens.
      *
      * @param string $kind Screen kind.
      * @param string $name Post type or taxonomy.
      * @return string[]
      */
     private static function form_plugins($kind, $name) {
-        if (!in_array($kind, array('post', 'terms', 'list', 'user', 'tools', 'media-new'), true)) {
+        if ('dashboard' === $kind) {
+            return self::dashboard_plugins();
+        }
+        if (!in_array($kind, array('post', 'terms', 'list', 'user', 'tools', 'media-new', 'menus'), true)) {
             return array();
         }
         return self::plugins_on_hooks(function ($hook) use ($kind, $name) {
             return SEOProStack_Plugin_Loader::screen_needs_hook($kind, $name, $hook);
         });
+    }
+
+    /**
+     * Plugins Appearance > Menus needs: those that add fields, columns or
+     * boxes there, change menus or their items, or save item fields (saving
+     * loads every plugin, so fields it saves must be in the form), and the
+     * owners of post types and taxonomies that can be added to menus or are
+     * already in one (without them, those items show as "Invalid").
+     * Plugins that add menu locations are caught when the screen is shown:
+     * see SEOProStack_Plugin_Loader::check_menu_locations().
+     *
+     * @param array $map Learned map.
+     * @return string[]
+     */
+    private static function menu_plugins(array $map) {
+        global $wpdb, $wp_meta_boxes;
+        $plugins = self::form_plugins('menus', '');
+
+        if (!empty($wp_meta_boxes['nav-menus']) && is_array($wp_meta_boxes['nav-menus'])) {
+            foreach ($wp_meta_boxes['nav-menus'] as $priorities) {
+                foreach ((array) $priorities as $boxes) {
+                    foreach ((array) $boxes as $box) {
+                        if (is_array($box) && !empty($box['callback'])) {
+                            $plugins[] = SEOProStack_Plugin_Loader::plugin_for_callback($box['callback']);
+                        }
+                    }
+                }
+            }
+        }
+
+        $types = get_post_types(array('show_in_nav_menus' => true));
+        $taxes = get_taxonomies(array('show_in_nav_menus' => true));
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- what menus hold now; read once while learning.
+        $used = (array) $wpdb->get_col("SELECT DISTINCT meta_value FROM {$wpdb->postmeta} WHERE meta_key = '_menu_item_object'");
+        foreach (array_merge(array_values($types), array_values($taxes), $used) as $object) {
+            foreach (array('types', 'taxes') as $list) {
+                if (!empty($map[$list][$object]) && is_string($map[$list][$object])) {
+                    $plugins[] = $map[$list][$object];
+                }
+            }
+        }
+
+        $self = plugin_basename(SEOPROSTACK_FILE);
+        return array_values(array_unique(array_filter($plugins, function ($plugin) use ($self) {
+            return is_string($plugin) && '' !== $plugin && $self !== $plugin;
+        })));
+    }
+
+    /**
+     * Plugins whose boxes show on the Dashboard: the widgets left once every
+     * plugin and Tidy the dashboard have added and removed theirs, as seen
+     * by the administrator learning the screen (who sees the most). Boxes
+     * someone hid in Screen Options still count: they can show them again.
+     *
+     * @return string[]
+     */
+    private static function dashboard_plugins() {
+        global $wp_meta_boxes;
+        $self    = plugin_basename(SEOPROSTACK_FILE);
+        $plugins = array();
+        if (empty($wp_meta_boxes['dashboard']) || !is_array($wp_meta_boxes['dashboard'])) {
+            return array();
+        }
+        foreach ($wp_meta_boxes['dashboard'] as $priorities) {
+            foreach ((array) $priorities as $boxes) {
+                foreach ((array) $boxes as $box) {
+                    // Removed boxes are left as false.
+                    if (!is_array($box) || empty($box['callback'])) {
+                        continue;
+                    }
+                    $plugin = SEOProStack_Plugin_Loader::plugin_for_callback($box['callback']);
+                    if ('' !== $plugin && $self !== $plugin) {
+                        $plugins[$plugin] = true;
+                    }
+                }
+            }
+        }
+        return array_keys($plugins);
     }
 
     /**
