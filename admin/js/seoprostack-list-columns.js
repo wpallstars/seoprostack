@@ -61,7 +61,8 @@
 			inner -= (parseFloat(s.paddingLeft) || 0) + (parseFloat(s.paddingRight) || 0) +
 				(parseFloat(s.borderLeftWidth) || 0) + (parseFloat(s.borderRightWidth) || 0);
 		}
-		cell.style.width = Math.max(0, Math.floor(inner)) + 'px';
+		// Rounded up: a fraction of a pixel short wraps the longest word.
+		cell.style.width = Math.max(0, Math.ceil(inner)) + 'px';
 		cell.setAttribute(MARK, '1');
 	}
 
