@@ -528,7 +528,7 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folderâ
 
 ## Changelog
 
-### Unreleased
+### 0.5.0
 
 - New: Free Plugins installs, activates, deactivates and uninstalls plugins without leaving the page. Activate becomes Deactivate, and a deactivated plugin offers Uninstall. A new **All** view lists every recommended plugin by category with checkboxes and bulk actions (Install and activate, Install, Activate, Deactivate, Uninstall) for setting up new sites quickly. A request that a just-activated plugin redirects to its welcome screen is retried once. Free Plugins uses the full screen width, and its categories stay on one line, scrolling sideways when they do not fit.
 - New, off by default: Tidy the dashboard (Admin tab) lays out the Dashboard the same way on every site: writing and activity first, then forms and email statistics, then visitors, SEO and the site. It hides the Welcome panel, WordPress news and plugin promotions, shows Site Health and Debug Log Manager to developers only and statistics to people who can publish, and shows no boxes to people who cannot edit posts. Boxes cannot be dragged unless Let people rearrange boxes is on. New `seoprostack_dashboard_layout` filter. No new options.

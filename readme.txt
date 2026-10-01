@@ -4,7 +4,7 @@ Tags: magic login, iframe, schedule posts, auto upload images, admin
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 0.4.0
+Stable tag: 0.5.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -137,7 +137,7 @@ Copies installed from WordPress.org update from WordPress.org. New versions are 
 
 == Changelog ==
 
-= Unreleased =
+= 0.5.0 =
 * New: Free Plugins installs, activates, deactivates and uninstalls plugins without leaving the page. Activate becomes Deactivate, and a deactivated plugin offers Uninstall. It uses the full screen width, and its categories stay on one line.
 * New: the All view in Free Plugins lists every recommended plugin by category, with checkboxes and bulk actions (Install and activate, Install, Activate, Deactivate, Uninstall) for setting up new sites quickly.
 * New, off by default: Tidy the dashboard (Admin tab) lays out the Dashboard the same way on every site, hides the Welcome panel, news and plugin promotions, and shows Site Health to developers only and statistics to people who can publish.
@@ -204,6 +204,9 @@ Copies installed from WordPress.org update from WordPress.org. New versions are 
 * Uninstall cleanup, including multisite.
 
 == Upgrade Notice ==
+
+= 0.5.0 =
+New admin menu, dashboard, admin bar and Hosting needs features (off by default), and Free Plugins that work in place and in bulk. On by default: Comments and + New leave the admin bar, and the fade between admin screens stops (Admin tab).
 
 = 0.4.0 =
 New tabs and many new features that replace other plugins and import their settings. Everything new is off by default; existing settings are kept.
