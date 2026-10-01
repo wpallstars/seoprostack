@@ -2,6 +2,9 @@
 
 Every change to SEO Pro Stack. readme.txt lists the latest version in short.
 
+= Unreleased =
+* Change: Free Plugins and Pro Plugins no longer recommend Freesoul Deactivate Plugins. Load plugins only where needed (Plugins tab) does its job in wp-admin and for the whole site.
+
 = 0.7.0 =
 * New, off by default: Ask before licence checks (Plugins tab). Premium plugins and themes stop checking their licence with their maker’s server until you choose, per plugin: allow it once now, once a day (the answer is reused for the rest of the day, so pages do not wait) or never. You are asked on the next admin screen, or again tomorrow, in a week, a month or a year, and can choose again or forget your choices from the Licence checks link on the Plugins screen. Update checks are left alone.
 * New: Plugin presets: Apply preset opens a window listing each setting it changes, now and after, so you can untick any you want to keep.

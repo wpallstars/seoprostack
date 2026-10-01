@@ -254,22 +254,6 @@ if (!defined('ABSPATH')) {
             ),
             'free_slug' => 'fluent-booking'
         ),
-        'freesoul-deactivate-plugins' => array(
-            'name' => 'Freesoul Deactivate Plugins PRO',
-            'description' => 'Advanced plugin management with conditional loading and optimization.',
-            'button_group' => array(
-                array(
-                    'text' => 'Home Page',
-                    'url' => 'https://freesoul-deactivate-plugins.com/',
-                    'primary' => true
-                ),
-                array(
-                    'text' => 'Pricing',
-                    'url' => 'https://freesoul-deactivate-plugins.com/pro/'
-                )
-            ),
-            'free_slug' => 'freesoul-deactivate-plugins'
-        ),
         'kadence-blocks' => array(
             'name' => 'Kadence Blocks Pro',
             'description' => 'Premium blocks, theme and templates for the WordPress editor, sold together as Kadence bundles.',
