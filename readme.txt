@@ -128,6 +128,7 @@ They stay scheduled and publish at their times. Turning it off only stops new po
 = Unreleased =
 * New: Load pages before the click can also preload admin screens (off by default). Only the page is downloaded, and links that change something are skipped.
 * Change: Hide the admin bar and Block dashboard access no longer offer Administrator, since administrators are never affected.
+* Change: roles that plugins add, such as WooCommerce’s Customer, are ticked in Hide the admin bar and Block dashboard access unless they can write posts. With WooCommerce, blocked users go to My Account unless you chose another page.
 * Change: on new sites, SVG uploads also allows authors, contributors and shop managers, and watermarks are 10% of the picture. Existing settings are kept.
 * Change: Resize large uploads no longer imports Imsanity’s default limit (1920), so 2560 is used.
 * Change: the notices bell always sits next to the account menu in the admin bar, with the Plugins menu to its left and other plugins’ items further left.

@@ -26,6 +26,15 @@ class SEOProStack_Admin_Access extends SEOProStack_Feature {
     const DASHBOARD_KEY = 'restrict_dashboard';
 
     /**
+     * Option with the roles seen so far (to spot roles that plugins add) and
+     * whether "Send them to" has been pointed at WooCommerce's My Account.
+     */
+    const STATE = 'seoprostack_access_roles';
+
+    /** The role lists that new roles are ticked in. */
+    const ROLE_KEYS = array('hide_admin_bar_roles', 'restrict_dashboard_roles');
+
+    /**
      * Settings.
      *
      * @return array
@@ -33,7 +42,8 @@ class SEOProStack_Admin_Access extends SEOProStack_Feature {
     public static function settings() {
         // Administrators are never affected, so they are not offered.
         $roles   = array(__CLASS__, 'restrictable_role_options');
-        $default = array('subscriber', 'customer');
+        $default = array_values(array_unique(array_merge(array('subscriber', 'customer'), self::visitor_roles())));
+        $later   = __('Roles that plugins add later are ticked unless they can write posts.', 'seoprostack');
         $replace = array('admin-bar-dashboard-control' => 'Admin Bar & Dashboard Access Control');
 
         return array(
@@ -50,7 +60,7 @@ class SEOProStack_Admin_Access extends SEOProStack_Feature {
                 'default'     => $default,
                 'parent'      => self::KEY,
                 'label'       => __('Hide it for', 'seoprostack'),
-                'description' => __('Roles that do not see the admin bar.', 'seoprostack'),
+                'description' => __('Roles that do not see the admin bar.', 'seoprostack') . ' ' . $later,
                 'options'     => $roles,
             ),
             self::DASHBOARD_KEY => array(
@@ -66,7 +76,7 @@ class SEOProStack_Admin_Access extends SEOProStack_Feature {
                 'default'     => $default,
                 'parent'      => self::DASHBOARD_KEY,
                 'label'       => __('Block it for', 'seoprostack'),
-                'description' => __('Roles that cannot open the dashboard.', 'seoprostack'),
+                'description' => __('Roles that cannot open the dashboard.', 'seoprostack') . ' ' . $later,
                 'options'     => $roles,
             ),
             'restrict_dashboard_redirect' => array(
@@ -75,7 +85,7 @@ class SEOProStack_Admin_Access extends SEOProStack_Feature {
                 'parent'      => self::DASHBOARD_KEY,
                 'label'       => __('Send them to', 'seoprostack'),
                 'placeholder' => '/my-account/',
-                'description' => __('A page on this site, such as /my-account/. Leave empty for the home page.', 'seoprostack'),
+                'description' => __('A page on this site, such as /my-account/. Leave empty for the home page. With WooCommerce, its My Account page is filled in.', 'seoprostack'),
             ),
         );
     }
@@ -115,12 +125,106 @@ class SEOProStack_Admin_Access extends SEOProStack_Feature {
      * Register hooks.
      */
     public static function boot() {
+        // Even with both switches off, so the lists are right when switched on.
+        self::sync_roles();
+
         if (self::enabled()) {
             add_filter('show_admin_bar', array(__CLASS__, 'filter_admin_bar'), 20);
         }
         if (SEOProStack_Settings::get(self::DASHBOARD_KEY) && !self::replaced_active(self::DASHBOARD_KEY)) {
             add_action('admin_init', array(__CLASS__, 'maybe_block_dashboard'), 0);
         }
+    }
+
+    /**
+     * Roles that never need the admin: they can neither manage options nor
+     * write posts, such as subscribers and customers.
+     *
+     * @return string[]
+     */
+    public static function visitor_roles() {
+        $roles = array();
+        foreach (wp_roles()->roles as $role => $data) {
+            $caps = isset($data['capabilities']) ? (array) $data['capabilities'] : array();
+            if (empty($caps['manage_options']) && empty($caps['edit_posts'])) {
+                $roles[] = (string) $role;
+            }
+        }
+        return $roles;
+    }
+
+    /**
+     * Tick roles that plugins add in both role lists when they never need the
+     * admin, and fill in "Send them to" with WooCommerce's My Account page.
+     * Only writes when the roles change or WooCommerce first appears.
+     */
+    public static function sync_roles() {
+        $state   = get_option(self::STATE, array());
+        $state   = is_array($state) ? $state : array();
+        $current = array_map('strval', array_keys(wp_roles()->roles));
+        $known   = isset($state['roles']) && is_array($state['roles']) ? $state['roles'] : null;
+        $changed = null === $known || array_diff($current, $known) || array_diff($known, $current);
+        $shop    = empty($state['my_account']) && class_exists('WooCommerce');
+
+        if (!$changed && !$shop) {
+            return;
+        }
+
+        if ($changed) {
+            $visitors = self::visitor_roles();
+            // First run (new install, or an update from 0.4.0 or earlier):
+            // lists still at the old default missed roles that plugins added
+            // after they were saved, such as WooCommerce's Customer.
+            $added = null === $known ? $visitors : array_intersect(array_diff($current, $known), $visitors);
+            foreach (self::ROLE_KEYS as $key) {
+                $value = (array) SEOProStack_Settings::get($key);
+                if ($added && (null !== $known || self::is_old_default($value))) {
+                    SEOProStack_Settings::set($key, array_merge($value, $added));
+                }
+            }
+            $state['roles'] = $current;
+        }
+        if ($shop) {
+            $state['my_account'] = self::default_to_my_account();
+        }
+
+        update_option(self::STATE, $state, true);
+    }
+
+    /**
+     * Whether a role list holds a default from 0.4.0 or earlier.
+     *
+     * @param array $roles Role slugs.
+     * @return bool
+     */
+    private static function is_old_default(array $roles) {
+        $roles = array_map('strval', $roles);
+        sort($roles);
+        return array('subscriber') === $roles || array('customer', 'subscriber') === $roles;
+    }
+
+    /**
+     * Fill in an empty "Send them to" with WooCommerce's My Account page.
+     *
+     * @return bool Whether this is settled: filled in now, or already set.
+     */
+    private static function default_to_my_account() {
+        if ('' !== (string) SEOProStack_Settings::get('restrict_dashboard_redirect')) {
+            return true;
+        }
+        $page = (int) get_option('woocommerce_myaccount_page_id');
+        if (!$page || 'publish' !== get_post_status($page)) {
+            // WooCommerce may still be making its pages; try again later.
+            return false;
+        }
+        // A path from the home page, as maybe_block_dashboard() expects.
+        $url  = (string) get_permalink($page);
+        $home = home_url('/');
+        if (0 !== strpos($url, $home)) {
+            return true;
+        }
+        SEOProStack_Settings::set('restrict_dashboard_redirect', '/' . substr($url, strlen($home)));
+        return true;
     }
 
     /**
