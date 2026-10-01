@@ -472,7 +472,8 @@ class SEOProStack_Admin_Menu extends SEOProStack_Feature {
                 return false;
             }
         }
-        if (isset(self::catalog()['hidden'][$slug])) {
+        $hidden = self::catalog()['hidden'];
+        if (isset($hidden[$slug]) || ('' !== $parent && isset($hidden[$parent . '>' . $slug]))) {
             return true;
         }
         if ('' === $parent) {
