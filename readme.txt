@@ -206,7 +206,7 @@ Copies installed from WordPress.org update from WordPress.org. New versions are 
 == Upgrade Notice ==
 
 = 0.5.0 =
-New admin menu, dashboard, admin bar and Hosting needs features, off by default, and updates from GitHub releases through Git Updater. Two small changes are on by default: Comments and + New leave the admin bar, and WordPress 7.0’s fade between admin screens stops. Switch either off on the Admin tab.
+New admin menu, dashboard, admin bar and Hosting needs features, off by default, updates from GitHub releases through Git Updater, and Free Plugins that install, activate and remove plugins in place or in bulk. Two small changes are on by default: Comments and + New leave the admin bar, and WordPress 7.0’s fade between admin screens stops. Switch either off on the Admin tab.
 
 = 0.4.0 =
 New tabs and many new features that replace other plugins and import their settings. Everything new is off by default; existing settings are kept.
