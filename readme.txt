@@ -116,7 +116,7 @@ Copies from WordPress.org update from WordPress.org. New versions come out on Gi
 = Unreleased =
 * New, off by default: Quiet Freemius prompts.
 * New: Load plugins only where needed can also skip chosen admin tools on the site.
-* Change: Load plugins only where needed also speeds up SEO Pro Stack’s own settings and Appearance › Menus.
+* Change: Load plugins only where needed also speeds up SEO Pro Stack’s own settings, Appearance › Menus and Appearance › Editor.
 * Fix: the admin menu opens on Kadence Blocks’ lists. Screens that fail with fewer plugins recover when Query Monitor is active. The Dashboard shows boxes of plugins loaded only where needed.
 * Fix: admin screens no longer jump as they load with Hide admin notices or Tidy the dashboard.
 

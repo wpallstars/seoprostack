@@ -28,6 +28,9 @@
  *   saves item fields, or owns a post type or taxonomy that can be added
  *   to menus or is in one (every plugin when a skipped one adds a menu
  *   location: check_menu_locations());
+ * - on Appearance > Editor when it registers blocks, adds editor features,
+ *   templates or styles, or (with a block theme) owns a post type or
+ *   taxonomy people view;
  * - on SEO Pro Stack's settings page when it registers a post type,
  *   taxonomy or widget, changes permissions or uses SEO Pro Stack's hooks
  *   (the settings offer those as choices);
@@ -174,12 +177,27 @@ final class SEOProStack_Plugin_Loader {
         'theme_mod_nav_menu_locations', 'pre_set_theme_mod_nav_menu_locations', 'wp_nav_menu_max_depth',
     );
 
+    /**
+     * Hooks that add to Appearance > Editor: blocks and editor features,
+     * and the templates, styles and settings it reads through REST in the
+     * same request. Saving goes through REST, which loads every plugin.
+     */
+    const SITE_EDITOR_HOOKS = array(
+        'enqueue_block_editor_assets', 'enqueue_block_assets', 'block_editor_settings_all', 'block_categories_all',
+        'allowed_block_types_all', 'block_editor_rest_api_preload_paths', 'should_load_remote_block_patterns',
+        'get_block_templates', 'pre_get_block_templates', 'get_block_template', 'pre_get_block_template',
+        'get_block_file_template', 'pre_get_block_file_template', 'default_template_types', 'default_wp_template_part_areas',
+        'wp_theme_json_data_default', 'wp_theme_json_data_blocks', 'wp_theme_json_data_theme', 'wp_theme_json_data_user',
+        'wp_theme_json_get_style_nodes', 'site_editor_no_javascript_message',
+    );
+
     /** wp-admin scripts of each screen kind learned from hooks. */
     const KIND_SCRIPTS = array(
-        'user'      => array('profile.php', 'user-edit.php', 'user-new.php'),
-        'tools'     => array('tools.php'),
-        'media-new' => array('media-new.php'),
-        'menus'     => array('nav-menus.php'),
+        'user'        => array('profile.php', 'user-edit.php', 'user-new.php'),
+        'tools'       => array('tools.php'),
+        'media-new'   => array('media-new.php'),
+        'menus'       => array('nav-menus.php'),
+        'site-editor' => array('site-editor.php'),
     );
 
     /**
@@ -187,7 +205,7 @@ final class SEOProStack_Plugin_Loader {
      * forms there keep every field. Hooks for other post types and
      * taxonomies do not count.
      *
-     * @param string $kind Screen kind: "post", "terms", "list", "user", "tools", "media-new" or "menus".
+     * @param string $kind Screen kind: "post", "terms", "list", "user", "tools", "media-new", "menus" or "site-editor".
      * @param string $name Post type or taxonomy of the screen.
      * @param string $hook Hook name.
      * @return bool
@@ -227,6 +245,8 @@ final class SEOProStack_Plugin_Loader {
             case 'menus':
                 // Items of each kind in the Add menu items boxes: "nav_menu_items_{type}".
                 return in_array($hook, self::MENU_HOOKS, true) || 0 === strpos($hook, 'nav_menu_items_');
+            case 'site-editor':
+                return in_array($hook, self::SITE_EDITOR_HOOKS, true);
         }
         return false; // Comments, the users list, themes and About add no fields to forms; Dashboard boxes are learned from the boxes themselves.
     }
@@ -250,7 +270,7 @@ final class SEOProStack_Plugin_Loader {
     const NEVER = array(
         'plugins.php', 'plugin-install.php', 'plugin-editor.php', 'update.php', 'update-core.php',
         'upgrade.php', 'customize.php', 'options.php', 'admin-post.php', 'admin-ajax.php',
-        'async-upload.php', 'site-health.php', 'import.php', 'export.php', 'theme-editor.php', 'site-editor.php',
+        'async-upload.php', 'site-health.php', 'import.php', 'export.php', 'theme-editor.php',
         // Opening Widgets saves the sidebars without widgets and sidebars
         // that are not registered (retrieve_widgets()), so a skipped plugin's
         // widgets would be dropped.
@@ -732,6 +752,10 @@ final class SEOProStack_Plugin_Loader {
             // there (MENU_HOOKS) and own what can be added to them.
             case 'nav-menus.php':
                 return 'menus';
+            // Appearance > Editor: blocks, editor features, templates and
+            // styles (SITE_EDITOR_HOOKS). It edits only core post types.
+            case 'site-editor.php':
+                return 'site-editor';
         }
         // phpcs:enable
         return '';
@@ -781,6 +805,9 @@ final class SEOProStack_Plugin_Loader {
                 return null;
             }
             $wanted = (array) $map['screens'][$screen];
+            if ('site-editor' === $kind && (!isset($map['site_editor_theme']) || get_option('stylesheet') !== $map['site_editor_theme'])) {
+                return null; // Learned with another theme: what it offers differs.
+            }
             if ('list' === $kind || 'post' === $kind) {
                 if (!array_key_exists($name, $map['types'])) {
                     return null; // A post type nobody was seen registering.
@@ -792,7 +819,7 @@ final class SEOProStack_Plugin_Loader {
                 }
                 $wanted[] = $map['taxes'][$name];
             }
-            if ('post' === $kind) {
+            if ('post' === $kind || 'site-editor' === $kind) {
                 $wanted = array_merge($wanted, $map['blocks']);
             } elseif ('user' === $kind && isset($map['permissions'])) {
                 // Role and permission plugins change which roles and
