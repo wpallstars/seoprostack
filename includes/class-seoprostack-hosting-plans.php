@@ -126,8 +126,9 @@ class SEOProStack_Hosting_Plans {
         $cache     = $site['object_cache'] || self::OBJECT_CACHE_MB[$level] > 0;
         $ram_mb    = ($workers * $worker_mb + $site['opcache'] + $db_mb + self::RESERVE_MB[$level]
             + ($cache ? max(128, self::OBJECT_CACHE_MB[$level]) : 0)) * self::HEADROOM;
-        $ram       = self::step($ram_mb / 1024, array(1, 2, 4, 8, 16, 32, 64, 128));
         $cpu       = self::step(max(self::MIN_CPU[$level], $busy * self::CPU_SHARE + 0.5), array(1, 2, 4, 8, 16, 32, 64));
+        // Plans come with at least 1 GB per CPU core.
+        $ram       = self::step(max($ram_mb / 1024, $cpu), array(1, 2, 4, 8, 16, 32, 64, 128));
 
         if ($ram <= 2 && $workers <= 2) {
             $type = __('Shared or entry-level managed WordPress hosting', 'seoprostack');

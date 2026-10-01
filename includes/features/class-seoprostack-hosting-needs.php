@@ -1342,6 +1342,7 @@ class SEOProStack_Hosting_Needs extends SEOProStack_Feature {
             @media screen and (max-width: 782px) {
                 .sps-hosting td.check-column { display: none !important; }
                 /* The list table's phone layout stacks and hides cells; not in this table. */
+                .wp-list-table .sps-hosting__plans tr { display: table-row !important; }
                 .wp-list-table .sps-hosting__plans tr td, .wp-list-table .sps-hosting__plans tr th { display: table-cell !important; position: static; padding: 6px 10px !important; width: auto !important; }
                 .wp-list-table .sps-hosting__plans tr td::before { content: none !important; }
             }
