@@ -1,6 +1,7 @@
 /**
  * Organise the admin menu: the Administrators and Developers menus' third level,
- * and folding sections open and closed.
+ * keeping the printed order when other plugins' scripts move entries, and
+ * folding sections open and closed.
  *
  * Loaded in the head. SEOProStack_Admin_Menu::print_flyouts() prints a
  * call to seoprostackMenuFlyouts() straight after the menu, so the third
@@ -34,7 +35,65 @@
 		}
 	}
 
+	/**
+	 * Keep the menu in the order it was printed. Some plugins move menu
+	 * entries with their own scripts, matching them by name (MasterStudy
+	 * moves any entry called "Analytics" above Posts), which would pull
+	 * entries out of their sections. Entries they add or remove are left
+	 * alone; only the order of the printed ones is put back, a few times
+	 * at most, before the page is drawn.
+	 */
+	function keepOrder(menu) {
+		if (!menu || 'function' !== typeof window.MutationObserver) {
+			return;
+		}
+		var printed = Array.prototype.filter.call(menu.children, function (el) {
+			return 'LI' === el.tagName;
+		});
+		var fixes = 0;
+		var observer;
+
+		function inOrder() {
+			var last = -1;
+			for (var i = 0; i < menu.children.length; i++) {
+				var at = printed.indexOf(menu.children[i]);
+				if (-1 === at) {
+					continue;
+				}
+				if (at < last) {
+					return false;
+				}
+				last = at;
+			}
+			return true;
+		}
+
+		function restore() {
+			if (fixes >= 5 || inOrder()) {
+				return;
+			}
+			fixes++;
+			observer.disconnect();
+			// From the end: each printed entry goes before the next one still in the menu.
+			var next = null;
+			for (var i = printed.length - 1; i >= 0; i--) {
+				if (printed[i].parentNode !== menu) {
+					continue;
+				}
+				if (next && printed[i].nextElementSibling !== next) {
+					menu.insertBefore(printed[i], next);
+				}
+				next = printed[i];
+			}
+			observer.observe(menu, { childList: true });
+		}
+
+		observer = new window.MutationObserver(restore);
+		observer.observe(menu, { childList: true });
+	}
+
 	window.seoprostackMenuFlyouts = function (data) {
+		keepOrder(document.getElementById('adminmenu'));
 		// Headings that do not fold are labels, not links.
 		document.querySelectorAll('#adminmenu li.sps-menu-static > a').forEach(function (link) {
 			link.removeAttribute('href');

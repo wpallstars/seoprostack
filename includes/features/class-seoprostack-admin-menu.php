@@ -597,11 +597,34 @@ class SEOProStack_Admin_Menu extends SEOProStack_Feature {
                 }
             }
         }
-        if ($real) {
-            self::$owners[$hook]  = $found;
-            self::$owners_changed = true;
+        if (!$real) {
+            // Only stand-ins: the plugin was skipped on this screen. Use the
+            // owner Load plugins only where needed learned with it loaded.
+            return self::skipped_owner($slug);
         }
+        self::$owners[$hook]  = $found;
+        self::$owners_changed = true;
         return $found;
+    }
+
+    /**
+     * Folder of the skipped plugin that owns a page, from what Load plugins
+     * only where needed learned, or ''.
+     *
+     * @param string $slug Page address.
+     * @return string
+     */
+    private static function skipped_owner($slug) {
+        if (!class_exists('SEOProStack_Plugin_Loader', false)) {
+            return '';
+        }
+        $state = SEOProStack_Plugin_Loader::state();
+        $pages = isset($state['map']['pages']) && is_array($state['map']['pages']) ? $state['map']['pages'] : array();
+        if (empty($pages[$slug]) || !is_array($pages[$slug])) {
+            return '';
+        }
+        $file = (string) reset($pages[$slug]);
+        return false === strpos($file, '/') ? (string) preg_replace('/\.php$/', '', $file) : (string) strtok($file, '/');
     }
 
     /**
@@ -638,12 +661,23 @@ class SEOProStack_Admin_Menu extends SEOProStack_Feature {
     }
 
     /**
-     * Hash of the active plugins.
+     * Hash of the active plugins, the same on screens where Load plugins
+     * only where needed skips some (they are still active).
      *
      * @return string
      */
     private static function fingerprint() {
         $plugins = array_values(SEOProStack_Feature::active_plugins());
+        if (class_exists('SEOProStack_Plugin_Loader', false)) {
+            $state   = SEOProStack_Plugin_Loader::state();
+            foreach ((array) $state['skipped'] as $file) {
+                // As active_plugins() lists them: plugins in folders.
+                if (false !== strpos((string) $file, '/')) {
+                    $plugins[] = (string) $file;
+                }
+            }
+        }
+        $plugins = array_values(array_unique($plugins));
         sort($plugins);
         return md5(implode('|', $plugins));
     }
