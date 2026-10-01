@@ -15,8 +15,10 @@
  *   which plugins add boxes, fields or blocks to each post, term and list
  *   screen, which plugins need which, and the full admin menu;
  * - on screens that load fewer plugins, puts the skipped plugins' menu
- *   entries back as links and shows "N of M plugins" in the admin bar with
- *   a link that loads every plugin.
+ *   entries back as links and shows how many plugins loaded, with a link
+ *   that reloads the screen with every plugin and learns it again: at the
+ *   top of the Plugins menu in the admin bar, or as "N of M plugins" on its
+ *   own when that menu is off.
  *
  * What was learned is forgotten when plugins are activated, deactivated or
  * updated, so screens load every plugin once more while it is relearned.
@@ -108,7 +110,11 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
         $state = SEOProStack_Plugin_Loader::state();
         if ('filter' === $state['mode']) {
             add_action('admin_menu', array(__CLASS__, 'restore_menu'), PHP_INT_MAX);
+            // Before the Plugins menu adds its list (priority 100), so these
+            // items come first in it.
+            add_action('admin_bar_menu', array(__CLASS__, 'admin_bar_in_menu'), 99);
             add_action('admin_bar_menu', array(__CLASS__, 'admin_bar'), 999);
+            add_action('admin_bar_init', array(__CLASS__, 'admin_bar_style'));
         } elseif ('full' === $state['mode'] && current_user_can('manage_options')) {
             add_action('admin_menu', array(__CLASS__, 'capture_menu'), PHP_INT_MAX);
             add_action('adminmenu', array(__CLASS__, 'prune_menu'));
@@ -330,7 +336,7 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
                 )) . '</p>';
             }
         }
-        echo '<p>' . esc_html__('To load every plugin on one screen, choose the plugin count in the admin bar.', 'seoprostack') . '</p>';
+        echo '<p>' . esc_html__('If something is missing from a screen, reload it with every plugin from the plugin icon in the admin bar (or the plugin count, when the Plugins menu is off). The screen is then checked again.', 'seoprostack') . '</p>';
         echo '</div>';
     }
 
@@ -550,6 +556,13 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
 
         if ($fresh) {
             $map = $stored;
+            if ($state['attributing']) {
+                // Learning a screen again: owners as seen now. Plugins that
+                // stopped adding blocks keep loading in editors (the safe side).
+                $map['types']  = array_merge((array) $map['types'], $state['registered']['types']);
+                $map['taxes']  = array_merge((array) $map['taxes'], $state['registered']['taxes']);
+                $map['blocks'] = array_values(array_unique(array_merge((array) $map['blocks'], array_keys($state['registered']['blocks']))));
+            }
         } elseif ($state['attributing']) {
             list($always, $permissions) = self::sensitive_plugins();
             $map = array(
@@ -831,8 +844,71 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
     }
 
     /**
-     * "N of M plugins" in the admin bar, linking to this screen with every
-     * plugin loaded.
+     * Plugins loaded on this screen, plugins active, and the address that
+     * reloads it with every plugin.
+     *
+     * @return array{0: int, 1: int, 2: string}
+     */
+    private static function bar_counts() {
+        $state  = SEOProStack_Plugin_Loader::state();
+        $total  = count($state['active']);
+        $loaded = $total - count($state['skipped']);
+        $uri    = isset($_SERVER['REQUEST_URI']) ? esc_url_raw(wp_unslash($_SERVER['REQUEST_URI'])) : '';
+        return array($loaded, $total, add_query_arg(SEOProStack_Plugin_Loader::LOAD_ALL_ARG, '1', $uri));
+    }
+
+    /**
+     * The link that reloads the screen with every plugin, which also learns
+     * again what the screen needs.
+     *
+     * @param WP_Admin_Bar $bar    Admin bar.
+     * @param string       $parent Parent node or group.
+     * @param string       $url    Address with every plugin.
+     */
+    private static function reload_item($bar, $parent, $url) {
+        $bar->add_node(array(
+            'id'     => self::NODE . '-all',
+            'parent' => $parent,
+            'title'  => esc_html__('Reload with every plugin and check this screen again', 'seoprostack'),
+            'href'   => $url,
+            'meta'   => array('title' => __('Loads every plugin once and learns again which ones this screen needs.', 'seoprostack')),
+        ));
+    }
+
+    /**
+     * Put the count and the reload at the top of the Plugins menu in the
+     * admin bar. Runs before that menu adds its list, so they come first;
+     * if the menu is not added, core ignores them and admin_bar() adds the
+     * stand-alone count instead.
+     *
+     * @param WP_Admin_Bar $bar Admin bar.
+     */
+    public static function admin_bar_in_menu($bar) {
+        if (!current_user_can('activate_plugins')) {
+            return;
+        }
+        list($loaded, $total, $url) = self::bar_counts();
+        $group = self::NODE . '-menu';
+        $bar->add_group(array(
+            'id'     => $group,
+            'parent' => SEOProStack_Plugin_Toggle::NODE,
+        ));
+        $bar->add_node(array(
+            'id'     => self::NODE . '-count',
+            'parent' => $group,
+            'title'  => esc_html(sprintf(
+                /* translators: 1: plugins loaded, 2: active plugins */
+                _n('%1$d of %2$d plugin loaded on this screen', '%1$d of %2$d plugins loaded on this screen', $total, 'seoprostack'),
+                $loaded,
+                $total
+            )),
+        ));
+        self::reload_item($bar, $group, $url);
+    }
+
+    /**
+     * Without the Plugins menu, "N of M plugins" on its own in the admin bar,
+     * with the reload under it. With the menu, its tooltip gets the count.
      *
      * @param WP_Admin_Bar $bar Admin bar.
      */
@@ -840,26 +916,43 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
         if (!current_user_can('activate_plugins')) {
             return;
         }
-        $state  = SEOProStack_Plugin_Loader::state();
-        $total  = count($state['active']);
-        $loaded = $total - count($state['skipped']);
-        $uri    = isset($_SERVER['REQUEST_URI']) ? esc_url_raw(wp_unslash($_SERVER['REQUEST_URI'])) : '';
-        $url    = add_query_arg(SEOProStack_Plugin_Loader::LOAD_ALL_ARG, '1', $uri);
+        list($loaded, $total, $url) = self::bar_counts();
 
+        $menu = $bar->get_node(SEOProStack_Plugin_Toggle::NODE);
+        if ($menu) {
+            $title = isset($menu->meta['title']) && '' !== $menu->meta['title'] ? rtrim($menu->meta['title'], '. ') . '. ' : '';
+            $bar->add_node(array(
+                'id'   => SEOProStack_Plugin_Toggle::NODE,
+                /* translators: %d: plugins loaded */
+                'meta' => array('title' => $title . sprintf(__('%d loaded on this screen.', 'seoprostack'), $loaded)),
+            ));
+            return;
+        }
+
+        $bar->remove_node(self::NODE . '-menu');
+        $bar->remove_node(self::NODE . '-count');
         $bar->add_node(array(
             'id'     => self::NODE,
             'parent' => 'top-secondary',
             /* translators: 1: plugins loaded, 2: active plugins */
             'title'  => esc_html(sprintf(__('%1$d of %2$d plugins', 'seoprostack'), $loaded, $total)),
             'href'   => $url,
-            'meta'   => array('title' => __('Only the plugins this screen needs are loaded. Choose to load every plugin.', 'seoprostack')),
+            'meta'   => array('title' => __('Only the plugins this screen needs are loaded. Choose to reload with every plugin.', 'seoprostack')),
         ));
-        $bar->add_node(array(
-            'id'     => self::NODE . '-all',
-            'parent' => self::NODE,
-            'title'  => esc_html__('Load every plugin on this screen', 'seoprostack'),
-            'href'   => $url,
-        ));
+        self::reload_item($bar, self::NODE, $url);
+    }
+
+    /**
+     * In the Plugins menu, a line between the count and the plugin list,
+     * and the count in quieter text.
+     */
+    public static function admin_bar_style() {
+        $menu = '#wpadminbar #wp-admin-bar-' . self::NODE . '-menu';
+        wp_add_inline_style(
+            'admin-bar',
+            "{$menu}+.ab-submenu{border-top:1px solid rgba(240,246,252,.2)}"
+            . "#wpadminbar #wp-admin-bar-" . self::NODE . "-count>.ab-item{opacity:.7}"
+        );
     }
 
     /**

@@ -128,8 +128,10 @@ class SEOProStack_Admin_Notices extends SEOProStack_Feature {
         add_action('admin_head', array(__CLASS__, 'style'));
         add_action('admin_enqueue_scripts', array(__CLASS__, 'script'));
         add_action('admin_bar_menu', array(__CLASS__, 'bell'), 90);
-        // Next to the account menu, with the Plugins menu and then other plugins' items to its left.
-        SEOProStack_Admin_Bar::pin(self::NODE, 0);
+        // Left of the Plugins menu, with other plugins' items to its left. The
+        // bell shows only once the script has counted the notices, so on this
+        // side it appearing never moves the Plugins menu or the account menu.
+        SEOProStack_Admin_Bar::pin(self::NODE, 1);
         if (SEOProStack_Settings::get(self::EXAMPLES)) {
             add_action('admin_notices', array(__CLASS__, 'examples'));
         }
