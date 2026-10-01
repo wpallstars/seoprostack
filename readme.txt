@@ -4,7 +4,7 @@ Tags: magic login, iframe, schedule posts, auto upload images, admin
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 0.4.0
+Stable tag: 0.5.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -137,7 +137,7 @@ Copies installed from WordPress.org update from WordPress.org. New versions are 
 
 == Changelog ==
 
-= Unreleased =
+= 0.5.0 =
 * New, off by default: Tidy the dashboard (Admin tab) lays out the Dashboard the same way on every site, hides the Welcome panel, news and plugin promotions, and shows Site Health to developers only and statistics to people who can publish.
 * New: copies installed from GitHub releases get updates from GitHub through the free Git Updater plugin. A notice, and Free Plugins, offer to install and activate it in one click.
 * New, off by default, GitHub copies only: Early updates from GitHub (Maintenance tab) keeps the site on GitHub releases, which come out before WordPress.org.
@@ -202,6 +202,9 @@ Copies installed from WordPress.org update from WordPress.org. New versions are 
 * Uninstall cleanup, including multisite.
 
 == Upgrade Notice ==
+
+= 0.5.0 =
+New admin menu, dashboard, admin bar and Hosting needs features, off by default, and updates from GitHub releases through Git Updater. Two small changes are on by default: Comments and + New leave the admin bar, and WordPress 7.0’s fade between admin screens stops. Switch either off on the Admin tab.
 
 = 0.4.0 =
 New tabs and many new features that replace other plugins and import their settings. Everything new is off by default; existing settings are kept.

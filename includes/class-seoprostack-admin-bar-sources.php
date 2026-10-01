@@ -9,7 +9,7 @@
  * Nothing else changes; the bar renders exactly as WordPress's own.
  *
  * @package SEOProStack
- * @since 0.4.1
+ * @since 0.5.0
  */
 
 if (!defined('ABSPATH')) {

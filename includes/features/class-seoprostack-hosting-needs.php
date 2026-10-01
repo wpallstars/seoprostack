@@ -31,7 +31,7 @@
  * Hosting needs section on the Info tab that can be copied for a host.
  *
  * @package SEOProStack
- * @since 0.4.1
+ * @since 0.5.0
  */
 
 if (!defined('ABSPATH')) {

@@ -8,7 +8,7 @@
  * so nobody is locked out of them.
  *
  * @package SEOProStack
- * @since 0.4.1
+ * @since 0.5.0
  */
 
 if (!defined('ABSPATH')) {
