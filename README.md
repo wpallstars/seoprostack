@@ -82,6 +82,7 @@ Moves plugin and theme notices behind a bell with a count at the right of the ad
 - Kept on the page: messages about what you just did (such as “Settings saved”), inline notices inside the page’s content (inline notices printed above the page are moved), and notices that scripts add after you first click or type, since they answer what you did.
 - Optionally keep errors, or warnings and the WordPress update message, on the page. On screens that hide every notice themselves, such as WooCommerce’s and Rank Math’s, kept notices go in the panel so they can still be read.
 - Also caught: notices printed inside another plugin’s wrapper, and notices that scripts add while the page loads. A notice drawn by React or Vue (such as WooCommerce Analytics’) stays hidden in its place and the panel shows a copy; dismissing the copy dismisses the original.
+- The bell sits next to the account menu (“Hi, …”). Other plugins’ admin bar items go to the left of it and of the Plugins menu.
 - The bell is hidden while there are no notices. On phones it shows with the count in a bubble, and the panel fills the width.
 - The bell works from the keyboard: Enter or Space opens the panel, Escape closes it. Clicking elsewhere closes it too.
 - Notices are hidden with CSS until they are moved, so they do not flash or push the page down. Without JavaScript they stay on the page.
@@ -317,6 +318,7 @@ Lays your site icon, site logo or a picture you choose faintly over pictures as 
 
 Adds a plugin icon to the right of the admin bar, in wp-admin and on the site. It opens a one-column list of every plugin, which scrolls when it is taller than the window; active ones are bold. Choosing one asks “Activate …?” or “Deactivate …?”, then runs WordPress’s own activate or deactivate action and returns you to the page you were on.
 
+- The icon sits next to the account menu, or next to the notices bell when Hide admin notices is on. Other plugins’ admin bar items go to the left of it.
 - Only shown to people who can activate plugins, and only lists plugins they may switch.
 - With Load plugins only where needed on, plugins skipped on the current screen still show as active; hover one to see that it is not loaded there.
 - If the page you were on belonged to the plugin you switched off, you land on the Plugins screen instead of an error.
@@ -419,6 +421,7 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folder�
 - Changed: Hide the admin bar and Block dashboard access no longer offer Administrator (or any role that can manage options), since those roles are never affected.
 - Changed: new defaults on new sites: SVG uploads also allows authors, contributors and shop managers, and Watermark pictures uses 10% of the picture. Sites that already have the plugin keep their settings.
 - Changed: Resize large uploads no longer imports Imsanity’s default limit (1920), so 2560 is used unless Imsanity was set to something else.
+- Changed: on the right of the admin bar, the notices bell always sits next to the account menu, with the Plugins menu to its left and other plugins’ items further left. New `SEOProStack_Admin_Bar::pin( $id, $rank )` keeps a `top-secondary` node there (rank 0 nearest the account menu).
 
 ### 0.4.0
 
