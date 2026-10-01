@@ -288,9 +288,10 @@ Lays your site icon, site logo or a picture you choose faintly over pictures as 
 
 ### Plugins menu in the admin bar (Plugins)
 
-Adds a **Plugins** menu to the admin bar, in wp-admin and on the site, listing every plugin; active ones are bold. Choosing one asks “Activate …?” or “Deactivate …?”, then runs WordPress’s own activate or deactivate action and returns you to the page you were on.
+Adds a plugin icon to the right of the admin bar, in wp-admin and on the site. It opens a one-column list of every plugin, which scrolls when it is taller than the window; active ones are bold. Choosing one asks “Activate …?” or “Deactivate …?”, then runs WordPress’s own activate or deactivate action and returns you to the page you were on.
 
 - Only shown to people who can activate plugins, and only lists plugins they may switch.
+- With Load plugins only where needed on, plugins skipped on the current screen still show as active; hover one to see that it is not loaded there.
 - If the page you were on belonged to the plugin you switched off, you land on the Plugins screen instead of an error.
 - Network-activated plugins are left to the Network Plugins screen.
 - Plugin names are cached and refreshed when plugins change or the Plugins screen opens, so page loads do not read plugin files.

@@ -2,8 +2,10 @@
 /**
  * Switch plugins on and off from the admin bar.
  *
- * Adds a Plugins menu to the admin bar (in wp-admin and on the site) that
- * lists every plugin; active ones are bold. Choosing one asks for
+ * Adds a plugin icon to the right of the admin bar (in wp-admin and on the
+ * site) that opens a one-column list of every plugin; active ones are bold.
+ * Plugins that "Load plugins only where needed" skips on the current
+ * screen still show as active, since they are. Choosing one asks for
  * confirmation, naming the plugin, then runs core's own activate or
  * deactivate action and returns to the page you were on. If that page
  * belonged to the plugin just switched off, you land on the Plugins screen
@@ -129,33 +131,33 @@ class SEOProStack_Plugin_Toggle extends SEOProStack_Feature {
         if (!function_exists('is_plugin_active')) {
             require_once ABSPATH . 'wp-admin/includes/plugin.php'; // Not loaded on the front end.
         }
-        $return = self::current_url();
-        $items  = array();
+        $return  = self::current_url();
+        $skipped = self::skipped_here();
+        $items   = array();
         foreach (self::plugin_names() as $file => $name) {
             if (is_multisite() && (is_plugin_active_for_network($file) || is_network_only_plugin($file))) {
                 continue;
             }
-            $active = is_plugin_active($file);
+            $active = isset($skipped[$file]) || is_plugin_active($file);
             $cap    = $active ? 'deactivate_plugin' : 'activate_plugin';
             if (!current_user_can($cap, $file)) {
                 continue;
             }
-            $items[$file] = array('name' => $name, 'active' => $active);
+            $items[$file] = array('name' => $name, 'active' => $active, 'skipped' => isset($skipped[$file]));
         }
         if (!$items) {
             return;
         }
 
         $active_count = count(array_filter(wp_list_pluck($items, 'active')));
+        /* translators: 1: active plugins, 2: all plugins */
+        $summary = sprintf(__('Plugins: %1$d of %2$d active', 'seoprostack'), $active_count, count($items));
         $bar->add_node(array(
-            'id'    => self::NODE,
-            'title' => '<span class="ab-icon" aria-hidden="true"></span><span class="ab-label">' . esc_html__('Plugins', 'seoprostack') . '</span>',
-            'href'  => self_admin_url('plugins.php'),
-            'meta'  => array(
-                'class' => count($items) > 20 ? 'has-many' : '',
-                /* translators: 1: active plugins, 2: all plugins */
-                'title' => sprintf(__('%1$d of %2$d plugins active', 'seoprostack'), $active_count, count($items)),
-            ),
+            'id'     => self::NODE,
+            'parent' => 'top-secondary',
+            'title'  => '<span class="ab-icon" aria-hidden="true"></span><span class="screen-reader-text">' . esc_html($summary) . '</span>',
+            'href'   => self_admin_url('plugins.php'),
+            'meta'   => array('title' => $summary),
         ));
         $bar->add_group(array(
             'id'     => self::NODE . '-list',
@@ -172,14 +174,34 @@ class SEOProStack_Plugin_Toggle extends SEOProStack_Feature {
                 ), self_admin_url('plugins.php')),
                 $action . '-plugin_' . $file
             );
+            $meta = array('class' => $item['active'] ? 'is-active' : 'is-inactive');
+            if ($item['skipped']) {
+                $meta['class'] .= ' is-skipped';
+                $meta['title']  = __('Active. Not loaded on this screen, to make it faster.', 'seoprostack');
+            }
             $bar->add_node(array(
                 'id'     => self::NODE . '-' . substr(md5($file), 0, 12),
                 'parent' => self::NODE . '-list',
                 'title'  => esc_html($item['name']),
                 'href'   => $url,
-                'meta'   => array('class' => $item['active'] ? 'is-active' : 'is-inactive'),
+                'meta'   => $meta,
             ));
         }
+    }
+
+    /**
+     * Active plugins that "Load plugins only where needed" left out of this
+     * request. It hides them from the active list, so is_plugin_active()
+     * says no; they are still active.
+     *
+     * @return array<string,bool> Plugin file => true.
+     */
+    private static function skipped_here() {
+        if (!class_exists('SEOProStack_Plugin_Loader', false)) {
+            return array();
+        }
+        $state = SEOProStack_Plugin_Loader::state();
+        return 'filter' === $state['mode'] ? array_fill_keys($state['skipped'], true) : array();
     }
 
     /**
@@ -199,17 +221,16 @@ class SEOProStack_Plugin_Toggle extends SEOProStack_Feature {
      * Styles and the confirmation script, added to the admin bar's own assets.
      */
     public static function assets() {
-        $node = '#wp-admin-bar-' . self::NODE;
-        $css  = "{$node} .ab-icon:before{content:\"\\f106\";top:2px}"
-            . "{$node} .ab-sub-wrapper{max-height:calc(100vh - 32px);overflow-y:auto}"
+        $node = '#wpadminbar #wp-admin-bar-' . self::NODE;
+        // Icon only; one column that wraps long names and scrolls when it is
+        // taller than the window.
+        $css = "{$node}>.ab-item .ab-icon{margin-right:0}"
+            . "{$node}>.ab-item .ab-icon:before{content:\"\\f106\";top:2px}"
+            . "{$node} .ab-sub-wrapper{width:max-content;max-width:min(24rem,calc(100vw - 16px));max-height:calc(100vh - var(--wp-admin--admin-bar--height,32px));overflow-y:auto;overscroll-behavior:contain}"
+            . "{$node} .ab-submenu .ab-item{height:auto;min-width:0;padding-block:3px;line-height:1.5;white-space:normal}"
             . "{$node} .ab-submenu .is-inactive .ab-item{opacity:.7}"
             . "{$node} .ab-submenu .is-active .ab-item{font-weight:600}"
-            . "{$node} .ab-submenu .ab-item:hover,{$node} .ab-submenu .ab-item:focus{opacity:1}"
-            . "#wpadminbar .quicklinks {$node}.has-many{position:static}"
-            . "#wpadminbar .quicklinks {$node}.has-many .ab-sub-wrapper{position:absolute;inset-inline:0}"
-            . "#wpadminbar .quicklinks {$node}.has-many .ab-submenu{columns:3}"
-            . "#wpadminbar .quicklinks {$node}.has-many .ab-submenu li{white-space:normal;break-inside:avoid}"
-            . "@media (min-width:1280px){#wpadminbar .quicklinks {$node}.has-many .ab-submenu{columns:5}}";
+            . "{$node} .ab-submenu .ab-item:hover,{$node} .ab-submenu .ab-item:focus{opacity:1}";
         wp_add_inline_style('admin-bar', $css);
 
         $i18n = array(
