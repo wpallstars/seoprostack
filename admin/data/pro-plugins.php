@@ -530,22 +530,6 @@ if (!defined('ABSPATH')) {
             ),
             'free_slug' => 'wp-sheet-editor-bulk-spreadsheet-editor-for-posts-and-pages'
         ),
-        'masterstudy-lms' => array(
-            'name' => 'MasterStudy LMS Pro',
-            'description' => 'Complete learning management system for WordPress with courses, lessons, quizzes, and more.',
-            'button_group' => array(
-                array(
-                    'text' => 'Home Page',
-                    'url' => 'https://stylemixthemes.com/wordpress-lms-plugin/',
-                    'primary' => true
-                ),
-                array(
-                    'text' => 'Pricing',
-                    'url' => 'https://stylemixthemes.com/wordpress-lms-plugin/pricing/'
-                )
-            ),
-            'free_slug' => 'masterstudy-lms-learning-management-system'
-        ),
         'pretty-link' => array(
             'name' => 'Pretty Links Pro',
             'description' => 'Advanced link management, tracking, and marketing tools for WordPress.',

@@ -98,7 +98,6 @@ function seoprostack_get_free_plugins() {
         ),
         'lms' => array(
             'fluent-community',
-            'masterstudy-lms-learning-management-system',
             'tutor'
         ),
         'media' => array(

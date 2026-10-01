@@ -45,8 +45,6 @@ return array(
         'upload.php'                            => 'content',
         'link-manager.php'                      => 'content',
         'tutor'                                 => 'content',
-        'stm-lms-settings'                      => 'content',
-        'revenue'                               => 'content', // MasterStudy's Analytics.
         'vg_sheet_editor_setup'                 => 'content',
         'propertyhive'                          => 'content',
 
@@ -308,38 +306,5 @@ return array(
         'wpsewcp_welcome_page',
         // AutomatorWP's advert for another plugin.
         'https://wordpress.org/plugins/shortlinkspro',
-        // MasterStudy without Pro: one "Unlock this addon" page per Pro
-        // addon (add_submenu_pages() in _core/settings/main_settings.php).
-        // Menu > address, as the addresses are common words. PRO Addons
-        // still lists them all.
-        'stm-lms-settings>email-manager',
-        'stm-lms-settings>lms-form-editor',
-        'stm-lms-settings>media-file-manager',
-        'stm-lms-settings>group-courses',
-        'stm-lms-settings>scorm',
-        'stm-lms-settings>course-bundles',
-        'stm-lms-settings>upcoming-course-status',
-        'stm-lms-settings>drip-content',
-        'stm-lms-settings>assignments',
-        'stm-lms-settings>google-meet',
-        'stm-lms-settings>zoom-video-conferencing',
-        'stm-lms-settings>certificate-builder',
-        'stm-lms-settings>subscriptions',
-        'stm-lms-settings>notifications',
-        'stm-lms-settings>ai-lab',
-        'stm-lms-settings>calendar',
-        'stm-lms-settings>grades',
-        'stm-lms-settings>prerequisites',
-        'stm-lms-settings>question-media-addon',
-        'stm-lms-settings>social-login',
-        'stm-lms-settings>the-gradebook',
-        'stm-lms-settings>multi-instructors',
-        'stm-lms-settings>statistics-and-payouts',
-        'stm-lms-settings>trial-courses',
-        'stm-lms-settings>audio-lesson',
-        'stm-lms-settings>live-streaming',
-        'stm-lms-settings>point-system',
-        'stm-lms-settings>google-classroom',
-        'stm-lms-settings>online-testing',
     ),
 );

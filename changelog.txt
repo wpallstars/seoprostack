@@ -3,6 +3,7 @@
 Every change to SEO Pro Stack. readme.txt lists the latest version in short.
 
 = Unreleased =
+* Change: MasterStudy LMS is no longer recommended; Tutor LMS is the recommended LMS. Free Plugins, Pro Plugins, Organise the admin menu and Tidy the dashboard drop their MasterStudy entries.
 * New: Plugin presets for EventON Lite (its files only on calendar pages, no Google Fonts), FluentCRM (anonymised IP addresses, no Gravatar), Fluent Forms (no weekly summary, IP logging or admin bar menu), Kadence Blocks (Google Fonts from your own site), Lasso Lite and LiteSpeed Cache (no promotions) and WooCommerce (no remote logging, marketplace suggestions or Order attribution tracking).
 * Fix: Plugin presets: Reset to defaults now removes settings the plugin had not stored before, instead of leaving them empty.
 * New, on by default: Quiet Freemius prompts. Plugins that use Freemius, such as WP Sheet Editor and Git Updater, stop asking you to opt in, offering upgrades, add-ons and trials, opening their opt-in page when activated and asking why you deactivate them. The Plugins screen also drops the hidden dialogs they add. Licences, accounts and support stay, and nothing is changed in those plugins. Switch it off to get the prompts back.
@@ -14,7 +15,7 @@ Every change to SEO Pro Stack. readme.txt lists the latest version in short.
 * Change: with Load plugins only where needed, Appearance › Editor loads only the plugins that add blocks, editor features, templates or styles.
 * Fix: Organise the admin menu opens the right menu on Kadence Blocks’ Forms, Navigations and Headers, and on other plugins’ lists shown in their own menu.
 * Fix: with Load plugins only where needed, a screen that failed while Query Monitor was active kept failing (such as Admin Columns’ settings). It now loads every plugin after the first failure.
-* Fix: Hide admin notices keeps empty boxes that plugins fill later hidden, so admin screens no longer move down as they load. MasterStudy LMS’s announcements left an empty gap under the admin bar on every screen.
+* Fix: Hide admin notices keeps empty boxes that plugins fill later hidden, so admin screens no longer move down as they load.
 * Fix: Tidy the dashboard no longer leaves a large empty space in a column without boxes, which pushed the boxes below down as the Dashboard loaded.
 
 = 0.6.0 =
