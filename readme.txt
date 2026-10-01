@@ -4,7 +4,7 @@ Tags: magic login, iframe, schedule posts, auto upload images, admin
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 0.3.1
+Stable tag: 0.4.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -124,7 +124,7 @@ They stay scheduled and publish at their times. Turning it off only stops new po
 
 == Changelog ==
 
-= Unreleased =
+= 0.4.0 =
 * Settings are grouped into Admin, Content, Media, Links and Speed tabs. Old links still open the right tab.
 * New: search features by name, description or the plugin they replace, and change them from the results.
 * New Plugins tab, all off by default: a Plugins menu in the admin bar (replaces Plugin Toggle), a Size column on the Plugins screen, and cleanup of leftover entries for deleted plugins.
@@ -166,6 +166,9 @@ They stay scheduled and publish at their times. Turning it off only stops new po
 * Uninstall cleanup, including multisite.
 
 == Upgrade Notice ==
+
+= 0.4.0 =
+New tabs and many new features that replace other plugins and import their settings. Everything new is off by default; existing settings are kept.
 
 = 0.3.1 =
 Recommendation fixes: free plugin lists update straight away, and plugins now built in are no longer suggested.
