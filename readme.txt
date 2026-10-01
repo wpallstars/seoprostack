@@ -33,7 +33,7 @@ Everything is off by default. Settings save instantly from **Settings → SEO Pr
 * **Admin bar and dashboard access**: hide the front-end admin bar and block wp-admin for chosen roles, such as subscribers and customers. Administrators are never affected.
 * **Dashboard and sidebar widgets**: hide Dashboard boxes and disable classic widgets you never use.
 * **Notification emails**: stop routine emails one by one, such as auto-update reports and new user notices.
-* **Hide admin notices**: move plugin and theme notices into a “Notices” button next to Screen Options, with a count. Messages about what you just did, such as “Settings saved”, stay on the page.
+* **Hide admin notices**: move plugin and theme notices behind a bell in the admin bar, with a count. Messages about what you just did, such as “Settings saved”, stay on the page.
 * **Avatars without Gravatar**: serve every avatar from your own site, so visitors’ browsers never contact Gravatar. People can upload a profile picture; everyone else gets a silhouette, a pattern that differs per person, or nothing.
 * **Duplicate posts**: copy any post, page or custom post type to a new draft from lists, the editor or the admin bar.
 * **Staged new versions**: edit a published post as a draft copy, then publish the copy over the original, keeping its address, comments and date.
@@ -130,7 +130,7 @@ They stay scheduled and publish at their times. Turning it off only stops new po
 * New Plugins tab, all off by default: a Plugins menu in the admin bar (replaces Plugin Toggle), a Size column on the Plugins screen, and cleanup of leftover entries for deleted plugins.
 * Free Plugins no longer lists Plugin Toggle or String Locator.
 * Free Plugins no longer lists EditorsKit, last updated in May 2024. WordPress and Kadence Blocks cover its features.
-* New, off by default: Hide admin notices moves plugin and theme notices behind a “Notices” button (replaces Hide Admin Notices).
+* New, off by default: Hide admin notices moves plugin and theme notices behind a bell in the admin bar, with a count (replaces Hide Admin Notices). “Show example notices” adds one of each kind to try it.
 * New, off by default: Paste into the Media Library uploads pasted screenshots, pictures and files (replaces The Paste and imports its settings).
 * New, off by default: Avatars without Gravatar serves avatars from your own site, with profile picture uploads (replaces Avatar Privacy and copies its profile pictures).
 * New, off by default: SVG uploads (replaces Safe SVG), Resize large uploads (replaces Imsanity) and Replace media files (replaces Enable Media Replace), each importing that plugin’s settings.
@@ -141,10 +141,8 @@ They stay scheduled and publish at their times. Turning it off only stops new po
 * New, off by default: Load plugins only where needed (Plugins tab) makes wp-admin faster on sites with many plugins by loading ticked plugins only on the screens that need them.
 * New, off by default: Website screenshots adds a Screenshot block and the `[browser-shot]` shortcode, with pictures saved to the Media Library and served from your site (replaces Browser Shots, whose shortcode and blocks keep working).
 * Change: while a plugin that a feature replaces is active, the feature waits, so the two no longer run side by side (such as two Plugins menus, or analytics loaded twice). The card says so, with a deactivate link.
-* Change: Hide admin notices also moves inline notices printed above the page.
+* Change: Hide admin notices also moves inline notices printed above the page, notices inside other plugins’ wrappers, notices added by scripts while the page loads, and WooCommerce’s script-drawn notices.
 * Fix: `%date%` and `%day%` in Copy linked images’ file name and alt text patterns are no longer lost when saved.
-* Fix: the Notices button no longer narrows the settings header.
-* Fix: Hide admin notices catches notices inside other plugins’ wrappers, notices added by scripts while the page loads, and WooCommerce’s script-drawn notices. On screens with their own top bar, such as WooCommerce, ACF and Rank Math, the Notices button no longer covers the bar.
 
 = 0.3.1 =
 * Free plugin lists show changes straight away instead of after the 12-hour cache expires.
