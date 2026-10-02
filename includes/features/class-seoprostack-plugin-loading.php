@@ -403,6 +403,7 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
             || SEOProStack_Plugin_Loader::PAGES_KEY === $key || SEOProStack_Plugin_Loader::KEEP_KEY === $key) {
             // A page of the site failed with fewer plugins: saving the list
             // tries again.
+            delete_option(SEOProStack_Plugin_Loader::FRONT_FAILED);
             $front = get_option(SEOProStack_Plugin_Loader::FRONT);
             if (is_array($front) && !empty($front['failed'])) {
                 $front['failed'] = array();
@@ -427,6 +428,9 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
      * Forget what was learned, so it is learned again.
      */
     public static function forget() {
+        update_option(SEOProStack_Plugin_Loader::FRONT_REVISION, wp_generate_uuid4(), true);
+        delete_option(SEOProStack_Plugin_Loader::FRONT_LOCK);
+        delete_option(SEOProStack_Plugin_Loader::FRONT_FAILED);
         if (false !== get_option(SEOProStack_Plugin_Loader::MAP)) {
             delete_option(SEOProStack_Plugin_Loader::MAP);
         }
@@ -621,8 +625,11 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
      */
     private static function front_status() {
         $front = get_option(SEOProStack_Plugin_Loader::FRONT, array());
-        if (!empty($front['failed']) && is_array($front['failed']) && SEOProStack_Plugin_Loader::front_current()) {
+        $failed = SEOProStack_Plugin_Loader::front_failed();
+        if (!$failed && !empty($front['failed']) && is_array($front['failed']) && SEOProStack_Plugin_Loader::front_current()) {
             $failed = $front['failed'];
+        }
+        if ($failed) {
             $names  = SEOProStack_Plugin_Toggle::plugin_names();
             $plugin = !empty($failed['plugin']) ? (isset($names[$failed['plugin']]) ? $names[$failed['plugin']] : $failed['plugin']) : '';
             echo '<div class="sps-panel-note sps-panel-note--warning"><p>';
@@ -1042,7 +1049,8 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
         // Exclude volatile core caches and this loader's own learning writes.
         if (0 === strpos((string) $name, '_transient_') || 0 === strpos((string) $name, '_site_transient_')
             || in_array($name, array('cron', SEOProStack_Plugin_Loader::FRONT, SEOProStack_Plugin_Loader::FRONT_LOCK,
-                SEOProStack_Plugin_Loader::FRONT_REVISION, SEOProStack_Plugin_Loader::MAP, SEOProStack_Plugin_Loader::MENU), true)) {
+                SEOProStack_Plugin_Loader::FRONT_REVISION, SEOProStack_Plugin_Loader::FRONT_FAILED,
+                SEOProStack_Plugin_Loader::MAP, SEOProStack_Plugin_Loader::MENU), true)) {
             return;
         }
         self::forget_front();

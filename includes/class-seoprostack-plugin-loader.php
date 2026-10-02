@@ -99,6 +99,9 @@ final class SEOProStack_Plugin_Loader {
     /** Content/settings generation, preventing stale in-flight learning writes. */
     const FRONT_REVISION = 'seoprostack_plugin_front_revision';
 
+    /** Sticky failure kept separately so concurrent page learning cannot erase it. */
+    const FRONT_FAILED = 'seoprostack_plugin_front_failed';
+
     /** Settings keys for the site: plugins to skip, and whether for logged-in people too. */
     const FRONT_KEY       = 'plugin_loading_front';
     const FRONT_USERS_KEY = 'plugin_loading_front_users';
@@ -510,6 +513,9 @@ final class SEOProStack_Plugin_Loader {
             }
             return;
         }
+        if (self::front_failed()) {
+            return;
+        }
         if (!self::front_current()) {
             // Learn once per set of active plugins, one request at a time.
             if (self::take_front_lock()) {
@@ -644,6 +650,13 @@ final class SEOProStack_Plugin_Loader {
         wp_cache_delete(self::FRONT_REVISION, 'options');
         wp_cache_delete('alloptions', 'options');
         return self::$front_revision === (string) get_option(self::FRONT_REVISION, '');
+    }
+
+    /** Failure for this plugin set, independent of concurrent map writes. */
+    public static function front_failed() {
+        $failed = get_option(self::FRONT_FAILED, array());
+        return is_array($failed) && isset($failed['active'], $failed['failed']) && is_array($failed['failed'])
+            && self::fingerprint(self::stored_active_plugins()) === $failed['active'] ? $failed['failed'] : array();
     }
 
     /**
@@ -1074,20 +1087,21 @@ final class SEOProStack_Plugin_Loader {
         wp_cache_delete(self::FRONT, 'options');
         wp_cache_delete('alloptions', 'options');
         $front = get_option(self::FRONT, array());
-        if (!is_array($front) || !isset($front['version'])) {
-            return;
-        }
         if ('' === $plugin) {
             $error  = error_get_last();
             $plugin = $error && !empty($error['file']) ? self::plugin_for_file((string) $error['file']) : '';
         }
         $uri             = isset($_SERVER['REQUEST_URI']) ? esc_url_raw(wp_unslash($_SERVER['REQUEST_URI'])) : '';
-        $front['failed'] = array(
+        $failed = array(
             'time'   => time(),
             'plugin' => $plugin,
             'path'   => (string) strtok($uri, '?'),
         );
-        update_option(self::FRONT, $front, true);
+        update_option(self::FRONT_FAILED, array('active' => self::fingerprint(self::$raw), 'failed' => $failed), true);
+        if (is_array($front) && isset($front['version'])) {
+            $front['failed'] = $failed;
+            update_option(self::FRONT, $front, true);
+        }
     }
 
     /**
