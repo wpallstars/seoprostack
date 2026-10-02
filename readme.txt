@@ -33,6 +33,7 @@ Everything is off by default except Hide admin bar items (Comments and + New), N
 * **Publishing queue**: posts published without a date are scheduled for the next free time slot.
 * **Duplicate posts**, **Staged new versions** (edit a published post as a draft copy) and **Shareable preview links** for people without an account.
 * **Sticky posts for any post type** and **Select all across pages** for bulk actions.
+* **TranslatePress colours**: Kadence light/dark switchers.
 * **iFrame block**: embed pages with size, sandbox and permission settings, limited to the domains and roles you choose.
 * **Spectra block replacements**: a Term list block, and Spectra pages that keep working after it is deactivated or convert in one click.
 
@@ -121,6 +122,7 @@ Copies from WordPress.org update from there. New versions come out on GitHub fir
 * New: Fluent Booking starter data: a free Discovery Call, feeding FluentCRM; booked events stay on Remove.
 * New, off by default: turn off XML-RPC and application passwords separately.
 * New, off by default: Database key cleanup, with per-key confirmation and restore SQL.
+* New, off by default: TranslatePress switcher colours.
 * New, off by default: six features that do most of Disable Bloat’s job, importing its settings.
 * New: starter data for Fluent Forms: four forms that feed FluentCRM lists and tags.
 * New: display presets for Rank Math SEO, WP-Optimize and Burst Statistics.
