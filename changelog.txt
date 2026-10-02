@@ -3,6 +3,7 @@
 Every change to SEO Pro Stack. readme.txt lists the latest version in short.
 
 = Unreleased =
+* New: the Read Me tab thanks the makers of the plugins SEO Pro Stack replaces or learned from (Credits), with links to each one. Its tables now show as tables, and links to other sections jump to them.
 * New, off by default: six features that do most of Disable Bloat’s job. Tidy admin screens (no “Thank you for creating with WordPress” footer, no update notice for people who cannot update, optionally no file editors), Tidy WooCommerce admin (no marketplace suggestions, Extensions menu, WooCommerce.com connect notices or app promotion in order emails), Tidy the login screen (logo links to your site), Simpler block editor (no welcome guides or block directory, and optionally no core patterns, template editor or fullscreen mode), Remove WordPress extras (no emoji script, version number, old blogging app links or shortlinks) and Lighter WooCommerce pages (WooCommerce’s scripts only on shop pages and pages with WooCommerce blocks). While Disable Bloat is active, its settings are imported once and the features wait until you deactivate it.
 * Change: the Plugins screen says what a plugin SEO Pro Stack replaces still does on your site that SEO Pro Stack does not, such as Disable Bloat’s Heartbeat or XML-RPC switches, instead of saying it can go.
 * Change: Pro Plugins no longer lists Disable Bloat PRO.
@@ -11,6 +12,7 @@ Every change to SEO Pro Stack. readme.txt lists the latest version in short.
 * Change: Plugin presets: Apply preset names each setting as the plugin’s own settings screen does, with a line on what it does and its values in plain words (Off, On, Private) instead of stored names and codes.
 * Fix: Load plugins only where needed now loads plugins that add columns, filters or row links to a list on that list, so Rank Math’s SEO columns show on the Posts list again. Every screen is checked again once.
 * Fix: Load plugins only where needed no longer leaves WP Sheet Editor’s spreadsheets blank: pages of a framework that several plugins bundle load all of those plugins.
+* Fix: Ask before licence checks: “Ask me again” now keeps each plugin hidden for the time you chose. Hiding a second plugin, such as Starter Templates after Kadence Blocks, brought back the first.
 * New: Readable list columns removes Complianz’s Website Scan, Post Type Switcher’s Type and Burst Statistics’ Pageviews columns (Columns to remove; Admin Columns can still add them back), puts Author and Date last on content lists, and keeps Rank Math’s SEO Details on one line each.
 * New: Organise the admin menu widens the sidebar, up to 280 pixels, so menu names fit on one line (Fit the menu to its names, on by default).
 

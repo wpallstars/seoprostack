@@ -47,6 +47,8 @@ Every feature is off by default except three: Hide admin bar items, which hides 
 | Plugins menu in the admin bar | Plugins | Plugin Toggle |
 | Clean up deleted plugins | Plugins | Fix ‘Plugin file does not exist’ Notices |
 
+These plugins showed what sites need. [Credits](#credits) thanks their makers and links to each one.
+
 ### Modern admin colours (Admin)
 
 Uses the WordPress “Modern” admin colour scheme for every user while enabled. Switching it also updates your own profile: on selects Modern, off selects the WordPress default. Other users’ saved choices are not changed and return when the setting is off.
@@ -565,7 +567,7 @@ Premium plugins and themes check their licence with their maker’s server, ofte
 - **Once a day**: the first check each day goes through, and the plugin gets that same answer for the rest of the day without waiting. A failed check is tried again after an hour.
 - **Never**: no check is made.
 
-Until a choice is made the check is held: nothing is sent, and the plugin gets WordPress’s usual “request failed” error (`http_request_failed`, saying SEO Pro Stack held it), as if the server could not be reached. Plugins already handle that, usually by keeping their last known licence state. **Ask me again** tomorrow, in a week, in a month or in a year hides the dialog for that long, for that administrator; the checks stay held meanwhile, and a plugin that starts checking later is still asked about. The Plugins screen has a **Licence checks** link above the list and in each such plugin’s row, to see the choices and choose again. There, **Forget my choice** puts one plugin back to asking at its next check, and **Forget all choices** does so for every plugin and drops the kept answers.
+Until a choice is made the check is held: nothing is sent, and the plugin gets WordPress’s usual “request failed” error (`http_request_failed`, saying SEO Pro Stack held it), as if the server could not be reached. Plugins already handle that, usually by keeping their last known licence state. **Ask me again** tomorrow, in a week, in a month or in a year hides the plugins it shows for that long, for that administrator, each plugin with its own time; the checks stay held meanwhile, and a plugin that starts checking later is still asked about. The Plugins screen has a **Licence checks** link above the list and in each such plugin’s row, to see the choices and choose again. There, **Forget my choice** puts one plugin back to asking at its next check, and **Forget all choices** does so for every plugin and drops the kept answers.
 
 Licence checks are calls whose address or form names a licence (`licence`, `license`, `licensing`, a `license` or `license_key` field, EDD’s check, activate and deactivate actions), plus any request the `seoprostack_licence_call` filter marks. Never held: WordPress’s update checks, update details and downloads (by call stack, and addresses that ask for versions, update data or packages), so updates keep working; WordPress.org; the site itself; and calls made by WordPress or SEO Pro Stack. It runs after other `pre_http_request` filters, so a request another plugin (such as HTTP Requests Manager) already answered or blocked is left alone.
 
@@ -717,10 +719,13 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folder�
 - New: starter data for Fluent Forms (`starters/fluentform.json`, item type `fluentform_forms`): Contact Form, Discovery Call Form, Subscription Form and Data Subject Access Request Form, taken from our own sites. Forms are created as Fluent Forms' own screens do: `FormService::store()` from a template, for its default settings and notification, then `Updater::update()` with our fields, which sanitises them and sets the primary email field. With FluentCRM active each gets a FluentCRM feed to the list named after it, with tag routing from its answers; the lists and tags it uses come with the starter (`"when": "fluent-crm"`), so it does not matter whether FluentCRM's starter data is added first. A field can have `"when"` too: phone and file upload fields need Fluent Forms Pro, which the free plugin does not show but would still require, so they are left out without it. Remove keeps forms with entries, forms placed in a post, page or block, and forms changed since, and keeps FluentCRM lists and tags that any Fluent Forms feed still uses. Items of a plugin that is inactive are left for later instead of stopping Add or Remove. Tested on a site with 85 plugins: 13 items added, a second run added none, a form whose title was taken was left alone; visitor submissions joined the right list with the right tags (contact form newsletter tick; access request types Customer and Supplier Contact); Remove kept the form with an entry, forms on pages and the tags and lists contacts hold; without FluentCRM, forms were added without feeds and FluentCRM's records left alone.
 - Removed: Free Plugins and Pro Plugins no longer list Freesoul Deactivate Plugins. Load plugins only where needed does its job in wp-admin and for the whole site. The Plugins screen does not suggest removing it yet: its page-by-page rules on the site are not covered so far.
 - Changed: the Apply preset dialog names each setting as the plugin's own screen does, says what it does in a line, and shows values in words (**Now: Off (not set) → Preset: On** instead of `null` and `on`), with the stored name small underneath. Presets gain a `settings` section (path => `label`, `description`, `values`); all ten presets have it. An option the plugin has not stored yet is now listed setting by setting too (FluentCRM showed one row of JSON), and its settings can be applied one at a time. `wp seoprostack presets diff` adds a name column. Plugin Check no longer warns about the dialog's `only[]` input.
+- Fixed: Ask before licence checks: "Ask me again" kept one time and one list of hidden checks per person and replaced both on every click, so hiding a plugin that started checking later (Starter Templates after Kadence Blocks) brought back the one hidden before, and the dialog kept coming back. Each hidden check now keeps its own time in `seoprostack_licence_later` (`hidden`: ID => `first`, `until`), new hides are added to the ones still standing, and the earlier shape is still read.
 - Fixed: Load plugins only where needed skipped plugins that only add columns, filters, views, row links or bulk actions to lists, so Rank Math’s SEO Details, SEO Score and Keyword columns and its filters were missing from the Posts list. Lists now learn which plugins change them while every plugin loads (each plugin callback on the list’s column, row link, view, bulk action, filter and cell hooks is watched for what it adds or prints), and those plugins load there. The map version goes to 5, so every screen is learned again once.
 - Fixed: with Load plugins only where needed, WP Sheet Editor’s spreadsheets (such as Edit Posts) were blank. The page belongs to the copy of the shared WP Sheet Editor framework that loaded first (here from Bulk Edit Categories and Tags), so the posts spreadsheet plugin was skipped there. Pages whose code is a framework other plugins bundle too (the same file at the same place in their folder, declaring the same class or function) now load every plugin that bundles it. Freemius is unchanged.
 - New: Readable list columns can remove columns few people need (Columns to remove: Complianz’s Website Scan, Post Type Switcher’s Type and Burst Statistics’ Pageviews, all ticked by default; Admin Columns still offers them), puts Author and Date last on content lists (Author and date last, on by default), and gives Rank Math’s SEO Details column room for its longest line so its lines do not wrap.
 - New: Organise the admin menu can fit the sidebar to its names (Fit the menu to its names, on by default): it widens up to 280 px so entries do not wrap, on wide screens with the sidebar expanded, with the content, footer, flyout submenus, the open menu’s list and the block editor moving over with it. The width is the same on every screen.
+- Changed: the Read Me tab shows tables as tables (they were lines of `|` text), and links to sections, such as Credits, jump to them.
+- Docs: new Credits section thanks the makers of the plugins SEO Pro Stack’s features replace or learned from, with links to each plugin’s WordPress.org page and source repository.
 - Development: `scripts/preflight-release.sh` also fails when a setting a preset changes has no label, or a label names a setting the preset does not change.
 
 ### 0.7.0
@@ -846,6 +851,46 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folder�
 - Filterable Pro Plugins, Hosting and Tools directories.
 - Removed unused debug files and duplicate scripts and styles; added uninstall cleanup.
 - Removed Closte from hosting recommendations.
+
+## Credits
+
+SEO Pro Stack’s features stand on the work of the plugins below. Each one solved a real problem well, and SEO Pro Stack learned from how they did it: what to offer, which defaults make sense, and which settings people rely on. Thank you to their makers and contributors. If you need more than SEO Pro Stack’s version does, they are all still there, and most are free.
+
+Where a feature replaces one of them, SEO Pro Stack imports the settings it can, once, so switching is easy, and never changes or deletes that plugin’s own settings (see [Features](#features)).
+
+| Plugin | Made by | Links | SEO Pro Stack feature |
+| --- | --- | --- | --- |
+| Admin Bar & Dashboard Access Control | Collins Agbonghama | [WordPress.org](https://wordpress.org/plugins/admin-bar-dashboard-control/) | Admin bar and dashboard access |
+| Admin Menu Editor (and Pro) | Janis Elsts | [WordPress.org](https://wordpress.org/plugins/admin-menu-editor/) | Organise the admin menu |
+| Widget Disable | required | [WordPress.org](https://wordpress.org/plugins/wp-widget-disable/), [GitHub](https://github.com/wearerequired/WP-Widget-Disable) | Dashboard and sidebar widgets |
+| Disable Bloat for WordPress & WooCommerce (and PRO) | Rock Solid | [WordPress.org](https://wordpress.org/plugins/disable-dashboard-for-woocommerce/), [website](https://disablebloat.com/) | Tidy admin screens, Tidy WooCommerce admin, Tidy the login screen, Simpler block editor, Remove WordPress extras, Lighter WooCommerce pages |
+| Manage Notification E-mails | 3D Virge | [WordPress.org](https://wordpress.org/plugins/manage-notification-emails/) | Notification emails |
+| Hide Admin Notices | PontetLabs | [WordPress.org](https://wordpress.org/plugins/hide-admin-notices/), [GitHub](https://github.com/jonpontet/hide-admin-notices) | Hide admin notices |
+| Avatar Privacy | Der Mundschenk & Compagnie | [WordPress.org](https://wordpress.org/plugins/avatar-privacy/), [GitHub](https://github.com/mundschenk-at/avatar-privacy) | Avatars without Gravatar |
+| Carbon Copy | Manny Rodrigues | [WordPress.org](https://wordpress.org/plugins/carbon-copy/) | Duplicate posts |
+| Yoast Duplicate Post | Yoast | [WordPress.org](https://wordpress.org/plugins/duplicate-post/), [GitHub](https://github.com/Yoast/duplicate-post) | Duplicate posts |
+| Post Draft Preview | WP Served | [WordPress.org](https://wordpress.org/plugins/post-draft-preview/), [GitHub](https://github.com/wpserved/post-draft-preview) | Shareable preview links |
+| Public Post Preview | Dominik Schilling | [WordPress.org](https://wordpress.org/plugins/public-post-preview/), [GitHub](https://github.com/ocean90/public-post-preview) | Shareable preview links |
+| Sticky Posts – Switch | Markus Wiesenhofer | [WordPress.org](https://wordpress.org/plugins/sticky-posts-switch/) | Sticky posts for any post type |
+| Bulk Actions Select All | Jesper van Engelen | [WordPress.org](https://wordpress.org/plugins/bulk-actions-select-all/), [GitHub](https://github.com/engelen/bulk-actions-select-all) | Select all across pages |
+| Browser Shots | Kevin Leary, Ben Gillbanks | [WordPress.org](https://wordpress.org/plugins/browser-shots/), [GitHub](https://github.com/BinaryMoon/browser-shots) | Website screenshots |
+| Spectra | Brainstorm Force | [WordPress.org](https://wordpress.org/plugins/ultimate-addons-for-gutenberg/), [GitHub](https://github.com/brainstormforce/wp-spectra) | Spectra block replacements |
+| The Paste | Jörn Lund | [WordPress.org](https://wordpress.org/plugins/the-paste/), [GitHub](https://github.com/mcguffin/the-paste) | Paste into the Media Library |
+| Safe SVG | 10up | [WordPress.org](https://wordpress.org/plugins/safe-svg/), [GitHub](https://github.com/10up/safe-svg) | SVG uploads |
+| Imsanity | Shane Bishop | [WordPress.org](https://wordpress.org/plugins/imsanity/), [GitHub](https://github.com/nosilver4u/imsanity) | Resize large uploads |
+| Enable Media Replace | ShortPixel | [WordPress.org](https://wordpress.org/plugins/enable-media-replace/), [GitHub](https://github.com/short-pixel-optimizer/enable-media-replace) | Replace media files |
+| CompressX | CompressX | [WordPress.org](https://wordpress.org/plugins/compressx/) | WebP and AVIF images, Resize large uploads |
+| Easy Watermark | Wojtek Szałkiewicz | [WordPress.org](https://wordpress.org/plugins/easy-watermark/) | Watermark pictures |
+| Flying Pages | Gijo Varghese | [WordPress.org](https://wordpress.org/plugins/flying-pages/), [GitHub](https://github.com/gijo-varghese/flying-pages) | Load pages before the click |
+| Flying Scripts | Gijo Varghese | [WordPress.org](https://wordpress.org/plugins/flying-scripts/) | Delay scripts until interaction |
+| Flying Analytics | Gijo Varghese | [WordPress.org](https://wordpress.org/plugins/flying-analytics/), [GitHub](https://github.com/gijo-varghese/flying-analytics) | Delayed Google Analytics |
+| Ultimate 410 Gone Status Code | tiny web | [WordPress.org](https://wordpress.org/plugins/ultimate-410/) | 410 Gone for removed pages |
+| Remove CPT base | kubiq | [WordPress.org](https://wordpress.org/plugins/remove-cpt-base/) | Short addresses for custom post types |
+| Pretty Links | Blair Williams | [WordPress.org](https://wordpress.org/plugins/pretty-link/) | Short links |
+| Plugin Toggle | Cedaro | [WordPress.org](https://wordpress.org/plugins/plugin-toggle/), [GitHub](https://github.com/cedaro/plugin-toggle) | Plugins menu in the admin bar |
+| Fix ‘Plugin file does not exist’ Notices | WP All Stars | [GitHub](https://github.com/wpallstars/wp-fix-plugin-does-not-exist-notices) | Clean up deleted plugins |
+| Freesoul Deactivate Plugins | Jose Mortellaro | [WordPress.org](https://wordpress.org/plugins/freesoul-deactivate-plugins/), [GitHub](https://github.com/JoseMortellaro/freesoul-deactivate-plugins) | Load plugins only where needed (not a replacement yet: its page-by-page rules on the site are not covered) |
+| Git Updater | Andy Fragen | [GitHub](https://github.com/afragen/git-updater), [website](https://git-updater.com/) | Updates from GitHub (GitHub builds only) |
 
 ## License
 
