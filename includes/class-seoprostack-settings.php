@@ -30,7 +30,7 @@ class SEOProStack_Settings {
 
     /** Stored schema version, used for one-off migrations. */
     const DB_VERSION_OPTION = 'seoprostack_db_version';
-    const DB_VERSION = 13;
+    const DB_VERSION = 15;
 
     /**
      * Tab slugs renamed in 0.4.0, old => new. Settings that still use an
@@ -619,6 +619,12 @@ class SEOProStack_Settings {
      *     the post types Favorites adds its button to.
      * v13: switch on Brand icons while Popular Brand Icons – Simple Icons is
      *     active.
+     * v14: import Lasso Lite's nofollow and sponsored defaults for new links
+     *     (Short links), and switch Short links on while Lasso Lite is active
+     *     with links (its links are imported separately).
+     * v15: import WP-Optimize's scheduled cleanup choices (Clean the
+     *     database weekly), switched on only where LiteSpeed Cache runs on a
+     *     LiteSpeed server.
      *
      * Old options are left in place so a downgrade keeps working;
      * uninstall.php removes ours. Other plugins' options are never touched.

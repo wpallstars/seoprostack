@@ -14,7 +14,8 @@ if (!defined('ABSPATH')) {
 // Posts Switch, Ultimate 410, Flying Analytics/Pages/Scripts, Widget Disable,
 // Plugin Toggle, Hide Admin Notices, The Paste, Avatar Privacy, Safe SVG,
 // Imsanity, Enable Media Replace, CompressX, Easy Watermark, Remove CPT base,
-// Pretty Links, Browser Shots, Spectra (ultimate-addons-for-gutenberg;
+// Pretty Links, Lasso Lite (simple-urls; Short links imports its links, but
+// not its product displays), Browser Shots, Spectra (ultimate-addons-for-gutenberg;
 // Kadence Blocks is listed for page building), Admin Menu Editor, Nav Menu
 // Roles, Post Type Switcher, Simple Custom Post Order, Term Management Tools,
 // ACF: Better Search (Search custom fields), Slugs Manager: Delete Old
@@ -23,6 +24,9 @@ if (!defined('ABSPATH')) {
 // Mammoth .docx converter (Word documents in the editor), Favorites
 // (Like, save and share) and Popular Brand Icons – Simple Icons (Brand
 // icons).
+// WP-Optimize stays listed: Clean the database weekly replaces it only on
+// LiteSpeed servers with LiteSpeed Cache; elsewhere its page cache is still
+// needed.
 // String Locator is not listed: searching code is better done in an editor
 // or with WP-CLI than from wp-admin.
 // EditorsKit (block-options) is not listed: its last update was in May 2024,
@@ -61,7 +65,6 @@ function seoprostack_get_free_plugins() {
             'plugin-groups'
         ),
         'affiliates' => array(
-            'simple-urls',
             'slicewp'
         ),
         'ai' => array(
