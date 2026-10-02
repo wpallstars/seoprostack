@@ -115,7 +115,10 @@ class SEOProStack_Settings_Manager {
      * @param array  $field Schema entry.
      */
     public static function render_card($key, array $field) {
-        $children = SEOProStack_Settings::children_of($key);
+        // Options for a plugin that is not active are hidden; their values stay.
+        $children = array_filter(SEOProStack_Settings::children_of($key), function ($child) {
+            return empty($child['requires']) || SEOProStack_Plugin_Loader::is_active((string) $child['requires']);
+        });
         $value    = SEOProStack_Settings::get($key);
         $id       = 'sps-' . $key;
         $panel_id = $id . '-panel';

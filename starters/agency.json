@@ -3,7 +3,7 @@
     "set": true,
     "tested": "Fluent Forms 6.2.15, FluentCRM 3.2.5, Fluent Boards 2.1.0, Fluent Support 2.4.0, FluentBooking 2.5.0, FluentCommunity 2.11.0, Tutor LMS 4.1.0",
     "updated": "2026-10-02",
-    "notes": "A digital marketing agency selling services and apps, as examples to rename and reprice. Order forms take payment once (SEO audit with add-ons, PR campaign with a pack of articles, campaign design, app build) or every month (ads management with a setup fee, social media marketing, app care plan, retainer); they and their pages wait until Fluent Forms can take payments. Each order goes to the Client Orders board, in New order, labelled with the service its form names, and opens a support conversation under the matching Fluent Support product. Move the task through Brief, In progress and Client review to Done and the client hears about each step in that conversation. The Project Brief Form adds the brief to the client’s latest order. Clients get a login, the Client Onboarding course and the Clients community space, and see their orders, payments, calls and report on the Client Dashboard page. Quote requests and referral partners go to the Sales Pipeline board and their own FluentCRM lists and tags; support requests open a conversation under the service they choose. With FluentBooking, people book a Discovery Call (with FluentCRM, they join Website Booking Form) and clients a Monthly Review Call; set your hours and meeting place in FluentBooking. Put the address of each client’s report in their Report link field in FluentCRM. Order links on the dashboard need Fluent Support's customer portal page, which its setup adds. The Agency tab's settings are filled in to match; switch Order flow and Client dashboard on when you are ready. Pages are added as drafts. Add a service by copying an order form, naming it “Service Order Form”, and adding a page, a board label and a support product with the service’s name.",
+    "notes": "A digital marketing agency selling SEO, ads, PR, social media, design, apps and retainers, to rename and reprice. Adding it sets up the forms, boards, support products, calls, client course and space, draft pages, and switches on Order flow and Client dashboard for them. Order forms wait until Fluent Forms can take payments. To add a service, copy an order form, name it “Service Order Form”, and add a page, a board label and a support product with that name.",
     "items": {
         "fluentcrm_lists": [
             { "slug": "agency-quote-request-form", "title": "Agency Quote Request Form", "when": "fluent-crm" },
@@ -488,7 +488,6 @@
         "seoprostack_settings": [
             { "key": "agency_orders_forms", "value": [ "{form:SEO Audit Order Form}", "{form:Paid Ads Management Order Form}", "{form:PR Campaign Order Form}", "{form:Social Media Marketing Order Form}", "{form:App Build Order Form}", "{form:App Care Plan Order Form}", "{form:Campaign Design Order Form}", "{form:Monthly Retainer Order Form}" ] },
             { "key": "agency_orders_board", "value": "{board:Client Orders}" },
-            { "key": "agency_orders_login", "value": true },
             { "key": "agency_orders_course", "value": "{course:Client Onboarding}" },
             { "key": "agency_orders_space", "value": "{space:clients}" },
             { "key": "agency_orders_briefs", "value": [ "{form:Project Brief Form}" ] },
@@ -497,7 +496,9 @@
             { "key": "agency_orders_requests", "value": [ "{form:Support Request Form}" ] },
             { "key": "agency_dashboard_order_page", "value": "{page:Services}" },
             { "key": "agency_dashboard_call_page", "value": "{page:Book a Review Call}", "when": "fluent-booking" },
-            { "key": "agency_dashboard_report_field", "value": "report_link", "when": "fluent-crm" }
+            { "key": "agency_dashboard_report_field", "value": "report_link", "when": "fluent-crm" },
+            { "key": "agency_orders", "value": true },
+            { "key": "agency_dashboard", "value": true }
         ]
     }
 }

@@ -4,11 +4,12 @@
  * client access.
  *
  * Fluent Forms takes the order (payment fields with Stripe, or a form
- * without payment). When an order form is paid, or sent if the owner
- * chooses to start orders before payment, this:
+ * without payment). When an order form is paid, or sent if it takes no
+ * payment, this:
  * - links or adds the FluentCRM contact (as transactional, so buying does
  *   not subscribe anyone to newsletters);
- * - optionally makes the client a WordPress login (core's set-password email);
+ * - makes the client a WordPress login (core's set-password email) when it
+ *   has something to open: the client dashboard, a course or a space;
  * - adds a task to the chosen Fluent Boards board, first stage, with the
  *   order's details, the contact, and the board label named in the form's
  *   title (an "SEO" label for "SEO audit");
@@ -17,7 +18,7 @@
  * - enrols the client in a Tutor LMS course and adds them to a
  *   FluentCommunity space, when chosen and the client has a login.
  * When the task moves to another stage, the client gets a reply in that
- * conversation (the words are a setting). A project brief sent later is
+ * conversation (filter: `seoprostack_agency_update_message`). A project brief sent later is
  * added to the client's latest order: a comment on the task and the client's
  * reply in the conversation. Lead forms (quote requests, referrals) add a
  * task to a sales board; support request forms open a conversation under
@@ -64,55 +65,72 @@ class SEOProStack_Agency_Orders extends SEOProStack_Feature {
                 'default'     => false,
                 'tab'         => 'agency',
                 'label'       => __('Order flow', 'seoprostack'),
-                'description' => __('When an order form is paid, add the order to a board, open a support conversation for it and, if you like, give the client a login, a course and a community space. When you move the order to another stage, the client hears about it in that conversation. Uses Fluent Forms with Fluent Boards, Fluent Support, FluentCRM, Tutor LMS and FluentCommunity, where active.', 'seoprostack'),
+                'description' => __('When an order form is paid, the order goes on your board and a support conversation opens for it. When you move the order to another stage, the client is told in that conversation. Clients get a login when the client dashboard is on or a course or space is chosen. Uses Fluent Forms with Fluent Boards, Fluent Support, FluentCRM, Tutor LMS and FluentCommunity, where active.', 'seoprostack'),
             ),
             'agency_orders_forms' => array(
                 'type'        => 'multi',
                 'default'     => array(),
                 'parent'      => self::KEY,
                 'label'       => __('Order forms', 'seoprostack'),
-                'description' => __('Forms that start an order.', 'seoprostack'),
+                'description' => __('Forms that start an order: when paid, or when sent if they take no payment.', 'seoprostack'),
                 'options'     => array(__CLASS__, 'form_options'),
                 'open'        => true,
-            ),
-            'agency_orders_start' => array(
-                'type'        => 'select',
-                'default'     => 'paid',
-                'parent'      => self::KEY,
-                'label'       => __('Start an order', 'seoprostack'),
-                'description' => __('Forms without payment always start an order when they are sent.', 'seoprostack'),
-                'options'     => array(
-                    'paid' => __('When it is paid', 'seoprostack'),
-                    'sent' => __('When the form is sent, paid or not', 'seoprostack'),
-                ),
             ),
             'agency_orders_board' => array(
                 'type'        => 'select',
                 'default'     => '',
                 'parent'      => self::KEY,
+                'requires'    => 'fluent-boards/fluent-boards.php',
                 'label'       => __('Board', 'seoprostack'),
                 'description' => __('Fluent Boards board each order is added to, in its first stage.', 'seoprostack'),
                 'options'     => array(__CLASS__, 'board_options'),
                 'open'        => true,
             ),
-            'agency_orders_support' => array(
-                'type'        => 'bool',
-                'default'     => true,
+            'agency_orders_briefs' => array(
+                'type'        => 'multi',
+                'default'     => array(),
                 'parent'      => self::KEY,
-                'label'       => __('Open a support conversation', 'seoprostack'),
-                'description' => __('A Fluent Support ticket for each order, so the client and you talk about it in one place.', 'seoprostack'),
+                'requires'    => 'fluent-boards/fluent-boards.php',
+                'label'       => __('Project brief forms', 'seoprostack'),
+                'description' => __('A brief sent after ordering is added to the client’s latest order.', 'seoprostack'),
+                'options'     => array(__CLASS__, 'form_options'),
+                'open'        => true,
             ),
-            'agency_orders_login' => array(
-                'type'        => 'bool',
-                'default'     => false,
+            'agency_orders_requests' => array(
+                'type'        => 'multi',
+                'default'     => array(),
                 'parent'      => self::KEY,
-                'label'       => __('Give new clients a login', 'seoprostack'),
-                'description' => __('Makes a WordPress account with your new-user role and emails a link to set a password. Needed for courses and community spaces.', 'seoprostack'),
+                'requires'    => 'fluent-support/fluent-support.php',
+                'label'       => __('Support request forms', 'seoprostack'),
+                'description' => __('Each opens a support conversation, under the product named in the form’s title or answers.', 'seoprostack'),
+                'options'     => array(__CLASS__, 'form_options'),
+                'open'        => true,
+            ),
+            'agency_orders_leads' => array(
+                'type'        => 'multi',
+                'default'     => array(),
+                'parent'      => self::KEY,
+                'requires'    => 'fluent-boards/fluent-boards.php',
+                'label'       => __('Lead forms', 'seoprostack'),
+                'description' => __('Quote requests, referrals and other enquiries, added to the sales board.', 'seoprostack'),
+                'options'     => array(__CLASS__, 'form_options'),
+                'open'        => true,
+            ),
+            'agency_orders_leads_board' => array(
+                'type'        => 'select',
+                'default'     => '',
+                'parent'      => self::KEY,
+                'requires'    => 'fluent-boards/fluent-boards.php',
+                'label'       => __('Sales board', 'seoprostack'),
+                'description' => __('Fluent Boards board each lead is added to, in its first stage.', 'seoprostack'),
+                'options'     => array(__CLASS__, 'board_options'),
+                'open'        => true,
             ),
             'agency_orders_course' => array(
                 'type'        => 'select',
                 'default'     => '',
                 'parent'      => self::KEY,
+                'requires'    => 'tutor/tutor.php',
                 'label'       => __('Enrol in course', 'seoprostack'),
                 'description' => __('A Tutor LMS course, such as how you work with clients.', 'seoprostack'),
                 'options'     => array(__CLASS__, 'course_options'),
@@ -122,63 +140,23 @@ class SEOProStack_Agency_Orders extends SEOProStack_Feature {
                 'type'        => 'select',
                 'default'     => '',
                 'parent'      => self::KEY,
+                'requires'    => 'fluent-community/fluent-community.php',
                 'label'       => __('Add to community space', 'seoprostack'),
                 'description' => __('A FluentCommunity space for your clients.', 'seoprostack'),
                 'options'     => array(__CLASS__, 'space_options'),
                 'open'        => true,
             ),
-            'agency_orders_updates' => array(
-                'type'        => 'bool',
-                'default'     => true,
-                'parent'      => self::KEY,
-                'label'       => __('Tell clients when an order moves', 'seoprostack'),
-                'description' => __('When you move the task to another stage, reply in its support conversation. Fluent Support emails the client.', 'seoprostack'),
-            ),
-            'agency_orders_message' => array(
-                'type'        => 'text',
-                'default'     => __('Your order “{order}” has moved to: {stage}.', 'seoprostack'),
-                'parent'      => self::KEY,
-                'label'       => __('Update message', 'seoprostack'),
-                'description' => __('Name your stages the way clients should read them.', 'seoprostack'),
-                'tokens'      => array('{order}', '{stage}', '{name}'),
-            ),
-            'agency_orders_briefs' => array(
-                'type'        => 'multi',
-                'default'     => array(),
-                'parent'      => self::KEY,
-                'label'       => __('Project brief forms', 'seoprostack'),
-                'description' => __('A brief sent after ordering is added to the client’s latest order: a comment on its task and a reply in its conversation.', 'seoprostack'),
-                'options'     => array(__CLASS__, 'form_options'),
-                'open'        => true,
-            ),
-            'agency_orders_leads' => array(
-                'type'        => 'multi',
-                'default'     => array(),
-                'parent'      => self::KEY,
-                'label'       => __('Lead forms', 'seoprostack'),
-                'description' => __('Quote requests, referrals and other enquiries: each is added to the sales board below, linked to its FluentCRM contact. No conversation, login or course.', 'seoprostack'),
-                'options'     => array(__CLASS__, 'form_options'),
-                'open'        => true,
-            ),
-            'agency_orders_leads_board' => array(
-                'type'        => 'select',
-                'default'     => '',
-                'parent'      => self::KEY,
-                'label'       => __('Sales board', 'seoprostack'),
-                'description' => __('Fluent Boards board each lead is added to, in its first stage.', 'seoprostack'),
-                'options'     => array(__CLASS__, 'board_options'),
-                'open'        => true,
-            ),
-            'agency_orders_requests' => array(
-                'type'        => 'multi',
-                'default'     => array(),
-                'parent'      => self::KEY,
-                'label'       => __('Support request forms', 'seoprostack'),
-                'description' => __('Each opens a Fluent Support conversation, under the product named in the form’s title or answers.', 'seoprostack'),
-                'options'     => array(__CLASS__, 'form_options'),
-                'open'        => true,
-            ),
         );
+    }
+
+    /**
+     * Whether new clients get a WordPress login: only when there is something
+     * for it to open (the client dashboard, a course or a community space).
+     *
+     * @return bool
+     */
+    private static function wants_login() {
+        return SEOProStack_Settings::get('agency_dashboard') || SEOProStack_Settings::get('agency_orders_course') || SEOProStack_Settings::get('agency_orders_space');
     }
 
     /**
@@ -285,7 +263,8 @@ class SEOProStack_Agency_Orders extends SEOProStack_Feature {
         $form_id = isset($form->id) ? (int) $form->id : 0;
         if (in_array($form_id, self::form_ids('agency_orders_forms'), true)) {
             $entry = \FluentForm\App\Models\Submission::find((int) $entry_id);
-            if ($entry && ('sent' === SEOProStack_Settings::get('agency_orders_start') || !self::unpaid($entry))) {
+            // A form that takes payment waits for it (payment_changed()).
+            if ($entry && !self::unpaid($entry)) {
                 self::start($entry, $form);
             }
             return;
@@ -405,11 +384,9 @@ class SEOProStack_Agency_Orders extends SEOProStack_Feature {
         $order['task'] = self::step($entry, $form, 'Fluent Boards', function () use ($entry, $form, $client, $order, $title, $lines) {
             return self::add_task($entry, $form, $client, $order, $title, $lines);
         });
-        if (SEOProStack_Settings::get('agency_orders_support')) {
-            $order['ticket'] = self::step($entry, $form, 'Fluent Support', function () use ($entry, $form, $client, $title, $lines) {
-                return self::open_ticket($entry, $form, $client, $title, $lines);
-            });
-        }
+        $order['ticket'] = self::step($entry, $form, 'Fluent Support', function () use ($entry, $form, $client, $title, $lines) {
+            return self::open_ticket($entry, $form, $client, $title, $lines);
+        });
         if ($order['user']) {
             self::step($entry, $form, 'Tutor LMS', function () use ($order) {
                 return self::enrol($order['user']);
@@ -600,7 +577,7 @@ class SEOProStack_Agency_Orders extends SEOProStack_Feature {
         if ($existing) {
             return (int) $existing->ID;
         }
-        if (!SEOProStack_Settings::get('agency_orders_login')) {
+        if (!self::wants_login()) {
             return 0;
         }
         $base  = sanitize_user(current(explode('@', $client['email'])), true);
@@ -855,7 +832,7 @@ class SEOProStack_Agency_Orders extends SEOProStack_Feature {
         if (!is_object($task) || empty($task->id) || (int) $task->stage_id === (int) $old_stage_id) {
             return;
         }
-        if (!SEOProStack_Settings::get('agency_orders_updates') || !function_exists('FluentSupportApi')) {
+        if (!function_exists('FluentSupportApi')) {
             return;
         }
         $order = self::task_order($task);
@@ -875,11 +852,18 @@ class SEOProStack_Agency_Orders extends SEOProStack_Feature {
             }
             return;
         }
-        $message = str_replace(
-            array('{order}', '{stage}', '{name}'),
-            array(!empty($order['service']) ? (string) $order['service'] : (string) $task->title, (string) $stage->title, isset($order['name']) ? (string) $order['name'] : ''),
-            (string) SEOProStack_Settings::get('agency_orders_message')
-        );
+        $service = !empty($order['service']) ? (string) $order['service'] : (string) $task->title;
+        /* translators: 1: what was ordered, such as SEO Audit, 2: stage, such as In progress */
+        $message = sprintf(__('Your order “%1$s” has moved to: %2$s.', 'seoprostack'), $service, (string) $stage->title);
+        /**
+         * Filters the reply that tells a client their order moved stage.
+         *
+         * @param string $message Plain text.
+         * @param object $task    Fluent Boards task.
+         * @param object $stage   Its new stage.
+         * @param array  $order   The order: service, entry, form, ticket, user, email, name.
+         */
+        $message = (string) apply_filters('seoprostack_agency_update_message', $message, $task, $stage, $order);
         try {
             FluentSupportApi('tickets')->addResponse(array('content' => wpautop(esc_html($message)), 'conversation_type' => 'response'), (int) $agent->id, (int) $order['ticket']);
         } catch (Throwable $e) {
