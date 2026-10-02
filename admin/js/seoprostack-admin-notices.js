@@ -1,5 +1,5 @@
 /**
- * Hide admin notices: move notices into a panel under a bell in the admin bar.
+ * Hide admin notices: move notices into a panel under a megaphone in the admin bar.
  *
  * Runs when the page is ready, after common.js has moved the notices under
  * the heading. Takes the notices marked while the page was drawn (see
@@ -14,10 +14,10 @@
  * while empty (see wait()).
  *
  * The panel stays inside #wpbody-content, so plugin styles and handlers
- * scoped to it keep working, and is fixed under the bell. Like core's admin
- * bar menus, it opens while the mouse points at the bell and closes when the
+ * scoped to it keep working, and is fixed under the megaphone. Like core's admin
+ * bar menus, it opens while the mouse points at the megaphone and closes when the
  * mouse moves away; keys and taps open it until Escape or a press elsewhere.
- * The bell is on every screen, with a dot while the panel has notices.
+ * The megaphone is on every screen, with a dot while the panel has notices.
  *
  * Notices kept from plugins this screen skipped carry data-sps-stored; using
  * one's dismiss control tells the server to stop showing it (dismissed()).
@@ -75,7 +75,7 @@
 	}
 
 	/**
-	 * Line the panel up under the bell, kept on screen.
+	 * Line the panel up under the megaphone, kept on screen.
 	 */
 	function place() {
 		var r = $button[0].getBoundingClientRect();
@@ -87,7 +87,7 @@
 		}
 	}
 
-	/** Opened by key or tap: stays open until Escape, the bell or a press elsewhere. */
+	/** Opened by key or tap: stays open until Escape, the megaphone or a press elsewhere. */
 	var pinned = false;
 
 	/**
@@ -109,14 +109,14 @@
 	}
 
 	/**
-	 * @param {boolean} [refocus] Put focus back on the bell.
+	 * @param {boolean} [refocus] Put focus back on the megaphone.
 	 */
 	function close(refocus) {
 		if (!isOpen()) {
 			return;
 		}
 		pinned = false;
-		// A hidden panel (or bell) sends no pointerleave; the next pointerenter sets these again.
+		// A hidden panel (or megaphone) sends no pointerleave; the next pointerenter sets these again.
 		overBell = false;
 		overPanel = false;
 		$panel.addClass('hidden');
@@ -147,7 +147,7 @@
 	}
 
 	/**
-	 * Open the panel while a mouse points at the bell or the panel, and close
+	 * Open the panel while a mouse points at the megaphone or the panel, and close
 	 * it when the mouse moves away, as core's admin bar menus do. Touch and
 	 * keys open it with a click (see ui()) and pin it.
 	 */
@@ -189,9 +189,9 @@
 	}
 
 	/**
-	 * The bell's panel, made on first use.
+	 * The megaphone's panel, made on first use.
 	 *
-	 * @return {jQuery|null} The panel, or null when the admin bar has no bell.
+	 * @return {jQuery|null} The panel, or null when the admin bar has no megaphone.
 	 */
 	function ui() {
 		if ($panel) {
@@ -252,7 +252,7 @@
 
 	/**
 	 * Show the dot while the panel has notices, and the count to screen
-	 * readers. The bell stays, so the bar never moves.
+	 * readers. The megaphone stays, so the bar never moves.
 	 */
 	function count() {
 		if (!$panel) {
@@ -433,7 +433,7 @@
 	/**
 	 * An empty box the notice hooks printed, for a script to fill: keep it
 	 * hidden while it is empty, so it never pushes the page down. Filled with
-	 * a notice or banner, it goes behind the bell; filled with anything else
+	 * a notice or banner, it goes behind the megaphone; filled with anything else
 	 * (a dialog, a toolbar), it shows where it is.
 	 *
 	 * @param {Element} el Box.
@@ -562,7 +562,7 @@
 		$notices = $notices.filter(function () {
 			return !$(this).parents().filter($all).length;
 		});
-		// The bell is on every screen; with no notices its panel says so.
+		// The megaphone is on every screen; with no notices its panel says so.
 		ui();
 		$notices.each(function () {
 			take(this);

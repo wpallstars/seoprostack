@@ -8,7 +8,7 @@
  * instead of wrapping over the page.
  * "…" opens like any admin bar menu, on hover; the moved items keep their
  * own submenus.
- * The right of the bar (account menu, notices bell, Plugins menu) is not
+ * The right of the bar (account menu, notices megaphone, Plugins menu) is not
  * changed.
  *
  * Items are told apart by the code that added them, noted by a small

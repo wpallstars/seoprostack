@@ -20,7 +20,7 @@ Everything is off by default except Hide admin bar items (Comments and + New), N
 
 * **Organise the admin menu**: the same menu sections on every site, with role previews and client safeguards. Replaces Admin Menu Editor.
 * **Tidy the dashboard** and **Dashboard and sidebar widgets**: no Dashboard boxes or widgets you never use.
-* **Hide admin bar items** (on by default), a **More menu** for plugin items in the admin bar, and **Hide admin notices**, which moves plugin and theme notices behind a bell.
+* **Hide admin bar items** (on by default), a **More menu** for plugin items in the admin bar, and **Hide admin notices**, moved behind a megaphone.
 * **Quiet Freemius prompts** (on by default): no opt-in nags, upgrade offers or deactivation surveys from plugins that use Freemius.
 * **Admin bar and dashboard access**: hide the admin bar and block wp-admin for roles such as subscribers and customers, never administrators.
 * **Magic login links**: one-time login links by email that scanners cannot use up.
@@ -129,7 +129,7 @@ Click **Report a problem** at the top right of Settings → SEO Pro Stack, or op
 
 = Unreleased =
 * New: Word documents; Like, save and share.
-* Change: Pinned posts; faster post lists; sizes in Free Plugins.
+* Change: Pinned posts; faster post lists; sizes in Free Plugins; notices megaphone.
 * Fix: More menu alignment, fitted menu in full screen editor.
 
 = 0.9.0 =

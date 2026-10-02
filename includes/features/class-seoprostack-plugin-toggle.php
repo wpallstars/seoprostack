@@ -74,7 +74,7 @@ class SEOProStack_Plugin_Toggle extends SEOProStack_Feature {
         }
 
         add_action('admin_bar_menu', array(__CLASS__, 'menu'), 100);
-        // Next to the account menu, with the notices bell and then other plugins' items to its left.
+        // Next to the account menu, with the notices megaphone and then other plugins' items to its left.
         SEOProStack_Admin_Bar::pin(self::NODE, 0);
         add_action('admin_bar_init', array(__CLASS__, 'assets'));
         add_filter('wp_redirect', array(__CLASS__, 'return_to_page'), 1);
