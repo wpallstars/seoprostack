@@ -2,7 +2,7 @@
 
 Every change to SEO Pro Stack. readme.txt lists the latest version in short.
 
-= Unreleased =
+= 0.8.0 =
 * New, off by default: Maintenance mode (Maintenance tab): a plain-text 503 page with Retry-After and noindex, an administrator reminder, and revocable 24-hour bypass links. Imports Hostinger Tools' maintenance switch without changing its settings; its other enabled jobs are named on the Plugins screen.
 * New: display presets for Rank Math SEO (no Frontend Stats Bar), WP-Optimize (no caching menu in the admin bar) and Burst Statistics (no non-critical dashboard notices), leaving modules and schedules alone. Burst's tracking settings and generated script stay unchanged through Apply, Reset and Undo.
 * New: Code Snippets preset hides upgrade notices and its admin bar menu. Apply, Reset and Undo clear the preset's named caches, including Code Snippets' versioned settings cache on Redis and other persistent caches.
