@@ -234,9 +234,14 @@ No automated suite ships with the plugin. Verify on real WordPress:
      commits that are not pushed.
    - After merging a PR, run the script again, then check that the stamp
      lists your merge in `main` before telling the user to look.
-   - If your branch is left out because it conflicts, merge `origin/main`
-     into it (or wait for the other PR), push and run the script again. Tell
-     the user which PRs are left out.
+   - Conflicts only in `changelog.txt`, `readme.txt` or `README.md` do not
+     leave a branch out: every PR adds lines at the top of the same
+     changelogs, so each merge to `main` would otherwise drop every other
+     open PR. The preview keeps both sides' lines there and says so in the
+     stamp; still merge `origin/main` into your branch before it merges.
+   - If your branch is left out because it conflicts in other files, merge
+     `origin/main` into it (or wait for the other PR), push and run the
+     script again. Tell the user which PRs are left out.
    - To check your branch on its own, or for checks the user will not look
      at, use a throwaway site of your own (step 4's Docker image on a free
      port), which no one else overwrites:

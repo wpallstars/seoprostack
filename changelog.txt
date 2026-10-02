@@ -5,6 +5,9 @@ Every change to SEO Pro Stack. readme.txt lists the latest version in short.
 = Unreleased =
 * New: a banner at the top of the Read Me tab, and for the WordPress.org plugin page: “SEO Pro Stack: WP Admin – Solved!”
 * New: Pro Plugins lists FluentCart Pro.
+* Fix: Organise the admin menu: Code Snippets shows its logo in the Administrators and Developers menus.
+* Change: Organise the admin menu spaces the Fluent plugins’ names like Fluent Forms: Fluent CRM, Fluent SMTP, Fluent Community and Fluent Cart. Shop starts with WooCommerce and FluentCart, then the rest A–Z.
+* New: Free Plugins suggests FluentCart under eCommerce.
 
 = 0.8.0 =
 * New, off by default: Maintenance mode (Maintenance tab): a plain-text 503 page with Retry-After and noindex, an administrator reminder, and revocable 24-hour bypass links. Imports Hostinger Tools' maintenance switch without changing its settings; its other enabled jobs are named on the Plugins screen.
@@ -26,7 +29,7 @@ Every change to SEO Pro Stack. readme.txt lists the latest version in short.
 * Fix: Load plugins only where needed now loads plugins that add columns, filters or row links to a list on that list, so Rank Math’s SEO columns show on the Posts list again. Every screen is checked again once.
 * Fix: Load plugins only where needed no longer leaves WP Sheet Editor’s spreadsheets blank: pages of a framework that several plugins bundle load all of those plugins.
 * Fix: Ask before licence checks: “Ask me again” now keeps each plugin hidden for the time you chose. Hiding a second plugin, such as Starter Templates after Kadence Blocks, brought back the first.
-* Fix: Organise the admin menu: dark plugin icons in the Administrators and Developers menus (Site Assist, ICS Calendar, Bit Social, FluentCRM) now show in the menu’s colours, as at the top level, AutomatorWP shows a cog instead of nothing on screens that skip it, and Code Snippets shows its logo.
+* Fix: Organise the admin menu: dark plugin icons in the Administrators and Developers menus (Site Assist, ICS Calendar, Bit Social, FluentCRM) now show in the menu’s colours, as at the top level, and AutomatorWP shows a cog instead of nothing on screens that skip it.
 * New: Readable list columns removes Complianz’s Website Scan, Post Type Switcher’s Type and Burst Statistics’ Pageviews columns (Columns to remove; Admin Columns can still add them back), puts Author and Date last on content lists, and keeps Rank Math’s SEO Details on one line each.
 * New: Organise the admin menu widens the sidebar, up to 280 pixels, so menu names fit on one line (Fit the menu to its names, on by default). Other plugins’ fixed headers, footers and panels laid out for the usual menu width, such as Fluent Support’s setup footer, move over or narrow with it.
 * Change: Organise the admin menu shows FluentSMTP’s logo for its entry instead of a cog.
