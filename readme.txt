@@ -130,7 +130,7 @@ Click **Report a problem** at the top right of Settings → SEO Pro Stack, or op
 = Unreleased =
 * New: Menu item visibility, Change post type, Order by hand, Term tools, Search custom fields, Old post addresses, Link cards, Wikipedia previews, Agency tab.
 * New: Fixes for other plugins (on by default), Report a problem button, Read Me banner.
-* Change: Custom order link on sorted lists; notes on replaceable plugins.
+* Change: Custom order link on sorted lists; notes on replaceable plugins; Advise.so card.
 * Change: faster block editors, Customizer, Import and Export forms and Kadence design library.
 
 = 0.8.1 =
