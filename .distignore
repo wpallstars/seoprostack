@@ -5,6 +5,8 @@
 .gitignore
 .distignore
 .distignore-wporg
+# WordPress.org SVN assets (banners) and their source; admin/images/banner.svg ships instead.
+.wordpress-org
 .woodpecker.yml
 /dist
 .DS_Store

@@ -24,7 +24,7 @@ readonly VERSION_CONSTANT="SEOPROSTACK_VERSION"
 readonly UPDATER_FILE="includes/features/class-seoprostack-github-updates.php"
 readonly UPDATER_HEADERS='GitHub Plugin URI|Primary Branch|Release Asset'
 # Development files that must never be in a release zip (paths inside the slug folder).
-readonly DEV_FILES='^[^/]+/(\.git|\.agents|\.distignore|\.distignore-wporg|\.gitattributes|\.gitignore|\.woodpecker\.yml|AGENTS\.md|DEVELOPMENT\.md|RELEASING\.md|ROADMAP\.md|STABILITY\.md|TESTING\.md|scripts|dist|node_modules|reference-plugins|project-documents)(/|$)|(^|/)(\.DS_Store|__MACOSX|Thumbs\.db)(/|$)|\.(bak|log|orig|swp)$'
+readonly DEV_FILES='^[^/]+/(\.git|\.agents|\.wordpress-org|\.distignore|\.distignore-wporg|\.gitattributes|\.gitignore|\.woodpecker\.yml|AGENTS\.md|DEVELOPMENT\.md|RELEASING\.md|ROADMAP\.md|STABILITY\.md|TESTING\.md|scripts|dist|node_modules|reference-plugins|project-documents)(/|$)|(^|/)(\.DS_Store|__MACOSX|Thumbs\.db)(/|$)|\.(bak|log|orig|swp)$'
 readonly README_MAX_BYTES=10240
 readonly SHORT_DESC_MAX=150
 readonly MAX_TAGS=5
