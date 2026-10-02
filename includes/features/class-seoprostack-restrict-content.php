@@ -210,7 +210,8 @@ class SEOProStack_Restrict_Content extends SEOProStack_Feature {
             add_filter('woocommerce_product_tabs', array(__CLASS__, 'woo_tabs'), 20);
             // Simple products leave out the form when they cannot be bought;
             // variable ones would say "out of stock".
-            add_action('woocommerce_variable_add_to_cart', array(__CLASS__, 'woo_variable_form'), 0);
+            add_action('woocommerce_variable_add_to_cart', array(__CLASS__, 'woo_variable_form_start'), 29);
+            add_action('woocommerce_variable_add_to_cart', array(__CLASS__, 'woo_variable_form_end'), 31);
         }
         if (defined('FLUENTCART_VERSION')) {
             add_filter('fluent_cart/cart/can_purchase', array(__CLASS__, 'fluent_cart_can_purchase'), 20, 2);
@@ -856,29 +857,36 @@ class SEOProStack_Restrict_Content extends SEOProStack_Feature {
     }
 
     /**
+     * Whether the variable add-to-cart form being printed is held back.
+     *
+     * @var bool
+     */
+    private static $woo_form_held = false;
+
+    /**
      * No add-to-cart form for variable products the visitor may not see, as
-     * for simple ones, instead of "out of stock". It is skipped for this
-     * product only and put back for the next.
+     * for simple ones, instead of "out of stock": WooCommerce prints it at
+     * priority 30, between these two.
      *
      * @return void
      */
-    public static function woo_variable_form() {
+    public static function woo_variable_form_start() {
         $product = isset($GLOBALS['product']) ? $GLOBALS['product'] : null;
-        if (!function_exists('woocommerce_variable_add_to_cart') || !self::woo_hidden($product)) {
-            return;
+        if (!self::$woo_form_held && self::woo_hidden($product)) {
+            self::$woo_form_held = ob_start();
         }
-        remove_action('woocommerce_variable_add_to_cart', 'woocommerce_variable_add_to_cart', 30);
-        add_action('woocommerce_variable_add_to_cart', array(__CLASS__, 'woo_variable_form_restore'), PHP_INT_MAX);
     }
 
     /**
-     * Put WooCommerce's variable add-to-cart form back after skipping it.
+     * Drop the held-back variable add-to-cart form.
      *
      * @return void
      */
-    public static function woo_variable_form_restore() {
-        remove_action('woocommerce_variable_add_to_cart', array(__CLASS__, 'woo_variable_form_restore'), PHP_INT_MAX);
-        add_action('woocommerce_variable_add_to_cart', 'woocommerce_variable_add_to_cart', 30);
+    public static function woo_variable_form_end() {
+        if (self::$woo_form_held) {
+            self::$woo_form_held = false;
+            ob_end_clean();
+        }
     }
 
     /**
