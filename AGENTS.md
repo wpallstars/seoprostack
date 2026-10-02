@@ -108,6 +108,11 @@ preset overwrites them. A setting goes in one or the other.
 - Capability and nonce checks on every admin action and AJAX handler; escape on
   output; sanitise through the schema.
 - Admin copy: short, plain words, sentence case, no jargon.
+- Decide for the user. Within a feature, SEO Pro Stack makes the choices
+  (which plugins, screens or items it applies to) from what it can detect.
+  Settings are there to bypass something that causes a problem, not choices
+  people need to understand first. A new setting must earn its place;
+  prefer detecting the right behaviour plus a short bypass list.
 - Site owner in control, performance first: the owner decides what their site
   sends, contacts and shows. Calls to outside services are opt-in where they
   are not the point of the feature, made only as often and for as long as

@@ -81,6 +81,21 @@
 	margin-inline-start: auto;
 }
 
+.sps-wrap .sps-header__support {
+	display: inline-flex;
+	align-items: center;
+	gap: 4px;
+}
+
+/* line-height: 1 stops the icon taking the button's taller line height,
+   which draws the glyph below the middle of its box. */
+.sps-wrap .sps-header__support .dashicons {
+	width: 18px;
+	height: 18px;
+	font-size: 18px;
+	line-height: 1;
+}
+
 /* Search ------------------------------------------------------------- */
 
 /* Stretch, so the field always matches the button's height, whatever
