@@ -14,7 +14,7 @@
  * their marked words still preview.
  *
  * @package SEOProStack
- * @since 0.8.2
+ * @since 0.9.0
  */
 
 if (!defined('ABSPATH')) {

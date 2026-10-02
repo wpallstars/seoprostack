@@ -13,7 +13,7 @@
  * editor converts them to Link cards in one click.
  *
  * @package SEOProStack
- * @since 0.8.2
+ * @since 0.9.0
  */
 
 if (!defined('ABSPATH')) {
