@@ -16,7 +16,9 @@ if (!defined('ABSPATH')) {
 // Imsanity, Enable Media Replace, CompressX, Easy Watermark, Remove CPT base,
 // Pretty Links, Browser Shots, Spectra (ultimate-addons-for-gutenberg;
 // Kadence Blocks is listed for page building), Admin Menu Editor, Nav Menu
-// Roles, Post Type Switcher, Simple Custom Post Order, Term Management Tools.
+// Roles, Post Type Switcher, Simple Custom Post Order, Term Management Tools,
+// ACF: Better Search (Search custom fields) and Slugs Manager: Delete Old
+// Permalinks (Old post addresses; closed on WordPress.org on 2026-04-27).
 // String Locator is not listed: searching code is better done in an editor
 // or with WP-CLI than from wp-admin.
 // EditorsKit (block-options) is not listed: its last update was in May 2024,
@@ -140,14 +142,12 @@ function seoprostack_get_free_plugins() {
             'translatepress-multilingual'
         ),
         'advanced' => array(
-            'acf-better-search',
             'automatorwp',
             'bit-pi',
             'bit-integrations',
             'code-snippets',
             'easy-code-manager',
             'favorites',
-            'remove-old-slugspermalinks',
             'secure-custom-fields',
             'yellow-pencil-visual-theme-customizer'
         ),
@@ -186,13 +186,6 @@ function seoprostack_get_removed_plugins() {
             'closed'      => '2026-08-05',
             'reason'      => 'Temporary closure pending a full review.',
             'replacement' => 'Needs an alternative for collecting video testimonials.',
-        ),
-        'remove-old-slugspermalinks' => array(
-            'name'        => 'Slugs Manager: Delete Old Permalinks',
-            'description' => 'List and delete the old slugs WordPress stores for redirects.',
-            'closed'      => '2026-04-27',
-            'reason'      => 'Guideline violation.',
-            'replacement' => 'Candidate for a lightweight SEO Pro Stack feature.',
         ),
     );
 }

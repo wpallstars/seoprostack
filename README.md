@@ -39,6 +39,7 @@ Every feature is off by default except four: Hide admin bar items, which hides C
 | Change post type | Content | Post Type Switcher |
 | Order by hand | Content | Simple Custom Post Order |
 | Term tools | Content | Term Management Tools |
+| Search custom fields | Content | ACF: Better Search |
 | Website screenshots | Content | Browser Shots |
 | Spectra block replacements | Content | Spectra |
 | Paste into the Media Library | Media | The Paste |
@@ -51,6 +52,7 @@ Every feature is off by default except four: Hide admin bar items, which hides C
 | Delay scripts until interaction | Speed | Flying Scripts |
 | Delayed Google Analytics | Speed | Flying Analytics |
 | 410 Gone for removed pages | Links | Ultimate 410 |
+| Old post addresses | Links | Slugs Manager: Delete Old Permalinks |
 | Short addresses for custom post types | Links | Remove CPT base |
 | Short links | Links | Pretty Links |
 | Maintenance mode | Maintenance | Hostinger Tools, in part |
@@ -313,6 +315,15 @@ Three bulk actions on category, tag and other term lists:
 
 Old archive addresses of merged and moved terms redirect with a 301 to the term that took over, when they would otherwise be a 404. Replaces Term Management Tools, which has no settings; the feature switches itself on while it is active.
 
+### Search custom fields (Content)
+
+With Advanced Custom Fields or Secure Custom Fields active, searches on the site and in admin lists also look in the values of text-like fields: text, text area, WYSIWYG, email, URL, number, select, checkbox and radio, including fields inside repeater, group and flexible content fields.
+
+- Fields are found through the reference ACF keeps next to each value (`_{meta key}` → `field_…`), so every repeater row counts and other plugins’ post meta is never searched. Password and other fields are left out.
+- As in core, each word must match somewhere in the post (title, excerpt, content or a field), and `-word` leaves out posts that have it anywhere.
+- Only the main search of a page or admin list: widgets, blocks, REST requests and the media library keep core’s search, as do queries that choose their own search columns.
+- No settings. Replaces ACF: Better Search; the feature switches itself on while it is active.
+
 ### Simpler block editor (Content)
 
 Turns off parts of the block editor most people never use, for everyone.
@@ -391,6 +402,15 @@ Answers “410 Gone” instead of “404 Not Found” for addresses you list, so
 - One address per line, as a path (`/old-page/`) or a full address on this site. End with `*` to include everything below it (`/old-shop/*`).
 - Only addresses that would otherwise be “not found” are affected, so a live page cannot be taken down by mistake.
 - Optionally, published content deleted from the bin is added to the list automatically.
+
+### Old post addresses (Links)
+
+When a post’s slug changes, WordPress keeps the old one (`_wp_old_slug`) so links to the old address still lead to the post. This clears the old addresses that can no longer lead anywhere, and lists the rest under **Tools → Old addresses** with the post and when each last redirected someone, so you can remove the ones nobody needs (one at a time or selected).
+
+- Cleared automatically when a post’s slug changes and when Tools → Old addresses opens: the post’s current slug, the same old slug stored twice, old slugs of posts that no longer exist, and old slugs that another published post of the same type now uses (its address answers first; only for types whose addresses have no date or category in them).
+- A working redirect is never removed automatically. A removed one shows “not found”.
+- The last use is recorded at most once a day per address. Old addresses never used since recording started say “Not since” and the date.
+- Replaces Slugs Manager: Delete Old Permalinks, closed on WordPress.org on 27 April 2026; the feature switches itself on while it is active.
 
 ### Short addresses for custom post types (Links)
 
@@ -844,7 +864,7 @@ Read a setting with `SEOProStack_Settings::get( 'key' )`.
 
 ## Uninstall
 
-Deleting the plugin removes its settings and cached data, the profile pictures and generated avatars in `uploads/seoprostack-avatars/`, the WebP and AVIF copies of pictures, including copies left by pictures deleted while the plugin was inactive, and short links with their categories and click counts (Pretty Links’ own links are left alone), and the must-use file of Load plugins only where needed, the cached GitHub releases, and who hid lines of the Plugins screen notice about replaced plugins (and, from older versions, who dismissed the Git Updater notice), menu item visibility rules (Nav Menu Roles’ own rules stay), the hand order of terms and the old term addresses kept for redirects. Posts keep their hand order in core’s Order field. Imported media and screenshots stay in the Media Library because your posts use them. Watermarked pictures stay marked, and their unmarked originals stay in the `uploads/seoprostack-originals-…` folder so they are not lost; delete that folder if you do not need them.
+Deleting the plugin removes its settings and cached data, the profile pictures and generated avatars in `uploads/seoprostack-avatars/`, the WebP and AVIF copies of pictures, including copies left by pictures deleted while the plugin was inactive, and short links with their categories and click counts (Pretty Links’ own links are left alone), and the must-use file of Load plugins only where needed, the cached GitHub releases, and who hid lines of the Plugins screen notice about replaced plugins (and, from older versions, who dismissed the Git Updater notice), menu item visibility rules (Nav Menu Roles’ own rules stay), the hand order of terms and the old term addresses kept for redirects, and when old post addresses were last used (the old addresses themselves are WordPress’s and keep redirecting). Posts keep their hand order in core’s Order field. Imported media and screenshots stay in the Media Library because your posts use them. Watermarked pictures stay marked, and their unmarked originals stay in the `uploads/seoprostack-originals-…` folder so they are not lost; delete that folder if you do not need them.
 
 Deactivating the plugin removes the WebP and AVIF rules from the uploads folder’s `.htaccess` (for every site when network-deactivated) and the must-use file of Load plugins only where needed (on multisite, when network-deactivated).
 
@@ -852,6 +872,7 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folder�
 
 ### Unreleased
 
+- New, off by default: **Search custom fields** (Content tab; replaces ACF: Better Search) makes site and admin list searches also match Advanced Custom Fields and Secure Custom Fields text-like fields, including repeater, group and flexible content sub fields, found through ACF’s own field references. **Old post addresses** (Links tab; replaces Slugs Manager: Delete Old Permalinks, closed on WordPress.org) clears old slugs that can no longer redirect (the current slug, duplicates, deleted posts, slugs another published post now uses), records when each old address last redirected someone, and lists them under Tools → Old addresses with Remove. Each switches itself on while the plugin it replaces is active; Free Plugins no longer lists them. Settings version 9.
 - Changed: Order by hand keeps a way back from column sorting: while a list is sorted by Title, Date or another column, a **Custom order** view link and the handle column’s header return to the hand order with the same filters. Admin list searches and the Drafts and Pending views now show the hand order with handles (core sorted Drafts and Pending by date changed, so a move there saved that order).
 - Changed: “Deactivate …” links on SEO Pro Stack’s settings come back to the same tab, with “Plugin deactivated.”; the one in the Plugins screen notice keeps the list’s status, page and search.
 - New: on the Plugins screen, each plugin SEO Pro Stack can replace has a note under its row naming the setting that makes it redundant and the next step: turn the setting on, deactivate, or delete.
@@ -1050,6 +1071,8 @@ Where a feature replaces one of them, SEO Pro Stack imports the settings it can,
 | Post Type Switcher | John James Jacoby | [WordPress.org](https://wordpress.org/plugins/post-type-switcher/), [GitHub](https://github.com/JJJ/post-type-switcher) | Change post type |
 | Simple Custom Post Order | Colorlib | [WordPress.org](https://wordpress.org/plugins/simple-custom-post-order/), [GitHub](https://github.com/ColorlibHQ/simple-custom-post-order) | Order by hand |
 | Term Management Tools | scribu, theMikeD | [WordPress.org](https://wordpress.org/plugins/term-management-tools/), [GitHub](https://github.com/theMikeD/wp-term-management-tools) | Term tools |
+| ACF: Better Search | Mateusz Gbiorczyk | [WordPress.org](https://wordpress.org/plugins/acf-better-search/) | Search custom fields |
+| Slugs Manager: Delete Old Permalinks | WPFactory | [WordPress.org](https://wordpress.org/plugins/remove-old-slugspermalinks/) (closed), [GitHub](https://github.com/wpcodefactory/remove-old-slugspermalinks) | Old post addresses |
 | Browser Shots | Kevin Leary, Ben Gillbanks | [WordPress.org](https://wordpress.org/plugins/browser-shots/), [GitHub](https://github.com/BinaryMoon/browser-shots) | Website screenshots |
 | Spectra | Brainstorm Force | [WordPress.org](https://wordpress.org/plugins/ultimate-addons-for-gutenberg/), [GitHub](https://github.com/brainstormforce/wp-spectra) | Spectra block replacements |
 | The Paste | Jörn Lund | [WordPress.org](https://wordpress.org/plugins/the-paste/), [GitHub](https://github.com/mcguffin/the-paste) | Paste into the Media Library |
