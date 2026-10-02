@@ -252,7 +252,8 @@ class SEOProStack_Sticky_Posts extends SEOProStack_Feature {
     }
 
     /**
-     * "Pinned" after a pinned item's title in lists.
+     * "Pinned" after a pinned item's title in lists. On post lists it is
+     * marked, so the pin toggle can add and remove it without a reload.
      *
      * @param string[] $states Post states.
      * @param WP_Post  $post   Post.
@@ -260,9 +261,19 @@ class SEOProStack_Sticky_Posts extends SEOProStack_Feature {
      */
     public static function post_states($states, $post) {
         if (isset($states['sticky'])) {
-            $states['sticky'] = __('Pinned', 'seoprostack');
+            $screen           = function_exists('get_current_screen') ? get_current_screen() : null;
+            $states['sticky'] = $screen && 'edit' === $screen->base ? self::pinned_state() : __('Pinned', 'seoprostack');
         }
         return $states;
+    }
+
+    /**
+     * The marked "Pinned" post state for post lists.
+     *
+     * @return string
+     */
+    private static function pinned_state() {
+        return '<span class="seoprostack-pinned-state">' . esc_html__('Pinned', 'seoprostack') . '</span>';
     }
 
     /**
@@ -362,6 +373,35 @@ class SEOProStack_Sticky_Posts extends SEOProStack_Feature {
         </style>
         <script>
         (function ($) {
+            var pinned = <?php echo wp_json_encode(self::pinned_state()); ?>;
+            var sep = <?php echo wp_json_encode(wp_get_list_item_separator()); ?>;
+
+            // Rebuild the post states after the title ("— Draft, Pinned")
+            // with "Pinned" added or taken out, as WordPress prints them.
+            function showState($row, on) {
+                var link = $row.find('a.row-title').get(0), states = [], node, next;
+                if (!link) { return; }
+                for (node = link.nextSibling; node; node = next) {
+                    next = node.nextSibling;
+                    if (node.nodeType === 1 && $(node).hasClass('post-state')) {
+                        if (!$(node).find('.seoprostack-pinned-state').length) {
+                            var html = $(node).html();
+                            states.push(sep && html.slice(-sep.length) === sep ? html.slice(0, -sep.length) : html);
+                        }
+                        node.parentNode.removeChild(node);
+                    } else if (node.nodeType === 3) {
+                        node.parentNode.removeChild(node);
+                    }
+                }
+                if (on) { states.push(pinned); }
+                if (!states.length) { return; }
+                var out = ' \u2014 ';
+                $.each(states, function (i, state) {
+                    out += '<span class="post-state">' + state + (i < states.length - 1 ? sep : '') + '</span>';
+                });
+                $(link).after(out);
+            }
+
             $(document).on('click', '.seoprostack-sticky', function () {
                 var $btn = $(this), on = $btn.attr('aria-pressed') !== 'true';
                 $btn.attr('aria-busy', 'true');
@@ -369,6 +409,9 @@ class SEOProStack_Sticky_Posts extends SEOProStack_Feature {
                     .done(function (res) {
                         if (!res || !res.success) { return; }
                         $btn.attr('aria-pressed', res.data.sticky ? 'true' : 'false');
+                        showState($btn.closest('tr'), res.data.sticky);
+                        // Quick Edit reads this when it opens.
+                        $('#inline_' + $btn.data('post') + ' .sticky').text(res.data.sticky ? 'sticky' : '');
                         if (window.wp && wp.a11y) { wp.a11y.speak(res.data.message); }
                     })
                     .always(function () { $btn.removeAttr('aria-busy'); });
