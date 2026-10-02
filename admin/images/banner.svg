@@ -3,7 +3,7 @@
   SEO Pro Stack banner (WordPress.org banners and the Read Me tab).
   Source: .wordpress-org/banner.svg. Edit that, then run scripts/build-banner.sh.
   Branding follows wpallstars.com: navy, red and cream, Zilla Slab italic
-  headings, the logo's arc of five stars and its red double stripes (here red, cream and blue).
+  headings, the logo's arc of five stars and its red double stripes (here with cream between).
 -->
 
 <svg
@@ -230,8 +230,7 @@
      fill="url(#dots)"
      mask="url(#dots-mask)"
      id="rect24" />
-  <!-- Stripes after wpallstars.com's red double lines, in the stack's red, cream and blue:
-       red on the outer edge, blue next to the navy. -->
+  <!-- wpallstars.com's red double lines, with a cream line between them. -->
   <g
      id="g30">
     <rect
@@ -250,13 +249,13 @@
        y="11"
        width="1544"
        height="6"
-       fill="#0022cc"
+       fill="#bb0000"
        id="rect27" />
     <rect
        y="483"
        width="1544"
        height="6"
-       fill="#0022cc"
+       fill="#bb0000"
        id="rect28" />
     <rect
        y="489"

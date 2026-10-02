@@ -3,7 +3,7 @@
   SEO Pro Stack banner (WordPress.org banners and the Read Me tab).
   Source: .wordpress-org/banner.svg. Edit that, then run scripts/build-banner.sh.
   Branding follows wpallstars.com: navy, red and cream, Zilla Slab italic
-  headings, the logo's arc of five stars and its red double stripes (here red, cream and blue).
+  headings, the logo's arc of five stars and its red double stripes (here with cream between).
 -->
 <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="1544" height="500" viewBox="0 0 1544 500">
   <title>WPALLSTARS SEO Pro Stack: WP Admin – Solved!</title>
@@ -65,13 +65,12 @@
   <rect width="1544" height="500" fill="url(#glow-blue)"/>
   <rect width="1544" height="500" fill="url(#dots)" mask="url(#dots-mask)"/>
 
-  <!-- Stripes after wpallstars.com's red double lines, in the stack's red, cream and blue:
-       red on the outer edge, blue next to the navy. -->
+  <!-- wpallstars.com's red double lines, with a cream line between them. -->
   <g>
     <rect y="0" width="1544" height="6" fill="#bb0000"/>
     <rect y="6" width="1544" height="5" fill="#ffffea"/>
-    <rect y="11" width="1544" height="6" fill="#0022cc"/>
-    <rect y="483" width="1544" height="6" fill="#0022cc"/>
+    <rect y="11" width="1544" height="6" fill="#bb0000"/>
+    <rect y="483" width="1544" height="6" fill="#bb0000"/>
     <rect y="489" width="1544" height="5" fill="#ffffea"/>
     <rect y="494" width="1544" height="6" fill="#bb0000"/>
   </g>
