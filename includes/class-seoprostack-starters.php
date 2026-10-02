@@ -27,6 +27,10 @@
  *   (attributes, settings, "required": true, "options": value => label, or
  *   for payment items, label => price) is completed from Fluent Forms' own
  *   element defaults, as its editor would; columns of a "container" too.
+ *   "layout": "checkout" lays the fields out as a checkout: "intro" (HTML
+ *   about the service) and the fields in a two-thirds column, and the order
+ *   summary, discount code and form button in a one-third column beside it
+ *   (below it on phones), styled by the form's own Custom CSS.
  * - fluentboards_boards: title, type, description, stages (title, closed),
  *   labels (title, color: a Fluent Boards colour such as "blue-bold"; without
  *   labels the board gets Fluent Boards' default ones). Matched by title among
@@ -101,6 +105,26 @@ final class SEOProStack_Starters {
         'pages',
         'seoprostack_settings',
     );
+
+    /**
+     * Custom CSS for checkout forms: the summary column as a panel that stays
+     * in view while the wide column scrolls. Neutral, translucent colours,
+     * so it suits light and dark palettes.
+     */
+    const CHECKOUT_CSS = '.fluentform .sps-checkout .ff-t-column-2 { padding: 1.25rem; border: 1px solid rgba(127, 127, 127, 0.25); border-radius: 8px; background: rgba(127, 127, 127, 0.06); }
+.fluentform .sps-checkout .ff-t-column-2 h3 { margin: 0 0 0.75rem; }
+.fluentform .sps-checkout .ff-t-column-2 .ff_submit_btn_wrapper_custom, .fluentform .sps-checkout .ff-t-column-2 .ff-btn-submit { width: 100%; }
+.fluentform .sps-checkout .ff-t-column-2 .ff_submit_btn_wrapper_custom button { margin-bottom: 0; }
+.fluentform .sps-checkout .ff-t-column-2 table.ffp_table, .fluentform .sps-checkout .ff-t-column-2 table.ffp_table tbody, .fluentform .sps-checkout .ff-t-column-2 table.ffp_table tfoot { display: block; width: 100%; margin: 0; border: 0; background: none; }
+.fluentform .sps-checkout .ff-t-column-2 table.ffp_table thead, .fluentform .sps-checkout .ff-t-column-2 table.ffp_table td:nth-child(2), .fluentform .sps-checkout .ff-t-column-2 table.ffp_table td:nth-child(3) { display: none; }
+.fluentform .sps-checkout .ff-t-column-2 table.ffp_table tr { display: flex; justify-content: space-between; gap: 1rem; padding: 0.5rem 0; border-bottom: 1px solid rgba(127, 127, 127, 0.25); background: none; }
+.fluentform .sps-checkout .ff-t-column-2 table.ffp_table th, .fluentform .sps-checkout .ff-t-column-2 table.ffp_table td { display: block; padding: 0; border: 0; background: none; color: inherit; text-align: left; }
+.fluentform .sps-checkout .ff-t-column-2 table.ffp_table tr > :last-child { white-space: nowrap; text-align: right; }
+.fluentform .sps-checkout .ff-t-column-2 table.ffp_table tfoot tr:last-child { border-bottom: 0; font-weight: 700; }
+@media (min-width: 768px) {
+    .fluentform .sps-checkout { gap: 2rem; }
+    .fluentform .sps-checkout .ff-t-column-2 { align-self: flex-start; position: sticky; top: 2rem; }
+}';
 
     /** Item types that link items by name: token kind => item type. */
     const TOKENS = array(
@@ -1188,8 +1212,13 @@ final class SEOProStack_Starters {
         if (!$form || empty($form->id)) {
             return null;
         }
-        $id     = (int) $form->id;
-        $fields = $item['form_fields'];
+        $id       = (int) $form->id;
+        $fields   = $item['form_fields'];
+        $checkout = isset($item['layout']) && 'checkout' === $item['layout'] && isset($fields['fields']) && is_array($fields['fields']);
+        if ($checkout) {
+            $text             = isset($fields['submitButton']['settings']['button_ui']['text']) ? (string) $fields['submitButton']['settings']['button_ui']['text'] : __('Complete purchase', 'seoprostack');
+            $fields['fields'] = self::checkout_fields($fields['fields'], isset($item['intro']) ? (string) $item['intro'] : '', $text);
+        }
         if (isset($fields['fields']) && is_array($fields['fields'])) {
             $fields['fields'] = self::usable_fields(self::expand_fields($fields['fields']), self::active_folders());
         }
@@ -1208,6 +1237,10 @@ final class SEOProStack_Starters {
             'status'     => 'published',
             'formFields' => wp_json_encode($fields),
         ));
+        if ($checkout) {
+            // In the form's own Custom CSS, so it travels with copies of the form.
+            \FluentForm\App\Models\FormMeta::persist($id, '_custom_form_css', self::CHECKOUT_CSS);
+        }
 
         if (!empty($item['settings']) && is_array($item['settings'])) {
             $settings = \FluentForm\App\Models\FormMeta::retrieve('formSettings', $id);
@@ -1225,6 +1258,54 @@ final class SEOProStack_Starters {
 
         $stored = \FluentForm\App\Models\Form::find($id);
         return array('id' => $id, 'hash' => md5((string) ($stored ? $stored->form_fields : '')), 'name' => $title);
+    }
+
+    /**
+     * A checkout layout: the service and its questions in a wide column, and
+     * the order summary, discount code and button in a narrow one beside it
+     * (below it on phones).
+     *
+     * @param array  $fields Compact fields.
+     * @param string $intro  HTML describing the service, shown first.
+     * @param string $button Button text.
+     * @return array One two-column container.
+     */
+    private static function checkout_fields(array $fields, $intro, $button) {
+        $main = array();
+        $side = array(
+            array('element' => 'custom_html', 'settings' => array('html_codes' => '<h3>' . esc_html__('Your order', 'seoprostack') . '</h3>')),
+        );
+        if ('' !== $intro) {
+            $main[] = array('element' => 'custom_html', 'settings' => array('html_codes' => $intro));
+        }
+        $pay = array();
+        foreach ($fields as $field) {
+            $element = is_array($field) && isset($field['element']) ? $field['element'] : '';
+            if (in_array($element, array('payment_coupon', 'payment_summary_component'), true)) {
+                $side[] = $field;
+            } elseif ('payment_method' === $element) {
+                $pay[] = $field;
+            } else {
+                $main[] = $field;
+            }
+        }
+        // Payment details last, next to the button.
+        $main = array_merge($main, $pay);
+        // Fluent Forms hides its own button when a form has this one.
+        $side[] = array(
+            'element'  => 'custom_submit_button',
+            'settings' => array('button_ui' => array('text' => $button, 'type' => 'default', 'img_url' => '')),
+        );
+        return array(
+            array(
+                'element'  => 'container',
+                'settings' => array('container_class' => 'sps-checkout'),
+                'columns'  => array(
+                    array('width' => 66.67, 'fields' => $main),
+                    array('width' => 33.33, 'fields' => $side),
+                ),
+            ),
+        );
     }
 
     /**
@@ -1551,6 +1632,10 @@ final class SEOProStack_Starters {
             if ('container' === $element && isset($field['columns']) && is_array($field['columns'])) {
                 $count = count($field['columns']);
                 $base  = isset($defaults['containers'][$count]) ? $defaults['containers'][$count] : array('element' => 'container', 'attributes' => array(), 'settings' => array('container_class' => '', 'conditional_logics' => array()), 'columns' => array());
+                unset($base['index']);
+                if (!empty($field['settings']) && is_array($field['settings'])) {
+                    $base['settings'] = self::merge_deep(isset($base['settings']) ? (array) $base['settings'] : array(), $field['settings']);
+                }
                 foreach (array_values($field['columns']) as $i => $column) {
                     $base['columns'][$i] = array(
                         'width'  => isset($column['width']) ? $column['width'] : (isset($base['columns'][$i]['width']) ? $base['columns'][$i]['width'] : round(100 / $count, 2)),
