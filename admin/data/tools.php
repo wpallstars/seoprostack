@@ -18,6 +18,11 @@ function seoprostack_get_tools() {
                     'text' => 'Join the community',
                     'url' => 'https://app.advise.so/checkout/community-subscription?via=marcus',
                     'primary' => true
+                ),
+                array(
+                    'text' => 'Home Page',
+                    'url' => 'https://advise.so/?via=marcus',
+                    'primary' => false
                 )
             )
         ),
