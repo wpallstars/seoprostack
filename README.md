@@ -499,6 +499,7 @@ Presets so far:
 | Plugin | What the preset does |
 |---|---|
 | Antispam Bee | Time check on with the other spam checks; no Gravatar checks, Dashboard spam chart or count, or email per spam comment. |
+| Burst Statistics | No non-critical Burst dashboard notices; critical notices, tracking settings and the generated tracking script unchanged. |
 | Code Snippets | No upgrade notices or Snippets admin bar menu; editor defaults left alone. Per-site settings only, not unified network settings. |
 | EventON Lite | Scripts and styles only on pages with a calendar or event; no Google Fonts. |
 | FluentCRM | Contacts' IP addresses anonymised; FluentCRM's own avatar instead of Gravatar and ui-avatars.com. |
@@ -506,9 +507,11 @@ Presets so far:
 | Kadence Blocks | Google Fonts served from the site, in the blocks and (with the Kadence theme) the theme. |
 | Lasso Lite (Simple URLs) | No affiliate programme bar or Dashboard banner. |
 | LiteSpeed Cache | No news and promotions fetched from LiteSpeed and shown in the admin. |
+| Rank Math SEO | No Frontend Stats Bar below the admin bar; modules and email schedules unchanged. |
 | Simple CAPTCHA with Cloudflare Turnstile | Login, registration, lost password, comment and Fluent Forms protected; widget follows light or dark mode and shows only when needed. |
 | Tutor LMS | Student profile pages private; course reviews wait for approval; courses written in the block editor; a quiz is submitted when its time runs out; courses complete when every lesson, quiz and assignment is done, and can be retaken. |
 | WooCommerce | No usage data, remote error logs, marketplace suggestions or Order attribution tracking. |
+| WP-Optimize | No caching menu in the admin bar; caching, images, minification and cleanup schedules unchanged. |
 
 They are JSON files in `presets/`, one per plugin folder. Each names its settings for the dialog under `settings`: setting path => `label` (the plugin's own wording), `description` and `values` (stored value => what it means, with `"null"` for not stored). AGENTS.md → Plugin presets explains how they are made and checked. A setting named in a preset whose defaults are all "not stored" is removed again on reset, and an option left empty that way is deleted, so the plugin's own defaults apply as on a fresh install.
 
@@ -729,6 +732,7 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folder�
 
 ### Unreleased
 
+- New: small display presets for Rank Math SEO (no Frontend Stats Bar), WP-Optimize (no caching menu in the admin bar) and Burst Statistics (no non-critical dashboard notices). Modules, tracking services and schedules are not changed. Burst's preset contains only its admin notice preference, not the six settings its generated tracking script contains; Apply, Reset and Undo leave that file unchanged.
 - New: Fluent Booking starter data (`fluentbooking_events`): a free, single-host, 30-minute Discovery Call, with the adding administrator's host calendar and default schedule. Uses Booking's own calendar/event handlers and FluentCRM integration save service. Confirmed bookings join `website-booking-form` when FluentCRM is active. Remove keeps events with any bookings, removes only calendars this starter created while unused, and keeps CRM lists referenced by Booking feeds. The Fluent Boards Pro roadmap is not included: its creation service and page metadata need verification with Pro available.
 - New, off by default: Turn off unused remote access (Admin tab), with independent, unchecked choices to turn off XML-RPC (HTTP 403, no pingback header or RSD link) and application passwords (no profile section or authorization screen). Settings version 7 imports the enabled switches from active Hostinger Tools and Disable Bloat, preserving saved choices and the source plugins’ options.
 - New, off by default: six features that take over most of Disable Bloat (#90): Tidy admin screens, Tidy WooCommerce admin and Tidy the login screen (Admin tab), Simpler block editor (Content tab), Remove WordPress extras and Lighter WooCommerce pages (Speed tab). Each uses core’s or WooCommerce’s own hooks and stores nothing. While Disable Bloat (free or PRO) is active, its switches are imported once (settings version 6, `SEOProStack_Disable_Bloat::MAP`), including its W logo (Hide admin bar items), Dashboard boxes and widgets (Dashboard and sidebar widgets); the features wait until it is deactivated. Tested on a throwaway site with WooCommerce 11.1.2 and Disable Bloat 4.0.0: imports matched the seeded switches; a plain page lost WooCommerce’s scripts, styles, emoji and shortlink, while the shop, product and a page with a WooCommerce block kept them.
