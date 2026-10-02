@@ -19,8 +19,9 @@ if (!defined('ABSPATH')) {
 // Roles, Post Type Switcher, Simple Custom Post Order, Term Management Tools,
 // ACF: Better Search (Search custom fields), Slugs Manager: Delete Old
 // Permalinks (Old post addresses; closed on WordPress.org on 2026-04-27),
-// Bookmark Card (Link cards), Wikipedia Preview (Wikipedia previews) and
-// Mammoth .docx converter (Word documents in the editor).
+// Bookmark Card (Link cards), Wikipedia Preview (Wikipedia previews),
+// Mammoth .docx converter (Word documents in the editor) and Favorites
+// (Like, save and share).
 // String Locator is not listed: searching code is better done in an editor
 // or with WP-CLI than from wp-admin.
 // EditorsKit (block-options) is not listed: its last update was in May 2024,
@@ -146,7 +147,6 @@ function seoprostack_get_free_plugins() {
             'bit-integrations',
             'code-snippets',
             'easy-code-manager',
-            'favorites',
             'secure-custom-fields',
             'yellow-pencil-visual-theme-customizer'
         ),

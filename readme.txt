@@ -14,7 +14,7 @@ Curated plugins, themes, hosting and tools for WordPress, plus small opt-in qual
 
 SEO Pro Stack is free and open source. There is no pro version and nothing is locked.
 
-Everything is off by default except Hide admin bar items (Comments and + New), No fade between admin screens, Quiet Freemius prompts and Fixes for other plugins. Turn features on in **Settings → SEO Pro Stack**; **Search features** finds one by name or by the plugin it replaces. The Read Me tab there describes each in full.
+Everything is off by default except Hide admin bar items (Comments and + New), No fade between admin screens, Quiet Freemius prompts and Fixes for other plugins. Turn features on in **Settings → SEO Pro Stack**; **Search features** finds one by name or by the plugin it replaces. The Read Me tab explains each.
 
 = Admin screens =
 
@@ -36,7 +36,7 @@ Everything is off by default except Hide admin bar items (Comments and + New), N
 * **Menu item visibility** by login or role, **Change post type**, **Order by hand**, **Term tools** (merge, move, set parent), **Search custom fields** (ACF) and **Old post addresses**.
 * **TranslatePress colours**: Kadence light/dark switchers.
 * **iFrame block**: embed pages, limited to the domains and roles you choose.
-* **Link cards**, **Wikipedia previews** and **Word documents** in the editor.
+* **Link cards**, **Wikipedia previews**, **Word documents** in the editor and **Like, save and share**.
 * **Spectra block replacements**: a Term list block, and Spectra pages that keep working after it is deactivated.
 
 = Media =
@@ -128,7 +128,7 @@ Click **Report a problem** at the top right of Settings → SEO Pro Stack, or op
 == Changelog ==
 
 = Unreleased =
-* New: Word documents in the editor.
+* New: Word documents; Like, save and share.
 * Change: Pinned posts; faster post lists; sizes in Free Plugins.
 * Fix: More menu alignment, fitted menu in full screen editor.
 
@@ -138,7 +138,7 @@ Click **Report a problem** at the top right of Settings → SEO Pro Stack, or op
 * Change: Custom order link on sorted lists; notes on replaceable plugins; Advise.so card.
 * Change: faster block editors, Customizer, Import and Export forms and Kadence design library.
 
-Every change: `changelog.txt` in the plugin folder.
+Earlier versions: `changelog.txt`.
 
 == Upgrade Notice ==
 
