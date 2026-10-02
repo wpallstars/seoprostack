@@ -14,6 +14,9 @@
  * `seoprostack_replaced_plugin_extras` filter), the notice names them
  * instead of saying the plugin can go.
  *
+ * Each of those plugins, and inactive ones whose replacing setting is off,
+ * also gets a note under its own row with the same step.
+ *
  * Shown on the Plugins screen to people who can activate plugins. "Hide"
  * hides the plugins listed at the time for that person; a plugin that needs
  * a different step later shows again.
@@ -34,22 +37,168 @@ class SEOProStack_Replaced_Plugins {
     /** User meta: list of "slug:step" items the person hid. */
     const HIDDEN = 'seoprostack_replaced_plugins_hidden';
 
+    /** admin-post action that deactivates a replaced plugin and comes back. */
+    const DEACTIVATE = 'seoprostack_deactivate_replaced';
+
+    /** Query argument on the page it comes back to. */
+    const DONE = 'seoprostack-deactivated';
+
     /**
      * Register hooks.
      */
     public static function init() {
         add_action('load-plugins.php', array(__CLASS__, 'load_screen'));
         add_action('admin_post_' . self::HIDE, array(__CLASS__, 'hide'));
+        add_action('admin_post_' . self::DEACTIVATE, array(__CLASS__, 'deactivate'));
+        // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- only shows a message.
+        if (isset($_GET[self::DONE])) {
+            add_action('admin_notices', array(__CLASS__, 'deactivated_notice'));
+        }
     }
 
     /**
-     * Plugins screen: add the notice.
+     * Plugins screen: add the notice and the notes on each plugin's row.
      */
     public static function load_screen() {
         if (!current_user_can('activate_plugins')) {
             return;
         }
         add_action(is_network_admin() ? 'network_admin_notices' : 'admin_notices', array(__CLASS__, 'notice'));
+        add_action('after_plugin_row', array(__CLASS__, 'row_note'), 10, 1);
+        add_action('admin_head', array(__CLASS__, 'row_note_style'));
+    }
+
+    /**
+     * Join a row note to its plugin's row, as core does for update notes.
+     */
+    public static function row_note_style() {
+        echo '<style>.plugins tr:has(+ tr.sps-replaced-row) th, .plugins tr:has(+ tr.sps-replaced-row) td { box-shadow: none; }</style>' . "\n";
+    }
+
+    /**
+     * Link that deactivates a replaced plugin on this site and comes back to
+     * the page it was clicked on.
+     *
+     * @param string $file Plugin file.
+     * @return string Unescaped URL.
+     */
+    public static function deactivate_url($file) {
+        return wp_nonce_url(add_query_arg(array(
+            'action'           => self::DEACTIVATE,
+            'plugin'           => rawurlencode($file),
+            '_wp_http_referer' => rawurlencode(remove_query_arg(array(self::DONE, 'deactivate', 'activate'))),
+        ), admin_url('admin-post.php')), self::DEACTIVATE . '_' . $file);
+    }
+
+    /**
+     * Core's deactivate link on the Plugins screen, keeping the list's
+     * status, page and search, so it comes back to the same list.
+     *
+     * @param string $file Plugin file.
+     * @return string Unescaped URL.
+     */
+    private static function plugins_deactivate_url($file) {
+        // phpcs:disable WordPress.Security.NonceVerification.Recommended -- the list being shown.
+        $args = array(
+            'action'        => 'deactivate',
+            'plugin'        => rawurlencode($file),
+            'plugin_status' => isset($_GET['plugin_status']) ? sanitize_key(wp_unslash($_GET['plugin_status'])) : 'all',
+            'paged'         => isset($_GET['paged']) ? absint($_GET['paged']) : 1,
+            's'             => isset($_GET['s']) ? rawurlencode(sanitize_text_field(wp_unslash($_GET['s']))) : '',
+        );
+        // phpcs:enable
+        return wp_nonce_url(add_query_arg($args, self_admin_url('plugins.php')), 'deactivate-plugin_' . $file);
+    }
+
+    /**
+     * admin-post: deactivate a replaced plugin on this site, then go back.
+     */
+    public static function deactivate() {
+        $file = isset($_GET['plugin']) ? sanitize_text_field(wp_unslash($_GET['plugin'])) : '';
+        check_admin_referer(self::DEACTIVATE . '_' . $file);
+        if ('' === $file || validate_file($file) || !current_user_can('deactivate_plugin', $file)) {
+            wp_die(esc_html__('You are not allowed to deactivate this plugin.', 'seoprostack'), '', array('response' => 403));
+        }
+        if (!isset(self::replaced()[dirname($file)])) {
+            wp_die(esc_html__('SEO Pro Stack only deactivates plugins it replaces.', 'seoprostack'), '', array('response' => 400));
+        }
+        if (!function_exists('is_plugin_active')) {
+            require_once ABSPATH . 'wp-admin/includes/plugin.php';
+        }
+        $back = wp_get_referer();
+        $back = $back ? $back : admin_url('plugins.php');
+        // Network-wide plugins are deactivated in the network admin.
+        if (is_plugin_active($file) && !is_plugin_active_for_network($file)) {
+            deactivate_plugins($file);
+            update_option('recently_activated', array($file => time()) + (array) get_option('recently_activated'), false);
+            $back = add_query_arg(self::DONE, 1, $back);
+        }
+        wp_safe_redirect($back);
+        exit;
+    }
+
+    /**
+     * "Plugin deactivated." on the page the link came back to.
+     */
+    public static function deactivated_notice() {
+        echo '<div class="notice notice-success is-dismissible"><p>' . esc_html__('Plugin deactivated.', 'seoprostack') . '</p></div>';
+    }
+
+    /**
+     * A note under a replaced plugin's row on the Plugins screen: which
+     * setting does its job and what to do next.
+     *
+     * @param string $file Plugin file.
+     */
+    public static function row_note($file) {
+        global $wp_list_table;
+        $states = self::states();
+        if (!isset($states[$file])) {
+            return;
+        }
+        $item   = $states[$file];
+        $labels = esc_html(implode(', ', array_map(function ($label) {
+            return '‘' . $label . '’';
+        }, $item['settings'])));
+        $setting = '';
+        if (SEOProStack_Settings::can_change()) {
+            $setting = sprintf(' <a href="%1$s">%2$s</a>', esc_url(SEOProStack_Admin_Manager::tab_url(SEOProStack_Admin_Manager::SEARCH, array('s' => $item['name']))), esc_html__('Show the setting', 'seoprostack'));
+        }
+        $extras = esc_html(implode(', ', $item['extras']));
+
+        switch ($item['step']) {
+            case 'deactivate':
+                /* translators: %s: SEO Pro Stack setting names */
+                $text = sprintf(esc_html__('SEO Pro Stack makes this plugin redundant: %s is on and takes over once you deactivate this plugin. Then you can delete it.', 'seoprostack'), $labels);
+                break;
+            case 'partial':
+                /* translators: 1: SEO Pro Stack setting names, 2: the plugin's settings SEO Pro Stack does not have */
+                $text = sprintf(esc_html__('SEO Pro Stack can do this plugin\'s job: %1$s is on and takes over once you deactivate it, except for these, which SEO Pro Stack does not do: %2$s.', 'seoprostack'), $labels, $extras);
+                break;
+            case 'switch_on':
+                /* translators: %s: SEO Pro Stack setting names */
+                $text = sprintf(esc_html__('SEO Pro Stack makes this plugin redundant: turn on %s in SEO Pro Stack, then deactivate and delete this plugin.', 'seoprostack'), $labels) . $setting;
+                break;
+            case 'switch_on_partial':
+                /* translators: 1: SEO Pro Stack setting names, 2: the plugin's settings SEO Pro Stack does not have */
+                $text = sprintf(esc_html__('SEO Pro Stack can do part of this plugin\'s job with %1$s. It does not do these, which this plugin has on: %2$s.', 'seoprostack'), $labels, $extras) . $setting;
+                break;
+            case 'switch_on_inactive':
+                /* translators: %s: SEO Pro Stack setting names */
+                $text = sprintf(esc_html__('SEO Pro Stack makes this plugin redundant: turn on %s in SEO Pro Stack, then you can delete this plugin.', 'seoprostack'), $labels) . $setting;
+                break;
+            default:
+                /* translators: %s: SEO Pro Stack setting names */
+                $text = sprintf(esc_html__('No longer needed: %s in SEO Pro Stack does this plugin\'s job. You can delete it.', 'seoprostack'), $labels);
+        }
+        $columns = ($wp_list_table instanceof WP_List_Table) ? $wp_list_table->get_column_count() : 4;
+        $active  = in_array($item['step'], array('deactivate', 'partial', 'switch_on', 'switch_on_partial'), true) ? ' active' : ' inactive';
+        printf(
+            '<tr class="plugin-update-tr sps-replaced-row%1$s"><td colspan="%2$d" class="plugin-update colspanchange"><div class="notice inline notice-info notice-alt"><p>%3$s</p></div></td></tr>',
+            esc_attr($active),
+            (int) $columns,
+            $text // phpcs:ignore WordPress.Security.EscapeOutput -- built from escaped parts above.
+        );
     }
 
     /**
@@ -75,11 +224,37 @@ class SEOProStack_Replaced_Plugins {
     }
 
     /**
-     * What to show: one item per installed replaced plugin that needs a step.
+     * What to show in the notice: one item per installed replaced plugin that
+     * needs a step, leaving out what the person hid.
      *
      * @return array<int,array{slug:string,file:string,name:string,step:string,settings:array<string,string>}>
      */
     private static function items() {
+        $items = array_filter(self::states(), function ($item) {
+            // Inactive with the setting off: only a note on its row.
+            return 'switch_on_inactive' !== $item['step']
+                && ('switch_on' !== $item['step'] || SEOProStack_Settings::can_change());
+        });
+        $hidden = (array) get_user_meta(get_current_user_id(), self::HIDDEN, true);
+        return array_values(array_filter($items, function ($item) use ($hidden) {
+            return !in_array($item['slug'] . ':' . $item['step'], $hidden, true);
+        }));
+    }
+
+    /**
+     * Every installed replaced plugin that needs a step, keyed by plugin file.
+     *
+     * Steps: deactivate, partial (active, setting on, it does more),
+     * switch_on, switch_on_partial, delete (inactive, setting on) and
+     * switch_on_inactive (inactive, setting off; single sites only).
+     *
+     * @return array<string,array{slug:string,file:string,name:string,step:string,settings:array<string,string>,extras:string[]}>
+     */
+    private static function states() {
+        static $states = null;
+        if (null !== $states) {
+            return $states;
+        }
         if (!function_exists('get_plugins')) {
             require_once ABSPATH . 'wp-admin/includes/plugin.php';
         }
@@ -113,16 +288,13 @@ class SEOProStack_Replaced_Plugins {
 
             if (in_array($file, $here, true)) {
                 $step = $all_on ? 'deactivate' : 'switch_on';
-            } elseif (!isset($all[$slug]) && !is_multisite() && $all_on) {
-                $step = 'delete';
+            } elseif (!isset($all[$slug]) && !is_multisite()) {
+                $step = $all_on ? 'delete' : 'switch_on_inactive';
             } else {
                 continue;
             }
-            if ('switch_on' === $step && !SEOProStack_Settings::can_change()) {
-                continue;
-            }
             $extras = array();
-            if ('delete' !== $step) {
+            if ('deactivate' === $step || 'switch_on' === $step) {
                 /**
                  * What a replaced plugin does on this site that SEO Pro Stack,
                  * as set up, does not. When there is any, the notice lists it
@@ -136,7 +308,7 @@ class SEOProStack_Replaced_Plugins {
             if ($extras) {
                 $step = 'deactivate' === $step ? 'partial' : 'switch_on_partial';
             }
-            $items[] = array(
+            $items[$file] = array(
                 'slug'     => (string) $slug,
                 'file'     => $file,
                 'name'     => $plugin['name'],
@@ -145,11 +317,8 @@ class SEOProStack_Replaced_Plugins {
                 'extras'   => $extras,
             );
         }
-
-        $hidden = (array) get_user_meta(get_current_user_id(), self::HIDDEN, true);
-        return array_values(array_filter($items, function ($item) use ($hidden) {
-            return !in_array($item['slug'] . ':' . $item['step'], $hidden, true);
-        }));
+        $states = $items;
+        return $states;
     }
 
     /**
@@ -198,7 +367,7 @@ class SEOProStack_Replaced_Plugins {
             /* translators: 1: plugin name, 2: SEO Pro Stack setting names */
             $text = sprintf(esc_html__('%1$s: %2$s is on and takes over once you deactivate it. Then you can delete it.', 'seoprostack'), $name, esc_html($labels));
             if (current_user_can('deactivate_plugin', $item['file'])) {
-                $url   = wp_nonce_url(add_query_arg(array('action' => 'deactivate', 'plugin' => rawurlencode($item['file'])), $base), 'deactivate-plugin_' . $item['file']);
+                $url   = self::plugins_deactivate_url($item['file']);
                 /* translators: %s: plugin name */
                 $text .= sprintf(' <a href="%1$s">%2$s</a>', esc_url($url), esc_html(sprintf(__('Deactivate %s', 'seoprostack'), $item['name'])));
             }
@@ -211,7 +380,7 @@ class SEOProStack_Replaced_Plugins {
                 /* translators: 1: plugin name, 2: SEO Pro Stack setting names, 3: the plugin's settings SEO Pro Stack does not have */
                 $text = sprintf(esc_html__('%1$s: %2$s is on and takes over once you deactivate it, except for these, which SEO Pro Stack does not do: %3$s. Deactivate it only if you no longer need them.', 'seoprostack'), $name, esc_html($labels), $extras);
                 if (current_user_can('deactivate_plugin', $item['file'])) {
-                    $url   = wp_nonce_url(add_query_arg(array('action' => 'deactivate', 'plugin' => rawurlencode($item['file'])), $base), 'deactivate-plugin_' . $item['file']);
+                    $url   = self::plugins_deactivate_url($item['file']);
                     /* translators: %s: plugin name */
                     $text .= sprintf(' <a href="%1$s">%2$s</a>', esc_url($url), esc_html(sprintf(__('Deactivate %s', 'seoprostack'), $item['name'])));
                 }

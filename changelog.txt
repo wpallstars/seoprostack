@@ -3,6 +3,9 @@
 Every change to SEO Pro Stack. readme.txt lists the latest version in short.
 
 = Unreleased =
+* Change: Order by hand: while a list is sorted by a column, a Custom order link takes you back to the order you can drag. Searches and the Drafts and Pending views show the hand order too.
+* Change: Deactivate links on SEO Pro Stack’s settings come back to the same page.
+* New: the Plugins screen notes, under each plugin SEO Pro Stack can replace, which setting makes it redundant and what to do next.
 * New, on by default: Fixes for other plugins (Plugins tab) works around other plugins’ bugs without changing their settings. Lasso Lite (Simple URLs) no longer contacts lasso.link on every admin screen.
 * Change: Free Plugins no longer suggests Disable All WordPress Updates: the Speed and Plugins features cover why it was used, and it also blocks updates from GitHub.
 * New, off by default: Menu item visibility shows a menu item only to logged-in people, logged-out visitors or chosen roles (replaces Nav Menu Roles and reads its rules). Change post type turns a post into a page or another type from the editor, Quick Edit or Bulk Edit (replaces Post Type Switcher). Order by hand lets you drag posts, pages and categories into order (replaces Simple Custom Post Order and imports its order). Term tools merges terms, moves them to another taxonomy or sets their parent, and redirects their old addresses (replaces Term Management Tools).
