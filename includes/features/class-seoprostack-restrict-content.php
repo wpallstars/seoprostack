@@ -54,6 +54,9 @@ class SEOProStack_Restrict_Content extends SEOProStack_Feature {
     /** Content Control's folder. */
     const CC = 'content-control';
 
+    /** The Members only block. */
+    const BLOCK = 'seoprostack/members-only';
+
     /** Choices that limit who sees something. */
     const SHOWS = array('in', 'out', 'roles', 'not_roles');
 
@@ -90,7 +93,7 @@ class SEOProStack_Restrict_Content extends SEOProStack_Feature {
                 'default'     => false,
                 'tab'         => 'content',
                 'label'       => __('Restrict content', 'seoprostack'),
-                'description' => __('Show posts, pages, categories and blocks only to logged-in people, logged-out visitors or chosen roles. Choose “Who sees this” in the editor, on a category or tag, or in a block’s Visibility panel.', 'seoprostack'),
+                'description' => __('Show posts, pages, products, categories and blocks only to logged-in people, logged-out visitors or chosen roles. Choose “Who sees this” in the editor, on a category or tag, or in a block’s Visibility panel, or add a Members only block.', 'seoprostack'),
                 'replaces'    => array(self::CC => 'Content Control'),
             ),
             'restrict_content_message' => array(
@@ -99,7 +102,7 @@ class SEOProStack_Restrict_Content extends SEOProStack_Feature {
                 'placeholder' => self::default_message(),
                 'parent'      => self::KEY,
                 'label'       => __('Message instead of the content', 'seoprostack'),
-                'description' => __('Logged-out visitors also get a link to log in. A post’s hand-written excerpt shows above it.', 'seoprostack'),
+                'description' => __('Logged-out visitors also get a link to log in. Above it shows what is above a post’s More block, or else its hand-written excerpt.', 'seoprostack'),
             ),
         );
     }
@@ -150,6 +153,7 @@ class SEOProStack_Restrict_Content extends SEOProStack_Feature {
         // Before core and plugins register their blocks (init:10), so every
         // block accepts the attributes, also in the editor's server renders.
         add_filter('register_block_type_args', array(__CLASS__, 'block_args'), 10, 2);
+        register_block_type(SEOPROSTACK_DIR . 'blocks/members-only', array('render_callback' => array(__CLASS__, 'render_members_only')));
         add_action('enqueue_block_editor_assets', array(__CLASS__, 'editor_assets'));
         if (!shortcode_exists('content_control')) {
             add_shortcode('content_control', array(__CLASS__, 'shortcode'));
@@ -182,6 +186,24 @@ class SEOProStack_Restrict_Content extends SEOProStack_Feature {
         add_filter('rest_prepare_comment', array(__CLASS__, 'rest_comment'), 20, 2);
         add_filter('pre_render_block', array(__CLASS__, 'pre_render_block'), 10, 2);
         add_filter('render_block', array(__CLASS__, 'render_block'), 10, 2);
+
+        // Shops: products the visitor may not see keep their pictures and
+        // short description, without prices, and cannot be bought.
+        if (class_exists('WooCommerce')) {
+            foreach (array('product', 'product_variation') as $type) {
+                foreach (array('price', 'regular_price', 'sale_price') as $field) {
+                    add_filter("woocommerce_{$type}_get_{$field}", array(__CLASS__, 'woo_price'), 20, 2);
+                }
+            }
+            add_filter('woocommerce_variation_prices', array(__CLASS__, 'woo_variation_prices'), 20, 2);
+            add_filter('woocommerce_is_purchasable', array(__CLASS__, 'woo_purchasable'), 20, 2);
+            add_filter('woocommerce_variation_is_purchasable', array(__CLASS__, 'woo_purchasable'), 20, 2);
+            add_filter('woocommerce_get_price_html', array(__CLASS__, 'woo_price_html'), 20, 2);
+            add_filter('woocommerce_product_tabs', array(__CLASS__, 'woo_tabs'), 20);
+        }
+        if (defined('FLUENTCART_VERSION')) {
+            add_filter('fluent_cart/cart/can_purchase', array(__CLASS__, 'fluent_cart_can_purchase'), 20, 2);
+        }
     }
 
     /* --------------------------------------------------------------------- */
@@ -393,37 +415,82 @@ class SEOProStack_Restrict_Content extends SEOProStack_Feature {
      */
     private static function message_text($post_id) {
         $rules = self::post_rules($post_id);
-        if ($rules && 'out' === $rules[0]['show'] && self::logged_in()) {
+        return self::rule_message($rules ? $rules[0] : null);
+    }
+
+    /**
+     * What a visitor who does not meet a rule is told, as text.
+     *
+     * @param array|null $rule   Rule.
+     * @param string     $custom Message chosen for this content, if any.
+     * @return string
+     */
+    private static function rule_message($rule, $custom = '') {
+        if ($rule && 'out' === $rule['show'] && self::logged_in()) {
             return __('This content is for visitors who are not logged in.', 'seoprostack');
         }
-        $message = trim((string) SEOProStack_Settings::get('restrict_content_message'));
+        $message = trim($custom);
+        if ('' === $message) {
+            $message = trim((string) SEOProStack_Settings::get('restrict_content_message'));
+        }
         return '' !== $message ? $message : self::default_message();
     }
 
     /**
      * What a visitor who may not see a post gets in place of its content.
      *
-     * @param WP_Post $post Post.
+     * @param WP_Post $post    Post.
+     * @param bool    $excerpt Whether to show its hand-written excerpt first.
      * @return string
      */
-    private static function message_html($post) {
+    private static function message_html($post, $excerpt = true) {
         $html = '';
-        if ('' !== trim($post->post_excerpt)) {
+        if ($excerpt && '' !== trim($post->post_excerpt)) {
             $html .= '<p class="sps-restricted__excerpt">' . esc_html(wp_strip_all_tags($post->post_excerpt)) . '</p>';
         }
-        $html .= '<p class="sps-restricted__message">' . esc_html(self::message_text($post->ID)) . '</p>';
-        if (!is_user_logged_in()) {
-            $html .= sprintf(
-                '<p class="sps-restricted__login"><a href="%1$s">%2$s</a></p>',
-                esc_url(wp_login_url((string) get_permalink($post))),
-                esc_html__('Log in to see it', 'seoprostack')
-            );
-        }
-        return '<div class="sps-restricted">' . $html . '</div>';
+        return '<div class="sps-restricted">' . $html . self::notice_html(self::message_text($post->ID), (string) get_permalink($post)) . '</div>';
     }
 
     /**
-     * Replace the content of a post the visitor may not see.
+     * The message, with a login link for logged-out visitors.
+     *
+     * @param string $message  Message.
+     * @param string $back_to  Address to come back to after logging in.
+     * @return string
+     */
+    private static function notice_html($message, $back_to) {
+        $html = '<p class="sps-restricted__message">' . esc_html($message) . '</p>';
+        if (!is_user_logged_in()) {
+            $html .= sprintf(
+                '<p class="sps-restricted__login"><a href="%1$s">%2$s</a></p>',
+                esc_url(wp_login_url($back_to)),
+                esc_html__('Log in to see it', 'seoprostack')
+            );
+        }
+        return $html;
+    }
+
+    /**
+     * The part of a post above its More block (or <!--more--> tag), shown
+     * to everyone; null when it has none.
+     *
+     * @param WP_Post $post Post.
+     * @return string|null
+     */
+    public static function teaser($post) {
+        if (!preg_match('/<!--more(?:\s.*?)?-->/', $post->post_content, $match, PREG_OFFSET_CAPTURE)) {
+            return null;
+        }
+        $teaser = substr($post->post_content, 0, (int) $match[0][1]);
+        // The More block's opening comment, left open by the cut.
+        $teaser = (string) preg_replace('/<!--\s+wp:more\b[^>]*-->\s*$/', '', $teaser);
+        return '' !== trim($teaser) ? $teaser : null;
+    }
+
+    /**
+     * Replace the content of a post the visitor may not see: the part above
+     * its More block, if it has one, else its hand-written excerpt, then the
+     * message. Runs first, so the rest is never built.
      *
      * @param string $content Content.
      * @return string
@@ -433,11 +500,17 @@ class SEOProStack_Restrict_Content extends SEOProStack_Feature {
         if (!$post instanceof WP_Post || self::can_see($post->ID)) {
             return $content;
         }
-        return self::message_html($post);
+        $teaser = self::teaser($post);
+        if (null === $teaser) {
+            return self::message_html($post);
+        }
+        // The rest of the_content (blocks, shortcodes) builds the teaser.
+        return $teaser . "\n\n" . self::message_html($post, false);
     }
 
     /**
-     * Excerpts: a hand-written one stays, as a teaser; otherwise the message.
+     * Excerpts: a hand-written one stays, as a teaser; else the part above
+     * the More block; else the message.
      *
      * @param string           $excerpt Excerpt.
      * @param WP_Post|int|null $post    Post.
@@ -447,6 +520,14 @@ class SEOProStack_Restrict_Content extends SEOProStack_Feature {
         $post = get_post($post);
         if (!$post instanceof WP_Post || self::can_see($post->ID) || '' !== trim($post->post_excerpt)) {
             return $excerpt;
+        }
+        $teaser = self::teaser($post);
+        if (null !== $teaser) {
+            $text = trim(wp_strip_all_tags(strip_shortcodes(excerpt_remove_blocks($teaser))));
+            if ('' !== $text) {
+                $length = (int) apply_filters('excerpt_length', 55); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- core's own filter, as wp_trim_excerpt() reads it.
+                return wp_trim_words($text, $length, '') . ' ' . self::message_text($post->ID);
+            }
         }
         return self::message_text($post->ID);
     }
@@ -623,6 +704,119 @@ class SEOProStack_Restrict_Content extends SEOProStack_Feature {
     }
 
     /* --------------------------------------------------------------------- */
+    /* Shops                                                                  */
+    /* --------------------------------------------------------------------- */
+
+    /**
+     * Whether a WooCommerce product is kept from the current visitor: its
+     * own rule or its categories', for variations their product's. WP-CLI
+     * and scheduled tasks (feeds, stock sync) have no visitor and see all.
+     *
+     * @param mixed $product Product.
+     * @return bool
+     */
+    private static function woo_hidden($product) {
+        if (!$product instanceof WC_Product || (defined('WP_CLI') && WP_CLI) || wp_doing_cron()) {
+            return false;
+        }
+        $id = $product->get_parent_id() ? $product->get_parent_id() : $product->get_id();
+        return $id > 0 && !self::can_see($id);
+    }
+
+    /**
+     * No price for products the visitor may not see, so it is not shown,
+     * sent (Store API, structured data) or charged.
+     *
+     * @param mixed      $price   Price.
+     * @param WC_Product $product Product.
+     * @return mixed
+     */
+    public static function woo_price($price, $product) {
+        return self::woo_hidden($product) ? '' : $price;
+    }
+
+    /**
+     * No price range for variable products the visitor may not see.
+     *
+     * @param array      $prices  Prices: price, regular_price, sale_price.
+     * @param WC_Product $product Product.
+     * @return array
+     */
+    public static function woo_variation_prices($prices, $product) {
+        if (!self::woo_hidden($product)) {
+            return $prices;
+        }
+        return array('price' => array(), 'regular_price' => array(), 'sale_price' => array());
+    }
+
+    /**
+     * Products the visitor may not see cannot be bought.
+     *
+     * @param bool       $purchasable Purchasable.
+     * @param WC_Product $product     Product.
+     * @return bool
+     */
+    public static function woo_purchasable($purchasable, $product) {
+        return $purchasable && !self::woo_hidden($product);
+    }
+
+    /**
+     * In place of the price: a login link for logged-out visitors.
+     *
+     * @param string     $html    Price HTML.
+     * @param WC_Product $product Product.
+     * @return string
+     */
+    public static function woo_price_html($html, $product) {
+        if (!self::woo_hidden($product)) {
+            return $html;
+        }
+        if (is_user_logged_in()) {
+            return '';
+        }
+        $back_to = (string) get_permalink($product->get_parent_id() ? $product->get_parent_id() : $product->get_id());
+        return sprintf(
+            '<a class="sps-restricted__login" href="%1$s">%2$s</a>',
+            esc_url(wp_login_url($back_to)),
+            esc_html__('Log in to see prices', 'seoprostack')
+        );
+    }
+
+    /**
+     * No Additional information (attributes, weights, sizes) or Reviews
+     * tabs on products the visitor may not see; the Description tab shows
+     * the message.
+     *
+     * @param array $tabs Tabs.
+     * @return array
+     */
+    public static function woo_tabs($tabs) {
+        $product = isset($GLOBALS['product']) ? $GLOBALS['product'] : null;
+        if (is_array($tabs) && self::woo_hidden($product)) {
+            unset($tabs['additional_information'], $tabs['reviews']);
+        }
+        return $tabs;
+    }
+
+    /**
+     * FluentCart: products the visitor may not see cannot go in the cart.
+     *
+     * @param true|WP_Error $can  Whether it can be bought.
+     * @param array         $args Cart, variation and quantity.
+     * @return true|WP_Error
+     */
+    public static function fluent_cart_can_purchase($can, $args) {
+        if (is_wp_error($can) || !is_array($args) || empty($args['variation']) || !is_object($args['variation']) || (defined('WP_CLI') && WP_CLI) || wp_doing_cron()) {
+            return $can;
+        }
+        $post_id = isset($args['variation']->post_id) ? (int) $args['variation']->post_id : 0;
+        if ($post_id > 0 && !self::can_see($post_id)) {
+            return new WP_Error('seoprostack_restricted', self::message_text($post_id));
+        }
+        return $can;
+    }
+
+    /* --------------------------------------------------------------------- */
     /* Blocks                                                                 */
     /* --------------------------------------------------------------------- */
 
@@ -695,7 +889,14 @@ class SEOProStack_Restrict_Content extends SEOProStack_Feature {
     public static function block_rule(array $block) {
         $attrs = isset($block['attrs']) && is_array($block['attrs']) ? $block['attrs'] : array();
         if (isset($attrs['spsVisibility'])) {
-            return self::clean_rule($attrs['spsVisibility']);
+            $rule = self::clean_rule($attrs['spsVisibility']);
+            if ($rule || !isset($block['blockName']) || self::BLOCK !== $block['blockName']) {
+                return $rule;
+            }
+        }
+        if (isset($block['blockName']) && self::BLOCK === $block['blockName']) {
+            // The Members only block is for logged-in people until chosen otherwise.
+            return array('show' => 'in', 'roles' => array());
         }
         if (empty($attrs['contentControls']['enabled']) || empty($attrs['contentControls']['rules']['user']) || !is_array($attrs['contentControls']['rules']['user'])) {
             return null;
@@ -757,7 +958,39 @@ class SEOProStack_Restrict_Content extends SEOProStack_Feature {
         if (null !== $pre || !is_array($block)) {
             return $pre;
         }
-        return self::block_visible($block) ? null : '';
+        return self::block_visible($block) ? null : self::hidden_block_html($block);
+    }
+
+    /**
+     * What replaces a hidden block: the message for the Members only block,
+     * else nothing.
+     *
+     * @param array $block Parsed block.
+     * @return string
+     */
+    private static function hidden_block_html(array $block) {
+        if (!isset($block['blockName']) || self::BLOCK !== $block['blockName']) {
+            return '';
+        }
+        $custom  = isset($block['attrs']['message']) && is_string($block['attrs']['message']) ? $block['attrs']['message'] : '';
+        $back_to = get_permalink();
+        $back_to = $back_to ? $back_to : home_url('/');
+        $classes = 'wp-block-seoprostack-members-only sps-restricted';
+        if (!empty($block['attrs']['align']) && is_string($block['attrs']['align'])) {
+            $classes .= ' align' . sanitize_html_class($block['attrs']['align']);
+        }
+        return '<div class="' . esc_attr($classes) . '">' . self::notice_html(self::rule_message(self::block_rule($block), $custom), $back_to) . '</div>';
+    }
+
+    /**
+     * The Members only block, for people who see it: its blocks.
+     *
+     * @param array  $attributes Attributes.
+     * @param string $content    Inner blocks' HTML.
+     * @return string
+     */
+    public static function render_members_only($attributes, $content) {
+        return '<div ' . get_block_wrapper_attributes() . '>' . $content . '</div>';
     }
 
     /**
@@ -769,11 +1002,11 @@ class SEOProStack_Restrict_Content extends SEOProStack_Feature {
      * @return string
      */
     public static function render_block($content, $block) {
-        if (!is_array($block) || empty($block['attrs'])) {
+        if (!is_array($block) || (empty($block['attrs']) && (!isset($block['blockName']) || self::BLOCK !== $block['blockName']))) {
             return $content;
         }
         if (!self::block_visible($block)) {
-            return '';
+            return self::hidden_block_html($block);
         }
         $controls = isset($block['attrs']['contentControls']) ? $block['attrs']['contentControls'] : null;
         if (empty($controls['enabled']) || empty($controls['rules']['device']['hideOn']) || !is_array($controls['rules']['device']['hideOn']) || !class_exists('WP_HTML_Tag_Processor')) {
@@ -1108,11 +1341,14 @@ class SEOProStack_Restrict_Content extends SEOProStack_Feature {
             'roles'   => $roles,
             'ccNote'  => __('Content Control’s rule for this block applies until you choose here.', 'seoprostack'),
             'ccClear' => __('Remove Content Control’s rule', 'seoprostack'),
+            'block'   => self::BLOCK,
+            'message' => self::rule_message(null),
         );
         wp_register_script('seoprostack-restrict', false, array('wp-hooks', 'wp-blocks', 'wp-element', 'wp-components', 'wp-compose', 'wp-block-editor'), SEOPROSTACK_VERSION, false);
         wp_enqueue_script('seoprostack-restrict');
         wp_add_inline_script('seoprostack-restrict', '(function (wp, cfg) {
     var el = wp.element.createElement, c = wp.components, be = wp.blockEditor;
+    window.seoprostackRestrict = cfg;
     wp.hooks.addFilter("blocks.registerBlockType", "seoprostack/restrict", function (settings) {
         var attrs = Object.assign({}, settings.attributes || {});
         attrs.spsVisibility = attrs.spsVisibility || { type: "object" };
@@ -1122,9 +1358,10 @@ class SEOProStack_Restrict_Content extends SEOProStack_Feature {
     var withPanel = wp.compose.createHigherOrderComponent(function (BlockEdit) {
         return function (props) {
             if (!props.isSelected) { return el(BlockEdit, props); }
-            var v = props.attributes.spsVisibility || {}, show = v.show || "everyone", roles = v.roles || [];
+            var members = cfg.block === props.name;
+            var v = props.attributes.spsVisibility || {}, show = v.show || (members ? "in" : "everyone"), roles = v.roles || [];
             var cc = props.attributes.contentControls, ccRule = !!(cc && cc.enabled && !props.attributes.spsVisibility);
-            function set(s, r) { props.setAttributes({ spsVisibility: "everyone" === s ? undefined : { show: s, roles: r } }); }
+            function set(s, r) { props.setAttributes({ spsVisibility: "everyone" === s && !members ? undefined : { show: s, roles: r } }); }
             var kids = [el(c.SelectControl, { key: "show", label: cfg.label, value: show, options: cfg.shows, help: cfg.help, onChange: function (s) { set(s, roles); } })];
             if ("roles" === show || "not_roles" === show) {
                 cfg.roles.forEach(function (r) {
@@ -1140,7 +1377,7 @@ class SEOProStack_Restrict_Content extends SEOProStack_Feature {
                 kids.push(el(c.Button, { key: "ccx", variant: "secondary", onClick: function () { props.setAttributes({ contentControls: undefined }); } }, cfg.ccClear));
             }
             return el(wp.element.Fragment, null, el(BlockEdit, props),
-                el(be.InspectorControls, null, el(c.PanelBody, { title: cfg.panel, initialOpen: "everyone" !== show || ccRule }, kids)));
+                el(be.InspectorControls, null, el(c.PanelBody, { title: cfg.panel, initialOpen: "everyone" !== show || ccRule || members }, kids)));
         };
     }, "withSeoprostackVisibility");
     wp.hooks.addFilter("editor.BlockEdit", "seoprostack/restrict", withPanel);
