@@ -47,6 +47,7 @@ final class SEOProStack {
         'SEOProStack_Hand_Order',
         'SEOProStack_Term_Tools',
         'SEOProStack_Menu_Visibility',
+        'SEOProStack_Restrict_Content',
         'SEOProStack_Field_Search',
         'SEOProStack_Editor_Tidy',
         'SEOProStack_Translatepress_Colours',

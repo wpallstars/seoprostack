@@ -21,8 +21,9 @@ if (!defined('ABSPATH')) {
 // Permalinks (Old post addresses; closed on WordPress.org on 2026-04-27),
 // Bookmark Card (Link cards), Wikipedia Preview (Wikipedia previews),
 // Mammoth .docx converter (Word documents in the editor), Favorites
-// (Like, save and share) and Popular Brand Icons – Simple Icons (Brand
-// icons).
+// (Like, save and share), Popular Brand Icons – Simple Icons (Brand
+// icons) and Content Control (Restrict content; closed on WordPress.org on
+// 2026-08-12, so the Members category it was alone in is gone too).
 // String Locator is not listed: searching code is better done in an editor
 // or with WP-CLI than from wp-admin.
 // EditorsKit (block-options) is not listed: its last update was in May 2024,
@@ -111,9 +112,6 @@ function seoprostack_get_free_plugins() {
             'image-copytrack',
             'media-file-renamer'
         ),
-        'members' => array(
-            'content-control'
-        ),
         'seo' => array(
             'burst-statistics',
             'revive-so',
@@ -171,14 +169,9 @@ function seoprostack_get_free_plugins() {
  * @return array<string,array{name:string,description:string,closed:string,reason:string,replacement:string}>
  */
 function seoprostack_get_removed_plugins() {
+    // Content Control (closed 2026-08-12) is no longer listed: Restrict
+    // content replaces it.
     return array(
-        'content-control' => array(
-            'name'        => 'Content Control',
-            'description' => 'Restrict content, menus and blocks by user role or login status.',
-            'closed'      => '2026-08-12',
-            'reason'      => 'Temporary closure pending a full review.',
-            'replacement' => 'Needs an alternative for restricting content by role or login status.',
-        ),
         'easy-video-reviews' => array(
             'name'        => 'Easy Video Reviews',
             'description' => 'Collect and display video testimonials.',
