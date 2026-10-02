@@ -1,4 +1,4 @@
-![SEO Pro Stack: WP Admin – Solved!](admin/images/banner.svg)
+![WPALLSTARS SEO Pro Stack: WP Admin – Solved!](admin/images/banner.svg)
 
 # SEO Pro Stack
 
@@ -798,7 +798,7 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folder�
 ### Unreleased
 
 - Changed: Faster editor with Kadence Blocks keeps Kadence’s design library in the browser until Kadence’s own copy changes, sends each library request once instead of twice, and lets the browser skip drawing patterns that are off screen. On a test site, in a new editor page, the library was drawn in about 2 seconds instead of 5.9, with no requests. Only Kadence’s own section, page and template libraries are kept, never licence, account, AI or cloud library data; Sync still fetches new designs. No new options.
-- New: a banner, “SEO Pro Stack: WP Admin – Solved!”, at the top of the Read Me tab and for the WordPress.org plugin page. The Read Me tab now shows images from the plugin’s own folder written on a line of their own (`![alt](admin/images/banner.svg)`); other images and addresses are left out. The source is `.wordpress-org/banner.svg`; `scripts/build-banner.sh` (Inkscape and the Inter font) writes `admin/images/banner.svg` with the words as shapes, and `banner-772x250.png` and `banner-1544x500.png` in `.wordpress-org/` for the SVN `assets/` folder, which stays out of the plugin zip.
+- New: a banner in the WPALLSTARS colours (navy, red and cream, Zilla Slab, the logo’s arc of stars above a stack with the WordPress Plugins icon on top, red and cream stripes), “SEO Pro Stack: WP Admin – Solved!”, at the top of the Read Me tab and for the WordPress.org plugin page. The Read Me tab now shows images from the plugin’s own folder written on a line of their own (`![alt](admin/images/banner.svg)`); other images and addresses are left out, and the file’s time is added to its address so browsers show a changed image straight away. The source is `.wordpress-org/banner.svg`; `scripts/build-banner.sh` (Inkscape and the Zilla Slab font) writes `admin/images/banner.svg` with the words as shapes, and `banner-772x250.png` and `banner-1544x500.png` in `.wordpress-org/` for the SVN `assets/` folder, which stays out of the plugin zip.
 
 ### 0.8.1
 

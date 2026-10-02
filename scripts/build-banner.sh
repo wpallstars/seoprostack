@@ -4,15 +4,15 @@
 #   admin/images/banner.svg
 #       Shipped with the plugin, shown at the top of the Read Me tab (and of
 #       README.md on GitHub). Text is turned into shapes, so it looks the same
-#       without the Inter font.
+#       without the Zilla Slab font.
 #   .wordpress-org/banner-772x250.png
 #   .wordpress-org/banner-1544x500.png
 #       For the WordPress.org SVN assets/ folder (not in the plugin zip).
 #
 # Usage: scripts/build-banner.sh
 #
-# Needs Inkscape 1.x (INKSCAPE=/path/to/inkscape to choose one) and the Inter
-# font installed.
+# Needs Inkscape 1.x (INKSCAPE=/path/to/inkscape to choose one) and the Zilla Slab
+# font installed (wpallstars.com's heading font).
 
 set -euo pipefail
 
@@ -60,7 +60,7 @@ main() {
 	if command -v fc-list >/dev/null 2>&1; then
 		local families
 		families="$(fc-list : family)"
-		grep -qi '^Inter' <<<"$families" || die "the Inter font is not installed"
+		grep -qi '^Zilla Slab' <<<"$families" || die "the Zilla Slab font is not installed"
 	fi
 
 	"$inkscape" "$SOURCE" --export-text-to-path --export-plain-svg \
