@@ -43,6 +43,9 @@ class SEOProStack_Nextgen_Images extends SEOProStack_Feature {
     /** WP-Cron hook for background batches. */
     const HOOK = 'seoprostack_nextgen_batch';
 
+    /** Transient: a background batch is running. */
+    const LOCK = 'seoprostack_nextgen_lock';
+
     /** Network (site) option: sites using the rules, and the rules' status. */
     const RULES = 'seoprostack_nextgen_rules';
 
@@ -392,11 +395,15 @@ class SEOProStack_Nextgen_Images extends SEOProStack_Feature {
         $dir      = dirname($file);
         $record   = array('files' => array(), 'sources' => array(), 'quality' => array());
         // Formats whose copies were made with other quality settings: made
-        // again. Copies from before quality was kept count as up to date.
+        // again. Copies from before quality was kept (0.9.0 and earlier)
+        // were made at WordPress's default quality, whatever the setting
+        // said, so they are made again too.
         $redo = array();
         foreach (array_keys(self::formats()) as $format) {
             $record['quality'][$format] = self::quality_key($format);
-            $redo[$format]              = isset($previous['quality'][$format]) && $previous['quality'][$format] !== $record['quality'][$format];
+            $redo[$format]              = !empty($previous['files']) && (isset($previous['quality'])
+                ? isset($previous['quality'][$format]) && $previous['quality'][$format] !== $record['quality'][$format]
+                : true);
         }
         foreach (self::file_names($file, wp_get_attachment_metadata($attachment_id)) as $name) {
             $path = $dir . '/' . $name;
@@ -494,11 +501,22 @@ class SEOProStack_Nextgen_Images extends SEOProStack_Feature {
                 return -1;
             }
         }
-        $size = $editor->get_size();
-        $editor->set_quality(self::quality($format, isset($size['width']) ? $size['width'] : 0, isset($size['height']) ? $size['height'] : 0));
+        $size    = $editor->get_size();
+        $quality = self::quality($format, isset($size['width']) ? $size['width'] : 0, isset($size['height']) ? $size['height'] : 0);
+        // save() resets the quality to WordPress's default for the new
+        // format (86 for WebP, 82 for AVIF) through this filter when it
+        // converts, so set_quality() alone has no effect.
+        $set_quality = function ($value, $type) use ($quality, $mime) {
+            return $type === $mime ? $quality : $value;
+        };
+        add_filter('wp_editor_set_quality', $set_quality, PHP_INT_MAX, 2);
+        $editor->set_quality($quality);
 
-        $temp  = $path . '.sps-tmp.' . $format;
+        // Unique, so a bulk action and a background batch on the same
+        // picture do not write over each other's file.
+        $temp  = $path . '.sps-tmp' . wp_generate_password(6, false) . '.' . $format;
         $saved = $editor->save($temp, $mime);
+        remove_filter('wp_editor_set_quality', $set_quality, PHP_INT_MAX);
         if (is_wp_error($saved) || empty($saved['path']) || !is_file($saved['path'])) {
             return -1;
         }
@@ -743,22 +761,28 @@ class SEOProStack_Nextgen_Images extends SEOProStack_Feature {
         if (!self::enabled()) {
             return;
         }
-        $start = microtime(true);
         // Next batch first, so a picture that stops PHP (a broken file, too
         // little memory) does not stop the queue.
         self::schedule(60);
+        // One batch at a time; one that stops PHP frees it after a while.
+        if (get_transient(self::LOCK)) {
+            return;
+        }
+        set_transient(self::LOCK, 1, self::BUDGET + 60);
+        $start = microtime(true);
         do {
             $ids = self::waiting(10);
             foreach ($ids as $id) {
+                if (!self::more_time($start, self::BUDGET)) {
+                    break 2;
+                }
                 // Marked as tried first: if PHP stops on it, it is not tried
                 // again at the head of every batch.
                 update_post_meta($id, self::DONE, self::signature());
                 self::convert_attachment($id);
-                if (microtime(true) - $start > self::BUDGET) {
-                    break 2;
-                }
             }
         } while ($ids);
+        delete_transient(self::LOCK);
         if (!self::waiting(1)) {
             wp_clear_scheduled_hook(self::HOOK);
         }
@@ -1306,7 +1330,7 @@ class SEOProStack_Nextgen_Images extends SEOProStack_Feature {
         $start  = microtime(true);
         $counts = array('sps_nextgen_done' => 0, 'sps_nextgen_left' => 0);
         foreach ($ids as $i => $id) {
-            if (microtime(true) - $start > self::BUDGET) {
+            if (!self::more_time($start, self::BUDGET)) {
                 $counts['sps_nextgen_left'] = count($ids) - $i;
                 break;
             }

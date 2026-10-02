@@ -693,7 +693,9 @@ class SEOProStack_Watermark_Images extends SEOProStack_Feature {
             return $stamped;
         }
 
-        $temp  = $path . '.sps-tmp.' . pathinfo($path, PATHINFO_EXTENSION);
+        // Unique, so a bulk action and a background batch do not write over
+        // each other's file.
+        $temp  = $path . '.sps-tmp' . wp_generate_password(6, false) . '.' . pathinfo($path, PATHINFO_EXTENSION);
         $saved = $editor->save($temp, $mime);
         if (is_wp_error($saved)) {
             return $saved;
@@ -1067,7 +1069,7 @@ class SEOProStack_Watermark_Images extends SEOProStack_Feature {
         $error  = '';
         $ids    = array_values($ids);
         foreach ($ids as $i => $id) {
-            if (microtime(true) - $start > self::BUDGET) {
+            if (!self::more_time($start, self::BUDGET)) {
                 // The rest are changed in the background, unless another
                 // batch is running.
                 $rest = array_slice($ids, $i);
@@ -1324,7 +1326,7 @@ class SEOProStack_Watermark_Images extends SEOProStack_Feature {
         // Next part first, so a picture that stops PHP does not stop the batch.
         self::schedule(30);
         $start = microtime(true);
-        while (microtime(true) - $start < self::BUDGET) {
+        while (self::more_time($start, self::BUDGET)) {
             if (is_array($job['ids'])) {
                 $id = $job['ids'] ? (int) array_shift($job['ids']) : 0;
             } else {
@@ -1464,34 +1466,35 @@ class SEOProStack_Watermark_Images extends SEOProStack_Feature {
             echo '<p class="sps-watermark-batch__progress" aria-live="polite">' . esc_html(self::progress_text($job)) . '</p>';
         }
         if ($running) {
-            echo '<p><button type="submit" name="op" value="stop" class="button">' . esc_html__('Stop', 'seoprostack') . '</button></p>';
-        } else {
-            $buttons = array();
-            $marked  = self::library_count('remove');
-            $can     = self::enabled() && !is_wp_error(self::mark());
-            if ($can && self::library_count('add')) {
-                $buttons['add'] = __('Mark every picture', 'seoprostack');
+            echo '<p class="sps-watermark-batch__stop"><button type="submit" name="op" value="stop" class="button">' . esc_html__('Stop', 'seoprostack') . '</button></p>';
+        }
+        // While a batch runs, the buttons it makes useful are ready for when
+        // it ends, so the open panel does not need reloading.
+        $buttons = array();
+        $marked  = $running ? 1 : self::library_count('remove');
+        $can     = self::enabled() && !is_wp_error(self::mark());
+        if ($can && ($running || self::library_count('add'))) {
+            $buttons['add'] = __('Mark every picture', 'seoprostack');
+        }
+        if ($can && $marked) {
+            $buttons['again'] = __('Mark again with these settings', 'seoprostack');
+        }
+        if ($marked) {
+            $buttons['remove'] = __('Remove every watermark', 'seoprostack');
+        }
+        if ($buttons) {
+            echo '<div class="sps-watermark-batch__start"' . ($running ? ' hidden' : '') . '><p>' . esc_html__('For the whole Media Library, in the background. Pictures without a kept original cannot be marked again or unmarked.', 'seoprostack') . '</p><p>';
+            foreach ($buttons as $op => $label) {
+                printf('<button type="submit" name="op" value="%1$s" class="button"%3$s>%2$s</button> ', esc_attr($op), esc_html($label), 'remove' === $op ? ' onclick="return confirm(this.dataset.confirm)" data-confirm="' . esc_attr__('Remove the watermark from every marked picture, putting the kept originals back?', 'seoprostack') . '"' : '');
             }
-            if ($can && $marked) {
-                $buttons['again'] = __('Mark again with these settings', 'seoprostack');
-            }
-            if ($marked) {
-                $buttons['remove'] = __('Remove every watermark', 'seoprostack');
-            }
-            if ($buttons) {
-                echo '<p>' . esc_html__('For the whole Media Library, in the background. Pictures without a kept original cannot be marked again or unmarked.', 'seoprostack') . '</p><p>';
-                foreach ($buttons as $op => $label) {
-                    printf('<button type="submit" name="op" value="%1$s" class="button"%3$s>%2$s</button> ', esc_attr($op), esc_html($label), 'remove' === $op ? ' onclick="return confirm(this.dataset.confirm)" data-confirm="' . esc_attr__('Remove the watermark from every marked picture, putting the kept originals back?', 'seoprostack') . '"' : '');
-                }
-                echo '</p>';
-            }
+            echo '</p></div>';
         }
         echo '</form>';
         if ($running) {
             // Progress every few seconds while the batch runs.
             $url = add_query_arg(array('action' => 'seoprostack_watermark_progress', '_ajax_nonce' => wp_create_nonce(self::JOB_ACTION)), admin_url('admin-ajax.php'));
             printf(
-                '<script>(function(){var u=%s,p=document.querySelector(".sps-watermark-batch__progress");function t(){fetch(u,{credentials:"same-origin"}).then(function(r){return r.json();}).then(function(r){if(!r||!r.success){return;}if(p){p.textContent=r.data.text;}if(r.data.running){setTimeout(t,5000);}else{location.reload();}}).catch(function(){setTimeout(t,15000);});}setTimeout(t,5000);})();</script>',
+                '<script>(function(){var u=%s,f=document.querySelector(".sps-watermark-batch");if(!f){return;}var p=f.querySelector(".sps-watermark-batch__progress"),s=f.querySelector(".sps-watermark-batch__stop"),b=f.querySelector(".sps-watermark-batch__start");function t(){fetch(u,{credentials:"same-origin"}).then(function(r){return r.json();}).then(function(r){if(!r||!r.success){return;}if(p){p.textContent=r.data.text;}if(r.data.running){setTimeout(t,5000);return;}if(s){s.hidden=true;}if(b){b.hidden=false;}}).catch(function(){setTimeout(t,15000);});}setTimeout(t,5000);})();</script>',
                 wp_json_encode($url)
             );
         }
