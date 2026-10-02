@@ -619,9 +619,9 @@ class SEOProStack_Settings {
      *     the post types Favorites adds its button to.
      * v13: switch on Brand icons while Popular Brand Icons – Simple Icons is
      *     active.
-     * v14: import Lasso Lite's nofollow and sponsored defaults for new links
-     *     (Short links), and switch Short links on while Lasso Lite is active
-     *     with links (its links are imported separately).
+     * v14: nothing. Before any release it imported Lasso Lite's defaults for
+     *     Short links; Short links no longer replaces Lasso Lite, which does
+     *     more than links. Kept so sites that ran it stay in step.
      * v15: import WP-Optimize's scheduled cleanup choices (Clean the
      *     database weekly), switched on only where LiteSpeed Cache runs on a
      *     LiteSpeed server.
