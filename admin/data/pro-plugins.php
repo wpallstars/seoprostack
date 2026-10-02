@@ -227,6 +227,26 @@ if (!defined('ABSPATH')) {
             ),
             'free_slug' => 'fluent-booking'
         ),
+        'fluent-cart' => array(
+            'name' => 'FluentCart Pro',
+            'description' => 'Online store extras: software licences, inventory tracking, order bumps, advanced reports and more payment gateways.',
+            'button_group' => array(
+                array(
+                    'text' => 'Home Page',
+                    'url' => 'https://fluentcart.com/',
+                    'primary' => true
+                ),
+                array(
+                    'text' => 'Pricing',
+                    'url' => 'https://fluentcart.com/pricing/'
+                ),
+                array(
+                    'text' => 'Free vs Pro',
+                    'url' => 'https://fluentcart.com/free-vs-pro/'
+                )
+            ),
+            'free_slug' => 'fluent-cart'
+        ),
         'kadence-blocks' => array(
             'name' => 'Kadence Blocks Pro',
             'description' => 'Premium blocks, theme and templates for the WordPress editor, sold together as Kadence bundles.',

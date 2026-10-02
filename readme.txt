@@ -118,6 +118,9 @@ Copies from WordPress.org update from there. New versions come out on GitHub fir
 
 == Changelog ==
 
+= Unreleased =
+* New: Pro Plugins lists FluentCart Pro.
+
 = 0.8.0 =
 * New: presets for Code Snippets, Rank Math SEO, WP-Optimize and Burst Statistics.
 * New, off by default: maintenance bypass links; disable XML-RPC or application passwords.
