@@ -1199,6 +1199,29 @@
 	list-style: decimal;
 }
 
+.sps-readme-table {
+	margin: 8px 0 16px;
+	overflow-x: auto;
+}
+
+.sps-readme table {
+	border-collapse: collapse;
+	font-size: 13px;
+	line-height: 1.5;
+}
+
+.sps-readme th,
+.sps-readme td {
+	padding: 6px 10px;
+	text-align: start;
+	vertical-align: top;
+	border: 1px solid rgba(127, 127, 127, 0.25);
+}
+
+.sps-readme th {
+	background: rgba(127, 127, 127, 0.08);
+}
+
 /* Loading ------------------------------------------------------------ */
 
 .sps-loading {

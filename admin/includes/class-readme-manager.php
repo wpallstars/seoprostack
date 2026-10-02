@@ -3,7 +3,8 @@
  * SEO Pro Stack Read Me tab.
  *
  * Renders README.md with a small, escaping Markdown subset
- * (headings, lists, bold, italic, inline code and http(s) links).
+ * (headings with GitHub-style IDs, lists, tables, bold, italic, inline code,
+ * http(s) links and links to headings).
  *
  * @package SEOProStack
  * @since 0.2.0
@@ -39,11 +40,17 @@ class SEOProStack_Readme_Manager {
         $lines    = preg_split('/\r\n|\r|\n/', $markdown);
         $html     = '';
         $list     = '';
+        $table    = ''; // '', 'head' (header row written) or 'body'.
+        $ids      = array();
 
-        $close_list = function () use (&$html, &$list) {
+        $close_list = function () use (&$html, &$list, &$table) {
             if ($list) {
                 $html .= '</' . $list . '>';
                 $list  = '';
+            }
+            if ($table) {
+                $html .= ('head' === $table ? '</thead>' : '</tbody>') . '</table></div>';
+                $table = '';
             }
         };
 
@@ -58,7 +65,28 @@ class SEOProStack_Readme_Manager {
             if (preg_match('/^(#{1,4})\s+(.+)$/', $trim, $m)) {
                 $close_list();
                 $level = min(4, strlen($m[1]) + 1); // h1 is reserved for the page title.
-                $html .= sprintf('<h%1$d>%2$s</h%1$d>', $level, self::inline($m[2]));
+                $html .= sprintf('<h%1$d id="%2$s">%3$s</h%1$d>', $level, esc_attr(self::anchor($m[2], $ids)), self::inline($m[2]));
+                continue;
+            }
+
+            // Tables: a header row, a |---| separator, then body rows.
+            if (strlen($trim) > 1 && '|' === $trim[0] && '|' === substr($trim, -1)) {
+                if ('head' === $table && preg_match('/^\|[\s:|-]+\|$/', $trim)) {
+                    $html .= '</thead><tbody>';
+                    $table = 'body';
+                    continue;
+                }
+                if (!$table) {
+                    $close_list();
+                    $html .= '<div class="sps-readme-table"><table><thead>';
+                    $table = 'head';
+                }
+                $tag   = 'head' === $table ? 'th' : 'td';
+                $html .= '<tr>';
+                foreach (explode('|', substr($trim, 1, -1)) as $cell) {
+                    $html .= '<' . $tag . '>' . self::inline(trim($cell)) . '</' . $tag . '>';
+                }
+                $html .= '</tr>';
                 continue;
             }
 
@@ -84,6 +112,31 @@ class SEOProStack_Readme_Manager {
     }
 
     /**
+     * Heading ID as GitHub makes it, so README links such as
+     * `[Credits](#credits)` work in the tab too. Repeats get -1, -2...
+     *
+     * @param string $text Heading Markdown.
+     * @param array  $ids  IDs used so far (updated).
+     * @return string ID.
+     */
+    private static function anchor($text, array &$ids) {
+        $text = preg_replace('/\[([^\]]+)\]\([^)]*\)/', '$1', $text);
+        $text = str_replace(array('`', '*'), '', $text);
+        $id   = function_exists('mb_strtolower') ? mb_strtolower($text, 'UTF-8') : strtolower($text);
+        $id   = preg_replace('/[^\p{L}\p{N}\s_-]/u', '', $id);
+        $id   = preg_replace('/\s/u', '-', trim($id));
+        $base = '' === $id ? 'section' : $id;
+        $id   = $base;
+        $n    = 0;
+        while (isset($ids[$id])) {
+            $id = $base . '-' . (++$n);
+        }
+        $ids[$id] = true;
+
+        return $id;
+    }
+
+    /**
      * Inline Markdown on escaped text.
      *
      * @param string $text Raw text.
@@ -97,6 +150,9 @@ class SEOProStack_Readme_Manager {
 
         return preg_replace_callback('/\[([^\]]+)\]\(([^)\s]+)\)/', function ($m) {
             $url = esc_url(html_entity_decode($m[2]), array('http', 'https'));
+            if ('#' === $m[2][0]) {
+                return sprintf('<a href="#%1$s">%2$s</a>', esc_attr(substr($m[2], 1)), $m[1]);
+            }
             if ('' === $url) {
                 return $m[1];
             }
