@@ -84,6 +84,7 @@ class SEOProStack_Editor_Tidy extends SEOProStack_Feature {
             'core_patterns'   => __('WordPress’s own block patterns and those from the Pattern Directory (theme and plugin patterns stay)', 'seoprostack'),
             'template_editor' => __('Template editor in the post editor (classic themes only)', 'seoprostack'),
             'fullscreen'      => __('Fullscreen mode: the editor opens with the admin menu', 'seoprostack'),
+            'classic_widgets' => __('Block widget editor: Appearance → Widgets and the Customizer use the classic widgets screen (classic themes only)', 'seoprostack'),
         );
     }
 
@@ -123,6 +124,10 @@ class SEOProStack_Editor_Tidy extends SEOProStack_Feature {
         if (isset($items['template_editor']) && !(function_exists('wp_is_block_theme') && wp_is_block_theme())) {
             // Block themes need templates; classic themes only add the editor.
             remove_theme_support('block-templates');
+        }
+        if (isset($items['classic_widgets'])) {
+            // Core's own switch (also what the Classic Widgets plugin does).
+            add_filter('use_widgets_block_editor', '__return_false', 99);
         }
         if ((isset($items['welcome_guide']) || isset($items['fullscreen'])) && is_admin()) {
             add_filter('get_user_metadata', array(__CLASS__, 'preferences'), 10, 4);

@@ -62,6 +62,7 @@ class SEOProStack_Woo_Tidy extends SEOProStack_Feature {
             'extensions'  => __('Extensions menu entry (the page still opens from Plugins)', 'seoprostack'),
             'connect'     => __('“Connect your store to WooCommerce.com” notices', 'seoprostack'),
             'app_email'   => __('“Get the WooCommerce app” in new order emails', 'seoprostack'),
+            'marketing'   => __('Marketing menu and its pages: recommended marketing extensions and courses (coupons stay under Marketing → Coupons’ own address and in the WooCommerce menu)', 'seoprostack'),
         );
     }
 
@@ -105,6 +106,20 @@ class SEOProStack_Woo_Tidy extends SEOProStack_Feature {
         if (isset($items['app_email'])) {
             add_action('woocommerce_email', array(__CLASS__, 'remove_app_email'), 99);
         }
+        if (isset($items['marketing'])) {
+            add_filter('woocommerce_marketing_menu_items', '__return_empty_array', 99);
+            add_filter('woocommerce_admin_features', array(__CLASS__, 'no_marketing'), 99);
+        }
+    }
+
+    /**
+     * WooCommerce Admin features without the Marketing hub.
+     *
+     * @param mixed $features Feature names.
+     * @return mixed
+     */
+    public static function no_marketing($features) {
+        return is_array($features) ? array_values(array_diff($features, array('marketing'))) : $features;
     }
 
     /**

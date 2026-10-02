@@ -4,9 +4,10 @@
  *
  * Disable Bloat (free and PRO) stores each switch as its own `wcbloat_*`
  * option holding "yes". Tidy WooCommerce admin, Lighter WooCommerce pages,
- * Remove WordPress extras, Tidy the login screen, Tidy admin screens and
- * Simpler block editor each import their share, and Hide admin bar items
- * and Dashboard and sidebar widgets import the rest.
+ * Remove WordPress extras, Tidy the login screen, Tidy admin screens,
+ * Simpler block editor, Fewer Heartbeat requests and Limit post revisions
+ * each import their share, and Hide admin bar items and Dashboard and
+ * sidebar widgets import the rest.
  *
  * Settings are imported only while Disable Bloat is active: sites that
  * deactivated it chose to stop those changes, and its options stay behind
@@ -35,7 +36,8 @@ class SEOProStack_Disable_Bloat {
 
     /**
      * Switches SEO Pro Stack covers: option (without `wcbloat_`) =>
-     * [feature switch, list setting, choice in that list].
+     * [feature switch, list setting, choice in that list], or [feature
+     * switch] for a feature that covers it on its own.
      */
     const MAP = array(
         // Tidy WooCommerce admin.
@@ -43,10 +45,18 @@ class SEOProStack_Disable_Bloat {
         'remove_addon_submenu'             => array('woo_tidy', 'woo_tidy_items', 'extensions'),
         'wc_helper_disable'                => array('woo_tidy', 'woo_tidy_items', 'connect'),
         'hide_woo_mobile_footer_text'      => array('woo_tidy', 'woo_tidy_items', 'app_email'),
+        'marketing_disable'                => array('woo_tidy', 'woo_tidy_items', 'marketing'),
         // Lighter WooCommerce pages.
         'wc_scripts_disable'               => array('woo_light', 'woo_light_items', 'scripts'),
         'wc_fragmentation_disable'         => array('woo_light', 'woo_light_items', 'fragments'),
         'wc_stripe_scripts_disable'        => array('woo_light', 'woo_light_items', 'stripe'),
+        'wc_blocks_frontend_disable'       => array('woo_light', 'woo_light_items', 'blocks'),
+        // PRO removes the block editor style on the site, not in the editor.
+        'wc_blocks_backend_disable'        => array('woo_light', 'woo_light_items', 'blocks'),
+        // Fewer Heartbeat requests (migrate() adds the site too).
+        'wp_heartbeat_disable'             => array('heartbeat_limit', 'heartbeat_limit_items', 'admin'),
+        // Limit post revisions.
+        'post_revisions_disable'           => array('revisions_limit'),
         // Remove WordPress extras.
         'remove_emoji_scripts'             => array('wp_extras', 'wp_extras_items', 'emoji'),
         'wp_meta_generator_disable'        => array('wp_extras', 'wp_extras_items', 'generator'),
@@ -60,6 +70,8 @@ class SEOProStack_Disable_Bloat {
         'prevent_linking_url_comments'     => array('wp_extras', 'wp_extras_items', 'comment_links'),
         'remove_rss_links'                 => array('wp_extras', 'wp_extras_items', 'feed_links'),
         'disable_all_feeds'                => array('wp_extras', 'wp_extras_items', 'feeds'),
+        'disable_wp_embed'                 => array('wp_extras', 'wp_extras_items', 'embeds'),
+        'password_meter_disable'           => array('wp_extras', 'wp_extras_items', 'password_meter'),
         // Tidy the login screen.
         'wp_logo_url_disable'              => array('login_screen', 'login_screen_items', 'logo_link'),
         'wp_logo_title'                    => array('login_screen', 'login_screen_items', 'logo_title'),
@@ -75,6 +87,7 @@ class SEOProStack_Disable_Bloat {
         'disable_default_block_patterns'   => array('editor_tidy', 'editor_tidy_items', 'core_patterns'),
         'disable_template_editor'          => array('editor_tidy', 'editor_tidy_items', 'template_editor'),
         'disable_fullscreen_editor_mode'   => array('editor_tidy', 'editor_tidy_items', 'fullscreen'),
+        'disable_widget_block_editor'      => array('editor_tidy', 'editor_tidy_items', 'classic_widgets'),
         // Hide admin bar items.
         'w_logo_disable'                   => array('admin_bar_hide', 'admin_bar_hide_items', 'wp-logo'),
         // Dashboard and sidebar widgets.
@@ -137,11 +150,21 @@ class SEOProStack_Disable_Bloat {
         }
         $choices = array();
         foreach (self::MAP as $option => $target) {
-            if ($target[1] === $setting && self::on($option)) {
+            if (isset($target[1]) && $target[1] === $setting && self::on($option)) {
                 $choices[] = $target[2];
             }
         }
         return array_values(array_unique($choices));
+    }
+
+    /**
+     * Whether a switch is on in Disable Bloat, while it is active.
+     *
+     * @param string $option Option name without `wcbloat_`.
+     * @return bool
+     */
+    public static function imports($option) {
+        return self::active() && self::on($option);
     }
 
     /**
@@ -175,8 +198,9 @@ class SEOProStack_Disable_Bloat {
                 continue;
             }
             if (isset(self::MAP[$option])) {
-                list($switch, $setting, $choice) = self::MAP[$option];
-                if (SEOProStack_Settings::get($switch) && in_array($choice, (array) SEOProStack_Settings::get($setting), true)) {
+                $target = self::MAP[$option];
+                if (SEOProStack_Settings::get($target[0])
+                    && (!isset($target[1]) || in_array($target[2], (array) SEOProStack_Settings::get($target[1]), true))) {
                     continue;
                 }
             }

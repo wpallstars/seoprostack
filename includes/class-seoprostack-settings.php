@@ -591,7 +591,8 @@ class SEOProStack_Settings {
      *     Lighter WooCommerce pages, Remove WordPress extras, Tidy the login
      *     screen, Tidy admin screens and Simpler block editor, plus its
      *     W logo (Hide admin bar items), widgets and Dashboard boxes
-     *     (Dashboard and sidebar widgets).
+     *     (Dashboard and sidebar widgets), Heartbeat (Fewer Heartbeat
+     *     requests) and post revisions (Limit post revisions).
      *
      * Old options are left in place so a downgrade keeps working;
      * uninstall.php removes ours. Other plugins' options are never touched.
