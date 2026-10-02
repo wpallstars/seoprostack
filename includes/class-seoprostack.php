@@ -77,6 +77,7 @@ final class SEOProStack {
         'SEOProStack_Delayed_Analytics',
         'SEOProStack_Wp_Extras',
         'SEOProStack_Heartbeat',
+        'SEOProStack_Database_Cleanup',
         'SEOProStack_Woo_Light',
         'SEOProStack_Kadence_Library',
         'SEOProStack_Plugin_Loading',
