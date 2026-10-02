@@ -215,8 +215,17 @@ dark mode switcher (and themes that switch palettes the same way).
 
 CI (`.github/workflows/ci.yml`) runs the code checks, the release preflight,
 Plugin Check and a smoke test on every pull request; details and local
-commands: `DEVELOPMENT.md`. They catch errors, not wrong behaviour, so also
-verify on real WordPress:
+commands: `DEVELOPMENT.md`.
+
+While the repository is private, CI and review apps only advise: nothing is
+required to merge, for speed. Fix failures your change causes before merging;
+open an issue for any other failure and merge anyway. Do not turn on branch
+protection, required checks or paid reviewers. At public launch (owner's say),
+run the full sweep in `DEVELOPMENT.md` → At public launch, which makes the
+checks required.
+
+The checks catch errors, not wrong behaviour, so also verify on real
+WordPress:
 
 1. `scripts/lint.sh` (syntax, ShellCheck, PHPCS, PHPStan; run
    `composer install` once). Fix findings in the code; never grow

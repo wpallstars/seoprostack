@@ -96,9 +96,48 @@ commit SHAs with the version in a comment; keep it that way when editing
 workflows. Do not add third-party actions that only save a few lines of
 shell.
 
-## CI cost
+## While private: checks are advisory
 
-The repository is private, so Actions minutes count. Draft pull requests
-run only the lint job. A new push cancels the run for the previous one.
-The build zips and Plugin Check reports are kept for seven days on each
-run (artifact `seoprostack-build-…`) for testing a branch on a site.
+The repository is private until it is released, so Actions minutes cost
+money and most code-review services are paid. Until then, work moves fast:
+
+- No branch protection or required checks on `main`. A failing check does
+  not block a merge, so a merge never waits on an unrelated failure.
+- Fix any failure your change causes before merging. For a failure your
+  change did not cause, open an issue with the run link and the first error,
+  and merge anyway.
+- Draft pull requests run only the lint job. A new push cancels the run for
+  the previous one.
+- The build zips and Plugin Check reports are kept for seven days on each
+  run (artifact `seoprostack-build-…`) for testing a branch on a site.
+- Review apps that are already installed (CodeRabbit, qlty, Socket) give
+  advice only. A rate-limited or missing review never holds up a merge.
+
+## At public launch: full sweep
+
+Making the repository public needs the owner's say. Do this sweep in the
+same step, while the code-review services are free for
+public repositories. It goes through the whole codebase once, then keeps
+it at that standard:
+
+1. Turn on the free reviewers for the whole codebase, not just new
+   changes: CodeRabbit full review, Codacy, SonarCloud (SonarQube Cloud)
+   and qlty, plus GitHub's CodeQL (PHP and JavaScript), Dependabot
+   security alerts, secret scanning with push protection, and OpenSSF
+   Scorecard. Socket keeps checking dependencies.
+2. Fix what they find in the code, in small pull requests by area
+   (security first). Each finding is either fixed, explained in an inline
+   comment, or marked as a false positive in that service with the reason.
+3. Empty `phpstan-baseline.neon` (`composer baseline` after each fix),
+   then raise the PHPStan level one step at a time (6, then higher if the
+   findings are real bugs and not noise).
+4. Require the CI checks on `main` (Lint, Release build, both Smoke
+   tests) with a branch ruleset, without "branch must be up to date": the
+   checks are fast, and changelog lines conflict on every merge.
+5. Add `SECURITY.md` (private vulnerability reporting on),
+   `CONTRIBUTING.md` (points to this file), issue and pull request
+   templates, and the CI badge in `README.md`. Add each new file to
+   `.distignore` and to the preflight's development-files list.
+6. Run `workflows/public-launch-checklist.md` from the AI DevOps framework
+   for anything public: no private paths, site names or secrets in the code,
+   history, issues or docs.
