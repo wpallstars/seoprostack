@@ -28,7 +28,7 @@ class SEOProStack_Heartbeat extends SEOProStack_Feature {
     /** Where to limit it. */
     const ITEMS_KEY = 'heartbeat_limit_items';
 
-    /** Seconds between requests where it is slowed (Heartbeat's longest; older versions stop at 120). */
+    /** Seconds between requests where it is slowed (Heartbeat's longest; before WordPress 6.7 it stops at 120). */
     const SLOW = 3600;
 
     /** Admin screens that keep Heartbeat as it is. */
@@ -67,7 +67,7 @@ class SEOProStack_Heartbeat extends SEOProStack_Feature {
     public static function item_options() {
         return array(
             'site'  => __('On the site: off (only plugins that use it start it there)', 'seoprostack'),
-            'admin' => __('On admin screens other than the editors: as seldom as WordPress allows, once an hour instead of every minute (every 2 minutes on older versions); news such as an expired login waits for the next page', 'seoprostack'),
+            'admin' => __('On admin screens other than the editors: as seldom as WordPress allows, once an hour instead of every minute (every 2 minutes before WordPress 6.7); news such as an expired login waits for the next page', 'seoprostack'),
         );
     }
 

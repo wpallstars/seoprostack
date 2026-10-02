@@ -50,9 +50,6 @@ class SEOProStack_Disable_Bloat {
         'wc_scripts_disable'               => array('woo_light', 'woo_light_items', 'scripts'),
         'wc_fragmentation_disable'         => array('woo_light', 'woo_light_items', 'fragments'),
         'wc_stripe_scripts_disable'        => array('woo_light', 'woo_light_items', 'stripe'),
-        'wc_blocks_frontend_disable'       => array('woo_light', 'woo_light_items', 'blocks'),
-        // PRO removes the block editor style on the site, not in the editor.
-        'wc_blocks_backend_disable'        => array('woo_light', 'woo_light_items', 'blocks'),
         // Fewer Heartbeat requests (migrate() adds the site too).
         'wp_heartbeat_disable'             => array('heartbeat_limit', 'heartbeat_limit_items', 'admin'),
         // Limit post revisions.
@@ -96,6 +93,13 @@ class SEOProStack_Disable_Bloat {
         'yoast_widget_disable'             => array('hide_dashboard_widgets', 'hidden_dashboard_widgets', 'wpseo-dashboard-overview'),
         'wc_widgets_disable'               => array('disable_sidebar_widgets', 'disabled_sidebar_widgets', 'WC_Widget_Products'),
     );
+
+    /**
+     * Switches that need nothing in its place. WooCommerce (checked with
+     * 11.1) loads a block's styles only on pages that show the block, so
+     * removing WooCommerce block styles only breaks blocks in use.
+     */
+    const NOT_NEEDED = array('wc_blocks_frontend_disable', 'wc_blocks_backend_disable');
 
     /**
      * Register hooks.
@@ -194,7 +198,7 @@ class SEOProStack_Disable_Bloat {
         $uncovered = array();
         // Its switches as of version 4.0; each is one autoloaded option.
         foreach (array_unique(array_merge(array_keys(self::MAP), array_keys($names))) as $option) {
-            if (!self::on($option)) {
+            if (!self::on($option) || in_array($option, self::NOT_NEEDED, true)) {
                 continue;
             }
             if (isset(self::MAP[$option])) {

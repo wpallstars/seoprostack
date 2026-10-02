@@ -62,7 +62,7 @@ class SEOProStack_Woo_Tidy extends SEOProStack_Feature {
             'extensions'  => __('Extensions menu entry (the page still opens from Plugins)', 'seoprostack'),
             'connect'     => __('“Connect your store to WooCommerce.com” notices', 'seoprostack'),
             'app_email'   => __('“Get the WooCommerce app” in new order emails', 'seoprostack'),
-            'marketing'   => __('Marketing menu and its pages: recommended marketing extensions and courses (coupons stay under Marketing → Coupons’ own address and in the WooCommerce menu)', 'seoprostack'),
+            'marketing'   => __('Marketing → Overview: recommended marketing extensions and courses (Marketing opens Coupons instead; other plugins’ marketing pages stay)', 'seoprostack'),
         );
     }
 
@@ -106,20 +106,27 @@ class SEOProStack_Woo_Tidy extends SEOProStack_Feature {
         if (isset($items['app_email'])) {
             add_action('woocommerce_email', array(__CLASS__, 'remove_app_email'), 99);
         }
-        if (isset($items['marketing'])) {
-            add_filter('woocommerce_marketing_menu_items', '__return_empty_array', 99);
-            add_filter('woocommerce_admin_features', array(__CLASS__, 'no_marketing'), 99);
+        if (isset($items['marketing']) && is_admin()) {
+            // WooCommerce adds it at admin_menu priority 5; since 11.1 the
+            // Marketing menu always loads, so its entry is removed instead.
+            add_action('admin_menu', array(__CLASS__, 'remove_marketing_overview'), 999);
         }
     }
 
     /**
-     * WooCommerce Admin features without the Marketing hub.
-     *
-     * @param mixed $features Feature names.
-     * @return mixed
+     * Remove Marketing → Overview, so the Marketing entry opens its next
+     * page (Coupons). The page itself still opens at its address.
      */
-    public static function no_marketing($features) {
-        return is_array($features) ? array_values(array_diff($features, array('marketing'))) : $features;
+    public static function remove_marketing_overview() {
+        global $submenu;
+        if (empty($submenu['woocommerce-marketing']) || !is_array($submenu['woocommerce-marketing'])) {
+            return;
+        }
+        foreach ($submenu['woocommerce-marketing'] as $item) {
+            if (isset($item[2]) && is_string($item[2]) && false !== strpos($item[2], 'path=/marketing') && false === strpos($item[2], 'path=/marketing/')) {
+                remove_submenu_page('woocommerce-marketing', $item[2]);
+            }
+        }
     }
 
     /**

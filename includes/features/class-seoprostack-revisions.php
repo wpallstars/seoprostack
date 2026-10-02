@@ -5,7 +5,8 @@
  * WordPress keeps every revision of every post, so busy posts collect
  * hundreds of copies in the database. This keeps the newest few, with
  * core's own wp_revisions_to_keep filter; core removes older ones the next
- * time a post is saved. Nothing else is stored or deleted.
+ * time a post is saved. With 0, core stops saving revisions and leaves the
+ * saved ones alone. Nothing else is stored or deleted.
  *
  * Replaces Disable Bloat PRO's post revisions switch (none kept), which is
  * imported once as 0.
@@ -48,7 +49,7 @@ class SEOProStack_Revisions extends SEOProStack_Feature {
                 'unit'        => __('revisions', 'seoprostack'),
                 'parent'      => self::KEY,
                 'label'       => __('Revisions to keep', 'seoprostack'),
-                'description' => __('0 keeps none (autosaves still work).', 'seoprostack'),
+                'description' => __('0 stops saving revisions and leaves the ones already saved (autosaves still work).', 'seoprostack'),
             ),
         );
     }

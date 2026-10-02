@@ -43,13 +43,6 @@ class SEOProStack_Woo_Light extends SEOProStack_Feature {
     private static $shop_page = null;
 
     /**
-     * Whether a WooCommerce block has been drawn on this page.
-     *
-     * @var bool
-     */
-    private static $woo_block = false;
-
-    /**
      * Settings.
      *
      * @return array
@@ -85,7 +78,6 @@ class SEOProStack_Woo_Light extends SEOProStack_Feature {
             'scripts'   => __('WooCommerce scripts and styles outside shop pages (add-to-cart buttons there reload the page or open the product)', 'seoprostack'),
             'fragments' => __('Cart fragments outside shop pages: they ask the server for the cart on every page (a header cart there may show an old count on cached pages)', 'seoprostack'),
             'stripe'    => __('Stripe’s Apple Pay and Google Pay buttons on product pages (they stay in the cart and checkout)', 'seoprostack'),
-            'blocks'    => __('WooCommerce block styles outside shop pages (a WooCommerce block shown there, such as a mini cart, still loads its own)', 'seoprostack'),
         );
     }
 
@@ -126,42 +118,6 @@ class SEOProStack_Woo_Light extends SEOProStack_Feature {
         }
         if (isset($items['stripe'])) {
             add_filter('wc_stripe_hide_payment_request_on_product_page', '__return_true', 99);
-        }
-        if (isset($items['blocks'])) {
-            add_filter('render_block', array(__CLASS__, 'note_block'), 10, 2);
-            add_action('wp_enqueue_scripts', array(__CLASS__, 'dequeue_block_styles'), 999);
-        }
-    }
-
-    /**
-     * Note a WooCommerce block that has been drawn. Block themes draw the
-     * template (such as a mini cart in the header) before the styles are
-     * chosen, so its styles are kept.
-     *
-     * @param string $content Block output.
-     * @param array  $block   Block.
-     * @return string
-     */
-    public static function note_block($content, $block) {
-        if (!self::$woo_block && isset($block['blockName']) && is_string($block['blockName']) && 0 === strpos($block['blockName'], 'woocommerce/')) {
-            self::$woo_block = true;
-        }
-        return $content;
-    }
-
-    /**
-     * Dequeue WooCommerce's block styles enqueued for every page, outside
-     * shop pages and pages that have drawn a WooCommerce block. Styles a
-     * block enqueues while it is drawn later are kept.
-     */
-    public static function dequeue_block_styles() {
-        if (self::$woo_block || self::is_shop_page()) {
-            return;
-        }
-        foreach (wp_styles()->queue as $handle) {
-            if (0 === strpos($handle, 'wc-blocks-') || 0 === strpos($handle, 'wc-all-blocks') || 'wc-block-editor' === $handle) {
-                wp_dequeue_style($handle);
-            }
         }
     }
 
