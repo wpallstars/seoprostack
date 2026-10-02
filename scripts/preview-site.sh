@@ -1,7 +1,12 @@
 #!/usr/bin/env bash
 # Copy a combined preview of SEO Pro Stack to the shared local test site:
 # origin/main plus every open pull request from this repository, merged in
-# PR order. Branches that conflict are left out and reported.
+# PR order. Branches that conflict are left out and reported, except when
+# the only conflicts are in the changelogs (DOC_FILES): every PR adds lines
+# at the top of the same lists, so after each merge to main the open PRs
+# conflict there. For the preview those files keep both sides' lines (git's
+# union merge) and the PR is included, with a note; real merges are not
+# affected.
 #
 # Nothing is checked out, committed to a branch or pushed: merges are worked
 # out with `git merge-tree` and exported with `git archive`, so any worktree
@@ -22,9 +27,12 @@ readonly PLUGIN_SLUG="seoprostack"
 readonly STAMP_NAME="seoprostack-synced-from.txt"
 readonly LOCK_WAIT_SECONDS=180
 readonly LOCK_STALE_MINUTES=10
+# Files whose conflicts do not keep a PR out of the preview.
+readonly DOC_FILES="changelog.txt readme.txt README.md"
 
 LOCK_DIR=""
 TMP_DIR=""
+UNION_ATTRIBUTES=""
 
 # Results, set by the functions below (Bash 3.2 has no namerefs).
 SITE=""
@@ -40,7 +48,7 @@ die() {
 }
 
 usage() {
-	sed -n '2,18p' "$0" | sed 's/^# \{0,1\}//'
+	sed -n '2,23p' "$0" | sed 's/^# \{0,1\}//'
 	return 0
 }
 
@@ -127,6 +135,7 @@ merge_pr() {
 	local state="$3"
 	local title="$4"
 	local sha out tree files
+	local note=""
 	local rc=0
 	if ! sha="$(git rev-parse --verify --quiet "refs/remotes/origin/$ref^{commit}")"; then
 		SKIPPED="${SKIPPED}  #$num $ref: branch not found on origin
@@ -139,18 +148,50 @@ merge_pr() {
 		return 0
 	fi
 	out="$(git merge-tree --write-tree --name-only --no-messages "$PREVIEW_COMMIT" "$sha")" || rc=$?
+	if [ "$rc" -eq 1 ]; then
+		files="$(printf '%s\n' "$out" | sed 1d | sort -u | tr '\n' ' ')"
+		files="${files% }"
+		if only_doc_files "$files"; then
+			rc=0
+			out="$(git -c core.attributesFile="$UNION_ATTRIBUTES" merge-tree --write-tree --name-only --no-messages "$PREVIEW_COMMIT" "$sha")" || rc=$?
+			[ "$rc" -eq 0 ] && note="; both sides' lines kept in $files"
+		fi
+	fi
 	if [ "$rc" -eq 0 ]; then
 		tree="${out%%$'\n'*}"
 		PREVIEW_COMMIT="$(git -c user.name=preview -c user.email=preview@localhost commit-tree "$tree" -p "$PREVIEW_COMMIT" -p "$sha" -m "preview: merge #$num $ref")"
-		INCLUDED="${INCLUDED}  #$num $ref ${sha:0:7} ($state) $title
+		INCLUDED="${INCLUDED}  #$num $ref ${sha:0:7} ($state$note) $title
 "
 	elif [ "$rc" -eq 1 ]; then
-		files="$(printf '%s\n' "$out" | sed 1d | sort -u | tr '\n' ' ')"
-		SKIPPED="${SKIPPED}  #$num $ref ${sha:0:7}: conflicts with main or an earlier PR in ${files% }
+		SKIPPED="${SKIPPED}  #$num $ref ${sha:0:7}: conflicts with main or an earlier PR in $files
 "
 	else
 		die "git merge-tree failed for #$num $ref"
 	fi
+	return 0
+}
+
+# Whether every file in the space-separated list is one of DOC_FILES.
+only_doc_files() {
+	local files="$1"
+	local file
+	[ -n "$files" ] || return 1
+	for file in $files; do
+		case " $DOC_FILES " in
+		*" $file "*) ;;
+		*) return 1 ;;
+		esac
+	done
+	return 0
+}
+
+# Write the attributes file that makes DOC_FILES merge as a union.
+write_union_attributes() {
+	local file
+	: >"$UNION_ATTRIBUTES"
+	for file in $DOC_FILES; do
+		printf '/%s merge=union\n' "$file" >>"$UNION_ATTRIBUTES"
+	done
 	return 0
 }
 
@@ -210,7 +251,6 @@ report() {
 # Copy PREVIEW_COMMIT to the site as a release build would contain it.
 copy_to_site() {
 	local destination="$SITE/wp-content/plugins/$PLUGIN_SLUG"
-	TMP_DIR="$(mktemp -d "${TMPDIR:-/tmp}/seoprostack-preview.XXXXXX")"
 	mkdir "$TMP_DIR/plugin"
 	git archive --format=tar "$PREVIEW_COMMIT" | tar -x -C "$TMP_DIR/plugin"
 	git show "$PREVIEW_COMMIT:.distignore" >"$TMP_DIR/distignore"
@@ -244,6 +284,9 @@ main() {
 	resolve_site "$site_arg" "$common/seoprostack-preview-site" "$((1 - dry_run))"
 
 	trap cleanup EXIT
+	TMP_DIR="$(mktemp -d "${TMPDIR:-/tmp}/seoprostack-preview.XXXXXX")"
+	UNION_ATTRIBUTES="$TMP_DIR/union-attributes"
+	write_union_attributes
 	if [ "$dry_run" -eq 0 ]; then
 		acquire_lock "$common/seoprostack-preview.lock"
 	fi
