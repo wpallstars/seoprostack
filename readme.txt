@@ -1,5 +1,6 @@
 === SEO Pro Stack ===
 Contributors: wpallstars
+Donate link: https://buymeacoffee.com/marcusquinn
 Tags: magic login, iframe, schedule posts, auto upload images, admin
 Requires at least: 6.2
 Tested up to: 7.1
@@ -97,10 +98,6 @@ Settings, tabs and directory entries can be extended with filters such as `seopr
 
 == Frequently Asked Questions ==
 
-= Is there a pro version? =
-
-No. The plugin is free and open source under the GPL.
-
 = What happens if I deactivate or delete the plugin? =
 
 Imported images and screenshots stay in the Media Library. Deleting removes the settings, cached data, uploaded profile pictures, WebP and AVIF copies, short links and the must-use file. Watermarked pictures stay marked; originals stay in a `seoprostack-originals-…` folder in uploads.
@@ -128,7 +125,7 @@ Click **Report a problem** at the top right of Settings → SEO Pro Stack, or op
 == Changelog ==
 
 = Unreleased =
-* New: Word documents; Like, save and share.
+* New: Word documents; Like, save and share; coffee button.
 * Change: Pinned posts; faster lists; sizes in Free Plugins; megaphone; writers' menu.
 * Fix: More menu alignment; menu in full screen editor.
 

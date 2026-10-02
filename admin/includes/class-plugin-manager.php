@@ -442,28 +442,6 @@ class SEOProStack_Plugin_Manager {
     }
 
     /**
-     * Short status text for list rows.
-     *
-     * @param array $state From plugin_state().
-     * @return string
-     */
-    private static function status_label(array $state) {
-        switch ($state['status']) {
-            case 'active':
-                return _x('Active', 'plugin', 'seoprostack');
-            case 'network-active':
-                return _x('Network active', 'plugin', 'seoprostack');
-            case 'inactive':
-                return _x('Inactive', 'plugin', 'seoprostack');
-            case 'incompatible':
-                return __('Needs a newer WordPress or PHP', 'seoprostack');
-            case 'unavailable':
-                return __('Unavailable', 'seoprostack');
-        }
-        return __('Not installed', 'seoprostack');
-    }
-
-    /**
      * Whether a bulk action could change this plugin, so it can be selected.
      *
      * @param array $state From plugin_state().
@@ -474,7 +452,7 @@ class SEOProStack_Plugin_Manager {
     }
 
     /**
-     * State, buttons and label for one slug, as the JS applies them.
+     * State, buttons and size for one slug, as the JS applies them.
      *
      * @param string $slug Plugin slug.
      * @return array
@@ -488,7 +466,6 @@ class SEOProStack_Plugin_Manager {
             'slug'   => $slug,
             'status' => $state['status'],
             'file'   => $state['file'],
-            'label'  => self::status_label($state),
             'usable' => self::selectable($state),
             'html'   => self::state_buttons($plugin, $state, $name),
             'size'   => self::size_cell($state['file']),
@@ -610,13 +587,13 @@ class SEOProStack_Plugin_Manager {
     }
 
     /**
-     * Button and status for a plugin from outside WordPress.org. Its buttons
-     * are plain links: core's install script only handles WordPress.org
-     * slugs, and these may need network activation.
+     * Button for a plugin from outside WordPress.org, which also shows its
+     * state. Its buttons are plain links: core's install script only handles
+     * WordPress.org slugs, and these may need network activation.
      *
      * @param string $slug Slug.
      * @param array  $data Card data (see external_plugins()).
-     * @return array{name:string,button:string,label:string,php:string,php_bad:bool}
+     * @return array{name:string,button:string,php:string,php_bad:bool}
      */
     private static function external_state($slug, array $data) {
         $name    = isset($data['name']) ? wp_strip_all_tags((string) $data['name']) : $slug;
@@ -626,14 +603,6 @@ class SEOProStack_Plugin_Manager {
 
         $active  = $file && ($network ? is_plugin_active_for_network($file) : SEOProStack_Plugin_Loader::is_active($file));
         $php_bad = !$active && $php && !is_php_version_compatible($php);
-        if ($active) {
-            $label = _x('Active', 'plugin', 'seoprostack');
-        } elseif ($php_bad) {
-            /* translators: %s: PHP version the plugin needs */
-            $label = sprintf(__('Needs PHP %s or later', 'seoprostack'), $php);
-        } else {
-            $label = $file ? _x('Inactive', 'plugin', 'seoprostack') : __('Not installed', 'seoprostack');
-        }
         if ($active) {
             $button = '<button type="button" class="button button-disabled" disabled="disabled">' . esc_html_x('Active', 'plugin', 'seoprostack') . '</button>';
         } elseif ($php_bad) {
@@ -663,7 +632,6 @@ class SEOProStack_Plugin_Manager {
         return array(
             'name'    => $name,
             'button'  => $button,
-            'label'   => $label,
             'php'     => $php,
             'php_bad' => $php_bad,
         );
@@ -874,7 +842,6 @@ class SEOProStack_Plugin_Manager {
                 </div>
             </td>
             <td class="sps-plugin-row__size"><?php echo self::size_cell(isset($data['file']) && isset($installed[$data['file']]) ? (string) $data['file'] : ''); // phpcs:ignore WordPress.Security.EscapeOutput -- escaped in method. ?></td>
-            <td class="sps-plugin-row__status"><?php echo esc_html($state['label']); ?></td>
             <td class="sps-plugin-row__actions">
                 <ul class="plugin-action-buttons">
                     <?php if ($state['button']) : ?>
@@ -882,6 +849,7 @@ class SEOProStack_Plugin_Manager {
                     <?php endif; ?>
                 </ul>
             </td>
+            <td class="sps-plugin-row__pro"></td>
         </tr>
         <?php
     }
@@ -945,18 +913,13 @@ class SEOProStack_Plugin_Manager {
                     </div>
                 </td>
                 <td class="sps-plugin-row__size" data-sps-plugin-size><?php echo self::size_cell($state['file']); // phpcs:ignore WordPress.Security.EscapeOutput -- escaped in method. ?></td>
-                <td class="sps-plugin-row__status">
-                    <span data-sps-plugin-status><?php echo esc_html(self::status_label($state)); ?></span>
-                    <span class="sps-plugin-message" data-sps-plugin-message role="alert" hidden></span>
-                </td>
                 <td class="sps-plugin-row__actions">
                     <ul class="plugin-action-buttons">
                         <?php echo self::state_buttons($plugin, $state, $name); // phpcs:ignore WordPress.Security.EscapeOutput -- escaped in method. ?>
-                        <?php if ($pro_url) : ?>
-                            <li><?php echo self::pro_link($pro_url, $name); // phpcs:ignore WordPress.Security.EscapeOutput -- escaped in method. ?></li>
-                        <?php endif; ?>
                     </ul>
+                    <span class="sps-plugin-message" data-sps-plugin-message role="alert" hidden></span>
                 </td>
+                <td class="sps-plugin-row__pro"><?php echo $pro_url ? self::pro_link($pro_url, $name) : ''; // phpcs:ignore WordPress.Security.EscapeOutput -- escaped in method. ?></td>
             </tr>
             <?php
         }

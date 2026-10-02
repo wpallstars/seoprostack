@@ -709,7 +709,6 @@
 			$items.addClass('is-busy');
 			$items.find('[data-sps-plugin-action]').prop('disabled', true);
 			$items.find('[data-sps-plugin-action="' + action + '"]').addClass('updating-message').text(texts[action]);
-			$items.find('[data-sps-plugin-status]').text(texts[action]);
 		},
 
 		apply: function (state) {
@@ -720,7 +719,6 @@
 			$items.attr({ 'data-status': state.status, 'data-file': state.file }).removeClass('is-busy');
 			$items.find('.plugin-action-buttons > li.sps-state').remove();
 			$items.find('.plugin-action-buttons').prepend(state.html);
-			$items.find('[data-sps-plugin-status]').text(state.label);
 			$items.find('[data-sps-plugin-check]').prop('disabled', !state.usable);
 			if (typeof state.size === 'string') {
 				$items.find('[data-sps-plugin-size]').html(state.size);

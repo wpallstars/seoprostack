@@ -118,8 +118,8 @@ class SEOProStack_Free_Plugins_Manager {
                         </td>
                         <th scope="col"><?php esc_html_e('Plugin', 'seoprostack'); ?></th>
                         <th scope="col" class="sps-plugin-table__size"><?php esc_html_e('Size', 'seoprostack'); ?></th>
-                        <th scope="col" class="sps-plugin-table__status"><?php esc_html_e('Status', 'seoprostack'); ?></th>
                         <th scope="col" class="sps-plugin-table__actions"><span class="screen-reader-text"><?php esc_html_e('Actions', 'seoprostack'); ?></span></th>
+                        <th scope="col" class="sps-plugin-table__pro"><span class="screen-reader-text"><?php esc_html_e('Pro version', 'seoprostack'); ?></span></th>
                     </tr>
                 </thead>
                 <?php foreach ($labels as $slug => $label) : ?>
