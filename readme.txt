@@ -129,7 +129,7 @@ Copies from WordPress.org update from there. New versions come out on GitHub fir
 * Change: Apply preset names each setting in plain words.
 * Fix: plugins that add list columns load on those lists; WP Sheet Editor is no longer blank.
 * Fix: Licence checks “Ask me again” keeps each plugin hidden.
-* Fix: TranslatePress lines up with the other items in the More menu.
+* Fix: TranslatePress lines up in the More menu.
 * New: remove unneeded list columns; Author and Date last.
 * New: the admin menu widens to fit its names; FluentSMTP shows its logo.
 
