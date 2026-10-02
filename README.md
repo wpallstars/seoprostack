@@ -35,6 +35,10 @@ Every feature is off by default except four: Hide admin bar items, which hides C
 | Staged new versions, Shareable preview links | Content | Post Draft Preview, Public Post Preview |
 | Sticky posts for any post type | Content | Sticky Posts Switch |
 | Select all across pages | Content | Bulk Actions Select All |
+| Menu item visibility | Content | Nav Menu Roles |
+| Change post type | Content | Post Type Switcher |
+| Order by hand | Content | Simple Custom Post Order |
+| Term tools | Content | Term Management Tools |
 | Website screenshots | Content | Browser Shots |
 | Spectra block replacements | Content | Spectra |
 | Paste into the Media Library | Media | The Paste |
@@ -274,6 +278,39 @@ Adds a star column to the lists of the post types you choose, and a **Stick to t
 ### Select all across pages (Content)
 
 Tick the “select all” box in a post list with more than one page and a bar offers **Select all N items**: every item matching the current filters, search and status. Bulk actions (Move to Bin, Restore, Delete Permanently, Edit and plugin actions) then apply to all of them, still checked against each item’s permissions. Unticking any row clears the choice.
+
+### Menu item visibility (Content)
+
+Each item in Appearance › Menus gets a **Who sees this** choice: everyone, logged-in people, logged-out visitors, chosen roles, or everyone except chosen roles. Hidden items, and the items below them, are left out of menus on the site. On multisite, only members of the site (and super admins) count as logged in. Kadence and other classic themes build their header and footer menus from these items; Kadence’s navigation block has its own visibility settings.
+
+- Hides menu links only. It does not protect the pages they lead to.
+- Replaces Nav Menu Roles: its rules are read as they are until an item is saved here, and are never changed. The feature switches itself on when a site has Nav Menu Roles rules.
+
+### Change post type (Content)
+
+Turns a post into a page, a product or another post type, and back, keeping its ID, content, fields and slug. Choose **Post type** in the block editor’s summary panel (unsaved changes are saved first), the classic editor’s Publish box, Quick Edit or Bulk Edit (No change by default). It offers public post types with an admin screen that the person can edit and publish.
+
+Replaces Post Type Switcher, which has no settings; the feature switches itself on while it is active.
+
+### Order by hand (Content)
+
+Drag rows by their handle, or focus the handle and use the arrow keys, in the lists of the post types and categories or tags you choose. Lists of those types, and queries on the site that set no order of their own, follow the order; searches keep their relevance order.
+
+- Posts keep their place in core’s `menu_order` (the Order field pages already have); terms in term meta, so no core table changes.
+- Moving rows only swaps them among the places they already hold, so ordering one page of a long list, or a filtered list, leaves the rest where it was. Handles are hidden while a list is sorted by a column or searched.
+- Only people who can edit others’ posts of that type (or manage the terms) can reorder.
+- WooCommerce sorts its own product categories and attributes, so they are not offered.
+- Replaces Simple Custom Post Order: its post types and taxonomies are imported, and so is its term order (read from the `term_order` column it adds, which is left alone).
+
+### Term tools (Content)
+
+Three bulk actions on category, tag and other term lists:
+
+- **Merge into**: the chosen terms become one (an existing term by name, or a new one). Their posts and child terms move to it.
+- **Move to taxonomy**: the terms, and the terms below them, become terms of another taxonomy with their posts, fields and IDs. A term whose slug the other taxonomy already uses stays where it is; merge them first.
+- **Set parent** (hierarchical taxonomies). A term cannot go below itself or its own children.
+
+Old archive addresses of merged and moved terms redirect with a 301 to the term that took over, when they would otherwise be a 404. Replaces Term Management Tools, which has no settings; the feature switches itself on while it is active.
 
 ### Simpler block editor (Content)
 
@@ -781,6 +818,8 @@ Developers can add settings, tabs and directory entries with filters:
 - `seoprostack_starters`: add or change starter data (plugin folder => `name`, `tested`, `updated`, `notes` and `items`, as in `starters/*.json`).
 - `seoprostack_woo_light_shop_page`: whether a page keeps WooCommerce’s scripts with Lighter WooCommerce pages on (bool), for products the content check does not see.
 - `seoprostack_replaced_plugin_extras`: what a replaced plugin does on this site that SEO Pro Stack does not (plain names, plugin folder). The Plugins screen names them instead of saying the plugin can go.
+- `seoprostack_menu_item_visible`: whether the current visitor sees a menu item (bool, menu item, its rule: `show` and `roles`), for membership plugins with their own levels.
+- `seoprostack_switchable_post_types`: post types Change post type offers (name => label).
 
 Actions:
 
@@ -795,12 +834,16 @@ Actions:
 - `seoprostack_media_replaced`: a Media Library item’s file was replaced (attachment ID, old path, new path, IDs of posts whose links changed). Use it to purge caches.
 - `seoprostack_screenshot_saved`: a screenshot was saved to the Media Library (attachment ID, page URL, post ID or 0).
 - `seoprostack_screenshot_failed`: a screenshot could not be taken (page URL, `WP_Error`).
+- `seoprostack_post_type_switched`: a post’s type changed (post ID, new type, old type).
+- `seoprostack_hand_ordered`: items were reordered by hand (`post` or `term`, post type or taxonomy, IDs whose place changed). Use it to purge caches.
+- `seoprostack_term_merged`: a term was merged into another (`WP_Term` that took over, the deleted `WP_Term`).
+- `seoprostack_terms_moved`: terms moved to another taxonomy (term IDs, new taxonomy, old taxonomy).
 
 Read a setting with `SEOProStack_Settings::get( 'key' )`.
 
 ## Uninstall
 
-Deleting the plugin removes its settings and cached data, the profile pictures and generated avatars in `uploads/seoprostack-avatars/`, the WebP and AVIF copies of pictures, including copies left by pictures deleted while the plugin was inactive, and short links with their categories and click counts (Pretty Links’ own links are left alone), and the must-use file of Load plugins only where needed, the cached GitHub releases, and who hid lines of the Plugins screen notice about replaced plugins (and, from older versions, who dismissed the Git Updater notice). Imported media and screenshots stay in the Media Library because your posts use them. Watermarked pictures stay marked, and their unmarked originals stay in the `uploads/seoprostack-originals-…` folder so they are not lost; delete that folder if you do not need them.
+Deleting the plugin removes its settings and cached data, the profile pictures and generated avatars in `uploads/seoprostack-avatars/`, the WebP and AVIF copies of pictures, including copies left by pictures deleted while the plugin was inactive, and short links with their categories and click counts (Pretty Links’ own links are left alone), and the must-use file of Load plugins only where needed, the cached GitHub releases, and who hid lines of the Plugins screen notice about replaced plugins (and, from older versions, who dismissed the Git Updater notice), menu item visibility rules (Nav Menu Roles’ own rules stay), the hand order of terms and the old term addresses kept for redirects. Posts keep their hand order in core’s Order field. Imported media and screenshots stay in the Media Library because your posts use them. Watermarked pictures stay marked, and their unmarked originals stay in the `uploads/seoprostack-originals-…` folder so they are not lost; delete that folder if you do not need them.
 
 Deactivating the plugin removes the WebP and AVIF rules from the uploads folder’s `.htaccess` (for every site when network-deactivated) and the must-use file of Load plugins only where needed (on multisite, when network-deactivated).
 
@@ -809,6 +852,7 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folder�
 ### Unreleased
 
 - New, on by default: Fixes for other plugins (Plugins tab) works around other plugins’ bugs through their own hooks, storing nothing. First fix: Lasso Lite (Simple URLs) 159 saved lasso.link’s whole reply as its site ID and rejected it, so it asked lasso.link again on every admin request by an administrator (about 200–400 ms each). It now reads the ID inside the saved reply, sends its install report once and stops asking.
+- New, off by default (Content tab): **Menu item visibility** (replaces Nav Menu Roles, whose rules it reads in place), **Change post type** (replaces Post Type Switcher), **Order by hand** (replaces Simple Custom Post Order, importing its post types, taxonomies and term order) and **Term tools**: merge, move to another taxonomy and set parent, with 301 redirects from old term addresses (replaces Term Management Tools). Each switches itself on where the plugin it replaces is active or, for Nav Menu Roles, has rules; Free Plugins no longer lists those plugins. Settings version 8.
 - Changed: block editors open faster. With Simpler block editor on, the site details every editor asks for are built without describing every REST route first (8 ms instead of 60 on a test site with 1,953 routes); the answer is the same. Load plugins only where needed checks each menu capability once when it puts back skipped plugins’ menu entries, instead of once per entry (975 checks on a test site’s editor screen).
 - New: a **Report a problem** button at the top right of Settings → SEO Pro Stack opens the plugin’s GitHub issues in a new tab.
 - Changed: Load plugins only where needed learns the Customizer, Import and Export forms. Widgets and widget-area owners, menu contributors, importers and exportable content owners stay loaded where needed. Saving, previews, theme previews, existing changesets, imports and export downloads keep every plugin. Missing Customizer registrations reload before the form opens; switching themes learns it again. Site Health stays fully loaded so its diagnostics describe the real site. Map version 6 learns every screen again once.
@@ -997,6 +1041,10 @@ Where a feature replaces one of them, SEO Pro Stack imports the settings it can,
 | Public Post Preview | Dominik Schilling | [WordPress.org](https://wordpress.org/plugins/public-post-preview/), [GitHub](https://github.com/ocean90/public-post-preview) | Shareable preview links |
 | Sticky Posts – Switch | Markus Wiesenhofer | [WordPress.org](https://wordpress.org/plugins/sticky-posts-switch/) | Sticky posts for any post type |
 | Bulk Actions Select All | Jesper van Engelen | [WordPress.org](https://wordpress.org/plugins/bulk-actions-select-all/), [GitHub](https://github.com/engelen/bulk-actions-select-all) | Select all across pages |
+| Nav Menu Roles | HelgaTheViking | [WordPress.org](https://wordpress.org/plugins/nav-menu-roles/), [GitHub](https://github.com/helgatheviking/Nav-Menu-Roles) | Menu item visibility |
+| Post Type Switcher | John James Jacoby | [WordPress.org](https://wordpress.org/plugins/post-type-switcher/), [GitHub](https://github.com/JJJ/post-type-switcher) | Change post type |
+| Simple Custom Post Order | Colorlib | [WordPress.org](https://wordpress.org/plugins/simple-custom-post-order/), [GitHub](https://github.com/ColorlibHQ/simple-custom-post-order) | Order by hand |
+| Term Management Tools | scribu, theMikeD | [WordPress.org](https://wordpress.org/plugins/term-management-tools/), [GitHub](https://github.com/theMikeD/wp-term-management-tools) | Term tools |
 | Browser Shots | Kevin Leary, Ben Gillbanks | [WordPress.org](https://wordpress.org/plugins/browser-shots/), [GitHub](https://github.com/BinaryMoon/browser-shots) | Website screenshots |
 | Spectra | Brainstorm Force | [WordPress.org](https://wordpress.org/plugins/ultimate-addons-for-gutenberg/), [GitHub](https://github.com/brainstormforce/wp-spectra) | Spectra block replacements |
 | The Paste | Jörn Lund | [WordPress.org](https://wordpress.org/plugins/the-paste/), [GitHub](https://github.com/mcguffin/the-paste) | Paste into the Media Library |
