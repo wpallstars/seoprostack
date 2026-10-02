@@ -261,7 +261,7 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
             add_action('admin_bar_menu', array(__CLASS__, 'admin_bar_full'), 99);
             add_action('admin_bar_init', array(__CLASS__, 'admin_bar_style'));
             add_action('admin_bar_init', array(__CLASS__, 'admin_bar_script'));
-            if (current_user_can('manage_options')) {
+            if (current_user_can('activate_plugins')) {
                 add_action('admin_menu', array(__CLASS__, 'capture_menu'), PHP_INT_MAX);
                 add_action('adminmenu', array(__CLASS__, 'prune_menu'));
                 add_action('admin_footer', array(__CLASS__, 'learn'), PHP_INT_MAX);
@@ -337,10 +337,13 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
         $history = (array) get_option(SEOProStack_Plugin_Loader::HISTORY, array());
         $map = (array) get_option(SEOProStack_Plugin_Loader::MAP, array());
         $entry = (array) ($history[$url] ?? array());
+        $learned = SEOProStack_Plugin_Loader::MAP_VERSION === ($map['version'] ?? 0)
+            && SEOProStack_Plugin_Loader::fingerprint($state['active']) === ($map['active'] ?? '')
+            && isset($map['screens'][$state['screen']]);
         $history[$url] = array(
             'screen' => $state['screen'],
             'hits' => min(1000000, (int) ($entry['hits'] ?? 0) + 1),
-            'generation' => $map['generation'] ?? '',
+            'generation' => $learned ? ($map['generation'] ?? '') : '',
         );
         uasort($history, function ($a, $b) {
             return (int) ($b['hits'] ?? 0) <=> (int) ($a['hits'] ?? 0);
@@ -1178,7 +1181,7 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
         if (0 === strpos((string) $name, '_transient_') || 0 === strpos((string) $name, '_site_transient_')
             || in_array($name, array('cron', SEOProStack_Plugin_Loader::FRONT, SEOProStack_Plugin_Loader::FRONT_LOCK,
                 SEOProStack_Plugin_Loader::FRONT_REVISION, SEOProStack_Plugin_Loader::FRONT_FAILED,
-                SEOProStack_Plugin_Loader::MAP, SEOProStack_Plugin_Loader::MENU), true)) {
+                SEOProStack_Plugin_Loader::MAP, SEOProStack_Plugin_Loader::MENU, SEOProStack_Plugin_Loader::HISTORY), true)) {
             return;
         }
         self::forget_front();
