@@ -25,6 +25,9 @@
  *   (tag, field, value), added only with FluentCRM active. Matched by title.
  * - fluentboards_boards: title, type, description, stages (title, closed).
  *   Matched by title among boards that are not archived.
+ * - fluentbooking_events: title, description, duration, crm_list (a list slug).
+ *   Matched by title in the adding user's host calendar. Creates that calendar
+ *   only if missing; Remove keeps events with bookings and shared calendars.
  *
  * Any item can have "when": a plugin folder that must be active, so shop
  * lists only appear on shops. A starter can include another plugin's items
@@ -51,7 +54,7 @@ final class SEOProStack_Starters {
     const ADDED = 'seoprostack_starters_added';
 
     /** Item types, in the order they are added. Removal runs in reverse. */
-    const TYPES = array('fluentcrm_lists', 'fluentcrm_tags', 'fluentcrm_contact_fields', 'fluentcrm_settings', 'fluentform_forms', 'fluentboards_boards');
+    const TYPES = array('fluentcrm_lists', 'fluentcrm_tags', 'fluentcrm_contact_fields', 'fluentcrm_settings', 'fluentform_forms', 'fluentboards_boards', 'fluentbooking_events');
 
     /**
      * Loaded starters.
@@ -159,6 +162,9 @@ final class SEOProStack_Starters {
         }
         if (0 === strpos($type, 'fluentform_')) {
             return class_exists('FluentForm\App\Services\Form\FormService') && class_exists('FluentForm\App\Models\Form');
+        }
+        if ('fluentbooking_events' === $type) {
+            return class_exists('FluentBooking\App\Http\Controllers\CalendarController') && class_exists('FluentBooking\App\Models\Booking');
         }
         return false;
     }
@@ -308,17 +314,34 @@ final class SEOProStack_Starters {
             foreach (self::items($slug) as $type => $items) {
                 foreach ($items as $item) {
                     if (self::exists($type, $item)) {
+                        if ('fluentbooking_events' === $type && !empty($records[$type])) {
+                            foreach ($records[$type] as $key => $owned) {
+                                if (empty($owned['pending_crm'])) {
+                                    continue;
+                                }
+                                $event = \FluentBooking\App\Models\CalendarSlot::find((int) $owned['id']);
+                                if ($event && (int) $event->user_id === self::booking_user()
+                                    && (int) $event->calendar_id === (int) $owned['calendar_id']
+                                    && (string) $event->title === (string) $item['title']
+                                    && self::booking_feed($event, $item)) {
+                                    unset($records[$type][$key]['pending_crm']);
+                                    self::save_added($slug, $records);
+                                }
+                            }
+                        }
                         continue;
                     }
-                    $record = self::create($type, $item);
+                    $record = self::create($type, $item, $slug);
                     if (null !== $record) {
                         $records[$type][] = $record;
+                        self::save_added($slug, $records);
                         ++$count;
                     }
                 }
             }
         } catch (Throwable $e) {
-            self::save_added($slug, $records);
+            // Each addition is saved immediately, including a Booking event
+            // whose later integration save failed. Do not overwrite that record.
             return new WP_Error('seoprostack_starter_failed', $e->getMessage());
         }
         self::save_added($slug, $records);
@@ -412,11 +435,9 @@ final class SEOProStack_Starters {
      * @return array<int,true>
      */
     private static function feed_ids() {
-        if (!class_exists('FluentForm\App\Models\FormMeta')) {
-            return array();
-        }
         $out = array();
-        foreach (\FluentForm\App\Models\FormMeta::where('meta_key', 'fluentcrm_feeds')->pluck('value') as $value) {
+        $values = class_exists('FluentForm\App\Models\FormMeta') ? \FluentForm\App\Models\FormMeta::where('meta_key', 'fluentcrm_feeds')->pluck('value') : array();
+        foreach ($values as $value) {
             $feed = json_decode((string) $value, true);
             if (is_array($feed)) {
                 $out += self::numbers(array(
@@ -425,6 +446,13 @@ final class SEOProStack_Starters {
                     isset($feed['tag_routers']) ? array_column((array) $feed['tag_routers'], 'input_value') : null,
                     isset($feed['remove_tags']) ? $feed['remove_tags'] : null,
                 ));
+            }
+        }
+        if (class_exists('FluentBooking\App\Models\Meta')) {
+            foreach (\FluentBooking\App\Models\Meta::where('object_type', 'integration')->where('key', 'fluentcrm_feeds')->pluck('value') as $feed) {
+                if (is_array($feed)) {
+                    $out += self::numbers(isset($feed['list_ids']) ? $feed['list_ids'] : array());
+                }
             }
         }
         return $out;
@@ -473,6 +501,8 @@ final class SEOProStack_Starters {
                 return sprintf(/* translators: %s: form name */ __('Form: %s', 'seoprostack'), (string) $item['title']);
             case 'fluentboards_boards':
                 return sprintf(/* translators: %s: board name */ __('Board: %s', 'seoprostack'), (string) $item['title']);
+            case 'fluentbooking_events':
+                return sprintf(/* translators: %s: event name */ __('Booking event: %s', 'seoprostack'), (string) $item['title']);
         }
         return $type;
     }
@@ -504,6 +534,9 @@ final class SEOProStack_Starters {
                 return null !== \FluentForm\App\Models\Form::where('title', (string) $item['title'])->first();
             case 'fluentboards_boards':
                 return null !== \FluentBoards\App\Models\Board::where('title', (string) $item['title'])->whereNull('archived_at')->first();
+            case 'fluentbooking_events':
+                $calendar = \FluentBooking\App\Models\Calendar::where('user_id', self::booking_user())->where('type', 'simple')->first();
+                return $calendar && $calendar->events()->where('title', (string) $item['title'])->exists();
         }
         return true;
     }
@@ -515,7 +548,7 @@ final class SEOProStack_Starters {
      * @param array  $item Item.
      * @return array|null What to record for removal, or null if nothing was made.
      */
-    private static function create($type, array $item) {
+    private static function create($type, array $item, $slug) {
         switch ($type) {
             case 'fluentcrm_lists':
                 $list = \FluentCrm\App\Models\Lists::create(array(
@@ -556,8 +589,127 @@ final class SEOProStack_Starters {
 
             case 'fluentboards_boards':
                 return self::create_board($item);
+            case 'fluentbooking_events':
+                return self::create_booking_event($item, $slug);
         }
         return null;
+    }
+
+    /**
+     * Host for Booking: the adding user, or the first administrator for WP-CLI.
+     *
+     * @return int
+     */
+    private static function booking_user() {
+        $id = get_current_user_id();
+        if (!$id) {
+            $admins = get_users(array('role' => 'administrator', 'number' => 1, 'orderby' => 'ID', 'fields' => 'ID'));
+            $id = $admins ? (int) $admins[0] : 0;
+        }
+        return $id;
+    }
+
+    /**
+     * Create through Booking's admin handlers, including its default schedule.
+     * Existing host calendars and events are never renamed or reconfigured.
+     *
+     * @param array  $item Event item.
+     * @param string $slug Starter folder, for preserving a partial addition.
+     * @return array
+     */
+    private static function create_booking_event(array $item, $slug) {
+        $user = get_user_by('ID', self::booking_user());
+        if (!$user) {
+            throw new RuntimeException(esc_html__('No administrator is available to host the event.', 'seoprostack'));
+        }
+        $original_user = get_current_user_id();
+        $record = null;
+        try {
+            wp_set_current_user($user->ID);
+            $calendar = \FluentBooking\App\Models\Calendar::where('user_id', $user->ID)->where('type', 'simple')->first();
+            $created_calendar = !$calendar;
+            $app = \FluentBooking\Framework\Foundation\App::getInstance();
+            $controller = new \FluentBooking\App\Http\Controllers\CalendarController($app);
+            $weekly = \FluentBooking\App\Services\Helper::getWeeklyScheduleSchema();
+            $slot = array(
+                'title' => sanitize_text_field((string) $item['title']),
+                'description' => isset($item['description']) ? wp_kses_post((string) $item['description']) : '',
+                'duration' => isset($item['duration']) ? max(5, (int) $item['duration']) : 30,
+                'status' => 'active',
+                'event_type' => 'single',
+                'availability_type' => 'existing_schedule',
+                'schedule_type' => 'weekly_schedules',
+                'weekly_schedules' => $weekly,
+                'location_heading' => '',
+                'location_type' => '',
+                'location_settings' => array(),
+                'settings' => array('schedule_type' => 'weekly_schedules', 'weekly_schedules' => $weekly, 'range_type' => 'range_days'),
+            );
+            if ($created_calendar) {
+                $request = new \FluentBooking\Framework\Http\Request\Request($app, array(), array('calendar' => array(
+                    'user_id' => $user->ID, 'type' => 'simple', 'author_timezone' => wp_timezone_string(), 'slot' => $slot,
+                )));
+                $result = $controller->createCalendar($request);
+                $calendar = $result['calendar'];
+            } else {
+                // Ensure a schedule exists before the event handler looks it up.
+                \FluentBooking\App\Services\AvailabilityService::maybeCreateAvailability($calendar, $weekly);
+                $request = new \FluentBooking\Framework\Http\Request\Request($app, array(), $slot);
+                $result = $controller->createCalendarEvent($request, $calendar->id);
+            }
+            $event = $result['slot'];
+            $record = array('id' => (int) $event->id, 'calendar_id' => (int) $calendar->id, 'created_calendar' => $created_calendar, 'name' => (string) $item['title']);
+            if (!empty($item['crm_list']) && self::type_ready('fluentcrm_lists')) {
+                $record['pending_crm'] = true;
+            }
+            if ($created_calendar) {
+                $calendar->title = $user->display_name;
+                $calendar->save();
+                \FluentBooking\App\Services\LandingPage\LandingPageHelper::updateSettings($calendar, array(
+                    'enabled' => 'yes', 'show_type' => 'selected', 'enabled_slots' => array((int) $event->id),
+                ));
+            }
+            if (!empty($record['pending_crm']) && self::booking_feed($event, $item)) {
+                unset($record['pending_crm']);
+            }
+            return $record;
+        } catch (Throwable $e) {
+            if ($record) {
+                $records = self::added($slug);
+                $records['fluentbooking_events'][] = $record;
+                self::save_added($slug, $records);
+            }
+            throw $e;
+        } finally {
+            wp_set_current_user($original_user);
+        }
+    }
+
+    /**
+     * Finish a starter-owned event's CRM feed, without replacing an owner's feed.
+     * A failed save can be retried by Add; pre-existing events never reach here.
+     *
+     * @param object $event Booking event.
+     * @param array  $item  Starter item.
+     * @return bool Whether setup is complete.
+     */
+    private static function booking_feed($event, array $item) {
+        if (empty($item['crm_list']) || !self::type_ready('fluentcrm_lists')) {
+            return false;
+        }
+        if (\FluentBooking\App\Models\Meta::where('object_type', 'integration')->where('object_id', $event->id)->where('key', 'fluentcrm_feeds')->exists()) {
+            return true;
+        }
+        $list = \FluentCrm\App\Models\Lists::where('slug', (string) $item['crm_list'])->first();
+        if (!$list) {
+            throw new RuntimeException(esc_html__('The booking contact list is missing.', 'seoprostack'));
+        }
+        $feed = apply_filters('fluent_booking/get_integration_defaults_fluentcrm', array(), $event->id); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- Booking's integration defaults.
+        $feed['name'] = __('Website Booking Form', 'seoprostack');
+        $feed['list_ids'] = array((string) $list->id);
+        $feed['event_trigger'] = array('after_booking_scheduled');
+        (new \FluentBooking\App\Services\Integrations\CalendarIntegrationService())->update(array('slot_id' => $event->id, 'integration_name' => 'fluentcrm', 'integration' => $feed));
+        return true;
     }
 
     /**
@@ -842,6 +994,34 @@ final class SEOProStack_Starters {
     private static function delete($type, array $record) {
         $name = isset($record['name']) ? (string) $record['name'] : '';
         switch ($type) {
+            case 'fluentbooking_events':
+                $event = \FluentBooking\App\Models\CalendarSlot::find((int) $record['id']);
+                $calendar = \FluentBooking\App\Models\Calendar::find((int) $record['calendar_id']);
+                if (\FluentBooking\App\Models\Booking::where('event_id', (int) $record['id'])->exists()) {
+                    return $name;
+                }
+                $controller = new \FluentBooking\App\Http\Controllers\CalendarController();
+                $app = \FluentBooking\Framework\Foundation\App::getInstance();
+                $request = new \FluentBooking\Framework\Http\Request\Request($app, array(), array());
+                if ($event && (!$calendar || (int) $event->calendar_id !== (int) $calendar->id)) {
+                    return $name;
+                }
+                if ($event) {
+                    $controller->deleteCalendarEvent($request, $calendar->id, $event->id);
+                    // Booking's cleaner does not delete integration feeds.
+                    \FluentBooking\App\Models\Meta::where('object_type', 'integration')->where('object_id', (int) $record['id'])->delete();
+                }
+                if ($calendar && !empty($record['created_calendar'])) {
+                    // Keep the calendar if the owner added events, bookings or team use.
+                    if ($calendar->events()->exists() || $calendar->bookings()->exists()
+                        || \FluentBooking\App\Models\CalendarSlot::where('user_id', $calendar->user_id)->where('calendar_id', '!=', $calendar->id)->exists()
+                        || \FluentBooking\App\Models\CalendarSlot::whereIn('event_type', array('collective', 'round_robin'))->exists()) {
+                        return $name;
+                    }
+                    $controller->deleteCalendar($request, $calendar->id);
+                }
+                return $event || $calendar ? true : false;
+
             case 'fluentcrm_lists':
             case 'fluentcrm_tags':
                 $class = 'fluentcrm_lists' === $type ? '\FluentCrm\App\Models\Lists' : '\FluentCrm\App\Models\Tag';
