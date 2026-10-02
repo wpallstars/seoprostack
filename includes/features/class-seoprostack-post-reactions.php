@@ -44,6 +44,9 @@ class SEOProStack_Post_Reactions extends SEOProStack_Feature {
     /** Script and style handle. */
     const HANDLE = 'seoprostack-post-reactions';
 
+    /** Setting: Kadence palette colour for the buttons ('' = text colour). */
+    const COLOUR = 'post_reactions_colour';
+
     /** Most posts kept in one saved list. */
     const MAX_SAVED = 500;
 
@@ -73,7 +76,96 @@ class SEOProStack_Post_Reactions extends SEOProStack_Feature {
                 'label'   => __('Add the buttons after the content of', 'seoprostack'),
                 'options' => array('SEOProStack_Duplicate_Posts', 'post_type_options'),
             ),
+            self::COLOUR => array(
+                'type'        => 'select',
+                'default'     => '',
+                'parent'      => self::KEY,
+                'label'       => __('Button colour', 'seoprostack'),
+                'description' => __('A colour from the Kadence theme’s palette, so it follows its dark mode. Also in Customize → Colors & Fonts → Colors. Other themes use the text colour.', 'seoprostack'),
+                'options'     => array(__CLASS__, 'colour_options'),
+            ),
         );
+    }
+
+    /**
+     * Button colours: the text colour, or a Kadence global palette colour
+     * (main colours 1 to 9, Notices 11 to 15), named as Kadence names them.
+     *
+     * @return array<string,string>
+     */
+    public static function colour_options() {
+        return array(
+            ''          => __('Text colour', 'seoprostack'),
+            'palette1'  => __('1 - Accent', 'seoprostack'),
+            'palette2'  => __('2 - Accent - alt', 'seoprostack'),
+            'palette3'  => __('3 - Strongest text', 'seoprostack'),
+            'palette4'  => __('4 - Strong text', 'seoprostack'),
+            'palette5'  => __('5 - Medium text', 'seoprostack'),
+            'palette6'  => __('6 - Subtle text', 'seoprostack'),
+            'palette7'  => __('7 - Subtle background', 'seoprostack'),
+            'palette8'  => __('8 - Lighter background', 'seoprostack'),
+            'palette9'  => __('9 - White or offwhite', 'seoprostack'),
+            'palette11' => __('11 - Notices - Success', 'seoprostack'),
+            'palette12' => __('12 - Notices - Info', 'seoprostack'),
+            'palette13' => __('13 - Notices - Alert', 'seoprostack'),
+            'palette14' => __('14 - Notices - Warning', 'seoprostack'),
+            'palette15' => __('15 - Notices - Rating', 'seoprostack'),
+        );
+    }
+
+    /**
+     * CSS for the chosen colour. The variable is set on the blocks, not
+     * :root, because Kadence switches palettes on <body>; a theme without
+     * the palette falls back to the text colour.
+     *
+     * @return string
+     */
+    private static function colour_css() {
+        $colour = (string) SEOProStack_Settings::get(self::COLOUR);
+        if ('' === $colour || !array_key_exists($colour, self::colour_options())) {
+            return '';
+        }
+        return '.sps-reactions,.sps-saved{--sps-reactions-colour:var(--global-' . $colour . ',currentColor)}';
+    }
+
+    /**
+     * The same Button colour setting in the Customizer, beside Kadence's own
+     * colours (Colors & Fonts → Colors), with a live preview.
+     *
+     * @param WP_Customize_Manager $wp_customize Customizer.
+     */
+    public static function customize_register($wp_customize) {
+        $section = $wp_customize->get_section('kadence_customizer_general_colors');
+        if (!$section) {
+            return;
+        }
+        $id = SEOProStack_Settings::OPTION . '[' . self::COLOUR . ']';
+        $wp_customize->add_setting($id, array(
+            'type'              => 'option',
+            'capability'        => 'manage_options',
+            'default'           => '',
+            'transport'         => 'refresh',
+            'sanitize_callback' => array(__CLASS__, 'sanitize_colour'),
+        ));
+        $wp_customize->add_control($id, array(
+            'type'        => 'select',
+            'section'     => $section->id,
+            'priority'    => 1000,
+            'label'       => __('Like, save and share buttons', 'seoprostack'),
+            'description' => __('From the palette above, so the buttons follow dark mode.', 'seoprostack'),
+            'choices'     => self::colour_options(),
+        ));
+    }
+
+    /**
+     * Keep only a known colour.
+     *
+     * @param mixed $value Value.
+     * @return string
+     */
+    public static function sanitize_colour($value) {
+        $value = is_scalar($value) ? (string) $value : '';
+        return array_key_exists($value, self::colour_options()) ? $value : '';
     }
 
     /**
@@ -120,6 +212,8 @@ class SEOProStack_Post_Reactions extends SEOProStack_Feature {
         add_filter('the_content', array(__CLASS__, 'after_content'), 20);
         add_action('wp_ajax_' . self::AJAX, array(__CLASS__, 'ajax'));
         add_action('wp_ajax_nopriv_' . self::AJAX, array(__CLASS__, 'ajax'));
+        // After the theme adds its sections.
+        add_action('customize_register', array(__CLASS__, 'customize_register'), 20);
     }
 
     /**
@@ -129,6 +223,10 @@ class SEOProStack_Post_Reactions extends SEOProStack_Feature {
         wp_register_script(self::HANDLE, SEOPROSTACK_URL . 'assets/post-reactions.js', array(), SEOPROSTACK_VERSION, true);
         wp_add_inline_script(self::HANDLE, 'window.seoprostackReactions = ' . wp_json_encode(self::script_config()) . ';', 'before');
         wp_register_style(self::HANDLE, SEOPROSTACK_URL . 'assets/post-reactions.css', array(), SEOPROSTACK_VERSION);
+        $css = self::colour_css();
+        if ('' !== $css) {
+            wp_add_inline_style(self::HANDLE, $css);
+        }
         register_block_type(SEOPROSTACK_DIR . 'blocks/post-reactions', array('render_callback' => array(__CLASS__, 'render_block')));
         register_block_type(SEOPROSTACK_DIR . 'blocks/saved-posts', array('render_callback' => array(__CLASS__, 'render_saved_block')));
     }
