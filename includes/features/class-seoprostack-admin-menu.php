@@ -1859,8 +1859,11 @@ class SEOProStack_Admin_Menu extends SEOProStack_Feature {
     }
 
     /**
-     * Whether writers do not get a top-level entry: its page and every page
-     * in its submenu are hidden from them.
+     * Whether writers do not get a top-level entry: every page in its
+     * submenu is hidden from them, or, without a submenu, its own page.
+     * (With a submenu, core links the entry to the first page in it and
+     * prints an empty entry when there is none, whatever the entry's own
+     * capability, which is often one the writer lacks.)
      *
      * @param string $slug    Entry address.
      * @param array  $item    Menu entry.
@@ -1868,11 +1871,17 @@ class SEOProStack_Admin_Menu extends SEOProStack_Feature {
      * @return bool
      */
     private static function writer_hides_menu($slug, array $item, array $submenu) {
-        if (!self::writer_hides($slug, $item)) {
-            return false;
-        }
+        $children = array();
         foreach (isset($submenu[$slug]) ? (array) $submenu[$slug] : array() as $child) {
-            if (is_array($child) && isset($child[2]) && !self::writer_hides((string) $child[2], $child)) {
+            if (is_array($child) && isset($child[2])) {
+                $children[] = $child;
+            }
+        }
+        if (!$children) {
+            return self::writer_hides($slug, $item);
+        }
+        foreach ($children as $child) {
+            if (!self::writer_hides((string) $child[2], $child)) {
                 return false;
             }
         }
