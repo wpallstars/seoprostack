@@ -3,6 +3,7 @@
 Every change to SEO Pro Stack. readme.txt lists the latest version in short.
 
 = Unreleased =
+* New, off by default: Menu item visibility shows a menu item only to logged-in people, logged-out visitors or chosen roles (replaces Nav Menu Roles and reads its rules). Change post type turns a post into a page or another type from the editor, Quick Edit or Bulk Edit (replaces Post Type Switcher). Order by hand lets you drag posts, pages and categories into order (replaces Simple Custom Post Order and imports its order). Term tools merges terms, moves them to another taxonomy or sets their parent, and redirects their old addresses (replaces Term Management Tools).
 * New: Report a problem, at the top right of Settings → SEO Pro Stack, opens the plugin’s GitHub issues so you can tell us what went wrong.
 * Change: Load plugins only where needed learns the Customizer, Import and Export forms; their contributors stay loaded. Saving, previews, imports and downloads still load every plugin. Missing Customizer widgets, areas or menu locations reload before the form opens. Site Health stays fully loaded for accurate diagnostics.
 * Change: Faster editor with Kadence Blocks keeps Kadence’s design library in your browser until Kadence updates it, and draws only the patterns on screen, so in a new editor page the library opens in about 2 seconds instead of 6. Sync still fetches new designs; licence and account data are never kept.
