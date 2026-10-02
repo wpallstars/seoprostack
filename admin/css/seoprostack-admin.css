@@ -1073,7 +1073,7 @@
 }
 
 .sps-plugin-table__size {
-	width: 11em;
+	width: 16em;
 }
 
 /* The cell stays a table cell so it fills the row; the icon sits in the middle of the name and description. */
@@ -1098,6 +1098,11 @@
 	gap: 0 8px;
 	margin-top: 2px;
 	font-size: 12px;
+	line-height: 1.5;
+}
+
+.sps-plugin-row__size .sps-size__parts span {
+	white-space: nowrap;
 }
 
 .sps-plugin-row__icon {
