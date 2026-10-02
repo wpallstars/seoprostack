@@ -173,7 +173,7 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
                 'default'     => false,
                 'tab'         => 'plugins',
                 'label'       => __('Load plugins only where needed', 'seoprostack'),
-                'description' => __('Makes wp-admin faster on sites with many plugins. The plugins you tick load only on their own screens, on post, term and list screens where they add boxes, fields or blocks, and on the Dashboard when they show a box there. Elsewhere they do not load, so their notices do not show there (with Hide admin notices on, their notices still show behind the bell). To load fewer plugins on the Dashboard, hide their boxes with Tidy the dashboard or Hide dashboard widgets. The menu stays the same. Saving, background tasks, and the Plugins and settings screens always load every plugin. So does the site, unless you choose plugins to skip there.', 'seoprostack'),
+                'description' => __('Makes wp-admin faster on sites with many plugins. The plugins you tick load only on their own screens, on post, term and list screens where they add boxes, fields or blocks, and on the Dashboard when they show a box there. Elsewhere they do not load, so their notices do not show there (with Hide admin notices on, their notices still show behind the megaphone). To load fewer plugins on the Dashboard, hide their boxes with Tidy the dashboard or Hide dashboard widgets. The menu stays the same. Saving, background tasks, and the Plugins and settings screens always load every plugin. So does the site, unless you choose plugins to skip there.', 'seoprostack'),
             ),
             self::LIST_KEY => array(
                 'type'        => 'multi',
