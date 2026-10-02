@@ -11,7 +11,8 @@
  * Watermarked pictures stay marked, and the folder of unmarked originals
  * (uploads/seoprostack-originals-*) is kept.
  * Scheduled posts stay scheduled; WordPress publishes them as normal.
- * Sticky items stay in core's sticky list. Other plugins' settings that
+ * Sticky items stay in core's sticky list, and posts ordered by hand keep
+ * their menu_order. Other plugins' settings that
  * features imported from are never touched.
  *
  * @package SEOProStack
@@ -120,6 +121,14 @@ function seoprostack_uninstall_site() {
     foreach (array('_seoprostack_screenshot', '_seoprostack_screenshot_url', '_seoprostack_screenshot_taken') as $meta_key) {
         delete_post_meta_by_key($meta_key);
     }
+
+    // Menu item visibility rules: those items show to everyone again (or
+    // follow Nav Menu Roles' rules, if it is still installed).
+    delete_post_meta_by_key('_seoprostack_menu_visibility');
+    // Hand order of terms, and old term addresses kept for redirects. Posts
+    // keep their order in core's menu_order (the pages' Order field).
+    delete_metadata('term', 0, '_seoprostack_order', '', true);
+    delete_metadata('term', 0, '_seoprostack_old_term', '', true);
 
     // Shareable preview links stop working; staged versions and duplicates
     // become ordinary drafts and posts.

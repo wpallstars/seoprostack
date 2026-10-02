@@ -15,7 +15,8 @@ if (!defined('ABSPATH')) {
 // Plugin Toggle, Hide Admin Notices, The Paste, Avatar Privacy, Safe SVG,
 // Imsanity, Enable Media Replace, CompressX, Easy Watermark, Remove CPT base,
 // Pretty Links, Browser Shots, Spectra (ultimate-addons-for-gutenberg;
-// Kadence Blocks is listed for page building), Admin Menu Editor.
+// Kadence Blocks is listed for page building), Admin Menu Editor, Nav Menu
+// Roles, Post Type Switcher, Simple Custom Post Order, Term Management Tools.
 // String Locator is not listed: searching code is better done in an editor
 // or with WP-CLI than from wp-admin.
 // EditorsKit (block-options) is not listed: its last update was in May 2024,
@@ -67,12 +68,8 @@ function seoprostack_get_free_plugins() {
             'code-block-pro',
             'ics-calendar',
             'mammoth-docx-converter',
-            'nav-menu-roles',
             'ninja-tables',
-            'post-type-switcher',
-            'simple-custom-post-order',
             'simple-icons',
-            'term-management-tools',
             'wikipedia-preview',
             'wp-sheet-editor-bulk-spreadsheet-editor-for-posts-and-pages'
         ),

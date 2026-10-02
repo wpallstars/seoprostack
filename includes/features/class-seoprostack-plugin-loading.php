@@ -1933,22 +1933,32 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
             $copy['submenu'][$parent] = array_map($here, (array) $items);
         }
 
+        // Each capability is checked once: a menu of a few hundred entries
+        // shares a few dozen, and every check runs other plugins' filters.
+        $answers = array();
+        $can     = function ($cap) use (&$answers) {
+            if (!isset($answers[$cap])) {
+                $answers[$cap] = current_user_can($cap);
+            }
+            return $answers[$cap];
+        };
+
         // A skipped plugin cannot grant its own capabilities here. Show its
         // entries to administrators when an administrator had them on a
         // screen with every plugin; the page itself checks access, with
         // that plugin loaded.
-        $granted = isset($copy['caps']) && current_user_can('manage_options') ? array_flip((array) $copy['caps']) : array();
-        $grant   = function ($item) use ($granted) {
-            if (isset($item[1]) && is_string($item[1]) && isset($granted[$item[1]]) && !current_user_can($item[1])) {
+        $granted = isset($copy['caps']) && $can('manage_options') ? array_flip((array) $copy['caps']) : array();
+        $grant   = function ($item) use ($granted, $can) {
+            if (isset($item[1]) && is_string($item[1]) && isset($granted[$item[1]]) && !$can($item[1])) {
                 $item[1] = 'manage_options';
             }
             return $item;
         };
         // The copy is an administrator's menu. Core checks access when an
         // entry is added, so only put back entries this person may open.
-        $allowed = function ($item) use ($grant) {
+        $allowed = function ($item) use ($grant, $can) {
             $item = $grant($item);
-            return isset($item[1]) && is_string($item[1]) && current_user_can($item[1]);
+            return isset($item[1]) && is_string($item[1]) && $can($item[1]);
         };
 
         $present = array();
