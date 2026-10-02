@@ -257,7 +257,7 @@ class SEOProStack_Duplicate_Posts extends SEOProStack_Feature {
         if (!$post || !self::can_duplicate($post)) {
             return;
         }
-        wp_register_script('seoprostack-duplicate', '', array('wp-plugins', 'wp-element', 'wp-components', 'wp-editor'), SEOPROSTACK_VERSION, true);
+        wp_register_script('seoprostack-duplicate', false, array('wp-plugins', 'wp-element', 'wp-components', 'wp-editor'), SEOPROSTACK_VERSION, true);
         wp_enqueue_script('seoprostack-duplicate');
         wp_add_inline_script('seoprostack-duplicate', sprintf(
             '(function (wp, url, label) {

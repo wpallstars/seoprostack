@@ -205,7 +205,7 @@ class SEOProStack_Auto_Upload extends SEOProStack_Feature {
         $replaced  = array();
         $tags      = new WP_HTML_Tag_Processor($content);
 
-        while ($tags->next_tag('img')) {
+        while ($tags->next_tag(array('tag_name' => 'img'))) {
             $src = $tags->get_attribute('src');
             if (!is_string($src)) {
                 continue;

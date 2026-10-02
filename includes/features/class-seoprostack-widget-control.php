@@ -288,9 +288,9 @@ class SEOProStack_Widget_Control extends SEOProStack_Feature {
         if (!$wp_widget_factory instanceof WP_Widget_Factory) {
             return;
         }
-        foreach ($wp_widget_factory->widgets as $key => $widget) {
-            $class = is_object($widget) ? get_class($widget) : (string) $key;
-            $name  = (is_object($widget) && !empty($widget->name)) ? (string) $widget->name : $class;
+        foreach ($wp_widget_factory->widgets as $widget) {
+            $class = get_class($widget);
+            $name  = !empty($widget->name) ? (string) $widget->name : $class;
             self::$sidebar_widgets[$class] = $name;
         }
     }

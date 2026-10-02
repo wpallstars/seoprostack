@@ -542,7 +542,7 @@ class SEOProStack_Word_Import extends SEOProStack_Feature {
                     break;
             }
         }
-        return $parent instanceof DOMElement && 'p' === $parent->localName ? $this->merge($runs) : $runs;
+        return 'p' === $parent->localName ? $this->merge($runs) : $runs;
     }
 
     /**

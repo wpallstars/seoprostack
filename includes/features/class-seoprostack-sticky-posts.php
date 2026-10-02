@@ -457,7 +457,7 @@ class SEOProStack_Sticky_Posts extends SEOProStack_Feature {
             'label'   => __('Pin to the top', 'seoprostack'),
             'failed'  => __('Could not update. Please try again.', 'seoprostack'),
         );
-        wp_register_script('seoprostack-sticky', '', array('wp-plugins', 'wp-element', 'wp-components', 'wp-editor'), SEOPROSTACK_VERSION, true);
+        wp_register_script('seoprostack-sticky', false, array('wp-plugins', 'wp-element', 'wp-components', 'wp-editor'), SEOPROSTACK_VERSION, true);
         wp_enqueue_script('seoprostack-sticky');
         wp_add_inline_script('seoprostack-sticky', sprintf(
             '(function (wp, cfg) {

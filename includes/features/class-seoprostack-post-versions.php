@@ -299,7 +299,7 @@ class SEOProStack_Post_Versions extends SEOProStack_Feature {
                 'label' => self::pending_version($post->ID) ? __('Edit new version', 'seoprostack') : __('Stage a new version', 'seoprostack'),
             );
 
-        wp_register_script('seoprostack-versions', '', array('wp-plugins', 'wp-element', 'wp-components', 'wp-editor', 'wp-data', 'wp-notices'), SEOPROSTACK_VERSION, true);
+        wp_register_script('seoprostack-versions', false, array('wp-plugins', 'wp-element', 'wp-components', 'wp-editor', 'wp-data', 'wp-notices'), SEOPROSTACK_VERSION, true);
         wp_enqueue_script('seoprostack-versions');
         wp_add_inline_script('seoprostack-versions', sprintf(
             '(function (wp, cfg) {
@@ -537,7 +537,7 @@ class SEOProStack_Post_Versions extends SEOProStack_Feature {
             'post_title'     => $post->post_title,
             'post_content'   => $post->post_content,
             'post_excerpt'   => $post->post_excerpt,
-            'post_author'    => $post->post_author,
+            'post_author'    => (int) $post->post_author,
             'menu_order'     => $post->menu_order,
             'post_password'  => $post->post_password,
             'comment_status' => $post->comment_status,
