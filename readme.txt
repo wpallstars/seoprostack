@@ -127,9 +127,9 @@ Copies from WordPress.org update from there. New versions come out on GitHub fir
 * New: starter data for Fluent Forms (four forms) and Fluent Booking (a Discovery Call), feeding FluentCRM.
 * Change: Freesoul Deactivate Plugins is no longer recommended.
 * Change: Apply preset names each setting in plain words.
-* Fix: plugins that add list columns load on those lists; WP Sheet Editor is no longer blank.
+* Fix: plugins that add list columns load on those lists; WP Sheet Editor shows.
 * Fix: Licence checks “Ask me again” keeps each plugin hidden.
-* Fix: dark plugin icons show in the admin menu; TranslatePress lines up in the More menu.
+* Fix: dark plugin icons in the admin menu; TranslatePress in the More menu.
 * New: remove unneeded list columns; Author and Date last.
 * New: the admin menu widens to fit its names; FluentSMTP shows its logo.
 
