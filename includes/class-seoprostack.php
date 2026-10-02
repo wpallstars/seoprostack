@@ -56,6 +56,7 @@ final class SEOProStack {
         'SEOProStack_Short_Links',
         'SEOProStack_Remove_Cpt_Base',
         'SEOProStack_Gone_Urls',
+        'SEOProStack_Maintenance',
         'SEOProStack_Preload_Pages',
         'SEOProStack_Delay_Scripts',
         'SEOProStack_Delayed_Analytics',

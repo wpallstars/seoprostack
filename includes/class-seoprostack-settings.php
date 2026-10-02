@@ -30,7 +30,7 @@ class SEOProStack_Settings {
 
     /** Stored schema version, used for one-off migrations. */
     const DB_VERSION_OPTION = 'seoprostack_db_version';
-    const DB_VERSION = 6;
+    const DB_VERSION = 7;
 
     /**
      * Tab slugs renamed in 0.4.0, old => new. Settings that still use an
@@ -592,6 +592,8 @@ class SEOProStack_Settings {
      *     screen, Tidy admin screens and Simpler block editor, plus its
      *     W logo (Hide admin bar items), widgets and Dashboard boxes
      *     (Dashboard and sidebar widgets).
+     * v7: import Hostinger Tools' maintenance mode switch, leaving stored
+     *     SEO Pro Stack choices and Hostinger's settings untouched.
      *
      * Old options are left in place so a downgrade keeps working;
      * uninstall.php removes ours. Other plugins' options are never touched.
