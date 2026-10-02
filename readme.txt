@@ -129,7 +129,7 @@ Click **Report a problem** at the top right of Settings → SEO Pro Stack, or op
 
 = Unreleased =
 * New: Word documents; Like, save and share.
-* Change: Pinned posts; faster post lists.
+* Change: Pinned posts; faster post lists; Read Me counts replaced plugins.
 * Fix: More menu items shifting right, fitted menu in full screen editor.
 
 = 0.9.0 =

@@ -398,7 +398,7 @@ array_map('unlink', glob($out . '/*.zip'));
 @rmdir($out);
 
 $line = sprintf(
-    'SEO Pro Stack replaces **%d plugins**, some of them in part, with free and Pro editions counted separately. As downloads, the %d of them available come to %s; SEO Pro Stack is %s.',
+    'SEO Pro Stack replaces **%d plugins**, some of them in part, with free and Pro editions counted separately. The %d that can be downloaded come to %s zipped; SEO Pro Stack is %s.',
     $count,
     $sized,
     size_label($total),
