@@ -73,6 +73,8 @@ function seoprostack_uninstall_site() {
     // Plugin presets' undo copies. Settings presets changed in other plugins
     // are those plugins' settings now, and stay.
     $options[] = 'seoprostack_plugin_presets_undo';
+    // Restore statements only: uninstall never changes database indexes.
+    $options[] = 'seoprostack_database_keys_log';
     // Record of starter data added to other plugins. The lists, tags, fields
     // and boards themselves are that plugin's data now, and stay.
     $options[] = 'seoprostack_starters_added';

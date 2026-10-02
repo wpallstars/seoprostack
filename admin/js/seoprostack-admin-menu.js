@@ -95,20 +95,53 @@
 	/** Widest the menu grows, and its usual width. */
 	var FIT_MAX = 280;
 	var FIT_MIN = 160;
-	var fitted = false;
+	var fitted = 0;
+	/** Indent of a third-level entry shown in place (stylesheet). */
+	var IN_PLACE_INDENT = 38;
+
+	/**
+	 * Width an entry needs when its menu is open in place: the padding
+	 * before the name, the name, and the padding after it. Measured on
+	 * the text itself (scrollWidth leaves out the padding after it and
+	 * never reports less than the current width), and wherever the entry
+	 * is now, so every menu's entries count, open or not.
+	 */
+	function room(el, indent) {
+		var range = document.createRange();
+		range.selectNodeContents(el);
+		var text = range.getBoundingClientRect();
+		if (!text.width) {
+			return 0;
+		}
+		var box = el.getBoundingClientRect();
+		var style = window.getComputedStyle(el);
+		var before = parseFloat(style.paddingLeft) || 0;
+		var after = parseFloat(style.paddingRight) || 0;
+		// Text from the start of the content box; an icon sits in the padding.
+		var name = text.right - box.left - before;
+		if ('rtl' === style.direction) {
+			before = after;
+			after = parseFloat(style.paddingLeft) || 0;
+			name = box.right - before - text.left;
+		}
+		return (indent || before) + name + after;
+	}
 
 	/**
 	 * Widen the menu so entry names fit on one line ("Fit the menu to its
-	 * names"). Measured once, with names unwrapped and folded sections
-	 * shown, so the width stays the same when a section opens. The width
-	 * goes in --sps-menu-width on <body>; the stylesheet applies it only
-	 * where the full menu shows (wide screens, menu not collapsed). Runs
-	 * straight after the menu is printed, before the content is drawn.
+	 * names"). Every menu's entries count, open or not, with folded
+	 * sections shown, so the width is the same on every screen and when a
+	 * section opens. The width goes in --sps-menu-width on <body>; the
+	 * stylesheet applies it only where the full menu shows (wide screens,
+	 * menu not collapsed). Runs straight after the menu is printed, before
+	 * the content is drawn, and once more when the page has loaded, in
+	 * case styles printed later made names longer; it only ever widens,
+	 * so nothing moves back and forth.
 	 */
 	function fit() {
 		var body = document.body;
 		var menu = document.getElementById('adminmenu');
-		if (fitted || !cfg || !cfg.fit || !body || !menu) {
+		if (!cfg || !cfg.fit || !body || !menu) {
 			return;
 		}
 		// Submenus that open to the side fit their names (stylesheet).
@@ -118,22 +151,18 @@
 			return;
 		}
 		body.classList.add('sps-menu-measure');
-		var left = menu.getBoundingClientRect().left;
 		var need = 0;
-		menu.querySelectorAll('li.menu-top > a .wp-menu-name, li.wp-has-current-submenu .wp-submenu a').forEach(function (el) {
-			if (!el.offsetParent) {
-				return;
-			}
-			var width = el.getBoundingClientRect().left - left + el.scrollWidth;
-			if (width > need) {
-				need = width;
-			}
+		menu.querySelectorAll('li.menu-top > a .wp-menu-name, .wp-submenu a').forEach(function (el) {
+			var third = !!el.closest('ul.sps-menu-flyout');
+			need = Math.max(need, room(el, third ? IN_PLACE_INDENT : 0));
 		});
 		body.classList.remove('sps-menu-measure');
-		fitted = true;
-		var width = Math.max(FIT_MIN, Math.min(FIT_MAX, Math.ceil(need) + 4));
-		if (width > FIT_MIN) {
-			body.style.setProperty('--sps-menu-width', width + 'px');
+		var width = Math.max(FIT_MIN, Math.min(FIT_MAX, Math.ceil(need) + 2));
+		if (width > fitted) {
+			fitted = width;
+			if (width > FIT_MIN) {
+				body.style.setProperty('--sps-menu-width', width + 'px');
+			}
 		}
 	}
 
@@ -149,6 +178,7 @@
 				fit();
 			}
 		});
+		window.addEventListener('load', fit);
 	}
 
 	window.seoprostackMenuFlyouts = function (data) {

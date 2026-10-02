@@ -26,13 +26,14 @@ Everything is off by default except Hide admin bar items (Comments and + New), N
 * **Magic login links**: “Email me a login link” on the login screen, with one-time links that email scanners cannot use up.
 * **Turn off unused remote access**: XML-RPC and application passwords, both off by default.
 * **Modern admin colours**, **No fade between admin screens** (on by default), **Readable list columns** and **Notification emails**, which stops routine emails one by one.
-* **Tidy admin screens**, **Tidy WooCommerce admin**, **Tidy the login screen**, **Simpler block editor**, **Remove WordPress extras** and **Lighter WooCommerce pages** replace most of Disable Bloat.
+* **Tidy admin screens**, **Tidy WooCommerce admin**, **Tidy the login screen**, **Simpler block editor**, **Remove WordPress extras**, **Fewer Heartbeat requests**, **Limit post revisions** and **Lighter WooCommerce pages** replace most of Disable Bloat.
 
 = Writing and publishing =
 
 * **Publishing queue**: posts published without a date are scheduled for the next free time slot.
 * **Duplicate posts**, **Staged new versions** (edit a published post as a draft copy) and **Shareable preview links** for people without an account.
 * **Sticky posts for any post type** and **Select all across pages** for bulk actions.
+* **TranslatePress colours**: Kadence light/dark switchers.
 * **iFrame block**: embed pages with size, sandbox and permission settings, limited to the domains and roles you choose.
 * **Spectra block replacements**: a Term list block, and Spectra pages that keep working after it is deactivated or convert in one click.
 
@@ -52,6 +53,7 @@ Everything is off by default except Hide admin bar items (Comments and + New), N
 * **Load plugins only where needed**: a faster wp-admin on sites with many plugins, and admin tools you choose skipped on the site, through a must-use file it manages itself.
 * **Plugins menu** in the admin bar, **Plugin sizes**, **Clean up deleted plugins**, **Hosting needs** (what to ask your host for) and **Plugin presets**: our settings and starter data for other plugins, on request.
 * **Maintenance mode**: a temporary 503 page with a message and 24-hour bypass links you can revoke.
+* **Database key cleanup**: review leftover and duplicate indexes, confirm each removal and keep restore SQL. Back up first.
 
 Features that replace another plugin import its settings once, never change that plugin’s settings, and wait while it is active.
 
@@ -117,9 +119,11 @@ Copies from WordPress.org update from there. New versions come out on GitHub fir
 == Changelog ==
 
 = Unreleased =
+* New: presets for Code Snippets, Rank Math SEO, WP-Optimize and Burst Statistics.
 * New, off by default: Maintenance mode with bypass links; turn off XML-RPC or application passwords.
-* New: Code Snippets preset.
-* New, off by default: six features that do most of Disable Bloat’s job, importing its settings.
+* New, off by default: Database key cleanup.
+* New, off by default: TranslatePress switcher colours.
+* New, off by default: eight features that do most of Disable Bloat’s job, importing its settings.
 * New: starter data for Fluent Forms (four forms) and Fluent Booking (a Discovery Call), feeding FluentCRM.
 * Change: Freesoul Deactivate Plugins is no longer recommended.
 * Change: Apply preset names each setting in plain words.
@@ -127,19 +131,17 @@ Copies from WordPress.org update from there. New versions come out on GitHub fir
 * Fix: Licence checks “Ask me again” keeps each plugin hidden.
 * Fix: WP Sheet Editor spreadsheets no longer blank with Load plugins only where needed.
 * New: remove unneeded list columns; Author and Date last.
-* New: the admin menu widens to fit its names.
+* New: the admin menu widens to fit its names; FluentSMTP shows its logo.
 
 = 0.7.0 =
-* New, off by default: Ask before licence checks.
-* New: presets for eight more plugins, applied setting by setting; starter data for FluentCRM and Fluent Boards.
-* New: GitHub copies update without Git Updater; the Plugins screen lists plugins this one replaces.
-* New, on by default: Quiet Freemius prompts.
-* Change: Load plugins only where needed covers more screens and can skip admin tools on the site. Tidy the dashboard hides Debug Log Manager and WooCommerce Setup. Tutor LMS replaces MasterStudy LMS.
-* Fix: admin menu, Dashboard boxes and screens that jumped while loading; fewer GitHub requests.
+* New: licence-check choices, plugin presets and FluentCRM and Fluent Boards starters.
+* New: GitHub updates without Git Updater; Quiet Freemius prompts on by default.
+* Change: wider plugin-loading coverage, quieter dashboard; Tutor LMS replaces MasterStudy.
+* Fix: admin layout and fewer GitHub requests.
 
 Every change, and earlier versions: `changelog.txt` in the plugin folder.
 
 == Upgrade Notice ==
 
 = 0.7.0 =
-Copies from GitHub now update without Git Updater: once updated, you can deactivate and delete it. New, off by default: Ask before licence checks. Plugin presets for eight more plugins.
+GitHub copies no longer need Git Updater. New: licence-check choices and more plugin presets.
