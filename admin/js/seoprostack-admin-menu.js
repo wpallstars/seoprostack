@@ -321,11 +321,16 @@
 			}
 			return;
 		}
-		// Sized for the usual menu: it now runs off the far side by the extra width.
-		if (moved ? end > -1 : Math.abs(end + extra) <= 2) {
+		/*
+		 * Sized for the usual menu (as wide as the window less 160px, or
+		 * moved over above): it now runs further off the far side than it
+		 * did, so it narrows by the extra width and ends where it did.
+		 */
+		var sized = Math.abs(end + extra) <= 2 || Math.abs(box.width - (view - FIT_MIN)) <= 1;
+		if (moved || (sized && end < -1)) {
 			var now = el.getBoundingClientRect();
 			var over = rtl ? -now.left : now.right - view;
-			if (over > 1) {
+			if (over > Math.max(0, -end) + 1 || (!moved && over > 1)) {
 				set('width', '--sps-fit-gap', view - FIT_MIN - box.width);
 			}
 		}
