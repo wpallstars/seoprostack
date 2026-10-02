@@ -3,6 +3,7 @@
 Every change to SEO Pro Stack. readme.txt lists the latest version in short.
 
 = Unreleased =
+* Change: Faster editor with Kadence Blocks keeps Kadence’s design library in your browser until Kadence updates it, and draws only the patterns on screen, so in a new editor page the library opens in about 2 seconds instead of 6. Sync still fetches new designs; licence and account data are never kept.
 * New: a banner at the top of the Read Me tab, and for the WordPress.org plugin page: “SEO Pro Stack: WP Admin – Solved!”
 
 = 0.8.1 =
