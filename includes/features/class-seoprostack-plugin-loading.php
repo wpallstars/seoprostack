@@ -225,14 +225,12 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
         add_action('upgrader_process_complete', array(__CLASS__, 'forget'));
         add_action('seoprostack_setting_saved', array(__CLASS__, 'setting_saved'));
         // A route must not keep an old decision after its content or layout changes.
-        add_action('save_post', array(__CLASS__, 'forget_front'));
-        add_action('added_post_meta', array(__CLASS__, 'forget_front'));
-        add_action('updated_post_meta', array(__CLASS__, 'forget_front'));
-        add_action('deleted_post_meta', array(__CLASS__, 'forget_front'));
-        add_action('deleted_post', array(__CLASS__, 'forget_front'));
-        add_action('edited_term', array(__CLASS__, 'forget_front'));
-        add_action('delete_term', array(__CLASS__, 'forget_front'));
-        add_action('switch_theme', array(__CLASS__, 'forget_front'));
+        if (self::enabled() && SEOProStack_Settings::get(SEOProStack_Plugin_Loader::PAGES_KEY)) {
+            foreach (array('save_post', 'added_post_meta', 'updated_post_meta', 'deleted_post_meta', 'deleted_post',
+                'edited_term', 'delete_term', 'switch_theme', 'set_object_terms') as $hook) {
+                add_action($hook, array(__CLASS__, 'forget_front'));
+            }
+        }
         add_action('updated_option', array(__CLASS__, 'front_option_changed'), 10, 1);
         add_action('added_option', array(__CLASS__, 'front_option_changed'), 10, 1);
         add_action('deleted_option', array(__CLASS__, 'front_option_changed'), 10, 1);
@@ -289,6 +287,9 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
             add_action('loop_start', array(__CLASS__, 'front_loop'));
             add_filter('render_block', array(__CLASS__, 'front_block'), 10, 2);
             add_filter('do_shortcode_tag', array(__CLASS__, 'front_shortcode'), 10, 2);
+            foreach (array('woocommerce_get_cart_url', 'woocommerce_cart_contents_count', 'woocommerce_cart_total', 'woocommerce_cart_subtotal') as $hook) {
+                add_filter($hook, array(__CLASS__, 'front_cart_value'));
+            }
         } elseif ('filter' === $state['mode']) {
             add_action('admin_bar_menu', array(__CLASS__, 'admin_bar_in_menu'), 99);
             add_action('admin_bar_menu', array(__CLASS__, 'admin_bar'), 999);
@@ -397,7 +398,8 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
             }
         } elseif (self::LIST_KEY === $key) {
             self::sync();
-        } elseif (self::FRONT_KEY === $key || self::FRONT_USERS_KEY === $key) {
+        } elseif (self::FRONT_KEY === $key || self::FRONT_USERS_KEY === $key
+            || SEOProStack_Plugin_Loader::PAGES_KEY === $key || SEOProStack_Plugin_Loader::KEEP_KEY === $key) {
             // A page of the site failed with fewer plugins: saving the list
             // tries again.
             $front = get_option(SEOProStack_Plugin_Loader::FRONT);
@@ -1010,8 +1012,12 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
                 array_shift($pages);
             }
         }
+        if (!SEOProStack_Plugin_Loader::front_revision_current()) {
+            return; // Content/settings changed while this page was being rendered.
+        }
         update_option(SEOProStack_Plugin_Loader::FRONT, array(
             'version' => SEOProStack_Plugin_Loader::FRONT_VERSION,
+            'revision' => $state['front_revision'],
             'active'  => $print,
             'deps'    => $deps,
             'always'  => $always,
@@ -1028,18 +1034,34 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
 
     /** Forget page ownership when settings used before plugins load change. */
     public static function front_option_changed($name) {
-        if (in_array($name, array('seoprostack_options', 'permalink_structure', 'rewrite_rules', 'show_on_front',
-            'page_on_front', 'page_for_posts', 'sidebars_widgets', 'woocommerce_shop_page_id',
-            'woocommerce_cart_page_id', 'woocommerce_checkout_page_id', 'woocommerce_myaccount_page_id',
-            'woocommerce_demo_store', 'woocommerce_demo_store_notice'), true)
-            || 0 === strpos((string) $name, 'theme_mods_') || 0 === strpos((string) $name, 'widget_')) {
-            self::forget_front();
+        if ('seoprostack_options' !== $name && (!self::enabled() || !SEOProStack_Settings::get(SEOProStack_Plugin_Loader::PAGES_KEY))) {
+            return;
         }
+        // Settings of any content plugin can change what an old route needs.
+        // Exclude volatile core caches and this loader's own learning writes.
+        if (0 === strpos((string) $name, '_transient_') || 0 === strpos((string) $name, '_site_transient_')
+            || in_array($name, array('cron', SEOProStack_Plugin_Loader::FRONT, SEOProStack_Plugin_Loader::FRONT_LOCK,
+                SEOProStack_Plugin_Loader::FRONT_REVISION, SEOProStack_Plugin_Loader::MAP, SEOProStack_Plugin_Loader::MENU), true)) {
+            return;
+        }
+        self::forget_front();
     }
 
     /** Invalidate the public map without changing the admin map. */
     public static function forget_front() {
-        delete_option(SEOProStack_Plugin_Loader::FRONT);
+        if (defined('WP_UNINSTALL_PLUGIN')) {
+            return;
+        }
+        $revision = wp_generate_uuid4();
+        update_option(SEOProStack_Plugin_Loader::FRONT_REVISION, $revision, true);
+        $front = get_option(SEOProStack_Plugin_Loader::FRONT, array());
+        if (is_array($front) && !empty($front['failed'])) {
+            $front['pages'] = array();
+            $front['revision'] = $revision;
+            update_option(SEOProStack_Plugin_Loader::FRONT, $front, true);
+        } else {
+            delete_option(SEOProStack_Plugin_Loader::FRONT);
+        }
         delete_option(SEOProStack_Plugin_Loader::FRONT_LOCK);
     }
 
@@ -1073,6 +1095,24 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
             self::$front_seen[] = SEOProStack_Plugin_Loader::plugin_for_callback($shortcode_tags[$tag]);
         }
         return $output;
+    }
+
+    /** Record cart getters called by a theme or another plugin, not WC setup. */
+    public static function front_cart_value($value) {
+        $self = plugin_basename(SEOPROSTACK_FILE);
+        // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_debug_backtrace -- only on a full learning request.
+        foreach (debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS) as $frame) {
+            if (empty($frame['file'])) {
+                continue;
+            }
+            $file = wp_normalize_path($frame['file']);
+            $plugin = SEOProStack_Plugin_Loader::plugin_for_file($file);
+            if (false !== strpos($file, '/themes/') || ('' !== $plugin && $plugin !== $self && 'woocommerce/woocommerce.php' !== $plugin)) {
+                self::$front_seen[] = 'woocommerce/woocommerce.php';
+                break;
+            }
+        }
+        return $value;
     }
 
     /**
@@ -1212,8 +1252,6 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
         if (class_exists('WooCommerce', false) && (SEOProStack_Woo_Light::is_shop_page()
             || did_action('woocommerce_before_mini_cart') || did_action('woocommerce_before_cart')
             || did_action('woocommerce_before_shop_loop') || did_filter('lostpassword_url')
-            || did_filter('woocommerce_get_cart_url') || did_filter('woocommerce_cart_contents_count')
-            || did_filter('woocommerce_cart_total') || did_filter('woocommerce_cart_subtotal')
             || false !== strpos($content, 'wp:woocommerce/'))) {
             $needs[] = 'woocommerce/woocommerce.php';
         }

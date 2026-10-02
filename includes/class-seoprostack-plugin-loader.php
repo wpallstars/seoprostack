@@ -96,6 +96,9 @@ final class SEOProStack_Plugin_Loader {
     /** Time the site's learning started, so one request at a time learns. Not autoloaded. */
     const FRONT_LOCK = 'seoprostack_plugin_front_lock';
 
+    /** Content/settings generation, preventing stale in-flight learning writes. */
+    const FRONT_REVISION = 'seoprostack_plugin_front_revision';
+
     /** Settings keys for the site: plugins to skip, and whether for logged-in people too. */
     const FRONT_KEY       = 'plugin_loading_front';
     const FRONT_USERS_KEY = 'plugin_loading_front_users';
@@ -326,6 +329,9 @@ final class SEOProStack_Plugin_Loader {
     /** @var bool Whether someone asked a page of the site to learn again (?seoprostack-load-all=1). */
     private static $relearn = false;
 
+    /** @var string Public content generation at the start of this request. */
+    private static $front_revision = '';
+
     /**
      * Why a 'full' request loads every plugin: 'always' (a screen that is
      * never filtered), 'learning' (not learned yet, or learned again),
@@ -485,6 +491,7 @@ final class SEOProStack_Plugin_Loader {
         if (!self::front_request()) {
             return;
         }
+        self::$front_revision = (string) get_option(self::FRONT_REVISION, '');
         if (!empty($options[self::PAGES_KEY]) && (!empty($_COOKIE) || !empty($_SERVER['HTTP_AUTHORIZATION'])
             || !empty($_SERVER['REDIRECT_HTTP_AUTHORIZATION']) || !empty($_SERVER['PHP_AUTH_USER']))) {
             return; // Authentication and sessions are not public page views.
@@ -633,6 +640,13 @@ final class SEOProStack_Plugin_Loader {
         return '' !== $path && '/' === $path[0] && strlen($path) <= 2048 ? hash('sha256', $path) : '';
     }
 
+    /** Whether a full request still describes the content it started with. */
+    public static function front_revision_current() {
+        wp_cache_delete(self::FRONT_REVISION, 'options');
+        wp_cache_delete('alloptions', 'options');
+        return self::$front_revision === (string) get_option(self::FRONT_REVISION, '');
+    }
+
     /**
      * Whether what each plugin adds to the site was learned for the current
      * set of active plugins.
@@ -644,6 +658,7 @@ final class SEOProStack_Plugin_Loader {
         return is_array($front)
             && isset($front['version'], $front['active'], $front['deps'], $front['always'], $front['notes'])
             && self::FRONT_VERSION === $front['version']
+            && isset($front['revision']) && $front['revision'] === (string) get_option(self::FRONT_REVISION, '')
             && self::fingerprint(self::stored_active_plugins()) === $front['active'];
     }
 
@@ -1397,6 +1412,7 @@ final class SEOProStack_Plugin_Loader {
             'map'         => self::$map,
             'attributing' => self::$attributing,
             'registered'  => self::$registered,
+            'front_revision' => self::$front_revision,
         );
     }
 }
