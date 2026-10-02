@@ -1,0 +1,503 @@
+{
+    "name": "Agency",
+    "set": true,
+    "tested": "Fluent Forms 6.2.15, FluentCRM 3.2.5, Fluent Boards 2.1.0, Fluent Support 2.4.0, FluentBooking 2.5.0, FluentCommunity 2.11.0, Tutor LMS 4.1.0",
+    "updated": "2026-10-02",
+    "notes": "A digital marketing agency selling services and apps, as examples to rename and reprice. Order forms take payment once (SEO audit with add-ons, PR campaign with a pack of articles, campaign design, app build) or every month (ads management with a setup fee, social media marketing, app care plan, retainer); they and their pages wait until Fluent Forms can take payments. Each order goes to the Client Orders board, in New order, labelled with the service its form names, and opens a support conversation under the matching Fluent Support product. Move the task through Brief, In progress and Client review to Done and the client hears about each step in that conversation. The Project Brief Form adds the brief to the client’s latest order. Clients get a login, the Client Onboarding course and the Clients community space, and see their orders, payments, calls and report on the Client Dashboard page. Quote requests and referral partners go to the Sales Pipeline board and their own FluentCRM lists and tags; support requests open a conversation under the service they choose. With FluentBooking, people book a Discovery Call (with FluentCRM, they join Website Booking Form) and clients a Monthly Review Call; set your hours and meeting place in FluentBooking. Put the address of each client’s report in their Report link field in FluentCRM. Order links on the dashboard need Fluent Support's customer portal page, which its setup adds. The Agency tab's settings are filled in to match; switch Order flow and Client dashboard on when you are ready. Pages are added as drafts. Add a service by copying an order form, naming it “Service Order Form”, and adding a page, a board label and a support product with the service’s name.",
+    "items": {
+        "fluentcrm_lists": [
+            { "slug": "agency-quote-request-form", "title": "Agency Quote Request Form", "when": "fluent-crm" },
+            { "slug": "agency-support-request-form", "title": "Agency Support Request Form", "when": "fluent-crm" },
+            { "slug": "agency-referral-partner-form", "title": "Agency Referral Partner Form", "when": "fluent-crm" },
+            { "slug": "website-booking-form", "title": "Website Booking Form", "when": "fluent-crm" }
+        ],
+        "fluentcrm_tags": [
+            { "slug": "quote-requested", "title": "Quote Requested", "when": "fluent-crm" },
+            { "slug": "partner", "title": "Partner", "when": "fluent-crm" }
+        ],
+        "fluentcrm_contact_fields": [
+            { "slug": "report_link", "label": "Report link", "type": "text", "when": "fluent-crm" }
+        ],
+        "fluentform_forms": [
+            {
+                "title": "Quote Request Form",
+                "settings": { "confirmation": { "messageToShow": "Thank you. We will reply with a quote within one working day." } },
+                "crm_feed": {
+                    "list": "agency-quote-request-form",
+                    "tags": [ "quote-requested" ],
+                    "first_name": "{inputs.names.first_name}",
+                    "last_name": "{inputs.names.last_name}",
+                    "full_name": "{inputs.names}",
+                    "email": "email",
+                    "other_fields": [
+                        { "item_value": "{inputs.company}", "label": "company_name" },
+                        { "item_value": "{submission.source_url}", "label": "source" }
+                    ],
+                    "double_opt_in": false,
+                    "force_subscribe": false
+                },
+                "form_fields": {
+                    "fields": [
+                        { "element": "input_name", "attributes": { "name": "names" }, "settings": { "admin_field_label": "Name" }, "fields": { "first_name": { "settings": { "validation_rules": { "required": { "value": true } } } } } },
+                        { "element": "input_email", "attributes": { "name": "email" }, "settings": { "label": "Email", "admin_field_label": "Email" }, "required": true },
+                        { "element": "input_text", "attributes": { "name": "company" }, "settings": { "label": "Company", "admin_field_label": "Company" } },
+                        { "element": "input_url", "attributes": { "name": "website" }, "settings": { "label": "Website", "admin_field_label": "Website" } },
+                        {
+                            "element": "input_checkbox",
+                            "attributes": { "name": "services" },
+                            "settings": { "label": "What can we help with?", "admin_field_label": "Services" },
+                            "options": {
+                                "SEO": "SEO",
+                                "Paid ads": "Paid ads management",
+                                "PR": "PR and links",
+                                "Social media": "Social media marketing",
+                                "Apps": "An app or web app",
+                                "Campaign design": "Campaign design",
+                                "Audit": "An audit",
+                                "Retainer": "Ongoing help on a monthly retainer"
+                            }
+                        },
+                        {
+                            "element": "select",
+                            "attributes": { "name": "budget" },
+                            "settings": { "label": "Monthly budget", "admin_field_label": "Budget" },
+                            "options": { "Under 1,000": "Under 1,000", "1,000 to 5,000": "1,000 to 5,000", "Over 5,000": "Over 5,000", "Not sure yet": "Not sure yet" }
+                        },
+                        {
+                            "element": "select",
+                            "attributes": { "name": "timeline" },
+                            "settings": { "label": "When would you like to start?", "admin_field_label": "Start" },
+                            "options": { "Now": "As soon as possible", "Next month": "Next month", "Later": "In a few months", "Not sure": "Not sure yet" }
+                        },
+                        { "element": "textarea", "attributes": { "name": "message", "rows": 5 }, "settings": { "label": "Tell us about your goals", "admin_field_label": "Message" }, "required": true }
+                    ],
+                    "submitButton": { "settings": { "button_ui": { "text": "Ask for a quote" } } }
+                }
+            },
+            {
+                "title": "Support Request Form",
+                "settings": { "confirmation": { "messageToShow": "Thank you. We have opened a conversation and emailed you a link to it." } },
+                "crm_feed": {
+                    "list": "agency-support-request-form",
+                    "tags": [],
+                    "first_name": "{inputs.names.first_name}",
+                    "last_name": "{inputs.names.last_name}",
+                    "full_name": "{inputs.names}",
+                    "email": "email",
+                    "other_fields": [
+                        { "item_value": "{submission.source_url}", "label": "source" }
+                    ],
+                    "double_opt_in": false,
+                    "force_subscribe": false
+                },
+                "form_fields": {
+                    "fields": [
+                        { "element": "input_name", "attributes": { "name": "names" }, "settings": { "admin_field_label": "Name" }, "fields": { "first_name": { "settings": { "validation_rules": { "required": { "value": true } } } } } },
+                        { "element": "input_email", "attributes": { "name": "email" }, "settings": { "label": "Email", "admin_field_label": "Email" }, "required": true },
+                        {
+                            "element": "select",
+                            "attributes": { "name": "service" },
+                            "settings": { "label": "Which service is it about?", "admin_field_label": "Service" },
+                            "options": { "SEO": "SEO", "Paid Ads": "Paid Ads", "PR": "PR", "Social Media": "Social Media", "App": "App", "Campaign Design": "Campaign Design", "Retainer": "Retainer", "Something else": "Something else" },
+                            "required": true
+                        },
+                        { "element": "input_text", "attributes": { "name": "subject" }, "settings": { "label": "Subject", "admin_field_label": "Subject" }, "required": true },
+                        { "element": "textarea", "attributes": { "name": "message", "rows": 6 }, "settings": { "label": "How can we help?", "admin_field_label": "Message" }, "required": true },
+                        { "element": "input_file", "attributes": { "name": "files" }, "settings": { "label": "Screenshots or files", "admin_field_label": "Files" }, "when": "fluentformpro" }
+                    ],
+                    "submitButton": { "settings": { "button_ui": { "text": "Send" } } }
+                }
+            },
+            {
+                "title": "Referral Partner Form",
+                "settings": { "confirmation": { "messageToShow": "Thank you. We will be in touch about working together." } },
+                "crm_feed": {
+                    "list": "agency-referral-partner-form",
+                    "tags": [ "partner" ],
+                    "first_name": "{inputs.names.first_name}",
+                    "last_name": "{inputs.names.last_name}",
+                    "full_name": "{inputs.names}",
+                    "email": "email",
+                    "other_fields": [
+                        { "item_value": "{inputs.company}", "label": "company_name" },
+                        { "item_value": "{submission.source_url}", "label": "source" }
+                    ],
+                    "double_opt_in": false,
+                    "force_subscribe": false
+                },
+                "form_fields": {
+                    "fields": [
+                        { "element": "input_name", "attributes": { "name": "names" }, "settings": { "admin_field_label": "Name" }, "fields": { "first_name": { "settings": { "validation_rules": { "required": { "value": true } } } } } },
+                        { "element": "input_email", "attributes": { "name": "email" }, "settings": { "label": "Email", "admin_field_label": "Email" }, "required": true },
+                        { "element": "input_text", "attributes": { "name": "company" }, "settings": { "label": "Company", "admin_field_label": "Company" }, "required": true },
+                        { "element": "input_url", "attributes": { "name": "website" }, "settings": { "label": "Website", "admin_field_label": "Website" } },
+                        {
+                            "element": "input_radio",
+                            "attributes": { "name": "partnership" },
+                            "settings": { "label": "How would you like to work with us?", "admin_field_label": "Partnership" },
+                            "options": { "Refer": "Refer clients to us for a referral fee", "Resell": "Resell our services under your brand", "Together": "Work on projects together" },
+                            "required": true
+                        },
+                        { "element": "textarea", "attributes": { "name": "clients", "rows": 4 }, "settings": { "label": "Who are your clients?", "admin_field_label": "Clients" } }
+                    ],
+                    "submitButton": { "settings": { "button_ui": { "text": "Apply" } } }
+                }
+            },
+            {
+                "title": "SEO Audit Order Form",
+                "requires": "payments",
+                "settings": { "confirmation": { "messageToShow": "Thank you for your order. We have emailed you a link to follow it." } },
+                "form_fields": {
+                    "fields": [
+                        { "element": "input_name", "attributes": { "name": "names" }, "settings": { "admin_field_label": "Name" }, "fields": { "first_name": { "settings": { "validation_rules": { "required": { "value": true } } } } } },
+                        { "element": "input_email", "attributes": { "name": "email" }, "settings": { "label": "Email", "admin_field_label": "Email" }, "required": true },
+                        { "element": "input_url", "attributes": { "name": "website" }, "settings": { "label": "Website to audit", "admin_field_label": "Website" }, "required": true },
+                        { "element": "multi_payment_component", "attributes": { "name": "audit", "type": "single" }, "settings": { "label": "SEO audit", "admin_field_label": "SEO audit" }, "options": { "SEO audit with a prioritised action plan": 750 } },
+                        { "element": "multi_payment_component", "attributes": { "name": "addons", "type": "checkbox" }, "settings": { "label": "Add-ons", "admin_field_label": "Add-ons" }, "options": { "Competitor gap analysis": 250, "Fix list for your developer": 150, "One-hour call to walk through it": 120 } },
+                        { "element": "payment_method", "settings": { "label": "Payment method" }, "required": true },
+                        { "element": "textarea", "attributes": { "name": "notes" }, "settings": { "label": "Anything we should know?", "admin_field_label": "Notes" } }
+                    ],
+                    "submitButton": { "settings": { "button_ui": { "text": "Order and pay" } } }
+                }
+            },
+            {
+                "title": "Paid Ads Management Order Form",
+                "requires": "payments",
+                "settings": { "confirmation": { "messageToShow": "Thank you for subscribing. We have emailed you a link to follow your order." } },
+                "form_fields": {
+                    "fields": [
+                        { "element": "input_name", "attributes": { "name": "names" }, "settings": { "admin_field_label": "Name" }, "fields": { "first_name": { "settings": { "validation_rules": { "required": { "value": true } } } } } },
+                        { "element": "input_email", "attributes": { "name": "email" }, "settings": { "label": "Email", "admin_field_label": "Email" }, "required": true },
+                        { "element": "input_url", "attributes": { "name": "website" }, "settings": { "label": "Website", "admin_field_label": "Website" } },
+                        {
+                            "element": "input_checkbox",
+                            "attributes": { "name": "platforms" },
+                            "settings": { "label": "Where should your ads run?", "admin_field_label": "Platforms" },
+                            "options": { "Google": "Google", "Microsoft": "Microsoft", "Meta": "Facebook and Instagram", "LinkedIn": "LinkedIn", "TikTok": "TikTok" }
+                        },
+                        { "element": "subscription_payment_component", "attributes": { "name": "plan" }, "settings": { "label": "Plan (the first payment includes a one-off setup fee)", "admin_field_label": "Plan" }, "options": { "Starter: up to 5,000 ad spend a month": [ 500, "month", 250 ], "Growth: up to 20,000 ad spend a month": [ 1000, "month", 500 ] } },
+                        { "element": "payment_method", "settings": { "label": "Payment method" }, "required": true }
+                    ],
+                    "submitButton": { "settings": { "button_ui": { "text": "Subscribe" } } }
+                }
+            },
+            {
+                "title": "PR Campaign Order Form",
+                "requires": "payments",
+                "settings": { "confirmation": { "messageToShow": "Thank you for your order. We have emailed you a link to follow it." } },
+                "form_fields": {
+                    "fields": [
+                        { "element": "input_name", "attributes": { "name": "names" }, "settings": { "admin_field_label": "Name" }, "fields": { "first_name": { "settings": { "validation_rules": { "required": { "value": true } } } } } },
+                        { "element": "input_email", "attributes": { "name": "email" }, "settings": { "label": "Email", "admin_field_label": "Email" }, "required": true },
+                        { "element": "input_text", "attributes": { "name": "company" }, "settings": { "label": "Company", "admin_field_label": "Company" } },
+                        { "element": "multi_payment_component", "attributes": { "name": "package", "type": "radio" }, "settings": { "label": "Package", "admin_field_label": "Package" }, "options": { "Press release, written and sent to relevant press": 450, "One-month PR campaign": 2500 } },
+                        { "element": "multi_payment_component", "attributes": { "name": "articles", "type": "single" }, "settings": { "label": "Articles on relevant sites, each with a link to you", "admin_field_label": "Articles" }, "options": { "Article": 180 } },
+                        { "element": "item_quantity_component", "attributes": { "name": "articles_quantity", "value": "0" }, "settings": { "label": "How many articles?", "admin_field_label": "Articles wanted", "target_product": "articles", "validation_rules": { "min": { "value": "0" }, "max": { "value": "20" } } } },
+                        { "element": "payment_method", "settings": { "label": "Payment method" }, "required": true },
+                        { "element": "textarea", "attributes": { "name": "news" }, "settings": { "label": "What is the news?", "admin_field_label": "News" } }
+                    ],
+                    "submitButton": { "settings": { "button_ui": { "text": "Order and pay" } } }
+                }
+            },
+            {
+                "title": "Social Media Marketing Order Form",
+                "requires": "payments",
+                "settings": { "confirmation": { "messageToShow": "Thank you for subscribing. We have emailed you a link to follow your order." } },
+                "form_fields": {
+                    "fields": [
+                        { "element": "input_name", "attributes": { "name": "names" }, "settings": { "admin_field_label": "Name" }, "fields": { "first_name": { "settings": { "validation_rules": { "required": { "value": true } } } } } },
+                        { "element": "input_email", "attributes": { "name": "email" }, "settings": { "label": "Email", "admin_field_label": "Email" }, "required": true },
+                        { "element": "subscription_payment_component", "attributes": { "name": "plan" }, "settings": { "label": "Plan", "admin_field_label": "Plan" }, "options": { "Two platforms, three posts a week": [ 600, "month" ], "Four platforms, five posts a week": [ 1100, "month" ] } },
+                        { "element": "payment_method", "settings": { "label": "Payment method" }, "required": true },
+                        { "element": "textarea", "attributes": { "name": "accounts" }, "settings": { "label": "Your social media accounts", "admin_field_label": "Accounts" } }
+                    ],
+                    "submitButton": { "settings": { "button_ui": { "text": "Subscribe" } } }
+                }
+            },
+            {
+                "title": "App Build Order Form",
+                "requires": "payments",
+                "settings": { "confirmation": { "messageToShow": "Thank you for your order. We have emailed you a link to follow it." } },
+                "form_fields": {
+                    "fields": [
+                        { "element": "input_name", "attributes": { "name": "names" }, "settings": { "admin_field_label": "Name" }, "fields": { "first_name": { "settings": { "validation_rules": { "required": { "value": true } } } } } },
+                        { "element": "input_email", "attributes": { "name": "email" }, "settings": { "label": "Email", "admin_field_label": "Email" }, "required": true },
+                        { "element": "multi_payment_component", "attributes": { "name": "app", "type": "radio" }, "settings": { "label": "App", "admin_field_label": "App" }, "options": { "Discovery and prototype": 1500, "App build deposit": 5000 } },
+                        { "element": "payment_method", "settings": { "label": "Payment method" }, "required": true },
+                        { "element": "textarea", "attributes": { "name": "idea" }, "settings": { "label": "What should the app do?", "admin_field_label": "Idea" }, "required": true }
+                    ],
+                    "submitButton": { "settings": { "button_ui": { "text": "Order and pay" } } }
+                }
+            },
+            {
+                "title": "App Care Plan Order Form",
+                "requires": "payments",
+                "settings": { "confirmation": { "messageToShow": "Thank you for subscribing. We have emailed you a link to follow your order." } },
+                "form_fields": {
+                    "fields": [
+                        { "element": "input_name", "attributes": { "name": "names" }, "settings": { "admin_field_label": "Name" }, "fields": { "first_name": { "settings": { "validation_rules": { "required": { "value": true } } } } } },
+                        { "element": "input_email", "attributes": { "name": "email" }, "settings": { "label": "Email", "admin_field_label": "Email" }, "required": true },
+                        { "element": "input_url", "attributes": { "name": "app_url" }, "settings": { "label": "App or website address", "admin_field_label": "App" } },
+                        { "element": "subscription_payment_component", "attributes": { "name": "plan" }, "settings": { "label": "Plan", "admin_field_label": "Plan" }, "options": { "Hosting, updates and backups": [ 99, "month" ], "Plus four hours of changes a month": [ 249, "month" ] } },
+                        { "element": "payment_method", "settings": { "label": "Payment method" }, "required": true }
+                    ],
+                    "submitButton": { "settings": { "button_ui": { "text": "Subscribe" } } }
+                }
+            },
+            {
+                "title": "Campaign Design Order Form",
+                "requires": "payments",
+                "settings": { "confirmation": { "messageToShow": "Thank you for your order. We have emailed you a link to follow it." } },
+                "form_fields": {
+                    "fields": [
+                        { "element": "input_name", "attributes": { "name": "names" }, "settings": { "admin_field_label": "Name" }, "fields": { "first_name": { "settings": { "validation_rules": { "required": { "value": true } } } } } },
+                        { "element": "input_email", "attributes": { "name": "email" }, "settings": { "label": "Email", "admin_field_label": "Email" }, "required": true },
+                        { "element": "multi_payment_component", "attributes": { "name": "designs", "type": "checkbox" }, "settings": { "label": "What should we design?", "admin_field_label": "Designs" }, "options": { "Landing page": 900, "Email campaign": 600, "Set of ad creatives": 500 } },
+                        { "element": "payment_method", "settings": { "label": "Payment method" }, "required": true },
+                        { "element": "textarea", "attributes": { "name": "campaign" }, "settings": { "label": "What is the campaign for?", "admin_field_label": "Campaign" } }
+                    ],
+                    "submitButton": { "settings": { "button_ui": { "text": "Order and pay" } } }
+                }
+            },
+            {
+                "title": "Monthly Retainer Order Form",
+                "requires": "payments",
+                "settings": { "confirmation": { "messageToShow": "Thank you for subscribing. We have emailed you a link to follow your order." } },
+                "form_fields": {
+                    "fields": [
+                        { "element": "input_name", "attributes": { "name": "names" }, "settings": { "admin_field_label": "Name" }, "fields": { "first_name": { "settings": { "validation_rules": { "required": { "value": true } } } } } },
+                        { "element": "input_email", "attributes": { "name": "email" }, "settings": { "label": "Email", "admin_field_label": "Email" }, "required": true },
+                        { "element": "input_text", "attributes": { "name": "company" }, "settings": { "label": "Company", "admin_field_label": "Company" } },
+                        { "element": "subscription_payment_component", "attributes": { "name": "plan" }, "settings": { "label": "Hours a month", "admin_field_label": "Plan" }, "options": { "10 hours": [ 900, "month" ], "20 hours": [ 1700, "month" ] } },
+                        { "element": "payment_method", "settings": { "label": "Payment method" }, "required": true }
+                    ],
+                    "submitButton": { "settings": { "button_ui": { "text": "Subscribe" } } }
+                }
+            },
+            {
+                "title": "Project Brief Form",
+                "settings": { "confirmation": { "messageToShow": "Thank you. We have added your brief to your order." } },
+                "form_fields": {
+                    "fields": [
+                        { "element": "input_name", "attributes": { "name": "names" }, "settings": { "admin_field_label": "Name" } },
+                        { "element": "input_email", "attributes": { "name": "email" }, "settings": { "label": "Email you ordered with", "admin_field_label": "Email" }, "required": true },
+                        { "element": "textarea", "attributes": { "name": "goals" }, "settings": { "label": "What should this achieve?", "admin_field_label": "Goals" }, "required": true },
+                        { "element": "textarea", "attributes": { "name": "audience" }, "settings": { "label": "Who is it for?", "admin_field_label": "Audience" } },
+                        { "element": "textarea", "attributes": { "name": "competitors" }, "settings": { "label": "Competitors or examples you like", "admin_field_label": "Examples" } },
+                        { "element": "input_date", "attributes": { "name": "deadline" }, "settings": { "label": "Any deadline?", "admin_field_label": "Deadline", "date_format": "d/m/Y" } },
+                        { "element": "input_file", "attributes": { "name": "files" }, "settings": { "label": "Files", "admin_field_label": "Files" }, "when": "fluentformpro" }
+                    ],
+                    "submitButton": { "settings": { "button_ui": { "text": "Send brief" } } }
+                }
+            }
+        ],
+        "fluentboards_boards": [
+            {
+                "title": "Client Orders",
+                "type": "to-do",
+                "description": "Every paid order, from New order to Done. Moving a task tells the client in its support conversation.",
+                "stages": [
+                    { "title": "New order" },
+                    { "title": "Brief" },
+                    { "title": "In progress" },
+                    { "title": "Client review" },
+                    { "title": "Done", "closed": true }
+                ],
+                "labels": [
+                    { "title": "SEO", "color": "green-bold" },
+                    { "title": "Ads", "color": "blue-bold" },
+                    { "title": "PR", "color": "purple-bold" },
+                    { "title": "Social", "color": "pink-bold" },
+                    { "title": "App", "color": "orange-bold" },
+                    { "title": "Design", "color": "yellow-bold" },
+                    { "title": "Audit", "color": "sky-bold" },
+                    { "title": "Retainer", "color": "gray-bold" }
+                ]
+            },
+            {
+                "title": "Sales Pipeline",
+                "type": "to-do",
+                "description": "Quote requests and referral partners, from New lead to Won.",
+                "stages": [
+                    { "title": "New lead" },
+                    { "title": "Contacted" },
+                    { "title": "Call booked" },
+                    { "title": "Proposal sent" },
+                    { "title": "Won", "closed": true }
+                ],
+                "labels": [
+                    { "title": "Quote", "color": "green-bold" },
+                    { "title": "Referral", "color": "purple-bold" }
+                ]
+            }
+        ],
+        "fluentsupport_products": [
+            { "title": "SEO", "description": "Search engine optimisation and SEO audits." },
+            { "title": "Paid Ads", "description": "Ads management on Google, Microsoft, Meta, LinkedIn and TikTok." },
+            { "title": "PR", "description": "Press releases, PR campaigns and articles." },
+            { "title": "Social Media", "description": "Social media marketing." },
+            { "title": "App", "description": "App builds and care plans." },
+            { "title": "Campaign Design", "description": "Landing pages, email campaigns and ad creatives." },
+            { "title": "Retainer", "description": "Monthly retainers." }
+        ],
+        "fluentbooking_events": [
+            {
+                "title": "Discovery Call",
+                "duration": 30,
+                "description": "A free call about your goals and how we could help. We call you on the number you give.",
+                "location": "phone_guest",
+                "color": "#0099ff",
+                "crm_list": "website-booking-form"
+            },
+            {
+                "title": "Monthly Review Call",
+                "duration": 45,
+                "description": "For clients: we go through your report, what we did last month and what comes next.",
+                "location": "phone_guest",
+                "color": "#2bb673"
+            }
+        ],
+        "fluentcommunity_spaces": [
+            {
+                "title": "Clients",
+                "slug": "clients",
+                "description": "News, tips and questions for our clients.",
+                "privacy": "private"
+            }
+        ],
+        "tutor_courses": [
+            {
+                "title": "Client Onboarding",
+                "excerpt": "How orders, briefs, reviews, calls and support work.",
+                "content": "<p>Welcome. This short course shows how we work together, from your order to the finished work.</p>",
+                "topics": [
+                    {
+                        "title": "Getting started",
+                        "summary": "Your order, your brief and where to follow both.",
+                        "lessons": [
+                            { "title": "How orders work", "content": "<p>Each order goes on our board in New order. As we move it through Brief, In progress and Client review to Done, you get a message in its conversation.</p>" },
+                            { "title": "Sending your brief", "content": "<p>Send the project brief form with the email address you ordered with, and we add it to your latest order.</p>" },
+                            { "title": "Your client dashboard", "content": "<p>Log in and open the client dashboard to see each order, how far along it is, your payments, your calls and a link to your latest report.</p>" }
+                        ]
+                    },
+                    {
+                        "title": "Working together",
+                        "summary": "Reviews, reports, calls and getting help.",
+                        "lessons": [
+                            { "title": "Reviews and approvals", "content": "<p>When work is ready for you, the order moves to Client review. Reply in its conversation with changes or your approval.</p>" },
+                            { "title": "Reports and review calls", "content": "<p>Your latest report is linked from your dashboard. Book a monthly review call to go through it with us.</p>" },
+                            { "title": "Getting help", "content": "<p>Reply in any order’s conversation, send the support form, or ask in the Clients community space.</p>" }
+                        ]
+                    }
+                ]
+            }
+        ],
+        "pages": [
+            {
+                "title": "SEO Audit",
+                "slug": "seo-audit",
+                "requires": "payments",
+                "content": "<!-- wp:paragraph -->\n<p>A full SEO audit of your website, with a prioritised action plan. Add a competitor gap analysis, a fix list for your developer or a call to walk through it.</p>\n<!-- /wp:paragraph -->\n\n<!-- wp:shortcode -->\n[fluentform id=\"{form:SEO Audit Order Form}\"]\n<!-- /wp:shortcode -->"
+            },
+            {
+                "title": "Paid Ads Management",
+                "slug": "paid-ads-management",
+                "requires": "payments",
+                "content": "<!-- wp:paragraph -->\n<p>We set up, run and improve your ads on Google, Microsoft, Meta, LinkedIn and TikTok. Monthly, with a one-off setup fee.</p>\n<!-- /wp:paragraph -->\n\n<!-- wp:shortcode -->\n[fluentform id=\"{form:Paid Ads Management Order Form}\"]\n<!-- /wp:shortcode -->"
+            },
+            {
+                "title": "PR Campaign",
+                "slug": "pr-campaign",
+                "requires": "payments",
+                "content": "<!-- wp:paragraph -->\n<p>A press release or a month-long PR campaign, plus as many articles on relevant sites as you need, each with a link to you.</p>\n<!-- /wp:paragraph -->\n\n<!-- wp:shortcode -->\n[fluentform id=\"{form:PR Campaign Order Form}\"]\n<!-- /wp:shortcode -->"
+            },
+            {
+                "title": "Social Media Marketing",
+                "slug": "social-media-marketing",
+                "requires": "payments",
+                "content": "<!-- wp:paragraph -->\n<p>We plan, write and post for you every week, and reply to comments. Monthly.</p>\n<!-- /wp:paragraph -->\n\n<!-- wp:shortcode -->\n[fluentform id=\"{form:Social Media Marketing Order Form}\"]\n<!-- /wp:shortcode -->"
+            },
+            {
+                "title": "App Build",
+                "slug": "app-build",
+                "requires": "payments",
+                "content": "<!-- wp:paragraph -->\n<p>From a clickable prototype to a finished app or web app.</p>\n<!-- /wp:paragraph -->\n\n<!-- wp:shortcode -->\n[fluentform id=\"{form:App Build Order Form}\"]\n<!-- /wp:shortcode -->"
+            },
+            {
+                "title": "App Care Plan",
+                "slug": "app-care-plan",
+                "requires": "payments",
+                "content": "<!-- wp:paragraph -->\n<p>Hosting, updates and backups for your app or website, with hours for changes if you like. Monthly.</p>\n<!-- /wp:paragraph -->\n\n<!-- wp:shortcode -->\n[fluentform id=\"{form:App Care Plan Order Form}\"]\n<!-- /wp:shortcode -->"
+            },
+            {
+                "title": "Campaign Design",
+                "slug": "campaign-design",
+                "requires": "payments",
+                "content": "<!-- wp:paragraph -->\n<p>Landing pages, email campaigns and ad creatives, designed to work together.</p>\n<!-- /wp:paragraph -->\n\n<!-- wp:shortcode -->\n[fluentform id=\"{form:Campaign Design Order Form}\"]\n<!-- /wp:shortcode -->"
+            },
+            {
+                "title": "Monthly Retainer",
+                "slug": "monthly-retainer",
+                "requires": "payments",
+                "content": "<!-- wp:paragraph -->\n<p>A set number of hours each month for whatever you need most: SEO, ads, PR, social media or design.</p>\n<!-- /wp:paragraph -->\n\n<!-- wp:shortcode -->\n[fluentform id=\"{form:Monthly Retainer Order Form}\"]\n<!-- /wp:shortcode -->"
+            },
+            {
+                "title": "Services",
+                "slug": "services",
+                "requires": "payments",
+                "content": "<!-- wp:paragraph -->\n<p>Choose a service, pay securely, and follow your order on your client dashboard.</p>\n<!-- /wp:paragraph -->\n\n<!-- wp:heading -->\n<h2 class=\"wp-block-heading\">One-off</h2>\n<!-- /wp:heading -->\n\n<!-- wp:list -->\n<ul class=\"wp-block-list\"><!-- wp:list-item -->\n<li><a href=\"{url:SEO Audit}\">SEO audit</a>, from 750</li>\n<!-- /wp:list-item -->\n\n<!-- wp:list-item -->\n<li><a href=\"{url:PR Campaign}\">PR campaign and articles</a>, from 180</li>\n<!-- /wp:list-item -->\n\n<!-- wp:list-item -->\n<li><a href=\"{url:Campaign Design}\">Campaign design</a>, from 500</li>\n<!-- /wp:list-item -->\n\n<!-- wp:list-item -->\n<li><a href=\"{url:App Build}\">App build</a>, from 1,500</li>\n<!-- /wp:list-item --></ul>\n<!-- /wp:list -->\n\n<!-- wp:heading -->\n<h2 class=\"wp-block-heading\">Monthly</h2>\n<!-- /wp:heading -->\n\n<!-- wp:list -->\n<ul class=\"wp-block-list\"><!-- wp:list-item -->\n<li><a href=\"{url:Paid Ads Management}\">Paid ads management</a>, from 500 a month</li>\n<!-- /wp:list-item -->\n\n<!-- wp:list-item -->\n<li><a href=\"{url:Social Media Marketing}\">Social media marketing</a>, from 600 a month</li>\n<!-- /wp:list-item -->\n\n<!-- wp:list-item -->\n<li><a href=\"{url:App Care Plan}\">App care plan</a>, from 99 a month</li>\n<!-- /wp:list-item -->\n\n<!-- wp:list-item -->\n<li><a href=\"{url:Monthly Retainer}\">Monthly retainer</a>, from 900 a month</li>\n<!-- /wp:list-item --></ul>\n<!-- /wp:list -->"
+            },
+            {
+                "title": "Book a Call",
+                "slug": "book-a-call",
+                "when": "fluent-booking",
+                "content": "<!-- wp:paragraph -->\n<p>Book a free discovery call about your goals and how we could help.</p>\n<!-- /wp:paragraph -->\n\n<!-- wp:shortcode -->\n[fluent_booking id=\"{event:Discovery Call}\"]\n<!-- /wp:shortcode -->"
+            },
+            {
+                "title": "Book a Review Call",
+                "slug": "book-a-review-call",
+                "when": "fluent-booking",
+                "content": "<!-- wp:paragraph -->\n<p>For clients: book your monthly review call. We go through your report and plan the next month.</p>\n<!-- /wp:paragraph -->\n\n<!-- wp:shortcode -->\n[fluent_booking id=\"{event:Monthly Review Call}\"]\n<!-- /wp:shortcode -->"
+            },
+            {
+                "title": "Work With Us",
+                "slug": "work-with-us",
+                "content": "<!-- wp:paragraph -->\n<p>Not sure what you need yet? Tell us about your goals and we will reply with a quote and where to start.</p>\n<!-- /wp:paragraph -->\n\n<!-- wp:shortcode -->\n[fluentform id=\"{form:Quote Request Form}\"]\n<!-- /wp:shortcode -->"
+            },
+            {
+                "title": "Partners",
+                "slug": "partners",
+                "content": "<!-- wp:paragraph -->\n<p>Agencies, freelancers and consultants: refer clients to us, resell our services or work on projects with us.</p>\n<!-- /wp:paragraph -->\n\n<!-- wp:shortcode -->\n[fluentform id=\"{form:Referral Partner Form}\"]\n<!-- /wp:shortcode -->"
+            },
+            {
+                "title": "Support",
+                "slug": "support",
+                "content": "<!-- wp:paragraph -->\n<p>Questions or problems with any of our services? Tell us here and we will reply by email.</p>\n<!-- /wp:paragraph -->\n\n<!-- wp:shortcode -->\n[fluentform id=\"{form:Support Request Form}\"]\n<!-- /wp:shortcode -->"
+            },
+            {
+                "title": "Project Brief",
+                "slug": "project-brief",
+                "content": "<!-- wp:paragraph -->\n<p>Tell us what you need, using the email address you ordered with. We add your brief to your latest order.</p>\n<!-- /wp:paragraph -->\n\n<!-- wp:shortcode -->\n[fluentform id=\"{form:Project Brief Form}\"]\n<!-- /wp:shortcode -->"
+            },
+            {
+                "title": "Client Dashboard",
+                "slug": "client-dashboard",
+                "content": "<!-- wp:paragraph -->\n<p>Your orders, messages, payments, calls, report, courses and community in one place.</p>\n<!-- /wp:paragraph -->\n\n<!-- wp:seoprostack/client-dashboard /-->"
+            }
+        ],
+        "seoprostack_settings": [
+            { "key": "agency_orders_forms", "value": [ "{form:SEO Audit Order Form}", "{form:Paid Ads Management Order Form}", "{form:PR Campaign Order Form}", "{form:Social Media Marketing Order Form}", "{form:App Build Order Form}", "{form:App Care Plan Order Form}", "{form:Campaign Design Order Form}", "{form:Monthly Retainer Order Form}" ] },
+            { "key": "agency_orders_board", "value": "{board:Client Orders}" },
+            { "key": "agency_orders_login", "value": true },
+            { "key": "agency_orders_course", "value": "{course:Client Onboarding}" },
+            { "key": "agency_orders_space", "value": "{space:clients}" },
+            { "key": "agency_orders_briefs", "value": [ "{form:Project Brief Form}" ] },
+            { "key": "agency_orders_leads", "value": [ "{form:Quote Request Form}", "{form:Referral Partner Form}" ] },
+            { "key": "agency_orders_leads_board", "value": "{board:Sales Pipeline}" },
+            { "key": "agency_orders_requests", "value": [ "{form:Support Request Form}" ] },
+            { "key": "agency_dashboard_order_page", "value": "{page:Services}" },
+            { "key": "agency_dashboard_call_page", "value": "{page:Book a Review Call}", "when": "fluent-booking" },
+            { "key": "agency_dashboard_report_field", "value": "report_link", "when": "fluent-crm" }
+        ]
+    }
+}

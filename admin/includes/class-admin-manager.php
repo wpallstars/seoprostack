@@ -68,6 +68,10 @@ class SEOProStack_Admin_Manager {
                 'label'       => __('Plugins', 'seoprostack'),
                 'description' => __('The Plugins screen and plugin settings.', 'seoprostack'),
             ),
+            'agency' => array(
+                'label'       => __('Agency', 'seoprostack'),
+                'description' => __('Selling services and apps: orders, client updates and a client dashboard, with Fluent Forms, Fluent Boards, Fluent Support and friends.', 'seoprostack'),
+            ),
             'maintenance' => array(
                 'label'       => __('Maintenance', 'seoprostack'),
                 'description' => __('Updates, repairs and housekeeping.', 'seoprostack'),

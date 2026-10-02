@@ -364,7 +364,12 @@ class SEOProStack_Settings {
 
             case 'select':
                 $value = is_scalar($value) ? (string) $value : '';
-                return array_key_exists($value, self::options_for($field)) ? $value : $default;
+                if (array_key_exists($value, self::options_for($field))) {
+                    return $value;
+                }
+                // Open selects (another plugin's board or course) keep an
+                // identifier whose plugin is not loaded on this request.
+                return !empty($field['open']) && strlen($value) <= 200 && preg_match('/^[A-Za-z0-9_-]+$/', $value) ? $value : $default;
 
             case 'multi':
                 $values = is_array($value) ? $value : preg_split('/\s*,\s*/', (string) $value, -1, PREG_SPLIT_NO_EMPTY);

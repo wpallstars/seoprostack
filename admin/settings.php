@@ -29,6 +29,7 @@ $seoprostack_admin_files = array(
     'admin/includes/class-readme-manager.php',
     'admin/includes/class-admin-manager.php',
     'admin/includes/class-replaced-plugins.php',
+    'admin/includes/class-agency-examples.php',
 );
 
 foreach ($seoprostack_admin_files as $seoprostack_file) {
@@ -38,3 +39,4 @@ unset($seoprostack_admin_files, $seoprostack_file);
 
 SEOProStack_Admin_Manager::init();
 SEOProStack_Replaced_Plugins::init();
+SEOProStack_Agency_Examples::init();

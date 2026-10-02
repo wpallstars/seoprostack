@@ -95,6 +95,15 @@ class SEOProStack_Settings_Manager {
                 }
                 ?>
             </div>
+            <?php
+            /**
+             * Fires after a settings tab's cards, for sections that are not
+             * settings (such as example data on the Agency tab).
+             *
+             * @param string $tab Tab slug.
+             */
+            do_action('seoprostack_settings_tab_after', $tab);
+            ?>
         </div>
         <?php
     }
@@ -264,7 +273,12 @@ class SEOProStack_Settings_Manager {
                 switch ($field['type']) {
                     case 'select':
                         printf('<select %s>', $attrs); // phpcs:ignore WordPress.Security.EscapeOutput -- escaped above.
-                        foreach (SEOProStack_Settings::options_for($field) as $option_value => $option_label) {
+                        $choices = SEOProStack_Settings::options_for($field);
+                        if (!empty($field['open']) && '' !== (string) $value && !array_key_exists((string) $value, $choices)) {
+                            // A saved choice whose plugin is not loaded here stays shown.
+                            $choices[(string) $value] = (string) $value;
+                        }
+                        foreach ($choices as $option_value => $option_label) {
                             printf(
                                 '<option value="%1$s"%2$s>%3$s</option>',
                                 esc_attr((string) $option_value),

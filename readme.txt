@@ -53,6 +53,7 @@ Everything is off by default except Hide admin bar items (Comments and + New), N
 * **Load plugins only where needed**: a faster wp-admin on sites with many plugins, and admin tools you choose skipped on the site, through a must-use file it manages itself.
 * **Plugins menu** in the admin bar, **Plugin sizes**, **Clean up deleted plugins**, **Hosting needs** (what to ask your host for) and **Plugin presets**: our settings and starter data for other plugins, on request.
 * **Database key cleanup**: review leftover and duplicate indexes, confirm each removal and keep restore SQL. Back up first.
+* **Agency**: order flow, client dashboard and example data.
 
 Features that replace another plugin import its settings once, never change that plugin’s settings, and wait while it is active.
 
@@ -118,13 +119,13 @@ Copies from WordPress.org update from there. New versions come out on GitHub fir
 == Changelog ==
 
 = Unreleased =
+* New, off by default: Agency tab.
 * New: Code Snippets preset; presets clear their named settings caches on Apply, Reset and Undo.
-* New: Fluent Booking starter data: a free Discovery Call, feeding FluentCRM; booked events stay on Remove.
 * New, off by default: turn off XML-RPC and application passwords separately.
 * New, off by default: Database key cleanup, with per-key confirmation and restore SQL.
 * New, off by default: TranslatePress switcher colours.
 * New, off by default: six features that do most of Disable Bloat’s job, importing its settings.
-* New: starter data for Fluent Forms: four forms that feed FluentCRM lists and tags.
+* New: starter data feeding FluentCRM: four forms and a Fluent Booking Discovery Call.
 * New: display presets for Rank Math SEO, WP-Optimize and Burst Statistics.
 * Change: Freesoul Deactivate Plugins is no longer recommended.
 * Change: Apply preset names each setting in plain words.

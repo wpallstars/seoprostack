@@ -23,22 +23,52 @@
  *   Fluent Forms export), settings (merged into its form settings) and
  *   crm_feed: a FluentCRM feed with list and tags as slugs and tag_routers
  *   (tag, field, value), added only with FluentCRM active. Matched by title.
- * - fluentboards_boards: title, type, description, stages (title, closed).
- *   Matched by title among boards that are not archived.
- * - fluentbooking_events: title, description, duration, crm_list (a list slug).
- *   Matched by title in the adding user's host calendar. Creates that calendar
- *   only if missing; Remove keeps events with bookings and shared calendars.
+ *   Fields may be compact: an element with only the keys that differ
+ *   (attributes, settings, "required": true, "options": value => label, or
+ *   for payment items, label => price) is completed from Fluent Forms' own
+ *   element defaults, as its editor would; columns of a "container" too.
+ * - fluentboards_boards: title, type, description, stages (title, closed),
+ *   labels (title, color: a Fluent Boards colour such as "blue-bold"; without
+ *   labels the board gets Fluent Boards' default ones). Matched by title among
+ *   boards that are not archived.
+ * - fluentsupport_products: title, description. Matched by title.
+ * - fluentbooking_events: title, description, duration, crm_list (a list
+ *   slug), location (phone_guest, phone_organizer, online_meeting,
+ *   in_person_organizer or custom; default none), color. Matched by title in
+ *   the adding user's host calendar. Creates that calendar only if missing;
+ *   Remove keeps events with bookings and shared calendars.
+ * - fluentcommunity_spaces: title, slug, description, privacy (public,
+ *   private or secret). Matched by slug.
+ * - tutor_courses: title, content, excerpt, topics (title, summary, lessons:
+ *   title, content). A free, published course. Matched by title.
+ * - pages: title, slug, content. A draft page. Matched by title.
+ * - seoprostack_settings: key (an SEO Pro Stack setting), value. Set only
+ *   while the setting is at its default.
+ *
+ * Text in forms, pages and settings can name other items: {form:Title},
+ * {board:Title}, {product:Title}, {event:Title}, {space:slug},
+ * {course:Title} and {page:Title} become their IDs on this site (a value that is only a token
+ * becomes a number), so starters added in any order link up. {url:Page title}
+ * becomes a page's address, for links between pages.
  *
  * Any item can have "when": a plugin folder that must be active, so shop
- * lists only appear on shops. A starter can include another plugin's items
- * it relies on (the lists its forms feed) with "when"; they are matched as
- * usual, so the order starters are added in does not matter.
+ * lists only appear on shops, and "requires": "payments" when it needs
+ * Fluent Forms' payments turned on with a payment method (such as Stripe)
+ * set up. Compact fields Fluent Forms does not offer on the site are left
+ * out. A starter can include another plugin's
+ * items it relies on (the lists its forms feed) with "when"; they are
+ * matched as usual, so the order starters are added in does not matter.
+ *
+ * A starter with "set": true is not tied to one plugin (starters/agency.json):
+ * it covers several, adds what it can for the plugins that are active, and
+ * is offered where it belongs (the Agency tab) instead of in a plugin's row.
  *
  * Adding never changes or removes anything already there: items that exist
  * are skipped. What was added is recorded, and Remove takes away only those
  * items, and only while unused (no contacts, no tasks, no contact values,
- * settings unchanged). Everything runs through the plugin's own models and
- * fires its own created and deleted actions.
+ * no tickets, no members or posts, no enrolments, pages and settings
+ * unchanged). Everything runs through the plugin's own models and fires its
+ * own created and deleted actions.
  *
  * @package SEOProStack
  * @since 0.7.0
@@ -54,7 +84,31 @@ final class SEOProStack_Starters {
     const ADDED = 'seoprostack_starters_added';
 
     /** Item types, in the order they are added. Removal runs in reverse. */
-    const TYPES = array('fluentcrm_lists', 'fluentcrm_tags', 'fluentcrm_contact_fields', 'fluentcrm_settings', 'fluentform_forms', 'fluentboards_boards', 'fluentbooking_events');
+    const TYPES = array(
+        'fluentcrm_lists',
+        'fluentcrm_tags',
+        'fluentcrm_contact_fields',
+        'fluentcrm_settings',
+        'fluentform_forms',
+        'fluentboards_boards',
+        'fluentsupport_products',
+        'fluentbooking_events',
+        'fluentcommunity_spaces',
+        'tutor_courses',
+        'pages',
+        'seoprostack_settings',
+    );
+
+    /** Item types that link items by name: token kind => item type. */
+    const TOKENS = array(
+        'form'    => 'fluentform_forms',
+        'board'   => 'fluentboards_boards',
+        'product' => 'fluentsupport_products',
+        'event'   => 'fluentbooking_events',
+        'space'   => 'fluentcommunity_spaces',
+        'course'  => 'tutor_courses',
+        'page'    => 'pages',
+    );
 
     /**
      * Loaded starters.
@@ -105,6 +159,7 @@ final class SEOProStack_Starters {
                     'tested'  => isset($starter['tested']) ? (string) $starter['tested'] : '',
                     'updated' => isset($starter['updated']) ? (string) $starter['updated'] : '',
                     'notes'   => isset($starter['notes']) ? (string) $starter['notes'] : '',
+                    'set'     => !empty($starter['set']),
                     'items'   => $items,
                 );
             }
@@ -135,6 +190,15 @@ final class SEOProStack_Starters {
         if (!$starter) {
             return false;
         }
+        if ($starter['set']) {
+            // A set adds what it can: ready when any of its plugins is.
+            foreach (array_keys($starter['items']) as $type) {
+                if ('pages' !== $type && 'seoprostack_settings' !== $type && self::type_ready($type)) {
+                    return true;
+                }
+            }
+            return false;
+        }
         foreach ($starter['items'] as $type => $items) {
             // Types whose items all name a "when" plugin are optional.
             $optional = !in_array(true, array_map(function ($item) {
@@ -163,10 +227,87 @@ final class SEOProStack_Starters {
         if (0 === strpos($type, 'fluentform_')) {
             return class_exists('FluentForm\App\Services\Form\FormService') && class_exists('FluentForm\App\Models\Form');
         }
-        if ('fluentbooking_events' === $type) {
-            return class_exists('FluentBooking\App\Http\Controllers\CalendarController') && class_exists('FluentBooking\App\Models\Booking');
+        if (0 === strpos($type, 'fluentsupport_')) {
+            return class_exists('FluentSupport\App\Models\Product') && class_exists('FluentSupport\App\Models\Ticket');
+        }
+        if (0 === strpos($type, 'fluentcommunity_')) {
+            return class_exists('FluentCommunity\App\Models\Space') && class_exists('FluentCommunity\App\Services\CustomSanitizer');
+        }
+        if (0 === strpos($type, 'fluentbooking_')) {
+            return class_exists('FluentBooking\App\Http\Controllers\CalendarController') && class_exists('FluentBooking\App\Models\CalendarSlot') && class_exists('FluentBooking\App\Models\Booking');
+        }
+        if (0 === strpos($type, 'tutor_')) {
+            return function_exists('tutor') && post_type_exists(self::course_type());
+        }
+        return 'pages' === $type || 'seoprostack_settings' === $type;
+    }
+
+    /**
+     * Tutor LMS's course post type.
+     *
+     * @return string
+     */
+    private static function course_type() {
+        return function_exists('tutor') && !empty(tutor()->course_post_type) ? (string) tutor()->course_post_type : 'courses';
+    }
+
+    /**
+     * Whether an item's "requires" condition holds.
+     *
+     * @param array $item Item.
+     * @return bool
+     */
+    private static function requirement_met(array $item) {
+        if (empty($item['requires'])) {
+            return true;
+        }
+        if ('payments' === $item['requires']) {
+            return self::payments_on();
         }
         return false;
+    }
+
+    /**
+     * Whether Fluent Forms can take payments: payments turned on (Fluent
+     * Forms → Global Settings → Payments) and a payment method, such as
+     * Stripe, set up, so its Payment Method field exists.
+     *
+     * @return bool
+     */
+    public static function payments_on() {
+        $settings = get_option('__fluentform_payment_module_settings');
+        if (!is_array($settings) || !isset($settings['status']) || 'yes' !== $settings['status']) {
+            return false;
+        }
+        $methods = apply_filters('fluentform/available_payment_methods', array()); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- Fluent Forms' own filter, as its Payment Method field reads it.
+        return !empty($methods);
+    }
+
+    /**
+     * Items of a starter that wait for a condition (payments turned on),
+     * among those whose plugin is active, as names.
+     *
+     * @param string $slug Starter.
+     * @return string[]
+     */
+    public static function waiting($slug) {
+        $starter = self::get($slug);
+        if (!$starter) {
+            return array();
+        }
+        $active = self::active_folders();
+        $out    = array();
+        foreach ($starter['items'] as $type => $items) {
+            if (!self::type_ready($type)) {
+                continue;
+            }
+            foreach ($items as $item) {
+                if ((empty($item['when']) || isset($active[(string) $item['when']])) && !self::requirement_met($item) && !self::exists($type, $item)) {
+                    $out[] = self::label($type, $item);
+                }
+            }
+        }
+        return $out;
     }
 
     /**
@@ -187,7 +328,7 @@ final class SEOProStack_Starters {
                 continue;
             }
             foreach ($items as $item) {
-                if (!empty($item['when']) && !isset($active[(string) $item['when']])) {
+                if ((!empty($item['when']) && !isset($active[(string) $item['when']])) || !self::requirement_met($item)) {
                     continue;
                 }
                 $out[$type][] = $item;
@@ -314,6 +455,12 @@ final class SEOProStack_Starters {
             foreach (self::items($slug) as $type => $items) {
                 foreach ($items as $item) {
                     if (self::exists($type, $item)) {
+                        // A setting added earlier, before every item it names
+                        // existed (forms waiting for payments), catches up.
+                        if ('seoprostack_settings' === $type && !empty($records[$type]) && self::refresh_setting($item, $records[$type])) {
+                            self::save_added($slug, $records);
+                            ++$count;
+                        }
                         if ('fluentbooking_events' === $type && !empty($records[$type])) {
                             foreach ($records[$type] as $key => $owned) {
                                 if (empty($owned['pending_crm'])) {
@@ -501,8 +648,20 @@ final class SEOProStack_Starters {
                 return sprintf(/* translators: %s: form name */ __('Form: %s', 'seoprostack'), (string) $item['title']);
             case 'fluentboards_boards':
                 return sprintf(/* translators: %s: board name */ __('Board: %s', 'seoprostack'), (string) $item['title']);
+            case 'fluentsupport_products':
+                return sprintf(/* translators: %s: product name */ __('Support product: %s', 'seoprostack'), (string) $item['title']);
             case 'fluentbooking_events':
                 return sprintf(/* translators: %s: event name */ __('Booking event: %s', 'seoprostack'), (string) $item['title']);
+            case 'fluentcommunity_spaces':
+                return sprintf(/* translators: %s: space name */ __('Community space: %s', 'seoprostack'), (string) $item['title']);
+            case 'tutor_courses':
+                return sprintf(/* translators: %s: course name */ __('Course: %s', 'seoprostack'), (string) $item['title']);
+            case 'pages':
+                return sprintf(/* translators: %s: page title */ __('Draft page: %s', 'seoprostack'), (string) $item['title']);
+            case 'seoprostack_settings':
+                $schema = SEOProStack_Settings::schema();
+                $key    = (string) $item['key'];
+                return sprintf(/* translators: %s: setting name */ __('SEO Pro Stack setting: %s', 'seoprostack'), isset($schema[$key]['label']) ? (string) $schema[$key]['label'] : $key);
         }
         return $type;
     }
@@ -537,8 +696,107 @@ final class SEOProStack_Starters {
             case 'fluentbooking_events':
                 $calendar = \FluentBooking\App\Models\Calendar::where('user_id', self::booking_user())->where('type', 'simple')->first();
                 return $calendar && $calendar->events()->where('title', (string) $item['title'])->exists();
+            case 'fluentsupport_products':
+            case 'fluentcommunity_spaces':
+            case 'tutor_courses':
+            case 'pages':
+                return 0 !== self::find_id($type, 'fluentcommunity_spaces' === $type ? (string) $item['slug'] : (string) $item['title']);
+            case 'seoprostack_settings':
+                $schema = SEOProStack_Settings::schema();
+                $key    = (string) $item['key'];
+                if (!isset($schema[$key])) {
+                    return true; // Unknown here: nothing to add.
+                }
+                $default = isset($schema[$key]['default']) ? $schema[$key]['default'] : null;
+                if (SEOProStack_Settings::get($key) !== $default) {
+                    return true;
+                }
+                // Nothing to set yet (it lists only items the site does not have).
+                return SEOProStack_Settings::sanitize_value(self::setting_value($item), $schema[$key]) === $default;
         }
         return true;
+    }
+
+    /**
+     * ID of an item on this site, by the name the starter gives it.
+     *
+     * @param string $type Item type.
+     * @param string $name Title (slug for spaces).
+     * @return int 0 when not found.
+     */
+    public static function find_id($type, $name) {
+        if ('' === $name || !self::type_ready($type)) {
+            return 0;
+        }
+        switch ($type) {
+            case 'fluentform_forms':
+                $id = \FluentForm\App\Models\Form::where('title', $name)->orderBy('id', 'DESC')->value('id');
+                break;
+            case 'fluentboards_boards':
+                $id = \FluentBoards\App\Models\Board::where('title', $name)->whereNull('archived_at')->orderBy('id', 'DESC')->value('id');
+                break;
+            case 'fluentsupport_products':
+                $id = \FluentSupport\App\Models\Product::where('title', $name)->orderBy('id', 'DESC')->value('id');
+                break;
+            case 'fluentbooking_events':
+                $id = \FluentBooking\App\Models\CalendarSlot::where('title', $name)->where('status', '!=', 'expired')->orderBy('id', 'DESC')->value('id');
+                break;
+            case 'fluentcommunity_spaces':
+                $id = \FluentCommunity\App\Models\Space::where('slug', sanitize_title($name))->value('id');
+                if (!$id) {
+                    $id = \FluentCommunity\App\Models\Space::where('title', $name)->value('id');
+                }
+                break;
+            case 'tutor_courses':
+            case 'pages':
+                $ids = get_posts(array(
+                    'post_type'              => 'pages' === $type ? 'page' : self::course_type(),
+                    'post_status'            => array('publish', 'draft', 'pending', 'private', 'future'),
+                    'title'                  => $name,
+                    'fields'                 => 'ids',
+                    'posts_per_page'         => 1,
+                    'orderby'                => 'ID',
+                    'order'                  => 'DESC',
+                    'no_found_rows'          => true,
+                    'update_post_term_cache' => false,
+                    'update_post_meta_cache' => false,
+                ));
+                $id = $ids ? $ids[0] : 0;
+                break;
+            default:
+                $id = 0;
+        }
+        return (int) $id;
+    }
+
+    /**
+     * Put item IDs in for {kind:Name} tokens. A value that is only a token
+     * becomes a number; tokens inside text become the ID as text. Names the
+     * site does not have become 0. {url:Page title} becomes the page's
+     * address (?page_id= while it is a draft, which still works once it is
+     * published), for links between pages; list the linked page first.
+     *
+     * @param mixed $value Value.
+     * @return mixed
+     */
+    public static function resolve_tokens($value) {
+        if (is_array($value)) {
+            return array_map(array(__CLASS__, 'resolve_tokens'), $value);
+        }
+        if (!is_string($value) || false === strpos($value, '{')) {
+            return $value;
+        }
+        $value = preg_replace_callback('/\{url:([^{}]+)\}/', function ($m) {
+            $id = self::find_id('pages', $m[1]);
+            return $id ? esc_url((string) get_permalink($id)) : '#';
+        }, $value);
+        $pattern = '/\{(' . implode('|', array_keys(self::TOKENS)) . '):([^{}]+)\}/';
+        if (preg_match('/^' . trim($pattern, '/') . '$/', $value, $m)) {
+            return self::find_id(self::TOKENS[$m[1]], $m[2]);
+        }
+        return preg_replace_callback($pattern, function ($m) {
+            return (string) self::find_id(self::TOKENS[$m[1]], $m[2]);
+        }, $value);
     }
 
     /**
@@ -589,10 +847,209 @@ final class SEOProStack_Starters {
 
             case 'fluentboards_boards':
                 return self::create_board($item);
+
+            case 'fluentsupport_products':
+                $product = \FluentSupport\App\Models\Product::create(array(
+                    'title'       => sanitize_text_field((string) $item['title']),
+                    'description' => isset($item['description']) ? sanitize_textarea_field((string) $item['description']) : '',
+                    'created_by'  => self::creator(),
+                ));
+                return $product ? array('id' => (int) $product->id, 'name' => (string) $item['title']) : null;
+
             case 'fluentbooking_events':
                 return self::create_booking_event($item, $slug);
+
+            case 'fluentcommunity_spaces':
+                return self::create_space($item);
+
+            case 'tutor_courses':
+                return self::create_course($item);
+
+            case 'pages':
+                $content = isset($item['content']) ? (string) self::resolve_tokens((string) $item['content']) : '';
+                $id      = wp_insert_post(wp_slash(array(
+                    'post_type'    => 'page',
+                    'post_status'  => 'draft',
+                    'post_title'   => sanitize_text_field((string) $item['title']),
+                    'post_name'    => isset($item['slug']) ? sanitize_title((string) $item['slug']) : '',
+                    'post_content' => $content,
+                    'post_author'  => self::creator(),
+                )), true);
+                if (is_wp_error($id) || !$id) {
+                    return null;
+                }
+                return array('id' => (int) $id, 'hash' => md5((string) get_post_field('post_content', $id, 'raw')), 'name' => (string) $item['title']);
+
+            case 'seoprostack_settings':
+                $key   = (string) $item['key'];
+                $value = SEOProStack_Settings::set($key, self::setting_value($item));
+                if (is_wp_error($value)) {
+                    return null;
+                }
+                return array('key' => $key, 'hash' => md5((string) wp_json_encode($value)), 'name' => $key);
         }
         return null;
+    }
+
+    /**
+     * Who items are made by: the current user, or the first administrator
+     * (WP-CLI without --user).
+     *
+     * @return int
+     */
+    private static function creator() {
+        $creator = get_current_user_id();
+        if (!$creator) {
+            $admins  = get_users(array('role' => 'administrator', 'number' => 1, 'orderby' => 'ID', 'fields' => 'ID'));
+            $creator = $admins ? (int) $admins[0] : 0;
+        }
+        return (int) $creator;
+    }
+
+    /**
+     * An SEO Pro Stack setting's value from a starter, with item IDs put in.
+     * In lists, items the site does not have (yet) are left out.
+     *
+     * @param array $item Setting item.
+     * @return mixed
+     */
+    private static function setting_value(array $item) {
+        $raw   = isset($item['value']) ? $item['value'] : null;
+        $value = self::resolve_tokens($raw);
+        if (0 === $value && is_string($raw)) {
+            return null; // Names one item the site does not have (yet).
+        }
+        if (is_array($value)) {
+            $value = array_values(array_filter($value, function ($v) {
+                return 0 !== $v && '' !== $v && '0' !== $v;
+            }));
+        }
+        return $value;
+    }
+
+    /**
+     * Bring a setting SEO Pro Stack added up to date with the items that
+     * exist now, while it is as SEO Pro Stack left it.
+     *
+     * @param array $item    Setting item.
+     * @param array $records Records of added settings; the matching one is updated.
+     * @return bool Whether it changed.
+     */
+    private static function refresh_setting(array $item, array &$records) {
+        $key = (string) $item['key'];
+        foreach ($records as $i => $record) {
+            if (!is_array($record) || !isset($record['key'], $record['hash']) || $key !== $record['key']) {
+                continue;
+            }
+            $current = SEOProStack_Settings::get($key);
+            if (md5((string) wp_json_encode($current)) !== $record['hash']) {
+                return false; // Changed by someone since: leave it.
+            }
+            $wanted = self::setting_value($item);
+            if ($wanted === $current) {
+                return false;
+            }
+            $value = SEOProStack_Settings::set($key, $wanted);
+            if (is_wp_error($value) || $value === $current) {
+                return false;
+            }
+            $records[$i]['hash'] = md5((string) wp_json_encode($value));
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Create a FluentCommunity space as its own create-space screen does,
+     * with the person adding it as the space's admin.
+     *
+     * @param array $item Space item.
+     * @return array|null
+     */
+    private static function create_space(array $item) {
+        $privacy = isset($item['privacy']) && in_array($item['privacy'], array('public', 'private', 'secret'), true) ? $item['privacy'] : 'private';
+        $settings = \FluentCommunity\App\Services\CustomSanitizer::santizeSpaceSettings(array(), $privacy);
+        if (is_wp_error($settings)) {
+            return null;
+        }
+        $serial = (int) \FluentCommunity\App\Models\BaseSpace::query()->withoutGlobalScopes()->max('serial') + 1;
+        $space  = \FluentCommunity\App\Models\Space::create(apply_filters('fluent_community/space/create_data', array( // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- FluentCommunity's own filter, as its screen applies it.
+            'title'       => sanitize_text_field((string) $item['title']),
+            'slug'        => sanitize_title(isset($item['slug']) ? (string) $item['slug'] : (string) $item['title']),
+            'privacy'     => $privacy,
+            'description' => isset($item['description']) ? sanitize_textarea_field((string) $item['description']) : '',
+            'settings'    => $settings,
+            'parent_id'   => null,
+            'serial'      => $serial,
+        )));
+        if (!$space || empty($space->id)) {
+            return null;
+        }
+        $creator = self::creator();
+        if ($creator) {
+            $space->members()->attach($creator, array('role' => 'admin'));
+        }
+        do_action('fluent_community/space/created', $space, array()); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- FluentCommunity's own hook.
+        return array('id' => (int) $space->id, 'name' => (string) $item['title']);
+    }
+
+    /**
+     * Create a free, published Tutor LMS course with its topics and lessons.
+     *
+     * @param array $item Course item.
+     * @return array|null
+     */
+    private static function create_course(array $item) {
+        $author = self::creator();
+        $course = wp_insert_post(wp_slash(array(
+            'post_type'    => self::course_type(),
+            'post_status'  => 'publish',
+            'post_title'   => sanitize_text_field((string) $item['title']),
+            'post_content' => isset($item['content']) ? wp_kses_post((string) $item['content']) : '',
+            'post_excerpt' => isset($item['excerpt']) ? sanitize_textarea_field((string) $item['excerpt']) : '',
+            'post_author'  => $author,
+        )), true);
+        if (is_wp_error($course) || !$course) {
+            return null;
+        }
+        update_post_meta($course, '_tutor_course_price_type', 'free');
+        $children = array();
+        foreach (isset($item['topics']) ? array_values((array) $item['topics']) : array() as $t => $topic) {
+            if (!is_array($topic) || empty($topic['title'])) {
+                continue;
+            }
+            $topic_id = wp_insert_post(wp_slash(array(
+                'post_type'    => 'topics',
+                'post_status'  => 'publish',
+                'post_title'   => sanitize_text_field((string) $topic['title']),
+                'post_content' => isset($topic['summary']) ? sanitize_textarea_field((string) $topic['summary']) : '',
+                'post_parent'  => $course,
+                'menu_order'   => $t + 1,
+                'post_author'  => $author,
+            )));
+            if (!$topic_id) {
+                continue;
+            }
+            $children[] = (int) $topic_id;
+            foreach (isset($topic['lessons']) ? array_values((array) $topic['lessons']) : array() as $l => $lesson) {
+                if (!is_array($lesson) || empty($lesson['title'])) {
+                    continue;
+                }
+                $lesson_id = wp_insert_post(wp_slash(array(
+                    'post_type'    => 'lesson',
+                    'post_status'  => 'publish',
+                    'post_title'   => sanitize_text_field((string) $lesson['title']),
+                    'post_content' => isset($lesson['content']) ? wp_kses_post((string) $lesson['content']) : '',
+                    'post_parent'  => $topic_id,
+                    'menu_order'   => $l + 1,
+                    'post_author'  => $author,
+                )));
+                if ($lesson_id) {
+                    $children[] = (int) $lesson_id;
+                }
+            }
+        }
+        return array('id' => (int) $course, 'children' => $children, 'hash' => md5((string) get_post_field('post_content', $course, 'raw')), 'name' => (string) $item['title']);
     }
 
     /**
@@ -601,12 +1058,7 @@ final class SEOProStack_Starters {
      * @return int
      */
     private static function booking_user() {
-        $id = get_current_user_id();
-        if (!$id) {
-            $admins = get_users(array('role' => 'administrator', 'number' => 1, 'orderby' => 'ID', 'fields' => 'ID'));
-            $id = $admins ? (int) $admins[0] : 0;
-        }
-        return $id;
+        return self::creator();
     }
 
     /**
@@ -631,6 +1083,8 @@ final class SEOProStack_Starters {
             $app = \FluentBooking\Framework\Foundation\App::getInstance();
             $controller = new \FluentBooking\App\Http\Controllers\CalendarController($app);
             $weekly = \FluentBooking\App\Services\Helper::getWeeklyScheduleSchema();
+            // Only locations that need no details from the host (a number, address or link).
+            $location = isset($item['location']) && in_array($item['location'], array('phone_guest', 'online_meeting'), true) ? (string) $item['location'] : '';
             $slot = array(
                 'title' => sanitize_text_field((string) $item['title']),
                 'description' => isset($item['description']) ? wp_kses_post((string) $item['description']) : '',
@@ -641,8 +1095,9 @@ final class SEOProStack_Starters {
                 'schedule_type' => 'weekly_schedules',
                 'weekly_schedules' => $weekly,
                 'location_heading' => '',
-                'location_type' => '',
-                'location_settings' => array(),
+                'location_type' => $location,
+                'location_settings' => $location ? array(array('type' => $location, 'title' => '', 'display_on_booking' => '')) : array(),
+                'color_schema' => isset($item['color']) && sanitize_hex_color((string) $item['color']) ? (string) $item['color'] : '#0099ff',
                 'settings' => array('schedule_type' => 'weekly_schedules', 'weekly_schedules' => $weekly, 'range_type' => 'range_days'),
             );
             if ($created_calendar) {
@@ -733,8 +1188,17 @@ final class SEOProStack_Starters {
         $id     = (int) $form->id;
         $fields = $item['form_fields'];
         if (isset($fields['fields']) && is_array($fields['fields'])) {
-            $fields['fields'] = self::usable_fields($fields['fields'], self::active_folders());
+            $fields['fields'] = self::usable_fields(self::expand_fields($fields['fields']), self::active_folders());
         }
+        if (isset($fields['submitButton']) && is_array($fields['submitButton']) && empty($fields['submitButton']['editor_options'])) {
+            // Compact: only the button text; the rest from the template's own button.
+            $stored = \FluentForm\App\Models\Form::find($id);
+            $own    = $stored ? json_decode((string) $stored->form_fields, true) : null;
+            if (is_array($own) && isset($own['submitButton']) && is_array($own['submitButton'])) {
+                $fields['submitButton'] = self::merge_deep($own['submitButton'], $fields['submitButton']);
+            }
+        }
+        $fields = self::resolve_tokens($fields);
         (new \FluentForm\App\Services\Form\Updater())->update(array(
             'form_id'    => $id,
             'title'      => $title,
@@ -945,12 +1409,8 @@ final class SEOProStack_Starters {
      * @return array|null
      */
     private static function create_board(array $item) {
-        $creator = get_current_user_id();
-        if (!$creator) {
-            $admins  = get_users(array('role' => 'administrator', 'number' => 1, 'orderby' => 'ID', 'fields' => 'ID'));
-            $creator = $admins ? (int) $admins[0] : 0;
-        }
-        $board = (new \FluentBoards\App\Services\BoardService())->createBoard(array(
+        $creator = self::creator();
+        $board   = (new \FluentBoards\App\Services\BoardService())->createBoard(array(
             'title'       => sanitize_text_field((string) $item['title']),
             'type'        => isset($item['type']) ? sanitize_key((string) $item['type']) : 'to-do',
             'description' => isset($item['description']) ? sanitize_textarea_field((string) $item['description']) : '',
@@ -959,7 +1419,9 @@ final class SEOProStack_Starters {
         if (!$board) {
             return null;
         }
-        (new \FluentBoards\App\Services\LabelService())->createDefaultLabel($board->id);
+        if (!self::create_labels($board->id, isset($item['labels']) ? (array) $item['labels'] : array())) {
+            (new \FluentBoards\App\Services\LabelService())->createDefaultLabel($board->id);
+        }
         $stages = array();
         foreach (isset($item['stages']) ? (array) $item['stages'] : array() as $stage) {
             if (is_array($stage) && !empty($stage['title'])) {
@@ -982,6 +1444,229 @@ final class SEOProStack_Starters {
         }
         do_action('fluent_boards/board_created', $board); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- Fluent Boards' own hook, as its create-board code fires it.
         return array('id' => (int) $board->id, 'name' => (string) $item['title']);
+    }
+
+    /**
+     * Add a board's labels the way Fluent Boards adds its default ones: a
+     * colour preset (light colours stored, dark ones picked when shown).
+     *
+     * @param int   $board_id Board ID.
+     * @param array $labels   Labels: title, color (preset ID).
+     * @return bool Whether any were added.
+     */
+    private static function create_labels($board_id, array $labels) {
+        if (!$labels || !class_exists('FluentBoards\App\Models\Label') || !method_exists('FluentBoards\App\Services\Constant', 'getLabelColorPreset')) {
+            return false;
+        }
+        $rows = array();
+        foreach ($labels as $label) {
+            if (!is_array($label) || empty($label['title'])) {
+                continue;
+            }
+            $preset_id = isset($label['color']) ? (string) $label['color'] : 'gray-bold';
+            $preset    = \FluentBoards\App\Services\Constant::getLabelColorPreset($preset_id);
+            if (!$preset) {
+                $preset_id = 'gray-bold';
+                $preset    = \FluentBoards\App\Services\Constant::getLabelColorPreset($preset_id);
+            }
+            $title  = sanitize_text_field((string) $label['title']);
+            $rows[] = array(
+                'board_id'   => (int) $board_id,
+                'title'      => $title,
+                'slug'       => sanitize_title($title),
+                'type'       => 'label',
+                'bg_color'   => $preset ? $preset['light_bg_color'] : '',
+                'color'      => $preset ? $preset['light_text_color'] : '',
+                'settings'   => maybe_serialize(array(\FluentBoards\App\Services\Constant::LABEL_COLOR_PRESET_SETTING => $preset_id)),
+                'created_at' => current_time('mysql'),
+                'updated_at' => current_time('mysql'),
+            );
+        }
+        if (!$rows) {
+            return false;
+        }
+        \FluentBoards\App\Models\Label::insert($rows);
+        return true;
+    }
+
+    /**
+     * Fluent Forms' element defaults, keyed by element (the first of each
+     * name: text input before mask input, dropdown before multiple choice),
+     * and its container layouts keyed by number of columns.
+     *
+     * @return array{elements:array<string,array>,containers:array<int,array>}
+     */
+    private static function form_elements() {
+        static $out = null;
+        if (null !== $out) {
+            return $out;
+        }
+        $out = array('elements' => array(), 'containers' => array());
+        if (!function_exists('wpFluentForm')) {
+            return $out;
+        }
+        $components = wpFluentForm('components');
+        do_action('fluentform/editor_init', $components); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- Fluent Forms' own hook, as its editor fires it to build the element list.
+        $groups = (array) $components->toArray();
+        // Payment and other extra elements arrive through this filter (true: keep fields without a form).
+        foreach ((array) apply_filters('fluentform/editor_components', array(), true) as $group => $elements) { // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- Fluent Forms' own filter.
+            $groups[$group] = array_merge(isset($groups[$group]) ? (array) $groups[$group] : array(), (array) $elements);
+        }
+        foreach ($groups as $group => $elements) {
+            foreach ((array) $elements as $element) {
+                if (!is_array($element) || empty($element['element'])) {
+                    continue;
+                }
+                if ('container' === $element['element']) {
+                    $count = isset($element['columns']) ? count((array) $element['columns']) : 0;
+                    if ($count && !isset($out['containers'][$count])) {
+                        $out['containers'][$count] = $element;
+                    }
+                } elseif (!isset($out['elements'][$element['element']])) {
+                    $out['elements'][$element['element']] = $element;
+                }
+            }
+        }
+        return $out;
+    }
+
+    /**
+     * Complete compact form fields from Fluent Forms' element defaults.
+     * Fields that already carry editor_options (a full export) stay as they are.
+     *
+     * @param array $fields Fields.
+     * @return array
+     */
+    private static function expand_fields(array $fields) {
+        $defaults = self::form_elements();
+        $out      = array();
+        foreach ($fields as $field) {
+            if (!is_array($field) || empty($field['element'])) {
+                continue;
+            }
+            $element = (string) $field['element'];
+            if ('container' === $element && isset($field['columns']) && is_array($field['columns'])) {
+                $count = count($field['columns']);
+                $base  = isset($defaults['containers'][$count]) ? $defaults['containers'][$count] : array('element' => 'container', 'attributes' => array(), 'settings' => array('container_class' => '', 'conditional_logics' => array()), 'columns' => array());
+                foreach (array_values($field['columns']) as $i => $column) {
+                    $base['columns'][$i] = array(
+                        'width'  => isset($column['width']) ? $column['width'] : (isset($base['columns'][$i]['width']) ? $base['columns'][$i]['width'] : round(100 / $count, 2)),
+                        'fields' => self::expand_fields(isset($column['fields']) ? (array) $column['fields'] : array()),
+                    );
+                }
+                $base['uniqElKey'] = 'el_' . uniqid();
+                if (!empty($field['when'])) {
+                    $base['when'] = $field['when'];
+                }
+                $out[] = $base;
+                continue;
+            }
+            if (!empty($field['editor_options'])) {
+                $out[] = $field;
+                continue;
+            }
+            if (!isset($defaults['elements'][$element])) {
+                // A compact field this site's Fluent Forms does not offer: leave it out.
+                continue;
+            }
+            $base = $defaults['elements'][$element];
+            unset($base['index']);
+            foreach (array('attributes', 'settings') as $part) {
+                if (!empty($field[$part]) && is_array($field[$part])) {
+                    $base[$part] = self::merge_deep(isset($base[$part]) ? (array) $base[$part] : array(), $field[$part]);
+                }
+            }
+            if (!empty($field['fields']) && is_array($field['fields']) && isset($base['fields']) && is_array($base['fields'])) {
+                // Name and address parts: first_name, last_name, address_line_1…
+                foreach ($field['fields'] as $name => $part) {
+                    if (isset($base['fields'][$name]) && is_array($part)) {
+                        $base['fields'][$name] = self::merge_deep($base['fields'][$name], $part);
+                    }
+                }
+            }
+            if (!empty($field['required'])) {
+                $base['settings']['validation_rules']['required']['value'] = true;
+            }
+            if (isset($field['options']) && is_array($field['options'])) {
+                $base = self::field_options($base, $field['options']);
+            }
+            $base['uniqElKey'] = 'el_' . uniqid();
+            if (!empty($field['when'])) {
+                $base['when'] = $field['when'];
+            }
+            $out[] = $base;
+        }
+        return $out;
+    }
+
+    /**
+     * Put a compact field's options in: choices (value => label) for
+     * dropdowns, radios and checkboxes; label => price for payment items;
+     * name => [amount, interval, setup fee] for subscription plans.
+     *
+     * @param array $field   Field.
+     * @param array $options Options.
+     * @return array
+     */
+    private static function field_options(array $field, array $options) {
+        $element = $field['element'];
+        if ('multi_payment_component' === $element) {
+            $list = array();
+            foreach ($options as $label => $price) {
+                $list[] = array('label' => (string) $label, 'value' => (float) $price, 'image' => '');
+            }
+            $field['settings']['pricing_options'] = $list;
+            if (1 === count($list) && 'single' === $field['attributes']['type']) {
+                $field['attributes']['value'] = (string) $list[0]['value'];
+            }
+            return $field;
+        }
+        if ('subscription_payment_component' === $element) {
+            $template = isset($field['settings']['subscription_options'][0]) ? (array) $field['settings']['subscription_options'][0] : array();
+            $list     = array();
+            foreach ($options as $name => $plan) {
+                $plan   = array_values((array) $plan);
+                $fee    = isset($plan[2]) ? (float) $plan[2] : 0;
+                $list[] = array_merge($template, array(
+                    'name'                => (string) $name,
+                    'subscription_amount' => isset($plan[0]) ? (float) $plan[0] : 0,
+                    'billing_interval'    => isset($plan[1]) ? sanitize_key((string) $plan[1]) : 'month',
+                    'has_signup_fee'      => $fee > 0 ? 'yes' : 'no',
+                    'signup_fee'          => $fee,
+                    'is_default'          => $list ? 'no' : 'yes',
+                ));
+            }
+            $field['settings']['subscription_options'] = $list;
+            // One plan shows as a single item; more as a choice (settings.selection_type).
+            $field['attributes']['type'] = count($list) > 1 ? 'multiple' : 'single';
+            return $field;
+        }
+        if (isset($field['settings']['advanced_options'])) {
+            $list = array();
+            foreach ($options as $value => $label) {
+                $list[] = array('label' => (string) $label, 'value' => (string) $value, 'calc_value' => '', 'image' => '');
+            }
+            $field['settings']['advanced_options'] = $list;
+        }
+        return $field;
+    }
+
+    /**
+     * Merge arrays key by key; lists are replaced whole.
+     *
+     * @param array $base Base.
+     * @param array $ours Ours.
+     * @return array
+     */
+    private static function merge_deep(array $base, array $ours) {
+        foreach ($ours as $key => $value) {
+            if (is_array($value) && isset($base[$key]) && is_array($base[$key]) && !wp_is_numeric_array($value) && !wp_is_numeric_array($base[$key])) {
+                $base[$key] = self::merge_deep($base[$key], $value);
+            } else {
+                $base[$key] = $value;
+            }
+        }
+        return $base;
     }
 
     /**
@@ -1099,6 +1784,79 @@ final class SEOProStack_Starters {
                     return $name;
                 }
                 \FluentForm\App\Models\Form::remove($id);
+                return true;
+
+            case 'fluentsupport_products':
+                $product = \FluentSupport\App\Models\Product::find((int) $record['id']);
+                if (!$product) {
+                    return false;
+                }
+                if (\FluentSupport\App\Models\Ticket::where('product_id', (int) $product->id)->count() > 0) {
+                    return $name;
+                }
+                \FluentSupport\App\Models\Product::where('id', (int) $product->id)->delete();
+                return true;
+
+            case 'fluentcommunity_spaces':
+                $space = \FluentCommunity\App\Models\Space::find((int) $record['id']);
+                if (!$space) {
+                    return false;
+                }
+                $id      = (int) $space->id;
+                $members = \FluentCommunity\App\Models\SpaceUserPivot::where('space_id', $id)->where('role', '!=', 'admin')->count();
+                $posts   = \FluentCommunity\App\Models\Feed::where('space_id', $id)->count();
+                if ($members > 0 || $posts > 0) {
+                    return $name;
+                }
+                do_action('fluent_community/space/before_delete', $space); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- FluentCommunity's own hook, as its delete-space code fires it.
+                \FluentCommunity\App\Models\SpaceUserPivot::where('space_id', $id)->delete();
+                $space->delete();
+                do_action('fluent_community/space/deleted', $id); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- FluentCommunity's own hook.
+                return true;
+
+            case 'tutor_courses':
+                $course = get_post((int) $record['id']);
+                if (!$course || self::course_type() !== $course->post_type) {
+                    return false;
+                }
+                $enrolled = get_posts(array(
+                    'post_type'        => 'tutor_enrolled',
+                    'post_parent'      => (int) $course->ID,
+                    'post_status'      => 'any',
+                    'fields'           => 'ids',
+                    'posts_per_page'   => 1,
+                    'no_found_rows'    => true,
+                ));
+                if ($enrolled || md5((string) $course->post_content) !== (string) $record['hash']) {
+                    return $name;
+                }
+                foreach (array_reverse(isset($record['children']) ? (array) $record['children'] : array()) as $child) {
+                    wp_delete_post((int) $child, true);
+                }
+                wp_delete_post((int) $course->ID, true);
+                return true;
+
+            case 'pages':
+                $page = get_post((int) $record['id']);
+                if (!$page || 'page' !== $page->post_type || 'trash' === $page->post_status) {
+                    return false;
+                }
+                if ('draft' !== $page->post_status || md5((string) $page->post_content) !== (string) $record['hash']) {
+                    return $name;
+                }
+                wp_delete_post((int) $page->ID, true);
+                return true;
+
+            case 'seoprostack_settings':
+                $key    = (string) $record['key'];
+                $schema = SEOProStack_Settings::schema();
+                if (!isset($schema[$key])) {
+                    return false;
+                }
+                if (md5((string) wp_json_encode(SEOProStack_Settings::get($key))) !== (string) $record['hash']) {
+                    return $name;
+                }
+                SEOProStack_Settings::set($key, isset($schema[$key]['default']) ? $schema[$key]['default'] : null);
                 return true;
         }
         return false;
