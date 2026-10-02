@@ -124,6 +124,7 @@ Click **Report a problem** at the top right of Settings → SEO Pro Stack, or op
 == Changelog ==
 
 = Unreleased =
+* New: LiteSpeed Cache preset worked out per site.
 * Fix: no white flash in the toolbar.
 
 = 0.10.0 =
