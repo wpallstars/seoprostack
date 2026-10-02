@@ -103,6 +103,26 @@
 	line-height: 20px;
 }
 
+/*
+ * A plugin's own icon class (such as AutomatorWP's) draws nothing where its
+ * stylesheet is not loaded, for example on screens Load plugins only where
+ * needed skips it on. Show core's cog there; :where() keeps this below any
+ * class that sets its own icon.
+ */
+:where(#adminmenu .sps-menu-icon.dashicons-before)::before {
+	content: "\f111";
+}
+
+/*
+ * SVG icons in the text colour, as core paints them in its own menu, so dark
+ * ones show on the dark menu and all follow hover and the current page.
+ */
+#adminmenu .sps-menu-icon-svg {
+	background-color: currentColor;
+	-webkit-mask: var(--sps-menu-icon) no-repeat center / 18px auto;
+	mask: var(--sps-menu-icon) no-repeat center / 18px auto;
+}
+
 #adminmenu .wp-submenu li.sps-menu-has-sub {
 	position: relative;
 }

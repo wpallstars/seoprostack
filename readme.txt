@@ -129,6 +129,7 @@ Copies from WordPress.org update from there. New versions come out on GitHub fir
 * Fix: plugins that add list columns load on those lists.
 * Fix: Licence checks “Ask me again” keeps each plugin hidden.
 * Fix: WP Sheet Editor spreadsheets no longer blank with Load plugins only where needed.
+* Fix: dark plugin icons show in the admin menu.
 * New: remove unneeded list columns; Author and Date last.
 * New: the admin menu widens to fit its names; FluentSMTP shows its logo.
 
