@@ -32,10 +32,30 @@ final class SEOProStack_Admin_Bar {
     const STAR = 'seoprostack-settings';
 
     /**
+     * Other plugins' items kept in a fixed place next to ours, by rank.
+     *
+     * Debug Log Manager's icon sits just left of the notices megaphone (or
+     * of the Plugins menu where there is no megaphone), instead of wherever
+     * the other right-hand items leave it.
+     */
+    const NEIGHBOURS = array('debug-log-manager' => 2);
+
+    /**
      * Register hooks.
      */
     public static function init() {
         add_action('admin_bar_init', array(__CLASS__, 'star_init'));
+        add_action('admin_bar_init', array(__CLASS__, 'neighbours'));
+    }
+
+    /**
+     * Keep other plugins' items next to ours. A node that is not on the bar
+     * is left alone.
+     */
+    public static function neighbours() {
+        foreach (self::NEIGHBOURS as $id => $rank) {
+            self::pin($id, $rank);
+        }
     }
 
     /**
