@@ -51,6 +51,7 @@ Everything is off by default except Hide admin bar items (Comments and + New), N
 * **Speed**: load pages before the click, delay chosen scripts until interaction, add Google Analytics 4 without slowing the page, open the editor faster with Kadence Blocks, and **Ask before licence checks** (once now, once a day or never).
 * **Load plugins only where needed**: a faster wp-admin on sites with many plugins, and admin tools you choose skipped on the site, through a must-use file it manages itself.
 * **Plugins menu** in the admin bar, **Plugin sizes**, **Clean up deleted plugins**, **Hosting needs** (what to ask your host for) and **Plugin presets**: our settings and starter data for other plugins, on request.
+* **Database key cleanup**: review leftover and duplicate indexes, confirm each removal and keep restore SQL. Back up first.
 
 Features that replace another plugin import its settings once, never change that plugin’s settings, and wait while it is active.
 
@@ -119,6 +120,7 @@ Copies from WordPress.org update from there. New versions come out on GitHub fir
 * New: Code Snippets preset; presets clear their named settings caches on Apply, Reset and Undo.
 * New: Fluent Booking starter data: a free Discovery Call, feeding FluentCRM; booked events stay on Remove.
 * New, off by default: turn off XML-RPC and application passwords separately.
+* New, off by default: Database key cleanup, with per-key confirmation and restore SQL.
 * New, off by default: six features that do most of Disable Bloat’s job, importing its settings.
 * New: starter data for Fluent Forms: four forms that feed FluentCRM lists and tags.
 * New: display presets for Rank Math SEO, WP-Optimize and Burst Statistics.
@@ -131,16 +133,14 @@ Copies from WordPress.org update from there. New versions come out on GitHub fir
 * New: the admin menu widens to fit its names.
 
 = 0.7.0 =
-* New, off by default: Ask before licence checks.
-* New: presets for eight more plugins, applied setting by setting; starter data for FluentCRM and Fluent Boards.
-* New: GitHub copies update without Git Updater; the Plugins screen lists plugins this one replaces.
-* New, on by default: Quiet Freemius prompts.
-* Change: more screens covered by Load plugins only where needed; fewer dashboard widgets; Tutor LMS replaces MasterStudy LMS.
-* Fix: admin menu, Dashboard boxes and screens that jumped while loading; fewer GitHub requests.
+* New: licence-check choices, plugin presets and FluentCRM and Fluent Boards starters.
+* New: GitHub updates without Git Updater; Quiet Freemius prompts on by default.
+* Change: wider plugin-loading coverage, quieter dashboard; Tutor LMS replaces MasterStudy.
+* Fix: admin layout and fewer GitHub requests.
 
 Every change, and earlier versions: `changelog.txt` in the plugin folder.
 
 == Upgrade Notice ==
 
 = 0.7.0 =
-Copies from GitHub now update without Git Updater: once updated, you can deactivate and delete it. New, off by default: Ask before licence checks. Plugin presets for eight more plugins.
+GitHub copies no longer need Git Updater. New: licence-check choices and more plugin presets.
