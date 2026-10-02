@@ -3,6 +3,7 @@
 Every change to SEO Pro Stack. readme.txt lists the latest version in short.
 
 = Unreleased =
+* Fix: Fit the menu to its names keeps the menu the same width on every screen, instead of moving a few pixels between screens. Once you have seen a screen that needs it wider, every screen uses that width until your plugins change.
 * Fix: Like, save and share buttons no longer take the theme's button colours and drop shadow after a click. New Button colour setting: a colour from the Kadence theme's palette, including its Notices colours, so the buttons follow dark mode. Also in Customize → Colors & Fonts → Colors.
 * New, off by default: Brand icons: a Brand icon block with about 3,800 brand logos from the current Simple Icons set, plus Font Awesome for brands Simple Icons no longer has (such as LinkedIn, Microsoft and Slack), in the brand's colour or your text colour, optionally linked. Icons are part of the page, so nothing extra loads. Replaces Popular Brand Icons – Simple Icons, whose [simple_icon] shortcode and #name# menu titles keep working.
 * New: with Brand icons on, Kadence Blocks' icon pickers have a Brand icons category, so any Kadence block with an icon can show a brand logo.
