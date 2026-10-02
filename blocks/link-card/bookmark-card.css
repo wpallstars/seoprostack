@@ -1,0 +1,101 @@
+/*
+ * Bookmark Card blocks (mamaduka/bookmark-card) while Bookmark Card is
+ * inactive: its layout, with currentColor and translucent borders so cards
+ * follow light and dark palettes. Convert them to Link cards in the editor.
+ */
+.wp-block-mamaduka-bookmark-card {
+	border: 1px solid rgba(127, 127, 127, 0.3);
+	border-radius: 8px;
+	line-height: 1.5;
+	margin: 0 0 1.5em;
+	overflow: hidden;
+}
+
+.wp-block-mamaduka-bookmark-card .bookmark-card {
+	color: inherit;
+	display: flex;
+	flex-direction: column;
+	position: relative;
+	text-decoration: none !important;
+}
+
+.wp-block-mamaduka-bookmark-card .bookmark-card:hover {
+	background-color: rgba(127, 127, 127, 0.08);
+}
+
+.wp-block-mamaduka-bookmark-card .bookmark-card__image img {
+	display: block;
+	height: 100%;
+	margin: 0;
+	object-fit: cover;
+	width: 100%;
+}
+
+.wp-block-mamaduka-bookmark-card .bookmark-card__content {
+	padding: 16px;
+}
+
+.wp-block-mamaduka-bookmark-card .bookmark-card__title {
+	font-size: 1.1em;
+	font-weight: 600;
+	line-height: 1.3;
+	margin-bottom: 4px;
+}
+
+.wp-block-mamaduka-bookmark-card .bookmark-card__description {
+	margin-bottom: 8px;
+	opacity: 0.8;
+}
+
+.wp-block-mamaduka-bookmark-card .bookmark_card__meta {
+	display: flex;
+	font-size: 0.875em;
+	line-height: 16px;
+	opacity: 0.8;
+}
+
+.wp-block-mamaduka-bookmark-card .bookmark_card__meta-icon {
+	height: 16px;
+	margin: 0;
+	margin-inline-end: 8px;
+	width: 16px;
+}
+
+@media (min-width: 600px) {
+	.wp-block-mamaduka-bookmark-card.is-style-horizontal .bookmark-card {
+		flex-direction: row-reverse;
+	}
+
+	.wp-block-mamaduka-bookmark-card.is-style-horizontal.has-media-on-the-left .bookmark-card {
+		flex-direction: row;
+	}
+
+	.wp-block-mamaduka-bookmark-card.is-style-horizontal .bookmark-card__image {
+		flex: 0 0 160px;
+	}
+
+	.wp-block-mamaduka-bookmark-card.is-style-horizontal .bookmark-card__content {
+		display: flex;
+		flex: 3 1 0;
+		flex-direction: column;
+		overflow: hidden;
+	}
+
+	.wp-block-mamaduka-bookmark-card.is-style-horizontal .bookmark-card__title {
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+
+	.wp-block-mamaduka-bookmark-card.is-style-horizontal .bookmark-card__description {
+		display: -webkit-box;
+		-webkit-box-orient: vertical;
+		-webkit-line-clamp: 2;
+		line-clamp: 2;
+		overflow: hidden;
+	}
+
+	.wp-block-mamaduka-bookmark-card.is-style-horizontal .bookmark_card__meta {
+		margin-top: auto;
+	}
+}

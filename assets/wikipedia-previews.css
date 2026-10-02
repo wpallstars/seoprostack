@@ -1,0 +1,88 @@
+/*
+ * Wikipedia previews. The preview is added to <body>, so it reads the
+ * palette there: Kadence's dark mode switcher redefines --global-palette*
+ * on <body>. Without Kadence, system colours follow body's color-scheme.
+ */
+span[data-wikipedia-preview] {
+	cursor: pointer;
+	text-decoration: underline dashed;
+	text-decoration-thickness: 1px;
+	text-underline-offset: 0.2em;
+}
+
+.sps-wikipedia-preview {
+	position: absolute;
+	z-index: 100000;
+	box-sizing: border-box;
+	width: min(360px, calc(100vw - 16px));
+	max-height: min(480px, calc(100vh - 16px));
+	overflow: auto;
+	padding: 14px 16px 12px;
+	border: 1px solid rgba(127, 127, 127, 0.35);
+	border-radius: 8px;
+	background: var(--global-palette9, Canvas);
+	color: var(--global-palette4, var(--global-palette3, CanvasText));
+	box-shadow: 0 8px 28px rgba(0, 0, 0, 0.2);
+	font-size: 15px;
+	line-height: 1.5;
+	text-align: start;
+}
+
+.sps-wikipedia-preview p {
+	margin: 0;
+}
+
+.sps-wikipedia-preview__close {
+	float: right;
+	margin: -8px -8px 0 8px;
+	padding: 0 6px;
+	border: 0;
+	background: transparent;
+	color: inherit;
+	font-size: 22px;
+	line-height: 1;
+	cursor: pointer;
+	opacity: 0.7;
+}
+
+.sps-wikipedia-preview__close:hover,
+.sps-wikipedia-preview__close:focus-visible {
+	opacity: 1;
+}
+
+.sps-wikipedia-preview__image {
+	display: block;
+	width: 100%;
+	max-height: 180px;
+	margin: 0 0 10px;
+	border-radius: 4px;
+	object-fit: cover;
+	background: rgba(127, 127, 127, 0.12);
+}
+
+.sps-wikipedia-preview__title {
+	color: var(--global-palette3, CanvasText);
+	font-weight: 600;
+	font-size: 1.1em;
+	line-height: 1.3;
+	margin-bottom: 6px !important;
+}
+
+.sps-wikipedia-preview__footer {
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: space-between;
+	gap: 4px 12px;
+	margin-top: 10px !important;
+	padding-top: 8px;
+	border-top: 1px solid rgba(127, 127, 127, 0.25);
+	font-size: 0.85em;
+}
+
+.sps-wikipedia-preview__footer a {
+	color: var(--global-palette1, LinkText);
+}
+
+.sps-wikipedia-preview__source {
+	opacity: 0.7;
+}

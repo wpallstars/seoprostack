@@ -1,0 +1,32 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "seoprostack/link-card",
+	"version": "0.8.2",
+	"title": "Link card",
+	"category": "embed",
+	"icon": "id-alt",
+	"description": "A preview card for any web page: title, description, site and picture, with the picture saved to your Media Library.",
+	"keywords": [ "bookmark", "card", "link", "preview", "url" ],
+	"textdomain": "seoprostack",
+	"attributes": {
+		"url": { "type": "string", "default": "" },
+		"title": { "type": "string", "default": "" },
+		"description": { "type": "string", "default": "" },
+		"siteName": { "type": "string", "default": "" },
+		"imageId": { "type": "number", "default": 0 },
+		"imageSource": { "type": "string", "default": "" },
+		"mediaPosition": { "type": "string", "default": "right" },
+		"newTab": { "type": "boolean", "default": false },
+		"nofollow": { "type": "boolean", "default": false }
+	},
+	"supports": {
+		"html": false,
+		"anchor": true,
+		"align": [ "wide" ],
+		"spacing": { "margin": true }
+	},
+	"editorScript": "file:./index.js",
+	"style": "file:./style.css",
+	"render": "file:./render.php"
+}
