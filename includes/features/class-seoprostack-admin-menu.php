@@ -1769,12 +1769,32 @@ class SEOProStack_Admin_Menu extends SEOProStack_Feature {
                 // In the head: the menu calls it as soon as it is printed.
                 wp_enqueue_script(self::HANDLE, SEOPROSTACK_URL . $file, array('utils'), $ver, false);
                 wp_localize_script(self::HANDLE, 'seoprostackAdminMenu', array(
-                    'setting' => self::FOLD,
-                    'fold'    => (bool) SEOProStack_Settings::get(self::FOLD_KEY),
-                    'fit'     => (bool) SEOProStack_Settings::get(self::FIT_KEY),
+                    'setting'  => self::FOLD,
+                    'fold'     => (bool) SEOProStack_Settings::get(self::FOLD_KEY),
+                    'fit'      => (bool) SEOProStack_Settings::get(self::FIT_KEY),
+                    'widthKey' => self::width_key(),
                 ));
             }
         }
+    }
+
+    /**
+     * Key for the remembered menu width: the widest width the menu has
+     * needed is kept per person until the active plugins, the language or
+     * SEO Pro Stack change. Uses the stored plugin list, not the one this
+     * screen loads (Load plugins only where needed skips some per screen).
+     *
+     * @return string
+     */
+    private static function width_key() {
+        $all     = wp_load_alloptions();
+        $plugins = isset($all['active_plugins']) ? maybe_unserialize($all['active_plugins']) : get_option('active_plugins', array());
+        return substr(md5((string) wp_json_encode(array(
+            is_array($plugins) ? $plugins : array(),
+            is_multisite() ? array_keys((array) get_site_option('active_sitewide_plugins', array())) : array(),
+            get_user_locale(),
+            SEOPROSTACK_VERSION,
+        ))), 0, 8);
     }
 
     /**
