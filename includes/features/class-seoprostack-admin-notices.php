@@ -161,7 +161,7 @@ class SEOProStack_Admin_Notices extends SEOProStack_Feature {
      * @param WP_Screen $screen Current screen.
      */
     public static function setup($screen) {
-        if (($screen instanceof WP_Screen && method_exists($screen, 'is_block_editor') && $screen->is_block_editor()) || defined('IFRAME_REQUEST')) {
+        if (($screen instanceof WP_Screen && $screen->is_block_editor()) || defined('IFRAME_REQUEST')) {
             return;
         }
         add_filter('admin_body_class', array(__CLASS__, 'body_class'));

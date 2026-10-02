@@ -197,7 +197,7 @@ class SEOProStack_Plugin_Manager {
                 self::send_action_error($slug, __('This plugin is active for the whole network. Deactivate it in Network Admin → Plugins.', 'seoprostack'));
             }
             // WordPress 6.5+: plugins can require others.
-            if (class_exists('WP_Plugin_Dependencies') && method_exists('WP_Plugin_Dependencies', 'has_active_dependents') && WP_Plugin_Dependencies::has_active_dependents($file)) {
+            if (class_exists('WP_Plugin_Dependencies') && WP_Plugin_Dependencies::has_active_dependents($file)) {
                 self::send_action_error($slug, __('Other active plugins need this one. Deactivate them first.', 'seoprostack'));
             }
             ob_start();

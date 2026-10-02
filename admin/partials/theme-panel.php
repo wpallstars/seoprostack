@@ -10,6 +10,9 @@
 if (!defined('ABSPATH')) {
     exit;
 }
+if (!isset($theme_data, $author) || !is_object($theme_data)) {
+    return;
+}
 
 $seoprostack_slug      = SEOProStack_Theme_Manager::SLUG;
 $seoprostack_installed = wp_get_theme($seoprostack_slug);

@@ -23,6 +23,9 @@ if (!defined('ABSPATH')) {
 // Mammoth .docx converter (Word documents in the editor), Favorites
 // (Like, save and share) and Popular Brand Icons – Simple Icons (Brand
 // icons).
+// WP-Optimize stays listed: Clean the database weekly replaces it only on
+// LiteSpeed servers with LiteSpeed Cache; elsewhere its page cache is still
+// needed.
 // String Locator is not listed: searching code is better done in an editor
 // or with WP-CLI than from wp-admin.
 // EditorsKit (block-options) is not listed: its last update was in May 2024,

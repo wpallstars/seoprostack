@@ -80,7 +80,9 @@ class SEOProStack_Delay_Scripts extends SEOProStack_Feature {
             return $options;
         }
         $keywords = get_option('flying_scripts_include_list');
-        $keywords = is_array($keywords) ? array_filter(array_map('trim', $keywords), 'strlen') : array();
+        $keywords = is_array($keywords) ? array_filter(array_map('trim', array_filter($keywords, 'is_string')), function ($keyword) {
+            return '' !== $keyword;
+        }) : array();
         $pages    = get_option('flying_scripts_disabled_pages');
         $timeout  = (int) get_option('flying_scripts_timeout', 5);
         if ($timeout > 60) {

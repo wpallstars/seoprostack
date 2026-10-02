@@ -5,7 +5,7 @@ Tags: magic login, iframe, schedule posts, auto upload images, admin
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 0.9.0
+Stable tag: 0.10.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -58,6 +58,7 @@ Off by default except Hide admin bar items (Comments and + New), No fade between
 * **Short links** such as /go/offer/ with click counts, **Short addresses for custom post types** and **410 Gone** for removed pages.
 * **Load pages before the click**, **Delay scripts until interaction**, **Delayed Google Analytics** and a faster editor with Kadence Blocks.
 * **Ask before licence checks**: premium plugins call home once, daily or never, as you choose.
+* **Clean the database weekly**: old spam, bin and expired data.
 * **Database key cleanup**: review leftover and duplicate indexes and confirm each removal; restore SQL is kept. Back up first.
 
 = Plugins and set-up =
@@ -123,19 +124,17 @@ Click **Report a problem** at the top right of Settings → SEO Pro Stack, or op
 == Changelog ==
 
 = Unreleased =
-* New: Word documents; Like, save and share; Brand icons (also in Kadence Blocks); coffee button.
-* Change: Pinned posts; faster lists; sizes in Free Plugins; megaphone and dot; writers' menu; clearer readme.
-* Fix: More menu alignment; menu in full screen editor; Like button; same menu width on every screen; no white flash in the toolbar.
+* Fix: no white flash in the toolbar.
 
-= 0.9.0 =
-* New: Menu item visibility, Change post type, Order by hand, Term tools, Search custom fields, Old post addresses, Link cards, Wikipedia previews, Agency tab.
-* New: Fixes for other plugins (on by default), Report a problem button, Read Me banner.
-* Change: Custom order link on sorted lists; notes on replaceable plugins; Advise.so card.
-* Change: faster block editors, Customizer, Import and Export forms and Kadence design library.
+= 0.10.0 =
+* New: Word documents; Like, save and share; Brand icons (also in Kadence Blocks); Clean the database weekly; coffee button.
+* New: writers see only writing (on with Organise the admin menu).
+* Change: Short links imports Lasso Lite links; Pinned posts; faster lists; sizes in Free Plugins; megaphone and dot; clearer readme.
+* Fix: More menu alignment; menu in full screen editor; Like button; same menu width on every screen.
 
 Older: `changelog.txt`.
 
 == Upgrade Notice ==
 
-= 0.9.0 =
-New, off by default: Agency tab, Link cards, Wikipedia previews and six more replacements for single-purpose plugins. Faster block editors.
+= 0.10.0 =
+New, off by default: Brand icons, Like, save and share, Word documents and weekly database cleanup, replacing four more plugins. Short links imports Lasso Lite links. Contributors and authors now see only writing.
