@@ -1506,10 +1506,22 @@ class SEOProStack_Admin_Menu extends SEOProStack_Feature {
     /**
      * Print the third level of the Admin and Super Admin menus, for the
      * script to add (inside the menu list, where a script may sit).
+     *
+     * Some plugins take every other plugin's scripts off their own screens
+     * (Fluent Forms, Fluent Booking and Fluent Boards do, in
+     * wp_print_scripts), which left the menu there unfitted, unfolded and
+     * without its third level. The menu script is then printed here, with
+     * its settings, just before it is needed. Only this script: the
+     * plugin's own choice stands for everything else.
      */
     public static function print_flyouts() {
         if (!did_action('admin_head')) {
             return;
+        }
+        if (wp_script_is(self::HANDLE, 'registered') && !wp_script_is(self::HANDLE, 'done')) {
+            // do_items(), not wp_print_scripts(): that would run the
+            // wp_print_scripts hooks a second time.
+            wp_scripts()->do_items(array(self::HANDLE));
         }
         printf(
             '<script>window.seoprostackMenuFlyouts && window.seoprostackMenuFlyouts(%s);</script>',
