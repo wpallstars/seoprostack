@@ -23,7 +23,7 @@ Go to **Settings → SEO Pro Stack**, or click the star next to your name in the
 
 Every feature is off by default except four: Hide admin bar items, which hides Comments and + New from the admin bar, No fade between admin screens, Quiet Freemius prompts and Fixes for other plugins. Copies installed from GitHub releases also have Updates from GitHub on. Features that replace a separate plugin say so on their card (“Replaces: …”) and import that plugin’s settings once when SEO Pro Stack is updated. The other plugin’s own settings are never changed or deleted. While that plugin is active, the feature waits and the plugin keeps doing the job, so the two never run side by side; the card says so, with a deactivate link that comes back to the same settings tab. Deactivate the plugin to switch over. The Plugins screen lists installed plugins that SEO Pro Stack can replace, with what to do next for each: deactivate it (its setting is on), switch the setting on, or delete it once inactive (single sites; on multisite another site may use it). Each of those plugins also gets a note under its own row saying which SEO Pro Stack setting makes it redundant and what to do next, including inactive plugins whose setting is still off; the notes are not hidden by **Hide**. When an active plugin does things on the site that SEO Pro Stack does not (such as Disable Bloat’s REST API switches), the line names them instead of saying the plugin can go. **Hide** hides the lines shown for that person until another step is needed.
 
-SEO Pro Stack replaces **43 plugins**, some of them in part, with free and Pro editions counted separately. The 39 that can be downloaded come to 31.1 MB zipped; SEO Pro Stack is 761 KB.
+SEO Pro Stack replaces **44 plugins**, some of them in part, with free and Pro editions counted separately. The 40 that can be downloaded come to 32.5 MB zipped; SEO Pro Stack is 2.9 MB.
 
 | Feature | Tab | Replaces |
 | --- | --- | --- |
@@ -49,6 +49,7 @@ SEO Pro Stack replaces **43 plugins**, some of them in part, with free and Pro e
 | Wikipedia previews | Content | Wikipedia Preview |
 | Word documents in the editor | Content | Mammoth .docx converter |
 | Like, save and share | Content | Favorites |
+| Brand icons | Content | Popular Brand Icons – Simple Icons |
 | Spectra block replacements | Content | Spectra |
 | Paste into the Media Library | Media | The Paste |
 | SVG uploads | Media | Safe SVG |
@@ -525,6 +526,19 @@ Like, Save and Share buttons, as on social media, and a list of what each visito
 - Favorites' shortcodes keep working once it is deactivated: `[favorite_button]` (Like and Save), `[favorite_count]`, `[user_favorites]` (the visitor's own list; `post_types`, `include_excerpts`, `include_buttons` and `no_favorites` are used), `[user_favorite_count]` and `[clear_favorites_button]`. Groups, thumbnails and other people's lists are not.
 - Deleting the plugin removes the totals and logged-in people's lists.
 
+### Brand icons (Content)
+
+A **Brand icon** block with about 3,800 brand logos: the current [Simple Icons](https://github.com/simple-icons/simple-icons) set, plus [Font Awesome Free](https://github.com/FortAwesome/Font-Awesome) brand icons for brands Simple Icons does not have, many removed from Simple Icons at their owners' request (LinkedIn, Microsoft, Slack, AWS).
+
+- Search by name in the block (the placeholder, or Icon in the block settings). Then choose the brand's colour or the text colour (pick one under Styles, or it follows the theme and its dark mode), a size, an optional link and a name for screen readers.
+- Near-black and near-white logos (GitHub, X, Apple) always take the text colour, so they stay visible in dark mode.
+- Speed: icon shapes are kept in 64 files in `assets/brand-icons/` (so installs and updates stay quick), and only the one holding an icon is read, on the server, to put the icon into the page as SVG. No icon font, no request to another site, no script or stylesheet on the front end. The editor searches through `GET seoprostack/v1/brand-icons` (for people who can edit posts) and never loads the whole set.
+- `[simple_icon name="github" color="" size="" class="" title_tag=""]` and menu items titled `#github#` work as with Popular Brand Icons – Simple Icons, once it is deactivated. Names match with or without spaces, dots and capitals (`Node.js`, `node-dot-js`, `nodedotjs`), and old names follow renames (`twitter` shows X). Brands no longer in either set show nothing.
+- Each icon is labelled with the brand's name for screen readers, with a tooltip unless it is a link or `title_tag="false"`.
+- Switches on if Popular Brand Icons – Simple Icons is active (it has no settings to import). Settings version 13.
+- The set is refreshed with `scripts/update-brand-icons.sh` (Node.js 18 or newer), which downloads the newest Simple Icons and Font Awesome Free from npm and writes `index.json`, the `shapes-*.json` files and `LICENSE.txt`. Run it before a release.
+- Icons are trademarks of their owners; follow each brand's own guidelines. Simple Icons is CC0; Font Awesome's icons are CC BY 4.0, credited in `LICENSE.txt` and in each shapes file that holds one.
+
 ### Spectra block replacements (Content)
 
 Lets a site stop using Spectra (Ultimate Addons for Gutenberg) without losing content, so the theme and core blocks, or Kadence Blocks, do the work.
@@ -971,6 +985,7 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folder�
 
 ### Unreleased
 
+- New, off by default: **Brand icons** (Content tab; replaces Popular Brand Icons – Simple Icons, whose bundled set is from 2022): a Brand icon block with Simple Icons 16.33.0 (3,463 icons) and 343 Font Awesome Free 7.3.1 brand icons for brands Simple Icons does not have. Shapes in 64 JSON files (`index.json` says which), inlined as SVG on the server; the editor searches through `GET seoprostack/v1/brand-icons`. `[simple_icon]` and `#name#` menu titles keep working, with old names mapped to new ones. `scripts/update-brand-icons.sh` refreshes the set. Free Plugins no longer lists Simple Icons. Settings version 13. The release zip grows from about 760 KB to 2.9 MB (66 more files; one SVG file per icon would have been 3,806 files and 3.9 MB).
 - New, on by default within Organise the admin menu: **Writers see only writing**. Contributors and authors no longer see or open plugin pages that ask only for a capability every writer has (such as AI Engine’s settings, Media File Renamer, FluentCommunity and WooCommerce Home, which ask for `read` or `edit_posts`), nor Tools; they keep Dashboard, their posts and post types, Media, Comments and Profile. Pages a plugin gives their role on purpose stay. New filters `seoprostack_is_writer` and `seoprostack_writer_hides_page`.
 - New: **Buy me a coffee** button at the top right of the settings screen (`SEOProStack_Admin_Manager::DONATE_URL`), a link under the Read Me intro, and a `Donate link` in `readme.txt` for the WordPress.org plugin page.
 - Change: **Hide admin notices** shows a megaphone (`dashicons-megaphone`, `\f488`) instead of a bell, so it is not mistaken for other plugins’ notification bells. Debug Log Manager’s admin bar icon now always sits just left of it (or of the Plugins menu where there is no megaphone): `SEOProStack_Admin_Bar::NEIGHBOURS` pins other plugins’ `top-secondary` nodes by rank, and a node that is not on the bar is left alone.
@@ -1196,6 +1211,9 @@ Where a feature replaces one of them, SEO Pro Stack imports the settings it can,
 | Wikipedia Preview | Wikimedia Foundation | [WordPress.org](https://wordpress.org/plugins/wikipedia-preview/), [GitHub](https://github.com/wikimedia/wikipedia-preview) | Wikipedia previews |
 | Mammoth .docx converter | Michael Williamson | [WordPress.org](https://wordpress.org/plugins/mammoth-docx-converter/), [GitHub](https://github.com/mwilliamson/mammoth-wordpress-plugin) | Word documents in the editor |
 | Favorites | Hook & Filter (first by Kyle Phillips) | [WordPress.org](https://wordpress.org/plugins/favorites/), [GitHub](https://github.com/Hook-Filter/favorites) | Like, save and share |
+| Popular Brand Icons – Simple Icons | Theme Mason (Travis) | [WordPress.org](https://wordpress.org/plugins/simple-icons/) | Brand icons |
+| Simple Icons (the icon set, CC0) | Simple Icons contributors | [GitHub](https://github.com/simple-icons/simple-icons) | Brand icons |
+| Font Awesome Free (brand icons, CC BY 4.0) | Fonticons, Inc. | [GitHub](https://github.com/FortAwesome/Font-Awesome) | Brand icons, for brands Simple Icons does not have |
 | Spectra | Brainstorm Force | [WordPress.org](https://wordpress.org/plugins/ultimate-addons-for-gutenberg/), [GitHub](https://github.com/brainstormforce/wp-spectra) | Spectra block replacements |
 | The Paste | Jörn Lund | [WordPress.org](https://wordpress.org/plugins/the-paste/), [GitHub](https://github.com/mcguffin/the-paste) | Paste into the Media Library |
 | Safe SVG | 10up | [WordPress.org](https://wordpress.org/plugins/safe-svg/), [GitHub](https://github.com/10up/safe-svg) | SVG uploads |

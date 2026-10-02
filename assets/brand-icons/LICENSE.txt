@@ -1,0 +1,12 @@
+Brand icons in this folder
+
+Simple Icons 16.33.0 (https://github.com/simple-icons/simple-icons):
+CC0 1.0 Universal (public domain dedication). index.json source "s".
+
+Font Awesome Free 7.3.1 brand icons (https://github.com/FortAwesome/Font-Awesome),
+by Fonticons, Inc.: CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/).
+index.json source "f"; each shapes-*.json file with one of them repeats
+Font Awesome's attribution under "//".
+
+The icons are trademarks of their owners. Using one does not mean its owner
+endorses your site; follow each brand's own guidelines.
