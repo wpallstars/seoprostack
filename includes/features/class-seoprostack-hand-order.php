@@ -208,22 +208,24 @@ class SEOProStack_Hand_Order extends SEOProStack_Feature {
 
     /**
      * Queries of one hand-ordered type that set no order follow the hand
-     * order. Searches keep their relevance order.
+     * order. Searches on the site keep their relevance order.
+     *
+     * The admin list follows it whenever the person has not sorted by a
+     * column, including searches and the Drafts and Pending views (which
+     * core sorts by date changed), so the rows shown with drag handles are
+     * always in the order a move saves.
      *
      * @param WP_Query $query Query.
      */
     public static function pre_get_posts($query) {
-        // Not is_search(): the list's Filter button sends an empty search,
-        // which core counts as one.
-        if (!empty($query->query['orderby']) || '' !== trim((string) $query->get('s'))) {
-            return;
-        }
         if (is_admin() && $query->is_main_query()) {
-            // The list screen: only when the person has not sorted by a column.
-            // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- read-only sorting state.
-            if (!empty($_GET['orderby'])) {
+            if (!self::list_in_hand_order()) {
                 return;
             }
+        } elseif (!empty($query->query['orderby']) || '' !== trim((string) $query->get('s'))) {
+            // Not is_search(): the list's Filter button sends an empty search,
+            // which core counts as one.
+            return;
         }
         $type = $query->get('post_type');
         if (is_array($type)) {
@@ -283,6 +285,7 @@ class SEOProStack_Hand_Order extends SEOProStack_Feature {
         }
         add_filter("manage_{$type}_posts_columns", array(__CLASS__, 'add_column'));
         add_action("manage_{$type}_posts_custom_column", array(__CLASS__, 'post_column'), 10, 2);
+        add_filter("views_edit-{$type}", array(__CLASS__, 'add_view'));
         self::enqueue('post', $type);
     }
 
@@ -297,31 +300,70 @@ class SEOProStack_Hand_Order extends SEOProStack_Feature {
         }
         add_filter("manage_edit-{$taxonomy}_columns", array(__CLASS__, 'add_column'));
         add_filter("manage_{$taxonomy}_custom_column", array(__CLASS__, 'term_column'), 10, 3);
+        add_filter("views_edit-{$taxonomy}", array(__CLASS__, 'add_view'));
         self::enqueue('term', $taxonomy);
     }
 
     /**
-     * Whether the list shows the hand order (not sorted by a column, not a search).
+     * Whether the list shows the hand order: not sorted by a column.
+     * Searches and filters still do; a move only swaps the rows shown.
      *
      * @return bool
      */
     private static function list_in_hand_order() {
         // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- read-only list state.
-        return empty($_GET['orderby']) && empty($_GET['s']);
+        return empty($_GET['orderby']);
     }
 
     /**
-     * Handle column after the checkbox.
+     * The list's address in the hand order: the same filters, search and
+     * view, without the column sorting (and back to the first page).
+     *
+     * @return string
+     */
+    private static function hand_order_url() {
+        return remove_query_arg(array('orderby', 'order', 'paged'));
+    }
+
+    /**
+     * While the list is sorted by a column, a "Custom order" view leads back
+     * to the hand order, where rows can be moved again.
+     *
+     * @param array $views Views.
+     * @return array
+     */
+    public static function add_view($views) {
+        if (self::list_in_hand_order()) {
+            return $views;
+        }
+        $views = (array) $views;
+        $views['seoprostack_order'] = sprintf(
+            '<a href="%1$s">%2$s</a>',
+            esc_url(self::hand_order_url()),
+            esc_html__('Custom order', 'seoprostack')
+        );
+        return $views;
+    }
+
+    /**
+     * Handle column after the checkbox. While the list is sorted by a
+     * column, its header links back to the hand order instead.
      *
      * @param array $columns Columns.
      * @return array
      */
     public static function add_column($columns) {
-        if (!self::list_in_hand_order()) {
-            return $columns;
+        if (self::list_in_hand_order()) {
+            $label = '<span class="screen-reader-text">' . esc_html__('Move', 'seoprostack') . '</span>';
+        } else {
+            $label = sprintf(
+                '<a href="%1$s" class="seoprostack-order-back" title="%2$s"><span class="dashicons dashicons-menu" aria-hidden="true"></span><span class="screen-reader-text">%3$s</span></a>',
+                esc_url(self::hand_order_url()),
+                esc_attr__('Back to custom order, to move items', 'seoprostack'),
+                esc_html__('Back to custom order, to move items', 'seoprostack')
+            );
         }
-        $label = '<span class="screen-reader-text">' . esc_html__('Move', 'seoprostack') . '</span>';
-        $new   = array();
+        $new = array();
         foreach ($columns as $key => $value) {
             if ('cb' !== $key && !isset($new['seoprostack_order'])) {
                 $new['seoprostack_order'] = $label;
@@ -353,7 +395,7 @@ class SEOProStack_Hand_Order extends SEOProStack_Feature {
      * @param int    $post_id Post ID.
      */
     public static function post_column($column, $post_id) {
-        if ('seoprostack_order' === $column) {
+        if ('seoprostack_order' === $column && self::list_in_hand_order()) {
             echo self::handle(get_the_title($post_id)); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped in handle().
         }
     }
@@ -367,7 +409,7 @@ class SEOProStack_Hand_Order extends SEOProStack_Feature {
      * @return string
      */
     public static function term_column($output, $column, $term_id) {
-        if ('seoprostack_order' !== $column) {
+        if ('seoprostack_order' !== $column || !self::list_in_hand_order()) {
             return $output;
         }
         $term = get_term($term_id);
@@ -382,6 +424,13 @@ class SEOProStack_Hand_Order extends SEOProStack_Feature {
      */
     private static function enqueue($kind, $object) {
         if (!self::list_in_hand_order()) {
+            add_action('admin_enqueue_scripts', function () {
+                wp_add_inline_style('list-tables', '
+                    .fixed .column-seoprostack_order { width: 2.2em; }
+                    .wp-core-ui .seoprostack-order-back { color: #8c8f94; }
+                    .wp-core-ui .seoprostack-order-back:hover, .wp-core-ui .seoprostack-order-back:focus { color: #2271b1; }
+                ');
+            });
             return;
         }
         add_action('admin_enqueue_scripts', function () use ($kind, $object) {
