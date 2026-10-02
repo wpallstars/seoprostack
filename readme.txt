@@ -50,7 +50,7 @@ Everything is off by default except Hide admin bar items (Comments and + New), N
 
 * **Short links** such as /go/offer/, with redirects, categories and click counts, and **Short addresses for custom post types**. **410 Gone** for removed pages.
 * **Speed**: load pages before the click, delay chosen scripts until interaction, add Google Analytics 4 without slowing the page, open the editor faster with Kadence Blocks, and **Ask before licence checks** (once now, once a day or never).
-* **Load plugins only where needed**: a faster wp-admin on sites with many plugins, and admin tools you choose skipped on the site, through a must-use file it manages itself.
+* **Load plugins only where needed**: a faster wp-admin, admin tools skipped on the site, and optional page-by-page content learning with an opt-out list.
 * **Plugins menu** in the admin bar, **Plugin sizes**, **Clean up deleted plugins**, **Hosting needs** (what to ask your host for) and **Plugin presets**: our settings and starter data for other plugins, on request.
 * **Maintenance mode**: a temporary 503 page with a message and 24-hour bypass links you can revoke.
 * **Database key cleanup**: review leftover and duplicate indexes, confirm each removal and keep restore SQL. Back up first.
@@ -120,14 +120,15 @@ Copies from WordPress.org update from there. New versions come out on GitHub fir
 
 = Unreleased =
 * New: presets for Code Snippets, Rank Math SEO, WP-Optimize and Burst Statistics.
-* New, off by default: Maintenance mode with bypass links; turn off XML-RPC or application passwords.
+* New, off by default: maintenance bypass links; disable XML-RPC or application passwords.
 * New, off by default: Database key cleanup.
 * New, off by default: TranslatePress switcher colours.
-* New, off by default: eight features that do most of Disable Bloat’s job, importing its settings.
-* New: starter data for Fluent Forms (four forms) and Fluent Booking (a Discovery Call), feeding FluentCRM.
+* New, off by default: per-page plugin learning with WooCommerce.
+* New, off by default: eight Disable Bloat replacements, importing its settings.
+* New: Fluent Forms (four forms) and Fluent Booking (Discovery Call) starters, feeding FluentCRM.
 * Change: no longer recommended: Freesoul Deactivate Plugins and replaced Pro plugins.
-* Change: Apply preset names each setting in plain words.
-* Fix: plugins that add list columns load on those lists; WP Sheet Editor shows.
+* Change: plain setting names in Apply preset.
+* Fix: list columns load their plugins; WP Sheet Editor works.
 * Fix: Licence checks “Ask me again” keeps each plugin hidden.
 * Fix: dark plugin icons in the admin menu; TranslatePress in the More menu.
 * New: remove unneeded list columns; Author and Date last.
