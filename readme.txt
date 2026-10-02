@@ -36,7 +36,7 @@ Everything is off by default except Hide admin bar items (Comments and + New), N
 * **Menu item visibility** by login or role, **Change post type**, **Order by hand**, **Term tools** (merge, move, set parent), **Search custom fields** (ACF) and **Old post addresses**.
 * **TranslatePress colours**: Kadence light/dark switchers.
 * **iFrame block**: embed pages with size, sandbox and permission settings, limited to the domains and roles you choose.
-* **Link cards** and **Wikipedia previews**.
+* **Link cards**, **Wikipedia previews** and **Word documents** in the editor.
 * **Spectra block replacements**: a Term list block, and Spectra pages that keep working after it is deactivated or convert in one click.
 
 = Media =
@@ -127,10 +127,10 @@ Click **Report a problem** at the top right of Settings → SEO Pro Stack, or op
 == Changelog ==
 
 = Unreleased =
-* New: Menu item visibility, Change post type, Order by hand, Term tools, Search custom fields, Old post addresses, Link cards, Wikipedia previews.
+* New: Menu item visibility, Change post type, Order by hand, Term tools, Search custom fields, Old post addresses, Link cards, Wikipedia previews, Word documents.
 * New: Fixes for other plugins (on by default), Report a problem button, Read Me banner.
 * Change: Custom order link on sorted lists; notes on replaceable plugins.
-* Change: faster block editors, Customizer, Import and Export forms and Kadence design library.
+* Change: faster editors, Customizer, Import/Export and Kadence design library.
 
 = 0.8.1 =
 * New: spaced Fluent menu names; shop plugins first in Shop; FluentCart suggested.

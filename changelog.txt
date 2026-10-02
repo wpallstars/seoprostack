@@ -3,6 +3,7 @@
 Every change to SEO Pro Stack. readme.txt lists the latest version in short.
 
 = Unreleased =
+* New, off by default: Word documents in the editor: drop or paste a Word document (.docx) into the block editor, or choose one from the Options menu, and it becomes blocks, with headings, formatting, links, lists, quotes, tables and pictures, which are added to your Media Library (replaces Mammoth .docx converter).
 * New, off by default: Link cards adds a Link card block: paste an address to show the page's title, description, site and picture, with the picture copied to your Media Library so visitors never contact the other site (replaces Bookmark Card, whose cards keep showing and convert in one click). Wikipedia previews shows a short preview of the article when visitors hover over, focus or tap a link to Wikipedia (replaces Wikipedia Preview, whose marked words keep working).
 * New, off by default: Search custom fields makes site and admin searches look in Advanced Custom Fields and Secure Custom Fields text fields, repeater rows included (replaces ACF: Better Search). Old post addresses clears old post addresses that can no longer lead anywhere and lists the rest under Tools → Old addresses with when each was last used (replaces Slugs Manager: Delete Old Permalinks, closed on WordPress.org).
 * Change: Order by hand: while a list is sorted by a column, a Custom order link takes you back to the order you can drag. Searches and the Drafts and Pending views show the hand order too.

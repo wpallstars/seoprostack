@@ -43,6 +43,7 @@ Every feature is off by default except four: Hide admin bar items, which hides C
 | Website screenshots | Content | Browser Shots |
 | Link cards | Content | Bookmark Card |
 | Wikipedia previews | Content | Wikipedia Preview |
+| Word documents in the editor | Content | Mammoth .docx converter |
 | Spectra block replacements | Content | Spectra |
 | Paste into the Media Library | Media | The Paste |
 | SVG uploads | Media | Safe SVG |
@@ -492,6 +493,17 @@ Links to Wikipedia articles in posts and widgets show a short preview of the art
 - Previews follow the Kadence dark mode switcher (the palette on `<body>`); without Kadence, they use the page’s colour scheme.
 - Switches on if Wikipedia Preview is active (it has no site settings to import).
 
+### Word documents in the editor (Content)
+
+Drop or paste a Word document (`.docx`) into the block editor, or choose **Word document** in the editor’s Options menu (⋮), and it becomes blocks where it lands. From Google Docs, use File → Download → Microsoft Word (.docx).
+
+- Kept: headings (Heading 1–6 and Title styles, or outline levels), paragraphs, bold, italic, underline, strikethrough, superscript, subscript, links, line breaks, bulleted and numbered lists with nesting, quotes (Quote and Block Text styles), tables (with header rows and merged columns) and pictures, with their alt text and captions.
+- Pictures are copied to the Media Library, attached to the post and named after their alt text or the document. Up to 100 per document; the editor says how many could not be added.
+- Not kept: fonts, colours, sizes, comments, footnotes, headers and footers. Tracked insertions are kept, deletions left out.
+- The server reads the document with PHP’s zip extension (`ZipArchive`) and DOM, through `POST seoprostack/v1/word-document`, for people who can upload files and edit the post. The document itself is not stored. Documents up to 30 MB, or the site’s upload limit if smaller. Without the zip extension, the editor says to ask the host to turn it on.
+- Older `.doc` files need saving as `.docx` first.
+- Switches on if Mammoth .docx converter is active (it has no settings to import). Unlike Mammoth, there is no meta box and no 600 KB script in the editor.
+
 ### Spectra block replacements (Content)
 
 Lets a site stop using Spectra (Ultimate Addons for Gutenberg) without losing content, so the theme and core blocks, or Kadence Blocks, do the work.
@@ -894,6 +906,7 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folder�
 
 ### Unreleased
 
+- New, off by default: **Word documents in the editor** (Content tab; replaces Mammoth .docx converter): drop or paste a `.docx` file into the block editor, or choose Word document in the Options menu, and it becomes core blocks, with headings, formatting, links, nested lists, quotes, tables and pictures. The server converts it with `ZipArchive` and DOM; pictures go to the Media Library, attached to the post. It switches itself on while Mammoth is active; Free Plugins no longer lists Mammoth. Settings version 11.
 - New, off by default: **Link cards** (Content tab; replaces Bookmark Card) adds a Link card block that reads a page’s title, description and picture through core’s link preview route, copies the picture to the Media Library and builds the card on the server, in the theme’s colours. Bookmark Card blocks keep showing and convert in one click. **Wikipedia previews** (Content tab; replaces Wikipedia Preview) shows a short preview of linked Wikipedia articles on hover, focus or tap, fetched by the visitor’s browser only when it opens; the script loads only on pages with such links, and Wikipedia Preview’s marked words and per-post link setting keep working. Each switches itself on while the plugin it replaces is active; Free Plugins no longer lists them. Settings version 10.
 - New, off by default: **Search custom fields** (Content tab; replaces ACF: Better Search) makes site and admin list searches also match Advanced Custom Fields and Secure Custom Fields text-like fields, including repeater, group and flexible content sub fields, found through ACF’s own field references. **Old post addresses** (Links tab; replaces Slugs Manager: Delete Old Permalinks, closed on WordPress.org) clears old slugs that can no longer redirect (the current slug, duplicates, deleted posts, slugs another published post now uses), records when each old address last redirected someone, and lists them under Tools → Old addresses with Remove. Each switches itself on while the plugin it replaces is active; Free Plugins no longer lists them. Settings version 9.
 - Changed: Order by hand keeps a way back from column sorting: while a list is sorted by Title, Date or another column, a **Custom order** view link and the handle column’s header return to the hand order with the same filters. Admin list searches and the Drafts and Pending views now show the hand order with handles (core sorted Drafts and Pending by date changed, so a move there saved that order).
@@ -1099,6 +1112,7 @@ Where a feature replaces one of them, SEO Pro Stack imports the settings it can,
 | Browser Shots | Kevin Leary, Ben Gillbanks | [WordPress.org](https://wordpress.org/plugins/browser-shots/), [GitHub](https://github.com/BinaryMoon/browser-shots) | Website screenshots |
 | Bookmark Card | George Mamadashvili | [WordPress.org](https://wordpress.org/plugins/bookmark-card/), [GitHub](https://github.com/Mamaduka/bookmark-card) | Link cards |
 | Wikipedia Preview | Wikimedia Foundation | [WordPress.org](https://wordpress.org/plugins/wikipedia-preview/), [GitHub](https://github.com/wikimedia/wikipedia-preview) | Wikipedia previews |
+| Mammoth .docx converter | Michael Williamson | [WordPress.org](https://wordpress.org/plugins/mammoth-docx-converter/), [GitHub](https://github.com/mwilliamson/mammoth-wordpress-plugin) | Word documents in the editor |
 | Spectra | Brainstorm Force | [WordPress.org](https://wordpress.org/plugins/ultimate-addons-for-gutenberg/), [GitHub](https://github.com/brainstormforce/wp-spectra) | Spectra block replacements |
 | The Paste | Jörn Lund | [WordPress.org](https://wordpress.org/plugins/the-paste/), [GitHub](https://github.com/mcguffin/the-paste) | Paste into the Media Library |
 | Safe SVG | 10up | [WordPress.org](https://wordpress.org/plugins/safe-svg/), [GitHub](https://github.com/10up/safe-svg) | SVG uploads |
