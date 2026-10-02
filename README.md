@@ -4,6 +4,8 @@
 
 Curated plugins, themes, hosting and workflow tools for WordPress, plus a few small quality-of-life features.
 
+If this saves you time, headaches and costs, feel free to [buy me a coffee](https://buymeacoffee.com/marcusquinn), or whatever you like, to invest in making more open source.
+
 Version: {SEOPROSTACK_VERSION}
 
 ## Where to find it
@@ -15,7 +17,7 @@ Go to **Settings → SEO Pro Stack**, or click the star next to your name in the
 - **Discover**: Theme, Free Plugins, Pro Plugins, Hosting and Tools.
 - **About**: this Read Me.
 
-**Report a problem**, at the top right of the screen, opens the plugin’s [GitHub issues](https://github.com/wpallstars/seoprostack/issues) in a new tab. Say what you did, what you expected and what happened, with the versions of WordPress, PHP and SEO Pro Stack. Leave out passwords, licence keys and personal data, since issues are public.
+**Report a problem**, at the top right of the screen, opens the plugin’s [GitHub issues](https://github.com/wpallstars/seoprostack/issues) in a new tab. Say what you did, what you expected and what happened, with the versions of WordPress, PHP and SEO Pro Stack. Leave out passwords, licence keys and personal data, since issues are public. **Buy me a coffee**, next to it, opens the maker’s [Buy Me a Coffee](https://buymeacoffee.com/marcusquinn) page in a new tab.
 
 ## Features
 
@@ -947,6 +949,7 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folder�
 
 ### Unreleased
 
+- New: **Buy me a coffee** button at the top right of the settings screen (`SEOProStack_Admin_Manager::DONATE_URL`), a link under the Read Me intro, and a `Donate link` in `readme.txt` for the WordPress.org plugin page.
 - New, off by default: **Word documents in the editor** (Content tab; replaces Mammoth .docx converter): drop or paste a `.docx` file into the block editor, or choose Word document in the Options menu, and it becomes core blocks, with headings, formatting, links, nested lists, quotes, tables and pictures. The server converts it with `ZipArchive` and DOM; pictures go to the Media Library, attached to the post. It switches itself on while Mammoth is active; Free Plugins no longer lists Mammoth. Settings version 11.
 
 ### 0.9.0

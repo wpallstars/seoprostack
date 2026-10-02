@@ -1,5 +1,6 @@
 === SEO Pro Stack ===
 Contributors: wpallstars
+Donate link: https://buymeacoffee.com/marcusquinn
 Tags: magic login, iframe, schedule posts, auto upload images, admin
 Requires at least: 6.2
 Tested up to: 7.1
@@ -128,7 +129,7 @@ Click **Report a problem** at the top right of Settings → SEO Pro Stack, or op
 == Changelog ==
 
 = Unreleased =
-* New: Word documents in the editor.
+* New: Word documents in the editor, Buy me a coffee button.
 
 = 0.9.0 =
 * New: Menu item visibility, Change post type, Order by hand, Term tools, Search custom fields, Old post addresses, Link cards, Wikipedia previews, Agency tab.

@@ -25,6 +25,9 @@ class SEOProStack_Admin_Manager {
     /** Where people report problems: the plugin's GitHub issues. */
     const SUPPORT_URL = 'https://github.com/wpallstars/seoprostack/issues';
 
+    /** Where people can support the maker: Buy Me a Coffee. */
+    const DONATE_URL = 'https://buymeacoffee.com/marcusquinn';
+
     /**
      * Register hooks and initialise tab managers (once).
      */
@@ -344,6 +347,11 @@ class SEOProStack_Admin_Manager {
                     <a class="button sps-header__support" href="<?php echo esc_url(self::SUPPORT_URL); ?>" target="_blank" rel="noopener noreferrer">
                         <span class="dashicons dashicons-sos" aria-hidden="true"></span>
                         <?php esc_html_e('Report a problem', 'seoprostack'); ?>
+                        <span class="screen-reader-text"><?php esc_html_e('(opens in a new tab)', 'seoprostack'); ?></span>
+                    </a>
+                    <a class="button sps-header__support sps-header__donate" href="<?php echo esc_url(self::DONATE_URL); ?>" target="_blank" rel="noopener noreferrer">
+                        <span class="dashicons dashicons-coffee" aria-hidden="true"></span>
+                        <?php esc_html_e('Buy me a coffee', 'seoprostack'); ?>
                         <span class="screen-reader-text"><?php esc_html_e('(opens in a new tab)', 'seoprostack'); ?></span>
                     </a>
                 </div>

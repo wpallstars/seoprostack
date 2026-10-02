@@ -3,6 +3,7 @@
 Every change to SEO Pro Stack. readme.txt lists the latest version in short.
 
 = Unreleased =
+* New: Buy me a coffee, at the top right of Settings → SEO Pro Stack, opens the maker’s Buy Me a Coffee page, if you would like to support more open-source work.
 * New, off by default: Word documents in the editor: drop or paste a Word document (.docx) into the block editor, or choose one from the Options menu, and it becomes blocks, with headings, formatting, links, lists, quotes, tables and pictures, which are added to your Media Library (replaces Mammoth .docx converter).
 
 = 0.9.0 =
