@@ -4,15 +4,19 @@
  * Free releases on npm. Run through scripts/update-brand-icons.sh.
  *
  * Writes:
- *   assets/brand-icons/{slug}.svg  one minimal SVG per icon (viewBox + paths)
- *   assets/brand-icons/index.json  [slug, title, hex, source] for every icon,
- *                                  aliases (old or other names => slug) and
- *                                  the source versions
+ *   assets/brand-icons/index.json      [slug, title, hex, source, shard] for
+ *                                      every icon, aliases (old or other
+ *                                      names => slug) and the source versions
+ *   assets/brand-icons/shapes-{n}.json {slug: [viewBox, path, ...]} for the
+ *                                      icons in shard n. A few dozen files
+ *                                      instead of one per icon keep installs
+ *                                      and updates quick on any host.
+ *   assets/brand-icons/LICENSE.txt     sources and licences
  *
  * Simple Icons (CC0) comes first. Font Awesome Free brand icons (CC BY 4.0)
  * are added only where Simple Icons has no icon of that name, mostly brands
  * whose owners asked Simple Icons to remove them (LinkedIn, Microsoft, Slack).
- * Their SVGs keep Font Awesome's attribution comment.
+ * Each shard with Font Awesome icons carries its attribution under "//".
  */
 'use strict';
 
@@ -23,6 +27,8 @@ const { execFileSync } = require('child_process');
 
 const ROOT = path.resolve(__dirname, '..');
 const OUT = path.join(ROOT, 'assets', 'brand-icons');
+/* Shape files; each holds about 60 icons (roughly 80 KB). */
+const SHARDS = 64;
 
 /*
  * Names that changed since the Simple Icons set bundled with Popular Brand
@@ -83,11 +89,11 @@ async function fetchPackage(name, dir) {
 	return { version: meta.version, dir: path.join(into, 'package') };
 }
 
-/* viewBox and path data only: no title, styles or anything else. */
-function minimal(svg, comment) {
+/* [viewBox, path data, ...] only: no title, styles or anything else. */
+function shape(svg) {
 	const box = /viewBox="([0-9.\s-]+)"/.exec(svg);
 	const paths = [];
-	const re = /<path\b[^>]*\sd="([^"]+)"/g;
+	const re = /<path\b[^>]*\sd="([^"<>]+)"/g;
 	let m;
 	while ((m = re.exec(svg))) {
 		paths.push(m[1]);
@@ -95,8 +101,7 @@ function minimal(svg, comment) {
 	if (!box || !paths.length) {
 		return null;
 	}
-	return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="' + box[1].trim() + '">' + (comment || '')
-		+ paths.map((d) => '<path d="' + d + '"/>').join('') + '</svg>\n';
+	return [box[1].trim().replace(/\s+/g, ' ')].concat(paths);
 }
 
 async function main() {
@@ -106,19 +111,21 @@ async function main() {
 		const fa = await fetchPackage('@fortawesome/fontawesome-free', tmp);
 
 		fs.mkdirSync(OUT, { recursive: true });
-		fs.readdirSync(OUT).filter((f) => f.endsWith('.svg')).forEach((f) => fs.unlinkSync(path.join(OUT, f)));
+		fs.readdirSync(OUT).filter((f) => /\.svg$|^shapes-\d+\.json$/.test(f)).forEach((f) => fs.unlinkSync(path.join(OUT, f)));
 
 		const icons = [];
+		const shapes = {};
+		let faNote = '';
 		const aliases = {};
 		const data = JSON.parse(fs.readFileSync(path.join(si.dir, 'data', 'simple-icons.json'), 'utf8'));
 		(Array.isArray(data) ? data : data.icons).forEach((icon) => {
 			const slug = icon.slug || slugify(icon.title);
-			const svg = minimal(fs.readFileSync(path.join(si.dir, 'icons', slug + '.svg'), 'utf8'));
+			const svg = shape(fs.readFileSync(path.join(si.dir, 'icons', slug + '.svg'), 'utf8'));
 			// Brands sharing a name have slugs such as hive_blockchain.
 			if (!svg || !/^[a-z0-9_]+$/.test(slug)) {
 				return;
 			}
-			fs.writeFileSync(path.join(OUT, slug + '.svg'), svg);
+			shapes[slug] = svg;
 			icons.push([slug, icon.title, icon.hex || '', 's']);
 			const names = [].concat(
 				(icon.aliases && icon.aliases.aka) || [],
@@ -145,12 +152,13 @@ async function main() {
 				return;
 			}
 			const raw = fs.readFileSync(path.join(brands, file), 'utf8');
-			const note = /<!--[\s\S]*?-->/.exec(raw);
-			const svg = minimal(raw, note ? note[0] : '');
+			const note = /<!--([\s\S]*?)-->/.exec(raw);
+			const svg = shape(raw);
 			if (!svg) {
 				return;
 			}
-			fs.writeFileSync(path.join(OUT, slug + '.svg'), svg);
+			faNote = faNote || (note ? note[1].trim() : '');
+			shapes[slug] = svg;
 			icons.push([slug, label, FA_HEX[slug] || '', 'f']);
 			have.add(slug);
 		});
@@ -167,6 +175,17 @@ async function main() {
 		});
 
 		icons.sort((a, b) => a[0].localeCompare(b[0]));
+		// Alphabetical runs, so a refresh moves few icons between files.
+		const files = Array.from({ length: SHARDS }, () => ({}));
+		icons.forEach((row, i) => {
+			const n = Math.floor(i * SHARDS / icons.length);
+			row.push(n);
+			if ('f' === row[3] && faNote) {
+				files[n]['//'] = 'Icons with source "f" in index.json: ' + faNote;
+			}
+			files[n][row[0]] = shapes[row[0]];
+		});
+		files.forEach((f, n) => fs.writeFileSync(path.join(OUT, 'shapes-' + n + '.json'), JSON.stringify(f) + '\n'));
 		const index = {
 			sources: { 'simple-icons': si.version, 'fontawesome-free': fa.version },
 			icons: icons,
@@ -181,7 +200,8 @@ async function main() {
 			'',
 			'Font Awesome Free ' + fa.version + ' brand icons (https://github.com/FortAwesome/Font-Awesome),',
 			'by Fonticons, Inc.: CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/).',
-			'Each of these files keeps Font Awesome\'s attribution comment. index.json source "f".',
+			'index.json source "f"; each shapes-*.json file with one of them repeats',
+			'Font Awesome\'s attribution under "//".',
 			'',
 			'The icons are trademarks of their owners. Using one does not mean its owner',
 			'endorses your site; follow each brand\'s own guidelines.',

@@ -6,8 +6,8 @@
  * titles) with about 3,800 brand icons: the current Simple Icons set, plus
  * Font Awesome Free brand icons for brands Simple Icons does not have.
  *
- * Each icon is one small SVG file in assets/brand-icons/, read and inlined on
- * the server: no icon font, no request to another site and no script or
+ * Icon shapes live in a few dozen shapes-{n}.json files in assets/brand-icons/
+ * (index.json says which), read and inlined as SVG on the server: no icon font, no request to another site and no script or
  * stylesheet on the front end. The editor searches through a REST route and
  * never loads the whole set. scripts/update-brand-icons.sh refreshes it.
  *
@@ -136,22 +136,30 @@ class SEOProStack_Brand_Icons extends SEOProStack_Feature {
         if ('' === $slug) {
             return '';
         }
-        if (is_readable(self::file($slug))) {
+        if (self::index_row($slug)) {
             return $slug;
         }
         $index = self::index();
         $alias = isset($index['aliases'][$slug]) ? (string) $index['aliases'][$slug] : '';
-        return '' !== $alias && is_readable(self::file($alias)) ? $alias : '';
+        return '' !== $alias && self::index_row($alias) ? $alias : '';
     }
 
     /**
-     * Path of an icon's file.
+     * The shapes in one shapes-{n}.json file: slug => [viewBox, path, ...].
      *
-     * @param string $slug Slug.
-     * @return string
+     * @param int $shard Shard number from the icon's index row.
+     * @return array
      */
-    private static function file($slug) {
-        return SEOPROSTACK_DIR . 'assets/brand-icons/' . $slug . '.svg';
+    private static function shapes($shard) {
+        static $files = array();
+        $shard = (int) $shard;
+        if (!isset($files[$shard])) {
+            $file = SEOPROSTACK_DIR . 'assets/brand-icons/shapes-' . $shard . '.json';
+            $json = is_readable($file) ? file_get_contents($file) : ''; // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents -- local file.
+            $data = $json ? json_decode($json, true) : null;
+            $files[$shard] = is_array($data) ? $data : array();
+        }
+        return $files[$shard];
     }
 
     /**
@@ -165,34 +173,36 @@ class SEOProStack_Brand_Icons extends SEOProStack_Feature {
         if (isset($cache[$slug])) {
             return $cache[$slug];
         }
-        if (!preg_match('/^[a-z0-9_]+$/', $slug) || !is_readable(self::file($slug))) {
+        $row = preg_match('/^[a-z0-9_]+$/', (string) $slug) ? self::index_row($slug) : array();
+        if (count($row) < 5) {
             return null;
         }
-        $svg = (string) file_get_contents(self::file($slug)); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents -- local file.
-        if (!preg_match('/viewBox="([0-9.\s-]+)"/', $svg, $box) || !preg_match_all('/<path d="([^"<>]+)"/', $svg, $paths)) {
-            return null;
-        }
-        $title = $slug;
-        $hex   = '';
-        foreach (self::index_row($slug) as $i => $value) {
-            if (1 === $i) {
-                $title = (string) $value;
-            } elseif (2 === $i) {
-                $hex = (string) $value;
+        $shapes = self::shapes($row[4]);
+        $shape  = isset($shapes[$slug]) && is_array($shapes[$slug]) ? array_values($shapes[$slug]) : array();
+        $box    = isset($shape[0]) ? (string) $shape[0] : '';
+        $paths  = array();
+        foreach (array_slice($shape, 1) as $d) {
+            // Path data only: numbers, commands, spaces and separators.
+            if (is_string($d) && '' !== $d && preg_match('/^[0-9A-Za-z.,\s+-]+$/', $d)) {
+                $paths[] = $d;
             }
         }
+        if (!preg_match('/^[0-9.\s-]+$/', $box) || !$paths) {
+            return null;
+        }
+        $hex          = (string) $row[2];
         $cache[$slug] = array(
             'slug'    => $slug,
-            'title'   => $title,
+            'title'   => (string) $row[1],
             'hex'     => preg_match('/^[0-9A-Fa-f]{6}$/', $hex) ? $hex : '',
-            'viewBox' => trim($box[1]),
-            'paths'   => $paths[1],
+            'viewBox' => trim($box),
+            'paths'   => $paths,
         );
         return $cache[$slug];
     }
 
     /**
-     * An icon's row in the index: [slug, title, hex, source].
+     * An icon's row in the index: [slug, title, hex, source, shard].
      *
      * @param string $slug Slug.
      * @return array

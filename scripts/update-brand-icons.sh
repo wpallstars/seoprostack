@@ -26,7 +26,7 @@ main() {
 	[[ "$major" -ge 18 ]] || die "Node.js 18 or newer is needed (found $major)"
 
 	node scripts/update-brand-icons.js
-	printf 'Files: %s; size: %s\n' "$(find assets/brand-icons -name '*.svg' | wc -l | tr -d ' ')" "$(du -sh assets/brand-icons | cut -f1)"
+	printf 'Files: %s; size: %s\n' "$(find assets/brand-icons -type f | wc -l | tr -d ' ')" "$(du -sh assets/brand-icons | cut -f1)"
 	git status --short assets/brand-icons | tail -n 5
 	return 0
 }
