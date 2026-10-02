@@ -1,0 +1,19 @@
+{
+    "name": "Fluent Booking",
+    "tested": "2.5.0",
+    "updated": "2026-10-02",
+    "notes": "A free, 30-minute Discovery Call hosted by the administrator adding it. A missing host calendar is named after their display name and shares only this event; an existing calendar and its sharing settings are left alone. Uses Fluent Booking's default availability: review your timezone, hours and meeting location before sharing the booking page. With FluentCRM active, confirmed bookings join Website Booking Form. Remove keeps events with any booking, including cancelled bookings, and calendars with other events or shared host use.",
+    "items": {
+        "fluentcrm_lists": [
+            { "slug": "website-booking-form", "title": "Website Booking Form", "when": "fluent-crm" }
+        ],
+        "fluentbooking_events": [
+            {
+                "title": "Discovery Call",
+                "duration": 30,
+                "description": "Ask us anything about our products and services. Discuss your challenges, targets and what you need to achieve them.",
+                "crm_list": "website-booking-form"
+            }
+        ]
+    }
+}
