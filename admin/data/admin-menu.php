@@ -79,6 +79,7 @@ return array(
 
         // Shop.
         'woocommerce'                           => 'shop',
+        'fluent-cart'                           => 'shop',
         'edit.php?post_type=product'            => 'shop',
         'wc-admin&path=/analytics/overview'     => 'shop',
         'woocommerce-marketing'                 => 'shop',
@@ -213,6 +214,7 @@ return array(
 
         // Shop.
         'woocommerce'                           => 'shop',
+        'fluent-cart'                           => 'shop',
         'woocommerce-subscriptions'             => 'shop',
         'woocommerce-payments'                  => 'shop',
 

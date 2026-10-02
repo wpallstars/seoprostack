@@ -149,6 +149,14 @@ class SEOProStack_Admin_Menu extends SEOProStack_Feature {
         'options-general.php'     => true,
     );
 
+    /**
+     * Plugins' entries that lead their section, in this order, before the
+     * rest A–Z: the shop plugins' own menus in Shop.
+     */
+    const LEAD = array(
+        'shop' => array('woocommerce', 'fluent-cart'),
+    );
+
     /** Menus sorted like sections: WordPress's entries, then plugins' A–Z. */
     const SORTED_PARENTS = array('options-general.php', 'tools.php', 'themes.php');
 
@@ -929,6 +937,9 @@ class SEOProStack_Admin_Menu extends SEOProStack_Feature {
         }
 
         foreach ($groups as $key => $items) {
+            foreach ($items as $i => $item) {
+                $items[$i][0] = self::brand_title($item[0]);
+            }
             $groups[$key] = self::sort_section($key, $items);
         }
         foreach (self::SORTED_PARENTS as $parent) {
@@ -1094,10 +1105,39 @@ class SEOProStack_Admin_Menu extends SEOProStack_Feature {
         usort($other, function ($a, $b) {
             return strnatcasecmp(self::plain_title($a[0]), self::plain_title($b[0]));
         });
+        if (isset(self::LEAD[$key])) {
+            $rank = array_flip(self::LEAD[$key]);
+            $lead = array();
+            $rest = array();
+            foreach ($other as $item) {
+                if (isset($rank[$item[2]])) {
+                    $lead[$rank[$item[2]]] = $item;
+                } else {
+                    $rest[] = $item;
+                }
+            }
+            ksort($lead);
+            $other = array_merge(array_values($lead), $rest);
+        }
         if ($core && $other) {
             $other[0][4] = trim((isset($other[0][4]) ? $other[0][4] : '') . ' sps-menu-divider');
         }
         return array_merge($core, $other);
+    }
+
+    /**
+     * A top-level title with the Fluent plugins' names spaced like their
+     * others ("Fluent Forms"): FluentCRM becomes Fluent CRM, FluentSMTP
+     * Fluent SMTP. Only the name shown in the menu changes.
+     *
+     * @param mixed $title Menu title.
+     * @return mixed
+     */
+    private static function brand_title($title) {
+        if (!is_string($title)) {
+            return $title;
+        }
+        return (string) preg_replace('/^(\s*)Fluent(?=[A-Z])/', '$1Fluent ', $title, 1);
     }
 
     /**

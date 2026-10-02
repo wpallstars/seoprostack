@@ -123,7 +123,7 @@ Copies from WordPress.org update from there. New versions come out on GitHub fir
 * New, off by default: Maintenance mode with bypass links; turn off XML-RPC or application passwords.
 * New, off by default: Database key cleanup.
 * New, off by default: TranslatePress switcher colours.
-* New, off by default: eight features that do most of Disable Bloat’s job, importing its settings.
+* New, off by default: eight features that do most of Disable Bloat’s job.
 * New: starter data for Fluent Forms (four forms) and Fluent Booking (a Discovery Call), feeding FluentCRM.
 * Change: no longer recommended: Freesoul Deactivate Plugins and replaced Pro plugins.
 * Change: Apply preset names each setting in plain words.
@@ -131,7 +131,7 @@ Copies from WordPress.org update from there. New versions come out on GitHub fir
 * Fix: Licence checks “Ask me again” keeps each plugin hidden.
 * Fix: dark plugin icons in the admin menu; TranslatePress in the More menu.
 * New: remove unneeded list columns; Author and Date last.
-* New: the admin menu fits its names, plugins' bars follow; FluentSMTP logo.
+* New: admin menu fits names; Fluent names spaced; shop plugins first in Shop.
 
 = 0.7.0 =
 * New: licence-check choices, plugin presets and FluentCRM and Fluent Boards starters.
