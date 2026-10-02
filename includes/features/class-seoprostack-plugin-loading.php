@@ -4,8 +4,8 @@
  *
  * On a site with 200 plugins every admin screen runs all 200, which can
  * take seconds; with 2 it takes about as long as WordPress alone. This
- * feature lets the administrator tick plugins that should load only on
- * their own screens. SEOProStack_Plugin_Loader does the filtering from a
+ * feature chooses plugins automatically, with an always-load bypass list.
+ * SEOProStack_Plugin_Loader does the filtering from a
  * must-use file; this class:
  *
  * - writes that file when the setting is on and removes it when it is
@@ -245,7 +245,6 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
             return;
         }
         add_action('admin_enqueue_scripts', array(__CLASS__, 'background_learning'));
-        add_action('admin_footer', array(__CLASS__, 'remember_screen'), PHP_INT_MAX);
         add_filter('removable_query_args', array(__CLASS__, 'removable_query_args'));
         add_action('admin_post_' . self::RESET, array(__CLASS__, 'reset'));
         $state = SEOProStack_Plugin_Loader::state();
@@ -276,6 +275,8 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
                 }
             }
         }
+        // After learn(), so a remembered visit carries the completed map generation.
+        add_action('admin_footer', array(__CLASS__, 'remember_screen'), PHP_INT_MAX);
     }
 
     /** Preserve saved selections; a new site starts with no bypasses. */
@@ -1889,7 +1890,9 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
     private static function sensitive_plugins() {
         return array(
             self::plugins_on_hooks(function ($name) {
-                return in_array($name, SEOProStack_Plugin_Loader::ALWAYS_HOOKS, true);
+                return in_array($name, SEOProStack_Plugin_Loader::ALWAYS_HOOKS, true)
+                    || in_array($name, self::FRONT_ALWAYS_HOOKS, true)
+                    || in_array($name, self::FRONT_LOGIN_HOOKS, true);
             }),
             self::plugins_on_hooks(function ($name) {
                 return in_array($name, SEOProStack_Plugin_Loader::PERMISSION_HOOKS, true);
@@ -2337,7 +2340,7 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
                     . __('Every active plugin loads on this screen once, so it may take a little longer. SEO Pro Stack then checks again which plugins this screen needs. Use this when a box, field, block or menu item is missing here. Other screens do not change.', 'seoprostack'),
             'reset'  => __('Reload with every plugin and check every screen again?', 'seoprostack') . "\n\n"
                 . __('SEO Pro Stack forgets which plugins each admin screen needs. This screen reloads with every plugin now. Every other screen also loads every plugin until an administrator next opens it and it is checked again, so the first visit to each screen is slower.', 'seoprostack') . "\n\n"
-                . __('Screens set to load every plugin after an error are checked again too. Your settings and the plugins you ticked do not change.', 'seoprostack'),
+                . __('Screens set to load every plugin after an error are checked again too. Your settings and always-load choices do not change.', 'seoprostack'),
         );
         $js = '(function(n,t){document.addEventListener("click",function(e){'
             . 'if(e.defaultPrevented||!e.target.closest){return;}'

@@ -50,7 +50,7 @@ Everything is off by default except Hide admin bar items (Comments and + New), N
 
 * **Short links** such as /go/offer/, with redirects, categories and click counts, and **Short addresses for custom post types**. **410 Gone** for removed pages.
 * **Speed**: load pages before the click, delay chosen scripts until interaction, add Google Analytics 4 without slowing the page, open the editor faster with Kadence Blocks, and **Ask before licence checks** (once now, once a day or never).
-* **Load plugins only where needed**: a faster wp-admin, admin tools skipped on the site, and optional page-by-page content learning with an opt-out list.
+* **Load plugins only where needed**: automatic admin choices with an always-load bypass and idle relearning; separate opt-in site choices.
 * **Plugins menu** in the admin bar, **Plugin sizes**, **Clean up deleted plugins**, **Hosting needs** (what to ask your host for) and **Plugin presets**: our settings and starter data for other plugins, on request.
 * **Maintenance mode**: a temporary 503 page with a message and 24-hour bypass links you can revoke.
 * **Database key cleanup**: review leftover and duplicate indexes, confirm each removal and keep restore SQL. Back up first.
@@ -119,6 +119,7 @@ Copies from WordPress.org update from there. New versions come out on GitHub fir
 == Changelog ==
 
 = Unreleased =
+* Change: automatic admin plugin choices, preserved bypasses and safe idle screen relearning; site choices unchanged.
 * Change: faster Customizer, Import and Export forms; saving, previews and Site Health keep every plugin.
 * Change: Kadence's design library is kept in your browser, so it opens faster.
 * New: Read Me banner.
