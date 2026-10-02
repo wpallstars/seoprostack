@@ -63,6 +63,9 @@ class SEOProStack_Word_Import extends SEOProStack_Feature {
     /** @var int Pictures that could not be copied. */
     private $failed_images = 0;
 
+    /** @var string Document name, without .docx, for naming pictures. */
+    private $doc_name = '';
+
     /**
      * Settings.
      *
@@ -162,7 +165,7 @@ class SEOProStack_Word_Import extends SEOProStack_Feature {
         }
 
         $converter = new self();
-        $result    = $converter->convert($file['tmp_name'], (int) $request['post']);
+        $result    = $converter->convert($file['tmp_name'], (int) $request['post'], (string) $file['name']);
         if (is_wp_error($result)) {
             $result->add_data(array('status' => 422));
         }
@@ -180,11 +183,13 @@ class SEOProStack_Word_Import extends SEOProStack_Feature {
      *
      * @param string $path    File path.
      * @param int    $post_id Post the pictures are attached to.
+     * @param string $name    Document file name.
      * @return array{html:string,images:int,failedImages:int}|WP_Error
      */
-    public function convert($path, $post_id = 0) {
-        $this->zip     = new ZipArchive();
-        $this->post_id = (int) $post_id;
+    public function convert($path, $post_id = 0, $name = '') {
+        $this->zip      = new ZipArchive();
+        $this->post_id  = (int) $post_id;
+        $this->doc_name = preg_replace('/\.docx$/i', '', wp_basename((string) $name));
         if (true !== $this->zip->open($path)) {
             return new WP_Error('seoprostack_word_open', __('This is not a Word document WordPress can read.', 'seoprostack'));
         }
@@ -277,8 +282,10 @@ class SEOProStack_Word_Import extends SEOProStack_Feature {
                 $level = $outline;
             }
             $this->styles[$this->attr($style, 'styleId')] = array(
-                'level' => min(6, $level),
-                'quote' => (bool) preg_match('/\bquote\b/', $name),
+                'level'   => min(6, $level),
+                // "Quote", "Intense Quote", and "Block Text" from Google Docs and pandoc.
+                'quote'   => (bool) preg_match('/\bquote\b|^block text$/', $name),
+                'caption' => (bool) preg_match('/\bcaption\b/', $name),
                 'num'   => $ppr ? $this->num_pr($ppr) : null,
                 'based' => $based,
             );
@@ -337,7 +344,7 @@ class SEOProStack_Word_Import extends SEOProStack_Feature {
      * A style's value, following basedOn.
      *
      * @param string $style_id Style ID.
-     * @param string $key      level|quote|num.
+     * @param string $key      level|quote|caption|num.
      * @return mixed
      */
     private function style_value($style_id, $key) {
@@ -360,6 +367,7 @@ class SEOProStack_Word_Import extends SEOProStack_Feature {
     private function blocks(DOMElement $parent) {
         $html  = '';
         $items = array();
+        $top   = '';
         foreach ($this->block_nodes($parent) as $node) {
             if ('tbl' === $node->localName) {
                 $html .= $this->lists($items) . $this->table($node);
@@ -368,16 +376,26 @@ class SEOProStack_Word_Import extends SEOProStack_Feature {
             }
             $para = $this->paragraph($node);
             if ($para['list']) {
-                // A new list starts when the numbering changes at the top level.
-                if ($items && 0 === $para['list']['level'] && $items[count($items) - 1]['list']['id'] !== $para['list']['id']) {
-                    $html .= $this->lists($items);
-                    $items = array();
+                // A new list starts when the top-level numbering changes
+                // (nested levels often have numbering of their own).
+                if (0 === $para['list']['level']) {
+                    if ($items && $top !== $para['list']['id']) {
+                        $html .= $this->lists($items);
+                        $items = array();
+                    }
+                    $top = $para['list']['id'];
                 }
                 $items[] = $para;
                 continue;
             }
-            $html .= $this->lists($items) . $para['html'];
+            $html .= $this->lists($items);
             $items = array();
+            // A caption straight after a picture or table becomes its caption.
+            if ($para['caption'] && '' !== $para['inline'] && '</figure>' === substr($html, -9)) {
+                $html = substr($html, 0, -9) . '<figcaption>' . $para['inline'] . '</figcaption></figure>';
+                continue;
+            }
+            $html .= $para['html'];
         }
         return $html . $this->lists($items);
     }
@@ -408,7 +426,7 @@ class SEOProStack_Word_Import extends SEOProStack_Feature {
      * Convert a paragraph.
      *
      * @param DOMElement $p w:p.
-     * @return array{html:string,inline:string,list:array|null,ordered:bool}
+     * @return array{html:string,inline:string,list:array|null,ordered:bool,caption:bool}
      */
     private function paragraph(DOMElement $p) {
         $ppr   = $this->child($p, 'pPr');
@@ -439,6 +457,7 @@ class SEOProStack_Word_Import extends SEOProStack_Feature {
                 'inline'  => $inline . $images,
                 'list'    => $num,
                 'ordered' => !empty($this->numbering[$num['id']][$num['level']]),
+                'caption' => false,
             );
         }
 
@@ -462,7 +481,13 @@ class SEOProStack_Word_Import extends SEOProStack_Feature {
             }
         }
         $html .= $this->wrap($tag, $text);
-        return array('html' => $html, 'inline' => $inline, 'list' => null, 'ordered' => false);
+        return array(
+            'html'    => $html,
+            'inline'  => $inline,
+            'list'    => null,
+            'ordered' => false,
+            'caption' => '' !== $style && !$level && (bool) $this->style_value($style, 'caption'),
+        );
     }
 
     /**
@@ -717,7 +742,8 @@ class SEOProStack_Word_Import extends SEOProStack_Feature {
         if ('' === $head && '' === $body) {
             return '';
         }
-        return '<figure><table>' . ('' !== $head ? '<thead>' . $head . '</thead>' : '') . '<tbody>' . $body . '</tbody></table></figure>';
+        // A bare <table>: the editor turns <figure><table> into Custom HTML.
+        return '<table>' . ('' !== $head ? '<thead>' . $head . '</thead>' : '') . '<tbody>' . $body . '</tbody></table>';
     }
 
     /**
@@ -749,7 +775,7 @@ class SEOProStack_Word_Import extends SEOProStack_Feature {
             ++$this->failed_images;
             return '';
         }
-        $id = $this->copy_image($part);
+        $id = $this->copy_image($part, $alt);
         if (!$id) {
             ++$this->failed_images;
             return '';
@@ -785,9 +811,10 @@ class SEOProStack_Word_Import extends SEOProStack_Feature {
      * Copy one picture from the document.
      *
      * @param string $part Path inside the document.
+     * @param string $alt  Its alt text.
      * @return int Attachment ID, or 0.
      */
-    private function copy_image($part) {
+    private function copy_image($part, $alt) {
         $stat = $this->zip->statName($part);
         if (!$stat || $stat['size'] > self::MAX_PART) {
             return 0;
@@ -805,7 +832,10 @@ class SEOProStack_Word_Import extends SEOProStack_Feature {
             wp_delete_file($tmp);
             return 0;
         }
-        $name = sanitize_file_name(pathinfo($part, PATHINFO_FILENAME)) . '.' . self::IMAGE_TYPES[$mime];
+        // Name it after its alt text, or the document ("Report.docx" => report-image.png).
+        $base = '' !== $alt ? $alt : $this->doc_name . ' image';
+        $base = sanitize_title(wp_html_excerpt($base, 60, ''));
+        $name = ('' !== $base ? $base : 'word-image') . '.' . self::IMAGE_TYPES[$mime];
         $id   = media_handle_sideload(array('name' => $name, 'tmp_name' => $tmp), $this->post_id);
         if (is_wp_error($id)) {
             wp_delete_file($tmp);
