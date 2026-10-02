@@ -12,11 +12,11 @@ function seoprostack_get_tools() {
     return array(
         'advise' => array(
             'name' => 'Advise.so',
-            'description' => 'Website analytics and optimization tool for improving user experience and conversion rates.',
+            'description' => 'The most active SEO Pro community on the internet. Chat to the creator of this plugin in there.',
             'button_group' => array(
                 array(
-                    'text' => 'Home Page',
-                    'url' => 'https://advise.so/',
+                    'text' => 'Join the community',
+                    'url' => 'https://app.advise.so/checkout/community-subscription?via=marcus',
                     'primary' => true
                 )
             )
