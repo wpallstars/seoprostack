@@ -72,6 +72,8 @@ function seoprostack_uninstall_site() {
     $options[] = 'seoprostack_hosting_memory';
     $options[] = 'seoprostack_hosting_code';
     $options[] = 'seoprostack_hosting_traffic';
+    // Whether the site runs on a LiteSpeed server, for WP-CLI.
+    $options[] = 'seoprostack_litespeed_server';
     // Ask before licence checks: choices and times. Kept answers are
     // seoprostack_lc_* transients, removed with the others below.
     $options[] = 'seoprostack_licence_calls';

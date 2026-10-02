@@ -25,6 +25,14 @@
  * - cache:    optional groups (group names) and keys (group => key names)
  *             to clear after apply, reset and undo. List keys too for caches
  *             without group flushing. Code Snippets uses its live constants.
+ * - when:     optional, to work the preset out for each site: option name =>
+ *             condition, or a list of conditions that must all hold. An
+ *             option whose conditions fail is left out of options and
+ *             defaults on this site. Conditions: single_site,
+ *             feature:{key} (an SEO Pro Stack feature is on),
+ *             feature:{key}:{item} (and that item of it is chosen),
+ *             litespeed_server, and more through the
+ *             seoprostack_preset_condition filter.
  *
  * Secrets are never stored or changed: option names and keys that look like
  * licence keys, API keys, tokens, passwords or similar are skipped when a
@@ -82,19 +90,70 @@ final class SEOProStack_Presets {
         /**
          * Filter the plugin presets.
          *
-         * @param array<string,array> $presets Plugin folder => preset (name, tested, updated, notes, options, defaults).
+         * @param array<string,array> $presets Plugin folder => preset (name, tested, updated, notes, options, defaults, when).
          */
         $presets = (array) apply_filters('seoprostack_plugin_presets', $presets);
 
         self::$presets = array();
         foreach ($presets as $slug => $preset) {
-            $preset = self::validate($preset);
+            $preset = self::validate(is_array($preset) ? self::for_this_site($preset) : $preset);
             if ($preset && is_string($slug) && '' !== $slug) {
                 self::$presets[$slug] = $preset;
             }
         }
         ksort(self::$presets);
         return self::$presets;
+    }
+
+    /**
+     * A preset without the options whose `when` conditions fail on this site.
+     *
+     * @param array $preset Preset from its file.
+     * @return array
+     */
+    private static function for_this_site(array $preset) {
+        if (empty($preset['when']) || !is_array($preset['when'])) {
+            return $preset;
+        }
+        foreach ($preset['when'] as $name => $conditions) {
+            foreach ((array) $conditions as $condition) {
+                if (!self::condition((string) $condition)) {
+                    unset($preset['options'][$name], $preset['defaults'][$name]);
+                    break;
+                }
+            }
+        }
+        unset($preset['when']);
+        return $preset;
+    }
+
+    /**
+     * Whether a preset condition holds on this site.
+     *
+     * @param string $condition Condition (see the file docblock).
+     * @return bool
+     */
+    private static function condition($condition) {
+        $parts = explode(':', $condition);
+        if ('single_site' === $condition) {
+            $holds = !is_multisite();
+        } elseif ('feature' === $parts[0] && isset($parts[1])) {
+            $key   = $parts[1];
+            $holds = (bool) SEOProStack_Settings::get($key) && !SEOProStack_Feature::replaced_active($key);
+            if ($holds && isset($parts[2])) {
+                $holds = in_array($parts[2], (array) SEOProStack_Settings::get($key . '_items'), true);
+            }
+        } else {
+            $holds = false;
+        }
+
+        /**
+         * Filter whether a preset condition holds on this site.
+         *
+         * @param bool   $holds     Whether it holds (false for conditions SEO Pro Stack does not know).
+         * @param string $condition Condition, such as litespeed_server.
+         */
+        return (bool) apply_filters('seoprostack_preset_condition', $holds, $condition);
     }
 
     /**
@@ -531,6 +590,7 @@ final class SEOProStack_Presets {
         $undo[$slug] = array('time' => time(), 'set' => $set, 'options' => $backup);
         update_option(self::UNDO, $undo, false);
         self::clear_cache($slug);
+        self::changed($slug, array_keys($backup));
         return $changed;
     }
 
@@ -570,12 +630,14 @@ final class SEOProStack_Presets {
             return new WP_Error('seoprostack_no_undo', __('There is nothing to undo for this plugin.', 'seoprostack'));
         }
         $count = 0;
+        $names = array();
         foreach ($undo[$slug]['options'] as $name => $saved) {
             if (!is_string($name) || self::is_secret($name) || !is_array($saved)) {
                 continue;
             }
             list($exists, $current) = self::read($name);
             self::store($name, empty($saved['existed']) || !isset($saved['value']) ? null : $saved['value'], $exists, $current);
+            $names[] = $name;
             $count++;
         }
         unset($undo[$slug]);
@@ -586,8 +648,27 @@ final class SEOProStack_Presets {
         }
         if ($count) {
             self::clear_cache($slug);
+            self::changed($slug, $names);
         }
         return $count;
+    }
+
+    /**
+     * Tell the plugin's own code its settings changed, for plugins that do
+     * more on save than store them (LiteSpeed Cache writes .htaccess and
+     * purges; see SEOProStack_Litespeed::save_through_plugin()).
+     *
+     * @param string   $slug  Plugin folder.
+     * @param string[] $names Option names written.
+     */
+    private static function changed($slug, array $names) {
+        /**
+         * Fires after a preset is applied, reset or undone.
+         *
+         * @param string   $slug  Plugin folder.
+         * @param string[] $names Option names written.
+         */
+        do_action('seoprostack_plugin_preset_changed', $slug, $names);
     }
 
     /**
