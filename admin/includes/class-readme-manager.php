@@ -175,9 +175,13 @@ class SEOProStack_Readme_Manager {
             ? sprintf(' width="%d" height="%d"', $size[0], $size[1])
             : '';
 
+        // The file's time in the address, so browsers fetch a changed image
+        // (such as a new banner after an update) instead of a cached one.
+        $url = add_query_arg('ver', (string) filemtime($file), SEOPROSTACK_URL . $path);
+
         return sprintf(
             '<p class="sps-readme-image"><img src="%1$s" alt="%2$s"%3$s decoding="async" /></p>',
-            esc_url(SEOPROSTACK_URL . $path),
+            esc_url($url),
             esc_attr($alt),
             $dims
         );
