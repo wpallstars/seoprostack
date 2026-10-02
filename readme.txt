@@ -23,7 +23,7 @@ Everything is off by default except Hide admin bar items (Comments and + New), N
 * **Hide admin bar items** (on by default), a **More menu** for plugin items in the admin bar, and **Hide admin notices**, which moves plugin and theme notices behind a bell.
 * **Quiet Freemius prompts** (on by default): no opt-in nags, upgrade offers or deactivation surveys from plugins that use Freemius.
 * **Admin bar and dashboard access**: hide the admin bar and block wp-admin for roles such as subscribers and customers, never administrators.
-* **Magic login links**: one-time login links by email, which email scanners cannot use up.
+* **Magic login links**: one-time login links by email that scanners cannot use up.
 * **Turn off unused remote access**: XML-RPC and application passwords, both off by default.
 * **Modern admin colours**, **No fade between admin screens** (on by default), **Readable list columns** and **Notification emails**, which stops routine emails one by one.
 * **Tidy admin screens**, **Tidy WooCommerce admin**, **Tidy the login screen**, **Simpler block editor**, **Remove WordPress extras**, **Fewer Heartbeat requests**, **Limit post revisions** and **Lighter WooCommerce pages** replace most of Disable Bloat.
@@ -31,8 +31,8 @@ Everything is off by default except Hide admin bar items (Comments and + New), N
 = Writing and publishing =
 
 * **Publishing queue**: posts published without a date are scheduled for the next free time slot.
-* **Duplicate posts**, **Staged new versions** (edit a published post as a draft copy) and **Shareable preview links** for people without an account.
-* **Sticky posts for any post type** and **Select all across pages** for bulk actions.
+* **Duplicate posts**, **Staged new versions** (edit a published post as a draft) and **Shareable preview links** for people without an account.
+* **Pinned posts for any post type** and **Select all across pages** for bulk actions.
 * **Menu item visibility** by login or role, **Change post type**, **Order by hand**, **Term tools** (merge, move, set parent), **Search custom fields** (ACF) and **Old post addresses**.
 * **TranslatePress colours**: Kadence light/dark switchers.
 * **iFrame block**: embed pages, limited to the domains and roles you choose.
@@ -43,7 +43,7 @@ Everything is off by default except Hide admin bar items (Comments and + New), N
 
 * **Copy linked images to Media Library** when a post is saved, and **Paste into the Media Library**.
 * **SVG uploads** for chosen roles, cleaned as they are uploaded.
-* **Resize large uploads**, **Replace media files** and **Watermark pictures**, which keeps unmarked originals.
+* **Resize large uploads**, **Replace media files** and **Watermark pictures**, keeping the originals.
 * **WebP and AVIF images**: smaller copies sent to browsers that support them, at the same address.
 * **Website screenshots**: a Screenshot block and the `[browser-shot]` shortcode, with pictures saved to the Media Library.
 * **Avatars without Gravatar**: avatars served from your own site.
@@ -129,6 +129,7 @@ Click **Report a problem** at the top right of Settings → SEO Pro Stack, or op
 
 = Unreleased =
 * New: Word documents in the editor.
+* Change: Pinned posts; faster post lists.
 * Fix: More menu items shifting right, fitted menu in full screen editor.
 
 = 0.9.0 =
@@ -137,7 +138,7 @@ Click **Report a problem** at the top right of Settings → SEO Pro Stack, or op
 * Change: Custom order link on sorted lists; notes on replaceable plugins; Advise.so card.
 * Change: faster block editors, Customizer, Import and Export forms and Kadence design library.
 
-Every change, and earlier versions: `changelog.txt` in the plugin folder.
+Every change: `changelog.txt` in the plugin folder.
 
 == Upgrade Notice ==
 
