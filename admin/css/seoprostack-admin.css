@@ -1072,10 +1072,32 @@
 	width: 260px;
 }
 
-.sps-plugin-row__name {
+.sps-plugin-table__size {
+	width: 11em;
+}
+
+/* The cell stays a table cell so it fills the row; the icon sits in the middle of the name and description. */
+.sps-plugin-row__plugin {
 	display: flex;
-	align-items: flex-start;
+	align-items: center;
 	gap: 12px;
+}
+
+.sps-plugin-row__size .sps-size {
+	display: block;
+}
+
+.sps-plugin-row__size .sps-size.is-pending,
+.sps-plugin-row__size .sps-size__parts {
+	color: var(--sps-muted);
+}
+
+.sps-plugin-row__size .sps-size__parts {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0 8px;
+	margin-top: 2px;
+	font-size: 12px;
 }
 
 .sps-plugin-row__icon {
@@ -1382,13 +1404,9 @@
 		padding: 4px 12px 4px 0;
 	}
 
-	.sps-wrap .sps-plugin-table tr > .sps-plugin-row__name {
-		display: flex;
-	}
-
 	.sps-wrap .sps-plugin-table tr > .check-column {
 		grid-column: 1;
-		grid-row: 1 / span 3;
+		grid-row: 1 / span 4;
 		align-self: start;
 		padding: 10px 0 0 10px;
 	}
@@ -1405,6 +1423,7 @@
 		padding-bottom: 12px;
 	}
 
+	.sps-wrap .sps-plugin-table thead .sps-plugin-table__size,
 	.sps-wrap .sps-plugin-table thead .sps-plugin-table__status,
 	.sps-wrap .sps-plugin-table thead .sps-plugin-table__actions {
 		display: none;

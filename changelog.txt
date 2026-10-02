@@ -3,6 +3,7 @@
 Every change to SEO Pro Stack. readme.txt lists the latest version in short.
 
 = Unreleased =
+* Change: Free Plugins’ All list shows how much disk space each installed plugin takes, split into PHP, JavaScript, CSS, media and other files, as on the Plugins screen. Plugin icons line up with the middle of each row.
 * Change: Sticky posts for any post type is now Pinned posts for any post type. Post lists show a pin instead of a star, and lists, Quick Edit, Bulk Edit and the editors say “Pinned” instead of “Sticky”. Clicking the pin adds or removes “Pinned” after the title straight away. The pin and Order by hand columns are narrower, leaving more room for the title.
 * Change: Load plugins only where needed loads fewer plugins on post lists such as Pages. Plugins that only add Quick Edit or Bulk Edit fields to other lists (WooCommerce for products) are skipped there, and general plugins that say they work with WooCommerce no longer bring WooCommerce to every screen. Screens are learned again once.
 * Fix: with Fit the menu to its names, the block editor in full screen mode no longer leaves an empty strip where the wider menu would be, and the menu is fitted when the editor leaves full screen instead of wrapping names at the usual width.
