@@ -28,6 +28,10 @@
  * super admins on multisite, and the administrators ticked under Developers
  * on single sites.
  *
+ * Writers (on by default): people who can write posts but not edit other
+ * people's, such as contributors and authors, do not see or open plugin
+ * pages that ask only for a capability every writer has, nor Tools.
+ *
  * Replaces Admin Menu Editor (Pro). Its settings are not imported: the
  * places come from the catalog's rules, so every site gets the same menu.
  *
@@ -45,6 +49,9 @@ class SEOProStack_Admin_Menu extends SEOProStack_Feature {
 
     /** Setting: client safeguards. */
     const SAFEGUARDS_KEY = 'admin_menu_safeguards';
+
+    /** Setting: writers see only screens for writing. */
+    const WRITERS_KEY = 'admin_menu_writers';
 
     /** Setting: developer accounts (single sites). */
     const DEVELOPERS_KEY = 'admin_menu_developers';
@@ -183,6 +190,25 @@ class SEOProStack_Admin_Menu extends SEOProStack_Feature {
     );
 
     /**
+     * Capabilities every contributor or author has. A plugin page that asks
+     * only for one of these is open to anyone who can write, usually by
+     * accident (settings pages that ask for "read"), so writers do not get it.
+     */
+    const WRITER_CAPS = array(
+        'exist'                  => true,
+        'read'                   => true,
+        'level_0'                => true,
+        'level_1'                => true,
+        'level_2'                => true,
+        'edit_posts'             => true,
+        'delete_posts'           => true,
+        'edit_published_posts'   => true,
+        'delete_published_posts' => true,
+        'publish_posts'          => true,
+        'upload_files'           => true,
+    );
+
+    /**
      * The real menu while the organised one is printed.
      *
      * @var array|null
@@ -253,6 +279,14 @@ class SEOProStack_Admin_Menu extends SEOProStack_Feature {
                 'parent'      => self::KEY,
                 'label'       => __('Client safeguards', 'seoprostack'),
                 'description' => __('People who are not developers cannot see the Developers menu, install, delete or edit plugins and themes, see developer plugins, change developer accounts, make administrators or change these settings. Updates still work.', 'seoprostack'),
+            ),
+            self::WRITERS_KEY => array(
+                'type'        => 'bool',
+                'default'     => true,
+                'parent'      => self::KEY,
+                'reload'      => true,
+                'label'       => __('Writers see only writing', 'seoprostack'),
+                'description' => __('Contributors and authors see their posts, media, comments and profile. Plugin pages that any writer could open, such as plugin settings, are hidden and refused. Pages a plugin gives their role on purpose stay.', 'seoprostack'),
             ),
             self::FOLD_KEY => array(
                 'type'        => 'bool',
@@ -344,6 +378,9 @@ class SEOProStack_Admin_Menu extends SEOProStack_Feature {
             if (is_admin()) {
                 add_action('admin_init', array(__CLASS__, 'block_page'));
             }
+        }
+        if (is_admin() && SEOProStack_Settings::get(self::WRITERS_KEY)) {
+            add_action('admin_init', array(__CLASS__, 'block_writer_page'));
         }
 
         if (!is_admin() || is_network_admin() || is_user_admin()) {
@@ -841,6 +878,7 @@ class SEOProStack_Admin_Menu extends SEOProStack_Feature {
         $out_sub  = is_array($submenu) ? $submenu : array();
         $entries  = array();
         $top      = array();
+        $writer   = self::is_writer();
         // Core renames a menu to its first entry; places may use the old name.
         $renamed  = array_flip(array_map('strval', (array) $_wp_real_parent_file));
         $parents  = array();
@@ -867,7 +905,7 @@ class SEOProStack_Admin_Menu extends SEOProStack_Feature {
                 $place = self::fallback_section($slug, $parents);
             }
             $top[$slug] = $place;
-            if (self::is_hidden($slug, '', $item)) {
+            if (($writer && self::writer_hides_menu($slug, $item, $out_sub)) || self::is_hidden($slug, '', $item)) {
                 $entries[] = array('slug' => $slug, 'section' => $place, 'top' => true, 'hidden' => true);
                 continue;
             }
@@ -897,7 +935,7 @@ class SEOProStack_Admin_Menu extends SEOProStack_Feature {
                 $slug     = (string) $item[2];
                 $is_first = $first;
                 $first    = false;
-                if (!$is_first && $slug !== $parent && self::is_hidden($slug, $parent, $item)) {
+                if (($writer && self::writer_hides($slug, $item)) || (!$is_first && $slug !== $parent && self::is_hidden($slug, $parent, $item))) {
                     unset($out_sub[$parent][$position]);
                     $entries[] = array('slug' => $slug, 'section' => $own, 'from' => $parent, 'hidden' => true);
                     continue;
@@ -1760,6 +1798,115 @@ class SEOProStack_Admin_Menu extends SEOProStack_Feature {
         $entry  = self::current_entry($layout['entries']);
         if ($entry && 'super-admin' === $entry['section']) {
             wp_die(esc_html__('Sorry, this page is only for developers.', 'seoprostack'), '', array('response' => 403, 'back_link' => true));
+        }
+    }
+
+    /* --------------------------------------------------------------------- */
+    /* Writers (contributors and authors)                                     */
+    /* --------------------------------------------------------------------- */
+
+    /**
+     * Whether the current person is a writer: they can write posts but not
+     * edit other people's, such as contributors and authors. Editors, shop
+     * managers and administrators are not.
+     *
+     * @return bool
+     */
+    public static function is_writer() {
+        static $cache = array();
+        $user_id = get_current_user_id();
+        $key     = $user_id . '|' . self::$view_as;
+        if (!isset($cache[$key])) {
+            $writer = $user_id
+                && SEOProStack_Settings::get(self::WRITERS_KEY)
+                && current_user_can('edit_posts')
+                && !current_user_can('edit_others_posts')
+                && !current_user_can('manage_options');
+            /**
+             * Filter whether the current person sees only writing screens.
+             *
+             * @param bool $writer  Whether they are a writer.
+             * @param int  $user_id User ID.
+             */
+            $cache[$key] = (bool) apply_filters('seoprostack_is_writer', $writer, $user_id);
+        }
+        return $cache[$key];
+    }
+
+    /**
+     * Whether writers do not get a menu entry's page: a plugin's page that
+     * asks only for a capability every writer has, and Tools, which offers
+     * writers nothing of WordPress's own. WordPress's screens, including
+     * post types' lists, keep WordPress's own checks.
+     *
+     * @param string $slug Entry address.
+     * @param array  $item Menu entry (capability in [1]).
+     * @return bool
+     */
+    private static function writer_hides($slug, array $item) {
+        $cap   = isset($item[1]) && is_string($item[1]) ? $item[1] : '';
+        $parts = self::parse_slug($slug);
+        $wp    = !isset($parts['args']['page']) && preg_match('/^[a-z0-9-]+\.php$/', $parts['file']) && file_exists(ABSPATH . 'wp-admin/' . $parts['file']);
+        $hide  = 'tools.php' === $slug || ('' !== $cap && isset(self::WRITER_CAPS[$cap]) && !$wp);
+        /**
+         * Filter whether writers do not get a menu page.
+         *
+         * @param bool   $hide Whether the page is hidden and refused.
+         * @param string $slug Menu address, such as a plugin page's slug.
+         * @param string $cap  Capability the page asks for.
+         */
+        return (bool) apply_filters('seoprostack_writer_hides_page', $hide, $slug, $cap);
+    }
+
+    /**
+     * Whether writers do not get a top-level entry: every page in its
+     * submenu is hidden from them, or, without a submenu, its own page.
+     * (With a submenu, core links the entry to the first page in it and
+     * prints an empty entry when there is none, whatever the entry's own
+     * capability, which is often one the writer lacks.)
+     *
+     * @param string $slug    Entry address.
+     * @param array  $item    Menu entry.
+     * @param array  $submenu Submenus.
+     * @return bool
+     */
+    private static function writer_hides_menu($slug, array $item, array $submenu) {
+        $children = array();
+        foreach (isset($submenu[$slug]) ? (array) $submenu[$slug] : array() as $child) {
+            if (is_array($child) && isset($child[2])) {
+                $children[] = $child;
+            }
+        }
+        if (!$children) {
+            return self::writer_hides($slug, $item);
+        }
+        foreach ($children as $child) {
+            if (!self::writer_hides((string) $child[2], $child)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
+     * Refuse writers the plugin pages hidden from them.
+     */
+    public static function block_writer_page() {
+        global $plugin_page, $menu, $submenu;
+        if (wp_doing_ajax() || !is_string($plugin_page) || '' === $plugin_page || !self::is_writer()) {
+            return;
+        }
+        $items = is_array($menu) ? $menu : array();
+        foreach (is_array($submenu) ? $submenu : array() as $children) {
+            $items = array_merge($items, (array) $children);
+        }
+        foreach ($items as $item) {
+            if (is_array($item) && isset($item[2]) && $item[2] === $plugin_page) {
+                if (self::writer_hides($plugin_page, $item)) {
+                    wp_die(esc_html__('Sorry, this page is not for writers.', 'seoprostack'), '', array('response' => 403, 'back_link' => true));
+                }
+                return;
+            }
         }
     }
 
