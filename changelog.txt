@@ -3,12 +3,18 @@
 Every change to SEO Pro Stack. readme.txt lists the latest version in short.
 
 = Unreleased =
+* New: Pro Plugins lists FluentCart Pro.
+* Change: Organise the admin menu spaces the Fluent plugins’ names like Fluent Forms: Fluent CRM, Fluent SMTP, Fluent Community and Fluent Cart. Shop starts with WooCommerce and FluentCart, then the rest A–Z.
+* New: Free Plugins suggests FluentCart under eCommerce.
+
+= 0.8.0 =
 * New, off by default: Maintenance mode (Maintenance tab): a plain-text 503 page with Retry-After and noindex, an administrator reminder, and revocable 24-hour bypass links. Imports Hostinger Tools' maintenance switch without changing its settings; its other enabled jobs are named on the Plugins screen.
 * New: display presets for Rank Math SEO (no Frontend Stats Bar), WP-Optimize (no caching menu in the admin bar) and Burst Statistics (no non-critical dashboard notices), leaving modules and schedules alone. Burst's tracking settings and generated script stay unchanged through Apply, Reset and Undo.
 * New: Code Snippets preset hides upgrade notices and its admin bar menu. Apply, Reset and Undo clear the preset's named caches, including Code Snippets' versioned settings cache on Redis and other persistent caches.
 * New: Fluent Booking starter data: a free, 30-minute Discovery Call for the administrator adding it. Confirmed bookings join Website Booking Form with FluentCRM active. Existing calendars stay unchanged; Remove keeps events with bookings and calendars in use.
 * New, off by default: Turn off unused remote access, with two unchecked choices: XML-RPC (403 response, no pingback header or RSD link) and application passwords (no profile section or Authorize application screen). Imports enabled switches from active Hostinger Tools and Disable Bloat once, without overwriting saved choices or changing their options. Other Hostinger tools are not replaced.
 * New, off by default: Database key cleanup. Review leftover and duplicate indexes under Tools → Database keys, confirm each removal, and keep a restore statement in the log. Core and known active-plugin keys are protected. Back up first.
+* New, off by default: learn which plugins each public page needs, with an opt-out list. Plain pages can skip WooCommerce PHP with Lighter WooCommerce pages on; shop pages and cart displays keep it. Sessions and unknown pages load every plugin.
 * New, off by default: TranslatePress switcher colours (Content tab) follows Kadence light and dark modes for floating and shortcode switchers, with menu labels following the theme. Turning it off restores TranslatePress's own colours; its settings are never changed.
 * New: the Read Me tab thanks the makers of the plugins SEO Pro Stack replaces or learned from (Credits), with links to each one. Its tables now show as tables, and links to other sections jump to them.
 * New, off by default: six features that do most of Disable Bloat’s job. Tidy admin screens (no “Thank you for creating with WordPress” footer, no update notice for people who cannot update, optionally no file editors), Tidy WooCommerce admin (no marketplace suggestions, Extensions menu, WooCommerce.com connect notices or app promotion in order emails), Tidy the login screen (logo links to your site), Simpler block editor (no welcome guides or block directory, and optionally no core patterns, template editor or fullscreen mode), Remove WordPress extras (no emoji script, version number, old blogging app links or shortlinks) and Lighter WooCommerce pages (WooCommerce’s scripts only on shop pages and pages with WooCommerce blocks). While Disable Bloat is active, its settings are imported once and the features wait until you deactivate it.
@@ -21,12 +27,10 @@ Every change to SEO Pro Stack. readme.txt lists the latest version in short.
 * Fix: Load plugins only where needed now loads plugins that add columns, filters or row links to a list on that list, so Rank Math’s SEO columns show on the Posts list again. Every screen is checked again once.
 * Fix: Load plugins only where needed no longer leaves WP Sheet Editor’s spreadsheets blank: pages of a framework that several plugins bundle load all of those plugins.
 * Fix: Ask before licence checks: “Ask me again” now keeps each plugin hidden for the time you chose. Hiding a second plugin, such as Starter Templates after Kadence Blocks, brought back the first.
-* Fix: Organise the admin menu: dark plugin icons in the Administrators and Developers menus (Site Assist, ICS Calendar, Bit Social, FluentCRM) now show in the menu’s colours, as at the top level, and AutomatorWP shows a cog instead of nothing on screens that skip it.
+* Fix: Organise the admin menu: dark plugin icons in the Administrators and Developers menus (Site Assist, ICS Calendar, Bit Social, FluentCRM) now show in the menu’s colours, as at the top level, AutomatorWP shows a cog instead of nothing on screens that skip it, and Code Snippets shows its logo.
 * New: Readable list columns removes Complianz’s Website Scan, Post Type Switcher’s Type and Burst Statistics’ Pageviews columns (Columns to remove; Admin Columns can still add them back), puts Author and Date last on content lists, and keeps Rank Math’s SEO Details on one line each.
 * New: Organise the admin menu widens the sidebar, up to 280 pixels, so menu names fit on one line (Fit the menu to its names, on by default). Other plugins’ fixed headers, footers and panels laid out for the usual menu width, such as Fluent Support’s setup footer, move over or narrow with it.
 * Change: Organise the admin menu shows FluentSMTP’s logo for its entry instead of a cog.
-* Change: Organise the admin menu spaces the Fluent plugins’ names like Fluent Forms: Fluent CRM, Fluent SMTP, Fluent Community and Fluent Cart. Shop starts with WooCommerce and FluentCart, then the rest A–Z.
-* New: Free Plugins suggests FluentCart under eCommerce.
 * Fix: More menu in the admin bar: TranslatePress’s Translate Site item now starts at the left like the other items, instead of being spread across the menu.
 
 = 0.7.0 =

@@ -90,10 +90,19 @@ class SEOProStack_Admin_Menu extends SEOProStack_Feature {
      * fluent-mail: FluentSMTP's logo (assets/images/logo.svg in that plugin),
      * one shape with the two bars cut out, in place of the plain cog:
      * <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 300"><path fill="#a7aaad" fill-rule="evenodd" d="M300,30c0,-16.557 -13.443,-30 -30,-30l-240,0c-16.557,0 -30,13.443 -30,30l0,240c0,16.557 13.443,30 30,30l240,0c16.557,0 30,-13.443 30,-30Z M165,25c0,0 -80.084,21.458 -119.113,31.916c-12.32,3.301 -20.887,14.466 -20.887,27.221c0,3.784 0,6.536 0,6.536c0,0 72.08,-19.314 112.8,-30.225c16.044,-4.298 27.2,-18.837 27.2,-35.447Z M111.266,83.11c0,0 -39.848,10.677 -65.379,17.518c-12.32,3.301 -20.887,14.466 -20.887,27.221c0,3.784 0,6.536 0,6.536c0,0 33.783,-9.052 59.066,-15.827c16.044,-4.299 27.2,-18.838 27.2,-35.447Z"/></svg>
+     *
+     * Also for menus whose icon a plugin draws only with its own CSS on its
+     * top-level entry (icon "none"), so it has none in the Administrators and
+     * Developers menus:
+     *
+     * snippets: Code Snippets' logo (assets/menu-icon.svg in that plugin),
+     * with a viewBox added so it scales:
+     * <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 18.025"><path transform="translate(.032 -50.5)" d="M3.718 58.581h3.104a.833.833 0 0 1 .599 1.412l.004.009L5.3 62.125a3.747 3.747 0 0 0 0 5.304 3.755 3.755 0 0 0 5.304 0 3.755 3.755 0 0 0-1.454-6.207l.558-.558h7.134c1.7 0 3.083-1.446 3.124-3.25 0-.03.004-.054 0-.083a.92.92 0 0 0-.916-.834h-5.175l3.737-3.736a.92.92 0 0 0 .062-1.238c-.02-.025-.04-.042-.062-.062-1.3-1.242-3.304-1.288-4.503-.088l-5.124 5.124h-.91a3.75 3.75 0 1 0-3.358 2.084m1.667-3.75a1.666 1.666 0 1 1-3.333.002 1.666 1.666 0 0 1 3.333-.001m3.745 8.771c.65.65.65 1.704 0 2.354a1.663 1.663 0 0 1-2.358 0 1.664 1.664 0 0 1 0-2.354 1.66 1.66 0 0 1 2.358 0"/></svg>
      */
     const ICONS = array(
         'seoprostack' => 'dashicons-star-filled',
         'fluent-mail' => 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMDAgMzAwIj48cGF0aCBmaWxsPSIjYTdhYWFkIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiIGQ9Ik0zMDAsMzBjMCwtMTYuNTU3IC0xMy40NDMsLTMwIC0zMCwtMzBsLTI0MCwwYy0xNi41NTcsMCAtMzAsMTMuNDQzIC0zMCwzMGwwLDI0MGMwLDE2LjU1NyAxMy40NDMsMzAgMzAsMzBsMjQwLDBjMTYuNTU3LDAgMzAsLTEzLjQ0MyAzMCwtMzBaIE0xNjUsMjVjMCwwIC04MC4wODQsMjEuNDU4IC0xMTkuMTEzLDMxLjkxNmMtMTIuMzIsMy4zMDEgLTIwLjg4NywxNC40NjYgLTIwLjg4NywyNy4yMjFjMCwzLjc4NCAwLDYuNTM2IDAsNi41MzZjMCwwIDcyLjA4LC0xOS4zMTQgMTEyLjgsLTMwLjIyNWMxNi4wNDQsLTQuMjk4IDI3LjIsLTE4LjgzNyAyNy4yLC0zNS40NDdaIE0xMTEuMjY2LDgzLjExYzAsMCAtMzkuODQ4LDEwLjY3NyAtNjUuMzc5LDE3LjUxOGMtMTIuMzIsMy4zMDEgLTIwLjg4NywxNC40NjYgLTIwLjg4NywyNy4yMjFjMCwzLjc4NCAwLDYuNTM2IDAsNi41MzZjMCwwIDMzLjc4MywtOS4wNTIgNTkuMDY2LC0xNS44MjdjMTYuMDQ0LC00LjI5OSAyNy4yLC0xOC44MzggMjcuMiwtMzUuNDQ3WiIvPjwvc3ZnPg==',
+        'snippets'    => 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyMCAxOC4wMjUiPjxwYXRoIHRyYW5zZm9ybT0idHJhbnNsYXRlKC4wMzIgLTUwLjUpIiBkPSJNMy43MTggNTguNTgxaDMuMTA0YS44MzMuODMzIDAgMCAxIC41OTkgMS40MTJsLjAwNC4wMDlMNS4zIDYyLjEyNWEzLjc0NyAzLjc0NyAwIDAgMCAwIDUuMzA0IDMuNzU1IDMuNzU1IDAgMCAwIDUuMzA0IDAgMy43NTUgMy43NTUgMCAwIDAtMS40NTQtNi4yMDdsLjU1OC0uNTU4aDcuMTM0YzEuNyAwIDMuMDgzLTEuNDQ2IDMuMTI0LTMuMjUgMC0uMDMuMDA0LS4wNTQgMC0uMDgzYS45Mi45MiAwIDAgMC0uOTE2LS44MzRoLTUuMTc1bDMuNzM3LTMuNzM2YS45Mi45MiAwIDAgMCAuMDYyLTEuMjM4Yy0uMDItLjAyNS0uMDQtLjA0Mi0uMDYyLS4wNjItMS4zLTEuMjQyLTMuMzA0LTEuMjg4LTQuNTAzLS4wODhsLTUuMTI0IDUuMTI0aC0uOTFhMy43NSAzLjc1IDAgMSAwLTMuMzU4IDIuMDg0bTEuNjY3LTMuNzVhMS42NjYgMS42NjYgMCAxIDEtMy4zMzMuMDAyIDEuNjY2IDEuNjY2IDAgMCAxIDMuMzMzLS4wMDFtMy43NDUgOC43NzFjLjY1LjY1LjY1IDEuNzA0IDAgMi4zNTRhMS42NjMgMS42NjMgMCAwIDEtMi4zNTggMCAxLjY2NCAxLjY2NCAwIDAgMSAwLTIuMzU0IDEuNjYgMS42NiAwIDAgMSAyLjM1OCAwIi8+PC9zdmc+',
     );
 
     /** Script and style handle. */
@@ -1393,8 +1402,14 @@ class SEOProStack_Admin_Menu extends SEOProStack_Feature {
                 $classes            .= ' sps-menu-has-sub';
                 self::$flyouts[$id] = $kids;
             }
+            $icon = isset($item[6]) ? (string) $item[6] : '';
+            // "none" and "div": the plugin draws the icon with its own CSS,
+            // only on its top-level entry.
+            if (in_array($icon, array('', 'none', 'div'), true) && isset(self::ICONS[$slug])) {
+                $icon = self::ICONS[$slug];
+            }
             $entries[] = array(
-                self::icon_html(isset($item[6]) ? (string) $item[6] : '') . $item[0],
+                self::icon_html($icon) . $item[0],
                 $item[1],
                 $url,
                 isset($item[3]) ? $item[3] : self::plain_title($item[0]),

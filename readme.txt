@@ -4,7 +4,7 @@ Tags: magic login, iframe, schedule posts, auto upload images, admin
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 0.7.0
+Stable tag: 0.8.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -50,7 +50,7 @@ Everything is off by default except Hide admin bar items (Comments and + New), N
 
 * **Short links** such as /go/offer/, with redirects, categories and click counts, and **Short addresses for custom post types**. **410 Gone** for removed pages.
 * **Speed**: load pages before the click, delay chosen scripts until interaction, add Google Analytics 4 without slowing the page, open the editor faster with Kadence Blocks, and **Ask before licence checks** (once now, once a day or never).
-* **Load plugins only where needed**: a faster wp-admin on sites with many plugins, and admin tools you choose skipped on the site, through a must-use file it manages itself.
+* **Load plugins only where needed**: a faster wp-admin, admin tools skipped on the site, and optional page-by-page content learning with an opt-out list.
 * **Plugins menu** in the admin bar, **Plugin sizes**, **Clean up deleted plugins**, **Hosting needs** (what to ask your host for) and **Plugin presets**: our settings and starter data for other plugins, on request.
 * **Maintenance mode**: a temporary 503 page with a message and 24-hour bypass links you can revoke.
 * **Database key cleanup**: review leftover and duplicate indexes, confirm each removal and keep restore SQL. Back up first.
@@ -119,29 +119,28 @@ Copies from WordPress.org update from there. New versions come out on GitHub fir
 == Changelog ==
 
 = Unreleased =
+* New: Pro Plugins lists FluentCart Pro.
+* New: spaced Fluent menu names; shop plugins first in Shop; FluentCart suggested.
+
+= 0.8.0 =
 * New: presets for Code Snippets, Rank Math SEO, WP-Optimize and Burst Statistics.
-* New, off by default: Maintenance mode with bypass links; turn off XML-RPC or application passwords.
+* New, off by default: maintenance bypass links; disable XML-RPC or application passwords.
 * New, off by default: Database key cleanup.
 * New, off by default: TranslatePress switcher colours.
-* New, off by default: eight features that do most of Disable Bloat’s job.
-* New: starter data for Fluent Forms (four forms) and Fluent Booking (a Discovery Call), feeding FluentCRM.
+* New, off by default: per-page plugin learning with WooCommerce.
+* New, off by default: eight Disable Bloat replacements, importing its settings.
+* New: Fluent Forms (four forms) and Fluent Booking (Discovery Call) starters, feeding FluentCRM.
 * Change: no longer recommended: Freesoul Deactivate Plugins and replaced Pro plugins.
-* Change: Apply preset names each setting in plain words.
-* Fix: plugins that add list columns load on those lists; WP Sheet Editor shows.
+* Change: plain setting names in Apply preset.
+* Fix: list columns load their plugins; WP Sheet Editor works.
 * Fix: Licence checks “Ask me again” keeps each plugin hidden.
 * Fix: dark plugin icons in the admin menu; TranslatePress in the More menu.
 * New: remove unneeded list columns; Author and Date last.
-* New: admin menu fits names; Fluent names spaced; shop plugins first in Shop.
-
-= 0.7.0 =
-* New: licence-check choices, plugin presets and FluentCRM and Fluent Boards starters.
-* New: GitHub updates without Git Updater; Quiet Freemius prompts on by default.
-* Change: wider plugin-loading coverage, quieter dashboard; Tutor LMS replaces MasterStudy.
-* Fix: admin layout and fewer GitHub requests.
+* New: the admin menu fits its names, plugins' bars follow; FluentSMTP logo.
 
 Every change, and earlier versions: `changelog.txt` in the plugin folder.
 
 == Upgrade Notice ==
 
-= 0.7.0 =
-GitHub copies no longer need Git Updater. New: licence-check choices and more plugin presets.
+= 0.8.0 =
+New, off by default: Maintenance mode, Database key cleanup and most of Disable Bloat's job. More presets and starter data.
