@@ -4,7 +4,7 @@
  *
  * Renders README.md with a small, escaping Markdown subset
  * (headings with GitHub-style IDs, lists, tables, bold, italic, inline code,
- * http(s) links and links to headings).
+ * http(s) links, links to headings and images from the plugin's folder).
  *
  * @package SEOProStack
  * @since 0.2.0
@@ -59,6 +59,13 @@ class SEOProStack_Readme_Manager {
 
             if ('' === $trim || '#' === $trim) {
                 $close_list();
+                continue;
+            }
+
+            // An image on a line of its own, from the plugin's own folder.
+            if (preg_match('/^!\[([^\]]*)\]\(([^)\s]+)\)$/', $trim, $m)) {
+                $close_list();
+                $html .= self::image($m[2], $m[1]);
                 continue;
             }
 
@@ -134,6 +141,46 @@ class SEOProStack_Readme_Manager {
         $ids[$id] = true;
 
         return $id;
+    }
+
+    /**
+     * An image from the plugin's folder, such as the banner at the top of
+     * README.md. Only relative paths to image files that exist are shown, so
+     * the tab never loads anything from another site.
+     *
+     * @param string $path Path relative to the plugin folder.
+     * @param string $alt  Alternative text.
+     * @return string HTML, or '' for anything else.
+     */
+    private static function image($path, $alt) {
+        if (!preg_match('#^[A-Za-z0-9_-]+(?:/[A-Za-z0-9_-]+)*\.(?:svg|png|jpe?g|gif|webp)$#i', $path)) {
+            return '';
+        }
+        $file = SEOPROSTACK_DIR . $path;
+        if (!is_file($file)) {
+            return '';
+        }
+
+        // Width and height stop the page jumping while the image loads.
+        $size = '';
+        if ('svg' === strtolower(pathinfo($path, PATHINFO_EXTENSION))) {
+            $head = (string) file_get_contents($file, false, null, 0, 2048); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents -- local file.
+            if (preg_match('/<svg\b[^>]*?\swidth="(\d+)"[^>]*?\sheight="(\d+)"/', $head, $m)) {
+                $size = array((int) $m[1], (int) $m[2]);
+            }
+        } else {
+            $size = wp_getimagesize($file);
+        }
+        $dims = is_array($size) && !empty($size[0]) && !empty($size[1])
+            ? sprintf(' width="%d" height="%d"', $size[0], $size[1])
+            : '';
+
+        return sprintf(
+            '<p class="sps-readme-image"><img src="%1$s" alt="%2$s"%3$s decoding="async" /></p>',
+            esc_url(SEOPROSTACK_URL . $path),
+            esc_attr($alt),
+            $dims
+        );
     }
 
     /**

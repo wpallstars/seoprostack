@@ -93,8 +93,11 @@ Guidelines: [Detailed Plugin Guidelines](https://developer.wordpress.org/plugins
       `icon-128x128` and `icon-256x256` (PNG, JPG or GIF, up to 1 MB) and
       optionally `icon.svg`, and `screenshot-N` (PNG or JPG, up to 10 MB), with a
       `== Screenshots ==` section in `readme.txt` captioning each one. Keep the
-      sources in the repository under `.wordpress-org/` (add it to
-      `.distignore`).
+      sources in the repository under `.wordpress-org/` (in `.distignore`).
+      The banners are done: `.wordpress-org/banner-772x250.png` and
+      `banner-1544x500.png`, built from `.wordpress-org/banner.svg` with
+      `scripts/build-banner.sh` (which also writes the Read Me tab's
+      `admin/images/banner.svg`). Icons and screenshots are still to do.
 
 ### Guideline review for this plugin
 

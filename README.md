@@ -1,3 +1,5 @@
+![SEO Pro Stack: WP Admin – Solved!](admin/images/banner.svg)
+
 # SEO Pro Stack
 
 Curated plugins, themes, hosting and workflow tools for WordPress, plus a few small quality-of-life features.
@@ -783,6 +785,7 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folder�
 
 ### Unreleased
 
+- New: a banner, “SEO Pro Stack: WP Admin – Solved!”, at the top of the Read Me tab and for the WordPress.org plugin page. The Read Me tab now shows images from the plugin’s own folder written on a line of their own (`![alt](admin/images/banner.svg)`); other images and addresses are left out. The source is `.wordpress-org/banner.svg`; `scripts/build-banner.sh` (Inkscape and the Inter font) writes `admin/images/banner.svg` with the words as shapes, and `banner-772x250.png` and `banner-1544x500.png` in `.wordpress-org/` for the SVN `assets/` folder, which stays out of the plugin zip.
 - New: Pro Plugins lists FluentCart Pro (licences, inventory tracking, order bumps, advanced reports and more payment gateways), with links to its home page, pricing and Free vs Pro comparison (`admin/data/pro-plugins.php`).
 
 ### 0.8.0

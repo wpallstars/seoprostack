@@ -119,6 +119,7 @@ Copies from WordPress.org update from there. New versions come out on GitHub fir
 == Changelog ==
 
 = Unreleased =
+* New: Read Me banner.
 * New: Pro Plugins lists FluentCart Pro.
 
 = 0.8.0 =

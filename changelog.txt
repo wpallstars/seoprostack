@@ -3,6 +3,7 @@
 Every change to SEO Pro Stack. readme.txt lists the latest version in short.
 
 = Unreleased =
+* New: a banner at the top of the Read Me tab, and for the WordPress.org plugin page: “SEO Pro Stack: WP Admin – Solved!”
 * New: Pro Plugins lists FluentCart Pro.
 
 = 0.8.0 =
