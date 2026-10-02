@@ -14,15 +14,15 @@ Curated plugins, themes, hosting and tools for WordPress, plus small opt-in qual
 
 SEO Pro Stack is free and open source. There is no pro version and nothing is locked.
 
-Everything is off by default except Hide admin bar items (Comments and + New), No fade between admin screens, Quiet Freemius prompts and Fixes for other plugins. Turn features on in **Settings → SEO Pro Stack**; **Search features** finds one by name or by the plugin it replaces. The Read Me tab explains each.
+Everything is off by default except Hide admin bar items (Comments and + New), No fade between admin screens, Quiet Freemius prompts and Fixes for other plugins. Turn features on in **Settings → SEO Pro Stack**; **Search features** finds one by name or replaced plugin. The Read Me tab explains each.
 
 = Admin screens =
 
-* **Organise the admin menu**: the same menu sections on every site, with role previews and client safeguards. Replaces Admin Menu Editor.
+* **Organise the admin menu**: the same sections everywhere, role previews, client safeguards, writing-only for contributors. Replaces Admin Menu Editor.
 * **Tidy the dashboard** and **Dashboard and sidebar widgets**: no Dashboard boxes or widgets you never use.
 * **Hide admin bar items** (on by default), a **More menu** for plugin items in the admin bar, and **Hide admin notices**, which moves plugin and theme notices behind a bell.
 * **Quiet Freemius prompts** (on by default): no opt-in nags, upgrade offers or deactivation surveys from plugins that use Freemius.
-* **Admin bar and dashboard access**: hide the admin bar and block wp-admin for roles such as subscribers and customers, never administrators.
+* **Admin bar and dashboard access**: hide the admin bar and block wp-admin for subscribers, customers and the like, never administrators.
 * **Magic login links**: one-time login links by email that scanners cannot use up.
 * **Turn off unused remote access**: XML-RPC and application passwords, both off by default.
 * **Modern admin colours**, **No fade between admin screens** (on by default), **Readable list columns** and **Notification emails**, which stops routine emails one by one.
@@ -107,7 +107,7 @@ Imported images and screenshots stay in the Media Library. Deleting removes the 
 
 = Does it work on multisite? =
 
-Yes. Settings are per site, and Free Plugins is shown only to super admins.
+Yes. Settings are per site, and Free Plugins shows only to super admins.
 
 = Is the magic login safe? =
 
@@ -129,8 +129,8 @@ Click **Report a problem** at the top right of Settings → SEO Pro Stack, or op
 
 = Unreleased =
 * New: Word documents; Like, save and share.
-* Change: Pinned posts; faster post lists; sizes in Free Plugins.
-* Fix: More menu alignment, fitted menu in full screen editor.
+* Change: Pinned posts; faster lists; sizes in Free Plugins; writers' menu.
+* Fix: More menu alignment; menu in full screen editor.
 
 = 0.9.0 =
 * New: Menu item visibility, Change post type, Order by hand, Term tools, Search custom fields, Old post addresses, Link cards, Wikipedia previews, Agency tab.

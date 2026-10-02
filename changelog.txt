@@ -3,6 +3,7 @@
 Every change to SEO Pro Stack. readme.txt lists the latest version in short.
 
 = Unreleased =
+* New, on by default with Organise the admin menu: Writers see only writing. Contributors and authors see their posts, media, comments and profile, and no longer see or open plugin pages that any writer could reach, such as plugin settings, or Tools. Pages a plugin gives their role on purpose stay.
 * Change: Free Plugins’ All list shows how much disk space each installed plugin takes, split into PHP, JavaScript, CSS, media and other files, as on the Plugins screen. Plugin icons line up with the middle of each row.
 * New, off by default: Like, save and share: Like, Save and Share buttons after posts (or anywhere with a block), and a Saved posts block listing what each visitor saved. Works with page caching and sets no cookies: visitors' likes and saved posts stay in their browser, logged-in people's in their account. Replaces Favorites: its like counts, logged-in users' favourites, post types and shortcodes carry over.
 * Change: Sticky posts for any post type is now Pinned posts for any post type. Post lists show a pin instead of a star, and lists, Quick Edit, Bulk Edit and the editors say “Pinned” instead of “Sticky”. Clicking the pin adds or removes “Pinned” after the title straight away. The pin and Order by hand columns are narrower, leaving more room for the title.
