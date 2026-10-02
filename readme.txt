@@ -4,7 +4,7 @@ Tags: magic login, iframe, schedule posts, auto upload images, admin
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 0.8.1
+Stable tag: 0.9.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -127,19 +127,15 @@ Click **Report a problem** at the top right of Settings → SEO Pro Stack, or op
 
 == Changelog ==
 
-= Unreleased =
+= 0.9.0 =
 * New: Menu item visibility, Change post type, Order by hand, Term tools, Search custom fields, Old post addresses, Link cards, Wikipedia previews, Agency tab.
 * New: Fixes for other plugins (on by default), Report a problem button, Read Me banner.
 * Change: Custom order link on sorted lists; notes on replaceable plugins; Advise.so card.
 * Change: faster block editors, Customizer, Import and Export forms and Kadence design library.
 
-= 0.8.1 =
-* New: spaced Fluent menu names; shop plugins first in Shop; FluentCart suggested.
-* Fix: Code Snippets shows its logo in the Administrators and Developers menus.
-
 Every change, and earlier versions: `changelog.txt` in the plugin folder.
 
 == Upgrade Notice ==
 
-= 0.8.1 =
-Tidier admin menu (spaced Fluent names, shop plugins first, Code Snippets logo) and FluentCart suggestions.
+= 0.9.0 =
+New, off by default: Agency tab, Link cards, Wikipedia previews and six more replacements for single-purpose plugins. Faster block editors.
