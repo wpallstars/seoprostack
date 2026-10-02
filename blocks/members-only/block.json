@@ -1,0 +1,22 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "seoprostack/members-only",
+	"version": "0.9.1",
+	"title": "Members only",
+	"category": "design",
+	"icon": "lock",
+	"description": "Blocks only some people see. Everyone else sees a message, and logged-out visitors a link to log in.",
+	"keywords": [ "restrict", "members", "logged in", "hide", "visibility", "paywall" ],
+	"textdomain": "seoprostack",
+	"attributes": {
+		"message": { "type": "string", "default": "" }
+	},
+	"supports": {
+		"html": false,
+		"anchor": true,
+		"align": [ "wide", "full" ],
+		"spacing": { "margin": true, "padding": true }
+	},
+	"editorScript": "file:./index.js"
+}

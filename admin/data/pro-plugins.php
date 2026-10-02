@@ -677,21 +677,8 @@ if (!defined('ABSPATH')) {
             ),
             'free_slug' => 'gotmls'
         ),
-        'content-control' => array(
-            'name' => 'Content Control',
-            'description' => 'Advanced content restriction and user permissions management for WordPress.',
-            'button_group' => array(
-                array(
-                    'text' => 'Home Page',
-                    'url' => 'https://contentcontrolplugin.com/',
-                    'primary' => true
-                ),
-                array(
-                    'text' => 'Pricing',
-                    'url' => 'https://contentcontrolplugin.com/pricing/'
-                )
-            )
-        ),
+        // Content Control Pro: replaced by Restrict content (roles come from
+        // the form, shop and CRM plugins listed here).
         'eventon' => array(
             'name' => 'EventON',
             'description' => 'Premium WordPress event calendar plugin with advanced features and add-ons.',

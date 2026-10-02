@@ -2,6 +2,9 @@
 
 Every change to SEO Pro Stack. readme.txt lists the latest version in short.
 
+= Unreleased =
+* New, off by default: Restrict content shows posts, pages, categories and blocks only to logged-in people, logged-out visitors or chosen roles. Choose “Who sees this” in the editor, on a category or tag, or in a block’s Visibility panel. Others see what is above the More block, or the excerpt, and a message with a login link, also in lists, feeds and the REST API. A Members only block keeps part of a public post for members. Shop products can be kept for members too: WooCommerce hides their price and details, and neither WooCommerce nor FluentCart lets others buy them. Membership, payment and sign-up plugins give people a role, and the role decides what they see. Replaces Content Control, now closed on WordPress.org: its block rules and [content_control] shortcode keep working, and its restrictions for chosen posts and categories carry over.
+
 = 0.10.1 =
 * Change: Short links no longer counts as a replacement for Lasso Lite (Simple URLs), which also shows product displays and reports. The Plugins screen stops suggesting you remove Lasso Lite, Free Plugins lists it again, and the two run side by side. Short links still imports Lasso Lite's links if you want to move them.
 * Change: the Short links list no longer shows other plugins' links under each link, such as AI Engine's Magic Wand and Social Engine's Create Social Post.
