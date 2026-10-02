@@ -171,6 +171,68 @@ abstract class SEOProStack_Feature {
     }
 
     /**
+     * Whether a batch that began at $start has time for one more item.
+     *
+     * The batch keeps to its own budget, and also to PHP's time limit for
+     * the whole request: WP-Cron runs every due batch in one request, so two
+     * 20-second batches would pass a 30-second limit. Where the host allows
+     * it, the limit is restarted for the next item instead.
+     *
+     * @param float $start  microtime(true) when the batch began.
+     * @param int   $budget Seconds the batch may run.
+     * @return bool
+     */
+    public static function more_time($start, $budget) {
+        $now = microtime(true);
+        if ($now - $start >= $budget) {
+            return false;
+        }
+        $limit = (int) ini_get('max_execution_time');
+        if ($limit <= 0) {
+            return true;
+        }
+        // set_time_limit() restarts the count; hosts may disable it.
+        if (function_exists('set_time_limit') && @set_time_limit(max($limit, 60))) { // phpcs:ignore WordPress.PHP.NoSilencedErrors, Squiz.PHP.DiscouragedFunctions -- may be disabled by the host.
+            return true;
+        }
+        $begun = isset($_SERVER['REQUEST_TIME_FLOAT']) ? (float) $_SERVER['REQUEST_TIME_FLOAT'] : $start;
+        $used  = $now - $begun;
+        // On Linux the limit counts CPU time of every thread, and image
+        // libraries use several, so CPU time can run ahead of the clock.
+        // getrusage() counts the whole process, which under PHP-FPM serves
+        // many requests (thousands of seconds on a test site), so only CPU
+        // time since the first call in this request counts, plus the clock
+        // time before it.
+        $cpu = self::cpu_seconds();
+        if (null !== $cpu) {
+            if (null === self::$cpu_base) {
+                self::$cpu_base = array($cpu, $now - $begun);
+            }
+            $used = max($used, $cpu - self::$cpu_base[0] + self::$cpu_base[1]);
+        }
+        return $used < $limit - min(10, $limit / 3);
+    }
+
+    /** CPU seconds and request seconds at the first more_time() check. @var array|null */
+    private static $cpu_base = null;
+
+    /**
+     * CPU seconds this process has used, or null when unknown.
+     *
+     * @return float|null
+     */
+    private static function cpu_seconds() {
+        if (!function_exists('getrusage')) {
+            return null;
+        }
+        $usage = getrusage();
+        if (!is_array($usage) || !isset($usage['ru_utime.tv_sec'], $usage['ru_stime.tv_sec'], $usage['ru_utime.tv_usec'], $usage['ru_stime.tv_usec'])) {
+            return null;
+        }
+        return $usage['ru_utime.tv_sec'] + $usage['ru_stime.tv_sec'] + ($usage['ru_utime.tv_usec'] + $usage['ru_stime.tv_usec']) / 1e6;
+    }
+
+    /**
      * Register hooks.
      */
     abstract public static function boot();

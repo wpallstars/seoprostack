@@ -145,6 +145,9 @@ function seoprostack_uninstall_site() {
     // owner's pictures, so their folder (uploads/seoprostack-originals-*)
     // is kept; only the records linking them to pictures go.
     delete_post_meta_by_key('_seoprostack_watermark');
+    // Background batch of watermarks.
+    wp_unschedule_hook('seoprostack_watermark_batch');
+    delete_option('seoprostack_watermark_job');
 
     // Screenshots stay in the Media Library because posts may use them;
     // only the records that matched them to pages go.
