@@ -333,6 +333,16 @@ WooCommerce loads its scripts and styles on every page, so that add-to-cart butt
 
 Kadence Blocks prints its whole design library, with every pattern’s HTML, into each block editor screen as the `kadence_blocks_params_library` script variable. On a test site with the library cached that was about 15 MB, so a new post screen weighed about 24 MB. This turns the preload off with Kadence’s own `kadence_blocks_preload_design_library` filter (Kadence does the same when Gravity Forms is active). The editor then fetches the library from Kadence’s `kb-design-library/v1/get_library` REST route the first time you open the design library, so only people who use it wait for it. Without Kadence Blocks it does nothing. A filter of your own on `kadence_blocks_preload_design_library` at a priority above 10 still decides.
 
+Kadence already keeps what it downloads in `wp-content/uploads/kadence_blocks_library`, so opening the library again does not reach Kadence’s servers, but each new editor page asked the site for the whole library again, and sent each request twice. The editor now keeps Kadence’s answers in the browser (Cache Storage, `seoprostack-kadence-library-*`) and sends each request once:
+
+- Only Kadence’s own section, page and template libraries are kept: never cloud or custom libraries (Kadence checks their expiry on each request), licence, account or AI data.
+- The kept copy belongs to a token from Kadence’s cache files (names, sizes and times), the versions of Kadence Blocks and Kadence Blocks Pro, its licence (in a salted hash), the user and the site. When Kadence’s copy changes, the next editor page drops the old one and fetches again once.
+- Kadence’s Sync button always goes to the site and Kadence’s servers, and drops the kept copy.
+- Nothing is stored on the server; browsers without Cache Storage (sites not on HTTPS) still send each request once.
+- The library lays out all of its patterns at once (833 on the test site, a list about 70,000 px tall). Each pattern gets `content-visibility: auto`, so the browser lays out and draws only the ones on screen and the rest as they are scrolled to. Browsers without it ignore the rule.
+
+On a test site, in one browser, alternating editor pages with and without the browser copy (four of each, opening the library from a new page each time): the library showed after 5.9 seconds without it (median; three library requests taking 2–2.7 seconds) and 3.4 seconds with it (no requests). Skipping off-screen patterns brought the time to the first drawn library from 2.7 to 2.0 seconds. The rest is Kadence building its pattern list. The first opening in each browser still loads the library from the site, and opening it again in the same editor page was already quick, since Kadence keeps it in the page. Sync still fetched new designs.
+
 ### 410 Gone for removed pages (Links)
 
 Answers “410 Gone” instead of “404 Not Found” for addresses you list, so search engines drop them sooner. Visitors still see the theme’s not-found page.
@@ -787,6 +797,7 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folder�
 
 ### Unreleased
 
+- Changed: Faster editor with Kadence Blocks keeps Kadence’s design library in the browser until Kadence’s own copy changes, sends each library request once instead of twice, and lets the browser skip drawing patterns that are off screen. On a test site, in a new editor page, the library was drawn in about 2 seconds instead of 5.9, with no requests. Only Kadence’s own section, page and template libraries are kept, never licence, account, AI or cloud library data; Sync still fetches new designs. No new options.
 - New: a banner in the WPALLSTARS colours (navy, red and cream, Zilla Slab, the logo’s arc of stars above a stack with the WordPress Plugins icon on top, red and cream stripes), “SEO Pro Stack: WP Admin – Solved!”, at the top of the Read Me tab and for the WordPress.org plugin page. The Read Me tab now shows images from the plugin’s own folder written on a line of their own (`![alt](admin/images/banner.svg)`); other images and addresses are left out, and the file’s time is added to its address so browsers show a changed image straight away. The source is `.wordpress-org/banner.svg`; `scripts/build-banner.sh` (Inkscape and the Zilla Slab font) writes `admin/images/banner.svg` with the words as shapes, and `banner-772x250.png` and `banner-1544x500.png` in `.wordpress-org/` for the SVN `assets/` folder, which stays out of the plugin zip.
 
 ### 0.8.1
