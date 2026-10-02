@@ -14,7 +14,7 @@
  * meta box.
  *
  * @package SEOProStack
- * @since 0.8.2
+ * @since 0.9.1
  */
 
 if (!defined('ABSPATH')) {
