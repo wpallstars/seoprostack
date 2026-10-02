@@ -81,6 +81,9 @@ function seoprostack_uninstall_site() {
     // Record of starter data added to other plugins. The lists, tags, fields
     // and boards themselves are that plugin's data now, and stay.
     $options[] = 'seoprostack_starters_added';
+    // Old post addresses: when recording and clearing started.
+    $options[] = 'seoprostack_old_slugs_since';
+    $options[] = 'seoprostack_old_slugs_swept';
     foreach ($options as $option) {
         delete_option($option);
     }
@@ -129,6 +132,9 @@ function seoprostack_uninstall_site() {
     // keep their order in core's menu_order (the pages' Order field).
     delete_metadata('term', 0, '_seoprostack_order', '', true);
     delete_metadata('term', 0, '_seoprostack_old_term', '', true);
+    // When old post addresses last redirected someone. The old addresses
+    // themselves are core's (_wp_old_slug) and keep redirecting.
+    delete_post_meta_by_key('_seoprostack_old_slug_used');
 
     // Shareable preview links stop working; staged versions and duplicates
     // become ordinary drafts and posts.

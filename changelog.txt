@@ -3,6 +3,7 @@
 Every change to SEO Pro Stack. readme.txt lists the latest version in short.
 
 = Unreleased =
+* New, off by default: Search custom fields makes site and admin searches look in Advanced Custom Fields and Secure Custom Fields text fields, repeater rows included (replaces ACF: Better Search). Old post addresses clears old post addresses that can no longer lead anywhere and lists the rest under Tools → Old addresses with when each was last used (replaces Slugs Manager: Delete Old Permalinks, closed on WordPress.org).
 * Change: Order by hand: while a list is sorted by a column, a Custom order link takes you back to the order you can drag. Searches and the Drafts and Pending views show the hand order too.
 * Change: Deactivate links on SEO Pro Stack’s settings come back to the same page.
 * New: the Plugins screen notes, under each plugin SEO Pro Stack can replace, which setting makes it redundant and what to do next.

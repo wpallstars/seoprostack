@@ -30,7 +30,7 @@ class SEOProStack_Settings {
 
     /** Stored schema version, used for one-off migrations. */
     const DB_VERSION_OPTION = 'seoprostack_db_version';
-    const DB_VERSION = 8;
+    const DB_VERSION = 9;
 
     /**
      * Tab slugs renamed in 0.4.0, old => new. Settings that still use an
@@ -602,6 +602,8 @@ class SEOProStack_Settings {
      *     post type and Term tools while Post Type Switcher and Term
      *     Management Tools are active, and import Simple Custom Post
      *     Order's post types, taxonomies and term order (Order by hand).
+     * v9: switch on Old post addresses and Search custom fields while
+     *     Slugs Manager and ACF: Better Search are active.
      *
      * Old options are left in place so a downgrade keeps working;
      * uninstall.php removes ours. Other plugins' options are never touched.
