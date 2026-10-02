@@ -58,6 +58,7 @@ Off by default except Hide admin bar items (Comments and + New), No fade between
 * **Short links** such as /go/offer/ with click counts, **Short addresses for custom post types** and **410 Gone** for removed pages.
 * **Load pages before the click**, **Delay scripts until interaction**, **Delayed Google Analytics** and a faster editor with Kadence Blocks.
 * **Ask before licence checks**: premium plugins call home once, daily or never, as you choose.
+* **Clean the database weekly**: old spam, bin and expired data.
 * **Database key cleanup**: review leftover and duplicate indexes and confirm each removal; restore SQL is kept. Back up first.
 
 = Plugins and set-up =
@@ -123,7 +124,7 @@ Click **Report a problem** at the top right of Settings → SEO Pro Stack, or op
 == Changelog ==
 
 = 0.10.0 =
-* New: Word documents; Like, save and share; Brand icons (also in Kadence Blocks); coffee button.
+* New: Word documents; Like, save and share; Brand icons (also in Kadence Blocks); Clean the database weekly; coffee button.
 * New: writers see only writing (on with Organise the admin menu).
 * Change: Short links imports Lasso Lite links; Pinned posts; faster lists; sizes in Free Plugins; megaphone and dot; clearer readme.
 * Fix: More menu alignment; menu in full screen editor; Like button; same menu width on every screen.
@@ -133,4 +134,4 @@ Older: `changelog.txt`.
 == Upgrade Notice ==
 
 = 0.10.0 =
-New, off by default: Brand icons, Like, save and share, and Word documents, replacing three more plugins. Short links imports Lasso Lite links. Contributors and authors now see only writing.
+New, off by default: Brand icons, Like, save and share, Word documents and weekly database cleanup, replacing four more plugins. Short links imports Lasso Lite links. Contributors and authors now see only writing.
