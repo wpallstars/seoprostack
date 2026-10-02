@@ -13,6 +13,9 @@
  * as off, so every editor opens without them; Help still opens the guide
  * for that visit. The rest use core hooks. Nothing is stored.
  *
+ * The editors also open faster: the site details they ask for are built
+ * without describing every REST route first (see index_without_routes()).
+ *
  * Replaces part of Disable Bloat; its matching switches are imported once.
  *
  * @package SEOProStack
@@ -59,7 +62,7 @@ class SEOProStack_Editor_Tidy extends SEOProStack_Feature {
                 'default'     => false,
                 'tab'         => 'content',
                 'label'       => __('Simpler block editor', 'seoprostack'),
-                'description' => __('Turn off parts of the block editor most people never use, such as the welcome guide and the block directory. Applies to everyone.', 'seoprostack'),
+                'description' => __('Turn off parts of the block editor most people never use, such as the welcome guide and the block directory, and open it faster. Applies to everyone.', 'seoprostack'),
                 'replaces'    => SEOProStack_Disable_Bloat::PLUGINS,
             ),
             self::ITEMS_KEY => array(
@@ -132,6 +135,62 @@ class SEOProStack_Editor_Tidy extends SEOProStack_Feature {
         if ((isset($items['welcome_guide']) || isset($items['fullscreen'])) && is_admin()) {
             add_filter('get_user_metadata', array(__CLASS__, 'preferences'), 10, 4);
         }
+        // Not a choice: the answer is the same, only quicker.
+        add_filter('rest_dispatch_request', array(__CLASS__, 'index_without_routes'), PHP_INT_MAX, 3);
+    }
+
+    /**
+     * Build the site index without its list of routes when the request
+     * leaves that list out.
+     *
+     * Every block editor asks for a few site details from the REST API
+     * index (`/?_fields=…`) as it opens. Core builds the whole index first,
+     * describing every route of every plugin, then drops what was not asked
+     * for. On sites with many plugins that list is most of the work. While
+     * the index is built, the route list reads as empty; it is back before
+     * other plugins see the index and before the response is sent.
+     *
+     * @param mixed           $result  Answer from an earlier filter, or null.
+     * @param WP_REST_Request $request Request.
+     * @param string          $route   Matched route.
+     * @return mixed
+     */
+    public static function index_without_routes($result, $request, $route) {
+        if (null !== $result || '/' !== $route || !$request->has_param('_fields') || !function_exists('rest_is_field_included')) {
+            return $result;
+        }
+        // An empty list means every field.
+        $fields = wp_parse_list($request['_fields']);
+        if (!$fields || rest_is_field_included('routes', $fields)) {
+            return $result;
+        }
+        add_filter('rest_endpoints', array(__CLASS__, 'no_routes'), PHP_INT_MAX);
+        add_filter('rest_index', array(__CLASS__, 'routes_back'), PHP_INT_MIN);
+        add_filter('rest_request_after_callbacks', array(__CLASS__, 'routes_back'), PHP_INT_MIN);
+        return $result;
+    }
+
+    /**
+     * An empty route list, while the index is built.
+     *
+     * @return array
+     */
+    public static function no_routes() {
+        return array();
+    }
+
+    /**
+     * Put the route list back once the index is built (or the request ends
+     * some other way), passing the filtered value through.
+     *
+     * @param mixed $value Filtered value.
+     * @return mixed
+     */
+    public static function routes_back($value) {
+        remove_filter('rest_endpoints', array(__CLASS__, 'no_routes'), PHP_INT_MAX);
+        remove_filter('rest_index', array(__CLASS__, 'routes_back'), PHP_INT_MIN);
+        remove_filter('rest_request_after_callbacks', array(__CLASS__, 'routes_back'), PHP_INT_MIN);
+        return $value;
     }
 
     /**

@@ -125,6 +125,7 @@ Click **Report a problem** at the top right of Settings → SEO Pro Stack, or op
 
 = Unreleased =
 * New: Menu item visibility, Change post type, Order by hand and Term tools.
+* Change: block editors open faster.
 * New: Report a problem button.
 * Change: faster Customizer, Import and Export forms; saving, previews and Site Health keep every plugin.
 * Change: Kadence's design library is kept in your browser, so it opens faster.
