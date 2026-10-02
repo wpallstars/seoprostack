@@ -19,7 +19,10 @@
 		var match = cfg().shows.filter(function (o) { return o.value === show; })[0];
 		var label = match ? match.label : show;
 		if (rule && rule.roles && rule.roles.length && ('roles' === show || 'not_roles' === show)) {
-			label += ': ' + rule.roles.join(', ');
+			label += ': ' + rule.roles.map(function (role) {
+				var named = (cfg().roles || []).filter(function (o) { return o.value === role; })[0];
+				return named ? named.label : role;
+			}).join(', ');
 		}
 		return label;
 	}

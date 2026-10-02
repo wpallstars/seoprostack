@@ -199,7 +199,11 @@ class SEOProStack_Restrict_Content extends SEOProStack_Feature {
             add_filter('woocommerce_product_get_description', array(__CLASS__, 'woo_description'), 20, 2);
             add_filter('woocommerce_product_variation_get_description', array(__CLASS__, 'woo_description'), 20, 2);
             add_filter('woocommerce_product_get_attributes', array(__CLASS__, 'woo_attributes'), 20, 2);
-            add_filter('woocommerce_variation_prices', array(__CLASS__, 'woo_variation_prices'), 20, 2);
+            // Variable products' price ranges, cached per hash as WooCommerce documents.
+            foreach (array('price', 'regular_price', 'sale_price') as $field) {
+                add_filter("woocommerce_variation_prices_{$field}", array(__CLASS__, 'woo_variation_price'), 20, 3);
+            }
+            add_filter('woocommerce_get_variation_prices_hash', array(__CLASS__, 'woo_prices_hash'), 20, 2);
             add_filter('woocommerce_is_purchasable', array(__CLASS__, 'woo_purchasable'), 20, 2);
             add_filter('woocommerce_variation_is_purchasable', array(__CLASS__, 'woo_purchasable'), 20, 2);
             add_filter('woocommerce_get_price_html', array(__CLASS__, 'woo_price_html'), 20, 2);
@@ -207,6 +211,10 @@ class SEOProStack_Restrict_Content extends SEOProStack_Feature {
         }
         if (defined('FLUENTCART_VERSION')) {
             add_filter('fluent_cart/cart/can_purchase', array(__CLASS__, 'fluent_cart_can_purchase'), 20, 2);
+            // Every way into the cart (instant checkout links, order bumps) ends here.
+            add_filter('fluent_cart/checkout/validate_before_process', array(__CLASS__, 'fluent_cart_checkout'), 20);
+            // Its structured data repeats the description and price.
+            add_filter('fluent_cart/review/json_ld', array(__CLASS__, 'fluent_cart_json_ld'), 20, 2);
         }
     }
 
@@ -768,17 +776,31 @@ class SEOProStack_Restrict_Content extends SEOProStack_Feature {
     }
 
     /**
-     * No price range for variable products the visitor may not see.
+     * No price range for variable products the visitor may not see: their
+     * variations' prices are left out.
      *
-     * @param array      $prices  Prices: price, regular_price, sale_price.
-     * @param WC_Product $product Product.
+     * @param mixed      $price     Price.
+     * @param WC_Product $variation Variation.
+     * @param WC_Product $product   Variable product.
+     * @return mixed
+     */
+    public static function woo_variation_price($price, $variation, $product) {
+        return self::woo_hidden($product) ? '' : $price;
+    }
+
+    /**
+     * Cache variable products' price ranges apart for visitors who may not
+     * see them.
+     *
+     * @param array      $hash    Price hash parts.
+     * @param WC_Product $product Variable product.
      * @return array
      */
-    public static function woo_variation_prices($prices, $product) {
-        if (!self::woo_hidden($product)) {
-            return $prices;
+    public static function woo_prices_hash($hash, $product) {
+        if (is_array($hash) && self::woo_hidden($product)) {
+            $hash[] = 'seoprostack-restricted';
         }
-        return array('price' => array(), 'regular_price' => array(), 'sale_price' => array());
+        return $hash;
     }
 
     /**
@@ -846,6 +868,40 @@ class SEOProStack_Restrict_Content extends SEOProStack_Feature {
             return new WP_Error('seoprostack_restricted', self::message_text($post_id));
         }
         return $can;
+    }
+
+    /**
+     * FluentCart: no structured data (description, price) for products the
+     * visitor may not see.
+     *
+     * @param array $schema Product structured data.
+     * @param array $args   post_id, summary.
+     * @return array
+     */
+    public static function fluent_cart_json_ld($schema, $args) {
+        $post_id = is_array($args) && isset($args['post_id']) ? (int) $args['post_id'] : 0;
+        return $post_id > 0 && !self::can_see($post_id) ? array() : $schema;
+    }
+
+    /**
+     * FluentCart: no checkout with products the visitor may not see.
+     *
+     * @param true|WP_Error $valid Whether the order can go ahead.
+     * @return true|WP_Error
+     */
+    public static function fluent_cart_checkout($valid) {
+        if (is_wp_error($valid) || !class_exists('\FluentCart\App\Helpers\CartHelper')) {
+            return $valid;
+        }
+        $cart  = \FluentCart\App\Helpers\CartHelper::getCart();
+        $items = $cart && isset($cart->cart_data) && is_array($cart->cart_data) ? $cart->cart_data : array();
+        foreach ($items as $item) {
+            $post_id = is_array($item) && isset($item['post_id']) ? (int) $item['post_id'] : 0;
+            if ($post_id > 0 && !self::can_see($post_id)) {
+                return new WP_Error('seoprostack_restricted', self::message_text($post_id));
+            }
+        }
+        return $valid;
     }
 
     /* --------------------------------------------------------------------- */
