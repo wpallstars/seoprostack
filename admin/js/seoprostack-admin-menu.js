@@ -96,17 +96,27 @@
 	var FIT_MAX = 280;
 	var FIT_MIN = 160;
 	var fitted = 0;
-	/** Indent of a third-level entry shown in place (stylesheet). */
+	/**
+	 * Padding of a submenu entry when its menu is open in place (core and
+	 * the stylesheet): before the name (entries with icons and third-level
+	 * entries are indented) and after it (entries with a chevron).
+	 */
+	var IN_PLACE_START = 12;
 	var IN_PLACE_INDENT = 38;
+	var IN_PLACE_END = 12;
+	var IN_PLACE_CHEVRON = 24;
 
 	/**
 	 * Width an entry needs when its menu is open in place: the padding
-	 * before the name, the name, and the padding after it. Measured on
-	 * the text itself (scrollWidth leaves out the padding after it and
-	 * never reports less than the current width), and wherever the entry
-	 * is now, so every menu's entries count, open or not.
+	 * before the name, the name, and the padding after it. The name is
+	 * measured on the text itself (scrollWidth leaves out the padding
+	 * after it and never reports less than the current width), wherever
+	 * the entry is now, so every menu's entries count, open or not.
+	 * Submenu entries use their in-place padding, not the padding they
+	 * have where they are (a menu that opens to the side pads its entries
+	 * differently), so an entry needs the same room on every screen.
 	 */
-	function room(el, indent) {
+	function room(el) {
 		var range = document.createRange();
 		range.selectNodeContents(el);
 		var text = range.getBoundingClientRect();
@@ -115,16 +125,39 @@
 		}
 		var box = el.getBoundingClientRect();
 		var style = window.getComputedStyle(el);
-		var before = parseFloat(style.paddingLeft) || 0;
-		var after = parseFloat(style.paddingRight) || 0;
+		var rtl = 'rtl' === style.direction;
+		var before = parseFloat(rtl ? style.paddingRight : style.paddingLeft) || 0;
+		var after = parseFloat(rtl ? style.paddingLeft : style.paddingRight) || 0;
 		// Text from the start of the content box; an icon sits in the padding.
-		var name = text.right - box.left - before;
-		if ('rtl' === style.direction) {
-			before = after;
-			after = parseFloat(style.paddingLeft) || 0;
-			name = box.right - before - text.left;
+		var name = rtl ? box.right - before - text.left : text.right - box.left - before;
+		var item = el.closest('.wp-submenu li');
+		if (item) {
+			var third = !!el.closest('ul.sps-menu-flyout');
+			before = third || item.classList.contains('sps-menu-entry') ? IN_PLACE_INDENT : IN_PLACE_START;
+			after = item.classList.contains('sps-menu-has-sub') && !third ? IN_PLACE_CHEVRON : IN_PLACE_END;
 		}
-		return (indent || before) + name + after;
+		return before + name + after;
+	}
+
+	/**
+	 * The widest width this person's menu has needed with the same plugins,
+	 * language and SEO Pro Stack version (cfg.widthKey), kept in the
+	 * wp-settings cookie. Plugins add entries, badges and fonts on some
+	 * screens only, so remembering the widest keeps the menu still from
+	 * screen to screen.
+	 */
+	function remembered() {
+		if (!cfg.widthKey || 'function' !== typeof window.getUserSetting) {
+			return 0;
+		}
+		var match = /^([a-z0-9]+)w(\d{3})$/.exec(String(window.getUserSetting('spsmw', '')));
+		return match && match[1] === cfg.widthKey ? parseInt(match[2], 10) : 0;
+	}
+
+	function remember(width) {
+		if (cfg.widthKey && 'function' === typeof window.setUserSetting && width > remembered()) {
+			window.setUserSetting('spsmw', cfg.widthKey + 'w' + width);
+		}
 	}
 
 	/**
@@ -189,11 +222,12 @@
 		body.classList.add('sps-menu-measure');
 		var need = 0;
 		menu.querySelectorAll('li.menu-top > a .wp-menu-name, .wp-submenu a').forEach(function (el) {
-			var third = !!el.closest('ul.sps-menu-flyout');
-			need = Math.max(need, room(el, third ? IN_PLACE_INDENT : 0));
+			need = Math.max(need, room(el));
 		});
 		body.classList.remove('sps-menu-measure');
-		var width = Math.max(FIT_MIN, Math.min(FIT_MAX, Math.ceil(need) + 2));
+		var measured = Math.max(FIT_MIN, Math.min(FIT_MAX, Math.ceil(need) + 2));
+		remember(measured);
+		var width = Math.max(measured, Math.min(FIT_MAX, remembered()));
 		if (width > fitted) {
 			fitted = width;
 			if (width > FIT_MIN) {
