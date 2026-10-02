@@ -22,6 +22,16 @@ Minimums: **WordPress 6.2, PHP 7.4** (`readme.txt`, plugin header). User docs:
   and removes the slug from `admin/data/free-plugins.php` with a comment. The
   Plugins screen then suggests deactivating and deleting that plugin
   (`admin/includes/class-replaced-plugins.php`) with no extra code.
+- A feature that replaces or is modelled on another plugin also gets a row in
+  `README.md` → Features table (replaced plugins) and `README.md` → Credits:
+  plugin, maker, its WordPress.org page and its maker's own source repository
+  (check each link with `gh api repos/{owner}/{repo}` or the WordPress.org
+  plugin API; never link a mirror or guess a URL), and the feature.
+- `README.md` is also the plugin's Read Me tab
+  (`admin/includes/class-readme-manager.php`), which renders headings, lists,
+  tables, bold, italic, inline code and links (http(s) and `#heading` links,
+  with GitHub-style heading IDs). Use only that Markdown, or extend the
+  renderer in the same change.
 - Migrations run once per `SEOProStack_Settings::DB_VERSION`. After a release,
   a new or changed import needs a version bump and a line in the
   `maybe_migrate()` docblock.
