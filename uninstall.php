@@ -88,9 +88,13 @@ function seoprostack_uninstall_site() {
     $options[] = 'seoprostack_old_slugs_swept';
     // Brand icons: shapes of the icons used in Kadence blocks.
     $options[] = 'seoprostack_kadence_brand_icons';
+    // Clean the database weekly: the last cleanup's counts.
+    $options[] = 'seoprostack_database_cleanup_last';
     foreach ($options as $option) {
         delete_option($option);
     }
+    wp_unschedule_hook('seoprostack_database_cleanup');
+    wp_unschedule_hook('seoprostack_database_cleanup_more');
 
     // Order flow: links between form entries, tasks and conversations. The
     // entries, tasks, conversations and their log lines are that plugin's
