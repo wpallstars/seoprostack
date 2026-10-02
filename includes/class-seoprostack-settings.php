@@ -30,7 +30,7 @@ class SEOProStack_Settings {
 
     /** Stored schema version, used for one-off migrations. */
     const DB_VERSION_OPTION = 'seoprostack_db_version';
-    const DB_VERSION = 7;
+    const DB_VERSION = 8;
 
     /**
      * Tab slugs renamed in 0.4.0, old => new. Settings that still use an
@@ -597,6 +597,8 @@ class SEOProStack_Settings {
      *     password switches (Turn off unused remote access) and Hostinger
      *     Tools' maintenance mode switch (Maintenance mode), leaving stored
      *     SEO Pro Stack choices and the other plugins' settings untouched.
+     * v8: turn the saved admin plugin selection into an always-load bypass
+     *     list, preserving the previous unticked plugins.
      *
      * Old options are left in place so a downgrade keeps working;
      * uninstall.php removes ours. Other plugins' options are never touched.

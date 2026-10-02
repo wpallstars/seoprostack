@@ -44,8 +44,8 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
 
     const KEY = SEOProStack_Plugin_Loader::SWITCH_KEY;
 
-    /** Setting: plugins that load only where needed. */
-    const LIST_KEY = SEOProStack_Plugin_Loader::LIST_KEY;
+    /** Setting: plugins the administrator always wants loaded. */
+    const LIST_KEY = SEOProStack_Plugin_Loader::ADMIN_KEEP_KEY;
 
     /** Must-use file name. */
     const FILE = 'seoprostack-plugin-loading.php';
@@ -173,14 +173,14 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
                 'default'     => false,
                 'tab'         => 'plugins',
                 'label'       => __('Load plugins only where needed', 'seoprostack'),
-                'description' => __('Makes wp-admin faster on sites with many plugins. The plugins you tick load only on their own screens, on post, term and list screens where they add boxes, fields or blocks, and on the Dashboard when they show a box there. Elsewhere they do not load, so their notices do not show there (with Hide admin notices on, their notices still show behind the bell). To load fewer plugins on the Dashboard, hide their boxes with Tidy the dashboard or Hide dashboard widgets. The menu stays the same. Saving, background tasks, and the Plugins and settings screens always load every plugin. So does the site, unless you choose plugins to skip there.', 'seoprostack'),
+                'description' => __('Makes wp-admin faster by loading plugins only on screens that need them. Login and permission plugins always load. The menu stays the same. Saving, background tasks, and the Plugins and core settings screens load every plugin. So does the site, unless you choose plugins to skip there.', 'seoprostack'),
             ),
             self::LIST_KEY => array(
                 'type'        => 'multi',
                 'default'     => array(),
                 'parent'      => self::KEY,
-                'label'       => __('Plugins to load only where needed', 'seoprostack'),
-                'description' => __('Leave security, login and user role plugins unticked. Plugins that need a ticked plugin, such as WooCommerce extensions, follow it.', 'seoprostack'),
+                'label'       => __('Always load these plugins', 'seoprostack'),
+                'description' => __('Add a plugin if a box, field or menu entry is missing or something breaks; for a one-off problem, use the reload links in the admin bar Plugins menu.', 'seoprostack'),
                 'options'     => array(__CLASS__, 'plugin_options'),
             ),
             self::FRONT_KEY => array(
@@ -244,6 +244,8 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
         if (!self::enabled() || !is_admin()) {
             return;
         }
+        add_action('admin_enqueue_scripts', array(__CLASS__, 'background_learning'));
+        add_action('admin_footer', array(__CLASS__, 'remember_screen'), PHP_INT_MAX);
         add_filter('removable_query_args', array(__CLASS__, 'removable_query_args'));
         add_action('admin_post_' . self::RESET, array(__CLASS__, 'reset'));
         $state = SEOProStack_Plugin_Loader::state();
@@ -274,6 +276,101 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
                 }
             }
         }
+    }
+
+    /** Preserve saved selections; a new site starts with no bypasses. */
+    public static function migrate(array $options, $from_version) {
+        if (!array_key_exists(self::LIST_KEY, $options)) {
+            $old = SEOProStack_Plugin_Loader::LIST_KEY;
+            $options[self::LIST_KEY] = array_key_exists($old, $options)
+                ? array_values(array_diff(SEOProStack_Plugin_Loader::stored_active_plugins(), (array) $options[$old]))
+                : array();
+        }
+        return $options;
+    }
+
+    /**
+     * Replay only read-only core views with an explicit query allowlist.
+     * Plugin pages, editors that create auto-drafts, actions and nonces are
+     * deliberately excluded: a GET alone does not mean read-only.
+     *
+     * @param string $url Local URL as visited, or stored in the history.
+     * @return bool
+     */
+    private static function safe_screen_url($url) {
+        if (!is_string($url) || strlen($url) > 2048) {
+            return false;
+        }
+        $parts = wp_parse_url($url);
+        $path = (string) wp_parse_url(admin_url(), PHP_URL_PATH);
+        if (!is_array($parts) || isset($parts['host']) || isset($parts['scheme']) || isset($parts['fragment']) || empty($parts['path'])
+            || dirname($parts['path']) . '/' !== $path) {
+            return false;
+        }
+        if (!in_array(basename($parts['path']), array('index.php', 'edit.php', 'upload.php', 'edit-tags.php', 'edit-comments.php', 'users.php', 'themes.php', 'tools.php'), true)) {
+            return false;
+        }
+        $query = array();
+        wp_parse_str($parts['query'] ?? '', $query);
+        foreach ($query as $key => $value) {
+            if (!in_array($key, array('post_type', 'taxonomy', 'paged', 'orderby', 'order', 's', 'mode'), true) || !is_string($value)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /** Count safe ordinary visits, retaining at most 30 most-used URLs. */
+    public static function remember_screen() {
+        $state = SEOProStack_Plugin_Loader::state();
+        if (!current_user_can('activate_plugins') || 'GET' !== ($_SERVER['REQUEST_METHOD'] ?? '') || '' === $state['screen']
+            || !in_array($state['mode'], array('full', 'filter'), true) || in_array($state['reason'], array('always', 'error'), true)) {
+            return;
+        }
+        $url = isset($_SERVER['REQUEST_URI']) ? esc_url_raw(wp_unslash($_SERVER['REQUEST_URI'])) : '';
+        if (!self::safe_screen_url($url)) {
+            return;
+        }
+        wp_cache_delete(SEOProStack_Plugin_Loader::HISTORY, 'options');
+        wp_cache_delete('alloptions', 'options');
+        $history = (array) get_option(SEOProStack_Plugin_Loader::HISTORY, array());
+        $map = (array) get_option(SEOProStack_Plugin_Loader::MAP, array());
+        $entry = (array) ($history[$url] ?? array());
+        $history[$url] = array(
+            'screen' => $state['screen'],
+            'hits' => min(1000000, (int) ($entry['hits'] ?? 0) + 1),
+            'generation' => $map['generation'] ?? '',
+        );
+        uasort($history, function ($a, $b) {
+            return (int) ($b['hits'] ?? 0) <=> (int) ($a['hits'] ?? 0);
+        });
+        update_option(SEOProStack_Plugin_Loader::HISTORY, array_slice($history, 0, 30, true), false);
+    }
+
+    /** Queue only retained URLs that have not been learned in this map. */
+    public static function background_learning() {
+        if (!current_user_can('activate_plugins') || is_network_admin() || wp_doing_ajax()) {
+            return;
+        }
+        $map = (array) get_option(SEOProStack_Plugin_Loader::MAP, array());
+        $current = SEOProStack_Plugin_Loader::MAP_VERSION === ($map['version'] ?? 0)
+            && SEOProStack_Plugin_Loader::fingerprint(SEOProStack_Plugin_Loader::stored_active_plugins()) === ($map['active'] ?? '');
+        $urls = array();
+        foreach ((array) get_option(SEOProStack_Plugin_Loader::HISTORY, array()) as $url => $entry) {
+            if (self::safe_screen_url($url) && is_array($entry)
+                && !isset($map['load_all'][$entry['screen'] ?? ''])
+                && (!$current || empty($entry['generation']) || $entry['generation'] !== ($map['generation'] ?? ''))) {
+                $urls[] = $url;
+            }
+        }
+        if (!$urls) {
+            return;
+        }
+        wp_enqueue_script('seoprostack-plugin-learning', SEOPROSTACK_URL . 'admin/js/seoprostack-plugin-learning.js', array(), SEOPROSTACK_VERSION, true);
+        wp_localize_script('seoprostack-plugin-learning', 'seoprostackPluginLearning', array(
+            'urls' => array_slice($urls, 0, 30),
+            'lock' => 'seoprostack-plugin-learning-' . get_current_blog_id(),
+        ));
     }
 
     /**
@@ -893,6 +990,7 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
             list($always, $permissions) = self::sensitive_plugins();
             $map = array(
                 'version'     => SEOProStack_Plugin_Loader::MAP_VERSION,
+                'generation'  => wp_generate_uuid4(),
                 'active'      => $print,
                 'types'       => $state['registered']['types'],
                 'taxes'       => $state['registered']['taxes'],

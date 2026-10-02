@@ -59,6 +59,7 @@ function seoprostack_uninstall_site() {
     $options[] = 'seoprostack_short_links_presets';
     $options[] = 'seoprostack_plugin_map';
     $options[] = 'seoprostack_plugin_menu';
+    $options[] = 'seoprostack_plugin_screens';
     $options[] = 'seoprostack_plugin_front';
     $options[] = 'seoprostack_plugin_front_lock';
     $options[] = 'seoprostack_plugin_front_revision';
