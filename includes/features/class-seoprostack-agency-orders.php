@@ -65,12 +65,15 @@ class SEOProStack_Agency_Orders extends SEOProStack_Feature {
                 'default'     => false,
                 'tab'         => 'agency',
                 'label'       => __('Order flow', 'seoprostack'),
-                'description' => __('When an order form is paid, the order goes on your board and a support conversation opens for it. When you move the order to another stage, the client is told in that conversation. Clients get a login when the client dashboard is on or a course or space is chosen. Uses Fluent Forms with Fluent Boards, Fluent Support, FluentCRM, Tutor LMS and FluentCommunity, where active.', 'seoprostack'),
+                'description' => __('Paid orders go on your Client Orders board with a support conversation, and clients are told by email as you move them along. Quotes and referrals go on your Sales Pipeline. Add example data below to set it all up.', 'seoprostack'),
             ),
+            // The options below are wiring, filled in by the agency example
+            // data (starters/agency.json) and not shown: there is nothing to decide.
             'agency_orders_forms' => array(
                 'type'        => 'multi',
                 'default'     => array(),
                 'parent'      => self::KEY,
+                'hidden'      => true,
                 'label'       => __('Order forms', 'seoprostack'),
                 'description' => __('Forms that start an order: when paid, or when sent if they take no payment.', 'seoprostack'),
                 'options'     => array(__CLASS__, 'form_options'),
@@ -80,7 +83,7 @@ class SEOProStack_Agency_Orders extends SEOProStack_Feature {
                 'type'        => 'select',
                 'default'     => '',
                 'parent'      => self::KEY,
-                'requires'    => 'fluent-boards/fluent-boards.php',
+                'hidden'      => true,
                 'label'       => __('Board', 'seoprostack'),
                 'description' => __('Fluent Boards board each order is added to, in its first stage.', 'seoprostack'),
                 'options'     => array(__CLASS__, 'board_options'),
@@ -90,7 +93,7 @@ class SEOProStack_Agency_Orders extends SEOProStack_Feature {
                 'type'        => 'multi',
                 'default'     => array(),
                 'parent'      => self::KEY,
-                'requires'    => 'fluent-boards/fluent-boards.php',
+                'hidden'      => true,
                 'label'       => __('Project brief forms', 'seoprostack'),
                 'description' => __('A brief sent after ordering is added to the client’s latest order.', 'seoprostack'),
                 'options'     => array(__CLASS__, 'form_options'),
@@ -100,7 +103,7 @@ class SEOProStack_Agency_Orders extends SEOProStack_Feature {
                 'type'        => 'multi',
                 'default'     => array(),
                 'parent'      => self::KEY,
-                'requires'    => 'fluent-support/fluent-support.php',
+                'hidden'      => true,
                 'label'       => __('Support request forms', 'seoprostack'),
                 'description' => __('Each opens a support conversation, under the product named in the form’s title or answers.', 'seoprostack'),
                 'options'     => array(__CLASS__, 'form_options'),
@@ -110,7 +113,7 @@ class SEOProStack_Agency_Orders extends SEOProStack_Feature {
                 'type'        => 'multi',
                 'default'     => array(),
                 'parent'      => self::KEY,
-                'requires'    => 'fluent-boards/fluent-boards.php',
+                'hidden'      => true,
                 'label'       => __('Lead forms', 'seoprostack'),
                 'description' => __('Quote requests, referrals and other enquiries, added to the sales board.', 'seoprostack'),
                 'options'     => array(__CLASS__, 'form_options'),
@@ -120,7 +123,7 @@ class SEOProStack_Agency_Orders extends SEOProStack_Feature {
                 'type'        => 'select',
                 'default'     => '',
                 'parent'      => self::KEY,
-                'requires'    => 'fluent-boards/fluent-boards.php',
+                'hidden'      => true,
                 'label'       => __('Sales board', 'seoprostack'),
                 'description' => __('Fluent Boards board each lead is added to, in its first stage.', 'seoprostack'),
                 'options'     => array(__CLASS__, 'board_options'),
@@ -130,7 +133,7 @@ class SEOProStack_Agency_Orders extends SEOProStack_Feature {
                 'type'        => 'select',
                 'default'     => '',
                 'parent'      => self::KEY,
-                'requires'    => 'tutor/tutor.php',
+                'hidden'      => true,
                 'label'       => __('Enrol in course', 'seoprostack'),
                 'description' => __('A Tutor LMS course, such as how you work with clients.', 'seoprostack'),
                 'options'     => array(__CLASS__, 'course_options'),
@@ -140,7 +143,7 @@ class SEOProStack_Agency_Orders extends SEOProStack_Feature {
                 'type'        => 'select',
                 'default'     => '',
                 'parent'      => self::KEY,
-                'requires'    => 'fluent-community/fluent-community.php',
+                'hidden'      => true,
                 'label'       => __('Add to community space', 'seoprostack'),
                 'description' => __('A FluentCommunity space for your clients.', 'seoprostack'),
                 'options'     => array(__CLASS__, 'space_options'),
@@ -261,7 +264,7 @@ class SEOProStack_Agency_Orders extends SEOProStack_Feature {
      */
     public static function submitted($entry_id, $form_data, $form) {
         $form_id = isset($form->id) ? (int) $form->id : 0;
-        if (in_array($form_id, self::form_ids('agency_orders_forms'), true)) {
+        if (self::is_order_form($form)) {
             $entry = \FluentForm\App\Models\Submission::find((int) $entry_id);
             // A form that takes payment waits for it (payment_changed()).
             if ($entry && !self::unpaid($entry)) {
@@ -335,14 +338,32 @@ class SEOProStack_Agency_Orders extends SEOProStack_Feature {
         if ('paid' !== $status || !is_object($submission) || empty($submission->id)) {
             return;
         }
-        if (!in_array((int) $submission->form_id, self::form_ids('agency_orders_forms'), true)) {
-            return;
-        }
         $entry = \FluentForm\App\Models\Submission::find((int) $submission->id);
         $form  = $entry ? \FluentForm\App\Models\Form::find((int) $entry->form_id) : null;
-        if ($entry && $form) {
+        if ($entry && $form && self::is_order_form($form)) {
             self::start($entry, $form);
         }
+    }
+
+    /**
+     * Whether a form starts orders: one the example data set up, or any form
+     * named "… Order Form", so a copied order form for a new service works
+     * with nothing to set.
+     *
+     * @param object $form Form.
+     * @return bool
+     */
+    private static function is_order_form($form) {
+        $form_id = isset($form->id) ? (int) $form->id : 0;
+        if (in_array($form_id, self::form_ids('agency_orders_forms'), true)) {
+            return true;
+        }
+        foreach (array('agency_orders_briefs', 'agency_orders_leads', 'agency_orders_requests') as $key) {
+            if (in_array($form_id, self::form_ids($key), true)) {
+                return false;
+            }
+        }
+        return (bool) preg_match('/\sorder\s+form$/iu', trim(isset($form->title) ? (string) $form->title : ''));
     }
 
     /**

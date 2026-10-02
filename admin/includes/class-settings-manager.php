@@ -115,9 +115,9 @@ class SEOProStack_Settings_Manager {
      * @param array  $field Schema entry.
      */
     public static function render_card($key, array $field) {
-        // Options for a plugin that is not active are hidden; their values stay.
+        // Hidden options are wiring set by starter data or code, not choices.
         $children = array_filter(SEOProStack_Settings::children_of($key), function ($child) {
-            return empty($child['requires']) || SEOProStack_Plugin_Loader::is_active((string) $child['requires']);
+            return empty($child['hidden']);
         });
         $value    = SEOProStack_Settings::get($key);
         $id       = 'sps-' . $key;

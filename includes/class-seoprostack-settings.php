@@ -301,7 +301,7 @@ class SEOProStack_Settings {
                 $haystack = array_merge($haystack, array_keys($field['replaces']), array_values($field['replaces']));
             }
             foreach (self::children_of($key) as $child) {
-                $haystack[] = isset($child['label']) ? (string) $child['label'] : '';
+                $haystack[] = isset($child['label']) && empty($child['hidden']) ? (string) $child['label'] : '';
             }
 
             $text = implode(' ', array_map('strval', $haystack));

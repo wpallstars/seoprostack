@@ -3,7 +3,7 @@
     "set": true,
     "tested": "Fluent Forms 6.2.15, FluentCRM 3.2.5, Fluent Boards 2.1.0, Fluent Support 2.4.0, FluentBooking 2.5.0, FluentCommunity 2.11.0, Tutor LMS 4.1.0",
     "updated": "2026-10-02",
-    "notes": "A digital marketing agency selling SEO, ads, PR, social media, design, apps and retainers, to rename and reprice. Adding it sets up the forms, boards, support products, calls, client course and space, draft pages, and switches on Order flow and Client dashboard for them. Order forms wait until Fluent Forms can take payments. To add a service, copy an order form, name it “Service Order Form”, and add a page, a board label and a support product with that name.",
+    "notes": "A digital marketing agency selling SEO, ads, PR, social media, design, apps and retainers, to rename and reprice. Adding it sets everything up and switches it on; there is nothing to choose. Order forms wait until Fluent Forms can take payments. To add a service, copy an order form, rename it “Service Order Form” and put it on a page.",
     "items": {
         "fluentcrm_lists": [
             { "slug": "agency-quote-request-form", "title": "Agency Quote Request Form", "when": "fluent-crm" },
