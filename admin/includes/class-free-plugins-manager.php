@@ -4,7 +4,8 @@
  *
  * Category filter, then either cards for one category or the All list: every
  * recommended plugin grouped by category, with checkboxes and bulk actions
- * for setting up a new site. Both live inside `#plugin-filter`, where core's
+ * for setting up a new site, and the disk space each installed one takes
+ * (Plugin sizes cache, measured in the background). Both live inside `#plugin-filter`, where core's
  * updates.js binds its Update Now handler; cards and rows share their
  * buttons (see SEOProStack_Plugin_Manager::state_buttons()).
  *
@@ -116,6 +117,7 @@ class SEOProStack_Free_Plugins_Manager {
                             <input type="checkbox" id="sps-plugins-all" data-sps-check-all-plugins />
                         </td>
                         <th scope="col"><?php esc_html_e('Plugin', 'seoprostack'); ?></th>
+                        <th scope="col" class="sps-plugin-table__size"><?php esc_html_e('Size', 'seoprostack'); ?></th>
                         <th scope="col" class="sps-plugin-table__status"><?php esc_html_e('Status', 'seoprostack'); ?></th>
                         <th scope="col" class="sps-plugin-table__actions"><span class="screen-reader-text"><?php esc_html_e('Actions', 'seoprostack'); ?></span></th>
                     </tr>
@@ -127,7 +129,7 @@ class SEOProStack_Free_Plugins_Manager {
                                 <label class="screen-reader-text" for="sps-group-<?php echo esc_attr($slug); ?>"><?php echo esc_html(sprintf(/* translators: %s: category name */ __('Select all in %s', 'seoprostack'), $label)); ?></label>
                                 <input type="checkbox" id="sps-group-<?php echo esc_attr($slug); ?>" data-sps-group-check disabled />
                             </td>
-                            <th scope="rowgroup" colspan="3">
+                            <th scope="rowgroup" colspan="4">
                                 <?php echo esc_html($label); ?>
                                 <span class="sps-plugin-group-row__state" data-sps-group-state><span class="spinner is-active"></span></span>
                             </th>
