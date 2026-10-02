@@ -150,7 +150,7 @@ class SEOProStack_Field_Search extends SEOProStack_Feature {
 
         $n      = $query->get('exact') ? '' : '%';
         /** This filter is documented in wp-includes/class-wp-query.php */
-        $prefix = apply_filters('wp_query_search_exclusion_prefix', '-');
+        $prefix = apply_filters('wp_query_search_exclusion_prefix', '-'); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- core's filter.
         $in     = implode(',', array_fill(0, count($keys), '%s'));
         $parts  = array();
         foreach ($terms as $term) {

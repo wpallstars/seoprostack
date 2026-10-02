@@ -152,24 +152,23 @@ class SEOProStack_Old_Slugs extends SEOProStack_Feature {
         global $wpdb;
         $rows  = array();
         $limit = self::BATCH;
-        $own   = $post_id ? $wpdb->prepare(' AND pm.post_id = %d', $post_id) : '';
+        $id    = (int) $post_id;
 
-        // phpcs:disable WordPress.DB.DirectDatabaseQuery,WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- reads old slug rows to clear; $own is prepared above.
+        // phpcs:disable WordPress.DB.DirectDatabaseQuery -- reads old slug rows to clear; not cached.
         // Posts that no longer exist.
-        if (!$post_id) {
+        if (!$id) {
             $rows = array_merge($rows, (array) $wpdb->get_results($wpdb->prepare("SELECT pm.meta_id, pm.post_id FROM {$wpdb->postmeta} pm LEFT JOIN {$wpdb->posts} p ON p.ID = pm.post_id WHERE pm.meta_key = %s AND p.ID IS NULL LIMIT %d", self::META, $limit), ARRAY_N));
         }
         // The post's current slug, or the same old slug stored twice.
-        $rows = array_merge($rows, (array) $wpdb->get_results($wpdb->prepare("SELECT pm.meta_id, pm.post_id FROM {$wpdb->postmeta} pm INNER JOIN {$wpdb->posts} p ON p.ID = pm.post_id WHERE pm.meta_key = %s AND pm.meta_value = p.post_name{$own} LIMIT %d", self::META, $limit), ARRAY_N));
-        $rows = array_merge($rows, (array) $wpdb->get_results($wpdb->prepare("SELECT pm.meta_id, pm.post_id FROM {$wpdb->postmeta} pm INNER JOIN {$wpdb->postmeta} d ON d.post_id = pm.post_id AND d.meta_key = pm.meta_key AND d.meta_value = pm.meta_value AND d.meta_id < pm.meta_id WHERE pm.meta_key = %s{$own} LIMIT %d", self::META, $limit), ARRAY_N));
+        $rows = array_merge($rows, (array) $wpdb->get_results($wpdb->prepare("SELECT pm.meta_id, pm.post_id FROM {$wpdb->postmeta} pm INNER JOIN {$wpdb->posts} p ON p.ID = pm.post_id WHERE pm.meta_key = %s AND pm.meta_value = p.post_name AND (%d = 0 OR pm.post_id = %d) LIMIT %d", self::META, $id, $id, $limit), ARRAY_N));
+        $rows = array_merge($rows, (array) $wpdb->get_results($wpdb->prepare("SELECT pm.meta_id, pm.post_id FROM {$wpdb->postmeta} pm INNER JOIN {$wpdb->postmeta} d ON d.post_id = pm.post_id AND d.meta_key = pm.meta_key AND d.meta_value = pm.meta_value AND d.meta_id < pm.meta_id WHERE pm.meta_key = %s AND (%d = 0 OR pm.post_id = %d) LIMIT %d", self::META, $id, $id, $limit), ARRAY_N));
 
         // Another published post of the same type now has the slug.
         $types = self::dateless_types();
         if ($types) {
-            $in    = implode(',', array_fill(0, count($types), '%s'));
-            $taken = $post_id ? $wpdb->prepare(' AND (pm.post_id = %d OR o.ID = %d)', $post_id, $post_id) : '';
-            // phpcs:ignore WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare -- one placeholder per type, built above.
-            $rows = array_merge($rows, (array) $wpdb->get_results($wpdb->prepare("SELECT pm.meta_id, pm.post_id FROM {$wpdb->postmeta} pm INNER JOIN {$wpdb->posts} p ON p.ID = pm.post_id INNER JOIN {$wpdb->posts} o ON o.post_type = p.post_type AND o.post_name = pm.meta_value AND o.ID <> p.ID AND o.post_status IN ('publish', 'private') WHERE pm.meta_key = %s AND p.post_type IN ($in){$taken} LIMIT %d", array_merge(array(self::META), $types, array($limit))), ARRAY_N));
+            $in = implode(',', array_fill(0, count($types), '%s'));
+            // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare,WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber,PluginCheck.Security.DirectDB.UnescapedDBParameter -- one placeholder per type, built from the count only.
+            $rows = array_merge($rows, (array) $wpdb->get_results($wpdb->prepare("SELECT pm.meta_id, pm.post_id FROM {$wpdb->postmeta} pm INNER JOIN {$wpdb->posts} p ON p.ID = pm.post_id INNER JOIN {$wpdb->posts} o ON o.post_type = p.post_type AND o.post_name = pm.meta_value AND o.ID <> p.ID AND o.post_status IN ('publish', 'private') WHERE pm.meta_key = %s AND p.post_type IN ($in) AND (%d = 0 OR pm.post_id = %d OR o.ID = %d) LIMIT %d", array_merge(array(self::META), $types, array($id, $id, $id, $limit))), ARRAY_N));
         }
         // phpcs:enable
 
