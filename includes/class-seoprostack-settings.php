@@ -30,7 +30,7 @@ class SEOProStack_Settings {
 
     /** Stored schema version, used for one-off migrations. */
     const DB_VERSION_OPTION = 'seoprostack_db_version';
-    const DB_VERSION = 6;
+    const DB_VERSION = 7;
 
     /**
      * Tab slugs renamed in 0.4.0, old => new. Settings that still use an
@@ -593,6 +593,8 @@ class SEOProStack_Settings {
      *     W logo (Hide admin bar items), widgets and Dashboard boxes
      *     (Dashboard and sidebar widgets), Heartbeat (Fewer Heartbeat
      *     requests) and post revisions (Limit post revisions).
+     * v7: import Hostinger Tools' and Disable Bloat's XML-RPC and application
+     *     password switches (Turn off unused remote access).
      *
      * Old options are left in place so a downgrade keeps working;
      * uninstall.php removes ours. Other plugins' options are never touched.

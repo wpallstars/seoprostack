@@ -22,6 +22,7 @@ final class SEOProStack {
         'SEOProStack_Admin_Colors',
         'SEOProStack_Admin_Page_Fade',
         'SEOProStack_Admin_Access',
+        'SEOProStack_Hardening',
         'SEOProStack_Admin_Menu',
         'SEOProStack_Widget_Control',
         'SEOProStack_Dashboard_Layout',
