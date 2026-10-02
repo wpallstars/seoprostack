@@ -208,6 +208,9 @@ class SEOProStack_Restrict_Content extends SEOProStack_Feature {
             add_filter('woocommerce_variation_is_purchasable', array(__CLASS__, 'woo_purchasable'), 20, 2);
             add_filter('woocommerce_get_price_html', array(__CLASS__, 'woo_price_html'), 20, 2);
             add_filter('woocommerce_product_tabs', array(__CLASS__, 'woo_tabs'), 20);
+            // Simple products leave out the form when they cannot be bought;
+            // variable ones would say "out of stock".
+            add_action('woocommerce_variable_add_to_cart', array(__CLASS__, 'woo_variable_form'), 0);
         }
         if (defined('FLUENTCART_VERSION')) {
             add_filter('fluent_cart/cart/can_purchase', array(__CLASS__, 'fluent_cart_can_purchase'), 20, 2);
@@ -850,6 +853,32 @@ class SEOProStack_Restrict_Content extends SEOProStack_Feature {
             unset($tabs['additional_information'], $tabs['reviews']);
         }
         return $tabs;
+    }
+
+    /**
+     * No add-to-cart form for variable products the visitor may not see, as
+     * for simple ones, instead of "out of stock". It is skipped for this
+     * product only and put back for the next.
+     *
+     * @return void
+     */
+    public static function woo_variable_form() {
+        $product = isset($GLOBALS['product']) ? $GLOBALS['product'] : null;
+        if (!function_exists('woocommerce_variable_add_to_cart') || !self::woo_hidden($product)) {
+            return;
+        }
+        remove_action('woocommerce_variable_add_to_cart', 'woocommerce_variable_add_to_cart', 30);
+        add_action('woocommerce_variable_add_to_cart', array(__CLASS__, 'woo_variable_form_restore'), PHP_INT_MAX);
+    }
+
+    /**
+     * Put WooCommerce's variable add-to-cart form back after skipping it.
+     *
+     * @return void
+     */
+    public static function woo_variable_form_restore() {
+        remove_action('woocommerce_variable_add_to_cart', array(__CLASS__, 'woo_variable_form_restore'), PHP_INT_MAX);
+        add_action('woocommerce_variable_add_to_cart', 'woocommerce_variable_add_to_cart', 30);
     }
 
     /**
