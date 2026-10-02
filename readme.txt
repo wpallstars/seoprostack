@@ -123,6 +123,7 @@ Click **Report a problem** at the top right of Settings → SEO Pro Stack, or op
 == Changelog ==
 
 = Unreleased =
+* Change: Free Plugins no longer suggests Disable All WordPress Updates.
 * New: Report a problem button.
 * Change: faster Customizer, Import and Export forms; saving, previews and Site Health keep every plugin.
 * Change: Kadence's design library is kept in your browser, so it opens faster.

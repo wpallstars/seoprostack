@@ -801,6 +801,7 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folder�
 
 ### Unreleased
 
+- Changed: Free Plugins no longer lists Disable All WordPress Updates. The Speed and Plugins features cover why it was used, and it stops WordPress’s own update request, which also hides updates from GitHub releases.
 - New: a **Report a problem** button at the top right of Settings → SEO Pro Stack opens the plugin’s GitHub issues in a new tab.
 - Changed: Load plugins only where needed learns the Customizer, Import and Export forms. Widgets and widget-area owners, menu contributors, importers and exportable content owners stay loaded where needed. Saving, previews, theme previews, existing changesets, imports and export downloads keep every plugin. Missing Customizer registrations reload before the form opens; switching themes learns it again. Site Health stays fully loaded so its diagnostics describe the real site. Map version 6 learns every screen again once.
 - Changed: Faster editor with Kadence Blocks keeps Kadence’s design library in the browser until Kadence’s own copy changes, sends each library request once instead of twice, and lets the browser skip drawing patterns that are off screen. On a test site, in a new editor page, the library was drawn in about 2 seconds instead of 5.9, with no requests. Only Kadence’s own section, page and template libraries are kept, never licence, account, AI or cloud library data; Sync still fetches new designs. No new options.
