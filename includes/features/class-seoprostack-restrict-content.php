@@ -986,7 +986,7 @@ class SEOProStack_Restrict_Content extends SEOProStack_Feature {
         return function (props) {
             if (!props.isSelected) { return el(BlockEdit, props); }
             var v = props.attributes.spsVisibility || {}, show = v.show || "everyone", roles = v.roles || [];
-            var cc = props.attributes.contentControls;
+            var cc = props.attributes.contentControls, ccRule = !!(cc && cc.enabled && !props.attributes.spsVisibility);
             function set(s, r) { props.setAttributes({ spsVisibility: "everyone" === s ? undefined : { show: s, roles: r } }); }
             var kids = [el(c.SelectControl, { key: "show", label: cfg.label, value: show, options: cfg.shows, help: cfg.help, onChange: function (s) { set(s, roles); } })];
             if ("roles" === show || "not_roles" === show) {
@@ -998,12 +998,12 @@ class SEOProStack_Restrict_Content extends SEOProStack_Feature {
                     } }));
                 });
             }
-            if (cc && cc.enabled && !props.attributes.spsVisibility) {
+            if (ccRule) {
                 kids.push(el("p", { key: "cc" }, cfg.ccNote));
                 kids.push(el(c.Button, { key: "ccx", variant: "secondary", onClick: function () { props.setAttributes({ contentControls: undefined }); } }, cfg.ccClear));
             }
             return el(wp.element.Fragment, null, el(BlockEdit, props),
-                el(be.InspectorControls, null, el(c.PanelBody, { title: cfg.panel, initialOpen: "everyone" !== show }, kids)));
+                el(be.InspectorControls, null, el(c.PanelBody, { title: cfg.panel, initialOpen: "everyone" !== show || ccRule }, kids)));
         };
     }, "withSeoprostackVisibility");
     wp.hooks.addFilter("editor.BlockEdit", "seoprostack/restrict", withPanel);
@@ -1142,13 +1142,17 @@ class SEOProStack_Restrict_Content extends SEOProStack_Feature {
         }
         echo '<div class="sps-panel-note">';
         if ($done) {
+            $posts = (int) $result['posts'];
+            $terms = (int) $result['terms'];
             printf(
                 '<p>%s</p>',
                 esc_html(sprintf(
-                    /* translators: 1: number of posts, 2: number of categories and tags */
-                    __('From Content Control: %1$s posts and %2$s categories or tags now have “Who sees this” set.', 'seoprostack'),
-                    number_format_i18n((int) $result['posts']),
-                    number_format_i18n((int) $result['terms'])
+                    /* translators: 1: "3 posts or pages", 2: "2 categories or tags" */
+                    __('From Content Control, “Who sees this” is set on %1$s and %2$s.', 'seoprostack'),
+                    /* translators: %s: number of posts */
+                    sprintf(_n('%s post or page', '%s posts or pages', $posts, 'seoprostack'), number_format_i18n($posts)),
+                    /* translators: %s: number of terms */
+                    sprintf(_n('%s category or tag', '%s categories or tags', $terms, 'seoprostack'), number_format_i18n($terms))
                 ))
             );
         }
