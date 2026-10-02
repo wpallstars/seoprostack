@@ -1502,12 +1502,21 @@ class SEOProStack_Admin_Menu extends SEOProStack_Feature {
      * An entry's icon for a submenu: a dashicon, an image, or a blank of
      * the same width.
      *
+     * An SVG given as a base64 data address is drawn in the text colour, through a
+     * mask, as core repaints such icons in its own menu (svg-painter.js only
+     * paints top-level icons). Drawn as they are, many are dark (no fill,
+     * `currentColor` or grey) and do not show on the dark menu. Other images
+     * keep their own colours, as core shows them.
+     *
      * @param string $icon Menu icon (item[6]).
      * @return string
      */
     private static function icon_html($icon) {
         if (0 === strpos($icon, 'dashicons-')) {
             return '<span class="sps-menu-icon dashicons-before ' . esc_attr($icon) . '" aria-hidden="true"></span>';
+        }
+        if (preg_match('#^data:image/svg\+xml;base64,[A-Za-z0-9+/=]+$#', $icon)) {
+            return '<span class="sps-menu-icon sps-menu-icon-svg" style="--sps-menu-icon:url(&quot;' . esc_attr($icon) . '&quot;)" aria-hidden="true"></span>';
         }
         if (0 === strpos($icon, 'data:image/') || preg_match('#^https?://#', $icon)) {
             return '<span class="sps-menu-icon" style="background-image:url(&quot;' . esc_attr($icon) . '&quot;)" aria-hidden="true"></span>';
