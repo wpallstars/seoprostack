@@ -1,0 +1,48 @@
+{
+    "name": "Code Snippets",
+    "tested": "3.10.2",
+    "updated": "2026-10-02",
+    "notes": "Hides upgrade notices and the Snippets admin bar menu. Keeps the editor's bundled defaults: no remote editor assets are needed. Leaves snippet activation, flat-file execution, complete uninstall and version switching alone. Checked through the plugin's settings save handler on WordPress 6.2 and PHP 7.4 with Redis. Code Snippets caches settings in a versioned group; SEO Pro Stack resolves its live CACHE_GROUP and Settings CACHE_KEY constants when active, so updates do not leave this preset clearing an older group. Its normal settings save deletes that key, not a version counter. On multisite this preset is for per-site settings only: it does not change unified network settings.",
+    "cache": {
+        "groups": ["code_snippets_3.10.2"],
+        "keys": {
+            "code_snippets_3.10.2": ["code_snippets_settings"]
+        }
+    },
+    "options": {
+        "code_snippets_settings": {
+            "general": {
+                "hide_upgrade_menu": true,
+                "enable_admin_bar": false
+            }
+        }
+    },
+    "defaults": {
+        "code_snippets_settings": {
+            "general": {
+                "hide_upgrade_menu": false,
+                "enable_admin_bar": true
+            }
+        }
+    },
+    "settings": {
+        "code_snippets_settings.general.hide_upgrade_menu": {
+            "label": "Hide Upgrade Notices",
+            "description": "Hides notices inviting you to upgrade to Code Snippets Pro.",
+            "values": {
+                "true": "On",
+                "false": "Off",
+                "null": "Off (not set)"
+            }
+        },
+        "code_snippets_settings.general.enable_admin_bar": {
+            "label": "Enable Admin Bar Menu",
+            "description": "Shows a Snippets menu in the admin bar.",
+            "values": {
+                "true": "On",
+                "false": "Off",
+                "null": "On (not set)"
+            }
+        }
+    }
+}

@@ -22,6 +22,9 @@
  *             description (one short sentence) and values (stored value =>
  *             what it means; "null" for not stored, "true"/"false" for
  *             booleans, "" for an empty string).
+ * - cache:    optional groups (group names) and keys (group => key names)
+ *             to clear after apply, reset and undo. List keys too for caches
+ *             without group flushing. Code Snippets uses its live constants.
  *
  * Secrets are never stored or changed: option names and keys that look like
  * licence keys, API keys, tokens, passwords or similar are skipped when a
@@ -112,7 +115,30 @@ final class SEOProStack_Presets {
             'options'  => array(),
             'defaults' => array(),
             'settings' => array(),
+            'cache'    => array('groups' => array(), 'keys' => array()),
         );
+        if (!empty($preset['cache']) && is_array($preset['cache'])) {
+            if (!empty($preset['cache']['groups']) && is_array($preset['cache']['groups'])) {
+                foreach ($preset['cache']['groups'] as $group) {
+                    if (is_string($group) && '' !== $group) {
+                        $clean['cache']['groups'][] = $group;
+                    }
+                }
+                $clean['cache']['groups'] = array_values(array_unique($clean['cache']['groups']));
+            }
+            if (!empty($preset['cache']['keys']) && is_array($preset['cache']['keys'])) {
+                foreach ($preset['cache']['keys'] as $group => $keys) {
+                    if (!is_string($group) || '' === $group || !is_array($keys)) {
+                        continue;
+                    }
+                    foreach ($keys as $key) {
+                        if ((is_string($key) && '' !== $key) || is_int($key)) {
+                            $clean['cache']['keys'][$group][] = $key;
+                        }
+                    }
+                }
+            }
+        }
         if (!empty($preset['settings']) && is_array($preset['settings'])) {
             foreach ($preset['settings'] as $path => $about) {
                 if (!is_string($path) || !is_array($about)) {
@@ -504,6 +530,7 @@ final class SEOProStack_Presets {
         $undo        = self::undo_data();
         $undo[$slug] = array('time' => time(), 'set' => $set, 'options' => $backup);
         update_option(self::UNDO, $undo, false);
+        self::clear_cache($slug);
         return $changed;
     }
 
@@ -557,7 +584,55 @@ final class SEOProStack_Presets {
         } else {
             delete_option(self::UNDO);
         }
+        if ($count) {
+            self::clear_cache($slug);
+        }
         return $count;
+    }
+
+    /**
+     * Clear only the preset's named caches, never the site's entire cache.
+     *
+     * Code Snippets versions its group. Resolve its current constants rather
+     * than only clearing the group from the version the preset was tested on.
+     * Its settings save handler deletes this key; no version bump is needed.
+     *
+     * @param string $slug Plugin folder.
+     */
+    private static function clear_cache($slug) {
+        $preset = self::get($slug);
+        if (!$preset) {
+            return;
+        }
+        $cache = $preset['cache'];
+        if ('code-snippets' === $slug && defined('Code_Snippets\\CACHE_GROUP') && defined('Code_Snippets\\Settings\\CACHE_KEY')) {
+            $group = constant('Code_Snippets\\CACHE_GROUP');
+            $cache = array(
+                'groups' => array($group),
+                'keys'   => array($group => array(constant('Code_Snippets\\Settings\\CACHE_KEY'))),
+            );
+        }
+        $can_flush = function_exists('wp_cache_flush_group') && function_exists('wp_cache_supports') && wp_cache_supports('flush_group');
+        // Redis Object Cache otherwise falls back to flushing the whole site.
+        if (defined('WP_REDIS_DISABLE_GROUP_FLUSH') && WP_REDIS_DISABLE_GROUP_FLUSH) {
+            $can_flush = false;
+        }
+        $flushed   = array();
+        if ($can_flush) {
+            foreach ($cache['groups'] as $group) {
+                if (wp_cache_flush_group($group)) {
+                    $flushed[$group] = true;
+                }
+            }
+        }
+        foreach ($cache['keys'] as $group => $keys) {
+            if (isset($flushed[$group])) {
+                continue;
+            }
+            foreach ($keys as $key) {
+                wp_cache_delete($key, $group);
+            }
+        }
     }
 
     /**
