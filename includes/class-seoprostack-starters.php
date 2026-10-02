@@ -110,9 +110,14 @@ final class SEOProStack_Starters {
     /**
      * Custom CSS for checkout forms: the summary column as a panel that stays
      * in view while the wide column scrolls. Neutral, translucent colours,
-     * so it suits light and dark palettes.
+     * so it suits light and dark palettes. Name fields line up at the top, so
+     * a "required" message under one does not push its neighbour out of line
+     * (Fluent Forms lines them up at the bottom), and choices and buttons do
+     * not select their text when clicked quickly (Safari).
      */
-    const CHECKOUT_CSS = '.fluentform .sps-checkout .ff-t-column-2 { padding: 1.25rem; border: 1px solid rgba(127, 127, 127, 0.25); border-radius: 8px; background: rgba(127, 127, 127, 0.06); }
+    const CHECKOUT_CSS = '.fluentform .sps-checkout .ff-name-field-wrapper .ff-t-cell, .fluentform .sps-checkout .ff-name-address-wrapper .ff-t-cell { justify-content: flex-start; }
+.fluentform .sps-checkout .ff-el-form-check label, .fluentform .sps-checkout .ff_input-group-append { -webkit-user-select: none; user-select: none; }
+.fluentform .sps-checkout .ff-t-column-2 { padding: 1.25rem; border: 1px solid rgba(127, 127, 127, 0.25); border-radius: 8px; background: rgba(127, 127, 127, 0.06); }
 .fluentform .sps-checkout .ff-t-column-2 h3 { margin: 0 0 0.75rem; }
 .fluentform .sps-checkout .ff-t-column-2 .ff_submit_btn_wrapper_custom, .fluentform .sps-checkout .ff-t-column-2 .ff-btn-submit { width: 100%; }
 .fluentform .sps-checkout .ff-t-column-2 .ff_submit_btn_wrapper_custom button { margin-bottom: 0; }
