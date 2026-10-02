@@ -17,7 +17,8 @@
  * scoped to it keep working, and is fixed under the megaphone. Like core's admin
  * bar menus, it opens while the mouse points at the megaphone and closes when the
  * mouse moves away; keys and taps open it until Escape or a press elsewhere.
- * The megaphone is on every screen, with a dot while the panel has notices.
+ * The megaphone is on every screen, with a dot while the panel has notices:
+ * red while one can be dismissed there, white while they can only be read.
  *
  * Notices kept from plugins this screen skipped carry data-sps-stored; using
  * one's dismiss control tells the server to stop showing it (dismissed()).
@@ -244,27 +245,55 @@
 			}
 		});
 		if (window.MutationObserver) {
-			new MutationObserver(count).observe($panel[0], { childList: true });
+			// Also inside notices: dismiss buttons are added after they move, and copies are redrawn.
+			new MutationObserver(count).observe($panel[0], { childList: true, subtree: true });
 		}
 		$panel.on('click', '[' + cfg.stored + ']', dismissed);
 		return $panel;
 	}
 
+	/** Controls that dismiss a notice, by class, link or words. */
+	var DISMISS = /dismiss|(^|[\s_-])(hide|close|later|skip)([\s_-]|$)|no,? thanks|don.t show/i;
+
+	/**
+	 * Whether a notice can be dismissed in the panel: core's dismiss button
+	 * (or the class that adds it), or a link or button whose class, address,
+	 * label or words say dismiss, hide, close, later, skip or no thanks.
+	 *
+	 * @param {Element} el Notice.
+	 * @return {boolean}
+	 */
+	function dismissible(el) {
+		var $el = $(el);
+		if ($el.is('.is-dismissible') || $el.find('.is-dismissible, .notice-dismiss').length) {
+			return true;
+		}
+		var found = false;
+		$el.find('a, button, [role="button"]').each(function () {
+			var words = [this.className, this.getAttribute('href') || '', this.getAttribute('aria-label') || '', $(this).text()].join(' ');
+			found = DISMISS.test(words);
+			return !found;
+		});
+		return found;
+	}
+
 	/**
 	 * Show the dot while the panel has notices, and the count to screen
-	 * readers. The megaphone stays, so the bar never moves.
+	 * readers. The dot is red while one of them can be dismissed, and in the
+	 * bar's text colour while they can only be read. The megaphone stays, so
+	 * the bar never moves.
 	 */
 	function count() {
 		if (!$panel) {
 			return;
 		}
-		var n = $panel.children().not('.sps-notices-none').length;
-		$button.attr('aria-label', cfg.label.replace('%d', n));
-		$item.toggleClass('sps-notices-empty', !n);
+		var $notices = $panel.children().not('.sps-notices-none');
+		$button.attr('aria-label', cfg.label.replace('%d', $notices.length));
+		$item.toggleClass('sps-notices-empty', !$notices.length);
+		$item.toggleClass('sps-notices-dismissible', $notices.filter(function () {
+			return dismissible(this);
+		}).length > 0);
 	}
-
-	/** Controls that dismiss a notice, by class, link or words. */
-	var DISMISS = /dismiss|(^|[\s_-])(hide|close|later|skip)([\s_-]|$)|no,? thanks|don.t show/i;
 
 	/**
 	 * A kept notice of a plugin this screen skipped was dismissed: stop

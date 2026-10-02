@@ -60,7 +60,9 @@ the WordPress.org zip.
 
 Sites read the repository without signing in, so it must be public for sites
 to get updates. It is private for now; a test site can use a read-only token
-in `SEOPROSTACK_GITHUB_TOKEN` (`wp-config.php`) meanwhile.
+in `SEOPROSTACK_GITHUB_TOKEN` (`wp-config.php`) meanwhile. Making it public
+needs the owner's say; do the quality sweep in `DEVELOPMENT.md` → At public
+launch in the same step.
 
 ## WordPress.org preflight
 

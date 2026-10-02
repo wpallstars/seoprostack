@@ -32,6 +32,22 @@ class SEOProStack_Brand_Icons extends SEOProStack_Feature {
     /** Icons returned by one search. */
     const PER_PAGE = 60;
 
+    /** Icon names in Kadence Blocks: sps_{slug}. */
+    const KADENCE_PREFIX = 'sps_';
+
+    /** Shapes of the icons used in Kadence blocks, kept for the front end. */
+    const KADENCE_OPTION = 'seoprostack_kadence_brand_icons';
+
+    /** Most icons kept in that option. */
+    const KADENCE_MAX = 300;
+
+    /**
+     * Kept shapes: slug => [viewBox, path, ...] (null until read).
+     *
+     * @var array|null
+     */
+    private static $kadence_icons = null;
+
     /**
      * Settings.
      *
@@ -73,6 +89,12 @@ class SEOProStack_Brand_Icons extends SEOProStack_Feature {
         // After Simple Icons would have added its own, so ours are used only when it is gone.
         add_action('init', array(__CLASS__, 'register_shortcode'), 20);
         add_action('rest_api_init', array(__CLASS__, 'register_routes'));
+        if (defined('KADENCE_BLOCKS_VERSION')) {
+            add_filter('kadence_svg_icons', array(__CLASS__, 'kadence_icons'));
+            add_filter('render_block_data', array(__CLASS__, 'kadence_block_data'));
+            add_action('wp_after_insert_post', array(__CLASS__, 'kadence_saved'), 10, 2);
+            add_action('enqueue_block_editor_assets', array(__CLASS__, 'kadence_editor'));
+        }
     }
 
     /**
@@ -470,5 +492,163 @@ class SEOProStack_Brand_Icons extends SEOProStack_Feature {
             }
         }
         return array('icons' => $icons, 'total' => count($index['icons']));
+    }
+
+    /*
+     * ------------------------------------------------------------------
+     * Kadence Blocks
+     *
+     * Kadence's icon pickers get a Brand icons category (icon names
+     * sps_{slug}). Kadence draws icons on the server from one list it
+     * builds the first time a request needs an icon, so the shapes of the
+     * icons in use are kept in an option (not autoloaded): pages read that,
+     * never the icon files. Icons are added when a post is saved and when a
+     * page shows one that is not kept yet.
+     * ------------------------------------------------------------------
+     */
+
+    /**
+     * Brand icons named in some block markup or attributes.
+     *
+     * @param string $text Text.
+     * @return string[] Slugs.
+     */
+    private static function kadence_names($text) {
+        if (false === strpos($text, self::KADENCE_PREFIX) || !preg_match_all('/(?<![a-z0-9_])' . self::KADENCE_PREFIX . '([a-z0-9_]{1,40})/', $text, $m)) {
+            return array();
+        }
+        $found = array();
+        foreach (array_unique($m[1]) as $slug) {
+            if (self::index_row($slug)) {
+                $found[] = $slug;
+            }
+        }
+        return $found;
+    }
+
+    /**
+     * Kept shapes, refreshed from the icon files after an update.
+     *
+     * @return array slug => [viewBox, path, ...]
+     */
+    private static function kadence_kept() {
+        if (null !== self::$kadence_icons) {
+            return self::$kadence_icons;
+        }
+        $stored = get_option(self::KADENCE_OPTION, array());
+        $icons  = is_array($stored) && isset($stored['icons']) && is_array($stored['icons']) ? $stored['icons'] : array();
+        if ($icons && (!isset($stored['version']) || SEOPROSTACK_VERSION !== $stored['version'])) {
+            self::$kadence_icons = array();
+            self::kadence_keep(array_keys($icons));
+            return self::$kadence_icons;
+        }
+        self::$kadence_icons = $icons;
+        return $icons;
+    }
+
+    /**
+     * Keep the shapes of these icons.
+     *
+     * @param string[] $slugs Slugs.
+     */
+    private static function kadence_keep(array $slugs) {
+        $icons   = self::kadence_kept();
+        $changed = false;
+        foreach ($slugs as $slug) {
+            $slug = (string) $slug;
+            if (isset($icons[$slug]) || count($icons) >= self::KADENCE_MAX) {
+                continue;
+            }
+            $icon = self::icon($slug);
+            if ($icon) {
+                $icons[$slug] = array_merge(array($icon['viewBox']), $icon['paths']);
+                $changed      = true;
+            }
+        }
+        self::$kadence_icons = $icons;
+        if ($changed) {
+            update_option(self::KADENCE_OPTION, array('version' => SEOPROSTACK_VERSION, 'icons' => $icons), false);
+        }
+    }
+
+    /**
+     * Add the kept icons to Kadence Blocks' icon list.
+     *
+     * @param array $icons Kadence's icons: name => {vB, cD}.
+     * @return array
+     */
+    public static function kadence_icons($icons) {
+        if (!is_array($icons)) {
+            return $icons;
+        }
+        foreach (self::kadence_kept() as $slug => $shape) {
+            $shape = array_values((array) $shape);
+            $paths = array();
+            foreach (array_slice($shape, 1) as $d) {
+                $paths[] = array('nE' => 'path', 'aBs' => array('d' => (string) $d));
+            }
+            if (isset($shape[0]) && $paths) {
+                $icons[self::KADENCE_PREFIX . $slug] = array('vB' => (string) $shape[0], 'cD' => $paths);
+            }
+        }
+        return $icons;
+    }
+
+    /**
+     * Keep a brand icon that a Kadence block on this page uses, before the
+     * block is drawn.
+     *
+     * @param array $block Parsed block.
+     * @return array Unchanged.
+     */
+    public static function kadence_block_data($block) {
+        if (empty($block['blockName']) || 0 !== strpos((string) $block['blockName'], 'kadence/')) {
+            return $block;
+        }
+        $text = (isset($block['innerHTML']) ? (string) $block['innerHTML'] : '') . (string) wp_json_encode(isset($block['attrs']) ? $block['attrs'] : array());
+        $new  = array_diff(self::kadence_names($text), array_keys(self::kadence_kept()));
+        if ($new) {
+            self::kadence_keep($new);
+        }
+        return $block;
+    }
+
+    /**
+     * Keep the brand icons in a saved post (posts, template parts, patterns
+     * and Kadence elements are all posts).
+     *
+     * @param int     $post_id Post ID.
+     * @param WP_Post $post    Post.
+     */
+    public static function kadence_saved($post_id, $post) {
+        if (!$post instanceof WP_Post || wp_is_post_revision($post) || wp_is_post_autosave($post)) {
+            return;
+        }
+        $new = array_diff(self::kadence_names((string) $post->post_content), array_keys(self::kadence_kept()));
+        if ($new) {
+            self::kadence_keep($new);
+        }
+    }
+
+    /**
+     * Editor: the Brand icons category in Kadence's icon pickers. Icons in
+     * use come with the page, so blocks show them at once; the rest of the
+     * set loads from the icon files (cached by the browser) in the background.
+     */
+    public static function kadence_editor() {
+        $file = 'admin/js/seoprostack-kadence-brand-icons.js';
+        $ver  = file_exists(SEOPROSTACK_DIR . $file) ? (string) filemtime(SEOPROSTACK_DIR . $file) : SEOPROSTACK_VERSION;
+        wp_enqueue_script('seoprostack-kadence-brand-icons', SEOPROSTACK_URL . $file, array('wp-hooks'), $ver, false);
+        wp_add_inline_script(
+            'seoprostack-kadence-brand-icons',
+            'window.seoprostackKadenceBrandIcons=' . wp_json_encode(array(
+                'base'   => SEOPROSTACK_URL . 'assets/brand-icons/',
+                'ver'    => SEOPROSTACK_VERSION,
+                'prefix' => self::KADENCE_PREFIX,
+                'label'  => __('Brand icons', 'seoprostack'),
+                'icons'  => self::kadence_icons(array()),
+            )) . ';',
+            'before'
+        );
     }
 }
