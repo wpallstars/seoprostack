@@ -21,6 +21,7 @@ Every change to SEO Pro Stack. readme.txt lists the latest version in short.
 * Fix: Ask before licence checks: “Ask me again” now keeps each plugin hidden for the time you chose. Hiding a second plugin, such as Starter Templates after Kadence Blocks, brought back the first.
 * New: Readable list columns removes Complianz’s Website Scan, Post Type Switcher’s Type and Burst Statistics’ Pageviews columns (Columns to remove; Admin Columns can still add them back), puts Author and Date last on content lists, and keeps Rank Math’s SEO Details on one line each.
 * New: Organise the admin menu widens the sidebar, up to 280 pixels, so menu names fit on one line (Fit the menu to its names, on by default).
+* Change: Organise the admin menu shows FluentSMTP’s logo for its entry instead of a cog.
 
 = 0.7.0 =
 * New, off by default: Ask before licence checks (Plugins tab). Premium plugins and themes stop checking their licence with their maker’s server until you choose, per plugin: allow it once now, once a day (the answer is reused for the rest of the day, so pages do not wait) or never. You are asked on the next admin screen, or again tomorrow, in a week, a month or a year, and can choose again or forget your choices from the Licence checks link on the Plugins screen. Update checks are left alone.

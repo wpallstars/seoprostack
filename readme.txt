@@ -118,21 +118,19 @@ Copies from WordPress.org update from there. New versions come out on GitHub fir
 == Changelog ==
 
 = Unreleased =
-* New: Code Snippets preset; presets clear their named settings caches on Apply, Reset and Undo.
-* New: Fluent Booking starter data: a free Discovery Call, feeding FluentCRM; booked events stay on Remove.
+* New: presets for Code Snippets, Rank Math SEO, WP-Optimize and Burst Statistics.
 * New, off by default: turn off XML-RPC and application passwords separately.
 * New, off by default: Database key cleanup, with per-key confirmation and restore SQL.
 * New, off by default: TranslatePress switcher colours.
 * New, off by default: six features that do most of Disable Bloat’s job, importing its settings.
-* New: starter data for Fluent Forms: four forms that feed FluentCRM lists and tags.
-* New: display presets for Rank Math SEO, WP-Optimize and Burst Statistics.
+* New: starter data for Fluent Forms (four forms) and Fluent Booking (a Discovery Call), feeding FluentCRM.
 * Change: Freesoul Deactivate Plugins is no longer recommended.
 * Change: Apply preset names each setting in plain words.
 * Fix: plugins that add list columns load on those lists.
 * Fix: Licence checks “Ask me again” keeps each plugin hidden.
 * Fix: WP Sheet Editor spreadsheets no longer blank with Load plugins only where needed.
 * New: remove unneeded list columns; Author and Date last.
-* New: the admin menu widens to fit its names.
+* New: the admin menu widens to fit its names; FluentSMTP shows its logo.
 
 = 0.7.0 =
 * New: licence-check choices, plugin presets and FluentCRM and Fluent Boards starters.
