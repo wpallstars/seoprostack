@@ -126,7 +126,7 @@ Click **Report a problem** at the top right of Settings → SEO Pro Stack, or op
 
 = Unreleased =
 * New: Word documents; Like, save and share; Brand icons; coffee button.
-* Change: Pinned posts; faster lists; sizes in Free Plugins; megaphone; writers' menu.
+* Change: Pinned posts; faster lists; sizes in Free Plugins; megaphone and dot; writers' menu.
 * Fix: More menu alignment; menu in full screen editor; Like button after a click.
 
 = 0.9.0 =

@@ -627,10 +627,12 @@ class SEOProStack_Admin_Notices extends SEOProStack_Feature {
         <style id="seoprostack-admin-notices">
             <?php echo implode(",\n", $hide); // phpcs:ignore WordPress.Security.EscapeOutput -- fixed selectors. ?>,
             .sps-notice-away { display: none !important; }
-            /* Megaphone: on every screen, with a dot in the bar's text colour while there are notices, top left, clear of its mouth. */
+            /* Megaphone: on every screen, with a dot top right, clear of its mouth, while there are notices:
+               in the bar's text colour while they can only be read, red while one can be dismissed. */
             #wpadminbar #wp-admin-bar-sps-notices .ab-icon { margin-right: 0; }
             #wpadminbar #wp-admin-bar-sps-notices .ab-icon:before { content: "\f488"; content: "\f488" / ""; top: 2px; }
-            #wpadminbar #wp-admin-bar-sps-notices .sps-notices-dot { position: absolute; top: 3px; left: -3px; width: 7px; height: 7px; border-radius: 50%; background: currentColor; pointer-events: none; }
+            #wpadminbar #wp-admin-bar-sps-notices .sps-notices-dot { position: absolute; top: 2px; right: -7px; width: 7px; height: 7px; border-radius: 50%; background: currentColor; pointer-events: none; }
+            #wpadminbar #wp-admin-bar-sps-notices.sps-notices-dismissible .sps-notices-dot { background: #d63638; }
             #wpadminbar #wp-admin-bar-sps-notices.sps-notices-empty .sps-notices-dot { display: none; }
             #sps-notices-wrap > .sps-notices-none { margin: 16px 0 0; }
             #sps-notices-wrap > .sps-notices-none:not(:only-child) { display: none; }
@@ -644,7 +646,7 @@ class SEOProStack_Admin_Notices extends SEOProStack_Feature {
                 /* Core shows only its own items here; the megaphone joins them. */
                 #wpadminbar li#wp-admin-bar-sps-notices { display: block; position: static; }
                 #wpadminbar #wp-admin-bar-sps-notices .ab-icon:before { display: block; font-size: 34px; height: 46px; line-height: 1.38235294; top: 0; }
-                #wpadminbar #wp-admin-bar-sps-notices .sps-notices-dot { top: 6px; left: 4px; width: 9px; height: 9px; }
+                #wpadminbar #wp-admin-bar-sps-notices .sps-notices-dot { top: 4px; right: 0; width: 9px; height: 9px; }
                 #sps-notices-wrap { top: 46px; max-height: calc(100vh - 46px); padding: 0 10px 10px; }
             }
         </style>
