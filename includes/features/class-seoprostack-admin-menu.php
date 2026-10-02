@@ -30,7 +30,8 @@
  *
  * Writers (on by default): people who can write posts but not edit other
  * people's, such as contributors and authors, do not see or open plugin
- * pages that ask only for a capability every writer has, nor Tools.
+ * pages that ask only for a capability every writer has, plugin post types
+ * without the content editor (such as short links), nor Tools.
  *
  * Replaces Admin Menu Editor (Pro). Its settings are not imported: the
  * places come from the catalog's rules, so every site gets the same menu.
@@ -67,6 +68,13 @@ class SEOProStack_Admin_Menu extends SEOProStack_Feature {
 
     /** Option: which plugin owns each admin page, until plugins change. */
     const CACHE = 'seoprostack_admin_menu';
+
+    /**
+     * Option: plugin post type => whether it is not for writing, kept for
+     * screens where Load plugins only where needed skips its plugin (the
+     * menu entry is put back, the post type is not registered).
+     */
+    const WRITER_TYPES = 'seoprostack_writer_types';
 
     /** User setting (wp-settings cookie) with the folded sections' codes. */
     const FOLD = 'spsfold';
@@ -286,7 +294,7 @@ class SEOProStack_Admin_Menu extends SEOProStack_Feature {
                 'parent'      => self::KEY,
                 'reload'      => true,
                 'label'       => __('Writers see only writing', 'seoprostack'),
-                'description' => __('Contributors and authors see their posts, media, comments and profile. Plugin pages that any writer could open, such as plugin settings, are hidden and refused. Pages a plugin gives their role on purpose stay.', 'seoprostack'),
+                'description' => __('Contributors and authors see their posts, media, comments and profile. Plugin pages that any writer could open, such as plugin settings or short links, are hidden and refused. Pages a plugin gives their role on purpose stay.', 'seoprostack'),
             ),
             self::FOLD_KEY => array(
                 'type'        => 'bool',
@@ -380,6 +388,9 @@ class SEOProStack_Admin_Menu extends SEOProStack_Feature {
             }
         }
         if (is_admin() && SEOProStack_Settings::get(self::WRITERS_KEY)) {
+            // Post type screens before admin_menu, where some plugins
+            // redirect their lists (Lasso Lite to its welcome page).
+            add_action('admin_menu', array(__CLASS__, 'block_writer_type'), 0);
             add_action('admin_init', array(__CLASS__, 'block_writer_page'));
         }
 
@@ -1836,8 +1847,9 @@ class SEOProStack_Admin_Menu extends SEOProStack_Feature {
     /**
      * Whether writers do not get a menu entry's page: a plugin's page that
      * asks only for a capability every writer has, and Tools, which offers
-     * writers nothing of WordPress's own. WordPress's screens, including
-     * post types' lists, keep WordPress's own checks.
+     * writers nothing of WordPress's own, and the screens of plugin post
+     * types that are not for writing (see writer_hides_type()). Other
+     * WordPress screens keep WordPress's own checks.
      *
      * @param string $slug Entry address.
      * @param array  $item Menu entry (capability in [1]).
@@ -1847,7 +1859,8 @@ class SEOProStack_Admin_Menu extends SEOProStack_Feature {
         $cap   = isset($item[1]) && is_string($item[1]) ? $item[1] : '';
         $parts = self::parse_slug($slug);
         $wp    = !isset($parts['args']['page']) && preg_match('/^[a-z0-9-]+\.php$/', $parts['file']) && file_exists(ABSPATH . 'wp-admin/' . $parts['file']);
-        $hide  = 'tools.php' === $slug || ('' !== $cap && isset(self::WRITER_CAPS[$cap]) && !$wp);
+        $hide  = 'tools.php' === $slug || ('' !== $cap && isset(self::WRITER_CAPS[$cap]) && !$wp)
+            || ($wp && isset($parts['args']['post_type']) && self::writer_hides_type($parts['args']['post_type']));
         /**
          * Filter whether writers do not get a menu page.
          *
@@ -1856,6 +1869,38 @@ class SEOProStack_Admin_Menu extends SEOProStack_Feature {
          * @param string $cap  Capability the page asks for.
          */
         return (bool) apply_filters('seoprostack_writer_hides_page', $hide, $slug, $cap);
+    }
+
+    /**
+     * Whether a post type is not for writing: a plugin's post type without
+     * the content editor, such as short or affiliate links (Lasso Lite),
+     * which often uses the same permissions as posts. Post types with the
+     * editor are writing, and WordPress's own keep core's checks.
+     *
+     * @param string $type Post type name.
+     * @return bool
+     */
+    private static function writer_hides_type($type) {
+        static $cache = array();
+        $type = (string) $type;
+        if (!isset($cache[$type])) {
+            $known = self::learn_writer_types();
+            if (get_post_type_object($type)) {
+                $hide = empty(get_post_type_object($type)->_builtin) && !post_type_supports($type, 'editor');
+            } else {
+                // Its plugin is skipped on this screen: use what was seen
+                // where it loads.
+                $hide = !empty($known[$type]);
+            }
+            /**
+             * Filter whether writers do not get a post type's screens.
+             *
+             * @param bool   $hide Whether its list, new and edit screens are hidden and refused.
+             * @param string $type Post type name.
+             */
+            $cache[$type] = (bool) apply_filters('seoprostack_writer_hides_post_type', $hide, $type);
+        }
+        return $cache[$type];
     }
 
     /**
@@ -1886,6 +1931,52 @@ class SEOProStack_Admin_Menu extends SEOProStack_Feature {
             }
         }
         return true;
+    }
+
+    /**
+     * Note which plugin post types registered here are not for writing, for
+     * screens that skip their plugin. Runs on every admin screen (for anyone)
+     * and writes only when a post type is new or changes.
+     *
+     * @return array<string,bool> Post type => not for writing.
+     */
+    private static function learn_writer_types() {
+        static $known = null;
+        if (null !== $known) {
+            return $known;
+        }
+        $stored = get_option(self::WRITER_TYPES);
+        $known  = is_array($stored) ? array_map('boolval', $stored) : array();
+        foreach (get_post_types(array('_builtin' => false, 'show_ui' => true)) as $type) {
+            $known[$type] = !post_type_supports($type, 'editor');
+        }
+        if ($known !== $stored) {
+            update_option(self::WRITER_TYPES, $known, true);
+        }
+        return $known;
+    }
+
+    /**
+     * Refuse writers the list, Add New, edit and term screens of post types
+     * hidden from them.
+     */
+    public static function block_writer_type() {
+        global $plugin_page, $pagenow, $typenow;
+        self::learn_writer_types();
+        if (wp_doing_ajax() || (is_string($plugin_page) && '' !== $plugin_page) || !self::is_writer()) {
+            return;
+        }
+        $type = '';
+        if (in_array($pagenow, array('edit.php', 'post-new.php', 'edit-tags.php', 'term.php'), true)) {
+            $type = '' !== (string) $typenow ? (string) $typenow : 'post';
+        } elseif ('post.php' === $pagenow) {
+            // phpcs:ignore WordPress.Security.NonceVerification -- only read to refuse the screen.
+            $id   = isset($_GET['post']) ? absint($_GET['post']) : (isset($_POST['post_ID']) ? absint($_POST['post_ID']) : 0);
+            $type = $id ? (string) get_post_type($id) : '';
+        }
+        if ('' !== $type && self::writer_hides_type($type)) {
+            wp_die(esc_html__('Sorry, this page is not for writers.', 'seoprostack'), '', array('response' => 403, 'back_link' => true));
+        }
     }
 
     /**
