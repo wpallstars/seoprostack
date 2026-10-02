@@ -15,8 +15,9 @@
  * saying why, as if the server could not be reached, and nothing is sent.
  *
  * Administrators are asked in a dialog on the next admin screen, or can be
- * asked again tomorrow, in a week, a month or a year (checks stay held, and
- * plugins that start checking meanwhile are still asked about). The Plugins
+ * asked again tomorrow, in a week, a month or a year (checks stay held, each
+ * plugin keeps its own time, and plugins that start checking meanwhile are
+ * still asked about). The Plugins
  * screen has a Licence checks link in each such plugin's row and above the
  * list, to see the choices, choose again or forget them.
  *
@@ -51,7 +52,7 @@ class SEOProStack_Licence_Calls extends SEOProStack_Feature {
     /** Transient prefix of cached answers. */
     const CACHE = 'seoprostack_lc_';
 
-    /** User meta: "until" a time, the checks the dialog hid ("hidden": ID => when their hold began). */
+    /** User meta: the checks the dialog hid ("hidden": ID => when their hold began and until when). */
     const LATER = 'seoprostack_licence_later';
 
     /** admin-post action. */
@@ -630,14 +631,16 @@ class SEOProStack_Licence_Calls extends SEOProStack_Feature {
             $spans  = self::later_spans();
             $for    = isset($_POST['for']) ? sanitize_key(wp_unslash($_POST['for'])) : 'day';
             $span   = isset($spans[$for]) ? $spans[$for]['seconds'] : DAY_IN_SECONDS;
+            // Each check keeps its own time, so hiding one never brings back
+            // another hidden earlier.
             $shown  = isset($_POST['ids']) ? array_map('sanitize_key', explode(',', sanitize_text_field(wp_unslash($_POST['ids'])))) : array();
-            $hidden = array();
+            $hidden = self::later_hidden();
             foreach (self::entries() as $entry_id => $entry) {
                 if (in_array((string) $entry_id, $shown, true) && !empty($entry['first'])) {
-                    $hidden[$entry_id] = (int) $entry['first'];
+                    $hidden[$entry_id] = array('first' => (int) $entry['first'], 'until' => time() + $span);
                 }
             }
-            update_user_meta(get_current_user_id(), self::LATER, array('until' => time() + $span, 'hidden' => $hidden));
+            update_user_meta(get_current_user_id(), self::LATER, array('hidden' => $hidden));
             wp_safe_redirect($back);
             exit;
         }
@@ -835,14 +838,38 @@ class SEOProStack_Licence_Calls extends SEOProStack_Feature {
         }
         // While "Ask me again" stands, the checks it hid stay hidden; any
         // other waiting check is asked about.
-        $later  = get_user_meta(get_current_user_id(), self::LATER, true);
-        $hidden = is_array($later) && isset($later['until'], $later['hidden']) && (int) $later['until'] > time() && is_array($later['hidden']) ? $later['hidden'] : array();
+        $hidden = self::later_hidden();
         return array_filter($entries, function ($entry, $id) use ($hidden) {
             if ('ask' !== self::mode($entry) || empty($entry['first'])) {
                 return false;
             }
-            return !isset($hidden[$id]) || (int) $hidden[$id] !== (int) $entry['first'];
+            return !isset($hidden[$id]) || $hidden[$id]['first'] !== (int) $entry['first'];
         }, ARRAY_FILTER_USE_BOTH);
+    }
+
+    /**
+     * Checks the current person hid with "Ask me again" whose time has not
+     * run out: ID => when its hold began and until when it is hidden. Reads
+     * the earlier shape too (one "until" for every hidden check).
+     *
+     * @return array<string,array{first:int,until:int}>
+     */
+    private static function later_hidden() {
+        $later = get_user_meta(get_current_user_id(), self::LATER, true);
+        if (!is_array($later) || !isset($later['hidden']) || !is_array($later['hidden'])) {
+            return array();
+        }
+        $shared = isset($later['until']) ? (int) $later['until'] : 0;
+        $now    = time();
+        $hidden = array();
+        foreach ($later['hidden'] as $id => $hide) {
+            $first = is_array($hide) ? (isset($hide['first']) ? (int) $hide['first'] : 0) : (int) $hide;
+            $until = is_array($hide) && isset($hide['until']) ? (int) $hide['until'] : $shared;
+            if ($first && $until > $now) {
+                $hidden[(string) $id] = array('first' => $first, 'until' => $until);
+            }
+        }
+        return $hidden;
     }
 
     /**
