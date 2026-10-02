@@ -14,7 +14,7 @@ Curated plugins, themes, hosting and tools for WordPress, plus small opt-in qual
 
 SEO Pro Stack is free and open source. There is no pro version and nothing is locked.
 
-Everything is off by default except Hide admin bar items (Comments and + New), No fade between admin screens, Quiet Freemius prompts and Fixes for other plugins. Turn features on in **Settings → SEO Pro Stack**; **Search features** finds one by name or by the plugin it replaces. The Read Me tab there describes each in full.
+Everything is off by default except Hide admin bar items (Comments and + New), No fade between admin screens, Quiet Freemius prompts and Fixes for other plugins. Turn features on in **Settings → SEO Pro Stack**; **Search features** finds one by name or by the plugin it replaces. The Read Me tab explains each.
 
 = Admin screens =
 
@@ -23,7 +23,7 @@ Everything is off by default except Hide admin bar items (Comments and + New), N
 * **Hide admin bar items** (on by default), a **More menu** for plugin items in the admin bar, and **Hide admin notices**, which moves plugin and theme notices behind a bell.
 * **Quiet Freemius prompts** (on by default): no opt-in nags, upgrade offers or deactivation surveys from plugins that use Freemius.
 * **Admin bar and dashboard access**: hide the admin bar and block wp-admin for roles such as subscribers and customers, never administrators.
-* **Magic login links**: one-time login links by email, which email scanners cannot use up.
+* **Magic login links**: one-time login links by email that scanners cannot use up.
 * **Turn off unused remote access**: XML-RPC and application passwords, both off by default.
 * **Modern admin colours**, **No fade between admin screens** (on by default), **Readable list columns** and **Notification emails**, which stops routine emails one by one.
 * **Tidy admin screens**, **Tidy WooCommerce admin**, **Tidy the login screen**, **Simpler block editor**, **Remove WordPress extras**, **Fewer Heartbeat requests**, **Limit post revisions** and **Lighter WooCommerce pages** replace most of Disable Bloat.
@@ -31,19 +31,19 @@ Everything is off by default except Hide admin bar items (Comments and + New), N
 = Writing and publishing =
 
 * **Publishing queue**: posts published without a date are scheduled for the next free time slot.
-* **Duplicate posts**, **Staged new versions** (edit a published post as a draft copy) and **Shareable preview links** for people without an account.
-* **Sticky posts for any post type** and **Select all across pages** for bulk actions.
+* **Duplicate posts**, **Staged new versions** (edit a published post as a draft) and **Shareable preview links** for people without an account.
+* **Pinned posts for any post type** and **Select all across pages** for bulk actions.
 * **Menu item visibility** by login or role, **Change post type**, **Order by hand**, **Term tools** (merge, move, set parent), **Search custom fields** (ACF) and **Old post addresses**.
 * **TranslatePress colours**: Kadence light/dark switchers.
 * **iFrame block**: embed pages, limited to the domains and roles you choose.
-* **Link cards**, **Wikipedia previews**, **Word documents** in the editor and **Like, save and share** buttons.
+* **Link cards**, **Wikipedia previews**, **Word documents** in the editor and **Like, save and share**.
 * **Spectra block replacements**: a Term list block, and Spectra pages that keep working after it is deactivated.
 
 = Media =
 
 * **Copy linked images to Media Library** when a post is saved, and **Paste into the Media Library**.
 * **SVG uploads** for chosen roles, cleaned as they are uploaded.
-* **Resize large uploads**, **Replace media files** and **Watermark pictures**, which keeps unmarked originals.
+* **Resize large uploads**, **Replace media files** and **Watermark pictures**, keeping the originals.
 * **WebP and AVIF images**: smaller copies sent to browsers that support them, at the same address.
 * **Website screenshots**: a Screenshot block and the `[browser-shot]` shortcode, with pictures saved to the Media Library.
 * **Avatars without Gravatar**: avatars served from your own site.
@@ -129,6 +129,7 @@ Click **Report a problem** at the top right of Settings → SEO Pro Stack, or op
 
 = Unreleased =
 * New: Word documents; Like, save and share.
+* Change: Pinned posts; faster post lists.
 * Fix: More menu items shifting right, fitted menu in full screen editor.
 
 = 0.9.0 =

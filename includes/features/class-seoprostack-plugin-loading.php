@@ -158,6 +158,14 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
      */
     private static $table_watched = array();
 
+    /**
+     * Plugins seen printing Quick Edit or Bulk Edit fields, or row data for
+     * them, on this request: plugin file => true.
+     *
+     * @var array<string,true>
+     */
+    private static $form_seen = array();
+
     /** Content actually rendered, including theme templates and secondary loops. */
     private static $front_seen = array();
 
@@ -963,6 +971,11 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
                 $map['screens'][$screen] = array_values(array_unique(array_merge(
                     self::form_plugins($kind, $name), array_values((array) $map['types']), array_values((array) $map['taxes'])
                 )));
+            } elseif ('list' === $kind && self::list_form_shown($name)) {
+                // Quick Edit and Bulk Edit: only plugins that put fields or
+                // row data in them on this list. Plugins that hook them for
+                // other post types (WooCommerce for products) add nothing here.
+                $map['screens'][$screen] = array_keys(self::$form_seen);
             } else {
                 $map['screens'][$screen] = self::form_plugins($kind, $name);
             }
@@ -1470,6 +1483,23 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
     }
 
     /**
+     * Whether this request showed the list's Quick Edit and Bulk Edit form,
+     * so the plugins that printed into it are all that it needs. WordPress
+     * prints the form only when the list has rows; an empty list falls back
+     * to every plugin hooked to the form. Media lists have no Quick Edit.
+     *
+     * @param string $name Post type of the list.
+     * @return bool
+     */
+    private static function list_form_shown($name) {
+        global $wp_list_table;
+        if ('attachment' === $name) {
+            return true;
+        }
+        return $wp_list_table instanceof WP_Posts_List_Table && $wp_list_table->has_items();
+    }
+
+    /**
      * Plugins that add boxes, fields or editor features to a screen
      * ("post", "terms", "list", "user", "tools", "media-new"), or boxes
      * to the Dashboard ("dashboard"); none for other screens.
@@ -1566,6 +1596,10 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
         if (null === $hooks) {
             $state = SEOProStack_Plugin_Loader::state();
             $hooks = self::table_hooks($state['screen']);
+            // Quick Edit and Bulk Edit fields on post lists: noted apart.
+            if (0 === strpos((string) $state['screen'], 'list:')) {
+                $hooks += array_fill_keys(SEOProStack_Plugin_Loader::LIST_HOOKS, 'form');
+            }
         }
         if (!is_string($hook) || !isset($hooks[$hook]) || empty($wp_filter[$hook]) || !($wp_filter[$hook] instanceof WP_Hook)) {
             return;
@@ -1593,7 +1627,7 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
      *
      * @param callable $original Plugin's callback.
      * @param string   $plugin   Plugin file.
-     * @param string   $type     "columns", "filter" or "action".
+     * @param string   $type     "columns", "filter", "action", or "form" (Quick Edit and Bulk Edit).
      * @return Closure
      */
     private static function table_watcher($original, $plugin, $type) {
@@ -1604,7 +1638,11 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
             echo $output; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- the plugin's own output, passed on as it was.
             $before  = isset($args[0]) ? $args[0] : null;
             $printed = '' !== trim($output);
-            if ('columns' === $type && is_array($value)) {
+            if ('form' === $type) {
+                if ($printed) {
+                    self::$form_seen[$plugin] = true;
+                }
+            } elseif ('columns' === $type && is_array($value)) {
                 $added = array_diff(array_map('strval', array_keys($value)), is_array($before) ? array_map('strval', array_keys($before)) : array());
                 if ($added) {
                     self::table_saw($plugin, array_values($added));
@@ -1856,6 +1894,12 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
      * header, WooCommerce and Elementor add-on headers, and add-ons named
      * after WooCommerce, Elementor or Contact Form 7.
      *
+     * `WC requires at least` counts only when the plugin's name says
+     * WooCommerce (as WordPress.org asks of add-ons): general plugins that
+     * work with WooCommerce when it is there (TranslatePress, Cloudflare
+     * Turnstile, WP Sheet Editor) declare it too, and counting theirs loaded
+     * WooCommerce wherever they loaded, which was nearly every screen.
+     *
      * @param string[] $active Active plugin files.
      * @return array<string,string[]>
      */
@@ -1874,12 +1918,13 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
         foreach ($by_slug as $slug => $file) {
             $headers = get_file_data(WP_PLUGIN_DIR . '/' . $file, array(
                 'requires'  => 'Requires Plugins',
+                'name'      => 'Plugin Name',
                 'wc'        => 'WC requires at least',
                 'elementor' => 'Elementor tested up to',
                 'pro'       => 'Elementor Pro tested up to',
             ));
             $needs = array_map('trim', explode(',', (string) $headers['requires']));
-            if ('' !== $headers['wc']) {
+            if ('' !== $headers['wc'] && preg_match('/\b(woocommerce|woo|wc)\b/i', (string) $headers['name'])) {
                 $needs[] = 'woocommerce';
             }
             if ('' !== $headers['elementor'] || '' !== $headers['pro']) {
