@@ -11,6 +11,7 @@
 # Development tools and CI (composer.json lists development tools only).
 .github
 .editorconfig
+.gitleaks.toml
 composer.json
 composer.lock
 phpcs.xml.dist
@@ -28,7 +29,9 @@ phpstan-baseline.neon
 .metadata_never_index
 .syncing
 AGENTS.md
+CONTRIBUTING.md
 DEVELOPMENT.md
+SECURITY.md
 RELEASING.md
 ROADMAP.md
 STABILITY.md

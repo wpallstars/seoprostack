@@ -436,17 +436,19 @@ class SEOProStack_Avatar_Privacy extends SEOProStack_Feature {
      * @return bool
      */
     private static function needs_import($user_id, $meta) {
-        if (is_array($meta) && !isset($meta['from'])) {
-            return false;
-        }
-        if (is_array($meta) && isset($meta['retry']) && time() < (int) $meta['retry']) {
-            return false;
+        if (is_array($meta)) {
+            if (!isset($meta['from']) || (isset($meta['retry']) && time() < (int) $meta['retry'])) {
+                return false;
+            }
+            $from = $meta['from'];
+        } else {
+            $from = null;
         }
         $theirs = get_user_meta($user_id, self::AP_META, true);
         if (!is_array($theirs) || empty($theirs['file']) || !is_string($theirs['file'])) {
             return false;
         }
-        return !is_array($meta) || basename($theirs['file']) !== $meta['from'];
+        return basename($theirs['file']) !== $from;
     }
 
     /**

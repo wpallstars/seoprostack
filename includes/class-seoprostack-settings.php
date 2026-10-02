@@ -405,7 +405,9 @@ class SEOProStack_Settings {
                 // Not sanitize_text_field(): it strips %xx, which URL paths need.
                 $lines = array_filter(array_map(function ($line) {
                     return trim(preg_replace('/[\x00-\x1F\x7F]+/', '', wp_strip_all_tags($line)));
-                }, $lines), 'strlen');
+                }, $lines), function ($line) {
+                    return '' !== $line;
+                });
                 return implode("\n", array_values(array_unique($lines)));
 
             case 'text':

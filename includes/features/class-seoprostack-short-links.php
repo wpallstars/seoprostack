@@ -129,7 +129,7 @@ class SEOProStack_Short_Links extends SEOProStack_Feature {
     /**
      * Redirect choices.
      *
-     * @return array<string,string>
+     * @return array<int,string> Keyed by status code (PHP turns numeric keys into integers).
      */
     public static function status_options() {
         return array(
@@ -846,7 +846,7 @@ class SEOProStack_Short_Links extends SEOProStack_Feature {
                 <td>
                     <select id="sps-link-status" name="sps_link[status]">
                         <?php foreach (self::status_options() as $value => $label) : ?>
-                            <option value="<?php echo esc_attr($value); ?>" <?php selected($link['status'], $value); ?>><?php echo esc_html($label); ?></option>
+                            <option value="<?php echo esc_attr((string) $value); ?>" <?php selected($link['status'], $value); ?>><?php echo esc_html($label); ?></option>
                         <?php endforeach; ?>
                     </select>
                 </td>

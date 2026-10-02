@@ -15,7 +15,7 @@ Curated plugins, themes, hosting and tools for WordPress, plus small opt-in qual
 
 SEO Pro Stack is free and open source. There is no pro version and nothing is locked.
 
-Everything is off by default except Hide admin bar items (Comments and + New), No fade between admin screens, Quiet Freemius prompts and Fixes for other plugins. Turn features on in **Settings → SEO Pro Stack**; **Search features** finds one by name or replaced plugin. The Read Me tab explains each.
+Features are off unless marked “on by default” below. Turn them on in **Settings → SEO Pro Stack**; **Search features** finds one by name or replaced plugin. The Read Me tab explains each.
 
 = Admin screens =
 
@@ -52,7 +52,7 @@ Everything is off by default except Hide admin bar items (Comments and + New), N
 = Links, speed and plugins =
 
 * **Short links** such as /go/offer/, with redirects, categories and click counts, and **Short addresses for custom post types**. **410 Gone** for removed pages.
-* **Speed**: load pages before the click, delay chosen scripts until interaction, add Google Analytics 4 without slowing the page, open the editor faster with Kadence Blocks, and **Ask before licence checks** (once, daily or never).
+* **Speed**: load pages before the click, delay chosen scripts until interaction, delayed Google Analytics 4, open the editor faster with Kadence Blocks, and **Ask before licence checks** (once, daily or never).
 * **Load plugins only where needed**: a faster wp-admin, admin tools skipped on the site, and optional page-by-page learning.
 * **Plugins menu** in the admin bar, **Plugin sizes**, **Clean up deleted plugins**, **Hosting needs** (what to ask your host for) and **Plugin presets**: our settings and starter data for other plugins, on request.
 * **Fixes for other plugins** (on by default): works around their bugs, such as Lasso Lite contacting its server on every admin screen.
@@ -70,7 +70,7 @@ Features that replace a plugin import its settings once, never change them, and 
 
 = Affiliate disclosure =
 
-Some links in the Pro Plugins, Hosting and Tools directories may be affiliate links, which may earn a commission that funds development. They never change what is recommended, and nothing is shown on your public site.
+Some links in the Pro Plugins, Hosting and Tools directories may be affiliate links that fund development. They never change what is recommended, and nothing shows on your public site.
 
 = External services =
 
@@ -88,7 +88,7 @@ Other features contact only addresses you choose. Copy linked images downloads i
 
 = Developers =
 
-Settings, tabs and directory entries can be extended with filters such as `seoprostack_settings_schema`. See the Read Me tab for the full list.
+Filters such as `seoprostack_settings_schema` extend settings, tabs and directories; the Read Me tab lists them all.
 
 == Installation ==
 
@@ -116,7 +116,7 @@ They stay scheduled and publish at their times.
 
 = Where do updates come from? =
 
-Copies from WordPress.org update from there. New versions come out on GitHub first, and copies from GitHub update from GitHub.
+Each copy updates from where it came from. New versions come out on GitHub first.
 
 = Where do I report a problem? =
 

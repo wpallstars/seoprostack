@@ -70,13 +70,26 @@ plugin set while loading. Classes and functions of other plugins (WP-CLI,
 Fluent, Freemius, WooCommerce, Kadence) are ignored in `phpstan.neon.dist`,
 because the code uses them only after checking they are loaded.
 
-`phpstan-baseline.neon` lists findings that were in the code when PHPStan
-was added. They do not fail the check; new findings do. Most are the
-stubs being stricter than WordPress (custom `wp_hash()` schemes,
-`wp_register_script()` with no file) or checks kept for older WordPress
-versions. When you change code with a baseline entry, fix it and run
-`composer baseline` so the list shrinks. Never add entries to get a
-change through.
+`phpstan-baseline.neon` is empty: every finding fails the check. Fix the
+code. Where PHPStan or the stubs are wrong (a custom `wp_hash()` scheme, a
+check for a method newer WordPress versions have, variables a closure
+changes by reference), add an entry under `ignoreErrors` in
+`phpstan.neon.dist` with the identifier, the file and the reason. Never put
+findings in the baseline to get a change through.
+
+### Secrets in history
+
+Scan the whole Git history before the repository goes public, and after
+importing code from elsewhere:
+
+```bash
+docker run --rm -v "$PWD:/repo:ro" ghcr.io/gitleaks/gitleaks:latest git /repo --redact --no-banner
+```
+
+In a linked worktree, also mount the main repository's `.git` folder at
+the same path. `.gitleaks.toml` lists the false positives with reasons (the
+Fluent Forms field keys in `starters/fluentform.json`). A real secret is
+rotated first, then removed from history.
 
 ### Smoke test
 
@@ -128,16 +141,20 @@ it at that standard:
 2. Fix what they find in the code, in small pull requests by area
    (security first). Each finding is either fixed, explained in an inline
    comment, or marked as a false positive in that service with the reason.
-3. Empty `phpstan-baseline.neon` (`composer baseline` after each fix),
-   then raise the PHPStan level one step at a time (6, then higher if the
-   findings are real bugs and not noise).
+3. Raise the PHPStan level one step at a time (6, then higher if the
+   findings are real bugs and not noise). The baseline is already empty.
 4. Require the CI checks on `main` (Lint, Release build, both Smoke
    tests) with a branch ruleset, without "branch must be up to date": the
    checks are fast, and changelog lines conflict on every merge.
-5. Add `SECURITY.md` (private vulnerability reporting on),
-   `CONTRIBUTING.md` (points to this file), issue and pull request
-   templates, and the CI badge in `README.md`. Add each new file to
-   `.distignore` and to the preflight's development-files list.
+5. Turn on private vulnerability reporting (Settings → Security), which
+   `SECURITY.md` asks reporters to use, and add the CI badge to
+   `README.md`. `SECURITY.md`, `CONTRIBUTING.md` and the issue and pull
+   request templates are already in place.
 6. Run `workflows/public-launch-checklist.md` from the AI DevOps framework
    for anything public: no private paths, site names or secrets in the code,
-   history, issues or docs.
+   history, issues or docs. Run the history scan above again for commits
+   made since the last one.
+
+Done ahead of launch (issue #218): history scan (no secrets; four false
+positives allowed in `.gitleaks.toml`), PHPStan baseline emptied, a
+Plugin URI of its own, `readme.txt` headroom, and the community files.

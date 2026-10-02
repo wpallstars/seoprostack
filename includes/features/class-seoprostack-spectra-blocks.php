@@ -218,11 +218,11 @@ class SEOProStack_Spectra_Blocks extends SEOProStack_Feature {
         // its block type, which is not the block being drawn here.
         $type = WP_Block_Type_Registry::get_instance()->get_registered(self::BLOCK);
         if ($type) {
-            foreach (isset($type->style_handles) ? (array) $type->style_handles : array() as $handle) {
+            foreach ($type->style_handles as $handle) {
                 wp_enqueue_style($handle);
             }
             if ('dropdown' === $layout) {
-                foreach (isset($type->view_script_handles) ? (array) $type->view_script_handles : array() as $handle) {
+                foreach ($type->view_script_handles as $handle) {
                     wp_enqueue_script($handle);
                 }
             }
