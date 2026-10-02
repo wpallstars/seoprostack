@@ -25,22 +25,7 @@ if (!defined('ABSPATH')) {
             ),
             'free_slug' => 'codepress-admin-columns'
         ),
-        'admin-menu-editor' => array(
-            'name' => 'Admin Menu Editor Pro',
-            'description' => 'Customize the WordPress admin menu with advanced features and role management.',
-            'button_group' => array(
-                array(
-                    'text' => 'Home Page',
-                    'url' => 'https://adminmenueditor.com/upgrade-to-pro/',
-                    'primary' => true
-                ),
-                array(
-                    'text' => 'Pricing',
-                    'url' => 'https://adminmenueditor.com/upgrade-to-pro/'
-                )
-            ),
-            'free_slug' => 'admin-menu-editor'
-        ),
+        // Admin Menu Editor Pro: replaced by Organise the admin menu.
         'advanced-database-cleaner' => array(
             'name' => 'Advanced Database Cleaner PRO',
             'description' => 'Clean and optimize your WordPress database with advanced tools and automation.',
@@ -502,22 +487,7 @@ if (!defined('ABSPATH')) {
             ),
             'free_slug' => 'wp-sheet-editor-bulk-spreadsheet-editor-for-posts-and-pages'
         ),
-        'pretty-link' => array(
-            'name' => 'Pretty Links Pro',
-            'description' => 'Advanced link management, tracking, and marketing tools for WordPress.',
-            'button_group' => array(
-                array(
-                    'text' => 'Home Page',
-                    'url' => 'https://prettylinks.com/',
-                    'primary' => true
-                ),
-                array(
-                    'text' => 'Pricing',
-                    'url' => 'https://prettylinks.com/pricing/plans/'
-                )
-            ),
-            'free_slug' => 'pretty-link'
-        ),
+        // Pretty Links Pro: replaced by Short links.
         'kadence-starter-templates' => array(
             'name' => 'AI Powered Starter Templates by Kadence WP',
             'description' => 'Premium AI-powered starter templates for WordPress with advanced customization options.',

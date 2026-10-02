@@ -125,7 +125,7 @@ Copies from WordPress.org update from there. New versions come out on GitHub fir
 * New, off by default: TranslatePress switcher colours.
 * New, off by default: eight features that do most of Disable Bloat’s job, importing its settings.
 * New: starter data for Fluent Forms (four forms) and Fluent Booking (a Discovery Call), feeding FluentCRM.
-* Change: Freesoul Deactivate Plugins is no longer recommended.
+* Change: no longer recommended: Freesoul Deactivate Plugins and replaced Pro plugins.
 * Change: Apply preset names each setting in plain words.
 * Fix: plugins that add list columns load on those lists.
 * Fix: Licence checks “Ask me again” keeps each plugin hidden.
