@@ -286,6 +286,7 @@ Turns off parts of the block editor most people never use, for everyone.
 - **Fullscreen mode**: the post editor opens with the admin menu, read as off the same way as the welcome guides.
 - **Block widget editor**: Appearance → Widgets and the Customizer use the classic widgets screen (`use_widgets_block_editor`, as the Classic Widgets plugin does). Block themes have no widgets screen.
 - Replaces part of Disable Bloat: its matching switches are imported once while it is active.
+- **Opens faster**, whatever is ticked: every block editor asks the REST API index for a few site details as it opens (`/?_fields=…`), and core describes every route of every plugin before dropping what was not asked for. When `_fields` leaves `routes` out, the route list reads as empty while the index is built (`rest_dispatch_request`, `rest_endpoints`) and is back before other plugins see the index (`rest_index`). The answer is the same; on a test site with 80 plugins and 1,953 routes it took 8 ms instead of 60.
 
 ### Limit post revisions (Content)
 
@@ -801,6 +802,7 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folder�
 
 ### Unreleased
 
+- Changed: block editors open faster. With Simpler block editor on, the site details every editor asks for are built without describing every REST route first (8 ms instead of 60 on a test site with 1,953 routes); the answer is the same. Load plugins only where needed checks each menu capability once when it puts back skipped plugins’ menu entries, instead of once per entry (975 checks on a test site’s editor screen).
 - New: a **Report a problem** button at the top right of Settings → SEO Pro Stack opens the plugin’s GitHub issues in a new tab.
 - Changed: Load plugins only where needed learns the Customizer, Import and Export forms. Widgets and widget-area owners, menu contributors, importers and exportable content owners stay loaded where needed. Saving, previews, theme previews, existing changesets, imports and export downloads keep every plugin. Missing Customizer registrations reload before the form opens; switching themes learns it again. Site Health stays fully loaded so its diagnostics describe the real site. Map version 6 learns every screen again once.
 - Changed: Faster editor with Kadence Blocks keeps Kadence’s design library in the browser until Kadence’s own copy changes, sends each library request once instead of twice, and lets the browser skip drawing patterns that are off screen. On a test site, in a new editor page, the library was drawn in about 2 seconds instead of 5.9, with no requests. Only Kadence’s own section, page and template libraries are kept, never licence, account, AI or cloud library data; Sync still fetches new designs. No new options.
