@@ -1151,12 +1151,15 @@
 	color: var(--sps-muted);
 }
 
+/* Core floats these right (plugin-install.css); line them up on the left of their column. */
 .sps-wrap .sps-plugin-row__actions .plugin-action-buttons {
 	display: flex;
 	flex-wrap: wrap;
 	justify-content: flex-start;
 	gap: 6px;
+	float: none;
 	margin: 0;
+	text-align: start;
 }
 
 .sps-wrap .sps-plugin-row__actions .plugin-action-buttons li {
