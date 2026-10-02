@@ -64,6 +64,7 @@ final class SEOProStack {
         'SEOProStack_Wikipedia_Previews',
         'SEOProStack_Word_Import',
         'SEOProStack_Post_Reactions',
+        'SEOProStack_Brand_Icons',
         'SEOProStack_Spectra_Blocks',
         'SEOProStack_Short_Links',
         'SEOProStack_Remove_Cpt_Base',

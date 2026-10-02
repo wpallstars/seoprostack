@@ -1,0 +1,28 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "seoprostack/brand-icon",
+	"version": "0.9.1",
+	"title": "Brand icon",
+	"category": "media",
+	"icon": "star-filled",
+	"description": "A brand’s logo, such as GitHub, YouTube or LinkedIn, in its colour or yours, optionally linked.",
+	"keywords": [ "brand", "logo", "social", "icon", "simple icons" ],
+	"textdomain": "seoprostack",
+	"attributes": {
+		"icon": { "type": "string", "default": "" },
+		"brandColor": { "type": "boolean", "default": true },
+		"size": { "type": "number", "default": 32 },
+		"label": { "type": "string", "default": "" },
+		"url": { "type": "string", "default": "" },
+		"newTab": { "type": "boolean", "default": false }
+	},
+	"supports": {
+		"html": false,
+		"anchor": true,
+		"align": [ "left", "center", "right" ],
+		"color": { "text": true, "background": false, "link": false },
+		"spacing": { "margin": true, "padding": true }
+	},
+	"editorScript": "file:./index.js"
+}

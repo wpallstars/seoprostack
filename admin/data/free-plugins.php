@@ -20,8 +20,9 @@ if (!defined('ABSPATH')) {
 // ACF: Better Search (Search custom fields), Slugs Manager: Delete Old
 // Permalinks (Old post addresses; closed on WordPress.org on 2026-04-27),
 // Bookmark Card (Link cards), Wikipedia Preview (Wikipedia previews),
-// Mammoth .docx converter (Word documents in the editor) and Favorites
-// (Like, save and share).
+// Mammoth .docx converter (Word documents in the editor), Favorites
+// (Like, save and share) and Popular Brand Icons – Simple Icons (Brand
+// icons).
 // String Locator is not listed: searching code is better done in an editor
 // or with WP-CLI than from wp-admin.
 // EditorsKit (block-options) is not listed: its last update was in May 2024,
@@ -72,7 +73,6 @@ function seoprostack_get_free_plugins() {
             'code-block-pro',
             'ics-calendar',
             'ninja-tables',
-            'simple-icons',
             'wp-sheet-editor-bulk-spreadsheet-editor-for-posts-and-pages'
         ),
         'compliance' => array(

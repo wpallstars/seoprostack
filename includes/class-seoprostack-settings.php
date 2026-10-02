@@ -30,7 +30,7 @@ class SEOProStack_Settings {
 
     /** Stored schema version, used for one-off migrations. */
     const DB_VERSION_OPTION = 'seoprostack_db_version';
-    const DB_VERSION = 12;
+    const DB_VERSION = 13;
 
     /**
      * Tab slugs renamed in 0.4.0, old => new. Settings that still use an
@@ -615,6 +615,8 @@ class SEOProStack_Settings {
      *     converter is active.
      * v12: switch on Like, save and share while Favorites is active, with
      *     the post types Favorites adds its button to.
+     * v13: switch on Brand icons while Popular Brand Icons – Simple Icons is
+     *     active.
      *
      * Old options are left in place so a downgrade keeps working;
      * uninstall.php removes ours. Other plugins' options are never touched.
