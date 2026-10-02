@@ -321,7 +321,7 @@
                         { "element": "input_email", "attributes": { "name": "email" }, "settings": { "label": "Email", "admin_field_label": "Email" }, "required": true },
                         { "element": "input_name", "attributes": { "name": "names" }, "settings": { "admin_field_label": "Name" }, "fields": { "first_name": { "settings": { "validation_rules": { "required": { "value": true } } } } } },
                         { "element": "input_text", "attributes": { "name": "business" }, "settings": { "label": "Business name, as customers know it", "admin_field_label": "Business" }, "required": true },
-                        { "element": "phone", "attributes": { "name": "phone" }, "settings": { "label": "Business phone", "admin_field_label": "Phone" } },
+                        { "element": "phone", "attributes": { "name": "phone", "placeholder": "" }, "settings": { "label": "Business phone", "admin_field_label": "Phone" } },
                         {
                             "element": "multi_payment_component",
                             "attributes": { "name": "package", "type": "radio" },
