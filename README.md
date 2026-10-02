@@ -781,6 +781,10 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folderâ
 
 ## Changelog
 
+### Unreleased
+
+- New: Pro Plugins lists FluentCart Pro (licences, inventory tracking, order bumps, advanced reports and more payment gateways), with links to its home page, pricing and Free vs Pro comparison (`admin/data/pro-plugins.php`).
+
 ### 0.8.0
 
 - New, off by default: Maintenance mode, with a plain-text 503 page, administrator reminder and revocable 24-hour visitor bypass links. Imports Hostinger Tools' maintenance switch, leaving its other jobs alone.
