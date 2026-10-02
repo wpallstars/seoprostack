@@ -23,7 +23,7 @@ Everything is off by default except Hide admin bar items (Comments and + New), N
 * **Hide admin bar items** (on by default), a **More menu** for plugin items in the admin bar, and **Hide admin notices**, which moves plugin and theme notices behind a bell.
 * **Quiet Freemius prompts** (on by default): no opt-in nags, upgrade offers or deactivation surveys from plugins that use Freemius.
 * **Admin bar and dashboard access**: hide the admin bar and block wp-admin for roles such as subscribers and customers, never administrators.
-* **Magic login links**: one-time login links by email, which email scanners cannot use up.
+* **Magic login links**: one-time login links by email that scanners cannot use up.
 * **Turn off unused remote access**: XML-RPC and application passwords, both off by default.
 * **Modern admin colours**, **No fade between admin screens** (on by default), **Readable list columns** and **Notification emails**, which stops routine emails one by one.
 * **Tidy admin screens**, **Tidy WooCommerce admin**, **Tidy the login screen**, **Simpler block editor**, **Remove WordPress extras**, **Fewer Heartbeat requests**, **Limit post revisions** and **Lighter WooCommerce pages** replace most of Disable Bloat.
@@ -130,7 +130,7 @@ Click **Report a problem** at the top right of Settings → SEO Pro Stack, or op
 = Unreleased =
 * New: Word documents in the editor.
 * Change: Pinned posts; faster post lists.
-* Fix: More menu items no longer shift right.
+* Fix: More menu items shifting right, fitted menu in full screen editor.
 
 = 0.9.0 =
 * New: Menu item visibility, Change post type, Order by hand, Term tools, Search custom fields, Old post addresses, Link cards, Wikipedia previews, Agency tab.
@@ -138,7 +138,7 @@ Click **Report a problem** at the top right of Settings → SEO Pro Stack, or op
 * Change: Custom order link on sorted lists; notes on replaceable plugins; Advise.so card.
 * Change: faster block editors, Customizer, Import and Export forms and Kadence design library.
 
-Every change, and earlier versions: `changelog.txt` in the plugin folder.
+Every change: `changelog.txt` in the plugin folder.
 
 == Upgrade Notice ==
 
