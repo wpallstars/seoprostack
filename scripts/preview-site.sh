@@ -216,15 +216,20 @@ EOF
 # A note when the branch this runs from is not in the preview as it is here.
 branch_note() {
 	local current="$1"
-	local merged
+	local merged changed
 	if [ -z "$current" ] || [ "$current" = "main" ]; then
 		return 0
 	fi
 	# Nothing to add: its work is already in the preview, through main (after
 	# a squash merge its commits are not ancestors of main) or its open PR.
-	merged="$(git merge-tree --write-tree --no-messages "$PREVIEW_COMMIT" HEAD 2>/dev/null || true)"
-	if [ "$merged" = "$(git rev-parse "$PREVIEW_COMMIT^{tree}")" ]; then
-		return 0
+	# Changelog lines can sit in another order there (other PRs' lines are
+	# kept beside them), so differences only in DOC_FILES do not count.
+	if merged="$(git -c core.attributesFile="$UNION_ATTRIBUTES" merge-tree --write-tree --no-messages "$PREVIEW_COMMIT" HEAD 2>/dev/null)"; then
+		changed="$(git diff --name-only "$PREVIEW_COMMIT" "$merged" | tr '\n' ' ')"
+		changed="${changed% }"
+		if [ -z "$changed" ] || only_doc_files "$changed"; then
+			return 0
+		fi
 	fi
 	if ! printf '%s' "$INCLUDED" | grep -q " $current "; then
 		printf 'Your branch %s is not in the preview: push it and open a draft PR, or see skipped above.\n' "$current"
