@@ -83,6 +83,7 @@ Uses the WordPress “Modern” admin colour scheme for every user while enabled
 WordPress 7.0 fades from one wp-admin screen to the next, using the browser’s view transitions. The fade can flash, and each screen change waits for it. With this on, screens change straight away, as before 7.0. **On by default**; switch it off to get the fade back.
 
 - Removes core’s `wp-view-transitions-admin` style and adds `@view-transition { navigation: none; }` to admin screens, so fades that other plugins add the same way stop too.
+- Also paints the toolbar's strip in the menu's colour before the toolbar is drawn. Core prints the toolbar after the admin menu, so with a long menu the first paint showed a white strip at the top for a moment on every screen change.
 - Only page changes are affected. Animations inside a screen, such as in the site editor, stay.
 - No effect before WordPress 7.0, which has no fade, or for people whose system asks for reduced motion, who never get it.
 - Goes well with Load pages before the click’s **Also in the admin**, which downloads admin screens when you point at their links.
@@ -1002,6 +1003,10 @@ Deleting the plugin removes its settings and cached data, the profile pictures a
 Deactivating the plugin removes the WebP and AVIF rules from the uploads folder’s `.htaccess` (for every site when network-deactivated) and the must-use file of Load plugins only where needed (on multisite, when network-deactivated).
 
 ## Changelog
+
+### Unreleased
+
+- Fixed: a white flash where the toolbar goes, on each wp-admin screen change. Core prints the toolbar after the admin menu, so with a long menu (about 100 KB of HTML on a test site) the browser's first paint showed the menu with the light page background above the content, then the toolbar. **No fade between admin screens** now also prints `html.wp-toolbar #adminmenuback::after`, a fixed strip the height of the toolbar (32 px, 46 px on small screens) that inherits the menu's background, which every colour scheme also gives the toolbar; the toolbar covers it once drawn.
 
 ### 0.10.0
 

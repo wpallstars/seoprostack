@@ -123,6 +123,9 @@ Click **Report a problem** at the top right of Settings → SEO Pro Stack, or op
 
 == Changelog ==
 
+= Unreleased =
+* Fix: no white flash in the toolbar.
+
 = 0.10.0 =
 * New: Word documents; Like, save and share; Brand icons (also in Kadence Blocks); Clean the database weekly; coffee button.
 * New: writers see only writing (on with Organise the admin menu).

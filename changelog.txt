@@ -2,6 +2,9 @@
 
 Every change to SEO Pro Stack. readme.txt lists the latest version in short.
 
+= Unreleased =
+* Fix: No fade between admin screens also stops a white flash where the toolbar goes at the top of the screen, seen on each screen change on sites with a long admin menu.
+
 = 0.10.0 =
 * New, off by default: Clean the database weekly (Speed tab). Once a week, in the background, removes expired temporary data, posts and comments that have been in the bin longer than WordPress keeps them, older spam, old automatic drafts and details left by deleted posts, comments and terms, and can optimise tables with a lot of unused space. Its options show what is waiting, with a Clean now button; wp seoprostack clean-database does the same from the command line. Where LiteSpeed Cache runs on a LiteSpeed server it replaces WP-Optimize, whose cleanup choices are imported.
 * Change: the plugin's website link on the Plugins screen goes to its GitHub page. Security reports now have a private route (SECURITY.md).
