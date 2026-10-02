@@ -33,6 +33,7 @@ Everything is off by default except Hide admin bar items (Comments and + New), N
 * **Publishing queue**: posts published without a date are scheduled for the next free time slot.
 * **Duplicate posts**, **Staged new versions** (edit a published post as a draft copy) and **Shareable preview links** for people without an account.
 * **Sticky posts for any post type** and **Select all across pages** for bulk actions.
+* **Menu item visibility** by login or role, **Change post type**, **Order by hand** and **Term tools** (merge, move, set parent).
 * **TranslatePress colours**: Kadence light/dark switchers.
 * **iFrame block**: embed pages with size, sandbox and permission settings, limited to the domains and roles you choose.
 * **Spectra block replacements**: a Term list block, and Spectra pages that keep working after it is deactivated or convert in one click.
@@ -123,6 +124,7 @@ Click **Report a problem** at the top right of Settings → SEO Pro Stack, or op
 == Changelog ==
 
 = Unreleased =
+* New: Menu item visibility, Change post type, Order by hand and Term tools.
 * Change: block editors open faster.
 * New: Report a problem button.
 * Change: faster Customizer, Import and Export forms; saving, previews and Site Health keep every plugin.
