@@ -5,7 +5,7 @@ This document provides testing checklist for the SEO Pro Stack Plugin to ensure 
 ## General Testing Guidelines
 
 1. Test each feature in isolation before testing integrated functionality
-2. Test on multiple WordPress versions (5.8+)
+2. Test on multiple WordPress versions (6.2+)
 3. Test with different themes activated
 4. Test with and without other plugins activated
 5. Test on different screen sizes (desktop, tablet, mobile)
@@ -156,9 +156,8 @@ Each new feature should have its own testing checklist added here.
 
 ## Continuous Integration
 
-For future implementation:
-
-- [ ] Automated unit tests
-- [ ] Integration tests
-- [ ] End-to-end tests
-- [ ] Code quality checks 
+Every pull request runs syntax checks, WordPress Coding Standards,
+PHPStan, the release preflight, Plugin Check and a smoke test on
+WordPress 6.2 with PHP 7.4 and on the latest WordPress (`DEVELOPMENT.md` →
+Checks). They do not replace the checks above: they catch PHP errors and
+broken screens, not wrong behaviour.

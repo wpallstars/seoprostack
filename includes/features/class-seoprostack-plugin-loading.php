@@ -800,7 +800,7 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
             $uri = wp_parse_url(admin_url('/'), PHP_URL_PATH);
         }
         return array(
-            '{sps-here:u}' => urlencode($uri),
+            '{sps-here:u}' => urlencode($uri), // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.urlencode_urlencode -- form encoding on purpose; {sps-here:r} is the raw one.
             '{sps-here:r}' => rawurlencode($uri),
             '{sps-here:h}' => str_replace('&', '&#038;', $uri),
             '{sps-here:p}' => (string) $uri,

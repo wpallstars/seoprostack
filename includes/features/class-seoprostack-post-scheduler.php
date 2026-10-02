@@ -248,7 +248,7 @@ class SEOProStack_Post_Scheduler extends SEOProStack_Feature {
         $posts = get_posts(array(
             'post_type'              => (array) SEOProStack_Settings::get('post_scheduler_post_types'),
             'post_status'            => 'future',
-            'posts_per_page'         => 500,
+            'posts_per_page'         => 500, // phpcs:ignore WordPress.WP.PostsPerPage.posts_per_page_posts_per_page -- scheduled posts only, without meta or terms.
             'orderby'                => 'date',
             'order'                  => 'ASC',
             'no_found_rows'          => true,

@@ -190,7 +190,7 @@ class SEOProStack_Post_Reactions extends SEOProStack_Feature {
      *
      * @param int   $post_id Post ID.
      * @param array $show    like, save, share => bool.
-     * @param array $extra   Extra wrapper attributes (already escaped HTML), or ''.
+     * @param string $extra  Extra wrapper attributes (already escaped HTML), or ''.
      * @return string
      */
     public static function buttons($post_id, array $show = array(), $extra = '') {

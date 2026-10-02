@@ -204,7 +204,7 @@ class SEOProStack_Agency_Orders extends SEOProStack_Feature {
             $courses = get_posts(array(
                 'post_type'      => tutor()->course_post_type,
                 'post_status'    => 'publish',
-                'posts_per_page' => 200,
+                'posts_per_page' => 200, // phpcs:ignore WordPress.WP.PostsPerPage.posts_per_page_posts_per_page -- every course for a dropdown, on one admin screen.
                 'orderby'        => 'title',
                 'order'          => 'ASC',
                 'no_found_rows'  => true,

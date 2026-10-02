@@ -1,0 +1,42 @@
+# PHPStan: finds calls to functions, methods and classes that do not exist,
+# wrong argument counts and types, and code that cannot run, using the
+# WordPress stubs (szepeviktor/phpstan-wordpress) and PHP 7.4's functions.
+#
+# Findings already in phpstan-baseline.neon do not fail the check; new ones
+# do. Fix a baselined finding when you touch its code, then run
+# `composer baseline` so the baseline shrinks. Never grow it to get a change
+# through: fix the code, or explain the exception with an inline
+# @phpstan-ignore identifier (reason) comment.
+includes:
+	- phpstan-baseline.neon
+
+parameters:
+	level: 5
+	phpVersion: 70400
+	# Result cache, kept between CI runs so only changed files are analysed again.
+	tmpDir: .cache/phpstan
+	paths:
+		- seoprostack.php
+		- uninstall.php
+		- includes
+		- admin
+		- blocks
+	bootstrapFiles:
+		- scripts/phpstan-bootstrap.php
+	reportUnmatchedIgnoredErrors: true
+	treatPhpDocTypesAsCertain: false
+	ignoreErrors:
+		# WP-CLI and other plugins (Fluent, Freemius, WooCommerce, Kadence) are
+		# not installed here. The code uses them only when they are loaded
+		# (defined('WP_CLI'), class_exists(), function_exists(), defined()).
+		-
+			identifiers:
+				- class.notFound
+				- function.notFound
+				- constant.notFound
+			message: '#(WP_CLI|Fluent[A-Za-z]*\\|fluentcrm_|fluentCrm|Freemius|WC_[A-Za-z_]+|KADENCE_[A-Z_]+)#'
+		# The same plugins' methods, checked with method_exists() before use.
+		-
+			identifiers:
+				- function.impossibleType
+			message: '#method_exists\(\) with ''(Fluent[A-Za-z]*\\|Freemius)#'

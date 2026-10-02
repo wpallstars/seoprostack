@@ -103,8 +103,10 @@ class SEOProStack_Kadence_Library extends SEOProStack_Feature {
      */
     private static function token() {
         // Kadence's own folder, through Kadence's own filters (Cache_Provider).
+        // phpcs:disable WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- Kadence's filters, so the folder matches Kadence's.
         $base   = trailingslashit((string) apply_filters('kadence_block_library_local_data_base_path', trailingslashit(wp_get_upload_dir()['basedir'])));
         $folder = $base . apply_filters('kadence_block_library_local_data_subfolder_name', 'kadence_blocks_library');
+        // phpcs:enable WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound
         $files  = array();
         $found  = glob(trailingslashit($folder) . '*.json');
         foreach (is_array($found) ? $found : array() as $path) {
