@@ -339,8 +339,9 @@ Kadence already keeps what it downloads in `wp-content/uploads/kadence_blocks_li
 - The kept copy belongs to a token from Kadence’s cache files (names, sizes and times), the versions of Kadence Blocks and Kadence Blocks Pro, its licence (in a salted hash), the user and the site. When Kadence’s copy changes, the next editor page drops the old one and fetches again once.
 - Kadence’s Sync button always goes to the site and Kadence’s servers, and drops the kept copy.
 - Nothing is stored on the server; browsers without Cache Storage (sites not on HTTPS) still send each request once.
+- The library lays out all of its patterns at once (833 on the test site, a list about 70,000 px tall). Each pattern gets `content-visibility: auto`, so the browser lays out and draws only the ones on screen and the rest as they are scrolled to. Browsers without it ignore the rule.
 
-On a test site the library took 8.8 seconds to show on the first opening and 12.4 seconds in the next editor page, with four requests of 0.05–1.2 MB each. With the browser copy: 5.5 seconds for the first opening (two requests) and about 3 seconds after that (no requests; the rest is Kadence drawing 833 patterns). Sync still fetched new designs.
+On a test site, in one browser, alternating editor pages with and without the browser copy (four of each, opening the library from a new page each time): the library showed after 5.9 seconds without it (median; three library requests taking 2–2.7 seconds) and 3.4 seconds with it (no requests). Skipping off-screen patterns brought the time to the first drawn library from 2.7 to 2.0 seconds. The rest is Kadence building its pattern list. The first opening in each browser still loads the library from the site, and opening it again in the same editor page was already quick, since Kadence keeps it in the page. Sync still fetched new designs.
 
 ### 410 Gone for removed pages (Links)
 
@@ -796,7 +797,7 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folder�
 
 ### Unreleased
 
-- Changed: Faster editor with Kadence Blocks keeps Kadence’s design library in the browser until Kadence’s own copy changes, and sends each library request once instead of twice. On a test site the library showed in about 3 seconds instead of 8.8–12.4 after the first opening, with no requests. Only Kadence’s own section, page and template libraries are kept, never licence, account, AI or cloud library data; Sync still fetches new designs. No new options.
+- Changed: Faster editor with Kadence Blocks keeps Kadence’s design library in the browser until Kadence’s own copy changes, sends each library request once instead of twice, and lets the browser skip drawing patterns that are off screen. On a test site, in a new editor page, the library was drawn in about 2 seconds instead of 5.9, with no requests. Only Kadence’s own section, page and template libraries are kept, never licence, account, AI or cloud library data; Sync still fetches new designs. No new options.
 - New: a banner, “SEO Pro Stack: WP Admin – Solved!”, at the top of the Read Me tab and for the WordPress.org plugin page. The Read Me tab now shows images from the plugin’s own folder written on a line of their own (`![alt](admin/images/banner.svg)`); other images and addresses are left out. The source is `.wordpress-org/banner.svg`; `scripts/build-banner.sh` (Inkscape and the Inter font) writes `admin/images/banner.svg` with the words as shapes, and `banner-772x250.png` and `banner-1544x500.png` in `.wordpress-org/` for the SVN `assets/` folder, which stays out of the plugin zip.
 
 ### 0.8.1

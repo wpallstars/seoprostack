@@ -16,7 +16,8 @@
  * opening the library again does not reach Kadence's servers, but every new
  * editor page asked the site for the whole library again (twice). The
  * editor script keeps Kadence's answers in the browser until Kadence's copy
- * changes; see admin/js/seoprostack-kadence-library.js.
+ * changes (see admin/js/seoprostack-kadence-library.js), and a style lets
+ * the browser skip drawing patterns that are off screen.
  *
  * @package SEOProStack
  * @since 0.6.0
@@ -60,7 +61,8 @@ class SEOProStack_Kadence_Library extends SEOProStack_Feature {
     }
 
     /**
-     * Keep Kadence's design library answers in the browser.
+     * Keep Kadence's design library answers in the browser, and let the
+     * browser skip drawing patterns that are off screen.
      *
      * The token names the kept copy. It changes when Kadence's files change
      * (a download or Sync rewrites them), with Kadence Blocks' and Kadence
@@ -79,6 +81,18 @@ class SEOProStack_Kadence_Library extends SEOProStack_Feature {
             'seoprostack-kadence-library',
             'window.seoprostackKadenceLibrary=' . wp_json_encode(array('token' => self::token())) . ';',
             'before'
+        );
+
+        // The library lays out all of its 800 or so patterns at once (a list
+        // about 70,000 px tall). Let the browser skip laying out and drawing
+        // the ones off screen until they are scrolled to; "auto" keeps each
+        // pattern's real height once it has been drawn. Browsers without
+        // content-visibility ignore this.
+        wp_register_style('seoprostack-kadence-library', false, array(), $ver);
+        wp_enqueue_style('seoprostack-kadence-library');
+        wp_add_inline_style(
+            'seoprostack-kadence-library',
+            '.kb-css-masonry_column>.block-editor-block-patterns-list__list-item{content-visibility:auto;contain-intrinsic-size:auto 320px}'
         );
     }
 
