@@ -30,7 +30,7 @@
 	/** Keep the file in memory; blocks only hold a key to it. */
 	function blockFor(file) {
 		var key = 'doc' + (++count) + '-' + Date.now();
-		files[key] = file;
+		files[key] = { file: file, promise: null };
 		return wp.blocks.createBlock(BLOCK, { key: key, name: file.name });
 	}
 
@@ -39,11 +39,24 @@
 		return editor && editor.getCurrentPostId ? editor.getCurrentPostId() || 0 : 0;
 	}
 
-	function convert(file) {
-		var body = new window.FormData();
-		body.append('file', file, file.name);
-		body.append('post', String(postId()));
-		return wp.apiFetch({ path: '/seoprostack/v1/word-document', method: 'POST', body: body });
+	/**
+	 * One conversion per document, shared if the block mounts again while
+	 * it runs (moved, or re-rendered).
+	 */
+	function convert(key) {
+		var job = files[key];
+		if (!job.promise) {
+			var body = new window.FormData();
+			body.append('file', job.file, job.file.name);
+			body.append('post', String(postId()));
+			job.promise = wp.apiFetch({ path: '/seoprostack/v1/word-document', method: 'POST', body: body });
+			job.promise.then(function () {
+				delete files[key];
+			}, function () {
+				delete files[key];
+			});
+		}
+		return job.promise;
 	}
 
 	function Edit(props) {
@@ -59,21 +72,26 @@
 		}
 
 		useEffect(function () {
-			var file = files[key];
-			delete files[key];
-			if (!file) {
+			var job = files[key];
+			if (!job) {
 				setError(__('Drop the document into the editor again to convert it.', 'seoprostack'));
 				return;
 			}
 			if (!cfg.canRead) {
+				delete files[key];
 				setError(__('This server cannot open Word documents: ask your host to turn on PHP’s zip extension.', 'seoprostack'));
 				return;
 			}
-			if (cfg.maxBytes && file.size > cfg.maxBytes) {
+			if (cfg.maxBytes && job.file.size > cfg.maxBytes) {
+				delete files[key];
 				setError(__('The document is larger than your site accepts.', 'seoprostack'));
 				return;
 			}
-			convert(file).then(function (res) {
+			var active = true;
+			convert(key).then(function (res) {
+				if (!active) {
+					return;
+				}
 				var blocks = res && res.html ? wp.blocks.rawHandler({ HTML: res.html }) : [];
 				if (!blocks.length) {
 					setError(__('The document has no text to add.', 'seoprostack'));
@@ -91,8 +109,13 @@
 					);
 				}
 			}, function (err) {
-				setError(err && err.message ? err.message : __('The document could not be converted.', 'seoprostack'));
+				if (active) {
+					setError(err && err.message ? err.message : __('The document could not be converted.', 'seoprostack'));
+				}
 			});
+			return function () {
+				active = false;
+			};
 		}, []);
 
 		if (error) {
