@@ -512,7 +512,6 @@ class SEOProStack_Restrict_Content extends SEOProStack_Feature {
             'posts_per_page'   => -1,
             'fields'           => 'ids',
             'no_found_rows'    => true,
-            'suppress_filters' => true,
         );
         $ids = get_posts(
             $query + array(
