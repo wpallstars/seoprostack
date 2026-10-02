@@ -4,7 +4,7 @@ Every change to SEO Pro Stack. readme.txt lists the latest version in short.
 
 = Unreleased =
 * Fix: WebP and AVIF images now use the quality you set; before, WordPress's own quality was used whatever the setting said. Changing a quality converts the pictures again in the background, and copies from earlier versions are made again once.
-* New, off by default: WebP and AVIF images: Quality by picture size, sharper thumbnails and smaller large pictures.
+* New: WebP and AVIF images: Quality by picture size (on), sharper thumbnails and smaller large pictures.
 * Change: WebP and AVIF images makes sharper copies by default: WebP quality 90 and AVIF 70, instead of 80 and 60. Sites that saved their own quality keep it.
 * New: WebP and AVIF images checks that browsers get the copies, and says what to do when they do not, such as restarting LiteSpeed so it reads the new rules.
 * New: Watermark pictures can mark, mark again or unmark the whole Media Library in the background from its settings, with progress and a Stop button. Bulk actions carry on in the background instead of leaving pictures out. In the Media Library's tile view, a picture's details now have Add or Remove watermark.
