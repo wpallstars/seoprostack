@@ -36,7 +36,7 @@ Everything is off by default except Hide admin bar items (Comments and + New), N
 * **Menu item visibility** by login or role, **Change post type**, **Order by hand**, **Term tools** (merge, move, set parent), **Search custom fields** (ACF) and **Old post addresses**.
 * **TranslatePress colours**: Kadence light/dark switchers.
 * **iFrame block**: embed pages, limited to the domains and roles you choose.
-* **Link cards**, **Wikipedia previews**, **Word documents** in the editor and **Like, save and share**.
+* **Link cards**, **Wikipedia previews**, **Word documents**, **Brand icons** and **Like, save and share**.
 * **Spectra block replacements**: a Term list block, and Spectra pages that keep working after it is deactivated.
 
 = Media =
@@ -128,9 +128,9 @@ Click **Report a problem** at the top right of Settings → SEO Pro Stack, or op
 == Changelog ==
 
 = Unreleased =
-* New: Word documents; Like, save and share.
+* New: Word documents; Like, save and share; Brand icons.
 * Change: Pinned posts; faster post lists.
-* Fix: More menu items shifting right, fitted menu in full screen editor.
+* Fix: More menu item shifts; fitted menu in full screen.
 
 = 0.9.0 =
 * New: Menu item visibility, Change post type, Order by hand, Term tools, Search custom fields, Old post addresses, Link cards, Wikipedia previews, Agency tab.
