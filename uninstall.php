@@ -4,8 +4,9 @@
  * pictures, generated avatars, WebP/AVIF copies of pictures, short links and
  * the plugin-loading must-use file on uninstall (every site on multisite).
  *
- * Imported media (and its `_seoprostack_source_url` / legacy
- * `_wp_allstars_source_url` meta) is left in place because posts reference it.
+ * Imported media and Link card pictures (and their `_seoprostack_source_url`
+ * / legacy `_wp_allstars_source_url` meta) are left in place because posts
+ * reference them.
  * Screenshots also stay in the Media Library; their `_seoprostack_screenshot*`
  * meta is removed.
  * Watermarked pictures stay marked, and the folder of unmarked originals
