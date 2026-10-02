@@ -47,6 +47,8 @@ Every feature is off by default except three: Hide admin bar items, which hides 
 | Plugins menu in the admin bar | Plugins | Plugin Toggle |
 | Clean up deleted plugins | Plugins | Fix ‘Plugin file does not exist’ Notices |
 
+These plugins showed what sites need. [Credits](#credits) thanks their makers and links to each one.
+
 ### Modern admin colours (Admin)
 
 Uses the WordPress “Modern” admin colour scheme for every user while enabled. Switching it also updates your own profile: on selects Modern, off selects the WordPress default. Other users’ saved choices are not changed and return when the setting is off.
@@ -722,6 +724,7 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folder�
 - Fixed: with Load plugins only where needed, WP Sheet Editor’s spreadsheets (such as Edit Posts) were blank. The page belongs to the copy of the shared WP Sheet Editor framework that loaded first (here from Bulk Edit Categories and Tags), so the posts spreadsheet plugin was skipped there. Pages whose code is a framework other plugins bundle too (the same file at the same place in their folder, declaring the same class or function) now load every plugin that bundles it. Freemius is unchanged.
 - New: Readable list columns can remove columns few people need (Columns to remove: Complianz’s Website Scan, Post Type Switcher’s Type and Burst Statistics’ Pageviews, all ticked by default; Admin Columns still offers them), puts Author and Date last on content lists (Author and date last, on by default), and gives Rank Math’s SEO Details column room for its longest line so its lines do not wrap.
 - New: Organise the admin menu can fit the sidebar to its names (Fit the menu to its names, on by default): it widens up to 280 px so entries do not wrap, on wide screens with the sidebar expanded, with the content, footer, flyout submenus and the block editor moving over with it.
+- Docs: new Credits section thanks the makers of the plugins SEO Pro Stack’s features replace or learned from, with links to each plugin’s WordPress.org page and source repository.
 - Development: `scripts/preflight-release.sh` also fails when a setting a preset changes has no label, or a label names a setting the preset does not change.
 
 ### 0.7.0
@@ -847,6 +850,46 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folder�
 - Filterable Pro Plugins, Hosting and Tools directories.
 - Removed unused debug files and duplicate scripts and styles; added uninstall cleanup.
 - Removed Closte from hosting recommendations.
+
+## Credits
+
+SEO Pro Stack’s features stand on the work of the plugins below. Each one solved a real problem well, and SEO Pro Stack learned from how they did it: what to offer, which defaults make sense, and which settings people rely on. Thank you to their makers and contributors. If you need more than SEO Pro Stack’s version does, they are all still there, and most are free.
+
+Where a feature replaces one of them, SEO Pro Stack imports the settings it can, once, so switching is easy, and never changes or deletes that plugin’s own settings (see [Features](#features)).
+
+| Plugin | Made by | Links | SEO Pro Stack feature |
+| --- | --- | --- | --- |
+| Admin Bar & Dashboard Access Control | Collins Agbonghama | [WordPress.org](https://wordpress.org/plugins/admin-bar-dashboard-control/) | Admin bar and dashboard access |
+| Admin Menu Editor (and Pro) | Janis Elsts | [WordPress.org](https://wordpress.org/plugins/admin-menu-editor/) | Organise the admin menu |
+| Widget Disable | required | [WordPress.org](https://wordpress.org/plugins/wp-widget-disable/), [GitHub](https://github.com/wearerequired/WP-Widget-Disable) | Dashboard and sidebar widgets |
+| Disable Bloat for WordPress & WooCommerce (and PRO) | Rock Solid | [WordPress.org](https://wordpress.org/plugins/disable-dashboard-for-woocommerce/), [website](https://disablebloat.com/) | Tidy admin screens, Tidy WooCommerce admin, Tidy the login screen, Simpler block editor, Remove WordPress extras, Lighter WooCommerce pages |
+| Manage Notification E-mails | 3D Virge | [WordPress.org](https://wordpress.org/plugins/manage-notification-emails/) | Notification emails |
+| Hide Admin Notices | PontetLabs | [WordPress.org](https://wordpress.org/plugins/hide-admin-notices/), [GitHub](https://github.com/jonpontet/hide-admin-notices) | Hide admin notices |
+| Avatar Privacy | Der Mundschenk & Compagnie | [WordPress.org](https://wordpress.org/plugins/avatar-privacy/), [GitHub](https://github.com/mundschenk-at/avatar-privacy) | Avatars without Gravatar |
+| Carbon Copy | Manny Rodrigues | [WordPress.org](https://wordpress.org/plugins/carbon-copy/) | Duplicate posts |
+| Yoast Duplicate Post | Yoast | [WordPress.org](https://wordpress.org/plugins/duplicate-post/), [GitHub](https://github.com/Yoast/duplicate-post) | Duplicate posts |
+| Post Draft Preview | WP Served | [WordPress.org](https://wordpress.org/plugins/post-draft-preview/), [GitHub](https://github.com/wpserved/post-draft-preview) | Shareable preview links |
+| Public Post Preview | Dominik Schilling | [WordPress.org](https://wordpress.org/plugins/public-post-preview/), [GitHub](https://github.com/ocean90/public-post-preview) | Shareable preview links |
+| Sticky Posts – Switch | Markus Wiesenhofer | [WordPress.org](https://wordpress.org/plugins/sticky-posts-switch/) | Sticky posts for any post type |
+| Bulk Actions Select All | Jesper van Engelen | [WordPress.org](https://wordpress.org/plugins/bulk-actions-select-all/), [GitHub](https://github.com/engelen/bulk-actions-select-all) | Select all across pages |
+| Browser Shots | Kevin Leary, Ben Gillbanks | [WordPress.org](https://wordpress.org/plugins/browser-shots/), [GitHub](https://github.com/BinaryMoon/browser-shots) | Website screenshots |
+| Spectra | Brainstorm Force | [WordPress.org](https://wordpress.org/plugins/ultimate-addons-for-gutenberg/), [GitHub](https://github.com/brainstormforce/wp-spectra) | Spectra block replacements |
+| The Paste | Jörn Lund | [WordPress.org](https://wordpress.org/plugins/the-paste/), [GitHub](https://github.com/mcguffin/the-paste) | Paste into the Media Library |
+| Safe SVG | 10up | [WordPress.org](https://wordpress.org/plugins/safe-svg/), [GitHub](https://github.com/10up/safe-svg) | SVG uploads |
+| Imsanity | Shane Bishop | [WordPress.org](https://wordpress.org/plugins/imsanity/), [GitHub](https://github.com/nosilver4u/imsanity) | Resize large uploads |
+| Enable Media Replace | ShortPixel | [WordPress.org](https://wordpress.org/plugins/enable-media-replace/), [GitHub](https://github.com/short-pixel-optimizer/enable-media-replace) | Replace media files |
+| CompressX | CompressX | [WordPress.org](https://wordpress.org/plugins/compressx/) | WebP and AVIF images, Resize large uploads |
+| Easy Watermark | Wojtek Szałkiewicz | [WordPress.org](https://wordpress.org/plugins/easy-watermark/) | Watermark pictures |
+| Flying Pages | Gijo Varghese | [WordPress.org](https://wordpress.org/plugins/flying-pages/), [GitHub](https://github.com/gijo-varghese/flying-pages) | Load pages before the click |
+| Flying Scripts | Gijo Varghese | [WordPress.org](https://wordpress.org/plugins/flying-scripts/) | Delay scripts until interaction |
+| Flying Analytics | Gijo Varghese | [WordPress.org](https://wordpress.org/plugins/flying-analytics/), [GitHub](https://github.com/gijo-varghese/flying-analytics) | Delayed Google Analytics |
+| Ultimate 410 Gone Status Code | tiny web | [WordPress.org](https://wordpress.org/plugins/ultimate-410/) | 410 Gone for removed pages |
+| Remove CPT base | kubiq | [WordPress.org](https://wordpress.org/plugins/remove-cpt-base/) | Short addresses for custom post types |
+| Pretty Links | Blair Williams | [WordPress.org](https://wordpress.org/plugins/pretty-link/) | Short links |
+| Plugin Toggle | Cedaro | [WordPress.org](https://wordpress.org/plugins/plugin-toggle/), [GitHub](https://github.com/cedaro/plugin-toggle) | Plugins menu in the admin bar |
+| Fix ‘Plugin file does not exist’ Notices | WP All Stars | [GitHub](https://github.com/wpallstars/wp-fix-plugin-does-not-exist-notices) | Clean up deleted plugins |
+| Freesoul Deactivate Plugins | Jose Mortellaro | [WordPress.org](https://wordpress.org/plugins/freesoul-deactivate-plugins/), [GitHub](https://github.com/JoseMortellaro/freesoul-deactivate-plugins) | Load plugins only where needed (not a replacement yet: its page-by-page rules on the site are not covered) |
+| Git Updater | Andy Fragen | [GitHub](https://github.com/afragen/git-updater), [website](https://git-updater.com/) | Updates from GitHub (GitHub builds only) |
 
 ## License
 
