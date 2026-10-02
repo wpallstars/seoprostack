@@ -1,14 +1,15 @@
 <?php
 /**
- * Sticky posts for any post type.
+ * Pinned posts for any post type.
  *
  * WordPress only lets blog posts be sticky, and only lifts them to the top of
- * the blog home. This adds a star to post lists and a "Stick to the top"
- * option in the editor for the chosen post types, and lifts sticky items to
+ * the blog home. This adds a pin to post lists and a "Pin to the top"
+ * option in the editor for the chosen post types, and lifts pinned items to
  * the top of the first page of the blog home, post type archives and
  * category/term archives you choose. Uses the core "sticky_posts" list, so
- * existing sticky posts, themes and blocks keep working. Replaces "Sticky
- * Posts Switch"; its settings are imported once.
+ * existing sticky posts, themes and blocks keep working; wp-admin calls them
+ * "Pinned", the word most sites and apps use. Replaces "Sticky Posts
+ * Switch"; its settings are imported once.
  *
  * @package SEOProStack
  * @since 0.3.0
@@ -45,8 +46,8 @@ class SEOProStack_Sticky_Posts extends SEOProStack_Feature {
                 'type'        => 'bool',
                 'default'     => false,
                 'tab'         => 'content',
-                'label'       => __('Sticky posts for any post type', 'seoprostack'),
-                'description' => __('Pin pages, products and custom post types to the top of their lists, like sticky blog posts. Adds a star to post lists and a “Stick to the top” option in the editor.', 'seoprostack'),
+                'label'       => __('Pinned posts for any post type', 'seoprostack'),
+                'description' => __('Pin posts, pages, products and custom post types to the top of their lists. Adds a pin to post lists and a “Pin to the top” option in the editor, and says “Pinned” where WordPress says “Sticky”.', 'seoprostack'),
                 'replaces'    => array('sticky-posts-switch' => 'Sticky Posts Switch'),
             ),
             'sticky_posts_types' => array(
@@ -54,7 +55,7 @@ class SEOProStack_Sticky_Posts extends SEOProStack_Feature {
                 'open'    => true,
                 'default' => array('post'),
                 'parent'  => self::KEY,
-                'label'   => __('Post types that can be sticky', 'seoprostack'),
+                'label'   => __('Post types that can be pinned', 'seoprostack'),
                 'options' => $types,
             ),
             'sticky_posts_home' => array(
@@ -63,7 +64,7 @@ class SEOProStack_Sticky_Posts extends SEOProStack_Feature {
                 'default'     => array('post'),
                 'parent'      => self::KEY,
                 'label'       => __('Lift to the top of the blog home', 'seoprostack'),
-                'description' => __('Sticky items of these types lead the first page of your latest posts.', 'seoprostack'),
+                'description' => __('Pinned items of these types lead the first page of your latest posts.', 'seoprostack'),
                 'options'     => $types,
             ),
             'sticky_posts_archives' => array(
@@ -81,7 +82,7 @@ class SEOProStack_Sticky_Posts extends SEOProStack_Feature {
                 'default'     => array(),
                 'parent'      => self::KEY,
                 'label'       => __('Lift to the top of these term archives', 'seoprostack'),
-                'description' => __('For example, each category page shows its sticky posts first.', 'seoprostack'),
+                'description' => __('For example, each category page shows its pinned posts first.', 'seoprostack'),
                 'options'     => array(__CLASS__, 'taxonomy_options'),
             ),
         );
@@ -140,7 +141,14 @@ class SEOProStack_Sticky_Posts extends SEOProStack_Feature {
         add_action('save_post', array(__CLASS__, 'save_classic'), 10, 2);
         add_action('before_delete_post', array(__CLASS__, 'unstick'));
 
-        if (!is_admin()) {
+        if (is_admin()) {
+            // "Pinned" where WordPress says "Sticky": lists and editors only.
+            add_filter('display_post_states', array(__CLASS__, 'post_states'), 10, 2);
+            add_filter('views_edit-post', array(__CLASS__, 'post_views'));
+            foreach (array('load-edit.php', 'load-post.php', 'load-post-new.php') as $hook) {
+                add_action($hook, array(__CLASS__, 'pinned_words'));
+            }
+        } else {
             add_action('pre_get_posts', array(__CLASS__, 'pre_get_posts'));
             add_filter('the_posts', array(__CLASS__, 'lift'), 10, 2);
             add_filter('post_class', array(__CLASS__, 'post_class'), 10, 3);
@@ -187,7 +195,93 @@ class SEOProStack_Sticky_Posts extends SEOProStack_Feature {
     /* --------------------------------------------------------------------- */
 
     /**
-     * Star column in the lists of enabled types.
+     * WordPress's words for sticky posts, said as "pinned".
+     *
+     * @return array<string,string> Core text => ours.
+     */
+    private static function pinned_map() {
+        return array(
+            'Sticky'                            => __('Pinned', 'seoprostack'),
+            'Not Sticky'                        => __('Not pinned', 'seoprostack'),
+            'Make this post sticky'             => __('Pin this post to the top', 'seoprostack'),
+            'Public, Sticky'                    => __('Public, pinned', 'seoprostack'),
+            'Stick this post to the front page' => __('Pin this post to the front page', 'seoprostack'),
+        );
+    }
+
+    /**
+     * Post lists and editors: core's Quick Edit, Bulk Edit and classic
+     * editor say "Pinned". Only on those screens, so other text is not
+     * filtered elsewhere.
+     */
+    public static function pinned_words() {
+        add_filter('gettext', array(__CLASS__, 'gettext'), 10, 3);
+        add_filter('gettext_with_context', array(__CLASS__, 'gettext_with_context'), 10, 4);
+    }
+
+    /**
+     * Core's sticky words.
+     *
+     * @param string $translation Translated text.
+     * @param string $text        Original text.
+     * @param string $domain      Text domain.
+     * @return string
+     */
+    public static function gettext($translation, $text, $domain) {
+        static $map = null;
+        if ('default' !== $domain) {
+            return $translation;
+        }
+        if (null === $map) {
+            $map = self::pinned_map();
+        }
+        return isset($map[$text]) ? $map[$text] : $translation;
+    }
+
+    /**
+     * Core's "Sticky" post status.
+     *
+     * @param string $translation Translated text.
+     * @param string $text        Original text.
+     * @param string $context     Context.
+     * @param string $domain      Text domain.
+     * @return string
+     */
+    public static function gettext_with_context($translation, $text, $context, $domain) {
+        return 'Sticky' === $text && 'post status' === $context && 'default' === $domain ? __('Pinned', 'seoprostack') : $translation;
+    }
+
+    /**
+     * "Pinned" after a pinned item's title in lists.
+     *
+     * @param string[] $states Post states.
+     * @param WP_Post  $post   Post.
+     * @return string[]
+     */
+    public static function post_states($states, $post) {
+        if (isset($states['sticky'])) {
+            $states['sticky'] = __('Pinned', 'seoprostack');
+        }
+        return $states;
+    }
+
+    /**
+     * The Posts list's "Sticky" view says "Pinned".
+     *
+     * @param array $views Views.
+     * @return array
+     */
+    public static function post_views($views) {
+        if (isset($views['sticky']) && is_string($views['sticky'])) {
+            $views['sticky'] = preg_replace_callback('#(<a\b[^>]*>)[^<]*(<span class="count">)#', function ($m) {
+                return $m[1] . esc_html__('Pinned', 'seoprostack') . ' ' . $m[2];
+            }, $views['sticky'], 1);
+        }
+        return $views;
+    }
+
+    /**
+     * Pin column in the lists of enabled types.
      */
     public static function admin_columns() {
         foreach ((array) SEOProStack_Settings::get('sticky_posts_types') as $type) {
@@ -204,7 +298,7 @@ class SEOProStack_Sticky_Posts extends SEOProStack_Feature {
      * @return array
      */
     public static function add_column($columns) {
-        $label = '<span class="dashicons dashicons-star-filled" aria-hidden="true"></span><span class="screen-reader-text">' . esc_html__('Sticky', 'seoprostack') . '</span>';
+        $label = '<span class="dashicons dashicons-admin-post" aria-hidden="true" title="' . esc_attr__('Pinned', 'seoprostack') . '"></span><span class="screen-reader-text">' . esc_html__('Pinned', 'seoprostack') . '</span>';
         $new   = array();
         foreach ($columns as $key => $value) {
             $new[$key] = $value;
@@ -219,7 +313,7 @@ class SEOProStack_Sticky_Posts extends SEOProStack_Feature {
     }
 
     /**
-     * Star toggle.
+     * Pin toggle.
      *
      * @param string $column  Column.
      * @param int    $post_id Post ID.
@@ -232,18 +326,18 @@ class SEOProStack_Sticky_Posts extends SEOProStack_Feature {
         $title  = get_the_title($post_id);
         if (!current_user_can('edit_post', $post_id) || 'publish' !== get_post_status($post_id)) {
             if ($sticky) {
-                echo '<span class="dashicons dashicons-star-filled" title="' . esc_attr__('Sticky', 'seoprostack') . '"></span>';
+                echo '<span class="dashicons dashicons-admin-post seoprostack-pinned" title="' . esc_attr__('Pinned', 'seoprostack') . '"></span>';
             }
             return;
         }
         printf(
-            '<button type="button" class="button-link seoprostack-sticky" data-post="%1$d" data-nonce="%2$s" aria-pressed="%3$s" aria-label="%4$s"><span class="dashicons %5$s" aria-hidden="true"></span></button>',
+            '<button type="button" class="button-link seoprostack-sticky" data-post="%1$d" data-nonce="%2$s" aria-pressed="%3$s" aria-label="%4$s" title="%5$s"><span class="dashicons dashicons-admin-post" aria-hidden="true"></span></button>',
             (int) $post_id,
             esc_attr(wp_create_nonce(self::AJAX . '_' . $post_id)),
             $sticky ? 'true' : 'false',
             /* translators: %s: post title */
-            esc_attr(sprintf(__('Stick “%s” to the top', 'seoprostack'), $title)),
-            $sticky ? 'dashicons-star-filled' : 'dashicons-star-empty'
+            esc_attr(sprintf(__('Pin “%s” to the top', 'seoprostack'), $title)),
+            esc_attr__('Pin to the top', 'seoprostack')
         );
     }
 
@@ -257,12 +351,14 @@ class SEOProStack_Sticky_Posts extends SEOProStack_Feature {
         }
         ?>
         <style>
-            .fixed .column-seoprostack_sticky { width: 2.2em; text-align: center; }
+            .fixed .column-seoprostack_sticky { width: 20px; padding-left: 2px; padding-right: 2px; text-align: center; }
             .column-seoprostack_sticky .dashicons { color: #8c8f94; }
-            td.column-seoprostack_sticky .dashicons-star-filled { color: #dba617; }
-            .seoprostack-sticky { cursor: pointer; }
-            .seoprostack-sticky:focus { box-shadow: 0 0 0 2px #2271b1; border-radius: 2px; outline: none; }
-            .seoprostack-sticky[aria-busy="true"] { opacity: .5; }
+            .wp-core-ui .seoprostack-sticky { cursor: pointer; padding: 0; }
+            .wp-core-ui .seoprostack-sticky[aria-pressed="false"] .dashicons { opacity: .4; }
+            .wp-core-ui .seoprostack-sticky:hover .dashicons, .wp-core-ui .seoprostack-sticky:focus .dashicons { opacity: 1; }
+            td.column-seoprostack_sticky .seoprostack-sticky[aria-pressed="true"] .dashicons, td.column-seoprostack_sticky .seoprostack-pinned { color: var(--wp-admin-theme-color, #2271b1); }
+            .wp-core-ui .seoprostack-sticky:focus { box-shadow: 0 0 0 2px var(--wp-admin-theme-color, #2271b1); border-radius: 2px; outline: none; }
+            .wp-core-ui .seoprostack-sticky[aria-busy="true"] { opacity: .5; }
         </style>
         <script>
         (function ($) {
@@ -272,8 +368,7 @@ class SEOProStack_Sticky_Posts extends SEOProStack_Feature {
                 $.post(ajaxurl, { action: <?php echo wp_json_encode(self::AJAX); ?>, post: $btn.data('post'), nonce: $btn.data('nonce'), sticky: on ? 1 : 0 })
                     .done(function (res) {
                         if (!res || !res.success) { return; }
-                        $btn.attr('aria-pressed', res.data.sticky ? 'true' : 'false')
-                            .find('.dashicons').toggleClass('dashicons-star-filled', res.data.sticky).toggleClass('dashicons-star-empty', !res.data.sticky);
+                        $btn.attr('aria-pressed', res.data.sticky ? 'true' : 'false');
                         if (window.wp && wp.a11y) { wp.a11y.speak(res.data.message); }
                     })
                     .always(function () { $btn.removeAttr('aria-busy'); });
@@ -299,6 +394,14 @@ class SEOProStack_Sticky_Posts extends SEOProStack_Feature {
      */
     public static function block_editor() {
         $post = get_post();
+        if ($post instanceof WP_Post && 'post' === $post->post_type) {
+            // Core's own control for blog posts: "Sticky" becomes "Pinned".
+            wp_add_inline_script('wp-hooks', sprintf(
+                'wp.hooks.addFilter("i18n.gettext_default", "seoprostack/pinned", function (t, text) { return "Sticky" === text ? %s : t; });',
+                wp_json_encode(__('Pinned', 'seoprostack'))
+            ));
+            return;
+        }
         if (!self::editor_applies($post)) {
             return;
         }
@@ -308,7 +411,7 @@ class SEOProStack_Sticky_Posts extends SEOProStack_Feature {
             'post'    => $post->ID,
             'nonce'   => wp_create_nonce(self::AJAX . '_' . $post->ID),
             'sticky'  => is_sticky($post->ID),
-            'label'   => __('Stick to the top', 'seoprostack'),
+            'label'   => __('Pin to the top', 'seoprostack'),
             'failed'  => __('Could not update. Please try again.', 'seoprostack'),
         );
         wp_register_script('seoprostack-sticky', '', array('wp-plugins', 'wp-element', 'wp-components', 'wp-editor'), SEOPROSTACK_VERSION, true);
@@ -356,7 +459,7 @@ class SEOProStack_Sticky_Posts extends SEOProStack_Feature {
         printf(
             '<div class="misc-pub-section seoprostack-sticky-field"><input type="hidden" name="seoprostack_sticky_present" value="1" /><label><input type="checkbox" name="seoprostack_sticky" value="1" %1$s /> %2$s</label></div>',
             checked(is_sticky($post->ID), true, false),
-            esc_html__('Stick to the top', 'seoprostack')
+            esc_html__('Pin to the top', 'seoprostack')
         );
     }
 
@@ -394,7 +497,7 @@ class SEOProStack_Sticky_Posts extends SEOProStack_Feature {
 
         wp_send_json_success(array(
             'sticky'  => is_sticky($post_id),
-            'message' => $sticky ? __('Stuck to the top.', 'seoprostack') : __('No longer sticky.', 'seoprostack'),
+            'message' => $sticky ? __('Pinned to the top.', 'seoprostack') : __('No longer pinned.', 'seoprostack'),
         ));
     }
 

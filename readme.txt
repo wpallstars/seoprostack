@@ -32,7 +32,7 @@ Everything is off by default except Hide admin bar items (Comments and + New), N
 
 * **Publishing queue**: posts published without a date are scheduled for the next free time slot.
 * **Duplicate posts**, **Staged new versions** (edit a published post as a draft copy) and **Shareable preview links** for people without an account.
-* **Sticky posts for any post type** and **Select all across pages** for bulk actions.
+* **Pinned posts for any post type** and **Select all across pages** for bulk actions.
 * **Menu item visibility** by login or role, **Change post type**, **Order by hand**, **Term tools** (merge, move, set parent), **Search custom fields** (ACF) and **Old post addresses**.
 * **TranslatePress colours**: Kadence light/dark switchers.
 * **iFrame block**: embed pages, limited to the domains and roles you choose.
@@ -129,6 +129,7 @@ Click **Report a problem** at the top right of Settings → SEO Pro Stack, or op
 
 = Unreleased =
 * New: Word documents in the editor.
+* Change: Pinned posts (was Sticky posts); faster post lists.
 
 = 0.9.0 =
 * New: Menu item visibility, Change post type, Order by hand, Term tools, Search custom fields, Old post addresses, Link cards, Wikipedia previews, Agency tab.

@@ -33,7 +33,7 @@ Every feature is off by default except four: Hide admin bar items, which hides C
 | Avatars without Gravatar | Admin | Avatar Privacy |
 | Duplicate posts | Content | Carbon Copy, Yoast Duplicate Post |
 | Staged new versions, Shareable preview links | Content | Post Draft Preview, Public Post Preview |
-| Sticky posts for any post type | Content | Sticky Posts Switch |
+| Pinned posts for any post type | Content | Sticky Posts Switch |
 | Select all across pages | Content | Bulk Actions Select All |
 | Menu item visibility | Content | Nav Menu Roles |
 | Change post type | Content | Post Type Switcher |
@@ -276,9 +276,9 @@ Tick **Share a preview link** in the editor of a draft, pending or scheduled pos
 - Links expire after 1–90 days (7 by default) and stop working when turned off or when the post is published.
 - Preview pages send `noindex`, `no-referrer` and no-cache headers and ask page caches not to store them.
 
-### Sticky posts for any post type (Content)
+### Pinned posts for any post type (Content)
 
-Adds a star column to the lists of the post types you choose, and a **Stick to the top** option in the editor for types other than posts. Sticky items lead the first page of the blog home, their post type archive and chosen term archives (categories, tags or custom taxonomies). It uses core’s sticky list, so existing sticky posts, themes and blocks keep working.
+Adds a narrow pin column to the lists of the post types you choose, and a **Pin to the top** option in the editor for types other than posts. Wherever WordPress says “Sticky” in post lists, Quick Edit, Bulk Edit and the editors, it says “Pinned”, the word most sites and apps use (core still calls them sticky posts, so themes and blocks see no change). Pinned items lead the first page of the blog home, their post type archive and chosen term archives (categories, tags or custom taxonomies). It uses core’s sticky list, so existing sticky posts, themes and blocks keep working.
 
 ### Select all across pages (Content)
 
@@ -947,6 +947,8 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folder�
 
 ### Unreleased
 
+- Change: **Sticky posts for any post type** is now **Pinned posts for any post type**: a pin instead of a star in post lists, and “Pinned” instead of “Sticky” in lists, Quick Edit, Bulk Edit and the editors. The pin and Order by hand columns are 20 px wide instead of about 30, leaving more room for the title.
+- Change: **Load plugins only where needed** loads less on post lists. Quick Edit and Bulk Edit now count only plugins that print fields there, so plugins that hook them for other post types (WooCommerce for products) no longer load on the Pages list. `WC requires at least` makes WooCommerce load with a plugin only when the plugin's name says WooCommerce, so general plugins that declare it (TranslatePress, Simple Cloudflare Turnstile, WP Sheet Editor) no longer bring WooCommerce to every screen. Map version 7: screens are learned again.
 - New, off by default: **Word documents in the editor** (Content tab; replaces Mammoth .docx converter): drop or paste a `.docx` file into the block editor, or choose Word document in the Options menu, and it becomes core blocks, with headings, formatting, links, nested lists, quotes, tables and pictures. The server converts it with `ZipArchive` and DOM; pictures go to the Media Library, attached to the post. It switches itself on while Mammoth is active; Free Plugins no longer lists Mammoth. Settings version 11.
 
 ### 0.9.0
@@ -1149,7 +1151,7 @@ Where a feature replaces one of them, SEO Pro Stack imports the settings it can,
 | Yoast Duplicate Post | Yoast | [WordPress.org](https://wordpress.org/plugins/duplicate-post/), [GitHub](https://github.com/Yoast/duplicate-post) | Duplicate posts |
 | Post Draft Preview | WP Served | [WordPress.org](https://wordpress.org/plugins/post-draft-preview/), [GitHub](https://github.com/wpserved/post-draft-preview) | Shareable preview links |
 | Public Post Preview | Dominik Schilling | [WordPress.org](https://wordpress.org/plugins/public-post-preview/), [GitHub](https://github.com/ocean90/public-post-preview) | Shareable preview links |
-| Sticky Posts – Switch | Markus Wiesenhofer | [WordPress.org](https://wordpress.org/plugins/sticky-posts-switch/) | Sticky posts for any post type |
+| Sticky Posts – Switch | Markus Wiesenhofer | [WordPress.org](https://wordpress.org/plugins/sticky-posts-switch/) | Pinned posts for any post type |
 | Bulk Actions Select All | Jesper van Engelen | [WordPress.org](https://wordpress.org/plugins/bulk-actions-select-all/), [GitHub](https://github.com/engelen/bulk-actions-select-all) | Select all across pages |
 | Nav Menu Roles | HelgaTheViking | [WordPress.org](https://wordpress.org/plugins/nav-menu-roles/), [GitHub](https://github.com/helgatheviking/Nav-Menu-Roles) | Menu item visibility |
 | Post Type Switcher | John James Jacoby | [WordPress.org](https://wordpress.org/plugins/post-type-switcher/), [GitHub](https://github.com/JJJ/post-type-switcher) | Change post type |
