@@ -5,6 +5,7 @@ Every change to SEO Pro Stack. readme.txt lists the latest version in short.
 = 0.10.1 =
 * Change: Short links no longer counts as a replacement for Lasso Lite (Simple URLs), which also shows product displays and reports. The Plugins screen stops suggesting you remove Lasso Lite, Free Plugins lists it again, and the two run side by side. Short links still imports Lasso Lite's links if you want to move them.
 * Change: the Short links list no longer shows other plugins' links under each link, such as AI Engine's Magic Wand and Social Engine's Create Social Post.
+* New: LiteSpeed hosting. The LiteSpeed Cache preset is now worked out for each site: CSS and JS minified, the cache purged after updates, the page cache and browser cache on when the site runs on a LiteSpeed server, and LiteSpeed's own JS defer, WebP, Heartbeat and emoji settings off where SEO Pro Stack already does that job. Applying it saves through LiteSpeed Cache, as its own screen does. On LiteSpeed servers, Free Plugins no longer suggests WP-Optimize, and Hosting needs names the server, suggests LiteSpeed Cache and warns when WP-Optimize's page cache or minify runs alongside it.
 * Fix: No fade between admin screens also stops a white flash where the toolbar goes at the top of the screen, seen on each screen change on sites with a long admin menu.
 
 = 0.10.0 =

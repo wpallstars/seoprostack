@@ -124,6 +124,7 @@ Click **Report a problem** at the top right of Settings → SEO Pro Stack, or op
 == Changelog ==
 
 = 0.10.1 =
+* New: LiteSpeed hosting; LiteSpeed Cache preset worked out per site.
 * Change: Short links runs alongside Lasso Lite instead of replacing it, and still imports its links.
 * Change: the Short links list shows no other plugins' row links.
 * Fix: no white flash in the toolbar between admin screens.
@@ -133,4 +134,4 @@ Older: `changelog.txt`.
 == Upgrade Notice ==
 
 = 0.10.1 =
-Keep Lasso Lite if you use its product displays: Short links no longer suggests removing it.
+LiteSpeed Cache preset tuned per site. Keep Lasso Lite if you use its product displays: Short links no longer suggests removing it.

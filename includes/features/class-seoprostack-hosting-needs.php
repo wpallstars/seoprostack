@@ -492,10 +492,14 @@ class SEOProStack_Hosting_Needs extends SEOProStack_Feature {
             return true;
         }
         $known = array(
-            'litespeed-cache', 'wp-rocket', 'w3-total-cache', 'wp-super-cache', 'wp-fastest-cache',
+            'wp-rocket', 'w3-total-cache', 'wp-super-cache', 'wp-fastest-cache',
             'cache-enabler', 'breeze', 'sg-cachepress', 'wp-optimize', 'nitropack', 'wp-cloudflare-page-cache',
             'swift-performance-lite', 'comet-cache', 'hummingbird-performance', 'flying-press', 'powered-cache',
         );
+        // LiteSpeed Cache's page cache is kept by the LiteSpeed server.
+        if (SEOProStack_Litespeed::is_server()) {
+            $known[] = 'litespeed-cache';
+        }
         return (bool) array_intersect($known, self::active_slugs());
     }
 
@@ -632,6 +636,26 @@ class SEOProStack_Hosting_Needs extends SEOProStack_Feature {
     }
 
     /**
+     * On a LiteSpeed server: use LiteSpeed Cache, and not WP-Optimize's
+     * page cache and minify alongside it.
+     *
+     * @return array[] Each status and text.
+     */
+    private static function litespeed_advice() {
+        if (!SEOProStack_Litespeed::is_server()) {
+            return array();
+        }
+        $active = self::active_slugs();
+        if (!in_array('litespeed-cache', $active, true)) {
+            return array(array('recommended', __('This site runs on a LiteSpeed server, whose own page cache is the fastest one here. Install LiteSpeed Cache to use it, then choose Apply preset for it on the Plugins screen.', 'seoprostack')));
+        }
+        if (!in_array('wp-optimize', $active, true) || !SEOProStack_Litespeed::wp_optimize_overlap()) {
+            return array();
+        }
+        return array(array('recommended', __('WP-Optimize’s page cache or minify runs alongside LiteSpeed Cache, so pages are cached or minified twice. Turn them off in WP-Optimize: LiteSpeed Cache and SEO Pro Stack’s speed features do those jobs on LiteSpeed servers.', 'seoprostack')));
+    }
+
+    /**
      * Enough data that a persistent object cache helps at any traffic.
      * Thresholds from Super Speedy Performance Analysis.
      *
@@ -702,6 +726,7 @@ class SEOProStack_Hosting_Needs extends SEOProStack_Feature {
         if (!$needs['page_cache']) {
             $advice[] = array('recommended', __('No page cache was found, so every page view runs PHP. A page cache, from your host or a plugin, serves most pages without PHP and cuts the PHP workers you need. If your host caches pages itself, ignore this.', 'seoprostack'));
         }
+        $advice = array_merge($advice, self::litespeed_advice());
         if (!wp_using_ext_object_cache() && self::big_data($needs['facts'])) {
             $advice[] = array('recommended', sprintf(
                 /* translators: 1: postmeta rows, 2: products. */
@@ -1617,6 +1642,10 @@ class SEOProStack_Hosting_Needs extends SEOProStack_Feature {
                 );
             }
         }
+        $fields['web_server'] = array(
+            'label' => __('Web server', 'seoprostack'),
+            'value' => SEOProStack_Litespeed::server_name(),
+        );
         $fields['page_cache'] = array(
             'label' => __('Page cache', 'seoprostack'),
             'value' => $needs['page_cache'] ? __('Found', 'seoprostack') : __('None found (a cache run by the host cannot be seen)', 'seoprostack'),
