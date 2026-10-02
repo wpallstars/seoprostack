@@ -1117,6 +1117,7 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
     private static function front_sidebars() {
         $widgets = (array) get_option('sidebars_widgets', array());
         unset($widgets['array_version']);
+        // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- WordPress core's existing sidebar filter, not a new plugin hook.
         return (array) apply_filters('sidebars_widgets', $widgets);
     }
 
