@@ -4,7 +4,7 @@ Tags: magic login, iframe, schedule posts, auto upload images, admin
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 0.7.0
+Stable tag: 0.8.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -118,7 +118,7 @@ Copies from WordPress.org update from there. New versions come out on GitHub fir
 
 == Changelog ==
 
-= Unreleased =
+= 0.8.0 =
 * New: presets for Code Snippets, Rank Math SEO, WP-Optimize and Burst Statistics.
 * New, off by default: Maintenance mode with bypass links; turn off XML-RPC or application passwords.
 * New, off by default: Database key cleanup.
@@ -133,15 +133,9 @@ Copies from WordPress.org update from there. New versions come out on GitHub fir
 * New: remove unneeded list columns; Author and Date last.
 * New: the admin menu widens to fit its names; FluentSMTP shows its logo.
 
-= 0.7.0 =
-* New: licence-check choices, plugin presets and FluentCRM and Fluent Boards starters.
-* New: GitHub updates without Git Updater; Quiet Freemius prompts on by default.
-* Change: wider plugin-loading coverage, quieter dashboard; Tutor LMS replaces MasterStudy.
-* Fix: admin layout and fewer GitHub requests.
-
 Every change, and earlier versions: `changelog.txt` in the plugin folder.
 
 == Upgrade Notice ==
 
-= 0.7.0 =
-GitHub copies no longer need Git Updater. New: licence-check choices and more plugin presets.
+= 0.8.0 =
+New, off by default: Maintenance mode, Database key cleanup and most of Disable Bloat's job. More presets and starter data.

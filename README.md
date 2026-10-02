@@ -778,7 +778,7 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folderâ
 
 ## Changelog
 
-### Unreleased
+### 0.8.0
 
 - New, off by default: Maintenance mode, with a plain-text 503 page, administrator reminder and revocable 24-hour visitor bypass links. Imports Hostinger Tools' maintenance switch, leaving its other jobs alone.
 - New: small display presets for Rank Math SEO (no Frontend Stats Bar), WP-Optimize (no caching menu in the admin bar) and Burst Statistics (no non-critical dashboard notices). Modules, tracking services and schedules are not changed. Burst's preset contains only its admin notice preference, not the six settings its generated tracking script contains; Apply, Reset and Undo leave that file unchanged.
