@@ -1064,12 +1064,21 @@
 	margin: -4px 0 0;
 }
 
-.sps-plugin-table__status {
-	width: 120px;
+/* The buttons show the state: Install Now, Activate (and Uninstall) or Deactivate. */
+.sps-plugin-table__actions {
+	width: 210px;
 }
 
-.sps-plugin-table__actions {
-	width: 260px;
+.sps-plugin-table__pro {
+	width: 110px;
+}
+
+.sps-wrap .sps-plugin-row__pro {
+	text-align: end;
+}
+
+.sps-wrap .sps-plugin-row__pro .sps-go-pro {
+	white-space: nowrap;
 }
 
 .sps-plugin-table__size {
@@ -1142,16 +1151,10 @@
 	color: var(--sps-muted);
 }
 
-.sps-plugin-row[data-status="active"] [data-sps-plugin-status],
-.sps-plugin-row[data-status="network-active"] [data-sps-plugin-status] {
-	color: var(--sps-success);
-	font-weight: 600;
-}
-
 .sps-wrap .sps-plugin-row__actions .plugin-action-buttons {
 	display: flex;
 	flex-wrap: wrap;
-	justify-content: flex-end;
+	justify-content: flex-start;
 	gap: 6px;
 	margin: 0;
 }
@@ -1424,14 +1427,21 @@
 		padding-top: 12px;
 	}
 
-	.sps-wrap .sps-plugin-table tr > :last-child {
+	.sps-wrap .sps-plugin-table tr > :last-child,
+	.sps-wrap .sps-plugin-table tr > .sps-plugin-row__actions {
 		padding-bottom: 12px;
 	}
 
 	.sps-wrap .sps-plugin-table thead .sps-plugin-table__size,
-	.sps-wrap .sps-plugin-table thead .sps-plugin-table__status,
-	.sps-wrap .sps-plugin-table thead .sps-plugin-table__actions {
+	.sps-wrap .sps-plugin-table thead .sps-plugin-table__actions,
+	.sps-wrap .sps-plugin-table thead .sps-plugin-table__pro,
+	.sps-wrap .sps-plugin-table .sps-plugin-row__pro:empty {
 		display: none;
+	}
+
+	.sps-wrap .sps-plugin-table .sps-plugin-row__pro {
+		padding-top: 0;
+		text-align: start;
 	}
 
 	.sps-wrap .sps-plugin-row__actions .plugin-action-buttons {
