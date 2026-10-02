@@ -5,6 +5,8 @@ Every change to SEO Pro Stack. readme.txt lists the latest version in short.
 = Unreleased =
 * New: Pro Plugins lists FluentCart Pro.
 * Fix: Organise the admin menu: Code Snippets shows its logo in the Administrators and Developers menus.
+* Change: Organise the admin menu spaces the Fluent plugins’ names like Fluent Forms: Fluent CRM, Fluent SMTP, Fluent Community and Fluent Cart. Shop starts with WooCommerce and FluentCart, then the rest A–Z.
+* New: Free Plugins suggests FluentCart under eCommerce.
 
 = 0.8.0 =
 * New, off by default: Maintenance mode (Maintenance tab): a plain-text 503 page with Retry-After and noindex, an administrator reminder, and revocable 24-hour bypass links. Imports Hostinger Tools' maintenance switch without changing its settings; its other enabled jobs are named on the Plugins screen.

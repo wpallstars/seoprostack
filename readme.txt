@@ -120,6 +120,7 @@ Copies from WordPress.org update from there. New versions come out on GitHub fir
 
 = Unreleased =
 * New: Pro Plugins lists FluentCart Pro.
+* New: spaced Fluent menu names; shop plugins first in Shop; FluentCart suggested.
 
 = 0.8.0 =
 * New: presets for Code Snippets, Rank Math SEO, WP-Optimize and Burst Statistics.

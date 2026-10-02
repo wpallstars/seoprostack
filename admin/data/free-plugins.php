@@ -89,6 +89,7 @@ function seoprostack_get_free_plugins() {
         ),
         'ecommerce' => array(
             'woocommerce',
+            'fluent-cart',
             'woo-bulk-edit-products',
             'woo-coupons-bulk-editor',
             'woocommerce-gateway-gocardless',
