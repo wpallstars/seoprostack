@@ -115,6 +115,7 @@ Copies from WordPress.org update from there. New versions come out on GitHub fir
 == Changelog ==
 
 = Unreleased =
+* New: Code Snippets preset; presets clear their named settings caches on Apply, Reset and Undo.
 * New, off by default: six features that do most of Disable Bloat’s job, importing its settings.
 * New: starter data for Fluent Forms: four forms that feed FluentCRM lists and tags.
 * Change: Freesoul Deactivate Plugins is no longer recommended.
