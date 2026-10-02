@@ -82,9 +82,18 @@ class SEOProStack_Admin_Menu extends SEOProStack_Feature {
         'super-admin' => 'dashicons-editor-code',
     );
 
-    /** Icons for pages that become menu entries (address => icon). */
+    /**
+     * Icons for pages that become menu entries (address => icon): a dashicon
+     * or, like core's own menu icons, a base64 SVG that core paints in the
+     * menu's colours.
+     *
+     * fluent-mail: FluentSMTP's logo (assets/images/logo.svg in that plugin),
+     * one shape with the two bars cut out, in place of the plain cog:
+     * <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 300"><path fill="#a7aaad" fill-rule="evenodd" d="M300,30c0,-16.557 -13.443,-30 -30,-30l-240,0c-16.557,0 -30,13.443 -30,30l0,240c0,16.557 13.443,30 30,30l240,0c16.557,0 30,-13.443 30,-30Z M165,25c0,0 -80.084,21.458 -119.113,31.916c-12.32,3.301 -20.887,14.466 -20.887,27.221c0,3.784 0,6.536 0,6.536c0,0 72.08,-19.314 112.8,-30.225c16.044,-4.298 27.2,-18.837 27.2,-35.447Z M111.266,83.11c0,0 -39.848,10.677 -65.379,17.518c-12.32,3.301 -20.887,14.466 -20.887,27.221c0,3.784 0,6.536 0,6.536c0,0 33.783,-9.052 59.066,-15.827c16.044,-4.299 27.2,-18.838 27.2,-35.447Z"/></svg>
+     */
     const ICONS = array(
         'seoprostack' => 'dashicons-star-filled',
+        'fluent-mail' => 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMDAgMzAwIj48cGF0aCBmaWxsPSIjYTdhYWFkIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiIGQ9Ik0zMDAsMzBjMCwtMTYuNTU3IC0xMy40NDMsLTMwIC0zMCwtMzBsLTI0MCwwYy0xNi41NTcsMCAtMzAsMTMuNDQzIC0zMCwzMGwwLDI0MGMwLDE2LjU1NyAxMy40NDMsMzAgMzAsMzBsMjQwLDBjMTYuNTU3LDAgMzAsLTEzLjQ0MyAzMCwtMzBaIE0xNjUsMjVjMCwwIC04MC4wODQsMjEuNDU4IC0xMTkuMTEzLDMxLjkxNmMtMTIuMzIsMy4zMDEgLTIwLjg4NywxNC40NjYgLTIwLjg4NywyNy4yMjFjMCwzLjc4NCAwLDYuNTM2IDAsNi41MzZjMCwwIDcyLjA4LC0xOS4zMTQgMTEyLjgsLTMwLjIyNWMxNi4wNDQsLTQuMjk4IDI3LjIsLTE4LjgzNyAyNy4yLC0zNS40NDdaIE0xMTEuMjY2LDgzLjExYzAsMCAtMzkuODQ4LDEwLjY3NyAtNjUuMzc5LDE3LjUxOGMtMTIuMzIsMy4zMDEgLTIwLjg4NywxNC40NjYgLTIwLjg4NywyNy4yMjFjMCwzLjc4NCAwLDYuNTM2IDAsNi41MzZjMCwwIDMzLjc4MywtOS4wNTIgNTkuMDY2LC0xNS44MjdjMTYuMDQ0LC00LjI5OSAyNy4yLC0xOC44MzggMjcuMiwtMzUuNDQ3WiIvPjwvc3ZnPg==',
     );
 
     /** Script and style handle. */
@@ -330,6 +339,9 @@ class SEOProStack_Admin_Menu extends SEOProStack_Feature {
         add_action('adminmenu', array(__CLASS__, 'restore'), 1);
         add_action('adminmenu', array(__CLASS__, 'print_flyouts'), 2);
         add_action('admin_enqueue_scripts', array(__CLASS__, 'assets'));
+        // FluentCRM blanks other plugins' script addresses on its screens
+        // unless they are on its list, so print_flyouts() cannot bring it back.
+        add_filter('fluent_crm_asset_listed_slugs', array(__CLASS__, 'fluent_crm_scripts'));
         add_action('shutdown', array(__CLASS__, 'save_owners'));
     }
 
@@ -1512,7 +1524,9 @@ class SEOProStack_Admin_Menu extends SEOProStack_Feature {
      * wp_print_scripts), which left the menu there unfitted, unfolded and
      * without its third level. The menu script is then printed here, with
      * its settings, just before it is needed. Only this script: the
-     * plugin's own choice stands for everything else.
+     * plugin's own choice stands for everything else. FluentCRM blanks the
+     * address instead, so it gets the script through its own list
+     * (fluent_crm_scripts()).
      */
     public static function print_flyouts() {
         if (!did_action('admin_head')) {
@@ -1648,6 +1662,23 @@ class SEOProStack_Admin_Menu extends SEOProStack_Feature {
                 ));
             }
         }
+    }
+
+    /**
+     * Let the menu script load on FluentCRM's screens, which keep only the
+     * scripts whose address matches its list (regular expressions joined
+     * with "|" between "/" delimiters). Adds this one script, nothing else.
+     *
+     * @param mixed $slugs Patterns from FluentCRM.
+     * @return mixed
+     */
+    public static function fluent_crm_scripts($slugs) {
+        if (!is_array($slugs)) {
+            return $slugs;
+        }
+        $path    = wp_parse_url(SEOPROSTACK_URL . 'admin/js/seoprostack-admin-menu.js', PHP_URL_PATH);
+        $slugs[] = preg_quote(is_string($path) ? $path : 'seoprostack-admin-menu.js', '/');
+        return $slugs;
     }
 
     /* --------------------------------------------------------------------- */

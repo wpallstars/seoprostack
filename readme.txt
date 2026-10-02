@@ -124,6 +124,7 @@ Copies from WordPress.org update from there. New versions come out on GitHub fir
 * Fix: WP Sheet Editor spreadsheets no longer blank with Load plugins only where needed.
 * New: remove unneeded list columns; Author and Date last.
 * New: the admin menu widens to fit its names.
+* Change: FluentSMTP’s menu entry shows its logo.
 
 = 0.7.0 =
 * New, off by default: Ask before licence checks.
