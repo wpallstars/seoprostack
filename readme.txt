@@ -4,7 +4,7 @@ Tags: magic login, iframe, schedule posts, auto upload images, admin
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 0.8.0
+Stable tag: 0.8.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -118,29 +118,13 @@ Copies from WordPress.org update from there. New versions come out on GitHub fir
 
 == Changelog ==
 
-= Unreleased =
-* New: Pro Plugins lists FluentCart Pro.
+= 0.8.1 =
 * New: spaced Fluent menu names; shop plugins first in Shop; FluentCart suggested.
-
-= 0.8.0 =
-* New: presets for Code Snippets, Rank Math SEO, WP-Optimize and Burst Statistics.
-* New, off by default: maintenance bypass links; disable XML-RPC or application passwords.
-* New, off by default: Database key cleanup.
-* New, off by default: TranslatePress switcher colours.
-* New, off by default: per-page plugin learning with WooCommerce.
-* New, off by default: eight Disable Bloat replacements, importing its settings.
-* New: Fluent Forms (four forms) and Fluent Booking (Discovery Call) starters, feeding FluentCRM.
-* Change: no longer recommended: Freesoul Deactivate Plugins and replaced Pro plugins.
-* Change: plain setting names in Apply preset.
-* Fix: list columns load their plugins; WP Sheet Editor works.
-* Fix: Licence checks “Ask me again” keeps each plugin hidden.
-* Fix: dark plugin icons in the admin menu; TranslatePress in the More menu.
-* New: remove unneeded list columns; Author and Date last.
-* New: the admin menu fits its names, plugins' bars follow; FluentSMTP logo.
+* Fix: Code Snippets shows its logo in the Administrators and Developers menus.
 
 Every change, and earlier versions: `changelog.txt` in the plugin folder.
 
 == Upgrade Notice ==
 
-= 0.8.0 =
-New, off by default: Maintenance mode, Database key cleanup and most of Disable Bloat's job. More presets and starter data.
+= 0.8.1 =
+Tidier admin menu (spaced Fluent names, shop plugins first, Code Snippets logo) and FluentCart suggestions.

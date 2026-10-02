@@ -2,7 +2,7 @@
 
 Every change to SEO Pro Stack. readme.txt lists the latest version in short.
 
-= Unreleased =
+= 0.8.1 =
 * New: Pro Plugins lists FluentCart Pro.
 * Fix: Organise the admin menu: Code Snippets shows its logo in the Administrators and Developers menus.
 * Change: Organise the admin menu spaces the Fluent plugins’ names like Fluent Forms: Fluent CRM, Fluent SMTP, Fluent Community and Fluent Cart. Shop starts with WooCommerce and FluentCart, then the rest A–Z.
