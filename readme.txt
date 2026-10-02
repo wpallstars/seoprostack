@@ -121,6 +121,7 @@ Copies from WordPress.org update from there. New versions come out on GitHub fir
 * New, off by default: turn off XML-RPC and application passwords separately.
 * New, off by default: six features that do most of Disable Bloat’s job, importing its settings.
 * New: starter data for Fluent Forms: four forms that feed FluentCRM lists and tags.
+* New: display presets for Rank Math SEO, WP-Optimize and Burst Statistics.
 * Change: Freesoul Deactivate Plugins is no longer recommended.
 * Change: Apply preset names each setting in plain words.
 * Fix: plugins that add list columns load on those lists.
@@ -134,7 +135,7 @@ Copies from WordPress.org update from there. New versions come out on GitHub fir
 * New: presets for eight more plugins, applied setting by setting; starter data for FluentCRM and Fluent Boards.
 * New: GitHub copies update without Git Updater; the Plugins screen lists plugins this one replaces.
 * New, on by default: Quiet Freemius prompts.
-* Change: Load plugins only where needed covers more screens and can skip admin tools on the site. Tidy the dashboard hides Debug Log Manager and WooCommerce Setup. Tutor LMS replaces MasterStudy LMS.
+* Change: more screens covered by Load plugins only where needed; fewer dashboard widgets; Tutor LMS replaces MasterStudy LMS.
 * Fix: admin menu, Dashboard boxes and screens that jumped while loading; fewer GitHub requests.
 
 Every change, and earlier versions: `changelog.txt` in the plugin folder.

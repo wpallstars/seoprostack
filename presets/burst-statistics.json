@@ -1,0 +1,27 @@
+{
+    "name": "Burst Statistics",
+    "tested": "3.7.2",
+    "updated": "2026-10-02",
+    "notes": "Hides non-critical notices in Burst's dashboard; critical notices stay visible. This admin-only preference is read directly from settings and is not included in Burst's generated tracking script. Burst incidentally rebuilds that script when its settings screen saves, but Apply, Reset and Undo do not need to rebuild it. Tracking and privacy settings (privacy_level, ghost_mode, enable_do_not_track, enable_turbo_mode, track_url_change and track_external_links) are deliberately left out because they need that file rewrite. Email report recipients, onboarding state, data-sharing choices and update schedules stay as the owner chose them; site-specific recipients and settings with cron, file or service side effects are not shared preferences. Burst has no separate dashboard widget or admin bar display switch in this version.",
+    "options": {
+        "burst_options_settings": {
+            "dismiss_non_error_notices": 1
+        }
+    },
+    "defaults": {
+        "burst_options_settings": {
+            "dismiss_non_error_notices": null
+        }
+    },
+    "settings": {
+        "burst_options_settings.dismiss_non_error_notices": {
+            "label": "Dismiss all notices in your dashboard except critical ones",
+            "description": "Hides non-critical Burst dashboard notices without hiding critical ones.",
+            "values": {
+                "1": "On",
+                "0": "Off",
+                "null": "Off (not set)"
+            }
+        }
+    }
+}

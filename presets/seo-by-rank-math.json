@@ -1,0 +1,27 @@
+{
+    "name": "Rank Math SEO",
+    "tested": "1.0.279",
+    "updated": "2026-10-02",
+    "notes": "Hides the Frontend Stats Bar below the admin bar for logged-in visitors. Analytics and all other modules stay as the owner chose them. Module switches, email report schedules, rewrite-related settings and Usage Tracking are left out: their save paths manage schedules, rewrite rules or the tracking service. The dashboard widget depends on active modules rather than a separate display preference, and the admin bar menu has no separate on/off setting in this version.",
+    "options": {
+        "rank-math-options-general": {
+            "analytics_stats": "off"
+        }
+    },
+    "defaults": {
+        "rank-math-options-general": {
+            "analytics_stats": "on"
+        }
+    },
+    "settings": {
+        "rank-math-options-general.analytics_stats": {
+            "label": "Frontend Stats Bar",
+            "description": "Shows Analytics Stats on the front end just below the admin bar.",
+            "values": {
+                "on": "On",
+                "off": "Off",
+                "null": "On (not set)"
+            }
+        }
+    }
+}
