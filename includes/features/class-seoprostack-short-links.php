@@ -13,10 +13,11 @@
  * - three review links (/googlereview/, /facebookreview/, /trustpilotreview/)
  *   are added once, pointing at placeholders until the site owner sets them.
  *
- * Replaces "Pretty Links" and "Lasso Lite (Simple URLs)": imports their
- * links with their click counts and categories (button, WP-CLI, or when the
- * plugin is deactivated) and their defaults for new links. Lasso Lite's
- * product displays are not replaced; the Plugins screen says so.
+ * Replaces "Pretty Links": imports its links with their click counts and
+ * categories (button, WP-CLI, or when it is deactivated) and its defaults
+ * for new links. Also imports "Lasso Lite (Simple URLs)" links the same way,
+ * for sites moving their links, without replacing Lasso Lite, which does
+ * more (product displays, reports).
  *
  * @package SEOProStack
  * @since 0.4.0
@@ -93,10 +94,7 @@ class SEOProStack_Short_Links extends SEOProStack_Feature {
                 'tab'         => 'links',
                 'label'       => __('Short links', 'seoprostack'),
                 'description' => __('Make short addresses on this site, such as /go/offer/, that send visitors to another address, and count the clicks. Manage them under Short links in the admin menu.', 'seoprostack'),
-                'replaces'    => array(
-                    'pretty-link'    => 'Pretty Links',
-                    self::LASSO_SLUG => 'Lasso Lite (Simple URLs)',
-                ),
+                'replaces'    => array('pretty-link' => 'Pretty Links'),
             ),
             'short_links_redirect' => array(
                 'type'        => 'select',
@@ -186,24 +184,6 @@ class SEOProStack_Short_Links extends SEOProStack_Feature {
         if (isset(self::active_plugins()['pretty-link']) && self::pretty_links_rows()) {
             $options = self::import_setting($options, self::KEY, true);
         }
-
-        // Lasso Lite: its defaults for new links (it has no redirect choice;
-        // every link is a 301), and switch on while it is active with links.
-        $lasso = get_option('lassolite_settings', null);
-        if (is_array($lasso)) {
-            $map = array(
-                'enable_nofollow'  => 'short_links_nofollow',
-                'enable_sponsored' => 'short_links_sponsored',
-            );
-            foreach ($map as $from => $to) {
-                if (isset($lasso[$from]) && is_scalar($lasso[$from]) && '' !== $lasso[$from]) {
-                    $options = self::import_setting($options, $to, self::lasso_bool($lasso[$from], false));
-                }
-            }
-        }
-        if (isset(self::active_plugins()[self::LASSO_SLUG]) && self::lasso_rows()) {
-            $options = self::import_setting($options, self::KEY, true);
-        }
         return $options;
     }
 
@@ -213,7 +193,6 @@ class SEOProStack_Short_Links extends SEOProStack_Feature {
     public static function boot() {
         if (is_admin()) {
             add_action('seoprostack_setting_panel', array(__CLASS__, 'panel_status'), 10, 2);
-            add_filter('seoprostack_replaced_plugin_extras', array(__CLASS__, 'lasso_extras'), 10, 2);
         }
         // Switched off: drop the autoloaded list; it is rebuilt when needed.
         add_action('update_option_' . SEOProStack_Settings::OPTION, array(__CLASS__, 'settings_saved'), 10, 2);
@@ -242,6 +221,7 @@ class SEOProStack_Short_Links extends SEOProStack_Feature {
             add_filter('manage_' . self::TYPE . '_posts_columns', array(__CLASS__, 'columns'));
             add_action('manage_' . self::TYPE . '_posts_custom_column', array(__CLASS__, 'column'), 10, 2);
             add_filter('manage_edit-' . self::TYPE . '_sortable_columns', array(__CLASS__, 'sortable'));
+            add_filter('post_row_actions', array(__CLASS__, 'row_actions'), PHP_INT_MAX, 2);
             add_action('pre_get_posts', array(__CLASS__, 'list_query'));
             add_action('admin_notices', array(__CLASS__, 'notices'));
         }
@@ -1074,6 +1054,29 @@ class SEOProStack_Short_Links extends SEOProStack_Feature {
     /* --------------------------------------------------------------------- */
 
     /**
+     * Row links: WordPress's own and SEO Pro Stack's. Other plugins add
+     * theirs to every post type, such as AI Engine's Magic Wand (title and
+     * excerpt, which links do not have) and Social Engine's Create Social
+     * Post, which do nothing useful for a redirect.
+     *
+     * @param array   $actions Row links by key.
+     * @param WP_Post $post    Link.
+     * @return array
+     */
+    public static function row_actions($actions, $post) {
+        if (!$post instanceof WP_Post || self::TYPE !== $post->post_type || !is_array($actions)) {
+            return $actions;
+        }
+        $core = array('edit', 'inline hide-if-no-js', 'trash', 'untrash', 'delete', 'view');
+        foreach (array_keys($actions) as $key) {
+            if (!in_array($key, $core, true) && 0 !== strpos((string) $key, 'seoprostack')) {
+                unset($actions[$key]);
+            }
+        }
+        return $actions;
+    }
+
+    /**
      * Columns.
      *
      * @param array $columns Columns.
@@ -1524,21 +1527,6 @@ class SEOProStack_Short_Links extends SEOProStack_Feature {
             }
         }
         return $out;
-    }
-
-    /**
-     * Plugins screen: Lasso Lite also shows product boxes, which short
-     * links do not, so nobody deletes it while posts still use them.
-     *
-     * @param string[] $extras What the plugin does that SEO Pro Stack does not.
-     * @param string   $slug   Plugin folder.
-     * @return string[]
-     */
-    public static function lasso_extras($extras, $slug) {
-        if (self::LASSO_SLUG === $slug) {
-            $extras[] = __('Product displays (its [lasso] shortcode, block and Elementor widget)', 'seoprostack');
-        }
-        return $extras;
     }
 
     /**
