@@ -592,8 +592,10 @@ class SEOProStack_Settings {
      *     screen, Tidy admin screens and Simpler block editor, plus its
      *     W logo (Hide admin bar items), widgets and Dashboard boxes
      *     (Dashboard and sidebar widgets).
-     * v7: import Hostinger Tools' maintenance mode switch, leaving stored
-     *     SEO Pro Stack choices and Hostinger's settings untouched.
+     * v7: import Hostinger Tools' and Disable Bloat's XML-RPC and application
+     *     password switches (Turn off unused remote access) and Hostinger
+     *     Tools' maintenance mode switch (Maintenance mode), leaving stored
+     *     SEO Pro Stack choices and the other plugins' settings untouched.
      *
      * Old options are left in place so a downgrade keeps working;
      * uninstall.php removes ours. Other plugins' options are never touched.

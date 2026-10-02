@@ -38,6 +38,9 @@ class SEOProStack_Disable_Bloat {
      * [feature switch, list setting, choice in that list].
      */
     const MAP = array(
+        // Turn off unused remote access.
+        'xml_rpc_disable'                  => array('hardening', 'hardening_items', 'xmlrpc'),
+        'app_passwords_disable'            => array('hardening', 'hardening_items', 'app_passwords'),
         // Tidy WooCommerce admin.
         'wc_marketplace'                   => array('woo_tidy', 'woo_tidy_items', 'suggestions'),
         'remove_addon_submenu'             => array('woo_tidy', 'woo_tidy_items', 'extensions'),

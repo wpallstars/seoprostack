@@ -15,11 +15,12 @@ Go to **Settings → SEO Pro Stack**, or click the star next to your name in the
 
 ## Features
 
-Every feature is off by default except three: Hide admin bar items, which hides Comments and + New from the admin bar, No fade between admin screens and Quiet Freemius prompts. Copies installed from GitHub releases also have Updates from GitHub on. Features that replace a separate plugin say so on their card (“Replaces: …”) and import that plugin’s settings once when SEO Pro Stack is updated. The other plugin’s own settings are never changed or deleted. While that plugin is active, the feature waits and the plugin keeps doing the job, so the two never run side by side; the card says so, with a deactivate link. Deactivate the plugin to switch over. The Plugins screen lists installed plugins that SEO Pro Stack can replace, with what to do next for each: deactivate it (its setting is on), switch the setting on, or delete it once inactive (single sites; on multisite another site may use it). When an active plugin does things on the site that SEO Pro Stack does not (such as Disable Bloat’s Heartbeat or XML-RPC switches), the line names them instead of saying the plugin can go. **Hide** hides the lines shown for that person until another step is needed.
+Every feature is off by default except three: Hide admin bar items, which hides Comments and + New from the admin bar, No fade between admin screens and Quiet Freemius prompts. Copies installed from GitHub releases also have Updates from GitHub on. Features that replace a separate plugin say so on their card (“Replaces: …”) and import that plugin’s settings once when SEO Pro Stack is updated. The other plugin’s own settings are never changed or deleted. While that plugin is active, the feature waits and the plugin keeps doing the job, so the two never run side by side; the card says so, with a deactivate link. Deactivate the plugin to switch over. The Plugins screen lists installed plugins that SEO Pro Stack can replace, with what to do next for each: deactivate it (its setting is on), switch the setting on, or delete it once inactive (single sites; on multisite another site may use it). When an active plugin does things on the site that SEO Pro Stack does not (such as Disable Bloat’s Heartbeat switches), the line names them instead of saying the plugin can go. **Hide** hides the lines shown for that person until another step is needed.
 
 | Feature | Tab | Replaces |
 | --- | --- | --- |
 | Hide the admin bar, Block dashboard access | Admin | Admin Bar & Dashboard Access Control |
+| Turn off unused remote access | Admin | Hostinger Tools and Disable Bloat (PRO), in part |
 | Organise the admin menu | Admin | Admin Menu Editor (Pro) |
 | Hide dashboard widgets, Disable sidebar widgets | Admin | Widget Disable |
 | Tidy admin screens, Tidy WooCommerce admin, Tidy the login screen, Simpler block editor, Remove WordPress extras, Lighter WooCommerce pages | Admin, Content, Speed | Disable Bloat (PRO), in part |
@@ -44,7 +45,7 @@ Every feature is off by default except three: Hide admin bar items, which hides 
 | 410 Gone for removed pages | Links | Ultimate 410 |
 | Short addresses for custom post types | Links | Remove CPT base |
 | Short links | Links | Pretty Links |
-| Maintenance mode | Maintenance | Hostinger Tools (maintenance mode only) |
+| Maintenance mode | Maintenance | Hostinger Tools, in part |
 | Plugins menu in the admin bar | Plugins | Plugin Toggle |
 | Clean up deleted plugins | Plugins | Fix ‘Plugin file does not exist’ Notices |
 
@@ -62,6 +63,17 @@ WordPress 7.0 fades from one wp-admin screen to the next, using the browser’s 
 - Only page changes are affected. Animations inside a screen, such as in the site editor, stay.
 - No effect before WordPress 7.0, which has no fade, or for people whose system asks for reduced motion, who never get it.
 - Goes well with Load pages before the click’s **Also in the admin**, which downloads admin screens when you point at their links.
+
+### Turn off unused remote access (Admin)
+
+Off by default, with two independent choices, both unchecked:
+
+- **Turn off XML-RPC**: direct requests to `xmlrpc.php` return HTTP 403, including unauthenticated methods such as pingbacks. Removes the `X-Pingback` response header and RSD discovery link. Jetpack and some mobile apps need XML-RPC; leave this unchecked if you use them.
+- **Turn off application passwords**: core stops accepting application passwords and hides their profile section and the Authorize application screen. Existing application passwords are not deleted; they work again when this choice is unchecked, if core allows them. Normal password login and the REST API stay available.
+
+Imports enabled switches from active Hostinger Tools (`hostinger_tools`) and Disable Bloat once, without overwriting choices already saved here or changing their options. The feature waits until those plugins are deactivated. Only these two functions are replaced here, and Hostinger’s maintenance mode by [Maintenance mode](#maintenance-mode-maintenance): the Plugins screen names Hostinger’s HTTPS and www redirects, llms.txt generation and MCP connection when they are on, instead of suggesting removal. Keep Hostinger Tools if you still use those or its hosting tools. No separate options or files are stored; uninstall removes these settings with the rest.
+
+Uses core’s `xmlrpc_enabled`, `wp_headers` and `wp_is_application_passwords_available` filters, removes `rsd_link` from `wp_head`, and refuses XML-RPC during `init`.
 
 ### Magic login links (Admin)
 
@@ -662,7 +674,7 @@ Switch it on and reload to show the **Bypass link** in its options. Share it onl
 
 Clear your host's, CDN's and plugin's page caches when switching on or off; pages served before WordPress runs cannot be held by this feature. Maintenance and bypass responses ask caches not to store them. The small page has no styles or outside resources, so it uses the browser's default colours.
 
-Imports `hostinger_tools[maintenance_mode]` once (settings version 7), without overwriting an existing choice. Hostinger Tools keeps handling maintenance while active. Its XML-RPC, application-password, HTTPS, WWW, llms.txt and AI switches are not replaced; the Plugins screen names enabled extras before suggesting it can go. Hostinger's bypass code is never reused. The new `seoprostack_maintenance_token` option is removed on uninstall; the switch and message live in the main settings option.
+Imports `hostinger_tools[maintenance_mode]` once (settings version 7), without overwriting an existing choice. Hostinger Tools keeps handling maintenance while active. Its XML-RPC and application-password switches are covered by [Turn off unused remote access](#turn-off-unused-remote-access-admin); its HTTPS, www, llms.txt and MCP switches are not replaced, and the Plugins screen names them when they are on before suggesting it can go. Hostinger's bypass code is never reused. The new `seoprostack_maintenance_token` option is removed on uninstall; the switch and message live in the main settings option.
 
 ## Extending
 
@@ -731,8 +743,9 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folder�
 
 - New, off by default: Maintenance mode, with a plain-text 503 page, administrator reminder and revocable 24-hour visitor bypass links. Imports Hostinger Tools' maintenance switch, leaving its other jobs alone.
 - New: Fluent Booking starter data (`fluentbooking_events`): a free, single-host, 30-minute Discovery Call, with the adding administrator's host calendar and default schedule. Uses Booking's own calendar/event handlers and FluentCRM integration save service. Confirmed bookings join `website-booking-form` when FluentCRM is active. Remove keeps events with any bookings, removes only calendars this starter created while unused, and keeps CRM lists referenced by Booking feeds. The Fluent Boards Pro roadmap is not included: its creation service and page metadata need verification with Pro available.
+- New, off by default: Turn off unused remote access (Admin tab), with independent, unchecked choices to turn off XML-RPC (HTTP 403, no pingback header or RSD link) and application passwords (no profile section or authorization screen). Settings version 7 imports the enabled switches from active Hostinger Tools and Disable Bloat, preserving saved choices and the source plugins’ options.
 - New, off by default: six features that take over most of Disable Bloat (#90): Tidy admin screens, Tidy WooCommerce admin and Tidy the login screen (Admin tab), Simpler block editor (Content tab), Remove WordPress extras and Lighter WooCommerce pages (Speed tab). Each uses core’s or WooCommerce’s own hooks and stores nothing. While Disable Bloat (free or PRO) is active, its switches are imported once (settings version 6, `SEOProStack_Disable_Bloat::MAP`), including its W logo (Hide admin bar items), Dashboard boxes and widgets (Dashboard and sidebar widgets); the features wait until it is deactivated. Tested on a throwaway site with WooCommerce 11.1.2 and Disable Bloat 4.0.0: imports matched the seeded switches; a plain page lost WooCommerce’s scripts, styles, emoji and shortlink, while the shop, product and a page with a WooCommerce block kept them.
-- Changed: the Plugins screen names what a replaced plugin still does on the site that SEO Pro Stack does not (new `seoprostack_replaced_plugin_extras` filter), instead of saying it can go. Disable Bloat’s Heartbeat, XML-RPC, REST API, resource hints, revisions, auto-update and third-party plugin switches are not covered.
+- Changed: the Plugins screen names what a replaced plugin still does on the site that SEO Pro Stack does not (new `seoprostack_replaced_plugin_extras` filter), instead of saying it can go. Disable Bloat’s Heartbeat, REST API, resource hints, revisions, auto-update and third-party plugin switches are not covered; XML-RPC and application passwords are covered when selected under Turn off unused remote access.
 - Removed: Pro Plugins no longer lists Disable Bloat PRO.
 - New: starter data for Fluent Forms (`starters/fluentform.json`, item type `fluentform_forms`): Contact Form, Discovery Call Form, Subscription Form and Data Subject Access Request Form, taken from our own sites. Forms are created as Fluent Forms' own screens do: `FormService::store()` from a template, for its default settings and notification, then `Updater::update()` with our fields, which sanitises them and sets the primary email field. With FluentCRM active each gets a FluentCRM feed to the list named after it, with tag routing from its answers; the lists and tags it uses come with the starter (`"when": "fluent-crm"`), so it does not matter whether FluentCRM's starter data is added first. A field can have `"when"` too: phone and file upload fields need Fluent Forms Pro, which the free plugin does not show but would still require, so they are left out without it. Remove keeps forms with entries, forms placed in a post, page or block, and forms changed since, and keeps FluentCRM lists and tags that any Fluent Forms feed still uses. Items of a plugin that is inactive are left for later instead of stopping Add or Remove. Tested on a site with 85 plugins: 13 items added, a second run added none, a form whose title was taken was left alone; visitor submissions joined the right list with the right tags (contact form newsletter tick; access request types Customer and Supplier Contact); Remove kept the form with an entry, forms on pages and the tags and lists contacts hold; without FluentCRM, forms were added without feeds and FluentCRM's records left alone.
 - Removed: Free Plugins and Pro Plugins no longer list Freesoul Deactivate Plugins. Load plugins only where needed does its job in wp-admin and for the whole site. The Plugins screen does not suggest removing it yet: its page-by-page rules on the site are not covered so far.
@@ -882,6 +895,7 @@ Where a feature replaces one of them, SEO Pro Stack imports the settings it can,
 | Admin Bar & Dashboard Access Control | Collins Agbonghama | [WordPress.org](https://wordpress.org/plugins/admin-bar-dashboard-control/) | Admin bar and dashboard access |
 | Admin Menu Editor (and Pro) | Janis Elsts | [WordPress.org](https://wordpress.org/plugins/admin-menu-editor/) | Organise the admin menu |
 | Widget Disable | required | [WordPress.org](https://wordpress.org/plugins/wp-widget-disable/), [GitHub](https://github.com/wearerequired/WP-Widget-Disable) | Dashboard and sidebar widgets |
+| Hostinger Tools | Hostinger | [WordPress.org](https://wordpress.org/plugins/hostinger/), [source (WordPress.org SVN)](https://plugins.svn.wordpress.org/hostinger/trunk/) | Turn off unused remote access (XML-RPC and application passwords), Maintenance mode |
 | Disable Bloat for WordPress & WooCommerce (and PRO) | Rock Solid | [WordPress.org](https://wordpress.org/plugins/disable-dashboard-for-woocommerce/), [website](https://disablebloat.com/) | Tidy admin screens, Tidy WooCommerce admin, Tidy the login screen, Simpler block editor, Remove WordPress extras, Lighter WooCommerce pages |
 | Manage Notification E-mails | 3D Virge | [WordPress.org](https://wordpress.org/plugins/manage-notification-emails/) | Notification emails |
 | Hide Admin Notices | PontetLabs | [WordPress.org](https://wordpress.org/plugins/hide-admin-notices/), [GitHub](https://github.com/jonpontet/hide-admin-notices) | Hide admin notices |
@@ -910,7 +924,6 @@ Where a feature replaces one of them, SEO Pro Stack imports the settings it can,
 | Fix ‘Plugin file does not exist’ Notices | WP All Stars | [GitHub](https://github.com/wpallstars/wp-fix-plugin-does-not-exist-notices) | Clean up deleted plugins |
 | Freesoul Deactivate Plugins | Jose Mortellaro | [WordPress.org](https://wordpress.org/plugins/freesoul-deactivate-plugins/), [GitHub](https://github.com/JoseMortellaro/freesoul-deactivate-plugins) | Load plugins only where needed (not a replacement yet: its page-by-page rules on the site are not covered) |
 | Git Updater | Andy Fragen | [GitHub](https://github.com/afragen/git-updater), [website](https://git-updater.com/) | Updates from GitHub (GitHub builds only) |
-| Hostinger Tools | Hostinger | [WordPress.org](https://wordpress.org/plugins/hostinger/), [maker's SVN source](https://plugins.svn.wordpress.org/hostinger/trunk/) | Maintenance mode only (source checked at 3.0.78) |
 
 ## License
 

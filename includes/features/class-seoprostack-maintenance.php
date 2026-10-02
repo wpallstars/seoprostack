@@ -45,9 +45,11 @@ class SEOProStack_Maintenance extends SEOProStack_Feature {
         );
     }
 
-    /** Register metadata even when off; request handlers only when enabled. */
+    /**
+     * Request handlers only when enabled. Hostinger Tools' other jobs are
+     * named on the Plugins screen by SEOProStack_Hardening::hostinger_extras().
+     */
     public static function boot() {
-        add_filter('seoprostack_replaced_plugin_extras', array(__CLASS__, 'extras'), 10, 2);
         if (!self::enabled()) {
             return;
         }
@@ -206,27 +208,5 @@ class SEOProStack_Maintenance extends SEOProStack_Feature {
             $options = self::import_setting($options, self::KEY, !empty($hostinger['maintenance_mode']));
         }
         return $options;
-    }
-
-    /** Name Hostinger's active jobs not covered by maintenance mode. */
-    public static function extras($extras, $slug) {
-        if ('hostinger' !== $slug) {
-            return $extras;
-        }
-        $settings = get_option('hostinger_tools', array());
-        $jobs = array(
-            'disable_xml_rpc' => __('Disable XML-RPC', 'seoprostack'),
-            'disable_authentication_password' => __('Disable application passwords', 'seoprostack'),
-            'force_https' => __('Force HTTPS', 'seoprostack'),
-            'force_www' => __('Force WWW', 'seoprostack'),
-            'enable_llms_txt' => __('Generate llms.txt', 'seoprostack'),
-            'optin_mcp' => __('Hostinger AI tools', 'seoprostack'),
-        );
-        foreach ($jobs as $key => $label) {
-            if (is_array($settings) && !empty($settings[$key])) {
-                $extras[] = $label;
-            }
-        }
-        return $extras;
     }
 }

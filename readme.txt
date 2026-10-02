@@ -24,8 +24,9 @@ Everything is off by default except Hide admin bar items (Comments and + New), N
 * **Quiet Freemius prompts** (on by default): no opt-in nags, upgrade offers or deactivation surveys from plugins that use Freemius.
 * **Admin bar and dashboard access**: hide the admin bar and block wp-admin for roles such as subscribers and customers, never administrators.
 * **Magic login links**: “Email me a login link” on the login screen, with one-time links that email scanners cannot use up.
+* **Turn off unused remote access**: XML-RPC and application passwords, both off by default.
 * **Modern admin colours**, **No fade between admin screens** (on by default), **Readable list columns** and **Notification emails**, which stops routine emails one by one.
-* **Tidy admin screens**, **Tidy WooCommerce admin** and **Tidy the login screen**: no WordPress and WooCommerce promotions and prompts. With **Simpler block editor**, **Remove WordPress extras** and **Lighter WooCommerce pages**, they do most of Disable Bloat’s job.
+* **Tidy admin screens**, **Tidy WooCommerce admin**, **Tidy the login screen**, **Simpler block editor**, **Remove WordPress extras** and **Lighter WooCommerce pages** replace most of Disable Bloat.
 
 = Writing and publishing =
 
@@ -50,7 +51,7 @@ Everything is off by default except Hide admin bar items (Comments and + New), N
 * **Speed**: load pages before the click, delay chosen scripts until interaction, add Google Analytics 4 without slowing the page, open the editor faster with Kadence Blocks, and **Ask before licence checks** (once now, once a day or never).
 * **Load plugins only where needed**: a faster wp-admin on sites with many plugins, and admin tools you choose skipped on the site, through a must-use file it manages itself.
 * **Plugins menu** in the admin bar, **Plugin sizes**, **Clean up deleted plugins**, **Hosting needs** (what to ask your host for) and **Plugin presets**: our settings and starter data for other plugins, on request.
-* **Maintenance mode**: a temporary 503 page with a message and revocable 24-hour bypass links. Replaces Hostinger Tools' maintenance mode only.
+* **Maintenance mode**: a temporary 503 page with a message and 24-hour bypass links you can revoke.
 
 Features that replace another plugin import its settings once, never change that plugin’s settings, and wait while it is active.
 
@@ -116,7 +117,7 @@ Copies from WordPress.org update from there. New versions come out on GitHub fir
 == Changelog ==
 
 = Unreleased =
-* New, off by default: Maintenance mode, importing Hostinger Tools' switch, with revocable bypass links.
+* New, off by default: Maintenance mode with bypass links; turn off XML-RPC or application passwords.
 * New: Code Snippets preset.
 * New, off by default: six features that do most of Disable Bloat’s job, importing its settings.
 * New: starter data for Fluent Forms (four forms) and Fluent Booking (a Discovery Call), feeding FluentCRM.
