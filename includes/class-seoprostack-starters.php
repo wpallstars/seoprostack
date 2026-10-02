@@ -78,6 +78,9 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
+// Starters use SEOProStack_Presets::slug_of(); callers such as the Agency tab load only this file.
+require_once __DIR__ . '/class-seoprostack-presets.php';
+
 final class SEOProStack_Starters {
 
     /** Option recording what was added, per plugin folder. Not autoloaded. */
