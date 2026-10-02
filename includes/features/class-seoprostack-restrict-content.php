@@ -195,6 +195,10 @@ class SEOProStack_Restrict_Content extends SEOProStack_Feature {
                     add_filter("woocommerce_{$type}_get_{$field}", array(__CLASS__, 'woo_price'), 20, 2);
                 }
             }
+            // The Store API (and blocks that preload it) read these, not the_content.
+            add_filter('woocommerce_product_get_description', array(__CLASS__, 'woo_description'), 20, 2);
+            add_filter('woocommerce_product_variation_get_description', array(__CLASS__, 'woo_description'), 20, 2);
+            add_filter('woocommerce_product_get_attributes', array(__CLASS__, 'woo_attributes'), 20, 2);
             add_filter('woocommerce_variation_prices', array(__CLASS__, 'woo_variation_prices'), 20, 2);
             add_filter('woocommerce_is_purchasable', array(__CLASS__, 'woo_purchasable'), 20, 2);
             add_filter('woocommerce_variation_is_purchasable', array(__CLASS__, 'woo_purchasable'), 20, 2);
@@ -733,6 +737,34 @@ class SEOProStack_Restrict_Content extends SEOProStack_Feature {
      */
     public static function woo_price($price, $product) {
         return self::woo_hidden($product) ? '' : $price;
+    }
+
+    /**
+     * The message in place of the description of products the visitor may
+     * not see.
+     *
+     * @param string     $description Description.
+     * @param WC_Product $product     Product.
+     * @return string
+     */
+    public static function woo_description($description, $product) {
+        if (!self::woo_hidden($product)) {
+            return $description;
+        }
+        $id = $product->get_parent_id() ? $product->get_parent_id() : $product->get_id();
+        return self::message_text($id);
+    }
+
+    /**
+     * No attributes (sizes, materials, pack sizes) for products the visitor
+     * may not see.
+     *
+     * @param array      $attributes Attributes.
+     * @param WC_Product $product    Product.
+     * @return array
+     */
+    public static function woo_attributes($attributes, $product) {
+        return self::woo_hidden($product) ? array() : $attributes;
     }
 
     /**
