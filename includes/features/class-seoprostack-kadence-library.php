@@ -92,8 +92,9 @@ class SEOProStack_Kadence_Library extends SEOProStack_Feature {
         $base   = trailingslashit((string) apply_filters('kadence_block_library_local_data_base_path', trailingslashit(wp_get_upload_dir()['basedir'])));
         $folder = $base . apply_filters('kadence_block_library_local_data_subfolder_name', 'kadence_blocks_library');
         $files  = array();
-        foreach ((array) glob(trailingslashit($folder) . '*.json') as $path) {
-            $files[] = basename($path) . ':' . @filemtime($path) . ':' . @filesize($path);
+        $found  = glob(trailingslashit($folder) . '*.json');
+        foreach (is_array($found) ? $found : array() as $path) {
+            $files[] = basename($path) . ':' . (int) @filemtime($path) . ':' . (int) @filesize($path);
         }
         sort($files);
 

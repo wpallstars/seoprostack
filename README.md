@@ -331,6 +331,15 @@ WooCommerce loads its scripts and styles on every page, so that add-to-cart butt
 
 Kadence Blocks prints its whole design library, with every pattern’s HTML, into each block editor screen as the `kadence_blocks_params_library` script variable. On a test site with the library cached that was about 15 MB, so a new post screen weighed about 24 MB. This turns the preload off with Kadence’s own `kadence_blocks_preload_design_library` filter (Kadence does the same when Gravity Forms is active). The editor then fetches the library from Kadence’s `kb-design-library/v1/get_library` REST route the first time you open the design library, so only people who use it wait for it. Without Kadence Blocks it does nothing. A filter of your own on `kadence_blocks_preload_design_library` at a priority above 10 still decides.
 
+Kadence already keeps what it downloads in `wp-content/uploads/kadence_blocks_library`, so opening the library again does not reach Kadence’s servers, but each new editor page asked the site for the whole library again, and sent each request twice. The editor now keeps Kadence’s answers in the browser (Cache Storage, `seoprostack-kadence-library-*`) and sends each request once:
+
+- Only Kadence’s own section, page and template libraries are kept: never cloud or custom libraries (Kadence checks their expiry on each request), licence, account or AI data.
+- The kept copy belongs to a token from Kadence’s cache files (names, sizes and times), the versions of Kadence Blocks and Kadence Blocks Pro, its licence (in a salted hash), the user and the site. When Kadence’s copy changes, the next editor page drops the old one and fetches again once.
+- Kadence’s Sync button always goes to the site and Kadence’s servers, and drops the kept copy.
+- Nothing is stored on the server; browsers without Cache Storage (sites not on HTTPS) still send each request once.
+
+On a test site the library took 8.8 seconds to show on the first opening and 12.4 seconds in the next editor page, with four requests of 0.05–1.2 MB each. With the browser copy: 5.5 seconds for the first opening (two requests) and about 3 seconds after that (no requests; the rest is Kadence drawing 833 patterns). Sync still fetched new designs.
+
 ### 410 Gone for removed pages (Links)
 
 Answers “410 Gone” instead of “404 Not Found” for addresses you list, so search engines drop them sooner. Visitors still see the theme’s not-found page.
@@ -782,6 +791,10 @@ Deleting the plugin removes its settings and cached data, the profile pictures a
 Deactivating the plugin removes the WebP and AVIF rules from the uploads folder’s `.htaccess` (for every site when network-deactivated) and the must-use file of Load plugins only where needed (on multisite, when network-deactivated).
 
 ## Changelog
+
+### Unreleased
+
+- Changed: Faster editor with Kadence Blocks keeps Kadence’s design library in the browser until Kadence’s own copy changes, and sends each library request once instead of twice. On a test site the library showed in about 3 seconds instead of 8.8–12.4 after the first opening, with no requests. Only Kadence’s own section, page and template libraries are kept, never licence, account, AI or cloud library data; Sync still fetches new designs. No new options.
 
 ### 0.8.1
 
