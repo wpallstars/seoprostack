@@ -51,7 +51,7 @@ Everything is off by default except Hide admin bar items (Comments and + New), N
 = Links, speed and plugins =
 
 * **Short links** such as /go/offer/, with redirects, categories and click counts, and **Short addresses for custom post types**. **410 Gone** for removed pages.
-* **Speed**: load pages before the click, delay chosen scripts until interaction, add Google Analytics 4 without slowing the page, open the editor faster with Kadence Blocks, and **Ask before licence checks** (once now, once a day or never).
+* **Speed**: load pages before the click, delay chosen scripts until interaction, add Google Analytics 4 without slowing the page, open the editor faster with Kadence Blocks, and **Ask before licence checks** (once, daily or never).
 * **Load plugins only where needed**: a faster wp-admin, admin tools skipped on the site, and optional page-by-page learning.
 * **Plugins menu** in the admin bar, **Plugin sizes**, **Clean up deleted plugins**, **Hosting needs** (what to ask your host for) and **Plugin presets**: our settings and starter data for other plugins, on request.
 * **Fixes for other plugins** (on by default): works around their bugs, such as Lasso Lite contacting its server on every admin screen.
@@ -129,8 +129,8 @@ Click **Report a problem** at the top right of Settings → SEO Pro Stack, or op
 
 = Unreleased =
 * New: Word documents; Like, save and share.
-* Change: Pinned posts; faster post lists; notices megaphone.
-* Fix: More menu items shifting right, fitted menu in full screen editor.
+* Change: Pinned posts; faster post lists; sizes in Free Plugins; notices megaphone.
+* Fix: More menu alignment, fitted menu in full screen editor.
 
 = 0.9.0 =
 * New: Menu item visibility, Change post type, Order by hand, Term tools, Search custom fields, Old post addresses, Link cards, Wikipedia previews, Agency tab.
