@@ -13,9 +13,10 @@
  * - three review links (/googlereview/, /facebookreview/, /trustpilotreview/)
  *   are added once, pointing at placeholders until the site owner sets them.
  *
- * Replaces "Pretty Links": imports its links with their click counts and
- * categories (button, WP-CLI, or when Pretty Links is deactivated) and its
- * defaults for new links.
+ * Replaces "Pretty Links" and "Lasso Lite (Simple URLs)": imports their
+ * links with their click counts and categories (button, WP-CLI, or when the
+ * plugin is deactivated) and their defaults for new links. Lasso Lite's
+ * product displays are not replaced; the Plugins screen says so.
  *
  * @package SEOProStack
  * @since 0.4.0
@@ -39,11 +40,16 @@ class SEOProStack_Short_Links extends SEOProStack_Feature {
     /** Post meta key prefix. */
     const META = '_seoprostack_link_';
 
-    /** admin-post.php action that imports Pretty Links. */
+    /** admin-post.php action that imports Pretty Links' and Lasso Lite's links. */
     const IMPORT = 'seoprostack_import_pretty_links';
 
     /** Pretty Links' main file. */
     const PRLI_FILE = 'pretty-link/pretty-link.php';
+
+    /** Lasso Lite (Simple URLs): folder, post type and link categories. */
+    const LASSO_SLUG = 'simple-urls';
+    const LASSO_TYPE = 'surl';
+    const LASSO_TAX  = 'lasso-lite-cat';
 
     /** Redirect status codes offered. */
     const STATUSES = array('301', '302', '307');
@@ -87,7 +93,10 @@ class SEOProStack_Short_Links extends SEOProStack_Feature {
                 'tab'         => 'links',
                 'label'       => __('Short links', 'seoprostack'),
                 'description' => __('Make short addresses on this site, such as /go/offer/, that send visitors to another address, and count the clicks. Manage them under Short links in the admin menu.', 'seoprostack'),
-                'replaces'    => array('pretty-link' => 'Pretty Links'),
+                'replaces'    => array(
+                    'pretty-link'    => 'Pretty Links',
+                    self::LASSO_SLUG => 'Lasso Lite (Simple URLs)',
+                ),
             ),
             'short_links_redirect' => array(
                 'type'        => 'select',
@@ -129,7 +138,7 @@ class SEOProStack_Short_Links extends SEOProStack_Feature {
     /**
      * Redirect choices.
      *
-     * @return array<string,string>
+     * @return array<int,string> Keyed by status code (PHP turns numeric keys into integers).
      */
     public static function status_options() {
         return array(
@@ -177,6 +186,24 @@ class SEOProStack_Short_Links extends SEOProStack_Feature {
         if (isset(self::active_plugins()['pretty-link']) && self::pretty_links_rows()) {
             $options = self::import_setting($options, self::KEY, true);
         }
+
+        // Lasso Lite: its defaults for new links (it has no redirect choice;
+        // every link is a 301), and switch on while it is active with links.
+        $lasso = get_option('lassolite_settings', null);
+        if (is_array($lasso)) {
+            $map = array(
+                'enable_nofollow'  => 'short_links_nofollow',
+                'enable_sponsored' => 'short_links_sponsored',
+            );
+            foreach ($map as $from => $to) {
+                if (isset($lasso[$from]) && is_scalar($lasso[$from]) && '' !== $lasso[$from]) {
+                    $options = self::import_setting($options, $to, self::lasso_bool($lasso[$from], false));
+                }
+            }
+        }
+        if (isset(self::active_plugins()[self::LASSO_SLUG]) && self::lasso_rows()) {
+            $options = self::import_setting($options, self::KEY, true);
+        }
         return $options;
     }
 
@@ -186,6 +213,7 @@ class SEOProStack_Short_Links extends SEOProStack_Feature {
     public static function boot() {
         if (is_admin()) {
             add_action('seoprostack_setting_panel', array(__CLASS__, 'panel_status'), 10, 2);
+            add_filter('seoprostack_replaced_plugin_extras', array(__CLASS__, 'lasso_extras'), 10, 2);
         }
         // Switched off: drop the autoloaded list; it is rebuilt when needed.
         add_action('update_option_' . SEOProStack_Settings::OPTION, array(__CLASS__, 'settings_saved'), 10, 2);
@@ -669,10 +697,14 @@ class SEOProStack_Short_Links extends SEOProStack_Feature {
      * Create the starter review links whose addresses are free.
      */
     private static function add_presets() {
-        // Addresses Pretty Links has and that are still to be imported.
+        // Addresses Pretty Links and Lasso Lite have and that are still to be
+        // imported.
         $prli = array();
         foreach (self::pretty_links_rows() as $row) {
             $prli[self::key(self::clean_slug((string) $row['slug']))] = true;
+        }
+        foreach (self::lasso_rows() as $row) {
+            $prli[self::key($row['slug'])] = true;
         }
         $added = 0;
         foreach (self::presets() as $preset => $link) {
@@ -846,7 +878,7 @@ class SEOProStack_Short_Links extends SEOProStack_Feature {
                 <td>
                     <select id="sps-link-status" name="sps_link[status]">
                         <?php foreach (self::status_options() as $value => $label) : ?>
-                            <option value="<?php echo esc_attr($value); ?>" <?php selected($link['status'], $value); ?>><?php echo esc_html($label); ?></option>
+                            <option value="<?php echo esc_attr((string) $value); ?>" <?php selected($link['status'], $value); ?>><?php echo esc_html($label); ?></option>
                         <?php endforeach; ?>
                     </select>
                 </td>
@@ -1169,7 +1201,7 @@ class SEOProStack_Short_Links extends SEOProStack_Feature {
             $left    = isset($_GET['sps_left']) ? absint(wp_unslash($_GET['sps_left'])) : 0;
             $text    = sprintf(
                 /* translators: %s: number of links */
-                _n('%s link imported from Pretty Links.', '%s links imported from Pretty Links.', $added, 'seoprostack'),
+                _n('%s link imported.', '%s links imported.', $added, 'seoprostack'),
                 number_format_i18n($added)
             );
             if ($skipped) {
@@ -1232,24 +1264,26 @@ class SEOProStack_Short_Links extends SEOProStack_Feature {
     }
 
     /**
-     * Pretty Links IDs already imported (in any status, also the bin, so
-     * deleted links stay deleted) and the addresses in use.
+     * IDs of another plugin's links already imported (in any status, also
+     * the bin, so deleted links stay deleted) and the addresses in use.
      *
+     * @param string $source Meta key suffix holding the other plugin's ID:
+     *                       `prli` (Pretty Links) or `surl` (Lasso Lite).
      * @return array{0:array<int,true>,1:array<string,true>}
      */
-    private static function imported() {
+    private static function imported($source = 'prli') {
         global $wpdb;
         // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- importing only.
         $rows = $wpdb->get_results($wpdb->prepare(
             "SELECT m.meta_key, m.meta_value FROM {$wpdb->postmeta} m JOIN {$wpdb->posts} p ON p.ID = m.post_id WHERE p.post_type = %s AND p.post_status <> 'auto-draft' AND m.meta_key IN (%s, %s)",
             self::TYPE,
-            self::META . 'prli',
+            self::META . $source,
             self::META . 'slug'
         ));
         $ids   = array();
         $slugs = array();
         foreach ((array) $rows as $row) {
-            if (self::META . 'prli' === $row->meta_key) {
+            if (self::META . $source === $row->meta_key) {
                 $ids[(int) $row->meta_value] = true;
             } else {
                 $slugs[self::key((string) $row->meta_value)] = true;
@@ -1259,24 +1293,42 @@ class SEOProStack_Short_Links extends SEOProStack_Feature {
     }
 
     /**
-     * Pretty Links' links still to import.
+     * Links still to import, by plugin name.
+     *
+     * @return array<string,int> Only plugins with links to import.
+     */
+    public static function pending_counts() {
+        $sources = array(
+            'Pretty Links' => array('prli', self::pretty_links_rows()),
+            'Lasso Lite'   => array('surl', self::lasso_rows()),
+        );
+        $out = array();
+        foreach ($sources as $name => $source) {
+            if (!$source[1]) {
+                continue;
+            }
+            list($ids, $slugs) = self::imported($source[0]);
+            $count = 0;
+            foreach ($source[1] as $id => $row) {
+                $slug = self::clean_slug((string) $row['slug']);
+                if (!isset($ids[$id]) && '' !== $slug && !isset($slugs[self::key($slug)]) && !self::reserved($slug)) {
+                    $count++;
+                }
+            }
+            if ($count) {
+                $out[$name] = $count;
+            }
+        }
+        return $out;
+    }
+
+    /**
+     * Links still to import from Pretty Links and Lasso Lite.
      *
      * @return int
      */
     public static function pending() {
-        $rows = self::pretty_links_rows();
-        if (!$rows) {
-            return 0;
-        }
-        list($ids, $slugs) = self::imported();
-        $count = 0;
-        foreach ($rows as $id => $row) {
-            $slug = self::clean_slug((string) $row['slug']);
-            if (!isset($ids[$id]) && '' !== $slug && !isset($slugs[self::key($slug)]) && !self::reserved($slug)) {
-                $count++;
-            }
-        }
-        return $count;
+        return (int) array_sum(self::pending_counts());
     }
 
     /**
@@ -1286,12 +1338,13 @@ class SEOProStack_Short_Links extends SEOProStack_Feature {
      * whose address a short link has, are left out. Pretty Links' data is
      * only read.
      *
-     * @param int $budget Seconds to run; 0 for no limit.
-     * @return array{added:int,skipped:int,left:int}
+     * @param int        $budget Seconds to run; 0 for no limit.
+     * @param float|null $start  When the budget started; now when null.
+     * @return array{added:int,skipped:int,left:int,clashes:string[]}
      */
-    public static function import_pretty_links($budget = 0) {
+    public static function import_pretty_links($budget = 0, $start = null) {
         global $wpdb;
-        $counts = array('added' => 0, 'skipped' => 0, 'left' => 0);
+        $counts = array('added' => 0, 'skipped' => 0, 'left' => 0, 'clashes' => array());
         $rows   = self::pretty_links_rows(true);
         if (!$rows) {
             return $counts;
@@ -1320,7 +1373,7 @@ class SEOProStack_Short_Links extends SEOProStack_Feature {
             }
         }
 
-        $start = microtime(true);
+        $start = null === $start ? microtime(true) : (float) $start;
         wp_defer_term_counting(true);
         foreach ($rows as $id => $row) {
             if (isset($ids[$id])) {
@@ -1329,6 +1382,7 @@ class SEOProStack_Short_Links extends SEOProStack_Feature {
             $slug = self::clean_slug((string) $row['slug']);
             if ('' === $slug || isset($slugs[self::key($slug)]) || self::reserved($slug)) {
                 $counts['skipped']++;
+                $counts['clashes'][] = '' === $slug ? (string) $row['slug'] : $slug;
                 continue;
             }
             if ($budget && microtime(true) - $start > $budget) {
@@ -1385,6 +1439,240 @@ class SEOProStack_Short_Links extends SEOProStack_Feature {
         return $counts;
     }
 
+    /* --------------------------------------------------------------------- */
+    /* Lasso Lite import                                                      */
+    /* --------------------------------------------------------------------- */
+
+    /**
+     * Lasso Lite's address prefix: `go` unless its `simple_urls_slug` filter
+     * changes it, cleaned as Lasso Lite does.
+     *
+     * @return string
+     */
+    private static function lasso_prefix() {
+        // Lasso Lite's own filter, read so its addresses are matched.
+        $prefix = (string) apply_filters('simple_urls_slug', 'go'); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- Lasso Lite's hook.
+        return sanitize_title($prefix, 'go');
+    }
+
+    /**
+     * A Lasso Lite yes/no value: 1/0 from its screens, booleans or "true" /
+     * "false" from older versions and imports.
+     *
+     * @param mixed $value   Stored value.
+     * @param bool  $default When nothing is stored.
+     * @return bool
+     */
+    private static function lasso_bool($value, $default) {
+        if (null === $value || '' === $value) {
+            return $default;
+        }
+        return (bool) filter_var($value, FILTER_VALIDATE_BOOLEAN);
+    }
+
+    /**
+     * Lasso Lite's links that are not in the bin, as id => row, oldest
+     * first. Each row has `slug` (the full address, such as `go/offer`);
+     * with $full also the post and its meta and categories.
+     *
+     * Lasso Lite redirects from its post meta (`_surl_redirect`), so its
+     * own tables (`lasso_lite_url_details`, a copy of the target for its
+     * reports; `lasso_lite_amazon_products`; `lasso_lite_revert`) are not
+     * read.
+     *
+     * @param bool $full Everything needed to import, not only the address.
+     * @return array<int,array>
+     */
+    private static function lasso_rows($full = false) {
+        global $wpdb;
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- another plugin's posts, read only; its post type may not be registered.
+        $posts = $wpdb->get_results($wpdb->prepare(
+            "SELECT ID, post_name, post_title, post_status, post_date, post_date_gmt FROM {$wpdb->posts} WHERE post_type = %s AND post_status NOT IN ('trash', 'auto-draft', 'inherit') ORDER BY ID",
+            self::LASSO_TYPE
+        ), ARRAY_A);
+        if (!$posts) {
+            return array();
+        }
+        $prefix = self::lasso_prefix();
+        $out    = array();
+        foreach ($posts as $post) {
+            // Drafts may have no post_name yet; WordPress would make one
+            // from the title when publishing.
+            $name = '' !== (string) $post['post_name'] ? (string) $post['post_name'] : sanitize_title((string) $post['post_title']);
+            $slug = '' !== $name ? self::clean_slug($prefix . '/' . $name) : '';
+
+            $row         = $full ? $post : array();
+            $row['slug'] = $slug;
+            $out[(int) $post['ID']] = $row;
+        }
+        if (!$full) {
+            return $out;
+        }
+
+        foreach (array_chunk(array_keys($out), 500) as $chunk) {
+            $in = implode(',', array_map('intval', $chunk));
+            // phpcs:ignore WordPress.DB.DirectDatabaseQuery, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- integer list.
+            foreach ((array) $wpdb->get_results("SELECT post_id, meta_key, meta_value FROM {$wpdb->postmeta} WHERE post_id IN ({$in}) AND meta_key IN ('_surl_redirect', '_surl_count', '_enable_nofollow', '_enable_sponsored')") as $meta) {
+                $id = (int) $meta->post_id;
+                if (!isset($out[$id]['meta'][$meta->meta_key])) {
+                    $out[$id]['meta'][$meta->meta_key] = (string) $meta->meta_value;
+                }
+            }
+            // phpcs:ignore WordPress.DB.DirectDatabaseQuery, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- integer list; Lasso Lite's taxonomy may not be registered.
+            foreach ((array) $wpdb->get_results($wpdb->prepare("SELECT tr.object_id, t.name FROM {$wpdb->term_relationships} tr JOIN {$wpdb->term_taxonomy} tt ON tt.term_taxonomy_id = tr.term_taxonomy_id AND tt.taxonomy = %s JOIN {$wpdb->terms} t ON t.term_id = tt.term_id WHERE tr.object_id IN ({$in})", self::LASSO_TAX)) as $term) {
+                $out[(int) $term->object_id]['terms'][] = $term->name;
+            }
+        }
+        return $out;
+    }
+
+    /**
+     * Plugins screen: Lasso Lite also shows product boxes, which short
+     * links do not, so nobody deletes it while posts still use them.
+     *
+     * @param string[] $extras What the plugin does that SEO Pro Stack does not.
+     * @param string   $slug   Plugin folder.
+     * @return string[]
+     */
+    public static function lasso_extras($extras, $slug) {
+        if (self::LASSO_SLUG === $slug) {
+            $extras[] = __('Product displays (its [lasso] shortcode, block and Elementor widget)', 'seoprostack');
+        }
+        return $extras;
+    }
+
+    /**
+     * Where a Lasso Lite link sends visitors. Lasso Lite redirects to its
+     * stored target, but adds its Amazon tracking ID to Amazon product
+     * addresses as it redirects; while its code is loaded (active, or in the
+     * request that deactivates it), the same is done here, so the imported
+     * link goes to the same address.
+     *
+     * @param string $url Stored target.
+     * @return string
+     */
+    private static function lasso_target($url) {
+        $url = trim($url);
+        if ('' === $url) {
+            return '';
+        }
+        $is_amazon = array('LassoLite\\Classes\\Amazon_Api', 'is_amazon_url');
+        $amazon    = array('LassoLite\\Classes\\Amazon_Api', 'get_amazon_product_url');
+        if (class_exists($is_amazon[0]) && is_callable($is_amazon) && is_callable($amazon)) {
+            try {
+                if (call_user_func($is_amazon, $url)) {
+                    $url = (string) call_user_func($amazon, $url);
+                }
+            } catch (\Throwable $e) {
+                // Keep the stored target.
+                unset($e);
+            }
+        }
+        return esc_url_raw($url);
+    }
+
+    /**
+     * Copy Lasso Lite's links: address, target, nofollow, sponsored, name,
+     * date, on or off, click count and categories. Every Lasso Lite link is
+     * a 301 redirect that counts every click, so imported links are too.
+     * Links already imported, or whose address a short link has, are left
+     * out. Lasso Lite's data is only read.
+     *
+     * @param int        $budget Seconds to run; 0 for no limit.
+     * @param float|null $start  When the budget started; now when null.
+     * @return array{added:int,skipped:int,left:int,clashes:string[]}
+     */
+    public static function import_lasso_lite($budget = 0, $start = null) {
+        $counts = array('added' => 0, 'skipped' => 0, 'left' => 0, 'clashes' => array());
+        $rows   = self::lasso_rows(true);
+        if (!$rows) {
+            return $counts;
+        }
+        list($ids, $slugs) = self::imported('surl');
+
+        $start = null === $start ? microtime(true) : (float) $start;
+        wp_defer_term_counting(true);
+        foreach ($rows as $id => $row) {
+            if (isset($ids[$id])) {
+                continue;
+            }
+            $slug = $row['slug'];
+            if ('' === $slug || isset($slugs[self::key($slug)]) || self::reserved($slug)) {
+                $counts['skipped']++;
+                $counts['clashes'][] = '' === $slug ? (string) $row['post_title'] : $slug;
+                continue;
+            }
+            if ($budget && microtime(true) - $start > $budget) {
+                $counts['left']++;
+                continue;
+            }
+            $meta = isset($row['meta']) ? $row['meta'] : array();
+            $get  = function ($key) use ($meta) {
+                return isset($meta[$key]) ? $meta[$key] : null;
+            };
+            $url  = self::lasso_target((string) $get('_surl_redirect'));
+            // Lasso Lite only redirects published links.
+            $on   = '' !== $url && 'publish' === $row['post_status'];
+            $post = array(
+                'post_type'   => self::TYPE,
+                'post_status' => $on ? 'publish' : 'draft',
+                'post_title'  => '' !== trim((string) $row['post_title']) ? sanitize_text_field((string) $row['post_title']) : $slug,
+                'post_author' => get_current_user_id(),
+                'meta_input'  => array(
+                    self::META . 'slug'      => $slug,
+                    self::META . 'url'       => $url,
+                    self::META . 'status'    => '301',
+                    // Lasso Lite treats a missing nofollow as on.
+                    self::META . 'nofollow'  => self::lasso_bool($get('_enable_nofollow'), true) ? 1 : 0,
+                    self::META . 'sponsored' => self::lasso_bool($get('_enable_sponsored'), false) ? 1 : 0,
+                    self::META . 'track'     => 1,
+                    self::META . 'clicks'    => max(0, (int) $get('_surl_count')),
+                    self::META . 'uniques'   => 0,
+                    self::META . 'surl'      => $id,
+                ),
+            );
+            // Drafts have no GMT date; WordPress works it out from the local one.
+            if ('0000-00-00 00:00:00' !== (string) $row['post_date']) {
+                $post['post_date'] = (string) $row['post_date'];
+            }
+            if ('0000-00-00 00:00:00' !== (string) $row['post_date_gmt']) {
+                $post['post_date_gmt'] = (string) $row['post_date_gmt'];
+            }
+            $post_id = wp_insert_post(wp_slash($post), true);
+            if (is_wp_error($post_id) || !$post_id) {
+                $counts['skipped']++;
+                continue;
+            }
+            if (!empty($row['terms'])) {
+                wp_set_object_terms($post_id, array_values(array_unique($row['terms'])), self::TAX);
+            }
+            $slugs[self::key($slug)] = true;
+            $counts['added']++;
+        }
+        wp_defer_term_counting(false);
+        if ($counts['added']) {
+            self::build_map();
+        }
+        return $counts;
+    }
+
+    /**
+     * Import Pretty Links' links, then Lasso Lite's.
+     *
+     * @param int $budget Seconds to run; 0 for no limit.
+     * @return array{added:int,skipped:int,left:int,clashes:string[]}
+     */
+    public static function import_links($budget = 0) {
+        $start  = microtime(true);
+        $counts = self::import_pretty_links($budget, $start);
+        $lasso  = self::import_lasso_lite($budget, $start);
+        foreach (array('added', 'skipped', 'left') as $key) {
+            $counts[$key] += $lasso[$key];
+        }
+        $counts['clashes'] = array_merge($counts['clashes'], $lasso['clashes']);
+        return $counts;
+    }
+
     /**
      * admin-post.php?action=seoprostack_import_pretty_links
      */
@@ -1394,7 +1682,7 @@ class SEOProStack_Short_Links extends SEOProStack_Feature {
         if (!$type || !current_user_can($type->cap->create_posts) || !current_user_can('manage_options')) {
             wp_die(esc_html__('Sorry, you are not allowed to import links.', 'seoprostack'), '', array('response' => 403, 'back_link' => true));
         }
-        $counts = self::import_pretty_links(self::IMPORT_BUDGET);
+        $counts = self::import_links(self::IMPORT_BUDGET);
         wp_safe_redirect(add_query_arg(
             array(
                 'sps_imported' => $counts['added'],
@@ -1407,7 +1695,8 @@ class SEOProStack_Short_Links extends SEOProStack_Feature {
     }
 
     /**
-     * Import when Pretty Links is deactivated, so its links keep working.
+     * Import when Pretty Links or Lasso Lite is deactivated, so its links
+     * keep working.
      *
      * @param string $plugin Plugin file.
      */
@@ -1415,11 +1704,19 @@ class SEOProStack_Short_Links extends SEOProStack_Feature {
         // Whoever could deactivate it (or WP-CLI) may import its links.
         if (self::PRLI_FILE === $plugin) {
             self::import_pretty_links();
+        } elseif (self::LASSO_SLUG === dirname((string) $plugin)) {
+            self::import_lasso_lite();
+            // Lasso Lite leaves its rewrite rules behind, so other /go/…
+            // addresses would show the home page instead of a 404. Its post
+            // type is still registered in this request, so WordPress builds
+            // the rules again on the next one.
+            delete_option('rewrite_rules');
         }
     }
 
     /**
-     * Settings panel: links, and Pretty Links' links still to import.
+     * Settings panel: links, and Pretty Links' and Lasso Lite's links still
+     * to import.
      *
      * @param string $key   Setting key.
      * @param array  $field Schema entry.
@@ -1428,15 +1725,16 @@ class SEOProStack_Short_Links extends SEOProStack_Feature {
         if (self::KEY !== $key) {
             return;
         }
-        $pending = self::pending();
+        $pending = self::pending_counts();
         if (!self::switched_on()) {
-            if ($pending) {
+            foreach ($pending as $name => $count) {
                 printf(
                     '<div class="sps-panel-note"><p>%s</p></div>',
                     esc_html(sprintf(
-                        /* translators: %s: number of links */
-                        _n('Pretty Links has %s link. Switch this on to import it.', 'Pretty Links has %s links. Switch this on to import them.', $pending, 'seoprostack'),
-                        number_format_i18n($pending)
+                        /* translators: 1: plugin name, 2: number of links */
+                        _n('%1$s has %2$s link. Switch this on to import it.', '%1$s has %2$s links. Switch this on to import them.', $count, 'seoprostack'),
+                        $name,
+                        number_format_i18n($count)
                     ))
                 );
             }
@@ -1456,18 +1754,26 @@ class SEOProStack_Short_Links extends SEOProStack_Feature {
             esc_html__('Manage short links', 'seoprostack')
         );
         if ($pending && current_user_can('manage_options')) {
-            $active = isset(self::active_plugins()['pretty-link']);
-            printf(
-                '<form method="post" action="%1$s"><p>%2$s %3$s</p><input type="hidden" name="action" value="%4$s" />',
-                esc_url(admin_url('admin-post.php')),
-                esc_html(sprintf(
-                    /* translators: %s: number of links */
-                    _n('Pretty Links has %s link that is not here yet.', 'Pretty Links has %s links that are not here yet.', $pending, 'seoprostack'),
-                    number_format_i18n($pending)
-                )),
-                $active ? esc_html__('They are also imported when Pretty Links is deactivated, and work here from then on.', 'seoprostack') : '',
-                esc_attr(self::IMPORT)
-            );
+            $plugins = array('Pretty Links' => 'pretty-link', 'Lasso Lite' => self::LASSO_SLUG);
+            echo '<form method="post" action="' . esc_url(admin_url('admin-post.php')) . '">';
+            foreach ($pending as $name => $count) {
+                $active = isset($plugins[$name], self::active_plugins()[$plugins[$name]]);
+                printf(
+                    '<p>%1$s %2$s</p>',
+                    esc_html(sprintf(
+                        /* translators: 1: plugin name, 2: number of links */
+                        _n('%1$s has %2$s link that is not here yet.', '%1$s has %2$s links that are not here yet.', $count, 'seoprostack'),
+                        $name,
+                        number_format_i18n($count)
+                    )),
+                    $active ? esc_html(sprintf(
+                        /* translators: %s: plugin name */
+                        __('They are also imported when %s is deactivated, and work here from then on.', 'seoprostack'),
+                        $name
+                    )) : ''
+                );
+            }
+            printf('<input type="hidden" name="action" value="%s" />', esc_attr(self::IMPORT));
             wp_nonce_field(self::IMPORT);
             printf('<p><button type="submit" class="button">%s</button></p></form>', esc_html__('Import links', 'seoprostack'));
         }
@@ -1475,13 +1781,13 @@ class SEOProStack_Short_Links extends SEOProStack_Feature {
     }
 
     /**
-     * Import Pretty Links' links.
+     * Import Pretty Links' and Lasso Lite's links.
      *
      * Links keep their address, target, redirect, nofollow, sponsored,
-     * click counting, click and unique visitor counts, name, description,
-     * date and categories. Links already imported, or whose address a short
-     * link has, are left out, so running it again is safe. Pretty Links'
-     * data is only read.
+     * click counting, click counts (and Pretty Links' unique visitor
+     * counts), name, description, date and categories. Links already
+     * imported, or whose address a short link has, are left out and listed,
+     * so running it again is safe. The other plugins' data is only read.
      *
      * ## EXAMPLES
      *
@@ -1494,7 +1800,10 @@ class SEOProStack_Short_Links extends SEOProStack_Feature {
         if (!self::switched_on()) {
             WP_CLI::error('Short links is off. Switch it on under Settings → SEO Pro Stack → Links first.');
         }
-        $counts = self::import_pretty_links();
+        $counts = self::import_links();
+        foreach ($counts['clashes'] as $slug) {
+            WP_CLI::warning(sprintf('Left out /%s/: a short link already has that address, or it cannot be used.', $slug));
+        }
         WP_CLI::success(sprintf('%d imported, %d left out because their address is in use.', $counts['added'], $counts['skipped']));
     }
 }

@@ -365,8 +365,8 @@ class SEOProStack_Replace_Media extends SEOProStack_Feature {
         add_filter('upload_dir', $folder, 99);
         $new = wp_handle_upload($upload, array('test_form' => false));
         remove_filter('upload_dir', $folder, 99);
-        if (!is_array($new) || !empty($new['error']) || empty($new['file'])) {
-            return new WP_Error('replace_upload', is_array($new) && !empty($new['error']) ? $new['error'] : __('The file could not be uploaded.', 'seoprostack'));
+        if (!empty($new['error']) || empty($new['file'])) {
+            return new WP_Error('replace_upload', !empty($new['error']) ? $new['error'] : __('The file could not be uploaded.', 'seoprostack'));
         }
         $new_file = $new['file'];
 

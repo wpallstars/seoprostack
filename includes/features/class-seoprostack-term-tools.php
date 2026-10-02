@@ -143,7 +143,7 @@ class SEOProStack_Term_Tools extends SEOProStack_Feature {
                 'name'             => 'seoprostack_parent',
                 'id'               => 'seoprostack-term-parent',
                 'show_option_none' => __('None', 'seoprostack'),
-                'option_none_value' => 0,
+                'option_none_value' => '0',
                 'orderby'          => 'name',
                 'echo'             => 0,
             ));

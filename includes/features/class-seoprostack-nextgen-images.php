@@ -1000,7 +1000,9 @@ class SEOProStack_Nextgen_Images extends SEOProStack_Feature {
         $cleaned = ltrim($cleaned, "\r\n");
         if ('' === trim($cleaned)) {
             // Only our block was there; the file was made for it.
-            return wp_delete_file($file) || !is_file($file);
+            // wp_delete_file() returns nothing before WordPress 6.6, so check.
+            wp_delete_file($file);
+            return !file_exists($file);
         }
         return false !== file_put_contents($file, $cleaned); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_file_put_contents -- same as insert_with_markers().
     }

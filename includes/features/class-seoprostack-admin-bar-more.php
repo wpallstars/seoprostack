@@ -182,7 +182,6 @@ class SEOProStack_Admin_Bar_More extends SEOProStack_Feature {
         $wp_admin_bar->add_node(array(
             'id'    => self::NODE,
             'title' => '<span class="ab-icon" aria-hidden="true"></span><span class="screen-reader-text">' . esc_html($label) . '</span>',
-            'href'  => false,
             'meta'  => array(
                 'menu_title' => $label,
                 'tabindex'   => 0,

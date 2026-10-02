@@ -14,7 +14,8 @@ if (!defined('ABSPATH')) {
 // Posts Switch, Ultimate 410, Flying Analytics/Pages/Scripts, Widget Disable,
 // Plugin Toggle, Hide Admin Notices, The Paste, Avatar Privacy, Safe SVG,
 // Imsanity, Enable Media Replace, CompressX, Easy Watermark, Remove CPT base,
-// Pretty Links, Browser Shots, Spectra (ultimate-addons-for-gutenberg;
+// Pretty Links, Lasso Lite (simple-urls; Short links imports its links, but
+// not its product displays), Browser Shots, Spectra (ultimate-addons-for-gutenberg;
 // Kadence Blocks is listed for page building), Admin Menu Editor, Nav Menu
 // Roles, Post Type Switcher, Simple Custom Post Order, Term Management Tools,
 // ACF: Better Search (Search custom fields), Slugs Manager: Delete Old
@@ -62,7 +63,6 @@ function seoprostack_get_free_plugins() {
             'plugin-groups'
         ),
         'affiliates' => array(
-            'simple-urls',
             'slicewp'
         ),
         'ai' => array(

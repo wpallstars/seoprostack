@@ -30,7 +30,7 @@ class SEOProStack_Settings {
 
     /** Stored schema version, used for one-off migrations. */
     const DB_VERSION_OPTION = 'seoprostack_db_version';
-    const DB_VERSION = 14;
+    const DB_VERSION = 15;
 
     /**
      * Tab slugs renamed in 0.4.0, old => new. Settings that still use an
@@ -405,7 +405,9 @@ class SEOProStack_Settings {
                 // Not sanitize_text_field(): it strips %xx, which URL paths need.
                 $lines = array_filter(array_map(function ($line) {
                     return trim(preg_replace('/[\x00-\x1F\x7F]+/', '', wp_strip_all_tags($line)));
-                }, $lines), 'strlen');
+                }, $lines), function ($line) {
+                    return '' !== $line;
+                });
                 return implode("\n", array_values(array_unique($lines)));
 
             case 'text':
@@ -617,7 +619,10 @@ class SEOProStack_Settings {
      *     the post types Favorites adds its button to.
      * v13: switch on Brand icons while Popular Brand Icons – Simple Icons is
      *     active.
-     * v14: switch on Restrict content while Content Control is active, with
+     * v14: import Lasso Lite's nofollow and sponsored defaults for new links
+     *     (Short links), and switch Short links on while Lasso Lite is active
+     *     with links (its links are imported separately).
+     * v15: switch on Restrict content while Content Control is active, with
      *     its default message.
      *
      * Old options are left in place so a downgrade keeps working;

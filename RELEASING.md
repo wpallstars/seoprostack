@@ -86,8 +86,8 @@ Guidelines: [Detailed Plugin Guidelines](https://developer.wordpress.org/plugins
       change only before approval.
 - [x] **Contributors: `wpallstars`**, the WordPress.org account that submits
       the plugin. Contributors must be WordPress.org usernames (case-sensitive).
-- [ ] **Plugin URI** is the same as Author URI. Point it at a page about this
-      plugin, or remove it.
+- [x] **Plugin URI** is the GitHub repository, unique to the plugin (public
+      from launch). Change it if the plugin gets its own page.
 - [ ] **Changelog**: name the Unreleased section for the version submitted, in
       `readme.txt` and `changelog.txt`.
 - [ ] **Assets** for the SVN `assets/` folder (not in the plugin zip):
