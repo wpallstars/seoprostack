@@ -511,7 +511,7 @@ final class SEOProStack_Plugin_Loader {
         self::$mode   = 'filter';
         self::$reason = '';
         add_filter('option_active_plugins', array(__CLASS__, 'filter_active'), PHP_INT_MAX);
-        add_filter('pre_update_option_active_plugins', array(__CLASS__, 'keep_active'), PHP_INT_MAX, 2);
+        add_filter('pre_update_option_active_plugins', array(__CLASS__, 'keep_active'), PHP_INT_MAX);
         // Rules generated now would leave out the skipped plugins' addresses
         // for everyone, so only a request with every plugin saves them.
         add_filter('pre_update_option_rewrite_rules', array(__CLASS__, 'keep_rewrite_rules'), PHP_INT_MAX, 2);
@@ -625,7 +625,7 @@ final class SEOProStack_Plugin_Loader {
      */
     private static function front_request() {
         if (is_admin() || wp_doing_ajax() || wp_doing_cron() || (defined('WP_CLI') && WP_CLI) || (defined('XMLRPC_REQUEST') && XMLRPC_REQUEST)
-            || (defined('REST_REQUEST') && REST_REQUEST) || (defined('IFRAME_REQUEST') && IFRAME_REQUEST) || (defined('WP_INSTALLING') && WP_INSTALLING)) {
+            || (defined('REST_REQUEST') && REST_REQUEST) || (defined('IFRAME_REQUEST') && IFRAME_REQUEST) || wp_installing()) {
             return false;
         }
         if (defined('SEOPROSTACK_LOAD_ALL_PLUGINS') && SEOPROSTACK_LOAD_ALL_PLUGINS) {
@@ -1421,7 +1421,7 @@ final class SEOProStack_Plugin_Loader {
                 continue;
             }
             $copy = $dir . substr($plugin, 0, strpos($plugin, '/')) . '/' . $relative;
-            if (is_readable($copy) && preg_match('/\b' . $declares . '\b/i', (string) file_get_contents($copy))) {
+            if (is_readable($copy) && preg_match('/\b' . $declares . '\b/i', (string) file_get_contents($copy))) { // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents -- a local plugin file.
                 $shared[] = $plugin;
             }
         }
@@ -1493,7 +1493,7 @@ final class SEOProStack_Plugin_Loader {
     /**
      * Current request state for SEO Pro Stack's own code.
      *
-     * @return array{mode: string, reason: string, screen: string, relearn: bool, active: string[], skipped: string[], map: array, attributing: bool, registered: array}
+     * @return array{mode: string, reason: string, screen: string, relearn: bool, active: string[], skipped: string[], map: array, attributing: bool, registered: array, front_revision: string}
      */
     public static function state() {
         return array(

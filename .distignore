@@ -8,6 +8,16 @@
 # WordPress.org SVN assets (banners) and their source; admin/images/banner.svg ships instead.
 .wordpress-org
 .woodpecker.yml
+# Development tools and CI (composer.json lists development tools only).
+.github
+.editorconfig
+composer.json
+composer.lock
+phpcs.xml.dist
+phpcs.xml
+phpstan.neon.dist
+phpstan.neon
+phpstan-baseline.neon
 /dist
 .DS_Store
 .aider*

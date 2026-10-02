@@ -21,6 +21,8 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
+// phpcs:disable WordPress.CodeAnalysis.AssignmentInTernaryCondition.FoundInTernaryCondition -- "($n = child()) ? attr($n) : default" reads an optional XML child once.
+
 class SEOProStack_Word_Import extends SEOProStack_Feature {
 
     const KEY = 'word_import';

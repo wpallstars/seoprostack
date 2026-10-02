@@ -140,7 +140,7 @@ class SEOProStack_Post_Versions extends SEOProStack_Feature {
                 'post_type'        => (array) SEOProStack_Settings::get('post_versions_types'),
                 'post_status'      => self::EDITING,
                 'meta_key'         => self::META, // phpcs:ignore WordPress.DB.SlowDBQuery -- few rows carry this key.
-                'posts_per_page'   => 200,
+                'posts_per_page'   => 200, // phpcs:ignore WordPress.WP.PostsPerPage.posts_per_page_posts_per_page -- pending versions only, once per request.
                 'orderby'          => 'ID',
                 'order'            => 'ASC',
             )); // get_posts() skips query filters by default.

@@ -237,7 +237,7 @@ class SEOProStack_Old_Slugs extends SEOProStack_Feature {
         if (!is_array($used) || !isset($used[$slug])) {
             return;
         }
-        if (in_array($slug, (array) get_post_meta($post_id, self::META), true)) {
+        if (in_array($slug, (array) get_post_meta($post_id, self::META, false), true)) {
             return;
         }
         unset($used[$slug]);

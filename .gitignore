@@ -40,7 +40,6 @@ project-documents/
 reference-plugins/
 *.bak*
 node_modules/
-composer.lock
 package-lock.json
 vendor/
 

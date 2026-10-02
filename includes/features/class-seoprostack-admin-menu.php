@@ -503,7 +503,7 @@ class SEOProStack_Admin_Menu extends SEOProStack_Feature {
     /**
      * Known menus and plugins (see admin/data/admin-menu.php).
      *
-     * @return array{menus: array<string,string>, plugins: array<string,string>}
+     * @return array{menus: array<string,string>, plugins: array<string,string>, hidden: array<string,bool>}
      */
     public static function catalog() {
         static $catalog = null;

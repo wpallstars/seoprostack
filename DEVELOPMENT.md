@@ -1,111 +1,104 @@
-# SEO Pro Stack Plugin Development Workflow
+# Developing SEO Pro Stack
 
-This document outlines the development workflow for the SEO Pro Stack Plugin to ensure stable and reliable feature implementation.
+How changes are made, checked and released. Rules for features, presets,
+code and styling: `AGENTS.md`. Releases: `RELEASING.md`. Manual test
+checklists: `TESTING.md`.
 
-## Development Principles
+## Workflow
 
-1. **Stability First**: The primary goal is maintaining a stable plugin that works reliably
-2. **Incremental Changes**: Implement changes in small, manageable increments
-3. **Complete Testing**: Every change must be thoroughly tested before integration
-4. **Documentation**: All features and changes must be well-documented
+1. Open or pick an issue that says what should change and how to check it.
+2. Work on a branch in its own worktree, never on `main`. Branch names:
+   `feature/…`, `bugfix/…`, `chore/…`.
+3. Commit small, working steps. Run `scripts/lint.sh` before pushing.
+4. Push and open a pull request (`Resolves #N`). Open it as a draft while
+   the work is in progress: CI lints every push, and the longer release and
+   smoke-test jobs start when the pull request is marked ready for review.
+5. Check the change on the shared preview site (`scripts/preview-site.sh`,
+   `AGENTS.md` → Testing), in light and dark mode for front-end styles.
+6. Merge once CI passes. Releases are separate: `RELEASING.md`.
 
-## Branch Structure
+## Set up
 
-- `main` - Production-ready code, always stable
-- `v0.2.3-stable` - Our current stable development branch
-- `feature/v0.2.3-stable/{feature-name}` - Feature branches for new development
-
-## Development Workflow
-
-### 1. Feature Planning
-
-1. Identify a feature from the ROADMAP.md file to implement
-2. Review any existing implementation in unstable versions
-3. Document the implementation plan in ROADMAP.md
-4. Create a new feature branch from the stable base
-
-```bash
-git checkout v0.2.3-stable
-git checkout -b feature/v0.2.3-stable/sync-guard
-```
-
-### 2. Feature Implementation
-
-1. Start with the smallest possible functional change
-2. Commit frequently with descriptive commit messages including stability classification
-3. Example commit message format:
-   ```
-   [EXPERIMENTAL] Add basic sync guard detection functionality
-   
-   - Adds file existence check for .syncing flag
-   - Implements conditional loading based on flag
-   - Does not yet handle admin notices
-   ```
-
-4. Reference the ROADMAP.md and TESTING.md documents while implementing
-
-### 3. Testing
-
-1. Complete all relevant tests from TESTING.md
-2. Add feature-specific tests if needed
-3. Test in a clean WordPress environment
-4. Test with WP_DEBUG enabled
-5. Document any issues found and fix them
-
-### 4. Code Review
-
-1. Self-review code for:
-   - PHP best practices
-   - WordPress coding standards
-   - Security considerations
-   - Performance implications
-   - Error handling
-
-2. Consider peer review if possible
-
-### 5. Integration
-
-1. Create a pull request to merge into the stable branch
-2. Summarize changes, testing performed, and any caveats
-3. Once approved, merge using `--no-ff` to preserve feature history
+Needs PHP 7.4 or later, Composer 2, Node.js (syntax checks only),
+ShellCheck and Docker (release checks and smoke test). actionlint is
+optional locally; CI runs it.
 
 ```bash
-git checkout v0.2.3-stable
-git merge --no-ff feature/v0.2.3-stable/sync-guard
+composer install
 ```
 
-4. Tag new version if appropriate:
+`composer.json` lists development tools only. The plugin has no Composer
+dependencies, and `vendor/`, `composer.*`, the tool configuration and
+`.github/` are left out of release zips (`.distignore`; the preflight fails
+if one gets in).
 
-```bash
-git tag v0.2.3.1-stable
-git push origin v0.2.3.1-stable
-```
+## Checks
 
-5. Update STABILITY.md with the new version information
+Every pull request and every push to `main` runs these in GitHub Actions
+(`.github/workflows/ci.yml`). Each one runs the same way locally.
 
-### 6. Post-Integration
+| Check | Command | What it finds |
+| --- | --- | --- |
+| PHP syntax | `scripts/lint.sh php` | Syntax errors; CI uses PHP 7.4, the minimum. |
+| JavaScript syntax | `scripts/lint.sh js` | Syntax errors (`node --check`). |
+| Shell scripts | `scripts/lint.sh shell` | ShellCheck findings in `scripts/`. |
+| Workflows | `scripts/lint.sh workflows` | actionlint findings in `.github/workflows/`. |
+| Coding standards | `scripts/lint.sh phpcs` | WordPress Coding Standards: escaping, sanitising, nonces, prepared SQL, i18n, PHP 7.4 and WordPress 6.2 compatibility (`phpcs.xml.dist`). |
+| Static analysis | `scripts/lint.sh phpstan` | Unknown functions, classes and methods, wrong argument counts and types, dead code (PHPStan level 5, `phpstan.neon.dist`). |
+| Release build | `scripts/preflight-release.sh --offline` | Versions, headers, `readme.txt`, presets and the contents of both zips. |
+| Plugin Check | `scripts/plugin-check.sh` | The WordPress.org review tool, on both zips. |
+| Smoke test | `scripts/smoke-test.sh --wp 6.2 --php 7.4` and `scripts/smoke-test.sh` | Installs the GitHub zip, loads the site and admin screens with default settings and with every feature on, runs cron, uninstalls. Fails on any PHP message, a failed page or leftover options. |
 
-1. Deploy to test environment and confirm functionality
-2. Update ROADMAP.md to reflect the implemented feature
-3. Clean up feature branch if no longer needed
+`scripts/lint.sh` with no arguments runs the first six.
 
-## Handling Unstable Code References
+### Coding standards
 
-When examining code from unstable versions:
+`phpcs.xml.dist` uses the WordPress ruleset. The plugin's own style
+differs from it in a few places (spacing, `array()`, file names, Yoda
+conditions), and those sniffs are off; the comments in the file say why.
+Security, database and compatibility sniffs stay on. Fix findings in the
+code. Where a finding is intended, add an inline
+`// phpcs:ignore Sniff.Name -- reason` on that line only.
 
-1. **Never copy-paste directly** - Understand the approach and reimplement
-2. **Isolate problematic code** - Identify why it might have failed
-3. **Take the best ideas** - Implement the concept, not the exact implementation
-4. **Document the reference** - Note which version inspired each implementation
+`vendor/bin/phpcbf` fixes what it can automatically.
 
-## Versioning Scheme
+### Static analysis
 
-- `vX.Y.Z` - Major.Minor.Patch
-- `vX.Y.Z-stable` - Stable development branches
-- `vX.Y.Z.N-stable` - Minor updates to stable branches
+PHPStan reads the code with WordPress's stubs and PHP 7.4's functions.
+`scripts/phpstan-bootstrap.php` defines the constants WordPress and the
+plugin set while loading. Classes and functions of other plugins (WP-CLI,
+Fluent, Freemius, WooCommerce, Kadence) are ignored in `phpstan.neon.dist`,
+because the code uses them only after checking they are loaded.
 
-## Continuous Improvement
+`phpstan-baseline.neon` lists findings that were in the code when PHPStan
+was added. They do not fail the check; new findings do. Most are the
+stubs being stricter than WordPress (custom `wp_hash()` schemes,
+`wp_register_script()` with no file) or checks kept for older WordPress
+versions. When you change code with a baseline entry, fix it and run
+`composer baseline` so the list shrinks. Never add entries to get a
+change through.
 
-- Regularly review and update these development procedures
-- Document lessons learned
-- Improve testing procedures based on discoveries 
+### Smoke test
+
+`scripts/smoke-test.sh` starts a throwaway WordPress in Docker (MariaDB,
+Apache and WP-CLI images for the chosen PHP version), so nothing touches
+the shared preview site. CI runs it on WordPress 6.2 with PHP 7.4 and on
+the latest WordPress with PHP 8.3. Every feature is switched on at once,
+except maintenance mode (it would answer every visitor page with its
+notice). `--keep-log FILE` saves `debug.log`; CI keeps it as an artifact
+when the test fails.
+
+## Dependencies
+
+Dependabot (`.github/dependabot.yml`) opens one pull request a week for
+the GitHub Actions and one for the Composer tools. Actions are pinned to
+commit SHAs with the version in a comment; keep it that way when editing
+workflows. Do not add third-party actions that only save a few lines of
+shell.
+
+## CI cost
+
+The repository is private, so Actions minutes count. Draft pull requests
+run only the lint job. A new push cancels the run for the previous one.
+The build zips and Plugin Check reports are kept for seven days on each
+run (artifact `seoprostack-build-…`) for testing a branch on a site.

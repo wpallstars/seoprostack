@@ -213,9 +213,14 @@ dark mode switcher (and themes that switch palettes the same way).
 
 ## Testing
 
-No automated suite ships with the plugin. Verify on real WordPress:
+CI (`.github/workflows/ci.yml`) runs the code checks, the release preflight,
+Plugin Check and a smoke test on every pull request; details and local
+commands: `DEVELOPMENT.md`. They catch errors, not wrong behaviour, so also
+verify on real WordPress:
 
-1. `php -l` every PHP file and `node --check` every JS file.
+1. `scripts/lint.sh` (syntax, ShellCheck, PHPCS, PHPStan; run
+   `composer install` once). Fix findings in the code; never grow
+   `phpstan-baseline.neon` or add a `phpcs:ignore` without a reason.
 2. The user reviews on one local test site, shared by every session and
    worktree. It shows a **combined preview**: `origin/main` plus every open
    pull request from this repository, merged together. Update it only with
