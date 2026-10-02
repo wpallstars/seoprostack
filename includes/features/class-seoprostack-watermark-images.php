@@ -255,6 +255,7 @@ class SEOProStack_Watermark_Images extends SEOProStack_Feature {
             add_action('admin_post_' . self::ACTION, array(__CLASS__, 'handle_one'));
             add_action('admin_post_' . self::JOB_ACTION, array(__CLASS__, 'handle_job'));
             add_action('wp_ajax_seoprostack_watermark_progress', array(__CLASS__, 'ajax_progress'));
+            add_filter('attachment_fields_to_edit', array(__CLASS__, 'details_field'), 10, 2);
             add_action('seoprostack_setting_panel', array(__CLASS__, 'panel_status'), 10, 2);
         }
         if (defined('WP_CLI') && WP_CLI && class_exists('WP_CLI')) {
@@ -981,13 +982,28 @@ class SEOProStack_Watermark_Images extends SEOProStack_Feature {
      * @return array
      */
     public static function row_action($actions, $post) {
+        $link = self::link($post);
+        if ('' !== $link) {
+            $actions['seoprostack_watermark'] = $link;
+        }
+        return $actions;
+    }
+
+    /**
+     * Add or Remove watermark link for one picture, or '' when neither
+     * applies (not a picture, not allowed, marked without a kept original).
+     *
+     * @param WP_Post $post Attachment.
+     * @return string HTML.
+     */
+    private static function link($post) {
         if (!current_user_can('edit_post', $post->ID) || !wp_attachment_is_image($post)) {
-            return $actions;
+            return '';
         }
         $record = self::record($post->ID);
         if ($record) {
             if ('' === $record['backup']) {
-                return $actions;
+                return '';
             }
             $op    = 'remove';
             $label = __('Remove watermark', 'seoprostack');
@@ -999,11 +1015,39 @@ class SEOProStack_Watermark_Images extends SEOProStack_Feature {
             /* translators: %s: attachment title */
             $aria = __('Add a watermark to “%s”', 'seoprostack');
         } else {
-            return $actions;
+            return '';
         }
         $url = wp_nonce_url(add_query_arg(array('action' => self::ACTION, 'op' => $op, 'attachment' => $post->ID), admin_url('admin-post.php')), self::ACTION . '_' . $post->ID);
-        $actions['seoprostack_watermark'] = sprintf('<a href="%1$s" aria-label="%2$s">%3$s</a>', esc_url($url), esc_attr(sprintf($aria, get_the_title($post))), esc_html($label));
-        return $actions;
+        return sprintf('<a href="%1$s" aria-label="%2$s">%3$s</a>', esc_url($url), esc_attr(sprintf($aria, get_the_title($post))), esc_html($label));
+    }
+
+    /**
+     * Add or Remove watermark in Attachment details, which tile view shows:
+     * core's tile view has no bulk actions for plugins. Only in Media →
+     * Library: in a post editor's media window the link would leave the
+     * editor.
+     *
+     * @param array   $fields Attachment fields.
+     * @param WP_Post $post   Attachment.
+     * @return array
+     */
+    public static function details_field($fields, $post) {
+        $referer = wp_get_raw_referer();
+        $page    = wp_doing_ajax() && $referer ? (string) wp_parse_url($referer, PHP_URL_PATH) : (isset($GLOBALS['pagenow']) ? $GLOBALS['pagenow'] : '');
+        if ('upload.php' !== wp_basename($page)) {
+            return $fields;
+        }
+        $link = self::link($post);
+        if ('' !== $link) {
+            $fields['seoprostack_watermark'] = array(
+                'label'         => __('Watermark', 'seoprostack'),
+                'input'         => 'html',
+                'html'          => $link,
+                'show_in_edit'  => false,
+                'show_in_modal' => true,
+            );
+        }
+        return $fields;
     }
 
     /**

@@ -124,7 +124,7 @@ Click **Report a problem** at the top right of Settings → SEO Pro Stack, or op
 == Changelog ==
 
 = Unreleased =
-* New: quality by picture size; rules check; whole-library watermarks.
+* New: quality by picture size; rules check; whole-library watermarks; watermark links in tile view.
 * Change: WebP 90 and AVIF 70 by default.
 * Fix: WebP and AVIF quality; batches within PHP's time limit.
 

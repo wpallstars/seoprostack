@@ -7,8 +7,8 @@ Every change to SEO Pro Stack. readme.txt lists the latest version in short.
 * New, off by default: WebP and AVIF images: Quality by picture size, sharper thumbnails and smaller large pictures.
 * Change: WebP and AVIF images makes sharper copies by default: WebP quality 90 and AVIF 70, instead of 80 and 60. Sites that saved their own quality keep it.
 * New: WebP and AVIF images checks that browsers get the copies, and says what to do when they do not, such as restarting LiteSpeed so it reads the new rules.
-* New: Watermark pictures can mark, mark again or unmark the whole Media Library in the background from its settings, with progress and a Stop button. Bulk actions carry on in the background instead of leaving pictures out.
-* Fix: background picture work no longer runs past the server's time limit when several jobs run together.
+* New: Watermark pictures can mark, mark again or unmark the whole Media Library in the background from its settings, with progress and a Stop button. Bulk actions carry on in the background instead of leaving pictures out. In the Media Library's tile view, a picture's details now have Add or Remove watermark.
+* Fix: background picture work no longer runs past the server's time limit when several jobs run together, and no longer stops before it starts on servers that have run for a long time (watermark bulk actions seemed to do nothing).
 
 = 0.10.0 =
 * New, off by default: Clean the database weekly (Speed tab). Once a week, in the background, removes expired temporary data, posts and comments that have been in the bin longer than WordPress keeps them, older spam, old automatic drafts and details left by deleted posts, comments and terms, and can optimise tables with a lot of unused space. Its options show what is waiting, with a Clean now button; wp seoprostack clean-database does the same from the command line. Where LiteSpeed Cache runs on a LiteSpeed server it replaces WP-Optimize, whose cleanup choices are imported.
