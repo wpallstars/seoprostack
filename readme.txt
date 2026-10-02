@@ -36,7 +36,7 @@ Everything is off by default except Hide admin bar items (Comments and + New), N
 * **Menu item visibility** by login or role, **Change post type**, **Order by hand**, **Term tools** (merge, move, set parent), **Search custom fields** (ACF) and **Old post addresses**.
 * **TranslatePress colours**: Kadence light/dark switchers.
 * **iFrame block**: embed pages, limited to the domains and roles you choose.
-* **Link cards** and **Wikipedia previews**.
+* **Link cards**, **Wikipedia previews** and **Word documents** in the editor.
 * **Spectra block replacements**: a Term list block, and Spectra pages that keep working after it is deactivated.
 
 = Media =
@@ -126,6 +126,9 @@ Copies from WordPress.org update from there. New versions come out on GitHub fir
 Click **Report a problem** at the top right of Settings → SEO Pro Stack, or open an issue on [GitHub](https://github.com/wpallstars/seoprostack/issues).
 
 == Changelog ==
+
+= Unreleased =
+* New: Word documents in the editor.
 
 = 0.9.0 =
 * New: Menu item visibility, Change post type, Order by hand, Term tools, Search custom fields, Old post addresses, Link cards, Wikipedia previews, Agency tab.

@@ -30,7 +30,7 @@ class SEOProStack_Settings {
 
     /** Stored schema version, used for one-off migrations. */
     const DB_VERSION_OPTION = 'seoprostack_db_version';
-    const DB_VERSION = 10;
+    const DB_VERSION = 11;
 
     /**
      * Tab slugs renamed in 0.4.0, old => new. Settings that still use an
@@ -611,6 +611,8 @@ class SEOProStack_Settings {
      *     Slugs Manager and ACF: Better Search are active.
      * v10: switch on Link cards and Wikipedia previews while Bookmark Card
      *     and Wikipedia Preview are active.
+     * v11: switch on Word documents in the editor while Mammoth .docx
+     *     converter is active.
      *
      * Old options are left in place so a downgrade keeps working;
      * uninstall.php removes ours. Other plugins' options are never touched.
