@@ -69,6 +69,13 @@ class SEOProStack_Admin_Menu extends SEOProStack_Feature {
     /** Option: which plugin owns each admin page, until plugins change. */
     const CACHE = 'seoprostack_admin_menu';
 
+    /**
+     * Option: plugin post type => whether it is not for writing, kept for
+     * screens where Load plugins only where needed skips its plugin (the
+     * menu entry is put back, the post type is not registered).
+     */
+    const WRITER_TYPES = 'seoprostack_writer_types';
+
     /** User setting (wp-settings cookie) with the folded sections' codes. */
     const FOLD = 'spsfold';
 
@@ -381,6 +388,9 @@ class SEOProStack_Admin_Menu extends SEOProStack_Feature {
             }
         }
         if (is_admin() && SEOProStack_Settings::get(self::WRITERS_KEY)) {
+            // Post type screens before admin_menu, where some plugins
+            // redirect their lists (Lasso Lite to its welcome page).
+            add_action('admin_menu', array(__CLASS__, 'block_writer_type'), 0);
             add_action('admin_init', array(__CLASS__, 'block_writer_page'));
         }
 
@@ -1874,8 +1884,14 @@ class SEOProStack_Admin_Menu extends SEOProStack_Feature {
         static $cache = array();
         $type = (string) $type;
         if (!isset($cache[$type])) {
-            $object = get_post_type_object($type);
-            $hide   = $object && empty($object->_builtin) && !post_type_supports($type, 'editor');
+            $known = self::learn_writer_types();
+            if (get_post_type_object($type)) {
+                $hide = empty(get_post_type_object($type)->_builtin) && !post_type_supports($type, 'editor');
+            } else {
+                // Its plugin is skipped on this screen: use what was seen
+                // where it loads.
+                $hide = !empty($known[$type]);
+            }
             /**
              * Filter whether writers do not get a post type's screens.
              *
@@ -1918,25 +1934,57 @@ class SEOProStack_Admin_Menu extends SEOProStack_Feature {
     }
 
     /**
-     * Refuse writers the plugin pages and post type screens hidden from them.
+     * Note which plugin post types registered here are not for writing, for
+     * screens that skip their plugin. Runs on every admin screen (for anyone)
+     * and writes only when a post type is new or changes.
+     *
+     * @return array<string,bool> Post type => not for writing.
      */
-    public static function block_writer_page() {
-        global $plugin_page, $menu, $submenu, $pagenow, $typenow;
-        if (wp_doing_ajax() || !self::is_writer()) {
+    private static function learn_writer_types() {
+        static $known = null;
+        if (null !== $known) {
+            return $known;
+        }
+        $stored = get_option(self::WRITER_TYPES);
+        $known  = is_array($stored) ? array_map('boolval', $stored) : array();
+        foreach (get_post_types(array('_builtin' => false, 'show_ui' => true)) as $type) {
+            $known[$type] = !post_type_supports($type, 'editor');
+        }
+        if ($known !== $stored) {
+            update_option(self::WRITER_TYPES, $known, true);
+        }
+        return $known;
+    }
+
+    /**
+     * Refuse writers the list, Add New, edit and term screens of post types
+     * hidden from them.
+     */
+    public static function block_writer_type() {
+        global $plugin_page, $pagenow, $typenow;
+        self::learn_writer_types();
+        if (wp_doing_ajax() || (is_string($plugin_page) && '' !== $plugin_page) || !self::is_writer()) {
             return;
         }
-        if (!is_string($plugin_page) || '' === $plugin_page) {
-            $type = '';
-            if (in_array($pagenow, array('edit.php', 'post-new.php', 'edit-tags.php', 'term.php'), true)) {
-                $type = '' !== (string) $typenow ? (string) $typenow : 'post';
-            } elseif ('post.php' === $pagenow) {
-                // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- only read to refuse the screen.
-                $id   = isset($_GET['post']) ? absint($_GET['post']) : (isset($_POST['post_ID']) ? absint($_POST['post_ID']) : 0);
-                $type = $id ? (string) get_post_type($id) : '';
-            }
-            if ('' !== $type && self::writer_hides_type($type)) {
-                wp_die(esc_html__('Sorry, this page is not for writers.', 'seoprostack'), '', array('response' => 403, 'back_link' => true));
-            }
+        $type = '';
+        if (in_array($pagenow, array('edit.php', 'post-new.php', 'edit-tags.php', 'term.php'), true)) {
+            $type = '' !== (string) $typenow ? (string) $typenow : 'post';
+        } elseif ('post.php' === $pagenow) {
+            // phpcs:ignore WordPress.Security.NonceVerification -- only read to refuse the screen.
+            $id   = isset($_GET['post']) ? absint($_GET['post']) : (isset($_POST['post_ID']) ? absint($_POST['post_ID']) : 0);
+            $type = $id ? (string) get_post_type($id) : '';
+        }
+        if ('' !== $type && self::writer_hides_type($type)) {
+            wp_die(esc_html__('Sorry, this page is not for writers.', 'seoprostack'), '', array('response' => 403, 'back_link' => true));
+        }
+    }
+
+    /**
+     * Refuse writers the plugin pages hidden from them.
+     */
+    public static function block_writer_page() {
+        global $plugin_page, $menu, $submenu;
+        if (wp_doing_ajax() || !is_string($plugin_page) || '' === $plugin_page || !self::is_writer()) {
             return;
         }
         $items = is_array($menu) ? $menu : array();
