@@ -62,6 +62,7 @@ final class SEOProStack {
         'SEOProStack_Screenshots',
         'SEOProStack_Link_Card_Block',
         'SEOProStack_Wikipedia_Previews',
+        'SEOProStack_Word_Import',
         'SEOProStack_Spectra_Blocks',
         'SEOProStack_Short_Links',
         'SEOProStack_Remove_Cpt_Base',
