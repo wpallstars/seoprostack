@@ -77,9 +77,10 @@ class SEOProStack_Maintenance extends SEOProStack_Feature {
         // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- a bearer link, not an admin action.
         $link = isset($_GET['seoprostack-bypass']) && is_string($_GET['seoprostack-bypass']) ? sanitize_text_field(wp_unslash($_GET['seoprostack-bypass'])) : '';
         if ('' !== $link && hash_equals($token, $link)) {
-            $value = wp_hash($token, 'seoprostack_maintenance');
+            $expires = time() + DAY_IN_SECONDS;
+            $value = $expires . '.' . wp_hash($token . '|' . $expires, 'seoprostack_maintenance');
             setcookie(self::COOKIE, $value, array(
-                'expires' => time() + DAY_IN_SECONDS,
+                'expires' => $expires,
                 'path' => wp_parse_url(home_url('/'), PHP_URL_PATH) ?: '/',
                 'secure' => is_ssl(),
                 'httponly' => true,
@@ -92,7 +93,11 @@ class SEOProStack_Maintenance extends SEOProStack_Feature {
             exit;
         }
         $cookie = isset($_COOKIE[self::COOKIE]) && is_string($_COOKIE[self::COOKIE]) ? sanitize_text_field(wp_unslash($_COOKIE[self::COOKIE])) : '';
-        return '' !== $cookie && hash_equals(wp_hash($token, 'seoprostack_maintenance'), $cookie);
+        $parts = explode('.', $cookie, 2);
+        if (2 !== count($parts) || !ctype_digit($parts[0]) || (int) $parts[0] <= time() || (int) $parts[0] > time() + DAY_IN_SECONDS) {
+            return false;
+        }
+        return hash_equals(wp_hash($token . '|' . $parts[0], 'seoprostack_maintenance'), $parts[1]);
     }
 
     /** Block public pages, never login, administration, robots or sitemaps. */

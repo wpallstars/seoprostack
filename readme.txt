@@ -50,6 +50,7 @@ Everything is off by default except Hide admin bar items (Comments and + New), N
 * **Speed**: load pages before the click, delay chosen scripts until interaction, add Google Analytics 4 without slowing the page, open the editor faster with Kadence Blocks, and **Ask before licence checks** (once now, once a day or never).
 * **Load plugins only where needed**: a faster wp-admin on sites with many plugins, and admin tools you choose skipped on the site, through a must-use file it manages itself.
 * **Plugins menu** in the admin bar, **Plugin sizes**, **Clean up deleted plugins**, **Hosting needs** (what to ask your host for) and **Plugin presets**: our settings and starter data for other plugins, on request.
+* **Maintenance mode**: a temporary 503 page with a message and revocable 24-hour bypass links. Replaces Hostinger Tools' maintenance mode only.
 
 Features that replace another plugin import its settings once, never change that plugin’s settings, and wait while it is active.
 
@@ -115,6 +116,7 @@ Copies from WordPress.org update from there. New versions come out on GitHub fir
 == Changelog ==
 
 = Unreleased =
+* New, off by default: Maintenance mode, importing Hostinger Tools' switch, with revocable bypass links.
 * New, off by default: six features that do most of Disable Bloat’s job, importing its settings.
 * New: starter data for Fluent Forms: four forms that feed FluentCRM lists and tags.
 * Change: Freesoul Deactivate Plugins is no longer recommended.

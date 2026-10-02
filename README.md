@@ -8,7 +8,7 @@ Version: {SEOPROSTACK_VERSION}
 
 Go to **Settings → SEO Pro Stack**, or click the star next to your name in the admin bar (shown to people who can change these settings). The screen has three groups of tabs:
 
-- **Settings**: Admin, Content, Media, Links, Speed and Plugins, plus Maintenance in builds from GitHub releases. Changes save instantly; there is no Save button.
+- **Settings**: Admin, Content, Media, Links, Speed, Plugins and Maintenance. Changes save instantly; there is no Save button.
 - **Search features** (next to the plugin name) finds settings on every tab by name, description or the plugin they replace. Results can be switched on and changed in place.
 - **Discover**: Theme, Free Plugins, Pro Plugins, Hosting and Tools.
 - **About**: this Read Me.
@@ -44,6 +44,7 @@ Every feature is off by default except three: Hide admin bar items, which hides 
 | 410 Gone for removed pages | Links | Ultimate 410 |
 | Short addresses for custom post types | Links | Remove CPT base |
 | Short links | Links | Pretty Links |
+| Maintenance mode | Maintenance | Hostinger Tools (maintenance mode only) |
 | Plugins menu in the admin bar | Plugins | Plugin Toggle |
 | Clean up deleted plugins | Plugins | Fix ‘Plugin file does not exist’ Notices |
 
@@ -649,6 +650,16 @@ Releasing on GitHub:
 
 Mark test builds as pre-releases on GitHub (or tag them with letters, such as `v1.2.0-rc1`): sites never offer those. Do not add an `Update URI` header: WordPress.org rejects it, and Plugin Check reports it as an updater. Sites that still use Git Updater compare the `Version:` header on `main` instead, so keep pre-release versions out of `main` too, and publish the release in the same sitting as the version merge.
 
+### Maintenance mode (Maintenance)
+
+Off by default. Visitors see the site name and a plain-text message, with a 503 response, a one-hour Retry-After and noindex. Administrators see the normal site and a **Maintenance mode is on** admin-bar link to the setting. Login, admin screens, AJAX, cron, WP-CLI, robots.txt, sitemaps and logged-in REST requests keep working. Public REST requests receive a 503 unless they have a bypass cookie.
+
+Switch it on and reload to show the **Bypass link** in its options. Share it only with people who should see the site: it sets a 24-hour HttpOnly cookie (Secure on HTTPS, SameSite=Lax), holding a keyed hash rather than the link's token, and redirects to remove the token from the address. **New link** invalidates the old link and all its cookies. **Allow the bypass link** can stop bypass access without changing the link. This is visitor access, not a login or permission to edit anything.
+
+Clear your host's, CDN's and plugin's page caches when switching on or off; pages served before WordPress runs cannot be held by this feature. Maintenance and bypass responses ask caches not to store them. The small page has no styles or outside resources, so it uses the browser's default colours.
+
+Imports `hostinger_tools[maintenance_mode]` once (settings version 7), without overwriting an existing choice. Hostinger Tools keeps handling maintenance while active. Its XML-RPC, application-password, HTTPS, WWW, llms.txt and AI switches are not replaced; the Plugins screen names enabled extras before suggesting it can go. Hostinger's bypass code is never reused. The new `seoprostack_maintenance_token` option is removed on uninstall; the switch and message live in the main settings option.
+
 ## Extending
 
 Developers can add settings, tabs and directory entries with filters:
@@ -662,6 +673,7 @@ Developers can add settings, tabs and directory entries with filters:
 - `seoprostack_auto_upload_process_post`: skip image copying for specific posts.
 - `seoprostack_auto_upload_limit`: change the per-save import limit.
 - `seoprostack_magic_login_allowed`: allow or refuse login links for a user.
+- `seoprostack_maintenance_capability`: capability needed to view the site during maintenance without a bypass link (default `manage_options`). Changing the bypass link still requires permission to change SEO Pro Stack's settings.
 - `seoprostack_magic_login_email`: change the login link email.
 - `seoprostack_magic_login_ip_limit`: requests allowed per IP address per 15 minutes (default 5).
 - `seoprostack_post_scheduler_applies`: skip the publishing queue for specific posts.
@@ -713,6 +725,7 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folder�
 
 ### Unreleased
 
+- New, off by default: Maintenance mode, with a plain-text 503 page, administrator reminder and revocable 24-hour visitor bypass links. Imports Hostinger Tools' maintenance switch, leaving its other jobs alone.
 - New, off by default: six features that take over most of Disable Bloat (#90): Tidy admin screens, Tidy WooCommerce admin and Tidy the login screen (Admin tab), Simpler block editor (Content tab), Remove WordPress extras and Lighter WooCommerce pages (Speed tab). Each uses core’s or WooCommerce’s own hooks and stores nothing. While Disable Bloat (free or PRO) is active, its switches are imported once (settings version 6, `SEOProStack_Disable_Bloat::MAP`), including its W logo (Hide admin bar items), Dashboard boxes and widgets (Dashboard and sidebar widgets); the features wait until it is deactivated. Tested on a throwaway site with WooCommerce 11.1.2 and Disable Bloat 4.0.0: imports matched the seeded switches; a plain page lost WooCommerce’s scripts, styles, emoji and shortlink, while the shop, product and a page with a WooCommerce block kept them.
 - Changed: the Plugins screen names what a replaced plugin still does on the site that SEO Pro Stack does not (new `seoprostack_replaced_plugin_extras` filter), instead of saying it can go. Disable Bloat’s Heartbeat, XML-RPC, REST API, resource hints, revisions, auto-update and third-party plugin switches are not covered.
 - Removed: Pro Plugins no longer lists Disable Bloat PRO.
@@ -891,6 +904,7 @@ Where a feature replaces one of them, SEO Pro Stack imports the settings it can,
 | Fix ‘Plugin file does not exist’ Notices | WP All Stars | [GitHub](https://github.com/wpallstars/wp-fix-plugin-does-not-exist-notices) | Clean up deleted plugins |
 | Freesoul Deactivate Plugins | Jose Mortellaro | [WordPress.org](https://wordpress.org/plugins/freesoul-deactivate-plugins/), [GitHub](https://github.com/JoseMortellaro/freesoul-deactivate-plugins) | Load plugins only where needed (not a replacement yet: its page-by-page rules on the site are not covered) |
 | Git Updater | Andy Fragen | [GitHub](https://github.com/afragen/git-updater), [website](https://git-updater.com/) | Updates from GitHub (GitHub builds only) |
+| Hostinger Tools | Hostinger | [WordPress.org](https://wordpress.org/plugins/hostinger/), [maker's SVN source](https://plugins.svn.wordpress.org/hostinger/trunk/) | Maintenance mode only (source checked at 3.0.78) |
 
 ## License
 
