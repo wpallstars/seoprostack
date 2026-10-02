@@ -125,9 +125,9 @@ Click **Report a problem** at the top right of Settings → SEO Pro Stack, or op
 == Changelog ==
 
 = Unreleased =
-* New: Word documents; Like, save and share; Brand icons; coffee button; LiteSpeed preset.
-* Change: Pinned posts; faster lists; sizes in Free Plugins; megaphone and dot; writers' menu.
-* Fix: More menu alignment; menu in full screen editor.
+* New: Word documents; Like, save and share; Brand icons; coffee link; LiteSpeed preset.
+* Change: Pinned posts; faster lists; plugin sizes; megaphone and dot; writers' menu.
+* Fix: More menu alignment; full screen editor menu; Like buttons.
 
 = 0.9.0 =
 * New: Menu item visibility, Change post type, Order by hand, Term tools, Search custom fields, Old post addresses, Link cards, Wikipedia previews, Agency tab.

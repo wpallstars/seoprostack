@@ -1,7 +1,13 @@
 /*
  * Like, save and share, and Saved posts. Colours come from the text around
- * them (currentColor) and translucent neutrals, so they follow the Kadence
- * light and dark modes. A filled icon shows what is liked or saved.
+ * them (currentColor), or a Kadence palette colour chosen in the settings
+ * (--sps-reactions-colour, set on .sps-reactions and .sps-saved so it
+ * follows the dark palette on <body>), and translucent neutrals. A filled
+ * icon shows what is liked or saved.
+ *
+ * Themes style button:hover, :focus and :active (Kadence: its button
+ * colours and a drop shadow). A clicked button keeps focus, so every state
+ * is set here, or the theme's look stays until the page is reloaded.
  */
 .sps-reactions {
 	display: flex;
@@ -34,22 +40,34 @@
 	border: 1px solid rgba(127, 127, 127, 0.35);
 	border-radius: 999px;
 	background: transparent;
-	color: inherit;
+	color: var(--sps-reactions-colour, inherit);
 	font: inherit;
 	font-size: 0.9em;
 	line-height: 1.2;
 	letter-spacing: normal;
 	text-transform: none;
+	text-decoration: none;
 	box-shadow: none;
 	cursor: pointer;
 	transition: background-color 0.15s ease, border-color 0.15s ease;
 }
 
+.sps-reactions__button:focus,
+.sps-reactions__button:active {
+	background: transparent;
+	color: var(--sps-reactions-colour, inherit);
+	box-shadow: none;
+}
+
 .sps-reactions__button:hover {
 	border-color: rgba(127, 127, 127, 0.6);
 	background: rgba(127, 127, 127, 0.12);
-	color: inherit;
+	color: var(--sps-reactions-colour, inherit);
 	box-shadow: none;
+}
+
+.sps-reactions__button:focus:not(:focus-visible) {
+	outline: none;
 }
 
 .sps-reactions__button:focus-visible {
@@ -57,9 +75,14 @@
 	outline-offset: 2px;
 }
 
-.sps-reactions__button[aria-pressed="true"] {
+.sps-reactions__button[aria-pressed="true"],
+.sps-reactions__button[aria-pressed="true"]:hover,
+.sps-reactions__button[aria-pressed="true"]:focus,
+.sps-reactions__button[aria-pressed="true"]:active {
 	border-color: currentColor;
 	background: rgba(127, 127, 127, 0.12);
+	color: var(--sps-reactions-colour, inherit);
+	box-shadow: none;
 }
 
 .sps-reactions__icon {
