@@ -111,7 +111,7 @@ class SEOProStack_Maintenance extends SEOProStack_Feature {
             return;
         }
         if (!defined('DONOTCACHEPAGE')) {
-            define('DONOTCACHEPAGE', true);
+            define('DONOTCACHEPAGE', true); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedConstantFound -- shared page-cache flag.
         }
         nocache_headers();
         if (self::bypassed()) {
