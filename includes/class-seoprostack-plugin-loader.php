@@ -503,7 +503,7 @@ final class SEOProStack_Plugin_Loader {
             // Every plugin for this request. For an administrator (checked
             // when learning) it also learns the site again.
             self::$mode    = 'full';
-            self::$reason  = 'learning';
+            self::$reason  = $logged_in ? 'learning' : 'always';
             self::$relearn = $logged_in;
             if ($logged_in) {
                 self::attribute();
