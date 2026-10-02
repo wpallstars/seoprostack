@@ -12,6 +12,18 @@
 	var __ = i18n.__;
 	var cache = {};
 
+	/* As brand_color() in PHP: near-black and near-white logos take the text colour. */
+	function brandColor(hex) {
+		if (!/^[0-9a-f]{6}$/i.test(hex || '')) {
+			return 'currentColor';
+		}
+		var light = [[0, 0.2126], [2, 0.7152], [4, 0.0722]].reduce(function (sum, p) {
+			var c = parseInt(hex.substr(p[0], 2), 16) / 255;
+			return sum + p[1] * (c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4));
+		}, 0);
+		return light < 0.02 || light > 0.85 ? 'currentColor' : '#' + hex;
+	}
+
 	function fetchIcons(query) {
 		var key = query.slug ? 'slug:' + query.slug : 'q:' + query.search;
 		if (!cache[key]) {
@@ -99,7 +111,7 @@
 						props.onChange(icon);
 					},
 					style: { height: '44px', justifyContent: 'center' }
-				}, el(Svg, { icon: icon, size: 24, color: icon.hex ? '#' + icon.hex : 'currentColor' }));
+				}, el(Svg, { icon: icon, size: 24, color: brandColor(icon.hex) }));
 			})) : null
 		);
 	}
@@ -186,7 +198,7 @@
 
 			return el('div', blockProps, inspector,
 				icon ? el('span', { style: { display: 'inline-block', lineHeight: 0 }, title: a.label || icon.title },
-					el(Svg, { icon: icon, size: a.size, color: a.brandColor && icon.hex ? '#' + icon.hex : 'currentColor' })
+					el(Svg, { icon: icon, size: a.size, color: a.brandColor ? brandColor(icon.hex) : 'currentColor' })
 				) : el(components.Spinner)
 			);
 		},

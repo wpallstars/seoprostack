@@ -173,6 +173,20 @@ async function main() {
 			aliases: aliases,
 		};
 		fs.writeFileSync(path.join(OUT, 'index.json'), JSON.stringify(index) + '\n');
+		fs.writeFileSync(path.join(OUT, 'LICENSE.txt'), [
+			'Brand icons in this folder',
+			'',
+			'Simple Icons ' + si.version + ' (https://github.com/simple-icons/simple-icons):',
+			'CC0 1.0 Universal (public domain dedication). index.json source "s".',
+			'',
+			'Font Awesome Free ' + fa.version + ' brand icons (https://github.com/FortAwesome/Font-Awesome),',
+			'by Fonticons, Inc.: CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/).',
+			'Each of these files keeps Font Awesome\'s attribution comment. index.json source "f".',
+			'',
+			'The icons are trademarks of their owners. Using one does not mean its owner',
+			'endorses your site; follow each brand\'s own guidelines.',
+			'',
+		].join('\n'));
 		const faCount = icons.filter((i) => 'f' === i[3]).length;
 		console.log('Simple Icons ' + si.version + ': ' + (icons.length - faCount) + ' icons; Font Awesome Free ' + fa.version + ': ' + faCount + ' more; ' + Object.keys(aliases).length + ' aliases.');
 	} finally {

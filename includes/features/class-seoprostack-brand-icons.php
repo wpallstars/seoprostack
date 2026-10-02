@@ -209,6 +209,26 @@ class SEOProStack_Brand_Icons extends SEOProStack_Feature {
     }
 
     /**
+     * The colour to draw a brand in. Near-black and near-white brand colours
+     * (GitHub, X, Apple) are one-colour logos, so they take the text colour
+     * and stay visible in dark mode.
+     *
+     * @param string $hex Brand colour, six hex digits or ''.
+     * @return string
+     */
+    public static function brand_color($hex) {
+        if (!preg_match('/^[0-9A-Fa-f]{6}$/', (string) $hex)) {
+            return 'currentColor';
+        }
+        $light = 0.0;
+        foreach (array(0 => 0.2126, 2 => 0.7152, 4 => 0.0722) as $at => $weight) {
+            $c      = hexdec(substr($hex, $at, 2)) / 255;
+            $light += $weight * ($c <= 0.03928 ? $c / 12.92 : pow(($c + 0.055) / 1.055, 2.4));
+        }
+        return $light < 0.02 || $light > 0.85 ? 'currentColor' : '#' . $hex;
+    }
+
+    /**
      * A CSS colour from a shortcode or block, or ''. Hex digits without
      * "#" are accepted, as Simple Icons' shortcode did.
      *
@@ -255,7 +275,7 @@ class SEOProStack_Brand_Icons extends SEOProStack_Feature {
             return '';
         }
         $args  = wp_parse_args($args, array('color' => '', 'size' => '', 'class' => '', 'label' => $icon['title'], 'title' => true));
-        $color = '' !== $args['color'] ? $args['color'] : ('' !== $icon['hex'] ? '#' . $icon['hex'] : 'currentColor');
+        $color = '' !== $args['color'] ? $args['color'] : self::brand_color($icon['hex']);
         $size  = '' !== $args['size'] ? $args['size'] : '1.5rem';
         $class = 'sps-brand-icon simple-icon-' . $slug;
         foreach (preg_split('/\s+/', (string) $args['class']) as $extra) {
