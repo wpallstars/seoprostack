@@ -73,6 +73,7 @@ final class SEOProStack {
         'SEOProStack_Plugin_Presets',
         'SEOProStack_Database_Keys',
         'SEOProStack_Licence_Calls',
+        'SEOProStack_Plugin_Fixes',
         'SEOProStack_Hosting_Needs',
         'SEOProStack_Plugin_References',
     );

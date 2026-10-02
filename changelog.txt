@@ -3,6 +3,7 @@
 Every change to SEO Pro Stack. readme.txt lists the latest version in short.
 
 = Unreleased =
+* New, on by default: Fixes for other plugins (Plugins tab) works around other plugins’ bugs without changing their settings. Lasso Lite (Simple URLs) no longer contacts lasso.link on every admin screen.
 * Change: block editors open faster with Simpler block editor on: the site details they ask for are no longer built with a description of every plugin’s REST routes. Load plugins only where needed also puts its menu entries back with fewer permission checks.
 * New: Report a problem, at the top right of Settings → SEO Pro Stack, opens the plugin’s GitHub issues so you can tell us what went wrong.
 * Change: Load plugins only where needed learns the Customizer, Import and Export forms; their contributors stay loaded. Saving, previews, imports and downloads still load every plugin. Missing Customizer widgets, areas or menu locations reload before the form opens. Site Health stays fully loaded for accurate diagnostics.

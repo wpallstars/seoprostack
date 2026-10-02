@@ -14,7 +14,7 @@ Curated plugins, themes, hosting and tools for WordPress, plus small opt-in qual
 
 SEO Pro Stack is free and open source. There is no pro version and nothing is locked.
 
-Everything is off by default except Hide admin bar items (Comments and + New), No fade between admin screens and Quiet Freemius prompts. Turn features on in **Settings → SEO Pro Stack**; **Search features** finds one by name or by the plugin it replaces. The Read Me tab there describes each in full.
+Everything is off by default except Hide admin bar items (Comments and + New), No fade between admin screens, Quiet Freemius prompts and Fixes for other plugins. Turn features on in **Settings → SEO Pro Stack**; **Search features** finds one by name or by the plugin it replaces. The Read Me tab there describes each in full.
 
 = Admin screens =
 
@@ -52,6 +52,7 @@ Everything is off by default except Hide admin bar items (Comments and + New), N
 * **Speed**: load pages before the click, delay chosen scripts until interaction, add Google Analytics 4 without slowing the page, open the editor faster with Kadence Blocks, and **Ask before licence checks** (once now, once a day or never).
 * **Load plugins only where needed**: a faster wp-admin, admin tools skipped on the site, and optional page-by-page content learning with an opt-out list.
 * **Plugins menu** in the admin bar, **Plugin sizes**, **Clean up deleted plugins**, **Hosting needs** (what to ask your host for) and **Plugin presets**: our settings and starter data for other plugins, on request.
+* **Fixes for other plugins** (on by default): works around their bugs, such as Lasso Lite contacting its server on every admin screen.
 * **Maintenance mode**: a temporary 503 page with a message and 24-hour bypass links you can revoke.
 * **Database key cleanup**: review leftover and duplicate indexes, confirm each removal and keep restore SQL. Back up first.
 
@@ -123,6 +124,7 @@ Click **Report a problem** at the top right of Settings → SEO Pro Stack, or op
 == Changelog ==
 
 = Unreleased =
+* New: Fixes for other plugins, on by default.
 * Change: block editors open faster.
 * New: Report a problem button.
 * Change: faster Customizer, Import and Export forms; saving, previews and Site Health keep every plugin.
