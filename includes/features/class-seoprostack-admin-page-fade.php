@@ -36,7 +36,7 @@ class SEOProStack_Admin_Page_Fade extends SEOProStack_Feature {
                 'default'     => true,
                 'tab'         => 'admin',
                 'label'       => __('No fade between admin screens', 'seoprostack'),
-                'description' => __('Change screens in wp-admin straight away, without the fade added in WordPress 7.0, which can flash.', 'seoprostack'),
+                'description' => __('Change screens in wp-admin straight away, without the fade added in WordPress 7.0 or a white flash where the toolbar goes.', 'seoprostack'),
             ),
         );
     }
@@ -66,8 +66,18 @@ class SEOProStack_Admin_Page_Fade extends SEOProStack_Feature {
     /**
      * Opt this screen out of fades between pages. A fade needs both the
      * screen being left and the next one to opt in, so one rule is enough.
+     *
+     * Also paints the toolbar's strip before the toolbar arrives. Core prints
+     * the toolbar after the admin menu, so on a long menu the browser's first
+     * paint shows the menu with the light page background where the toolbar
+     * goes, then the toolbar: a white flash at the top on every screen change.
+     * The strip takes the menu's background, which every colour scheme also
+     * gives the toolbar, and the toolbar covers it once it is drawn.
      */
     public static function print_style() {
-        echo "<style id=\"seoprostack-no-fade\">@view-transition{navigation:none}</style>\n";
+        echo "<style id=\"seoprostack-no-fade\">@view-transition{navigation:none}"
+            . 'html.wp-toolbar #adminmenuback::after{content:"";position:fixed;top:0;left:0;right:0;height:32px;background-color:inherit;pointer-events:none}'
+            . '@media screen and (max-width:782px){html.wp-toolbar #adminmenuback::after{height:46px}}'
+            . "</style>\n";
     }
 }

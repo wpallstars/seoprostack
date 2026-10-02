@@ -20,8 +20,11 @@ choose **Report a vulnerability**. Include:
 - steps to reproduce it, and what an attacker gains (for example, which
   role they need and what they can then read or change).
 
-We reply within a week, agree a fix and a date with you, and credit you in
-the changelog unless you would rather not be named.
+We reply within 30 days, agree a fix and a date with you, and credit you in
+the changelog unless you would rather not be named. If it is urgent (for
+example, it is already being used against sites), report it on GitHub and
+also email security@evergreen.je with a link to the report. Follow-up
+emails are welcome.
 
 ## Scope
 
