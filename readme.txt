@@ -120,7 +120,7 @@ Copies from WordPress.org update from there. New versions come out on GitHub fir
 == Changelog ==
 
 = Unreleased =
-* New, off by default: Agency tab.
+* New, off by default: Agency tab, with button layouts for Fluent Forms.
 * New: Pro Plugins lists FluentCart Pro.
 * New: spaced Fluent menu names; shop plugins first in Shop; FluentCart suggested.
 

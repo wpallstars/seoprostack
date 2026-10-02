@@ -238,6 +238,9 @@ class SEOProStack_Agency_Orders extends SEOProStack_Feature {
         if (!self::enabled() || !class_exists('FluentForm\App\Models\Submission')) {
             return;
         }
+        // Button layouts for order form choices (Advanced > Layout in the editor).
+        require_once SEOPROSTACK_DIR . 'includes/class-seoprostack-form-buttons.php';
+        SEOProStack_Form_Buttons::boot();
         // After Fluent Forms' own integrations (FluentCRM feeds), which run at 10.
         add_action('fluentform/submission_inserted', array(__CLASS__, 'submitted'), 20, 3);
         add_action('fluentform/after_payment_status_change', array(__CLASS__, 'payment_changed'), 20, 2);

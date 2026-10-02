@@ -182,7 +182,7 @@
                             "settings": { "label": "Where should your ads run?", "admin_field_label": "Platforms" },
                             "options": { "Google": "Google", "Microsoft": "Microsoft", "Meta": "Facebook and Instagram", "LinkedIn": "LinkedIn", "TikTok": "TikTok" }
                         },
-                        { "element": "subscription_payment_component", "attributes": { "name": "plan" }, "settings": { "label": "Plan (the first payment includes a one-off setup fee)", "admin_field_label": "Plan" }, "options": { "Starter: up to 5,000 ad spend a month": [ 500, "month", 250 ], "Growth: up to 20,000 ad spend a month": [ 1000, "month", 500 ] } },
+                        { "element": "subscription_payment_component", "required": true, "attributes": { "name": "plan" }, "settings": { "layout_class": "sps_buttons_row", "label": "Plan (the first payment includes a one-off setup fee)", "admin_field_label": "Plan" }, "options": { "Starter: up to 5,000 ad spend a month": [ 500, "month", 250 ], "Growth: up to 20,000 ad spend a month": [ 1000, "month", 500 ] } },
                         { "element": "payment_summary_component", "settings": { "cart_empty_text": "Choose a service to see the total." } },
                         { "element": "payment_method", "settings": { "label": "Payment" }, "required": true }
                     ],
@@ -220,7 +220,7 @@
                     "fields": [
                         { "element": "input_email", "attributes": { "name": "email" }, "settings": { "label": "Email", "admin_field_label": "Email" }, "required": true },
                         { "element": "input_name", "attributes": { "name": "names" }, "settings": { "admin_field_label": "Name" }, "fields": { "first_name": { "settings": { "validation_rules": { "required": { "value": true } } } } } },
-                        { "element": "subscription_payment_component", "attributes": { "name": "plan" }, "settings": { "label": "Plan", "admin_field_label": "Plan" }, "options": { "Two platforms, three posts a week": [ 600, "month" ], "Four platforms, five posts a week": [ 1100, "month" ] } },
+                        { "element": "subscription_payment_component", "required": true, "attributes": { "name": "plan" }, "settings": { "layout_class": "sps_buttons_row", "label": "Plan", "admin_field_label": "Plan" }, "options": { "Two platforms, three posts a week": [ 600, "month" ], "Four platforms, five posts a week": [ 1100, "month" ] } },
                         { "element": "payment_summary_component", "settings": { "cart_empty_text": "Choose a service to see the total." } },
                         { "element": "payment_method", "settings": { "label": "Payment" }, "required": true },
                         { "element": "textarea", "attributes": { "name": "accounts" }, "settings": { "label": "Your social media accounts", "admin_field_label": "Accounts" } }
@@ -257,7 +257,7 @@
                         { "element": "input_email", "attributes": { "name": "email" }, "settings": { "label": "Email", "admin_field_label": "Email" }, "required": true },
                         { "element": "input_name", "attributes": { "name": "names" }, "settings": { "admin_field_label": "Name" }, "fields": { "first_name": { "settings": { "validation_rules": { "required": { "value": true } } } } } },
                         { "element": "input_url", "attributes": { "name": "app_url" }, "settings": { "label": "App or website address", "admin_field_label": "App" } },
-                        { "element": "subscription_payment_component", "attributes": { "name": "plan" }, "settings": { "label": "Plan", "admin_field_label": "Plan" }, "options": { "Hosting, updates and backups": [ 99, "month" ], "Plus four hours of changes a month": [ 249, "month" ] } },
+                        { "element": "subscription_payment_component", "required": true, "attributes": { "name": "plan" }, "settings": { "layout_class": "sps_buttons_row", "label": "Plan", "admin_field_label": "Plan" }, "options": { "Hosting, updates and backups": [ 99, "month" ], "Plus four hours of changes a month": [ 249, "month" ] } },
                         { "element": "payment_summary_component", "settings": { "cart_empty_text": "Choose a service to see the total." } },
                         { "element": "payment_method", "settings": { "label": "Payment" }, "required": true }
                     ],
@@ -293,7 +293,7 @@
                         { "element": "input_email", "attributes": { "name": "email" }, "settings": { "label": "Email", "admin_field_label": "Email" }, "required": true },
                         { "element": "input_name", "attributes": { "name": "names" }, "settings": { "admin_field_label": "Name" }, "fields": { "first_name": { "settings": { "validation_rules": { "required": { "value": true } } } } } },
                         { "element": "input_text", "attributes": { "name": "company" }, "settings": { "label": "Company", "admin_field_label": "Company" } },
-                        { "element": "subscription_payment_component", "attributes": { "name": "plan" }, "settings": { "label": "Hours a month", "admin_field_label": "Plan" }, "options": { "10 hours": [ 900, "month" ], "20 hours": [ 1700, "month" ] } },
+                        { "element": "subscription_payment_component", "required": true, "attributes": { "name": "plan" }, "settings": { "layout_class": "sps_buttons_row", "label": "Hours a month", "admin_field_label": "Plan" }, "options": { "10 hours": [ 900, "month" ], "20 hours": [ 1700, "month" ] } },
                         { "element": "payment_summary_component", "settings": { "cart_empty_text": "Choose a service to see the total." } },
                         { "element": "payment_method", "settings": { "label": "Payment" }, "required": true }
                     ],
@@ -402,7 +402,7 @@
                         { "element": "input_email", "attributes": { "name": "email" }, "settings": { "label": "Email", "admin_field_label": "Email" }, "required": true },
                         { "element": "input_name", "attributes": { "name": "names" }, "settings": { "admin_field_label": "Name" }, "fields": { "first_name": { "settings": { "validation_rules": { "required": { "value": true } } } } } },
                         { "element": "input_text", "attributes": { "name": "business" }, "settings": { "label": "Business name", "admin_field_label": "Business" }, "required": true },
-                        { "element": "subscription_payment_component", "attributes": { "name": "plan" }, "settings": { "label": "Plan", "admin_field_label": "Plan" }, "options": { "Website: design, hosting and care": [ 49, "month", 950 ], "Website and SEO: plus monthly local SEO": [ 249, "month", 950 ] } },
+                        { "element": "subscription_payment_component", "required": true, "attributes": { "name": "plan" }, "settings": { "layout_class": "sps_buttons_row", "label": "Plan", "admin_field_label": "Plan" }, "options": { "Website: design, hosting and care": [ 49, "month", 950 ], "Website and SEO: plus monthly local SEO": [ 249, "month", 950 ] } },
                         { "element": "input_url", "attributes": { "name": "website" }, "settings": { "label": "Your current website, if you have one", "admin_field_label": "Current website" } },
                         { "element": "textarea", "attributes": { "name": "services" }, "settings": { "label": "What do you do, and where?", "admin_field_label": "Services and area" } },
                         { "element": "payment_summary_component", "settings": { "cart_empty_text": "Choose a plan to see the total." } },
@@ -422,7 +422,7 @@
                         { "element": "input_email", "attributes": { "name": "email" }, "settings": { "label": "Email", "admin_field_label": "Email" }, "required": true },
                         { "element": "input_name", "attributes": { "name": "names" }, "settings": { "admin_field_label": "Name" }, "fields": { "first_name": { "settings": { "validation_rules": { "required": { "value": true } } } } } },
                         { "element": "input_url", "attributes": { "name": "website" }, "settings": { "label": "Website", "admin_field_label": "Website" }, "required": true },
-                        { "element": "subscription_payment_component", "attributes": { "name": "plan" }, "settings": { "label": "Plan", "admin_field_label": "Plan" }, "options": { "Local: 20 search terms tracked": [ 250, "month", 950 ], "National: 50 search terms tracked": [ 550, "month", 1450 ] } },
+                        { "element": "subscription_payment_component", "required": true, "attributes": { "name": "plan" }, "settings": { "layout_class": "sps_buttons_row", "label": "Plan", "admin_field_label": "Plan" }, "options": { "Local: 20 search terms tracked": [ 250, "month", 950 ], "National: 50 search terms tracked": [ 550, "month", 1450 ] } },
                         { "element": "textarea", "attributes": { "name": "competitors" }, "settings": { "label": "Who are your main competitors?", "admin_field_label": "Competitors" } },
                         { "element": "payment_summary_component", "settings": { "cart_empty_text": "Choose a plan to see the total." } },
                         { "element": "payment_method", "settings": { "label": "Payment" }, "required": true }
@@ -441,7 +441,7 @@
                         { "element": "input_email", "attributes": { "name": "email" }, "settings": { "label": "Email", "admin_field_label": "Email" }, "required": true },
                         { "element": "input_name", "attributes": { "name": "names" }, "settings": { "admin_field_label": "Name" }, "fields": { "first_name": { "settings": { "validation_rules": { "required": { "value": true } } } } } },
                         { "element": "input_text", "attributes": { "name": "business" }, "settings": { "label": "Business name", "admin_field_label": "Business" }, "required": true },
-                        { "element": "subscription_payment_component", "attributes": { "name": "plan" }, "settings": { "label": "Listing", "admin_field_label": "Listing" }, "options": { "Featured listing": [ 25, "month", 495 ] } },
+                        { "element": "subscription_payment_component", "required": true, "attributes": { "name": "plan" }, "settings": { "layout_class": "sps_buttons_row", "label": "Listing", "admin_field_label": "Listing" }, "options": { "Featured listing": [ 25, "month", 495 ] } },
                         { "element": "input_url", "attributes": { "name": "website" }, "settings": { "label": "Website", "admin_field_label": "Website" } },
                         { "element": "payment_summary_component", "settings": { "cart_empty_text": "Your listing appears here." } },
                         { "element": "payment_method", "settings": { "label": "Payment" }, "required": true }
