@@ -49,6 +49,9 @@ class SEOProStack_Nextgen_Images extends SEOProStack_Feature {
     /** Option: what this site last put in the rules, so syncing is free when nothing changed. */
     const SYNCED = 'seoprostack_nextgen_synced';
 
+    /** Transient: whether a test request got a copy, for the rules then in place. */
+    const CHECK = 'seoprostack_nextgen_check';
+
     /** .htaccess marker. */
     const MARKER = 'SEO Pro Stack WebP and AVIF';
 
@@ -92,7 +95,7 @@ class SEOProStack_Nextgen_Images extends SEOProStack_Feature {
                 'max'         => 100,
                 'parent'      => self::KEY,
                 'label'       => __('WebP quality', 'seoprostack'),
-                'description' => __('80 keeps pictures sharp and files small. Applies to pictures converted from now on.', 'seoprostack'),
+                'description' => __('80 keeps pictures sharp and files small. After a change, pictures are converted again in the background.', 'seoprostack'),
             ),
             'nextgen_avif' => array(
                 'type'        => 'bool',
@@ -108,7 +111,14 @@ class SEOProStack_Nextgen_Images extends SEOProStack_Feature {
                 'max'         => 100,
                 'parent'      => self::KEY,
                 'label'       => __('AVIF quality', 'seoprostack'),
-                'description' => __('AVIF at 60 looks about the same as WebP at 80. Applies to pictures converted from now on.', 'seoprostack'),
+                'description' => __('AVIF at 60 looks about the same as WebP at 80. After a change, pictures are converted again in the background.', 'seoprostack'),
+            ),
+            'nextgen_smart' => array(
+                'type'        => 'bool',
+                'default'     => false,
+                'parent'      => self::KEY,
+                'label'       => __('Quality by picture size', 'seoprostack'),
+                'description' => __('Higher quality for small sizes such as thumbnails, where flaws show, and lower for large ones, which are usually shown smaller than they are: +15 below 200 pixels, −10 from 800, −20 from 2,000 (the longest side).', 'seoprostack'),
             ),
             'nextgen_png' => array(
                 'type'        => 'bool',
@@ -303,13 +313,56 @@ class SEOProStack_Nextgen_Images extends SEOProStack_Feature {
     }
 
     /**
-     * What an attachment is converted for; changes when formats change, so
-     * pictures are looked at again for the new format.
+     * What an attachment is converted for: each format with its quality
+     * settings. It changes when formats or quality change, so pictures are
+     * looked at again; convert_attachment() makes again only the copies whose
+     * quality changed.
      *
      * @return string
      */
     private static function signature() {
-        return implode(',', array_keys(self::formats()));
+        $parts = array();
+        foreach (array_keys(self::formats()) as $format) {
+            $parts[] = $format . ':' . self::quality_key($format);
+        }
+        return implode(',', $parts);
+    }
+
+    /**
+     * A format's quality settings, as kept with the copies: the quality, and
+     * "s" when it is adjusted to picture size.
+     *
+     * @param string $format webp or avif.
+     * @return string
+     */
+    private static function quality_key($format) {
+        return (int) SEOProStack_Settings::get('nextgen_' . $format . '_quality') . (SEOProStack_Settings::get('nextgen_smart') ? 's' : '');
+    }
+
+    /**
+     * Quality for one copy. With Quality by picture size on, small pictures
+     * get more (flaws show in thumbnails) and large ones less (they are
+     * usually shown smaller than they are), as CompressX's smart mode does.
+     *
+     * @param string $format webp or avif.
+     * @param int    $width  Picture width.
+     * @param int    $height Picture height.
+     * @return int
+     */
+    public static function quality($format, $width, $height) {
+        $quality = (int) SEOProStack_Settings::get('nextgen_' . $format . '_quality');
+        $longest = max((int) $width, (int) $height);
+        if (!SEOProStack_Settings::get('nextgen_smart') || $longest <= 0) {
+            return $quality;
+        }
+        if ($longest < 200) {
+            $quality += 15;
+        } elseif ($longest >= 2000) {
+            $quality -= 20;
+        } elseif ($longest >= 800) {
+            $quality -= 10;
+        }
+        return max(10, min(100, $quality));
     }
 
     /* --------------------------------------------------------------------- */
@@ -337,7 +390,14 @@ class SEOProStack_Nextgen_Images extends SEOProStack_Feature {
         $previous = get_post_meta($attachment_id, self::META, true);
         $previous = is_array($previous) ? $previous : array();
         $dir      = dirname($file);
-        $record   = array('files' => array(), 'sources' => array());
+        $record   = array('files' => array(), 'sources' => array(), 'quality' => array());
+        // Formats whose copies were made with other quality settings: made
+        // again. Copies from before quality was kept count as up to date.
+        $redo = array();
+        foreach (array_keys(self::formats()) as $format) {
+            $record['quality'][$format] = self::quality_key($format);
+            $redo[$format]              = isset($previous['quality'][$format]) && $previous['quality'][$format] !== $record['quality'][$format];
+        }
         foreach (self::file_names($file, wp_get_attachment_metadata($attachment_id)) as $name) {
             $path = $dir . '/' . $name;
             $type = wp_check_filetype($name);
@@ -352,11 +412,11 @@ class SEOProStack_Nextgen_Images extends SEOProStack_Feature {
                 if ($mime === $type['type']) {
                     continue;
                 }
-                if ($same && isset($previous['files'][$name][$format]) && 0 === $previous['files'][$name][$format] && !is_file($path . '.' . $format)) {
+                if ($same && !$redo[$format] && isset($previous['files'][$name][$format]) && 0 === $previous['files'][$name][$format] && !is_file($path . '.' . $format)) {
                     $record['files'][$name][$format] = 0;
                     continue;
                 }
-                $record['files'][$name][$format] = self::convert_file($path, $format, $force);
+                $record['files'][$name][$format] = self::convert_file($path, $format, $force || $redo[$format]);
             }
         }
         update_post_meta($attachment_id, self::META, $record);
@@ -434,7 +494,8 @@ class SEOProStack_Nextgen_Images extends SEOProStack_Feature {
                 return -1;
             }
         }
-        $editor->set_quality((int) SEOProStack_Settings::get('nextgen_' . $format . '_quality'));
+        $size = $editor->get_size();
+        $editor->set_quality(self::quality($format, isset($size['width']) ? $size['width'] : 0, isset($size['height']) ? $size['height'] : 0));
 
         $temp  = $path . '.sps-tmp.' . $format;
         $saved = $editor->save($temp, $mime);
@@ -855,6 +916,85 @@ class SEOProStack_Nextgen_Images extends SEOProStack_Feature {
     }
 
     /**
+     * Whether the server is LiteSpeed, which keeps .htaccess rules in memory.
+     *
+     * @return bool
+     */
+    private static function is_litespeed() {
+        $software = isset($_SERVER['SERVER_SOFTWARE']) ? sanitize_text_field(wp_unslash($_SERVER['SERVER_SOFTWARE'])) : '';
+        return false !== stripos($software, 'litespeed');
+    }
+
+    /**
+     * Ask this site's own server for a converted picture, as a browser that
+     * accepts AVIF and WebP, and see whether it sends the copy. LiteSpeed can
+     * keep old rules in memory, and some servers ignore .htaccess files, so
+     * written rules are not always working rules. Settings screen only; the
+     * answer is kept for a week (a few minutes when it got the original) and
+     * until the rules change.
+     *
+     * @param array $sites Sites using the rules (site ID => flags).
+     * @return string copy, original or unknown (nothing to test, or no answer).
+     */
+    private static function check_rules(array $sites) {
+        $rules  = md5(wp_json_encode(self::rules_for($sites)));
+        $cached = get_transient(self::CHECK);
+        if (is_array($cached) && isset($cached['rules'], $cached['result']) && $cached['rules'] === $rules) {
+            return $cached['result'];
+        }
+        $sample = self::sample_copy();
+        if (!$sample) {
+            return 'unknown';
+        }
+        $response = wp_remote_head(add_query_arg('sps-check', time(), $sample['url']), array(
+            'timeout'     => 5,
+            'redirection' => 2,
+            'headers'     => array('Accept' => 'image/avif,image/webp,image/*,*/*;q=0.8'),
+            // As core's own loopback requests (WP_Site_Health).
+            'sslverify'   => apply_filters('https_local_ssl_verify', false), // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- core hook.
+        ));
+        $code = (int) wp_remote_retrieve_response_code($response);
+        if (is_wp_error($response) || 200 !== $code) {
+            $result = 'unknown';
+        } else {
+            $type   = strtolower((string) wp_remote_retrieve_header($response, 'content-type'));
+            // A WebP original only has an AVIF copy.
+            $result = (false !== strpos($type, 'image/avif') || false !== strpos($type, 'image/webp')) && false === strpos($type, $sample['type']) ? 'copy' : 'original';
+        }
+        set_transient(self::CHECK, array('rules' => $rules, 'result' => $result), 'copy' === $result ? WEEK_IN_SECONDS : 5 * MINUTE_IN_SECONDS);
+        return $result;
+    }
+
+    /**
+     * Address of a recent picture whose main file has a copy.
+     *
+     * @return array{url:string,type:string}|null
+     */
+    private static function sample_copy() {
+        global $wpdb;
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- 20 rows, settings screen only, at most every few minutes.
+        $ids = $wpdb->get_col($wpdb->prepare("SELECT post_id FROM {$wpdb->postmeta} WHERE meta_key = %s ORDER BY post_id DESC LIMIT 20", self::META));
+        foreach (array_map('intval', $ids) as $id) {
+            $record = get_post_meta($id, self::META, true);
+            $file   = get_attached_file($id);
+            $url    = wp_get_attachment_url($id);
+            if (!$file || !$url || !is_array($record)) {
+                continue;
+            }
+            $name = wp_basename($file);
+            if (empty($record['files'][$name])) {
+                continue;
+            }
+            foreach ($record['files'][$name] as $format => $bytes) {
+                if ($bytes > 0 && is_file($file . '.' . $format)) {
+                    return array('url' => $url, 'type' => (string) get_post_mime_type($id));
+                }
+            }
+        }
+        return null;
+    }
+
+    /**
      * Sync the rules when this site's part changed since the last sync.
      * Reads one autoloaded option otherwise, plus the network's list on
      * multisite.
@@ -1016,6 +1156,7 @@ class SEOProStack_Nextgen_Images extends SEOProStack_Feature {
     public static function deactivate($network_wide = false) {
         wp_clear_scheduled_hook(self::HOOK);
         delete_option(self::SYNCED);
+        delete_transient(self::CHECK);
         $state = (array) get_site_option(self::RULES, array());
         $sites = isset($state['sites']) && is_array($state['sites']) ? $state['sites'] : array();
         unset($sites[get_current_blog_id()]);
@@ -1068,7 +1209,20 @@ class SEOProStack_Nextgen_Images extends SEOProStack_Feature {
             echo '<p>' . esc_html__('Nginx does not read .htaccess files. So browsers get the copies, add these lines to the site’s Nginx configuration and reload Nginx:', 'seoprostack') . '</p>';
             echo '<pre class="sps-code">' . esc_html(self::nginx_rules()) . '</pre>';
         } elseif ('written' === $status) {
-            echo '<p>' . esc_html__('Browsers get the copies through rules in the uploads folder’s .htaccess file.', 'seoprostack') . '</p>';
+            $check = self::check_rules(isset($state['sites']) && is_array($state['sites']) ? $state['sites'] : array());
+            if ('original' === $check) {
+                echo '<p>' . esc_html__('The rules are in the uploads folder’s .htaccess file, but a test request for a converted picture got the original, so browsers are sent the originals.', 'seoprostack') . ' ';
+                if (self::is_litespeed()) {
+                    echo esc_html__('LiteSpeed keeps .htaccess rules in memory: restart LiteSpeed in your hosting panel, or ask your host to. Checked again in a few minutes.', 'seoprostack');
+                } else {
+                    echo esc_html__('Check that the server reads .htaccess files in the uploads folder and has mod_rewrite and mod_headers, or ask your host. Checked again in a few minutes.', 'seoprostack');
+                }
+                echo '</p>';
+            } elseif ('copy' === $check) {
+                echo '<p>' . esc_html__('Browsers get the copies through rules in the uploads folder’s .htaccess file. A test request got a copy.', 'seoprostack') . '</p>';
+            } else {
+                echo '<p>' . esc_html__('Browsers get the copies through rules in the uploads folder’s .htaccess file.', 'seoprostack') . '</p>';
+            }
         } else {
             $sites = isset($state['sites']) && is_array($state['sites']) ? $state['sites'] : array(get_current_blog_id() => self::site_rules());
             echo '<p>' . esc_html__('The uploads folder’s .htaccess file could not be changed. So browsers get the copies, add these lines to it:', 'seoprostack') . '</p>';
@@ -1201,7 +1355,8 @@ class SEOProStack_Nextgen_Images extends SEOProStack_Feature {
      * ## OPTIONS
      *
      * [--force]
-     * : Make every copy again, for example after changing the quality.
+     * : Make every copy again. Not needed after changing the quality: copies
+     * made with other quality settings are made again anyway.
      *
      * [--dry-run]
      * : Say how many pictures are waiting.

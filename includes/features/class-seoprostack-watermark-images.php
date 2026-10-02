@@ -39,14 +39,26 @@ class SEOProStack_Watermark_Images extends SEOProStack_Feature {
 
     const BULK_REMOVE = 'seoprostack_watermark_remove';
 
-    /** Seconds a bulk action may run before leaving the rest for later. */
+    /** Seconds a bulk action or background batch part may run. */
     const BUDGET = 20;
+
+    /** Option: the background batch in progress, or the last one. */
+    const JOB = 'seoprostack_watermark_job';
+
+    /** WP-Cron hook for background batches. */
+    const HOOK = 'seoprostack_watermark_batch';
+
+    /** admin-post.php action and nonce action of whole-library batches. */
+    const JOB_ACTION = 'seoprostack_watermark_job';
+
+    /** Transient: a batch part is running. */
+    const LOCK = 'seoprostack_watermark_lock';
 
     /** Picture types that can be marked. */
     const TYPES = array('image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/avif');
 
     /** Query arguments of the result notice. */
-    const COUNTS = array('sps_wm_added', 'sps_wm_removed', 'sps_wm_skipped', 'sps_wm_unmarked', 'sps_wm_failed', 'sps_wm_left');
+    const COUNTS = array('sps_wm_added', 'sps_wm_removed', 'sps_wm_skipped', 'sps_wm_unmarked', 'sps_wm_failed', 'sps_wm_left', 'sps_wm_queued');
 
     /**
      * Set while this class regenerates sizes, so they are not marked.
@@ -82,7 +94,7 @@ class SEOProStack_Watermark_Images extends SEOProStack_Feature {
                 'default'     => false,
                 'tab'         => 'media',
                 'label'       => __('Watermark pictures', 'seoprostack'),
-                'description' => __('Add your site icon, logo or another picture faintly to a corner of pictures as they are uploaded. An unmarked copy is kept, so a watermark can be removed. Existing pictures are marked from Media → Library.', 'seoprostack'),
+                'description' => __('Add your site icon, logo or another picture faintly to a corner of pictures as they are uploaded. An unmarked copy is kept, so a watermark can be removed. Existing pictures are marked from Media → Library, or all at once in the background from here.', 'seoprostack'),
                 'replaces'    => array('easy-watermark' => 'Easy Watermark'),
             ),
             'watermark_images_mark' => array(
@@ -236,9 +248,13 @@ class SEOProStack_Watermark_Images extends SEOProStack_Feature {
         // Also when switched off: kept originals must not outlive their
         // pictures, and watermarks can still be removed.
         add_action('delete_attachment', array(__CLASS__, 'forget'));
+        // Also when switched off, so watermarks can still be removed.
+        add_action(self::HOOK, array(__CLASS__, 'run_batch'));
         if (is_admin()) {
             add_action('load-upload.php', array(__CLASS__, 'library_hooks'));
             add_action('admin_post_' . self::ACTION, array(__CLASS__, 'handle_one'));
+            add_action('admin_post_' . self::JOB_ACTION, array(__CLASS__, 'handle_job'));
+            add_action('wp_ajax_seoprostack_watermark_progress', array(__CLASS__, 'ajax_progress'));
             add_action('seoprostack_setting_panel', array(__CLASS__, 'panel_status'), 10, 2);
         }
         if (defined('WP_CLI') && WP_CLI && class_exists('WP_CLI')) {
@@ -1049,38 +1065,437 @@ class SEOProStack_Watermark_Images extends SEOProStack_Feature {
         $start  = microtime(true);
         $counts = array_fill_keys(self::COUNTS, 0);
         $error  = '';
-        foreach (array_values($ids) as $i => $id) {
+        $ids    = array_values($ids);
+        foreach ($ids as $i => $id) {
             if (microtime(true) - $start > self::BUDGET) {
-                $counts['sps_wm_left'] = count($ids) - $i;
+                // The rest are changed in the background, unless another
+                // batch is running.
+                $rest = array_slice($ids, $i);
+                if (self::queue($op, $rest)) {
+                    $counts['sps_wm_queued'] = count($rest);
+                } else {
+                    $counts['sps_wm_left'] = count($rest);
+                }
                 break;
             }
-            if ('add' === $op && !self::enabled()) {
-                $counts['sps_wm_skipped']++;
-                continue;
-            }
-            $status = 'remove' === $op ? self::remove($id) : self::add($id);
-            if (is_wp_error($status)) {
-                // Pictures that are not for marking are skipped, not failed.
-                if ('add' === $op && self::unmarkable($id)) {
-                    $counts['sps_wm_skipped']++;
-                    continue;
-                }
-                $counts['sps_wm_failed']++;
-                $error = $error ? $error : $status->get_error_message();
-            } elseif ('added' === $status) {
-                $counts['sps_wm_added']++;
-            } elseif ('removed' === $status) {
-                $counts['sps_wm_removed']++;
-            } elseif ('unmarked' === $status) {
-                $counts['sps_wm_unmarked']++;
-            } else {
-                $counts['sps_wm_skipped']++;
-            }
+            $error = self::apply($id, $op, $counts, $error);
         }
         if ($error) {
             set_transient('seoprostack_watermark_error_' . get_current_user_id(), $error, 5 * MINUTE_IN_SECONDS);
         }
         return $counts;
+    }
+
+    /**
+     * Mark, mark again or unmark one picture, and count the result.
+     *
+     * @param int                $id     Attachment ID.
+     * @param string             $op     add, again or remove.
+     * @param array<string,int>  $counts Counts, keyed as COUNTS.
+     * @param string             $error  First error message so far.
+     * @return string First error message so far.
+     */
+    private static function apply($id, $op, array &$counts, $error) {
+        if ('remove' !== $op && !self::enabled()) {
+            $counts['sps_wm_skipped']++;
+            return $error;
+        }
+        $status = 'remove' === $op ? self::remove($id) : self::add($id);
+        if (is_wp_error($status)) {
+            // Pictures that are not for marking are skipped, not failed.
+            if ('remove' !== $op && self::unmarkable($id)) {
+                $counts['sps_wm_skipped']++;
+                return $error;
+            }
+            $counts['sps_wm_failed']++;
+            return $error ? $error : $status->get_error_message();
+        }
+        if ('added' === $status) {
+            $counts['sps_wm_added']++;
+        } elseif ('removed' === $status) {
+            $counts['sps_wm_removed']++;
+        } elseif ('unmarked' === $status) {
+            $counts['sps_wm_unmarked']++;
+        } else {
+            $counts['sps_wm_skipped']++;
+        }
+        return $error;
+    }
+
+    /* --------------------------------------------------------------------- */
+    /* Background batches                                                     */
+    /* --------------------------------------------------------------------- */
+
+    /**
+     * The batch in progress, or the last one for a day after it ended.
+     *
+     * @return array Empty when none: op (add, again, remove), ids (pictures
+     *               chosen; null for the whole library), last (last ID
+     *               looked at), total, done, counts, error, ended.
+     */
+    public static function job() {
+        $job = get_option(self::JOB);
+        if (!is_array($job) || empty($job['op'])) {
+            return array();
+        }
+        if (!empty($job['ended']) && $job['ended'] < time() - DAY_IN_SECONDS) {
+            delete_option(self::JOB);
+            return array();
+        }
+        return $job;
+    }
+
+    /**
+     * Whether a batch is in progress.
+     *
+     * @return bool
+     */
+    private static function running() {
+        $job = self::job();
+        return $job && empty($job['ended']);
+    }
+
+    /**
+     * Start a batch.
+     *
+     * @param string     $op  add, again or remove.
+     * @param int[]|null $ids Pictures chosen; null for the whole library.
+     * @return bool False when another batch is running.
+     */
+    private static function start($op, $ids = null) {
+        if (self::running()) {
+            return false;
+        }
+        $total = null === $ids ? self::library_count($op) : count($ids);
+        update_option(self::JOB, array(
+            'op'      => $op,
+            'ids'     => null === $ids ? null : array_values(array_map('intval', $ids)),
+            'last'    => 0,
+            'total'   => $total,
+            'done'    => 0,
+            'counts'  => array_fill_keys(self::COUNTS, 0),
+            'error'   => '',
+            'started' => time(),
+            'ended'   => 0,
+        ), false);
+        self::schedule(0);
+        return true;
+    }
+
+    /**
+     * Pictures a bulk action ran out of time for: add them to the running
+     * batch when it does the same to chosen pictures, or start one.
+     *
+     * @param string $op  add or remove.
+     * @param int[]  $ids Attachment IDs.
+     * @return bool False when a different batch is running.
+     */
+    private static function queue($op, array $ids) {
+        $job = self::job();
+        if ($job && empty($job['ended'])) {
+            if ($job['op'] !== $op || !is_array($job['ids'])) {
+                return false;
+            }
+            $job['ids']    = array_values(array_unique(array_merge($job['ids'], array_map('intval', $ids))));
+            $job['total'] += count($ids);
+            update_option(self::JOB, $job, false);
+            self::schedule(0);
+            return true;
+        }
+        return self::start($op, $ids);
+    }
+
+    /**
+     * Schedule the next batch unless one is due.
+     *
+     * @param int $delay Seconds from now.
+     */
+    private static function schedule($delay) {
+        if (!wp_next_scheduled(self::HOOK)) {
+            wp_schedule_single_event(time() + (int) $delay, self::HOOK);
+        }
+    }
+
+    /**
+     * Plugin deactivated: stop the batch in progress.
+     *
+     * @param bool $network_wide Deactivated for the whole network.
+     */
+    public static function deactivate($network_wide = false) {
+        self::stop();
+        delete_transient(self::LOCK);
+    }
+
+    /**
+     * Stop the batch in progress. Pictures already changed stay changed.
+     */
+    private static function stop() {
+        wp_clear_scheduled_hook(self::HOOK);
+        $job = self::job();
+        if ($job && empty($job['ended'])) {
+            $job['ended']   = time();
+            $job['stopped'] = true;
+            update_option(self::JOB, $job, false);
+        }
+    }
+
+    /**
+     * Next pictures of the whole library for a batch, after the last one
+     * looked at: unmarked pictures to mark, marked ones to mark again or
+     * unmark.
+     *
+     * @param string $op    add, again or remove.
+     * @param int    $after Last ID looked at.
+     * @param int    $limit Most to return.
+     * @return int[]
+     */
+    private static function library_next($op, $after, $limit) {
+        global $wpdb;
+        // phpcs:disable WordPress.DB.DirectDatabaseQuery -- paged by ID, so pictures that change are not skipped or repeated.
+        if ('add' === $op) {
+            $ids = $wpdb->get_col($wpdb->prepare(
+                "SELECT p.ID FROM {$wpdb->posts} p LEFT JOIN {$wpdb->postmeta} m ON m.post_id = p.ID AND m.meta_key = %s WHERE p.post_type = 'attachment' AND p.post_mime_type LIKE %s AND m.meta_id IS NULL AND p.ID > %d ORDER BY p.ID LIMIT %d",
+                self::META,
+                $wpdb->esc_like('image/') . '%',
+                (int) $after,
+                (int) $limit
+            ));
+        } else {
+            $ids = $wpdb->get_col($wpdb->prepare(
+                "SELECT p.ID FROM {$wpdb->posts} p JOIN {$wpdb->postmeta} m ON m.post_id = p.ID AND m.meta_key = %s WHERE p.post_type = 'attachment' AND p.ID > %d ORDER BY p.ID LIMIT %d",
+                self::META,
+                (int) $after,
+                (int) $limit
+            ));
+        }
+        // phpcs:enable
+        return array_map('intval', $ids);
+    }
+
+    /**
+     * How many pictures of the whole library a batch would look at.
+     *
+     * @param string $op add, again or remove.
+     * @return int
+     */
+    private static function library_count($op) {
+        global $wpdb;
+        // phpcs:disable WordPress.DB.DirectDatabaseQuery -- one count when a batch starts or on the settings screen.
+        $marked = (int) $wpdb->get_var($wpdb->prepare(
+            "SELECT COUNT(*) FROM {$wpdb->posts} p JOIN {$wpdb->postmeta} m ON m.post_id = p.ID AND m.meta_key = %s WHERE p.post_type = 'attachment'",
+            self::META
+        ));
+        if ('add' !== $op) {
+            return $marked;
+        }
+        $all = (int) $wpdb->get_var($wpdb->prepare(
+            "SELECT COUNT(*) FROM {$wpdb->posts} WHERE post_type = 'attachment' AND post_mime_type LIKE %s",
+            $wpdb->esc_like('image/') . '%'
+        ));
+        // phpcs:enable
+        return max(0, $all - $marked);
+    }
+
+    /**
+     * WP-Cron: work through the batch for up to BUDGET seconds, then
+     * schedule the next part.
+     */
+    public static function run_batch() {
+        $job = self::job();
+        if (!$job || !empty($job['ended'])) {
+            return;
+        }
+        // One part at a time; a part that stops PHP frees it after a while.
+        if (get_transient(self::LOCK)) {
+            self::schedule(30);
+            return;
+        }
+        set_transient(self::LOCK, 1, self::BUDGET + 60);
+        if ('remove' !== $job['op']) {
+            $mark = self::enabled() ? self::mark() : new WP_Error('watermark_off', __('Watermark pictures was switched off.', 'seoprostack'));
+            if (is_wp_error($mark)) {
+                $job['error'] = $mark->get_error_message();
+                $job['ended'] = time();
+                update_option(self::JOB, $job, false);
+                delete_transient(self::LOCK);
+                return;
+            }
+        }
+        // Next part first, so a picture that stops PHP does not stop the batch.
+        self::schedule(30);
+        $start = microtime(true);
+        while (microtime(true) - $start < self::BUDGET) {
+            if (is_array($job['ids'])) {
+                $id = $job['ids'] ? (int) array_shift($job['ids']) : 0;
+            } else {
+                $next = self::library_next($job['op'], (int) $job['last'], 1);
+                $id   = $next ? $next[0] : 0;
+            }
+            if (!$id) {
+                $job['ended'] = time();
+                break;
+            }
+            // Saved before the picture, so one that stops PHP is not tried
+            // again at the start of every part.
+            $job['last'] = $id;
+            $job['done']++;
+            update_option(self::JOB, $job, false);
+            $job['error'] = self::apply($id, $job['op'], $job['counts'], (string) $job['error']);
+            wp_cache_flush_runtime();
+            // Stopped from the settings screen meanwhile.
+            $now = get_option(self::JOB);
+            if (!is_array($now) || !empty($now['ended'])) {
+                delete_transient(self::LOCK);
+                return;
+            }
+        }
+        $job['total'] = max((int) $job['total'], (int) $job['done']);
+        update_option(self::JOB, $job, false);
+        delete_transient(self::LOCK);
+        if (!empty($job['ended'])) {
+            wp_clear_scheduled_hook(self::HOOK);
+        } else {
+            wp_clear_scheduled_hook(self::HOOK);
+            self::schedule(0);
+        }
+    }
+
+    /**
+     * admin-post.php?action=seoprostack_watermark_job: start or stop a batch
+     * for the whole library from the settings card.
+     */
+    public static function handle_job() {
+        check_admin_referer(self::JOB_ACTION);
+        if (!current_user_can('manage_options') || !current_user_can('upload_files')) {
+            wp_die(esc_html__('Sorry, you are not allowed to change pictures.', 'seoprostack'), '', array('response' => 403, 'back_link' => true));
+        }
+        $op = isset($_POST['op']) ? sanitize_key(wp_unslash($_POST['op'])) : '';
+        if ('stop' === $op) {
+            self::stop();
+        } elseif ('remove' === $op || (in_array($op, array('add', 'again'), true) && self::enabled())) {
+            self::start($op);
+        }
+        wp_safe_redirect(admin_url('options-general.php?page=seoprostack&tab=media'));
+        exit;
+    }
+
+    /**
+     * admin-ajax.php?action=seoprostack_watermark_progress: the batch's
+     * progress for the settings card, which asks every few seconds.
+     */
+    public static function ajax_progress() {
+        check_ajax_referer(self::JOB_ACTION);
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error(null, 403);
+        }
+        $next = wp_next_scheduled(self::HOOK);
+        if ($next && $next <= time() && function_exists('spawn_cron')) {
+            // Sites with few visitors: keep the batch going while someone watches.
+            spawn_cron();
+        }
+        $job = self::job();
+        wp_send_json_success(array(
+            'text'    => $job ? self::progress_text($job) : '',
+            'running' => $job && empty($job['ended']),
+        ));
+    }
+
+    /**
+     * What the batch is doing or did.
+     *
+     * @param array $job job().
+     * @return string
+     */
+    private static function progress_text(array $job) {
+        $names = array(
+            'add'    => __('Marking pictures', 'seoprostack'),
+            'again'  => __('Marking pictures again with the current settings', 'seoprostack'),
+            'remove' => __('Removing watermarks', 'seoprostack'),
+        );
+        $name   = isset($names[$job['op']]) ? $names[$job['op']] : '';
+        $counts = $job['counts'];
+        $parts  = array();
+        if (empty($job['ended'])) {
+            /* translators: 1: what is being done, 2: pictures looked at, 3: all pictures */
+            $parts[] = sprintf(__('%1$s: %2$s of %3$s.', 'seoprostack'), $name, number_format_i18n((int) $job['done']), number_format_i18n(max((int) $job['done'], (int) $job['total'])));
+        } elseif (!empty($job['stopped'])) {
+            /* translators: 1: what was being done, 2: pictures looked at, 3: all pictures */
+            $parts[] = sprintf(__('%1$s: stopped after %2$s of %3$s.', 'seoprostack'), $name, number_format_i18n((int) $job['done']), number_format_i18n(max((int) $job['done'], (int) $job['total'])));
+        } else {
+            /* translators: %s: what was done */
+            $parts[] = sprintf(__('%s: done.', 'seoprostack'), $name);
+        }
+        if ($counts['sps_wm_added']) {
+            /* translators: %s: number of pictures */
+            $parts[] = sprintf(_n('%s marked.', '%s marked.', $counts['sps_wm_added'], 'seoprostack'), number_format_i18n($counts['sps_wm_added']));
+        }
+        if ($counts['sps_wm_removed']) {
+            /* translators: %s: number of pictures */
+            $parts[] = sprintf(_n('%s unmarked.', '%s unmarked.', $counts['sps_wm_removed'], 'seoprostack'), number_format_i18n($counts['sps_wm_removed']));
+        }
+        if ($counts['sps_wm_skipped']) {
+            /* translators: %s: number of pictures */
+            $parts[] = sprintf(_n('%s left alone.', '%s left alone.', $counts['sps_wm_skipped'], 'seoprostack'), number_format_i18n($counts['sps_wm_skipped']));
+        }
+        if ($counts['sps_wm_failed']) {
+            /* translators: %s: number of pictures */
+            $parts[] = sprintf(_n('%s could not be changed.', '%s could not be changed.', $counts['sps_wm_failed'], 'seoprostack'), number_format_i18n($counts['sps_wm_failed']));
+        }
+        if (!empty($job['error'])) {
+            $parts[] = (string) $job['error'];
+        }
+        return implode(' ', $parts);
+    }
+
+    /**
+     * The settings card's batch part: progress and Stop, or the buttons that
+     * start a batch for the whole library.
+     */
+    private static function panel_batch() {
+        if (!current_user_can('manage_options') || !current_user_can('upload_files')) {
+            return;
+        }
+        $job     = self::job();
+        $running = $job && empty($job['ended']);
+        echo '<div class="sps-panel-note"><form method="post" action="' . esc_url(admin_url('admin-post.php')) . '" class="sps-watermark-batch">';
+        echo '<input type="hidden" name="action" value="' . esc_attr(self::JOB_ACTION) . '" />';
+        wp_nonce_field(self::JOB_ACTION);
+        if ($job) {
+            echo '<p class="sps-watermark-batch__progress" aria-live="polite">' . esc_html(self::progress_text($job)) . '</p>';
+        }
+        if ($running) {
+            echo '<p><button type="submit" name="op" value="stop" class="button">' . esc_html__('Stop', 'seoprostack') . '</button></p>';
+        } else {
+            $buttons = array();
+            $marked  = self::library_count('remove');
+            $can     = self::enabled() && !is_wp_error(self::mark());
+            if ($can && self::library_count('add')) {
+                $buttons['add'] = __('Mark every picture', 'seoprostack');
+            }
+            if ($can && $marked) {
+                $buttons['again'] = __('Mark again with these settings', 'seoprostack');
+            }
+            if ($marked) {
+                $buttons['remove'] = __('Remove every watermark', 'seoprostack');
+            }
+            if ($buttons) {
+                echo '<p>' . esc_html__('For the whole Media Library, in the background. Pictures without a kept original cannot be marked again or unmarked.', 'seoprostack') . '</p><p>';
+                foreach ($buttons as $op => $label) {
+                    printf('<button type="submit" name="op" value="%1$s" class="button"%3$s>%2$s</button> ', esc_attr($op), esc_html($label), 'remove' === $op ? ' onclick="return confirm(this.dataset.confirm)" data-confirm="' . esc_attr__('Remove the watermark from every marked picture, putting the kept originals back?', 'seoprostack') . '"' : '');
+                }
+                echo '</p>';
+            }
+        }
+        echo '</form>';
+        if ($running) {
+            // Progress every few seconds while the batch runs.
+            $url = add_query_arg(array('action' => 'seoprostack_watermark_progress', '_ajax_nonce' => wp_create_nonce(self::JOB_ACTION)), admin_url('admin-ajax.php'));
+            printf(
+                '<script>(function(){var u=%s,p=document.querySelector(".sps-watermark-batch__progress");function t(){fetch(u,{credentials:"same-origin"}).then(function(r){return r.json();}).then(function(r){if(!r||!r.success){return;}if(p){p.textContent=r.data.text;}if(r.data.running){setTimeout(t,5000);}else{location.reload();}}).catch(function(){setTimeout(t,15000);});}setTimeout(t,5000);})();</script>',
+                wp_json_encode($url)
+            );
+        }
+        echo '</div>';
     }
 
     /**
@@ -1123,7 +1538,11 @@ class SEOProStack_Watermark_Images extends SEOProStack_Feature {
         }
         if ($get('sps_wm_left')) {
             /* translators: %d: number of pictures */
-            $parts[] = sprintf(_n('%d was left for lack of time: select it and try again.', '%d were left for lack of time: select them and try again.', $get('sps_wm_left'), 'seoprostack'), $get('sps_wm_left'));
+            $parts[] = sprintf(_n('%d was left for lack of time, and another batch is running: select it and try again when that one is done.', '%d were left for lack of time, and another batch is running: select them and try again when that one is done.', $get('sps_wm_left'), 'seoprostack'), $get('sps_wm_left'));
+        }
+        if ($get('sps_wm_queued')) {
+            /* translators: %d: number of pictures */
+            $parts[] = sprintf(_n('%d more is changed in the background; progress is on the settings card.', '%d more are changed in the background; progress is on the settings card.', $get('sps_wm_queued'), 'seoprostack'), $get('sps_wm_queued'));
         }
         $type = $get('sps_wm_failed') || $get('sps_wm_left') ? 'warning' : 'success';
         printf('<div class="notice notice-%1$s is-dismissible"><p>%2$s</p></div>', esc_attr($type), esc_html(implode(' ', $parts)));
@@ -1156,6 +1575,8 @@ class SEOProStack_Watermark_Images extends SEOProStack_Feature {
         $mark = self::mark();
         if (is_wp_error($mark)) {
             printf('<div class="sps-panel-note sps-panel-note--warning"><p>%s</p></div>', esc_html($mark->get_error_message()));
+            // Watermarks can still be removed.
+            self::panel_batch();
             return;
         }
         global $wpdb;
@@ -1172,12 +1593,13 @@ class SEOProStack_Watermark_Images extends SEOProStack_Feature {
             wp_kses(
                 sprintf(
                     /* translators: %s: Media Library address */
-                    __('To mark pictures already uploaded, or change or remove watermarks, select them in <a href="%s">Media → Library</a> (list view) and choose a bulk action.', 'seoprostack'),
+                    __('To mark, mark again or unmark some pictures, select them in <a href="%s">Media → Library</a> (list view) and choose a bulk action; what does not fit in 20 seconds carries on in the background.', 'seoprostack'),
                     esc_url(admin_url('upload.php?mode=list'))
                 ),
                 array('a' => array('href' => array()))
             )
         );
+        self::panel_batch();
     }
 
     /**
