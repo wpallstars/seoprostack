@@ -101,7 +101,14 @@ final class SEOProStack_Plugin_Loader {
     const FRONT_USERS_KEY = 'plugin_loading_front_users';
 
     /** Format of what is learned on the site; a change makes it learn again. */
-    const FRONT_VERSION = 1;
+    const FRONT_VERSION = 2;
+
+    /** Opt-in page learning and plugins the owner wants to keep loading. */
+    const PAGES_KEY = 'plugin_loading_pages';
+    const KEEP_KEY  = 'plugin_loading_pages_keep';
+
+    /** Bound anonymous learning storage; unknown pages always load everything. */
+    const PAGE_LIMIT = 100;
 
     /**
      * Query arguments that leave a page of the site as it is: search, page
@@ -506,6 +513,28 @@ final class SEOProStack_Plugin_Loader {
             return;
         }
         $chosen = isset($options[self::FRONT_KEY]) && is_array($options[self::FRONT_KEY]) ? array_values(array_intersect(self::$raw, $options[self::FRONT_KEY])) : array();
+        if (!empty($options[self::PAGES_KEY])) {
+            // Never learn a visitor's session or personalise a public page map.
+            if ($logged_in || !empty($_COOKIE)) {
+                return;
+            }
+            $key = self::front_page_key();
+            if ('' === $key) {
+                return;
+            }
+            $page = isset($front['pages'][$key]) ? $front['pages'][$key] : array();
+            if (empty($page['learned']) || $page['learned'] < time() - HOUR_IN_SECONDS) {
+                self::$mode   = 'full';
+                self::$reason = 'learning';
+                self::attribute();
+                return;
+            }
+            $keep = isset($options[self::KEEP_KEY]) ? (array) $options[self::KEEP_KEY] : array();
+            $candidates = array_diff((array) ($front['candidates'] ?? array()), $keep);
+            $chosen = array_unique(array_merge($chosen, $candidates));
+            // Even an explicitly ticked content plugin stays on pages using it.
+            $chosen = array_diff($chosen, (array) ($page['needs'] ?? array()));
+        }
         self::$skipped = self::front_skipped($chosen, $front);
         if (self::$skipped) {
             self::filter();
@@ -565,6 +594,26 @@ final class SEOProStack_Plugin_Loader {
             }
         }
         return false;
+    }
+
+    /**
+     * Exact public URL identity, available before the query and plugins load.
+     * Query variants are not learned: searches, pagination and actions keep all
+     * plugins. Campaign tags share the same map as their untagged page.
+     *
+     * @return string
+     */
+    public static function front_page_key() {
+        // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- only choosing to load more plugins.
+        foreach (array_keys($_GET) as $name) {
+            if (self::LOAD_ALL_ARG !== $name && 0 !== strpos((string) $name, 'utm_')
+                && !in_array($name, array_diff(self::FRONT_ARGS, array('s', 'paged', 'page', 'cpage', 'p', 'page_id')), true)) {
+                return '';
+            }
+        }
+        $uri = isset($_SERVER['REQUEST_URI']) ? (string) wp_unslash($_SERVER['REQUEST_URI']) : ''; // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- hashed, never printed.
+        $path = (string) wp_parse_url($uri, PHP_URL_PATH);
+        return '' !== $path && '/' === $path[0] && strlen($path) <= 2048 ? hash('sha256', $path) : '';
     }
 
     /**
@@ -1109,6 +1158,7 @@ final class SEOProStack_Plugin_Loader {
         $plugin = self::calling_plugin();
         if ('' !== $plugin) {
             self::$registered['blocks'][$plugin] = true;
+            self::$registered['block_names'][(string) $block_type] = $plugin;
         }
         return $args;
     }

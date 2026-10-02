@@ -158,6 +158,9 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
      */
     private static $table_watched = array();
 
+    /** Content actually rendered, including theme templates and secondary loops. */
+    private static $front_seen = array();
+
     /**
      * Settings.
      *
@@ -195,6 +198,21 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
                 'label'       => __('Also skip them for people who are logged in', 'seoprostack'),
                 'description' => __('When off, people who are logged in, such as editors, get every plugin on the site, including what plugins add to the admin bar there.', 'seoprostack'),
             ),
+            SEOProStack_Plugin_Loader::PAGES_KEY => array(
+                'type'        => 'bool',
+                'default'     => false,
+                'parent'      => self::KEY,
+                'label'       => __('Learn which plugins each page needs', 'seoprostack'),
+                'description' => __('For visitors without cookies. New pages first load every plugin. Content plugins stay on pages using their content. Plugins that change every page stay loaded. WooCommerce also stays for shop pages, cart displays and store notices; without Lighter WooCommerce pages it keeps loading everywhere. Searches, logged-in people and requests that change things load every plugin.', 'seoprostack'),
+            ),
+            SEOProStack_Plugin_Loader::KEEP_KEY => array(
+                'type'        => 'multi',
+                'default'     => array(),
+                'parent'      => SEOProStack_Plugin_Loader::PAGES_KEY,
+                'label'       => __('Always load these plugins on the site', 'seoprostack'),
+                'description' => __('Opt out of page learning for plugins your theme or custom code needs.', 'seoprostack'),
+                'options'     => array(__CLASS__, 'plugin_options'),
+            ),
         );
     }
 
@@ -206,6 +224,13 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
         // deactivation change the fingerprint by themselves).
         add_action('upgrader_process_complete', array(__CLASS__, 'forget'));
         add_action('seoprostack_setting_saved', array(__CLASS__, 'setting_saved'));
+        // A route must not keep an old decision after its content or layout changes.
+        add_action('save_post', array(__CLASS__, 'forget_front'));
+        add_action('deleted_post', array(__CLASS__, 'forget_front'));
+        add_action('edited_term', array(__CLASS__, 'forget_front'));
+        add_action('delete_term', array(__CLASS__, 'forget_front'));
+        add_action('switch_theme', array(__CLASS__, 'forget_front'));
+        add_action('updated_option', array(__CLASS__, 'front_option_changed'), 10, 1);
         add_action('seoprostack_setting_panel', array(__CLASS__, 'panel_status'), 10, 2);
         if (is_admin()) {
             add_action('admin_init', array(__CLASS__, 'maybe_sync'));
@@ -256,6 +281,9 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
         if ('full' === $state['mode'] && 'learning' === $state['reason']) {
             // Last, once every plugin has added its hooks.
             add_action('shutdown', array(__CLASS__, 'learn_front'), 0);
+            add_action('loop_start', array(__CLASS__, 'front_loop'));
+            add_filter('render_block', array(__CLASS__, 'front_block'), 10, 2);
+            add_filter('do_shortcode_tag', array(__CLASS__, 'front_shortcode'), 10, 2);
         } elseif ('filter' === $state['mode']) {
             add_action('admin_bar_menu', array(__CLASS__, 'admin_bar_in_menu'), 99);
             add_action('admin_bar_menu', array(__CLASS__, 'admin_bar'), 999);
@@ -937,6 +965,27 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
                 $always[] = $file;
             }
         }
+        $previous = get_option(SEOProStack_Plugin_Loader::FRONT, array());
+        $pages = SEOProStack_Plugin_Loader::front_current() ? (array) ($previous['pages'] ?? array()) : array();
+        $candidates = array();
+        foreach ($notes as $file => $list) {
+            // Unknown global callbacks are not proof that a plugin is unused.
+            if (in_array('content', $list, true) && !array_intersect($list, array('always', 'core', 'pages', 'login'))) {
+                $candidates[] = $file;
+            }
+        }
+        $woo = 'woocommerce/woocommerce.php';
+        if (in_array($woo, $state['active'], true) && self::woo_can_skip()) {
+            $candidates[] = $woo;
+        }
+        $key = SEOProStack_Settings::get(SEOProStack_Plugin_Loader::PAGES_KEY) ? SEOProStack_Plugin_Loader::front_page_key() : '';
+        if ('' !== $key && empty($_COOKIE) && !is_user_logged_in() && !is_404() && !is_feed()
+            && !is_search() && !is_preview() && 200 === http_response_code()) {
+            $pages[$key] = array('needs' => self::page_needs($state), 'learned' => time());
+            if (count($pages) > SEOProStack_Plugin_Loader::PAGE_LIMIT) {
+                array_shift($pages);
+            }
+        }
         update_option(SEOProStack_Plugin_Loader::FRONT, array(
             'version' => SEOProStack_Plugin_Loader::FRONT_VERSION,
             'active'  => $print,
@@ -945,10 +994,141 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
             'notes'   => $notes,
             'learned' => time(),
             'failed'  => array(),
+            'pages'   => $pages,
+            'candidates' => array_values(array_unique($candidates)),
         ), true);
         if (!$state['relearn']) {
             delete_option(SEOProStack_Plugin_Loader::FRONT_LOCK);
         }
+    }
+
+    /** Forget page ownership when settings used before plugins load change. */
+    public static function front_option_changed($name) {
+        if (in_array($name, array('seoprostack_options', 'permalink_structure', 'rewrite_rules', 'show_on_front',
+            'page_on_front', 'page_for_posts', 'sidebars_widgets', 'woocommerce_shop_page_id',
+            'woocommerce_cart_page_id', 'woocommerce_checkout_page_id', 'woocommerce_myaccount_page_id',
+            'woocommerce_demo_store', 'woocommerce_demo_store_notice'), true)
+            || 0 === strpos((string) $name, 'theme_mods_') || 0 === strpos((string) $name, 'widget_')) {
+            self::forget_front();
+        }
+    }
+
+    /** Invalidate the public map without changing the admin map. */
+    public static function forget_front() {
+        delete_option(SEOProStack_Plugin_Loader::FRONT);
+        delete_option(SEOProStack_Plugin_Loader::FRONT_LOCK);
+    }
+
+    /** Capture content types in secondary loops as well as the main query. */
+    public static function front_loop($query) {
+        $state = SEOProStack_Plugin_Loader::state();
+        foreach ((array) $query->posts as $post) {
+            if ($post instanceof WP_Post && !empty($state['registered']['types'][$post->post_type])) {
+                self::$front_seen[] = $state['registered']['types'][$post->post_type];
+            }
+        }
+    }
+
+    /** Keep the owner of blocks rendered from theme files or template parts. */
+    public static function front_block($output, $block) {
+        $state = SEOProStack_Plugin_Loader::state();
+        $name = isset($block['blockName']) ? (string) $block['blockName'] : '';
+        if (!empty($state['registered']['block_names'][$name])) {
+            self::$front_seen[] = $state['registered']['block_names'][$name];
+        }
+        if (0 === strpos($name, 'woocommerce/')) {
+            self::$front_seen[] = 'woocommerce/woocommerce.php';
+        }
+        return $output;
+    }
+
+    /** Keep shortcode owners even when a theme renders them outside a post. */
+    public static function front_shortcode($output, $tag) {
+        global $shortcode_tags;
+        if (isset($shortcode_tags[$tag])) {
+            self::$front_seen[] = SEOProStack_Plugin_Loader::plugin_for_callback($shortcode_tags[$tag]);
+        }
+        return $output;
+    }
+
+    /**
+     * WooCommerce's global assets are intentional unless the owner has already
+     * chosen to remove them. WooCommerce-aware themes and widgets are retained:
+     * their cart may appear only on some devices or for some visitors.
+     *
+     * @return bool
+     */
+    private static function woo_can_skip() {
+        if (!SEOProStack_Woo_Light::enabled() || current_theme_supports('woocommerce')
+            || 'yes' === get_option('woocommerce_demo_store', 'no')) {
+            return false;
+        }
+        $items = (array) SEOProStack_Settings::get(SEOProStack_Woo_Light::ITEMS_KEY);
+        if (!in_array('scripts', $items, true) || !in_array('fragments', $items, true)) {
+            return false;
+        }
+        foreach ((array) wp_get_sidebars_widgets() as $sidebar => $widgets) {
+            if ('wp_inactive_widgets' === $sidebar) {
+                continue;
+            }
+            foreach ((array) $widgets as $widget) {
+                if (0 === strpos((string) $widget, 'woocommerce_')) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    /**
+     * Content owners on a fully rendered page, including secondary loops.
+     * Actual shortcode and block output outside the main post is also retained
+     * conservatively by examining registered global templates and widgets.
+     *
+     * @param array $state Full-request registration owners.
+     * @return string[]
+     */
+    private static function page_needs(array $state) {
+        global $wp_query, $shortcode_tags;
+        $needs = array_merge(self::$front_seen, self::widget_plugins());
+        $posts = $wp_query instanceof WP_Query ? (array) $wp_query->posts : array();
+        // Block templates and reusable blocks can add content outside the post.
+        $posts = array_merge($posts, get_posts(array('post_type' => array('wp_template', 'wp_template_part', 'wp_block'),
+            'numberposts' => 100, 'post_status' => 'publish', 'suppress_filters' => true)));
+        if (count($posts) >= 100) {
+            return $state['active']; // Too much global content to inspect cheaply.
+        }
+        $texts = array(wp_json_encode(get_option('widget_block', array())), wp_json_encode(get_option('widget_text', array())));
+        foreach ($posts as $post) {
+            if (!($post instanceof WP_Post)) {
+                continue;
+            }
+            $texts[] = $post->post_content;
+            if (!empty($state['registered']['types'][$post->post_type])) {
+                $needs[] = $state['registered']['types'][$post->post_type];
+            }
+        }
+        $object = get_queried_object();
+        if ($object instanceof WP_Term && !empty($state['registered']['taxes'][$object->taxonomy])) {
+            $needs[] = $state['registered']['taxes'][$object->taxonomy];
+        }
+        $content = implode("\n", $texts);
+        foreach ((array) $shortcode_tags as $tag => $callback) {
+            if (false !== strpos($content, '[' . $tag)) {
+                $needs[] = SEOProStack_Plugin_Loader::plugin_for_callback($callback);
+            }
+        }
+        foreach ((array) ($state['registered']['block_names'] ?? array()) as $block => $file) {
+            if (false !== strpos($content, 'wp:' . $block)) {
+                $needs[] = $file;
+            }
+        }
+        if (class_exists('WooCommerce', false) && (SEOProStack_Woo_Light::is_shop_page()
+            || did_action('woocommerce_before_mini_cart') || did_action('woocommerce_before_cart')
+            || did_action('woocommerce_before_shop_loop') || false !== strpos($content, 'wp:woocommerce/'))) {
+            $needs[] = 'woocommerce/woocommerce.php';
+        }
+        return array_values(array_unique(array_filter($needs)));
     }
 
     /**
