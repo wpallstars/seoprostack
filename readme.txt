@@ -34,7 +34,7 @@ Everything is off by default except Hide admin bar items (Comments and + New), N
 * **Publishing queue**: posts published without a date are scheduled for the next free time slot.
 * **Duplicate posts**, **Staged new versions** (edit a published post as a draft) and **Shareable preview links** for people without an account.
 * **Pinned posts for any post type** and **Select all across pages** for bulk actions.
-* **Restrict content** (posts, categories, blocks) and **Menu item visibility** by login or role, **Change post type**, **Order by hand**, **Term tools** (merge, move, set parent), **Search custom fields** (ACF) and **Old post addresses**.
+* **Restrict content** and **Menu item visibility** by login or role, **Change post type**, **Order by hand**, **Term tools** (merge, move, set parent), **Search custom fields** (ACF) and **Old post addresses**.
 * **TranslatePress colours**: Kadence light/dark switchers.
 * **iFrame block**: embed pages, limited to the domains and roles you choose.
 * **Link cards**, **Wikipedia previews**, **Word documents**, **Brand icons** and **Like, save and share**.
