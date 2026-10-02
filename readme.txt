@@ -129,8 +129,7 @@ Click **Report a problem** at the top right of Settings → SEO Pro Stack, or op
 
 = Unreleased =
 * New: Word documents in the editor.
-* Fix: More menu items no longer shift right.
-* Fix: fitted admin menu and full screen editor.
+* Fix: More menu items shifting right, fitted menu in full screen editor.
 
 = 0.9.0 =
 * New: Menu item visibility, Change post type, Order by hand, Term tools, Search custom fields, Old post addresses, Link cards, Wikipedia previews, Agency tab.
