@@ -264,6 +264,10 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
                 add_action('admin_menu', array(__CLASS__, 'capture_menu'), PHP_INT_MAX);
                 add_action('adminmenu', array(__CLASS__, 'prune_menu'));
                 add_action('admin_footer', array(__CLASS__, 'learn'), PHP_INT_MAX);
+                if ('customizer' === $state['screen']) {
+                    // customize.php has its own footer, not admin_footer.
+                    add_action('customize_controls_print_footer_scripts', array(__CLASS__, 'learn'), PHP_INT_MAX);
+                }
                 if (self::table_hooks($state['screen'])) {
                     // Before each list hook runs: see which plugins change it.
                     add_action('all', array(__CLASS__, 'watch_table_hook'));
@@ -882,6 +886,7 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
                 // stopped adding blocks keep loading in editors (the safe side).
                 $map['types']  = array_merge((array) $map['types'], $state['registered']['types']);
                 $map['taxes']  = array_merge((array) $map['taxes'], $state['registered']['taxes']);
+                $map['sidebars'] = array_merge((array) ($map['sidebars'] ?? array()), $state['registered']['sidebars']);
                 $map['blocks'] = array_values(array_unique(array_merge((array) $map['blocks'], array_keys($state['registered']['blocks']))));
             }
         } elseif ($state['attributing']) {
@@ -899,6 +904,7 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
                     return 0 === strpos($name, 'seoprostack_');
                 }),
                 'widgets'     => self::widget_plugins(),
+                'sidebars'    => $state['registered']['sidebars'],
                 'pages'       => array(),
                 'screens'     => array(),
                 'tables'      => array(),
@@ -934,6 +940,29 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
             } elseif ('site-editor' === $kind) {
                 $map['screens'][$screen]  = self::site_editor_plugins($map);
                 $map['site_editor_theme'] = get_option('stylesheet');
+            } elseif ('customizer' === $kind) {
+                global $wp_registered_sidebars, $wp_widget_factory;
+                // A safety reload kept every plugin. Do not relearn it back
+                // to the incomplete form on that reload; an explicit check
+                // (reason "learning") can try again later.
+                $kept_full = 'needed' === $state['reason'] && $state['active'] === (array) ($map['screens'][$screen] ?? array());
+                if (!$kept_full) {
+                    $map['screens'][$screen] = array_values(array_unique(array_merge(
+                        self::form_plugins($kind, $name), self::menu_plugins($map), self::widget_plugins(), array_values((array) $map['sidebars']), (array) $map['blocks']
+                    )));
+                }
+                $map['customizer_block_widgets'] = wp_use_widgets_block_editor();
+                $map['customizer_theme']    = get_option('stylesheet');
+                $map['customizer_sidebars'] = array_keys((array) $wp_registered_sidebars);
+                $map['customizer_widgets']  = isset($wp_widget_factory->widgets) ? array_keys($wp_widget_factory->widgets) : array();
+                $map['customizer_menus']    = array_keys(get_registered_nav_menus());
+            } elseif ('import' === $kind) {
+                $map['screens'][$screen] = self::import_plugins();
+            } elseif ('export' === $kind) {
+                // The form offers every exportable post type, not just posts.
+                $map['screens'][$screen] = array_values(array_unique(array_merge(
+                    self::form_plugins($kind, $name), array_values((array) $map['types']), array_values((array) $map['taxes'])
+                )));
             } else {
                 $map['screens'][$screen] = self::form_plugins($kind, $name);
             }
@@ -1453,7 +1482,7 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
         if ('dashboard' === $kind) {
             return self::dashboard_plugins();
         }
-        if (!in_array($kind, array('post', 'terms', 'list', 'user', 'tools', 'media-new', 'menus', 'site-editor'), true)) {
+        if (!in_array($kind, array('post', 'terms', 'list', 'user', 'tools', 'media-new', 'menus', 'site-editor', 'customizer', 'import', 'export'), true)) {
             return array();
         }
         return self::plugins_on_hooks(function ($hook) use ($kind, $name) {
@@ -1650,6 +1679,26 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
             foreach (get_taxonomies(array('public' => true)) as $tax) {
                 if (!empty($map['taxes'][$tax]) && is_string($map['taxes'][$tax])) {
                     $plugins[] = $map['taxes'][$tax];
+                }
+            }
+        }
+        return array_values(array_unique($plugins));
+    }
+
+    /**
+     * Importers have no registration hook: learn their registered callbacks
+     * after import.php has loaded them, along with screen-specific hooks.
+     *
+     * @return string[]
+     */
+    private static function import_plugins() {
+        global $wp_importers;
+        $plugins = self::form_plugins('import', '');
+        foreach ((array) $wp_importers as $importer) {
+            if (is_array($importer) && isset($importer[2])) {
+                $plugin = SEOProStack_Plugin_Loader::plugin_for_callback($importer[2]);
+                if ('' !== $plugin) {
+                    $plugins[] = $plugin;
                 }
             }
         }

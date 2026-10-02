@@ -119,6 +119,7 @@ Copies from WordPress.org update from there. New versions come out on GitHub fir
 == Changelog ==
 
 = Unreleased =
+* Change: faster Customizer, Import and Export forms; saving, previews and Site Health keep every plugin.
 * Change: Kadence's design library is kept in your browser, so it opens faster.
 * New: Read Me banner.
 
