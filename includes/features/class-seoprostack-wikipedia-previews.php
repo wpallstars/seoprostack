@@ -79,6 +79,10 @@ class SEOProStack_Wikipedia_Previews extends SEOProStack_Feature {
      * @return string
      */
     public static function filter_content($content) {
+        // Excerpts run the_content and then strip the tags.
+        if (doing_filter('get_the_excerpt')) {
+            return $content;
+        }
         $post_id = (int) get_the_ID();
         $links   = true;
         if ($post_id && metadata_exists('post', $post_id, self::DETECT_META)) {

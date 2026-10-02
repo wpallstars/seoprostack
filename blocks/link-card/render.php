@@ -13,4 +13,4 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-echo SEOProStack_Link_Cards::render_block((array) $attributes); // phpcs:ignore WordPress.Security.EscapeOutput -- escaped when built.
+echo SEOProStack_Link_Card_Block::render_block((array) $attributes); // phpcs:ignore WordPress.Security.EscapeOutput -- escaped when built.

@@ -20,7 +20,7 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-class SEOProStack_Link_Cards extends SEOProStack_Feature {
+class SEOProStack_Link_Card_Block extends SEOProStack_Feature {
 
     const KEY = 'link_cards';
 
