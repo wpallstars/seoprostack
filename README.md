@@ -1,3 +1,5 @@
+![WPALLSTARS SEO Pro Stack: WP Admin – Solved!](admin/images/banner.svg)
+
 # SEO Pro Stack
 
 Curated plugins, themes, hosting and workflow tools for WordPress, plus a few small quality-of-life features.
@@ -13,9 +15,11 @@ Go to **Settings → SEO Pro Stack**, or click the star next to your name in the
 - **Discover**: Theme, Free Plugins, Pro Plugins, Hosting and Tools.
 - **About**: this Read Me.
 
+**Report a problem**, at the top right of the screen, opens the plugin’s [GitHub issues](https://github.com/wpallstars/seoprostack/issues) in a new tab. Say what you did, what you expected and what happened, with the versions of WordPress, PHP and SEO Pro Stack. Leave out passwords, licence keys and personal data, since issues are public.
+
 ## Features
 
-Every feature is off by default except three: Hide admin bar items, which hides Comments and + New from the admin bar, No fade between admin screens and Quiet Freemius prompts. Copies installed from GitHub releases also have Updates from GitHub on. Features that replace a separate plugin say so on their card (“Replaces: …”) and import that plugin’s settings once when SEO Pro Stack is updated. The other plugin’s own settings are never changed or deleted. While that plugin is active, the feature waits and the plugin keeps doing the job, so the two never run side by side; the card says so, with a deactivate link. Deactivate the plugin to switch over. The Plugins screen lists installed plugins that SEO Pro Stack can replace, with what to do next for each: deactivate it (its setting is on), switch the setting on, or delete it once inactive (single sites; on multisite another site may use it). When an active plugin does things on the site that SEO Pro Stack does not (such as Disable Bloat’s REST API switches), the line names them instead of saying the plugin can go. **Hide** hides the lines shown for that person until another step is needed.
+Every feature is off by default except four: Hide admin bar items, which hides Comments and + New from the admin bar, No fade between admin screens, Quiet Freemius prompts and Fixes for other plugins. Copies installed from GitHub releases also have Updates from GitHub on. Features that replace a separate plugin say so on their card (“Replaces: …”) and import that plugin’s settings once when SEO Pro Stack is updated. The other plugin’s own settings are never changed or deleted. While that plugin is active, the feature waits and the plugin keeps doing the job, so the two never run side by side; the card says so, with a deactivate link that comes back to the same settings tab. Deactivate the plugin to switch over. The Plugins screen lists installed plugins that SEO Pro Stack can replace, with what to do next for each: deactivate it (its setting is on), switch the setting on, or delete it once inactive (single sites; on multisite another site may use it). Each of those plugins also gets a note under its own row saying which SEO Pro Stack setting makes it redundant and what to do next, including inactive plugins whose setting is still off; the notes are not hidden by **Hide**. When an active plugin does things on the site that SEO Pro Stack does not (such as Disable Bloat’s REST API switches), the line names them instead of saying the plugin can go. **Hide** hides the lines shown for that person until another step is needed.
 
 | Feature | Tab | Replaces |
 | --- | --- | --- |
@@ -31,6 +35,11 @@ Every feature is off by default except three: Hide admin bar items, which hides 
 | Staged new versions, Shareable preview links | Content | Post Draft Preview, Public Post Preview |
 | Sticky posts for any post type | Content | Sticky Posts Switch |
 | Select all across pages | Content | Bulk Actions Select All |
+| Menu item visibility | Content | Nav Menu Roles |
+| Change post type | Content | Post Type Switcher |
+| Order by hand | Content | Simple Custom Post Order |
+| Term tools | Content | Term Management Tools |
+| Search custom fields | Content | ACF: Better Search |
 | Website screenshots | Content | Browser Shots |
 | Spectra block replacements | Content | Spectra |
 | Paste into the Media Library | Media | The Paste |
@@ -43,6 +52,7 @@ Every feature is off by default except three: Hide admin bar items, which hides 
 | Delay scripts until interaction | Speed | Flying Scripts |
 | Delayed Google Analytics | Speed | Flying Analytics |
 | 410 Gone for removed pages | Links | Ultimate 410 |
+| Old post addresses | Links | Slugs Manager: Delete Old Permalinks |
 | Short addresses for custom post types | Links | Remove CPT base |
 | Short links | Links | Pretty Links |
 | Maintenance mode | Maintenance | Hostinger Tools, in part |
@@ -271,6 +281,49 @@ Adds a star column to the lists of the post types you choose, and a **Stick to t
 
 Tick the “select all” box in a post list with more than one page and a bar offers **Select all N items**: every item matching the current filters, search and status. Bulk actions (Move to Bin, Restore, Delete Permanently, Edit and plugin actions) then apply to all of them, still checked against each item’s permissions. Unticking any row clears the choice.
 
+### Menu item visibility (Content)
+
+Each item in Appearance › Menus gets a **Who sees this** choice: everyone, logged-in people, logged-out visitors, chosen roles, or everyone except chosen roles. Hidden items, and the items below them, are left out of menus on the site. On multisite, only members of the site (and super admins) count as logged in. Kadence and other classic themes build their header and footer menus from these items; Kadence’s navigation block has its own visibility settings.
+
+- Hides menu links only. It does not protect the pages they lead to.
+- Replaces Nav Menu Roles: its rules are read as they are until an item is saved here, and are never changed. The feature switches itself on when a site has Nav Menu Roles rules.
+
+### Change post type (Content)
+
+Turns a post into a page, a product or another post type, and back, keeping its ID, content, fields and slug. Choose **Post type** in the block editor’s summary panel (unsaved changes are saved first), the classic editor’s Publish box, Quick Edit or Bulk Edit (No change by default). It offers public post types with an admin screen that the person can edit and publish.
+
+Replaces Post Type Switcher, which has no settings; the feature switches itself on while it is active.
+
+### Order by hand (Content)
+
+Drag rows by their handle, or focus the handle and use the arrow keys, in the lists of the post types and categories or tags you choose. Lists of those types, and queries on the site that set no order of their own, follow the order; searches on the site keep their relevance order.
+
+- Posts keep their place in core’s `menu_order` (the Order field pages already have); terms in term meta, so no core table changes.
+- Moving rows only swaps them among the places they already hold, so ordering one page of a long list, or a filtered or searched list, leaves the rest where it was. Searches in the admin list and the Drafts and Pending views show the hand order too, so you can move rows there.
+- Sorting the list by a column (Title, Date…) hides the handles. A **Custom order** link next to All, Published and the other views, and the handle column’s header, go back to the hand order with the same filters.
+- Only people who can edit others’ posts of that type (or manage the terms) can reorder.
+- WooCommerce sorts its own product categories and attributes, so they are not offered.
+- Replaces Simple Custom Post Order: its post types and taxonomies are imported, and so is its term order (read from the `term_order` column it adds, which is left alone).
+
+### Term tools (Content)
+
+Three bulk actions on category, tag and other term lists:
+
+- **Merge into**: the chosen terms become one (an existing term by name, or a new one). Their posts and child terms move to it.
+- **Move to taxonomy**: the terms, and the terms below them, become terms of another taxonomy with their posts, fields and IDs. A term whose slug the other taxonomy already uses stays where it is; merge them first.
+- **Set parent** (hierarchical taxonomies). A term cannot go below itself or its own children.
+
+Old archive addresses of merged and moved terms redirect with a 301 to the term that took over, when they would otherwise be a 404. Replaces Term Management Tools, which has no settings; the feature switches itself on while it is active.
+
+### Search custom fields (Content)
+
+With Advanced Custom Fields or Secure Custom Fields active, searches on the site and in admin lists also look in the values of text-like fields: text, text area, WYSIWYG, email, URL, number, select, checkbox and radio, including fields inside repeater, group and flexible content fields.
+
+- Fields are found through the reference ACF keeps next to each value (`_{meta key}` → `field_…`), so every repeater row counts and other plugins’ post meta is never searched. Password and other fields are left out.
+- As in core, each word must match somewhere in the post (title, excerpt, content or a field), and `-word` leaves out posts that have it anywhere.
+- Only the main search of a page or admin list: widgets, blocks, REST requests and the media library keep core’s search, as do queries that choose their own search columns.
+- No settings. Replaces ACF: Better Search; the feature switches itself on while it is active.
+
 ### Simpler block editor (Content)
 
 Turns off parts of the block editor most people never use, for everyone.
@@ -282,6 +335,7 @@ Turns off parts of the block editor most people never use, for everyone.
 - **Fullscreen mode**: the post editor opens with the admin menu, read as off the same way as the welcome guides.
 - **Block widget editor**: Appearance → Widgets and the Customizer use the classic widgets screen (`use_widgets_block_editor`, as the Classic Widgets plugin does). Block themes have no widgets screen.
 - Replaces part of Disable Bloat: its matching switches are imported once while it is active.
+- **Opens faster**, whatever is ticked: every block editor asks the REST API index for a few site details as it opens (`/?_fields=…`), and core describes every route of every plugin before dropping what was not asked for. When `_fields` leaves `routes` out, the route list reads as empty while the index is built (`rest_dispatch_request`, `rest_endpoints`) and is back before other plugins see the index (`rest_index`). The answer is the same; on a test site with 80 plugins and 1,953 routes it took 8 ms instead of 60.
 
 ### Limit post revisions (Content)
 
@@ -331,6 +385,16 @@ WooCommerce loads its scripts and styles on every page, so that add-to-cart butt
 
 Kadence Blocks prints its whole design library, with every pattern’s HTML, into each block editor screen as the `kadence_blocks_params_library` script variable. On a test site with the library cached that was about 15 MB, so a new post screen weighed about 24 MB. This turns the preload off with Kadence’s own `kadence_blocks_preload_design_library` filter (Kadence does the same when Gravity Forms is active). The editor then fetches the library from Kadence’s `kb-design-library/v1/get_library` REST route the first time you open the design library, so only people who use it wait for it. Without Kadence Blocks it does nothing. A filter of your own on `kadence_blocks_preload_design_library` at a priority above 10 still decides.
 
+Kadence already keeps what it downloads in `wp-content/uploads/kadence_blocks_library`, so opening the library again does not reach Kadence’s servers, but each new editor page asked the site for the whole library again, and sent each request twice. The editor now keeps Kadence’s answers in the browser (Cache Storage, `seoprostack-kadence-library-*`) and sends each request once:
+
+- Only Kadence’s own section, page and template libraries are kept: never cloud or custom libraries (Kadence checks their expiry on each request), licence, account or AI data.
+- The kept copy belongs to a token from Kadence’s cache files (names, sizes and times), the versions of Kadence Blocks and Kadence Blocks Pro, its licence (in a salted hash), the user and the site. When Kadence’s copy changes, the next editor page drops the old one and fetches again once.
+- Kadence’s Sync button always goes to the site and Kadence’s servers, and drops the kept copy.
+- Nothing is stored on the server; browsers without Cache Storage (sites not on HTTPS) still send each request once.
+- The library lays out all of its patterns at once (833 on the test site, a list about 70,000 px tall). Each pattern gets `content-visibility: auto`, so the browser lays out and draws only the ones on screen and the rest as they are scrolled to. Browsers without it ignore the rule.
+
+On a test site, in one browser, alternating editor pages with and without the browser copy (four of each, opening the library from a new page each time): the library showed after 5.9 seconds without it (median; three library requests taking 2–2.7 seconds) and 3.4 seconds with it (no requests). Skipping off-screen patterns brought the time to the first drawn library from 2.7 to 2.0 seconds. The rest is Kadence building its pattern list. The first opening in each browser still loads the library from the site, and opening it again in the same editor page was already quick, since Kadence keeps it in the page. Sync still fetched new designs.
+
 ### 410 Gone for removed pages (Links)
 
 Answers “410 Gone” instead of “404 Not Found” for addresses you list, so search engines drop them sooner. Visitors still see the theme’s not-found page.
@@ -338,6 +402,15 @@ Answers “410 Gone” instead of “404 Not Found” for addresses you list, so
 - One address per line, as a path (`/old-page/`) or a full address on this site. End with `*` to include everything below it (`/old-shop/*`).
 - Only addresses that would otherwise be “not found” are affected, so a live page cannot be taken down by mistake.
 - Optionally, published content deleted from the bin is added to the list automatically.
+
+### Old post addresses (Links)
+
+When a post’s slug changes, WordPress keeps the old one (`_wp_old_slug`) so links to the old address still lead to the post. This clears the old addresses that can no longer lead anywhere, and lists the rest under **Tools → Old addresses** with the post and when each last redirected someone, so you can remove the ones nobody needs (one at a time or selected).
+
+- Cleared automatically when a post’s slug changes and when Tools → Old addresses opens: the post’s current slug, the same old slug stored twice, old slugs of posts that no longer exist, and old slugs that another published post of the same type now uses (its address answers first; only for types whose addresses have no date or category in them).
+- A working redirect is never removed automatically. A removed one shows “not found”.
+- The last use is recorded at most once a day per address. Old addresses never used since recording started say “Not since” and the date.
+- Replaces Slugs Manager: Delete Old Permalinks, closed on WordPress.org on 27 April 2026; the feature switches itself on while it is active.
 
 ### Short addresses for custom post types (Links)
 
@@ -631,6 +704,12 @@ Licence checks are calls whose address or form names a licence (`licence`, `lice
 
 Stored: the choices and times in `seoprostack_licence_calls` (not autoloaded, written when something changes, “last seen” at most once a minute), one day’s answers in `seoprostack_lc_*` transients and “Ask me again” in the `seoprostack_licence_later` user meta, all removed on uninstall. Request forms, which can hold licence keys, are never stored; a hash tells answers apart. Tested on WordPress 6.2 and 7.1 with PHP 7.4, with a stand-in licence server and with Kadence Blocks 3.7.12, Kadence Blocks Pro 2.8.19.1 and Kadence Pro 1.2.5. Kadence makes three licence checks (Kadence Pro on its settings screen and in the block editor, Kadence Blocks’ StellarWP account check in the block editor), each when its own cache runs out; all three are caught, Once a day answers repeats from the kept answer, and Never sends nothing, with no PHP messages. Kadence does not cache a failed check, so while one is held it tries again on the next block editor load (held at once, no wait), and with `WP_DEBUG` on Kadence Blocks writes each failure to the debug log, licence key included, as it does whenever its server cannot be reached.
 
+### Fixes for other plugins (Plugins)
+
+On by default. Works around bugs in other plugins that slow the site down, through those plugins’ own hooks. Nothing is stored and no other plugin’s settings are changed, so turning this off brings each bug back as it was. Turn it off if a fix causes a problem.
+
+- **Lasso Lite (Simple URLs)**: version 159 saves lasso.link’s whole reply, `{"site_id": "…"}`, as its site ID instead of the ID inside it, then rejects what it saved. So on every admin request by an administrator, admin-ajax included, it asks lasso.link again (about 200–400 ms each on a test site), sending the site address, versions and support email. Its `lasso_lite_estimate_earning_site_id` filter now gets the ID from the saved reply. Lasso Lite then sends its install report once and stops asking; its other reports (each setup step once, and a weekly earnings estimate in the background) work as its makers intended.
+
 ### Load plugins only where needed (Plugins)
 
 Makes wp-admin faster on sites with many plugins. Tick the plugins that should load only where they are needed:
@@ -643,13 +722,15 @@ Makes wp-admin faster on sites with many plugins. Tick the plugins that should l
 - on the Dashboard where they show a box, after Hide dashboard widgets and Tidy the dashboard have removed the ones nobody sees (so hiding a box there also stops its plugin loading on the Dashboard);
 - on Appearance › Menus where they add fields, columns or boxes, change menus or their items, or save item fields, and where their post types or taxonomies can be added to menus or already are in one; if a skipped plugin adds a menu location, Menus loads every plugin from then on, because saving a menu would otherwise take it out of a location that was not shown;
 - on Appearance › Editor where they register blocks, add editor features, templates or styles, and, with a block theme, where their post types or taxonomies can have templates (learned again after switching themes);
+- on the Customizer where they add controls, preview features, blocks, widgets, widget areas or menus; missing widgets, areas or menu locations, or a changed widget editor, reload with every plugin before the form opens and keep the screen fully loaded until an explicit check. Theme previews and existing changesets always load every plugin;
+- on Import where they register an importer, and on Export where they change the form or own post types and taxonomies it offers;
 - on SEO Pro Stack’s own settings where they register post types, taxonomies or widgets that the settings offer as choices, change permissions, or add to the settings through `seoprostack_*` hooks;
 - wherever a plugin that needs them loads.
 
 Other screens, such as the About screens, skip them. On a test site with 191 active plugins, all ticked, the Dashboard (without plugin boxes) went from about 5.2 to 0.15 seconds, the Posts list from 3.9 to 0.7 seconds, and a plugin’s own page to about 0.25 seconds. The post editor gains least, because most of those plugins add something to it.
 
 - **Learned, not configured.** The first time an administrator opens a screen, it loads every plugin and SEO Pro Stack notes what the screen needs. What was learned is forgotten when plugins are activated, deactivated or updated.
-- **Always every plugin**: saving (form posts, links with an action or nonce, admin-ajax, REST), cron, WP-CLI, the site itself (unless you choose plugins to skip there, below), and the Plugins, updates, settings, widgets, Customizer, Site Health, import and export screens. Opening Widgets saves the widget areas without widgets and areas that are not registered, so a skipped plugin's widgets would be lost. SEO Pro Stack’s own settings save through admin-ajax, so they are checked with every plugin loaded, and on a screen with fewer plugins a list of choices also shows saved choices it cannot offer there, so saving never drops them. Saving a profile loads every plugin too, so a plugin that saves profile fields always loads on the profile screens and its fields are never left out of the form.
+- **Always every plugin**: saving (form posts, links with an action or nonce, admin-ajax, REST), cron, WP-CLI, the site itself (unless you choose plugins to skip there, below), and the Plugins, updates, settings, widgets and Site Health screens. Site Health diagnoses active plugins and live PHP state, such as sessions; skipping plugins would make its tests and support report inaccurate even if they add no health callbacks. Customizer preview pages, theme previews and existing changesets, importer execution and export downloads also load every plugin. Opening Widgets saves the widget areas without widgets and areas that are not registered, so a skipped plugin's widgets would be lost. SEO Pro Stack’s own settings save through admin-ajax, so they are checked with every plugin loaded, and on a screen with fewer plugins a list of choices also shows saved choices it cannot offer there, so saving never drops them. Saving a profile loads every plugin too, so a plugin that saves profile fields always loads on the profile screens and its fields are never left out of the form.
 - **The menu stays the same.** Skipped plugins’ entries are put back as links; opening one loads what that page needs. Each person only gets back entries they could open. Administrators also see entries for capabilities that a skipped plugin grants itself; the page checks access when it opens. A logo that a skipped plugin puts in its menu title as a picture becomes the entry’s icon, since the plugin’s styles for it are not loaded.
 - **Shared code.** Plugins that bundle Freemius share one copy, loaded from whichever plugin has the newest, and Freemius takes over their welcome and opt-in pages. Those pages load the plugin Freemius works for, not the plugin that holds the shared copy. Plugin families that each bundle one framework and use the first copy that loads (such as WP Sheet Editor’s spreadsheets for posts, users, products and terms) are the other way round: the framework registers every spreadsheet’s page, so its pages load every plugin in the family that bundles it.
 - **Dependencies follow.** Plugins that need a ticked plugin (`Requires Plugins`, `WC requires at least`, `Elementor tested up to`, or named as a WooCommerce, Elementor or Contact Form 7 add-on) load where it loads, and a ticked plugin loads wherever a plugin that needs it loads.
@@ -797,6 +878,8 @@ Developers can add settings, tabs and directory entries with filters:
 - `seoprostack_starters`: add or change starter data (plugin folder => `name`, `tested`, `updated`, `notes` and `items`, as in `starters/*.json`).
 - `seoprostack_woo_light_shop_page`: whether a page keeps WooCommerce’s scripts with Lighter WooCommerce pages on (bool), for products the content check does not see.
 - `seoprostack_replaced_plugin_extras`: what a replaced plugin does on this site that SEO Pro Stack does not (plain names, plugin folder). The Plugins screen names them instead of saying the plugin can go.
+- `seoprostack_menu_item_visible`: whether the current visitor sees a menu item (bool, menu item, its rule: `show` and `roles`), for membership plugins with their own levels.
+- `seoprostack_switchable_post_types`: post types Change post type offers (name => label).
 
 Actions:
 
@@ -813,12 +896,16 @@ Actions:
 - `seoprostack_screenshot_failed`: a screenshot could not be taken (page URL, `WP_Error`).
 - `seoprostack_agency_order_started`: the order flow started an order (Fluent Forms entry ID, Fluent Boards task ID, Fluent Support ticket ID and client's user ID; 0 where none).
 - `seoprostack_agency_update_message`: the plain-text reply that tells a client their order moved stage (message, Fluent Boards task, new stage, order details: `service`, `entry`, `form`, `ticket`, `user`, `email`, `name`).
+- `seoprostack_post_type_switched`: a post’s type changed (post ID, new type, old type).
+- `seoprostack_hand_ordered`: items were reordered by hand (`post` or `term`, post type or taxonomy, IDs whose place changed). Use it to purge caches.
+- `seoprostack_term_merged`: a term was merged into another (`WP_Term` that took over, the deleted `WP_Term`).
+- `seoprostack_terms_moved`: terms moved to another taxonomy (term IDs, new taxonomy, old taxonomy).
 
 Read a setting with `SEOProStack_Settings::get( 'key' )`.
 
 ## Uninstall
 
-Deleting the plugin removes its settings and cached data, the profile pictures and generated avatars in `uploads/seoprostack-avatars/`, the WebP and AVIF copies of pictures, including copies left by pictures deleted while the plugin was inactive, and short links with their categories and click counts (Pretty Links’ own links are left alone), and the must-use file of Load plugins only where needed, the cached GitHub releases, and who hid lines of the Plugins screen notice about replaced plugins (and, from older versions, who dismissed the Git Updater notice), and the order flow's links on Fluent Forms entries and Fluent Boards tasks (the entries, tasks, conversations, contacts and example data stay: they are those plugins' data). Imported media and screenshots stay in the Media Library because your posts use them. Watermarked pictures stay marked, and their unmarked originals stay in the `uploads/seoprostack-originals-…` folder so they are not lost; delete that folder if you do not need them.
+Deleting the plugin removes its settings and cached data, the profile pictures and generated avatars in `uploads/seoprostack-avatars/`, the WebP and AVIF copies of pictures, including copies left by pictures deleted while the plugin was inactive, and short links with their categories and click counts (Pretty Links’ own links are left alone), and the must-use file of Load plugins only where needed, the cached GitHub releases, and who hid lines of the Plugins screen notice about replaced plugins (and, from older versions, who dismissed the Git Updater notice), menu item visibility rules (Nav Menu Roles’ own rules stay), the hand order of terms and the old term addresses kept for redirects, when old post addresses were last used (the old addresses themselves are WordPress’s and keep redirecting), and the order flow's links on Fluent Forms entries and Fluent Boards tasks (the entries, tasks, conversations, contacts and example data stay: they are those plugins' data). Posts keep their hand order in core’s Order field. Imported media and screenshots stay in the Media Library because your posts use them. Watermarked pictures stay marked, and their unmarked originals stay in the `uploads/seoprostack-originals-…` folder so they are not lost; delete that folder if you do not need them.
 
 Deactivating the plugin removes the WebP and AVIF rules from the uploads folder’s `.htaccess` (for every site when network-deactivated) and the must-use file of Load plugins only where needed (on multisite, when network-deactivated).
 
@@ -829,6 +916,21 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folder�
 - New, off by default: an Agency tab (#132) for selling services and apps with Fluent Forms, FluentCRM, Fluent Boards, Fluent Support, FluentBooking, FluentCommunity and Tutor LMS. **Order flow**: a paid order form adds a task to the order board (labelled with the service), opens a Fluent Support conversation (under the service's product), links the FluentCRM contact (transactional), and gives the client a login (when the dashboard is on or a course or space is chosen), a course and a community space; moving the task tells the client in that conversation; a project brief sent later is added to the order; lead forms add a task to a sales board and support request forms open a conversation. **Client dashboard** block and `[seoprostack_client_dashboard]` shortcode: the logged-in client's orders with their stage and messages link, report link (a FluentCRM contact field), upcoming calls, payments, courses and community spaces, and nothing of anyone else's. **Example data** for a digital marketing agency (starter set `starters/agency.json`): 17 forms (including a local business website, an SEO retainer and a featured directory listing, each monthly with a setup fee), lists, tags and a report field, Client Orders and Sales Pipeline boards, support products, Discovery Call and Monthly Review Call events, a Clients space, a Client Onboarding course, 21 draft pages and the settings to connect them, with both features switched on. Order forms are two-column checkouts (the choices first, then the service and questions, in two thirds; Your order with the total, discount code and button in one third, kept in view; stacked on phones), set by a starter form's `"layout": "checkout"` and `"intro"`; Link Building shows it with free Fluent Forms and Local SEO with Fluent Forms Pro. Nothing to choose: the tab shows only the two switches; orders start on payment, conversations, updates and logins follow fixed rules, the wiring is hidden settings that the example data fills in (schema key `hidden`), and any form named “… Order Form” is an order form. New `seoprostack_agency_order_started` action and `seoprostack_agency_update_message` filter. Tested on a throwaway site with Fluent Forms 6.2.15 (Stripe in test mode), FluentCRM 3.2.5, Fluent Boards 2.1.0, Fluent Support 2.4.0, FluentBooking 2.5.0, FluentCommunity 2.11.0 and Tutor LMS 4.1.0: with payments off, order forms and the Services page waited and were added once payments were on; the full set added 46 items and a second run none; visitor quote, referral and support submissions made Sales Pipeline tasks with the right label and a conversation under the chosen product; paid orders made a task, conversation, contact, login, enrolment and membership once, even with a repeated payment notification; moving a task replied in its conversation; each client's dashboard showed only their own orders, report, call and payment; Remove kept items in use (a booked event, forms with entries, published pages) and removed the rest. Button layouts (`SEOProStack_Form_Buttons`, loaded with Order flow) add `sps_buttons_row` and `sps_buttons_1` to `sps_buttons_4` to the editor's Layout setting through `fluentform/editor_element_customization_settings`, and render them as Fluent Forms' button markup with layout-only CSS. A cleared choice sends an empty answer, so Fluent Forms does not charge the default plan; for subscription fields that are not required, on forms using these layouts, that empty answer passes its plan check. Tested on a throwaway site at 1440, 1024 and 375 pixels: each layout, clearing by click and Space, one subscription at a time, a form reset, and offline-payment submissions with a cleared plan (one item, no subscription) and with only the one-plan field (one subscription).
 - New: starter data can be a set across plugins (a file with `"set": true`, added by name only), and has new item types: Fluent Support products, FluentCommunity spaces, Tutor LMS courses with topics and lessons, draft pages and SEO Pro Stack settings, each made and removed through that plugin's own code and kept while in use. FluentBooking events can set a `location` that needs no host details (`phone_guest` or `online_meeting`) and a `color`. Fluent Forms fields can be compact and are completed from Fluent Forms' own field defaults, including payment, subscription and quantity fields; items marked `"requires": "payments"` wait until Fluent Forms can take payments. `{url:Page title}` links pages, and a setting that names an item made later is filled in then.
 - Changed: open select settings (a board, course or page of another plugin) keep their value on requests where that plugin is not loaded.
+- New, off by default: **Search custom fields** (Content tab; replaces ACF: Better Search) makes site and admin list searches also match Advanced Custom Fields and Secure Custom Fields text-like fields, including repeater, group and flexible content sub fields, found through ACF’s own field references. **Old post addresses** (Links tab; replaces Slugs Manager: Delete Old Permalinks, closed on WordPress.org) clears old slugs that can no longer redirect (the current slug, duplicates, deleted posts, slugs another published post now uses), records when each old address last redirected someone, and lists them under Tools → Old addresses with Remove. Each switches itself on while the plugin it replaces is active; Free Plugins no longer lists them. Settings version 9.
+- Changed: Order by hand keeps a way back from column sorting: while a list is sorted by Title, Date or another column, a **Custom order** view link and the handle column’s header return to the hand order with the same filters. Admin list searches and the Drafts and Pending views now show the hand order with handles (core sorted Drafts and Pending by date changed, so a move there saved that order).
+- Changed: “Deactivate …” links on SEO Pro Stack’s settings come back to the same tab, with “Plugin deactivated.”; the one in the Plugins screen notice keeps the list’s status, page and search.
+- New: on the Plugins screen, each plugin SEO Pro Stack can replace has a note under its row naming the setting that makes it redundant and the next step: turn the setting on, deactivate, or delete.
+- New, on by default: Fixes for other plugins (Plugins tab) works around other plugins’ bugs through their own hooks, storing nothing. First fix: Lasso Lite (Simple URLs) 159 saved lasso.link’s whole reply as its site ID and rejected it, so it asked lasso.link again on every admin request by an administrator (about 200–400 ms each). It now reads the ID inside the saved reply, sends its install report once and stops asking.
+- Changed: Free Plugins no longer lists Disable All WordPress Updates. The Speed and Plugins features cover why it was used, and it stops WordPress’s own update request, which also hides updates from GitHub releases.
+- New, off by default (Content tab): **Menu item visibility** (replaces Nav Menu Roles, whose rules it reads in place), **Change post type** (replaces Post Type Switcher), **Order by hand** (replaces Simple Custom Post Order, importing its post types, taxonomies and term order) and **Term tools**: merge, move to another taxonomy and set parent, with 301 redirects from old term addresses (replaces Term Management Tools). Each switches itself on where the plugin it replaces is active or, for Nav Menu Roles, has rules; Free Plugins no longer lists those plugins. Settings version 8.
+- Changed: block editors open faster. With Simpler block editor on, the site details every editor asks for are built without describing every REST route first (8 ms instead of 60 on a test site with 1,953 routes); the answer is the same. Load plugins only where needed checks each menu capability once when it puts back skipped plugins’ menu entries, instead of once per entry (975 checks on a test site’s editor screen).
+- New: a **Report a problem** button at the top right of Settings → SEO Pro Stack opens the plugin’s GitHub issues in a new tab.
+- Changed: Load plugins only where needed learns the Customizer, Import and Export forms. Widgets and widget-area owners, menu contributors, importers and exportable content owners stay loaded where needed. Saving, previews, theme previews, existing changesets, imports and export downloads keep every plugin. Missing Customizer registrations reload before the form opens; switching themes learns it again. Site Health stays fully loaded so its diagnostics describe the real site. Map version 6 learns every screen again once.
+- Changed: Faster editor with Kadence Blocks keeps Kadence’s design library in the browser until Kadence’s own copy changes, sends each library request once instead of twice, and lets the browser skip drawing patterns that are off screen. On a test site, in a new editor page, the library was drawn in about 2 seconds instead of 5.9, with no requests. Only Kadence’s own section, page and template libraries are kept, never licence, account, AI or cloud library data; Sync still fetches new designs. No new options.
+- New: a banner in the WPALLSTARS colours (navy, red and cream, Zilla Slab, the logo’s arc of stars above a stack with the WordPress Plugins icon on top, red and cream stripes), “SEO Pro Stack: WP Admin – Solved!”, at the top of the Read Me tab and for the WordPress.org plugin page. The Read Me tab now shows images from the plugin’s own folder written on a line of their own (`![alt](admin/images/banner.svg)`); other images and addresses are left out, and the file’s time is added to its address so browsers show a changed image straight away. The source is `.wordpress-org/banner.svg`; `scripts/build-banner.sh` (Inkscape and the Zilla Slab font) writes `admin/images/banner.svg` with the words as shapes, and `banner-772x250.png` and `banner-1544x500.png` in `.wordpress-org/` for the SVN `assets/` folder, which stays out of the plugin zip.
+
+### 0.8.1
+
 - New: Pro Plugins lists FluentCart Pro (licences, inventory tracking, order bumps, advanced reports and more payment gateways), with links to its home page, pricing and Free vs Pro comparison (`admin/data/pro-plugins.php`).
 - Fixed: Organise the admin menu showed no icon for Code Snippets in the Administrators and Developers menus. Code Snippets registers its menu with the icon `none` and draws it with CSS on `.toplevel_page_snippets` only. Entries with the icon `none`, `div` or none at all now take one from `SEOProStack_Admin_Menu::ICONS` by menu address (Code Snippets' `assets/menu-icon.svg`, with a viewBox added).
 - Changed: Organise the admin menu spaces the Fluent plugins’ top-level names like Fluent Forms and Fluent Boards: Fluent CRM, Fluent SMTP, Fluent Community and Fluent Cart (`brand_title()`; only the menu name changes). Shop starts with WooCommerce, then FluentCart (`LEAD`), then the rest A–Z; FluentCart (`fluent-cart`) is placed in Shop.
@@ -1009,6 +1111,12 @@ Where a feature replaces one of them, SEO Pro Stack imports the settings it can,
 | Public Post Preview | Dominik Schilling | [WordPress.org](https://wordpress.org/plugins/public-post-preview/), [GitHub](https://github.com/ocean90/public-post-preview) | Shareable preview links |
 | Sticky Posts – Switch | Markus Wiesenhofer | [WordPress.org](https://wordpress.org/plugins/sticky-posts-switch/) | Sticky posts for any post type |
 | Bulk Actions Select All | Jesper van Engelen | [WordPress.org](https://wordpress.org/plugins/bulk-actions-select-all/), [GitHub](https://github.com/engelen/bulk-actions-select-all) | Select all across pages |
+| Nav Menu Roles | HelgaTheViking | [WordPress.org](https://wordpress.org/plugins/nav-menu-roles/), [GitHub](https://github.com/helgatheviking/Nav-Menu-Roles) | Menu item visibility |
+| Post Type Switcher | John James Jacoby | [WordPress.org](https://wordpress.org/plugins/post-type-switcher/), [GitHub](https://github.com/JJJ/post-type-switcher) | Change post type |
+| Simple Custom Post Order | Colorlib | [WordPress.org](https://wordpress.org/plugins/simple-custom-post-order/), [GitHub](https://github.com/ColorlibHQ/simple-custom-post-order) | Order by hand |
+| Term Management Tools | scribu, theMikeD | [WordPress.org](https://wordpress.org/plugins/term-management-tools/), [GitHub](https://github.com/theMikeD/wp-term-management-tools) | Term tools |
+| ACF: Better Search | Mateusz Gbiorczyk | [WordPress.org](https://wordpress.org/plugins/acf-better-search/) | Search custom fields |
+| Slugs Manager: Delete Old Permalinks | WPFactory | [WordPress.org](https://wordpress.org/plugins/remove-old-slugspermalinks/) (closed), [GitHub](https://github.com/wpcodefactory/remove-old-slugspermalinks) | Old post addresses |
 | Browser Shots | Kevin Leary, Ben Gillbanks | [WordPress.org](https://wordpress.org/plugins/browser-shots/), [GitHub](https://github.com/BinaryMoon/browser-shots) | Website screenshots |
 | Spectra | Brainstorm Force | [WordPress.org](https://wordpress.org/plugins/ultimate-addons-for-gutenberg/), [GitHub](https://github.com/brainstormforce/wp-spectra) | Spectra block replacements |
 | The Paste | Jörn Lund | [WordPress.org](https://wordpress.org/plugins/the-paste/), [GitHub](https://github.com/mcguffin/the-paste) | Paste into the Media Library |

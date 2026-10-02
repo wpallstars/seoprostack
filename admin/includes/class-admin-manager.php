@@ -22,6 +22,9 @@ class SEOProStack_Admin_Manager {
     /** Hook suffix returned by add_options_page(). */
     const HOOK = 'settings_page_seoprostack';
 
+    /** Where people report problems: the plugin's GitHub issues. */
+    const SUPPORT_URL = 'https://github.com/wpallstars/seoprostack/issues';
+
     /**
      * Register hooks and initialise tab managers (once).
      */
@@ -336,6 +339,11 @@ class SEOProStack_Admin_Manager {
                 <div class="sps-header__actions">
                     <a class="button" href="https://www.wpallstars.com/" target="_blank" rel="noopener noreferrer">
                         <?php esc_html_e('Visit website', 'seoprostack'); ?>
+                        <span class="screen-reader-text"><?php esc_html_e('(opens in a new tab)', 'seoprostack'); ?></span>
+                    </a>
+                    <a class="button sps-header__support" href="<?php echo esc_url(self::SUPPORT_URL); ?>" target="_blank" rel="noopener noreferrer">
+                        <span class="dashicons dashicons-sos" aria-hidden="true"></span>
+                        <?php esc_html_e('Report a problem', 'seoprostack'); ?>
                         <span class="screen-reader-text"><?php esc_html_e('(opens in a new tab)', 'seoprostack'); ?></span>
                     </a>
                 </div>

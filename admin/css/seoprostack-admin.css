@@ -81,6 +81,21 @@
 	margin-inline-start: auto;
 }
 
+.sps-wrap .sps-header__support {
+	display: inline-flex;
+	align-items: center;
+	gap: 4px;
+}
+
+/* line-height: 1 stops the icon taking the button's taller line height,
+   which draws the glyph below the middle of its box. */
+.sps-wrap .sps-header__support .dashicons {
+	width: 18px;
+	height: 18px;
+	font-size: 18px;
+	line-height: 1;
+}
+
 /* Search ------------------------------------------------------------- */
 
 /* Stretch, so the field always matches the button's height, whatever
@@ -1197,6 +1212,27 @@
 	padding: 24px 32px;
 	font-size: 14px;
 	line-height: 1.65;
+}
+
+.sps-readme-image {
+	margin: 0 0 16px;
+}
+
+.sps-readme-image img {
+	display: block;
+	max-width: 100%;
+	height: auto;
+	border-radius: var(--sps-radius);
+}
+
+/* The banner at the top of README.md fills the top of the card. */
+.sps-readme > .sps-readme-image:first-child {
+	margin: -24px -32px 24px;
+}
+
+.sps-readme > .sps-readme-image:first-child img {
+	width: 100%;
+	border-radius: calc(var(--sps-radius) - 1px) calc(var(--sps-radius) - 1px) 0 0;
 }
 
 .sps-wrap .sps-readme h2 {

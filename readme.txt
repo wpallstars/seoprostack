@@ -4,7 +4,7 @@ Tags: magic login, iframe, schedule posts, auto upload images, admin
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 0.8.0
+Stable tag: 0.8.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -14,7 +14,7 @@ Curated plugins, themes, hosting and tools for WordPress, plus small opt-in qual
 
 SEO Pro Stack is free and open source. There is no pro version and nothing is locked.
 
-Everything is off by default except Hide admin bar items (Comments and + New), No fade between admin screens and Quiet Freemius prompts. Turn features on in **Settings → SEO Pro Stack**; **Search features** finds one by name or by the plugin it replaces. The Read Me tab there describes each in full.
+Everything is off by default except Hide admin bar items (Comments and + New), No fade between admin screens, Quiet Freemius prompts and Fixes for other plugins. Turn features on in **Settings → SEO Pro Stack**; **Search features** finds one by name or by the plugin it replaces. The Read Me tab there describes each in full.
 
 = Admin screens =
 
@@ -33,6 +33,7 @@ Everything is off by default except Hide admin bar items (Comments and + New), N
 * **Publishing queue**: posts published without a date are scheduled for the next free time slot.
 * **Duplicate posts**, **Staged new versions** (edit a published post as a draft copy) and **Shareable preview links** for people without an account.
 * **Sticky posts for any post type** and **Select all across pages** for bulk actions.
+* **Menu item visibility** by login or role, **Change post type**, **Order by hand**, **Term tools** (merge, move, set parent), **Search custom fields** (ACF) and **Old post addresses**.
 * **TranslatePress colours**: Kadence light/dark switchers.
 * **iFrame block**: embed pages with size, sandbox and permission settings, limited to the domains and roles you choose.
 * **Spectra block replacements**: a Term list block, and Spectra pages that keep working after it is deactivated or convert in one click.
@@ -52,6 +53,7 @@ Everything is off by default except Hide admin bar items (Comments and + New), N
 * **Speed**: load pages before the click, delay chosen scripts until interaction, add Google Analytics 4 without slowing the page, open the editor faster with Kadence Blocks, and **Ask before licence checks** (once now, once a day or never).
 * **Load plugins only where needed**: a faster wp-admin, admin tools skipped on the site, and optional page-by-page content learning with an opt-out list.
 * **Plugins menu** in the admin bar, **Plugin sizes**, **Clean up deleted plugins**, **Hosting needs** (what to ask your host for) and **Plugin presets**: our settings and starter data for other plugins, on request.
+* **Fixes for other plugins** (on by default): works around their bugs, such as Lasso Lite contacting its server on every admin screen.
 * **Maintenance mode**: a temporary 503 page with a message and 24-hour bypass links you can revoke.
 * **Database key cleanup**: review leftover and duplicate indexes, confirm each removal and keep restore SQL. Back up first.
 * **Agency**: order flow, client dashboard and example data.
@@ -117,32 +119,29 @@ They stay scheduled and publish at their times.
 
 Copies from WordPress.org update from there. New versions come out on GitHub first, and copies from GitHub update from GitHub.
 
+= Where do I report a problem? =
+
+Click **Report a problem** at the top right of Settings → SEO Pro Stack, or open an issue on [GitHub](https://github.com/wpallstars/seoprostack/issues).
+
 == Changelog ==
 
 = Unreleased =
-* New, off by default: Agency tab, with button layouts for Fluent Forms.
-* New: Pro Plugins lists FluentCart Pro.
-* New: spaced Fluent menu names; shop plugins first in Shop; FluentCart suggested.
+* New, off by default: Agency tab.
+* Change: Custom order link on sorted lists; Plugins screen notes on replaceable plugins.
+* New: Fixes for other plugins, on by default.
+* Change: Free Plugins no longer suggests Disable All WordPress Updates.
+* New: Menu item visibility, Change post type, Order by hand, Term tools, Search custom fields, Old post addresses.
+* Change: faster block editors, Customizer, Import and Export forms, and Kadence design library.
+* New: Report a problem button.
+* New: Read Me banner.
 
-= 0.8.0 =
-* New: presets for Code Snippets, Rank Math SEO, WP-Optimize and Burst Statistics.
-* New, off by default: maintenance bypass links; disable XML-RPC or application passwords.
-* New, off by default: Database key cleanup.
-* New, off by default: TranslatePress switcher colours.
-* New, off by default: per-page plugin learning with WooCommerce.
-* New, off by default: eight Disable Bloat replacements, importing its settings.
-* New: Fluent Forms (four forms) and Fluent Booking (Discovery Call) starters, feeding FluentCRM.
-* Change: no longer recommended: Freesoul Deactivate Plugins and replaced Pro plugins.
-* Change: plain setting names in Apply preset.
-* Fix: list columns load their plugins; WP Sheet Editor works.
-* Fix: Licence checks “Ask me again” keeps each plugin hidden.
-* Fix: dark plugin icons in the admin menu; TranslatePress in the More menu.
-* New: remove unneeded list columns; Author and Date last.
-* New: the admin menu fits its names, plugins' bars follow; FluentSMTP logo.
+= 0.8.1 =
+* New: spaced Fluent menu names; shop plugins first in Shop; FluentCart suggested.
+* Fix: Code Snippets shows its logo in the Administrators and Developers menus.
 
 Every change, and earlier versions: `changelog.txt` in the plugin folder.
 
 == Upgrade Notice ==
 
-= 0.8.0 =
-New, off by default: Maintenance mode, Database key cleanup and most of Disable Bloat's job. More presets and starter data.
+= 0.8.1 =
+Tidier admin menu (spaced Fluent names, shop plugins first, Code Snippets logo) and FluentCart suggestions.

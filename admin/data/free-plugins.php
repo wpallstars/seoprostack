@@ -15,7 +15,10 @@ if (!defined('ABSPATH')) {
 // Plugin Toggle, Hide Admin Notices, The Paste, Avatar Privacy, Safe SVG,
 // Imsanity, Enable Media Replace, CompressX, Easy Watermark, Remove CPT base,
 // Pretty Links, Browser Shots, Spectra (ultimate-addons-for-gutenberg;
-// Kadence Blocks is listed for page building), Admin Menu Editor.
+// Kadence Blocks is listed for page building), Admin Menu Editor, Nav Menu
+// Roles, Post Type Switcher, Simple Custom Post Order, Term Management Tools,
+// ACF: Better Search (Search custom fields) and Slugs Manager: Delete Old
+// Permalinks (Old post addresses; closed on WordPress.org on 2026-04-27).
 // String Locator is not listed: searching code is better done in an editor
 // or with WP-CLI than from wp-admin.
 // EditorsKit (block-options) is not listed: its last update was in May 2024,
@@ -28,6 +31,10 @@ if (!defined('ABSPATH')) {
 // where needed does its job in wp-admin and for the whole site. It does not
 // set "replaces" yet, so the Plugins screen does not suggest removing it,
 // until page-by-page rules on the site are covered too (GitHub issue #90).
+// Disable All WordPress Updates is not listed: the Speed and Plugins
+// features cover why it was used (fewer outgoing requests, a faster
+// wp-admin), and it stops WordPress's own update request, which also hides
+// updates from GitHub releases. Security updates should keep arriving.
 function seoprostack_get_free_plugins() {
     /**
      * Filter the recommended plugins by category. Slugs are WordPress.org
@@ -63,12 +70,8 @@ function seoprostack_get_free_plugins() {
             'code-block-pro',
             'ics-calendar',
             'mammoth-docx-converter',
-            'nav-menu-roles',
             'ninja-tables',
-            'post-type-switcher',
-            'simple-custom-post-order',
             'simple-icons',
-            'term-management-tools',
             'wikipedia-preview',
             'wp-sheet-editor-bulk-spreadsheet-editor-for-posts-and-pages'
         ),
@@ -129,7 +132,6 @@ function seoprostack_get_free_plugins() {
             'wp-social-reviews'
         ),
         'speed' => array(
-            'disable-wordpress-updates',
             'http-requests-manager',
             'index-wp-mysql-for-speed',
             'litespeed-cache',
@@ -140,14 +142,12 @@ function seoprostack_get_free_plugins() {
             'translatepress-multilingual'
         ),
         'advanced' => array(
-            'acf-better-search',
             'automatorwp',
             'bit-pi',
             'bit-integrations',
             'code-snippets',
             'easy-code-manager',
             'favorites',
-            'remove-old-slugspermalinks',
             'secure-custom-fields',
             'yellow-pencil-visual-theme-customizer'
         ),
@@ -186,13 +186,6 @@ function seoprostack_get_removed_plugins() {
             'closed'      => '2026-08-05',
             'reason'      => 'Temporary closure pending a full review.',
             'replacement' => 'Needs an alternative for collecting video testimonials.',
-        ),
-        'remove-old-slugspermalinks' => array(
-            'name'        => 'Slugs Manager: Delete Old Permalinks',
-            'description' => 'List and delete the old slugs WordPress stores for redirects.',
-            'closed'      => '2026-04-27',
-            'reason'      => 'Guideline violation.',
-            'replacement' => 'Candidate for a lightweight SEO Pro Stack feature.',
         ),
     );
 }

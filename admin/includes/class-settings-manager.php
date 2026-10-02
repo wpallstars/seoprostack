@@ -209,10 +209,8 @@ class SEOProStack_Settings_Manager {
             }
             $busy[] = (string) $name;
             if (isset($site[$slug]) && current_user_can('deactivate_plugin', $site[$slug])) {
-                $url     = wp_nonce_url(
-                    add_query_arg(array('action' => 'deactivate', 'plugin' => rawurlencode($site[$slug])), self_admin_url('plugins.php')),
-                    'deactivate-plugin_' . $site[$slug]
-                );
+                // Comes back to this tab, where the setting then takes over.
+                $url     = SEOProStack_Replaced_Plugins::deactivate_url($site[$slug]);
                 /* translators: %s: plugin name */
                 $links[] = sprintf('<a href="%1$s">%2$s</a>', esc_url($url), esc_html(sprintf(__('Deactivate %s', 'seoprostack'), $name)));
             }

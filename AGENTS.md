@@ -14,7 +14,8 @@ Minimums: **WordPress 6.2, PHP 7.4** (`readme.txt`, plugin header). User docs:
 - `boot()` returns early unless `self::enabled()`. Features are **off by
   default**. The only exceptions, at the owner's request, are Hide admin bar
   items, which hides Comments and + New, No fade between admin screens,
-  Quiet Freemius prompts and Updates from GitHub (GitHub builds only).
+  Quiet Freemius prompts, Fixes for other plugins and Updates from GitHub
+  (GitHub builds only).
   Turning another feature on by default needs the owner's say.
 - A feature that replaces another plugin sets `'replaces' => array(slug => name)`,
   imports that plugin's settings in `migrate()` with `self::import_setting()`
@@ -29,9 +30,11 @@ Minimums: **WordPress 6.2, PHP 7.4** (`readme.txt`, plugin header). User docs:
   plugin API; never link a mirror or guess a URL), and the feature.
 - `README.md` is also the plugin's Read Me tab
   (`admin/includes/class-readme-manager.php`), which renders headings, lists,
-  tables, bold, italic, inline code and links (http(s) and `#heading` links,
-  with GitHub-style heading IDs). Use only that Markdown, or extend the
-  renderer in the same change.
+  tables, bold, italic, inline code, links (http(s) and `#heading` links,
+  with GitHub-style heading IDs) and images from the plugin folder on a line
+  of their own (`![alt](admin/images/banner.svg)`). Use only that Markdown,
+  or extend the renderer in the same change. The banner's source is
+  `.wordpress-org/banner.svg`; rebuild it with `scripts/build-banner.sh`.
 - Migrations run once per `SEOProStack_Settings::DB_VERSION`. After a release,
   a new or changed import needs a version bump and a line in the
   `maybe_migrate()` docblock.
@@ -106,6 +109,11 @@ preset overwrites them. A setting goes in one or the other.
 - Capability and nonce checks on every admin action and AJAX handler; escape on
   output; sanitise through the schema.
 - Admin copy: short, plain words, sentence case, no jargon.
+- Decide for the user. Within a feature, SEO Pro Stack makes the choices
+  (which plugins, screens or items it applies to) from what it can detect.
+  Settings are there to bypass something that causes a problem, not choices
+  people need to understand first. A new setting must earn its place;
+  prefer detecting the right behaviour plus a short bypass list.
 - Site owner in control, performance first: the owner decides what their site
   sends, contacts and shows. Calls to outside services are opt-in where they
   are not the point of the feature, made only as often and for as long as
