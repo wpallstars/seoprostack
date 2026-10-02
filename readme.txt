@@ -119,7 +119,7 @@ Copies from WordPress.org update from there. New versions come out on GitHub fir
 == Changelog ==
 
 = 0.8.1 =
-* New: Pro Plugins lists FluentCart Pro.
+* New: spaced Fluent menu names; shop plugins first in Shop; FluentCart suggested.
 * Fix: Code Snippets shows its logo in the Administrators and Developers menus.
 
 Every change, and earlier versions: `changelog.txt` in the plugin folder.
@@ -127,4 +127,4 @@ Every change, and earlier versions: `changelog.txt` in the plugin folder.
 == Upgrade Notice ==
 
 = 0.8.1 =
-Small fixes: Code Snippets' logo in the admin menu, and FluentCart Pro in Pro Plugins.
+Tidier admin menu (spaced Fluent names, shop plugins first, Code Snippets logo) and FluentCart suggestions.
