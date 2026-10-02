@@ -348,9 +348,12 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
         $learned = SEOProStack_Plugin_Loader::MAP_VERSION === ($map['version'] ?? 0)
             && SEOProStack_Plugin_Loader::fingerprint($state['active']) === ($map['active'] ?? '')
             && isset($map['screens'][$state['screen']]);
+        // Browser replays acknowledge learning, not popularity. This header
+        // grants no access and never changes which URL may be replayed.
+        $hit = '1' === ($_SERVER['HTTP_X_SEOPROSTACK_LEARNING'] ?? '') ? 0 : 1;
         $history[$url] = array(
             'screen' => $state['screen'],
-            'hits' => min(1000000, (int) ($entry['hits'] ?? 0) + 1),
+            'hits' => min(1000000, (int) ($entry['hits'] ?? 0) + $hit),
             'generation' => $learned ? ($map['generation'] ?? '') : '',
         );
         uasort($history, function ($a, $b) {
@@ -361,7 +364,8 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
 
     /** Queue only retained URLs that have not been learned in this map. */
     public static function background_learning() {
-        if (!current_user_can('activate_plugins') || is_network_admin() || wp_doing_ajax()) {
+        if (!current_user_can('activate_plugins') || is_network_admin() || wp_doing_ajax()
+            || (defined('SEOPROSTACK_LOAD_ALL_PLUGINS') && SEOPROSTACK_LOAD_ALL_PLUGINS)) {
             return;
         }
         $map = (array) get_option(SEOProStack_Plugin_Loader::MAP, array());
@@ -370,7 +374,7 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
         $urls = array();
         foreach ((array) get_option(SEOProStack_Plugin_Loader::HISTORY, array()) as $url => $entry) {
             if (self::safe_screen_url($url) && is_array($entry)
-                && !isset($map['load_all'][$entry['screen'] ?? ''])
+                && (!$current || !isset($map['load_all'][$entry['screen'] ?? '']))
                 && (!$current || empty($entry['generation']) || $entry['generation'] !== ($map['generation'] ?? ''))) {
                 $urls[] = $url;
             }

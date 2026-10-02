@@ -27,7 +27,11 @@
     function release() {
         var lock = readLock();
         if (lock && lock.owner === owner) {
-            localStorage.removeItem(config.lock);
+            try {
+                localStorage.removeItem(config.lock);
+            } catch (error) {
+                // Storage became unavailable; the short lease will expire.
+            }
         }
     }
 
@@ -41,7 +45,7 @@
 
     function renew() {
         var lock = readLock();
-        if (stopped || !lock || lock.owner !== owner) {
+        if (stopped || !lock || lock.owner !== owner || lock.expires <= Date.now()) {
             return false;
         }
         try {
@@ -91,6 +95,7 @@
         var timeout = setTimeout(function () { controller.abort(); }, 30000);
         fetch(urls.shift(), {
             credentials: 'same-origin',
+            headers: { 'X-Seoprostack-Learning': '1' },
             redirect: 'error',
             cache: 'no-store',
             signal: controller.signal
