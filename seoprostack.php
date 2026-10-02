@@ -1,7 +1,7 @@
 <?php
 /**
  * Plugin Name:       SEO Pro Stack
- * Plugin URI:        https://www.wpallstars.com/
+ * Plugin URI:        https://github.com/wpallstars/seoprostack
  * Description:       Opt-in admin and workflow features (magic login links, publishing queue, iFrame block, image importing) plus curated plugin, theme, hosting and tool recommendations.
  * Version:           0.9.0
  * Requires at least: 6.2

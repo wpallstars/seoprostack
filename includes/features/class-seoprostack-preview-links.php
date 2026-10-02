@@ -270,7 +270,7 @@ class SEOProStack_Preview_Links extends SEOProStack_Feature {
         if (!self::can_share($post)) {
             return;
         }
-        wp_register_script('seoprostack-preview-links', '', array('wp-plugins', 'wp-element', 'wp-components', 'wp-editor', 'wp-data'), SEOPROSTACK_VERSION, true);
+        wp_register_script('seoprostack-preview-links', false, array('wp-plugins', 'wp-element', 'wp-components', 'wp-editor', 'wp-data'), SEOPROSTACK_VERSION, true);
         wp_enqueue_script('seoprostack-preview-links');
         wp_add_inline_script('seoprostack-preview-links', sprintf(
             '(function (wp, cfg) {

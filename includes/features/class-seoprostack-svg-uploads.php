@@ -485,7 +485,12 @@ class SEOProStack_Svg_Uploads extends SEOProStack_Feature {
     private static function use_is_bounded(DOMDocument $dom) {
         $ids = array();
         foreach ((new DOMXPath($dom))->query('//*[@id]') as $el) {
-            $ids[$el->getAttribute('id')] = $el;
+            if ($el instanceof DOMElement) {
+                $ids[$el->getAttribute('id')] = $el;
+            }
+        }
+        if (!$dom->documentElement) {
+            return false;
         }
         $memo = array();
         $cost = self::expanded_count($dom->documentElement, $ids, $memo, array());
@@ -496,7 +501,7 @@ class SEOProStack_Svg_Uploads extends SEOProStack_Feature {
      * Elements drawn for a subtree with <use> references expanded.
      *
      * @param DOMElement            $el   Element.
-     * @param array<string,DOMNode> $ids  Elements by id.
+     * @param array<string,DOMElement> $ids Elements by id.
      * @param array<int,int|null>   $memo Counts by element.
      * @param array<int,bool>       $path Elements being expanded (loop check).
      * @return int|null Null for a loop or too many.

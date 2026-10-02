@@ -74,15 +74,15 @@ class SEOProStack_Post_Scheduler extends SEOProStack_Feature {
     /**
      * Weekday options, ISO-8601 numbering (1 = Monday), in the site's week order.
      *
-     * @return array<string,string>
+     * @return array<int,string> Keyed by day number (PHP turns numeric keys into integers).
      */
     public static function day_options() {
         global $wp_locale;
         $start   = (int) get_option('start_of_week', 1);
         $options = array();
         for ($i = 0; $i < 7; $i++) {
-            $w                                    = ($start + $i) % 7; // 0 = Sunday.
-            $options[(string) (0 === $w ? 7 : $w)] = $wp_locale ? $wp_locale->get_weekday($w) : gmdate('l', strtotime("Sunday +{$w} days"));
+            $w                         = ($start + $i) % 7; // 0 = Sunday.
+            $options[0 === $w ? 7 : $w] = $wp_locale instanceof WP_Locale ? $wp_locale->get_weekday($w) : gmdate('l', (int) strtotime("Sunday +{$w} days"));
         }
         return $options;
     }
