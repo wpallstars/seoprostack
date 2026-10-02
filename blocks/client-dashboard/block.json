@@ -1,0 +1,33 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "seoprostack/client-dashboard",
+	"version": "0.9.0",
+	"title": "Client dashboard",
+	"category": "widgets",
+	"icon": "id-alt",
+	"description": "Show logged-in clients their orders and how far along each is, with links to their messages, plus their report, calls, payments, courses and community spaces.",
+	"keywords": [ "client", "orders", "account", "agency", "portal" ],
+	"textdomain": "seoprostack",
+	"attributes": {
+		"showOrders": { "type": "boolean", "default": true },
+		"showReport": { "type": "boolean", "default": true },
+		"showCalls": { "type": "boolean", "default": true },
+		"showPayments": { "type": "boolean", "default": true },
+		"showCourses": { "type": "boolean", "default": true },
+		"showSpaces": { "type": "boolean", "default": true },
+		"orderPage": { "type": "string", "default": "" },
+		"callPage": { "type": "string", "default": "" }
+	},
+	"supports": {
+		"html": false,
+		"anchor": true,
+		"align": [ "wide", "full" ],
+		"color": { "background": true, "text": true, "link": true },
+		"spacing": { "margin": true, "padding": true },
+		"typography": { "fontSize": true, "lineHeight": true }
+	},
+	"editorScript": "file:./index.js",
+	"style": "file:./style.css",
+	"render": "file:./render.php"
+}

@@ -285,6 +285,37 @@
 	gap: 12px;
 }
 
+/* Agency tab: example data, below the settings. */
+.sps-examples {
+	display: grid;
+	gap: 10px;
+	margin-block-start: 24px;
+	padding: 16px 20px;
+	background: var(--sps-surface);
+	border: 1px solid var(--sps-border);
+	border-radius: var(--sps-radius);
+}
+
+.sps-examples p,
+.sps-examples .notice {
+	margin: 0;
+}
+
+.sps-examples__list summary {
+	cursor: pointer;
+}
+
+.sps-examples__list ul {
+	margin: 8px 0 0 20px;
+	list-style: disc;
+}
+
+.sps-examples__actions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+}
+
 .sps-badge {
 	display: inline-block;
 	padding: 2px 8px;

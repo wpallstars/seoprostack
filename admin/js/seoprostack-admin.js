@@ -89,6 +89,12 @@
 				$group.find(':checkbox').prop('checked', all);
 				Settings.save($group);
 			});
+			// Forms that change data elsewhere (Agency example data) ask first.
+			$(document).on('submit', 'form[data-sps-confirm]', function (event) {
+				if (!window.confirm($(this).attr('data-sps-confirm'))) {
+					event.preventDefault();
+				}
+			});
 		},
 
 		valueOf: function ($input) {
