@@ -21,6 +21,7 @@ Every change to SEO Pro Stack. readme.txt lists the latest version in short.
 * Fix: Load plugins only where needed now loads plugins that add columns, filters or row links to a list on that list, so Rank Math’s SEO columns show on the Posts list again. Every screen is checked again once.
 * Fix: Load plugins only where needed no longer leaves WP Sheet Editor’s spreadsheets blank: pages of a framework that several plugins bundle load all of those plugins.
 * Fix: Ask before licence checks: “Ask me again” now keeps each plugin hidden for the time you chose. Hiding a second plugin, such as Starter Templates after Kadence Blocks, brought back the first.
+* Fix: Organise the admin menu: dark plugin icons in the Administrators and Developers menus (Site Assist, ICS Calendar, Bit Social, FluentCRM) now show in the menu’s colours, as at the top level, and AutomatorWP shows a cog instead of nothing on screens that skip it.
 * New: Readable list columns removes Complianz’s Website Scan, Post Type Switcher’s Type and Burst Statistics’ Pageviews columns (Columns to remove; Admin Columns can still add them back), puts Author and Date last on content lists, and keeps Rank Math’s SEO Details on one line each.
 * New: Organise the admin menu widens the sidebar, up to 280 pixels, so menu names fit on one line (Fit the menu to its names, on by default).
 * Change: Organise the admin menu shows FluentSMTP’s logo for its entry instead of a cog.
