@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  SEO Pro Stack banner (WordPress.org banners and the Read Me tab).
+  Source: .wordpress-org/banner.svg. Edit that, then run scripts/build-banner.sh.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" width="1544" height="500" viewBox="0 0 1544 500">
+  <title>SEO Pro Stack: WP Admin – Solved!</title>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0a1029"/>
+      <stop offset="0.55" stop-color="#121a45"/>
+      <stop offset="1" stop-color="#1d1450"/>
+    </linearGradient>
+    <radialGradient id="glow-blue" cx="1214" cy="290" r="440" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#2f80ed" stop-opacity="0.55"/>
+      <stop offset="1" stop-color="#2f80ed" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="glow-violet" cx="260" cy="560" r="520" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#7c3aed" stop-opacity="0.35"/>
+      <stop offset="1" stop-color="#7c3aed" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="glow-gold" cx="1214" cy="82" r="120" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#ffc94d" stop-opacity="0.5"/>
+      <stop offset="1" stop-color="#ffc94d" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="dots-fade" cx="1214" cy="260" r="560" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#fff" stop-opacity="1"/>
+      <stop offset="1" stop-color="#fff" stop-opacity="0"/>
+    </radialGradient>
+    <pattern id="dots" width="28" height="28" patternUnits="userSpaceOnUse">
+      <circle cx="14" cy="14" r="1.5" fill="#ffffff" fill-opacity="0.13"/>
+    </pattern>
+    <mask id="dots-mask">
+      <rect width="1544" height="500" fill="url(#dots-fade)"/>
+    </mask>
+    <linearGradient id="gold" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffe08a"/>
+      <stop offset="1" stop-color="#f5a524"/>
+    </linearGradient>
+    <linearGradient id="gold-text" x1="96" y1="280" x2="700" y2="340" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#ffe08a"/>
+      <stop offset="1" stop-color="#ffb02e"/>
+    </linearGradient>
+    <linearGradient id="top-teal" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#5eead4"/>
+      <stop offset="1" stop-color="#22b8cf"/>
+    </linearGradient>
+    <linearGradient id="top-violet" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#a78bfa"/>
+      <stop offset="1" stop-color="#7c5cf0"/>
+    </linearGradient>
+    <linearGradient id="top-blue" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#60a5fa"/>
+      <stop offset="1" stop-color="#2f6fe0"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1544" height="500" fill="url(#bg)"/>
+  <rect width="1544" height="500" fill="url(#glow-violet)"/>
+  <rect width="1544" height="500" fill="url(#glow-blue)"/>
+  <rect width="1544" height="500" fill="url(#dots)" mask="url(#dots-mask)"/>
+
+  <!-- The stack: three layers, each with a top face and two sides -->
+  <g stroke-linejoin="round">
+    <g transform="translate(0 340)">
+      <polygon points="1064,0 1214,87 1214,117 1064,30" fill="#1f4fb8"/>
+      <polygon points="1214,87 1364,0 1364,30 1214,117" fill="#173c94"/>
+      <polygon points="1214,-87 1364,0 1214,87 1064,0" fill="url(#top-blue)"/>
+      <polygon points="1214,-61 1319,0 1214,61 1109,0" fill="none" stroke="#ffffff" stroke-opacity="0.3" stroke-width="2"/>
+    </g>
+    <g transform="translate(0 284)">
+      <polygon points="1064,0 1214,87 1214,117 1064,30" fill="#5b36d6"/>
+      <polygon points="1214,87 1364,0 1364,30 1214,117" fill="#4527ab"/>
+      <polygon points="1214,-87 1364,0 1214,87 1064,0" fill="url(#top-violet)"/>
+      <polygon points="1214,-61 1319,0 1214,61 1109,0" fill="none" stroke="#ffffff" stroke-opacity="0.3" stroke-width="2"/>
+    </g>
+    <g transform="translate(0 228)">
+      <polygon points="1064,0 1214,87 1214,117 1064,30" fill="#1593a8"/>
+      <polygon points="1214,87 1364,0 1364,30 1214,117" fill="#0e7187"/>
+      <polygon points="1214,-87 1364,0 1214,87 1064,0" fill="url(#top-teal)"/>
+      <polygon points="1214,-61 1319,0 1214,61 1109,0" fill="none" stroke="#ffffff" stroke-opacity="0.35" stroke-width="2"/>
+      <!-- Shadow of the star -->
+      <ellipse cx="1214" cy="0" rx="40" ry="13" fill="#063a47" fill-opacity="0.28"/>
+    </g>
+  </g>
+
+  <!-- The star, floating above the stack -->
+  <circle cx="1214" cy="82" r="120" fill="url(#glow-gold)"/>
+  <g transform="translate(1214 82) scale(0.88)">
+    <polygon points="0,-62 15.87,-21.84 58.97,-19.16 25.68,8.34 36.44,50.16 0,27 -36.44,50.16 -25.68,8.34 -58.97,-19.16 -15.87,-21.84"
+             fill="url(#gold)" stroke="url(#gold)" stroke-width="10" stroke-linejoin="round"/>
+  </g>
+
+  <!-- Sparkles -->
+  <g fill="#ffe7a3">
+    <path d="M1012,128 l4,12 l12,4 l-12,4 l-4,12 l-4,-12 l-12,-4 l12,-4 z" fill-opacity="0.9"/>
+    <path d="M1420,150 l5,15 l15,5 l-15,5 l-5,15 l-5,-15 l-15,-5 l15,-5 z" fill-opacity="0.85"/>
+    <path d="M1448,388 l3,9 l9,3 l-9,3 l-3,9 l-3,-9 l-9,-3 l9,-3 z" fill="#ffffff" fill-opacity="0.6"/>
+    <path d="M990,392 l3,9 l9,3 l-9,3 l-3,9 l-3,-9 l-9,-3 l9,-3 z" fill="#ffffff" fill-opacity="0.5"/>
+  </g>
+
+  <!-- Words -->
+  <g font-family="Inter" text-rendering="geometricPrecision">
+    <text x="98" y="132" font-size="24" font-weight="600" letter-spacing="4.5" fill="#93b4ff">BY WP ALL STARS</text>
+    <text x="92" y="244" font-size="106" font-weight="800" letter-spacing="-2.5" fill="#ffffff">SEO Pro Stack</text>
+    <text x="96" y="328" font-size="64" font-weight="700" letter-spacing="-1" fill="url(#gold-text)">WP Admin – Solved!</text>
+    <text x="98" y="394" font-size="28" font-weight="500" fill="#b9c3f5">Tidy admin screens, faster pages and fewer plugins.</text>
+  </g>
+</svg>

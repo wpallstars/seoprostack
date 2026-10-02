@@ -29,9 +29,11 @@ Minimums: **WordPress 6.2, PHP 7.4** (`readme.txt`, plugin header). User docs:
   plugin API; never link a mirror or guess a URL), and the feature.
 - `README.md` is also the plugin's Read Me tab
   (`admin/includes/class-readme-manager.php`), which renders headings, lists,
-  tables, bold, italic, inline code and links (http(s) and `#heading` links,
-  with GitHub-style heading IDs). Use only that Markdown, or extend the
-  renderer in the same change.
+  tables, bold, italic, inline code, links (http(s) and `#heading` links,
+  with GitHub-style heading IDs) and images from the plugin folder on a line
+  of their own (`![alt](admin/images/banner.svg)`). Use only that Markdown,
+  or extend the renderer in the same change. The banner's source is
+  `.wordpress-org/banner.svg`; rebuild it with `scripts/build-banner.sh`.
 - Migrations run once per `SEOProStack_Settings::DB_VERSION`. After a release,
   a new or changed import needs a version bump and a line in the
   `maybe_migrate()` docblock.

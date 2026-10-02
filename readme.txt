@@ -120,6 +120,7 @@ Copies from WordPress.org update from there. New versions come out on GitHub fir
 
 = Unreleased =
 * Change: Kadence's design library is kept in your browser, so it opens faster.
+* New: Read Me banner.
 
 = 0.8.1 =
 * New: spaced Fluent menu names; shop plugins first in Shop; FluentCart suggested.
