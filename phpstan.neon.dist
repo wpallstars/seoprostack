@@ -13,6 +13,8 @@ includes:
 parameters:
 	level: 5
 	phpVersion: 70400
+	# Result cache, kept between CI runs so only changed files are analysed again.
+	tmpDir: .cache/phpstan
 	paths:
 		- seoprostack.php
 		- uninstall.php

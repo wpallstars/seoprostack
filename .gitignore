@@ -41,6 +41,7 @@ reference-plugins/
 *.bak*
 node_modules/
 package-lock.json
+.cache/
 vendor/
 
 # WordPress specific

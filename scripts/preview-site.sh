@@ -112,7 +112,9 @@ resolve_site() {
 	fi
 	[ -n "$SITE" ] || die "which site? Run: scripts/preview-site.sh \"<WordPress folder>\" (remembered after that)"
 	SITE="${SITE%/}"
-	[ -f "$SITE/wp-load.php" ] && [ -d "$SITE/wp-content/plugins" ] || die "not a WordPress folder: $SITE"
+	if [ ! -f "$SITE/wp-load.php" ] || [ ! -d "$SITE/wp-content/plugins" ]; then
+		die "not a WordPress folder: $SITE"
+	fi
 	if [ -n "$site_arg" ] && [ "$remember" -eq 1 ]; then
 		printf '%s\n' "$SITE" >"$saved"
 	fi
