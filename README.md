@@ -1003,6 +1003,11 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folderâ
 
 ## Changelog
 
+### 0.10.1
+
+- Change: **Short links** no longer lists Lasso Lite (Simple URLs) in `replaces`, since Lasso Lite also has product displays and reports. The Plugins screen no longer suggests removing it, its `lasso_extras` note is gone, and Free Plugins lists it again (Affiliates). Importing its links stays. Settings version 14 does nothing from now on; sites that ran it in 0.10.0 keep the unset keys it filled (Short links on, nofollow and sponsored defaults), which are harmless with both plugins active.
+- Change: the Short links list shows only WordPress's and SEO Pro Stack's row links (`row_actions()` on `post_row_actions`), not other plugins' such as AI Engine's Magic Wand.
+
 ### 0.10.0
 
 - Plugin header: the Description on the Plugins screen matches the readme's opening line.

@@ -5,7 +5,7 @@ Tags: magic login, iframe, schedule posts, auto upload images, admin
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 0.10.0
+Stable tag: 0.10.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -123,15 +123,13 @@ Click **Report a problem** at the top right of Settings → SEO Pro Stack, or op
 
 == Changelog ==
 
-= 0.10.0 =
-* New: Word documents; Like, save and share; Brand icons (also in Kadence Blocks); Clean the database weekly; coffee button.
-* New: writers see only writing (on with Organise the admin menu).
-* Change: Short links imports Lasso Lite links; Pinned posts; faster lists; sizes in Free Plugins; megaphone and dot; clearer readme.
-* Fix: More menu alignment; menu in full screen editor; Like button; same menu width on every screen.
+= 0.10.1 =
+* Change: Short links runs alongside Lasso Lite instead of replacing it, and still imports its links.
+* Change: the Short links list shows no other plugins' row links.
 
 Older: `changelog.txt`.
 
 == Upgrade Notice ==
 
-= 0.10.0 =
-New, off by default: Brand icons, Like, save and share, Word documents and weekly database cleanup, replacing four more plugins. Short links imports Lasso Lite links. Contributors and authors now see only writing.
+= 0.10.1 =
+Keep Lasso Lite if you use its product displays: Short links no longer suggests removing it.
