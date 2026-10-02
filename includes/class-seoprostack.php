@@ -43,6 +43,7 @@ final class SEOProStack {
         'SEOProStack_Sticky_Posts',
         'SEOProStack_Bulk_Select_All',
         'SEOProStack_Editor_Tidy',
+        'SEOProStack_Translatepress_Colours',
         'SEOProStack_Auto_Upload',
         'SEOProStack_Paste_Media',
         'SEOProStack_Svg_Uploads',
