@@ -1,4 +1,4 @@
-![SEO Pro Stack by WPALLSTARS: WP Admin – Solved!](admin/images/banner.svg)
+![WPALLSTARS SEO Pro Stack: WP Admin – Solved!](admin/images/banner.svg)
 
 # SEO Pro Stack
 
@@ -787,7 +787,7 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folder�
 
 ### Unreleased
 
-- New: a banner in the WPALLSTARS colours (navy, red and cream, Zilla Slab, the logo’s arc of stars), “SEO Pro Stack: WP Admin – Solved!”, at the top of the Read Me tab and for the WordPress.org plugin page. The Read Me tab now shows images from the plugin’s own folder written on a line of their own (`![alt](admin/images/banner.svg)`); other images and addresses are left out. The source is `.wordpress-org/banner.svg`; `scripts/build-banner.sh` (Inkscape and the Zilla Slab font) writes `admin/images/banner.svg` with the words as shapes, and `banner-772x250.png` and `banner-1544x500.png` in `.wordpress-org/` for the SVN `assets/` folder, which stays out of the plugin zip.
+- New: a banner in the WPALLSTARS colours (navy, red and cream, Zilla Slab, the logo’s arc of stars, red, cream and blue stripes), “SEO Pro Stack: WP Admin – Solved!”, at the top of the Read Me tab and for the WordPress.org plugin page. The Read Me tab now shows images from the plugin’s own folder written on a line of their own (`![alt](admin/images/banner.svg)`); other images and addresses are left out. The source is `.wordpress-org/banner.svg`; `scripts/build-banner.sh` (Inkscape and the Zilla Slab font) writes `admin/images/banner.svg` with the words as shapes, and `banner-772x250.png` and `banner-1544x500.png` in `.wordpress-org/` for the SVN `assets/` folder, which stays out of the plugin zip.
 
 ### 0.8.1
 

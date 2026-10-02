@@ -3,10 +3,10 @@
   SEO Pro Stack banner (WordPress.org banners and the Read Me tab).
   Source: .wordpress-org/banner.svg. Edit that, then run scripts/build-banner.sh.
   Branding follows wpallstars.com: navy, red and cream, Zilla Slab italic
-  headings, the logo's arc of five stars and its red double stripes.
+  headings, the logo's arc of five stars and its red double stripes (here red, cream and blue).
 -->
 <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="1544" height="500" viewBox="0 0 1544 500">
-  <title>SEO Pro Stack by WPALLSTARS: WP Admin – Solved!</title>
+  <title>WPALLSTARS SEO Pro Stack: WP Admin – Solved!</title>
   <defs>
     <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
       <stop offset="0" stop-color="#000c1f"/>
@@ -65,12 +65,15 @@
   <rect width="1544" height="500" fill="url(#glow-blue)"/>
   <rect width="1544" height="500" fill="url(#dots)" mask="url(#dots-mask)"/>
 
-  <!-- Red double stripes, as on wpallstars.com -->
-  <g fill="#bb0000">
-    <rect y="0" width="1544" height="7"/>
-    <rect y="12" width="1544" height="4"/>
-    <rect y="484" width="1544" height="4"/>
-    <rect y="493" width="1544" height="7"/>
+  <!-- Stripes after wpallstars.com's red double lines, in the stack's red, cream and blue:
+       red on the outer edge, blue next to the navy. -->
+  <g>
+    <rect y="0" width="1544" height="6" fill="#bb0000"/>
+    <rect y="6" width="1544" height="5" fill="#ffffea"/>
+    <rect y="11" width="1544" height="6" fill="#0022cc"/>
+    <rect y="483" width="1544" height="6" fill="#0022cc"/>
+    <rect y="489" width="1544" height="5" fill="#ffffea"/>
+    <rect y="494" width="1544" height="6" fill="#bb0000"/>
   </g>
 
   <!-- The stack: red, cream and blue layers, each with a top face and two sides -->
@@ -111,7 +114,7 @@
 
   <!-- Words -->
   <g font-family="Zilla Slab" text-rendering="geometricPrecision">
-    <text x="98" y="128" font-size="27" font-weight="600" letter-spacing="5" fill="#ff999b">BY WPALLSTARS</text>
+    <text x="98" y="128" font-size="27" font-weight="600" letter-spacing="5" fill="#ff999b">WPALLSTARS</text>
     <text x="92" y="240" font-size="116" font-weight="700" font-style="italic" letter-spacing="-1" fill="#ffffea">SEO Pro Stack</text>
     <text x="96" y="326" font-size="72" font-weight="700" font-style="italic" fill="url(#gold-text)">WP Admin – Solved!</text>
     <text x="98" y="396" font-size="33" font-weight="500" fill="#c2cad6">Tidy admin, fewer plugins, faster everything.</text>
