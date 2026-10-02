@@ -395,7 +395,7 @@ class SEOProStack_Nextgen_Images extends SEOProStack_Feature {
         $dir      = dirname($file);
         $record   = array('files' => array(), 'sources' => array(), 'quality' => array());
         // Formats whose copies were made with other quality settings: made
-        // again. Copies from before quality was kept (0.10.0 and earlier)
+        // again. Copies from before quality was kept (0.10.1 and earlier)
         // were made at WordPress's default quality, whatever the setting
         // said, so they are made again too.
         $redo = array();

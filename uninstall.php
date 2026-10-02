@@ -59,6 +59,8 @@ function seoprostack_uninstall_site() {
     $options[] = 'seoprostack_maintenance_token';
     $options[] = 'seoprostack_short_links';
     $options[] = 'seoprostack_short_links_presets';
+    $options[] = 'seoprostack_restricted_terms';
+    $options[] = 'seoprostack_restrict_imported';
     $options[] = 'seoprostack_plugin_map';
     $options[] = 'seoprostack_plugin_menu';
     $options[] = 'seoprostack_plugin_front';
@@ -72,6 +74,8 @@ function seoprostack_uninstall_site() {
     $options[] = 'seoprostack_hosting_memory';
     $options[] = 'seoprostack_hosting_code';
     $options[] = 'seoprostack_hosting_traffic';
+    // Whether the site runs on a LiteSpeed server, for WP-CLI.
+    $options[] = 'seoprostack_litespeed_server';
     // Ask before licence checks: choices and times. Kept answers are
     // seoprostack_lc_* transients, removed with the others below.
     $options[] = 'seoprostack_licence_calls';
@@ -155,6 +159,11 @@ function seoprostack_uninstall_site() {
     // Menu item visibility rules: those items show to everyone again (or
     // follow Nav Menu Roles' rules, if it is still installed).
     delete_post_meta_by_key('_seoprostack_menu_visibility');
+    // Restrict content rules: those posts and categories show to everyone
+    // again. Block rules are part of each post's content and do nothing
+    // without SEO Pro Stack.
+    delete_post_meta_by_key('_seoprostack_restrict');
+    delete_metadata('term', 0, '_seoprostack_restrict', '', true);
     // Hand order of terms, and old term addresses kept for redirects. Posts
     // keep their order in core's menu_order (the pages' Order field).
     delete_metadata('term', 0, '_seoprostack_order', '', true);

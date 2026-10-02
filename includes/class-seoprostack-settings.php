@@ -30,7 +30,7 @@ class SEOProStack_Settings {
 
     /** Stored schema version, used for one-off migrations. */
     const DB_VERSION_OPTION = 'seoprostack_db_version';
-    const DB_VERSION = 15;
+    const DB_VERSION = 16;
 
     /**
      * Tab slugs renamed in 0.4.0, old => new. Settings that still use an
@@ -619,12 +619,17 @@ class SEOProStack_Settings {
      *     the post types Favorites adds its button to.
      * v13: switch on Brand icons while Popular Brand Icons – Simple Icons is
      *     active.
-     * v14: import Lasso Lite's nofollow and sponsored defaults for new links
-     *     (Short links), and switch Short links on while Lasso Lite is active
-     *     with links (its links are imported separately).
+     * v14: nothing since 0.10.1. In 0.10.0 it imported Lasso Lite's
+     *     nofollow and sponsored defaults for new short links and switched
+     *     Short links on while Lasso Lite was active with links; both only
+     *     filled unset keys and are harmless now that the two run side by
+     *     side, so they are left as they are. Short links no longer replaces
+     *     Lasso Lite, which does more than links.
      * v15: import WP-Optimize's scheduled cleanup choices (Clean the
      *     database weekly), switched on only where LiteSpeed Cache runs on a
      *     LiteSpeed server.
+     * v16: switch on Restrict content while Content Control is active, with
+     *     its default message.
      *
      * Old options are left in place so a downgrade keeps working;
      * uninstall.php removes ours. Other plugins' options are never touched.
