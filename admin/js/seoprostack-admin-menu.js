@@ -128,12 +128,47 @@
 	}
 
 	/**
+	 * The full menu shows: not collapsed, a wide window, and not hidden,
+	 * as in the full screen block and site editors (is-fullscreen-mode on
+	 * <body>, which the editors switch while the page is open).
+	 */
+	function shown() {
+		var body = document.body;
+		var menu = document.getElementById('adminmenu');
+		return !!(body && menu) && !body.classList.contains('folded') &&
+			!body.classList.contains('is-fullscreen-mode') &&
+			window.matchMedia('(min-width: 961px)').matches && menu.getClientRects().length > 0;
+	}
+
+	/**
+	 * Fit the menu when it shows again. The block editor opens in full
+	 * screen (menu hidden) and leaves it once its own script has run,
+	 * often after the page has loaded, so the menu is measured then.
+	 */
+	var shownWatcher = null;
+	function watchShown(body) {
+		if (shownWatcher || 'function' !== typeof window.MutationObserver) {
+			return;
+		}
+		var was = shown();
+		shownWatcher = new window.MutationObserver(function () {
+			var now = shown();
+			if (now && !was) {
+				fit();
+			}
+			was = now;
+		});
+		shownWatcher.observe(body, { attributes: true, attributeFilter: ['class'] });
+	}
+
+	/**
 	 * Widen the menu so entry names fit on one line ("Fit the menu to its
 	 * names"). Every menu's entries count, open or not, with folded
 	 * sections shown, so the width is the same on every screen and when a
 	 * section opens. The width goes in --sps-menu-width on <body>; the
 	 * stylesheet applies it only where the full menu shows (wide screens,
-	 * menu not collapsed). Runs straight after the menu is printed, before
+	 * menu not collapsed, editor not full screen). Runs straight after the
+	 * menu is printed, before
 	 * the content is drawn, and once more when the page has loaded, in
 	 * case styles printed later made names longer; it only ever widens,
 	 * so nothing moves back and forth.
@@ -146,8 +181,9 @@
 		}
 		// Submenus that open to the side fit their names (stylesheet).
 		body.classList.add('sps-menu-fit');
-		// Collapsed or narrow: names are hidden, so measure later.
-		if (body.classList.contains('folded') || !window.matchMedia('(min-width: 961px)').matches) {
+		watchShown(body);
+		// Collapsed, narrow or hidden (the full screen editor): names are hidden, so measure later.
+		if (!shown()) {
 			return;
 		}
 		body.classList.add('sps-menu-measure');
@@ -186,7 +222,8 @@
 	 * itself (inline left, right or transform, such as dropdowns) are left
 	 * alone. Classes and custom properties set here take effect through
 	 * the stylesheet only where the full menu shows, so collapsing the
-	 * menu or a narrow window puts the plugin's own layout back.
+	 * menu, a narrow window or the full screen editor puts the plugin's
+	 * own layout back.
 	 */
 	var FOLLOW = ['sps-fit-start', 'sps-fit-margin', 'sps-fit-pad', 'sps-fit-width'];
 	var FOLLOW_PROPS = ['--sps-fit-start', '--sps-fit-margin', '--sps-fit-pad', '--sps-fit-gap'];
@@ -200,9 +237,7 @@
 
 	/** The full, fitted menu shows. */
 	function wide() {
-		var body = document.body;
-		return fitted > FIT_MIN && body && body.classList.contains('sps-menu-fit') &&
-			!body.classList.contains('folded') && window.matchMedia('(min-width: 961px)').matches;
+		return fitted > FIT_MIN && document.body.classList.contains('sps-menu-fit') && shown();
 	}
 
 	function px(value) {
@@ -273,7 +308,8 @@
 		if ('fixed' !== position && ('absolute' !== position || el.offsetParent !== document.body)) {
 			return;
 		}
-		if (el.closest('#adminmenumain, #wpadminbar')) {
+		// The menu itself, and the block editor's frame, which the stylesheet places (also in full screen).
+		if (el.closest('#adminmenumain, #wpadminbar') || el.classList.contains('interface-interface-skeleton')) {
 			return;
 		}
 		var inline = el.style;
