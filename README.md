@@ -23,6 +23,8 @@ Go to **Settings → SEO Pro Stack**, or click the star next to your name in the
 
 Every feature is off by default except four: Hide admin bar items, which hides Comments and + New from the admin bar, No fade between admin screens, Quiet Freemius prompts and Fixes for other plugins. Copies installed from GitHub releases also have Updates from GitHub on. Features that replace a separate plugin say so on their card (“Replaces: …”) and import that plugin’s settings once when SEO Pro Stack is updated. The other plugin’s own settings are never changed or deleted. While that plugin is active, the feature waits and the plugin keeps doing the job, so the two never run side by side; the card says so, with a deactivate link that comes back to the same settings tab. Deactivate the plugin to switch over. The Plugins screen lists installed plugins that SEO Pro Stack can replace, with what to do next for each: deactivate it (its setting is on), switch the setting on, or delete it once inactive (single sites; on multisite another site may use it). Each of those plugins also gets a note under its own row saying which SEO Pro Stack setting makes it redundant and what to do next, including inactive plugins whose setting is still off; the notes are not hidden by **Hide**. When an active plugin does things on the site that SEO Pro Stack does not (such as Disable Bloat’s REST API switches), the line names them instead of saying the plugin can go. **Hide** hides the lines shown for that person until another step is needed.
 
+SEO Pro Stack replaces **43 plugins**, some of them in part, with free and Pro editions counted separately. The 39 that can be downloaded come to 31.1 MB zipped; SEO Pro Stack is 761 KB.
+
 | Feature | Tab | Replaces |
 | --- | --- | --- |
 | Hide the admin bar, Block dashboard access | Admin | Admin Bar & Dashboard Access Control |
@@ -35,7 +37,7 @@ Every feature is off by default except four: Hide admin bar items, which hides C
 | Avatars without Gravatar | Admin | Avatar Privacy |
 | Duplicate posts | Content | Carbon Copy, Yoast Duplicate Post |
 | Staged new versions, Shareable preview links | Content | Post Draft Preview, Public Post Preview |
-| Sticky posts for any post type | Content | Sticky Posts Switch |
+| Pinned posts for any post type | Content | Sticky Posts Switch |
 | Select all across pages | Content | Bulk Actions Select All |
 | Menu item visibility | Content | Nav Menu Roles |
 | Change post type | Content | Post Type Switcher |
@@ -46,6 +48,7 @@ Every feature is off by default except four: Hide admin bar items, which hides C
 | Link cards | Content | Bookmark Card |
 | Wikipedia previews | Content | Wikipedia Preview |
 | Word documents in the editor | Content | Mammoth .docx converter |
+| Like, save and share | Content | Favorites |
 | Spectra block replacements | Content | Spectra |
 | Paste into the Media Library | Media | The Paste |
 | SVG uploads | Media | Safe SVG |
@@ -61,6 +64,7 @@ Every feature is off by default except four: Hide admin bar items, which hides C
 | Short addresses for custom post types | Links | Remove CPT base |
 | Short links | Links | Pretty Links |
 | Maintenance mode | Maintenance | Hostinger Tools, in part |
+| Updates from GitHub (GitHub builds only) | Maintenance | Git Updater |
 | Plugins menu in the admin bar | Plugins | Plugin Toggle |
 | Clean up deleted plugins | Plugins | Fix ‘Plugin file does not exist’ Notices |
 
@@ -116,7 +120,7 @@ Groups the admin menu under the headings **Content**, **Communications**, **SEO*
 - Entries under the headings keep their normal flyout submenus. **Administrators** and **Developers** open to the side like any menu, listing their entries with icons; each entry’s own submenu opens one level further to the side. On a page inside them, the menu opens in place with the page’s list shown under its entry.
 - In **Developers**, plugin pages moved out of WordPress’s menus (such as Scheduled Actions, WP Crontrol or a debug log viewer) share one **Settings** entry instead of each showing a cog. SEO Pro Stack keeps its own entry, with a star icon.
 - **Fold sections** (off by default): click a heading to fold it; folded sections are remembered for each person, and the section of the page you are on always opens. With the sidebar collapsed, headings become lines and every entry shows.
-- **Fit the menu to its names** (on by default): the sidebar widens, up to 280 px, so that entry names fit on one line instead of wrapping, including every menu’s entries as they show when their menu is open (third-level lists with their indent). Every menu and folded section counts, so the width is the same on every screen and does not change when a section opens. It is measured as the page loads, before the page is drawn, and checked again once it has loaded (only ever wider, for styles printed later), and the content, submenus and the open menu’s list move over with it. Other plugins’ own bars and panels that are fixed to the window and laid out for WordPress’s usual 160 px menu (such as Fluent Support’s setup footer, Kadence’s and WP-Optimize’s headers, or Freemius dialogs) move over or narrow by the extra width too. They are found by where they sit, not from a list of plugins, as they appear and whenever they change; dialogs centred on the window and menus that a script places itself are left alone. Entry icons in the Administrators and Developers menus sit beside the name, so a name too long even for 280 px wraps under its first line, not under the icon. Only on screens wider than 960 px with the sidebar expanded; the collapsed sidebar and phones are unchanged, as is the block editor in full screen mode.
+- **Fit the menu to its names** (on by default): the sidebar widens, up to 280 px, so that entry names fit on one line instead of wrapping, including every menu’s entries as they show when their menu is open (third-level lists with their indent). Every menu and folded section counts, so the width is the same on every screen and does not change when a section opens. It is measured as the page loads, before the page is drawn, and checked again once it has loaded (only ever wider, for styles printed later), and the content, submenus and the open menu’s list move over with it. Other plugins’ own bars and panels that are fixed to the window and laid out for WordPress’s usual 160 px menu (such as Fluent Support’s setup footer, Kadence’s and WP-Optimize’s headers, or Freemius dialogs) move over or narrow by the extra width too. They are found by where they sit, not from a list of plugins, as they appear and whenever they change; dialogs centred on the window and menus that a script places itself are left alone. Entry icons in the Administrators and Developers menus sit beside the name, so a name too long even for 280 px wraps under its first line, not under the icon. Only on screens wider than 960 px with the sidebar expanded; the collapsed sidebar and phones are unchanged, as is the block or site editor in full screen mode, where WordPress hides the menu (the menu is fitted when the editor leaves full screen).
 - Plugins that take other plugins’ scripts off their own screens (Fluent Forms, Fluent Booking and Fluent Boards do) also took the menu script, so the menu there was not fitted or folded and had no third level. The menu script is then printed with the menu, and the plugin’s choice stands for every other script. FluentCRM keeps only the scripts on its own list, so the menu script is added to that list (`fluent_crm_asset_listed_slugs`).
 - FluentSMTP, moved from Settings to Communications, shows its own logo instead of a cog, drawn in the menu’s colours like the other entries.
 - Fluent plugins’ names are spaced like Fluent Forms and Fluent Boards: FluentCRM shows as Fluent CRM, FluentSMTP as Fluent SMTP, FluentCommunity as Fluent Community and FluentCart as Fluent Cart. Only the name in the menu changes.
@@ -158,21 +162,21 @@ Stop routine emails one by one: new user notices, password and email change noti
 
 ### Hide admin notices (Admin)
 
-Moves plugin and theme notices behind a bell at the right of the admin bar, so pages open at their content. The bell opens a panel over the page with the notices, which can still be read and dismissed there. The admin bar is the one place no admin screen draws over, so the bell never sits on a plugin’s own header, and the page never moves.
+Moves plugin and theme notices behind a megaphone at the right of the admin bar, so pages open at their content. The megaphone opens a panel over the page with the notices, which can still be read and dismissed there. The admin bar is the one place no admin screen draws over, so the megaphone never sits on a plugin’s own header, and the page never moves.
 
 - Kept on the page: messages about what you just did (such as “Settings saved”), inline notices inside the page’s content (inline notices printed above the page are moved), and notices that scripts add after you first click or type, since they answer what you did.
 - Optionally keep errors, or warnings and the WordPress update message, on the page. On screens that hide every notice themselves, such as WooCommerce’s and Rank Math’s, kept notices go in the panel so they can still be read.
 - Also caught: notices printed inside another plugin’s wrapper, notices that scripts add while the page loads, WooCommerce’s lasting notices (such as connect prompts and database updates, which use the same `#message` id as “Settings saved”), and plain boxes of text, links and pictures printed above the page without notice classes (such as MainWP Child’s connect message). Boxes with headings, tabs, lists, forms or buttons are a plugin’s own header or tools and stay. A notice drawn by React or Vue (such as WooCommerce Analytics’) stays hidden in its place and the panel shows a copy; dismissing the copy dismisses the original.
-- The bell sits next to the account menu (“Hi, …”), or left of the Plugins menu when that is on. Other plugins’ admin bar items go to the left of it.
-- The bell is on every admin screen. A dot in the admin bar’s text colour (white with the default colours) shows there are notices; with none, the panel says “No notices.” Since the bell never appears, disappears or changes width, nothing on the bar moves when the notices are counted. Screen readers hear the count (“Notices (2)”). On phones the bell joins WordPress’s icons and the panel fills the width.
-- **With Load plugins only where needed**: a screen that skips a plugin also skips its notices. Notices that skipped plugins print on screens that load every plugin are kept for each person (only visible notice boxes; other things printed there, such as buttons above a plugin’s own list, belong to that screen and are not kept) and shown behind the bell on screens that skip them, so they can be read and dismissed anywhere. A kept notice goes when its plugin stops printing it on the screen it came from, when it is dismissed (the dismiss button, or a link or button such as “Dismiss”, “Hide” or “No thanks”), or after 12 hours, since links in notices carry security tokens that expire. On screens that load the plugin, the plugin shows its own notice as usual. Kept notices are in the `{prefix}seoprostack_stored_notices` user option, removed on uninstall.
-- Like the other admin bar menus, pointing at the bell opens the panel and moving the mouse away closes it. It stays open while you type in a field inside it.
-- The bell works from the keyboard and on touch screens: Enter, Space or a tap opens the panel and keeps it open; Escape, the bell again or clicking elsewhere closes it.
+- The megaphone sits next to the account menu (“Hi, …”), or left of the Plugins menu when that is on. Debug Log Manager’s icon, when it shows, sits just left of the megaphone; other plugins’ admin bar items go further left. A megaphone, not a bell, so it is not mistaken for other plugins’ notification bells.
+- The megaphone is on every admin screen. A dot in the admin bar’s text colour (white with the default colours) shows there are notices; with none, the panel says “No notices.” Since the megaphone never appears, disappears or changes width, nothing on the bar moves when the notices are counted. Screen readers hear the count (“Notices (2)”). On phones the megaphone joins WordPress’s icons and the panel fills the width.
+- **With Load plugins only where needed**: a screen that skips a plugin also skips its notices. Notices that skipped plugins print on screens that load every plugin are kept for each person (only visible notice boxes; other things printed there, such as buttons above a plugin’s own list, belong to that screen and are not kept) and shown behind the megaphone on screens that skip them, so they can be read and dismissed anywhere. A kept notice goes when its plugin stops printing it on the screen it came from, when it is dismissed (the dismiss button, or a link or button such as “Dismiss”, “Hide” or “No thanks”), or after 12 hours, since links in notices carry security tokens that expire. On screens that load the plugin, the plugin shows its own notice as usual. Kept notices are in the `{prefix}seoprostack_stored_notices` user option, removed on uninstall.
+- Like the other admin bar menus, pointing at the megaphone opens the panel and moving the mouse away closes it. It stays open while you type in a field inside it.
+- The megaphone works from the keyboard and on touch screens: Enter, Space or a tap opens the panel and keeps it open; Escape, the megaphone again or clicking elsewhere closes it.
 - Notices are hidden with CSS until they are moved, so they do not flash or push the page down. Without JavaScript they stay on the page.
-- Empty boxes printed on the notice hooks, which a plugin’s script fills later (such as announcements loaded from the plugin maker’s site), stay hidden while empty. Filled with a notice or banner, they go behind the bell.
+- Empty boxes printed on the notice hooks, which a plugin’s script fills later (such as announcements loaded from the plugin maker’s site), stay hidden while empty. Filled with a notice or banner, they go behind the megaphone.
 - The block editor has its own notices and is left alone.
 - Add the class `sps-keep` to a notice to keep it on the page.
-- **Show example notices** (off by default) adds one notice of each kind to every admin screen for administrators, to see where they go: information, success, warning and error behind the bell, and one with `sps-keep` on the page. Reload the page after changing it.
+- **Show example notices** (off by default) adds one notice of each kind to every admin screen for administrators, to see where they go: information, success, warning and error behind the megaphone, and one with `sps-keep` on the page. Reload the page after changing it.
 
 ### Quiet Freemius prompts (Admin)
 
@@ -192,7 +196,7 @@ When many plugins add items to the admin bar, it wraps onto a second line that c
 
 - **Keep on the bar**: tick plugins (or a theme or must-use plugin) whose items should stay where they are. Those that have added items are listed first, marked “adds items”. SEO Pro Stack’s own items (such as Duplicate) stay by default.
 - Settings save straight away, but the bar on the settings page was drawn before the change, so the saved message asks you to reload the page.
-- WordPress’s own items and the right of the bar (the account menu, the notices bell, the Plugins menu) are not moved. To remove WordPress items, use Hide admin bar items.
+- WordPress’s own items and the right of the bar (the account menu, the notices megaphone, the Plugins menu) are not moved. To remove WordPress items, use Hide admin bar items.
 - Items are matched to the plugin that added them. If another plugin replaces WordPress’s admin bar class, WordPress’s own items are recognised by name, every other item goes in the menu, and Keep on the bar does not apply.
 - Items that show only an icon or numbers get their plugin’s name added in the menu.
 - On phones and tablets, tap **…** to open it. WordPress hides plugins’ items there; the menu shows them, with their submenus open.
@@ -278,9 +282,9 @@ Tick **Share a preview link** in the editor of a draft, pending or scheduled pos
 - Links expire after 1–90 days (7 by default) and stop working when turned off or when the post is published.
 - Preview pages send `noindex`, `no-referrer` and no-cache headers and ask page caches not to store them.
 
-### Sticky posts for any post type (Content)
+### Pinned posts for any post type (Content)
 
-Adds a star column to the lists of the post types you choose, and a **Stick to the top** option in the editor for types other than posts. Sticky items lead the first page of the blog home, their post type archive and chosen term archives (categories, tags or custom taxonomies). It uses core’s sticky list, so existing sticky posts, themes and blocks keep working.
+Adds a narrow pin column to the lists of the post types you choose, and a **Pin to the top** option in the editor for types other than posts. Wherever WordPress says “Sticky” in post lists, Quick Edit, Bulk Edit and the editors, it says “Pinned”, the word most sites and apps use (core still calls them sticky posts, so themes and blocks see no change). Pinned items lead the first page of the blog home, their post type archive and chosen term archives (categories, tags or custom taxonomies). It uses core’s sticky list, so existing sticky posts, themes and blocks keep working.
 
 ### Select all across pages (Content)
 
@@ -506,6 +510,20 @@ Drop or paste a Word document (`.docx`) into the block editor, or choose **Word 
 - Older `.doc` files need saving as `.docx` first.
 - Switches on if Mammoth .docx converter is active (it has no settings to import). Unlike Mammoth, there is no meta box and no 600 KB script in the editor.
 
+### Like, save and share (Content)
+
+Like, Save and Share buttons, as on social media, and a list of what each visitor saved.
+
+- **Like, save and share** block: Like (a heart and the total), Save (a bookmark) and Share. Each button can be turned off in the block settings. The same three buttons go after the content of the post types chosen in the setting, on the post's own page, unless the block or `[favorite_button]` is already in it.
+- **Saved posts** block: the visitor's saved posts, newest first, as links, with optional excerpts and Remove buttons and your own text for an empty list.
+- Share opens the device's share sheet where there is one (most phones), and otherwise copies the link and says so.
+- Works with page caching. The page is the same for everyone; a small script (only on pages with the buttons or list) asks `admin-ajax.php` for the totals and, for logged-in people, what they liked and saved, with a fresh nonce for changes. No sessions, no cookies.
+- Visitors' likes and saved posts stay in their browser (`localStorage`); the server keeps only like totals (post meta `_seoprostack_likes`), and visitors' like changes are limited to 120 an hour per address (a salted hash, kept for an hour). Logged-in people's likes and saved posts are stored per site in user options `seoprostack_liked` and `seoprostack_saved`, so they follow them between devices, and posts saved before logging in join their list.
+- Only published, public posts without a password can be liked or saved.
+- Replaces Favorites. While Favorites is active, it switches on with the post types Favorites adds its button to (before or after the content), and Favorites' own buttons stay until it is deactivated. Until SEO Pro Stack stores its own, totals come from Favorites' `simplefavorites_count` and logged-in users' saved and liked posts from their Favorites favourites on this site, so each is counted once. Favorites' data is never changed. Visitors' favourites in Favorites' cookie are not carried over.
+- Favorites' shortcodes keep working once it is deactivated: `[favorite_button]` (Like and Save), `[favorite_count]`, `[user_favorites]` (the visitor's own list; `post_types`, `include_excerpts`, `include_buttons` and `no_favorites` are used), `[user_favorite_count]` and `[clear_favorites_button]`. Groups, thumbnails and other people's lists are not.
+- Deleting the plugin removes the totals and logged-in people's lists.
+
 ### Spectra block replacements (Content)
 
 Lets a site stop using Spectra (Ultimate Addons for Gutenberg) without losing content, so the theme and core blocks, or Kadence Blocks, do the work.
@@ -606,7 +624,7 @@ Lays your site icon, site logo or a picture you choose faintly over pictures as 
 
 Adds a plugin icon to the right of the admin bar, in wp-admin and on the site. It opens a one-column list of every plugin, which scrolls when it is taller than the window; active ones are bold. Choosing one asks “Activate …?” or “Deactivate …?”, then runs WordPress’s own activate or deactivate action and returns you to the page you were on.
 
-- The icon sits next to the account menu, with the notices bell (when Hide admin notices is on) and then other plugins’ admin bar items to its left.
+- The icon sits next to the account menu, with the notices megaphone (when Hide admin notices is on) and then other plugins’ admin bar items to its left.
 - Only shown to people who can activate plugins, and only lists plugins they may switch.
 - With Load plugins only where needed on, plugins skipped on the current screen still show as active; hover one to see that it is not loaded there. Above the list, a line says how many plugins the screen loaded, with a link to reload it with every plugin.
 - If the page you were on belonged to the plugin you switched off, you land on the Plugins screen instead of an error.
@@ -620,6 +638,7 @@ Adds a **Size** column to the Plugins screen: each plugin’s total disk use, sp
 - Two rows below the list total every installed plugin and the active ones (network-activated ones on the Network Plugins screen), whichever view is open. Plugins outside the view are measured after those on screen.
 - The screen opens straight away; missing sizes are measured in the background a few seconds at a time.
 - Sizes are kept until the plugin’s version changes.
+- Free Plugins’ **All** list shows the same sizes for installed plugins, whether or not this setting is on.
 
 ### Database key cleanup (Plugins)
 
@@ -773,7 +792,7 @@ Other screens, such as the About screens, skip them. On a test site with 191 act
 - **Safe fallback.** If a screen hits a fatal error or a plugin tries to deactivate itself there, that screen loads every plugin from then on; the error message says to reload. This includes errors shown by another error handler, such as Query Monitor’s, which ends the page with a 500 status instead of WordPress’s message. A page WordPress would refuse reloads at once with every plugin; for administrators it also loads every plugin from then on, while other people, who may simply not be allowed there, change nothing. Nothing is ever deactivated.
 - On screens that load fewer, the top of the Plugins menu in the admin bar says how many loaded, with **Reload with every plugin and check this screen again**: it loads every plugin once and learns again what that screen needs, for when a box, field or block is missing. **Reload with every plugin and check every screen again** forgets what every screen needs (including screens set to load every plugin after an error), then reloads the screen; each other screen loads every plugin until an administrator next opens it. Both ask first and explain what will happen. With the Plugins menu off, the admin bar shows “N of M plugins” with the same links. `?seoprostack-load-all=1` does the same, and the `SEOPROSTACK_LOAD_ALL_PLUGINS` constant switches filtering off.
 - On screens that load every plugin, the top of the Plugins menu says why: the screen always does, SEO Pro Stack is checking it, it needs every ticked plugin, or a plugin failed there with fewer loaded (with the link to check every screen again).
-- Skipped plugins’ notices do not show on those screens, unless Hide admin notices is on: then the notices they printed where they loaded are kept behind the bell on every screen until dismissed.
+- Skipped plugins’ notices do not show on those screens, unless Hide admin notices is on: then the notices they printed where they loaded are kept behind the megaphone on every screen until dismissed.
 - Plugins that change the login address or the list of active plugins always load. Plugins that change user permissions are marked in the list; leave security, login and role plugins unticked.
 - **On the site.** **Plugins to skip on the site** lists every active plugin; ticked ones do not load when someone views a page of the site. It is for admin tools that add nothing to those pages, so pages that are not cached open faster. Nothing is ticked by default.
   - **What each plugin adds.** The first page view after the feature is switched on, or after plugins change, loads every plugin (one request at a time) and notes what each one adds: shortcodes, blocks, widgets or public content types; hooks that change pages, addresses or what they show (`wp_head`, `wp_footer`, `template_redirect`, `the_content`, `render_block`, `pre_get_posts` and others); login checks; email; the admin bar. The list shows this next to each plugin, or “nothing seen on the site”, and says when Freesoul Deactivate Plugins already skips a plugin on the whole site (its own lists are only read). Plugins that extend one that adds to pages, such as WooCommerce extensions, are marked too.
@@ -841,7 +860,7 @@ The Agency tab shows example data for a digital marketing agency, to rename and 
 ### Discover
 
 - **Theme**: install, activate or customise the Kadence theme.
-- **Free Plugins**: recommended plugins from WordPress.org by category. Install, Activate, Deactivate and Uninstall all work in place, so you can set up many in a row without leaving the page: an installed plugin shows Activate and Uninstall, an active one shows Deactivate. **All** lists every recommended plugin grouped by category, with a checkbox per plugin and per group and bulk actions (Install and activate, Install, Activate, Deactivate, Uninstall) that run one plugin at a time with progress, and can be stopped. Bulk Uninstall deactivates active plugins first. Plugins that need a newer WordPress or PHP, or that WordPress.org has closed, cannot be selected. Activate and Deactivate accept only WordPress.org plugins on the recommended list; install and uninstall use WordPress’s own requests, so FTP details are asked for where needed. Shown only to users who can install plugins (on multisite, super admins); plugins active for the whole network are left alone.
+- **Free Plugins**: recommended plugins from WordPress.org by category. Install, Activate, Deactivate and Uninstall all work in place, so you can set up many in a row without leaving the page: an installed plugin shows Activate and Uninstall, an active one shows Deactivate. **All** lists every recommended plugin grouped by category, with the disk space each installed one takes (as in Plugin sizes, measured in the background), a checkbox per plugin and per group and bulk actions (Install and activate, Install, Activate, Deactivate, Uninstall) that run one plugin at a time with progress, and can be stopped. Bulk Uninstall deactivates active plugins first. Plugins that need a newer WordPress or PHP, or that WordPress.org has closed, cannot be selected. Activate and Deactivate accept only WordPress.org plugins on the recommended list; install and uninstall use WordPress’s own requests, so FTP details are asked for where needed. Shown only to users who can install plugins (on multisite, super admins); plugins active for the whole network are left alone.
 - **Pro Plugins, Hosting, Tools**: filterable directories with links to each product. Pro plugins show a badge when their free version is already on the site.
 
 ## Requirements
@@ -950,7 +969,15 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folder�
 ### Unreleased
 
 - New: **Buy me a coffee** button at the top right of the settings screen (`SEOProStack_Admin_Manager::DONATE_URL`), a link under the Read Me intro, and a `Donate link` in `readme.txt` for the WordPress.org plugin page.
+- Change: **Hide admin notices** shows a megaphone (`dashicons-megaphone`, `\f488`) instead of a bell, so it is not mistaken for other plugins’ notification bells. Debug Log Manager’s admin bar icon now always sits just left of it (or of the Plugins menu where there is no megaphone): `SEOProStack_Admin_Bar::NEIGHBOURS` pins other plugins’ `top-secondary` nodes by rank, and a node that is not on the bar is left alone.
+- Read Me: the Features section says how many plugins SEO Pro Stack replaces (43) and how their downloads compare in size with SEO Pro Stack's, and the table lists Updates from GitHub (Git Updater). Development: `php scripts/replaced-plugins.php` counts the `replaces` entries in the code; `--write` updates that line with sizes from WordPress.org and GitHub, and `scripts/preflight-release.sh` fails when the count is out of date.
+- Change: Free Plugins’ **All** list has a **Size** column: each installed plugin’s disk use, split into PHP, JavaScript, CSS, media and other files, as in Plugin sizes. Sizes come from the Plugin sizes cache; missing ones are measured in the background a few seconds at a time, and update after Install or Uninstall. Its `seoprostack_plugin_sizes` AJAX action is now registered whether or not the Plugins screen column is on. Plugin icons sit in the middle of the name and description instead of at the top.
+- New, off by default: **Like, save and share** (Content tab; replaces Favorites): a Like, save and share block (Like with a count, Save, Share), the same buttons after the content of chosen post types, and a Saved posts block. Pages stay cacheable: a small script loads counts and logged-in people's state from `admin-ajax.php`; visitors' likes and saved posts stay in `localStorage`, with no cookies or sessions. Like totals are post meta `_seoprostack_likes`; logged-in people's lists are per-site user options. It reads Favorites' counts and logged-in users' favourites until it stores its own, takes over Favorites' five shortcodes once Favorites is deactivated, and switches itself on, with Favorites' post types, while Favorites is active; Free Plugins no longer lists Favorites. Settings version 12.
+- Change: **Sticky posts for any post type** is now **Pinned posts for any post type**: a pin instead of a star in post lists, and “Pinned” instead of “Sticky” in lists, Quick Edit, Bulk Edit and the editors. Clicking the pin adds or removes “Pinned” after the title, and updates Quick Edit, without reloading the list. The pin and Order by hand columns are 20 px wide instead of about 30, leaving more room for the title.
+- Change: **Load plugins only where needed** loads less on post lists. Quick Edit and Bulk Edit now count only plugins that print fields there, so plugins that hook them for other post types (WooCommerce for products) no longer load on the Pages list. `WC requires at least` makes WooCommerce load with a plugin only when the plugin's name says WooCommerce, so general plugins that declare it (TranslatePress, Simple Cloudflare Turnstile, WP Sheet Editor) no longer bring WooCommerce to every screen. Map version 7: screens are learned again.
+- Fix: **Fit the menu to its names** with the block editor in full screen mode. The content area, footer and other plugins’ bars that follow the wider menu no longer keep its offset while WordPress hides the menu (`is-fullscreen-mode` on `<body>`), which left an empty strip down the left; the script never marks the editor’s frame, which the stylesheet places; and the menu is measured when it shows, so it fits when the editor leaves full screen instead of keeping the usual width (it used to be measured while hidden).
 - New, off by default: **Word documents in the editor** (Content tab; replaces Mammoth .docx converter): drop or paste a `.docx` file into the block editor, or choose Word document in the Options menu, and it becomes core blocks, with headings, formatting, links, nested lists, quotes, tables and pictures. The server converts it with `ZipArchive` and DOM; pictures go to the Media Library, attached to the post. It switches itself on while Mammoth is active; Free Plugins no longer lists Mammoth. Settings version 11.
+- Fix: **More menu in the admin bar**: each moved item's row now holds its own floats (a clearfix on `.ab-item`). Core and plugins float bar icons (`.ab-icon`, `.ab-item:before`); on the bar every item is one line, but a menu row can be shorter than its icon, so the float pushed the next rows to the right (Rank Math SEO under AutomatorWP, Query Monitor under Social Posts). This covers any plugin's floated icon, with no per-plugin rules.
 
 ### 0.9.0
 
@@ -1152,7 +1179,7 @@ Where a feature replaces one of them, SEO Pro Stack imports the settings it can,
 | Yoast Duplicate Post | Yoast | [WordPress.org](https://wordpress.org/plugins/duplicate-post/), [GitHub](https://github.com/Yoast/duplicate-post) | Duplicate posts |
 | Post Draft Preview | WP Served | [WordPress.org](https://wordpress.org/plugins/post-draft-preview/), [GitHub](https://github.com/wpserved/post-draft-preview) | Shareable preview links |
 | Public Post Preview | Dominik Schilling | [WordPress.org](https://wordpress.org/plugins/public-post-preview/), [GitHub](https://github.com/ocean90/public-post-preview) | Shareable preview links |
-| Sticky Posts – Switch | Markus Wiesenhofer | [WordPress.org](https://wordpress.org/plugins/sticky-posts-switch/) | Sticky posts for any post type |
+| Sticky Posts – Switch | Markus Wiesenhofer | [WordPress.org](https://wordpress.org/plugins/sticky-posts-switch/) | Pinned posts for any post type |
 | Bulk Actions Select All | Jesper van Engelen | [WordPress.org](https://wordpress.org/plugins/bulk-actions-select-all/), [GitHub](https://github.com/engelen/bulk-actions-select-all) | Select all across pages |
 | Nav Menu Roles | HelgaTheViking | [WordPress.org](https://wordpress.org/plugins/nav-menu-roles/), [GitHub](https://github.com/helgatheviking/Nav-Menu-Roles) | Menu item visibility |
 | Post Type Switcher | John James Jacoby | [WordPress.org](https://wordpress.org/plugins/post-type-switcher/), [GitHub](https://github.com/JJJ/post-type-switcher) | Change post type |
@@ -1164,6 +1191,7 @@ Where a feature replaces one of them, SEO Pro Stack imports the settings it can,
 | Bookmark Card | George Mamadashvili | [WordPress.org](https://wordpress.org/plugins/bookmark-card/), [GitHub](https://github.com/Mamaduka/bookmark-card) | Link cards |
 | Wikipedia Preview | Wikimedia Foundation | [WordPress.org](https://wordpress.org/plugins/wikipedia-preview/), [GitHub](https://github.com/wikimedia/wikipedia-preview) | Wikipedia previews |
 | Mammoth .docx converter | Michael Williamson | [WordPress.org](https://wordpress.org/plugins/mammoth-docx-converter/), [GitHub](https://github.com/mwilliamson/mammoth-wordpress-plugin) | Word documents in the editor |
+| Favorites | Hook & Filter (first by Kyle Phillips) | [WordPress.org](https://wordpress.org/plugins/favorites/), [GitHub](https://github.com/Hook-Filter/favorites) | Like, save and share |
 | Spectra | Brainstorm Force | [WordPress.org](https://wordpress.org/plugins/ultimate-addons-for-gutenberg/), [GitHub](https://github.com/brainstormforce/wp-spectra) | Spectra block replacements |
 | The Paste | Jörn Lund | [WordPress.org](https://wordpress.org/plugins/the-paste/), [GitHub](https://github.com/mcguffin/the-paste) | Paste into the Media Library |
 | Safe SVG | 10up | [WordPress.org](https://wordpress.org/plugins/safe-svg/), [GitHub](https://github.com/10up/safe-svg) | SVG uploads |

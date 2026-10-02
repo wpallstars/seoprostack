@@ -1,0 +1,146 @@
+/*
+ * Like, save and share, and Saved posts. Colours come from the text around
+ * them (currentColor) and translucent neutrals, so they follow the Kadence
+ * light and dark modes. A filled icon shows what is liked or saved.
+ */
+.sps-reactions {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 0.5em;
+	margin-block: 1.5em;
+}
+
+.sps-reactions.aligncenter {
+	justify-content: center;
+}
+
+.sps-reactions.alignright {
+	justify-content: flex-end;
+	float: none;
+}
+
+.sps-reactions.alignleft {
+	float: none;
+}
+
+.sps-reactions__button {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.4em;
+	min-height: 2.5em;
+	margin: 0;
+	padding: 0.35em 0.95em;
+	border: 1px solid rgba(127, 127, 127, 0.35);
+	border-radius: 999px;
+	background: transparent;
+	color: inherit;
+	font: inherit;
+	font-size: 0.9em;
+	line-height: 1.2;
+	letter-spacing: normal;
+	text-transform: none;
+	box-shadow: none;
+	cursor: pointer;
+	transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+.sps-reactions__button:hover {
+	border-color: rgba(127, 127, 127, 0.6);
+	background: rgba(127, 127, 127, 0.12);
+	color: inherit;
+	box-shadow: none;
+}
+
+.sps-reactions__button:focus-visible {
+	outline: 2px solid currentColor;
+	outline-offset: 2px;
+}
+
+.sps-reactions__button[aria-pressed="true"] {
+	border-color: currentColor;
+	background: rgba(127, 127, 127, 0.12);
+}
+
+.sps-reactions__icon {
+	flex: none;
+	width: 1.25em;
+	height: 1.25em;
+	fill: none;
+	stroke: currentColor;
+	stroke-width: 1.8;
+	stroke-linecap: round;
+	stroke-linejoin: round;
+}
+
+.sps-reactions__button[aria-pressed="true"] .sps-reactions__icon {
+	fill: currentColor;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+	.sps-reactions__like[aria-pressed="true"] .sps-reactions__icon {
+		animation: sps-reactions-pop 0.25s ease-out;
+	}
+}
+
+@keyframes sps-reactions-pop {
+	50% {
+		transform: scale(1.25);
+	}
+}
+
+.sps-reactions__count {
+	font-variant-numeric: tabular-nums;
+	opacity: 0.8;
+}
+
+.sps-reactions__status {
+	font-size: 0.85em;
+	opacity: 0.8;
+}
+
+.sps-reactions__status:empty {
+	display: none;
+}
+
+/* Saved posts */
+
+.sps-saved__list {
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.sps-saved__item {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 0.25em 1em;
+	padding: 0.75em 0;
+	border-bottom: 1px solid rgba(127, 127, 127, 0.25);
+}
+
+.sps-saved__link {
+	flex: 1 1 12em;
+	font-weight: 600;
+}
+
+.sps-saved__excerpt {
+	flex-basis: 100%;
+	order: 3;
+	margin: 0;
+	font-size: 0.9em;
+	opacity: 0.85;
+}
+
+.sps-saved__remove {
+	padding: 0.2em 0.8em;
+	min-height: 2em;
+	font-size: 0.8em;
+}
+
+.sps-saved__empty,
+.sps-saved__note {
+	margin: 0;
+	opacity: 0.8;
+}

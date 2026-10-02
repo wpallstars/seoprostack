@@ -491,7 +491,22 @@ class SEOProStack_Plugin_Manager {
             'label'  => self::status_label($state),
             'usable' => self::selectable($state),
             'html'   => self::state_buttons($plugin, $state, $name),
+            'size'   => self::size_cell($state['file']),
         );
+    }
+
+    /**
+     * Size cell for the All list: what an installed plugin takes on disk
+     * (Plugin sizes cache, measured in the background), or a dash.
+     *
+     * @param string $file Installed plugin file, or ''.
+     * @return string Escaped HTML.
+     */
+    private static function size_cell($file) {
+        if ($file && class_exists('SEOProStack_Plugin_Sizes')) {
+            return SEOProStack_Plugin_Sizes::cell_for($file);
+        }
+        return '<span aria-hidden="true">—</span><span class="screen-reader-text">' . esc_html__('Not installed', 'seoprostack') . '</span>';
     }
 
     /**
@@ -834,27 +849,31 @@ class SEOProStack_Plugin_Manager {
      * @param array  $data Card data (see external_plugins()).
      */
     private static function external_row($slug, array $data) {
-        $state = self::external_state($slug, $data);
-        $url   = isset($data['url']) ? (string) $data['url'] : '';
+        $state     = self::external_state($slug, $data);
+        $url       = isset($data['url']) ? (string) $data['url'] : '';
+        $installed = get_plugins();
         ?>
         <tr class="sps-plugin-row sps-plugin-external plugin-card-<?php echo esc_attr(sanitize_html_class($slug)); ?>">
             <th scope="row" class="check-column"></th>
             <td class="sps-plugin-row__name">
-                <span class="sps-plugin-row__icon" aria-hidden="true"><span class="dashicons dashicons-admin-plugins"></span></span>
-                <span class="sps-plugin-row__text">
-                    <?php if ($url) : ?>
-                        <a class="sps-plugin-row__title" href="<?php echo esc_url($url); ?>" target="_blank" rel="noopener noreferrer"><?php echo esc_html($state['name']); ?><span class="screen-reader-text"> <?php esc_html_e('(opens in a new tab)', 'seoprostack'); ?></span></a>
-                    <?php else : ?>
-                        <strong class="sps-plugin-row__title"><?php echo esc_html($state['name']); ?></strong>
-                    <?php endif; ?>
-                    <?php if (!empty($data['description'])) : ?>
-                        <span class="sps-plugin-row__desc"><?php echo esc_html((string) $data['description']); ?></span>
-                    <?php endif; ?>
-                    <?php if (!empty($data['source'])) : ?>
-                        <em class="sps-plugin-row__desc"><?php echo esc_html((string) $data['source']); ?></em>
-                    <?php endif; ?>
-                </span>
+                <div class="sps-plugin-row__plugin">
+                    <span class="sps-plugin-row__icon" aria-hidden="true"><span class="dashicons dashicons-admin-plugins"></span></span>
+                    <span class="sps-plugin-row__text">
+                        <?php if ($url) : ?>
+                            <a class="sps-plugin-row__title" href="<?php echo esc_url($url); ?>" target="_blank" rel="noopener noreferrer"><?php echo esc_html($state['name']); ?><span class="screen-reader-text"> <?php esc_html_e('(opens in a new tab)', 'seoprostack'); ?></span></a>
+                        <?php else : ?>
+                            <strong class="sps-plugin-row__title"><?php echo esc_html($state['name']); ?></strong>
+                        <?php endif; ?>
+                        <?php if (!empty($data['description'])) : ?>
+                            <span class="sps-plugin-row__desc"><?php echo esc_html((string) $data['description']); ?></span>
+                        <?php endif; ?>
+                        <?php if (!empty($data['source'])) : ?>
+                            <em class="sps-plugin-row__desc"><?php echo esc_html((string) $data['source']); ?></em>
+                        <?php endif; ?>
+                    </span>
+                </div>
             </td>
+            <td class="sps-plugin-row__size"><?php echo self::size_cell(isset($data['file']) && isset($installed[$data['file']]) ? (string) $data['file'] : ''); // phpcs:ignore WordPress.Security.EscapeOutput -- escaped in method. ?></td>
             <td class="sps-plugin-row__status"><?php echo esc_html($state['label']); ?></td>
             <td class="sps-plugin-row__actions">
                 <ul class="plugin-action-buttons">
@@ -902,27 +921,30 @@ class SEOProStack_Plugin_Manager {
                     <input type="checkbox" id="<?php echo esc_attr($id); ?>" value="<?php echo esc_attr($plugin->slug); ?>" data-sps-plugin-check <?php disabled(!$usable); ?> />
                 </th>
                 <td class="sps-plugin-row__name">
-                    <span class="sps-plugin-row__icon" aria-hidden="true">
-                        <?php if ($icon) : ?>
-                            <img src="<?php echo esc_url($icon); ?>" alt="" width="32" height="32" loading="lazy" />
-                        <?php else : ?>
-                            <span class="dashicons <?php echo empty($plugin->removed) ? 'dashicons-admin-plugins' : 'dashicons-warning'; ?>"></span>
-                        <?php endif; ?>
-                    </span>
-                    <span class="sps-plugin-row__text">
-                        <?php if (empty($plugin->removed)) : ?>
-                            <a class="sps-plugin-row__title thickbox open-plugin-details-modal" href="<?php echo esc_url(self::details_url($plugin->slug)); ?>" data-title="<?php echo esc_attr($name); ?>"><?php echo esc_html($name); ?></a>
-                        <?php else : ?>
-                            <strong class="sps-plugin-row__title"><?php echo esc_html($name); ?></strong>
-                        <?php endif; ?>
-                        <?php if ($desc) : ?>
-                            <span class="sps-plugin-row__desc"><?php echo esc_html($desc); ?></span>
-                        <?php endif; ?>
-                        <?php if (!empty($plugin->removed) && !empty($plugin->replacement)) : ?>
-                            <em class="sps-plugin-row__desc"><?php echo esc_html($plugin->replacement); ?></em>
-                        <?php endif; ?>
-                    </span>
+                    <div class="sps-plugin-row__plugin">
+                        <span class="sps-plugin-row__icon" aria-hidden="true">
+                            <?php if ($icon) : ?>
+                                <img src="<?php echo esc_url($icon); ?>" alt="" width="32" height="32" loading="lazy" />
+                            <?php else : ?>
+                                <span class="dashicons <?php echo empty($plugin->removed) ? 'dashicons-admin-plugins' : 'dashicons-warning'; ?>"></span>
+                            <?php endif; ?>
+                        </span>
+                        <span class="sps-plugin-row__text">
+                            <?php if (empty($plugin->removed)) : ?>
+                                <a class="sps-plugin-row__title thickbox open-plugin-details-modal" href="<?php echo esc_url(self::details_url($plugin->slug)); ?>" data-title="<?php echo esc_attr($name); ?>"><?php echo esc_html($name); ?></a>
+                            <?php else : ?>
+                                <strong class="sps-plugin-row__title"><?php echo esc_html($name); ?></strong>
+                            <?php endif; ?>
+                            <?php if ($desc) : ?>
+                                <span class="sps-plugin-row__desc"><?php echo esc_html($desc); ?></span>
+                            <?php endif; ?>
+                            <?php if (!empty($plugin->removed) && !empty($plugin->replacement)) : ?>
+                                <em class="sps-plugin-row__desc"><?php echo esc_html($plugin->replacement); ?></em>
+                            <?php endif; ?>
+                        </span>
+                    </div>
                 </td>
+                <td class="sps-plugin-row__size" data-sps-plugin-size><?php echo self::size_cell($state['file']); // phpcs:ignore WordPress.Security.EscapeOutput -- escaped in method. ?></td>
                 <td class="sps-plugin-row__status">
                     <span data-sps-plugin-status><?php echo esc_html(self::status_label($state)); ?></span>
                     <span class="sps-plugin-message" data-sps-plugin-message role="alert" hidden></span>

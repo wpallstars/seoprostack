@@ -21,7 +21,8 @@
  *   terms of post types and taxonomies it registered;
  * - on post, term, list, profile, user, Tools and media upload screens
  *   where it adds boxes, fields, blocks or editor features, or saves
- *   profile fields (learned per screen with every plugin loaded);
+ *   profile fields (learned per screen with every plugin loaded); on post
+ *   lists with rows, only where it prints Quick Edit or Bulk Edit fields;
  * - on post, media, term and user lists where it adds a column that shows,
  *   a filter, a view, a row link or a bulk action (seen in what it changes
  *   or prints there while every plugin loads, so plugins whose columns are
@@ -39,7 +40,9 @@
  *   taxonomy or widget, changes permissions or uses SEO Pro Stack's hooks
  *   (the settings offer those as choices);
  * - wherever a plugin that needs it loads (`Requires Plugins`,
- *   `WC requires at least`, `Elementor tested up to`).
+ *   `WC requires at least` with WooCommerce in its name,
+ *   `Elementor tested up to`, or named as a WooCommerce, Elementor or
+ *   Contact Form 7 add-on).
  * Plugins that need a ticked plugin follow it: they load where it loads.
  *
  * On the site itself, plugins ticked for the site ("Plugins to skip on the
@@ -85,7 +88,7 @@ final class SEOProStack_Plugin_Loader {
     const LIST_KEY   = 'plugin_loading_only';
 
     /** Map format; a change makes SEO Pro Stack learn again. */
-    const MAP_VERSION = 6;
+    const MAP_VERSION = 7;
 
     /** SEO Pro Stack's own settings page (Settings > SEO Pro Stack). */
     const SETTINGS_PAGE = 'seoprostack';

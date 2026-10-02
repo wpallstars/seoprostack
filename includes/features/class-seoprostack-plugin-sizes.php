@@ -11,7 +11,8 @@
  * Rows below the list total every installed plugin and the active ones.
  * Each plugin's size is kept until its version changes. Cached in one
  * network-wide option (plugins are shared by every site), removed on
- * uninstall.
+ * uninstall. The Recommended plugins list (All) shows the same sizes for
+ * installed plugins whether or not this setting is on.
  *
  * @package SEOProStack
  * @since 0.4.0
@@ -61,11 +62,14 @@ class SEOProStack_Plugin_Sizes extends SEOProStack_Feature {
      * Register hooks.
      */
     public static function boot() {
-        if (!self::enabled() || !is_admin()) {
+        if (!is_admin()) {
             return;
         }
+        // Always: the Recommended plugins list shows sizes whether or not the column is on.
         add_action('wp_ajax_' . self::AJAX, array(__CLASS__, 'ajax_measure'));
-        add_action('load-plugins.php', array(__CLASS__, 'load_screen'));
+        if (self::enabled()) {
+            add_action('load-plugins.php', array(__CLASS__, 'load_screen'));
+        }
     }
 
     /**
@@ -104,16 +108,26 @@ class SEOProStack_Plugin_Sizes extends SEOProStack_Feature {
         if (self::COLUMN !== $column) {
             return;
         }
+        echo self::cell_for($file); // phpcs:ignore WordPress.Security.EscapeOutput -- escaped in cell_for().
+    }
+
+    /**
+     * A plugin's cell from the cache, or a placeholder the script fills in.
+     * Also used by the Recommended plugins list.
+     *
+     * @param string $file Plugin file.
+     * @return string
+     */
+    public static function cell_for($file) {
         $sizes = self::cached($file);
         if (null === $sizes) {
-            printf(
+            return sprintf(
                 '<span class="sps-size is-pending" data-sps-size-file="%1$s">%2$s</span>',
                 esc_attr($file),
                 esc_html__('Measuring…', 'seoprostack')
             );
-            return;
         }
-        echo self::cell($sizes); // phpcs:ignore WordPress.Security.EscapeOutput -- escaped in cell().
+        return self::cell($sizes);
     }
 
     /**

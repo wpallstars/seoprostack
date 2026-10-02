@@ -260,6 +260,10 @@ class SEOProStack_Admin_Manager {
             'nonce'        => wp_create_nonce(SEOProStack_Settings::NONCE),
             'tab'          => $tab,
             'colorSchemes' => SEOProStack_Admin_Colors::scheme_urls(),
+            'sizes'        => 'recommended' === $tab && class_exists('SEOProStack_Plugin_Sizes') ? array(
+                'action' => SEOProStack_Plugin_Sizes::AJAX,
+                'nonce'  => wp_create_nonce(SEOProStack_Plugin_Sizes::AJAX),
+            ) : null,
             'i18n'         => array(
                 'saving'      => __('Saving…', 'seoprostack'),
                 'saved'       => __('Saved', 'seoprostack'),

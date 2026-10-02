@@ -1,0 +1,25 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "seoprostack/saved-posts",
+	"version": "0.9.1",
+	"title": "Saved posts",
+	"category": "widgets",
+	"icon": "book-alt",
+	"description": "The posts the visitor saved with the Save button.",
+	"keywords": [ "saved", "favorites", "favourites", "bookmarks", "reading list" ],
+	"textdomain": "seoprostack",
+	"attributes": {
+		"emptyText": { "type": "string", "default": "" },
+		"showExcerpt": { "type": "boolean", "default": false },
+		"showRemove": { "type": "boolean", "default": true }
+	},
+	"supports": {
+		"html": false,
+		"anchor": true,
+		"align": [ "wide" ],
+		"spacing": { "margin": true }
+	},
+	"editorScript": "file:./index.js",
+	"style": "seoprostack-post-reactions"
+}

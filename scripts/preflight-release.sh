@@ -28,6 +28,8 @@ readonly DEV_FILES='^[^/]+/(\.git|\.agents|\.wordpress-org|\.distignore|\.distig
 readonly README_MAX_BYTES=10240
 readonly SHORT_DESC_MAX=150
 readonly MAX_TAGS=5
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+readonly SCRIPT_DIR
 
 ERRORS=0
 WARNINGS=0
@@ -499,6 +501,25 @@ check_builds() {
 	fi
 
 	check_presets_starters "$github_dir"
+	check_replaced_count "$github_dir"
+	return 0
+}
+
+# README.md's "SEO Pro Stack replaces **N plugins**" line matches the
+# 'replaces' entries in the code (scripts/replaced-plugins.php).
+check_replaced_count() {
+	local dir="$1"
+	section "Replaced plugins"
+	if ! command -v php >/dev/null 2>&1; then
+		warn "php not found, the replaced plugins count in README.md was not checked"
+		return 0
+	fi
+	local out
+	if out="$(php "$SCRIPT_DIR/replaced-plugins.php" --check "$dir" 2>&1)"; then
+		ok "$out"
+	else
+		err "$out"
+	fi
 	return 0
 }
 

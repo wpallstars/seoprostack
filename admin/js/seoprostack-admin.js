@@ -522,7 +522,7 @@
 			var $state = $group.find('[data-sps-group-state]');
 			var failed = function (message) {
 				$state.empty();
-				$group.append($('<tr class="sps-plugin-error"><td colspan="4"></td></tr>').find('td').append(Plugins.notice(message)).end());
+				$group.append($('<tr class="sps-plugin-error"><td colspan="5"></td></tr>').find('td').append(Plugins.notice(message)).end());
 			};
 
 			return post('seoprostack_get_plugins', { category: $group.data('sps-plugin-group'), view: 'rows' })
@@ -538,6 +538,7 @@
 					var count = $group.find('tr.sps-plugin-row').length;
 					$state.text(sprintf(_n('%d plugin', '%d plugins', count, 'seoprostack'), count));
 					Bulk.refresh();
+					Sizes.measure();
 				})
 				.fail(function (xhr) {
 					if (generation === Plugins.generation) {
@@ -548,6 +549,61 @@
 
 		notice: function (message) {
 			return $('<div class="notice notice-error inline"><p></p></div>').find('p').text(message).end();
+		}
+	};
+
+	// Size column in the All list: installed plugins not measured yet show
+	// "Measuring…" and are measured a batch at a time (Plugin sizes' own
+	// handler, which stops after a few seconds and caches each plugin's size
+	// until its version changes).
+	var Sizes = {
+		running: false,
+		again: false,
+
+		pending: function () {
+			var files = {};
+			$('[data-sps-plugin-table] [data-sps-size-file]').each(function () {
+				files[String($(this).data('sps-size-file'))] = true;
+			});
+			return Object.keys(files);
+		},
+
+		measure: function () {
+			var files = this.pending();
+			if (!cfg.sizes || !files.length) {
+				return;
+			}
+			if (this.running) {
+				this.again = true;
+				return;
+			}
+			this.running = true;
+			this.again = false;
+			post(cfg.sizes.action, { nonce: cfg.sizes.nonce, files: files.slice(0, 20) })
+				.done(function (response) {
+					var cells = (response && response.success && response.data && response.data.cells) || {};
+					var measured = 0;
+					$.each(cells, function (file, html) {
+						$('[data-sps-plugin-table] [data-sps-size-file]').filter(function () {
+							return String($(this).data('sps-size-file')) === file;
+						}).replaceWith(html);
+						measured++;
+					});
+					Sizes.running = false;
+					if (measured || Sizes.again) {
+						Sizes.measure();
+					} else {
+						Sizes.fail();
+					}
+				})
+				.fail(function () {
+					Sizes.running = false;
+					Sizes.fail();
+				});
+		},
+
+		fail: function () {
+			$('[data-sps-plugin-table] [data-sps-size-file]').removeAttr('data-sps-size-file').removeClass('is-pending').text(__('Could not measure', 'seoprostack'));
 		}
 	};
 
@@ -666,6 +722,10 @@
 			$items.find('.plugin-action-buttons').prepend(state.html);
 			$items.find('[data-sps-plugin-status]').text(state.label);
 			$items.find('[data-sps-plugin-check]').prop('disabled', !state.usable);
+			if (typeof state.size === 'string') {
+				$items.find('[data-sps-plugin-size]').html(state.size);
+				Sizes.measure();
+			}
 		},
 
 		refresh: function (slugs) {

@@ -8,7 +8,7 @@
  * instead of wrapping over the page.
  * "…" opens like any admin bar menu, on hover; the moved items keep their
  * own submenus.
- * The right of the bar (account menu, notices bell, Plugins menu) is not
+ * The right of the bar (account menu, notices megaphone, Plugins menu) is not
  * changed.
  *
  * Items are told apart by the code that added them, noted by a small
@@ -331,6 +331,11 @@ class SEOProStack_Admin_Bar_More extends SEOProStack_Feature {
             // Items laid out as a spread-out flex row for the bar (TranslatePress's
             // Translate Site) would spread across the wider menu: keep them left.
             . "{$m} .ab-submenu>li>.ab-item{justify-content:flex-start}"
+            // Core floats bar icons (.ab-icon, .ab-item:before) and plugins do the
+            // same. On the bar each item is one line, but a menu row can be shorter
+            // than its icon, and the float then pushes the next rows to the right
+            // (Rank Math SEO after AutomatorWP). Each row holds its own floats.
+            . "{$m} .ab-submenu>li>.ab-item:after{content:\"\";display:table;clear:both}"
             . "{$m} .ab-submenu .ab-icon,{$m} .ab-submenu .ab-item:before{padding:3px 0;margin-right:6px}"
             . "{$m} .ab-submenu img{max-height:20px;vertical-align:middle}"
             // Some plugins nest an .ab-item in their title (Yoast SEO's logo); size it to its content.
