@@ -4,6 +4,8 @@
 
 Curated plugins, themes, hosting and workflow tools for WordPress, plus a few small quality-of-life features.
 
+If this saves you time, headaches and costs, feel free to [buy me a coffee](https://buymeacoffee.com/marcusquinn), or whatever you like, to invest in making more things open-source.
+
 Version: {SEOPROSTACK_VERSION}
 
 ## Where to find it
@@ -15,7 +17,7 @@ Go to **Settings → SEO Pro Stack**, or click the star next to your name in the
 - **Discover**: Theme, Free Plugins, Pro Plugins, Hosting and Tools.
 - **About**: this Read Me.
 
-**Report a problem**, at the top right of the screen, opens the plugin’s [GitHub issues](https://github.com/wpallstars/seoprostack/issues) in a new tab. Say what you did, what you expected and what happened, with the versions of WordPress, PHP and SEO Pro Stack. Leave out passwords, licence keys and personal data, since issues are public.
+**Report a problem**, at the top right of the screen, opens the plugin’s [GitHub issues](https://github.com/wpallstars/seoprostack/issues) in a new tab. Say what you did, what you expected and what happened, with the versions of WordPress, PHP and SEO Pro Stack. Leave out passwords, licence keys and personal data, since issues are public. **Buy me a coffee**, next to it, opens the maker’s [Buy Me a Coffee](https://buymeacoffee.com/marcusquinn) page in a new tab.
 
 ## Features
 
@@ -966,6 +968,7 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folder�
 
 ### Unreleased
 
+- New: **Buy me a coffee** button at the top right of the settings screen (`SEOProStack_Admin_Manager::DONATE_URL`), a link under the Read Me intro, and a `Donate link` in `readme.txt` for the WordPress.org plugin page.
 - Change: **Hide admin notices** shows a megaphone (`dashicons-megaphone`, `\f488`) instead of a bell, so it is not mistaken for other plugins’ notification bells. Debug Log Manager’s admin bar icon now always sits just left of it (or of the Plugins menu where there is no megaphone): `SEOProStack_Admin_Bar::NEIGHBOURS` pins other plugins’ `top-secondary` nodes by rank, and a node that is not on the bar is left alone.
 - Read Me: the Features section says how many plugins SEO Pro Stack replaces (43) and how their downloads compare in size with SEO Pro Stack's, and the table lists Updates from GitHub (Git Updater). Development: `php scripts/replaced-plugins.php` counts the `replaces` entries in the code; `--write` updates that line with sizes from WordPress.org and GitHub, and `scripts/preflight-release.sh` fails when the count is out of date.
 - Change: Free Plugins’ **All** list has a **Size** column: each installed plugin’s disk use, split into PHP, JavaScript, CSS, media and other files, as in Plugin sizes. Sizes come from the Plugin sizes cache; missing ones are measured in the background a few seconds at a time, and update after Install or Uninstall. Its `seoprostack_plugin_sizes` AJAX action is now registered whether or not the Plugins screen column is on. Plugin icons sit in the middle of the name and description instead of at the top.

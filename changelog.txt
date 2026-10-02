@@ -3,6 +3,7 @@
 Every change to SEO Pro Stack. readme.txt lists the latest version in short.
 
 = Unreleased =
+* New: Buy me a coffee, at the top right of Settings → SEO Pro Stack, opens the maker’s Buy Me a Coffee page, if you would like to support more open-source work.
 * Change: Hide admin notices shows a megaphone instead of a bell in the admin bar, so it is not mistaken for other plugins’ notification bells. Debug Log Manager’s icon now always sits just left of it.
 * Change: the Read Me says how many plugins SEO Pro Stack replaces, and how their downloads compare in size with SEO Pro Stack's.
 * Change: Free Plugins’ All list shows how much disk space each installed plugin takes, split into PHP, JavaScript, CSS, media and other files, as on the Plugins screen. Plugin icons line up with the middle of each row.
