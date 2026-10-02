@@ -5,6 +5,7 @@ Every change to SEO Pro Stack. readme.txt lists the latest version in short.
 = Unreleased =
 * Fix: with Fit the menu to its names, the block editor in full screen mode no longer leaves an empty strip where the wider menu would be, and the menu is fitted when the editor leaves full screen instead of wrapping names at the usual width.
 * New, off by default: Word documents in the editor: drop or paste a Word document (.docx) into the block editor, or choose one from the Options menu, and it becomes blocks, with headings, formatting, links, lists, quotes, tables and pictures, which are added to your Media Library (replaces Mammoth .docx converter).
+* Fix: More menu in the admin bar: an item no longer shifts to the right when the item above it has a taller icon (Rank Math SEO under AutomatorWP, Query Monitor under Social Posts).
 
 = 0.9.0 =
 * Change: the Advise.so card on the Tools tab now describes the Advise.so SEO community, where you can chat to the maker of SEO Pro Stack, with buttons to join the community and visit its home page.
