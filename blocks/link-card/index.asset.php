@@ -11,5 +11,5 @@ if (!defined('ABSPATH')) {
 
 return array(
     'dependencies' => array('wp-api-fetch', 'wp-blocks', 'wp-block-editor', 'wp-components', 'wp-core-data', 'wp-data', 'wp-element', 'wp-i18n', 'wp-url'),
-    'version'      => '0.8.2',
+    'version'      => '0.9.0',
 );
