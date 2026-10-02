@@ -124,6 +124,7 @@ Click **Report a problem** at the top right of Settings → SEO Pro Stack, or op
 == Changelog ==
 
 = Unreleased =
+* Change: Free Plugins no longer suggests Disable All WordPress Updates.
 * New: Menu item visibility, Change post type, Order by hand and Term tools.
 * Change: block editors open faster.
 * New: Report a problem button.

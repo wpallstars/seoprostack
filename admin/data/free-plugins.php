@@ -29,6 +29,10 @@ if (!defined('ABSPATH')) {
 // where needed does its job in wp-admin and for the whole site. It does not
 // set "replaces" yet, so the Plugins screen does not suggest removing it,
 // until page-by-page rules on the site are covered too (GitHub issue #90).
+// Disable All WordPress Updates is not listed: the Speed and Plugins
+// features cover why it was used (fewer outgoing requests, a faster
+// wp-admin), and it stops WordPress's own update request, which also hides
+// updates from GitHub releases. Security updates should keep arriving.
 function seoprostack_get_free_plugins() {
     /**
      * Filter the recommended plugins by category. Slugs are WordPress.org
@@ -126,7 +130,6 @@ function seoprostack_get_free_plugins() {
             'wp-social-reviews'
         ),
         'speed' => array(
-            'disable-wordpress-updates',
             'http-requests-manager',
             'index-wp-mysql-for-speed',
             'litespeed-cache',

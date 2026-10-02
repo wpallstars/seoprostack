@@ -3,6 +3,7 @@
 Every change to SEO Pro Stack. readme.txt lists the latest version in short.
 
 = Unreleased =
+* Change: Free Plugins no longer suggests Disable All WordPress Updates: the Speed and Plugins features cover why it was used, and it also blocks updates from GitHub.
 * New, off by default: Menu item visibility shows a menu item only to logged-in people, logged-out visitors or chosen roles (replaces Nav Menu Roles and reads its rules). Change post type turns a post into a page or another type from the editor, Quick Edit or Bulk Edit (replaces Post Type Switcher). Order by hand lets you drag posts, pages and categories into order (replaces Simple Custom Post Order and imports its order). Term tools merges terms, moves them to another taxonomy or sets their parent, and redirects their old addresses (replaces Term Management Tools).
 * Change: block editors open faster with Simpler block editor on: the site details they ask for are no longer built with a description of every plugin’s REST routes. Load plugins only where needed also puts its menu entries back with fewer permission checks.
 * New: Report a problem, at the top right of Settings → SEO Pro Stack, opens the plugin’s GitHub issues so you can tell us what went wrong.
