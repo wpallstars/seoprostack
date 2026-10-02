@@ -28,6 +28,9 @@ Minimums: **WordPress 6.2, PHP 7.4** (`readme.txt`, plugin header). User docs:
   plugin, maker, its WordPress.org page and its maker's own source repository
   (check each link with `gh api repos/{owner}/{repo}` or the WordPress.org
   plugin API; never link a mirror or guess a URL), and the feature.
+  Commit, then run `php scripts/replaced-plugins.php --write` to update the
+  count and download sizes above the Features table; preflight fails when the
+  count is out of date.
 - `README.md` is also the plugin's Read Me tab
   (`admin/includes/class-readme-manager.php`), which renders headings, lists,
   tables, bold, italic, inline code, links (http(s) and `#heading` links,
