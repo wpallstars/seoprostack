@@ -32,7 +32,7 @@
  * user ID) after an order starts.
  *
  * @package SEOProStack
- * @since 0.8.0
+ * @since 0.9.0
  */
 
 if (!defined('ABSPATH')) {

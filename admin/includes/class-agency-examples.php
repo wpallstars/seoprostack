@@ -9,7 +9,7 @@
  * first. WP-CLI: `wp seoprostack starters add agency`.
  *
  * @package SEOProStack
- * @since 0.8.0
+ * @since 0.9.0
  */
 
 if (!defined('ABSPATH')) {

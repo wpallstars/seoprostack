@@ -96,12 +96,25 @@ final class SEOProStack_Plugin_Loader {
     /** Time the site's learning started, so one request at a time learns. Not autoloaded. */
     const FRONT_LOCK = 'seoprostack_plugin_front_lock';
 
+    /** Content/settings generation, preventing stale in-flight learning writes. */
+    const FRONT_REVISION = 'seoprostack_plugin_front_revision';
+
+    /** Sticky failure kept separately so concurrent page learning cannot erase it. */
+    const FRONT_FAILED = 'seoprostack_plugin_front_failed';
+
     /** Settings keys for the site: plugins to skip, and whether for logged-in people too. */
     const FRONT_KEY       = 'plugin_loading_front';
     const FRONT_USERS_KEY = 'plugin_loading_front_users';
 
     /** Format of what is learned on the site; a change makes it learn again. */
-    const FRONT_VERSION = 1;
+    const FRONT_VERSION = 2;
+
+    /** Opt-in page learning and plugins the owner wants to keep loading. */
+    const PAGES_KEY = 'plugin_loading_pages';
+    const KEEP_KEY  = 'plugin_loading_pages_keep';
+
+    /** Bound anonymous learning storage; unknown pages always load everything. */
+    const PAGE_LIMIT = 100;
 
     /**
      * Query arguments that leave a page of the site as it is: search, page
@@ -319,6 +332,9 @@ final class SEOProStack_Plugin_Loader {
     /** @var bool Whether someone asked a page of the site to learn again (?seoprostack-load-all=1). */
     private static $relearn = false;
 
+    /** @var string Public content generation at the start of this request. */
+    private static $front_revision = '';
+
     /**
      * Why a 'full' request loads every plugin: 'always' (a screen that is
      * never filtered), 'learning' (not learned yet, or learned again),
@@ -478,6 +494,11 @@ final class SEOProStack_Plugin_Loader {
         if (!self::front_request()) {
             return;
         }
+        self::$front_revision = (string) get_option(self::FRONT_REVISION, '');
+        if (!empty($options[self::PAGES_KEY]) && (!empty($_COOKIE) || !empty($_SERVER['HTTP_AUTHORIZATION'])
+            || !empty($_SERVER['REDIRECT_HTTP_AUTHORIZATION']) || !empty($_SERVER['PHP_AUTH_USER']))) {
+            return; // Authentication and sessions are not public page views.
+        }
         $logged_in    = self::has_login_cookie();
         self::$screen = 'front';
         // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- only loads more plugins.
@@ -485,11 +506,14 @@ final class SEOProStack_Plugin_Loader {
             // Every plugin for this request. For an administrator (checked
             // when learning) it also learns the site again.
             self::$mode    = 'full';
-            self::$reason  = 'learning';
+            self::$reason  = $logged_in ? 'learning' : 'always';
             self::$relearn = $logged_in;
             if ($logged_in) {
                 self::attribute();
             }
+            return;
+        }
+        if (self::front_failed()) {
             return;
         }
         if (!self::front_current()) {
@@ -506,6 +530,38 @@ final class SEOProStack_Plugin_Loader {
             return;
         }
         $chosen = isset($options[self::FRONT_KEY]) && is_array($options[self::FRONT_KEY]) ? array_values(array_intersect(self::$raw, $options[self::FRONT_KEY])) : array();
+        if (!empty($options[self::PAGES_KEY])) {
+            // Never learn a visitor's session or personalise a public page map.
+            if ($logged_in || !empty($_COOKIE)) {
+                return;
+            }
+            $key = self::front_page_key();
+            if ('' === $key) {
+                return;
+            }
+            $page = isset($front['pages'][$key]) ? $front['pages'][$key] : array();
+            if (empty($page['learned']) || $page['learned'] < time() - HOUR_IN_SECONDS) {
+                self::$mode   = 'full';
+                self::$reason = 'learning';
+                self::attribute();
+                return;
+            }
+            $keep = isset($options[self::KEEP_KEY]) ? (array) $options[self::KEEP_KEY] : array();
+            $candidates = array_diff((array) ($front['candidates'] ?? array()), $keep);
+            $chosen = array_diff(array_unique(array_merge($chosen, $candidates)), $keep);
+            $needed = (array) ($page['needs'] ?? array());
+            do {
+                $before = count($needed);
+                foreach ((array) $front['deps'] as $file => $deps) {
+                    if (array_intersect((array) $deps, $needed)) {
+                        $needed[] = $file; // Extensions follow the content owner.
+                    }
+                }
+                $needed = array_unique($needed);
+            } while (count($needed) !== $before);
+            // Even an explicitly ticked content plugin stays on pages using it.
+            $chosen = array_diff($chosen, $needed);
+        }
         self::$skipped = self::front_skipped($chosen, $front);
         if (self::$skipped) {
             self::filter();
@@ -568,6 +624,42 @@ final class SEOProStack_Plugin_Loader {
     }
 
     /**
+     * Exact public URL identity, available before the query and plugins load.
+     * Query variants are not learned: searches, pagination, campaign tags and
+     * actions keep all plugins. Tags can change tracking and cookie behaviour.
+     *
+     * @return string
+     */
+    public static function front_page_key() {
+        if (!isset($_SERVER['REQUEST_METHOD']) || 'GET' !== $_SERVER['REQUEST_METHOD']) {
+            return '';
+        }
+        // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- only choosing to load more plugins.
+        foreach (array_keys($_GET) as $name) {
+            if (self::LOAD_ALL_ARG !== $name) {
+                return '';
+            }
+        }
+        $uri = isset($_SERVER['REQUEST_URI']) ? (string) wp_unslash($_SERVER['REQUEST_URI']) : ''; // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- hashed, never printed.
+        $path = (string) wp_parse_url($uri, PHP_URL_PATH);
+        return '' !== $path && '/' === $path[0] && strlen($path) <= 2048 ? hash('sha256', $path) : '';
+    }
+
+    /** Whether a full request still describes the content it started with. */
+    public static function front_revision_current() {
+        wp_cache_delete(self::FRONT_REVISION, 'options');
+        wp_cache_delete('alloptions', 'options');
+        return self::$front_revision === (string) get_option(self::FRONT_REVISION, '');
+    }
+
+    /** Failure for this plugin set, independent of concurrent map writes. */
+    public static function front_failed() {
+        $failed = get_option(self::FRONT_FAILED, array());
+        return is_array($failed) && isset($failed['active'], $failed['failed']) && is_array($failed['failed'])
+            && self::fingerprint(self::stored_active_plugins()) === $failed['active'] ? $failed['failed'] : array();
+    }
+
+    /**
      * Whether what each plugin adds to the site was learned for the current
      * set of active plugins.
      *
@@ -578,6 +670,7 @@ final class SEOProStack_Plugin_Loader {
         return is_array($front)
             && isset($front['version'], $front['active'], $front['deps'], $front['always'], $front['notes'])
             && self::FRONT_VERSION === $front['version']
+            && isset($front['revision']) && $front['revision'] === (string) get_option(self::FRONT_REVISION, '')
             && self::fingerprint(self::stored_active_plugins()) === $front['active'];
     }
 
@@ -994,20 +1087,21 @@ final class SEOProStack_Plugin_Loader {
         wp_cache_delete(self::FRONT, 'options');
         wp_cache_delete('alloptions', 'options');
         $front = get_option(self::FRONT, array());
-        if (!is_array($front) || !isset($front['version'])) {
-            return;
-        }
         if ('' === $plugin) {
             $error  = error_get_last();
             $plugin = $error && !empty($error['file']) ? self::plugin_for_file((string) $error['file']) : '';
         }
         $uri             = isset($_SERVER['REQUEST_URI']) ? esc_url_raw(wp_unslash($_SERVER['REQUEST_URI'])) : '';
-        $front['failed'] = array(
+        $failed = array(
             'time'   => time(),
             'plugin' => $plugin,
             'path'   => (string) strtok($uri, '?'),
         );
-        update_option(self::FRONT, $front, true);
+        update_option(self::FRONT_FAILED, array('active' => self::fingerprint(self::$raw), 'failed' => $failed), true);
+        if (is_array($front) && isset($front['version'])) {
+            $front['failed'] = $failed;
+            update_option(self::FRONT, $front, true);
+        }
     }
 
     /**
@@ -1109,6 +1203,7 @@ final class SEOProStack_Plugin_Loader {
         $plugin = self::calling_plugin();
         if ('' !== $plugin) {
             self::$registered['blocks'][$plugin] = true;
+            self::$registered['block_names'][(string) $block_type] = $plugin;
         }
         return $args;
     }
@@ -1330,6 +1425,7 @@ final class SEOProStack_Plugin_Loader {
             'map'         => self::$map,
             'attributing' => self::$attributing,
             'registered'  => self::$registered,
+            'front_revision' => self::$front_revision,
         );
     }
 }

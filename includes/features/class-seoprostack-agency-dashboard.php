@@ -19,7 +19,7 @@
  * orders,report,calls,payments,courses,spaces: what to list).
  *
  * @package SEOProStack
- * @since 0.8.0
+ * @since 0.9.0
  */
 
 if (!defined('ABSPATH')) {
