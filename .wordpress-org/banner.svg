@@ -75,6 +75,8 @@
     <rect y="494" width="1544" height="6" fill="#bb0000"/>
   </g>
 
+  <!-- The picture: scaled down a little so it keeps clear of the stripes -->
+  <g transform="translate(1214 248) scale(0.86) translate(-1214 -248)">
   <!-- The stack: red, cream and blue layers, each with a top face and two sides -->
   <g stroke-linejoin="round">
     <g transform="translate(0 350)">
@@ -109,6 +111,7 @@
       <use xlink:href="#star" transform="translate(1385 150) scale(17)" stroke-width="0.3"/>
     </g>
     <use xlink:href="#star" transform="translate(1214 78) scale(54)" fill="url(#gold)" stroke="#ffffea" stroke-width="0.11"/>
+  </g>
   </g>
 
   <!-- Words -->
