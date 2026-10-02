@@ -267,6 +267,27 @@ body.sps-menu-measure #adminmenu .wp-submenu li.sps-menu-has-sub > ul.sps-menu-f
 	body.sps-menu-fit:not(.folded):not(.is-fullscreen-mode) .interface-interface-skeleton {
 		inset-inline-start: var(--sps-menu-width, 160px);
 	}
+
+	/*
+	 * Other plugins' bars laid out for the usual 160px menu; the script
+	 * marks them and keeps any offset of their own in --sps-fit-*.
+	 */
+	body.sps-menu-fit:not(.folded) .sps-fit-start {
+		inset-inline-start: calc(var(--sps-menu-width, 160px) + var(--sps-fit-start, 0px)) !important;
+	}
+
+	body.sps-menu-fit:not(.folded) .sps-fit-margin {
+		margin-inline-start: calc(var(--sps-menu-width, 160px) + var(--sps-fit-margin, 0px)) !important;
+	}
+
+	body.sps-menu-fit:not(.folded) .sps-fit-pad {
+		padding-inline-start: calc(var(--sps-menu-width, 160px) + var(--sps-fit-pad, 0px)) !important;
+	}
+
+	body.sps-menu-fit:not(.folded) .sps-fit-width {
+		box-sizing: border-box !important;
+		width: calc(100% - var(--sps-menu-width, 160px) - var(--sps-fit-gap, 0px)) !important;
+	}
 }
 
 /* Phones: no room to the side; the current page's list still shows. */

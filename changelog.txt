@@ -22,7 +22,7 @@ Every change to SEO Pro Stack. readme.txt lists the latest version in short.
 * Fix: Load plugins only where needed no longer leaves WP Sheet Editor’s spreadsheets blank: pages of a framework that several plugins bundle load all of those plugins.
 * Fix: Ask before licence checks: “Ask me again” now keeps each plugin hidden for the time you chose. Hiding a second plugin, such as Starter Templates after Kadence Blocks, brought back the first.
 * New: Readable list columns removes Complianz’s Website Scan, Post Type Switcher’s Type and Burst Statistics’ Pageviews columns (Columns to remove; Admin Columns can still add them back), puts Author and Date last on content lists, and keeps Rank Math’s SEO Details on one line each.
-* New: Organise the admin menu widens the sidebar, up to 280 pixels, so menu names fit on one line (Fit the menu to its names, on by default).
+* New: Organise the admin menu widens the sidebar, up to 280 pixels, so menu names fit on one line (Fit the menu to its names, on by default). Other plugins’ fixed headers, footers and panels laid out for the usual menu width, such as Fluent Support’s setup footer, move over or narrow with it.
 * Change: Organise the admin menu shows FluentSMTP’s logo for its entry instead of a cog.
 
 = 0.7.0 =
