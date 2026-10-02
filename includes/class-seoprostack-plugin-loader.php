@@ -619,8 +619,8 @@ final class SEOProStack_Plugin_Loader {
 
     /**
      * Exact public URL identity, available before the query and plugins load.
-     * Query variants are not learned: searches, pagination and actions keep all
-     * plugins. Campaign tags share the same map as their untagged page.
+     * Query variants are not learned: searches, pagination, campaign tags and
+     * actions keep all plugins. Tags can change tracking and cookie behaviour.
      *
      * @return string
      */
@@ -630,8 +630,7 @@ final class SEOProStack_Plugin_Loader {
         }
         // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- only choosing to load more plugins.
         foreach (array_keys($_GET) as $name) {
-            if (self::LOAD_ALL_ARG !== $name && 0 !== strpos((string) $name, 'utm_')
-                && !in_array($name, array_diff(self::FRONT_ARGS, array('s', 'paged', 'page', 'cpage', 'p', 'page_id')), true)) {
+            if (self::LOAD_ALL_ARG !== $name) {
                 return '';
             }
         }

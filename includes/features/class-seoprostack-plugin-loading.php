@@ -1129,14 +1129,15 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
             || 'yes' === get_option('woocommerce_demo_store', 'no')) {
             return false;
         }
-        // Audited callbacks in WooCommerce 8.2 and newer. These only authenticate
+        // Known callbacks in WooCommerce 8.2.2 and 11.1.2. These authenticate
         // REST/WooCommerce.com requests or grant capabilities to signed-in users.
         // Any new callback falls back to loading WooCommerce on every page.
         $public_hooks = array(
             'determine_current_user' => array('WC_REST_Authentication::authenticate', 'WC_WCCOM_Site::authenticate_wccom',
                 'Automattic\\Jetpack\\Connection\\Rest_Authentication::wp_rest_authenticate'),
             'lostpassword_url' => array('wc_lostpassword_url'),
-            'map_meta_cap' => array('wc_modify_map_meta_cap', 'Automattic\\Jetpack\\Connection\\Manager::jetpack_connection_custom_caps'),
+            'map_meta_cap' => array('wc_modify_map_meta_cap', 'Automattic\\Jetpack\\Connection\\Manager::jetpack_connection_custom_caps',
+                'Automattic\\WooCommerce\\Internal\\DataStores\\Orders\\CustomOrdersTableController::maybe_translate_order_caps'),
             'user_has_cap' => array('wc_customer_has_capability', 'wc_shop_manager_has_capability'),
         );
         foreach ((array) $wp_filter as $name => $hook) {
@@ -1237,6 +1238,9 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
         $object = get_queried_object();
         if ($object instanceof WP_Term && !empty($state['registered']['taxes'][$object->taxonomy])) {
             $needs[] = $state['registered']['taxes'][$object->taxonomy];
+        }
+        if ($object instanceof WP_Post_Type && !empty($state['registered']['types'][$object->name])) {
+            $needs[] = $state['registered']['types'][$object->name];
         }
         $content = implode("\n", $texts);
         foreach ((array) $shortcode_tags as $tag => $callback) {
