@@ -27,8 +27,9 @@
  *   (attributes, settings, "required": true, "options": value => label, or
  *   for payment items, label => price) is completed from Fluent Forms' own
  *   element defaults, as its editor would; columns of a "container" too.
- *   "layout": "checkout" lays the fields out as a checkout: "intro" (HTML
- *   about the service) and the fields in a two-thirds column, and the order
+ *   "layout": "checkout" lays the fields out as a checkout: payment items
+ *   first, then "intro" (HTML about the service), the other fields and the
+ *   payment method in a two-thirds column, and the order
  *   summary, discount code and form button in a one-third column beside it
  *   (below it on phones), styled by the form's own Custom CSS.
  * - fluentboards_boards: title, type, description, stages (title, closed),
@@ -1261,9 +1262,10 @@ final class SEOProStack_Starters {
     }
 
     /**
-     * A checkout layout: the service and its questions in a wide column, and
-     * the order summary, discount code and button in a narrow one beside it
-     * (below it on phones).
+     * A checkout layout: in a wide column, the choices of what to buy first,
+     * then what the service includes, the questions and payment; the order
+     * summary, discount code and button in a narrow one beside it (below it
+     * on phones).
      *
      * @param array  $fields Compact fields.
      * @param string $intro  HTML describing the service, shown first.
@@ -1271,17 +1273,17 @@ final class SEOProStack_Starters {
      * @return array One two-column container.
      */
     private static function checkout_fields(array $fields, $intro, $button) {
-        $main = array();
-        $side = array(
+        $items = array();
+        $main  = array();
+        $pay   = array();
+        $side  = array(
             array('element' => 'custom_html', 'settings' => array('html_codes' => '<h3>' . esc_html__('Your order', 'seoprostack') . '</h3>')),
         );
-        if ('' !== $intro) {
-            $main[] = array('element' => 'custom_html', 'settings' => array('html_codes' => $intro));
-        }
-        $pay = array();
         foreach ($fields as $field) {
             $element = is_array($field) && isset($field['element']) ? $field['element'] : '';
-            if (in_array($element, array('payment_coupon', 'payment_summary_component'), true)) {
+            if (in_array($element, array('multi_payment_component', 'subscription_payment_component', 'custom_payment_component', 'item_quantity_component'), true)) {
+                $items[] = $field;
+            } elseif (in_array($element, array('payment_coupon', 'payment_summary_component'), true)) {
                 $side[] = $field;
             } elseif ('payment_method' === $element) {
                 $pay[] = $field;
@@ -1289,8 +1291,12 @@ final class SEOProStack_Starters {
                 $main[] = $field;
             }
         }
-        // Payment details last, next to the button.
-        $main = array_merge($main, $pay);
+        if ('' !== $intro) {
+            array_unshift($main, array('element' => 'custom_html', 'settings' => array('html_codes' => $intro)));
+        }
+        // What to buy first, then what it includes, the questions, and payment
+        // details last, next to the button.
+        $main = array_merge($items, $main, $pay);
         // Fluent Forms hides its own button when a form has this one.
         $side[] = array(
             'element'  => 'custom_submit_button',
