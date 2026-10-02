@@ -948,6 +948,7 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folderâ
 ### Unreleased
 
 - New, off by default: **Word documents in the editor** (Content tab; replaces Mammoth .docx converter): drop or paste a `.docx` file into the block editor, or choose Word document in the Options menu, and it becomes core blocks, with headings, formatting, links, nested lists, quotes, tables and pictures. The server converts it with `ZipArchive` and DOM; pictures go to the Media Library, attached to the post. It switches itself on while Mammoth is active; Free Plugins no longer lists Mammoth. Settings version 11.
+- Fix: **More menu in the admin bar**: each moved item's row now holds its own floats (a clearfix on `.ab-item`). Core and plugins float bar icons (`.ab-icon`, `.ab-item:before`); on the bar every item is one line, but a menu row can be shorter than its icon, so the float pushed the next rows to the right (Rank Math SEO under AutomatorWP, Query Monitor under Social Posts). This covers any plugin's floated icon, with no per-plugin rules.
 
 ### 0.9.0
 
