@@ -21,6 +21,8 @@ Go to **Settings → SEO Pro Stack**, or click the star next to your name in the
 
 Every feature is off by default except four: Hide admin bar items, which hides Comments and + New from the admin bar, No fade between admin screens, Quiet Freemius prompts and Fixes for other plugins. Copies installed from GitHub releases also have Updates from GitHub on. Features that replace a separate plugin say so on their card (“Replaces: …”) and import that plugin’s settings once when SEO Pro Stack is updated. The other plugin’s own settings are never changed or deleted. While that plugin is active, the feature waits and the plugin keeps doing the job, so the two never run side by side; the card says so, with a deactivate link that comes back to the same settings tab. Deactivate the plugin to switch over. The Plugins screen lists installed plugins that SEO Pro Stack can replace, with what to do next for each: deactivate it (its setting is on), switch the setting on, or delete it once inactive (single sites; on multisite another site may use it). Each of those plugins also gets a note under its own row saying which SEO Pro Stack setting makes it redundant and what to do next, including inactive plugins whose setting is still off; the notes are not hidden by **Hide**. When an active plugin does things on the site that SEO Pro Stack does not (such as Disable Bloat’s REST API switches), the line names them instead of saying the plugin can go. **Hide** hides the lines shown for that person until another step is needed.
 
+SEO Pro Stack replaces **43 plugins**.
+
 | Feature | Tab | Replaces |
 | --- | --- | --- |
 | Hide the admin bar, Block dashboard access | Admin | Admin Bar & Dashboard Access Control |
@@ -60,6 +62,7 @@ Every feature is off by default except four: Hide admin bar items, which hides C
 | Short addresses for custom post types | Links | Remove CPT base |
 | Short links | Links | Pretty Links |
 | Maintenance mode | Maintenance | Hostinger Tools, in part |
+| Updates from GitHub (GitHub builds only) | Maintenance | Git Updater |
 | Plugins menu in the admin bar | Plugins | Plugin Toggle |
 | Clean up deleted plugins | Plugins | Fix ‘Plugin file does not exist’ Notices |
 
