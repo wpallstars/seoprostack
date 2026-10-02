@@ -152,6 +152,12 @@ function seoprostack_uninstall_site() {
     // When old post addresses last redirected someone. The old addresses
     // themselves are core's (_wp_old_slug) and keep redirecting.
     delete_post_meta_by_key('_seoprostack_old_slug_used');
+    // Like totals, and what logged-in people liked and saved. Favorites'
+    // own counts and favourites, if any, are untouched. Visitors' lists are
+    // in their browsers only.
+    delete_post_meta_by_key('_seoprostack_likes');
+    delete_metadata('user', 0, $wpdb->get_blog_prefix() . 'seoprostack_saved', '', true);
+    delete_metadata('user', 0, $wpdb->get_blog_prefix() . 'seoprostack_liked', '', true);
 
     // Shareable preview links stop working; staged versions and duplicates
     // become ordinary drafts and posts.

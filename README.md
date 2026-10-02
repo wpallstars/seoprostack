@@ -44,6 +44,7 @@ Every feature is off by default except four: Hide admin bar items, which hides C
 | Link cards | Content | Bookmark Card |
 | Wikipedia previews | Content | Wikipedia Preview |
 | Word documents in the editor | Content | Mammoth .docx converter |
+| Like, save and share | Content | Favorites |
 | Spectra block replacements | Content | Spectra |
 | Paste into the Media Library | Media | The Paste |
 | SVG uploads | Media | Safe SVG |
@@ -504,6 +505,20 @@ Drop or paste a Word document (`.docx`) into the block editor, or choose **Word 
 - Older `.doc` files need saving as `.docx` first.
 - Switches on if Mammoth .docx converter is active (it has no settings to import). Unlike Mammoth, there is no meta box and no 600 KB script in the editor.
 
+### Like, save and share (Content)
+
+Like, Save and Share buttons, as on social media, and a list of what each visitor saved.
+
+- **Like, save and share** block: Like (a heart and the total), Save (a bookmark) and Share. Each button can be turned off in the block settings. The same three buttons go after the content of the post types chosen in the setting, on the post's own page, unless the block or `[favorite_button]` is already in it.
+- **Saved posts** block: the visitor's saved posts, newest first, as links, with optional excerpts and Remove buttons and your own text for an empty list.
+- Share opens the device's share sheet where there is one (most phones), and otherwise copies the link and says so.
+- Works with page caching. The page is the same for everyone; a small script (only on pages with the buttons or list) asks `admin-ajax.php` for the totals and, for logged-in people, what they liked and saved, with a fresh nonce for changes. No sessions, no cookies.
+- Visitors' likes and saved posts stay in their browser (`localStorage`); the server keeps only like totals (post meta `_seoprostack_likes`), and visitors' like changes are limited to 120 an hour per address (a salted hash, kept for an hour). Logged-in people's likes and saved posts are stored per site in user options `seoprostack_liked` and `seoprostack_saved`, so they follow them between devices, and posts saved before logging in join their list.
+- Only published, public posts without a password can be liked or saved.
+- Replaces Favorites. While Favorites is active, it switches on with the post types Favorites adds its button to (before or after the content), and Favorites' own buttons stay until it is deactivated. Until SEO Pro Stack stores its own, totals come from Favorites' `simplefavorites_count` and logged-in users' saved and liked posts from their Favorites favourites on this site, so each is counted once. Favorites' data is never changed. Visitors' favourites in Favorites' cookie are not carried over.
+- Favorites' shortcodes keep working once it is deactivated: `[favorite_button]` (Like and Save), `[favorite_count]`, `[user_favorites]` (the visitor's own list; `post_types`, `include_excerpts`, `include_buttons` and `no_favorites` are used), `[user_favorite_count]` and `[clear_favorites_button]`. Groups, thumbnails and other people's lists are not.
+- Deleting the plugin removes the totals and logged-in people's lists.
+
 ### Spectra block replacements (Content)
 
 Lets a site stop using Spectra (Ultimate Addons for Gutenberg) without losing content, so the theme and core blocks, or Kadence Blocks, do the work.
@@ -947,6 +962,7 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folder�
 
 ### Unreleased
 
+- New, off by default: **Like, save and share** (Content tab; replaces Favorites): a Like, save and share block (Like with a count, Save, Share), the same buttons after the content of chosen post types, and a Saved posts block. Pages stay cacheable: a small script loads counts and logged-in people's state from `admin-ajax.php`; visitors' likes and saved posts stay in `localStorage`, with no cookies or sessions. Like totals are post meta `_seoprostack_likes`; logged-in people's lists are per-site user options. It reads Favorites' counts and logged-in users' favourites until it stores its own, takes over Favorites' five shortcodes once Favorites is deactivated, and switches itself on, with Favorites' post types, while Favorites is active; Free Plugins no longer lists Favorites. Settings version 12.
 - Change: **Sticky posts for any post type** is now **Pinned posts for any post type**: a pin instead of a star in post lists, and “Pinned” instead of “Sticky” in lists, Quick Edit, Bulk Edit and the editors. Clicking the pin adds or removes “Pinned” after the title, and updates Quick Edit, without reloading the list. The pin and Order by hand columns are 20 px wide instead of about 30, leaving more room for the title.
 - Change: **Load plugins only where needed** loads less on post lists. Quick Edit and Bulk Edit now count only plugins that print fields there, so plugins that hook them for other post types (WooCommerce for products) no longer load on the Pages list. `WC requires at least` makes WooCommerce load with a plugin only when the plugin's name says WooCommerce, so general plugins that declare it (TranslatePress, Simple Cloudflare Turnstile, WP Sheet Editor) no longer bring WooCommerce to every screen. Map version 7: screens are learned again.
 - Fix: **Fit the menu to its names** with the block editor in full screen mode. The content area, footer and other plugins’ bars that follow the wider menu no longer keep its offset while WordPress hides the menu (`is-fullscreen-mode` on `<body>`), which left an empty strip down the left; the script never marks the editor’s frame, which the stylesheet places; and the menu is measured when it shows, so it fits when the editor leaves full screen instead of keeping the usual width (it used to be measured while hidden).
@@ -1165,6 +1181,7 @@ Where a feature replaces one of them, SEO Pro Stack imports the settings it can,
 | Bookmark Card | George Mamadashvili | [WordPress.org](https://wordpress.org/plugins/bookmark-card/), [GitHub](https://github.com/Mamaduka/bookmark-card) | Link cards |
 | Wikipedia Preview | Wikimedia Foundation | [WordPress.org](https://wordpress.org/plugins/wikipedia-preview/), [GitHub](https://github.com/wikimedia/wikipedia-preview) | Wikipedia previews |
 | Mammoth .docx converter | Michael Williamson | [WordPress.org](https://wordpress.org/plugins/mammoth-docx-converter/), [GitHub](https://github.com/mwilliamson/mammoth-wordpress-plugin) | Word documents in the editor |
+| Favorites | Hook & Filter (first by Kyle Phillips) | [WordPress.org](https://wordpress.org/plugins/favorites/), [GitHub](https://github.com/Hook-Filter/favorites) | Like, save and share |
 | Spectra | Brainstorm Force | [WordPress.org](https://wordpress.org/plugins/ultimate-addons-for-gutenberg/), [GitHub](https://github.com/brainstormforce/wp-spectra) | Spectra block replacements |
 | The Paste | Jörn Lund | [WordPress.org](https://wordpress.org/plugins/the-paste/), [GitHub](https://github.com/mcguffin/the-paste) | Paste into the Media Library |
 | Safe SVG | 10up | [WordPress.org](https://wordpress.org/plugins/safe-svg/), [GitHub](https://github.com/10up/safe-svg) | SVG uploads |

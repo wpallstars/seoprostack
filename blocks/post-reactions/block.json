@@ -1,0 +1,26 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "seoprostack/post-reactions",
+	"version": "0.9.1",
+	"title": "Like, save and share",
+	"category": "widgets",
+	"icon": "heart",
+	"description": "Like, Save and Share buttons for this post.",
+	"keywords": [ "like", "save", "share", "favorite", "favourite", "bookmark" ],
+	"textdomain": "seoprostack",
+	"attributes": {
+		"showLike": { "type": "boolean", "default": true },
+		"showSave": { "type": "boolean", "default": true },
+		"showShare": { "type": "boolean", "default": true }
+	},
+	"usesContext": [ "postId" ],
+	"supports": {
+		"html": false,
+		"anchor": true,
+		"align": [ "left", "center", "right" ],
+		"spacing": { "margin": true }
+	},
+	"editorScript": "file:./index.js",
+	"style": "seoprostack-post-reactions"
+}
