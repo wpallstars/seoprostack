@@ -2,6 +2,12 @@
 
 Every change to SEO Pro Stack. readme.txt lists the latest version in short.
 
+= Unreleased =
+* Fix: WebP and AVIF images now uses the quality you chose. Before, copies were made at WordPress's own quality whatever the setting said; they are made again once, in the background.
+* Fix: background picture work no longer runs past the server's time limit when several batches run together.
+* Change: WebP and AVIF images converts pictures again in the background when you change a quality, instead of only from then on. New Match quality to picture size (on): thumbnails get a little more quality so they stay sharp, and large pictures a little less, because they are usually shown smaller. The settings card now checks that the server really sends the copies, and says what to do when it does not, such as restarting LiteSpeed, which keeps old rules in memory.
+* Change: Watermark pictures can mark every picture without a watermark, mark pictures again with the current settings, or remove every watermark, from its settings card, in the background with progress and a Stop button. Media Library bulk actions finish in the background instead of stopping after 20 seconds.
+
 = 0.10.1 =
 * Change: Short links no longer counts as a replacement for Lasso Lite (Simple URLs), which also shows product displays and reports. The Plugins screen stops suggesting you remove Lasso Lite, Free Plugins lists it again, and the two run side by side. Short links still imports Lasso Lite's links if you want to move them.
 * Change: the Short links list no longer shows other plugins' links under each link, such as AI Engine's Magic Wand and Social Engine's Create Social Post.

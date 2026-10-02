@@ -55,6 +55,9 @@ function seoprostack_uninstall_site() {
     $options[] = 'seoprostack_dashboard_widgets';
     $options[] = 'seoprostack_nextgen_synced';
     $options[] = 'seoprostack_watermark_dir';
+    // Watermark pictures: background job and its lock.
+    $options[] = 'seoprostack_watermark_job';
+    $options[] = 'seoprostack_watermark_lock';
     $options[] = 'seoprostack_cpt_base_taken';
     $options[] = 'seoprostack_maintenance_token';
     $options[] = 'seoprostack_short_links';
@@ -143,6 +146,7 @@ function seoprostack_uninstall_site() {
     // owner's pictures, so their folder (uploads/seoprostack-originals-*)
     // is kept; only the records linking them to pictures go.
     delete_post_meta_by_key('_seoprostack_watermark');
+    wp_unschedule_hook('seoprostack_watermark_batch');
 
     // Screenshots stay in the Media Library because posts may use them;
     // only the records that matched them to pages go.

@@ -97,6 +97,54 @@ abstract class SEOProStack_Feature {
     }
 
     /**
+     * Whether the site runs on a LiteSpeed server (SEOProStack_Litespeed,
+     * which also remembers the answer for WP-CLI).
+     *
+     * @return bool
+     */
+    public static function litespeed_server() {
+        return SEOProStack_Litespeed::is_server();
+    }
+
+    /**
+     * Whether a batch that began at $start has time for one more item.
+     *
+     * The batch keeps to its own budget, and also to PHP's time limit for
+     * the whole request: WP-Cron runs every due batch in one request, so two
+     * 20-second batches would pass a 30-second limit. Where the host allows
+     * it, the limit is restarted for the next item instead.
+     *
+     * @param float $start  microtime(true) when the batch began.
+     * @param int   $budget Seconds the batch may run.
+     * @return bool
+     */
+    public static function more_time($start, $budget) {
+        $now = microtime(true);
+        if ($now - $start >= $budget) {
+            return false;
+        }
+        $limit = (int) ini_get('max_execution_time');
+        if ($limit <= 0) {
+            return true;
+        }
+        // set_time_limit() restarts the count; hosts may disable it.
+        if (function_exists('set_time_limit') && @set_time_limit(max($limit, 60))) { // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged, Squiz.PHP.DiscouragedFunctions.Discouraged -- may be disabled by the host.
+            return true;
+        }
+        $begun = isset($_SERVER['REQUEST_TIME_FLOAT']) ? (float) $_SERVER['REQUEST_TIME_FLOAT'] : $start;
+        $used  = $now - $begun;
+        // On Linux the limit counts CPU time, and image libraries use
+        // several threads, so CPU time can run ahead of the clock.
+        if (function_exists('getrusage')) {
+            $usage = getrusage();
+            if (is_array($usage) && isset($usage['ru_utime.tv_sec'], $usage['ru_stime.tv_sec'], $usage['ru_utime.tv_usec'], $usage['ru_stime.tv_usec'])) {
+                $used = max($used, $usage['ru_utime.tv_sec'] + $usage['ru_stime.tv_sec'] + ($usage['ru_utime.tv_usec'] + $usage['ru_stime.tv_usec']) / 1e6);
+            }
+        }
+        return $used < $limit - min(10, $limit / 3);
+    }
+
+    /**
      * Import settings once, when the stored settings version is older than
      * SEOProStack_Settings::DB_VERSION. Only fill keys that are not stored yet.
      *

@@ -123,6 +123,10 @@ Click **Report a problem** at the top right of Settings → SEO Pro Stack, or op
 
 == Changelog ==
 
+= Unreleased =
+* Change: WebP quality by picture size, converted again after changes, rules check; watermark batches.
+* Fix: WebP and AVIF quality; picture batches keep to the time limit.
+
 = 0.10.1 =
 * New: LiteSpeed hosting; LiteSpeed Cache preset worked out per site.
 * Change: Short links runs alongside Lasso Lite instead of replacing it, and still imports its links.

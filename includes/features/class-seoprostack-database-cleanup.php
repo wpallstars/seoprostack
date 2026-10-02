@@ -145,24 +145,6 @@ class SEOProStack_Database_Cleanup extends SEOProStack_Feature {
     }
 
     /**
-     * Whether the site runs on a LiteSpeed server. SEOProStack_Litespeed
-     * also remembers the answer for WP-CLI; without it, the server's
-     * variables are read as LiteSpeed Cache reads them.
-     *
-     * @return bool
-     */
-    private static function litespeed_server() {
-        if (class_exists('SEOProStack_Litespeed') && is_callable(array('SEOProStack_Litespeed', 'is_server'))) {
-            return (bool) SEOProStack_Litespeed::is_server();
-        }
-        // phpcs:disable WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- compared only.
-        $software = isset($_SERVER['SERVER_SOFTWARE']) ? (string) wp_unslash($_SERVER['SERVER_SOFTWARE']) : '';
-        $edition  = isset($_SERVER['LSWS_EDITION']) ? (string) wp_unslash($_SERVER['LSWS_EDITION']) : '';
-        // phpcs:enable
-        return !empty($_SERVER['HTTP_X_LSCACHE']) || 0 === stripos($software, 'litespeed') || 0 === stripos($edition, 'openlitespeed');
-    }
-
-    /**
      * Import WP-Optimize's scheduled cleanup choices. The switch comes on only
      * where this replaces WP-Optimize; elsewhere WP-Optimize keeps its schedule.
      *
