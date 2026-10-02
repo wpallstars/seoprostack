@@ -131,7 +131,7 @@ Copies from WordPress.org update from there. New versions come out on GitHub fir
 * Fix: Licence checks “Ask me again” keeps each plugin hidden.
 * Fix: dark plugin icons in the admin menu; TranslatePress in the More menu.
 * New: remove unneeded list columns; Author and Date last.
-* New: the admin menu widens to fit its names; FluentSMTP shows its logo.
+* New: the admin menu fits its names, plugins' bars follow; FluentSMTP logo.
 
 = 0.7.0 =
 * New: licence-check choices, plugin presets and FluentCRM and Fluent Boards starters.
