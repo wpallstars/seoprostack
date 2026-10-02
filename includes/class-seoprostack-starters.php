@@ -113,10 +113,15 @@ final class SEOProStack_Starters {
      * so it suits light and dark palettes. Name fields line up at the top, so
      * a "required" message under one does not push its neighbour out of line
      * (Fluent Forms lines them up at the bottom), and choices and buttons do
-     * not select their text when clicked quickly (Safari).
+     * not select their text when clicked quickly (Safari). Plan buttons: the
+     * words inside a clicked one are not highlighted as if selected (Fluent
+     * Forms colours every span in a focused button), and keyboard focus
+     * shows as an outline instead.
      */
     const CHECKOUT_CSS = '.fluentform .sps-checkout .ff-name-field-wrapper .ff-t-cell, .fluentform .sps-checkout .ff-name-address-wrapper .ff-t-cell { justify-content: flex-start; }
 .fluentform .sps-checkout .ff-el-form-check label, .fluentform .sps-checkout .ff_input-group-append { -webkit-user-select: none; user-select: none; }
+.fluentform .sps-checkout .ff_list_buttons .ff-el-form-check label:focus-within > span span { background: none; }
+.fluentform .sps-checkout .ff_list_buttons .ff-el-form-check label:has(input:focus-visible) > span { outline: 2px solid currentColor; outline-offset: 2px; }
 .fluentform .sps-checkout .ff-t-column-2 { padding: 1.25rem; border: 1px solid rgba(127, 127, 127, 0.25); border-radius: 8px; background: rgba(127, 127, 127, 0.06); }
 .fluentform .sps-checkout .ff-t-column-2 h3 { margin: 0 0 0.75rem; }
 .fluentform .sps-checkout .ff-t-column-2 .ff_submit_btn_wrapper_custom, .fluentform .sps-checkout .ff-t-column-2 .ff-btn-submit { width: 100%; }
