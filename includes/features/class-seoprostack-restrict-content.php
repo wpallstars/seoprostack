@@ -65,6 +65,13 @@ class SEOProStack_Restrict_Content extends SEOProStack_Feature {
     private static $seen = array();
 
     /**
+     * IDs of posts with a rule the current visitor does not meet; null until needed.
+     *
+     * @var int[]|null
+     */
+    private static $hidden = null;
+
+    /**
      * Whether the device styles were added.
      *
      * @var bool
@@ -168,6 +175,11 @@ class SEOProStack_Restrict_Content extends SEOProStack_Feature {
         add_filter('pings_open', array(__CLASS__, 'comments_open'), 20, 2);
         add_filter('comments_array', array(__CLASS__, 'comments_array'), 20, 2);
         add_filter('get_comments_number', array(__CLASS__, 'comments_number'), 20, 2);
+        // Comment lists, the Latest Comments block, the REST API and comment
+        // feeds query comments without comments_array.
+        add_filter('comments_clauses', array(__CLASS__, 'comments_clauses'), 20, 2);
+        add_filter('comment_feed_where', array(__CLASS__, 'comment_feed_where'), 20);
+        add_filter('rest_prepare_comment', array(__CLASS__, 'rest_comment'), 20, 2);
         add_filter('pre_render_block', array(__CLASS__, 'pre_render_block'), 10, 2);
         add_filter('render_block', array(__CLASS__, 'render_block'), 10, 2);
     }
@@ -483,6 +495,132 @@ class SEOProStack_Restrict_Content extends SEOProStack_Feature {
      */
     public static function comments_number($count, $post_id) {
         return self::can_see((int) $post_id) ? $count : 0;
+    }
+
+    /**
+     * IDs of posts with a rule the current visitor does not meet.
+     *
+     * @return int[]
+     */
+    private static function hidden_post_ids() {
+        if (null !== self::$hidden) {
+            return self::$hidden;
+        }
+        $query = array(
+            'post_type'        => 'any',
+            'post_status'      => 'any',
+            'posts_per_page'   => -1,
+            'fields'           => 'ids',
+            'no_found_rows'    => true,
+            'suppress_filters' => true,
+        );
+        $ids = get_posts(
+            $query + array(
+                'meta_key'     => self::META, // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key -- only posts with a rule, once per request.
+                'meta_compare' => 'EXISTS',
+            )
+        );
+        $terms = array_keys(self::restricted_terms());
+        if ($terms) {
+            $by_taxonomy = array();
+            foreach (get_terms(array('include' => $terms, 'hide_empty' => false, 'taxonomy' => get_taxonomies())) as $term) {
+                if ($term instanceof WP_Term) {
+                    $by_taxonomy[$term->taxonomy][] = $term->term_id;
+                }
+            }
+            $tax_query = array('relation' => 'OR');
+            foreach ($by_taxonomy as $taxonomy => $term_ids) {
+                $tax_query[] = array(
+                    'taxonomy'         => $taxonomy,
+                    'terms'            => $term_ids,
+                    'include_children' => false,
+                );
+            }
+            if (count($tax_query) > 1) {
+                // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_tax_query -- only posts in restricted terms, once per request.
+                $ids = array_merge($ids, get_posts($query + array('tax_query' => $tax_query)));
+            }
+        }
+        $ids = array_values(array_unique(array_map('intval', $ids)));
+        if ($ids) {
+            _prime_post_caches($ids, true, true);
+        }
+        self::$hidden = array();
+        foreach ($ids as $id) {
+            if (!self::can_see($id)) {
+                self::$hidden[] = $id;
+            }
+        }
+        return self::$hidden;
+    }
+
+    /**
+     * SQL that leaves out comments on posts the visitor may not see.
+     *
+     * @return string Empty when there are none.
+     */
+    private static function hidden_comments_sql() {
+        global $wpdb;
+        $hidden = self::hidden_post_ids();
+        if (!$hidden) {
+            return '';
+        }
+        return " AND {$wpdb->comments}.comment_post_ID NOT IN (" . implode(',', array_map('intval', $hidden)) . ')';
+    }
+
+    /**
+     * Leave comments on posts the visitor may not see out of comment queries.
+     *
+     * @param array            $clauses Query clauses.
+     * @param WP_Comment_Query $query   Query.
+     * @return array
+     */
+    public static function comments_clauses($clauses, $query) {
+        if ((defined('WP_CLI') && WP_CLI) || wp_doing_cron()) {
+            // No visitor: WP-CLI and scheduled tasks (spam checks, emails) see every comment.
+            return $clauses;
+        }
+        $post_id = isset($query->query_vars['post_id']) ? (int) $query->query_vars['post_id'] : 0;
+        if ($post_id > 0) {
+            // One post's comments: no need to look up every restricted post.
+            if (!self::can_see($post_id)) {
+                $clauses['where'] .= ' AND 0 = 1';
+            }
+            return $clauses;
+        }
+        $clauses['where'] .= self::hidden_comments_sql();
+        return $clauses;
+    }
+
+    /**
+     * Leave comments on posts the visitor may not see out of comment feeds.
+     *
+     * @param string $where WHERE clause.
+     * @return string
+     */
+    public static function comment_feed_where($where) {
+        return $where . self::hidden_comments_sql();
+    }
+
+    /**
+     * A single comment on a post the visitor may not see, from the REST API.
+     *
+     * @param WP_REST_Response $response Response.
+     * @param WP_Comment       $comment  Comment.
+     * @return WP_REST_Response
+     */
+    public static function rest_comment($response, $comment) {
+        if (!$comment instanceof WP_Comment || self::can_see((int) $comment->comment_post_ID)) {
+            return $response;
+        }
+        return new WP_REST_Response(
+            array(
+                'code'    => 'rest_forbidden',
+                'message' => self::message_text((int) $comment->comment_post_ID),
+                'data'    => array('status' => rest_authorization_required_code()),
+            ),
+            rest_authorization_required_code()
+        );
     }
 
     /* --------------------------------------------------------------------- */
