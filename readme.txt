@@ -117,8 +117,9 @@ Copies from WordPress.org update from there. New versions come out on GitHub fir
 
 = Unreleased =
 * New, off by default: Maintenance mode, importing Hostinger Tools' switch, with revocable bypass links.
+* New: Code Snippets preset.
 * New, off by default: six features that do most of Disable Bloat’s job, importing its settings.
-* New: starter data for Fluent Forms: four forms that feed FluentCRM lists and tags.
+* New: starter data for Fluent Forms (four forms) and Fluent Booking (a Discovery Call), feeding FluentCRM.
 * Change: Freesoul Deactivate Plugins is no longer recommended.
 * Change: Apply preset names each setting in plain words.
 * Fix: plugins that add list columns load on those lists.
