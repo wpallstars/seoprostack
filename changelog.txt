@@ -3,6 +3,11 @@
 Every change to SEO Pro Stack. readme.txt lists the latest version in short.
 
 = Unreleased =
+* Fix: WebP and AVIF images now use the quality you set; before, WordPress's own quality was used whatever the setting said. Changing a quality converts the pictures again in the background, and copies from earlier versions are made again once.
+* New, off by default: WebP and AVIF images: Quality by picture size, sharper thumbnails and smaller large pictures.
+* New: WebP and AVIF images checks that browsers get the copies, and says what to do when they do not, such as restarting LiteSpeed so it reads the new rules.
+* New: Watermark pictures can mark, mark again or unmark the whole Media Library in the background from its settings, with progress and a Stop button. Bulk actions carry on in the background instead of leaving pictures out.
+* Fix: background picture work no longer runs past the server's time limit when several jobs run together.
 * Change: the plugin's website link on the Plugins screen goes to its GitHub page. Security reports now have a private route (SECURITY.md).
 * Fix: Fit the menu to its names keeps the menu the same width on every screen, instead of moving a few pixels between screens. Once you have seen a screen that needs it wider, every screen uses that width until your plugins change.
 * Change: a clearer description of what SEO Pro Stack does, with features grouped by what they help with, and a note that it is built with aidevops, an open-source AI harness.

@@ -123,9 +123,9 @@ Click **Report a problem** at the top right of Settings → SEO Pro Stack, or op
 == Changelog ==
 
 = Unreleased =
-* New: Word documents; Like, save and share; Brand icons (also in Kadence Blocks); coffee button.
+* New: Word documents; Like, save and share; Brand icons (also in Kadence Blocks); coffee button; quality by picture size, rules check and whole-library watermarks.
 * Change: Pinned posts; faster lists; sizes in Free Plugins; megaphone and dot; writers' menu; clearer readme.
-* Fix: More menu alignment; menu in full screen editor; Like button; same menu width on every screen.
+* Fix: More menu alignment; menu in full screen editor; Like button; same menu width on every screen; WebP and AVIF quality.
 
 = 0.9.0 =
 * New: Menu item visibility, Change post type, Order by hand, Term tools, Search custom fields, Old post addresses, Link cards, Wikipedia previews, Agency tab.
