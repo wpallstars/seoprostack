@@ -116,9 +116,14 @@ They stay scheduled and publish at their times.
 
 Copies from WordPress.org update from there. New versions come out on GitHub first, and copies from GitHub update from GitHub.
 
+= Where do I report a problem? =
+
+Click **Report a problem** at the top right of Settings → SEO Pro Stack, or open an issue on [GitHub](https://github.com/wpallstars/seoprostack/issues).
+
 == Changelog ==
 
 = Unreleased =
+* New: Report a problem button.
 * Change: faster Customizer, Import and Export forms; saving, previews and Site Health keep every plugin.
 * Change: Kadence's design library is kept in your browser, so it opens faster.
 * New: Read Me banner.

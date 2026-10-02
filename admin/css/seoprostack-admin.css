@@ -81,6 +81,18 @@
 	margin-inline-start: auto;
 }
 
+.sps-wrap .sps-header__support {
+	display: inline-flex;
+	align-items: center;
+	gap: 4px;
+}
+
+.sps-wrap .sps-header__support .dashicons {
+	width: 18px;
+	height: 18px;
+	font-size: 18px;
+}
+
 /* Search ------------------------------------------------------------- */
 
 /* Stretch, so the field always matches the button's height, whatever
