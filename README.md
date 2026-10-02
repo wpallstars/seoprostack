@@ -4,7 +4,7 @@
 
 Curated plugins, themes, hosting and workflow tools for WordPress, plus a few small quality-of-life features.
 
-If this saves you time, headaches and costs, feel free to [buy me a coffee](https://buymeacoffee.com/marcusquinn), or whatever you like, to invest in making more open source.
+If this saves you time, headaches and costs, feel free to [buy me a coffee](https://buymeacoffee.com/marcusquinn), or whatever you like, to invest in making more things open-source.
 
 Version: {SEOPROSTACK_VERSION}
 
