@@ -3,6 +3,7 @@
 Every change to SEO Pro Stack. readme.txt lists the latest version in short.
 
 = Unreleased =
+* Change: block editors open faster with Simpler block editor on: the site details they ask for are no longer built with a description of every plugin’s REST routes. Load plugins only where needed also puts its menu entries back with fewer permission checks.
 * New: Report a problem, at the top right of Settings → SEO Pro Stack, opens the plugin’s GitHub issues so you can tell us what went wrong.
 * Change: Load plugins only where needed learns the Customizer, Import and Export forms; their contributors stay loaded. Saving, previews, imports and downloads still load every plugin. Missing Customizer widgets, areas or menu locations reload before the form opens. Site Health stays fully loaded for accurate diagnostics.
 * Change: Faster editor with Kadence Blocks keeps Kadence’s design library in your browser until Kadence updates it, and draws only the patterns on screen, so in a new editor page the library opens in about 2 seconds instead of 6. Sync still fetches new designs; licence and account data are never kept.
