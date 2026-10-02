@@ -1,0 +1,23 @@
+{
+    "name": "WP-Optimize",
+    "tested": "4.7.0",
+    "updated": "2026-10-02",
+    "notes": "Hides the caching menu in the admin bar if the owner later enables Cache or Minify. The main WP-Optimize admin bar menu is already off on a fresh install and stays unchanged. No caching, image compression, minification or database cleanup is enabled. Schedules, retention, backups and logging are left alone because their save paths manage cron or other work. Notice dismissals are left out because they store dates or one-time state rather than a lasting preference.",
+    "options": {
+        "wp-optimize-enable_cache_in_admin_bar": "0"
+    },
+    "defaults": {
+        "wp-optimize-enable_cache_in_admin_bar": null
+    },
+    "settings": {
+        "wp-optimize-enable_cache_in_admin_bar": {
+            "label": "Enable the caching menu in the admin bar",
+            "description": "Shows a caching menu in the admin bar when Cache or Minify is enabled.",
+            "values": {
+                "1": "On",
+                "0": "Off",
+                "null": "On (not set)"
+            }
+        }
+    }
+}

@@ -15,11 +15,12 @@ Go to **Settings → SEO Pro Stack**, or click the star next to your name in the
 
 ## Features
 
-Every feature is off by default except three: Hide admin bar items, which hides Comments and + New from the admin bar, No fade between admin screens and Quiet Freemius prompts. Copies installed from GitHub releases also have Updates from GitHub on. Features that replace a separate plugin say so on their card (“Replaces: …”) and import that plugin’s settings once when SEO Pro Stack is updated. The other plugin’s own settings are never changed or deleted. While that plugin is active, the feature waits and the plugin keeps doing the job, so the two never run side by side; the card says so, with a deactivate link. Deactivate the plugin to switch over. The Plugins screen lists installed plugins that SEO Pro Stack can replace, with what to do next for each: deactivate it (its setting is on), switch the setting on, or delete it once inactive (single sites; on multisite another site may use it). When an active plugin does things on the site that SEO Pro Stack does not (such as Disable Bloat’s Heartbeat or XML-RPC switches), the line names them instead of saying the plugin can go. **Hide** hides the lines shown for that person until another step is needed.
+Every feature is off by default except three: Hide admin bar items, which hides Comments and + New from the admin bar, No fade between admin screens and Quiet Freemius prompts. Copies installed from GitHub releases also have Updates from GitHub on. Features that replace a separate plugin say so on their card (“Replaces: …”) and import that plugin’s settings once when SEO Pro Stack is updated. The other plugin’s own settings are never changed or deleted. While that plugin is active, the feature waits and the plugin keeps doing the job, so the two never run side by side; the card says so, with a deactivate link. Deactivate the plugin to switch over. The Plugins screen lists installed plugins that SEO Pro Stack can replace, with what to do next for each: deactivate it (its setting is on), switch the setting on, or delete it once inactive (single sites; on multisite another site may use it). When an active plugin does things on the site that SEO Pro Stack does not (such as Disable Bloat’s Heartbeat switches), the line names them instead of saying the plugin can go. **Hide** hides the lines shown for that person until another step is needed.
 
 | Feature | Tab | Replaces |
 | --- | --- | --- |
 | Hide the admin bar, Block dashboard access | Admin | Admin Bar & Dashboard Access Control |
+| Turn off unused remote access | Admin | Hostinger Tools and Disable Bloat (PRO), in part |
 | Organise the admin menu | Admin | Admin Menu Editor (Pro) |
 | Hide dashboard widgets, Disable sidebar widgets | Admin | Widget Disable |
 | Tidy admin screens, Tidy WooCommerce admin, Tidy the login screen, Simpler block editor, Remove WordPress extras, Lighter WooCommerce pages | Admin, Content, Speed | Disable Bloat (PRO), in part |
@@ -61,6 +62,17 @@ WordPress 7.0 fades from one wp-admin screen to the next, using the browser’s 
 - Only page changes are affected. Animations inside a screen, such as in the site editor, stay.
 - No effect before WordPress 7.0, which has no fade, or for people whose system asks for reduced motion, who never get it.
 - Goes well with Load pages before the click’s **Also in the admin**, which downloads admin screens when you point at their links.
+
+### Turn off unused remote access (Admin)
+
+Off by default, with two independent choices, both unchecked:
+
+- **Turn off XML-RPC**: direct requests to `xmlrpc.php` return HTTP 403, including unauthenticated methods such as pingbacks. Removes the `X-Pingback` response header and RSD discovery link. Jetpack and some mobile apps need XML-RPC; leave this unchecked if you use them.
+- **Turn off application passwords**: core stops accepting application passwords and hides their profile section and the Authorize application screen. Existing application passwords are not deleted; they work again when this choice is unchecked, if core allows them. Normal password login and the REST API stay available.
+
+Imports enabled switches from active Hostinger Tools (`hostinger_tools`) and Disable Bloat once, without overwriting choices already saved here or changing their options. The feature waits until those plugins are deactivated. Only these two functions are replaced: the Plugins screen names Hostinger’s maintenance mode, HTTPS and www redirects, llms.txt generation and MCP connection when they are on, instead of suggesting removal. Keep Hostinger Tools if you still use those or its hosting tools. No separate options or files are stored; uninstall removes these settings with the rest.
+
+Uses core’s `xmlrpc_enabled`, `wp_headers` and `wp_is_application_passwords_available` filters, removes `rsd_link` from `wp_head`, and refuses XML-RPC during `init`.
 
 ### Magic login links (Admin)
 
@@ -219,6 +231,14 @@ Serves every avatar from your own site. By default WordPress loads avatars from 
 - Avatars that other plugins set (anything not from Gravatar) are kept. The admin bar, comment and user lists, the REST API (`avatar_urls`) and the block editor all use the same avatars.
 - Generated files keep their names, so cached pages keep working. Files are stored in `uploads/seoprostack-avatars/` (on multisite, profile pictures are in the main site’s uploads).
 - Switches on if Avatar Privacy is active, and copies its uploaded profile pictures, since deleting Avatar Privacy deletes them. Pictures are also copied when Avatar Privacy is deactivated, and otherwise the first time they are shown. A picture that cannot be processed is tried again the next day, keeping any earlier copy, and a picture uploaded or removed during a copy is never overwritten. Avatar Privacy lets people opt in to Gravatar; this feature never uses Gravatar, so that choice is not imported. While Avatar Privacy is active, it keeps handling avatars.
+
+### TranslatePress switcher colours (Content)
+
+Makes TranslatePress's floating and shortcode language switchers follow the site's colours, including Kadence's light and dark mode switcher. **Off by default**; nothing changes without TranslatePress.
+
+- Text and backgrounds use Kadence's palette on the switcher itself, so changing the palette on the body takes effect straight away. Without Kadence, the browser's canvas colours follow the site's colour scheme. Hover backgrounds use a translucent neutral; menu labels inherit their links' theme colours.
+- Covers the current and legacy switchers. Sizes, positions, flags, borders' widths, dropdowns and language links stay as TranslatePress sets them.
+- Only a small front-end stylesheet is added. No scripts, outside services or changes to TranslatePress's saved settings. Turning it off restores TranslatePress's own colours on the next page load.
 
 ### Duplicate posts (Content)
 
@@ -474,6 +494,17 @@ Adds a **Size** column to the Plugins screen: each plugin’s total disk use, sp
 - The screen opens straight away; missing sizes are measured in the background a few seconds at a time.
 - Sizes are kept until the plugin’s version changes.
 
+### Database key cleanup (Plugins)
+
+Off by default. Turn it on, then open **Tools → Database keys**. It reads indexes on this site's core tables only, on demand. The list shows table, key, ordered columns (including prefix lengths), why it is offered and an optional InnoDB size estimate. On multisite only super admins see shared tables; their indexes are read-only because a plugin on another site may use them.
+
+- Offers ordinary non-unique indexes covered by another index's left prefix, and leftover `wpi_` / `spro_` indexes when Scalability Pro is not active. These prefixes belong to Scalability Pro, not Index WP MySQL For Speed.
+- Never offers PRIMARY or unique keys, names from the running WordPress version's core schema, known active-plugin keys, keys touching foreign-key columns, or unsupported types. Unknown `wdbi_` ownership needs manual review and is protected. Stored site and network activation states count even when a plugin is skipped on the screen.
+- **Review removal** shows the exact table, key and restore statement; **Remove this key** confirms one key on this site. It checks eligibility and definition again immediately before removal. Removing one duplicate cannot make the last remaining key eligible in a later request.
+- Back up first and use a quiet period: removing an index does not delete rows, but may slow queries and briefly block writes. No cleanup is automatic. Save the displayed `CREATE INDEX` line; run it through your database tool to restore the key.
+- The non-autoloaded `seoprostack_database_keys_log` option records time, administrator ID, key, result and restore SQL, saved before each removal. A pending entry means the result was not recorded; check the database before restoring. Uninstall removes the log but does not undo changes to keys. Copy the log first.
+- The `admin_post_seoprostack_database_keys` handler checks `manage_options`, feature state and a nonce on both steps. A database advisory lock serializes removals and log writes without waiting; if it is unavailable, nothing is removed. Confirmation renders on the normal Tools page, with its own review nonce.
+
 ### Plugin presets (Plugins)
 
 SEO Pro Stack keeps its chosen settings for other plugins, chosen for speed, privacy and quiet admin screens. With this on, each plugin that has a preset says on the Plugins screen whether its settings match (**Preset: settings match**, or **Preset: 3 settings differ**). Its row offers:
@@ -489,17 +520,23 @@ Presets so far:
 | Plugin | What the preset does |
 |---|---|
 | Antispam Bee | Time check on with the other spam checks; no Gravatar checks, Dashboard spam chart or count, or email per spam comment. |
+| Burst Statistics | No non-critical Burst dashboard notices; critical notices, tracking settings and the generated tracking script unchanged. |
+| Code Snippets | No upgrade notices or Snippets admin bar menu; editor defaults left alone. Per-site settings only, not unified network settings. |
 | EventON Lite | Scripts and styles only on pages with a calendar or event; no Google Fonts. |
 | FluentCRM | Contacts' IP addresses anonymised; FluentCRM's own avatar instead of Gravatar and ui-avatars.com. |
 | Fluent Forms | No weekly email summary, no IP address stored with entries, no admin bar menu. |
 | Kadence Blocks | Google Fonts served from the site, in the blocks and (with the Kadence theme) the theme. |
 | Lasso Lite (Simple URLs) | No affiliate programme bar or Dashboard banner. |
 | LiteSpeed Cache | No news and promotions fetched from LiteSpeed and shown in the admin. |
+| Rank Math SEO | No Frontend Stats Bar below the admin bar; modules and email schedules unchanged. |
 | Simple CAPTCHA with Cloudflare Turnstile | Login, registration, lost password, comment and Fluent Forms protected; widget follows light or dark mode and shows only when needed. |
 | Tutor LMS | Student profile pages private; course reviews wait for approval; courses written in the block editor; a quiz is submitted when its time runs out; courses complete when every lesson, quiz and assignment is done, and can be retaken. |
 | WooCommerce | No usage data, remote error logs, marketplace suggestions or Order attribution tracking. |
+| WP-Optimize | No caching menu in the admin bar; caching, images, minification and cleanup schedules unchanged. |
 
 They are JSON files in `presets/`, one per plugin folder. Each names its settings for the dialog under `settings`: setting path => `label` (the plugin's own wording), `description` and `values` (stored value => what it means, with `"null"` for not stored). AGENTS.md → Plugin presets explains how they are made and checked. A setting named in a preset whose defaults are all "not stored" is removed again on reset, and an option left empty that way is deleted, so the plugin's own defaults apply as on a fresh install.
+
+Presets can also name caches to clear after Apply, Reset or Undo: `"cache": {"groups": ["plugin_group"], "keys": {"plugin_group": ["settings_key"]}}`. Only named groups are flushed, when the object cache supports group flushing; otherwise (or if flushing fails), listed keys are deleted. Include both for caches without group flushing; keys in other groups are always deleted. The whole site's cache is never flushed. Code Snippets' group includes its version, so its active `Code_Snippets\CACHE_GROUP` and `Code_Snippets\Settings\CACHE_KEY` constants override the preset's tested group and key. This matches its settings save handler; no cache version counter needs changing.
 
 WP-CLI works whether or not the setting is on:
 
@@ -524,12 +561,13 @@ Each asks first. Items are added through the plugin's own models, with its own c
 | FluentCRM | Lists named after where a contact came from: Website Contact Form, Booking Form, Newsletter Subscription Form, User Registration Form, Post Comment Form and Data Subject Access Request Form, plus Website Shop Customers with WooCommerce and free and paid course lists with Tutor LMS. Tags for who the contact is to you (Customer / Client, VIP, Supplier, Partner, Distributor, Reseller, Job Applicant, Staff, Employee, Contractor, Quote Requested) and what they are on the website (Website User, Admin, Editor, Author, Contributor, Commenter, Newsletter Subscriber, and Shop Manager, Course Student and Tutor where those plugins are active). Contact fields Company, Role and Website. Role-based tagging (FluentCRM Pro) tags contacts by WordPress role; WooCommerce customers and Tutor LMS students go to their list and tag as pending. Signing up from comments, checkout and registration stays off. |
 | Fluent Forms | A **Contact Form**, **Discovery Call Form** (company, role, website, message and preferred times), **Subscription Form** and **Data Subject Access Request Form** (who is asking, what they want, and entries deleted after 10 years). With FluentCRM active, each sends people to the FluentCRM list named after it, and tags them from their answers: the newsletter tick box adds Website Newsletter Subscriber, and the access request's types add Customer / Client, Supplier, Employee, Contractor or Website User. Without Fluent Forms Pro, phone fields and the proof of identity and address uploads are left out. |
 | Fluent Boards | A **Website** board for requests and feedback, with To-Do, In Progress, Done (please check) and Closed (closes tasks) and the default colour labels. |
+| Fluent Booking | A free, 30-minute **Discovery Call** for the administrator adding it, using their existing host calendar or a new one named after their display name. New calendars share only this event; existing sharing settings stay as they are. With FluentCRM active, confirmed bookings join Website Booking Form. Review the default availability, timezone and meeting location before sharing the booking page. Remove keeps events with bookings and calendars with other events or shared host use. |
 
 They are JSON files in `starters/`, one per plugin folder; `includes/class-seoprostack-starters.php` describes the format. What was added is recorded in the `seoprostack_starters_added` option (not autoloaded); uninstalling SEO Pro Stack removes the record but leaves the lists, tags, fields and boards, which are that plugin's data.
 
 - `wp seoprostack starters list`: each starter, whether its plugin is active, how many items are missing and how many SEO Pro Stack added.
 - `wp seoprostack starters diff <plugin>`: the items this site does not have yet.
-- `wp seoprostack starters add <plugin>… | --all`: add the missing items. Boards are created by `--user`, or the first administrator.
+- `wp seoprostack starters add <plugin>… | --all`: add the missing items. Boards and booking events are created by `--user`, or the first administrator. Booking events are matched by title within that user's host calendar; existing events and calendars are left alone.
 - `wp seoprostack starters remove <plugin>…`: remove what was added, while unused.
 
 ### Hosting needs (Plugins)
@@ -682,7 +720,7 @@ Developers can add settings, tabs and directory entries with filters:
 - `seoprostack_admin_bar_star`: return false to hide the admin bar star that opens SEO Pro Stack’s settings.
 - `seoprostack_licence_call`: whether an outgoing request is a licence check that Ask before licence checks holds (bool, address, request arguments). Update checks are never held, whatever it returns.
 - `seoprostack_hosting_sample_rate`: Hosting needs records the time of 1 in this many requests (default 20; 0 stops recording traffic).
-- `seoprostack_plugin_presets`: add or change plugin presets (plugin folder => `name`, `tested`, `updated`, `notes`, `options` and `defaults`, as in `presets/*.json`). Secret-looking names are removed after the filter runs.
+- `seoprostack_plugin_presets`: add or change plugin presets (plugin folder => `name`, `tested`, `updated`, `notes`, `options`, `defaults`, optional `settings` and `cache`, as in `presets/*.json`). Secret-looking names are removed after the filter runs.
 - `seoprostack_github_plugins` (GitHub builds): change which plugins update from GitHub releases (plugin file => `repo` as owner/repo, `asset_only`, `version`, `name`).
 - `seoprostack_github_token` (GitHub builds): GitHub token for a repository (token, owner/repo), for private repositories; defaults to the `SEOPROSTACK_GITHUB_TOKEN` constant.
 - `seoprostack_starters`: add or change starter data (plugin folder => `name`, `tested`, `updated`, `notes` and `items`, as in `starters/*.json`).
@@ -715,12 +753,18 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folder�
 
 ### Unreleased
 
+- New: small display presets for Rank Math SEO (no Frontend Stats Bar), WP-Optimize (no caching menu in the admin bar) and Burst Statistics (no non-critical dashboard notices). Modules, tracking services and schedules are not changed. Burst's preset contains only its admin notice preference, not the six settings its generated tracking script contains; Apply, Reset and Undo leave that file unchanged.
+- New: Fluent Booking starter data (`fluentbooking_events`): a free, single-host, 30-minute Discovery Call, with the adding administrator's host calendar and default schedule. Uses Booking's own calendar/event handlers and FluentCRM integration save service. Confirmed bookings join `website-booking-form` when FluentCRM is active. Remove keeps events with any bookings, removes only calendars this starter created while unused, and keeps CRM lists referenced by Booking feeds. The Fluent Boards Pro roadmap is not included: its creation service and page metadata need verification with Pro available.
+- New, off by default: Turn off unused remote access (Admin tab), with independent, unchecked choices to turn off XML-RPC (HTTP 403, no pingback header or RSD link) and application passwords (no profile section or authorization screen). Settings version 7 imports the enabled switches from active Hostinger Tools and Disable Bloat, preserving saved choices and the source plugins’ options.
+- New, off by default: Database key cleanup (Plugins tab, Tools → Database keys) reviews leftover and redundant indexes on core tables, with confirmation per key and logged restore SQL. Core, unique, foreign-key and known active-plugin keys are protected. New nonce-checked `seoprostack_database_keys` admin-post action and non-autoloaded `seoprostack_database_keys_log` option, removed on uninstall.
+- New, off by default: TranslatePress switcher colours (Content tab) makes floating and shortcode language switchers follow Kadence's light and dark palettes, with menu labels inheriting theme colours. Current and legacy switchers keep their layout and behaviour; turning it off restores TranslatePress's own colours without changing its settings.
 - New, off by default: six features that take over most of Disable Bloat (#90): Tidy admin screens, Tidy WooCommerce admin and Tidy the login screen (Admin tab), Simpler block editor (Content tab), Remove WordPress extras and Lighter WooCommerce pages (Speed tab). Each uses core’s or WooCommerce’s own hooks and stores nothing. While Disable Bloat (free or PRO) is active, its switches are imported once (settings version 6, `SEOProStack_Disable_Bloat::MAP`), including its W logo (Hide admin bar items), Dashboard boxes and widgets (Dashboard and sidebar widgets); the features wait until it is deactivated. Tested on a throwaway site with WooCommerce 11.1.2 and Disable Bloat 4.0.0: imports matched the seeded switches; a plain page lost WooCommerce’s scripts, styles, emoji and shortlink, while the shop, product and a page with a WooCommerce block kept them.
-- Changed: the Plugins screen names what a replaced plugin still does on the site that SEO Pro Stack does not (new `seoprostack_replaced_plugin_extras` filter), instead of saying it can go. Disable Bloat’s Heartbeat, XML-RPC, REST API, resource hints, revisions, auto-update and third-party plugin switches are not covered.
+- Changed: the Plugins screen names what a replaced plugin still does on the site that SEO Pro Stack does not (new `seoprostack_replaced_plugin_extras` filter), instead of saying it can go. Disable Bloat’s Heartbeat, REST API, resource hints, revisions, auto-update and third-party plugin switches are not covered; XML-RPC and application passwords are covered when selected under Turn off unused remote access.
 - Removed: Pro Plugins no longer lists Disable Bloat PRO.
 - New: starter data for Fluent Forms (`starters/fluentform.json`, item type `fluentform_forms`): Contact Form, Discovery Call Form, Subscription Form and Data Subject Access Request Form, taken from our own sites. Forms are created as Fluent Forms' own screens do: `FormService::store()` from a template, for its default settings and notification, then `Updater::update()` with our fields, which sanitises them and sets the primary email field. With FluentCRM active each gets a FluentCRM feed to the list named after it, with tag routing from its answers; the lists and tags it uses come with the starter (`"when": "fluent-crm"`), so it does not matter whether FluentCRM's starter data is added first. A field can have `"when"` too: phone and file upload fields need Fluent Forms Pro, which the free plugin does not show but would still require, so they are left out without it. Remove keeps forms with entries, forms placed in a post, page or block, and forms changed since, and keeps FluentCRM lists and tags that any Fluent Forms feed still uses. Items of a plugin that is inactive are left for later instead of stopping Add or Remove. Tested on a site with 85 plugins: 13 items added, a second run added none, a form whose title was taken was left alone; visitor submissions joined the right list with the right tags (contact form newsletter tick; access request types Customer and Supplier Contact); Remove kept the form with an entry, forms on pages and the tags and lists contacts hold; without FluentCRM, forms were added without feeds and FluentCRM's records left alone.
 - Removed: Free Plugins and Pro Plugins no longer list Freesoul Deactivate Plugins. Load plugins only where needed does its job in wp-admin and for the whole site. The Plugins screen does not suggest removing it yet: its page-by-page rules on the site are not covered so far.
 - Changed: the Apply preset dialog names each setting as the plugin's own screen does, says what it does in a line, and shows values in words (**Now: Off (not set) → Preset: On** instead of `null` and `on`), with the stored name small underneath. Presets gain a `settings` section (path => `label`, `description`, `values`); all ten presets have it. An option the plugin has not stored yet is now listed setting by setting too (FluentCRM showed one row of JSON), and its settings can be applied one at a time. `wp seoprostack presets diff` adds a name column. Plugin Check no longer warns about the dialog's `only[]` input.
+- New: Code Snippets preset hides upgrade notices and the Snippets admin bar menu. Presets can clear named object-cache groups and keys after Apply, Reset and Undo, including Code Snippets' current versioned settings cache on persistent caches such as Redis.
 - Fixed: Ask before licence checks: "Ask me again" kept one time and one list of hidden checks per person and replaced both on every click, so hiding a plugin that started checking later (Starter Templates after Kadence Blocks) brought back the one hidden before, and the dialog kept coming back. Each hidden check now keeps its own time in `seoprostack_licence_later` (`hidden`: ID => `first`, `until`), new hides are added to the ones still standing, and the earlier shape is still read.
 - Fixed: Load plugins only where needed skipped plugins that only add columns, filters, views, row links or bulk actions to lists, so Rank Math’s SEO Details, SEO Score and Keyword columns and its filters were missing from the Posts list. Lists now learn which plugins change them while every plugin loads (each plugin callback on the list’s column, row link, view, bulk action, filter and cell hooks is watched for what it adds or prints), and those plugins load there. The map version goes to 5, so every screen is learned again once.
 - Fixed: with Load plugins only where needed, WP Sheet Editor’s spreadsheets (such as Edit Posts) were blank. The page belongs to the copy of the shared WP Sheet Editor framework that loaded first (here from Bulk Edit Categories and Tags), so the posts spreadsheet plugin was skipped there. Pages whose code is a framework other plugins bundle too (the same file at the same place in their folder, declaring the same class or function) now load every plugin that bundles it. Freemius is unchanged.
@@ -866,6 +910,7 @@ Where a feature replaces one of them, SEO Pro Stack imports the settings it can,
 | Admin Bar & Dashboard Access Control | Collins Agbonghama | [WordPress.org](https://wordpress.org/plugins/admin-bar-dashboard-control/) | Admin bar and dashboard access |
 | Admin Menu Editor (and Pro) | Janis Elsts | [WordPress.org](https://wordpress.org/plugins/admin-menu-editor/) | Organise the admin menu |
 | Widget Disable | required | [WordPress.org](https://wordpress.org/plugins/wp-widget-disable/), [GitHub](https://github.com/wearerequired/WP-Widget-Disable) | Dashboard and sidebar widgets |
+| Hostinger Tools | Hostinger | [WordPress.org](https://wordpress.org/plugins/hostinger/), [source (WordPress.org SVN)](https://plugins.svn.wordpress.org/hostinger/trunk/) | Turn off unused remote access (XML-RPC and application passwords only) |
 | Disable Bloat for WordPress & WooCommerce (and PRO) | Rock Solid | [WordPress.org](https://wordpress.org/plugins/disable-dashboard-for-woocommerce/), [website](https://disablebloat.com/) | Tidy admin screens, Tidy WooCommerce admin, Tidy the login screen, Simpler block editor, Remove WordPress extras, Lighter WooCommerce pages |
 | Manage Notification E-mails | 3D Virge | [WordPress.org](https://wordpress.org/plugins/manage-notification-emails/) | Notification emails |
 | Hide Admin Notices | PontetLabs | [WordPress.org](https://wordpress.org/plugins/hide-admin-notices/), [GitHub](https://github.com/jonpontet/hide-admin-notices) | Hide admin notices |
