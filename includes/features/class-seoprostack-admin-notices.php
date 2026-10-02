@@ -1,13 +1,13 @@
 <?php
 /**
- * Move admin notices behind a bell in the admin bar.
+ * Move admin notices behind a megaphone in the admin bar.
  *
  * WordPress's common.js moves every notice (div.notice, .updated, .error
  * that is not .inline or .below-h2) under the page heading when the page is
  * ready. This feature takes the same set, plus the core update nag, and puts
- * it in a panel that drops down from a bell at the right of the admin bar.
+ * it in a panel that drops down from a megaphone at the right of the admin bar.
  * The admin bar is the one place every admin screen leaves alone, so the
- * bell never sits on a plugin's own header. The bell is on every screen,
+ * megaphone never sits on a plugin's own header. The megaphone is on every screen,
  * with a dot while there are notices, so nothing on the bar moves when the
  * notices are counted.
  *
@@ -15,7 +15,7 @@
  * prints a notice. Notices those plugins print on screens that load every
  * plugin are kept for each person (see capture(); only notices, see
  * notices()), and shown behind the
- * bell on screens that skip them, until they stop printing them, they are
+ * megaphone on screens that skip them, until they stop printing them, they are
  * dismissed, or 12 hours pass (links in them carry nonces).
  *
  * Everything printed on the notice hooks is caught too, whatever its markup
@@ -109,7 +109,7 @@ class SEOProStack_Admin_Notices extends SEOProStack_Feature {
                 'default'     => false,
                 'tab'         => 'admin',
                 'label'       => __('Hide admin notices', 'seoprostack'),
-                'description' => __('Move plugin and theme notices behind a bell in the admin bar, with a dot while there are notices. Messages about what you just did, such as “Settings saved”, stay on the page.', 'seoprostack'),
+                'description' => __('Move plugin and theme notices behind a megaphone in the admin bar, with a dot while there are notices. Messages about what you just did, such as “Settings saved”, stay on the page.', 'seoprostack'),
                 'replaces'    => array('hide-admin-notices' => 'Hide Admin Notices'),
             ),
             'hide_admin_notices_keep' => array(
@@ -167,7 +167,7 @@ class SEOProStack_Admin_Notices extends SEOProStack_Feature {
         add_filter('admin_body_class', array(__CLASS__, 'body_class'));
         add_action('admin_head', array(__CLASS__, 'style'));
         add_action('admin_enqueue_scripts', array(__CLASS__, 'script'));
-        add_action('admin_bar_menu', array(__CLASS__, 'bell'), 90);
+        add_action('admin_bar_menu', array(__CLASS__, 'megaphone'), 90);
         // Left of the Plugins menu, with other plugins' items to its left.
         SEOProStack_Admin_Bar::pin(self::NODE, 1);
         if (SEOProStack_Settings::get(self::EXAMPLES)) {
@@ -400,7 +400,7 @@ class SEOProStack_Admin_Notices extends SEOProStack_Feature {
 
     /**
      * On a screen that skips plugins, print their kept notices. They are
-     * marked and moved behind the bell like any other (see mark()).
+     * marked and moved behind the megaphone like any other (see mark()).
      *
      * Each is checked again with notices(), which drops anything kept before
      * that check existed.
@@ -503,7 +503,7 @@ class SEOProStack_Admin_Notices extends SEOProStack_Feature {
     /**
      * Print one notice of each kind, from the "Show example notices" setting.
      *
-     * Four go behind the bell; the last carries `sps-keep` and stays on the
+     * Four go behind the megaphone; the last carries `sps-keep` and stays on the
      * page, as messages about what you just did do.
      */
     public static function examples() {
@@ -537,17 +537,17 @@ class SEOProStack_Admin_Notices extends SEOProStack_Feature {
     }
 
     /**
-     * Add the bell to the right of the admin bar.
+     * Add the megaphone to the right of the admin bar.
      *
      * It is on every screen, so nothing on the bar moves when the notices
      * are counted; a dot on it shows there are notices. A count would change
-     * the bell's width once counted. No tooltip, like core's menus: it would
+     * the megaphone's width once counted. No tooltip, like core's menus: it would
      * cover the open panel. Screen readers get the name from the hidden
      * text, and the script's aria-label adds the count.
      *
      * @param WP_Admin_Bar $bar Admin bar.
      */
-    public static function bell($bar) {
+    public static function megaphone($bar) {
         $bar->add_node(array(
             'id'     => self::NODE,
             'parent' => 'top-secondary',
@@ -578,7 +578,7 @@ class SEOProStack_Admin_Notices extends SEOProStack_Feature {
      */
     private static function selectors() {
         // WooCommerce prints its lasting notices (connect prompts, database
-        // updates) as #message.woocommerce-message; they go behind the bell.
+        // updates) as #message.woocommerce-message; they go behind the megaphone.
         $kinds = array('#message:not(.woocommerce-message)', '.settings-error', '.hidden', '.sps-keep');
         $keep  = array_flip((array) SEOProStack_Settings::get('hide_admin_notices_keep'));
         if (isset($keep['error'])) {
@@ -598,7 +598,7 @@ class SEOProStack_Admin_Notices extends SEOProStack_Feature {
     }
 
     /**
-     * Hide the notices until they are moved, and style the bell and panel.
+     * Hide the notices until they are moved, and style the megaphone and panel.
      *
      * Hiding needs the "js" body class, which core sets as the page starts to
      * draw, so without JavaScript the notices stay on the page.
@@ -627,24 +627,24 @@ class SEOProStack_Admin_Notices extends SEOProStack_Feature {
         <style id="seoprostack-admin-notices">
             <?php echo implode(",\n", $hide); // phpcs:ignore WordPress.Security.EscapeOutput -- fixed selectors. ?>,
             .sps-notice-away { display: none !important; }
-            /* Bell: on every screen, with a dot in the bar's text colour while there are notices. */
+            /* Megaphone: on every screen, with a dot in the bar's text colour while there are notices, top left, clear of its mouth. */
             #wpadminbar #wp-admin-bar-sps-notices .ab-icon { margin-right: 0; }
-            #wpadminbar #wp-admin-bar-sps-notices .ab-icon:before { content: "\f16d"; content: "\f16d" / ""; top: 2px; }
-            #wpadminbar #wp-admin-bar-sps-notices .sps-notices-dot { position: absolute; top: 4px; right: -3px; width: 7px; height: 7px; border-radius: 50%; background: currentColor; pointer-events: none; }
+            #wpadminbar #wp-admin-bar-sps-notices .ab-icon:before { content: "\f488"; content: "\f488" / ""; top: 2px; }
+            #wpadminbar #wp-admin-bar-sps-notices .sps-notices-dot { position: absolute; top: 3px; left: -3px; width: 7px; height: 7px; border-radius: 50%; background: currentColor; pointer-events: none; }
             #wpadminbar #wp-admin-bar-sps-notices.sps-notices-empty .sps-notices-dot { display: none; }
             #sps-notices-wrap > .sps-notices-none { margin: 16px 0 0; }
             #sps-notices-wrap > .sps-notices-none:not(:only-child) { display: none; }
-            /* Panel: drops down from the bell over the page, scrolling when long. */
+            /* Panel: drops down from the megaphone over the page, scrolling when long. */
             #sps-notices-wrap { position: fixed; top: 32px; right: 0; z-index: 99998; box-sizing: border-box; width: 640px; max-width: 100%; max-height: calc(100vh - 32px); overflow-y: auto; padding: 0 16px 16px; background: #f0f0f1; border: 1px solid #c3c4c7; border-top: 0; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2); }
             #sps-notices-wrap.hidden { display: none; }
             #sps-notices-wrap:focus { outline: none; }
             #sps-notices-wrap > .notice, #sps-notices-wrap > .updated, #sps-notices-wrap > .error, #sps-notices-wrap > .update-nag, #sps-notices-wrap > [<?php echo self::MARK; // phpcs:ignore WordPress.Security.EscapeOutput -- constant. ?>] { display: block; margin: 12px 0 0; }
             #sps-notices-wrap > .update-nag { max-width: none; }
             @media screen and (max-width: 782px) {
-                /* Core shows only its own items here; the bell joins them. */
+                /* Core shows only its own items here; the megaphone joins them. */
                 #wpadminbar li#wp-admin-bar-sps-notices { display: block; position: static; }
                 #wpadminbar #wp-admin-bar-sps-notices .ab-icon:before { display: block; font-size: 34px; height: 46px; line-height: 1.38235294; top: 0; }
-                #wpadminbar #wp-admin-bar-sps-notices .sps-notices-dot { top: 7px; right: 8px; width: 9px; height: 9px; }
+                #wpadminbar #wp-admin-bar-sps-notices .sps-notices-dot { top: 6px; left: 4px; width: 9px; height: 9px; }
                 #sps-notices-wrap { top: 46px; max-height: calc(100vh - 46px); padding: 0 10px 10px; }
             }
         </style>
@@ -665,7 +665,7 @@ class SEOProStack_Admin_Notices extends SEOProStack_Feature {
      * tabs or buttons, stays. Empty boxes printed straight above the page
      * wait for a script to fill them (some plugins print an empty box and
      * fill it with announcements once a remote script has loaded): they stay
-     * hidden while empty, and go behind the bell if they fill with a notice.
+     * hidden while empty, and go behind the megaphone if they fill with a notice.
      *
      * Kept notices of skipped plugins (see replay()) are unwrapped first, each
      * element taking the wrapper's hash, so they are treated like the rest.
@@ -749,7 +749,7 @@ class SEOProStack_Admin_Notices extends SEOProStack_Feature {
 
     /**
      * The script runs after common.js has moved the notices under the heading.
-     * `label` names the bell for screen readers, with the count.
+     * `label` names the megaphone for screen readers, with the count.
      */
     public static function script() {
         $s    = self::selectors();
