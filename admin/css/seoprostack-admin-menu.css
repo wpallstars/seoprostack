@@ -262,28 +262,32 @@ body.sps-menu-measure #adminmenu .wp-submenu li.sps-menu-has-sub > ul.sps-menu-f
 	}
 }
 
+/*
+ * Only where the full menu shows: not collapsed, and not the full screen
+ * block or site editor, where WordPress hides the menu.
+ */
 @media only screen and (min-width: 961px) {
-	body.sps-menu-fit:not(.folded) #adminmenuback,
-	body.sps-menu-fit:not(.folded) #adminmenuwrap,
-	body.sps-menu-fit:not(.folded) #adminmenu {
+	body.sps-menu-fit:not(.folded):not(.is-fullscreen-mode) #adminmenuback,
+	body.sps-menu-fit:not(.folded):not(.is-fullscreen-mode) #adminmenuwrap,
+	body.sps-menu-fit:not(.folded):not(.is-fullscreen-mode) #adminmenu {
 		width: var(--sps-menu-width, 160px);
 	}
 
 	/* The open menu's list, shown in place, fills the wider menu. */
-	body.sps-menu-fit:not(.folded) #adminmenu .wp-has-current-submenu .wp-submenu {
+	body.sps-menu-fit:not(.folded):not(.is-fullscreen-mode) #adminmenu .wp-has-current-submenu .wp-submenu {
 		width: auto;
 	}
 
-	body.sps-menu-fit:not(.folded) #wpcontent,
-	body.sps-menu-fit:not(.folded) #wpfooter {
+	body.sps-menu-fit:not(.folded):not(.is-fullscreen-mode) #wpcontent,
+	body.sps-menu-fit:not(.folded):not(.is-fullscreen-mode) #wpfooter {
 		margin-inline-start: var(--sps-menu-width, 160px);
 	}
 
-	body.sps-menu-fit:not(.folded) #adminmenu .wp-not-current-submenu .wp-submenu {
+	body.sps-menu-fit:not(.folded):not(.is-fullscreen-mode) #adminmenu .wp-not-current-submenu .wp-submenu {
 		inset-inline-start: var(--sps-menu-width, 160px);
 	}
 
-	/* Block editor, when not full screen. */
+	/* Block editor. */
 	body.sps-menu-fit:not(.folded):not(.is-fullscreen-mode) .interface-interface-skeleton {
 		inset-inline-start: var(--sps-menu-width, 160px);
 	}
@@ -292,19 +296,19 @@ body.sps-menu-measure #adminmenu .wp-submenu li.sps-menu-has-sub > ul.sps-menu-f
 	 * Other plugins' bars laid out for the usual 160px menu; the script
 	 * marks them and keeps any offset of their own in --sps-fit-*.
 	 */
-	body.sps-menu-fit:not(.folded) .sps-fit-start {
+	body.sps-menu-fit:not(.folded):not(.is-fullscreen-mode) .sps-fit-start {
 		inset-inline-start: calc(var(--sps-menu-width, 160px) + var(--sps-fit-start, 0px)) !important;
 	}
 
-	body.sps-menu-fit:not(.folded) .sps-fit-margin {
+	body.sps-menu-fit:not(.folded):not(.is-fullscreen-mode) .sps-fit-margin {
 		margin-inline-start: calc(var(--sps-menu-width, 160px) + var(--sps-fit-margin, 0px)) !important;
 	}
 
-	body.sps-menu-fit:not(.folded) .sps-fit-pad {
+	body.sps-menu-fit:not(.folded):not(.is-fullscreen-mode) .sps-fit-pad {
 		padding-inline-start: calc(var(--sps-menu-width, 160px) + var(--sps-fit-pad, 0px)) !important;
 	}
 
-	body.sps-menu-fit:not(.folded) .sps-fit-width {
+	body.sps-menu-fit:not(.folded):not(.is-fullscreen-mode) .sps-fit-width {
 		box-sizing: border-box !important;
 		width: calc(100% - var(--sps-menu-width, 160px) - var(--sps-fit-gap, 0px)) !important;
 	}
