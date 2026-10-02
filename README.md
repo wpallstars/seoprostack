@@ -2,7 +2,9 @@
 
 # SEO Pro Stack
 
-Curated plugins, themes, hosting and workflow tools for WordPress, plus a few small quality-of-life features.
+One free plugin for a faster, tidier WordPress. It does the jobs of 40+ single-purpose plugins, each a switch you turn on.
+
+SEO Pro Stack does the jobs that usually take dozens of small plugins: a calmer, faster admin, better writing and media tools, safer logins, and tested settings for the plugins we recommend. Each feature is one switch, so you add only what you use. Fewer plugins means fewer updates, conflicts and slowdowns. Free and open source: no pro version, nothing locked.
 
 If this saves you time, headaches and costs, feel free to [buy me a coffee](https://buymeacoffee.com/marcusquinn), or whatever you like, to invest in making more things open-source.
 
@@ -988,6 +990,7 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folder�
 
 ### Unreleased
 
+- Read Me and `readme.txt`: a clearer opening about what SEO Pro Stack is for, `readme.txt` features grouped by what they help with and trimmed to about 9.9 KB (WordPress.org allows 10 KB), and a **Built with AI** note about [aidevops](https://aidevops.sh). No code changes.
 - Fixed: **Like, save and share** buttons took the Kadence theme's button colours and drop shadow after a click (the button keeps focus, and Kadence styles `button:focus` and `:active`) until the page was reloaded. The buttons now set their own focus and pressed styles. New **Button colour** setting (`post_reactions_colour`): a Kadence global palette colour (1 to 9, Notices 11 to 15), set as `--sps-reactions-colour: var(--global-paletteN, currentColor)` on the blocks so it follows the dark palette on `<body>`; also a select in the Customizer's `kadence_customizer_general_colors` section, saving the same option.
 - New, off by default: **Brand icons** (Content tab; replaces Popular Brand Icons – Simple Icons, whose bundled set is from 2022): a Brand icon block with Simple Icons 16.33.0 (3,463 icons) and 343 Font Awesome Free 7.3.1 brand icons for brands Simple Icons does not have. Shapes in 64 JSON files (`index.json` says which), inlined as SVG on the server; the editor searches through `GET seoprostack/v1/brand-icons`. `[simple_icon]` and `#name#` menu titles keep working, with old names mapped to new ones. `scripts/update-brand-icons.sh` refreshes the set. Free Plugins no longer lists Simple Icons. Settings version 13. The release zip grows from about 760 KB to 2.9 MB (66 more files; one SVG file per icon would have been 3,806 files and 3.9 MB).
 - New: **Brand icons** in Kadence Blocks' icon pickers, as a Brand icons category (`kadence.icon_options` and `kadence.icon_options_names` filters in `admin/js/seoprostack-kadence-brand-icons.js`; icon names `sps_{slug}`). Front end through Kadence's `kadence_svg_icons` filter, from the `seoprostack_kadence_brand_icons` option filled on `wp_after_insert_post` and `render_block_data`; removed on uninstall.
@@ -1237,6 +1240,10 @@ Where a feature replaces one of them, SEO Pro Stack imports the settings it can,
 | Fix ‘Plugin file does not exist’ Notices | WP All Stars | [GitHub](https://github.com/wpallstars/wp-fix-plugin-does-not-exist-notices) | Clean up deleted plugins |
 | Freesoul Deactivate Plugins | Jose Mortellaro | [WordPress.org](https://wordpress.org/plugins/freesoul-deactivate-plugins/), [GitHub](https://github.com/JoseMortellaro/freesoul-deactivate-plugins) | Load plugins only where needed (not a replacement yet: its page-by-page rules on the site are not covered) |
 | Git Updater | Andy Fragen | [GitHub](https://github.com/afragen/git-updater), [website](https://git-updater.com/) | Updates from GitHub (GitHub builds only) |
+
+## Built with AI
+
+SEO Pro Stack is built and maintained with [aidevops](https://aidevops.sh), the same developer's open-source AI harness for creating and managing anything online with AI, plugins like this one included. It is free on [GitHub](https://github.com/marcusquinn/aidevops).
 
 ## License
 

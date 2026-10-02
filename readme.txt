@@ -9,98 +9,100 @@ Stable tag: 0.9.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
-Curated plugins, themes, hosting and tools for WordPress, plus small opt-in quality-of-life features.
+One free plugin for a faster, tidier WordPress. It does the jobs of 40+ single-purpose plugins, each a switch you turn on.
 
 == Description ==
 
-SEO Pro Stack is free and open source. There is no pro version and nothing is locked.
+SEO Pro Stack does the jobs that usually take dozens of small plugins: a calmer, faster admin, better writing and media tools, safer logins, and tested settings for the plugins we recommend. Each feature is one switch, so you add only what you use. Fewer plugins means fewer updates, conflicts and slowdowns.
 
-Everything is off by default except Hide admin bar items (Comments and + New), No fade between admin screens, Quiet Freemius prompts and Fixes for other plugins. Turn features on in **Settings → SEO Pro Stack**; **Search features** finds one by name or replaced plugin. The Read Me tab explains each.
+Free and open source: no pro version, nothing locked.
 
-= Admin screens =
+Off by default except Hide admin bar items (Comments and + New), No fade between admin screens, Quiet Freemius prompts and Fixes for other plugins. Turn features on in **Settings → SEO Pro Stack**; **Search features** finds one by name or by the plugin it replaces. A feature that replaces a plugin imports its settings once, never changes them, and waits while that plugin is active, so you can switch over safely.
 
-* **Organise the admin menu**: the same sections everywhere, role previews, client safeguards, writing-only for contributors. Replaces Admin Menu Editor.
-* **Tidy the dashboard** and **Dashboard and sidebar widgets**: no Dashboard boxes or widgets you never use.
-* **Hide admin bar items** (on by default), a **More menu** for plugin items in the admin bar, and **Hide admin notices**, moved behind a megaphone.
-* **Quiet Freemius prompts** (on by default): no opt-in nags, upgrade offers or deactivation surveys from plugins that use Freemius.
-* **Admin bar and dashboard access**: hide the admin bar and block wp-admin for subscribers, customers and the like, never administrators.
-* **Magic login links**: one-time login links by email that scanners cannot use up.
-* **Turn off unused remote access**: XML-RPC and application passwords, both off by default.
-* **Modern admin colours**, **No fade between admin screens** (on by default), **Readable list columns** and **Notification emails**, which stops routine emails one by one.
-* **Tidy admin screens**, **Tidy WooCommerce admin**, **Tidy the login screen**, **Simpler block editor**, **Remove WordPress extras**, **Fewer Heartbeat requests**, **Limit post revisions** and **Lighter WooCommerce pages** replace most of Disable Bloat.
+= A calmer, faster admin =
+
+* **Organise the admin menu**: the same sections on every site, role previews, client safeguards, writing only for contributors.
+* **Tidy the dashboard**, **Dashboard and sidebar widgets**, **Hide admin notices** (behind a megaphone) and a **More menu** for plugins' admin bar items: only what you use stays in view.
+* **Quiet Freemius prompts** (on): no opt-in nags, upgrade offers or deactivation surveys.
+* **Load plugins only where needed**: each screen loads only the plugins it uses, on the site too if you like.
+* **Tidy admin screens**, **Tidy WooCommerce admin**, **Tidy the login screen**, **Simpler block editor**, **Remove WordPress extras**, **Fewer Heartbeat requests**, **Limit post revisions** and **Lighter WooCommerce pages**: most of Disable Bloat.
+* **Modern admin colours**, **No fade between admin screens** (on), **Readable list columns** and **Notification emails** (stop routine emails one by one).
+
+= Safer logins and access =
+
+* **Magic login links**: one-time links by email that link scanners cannot use up.
+* **Admin bar and dashboard access**: keep subscribers and customers out of wp-admin; never administrators.
+* **Turn off unused remote access**: XML-RPC and application passwords.
+* **Maintenance mode**: a 503 page search engines understand, with 24-hour bypass links you can revoke.
 
 = Writing and publishing =
 
-* **Publishing queue**: posts published without a date are scheduled for the next free time slot.
-* **Duplicate posts**, **Staged new versions** (edit a published post as a draft) and **Shareable preview links** for people without an account.
-* **Pinned posts for any post type** and **Select all across pages** for bulk actions.
-* **Menu item visibility** by login or role, **Change post type**, **Order by hand**, **Term tools** (merge, move, set parent), **Search custom fields** (ACF) and **Old post addresses**.
-* **TranslatePress colours**: Kadence light/dark switchers.
-* **iFrame block**: embed pages, limited to the domains and roles you choose.
-* **Link cards**, **Wikipedia previews**, **Word documents**, **Brand icons** and **Like, save and share**.
-* **Spectra block replacements**: a Term list block, and Spectra pages that keep working after it is deactivated.
+* **Publishing queue**: posts without a date go to the next free time slot.
+* **Duplicate posts**, **Staged new versions** (edit a live post as a draft) and **Shareable preview links** for people without an account.
+* **Pinned posts for any post type**, **Select all across pages**, **Order by hand**, **Change post type**, **Term tools** (merge, move, set parent), **Search custom fields** and **Old post addresses**.
+* **Menu item visibility** by login or role.
+* **iFrame block** (only the domains and roles you allow), **Link cards**, **Wikipedia previews**, **Word documents**, **Brand icons** and **Like, save and share**.
+* **Spectra block replacements**: Spectra pages keep working after it is gone. **TranslatePress colours** follow Kadence light and dark modes.
 
 = Media =
 
-* **Copy linked images to Media Library** when a post is saved, and **Paste into the Media Library**.
-* **SVG uploads** for chosen roles, cleaned as they are uploaded.
+* **Copy linked images to Media Library** on save, and **Paste into the Media Library**.
+* **WebP and AVIF images**: smaller files for browsers that support them, at the same address.
 * **Resize large uploads**, **Replace media files** and **Watermark pictures**, keeping the originals.
-* **WebP and AVIF images**: smaller copies sent to browsers that support them, at the same address.
-* **Website screenshots**: a Screenshot block and the `[browser-shot]` shortcode, with pictures saved to the Media Library.
-* **Avatars without Gravatar**: avatars served from your own site.
+* **SVG uploads** for chosen roles, cleaned on upload.
+* **Website screenshots**: a block and the `[browser-shot]` shortcode, saved to the Media Library.
+* **Avatars without Gravatar**: served from your own site.
 
-= Links, speed and plugins =
+= Links and speed =
 
-* **Short links** such as /go/offer/, with redirects, categories and click counts, and **Short addresses for custom post types**. **410 Gone** for removed pages.
-* **Speed**: load pages before the click, delay chosen scripts until interaction, add Google Analytics 4 without slowing the page, open the editor faster with Kadence Blocks, and **Ask before licence checks** (once, daily or never).
-* **Load plugins only where needed**: a faster wp-admin, admin tools skipped on the site, and optional page-by-page learning.
-* **Plugins menu** in the admin bar, **Plugin sizes**, **Clean up deleted plugins**, **Hosting needs** (what to ask your host for) and **Plugin presets**: our settings and starter data for other plugins, on request.
-* **Fixes for other plugins** (on by default): works around their bugs, such as Lasso Lite contacting its server on every admin screen.
-* **Maintenance mode**: a temporary 503 page with a message and 24-hour bypass links you can revoke.
-* **Database key cleanup**: review leftover and duplicate indexes, confirm each removal and keep restore SQL. Back up first.
+* **Short links** such as /go/offer/ with click counts, **Short addresses for custom post types** and **410 Gone** for removed pages.
+* **Load pages before the click**, **Delay scripts until interaction**, **Delayed Google Analytics** and a faster editor with Kadence Blocks.
+* **Ask before licence checks**: premium plugins call home once, daily or never, as you choose.
+* **Database key cleanup**: review leftover and duplicate indexes and confirm each removal; restore SQL is kept. Back up first.
+
+= Plugins and set-up =
+
+* **Plugin presets** and **starter data**: our tested settings for other plugins, and the lists, tags, forms and boards we use in Fluent plugins; only when you ask, and undoable.
+* **Plugins menu** in the admin bar, **Plugin sizes**, **Clean up deleted plugins** and **Hosting needs** (what to ask your host for).
+* **Fixes for other plugins** (on): works around their bugs, such as Lasso Lite calling its server on every admin screen.
 * **Agency**: order flow, client dashboard and examples.
-
-Features that replace a plugin import its settings once, never change them, and wait while it is active.
-
-= Discover =
-
-* **Theme**: install, activate or customise the Kadence theme.
-* **Free Plugins**: recommended plugins from WordPress.org by category, installed and activated in place.
-* **Pro Plugins, Hosting, Tools**: directories of products we use and recommend.
+* **Discover**: the Kadence theme, recommended free plugins installed in place, and the Pro plugins, hosting and tools we use.
 
 = Affiliate disclosure =
 
-Some links in the Pro Plugins, Hosting and Tools directories may be affiliate links, which may earn a commission that funds development. They never change what is recommended, and nothing is shown on your public site.
+Some links in the Pro Plugins, Hosting and Tools directories are affiliate links that fund development. They never change what we recommend, and nothing shows on your public site.
 
 = External services =
 
-* **WordPress.org** (api.wordpress.org): lists recommended plugins and the Kadence theme when you open those tabs, as Plugins → Add New does. See the [WordPress.org privacy policy](https://wordpress.org/about/privacy/).
-* **Google Analytics** (www.googletagmanager.com): with Delayed Google Analytics on and a measurement ID entered, visitors’ browsers load gtag.js and send page views to Google Analytics, under Google’s privacy policy. Logged-in users are not tracked.
-* **Screenshot services**: with Website screenshots on, your server sends each page’s address to the service you choose when a screenshot is made or renewed; visitors never contact it.
+* **WordPress.org** (api.wordpress.org): lists recommended plugins and the Kadence theme when you open those tabs. See the [WordPress.org privacy policy](https://wordpress.org/about/privacy/).
+* **Google Analytics** (www.googletagmanager.com): with Delayed Google Analytics on and a measurement ID entered, visitors’ browsers load gtag.js and send page views to Google, under its privacy policy. Logged-in users are not tracked.
+* **Screenshot services**: with Website screenshots on, your server sends a page’s address to the service you choose when a screenshot is made or renewed; visitors never contact it.
 * **Thum.io** (image.thum.io), the default: see [Thum.io](https://www.thum.io/).
 * **Microlink** (api.microlink.io, or pro.microlink.io with a key): [terms](https://microlink.io/tos), [privacy policy](https://microlink.io/privacy).
 * **ApiFlash** (api.apiflash.com): [terms](https://apiflash.com/terms_of_service), [privacy policy](https://apiflash.com/privacy_policy).
 * **Screenshot Machine** (api.screenshotmachine.com): [terms](https://www.screenshotmachine.com/termsandconditions.php), [privacy policy](https://www.screenshotmachine.com/privacypolicy.php).
 * **Wikipedia** (*.wikipedia.org): Wikipedia previews load in the visitor’s browser when opened. [Privacy policy](https://foundation.wikimedia.org/wiki/Policy:Privacy_policy).
-* **GitHub** (github.com, api.github.com), in copies from GitHub releases only: up to twice a day, asks for new releases of plugins that name a GitHub repository. Nothing about your site is sent. See the [GitHub privacy statement](https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement).
+* **GitHub** (github.com, api.github.com), copies from GitHub releases only: asks up to twice a day for new releases of plugins that name a GitHub repository; nothing about your site is sent. [Privacy statement](https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement).
 
-Other features contact only addresses you choose. Copy linked images downloads images already linked in a post when it is saved, and Link cards the linked page’s picture. The iFrame block makes visitors’ browsers load the pages your editors embed, under those sites’ privacy policies. Avatars without Gravatar stops WordPress loading avatars from gravatar.com. Short links that count clicks set a cookie on your site (`sps_link_` and the link’s ID, for a year, holding only “1”); only totals are kept, never IP addresses. No other data is sent.
+Other features contact only addresses you choose: Copy linked images downloads images a post already links to, Link cards the linked page’s picture, and the iFrame block makes browsers load the pages your editors embed. Avatars without Gravatar stops WordPress loading avatars from gravatar.com. Short links that count clicks set a cookie (`sps_link_` and the link’s ID, for a year, holding only “1”); only totals are kept, never IP addresses. No other data is sent.
 
 = Developers =
 
-Settings, tabs and directory entries can be extended with filters such as `seoprostack_settings_schema`. See the Read Me tab for the full list.
+Extend settings, tabs and directories with filters such as `seoprostack_settings_schema`; the Read Me tab lists them all.
+
+= Built with AI =
+
+Built and maintained with [aidevops](https://aidevops.sh), the same developer's open-source AI harness for creating and managing anything online with AI, plugins like this one included. Free on [GitHub](https://github.com/marcusquinn/aidevops).
 
 == Installation ==
 
-1. Install from Plugins → Add New, or upload the plugin folder to `/wp-content/plugins/`.
-2. Activate the plugin.
-3. Go to Settings → SEO Pro Stack and turn on the features you want.
+Install from Plugins → Add New, activate, then turn on features in Settings → SEO Pro Stack.
 
 == Frequently Asked Questions ==
 
 = What happens if I deactivate or delete the plugin? =
 
-Imported images and screenshots stay in the Media Library. Deleting removes the settings, cached data, uploaded profile pictures, WebP and AVIF copies, short links and the must-use file. Watermarked pictures stay marked; originals stay in a `seoprostack-originals-…` folder in uploads.
+Imported images and screenshots stay in the Media Library. Deleting removes its settings, caches, profile pictures, WebP and AVIF copies, short links and must-use file. Watermarked pictures keep their originals in an uploads folder starting `seoprostack-originals-`.
 
 = Does it work on multisite? =
 
@@ -108,15 +110,11 @@ Yes. Settings are per site, and Free Plugins shows only to super admins.
 
 = Is the magic login safe? =
 
-Each link is random, stored only as a hash, works once and expires within an hour. Two-factor plugins that check only the password step are not asked, so with those choose “Everyone except administrators” or leave it off.
-
-= What happens to queued posts if I turn the publishing queue off? =
-
-They stay scheduled and publish at their times.
+Each link is random, stored as a hash, works once and expires within an hour. Two-factor plugins that check only the password step are skipped, so with those choose “Everyone except administrators”.
 
 = Where do updates come from? =
 
-Copies from WordPress.org update from there. New versions come out on GitHub first, and copies from GitHub update from GitHub.
+From where you installed it. New versions come out on GitHub first.
 
 = Where do I report a problem? =
 
@@ -126,7 +124,7 @@ Click **Report a problem** at the top right of Settings → SEO Pro Stack, or op
 
 = Unreleased =
 * New: Word documents; Like, save and share; Brand icons; coffee button.
-* Change: Pinned posts; faster lists; sizes in Free Plugins; megaphone and dot; writers' menu.
+* Change: Pinned posts; faster lists; sizes in Free Plugins; megaphone and dot; writers' menu; clearer readme.
 * Fix: More menu alignment; menu in full screen editor; Like button.
 
 = 0.9.0 =
