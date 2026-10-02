@@ -23,7 +23,7 @@ Everything is off by default except Hide admin bar items (Comments and + New), N
 * **Hide admin bar items** (on by default), a **More menu** for plugin items in the admin bar, and **Hide admin notices**, which moves plugin and theme notices behind a bell.
 * **Quiet Freemius prompts** (on by default): no opt-in nags, upgrade offers or deactivation surveys from plugins that use Freemius.
 * **Admin bar and dashboard access**: hide the admin bar and block wp-admin for roles such as subscribers and customers, never administrators.
-* **Magic login links**: “Email me a login link” on the login screen, with one-time links that email scanners cannot use up.
+* **Magic login links**: one-time login links by email, which email scanners cannot use up.
 * **Turn off unused remote access**: XML-RPC and application passwords, both off by default.
 * **Modern admin colours**, **No fade between admin screens** (on by default), **Readable list columns** and **Notification emails**, which stops routine emails one by one.
 * **Tidy admin screens**, **Tidy WooCommerce admin**, **Tidy the login screen**, **Simpler block editor**, **Remove WordPress extras**, **Fewer Heartbeat requests**, **Limit post revisions** and **Lighter WooCommerce pages** replace most of Disable Bloat.
@@ -36,6 +36,7 @@ Everything is off by default except Hide admin bar items (Comments and + New), N
 * **Menu item visibility** by login or role, **Change post type**, **Order by hand**, **Term tools** (merge, move, set parent), **Search custom fields** (ACF) and **Old post addresses**.
 * **TranslatePress colours**: Kadence light/dark switchers.
 * **iFrame block**: embed pages with size, sandbox and permission settings, limited to the domains and roles you choose.
+* **Link cards** and **Wikipedia previews**.
 * **Spectra block replacements**: a Term list block, and Spectra pages that keep working after it is deactivated or convert in one click.
 
 = Media =
@@ -51,13 +52,13 @@ Everything is off by default except Hide admin bar items (Comments and + New), N
 
 * **Short links** such as /go/offer/, with redirects, categories and click counts, and **Short addresses for custom post types**. **410 Gone** for removed pages.
 * **Speed**: load pages before the click, delay chosen scripts until interaction, add Google Analytics 4 without slowing the page, open the editor faster with Kadence Blocks, and **Ask before licence checks** (once now, once a day or never).
-* **Load plugins only where needed**: a faster wp-admin, admin tools skipped on the site, and optional page-by-page content learning with an opt-out list.
+* **Load plugins only where needed**: a faster wp-admin, admin tools skipped on the site, and optional page-by-page learning.
 * **Plugins menu** in the admin bar, **Plugin sizes**, **Clean up deleted plugins**, **Hosting needs** (what to ask your host for) and **Plugin presets**: our settings and starter data for other plugins, on request.
 * **Fixes for other plugins** (on by default): works around their bugs, such as Lasso Lite contacting its server on every admin screen.
 * **Maintenance mode**: a temporary 503 page with a message and 24-hour bypass links you can revoke.
 * **Database key cleanup**: review leftover and duplicate indexes, confirm each removal and keep restore SQL. Back up first.
 
-Features that replace another plugin import its settings once, never change that plugin’s settings, and wait while it is active.
+Features that replace a plugin import its settings once, never change them, and wait while it is active.
 
 = Discover =
 
@@ -73,14 +74,15 @@ Some links in the Pro Plugins, Hosting and Tools directories may be affiliate li
 
 * **WordPress.org** (api.wordpress.org): lists recommended plugins and the Kadence theme when you open those tabs, as Plugins → Add New does. See the [WordPress.org privacy policy](https://wordpress.org/about/privacy/).
 * **Google Analytics** (www.googletagmanager.com): with Delayed Google Analytics on and a measurement ID entered, visitors’ browsers load gtag.js and send page views to Google Analytics, under Google’s privacy policy. Logged-in users are not tracked.
-* **Screenshot services**: with Website screenshots on, your server sends the address of each page to capture to the service you choose, when a screenshot is made or renewed. Visitors never contact the service.
+* **Screenshot services**: with Website screenshots on, your server sends each page’s address to the service you choose when a screenshot is made or renewed; visitors never contact it.
 * **Thum.io** (image.thum.io), the default: see [Thum.io](https://www.thum.io/).
 * **Microlink** (api.microlink.io, or pro.microlink.io with a key): [terms](https://microlink.io/tos), [privacy policy](https://microlink.io/privacy).
 * **ApiFlash** (api.apiflash.com): [terms](https://apiflash.com/terms_of_service), [privacy policy](https://apiflash.com/privacy_policy).
 * **Screenshot Machine** (api.screenshotmachine.com): [terms](https://www.screenshotmachine.com/termsandconditions.php), [privacy policy](https://www.screenshotmachine.com/privacypolicy.php).
+* **Wikipedia** (*.wikipedia.org): Wikipedia previews load in the visitor’s browser when opened. [Privacy policy](https://foundation.wikimedia.org/wiki/Policy:Privacy_policy).
 * **GitHub** (github.com, api.github.com), in copies from GitHub releases only: up to twice a day, asks for new releases of plugins that name a GitHub repository. Nothing about your site is sent. See the [GitHub privacy statement](https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement).
 
-Other features contact only addresses you choose. Copy linked images downloads images already linked in a post when it is saved. The iFrame block makes visitors’ browsers load the pages your editors embed, under those sites’ privacy policies. Avatars without Gravatar stops WordPress loading avatars from gravatar.com. Short links that count clicks set a cookie on your site (`sps_link_` and the link’s ID, for a year, holding only “1”); only totals are kept, never IP addresses. No other data is sent.
+Other features contact only addresses you choose. Copy linked images downloads images already linked in a post when it is saved, and Link cards the linked page’s picture. The iFrame block makes visitors’ browsers load the pages your editors embed, under those sites’ privacy policies. Avatars without Gravatar stops WordPress loading avatars from gravatar.com. Short links that count clicks set a cookie on your site (`sps_link_` and the link’s ID, for a year, holding only “1”); only totals are kept, never IP addresses. No other data is sent.
 
 = Developers =
 
@@ -125,15 +127,10 @@ Click **Report a problem** at the top right of Settings → SEO Pro Stack, or op
 == Changelog ==
 
 = Unreleased =
-* Change: Custom order link on sorted lists; Plugins screen notes on replaceable plugins.
-* New: Fixes for other plugins, on by default.
-* Change: Free Plugins no longer suggests Disable All WordPress Updates.
-* New: Menu item visibility, Change post type, Order by hand, Term tools, Search custom fields, Old post addresses.
-* Change: block editors open faster.
-* New: Report a problem button.
-* Change: faster Customizer, Import and Export forms.
-* Change: Kadence's design library is kept in your browser, so it opens faster.
-* New: Read Me banner.
+* New: Menu item visibility, Change post type, Order by hand, Term tools, Search custom fields, Old post addresses, Link cards, Wikipedia previews.
+* New: Fixes for other plugins (on by default), Report a problem button, Read Me banner.
+* Change: Custom order link on sorted lists; notes on replaceable plugins.
+* Change: faster block editors, Customizer, Import and Export forms and Kadence design library.
 
 = 0.8.1 =
 * New: spaced Fluent menu names; shop plugins first in Shop; FluentCart suggested.

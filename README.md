@@ -41,6 +41,8 @@ Every feature is off by default except four: Hide admin bar items, which hides C
 | Term tools | Content | Term Management Tools |
 | Search custom fields | Content | ACF: Better Search |
 | Website screenshots | Content | Browser Shots |
+| Link cards | Content | Bookmark Card |
+| Wikipedia previews | Content | Wikipedia Preview |
 | Spectra block replacements | Content | Spectra |
 | Paste into the Media Library | Media | The Paste |
 | SVG uploads | Media | Safe SVG |
@@ -470,6 +472,26 @@ Adds a **Screenshot** block (Embed category) and Browser Shots’ `[browser-shot
 - Switches on if Browser Shots is active (it has no settings to import). Browser Shots loads mShots images from WordPress.com on every page view; after switching, pictures come from your Media Library.
 - Screenshots are never watermarked by Watermark pictures.
 
+### Link cards (Content)
+
+Adds a **Link card** block (Embed category): paste the address of a page and the card shows its title, description, site name and picture. The editor reads the page through WordPress’s own link preview route (`wp-block-editor/v1/url-details`), and the picture is copied to the Media Library and shown from your site, so visitors’ browsers never contact the other site.
+
+- Block settings: address (with **Read the page again**), title, description, site name, picture on the right, on the left, above or none (beside the text once the card is 480 pixels wide), open in a new tab, and nofollow. Alignment (wide), margin and an HTML anchor.
+- Pictures are copied by people who can upload files; a picture copied before is reused. Others see a note that someone who can upload files needs to open the card. Copied pictures keep their address in `_seoprostack_source_url`, as Copy linked images does.
+- The card is built on the server from the block’s settings. Text takes the theme’s colour and borders are translucent, so cards follow the Kadence light and dark modes.
+- Bookmark Card blocks (`mamaduka/bookmark-card`) keep showing, with the same layout in the theme’s colours, while Bookmark Card is inactive. The editor shows a **Convert to Link card** button on each (or use the block switcher); the card keeps its title, description, site, layout, new tab and nofollow, and its picture is copied to the Media Library. Until converted, their pictures still load from the other site.
+- Switches on if Bookmark Card is active (it has no settings to import).
+
+### Wikipedia previews (Content)
+
+Links to Wikipedia articles in posts and widgets show a short preview of the article (title, summary and picture) on hover, keyboard focus or tap, with a link to read more. On touch screens the first tap opens the preview.
+
+- The visitor’s browser reads the preview from Wikipedia’s page summary API when it opens, and keeps it for the visit; nothing is fetched before. The small script and style load only on pages with such links, in the footer, without jQuery.
+- The language comes from the link (`fr.wikipedia.org` previews the French article; mobile links work too). Links to pages that are not articles (`Special:`, `File:`, `Category:` …) are left alone.
+- Wikipedia Preview’s marked words (`<span data-wikipedia-preview data-wp-title="…" data-wp-lang="…">`) keep working, and posts where its link detection was turned off (post meta `wikipediapreview_detectlinks`) keep plain links.
+- Previews follow the Kadence dark mode switcher (the palette on `<body>`); without Kadence, they use the page’s colour scheme.
+- Switches on if Wikipedia Preview is active (it has no site settings to import).
+
 ### Spectra block replacements (Content)
 
 Lets a site stop using Spectra (Ultimate Addons for Gutenberg) without losing content, so the theme and core blocks, or Kadence Blocks, do the work.
@@ -864,7 +886,7 @@ Read a setting with `SEOProStack_Settings::get( 'key' )`.
 
 ## Uninstall
 
-Deleting the plugin removes its settings and cached data, the profile pictures and generated avatars in `uploads/seoprostack-avatars/`, the WebP and AVIF copies of pictures, including copies left by pictures deleted while the plugin was inactive, and short links with their categories and click counts (Pretty Links’ own links are left alone), and the must-use file of Load plugins only where needed, the cached GitHub releases, and who hid lines of the Plugins screen notice about replaced plugins (and, from older versions, who dismissed the Git Updater notice), menu item visibility rules (Nav Menu Roles’ own rules stay), the hand order of terms and the old term addresses kept for redirects, and when old post addresses were last used (the old addresses themselves are WordPress’s and keep redirecting). Posts keep their hand order in core’s Order field. Imported media and screenshots stay in the Media Library because your posts use them. Watermarked pictures stay marked, and their unmarked originals stay in the `uploads/seoprostack-originals-…` folder so they are not lost; delete that folder if you do not need them.
+Deleting the plugin removes its settings and cached data, the profile pictures and generated avatars in `uploads/seoprostack-avatars/`, the WebP and AVIF copies of pictures, including copies left by pictures deleted while the plugin was inactive, and short links with their categories and click counts (Pretty Links’ own links are left alone), and the must-use file of Load plugins only where needed, the cached GitHub releases, and who hid lines of the Plugins screen notice about replaced plugins (and, from older versions, who dismissed the Git Updater notice), menu item visibility rules (Nav Menu Roles’ own rules stay), the hand order of terms and the old term addresses kept for redirects, and when old post addresses were last used (the old addresses themselves are WordPress’s and keep redirecting). Posts keep their hand order in core’s Order field. Imported media, Link card pictures and screenshots stay in the Media Library because your posts use them. Watermarked pictures stay marked, and their unmarked originals stay in the `uploads/seoprostack-originals-…` folder so they are not lost; delete that folder if you do not need them.
 
 Deactivating the plugin removes the WebP and AVIF rules from the uploads folder’s `.htaccess` (for every site when network-deactivated) and the must-use file of Load plugins only where needed (on multisite, when network-deactivated).
 
@@ -872,6 +894,7 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folder�
 
 ### Unreleased
 
+- New, off by default: **Link cards** (Content tab; replaces Bookmark Card) adds a Link card block that reads a page’s title, description and picture through core’s link preview route, copies the picture to the Media Library and builds the card on the server, in the theme’s colours. Bookmark Card blocks keep showing and convert in one click. **Wikipedia previews** (Content tab; replaces Wikipedia Preview) shows a short preview of linked Wikipedia articles on hover, focus or tap, fetched by the visitor’s browser only when it opens; the script loads only on pages with such links, and Wikipedia Preview’s marked words and per-post link setting keep working. Each switches itself on while the plugin it replaces is active; Free Plugins no longer lists them. Settings version 10.
 - New, off by default: **Search custom fields** (Content tab; replaces ACF: Better Search) makes site and admin list searches also match Advanced Custom Fields and Secure Custom Fields text-like fields, including repeater, group and flexible content sub fields, found through ACF’s own field references. **Old post addresses** (Links tab; replaces Slugs Manager: Delete Old Permalinks, closed on WordPress.org) clears old slugs that can no longer redirect (the current slug, duplicates, deleted posts, slugs another published post now uses), records when each old address last redirected someone, and lists them under Tools → Old addresses with Remove. Each switches itself on while the plugin it replaces is active; Free Plugins no longer lists them. Settings version 9.
 - Changed: Order by hand keeps a way back from column sorting: while a list is sorted by Title, Date or another column, a **Custom order** view link and the handle column’s header return to the hand order with the same filters. Admin list searches and the Drafts and Pending views now show the hand order with handles (core sorted Drafts and Pending by date changed, so a move there saved that order).
 - Changed: “Deactivate …” links on SEO Pro Stack’s settings come back to the same tab, with “Plugin deactivated.”; the one in the Plugins screen notice keeps the list’s status, page and search.
@@ -1074,6 +1097,8 @@ Where a feature replaces one of them, SEO Pro Stack imports the settings it can,
 | ACF: Better Search | Mateusz Gbiorczyk | [WordPress.org](https://wordpress.org/plugins/acf-better-search/) | Search custom fields |
 | Slugs Manager: Delete Old Permalinks | WPFactory | [WordPress.org](https://wordpress.org/plugins/remove-old-slugspermalinks/) (closed), [GitHub](https://github.com/wpcodefactory/remove-old-slugspermalinks) | Old post addresses |
 | Browser Shots | Kevin Leary, Ben Gillbanks | [WordPress.org](https://wordpress.org/plugins/browser-shots/), [GitHub](https://github.com/BinaryMoon/browser-shots) | Website screenshots |
+| Bookmark Card | George Mamadashvili | [WordPress.org](https://wordpress.org/plugins/bookmark-card/), [GitHub](https://github.com/Mamaduka/bookmark-card) | Link cards |
+| Wikipedia Preview | Wikimedia Foundation | [WordPress.org](https://wordpress.org/plugins/wikipedia-preview/), [GitHub](https://github.com/wikimedia/wikipedia-preview) | Wikipedia previews |
 | Spectra | Brainstorm Force | [WordPress.org](https://wordpress.org/plugins/ultimate-addons-for-gutenberg/), [GitHub](https://github.com/brainstormforce/wp-spectra) | Spectra block replacements |
 | The Paste | Jörn Lund | [WordPress.org](https://wordpress.org/plugins/the-paste/), [GitHub](https://github.com/mcguffin/the-paste) | Paste into the Media Library |
 | Safe SVG | 10up | [WordPress.org](https://wordpress.org/plugins/safe-svg/), [GitHub](https://github.com/10up/safe-svg) | SVG uploads |
