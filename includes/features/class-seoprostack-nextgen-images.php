@@ -118,7 +118,7 @@ class SEOProStack_Nextgen_Images extends SEOProStack_Feature {
             ),
             'nextgen_smart' => array(
                 'type'        => 'bool',
-                'default'     => false,
+                'default'     => true,
                 'parent'      => self::KEY,
                 'label'       => __('Quality by picture size', 'seoprostack'),
                 'description' => __('Higher quality for small sizes such as thumbnails, where flaws show, and lower for large ones, which are usually shown smaller than they are: +15 below 200 pixels, −10 from 800, −20 from 2,000 (the longest side).', 'seoprostack'),
@@ -940,13 +940,13 @@ class SEOProStack_Nextgen_Images extends SEOProStack_Feature {
     }
 
     /**
-     * Whether the server is LiteSpeed, which keeps .htaccess rules in memory.
+     * Whether the server is LiteSpeed (Enterprise, OpenLiteSpeed or Web
+     * ADC), which keeps .htaccess rules in memory.
      *
      * @return bool
      */
     private static function is_litespeed() {
-        $software = isset($_SERVER['SERVER_SOFTWARE']) ? sanitize_text_field(wp_unslash($_SERVER['SERVER_SOFTWARE'])) : '';
-        return false !== stripos($software, 'litespeed');
+        return SEOProStack_Litespeed::is_server();
     }
 
     /**
