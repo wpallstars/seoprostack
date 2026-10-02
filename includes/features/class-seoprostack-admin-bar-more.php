@@ -328,6 +328,9 @@ class SEOProStack_Admin_Bar_More extends SEOProStack_Feature {
             . "{$m}>.ab-sub-wrapper{min-width:12rem}"
             // Moved items are built for the bar: let titles and icons size to the row.
             . "{$m} .ab-submenu>li>.ab-item{height:auto;min-height:26px;white-space:nowrap}"
+            // Items laid out as a spread-out flex row for the bar (TranslatePress's
+            // Translate Site) would spread across the wider menu: keep them left.
+            . "{$m} .ab-submenu>li>.ab-item{justify-content:flex-start}"
             . "{$m} .ab-submenu .ab-icon,{$m} .ab-submenu .ab-item:before{padding:3px 0;margin-right:6px}"
             . "{$m} .ab-submenu img{max-height:20px;vertical-align:middle}"
             // Some plugins nest an .ab-item in their title (Yoast SEO's logo); size it to its content.
