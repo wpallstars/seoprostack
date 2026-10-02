@@ -126,6 +126,7 @@ Click **Report a problem** at the top right of Settings → SEO Pro Stack, or op
 = 0.10.1 =
 * Change: Short links runs alongside Lasso Lite instead of replacing it, and still imports its links.
 * Change: the Short links list shows no other plugins' row links.
+* Fix: no white flash in the toolbar between admin screens.
 
 Older: `changelog.txt`.
 
