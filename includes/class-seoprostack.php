@@ -85,6 +85,8 @@ final class SEOProStack {
         'SEOProStack_Plugin_Fixes',
         'SEOProStack_Hosting_Needs',
         'SEOProStack_Plugin_References',
+        'SEOProStack_Agency_Orders',
+        'SEOProStack_Agency_Dashboard',
     );
 
     /**

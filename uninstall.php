@@ -89,6 +89,22 @@ function seoprostack_uninstall_site() {
         delete_option($option);
     }
 
+    // Order flow: links between form entries, tasks and conversations. The
+    // entries, tasks, conversations and their log lines are that plugin's
+    // data, and stay.
+    $seoprostack_has_table = function ($table) use ($wpdb) {
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- one-off check for another plugin's table.
+        return $table === $wpdb->get_var($wpdb->prepare('SHOW TABLES LIKE %s', $wpdb->esc_like($table)));
+    };
+    if ($seoprostack_has_table($wpdb->prefix . 'fluentform_submission_meta')) {
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- one-off cleanup in Fluent Forms' table.
+        $wpdb->query($wpdb->prepare("DELETE FROM {$wpdb->prefix}fluentform_submission_meta WHERE meta_key IN (%s, %s)", '_seoprostack_order', 'seoprostack_client'));
+    }
+    if ($seoprostack_has_table($wpdb->prefix . 'fbs_task_metas')) {
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- one-off cleanup in Fluent Boards' table.
+        $wpdb->query($wpdb->prepare("DELETE FROM {$wpdb->prefix}fbs_task_metas WHERE `key` IN (%s, %s)", 'seoprostack_order', 'seoprostack_client'));
+    }
+
     // Notices kept for each person from plugins that some screens skip.
     delete_metadata('user', 0, $wpdb->get_blog_prefix() . 'seoprostack_stored_notices', '', true);
 

@@ -88,10 +88,10 @@ class SEOProStack_Starters_CLI {
      * ## OPTIONS
      *
      * [<plugin>...]
-     * : Plugin folders.
+     * : Plugin folders, or a set such as agency.
      *
      * [--all]
-     * : Every active plugin with starter data.
+     * : Every active plugin with starter data. Sets are added only by name.
      *
      * [--user=<id|login|email>]
      * : WP-CLI's global option. Boards are created by this user; without it, by the first administrator.
@@ -101,7 +101,12 @@ class SEOProStack_Starters_CLI {
      */
     public function add($args, $assoc_args) {
         if (WP_CLI\Utils\get_flag_value($assoc_args, 'all')) {
-            $args = array_values(array_filter(array_keys(SEOProStack_Starters::all()), array('SEOProStack_Starters', 'ready')));
+            $args = array();
+            foreach (SEOProStack_Starters::all() as $slug => $starter) {
+                if (!$starter['set'] && SEOProStack_Starters::ready($slug)) {
+                    $args[] = $slug;
+                }
+            }
         }
         if (!$args) {
             WP_CLI::error('Name a plugin, or use --all.');

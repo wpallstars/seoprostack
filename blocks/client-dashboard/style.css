@@ -1,0 +1,89 @@
+/*
+ * seoprostack/client-dashboard. Colours and fonts come from the theme unless
+ * set on the block; borders and bars use currentColor and translucent
+ * neutrals so they suit light and dark palettes (Kadence's switcher included).
+ */
+
+:where(.wp-block-seoprostack-client-dashboard) {
+	margin-bottom: 1.5em;
+}
+
+.wp-block-seoprostack-client-dashboard .sps-client__section + .sps-client__section {
+	margin-top: 2em;
+}
+
+.wp-block-seoprostack-client-dashboard .sps-client__title {
+	margin: 0 0 0.75em;
+	font-size: 1.25em;
+}
+
+.wp-block-seoprostack-client-dashboard .sps-client__list {
+	display: grid;
+	gap: 0.75em;
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.wp-block-seoprostack-client-dashboard .sps-client__item {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) auto;
+	gap: 0.35em 1em;
+	align-items: center;
+	margin: 0;
+	padding: 0.9em 1.1em;
+	border: 1px solid rgba(127, 127, 127, 0.3);
+	border-radius: 4px;
+}
+
+.wp-block-seoprostack-client-dashboard .sps-client__name {
+	font-weight: 600;
+}
+
+.wp-block-seoprostack-client-dashboard .sps-client__stage {
+	font-size: 0.875em;
+	text-align: right;
+}
+
+.wp-block-seoprostack-client-dashboard .is-done .sps-client__stage {
+	opacity: 0.8;
+}
+
+.wp-block-seoprostack-client-dashboard .sps-client__progress {
+	grid-column: 1 / -1;
+	width: 100%;
+	height: 6px;
+	border: 0;
+	border-radius: 3px;
+	background: rgba(127, 127, 127, 0.2);
+	color: currentColor;
+	-webkit-appearance: none;
+	appearance: none;
+}
+
+.wp-block-seoprostack-client-dashboard .sps-client__progress::-webkit-progress-bar {
+	border-radius: 3px;
+	background: rgba(127, 127, 127, 0.2);
+}
+
+.wp-block-seoprostack-client-dashboard .sps-client__progress::-webkit-progress-value {
+	border-radius: 3px;
+	background: currentColor;
+}
+
+.wp-block-seoprostack-client-dashboard .sps-client__progress::-moz-progress-bar {
+	border-radius: 3px;
+	background: currentColor;
+}
+
+.wp-block-seoprostack-client-dashboard .sps-client__meta {
+	grid-column: 1 / -1;
+	font-size: 0.875em;
+	opacity: 0.85;
+}
+
+.wp-block-seoprostack-client-dashboard .sps-client__empty,
+.wp-block-seoprostack-client-dashboard .sps-client__more,
+.wp-block-seoprostack-client-dashboard .sps-client__login {
+	margin: 0.75em 0 0;
+}

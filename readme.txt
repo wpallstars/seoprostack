@@ -35,9 +35,9 @@ Everything is off by default except Hide admin bar items (Comments and + New), N
 * **Sticky posts for any post type** and **Select all across pages** for bulk actions.
 * **Menu item visibility** by login or role, **Change post type**, **Order by hand**, **Term tools** (merge, move, set parent), **Search custom fields** (ACF) and **Old post addresses**.
 * **TranslatePress colours**: Kadence light/dark switchers.
-* **iFrame block**: embed pages with size, sandbox and permission settings, limited to the domains and roles you choose.
+* **iFrame block**: embed pages, limited to the domains and roles you choose.
 * **Link cards**, **Wikipedia previews** and **Word documents** in the editor.
-* **Spectra block replacements**: a Term list block, and Spectra pages that keep working after it is deactivated or convert in one click.
+* **Spectra block replacements**: a Term list block, and Spectra pages that keep working after it is deactivated.
 
 = Media =
 
@@ -57,6 +57,7 @@ Everything is off by default except Hide admin bar items (Comments and + New), N
 * **Fixes for other plugins** (on by default): works around their bugs, such as Lasso Lite contacting its server on every admin screen.
 * **Maintenance mode**: a temporary 503 page with a message and 24-hour bypass links you can revoke.
 * **Database key cleanup**: review leftover and duplicate indexes, confirm each removal and keep restore SQL. Back up first.
+* **Agency**: order flow, client dashboard and examples.
 
 Features that replace a plugin import its settings once, never change them, and wait while it is active.
 
@@ -127,7 +128,7 @@ Click **Report a problem** at the top right of Settings → SEO Pro Stack, or op
 == Changelog ==
 
 = Unreleased =
-* New: Menu item visibility, Change post type, Order by hand, Term tools, Search custom fields, Old post addresses, Link cards, Wikipedia previews, Word documents.
+* New: Menu item visibility, Change post type, Order by hand, Term tools, Search custom fields, Old post addresses, Link cards, Wikipedia previews, Word documents, Agency tab.
 * New: Fixes for other plugins (on by default), Report a problem button, Read Me banner.
 * Change: Custom order link on sorted lists; notes on replaceable plugins.
 * Change: faster editors, Customizer, Import/Export and Kadence design library.
