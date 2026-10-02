@@ -85,7 +85,7 @@ final class SEOProStack_Plugin_Loader {
     const LIST_KEY   = 'plugin_loading_only';
 
     /** Map format; a change makes SEO Pro Stack learn again. */
-    const MAP_VERSION = 5;
+    const MAP_VERSION = 6;
 
     /** SEO Pro Stack's own settings page (Settings > SEO Pro Stack). */
     const SETTINGS_PAGE = 'seoprostack';
@@ -215,6 +215,9 @@ final class SEOProStack_Plugin_Loader {
         'media-new'   => array('media-new.php'),
         'menus'       => array('nav-menus.php'),
         'site-editor' => array('site-editor.php'),
+        'customizer'  => array('customize.php'),
+        'import'      => array('import.php'),
+        'export'      => array('export.php'),
     );
 
     /**
@@ -222,7 +225,7 @@ final class SEOProStack_Plugin_Loader {
      * forms there keep every field. Hooks for other post types and
      * taxonomies do not count.
      *
-     * @param string $kind Screen kind: "post", "terms", "list", "user", "tools", "media-new", "menus" or "site-editor".
+     * @param string $kind Screen kind, including "customizer", "import" and "export".
      * @param string $name Post type or taxonomy of the screen.
      * @param string $hook Hook name.
      * @return bool
@@ -264,6 +267,11 @@ final class SEOProStack_Plugin_Loader {
                 return in_array($hook, self::MENU_HOOKS, true) || 0 === strpos($hook, 'nav_menu_items_');
             case 'site-editor':
                 return in_array($hook, self::SITE_EDITOR_HOOKS, true);
+            case 'customizer':
+                return 0 === strpos($hook, 'customize_') || 'widgets_init' === $hook
+                    || in_array($hook, array('sidebars_widgets', 'dynamic_sidebar_params', 'widget_display_callback', 'use_widgets_block_editor', 'gutenberg_use_widgets_block_editor', 'current_theme_supports-widgets-block-editor', 'wp_nav_menu_item_custom_fields_customize_template', 'get_theme_starter_content'), true);
+            case 'export':
+                return in_array($hook, array('export_filters', 'export_args', 'export_wp', 'the_content_export', 'the_excerpt_export', 'wxr_export_skip_postmeta', 'wxr_export_skip_termmeta', 'wxr_export_skip_commentmeta'), true);
         }
         return false; // Comments, the users list, themes and About add no fields to forms; Dashboard boxes are learned from the boxes themselves.
     }
@@ -280,14 +288,18 @@ final class SEOProStack_Plugin_Loader {
     /** Scripts that are never filtered, even with a page argument. */
     const NEVER_PAGES = array(
         'plugins.php', 'plugin-install.php', 'update.php', 'update-core.php', 'upgrade.php',
-        'customize.php', 'options.php', 'admin-post.php', 'admin-ajax.php', 'async-upload.php',
+        'customize.php', 'site-health.php', 'import.php', 'export.php', 'options.php', 'admin-post.php', 'admin-ajax.php', 'async-upload.php',
     );
 
     /** Scripts that are never filtered without a page argument. */
     const NEVER = array(
         'plugins.php', 'plugin-install.php', 'plugin-editor.php', 'update.php', 'update-core.php',
-        'upgrade.php', 'customize.php', 'options.php', 'admin-post.php', 'admin-ajax.php',
-        'async-upload.php', 'site-health.php', 'import.php', 'export.php', 'theme-editor.php',
+        'upgrade.php', 'options.php', 'admin-post.php', 'admin-ajax.php',
+        'async-upload.php', 'theme-editor.php',
+        // Core health tests inspect active plugins and live PHP state (such
+        // as sessions). Skipping a plugin would change what they diagnose,
+        // even if it adds no site_status_tests or debug_information callback.
+        'site-health.php',
         // Opening Widgets saves the sidebars without widgets and sidebars
         // that are not registered (retrieve_widgets()), so a skipped plugin's
         // widgets would be dropped.
@@ -317,11 +329,11 @@ final class SEOProStack_Plugin_Loader {
     /** @var array Learned map, or empty when it must be learned. */
     private static $map = array();
 
-    /** @var bool Whether post types, taxonomies and blocks are being attributed. */
+    /** @var bool Whether post types, taxonomies, blocks and sidebars are being attributed. */
     private static $attributing = false;
 
-    /** @var array{types: array, taxes: array, blocks: array} Attributions made on this request. */
-    private static $registered = array('types' => array(), 'taxes' => array(), 'blocks' => array());
+    /** @var array{types: array, taxes: array, blocks: array, sidebars: array} Attributions made on this request. */
+    private static $registered = array('types' => array(), 'taxes' => array(), 'blocks' => array(), 'sidebars' => array());
 
     /** @var string This plugin's main file, relative to the plugins folder. */
     private static $self = '';
@@ -421,6 +433,9 @@ final class SEOProStack_Plugin_Loader {
         add_action('admin_page_access_denied', array(__CLASS__, 'reload_denied'), 0);
         if ('menus' === self::$screen) {
             add_action('load-nav-menus.php', array(__CLASS__, 'check_menu_locations'), 0);
+        } elseif ('customizer' === self::$screen) {
+            // Before WP_Customize_Widgets can remap widgets at wp_loaded.
+            add_action('wp_loaded', array(__CLASS__, 'check_customizer_registrations'), 0);
         }
     }
 
@@ -438,6 +453,36 @@ final class SEOProStack_Plugin_Loader {
         if (!array_diff($learned, array_keys(get_registered_nav_menus()))) {
             return;
         }
+        self::reload_with_all();
+    }
+
+    /** Reload before showing a Customizer form with missing widgets or locations. */
+    public static function check_customizer_registrations() {
+        global $wp_registered_sidebars, $wp_widget_factory;
+        if ('filter' !== self::$mode) {
+            return;
+        }
+        // Core callbacks such as __return_false cannot be attributed to the
+        // plugin that registered them (Classic Widgets). Keep its form mode.
+        if (!isset(self::$map['customizer_block_widgets']) || self::$map['customizer_block_widgets'] !== wp_use_widgets_block_editor()) {
+            self::reload_with_all();
+            return;
+        }
+        $current = array(
+            'customizer_sidebars' => array_keys((array) $wp_registered_sidebars),
+            'customizer_widgets'  => isset($wp_widget_factory->widgets) ? array_keys($wp_widget_factory->widgets) : array(),
+            'customizer_menus'    => array_keys(get_registered_nav_menus()),
+        );
+        foreach ($current as $key => $names) {
+            if (array_diff((array) (self::$map[$key] ?? array()), $names)) {
+                self::reload_with_all();
+                return;
+            }
+        }
+    }
+
+    /** Keep an incomplete screen full from now on and reload it before output. */
+    private static function reload_with_all() {
         wp_cache_delete(self::MAP, 'options');
         wp_cache_delete('alloptions', 'options');
         $map = get_option(self::MAP, array());
@@ -482,6 +527,7 @@ final class SEOProStack_Plugin_Loader {
         add_action('registered_post_type', array(__CLASS__, 'note_post_type'));
         add_action('registered_taxonomy', array(__CLASS__, 'note_taxonomy'));
         add_filter('register_block_type_args', array(__CLASS__, 'note_block'), 10, 2);
+        add_action('register_sidebar', array(__CLASS__, 'note_sidebar'));
     }
 
     /**
@@ -732,7 +778,10 @@ final class SEOProStack_Plugin_Loader {
         if (!is_admin() || is_network_admin() || wp_doing_ajax() || wp_doing_cron()) {
             return false;
         }
-        if ((defined('WP_CLI') && WP_CLI) || (defined('REST_REQUEST') && REST_REQUEST) || (defined('IFRAME_REQUEST') && IFRAME_REQUEST)) {
+        // Core marks the Customizer controls as an iframe too. Only that
+        // exact admin script is eligible; preview and other iframes stay full.
+        if ((defined('WP_CLI') && WP_CLI) || (defined('REST_REQUEST') && REST_REQUEST)
+            || (defined('IFRAME_REQUEST') && IFRAME_REQUEST && 'customize.php' !== self::script())) {
             return false;
         }
         if (defined('SEOPROSTACK_LOAD_ALL_PLUGINS') && SEOPROSTACK_LOAD_ALL_PLUGINS) {
@@ -787,6 +836,15 @@ final class SEOProStack_Plugin_Loader {
      */
     private static function screen_key($script) {
         // phpcs:disable WordPress.Security.NonceVerification.Recommended -- only reading which screen this is.
+        // Theme previews and existing changesets can register a different set
+        // of controls. Never reuse the normal theme's learned form for them.
+        if ('customize.php' === $script && (isset($_GET['theme']) || isset($_GET['customize_theme']) || isset($_GET['customize_changeset_uuid']) || isset($_GET['changeset_uuid']))) {
+            return '';
+        }
+        // Export downloads and importer execution must keep every content owner.
+        if (('export.php' === $script && isset($_GET['download'])) || ('import.php' === $script && isset($_GET['import']))) {
+            return '';
+        }
         if (isset($_GET['page'])) {
             // A plugin's own page, wherever its menu entry is (Settings, Tools).
             $page = is_string($_GET['page']) ? sanitize_text_field(wp_unslash($_GET['page'])) : '';
@@ -853,6 +911,12 @@ final class SEOProStack_Plugin_Loader {
             // styles (SITE_EDITOR_HOOKS). It edits only core post types.
             case 'site-editor.php':
                 return 'site-editor';
+            case 'customize.php':
+                return 'customizer';
+            case 'import.php':
+                return 'import';
+            case 'export.php':
+                return 'export';
         }
         // phpcs:enable
         return '';
@@ -908,6 +972,9 @@ final class SEOProStack_Plugin_Loader {
             }
             if ('site-editor' === $kind && (!isset($map['site_editor_theme']) || get_option('stylesheet') !== $map['site_editor_theme'])) {
                 return null; // Learned with another theme: what it offers differs.
+            }
+            if ('customizer' === $kind && (!isset($map['customizer_theme']) || get_option('stylesheet') !== $map['customizer_theme'])) {
+                return null;
             }
             if ('list' === $kind || 'post' === $kind) {
                 if (!array_key_exists($name, $map['types'])) {
@@ -1189,6 +1256,17 @@ final class SEOProStack_Plugin_Loader {
             self::$registered['taxes'][$taxonomy] = self::calling_plugin();
         } else {
             self::$registered['taxes'][$taxonomy] = '';
+        }
+    }
+
+    /**
+     * Note the plugin that owns a widget area, even when it has no widget class.
+     *
+     * @param array $sidebar Registered sidebar arguments.
+     */
+    public static function note_sidebar($sidebar) {
+        if (isset($sidebar['id'])) {
+            self::$registered['sidebars'][(string) $sidebar['id']] = self::calling_plugin();
         }
     }
 
