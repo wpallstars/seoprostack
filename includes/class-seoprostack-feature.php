@@ -199,13 +199,37 @@ abstract class SEOProStack_Feature {
         $used  = $now - $begun;
         // On Linux the limit counts CPU time of every thread, and image
         // libraries use several, so CPU time can run ahead of the clock.
-        if (function_exists('getrusage')) {
-            $usage = getrusage();
-            if (is_array($usage) && isset($usage['ru_utime.tv_sec'], $usage['ru_stime.tv_sec'])) {
-                $used = max($used, $usage['ru_utime.tv_sec'] + $usage['ru_stime.tv_sec'] + ($usage['ru_utime.tv_usec'] + $usage['ru_stime.tv_usec']) / 1e6);
+        // getrusage() counts the whole process, which under PHP-FPM serves
+        // many requests (thousands of seconds on a test site), so only CPU
+        // time since the first call in this request counts, plus the clock
+        // time before it.
+        $cpu = self::cpu_seconds();
+        if (null !== $cpu) {
+            if (null === self::$cpu_base) {
+                self::$cpu_base = array($cpu, $now - $begun);
             }
+            $used = max($used, $cpu - self::$cpu_base[0] + self::$cpu_base[1]);
         }
         return $used < $limit - min(10, $limit / 3);
+    }
+
+    /** CPU seconds and request seconds at the first more_time() check. @var array|null */
+    private static $cpu_base = null;
+
+    /**
+     * CPU seconds this process has used, or null when unknown.
+     *
+     * @return float|null
+     */
+    private static function cpu_seconds() {
+        if (!function_exists('getrusage')) {
+            return null;
+        }
+        $usage = getrusage();
+        if (!is_array($usage) || !isset($usage['ru_utime.tv_sec'], $usage['ru_stime.tv_sec'], $usage['ru_utime.tv_usec'], $usage['ru_stime.tv_usec'])) {
+            return null;
+        }
+        return $usage['ru_utime.tv_sec'] + $usage['ru_stime.tv_sec'] + ($usage['ru_utime.tv_usec'] + $usage['ru_stime.tv_usec']) / 1e6;
     }
 
     /**

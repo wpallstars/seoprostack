@@ -93,12 +93,12 @@ class SEOProStack_Nextgen_Images extends SEOProStack_Feature {
             ),
             'nextgen_webp_quality' => array(
                 'type'        => 'int',
-                'default'     => 80,
+                'default'     => 90,
                 'min'         => 10,
                 'max'         => 100,
                 'parent'      => self::KEY,
                 'label'       => __('WebP quality', 'seoprostack'),
-                'description' => __('80 keeps pictures sharp and files small. After a change, pictures are converted again in the background.', 'seoprostack'),
+                'description' => __('90 keeps pictures sharp; lower makes smaller files. After a change, pictures are converted again in the background.', 'seoprostack'),
             ),
             'nextgen_avif' => array(
                 'type'        => 'bool',
@@ -109,12 +109,12 @@ class SEOProStack_Nextgen_Images extends SEOProStack_Feature {
             ),
             'nextgen_avif_quality' => array(
                 'type'        => 'int',
-                'default'     => 60,
+                'default'     => 70,
                 'min'         => 10,
                 'max'         => 100,
                 'parent'      => self::KEY,
                 'label'       => __('AVIF quality', 'seoprostack'),
-                'description' => __('AVIF at 60 looks about the same as WebP at 80. After a change, pictures are converted again in the background.', 'seoprostack'),
+                'description' => __('AVIF at 70 looks about the same as WebP at 90. After a change, pictures are converted again in the background.', 'seoprostack'),
             ),
             'nextgen_smart' => array(
                 'type'        => 'bool',
