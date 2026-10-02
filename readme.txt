@@ -31,7 +31,7 @@ Everything is off by default except Hide admin bar items (Comments and + New), N
 = Writing and publishing =
 
 * **Publishing queue**: posts published without a date are scheduled for the next free time slot.
-* **Duplicate posts**, **Staged new versions** (edit a published post as a draft copy) and **Shareable preview links** for people without an account.
+* **Duplicate posts**, **Staged new versions** (edit a published post as a draft) and **Shareable preview links** for people without an account.
 * **Pinned posts for any post type** and **Select all across pages** for bulk actions.
 * **Menu item visibility** by login or role, **Change post type**, **Order by hand**, **Term tools** (merge, move, set parent), **Search custom fields** (ACF) and **Old post addresses**.
 * **TranslatePress colours**: Kadence light/dark switchers.
@@ -43,7 +43,7 @@ Everything is off by default except Hide admin bar items (Comments and + New), N
 
 * **Copy linked images to Media Library** when a post is saved, and **Paste into the Media Library**.
 * **SVG uploads** for chosen roles, cleaned as they are uploaded.
-* **Resize large uploads**, **Replace media files** and **Watermark pictures**, which keeps unmarked originals.
+* **Resize large uploads**, **Replace media files** and **Watermark pictures**, keeping the originals.
 * **WebP and AVIF images**: smaller copies sent to browsers that support them, at the same address.
 * **Website screenshots**: a Screenshot block and the `[browser-shot]` shortcode, with pictures saved to the Media Library.
 * **Avatars without Gravatar**: avatars served from your own site.
@@ -129,7 +129,8 @@ Click **Report a problem** at the top right of Settings → SEO Pro Stack, or op
 
 = Unreleased =
 * New: Word documents in the editor.
-* Change: Pinned posts (was Sticky posts); faster post lists.
+* Change: Pinned posts; faster post lists.
+* Fix: More menu items no longer shift right.
 
 = 0.9.0 =
 * New: Menu item visibility, Change post type, Order by hand, Term tools, Search custom fields, Old post addresses, Link cards, Wikipedia previews, Agency tab.
