@@ -287,6 +287,7 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
             add_action('loop_start', array(__CLASS__, 'front_loop'));
             add_filter('render_block', array(__CLASS__, 'front_block'), 10, 2);
             add_filter('do_shortcode_tag', array(__CLASS__, 'front_shortcode'), 10, 2);
+            add_action('dynamic_sidebar', array(__CLASS__, 'front_widget'));
             foreach (array('woocommerce_get_cart_url', 'woocommerce_cart_contents_count', 'woocommerce_cart_total', 'woocommerce_cart_subtotal') as $hook) {
                 add_filter($hook, array(__CLASS__, 'front_cart_value'));
             }
@@ -1097,6 +1098,20 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
         return $output;
     }
 
+    /** Capture widgets inserted by theme or plugin filters, not just saved ones. */
+    public static function front_widget($widget) {
+        if (isset($widget['callback'])) {
+            self::$front_seen[] = SEOProStack_Plugin_Loader::plugin_for_callback($widget['callback']);
+        }
+    }
+
+    /** Configured sidebars through public option/filter APIs. */
+    private static function front_sidebars() {
+        $widgets = (array) get_option('sidebars_widgets', array());
+        unset($widgets['array_version']);
+        return (array) apply_filters('sidebars_widgets', $widgets);
+    }
+
     /** Record cart getters called by a theme or another plugin, not WC setup. */
     public static function front_cart_value($value) {
         $self = plugin_basename(SEOPROSTACK_FILE);
@@ -1161,7 +1176,7 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
         if (!in_array('scripts', $items, true) || !in_array('fragments', $items, true)) {
             return false;
         }
-        foreach ((array) wp_get_sidebars_widgets() as $sidebar => $widgets) {
+        foreach (self::front_sidebars() as $sidebar => $widgets) {
             if ('wp_inactive_widgets' === $sidebar) {
                 continue;
             }
@@ -1207,7 +1222,7 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
                 }
             }
         }
-        foreach ((array) wp_get_sidebars_widgets() as $sidebar => $widgets) {
+        foreach (self::front_sidebars() as $sidebar => $widgets) {
             if ('wp_inactive_widgets' === $sidebar) {
                 continue;
             }
@@ -1221,7 +1236,7 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
         // Global template parts and reusable blocks can add content outside the
         // post. Page-specific templates are captured while they render above.
         $posts = array_merge($posts, get_posts(array('post_type' => array('wp_template_part', 'wp_block'),
-            'numberposts' => 100, 'post_status' => 'publish', 'suppress_filters' => true)));
+            'numberposts' => 100, 'post_status' => 'publish', 'suppress_filters' => false)));
         if (count($posts) >= 100) {
             return $state['active']; // Too much global content to inspect cheaply.
         }
