@@ -485,6 +485,10 @@ final class SEOProStack_Plugin_Loader {
         if (!self::front_request()) {
             return;
         }
+        if (!empty($options[self::PAGES_KEY]) && (!empty($_COOKIE) || !empty($_SERVER['HTTP_AUTHORIZATION'])
+            || !empty($_SERVER['REDIRECT_HTTP_AUTHORIZATION']) || !empty($_SERVER['PHP_AUTH_USER']))) {
+            return; // Authentication and sessions are not public page views.
+        }
         $logged_in    = self::has_login_cookie();
         self::$screen = 'front';
         // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- only loads more plugins.
@@ -531,9 +535,19 @@ final class SEOProStack_Plugin_Loader {
             }
             $keep = isset($options[self::KEEP_KEY]) ? (array) $options[self::KEEP_KEY] : array();
             $candidates = array_diff((array) ($front['candidates'] ?? array()), $keep);
-            $chosen = array_unique(array_merge($chosen, $candidates));
+            $chosen = array_diff(array_unique(array_merge($chosen, $candidates)), $keep);
+            $needed = (array) ($page['needs'] ?? array());
+            do {
+                $before = count($needed);
+                foreach ((array) $front['deps'] as $file => $deps) {
+                    if (array_intersect((array) $deps, $needed)) {
+                        $needed[] = $file; // Extensions follow the content owner.
+                    }
+                }
+                $needed = array_unique($needed);
+            } while (count($needed) !== $before);
             // Even an explicitly ticked content plugin stays on pages using it.
-            $chosen = array_diff($chosen, (array) ($page['needs'] ?? array()));
+            $chosen = array_diff($chosen, $needed);
         }
         self::$skipped = self::front_skipped($chosen, $front);
         if (self::$skipped) {
@@ -604,6 +618,9 @@ final class SEOProStack_Plugin_Loader {
      * @return string
      */
     public static function front_page_key() {
+        if (!isset($_SERVER['REQUEST_METHOD']) || 'GET' !== $_SERVER['REQUEST_METHOD']) {
+            return '';
+        }
         // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- only choosing to load more plugins.
         foreach (array_keys($_GET) as $name) {
             if (self::LOAD_ALL_ARG !== $name && 0 !== strpos((string) $name, 'utm_')

@@ -72,7 +72,7 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
      */
     const FRONT_ALWAYS_HOOKS = array(
         'determine_current_user', 'auth_cookie', 'auth_cookie_expiration', 'secure_auth_cookie', 'secure_logged_in_cookie',
-        'logout_url', 'register_url', 'lostpassword_url',
+        'logout_url', 'register_url', 'lostpassword_url', 'user_has_cap', 'map_meta_cap',
     );
 
     /** Hooks that check logins or block requests. */
@@ -226,11 +226,16 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
         add_action('seoprostack_setting_saved', array(__CLASS__, 'setting_saved'));
         // A route must not keep an old decision after its content or layout changes.
         add_action('save_post', array(__CLASS__, 'forget_front'));
+        add_action('added_post_meta', array(__CLASS__, 'forget_front'));
+        add_action('updated_post_meta', array(__CLASS__, 'forget_front'));
+        add_action('deleted_post_meta', array(__CLASS__, 'forget_front'));
         add_action('deleted_post', array(__CLASS__, 'forget_front'));
         add_action('edited_term', array(__CLASS__, 'forget_front'));
         add_action('delete_term', array(__CLASS__, 'forget_front'));
         add_action('switch_theme', array(__CLASS__, 'forget_front'));
         add_action('updated_option', array(__CLASS__, 'front_option_changed'), 10, 1);
+        add_action('added_option', array(__CLASS__, 'front_option_changed'), 10, 1);
+        add_action('deleted_option', array(__CLASS__, 'front_option_changed'), 10, 1);
         add_action('seoprostack_setting_panel', array(__CLASS__, 'panel_status'), 10, 2);
         if (is_admin()) {
             add_action('admin_init', array(__CLASS__, 'maybe_sync'));
@@ -953,20 +958,33 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
         if ($state['relearn'] && !current_user_can('activate_plugins')) {
             return;
         }
+        $error = error_get_last();
+        if (http_response_code() >= 500 || ($error && in_array($error['type'], array(E_ERROR, E_PARSE, E_CORE_ERROR, E_COMPILE_ERROR, E_USER_ERROR), true))) {
+            return; // A failed full request is not evidence of page ownership.
+        }
         $print = SEOProStack_Plugin_Loader::fingerprint($state['active']);
         if (SEOProStack_Plugin_Loader::fingerprint(SEOProStack_Plugin_Loader::stored_active_plugins()) !== $print) {
             return; // Plugins changed during this request; the next one learns.
         }
         $deps   = self::dependencies($state['active']);
         $notes  = self::front_notes($state, $deps);
+        $previous = get_option(SEOProStack_Plugin_Loader::FRONT, array());
+        $current = SEOProStack_Plugin_Loader::front_current();
+        if ($current && !empty($previous['failed']) && !$state['relearn']) {
+            return; // Do not overwrite a failure recorded by another request.
+        }
+        if ($current) {
+            foreach ((array) $previous['notes'] as $file => $list) {
+                $notes[$file] = array_values(array_unique(array_merge((array) $list, (array) ($notes[$file] ?? array()))));
+            }
+        }
         $always = array();
         foreach ($notes as $file => $list) {
             if (array_intersect($list, array('always', 'core'))) {
                 $always[] = $file;
             }
         }
-        $previous = get_option(SEOProStack_Plugin_Loader::FRONT, array());
-        $pages = SEOProStack_Plugin_Loader::front_current() ? (array) ($previous['pages'] ?? array()) : array();
+        $pages = $current ? (array) ($previous['pages'] ?? array()) : array();
         $candidates = array();
         foreach ($notes as $file => $list) {
             // Unknown global callbacks are not proof that a plugin is unused.
@@ -977,10 +995,16 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
         $woo = 'woocommerce/woocommerce.php';
         if (in_array($woo, $state['active'], true) && self::woo_can_skip()) {
             $candidates[] = $woo;
+            if (SEOProStack_Settings::get(SEOProStack_Plugin_Loader::PAGES_KEY)) {
+                // Its known auth and lost-password hooks do not apply to a
+                // cookie-free public request; those requests are guarded above.
+                $always = array_values(array_diff($always, array($woo)));
+            }
         }
         $key = SEOProStack_Settings::get(SEOProStack_Plugin_Loader::PAGES_KEY) ? SEOProStack_Plugin_Loader::front_page_key() : '';
         if ('' !== $key && empty($_COOKIE) && !is_user_logged_in() && !is_404() && !is_feed()
-            && !is_search() && !is_preview() && 200 === http_response_code()) {
+            && !is_search() && !is_preview() && (is_home() || is_singular() || is_archive())
+            && did_action('wp_footer') && 200 === http_response_code()) {
             $pages[$key] = array('needs' => self::page_needs($state), 'learned' => time());
             if (count($pages) > SEOProStack_Plugin_Loader::PAGE_LIMIT) {
                 array_shift($pages);
@@ -1053,15 +1077,44 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
 
     /**
      * WooCommerce's global assets are intentional unless the owner has already
-     * chosen to remove them. WooCommerce-aware themes and widgets are retained:
-     * their cart may appear only on some devices or for some visitors.
+     * chosen to remove them. Configured WooCommerce widgets are retained: their
+     * cart may appear only on some devices or for some visitors. Unknown security
+     * hooks in a future WooCommerce version fall back to loading it everywhere.
      *
      * @return bool
      */
     private static function woo_can_skip() {
-        if (!SEOProStack_Woo_Light::enabled() || current_theme_supports('woocommerce')
+        global $wp_filter;
+        if (!SEOProStack_Woo_Light::enabled()
             || 'yes' === get_option('woocommerce_demo_store', 'no')) {
             return false;
+        }
+        // Audited callbacks in WooCommerce 8.2 and newer. These only authenticate
+        // REST/WooCommerce.com requests or grant capabilities to signed-in users.
+        // Any new callback falls back to loading WooCommerce on every page.
+        $public_hooks = array(
+            'determine_current_user' => array('WC_REST_Authentication::authenticate', 'WC_WCCOM_Site::authenticate_wccom',
+                'Automattic\\Jetpack\\Connection\\Rest_Authentication::wp_rest_authenticate'),
+            'lostpassword_url' => array('wc_lostpassword_url'),
+            'map_meta_cap' => array('wc_modify_map_meta_cap', 'Automattic\\Jetpack\\Connection\\Manager::jetpack_connection_custom_caps'),
+            'user_has_cap' => array('wc_customer_has_capability', 'wc_shop_manager_has_capability'),
+        );
+        foreach ((array) $wp_filter as $name => $hook) {
+            if (!($hook instanceof WP_Hook) || 'always' !== self::front_hook_kind($name)) {
+                continue;
+            }
+            foreach ($hook->callbacks as $callbacks) {
+                foreach ($callbacks as $callback) {
+                    $function = $callback['function'];
+                    if ('woocommerce/woocommerce.php' !== SEOProStack_Plugin_Loader::plugin_for_callback($function)) {
+                        continue;
+                    }
+                    $id = is_array($function) ? (is_object($function[0]) ? get_class($function[0]) : $function[0]) . '::' . $function[1] : $function;
+                    if (!isset($public_hooks[$name]) || !in_array($id, $public_hooks[$name], true)) {
+                        return false;
+                    }
+                }
+            }
         }
         $items = (array) SEOProStack_Settings::get(SEOProStack_Woo_Light::ITEMS_KEY);
         if (!in_array('scripts', $items, true) || !in_array('fragments', $items, true)) {
@@ -1090,10 +1143,43 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
      */
     private static function page_needs(array $state) {
         global $wp_query, $shortcode_tags;
-        $needs = array_merge(self::$front_seen, self::widget_plugins());
+        $needs = self::$front_seen;
+        // Remaining assets (including analytics and dependencies) mean a plugin
+        // still contributes to this page after other features have dequeued it.
+        $root = (string) wp_parse_url(plugins_url('/'), PHP_URL_PATH);
+        foreach (array(wp_scripts(), wp_styles()) as $assets) {
+            $handles = array_unique(array_merge($assets->queue, $assets->done));
+            for ($i = 0; $i < count($handles); $i++) {
+                $handle = $handles[$i];
+                if (empty($assets->registered[$handle])) {
+                    continue;
+                }
+                $asset = $assets->registered[$handle];
+                foreach ((array) $asset->deps as $dep) {
+                    if (!in_array($dep, $handles, true)) {
+                        $handles[] = $dep;
+                    }
+                }
+                $path = (string) wp_parse_url((string) $asset->src, PHP_URL_PATH);
+                if ('' !== $root && 0 === strpos($path, $root)) {
+                    $needs[] = SEOProStack_Plugin_Loader::plugin_for_file(WP_PLUGIN_DIR . '/' . substr($path, strlen($root)));
+                }
+            }
+        }
+        foreach ((array) wp_get_sidebars_widgets() as $sidebar => $widgets) {
+            if ('wp_inactive_widgets' === $sidebar) {
+                continue;
+            }
+            foreach ((array) $widgets as $widget) {
+                if (isset($GLOBALS['wp_registered_widgets'][$widget]['callback'])) {
+                    $needs[] = SEOProStack_Plugin_Loader::plugin_for_callback($GLOBALS['wp_registered_widgets'][$widget]['callback']);
+                }
+            }
+        }
         $posts = $wp_query instanceof WP_Query ? (array) $wp_query->posts : array();
-        // Block templates and reusable blocks can add content outside the post.
-        $posts = array_merge($posts, get_posts(array('post_type' => array('wp_template', 'wp_template_part', 'wp_block'),
+        // Global template parts and reusable blocks can add content outside the
+        // post. Page-specific templates are captured while they render above.
+        $posts = array_merge($posts, get_posts(array('post_type' => array('wp_template_part', 'wp_block'),
             'numberposts' => 100, 'post_status' => 'publish', 'suppress_filters' => true)));
         if (count($posts) >= 100) {
             return $state['active']; // Too much global content to inspect cheaply.
@@ -1125,7 +1211,10 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
         }
         if (class_exists('WooCommerce', false) && (SEOProStack_Woo_Light::is_shop_page()
             || did_action('woocommerce_before_mini_cart') || did_action('woocommerce_before_cart')
-            || did_action('woocommerce_before_shop_loop') || false !== strpos($content, 'wp:woocommerce/'))) {
+            || did_action('woocommerce_before_shop_loop') || did_filter('lostpassword_url')
+            || did_filter('woocommerce_get_cart_url') || did_filter('woocommerce_cart_contents_count')
+            || did_filter('woocommerce_cart_total') || did_filter('woocommerce_cart_subtotal')
+            || false !== strpos($content, 'wp:woocommerce/'))) {
             $needs[] = 'woocommerce/woocommerce.php';
         }
         return array_values(array_unique(array_filter($needs)));
