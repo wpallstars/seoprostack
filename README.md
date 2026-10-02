@@ -2,7 +2,9 @@
 
 # SEO Pro Stack
 
-Curated plugins, themes, hosting and workflow tools for WordPress, plus a few small quality-of-life features.
+One free plugin for a faster, tidier WordPress. It does the jobs of 40+ single-purpose plugins, each a switch you turn on.
+
+SEO Pro Stack does the jobs that usually take dozens of small plugins: a calmer, faster admin, better writing and media tools, safer logins, and tested settings for the plugins we recommend. Each feature is one switch, so you add only what you use. Fewer plugins means fewer updates, conflicts and slowdowns. Free and open source: no pro version, nothing locked.
 
 If this saves you time, headaches and costs, feel free to [buy me a coffee](https://buymeacoffee.com/marcusquinn), or whatever you like, to invest in making more things open-source.
 
@@ -986,6 +988,7 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folder�
 
 ### Unreleased
 
+- Read Me and `readme.txt`: a clearer opening about what SEO Pro Stack is for, `readme.txt` features grouped by what they help with and trimmed to about 9.9 KB (WordPress.org allows 10 KB), and a **Built with AI** note about [aidevops](https://aidevops.sh). No code changes.
 - New, off by default: **Brand icons** (Content tab; replaces Popular Brand Icons – Simple Icons, whose bundled set is from 2022): a Brand icon block with Simple Icons 16.33.0 (3,463 icons) and 343 Font Awesome Free 7.3.1 brand icons for brands Simple Icons does not have. Shapes in 64 JSON files (`index.json` says which), inlined as SVG on the server; the editor searches through `GET seoprostack/v1/brand-icons`. `[simple_icon]` and `#name#` menu titles keep working, with old names mapped to new ones. `scripts/update-brand-icons.sh` refreshes the set. Free Plugins no longer lists Simple Icons. Settings version 13. The release zip grows from about 760 KB to 2.9 MB (66 more files; one SVG file per icon would have been 3,806 files and 3.9 MB).
 - New, on by default within Organise the admin menu: **Writers see only writing**. Contributors and authors no longer see or open plugin pages that ask only for a capability every writer has (such as AI Engine’s settings, Media File Renamer, FluentCommunity and WooCommerce Home, which ask for `read` or `edit_posts`), nor Tools, nor plugins’ post types without the content editor (such as Lasso Lite’s short links); they keep Dashboard, their posts and post types with the editor, Media, Comments and Profile. Pages a plugin gives their role on purpose stay. New filters `seoprostack_is_writer`, `seoprostack_writer_hides_page` and `seoprostack_writer_hides_post_type`.
 - Development: every pull request is checked in GitHub Actions (`.github/workflows/ci.yml`): PHP 7.4 syntax, JavaScript syntax, ShellCheck, actionlint, WordPress Coding Standards with PHP 7.4 and WordPress 6.2 compatibility (`phpcs.xml.dist`), PHPStan level 5 with a shrinking baseline (`phpstan.neon.dist`), the release preflight, Plugin Check on both zips, and a smoke test (`scripts/smoke-test.sh`) that loads the site and admin screens on WordPress 6.2 with PHP 7.4 and on the latest WordPress, with every feature on, then uninstalls and fails on any PHP message or leftover option. `scripts/lint.sh` runs the code checks locally; Composer installs the tools (development only, not in release zips). Dependabot updates the SHA-pinned actions and tools weekly. Fixes found on the way: Load plugins only where needed registers its `pre_update_option_active_plugins` filter with the one argument it takes, and uses `wp_installing()` instead of the `WP_INSTALLING` constant. Workflow: `DEVELOPMENT.md`.
@@ -1233,6 +1236,10 @@ Where a feature replaces one of them, SEO Pro Stack imports the settings it can,
 | Fix ‘Plugin file does not exist’ Notices | WP All Stars | [GitHub](https://github.com/wpallstars/wp-fix-plugin-does-not-exist-notices) | Clean up deleted plugins |
 | Freesoul Deactivate Plugins | Jose Mortellaro | [WordPress.org](https://wordpress.org/plugins/freesoul-deactivate-plugins/), [GitHub](https://github.com/JoseMortellaro/freesoul-deactivate-plugins) | Load plugins only where needed (not a replacement yet: its page-by-page rules on the site are not covered) |
 | Git Updater | Andy Fragen | [GitHub](https://github.com/afragen/git-updater), [website](https://git-updater.com/) | Updates from GitHub (GitHub builds only) |
+
+## Built with AI
+
+SEO Pro Stack is built and maintained with [aidevops](https://aidevops.sh), the same developer's open-source AI harness for creating and managing anything online with AI, plugins like this one included. It is free on [GitHub](https://github.com/marcusquinn/aidevops).
 
 ## License
 

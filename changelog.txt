@@ -3,6 +3,7 @@
 Every change to SEO Pro Stack. readme.txt lists the latest version in short.
 
 = Unreleased =
+* Change: a clearer description of what SEO Pro Stack does, with features grouped by what they help with, and a note that it is built with aidevops, an open-source AI harness.
 * New, off by default: Brand icons: a Brand icon block with about 3,800 brand logos from the current Simple Icons set, plus Font Awesome for brands Simple Icons no longer has (such as LinkedIn, Microsoft and Slack), in the brand's colour or your text colour, optionally linked. Icons are part of the page, so nothing extra loads. Replaces Popular Brand Icons – Simple Icons, whose [simple_icon] shortcode and #name# menu titles keep working.
 * New, on by default with Organise the admin menu: Writers see only writing. Contributors and authors see their posts, media, comments and profile, and no longer see or open plugin pages that any writer could reach, such as plugin settings or short links, or Tools. Pages a plugin gives their role on purpose stay.
 * New: Buy me a coffee, at the top right of Settings → SEO Pro Stack, opens the maker’s Buy Me a Coffee page, if you would like to support more open-source work.
