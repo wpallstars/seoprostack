@@ -26,7 +26,7 @@ Everything is off by default except Hide admin bar items (Comments and + New), N
 * **Admin bar and dashboard access**: hide the admin bar and block wp-admin for subscribers, customers and the like, never administrators.
 * **Magic login links**: one-time login links by email that scanners cannot use up.
 * **Turn off unused remote access**: XML-RPC and application passwords, both off by default.
-* **Modern admin colours**, **No fade between admin screens** (on by default), **Readable list columns** and **Notification emails**, which stops routine emails one by one.
+* **Modern admin colours**, **No fade between admin screens** (on by default), **Readable list columns** and **Notification emails** (stop routine emails).
 * **Tidy admin screens**, **Tidy WooCommerce admin**, **Tidy the login screen**, **Simpler block editor**, **Remove WordPress extras**, **Fewer Heartbeat requests**, **Limit post revisions** and **Lighter WooCommerce pages** replace most of Disable Bloat.
 
 = Writing and publishing =
@@ -34,7 +34,7 @@ Everything is off by default except Hide admin bar items (Comments and + New), N
 * **Publishing queue**: posts published without a date are scheduled for the next free time slot.
 * **Duplicate posts**, **Staged new versions** (edit a published post as a draft) and **Shareable preview links** for people without an account.
 * **Pinned posts for any post type** and **Select all across pages** for bulk actions.
-* **Menu item visibility** by login or role, **Change post type**, **Order by hand**, **Term tools** (merge, move, set parent), **Search custom fields** (ACF) and **Old post addresses**.
+* **Restrict content** (posts, categories, blocks) and **Menu item visibility** by login or role, **Change post type**, **Order by hand**, **Term tools** (merge, move, set parent), **Search custom fields** (ACF) and **Old post addresses**.
 * **TranslatePress colours**: Kadence light/dark switchers.
 * **iFrame block**: embed pages, limited to the domains and roles you choose.
 * **Link cards**, **Wikipedia previews**, **Word documents**, **Brand icons** and **Like, save and share**.
@@ -51,7 +51,7 @@ Everything is off by default except Hide admin bar items (Comments and + New), N
 
 = Links, speed and plugins =
 
-* **Short links** such as /go/offer/, with redirects, categories and click counts, and **Short addresses for custom post types**. **410 Gone** for removed pages.
+* **Short links** such as /go/offer/, with categories and click counts, and **Short addresses for custom post types**. **410 Gone** for removed pages.
 * **Speed**: load pages before the click, delay chosen scripts until interaction, add Google Analytics 4 without slowing the page, open the editor faster with Kadence Blocks, and **Ask before licence checks** (once, daily or never).
 * **Load plugins only where needed**: a faster wp-admin, admin tools skipped on the site, and optional page-by-page learning.
 * **Plugins menu** in the admin bar, **Plugin sizes**, **Clean up deleted plugins**, **Hosting needs** (what to ask your host for) and **Plugin presets**: our settings and starter data for other plugins, on request.
@@ -125,7 +125,7 @@ Click **Report a problem** at the top right of Settings → SEO Pro Stack, or op
 == Changelog ==
 
 = Unreleased =
-* New: Word documents; Like, save and share; Brand icons; coffee button.
+* New: Restrict content; Word documents; Like, save and share; Brand icons; coffee button.
 * Change: Pinned posts; faster lists; sizes in Free Plugins; megaphone; writers' menu.
 * Fix: More menu alignment; menu in full screen editor.
 
