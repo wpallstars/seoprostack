@@ -33,7 +33,7 @@ Every feature is off by default except four: Hide admin bar items, which hides C
 | Avatars without Gravatar | Admin | Avatar Privacy |
 | Duplicate posts | Content | Carbon Copy, Yoast Duplicate Post |
 | Staged new versions, Shareable preview links | Content | Post Draft Preview, Public Post Preview |
-| Sticky posts for any post type | Content | Sticky Posts Switch |
+| Pinned posts for any post type | Content | Sticky Posts Switch |
 | Select all across pages | Content | Bulk Actions Select All |
 | Menu item visibility | Content | Nav Menu Roles |
 | Change post type | Content | Post Type Switcher |
@@ -44,6 +44,7 @@ Every feature is off by default except four: Hide admin bar items, which hides C
 | Link cards | Content | Bookmark Card |
 | Wikipedia previews | Content | Wikipedia Preview |
 | Word documents in the editor | Content | Mammoth .docx converter |
+| Like, save and share | Content | Favorites |
 | Spectra block replacements | Content | Spectra |
 | Paste into the Media Library | Media | The Paste |
 | SVG uploads | Media | Safe SVG |
@@ -276,9 +277,9 @@ Tick **Share a preview link** in the editor of a draft, pending or scheduled pos
 - Links expire after 1–90 days (7 by default) and stop working when turned off or when the post is published.
 - Preview pages send `noindex`, `no-referrer` and no-cache headers and ask page caches not to store them.
 
-### Sticky posts for any post type (Content)
+### Pinned posts for any post type (Content)
 
-Adds a star column to the lists of the post types you choose, and a **Stick to the top** option in the editor for types other than posts. Sticky items lead the first page of the blog home, their post type archive and chosen term archives (categories, tags or custom taxonomies). It uses core’s sticky list, so existing sticky posts, themes and blocks keep working.
+Adds a narrow pin column to the lists of the post types you choose, and a **Pin to the top** option in the editor for types other than posts. Wherever WordPress says “Sticky” in post lists, Quick Edit, Bulk Edit and the editors, it says “Pinned”, the word most sites and apps use (core still calls them sticky posts, so themes and blocks see no change). Pinned items lead the first page of the blog home, their post type archive and chosen term archives (categories, tags or custom taxonomies). It uses core’s sticky list, so existing sticky posts, themes and blocks keep working.
 
 ### Select all across pages (Content)
 
@@ -503,6 +504,20 @@ Drop or paste a Word document (`.docx`) into the block editor, or choose **Word 
 - The server reads the document with PHP’s zip extension (`ZipArchive`) and DOM, through `POST seoprostack/v1/word-document`, for people who can upload files and edit the post. The document itself is not stored. Documents up to 30 MB, or the site’s upload limit if smaller. Without the zip extension, the editor says to ask the host to turn it on.
 - Older `.doc` files need saving as `.docx` first.
 - Switches on if Mammoth .docx converter is active (it has no settings to import). Unlike Mammoth, there is no meta box and no 600 KB script in the editor.
+
+### Like, save and share (Content)
+
+Like, Save and Share buttons, as on social media, and a list of what each visitor saved.
+
+- **Like, save and share** block: Like (a heart and the total), Save (a bookmark) and Share. Each button can be turned off in the block settings. The same three buttons go after the content of the post types chosen in the setting, on the post's own page, unless the block or `[favorite_button]` is already in it.
+- **Saved posts** block: the visitor's saved posts, newest first, as links, with optional excerpts and Remove buttons and your own text for an empty list.
+- Share opens the device's share sheet where there is one (most phones), and otherwise copies the link and says so.
+- Works with page caching. The page is the same for everyone; a small script (only on pages with the buttons or list) asks `admin-ajax.php` for the totals and, for logged-in people, what they liked and saved, with a fresh nonce for changes. No sessions, no cookies.
+- Visitors' likes and saved posts stay in their browser (`localStorage`); the server keeps only like totals (post meta `_seoprostack_likes`), and visitors' like changes are limited to 120 an hour per address (a salted hash, kept for an hour). Logged-in people's likes and saved posts are stored per site in user options `seoprostack_liked` and `seoprostack_saved`, so they follow them between devices, and posts saved before logging in join their list.
+- Only published, public posts without a password can be liked or saved.
+- Replaces Favorites. While Favorites is active, it switches on with the post types Favorites adds its button to (before or after the content), and Favorites' own buttons stay until it is deactivated. Until SEO Pro Stack stores its own, totals come from Favorites' `simplefavorites_count` and logged-in users' saved and liked posts from their Favorites favourites on this site, so each is counted once. Favorites' data is never changed. Visitors' favourites in Favorites' cookie are not carried over.
+- Favorites' shortcodes keep working once it is deactivated: `[favorite_button]` (Like and Save), `[favorite_count]`, `[user_favorites]` (the visitor's own list; `post_types`, `include_excerpts`, `include_buttons` and `no_favorites` are used), `[user_favorite_count]` and `[clear_favorites_button]`. Groups, thumbnails and other people's lists are not.
+- Deleting the plugin removes the totals and logged-in people's lists.
 
 ### Spectra block replacements (Content)
 
@@ -948,6 +963,9 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folder�
 ### Unreleased
 
 - Change: **Hide admin notices** shows a megaphone (`dashicons-megaphone`, `\f488`) instead of a bell, so it is not mistaken for other plugins’ notification bells. Debug Log Manager’s admin bar icon now always sits just left of it (or of the Plugins menu where there is no megaphone): `SEOProStack_Admin_Bar::NEIGHBOURS` pins other plugins’ `top-secondary` nodes by rank, and a node that is not on the bar is left alone.
+- New, off by default: **Like, save and share** (Content tab; replaces Favorites): a Like, save and share block (Like with a count, Save, Share), the same buttons after the content of chosen post types, and a Saved posts block. Pages stay cacheable: a small script loads counts and logged-in people's state from `admin-ajax.php`; visitors' likes and saved posts stay in `localStorage`, with no cookies or sessions. Like totals are post meta `_seoprostack_likes`; logged-in people's lists are per-site user options. It reads Favorites' counts and logged-in users' favourites until it stores its own, takes over Favorites' five shortcodes once Favorites is deactivated, and switches itself on, with Favorites' post types, while Favorites is active; Free Plugins no longer lists Favorites. Settings version 12.
+- Change: **Sticky posts for any post type** is now **Pinned posts for any post type**: a pin instead of a star in post lists, and “Pinned” instead of “Sticky” in lists, Quick Edit, Bulk Edit and the editors. Clicking the pin adds or removes “Pinned” after the title, and updates Quick Edit, without reloading the list. The pin and Order by hand columns are 20 px wide instead of about 30, leaving more room for the title.
+- Change: **Load plugins only where needed** loads less on post lists. Quick Edit and Bulk Edit now count only plugins that print fields there, so plugins that hook them for other post types (WooCommerce for products) no longer load on the Pages list. `WC requires at least` makes WooCommerce load with a plugin only when the plugin's name says WooCommerce, so general plugins that declare it (TranslatePress, Simple Cloudflare Turnstile, WP Sheet Editor) no longer bring WooCommerce to every screen. Map version 7: screens are learned again.
 - Fix: **Fit the menu to its names** with the block editor in full screen mode. The content area, footer and other plugins’ bars that follow the wider menu no longer keep its offset while WordPress hides the menu (`is-fullscreen-mode` on `<body>`), which left an empty strip down the left; the script never marks the editor’s frame, which the stylesheet places; and the menu is measured when it shows, so it fits when the editor leaves full screen instead of keeping the usual width (it used to be measured while hidden).
 - New, off by default: **Word documents in the editor** (Content tab; replaces Mammoth .docx converter): drop or paste a `.docx` file into the block editor, or choose Word document in the Options menu, and it becomes core blocks, with headings, formatting, links, nested lists, quotes, tables and pictures. The server converts it with `ZipArchive` and DOM; pictures go to the Media Library, attached to the post. It switches itself on while Mammoth is active; Free Plugins no longer lists Mammoth. Settings version 11.
 - Fix: **More menu in the admin bar**: each moved item's row now holds its own floats (a clearfix on `.ab-item`). Core and plugins float bar icons (`.ab-icon`, `.ab-item:before`); on the bar every item is one line, but a menu row can be shorter than its icon, so the float pushed the next rows to the right (Rank Math SEO under AutomatorWP, Query Monitor under Social Posts). This covers any plugin's floated icon, with no per-plugin rules.
@@ -1152,7 +1170,7 @@ Where a feature replaces one of them, SEO Pro Stack imports the settings it can,
 | Yoast Duplicate Post | Yoast | [WordPress.org](https://wordpress.org/plugins/duplicate-post/), [GitHub](https://github.com/Yoast/duplicate-post) | Duplicate posts |
 | Post Draft Preview | WP Served | [WordPress.org](https://wordpress.org/plugins/post-draft-preview/), [GitHub](https://github.com/wpserved/post-draft-preview) | Shareable preview links |
 | Public Post Preview | Dominik Schilling | [WordPress.org](https://wordpress.org/plugins/public-post-preview/), [GitHub](https://github.com/ocean90/public-post-preview) | Shareable preview links |
-| Sticky Posts – Switch | Markus Wiesenhofer | [WordPress.org](https://wordpress.org/plugins/sticky-posts-switch/) | Sticky posts for any post type |
+| Sticky Posts – Switch | Markus Wiesenhofer | [WordPress.org](https://wordpress.org/plugins/sticky-posts-switch/) | Pinned posts for any post type |
 | Bulk Actions Select All | Jesper van Engelen | [WordPress.org](https://wordpress.org/plugins/bulk-actions-select-all/), [GitHub](https://github.com/engelen/bulk-actions-select-all) | Select all across pages |
 | Nav Menu Roles | HelgaTheViking | [WordPress.org](https://wordpress.org/plugins/nav-menu-roles/), [GitHub](https://github.com/helgatheviking/Nav-Menu-Roles) | Menu item visibility |
 | Post Type Switcher | John James Jacoby | [WordPress.org](https://wordpress.org/plugins/post-type-switcher/), [GitHub](https://github.com/JJJ/post-type-switcher) | Change post type |
@@ -1164,6 +1182,7 @@ Where a feature replaces one of them, SEO Pro Stack imports the settings it can,
 | Bookmark Card | George Mamadashvili | [WordPress.org](https://wordpress.org/plugins/bookmark-card/), [GitHub](https://github.com/Mamaduka/bookmark-card) | Link cards |
 | Wikipedia Preview | Wikimedia Foundation | [WordPress.org](https://wordpress.org/plugins/wikipedia-preview/), [GitHub](https://github.com/wikimedia/wikipedia-preview) | Wikipedia previews |
 | Mammoth .docx converter | Michael Williamson | [WordPress.org](https://wordpress.org/plugins/mammoth-docx-converter/), [GitHub](https://github.com/mwilliamson/mammoth-wordpress-plugin) | Word documents in the editor |
+| Favorites | Hook & Filter (first by Kyle Phillips) | [WordPress.org](https://wordpress.org/plugins/favorites/), [GitHub](https://github.com/Hook-Filter/favorites) | Like, save and share |
 | Spectra | Brainstorm Force | [WordPress.org](https://wordpress.org/plugins/ultimate-addons-for-gutenberg/), [GitHub](https://github.com/brainstormforce/wp-spectra) | Spectra block replacements |
 | The Paste | Jörn Lund | [WordPress.org](https://wordpress.org/plugins/the-paste/), [GitHub](https://github.com/mcguffin/the-paste) | Paste into the Media Library |
 | Safe SVG | 10up | [WordPress.org](https://wordpress.org/plugins/safe-svg/), [GitHub](https://github.com/10up/safe-svg) | SVG uploads |

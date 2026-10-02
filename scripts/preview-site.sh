@@ -11,7 +11,9 @@
 # Nothing is checked out, committed to a branch or pushed: merges are worked
 # out with `git merge-tree` and exported with `git archive`, so any worktree
 # can run it, and every run includes everyone's pushed work. The copy holds
-# what a release build contains (.distignore applied).
+# what a release build contains (.distignore applied). A checkout whose copy
+# of this script differs from origin/main's runs origin/main's, so an old
+# worktree cannot leave PRs out (SEOPROSTACK_PREVIEW_OWN=1 runs its own).
 #
 # Usage: scripts/preview-site.sh [--dry-run] [<site>]
 #   <site>     WordPress folder of the test site (the one with wp-load.php).
@@ -48,7 +50,7 @@ die() {
 }
 
 usage() {
-	sed -n '2,23p' "$0" | sed 's/^# \{0,1\}//'
+	sed -n '2,25p' "$0" | sed 's/^# \{0,1\}//'
 	return 0
 }
 
@@ -214,15 +216,20 @@ EOF
 # A note when the branch this runs from is not in the preview as it is here.
 branch_note() {
 	local current="$1"
-	local merged
+	local merged changed
 	if [ -z "$current" ] || [ "$current" = "main" ]; then
 		return 0
 	fi
 	# Nothing to add: its work is already in the preview, through main (after
 	# a squash merge its commits are not ancestors of main) or its open PR.
-	merged="$(git merge-tree --write-tree --no-messages "$PREVIEW_COMMIT" HEAD 2>/dev/null || true)"
-	if [ "$merged" = "$(git rev-parse "$PREVIEW_COMMIT^{tree}")" ]; then
-		return 0
+	# Changelog lines can sit in another order there (other PRs' lines are
+	# kept beside them), so differences only in DOC_FILES do not count.
+	if merged="$(git -c core.attributesFile="$UNION_ATTRIBUTES" merge-tree --write-tree --no-messages "$PREVIEW_COMMIT" HEAD 2>/dev/null)"; then
+		changed="$(git diff --name-only "$PREVIEW_COMMIT" "$merged" | tr '\n' ' ')"
+		changed="${changed% }"
+		if [ -z "$changed" ] || only_doc_files "$changed"; then
+			return 0
+		fi
 	fi
 	if ! printf '%s' "$INCLUDED" | grep -q " $current "; then
 		printf 'Your branch %s is not in the preview: push it and open a draft PR, or see skipped above.\n' "$current"
@@ -259,6 +266,36 @@ copy_to_site() {
 	return 0
 }
 
+# Run origin/main's copy of this script when this checkout's differs, so a
+# worktree made before a fix to the script cannot leave open PRs out of the
+# shared preview. SEOPROSTACK_PREVIEW_OWN=1 runs this copy instead (to try a
+# change to the script itself).
+run_latest() {
+	local dry_run="$1"
+	local site_arg="$2"
+	local root="$3"
+	local latest
+	if [ -n "${SEOPROSTACK_PREVIEW_LATEST:-}" ]; then
+		# Already main's copy: bash has the file open, so it can go now.
+		rm -f "$SEOPROSTACK_PREVIEW_LATEST"
+		return 0
+	fi
+	if [ "${SEOPROSTACK_PREVIEW_OWN:-}" = "1" ]; then
+		return 0
+	fi
+	git fetch --quiet --prune origin || return 0
+	latest="$(mktemp "${TMPDIR:-/tmp}/seoprostack-preview-latest.XXXXXX")"
+	if ! git show origin/main:scripts/preview-site.sh >"$latest" 2>/dev/null || cmp -s "$latest" "$root/scripts/preview-site.sh"; then
+		rm -f "$latest"
+		return 0
+	fi
+	printf 'preview-site: this checkout'\''s copy of the script differs from origin/main; running origin/main'\''s.\n' >&2
+	if [ "$dry_run" -eq 1 ]; then
+		SEOPROSTACK_PREVIEW_LATEST="$latest" exec bash "$latest" --dry-run ${site_arg:+"$site_arg"}
+	fi
+	SEOPROSTACK_PREVIEW_LATEST="$latest" exec bash "$latest" ${site_arg:+"$site_arg"}
+}
+
 main() {
 	local dry_run=0
 	local site_arg=""
@@ -281,6 +318,7 @@ main() {
 	root="$(git rev-parse --show-toplevel)" || die "run this inside a checkout of the plugin"
 	common="$(git rev-parse --path-format=absolute --git-common-dir)"
 	cd "$root"
+	run_latest "$dry_run" "$site_arg" "$root"
 	resolve_site "$site_arg" "$common/seoprostack-preview-site" "$((1 - dry_run))"
 
 	trap cleanup EXIT

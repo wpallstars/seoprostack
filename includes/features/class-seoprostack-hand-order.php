@@ -37,6 +37,9 @@ class SEOProStack_Hand_Order extends SEOProStack_Feature {
     /** Rows updated per query when renumbering. */
     const BATCH = 500;
 
+    /** The handle column: as narrow as its icon, to leave room for the title. */
+    const COLUMN_STYLE = '.fixed .column-seoprostack_order { width: 20px; padding-left: 2px; padding-right: 2px; text-align: center; }';
+
     /**
      * Settings.
      *
@@ -426,7 +429,7 @@ class SEOProStack_Hand_Order extends SEOProStack_Feature {
         if (!self::list_in_hand_order()) {
             add_action('admin_enqueue_scripts', function () {
                 wp_add_inline_style('list-tables', '
-                    .fixed .column-seoprostack_order { width: 2.2em; }
+                    ' . self::COLUMN_STYLE . '
                     .wp-core-ui .seoprostack-order-back { color: #8c8f94; }
                     .wp-core-ui .seoprostack-order-back:hover, .wp-core-ui .seoprostack-order-back:focus { color: #2271b1; }
                 ');
@@ -445,8 +448,8 @@ class SEOProStack_Hand_Order extends SEOProStack_Feature {
                 'failed'  => __('Could not save the order. Reload the page and try again.', 'seoprostack'),
             ));
             wp_add_inline_style('list-tables', '
-                .fixed .column-seoprostack_order { width: 2.2em; }
-                .wp-core-ui .seoprostack-order-handle { cursor: grab; color: #8c8f94; padding: 2px; }
+                ' . self::COLUMN_STYLE . '
+                .wp-core-ui .seoprostack-order-handle { cursor: grab; color: #8c8f94; padding: 0; }
                 .wp-core-ui .seoprostack-order-handle:hover, .wp-core-ui .seoprostack-order-handle:focus { color: #2271b1; }
                 .wp-core-ui .seoprostack-order-handle:focus { box-shadow: 0 0 0 2px #2271b1; border-radius: 2px; outline: none; }
                 #the-list tr.ui-sortable-helper { background: #fff; box-shadow: 0 2px 8px rgba(0,0,0,.15); }
