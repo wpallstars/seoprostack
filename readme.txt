@@ -52,6 +52,7 @@ Everything is off by default except Hide admin bar items (Comments and + New), N
 * **Speed**: load pages before the click, delay chosen scripts until interaction, add Google Analytics 4 without slowing the page, open the editor faster with Kadence Blocks, and **Ask before licence checks** (once now, once a day or never).
 * **Load plugins only where needed**: a faster wp-admin on sites with many plugins, and admin tools you choose skipped on the site, through a must-use file it manages itself.
 * **Plugins menu** in the admin bar, **Plugin sizes**, **Clean up deleted plugins**, **Hosting needs** (what to ask your host for) and **Plugin presets**: our settings and starter data for other plugins, on request.
+* **Maintenance mode**: a temporary 503 page with a message and 24-hour bypass links you can revoke.
 * **Database key cleanup**: review leftover and duplicate indexes, confirm each removal and keep restore SQL. Back up first.
 
 Features that replace another plugin import its settings once, never change that plugin’s settings, and wait while it is active.
@@ -119,8 +120,8 @@ Copies from WordPress.org update from there. New versions come out on GitHub fir
 
 = Unreleased =
 * New: presets for Code Snippets, Rank Math SEO, WP-Optimize and Burst Statistics.
-* New, off by default: turn off XML-RPC and application passwords separately.
-* New, off by default: Database key cleanup, with per-key confirmation and restore SQL.
+* New, off by default: Maintenance mode with bypass links; turn off XML-RPC or application passwords.
+* New, off by default: Database key cleanup.
 * New, off by default: TranslatePress switcher colours.
 * New, off by default: eight features that do most of Disable Bloat’s job, importing its settings.
 * New: starter data for Fluent Forms (four forms) and Fluent Booking (a Discovery Call), feeding FluentCRM.

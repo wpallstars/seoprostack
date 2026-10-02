@@ -8,7 +8,7 @@ Version: {SEOPROSTACK_VERSION}
 
 Go to **Settings → SEO Pro Stack**, or click the star next to your name in the admin bar (shown to people who can change these settings). The screen has three groups of tabs:
 
-- **Settings**: Admin, Content, Media, Links, Speed and Plugins, plus Maintenance in builds from GitHub releases. Changes save instantly; there is no Save button.
+- **Settings**: Admin, Content, Media, Links, Speed, Plugins and Maintenance. Changes save instantly; there is no Save button.
 - **Search features** (next to the plugin name) finds settings on every tab by name, description or the plugin they replace. Results can be switched on and changed in place.
 - **Discover**: Theme, Free Plugins, Pro Plugins, Hosting and Tools.
 - **About**: this Read Me.
@@ -45,6 +45,7 @@ Every feature is off by default except three: Hide admin bar items, which hides 
 | 410 Gone for removed pages | Links | Ultimate 410 |
 | Short addresses for custom post types | Links | Remove CPT base |
 | Short links | Links | Pretty Links |
+| Maintenance mode | Maintenance | Hostinger Tools, in part |
 | Plugins menu in the admin bar | Plugins | Plugin Toggle |
 | Clean up deleted plugins | Plugins | Fix ‘Plugin file does not exist’ Notices |
 
@@ -70,7 +71,7 @@ Off by default, with two independent choices, both unchecked:
 - **Turn off XML-RPC**: direct requests to `xmlrpc.php` return HTTP 403, including unauthenticated methods such as pingbacks. Removes the `X-Pingback` response header and RSD discovery link. Jetpack and some mobile apps need XML-RPC; leave this unchecked if you use them.
 - **Turn off application passwords**: core stops accepting application passwords and hides their profile section and the Authorize application screen. Existing application passwords are not deleted; they work again when this choice is unchecked, if core allows them. Normal password login and the REST API stay available.
 
-Imports enabled switches from active Hostinger Tools (`hostinger_tools`) and Disable Bloat once, without overwriting choices already saved here or changing their options. The feature waits until those plugins are deactivated. Only these two functions are replaced: the Plugins screen names Hostinger’s maintenance mode, HTTPS and www redirects, llms.txt generation and MCP connection when they are on, instead of suggesting removal. Keep Hostinger Tools if you still use those or its hosting tools. No separate options or files are stored; uninstall removes these settings with the rest.
+Imports enabled switches from active Hostinger Tools (`hostinger_tools`) and Disable Bloat once, without overwriting choices already saved here or changing their options. The feature waits until those plugins are deactivated. Only these two functions are replaced here, and Hostinger’s maintenance mode by [Maintenance mode](#maintenance-mode-maintenance): the Plugins screen names Hostinger’s HTTPS and www redirects, llms.txt generation and MCP connection when they are on, instead of suggesting removal. Keep Hostinger Tools if you still use those or its hosting tools. No separate options or files are stored; uninstall removes these settings with the rest.
 
 Uses core’s `xmlrpc_enabled`, `wp_headers` and `wp_is_application_passwords_available` filters, removes `rsd_link` from `wp_head`, and refuses XML-RPC during `init`.
 
@@ -703,6 +704,16 @@ Releasing on GitHub:
 
 Mark test builds as pre-releases on GitHub (or tag them with letters, such as `v1.2.0-rc1`): sites never offer those. Do not add an `Update URI` header: WordPress.org rejects it, and Plugin Check reports it as an updater. Sites that still use Git Updater compare the `Version:` header on `main` instead, so keep pre-release versions out of `main` too, and publish the release in the same sitting as the version merge.
 
+### Maintenance mode (Maintenance)
+
+Off by default. Visitors see the site name and a plain-text message, with a 503 response, a one-hour Retry-After and noindex. Administrators see the normal site and a **Maintenance mode is on** admin-bar link to the setting. Login, admin screens, AJAX, cron, WP-CLI, robots.txt, sitemaps and logged-in REST requests keep working. Public REST requests receive a 503 unless they have a bypass cookie.
+
+Switch it on and reload to show the **Bypass link** in its options. Share it only with people who should see the site: it sets a 24-hour HttpOnly cookie (Secure on HTTPS, SameSite=Lax), holding a keyed hash rather than the link's token, and redirects to remove the token from the address. **New link** invalidates the old link and all its cookies. **Allow the bypass link** can stop bypass access without changing the link. This is visitor access, not a login or permission to edit anything.
+
+Clear your host's, CDN's and plugin's page caches when switching on or off; pages served before WordPress runs cannot be held by this feature. Maintenance and bypass responses ask caches not to store them. The small page has no styles or outside resources, so it uses the browser's default colours.
+
+Imports `hostinger_tools[maintenance_mode]` once (settings version 7), without overwriting an existing choice. Hostinger Tools keeps handling maintenance while active. Its XML-RPC and application-password switches are covered by [Turn off unused remote access](#turn-off-unused-remote-access-admin); its HTTPS, www, llms.txt and MCP switches are not replaced, and the Plugins screen names them when they are on before suggesting it can go. Hostinger's bypass code is never reused. The new `seoprostack_maintenance_token` option is removed on uninstall; the switch and message live in the main settings option.
+
 ## Extending
 
 Developers can add settings, tabs and directory entries with filters:
@@ -716,6 +727,7 @@ Developers can add settings, tabs and directory entries with filters:
 - `seoprostack_auto_upload_process_post`: skip image copying for specific posts.
 - `seoprostack_auto_upload_limit`: change the per-save import limit.
 - `seoprostack_magic_login_allowed`: allow or refuse login links for a user.
+- `seoprostack_maintenance_capability`: capability needed to view the site during maintenance without a bypass link (default `manage_options`). Changing the bypass link still requires permission to change SEO Pro Stack's settings.
 - `seoprostack_magic_login_email`: change the login link email.
 - `seoprostack_magic_login_ip_limit`: requests allowed per IP address per 15 minutes (default 5).
 - `seoprostack_post_scheduler_applies`: skip the publishing queue for specific posts.
@@ -767,6 +779,7 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folder�
 
 ### Unreleased
 
+- New, off by default: Maintenance mode, with a plain-text 503 page, administrator reminder and revocable 24-hour visitor bypass links. Imports Hostinger Tools' maintenance switch, leaving its other jobs alone.
 - New: small display presets for Rank Math SEO (no Frontend Stats Bar), WP-Optimize (no caching menu in the admin bar) and Burst Statistics (no non-critical dashboard notices). Modules, tracking services and schedules are not changed. Burst's preset contains only its admin notice preference, not the six settings its generated tracking script contains; Apply, Reset and Undo leave that file unchanged.
 - New: Fluent Booking starter data (`fluentbooking_events`): a free, single-host, 30-minute Discovery Call, with the adding administrator's host calendar and default schedule. Uses Booking's own calendar/event handlers and FluentCRM integration save service. Confirmed bookings join `website-booking-form` when FluentCRM is active. Remove keeps events with any bookings, removes only calendars this starter created while unused, and keeps CRM lists referenced by Booking feeds. The Fluent Boards Pro roadmap is not included: its creation service and page metadata need verification with Pro available.
 - New, off by default: Turn off unused remote access (Admin tab), with independent, unchecked choices to turn off XML-RPC (HTTP 403, no pingback header or RSD link) and application passwords (no profile section or authorization screen). Settings version 7 imports the enabled switches from active Hostinger Tools and Disable Bloat, preserving saved choices and the source plugins’ options.
@@ -925,7 +938,7 @@ Where a feature replaces one of them, SEO Pro Stack imports the settings it can,
 | Admin Bar & Dashboard Access Control | Collins Agbonghama | [WordPress.org](https://wordpress.org/plugins/admin-bar-dashboard-control/) | Admin bar and dashboard access |
 | Admin Menu Editor (and Pro) | Janis Elsts | [WordPress.org](https://wordpress.org/plugins/admin-menu-editor/) | Organise the admin menu |
 | Widget Disable | required | [WordPress.org](https://wordpress.org/plugins/wp-widget-disable/), [GitHub](https://github.com/wearerequired/WP-Widget-Disable) | Dashboard and sidebar widgets |
-| Hostinger Tools | Hostinger | [WordPress.org](https://wordpress.org/plugins/hostinger/), [source (WordPress.org SVN)](https://plugins.svn.wordpress.org/hostinger/trunk/) | Turn off unused remote access (XML-RPC and application passwords only) |
+| Hostinger Tools | Hostinger | [WordPress.org](https://wordpress.org/plugins/hostinger/), [source (WordPress.org SVN)](https://plugins.svn.wordpress.org/hostinger/trunk/) | Turn off unused remote access (XML-RPC and application passwords), Maintenance mode |
 | Disable Bloat for WordPress & WooCommerce (and PRO) | Rock Solid | [WordPress.org](https://wordpress.org/plugins/disable-dashboard-for-woocommerce/), [website](https://disablebloat.com/) | Tidy admin screens, Tidy WooCommerce admin, Tidy the login screen, Simpler block editor, Limit post revisions, Remove WordPress extras, Fewer Heartbeat requests, Lighter WooCommerce pages, Turn off unused remote access (XML-RPC and application passwords) |
 | Manage Notification E-mails | 3D Virge | [WordPress.org](https://wordpress.org/plugins/manage-notification-emails/) | Notification emails |
 | Hide Admin Notices | PontetLabs | [WordPress.org](https://wordpress.org/plugins/hide-admin-notices/), [GitHub](https://github.com/jonpontet/hide-admin-notices) | Hide admin notices |

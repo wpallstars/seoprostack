@@ -126,7 +126,8 @@ class SEOProStack_Hardening extends SEOProStack_Feature {
 
     /**
      * Do not suggest removing Hostinger's other tools or uncovered switches.
-     * Maintenance mode is not covered by this feature (issue #2).
+     * The one list for Hostinger Tools: SEOProStack_Maintenance covers its
+     * maintenance mode, so that is not named here.
      *
      * @param string[] $extras Other functions still needed.
      * @param string   $slug   Plugin folder.
@@ -140,9 +141,7 @@ class SEOProStack_Hardening extends SEOProStack_Feature {
         if (!is_array($theirs)) {
             return $extras;
         }
-        // Keep one extras list; maintenance-mode parity should extend it (#2).
         $other = array(
-            'maintenance_mode' => __('Maintenance mode', 'seoprostack'),
             'force_https'      => __('Redirect to HTTPS', 'seoprostack'),
             'force_www'        => __('Redirect to www', 'seoprostack'),
             'enable_llms_txt'  => __('Generate llms.txt', 'seoprostack'),
