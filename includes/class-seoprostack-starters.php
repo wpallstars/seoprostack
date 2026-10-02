@@ -1615,8 +1615,12 @@ final class SEOProStack_Starters {
         $element = $field['element'];
         if ('multi_payment_component' === $element) {
             $list = array();
+            // Fluent Forms shows the price of a single item only, so choices
+            // carry theirs in the label, in this site's currency.
+            $priced = 'single' !== $field['attributes']['type'];
             foreach ($options as $label => $price) {
-                $list[] = array('label' => (string) $label, 'value' => (float) $price, 'image' => '');
+                $label  = (string) $label;
+                $list[] = array('label' => $priced ? $label . ' – ' . self::money((float) $price) : $label, 'value' => (float) $price, 'image' => '');
             }
             $field['settings']['pricing_options'] = $list;
             if (1 === count($list) && 'single' === $field['attributes']['type']) {
@@ -1652,6 +1656,25 @@ final class SEOProStack_Starters {
             $field['settings']['advanced_options'] = $list;
         }
         return $field;
+    }
+
+    /**
+     * A price as Fluent Forms shows it, in its payment currency.
+     *
+     * @param float $amount Amount.
+     * @return string
+     */
+    private static function money($amount) {
+        $helper = '\FluentForm\App\Modules\Payments\PaymentHelper';
+        if (class_exists($helper)) {
+            $settings = $helper::getPaymentSettings();
+            if (!empty($settings['currency'])) {
+                $money = $helper::formatMoney((int) round($amount * 100), $settings['currency']);
+                // Whole amounts without the zero pence: £90, not £90.00.
+                return floor($amount) == $amount ? (string) preg_replace('/[.,]00(?=\D*$)/', '', $money) : $money;
+            }
+        }
+        return number_format_i18n($amount, floor($amount) == $amount ? 0 : 2);
     }
 
     /**

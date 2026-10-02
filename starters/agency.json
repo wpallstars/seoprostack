@@ -1,9 +1,9 @@
 {
     "name": "Agency",
     "set": true,
-    "tested": "Fluent Forms 6.2.15, FluentCRM 3.2.5, Fluent Boards 2.1.0, Fluent Support 2.4.0, FluentBooking 2.5.0, FluentCommunity 2.11.0, Tutor LMS 4.1.0",
+    "tested": "Fluent Forms 6.2.15, Fluent Forms Pro 6.2.15, FluentCRM 3.2.5, Fluent Boards 2.1.0, Fluent Support 2.4.0, FluentBooking 2.5.0, FluentCommunity 2.11.0, Tutor LMS 4.1.0",
     "updated": "2026-10-02",
-    "notes": "A digital marketing agency selling SEO, ads, PR, social media, design, apps and retainers, to rename and reprice. Adding it sets everything up and switches it on; there is nothing to choose. Order forms wait until Fluent Forms can take payments. To add a service, copy an order form, rename it “Service Order Form” and put it on a page.",
+    "notes": "A digital marketing agency selling SEO, ads, PR, social media, design, apps and retainers, to rename and reprice. Adding it sets everything up and switches it on; there is nothing to choose. Order forms wait until Fluent Forms can take payments. Link Building is a checkout page made with free Fluent Forms: packs with a quantity, prices beside each choice and a running total. Local SEO, added with Fluent Forms Pro, adds a phone field, photo uploads, discount codes and bank transfer (turn on coupons and offline payments in Fluent Forms → Payments). To add a service, copy an order form, rename it “Service Order Form” and put it on a page.",
     "items": {
         "fluentcrm_lists": [
             { "slug": "agency-quote-request-form", "title": "Agency Quote Request Form", "when": "fluent-crm" },
@@ -98,7 +98,7 @@
                             "element": "select",
                             "attributes": { "name": "service" },
                             "settings": { "label": "Which service is it about?", "admin_field_label": "Service" },
-                            "options": { "SEO": "SEO", "Paid Ads": "Paid Ads", "PR": "PR", "Social Media": "Social Media", "App": "App", "Campaign Design": "Campaign Design", "Retainer": "Retainer", "Something else": "Something else" },
+                            "options": { "SEO": "SEO", "Link Building": "Link Building", "Paid Ads": "Paid Ads", "PR": "PR", "Social Media": "Social Media", "App": "App", "Campaign Design": "Campaign Design", "Retainer": "Retainer", "Something else": "Something else" },
                             "required": true
                         },
                         { "element": "input_text", "attributes": { "name": "subject" }, "settings": { "label": "Subject", "admin_field_label": "Subject" }, "required": true },
@@ -275,6 +275,89 @@
                 }
             },
             {
+                "title": "Link Building Order Form",
+                "requires": "payments",
+                "settings": { "confirmation": { "messageToShow": "Thank you for your order. We have emailed you a link to follow it, and we will send you the pages we find for your approval." } },
+                "form_fields": {
+                    "fields": [
+                        { "element": "input_email", "attributes": { "name": "email" }, "settings": { "label": "Email", "admin_field_label": "Email" }, "required": true },
+                        { "element": "input_name", "attributes": { "name": "names" }, "settings": { "admin_field_label": "Name" }, "fields": { "first_name": { "settings": { "validation_rules": { "required": { "value": true } } } } } },
+                        {
+                            "element": "multi_payment_component",
+                            "attributes": { "name": "links", "type": "radio" },
+                            "settings": { "label": "Choose your links", "admin_field_label": "Links" },
+                            "options": {
+                                "Authority link: 1 link on a site with 500+ linking domains": 90,
+                                "Authority pack: 10 links": 850,
+                                "Authority pack: 20 links": 1600,
+                                "Premium link: 1 link on a site with 1,000+ linking domains and 1,000+ visits a month": 120,
+                                "Premium pack: 10 links": 1100,
+                                "Premium pack: 20 links": 2100
+                            },
+                            "required": true
+                        },
+                        { "element": "item_quantity_component", "attributes": { "name": "quantity", "value": "1" }, "settings": { "label": "How many?", "admin_field_label": "Quantity", "target_product": "links" }, "required": true },
+                        {
+                            "element": "select",
+                            "attributes": { "name": "link_type" },
+                            "settings": { "label": "Link type", "admin_field_label": "Link type" },
+                            "options": { "Dofollow": "Dofollow (recommended)", "Nofollow": "Nofollow" },
+                            "required": true
+                        },
+                        { "element": "input_url", "attributes": { "name": "website" }, "settings": { "label": "Your website", "admin_field_label": "Website" }, "required": true },
+                        { "element": "payment_summary_component", "settings": { "cart_empty_text": "Choose your links to see the total." } },
+                        { "element": "payment_method", "settings": { "label": "Payment" }, "required": true }
+                    ],
+                    "submitButton": { "settings": { "button_ui": { "text": "Complete purchase" } } }
+                }
+            },
+            {
+                "title": "Local SEO Order Form",
+                "when": "fluentformpro",
+                "requires": "payments",
+                "settings": { "confirmation": { "messageToShow": "Thank you for your order. We have emailed you a link to follow it." } },
+                "form_fields": {
+                    "fields": [
+                        { "element": "input_email", "attributes": { "name": "email" }, "settings": { "label": "Email", "admin_field_label": "Email" }, "required": true },
+                        { "element": "input_name", "attributes": { "name": "names" }, "settings": { "admin_field_label": "Name" }, "fields": { "first_name": { "settings": { "validation_rules": { "required": { "value": true } } } } } },
+                        { "element": "input_text", "attributes": { "name": "business" }, "settings": { "label": "Business name, as customers know it", "admin_field_label": "Business" }, "required": true },
+                        { "element": "phone", "attributes": { "name": "phone" }, "settings": { "label": "Business phone", "admin_field_label": "Phone" } },
+                        {
+                            "element": "multi_payment_component",
+                            "attributes": { "name": "package", "type": "radio" },
+                            "settings": { "label": "Choose a package", "admin_field_label": "Package" },
+                            "options": {
+                                "Starter: Google Business Profile set up and 20 directory listings": 290,
+                                "Growth: Starter, plus 50 listings and 3 location pages": 690,
+                                "Leader: Growth, plus 100 listings and 5 local guest posts": 1490
+                            },
+                            "required": true
+                        },
+                        { "element": "item_quantity_component", "attributes": { "name": "locations", "value": "1" }, "settings": { "label": "How many locations?", "admin_field_label": "Locations", "target_product": "package" }, "required": true },
+                        {
+                            "element": "multi_payment_component",
+                            "attributes": { "name": "addons", "type": "checkbox" },
+                            "settings": { "label": "Add-ons", "admin_field_label": "Add-ons" },
+                            "options": { "Review cards with QR codes": 79, "Photo plan for your profile": 149, "Local guest post with a map": 99 }
+                        },
+                        { "element": "input_file", "attributes": { "name": "photos" }, "settings": { "label": "Logo and photos (optional)", "admin_field_label": "Photos" } },
+                        { "element": "payment_coupon", "attributes": { "name": "coupon" }, "settings": { "label": "Discount code", "suffix_label": "Apply" } },
+                        { "element": "payment_summary_component", "settings": { "cart_empty_text": "Choose a package to see the total." } },
+                        {
+                            "element": "payment_method",
+                            "settings": {
+                                "label": "Payment",
+                                "payment_methods": {
+                                    "test": { "title": "Offline Payment", "enabled": "yes", "method_value": "test", "settings": { "option_label": { "type": "text", "template": "inputText", "value": "Bank transfer", "label": "Method Label" } } }
+                                }
+                            },
+                            "required": true
+                        }
+                    ],
+                    "submitButton": { "settings": { "button_ui": { "text": "Complete purchase" } } }
+                }
+            },
+            {
                 "title": "Project Brief Form",
                 "settings": { "confirmation": { "messageToShow": "Thank you. We have added your brief to your order." } },
                 "form_fields": {
@@ -311,7 +394,8 @@
                     { "title": "App", "color": "orange-bold" },
                     { "title": "Design", "color": "yellow-bold" },
                     { "title": "Audit", "color": "sky-bold" },
-                    { "title": "Retainer", "color": "gray-bold" }
+                    { "title": "Retainer", "color": "gray-bold" },
+                    { "title": "Link Building", "color": "red-bold" }
                 ]
             },
             {
@@ -338,7 +422,8 @@
             { "title": "Social Media", "description": "Social media marketing." },
             { "title": "App", "description": "App builds and care plans." },
             { "title": "Campaign Design", "description": "Landing pages, email campaigns and ad creatives." },
-            { "title": "Retainer", "description": "Monthly retainers." }
+            { "title": "Retainer", "description": "Monthly retainers." },
+            { "title": "Link Building", "description": "Links from articles on other sites." }
         ],
         "fluentbooking_events": [
             {
@@ -442,12 +527,6 @@
                 "content": "<!-- wp:paragraph -->\n<p>A set number of hours each month for whatever you need most: SEO, ads, PR, social media or design.</p>\n<!-- /wp:paragraph -->\n\n<!-- wp:shortcode -->\n[fluentform id=\"{form:Monthly Retainer Order Form}\"]\n<!-- /wp:shortcode -->"
             },
             {
-                "title": "Services",
-                "slug": "services",
-                "requires": "payments",
-                "content": "<!-- wp:paragraph -->\n<p>Choose a service, pay securely, and follow your order on your client dashboard.</p>\n<!-- /wp:paragraph -->\n\n<!-- wp:heading -->\n<h2 class=\"wp-block-heading\">One-off</h2>\n<!-- /wp:heading -->\n\n<!-- wp:list -->\n<ul class=\"wp-block-list\"><!-- wp:list-item -->\n<li><a href=\"{url:SEO Audit}\">SEO audit</a>, from 750</li>\n<!-- /wp:list-item -->\n\n<!-- wp:list-item -->\n<li><a href=\"{url:PR Campaign}\">PR campaign and articles</a>, from 180</li>\n<!-- /wp:list-item -->\n\n<!-- wp:list-item -->\n<li><a href=\"{url:Campaign Design}\">Campaign design</a>, from 500</li>\n<!-- /wp:list-item -->\n\n<!-- wp:list-item -->\n<li><a href=\"{url:App Build}\">App build</a>, from 1,500</li>\n<!-- /wp:list-item --></ul>\n<!-- /wp:list -->\n\n<!-- wp:heading -->\n<h2 class=\"wp-block-heading\">Monthly</h2>\n<!-- /wp:heading -->\n\n<!-- wp:list -->\n<ul class=\"wp-block-list\"><!-- wp:list-item -->\n<li><a href=\"{url:Paid Ads Management}\">Paid ads management</a>, from 500 a month</li>\n<!-- /wp:list-item -->\n\n<!-- wp:list-item -->\n<li><a href=\"{url:Social Media Marketing}\">Social media marketing</a>, from 600 a month</li>\n<!-- /wp:list-item -->\n\n<!-- wp:list-item -->\n<li><a href=\"{url:App Care Plan}\">App care plan</a>, from 99 a month</li>\n<!-- /wp:list-item -->\n\n<!-- wp:list-item -->\n<li><a href=\"{url:Monthly Retainer}\">Monthly retainer</a>, from 900 a month</li>\n<!-- /wp:list-item --></ul>\n<!-- /wp:list -->"
-            },
-            {
                 "title": "Book a Call",
                 "slug": "book-a-call",
                 "when": "fluent-booking",
@@ -483,6 +562,25 @@
                 "title": "Client Dashboard",
                 "slug": "client-dashboard",
                 "content": "<!-- wp:paragraph -->\n<p>Your orders, messages, payments, calls, report, courses and community in one place.</p>\n<!-- /wp:paragraph -->\n\n<!-- wp:seoprostack/client-dashboard /-->"
+            },
+            {
+                "title": "Link Building",
+                "slug": "link-building",
+                "requires": "payments",
+                "content": "<!-- wp:columns -->\n<div class=\"wp-block-columns\"><!-- wp:column {\"width\":\"45%\"} -->\n<div class=\"wp-block-column\" style=\"flex-basis:45%\"><!-- wp:paragraph -->\n<p>Links inside articles that already rank, on real sites about your industry. We find the right article, ask the site to add your link, and send you each one when it is live.</p>\n<!-- /wp:paragraph -->\n\n<!-- wp:heading {\"level\":3} -->\n<h3 class=\"wp-block-heading\">What you get</h3>\n<!-- /wp:heading -->\n\n<!-- wp:list -->\n<ul class=\"wp-block-list\"><!-- wp:list-item -->\n<li>Articles at least six months old, chosen for your industry</li>\n<!-- /wp:list-item -->\n\n<!-- wp:list-item -->\n<li>Your choice of pages and wording for each link</li>\n<!-- /wp:list-item -->\n\n<!-- wp:list-item -->\n<li>A report with every link, live within 30 days</li>\n<!-- /wp:list-item -->\n\n<!-- wp:list-item -->\n<li>A free replacement if a link is removed within six months</li>\n<!-- /wp:list-item --></ul>\n<!-- /wp:list -->\n\n<!-- wp:paragraph -->\n<p>After you order, tell us which pages and keywords to link to in your <a href=\"{url:Project Brief}\">project brief</a>.</p>\n<!-- /wp:paragraph -->\n\n<!-- wp:paragraph -->\n<p>Questions? <a href=\"{url:Support}\">Send us a message</a>.</p>\n<!-- /wp:paragraph --></div>\n<!-- /wp:column -->\n\n<!-- wp:column {\"width\":\"55%\"} -->\n<div class=\"wp-block-column\" style=\"flex-basis:55%\"><!-- wp:paragraph -->\n<p>Already a client? Use the email address you ordered with, and this order joins your others.</p>\n<!-- /wp:paragraph -->\n\n<!-- wp:shortcode -->\n[fluentform id=\"{form:Link Building Order Form}\"]\n<!-- /wp:shortcode --></div>\n<!-- /wp:column --></div>\n<!-- /wp:columns -->"
+            },
+            {
+                "title": "Local SEO",
+                "slug": "local-seo",
+                "when": "fluentformpro",
+                "requires": "payments",
+                "content": "<!-- wp:columns -->\n<div class=\"wp-block-columns\"><!-- wp:column {\"width\":\"45%\"} -->\n<div class=\"wp-block-column\" style=\"flex-basis:45%\"><!-- wp:paragraph -->\n<p>Get found on Google Maps and in local search. We set up your Google Business Profile, list your business in the directories that matter, and build pages and links for each location.</p>\n<!-- /wp:paragraph -->\n\n<!-- wp:heading {\"level\":3} -->\n<h3 class=\"wp-block-heading\">What you get</h3>\n<!-- /wp:heading -->\n\n<!-- wp:list -->\n<ul class=\"wp-block-list\"><!-- wp:list-item -->\n<li>A complete Google Business Profile, with your photos and services</li>\n<!-- /wp:list-item -->\n\n<!-- wp:list-item -->\n<li>The same name, address and phone number everywhere you are listed</li>\n<!-- /wp:list-item -->\n\n<!-- wp:list-item -->\n<li>A page for each location, with a map</li>\n<!-- /wp:list-item -->\n\n<!-- wp:list-item -->\n<li>A report of every listing and where you rank on the map</li>\n<!-- /wp:list-item --></ul>\n<!-- /wp:list -->\n\n<!-- wp:paragraph -->\n<p>Pay by card or bank transfer. Have a discount code? Add it before you pay.</p>\n<!-- /wp:paragraph -->\n\n<!-- wp:paragraph -->\n<p>Questions? <a href=\"{url:Support}\">Send us a message</a>.</p>\n<!-- /wp:paragraph --></div>\n<!-- /wp:column -->\n\n<!-- wp:column {\"width\":\"55%\"} -->\n<div class=\"wp-block-column\" style=\"flex-basis:55%\"><!-- wp:paragraph -->\n<p>Already a client? Use the email address you ordered with, and this order joins your others.</p>\n<!-- /wp:paragraph -->\n\n<!-- wp:shortcode -->\n[fluentform id=\"{form:Local SEO Order Form}\"]\n<!-- /wp:shortcode --></div>\n<!-- /wp:column --></div>\n<!-- /wp:columns -->"
+            },
+            {
+                "title": "Services",
+                "slug": "services",
+                "requires": "payments",
+                "content": "<!-- wp:paragraph -->\n<p>Choose a service, pay securely, and follow your order on your client dashboard.</p>\n<!-- /wp:paragraph -->\n\n<!-- wp:heading -->\n<h2 class=\"wp-block-heading\">One-off</h2>\n<!-- /wp:heading -->\n\n<!-- wp:list -->\n<ul class=\"wp-block-list\"><!-- wp:list-item -->\n<li><a href=\"{url:SEO Audit}\">SEO audit</a>, from 750</li>\n<!-- /wp:list-item -->\n\n<!-- wp:list-item -->\n<li><a href=\"{url:Link Building}\">Link building</a>, from 90</li>\n<!-- /wp:list-item -->\n\n<!-- wp:list-item -->\n<li><a href=\"{url:PR Campaign}\">PR campaign and articles</a>, from 180</li>\n<!-- /wp:list-item -->\n\n<!-- wp:list-item -->\n<li><a href=\"{url:Campaign Design}\">Campaign design</a>, from 500</li>\n<!-- /wp:list-item -->\n\n<!-- wp:list-item -->\n<li><a href=\"{url:App Build}\">App build</a>, from 1,500</li>\n<!-- /wp:list-item --></ul>\n<!-- /wp:list -->\n\n<!-- wp:heading -->\n<h2 class=\"wp-block-heading\">Monthly</h2>\n<!-- /wp:heading -->\n\n<!-- wp:list -->\n<ul class=\"wp-block-list\"><!-- wp:list-item -->\n<li><a href=\"{url:Paid Ads Management}\">Paid ads management</a>, from 500 a month</li>\n<!-- /wp:list-item -->\n\n<!-- wp:list-item -->\n<li><a href=\"{url:Social Media Marketing}\">Social media marketing</a>, from 600 a month</li>\n<!-- /wp:list-item -->\n\n<!-- wp:list-item -->\n<li><a href=\"{url:App Care Plan}\">App care plan</a>, from 99 a month</li>\n<!-- /wp:list-item -->\n\n<!-- wp:list-item -->\n<li><a href=\"{url:Monthly Retainer}\">Monthly retainer</a>, from 900 a month</li>\n<!-- /wp:list-item --></ul>\n<!-- /wp:list -->"
             }
         ],
         "seoprostack_settings": [
