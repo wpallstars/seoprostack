@@ -125,7 +125,7 @@ Click **Report a problem** at the top right of Settings → SEO Pro Stack, or op
 == Changelog ==
 
 = Unreleased =
-* New: Word documents; Like, save and share; Brand icons; coffee button.
+* New: Word documents; Like, save and share; Brand icons (also in Kadence Blocks); coffee button.
 * Change: Pinned posts; faster lists; sizes in Free Plugins; megaphone; writers' menu.
 * Fix: More menu alignment; menu in full screen editor.
 
