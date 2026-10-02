@@ -781,7 +781,7 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folderâ
 
 ## Changelog
 
-### Unreleased
+### 0.8.1
 
 - New: Pro Plugins lists FluentCart Pro (licences, inventory tracking, order bumps, advanced reports and more payment gateways), with links to its home page, pricing and Free vs Pro comparison (`admin/data/pro-plugins.php`).
 - Fixed: Organise the admin menu showed no icon for Code Snippets in the Administrators and Developers menus. Code Snippets registers its menu with the icon `none` and draws it with CSS on `.toplevel_page_snippets` only. Entries with the icon `none`, `div` or none at all now take one from `SEOProStack_Admin_Menu::ICONS` by menu address (Code Snippets' `assets/menu-icon.svg`, with a viewBox added).
