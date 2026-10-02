@@ -86,6 +86,8 @@ function seoprostack_uninstall_site() {
     // Old post addresses: when recording and clearing started.
     $options[] = 'seoprostack_old_slugs_since';
     $options[] = 'seoprostack_old_slugs_swept';
+    // Brand icons: shapes of the icons used in Kadence blocks.
+    $options[] = 'seoprostack_kadence_brand_icons';
     foreach ($options as $option) {
         delete_option($option);
     }
