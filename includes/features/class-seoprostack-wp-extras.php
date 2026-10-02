@@ -4,7 +4,8 @@
  *
  * Leaves out things WordPress adds to every page that most sites never use:
  * the emoji script, tags for old blogging apps, the version number, and
- * optionally Dashicons, jQuery Migrate, feed links or feeds themselves.
+ * optionally Dashicons, jQuery Migrate, feed links or feeds themselves,
+ * embed links and the password strength meter.
  * Each is removed with core's own hooks; nothing is stored.
  *
  * Replaces part of Disable Bloat; its matching switches are imported once.
@@ -67,6 +68,8 @@ class SEOProStack_Wp_Extras extends SEOProStack_Feature {
             'comment_links'  => __('Links made from web addresses typed in comments', 'seoprostack'),
             'feed_links'     => __('Feed links in the page head', 'seoprostack'),
             'feeds'          => __('Feeds: send them to the home page', 'seoprostack'),
+            'embeds'         => __('Embed links in the page head, which let other sites show your posts as cards (your embeds of other sites still work)', 'seoprostack'),
+            'password_meter' => __('Password strength meter on the site, except where people set a password (My account, checkout, lost password)', 'seoprostack'),
         );
     }
 
@@ -134,9 +137,18 @@ class SEOProStack_Wp_Extras extends SEOProStack_Feature {
         if (isset($items['feeds'])) {
             add_action('template_redirect', array(__CLASS__, 'redirect_feed'), 1);
         }
+        if (isset($items['embeds'])) {
+            // Only the links: the oEmbed route also serves the editor's
+            // previews of other sites, and core loads wp-embed only on
+            // pages that embed another WordPress site.
+            remove_action('wp_head', 'wp_oembed_add_discovery_links');
+        }
 
         if (is_admin()) {
             return;
+        }
+        if (isset($items['password_meter'])) {
+            add_action('wp_print_scripts', array(__CLASS__, 'password_meter'), 100);
         }
         if (isset($items['comment_reply'])) {
             // Themes enqueue it in wp_enqueue_scripts or while printing comments.
@@ -179,6 +191,20 @@ class SEOProStack_Wp_Extras extends SEOProStack_Feature {
     public static function dashicons() {
         if (!is_admin_bar_showing() && !is_customize_preview()) {
             wp_dequeue_style('dashicons');
+        }
+    }
+
+    /**
+     * Dequeue the password strength meter (it loads a large word list)
+     * where nobody sets a password. A script that needs it still loads it.
+     */
+    public static function password_meter() {
+        $setting = isset($_GET['action']) && in_array($_GET['action'], array('lostpassword', 'rp', 'resetpass', 'register'), true); // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- only compared.
+        if ($setting || (function_exists('is_account_page') && is_account_page()) || (function_exists('is_checkout') && is_checkout())) {
+            return;
+        }
+        foreach (array('wc-password-strength-meter', 'password-strength-meter', 'zxcvbn-async') as $handle) {
+            wp_dequeue_script($handle);
         }
     }
 

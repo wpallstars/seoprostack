@@ -596,9 +596,12 @@ class SEOProStack_Settings {
      *     Lighter WooCommerce pages, Remove WordPress extras, Tidy the login
      *     screen, Tidy admin screens and Simpler block editor, plus its
      *     W logo (Hide admin bar items), widgets and Dashboard boxes
-     *     (Dashboard and sidebar widgets).
+     *     (Dashboard and sidebar widgets), Heartbeat (Fewer Heartbeat
+     *     requests) and post revisions (Limit post revisions).
      * v7: import Hostinger Tools' and Disable Bloat's XML-RPC and application
-     *     password switches (Turn off unused remote access).
+     *     password switches (Turn off unused remote access) and Hostinger
+     *     Tools' maintenance mode switch (Maintenance mode), leaving stored
+     *     SEO Pro Stack choices and the other plugins' settings untouched.
      *
      * Old options are left in place so a downgrade keeps working;
      * uninstall.php removes ours. Other plugins' options are never touched.

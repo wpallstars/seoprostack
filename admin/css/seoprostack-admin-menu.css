@@ -70,7 +70,15 @@
 	opacity: 0.75;
 }
 
-/* Administrators and Developers menus: entries with their icons. */
+/*
+ * Administrators and Developers menus: entries with their icons. The icon
+ * sits in the padding, so a name that wraps lines up under its first line.
+ */
+#adminmenu .wp-submenu li.sps-menu-entry > a {
+	position: relative;
+	padding-inline-start: 38px;
+}
+
 #adminmenu .sps-menu-icon {
 	display: inline-block;
 	width: 20px;
@@ -81,11 +89,38 @@
 	opacity: 0.7;
 }
 
+#adminmenu .wp-submenu li.sps-menu-entry > a > .sps-menu-icon {
+	position: absolute;
+	top: 4px;
+	inset-inline-start: 12px;
+	margin: 0;
+}
+
 #adminmenu .sps-menu-icon.dashicons-before::before {
 	width: 20px;
 	height: 20px;
 	font-size: 18px;
 	line-height: 20px;
+}
+
+/*
+ * A plugin's own icon class (such as AutomatorWP's) draws nothing where its
+ * stylesheet is not loaded, for example on screens Load plugins only where
+ * needed skips it on. Show core's cog there; :where() keeps this below any
+ * class that sets its own icon.
+ */
+:where(#adminmenu .sps-menu-icon.dashicons-before)::before {
+	content: "\f111";
+}
+
+/*
+ * SVG icons in the text colour, as core paints them in its own menu, so dark
+ * ones show on the dark menu and all follow hover and the current page.
+ */
+#adminmenu .sps-menu-icon-svg {
+	background-color: currentColor;
+	-webkit-mask: var(--sps-menu-icon) no-repeat center / 18px auto;
+	mask: var(--sps-menu-icon) no-repeat center / 18px auto;
 }
 
 #adminmenu .wp-submenu li.sps-menu-has-sub {
@@ -195,7 +230,8 @@
 
 /*
  * Fit the menu to its names: the script measures with names on one line
- * (and folded sections shown), then sets --sps-menu-width on <body>.
+ * (and folded sections and third levels shown), then sets
+ * --sps-menu-width on <body>.
  * Logical properties, so right-to-left languages work too.
  */
 body.sps-menu-measure #adminmenu .wp-menu-name,
@@ -203,7 +239,8 @@ body.sps-menu-measure #adminmenu .wp-submenu a {
 	white-space: nowrap;
 }
 
-body.sps-menu-measure #adminmenu li.sps-menu-folded {
+body.sps-menu-measure #adminmenu li.sps-menu-folded,
+body.sps-menu-measure #adminmenu .wp-submenu li.sps-menu-has-sub > ul.sps-menu-flyout {
 	display: block;
 }
 
@@ -230,6 +267,11 @@ body.sps-menu-measure #adminmenu li.sps-menu-folded {
 	body.sps-menu-fit:not(.folded) #adminmenuwrap,
 	body.sps-menu-fit:not(.folded) #adminmenu {
 		width: var(--sps-menu-width, 160px);
+	}
+
+	/* The open menu's list, shown in place, fills the wider menu. */
+	body.sps-menu-fit:not(.folded) #adminmenu .wp-has-current-submenu .wp-submenu {
+		width: auto;
 	}
 
 	body.sps-menu-fit:not(.folded) #wpcontent,

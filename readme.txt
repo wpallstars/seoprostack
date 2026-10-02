@@ -26,7 +26,7 @@ Everything is off by default except Hide admin bar items (Comments and + New), N
 * **Magic login links**: “Email me a login link” on the login screen, with one-time links that email scanners cannot use up.
 * **Turn off unused remote access**: XML-RPC and application passwords, both off by default.
 * **Modern admin colours**, **No fade between admin screens** (on by default), **Readable list columns** and **Notification emails**, which stops routine emails one by one.
-* **Tidy admin screens**, **Tidy WooCommerce admin**, **Tidy the login screen**, **Simpler block editor**, **Remove WordPress extras** and **Lighter WooCommerce pages** replace most of Disable Bloat.
+* **Tidy admin screens**, **Tidy WooCommerce admin**, **Tidy the login screen**, **Simpler block editor**, **Remove WordPress extras**, **Fewer Heartbeat requests**, **Limit post revisions** and **Lighter WooCommerce pages** replace most of Disable Bloat.
 
 = Writing and publishing =
 
@@ -52,6 +52,7 @@ Everything is off by default except Hide admin bar items (Comments and + New), N
 * **Speed**: load pages before the click, delay chosen scripts until interaction, add Google Analytics 4 without slowing the page, open the editor faster with Kadence Blocks, and **Ask before licence checks** (once now, once a day or never).
 * **Load plugins only where needed**: a faster wp-admin on sites with many plugins, and admin tools you choose skipped on the site, through a must-use file it manages itself.
 * **Plugins menu** in the admin bar, **Plugin sizes**, **Clean up deleted plugins**, **Hosting needs** (what to ask your host for) and **Plugin presets**: our settings and starter data for other plugins, on request.
+* **Maintenance mode**: a temporary 503 page with a message and 24-hour bypass links you can revoke.
 * **Database key cleanup**: review leftover and duplicate indexes, confirm each removal and keep restore SQL. Back up first.
 * **Agency**: order flow, client dashboard and example data.
 
@@ -120,20 +121,20 @@ Copies from WordPress.org update from there. New versions come out on GitHub fir
 
 = Unreleased =
 * New, off by default: Agency tab.
-* New: Code Snippets preset; presets clear their named settings caches on Apply, Reset and Undo.
-* New, off by default: turn off XML-RPC and application passwords separately.
-* New, off by default: Database key cleanup, with per-key confirmation and restore SQL.
+* New: presets for Code Snippets, Rank Math SEO, WP-Optimize and Burst Statistics.
+* New, off by default: Maintenance mode with bypass links; turn off XML-RPC or application passwords.
+* New, off by default: Database key cleanup.
 * New, off by default: TranslatePress switcher colours.
-* New, off by default: six features that do most of Disable Bloat’s job, importing its settings.
-* New: starter data feeding FluentCRM: four forms and a Fluent Booking Discovery Call.
-* New: display presets for Rank Math SEO, WP-Optimize and Burst Statistics.
-* Change: Freesoul Deactivate Plugins is no longer recommended.
+* New, off by default: eight features that do most of Disable Bloat’s job, importing its settings.
+* New: starter data for Fluent Forms (four forms) and Fluent Booking (a Discovery Call), feeding FluentCRM.
+* Change: no longer recommended: Freesoul Deactivate Plugins and replaced Pro plugins.
 * Change: Apply preset names each setting in plain words.
 * Fix: plugins that add list columns load on those lists.
 * Fix: Licence checks “Ask me again” keeps each plugin hidden.
 * Fix: WP Sheet Editor spreadsheets no longer blank with Load plugins only where needed.
+* Fix: dark plugin icons show in the admin menu.
 * New: remove unneeded list columns; Author and Date last.
-* New: the admin menu widens to fit its names.
+* New: the admin menu widens to fit its names; FluentSMTP shows its logo.
 
 = 0.7.0 =
 * New: licence-check choices, plugin presets and FluentCRM and Fluent Boards starters.
