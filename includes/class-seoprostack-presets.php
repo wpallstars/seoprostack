@@ -42,7 +42,7 @@
  * (without secrets), so the last change can be undone.
  *
  * Presets are made with WP-CLI (see SEOProStack_Plugin_Presets::cli_export()
- * and AGENTS.md → Plugin presets).
+ * and docs/presets.md).
  *
  * @package SEOProStack
  * @since 0.5.0

@@ -844,7 +844,7 @@ Presets so far:
 
 WooCommerce's **Deferred emails** sends order emails through Action Scheduler after checkout. It needs WP-Cron or a server cron. If order emails arrive late or not at all, check **WooCommerce → Status → Scheduled Actions**, group `woocommerce-emails`, for pending or failed `woocommerce_send_queued_transactional_email` actions, and turn **Deferred emails** off in **WooCommerce → Settings → Advanced → Features**. Applying the preset is optional; Reset puts this setting back to Off and Undo restores its previous value.
 
-They are JSON files in `presets/`, one per plugin folder. Each names its settings for the dialog under `settings`: setting path => `label` (the plugin's own wording), `description` and `values` (stored value => what it means, with `"null"` for not stored). AGENTS.md → Plugin presets explains how they are made and checked. A preset can be worked out for each site with `when`: option name => a condition, or a list that must all hold (`single_site`, `feature:{key}` for an SEO Pro Stack feature that is on, `feature:{key}:{item}` for a chosen item of it, `litespeed_server`, and more through the `seoprostack_preset_condition` filter; a leading `!` turns one round, as in `!litespeed_server`); options whose conditions fail are left out on that site. A setting named in a preset whose defaults are all "not stored" is removed again on reset, and an option left empty that way is deleted, so the plugin's own defaults apply as on a fresh install.
+They are JSON files in `presets/`, one per plugin folder. Each names its settings for the dialog under `settings`: setting path => `label` (the plugin's own wording), `description` and `values` (stored value => what it means, with `"null"` for not stored). `docs/presets.md` explains how they are made and checked. A preset can be worked out for each site with `when`: option name => a condition, or a list that must all hold (`single_site`, `feature:{key}` for an SEO Pro Stack feature that is on, `feature:{key}:{item}` for a chosen item of it, `litespeed_server`, and more through the `seoprostack_preset_condition` filter; a leading `!` turns one round, as in `!litespeed_server`); options whose conditions fail are left out on that site. A setting named in a preset whose defaults are all "not stored" is removed again on reset, and an option left empty that way is deleted, so the plugin's own defaults apply as on a fresh install.
 
 #### LiteSpeed hosting
 
@@ -1180,6 +1180,10 @@ Deleting the plugin removes its settings and cached data, the profile pictures a
 Deactivating the plugin removes the WebP and AVIF rules from the uploads folder’s `.htaccess` (for every site when network-deactivated) and the must-use file of Load plugins only where needed (on multisite, when network-deactivated).
 
 ## Changelog
+
+### 0.11.11
+
+- Developers: `AGENTS.md`, which AI agents read in every session, is now a short map (155 → 89 lines). The preset and starter data procedure moved to `docs/presets.md` and the plugin directory choices to `docs/plugin-directory.md`; `AGENTS.md` says when to read each (`STANDARDS.md` → Agent docs, from the starter). Core files synced from the starter: the release preflight checks `AGENTS.md` and `docs/`, `docs/` never ships, a failing settings options list no longer stops a page, and `scripts/sync-core.sh` can update itself. Nothing changes for users.
 
 ### 0.11.10
 
