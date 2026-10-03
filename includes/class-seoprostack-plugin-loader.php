@@ -92,7 +92,7 @@ final class SEOProStack_Plugin_Loader {
     const HISTORY = 'seoprostack_plugin_screens';
 
     /** Map format; a change makes SEO Pro Stack learn again. */
-    const MAP_VERSION = 8;
+    const MAP_VERSION = 9;
 
     /** SEO Pro Stack's own settings page (Settings > SEO Pro Stack). */
     const SETTINGS_PAGE = 'seoprostack';
