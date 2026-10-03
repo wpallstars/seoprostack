@@ -17,7 +17,8 @@
  * - Saves preset changes through LiteSpeed Cache's own save code, so its
  *   .htaccess rules, wp-config.php WP_CACHE line, cron and purges follow,
  *   as when settings are saved on its screen.
- * - Leaves WP-Optimize out of the recommended plugins on LiteSpeed servers.
+ * - Notes in Free Plugins that WP-Optimize is not needed on LiteSpeed
+ *   servers, and is for its page cache elsewhere.
  *
  * @package SEOProStack
  * @since 0.9.1
@@ -45,7 +46,7 @@ final class SEOProStack_Litespeed {
         add_action('admin_init', array(__CLASS__, 'remember'));
         add_filter('seoprostack_preset_condition', array(__CLASS__, 'condition'), 10, 2);
         add_action('seoprostack_plugin_preset_changed', array(__CLASS__, 'save_through_plugin'), 10, 2);
-        add_filter('seoprostack_free_plugins', array(__CLASS__, 'free_plugins'));
+        add_filter('seoprostack_free_plugin_note', array(__CLASS__, 'free_plugin_note'), 10, 2);
     }
 
     /**
@@ -168,22 +169,22 @@ final class SEOProStack_Litespeed {
     }
 
     /**
-     * Leave WP-Optimize out of the recommended plugins on LiteSpeed servers,
-     * where LiteSpeed Cache and SEO Pro Stack do its jobs.
+     * Free Plugins note for WP-Optimize: needed for its page cache on other
+     * servers; on LiteSpeed servers LiteSpeed Cache and SEO Pro Stack do its
+     * jobs.
      *
-     * @param array $plugins Category => slugs.
-     * @return array
+     * @param string $note Note.
+     * @param string $slug Plugin slug.
+     * @return string
      */
-    public static function free_plugins($plugins) {
-        if (!is_array($plugins) || !self::is_server()) {
-            return $plugins;
+    public static function free_plugin_note($note, $slug) {
+        if ('wp-optimize' !== $slug) {
+            return $note;
         }
-        foreach ($plugins as $category => $slugs) {
-            if (is_array($slugs)) {
-                $plugins[$category] = array_values(array_diff($slugs, array('wp-optimize')));
-            }
+        if (self::is_server()) {
+            return __('Not needed on this site: it runs on a LiteSpeed server, where LiteSpeed Cache keeps pages and SEO Pro Stack does the rest. Keep it for sites on other servers.', 'seoprostack');
         }
-        return $plugins;
+        return __('For sites on servers other than LiteSpeed, for its page cache. Its plugin preset turns that on and leaves images and database cleanup to SEO Pro Stack.', 'seoprostack');
     }
 
     /**
