@@ -188,6 +188,8 @@ class SEOProStack_Plugin_Manager {
                 if (is_wp_error($result) && 'unexpected_output' !== $result->get_error_code()) {
                     self::send_action_error($slug, wp_strip_all_tags($result->get_error_message()));
                 }
+                // Another plugin may have kept the save from happening.
+                SEOProStack_Replaced_Plugins::save_plugin_state($file, true);
             }
         } elseif ('deactivate' === $do) {
             if (!current_user_can('deactivate_plugin', $file)) {
@@ -203,6 +205,7 @@ class SEOProStack_Plugin_Manager {
             ob_start();
             deactivate_plugins($file);
             ob_end_clean();
+            SEOProStack_Replaced_Plugins::save_plugin_state($file, false);
         } else {
             wp_send_json_error(array('message' => __('Unknown action.', 'seoprostack')), 400);
         }
