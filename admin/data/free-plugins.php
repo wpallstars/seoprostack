@@ -119,7 +119,6 @@ function seoprostack_get_free_plugins() {
         'seo' => array(
             'burst-statistics',
             'revive-so',
-            'search-console',
             'seo-by-rank-math',
             'syndication-links',
             'webmention'
