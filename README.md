@@ -942,6 +942,8 @@ The Agency tab shows example data for a digital marketing agency, to rename and 
 - **Free Plugins**: recommended plugins from WordPress.org by category. Install, Activate, Deactivate and Uninstall all work in place, so you can set up many in a row without leaving the page: an installed plugin shows Activate and Uninstall, an active one shows Deactivate. **All** lists every recommended plugin grouped by category, with the disk space each installed one takes (as in Plugin sizes, measured in the background), a checkbox per plugin and per group and bulk actions (Install and activate, Install, Activate, Deactivate, Uninstall) that run one plugin at a time with progress, and can be stopped. Bulk Uninstall deactivates active plugins first. Plugins that need a newer WordPress or PHP, or that WordPress.org has closed, cannot be selected. Activate and Deactivate accept only WordPress.org plugins on the recommended list; install and uninstall use WordPressâ€™s own requests, so FTP details are asked for where needed. Shown only to users who can install plugins (on multisite, super admins); plugins active for the whole network are left alone.
 - **Pro Plugins, Hosting, Tools**: filterable directories with links to each product. Pro plugins show a badge when their free version is already on the site.
 
+Some directory links are the developer's affiliate or referral links, which may earn a commission or account credit and sometimes give you a discount. They do not change what we recommend, and nothing is added to your public site. Product, pricing and documentation links stay direct when no matching referral link is available; Kadence bundles, the Bit Apps store, Fiverr Pro and the Speedy Index Telegram bot have separate referral links.
+
 ## Requirements
 
 - WordPress 6.2 or later
@@ -1059,6 +1061,7 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folderâ
 
 ### 0.11.2
 
+- Changed: relevant Theme, Pro Plugins, Hosting and Tools links use the developer's existing affiliate or referral links. Product-specific and pricing links stay available; separate links cover Kadence bundles, the Bit Apps store, Fiverr Pro and the Speedy Index Telegram bot. No links are fetched from the developer's site at runtime.
 - Fixed: Load plugins only where needed, with **Learn which plugins each page needs** on, could miss some of a page's scripts and styles, and so skip a plugin that page still used. It also wrote "Undefined array key" warnings to the debug log. `SEOProStack_Plugin_Loading::page_needs()` now numbers the handles again after removing duplicates. Each page is learned again within the hour.
 
 ### 0.11.1

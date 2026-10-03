@@ -71,7 +71,7 @@ Off by default except Hide admin bar items (Comments and + New), No fade between
 
 = Affiliate disclosure =
 
-Some links in the Pro Plugins, Hosting and Tools directories are affiliate links that fund development. They never change what we recommend, and nothing shows on your public site.
+Some Theme, Pro Plugins, Hosting and Tools links may earn the developer a commission or account credit. They never change what we recommend, and nothing shows on your public site.
 
 = External services =
 
@@ -124,6 +124,7 @@ Click **Report a problem** at the top right of Settings → SEO Pro Stack, or op
 == Changelog ==
 
 = 0.11.2 =
+* Change: existing affiliate and referral links in Discover; product and pricing links kept.
 * Fix: Load plugins only where needed, with Learn which plugins each page needs on, could skip a plugin a page still used.
 
 Older: `changelog.txt`.
