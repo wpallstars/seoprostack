@@ -21,7 +21,7 @@ class SEOProStack_Admin_Manager {
     const PAGE = 'seoprostack';
 
     /** Hook suffix returned by add_options_page(). */
-    const HOOK = 'settings_page_seoprostack';
+    const HOOK = 'settings_page_' . self::PAGE;
 
     /**
      * Register hooks (once).
@@ -52,10 +52,23 @@ class SEOProStack_Admin_Manager {
     public static function get_tabs() {
         $tabs = array();
 
-        // Settings tabs without settings are hidden (they can be filled via the schema filter).
-        foreach (self::settings_tabs() as $slug => $tab) {
-            if (!SEOProStack_Settings::fields_for_tab($slug)) {
+        // Settings tabs without settings are hidden (they can be filled via
+        // the schema filter). With no settings at all, the first tab shows
+        // and says so, so a new plugin still has a settings screen.
+        $settings_tabs = self::settings_tabs();
+        $has_settings  = false;
+        foreach (array_keys($settings_tabs) as $slug) {
+            if (SEOProStack_Settings::fields_for_tab($slug)) {
+                $has_settings = true;
+                break;
+            }
+        }
+        foreach ($settings_tabs as $slug => $tab) {
+            if ($has_settings && !SEOProStack_Settings::fields_for_tab($slug)) {
                 continue;
+            }
+            if (!$has_settings && $tabs) {
+                break;
             }
             $tabs[$slug] = array(
                 'label'  => $tab['label'],
@@ -199,13 +212,18 @@ class SEOProStack_Admin_Manager {
                 'saving'      => __('Saving…', 'seoprostack'),
                 'saved'       => __('Saved', 'seoprostack'),
                 'saveFailed'  => __('Could not save. Please try again.', 'seoprostack'),
-                'loadFailed'  => __('Could not load this list. Please reload the page.', 'seoprostack'),
-                'noMatches'   => __('No matches.', 'seoprostack'),
-                'activated'   => __('Activated', 'seoprostack'),
                 'chooseImage' => __('Choose a picture', 'seoprostack'),
                 'useImage'    => __('Use this picture', 'seoprostack'),
             ),
         ), $tab));
+
+        /**
+         * Fires after the admin stylesheet and script are enqueued: enqueue
+         * the plugin's own, depending on 'seoprostack-admin'.
+         *
+         * @param string $tab Active tab.
+         */
+        do_action('seoprostack_admin_enqueue', $tab);
     }
 
     /**

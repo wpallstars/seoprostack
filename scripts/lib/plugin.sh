@@ -15,6 +15,9 @@
 #                     (SEOPROSTACK)
 #   PLUGIN_PREFIX     the option, hook and transient prefix: PLUGIN_CONST in
 #                     lower case (seoprostack)
+#   PLUGIN_CSS        the CSS class and data attribute prefix, from the admin
+#                     screen's "wrap <css>-wrap" class (wps: .sps-card)
+#   PLUGIN_REPO       the GitHub Plugin URI header, owner/repo (may be empty)
 #
 # Files come from the Git ref, never the working tree, like the release build.
 
@@ -24,6 +27,8 @@ PLUGIN_NAME=""
 PLUGIN_PACKAGE=""
 PLUGIN_CONST=""
 PLUGIN_PREFIX=""
+PLUGIN_CSS=""
+PLUGIN_REPO=""
 
 # Value of a "Key: value" header line in the text, case-insensitive.
 plugin_header_field() {
@@ -83,6 +88,46 @@ plugin_identity() {
 		return 1
 	fi
 	PLUGIN_PREFIX="$(printf '%s' "$PLUGIN_CONST" | tr '[:upper:]' '[:lower:]')"
+	PLUGIN_REPO="$(plugin_header_field "${text:0:8192}" "GitHub Plugin URI")"
+	PLUGIN_CSS="$(git show "$ref:admin/includes/class-admin-manager.php" 2>/dev/null | sed -nE 's/.*class="wrap ([a-z0-9]+)-wrap.*/\1/p' | head -n 1)"
+	if [ -z "$PLUGIN_CSS" ]; then
+		printf 'plugin: no "wrap <css>-wrap" class in admin/includes/class-admin-manager.php at %s\n' "$ref" >&2
+		return 1
+	fi
+	return 0
+}
+
+# Copy the PLUGIN_* names into FROM_* (from) or TO_* (to), for plugin_map.
+plugin_names_as() {
+	local side="$1"
+	local name
+	for name in SLUG NAME PACKAGE CONST PREFIX CSS REPO; do
+		eval "export ${side}_${name}=\"\$PLUGIN_${name}\""
+	done
+	return 0
+}
+
+# Rewrite text on stdin from one plugin's names (FROM_*) to another's (TO_*):
+# GitHub repository, name, class prefix, constant prefix, slug, prefix and
+# CSS prefix, in that order. When the source plugin's slug is also its prefix
+# (myplugin), the slug is only the quoted word ('myplugin': text domain,
+# admin page) and the main file name; everywhere else it is the prefix.
+plugin_map() {
+	perl -pe '
+		BEGIN { %e = map { $_ => $ENV{$_} // "" } grep { /^(FROM|TO)_/ } keys %ENV; }
+		s{\Q$e{FROM_REPO}\E}{$e{TO_REPO}}g if $e{FROM_REPO} ne "" && $e{TO_REPO} ne "";
+		s{\Q$e{FROM_NAME}\E}{$e{TO_NAME}}g;
+		s{\Q$e{FROM_PACKAGE}\E}{$e{TO_PACKAGE}}g;
+		s{\Q$e{FROM_CONST}\E}{$e{TO_CONST}}g;
+		if ($e{FROM_SLUG} eq $e{FROM_PREFIX}) {
+			s{(["\x27])\Q$e{FROM_SLUG}\E\1}{${1}$e{TO_SLUG}${1}}g;
+			s{\b\Q$e{FROM_SLUG}\E\.php\b}{$e{TO_SLUG}.php}g;
+		} else {
+			s{\Q$e{FROM_SLUG}\E}{$e{TO_SLUG}}g;
+		}
+		s{\Q$e{FROM_PREFIX}\E}{$e{TO_PREFIX}}g;
+		s{\b\Q$e{FROM_CSS}\E(?=[-_A-Z])}{$e{TO_CSS}}g;
+	'
 	return 0
 }
 

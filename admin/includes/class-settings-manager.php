@@ -86,19 +86,27 @@ class SEOProStack_Settings_Manager {
                 <?php if ($description) : ?>
                     <p class="sps-section__desc"><?php echo esc_html($description); ?></p>
                 <?php endif; ?>
-                <p class="sps-section__hint"><?php esc_html_e('Changes are saved automatically.', 'seoprostack'); ?></p>
+                <?php if ($fields) : ?>
+                    <p class="sps-section__hint"><?php esc_html_e('Changes are saved automatically.', 'seoprostack'); ?></p>
+                <?php endif; ?>
             </div>
-            <div class="sps-cards">
-                <?php
-                foreach ($fields as $key => $field) {
-                    self::render_card($key, $field);
-                }
-                ?>
-            </div>
+            <?php if ($fields) : ?>
+                <div class="sps-cards">
+                    <?php
+                    foreach ($fields as $key => $field) {
+                        self::render_card($key, $field);
+                    }
+                    ?>
+                </div>
+            <?php else : ?>
+                <div class="sps-card sps-empty">
+                    <p><?php esc_html_e('No settings yet.', 'seoprostack'); ?></p>
+                </div>
+            <?php endif; ?>
             <?php
             /**
              * Fires after a settings tab's cards, for sections that are not
-             * settings (such as example data on the Agency tab).
+             * settings (such as example data).
              *
              * @param string $tab Tab slug.
              */

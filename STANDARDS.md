@@ -10,29 +10,37 @@ Names below are placeholders. Each plugin's `AGENTS.md` gives its values:
 
 | Placeholder | Meaning | Example |
 |---|---|---|
-| `{slug}` | Folder, main file, text domain, option and hook prefix | `myplugin` |
+| `{slug}` | Folder, main file and text domain | `my-plugin` |
+| `{prefix}` | Option, hook, function and file prefix: `{PREFIX}` in lower case | `myplugin` |
 | `{Prefix}` | Class prefix (`@package`) | `MyPlugin` |
 | `{PREFIX}` | Constant prefix | `MYPLUGIN` |
 | `{Name}` | Plugin name | My Plugin |
+| `{css}` | CSS class and data attribute prefix (`{css}-card`, `data-{css}-setting`) | `mp` |
 
 Minimums: **WordPress 6.2, PHP 7.4** (`readme.txt`, plugin header).
 How changes are made and checked: `DEVELOPMENT.md`. Releases: `RELEASING.md`.
 
 ## Structure
 
-- Core files are the ones the starter has: the main file's bootstrap, the
-  feature registry (`includes/class-{slug}.php`), the base feature
-  (`includes/class-{slug}-feature.php`), the settings store
-  (`includes/class-{slug}-settings.php`), the admin screen (`admin/`), the
-  shared GitHub updater (`includes/github-updater/`), `scripts/`, the CI
-  workflow and tool configuration, and the shared docs (this file,
-  `DEVELOPMENT.md`, `RELEASING.md`). A plugin's copy differs from the
-  starter's only in the names above. They hold no code for one plugin:
-  they read `{Prefix}_Setup` (`includes/class-{slug}-setup.php`: features,
-  settings tabs, header links, settings version and history, the plugin's
-  own helpers and admin parts) or use hooks. Anything only one plugin needs
-  goes there, in a feature, or in its own file loaded from there. To change
-  a core file, change the starter first, then copy it to each plugin.
+- Core files are listed in `scripts/core-files.txt`: the feature registry
+  (`includes/class-{prefix}.php`), the base feature
+  (`includes/class-{prefix}-feature.php`), the settings store
+  (`includes/class-{prefix}-settings.php`), the admin screen and Read Me tab
+  (`admin/`), the shared GitHub updater (`includes/github-updater/`), the
+  scripts, the CI workflow and tool configuration, and the shared docs (this
+  file, `DEVELOPMENT.md`, `RELEASING.md`, `CONTRIBUTING.md`, `SECURITY.md`).
+  A plugin's copy differs from the starter's only in the names above. They
+  hold no code for one plugin: they read `{Prefix}_Setup`
+  (`includes/class-{prefix}-setup.php`: features, settings tabs, header
+  links, settings version and history, the plugin's own helpers and admin
+  parts) or use hooks (`{prefix}_admin_tabs` for tabs,
+  `{prefix}_admin_enqueue` for the plugin's own admin CSS and JS,
+  `scripts/preflight-plugin.sh` for its own release checks). Anything only
+  one plugin needs goes there, in a feature, or in its own file loaded from
+  there. To change a core file, change the starter first, then run
+  `scripts/sync-core.sh` in each plugin; `scripts/sync-core.sh --check` lists
+  core files that differ. A new plugin starts as a copy of the starter
+  renamed with `scripts/rename-plugin.sh`.
 - One class per feature in `includes/features/`, extending `{Prefix}_Feature`,
   registered in `{Prefix}_Setup::FEATURES`. Features some builds leave out
   go in `{Prefix}_Setup::OPTIONAL_FEATURES` and load only when present.
@@ -72,7 +80,7 @@ How changes are made and checked: `DEVELOPMENT.md`. Releases: `RELEASING.md`.
   `function_exists()` or `method_exists()`.
 - Capability and nonce checks on every admin action and AJAX handler; escape on
   output; sanitise through the schema.
-- Prefix everything global with `{slug}_`, `{Prefix}_` or `{PREFIX}_`. The
+- Prefix everything global with `{prefix}_`, `{Prefix}_` or `{PREFIX}_`. The
   shared GitHub updater is the one exception: its `wpallstars_` names are the
   same in every plugin, so that one copy can stand in for the others.
 - Admin copy: short, plain words, sentence case, no jargon.
@@ -251,8 +259,8 @@ WordPress:
    the debug log for new messages mentioning `{slug}` or a plugin it affects
    (`wp-content/debug.log`, or the file Debug Log Manager writes in
    `wp-content/uploads/debug-log-manager/` when it is active). For settings
-   imports, seed the replaced plugin's options and delete `{slug}_options`
-   and `{slug}_db_version` while the plugin is inactive, then activate it.
+   imports, seed the replaced plugin's options and delete `{prefix}_options`
+   and `{prefix}_db_version` while the plugin is inactive, then activate it.
 4. For changes that touch core APIs, also smoke-test on WordPress 6.2 with
    PHP 7.4 (`scripts/smoke-test.sh --wp 6.2 --php 7.4`, or the
    `wordpress:php7.4-apache` Docker image with

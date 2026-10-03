@@ -1,0 +1,673 @@
+/**
+ * SEO Pro Stack's own admin screen styles, after the shared stylesheet
+ * (seoprostack-admin.css, a core file from the starter plugin): the Free
+ * Plugins, Pro Plugins, Hosting, Tools and Theme tabs, the Agency tab's
+ * example data and the watermark note. Uses the shared --sps-* variables.
+ *
+ * Enqueued by SEOProStack_Setup::enqueue_assets() (seoprostack_admin_enqueue).
+ */
+
+/* Free Plugins uses the whole screen: more cards per row, a wider list. */
+.sps-main.sps-tab-recommended {
+	max-width: none;
+}
+
+
+/* Agency tab: example data, below the settings. */
+.sps-examples {
+	display: grid;
+	gap: 10px;
+	margin-block-start: 24px;
+	padding: 16px 20px;
+	background: var(--sps-surface);
+	border: 1px solid var(--sps-border);
+	border-radius: var(--sps-radius);
+}
+
+.sps-examples p,
+.sps-examples .notice {
+	margin: 0;
+}
+
+.sps-examples__list summary {
+	cursor: pointer;
+}
+
+.sps-examples__list ul {
+	margin: 8px 0 0 20px;
+	list-style: disc;
+}
+
+.sps-examples__actions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+}
+
+
+/* Watermark pictures: the watermark in use, on a chequered background. */
+.sps-watermark-note {
+	display: flex;
+	gap: 16px;
+	align-items: center;
+}
+
+
+.sps-watermark-note__mark {
+	flex: none;
+	width: 64px;
+	height: 64px;
+	object-fit: contain;
+	background: repeating-conic-gradient(#f0f0f1 0% 25%, #fff 0% 50%) 0 0 / 16px 16px;
+	border: 1px solid var(--sps-border);
+	border-radius: 4px;
+}
+
+/* Directory (Pro / Hosting / Tools) ---------------------------------- */
+
+.sps-directory__bar {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 12px;
+	margin-block-end: 16px;
+}
+
+.sps-directory__intro {
+	flex: 1 1 320px;
+	margin: 0;
+	color: var(--sps-muted);
+}
+
+.sps-wrap .sps-directory__search {
+	width: 260px;
+	max-width: 100%;
+	min-height: 32px;
+}
+
+.sps-directory__count {
+	font-size: 12px;
+	color: var(--sps-muted);
+}
+
+.sps-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+	gap: 16px;
+}
+
+.sps-link-card {
+	display: flex;
+	flex-direction: column;
+	padding: 20px;
+	transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.sps-link-card[hidden] {
+	display: none;
+}
+
+.sps-link-card:hover {
+	border-color: #c3c4c7;
+	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.sps-wrap .sps-link-card__title {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 8px;
+	margin: 0 0 8px;
+	font-size: 15px;
+	font-weight: 600;
+}
+
+.sps-link-card__desc {
+	flex: 1 0 auto;
+	margin: 0 0 16px;
+	color: var(--sps-muted);
+}
+
+.sps-link-card__actions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+}
+
+.sps-directory__empty {
+	padding: 32px;
+	color: var(--sps-muted);
+	text-align: center;
+}
+
+/* Free plugins ------------------------------------------------------- */
+
+.sps-wrap .sps-filter {
+	margin: 0 0 16px;
+	padding: 0 12px;
+	border-radius: var(--sps-radius);
+}
+
+/* One line that scrolls sideways when the categories do not fit, rather than
+   wrapping a word or two onto a second line. The script adds has-more-start
+   and has-more-end, which fade the side with more links. */
+.sps-wrap .sps-filter .filter-links {
+	display: flex;
+	flex-wrap: nowrap;
+	float: none;
+	padding-block: 4px;
+	overflow-x: auto;
+	overflow-y: hidden;
+	overscroll-behavior-x: contain;
+	scrollbar-width: thin;
+}
+
+.sps-wrap .sps-filter .filter-links li {
+	flex: none;
+}
+
+.sps-wrap .sps-filter .filter-links.has-more-end {
+	-webkit-mask-image: linear-gradient(to right, #000 calc(100% - 48px), transparent);
+	mask-image: linear-gradient(to right, #000 calc(100% - 48px), transparent);
+}
+
+.sps-wrap .sps-filter .filter-links.has-more-start {
+	-webkit-mask-image: linear-gradient(to right, transparent, #000 48px);
+	mask-image: linear-gradient(to right, transparent, #000 48px);
+}
+
+.sps-wrap .sps-filter .filter-links.has-more-start.has-more-end {
+	-webkit-mask-image: linear-gradient(to right, transparent, #000 48px, #000 calc(100% - 48px), transparent);
+	mask-image: linear-gradient(to right, transparent, #000 48px, #000 calc(100% - 48px), transparent);
+}
+
+.rtl .sps-wrap .sps-filter .filter-links.has-more-end {
+	-webkit-mask-image: linear-gradient(to left, #000 calc(100% - 48px), transparent);
+	mask-image: linear-gradient(to left, #000 calc(100% - 48px), transparent);
+}
+
+.rtl .sps-wrap .sps-filter .filter-links.has-more-start {
+	-webkit-mask-image: linear-gradient(to left, transparent, #000 48px);
+	mask-image: linear-gradient(to left, transparent, #000 48px);
+}
+
+.rtl .sps-wrap .sps-filter .filter-links.has-more-start.has-more-end {
+	-webkit-mask-image: linear-gradient(to left, transparent, #000 48px, #000 calc(100% - 48px), transparent);
+	mask-image: linear-gradient(to left, transparent, #000 48px, #000 calc(100% - 48px), transparent);
+}
+
+/* Denser than core's 15px tabs, so more categories fit before scrolling. */
+.sps-wrap .sps-filter .filter-links li > a {
+	margin: 0 8px;
+	padding: 10px 0 8px;
+	white-space: nowrap;
+}
+
+.sps-plugins #the-list {
+	display: grid;
+	/* Core's card layout (icon, text, buttons) gets cramped below ~520px. */
+	grid-template-columns: repeat(auto-fill, minmax(min(520px, 100%), 1fr));
+	gap: 16px;
+}
+
+.sps-plugins #the-list > .notice,
+.sps-plugins #the-list > .sps-loading {
+	grid-column: 1 / -1;
+}
+
+/* Column layout so the grey meta row sits at the bottom of equal-height cards. */
+.sps-wrap .sps-plugins .plugin-card {
+	display: flex;
+	flex-direction: column;
+	float: none;
+	width: auto;
+	margin: 0;
+	border-radius: var(--sps-radius);
+	overflow: hidden;
+}
+
+.sps-wrap .sps-plugins .plugin-card-top {
+	flex: 1 0 auto;
+}
+
+.sps-wrap .sps-plugins .plugin-card-bottom {
+	flex: none;
+}
+
+.sps-wrap .sps-plugins .plugin-card-bottom {
+	background: var(--sps-subtle);
+}
+
+/* Closed on wordpress.org: kept as a reminder, never installable. */
+.sps-wrap .sps-plugins .sps-plugin-removed {
+	border-inline-start: 4px solid #dba617;
+}
+
+/* No icon on removed cards or cards from outside wordpress.org, so drop
+   core's 148px icon gutter. */
+.sps-wrap .sps-plugins .sps-plugin-removed .name,
+.sps-wrap .sps-plugins .sps-plugin-removed .desc > p,
+.sps-wrap .sps-plugins .sps-plugin-external .name,
+.sps-wrap .sps-plugins .sps-plugin-external .desc > p {
+	margin-inline-start: 0;
+}
+
+/* From outside wordpress.org (GitHub builds list Git Updater). */
+.sps-wrap .sps-plugins .plugin-card.sps-plugin-external {
+	border-inline-start: 4px solid #2271b1;
+}
+
+.sps-wrap .sps-external-source {
+	margin: 0;
+}
+
+.sps-wrap .sps-removed-icon {
+	color: #996800;
+	vertical-align: -2px;
+}
+
+.sps-wrap .sps-plugins .sps-plugin-removed .plugin-card-bottom {
+	background: #fcf9e8;
+}
+
+.sps-wrap .sps-removed-status {
+	margin: 0;
+}
+
+.sps-wrap .sps-go-pro::before {
+	content: "\f155";
+	margin-inline-end: 4px;
+	font: normal 16px/1 dashicons;
+	vertical-align: -3px;
+	color: #dba617;
+}
+
+/* Core's .button and table rules set display, which beats [hidden]. */
+.sps-plugins [hidden] {
+	display: none !important;
+}
+
+/* Uninstall: quiet until hovered, red like core's Delete links. */
+.sps-wrap .sps-plugins .button.sps-uninstall {
+	color: var(--sps-error);
+	border-color: currentColor;
+	background: transparent;
+}
+
+.sps-wrap .sps-plugins .button.sps-uninstall:hover,
+.sps-wrap .sps-plugins .button.sps-uninstall:focus {
+	color: #fff;
+	background: var(--sps-error);
+	border-color: var(--sps-error);
+}
+
+.sps-wrap .sps-plugins .button.sps-uninstall:disabled {
+	color: var(--sps-muted);
+	background: transparent;
+	border-color: var(--sps-border);
+}
+
+.sps-plugin-message {
+	margin: 8px 0 0;
+	color: var(--sps-error);
+}
+
+.sps-wrap .sps-plugins .is-busy .plugin-action-buttons {
+	cursor: progress;
+}
+
+/* All list ----------------------------------------------------------- */
+
+.sps-bulk {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 8px 12px;
+	position: sticky;
+	top: var(--wp-admin--admin-bar--height, 32px);
+	z-index: 2;
+	margin: 0 0 12px;
+	padding: 10px 12px;
+	background: var(--sps-surface);
+	border: 1px solid var(--sps-border);
+	border-radius: var(--sps-radius);
+	box-shadow: var(--sps-shadow);
+}
+
+.sps-bulk select {
+	min-width: 200px;
+}
+
+.sps-bulk__count {
+	color: var(--sps-muted);
+}
+
+.sps-bulk__progress {
+	flex: 1 1 240px;
+	text-align: end;
+	font-weight: 600;
+}
+
+.sps-plugin-table {
+	border-radius: var(--sps-radius);
+	overflow: hidden;
+}
+
+.sps-wrap .sps-plugin-table td,
+.sps-wrap .sps-plugin-table th {
+	vertical-align: middle;
+}
+
+.sps-wrap .sps-plugin-table .check-column {
+	width: 2.2em;
+	padding: 8px 0 8px 10px;
+	vertical-align: middle;
+}
+
+.sps-wrap .sps-plugin-table .check-column input {
+	margin: 0 0 0 8px;
+}
+
+.sps-wrap .sps-plugin-table thead .check-column input {
+	margin-top: 0;
+}
+
+.sps-wrap .sps-plugin-table .sps-plugin-group-row td,
+.sps-wrap .sps-plugin-table .sps-plugin-group-row th {
+	padding-block: 12px 8px;
+	background: var(--sps-subtle);
+	border-block-start: 1px solid var(--sps-border);
+	font-size: 14px;
+	font-weight: 600;
+}
+
+.sps-plugin-group-row__state {
+	margin-inline-start: 8px;
+	color: var(--sps-muted);
+	font-size: 13px;
+	font-weight: 400;
+}
+
+.sps-plugin-group-row__state .spinner {
+	float: none;
+	margin: -4px 0 0;
+}
+
+/* The buttons show the state: Install Now, Activate (and Uninstall) or Deactivate. */
+.sps-plugin-table__actions {
+	width: 210px;
+}
+
+.sps-plugin-table__pro {
+	width: 110px;
+}
+
+.sps-wrap .sps-plugin-row__pro {
+	text-align: end;
+}
+
+.sps-wrap .sps-plugin-row__pro .sps-go-pro {
+	white-space: nowrap;
+}
+
+.sps-plugin-table__size {
+	width: 16em;
+}
+
+/* The cell stays a table cell so it fills the row; the icon sits in the middle of the name and description. */
+.sps-plugin-row__plugin {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+}
+
+.sps-plugin-row__size .sps-size {
+	display: block;
+}
+
+.sps-plugin-row__size .sps-size.is-pending,
+.sps-plugin-row__size .sps-size__parts {
+	color: var(--sps-muted);
+}
+
+.sps-plugin-row__size .sps-size__parts {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0 8px;
+	margin-top: 2px;
+	font-size: 12px;
+	line-height: 1.5;
+}
+
+.sps-plugin-row__size .sps-size__parts span {
+	white-space: nowrap;
+}
+
+.sps-plugin-row__icon {
+	flex: none;
+	width: 32px;
+	height: 32px;
+	border-radius: 6px;
+	overflow: hidden;
+	background: var(--sps-subtle);
+	color: var(--sps-muted);
+	text-align: center;
+}
+
+.sps-plugin-row__icon img {
+	display: block;
+	width: 32px;
+	height: 32px;
+}
+
+.sps-plugin-row__icon .dashicons {
+	margin-top: 6px;
+}
+
+.sps-plugin-row__text {
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+	min-width: 0;
+}
+
+.sps-wrap a.sps-plugin-row__title,
+.sps-wrap strong.sps-plugin-row__title {
+	font-weight: 600;
+}
+
+.sps-plugin-row__desc {
+	color: var(--sps-muted);
+}
+
+/* When a recommended plugin is needed on this site, or only now and then (seoprostack_free_plugin_note). Not .notice: Hide admin notices moves those. */
+.sps-wrap .sps-plugin-note {
+	display: block;
+	margin: 8px 0;
+	padding: 6px 10px;
+	border-inline-start: 4px solid #72aee6;
+	background: rgba(114, 174, 230, 0.12);
+	font-style: normal;
+}
+
+/* Core floats these right (plugin-install.css); line them up on the left of their column. */
+.sps-wrap .sps-plugin-row__actions .plugin-action-buttons {
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: flex-start;
+	gap: 6px;
+	float: none;
+	margin: 0;
+	text-align: start;
+}
+
+.sps-wrap .sps-plugin-row__actions .plugin-action-buttons li {
+	margin: 0;
+}
+
+.sps-plugin-row .sps-plugin-message {
+	display: block;
+	margin-top: 4px;
+}
+
+.sps-bulk-list.is-running .sps-plugin-row.is-busy {
+	box-shadow: inset 3px 0 0 var(--sps-accent);
+}
+
+/* Theme -------------------------------------------------------------- */
+
+.sps-theme-card {
+	display: grid;
+	grid-template-columns: minmax(240px, 380px) 1fr;
+	overflow: hidden;
+}
+
+.sps-theme-card__media {
+	background: var(--sps-subtle);
+	border-inline-end: 1px solid var(--sps-border);
+}
+
+.sps-theme-card__media img {
+	display: block;
+	width: 100%;
+	height: auto;
+}
+
+.sps-theme-card__body {
+	padding: 24px;
+}
+
+.sps-wrap .sps-theme-card__title {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	margin: 0 0 4px;
+	font-size: 18px;
+}
+
+.sps-theme-card__meta {
+	margin: 0 0 16px;
+	color: var(--sps-muted);
+}
+
+.sps-theme-card__actions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+	margin-block-end: 20px;
+}
+
+.sps-theme-card__links {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 6px 16px;
+	margin: 0;
+	padding-block-start: 16px;
+	border-block-start: 1px solid var(--sps-border);
+	list-style: none;
+}
+
+.sps-theme-card__links li {
+	margin: 0;
+}
+
+.sps-inline-error {
+	flex-basis: 100%;
+	margin: 4px 0 0;
+	color: var(--sps-error);
+}
+
+
+/* Loading ------------------------------------------------------------ */
+
+.sps-loading {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 4px;
+	min-height: 160px;
+	color: var(--sps-muted);
+}
+
+.sps-loading .spinner {
+	float: none;
+	margin: 0;
+}
+
+
+/* Responsive --------------------------------------------------------- */
+
+@media screen and (max-width: 782px) {
+	.sps-plugins #the-list {
+		grid-template-columns: 1fr;
+	}
+
+	/* List: checkbox on the left; name, status and buttons stacked beside it. */
+	.sps-wrap .sps-plugin-table,
+	.sps-wrap .sps-plugin-table thead,
+	.sps-wrap .sps-plugin-table tbody {
+		display: block;
+	}
+
+	.sps-wrap .sps-plugin-table tr {
+		display: grid;
+		grid-template-columns: 3em minmax(0, 1fr);
+		align-items: center;
+	}
+
+	.sps-wrap .sps-plugin-table tr > * {
+		grid-column: 2;
+		display: block;
+		width: auto !important;
+		padding: 4px 12px 4px 0;
+	}
+
+	.sps-wrap .sps-plugin-table tr > .check-column {
+		grid-column: 1;
+		grid-row: 1 / span 4;
+		align-self: start;
+		padding: 10px 0 0 10px;
+	}
+
+	.sps-wrap .sps-plugin-table .check-column input {
+		margin: 0;
+	}
+
+	.sps-wrap .sps-plugin-table tr > :nth-child(2) {
+		padding-top: 12px;
+	}
+
+	.sps-wrap .sps-plugin-table tr > :last-child,
+	.sps-wrap .sps-plugin-table tr > .sps-plugin-row__actions {
+		padding-bottom: 12px;
+	}
+
+	.sps-wrap .sps-plugin-table thead .sps-plugin-table__size,
+	.sps-wrap .sps-plugin-table thead .sps-plugin-table__actions,
+	.sps-wrap .sps-plugin-table thead .sps-plugin-table__pro,
+	.sps-wrap .sps-plugin-table .sps-plugin-row__pro:empty {
+		display: none;
+	}
+
+	.sps-wrap .sps-plugin-table .sps-plugin-row__pro {
+		padding-top: 0;
+		text-align: start;
+	}
+
+	.sps-wrap .sps-plugin-row__actions .plugin-action-buttons {
+		justify-content: flex-start;
+	}
+
+	.sps-bulk__progress {
+		text-align: start;
+	}
+
+	.sps-theme-card {
+		grid-template-columns: 1fr;
+	}
+
+	.sps-theme-card__media {
+		border-inline-end: 0;
+		border-block-end: 1px solid var(--sps-border);
+	}
+}

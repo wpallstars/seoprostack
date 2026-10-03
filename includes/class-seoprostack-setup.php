@@ -341,6 +341,20 @@ final class SEOProStack_Setup {
         add_filter('seoprostack_admin_tabs', array(__CLASS__, 'discover_tabs'), 0);
         add_filter('seoprostack_admin_script_deps', array(__CLASS__, 'script_deps'), 0, 2);
         add_filter('seoprostack_admin_script_data', array(__CLASS__, 'script_data'), 0, 2);
+        add_action('seoprostack_admin_enqueue', array(__CLASS__, 'enqueue_assets'));
+    }
+
+    /**
+     * SEO Pro Stack's own admin styles and script, after the shared ones:
+     * the discover tabs, the Agency tab's example data, the watermark note
+     * and the live admin colour switch.
+     */
+    public static function enqueue_assets() {
+        $css = 'admin/css/seoprostack-tabs.css';
+        $js  = 'admin/js/seoprostack-tabs.js';
+        wp_enqueue_style('seoprostack-tabs', SEOPROSTACK_URL . $css, array('seoprostack-admin'), file_exists(SEOPROSTACK_DIR . $css) ? (string) filemtime(SEOPROSTACK_DIR . $css) : SEOPROSTACK_VERSION);
+        wp_enqueue_script('seoprostack-tabs', SEOPROSTACK_URL . $js, array('seoprostack-admin'), file_exists(SEOPROSTACK_DIR . $js) ? (string) filemtime(SEOPROSTACK_DIR . $js) : SEOPROSTACK_VERSION, true);
+        wp_set_script_translations('seoprostack-tabs', 'seoprostack');
     }
 
     /**
@@ -409,6 +423,11 @@ final class SEOProStack_Setup {
      * @return array
      */
     public static function script_data($data, $tab) {
+        $data['i18n'] = array_merge(isset($data['i18n']) ? (array) $data['i18n'] : array(), array(
+            'loadFailed' => __('Could not load this list. Please reload the page.', 'seoprostack'),
+            'noMatches'  => __('No matches.', 'seoprostack'),
+            'activated'  => __('Activated', 'seoprostack'),
+        ));
         $data['colorSchemes'] = SEOProStack_Admin_Colors::scheme_urls();
         $data['sizes']        = 'recommended' === $tab && class_exists('SEOProStack_Plugin_Sizes') ? array(
             'action' => SEOProStack_Plugin_Sizes::AJAX,
