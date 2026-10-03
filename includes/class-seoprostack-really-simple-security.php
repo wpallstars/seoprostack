@@ -109,7 +109,7 @@ final class SEOProStack_Really_Simple_Security {
         $before = is_array($before) ? $before : array();
         $old    = array_key_exists('redirect', $before) ? $before['redirect'] : null;
         try {
-            $saved = self::save($wanted);
+            $saved = self::save($wanted) && self::https_works();
         } catch (Throwable $error) {
             $saved = false;
         }
@@ -117,7 +117,7 @@ final class SEOProStack_Really_Simple_Security {
             return true;
         }
         try {
-            $restored = self::save($old);
+            $restored = self::save($old) && self::https_works();
         } catch (Throwable $error) {
             $restored = false;
         }
@@ -170,11 +170,17 @@ final class SEOProStack_Really_Simple_Security {
         if (!function_exists('rsssl_update_option') || !function_exists('RSSSL')) {
             return false;
         }
-        rsssl_update_option('redirect', null === $redirect ? 'none' : $redirect);
-        if (null === $redirect) {
+        rsssl_update_option('redirect', is_string($redirect) ? $redirect : 'none');
+        // Native select sanitisation turns false into ''. Keep the original
+        // representation after reconciling its equivalent "No redirect" rules.
+        if (null === $redirect || false === $redirect) {
             $options = get_option(self::OPTION, array());
             if (is_array($options)) {
-                unset($options['redirect']);
+                if (null === $redirect) {
+                    unset($options['redirect']);
+                } else {
+                    $options['redirect'] = false;
+                }
                 if ($options) {
                     update_option(self::OPTION, $options);
                 } else {
