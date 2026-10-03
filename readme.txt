@@ -128,6 +128,8 @@ Click **Report a problem** at the top right of Settings → SEO Pro Stack, or op
 = 0.11.6 =
 * New: Rank Math keyword defaults and pillar tools; off by default.
 * New: Tools → Old addresses can remove every old address at once, across all pages.
+* Fix: deactivating Freesoul Deactivate Plugins or PRO deactivates both and removes its leftover must-use file.
+* Fix: Readabler no longer stops the Plugins screen with a critical error when its server cannot be reached.
 
 Older: `changelog.txt`.
 
