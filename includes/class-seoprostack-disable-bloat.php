@@ -49,6 +49,7 @@ class SEOProStack_Disable_Bloat {
         'wc_helper_disable'                => array('woo_tidy', 'woo_tidy_items', 'connect'),
         'hide_woo_mobile_footer_text'      => array('woo_tidy', 'woo_tidy_items', 'app_email'),
         'marketing_disable'                => array('woo_tidy', 'woo_tidy_items', 'marketing'),
+        'hide_payment_providers'           => array('woo_tidy', 'woo_tidy_items', 'payment_suggestions'),
         // Lighter WooCommerce pages.
         'wc_scripts_disable'               => array('woo_light', 'woo_light_items', 'scripts'),
         'wc_fragmentation_disable'         => array('woo_light', 'woo_light_items', 'fragments'),
@@ -101,8 +102,11 @@ class SEOProStack_Disable_Bloat {
      * Switches that need nothing in its place. WooCommerce (checked with
      * 11.1) loads a block's styles only on pages that show the block, so
      * removing WooCommerce block styles only breaks blocks in use.
+     * "Remove resource hints" removed the DNS prefetch for s.w.org (emoji
+     * pictures), which WordPress (checked with 7.1) no longer adds; the
+     * hints it still adds are for hosts the page loads files from.
      */
-    const NOT_NEEDED = array('wc_blocks_frontend_disable', 'wc_blocks_backend_disable');
+    const NOT_NEEDED = array('wc_blocks_frontend_disable', 'wc_blocks_backend_disable', 'remove_dns_prefetch');
 
     /**
      * Register hooks.

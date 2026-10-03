@@ -5,7 +5,7 @@ Tags: magic login, iframe, schedule posts, auto upload images, admin
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 0.11.6
+Stable tag: 0.11.7
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -67,7 +67,7 @@ Off by default except Hide admin bar items (Comments and + New), No fade between
 
 * **Plugin presets** and **starter data**: our tested settings for other plugins, and the lists, tags, forms and boards we use in Fluent plugins; only when you ask, and undoable.
 * **Plugins menu** in the admin bar, **Plugin sizes**, **Clean up deleted plugins** and **Hosting needs** (what to ask your host for).
-* **Fixes for other plugins** (on): works around their bugs, such as Lasso Lite calling its server on every admin screen.
+* **Fixes for other plugins** (on): works around their bugs, such as Lasso Lite calling its server on every admin screen and Tutor LMS Pro's update-check warnings.
 * **Agency**: order flow, client dashboard and examples.
 * **Discover**: the Kadence theme, recommended free plugins installed in place, and the Pro plugins, hosting and tools we use.
 
@@ -128,11 +128,10 @@ Click **Report a problem** at the top right of Settings → SEO Pro Stack, or op
 = Unreleased =
 * Change: Kadence/Fluent referral links, Scalability Pro website, 11 free plugins/add-ons and four pro products added.
 
-= 0.11.6 =
-* New: Rank Math keyword defaults and pillar tools; off by default.
-* New: Tools → Old addresses can remove every old address at once, across all pages.
-* Fix: deactivating Freesoul Deactivate Plugins or PRO deactivates both and removes its leftover must-use file.
-* Fix: Readabler no longer stops the Plugins screen with a critical error when its server cannot be reached.
+= 0.11.7 =
+* New: Tidy WooCommerce admin hides suggested payment plugins on Settings → Payments.
+* Fix: no more Tutor LMS Pro update-check warnings in the debug log.
+* Fix: Load plugins only where needed loads Pro add-ons and their base plugin together, so no "requires the base plugin" notices.
 
 Older: `changelog.txt`.
 
