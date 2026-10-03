@@ -946,7 +946,7 @@ class SEOProStack_Plugin_Manager {
         $note = '';
         // Tools for fixing problems and admin jobs, which slow every request
         // or add checks while active, so they are not left on day to day.
-        $occasional = array('advanced-database-cleaner', 'debug-log-manager', 'gotmls', 'query-monitor', 'user-switching');
+        $occasional = array('advanced-database-cleaner', 'debug-log-manager', 'gotmls', 'query-monitor', 'user-switching', 'wp-crontrol');
         if (in_array($slug, $occasional, true)) {
             $note = __('Not needed day to day: deactivate or delete it so the site runs at full speed, and turn it on only when you need it to look into a problem or for admin work.', 'seoprostack');
         }
