@@ -30,18 +30,9 @@ class SEOProStack_Settings {
 
     /** Stored schema version, used for one-off migrations. */
     const DB_VERSION_OPTION = 'seoprostack_db_version';
-    const DB_VERSION = 16;
 
-    /**
-     * Tab slugs renamed in 0.4.0, old => new. Settings that still use an
-     * old slug (for example from the schema filter) land on the new tab,
-     * and old admin links open the new tab.
-     */
-    const LEGACY_TABS = array(
-        'general'  => 'admin',
-        'workflow' => 'content',
-        'advanced' => 'links',
-    );
+    /** Current schema version; its history is in SEOProStack_Setup. */
+    const DB_VERSION = SEOProStack_Setup::DB_VERSION;
 
     /**
      * Request-level cache of the resolved schema.
@@ -261,14 +252,15 @@ class SEOProStack_Settings {
     }
 
     /**
-     * Map a renamed tab slug to its current slug.
+     * Map a renamed tab slug to its current slug
+     * (SEOProStack_Setup::RENAMED_TABS).
      *
      * @param string $tab Tab slug.
      * @return string
      */
     public static function resolve_tab($tab) {
-        $legacy = self::LEGACY_TABS;
-        return array_key_exists($tab, $legacy) ? $legacy[$tab] : $tab;
+        $renamed = SEOProStack_Setup::RENAMED_TABS;
+        return array_key_exists($tab, $renamed) ? $renamed[$tab] : $tab;
     }
 
     /**
@@ -572,64 +564,9 @@ class SEOProStack_Settings {
     }
 
     /**
-     * One-off migrations.
-     *
-     * v1: copy pre-0.3.0 individual `wp_allstars_*` options into the array.
-     * v2: the plugin was renamed from "WP Allstars" to "SEO Pro Stack"; copy the
-     *     development `wp_allstars_options` array into `seoprostack_options`.
-     * v3: features import settings from the plugins they replace
-     *     (SEOProStack_Feature::migrate()).
-     * v4: re-run feature imports for development builds at v3, after
-     *     notification, duplicate and later replacement features were added.
-     * v5: import The Paste settings (Paste into the Media Library) and
-     *     Avatar Privacy's switch and profile pictures (Avatars without
-     *     Gravatar), after 0.3.1 shipped at v4. Also Safe SVG (SVG uploads),
-     *     Imsanity (Resize large uploads) and Enable Media Replace (Replace
-     *     media files), CompressX (WebP and AVIF images; its resize limit
-     *     goes to Resize large uploads), Easy Watermark's image
-     *     watermark (Watermark pictures), Remove CPT base's post types
-     *     (Short addresses for custom post types), Pretty Links' defaults
-     *     for new links (Short links; its links are imported separately)
-     *     and Browser Shots' switch (Website screenshots; it has no settings).
-     *     Spectra block replacements switch on while Spectra is active and
-     *     its blocks are in use.
-     * v6: import Disable Bloat's switches, while it is active, after 0.7.0
-     *     shipped at v5 (SEOProStack_Disable_Bloat): Tidy WooCommerce admin,
-     *     Lighter WooCommerce pages, Remove WordPress extras, Tidy the login
-     *     screen, Tidy admin screens and Simpler block editor, plus its
-     *     W logo (Hide admin bar items), widgets and Dashboard boxes
-     *     (Dashboard and sidebar widgets), Heartbeat (Fewer Heartbeat
-     *     requests) and post revisions (Limit post revisions).
-     * v7: import Hostinger Tools' and Disable Bloat's XML-RPC and application
-     *     password switches (Turn off unused remote access) and Hostinger
-     *     Tools' maintenance mode switch (Maintenance mode), leaving stored
-     *     SEO Pro Stack choices and the other plugins' settings untouched.
-     * v8: after 0.8.1 shipped at v7: switch on Menu item visibility where
-     *     Nav Menu Roles has rules (its rules are read in place), Change
-     *     post type and Term tools while Post Type Switcher and Term
-     *     Management Tools are active, and import Simple Custom Post
-     *     Order's post types, taxonomies and term order (Order by hand).
-     * v9: switch on Old post addresses and Search custom fields while
-     *     Slugs Manager and ACF: Better Search are active.
-     * v10: switch on Link cards and Wikipedia previews while Bookmark Card
-     *     and Wikipedia Preview are active.
-     * v11: switch on Word documents in the editor while Mammoth .docx
-     *     converter is active.
-     * v12: switch on Like, save and share while Favorites is active, with
-     *     the post types Favorites adds its button to.
-     * v13: switch on Brand icons while Popular Brand Icons – Simple Icons is
-     *     active.
-     * v14: nothing since 0.10.1. In 0.10.0 it imported Lasso Lite's
-     *     nofollow and sponsored defaults for new short links and switched
-     *     Short links on while Lasso Lite was active with links; both only
-     *     filled unset keys and are harmless now that the two run side by
-     *     side, so they are left as they are. Short links no longer replaces
-     *     Lasso Lite, which does more than links.
-     * v15: import WP-Optimize's scheduled cleanup choices (Clean the
-     *     database weekly), switched on only where LiteSpeed Cache runs on a
-     *     LiteSpeed server.
-     * v16: switch on Restrict content while Content Control is active, with
-     *     its default message.
+     * One-off migrations, once per DB_VERSION: SEOProStack_Setup::migrate()
+     * (imports that belong to no feature), then each feature's migrate().
+     * The history of versions is in SEOProStack_Setup::DB_VERSION.
      *
      * Old options are left in place so a downgrade keeps working;
      * uninstall.php removes ours. Other plugins' options are never touched.
@@ -642,29 +579,7 @@ class SEOProStack_Settings {
 
         $options = get_option(self::OPTION, array());
         $options = is_array($options) ? $options : array();
-
-        $renamed = get_option('wp_allstars_options', array());
-        if (is_array($renamed)) {
-            $options += $renamed;
-        }
-
-        $legacy_map = array(
-            'wp_allstars_admin_color_scheme' => 'modern_admin_colors',
-            'wp_allstars_auto_upload_images' => 'auto_upload_images',
-            'wp_allstars_max_width'          => 'auto_upload_max_width',
-            'wp_allstars_max_height'         => 'auto_upload_max_height',
-            'wp_allstars_exclude_urls'       => 'auto_upload_exclude_domains',
-            'wp_allstars_image_name_pattern' => 'auto_upload_filename_pattern',
-            'wp_allstars_image_alt_pattern'  => 'auto_upload_alt_pattern',
-        );
-
-        $schema = self::schema();
-        foreach ($legacy_map as $legacy => $key) {
-            $legacy_value = get_option($legacy, null);
-            if (null !== $legacy_value && '' !== $legacy_value && !array_key_exists($key, $options) && isset($schema[$key])) {
-                $options[$key] = self::sanitize_value($legacy_value, $schema[$key]);
-            }
-        }
+        $options = (array) SEOProStack_Setup::migrate($options, $from);
 
         foreach (SEOProStack::features() as $class) {
             $options = (array) $class::migrate($options, $from);

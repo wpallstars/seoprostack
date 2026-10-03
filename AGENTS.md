@@ -8,7 +8,13 @@ Minimums: **WordPress 6.2, PHP 7.4** (`readme.txt`, plugin header). User docs:
 
 - One class per feature in `includes/features/`, extending `SEOProStack_Feature`
   (`includes/class-seoprostack-feature.php`), registered in
-  `SEOProStack::$core_features` (`includes/class-seoprostack.php`).
+  `SEOProStack_Setup::FEATURES` (`includes/class-seoprostack-setup.php`).
+- Core files (the registry, settings store, base feature and admin screen
+  the starter plugin also has) hold no SEO Pro Stack-only code: they read
+  `SEOProStack_Setup` (features, settings tabs, header links, settings
+  version and history, and the plugin's own helpers and admin parts) or use
+  hooks. Put anything only SEO Pro Stack needs there, in a feature or in its
+  own file loaded from there.
 - `settings()` declares the schema; the admin UI renders and saves it with no
   extra code. Field types and keys: `README.md` → Developers.
 - `boot()` returns early unless `self::enabled()`. Features are **off by
@@ -38,9 +44,8 @@ Minimums: **WordPress 6.2, PHP 7.4** (`readme.txt`, plugin header). User docs:
   of their own (`![alt](admin/images/banner.svg)`). Use only that Markdown,
   or extend the renderer in the same change. The banner's source is
   `.wordpress-org/banner.svg`; rebuild it with `scripts/build-banner.sh`.
-- Migrations run once per `SEOProStack_Settings::DB_VERSION`. After a release,
-  a new or changed import needs a version bump and a line in the
-  `maybe_migrate()` docblock.
+- Migrations run once per `SEOProStack_Setup::DB_VERSION`. After a release,
+  a new or changed import needs a version bump and a line in its docblock.
 - New options, post meta, transients or cron hooks must be removed in
   `uninstall.php`.
 - Update `README.md` (feature section, hooks, changelog), `changelog.txt`
@@ -140,7 +145,7 @@ preset overwrites them. A setting goes in one or the other.
   owners' control, and because more plugins will be released on GitHub):
   Updates from GitHub, all in
   `includes/features/class-seoprostack-github-updates.php` (listed in
-  `SEOProStack::$optional_features`, loaded only when present). It replaces
+  `SEOProStack_Setup::OPTIONAL_FEATURES`, loaded only when present). It replaces
   Git Updater: it adds GitHub releases of any plugin with a
   `GitHub Plugin URI` header to core's own update check and `plugins_api`,
   and leaves the download, install, auto-updates and rollback to core. It

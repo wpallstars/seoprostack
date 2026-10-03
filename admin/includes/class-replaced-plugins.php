@@ -272,7 +272,7 @@ class SEOProStack_Replaced_Plugins {
         // skipped on this screen still count.
         $here = $network
             ? array_keys((array) get_site_option('active_sitewide_plugins', array()))
-            : SEOProStack_Plugin_Loader::stored_active_plugins();
+            : SEOProStack_Feature::stored_active_plugins();
         $all  = SEOProStack_Feature::active_plugins();
 
         $items = array();

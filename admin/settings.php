@@ -2,8 +2,10 @@
 /**
  * SEO Pro Stack admin loader.
  *
- * Loads admin data files and tab managers, then initialises the admin
- * screen once. Included from the main plugin file for admin requests only.
+ * Loads the settings screen, the Read Me tab and the Plugins screen notes
+ * for replaced plugins, then the plugin's own admin parts
+ * (SEOProStack_Setup::admin()). Included from the main plugin file for
+ * admin requests only.
  *
  * @package SEOProStack
  */
@@ -13,23 +15,11 @@ if (!defined('ABSPATH')) {
 }
 
 $seoprostack_admin_files = array(
-    'admin/data/free-plugins.php',
-    'admin/data/pro-plugins.php',
-    'admin/data/hosting-providers.php',
-    'admin/data/tools.php',
     'admin/data/readme.php',
-    'admin/includes/class-link-cards.php',
     'admin/includes/class-settings-manager.php',
-    'admin/includes/class-plugin-manager.php',
-    'admin/includes/class-free-plugins-manager.php',
-    'admin/includes/class-pro-plugins-manager.php',
-    'admin/includes/class-hosting-manager.php',
-    'admin/includes/class-tools-manager.php',
-    'admin/includes/class-theme-manager.php',
     'admin/includes/class-readme-manager.php',
     'admin/includes/class-admin-manager.php',
     'admin/includes/class-replaced-plugins.php',
-    'admin/includes/class-agency-examples.php',
 );
 
 foreach ($seoprostack_admin_files as $seoprostack_file) {
@@ -39,4 +29,4 @@ unset($seoprostack_admin_files, $seoprostack_file);
 
 SEOProStack_Admin_Manager::init();
 SEOProStack_Replaced_Plugins::init();
-SEOProStack_Agency_Examples::init();
+SEOProStack_Setup::admin();
