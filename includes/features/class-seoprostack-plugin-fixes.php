@@ -49,6 +49,14 @@
  * now skipped while its cached answer is there, and the throwing notice is
  * removed before it runs (Readabler already logs the failure itself).
  *
+ * Search Console (Tropicalista, checked with 3.1.3) links its dashboard
+ * widget's "settings page" to admin.php?page=search-console-settings, a page
+ * it no longer registers, so WordPress says "Sorry, you are not allowed to
+ * access this page", with every plugin loaded or not. Its settings are at
+ * admin.php?page=search-console&subpage=settings; the old address now goes
+ * there. Load plugins only where needed reloads a denied page with every
+ * plugin first (priority 0), so this runs with Search Console loaded.
+ *
  * @package SEOProStack
  */
 
@@ -98,7 +106,7 @@ class SEOProStack_Plugin_Fixes extends SEOProStack_Feature {
                 'default'     => true,
                 'tab'         => 'plugins',
                 'label'       => __('Fixes for other plugins', 'seoprostack'),
-                'description' => __('Works around bugs in other plugins that slow your site down, without changing their settings. Lasso Lite (Simple URLs) stops contacting its server on every admin screen. Deactivating Freesoul Deactivate Plugins or its PRO add-on deactivates both and removes the must-use file it leaves behind. Readabler no longer contacts its server on every Plugins screen load, or stops that screen with a critical error when it cannot. Tutor LMS Pro stops adding warnings to the debug log when there is no update. Turn this off if a fix causes a problem.', 'seoprostack'),
+                'description' => __('Works around bugs in other plugins that slow your site down, without changing their settings. Lasso Lite (Simple URLs) stops contacting its server on every admin screen. Deactivating Freesoul Deactivate Plugins or its PRO add-on deactivates both and removes the must-use file it leaves behind. Readabler no longer contacts its server on every Plugins screen load, or stops that screen with a critical error when it cannot. Tutor LMS Pro stops adding warnings to the debug log when there is no update. Search Console\'s "settings page" link in its dashboard box opens its settings. Turn this off if a fix causes a problem.', 'seoprostack'),
             ),
         );
     }
@@ -125,6 +133,21 @@ class SEOProStack_Plugin_Fixes extends SEOProStack_Feature {
         // (WordPress returns those without the http_response filter).
         add_filter('http_response', array(__CLASS__, 'tutor_pro_no_update'), 10, 3);
         add_filter('pre_http_request', array(__CLASS__, 'tutor_pro_no_update'), PHP_INT_MAX, 3);
+        add_action('admin_page_access_denied', array(__CLASS__, 'search_console_settings_link'));
+    }
+
+    /**
+     * Search Console's dashboard widget links to a settings page it no
+     * longer registers: send that address to the settings it has now.
+     */
+    public static function search_console_settings_link() {
+        // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- only compared; the redirect is a plain link to a screen.
+        if (!isset($_GET['page']) || 'search-console-settings' !== $_GET['page'] || !function_exists('search_console_load_admin_view')
+            || '' === menu_page_url('search-console', false) || !current_user_can('manage_options')) {
+            return;
+        }
+        wp_safe_redirect(admin_url('admin.php?page=search-console&subpage=settings'));
+        exit;
     }
 
     /**
