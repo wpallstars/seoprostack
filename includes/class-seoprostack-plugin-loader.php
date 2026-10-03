@@ -827,7 +827,8 @@ final class SEOProStack_Plugin_Loader {
         if ('' !== $type && in_array($type, (array) ($routes['archives'] ?? array()), true)) {
             return array('kind' => 'archive:' . $type);
         }
-        return '' === $path || isset($query['paged']) ? array('kind' => 'page' === get_option('show_on_front') ? 'home' : 'front') : array();
+        return ('' === $path || isset($query['paged'])) && !array_diff(array_keys($query), array('paged', 'page', 'cpage'))
+            ? array('kind' => 'page' === get_option('show_on_front') ? 'home' : 'front') : array();
     }
 
     /** One bounded lookup supplies content and ancestors for all matching rewrite rules. */
