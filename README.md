@@ -1059,9 +1059,13 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folderâ
 
 ## Changelog
 
-### 0.11.2
+### Unreleased
 
 - Changed: relevant Theme, Pro Plugins, Hosting and Tools links use the developer's existing affiliate or referral links. Product-specific and pricing links stay available; separate links cover Kadence bundles, the Bit Apps store, Fiverr Pro and the Speedy Index Telegram bot. No links are fetched from the developer's site at runtime.
+- Fixed: Updates from GitHub could not download updates from private repositories on sites where another plugin's updater resets WordPress's `upgrader_pre_download` filter for every package (GPLVault Updater does): WordPress then fetched the download without the token, and GitHub answered "Not Found". The shared updater now swaps in GitHub's signed download address on `upgrader_package_options`, before that filter runs, and WordPress downloads it itself. On such sites, install this version once by hand; later updates arrive by themselves.
+
+### 0.11.2
+
 - Fixed: Load plugins only where needed, with **Learn which plugins each page needs** on, could miss some of a page's scripts and styles, and so skip a plugin that page still used. It also wrote "Undefined array key" warnings to the debug log. `SEOProStack_Plugin_Loading::page_needs()` now numbers the handles again after removing duplicates. Each page is learned again within the hour.
 
 ### 0.11.1
