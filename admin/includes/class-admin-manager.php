@@ -4,7 +4,8 @@
  *
  * Owns the Settings → SEO Pro Stack page: tab registry, page chrome and the
  * single admin script/stylesheet. Tab content is delegated to the manager
- * classes. Add tabs with the `seoprostack_admin_tabs` filter.
+ * classes. Settings tabs and header links come from SEOProStack_Setup; add
+ * other tabs with the `seoprostack_admin_tabs` filter.
  *
  * @package SEOProStack
  * @since 0.2.0
@@ -22,67 +23,25 @@ class SEOProStack_Admin_Manager {
     /** Hook suffix returned by add_options_page(). */
     const HOOK = 'settings_page_seoprostack';
 
-    /** Where people report problems: the plugin's GitHub issues. */
-    const SUPPORT_URL = 'https://github.com/wpallstars/seoprostack/issues';
-
-    /** Where people can support the maker: Buy Me a Coffee. */
-    const DONATE_URL = 'https://buymeacoffee.com/marcusquinn';
-
     /**
-     * Register hooks and initialise tab managers (once).
+     * Register hooks (once).
      */
     public static function init() {
         add_action('admin_menu', array(__CLASS__, 'register_admin_menu'));
         add_action('admin_enqueue_scripts', array(__CLASS__, 'enqueue_assets'));
         add_filter('plugin_action_links_' . plugin_basename(SEOPROSTACK_FILE), array(__CLASS__, 'plugin_action_links'));
-
-        SEOProStack_Theme_Manager::init();
-        SEOProStack_Plugin_Manager::init();
     }
 
     /** Slug of the search results screen (not shown in the navigation). */
     const SEARCH = 'search';
 
     /**
-     * Settings tabs, in navigation order.
+     * Settings tabs, in navigation order (SEOProStack_Setup::settings_tabs()).
      *
      * @return array<string,array{label:string,description:string}>
      */
     public static function settings_tabs() {
-        return array(
-            'admin' => array(
-                'label'       => __('Admin', 'seoprostack'),
-                'description' => __('The dashboard, admin bar, logins and emails.', 'seoprostack'),
-            ),
-            'content' => array(
-                'label'       => __('Content', 'seoprostack'),
-                'description' => __('Writing, editing and publishing posts.', 'seoprostack'),
-            ),
-            'media' => array(
-                'label'       => __('Media', 'seoprostack'),
-                'description' => __('Images and other uploads.', 'seoprostack'),
-            ),
-            'links' => array(
-                'label'       => __('Links', 'seoprostack'),
-                'description' => __('Redirects, removed pages and short links.', 'seoprostack'),
-            ),
-            'speed' => array(
-                'label'       => __('Speed', 'seoprostack'),
-                'description' => __('Front-end loading for visitors. Logged-in users are not affected, unless you also preload pages in the admin.', 'seoprostack'),
-            ),
-            'plugins' => array(
-                'label'       => __('Plugins', 'seoprostack'),
-                'description' => __('The Plugins screen and plugin settings.', 'seoprostack'),
-            ),
-            'agency' => array(
-                'label'       => __('Agency', 'seoprostack'),
-                'description' => __('Selling services and apps: orders, client updates and a client dashboard, with Fluent Forms, Fluent Boards, Fluent Support and friends.', 'seoprostack'),
-            ),
-            'maintenance' => array(
-                'label'       => __('Maintenance', 'seoprostack'),
-                'description' => __('Updates, repairs and housekeeping.', 'seoprostack'),
-            ),
-        );
+        return SEOProStack_Setup::settings_tabs();
     }
 
     /**
@@ -108,34 +67,6 @@ class SEOProStack_Admin_Manager {
         }
 
         $tabs += array(
-            'theme' => array(
-                'label'      => __('Theme', 'seoprostack'),
-                'group'      => 'discover',
-                'render'     => array('SEOProStack_Theme_Manager', 'display_tab_content'),
-                'capability' => 'switch_themes',
-            ),
-            'recommended' => array(
-                'label'      => __('Free Plugins', 'seoprostack'),
-                'group'      => 'discover',
-                'render'     => array('SEOProStack_Free_Plugins_Manager', 'display_tab_content'),
-                // On multisite only super admins can install plugins.
-                'capability' => 'install_plugins',
-            ),
-            'pro' => array(
-                'label'  => __('Pro Plugins', 'seoprostack'),
-                'group'  => 'discover',
-                'render' => array('SEOProStack_Pro_Plugins_Manager', 'display_tab_content'),
-            ),
-            'hosting' => array(
-                'label'  => __('Hosting', 'seoprostack'),
-                'group'  => 'discover',
-                'render' => array('SEOProStack_Hosting_Manager', 'display_tab_content'),
-            ),
-            'tools' => array(
-                'label'  => __('Tools', 'seoprostack'),
-                'group'  => 'discover',
-                'render' => array('SEOProStack_Tools_Manager', 'display_tab_content'),
-            ),
             'readme' => array(
                 'label'  => __('Read Me', 'seoprostack'),
                 'group'  => 'about',
@@ -239,14 +170,13 @@ class SEOProStack_Admin_Manager {
 
         wp_enqueue_style('seoprostack-admin', SEOPROSTACK_URL . 'admin/css/seoprostack-admin.css', array('dashicons'), $css);
 
-        $deps = array('jquery', 'wp-a11y', 'wp-i18n');
-        if (in_array($tab, array('recommended', 'theme'), true)) {
-            // Core install/activate flows (same behaviour as Plugins → Add New).
-            wp_enqueue_script('plugin-install');
-            wp_enqueue_script('updates');
-            add_thickbox();
-            $deps[] = 'updates';
-        }
+        /**
+         * Filter the admin script's dependencies; enqueue what a tab needs.
+         *
+         * @param string[] $deps Script handles.
+         * @param string   $tab  Active tab.
+         */
+        $deps = (array) apply_filters('seoprostack_admin_script_deps', array('jquery', 'wp-a11y', 'wp-i18n'), $tab);
 
         if (self::shows_media_field($tab)) {
             wp_enqueue_media();
@@ -255,16 +185,17 @@ class SEOProStack_Admin_Manager {
         wp_enqueue_script('seoprostack-admin', SEOPROSTACK_URL . 'admin/js/seoprostack-admin.js', $deps, $js, true);
         wp_set_script_translations('seoprostack-admin', 'seoprostack');
 
-        wp_localize_script('seoprostack-admin', 'seoprostackAdmin', array(
-            'ajaxUrl'      => admin_url('admin-ajax.php'),
-            'nonce'        => wp_create_nonce(SEOProStack_Settings::NONCE),
-            'tab'          => $tab,
-            'colorSchemes' => SEOProStack_Admin_Colors::scheme_urls(),
-            'sizes'        => 'recommended' === $tab && class_exists('SEOProStack_Plugin_Sizes') ? array(
-                'action' => SEOProStack_Plugin_Sizes::AJAX,
-                'nonce'  => wp_create_nonce(SEOProStack_Plugin_Sizes::AJAX),
-            ) : null,
-            'i18n'         => array(
+        /**
+         * Filter the data the admin script reads (seoprostackAdmin).
+         *
+         * @param array  $data Script data.
+         * @param string $tab  Active tab.
+         */
+        wp_localize_script('seoprostack-admin', 'seoprostackAdmin', (array) apply_filters('seoprostack_admin_script_data', array(
+            'ajaxUrl' => admin_url('admin-ajax.php'),
+            'nonce'   => wp_create_nonce(SEOProStack_Settings::NONCE),
+            'tab'     => $tab,
+            'i18n'    => array(
                 'saving'      => __('Saving…', 'seoprostack'),
                 'saved'       => __('Saved', 'seoprostack'),
                 'saveFailed'  => __('Could not save. Please try again.', 'seoprostack'),
@@ -274,7 +205,7 @@ class SEOProStack_Admin_Manager {
                 'chooseImage' => __('Choose a picture', 'seoprostack'),
                 'useImage'    => __('Use this picture', 'seoprostack'),
             ),
-        ));
+        ), $tab));
     }
 
     /**
@@ -314,6 +245,7 @@ class SEOProStack_Admin_Manager {
 
         $tabs   = self::get_tabs();
         $active = self::get_active_tab();
+        $links  = SEOProStack_Setup::header_links();
         $groups = array(
             'settings' => __('Settings', 'seoprostack'),
             'discover' => __('Discover', 'seoprostack'),
@@ -344,20 +276,26 @@ class SEOProStack_Admin_Manager {
                     <button type="submit" class="button sps-search__button"><?php esc_html_e('Search', 'seoprostack'); ?></button>
                 </form>
                 <div class="sps-header__actions">
-                    <a class="button" href="https://www.wpallstars.com/" target="_blank" rel="noopener noreferrer">
-                        <?php esc_html_e('Visit website', 'seoprostack'); ?>
-                        <span class="screen-reader-text"><?php esc_html_e('(opens in a new tab)', 'seoprostack'); ?></span>
-                    </a>
-                    <a class="button sps-header__support" href="<?php echo esc_url(self::SUPPORT_URL); ?>" target="_blank" rel="noopener noreferrer">
-                        <span class="dashicons dashicons-sos" aria-hidden="true"></span>
-                        <?php esc_html_e('Report a problem', 'seoprostack'); ?>
-                        <span class="screen-reader-text"><?php esc_html_e('(opens in a new tab)', 'seoprostack'); ?></span>
-                    </a>
-                    <a class="button sps-header__support sps-header__donate" href="<?php echo esc_url(self::DONATE_URL); ?>" target="_blank" rel="noopener noreferrer">
-                        <span class="dashicons dashicons-coffee" aria-hidden="true"></span>
-                        <?php esc_html_e('Buy me a coffee', 'seoprostack'); ?>
-                        <span class="screen-reader-text"><?php esc_html_e('(opens in a new tab)', 'seoprostack'); ?></span>
-                    </a>
+                    <?php if (!empty($links['website'])) : ?>
+                        <a class="button" href="<?php echo esc_url($links['website']); ?>" target="_blank" rel="noopener noreferrer">
+                            <?php esc_html_e('Visit website', 'seoprostack'); ?>
+                            <span class="screen-reader-text"><?php esc_html_e('(opens in a new tab)', 'seoprostack'); ?></span>
+                        </a>
+                    <?php endif; ?>
+                    <?php if (!empty($links['support'])) : ?>
+                        <a class="button sps-header__support" href="<?php echo esc_url($links['support']); ?>" target="_blank" rel="noopener noreferrer">
+                            <span class="dashicons dashicons-sos" aria-hidden="true"></span>
+                            <?php esc_html_e('Report a problem', 'seoprostack'); ?>
+                            <span class="screen-reader-text"><?php esc_html_e('(opens in a new tab)', 'seoprostack'); ?></span>
+                        </a>
+                    <?php endif; ?>
+                    <?php if (!empty($links['donate'])) : ?>
+                        <a class="button sps-header__support sps-header__donate" href="<?php echo esc_url($links['donate']); ?>" target="_blank" rel="noopener noreferrer">
+                            <span class="dashicons dashicons-coffee" aria-hidden="true"></span>
+                            <?php esc_html_e('Buy me a coffee', 'seoprostack'); ?>
+                            <span class="screen-reader-text"><?php esc_html_e('(opens in a new tab)', 'seoprostack'); ?></span>
+                        </a>
+                    <?php endif; ?>
                 </div>
             </header>
 

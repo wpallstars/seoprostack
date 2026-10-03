@@ -4,7 +4,7 @@
  * names its GitHub repository.
  *
  * Only in builds made from GitHub releases. The WordPress.org build leaves
- * this file out (see SEOProStack::$optional_features), because plugins
+ * this file out (see SEOProStack_Setup::OPTIONAL_FEATURES), because plugins
  * hosted there may not install or update code from anywhere else.
  *
  * - A plugin takes part by naming its repository in its main file's header:
