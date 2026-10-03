@@ -1,15 +1,16 @@
 #!/usr/bin/env bash
-# Build the release zips of SEO Pro Stack from a Git ref.
+# Build the release zips of the plugin from a Git ref.
 #
-# Two builds of the same version, both with one seoprostack/ folder inside:
-#   seoprostack-X.Y.Z.zip
+# Two builds of the same version, both with one {slug}/ folder inside (the
+# slug is the main file's name, scripts/lib/plugin.sh):
+#   {slug}-X.Y.Z.zip
 #       GitHub release asset: the files in Git, less .distignore.
-#   wordpress-org-seoprostack-X.Y.Z.zip
+#   wordpress-org-{slug}-X.Y.Z.zip
 #       WordPress.org build: the same, less the files in .distignore-wporg and
-#       the GitHub updater header lines. Its name does not start with
-#       "seoprostack", so no updater picks it even if it is attached to
-#       a GitHub release by mistake (it takes the first asset whose name starts
-#       with the plugin slug). Never attach it to a GitHub release.
+#       the GitHub updater header lines. Its name does not start with the
+#       slug, so no updater picks it even if it is attached to a GitHub
+#       release by mistake (it takes the first asset whose name starts with
+#       the plugin slug). Never attach it to a GitHub release.
 #   SHA256SUMS
 #
 # Files come from the Git ref (git archive), never from the working tree, so
@@ -26,13 +27,17 @@ set -euo pipefail
 umask 022
 export TZ=UTC
 
-readonly SLUG="seoprostack"
-readonly MAIN_FILE="seoprostack.php"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+readonly SCRIPT_DIR
+# shellcheck source=scripts/lib/plugin.sh disable=SC1091 # followed only with -x
+. "$SCRIPT_DIR/lib/plugin.sh"
 readonly WPORG_IGNORE=".distignore-wporg"
 # Header lines read only by GitHub updaters (ours and Git Updater); left out of the WordPress.org build.
 readonly WPORG_STRIP_HEADERS='GitHub Plugin URI|Primary Branch|Release Asset'
 
 TMP_DIR=""
+SLUG=""
+MAIN_FILE=""
 
 die() {
 	local message="$1"
@@ -133,6 +138,9 @@ main() {
 	root="$(git rev-parse --show-toplevel)" || die "run this inside a checkout of the plugin"
 	cd "$root"
 	sha="$(git rev-parse --verify --quiet "$ref^{commit}")" || die "not a commit: $ref"
+	plugin_identity "$sha" || die "cannot tell which plugin this is at $ref"
+	SLUG="$PLUGIN_SLUG"
+	MAIN_FILE="$PLUGIN_MAIN_FILE"
 	version="$(version_at "$sha")"
 	[ -n "$version" ] || die "no Version: header in $MAIN_FILE at $ref"
 
@@ -145,7 +153,7 @@ main() {
 	out="$(cd "$out" && pwd)"
 
 	trap cleanup EXIT
-	TMP_DIR="$(mktemp -d "${TMPDIR:-/tmp}/seoprostack-build.XXXXXX")"
+	TMP_DIR="$(mktemp -d "${TMPDIR:-/tmp}/$SLUG-build.XXXXXX")"
 	mkdir -p "$TMP_DIR/src" "$TMP_DIR/github/$SLUG" "$TMP_DIR/wporg/$SLUG"
 
 	git archive --format=tar "$sha" | tar -x -C "$TMP_DIR/src"
@@ -176,7 +184,7 @@ main() {
 		printf '%s\n%s\n' "$github_zip" "$wporg_zip"
 		return 0
 	fi
-	printf 'SEO Pro Stack %s from %s (%s)\n' "$version" "$ref" "${sha:0:12}"
+	printf '%s %s from %s (%s)\n' "$PLUGIN_NAME" "$version" "$ref" "${sha:0:12}"
 	printf '  GitHub release:  %s (%s files)\n' "$github_zip" "$(unzip -Z1 "$github_zip" | grep -cv '/$')"
 	printf '  WordPress.org:   %s (%s files)\n' "$wporg_zip" "$(unzip -Z1 "$wporg_zip" | grep -cv '/$')"
 	printf '  Checksums:       %s\n' "$out/SHA256SUMS"

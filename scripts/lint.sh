@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Code checks for SEO Pro Stack, the same ones CI runs on every pull request
+# Code checks for the plugin, the same ones CI runs on every pull request
 # (.github/workflows/ci.yml). Changes nothing.
 #
 # Usage: scripts/lint.sh [CHECK]...
@@ -68,7 +68,8 @@ check_shell() {
 		files+=("$file")
 	done < <(git -C "$ROOT" ls-files -z '*.sh')
 	[ "${#files[@]}" -eq 0 ] && return 0
-	shellcheck --severity=style "${files[@]}"
+	# -x follows the scripts' `# shellcheck source=` lines (scripts/lib/).
+	shellcheck -x --severity=style "${files[@]}"
 	return $?
 }
 
