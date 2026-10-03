@@ -335,6 +335,8 @@ delete_site_option('seoprostack_nextgen_rules');
 // before it was shared). Only a cache: another plugin's copy asks again.
 delete_site_transient('wpallstars_github_releases');
 delete_site_transient('seoprostack_github_releases');
+// Fixes for other plugins: Comment Goblin's update server failed recently.
+delete_site_transient('seoprostack_comment_goblin_failed');
 
 // The must-use file of "Load plugins only where needed", if it is ours.
 $seoprostack_loader = WPMU_PLUGIN_DIR . '/seoprostack-plugin-loading.php';

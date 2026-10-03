@@ -62,6 +62,20 @@
  * installed but tutor_order_items is missing, Tutor's own installer is run
  * once (a failure waits a day before the next try).
  *
+ * Tutor LMS Pro 4.0.9's updater deletes the update_plugins transient and runs
+ * wp_update_plugins() on every load of the Plugins screen, so that screen
+ * waits for every plugin's update and licence servers each time (seconds on
+ * a site with many premium plugins). Its closure is removed, and WordPress's
+ * own check on that screen, at most once an hour, stays.
+ *
+ * Comment Goblin 1.2.0 asks its server for update details on every read of
+ * the update_plugins transient (many times on each admin screen), and keeps
+ * the answer for a day only when the request succeeds. While its server
+ * fails (as commentgoblin.com did, with a certificate for another name), each
+ * read waits for that failure. After a failure, its update check is answered
+ * at once with the "request failed" error it already handles, for 12 hours
+ * (a site transient, so for every site of a network).
+ *
  * @package SEOProStack
  */
 
@@ -101,6 +115,12 @@ class SEOProStack_Plugin_Fixes extends SEOProStack_Feature {
     /** After a failed Tutor table repair, wait this long (a transient) before trying again. */
     const TUTOR_RETRY = 'seoprostack_tutor_tables_retry';
 
+    /** Tutor LMS Pro's updater class, whose current_screen closure forces update checks. */
+    const TUTOR_PRO_UPDATER = 'TutorPRO\ThemeumUpdater\Update';
+
+    /** After Comment Goblin's update server fails, answer from here (a site transient) until it runs out. */
+    const CG_FAILED = 'seoprostack_comment_goblin_failed';
+
     /**
      * Settings.
      *
@@ -114,7 +134,7 @@ class SEOProStack_Plugin_Fixes extends SEOProStack_Feature {
                 'default'     => true,
                 'tab'         => 'plugins',
                 'label'       => __('Fixes for other plugins', 'seoprostack'),
-                'description' => __('Works around bugs in other plugins that slow your site down, without changing their settings. Lasso Lite (Simple URLs) stops contacting its server on every admin screen. Deactivating Freesoul Deactivate Plugins or its PRO add-on deactivates both and removes the must-use file it leaves behind. Readabler no longer contacts its server on every Plugins screen load, or stops that screen with a critical error when it cannot. Tutor LMS Pro stops adding warnings to the debug log when there is no update. Tutor LMS gets its order, cart and coupon tables on every site of a network. Turn this off if a fix causes a problem.', 'seoprostack'),
+                'description' => __('Works around bugs in other plugins that slow your site down, without changing their settings. Lasso Lite (Simple URLs) stops contacting its server on every admin screen. Deactivating Freesoul Deactivate Plugins or its PRO add-on deactivates both and removes the must-use file it leaves behind. Readabler no longer contacts its server on every Plugins screen load, or stops that screen with a critical error when it cannot. Tutor LMS Pro stops adding warnings to the debug log when there is no update. Tutor LMS gets its order, cart and coupon tables on every site of a network. Tutor LMS Pro no longer makes the Plugins screen check every plugin for updates on each load. Comment Goblin no longer waits for its update server on every admin screen while that server fails. Turn this off if a fix causes a problem.', 'seoprostack'),
             ),
         );
     }
@@ -144,6 +164,87 @@ class SEOProStack_Plugin_Fixes extends SEOProStack_Feature {
         add_filter('dbdelta_create_queries', array(__CLASS__, 'tutor_create_queries'));
         // Before Tutor's upgrader, which uses priority 10.
         add_action('admin_init', array(__CLASS__, 'tutor_repair_tables'), 5);
+        // Before Tutor LMS Pro's closure, which uses priority 10.
+        add_action('current_screen', array(__CLASS__, 'tutor_pro_no_forced_check'), 0);
+        add_filter('pre_http_request', array(__CLASS__, 'cg_skip_failed'), 10, 3);
+        add_action('http_api_debug', array(__CLASS__, 'cg_note_failure'), 10, 5);
+    }
+
+    /**
+     * Remove Tutor LMS Pro's current_screen closure, which deletes the
+     * update_plugins transient and runs wp_update_plugins() on every load of
+     * the Plugins screen. WordPress's own check on that screen (at most once
+     * an hour) stays.
+     */
+    public static function tutor_pro_no_forced_check() {
+        global $wp_filter;
+        if (!isset($wp_filter['current_screen'])) {
+            return;
+        }
+        foreach ($wp_filter['current_screen']->callbacks as $priority => $callbacks) {
+            foreach ($callbacks as $callback) {
+                if (!$callback['function'] instanceof Closure) {
+                    continue;
+                }
+                $scope = (new ReflectionFunction($callback['function']))->getClosureScopeClass();
+                if ($scope && self::TUTOR_PRO_UPDATER === $scope->getName()) {
+                    remove_action('current_screen', $callback['function'], $priority);
+                }
+            }
+        }
+    }
+
+    /**
+     * Whether a request is Comment Goblin's update check.
+     *
+     * @param mixed $url Request address.
+     * @return bool
+     */
+    private static function is_cg_update_check($url) {
+        return defined('CG_API_BASE') && is_string(CG_API_BASE) && is_string($url)
+            && 0 === strpos($url, CG_API_BASE . 'plugin-details');
+    }
+
+    /**
+     * While Comment Goblin's update server is known to fail, answer its
+     * update check with the error it already handles, without waiting.
+     *
+     * @param false|array|WP_Error $pre  Answer from an earlier filter.
+     * @param array                $args Request arguments.
+     * @param string               $url  Request address.
+     * @return false|array|WP_Error
+     */
+    public static function cg_skip_failed($pre, $args, $url) {
+        if (false !== $pre || !self::is_cg_update_check($url) || !get_site_transient(self::CG_FAILED)) {
+            return $pre;
+        }
+        return new WP_Error(
+            'http_request_failed',
+            __('Comment Goblin’s update server failed recently. SEO Pro Stack waits 12 hours before asking it again.', 'seoprostack'),
+            array('seoprostack' => 'comment_goblin')
+        );
+    }
+
+    /**
+     * Note a failed Comment Goblin update check, which Comment Goblin does
+     * not keep, so it is not asked again on every read of update_plugins.
+     * Answers from pre_http_request filters, this fix's included, do not
+     * reach http_api_debug.
+     *
+     * @param array|WP_Error $response Answer.
+     * @param string         $context  "response".
+     * @param string         $class    Transport.
+     * @param array          $args     Request arguments.
+     * @param string         $url      Request address.
+     */
+    public static function cg_note_failure($response, $context, $class, $args, $url) {
+        if ('response' !== $context || !self::is_cg_update_check($url)) {
+            return;
+        }
+        if (!is_wp_error($response) && 200 === (int) wp_remote_retrieve_response_code($response) && '' !== wp_remote_retrieve_body($response)) {
+            return;
+        }
+        set_site_transient(self::CG_FAILED, 1, 12 * HOUR_IN_SECONDS);
     }
 
     /**
