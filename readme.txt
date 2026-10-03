@@ -5,7 +5,7 @@ Tags: magic login, iframe, schedule posts, auto upload images, admin
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 0.11.1
+Stable tag: 0.11.2
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -123,8 +123,8 @@ Click **Report a problem** at the top right of Settings → SEO Pro Stack, or op
 
 == Changelog ==
 
-= 0.11.1 =
-* Developers: core files come from the wpallstars starter plugin (scripts/sync-core.sh); shared docs in STANDARDS.md. Nothing changes for users.
+= 0.11.2 =
+* Fix: Load plugins only where needed, with Learn which plugins each page needs on, could skip a plugin a page still used.
 
 Older: `changelog.txt`.
 

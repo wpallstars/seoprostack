@@ -1255,7 +1255,9 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
         // still contributes to this page after other features have dequeued it.
         $root = (string) wp_parse_url(plugins_url('/'), PHP_URL_PATH);
         foreach (array(wp_scripts(), wp_styles()) as $assets) {
-            $handles = array_unique(array_merge($assets->queue, $assets->done));
+            // array_values: array_unique keeps keys, and the loop below reads
+            // 0..count-1 while appending dependencies, so gaps would skip handles.
+            $handles = array_values(array_unique(array_merge($assets->queue, $assets->done)));
             for ($i = 0; $i < count($handles); $i++) {
                 $handle = $handles[$i];
                 if (empty($assets->registered[$handle])) {

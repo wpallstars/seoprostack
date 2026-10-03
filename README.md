@@ -1057,6 +1057,10 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folderâ
 
 ## Changelog
 
+### 0.11.2
+
+- Fixed: Load plugins only where needed, with **Learn which plugins each page needs** on, could miss some of a page's scripts and styles, and so skip a plugin that page still used. It also wrote "Undefined array key" warnings to the debug log. `SEOProStack_Plugin_Loading::page_needs()` now numbers the handles again after removing duplicates. Each page is learned again within the hour.
+
 ### 0.11.1
 
 - Developers: the core files (listed in `scripts/core-files.txt`) now come from the starter plugin, `wpallstars/wp-plugin-starter-template-for-ai-coding`, with SEO Pro Stack's names: `scripts/sync-core.sh` copies them and `scripts/sync-core.sh --check` lists any that differ. SEO Pro Stack's own admin styles and script moved to `admin/css/seoprostack-tabs.css` and `admin/js/seoprostack-tabs.js`, loaded from `SEOProStack_Setup` on the new `seoprostack_admin_enqueue` action, and use the shared helpers in `seoprostackAdmin.api`. The presets and starter data release check moved to `scripts/preflight-plugin.sh`. With no settings at all, the settings screen shows its first tab with "No settings yet." Nothing changes for users.
