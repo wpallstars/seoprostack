@@ -47,6 +47,7 @@ final class SEOProStack_Litespeed {
         add_filter('seoprostack_preset_condition', array(__CLASS__, 'condition'), 10, 2);
         add_action('seoprostack_plugin_preset_changed', array(__CLASS__, 'save_through_plugin'), 10, 2);
         add_filter('seoprostack_free_plugin_note', array(__CLASS__, 'free_plugin_note'), 10, 2);
+        add_action('after_plugin_row', array(__CLASS__, 'wp_optimize_row_note'));
     }
 
     /**
@@ -178,13 +179,34 @@ final class SEOProStack_Litespeed {
      * @return string
      */
     public static function free_plugin_note($note, $slug) {
-        if ('wp-optimize' !== $slug) {
+        if (!in_array($slug, array('wp-optimize', 'wp-optimize-premium'), true)) {
             return $note;
         }
         if (self::is_server()) {
             return __('Not needed here: this site runs on a LiteSpeed server, so use LiteSpeed Cache instead.', 'seoprostack');
         }
         return __('Use this on servers other than LiteSpeed, for its page cache. Its plugin preset turns the page cache on and leaves the rest to SEO Pro Stack.', 'seoprostack');
+    }
+
+    /**
+     * Warn before either edition removes a WP_CACHE line LiteSpeed needs.
+     * Use a row note rather than writing wp-config.php outside the cache
+     * plugin's own settings save, which also reports file permission errors.
+     *
+     * @param string $file Plugin file.
+     */
+    public static function wp_optimize_row_note($file) {
+        global $wp_list_table;
+        if (!in_array($file, array('wp-optimize/wp-optimize.php', 'wp-optimize-premium/wp-optimize.php'), true)
+            || !self::is_server() || !is_plugin_active($file) || !is_plugin_active('litespeed-cache/litespeed-cache.php')) {
+            return;
+        }
+        $columns = ($wp_list_table instanceof WP_List_Table) ? $wp_list_table->get_column_count() : 4;
+        printf(
+            '<tr class="plugin-update-tr active"><td colspan="%1$d" class="plugin-update colspanchange"><div class="notice inline notice-warning notice-alt"><p>%2$s</p></div></td></tr>',
+            (int) $columns,
+            esc_html__('Deactivating WP-Optimize or WP-Optimize Premium can remove the WP_CACHE line LiteSpeed Cache needs from wp-config.php. After deactivating it, save LiteSpeed Cache’s Cache settings to restore that line, and check for any file permission warning.', 'seoprostack')
+        );
     }
 
     /**
