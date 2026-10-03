@@ -660,7 +660,9 @@ final class SEOProStack_Presets {
     /**
      * Tell the plugin's own code its settings changed, for plugins that do
      * more on save than store them (LiteSpeed Cache writes .htaccess and
-     * purges; see SEOProStack_Litespeed::save_through_plugin()).
+     * purges, see SEOProStack_Litespeed::save_through_plugin(); WP-Optimize
+     * writes advanced-cache.php and WP_CACHE, see
+     * SEOProStack_WP_Optimize::save_through_plugin()).
      *
      * @param string   $slug  Plugin folder.
      * @param string[] $names Option names written.

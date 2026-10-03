@@ -120,6 +120,7 @@ final class SEOProStack {
         require_once SEOPROSTACK_DIR . 'includes/class-seoprostack-admin-bar.php';
         require_once SEOPROSTACK_DIR . 'includes/class-seoprostack-disable-bloat.php';
         require_once SEOPROSTACK_DIR . 'includes/class-seoprostack-litespeed.php';
+        require_once SEOPROSTACK_DIR . 'includes/class-seoprostack-wp-optimize.php';
         // Usually loaded already by the must-use file of "Load plugins only
         // where needed"; features ask it which plugins are active.
         if (!class_exists('SEOProStack_Plugin_Loader', false)) {
@@ -139,6 +140,7 @@ final class SEOProStack {
         SEOProStack_Admin_Bar::init();
         SEOProStack_Disable_Bloat::init();
         SEOProStack_Litespeed::init();
+        SEOProStack_WP_Optimize::init();
         // Priority 0, added after SEOProStack_Settings::maybe_migrate() so features
         // read migrated values, and early enough to hook widgets_init (init:1).
         add_action('init', array(__CLASS__, 'boot_features'), 0);

@@ -1,13 +1,22 @@
 {
     "name": "WP-Optimize",
     "tested": "4.7.0",
-    "updated": "2026-10-02",
-    "notes": "Hides the caching menu in the admin bar if the owner later enables Cache or Minify. The main WP-Optimize admin bar menu is already off on a fresh install and stays unchanged. No caching, image compression, minification or database cleanup is enabled. Schedules, retention, backups and logging are left alone because their save paths manage cron or other work. Notice dismissals are left out because they store dates or one-time state rather than a lasting preference.",
+    "updated": "2026-10-03",
+    "notes": "For sites on servers other than LiteSpeed, WP-Optimize is kept for its page cache, so this turns the page cache on there, with its own defaults (pages kept 24 hours, not for logged-in people). Applying, resetting and undoing run WP-Optimize's own cache save code, which writes advanced-cache.php and the WP_CACHE line in wp-config.php (SEOProStack_WP_Optimize::save_through_plugin()). On LiteSpeed servers LiteSpeed Cache keeps pages, so the page cache is left alone there (when: !litespeed_server). Everything else stays off, as on a fresh install, because SEO Pro Stack or LiteSpeed Cache does it: image compression (it sends pictures to reSmush.it) and WebP (WebP and AVIF images), scheduled database cleanup (Clean the database weekly), CSS and JS minify (LiteSpeed Cache), local Gravatars (avatars). Gzip and browser caching write .htaccess from WP-Optimize's Cache screen, so they are left out; most hosts already send them. Also hides the caching menu in the admin bar, for quieter screens. Schedules, retention, backups and logging are left alone because their save paths manage cron or other work. Notice dismissals are left out because they store dates or one-time state rather than a lasting preference.",
     "options": {
-        "wp-optimize-enable_cache_in_admin_bar": "0"
+        "wp-optimize-enable_cache_in_admin_bar": "0",
+        "wpo_cache_config": {
+            "enable_page_caching": true
+        }
     },
     "defaults": {
-        "wp-optimize-enable_cache_in_admin_bar": null
+        "wp-optimize-enable_cache_in_admin_bar": null,
+        "wpo_cache_config": {
+            "enable_page_caching": false
+        }
+    },
+    "when": {
+        "wpo_cache_config": "!litespeed_server"
     },
     "settings": {
         "wp-optimize-enable_cache_in_admin_bar": {
@@ -17,6 +26,14 @@
                 "1": "On",
                 "0": "Off",
                 "null": "On (not set)"
+            }
+        },
+        "wpo_cache_config.enable_page_caching": {
+            "label": "Enable page caching",
+            "description": "Keeps a copy of each page, so visitors get it without WordPress building it again.",
+            "values": {
+                "true": "On",
+                "false": "Off (WP-Optimize's default)"
             }
         }
     }
