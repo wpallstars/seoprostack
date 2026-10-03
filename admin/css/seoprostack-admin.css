@@ -1151,6 +1151,16 @@
 	color: var(--sps-muted);
 }
 
+/* When a recommended plugin is needed on this site (seoprostack_free_plugin_note). Not .notice: Hide admin notices moves those. */
+.sps-wrap .sps-plugin-note {
+	display: block;
+	margin: 8px 0;
+	padding: 6px 10px;
+	border-inline-start: 4px solid #72aee6;
+	background: rgba(114, 174, 230, 0.12);
+	font-style: normal;
+}
+
 /* Core floats these right (plugin-install.css); line them up on the left of their column. */
 .sps-wrap .sps-plugin-row__actions .plugin-action-buttons {
 	display: flex;

@@ -765,6 +765,10 @@ class SEOProStack_Plugin_Manager {
                     </div>
                     <div class="desc column-description">
                         <p><?php echo esc_html(isset($plugin->short_description) ? $plugin->short_description : ''); ?></p>
+                        <?php $note = self::note($plugin->slug); ?>
+                        <?php if ('' !== $note) : ?>
+                            <p class="sps-plugin-note"><?php echo esc_html($note); ?></p>
+                        <?php endif; ?>
                         <?php if (!empty($plugin->author)) : ?>
                             <p class="authors"><cite><?php echo wp_kses(sprintf(/* translators: %s: author */ __('By %s', 'seoprostack'), $plugin->author), $allowed_author); ?></cite></p>
                         <?php endif; ?>
@@ -909,6 +913,10 @@ class SEOProStack_Plugin_Manager {
                             <?php if (!empty($plugin->removed) && !empty($plugin->replacement)) : ?>
                                 <em class="sps-plugin-row__desc"><?php echo esc_html($plugin->replacement); ?></em>
                             <?php endif; ?>
+                            <?php $note = self::note($plugin->slug); ?>
+                            <?php if ('' !== $note) : ?>
+                                <span class="sps-plugin-note"><?php echo esc_html($note); ?></span>
+                            <?php endif; ?>
                         </span>
                     </div>
                 </td>
@@ -924,6 +932,24 @@ class SEOProStack_Plugin_Manager {
             <?php
         }
         return ob_get_clean();
+    }
+
+    /**
+     * A note under a recommended plugin's description, worked out for this
+     * site (not cached with the WordPress.org details).
+     *
+     * @param string $slug Plugin slug.
+     * @return string Plain text, or ''.
+     */
+    private static function note($slug) {
+        /**
+         * Filter the note shown under a recommended plugin in Free Plugins,
+         * such as when it is needed.
+         *
+         * @param string $note Plain text; '' for none.
+         * @param string $slug WordPress.org slug.
+         */
+        return trim((string) apply_filters('seoprostack_free_plugin_note', '', (string) $slug));
     }
 
     /**

@@ -32,7 +32,8 @@
  *             feature:{key} (an SEO Pro Stack feature is on),
  *             feature:{key}:{item} (and that item of it is chosen),
  *             litespeed_server, and more through the
- *             seoprostack_preset_condition filter.
+ *             seoprostack_preset_condition filter. A leading "!" turns a
+ *             condition round (!litespeed_server: not a LiteSpeed server).
  *
  * Secrets are never stored or changed: option names and keys that look like
  * licence keys, API keys, tokens, passwords or similar are skipped when a
@@ -134,6 +135,9 @@ final class SEOProStack_Presets {
      * @return bool
      */
     private static function condition($condition) {
+        if ('!' === substr($condition, 0, 1)) {
+            return !self::condition(substr($condition, 1));
+        }
         $parts = explode(':', $condition);
         if ('single_site' === $condition) {
             $holds = !is_multisite();
@@ -656,7 +660,9 @@ final class SEOProStack_Presets {
     /**
      * Tell the plugin's own code its settings changed, for plugins that do
      * more on save than store them (LiteSpeed Cache writes .htaccess and
-     * purges; see SEOProStack_Litespeed::save_through_plugin()).
+     * purges, see SEOProStack_Litespeed::save_through_plugin(); WP-Optimize
+     * writes advanced-cache.php and WP_CACHE, see
+     * SEOProStack_WP_Optimize::save_through_plugin()).
      *
      * @param string   $slug  Plugin folder.
      * @param string[] $names Option names written.
