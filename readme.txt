@@ -138,6 +138,3 @@ Older: `changelog.txt`.
 
 = 0.11.5 =
 Load plugins only where needed works again on updated sites. With HTTP Requests Manager blocking requests and a private repository: install 0.11.5 once by hand.
-
-= 0.11.3 =
-Sites with GPLVault Updater active: install 0.11.3 once by hand; later updates from GitHub then arrive by themselves.
