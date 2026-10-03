@@ -181,7 +181,7 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
                 'default'     => false,
                 'tab'         => 'plugins',
                 'label'       => __('Load plugins only where needed', 'seoprostack'),
-                'description' => __('Makes wp-admin faster by loading plugins only on screens that need them. Login and permission plugins always load. The menu stays the same. Saving, background tasks, and the Plugins and core settings screens load every plugin. So does the site, unless you choose plugins to skip there.', 'seoprostack'),
+                'description' => __('Makes wp-admin faster by loading plugins only on screens that need them. After learning, plain site page views also skip plugins with nothing seen there. Login and permission plugins always load. The menu stays the same. Saving, background tasks, and the Plugins and core settings screens load every plugin.', 'seoprostack'),
             ),
             self::LIST_KEY => array(
                 'type'        => 'multi',
