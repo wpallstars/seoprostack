@@ -129,6 +129,7 @@ Click **Report a problem** at the top right of Settings → SEO Pro Stack, or op
 = Unreleased =
 * New: Custom fields to content, off by default, with per-type choices, excerpts, skipped fields and WP-CLI sync.
 * Fix: Recognise WP-Optimize Premium, share its preset and warn about restoring LiteSpeed Cache’s WP_CACHE line after deactivation.
+* Fix: Tutor LMS gets its order, cart and coupon tables on every site of a network.
 
 = 0.11.9 =
 * Change: Kadence/Fluent referral links, Scalability Pro website, 11 free plugins/add-ons and four pro products added.

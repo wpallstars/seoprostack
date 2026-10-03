@@ -49,6 +49,19 @@
  * now skipped while its cached answer is there, and the throwing notice is
  * removed before it runs (Readabler already logs the failure itself).
  *
+ * Tutor LMS 4.1.0 names its foreign keys the same on every site
+ * (fk_tutor_order_item_order_id and eight more), but MySQL and MariaDB need
+ * each name once per database. On a network, or sites sharing a database,
+ * only the first site gets its order, cart and coupon tables; on the others
+ * Tutor's installer fails quietly, and its 3.8.0 upgrade then fails on every
+ * admin screen ("Foreign key constraint is incorrectly formed") because
+ * tutor_order_items is missing. Its cart and coupon tables also point at
+ * {prefix}users, which subsites do not have. When Tutor creates a table, a
+ * name another table already has gets the site's table prefix, and the
+ * users table is the network's. On an admin screen of a site where Tutor is
+ * installed but tutor_order_items is missing, Tutor's own installer is run
+ * once (a failure waits a day before the next try).
+ *
  * @package SEOProStack
  */
 
@@ -85,6 +98,9 @@ class SEOProStack_Plugin_Fixes extends SEOProStack_Feature {
     /** Merkulove "Unity" classes: {Plugin} is the plugin's own namespace part. */
     const UNITY = '/^Merkulove\\\\(\w+)\\\\Unity\\\\(UnityActions|EnvatoItem)$/';
 
+    /** After a failed Tutor table repair, wait this long (a transient) before trying again. */
+    const TUTOR_RETRY = 'seoprostack_tutor_tables_retry';
+
     /**
      * Settings.
      *
@@ -98,7 +114,7 @@ class SEOProStack_Plugin_Fixes extends SEOProStack_Feature {
                 'default'     => true,
                 'tab'         => 'plugins',
                 'label'       => __('Fixes for other plugins', 'seoprostack'),
-                'description' => __('Works around bugs in other plugins that slow your site down, without changing their settings. Lasso Lite (Simple URLs) stops contacting its server on every admin screen. Deactivating Freesoul Deactivate Plugins or its PRO add-on deactivates both and removes the must-use file it leaves behind. Readabler no longer contacts its server on every Plugins screen load, or stops that screen with a critical error when it cannot. Tutor LMS Pro stops adding warnings to the debug log when there is no update. Turn this off if a fix causes a problem.', 'seoprostack'),
+                'description' => __('Works around bugs in other plugins that slow your site down, without changing their settings. Lasso Lite (Simple URLs) stops contacting its server on every admin screen. Deactivating Freesoul Deactivate Plugins or its PRO add-on deactivates both and removes the must-use file it leaves behind. Readabler no longer contacts its server on every Plugins screen load, or stops that screen with a critical error when it cannot. Tutor LMS Pro stops adding warnings to the debug log when there is no update. Tutor LMS gets its order, cart and coupon tables on every site of a network. Turn this off if a fix causes a problem.', 'seoprostack'),
             ),
         );
     }
@@ -125,6 +141,82 @@ class SEOProStack_Plugin_Fixes extends SEOProStack_Feature {
         // (WordPress returns those without the http_response filter).
         add_filter('http_response', array(__CLASS__, 'tutor_pro_no_update'), 10, 3);
         add_filter('pre_http_request', array(__CLASS__, 'tutor_pro_no_update'), PHP_INT_MAX, 3);
+        add_filter('dbdelta_create_queries', array(__CLASS__, 'tutor_create_queries'));
+        // Before Tutor's upgrader, which uses priority 10.
+        add_action('admin_init', array(__CLASS__, 'tutor_repair_tables'), 5);
+    }
+
+    /**
+     * Tutor LMS's CREATE TABLE statements: foreign key names another table
+     * already has get this site's table prefix, and the users table is the
+     * network's.
+     *
+     * @param array $queries CREATE TABLE statements by table name.
+     * @return array
+     */
+    public static function tutor_create_queries($queries) {
+        global $wpdb;
+        $own   = $wpdb->prefix . 'tutor_';
+        $taken = null;
+        foreach ($queries as $table => $query) {
+            if (!is_string($table) || !is_string($query) || 0 !== strpos($table, $own)) {
+                continue;
+            }
+            if ($wpdb->users !== $wpdb->prefix . 'users') {
+                $query = (string) preg_replace('/(REFERENCES\s+`?)' . preg_quote($wpdb->prefix . 'users', '/') . '(`?\s*\()/i', '${1}' . $wpdb->users . '${2}', $query);
+            }
+            if (preg_match_all('/CONSTRAINT\s+`?(\w+)`?\s+FOREIGN\s+KEY/i', $query, $names)) {
+                if (null === $taken) {
+                    $taken = array();
+                    // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- names of existing foreign keys, read only while a table is being created.
+                    foreach ((array) $wpdb->get_results('SELECT CONSTRAINT_NAME, TABLE_NAME FROM information_schema.REFERENTIAL_CONSTRAINTS WHERE CONSTRAINT_SCHEMA = DATABASE()') as $row) {
+                        $taken[strtolower($row->CONSTRAINT_NAME)] = $row->TABLE_NAME;
+                    }
+                }
+                foreach ($names[1] as $name) {
+                    $holder = isset($taken[strtolower($name)]) ? $taken[strtolower($name)] : null;
+                    if (null !== $holder && 0 !== strcasecmp($holder, $table) && 0 !== stripos($name, $wpdb->prefix)) {
+                        $query = (string) preg_replace('/(CONSTRAINT\s+`?)' . preg_quote($name, '/') . '\b/i', '${1}' . $wpdb->prefix . $name, $query);
+                    }
+                }
+            }
+            $queries[$table] = $query;
+        }
+        return $queries;
+    }
+
+    /**
+     * Admin screens of a site where Tutor LMS is installed but its order
+     * tables are missing: run Tutor's own installer, which now succeeds.
+     */
+    public static function tutor_repair_tables() {
+        global $wpdb;
+        if (!is_callable(array('TUTOR\Tutor', 'create_database')) || !get_option('tutor_version') || get_transient(self::TUTOR_RETRY)) {
+            return;
+        }
+        if (self::tutor_has_order_items()) {
+            return;
+        }
+        $suppressed = $wpdb->suppress_errors(true);
+        call_user_func(array('TUTOR\Tutor', 'create_database'));
+        $wpdb->suppress_errors($suppressed);
+        if (!self::tutor_has_order_items()) {
+            set_transient(self::TUTOR_RETRY, 1, DAY_IN_SECONDS);
+        }
+    }
+
+    /**
+     * Whether this site has Tutor's tutor_order_items table (asks the
+     * database each time).
+     *
+     * @phpstan-impure
+     * @return bool
+     */
+    private static function tutor_has_order_items() {
+        global $wpdb;
+        $table = $wpdb->prefix . 'tutor_order_items';
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- whether Tutor's table exists.
+        return $table === $wpdb->get_var($wpdb->prepare('SHOW TABLES LIKE %s', $wpdb->esc_like($table)));
     }
 
     /**
