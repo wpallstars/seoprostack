@@ -572,6 +572,8 @@ on staging; it never deactivates another plugin or changes its settings.
   logs and other plugins are separate; review your own consent requirements.
   Turning counting off adds no counting script or event route and leaves
   retained totals available until expiry. Clear page caches after opt-out.
+  Retiring Link Whisper does not require keeping its click history or enabling
+  this counter: separate analytics plugins or apps can cover those needs.
 - **Retire Link Whisper**: read-only, point-in-time checks for stored rules,
   target keywords, related-post dependencies and click history. Unknown schemas
   remain blockers. Back up, recheck each site and validate rendered content on
