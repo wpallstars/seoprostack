@@ -13,7 +13,7 @@ One free plugin for a faster, tidier WordPress. It does the jobs of 40+ single-p
 
 == Description ==
 
-SEO Pro Stack replaces dozens of small plugins: a faster admin, writing and media tools, safer logins and tested plugin settings. Turn on only what you use for fewer updates, conflicts and slowdowns.
+Faster admin, writing, media, safer logins and tested plugin settings. Turn on only what you use.
 
 Free and open source: no pro version, nothing locked.
 
@@ -54,7 +54,7 @@ Off by default except Hide admin bar items (Comments and + New), No fade between
 
 = Links and speed =
 
-* **Rank Math defaults**: fill empty keywords from titles, warn about pillar overuse and remove selected pillar flags; off by default.
+* **Rank Math defaults**: empty keywords from titles, pillar warnings and selected-post removal.
 * **Short links** such as /go/offer/ with click counts, **Short addresses for custom post types** and **410 Gone** for removed pages.
 * **External link icons**: text-link colours and Kadence dark mode, without scripts or downloads; only Link Whisper's icon, not its linking tools.
 * **Load pages before the click**, **Delay scripts until interaction**, **Delayed Google Analytics** and a faster editor with Kadence Blocks.
@@ -125,9 +125,11 @@ Click **Report a problem** at the top right of Settings → SEO Pro Stack, or op
 
 == Changelog ==
 
+= Unreleased =
+* New: Rank Math keyword defaults and pillar tools; off by default.
+
 = 0.11.5 =
 * New: Hosting needs checks object cache health daily and recommends unused Redis or Memcached, without connections on visitor requests.
-* New: Rank Math defaults fills empty keywords and warns about pillar overuse; selected-post pillar removal, off by default.
 * New: External link icons follow link colours and Kadence dark mode without scripts or extra asset requests; off by default.
 * Fix: Load plugins only where needed skipped no plugins on sites updated to 0.11.3 or 0.11.4; it now gives its full effect as soon as it is switched on.
 * Fix: updates from private GitHub repositories work with HTTP Requests Manager's blocking modes.

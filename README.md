@@ -1103,10 +1103,13 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folderâ
 
 ## Changelog
 
+### Unreleased
+
+- New, off by default: Rank Math defaults (Links tab) fills empty focus keywords from titles for chosen post types, warns about pillar overuse and offers selected-post pillar removal.
+
 ### 0.11.5
 
 - New: Hosting needs warns about configured but unreachable object caches, recommends unused local Redis or Memcached even on small sites, and names the cache in site facts. Checks run at most daily, never on visitor requests, without changing cache settings.
-- New, off by default: Rank Math defaults (Links tab) fills empty focus keywords from titles for chosen post types, warns about pillar overuse and offers selected-post pillar removal.
 - New, off by default: External link icons (Links tab), following link colours and Kadence light/dark switching with no scripts or extra asset requests. Related-domain and per-link bypasses; image links and buttons stay plain. Covers only Link Whisper's icon, not its linking tools.
 - Fixed: Updates from GitHub could not update from private repositories on sites where HTTP Requests Manager blocks requests (its "smart" or other blocking modes): it makes every request follow redirects, so GitHub's download address was lost. Its requests to GitHub now never follow redirects, so the token also stays with GitHub. On such sites, install this version once by hand; later updates arrive by themselves.
 - Fixed: Load plugins only where needed did nothing on sites updated to 0.11.3 or 0.11.4: every plugin went into **Always load these plugins**, and the site's first learn put every plugin it skips automatically into **Always load these plugins on the site**. Sites stored their old lists empty, which was taken as a choice. Both lists are cleared where that happened; lists with real choices are kept.
