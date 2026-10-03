@@ -25,3 +25,19 @@ Inline decoration scales with text on desktop and mobile, including zoom,
 uses logical spacing for RTL text and adds no animation or interaction.
 It does not create a separate touch target. Verify desktop and mobile
 content in both Kadence palettes and keyboard focus.
+
+## Linking tools
+
+Keep the toolkit in the native WordPress **Tools → Links** screen, with clear
+Pages, Suggestions, Link health, Click events and Retire Link Whisper tabs.
+Use WordPress buttons, notices and striped tables rather than a separate app
+shell. Scoped styles load only on this screen; no new public styling is needed.
+Tables retain named headers on desktop and labelled cells on narrow screens.
+Navigation wraps, long addresses break without overflow, and spacing is logical
+for RTL. Actions must remain usable by keyboard and at mobile widths.
+
+Separate evidence from actions: show suggestion context and an explicit approve
+button; unsupported content gets a manual-edit message. Explain incomplete scans,
+approximate click events and unknown retirement checks without implying safety.
+Health checks and click counts are independent off-by-default choices. Never
+make a retirement report into a deactivation button or consent claim.

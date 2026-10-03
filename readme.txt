@@ -56,6 +56,7 @@ Off by default except Hide admin bar items (Comments and + New), No fade between
 
 * **Short links** such as /go/offer/ with click counts, **Short addresses for custom post types** and **410 Gone** for removed pages.
 * **External link icons**: text-link colours and Kadence dark mode, without scripts or downloads; only Link Whisper's icon, not its linking tools.
+* **Internal linking tools** (off): approved local suggestions and undo, link counts, orphan candidates and read-only Link Whisper retirement checks. Health checks and daily aggregate click events are separate opt-ins; no blanket plugin-removal promise.
 * **Load pages before the click**, **Delay scripts until interaction**, **Delayed Google Analytics** and a faster editor with Kadence Blocks.
 * **Ask before licence checks**: premium plugins call home once, daily or never, as you choose.
 * **Clean the database weekly**: old spam, bin and expired data.
@@ -84,6 +85,7 @@ Some Theme, Pro Plugins, Hosting and Tools links may earn the developer a commis
 * **ApiFlash** (api.apiflash.com): [terms](https://apiflash.com/terms_of_service), [privacy policy](https://apiflash.com/privacy_policy).
 * **Screenshot Machine** (api.screenshotmachine.com): [terms](https://www.screenshotmachine.com/termsandconditions.php), [privacy policy](https://www.screenshotmachine.com/privacypolicy.php).
 * **Wikipedia** (*.wikipedia.org): Wikipedia previews load in the visitor’s browser when opened. [Privacy policy](https://foundation.wikimedia.org/wiki/Policy:Privacy_policy).
+* **Linked websites**: optional link-health checks contact public linked addresses in cached background batches, without queries or visitor data. Their own privacy policies apply. Optional link click events go only to this site: daily totals, no cookies or visitor identifiers, up to 90 days; review consent requirements and separate server logs.
 * **GitHub** (github.com, api.github.com), copies from GitHub releases only: asks up to twice a day for new releases of plugins that name a GitHub repository; nothing about your site is sent. [Privacy statement](https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement).
 
 Other features contact only addresses you choose: Copy linked images downloads images a post already links to, Link cards the linked page’s picture, and the iFrame block makes browsers load the pages your editors embed. Avatars without Gravatar stops WordPress loading avatars from gravatar.com. Short links that count clicks set a cookie (`sps_link_` and the link’s ID, for a year, holding only “1”); only totals are kept, never IP addresses. No other data is sent.
@@ -123,6 +125,9 @@ From where you installed it. New versions come out on GitHub first.
 Click **Report a problem** at the top right of Settings → SEO Pro Stack, or open an issue on [GitHub](https://github.com/wpallstars/seoprostack/issues).
 
 == Changelog ==
+
+= Unreleased =
+* New, off: local linking suggestions and undo, link reports, optional cached health checks, opt-in daily click totals and read-only Link Whisper retirement checks.
 
 = 0.11.5 =
 * New: Hosting needs checks object cache health daily and recommends unused Redis or Memcached, without connections on visitor requests.

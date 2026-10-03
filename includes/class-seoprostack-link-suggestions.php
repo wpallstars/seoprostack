@@ -31,8 +31,11 @@ final class SEOProStack_Link_Suggestions {
      * @return bool
      */
     public static function editable($content) {
+        if (preg_match('/\[[a-zA-Z][^\]]*\]/', $content)) {
+            return false;
+        }
         if (!has_blocks($content)) {
-            return !preg_match('/\[[a-zA-Z][^\]]*\]/', $content);
+            return true;
         }
         $allowed = array('core/paragraph', 'core/list', 'core/list-item', 'core/quote', 'core/group', 'core/columns', 'core/column', 'core/heading', 'core/separator', 'core/spacer');
         $queue = parse_blocks($content);
@@ -191,7 +194,13 @@ HTML;
      * @return true|WP_Error
      */
     public static function insert($source_id, $target_id, $phrase, $hash) {
-        $source = get_post($source_id);
+        return self::mutate($source_id, static function ($source) use ($source_id, $target_id, $phrase, $hash) {
+            return self::insert_locked($source, $source_id, $target_id, $phrase, $hash);
+        });
+    }
+
+    /** @param WP_Post $source Locked source. @param int $source_id Source. @param int $target_id Target. @param string $phrase Anchor. @param string $hash Snapshot. @return true|WP_Error */
+    private static function insert_locked($source, $source_id, $target_id, $phrase, $hash) {
         $target = get_post($target_id);
         if (!current_user_can('edit_post', $source_id) || !SEOProStack_Link_Index::eligible($source) || !SEOProStack_Link_Index::eligible($target) || $source_id === $target_id) {
             return new WP_Error('not_allowed', __('This content cannot be changed.', 'seoprostack'));
@@ -216,15 +225,25 @@ HTML;
         if (is_wp_error($saved)) {
             return $saved;
         }
-        $actual = get_post_field('post_content', $source_id, 'raw');
-        update_post_meta($source_id, self::UNDO, array('before' => $source->post_content, 'after' => hash('sha256', $actual), 'at' => time()));
+        global $wpdb;
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- read the exact saved value while our transaction holds the post row lock.
+        $actual = $wpdb->get_var($wpdb->prepare("SELECT post_content FROM {$wpdb->posts} WHERE ID = %d", $source_id));
+        if (!is_string($actual) || $actual === $source->post_content || !update_post_meta($source_id, self::UNDO, array('before' => $source->post_content, 'after' => hash('sha256', $actual), 'at' => time()))) {
+            return new WP_Error('not_saved', __('The link or its undo record could not be saved. Use the source editor instead.', 'seoprostack'));
+        }
         return true;
     }
 
     /** @param int $post_id Source. @return true|WP_Error */
     public static function undo($post_id) {
+        return self::mutate($post_id, static function ($post) use ($post_id) {
+            return self::undo_locked($post, $post_id);
+        });
+    }
+
+    /** @param WP_Post $post Locked source. @param int $post_id Source. @return true|WP_Error */
+    private static function undo_locked($post, $post_id) {
         $undo = get_post_meta($post_id, self::UNDO, true);
-        $post = get_post($post_id);
         if (!current_user_can('edit_post', $post_id) || !$post instanceof WP_Post || !is_array($undo) || !isset($undo['before'], $undo['after'])) {
             return new WP_Error('no_undo', __('There is no link change to undo.', 'seoprostack'));
         }
@@ -235,7 +254,56 @@ HTML;
         if (is_wp_error($saved)) {
             return $saved;
         }
-        delete_post_meta($post_id, self::UNDO);
+        if (!delete_post_meta($post_id, self::UNDO)) {
+            return new WP_Error('undo_storage', __('The undo record could not be removed. No change was committed.', 'seoprostack'));
+        }
         return true;
+    }
+
+    /**
+     * Lock the actual post row, not just other toolkit requests. Normal core
+     * saves also acquire this database row lock. Read the snapshot after locking
+     * and commit content plus undo metadata together, keeping core save hooks.
+     *
+     * @param int $post_id Source.
+     * @param callable $callback Mutation accepting the freshly locked WP_Post.
+     * @return true|WP_Error
+     */
+    private static function mutate($post_id, $callback) {
+        if (!current_user_can('edit_post', $post_id)) {
+            return new WP_Error('not_allowed', __('This content cannot be changed.', 'seoprostack'));
+        }
+        global $wpdb;
+        foreach (array($wpdb->posts, $wpdb->postmeta) as $table) {
+            // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- fail closed where content and undo metadata cannot be committed atomically.
+            $status = $wpdb->get_row($wpdb->prepare('SHOW TABLE STATUS WHERE Name = %s', $table));
+            if (!$status || !isset($status->Engine) || 'innodb' !== strtolower($status->Engine)) {
+                return new WP_Error('manual', __('Automatic edits need transactional WordPress tables. Use the source editor instead.', 'seoprostack'));
+            }
+        }
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- owner-approved mutation, held only through this core save and undo update.
+        if (false === $wpdb->query('START TRANSACTION')) {
+            return new WP_Error('storage', __('Could not safely start this change.', 'seoprostack'));
+        }
+        $committed = false;
+        try {
+            // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- locking the current row prevents an intervening save after snapshot validation.
+            $row = $wpdb->get_row($wpdb->prepare("SELECT * FROM {$wpdb->posts} WHERE ID = %d FOR UPDATE", $post_id));
+            clean_post_cache($post_id);
+            $result = $row ? call_user_func($callback, new WP_Post($row)) : new WP_Error('missing', __('The source page no longer exists.', 'seoprostack'));
+            if (is_wp_error($result)) {
+                return $result;
+            }
+            // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- both the post change and its matching undo record succeed together.
+            $committed = false !== $wpdb->query('COMMIT');
+            return $committed ? true : new WP_Error('storage', __('Could not commit this change.', 'seoprostack'));
+        } finally {
+            if (!$committed) {
+                // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- roll back on any failed save, metadata update or exception.
+                $wpdb->query('ROLLBACK');
+            }
+            // Core hooks may have primed a cache before commit or rollback.
+            clean_post_cache($post_id);
+        }
     }
 }
