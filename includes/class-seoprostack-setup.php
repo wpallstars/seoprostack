@@ -214,6 +214,7 @@ final class SEOProStack_Setup {
         require_once SEOPROSTACK_DIR . 'includes/class-seoprostack-disable-bloat.php';
         require_once SEOPROSTACK_DIR . 'includes/class-seoprostack-litespeed.php';
         require_once SEOPROSTACK_DIR . 'includes/class-seoprostack-wp-optimize.php';
+        require_once SEOPROSTACK_DIR . 'includes/class-seoprostack-really-simple-security.php';
         // Usually loaded already by the must-use file of "Load plugins only
         // where needed"; features ask it which plugins are active.
         if (!class_exists('SEOProStack_Plugin_Loader', false)) {
@@ -229,6 +230,7 @@ final class SEOProStack_Setup {
         SEOProStack_Disable_Bloat::init();
         SEOProStack_Litespeed::init();
         SEOProStack_WP_Optimize::init();
+        SEOProStack_Really_Simple_Security::init();
 
         // "Load plugins only where needed" may skip plugins on a request;
         // they still count as active, and saved choices that belong to them
