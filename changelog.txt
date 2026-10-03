@@ -3,6 +3,7 @@
 Every change to SEO Pro Stack. readme.txt lists the latest version in short.
 
 = Unreleased =
+* Change: in Free Plugins, Advanced Database Cleaner, Anti-Malware Security and Brute-Force Firewall, Debug Log Manager, Query Monitor and User Switching say they are not needed day to day: deactivate or delete them so the site runs at full speed, and turn them on only to look into a problem or for admin work.
 * Change: Free Plugins lists WP-Optimize again on LiteSpeed servers, with a note that the site does not need it there; on other servers its note says it is for its page cache. The WP-Optimize preset turns that page cache on, on servers other than LiteSpeed, through WP-Optimize's own save code, so Reset and Undo turn it off and back on cleanly.
 * Change: the WooCommerce preset turns on Deferred emails, so checkout does not wait for the mail server. Emails go out through Action Scheduler, which needs WP-Cron or a server cron. If emails arrive late or not at all, check WooCommerce → Status → Scheduled Actions (group woocommerce-emails) for pending or failed woocommerce_send_queued_transactional_email actions, and turn Deferred emails off in WooCommerce → Settings → Advanced → Features. Reset and Undo still work.
 * Fix: WebP and AVIF images now use the quality you set; before, WordPress's own quality was used whatever the setting said. Changing a quality converts the pictures again in the background, and copies from earlier versions are made again once.
