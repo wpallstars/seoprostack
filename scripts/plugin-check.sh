@@ -131,10 +131,10 @@ check_zip() {
 	case "$zip_name" in
 	"$SLUG"-*)
 		expected="$(printf '%s\n' "$report" | awk -v files="$UPDATER_FILES" '
-			BEGIN { n = split(files, list, "\n") }
+			BEGIN { nfiles = split(files, list, "\n") }
 			# A listed file, or a file inside a listed folder.
 			function updater(path,   i) {
-				for (i = 1; i <= n; i++) {
+				for (i = 1; i <= nfiles; i++) {
 					if (list[i] != "" && (path == list[i] || index(path, list[i] "/") == 1)) { return 1 }
 				}
 				return 0

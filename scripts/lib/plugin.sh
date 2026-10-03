@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# The PLUGIN_* variables are read by the scripts that source this file.
+# shellcheck disable=SC2034
 # Who the plugin is, read from its main file, so the scripts in scripts/ work
 # unchanged in every plugin made from the starter. Source it, then call
 # plugin_identity [REF] (default HEAD). It sets:
