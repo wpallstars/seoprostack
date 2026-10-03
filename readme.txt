@@ -132,6 +132,7 @@ Use **Report a problem** in Settings → SEO Pro Stack or [GitHub](https://githu
 * Change: Refined Discover recommendations; added Fluent Query Logger under Debug.
 * New, off: approved local linking and undo, reports, opt-in health/click checks and read-only Link Whisper audit; Custom fields to content with excerpts and WP-CLI sync.
 * Fix: WP-Optimize Premium handling, Tutor LMS network tables and slow Tutor LMS Pro/Comment Goblin admin screens.
+* Fix: Long Rank Math keywords wrap in the SEO Details column instead of pushing lists off the page.
 
 = 0.11.9 =
 * Change: Kadence/Fluent referral links, Scalability Pro website, 11 free plugins/add-ons and four pro products added.
