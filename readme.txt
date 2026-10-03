@@ -54,6 +54,7 @@ Off by default except Hide admin bar items (Comments and + New), No fade between
 
 = Links and speed =
 
+* **Rank Math defaults**: fill empty keywords from titles, warn about pillar overuse and remove selected pillar flags; off by default.
 * **Short links** such as /go/offer/ with click counts, **Short addresses for custom post types** and **410 Gone** for removed pages.
 * **External link icons**: text-link colours and Kadence dark mode, without scripts or downloads; only Link Whisper's icon, not its linking tools.
 * **Load pages before the click**, **Delay scripts until interaction**, **Delayed Google Analytics** and a faster editor with Kadence Blocks.
@@ -126,6 +127,7 @@ Click **Report a problem** at the top right of Settings → SEO Pro Stack, or op
 
 = Unreleased =
 * New: Hosting needs checks object cache health daily and recommends unused Redis or Memcached, without connections on visitor requests.
+* New: Rank Math defaults fills empty keywords and warns about pillar overuse; selected-post pillar removal, off by default.
 * New: External link icons follow link colours and Kadence dark mode without scripts or extra asset requests; off by default.
 * Fix: a broken Kadence screenshot on the Theme tab on sites that block images from other sites.
 * Fix: Deactivate and Activate links now work with Freesoul Deactivate Plugins.
