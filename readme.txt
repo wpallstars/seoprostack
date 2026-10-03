@@ -127,7 +127,7 @@ Click **Report a problem** at the top right of Settings → SEO Pro Stack, or op
 = Unreleased =
 * New: External link icons follow link colours and Kadence dark mode without scripts or extra asset requests; off by default.
 * Fix: a broken Kadence screenshot on the Theme tab on sites that block images from other sites.
-* Fix: Deactivate links for replaced plugins, and Activate and Deactivate on the Plugins tab, now work with Freesoul Deactivate Plugins.
+* Fix: Deactivate and Activate links now work with Freesoul Deactivate Plugins.
 
 = 0.11.4 =
 * Fix: a critical error on every page after updating to 0.11.3, on network sites where Fluent Forms, Fluent Boards or FluentCommunity is network-active but was never set up.
