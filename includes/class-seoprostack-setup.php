@@ -79,6 +79,7 @@ final class SEOProStack_Setup {
         'SEOProStack_Old_Slugs',
         'SEOProStack_Rank_Math_Defaults',
         'SEOProStack_External_Links',
+        'SEOProStack_Linking',
         'SEOProStack_Maintenance',
         'SEOProStack_Preload_Pages',
         'SEOProStack_Delay_Scripts',

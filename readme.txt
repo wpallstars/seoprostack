@@ -58,6 +58,7 @@ Off by default except Hide admin bar items (Comments and + New), No fade between
 * **Rank Math defaults**: empty keywords from titles, pillar warnings and selected-post removal.
 * **Short links** such as /go/offer/ with click counts, **Short addresses for custom post types** and **410 Gone** for removed pages.
 * **External link icons**: text-link colours and Kadence dark mode, without scripts or downloads; only Link Whisper's icon, not its linking tools.
+* **Internal linking tools** (off): approved suggestions, undo, counts, orphan candidates and read-only Link Whisper retirement checks. Health checks and daily click totals are separate opt-ins; review each site before removal.
 * **Load pages before the click**, **Delay scripts until interaction**, **Delayed Google Analytics** and a faster editor with Kadence Blocks.
 * **Ask before licence checks**: premium plugins call home once, daily or never, as you choose.
 * **Clean the database weekly**: old spam, bin and expired data.
@@ -79,24 +80,25 @@ Some Discover vendor and Go Pro links may earn the developer a commission or cre
 = External services =
 
 * **WordPress.org** (api.wordpress.org): lists recommended plugins and the Kadence theme when you open those tabs. See the [WordPress.org privacy policy](https://wordpress.org/about/privacy/).
-* **Google Analytics** (www.googletagmanager.com): with Delayed Google Analytics on and a measurement ID entered, visitors’ browsers load gtag.js and send page views to Google, under its privacy policy. Logged-in users are not tracked.
-* **Screenshot services**: with Website screenshots on, your server sends a page’s address to the service you choose when a screenshot is made or renewed; visitors never contact it.
+* **Google Analytics** (www.googletagmanager.com): when enabled with a measurement ID, browsers load gtag.js and send Google page views under its privacy policy. Logged-in users are excluded.
+* **Screenshot services**: when enabled, your server sends the page address to your chosen service to make or renew screenshots; visitors do not contact it.
 * **Thum.io** (image.thum.io), the default: see [Thum.io](https://www.thum.io/).
 * **Microlink** (api.microlink.io, or pro.microlink.io with a key): [terms](https://microlink.io/tos), [privacy policy](https://microlink.io/privacy).
 * **ApiFlash** (api.apiflash.com): [terms](https://apiflash.com/terms_of_service), [privacy policy](https://apiflash.com/privacy_policy).
 * **Screenshot Machine** (api.screenshotmachine.com): [terms](https://www.screenshotmachine.com/termsandconditions.php), [privacy policy](https://www.screenshotmachine.com/privacypolicy.php).
 * **Wikipedia** (*.wikipedia.org): Wikipedia previews load in the visitor’s browser when opened. [Privacy policy](https://foundation.wikimedia.org/wiki/Policy:Privacy_policy).
-* **GitHub** (github.com, api.github.com), copies from GitHub releases only: asks up to twice a day for new releases of plugins that name a GitHub repository; nothing about your site is sent. [Privacy statement](https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement).
+* **Linked websites**: opted-in health checks contact public addresses in cached background batches, without queries or visitor data; their privacy policies apply. Click events stay on this site: daily totals for up to 90 days, no tracking cookies or visitor identifiers. Review consent and server logs.
+* **GitHub** (github.com, api.github.com), GitHub builds only: checks named repositories up to twice daily for releases; no site data sent. [Privacy](https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement).
 
-Other features contact only addresses you choose: Copy linked images downloads images a post already links to, Link cards the linked page’s picture, and the iFrame block makes browsers load the pages your editors embed. Avatars without Gravatar stops WordPress loading avatars from gravatar.com. Short links that count clicks set a cookie (`sps_link_` and the link’s ID, for a year, holding only “1”); only totals are kept, never IP addresses. No other data is sent.
+Other chosen addresses: Copy linked images downloads linked images; Link cards downloads page pictures; iFrames load embedded pages. Avatars without Gravatar stops gravatar.com requests. Short-link counts set a year-long cookie (`sps_link_` plus the link ID, holding “1”); totals only, no IP addresses. No other data is sent.
 
 = Developers =
 
-Extend settings, tabs and directories with filters such as `seoprostack_settings_schema`; the Read Me tab lists them all.
+Extend settings, tabs and directories with filters. See the Read Me tab.
 
 = Built with AI =
 
-Built and maintained with [aidevops](https://aidevops.sh), the developer's open-source AI harness. Free on [GitHub](https://github.com/marcusquinn/aidevops).
+Built with [aidevops](https://aidevops.sh), the developer's free, open-source AI harness. [Source](https://github.com/marcusquinn/aidevops).
 
 == Installation ==
 
@@ -106,7 +108,7 @@ Install from Plugins → Add New, activate, then turn on features in Settings �
 
 = What happens if I deactivate or delete the plugin? =
 
-Imported images and screenshots stay in the Media Library. Deleting removes its settings, caches, profile pictures, WebP and AVIF copies, short links and must-use file. Watermarked pictures keep their originals in an uploads folder starting `seoprostack-originals-`.
+Imported media stays. Deleting removes settings, caches, profile pictures, WebP/AVIF copies, short links and the must-use file. Watermarked originals stay in `uploads/seoprostack-originals-…`.
 
 = Does it work on multisite? =
 
@@ -114,7 +116,7 @@ Yes. Settings are per site, and Free Plugins shows only to super admins.
 
 = Is the magic login safe? =
 
-Each link is random, stored as a hash, works once and expires within an hour. Two-factor plugins that check only the password step are skipped, so with those choose “Everyone except administrators”.
+Random, hashed links work once for an hour. Password-step two-factor checks are skipped: with those choose “Everyone except administrators”.
 
 = Where do updates come from? =
 
@@ -122,17 +124,15 @@ From where you installed it. New versions come out on GitHub first.
 
 = Where do I report a problem? =
 
-Click **Report a problem** at the top right of Settings → SEO Pro Stack, or open an issue on [GitHub](https://github.com/wpallstars/seoprostack/issues).
+Use **Report a problem** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpallstars/seoprostack/issues).
 
 == Changelog ==
 
 = Unreleased =
 * Change: Refined Discover recommendations; added Fluent Query Logger under Debug.
-* New: Custom fields to content, off by default, with per-type choices, excerpts, skipped fields and WP-CLI sync.
-* Fix: Recognise WP-Optimize Premium, share its preset and warn about restoring LiteSpeed Cache’s WP_CACHE line after deactivation.
+* New, off: approved local linking and undo, reports, opt-in health/click checks and read-only Link Whisper audit; Custom fields to content with excerpts and WP-CLI sync.
+* Fix: WP-Optimize Premium handling, Tutor LMS network tables and slow Tutor LMS Pro/Comment Goblin admin screens.
 * Fix: Long Rank Math keywords wrap in the SEO Details column instead of pushing lists off the page.
-* Fix: Tutor LMS gets its order, cart and coupon tables on every site of a network.
-* Fix: Faster admin screens with Tutor LMS Pro or Comment Goblin.
 
 = 0.11.9 =
 * Change: Kadence/Fluent referral links, Scalability Pro website, 11 free plugins/add-ons and four pro products added.

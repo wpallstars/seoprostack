@@ -68,7 +68,8 @@ SEO Pro Stack replaces **47 plugins**, some of them in part, with free and Pro e
 | Old post addresses | Links | Slugs Manager: Delete Old Permalinks |
 | Short addresses for custom post types | Links | Remove CPT base |
 | Short links | Links | Pretty Links |
-| External link icons | Links | Link Whisper's icon only; not its linking tools |
+| External link icons | Links | Link Whisper's icon only |
+| Internal linking tools | Links | Selected Link Whisper workflows, after per-site retirement checks |
 | Maintenance mode | Maintenance | Hostinger Tools, in part |
 | Updates from GitHub (GitHub builds only) | Maintenance | Git Updater |
 | Plugins menu in the admin bar | Plugins | Plugin Toggle |
@@ -536,6 +537,53 @@ colour, including hover, focus and Kadence's live light/dark palette switch.
   recommend removing Link Whisper. Its embedded icons take precedence;
   turn its icon off to use this one, and deactivate it only if its other
   tools are not needed. No Link Whisper settings are imported or changed.
+
+### Internal linking tools (Links)
+
+Off by default. Open **Tools → Links** after enabling **Internal linking tools**
+in the Links tab. It can run alongside Link Whisper while you compare the two
+on staging; it never deactivates another plugin or changes its settings.
+
+- **Pages**: incoming, internal and external link counts, and orphan candidates.
+  Uses Rank Math's link-counter report when its public API and tables are
+  available; otherwise builds a local stored-content index in small cron batches.
+  An orphan candidate is not proof that menus, builders or dynamic content never
+  link to that page. Refresh the index after imports or changing providers.
+- **Suggestions**: incoming or outgoing opportunities from published page titles
+  and Rank Math focus keywords, with a destination search and context preview.
+  Local and bounded, with no AI account or outside service. Each insertion needs
+  your approval. Automatic edits are limited to screened HTML and simple core
+  blocks without shortcodes; builders and dynamic content need manual editing.
+  Saves use normal WordPress hooks, require transactional WordPress tables, and
+  keep a conflict-checked undo record. Undo refuses to erase later edits.
+- **Link health**: separately opt in to cached background checks of linked
+  public addresses, never on visitor page loads. Query-bearing, login, API and
+  private-network addresses are excluded. Results are cached for seven days;
+  404/410 responses are candidates to review, not automatic content changes.
+  When Rank Math Link Genius's report is detected, open that report instead of
+  running a second crawler; confirm it is accessible and current on this site.
+- **Count link clicks**: separately opt in; off by default. Counts approximate
+  events on indexed links in public singular content, not unique visitors.
+  Stores only daily totals, source post IDs and destination paths (plus public
+  page IDs for plain permalinks), with up to 90 days of retained totals. No
+  cookies, IP addresses, user IDs, queries or visitor profiles. Logged-in visits,
+  Do Not Track and Global Privacy Control are excluded. Public signatures can
+  be replayed, so counts are capped at 5,000 events per link per UTC day. Server
+  logs and other plugins are separate; review your own consent requirements.
+  Turning counting off adds no counting script or event route and leaves
+  retained totals available until expiry. Clear page caches after opt-out.
+- **Retire Link Whisper**: read-only, point-in-time checks for stored rules,
+  target keywords, related-post dependencies and click history. Unknown schemas
+  remain blockers. Back up, recheck each site and validate rendered content on
+  staging before deciding to deactivate it. Keyword autolinking, URL replacement,
+  AI/cloud workflows, dynamic builder coverage and imported click history are not
+  blanket replacements. A clear report is not a safety certificate.
+
+WP-CLI: `wp seoprostack links audit --format=json` is read-only and works with
+the toolkit off. `wp seoprostack links index` requests a background scan;
+`wp seoprostack links index --batch` processes one bounded batch. WordPress cron
+must run. Uninstall removes only this toolkit's tables, metadata and scheduled
+jobs; approved links remain in your content and third-party data stays intact.
 
 ### Publishing queue (Content)
 
@@ -1072,6 +1120,7 @@ Developers can add settings, tabs and directory entries with filters:
 - `seoprostack_watermark_attachment`: return false to leave a picture unmarked (attachment ID).
 - `seoprostack_short_link_target`: change where a short link sends a visitor (target address, link post ID); return `''` to leave the address to WordPress.
 - `seoprostack_short_link_count_click`: return false to not count a click (link post ID).
+- `seoprostack_link_health_provider`: detected health-report provider (`rank_math` or `native`); return `native` if this site's Link Genius report is unavailable. This does not enable background checks.
 - `seoprostack_screenshot_request`: change the request sent to the screenshot service (`url`, `headers`, `json`; page URL, browser width, height, service), for example to use another service. The response must be a JPEG, PNG or WebP picture, or JSON with `data.screenshot.url` when `json` is true.
 - `seoprostack_term_list_args`: change the `get_terms()` arguments of a Term list (arguments, block attributes), for example to order by count or exclude terms.
 - `seoprostack_admin_bar_more_items`: change which top-level admin bar items go in the More menu (item IDs in bar order, `WP_Admin_Bar`).
@@ -1132,6 +1181,8 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folder�
 
 ### Unreleased
 
+- New, off by default: Internal linking tools, with local owner-approved suggestions and conflict-checked undo, incoming/outgoing counts and orphan candidates, optional cached link-health checks, and read-only Link Whisper retirement checks. Reuses Rank Math where available, without a required dependency.
+- New, separately opt-in and off by default: daily aggregate link click events, without cookies or visitor identifiers, with privacy-signal exclusions and 90-day retention. No production migration or Link Whisper deactivation is automatic.
 - Changed: Discover no longer recommends FlyingPress, Link Whisper, Fluent Connect (ThriveCart), Fluent Forms Connector for MailPoet or Mautic Integration For Fluent Forms. Other Fluent/WPManageNinja recommendations and referral links stay.
 - New: Fluent Query Logger under Debug, with a troubleshooting-only reminder and a warning to check compatibility because its WordPress.org release was last updated in July 2022.
 - New, off by default: **Custom fields to content** copies selected ACF/SCF text into content and excerpts, with per-post-type choices, skipped fields, unchanged-output checks and WP-CLI batch sync.
@@ -1471,7 +1522,7 @@ Where a feature replaces one of them, SEO Pro Stack imports the settings it can,
 | Ultimate 410 Gone Status Code | tiny web | [WordPress.org](https://wordpress.org/plugins/ultimate-410/) | 410 Gone for removed pages |
 | Remove CPT base | kubiq | [WordPress.org](https://wordpress.org/plugins/remove-cpt-base/) | Short addresses for custom post types |
 | Pretty Links | Blair Williams | [WordPress.org](https://wordpress.org/plugins/pretty-link/) | Short links |
-| Link Whisper | Link Whisper team | [website](https://linkwhisper.com/) (premium plugin) | External link icons only; linking tools are not replaced |
+| Link Whisper | Link Whisper team | [website](https://linkwhisper.com/) (premium plugin) | External link icons and selected local linking workflows; per-site retirement checks required |
 | Plugin Toggle | Cedaro | [WordPress.org](https://wordpress.org/plugins/plugin-toggle/), [GitHub](https://github.com/cedaro/plugin-toggle) | Plugins menu in the admin bar |
 | Fix ‘Plugin file does not exist’ Notices | WP All Stars | [GitHub](https://github.com/wpallstars/wp-fix-plugin-does-not-exist-notices) | Clean up deleted plugins |
 | Freesoul Deactivate Plugins | Jose Mortellaro | [WordPress.org](https://wordpress.org/plugins/freesoul-deactivate-plugins/), [GitHub](https://github.com/JoseMortellaro/freesoul-deactivate-plugins) | Load plugins only where needed (not a replacement yet: its page-by-page rules on the site are not covered) |
