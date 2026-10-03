@@ -5,7 +5,7 @@ Tags: magic login, iframe, schedule posts, auto upload images, admin
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 0.11.8
+Stable tag: 0.11.9
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -127,11 +127,10 @@ Click **Report a problem** at the top right of Settings → SEO Pro Stack, or op
 
 = Unreleased =
 * Fix: Recognise WP-Optimize Premium, share its preset and warn about restoring LiteSpeed Cache’s WP_CACHE line after deactivation.
+
+= 0.11.9 =
 * Change: Kadence/Fluent referral links, Scalability Pro website, 11 free plugins/add-ons and four pro products added.
 * New: HTTP Requests Manager preset: only log requests, so WordPress update checks are no longer blocked.
-
-= 0.11.8 =
-* Fix: Load plugins only where needed loads Pro add-ons and their base plugin together, so no "requires the base plugin" notices.
 
 Older: `changelog.txt`.
 
