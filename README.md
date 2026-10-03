@@ -1114,11 +1114,15 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folder�
 - Changed: all Kadence and Fluent/WPManageNinja vendor links use the supplied referral IDs, keeping product paths and pricing anchors. Kadence bundles now link directly to Liquid Web; Scalability Pro links to its current Super Speedy Plugins product and pricing section.
 - New: 11 missing WPManageNinja free plugins and add-ons, plus FluentAffiliate Pro, FluentPlayer Pro, Paymattic Pro and AzonPress in Pro Plugins. Matching free cards and All rows use the referral links for Go Pro; no invented FluentAuth Pro or AzonPress free version.
 
+### 0.11.8
+
+- Fix: **Load plugins only where needed** loads a base plugin and its Pro or Premium add-on together on every screen, or skips both (FluentBooking, Fluent Boards, Fluent Support, Fluent Forms, FluentCRM). Before, a screen could skip the base while its Pro add-on loaded, so the add-on showed its “requires the base plugin” notice there, or load the base without the add-on, leaving out the add-on’s features. Add-ons are also matched by name (FluentCRM Pro, Fluent Forms Pro Add On Pack). Screens are learned again once.
+
 ### 0.11.7
 
 - New: **Tidy WooCommerce admin** can remove the payment plugins WooCommerce suggests under “More payment options” on Settings → Payments, ticked by default for sites that have not chosen items yet. It replaces Disable Bloat’s “Hide payment providers”, which is imported with its other switches. Disable Bloat’s “Remove resource hints” needs nothing in its place: it removed the DNS prefetch for s.w.org, which WordPress 7.1 no longer adds, so the Plugins screen no longer names it.
 - Fix: **Fixes for other plugins** stops Tutor LMS Pro 4.1.0 adding PHP warnings to the debug log on every update check when its update reply has no details (as with copies from GPL resellers).
-- Fix: **Load plugins only where needed** skipped a base plugin on screens where its Pro add-on still loaded (FluentBooking, Fluent Boards, Fluent Support and Fluent Forms), so each Pro add-on showed its “requires the base plugin” notice there. Pro and Premium add-ons named after an active plugin now count as needing it, so the two load together or not at all. Screens are learned again once.
+- Fix: **Load plugins only where needed** loads paid add-ons named after an active plugin, such as `fluent-booking-pro`, wherever that plugin loads.
 
 ### 0.11.6
 
