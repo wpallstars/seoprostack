@@ -119,6 +119,9 @@ function seoprostack_uninstall_site() {
     wp_unschedule_hook('seoprostack_database_cleanup');
     wp_unschedule_hook('seoprostack_database_cleanup_more');
 
+    // Copied content and excerpts stay; only the sync fingerprint is ours.
+    delete_post_meta_by_key('_seoprostack_field_content_hash');
+
     // Order flow: links between form entries, tasks and conversations. The
     // entries, tasks, conversations and their log lines are that plugin's
     // data, and stay.
@@ -346,6 +349,8 @@ delete_site_option('seoprostack_nextgen_rules');
 // before it was shared). Only a cache: another plugin's copy asks again.
 delete_site_transient('wpallstars_github_releases');
 delete_site_transient('seoprostack_github_releases');
+// Fixes for other plugins: Comment Goblin's update server failed recently.
+delete_site_transient('seoprostack_comment_goblin_failed');
 
 // The must-use file of "Load plugins only where needed", if it is ours.
 $seoprostack_loader = WPMU_PLUGIN_DIR . '/seoprostack-plugin-loading.php';

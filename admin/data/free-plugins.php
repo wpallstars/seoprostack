@@ -44,6 +44,10 @@ if (!defined('ABSPATH')) {
 // features cover why it was used (fewer outgoing requests, a faster
 // wp-admin), and it stops WordPress's own update request, which also hides
 // updates from GitHub releases. Security updates should keep arriving.
+// Search Console (search-console, Tropicalista) is not listed: setting it up
+// needs a Google Cloud project of your own, it is not kept up to date (its
+// dashboard box links to a settings page it no longer has), and Rank Math,
+// which is listed, shows Search Console data in its Analytics module.
 function seoprostack_get_free_plugins() {
     /**
      * Filter the recommended plugins by category. Slugs are WordPress.org
@@ -61,11 +65,13 @@ function seoprostack_get_free_plugins() {
         ),
         'admin' => array(
             'codepress-admin-columns',
+            'fluent-security',
             'mainwp-child',
             'mainwp-child-reports',
             'plugin-groups'
         ),
         'affiliates' => array(
+            'fluent-affiliate',
             'simple-urls',
             'slicewp'
         ),
@@ -77,6 +83,8 @@ function seoprostack_get_free_plugins() {
             'bulk-edit-user-profiles-in-spreadsheet',
             'code-block-pro',
             'ics-calendar',
+            'ninja-charts',
+            'ninja-job-board',
             'ninja-tables',
             'wp-sheet-editor-bulk-spreadsheet-editor-for-posts-and-pages'
         ),
@@ -89,11 +97,14 @@ function seoprostack_get_free_plugins() {
             'fluent-boards',
             'fluent-booking',
             'fluent-community',
+            'fluent-connect',
             'fluent-crm',
+            'fluent-forms-connector-for-mailpoet',
             'fluentform',
             'fluentforms-pdf',
             'fluentform-block',
-            'fluent-support'
+            'fluent-support',
+            'mautic-for-fluent-forms'
         ),
         'ecommerce' => array(
             'woocommerce',
@@ -103,7 +114,8 @@ function seoprostack_get_free_plugins() {
             'woocommerce-gateway-gocardless',
             'kadence-woocommerce-email-designer',
             'pymntpl-paypal-woocommerce',
-            'woo-stripe-payment'
+            'woo-stripe-payment',
+            'wp-payment-form'
         ),
         'events' => array(
             'eventon-lite'
@@ -113,6 +125,7 @@ function seoprostack_get_free_plugins() {
             'tutor'
         ),
         'media' => array(
+            'fluent-player',
             'image-copytrack',
             'media-file-renamer'
         ),
@@ -129,7 +142,9 @@ function seoprostack_get_free_plugins() {
         ),
         'social' => array(
             'bit-social',
+            'custom-feed-for-tiktok',
             'easy-video-reviews',
+            'fluent-comments',
             'social-engine',
             'wp-social-reviews'
         ),
