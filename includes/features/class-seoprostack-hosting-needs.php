@@ -500,6 +500,15 @@ class SEOProStack_Hosting_Needs extends SEOProStack_Feature {
             return $previous + $empty;
         }
         try {
+            // Another request may have finished between our first read and the
+            // lock. Re-read even when a fallback cache kept stale local options.
+            wp_cache_delete(self::OBJECT_CACHE, 'options');
+            wp_cache_delete('notoptions', 'options');
+            $previous = get_option(self::OBJECT_CACHE, array());
+            $previous = is_array($previous) ? $previous : array();
+            if (isset($previous['checked']) && time() - $previous['checked'] < DAY_IN_SECONDS) {
+                return $previous + $empty;
+            }
             $facts = $empty + array('checked' => time());
             $using = wp_using_ext_object_cache();
             $ls    = in_array('litespeed-cache', self::active_slugs(), true);
