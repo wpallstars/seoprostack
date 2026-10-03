@@ -86,7 +86,7 @@ class SEOProStack_Linking extends SEOProStack_Feature {
     /** @param int $post_id Deleted source. */
     public static function deleted($post_id) {
         global $wpdb;
-        if ('1' === get_option(SEOProStack_Link_Index::VERSION)) {
+        if (SEOProStack_Link_Index::SCHEMA === get_option(SEOProStack_Link_Index::VERSION)) {
             // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- remove only this post's derived fallback rows.
             $wpdb->delete($wpdb->prefix . 'seoprostack_links', array('post_id' => $post_id), array('%d'));
         }
@@ -317,10 +317,11 @@ class SEOProStack_Linking extends SEOProStack_Feature {
         }
         global $wpdb;
         // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- bounded aggregate report; no individual visitor records exist.
-        $rows = $wpdb->get_results($wpdb->prepare("SELECT post_id,url_hash,MAX(url) AS url,SUM(clicks) AS events FROM {$wpdb->prefix}seoprostack_link_clicks WHERE day >= %s GROUP BY post_id,url_hash ORDER BY events DESC LIMIT 100", gmdate('Y-m-d', time() - 90 * DAY_IN_SECONDS)));
+        $rows = $wpdb->get_results($wpdb->prepare("SELECT post_id,url_hash,MAX(url) AS url,MAX(target_id) AS target_id,SUM(clicks) AS events FROM {$wpdb->prefix}seoprostack_link_clicks WHERE day >= %s GROUP BY post_id,url_hash ORDER BY events DESC LIMIT 100", gmdate('Y-m-d', time() - 89 * DAY_IN_SECONDS)));
         echo '<div class="sps-link-table"><table class="widefat striped"><thead><tr><th scope="col">' . esc_html__('Source page', 'seoprostack') . '</th><th scope="col">' . esc_html__('Destination path', 'seoprostack') . '</th><th scope="col">' . esc_html__('Events (90 days)', 'seoprostack') . '</th></tr></thead><tbody>';
         foreach ($rows as $row) {
-            echo '<tr><td data-label="' . esc_attr__('Source page', 'seoprostack') . '">' . esc_html(get_the_title((int) $row->post_id)) . '</td><td data-label="' . esc_attr__('Destination path', 'seoprostack') . '">' . esc_html($row->url) . '</td><td data-label="' . esc_attr__('Events (90 days)', 'seoprostack') . '">' . esc_html((string) $row->events) . '</td></tr>';
+            $destination = $row->target_id ? $row->url . ' — ' . get_the_title((int) $row->target_id) . ' (#' . $row->target_id . ')' : $row->url;
+            echo '<tr><td data-label="' . esc_attr__('Source page', 'seoprostack') . '">' . esc_html(get_the_title((int) $row->post_id)) . '</td><td data-label="' . esc_attr__('Destination path', 'seoprostack') . '">' . esc_html($destination) . '</td><td data-label="' . esc_attr__('Events (90 days)', 'seoprostack') . '">' . esc_html((string) $row->events) . '</td></tr>';
         }
         echo '</tbody></table></div>';
     }

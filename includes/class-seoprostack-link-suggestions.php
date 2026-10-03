@@ -102,9 +102,9 @@ HTML;
             return array();
         }
         $url = (string) get_permalink($target);
-        $address = SEOProStack_Link_Index::address($url, $url);
+        $identity = SEOProStack_Link_Index::identity($url, $url);
         $existing = SEOProStack_Link_Index::extract($source);
-        if ($existing['truncated'] || isset($existing['links'][hash('sha256', $address)])) {
+        if (!$identity || $existing['truncated'] || isset($existing['links'][$identity['hash']])) {
             return array();
         }
         foreach (self::phrases($target) as $phrase) {
@@ -204,7 +204,8 @@ HTML;
         }
         $existing = SEOProStack_Link_Index::extract($source);
         $url = (string) get_permalink($target);
-        if ($existing['truncated'] || isset($existing['links'][hash('sha256', SEOProStack_Link_Index::address($url, $url))])) {
+        $identity = SEOProStack_Link_Index::identity($url, $url);
+        if (!$identity || $existing['truncated'] || isset($existing['links'][$identity['hash']])) {
             return new WP_Error('already_linked', __('This target is already linked or the source exceeds the scan limit.', 'seoprostack'));
         }
         $wrapped = self::wrap($source->post_content, $phrase, $url);

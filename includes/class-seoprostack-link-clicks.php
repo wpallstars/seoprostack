@@ -68,9 +68,9 @@ final class SEOProStack_Link_Clicks {
             if (!is_string($href)) {
                 continue;
             }
-            $url = SEOProStack_Link_Index::address($href, $base);
-            $hash = hash('sha256', $url);
-            if ('' !== $url && isset($map[$hash])) {
+            $identity = SEOProStack_Link_Index::identity($href, $base);
+            if ($identity && isset($map[$identity['hash']])) {
+                $hash = $identity['hash'];
                 $processor->set_attribute('data-sps-link-post', (string) $post_id);
                 $processor->set_attribute('data-sps-link-hash', $hash);
                 $processor->set_attribute('data-sps-link-token', self::token($post_id, $hash));
@@ -86,7 +86,7 @@ final class SEOProStack_Link_Clicks {
 
     /** @param WP_REST_Request $request Signed event. @return WP_REST_Response|WP_Error */
     public static function record($request) {
-        if (!SEOProStack_Linking::switched_on() || !SEOProStack_Settings::get('linking_clicks') || '1' !== get_option(SEOProStack_Link_Index::VERSION)) {
+        if (!SEOProStack_Linking::switched_on() || !SEOProStack_Settings::get('linking_clicks') || SEOProStack_Link_Index::SCHEMA !== get_option(SEOProStack_Link_Index::VERSION)) {
             return new WP_Error('not_enabled', __('Link counting is off.', 'seoprostack'), array('status' => 403));
         }
         // Honour privacy signals on the server as well as in the browser.
@@ -106,25 +106,25 @@ final class SEOProStack_Link_Clicks {
             return new WP_Error('signature', __('This link event is not valid.', 'seoprostack'), array('status' => 403));
         }
         $map = get_post_meta($post_id, SEOProStack_Link_Index::MAP, true);
-        if (!is_array($map) || !isset($map[$hash])) {
+        if (!is_array($map) || !isset($map[$hash]['url'], $map[$hash]['target'])) {
             return new WP_Error('link', __('This link is not registered.', 'seoprostack'), array('status' => 403));
         }
         global $wpdb;
         // Atomic totals, bounded to 5,000 events per registered link per UTC day.
         // Public signatures are not a fraud-prevention or unique-visitor mechanism.
         // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- the aggregate table is the cache; no visitor identity is collected.
-        $saved = $wpdb->query($wpdb->prepare("INSERT INTO {$wpdb->prefix}seoprostack_link_clicks (post_id,url_hash,url,day,clicks) VALUES (%d,%s,%s,%s,1) ON DUPLICATE KEY UPDATE clicks = LEAST(clicks + 1,5000)", $post_id, $hash, $map[$hash], gmdate('Y-m-d')));
+        $saved = $wpdb->query($wpdb->prepare("INSERT INTO {$wpdb->prefix}seoprostack_link_clicks (post_id,url_hash,url,target_id,day,clicks) VALUES (%d,%s,%s,%d,%s,1) ON DUPLICATE KEY UPDATE clicks = LEAST(clicks + 1,5000)", $post_id, $hash, $map[$hash]['url'], $map[$hash]['target'], gmdate('Y-m-d')));
         return false === $saved ? new WP_Error('storage', __('Could not count this event.', 'seoprostack'), array('status' => 503)) : new WP_REST_Response(null, 204);
     }
 
     /** Keep at most 90 days, including after counting has been switched off. */
     public static function prune() {
-        if ('1' !== get_option(SEOProStack_Link_Index::VERSION)) {
+        if (SEOProStack_Link_Index::SCHEMA !== get_option(SEOProStack_Link_Index::VERSION)) {
             return;
         }
         global $wpdb;
         // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- bounded retention of our aggregate-only records.
-        $removed = $wpdb->query($wpdb->prepare("DELETE FROM {$wpdb->prefix}seoprostack_link_clicks WHERE day < %s LIMIT 1000", gmdate('Y-m-d', time() - 90 * DAY_IN_SECONDS)));
+        $removed = $wpdb->query($wpdb->prepare("DELETE FROM {$wpdb->prefix}seoprostack_link_clicks WHERE day < %s LIMIT 1000", gmdate('Y-m-d', time() - 89 * DAY_IN_SECONDS)));
         if (1000 === $removed && !wp_next_scheduled(self::PRUNE_MORE)) {
             wp_schedule_single_event(time() + 60, self::PRUNE_MORE);
         }

@@ -16,13 +16,14 @@ if (!defined('ABSPATH')) {
 final class SEOProStack_Link_Index {
     const STATE = 'seoprostack_link_index';
     const VERSION = 'seoprostack_link_tables';
+    const SCHEMA = '2';
     const CRON = 'seoprostack_link_batch';
     const META = '_seoprostack_link_scan';
     const MAP = '_seoprostack_link_map';
 
     /** Create only our tables, after the owner enables the toolkit. */
     public static function install() {
-        if ('1' === get_option(self::VERSION)) {
+        if (self::SCHEMA === get_option(self::VERSION)) {
             return;
         }
         global $wpdb;
@@ -51,13 +52,15 @@ final class SEOProStack_Link_Index {
             post_id bigint(20) unsigned NOT NULL,
             url_hash char(64) NOT NULL,
             url text NOT NULL,
+            target_id bigint(20) unsigned NOT NULL DEFAULT 0,
             day date NOT NULL,
             clicks int unsigned NOT NULL DEFAULT 0,
             PRIMARY KEY  (post_id,url_hash,day),
             KEY day (day)
         ) $charset;");
         if (self::has_table('seoprostack_links') && self::has_table('seoprostack_link_health') && self::has_table('seoprostack_link_clicks')) {
-            update_option(self::VERSION, '1', false);
+            update_option(self::VERSION, self::SCHEMA, false);
+            delete_option(self::STATE);
         }
     }
 
@@ -148,6 +151,36 @@ final class SEOProStack_Link_Index {
     }
 
     /**
+     * Preserve plain-permalink page identity without storing query strings.
+     *
+     * @param string $href Original address.
+     * @param string $base Source permalink.
+     * @return array {url, hash, target}; empty for unsupported addresses.
+     */
+    public static function identity($href, $base) {
+        $url = self::address($href, $base);
+        if ('' === $url) {
+            return array();
+        }
+        $target = 0;
+        if (self::internal($url)) {
+            $raw = WP_Http::make_absolute_url(html_entity_decode($href, ENT_QUOTES, 'UTF-8'), $base);
+            $query = wp_parse_url($raw, PHP_URL_QUERY);
+            $params = array();
+            if (is_string($query)) {
+                parse_str($query, $params);
+            }
+            foreach (array('p', 'page_id') as $key) {
+                if (isset($params[$key]) && is_string($params[$key]) && ctype_digit($params[$key])) {
+                    $target = absint($params[$key]);
+                    break;
+                }
+            }
+        }
+        return array('url' => $url, 'hash' => hash('sha256', $url . ($target ? '|post:' . $target : '')), 'target' => $target);
+    }
+
+    /**
      * Extract at most 200 distinct destinations, without executing blocks or shortcodes.
      *
      * @param WP_Post $post Source.
@@ -166,11 +199,12 @@ final class SEOProStack_Link_Index {
             if (!is_string($href)) {
                 continue;
             }
-            $url = self::address($href, $base);
-            if ('' === $url) {
+            $identity = self::identity($href, $base);
+            if (!$identity) {
                 continue;
             }
-            $hash = hash('sha256', $url);
+            $url = $identity['url'];
+            $hash = $identity['hash'];
             if (isset($links[$hash])) {
                 ++$links[$hash]['occurrences'];
                 continue;
@@ -183,7 +217,7 @@ final class SEOProStack_Link_Index {
             $raw = WP_Http::make_absolute_url(html_entity_decode($href, ENT_QUOTES, 'UTF-8'), $base);
             $path = (string) wp_parse_url($raw, PHP_URL_PATH);
             $checkable = null === wp_parse_url($raw, PHP_URL_QUERY) && !preg_match('~/(?:wp-admin|wp-json)(?:/|$)|/wp-login\.php$~i', $path);
-            $links[$hash] = array('url' => $url, 'occurrences' => 1, 'checkable' => $checkable);
+            $links[$hash] = array('url' => $url, 'target' => $identity['target'], 'occurrences' => 1, 'checkable' => $checkable);
         }
         return array('links' => $links, 'truncated' => $truncated);
     }
@@ -191,8 +225,12 @@ final class SEOProStack_Link_Index {
     /** Queue a full scan; old results stay visible but are explicitly incomplete. */
     public static function start() {
         self::install();
-        update_option(self::STATE, array('cursor' => 0, 'done' => false, 'provider' => self::provider(), 'started' => time(), 'finished' => 0), false);
-        self::schedule();
+        $provider = self::provider();
+        $done = 'rank_math' === $provider && !SEOProStack_Settings::get('linking_clicks') && (!SEOProStack_Settings::get('linking_health') || 'rank_math' === self::health_provider());
+        update_option(self::STATE, array('cursor' => 0, 'done' => $done, 'provider' => $provider, 'started' => time(), 'finished' => $done ? time() : 0), false);
+        if (!$done) {
+            self::schedule();
+        }
     }
 
     /** @param int $delay Seconds until the next bounded batch. */
@@ -214,7 +252,7 @@ final class SEOProStack_Link_Index {
     /** @param int $post_id Source. */
     public static function scan($post_id) {
         global $wpdb;
-        if ('1' !== get_option(self::VERSION)) {
+        if (self::SCHEMA !== get_option(self::VERSION)) {
             return;
         }
         // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- our derived fallback index must match the saved post.
@@ -225,22 +263,28 @@ final class SEOProStack_Link_Index {
             delete_post_meta($post_id, self::MAP);
             return;
         }
-        $result = self::extract($post);
         $native = 'native' === self::provider();
+        $health = SEOProStack_Settings::get('linking_health') && 'native' === self::health_provider();
+        $track = (bool) SEOProStack_Settings::get('linking_clicks');
+        if (!$native && !$health && !$track) {
+            delete_post_meta($post_id, self::MAP);
+            return;
+        }
+        $result = self::extract($post);
         $map = array();
         foreach ($result['links'] as $hash => $link) {
             $internal = self::internal($link['url']);
             if ($native) {
-                $target = $internal ? url_to_postid($link['url']) : 0;
+                $target = $internal ? ($link['target'] ? $link['target'] : url_to_postid($link['url'])) : 0;
                 // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- this index is the cache, and is absent when Rank Math supplies counts.
                 $wpdb->insert($wpdb->prefix . 'seoprostack_links', array('post_id' => $post_id, 'url_hash' => $hash, 'target_id' => $target, 'kind' => $internal ? 'internal' : 'external', 'occurrences' => $link['occurrences']), array('%d', '%s', '%d', '%s', '%d'));
             }
-            if (SEOProStack_Settings::get('linking_health') && 'native' === self::health_provider() && $link['checkable']) {
+            if ($health && $link['checkable']) {
                 // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- a shared health cache, never a remote request during a save.
                 $wpdb->query($wpdb->prepare("INSERT IGNORE INTO {$wpdb->prefix}seoprostack_link_health (url_hash,url) VALUES (%s,%s)", $hash, $link['url']));
             }
-            if (SEOProStack_Settings::get('linking_clicks')) {
-                $map[$hash] = $link['url'];
+            if ($track) {
+                $map[$hash] = array('url' => $link['url'], 'target' => $link['target']);
             }
         }
         if ($map) {
@@ -249,7 +293,7 @@ final class SEOProStack_Link_Index {
             delete_post_meta($post_id, self::MAP);
         }
         update_post_meta($post_id, self::META, array('hash' => hash('sha256', $post->post_content), 'at' => time(), 'truncated' => $result['truncated']));
-        if (SEOProStack_Settings::get('linking_health')) {
+        if ($health) {
             self::schedule();
         }
     }
@@ -318,6 +362,13 @@ final class SEOProStack_Link_Index {
         for ($hop = 0; $hop <= 3; ++$hop) {
             $path = (string) wp_parse_url($url, PHP_URL_PATH);
             if (!wp_http_validate_url($url) || null !== wp_parse_url($url, PHP_URL_QUERY) || preg_match('~/(?:wp-admin|wp-json)(?:/|$)|/wp-login\.php$~i', $path)) {
+                $result['error'] = 'unsafe_url';
+                break;
+            }
+            // Core permits a private address matching home_url(). This tool
+            // deliberately does not: content must not probe local services.
+            $ip = gethostbyname((string) wp_parse_url($url, PHP_URL_HOST));
+            if (!filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE)) {
                 $result['error'] = 'unsafe_url';
                 break;
             }
