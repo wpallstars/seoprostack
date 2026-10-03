@@ -822,7 +822,7 @@ final class SEOProStack_Plugin_Loader {
                 if ('blocks' === $kind && false === strpos($name, '/')) {
                     $name = 'core/' . $name;
                 }
-                if (!array_key_exists($name, (array) ($front[$kind] ?? array()))) {
+                if (!array_key_exists($name, (array) ($front[$kind] ?? array())) || false === $front[$kind][$name]) {
                     return false;
                 }
                 $needs[] = $front[$kind][$name];

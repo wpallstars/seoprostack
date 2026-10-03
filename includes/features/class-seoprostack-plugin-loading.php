@@ -1261,7 +1261,7 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
     private static function front_blocks(array $state) {
         $blocks = array();
         foreach (WP_Block_Type_Registry::get_instance()->get_all_registered() as $name => $block) {
-            $blocks[$name] = (string) ($state['registered']['block_names'][$name] ?? '');
+            $blocks[$name] = $state['registered']['block_names'][$name] ?? (0 === strpos($name, 'core/') ? '' : false);
         }
         return $blocks;
     }
@@ -1564,16 +1564,11 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
             $needs[] = $state['registered']['types'][$object->name];
         }
         $content = implode("\n", $texts);
-        foreach ((array) $shortcode_tags as $tag => $callback) {
-            if (false !== strpos($content, '[' . $tag)) {
-                $needs[] = SEOProStack_Plugin_Loader::plugin_for_callback($callback);
-            }
+        $global_needs = SEOProStack_Plugin_Loader::content_needs($content, array('blocks' => self::front_blocks($state), 'shortcodes' => self::front_shortcodes()));
+        if (false === $global_needs) {
+            return $state['active'];
         }
-        foreach ((array) ($state['registered']['block_names'] ?? array()) as $block => $file) {
-            if (false !== strpos($content, 'wp:' . $block)) {
-                $needs[] = $file;
-            }
-        }
+        $needs = array_merge($needs, $global_needs);
         if (class_exists('WooCommerce', false) && (did_action('woocommerce_before_mini_cart') || did_filter('lostpassword_url')
             || false !== strpos($content, 'wp:woocommerce/'))) {
             $needs[] = 'woocommerce/woocommerce.php';
