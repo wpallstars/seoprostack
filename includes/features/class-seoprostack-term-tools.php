@@ -118,18 +118,20 @@ class SEOProStack_Term_Tools extends SEOProStack_Feature {
     }
 
     /**
-     * Normalise an affix as a slug, keeping its leading/trailing hyphens.
+     * Normalise an affix, keeping the hyphen next to the original slug.
      *
      * @param mixed $value Prefix or suffix.
+     * @param string $part Prefix or suffix field.
      * @return string
      */
-    private static function affix($value) {
+    private static function affix($value, $part) {
         if (!is_string($value) || '' === $value) {
             return '';
         }
-        // sanitize_title() trims edge hyphens; they are meaningful here.
+        $value = trim($value);
+        // Core trims the outer slug edges, so preserve only the inner hyphen.
         $slug = sanitize_title($value);
-        return '' === $slug ? '' : ('-' === substr($value, 0, 1) ? '-' : '') . $slug . ('-' === substr($value, -1) ? '-' : '');
+        return '' === $slug ? '' : ('suffix' === $part && '-' === substr($value, 0, 1) ? '-' : '') . $slug . ('prefix' === $part && '-' === substr($value, -1) ? '-' : '');
     }
 
     /**
@@ -159,7 +161,7 @@ class SEOProStack_Term_Tools extends SEOProStack_Feature {
                             <?php foreach (array('prefix', 'suffix') as $part) : ?>
                                 <td>
                                     <label class="screen-reader-text" for="sps-pattern-<?php echo esc_attr($taxonomy->name . '-' . $part); ?>"><?php echo esc_html($taxonomy->labels->name . ' — ' . ('prefix' === $part ? __('Prefix', 'seoprostack') : __('Suffix', 'seoprostack'))); ?></label>
-                                    <input type="text" id="sps-pattern-<?php echo esc_attr($taxonomy->name . '-' . $part); ?>" name="seoprostack_patterns[<?php echo esc_attr($taxonomy->name); ?>][<?php echo esc_attr($part); ?>]" value="<?php echo esc_attr(self::affix($patterns[$taxonomy->name][$part] ?? '')); ?>" placeholder="<?php echo esc_attr('prefix' === $part ? 'best-' : '-awards'); ?>" />
+                                    <input type="text" id="sps-pattern-<?php echo esc_attr($taxonomy->name . '-' . $part); ?>" name="seoprostack_patterns[<?php echo esc_attr($taxonomy->name); ?>][<?php echo esc_attr($part); ?>]" value="<?php echo esc_attr(self::affix($patterns[$taxonomy->name][$part] ?? '', $part)); ?>" placeholder="<?php echo esc_attr('prefix' === $part ? 'best-' : '-awards'); ?>" />
                                 </td>
                             <?php endforeach; ?>
                         </tr>
@@ -184,8 +186,8 @@ class SEOProStack_Term_Tools extends SEOProStack_Feature {
             if (!current_user_can($taxonomy->cap->manage_terms) || !isset($submitted[$taxonomy->name]) || !is_array($submitted[$taxonomy->name])) {
                 continue;
             }
-            $prefix = self::affix($submitted[$taxonomy->name]['prefix'] ?? '');
-            $suffix = self::affix($submitted[$taxonomy->name]['suffix'] ?? '');
+            $prefix = self::affix($submitted[$taxonomy->name]['prefix'] ?? '', 'prefix');
+            $suffix = self::affix($submitted[$taxonomy->name]['suffix'] ?? '', 'suffix');
             if ('' === $prefix && '' === $suffix) {
                 unset($patterns[$taxonomy->name]);
             } else {
@@ -211,8 +213,8 @@ class SEOProStack_Term_Tools extends SEOProStack_Feature {
         if (!self::enabled() || isset(self::$applying[$term_id]) || !$object || !$object->public || empty($patterns[$taxonomy])) {
             return false;
         }
-        $prefix = self::affix($patterns[$taxonomy]['prefix'] ?? '');
-        $suffix = self::affix($patterns[$taxonomy]['suffix'] ?? '');
+        $prefix = self::affix($patterns[$taxonomy]['prefix'] ?? '', 'prefix');
+        $suffix = self::affix($patterns[$taxonomy]['suffix'] ?? '', 'suffix');
         if ('' === $prefix && '' === $suffix) {
             return false;
         }
@@ -232,6 +234,12 @@ class SEOProStack_Term_Tools extends SEOProStack_Feature {
         if ($slug === $term->slug) {
             return false;
         }
+        // Explicit duplicate slugs make wp_update_term() return an error.
+        // Ask core for a unique slug first, using numeric rather than parent
+        // suffixes so the pattern remains recognisable after a parent changes.
+        $unique_term         = clone $term;
+        $unique_term->parent = 0;
+        $slug                = wp_unique_term_slug($slug, $unique_term);
         self::$applying[$term_id] = true;
         try {
             $result = wp_update_term($term_id, $taxonomy, array('slug' => $slug));
