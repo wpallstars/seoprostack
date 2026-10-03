@@ -1179,7 +1179,7 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folderâ
 
 ## Changelog
 
-### Unreleased
+### 0.11.10
 
 - New, off by default: Internal linking tools, with local owner-approved suggestions and conflict-checked undo, incoming/outgoing counts and orphan candidates, optional cached link-health checks, and read-only Link Whisper retirement checks. Reuses Rank Math where available, without a required dependency.
 - New, separately opt-in and off by default: daily aggregate link click events, without cookies or visitor identifiers, with privacy-signal exclusions and 90-day retention. No production migration or Link Whisper deactivation is automatic.

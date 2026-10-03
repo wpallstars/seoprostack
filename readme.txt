@@ -5,7 +5,7 @@ Tags: magic login, iframe, schedule posts, auto upload images, admin
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 0.11.9
+Stable tag: 0.11.10
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -128,15 +128,11 @@ Use **Report a problem** in Settings → SEO Pro Stack or [GitHub](https://githu
 
 == Changelog ==
 
-= Unreleased =
+= 0.11.10 =
 * Change: Refined Discover recommendations; added Fluent Query Logger under Debug.
 * New, off: approved local linking and undo, reports, opt-in health/click checks and read-only Link Whisper audit; Custom fields to content with excerpts and WP-CLI sync.
 * Fix: WP-Optimize Premium handling, Tutor LMS network tables and slow Tutor LMS Pro/Comment Goblin admin screens.
 * Fix: Long Rank Math keywords wrap in the SEO Details column instead of pushing lists off the page.
-
-= 0.11.9 =
-* Change: Kadence/Fluent referral links, Scalability Pro website, 11 free plugins/add-ons and four pro products added.
-* New: HTTP Requests Manager preset: only log requests, so WordPress update checks are no longer blocked.
 
 Older: `changelog.txt`.
 
