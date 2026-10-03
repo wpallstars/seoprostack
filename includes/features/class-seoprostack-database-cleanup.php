@@ -401,13 +401,13 @@ class SEOProStack_Database_Cleanup extends SEOProStack_Feature {
             case 'orphaned_meta':
                 $total = 0;
                 foreach (self::meta_tables() as $table) {
-                    $total += (int) $wpdb->get_var(self::orphan_query($table, 'COUNT(*)')); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- built from $wpdb table names.
+                    $total += (int) self::orphan_query($table, true);
                 }
                 return $total;
             default:
                 $total = 0;
                 foreach (self::passes($item) as $pass) {
-                    $total += (int) $wpdb->get_var('SELECT COUNT(*)' . self::from_query($pass)); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- prepared in from_query().
+                    $total += (int) self::from_query($pass, true);
                 }
                 return $total;
         }
@@ -460,9 +460,11 @@ class SEOProStack_Database_Cleanup extends SEOProStack_Feature {
         if ('orphaned_meta' === $item) {
             foreach (self::meta_tables() as $table) {
                 do {
-                    $ids = array_map('intval', (array) $wpdb->get_col(self::orphan_query($table, 'm.meta_id') . ' LIMIT ' . self::META_BATCH)); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- built from $wpdb table names.
+                    $ids = array_map('intval', (array) self::orphan_query($table, false));
                     if ($ids) {
-                        $removed += (int) $wpdb->query("DELETE FROM {$table['meta']} WHERE meta_id IN (" . implode(',', $ids) . ')'); // phpcs:ignore WordPress.DB.PreparedSQL -- table name and integer IDs.
+                        $placeholders = implode(',', array_fill(0, count($ids), '%d'));
+                        // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- only generated %d placeholders; every ID and the table name are prepared.
+                        $removed += (int) $wpdb->query($wpdb->prepare("DELETE FROM %i WHERE meta_id IN ($placeholders)", array_merge(array($table['meta']), $ids)));
                     }
                     if ($out()) {
                         return array('removed' => $removed, 'done' => false);
@@ -474,9 +476,8 @@ class SEOProStack_Database_Cleanup extends SEOProStack_Feature {
 
         foreach (self::passes($item) as $pass) {
             $comments = self::is_comment_pass($pass);
-            $query    = self::from_query($pass);
             do {
-                $ids    = array_map('intval', (array) $wpdb->get_col('SELECT ' . ($comments ? 'c.comment_ID' : 'p.ID') . $query . ' LIMIT ' . self::BATCH)); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- prepared in from_query().
+                $ids    = array_map('intval', (array) self::from_query($pass, false));
                 $before = $removed;
                 foreach ($ids as $id) {
                     $gone = $comments ? wp_delete_comment($id, true) : wp_delete_post($id, true);
@@ -494,37 +495,62 @@ class SEOProStack_Database_Cleanup extends SEOProStack_Feature {
     }
 
     /**
-     * The FROM and WHERE part of a pass's query, prepared; posts are "p",
-     * comments "c".
+     * Count a pass or select its next batch with a complete prepared query.
      *
-     * @param string $pass Pass from passes().
-     * @return string
+     * @param string $pass  Pass from passes().
+     * @param bool   $count Count rows rather than select a batch of IDs.
+     * @return int|string[]
      */
-    private static function from_query($pass) {
+    private static function from_query($pass, $count) {
         global $wpdb;
         $bin = time() - self::bin_days() * DAY_IN_SECONDS;
         switch ($pass) {
             case 'trash':
-                return $wpdb->prepare(
-                    " FROM {$wpdb->posts} p INNER JOIN {$wpdb->postmeta} m ON m.post_id = p.ID AND m.meta_key = '_wp_trash_meta_time' WHERE p.post_status = 'trash' AND CAST(m.meta_value AS UNSIGNED) < %d",
-                    $bin
-                );
+                if ($count) {
+                    return (int) $wpdb->get_var($wpdb->prepare(
+                        "SELECT COUNT(*) FROM %i p INNER JOIN %i m ON m.post_id = p.ID AND m.meta_key = '_wp_trash_meta_time' WHERE p.post_status = 'trash' AND CAST(m.meta_value AS UNSIGNED) < %d",
+                        $wpdb->posts, $wpdb->postmeta, $bin
+                    ));
+                }
+                return $wpdb->get_col($wpdb->prepare(
+                    "SELECT p.ID FROM %i p INNER JOIN %i m ON m.post_id = p.ID AND m.meta_key = '_wp_trash_meta_time' WHERE p.post_status = 'trash' AND CAST(m.meta_value AS UNSIGNED) < %d LIMIT %d",
+                    $wpdb->posts, $wpdb->postmeta, $bin, self::BATCH
+                ));
             case 'trash_comments':
-                return $wpdb->prepare(
-                    " FROM {$wpdb->comments} c INNER JOIN {$wpdb->commentmeta} m ON m.comment_id = c.comment_ID AND m.meta_key = '_wp_trash_meta_time' WHERE c.comment_approved = 'trash' AND CAST(m.meta_value AS UNSIGNED) < %d",
-                    $bin
-                );
+                if ($count) {
+                    return (int) $wpdb->get_var($wpdb->prepare(
+                        "SELECT COUNT(*) FROM %i c INNER JOIN %i m ON m.comment_id = c.comment_ID AND m.meta_key = '_wp_trash_meta_time' WHERE c.comment_approved = 'trash' AND CAST(m.meta_value AS UNSIGNED) < %d",
+                        $wpdb->comments, $wpdb->commentmeta, $bin
+                    ));
+                }
+                return $wpdb->get_col($wpdb->prepare(
+                    "SELECT c.comment_ID FROM %i c INNER JOIN %i m ON m.comment_id = c.comment_ID AND m.meta_key = '_wp_trash_meta_time' WHERE c.comment_approved = 'trash' AND CAST(m.meta_value AS UNSIGNED) < %d LIMIT %d",
+                    $wpdb->comments, $wpdb->commentmeta, $bin, self::BATCH
+                ));
             case 'spam':
-                return $wpdb->prepare(
-                    " FROM {$wpdb->comments} c WHERE c.comment_approved = 'spam' AND c.comment_date_gmt < %s",
-                    gmdate('Y-m-d H:i:s', $bin)
-                );
+                if ($count) {
+                    return (int) $wpdb->get_var($wpdb->prepare(
+                        "SELECT COUNT(*) FROM %i c WHERE c.comment_approved = 'spam' AND c.comment_date_gmt < %s",
+                        $wpdb->comments, gmdate('Y-m-d H:i:s', $bin)
+                    ));
+                }
+                return $wpdb->get_col($wpdb->prepare(
+                    "SELECT c.comment_ID FROM %i c WHERE c.comment_approved = 'spam' AND c.comment_date_gmt < %s LIMIT %d",
+                    $wpdb->comments, gmdate('Y-m-d H:i:s', $bin), self::BATCH
+                ));
             default:
                 // auto_drafts, as wp_delete_auto_drafts(): post_date, in site time.
-                return $wpdb->prepare(
-                    " FROM {$wpdb->posts} p WHERE p.post_status = 'auto-draft' AND p.post_date < %s",
-                    wp_date('Y-m-d H:i:s', time() - self::AUTO_DRAFT_DAYS * DAY_IN_SECONDS)
-                );
+                $before = wp_date('Y-m-d H:i:s', time() - self::AUTO_DRAFT_DAYS * DAY_IN_SECONDS);
+                if ($count) {
+                    return (int) $wpdb->get_var($wpdb->prepare(
+                        "SELECT COUNT(*) FROM %i p WHERE p.post_status = 'auto-draft' AND p.post_date < %s",
+                        $wpdb->posts, $before
+                    ));
+                }
+                return $wpdb->get_col($wpdb->prepare(
+                    "SELECT p.ID FROM %i p WHERE p.post_status = 'auto-draft' AND p.post_date < %s LIMIT %d",
+                    $wpdb->posts, $before, self::BATCH
+                ));
         }
     }
 
@@ -546,12 +572,22 @@ class SEOProStack_Database_Cleanup extends SEOProStack_Feature {
      * Meta rows whose post, comment or term is gone. Rows for ID 0 were never
      * attached to anything, and are left alone.
      *
-     * @param array  $table  From meta_tables().
-     * @param string $select Columns.
-     * @return string
+     * @param array $table From meta_tables().
+     * @param bool  $count Count rows rather than select a batch of IDs.
+     * @return int|string[]
      */
-    private static function orphan_query(array $table, $select) {
-        return "SELECT {$select} FROM {$table['meta']} m LEFT JOIN {$table['parent']} o ON o.{$table['id']} = m.{$table['column']} WHERE m.{$table['column']} > 0 AND o.{$table['id']} IS NULL";
+    private static function orphan_query(array $table, $count) {
+        global $wpdb;
+        if ($count) {
+            return (int) $wpdb->get_var($wpdb->prepare(
+                'SELECT COUNT(*) FROM %i m LEFT JOIN %i o ON o.%i = m.%i WHERE m.%i > 0 AND o.%i IS NULL',
+                $table['meta'], $table['parent'], $table['id'], $table['column'], $table['column'], $table['id']
+            ));
+        }
+        return $wpdb->get_col($wpdb->prepare(
+            'SELECT m.meta_id FROM %i m LEFT JOIN %i o ON o.%i = m.%i WHERE m.%i > 0 AND o.%i IS NULL LIMIT %d',
+            $table['meta'], $table['parent'], $table['id'], $table['column'], $table['column'], $table['id'], self::META_BATCH
+        ));
     }
 
     /**
@@ -581,7 +617,7 @@ class SEOProStack_Database_Cleanup extends SEOProStack_Feature {
      */
     private static function optimize($table) {
         global $wpdb;
-        $wpdb->query('OPTIMIZE TABLE `' . str_replace('`', '', $table) . '`'); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- a table name cannot be a placeholder.
+        $wpdb->query($wpdb->prepare('OPTIMIZE TABLE %i', $table));
     }
 
     // phpcs:enable WordPress.DB.DirectDatabaseQuery
