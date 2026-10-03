@@ -1064,6 +1064,10 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folderâ
 
 ## Changelog
 
+### Unreleased
+
+- Fixed: on a network, a site where Fluent Forms, Fluent Boards or FluentCommunity is network-active but never set up (its tables missing) showed a critical error on every page after updating to 0.11.3, while SEO Pro Stack upgraded its settings. The Agency lists now skip a plugin whose tables are missing.
+
 ### 0.11.3
 
 - Changed: page learning now decides by persistent page kind and each post's own blocks and shortcodes before plugins load, including never-visited posts. Unknowns load every plugin; no per-address records or hourly expiry remain.
