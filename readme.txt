@@ -128,6 +128,8 @@ Click **Report a problem** at the top right of Settings → SEO Pro Stack, or op
 = Unreleased =
 * New: Rank Math keyword defaults and pillar tools; off by default.
 * New: Remove all on Tools → Old addresses.
+* Fix: deactivating Freesoul Deactivate Plugins or PRO deactivates both and removes its leftover must-use file.
+* Fix: Readabler no longer stops the Plugins screen with a critical error when its server cannot be reached.
 
 = 0.11.5 =
 * New: Hosting needs checks object cache health daily and recommends unused Redis or Memcached, without connections on visitor requests.
