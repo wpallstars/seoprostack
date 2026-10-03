@@ -228,8 +228,12 @@ HTML;
         global $wpdb;
         // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- read the exact saved value while our transaction holds the post row lock.
         $actual = $wpdb->get_var($wpdb->prepare("SELECT post_content FROM {$wpdb->posts} WHERE ID = %d", $source_id));
-        if (!is_string($actual) || $actual === $source->post_content || !update_post_meta($source_id, self::UNDO, array('before' => $source->post_content, 'after' => hash('sha256', $actual), 'at' => time()))) {
+        if ($actual !== $wrapped['content'] || !update_post_meta($source_id, self::UNDO, wp_slash(array('before' => $source->post_content, 'after' => hash('sha256', $actual), 'at' => time())))) {
             return new WP_Error('not_saved', __('The link or its undo record could not be saved. Use the source editor instead.', 'seoprostack'));
+        }
+        $undo = get_post_meta($source_id, self::UNDO, true);
+        if (!is_array($undo) || !isset($undo['before']) || $undo['before'] !== $source->post_content) {
+            return new WP_Error('not_saved', __('The exact undo snapshot could not be saved. No change was committed.', 'seoprostack'));
         }
         return true;
     }
@@ -253,6 +257,12 @@ HTML;
         $saved = wp_update_post(wp_slash(array('ID' => $post_id, 'post_content' => $undo['before'])), true);
         if (is_wp_error($saved)) {
             return $saved;
+        }
+        global $wpdb;
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- refuse sanitization or save-hook changes before committing an exact restoration.
+        $actual = $wpdb->get_var($wpdb->prepare("SELECT post_content FROM {$wpdb->posts} WHERE ID = %d", $post_id));
+        if ($actual !== $undo['before']) {
+            return new WP_Error('not_saved', __('The exact content could not be restored. No change was committed.', 'seoprostack'));
         }
         if (!delete_post_meta($post_id, self::UNDO)) {
             return new WP_Error('undo_storage', __('The undo record could not be removed. No change was committed.', 'seoprostack'));
