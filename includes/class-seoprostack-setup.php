@@ -77,6 +77,7 @@ final class SEOProStack_Setup {
         'SEOProStack_Gone_Urls',
         'SEOProStack_Old_Slugs',
         'SEOProStack_External_Links',
+        'SEOProStack_Linking',
         'SEOProStack_Maintenance',
         'SEOProStack_Preload_Pages',
         'SEOProStack_Delay_Scripts',
