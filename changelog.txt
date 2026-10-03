@@ -2,6 +2,9 @@
 
 Every change to SEO Pro Stack. readme.txt lists the latest version in short.
 
+= 0.11.11 =
+* Developers: AGENTS.md is now a short map; the preset and starter data procedure is in docs/presets.md and the plugin directory choices in docs/plugin-directory.md (STANDARDS.md → Agent docs). Core files synced from the starter: the release preflight checks AGENTS.md and docs/, docs/ never ships, a failing settings options list no longer stops a page, and scripts/sync-core.sh can update itself. Nothing changes for users.
+
 = 0.11.10 =
 * New, off by default: Internal linking tools (Links tab, Tools → Links), with local incoming/outgoing suggestions, owner-approved inserts and conflict-checked undo, counts and orphan candidates. Uses Rank Math's public report where available and a bounded local fallback otherwise. Shortcodes and unsupported builder content need manual edits; automatic changes require transactional WordPress tables.
 * New, separate opt-ins: cached background link-health checks and daily aggregate click events without cookies or visitor identifiers. Counting excludes logged-in visits and privacy signals, caps approximate events, and retains up to 90 days. No automatic production migration or third-party changes.
@@ -13,7 +16,6 @@ Every change to SEO Pro Stack. readme.txt lists the latest version in short.
 * Fix: Readable list columns kept every line of Rank Math’s SEO Details on one line, so a long focus keyword ran out of the column and pushed the list off the page. The keyword and schema lines now wrap between words, indented under their label; the score and link counts still stay on one line.
 * Fix: on networks, and sites sharing a database, Tutor LMS made its order, cart and coupon tables only on the first site, because its foreign key names must be unique in the database; on the others its upgrade then failed on every admin screen. Fixes for other plugins gives a name already taken the site's table prefix, points its cart and coupon tables at the network's users table, and runs Tutor's own installer once on a site that is missing them.
 * Fix: Tutor LMS Pro made every load of the Plugins screen check every plugin's update and licence servers; Fixes for other plugins leaves that to WordPress's own check, at most once an hour. Comment Goblin asked its update server again on every read of the update data, many times per admin screen, while that server failed; a failure is now kept for 12 hours. On one network, together they made admin screens take 12–17 s.
-* Developers: AGENTS.md is now a short map; the preset and starter data procedure is in docs/presets.md and the plugin directory choices in docs/plugin-directory.md (STANDARDS.md → Agent docs). Core files synced from the starter: the release preflight checks AGENTS.md and docs/, docs/ never ships, a failing settings options list no longer stops a page, and scripts/sync-core.sh can update itself. Nothing changes for users.
 
 = 0.11.9 =
 * New: Plugin preset for HTTP Requests Manager: Only log HTTP requests. Its blocking modes also block every request once a page has taken 3 seconds or made 3 requests (WP-CLI included), so they blocked WordPress's own update checks, SEO Pro Stack's GitHub update checks and LiteSpeed Cache's calls to the site. Ask before licence checks holds the licence checks those modes were used to stop.

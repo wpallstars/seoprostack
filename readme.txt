@@ -5,7 +5,7 @@ Tags: magic login, iframe, schedule posts, auto upload images, admin
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 0.11.10
+Stable tag: 0.11.11
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -127,6 +127,9 @@ From where you installed it. New versions come out on GitHub first.
 Use **Report a problem** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpallstars/seoprostack/issues).
 
 == Changelog ==
+
+= 0.11.11 =
+* Developers: shorter agent guide and synced starter files. Nothing changes for users.
 
 = 0.11.10 =
 * Change: Refined Discover recommendations; added Fluent Query Logger under Debug.

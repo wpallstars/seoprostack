@@ -1181,6 +1181,10 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folder�
 
 ## Changelog
 
+### 0.11.11
+
+- Developers: `AGENTS.md`, which AI agents read in every session, is now a short map (155 → 89 lines). The preset and starter data procedure moved to `docs/presets.md` and the plugin directory choices to `docs/plugin-directory.md`; `AGENTS.md` says when to read each (`STANDARDS.md` → Agent docs, from the starter). Core files synced from the starter: the release preflight checks `AGENTS.md` and `docs/`, `docs/` never ships, a failing settings options list no longer stops a page, and `scripts/sync-core.sh` can update itself. Nothing changes for users.
+
 ### 0.11.10
 
 - New, off by default: Internal linking tools, with local owner-approved suggestions and conflict-checked undo, incoming/outgoing counts and orphan candidates, optional cached link-health checks, and read-only Link Whisper retirement checks. Reuses Rank Math where available, without a required dependency.
@@ -1192,7 +1196,6 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folder�
 - Fix: **Readable list columns** kept every line of Rank Math’s SEO Details on one line, so a long focus keyword (“Keyword: Sustainability and ESG Brilliance Awards”) ran out of the column and pushed the list off the page. The keyword and schema lines now wrap between words, indented under their label; the score and link counts still stay on one line.
 - Fix: on networks, and sites sharing a database, Tutor LMS made its order, cart and coupon tables only on the first site, because its foreign key names must be unique in the database; on the others its upgrade then failed on every admin screen. **Fixes for other plugins** gives a name already taken the site’s table prefix, points its cart and coupon tables at the network’s users table, and runs Tutor’s own installer once on a site that is missing them.
 - Fix: Tutor LMS Pro made every load of the Plugins screen check every plugin’s update and licence servers; **Fixes for other plugins** leaves that to WordPress’s own check, at most once an hour. Comment Goblin asked its update server again on every read of the update data, many times per admin screen, while that server failed; a failure is now kept for 12 hours. On one network, together they made admin screens take 12–17 s.
-- Developers: `AGENTS.md`, which AI agents read in every session, is now a short map (152 → 86 lines). The preset and starter data procedure moved to `docs/presets.md` and the plugin directory choices to `docs/plugin-directory.md`; `AGENTS.md` says when to read each (`STANDARDS.md` → Agent docs, from the starter). Core files synced from the starter: the release preflight checks `AGENTS.md` and `docs/`, `docs/` never ships, a failing settings options list no longer stops a page, and `scripts/sync-core.sh` can update itself. Nothing changes for users.
 
 ### 0.11.9
 
