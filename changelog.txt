@@ -4,6 +4,8 @@ Every change to SEO Pro Stack. readme.txt lists the latest version in short.
 
 = Unreleased =
 * New: Plugin preset for HTTP Requests Manager: Only log HTTP requests. Its blocking modes also block every request once a page has taken 3 seconds or made 3 requests (WP-CLI included), so they blocked WordPress's own update checks, SEO Pro Stack's GitHub update checks and LiteSpeed Cache's calls to the site. Ask before licence checks holds the licence checks those modes were used to stop.
+* Change: all Kadence and Fluent/WPManageNinja vendor links use the supplied referral IDs, keeping product paths and pricing anchors. Kadence bundles link directly to Liquid Web; Scalability Pro uses its current Super Speedy Plugins product page and pricing section.
+* New: 11 missing WPManageNinja free plugins and add-ons, plus FluentAffiliate Pro, FluentPlayer Pro, Paymattic Pro and AzonPress in Pro Plugins. Matching free cards and All rows use the referral links for Go Pro. FluentAuth stays free only; AzonPress has no listed WordPress.org free version.
 
 = 0.11.8 =
 * Fix: Load plugins only where needed loads a base plugin and its Pro or Premium add-on together on every screen, or skips both (FluentBooking, Fluent Boards, Fluent Support, Fluent Forms, FluentCRM). Before, a screen could skip the base while its Pro add-on loaded, so the add-on showed its "requires the base plugin" notice there, or load the base without the add-on, leaving out the add-on's features. Add-ons are also matched by name (FluentCRM Pro, Fluent Forms Pro Add On Pack). Screens are learned again once.
