@@ -17,7 +17,7 @@ Faster admin, writing, media, safer logins and tested plugin settings. Turn on o
 
 Free and open source: no pro version, nothing locked.
 
-Off by default except Hide admin bar items (Comments and + New), No fade between admin screens, Quiet Freemius prompts and Fixes for other plugins. Turn features on in **Settings → SEO Pro Stack**; **Search features** finds one by name or by the plugin it replaces. A feature that replaces a plugin imports its settings once, never changes them, and waits while that plugin is active, so you can switch over safely.
+Off by default except Hide admin bar items (Comments and + New), No fade between admin screens, Quiet Freemius prompts and Fixes for other plugins. Use **Settings → SEO Pro Stack**; **Search features** also finds replaced plugins. Replacements import settings once, leave them alone and wait while the original plugin is active.
 
 = A calmer, faster admin =
 
@@ -95,7 +95,7 @@ Extend settings, tabs and directories with filters such as `seoprostack_settings
 
 = Built with AI =
 
-Built and maintained with [aidevops](https://aidevops.sh), the same developer's open-source AI harness for creating and managing anything online with AI, plugins like this one included. Free on [GitHub](https://github.com/marcusquinn/aidevops).
+Built and maintained with [aidevops](https://aidevops.sh), the developer's open-source AI harness. Free on [GitHub](https://github.com/marcusquinn/aidevops).
 
 == Installation ==
 
@@ -126,7 +126,7 @@ Click **Report a problem** at the top right of Settings → SEO Pro Stack, or op
 == Changelog ==
 
 = Unreleased =
-* Change: Kadence and Fluent/WPManageNinja referral links; current Scalability Pro website; 11 free plugins/add-ons and four pro products added.
+* Change: Kadence/Fluent referral links, Scalability Pro website, 11 free plugins/add-ons and four pro products added.
 * New: Rank Math keyword defaults and pillar tools; off by default.
 
 = 0.11.5 =
