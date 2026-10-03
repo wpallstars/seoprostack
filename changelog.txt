@@ -2,6 +2,12 @@
 
 Every change to SEO Pro Stack. readme.txt lists the latest version in short.
 
+= 0.12.0 =
+* New, off by default: Tag clouds and related posts (Content tab). A Related posts block, also added after the content of chosen post types, weighs shared rare terms above common ones and respects Restrict content. The Term list block gains tag clouds, comma-separated lines, A–Z indexes, the current post's terms, order and number limits, and groups (by top-level term or Tag Groups' groups) under headings, in an accordion or in tabs, styled for light and dark palettes such as Kadence's.
+* New: after TaxoPress or Tag Groups is deactivated, their taxonomies, blocks, shortcodes, widgets and template functions keep working from their saved settings, which are only read. Automatic term links, auto-tagging and Tag Groups Pro's post filters are left out. The feature switches itself on while either is active and in use (settings version 20).
+* New: Term tools adds All | Unused (N) above term lists, to find terms with no posts and delete them in bulk.
+* Change: Discover no longer recommends TaxoPress Pro.
+
 = 0.11.11 =
 * Developers: AGENTS.md is now a short map; the preset and starter data procedure is in docs/presets.md and the plugin directory choices in docs/plugin-directory.md (STANDARDS.md → Agent docs). Core files synced from the starter: the release preflight checks AGENTS.md and docs/, docs/ never ships, a failing settings options list no longer stops a page, and scripts/sync-core.sh can update itself. Nothing changes for users.
 

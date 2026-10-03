@@ -25,7 +25,7 @@ Go to **Settings → SEO Pro Stack**, or click the star next to your name in the
 
 Every feature is off by default except four: Hide admin bar items, which hides Comments and + New from the admin bar, No fade between admin screens, Quiet Freemius prompts and Fixes for other plugins. Copies installed from GitHub releases also have Updates from GitHub on. Features that replace a separate plugin say so on their card (“Replaces: …”) and import that plugin’s settings once when SEO Pro Stack is updated. The other plugin’s own settings are never changed or deleted. While that plugin is active, the feature waits and the plugin keeps doing the job, so the two never run side by side; the card says so, with a deactivate link that comes back to the same settings tab. Deactivate the plugin to switch over. The Plugins screen lists installed plugins that SEO Pro Stack can replace, with what to do next for each: deactivate it (its setting is on), switch the setting on, or delete it once inactive (single sites; on multisite another site may use it). Each of those plugins also gets a note under its own row saying which SEO Pro Stack setting makes it redundant and what to do next, including inactive plugins whose setting is still off; the notes are not hidden by **Hide**. When an active plugin does things on the site that SEO Pro Stack does not (such as Disable Bloat’s REST API switches), the line names them instead of saying the plugin can go. **Hide** hides the lines shown for that person until another step is needed.
 
-SEO Pro Stack replaces **47 plugins**, some of them in part, with free and Pro editions counted separately. The 41 that can be downloaded come to 36.7 MB zipped; SEO Pro Stack is 3.0 MB.
+SEO Pro Stack replaces **51 plugins**, some of them in part, with free and Pro editions counted separately. The 43 that can be downloaded come to 41.8 MB zipped; SEO Pro Stack is 3.1 MB.
 
 | Feature | Tab | Replaces |
 | --- | --- | --- |
@@ -46,6 +46,7 @@ SEO Pro Stack replaces **47 plugins**, some of them in part, with free and Pro e
 | Change post type | Content | Post Type Switcher |
 | Order by hand | Content | Simple Custom Post Order |
 | Term tools | Content | Term Management Tools |
+| Tag clouds and related posts, Term tools | Content | TaxoPress (and Pro) and Tag Groups (and Pro), in part |
 | Search custom fields | Content | ACF: Better Search |
 | Website screenshots | Content | Browser Shots |
 | Link cards | Content | Bookmark Card |
@@ -354,6 +355,21 @@ Three bulk actions on category, tag and other term lists:
 - **Set parent** (hierarchical taxonomies). A term cannot go below itself or its own children.
 
 Old archive addresses of merged and moved terms redirect with a 301 to the term that took over, when they would otherwise be a 404. Replaces Term Management Tools, which has no settings; the feature switches itself on while it is active.
+
+**All | Unused (N)** above each term list shows only terms with no posts, so they can be checked and removed with the core **Delete** bulk action: the clean-up TaxoPress’ Manage Terms screen offers.
+
+### Tag clouds and related posts (Content)
+
+Shows categories, tags and other terms the way readers browse them, and posts related to the one being read, with WordPress’s own blocks, so a site needs no taxonomy plugin to do it.
+
+- **Related posts** block (Widgets category): posts of the same type that share the most categories, tags or other terms with the post being read. Terms used on few posts count for more than ones used everywhere, so a tag on every post does not make every post related; newer posts come first among equals. A grid of cards with featured images, or a list, with dates and a heading if wanted, and a choice of which taxonomies to compare. It works in Query Loops and templates. Password-protected posts, and posts Restrict content hides from the visitor, are left out. Results are kept in the object cache until posts or terms change.
+- **Add related posts after the content of**: post types that get the list after their content, without a block. Posts that already have the block are left alone.
+- The **Term list** block gains a **tag cloud** (sizes on a log scale between the smallest and largest text, plain or as boxes), a **comma-separated line**, an **A–Z index** with letter links, **This post’s terms** (in Query Loops too), an order (name, most posts first, random), a most-terms limit (keeping those with the most posts) and a fewest-posts threshold. Terms can be **grouped** by their top-level term, or by Tag Groups’ groups, under headings, in an **accordion** (`<details>`, no script) or in **tabs** (keyboard arrows, Home and End; without the script they stay under headings). Styles use the theme’s colours and translucent borders, so they suit light and dark palettes, Kadence’s switcher included.
+- **After TaxoPress is deactivated**: taxonomies made with it stay registered with their saved choices (labels, archives, address base, REST, admin column), so their terms, archives and post links stay. Its Terms Display, Terms for Current Post and Related Posts blocks, shortcodes (`[taxopress_termsdisplay]`, `[taxopress_postterms]`, `[taxopress_relatedposts]`) and widgets, terms it added after post content, and the `st_tag_cloud()`, `st_the_tags()` and `st_related_posts()` template functions are drawn with the blocks above from its saved displays: taxonomy, format (list, cloud, boxes, comma-separated), order, number, sizes, chosen and excluded terms, titles and empty texts.
+- **After Tag Groups (or Pro) is deactivated**: its groups are read in place, so the Term list can group by them. Its tabbed, accordion, alphabetical and list clouds, as blocks or shortcodes (`[tag_groups_cloud]`, `[tag_groups_accordion]`, `[tag_groups_alphabet_tabs]`, `[tag_groups_alphabetical_index]`, `[tag_groups_tag_list]` and the Pro table, combined cloud and shuffle box), are drawn with the Term list from their settings: groups, taxonomy, order, amount, sizes, terms of a post, and unassigned terms.
+- Saved TaxoPress and Tag Groups settings are only read, never changed, so turning either plugin back on finds everything as it was.
+- Left out, on purpose: automatic term links inside post content, automatic and AI tagging, synonyms and linked terms, and Tag Groups Pro’s front-end post filters and post lists (their shortcodes and blocks show nothing once it is deactivated). They are specialist tools for sites that rely on them, and Pro editions keep them; a core site needs the displays and the clean-up.
+- Switches on while TaxoPress or Tag Groups is active and has displays, groups or taxonomies, with the post types TaxoPress adds related posts to (settings version 20).
 
 ### Search custom fields (Content)
 
@@ -1181,6 +1197,13 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folder�
 
 ## Changelog
 
+### 0.12.0
+
+- New, off by default: **Tag clouds and related posts** (Content tab). A **Related posts** block, also added after the content of chosen post types, weighs shared rare terms above common ones and respects Restrict content. The **Term list** block gains tag clouds, comma-separated lines, A–Z indexes, the current post’s terms, order and number limits, and groups (by top-level term or Tag Groups’ groups) under headings, in an accordion or in tabs, styled for light and dark palettes such as Kadence’s.
+- New: after TaxoPress or Tag Groups is deactivated, their taxonomies, blocks, shortcodes, widgets and template functions keep working from their saved settings, which are only read. Automatic term links, auto-tagging and Tag Groups Pro’s post filters are left out. The feature switches itself on while either is active and in use (settings version 20).
+- New: **Term tools** adds **All | Unused (N)** above term lists, to find terms with no posts and delete them in bulk.
+- Changed: Discover no longer recommends TaxoPress Pro.
+
 ### 0.11.11
 
 - Developers: `AGENTS.md`, which AI agents read in every session, is now a short map (155 → 89 lines). The preset and starter data procedure moved to `docs/presets.md` and the plugin directory choices to `docs/plugin-directory.md`; `AGENTS.md` says when to read each (`STANDARDS.md` → Agent docs, from the starter). Core files synced from the starter: the release preflight checks `AGENTS.md` and `docs/`, `docs/` never ships, a failing settings options list no longer stops a page, and `scripts/sync-core.sh` can update itself. Nothing changes for users.
@@ -1504,6 +1527,8 @@ Where a feature replaces one of them, SEO Pro Stack imports the settings it can,
 | Post Type Switcher | John James Jacoby | [WordPress.org](https://wordpress.org/plugins/post-type-switcher/), [GitHub](https://github.com/JJJ/post-type-switcher) | Change post type |
 | Simple Custom Post Order | Colorlib | [WordPress.org](https://wordpress.org/plugins/simple-custom-post-order/), [GitHub](https://github.com/ColorlibHQ/simple-custom-post-order) | Order by hand |
 | Term Management Tools | scribu, theMikeD | [WordPress.org](https://wordpress.org/plugins/term-management-tools/), [GitHub](https://github.com/theMikeD/wp-term-management-tools) | Term tools |
+| TaxoPress (and Pro) | PublishPress | [WordPress.org](https://wordpress.org/plugins/simple-tags/), [GitHub](https://github.com/publishpress/publishpress-taxonomies) | Tag clouds and related posts, Term tools (unused terms) |
+| Tag Groups (and Pro) | Christoph Amthor, PublishPress | [WordPress.org](https://wordpress.org/plugins/tag-groups/), [GitHub](https://github.com/publishpress/publishpress-tag-groups) | Tag clouds and related posts |
 | ACF: Better Search | Mateusz Gbiorczyk | [WordPress.org](https://wordpress.org/plugins/acf-better-search/) | Search custom fields |
 | Slugs Manager: Delete Old Permalinks | WPFactory | [WordPress.org](https://wordpress.org/plugins/remove-old-slugspermalinks/) (closed), [GitHub](https://github.com/wpcodefactory/remove-old-slugspermalinks) | Old post addresses |
 | Browser Shots | Kevin Leary, Ben Gillbanks | [WordPress.org](https://wordpress.org/plugins/browser-shots/), [GitHub](https://github.com/BinaryMoon/browser-shots) | Website screenshots |

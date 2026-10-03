@@ -9,6 +9,9 @@
  *   another taxonomy with their posts, meta and IDs.
  * - Set parent (hierarchical taxonomies).
  *
+ * An "Unused" link above the list shows only terms with no posts, ready for
+ * the core Delete bulk action (the clean-up TaxoPress' Manage Terms offers).
+ *
  * Old term archive addresses (from a merge or a move) redirect with a 301 to
  * the term that took over, when they would otherwise be a 404.
  *
@@ -32,6 +35,12 @@ class SEOProStack_Term_Tools extends SEOProStack_Feature {
     /** Notice query argument. */
     const NOTICE = 'seoprostack_terms';
 
+    /** Query argument: show only unused terms. */
+    const UNUSED = 'seoprostack_unused';
+
+    /** @var string Taxonomy of the term list screen. */
+    private static $screen_taxonomy = '';
+
     /**
      * Settings.
      *
@@ -44,7 +53,7 @@ class SEOProStack_Term_Tools extends SEOProStack_Feature {
                 'default'     => false,
                 'tab'         => 'content',
                 'label'       => __('Term tools', 'seoprostack'),
-                'description' => __('Merge categories or tags, move them to another taxonomy, or set their parent, from the Bulk actions menu. Old addresses of merged and moved terms redirect to the new ones.', 'seoprostack'),
+                'description' => __('Merge categories or tags, move them to another taxonomy, or set their parent, from the Bulk actions menu, and list the unused ones to delete them. Old addresses of merged and moved terms redirect to the new ones.', 'seoprostack'),
                 'replaces'    => array('term-management-tools' => 'Term Management Tools'),
             ),
         );
@@ -88,6 +97,77 @@ class SEOProStack_Term_Tools extends SEOProStack_Feature {
         add_filter("handle_bulk_actions-edit-{$taxonomy}", array(__CLASS__, 'handle'), 10, 3);
         add_action('admin_notices', array(__CLASS__, 'notice'));
         add_action('admin_footer', array(__CLASS__, 'fields'));
+        add_action('admin_footer', array(__CLASS__, 'unused_link'));
+        self::$screen_taxonomy = $taxonomy;
+        if (!empty($_GET[self::UNUSED])) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- a list filter.
+            add_filter('terms_clauses', array(__CLASS__, 'only_unused'), 10, 3);
+        }
+    }
+
+    /**
+     * Only unused terms in the term list and its count (not in the parent
+     * drop-down of the Add form).
+     *
+     * @param array    $clauses    Query clauses.
+     * @param string[] $taxonomies Taxonomies.
+     * @param array    $args       Query arguments.
+     * @return array
+     */
+    public static function only_unused($clauses, $taxonomies, $args) {
+        $list = isset($args['page']) || (isset($args['fields']) && 'count' === $args['fields']);
+        if ($list && array(self::$screen_taxonomy) === array_values((array) $taxonomies)) {
+            $clauses['where'] .= ' AND tt.count = 0';
+        }
+        return $clauses;
+    }
+
+    /**
+     * "All | Unused (N)" above the term list.
+     */
+    public static function unused_link() {
+        global $wpdb;
+        $screen = get_current_screen();
+        if (!$screen || 'edit-tags' !== $screen->base || '' === self::$screen_taxonomy) {
+            return;
+        }
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- one count on an admin screen; core has no API for it.
+        $unused = (int) $wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM {$wpdb->term_taxonomy} WHERE taxonomy = %s AND count = 0", self::$screen_taxonomy));
+        $on     = !empty($_GET[self::UNUSED]); // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- a list filter.
+        if (!$unused && !$on) {
+            return;
+        }
+        $base = array('taxonomy' => self::$screen_taxonomy);
+        if (!empty($screen->post_type) && 'post' !== $screen->post_type) {
+            $base['post_type'] = $screen->post_type;
+        }
+        $all  = add_query_arg($base, admin_url('edit-tags.php'));
+        // Ordered, so child terms show without their parents.
+        $only = add_query_arg($base + array(self::UNUSED => 1, 'orderby' => 'name', 'order' => 'asc'), admin_url('edit-tags.php'));
+        ?>
+        <ul class="subsubsub" id="seoprostack-unused-terms">
+            <li><a href="<?php echo esc_url($all); ?>"<?php echo $on ? '' : ' class="current" aria-current="page"'; ?>><?php esc_html_e('All', 'seoprostack'); ?></a> |</li>
+            <li><a href="<?php echo esc_url($only); ?>"<?php echo $on ? ' class="current" aria-current="page"' : ''; ?>><?php
+                /* translators: %s: number of terms with no posts */
+                echo esc_html(sprintf(__('Unused (%s)', 'seoprostack'), number_format_i18n($unused)));
+            ?></a></li>
+        </ul>
+        <script>
+        (function () {
+            var links = document.getElementById('seoprostack-unused-terms');
+            var form = document.querySelector('#col-right form#posts-filter') || document.getElementById('posts-filter');
+            if (links && form) {
+                form.parentNode.insertBefore(links, form);
+                if (<?php echo $on ? 'true' : 'false'; ?>) {
+                    var keep = document.createElement('input');
+                    keep.type = 'hidden';
+                    keep.name = '<?php echo esc_js(self::UNUSED); ?>';
+                    keep.value = '1';
+                    form.appendChild(keep);
+                }
+            }
+        })();
+        </script>
+        <?php
     }
 
     /**
