@@ -129,6 +129,7 @@ Use **Report a problem** in Settings → SEO Pro Stack or [GitHub](https://githu
 == Changelog ==
 
 = Unreleased =
+* Change: Refined Discover recommendations; added Fluent Query Logger under Debug.
 * New, off: approved local linking and undo, reports, opt-in health/click checks and read-only Link Whisper audit; Custom fields to content with excerpts and WP-CLI sync.
 * Fix: WP-Optimize Premium handling, Tutor LMS network tables and slow Tutor LMS Pro/Comment Goblin admin screens.
 

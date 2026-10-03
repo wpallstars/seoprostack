@@ -48,6 +48,13 @@ if (!defined('ABSPATH')) {
 // needs a Google Cloud project of your own, it is not kept up to date (its
 // dashboard box links to a settings page it no longer has), and Rank Math,
 // which is listed, shows Search Console data in its Analytics module.
+// FlyingPress and Link Whisper are not recommended, at the owner's request.
+// Fluent Connect (ThriveCart), Fluent Forms Connector for MailPoet and
+// Mautic Integration For Fluent Forms are not listed: the recommended stack
+// does not use these connectors.
+// Legacy WPManageNinja plugins NinjaDB, WP Faq Builder and Testimonials
+// Builder are not listed: last updated in 2017, 2018 and 2019 respectively
+// (WordPress.org checked 2026-10-03).
 function seoprostack_get_free_plugins() {
     /**
      * Filter the recommended plugins by category. Slugs are WordPress.org
@@ -97,14 +104,11 @@ function seoprostack_get_free_plugins() {
             'fluent-boards',
             'fluent-booking',
             'fluent-community',
-            'fluent-connect',
             'fluent-crm',
-            'fluent-forms-connector-for-mailpoet',
             'fluentform',
             'fluentforms-pdf',
             'fluentform-block',
-            'fluent-support',
-            'mautic-for-fluent-forms'
+            'fluent-support'
         ),
         'ecommerce' => array(
             'woocommerce',
@@ -170,6 +174,7 @@ function seoprostack_get_free_plugins() {
         'debug' => array(
             'advanced-database-cleaner',
             'debug-log-manager',
+            'fluent-query-logger',
             'gotmls',
             'query-monitor',
             'user-switching',

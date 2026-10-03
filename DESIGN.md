@@ -30,6 +30,14 @@ put referral queries before pricing fragments. WordPress.org install and
 details links and GitHub source links remain direct. Theme navigation uses
 the same Kadence referral query as the Pro directory, including bundles.
 
+FlyingPress, Link Whisper and the Fluent ThriveCart, MailPoet and Mautic
+connectors are deliberately omitted from recommendations. Keep other
+relevant Fluent/WPManageNinja free products in their existing categories.
+Fluent Query Logger uses Debug and the existing occasional-use note in
+both cards and All rows, plus its July 2022 compatibility warning. Do not
+invent a Pro version for a free-only product or add legacy vendor plugins
+just to fill the directory.
+
 ## Responsive behaviour
 
 Inline decoration scales with text on desktop and mobile, including zoom,
