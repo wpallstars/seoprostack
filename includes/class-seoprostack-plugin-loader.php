@@ -721,9 +721,15 @@ final class SEOProStack_Plugin_Loader {
                         return rawurlencode($matches[(int) $match[1]] ?? '');
                     }, (string) $target);
                     parse_str((string) wp_parse_url($target, PHP_URL_QUERY), $query);
-                    if (isset($query['pagename']) && !self::front_post_by_path($query['pagename'], 'page', $path)) {
-                        $query = array(); // Core's verbose page rules must validate the page before accepting a match.
-                        continue;
+                    if (isset($query['pagename'])) {
+                        $page = self::front_post_by_path($query['pagename'], 'page', $path);
+                        if (false === $page) {
+                            return array(); // An ambiguous or over-budget lookup cannot reject a page rule.
+                        }
+                        if (null === $page) {
+                            $query = array(); // Core's verbose page rules must validate the page before accepting a match.
+                            continue;
+                        }
                     }
                     break;
                 }
@@ -734,9 +740,16 @@ final class SEOProStack_Plugin_Loader {
         }
         // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- read-only request routing; unknown arguments load more plugins.
         foreach ($_GET as $name => $value) {
+            if (self::LOAD_ALL_ARG !== $name && !in_array($name, self::FRONT_ARGS, true) && 0 !== strpos($name, 'utm_')) {
+                return array();
+            }
             if (in_array($name, array('s', 'p', 'page_id', 'paged', 'page', 'cpage'), true)) {
                 if (!is_scalar($value)) {
                     return array();
+                }
+                if (in_array($name, array('s', 'p', 'page_id'), true)
+                    && array_diff(array_keys($query), array('paged', 'page', 'cpage'))) {
+                    return array(); // Competing selectors have subtle core precedence; never inspect the wrong post.
                 }
                 $query[$name] = sanitize_text_field(wp_unslash($value));
             }
@@ -763,7 +776,8 @@ final class SEOProStack_Plugin_Loader {
         } elseif (!empty($query['pagename']) || !empty($query['name'])) {
             $type = !empty($query['pagename']) ? 'page' : ('' !== $type ? $type : 'post');
             $post = self::front_post_by_path((string) ($query['pagename'] ?? $query['name']), $type, $path);
-        } elseif ('' === $path && !$query && 'page' === get_option('show_on_front')) {
+        } elseif (('' === $path || isset($query['paged'])) && !array_diff(array_keys($query), array('paged', 'page', 'cpage'))
+            && 'page' === get_option('show_on_front')) {
             $post = get_post((int) get_option('page_on_front'));
         }
         if ($post instanceof WP_Post) {
@@ -827,17 +841,22 @@ final class SEOProStack_Plugin_Loader {
             $names = array_values(array_unique(array_merge($parts, array_map('sanitize_title_for_query', explode('/', trim(rawurldecode($request_path), '/'))))));
             $rows = array();
             if (count($names) > 50) {
-                return null;
+                $rows = false;
+                return false;
             }
             $placeholders = implode(', ', array_fill(0, count($names), '%s'));
             // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- prepared slug placeholders; only cached for this request, never an expiring address record.
-            $found = $wpdb->get_results($wpdb->prepare("SELECT * FROM {$wpdb->posts} WHERE post_name IN ($placeholders) AND post_status = %s LIMIT 201", array_merge($names, array('publish'))));
+            $found = $wpdb->get_results($wpdb->prepare("SELECT * FROM {$wpdb->posts} WHERE post_name IN ($placeholders) LIMIT %d", array_merge($names, array(201))));
             if (count($found) > 200) {
-                return null;
+                $rows = false;
+                return false;
             }
             foreach ($found as $row) {
                 $rows[(int) $row->ID] = $row;
             }
+        }
+        if (false === $rows) {
+            return false;
         }
         $result = null;
         foreach ($rows as $row) {
@@ -851,7 +870,7 @@ final class SEOProStack_Plugin_Loader {
                 }
                 if (0 === $i && 0 === (int) $ancestor->post_parent) {
                     if ($result) {
-                        return null; // Ambiguous content is not safe to identify before plugins load.
+                        return false; // Ambiguous content is not safe to identify before plugins load.
                     }
                     $result = new WP_Post($row);
                 }
