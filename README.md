@@ -1064,7 +1064,7 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folderâ
 
 ## Changelog
 
-### Unreleased
+### 0.11.3
 
 - Changed: page learning now decides by persistent page kind and each post's own blocks and shortcodes before plugins load, including never-visited posts. Unknowns load every plugin; no per-address records or hourly expiry remain.
 - Changed: Plugins to skip on the site automatically skips plugins with nothing seen on the site after learning. Always load these plugins on the site bypasses automatic, ticked and per-page skips without requiring page learning. Saved site-wide choices are preserved once on upgrade; the feature stays off by default.

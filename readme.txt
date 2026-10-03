@@ -5,7 +5,7 @@ Tags: magic login, iframe, schedule posts, auto upload images, admin
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 0.11.2
+Stable tag: 0.11.3
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -123,7 +123,7 @@ Click **Report a problem** at the top right of Settings → SEO Pro Stack, or op
 
 == Changelog ==
 
-= Unreleased =
+= 0.11.3 =
 * Change: page learning uses lasting page kinds and each post's content, on its first visit; unknowns load every plugin.
 * Change: skip unused site plugins after learning, with an always-load bypass and saved choices preserved.
 * Change: automatic admin plugin choices, preserved bypasses and safe idle screen relearning; site choices unchanged.
@@ -132,12 +132,12 @@ Click **Report a problem** at the top right of Settings → SEO Pro Stack, or op
 * Change: existing affiliate and referral links in Discover; product and pricing links kept.
 * Fix: updates from private GitHub repositories failed where another updater resets every download (GPLVault Updater).
 
-= 0.11.2 =
-* Fix: Load plugins only where needed, with Learn which plugins each page needs on, could skip a plugin a page still used.
-
 Older: `changelog.txt`.
 
 == Upgrade Notice ==
+
+= 0.11.3 =
+Sites with GPLVault Updater active: install 0.11.3 once by hand; later updates from GitHub then arrive by themselves.
 
 = 0.11.0 =
 WebP and AVIF copies are made again once, in the background, at the quality you set. New: Restrict content, replacing Content Control.
