@@ -232,7 +232,7 @@ Removes WordPress text and tools from wp-admin that most people never need, for 
 
 Removes WooCommerce’s promotions and prompts from wp-admin with the filters WooCommerce provides. Orders, products, reports and WooCommerce’s own settings are not changed. Does nothing without WooCommerce.
 
-- **Remove**: marketplace suggestions (`woocommerce_allow_marketplace_suggestions`), the Extensions menu entry (the page still opens at its address), “Connect your store to WooCommerce.com” notices (`woocommerce_helper_suppress_admin_notices`) and “Get the WooCommerce app” in new order emails, all ticked by default; also offered, Marketing → Overview (recommended marketing extensions and courses), so the Marketing menu opens Coupons. Since WooCommerce 11.1 the Marketing menu always loads, so only its entry is removed; the page still opens at its address and other plugins’ Marketing pages stay.
+- **Remove**: marketplace suggestions (`woocommerce_allow_marketplace_suggestions`), the Extensions menu entry (the page still opens at its address), “Connect your store to WooCommerce.com” notices (`woocommerce_helper_suppress_admin_notices`), “Get the WooCommerce app” in new order emails, and the payment plugins WooCommerce suggests under “More payment options” on Settings → Payments (its link to the marketplace stays; payment methods already set up, and the suggestions WooCommerce lists among them, are unchanged), all ticked by default; also offered, Marketing → Overview (recommended marketing extensions and courses), so the Marketing menu opens Coupons. Since WooCommerce 11.1 the Marketing menu always loads, so only its entry is removed; the page still opens at its address and other plugins’ Marketing pages stay.
 - Replaces part of Disable Bloat: its matching switches are imported once while it is active.
 
 ### Tidy the login screen (Admin)
@@ -881,6 +881,7 @@ Stored: the choices and times in `seoprostack_licence_calls` (not autoloaded, wr
 On by default. Works around bugs in other plugins that slow the site down, through those plugins’ own hooks. Nothing is stored and no other plugin’s settings are changed, so turning this off brings each bug back as it was. Turn it off if a fix causes a problem.
 
 - **Lasso Lite (Simple URLs)**: version 159 saves lasso.link’s whole reply, `{"site_id": "…"}`, as its site ID instead of the ID inside it, then rejects what it saved. So on every admin request by an administrator, admin-ajax included, it asks lasso.link again (about 200–400 ms each on a test site), sending the site address, versions and support email. Its `lasso_lite_estimate_earning_site_id` filter now gets the ID from the saved reply. Lasso Lite then sends its install report once and stops asking; its other reports (each setup step once, and a weekly earnings estimate in the background) work as its makers intended.
+- **Tutor LMS Pro**: version 4.1.0 asks tutorlms.com for updates, and when there is none the reply’s details are empty. Its updater still reads the version, download address and tested WordPress version from them, so every update check adds three PHP warnings to the debug log and to WP-CLI output. The empty reply is completed with the installed version and no download address, so Tutor LMS Pro sees no update, as intended. Replies that offer an update are left alone, and its licence check before updating works as before.
 
 ### Load plugins only where needed (Plugins)
 
@@ -1105,6 +1106,8 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folder�
 
 ### Unreleased
 
+- New: **Tidy WooCommerce admin** can remove the payment plugins WooCommerce suggests under “More payment options” on Settings → Payments, ticked by default for sites that have not chosen items yet. It replaces Disable Bloat’s “Hide payment providers”, which is imported with its other switches. Disable Bloat’s “Remove resource hints” needs nothing in its place: it removed the DNS prefetch for s.w.org, which WordPress 7.1 no longer adds, so the Plugins screen no longer names it.
+- Fix: **Fixes for other plugins** stops Tutor LMS Pro 4.1.0 adding three PHP warnings to the debug log on every update check when there is no update.
 - New, off by default: Rank Math defaults (Links tab) fills empty focus keywords from titles for chosen post types, warns about pillar overuse and offers selected-post pillar removal.
 
 ### 0.11.5
