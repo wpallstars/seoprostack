@@ -131,6 +131,7 @@ final class SEOProStack_Really_Simple_Security {
      * Never follow a downgrade, a different host/port, or an endless loop.
      *
      * @return bool
+     * @phpstan-impure Makes HTTP requests; the result can change after a save.
      */
     private static function https_works() {
         $url    = set_url_scheme(home_url('/'), 'https');
