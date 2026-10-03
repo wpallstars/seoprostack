@@ -127,8 +127,6 @@ Click **Report a problem** at the top right of Settings → SEO Pro Stack, or op
 
 = Unreleased =
 * Change: Kadence/Fluent referral links, Scalability Pro website, 11 free plugins/add-ons and four pro products added.
-* Fix: Search Console's dashboard box link opens its settings.
-* New: Search Console is a recommended free plugin.
 
 = 0.11.8 =
 * Fix: Load plugins only where needed loads Pro add-ons and their base plugin together, so no "requires the base plugin" notices.
