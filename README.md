@@ -1062,6 +1062,7 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folderâ
 
 ### Unreleased
 
+- Fixed: Widget Disable's Network Admin dashboard choices are imported on multisite too, so those boxes stay hidden after switching plugins. Existing sites import them on upgrade; other sites' choices and an explicitly saved off switch stay unchanged.
 - Fixed: page learning no longer switches off Plugins to skip on the site for requests with cookies, authentication or query arguments, including logged-in people when chosen. Health Check troubleshooting skips no plugins and learns nothing, so its reduced plugin set cannot change the saved maps.
 - Changed: relevant Theme, Pro Plugins, Hosting and Tools links use the developer's existing affiliate or referral links. Product-specific and pricing links stay available; separate links cover Kadence bundles, the Bit Apps store, Fiverr Pro and the Speedy Index Telegram bot. No links are fetched from the developer's site at runtime.
 - Fixed: Updates from GitHub could not download updates from private repositories on sites where another plugin's updater resets WordPress's `upgrader_pre_download` filter for every package (GPLVault Updater does): WordPress then fetched the download without the token, and GitHub answered "Not Found". The shared updater now swaps in GitHub's signed download address on `upgrader_package_options`, before that filter runs, and WordPress downloads it itself. On such sites, install this version once by hand; later updates arrive by themselves.

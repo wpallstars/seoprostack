@@ -167,8 +167,10 @@ final class SEOProStack_Setup {
      *     LiteSpeed server.
      * v16: switch on Restrict content while Content Control is active, with
      *     its default message.
+     * v17: import Widget Disable's Network Admin dashboard choices into the
+     *     main site's hidden dashboard widgets on multisite.
      */
-    const DB_VERSION = 16;
+    const DB_VERSION = 17;
 
     /**
      * Tab slugs renamed in 0.4.0, old => new. Settings that still use an
