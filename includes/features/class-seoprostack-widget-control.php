@@ -95,6 +95,18 @@ class SEOProStack_Widget_Control extends SEOProStack_Feature {
             $options = self::import_setting($options, 'hidden_dashboard_widgets', array_keys($dashboard));
         }
 
+        // Network Admin uses the main site's settings; leave other sites alone.
+        if ($from_version < 17 && is_multisite() && is_main_site()) {
+            $network_dashboard = get_site_option('rplus_wp_widget_disable_dashboard_option');
+            if (is_array($network_dashboard) && $network_dashboard) {
+                $options = self::import_setting($options, self::KEY, true);
+                $options['hidden_dashboard_widgets'] = array_values(array_unique(array_merge(
+                    (array) ($options['hidden_dashboard_widgets'] ?? array()),
+                    array_keys($network_dashboard)
+                )));
+            }
+        }
+
         $sidebar = get_option('rplus_wp_widget_disable_sidebar_option');
         if (is_array($sidebar) && $sidebar) {
             $options = self::import_setting($options, self::SIDEBAR_KEY, true);
