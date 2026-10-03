@@ -121,6 +121,7 @@ final class SEOProStack_Autoload_Options extends SEOProStack_Feature {
         }
         // Read again under the lock so overlapping samples cannot lose evidence.
         wp_cache_delete(self::STATE, 'options');
+        wp_cache_delete('notoptions', 'options');
         self::$state = (array) get_option(self::STATE, array());
         self::$generation = self::generation();
         if ((self::$state['generation'] ?? '') !== self::$generation) {
@@ -150,12 +151,12 @@ final class SEOProStack_Autoload_Options extends SEOProStack_Feature {
         remove_filter('pre_option', array(__CLASS__, 'observe'), -PHP_INT_MAX);
         $valid = 'admin' === self::$kind ? is_user_logged_in() :
             (did_action('wp') && !is_user_logged_in() && !(defined('REST_REQUEST') && REST_REQUEST));
-        if (!$valid) {
+        if (self::$generation !== self::generation() || !self::still_on()) {
+            self::restore_records();
             self::unlock();
             return;
         }
-        if (self::$generation !== self::generation() || !self::still_on()) {
-            self::restore_records();
+        if (!$valid) {
             self::unlock();
             return;
         }
@@ -405,6 +406,7 @@ final class SEOProStack_Autoload_Options extends SEOProStack_Feature {
     private static function restore_records() {
         $remaining = array();
         wp_cache_delete(self::CHANGES, 'options');
+        wp_cache_delete('notoptions', 'options');
         foreach ((array) get_option(self::CHANGES, array()) as $name => $change) {
             if (!self::restore_one($name, $change)) {
                 $remaining[$name] = $change;
