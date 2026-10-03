@@ -39,7 +39,7 @@ final class SEOProStack_Really_Simple_Security {
             return new WP_Error('seoprostack_rsssl_api', __('Really Simple Security’s save API is unavailable on this request. Open its settings first.', 'seoprostack'));
         }
         $manager = $plugin->admin->htaccess_file_manager;
-        foreach (array('get_root_htaccess_target_path', 'get_rule_content_for_path', 'is_valid_htaccess_file_path') as $method) {
+        foreach (array('get_root_htaccess_target_path', 'get_rule_content_for_path', 'get_rule_lines_for_path', 'is_valid_htaccess_file_path') as $method) {
             if (!is_callable(array($manager, $method))) {
                 return new WP_Error('seoprostack_rsssl_api', __('Really Simple Security’s rule-file API is unsupported.', 'seoprostack'));
             }
@@ -94,7 +94,7 @@ final class SEOProStack_Really_Simple_Security {
         if (is_wp_error($error)) {
             return $error;
         }
-        if (!rsssl_user_can_manage()) {
+        if (!function_exists('rsssl_user_can_manage') || !rsssl_user_can_manage()) {
             return new WP_Error('seoprostack_rsssl_permission', __('Run this action as a user who can manage Really Simple Security (WP-CLI: --user=<administrator>).', 'seoprostack'));
         }
         $wanted = is_array($value) && array_key_exists('redirect', $value) ? $value['redirect'] : null;
@@ -104,16 +104,25 @@ final class SEOProStack_Really_Simple_Security {
         // One bounded, certificate-verified request, only for an actual mutation.
         $response = wp_remote_get(set_url_scheme(home_url('/'), 'https'), array('timeout' => 5, 'redirection' => 0, 'sslverify' => true));
         $status   = wp_remote_retrieve_response_code($response);
-        if (is_wp_error($response) || $status < 200 || $status >= 400) {
+        if (is_wp_error($response) || $status < 200 || $status >= 300) {
             return new WP_Error('seoprostack_rsssl_tls', __('HTTPS could not be verified. Check the certificate and HTTPS site address before changing the redirect.', 'seoprostack'));
         }
         $before = get_option(self::OPTION, array());
         $before = is_array($before) ? $before : array();
         $old    = array_key_exists('redirect', $before) ? $before['redirect'] : null;
-        if (self::save($wanted)) {
+        try {
+            $saved = self::save($wanted);
+        } catch (Throwable $error) {
+            $saved = false;
+        }
+        if ($saved) {
             return true;
         }
-        $restored = self::save($old);
+        try {
+            $restored = self::save($old);
+        } catch (Throwable $error) {
+            $restored = false;
+        }
         return new WP_Error('seoprostack_rsssl_save', $restored
             ? __('Really Simple Security could not reconcile its redirect rules. The previous redirect preference and rules were restored; no undo copy was replaced.', 'seoprostack')
             : __('Redirect save and rollback are incomplete. Check Really Simple Security’s redirect setting and root .htaccess immediately; the previous undo copy was kept.', 'seoprostack'));
@@ -126,6 +135,9 @@ final class SEOProStack_Really_Simple_Security {
      * @return bool
      */
     private static function save($redirect) {
+        if (!function_exists('rsssl_update_option') || !function_exists('RSSSL')) {
+            return false;
+        }
         rsssl_update_option('redirect', null === $redirect ? 'none' : $redirect);
         if (null === $redirect) {
             $options = get_option(self::OPTION, array());
@@ -149,6 +161,7 @@ final class SEOProStack_Really_Simple_Security {
             return null === $block || '' === trim($block);
         }
         $rules = RSSSL()->admin->get_redirect_rules();
-        return is_string($block) && '' !== trim($rules) && trim($block) === trim($rules);
+        $lines = $manager->get_rule_lines_for_path($manager->get_root_htaccess_target_path(), self::MARKER);
+        return is_string($block) && '' !== trim($rules) && trim(implode("\n", $lines)) === trim($rules);
     }
 }
