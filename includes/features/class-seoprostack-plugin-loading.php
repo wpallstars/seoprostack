@@ -2185,7 +2185,8 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
     /**
      * Which active plugins each active plugin needs: its `Requires Plugins`
      * header, WooCommerce and Elementor add-on headers, and add-ons named
-     * after WooCommerce, Elementor or Contact Form 7.
+     * after WooCommerce, Elementor or Contact Form 7, including paid add-ons
+     * named after their parent or matched by a known alias.
      *
      * `WC requires at least` counts only when the plugin's name says
      * WooCommerce (as WordPress.org asks of add-ons): general plugins that
@@ -2205,6 +2206,11 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
             'woocommerce'    => '/(^|-)(woocommerce|woo|wc)(-|$)/',
             'elementor'      => '/(^|-)elementor(-|$)/',
             'contact-form-7' => '/(^|-)(contact-form-7|cf7|wpcf7)(-|$)/',
+        );
+        $aliases = array(
+            'fluentcampaign-pro' => 'fluent-crm',
+            'wp-social-ninja-pro' => 'wp-social-reviews',
+            'bookly-addon-pro' => 'bookly-responsive-appointment-booking-tool',
         );
 
         $deps = array();
@@ -2227,6 +2233,17 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
                 if ($slug !== $parent && preg_match($pattern, $slug)) {
                     $needs[] = $parent;
                 }
+            }
+            // Match each suffix independently: an alias or a shorter match
+            // must not hide another active parent with an exact slug match.
+            // Paid replacements get no dependency when the free one is inactive.
+            foreach (array('-addon-pro', '-premium', '-pro', 'pro') as $suffix) {
+                if (strlen($slug) > strlen($suffix) && substr($slug, -strlen($suffix)) === $suffix) {
+                    $needs[] = substr($slug, 0, -strlen($suffix));
+                }
+            }
+            if (isset($aliases[$slug])) {
+                $needs[] = $aliases[$slug];
             }
             $files = array();
             foreach (array_unique(array_filter($needs)) as $need) {
