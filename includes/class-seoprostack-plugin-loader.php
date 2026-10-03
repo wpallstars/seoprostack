@@ -114,7 +114,7 @@ final class SEOProStack_Plugin_Loader {
     const FRONT_USERS_KEY = 'plugin_loading_front_users';
 
     /** Format of what is learned on the site; a change makes it learn again. */
-    const FRONT_VERSION = 3;
+    const FRONT_VERSION = 4;
 
     /** One-time preservation of the owner's saved site-wide skip choices. */
     const FRONT_MIGRATED = 'seoprostack_plugin_front_migrated';
@@ -122,9 +122,6 @@ final class SEOProStack_Plugin_Loader {
     /** Opt-in page learning and plugins the owner wants to keep loading. */
     const PAGES_KEY = 'plugin_loading_pages';
     const KEEP_KEY  = 'plugin_loading_pages_keep';
-
-    /** Bound anonymous learning storage; unknown pages always load everything. */
-    const PAGE_LIMIT = 100;
 
     /**
      * Query arguments that leave a page of the site as it is: search, page
@@ -591,21 +588,32 @@ final class SEOProStack_Plugin_Loader {
         $chosen = array_unique(array_merge((array) ($options[self::FRONT_KEY] ?? array()), self::front_automatic(self::$raw, $front)));
         $chosen = array_diff(array_intersect(self::$raw, $chosen), $keep);
         // Page learning adds to the site-wide list only on plain public requests.
-        // Sessions, authentication and query variants still use the chosen list.
-        $key = !empty($options[self::PAGES_KEY]) && !$logged_in && empty($_COOKIE)
+        // Sessions and authentication still use the chosen site-wide list.
+        $context = !empty($options[self::PAGES_KEY]) && !$logged_in && empty($_COOKIE)
             && empty($_SERVER['HTTP_AUTHORIZATION']) && empty($_SERVER['REDIRECT_HTTP_AUTHORIZATION'])
-            && empty($_SERVER['PHP_AUTH_USER']) ? self::front_page_key() : '';
+            && empty($_SERVER['PHP_AUTH_USER']) && isset($_SERVER['REQUEST_METHOD']) && 'GET' === $_SERVER['REQUEST_METHOD']
+            ? self::front_context() : array();
+        $key = (string) ($context['kind'] ?? '');
         if ('' !== $key) {
-            $page = isset($front['pages'][$key]) ? $front['pages'][$key] : array();
-            if (empty($page['learned']) || $page['learned'] < time() - HOUR_IN_SECONDS) {
-                self::$mode   = 'full';
-                self::$reason = 'learning';
-                self::attribute();
+            $page = isset($front['kinds'][$key]) ? $front['kinds'][$key] : array();
+            if (empty($page['learned'])) {
+                if (self::take_front_lock()) {
+                    self::$mode   = 'full';
+                    self::$reason = 'learning';
+                    self::attribute();
+                }
                 return;
             }
             $candidates = array_diff((array) ($front['candidates'] ?? array()), $keep);
             $chosen = array_diff(array_unique(array_merge($chosen, $candidates)), $keep);
-            $needed = (array) ($page['needs'] ?? array());
+            $content = self::content_needs((string) ($context['content'] ?? ''), $front);
+            if (false === $content) {
+                return; // Unrecognised content is never evidence for skipping.
+            }
+            $needed = array_merge((array) ($page['needs'] ?? array()), $content);
+            if (!empty($context['id']) && in_array((int) $context['id'], (array) ($front['woo_pages'] ?? array()), true)) {
+                $needed[] = 'woocommerce/woocommerce.php';
+            }
             do {
                 $before = count($needed);
                 foreach ((array) $front['deps'] as $file => $deps) {
@@ -617,6 +625,8 @@ final class SEOProStack_Plugin_Loader {
             } while (count($needed) !== $before);
             // Even an explicitly ticked content plugin stays on pages using it.
             $chosen = array_diff($chosen, $needed);
+        } elseif (!empty($options[self::PAGES_KEY]) && !$logged_in && empty($_COOKIE)) {
+            return; // Unknown public routes load every plugin, not site-wide guesses.
         }
         self::$skipped = self::front_skipped($chosen, $front);
         if (self::$skipped) {
@@ -680,9 +690,7 @@ final class SEOProStack_Plugin_Loader {
     }
 
     /**
-     * Exact public URL identity, available before the query and plugins load.
-     * Query variants are not learned: searches, pagination, campaign tags and
-     * actions use only the site-wide rules. Tags can change tracking and cookies.
+     * Public page kind, available before the query and plugins load.
      *
      * @return string
      */
@@ -690,15 +698,213 @@ final class SEOProStack_Plugin_Loader {
         if (!isset($_SERVER['REQUEST_METHOD']) || 'GET' !== $_SERVER['REQUEST_METHOD']) {
             return '';
         }
-        // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- only choosing to load more plugins.
-        foreach (array_keys($_GET) as $name) {
-            if (self::LOAD_ALL_ARG !== $name) {
-                return '';
+        $context = self::front_context();
+        return (string) ($context['kind'] ?? '');
+    }
+
+    /** Resolve only core query shapes from the saved rewrite rules. Unknowns fail open. */
+    public static function front_context() {
+        $front = get_option(self::FRONT, array());
+        $routes = (array) ($front['routes'] ?? array());
+        $uri = isset($_SERVER['REQUEST_URI']) ? (string) wp_unslash($_SERVER['REQUEST_URI']) : ''; // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- only used for a guarded core lookup.
+        $path = (string) wp_parse_url($uri, PHP_URL_PATH);
+        $home = (string) wp_parse_url(get_option('home'), PHP_URL_PATH);
+        if ('' === $path || strlen($path) > 2048 || 0 !== strpos($path, trailingslashit($home))) {
+            return array();
+        }
+        $path = trim(substr($path, strlen(trailingslashit($home))), '/');
+        $query = array();
+        if ('' !== $path) {
+            foreach ((array) get_option('rewrite_rules', array()) as $rule => $target) {
+                if (preg_match('#^' . str_replace('#', '\\#', $rule) . '#', $path, $matches)) {
+                    $target = preg_replace_callback('/\$matches\[(\d+)\]/', function ($match) use ($matches) {
+                        return rawurlencode($matches[(int) $match[1]] ?? '');
+                    }, (string) $target);
+                    parse_str((string) wp_parse_url($target, PHP_URL_QUERY), $query);
+                    if (isset($query['pagename'])) {
+                        $page = self::front_post_by_path($query['pagename'], 'page', $path);
+                        if (false === $page) {
+                            return array(); // An ambiguous or over-budget lookup cannot reject a page rule.
+                        }
+                        if (null === $page) {
+                            $query = array(); // Core's verbose page rules must validate the page before accepting a match.
+                            continue;
+                        }
+                    }
+                    break;
+                }
+            }
+            if (!$query) {
+                return array();
             }
         }
-        $uri = isset($_SERVER['REQUEST_URI']) ? (string) wp_unslash($_SERVER['REQUEST_URI']) : ''; // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- hashed, never printed.
-        $path = (string) wp_parse_url($uri, PHP_URL_PATH);
-        return '' !== $path && '/' === $path[0] && strlen($path) <= 2048 ? hash('sha256', $path) : '';
+        // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- read-only request routing; unknown arguments load more plugins.
+        foreach ($_GET as $name => $value) {
+            if (self::LOAD_ALL_ARG !== $name && !in_array($name, self::FRONT_ARGS, true) && 0 !== strpos($name, 'utm_')) {
+                return array();
+            }
+            if (in_array($name, array('s', 'p', 'page_id', 'paged', 'page', 'cpage'), true)) {
+                if (!is_scalar($value)) {
+                    return array();
+                }
+                if (in_array($name, array('s', 'p', 'page_id'), true)
+                    && array_diff(array_keys($query), array('paged', 'page', 'cpage'))) {
+                    return array(); // Competing selectors have subtle core precedence; never inspect the wrong post.
+                }
+                $query[$name] = sanitize_text_field(wp_unslash($value));
+            }
+        }
+        $allowed = array_merge(array('s', 'p', 'page_id', 'paged', 'page', 'cpage', 'name', 'pagename', 'post_type',
+            'year', 'monthnum', 'day', 'author', 'author_name', 'category_name', 'cat', 'tag', 'tag_id', 'taxonomy', 'term'),
+            array_keys((array) ($routes['type_vars'] ?? array())), array_keys((array) ($routes['tax_vars'] ?? array())));
+        if (array_diff(array_keys($query), $allowed)) {
+            return array(); // Feeds, endpoints, attachments and plugin actions are not public page kinds.
+        }
+        if (isset($query['s'])) {
+            return array('kind' => 'search');
+        }
+        $type = isset($query['post_type']) && is_string($query['post_type']) ? $query['post_type'] : '';
+        foreach ((array) ($routes['type_vars'] ?? array()) as $var => $name) {
+            if (isset($query[$var])) {
+                $type = $name;
+                $query['name'] = $query[$var];
+            }
+        }
+        $post = null;
+        if (!empty($query['p']) || !empty($query['page_id'])) {
+            $post = get_post((int) ($query['p'] ?? $query['page_id']));
+        } elseif (!empty($query['pagename']) || !empty($query['name'])) {
+            $type = !empty($query['pagename']) ? 'page' : ('' !== $type ? $type : 'post');
+            $post = self::front_post_by_path((string) ($query['pagename'] ?? $query['name']), $type, $path);
+        } elseif (('' === $path || isset($query['paged'])) && !array_diff(array_keys($query), array('paged', 'page', 'cpage'))
+            && 'page' === get_option('show_on_front')) {
+            $post = get_post((int) get_option('page_on_front'));
+        }
+        if ($post instanceof WP_Post) {
+            if ('publish' !== $post->post_status || '' !== $post->post_password || !in_array($post->post_type, (array) ($routes['public_types'] ?? array()), true)) {
+                return array();
+            }
+            foreach (array('year' => 'Y', 'monthnum' => 'm', 'day' => 'd') as $var => $format) {
+                if (isset($query[$var]) && (int) $query[$var] !== (int) gmdate($format, strtotime($post->post_date))) {
+                    return array();
+                }
+            }
+            $kind = 'single:' . $post->post_type;
+            if ((int) $post->ID === (int) get_option('page_on_front') && 'page' === get_option('show_on_front')) {
+                $kind = 'front';
+            } elseif ((int) $post->ID === (int) get_option('page_for_posts') && 'page' === get_option('show_on_front')) {
+                $kind = 'home';
+            }
+            if ('single:page' === $kind && (int) $post->ID === (int) ($front['woo_shop'] ?? 0)
+                && in_array('product', (array) ($routes['archives'] ?? array()), true)) {
+                $kind = 'archive:product'; // WooCommerce turns its configured shop page into the product archive.
+            }
+            // Custom templates can have needs not shared by other posts of this type.
+            if (get_post_meta($post->ID, '_wp_page_template', true) && 'default' !== get_post_meta($post->ID, '_wp_page_template', true)) {
+                return array();
+            }
+            return array('kind' => $kind, 'id' => (int) $post->ID, 'content' => $post->post_content);
+        }
+        if (isset($query['p']) || isset($query['page_id']) || isset($query['name']) || isset($query['pagename'])) {
+            return array();
+        }
+        foreach ((array) ($routes['tax_vars'] ?? array()) as $var => $name) {
+            if (isset($query[$var])) {
+                return array('kind' => 'taxonomy:' . $name);
+            }
+        }
+        if (isset($query['taxonomy'], $query['term']) && in_array($query['taxonomy'], (array) ($routes['tax_vars'] ?? array()), true)) {
+            return array('kind' => 'taxonomy:' . $query['taxonomy']);
+        }
+        if (isset($query['cat']) || isset($query['category_name'])) {
+            return array('kind' => 'taxonomy:category');
+        }
+        if (isset($query['tag']) || isset($query['tag_id'])) {
+            return array('kind' => 'taxonomy:post_tag');
+        }
+        if (isset($query['author']) || isset($query['author_name'])) {
+            return array('kind' => 'author');
+        }
+        if (isset($query['year'])) {
+            return array('kind' => 'date');
+        }
+        if ('' !== $type && in_array($type, (array) ($routes['archives'] ?? array()), true)) {
+            return array('kind' => 'archive:' . $type);
+        }
+        return ('' === $path || isset($query['paged'])) && !array_diff(array_keys($query), array('paged', 'page', 'cpage'))
+            ? array('kind' => 'page' === get_option('show_on_front') ? 'home' : 'front') : array();
+    }
+
+    /** One bounded lookup supplies content and ancestors for all matching rewrite rules. */
+    private static function front_post_by_path($name, $type, $request_path) {
+        global $wpdb;
+        static $lookup = null;
+        static $rows = array();
+        $parts = array_map('sanitize_title_for_query', explode('/', trim(rawurldecode($name), '/')));
+        if ($lookup !== $request_path) {
+            $lookup = $request_path;
+            $names = array_values(array_unique(array_merge($parts, array_map('sanitize_title_for_query', explode('/', trim(rawurldecode($request_path), '/'))))));
+            $rows = array();
+            if (count($names) > 50) {
+                $rows = false;
+                return false;
+            }
+            $placeholders = implode(', ', array_fill(0, count($names), '%s'));
+            // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- prepared slug placeholders; only cached for this request, never an expiring address record.
+            $found = $wpdb->get_results($wpdb->prepare("SELECT * FROM {$wpdb->posts} WHERE post_name IN ($placeholders) LIMIT %d", array_merge($names, array(201))));
+            if (count($found) > 200) {
+                $rows = false;
+                return false;
+            }
+            foreach ($found as $row) {
+                $rows[(int) $row->ID] = $row;
+            }
+        }
+        if (false === $rows) {
+            return false;
+        }
+        $result = null;
+        foreach ($rows as $row) {
+            if ($type !== $row->post_type || end($parts) !== $row->post_name) {
+                continue;
+            }
+            $ancestor = $row;
+            for ($i = count($parts) - 1; $i >= 0; $i--) {
+                if (!$ancestor || $parts[$i] !== $ancestor->post_name || $type !== $ancestor->post_type) {
+                    break;
+                }
+                if (0 === $i && 0 === (int) $ancestor->post_parent) {
+                    if ($result) {
+                        return false; // Ambiguous content is not safe to identify before plugins load.
+                    }
+                    $result = new WP_Post($row);
+                }
+                $ancestor = $rows[(int) $ancestor->post_parent] ?? null;
+            }
+        }
+        return $result;
+    }
+
+    /** Content ownership learned with all plugins; unknown syntax loads everything. */
+    public static function content_needs($content, array $front) {
+        $needs = array();
+        preg_match_all('/<!--\s+wp:([^\s>]+)/', $content, $blocks);
+        preg_match_all('/(?<!\[)\[([^<>&\/\[\]\x00-\x20=]+)(?=[\s\]\/])/', $content, $shortcodes);
+        foreach (array('blocks' => $blocks[1], 'shortcodes' => $shortcodes[1]) as $kind => $names) {
+            foreach ($names as $name) {
+                if ('blocks' === $kind && false === strpos($name, '/')) {
+                    $name = 'core/' . $name;
+                }
+                if (!array_key_exists($name, (array) ($front[$kind] ?? array())) || false === $front[$kind][$name]) {
+                    return false;
+                }
+                $needs[] = $front[$kind][$name];
+                if ('core/block' === $name || 'core/pattern' === $name || 'core/template-part' === $name) {
+                    return false; // Indirect content is not available in the one-post lookup.
+                }
+            }
+        }
+        return array_values(array_unique(array_filter($needs)));
     }
 
     /** Whether a full request still describes the content it started with. */
@@ -738,15 +944,20 @@ final class SEOProStack_Plugin_Loader {
      * @return bool
      */
     private static function take_front_lock() {
+        global $wpdb;
         $now = time();
         if (add_option(self::FRONT_LOCK, $now, '', false)) {
             return true;
         }
-        if ((int) get_option(self::FRONT_LOCK, 0) > $now - 2 * MINUTE_IN_SECONDS) {
+        $previous = (int) get_option(self::FRONT_LOCK, 0);
+        if ($previous > $now - 2 * MINUTE_IN_SECONDS) {
             return false;
         }
-        update_option(self::FRONT_LOCK, $now, false);
-        return true;
+        // Compare-and-swap an expired lock: update_option alone lets two learners acquire it.
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- atomic option lock; its cache is invalidated below.
+        $changed = $wpdb->query($wpdb->prepare("UPDATE {$wpdb->options} SET option_value = %s WHERE option_name = %s AND option_value = %s", (string) $now, self::FRONT_LOCK, (string) $previous));
+        wp_cache_delete(self::FRONT_LOCK, 'options');
+        return 1 === $changed;
     }
 
     /**
