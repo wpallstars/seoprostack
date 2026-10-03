@@ -881,6 +881,7 @@ Stored: the choices and times in `seoprostack_licence_calls` (not autoloaded, wr
 On by default. Works around bugs in other plugins that slow the site down, through those plugins’ own hooks. Nothing is stored and no other plugin’s settings are changed, so turning this off brings each bug back as it was. Turn it off if a fix causes a problem.
 
 - **Lasso Lite (Simple URLs)**: version 159 saves lasso.link’s whole reply, `{"site_id": "…"}`, as its site ID instead of the ID inside it, then rejects what it saved. So on every admin request by an administrator, admin-ajax included, it asks lasso.link again (about 200–400 ms each on a test site), sending the site address, versions and support email. Its `lasso_lite_estimate_earning_site_id` filter now gets the ID from the saved reply. Lasso Lite then sends its install report once and stops asking; its other reports (each setup step once, and a weekly earnings estimate in the background) work as its makers intended.
+- **Tutor LMS Pro**: version 4.1.0’s updater reads the version, download address and tested WordPress version from any update reply with status 200, even one with empty details, as the “no update” reply of copies sold by GPL resellers is. Each update check then adds PHP warnings and deprecation notices to the debug log and WP-CLI output (ten when its plugin details are opened too). Such a reply, from the server or from a `pre_http_request` filter, is completed with the installed version and no download address, so Tutor LMS Pro sees no update, as the reply meant. Status stays 200 for its licence check before updating, and replies that offer an update are left alone.
 
 ### Load plugins only where needed (Plugins)
 
@@ -1106,6 +1107,7 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folder�
 ### Unreleased
 
 - New: **Tidy WooCommerce admin** can remove the payment plugins WooCommerce suggests under “More payment options” on Settings → Payments, ticked by default for sites that have not chosen items yet. It replaces Disable Bloat’s “Hide payment providers”, which is imported with its other switches. Disable Bloat’s “Remove resource hints” needs nothing in its place: it removed the DNS prefetch for s.w.org, which WordPress 7.1 no longer adds, so the Plugins screen no longer names it.
+- Fix: **Fixes for other plugins** stops Tutor LMS Pro 4.1.0 adding PHP warnings to the debug log on every update check when its update reply has no details (as with copies from GPL resellers).
 - New, off by default: Rank Math defaults (Links tab) fills empty focus keywords from titles for chosen post types, warns about pillar overuse and offers selected-post pillar removal.
 
 ### 0.11.5
