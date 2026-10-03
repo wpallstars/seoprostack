@@ -23,6 +23,7 @@ $seoprostack_links     = array(
     array('text' => __('Kadence Blocks', 'seoprostack'), 'url' => 'https://www.liquidweb.com/software/kadence/blocks/'),
     array('text' => __('Shop Kit', 'seoprostack'), 'url' => 'https://www.liquidweb.com/software/kadence/shop-kit/'),
     array('text' => __('Pricing', 'seoprostack'), 'url' => 'https://www.liquidweb.com/software/kadence/#pricing'),
+    array('text' => __('Kadence bundles', 'seoprostack'), 'url' => 'https://stellarwp.pxf.io/1rgM9z'),
 );
 ?>
 <article class="sps-card sps-theme-card">

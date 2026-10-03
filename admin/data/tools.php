@@ -32,7 +32,7 @@ function seoprostack_get_tools() {
             'button_group' => array(
                 array(
                     'text' => 'Home Page',
-                    'url' => 'https://seoutils.app/',
+                    'url' => 'https://seoutils.app?aff=qqnw7',
                     'primary' => true
                 )
             )
@@ -43,7 +43,7 @@ function seoprostack_get_tools() {
             'button_group' => array(
                 array(
                     'text' => 'Home Page',
-                    'url' => 'https://dataforseo.com/',
+                    'url' => 'https://dataforseo.com/?aff=180706',
                     'primary' => true
                 )
             )
@@ -111,6 +111,10 @@ function seoprostack_get_tools() {
                     'text' => 'Home Page',
                     'url' => 'https://www.fiverr.com/',
                     'primary' => true
+                ),
+                array(
+                    'text' => 'Fiverr Pro',
+                    'url' => 'https://go.fiverr.com/visit/?bta=1046189&brand=fp'
                 )
             )
         ),
@@ -256,7 +260,7 @@ function seoprostack_get_tools() {
             'button_group' => array(
                 array(
                     'text' => 'Home Page',
-                    'url' => 'https://www.cloudron.io/',
+                    'url' => 'https://www.cloudron.io/?refcode=d28ae00540f92a76',
                     'primary' => true
                 )
             )
@@ -280,6 +284,10 @@ function seoprostack_get_tools() {
                     'text' => 'Home Page',
                     'url' => 'https://en.speedyindex.com/',
                     'primary' => true
+                ),
+                array(
+                    'text' => 'Telegram bot',
+                    'url' => 'https://t.me/SpeedyIndexBot?start=1085503882'
                 )
             )
         ),
@@ -300,7 +308,7 @@ function seoprostack_get_tools() {
             'button_group' => array(
                 array(
                     'text' => 'Home Page',
-                    'url' => 'https://codeium.com/windsurf',
+                    'url' => 'https://codeium.com/refer?referral_code=64jn4h5hnnw2ymv3',
                     'primary' => true
                 )
             )
@@ -311,7 +319,7 @@ function seoprostack_get_tools() {
             'button_group' => array(
                 array(
                     'text' => 'Home Page',
-                    'url' => 'https://lowfruits.io/',
+                    'url' => 'https://lowfruits.io/?via=marcusquinn',
                     'primary' => true
                 )
             )
@@ -322,7 +330,7 @@ function seoprostack_get_tools() {
             'button_group' => array(
                 array(
                     'text' => 'Home Page',
-                    'url' => 'https://www.keysearch.co/',
+                    'url' => 'https://keysearch.co/?via=marcus',
                     'primary' => true
                 )
             )
@@ -333,7 +341,7 @@ function seoprostack_get_tools() {
             'button_group' => array(
                 array(
                     'text' => 'Home Page',
-                    'url' => 'https://www.smartlead.ai/',
+                    'url' => 'https://smartlead.ai/?via=marcus-quinn',
                     'primary' => true
                 )
             )
@@ -344,7 +352,7 @@ function seoprostack_get_tools() {
             'button_group' => array(
                 array(
                     'text' => 'Home Page',
-                    'url' => 'https://muraena.ai/',
+                    'url' => 'https://muraena.ai?deal=marcusquinn',
                     'primary' => true
                 )
             )
@@ -421,7 +429,7 @@ function seoprostack_get_tools() {
             'button_group' => array(
                 array(
                     'text' => 'Home Page',
-                    'url' => 'https://searchatlas.com/',
+                    'url' => 'https://searchatlas.com/?fpr=marcus62',
                     'primary' => true
                 ),
                 array(
@@ -459,7 +467,7 @@ function seoprostack_get_tools() {
             'button_group' => array(
                 array(
                     'text' => 'Home Page',
-                    'url' => 'https://appsumo.com/',
+                    'url' => 'https://appsumo.8odi.net/mq',
                     'primary' => true
                 )
             )
@@ -470,7 +478,7 @@ function seoprostack_get_tools() {
             'button_group' => array(
                 array(
                     'text' => 'Home Page',
-                    'url' => 'https://screen.studio/',
+                    'url' => 'https://screenstudio.lemonsqueezy.com?aff=qqnw7',
                     'primary' => true
                 )
             )

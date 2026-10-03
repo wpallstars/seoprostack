@@ -263,6 +263,10 @@ if (!defined('ABSPATH')) {
                 array(
                     'text' => 'Theme Pro',
                     'url' => 'https://www.liquidweb.com/software/kadence/theme/'
+                ),
+                array(
+                    'text' => 'Kadence bundles',
+                    'url' => 'https://stellarwp.pxf.io/1rgM9z'
                 )
             ),
             'free_slug' => 'kadence-blocks'
@@ -320,7 +324,7 @@ if (!defined('ABSPATH')) {
             'button_group' => array(
                 array(
                     'text' => 'Home Page',
-                    'url' => 'https://rankmath.com/',
+                    'url' => 'https://rankmath.com/?ref=marcus%20quinn',
                     'primary' => true
                 ),
                 array(
@@ -516,6 +520,10 @@ if (!defined('ABSPATH')) {
                     'text' => 'Home Page',
                     'url' => 'https://www.liquidweb.com/software/kadence/kadence-template-gallery/',
                     'primary' => true
+                ),
+                array(
+                    'text' => 'Kadence bundles',
+                    'url' => 'https://stellarwp.pxf.io/1rgM9z'
                 )
             ),
             'free_slug' => 'kadence-starter-templates'
@@ -532,6 +540,10 @@ if (!defined('ABSPATH')) {
                 array(
                     'text' => 'Pricing',
                     'url' => 'https://bit-social.com/#pricing'
+                ),
+                array(
+                    'text' => 'Bit Apps store',
+                    'url' => 'https://bitapps.pro?r=8064'
                 )
             ),
             'free_slug' => 'bit-social'
@@ -558,7 +570,7 @@ if (!defined('ABSPATH')) {
             'button_group' => array(
                 array(
                     'text' => 'Home Page',
-                    'url' => 'https://flyingpress.com/',
+                    'url' => 'https://flyingpress.com/?ref=crlv',
                     'primary' => true
                 ),
                 array(
@@ -637,6 +649,10 @@ if (!defined('ABSPATH')) {
                 array(
                     'text' => 'Integrations',
                     'url' => 'https://bit-integrations.com/all-integrations/'
+                ),
+                array(
+                    'text' => 'Bit Apps store',
+                    'url' => 'https://bitapps.pro?r=8064'
                 )
             ),
             'free_slug' => 'bit-integrations'
@@ -657,6 +673,10 @@ if (!defined('ABSPATH')) {
                 array(
                     'text' => 'Integrations',
                     'url' => 'https://bit-flows.com/integrations-list/'
+                ),
+                array(
+                    'text' => 'Bit Apps store',
+                    'url' => 'https://bitapps.pro?r=8064'
                 )
             ),
             'free_slug' => 'bit-pi'
@@ -695,4 +715,4 @@ if (!defined('ABSPATH')) {
             )
         )
     );
-} 
+}

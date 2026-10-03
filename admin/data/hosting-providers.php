@@ -16,7 +16,7 @@ function seoprostack_get_hosting_providers() {
             'button_group' => array(
                 array(
                     'text' => 'Home Page',
-                    'url' => 'https://www.cloudron.io/',
+                    'url' => 'https://www.cloudron.io/?refcode=d28ae00540f92a76',
                     'primary' => true
                 ),
                 array(
@@ -31,7 +31,7 @@ function seoprostack_get_hosting_providers() {
             'button_group' => array(
                 array(
                     'text' => 'Home Page',
-                    'url' => 'https://www.hostinger.com/',
+                    'url' => 'https://hostinger.com?REFERRALCODE=1MARCUS454',
                     'primary' => true
                 ),
                 array(
@@ -46,7 +46,7 @@ function seoprostack_get_hosting_providers() {
             'button_group' => array(
                 array(
                     'text' => 'Home Page',
-                    'url' => 'https://www.hetzner.com/cloud/',
+                    'url' => 'https://hetzner.cloud/?ref=yzKK5uvR2AD0',
                     'primary' => true
                 ),
                 array(
@@ -102,7 +102,7 @@ function seoprostack_get_hosting_providers() {
             'button_group' => array(
                 array(
                     'text' => 'Home Page',
-                    'url' => 'https://www.101domain.com/',
+                    'url' => 'https://www.101domain.com/affiliate/evergreenje.html',
                     'primary' => true
                 )
             )
@@ -113,7 +113,7 @@ function seoprostack_get_hosting_providers() {
             'button_group' => array(
                 array(
                     'text' => 'Home Page',
-                    'url' => 'https://www.namecheap.com/',
+                    'url' => 'https://namecheap.pxf.io/B0GoZ9',
                     'primary' => true
                 ),
                 array(
@@ -128,7 +128,7 @@ function seoprostack_get_hosting_providers() {
             'button_group' => array(
                 array(
                     'text' => 'Home Page',
-                    'url' => 'https://updown.io/',
+                    'url' => 'https://updown.io/r/kddkt',
                     'primary' => true
                 ),
                 array(
