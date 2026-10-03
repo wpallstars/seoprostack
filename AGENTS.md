@@ -1,58 +1,60 @@
 # SEO Pro Stack — agent guide
 
-WordPress plugin. Slug and text domain `seoprostack`, main file `seoprostack.php`.
-Minimums: **WordPress 6.2, PHP 7.4** (`readme.txt`, plugin header). User docs:
-`README.md` (developers) and `readme.txt` (WordPress.org).
+WordPress plugin made from the wpallstars starter plugin
+(`wpallstars/wp-plugin-starter-template-for-ai-coding`).
 
-## Adding or changing a feature
+**Read `STANDARDS.md` before any change.** It holds the rules every plugin
+made from the starter shares: structure and core files, code rules, Updates
+from GitHub, releases, front-end styling and dark mode, and testing. It is
+the same in every plugin, so change it in the starter first. This file holds
+only what is SEO Pro Stack's own.
 
-- One class per feature in `includes/features/`, extending `SEOProStack_Feature`
-  (`includes/class-seoprostack-feature.php`), registered in
-  `SEOProStack_Setup::FEATURES` (`includes/class-seoprostack-setup.php`).
-- Core files (the registry, settings store, base feature and admin screen
-  the starter plugin also has) hold no SEO Pro Stack-only code: they read
-  `SEOProStack_Setup` (features, settings tabs, header links, settings
-  version and history, and the plugin's own helpers and admin parts) or use
-  hooks. Put anything only SEO Pro Stack needs there, in a feature or in its
-  own file loaded from there.
-- `settings()` declares the schema; the admin UI renders and saves it with no
-  extra code. Field types and keys: `README.md` → Developers.
-- `boot()` returns early unless `self::enabled()`. Features are **off by
-  default**. The only exceptions, at the owner's request, are Hide admin bar
-  items, which hides Comments and + New, No fade between admin screens,
-  Quiet Freemius prompts, Fixes for other plugins and Updates from GitHub
-  (GitHub builds only).
-  Turning another feature on by default needs the owner's say.
-- A feature that replaces another plugin sets `'replaces' => array(slug => name)`,
-  imports that plugin's settings in `migrate()` with `self::import_setting()`
-  (fills only unset keys), never writes or deletes the other plugin's options,
-  and removes the slug from `admin/data/free-plugins.php` with a comment. The
-  Plugins screen then suggests deactivating and deleting that plugin
-  (`admin/includes/class-replaced-plugins.php`) with no extra code.
-- A feature that replaces or is modelled on another plugin also gets a row in
+| Placeholder in `STANDARDS.md` | SEO Pro Stack |
+|---|---|
+| `{slug}` | `seoprostack` (main file `seoprostack.php`) |
+| `{Prefix}` | `SEOProStack` |
+| `{PREFIX}` | `SEOPROSTACK` |
+| `{Name}` | SEO Pro Stack |
+
+User docs: `README.md` (developers, and the Read Me tab) and `readme.txt`
+(WordPress.org). Development: `DEVELOPMENT.md`. Releases: `RELEASING.md`;
+this plugin's WordPress.org submission state: `LAUNCH.md`. Manual test
+checklists: `TESTING.md`.
+
+## Features
+
+- On by default, at the owner's request: Hide admin bar items, which hides
+  Comments and + New, No fade between admin screens, Quiet Freemius prompts,
+  Fixes for other plugins and Updates from GitHub (GitHub builds only).
+- Updates from GitHub (`includes/features/class-seoprostack-github-updates.php`,
+  in `SEOProStack_Setup::OPTIONAL_FEATURES` and `.distignore-wporg`) is the
+  setting for the shared updater: off, Early updates from GitHub, waiting
+  for Git Updater. It also reads the older `SEOPROSTACK_GITHUB_TOKEN` and
+  `seoprostack_github_*` filters. A parked example of turning updates off is
+  on the `feature/disable-updates-parked` branch.
+- A feature that replaces another plugin also removes the slug from
+  `admin/data/free-plugins.php` with a comment, and gets a row in
   `README.md` → Features table (replaced plugins) and `README.md` → Credits:
   plugin, maker, its WordPress.org page and its maker's own source repository
   (check each link with `gh api repos/{owner}/{repo}` or the WordPress.org
-  plugin API; never link a mirror or guess a URL), and the feature.
-  Commit, then run `php scripts/replaced-plugins.php --write` to update the
-  count and download sizes above the Features table; preflight fails when the
-  count is out of date.
-- `README.md` is also the plugin's Read Me tab
-  (`admin/includes/class-readme-manager.php`), which renders headings, lists,
-  tables, bold, italic, inline code, links (http(s) and `#heading` links,
-  with GitHub-style heading IDs) and images from the plugin folder on a line
-  of their own (`![alt](admin/images/banner.svg)`). Use only that Markdown,
-  or extend the renderer in the same change. The banner's source is
-  `.wordpress-org/banner.svg`; rebuild it with `scripts/build-banner.sh`.
-- Migrations run once per `SEOProStack_Setup::DB_VERSION`. After a release,
-  a new or changed import needs a version bump and a line in its docblock.
-- New options, post meta, transients or cron hooks must be removed in
-  `uninstall.php`.
-- Update `README.md` (feature section, hooks, changelog), `changelog.txt`
-  (the user-facing changelog entry) and `readme.txt` in the same change.
-  `readme.txt` must stay under 10 KB for WordPress.org: one short line per
-  feature, every service the plugin contacts under External services, and only
-  the newest version's changelog, in short. Details go in `README.md`.
+  plugin API; never link a mirror or guess a URL), and the feature. So does
+  a feature modelled on another plugin. Commit, then run
+  `php scripts/replaced-plugins.php --write` to update the count and
+  download sizes above the Features table; preflight fails when the count is
+  out of date.
+- The Read Me tab's banner source is `.wordpress-org/banner.svg`; rebuild it
+  with `scripts/build-banner.sh`.
+- No page caching or CSS and JS minification in SEO Pro Stack (owner's
+  decision): they are a common source of broken sites and support load, so
+  leave them to plugins that specialise in them (LiteSpeed Cache,
+  WP-Optimize). SEO Pro Stack may recommend those plugins and set them up
+  through their presets, saving through their own code.
+- Features that rein in other plugins (Ask before licence checks, Quiet
+  Freemius prompts) hand the choice to the owner instead of deciding for
+  them, as `STANDARDS.md` → Code rules says.
+- Load plugins only where needed skips plugins on some requests. When
+  checking the debug log, look for messages from a skipped plugin too: they
+  are SEO Pro Stack's to fix.
 
 ## Plugin presets
 
@@ -110,213 +112,10 @@ used in never matters: Add starter data leaves stored settings alone and Apply
 preset overwrites them. A setting goes in one or the other.
 `scripts/preflight-release.sh` fails if one is in both.
 
-## Code rules
+## Test sites
 
-- PHP 7.4 syntax and WordPress 6.2 APIs. Guard newer core APIs with
-  `function_exists()` (see `class-seoprostack-preload-pages.php`).
-- Capability and nonce checks on every admin action and AJAX handler; escape on
-  output; sanitise through the schema.
-- Admin copy: short, plain words, sentence case, no jargon.
-- Decide for the user. Within a feature, SEO Pro Stack makes the choices
-  (which plugins, screens or items it applies to) from what it can detect.
-  Settings are there to bypass something that causes a problem, not choices
-  people need to understand first. A new setting must earn its place;
-  prefer detecting the right behaviour plus a short bypass list.
-- No page caching or CSS and JS minification in SEO Pro Stack (owner's
-  decision): they are a common source of broken sites and support load, so
-  leave them to plugins that specialise in them (LiteSpeed Cache,
-  WP-Optimize). SEO Pro Stack may recommend those plugins and set them up
-  through their presets, saving through their own code.
-- Site owner in control, performance first: the owner decides what their site
-  sends, contacts and shows. Calls to outside services are opt-in where they
-  are not the point of the feature, made only as often and for as long as
-  needed (cache answers, never on every page load), and never block a visitor's
-  page when they can run later. SEO Pro Stack's own features follow this, and
-  features that rein in other plugins (Ask before licence checks, Quiet
-  Freemius prompts) hand the choice to the owner instead of deciding for them.
-  WordPress update checks and downloads are the exception: leave them alone
-  (next rule).
-- Do not change WordPress update behaviour (update transients, `auto_update_*`
-  filters, update checks) outside the files below. Plugin Check reports
-  `plugin_updater_detected` as an error, and WordPress.org asks plugins not to
-  interfere with the updater. A parked example of turning updates off is on
-  the `feature/disable-updates-parked` branch.
-- The one exception, at the owner's request (for speed, reliability and site
-  owners' control, and because more plugins will be released on GitHub):
-  the shared GitHub updater in `includes/github-updater/` (every plugin made
-  from the starter carries a copy; only the newest copy on a site runs) and
-  its setting, Updates from GitHub, in
-  `includes/features/class-seoprostack-github-updates.php` (listed in
-  `SEOProStack_Setup::OPTIONAL_FEATURES`, loaded only when present). It replaces
-  Git Updater: it adds GitHub releases of any plugin with a
-  `GitHub Plugin URI` header to core's own update check and `plugins_api`,
-  and leaves the download, install, auto-updates and rollback to core. It
-  only adds entries for those plugins; it never removes or blocks other
-  updates. Keep anything that installs or updates code from outside
-  WordPress.org in those files, because the WordPress.org build leaves them
-  out. The updater is the same in every plugin apart from its text domain
-  and `@package`: change it in the starter, raise the version in its
-  `load.php`, and copy it to each plugin. Plugins change what it does only
-  through its `wpallstars_github_*` filters, never by calling its class.
-  Never add an `Update URI` header. Tokens for private repositories come only
-  from `wp-config.php` (`WPALLSTARS_GITHUB_TOKEN`, or the older
-  `SEOPROSTACK_GITHUB_TOKEN`) or a filter, go only to api.github.com and are
-  never stored.
-- Leave no PHP errors, warnings, notices or deprecations behind. Fix any that
-  SEO Pro Stack causes as you find them, in the same change when it is small,
-  or as a tracked issue. That includes ones in other plugins that only happen
-  because of SEO Pro Stack (for example a plugin skipped by Load plugins only
-  where needed). Messages that other plugins cause on their own are theirs:
-  mention them, do not hide them.
-
-## Releases
-
-GitHub releases are the early channel; WordPress.org gets settled versions.
-Sites install the latest GitHub release whose tag is a plain version and the
-asset whose name starts with the plugin folder (Updates from GitHub; Git
-Updater, where still active, reads `Version:` on `main` instead), so:
-
-- Publish the GitHub release (tag `vX.Y.Z`, asset `seoprostack-X.Y.Z.zip`
-  with a `seoprostack/` folder, built with `.distignore`) straight after the
-  version change reaches `main`.
-- Never put a pre-release version (`-beta1`, `-rc1`) in `Version:` on `main`;
-  mark test releases as pre-releases on GitHub.
-- The WordPress.org build is the release build without the files in
-  `.distignore-wporg` (`includes/github-updater/` and
-  `includes/features/class-seoprostack-github-updates.php`)
-  and the `GitHub Plugin URI`, `Primary Branch` and `Release Asset` header
-  lines. Its zip is named `wordpress-org-seoprostack-X.Y.Z.zip` so no updater
-  picks it; never attach it to a GitHub release.
-- Other plugins released on GitHub follow the same pattern: a
-  `GitHub Plugin URI: owner/repo` header (and `Release Asset: true`), plain
-  version tags, and a `{folder}-X.Y.Z.zip` asset with a `{folder}/` inside.
-- Build both zips with `scripts/build-release.sh`, check them with
-  `scripts/preflight-release.sh` and `scripts/plugin-check.sh`. None of them
-  tags, publishes or uploads anything.
-- Releasing and submitting to WordPress.org need the owner's say. The
-  repository is private until then, so sites cannot read it without a token
-  (`WPALLSTARS_GITHUB_TOKEN`).
-
-Details: `RELEASING.md` (steps and WordPress.org checklist), `README.md` →
-Updates and releases.
-
-## Front-end styling and dark mode
-
-Block, shortcode and other front-end styles must work with the Kadence Pro
-dark mode switcher (and themes that switch palettes the same way).
-
-- How it switches: Kadence adds `color-switch-dark` or `color-switch-light` to
-  `<body>`. The dark class sets `color-scheme: dark` and redefines
-  `--global-palette1`…`15` and `--wp--preset--color--theme-palette-N` **on
-  `<body>`**. `<html>` stays `color-scheme: light`. Palette 3 is the strongest
-  text and palette 9 the page background in light mode; dark mode swaps them.
-- Use `currentColor`, `inherit`, translucent neutrals (for example
-  `rgba(127, 127, 127, 0.12)`) or palette variables, never fixed light or dark
-  colours for text, backgrounds or borders.
-- Do not use `@media (prefers-color-scheme)` to follow the site: it tracks the
-  visitor's system, not the switcher.
-- Do not define custom properties on `:root` from palette variables; they
-  resolve above `<body>` and keep the light values. Read palette variables
-  where they are used, or define derived ones on the block.
-- Preset references (`var:preset|color|theme-palette3`) become CSS variables
-  with kebab-cased slugs, as core does: `--wp--preset--color--theme-palette-3`.
-  Use `_wp_to_kebab_case()` in PHP and the same rule in editor JS (see
-  `css_value()` in `class-seoprostack-screenshots.php` and `cssValue()` in
-  `blocks/screenshot/index.js`).
-- Embedded pages (iframes) do not follow the switcher: they see the visitor's
-  system setting, and the browser paints their own background behind them, so
-  they stay readable in both modes. Do not make iframes transparent or tint them.
-- Test light and dark with the Kadence theme by toggling the body class (see
-  Testing, step 5).
-
-## Testing
-
-CI (`.github/workflows/ci.yml`) runs the code checks, the release preflight,
-Plugin Check and a smoke test on every pull request; details and local
-commands: `DEVELOPMENT.md`.
-
-While the repository is private, CI and review apps only advise: nothing is
-required to merge, for speed. Fix failures your change causes before merging;
-open an issue for any other failure and merge anyway. Do not turn on branch
-protection, required checks or paid reviewers. At public launch (owner's say),
-run the full sweep in `DEVELOPMENT.md` → At public launch, which makes the
-checks required.
-
-The checks catch errors, not wrong behaviour, so also verify on real
-WordPress:
-
-1. `scripts/lint.sh` (syntax, ShellCheck, PHPCS, PHPStan; run
-   `composer install` once). Fix findings in the code; never grow
-   `phpstan-baseline.neon` or add a `phpcs:ignore` without a reason.
-2. The user reviews on one local test site, shared by every session and
-   worktree. It shows a **combined preview**: `origin/main` plus every open
-   pull request from this repository, merged together. Update it only with
-   the script, from any worktree:
-
-   ```bash
-   scripts/preview-site.sh             # the first run on a clone takes the site: scripts/preview-site.sh "<site>"
-   scripts/preview-site.sh --dry-run   # report what would be included, copy nothing
-   ```
-
-   It fetches `origin`, merges each open PR's branch onto `origin/main` in PR
-   order without touching any checkout, leaves out branches that conflict
-   (and lists them), copies the result with `.distignore` applied (exactly
-   what a release build contains), and writes
-   `<site>/wp-content/seoprostack-synced-from.txt` listing what is included.
-   A lock stops two runs at once. Because every run includes everyone's
-   pushed work, no session hides another's.
-
-   - **Never** `rsync` your worktree into the shared site: it hides every
-     other session's work until the next run. Do not use Git hooks either:
-     they are shared by every worktree and would deploy the wrong checkout.
-   - Only pushed work with an open PR is included. Before asking the user to
-     look at unmerged work, push the branch and open a draft PR, then run the
-     script. It says so if the branch you run it from is missing or has
-     commits that are not pushed.
-   - After merging a PR, run the script again, then check that the stamp
-     lists your merge in `main` before telling the user to look.
-   - Conflicts only in `changelog.txt`, `readme.txt` or `README.md` do not
-     leave a branch out: every PR adds lines at the top of the same
-     changelogs, so each merge to `main` would otherwise drop every other
-     open PR. The preview keeps both sides' lines there and says so in the
-     stamp; still merge `origin/main` into your branch before it merges.
-   - If your branch is left out because it conflicts in other files, merge
-     `origin/main` into it (or wait for the other PR), push and run the
-     script again. Tell the user which PRs are left out.
-   - To check your branch on its own, or for checks the user will not look
-     at, use a throwaway site of your own (step 4's Docker image on a free
-     port), which no one else overwrites:
-     `rsync -a --delete --delete-excluded --exclude-from=.distignore ./ "<site>/wp-content/plugins/seoprostack/"`.
-   - Size every test site, shared or throwaway, for SEO Pro Stack with all
-     recommended plugins active: OPcache 1024 MB, 64 MB strings, 50,000
-     files, `memory_limit` 768M, 5 PHP workers. PHP's defaults fill up and
-     the slowdowns look like bugs. Where to set them (LocalWP and Docker):
-     `DEVELOPMENT.md` → Test site resources. When Hosting needs warns on a
-     test site, raise the value it asks for and update that table.
-
-3. Exercise the changed feature through the admin UI or HTTP, and check
-   the debug log for new messages mentioning `seoprostack` or a plugin it
-   skipped (`wp-content/debug.log`, or the file Debug Log Manager writes in
-   `wp-content/uploads/debug-log-manager/` when it is active, as on the shared
-   test site). For settings imports, seed the replaced plugin's
-   options and delete `seoprostack_options` and `seoprostack_db_version` while
-   the plugin is inactive, then activate it.
-4. For changes that touch core APIs, also smoke-test on WordPress 6.2 with
-   PHP 7.4, for example the `wordpress:php7.4-apache` Docker image with
-   `wp core download --version=6.2 --force`.
-5. For front-end styling, view the page with the Kadence theme in light and
-   dark mode. Without Kadence Pro, simulate the switcher: print a
-   `body.color-switch-dark { color-scheme: dark; --global-palette1: …; }`
-   rule with a dark palette (palette 3 light, palette 9 dark, and the matching
-   `--wp--preset--color--theme-palette-N: var(--global-paletteN)` lines), then
-   swap the body class between `color-switch-light` and `color-switch-dark`.
-   Check text, backgrounds, borders and palette colours chosen in block
-   settings in both.
-
-Note: since WordPress 5.6, posts restored from the Bin become drafts. Republish
-test posts after bulk-trash tests.
-
-## Release build
-
-`.distignore` lists files kept out of the release zip. Add new development-only
-files there, then check the build with Plugin Check.
+The shared preview site runs SEO Pro Stack with every recommended plugin
+(`admin/data/free-plugins.php`) installed and many active, with Debug Log
+Manager writing the log. Size it, and any throwaway site, as
+`DEVELOPMENT.md` → Test site resources says; when Hosting needs warns on a
+test site, raise the value it asks for and update that table.
