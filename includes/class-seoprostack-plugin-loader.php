@@ -597,9 +597,11 @@ final class SEOProStack_Plugin_Loader {
         if ('' !== $key) {
             $page = isset($front['kinds'][$key]) ? $front['kinds'][$key] : array();
             if (empty($page['learned'])) {
-                self::$mode   = 'full';
-                self::$reason = 'learning';
-                self::attribute();
+                if (self::take_front_lock()) {
+                    self::$mode   = 'full';
+                    self::$reason = 'learning';
+                    self::attribute();
+                }
                 return;
             }
             $candidates = array_diff((array) ($front['candidates'] ?? array()), $keep);
@@ -814,7 +816,7 @@ final class SEOProStack_Plugin_Loader {
     public static function content_needs($content, array $front) {
         $needs = array();
         preg_match_all('/<!--\s+wp:([^\s>]+)/', $content, $blocks);
-        preg_match_all('/(?<!\[)\[([A-Za-z_][A-Za-z0-9_-]*)(?=[\s\]\/])/', $content, $shortcodes);
+        preg_match_all('/(?<!\[)\[([^<>&\/\[\]\x00-\x20=]+)(?=[\s\]\/])/', $content, $shortcodes);
         foreach (array('blocks' => $blocks[1], 'shortcodes' => $shortcodes[1]) as $kind => $names) {
             foreach ($names as $name) {
                 if ('blocks' === $kind && false === strpos($name, '/')) {
@@ -869,15 +871,20 @@ final class SEOProStack_Plugin_Loader {
      * @return bool
      */
     private static function take_front_lock() {
+        global $wpdb;
         $now = time();
         if (add_option(self::FRONT_LOCK, $now, '', false)) {
             return true;
         }
-        if ((int) get_option(self::FRONT_LOCK, 0) > $now - 2 * MINUTE_IN_SECONDS) {
+        $previous = (int) get_option(self::FRONT_LOCK, 0);
+        if ($previous > $now - 2 * MINUTE_IN_SECONDS) {
             return false;
         }
-        update_option(self::FRONT_LOCK, $now, false);
-        return true;
+        // Compare-and-swap an expired lock: update_option alone lets two learners acquire it.
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- atomic option lock; its cache is invalidated below.
+        $changed = $wpdb->query($wpdb->prepare("UPDATE {$wpdb->options} SET option_value = %s WHERE option_name = %s AND option_value = %s", (string) $now, self::FRONT_LOCK, (string) $previous));
+        wp_cache_delete(self::FRONT_LOCK, 'options');
+        return 1 === $changed;
     }
 
     /**

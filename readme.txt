@@ -124,6 +124,7 @@ Click **Report a problem** at the top right of Settings → SEO Pro Stack, or op
 == Changelog ==
 
 = Unreleased =
+* Change: page learning uses lasting page kinds and each post's content, on its first visit; unknowns load every plugin.
 * Change: skip unused site plugins after learning, with an always-load bypass and saved choices preserved.
 * Change: automatic admin plugin choices, preserved bypasses and safe idle screen relearning; site choices unchanged.
 * Fix: import Widget Disable's Network Admin dashboard choices on multisite, including on upgrade.

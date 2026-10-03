@@ -1345,11 +1345,11 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
 
     /** Keep the owner of blocks rendered from theme files or template parts. */
     public static function front_block($output, $block) {
-        if (doing_filter('the_content') && is_singular()) {
+        $name = isset($block['blockName']) ? (string) $block['blockName'] : '';
+        if (self::front_primary_content('wp:' . (0 === strpos($name, 'core/') ? substr($name, 5) : $name))) {
             return $output; // The requested post is inspected separately before plugins load.
         }
         $state = SEOProStack_Plugin_Loader::state();
-        $name = isset($block['blockName']) ? (string) $block['blockName'] : '';
         if (!empty($state['registered']['block_names'][$name])) {
             self::$front_seen[] = $state['registered']['block_names'][$name];
         }
@@ -1361,7 +1361,7 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
 
     /** Keep shortcode owners even when a theme renders them outside a post. */
     public static function front_shortcode($output, $tag) {
-        if (doing_filter('the_content') && is_singular()) {
+        if (self::front_primary_content('[' . $tag)) {
             return $output;
         }
         global $shortcode_tags;
@@ -1369,6 +1369,13 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
             self::$front_seen[] = SEOProStack_Plugin_Loader::plugin_for_callback($shortcode_tags[$tag]);
         }
         return $output;
+    }
+
+    /** Only exclude syntax actually present in the primary post, not secondary content. */
+    private static function front_primary_content($syntax) {
+        global $post;
+        return doing_filter('the_content') && is_singular() && $post instanceof WP_Post
+            && (int) $post->ID === get_queried_object_id() && false !== strpos($post->post_content, $syntax);
     }
 
     /** Capture widgets inserted by theme or plugin filters, not just saved ones. */
@@ -1527,7 +1534,9 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
             foreach (get_post_types(array('exclude_from_search' => false), 'names') as $type) {
                 $needs[] = $state['registered']['types'][$type] ?? '';
             }
-            // Search excerpts can render any registered content plugin.
+        }
+        if (!is_singular()) {
+            // Other searches, terms and pagination pages can render different content.
             $needs = array_merge($needs, array_values(self::front_blocks($state)), array_values(self::front_shortcodes()));
         }
         // Global template parts and reusable blocks can add content outside the
