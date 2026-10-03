@@ -39,6 +39,7 @@ Off by default except Hide admin bar items (Comments and + New), No fade between
 * **Publishing queue**: posts without a date go to the next free time slot.
 * **Duplicate posts**, **Staged new versions** (edit a live post as a draft) and **Shareable preview links** for people without an account.
 * **Pinned posts for any post type**, **Select all across pages**, **Order by hand**, **Change post type**, **Term tools** (merge, move, set parent), **Search custom fields** and **Old post addresses**.
+* **Custom fields to content**: ACF/SCF text into content and excerpts for chosen post types; skipped fields and WP-CLI sync. Replaces content; check templates for duplicate display.
 * **Restrict content**: posts, parts of posts, categories, blocks and shop products only for members or chosen roles. **Menu item visibility** by login or role.
 * **iFrame block** (only the domains and roles you allow), **Link cards**, **Wikipedia previews**, **Word documents**, **Brand icons** and **Like, save and share**.
 * **Spectra block replacements**: Spectra pages keep working after it is gone. **TranslatePress colours** follow Kadence light and dark modes.
@@ -126,6 +127,7 @@ Click **Report a problem** at the top right of Settings → SEO Pro Stack, or op
 == Changelog ==
 
 = Unreleased =
+* New: Custom fields to content, off by default, with per-type choices, excerpts, skipped fields and WP-CLI sync.
 * Fix: Recognise WP-Optimize Premium, share its preset and warn about restoring LiteSpeed Cache’s WP_CACHE line after deactivation.
 
 = 0.11.9 =

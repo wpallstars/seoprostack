@@ -54,6 +54,7 @@ final class SEOProStack_Setup {
         'SEOProStack_Menu_Visibility',
         'SEOProStack_Restrict_Content',
         'SEOProStack_Field_Search',
+        'SEOProStack_Field_Content',
         'SEOProStack_Editor_Tidy',
         'SEOProStack_Translatepress_Colours',
         'SEOProStack_Auto_Upload',

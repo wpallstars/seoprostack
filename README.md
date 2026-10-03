@@ -363,6 +363,17 @@ With Advanced Custom Fields or Secure Custom Fields active, searches on the site
 - Only the main search of a page or admin list: widgets, blocks, REST requests and the media library keep core’s search, as do queries that choose their own search columns.
 - No settings. Replaces ACF: Better Search; the feature switches itself on while it is active.
 
+### Custom fields to content (Content)
+
+Off by default. Copies top-level ACF or SCF text, text area and WYSIWYG fields into WordPress post content so site search, SEO analysis and internal-linking tools can read them.
+
+- Select the post types to sync, then reload the settings screen. Each selected type has its own included field types, skipped field names or keys (one per line), excerpt source and label-and-value or values-only format. Uncheck a type to stop syncing it.
+- **Replaces existing post content.** Only enable it for posts built from fields, and skip private fields before saving posts or running a batch. If your template displays both the fields and post content, the copy appears twice: check the template first. Theme and builder templates cannot reliably be detected from settings alone.
+- A chosen excerpt field replaces the excerpt with its plain text, including clearing it when the field is empty, excluded or missing. A blank source leaves the existing excerpt alone. Nested groups, repeaters, non-text fields and skipped fields are never copied.
+- Runs after ACF saves, sanitises HTML, preserves backslashes and guards against recursive saves. A hash of the generated content and excerpt prevents another content update when nothing changed. WordPress's original save can still change its modification time; this feature makes no additional update or revision on an unchanged sync.
+- With the feature enabled, sync existing posts using `wp seoprostack fields sync --post-type=page --user=admin` (replace the type and administrator login). Runs in batches of 100; the same unchanged-content check applies. ACF or SCF must be active.
+- Disabling leaves copied content and excerpts in place. Uninstall removes settings and `_seoprostack_field_content_hash` fingerprints, not the copies.
+
 ### Simpler block editor (Content)
 
 Turns off parts of the block editor most people never use, for everyone.
@@ -1114,6 +1125,7 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folder�
 
 ### Unreleased
 
+- New, off by default: **Custom fields to content** copies selected ACF/SCF text into content and excerpts, with per-post-type choices, skipped fields, unchanged-output checks and WP-CLI batch sync.
 - Fix: **Clean the database weekly** recognises WP-Optimize Premium (`wp-optimize-premium`), waits while it is active and offers its replacement on LiteSpeed hosting. Premium shares the WP-Optimize preset and save handler. Both editions have a Plugins screen warning to save LiteSpeed Cache’s settings after deactivation, which can remove its `WP_CACHE` line.
 
 ### 0.11.9

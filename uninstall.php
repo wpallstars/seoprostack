@@ -105,6 +105,9 @@ function seoprostack_uninstall_site() {
     wp_unschedule_hook('seoprostack_database_cleanup');
     wp_unschedule_hook('seoprostack_database_cleanup_more');
 
+    // Copied content and excerpts stay; only the sync fingerprint is ours.
+    delete_post_meta_by_key('_seoprostack_field_content_hash');
+
     // Order flow: links between form entries, tasks and conversations. The
     // entries, tasks, conversations and their log lines are that plugin's
     // data, and stay.
