@@ -1056,7 +1056,7 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folderâ
 
 ## Changelog
 
-### Unreleased
+### 0.11.0
 
 - Developers: the docs are split so the shared part can be copied between plugins as it is. `STANDARDS.md` (new) holds the rules every plugin made from the starter shares: structure and core files, code rules, Updates from GitHub, releases, dark mode and testing. `DEVELOPMENT.md` and `RELEASING.md` are the same in every plugin, with names as placeholders. `AGENTS.md` keeps only SEO Pro Stack's own rules (features on by default, replaced plugins, presets, starter data), and `LAUNCH.md` (new) its WordPress.org checklist, guideline review and public launch state. The checklist's Defaults line now lists Fixes for other plugins, which is on by default too.
 - Changed: Free Plugins notes under **Advanced Database Cleaner**, **Anti-Malware Security and Brute-Force Firewall** (`gotmls`), **Debug Log Manager**, **Query Monitor**, **User Switching** and **WP Crontrol** that they are not needed day to day: deactivate or delete them so the site runs at full speed, and turn them on only to look into a problem or for admin work. Built into `SEOProStack_Plugin_Manager::note()`, before the `seoprostack_free_plugin_note` filter, which can change or remove them.
