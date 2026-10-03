@@ -1194,6 +1194,7 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
             'routes'  => self::front_routes(),
             'blocks'  => self::front_blocks($state),
             'shortcodes' => self::front_shortcodes(),
+            'woo_shop' => in_array($woo, $state['active'], true) ? (int) get_option('woocommerce_shop_page_id') : 0,
             'woo_pages' => array_values(array_filter(array_map('intval', array(
                 get_option('woocommerce_shop_page_id'), get_option('woocommerce_cart_page_id'),
                 get_option('woocommerce_checkout_page_id'), get_option('woocommerce_myaccount_page_id'),

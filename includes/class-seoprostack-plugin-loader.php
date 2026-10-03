@@ -795,6 +795,10 @@ final class SEOProStack_Plugin_Loader {
             } elseif ((int) $post->ID === (int) get_option('page_for_posts') && 'page' === get_option('show_on_front')) {
                 $kind = 'home';
             }
+            if ('single:page' === $kind && (int) $post->ID === (int) ($front['woo_shop'] ?? 0)
+                && in_array('product', (array) ($routes['archives'] ?? array()), true)) {
+                $kind = 'archive:product'; // WooCommerce turns its configured shop page into the product archive.
+            }
             // Custom templates can have needs not shared by other posts of this type.
             if (get_post_meta($post->ID, '_wp_page_template', true) && 'default' !== get_post_meta($post->ID, '_wp_page_template', true)) {
                 return array();
