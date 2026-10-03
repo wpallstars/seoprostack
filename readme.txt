@@ -67,7 +67,7 @@ Off by default except Hide admin bar items (Comments and + New), No fade between
 
 * **Plugin presets** and **starter data**: our tested settings for other plugins, and the lists, tags, forms and boards we use in Fluent plugins; only when you ask, and undoable.
 * **Plugins menu** in the admin bar, **Plugin sizes**, **Clean up deleted plugins** and **Hosting needs** (what to ask your host for).
-* **Fixes for other plugins** (on): works around their bugs, such as Lasso Lite calling its server on every admin screen and Tutor LMS Pro's update-check warnings.
+* **Fixes for other plugins** (on): works around their bugs, such as Lasso Lite calling its server on every admin screen.
 * **Agency**: order flow, client dashboard and examples.
 * **Discover**: the Kadence theme, recommended free plugins installed in place, and the Pro plugins, hosting and tools we use.
 
@@ -128,7 +128,6 @@ Click **Report a problem** at the top right of Settings → SEO Pro Stack, or op
 = Unreleased =
 * New: Rank Math keyword defaults and pillar tools; off by default.
 * New: Tidy WooCommerce admin hides suggested payment plugins on Settings → Payments.
-* Fix: no more Tutor LMS Pro update-check warnings in the debug log.
 
 = 0.11.5 =
 * New: Hosting needs checks object cache health daily and recommends unused Redis or Memcached, without connections on visitor requests.
