@@ -1107,7 +1107,7 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folder�
 
 ## Changelog
 
-### Unreleased
+### 0.11.7
 
 - New: **Tidy WooCommerce admin** can remove the payment plugins WooCommerce suggests under “More payment options” on Settings → Payments, ticked by default for sites that have not chosen items yet. It replaces Disable Bloat’s “Hide payment providers”, which is imported with its other switches. Disable Bloat’s “Remove resource hints” needs nothing in its place: it removed the DNS prefetch for s.w.org, which WordPress 7.1 no longer adds, so the Plugins screen no longer names it.
 - Fix: **Fixes for other plugins** stops Tutor LMS Pro 4.1.0 adding PHP warnings to the debug log on every update check when its update reply has no details (as with copies from GPL resellers).
