@@ -41,8 +41,8 @@
  *   (the settings offer those as choices);
  * - wherever a plugin that needs it loads (`Requires Plugins`,
  *   `WC requires at least` with WooCommerce in its name,
- *   `Elementor tested up to`, or named as a WooCommerce, Elementor or
- *   Contact Form 7 add-on).
+ *   `Elementor tested up to`, named as a WooCommerce, Elementor or
+ *   Contact Form 7 add-on, or a Pro or Premium add-on named after it).
  * Plugins that need a ticked plugin follow it: they load where it loads.
  *
  * On the site itself, plugins ticked for the site ("Plugins to skip on the
@@ -92,7 +92,7 @@ final class SEOProStack_Plugin_Loader {
     const HISTORY = 'seoprostack_plugin_screens';
 
     /** Map format; a change makes SEO Pro Stack learn again. */
-    const MAP_VERSION = 9;
+    const MAP_VERSION = 10;
 
     /** SEO Pro Stack's own settings page (Settings > SEO Pro Stack). */
     const SETTINGS_PAGE = 'seoprostack';
@@ -114,7 +114,7 @@ final class SEOProStack_Plugin_Loader {
     const FRONT_USERS_KEY = 'plugin_loading_front_users';
 
     /** Format of what is learned on the site; a change makes it learn again. */
-    const FRONT_VERSION = 4;
+    const FRONT_VERSION = 5;
 
     /** One-time preservation of the owner's saved site-wide skip choices. */
     const FRONT_MIGRATED = 'seoprostack_plugin_front_migrated';

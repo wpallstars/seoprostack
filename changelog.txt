@@ -5,6 +5,7 @@ Every change to SEO Pro Stack. readme.txt lists the latest version in short.
 = 0.11.7 =
 * New: Tidy WooCommerce admin can remove the payment plugins WooCommerce suggests under "More payment options" on Settings → Payments (ticked by default for sites that have not chosen items yet), replacing Disable Bloat's "Hide payment providers". Disable Bloat's "Remove resource hints" needs nothing in its place: WordPress 7.1 no longer adds the s.w.org DNS prefetch it removed.
 * Fix: Fixes for other plugins stops Tutor LMS Pro 4.1.0 adding PHP warnings to the debug log on every update check when its update reply has no details (as with copies from GPL resellers).
+* Fix: Load plugins only where needed skipped a base plugin on screens where its Pro add-on still loaded (FluentBooking, Fluent Boards, Fluent Support and Fluent Forms), so each Pro add-on showed its "requires the base plugin" notice there. Pro and Premium add-ons named after an active plugin now count as needing it, so the two load together or not at all. Screens are learned again once.
 
 = 0.11.6 =
 * New, off by default: Rank Math defaults fills empty focus keywords from titles for chosen post types, warns when more than 20% of published posts are pillars and offers selected-post pillar removal.
