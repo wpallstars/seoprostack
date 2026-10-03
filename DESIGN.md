@@ -19,6 +19,17 @@ Keep image links, buttons and links with existing inline SVG/icons clear.
 The `sps-no-external-icon` class opts out a link or a whole content section.
 Unsupported browsers omit the decoration and keep functional links.
 
+## Discover directory links
+
+Keep the existing cards and button groups. Add verified products to their
+existing categories, with an actual WordPress.org `free_slug` only when a
+free version exists. Free cards and All rows inherit the primary Pro URL
+from `admin/data/pro-plugins.php`; do not add a second referral renderer.
+Kadence and Fluent/WPManageNinja vendor links keep their product paths and
+put referral queries before pricing fragments. WordPress.org install and
+details links and GitHub source links remain direct. Theme navigation uses
+the same Kadence referral query as the Pro directory, including bundles.
+
 ## Responsive behaviour
 
 Inline decoration scales with text on desktop and mobile, including zoom,

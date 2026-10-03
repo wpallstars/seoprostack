@@ -990,7 +990,9 @@ The Agency tab shows example data for a digital marketing agency, to rename and 
 - **Free Plugins**: recommended plugins from WordPress.org by category. Install, Activate, Deactivate and Uninstall all work in place, so you can set up many in a row without leaving the page: an installed plugin shows Activate and Uninstall, an active one shows Deactivate. **All** lists every recommended plugin grouped by category, with the disk space each installed one takes (as in Plugin sizes, measured in the background), a checkbox per plugin and per group and bulk actions (Install and activate, Install, Activate, Deactivate, Uninstall) that run one plugin at a time with progress, and can be stopped. Bulk Uninstall deactivates active plugins first. Plugins that need a newer WordPress or PHP, or that WordPress.org has closed, cannot be selected. Activate and Deactivate accept only WordPress.org plugins on the recommended list; install and uninstall use WordPress’s own requests, so FTP details are asked for where needed. Shown only to users who can install plugins (on multisite, super admins); plugins active for the whole network are left alone.
 - **Pro Plugins, Hosting, Tools**: filterable directories with links to each product. Pro plugins show a badge when their free version is already on the site.
 
-Some directory links are the developer's affiliate or referral links, which may earn a commission or account credit and sometimes give you a discount. They do not change what we recommend, and nothing is added to your public site. Product, pricing and documentation links stay direct when no matching referral link is available; Kadence bundles, the Bit Apps store, Fiverr Pro and the Speedy Index Telegram bot have separate referral links.
+Free Plugins includes WPManageNinja's Fluent products and add-ons, Paymattic, Ninja Tables, Ninja Charts, Ninja Job Board and Custom Feed for TikTok. Pro Plugins also lists FluentAffiliate Pro, FluentPlayer Pro, Paymattic Pro and AzonPress. FluentAuth is free only; AzonPress has no listed WordPress.org free version. Choose only what your site needs; connectors need the plugins or services they connect. Ninja Job Board was last updated in December 2023, so check its compatibility before using it. Nothing is installed or activated just by opening a directory.
+
+Some directory links are the developer's affiliate or referral links, which may earn a commission or account credit and sometimes give you a discount. They do not change what we recommend, and nothing is added to your public site. Kadence and Fluent/WPManageNinja product, pricing and add-on links carry the developer's referral ID, including the matching **Go Pro** links in Free Plugins. WordPress.org install/details links and GitHub source links stay direct. Other product, pricing and documentation links stay direct when no matching referral link is available; the Bit Apps store, Fiverr Pro and the Speedy Index Telegram bot have separate referral links.
 
 ## Requirements
 
@@ -1106,6 +1108,11 @@ Deleting the plugin removes its settings and cached data, the profile pictures a
 Deactivating the plugin removes the WebP and AVIF rules from the uploads folder’s `.htaccess` (for every site when network-deactivated) and the must-use file of Load plugins only where needed (on multisite, when network-deactivated).
 
 ## Changelog
+
+### Unreleased
+
+- Changed: all Kadence and Fluent/WPManageNinja vendor links use the supplied referral IDs, keeping product paths and pricing anchors. Kadence bundles now link directly to Liquid Web; Scalability Pro links to its current Super Speedy Plugins product and pricing section.
+- New: 11 missing WPManageNinja free plugins and add-ons, plus FluentAffiliate Pro, FluentPlayer Pro, Paymattic Pro and AzonPress in Pro Plugins. Matching free cards and All rows use the referral links for Go Pro; no invented FluentAuth Pro or AzonPress free version.
 
 ### 0.11.8
 

@@ -17,7 +17,7 @@ Faster admin, writing, media, safer logins and tested plugin settings. Turn on o
 
 Free and open source: no pro version, nothing locked.
 
-Off by default except Hide admin bar items (Comments and + New), No fade between admin screens, Quiet Freemius prompts and Fixes for other plugins. Turn features on in **Settings → SEO Pro Stack**; **Search features** finds one by name or by the plugin it replaces. A feature that replaces a plugin imports its settings once, never changes them, and waits while that plugin is active, so you can switch over safely.
+Off by default except Hide admin bar items (Comments and + New), No fade between admin screens, Quiet Freemius prompts and Fixes for other plugins. Use **Settings → SEO Pro Stack**; **Search features** also finds replaced plugins. Replacements import settings once, leave them alone and wait while the original plugin is active.
 
 = A calmer, faster admin =
 
@@ -73,7 +73,7 @@ Off by default except Hide admin bar items (Comments and + New), No fade between
 
 = Affiliate disclosure =
 
-Some Theme, Pro Plugins, Hosting and Tools links may earn the developer a commission or account credit. They never change what we recommend, and nothing shows on your public site.
+Some Discover vendor and Go Pro links may earn the developer a commission or credit. They do not affect recommendations or appear on your public site.
 
 = External services =
 
@@ -95,7 +95,7 @@ Extend settings, tabs and directories with filters such as `seoprostack_settings
 
 = Built with AI =
 
-Built and maintained with [aidevops](https://aidevops.sh), the same developer's open-source AI harness for creating and managing anything online with AI, plugins like this one included. Free on [GitHub](https://github.com/marcusquinn/aidevops).
+Built and maintained with [aidevops](https://aidevops.sh), the developer's open-source AI harness. Free on [GitHub](https://github.com/marcusquinn/aidevops).
 
 == Installation ==
 
@@ -124,6 +124,9 @@ From where you installed it. New versions come out on GitHub first.
 Click **Report a problem** at the top right of Settings → SEO Pro Stack, or open an issue on [GitHub](https://github.com/wpallstars/seoprostack/issues).
 
 == Changelog ==
+
+= Unreleased =
+* Change: Kadence/Fluent referral links, Scalability Pro website, 11 free plugins/add-ons and four pro products added.
 
 = 0.11.8 =
 * Fix: Load plugins only where needed loads Pro add-ons and their base plugin together, so no "requires the base plugin" notices.
