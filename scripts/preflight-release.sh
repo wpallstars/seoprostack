@@ -20,7 +20,7 @@ set -euo pipefail
 
 readonly UPDATER_HEADERS='GitHub Plugin URI|Primary Branch|Release Asset'
 # Development files that must never be in a release zip (paths inside the slug folder).
-readonly DEV_FILES='^[^/]+/(\.git|\.agents|\.wordpress-org|\.distignore|\.distignore-wporg|\.gitattributes|\.gitignore|\.woodpecker\.yml|\.github|\.editorconfig|\.gitleaks\.toml|composer\.(json|lock)|phpcs\.xml(\.dist)?|phpstan(-baseline|-plugin)?\.neon(\.dist)?|vendor|AGENTS\.md|CONTRIBUTING\.md|DEVELOPMENT\.md|LAUNCH\.md|SECURITY\.md|STANDARDS\.md|RELEASING\.md|ROADMAP\.md|STABILITY\.md|TESTING\.md|scripts|dist|node_modules|reference-plugins|project-documents)(/|$)|(^|/)(\.DS_Store|__MACOSX|Thumbs\.db)(/|$)|\.(bak|log|orig|swp)$'
+readonly DEV_FILES='^[^/]+/(\.git|\.agents|\.wordpress-org|\.distignore|\.distignore-wporg|\.gitattributes|\.gitignore|\.woodpecker\.yml|\.github|\.editorconfig|\.gitleaks\.toml|\.aidevops\.json|composer\.(json|lock)|phpcs\.xml(\.dist)?|phpstan(-baseline|-plugin)?\.neon(\.dist)?|vendor|AGENTS\.md|CONTRIBUTING\.md|DEVELOPMENT\.md|LAUNCH\.md|SECURITY\.md|STANDARDS\.md|RELEASING\.md|ROADMAP\.md|STABILITY\.md|TESTING\.md|scripts|dist|node_modules|reference-plugins|project-documents)(/|$)|(^|/)(\.DS_Store|__MACOSX|Thumbs\.db)(/|$)|\.(bak|log|orig|swp)$'
 readonly README_MAX_BYTES=10240
 readonly SHORT_DESC_MAX=150
 readonly MAX_TAGS=5
@@ -382,77 +382,6 @@ check_zip() {
 	return 0
 }
 
-# Presets and starter data must never set the same setting: Add starter data
-# leaves stored settings alone and Apply preset overwrites them, so a shared
-# setting would end up depending on which ran first. Also checks the JSON parses.
-check_presets_starters() {
-	local dir="$1"
-	section "Presets and starter data"
-	if ! command -v node >/dev/null 2>&1; then
-		warn "node not found, presets and starter data not checked"
-		return 0
-	fi
-	local out
-	out="$(node -e '
-		const fs = require("fs"), path = require("path");
-		const dir = process.argv[1], problems = [], presetOptions = {};
-		const load = (folder) => {
-			const full = path.join(dir, folder);
-			if (!fs.existsSync(full)) return [];
-			return fs.readdirSync(full).filter((f) => f.endsWith(".json")).sort().map((f) => {
-				try { return [folder + "/" + f, JSON.parse(fs.readFileSync(path.join(full, f), "utf8"))]; }
-				catch (e) { problems.push("ERROR " + folder + "/" + f + " is not valid JSON: " + e.message); return null; }
-			}).filter(Boolean);
-		};
-		const presets = load("presets"), starters = load("starters");
-		for (const [file, data] of presets) {
-			for (const name of Object.keys((data && data.options) || {})) (presetOptions[name] = presetOptions[name] || []).push(file);
-			// Every setting the preset changes is named in the dialog, by the paths the dialog uses.
-			const paths = new Set();
-			const walk = (p, v) => (v && typeof v === "object" && !Array.isArray(v) && Object.keys(v).length) ? Object.entries(v).forEach(([k, w]) => walk(p + "." + k, w)) : paths.add(p);
-			for (const [name, value] of Object.entries((data && data.options) || {})) walk(name, value);
-			const named = (data && data.settings) || {};
-			for (const p of paths) if (!named[p] || !named[p].label) problems.push("ERROR " + file + " has no settings label for " + p);
-			for (const p of Object.keys(named)) if (!paths.has(p)) problems.push("ERROR " + file + " names a setting it does not set: " + p);
-		}
-		let settings = 0;
-		for (const [file, data] of starters) {
-			for (const items of Object.values((data && data.items) || {})) {
-				for (const item of Array.isArray(items) ? items : []) {
-					if (!item || typeof item.option !== "string") continue;
-					settings++;
-					for (const preset of presetOptions[item.option] || []) problems.push("ERROR " + file + " and " + preset + " both set " + item.option);
-				}
-			}
-		}
-		problems.push("COUNT " + presets.length + " " + starters.length + " " + settings);
-		process.stdout.write(problems.join("\n") + "\n");
-	' "$dir" 2>&1 || true)"
-	local line errors=0 counts=""
-	while IFS= read -r line; do
-		case "$line" in
-		"ERROR "*)
-			err "${line#ERROR }"
-			errors=$((errors + 1))
-			;;
-		"COUNT "*) counts="${line#COUNT }" ;;
-		"") ;;
-		*)
-			err "presets and starter data check failed: $line"
-			errors=$((errors + 1))
-			;;
-		esac
-	done <<<"$out"
-	if [ -z "$counts" ] && [ "$errors" -eq 0 ]; then
-		err "presets and starter data check did not run"
-	elif [ "$errors" -eq 0 ]; then
-		local presets starters settings
-		read -r presets starters settings <<<"$counts"
-		ok "$presets presets and $starters starter files parse; none of the $settings starter settings is also in a preset"
-	fi
-	return 0
-}
-
 check_builds() {
 	local github_zip="$1"
 	local wporg_zip="$2"
@@ -513,8 +442,12 @@ check_builds() {
 	fi
 
 	# Checks for parts only some plugins have; each runs when its files exist.
-	if [ -d "$github_dir/presets" ] || [ -d "$github_dir/starters" ]; then
-		check_presets_starters "$github_dir"
+	# A plugin's own checks: scripts/preflight-plugin.sh defines plugin_preflight,
+	# which gets the unpacked GitHub build and can use section, ok, warn and err.
+	if [ -f "$SCRIPT_DIR/preflight-plugin.sh" ]; then
+		# shellcheck source=/dev/null
+		. "$SCRIPT_DIR/preflight-plugin.sh"
+		plugin_preflight "$github_dir"
 	fi
 	if [ -f "$SCRIPT_DIR/replaced-plugins.php" ]; then
 		check_replaced_count "$github_dir"
@@ -537,6 +470,21 @@ check_replaced_count() {
 	else
 		err "$out"
 	fi
+	return 0
+}
+
+# Core files match the starter's (scripts/sync-core.sh --check), when a
+# checkout of the starter is at hand. A warning, not an error: the starter's
+# checkout may be behind, and only a person can tell which side is right.
+check_core_files() {
+	section "Core files"
+	local out status=0
+	out="$(bash "$SCRIPT_DIR/sync-core.sh" --check 2>&1)" || status=$?
+	case "$status" in
+	0) ok "$(printf '%s\n' "$out" | tail -n 1)" ;;
+	1) warn "$(printf '%s\n' "$out" | sed -n '2,$p' | tr '\n' ' ')" ;;
+	*) note "not compared: ${out#sync-core: }" ;;
+	esac
 	return 0
 }
 
@@ -617,6 +565,9 @@ main() {
 	github_zip="$(printf '%s\n' "$zips" | sed -n 1p)"
 	wporg_zip="$(printf '%s\n' "$zips" | sed -n 2p)"
 	check_builds "$github_zip" "$wporg_zip" "$VERSION"
+	if [ -f "$SCRIPT_DIR/sync-core.sh" ]; then
+		check_core_files
+	fi
 	check_git "$ref" "$sha" "$VERSION"
 
 	printf '\n%s error(s), %s warning(s).\n' "$ERRORS" "$WARNINGS"

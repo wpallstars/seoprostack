@@ -12,9 +12,19 @@ only what is SEO Pro Stack's own.
 | Placeholder in `STANDARDS.md` | SEO Pro Stack |
 |---|---|
 | `{slug}` | `seoprostack` (main file `seoprostack.php`) |
+| `{prefix}` | `seoprostack` |
 | `{Prefix}` | `SEOProStack` |
 | `{PREFIX}` | `SEOPROSTACK` |
 | `{Name}` | SEO Pro Stack |
+| `{css}` | `sps` |
+
+Core files (`scripts/core-files.txt`) come from the starter
+(`wpallstars/wp-plugin-starter-template-for-ai-coding`): change them there
+first, then run `scripts/sync-core.sh` here. SEO Pro Stack's own admin
+styles and script are `admin/css/seoprostack-tabs.css` and
+`admin/js/seoprostack-tabs.js` (loaded from `SEOProStack_Setup`), and its
+own release checks (presets and starter data) are in
+`scripts/preflight-plugin.sh`.
 
 User docs: `README.md` (developers, and the Read Me tab) and `readme.txt`
 (WordPress.org). Development: `DEVELOPMENT.md`. Releases: `RELEASING.md`;

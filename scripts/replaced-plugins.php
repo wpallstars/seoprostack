@@ -345,12 +345,19 @@ if (!is_dir($dir . '/includes')) {
 $reader = new Replaces_Reader();
 $reader->read($dir);
 $count = count($reader->plugins);
-if (0 === $count) {
-    fail('no replaced plugins found; the reader is out of date');
-}
 
 $readme_file = $dir . '/README.md';
 $readme      = is_file($readme_file) ? file_get_contents($readme_file) : '';
+
+if (0 === $count) {
+    // A plugin that replaces none has no count line in README.md. With the
+    // line there, finding none means the reader no longer understands the code.
+    if (preg_match(README_LINE, $readme)) {
+        fail('no replaced plugins found; the reader is out of date');
+    }
+    echo "No replaced plugins, and README.md has no count line\n";
+    exit(0);
+}
 
 if ('' === $mode) {
     foreach ($reader->plugins as $slug => $name) {

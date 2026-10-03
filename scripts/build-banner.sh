@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Build the SEO Pro Stack banner from its source, .wordpress-org/banner.svg.
+# Build the plugin's banner from its source, .wordpress-org/banner.svg.
 #
 #   admin/images/banner.svg
 #       Shipped with the plugin, shown at the top of the Read Me tab (and of
