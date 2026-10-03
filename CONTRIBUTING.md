@@ -16,9 +16,10 @@ say what the feature does on its own and what problem it solves.
 
 ## Pull requests
 
-1. Read `AGENTS.md` (how features, settings, migrations and front-end
-   styles work here, and the code rules) and `DEVELOPMENT.md` (set-up and
-   checks).
+1. Read `STANDARDS.md` (how features, settings, migrations and front-end
+   styles work, the code rules and testing), `AGENTS.md` (what is SEO Pro
+   Stack's own: presets, starter data, replaced plugins) and
+   `DEVELOPMENT.md` (set-up and checks).
 2. Keep each pull request to one change. Features are off by default.
 3. Run `scripts/lint.sh` and fix what it finds in the code.
 4. Test on a real WordPress site, including WordPress 6.2 with PHP 7.4 if

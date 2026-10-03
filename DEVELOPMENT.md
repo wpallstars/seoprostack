@@ -1,8 +1,10 @@
-# Developing SEO Pro Stack
+# Development
 
-How changes are made, checked and released. Rules for features, presets,
-code and styling: `AGENTS.md`. Releases: `RELEASING.md`. Manual test
-checklists: `TESTING.md`.
+How changes are made and checked in every plugin made from the wpallstars
+starter plugin. This file is the same in each of them (names as
+placeholders: `STANDARDS.md` lists them, and the plugin's `AGENTS.md` gives
+its values). Rules for features, code, styling and testing: `STANDARDS.md`;
+the plugin's own rules: `AGENTS.md`. Releases: `RELEASING.md`.
 
 ## Workflow
 
@@ -14,7 +16,7 @@ checklists: `TESTING.md`.
    the work is in progress: CI lints every push, and the longer release and
    smoke-test jobs start when the pull request is marked ready for review.
 5. Check the change on the shared preview site (`scripts/preview-site.sh`,
-   `AGENTS.md` → Testing), in light and dark mode for front-end styles.
+   `STANDARDS.md` → Testing), in light and dark mode for front-end styles.
 6. Merge once CI passes. Releases are separate: `RELEASING.md`.
 
 ## Set up
@@ -45,7 +47,7 @@ Every pull request and every push to `main` runs these in GitHub Actions
 | Workflows | `scripts/lint.sh workflows` | actionlint findings in `.github/workflows/`. |
 | Coding standards | `scripts/lint.sh phpcs` | WordPress Coding Standards: escaping, sanitising, nonces, prepared SQL, i18n, PHP 7.4 and WordPress 6.2 compatibility (`phpcs.xml.dist`). |
 | Static analysis | `scripts/lint.sh phpstan` | Unknown functions, classes and methods, wrong argument counts and types, dead code (PHPStan level 5, `phpstan.neon.dist`). |
-| Release build | `scripts/preflight-release.sh --offline` | Versions, headers, `readme.txt`, presets and the contents of both zips. |
+| Release build | `scripts/preflight-release.sh --offline` | Versions, headers, `readme.txt`, presets (where the plugin has them) and the contents of both zips. |
 | Plugin Check | `scripts/plugin-check.sh` | The WordPress.org review tool, on both zips. |
 | Smoke test | `scripts/smoke-test.sh --wp 6.2 --php 7.4` and `scripts/smoke-test.sh` | Installs the GitHub zip, loads the site and admin screens with default settings and with every feature on, runs cron, uninstalls. Fails on any PHP message, a failed page or leftover options. |
 
@@ -56,8 +58,8 @@ The scripts work out which plugin they are in from its main file
 `Plugin Name:` header gives the slug (its file name), the name, the class
 prefix (`@package`) and the constant prefix (`define('<PREFIX>_VERSION', …)`).
 Environment overrides use that prefix, for example
-`SEOPROSTACK_PREVIEW_SITE` or `SEOPROSTACK_DB_IMAGE`. Checks for parts only
-SEO Pro Stack has (presets and starter data, the replaced plugins count) run
+`{PREFIX}_PREVIEW_SITE` or `{PREFIX}_DB_IMAGE`. Checks for parts only some
+plugins have (presets and starter data, the replaced plugins count) run
 when their files exist, so the same scripts serve every plugin made from the
 starter.
 
@@ -76,8 +78,8 @@ code. Where a finding is intended, add an inline
 
 PHPStan reads the code with WordPress's stubs and PHP 7.4's functions.
 `scripts/phpstan-bootstrap.php` defines the constants WordPress and the
-plugin set while loading. Classes and functions of other plugins (WP-CLI,
-Fluent, Freemius, WooCommerce, Kadence) are ignored in `phpstan-plugin.neon`,
+plugin set while loading. Classes and functions of other plugins the code
+uses (WP-CLI, WooCommerce and the like) are ignored in `phpstan-plugin.neon`,
 because the code uses them only after checking they are loaded.
 
 `phpstan-baseline.neon` is empty: every finding fails the check. Fix the
@@ -85,8 +87,8 @@ code. Where PHPStan or the stubs are wrong (a custom `wp_hash()` scheme, a
 check for a method newer WordPress versions have, variables a closure
 changes by reference), add an entry under `ignoreErrors` with the
 identifier, the file and the reason: in `phpstan.neon.dist` for the files
-every plugin made from the starter shares, in `phpstan-plugin.neon` for SEO
-Pro Stack's own files and extra paths. Never put findings in the baseline to
+every plugin made from the starter shares, in `phpstan-plugin.neon` for the
+plugin's own files and extra paths. Never put findings in the baseline to
 get a change through.
 
 ### Secrets in history
@@ -99,27 +101,26 @@ docker run --rm -v "$PWD:/repo:ro" ghcr.io/gitleaks/gitleaks:latest git /repo --
 ```
 
 In a linked worktree, also mount the main repository's `.git` folder at
-the same path. `.gitleaks.toml` lists the false positives with reasons (the
-Fluent Forms field keys in `starters/fluentform.json`). A real secret is
-rotated first, then removed from history.
+the same path. `.gitleaks.toml` lists the false positives with reasons. A
+real secret is rotated first, then removed from history.
 
 ### Smoke test
 
 `scripts/smoke-test.sh` starts a throwaway WordPress in Docker (MariaDB,
 Apache and WP-CLI images for the chosen PHP version), so nothing touches
 the shared preview site. CI runs it on WordPress 6.2 with PHP 7.4 and on
-the latest WordPress with PHP 8.3. Every feature is switched on at once,
-except maintenance mode (it would answer every visitor page with its
-notice). `--keep-log FILE` saves `debug.log`; CI keeps it as an artifact
+the latest WordPress with PHP 8.3. Every feature with an on/off setting is
+switched on at once, except one with the key `maintenance` (a maintenance
+mode would answer every visitor page with its notice). `--keep-log FILE` saves `debug.log`; CI keeps it as an artifact
 when the test fails.
 
 ## Test site resources
 
-A test site runs SEO Pro Stack with every recommended plugin
-(`admin/data/free-plugins.php`) installed, and many of them active. PHP's
-defaults are too small for that: OPcache fills and restarts, admin
-requests queue behind two workers, and the slowdowns look like bugs.
-Size the site to what Hosting needs measures, with room to spare:
+Test sites run the plugin alongside many others (SEO Pro Stack's run every
+plugin it recommends). PHP's defaults are too small for that: OPcache fills
+and restarts, admin requests queue behind two workers, and the slowdowns
+look like bugs. Size every test site, shared or throwaway, with room to
+spare:
 
 | Setting | Where (LocalWP, nginx) | Value | PHP or Local default |
 |---|---|---|---|
@@ -129,7 +130,7 @@ Size the site to what Hosting needs measures, with room to spare:
 | `memory_limit` | `conf/php/php.ini.hbs` | `768M` | 256M |
 | `pm.max_children` | `conf/php/php-fpm.d/www.conf.hbs` | `5` | 2 |
 
-Measured on the shared test site with 72 plugins installed: OPcache used
+Measured on SEO Pro Stack's shared test site with 72 plugins installed: OPcache used
 509 MB of 512 MB and restarted, then 315 MB of 1 GB with 31,723 PHP files
 cached; pages peaked at 352 MB of memory; the busiest hour needed 5 workers.
 
@@ -139,12 +140,14 @@ cached; pages peaked at 352 MB of memory; the busiest hour needed 5 workers.
   start. Add a comment with the date and reason next to each change.
 - The OPcache lines sit inside `{{#unless apache}}`: on an Apache site,
   move them out or set them in Apache's own configuration.
-- Check after the restart: Plugins screen → Hosting needs shows no
-  warnings, and Site Health → Info → Server shows the new values.
-- Raise them again when Hosting needs asks, and update this table.
-- To test Hosting needs' own warnings, lower a value on a throwaway site,
-  never the shared one.
-- Docker sites (`scripts/smoke-test.sh`, step 4 in `AGENTS.md` →
+- Check after the restart: Site Health → Info → Server shows the new values
+  (with SEO Pro Stack active, Plugins screen → Hosting needs also shows no
+  warnings).
+- Raise them again when a site needs more (Hosting needs says when), and
+  update this table in the starter.
+- To test low-resource warnings, lower a value on a throwaway site, never
+  the shared one.
+- Docker sites (`scripts/smoke-test.sh`, step 4 in `STANDARDS.md` →
   Testing) take the same values in a `.ini` file mounted into
   `/usr/local/etc/php/conf.d/`.
 
@@ -202,6 +205,4 @@ it at that standard:
    history, issues or docs. Run the history scan above again for commits
    made since the last one.
 
-Done ahead of launch (issue #218): history scan (no secrets; four false
-positives allowed in `.gitleaks.toml`), PHPStan baseline emptied, a
-Plugin URI of its own, `readme.txt` headroom, and the community files.
+What a plugin has already done ahead of launch is in its `LAUNCH.md`.
