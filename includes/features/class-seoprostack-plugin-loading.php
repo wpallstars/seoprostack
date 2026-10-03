@@ -332,7 +332,8 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
     /** Count safe ordinary visits, retaining at most 30 most-used URLs. */
     public static function remember_screen() {
         $state = SEOProStack_Plugin_Loader::state();
-        if (!current_user_can('activate_plugins') || 'GET' !== ($_SERVER['REQUEST_METHOD'] ?? '') || '' === $state['screen']
+        $method = isset($_SERVER['REQUEST_METHOD']) ? sanitize_text_field(wp_unslash($_SERVER['REQUEST_METHOD'])) : '';
+        if (!current_user_can('activate_plugins') || 'GET' !== $method || '' === $state['screen']
             || !in_array($state['mode'], array('full', 'filter'), true) || in_array($state['reason'], array('always', 'error'), true)) {
             return;
         }
@@ -350,7 +351,8 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
             && isset($map['screens'][$state['screen']]);
         // Browser replays acknowledge learning, not popularity. This header
         // grants no access and never changes which URL may be replayed.
-        $hit = '1' === ($_SERVER['HTTP_X_SEOPROSTACK_LEARNING'] ?? '') ? 0 : 1;
+        $replay = isset($_SERVER['HTTP_X_SEOPROSTACK_LEARNING']) ? sanitize_text_field(wp_unslash($_SERVER['HTTP_X_SEOPROSTACK_LEARNING'])) : '';
+        $hit = '1' === $replay ? 0 : 1;
         $history[$url] = array(
             'screen' => $state['screen'],
             'hits' => min(1000000, (int) ($entry['hits'] ?? 0) + $hit),
