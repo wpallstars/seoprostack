@@ -7,6 +7,7 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
+// FlyingPress and Link Whisper are not recommended, at the owner's request.
  function seoprostack_get_pro_plugins() {
     return array(
         'admin-columns' => array(
@@ -270,21 +271,6 @@ if (!defined('ABSPATH')) {
                 )
             ),
             'free_slug' => 'kadence-blocks'
-        ),
-        'link-whisper' => array(
-            'name' => 'Link Whisper',
-            'description' => 'AI-powered internal linking suggestions and management.',
-            'button_group' => array(
-                array(
-                    'text' => 'Home Page',
-                    'url' => 'https://linkwhisper.com/',
-                    'primary' => true
-                ),
-                array(
-                    'text' => 'Pricing',
-                    'url' => 'https://linkwhisper.com/pricing/'
-                )
-            )
         ),
         'media-file-renamer' => array(
             'name' => 'Media File Renamer Pro',
@@ -563,23 +549,6 @@ if (!defined('ABSPATH')) {
                 )
             ),
             'free_slug' => 'easy-video-reviews'
-        ),
-        'flying-press' => array(
-            'name' => 'Flying Press',
-            'description' => 'Advanced WordPress performance optimization and speed enhancement suite.',
-            'button_group' => array(
-                array(
-                    'text' => 'Home Page',
-                    'url' => 'https://flyingpress.com/?ref=crlv',
-                    'primary' => true
-                ),
-                array(
-                    'text' => 'Pricing',
-                    'url' => 'https://flyingpress.com/pricing/'
-                )
-            )
-            // No free_slug: SEO Pro Stack's Speed tab replaces Flying Analytics,
-            // Flying Pages and Flying Scripts, so they are not recommended.
         ),
         'translatepress' => array(
             'name' => 'TranslatePress Pro',
