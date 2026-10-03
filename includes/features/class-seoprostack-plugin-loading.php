@@ -196,7 +196,7 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
                 'default'     => array(),
                 'parent'      => self::KEY,
                 'label'       => __('Plugins to skip on the site', 'seoprostack'),
-                'description' => __('After learning, plugins with nothing seen on the site are skipped automatically on plain page views. Tick other plugins only if you want them skipped too; leave security, caching, cookie and analytics plugins unticked. Logins, sending forms, background tasks and addresses with extra arguments still load every plugin, and so does a plugin that another loading plugin needs.', 'seoprostack'),
+                'description' => __('After learning, plugins with nothing seen on the site are skipped automatically on plain page views, and so, for visitors, are plugins that only add to the admin bar. Tick other plugins only if you want them skipped too; leave security, caching, cookie and analytics plugins unticked. Logins, sending forms, background tasks and addresses with extra arguments still load every plugin, and so does a plugin that another loading plugin needs.', 'seoprostack'),
                 'options'     => array(__CLASS__, 'front_plugin_options'),
             ),
             self::FRONT_USERS_KEY => array(
@@ -208,7 +208,7 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
             ),
             SEOProStack_Plugin_Loader::PAGES_KEY => array(
                 'type'        => 'bool',
-                'default'     => false,
+                'default'     => true,
                 'parent'      => self::KEY,
                 'label'       => __('Learn which plugins each page needs', 'seoprostack'),
                 'description' => __('For visitors without cookies. Each page kind learns once, then new posts of that type use their own blocks and shortcodes to keep the plugins they need. Decisions stay until content or settings change. Unknown pages or content load every plugin. Lists and search keep content plugins; plugins that change every page stay loaded. WooCommerce stays for shop pages, cart displays and store notices; without Lighter WooCommerce pages it keeps loading everywhere. Requests that change things load every plugin.', 'seoprostack'),
@@ -287,13 +287,42 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
         add_action('admin_footer', array(__CLASS__, 'remember_screen'), PHP_INT_MAX);
     }
 
-    /** Preserve saved selections; a new site starts with no bypasses. */
+    /**
+     * Keep saved choices; a site without them starts with no bypasses.
+     * Every site stores every setting, so an empty stored list is a
+     * default, not a choice.
+     *
+     * v18: plugins left unticked in the old "Plugins to load only where
+     *      needed" list keep loading, as always-load bypasses.
+     * v19: undoes v18 where that list was empty: it bypassed every plugin,
+     *      and the site's first learn bypassed every plugin it skips
+     *      automatically, so the feature did nothing. Where the feature is
+     *      off, page learning is switched on, the new default.
+     */
     public static function migrate(array $options, $from_version) {
+        $active = array_values(array_diff(SEOProStack_Plugin_Loader::stored_active_plugins(), array(plugin_basename(SEOPROSTACK_FILE))));
         if (!array_key_exists(self::LIST_KEY, $options)) {
-            $old = SEOProStack_Plugin_Loader::LIST_KEY;
-            $options[self::LIST_KEY] = array_key_exists($old, $options)
-                ? array_values(array_diff(SEOProStack_Plugin_Loader::stored_active_plugins(), (array) $options[$old]))
-                : array();
+            $old = (array) ($options[SEOProStack_Plugin_Loader::LIST_KEY] ?? array());
+            $options[self::LIST_KEY] = $old ? array_values(array_diff($active, $old)) : array();
+        } elseif ($from_version < 19 && $active && !array_diff($active, (array) $options[self::LIST_KEY])) {
+            // Bypassing every plugin is v18's result for an empty list, never a choice.
+            $options[self::LIST_KEY] = array();
+        }
+
+        $keep = SEOProStack_Plugin_Loader::KEEP_KEY;
+        if ($from_version < 19 && get_option(SEOProStack_Plugin_Loader::FRONT_MIGRATED) && empty($options[self::FRONT_KEY]) && !empty($options[$keep])) {
+            $front = get_option(SEOProStack_Plugin_Loader::FRONT, array());
+            if (is_array($front) && !empty($front['notes'])) {
+                $options[$keep] = array_values(array_diff((array) $options[$keep], SEOProStack_Plugin_Loader::front_automatic($active, $front)));
+            }
+        }
+        if ($from_version < 19 && empty($options[self::KEY])) {
+            // Page learning is now on by default; it takes effect only once the feature is switched on.
+            $options[SEOProStack_Plugin_Loader::PAGES_KEY] = true;
+        }
+        if (0 === (int) $from_version) {
+            // A new site has no site-wide choices to keep.
+            update_option(SEOProStack_Plugin_Loader::FRONT_MIGRATED, true, false);
         }
         return $options;
     }
@@ -654,7 +683,8 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
         $learned = SEOProStack_Plugin_Loader::front_current();
         $notes   = $learned && isset($front['notes']) ? (array) $front['notes'] : array();
         $active  = SEOProStack_Plugin_Loader::stored_active_plugins();
-        $automatic = $learned ? SEOProStack_Plugin_Loader::front_automatic($active, $front) : array();
+        // As for visitors: logged-in people get every plugin unless chosen otherwise.
+        $automatic = $learned ? SEOProStack_Plugin_Loader::front_automatic($active, $front, true) : array();
         $chosen = array_diff(array_unique(array_merge($automatic, (array) SEOProStack_Settings::get(self::FRONT_KEY))), (array) SEOProStack_Settings::get(SEOProStack_Plugin_Loader::KEEP_KEY));
         $skipped = $learned ? SEOProStack_Plugin_Loader::front_skipped($chosen, $front) : array();
         $self    = plugin_basename(SEOPROSTACK_FILE);
@@ -690,6 +720,8 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
                 }
                 if (!$parts) {
                     $parts[] = in_array($file, $skipped, true) ? __('skipped: nothing seen on the site', 'seoprostack') : __('nothing seen on the site', 'seoprostack');
+                } elseif (array($texts['bar']) === $parts && in_array($file, $skipped, true)) {
+                    $parts[] = __('skipped for visitors, who have no admin bar', 'seoprostack');
                 }
             }
             if (isset($fdp[$file])) {
@@ -1299,7 +1331,8 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
         }
         $changed = false;
         $options = get_option(SEOProStack_Settings::OPTION, array());
-        if (is_array($options) && array_key_exists(self::FRONT_KEY, $options)) {
+        // An empty list is the stored default: nothing was chosen, so nothing is kept.
+        if (is_array($options) && !empty($options[self::FRONT_KEY])) {
             $automatic = SEOProStack_Plugin_Loader::front_automatic($active, array('notes' => $notes));
             $keep = array_values(array_unique(array_merge((array) ($options[SEOProStack_Plugin_Loader::KEEP_KEY] ?? array()), array_diff($automatic, (array) $options[self::FRONT_KEY], array(plugin_basename(SEOPROSTACK_FILE))))));
             $options[SEOProStack_Plugin_Loader::KEEP_KEY] = $keep;

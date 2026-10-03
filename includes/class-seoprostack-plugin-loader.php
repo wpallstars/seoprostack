@@ -585,7 +585,7 @@ final class SEOProStack_Plugin_Loader {
             return;
         }
         $keep = isset($options[self::KEEP_KEY]) ? (array) $options[self::KEEP_KEY] : array();
-        $chosen = array_unique(array_merge((array) ($options[self::FRONT_KEY] ?? array()), self::front_automatic(self::$raw, $front)));
+        $chosen = array_unique(array_merge((array) ($options[self::FRONT_KEY] ?? array()), self::front_automatic(self::$raw, $front, !$logged_in)));
         $chosen = array_diff(array_intersect(self::$raw, $chosen), $keep);
         // Page learning adds to the site-wide list only on plain public requests.
         // Sessions and authentication still use the chosen site-wide list.
@@ -961,14 +961,24 @@ final class SEOProStack_Plugin_Loader {
     }
 
     /**
-     * Plugins with no learned contribution to the site.
+     * Plugins with no learned contribution to the site and, for visitors
+     * (who have no admin bar), plugins that only add to the admin bar.
      *
-     * @param string[] $active Active plugin files.
-     * @param array    $front  What was learned on the site.
+     * @param string[] $active  Active plugin files.
+     * @param array    $front   What was learned on the site.
+     * @param bool     $visitor Whether the request has no login cookie.
      * @return string[]
      */
-    public static function front_automatic(array $active, array $front) {
-        return array_values(array_diff($active, array_keys(array_filter((array) ($front['notes'] ?? array())))));
+    public static function front_automatic(array $active, array $front, $visitor = false) {
+        $notes = (array) ($front['notes'] ?? array());
+        $skip  = array();
+        foreach ($active as $file) {
+            $list = isset($notes[$file]) ? array_values(array_unique((array) $notes[$file])) : array();
+            if (!$list || ($visitor && array('bar') === $list)) {
+                $skip[] = $file;
+            }
+        }
+        return $skip;
     }
 
     /**
