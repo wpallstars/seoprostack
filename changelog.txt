@@ -2,7 +2,7 @@
 
 Every change to SEO Pro Stack. readme.txt lists the latest version in short.
 
-= Unreleased =
+= 0.11.6 =
 * New, off by default: Rank Math defaults fills empty focus keywords from titles for chosen post types, warns when more than 20% of published posts are pillars and offers selected-post pillar removal.
 * New: Tools → Old addresses has Remove all (it asks first), and ticking the whole page offers Select all to take in every page, as Select all across pages does in post lists. Before, only the 50 old addresses on screen could be removed at once, so a site with a thousand needed twenty-one rounds. The box above the list also ticks the page where another plugin's script stops WordPress's own from doing it.
 * Fix: deactivating Freesoul Deactivate Plugins or its PRO add-on left the other one active and, on networks or when Freesoul's own code did not run, its must-use file behind, still skipping plugins on single sites. Fixes for other plugins now deactivates both together and deletes the file once neither is active anywhere, also when the Plugins screen finds one left from before.
