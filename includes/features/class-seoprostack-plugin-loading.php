@@ -211,7 +211,7 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
                 'default'     => false,
                 'parent'      => self::KEY,
                 'label'       => __('Learn which plugins each page needs', 'seoprostack'),
-                'description' => __('For visitors without cookies. New pages first load every plugin. Content plugins stay on pages using their content. Plugins that change every page stay loaded. WooCommerce also stays for shop pages, cart displays and store notices; without Lighter WooCommerce pages it keeps loading everywhere. Searches, logged-in people and requests that change things load every plugin.', 'seoprostack'),
+                'description' => __('For visitors without cookies. Each page kind learns once, then new posts of that type use their own blocks and shortcodes to keep the plugins they need. Decisions stay until content or settings change. Unknown pages or content load every plugin. Lists and search keep content plugins; plugins that change every page stay loaded. WooCommerce stays for shop pages, cart displays and store notices; without Lighter WooCommerce pages it keeps loading everywhere. Requests that change things load every plugin.', 'seoprostack'),
             ),
             SEOProStack_Plugin_Loader::KEEP_KEY => array(
                 'type'        => 'multi',
