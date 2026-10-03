@@ -2,8 +2,11 @@
 
 Every change to SEO Pro Stack. readme.txt lists the latest version in short.
 
-= 0.11.2 =
+= Unreleased =
 * Change: relevant Theme, Pro Plugins, Hosting and Tools links use existing affiliate or referral links, keeping product and pricing links available. Separate links cover Kadence bundles, the Bit Apps store, Fiverr Pro and the Speedy Index Telegram bot.
+* Fix: Updates from GitHub could not download updates from private repositories on sites where another plugin's updater resets every download (GPLVault Updater does): GitHub answered "Not Found". On such sites, install this version once by hand; later updates arrive by themselves.
+
+= 0.11.2 =
 * Fix: Load plugins only where needed, with Learn which plugins each page needs on, could miss some of a page's scripts and styles, and so skip a plugin that page still used. It also wrote "Undefined array key" warnings to the debug log. Each page is learned again within the hour.
 
 = 0.11.1 =

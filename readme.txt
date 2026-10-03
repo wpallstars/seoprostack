@@ -123,8 +123,11 @@ Click **Report a problem** at the top right of Settings → SEO Pro Stack, or op
 
 == Changelog ==
 
-= 0.11.2 =
+= Unreleased =
 * Change: existing affiliate and referral links in Discover; product and pricing links kept.
+* Fix: updates from private GitHub repositories failed where another updater resets every download (GPLVault Updater).
+
+= 0.11.2 =
 * Fix: Load plugins only where needed, with Learn which plugins each page needs on, could skip a plugin a page still used.
 
 Older: `changelog.txt`.
