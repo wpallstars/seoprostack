@@ -71,6 +71,7 @@ class SEOProStack_External_Links extends SEOProStack_Feature {
         }
         $excluded = preg_split('/\s+/', (string) SEOProStack_Settings::get('external_link_icons_exclude_domains'), -1, PREG_SPLIT_NO_EMPTY);
         $tags = new WP_HTML_Tag_Processor($html);
+        $pending = 0;
         while ($tags->next_tag(array('tag_name' => 'A'))) {
             $href = trim((string) $tags->get_attribute('href'));
             if (!preg_match('~^(?:https?:)?//~i', $href) || null !== $tags->get_attribute('download') || 'button' === $tags->get_attribute('role')) {
@@ -84,15 +85,19 @@ class SEOProStack_External_Links extends SEOProStack_Feature {
             if ($home === $host || self::excluded($host, $excluded ?: array())) {
                 continue;
             }
-            $skip = false;
-            foreach (array('sps-no-external-icon', 'wp-block-button__link', 'wp-element-button', 'kb-button', 'button') as $class) {
-                if ($tags->has_class($class)) {
-                    $skip = true;
-                    break;
-                }
+            // has_class() arrived in WordPress 6.4; read the class attribute
+            // once instead, including already-marked links for cheap repeats.
+            $classes = (string) $tags->get_attribute('class');
+            if (preg_match('/(?:^|[\t\n\f\r ])(?:sps-external-link|sps-no-external-icon|wp-block-button__link|wp-element-button|kb-button|button)(?:$|[\t\n\f\r ])/', $classes)) {
+                continue;
             }
-            if (!$skip) {
-                $tags->add_class('sps-external-link');
+            $tags->add_class('sps-external-link');
+            // Core visits its pending update queue on each subsequent tag.
+            // Flush small batches so link-heavy pages do not grow that queue
+            // quadratically; the tokenizer keeps its position when flushing.
+            if (++$pending >= 32) {
+                $tags->get_updated_html();
+                $pending = 0;
             }
         }
         return $tags->get_updated_html();

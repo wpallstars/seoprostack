@@ -488,6 +488,37 @@ Short addresses on your site, such as `/go/offer/`, that send visitors to anothe
 - Imports Lasso Lite (Simple URLs) links, for sites moving their links. It does not replace Lasso Lite, which does more than links (product displays with its `[lasso]` shortcode, block and Elementor widget, and reports), so the two run side by side: Lasso Lite keeps answering its own addresses until they are imported, and its settings are left alone. Its links (`surl` posts) are imported the same way as Pretty Links’ (on deactivation, **Import links**, or `wp seoprostack short-links import`, which lists each address left out) with their address (`/go/name/`, or the prefix its `simple_urls_slug` filter sets), target, nofollow, sponsored, name, date, on or off (only published links redirect in Lasso Lite), click count and categories (`lasso-lite-cat`). They stay 301 redirects that count every click, as in Lasso Lite; it has no unique visitor counts. Amazon product targets get Lasso Lite’s tracking ID the way Lasso Lite adds it when redirecting, when its code is loaded (the import on deactivation, or while it is active). Lasso Lite redirects from its post meta, so its own tables are not read, and its data is only read. On deactivation, WordPress rebuilds its rewrite rules, since Lasso Lite leaves its own behind and other `/go/…` addresses would show the home page instead of a 404.
 - The Short links list shows only WordPress’s own row links (Edit, Quick Edit, Bin, Restore, Delete permanently) and SEO Pro Stack’s. Other plugins add theirs to every post type, such as AI Engine’s Magic Wand and Social Engine’s Create Social Post, which do nothing useful for a redirect.
 
+### External link icons (Links)
+
+Off by default. Adds a small square-and-arrow after external text links in
+rendered post content and block or classic text widgets. It uses the link's
+colour, including hover, focus and Kadence's live light/dark palette switch.
+
+- No JavaScript, icon font, extra asset request or outside service. A small
+  inline stylesheet is printed in the head while enabled; WordPress's HTML
+  tokenizer marks links in one pass, flushing small batches of changes to
+  keep link-heavy pages fast. Page caches keep the result normally.
+- Only absolute HTTP(S) and protocol-relative links to a different hostname
+  are marked. Relative links, anchors, email and telephone links stay plain.
+  The home hostname, its www variant and trailing DNS dot are treated alike;
+  other subdomains are external unless listed in **Do not mark these domains**
+  (that list also covers each domain's subdomains).
+- Image/SVG links, buttons, downloads, empty links and links containing an
+  existing SVG or Link Whisper icon are left undecorated. Add
+  `sps-no-external-icon` to a link or a content container to opt out,
+  including links styled by your own theme.
+- No changes to saved posts, link targets, rel attributes, accessible names,
+  feeds, REST responses or auto-generated excerpts. Links in menus and HTML
+  inserted later by scripts are outside this feature's content hooks.
+- The icon is decorative and scales with the text; older browsers without
+  CSS `:has()` keep plain, working links. Allow data images in a custom CSP
+  if you want the embedded icon mask to show.
+- Only Link Whisper's external-link icon is covered, not its suggestions,
+  reports, keyword autolinking or URL rules. The Plugins screen does not
+  recommend removing Link Whisper. Its embedded icons take precedence;
+  turn its icon off to use this one, and deactivate it only if its other
+  tools are not needed. No Link Whisper settings are imported or changed.
+
 ### Publishing queue (Content)
 
 Publishing a post from the editor without choosing a date schedules it for the next free time slot instead.
@@ -1063,39 +1094,14 @@ Deleting the plugin removes its settings and cached data, the profile pictures a
 
 Deactivating the plugin removes the WebP and AVIF rules from the uploads folder’s `.htaccess` (for every site when network-deactivated) and the must-use file of Load plugins only where needed (on multisite, when network-deactivated).
 
-### External link icons (Links)
-
-Off by default. Adds a small square-and-arrow after external text links in
-rendered post content and block or classic text widgets. It uses the link's
-colour, including hover, focus and Kadence's live light/dark palette switch.
-
-- No JavaScript, icon font, extra asset request or outside service. A small
-  inline stylesheet is printed in the head while enabled; WordPress's HTML
-  tokenizer marks links in one pass. Page caches keep the result normally.
-- Only absolute HTTP(S) and protocol-relative links to a different hostname
-  are marked. Relative links, anchors, email and telephone links stay plain.
-  The home hostname, its www variant and trailing DNS dot are treated alike;
-  other subdomains are external unless listed in **Do not mark these domains**
-  (that list also covers each domain's subdomains).
-- Image/SVG links, buttons, downloads, empty links and links containing an
-  existing icon are left undecorated. Add `sps-no-external-icon` to a link or
-  a content container to opt out, including links styled by your own theme.
-- No changes to saved posts, link targets, rel attributes, accessible names,
-  feeds, REST responses or auto-generated excerpts. Links in menus and HTML
-  inserted later by scripts are outside this feature's content hooks.
-- The icon is decorative and scales with the text; older browsers without
-  CSS `:has()` keep plain, working links. Allow data images in a custom CSP
-  if you want the embedded icon mask to show.
-- Only Link Whisper's external-link icon is covered, not its suggestions,
-  reports, keyword autolinking or URL rules. The Plugins screen does not
-  recommend removing Link Whisper. Before switching, turn its icon off to
-  avoid two indicators; deactivate it only if its other tools are not needed.
-
 ## Changelog
+
+### Unreleased
+
+- New, off by default: External link icons (Links tab), following link colours and Kadence light/dark switching with no scripts or extra asset requests. Related-domain and per-link bypasses; image links and buttons stay plain. Covers only Link Whisper's icon, not its linking tools.
 
 ### 0.11.4
 
-- New, off by default: External link icons (Links tab), following link colours and Kadence light/dark switching with no scripts or extra asset requests. Related-domain and per-link bypasses; image links and buttons stay plain. Covers only Link Whisper's icon, not its linking tools.
 - Fixed: on a network, a site where Fluent Forms, Fluent Boards or FluentCommunity is network-active but never set up (its tables missing) showed a critical error on every page after updating to 0.11.3, while SEO Pro Stack upgraded its settings. The Agency lists now skip a plugin whose tables are missing.
 
 ### 0.11.3
