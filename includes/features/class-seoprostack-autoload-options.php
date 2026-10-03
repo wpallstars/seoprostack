@@ -261,7 +261,9 @@ final class SEOProStack_Autoload_Options extends SEOProStack_Feature {
         $roots = array(WPMU_PLUGIN_DIR, get_template_directory(), get_stylesheet_directory());
         foreach (self::stored_active_plugins() as $file) {
             if ($file !== plugin_basename(dirname(__DIR__, 2) . '/seoprostack.php')) {
-                $roots[] = '.' === dirname($file) ? WP_PLUGIN_DIR . '/' . $file : WP_PLUGIN_DIR . '/' . dirname($file);
+                // A root-level plugin can include sibling files; scan that
+                // directory too rather than claim its includes are safe.
+                $roots[] = '.' === dirname($file) ? WP_PLUGIN_DIR : WP_PLUGIN_DIR . '/' . dirname($file);
             }
         }
         $fs = new WP_Filesystem_Direct(null);
@@ -273,10 +275,20 @@ final class SEOProStack_Autoload_Options extends SEOProStack_Feature {
                 }
                 $files = is_dir($root) ? new RecursiveIteratorIterator(new RecursiveDirectoryIterator($root, FilesystemIterator::SKIP_DOTS)) : array(new SplFileInfo($root));
                 foreach ($files as $file) {
+                    $path = $file->getPathname();
+                    if (0 === strpos($path, dirname(__DIR__, 2) . '/')) {
+                        continue; // Our only alloptions lookup tests protected active_plugins.
+                    }
+                    if (dirname($path) === WPMU_PLUGIN_DIR && strtolower($file->getExtension()) === 'php' && strcmp($file->getFilename(), self::FILE) < 0) {
+                        return 'scan'; // An earlier MU plugin may read options before observation starts.
+                    }
+                    if ($file->isLink() && $file->isDir()) {
+                        return 'scan'; // Do not silently skip executable symlinked includes.
+                    }
                     if (!in_array(strtolower($file->getExtension()), array('php', 'inc', 'phtml', 'php5', 'php7', 'php8'), true) || self::FILE === $file->getFilename() || $file->isDir()) {
                         continue;
                     }
-                    $source = $fs->get_contents($file->getPathname());
+                    $source = $fs->get_contents($path);
                     if (++$count > 4000 || false === $source) {
                         return 'scan';
                     }
