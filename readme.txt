@@ -5,7 +5,7 @@ Tags: magic login, iframe, schedule posts, auto upload images, admin
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 0.11.3
+Stable tag: 0.11.4
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -123,18 +123,15 @@ Click **Report a problem** at the top right of Settings → SEO Pro Stack, or op
 
 == Changelog ==
 
-= 0.11.3 =
-* Change: page learning uses lasting page kinds and each post's content, on its first visit; unknowns load every plugin.
-* Change: skip unused site plugins after learning, with an always-load bypass and saved choices preserved.
-* Change: automatic admin plugin choices, preserved bypasses and safe idle screen relearning; site choices unchanged.
-* Fix: import Widget Disable's Network Admin dashboard choices on multisite, including on upgrade.
-* Fix: page learning keeps the site-wide skip list working; Health Check troubleshooting leaves learning maps unchanged.
-* Change: existing affiliate and referral links in Discover; product and pricing links kept.
-* Fix: updates from private GitHub repositories failed where another updater resets every download (GPLVault Updater).
+= 0.11.4 =
+* Fix: a critical error on every page after updating to 0.11.3, on network sites where Fluent Forms, Fluent Boards or FluentCommunity is network-active but was never set up.
 
 Older: `changelog.txt`.
 
 == Upgrade Notice ==
+
+= 0.11.4 =
+Fixes a critical error on some network sites after 0.11.3. From 0.11.2 or older with GPLVault Updater active: install 0.11.4 once by hand.
 
 = 0.11.3 =
 Sites with GPLVault Updater active: install 0.11.3 once by hand; later updates from GitHub then arrive by themselves.
