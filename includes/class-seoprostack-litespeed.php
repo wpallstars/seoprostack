@@ -205,7 +205,7 @@ final class SEOProStack_Litespeed {
         printf(
             '<tr class="plugin-update-tr active"><td colspan="%1$d" class="plugin-update colspanchange"><div class="notice inline notice-warning notice-alt"><p>%2$s</p></div></td></tr>',
             (int) $columns,
-            esc_html__('Deactivating WP-Optimize or WP-Optimize Premium can remove the WP_CACHE line LiteSpeed Cache needs from wp-config.php. After deactivating it, save LiteSpeed Cache’s General settings to restore that line, and check for any file permission warning.', 'seoprostack')
+            esc_html__('Deactivating WP-Optimize or WP-Optimize Premium can remove the WP_CACHE line LiteSpeed Cache needs from wp-config.php. After deactivating it, save LiteSpeed Cache’s Cache settings to restore that line, and check for any file permission warning.', 'seoprostack')
         );
     }
 
