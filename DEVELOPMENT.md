@@ -116,8 +116,8 @@ when the test fails.
 
 ## Test site resources
 
-Test sites run the plugin alongside many others (SEO Pro Stack's run every
-plugin it recommends). PHP's defaults are too small for that: OPcache fills
+Test sites run the plugin alongside many others (a plugin that recommends
+plugins is tested with all of them active). PHP's defaults are too small for that: OPcache fills
 and restarts, admin requests queue behind two workers, and the slowdowns
 look like bugs. Size every test site, shared or throwaway, with room to
 spare:
@@ -130,7 +130,7 @@ spare:
 | `memory_limit` | `conf/php/php.ini.hbs` | `768M` | 256M |
 | `pm.max_children` | `conf/php/php-fpm.d/www.conf.hbs` | `5` | 2 |
 
-Measured on SEO Pro Stack's shared test site with 72 plugins installed: OPcache used
+Measured on a shared test site with 72 plugins installed: OPcache used
 509 MB of 512 MB and restarted, then 315 MB of 1 GB with 31,723 PHP files
 cached; pages peaked at 352 MB of memory; the busiest hour needed 5 workers.
 
@@ -140,11 +140,9 @@ cached; pages peaked at 352 MB of memory; the busiest hour needed 5 workers.
   start. Add a comment with the date and reason next to each change.
 - The OPcache lines sit inside `{{#unless apache}}`: on an Apache site,
   move them out or set them in Apache's own configuration.
-- Check after the restart: Site Health → Info → Server shows the new values
-  (with SEO Pro Stack active, Plugins screen → Hosting needs also shows no
-  warnings).
-- Raise them again when a site needs more (Hosting needs says when), and
-  update this table in the starter.
+- Check after the restart: Site Health → Info → Server shows the new values.
+- Raise them again when a site needs more, and update this table in the
+  starter.
 - To test low-resource warnings, lower a value on a throwaway site, never
   the shared one.
 - Docker sites (`scripts/smoke-test.sh`, step 4 in `STANDARDS.md` →

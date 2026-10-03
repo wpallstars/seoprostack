@@ -10,10 +10,10 @@ Names below are placeholders. Each plugin's `AGENTS.md` gives its values:
 
 | Placeholder | Meaning | Example |
 |---|---|---|
-| `{slug}` | Folder, main file, text domain, option and hook prefix | `seoprostack` |
-| `{Prefix}` | Class prefix (`@package`) | `SEOProStack` |
-| `{PREFIX}` | Constant prefix | `SEOPROSTACK` |
-| `{Name}` | Plugin name | SEO Pro Stack |
+| `{slug}` | Folder, main file, text domain, option and hook prefix | `myplugin` |
+| `{Prefix}` | Class prefix (`@package`) | `MyPlugin` |
+| `{PREFIX}` | Constant prefix | `MYPLUGIN` |
+| `{Name}` | Plugin name | My Plugin |
 
 Minimums: **WordPress 6.2, PHP 7.4** (`readme.txt`, plugin header).
 How changes are made and checked: `DEVELOPMENT.md`. Releases: `RELEASING.md`.
