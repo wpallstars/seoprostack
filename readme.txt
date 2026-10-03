@@ -5,7 +5,7 @@ Tags: magic login, iframe, schedule posts, auto upload images, admin
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 0.11.11
+Stable tag: 0.12.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -129,14 +129,10 @@ Use **Report a problem** in Settings → SEO Pro Stack or [GitHub](https://githu
 
 == Changelog ==
 
-= 0.11.11 =
-* Developers: shorter agent guide and synced starter files. Nothing changes for users.
-
-= 0.11.10 =
-* Change: Refined Discover recommendations; added Fluent Query Logger under Debug.
-* New, off: approved local linking and undo, reports, opt-in health/click checks and read-only Link Whisper audit; Custom fields to content with excerpts and WP-CLI sync.
-* Fix: WP-Optimize Premium handling, Tutor LMS network tables and slow Tutor LMS Pro/Comment Goblin admin screens.
-* Fix: Long Rank Math keywords wrap in the SEO Details column instead of pushing lists off the page.
+= 0.12.0 =
+* New, off: Tag clouds and related posts: tag clouds, A–Z indexes, grouped terms in tabs or accordions, and a Related posts block. TaxoPress and Tag Groups pages keep working after they are removed.
+* New: Term tools finds unused terms.
+* Change: Discover no longer recommends TaxoPress Pro.
 
 Older: `changelog.txt`.
 
