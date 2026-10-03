@@ -89,13 +89,18 @@ jobs:
         run: scripts/build-release.sh --out dist
 
       - name: Plugin Check
-        run: scripts/plugin-check.sh --zip dist/seoprostack-*.zip --zip dist/wordpress-org-seoprostack-*.zip --keep-output dist/plugin-check
+        run: |
+          args=()
+          for zip in dist/*.zip; do
+            args+=(--zip "$zip")
+          done
+          scripts/plugin-check.sh "${args[@]}" --keep-output dist/plugin-check
 
       - name: Keep the zips and reports for testing
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
-          name: seoprostack-build-${{ github.sha }}
+          name: ${{ github.event.repository.name }}-build-${{ github.sha }}
           path: dist/
           retention-days: 7
           if-no-files-found: ignore

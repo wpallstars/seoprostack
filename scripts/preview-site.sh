@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Copy a combined preview of SEO Pro Stack to the shared local test site:
+# Copy a combined preview of the plugin to the shared local test site:
 # origin/main plus every open pull request from this repository, merged in
 # PR order. Branches that conflict are left out and reported, except when
 # the only conflicts are in the changelogs (DOC_FILES): every PR adds lines
@@ -13,20 +13,19 @@
 # can run it, and every run includes everyone's pushed work. The copy holds
 # what a release build contains (.distignore applied). A checkout whose copy
 # of this script differs from origin/main's runs origin/main's, so an old
-# worktree cannot leave PRs out (SEOPROSTACK_PREVIEW_OWN=1 runs its own).
+# worktree cannot leave PRs out (<PREFIX>_PREVIEW_OWN=1 runs its own; the
+# prefix is the plugin's constant prefix, such as SEOPROSTACK).
 #
 # Usage: scripts/preview-site.sh [--dry-run] [<site>]
 #   <site>     WordPress folder of the test site (the one with wp-load.php).
 #              Remembered for every worktree of this clone after first use;
-#              SEOPROSTACK_PREVIEW_SITE overrides it.
+#              <PREFIX>_PREVIEW_SITE overrides it.
 #   --dry-run  Report what would be included; copy nothing.
 #
 # Needs git 2.38+ (merge-tree --write-tree), gh (signed in) and rsync.
 
 set -euo pipefail
 
-readonly PLUGIN_SLUG="seoprostack"
-readonly STAMP_NAME="seoprostack-synced-from.txt"
 readonly LOCK_WAIT_SECONDS=180
 readonly LOCK_STALE_MINUTES=10
 # Files whose conflicts do not keep a PR out of the preview.
@@ -35,6 +34,8 @@ readonly DOC_FILES="changelog.txt readme.txt README.md"
 LOCK_DIR=""
 TMP_DIR=""
 UNION_ATTRIBUTES=""
+# Set in main() from the plugin's main file (scripts/lib/plugin.sh).
+STAMP_NAME=""
 
 # Results, set by the functions below (Bash 3.2 has no namerefs).
 SITE=""
@@ -50,7 +51,23 @@ die() {
 }
 
 usage() {
-	sed -n '2,25p' "$0" | sed 's/^# \{0,1\}//'
+	sed -n '2,26p' "$0" | sed 's/^# \{0,1\}//'
+	return 0
+}
+
+# Source scripts/lib/plugin.sh: the copy beside this script, or origin/main's
+# when this runs as origin/main's copy from a temporary file and an older
+# checkout started it (run_latest) without the library beside it.
+load_plugin_lib() {
+	local dir lib
+	dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+	if [ -r "$dir/lib/plugin.sh" ]; then
+		# shellcheck source=scripts/lib/plugin.sh disable=SC1091 # followed only with -x
+		. "$dir/lib/plugin.sh"
+		return 0
+	fi
+	lib="$(git show origin/main:scripts/lib/plugin.sh)" || die "scripts/lib/plugin.sh not found beside the script or on origin/main"
+	eval "$lib"
 	return 0
 }
 
@@ -105,7 +122,7 @@ resolve_site() {
 	local site_arg="$1"
 	local saved="$2"
 	local remember="$3"
-	SITE="${SEOPROSTACK_PREVIEW_SITE:-}"
+	SITE="$(plugin_env PREVIEW_SITE)"
 	[ -n "$site_arg" ] && SITE="$site_arg"
 	if [ -z "$SITE" ] && [ -f "$saved" ]; then
 		SITE="$(cat "$saved")"
@@ -260,6 +277,7 @@ report() {
 # Copy PREVIEW_COMMIT to the site as a release build would contain it.
 copy_to_site() {
 	local destination="$SITE/wp-content/plugins/$PLUGIN_SLUG"
+	[ -n "$PLUGIN_SLUG" ] || die "no plugin slug"
 	mkdir "$TMP_DIR/plugin"
 	git archive --format=tar "$PREVIEW_COMMIT" | tar -x -C "$TMP_DIR/plugin"
 	git show "$PREVIEW_COMMIT:.distignore" >"$TMP_DIR/distignore"
@@ -270,32 +288,39 @@ copy_to_site() {
 
 # Run origin/main's copy of this script when this checkout's differs, so a
 # worktree made before a fix to the script cannot leave open PRs out of the
-# shared preview. SEOPROSTACK_PREVIEW_OWN=1 runs this copy instead (to try a
-# change to the script itself).
+# shared preview. <PREFIX>_PREVIEW_OWN=1 runs this copy instead (to try a
+# change to the script itself). The copy goes in a temporary folder with
+# origin/main's scripts/lib/plugin.sh beside it.
 run_latest() {
 	local dry_run="$1"
 	local site_arg="$2"
 	local root="$3"
+	local latest_var="${PLUGIN_CONST}_PREVIEW_LATEST"
 	local latest
-	if [ -n "${SEOPROSTACK_PREVIEW_LATEST:-}" ]; then
-		# Already main's copy: bash has the file open, so it can go now.
-		rm -f "$SEOPROSTACK_PREVIEW_LATEST"
+	latest="$(plugin_env PREVIEW_LATEST)"
+	if [ -n "$latest" ]; then
+		# Already main's copy: bash has the file open and the library is
+		# loaded, so the folder can go now.
+		rm -rf "$latest"
 		return 0
 	fi
-	if [ "${SEOPROSTACK_PREVIEW_OWN:-}" = "1" ]; then
+	if [ "$(plugin_env PREVIEW_OWN)" = "1" ]; then
 		return 0
 	fi
 	git fetch --quiet --prune origin || return 0
-	latest="$(mktemp "${TMPDIR:-/tmp}/seoprostack-preview-latest.XXXXXX")"
-	if ! git show origin/main:scripts/preview-site.sh >"$latest" 2>/dev/null || cmp -s "$latest" "$root/scripts/preview-site.sh"; then
-		rm -f "$latest"
+	latest="$(mktemp -d "${TMPDIR:-/tmp}/$PLUGIN_SLUG-preview-latest.XXXXXX")"
+	mkdir -p "$latest/lib"
+	if ! git show origin/main:scripts/preview-site.sh >"$latest/preview-site.sh" 2>/dev/null ||
+		! git show origin/main:scripts/lib/plugin.sh >"$latest/lib/plugin.sh" 2>/dev/null ||
+		{ cmp -s "$latest/preview-site.sh" "$root/scripts/preview-site.sh" && cmp -s "$latest/lib/plugin.sh" "$root/scripts/lib/plugin.sh"; }; then
+		rm -rf "$latest"
 		return 0
 	fi
 	printf 'preview-site: this checkout'\''s copy of the script differs from origin/main; running origin/main'\''s.\n' >&2
 	if [ "$dry_run" -eq 1 ]; then
-		SEOPROSTACK_PREVIEW_LATEST="$latest" exec bash "$latest" --dry-run ${site_arg:+"$site_arg"}
+		exec env "$latest_var=$latest" bash "$latest/preview-site.sh" --dry-run ${site_arg:+"$site_arg"}
 	fi
-	SEOPROSTACK_PREVIEW_LATEST="$latest" exec bash "$latest" ${site_arg:+"$site_arg"}
+	exec env "$latest_var=$latest" bash "$latest/preview-site.sh" ${site_arg:+"$site_arg"}
 }
 
 main() {
@@ -320,15 +345,18 @@ main() {
 	root="$(git rev-parse --show-toplevel)" || die "run this inside a checkout of the plugin"
 	common="$(git rev-parse --path-format=absolute --git-common-dir)"
 	cd "$root"
+	load_plugin_lib
+	plugin_identity HEAD || die "cannot tell which plugin this is"
+	STAMP_NAME="$PLUGIN_SLUG-synced-from.txt"
 	run_latest "$dry_run" "$site_arg" "$root"
-	resolve_site "$site_arg" "$common/seoprostack-preview-site" "$((1 - dry_run))"
+	resolve_site "$site_arg" "$common/$PLUGIN_SLUG-preview-site" "$((1 - dry_run))"
 
 	trap cleanup EXIT
-	TMP_DIR="$(mktemp -d "${TMPDIR:-/tmp}/seoprostack-preview.XXXXXX")"
+	TMP_DIR="$(mktemp -d "${TMPDIR:-/tmp}/$PLUGIN_SLUG-preview.XXXXXX")"
 	UNION_ATTRIBUTES="$TMP_DIR/union-attributes"
 	write_union_attributes
 	if [ "$dry_run" -eq 0 ]; then
-		acquire_lock "$common/seoprostack-preview.lock"
+		acquire_lock "$common/$PLUGIN_SLUG-preview.lock"
 	fi
 	git fetch --quiet --prune origin
 	build_preview

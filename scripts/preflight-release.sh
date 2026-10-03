@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Check a version of SEO Pro Stack before it is released on GitHub or
+# Check a version of the plugin before it is released on GitHub or
 # submitted to WordPress.org. Changes nothing: it builds both zips into a
 # temporary folder (scripts/build-release.sh) and reads them and the Git ref.
 #
@@ -18,18 +18,23 @@
 
 set -euo pipefail
 
-readonly SLUG="seoprostack"
-readonly MAIN_FILE="seoprostack.php"
-readonly VERSION_CONSTANT="SEOPROSTACK_VERSION"
-readonly UPDATER_FILE="includes/features/class-seoprostack-github-updates.php"
 readonly UPDATER_HEADERS='GitHub Plugin URI|Primary Branch|Release Asset'
 # Development files that must never be in a release zip (paths inside the slug folder).
-readonly DEV_FILES='^[^/]+/(\.git|\.agents|\.wordpress-org|\.distignore|\.distignore-wporg|\.gitattributes|\.gitignore|\.woodpecker\.yml|\.github|\.editorconfig|\.gitleaks\.toml|composer\.(json|lock)|phpcs\.xml(\.dist)?|phpstan(-baseline)?\.neon(\.dist)?|vendor|AGENTS\.md|CONTRIBUTING\.md|DEVELOPMENT\.md|SECURITY\.md|RELEASING\.md|ROADMAP\.md|STABILITY\.md|TESTING\.md|scripts|dist|node_modules|reference-plugins|project-documents)(/|$)|(^|/)(\.DS_Store|__MACOSX|Thumbs\.db)(/|$)|\.(bak|log|orig|swp)$'
+readonly DEV_FILES='^[^/]+/(\.git|\.agents|\.wordpress-org|\.distignore|\.distignore-wporg|\.gitattributes|\.gitignore|\.woodpecker\.yml|\.github|\.editorconfig|\.gitleaks\.toml|composer\.(json|lock)|phpcs\.xml(\.dist)?|phpstan(-baseline|-plugin)?\.neon(\.dist)?|vendor|AGENTS\.md|CONTRIBUTING\.md|DEVELOPMENT\.md|SECURITY\.md|RELEASING\.md|ROADMAP\.md|STABILITY\.md|TESTING\.md|scripts|dist|node_modules|reference-plugins|project-documents)(/|$)|(^|/)(\.DS_Store|__MACOSX|Thumbs\.db)(/|$)|\.(bak|log|orig|swp)$'
 readonly README_MAX_BYTES=10240
 readonly SHORT_DESC_MAX=150
 readonly MAX_TAGS=5
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 readonly SCRIPT_DIR
+# shellcheck source=scripts/lib/plugin.sh disable=SC1091 # followed only with -x
+. "$SCRIPT_DIR/lib/plugin.sh"
+
+# Set from the main file at the ref (plugin_identity).
+SLUG=""
+MAIN_FILE=""
+VERSION_CONSTANT=""
+# Paths only in the GitHub build (.distignore-wporg): the GitHub updater.
+UPDATER_FILES=""
 
 ERRORS=0
 WARNINGS=0
@@ -466,13 +471,20 @@ check_builds() {
 
 	UNPACKED=""
 	check_zip "$github_zip" "github"
-	local github_dir="$UNPACKED"
-	if [ -f "$github_dir/$UPDATER_FILE" ]; then ok "github: has $UPDATER_FILE"; else err "github: $UPDATER_FILE missing"; fi
+	local github_dir="$UNPACKED" path
+	if [ -z "$UPDATER_FILES" ]; then
+		note "no .distignore-wporg: both builds hold the same files"
+	fi
+	for path in $UPDATER_FILES; do
+		if [ -e "$github_dir/$path" ]; then ok "github: has $path"; else err "github: $path missing (listed in .distignore-wporg)"; fi
+	done
 	if grep -Eq "^[[:space:]*]*GitHub Plugin URI:" "$github_dir/$MAIN_FILE"; then ok "github: has the GitHub Plugin URI header"; else err "github: no GitHub Plugin URI header, sites cannot update it from GitHub"; fi
 
 	check_zip "$wporg_zip" "wporg"
 	local wporg_dir="$UNPACKED"
-	if [ -f "$wporg_dir/$UPDATER_FILE" ]; then err "wporg: $UPDATER_FILE must not be in the WordPress.org build"; else ok "wporg: no GitHub updater file"; fi
+	for path in $UPDATER_FILES; do
+		if [ -e "$wporg_dir/$path" ]; then err "wporg: $path must not be in the WordPress.org build"; else ok "wporg: no $path"; fi
+	done
 	if grep -Eq "^[[:space:]*]*($UPDATER_HEADERS):" "$wporg_dir/$MAIN_FILE"; then err "wporg: GitHub updater header lines still in $MAIN_FILE"; else ok "wporg: no GitHub updater header lines"; fi
 	local hits
 	hits="$(grep -rEl --include='*.php' --include='*.js' 'gu_override_dot_org|api\.github\.com/repos|Plugin_Upgrader|Theme_Upgrader|site_transient_update_plugins|auto_update_(plugin|theme)' "$wporg_dir" 2>/dev/null | sed "s|^$wporg_dir/||" || true)"
@@ -500,12 +512,17 @@ check_builds() {
 		note "hosts in code not named in readme.txt (fine if they are only links; services the plugin contacts need an External services entry):$missing"
 	fi
 
-	check_presets_starters "$github_dir"
-	check_replaced_count "$github_dir"
+	# Checks for parts only some plugins have; each runs when its files exist.
+	if [ -d "$github_dir/presets" ] || [ -d "$github_dir/starters" ]; then
+		check_presets_starters "$github_dir"
+	fi
+	if [ -f "$SCRIPT_DIR/replaced-plugins.php" ]; then
+		check_replaced_count "$github_dir"
+	fi
 	return 0
 }
 
-# README.md's "SEO Pro Stack replaces **N plugins**" line matches the
+# README.md's "<Plugin Name> replaces **N plugins**" line matches the
 # 'replaces' entries in the code (scripts/replaced-plugins.php).
 check_replaced_count() {
 	local dir="$1"
@@ -572,9 +589,14 @@ main() {
 	root="$(git rev-parse --show-toplevel)" || die "run this inside a checkout of the plugin"
 	cd "$root"
 	sha="$(git rev-parse --verify --quiet "$ref^{commit}")" || die "not a commit: $ref"
+	plugin_identity "$sha" || die "cannot tell which plugin this is at $ref"
+	SLUG="$PLUGIN_SLUG"
+	MAIN_FILE="$PLUGIN_MAIN_FILE"
+	VERSION_CONSTANT="${PLUGIN_CONST}_VERSION"
+	UPDATER_FILES="$(plugin_wporg_only "$sha")"
 
 	trap cleanup EXIT
-	TMP_DIR="$(mktemp -d "${TMPDIR:-/tmp}/seoprostack-preflight.XXXXXX")"
+	TMP_DIR="$(mktemp -d "${TMPDIR:-/tmp}/$SLUG-preflight.XXXXXX")"
 
 	local main_php readme plugin_header
 	main_php="$(git show "$sha:$MAIN_FILE")"
@@ -584,7 +606,7 @@ main() {
 	fi
 	plugin_header="$(printf '%s\n' "$main_php" | sed -n '1,/\*\//p')"
 
-	printf 'SEO Pro Stack preflight: %s (%s)\n' "$ref" "${sha:0:12}"
+	printf '%s preflight: %s (%s)\n' "$PLUGIN_NAME" "$ref" "${sha:0:12}"
 	VERSION=""
 	check_versions "$plugin_header" "$readme" "$main_php"
 	check_readme "$readme" "$plugin_header" "$VERSION"

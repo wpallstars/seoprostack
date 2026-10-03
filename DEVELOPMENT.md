@@ -51,6 +51,16 @@ Every pull request and every push to `main` runs these in GitHub Actions
 
 `scripts/lint.sh` with no arguments runs the first six.
 
+The scripts work out which plugin they are in from its main file
+(`scripts/lib/plugin.sh`): the PHP file at the top of the repository with a
+`Plugin Name:` header gives the slug (its file name), the name, the class
+prefix (`@package`) and the constant prefix (`define('<PREFIX>_VERSION', …)`).
+Environment overrides use that prefix, for example
+`SEOPROSTACK_PREVIEW_SITE` or `SEOPROSTACK_DB_IMAGE`. Checks for parts only
+SEO Pro Stack has (presets and starter data, the replaced plugins count) run
+when their files exist, so the same scripts serve every plugin made from the
+starter.
+
 ### Coding standards
 
 `phpcs.xml.dist` uses the WordPress ruleset. The plugin's own style
@@ -67,15 +77,17 @@ code. Where a finding is intended, add an inline
 PHPStan reads the code with WordPress's stubs and PHP 7.4's functions.
 `scripts/phpstan-bootstrap.php` defines the constants WordPress and the
 plugin set while loading. Classes and functions of other plugins (WP-CLI,
-Fluent, Freemius, WooCommerce, Kadence) are ignored in `phpstan.neon.dist`,
+Fluent, Freemius, WooCommerce, Kadence) are ignored in `phpstan-plugin.neon`,
 because the code uses them only after checking they are loaded.
 
 `phpstan-baseline.neon` is empty: every finding fails the check. Fix the
 code. Where PHPStan or the stubs are wrong (a custom `wp_hash()` scheme, a
 check for a method newer WordPress versions have, variables a closure
-changes by reference), add an entry under `ignoreErrors` in
-`phpstan.neon.dist` with the identifier, the file and the reason. Never put
-findings in the baseline to get a change through.
+changes by reference), add an entry under `ignoreErrors` with the
+identifier, the file and the reason: in `phpstan.neon.dist` for the files
+every plugin made from the starter shares, in `phpstan-plugin.neon` for SEO
+Pro Stack's own files and extra paths. Never put findings in the baseline to
+get a change through.
 
 ### Secrets in history
 
@@ -122,7 +134,7 @@ money and most code-review services are paid. Until then, work moves fast:
 - Draft pull requests run only the lint job. A new push cancels the run for
   the previous one.
 - The build zips and Plugin Check reports are kept for seven days on each
-  run (artifact `seoprostack-build-…`) for testing a branch on a site.
+  run (artifact `<repository>-build-…`) for testing a branch on a site.
 - Review apps that are already installed (CodeRabbit, qlty, Socket) give
   advice only. A rate-limited or missing review never holds up a merge.
 

@@ -21,10 +21,15 @@
 
 set -euo pipefail
 
-readonly SLUG="seoprostack"
-readonly DB_IMAGE="${SEOPROSTACK_DB_IMAGE:-mariadb:10.6}"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+readonly SCRIPT_DIR
+# shellcheck source=scripts/lib/plugin.sh disable=SC1091 # followed only with -x
+. "$SCRIPT_DIR/lib/plugin.sh"
 
-NAME="sps-smoke-$$"
+# Set in main() from the plugin's main file.
+SLUG=""
+DB_IMAGE=""
+NAME=""
 TMP_DIR=""
 STARTED=0
 WP_VERSION="latest"
@@ -172,14 +177,17 @@ load_pages() {
 # Switch on every feature that has an on/off setting, except maintenance
 # mode, which would answer every visitor page with its 503 notice.
 switch_all_on() {
+	# The class prefix is the plugin's @package (scripts/lib/plugin.sh).
 	# shellcheck disable=SC2016 # PHP code: its $variables are PHP's, not the shell's.
 	wp_cli eval '
-		$schema = SEOProStack_Settings::schema();
+		$plugin = "'"$PLUGIN_PACKAGE"'";
+		$settings = $plugin . "_Settings";
+		$schema = $settings::schema();
 		$on = 0;
-		foreach (SEOProStack::features() as $class) {
+		foreach ($plugin::features() as $class) {
 			$key = defined($class . "::KEY") ? $class::KEY : "";
 			if ("" !== $key && "maintenance" !== $key && isset($schema[$key]["type"]) && in_array($schema[$key]["type"], array("bool", "boolean"), true)) {
-				SEOProStack_Settings::set($key, true);
+				$settings::set($key, true);
 				$on++;
 			}
 		}
@@ -191,9 +199,9 @@ check_uninstall() {
 	wp_cli plugin deactivate "$SLUG" --quiet || fail "deactivate"
 	wp_cli plugin uninstall "$SLUG" --quiet || fail "uninstall"
 	local left
-	left="$(wp_cli option list --search='*seoprostack*' --field=option_name 2>/dev/null || true)"
+	left="$(wp_cli option list --search="*$PLUGIN_PREFIX*" --field=option_name 2>/dev/null || true)"
 	[ -z "$left" ] || fail "options left after uninstalling: $(printf '%s' "$left" | tr '\n' ' ')"
-	left="$(wp_cli cron event list --field=hook 2>/dev/null | grep -i seoprostack || true)"
+	left="$(wp_cli cron event list --field=hook 2>/dev/null | grep -i "$PLUGIN_PREFIX" || true)"
 	[ -z "$left" ] || fail "cron events left after uninstalling: $(printf '%s' "$left" | tr '\n' ' ')"
 	return 0
 }
@@ -248,7 +256,12 @@ main() {
 				[ -f "$2" ] || die "no such zip: $2"
 				zip="$(cd "$(dirname "$2")" && pwd)/$(basename "$2")"
 				;;
-			--keep-log) keep="$2" ;;
+			--keep-log)
+				case "$2" in
+				/*) keep="$2" ;;
+				*) keep="$PWD/$2" ;;
+				esac
+				;;
 			esac
 			shift
 			;;
@@ -267,9 +280,14 @@ main() {
 	docker info >/dev/null 2>&1 || die "Docker is not running"
 	local root
 	root="$(git rev-parse --show-toplevel)" || die "run this inside a checkout of the plugin"
+	cd "$root"
+	plugin_identity "$ref" || die "cannot tell which plugin this is at $ref"
+	SLUG="$PLUGIN_SLUG"
+	DB_IMAGE="$(plugin_env DB_IMAGE mariadb:10.6)"
+	NAME="$SLUG-smoke-$$"
 
 	trap cleanup EXIT
-	TMP_DIR="$(mktemp -d "${TMPDIR:-/tmp}/seoprostack-smoke.XXXXXX")"
+	TMP_DIR="$(mktemp -d "${TMPDIR:-/tmp}/$SLUG-smoke.XXXXXX")"
 	mkdir -p "$TMP_DIR/zips"
 	chmod 755 "$TMP_DIR" "$TMP_DIR/zips"
 	if [ -z "$zip" ]; then

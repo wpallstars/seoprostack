@@ -6,23 +6,28 @@
 # Usage: scripts/plugin-check.sh [--ref REF] [--zip FILE]... [--keep-output DIR]
 #   --ref REF          Build both zips from REF (default: HEAD) and check them.
 #   --zip FILE         Check this zip instead (repeatable); it must hold one
-#                      seoprostack/ folder.
+#                      {slug}/ folder.
 #   --keep-output DIR  Save each full report as JSON in DIR.
 #
 # Exit status: 0 when no zip has Plugin Check errors. Warnings are listed;
 # review them before a WordPress.org submission. Updater findings in the
-# GitHub zip's Updates from GitHub file are expected and not counted.
+# GitHub zip's updater files (.distignore-wporg) are expected and not counted.
 # Needs Docker and internet access (WordPress and Plugin Check are downloaded).
 
 set -euo pipefail
 
-readonly SLUG="seoprostack"
-readonly UPDATER_FILE="includes/features/class-seoprostack-github-updates.php"
-readonly CLI_IMAGE="${SEOPROSTACK_CLI_IMAGE:-wordpress:cli-php8.3}"
-readonly DB_IMAGE="${SEOPROSTACK_DB_IMAGE:-mariadb:10.6}"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+readonly SCRIPT_DIR
+# shellcheck source=scripts/lib/plugin.sh disable=SC1091 # followed only with -x
+. "$SCRIPT_DIR/lib/plugin.sh"
+# Set in main() from the plugin's main file.
+SLUG=""
+UPDATER_FILES=""
+CLI_IMAGE=""
+DB_IMAGE=""
 readonly DB_PASSWORD="plugincheck"
 
-NAME="sps-plugincheck-$$"
+NAME=""
 TMP_DIR=""
 STARTED=0
 
@@ -125,9 +130,17 @@ check_zip() {
 	local expected=0
 	case "$zip_name" in
 	"$SLUG"-*)
-		expected="$(printf '%s\n' "$report" | awk -v file="$UPDATER_FILE" '
+		expected="$(printf '%s\n' "$report" | awk -v files="$UPDATER_FILES" '
+			BEGIN { nfiles = split(files, list, "\n") }
+			# A listed file, or a file inside a listed folder.
+			function updater(path,   i) {
+				for (i = 1; i <= nfiles; i++) {
+					if (list[i] != "" && (path == list[i] || index(path, list[i] "/") == 1)) { return 1 }
+				}
+				return 0
+			}
 			/^FILE: / { current = substr($0, 7); next }
-			/^\[/ && current == file {
+			/^\[/ && updater(current) {
 				n = split($0, items, "},{")
 				for (i = 1; i <= n; i++) {
 					if (items[i] ~ /"type":"ERROR"/ && items[i] ~ /"code":"(plugin_updater_detected|update_modification_detected|PluginCheck\.CodeAnalysis\.Offloading\.OffloadedContent)"/) { count++ }
@@ -137,7 +150,7 @@ check_zip() {
 		;;
 	esac
 	if [ "$expected" -gt 0 ]; then
-		printf '%s updater finding(s) in %s are expected in the GitHub zip.\n' "$expected" "$UPDATER_FILE"
+		printf '%s updater finding(s) in %s are expected in the GitHub zip.\n' "$expected" "$(printf '%s' "$UPDATER_FILES" | tr '\n' ' ')"
 		errors=$((errors - expected))
 	fi
 	warnings="$( (printf '%s\n' "$report" | grep -o '"type":"WARNING"' || true) | wc -l | tr -d ' ')"
@@ -199,9 +212,16 @@ $(cd "$(dirname "$2")" && pwd)/$(basename "$2")"
 	docker info >/dev/null 2>&1 || die "Docker is not running"
 	local root
 	root="$(git rev-parse --show-toplevel)" || die "run this inside a checkout of the plugin"
+	cd "$root"
+	plugin_identity "$ref" || die "cannot tell which plugin this is at $ref"
+	SLUG="$PLUGIN_SLUG"
+	UPDATER_FILES="$(plugin_wporg_only "$ref")"
+	CLI_IMAGE="$(plugin_env CLI_IMAGE wordpress:cli-php8.3)"
+	DB_IMAGE="$(plugin_env DB_IMAGE mariadb:10.6)"
+	NAME="$SLUG-plugincheck-$$"
 
 	trap cleanup EXIT
-	TMP_DIR="$(mktemp -d "${TMPDIR:-/tmp}/seoprostack-plugincheck.XXXXXX")"
+	TMP_DIR="$(mktemp -d "${TMPDIR:-/tmp}/$SLUG-plugincheck.XXXXXX")"
 	mkdir -p "$TMP_DIR/zips"
 	chmod 755 "$TMP_DIR" "$TMP_DIR/zips"
 

@@ -1,0 +1,63 @@
+# PHPStan settings for SEO Pro Stack's own files, added to phpstan.neon.dist
+# (which holds the settings every plugin made from the starter shares).
+# Each ignore names the identifier, the file and the reason.
+parameters:
+	paths:
+		- blocks
+	ignoreErrors:
+		# WP-CLI and other plugins (Fluent, Freemius, WooCommerce, Kadence) are
+		# not installed here. The code uses them only when they are loaded
+		# (defined('WP_CLI'), class_exists(), function_exists(), defined()).
+		-
+			identifiers:
+				- class.notFound
+				- function.notFound
+				- constant.notFound
+			message: '#(WP_CLI|Fluent[A-Za-z]*\\|fluentcrm_|fluentCrm|Freemius|WC_[A-Za-z_]+|KADENCE_[A-Z_]+)#'
+		# The same plugins' methods, checked with method_exists() before use.
+		-
+			identifiers:
+				- function.impossibleType
+			message: '#method_exists\(\) with ''(Fluent[A-Za-z]*\\|Freemius)#'
+		# The stubs describe the newest WordPress. This checks for a method
+		# WordPress 7.0 added, so older versions keep their own check.
+		-
+			identifier: function.alreadyNarrowedType
+			message: '#get_test_opcode#'
+			path: includes/features/class-seoprostack-hosting-needs.php
+		# Closures that change variables passed by reference (use (&$x)):
+		# PHPStan does not see the changes, so it reads them as never set.
+		-
+			identifiers:
+				- booleanAnd.alwaysFalse
+				- notIdentical.alwaysFalse
+			path: includes/features/class-seoprostack-word-import.php
+		# $wpdb->last_error is set again by each query; PHPStan keeps the value
+		# from the check before the next query.
+		-
+			identifier: if.alwaysFalse
+			message: '#^If condition is always false\.$#'
+			path: includes/features/class-seoprostack-database-keys.php
+		# wp_hash() takes any scheme; others get their own salt from
+		# wp_salt(). The stubs list only core's four. Changing the scheme would
+		# sign out everyone using a maintenance bypass link.
+		-
+			identifier: argument.type
+			message: '#wp_hash expects#'
+			path: includes/features/class-seoprostack-maintenance.php
+		# COOKIEPATH can be empty on a real site; the bootstrap gives it a value.
+		-
+			identifier: ternary.alwaysTrue
+			path: includes/features/class-seoprostack-short-links.php
+		# Action callbacks that also have a use of their return value elsewhere
+		# (build_map) or are core's stand-ins (__return_null); actions ignore it.
+		-
+			identifier: return.void
+			paths:
+				- includes/features/class-seoprostack-plugin-loading.php
+				- includes/features/class-seoprostack-short-links.php
+		# break after wp_send_json_*(), which ends the request: PHPCS's switch
+		# rules want each case to end with break.
+		-
+			identifier: deadCode.unreachable
+			path: includes/features/class-seoprostack-post-reactions.php
