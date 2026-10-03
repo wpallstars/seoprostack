@@ -89,8 +89,10 @@ final class SEOProStack_Link_Clicks {
         if (!SEOProStack_Linking::switched_on() || !SEOProStack_Settings::get('linking_clicks') || SEOProStack_Link_Index::SCHEMA !== get_option(SEOProStack_Link_Index::VERSION)) {
             return new WP_Error('not_enabled', __('Link counting is off.', 'seoprostack'), array('status' => 403));
         }
-        // Honour privacy signals on the server as well as in the browser.
-        if ('1' === $request->get_header('dnt') || '1' === $request->get_header('sec-gpc') || is_user_logged_in()) {
+        // REST clears cookie authentication without a REST nonce. Cached public
+        // pages can survive a later login, so validate the existing login cookie
+        // too; do not set a cookie or record any identity from that check.
+        if ('1' === $request->get_header('dnt') || '1' === $request->get_header('sec-gpc') || is_user_logged_in() || wp_validate_auth_cookie('', 'logged_in')) {
             return new WP_REST_Response(null, 204);
         }
         $origin = $request->get_header('origin');
