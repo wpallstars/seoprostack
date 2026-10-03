@@ -60,6 +60,7 @@ Off by default except Hide admin bar items (Comments and + New), No fade between
 * **Ask before licence checks**: premium plugins call home once, daily or never, as you choose.
 * **Clean the database weekly**: old spam, bin and expired data.
 * **Database key cleanup**: review leftover and duplicate indexes and confirm each removal; restore SQL is kept. Back up first.
+* **Load plugins only where needed**: automatic admin choices with an always-load bypass and idle relearning; separate opt-in site choices.
 
 = Plugins and set-up =
 
@@ -124,6 +125,7 @@ Click **Report a problem** at the top right of Settings → SEO Pro Stack, or op
 == Changelog ==
 
 = Unreleased =
+* Change: automatic admin plugin choices, preserved bypasses and safe idle screen relearning; site choices unchanged.
 * Fix: import Widget Disable's Network Admin dashboard choices on multisite, including on upgrade.
 * Fix: page learning keeps the site-wide skip list working; Health Check troubleshooting leaves learning maps unchanged.
 * Change: existing affiliate and referral links in Discover; product and pricing links kept.

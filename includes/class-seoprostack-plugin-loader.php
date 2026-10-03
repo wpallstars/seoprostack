@@ -86,9 +86,13 @@ final class SEOProStack_Plugin_Loader {
     /** Settings keys (read straight from the stored options). */
     const SWITCH_KEY = 'plugin_loading';
     const LIST_KEY   = 'plugin_loading_only';
+    const ADMIN_KEEP_KEY = 'plugin_loading_always';
+
+    /** Safe admin visits retained across map invalidation. Not autoloaded. */
+    const HISTORY = 'seoprostack_plugin_screens';
 
     /** Map format; a change makes SEO Pro Stack learn again. */
-    const MAP_VERSION = 7;
+    const MAP_VERSION = 8;
 
     /** SEO Pro Stack's own settings page (Settings > SEO Pro Stack). */
     const SETTINGS_PAGE = 'seoprostack';
@@ -392,10 +396,12 @@ final class SEOProStack_Plugin_Loader {
             self::start_front($options);
             return;
         }
-        if (empty($options[self::LIST_KEY]) || !is_array($options[self::LIST_KEY])) {
-            return;
+        // Before init runs the migration, retain the previous selection too.
+        if (!array_key_exists(self::ADMIN_KEEP_KEY, $options) && array_key_exists(self::LIST_KEY, $options)) {
+            $chosen = array_values(array_intersect(self::$raw, (array) $options[self::LIST_KEY]));
+        } else {
+            $chosen = array_values(array_diff(self::$raw, (array) ($options[self::ADMIN_KEEP_KEY] ?? array())));
         }
-        $chosen = array_values(array_intersect(self::$raw, $options[self::LIST_KEY]));
         $chosen = array_values(array_diff($chosen, array(self::$self)));
         if (!$chosen || !self::filterable_request()) {
             return;
@@ -932,7 +938,8 @@ final class SEOProStack_Plugin_Loader {
     private static function plugins_for_screen($screen, array $chosen) {
         $map    = self::$map;
         $deps   = $map['deps'];
-        $always = array_merge(array(self::$self), $map['always']);
+        $options = get_option('seoprostack_options', array());
+        $always = array_merge(array(self::$self), $map['always'], (array) ($map['permissions'] ?? array()), (array) ($options[self::ADMIN_KEEP_KEY] ?? array()));
 
         // Ticked plugins, plus unticked ones that need a ticked plugin.
         $restricted = array_fill_keys(array_diff($chosen, $always), true);
