@@ -771,6 +771,7 @@ Presets so far:
 | EventON Lite | Scripts and styles only on pages with a calendar or event; no Google Fonts. |
 | FluentCRM | Contacts' IP addresses anonymised; FluentCRM's own avatar instead of Gravatar and ui-avatars.com. |
 | Fluent Forms | No weekly email summary, no IP address stored with entries, no admin bar menu. |
+| HTTP Requests Manager | Only logs calls to other servers. Its blocking modes also blocked every request after a page's first 3 seconds or 3 requests, which stopped WordPress's and SEO Pro Stack's update checks; Ask before licence checks holds licence checks instead. |
 | Kadence Blocks | Google Fonts served from the site, in the blocks and (with the Kadence theme) the theme. |
 | Lasso Lite (Simple URLs) | No affiliate programme bar or Dashboard banner. |
 | LiteSpeed Cache | Worked out for each site (see below). No news and promotions fetched from LiteSpeed; CSS and JS minified; the cache purged after updates; on a LiteSpeed server, the page cache and browser cache on; LiteSpeed's copy of each job an SEO Pro Stack feature does turned off. |
@@ -1112,6 +1113,7 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folder�
 
 - Fix: **Fixes for other plugins** makes the “settings page” link in Search Console’s dashboard box (3.1.3) open its settings; it went to a page the plugin no longer has, which WordPress refused.
 - New: Search Console (Tropicalista), which shows Google Search Console data in wp-admin, is in the recommended free plugins (SEO).
+- New: plugin preset for HTTP Requests Manager: Only log HTTP requests. Its Smart block and Block external modes also block every request once a page has taken 3 seconds or made 3 requests (WP-CLI included), so they blocked WordPress's own update checks (api.wordpress.org and Hostinger's wpapi.hostinger.io), SEO Pro Stack's GitHub update checks and LiteSpeed Cache's calls to the site. **Ask before licence checks** holds the licence checks those modes were used to stop.
 
 ### 0.11.8
 
