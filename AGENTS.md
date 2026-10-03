@@ -269,6 +269,12 @@ WordPress:
      at, use a throwaway site of your own (step 4's Docker image on a free
      port), which no one else overwrites:
      `rsync -a --delete --delete-excluded --exclude-from=.distignore ./ "<site>/wp-content/plugins/seoprostack/"`.
+   - Size every test site, shared or throwaway, for SEO Pro Stack with all
+     recommended plugins active: OPcache 1024 MB, 64 MB strings, 50,000
+     files, `memory_limit` 768M, 5 PHP workers. PHP's defaults fill up and
+     the slowdowns look like bugs. Where to set them (LocalWP and Docker):
+     `DEVELOPMENT.md` → Test site resources. When Hosting needs warns on a
+     test site, raise the value it asks for and update that table.
 
 3. Exercise the changed feature through the admin UI or HTTP, and check
    the debug log for new messages mentioning `seoprostack` or a plugin it

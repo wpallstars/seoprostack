@@ -101,6 +101,41 @@ except maintenance mode (it would answer every visitor page with its
 notice). `--keep-log FILE` saves `debug.log`; CI keeps it as an artifact
 when the test fails.
 
+## Test site resources
+
+A test site runs SEO Pro Stack with every recommended plugin
+(`admin/data/free-plugins.php`) installed, and many of them active. PHP's
+defaults are too small for that: OPcache fills and restarts, admin
+requests queue behind two workers, and the slowdowns look like bugs.
+Size the site to what Hosting needs measures, with room to spare:
+
+| Setting | Where (LocalWP, nginx) | Value | PHP or Local default |
+|---|---|---|---|
+| `opcache.memory_consumption` | `conf/php/php.ini.hbs` | `1024` | 128 |
+| `opcache.interned_strings_buffer` | `conf/php/php.ini.hbs` | `64` | 8 |
+| `opcache.max_accelerated_files` | `conf/php/php.ini.hbs` | `50000` | 10000 |
+| `memory_limit` | `conf/php/php.ini.hbs` | `768M` | 256M |
+| `pm.max_children` | `conf/php/php-fpm.d/www.conf.hbs` | `5` | 2 |
+
+Measured on the shared test site with 72 plugins installed: OPcache used
+509 MB of 512 MB and restarted, then 315 MB of 1 GB with 31,723 PHP files
+cached; pages peaked at 352 MB of memory; the busiest hour needed 5 workers.
+
+- LocalWP keeps these per site in `<site>/conf/`. Edit the `.hbs`
+  templates, not the generated files under Local's `run/` folder, then
+  stop and start the site in Local: it rebuilds the configuration only on
+  start. Add a comment with the date and reason next to each change.
+- The OPcache lines sit inside `{{#unless apache}}`: on an Apache site,
+  move them out or set them in Apache's own configuration.
+- Check after the restart: Plugins screen → Hosting needs shows no
+  warnings, and Site Health → Info → Server shows the new values.
+- Raise them again when Hosting needs asks, and update this table.
+- To test Hosting needs' own warnings, lower a value on a throwaway site,
+  never the shared one.
+- Docker sites (`scripts/smoke-test.sh`, step 4 in `AGENTS.md` →
+  Testing) take the same values in a `.ini` file mounted into
+  `/usr/local/etc/php/conf.d/`.
+
 ## Dependencies
 
 Dependabot (`.github/dependabot.yml`) opens one pull request a week for
