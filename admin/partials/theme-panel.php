@@ -19,11 +19,11 @@ $seoprostack_installed = wp_get_theme($seoprostack_slug);
 $seoprostack_is_active = get_stylesheet() === $seoprostack_slug;
 $seoprostack_links     = array(
     // Kadence moved to Liquid Web in 2026; kadencewp.com pages redirect there.
-    array('text' => __('Starter templates', 'seoprostack'), 'url' => 'https://www.liquidweb.com/software/kadence/kadence-template-gallery/'),
-    array('text' => __('Kadence Blocks', 'seoprostack'), 'url' => 'https://www.liquidweb.com/software/kadence/blocks/'),
-    array('text' => __('Shop Kit', 'seoprostack'), 'url' => 'https://www.liquidweb.com/software/kadence/shop-kit/'),
-    array('text' => __('Pricing', 'seoprostack'), 'url' => 'https://www.liquidweb.com/software/kadence/#pricing'),
-    array('text' => __('Kadence bundles', 'seoprostack'), 'url' => 'https://stellarwp.pxf.io/1rgM9z'),
+    array('text' => __('Starter templates', 'seoprostack'), 'url' => 'https://www.liquidweb.com/software/kadence/kadence-template-gallery/?irpid=4858868&utm_medium=affiliate&irgwc=1&afsrc=1'),
+    array('text' => __('Kadence Blocks', 'seoprostack'), 'url' => 'https://www.liquidweb.com/software/kadence/blocks/?irpid=4858868&utm_medium=affiliate&irgwc=1&afsrc=1'),
+    array('text' => __('Shop Kit', 'seoprostack'), 'url' => 'https://www.liquidweb.com/software/kadence/shop-kit/?irpid=4858868&utm_medium=affiliate&irgwc=1&afsrc=1'),
+    array('text' => __('Pricing', 'seoprostack'), 'url' => 'https://www.liquidweb.com/software/kadence/?irpid=4858868&utm_medium=affiliate&irgwc=1&afsrc=1#pricing'),
+    array('text' => __('Kadence bundles', 'seoprostack'), 'url' => 'https://www.liquidweb.com/software/kadence/?irpid=4858868&utm_medium=affiliate&irgwc=1&afsrc=1'),
 );
 ?>
 <article class="sps-card sps-theme-card">
@@ -69,7 +69,7 @@ $seoprostack_links     = array(
             <?php foreach ($seoprostack_links as $seoprostack_link) : ?>
                 <li><a href="<?php echo esc_url($seoprostack_link['url']); ?>" target="_blank" rel="noopener noreferrer"><?php echo esc_html($seoprostack_link['text']); ?><span class="screen-reader-text"> <?php esc_html_e('(opens in a new tab)', 'seoprostack'); ?></span></a></li>
             <?php endforeach; ?>
-            <li><a href="https://www.liquidweb.com/software/kadence/theme/" target="_blank" rel="noopener noreferrer"><strong><?php esc_html_e('Kadence Pro', 'seoprostack'); ?></strong><span class="screen-reader-text"> <?php esc_html_e('(opens in a new tab)', 'seoprostack'); ?></span></a></li>
+            <li><a href="https://www.liquidweb.com/software/kadence/theme/?irpid=4858868&amp;utm_medium=affiliate&amp;irgwc=1&amp;afsrc=1" target="_blank" rel="noopener noreferrer"><strong><?php esc_html_e('Kadence Pro', 'seoprostack'); ?></strong><span class="screen-reader-text"> <?php esc_html_e('(opens in a new tab)', 'seoprostack'); ?></span></a></li>
         </ul>
     </div>
 </article>

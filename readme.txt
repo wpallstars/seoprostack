@@ -72,7 +72,7 @@ Off by default except Hide admin bar items (Comments and + New), No fade between
 
 = Affiliate disclosure =
 
-Some Theme, Pro Plugins, Hosting and Tools links may earn the developer a commission or account credit. They never change what we recommend, and nothing shows on your public site.
+Some Theme, Pro Plugins, Free Plugins' Go Pro, Hosting and Tools links may earn the developer a commission or account credit. They never change what we recommend, and nothing shows on your public site.
 
 = External services =
 
@@ -125,6 +125,7 @@ Click **Report a problem** at the top right of Settings → SEO Pro Stack, or op
 == Changelog ==
 
 = Unreleased =
+* Change: Kadence and Fluent/WPManageNinja referral links; current Scalability Pro website; 11 free plugins/add-ons and four pro products added.
 * New: External link icons follow link colours and Kadence dark mode without scripts or extra asset requests; off by default.
 
 = 0.11.4 =

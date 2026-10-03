@@ -61,11 +61,13 @@ function seoprostack_get_free_plugins() {
         ),
         'admin' => array(
             'codepress-admin-columns',
+            'fluent-security',
             'mainwp-child',
             'mainwp-child-reports',
             'plugin-groups'
         ),
         'affiliates' => array(
+            'fluent-affiliate',
             'simple-urls',
             'slicewp'
         ),
@@ -77,6 +79,8 @@ function seoprostack_get_free_plugins() {
             'bulk-edit-user-profiles-in-spreadsheet',
             'code-block-pro',
             'ics-calendar',
+            'ninja-charts',
+            'ninja-job-board',
             'ninja-tables',
             'wp-sheet-editor-bulk-spreadsheet-editor-for-posts-and-pages'
         ),
@@ -89,11 +93,14 @@ function seoprostack_get_free_plugins() {
             'fluent-boards',
             'fluent-booking',
             'fluent-community',
+            'fluent-connect',
             'fluent-crm',
+            'fluent-forms-connector-for-mailpoet',
             'fluentform',
             'fluentforms-pdf',
             'fluentform-block',
-            'fluent-support'
+            'fluent-support',
+            'mautic-for-fluent-forms'
         ),
         'ecommerce' => array(
             'woocommerce',
@@ -103,7 +110,8 @@ function seoprostack_get_free_plugins() {
             'woocommerce-gateway-gocardless',
             'kadence-woocommerce-email-designer',
             'pymntpl-paypal-woocommerce',
-            'woo-stripe-payment'
+            'woo-stripe-payment',
+            'wp-payment-form'
         ),
         'events' => array(
             'eventon-lite'
@@ -113,6 +121,7 @@ function seoprostack_get_free_plugins() {
             'tutor'
         ),
         'media' => array(
+            'fluent-player',
             'image-copytrack',
             'media-file-renamer'
         ),
@@ -129,7 +138,9 @@ function seoprostack_get_free_plugins() {
         ),
         'social' => array(
             'bit-social',
+            'custom-feed-for-tiktok',
             'easy-video-reviews',
+            'fluent-comments',
             'social-engine',
             'wp-social-reviews'
         ),
