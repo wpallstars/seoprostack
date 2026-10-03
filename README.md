@@ -68,6 +68,7 @@ SEO Pro Stack replaces **46 plugins**, some of them in part, with free and Pro e
 | Old post addresses | Links | Slugs Manager: Delete Old Permalinks |
 | Short addresses for custom post types | Links | Remove CPT base |
 | Short links | Links | Pretty Links |
+| External link icons | Links | Link Whisper's icon only; not its linking tools |
 | Maintenance mode | Maintenance | Hostinger Tools, in part |
 | Updates from GitHub (GitHub builds only) | Maintenance | Git Updater |
 | Plugins menu in the admin bar | Plugins | Plugin Toggle |
@@ -1062,10 +1063,39 @@ Deleting the plugin removes its settings and cached data, the profile pictures a
 
 Deactivating the plugin removes the WebP and AVIF rules from the uploads folder’s `.htaccess` (for every site when network-deactivated) and the must-use file of Load plugins only where needed (on multisite, when network-deactivated).
 
+### External link icons (Links)
+
+Off by default. Adds a small square-and-arrow after external text links in
+rendered post content and block or classic text widgets. It uses the link's
+colour, including hover, focus and Kadence's live light/dark palette switch.
+
+- No JavaScript, icon font, extra asset request or outside service. A small
+  inline stylesheet is printed in the head while enabled; WordPress's HTML
+  tokenizer marks links in one pass. Page caches keep the result normally.
+- Only absolute HTTP(S) and protocol-relative links to a different hostname
+  are marked. Relative links, anchors, email and telephone links stay plain.
+  The home hostname, its www variant and trailing DNS dot are treated alike;
+  other subdomains are external unless listed in **Do not mark these domains**
+  (that list also covers each domain's subdomains).
+- Image/SVG links, buttons, downloads, empty links and links containing an
+  existing icon are left undecorated. Add `sps-no-external-icon` to a link or
+  a content container to opt out, including links styled by your own theme.
+- No changes to saved posts, link targets, rel attributes, accessible names,
+  feeds, REST responses or auto-generated excerpts. Links in menus and HTML
+  inserted later by scripts are outside this feature's content hooks.
+- The icon is decorative and scales with the text; older browsers without
+  CSS `:has()` keep plain, working links. Allow data images in a custom CSP
+  if you want the embedded icon mask to show.
+- Only Link Whisper's external-link icon is covered, not its suggestions,
+  reports, keyword autolinking or URL rules. The Plugins screen does not
+  recommend removing Link Whisper. Before switching, turn its icon off to
+  avoid two indicators; deactivate it only if its other tools are not needed.
+
 ## Changelog
 
 ### Unreleased
 
+- New, off by default: External link icons (Links tab), following link colours and Kadence light/dark switching with no scripts or extra asset requests. Related-domain and per-link bypasses; image links and buttons stay plain. Covers only Link Whisper's icon, not its linking tools.
 - Fixed: on a network, a site where Fluent Forms, Fluent Boards or FluentCommunity is network-active but never set up (its tables missing) showed a critical error on every page after updating to 0.11.3, while SEO Pro Stack upgraded its settings. The Agency lists now skip a plugin whose tables are missing.
 
 ### 0.11.3
@@ -1362,6 +1392,7 @@ Where a feature replaces one of them, SEO Pro Stack imports the settings it can,
 | Ultimate 410 Gone Status Code | tiny web | [WordPress.org](https://wordpress.org/plugins/ultimate-410/) | 410 Gone for removed pages |
 | Remove CPT base | kubiq | [WordPress.org](https://wordpress.org/plugins/remove-cpt-base/) | Short addresses for custom post types |
 | Pretty Links | Blair Williams | [WordPress.org](https://wordpress.org/plugins/pretty-link/) | Short links |
+| Link Whisper | Link Whisper team | [website](https://linkwhisper.com/) (premium plugin) | External link icons only; linking tools are not replaced |
 | Plugin Toggle | Cedaro | [WordPress.org](https://wordpress.org/plugins/plugin-toggle/), [GitHub](https://github.com/cedaro/plugin-toggle) | Plugins menu in the admin bar |
 | Fix ‘Plugin file does not exist’ Notices | WP All Stars | [GitHub](https://github.com/wpallstars/wp-fix-plugin-does-not-exist-notices) | Clean up deleted plugins |
 | Freesoul Deactivate Plugins | Jose Mortellaro | [WordPress.org](https://wordpress.org/plugins/freesoul-deactivate-plugins/), [GitHub](https://github.com/JoseMortellaro/freesoul-deactivate-plugins) | Load plugins only where needed (not a replacement yet: its page-by-page rules on the site are not covered) |

@@ -55,6 +55,7 @@ Off by default except Hide admin bar items (Comments and + New), No fade between
 = Links and speed =
 
 * **Short links** such as /go/offer/ with click counts, **Short addresses for custom post types** and **410 Gone** for removed pages.
+* **External link icons**: text-link colours and Kadence dark mode, without scripts or downloads; only Link Whisper's icon, not its linking tools.
 * **Load pages before the click**, **Delay scripts until interaction**, **Delayed Google Analytics** and a faster editor with Kadence Blocks.
 * **Ask before licence checks**: premium plugins call home once, daily or never, as you choose.
 * **Clean the database weekly**: old spam, bin and expired data.
@@ -122,6 +123,9 @@ From where you installed it. New versions come out on GitHub first.
 Click **Report a problem** at the top right of Settings → SEO Pro Stack, or open an issue on [GitHub](https://github.com/wpallstars/seoprostack/issues).
 
 == Changelog ==
+
+= Unreleased =
+* New: External link icons follow link colours and Kadence dark mode without scripts or extra asset requests; off by default.
 
 = 0.11.3 =
 * Change: page learning uses lasting page kinds and each post's content, on its first visit; unknowns load every plugin.
