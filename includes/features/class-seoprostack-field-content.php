@@ -161,7 +161,7 @@ class SEOProStack_Field_Content extends SEOProStack_Feature {
                 continue;
             }
             $label = isset($field['label']) ? (string) $field['label'] : (string) $field['name'];
-            $parts[] = ($labels ? '<p><strong>' . esc_html($label) . '</strong></p>\n' : '') . wpautop($value);
+            $parts[] = ($labels ? '<p><strong>' . esc_html($label) . "</strong></p>\n" : '') . wpautop($value);
         }
         $content = implode("\n", $parts);
         $hash = md5($content . "\0" . ('' !== $source ? $excerpt : ''));
