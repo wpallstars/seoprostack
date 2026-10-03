@@ -1118,6 +1118,10 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folder�
 
 ## Changelog
 
+### Unreleased
+
+- New: Really Simple Security 9.8.3 preset selects its 301 .htaccess redirect on supported single sites with working HTTPS. Apply, Reset and Undo use its own save code and verify rules; failed saves report rollback status and keep the previous undo copy. Nothing changes automatically.
+
 ### 0.11.8
 
 - Fix: **Load plugins only where needed** loads a base plugin and its Pro or Premium add-on together on every screen, or skips both (FluentBooking, Fluent Boards, Fluent Support, Fluent Forms, FluentCRM). Before, a screen could skip the base while its Pro add-on loaded, so the add-on showed its “requires the base plugin” notice there, or load the base without the add-on, leaving out the add-on’s features. Add-ons are also matched by name (FluentCRM Pro, Fluent Forms Pro Add On Pack). Screens are learned again once.
@@ -1130,7 +1134,6 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folder�
 
 ### 0.11.6
 
-- New: Really Simple Security 9.8.3 preset selects its 301 .htaccess redirect on supported single sites with working HTTPS. Apply, Reset and Undo use its own save code and verify rules; failed saves report rollback status and keep the previous undo copy. Nothing changes automatically.
 - New, off by default: Rank Math defaults (Links tab) fills empty focus keywords from titles for chosen post types, warns about pillar overuse and offers selected-post pillar removal.
 - New: Tools → Old addresses has **Remove all** (it asks first), and ticking the whole page offers **Select all** to take in every page, as Select all across pages does in post lists. Before, only the 50 old addresses on screen could be removed at once, so a site with a thousand needed twenty-one rounds. The box above the list also ticks the page where another plugin's script stops WordPress's own from doing it.
 - Fixed: deactivating Freesoul Deactivate Plugins or its PRO add-on left the other one active and, on networks or when Freesoul’s own code did not run, its must-use file behind, still skipping plugins on single sites. Fixes for other plugins now deactivates both together and deletes the file once neither is active anywhere, also when the Plugins screen finds one left from before.
