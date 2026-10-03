@@ -45,6 +45,14 @@ class SEOProStack_Field_Content extends SEOProStack_Feature {
         // Schema is cached at init:0, before custom post types register.
         $stored = get_option('seoprostack_options', array());
         $types = is_array($stored) && isset($stored['field_content_types']) ? (array) $stored['field_content_types'] : array();
+        // Keep deselected types in the schema: the shared store drops unknown
+        // keys on any setting save. Losing a skip list could expose private text
+        // when the owner enables that type again later.
+        foreach (is_array($stored) ? array_keys($stored) : array() as $key) {
+            if (preg_match('/^field_content_(.+)_(fields|skip|excerpt|format)$/', (string) $key, $matches)) {
+                $types[] = $matches[1];
+            }
+        }
         foreach ($types as $type) {
             if (!is_string($type) || sanitize_key($type) !== $type || '' === $type) {
                 continue;
@@ -164,7 +172,8 @@ class SEOProStack_Field_Content extends SEOProStack_Feature {
             $parts[] = ($labels ? '<p><strong>' . esc_html($label) . "</strong></p>\n" : '') . wpautop($value);
         }
         $content = implode("\n", $parts);
-        $hash = md5($content . "\0" . ('' !== $source ? $excerpt : ''));
+        // Keeping an excerpt differs from explicitly replacing it with empty text.
+        $hash = md5($content . "\0" . ('' !== $source ? "excerpt\0" . $excerpt : 'keep_excerpt'));
         if ($hash === get_post_meta($post_id, self::HASH_META, true)) {
             return false;
         }
