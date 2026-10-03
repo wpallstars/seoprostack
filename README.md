@@ -1110,7 +1110,7 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folderâ
 
 ## Changelog
 
-### Unreleased
+### 0.11.9
 
 - New: plugin preset for HTTP Requests Manager: Only log HTTP requests. Its Smart block and Block external modes also block every request once a page has taken 3 seconds or made 3 requests (WP-CLI included), so they blocked WordPress's own update checks (api.wordpress.org and Hostinger's wpapi.hostinger.io), SEO Pro Stack's GitHub update checks and LiteSpeed Cache's calls to the site. **Ask before licence checks** holds the licence checks those modes were used to stop.
 - Changed: all Kadence and Fluent/WPManageNinja vendor links use the supplied referral IDs, keeping product paths and pricing anchors. Kadence bundles now link directly to Liquid Web; Scalability Pro links to its current Super Speedy Plugins product and pricing section.
