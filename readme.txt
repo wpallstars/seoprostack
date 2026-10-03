@@ -126,8 +126,6 @@ Click **Report a problem** at the top right of Settings → SEO Pro Stack, or op
 == Changelog ==
 
 = Unreleased =
-* Fix: Search Console's dashboard box link opens its settings.
-* New: Search Console is a recommended free plugin.
 * New: HTTP Requests Manager preset: only log requests, so WordPress update checks are no longer blocked.
 
 = 0.11.8 =
