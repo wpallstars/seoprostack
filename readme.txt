@@ -128,6 +128,7 @@ Click **Report a problem** at the top right of Settings → SEO Pro Stack, or op
 = Unreleased =
 * New: Tidy WooCommerce admin hides suggested payment plugins on Settings → Payments.
 * Fix: no more Tutor LMS Pro update-check warnings in the debug log.
+* Fix: Load plugins only where needed loads Pro add-ons and their base plugin together, so no "requires the base plugin" notices.
 
 = 0.11.6 =
 * New: Rank Math keyword defaults and pillar tools; off by default.

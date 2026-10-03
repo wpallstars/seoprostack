@@ -2184,8 +2184,20 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
 
     /**
      * Which active plugins each active plugin needs: its `Requires Plugins`
-     * header, WooCommerce and Elementor add-on headers, and add-ons named
-     * after WooCommerce, Elementor or Contact Form 7.
+     * header, WooCommerce and Elementor add-on headers, add-ons named
+     * after WooCommerce, Elementor or Contact Form 7, and Pro or Premium
+     * add-ons of another active plugin.
+     *
+     * A Pro add-on counts when its folder is the base plugin's with "pro"
+     * or "premium" after it ("fluent-booking-pro", "fluentformpro"), or
+     * its name is the base plugin's with Pro, Premium or Add-On added
+     * ("FluentCRM Pro" for "FluentCRM - Marketing Automation For
+     * WordPress", "Fluent Forms Pro Add On Pack" for "Fluent Forms").
+     * Few declare `Requires Plugins`, and a Pro add-on loaded without its
+     * base shows a "requires the base plugin" notice on every screen
+     * that skipped the base, while a base loaded without its Pro add-on
+     * loses the add-on's features on its own screens. So each needs the
+     * other: the two load together or not at all.
      *
      * `WC requires at least` counts only when the plugin's name says
      * WooCommerce (as WordPress.org asks of add-ons): general plugins that
@@ -2207,16 +2219,49 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
             'contact-form-7' => '/(^|-)(contact-form-7|cf7|wpcf7)(-|$)/',
         );
 
-        $deps = array();
+        $headers_of = array();
+        $by_name    = array();
         foreach ($by_slug as $slug => $file) {
-            $headers = get_file_data(WP_PLUGIN_DIR . '/' . $file, array(
+            $headers_of[$slug] = get_file_data(WP_PLUGIN_DIR . '/' . $file, array(
                 'requires'  => 'Requires Plugins',
                 'name'      => 'Plugin Name',
                 'wc'        => 'WC requires at least',
                 'elementor' => 'Elementor tested up to',
                 'pro'       => 'Elementor Pro tested up to',
             ));
+            // The name before a tagline: "FluentCRM - Marketing Automation" is "fluentcrm".
+            $name = self::plain_name(preg_split('/\s+[-–—:|]\s+/u', (string) $headers_of[$slug]['name'])[0]);
+            if ('' !== $name && !isset($by_name[$name])) {
+                $by_name[$name] = $slug;
+            }
+        }
+
+        $deps = array();
+        $pros = array(); // Base plugin file => its Pro add-ons' files.
+        foreach ($by_slug as $slug => $file) {
+            $headers = $headers_of[$slug];
             $needs = array_map('trim', explode(',', (string) $headers['requires']));
+            // Pro add-ons: "fluent-booking-pro" and "fluentformpro" need
+            // "fluent-booking" and "fluentform".
+            $bases = array();
+            if (preg_match('/^(.+?)-?(pro|premium)$/', $slug, $base)) {
+                $bases[] = $base[1];
+            }
+            // "FluentCRM Pro" and "Fluent Forms Pro Add On Pack" need
+            // "FluentCRM" and "Fluent Forms".
+            $pro_name = preg_split('/\s+[-–—:|]\s+/u', (string) $headers['name'])[0];
+            if (preg_match('/\b(pro|premium)\b/i', $pro_name)) {
+                $stripped = self::plain_name(preg_replace('/\b(pro|premium|add[\s-]*ons?|addons?|pack)\b/i', '', $pro_name));
+                if ('' !== $stripped && isset($by_name[$stripped])) {
+                    $bases[] = $by_name[$stripped];
+                }
+            }
+            foreach ($bases as $base) {
+                if ($base !== $slug && isset($by_slug[$base])) {
+                    $needs[] = $base;
+                    $pros[$by_slug[$base]][] = $file;
+                }
+            }
             if ('' !== $headers['wc'] && preg_match('/\b(woocommerce|woo|wc)\b/i', (string) $headers['name'])) {
                 $needs[] = 'woocommerce';
             }
@@ -2238,7 +2283,23 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
                 $deps[$file] = $files;
             }
         }
+        // A base plugin needs its Pro add-on too: the add-on adds to the
+        // base plugin's own screens, which it rarely registers itself.
+        foreach ($pros as $file => $files) {
+            $deps[$file] = array_values(array_unique(array_merge(isset($deps[$file]) ? $deps[$file] : array(), $files)));
+        }
         return $deps;
+    }
+
+    /**
+     * A plugin name in lower case letters and digits only, for comparing
+     * names: "Fluent Forms" and "FluentForms" are both "fluentforms".
+     *
+     * @param string $name Plugin name.
+     * @return string
+     */
+    private static function plain_name($name) {
+        return (string) preg_replace('/[^a-z0-9]+/', '', strtolower(wp_strip_all_tags((string) $name)));
     }
 
     /* --------------------------------------------------------------------- */
