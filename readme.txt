@@ -125,6 +125,7 @@ Click **Report a problem** at the top right of Settings → SEO Pro Stack, or op
 == Changelog ==
 
 = Unreleased =
+* New: Hosting needs checks object cache health daily and recommends unused Redis or Memcached, without connections on visitor requests.
 * New: External link icons follow link colours and Kadence dark mode without scripts or extra asset requests; off by default.
 * Fix: a broken Kadence screenshot on the Theme tab on sites that block images from other sites.
 
