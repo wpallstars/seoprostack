@@ -127,11 +127,12 @@ Click **Report a problem** at the top right of Settings → SEO Pro Stack, or op
 
 = Unreleased =
 * New: Rank Math keyword defaults and pillar tools; off by default.
+* New: Remove all on Tools → Old addresses.
 
 = 0.11.5 =
 * New: Hosting needs checks object cache health daily and recommends unused Redis or Memcached, without connections on visitor requests.
 * New: External link icons follow link colours and Kadence dark mode without scripts or extra asset requests; off by default.
-* Fix: Load plugins only where needed skipped no plugins on sites updated to 0.11.3 or 0.11.4; it now gives its full effect as soon as it is switched on.
+* Fix: Load plugins only where needed works again on sites updated to 0.11.3 or 0.11.4.
 * Fix: updates from private GitHub repositories work with HTTP Requests Manager's blocking modes.
 * Fix: a broken Kadence screenshot on the Theme tab on sites that block images from other sites.
 * Fix: Deactivate and Activate links now work with Freesoul Deactivate Plugins.
