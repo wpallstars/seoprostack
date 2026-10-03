@@ -806,6 +806,17 @@
 			post('seoprostack_get_themes', {})
 				.done(function (response) {
 					$theme.html(response && response.success ? response.data.html : Plugins.notice(i18n.loadFailed));
+					// A blocked screenshot leaves the plain panel, not a broken image.
+					$theme.find('.sps-theme-card__media img').each(function () {
+						var img = this;
+						if (img.complete && !img.naturalWidth) {
+							$(img).remove();
+						} else {
+							$(img).one('error', function () {
+								$(img).remove();
+							});
+						}
+					});
 				})
 				.fail(function (xhr) {
 					$theme.html(Plugins.notice(errorMessage(xhr, i18n.loadFailed)));
