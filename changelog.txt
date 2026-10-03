@@ -3,6 +3,7 @@
 Every change to SEO Pro Stack. readme.txt lists the latest version in short.
 
 = Unreleased =
+* Change: the WooCommerce preset turns on Deferred emails, so checkout does not wait for the mail server. Emails go out through Action Scheduler, which needs WP-Cron or a server cron. If emails arrive late or not at all, check WooCommerce → Status → Scheduled Actions (group woocommerce-emails) for pending or failed woocommerce_send_queued_transactional_email actions, and turn Deferred emails off in WooCommerce → Settings → Advanced → Features. Reset and Undo still work.
 * Fix: WebP and AVIF images now use the quality you set; before, WordPress's own quality was used whatever the setting said. Changing a quality converts the pictures again in the background, and copies from earlier versions are made again once.
 * New: WebP and AVIF images: Quality by picture size (on), sharper thumbnails and smaller large pictures.
 * Change: WebP and AVIF images makes sharper copies by default: WebP quality 90 and AVIF 70, instead of 80 and 60. Sites that saved their own quality keep it.

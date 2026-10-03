@@ -124,6 +124,7 @@ Click **Report a problem** at the top right of Settings → SEO Pro Stack, or op
 == Changelog ==
 
 = Unreleased =
+* Change: WooCommerce preset turns on Deferred emails for faster checkout; needs WP-Cron or a server cron.
 * New: Restrict content (replaces Content Control): posts, parts of posts, categories, blocks and shop products for members or chosen roles.
 * New: quality by picture size; rules check; whole-library watermarks; watermark links in tile view.
 * Change: WebP 90 and AVIF 70 by default.

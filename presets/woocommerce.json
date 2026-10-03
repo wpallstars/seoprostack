@@ -1,19 +1,21 @@
 {
     "name": "WooCommerce",
     "tested": "11.1.2",
-    "updated": "2026-10-01",
-    "notes": "Keeps WooCommerce from sending usage data and error logs to WooCommerce.com, stops marketplace suggestions and promoted extensions in the admin, and turns off Order attribution, which loads a tracking script and sets cookies for every visitor to record where orders came from. Turn Order attribution back on (WooCommerce › Settings › Advanced › Features) if you use it.",
+    "updated": "2026-10-03",
+    "notes": "Keeps WooCommerce from sending usage data and error logs to WooCommerce.com, stops marketplace suggestions and promoted extensions in the admin, and turns off Order attribution, which loads a tracking script and sets cookies for every visitor to record where orders came from. Turn Order attribution back on (WooCommerce › Settings › Advanced › Features) if you use it. Turns on Deferred emails so checkout does not wait for the mail server. Emails go out when Action Scheduler runs, which needs WP-Cron or a server cron. If order emails arrive late or not at all, check WooCommerce › Status › Scheduled Actions (group woocommerce-emails) for pending or failed woocommerce_send_queued_transactional_email actions, and turn Deferred emails off in WooCommerce › Settings › Advanced › Features.",
     "options": {
         "woocommerce_allow_tracking": "no",
         "woocommerce_feature_remote_logging_enabled": "no",
         "woocommerce_show_marketplace_suggestions": "no",
-        "woocommerce_feature_order_attribution_enabled": "no"
+        "woocommerce_feature_order_attribution_enabled": "no",
+        "woocommerce_feature_deferred_transactional_emails_enabled": "yes"
     },
     "defaults": {
         "woocommerce_allow_tracking": "no",
         "woocommerce_feature_remote_logging_enabled": "yes",
         "woocommerce_show_marketplace_suggestions": "yes",
-        "woocommerce_feature_order_attribution_enabled": "yes"
+        "woocommerce_feature_order_attribution_enabled": "yes",
+        "woocommerce_feature_deferred_transactional_emails_enabled": "no"
     },
     "settings": {
         "woocommerce_allow_tracking": {
@@ -50,6 +52,15 @@
                 "yes": "On",
                 "no": "Off",
                 "null": "Not set"
+            }
+        },
+        "woocommerce_feature_deferred_transactional_emails_enabled": {
+            "label": "Deferred emails",
+            "description": "Sends order emails through Action Scheduler after checkout, so the customer does not wait for the mail server.",
+            "values": {
+                "yes": "On",
+                "no": "Off",
+                "null": "Not set (Off)"
             }
         }
     }
