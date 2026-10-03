@@ -879,9 +879,11 @@ Stored: the choices and times in `seoprostack_licence_calls` (not autoloaded, wr
 
 ### Fixes for other plugins (Plugins)
 
-On by default. Works around bugs in other plugins that slow the site down, through those plugins’ own hooks. Nothing is stored and no other plugin’s settings are changed, so turning this off brings each bug back as it was. Turn it off if a fix causes a problem.
+On by default. Works around bugs in other plugins that slow the site down or leave it broken, through those plugins’ own hooks. Nothing is stored and no other plugin’s settings are changed, so turning this off brings each bug back as it was (a file already deleted stays deleted). Turn it off if a fix causes a problem.
 
 - **Lasso Lite (Simple URLs)**: version 159 saves lasso.link’s whole reply, `{"site_id": "…"}`, as its site ID instead of the ID inside it, then rejects what it saved. So on every admin request by an administrator, admin-ajax included, it asks lasso.link again (about 200–400 ms each on a test site), sending the site address, versions and support email. Its `lasso_lite_estimate_earning_site_id` filter now gets the ID from the saved reply. Lasso Lite then sends its install report once and stops asking; its other reports (each setup step once, and a weekly earnings estimate in the background) work as its makers intended.
+- **Freesoul Deactivate Plugins and Freesoul Deactivate Plugins PRO** (2.6.9 and 1.3.0.0): deactivating one left the other active (PRO needs the free plugin), and Freesoul’s must-use file, `wp-content/mu-plugins/eos-deactivate-plugins.php`, was left behind on networks, and on single sites whenever Freesoul’s own code did not run during the deactivation (PRO’s own deactivation hook never runs). A file left behind keeps skipping plugins by Freesoul’s saved rules on single sites and shows an error on every admin screen. Deactivating either one, from the Plugins screen, the admin bar’s Plugins menu or WP-CLI, now deactivates both in the same place (this site, or the whole network). Once neither is active on any site, the file is deleted, if it says it is Freesoul’s; opening the Plugins screen also deletes one left from before. Activating Freesoul puts the file back.
+- **Readabler** (2.0.18, and other Merkulove plugins built on the same code): it asked its server for product information on every load of the Plugins screen, waiting up to 60 seconds, even with the answer cached for a day. When that request failed (a timeout, its server down, or HTTP Requests Manager blocking it), it added an admin notice that throws an exception, and the Plugins screen stopped with “There has been a critical error on this website”. The request now waits until the cached answer runs out, and the throwing notice is removed before it runs; Readabler still logs the failure.
 
 ### Load plugins only where needed (Plugins)
 
@@ -1108,6 +1110,8 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folder�
 
 - New, off by default: Rank Math defaults (Links tab) fills empty focus keywords from titles for chosen post types, warns about pillar overuse and offers selected-post pillar removal.
 - New: Tools → Old addresses has **Remove all** (it asks first), and ticking the whole page offers **Select all** to take in every page, as Select all across pages does in post lists. Before, only the 50 old addresses on screen could be removed at once, so a site with a thousand needed twenty-one rounds. The box above the list also ticks the page where another plugin's script stops WordPress's own from doing it.
+- Fixed: deactivating Freesoul Deactivate Plugins or its PRO add-on left the other one active and, on networks or when Freesoul’s own code did not run, its must-use file behind, still skipping plugins on single sites. Fixes for other plugins now deactivates both together and deletes the file once neither is active anywhere, also when the Plugins screen finds one left from before.
+- Fixed: Readabler stopped the Plugins screen with a critical error whenever its product information request failed (a timeout, or HTTP Requests Manager blocking it), and made that request on every load of the screen. Fixes for other plugins skips the request while Readabler’s cached answer is there and removes the notice that throws.
 
 ### 0.11.5
 
