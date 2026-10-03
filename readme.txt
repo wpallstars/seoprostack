@@ -5,7 +5,7 @@ Tags: magic login, iframe, schedule posts, auto upload images, admin
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 0.11.5
+Stable tag: 0.11.6
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -125,19 +125,11 @@ Click **Report a problem** at the top right of Settings → SEO Pro Stack, or op
 
 == Changelog ==
 
-= Unreleased =
+= 0.11.6 =
 * New: Rank Math keyword defaults and pillar tools; off by default.
 * New: Remove all on Tools → Old addresses.
 * Fix: deactivating Freesoul Deactivate Plugins or PRO deactivates both and removes its leftover must-use file.
 * Fix: Readabler no longer stops the Plugins screen with a critical error when its server cannot be reached.
-
-= 0.11.5 =
-* New: Hosting needs checks object cache health daily and recommends unused Redis or Memcached, without connections on visitor requests.
-* New: External link icons follow link colours and Kadence dark mode without scripts or extra asset requests; off by default.
-* Fix: Load plugins only where needed works again on sites updated to 0.11.3 or 0.11.4.
-* Fix: updates from private GitHub repositories work with HTTP Requests Manager's blocking modes.
-* Fix: a broken Kadence screenshot on the Theme tab on sites that block images from other sites.
-* Fix: Deactivate and Activate links now work with Freesoul Deactivate Plugins.
 
 Older: `changelog.txt`.
 
