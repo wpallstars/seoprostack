@@ -570,7 +570,7 @@ class SEOProStack_Hosting_Needs extends SEOProStack_Feature {
                     }
                 }
                 $hostinger = defined('HOSTINGER') || (bool) array_intersect(array('hostinger', 'hostinger-ai-assistant', 'hostinger-easy-onboarding'), self::active_slugs());
-                $facts['extension'] = $hostinger && !extension_loaded('memcached') && !extension_loaded('redis');
+                $facts['extension'] = $hostinger && !extension_loaded('memcached');
             }
             update_option(self::OBJECT_CACHE, $facts, false);
             return $facts;
@@ -902,7 +902,7 @@ class SEOProStack_Hosting_Needs extends SEOProStack_Feature {
                 $cache['available']
             ));
         } elseif ('off' === $cache['state'] && $cache['extension']) {
-            $advice[] = array('recommended', __('This Hostinger site has no Redis or Memcached PHP extension enabled. If your plan includes object caching, turn on Memcached in hPanel’s PHP settings, then enable it in LiteSpeed Cache → Cache → Object, or ask your host which cache they provide.', 'seoprostack'));
+            $advice[] = array('recommended', __('The Memcached PHP extension is not enabled on this Hostinger site. If your plan includes object caching, turn on Memcached in hPanel’s PHP settings, then enable it in LiteSpeed Cache → Cache → Object, or ask your host which cache they provide.', 'seoprostack'));
         } elseif ('off' === $cache['state'] && self::big_data($needs['facts'])) {
             $advice[] = array('recommended', sprintf(
                 /* translators: 1: postmeta rows, 2: products. */
