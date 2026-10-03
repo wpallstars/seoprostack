@@ -60,7 +60,8 @@ the WordPress.org zip.
 
 Sites read the repository without signing in, so it must be public for sites
 to get updates. It is private for now; a test site can use a read-only token
-in `SEOPROSTACK_GITHUB_TOKEN` (`wp-config.php`) meanwhile. Making it public
+in `WPALLSTARS_GITHUB_TOKEN` (`wp-config.php`; it serves every plugin with
+the shared updater) meanwhile. Making it public
 needs the owner's say; do the quality sweep in `DEVELOPMENT.md` → At public
 launch in the same step.
 
@@ -184,4 +185,5 @@ Each later WordPress.org release: build from the tag that is already on GitHub,
 
 Once listed, sites with the GitHub build update from WordPress.org unless
 **Early updates from GitHub** is on, which keeps them on GitHub releases
-(`includes/features/class-seoprostack-github-updates.php`).
+(`includes/features/class-seoprostack-github-updates.php`, which drives the
+shared updater in `includes/github-updater/`).

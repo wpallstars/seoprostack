@@ -82,6 +82,9 @@
 			<property name="prefixes" type="array">
 				<element value="seoprostack"/>
 				<element value="SEOProStack"/>
+				<!-- The shared GitHub updater (includes/github-updater/), the same in every plugin. -->
+				<element value="wpallstars"/>
+				<element value="WPAllStars"/>
 			</property>
 		</properties>
 	</rule>

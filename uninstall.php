@@ -323,7 +323,9 @@ delete_metadata('user', 0, 'seoprostack_licence_later', '', true);
 delete_site_option('seoprostack_plugin_sizes');
 delete_site_transient('seoprostack_plugin_names');
 delete_site_option('seoprostack_nextgen_rules');
-// Latest GitHub releases (Updates from GitHub).
+// Latest GitHub releases (the shared GitHub updater, and its cache from
+// before it was shared). Only a cache: another plugin's copy asks again.
+delete_site_transient('wpallstars_github_releases');
 delete_site_transient('seoprostack_github_releases');
 
 // The must-use file of "Load plugins only where needed", if it is ours.

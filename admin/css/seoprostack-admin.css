@@ -1151,7 +1151,7 @@
 	color: var(--sps-muted);
 }
 
-/* When a recommended plugin is needed on this site, or only now and then (seoprostack_free_plugin_note). Not .notice: Hide admin notices moves those. */
+/* When a recommended plugin is needed on this site (seoprostack_free_plugin_note). Not .notice: Hide admin notices moves those. */
 .sps-wrap .sps-plugin-note {
 	display: block;
 	margin: 8px 0;

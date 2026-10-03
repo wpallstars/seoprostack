@@ -137,13 +137,15 @@ preset overwrites them. A setting goes in one or the other.
   WordPress update checks and downloads are the exception: leave them alone
   (next rule).
 - Do not change WordPress update behaviour (update transients, `auto_update_*`
-  filters, update checks) outside the file below. Plugin Check reports
+  filters, update checks) outside the files below. Plugin Check reports
   `plugin_updater_detected` as an error, and WordPress.org asks plugins not to
   interfere with the updater. A parked example of turning updates off is on
   the `feature/disable-updates-parked` branch.
 - The one exception, at the owner's request (for speed, reliability and site
   owners' control, and because more plugins will be released on GitHub):
-  Updates from GitHub, all in
+  the shared GitHub updater in `includes/github-updater/` (every plugin made
+  from the starter carries a copy; only the newest copy on a site runs) and
+  its setting, Updates from GitHub, in
   `includes/features/class-seoprostack-github-updates.php` (listed in
   `SEOProStack_Setup::OPTIONAL_FEATURES`, loaded only when present). It replaces
   Git Updater: it adds GitHub releases of any plugin with a
@@ -151,10 +153,15 @@ preset overwrites them. A setting goes in one or the other.
   and leaves the download, install, auto-updates and rollback to core. It
   only adds entries for those plugins; it never removes or blocks other
   updates. Keep anything that installs or updates code from outside
-  WordPress.org in that file, because the WordPress.org build leaves it out.
+  WordPress.org in those files, because the WordPress.org build leaves them
+  out. The updater is the same in every plugin apart from its text domain
+  and `@package`: change it in the starter, raise the version in its
+  `load.php`, and copy it to each plugin. Plugins change what it does only
+  through its `wpallstars_github_*` filters, never by calling its class.
   Never add an `Update URI` header. Tokens for private repositories come only
-  from `wp-config.php` or a filter, go only to api.github.com and are never
-  stored.
+  from `wp-config.php` (`WPALLSTARS_GITHUB_TOKEN`, or the older
+  `SEOPROSTACK_GITHUB_TOKEN`) or a filter, go only to api.github.com and are
+  never stored.
 - Leave no PHP errors, warnings, notices or deprecations behind. Fix any that
   SEO Pro Stack causes as you find them, in the same change when it is small,
   or as a tracked issue. That includes ones in other plugins that only happen
@@ -175,7 +182,8 @@ Updater, where still active, reads `Version:` on `main` instead), so:
 - Never put a pre-release version (`-beta1`, `-rc1`) in `Version:` on `main`;
   mark test releases as pre-releases on GitHub.
 - The WordPress.org build is the release build without the files in
-  `.distignore-wporg` (`includes/features/class-seoprostack-github-updates.php`)
+  `.distignore-wporg` (`includes/github-updater/` and
+  `includes/features/class-seoprostack-github-updates.php`)
   and the `GitHub Plugin URI`, `Primary Branch` and `Release Asset` header
   lines. Its zip is named `wordpress-org-seoprostack-X.Y.Z.zip` so no updater
   picks it; never attach it to a GitHub release.
@@ -187,7 +195,7 @@ Updater, where still active, reads `Version:` on `main` instead), so:
   tags, publishes or uploads anything.
 - Releasing and submitting to WordPress.org need the owner's say. The
   repository is private until then, so sites cannot read it without a token
-  (`SEOPROSTACK_GITHUB_TOKEN`).
+  (`WPALLSTARS_GITHUB_TOKEN`).
 
 Details: `RELEASING.md` (steps and WordPress.org checklist), `README.md` →
 Updates and releases.

@@ -4,5 +4,6 @@
 # anywhere else, so updates from GitHub stay in GitHub releases only.
 # scripts/build-release.sh also removes the Git Updater header lines
 # (GitHub Plugin URI, Primary Branch, Release Asset) from seoprostack.php.
+/includes/github-updater/
 /includes/features/class-seoprostack-github-updates.php
 # Keep README.md: the admin Read Me tab shows it (admin/data/readme.php).
