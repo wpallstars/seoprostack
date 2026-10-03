@@ -1238,7 +1238,7 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
     private static function front_routes() {
         $routes = array('public_types' => array(), 'type_vars' => array(), 'tax_vars' => array(), 'archives' => array());
         foreach (get_post_types(array(), 'objects') as $name => $object) {
-            if (!$object->publicly_queryable || 'attachment' === $name) {
+            if ((!$object->publicly_queryable && 'page' !== $name) || 'attachment' === $name) {
                 continue;
             }
             $routes['public_types'][] = $name;

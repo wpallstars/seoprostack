@@ -721,6 +721,10 @@ final class SEOProStack_Plugin_Loader {
                         return rawurlencode($matches[(int) $match[1]] ?? '');
                     }, (string) $target);
                     parse_str((string) wp_parse_url($target, PHP_URL_QUERY), $query);
+                    if (isset($query['pagename']) && !self::front_post_by_path($query['pagename'], 'page', $path)) {
+                        $query = array(); // Core's verbose page rules must validate the page before accepting a match.
+                        continue;
+                    }
                     break;
                 }
             }
@@ -757,8 +761,8 @@ final class SEOProStack_Plugin_Loader {
         if (!empty($query['p']) || !empty($query['page_id'])) {
             $post = get_post((int) ($query['p'] ?? $query['page_id']));
         } elseif (!empty($query['pagename']) || !empty($query['name'])) {
-            $types = !empty($query['pagename']) ? array('page') : array('' !== $type ? $type : 'post');
-            $post = get_page_by_path((string) ($query['pagename'] ?? $query['name']), OBJECT, $types);
+            $type = !empty($query['pagename']) ? 'page' : ('' !== $type ? $type : 'post');
+            $post = self::front_post_by_path((string) ($query['pagename'] ?? $query['name']), $type, $path);
         } elseif ('' === $path && !$query && 'page' === get_option('show_on_front')) {
             $post = get_post((int) get_option('page_on_front'));
         }
@@ -810,6 +814,51 @@ final class SEOProStack_Plugin_Loader {
             return array('kind' => 'archive:' . $type);
         }
         return '' === $path || isset($query['paged']) ? array('kind' => 'page' === get_option('show_on_front') ? 'home' : 'front') : array();
+    }
+
+    /** One bounded lookup supplies content and ancestors for all matching rewrite rules. */
+    private static function front_post_by_path($name, $type, $request_path) {
+        global $wpdb;
+        static $lookup = null;
+        static $rows = array();
+        $parts = array_map('sanitize_title_for_query', explode('/', trim(rawurldecode($name), '/')));
+        if ($lookup !== $request_path) {
+            $lookup = $request_path;
+            $names = array_values(array_unique(array_merge($parts, array_map('sanitize_title_for_query', explode('/', trim(rawurldecode($request_path), '/'))))));
+            $rows = array();
+            if (count($names) > 50) {
+                return null;
+            }
+            $placeholders = implode(', ', array_fill(0, count($names), '%s'));
+            // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- prepared slug placeholders; only cached for this request, never an expiring address record.
+            $found = $wpdb->get_results($wpdb->prepare("SELECT * FROM {$wpdb->posts} WHERE post_name IN ($placeholders) AND post_status = %s LIMIT 201", array_merge($names, array('publish'))));
+            if (count($found) > 200) {
+                return null;
+            }
+            foreach ($found as $row) {
+                $rows[(int) $row->ID] = $row;
+            }
+        }
+        $result = null;
+        foreach ($rows as $row) {
+            if ($type !== $row->post_type || end($parts) !== $row->post_name) {
+                continue;
+            }
+            $ancestor = $row;
+            for ($i = count($parts) - 1; $i >= 0; $i--) {
+                if (!$ancestor || $parts[$i] !== $ancestor->post_name || $type !== $ancestor->post_type) {
+                    break;
+                }
+                if (0 === $i && 0 === (int) $ancestor->post_parent) {
+                    if ($result) {
+                        return null; // Ambiguous content is not safe to identify before plugins load.
+                    }
+                    $result = new WP_Post($row);
+                }
+                $ancestor = $rows[(int) $ancestor->post_parent] ?? null;
+            }
+        }
+        return $result;
     }
 
     /** Content ownership learned with all plugins; unknown syntax loads everything. */
