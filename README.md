@@ -1057,7 +1057,7 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folderâ
 
 ## Changelog
 
-### Unreleased
+### 0.11.1
 
 - Developers: the core files (listed in `scripts/core-files.txt`) now come from the starter plugin, `wpallstars/wp-plugin-starter-template-for-ai-coding`, with SEO Pro Stack's names: `scripts/sync-core.sh` copies them and `scripts/sync-core.sh --check` lists any that differ. SEO Pro Stack's own admin styles and script moved to `admin/css/seoprostack-tabs.css` and `admin/js/seoprostack-tabs.js`, loaded from `SEOProStack_Setup` on the new `seoprostack_admin_enqueue` action, and use the shared helpers in `seoprostackAdmin.api`. The presets and starter data release check moved to `scripts/preflight-plugin.sh`. With no settings at all, the settings screen shows its first tab with "No settings yet." Nothing changes for users.
 - Developers: the docs are split so the shared part can be copied between plugins as it is. `STANDARDS.md` (new) holds the rules every plugin made from the starter shares: structure and core files, code rules, Updates from GitHub, releases, dark mode and testing. `DEVELOPMENT.md` and `RELEASING.md` are the same in every plugin, with names as placeholders. `AGENTS.md` keeps only SEO Pro Stack's own rules (features on by default, replaced plugins, presets, starter data), and `LAUNCH.md` (new) its WordPress.org checklist, guideline review and public launch state. The checklist's Defaults line now lists Fixes for other plugins, which is on by default too.
