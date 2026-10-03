@@ -364,7 +364,9 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
 
     /** Queue only retained URLs that have not been learned in this map. */
     public static function background_learning() {
+        $state = SEOProStack_Plugin_Loader::state();
         if (!current_user_can('activate_plugins') || is_network_admin() || wp_doing_ajax()
+            || !in_array($state['mode'], array('full', 'filter'), true)
             || (defined('SEOPROSTACK_LOAD_ALL_PLUGINS') && SEOPROSTACK_LOAD_ALL_PLUGINS)) {
             return;
         }
