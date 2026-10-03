@@ -2185,19 +2185,22 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
     /**
      * Which active plugins each active plugin needs: its `Requires Plugins`
      * header, WooCommerce and Elementor add-on headers, add-ons named
-     * after WooCommerce, Elementor or Contact Form 7, and Pro or Premium
-     * add-ons of another active plugin.
+     * after WooCommerce, Elementor or Contact Form 7, and paid (Pro or
+     * Premium) add-ons of another active plugin.
      *
-     * A Pro add-on counts when its folder is the base plugin's with "pro"
-     * or "premium" after it ("fluent-booking-pro", "fluentformpro"), or
-     * its name is the base plugin's with Pro, Premium or Add-On added
-     * ("FluentCRM Pro" for "FluentCRM - Marketing Automation For
-     * WordPress", "Fluent Forms Pro Add On Pack" for "Fluent Forms").
-     * Few declare `Requires Plugins`, and a Pro add-on loaded without its
-     * base shows a "requires the base plugin" notice on every screen
-     * that skipped the base, while a base loaded without its Pro add-on
-     * loses the add-on's features on its own screens. So each needs the
-     * other: the two load together or not at all.
+     * A paid add-on counts when its folder is the base plugin's with
+     * "-addon-pro", "-premium", "-pro" or "pro" after it
+     * ("fluent-booking-pro", "fluentformpro"), matches a known alias
+     * ("fluentcampaign-pro" for "fluent-crm"), or its name is the base
+     * plugin's with Pro, Premium or Add-On added ("FluentCRM Pro" for
+     * "FluentCRM - Marketing Automation For WordPress", "Fluent Forms Pro
+     * Add On Pack" for "Fluent Forms"). Paid replacements get no
+     * dependency when the free plugin is inactive. Few declare `Requires
+     * Plugins`, and a paid add-on loaded without its base shows a
+     * "requires the base plugin" notice on every screen that skipped the
+     * base, while a base loaded without its add-on loses the add-on's
+     * features on its own screens. So each needs the other: the two load
+     * together or not at all.
      *
      * `WC requires at least` counts only when the plugin's name says
      * WooCommerce (as WordPress.org asks of add-ons): general plugins that
@@ -2217,6 +2220,11 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
             'woocommerce'    => '/(^|-)(woocommerce|woo|wc)(-|$)/',
             'elementor'      => '/(^|-)elementor(-|$)/',
             'contact-form-7' => '/(^|-)(contact-form-7|cf7|wpcf7)(-|$)/',
+        );
+        $aliases = array(
+            'fluentcampaign-pro' => 'fluent-crm',
+            'wp-social-ninja-pro' => 'wp-social-reviews',
+            'bookly-addon-pro' => 'bookly-responsive-appointment-booking-tool',
         );
 
         $headers_of = array();
@@ -2241,11 +2249,18 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
         foreach ($by_slug as $slug => $file) {
             $headers = $headers_of[$slug];
             $needs = array_map('trim', explode(',', (string) $headers['requires']));
-            // Pro add-ons: "fluent-booking-pro" and "fluentformpro" need
-            // "fluent-booking" and "fluentform".
+            // Paid add-ons: "fluent-booking-pro" and "fluentformpro" need
+            // "fluent-booking" and "fluentform". Match each suffix
+            // independently: an alias or a shorter match must not hide
+            // another active parent with an exact slug match.
             $bases = array();
-            if (preg_match('/^(.+?)-?(pro|premium)$/', $slug, $base)) {
-                $bases[] = $base[1];
+            foreach (array('-addon-pro', '-premium', '-pro', 'pro') as $suffix) {
+                if (strlen($slug) > strlen($suffix) && substr($slug, -strlen($suffix)) === $suffix) {
+                    $bases[] = substr($slug, 0, -strlen($suffix));
+                }
+            }
+            if (isset($aliases[$slug])) {
+                $bases[] = $aliases[$slug];
             }
             // "FluentCRM Pro" and "Fluent Forms Pro Add On Pack" need
             // "FluentCRM" and "Fluent Forms".
