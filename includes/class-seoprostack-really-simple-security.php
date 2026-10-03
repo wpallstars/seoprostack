@@ -101,10 +101,8 @@ final class SEOProStack_Really_Simple_Security {
         if (!in_array($wanted, array(null, false, '', 'none', 'wp_redirect', 'htaccess'), true)) {
             return new WP_Error('seoprostack_rsssl_value', __('The saved redirect method is unsupported; restore it in Really Simple Security.', 'seoprostack'));
         }
-        // One bounded, certificate-verified request, only for an actual mutation.
-        $response = wp_remote_get(set_url_scheme(home_url('/'), 'https'), array('timeout' => 5, 'redirection' => 0, 'sslverify' => true));
-        $status   = wp_remote_retrieve_response_code($response);
-        if (is_wp_error($response) || $status < 200 || $status >= 300) {
+        // Bounded, certificate-verified requests, only for an actual mutation.
+        if (!self::https_works()) {
             return new WP_Error('seoprostack_rsssl_tls', __('HTTPS could not be verified. Check the certificate and HTTPS site address before changing the redirect.', 'seoprostack'));
         }
         $before = get_option(self::OPTION, array());
@@ -126,6 +124,40 @@ final class SEOProStack_Really_Simple_Security {
         return new WP_Error($restored ? 'seoprostack_rsssl_restored' : 'seoprostack_rsssl_save', $restored
             ? __('Really Simple Security could not reconcile its redirect rules. The previous redirect preference and rules were restored; no undo copy was replaced.', 'seoprostack')
             : __('Redirect save and rollback are incomplete. Check Really Simple Security’s redirect setting and root .htaccess immediately; the previous undo copy was kept.', 'seoprostack'));
+    }
+
+    /**
+     * Allow up to three same-origin HTTPS redirects (such as language pages).
+     * Never follow a downgrade, a different host/port, or an endless loop.
+     *
+     * @return bool
+     */
+    private static function https_works() {
+        $url    = set_url_scheme(home_url('/'), 'https');
+        $origin = wp_parse_url($url);
+        if (!is_array($origin) || empty($origin['host'])) {
+            return false;
+        }
+        for ($hop = 0; $hop <= 3; $hop++) {
+            $response = wp_remote_get($url, array('timeout' => 3, 'redirection' => 0, 'sslverify' => true, 'limit_response_size' => 1024));
+            $status   = wp_remote_retrieve_response_code($response);
+            if (is_wp_error($response)) {
+                return false;
+            }
+            if ($status >= 200 && $status < 300) {
+                return true;
+            }
+            $location = wp_remote_retrieve_header($response, 'location');
+            if (!in_array($status, array(301, 302, 303, 307, 308), true) || !is_string($location) || '' === $location) {
+                return false;
+            }
+            $url  = WP_Http::make_absolute_url($location, $url);
+            $next = wp_parse_url($url);
+            if (!is_array($next) || 'https' !== ($next['scheme'] ?? '') || strtolower($next['host'] ?? '') !== strtolower($origin['host']) || ($next['port'] ?? 443) !== ($origin['port'] ?? 443) || isset($next['user']) || isset($next['pass'])) {
+                return false;
+            }
+        }
+        return false;
     }
 
     /**
