@@ -5,7 +5,7 @@ Tags: magic login, iframe, schedule posts, auto upload images, admin
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 0.11.6
+Stable tag: 0.11.7
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -125,15 +125,9 @@ Click **Report a problem** at the top right of Settings → SEO Pro Stack, or op
 
 == Changelog ==
 
-= Unreleased =
+= 0.11.7 =
 * New: Tidy WooCommerce admin hides suggested payment plugins on Settings → Payments.
 * Fix: no more Tutor LMS Pro update-check warnings in the debug log.
-
-= 0.11.6 =
-* New: Rank Math keyword defaults and pillar tools; off by default.
-* New: Tools → Old addresses can remove every old address at once, across all pages.
-* Fix: deactivating Freesoul Deactivate Plugins or PRO deactivates both and removes its leftover must-use file.
-* Fix: Readabler no longer stops the Plugins screen with a critical error when its server cannot be reached.
 
 Older: `changelog.txt`.
 
