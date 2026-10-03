@@ -5,7 +5,7 @@ Tags: magic login, iframe, schedule posts, auto upload images, admin
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 0.11.4
+Stable tag: 0.11.5
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -124,25 +124,18 @@ Click **Report a problem** at the top right of Settings → SEO Pro Stack, or op
 
 == Changelog ==
 
-= Unreleased =
+= 0.11.5 =
 * New: Hosting needs checks object cache health daily and recommends unused Redis or Memcached, without connections on visitor requests.
 * New: Term tools applies taxonomy slug prefixes and suffixes, with a bulk action and 301 redirects from old addresses.
 * New: External link icons follow link colours and Kadence dark mode without scripts or extra asset requests; off by default.
+* Fix: Load plugins only where needed skipped no plugins on sites updated to 0.11.3 or 0.11.4; it now gives its full effect as soon as it is switched on.
+* Fix: updates from private GitHub repositories work with HTTP Requests Manager's blocking modes.
 * Fix: a broken Kadence screenshot on the Theme tab on sites that block images from other sites.
 * Fix: Deactivate and Activate links now work with Freesoul Deactivate Plugins.
-
-= 0.11.4 =
-* Fix: a critical error on every page after updating to 0.11.3, on network sites where Fluent Forms, Fluent Boards or FluentCommunity is network-active but was never set up.
 
 Older: `changelog.txt`.
 
 == Upgrade Notice ==
 
-= 0.11.4 =
-Fixes a critical error on some network sites after 0.11.3. From 0.11.2 or older with GPLVault Updater active: install 0.11.4 once by hand.
-
-= 0.11.3 =
-Sites with GPLVault Updater active: install 0.11.3 once by hand; later updates from GitHub then arrive by themselves.
-
-= 0.11.0 =
-WebP and AVIF copies are made again once, in the background, at the quality you set. New: Restrict content, replacing Content Control.
+= 0.11.5 =
+Load plugins only where needed works again on updated sites. With HTTP Requests Manager blocking requests and a private repository: install 0.11.5 once by hand.

@@ -1100,7 +1100,7 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folderâ
 
 ## Changelog
 
-### Unreleased
+### 0.11.5
 
 - New: Term tools has a slug prefix and suffix per public taxonomy, applied on creation and editing, plus **Apply slug pattern** for selected existing terms with 301 redirects from their old archives.
 - New: Hosting needs warns about configured but unreachable object caches, recommends unused local Redis or Memcached even on small sites, and names the cache in site facts. Checks run at most daily, never on visitor requests, without changing cache settings.
