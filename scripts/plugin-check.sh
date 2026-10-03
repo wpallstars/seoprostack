@@ -124,14 +124,20 @@ check_zip() {
 		return 1
 	fi
 	errors="$( (printf '%s\n' "$report" | grep -o '"type":"ERROR"' || true) | wc -l | tr -d ' ')"
+	warnings="$( (printf '%s\n' "$report" | grep -o '"type":"WARNING"' || true) | wc -l | tr -d ' ')"
 	# The GitHub zip carries Updates from GitHub on purpose; Plugin Check
 	# reports it as an updater. Those findings are expected there (and only
-	# in that file); in the WordPress.org zip they stay errors.
+	# in those files); in the WordPress.org zip they stay errors. So are
+	# prefix warnings there: the shared updater's names (wpallstars_) are the
+	# same in every plugin, so that one copy can stand in for the others.
 	local expected=0
+	local expected_warnings=0
+	local counts
 	case "$zip_name" in
 	"$SLUG"-*)
-		expected="$(printf '%s\n' "$report" | awk -v files="$UPDATER_FILES" '
-			BEGIN { nfiles = split(files, list, "\n") }
+		# The file list goes through the environment: awk -v cannot hold newlines.
+		counts="$(printf '%s\n' "$report" | FILES="$UPDATER_FILES" awk '
+			BEGIN { nfiles = split(ENVIRON["FILES"], list, "\n") }
 			# A listed file, or a file inside a listed folder.
 			function updater(path,   i) {
 				for (i = 1; i <= nfiles; i++) {
@@ -144,16 +150,19 @@ check_zip() {
 				n = split($0, items, "},{")
 				for (i = 1; i <= n; i++) {
 					if (items[i] ~ /"type":"ERROR"/ && items[i] ~ /"code":"(plugin_updater_detected|update_modification_detected|PluginCheck\.CodeAnalysis\.Offloading\.OffloadedContent)"/) { count++ }
+					if (items[i] ~ /"type":"WARNING"/ && items[i] ~ /"code":"WordPress\.NamingConventions\.PrefixAllGlobals\./) { prefix++ }
 				}
 			}
-			END { print count + 0 }')"
+			END { print count + 0, prefix + 0 }')"
+		expected="${counts% *}"
+		expected_warnings="${counts#* }"
 		;;
 	esac
-	if [ "$expected" -gt 0 ]; then
-		printf '%s updater finding(s) in %s are expected in the GitHub zip.\n' "$expected" "$(printf '%s' "$UPDATER_FILES" | tr '\n' ' ')"
+	if [ "$expected" -gt 0 ] || [ "$expected_warnings" -gt 0 ]; then
+		printf '%s updater error(s) and %s prefix warning(s) in %s are expected in the GitHub zip.\n' "$expected" "$expected_warnings" "$(printf '%s' "$UPDATER_FILES" | tr '\n' ' ')"
 		errors=$((errors - expected))
+		warnings=$((warnings - expected_warnings))
 	fi
-	warnings="$( (printf '%s\n' "$report" | grep -o '"type":"WARNING"' || true) | wc -l | tr -d ' ')"
 	# Readable summary: one line per finding (type, code, file:line).
 	printf '%s\n' "$report" | awk '
 		/^FILE: / { file = substr($0, 7); next }

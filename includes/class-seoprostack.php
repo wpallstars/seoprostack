@@ -50,6 +50,12 @@ final class SEOProStack {
             }
         }
 
+        // The shared GitHub updater (GitHub builds only): registers this
+        // copy; the newest copy on the site loads on plugins_loaded.
+        if (is_readable(SEOPROSTACK_DIR . 'includes/github-updater/load.php')) {
+            require_once SEOPROSTACK_DIR . 'includes/github-updater/load.php';
+        }
+
         SEOProStack_Settings::init();
         SEOProStack_Setup::init();
         // Priority 0, added after SEOProStack_Settings::maybe_migrate() so features
