@@ -17,6 +17,17 @@ if (!isset($theme_data, $author) || !is_object($theme_data)) {
 $seoprostack_slug      = SEOProStack_Theme_Manager::SLUG;
 $seoprostack_installed = wp_get_theme($seoprostack_slug);
 $seoprostack_is_active = get_stylesheet() === $seoprostack_slug;
+// The installed theme's own screenshot comes from this site, so a host or
+// security plugin that only allows images from the site itself (an img-src
+// Content Security Policy) or a browser blocker cannot stop it. Otherwise use
+// wordpress.org's, which themes_api gives without a scheme ("//ts.w.org/…").
+$seoprostack_screenshot = $seoprostack_installed->exists() ? $seoprostack_installed->get_screenshot() : '';
+if (!$seoprostack_screenshot && !empty($theme_data->screenshot_url)) {
+    $seoprostack_screenshot = (string) $theme_data->screenshot_url;
+    if (0 === strpos($seoprostack_screenshot, '//')) {
+        $seoprostack_screenshot = 'https:' . $seoprostack_screenshot;
+    }
+}
 $seoprostack_links     = array(
     // Kadence moved to Liquid Web in 2026; kadencewp.com pages redirect there.
     array('text' => __('Starter templates', 'seoprostack'), 'url' => 'https://www.liquidweb.com/software/kadence/kadence-template-gallery/?irpid=4858868&utm_medium=affiliate&irgwc=1&afsrc=1'),
@@ -28,7 +39,9 @@ $seoprostack_links     = array(
 ?>
 <article class="sps-card sps-theme-card">
     <div class="sps-theme-card__media">
-        <img src="<?php echo esc_url($theme_data->screenshot_url); ?>" alt="<?php echo esc_attr(sprintf(/* translators: %s: theme name */ __('%s screenshot', 'seoprostack'), $theme_data->name)); ?>" loading="lazy" />
+        <?php if ($seoprostack_screenshot) : ?>
+            <img src="<?php echo esc_url($seoprostack_screenshot); ?>" alt="<?php echo esc_attr(sprintf(/* translators: %s: theme name */ __('%s screenshot', 'seoprostack'), $theme_data->name)); ?>" />
+        <?php endif; ?>
     </div>
     <div class="sps-theme-card__body">
         <h3 class="sps-theme-card__title">

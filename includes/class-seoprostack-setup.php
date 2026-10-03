@@ -171,8 +171,11 @@ final class SEOProStack_Setup {
      * v17: import Widget Disable's Network Admin dashboard choices into the
      *     main site's hidden dashboard widgets on multisite.
      * v18: preserve saved admin plugin selections as always-load bypasses.
+     * v19: Load plugins only where needed: clear the bypasses v18 and the
+     *      site's first learn added for empty lists, and switch page
+     *      learning on where the feature is off.
      */
-    const DB_VERSION = 18;
+    const DB_VERSION = 19;
 
     /**
      * Tab slugs renamed in 0.4.0, old => new. Settings that still use an

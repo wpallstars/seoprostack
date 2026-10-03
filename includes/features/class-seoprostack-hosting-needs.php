@@ -56,6 +56,9 @@ class SEOProStack_Hosting_Needs extends SEOProStack_Feature {
     /** Transient: database size, autoloaded options and products, read at most hourly. */
     const FACTS = 'seoprostack_hosting_facts';
 
+    /** Non-autoloaded daily object-cache facts and a cross-request probe. */
+    const OBJECT_CACHE = 'seoprostack_hosting_object_cache';
+
     /** One request in this many records its time (filter seoprostack_hosting_sample_rate). */
     const SAMPLE = 20;
 
@@ -441,6 +444,7 @@ class SEOProStack_Hosting_Needs extends SEOProStack_Feature {
     public static function facts() {
         $facts = get_transient(self::FACTS);
         if (is_array($facts) && isset($facts['db'], $facts['postmeta'], $facts['autoload'], $facts['autoload_count'], $facts['products'])) {
+            $facts['object_cache'] = self::object_cache_facts();
             return $facts;
         }
         global $wpdb;
@@ -470,7 +474,162 @@ class SEOProStack_Hosting_Needs extends SEOProStack_Feature {
             'products'       => $products && isset($products->publish) ? (int) $products->publish : 0,
         );
         set_transient(self::FACTS, $facts, HOUR_IN_SECONDS);
+        $facts['object_cache'] = self::object_cache_facts();
         return $facts;
+    }
+
+    /**
+     * Check only from admin, cron or WP-CLI, at most daily. Keep the previous
+     * probe in the database: an object-cache transient cannot detect fallback.
+     *
+     * @return array Daily cache state, kind, name and available backend.
+     */
+    private static function object_cache_facts() {
+        $previous = get_option(self::OBJECT_CACHE, array());
+        $previous = is_array($previous) ? $previous : array();
+        $empty    = array('state' => 'unknown', 'kind' => '', 'name' => '', 'available' => '', 'extension' => false);
+        if ((!is_admin() && !wp_doing_cron() && !(defined('WP_CLI') && WP_CLI)) || (isset($previous['checked']) && time() - $previous['checked'] < DAY_IN_SECONDS)) {
+            return $previous + $empty;
+        }
+        // An atomic, short-lived lock prevents concurrent Site Health checks.
+        $lock = self::OBJECT_CACHE . '_lock';
+        if (!add_option($lock, time(), '', false)) {
+            if ((int) get_option($lock) < time() - MINUTE_IN_SECONDS) {
+                delete_option($lock);
+            }
+            return $previous + $empty;
+        }
+        try {
+            // Another request may have finished between our first read and the
+            // lock. Re-read even when a fallback cache kept stale local options.
+            wp_cache_delete(self::OBJECT_CACHE, 'options');
+            wp_cache_delete('notoptions', 'options');
+            $previous = get_option(self::OBJECT_CACHE, array());
+            $previous = is_array($previous) ? $previous : array();
+            if (isset($previous['checked']) && time() - $previous['checked'] < DAY_IN_SECONDS) {
+                return $previous + $empty;
+            }
+            $facts = $empty + array('checked' => time());
+            $using = wp_using_ext_object_cache();
+            $ls    = in_array('litespeed-cache', self::active_slugs(), true);
+            $on    = $ls && (bool) get_option('litespeed.conf.object', false);
+            $kind  = (int) get_option('litespeed.conf.object-kind', 0) ? 'Redis' : 'Memcached';
+            $host  = (string) get_option('litespeed.conf.object-host', 'localhost');
+            $port  = (int) get_option('litespeed.conf.object-port', 'Redis' === $kind ? 6379 : 11211);
+            $file  = WP_CONTENT_DIR . '/object-cache.php';
+            $name  = '';
+            if (is_readable($file)) {
+                $header = get_file_data($file, array('name' => 'Plugin Name'));
+                $name   = $header['name'];
+            }
+            $facts['name']  = $on ? 'LiteSpeed Cache' : $name;
+            $facts['kind']  = $on ? $kind : (false !== stripos($name, 'redis') ? 'Redis' : (false !== stripos($name, 'memcached') ? 'Memcached' : ''));
+            $facts['state'] = $using ? 'working' : 'off';
+            if ($on && (!$using || !self::cache_server($host, $port, $kind))) {
+                $facts['state'] = 'unreachable';
+            }
+            if ($using && is_readable($file)) {
+                // A changed drop-in starts a new test, without accusing it on day one.
+                $identity = md5($name . '|' . (string) filemtime($file) . '|' . ($on ? $kind . '|' . $host . '|' . $port : ''));
+                if (isset($previous['identity'], $previous['probe']) && $previous['identity'] === $identity) {
+                    $found = false;
+                    $value = wp_cache_get('hosting_probe', 'seoprostack', true, $found);
+                    if (!$found || $value !== $previous['probe']) {
+                        $facts['state'] = 'unreachable';
+                    }
+                }
+                $facts['identity'] = $identity;
+                $facts['probe']    = wp_generate_uuid4();
+                // No TTL: an overdue daily check must not mistake expiry for fallback.
+                if (!wp_cache_set('hosting_probe', $facts['probe'], 'seoprostack', 0)) {
+                    $facts['state'] = 'unreachable';
+                }
+            }
+            if (!$using) {
+                foreach (array('Memcached' => 'memcached', 'Redis' => 'redis') as $backend => $extension) {
+                    if (!extension_loaded($extension)) {
+                        continue;
+                    }
+                    $addresses = array('127.0.0.1', '::1', 'localhost');
+                    // Hosts sometimes provide a Unix socket instead of a TCP listener.
+                    $socket = (string) ini_get('Redis' === $backend ? 'redis.sock' : 'memcached.sess_save_path');
+                    if ('Redis' === $backend && defined('WP_REDIS_PATH')) {
+                        $socket = (string) WP_REDIS_PATH;
+                    }
+                    if (0 === strpos($socket, '/')) {
+                        $addresses[] = $socket;
+                    }
+                    if ($ls && $kind === $backend && 0 === strpos($host, '/')) {
+                        $addresses[] = $host;
+                    }
+                    foreach (array_unique($addresses) as $address) {
+                        if (self::cache_server($address, 'Redis' === $backend ? 6379 : 11211, $backend)) {
+                            $facts['available'] = $backend;
+                            break 2;
+                        }
+                    }
+                }
+                $hostinger = defined('HOSTINGER') || (bool) array_intersect(array('hostinger', 'hostinger-ai-assistant', 'hostinger-easy-onboarding'), self::active_slugs());
+                $facts['extension'] = $hostinger && !extension_loaded('memcached');
+            }
+            update_option(self::OBJECT_CACHE, $facts, false);
+            return $facts;
+        } finally {
+            delete_option($lock);
+        }
+    }
+
+    /**
+     * Confirm the protocol, not just an open port. No credentials or writes.
+     * Each connection and reply has a short timeout (under 0.5 s in total).
+     *
+     * @param string $host Host or absolute Unix socket path.
+     * @param int    $port TCP port.
+     * @param string $kind Redis or Memcached.
+     * @return bool Whether that cache server answered.
+     */
+    private static function cache_server($host, $port, $kind) {
+        if ('' === $host || preg_match('/[\s\x00]/', $host) || false !== strpos($host, '://') || ($port < 1 || $port > 65535) && 0 !== strpos($host, '/')) {
+            return false;
+        }
+        $address = 0 === strpos($host, '/') ? 'unix://' . $host : 'tcp://' . (false !== strpos($host, ':') ? '[' . trim($host, '[]') . ']' : $host) . ':' . $port;
+        // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged -- An unavailable cache is the expected diagnostic result.
+        $stream = @stream_socket_client($address, $errno, $error, 0.2);
+        if (!$stream) {
+            return false;
+        }
+        try {
+            stream_set_timeout($stream, 0, 100000);
+            $command = 'Redis' === $kind ? "*1\r\n$4\r\nPING\r\n" : "version\r\n";
+            // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged, WordPress.WP.AlternativeFunctions.file_system_operations_fwrite -- Diagnostic socket, not a file; WP_Filesystem cannot write to it.
+            if (@fwrite($stream, $command) !== strlen($command)) {
+                return false;
+            }
+            // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged -- A timed-out or closed socket is a failed check.
+            $reply = @fgets($stream, 256);
+            return is_string($reply) && ('Redis' === $kind ? 0 === strpos($reply, '+PONG') || 0 === strpos($reply, '-NOAUTH') : 0 === strpos($reply, 'VERSION '));
+        } finally {
+            // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fclose -- Closing a diagnostic socket, not a file.
+            fclose($stream);
+        }
+    }
+
+    /**
+     * Label for the cached daily check.
+     *
+     * @param array $cache From object_cache_facts().
+     * @return string
+     */
+    private static function object_cache_label(array $cache) {
+        if ('unreachable' === $cache['state']) {
+            return __('Configured, not reachable', 'seoprostack');
+        }
+        if ('working' === $cache['state']) {
+            return '' !== $cache['kind']
+                /* translators: %s: Redis or Memcached. */
+                ? sprintf(__('Yes (%s)', 'seoprostack'), $cache['kind']) : __('Yes', 'seoprostack');
+        }
+        return 'unknown' === $cache['state'] ? __('Not checked yet', 'seoprostack') : __('No', 'seoprostack');
     }
 
     /**
@@ -727,7 +886,24 @@ class SEOProStack_Hosting_Needs extends SEOProStack_Feature {
             $advice[] = array('recommended', __('No page cache was found, so every page view runs PHP. A page cache, from your host or a plugin, serves most pages without PHP and cuts the PHP workers you need. If your host caches pages itself, ignore this.', 'seoprostack'));
         }
         $advice = array_merge($advice, self::litespeed_advice());
-        if (!wp_using_ext_object_cache() && self::big_data($needs['facts'])) {
+        $cache  = $needs['facts']['object_cache'];
+        if ('unreachable' === $cache['state']) {
+            $advice[] = array('recommended', 'LiteSpeed Cache' === $cache['name']
+                ? __('The object cache is turned on in LiteSpeed Cache but cannot reach its server, so every request goes to the database. Check the host and port in LiteSpeed Cache → Cache → Object, or ask your host which one they provide.', 'seoprostack')
+                : sprintf(
+                    /* translators: %s: object cache drop-in name. */
+                    __('The object cache (%s) did not keep a test value between daily checks, so it may be falling back to the database. Check its connection settings or ask your host to check its server. Clearing or evicting the cache can also cause this warning.', 'seoprostack'),
+                    '' !== $cache['name'] ? $cache['name'] : 'object-cache.php'
+                ));
+        } elseif ('off' === $cache['state'] && '' !== $cache['available']) {
+            $advice[] = array('recommended', sprintf(
+                /* translators: %s: Redis or Memcached. */
+                __('%s is available on this server but the site is not using it. Turn it on in LiteSpeed Cache → Cache → Object, or use your host’s object cache plugin, to save database work even on a small site.', 'seoprostack'),
+                $cache['available']
+            ));
+        } elseif ('off' === $cache['state'] && $cache['extension']) {
+            $advice[] = array('recommended', __('The Memcached PHP extension is not enabled on this Hostinger site. If your plan includes object caching, turn on Memcached in hPanel’s PHP settings, then enable it in LiteSpeed Cache → Cache → Object, or ask your host which cache they provide.', 'seoprostack'));
+        } elseif ('off' === $cache['state'] && self::big_data($needs['facts'])) {
             $advice[] = array('recommended', sprintf(
                 /* translators: 1: postmeta rows, 2: products. */
                 __('This site has about %1$s rows of post data and %2$s products, so a persistent object cache (Redis or Memcached) would save database work on every request. Ask your host for one, with its object cache plugin.', 'seoprostack'),
@@ -1652,7 +1828,7 @@ class SEOProStack_Hosting_Needs extends SEOProStack_Feature {
         );
         $fields['object_cache'] = array(
             'label' => __('Persistent object cache', 'seoprostack'),
-            'value' => wp_using_ext_object_cache() ? __('Yes', 'seoprostack') : __('No', 'seoprostack'),
+            'value' => self::object_cache_label($facts['object_cache']),
         );
         $fields['site_kind'] = array(
             'label' => __('Shop, membership or course plugins', 'seoprostack'),

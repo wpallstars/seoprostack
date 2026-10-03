@@ -72,7 +72,7 @@ Off by default except Hide admin bar items (Comments and + New), No fade between
 
 = Affiliate disclosure =
 
-Some Theme, Pro Plugins, Free Plugins' Go Pro, Hosting and Tools links may earn the developer a commission or account credit. They never change what we recommend, and nothing shows on your public site.
+Some Discover vendor and Go Pro links may earn the developer a commission or credit. They do not affect recommendations or appear on your public site.
 
 = External services =
 
@@ -126,7 +126,10 @@ Click **Report a problem** at the top right of Settings → SEO Pro Stack, or op
 
 = Unreleased =
 * Change: Kadence and Fluent/WPManageNinja referral links; current Scalability Pro website; 11 free plugins/add-ons and four pro products added.
+* New: Hosting needs checks object cache health daily and recommends unused Redis or Memcached, without connections on visitor requests.
 * New: External link icons follow link colours and Kadence dark mode without scripts or extra asset requests; off by default.
+* Fix: a broken Kadence screenshot on the Theme tab on sites that block images from other sites.
+* Fix: Deactivate and Activate links now work with Freesoul Deactivate Plugins.
 
 = 0.11.4 =
 * Fix: a critical error on every page after updating to 0.11.3, on network sites where Fluent Forms, Fluent Boards or FluentCommunity is network-active but was never set up.
@@ -137,9 +140,3 @@ Older: `changelog.txt`.
 
 = 0.11.4 =
 Fixes a critical error on some network sites after 0.11.3. From 0.11.2 or older with GPLVault Updater active: install 0.11.4 once by hand.
-
-= 0.11.3 =
-Sites with GPLVault Updater active: install 0.11.3 once by hand; later updates from GitHub then arrive by themselves.
-
-= 0.11.0 =
-WebP and AVIF copies are made again once, in the background, at the quality you set. New: Restrict content, replacing Content Control.
