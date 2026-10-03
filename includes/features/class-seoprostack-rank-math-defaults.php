@@ -65,14 +65,34 @@ class SEOProStack_Rank_Math_Defaults extends SEOProStack_Feature {
 
     /** Register hooks only when Rank Math is loaded on this request. */
     public static function boot() {
-        if (!self::enabled() || !defined('RANK_MATH_VERSION')) {
+        // Rank Math defines its version even when its runtime requirements fail.
+        if (!self::enabled() || !did_action('rank_math/loaded')) {
             return;
         }
         add_action('save_post', array(__CLASS__, 'save'), 100, 2);
-        // These run after editor metadata is saved, including the REST editor.
-        add_action('rank_math/save_post', array(__CLASS__, 'save'), 100);
+        // Core REST saves defer this until their metadata has been written.
         add_action('wp_after_insert_post', array(__CLASS__, 'save'), 100, 2);
+        // Rank Math's block editor saves its metadata in a separate request.
+        add_filter('rest_request_after_callbacks', array(__CLASS__, 'after_rank_math_rest'), 100, 3);
         add_action('current_screen', array(__CLASS__, 'screen'));
+    }
+
+    /**
+     * Fill a keyword after Rank Math has saved (or cleared) editor metadata.
+     *
+     * @param WP_REST_Response|WP_Error|mixed $response Callback result.
+     * @param array                          $handler  Route handler.
+     * @param WP_REST_Request                $request  REST request.
+     * @return mixed
+     */
+    public static function after_rank_math_rest($response, $handler, $request) {
+        if ('/rankmath/v1/updateMeta' === $request->get_route()
+            && 'POST' === $request->get_method() && !is_wp_error($response)
+            && !($response instanceof WP_REST_Response && $response->get_status() >= 400)
+            && 'post' === $request->get_param('objectType')) {
+            self::save(absint($request->get_param('objectID')));
+        }
+        return $response;
     }
 
     /**
@@ -190,7 +210,7 @@ class SEOProStack_Rank_Math_Defaults extends SEOProStack_Feature {
             '<div class="notice notice-warning"><p>%s %s</p></div>',
             esc_html(sprintf(
                 /* translators: 1: pillar count, 2: published post count. */
-                __('%1$s of %2$s published posts of this type are Rank Math pillar content (more than 20%). Keep pillar status for a few cornerstone pages.', 'seoprostack'),
+                __('%1$s of %2$s published posts of this type are Rank Math pillar content (more than 20%%). Keep pillar status for a few cornerstone pages.', 'seoprostack'),
                 number_format_i18n($pillars->found_posts),
                 number_format_i18n($total)
             )),
