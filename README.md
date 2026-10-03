@@ -464,6 +464,7 @@ Answers “410 Gone” instead of “404 Not Found” for addresses you list, so
 
 When a post’s slug changes, WordPress keeps the old one (`_wp_old_slug`) so links to the old address still lead to the post. This clears the old addresses that can no longer lead anywhere, and lists the rest under **Tools → Old addresses** with the post and when each last redirected someone, so you can remove the ones nobody needs (one at a time or selected).
 
+- Remove: one with its row's **Remove** link, the ticked ones with **Remove selected**, or every one with **Remove all** (it asks first). Ticking the box above the list ticks the page; when there are more pages, a bar offers **Select all** to take in every page, and Remove selected then removes them all. Removing all works in batches of 1,000 for about 20 seconds; on very large sites the page shows how many are left, and Remove all carries on.
 - Cleared automatically when a post’s slug changes and when Tools → Old addresses opens: the post’s current slug, the same old slug stored twice, old slugs of posts that no longer exist, and old slugs that another published post of the same type now uses (its address answers first; only for types whose addresses have no date or category in them).
 - A working redirect is never removed automatically. A removed one shows “not found”.
 - The last use is recorded at most once a day per address. Old addresses never used since recording started say “Not since” and the date.
@@ -1106,6 +1107,7 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folder�
 ### Unreleased
 
 - New, off by default: Rank Math defaults (Links tab) fills empty focus keywords from titles for chosen post types, warns about pillar overuse and offers selected-post pillar removal.
+- New: Tools → Old addresses has **Remove all** (it asks first), and ticking the whole page offers **Select all** to take in every page, as Select all across pages does in post lists. Before, only the 50 old addresses on screen could be removed at once, so a site with a thousand needed twenty-one rounds. The box above the list also ticks the page where another plugin's script stops WordPress's own from doing it.
 
 ### 0.11.5
 
