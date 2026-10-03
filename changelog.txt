@@ -3,6 +3,7 @@
 Every change to SEO Pro Stack. readme.txt lists the latest version in short.
 
 = Unreleased =
+* New, off by default: Load large settings only where they are used (Speed, single sites). Learns large settings that visitor pages never read, stops autoloading them after enough samples, and restores original flags when switched off or uninstalled. Values stay unchanged; Hosting needs names the three largest settings.
 * Change: page learning uses persistent page kinds and each post's blocks and shortcodes before plugins load, even on a first visit. Unknowns load every plugin; no per-address list or hourly expiry.
 * Change: Plugins to skip on the site automatically skips plugins with nothing seen after learning. The site always-load list bypasses automatic, ticked and per-page skips; saved choices are preserved once on upgrade. The feature stays off by default.
 * Change: Load plugins only where needed chooses admin plugins automatically, with an Always load bypass list and saved choices preserved. Retained safe screens relearn one at a time in the administrator's idle browser after plugins change. Site choices stay unchanged.

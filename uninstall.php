@@ -29,6 +29,11 @@ if (!defined('WP_UNINSTALL_PLUGIN')) {
 function seoprostack_uninstall_site() {
     global $wpdb;
 
+    // Restore exact autoload flags before removing the undo records.
+    require_once __DIR__ . '/includes/class-seoprostack-feature.php';
+    require_once __DIR__ . '/includes/features/class-seoprostack-autoload-options.php';
+    SEOProStack_Autoload_Options::stop();
+
     $options = array(
         'seoprostack_options',
         'seoprostack_db_version',

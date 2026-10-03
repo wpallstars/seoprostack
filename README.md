@@ -422,6 +422,18 @@ WordPress and plugins leave rows behind that nothing reads again, and they slow 
 - Replaces WP-Optimize's scheduled cleanup where LiteSpeed Cache runs on a LiteSpeed server, which keeps pages and handles CSS and JS there. Elsewhere WP-Optimize's page cache is still needed, so this runs alongside it and the card does not name it. WP-Optimize's scheduled cleanup choices (transients, bin, spam, auto-drafts, orphaned post and comment meta, optimise) are imported once if its schedule is on; the switch comes on only where it replaces WP-Optimize. Settings version 14.
 - Stores the last cleanup in `seoprostack_database_cleanup_last` (not autoloaded); deactivating SEO Pro Stack stops the schedule and uninstalling removes both.
 
+### Load large settings only where they are used (Speed)
+
+Off by default, single sites only. Other plugins often save large settings that WordPress loads on every request, even after those plugins have gone. This learns which settings of 10 KB or more logged-out site pages actually read, then stops loading the others until a plugin asks for them. Their values never change or get deleted; `get_option()` and `get_transient()` still return them.
+
+- A small must-use file observes reads before ordinary plugins load. One in 100 requests is considered, with at most three visitor pages and three admin screens an hour. Each new large setting needs at least three days, 30 sampled visitor pages and 10 sampled admin screens. Settings read only in admin, or never read, qualify; admin pays an extra indexed query when it asks for one.
+- One survey a day keeps names, sizes and read evidence, never values. It changes at most 30 flags a day, without a new cron job, and returns a setting to its original flag if site pages start reading it. Newly saved autoloaded settings learn again.
+- WordPress's own settings, theme and widget settings, timed transients and SEO Pro Stack's settings stay alone. Large transients without a timeout can qualify, including the folder-size cache; none are deleted. Changes pause if active plugin, must-use or theme code reads the whole autoloaded list directly, or if its safety scan cannot finish. Plugin activation, deactivation and theme switching restore changes and restart learning.
+- The Speed tab lists the total, the 15 largest loaded settings, known makers and the settings no longer loaded because they are **not used on site pages**. Hosting needs names the three largest too.
+- Turning this off, deactivating or uninstalling SEO Pro Stack restores exact original flags for settings that still have the flag and value fingerprint it recorded. A plugin's later changes are left alone. The must-use file and learning records go too.
+
+**If something is slow or wrong, turn this off: every option goes back to how it was**, unless its plugin has saved a different value or loading choice since. Sites with little traffic may take longer to gather enough samples; multisite does nothing.
+
 ### Lighter WooCommerce pages (Speed)
 
 WooCommerce loads its scripts and styles on every page, so that add-to-cart buttons work wherever they appear. On a test site, a plain page loaded `woocommerce.js`, `wc-add-to-cart`, `wc-cart-fragments` and WooCommerceâ€™s styles. With this on, they load only on shop pages (the shop, products, product categories and tags, cart, checkout and My account) and on pages whose content has WooCommerce blocks or shortcodes. Does nothing without WooCommerce.
@@ -1066,6 +1078,7 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folderâ
 
 ### Unreleased
 
+- Added: Load large settings only where they are used, off by default on single sites. Learns reads before plugins load, stops autoloading unused large settings after enough samples, and restores its changes when switched off or uninstalled. Hosting needs names the three largest settings.
 - Changed: page learning now decides by persistent page kind and each post's own blocks and shortcodes before plugins load, including never-visited posts. Unknowns load every plugin; no per-address records or hourly expiry remain.
 - Changed: Plugins to skip on the site automatically skips plugins with nothing seen on the site after learning. Always load these plugins on the site bypasses automatic, ticked and per-page skips without requiring page learning. Saved site-wide choices are preserved once on upgrade; the feature stays off by default.
 - Changed: Load plugins only where needed now chooses admin plugins automatically, with an empty-by-default Always load bypass list. Existing saved selections become bypasses for previously unticked plugins. Login, permission and network-activated plugins always load. The 30 most-used safe core-screen URLs survive map invalidation and relearn sequentially in the administrator's idle browser, with a tab lock and no server loopback or cron impersonation. Plugin pages, actions, nonces and auto-draft editors are not replayed. Admin history writes do not invalidate public-page learning; all site choices stay unchanged.

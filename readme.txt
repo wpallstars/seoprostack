@@ -58,6 +58,7 @@ Off by default except Hide admin bar items (Comments and + New), No fade between
 * **Load pages before the click**, **Delay scripts until interaction**, **Delayed Google Analytics** and a faster editor with Kadence Blocks.
 * **Ask before licence checks**: premium plugins call home once, daily or never, as you choose.
 * **Clean the database weekly**: old spam, bin and expired data.
+* **Load large settings only where they are used**: learned from site pages, reversible; single sites only.
 * **Database key cleanup**: review leftover and duplicate indexes and confirm each removal; restore SQL is kept. Back up first.
 * **Load plugins only where needed**: automatic admin choices and unused site plugin skips, with always-load bypasses and idle admin relearning.
 
@@ -124,6 +125,7 @@ Click **Report a problem** at the top right of Settings → SEO Pro Stack, or op
 == Changelog ==
 
 = Unreleased =
+* New: learn unused large settings and stop loading them on every request; off restores original flags.
 * Change: page learning uses lasting page kinds and each post's content, on its first visit; unknowns load every plugin.
 * Change: skip unused site plugins after learning, with an always-load bypass and saved choices preserved.
 * Change: automatic admin plugin choices, preserved bypasses and safe idle screen relearning; site choices unchanged.
