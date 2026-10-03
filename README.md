@@ -1093,7 +1093,7 @@ colour, including hover, focus and Kadence's live light/dark palette switch.
 
 ## Changelog
 
-### Unreleased
+### 0.11.4
 
 - New, off by default: External link icons (Links tab), following link colours and Kadence light/dark switching with no scripts or extra asset requests. Related-domain and per-link bypasses; image links and buttons stay plain. Covers only Link Whisper's icon, not its linking tools.
 - Fixed: on a network, a site where Fluent Forms, Fluent Boards or FluentCommunity is network-active but never set up (its tables missing) showed a critical error on every page after updating to 0.11.3, while SEO Pro Stack upgraded its settings. The Agency lists now skip a plugin whose tables are missing.
