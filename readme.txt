@@ -13,11 +13,11 @@ One free plugin for a faster, tidier WordPress. It does the jobs of 40+ single-p
 
 == Description ==
 
-SEO Pro Stack replaces dozens of small plugins: a faster admin, writing and media tools, safer logins and tested plugin settings. Turn on only what you use for fewer updates, conflicts and slowdowns.
+SEO Pro Stack replaces dozens of small plugins: a faster admin, writing and media tools, safer logins and tested plugin settings.
 
 Free and open source: no pro version, nothing locked.
 
-Off by default except Hide admin bar items (Comments and + New), No fade between admin screens, Quiet Freemius prompts and Fixes for other plugins. Turn features on in **Settings → SEO Pro Stack**; **Search features** finds one by name or by the plugin it replaces. A feature that replaces a plugin imports its settings once, never changes them, and waits while that plugin is active, so you can switch over safely.
+Off by default except Hide admin bar items, No fade between admin screens, Quiet Freemius prompts and Fixes for other plugins. Turn features on in **Settings → SEO Pro Stack**; **Search features** finds them. Replaced plugins' settings are imported once, never changed. Features wait while the replaced plugin is active.
 
 = A calmer, faster admin =
 
@@ -94,7 +94,7 @@ Extend settings, tabs and directories with filters such as `seoprostack_settings
 
 = Built with AI =
 
-Built and maintained with [aidevops](https://aidevops.sh), the same developer's open-source AI harness for creating and managing anything online with AI, plugins like this one included. Free on [GitHub](https://github.com/marcusquinn/aidevops).
+Built and maintained with the open-source [aidevops](https://aidevops.sh) AI harness.
 
 == Installation ==
 

@@ -21,6 +21,7 @@ final class SEOProStack_Autoload_Options extends SEOProStack_Feature {
     const KEY = 'autoload_options';
     const STATE = 'seoprostack_autoload_learning';
     const CHANGES = 'seoprostack_autoload_changes';
+    const RESET = 'seoprostack_autoload_reset';
     const FILE = '000-seoprostack-autoload.php';
     const MARKER = 'SEO Pro Stack autoload sampler';
 
@@ -28,6 +29,7 @@ final class SEOProStack_Autoload_Options extends SEOProStack_Feature {
     private static $seen = array();
     private static $kind = '';
     private static $lock = '';
+    private static $generation = '';
 
     public static function settings() {
         return array(self::KEY => array(
@@ -50,6 +52,9 @@ final class SEOProStack_Autoload_Options extends SEOProStack_Feature {
         add_action('deactivated_plugin', array(__CLASS__, 'stop'));
         add_action('after_switch_theme', array(__CLASS__, 'stop'));
         if (is_admin() && current_user_can('manage_options') && !wp_doing_ajax()) {
+            if (!self::enabled() && get_option(self::CHANGES)) {
+                self::stop(); // Retry an undo interrupted by a busy database.
+            }
             self::sync_sampler(self::enabled());
         }
     }
@@ -91,7 +96,7 @@ final class SEOProStack_Autoload_Options extends SEOProStack_Feature {
 
     /** Called by the MU file only: learning must precede plugin bootstrap. */
     public static function start() {
-        if (is_multisite() || wp_installing() || wp_doing_ajax() || wp_doing_cron()
+        if (self::$lock || is_multisite() || wp_installing() || wp_doing_ajax() || wp_doing_cron()
             || (defined('WP_CLI') && WP_CLI) || (defined('XMLRPC_REQUEST') && XMLRPC_REQUEST)) {
             return;
         }
@@ -117,6 +122,12 @@ final class SEOProStack_Autoload_Options extends SEOProStack_Feature {
         // Read again under the lock so overlapping samples cannot lose evidence.
         wp_cache_delete(self::STATE, 'options');
         self::$state = (array) get_option(self::STATE, array());
+        self::$generation = self::generation();
+        if ((self::$state['generation'] ?? '') !== self::$generation) {
+            self::restore_records();
+            self::$state = array();
+        }
+        self::$state['generation'] = self::$generation;
         if ((int) (self::$state['hours'][$hour][self::$kind] ?? 0) >= 3) {
             self::unlock();
             return;
@@ -139,8 +150,12 @@ final class SEOProStack_Autoload_Options extends SEOProStack_Feature {
         remove_filter('pre_option', array(__CLASS__, 'observe'), -PHP_INT_MAX);
         $valid = 'admin' === self::$kind ? is_user_logged_in() :
             (did_action('wp') && !is_user_logged_in() && !(defined('REST_REQUEST') && REST_REQUEST));
-        $options = get_option('seoprostack_options', array());
-        if (!$valid || empty($options[self::KEY])) {
+        if (!$valid) {
+            self::unlock();
+            return;
+        }
+        if (self::$generation !== self::generation() || !self::still_on()) {
+            self::restore_records();
             self::unlock();
             return;
         }
@@ -155,7 +170,11 @@ final class SEOProStack_Autoload_Options extends SEOProStack_Feature {
             self::decide();
             self::$state['decided'] = time();
         }
-        update_option(self::STATE, self::$state, false);
+        if (self::$generation !== self::generation() || !self::still_on()) {
+            self::restore_records();
+        } else {
+            update_option(self::STATE, self::$state, false);
+        }
         self::unlock();
     }
 
@@ -166,6 +185,25 @@ final class SEOProStack_Autoload_Options extends SEOProStack_Feature {
             $wpdb->get_var($wpdb->prepare('SELECT RELEASE_LOCK(%s)', self::$lock));
             self::$lock = '';
         }
+    }
+
+    /**
+     * Read current configuration without another request's stale alloptions cache.
+     *
+     * @phpstan-impure
+     */
+    private static function still_on() {
+        global $wpdb;
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- sampled shutdown must see a concurrent off switch immediately.
+        $options = maybe_unserialize($wpdb->get_var($wpdb->prepare("SELECT option_value FROM {$wpdb->options} WHERE option_name = %s", 'seoprostack_options')));
+        return is_array($options) && !empty($options[self::KEY]);
+    }
+
+    /** @phpstan-impure */
+    private static function generation() {
+        global $wpdb;
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- cancellation token must not use request-local or persistent cached evidence.
+        return (string) $wpdb->get_var($wpdb->prepare("SELECT option_value FROM {$wpdb->options} WHERE option_name = %s", self::RESET));
     }
 
     /** One names/sizes/flags query a day; never fetch option values for the survey. */
@@ -186,13 +224,15 @@ final class SEOProStack_Autoload_Options extends SEOProStack_Feature {
             if ($loaded) {
                 self::$state['total'] += (int) $row['bytes'];
             }
-            if ((int) $row['bytes'] < 10 * KB_IN_BYTES || (!$loaded && !isset($changes[$name])) || self::protected_option($name, $defaults)
-                || (0 === strpos($name, '_transient_') && isset($names['_transient_timeout_' . substr($name, 11)]))) {
+            $protected = self::protected_option($name, $defaults)
+                || (0 === strpos($name, '_transient_') && isset($names['_transient_timeout_' . substr($name, 11)]));
+            if (!isset($changes[$name]) && ((int) $row['bytes'] < 10 * KB_IN_BYTES || !$loaded || $protected)) {
                 continue;
             }
             $large[$name] = self::$state['large'][$name] ?? array('since' => time(), 'counts' => self::$state['counts'] ?? array(), 'seen' => array());
             $large[$name]['size'] = (int) $row['bytes'];
             $large[$name]['autoload'] = $row['autoload'];
+            $large[$name]['protected'] = (bool) $protected;
         }
         self::$state['large'] = $large;
     }
@@ -212,7 +252,8 @@ final class SEOProStack_Autoload_Options extends SEOProStack_Feature {
         if (!$source || !preg_match_all('/[\'"]([a-zA-Z0-9_]+)[\'"]\s*=>/', $source, $matches)) {
             return array();
         }
-        return array_fill_keys($matches[1], true);
+        preg_match_all('/\b(?:add|update)_option\s*\(\s*[\'"]([a-zA-Z0-9_]+)[\'"]/', $source, $extra);
+        return array_fill_keys(array_merge($matches[1], $extra[1]), true);
     }
 
     /** Pause globally rather than guess ownership of dynamically indexed alloptions. */
@@ -232,7 +273,7 @@ final class SEOProStack_Autoload_Options extends SEOProStack_Feature {
                 }
                 $files = is_dir($root) ? new RecursiveIteratorIterator(new RecursiveDirectoryIterator($root, FilesystemIterator::SKIP_DOTS)) : array(new SplFileInfo($root));
                 foreach ($files as $file) {
-                    if ('php' !== $file->getExtension() || self::FILE === $file->getFilename() || $file->isDir()) {
+                    if (!in_array(strtolower($file->getExtension()), array('php', 'inc', 'phtml', 'php5', 'php7', 'php8'), true) || self::FILE === $file->getFilename() || $file->isDir()) {
                         continue;
                     }
                     $source = $fs->get_contents($file->getPathname());
@@ -258,7 +299,7 @@ final class SEOProStack_Autoload_Options extends SEOProStack_Feature {
                 break;
             }
             if (isset($changes[$name])) {
-                if (!empty($entry['seen']['site']) || !empty(self::$state['paused'])) {
+                if (!empty($entry['seen']['site']) || !empty(self::$state['paused']) || !empty($entry['protected'])) {
                     if (self::restore_one($name, $changes[$name])) {
                         unset($changes[$name]);
                     }
@@ -287,11 +328,10 @@ final class SEOProStack_Autoload_Options extends SEOProStack_Feature {
             if (get_option(self::CHANGES) !== $changes) {
                 break;
             }
-            if (function_exists('wp_set_option_autoload_values')) {
-                wp_set_option_autoload_values(array($name => false));
-            } else {
-                self::set_flag($name, $row['autoload'], $set, $row['hash']);
-            }
+            // Core's bulk API cannot condition on the previous flag/value and
+            // can overwrite an intervening plugin save. Keep the same flag and
+            // cache behaviour, with an atomic compare-and-set on every version.
+            self::set_flag($name, $row['autoload'], $set, $row['hash']);
             self::clear_cache($name);
             ++$n;
         }
@@ -329,7 +369,30 @@ final class SEOProStack_Autoload_Options extends SEOProStack_Feature {
         if (is_multisite()) {
             return;
         }
+        $options = get_option('seoprostack_options', array());
+        if (empty($options[self::KEY]) && !self::$lock && !get_option(self::STATE) && !get_option(self::CHANGES)) {
+            self::sync_sampler(false);
+            return;
+        }
+        update_option(self::RESET, bin2hex(random_bytes(16)), false);
+        global $wpdb;
+        $own_lock = !empty(self::$lock);
+        $lock = 'sps_autoload_' . md5($wpdb->options);
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- serialize owner-requested undo with an in-flight sample; its cancellation token also invalidates stale state.
+        $acquired = $own_lock || '1' === (string) $wpdb->get_var($wpdb->prepare('SELECT GET_LOCK(%s, 5)', $lock));
+        if ($acquired) {
+            self::restore_records();
+            if (!$own_lock) {
+                // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- release the undo operation's connection-owned lock.
+                $wpdb->get_var($wpdb->prepare('SELECT RELEASE_LOCK(%s)', $lock));
+            }
+        }
+        self::sync_sampler(false);
+    }
+
+    private static function restore_records() {
         $remaining = array();
+        wp_cache_delete(self::CHANGES, 'options');
         foreach ((array) get_option(self::CHANGES, array()) as $name => $change) {
             if (!self::restore_one($name, $change)) {
                 $remaining[$name] = $change;
@@ -341,7 +404,6 @@ final class SEOProStack_Autoload_Options extends SEOProStack_Feature {
             delete_option(self::CHANGES);
         }
         delete_option(self::STATE);
-        self::sync_sampler(false);
     }
 
     /** Admin-only read: also used by Hosting needs when the feature is off. */

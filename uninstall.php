@@ -33,6 +33,7 @@ function seoprostack_uninstall_site() {
     require_once __DIR__ . '/includes/class-seoprostack-feature.php';
     require_once __DIR__ . '/includes/features/class-seoprostack-autoload-options.php';
     SEOProStack_Autoload_Options::stop();
+    delete_option(SEOProStack_Autoload_Options::RESET);
 
     $options = array(
         'seoprostack_options',
