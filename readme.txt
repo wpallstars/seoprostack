@@ -126,6 +126,7 @@ Click **Report a problem** at the top right of Settings → SEO Pro Stack, or op
 == Changelog ==
 
 = Unreleased =
+* Fix: Recognise WP-Optimize Premium, share its preset and warn about restoring LiteSpeed Cache’s WP_CACHE line after deactivation.
 * Change: Kadence/Fluent referral links, Scalability Pro website, 11 free plugins/add-ons and four pro products added.
 * New: HTTP Requests Manager preset: only log requests, so WordPress update checks are no longer blocked.
 
