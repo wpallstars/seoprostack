@@ -2,6 +2,9 @@
 
 Every change to SEO Pro Stack. readme.txt lists the latest version in short.
 
+= Unreleased =
+* Fix: on a network, a site where Fluent Forms, Fluent Boards or FluentCommunity is network-active but never set up (its tables missing) showed a critical error on every page after updating to 0.11.3, while SEO Pro Stack upgraded its settings. The Agency lists now skip a plugin whose tables are missing.
+
 = 0.11.3 =
 * Change: page learning uses persistent page kinds and each post's blocks and shortcodes before plugins load, even on a first visit. Unknowns load every plugin; no per-address list or hourly expiry.
 * Change: Plugins to skip on the site automatically skips plugins with nothing seen after learning. The site always-load list bypasses automatic, ticked and per-page skips; saved choices are preserved once on upgrade. The feature stays off by default.

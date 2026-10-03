@@ -163,6 +163,30 @@ class SEOProStack_Agency_Orders extends SEOProStack_Feature {
     }
 
     /**
+     * Add rows from another plugin's model as id => title.
+     *
+     * The plugin's tables can be missing (on a network, a site where it was
+     * never activated), and its query builder then throws. These lists are
+     * read when settings are saved or upgraded on any request, so a missing
+     * table leaves the list as it is instead of stopping the page. The
+     * fields are open, so stored IDs are kept.
+     *
+     * @param array<string,string> $out   List to add to.
+     * @param callable             $query Returns the rows.
+     * @return array<string,string>
+     */
+    private static function add_rows(array $out, callable $query) {
+        try {
+            foreach ($query() as $row) {
+                $out[(string) $row->id] = (string) $row->title;
+            }
+        } catch (\Throwable $e) {
+            return $out;
+        }
+        return $out;
+    }
+
+    /**
      * Fluent Forms forms.
      *
      * @return array<string,string>
@@ -171,11 +195,9 @@ class SEOProStack_Agency_Orders extends SEOProStack_Feature {
         if (!class_exists('FluentForm\App\Models\Form')) {
             return array();
         }
-        $out = array();
-        foreach (\FluentForm\App\Models\Form::select(array('id', 'title'))->orderBy('title', 'ASC')->get() as $form) {
-            $out[(string) $form->id] = (string) $form->title;
-        }
-        return $out;
+        return self::add_rows(array(), function () {
+            return \FluentForm\App\Models\Form::select(array('id', 'title'))->orderBy('title', 'ASC')->get();
+        });
     }
 
     /**
@@ -185,12 +207,12 @@ class SEOProStack_Agency_Orders extends SEOProStack_Feature {
      */
     public static function board_options() {
         $out = array('' => __('None', 'seoprostack'));
-        if (class_exists('FluentBoards\App\Models\Board')) {
-            foreach (\FluentBoards\App\Models\Board::whereNull('archived_at')->orderBy('title', 'ASC')->get() as $board) {
-                $out[(string) $board->id] = (string) $board->title;
-            }
+        if (!class_exists('FluentBoards\App\Models\Board')) {
+            return $out;
         }
-        return $out;
+        return self::add_rows($out, function () {
+            return \FluentBoards\App\Models\Board::whereNull('archived_at')->orderBy('title', 'ASC')->get();
+        });
     }
 
     /**
@@ -223,12 +245,12 @@ class SEOProStack_Agency_Orders extends SEOProStack_Feature {
      */
     public static function space_options() {
         $out = array('' => __('None', 'seoprostack'));
-        if (class_exists('FluentCommunity\App\Models\Space')) {
-            foreach (\FluentCommunity\App\Models\Space::orderBy('title', 'ASC')->get() as $space) {
-                $out[(string) $space->id] = (string) $space->title;
-            }
+        if (!class_exists('FluentCommunity\App\Models\Space')) {
+            return $out;
         }
-        return $out;
+        return self::add_rows($out, function () {
+            return \FluentCommunity\App\Models\Space::orderBy('title', 'ASC')->get();
+        });
     }
 
     /**
