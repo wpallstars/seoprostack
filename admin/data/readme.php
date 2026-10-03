@@ -20,7 +20,7 @@ function seoprostack_get_readme_content() {
     if (is_readable($readme_path)) {
         $content = (string) file_get_contents($readme_path); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents -- local file.
     } else {
-        $content = "# SEO Pro Stack\n\nCurated plugins, themes, hosting and workflow tools for WordPress.\n\nVersion: {SEOPROSTACK_VERSION}";
+        $content = "# SEO Pro Stack\n\nVersion: " . SEOPROSTACK_VERSION;
     }
 
     return array(

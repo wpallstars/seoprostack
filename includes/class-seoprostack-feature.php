@@ -80,8 +80,7 @@ abstract class SEOProStack_Feature {
     public static function active_plugins() {
         static $active = null;
         if (null === $active) {
-            // As stored: a plugin skipped on this screen is still active.
-            $files = SEOProStack_Plugin_Loader::stored_active_plugins();
+            $files = self::stored_active_plugins();
             if (is_multisite()) {
                 $files = array_merge($files, array_keys((array) get_site_option('active_sitewide_plugins', array())));
             }
@@ -94,6 +93,41 @@ abstract class SEOProStack_Feature {
             }
         }
         return $active;
+    }
+
+    /**
+     * Plugin files active on this site (not network-wide), as stored: a
+     * plugin skipped on this request still counts.
+     *
+     * @return string[]
+     */
+    public static function stored_active_plugins() {
+        $files = get_option('active_plugins', array());
+        $files = is_array($files) ? array_values(array_filter($files, 'is_string')) : array();
+        /**
+         * Filter the active plugin files as stored, for code that skips
+         * plugins on some requests (SEO Pro Stack's "Load plugins only
+         * where needed" filters the option itself).
+         *
+         * @param string[] $files Plugin files, such as "akismet/akismet.php".
+         */
+        $files = apply_filters('seoprostack_stored_active_plugins', $files);
+        return is_array($files) ? array_values(array_filter($files, 'is_string')) : array();
+    }
+
+    /**
+     * Whether some active plugins are skipped on this request, so things
+     * they register (post types, widgets) may be missing.
+     *
+     * @return bool
+     */
+    public static function plugins_skipped() {
+        /**
+         * Filter whether some active plugins are skipped on this request.
+         *
+         * @param bool $skipped Whether they are.
+         */
+        return (bool) apply_filters('seoprostack_plugins_skipped', false);
     }
 
     /**
