@@ -1054,7 +1054,7 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folderâ
 
 ## Changelog
 
-### Unreleased
+### 0.11.0
 
 - Changed: Free Plugins notes under **Advanced Database Cleaner**, **Anti-Malware Security and Brute-Force Firewall** (`gotmls`), **Debug Log Manager**, **Query Monitor**, **User Switching** and **WP Crontrol** that they are not needed day to day: deactivate or delete them so the site runs at full speed, and turn them on only to look into a problem or for admin work. Built into `SEOProStack_Plugin_Manager::note()`, before the `seoprostack_free_plugin_note` filter, which can change or remove them.
 - Developers: the parts only SEO Pro Stack has (feature list, settings tabs and version history, header links, helpers and Discover tabs) moved to `SEOProStack_Setup` (`includes/class-seoprostack-setup.php`), so the registry, settings store, base feature and admin screen are the same as in the starter plugin apart from names. New filters `seoprostack_admin_script_deps`, `seoprostack_admin_script_data`, `seoprostack_stored_active_plugins` and `seoprostack_plugins_skipped`. Nothing changes for users. The Read Me tab's fallback (when `README.md` is missing) shows the version number instead of `{SEOPROSTACK_VERSION}`.

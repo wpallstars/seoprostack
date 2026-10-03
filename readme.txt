@@ -5,7 +5,7 @@ Tags: magic login, iframe, schedule posts, auto upload images, admin
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 0.10.1
+Stable tag: 0.11.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -123,7 +123,7 @@ Click **Report a problem** at the top right of Settings → SEO Pro Stack, or op
 
 == Changelog ==
 
-= Unreleased =
+= 0.11.0 =
 * Change: Free Plugins notes when to use some plugins; WP-Optimize page cache preset.
 * Change: WooCommerce preset turns on Deferred emails for faster checkout; needs WP-Cron or a server cron.
 * New: Restrict content (replaces Content Control): posts, parts of posts, categories, blocks and shop products for members or chosen roles.
@@ -131,15 +131,9 @@ Click **Report a problem** at the top right of Settings → SEO Pro Stack, or op
 * Change: WebP 90 and AVIF 70 by default.
 * Fix: WebP and AVIF quality; batches within PHP's time limit.
 
-= 0.10.1 =
-* New: LiteSpeed hosting; LiteSpeed Cache preset worked out per site.
-* Change: Short links runs alongside Lasso Lite instead of replacing it, and still imports its links.
-* Change: the Short links list shows no other plugins' row links.
-* Fix: no white flash in the toolbar between admin screens.
-
 Older: `changelog.txt`.
 
 == Upgrade Notice ==
 
-= 0.10.1 =
-LiteSpeed Cache preset tuned per site. Keep Lasso Lite if you use its product displays: Short links no longer suggests removing it.
+= 0.11.0 =
+WebP and AVIF copies are made again once, in the background, at the quality you set. New: Restrict content, replacing Content Control.

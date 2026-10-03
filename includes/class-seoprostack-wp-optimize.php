@@ -10,7 +10,7 @@
  * that code, as its Cache screen does on save.
  *
  * @package SEOProStack
- * @since 0.10.2
+ * @since 0.11.0
  */
 
 if (!defined('ABSPATH')) {
