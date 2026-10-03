@@ -1028,6 +1028,7 @@ Developers can add settings, tabs and directory entries with filters:
 
 Actions:
 
+- `seoprostack_admin_enqueue`: the settings screen's stylesheet and script are enqueued (active tab); enqueue your own after them, depending on `seoprostack-admin`. Scripts can use `seoprostackAdmin.api` (`post`, `speak`, `errorMessage`).
 - `seoprostack_setting_saved`: a setting was saved from the admin screen.
 - `seoprostack_setting_panel`: print status at the top of a settingâ€™s options panel (setting key, schema entry); wrap it in `<div class="sps-panel-note">`.
 - `seoprostack_magic_login_link_sent`: a login link was emailed.
@@ -1056,9 +1057,12 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folderâ
 
 ## Changelog
 
-### 0.11.0
+### Unreleased
 
+- Developers: the core files (listed in `scripts/core-files.txt`) now come from the starter plugin, `wpallstars/wp-plugin-starter-template-for-ai-coding`, with SEO Pro Stack's names: `scripts/sync-core.sh` copies them and `scripts/sync-core.sh --check` lists any that differ. SEO Pro Stack's own admin styles and script moved to `admin/css/seoprostack-tabs.css` and `admin/js/seoprostack-tabs.js`, loaded from `SEOProStack_Setup` on the new `seoprostack_admin_enqueue` action, and use the shared helpers in `seoprostackAdmin.api`. The presets and starter data release check moved to `scripts/preflight-plugin.sh`. With no settings at all, the settings screen shows its first tab with "No settings yet." Nothing changes for users.
 - Developers: the docs are split so the shared part can be copied between plugins as it is. `STANDARDS.md` (new) holds the rules every plugin made from the starter shares: structure and core files, code rules, Updates from GitHub, releases, dark mode and testing. `DEVELOPMENT.md` and `RELEASING.md` are the same in every plugin, with names as placeholders. `AGENTS.md` keeps only SEO Pro Stack's own rules (features on by default, replaced plugins, presets, starter data), and `LAUNCH.md` (new) its WordPress.org checklist, guideline review and public launch state. The checklist's Defaults line now lists Fixes for other plugins, which is on by default too.
+
+### 0.11.0
 - Changed: Free Plugins notes under **Advanced Database Cleaner**, **Anti-Malware Security and Brute-Force Firewall** (`gotmls`), **Debug Log Manager**, **Query Monitor**, **User Switching** and **WP Crontrol** that they are not needed day to day: deactivate or delete them so the site runs at full speed, and turn them on only to look into a problem or for admin work. Built into `SEOProStack_Plugin_Manager::note()`, before the `seoprostack_free_plugin_note` filter, which can change or remove them.
 - Changed (GitHub builds): **Updates from GitHub** runs on a shared updater (`includes/github-updater/`, class `WPAllStars_GitHub_Updater`) that every plugin made from the starter carries. Each copy registers its version when its plugin loads; on `plugins_loaded` only the newest loads, and it serves every plugin with a `GitHub Plugin URI` header, so one update check covers all of them. The setting drives it through filters only (`wpallstars_github_updater_enabled`, `wpallstars_github_updater_early`), because another plugin's copy may be the one that runs. New shared `WPALLSTARS_GITHUB_TOKEN` constant and `wpallstars_github_token` and `wpallstars_github_plugins` filters; `SEOPROSTACK_GITHUB_TOKEN`, `seoprostack_github_token` and `seoprostack_github_plugins` still work. Release cache renamed to `wpallstars_github_releases` (both removed on uninstall). The WordPress.org build leaves the folder out.
 - Developers: the parts only SEO Pro Stack has (feature list, settings tabs and version history, header links, helpers and Discover tabs) moved to `SEOProStack_Setup` (`includes/class-seoprostack-setup.php`), so the registry, settings store, base feature and admin screen are the same as in the starter plugin apart from names. New filters `seoprostack_admin_script_deps`, `seoprostack_admin_script_data`, `seoprostack_stored_active_plugins` and `seoprostack_plugins_skipped`. Nothing changes for users. The Read Me tab's fallback (when `README.md` is missing) shows the version number instead of `{SEOPROSTACK_VERSION}`.

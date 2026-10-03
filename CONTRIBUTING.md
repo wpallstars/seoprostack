@@ -10,16 +10,15 @@ and any messages from `wp-content/debug.log`. Security problems go through
 
 ## Suggesting a feature
 
-Open an issue with the **Feature request** form before writing code. SEO Pro
-Stack makes choices for its users, so a new setting has to earn its place:
-say what the feature does on its own and what problem it solves.
+Open an issue with the **Feature request** form before writing code. Each
+setting makes a choice for the plugin's users, so a new one has to earn its
+place: say what the feature does on its own and what problem it solves.
 
 ## Pull requests
 
 1. Read `STANDARDS.md` (how features, settings, migrations and front-end
-   styles work, the code rules and testing), `AGENTS.md` (what is SEO Pro
-   Stack's own: presets, starter data, replaced plugins) and
-   `DEVELOPMENT.md` (set-up and checks).
+   styles work, the code rules and testing), `AGENTS.md` (what is this
+   plugin's own) and `DEVELOPMENT.md` (set-up and checks).
 2. Keep each pull request to one change. Features are off by default.
 3. Run `scripts/lint.sh` and fix what it finds in the code.
 4. Test on a real WordPress site, including WordPress 6.2 with PHP 7.4 if

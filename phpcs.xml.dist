@@ -51,7 +51,7 @@
 	<!-- WordPress APIs: deprecated, discouraged, alternatives, i18n, enqueues. -->
 	<rule ref="WordPress.WP">
 		<exclude-pattern>/scripts/*</exclude-pattern>
-		<!-- Capabilities from other plugins (WooCommerce, Fluent) are checked in review. -->
+		<!-- Capabilities from other plugins are checked in review. -->
 		<exclude name="WordPress.WP.Capabilities.Unknown"/>
 		<!-- Copy is checked in review; "WordPress" in slugs and URLs is not a typo. -->
 		<exclude name="WordPress.WP.CapitalPDangit"/>
@@ -90,7 +90,7 @@
 	</rule>
 	<rule ref="WordPress.NamingConventions.ValidHookName">
 		<exclude-pattern>/scripts/*</exclude-pattern>
-		<!-- Fluent plugins name their hooks with slashes; we fire theirs to run their integrations. -->
+		<!-- Some plugins name their hooks with slashes; firing theirs needs their names. -->
 		<exclude name="WordPress.NamingConventions.ValidHookName.UseUnderscores"/>
 	</rule>
 
