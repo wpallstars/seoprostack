@@ -2,7 +2,7 @@
 
 Every change to SEO Pro Stack. readme.txt lists the latest version in short.
 
-= Unreleased =
+= 0.11.10 =
 * New, off by default: Internal linking tools (Links tab, Tools → Links), with local incoming/outgoing suggestions, owner-approved inserts and conflict-checked undo, counts and orphan candidates. Uses Rank Math's public report where available and a bounded local fallback otherwise. Shortcodes and unsupported builder content need manual edits; automatic changes require transactional WordPress tables.
 * New, separate opt-ins: cached background link-health checks and daily aggregate click events without cookies or visitor identifiers. Counting excludes logged-in visits and privacy signals, caps approximate events, and retains up to 90 days. No automatic production migration or third-party changes.
 * New: read-only Link Whisper retirement checks in Tools → Links and wp seoprostack links audit. Unknown dependencies remain blockers; staging verification and an explicit click-tracking decision are still required.

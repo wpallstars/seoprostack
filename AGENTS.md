@@ -62,6 +62,9 @@ checklists: `TESTING.md`.
 - Features that rein in other plugins (Ask before licence checks, Quiet
   Freemius prompts) hand the choice to the owner instead of deciding for
   them, as `STANDARDS.md` → Code rules says.
+- Link Whisper retirement does not need historic click data or replacement
+  analytics (owner's choice): leave the toolkit's click counting off for the
+  rollout; separate analytics plugins and apps can cover those needs.
 - Load plugins only where needed skips plugins on some requests. When
   checking the debug log, look for messages from a skipped plugin too: they
   are SEO Pro Stack's to fix.

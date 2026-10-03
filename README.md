@@ -572,6 +572,8 @@ on staging; it never deactivates another plugin or changes its settings.
   logs and other plugins are separate; review your own consent requirements.
   Turning counting off adds no counting script or event route and leaves
   retained totals available until expiry. Clear page caches after opt-out.
+  Retiring Link Whisper does not require keeping its click history or enabling
+  this counter: separate analytics plugins or apps can cover those needs.
 - **Retire Link Whisper**: read-only, point-in-time checks for stored rules,
   target keywords, related-post dependencies and click history. Unknown schemas
   remain blockers. Back up, recheck each site and validate rendered content on
@@ -1179,7 +1181,7 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folderâ
 
 ## Changelog
 
-### Unreleased
+### 0.11.10
 
 - New, off by default: Internal linking tools, with local owner-approved suggestions and conflict-checked undo, incoming/outgoing counts and orphan candidates, optional cached link-health checks, and read-only Link Whisper retirement checks. Reuses Rank Math where available, without a required dependency.
 - New, separately opt-in and off by default: daily aggregate link click events, without cookies or visitor identifiers, with privacy-signal exclusions and 90-day retention. No production migration or Link Whisper deactivation is automatic.
