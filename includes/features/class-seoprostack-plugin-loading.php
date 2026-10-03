@@ -875,7 +875,7 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
      */
     public static function learn() {
         $state = SEOProStack_Plugin_Loader::state();
-        if ('full' !== $state['mode']) {
+        if (isset($_COOKIE['wp-health-check-disable-plugins']) || 'full' !== $state['mode']) {
             return;
         }
 
@@ -1003,7 +1003,7 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
      */
     public static function learn_front() {
         $state = SEOProStack_Plugin_Loader::state();
-        if ('front' !== $state['screen'] || 'full' !== $state['mode'] || 'learning' !== $state['reason']) {
+        if (isset($_COOKIE['wp-health-check-disable-plugins']) || 'front' !== $state['screen'] || 'full' !== $state['mode'] || 'learning' !== $state['reason']) {
             return;
         }
         // Learning again on request is for administrators.

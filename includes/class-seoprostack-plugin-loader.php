@@ -372,6 +372,10 @@ final class SEOProStack_Plugin_Loader {
         self::$mode = 'off';
         self::$self = (string) $self;
 
+        if (isset($_COOKIE['wp-health-check-disable-plugins'])) {
+            return; // Let Health Check choose plugins; never learn its reduced set.
+        }
+
         $raw = get_option('active_plugins', array());
         self::$raw = is_array($raw) ? array_values(array_filter($raw, 'is_string')) : array();
 
@@ -544,10 +548,6 @@ final class SEOProStack_Plugin_Loader {
             return;
         }
         self::$front_revision = (string) get_option(self::FRONT_REVISION, '');
-        if (!empty($options[self::PAGES_KEY]) && (!empty($_COOKIE) || !empty($_SERVER['HTTP_AUTHORIZATION'])
-            || !empty($_SERVER['REDIRECT_HTTP_AUTHORIZATION']) || !empty($_SERVER['PHP_AUTH_USER']))) {
-            return; // Authentication and sessions are not public page views.
-        }
         $logged_in    = self::has_login_cookie();
         self::$screen = 'front';
         // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- only loads more plugins.
@@ -579,15 +579,12 @@ final class SEOProStack_Plugin_Loader {
             return;
         }
         $chosen = isset($options[self::FRONT_KEY]) && is_array($options[self::FRONT_KEY]) ? array_values(array_intersect(self::$raw, $options[self::FRONT_KEY])) : array();
-        if (!empty($options[self::PAGES_KEY])) {
-            // Never learn a visitor's session or personalise a public page map.
-            if ($logged_in || !empty($_COOKIE)) {
-                return;
-            }
-            $key = self::front_page_key();
-            if ('' === $key) {
-                return;
-            }
+        // Page learning adds to the site-wide list only on plain public requests.
+        // Sessions, authentication and query variants still use the chosen list.
+        $key = !empty($options[self::PAGES_KEY]) && !$logged_in && empty($_COOKIE)
+            && empty($_SERVER['HTTP_AUTHORIZATION']) && empty($_SERVER['REDIRECT_HTTP_AUTHORIZATION'])
+            && empty($_SERVER['PHP_AUTH_USER']) ? self::front_page_key() : '';
+        if ('' !== $key) {
             $page = isset($front['pages'][$key]) ? $front['pages'][$key] : array();
             if (empty($page['learned']) || $page['learned'] < time() - HOUR_IN_SECONDS) {
                 self::$mode   = 'full';
@@ -675,7 +672,7 @@ final class SEOProStack_Plugin_Loader {
     /**
      * Exact public URL identity, available before the query and plugins load.
      * Query variants are not learned: searches, pagination, campaign tags and
-     * actions keep all plugins. Tags can change tracking and cookie behaviour.
+     * actions use only the site-wide rules. Tags can change tracking and cookies.
      *
      * @return string
      */

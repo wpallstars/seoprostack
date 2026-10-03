@@ -3,6 +3,7 @@
 Every change to SEO Pro Stack. readme.txt lists the latest version in short.
 
 = Unreleased =
+* Fix: page learning keeps Plugins to skip on the site working for cookies, authentication, query arguments and logged-in people when chosen. Health Check troubleshooting skips no plugins and learns nothing, leaving saved maps unchanged.
 * Change: relevant Theme, Pro Plugins, Hosting and Tools links use existing affiliate or referral links, keeping product and pricing links available. Separate links cover Kadence bundles, the Bit Apps store, Fiverr Pro and the Speedy Index Telegram bot.
 * Fix: Updates from GitHub could not download updates from private repositories on sites where another plugin's updater resets every download (GPLVault Updater does): GitHub answered "Not Found". On such sites, install this version once by hand; later updates arrive by themselves.
 

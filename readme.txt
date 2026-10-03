@@ -124,6 +124,7 @@ Click **Report a problem** at the top right of Settings → SEO Pro Stack, or op
 == Changelog ==
 
 = Unreleased =
+* Fix: page learning keeps the site-wide skip list working; Health Check troubleshooting leaves learning maps unchanged.
 * Change: existing affiliate and referral links in Discover; product and pricing links kept.
 * Fix: updates from private GitHub repositories failed where another updater resets every download (GPLVault Updater).
 
