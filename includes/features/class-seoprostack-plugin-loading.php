@@ -1168,11 +1168,17 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
             }
         }
         $key = SEOProStack_Settings::get(SEOProStack_Plugin_Loader::PAGES_KEY) ? self::front_kind() : '';
+        $learned_kind = false;
         if ('' !== $key && empty($_COOKIE) && !is_user_logged_in() && !is_404() && !is_feed()
             && !is_preview() && empty($_SERVER['HTTP_AUTHORIZATION']) && empty($_SERVER['REDIRECT_HTTP_AUTHORIZATION'])
             && empty($_SERVER['PHP_AUTH_USER']) && isset($_SERVER['REQUEST_METHOD']) && 'GET' === $_SERVER['REQUEST_METHOD']
             && did_action('wp_footer') && 200 === http_response_code()) {
             $kinds[$key] = array('needs' => self::page_needs($state), 'learned' => time());
+            $learned_kind = true;
+        }
+        if ($current && !$state['relearn'] && !$learned_kind) {
+            delete_option(SEOProStack_Plugin_Loader::FRONT_LOCK);
+            return; // An unsupported or unsuccessful public request must not rewrite the learned map.
         }
         if (!SEOProStack_Plugin_Loader::front_revision_current()) {
             return; // Content/settings changed while this page was being rendered.
@@ -1213,6 +1219,9 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
         }
         if (is_home()) {
             return 'home';
+        }
+        if (function_exists('is_shop') && is_shop()) {
+            return 'archive:product'; // WooCommerce may retain the shop page as its queried object.
         }
         if (is_singular()) {
             $template = get_post_meta(get_queried_object_id(), '_wp_page_template', true);
