@@ -1179,19 +1179,9 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
         if (!SEOProStack_Plugin_Loader::front_revision_current()) {
             return; // Content/settings changed while this page was being rendered.
         }
-        if (!get_option(SEOProStack_Plugin_Loader::FRONT_MIGRATED, false)) {
-            $options = get_option(SEOProStack_Settings::OPTION, array());
-            if (is_array($options) && array_key_exists(self::FRONT_KEY, $options)) {
-                $automatic = SEOProStack_Plugin_Loader::front_automatic($state['active'], array('notes' => $notes));
-                $keep = array_values(array_unique(array_merge((array) ($options[SEOProStack_Plugin_Loader::KEEP_KEY] ?? array()), array_diff($automatic, (array) $options[self::FRONT_KEY], array(plugin_basename(SEOPROSTACK_FILE))))));
-                $options[SEOProStack_Plugin_Loader::KEEP_KEY] = $keep;
-                update_option(SEOProStack_Settings::OPTION, $options);
-            }
-            update_option(SEOProStack_Plugin_Loader::FRONT_MIGRATED, true, false);
-            if (!SEOProStack_Plugin_Loader::front_revision_current()) {
-                delete_option(SEOProStack_Plugin_Loader::FRONT_LOCK);
-                return; // Preserving choices invalidates this map; the next full visit learns it.
-            }
+        if (self::migrate_front($state['active'], $notes)) {
+            delete_option(SEOProStack_Plugin_Loader::FRONT_LOCK);
+            return; // Preserving choices invalidates this map; the next full visit learns it.
         }
         update_option(SEOProStack_Plugin_Loader::FRONT, array(
             'version' => SEOProStack_Plugin_Loader::FRONT_VERSION,
@@ -1208,6 +1198,29 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
         if (!$state['relearn']) {
             delete_option(SEOProStack_Plugin_Loader::FRONT_LOCK);
         }
+    }
+
+    /**
+     * Preserve saved site-wide choices once, after successful learning.
+     *
+     * @param string[] $active Active plugins on the full request.
+     * @param array    $notes  Learned site contributions.
+     * @return bool Whether settings changed, invalidating the current map.
+     */
+    private static function migrate_front(array $active, array $notes) {
+        if (get_option(SEOProStack_Plugin_Loader::FRONT_MIGRATED, false)) {
+            return false;
+        }
+        $changed = false;
+        $options = get_option(SEOProStack_Settings::OPTION, array());
+        if (is_array($options) && array_key_exists(self::FRONT_KEY, $options)) {
+            $automatic = SEOProStack_Plugin_Loader::front_automatic($active, array('notes' => $notes));
+            $keep = array_values(array_unique(array_merge((array) ($options[SEOProStack_Plugin_Loader::KEEP_KEY] ?? array()), array_diff($automatic, (array) $options[self::FRONT_KEY], array(plugin_basename(SEOPROSTACK_FILE))))));
+            $options[SEOProStack_Plugin_Loader::KEEP_KEY] = $keep;
+            $changed = update_option(SEOProStack_Settings::OPTION, $options);
+        }
+        update_option(SEOProStack_Plugin_Loader::FRONT_MIGRATED, true, false);
+        return $changed;
     }
 
     /** Forget page ownership when settings used before plugins load change. */

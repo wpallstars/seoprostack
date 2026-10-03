@@ -13,7 +13,7 @@ One free plugin for a faster, tidier WordPress. It does the jobs of 40+ single-p
 
 == Description ==
 
-SEO Pro Stack does the jobs that usually take dozens of small plugins: a calmer, faster admin, better writing and media tools, safer logins, and tested settings for the plugins we recommend. Each feature is one switch, so you add only what you use. Fewer plugins means fewer updates, conflicts and slowdowns.
+SEO Pro Stack replaces dozens of small plugins: a faster admin, writing and media tools, safer logins and tested plugin settings. Turn on only what you use for fewer updates, conflicts and slowdowns.
 
 Free and open source: no pro version, nothing locked.
 
@@ -24,7 +24,6 @@ Off by default except Hide admin bar items (Comments and + New), No fade between
 * **Organise the admin menu**: the same sections on every site, role previews, client safeguards, writing only for contributors.
 * **Tidy the dashboard**, **Dashboard and sidebar widgets**, **Hide admin notices** (behind a megaphone) and a **More menu** for plugins' admin bar items: only what you use stays in view.
 * **Quiet Freemius prompts** (on): no opt-in nags, upgrade offers or deactivation surveys.
-* **Load plugins only where needed**: each screen loads only the plugins it uses, on the site too if you like.
 * **Tidy admin screens**, **Tidy WooCommerce admin**, **Tidy the login screen**, **Simpler block editor**, **Remove WordPress extras**, **Fewer Heartbeat requests**, **Limit post revisions** and **Lighter WooCommerce pages**: most of Disable Bloat.
 * **Modern admin colours**, **No fade between admin screens** (on), **Readable list columns** and **Notification emails** (stop routine emails one by one).
 
@@ -60,7 +59,7 @@ Off by default except Hide admin bar items (Comments and + New), No fade between
 * **Ask before licence checks**: premium plugins call home once, daily or never, as you choose.
 * **Clean the database weekly**: old spam, bin and expired data.
 * **Database key cleanup**: review leftover and duplicate indexes and confirm each removal; restore SQL is kept. Back up first.
-* **Load plugins only where needed**: automatic admin choices with an always-load bypass and idle relearning; separate opt-in site choices.
+* **Load plugins only where needed**: automatic admin choices and unused site plugin skips, with always-load bypasses and idle admin relearning.
 
 = Plugins and set-up =
 
