@@ -1056,7 +1056,7 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folderâ
 
 ## Changelog
 
-### Unreleased
+### 0.11.0
 
 - Changed: Free Plugins notes under **Advanced Database Cleaner**, **Anti-Malware Security and Brute-Force Firewall** (`gotmls`), **Debug Log Manager**, **Query Monitor**, **User Switching** and **WP Crontrol** that they are not needed day to day: deactivate or delete them so the site runs at full speed, and turn them on only to look into a problem or for admin work. Built into `SEOProStack_Plugin_Manager::note()`, before the `seoprostack_free_plugin_note` filter, which can change or remove them.
 - Changed (GitHub builds): **Updates from GitHub** runs on a shared updater (`includes/github-updater/`, class `WPAllStars_GitHub_Updater`) that every plugin made from the starter carries. Each copy registers its version when its plugin loads; on `plugins_loaded` only the newest loads, and it serves every plugin with a `GitHub Plugin URI` header, so one update check covers all of them. The setting drives it through filters only (`wpallstars_github_updater_enabled`, `wpallstars_github_updater_early`), because another plugin's copy may be the one that runs. New shared `WPALLSTARS_GITHUB_TOKEN` constant and `wpallstars_github_token` and `wpallstars_github_plugins` filters; `SEOPROSTACK_GITHUB_TOKEN`, `seoprostack_github_token` and `seoprostack_github_plugins` still work. Release cache renamed to `wpallstars_github_releases` (both removed on uninstall). The WordPress.org build leaves the folder out.

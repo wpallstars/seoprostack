@@ -2,7 +2,7 @@
 
 Every change to SEO Pro Stack. readme.txt lists the latest version in short.
 
-= Unreleased =
+= 0.11.0 =
 * Change: in Free Plugins, Advanced Database Cleaner, Anti-Malware Security and Brute-Force Firewall, Debug Log Manager, Query Monitor, User Switching and WP Crontrol say they are not needed day to day: deactivate or delete them so the site runs at full speed, and turn them on only to look into a problem or for admin work.
 * Change: Updates from GitHub now uses a shared updater that other wpallstars plugins can carry too. Only the newest copy on the site runs, so all of them are checked together, once. Private repositories can use one WPALLSTARS_GITHUB_TOKEN in wp-config.php for every plugin; SEOPROSTACK_GITHUB_TOKEN and the seoprostack_github_* filters still work.
 * Change: Free Plugins lists WP-Optimize again on LiteSpeed servers, with a note that the site does not need it there; on other servers its note says it is for its page cache. The WP-Optimize preset turns that page cache on, on servers other than LiteSpeed, through WP-Optimize's own save code, so Reset and Undo turn it off and back on cleanly.
