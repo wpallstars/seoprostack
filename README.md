@@ -446,6 +446,12 @@ Kadence already keeps what it downloads in `wp-content/uploads/kadence_blocks_li
 
 On a test site, in one browser, alternating editor pages with and without the browser copy (four of each, opening the library from a new page each time): the library showed after 5.9 seconds without it (median; three library requests taking 2–2.7 seconds) and 3.4 seconds with it (no requests). Skipping off-screen patterns brought the time to the first drawn library from 2.7 to 2.0 seconds. The rest is Kadence building its pattern list. The first opening in each browser still loads the library from the site, and opening it again in the same editor page was already quick, since Kadence keeps it in the page. Sync still fetched new designs.
 
+### Rank Math defaults (Links)
+
+Off by default and only runs while Rank Math is active. Choose public post types and enable **Set an empty focus keyword from the title** to fill missing keywords on save with the lowercase title, without tags. Existing keywords are kept when titles change; autosaves, revisions, auto-drafts and trashed posts are skipped. Turning the keyword setting off keeps the pillar warning available.
+
+On each chosen post type’s list, a warning appears when more than 20% of its published posts have Rank Math’s pillar flag. Pillars should be a few cornerstone pages, not almost every post. Select the posts that should not be pillars and choose **Remove Rank Math pillar status** in Bulk actions. Only selected posts you can edit are changed; keywords are kept. Pillar status is never added or removed automatically.
+
 ### 410 Gone for removed pages (Links)
 
 Answers “410 Gone” instead of “404 Not Found” for addresses you list, so search engines drop them sooner. Visitors still see the theme’s not-found page.
@@ -1100,6 +1106,7 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folder�
 ### 0.11.5
 
 - New: Hosting needs warns about configured but unreachable object caches, recommends unused local Redis or Memcached even on small sites, and names the cache in site facts. Checks run at most daily, never on visitor requests, without changing cache settings.
+- New, off by default: Rank Math defaults (Links tab) fills empty focus keywords from titles for chosen post types, warns about pillar overuse and offers selected-post pillar removal.
 - New, off by default: External link icons (Links tab), following link colours and Kadence light/dark switching with no scripts or extra asset requests. Related-domain and per-link bypasses; image links and buttons stay plain. Covers only Link Whisper's icon, not its linking tools.
 - Fixed: Updates from GitHub could not update from private repositories on sites where HTTP Requests Manager blocks requests (its "smart" or other blocking modes): it makes every request follow redirects, so GitHub's download address was lost. Its requests to GitHub now never follow redirects, so the token also stays with GitHub. On such sites, install this version once by hand; later updates arrive by themselves.
 - Fixed: Load plugins only where needed did nothing on sites updated to 0.11.3 or 0.11.4: every plugin went into **Always load these plugins**, and the site's first learn put every plugin it skips automatically into **Always load these plugins on the site**. Sites stored their old lists empty, which was taken as a choice. Both lists are cleared where that happened; lists with real choices are kept.

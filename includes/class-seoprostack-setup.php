@@ -76,6 +76,7 @@ final class SEOProStack_Setup {
         'SEOProStack_Remove_Cpt_Base',
         'SEOProStack_Gone_Urls',
         'SEOProStack_Old_Slugs',
+        'SEOProStack_Rank_Math_Defaults',
         'SEOProStack_External_Links',
         'SEOProStack_Maintenance',
         'SEOProStack_Preload_Pages',
