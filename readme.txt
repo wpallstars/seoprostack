@@ -13,11 +13,11 @@ One free plugin for a faster, tidier WordPress. It does the jobs of 40+ single-p
 
 == Description ==
 
-SEO Pro Stack replaces dozens of small plugins: a faster admin, writing and media tools, safer logins and tested plugin settings. Turn on only what you use for fewer updates, conflicts and slowdowns.
+Replace dozens of small plugins: a faster admin, writing and media tools, safer logins and tested settings. Turn on only what you use.
 
 Free and open source: no pro version, nothing locked.
 
-Off by default except Hide admin bar items (Comments and + New), No fade between admin screens, Quiet Freemius prompts and Fixes for other plugins. Turn features on in **Settings → SEO Pro Stack**; **Search features** finds one by name or by the plugin it replaces. A feature that replaces a plugin imports its settings once, never changes them, and waits while that plugin is active, so you can switch over safely.
+Off by default except Hide admin bar items (Comments and + New), No fade between admin screens, Quiet Freemius prompts and Fixes for other plugins. Enable in **Settings → SEO Pro Stack**; **Search features** finds names and replaced plugins. Replacements import settings once, never change the other plugin's data, and wait while it is active.
 
 = A calmer, faster admin =
 
@@ -56,7 +56,7 @@ Off by default except Hide admin bar items (Comments and + New), No fade between
 
 * **Short links** such as /go/offer/ with click counts, **Short addresses for custom post types** and **410 Gone** for removed pages.
 * **External link icons**: text-link colours and Kadence dark mode, without scripts or downloads; only Link Whisper's icon, not its linking tools.
-* **Internal linking tools** (off): approved local suggestions and undo, link counts, orphan candidates and read-only Link Whisper retirement checks. Health checks and daily aggregate click events are separate opt-ins; no blanket plugin-removal promise.
+* **Internal linking tools** (off): approved suggestions, undo, counts, orphan candidates and read-only Link Whisper retirement checks. Health checks and daily click totals are separate opt-ins; review each site before removal.
 * **Load pages before the click**, **Delay scripts until interaction**, **Delayed Google Analytics** and a faster editor with Kadence Blocks.
 * **Ask before licence checks**: premium plugins call home once, daily or never, as you choose.
 * **Clean the database weekly**: old spam, bin and expired data.
@@ -73,7 +73,7 @@ Off by default except Hide admin bar items (Comments and + New), No fade between
 
 = Affiliate disclosure =
 
-Some Theme, Pro Plugins, Hosting and Tools links may earn the developer a commission or account credit. They never change what we recommend, and nothing shows on your public site.
+Some directory links may earn a commission or account credit. Recommendations are unchanged; no affiliate content shows on your public site.
 
 = External services =
 
@@ -85,10 +85,10 @@ Some Theme, Pro Plugins, Hosting and Tools links may earn the developer a commis
 * **ApiFlash** (api.apiflash.com): [terms](https://apiflash.com/terms_of_service), [privacy policy](https://apiflash.com/privacy_policy).
 * **Screenshot Machine** (api.screenshotmachine.com): [terms](https://www.screenshotmachine.com/termsandconditions.php), [privacy policy](https://www.screenshotmachine.com/privacypolicy.php).
 * **Wikipedia** (*.wikipedia.org): Wikipedia previews load in the visitor’s browser when opened. [Privacy policy](https://foundation.wikimedia.org/wiki/Policy:Privacy_policy).
-* **Linked websites**: optional link-health checks contact public linked addresses in cached background batches, without queries or visitor data. Their own privacy policies apply. Optional link click events go only to this site: daily totals, no cookies or visitor identifiers, up to 90 days; review consent requirements and separate server logs.
+* **Linked websites**: opted-in health checks contact public addresses in cached background batches, without queries or visitor data; their privacy policies apply. Click events stay on this site: daily totals for up to 90 days, no tracking cookies or visitor identifiers. Review consent and server logs.
 * **GitHub** (github.com, api.github.com), copies from GitHub releases only: asks up to twice a day for new releases of plugins that name a GitHub repository; nothing about your site is sent. [Privacy statement](https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement).
 
-Other features contact only addresses you choose: Copy linked images downloads images a post already links to, Link cards the linked page’s picture, and the iFrame block makes browsers load the pages your editors embed. Avatars without Gravatar stops WordPress loading avatars from gravatar.com. Short links that count clicks set a cookie (`sps_link_` and the link’s ID, for a year, holding only “1”); only totals are kept, never IP addresses. No other data is sent.
+Other chosen addresses: Copy linked images downloads linked images; Link cards downloads page pictures; iFrames load embedded pages. Avatars without Gravatar stops gravatar.com requests. Short-link counts set a year-long cookie (`sps_link_` plus the link ID, holding “1”); totals only, no IP addresses. No other data is sent.
 
 = Developers =
 
@@ -96,7 +96,7 @@ Extend settings, tabs and directories with filters such as `seoprostack_settings
 
 = Built with AI =
 
-Built and maintained with [aidevops](https://aidevops.sh), the same developer's open-source AI harness for creating and managing anything online with AI, plugins like this one included. Free on [GitHub](https://github.com/marcusquinn/aidevops).
+Built with [aidevops](https://aidevops.sh), the developer's free, open-source AI harness. [Source](https://github.com/marcusquinn/aidevops).
 
 == Installation ==
 
@@ -130,12 +130,8 @@ Click **Report a problem** at the top right of Settings → SEO Pro Stack, or op
 * New, off: local linking suggestions and undo, link reports, optional cached health checks, opt-in daily click totals and read-only Link Whisper retirement checks.
 
 = 0.11.5 =
-* New: Hosting needs checks object cache health daily and recommends unused Redis or Memcached, without connections on visitor requests.
-* New: External link icons follow link colours and Kadence dark mode without scripts or extra asset requests; off by default.
-* Fix: Load plugins only where needed skipped no plugins on sites updated to 0.11.3 or 0.11.4; it now gives its full effect as soon as it is switched on.
-* Fix: updates from private GitHub repositories work with HTTP Requests Manager's blocking modes.
-* Fix: a broken Kadence screenshot on the Theme tab on sites that block images from other sites.
-* Fix: Deactivate and Activate links now work with Freesoul Deactivate Plugins.
+* New: daily object-cache health checks and off-by-default external link icons.
+* Fix: plugin skipping on updated sites, private GitHub updates with HTTP Requests Manager, Kadence screenshots and Freesoul Activate/Deactivate links.
 
 Older: `changelog.txt`.
 
