@@ -182,9 +182,9 @@ final class SEOProStack_Litespeed {
             return $note;
         }
         if (self::is_server()) {
-            return __('Not needed on this site: it runs on a LiteSpeed server, where LiteSpeed Cache keeps pages and SEO Pro Stack does the rest. Keep it for sites on other servers.', 'seoprostack');
+            return __('Not needed here: this site runs on a LiteSpeed server, so use LiteSpeed Cache instead.', 'seoprostack');
         }
-        return __('For sites on servers other than LiteSpeed, for its page cache. Its plugin preset turns that on and leaves images and database cleanup to SEO Pro Stack.', 'seoprostack');
+        return __('Use this on servers other than LiteSpeed, for its page cache. Its plugin preset turns the page cache on and leaves the rest to SEO Pro Stack.', 'seoprostack');
     }
 
     /**

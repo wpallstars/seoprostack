@@ -117,6 +117,11 @@ preset overwrites them. A setting goes in one or the other.
   Settings are there to bypass something that causes a problem, not choices
   people need to understand first. A new setting must earn its place;
   prefer detecting the right behaviour plus a short bypass list.
+- No page caching or CSS and JS minification in SEO Pro Stack (owner's
+  decision): they are a common source of broken sites and support load, so
+  leave them to plugins that specialise in them (LiteSpeed Cache,
+  WP-Optimize). SEO Pro Stack may recommend those plugins and set them up
+  through their presets, saving through their own code.
 - Site owner in control, performance first: the owner decides what their site
   sends, contacts and shows. Calls to outside services are opt-in where they
   are not the point of the feature, made only as often and for as long as

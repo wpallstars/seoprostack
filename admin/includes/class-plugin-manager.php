@@ -767,7 +767,7 @@ class SEOProStack_Plugin_Manager {
                         <p><?php echo esc_html(isset($plugin->short_description) ? $plugin->short_description : ''); ?></p>
                         <?php $note = self::note($plugin->slug); ?>
                         <?php if ('' !== $note) : ?>
-                            <p class="sps-plugin-note"><em><?php echo esc_html($note); ?></em></p>
+                            <p class="sps-plugin-note"><?php echo esc_html($note); ?></p>
                         <?php endif; ?>
                         <?php if (!empty($plugin->author)) : ?>
                             <p class="authors"><cite><?php echo wp_kses(sprintf(/* translators: %s: author */ __('By %s', 'seoprostack'), $plugin->author), $allowed_author); ?></cite></p>
@@ -915,7 +915,7 @@ class SEOProStack_Plugin_Manager {
                             <?php endif; ?>
                             <?php $note = self::note($plugin->slug); ?>
                             <?php if ('' !== $note) : ?>
-                                <em class="sps-plugin-row__desc sps-plugin-note"><?php echo esc_html($note); ?></em>
+                                <span class="sps-plugin-note"><?php echo esc_html($note); ?></span>
                             <?php endif; ?>
                         </span>
                     </div>
