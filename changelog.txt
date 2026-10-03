@@ -2,6 +2,9 @@
 
 Every change to SEO Pro Stack. readme.txt lists the latest version in short.
 
+= Unreleased =
+* New: Tools → Old addresses has Remove all (it asks first), and ticking the whole page offers Select all to take in every page, as Select all across pages does in post lists. Before, only the 50 old addresses on screen could be removed at once, so a site with a thousand needed twenty-one rounds. The box above the list also ticks the page where another plugin's script stops WordPress's own from doing it.
+
 = 0.11.5 =
 * New: Hosting needs warns about configured but unreachable object caches, recommends unused local Redis or Memcached even on small sites, and names the cache in site facts. Checks run at most daily, never on visitor requests, without changing cache settings.
 * New, off by default: External link icons (Links tab), following link colours and Kadence light/dark switching without scripts or extra asset requests. Related-domain and per-link bypasses; image links and buttons stay plain. Only Link Whisper's icon is covered, not its linking tools.
