@@ -181,7 +181,7 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
                 'default'     => false,
                 'tab'         => 'plugins',
                 'label'       => __('Load plugins only where needed', 'seoprostack'),
-                'description' => __('Makes wp-admin faster by loading plugins only on screens that need them. Login and permission plugins always load. The menu stays the same. Saving, background tasks, and the Plugins and core settings screens load every plugin. So does the site, unless you choose plugins to skip there.', 'seoprostack'),
+                'description' => __('Makes wp-admin faster by loading plugins only on screens that need them. After learning, plain site page views also skip plugins with nothing seen there. Login and permission plugins always load. The menu stays the same. Saving, background tasks, and the Plugins and core settings screens load every plugin.', 'seoprostack'),
             ),
             self::LIST_KEY => array(
                 'type'        => 'multi',
@@ -196,7 +196,7 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
                 'default'     => array(),
                 'parent'      => self::KEY,
                 'label'       => __('Plugins to skip on the site', 'seoprostack'),
-                'description' => __('For admin tools that add nothing to the pages people see. They then do not load when someone views the site, so pages that are not cached open faster. Next to each plugin is what SEO Pro Stack saw it add to the site: leave those unticked, and leave security, caching, cookie and analytics plugins unticked too. Logins, sending forms, background tasks and addresses with extra arguments still load every plugin, and so does a ticked plugin that another plugin needs.', 'seoprostack'),
+                'description' => __('After learning, plugins with nothing seen on the site are skipped automatically on plain page views. Tick other plugins only if you want them skipped too; leave security, caching, cookie and analytics plugins unticked. Logins, sending forms, background tasks and addresses with extra arguments still load every plugin, and so does a plugin that another loading plugin needs.', 'seoprostack'),
                 'options'     => array(__CLASS__, 'front_plugin_options'),
             ),
             self::FRONT_USERS_KEY => array(
@@ -216,9 +216,9 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
             SEOProStack_Plugin_Loader::KEEP_KEY => array(
                 'type'        => 'multi',
                 'default'     => array(),
-                'parent'      => SEOProStack_Plugin_Loader::PAGES_KEY,
+                'parent'      => self::KEY,
                 'label'       => __('Always load these plugins on the site', 'seoprostack'),
-                'description' => __('Opt out of page learning for plugins your theme or custom code needs.', 'seoprostack'),
+                'description' => __('Add a plugin here if something it shows on the site is missing.', 'seoprostack'),
                 'options'     => array(__CLASS__, 'plugin_options'),
             ),
         );
@@ -653,6 +653,10 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
         $front   = get_option(SEOProStack_Plugin_Loader::FRONT, array());
         $learned = SEOProStack_Plugin_Loader::front_current();
         $notes   = $learned && isset($front['notes']) ? (array) $front['notes'] : array();
+        $active  = SEOProStack_Plugin_Loader::stored_active_plugins();
+        $automatic = $learned ? SEOProStack_Plugin_Loader::front_automatic($active, $front) : array();
+        $chosen = array_diff(array_unique(array_merge($automatic, (array) SEOProStack_Settings::get(self::FRONT_KEY))), (array) SEOProStack_Settings::get(SEOProStack_Plugin_Loader::KEEP_KEY));
+        $skipped = $learned ? SEOProStack_Plugin_Loader::front_skipped($chosen, $front) : array();
         $self    = plugin_basename(SEOPROSTACK_FILE);
         $texts   = array(
             'always'  => __('always loads: it changes logins or the plugin list', 'seoprostack'),
@@ -685,7 +689,7 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
                     }
                 }
                 if (!$parts) {
-                    $parts[] = __('nothing seen on the site', 'seoprostack');
+                    $parts[] = in_array($file, $skipped, true) ? __('skipped: nothing seen on the site', 'seoprostack') : __('nothing seen on the site', 'seoprostack');
                 }
             }
             if (isset($fdp[$file])) {
@@ -1175,6 +1179,10 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
         if (!SEOProStack_Plugin_Loader::front_revision_current()) {
             return; // Content/settings changed while this page was being rendered.
         }
+        if (self::migrate_front($state['active'], $notes)) {
+            delete_option(SEOProStack_Plugin_Loader::FRONT_LOCK);
+            return; // Preserving choices invalidates this map; the next full visit learns it.
+        }
         update_option(SEOProStack_Plugin_Loader::FRONT, array(
             'version' => SEOProStack_Plugin_Loader::FRONT_VERSION,
             'revision' => $state['front_revision'],
@@ -1192,6 +1200,29 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
         }
     }
 
+    /**
+     * Preserve saved site-wide choices once, after successful learning.
+     *
+     * @param string[] $active Active plugins on the full request.
+     * @param array    $notes  Learned site contributions.
+     * @return bool Whether settings changed, invalidating the current map.
+     */
+    private static function migrate_front(array $active, array $notes) {
+        if (get_option(SEOProStack_Plugin_Loader::FRONT_MIGRATED, false)) {
+            return false;
+        }
+        $changed = false;
+        $options = get_option(SEOProStack_Settings::OPTION, array());
+        if (is_array($options) && array_key_exists(self::FRONT_KEY, $options)) {
+            $automatic = SEOProStack_Plugin_Loader::front_automatic($active, array('notes' => $notes));
+            $keep = array_values(array_unique(array_merge((array) ($options[SEOProStack_Plugin_Loader::KEEP_KEY] ?? array()), array_diff($automatic, (array) $options[self::FRONT_KEY], array(plugin_basename(SEOPROSTACK_FILE))))));
+            $options[SEOProStack_Plugin_Loader::KEEP_KEY] = $keep;
+            $changed = update_option(SEOProStack_Settings::OPTION, $options);
+        }
+        update_option(SEOProStack_Plugin_Loader::FRONT_MIGRATED, true, false);
+        return $changed;
+    }
+
     /** Forget page ownership when settings used before plugins load change. */
     public static function front_option_changed($name) {
         if ('seoprostack_options' !== $name && (!self::enabled() || !SEOProStack_Settings::get(SEOProStack_Plugin_Loader::PAGES_KEY))) {
@@ -1201,7 +1232,7 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
         // Exclude volatile core caches and this loader's own learning writes.
         if (0 === strpos((string) $name, '_transient_') || 0 === strpos((string) $name, '_site_transient_')
             || in_array($name, array('cron', SEOProStack_Plugin_Loader::FRONT, SEOProStack_Plugin_Loader::FRONT_LOCK,
-                SEOProStack_Plugin_Loader::FRONT_REVISION, SEOProStack_Plugin_Loader::FRONT_FAILED,
+                SEOProStack_Plugin_Loader::FRONT_REVISION, SEOProStack_Plugin_Loader::FRONT_FAILED, SEOProStack_Plugin_Loader::FRONT_MIGRATED,
                 SEOProStack_Plugin_Loader::MAP, SEOProStack_Plugin_Loader::MENU, SEOProStack_Plugin_Loader::HISTORY), true)) {
             return;
         }

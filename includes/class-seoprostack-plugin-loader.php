@@ -114,7 +114,10 @@ final class SEOProStack_Plugin_Loader {
     const FRONT_USERS_KEY = 'plugin_loading_front_users';
 
     /** Format of what is learned on the site; a change makes it learn again. */
-    const FRONT_VERSION = 2;
+    const FRONT_VERSION = 3;
+
+    /** One-time preservation of the owner's saved site-wide skip choices. */
+    const FRONT_MIGRATED = 'seoprostack_plugin_front_migrated';
 
     /** Opt-in page learning and plugins the owner wants to keep loading. */
     const PAGES_KEY = 'plugin_loading_pages';
@@ -584,7 +587,9 @@ final class SEOProStack_Plugin_Loader {
         if (!empty($front['failed']) || ($logged_in && empty($options[self::FRONT_USERS_KEY]))) {
             return;
         }
-        $chosen = isset($options[self::FRONT_KEY]) && is_array($options[self::FRONT_KEY]) ? array_values(array_intersect(self::$raw, $options[self::FRONT_KEY])) : array();
+        $keep = isset($options[self::KEEP_KEY]) ? (array) $options[self::KEEP_KEY] : array();
+        $chosen = array_unique(array_merge((array) ($options[self::FRONT_KEY] ?? array()), self::front_automatic(self::$raw, $front)));
+        $chosen = array_diff(array_intersect(self::$raw, $chosen), $keep);
         // Page learning adds to the site-wide list only on plain public requests.
         // Sessions, authentication and query variants still use the chosen list.
         $key = !empty($options[self::PAGES_KEY]) && !$logged_in && empty($_COOKIE)
@@ -598,7 +603,6 @@ final class SEOProStack_Plugin_Loader {
                 self::attribute();
                 return;
             }
-            $keep = isset($options[self::KEEP_KEY]) ? (array) $options[self::KEEP_KEY] : array();
             $candidates = array_diff((array) ($front['candidates'] ?? array()), $keep);
             $chosen = array_diff(array_unique(array_merge($chosen, $candidates)), $keep);
             $needed = (array) ($page['needs'] ?? array());
@@ -746,14 +750,25 @@ final class SEOProStack_Plugin_Loader {
     }
 
     /**
-     * Ticked plugins this page of the site skips: not those that always
-     * load, and not those a loading plugin needs.
+     * Plugins with no learned contribution to the site.
      *
-     * @param string[] $chosen Ticked plugins that are active.
+     * @param string[] $active Active plugin files.
      * @param array    $front  What was learned on the site.
      * @return string[]
      */
-    private static function front_skipped(array $chosen, array $front) {
+    public static function front_automatic(array $active, array $front) {
+        return array_values(array_diff($active, array_keys(array_filter((array) ($front['notes'] ?? array())))));
+    }
+
+    /**
+     * Chosen plugins this page of the site skips: not those that always
+     * load, and not those a loading plugin needs.
+     *
+     * @param string[] $chosen Automatic or ticked plugins that are active.
+     * @param array    $front  What was learned on the site.
+     * @return string[]
+     */
+    public static function front_skipped(array $chosen, array $front) {
         $never = array_merge(array(self::$self), (array) $front['always']);
         $skip  = array_fill_keys(array_diff($chosen, $never), true);
         $deps  = (array) $front['deps'];
