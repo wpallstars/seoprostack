@@ -130,6 +130,7 @@ Click **Report a problem** at the top right of Settings → SEO Pro Stack, or op
 * Change: Refined Discover recommendations; added Fluent Query Logger under Debug.
 * New: Custom fields to content, off by default, with per-type choices, excerpts, skipped fields and WP-CLI sync.
 * Fix: Recognise WP-Optimize Premium, share its preset and warn about restoring LiteSpeed Cache’s WP_CACHE line after deactivation.
+* Fix: Long Rank Math keywords wrap in the SEO Details column instead of pushing lists off the page.
 * Fix: Tutor LMS gets its order, cart and coupon tables on every site of a network.
 * Fix: Faster admin screens with Tutor LMS Pro or Comment Goblin.
 

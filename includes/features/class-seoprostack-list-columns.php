@@ -20,8 +20,9 @@
  * It also tidies the columns themselves: it removes columns that few people
  * need (chosen in the settings; Admin Columns can still add them back, and
  * still lists them), puts Author and Date last on lists of posts, pages and
- * other content, and keeps Rank Math's SEO Details wide enough that its
- * lines do not wrap.
+ * other content, and gives Rank Math's SEO Details room for its usual
+ * lines: the score and link counts stay on one line, and a long keyword or
+ * schema wraps under its label instead of pushing the list off the page.
  *
  * @package SEOProStack
  * @since 0.6.0
@@ -183,10 +184,16 @@ class SEOProStack_List_Columns extends SEOProStack_Feature {
             self::HANDLE,
             'body.js table.wp-list-table.fixed:not(.' . self::FITTED . '){visibility:hidden;animation:seoprostack-list-show 0s 2s forwards}'
             . '@keyframes seoprostack-list-show{to{visibility:visible}}'
-            // Rank Math's SEO Details: each line (score, keyword, schema,
-            // links) on one line, and room for the longest of them.
+            // Rank Math's SEO Details: room for its usual longest line. The
+            // score and link counts stay on one line; the keyword, schema
+            // and any other plugin's lines are free text of any length, so
+            // they wrap between words, under their label, instead of
+            // pushing the list off the page.
             . '.wp-list-table .column-rank_math_seo_details{width:' . self::SEO_DETAILS_WIDTH . '}'
-            . '.wp-list-table td.column-rank_math_seo_details .rank-math-column-display{white-space:nowrap}'
+            . '.wp-list-table td.column-rank_math_seo_details .rank-math-column-display.seo-score,'
+            . '.wp-list-table td.column-rank_math_seo_details .rank-math-column-display.rank-math-link-count{white-space:nowrap}'
+            . '.wp-list-table td.column-rank_math_seo_details .rank-math-column-display:not(.seo-score):not(.rank-math-link-count){'
+            . 'padding-left:1em;text-indent:-1em;overflow-wrap:break-word;text-wrap:pretty}'
         );
     }
 }
