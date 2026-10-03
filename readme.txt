@@ -124,9 +124,11 @@ Click **Report a problem** at the top right of Settings → SEO Pro Stack, or op
 
 == Changelog ==
 
+= Unreleased =
+* New: Term tools: slug patterns, bulk action and 301 redirects.
+
 = 0.11.5 =
 * New: Hosting needs checks object cache health daily and recommends unused Redis or Memcached, without connections on visitor requests.
-* New: Term tools applies taxonomy slug prefixes and suffixes, with a bulk action and 301 redirects from old addresses.
 * New: External link icons follow link colours and Kadence dark mode without scripts or extra asset requests; off by default.
 * Fix: Load plugins only where needed skipped no plugins on sites updated to 0.11.3 or 0.11.4; it now gives its full effect as soon as it is switched on.
 * Fix: updates from private GitHub repositories work with HTTP Requests Manager's blocking modes.
