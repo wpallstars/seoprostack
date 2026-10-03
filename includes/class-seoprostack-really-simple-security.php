@@ -123,7 +123,7 @@ final class SEOProStack_Really_Simple_Security {
         } catch (Throwable $error) {
             $restored = false;
         }
-        return new WP_Error('seoprostack_rsssl_save', $restored
+        return new WP_Error($restored ? 'seoprostack_rsssl_restored' : 'seoprostack_rsssl_save', $restored
             ? __('Really Simple Security could not reconcile its redirect rules. The previous redirect preference and rules were restored; no undo copy was replaced.', 'seoprostack')
             : __('Redirect save and rollback are incomplete. Check Really Simple Security’s redirect setting and root .htaccess immediately; the previous undo copy was kept.', 'seoprostack'));
     }

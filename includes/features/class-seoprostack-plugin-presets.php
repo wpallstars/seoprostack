@@ -430,12 +430,19 @@ class SEOProStack_Plugin_Presets extends SEOProStack_Feature {
         $set     = self::BULK_APPLY === $action ? 'options' : 'defaults';
         $plugins = 0;
         $changed = 0;
+        $failure = null;
         foreach ((array) $files as $file) {
-            $result = SEOProStack_Presets::write(SEOProStack_Presets::slug_of(sanitize_text_field((string) $file)), $set);
+            $slug   = SEOProStack_Presets::slug_of(sanitize_text_field((string) $file));
+            $result = SEOProStack_Presets::write($slug, $set);
             if (is_int($result)) {
                 $plugins += $result ? 1 : 0;
                 $changed += $result;
+            } elseif ('really-simple-ssl' === $slug && is_wp_error($result)) {
+                $failure = $result;
             }
+        }
+        if (is_wp_error($failure)) {
+            return add_query_arg(self::RESULT, rawurlencode(('options' === $set ? 'apply' : 'reset') . ':error:' . $failure->get_error_code() . ':bulk'), $sendback);
         }
         return self::result_url($sendback, 'options' === $set ? 'apply' : 'reset', $plugins, $changed, '');
     }
@@ -534,9 +541,21 @@ class SEOProStack_Plugin_Presets extends SEOProStack_Feature {
                 'seoprostack_starter_inactive' => __('Activate the plugin first.', 'seoprostack'),
                 'seoprostack_nothing_added'    => __('SEO Pro Stack has not added anything to this plugin.', 'seoprostack'),
                 'seoprostack_starter_failed'   => __('The plugin could not save the starter data. Check that it is up to date.', 'seoprostack'),
+                'seoprostack_rsssl_api'        => __('Use Really Simple Security’s own settings: the preset needs its active, supported 9.8.3 save API on a single site.', 'seoprostack'),
+                'seoprostack_rsssl_server'     => __('Enable working HTTPS in Really Simple Security first. This preset needs a supported Apache or LiteSpeed setup.', 'seoprostack'),
+                'seoprostack_rsssl_file'       => __('Allow Really Simple Security to write an existing, writable root .htaccess before using this preset.', 'seoprostack'),
+                'seoprostack_rsssl_permission' => __('This user cannot manage Really Simple Security settings.', 'seoprostack'),
+                'seoprostack_rsssl_value'      => __('The saved redirect method is unsupported; restore it in Really Simple Security.', 'seoprostack'),
+                'seoprostack_rsssl_tls'        => __('HTTPS could not be verified. Check the certificate and HTTPS site address before changing the redirect.', 'seoprostack'),
+                'seoprostack_rsssl_restored'   => __('Really Simple Security could not save its redirect rules. The previous redirect was restored; the previous undo copy was kept.', 'seoprostack'),
+                'seoprostack_rsssl_save'       => __('Redirect save and rollback are incomplete. Check Really Simple Security’s redirect setting and root .htaccess immediately; the previous undo copy was kept.', 'seoprostack'),
             );
             $code = isset($parts[2]) ? $parts[2] : '';
-            printf('<div class="notice notice-error is-dismissible sps-keep"><p>%s</p></div>', esc_html(isset($messages[$code]) ? $messages[$code] : __('The preset could not be changed.', 'seoprostack')));
+            $text = isset($messages[$code]) ? $messages[$code] : __('The preset could not be changed.', 'seoprostack');
+            if (isset($parts[3]) && 'bulk' === $parts[3]) {
+                $text .= ' ' . __('Other selected plugins may have changed; check their rows.', 'seoprostack');
+            }
+            printf('<div class="notice notice-error is-dismissible sps-keep"><p>%s</p></div>', esc_html($text));
             return;
         }
         $plugins = isset($parts[1]) ? (int) $parts[1] : 0;
