@@ -131,6 +131,9 @@ Use **Report a problem** in Settings → SEO Pro Stack or [GitHub](https://githu
 
 = Unreleased =
 * New: Clean the database weekly can remove scheduled tasks of plugins that are no longer active.
+* New: Hosting needs names settings saved again on almost every page view.
+* New: Ask before licence checks stops five premium plugins saving their licence on every request.
+* Fix: Load plugins only where needed keeps what it learned for site pages when plugins save records on page views.
 
 = 0.12.7 =
 * New: Hosting needs finds the site's CDN and suggests one when there is none.

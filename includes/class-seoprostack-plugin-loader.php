@@ -389,6 +389,18 @@ final class SEOProStack_Plugin_Loader {
         }
 
         $options = get_option('seoprostack_options', array());
+        // Plugins often save options while their files load, before
+        // SEO Pro Stack's features start: Hosting needs counts those writes
+        // and Ask before licence checks keeps known licence timestamps.
+        if (is_array($options) && (!empty($options['hosting_needs']) || !empty($options['licence_calls']))) {
+            require_once __DIR__ . '/class-seoprostack-option-writes.php';
+            if (!empty($options['hosting_needs'])) {
+                SEOProStack_Option_Writes::watch();
+            }
+            if (!empty($options['licence_calls'])) {
+                SEOProStack_Option_Writes::keep();
+            }
+        }
         if (!is_array($options) || empty($options[self::SWITCH_KEY])) {
             return;
         }

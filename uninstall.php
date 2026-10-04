@@ -76,6 +76,7 @@ function seoprostack_uninstall_site() {
     $options[] = 'seoprostack_hosting_memory';
     $options[] = 'seoprostack_hosting_code';
     $options[] = 'seoprostack_hosting_traffic';
+    $options[] = 'seoprostack_hosting_writes';
     $options[] = 'seoprostack_hosting_object_cache';
     $options[] = 'seoprostack_hosting_object_cache_lock';
     wp_cache_delete('hosting_probe', 'seoprostack');
