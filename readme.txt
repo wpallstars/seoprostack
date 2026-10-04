@@ -134,6 +134,7 @@ Use **Report a problem** in Settings → SEO Pro Stack or [GitHub](https://githu
 * New: Hosting needs names settings saved again on almost every page view.
 * New: Ask before licence checks stops five premium plugins saving their licence on every request.
 * Fix: Load plugins only where needed keeps what it learned for site pages when plugins save records on page views.
+* New: Really Simple Security 301 .htaccess redirect preset, with guarded native Apply, Reset and Undo; explicit owner action only.
 
 = 0.12.7 =
 * New: Hosting needs finds the site's CDN and suggests one when there is none.

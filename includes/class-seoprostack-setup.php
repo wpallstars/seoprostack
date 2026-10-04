@@ -225,6 +225,7 @@ final class SEOProStack_Setup {
         require_once SEOPROSTACK_DIR . 'includes/class-seoprostack-disable-bloat.php';
         require_once SEOPROSTACK_DIR . 'includes/class-seoprostack-litespeed.php';
         require_once SEOPROSTACK_DIR . 'includes/class-seoprostack-wp-optimize.php';
+        require_once SEOPROSTACK_DIR . 'includes/class-seoprostack-really-simple-security.php';
         require_once SEOPROSTACK_DIR . 'includes/class-seoprostack-term-list.php';
         require_once SEOPROSTACK_DIR . 'includes/class-seoprostack-term-legacy.php';
         // Usually loaded already by the must-use file of "Load plugins only
@@ -244,6 +245,7 @@ final class SEOProStack_Setup {
         SEOProStack_Disable_Bloat::init();
         SEOProStack_Litespeed::init();
         SEOProStack_WP_Optimize::init();
+        SEOProStack_Really_Simple_Security::init();
 
         // Fixes that cannot wait for the features' boot on init.
         SEOProStack_Plugin_Fixes::early();
