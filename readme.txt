@@ -31,7 +31,7 @@ Off by default except Hide admin bar items (Comments and + New), No fade between
 
 * **Magic login links**: one-time links by email that link scanners cannot use up.
 * **Admin bar and dashboard access**: keep subscribers and customers out of wp-admin; never administrators.
-* **Turn off unused remote access**: XML-RPC and application passwords, and web access to log and backup files. Site Health names any such file anyone can download.
+* **Turn off unused remote access**: XML-RPC and application passwords, and web access to log and backup files. Site Health names any such public file.
 * **Maintenance mode**: a 503 page search engines understand, with 24-hour bypass links you can revoke.
 
 = Writing and publishing =
@@ -40,7 +40,7 @@ Off by default except Hide admin bar items (Comments and + New), No fade between
 * **Duplicate posts**, **Staged new versions** (edit a live post as a draft) and **Shareable preview links** for people without an account.
 * **Pinned posts for any post type**, **Select all across pages**, **Order by hand**, **Change post type**, **Term tools** (merge, move, set parent, unused terms), **Search custom fields** and **Old post addresses**.
 * **Tag clouds and related posts**: A–Z indexes, grouped terms in tabs or accordions and a Related posts block. TaxoPress and Tag Groups pages keep working after they are gone.
-* **Custom fields to content**: ACF/SCF text into content and excerpts, with WP-CLI sync. It replaces content: check templates for fields shown twice.
+* **Custom fields to content**: ACF/SCF text into content and excerpts, with WP-CLI sync. Check templates for fields shown twice.
 * **Restrict content**: posts, parts of posts, categories, blocks and shop products only for members or chosen roles. **Menu item visibility** by login or role.
 * **iFrame block** (only the domains and roles you allow), **Link cards**, **Wikipedia previews**, **Word documents**, **Brand icons** and **Like, save and share**.
 * **Spectra block replacements** keep pages working without Spectra. **TranslatePress colours** follow Kadence light and dark modes. **Kadence query filters** scroll to results.
@@ -62,9 +62,10 @@ Off by default except Hide admin bar items (Comments and + New), No fade between
 * **Internal linking tools** (off): approved suggestions, undo, counts, orphans and read-only Link Whisper retirement checks. Link health and click totals are separate opt-ins.
 * **Load pages before the click**, **Delay scripts until interaction**, **Delayed Google Analytics** and a faster editor with Kadence Blocks.
 * **Ask before licence checks**: premium plugins call home once, daily or never, as you choose.
-* **Clean the database weekly**: old spam, bin and expired data, and scheduled tasks of plugins that are gone.
+* **Clean the database weekly**: old spam, bin and expired data, and tasks of plugins that are gone.
+* **Load large settings only where they are used** (single sites).
 * **Database key cleanup**: duplicate indexes and the plugin that added each, in Site Health; remove one by one, with restore SQL.
-* **Load plugins only where needed**: skips plugins a page does not use, in the admin and on the site, with always-load bypasses.
+* **Load plugins only where needed**: skips plugins a page does not use, in admin and on the site, with always-load bypasses.
 
 = Plugins and set-up =
 
@@ -95,11 +96,11 @@ Other chosen addresses: Copy linked images downloads linked images; Link cards d
 
 = Developers =
 
-Extend settings, tabs and directories with filters. See the Read Me tab.
+Filters extend settings, tabs and directories; see the Read Me tab.
 
 = Built with AI =
 
-Built with [aidevops](https://aidevops.sh), the developer's free, open-source AI harness. [Source](https://github.com/marcusquinn/aidevops). Questions: ask aidevops; it reads the plugin's docs and code.
+Built with [aidevops](https://aidevops.sh), the developer's free, open-source AI harness. [Source](https://github.com/marcusquinn/aidevops). Ask it questions; it reads the plugin's docs and code.
 
 Made from WP Plugin Starter (https://github.com/wpallstars/wp-plugin-starter-template-for-ai-coding).
 
@@ -132,18 +133,18 @@ Use **Report a problem** in Settings → SEO Pro Stack or [GitHub](https://githu
 == Changelog ==
 
 = Unreleased =
+* New: unused large settings stop loading.
 * Fix: menu width; WP Crontrol cron status.
 
 = 0.12.8 =
 * New: database clean-up removes tasks of plugins that are gone.
 * New: Hosting needs names settings saved on most page views.
-* New: five premium plugins stop saving their licence on every request.
+* New: five premium plugins stop saving licences on every request.
 * Fix: Load plugins only where needed keeps what it learned.
 * New: Really Simple Security 301 redirect preset.
-* New: Site Health names slow or unused code snippets.
-* New: Database key cleanup names each key's plugin.
+* New: Site Health names slow snippets and each database key's plugin.
 * Fix: settings saved at once no longer undo each other.
 * Fix: one notice per convertible Spectra block.
-* Change: clashing short addresses link to both items.
+* Change: clashing short addresses link to both.
 
 Older: `changelog.txt`.

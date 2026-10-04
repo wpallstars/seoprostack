@@ -1328,6 +1328,15 @@ class SEOProStack_Hosting_Needs extends SEOProStack_Feature {
                 self::size($needs['facts']['autoload']),
                 number_format_i18n($needs['facts']['autoload_count'])
             ));
+            $largest = array();
+            foreach (SEOProStack_Autoload_Options::largest() as $option) {
+                $largest[] = $option['option_name'] . ' (' . self::size($option['bytes']) . ')';
+            }
+            $advice[] = array('recommended', sprintf(
+                /* translators: %s: three option names and sizes. */
+                __('Largest settings: %s. “Load large settings only where they are used” on the Speed tab can learn which to stop loading on site pages. Turn it off to undo its changes.', 'seoprostack'),
+                implode(', ', $largest)
+            ));
         }
         if (version_compare(PHP_VERSION, '8.2', '<')) {
             $advice[] = array('recommended', sprintf(
