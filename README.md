@@ -31,7 +31,7 @@ SEO Pro Stack replaces **52 plugins**, some of them in part, with free and Pro e
 | --- | --- | --- |
 | Hide the admin bar, Block dashboard access | Admin | Admin Bar & Dashboard Access Control |
 | Turn off unused remote access | Admin | Hostinger Tools and Disable Bloat (PRO), in part |
-| Magic login links | Admin | WP Magic Link Login |
+| Magic login links | Admin | WP Magic Link Login, in part |
 | Organise the admin menu | Admin | Admin Menu Editor (Pro) |
 | Hide dashboard widgets, Disable sidebar widgets | Admin | Widget Disable |
 | Tidy admin screens, Tidy WooCommerce admin, Tidy the login screen, Simpler block editor, Limit post revisions, Remove WordPress extras, Fewer Heartbeat requests, Lighter WooCommerce pages | Admin, Content, Speed | Disable Bloat (PRO), in part |
@@ -1202,7 +1202,7 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folder�
 ### Unreleased
 
 - Fix: on a network where Fluent Forms, Fluent Boards or FluentCommunity is active but a site has no tables for it, settings upgrades no longer log “Table doesn’t exist” database errors for that site: the agency order lists look for the table first.
-- Change: **Magic login links** replaces WP Magic Link Login (`wp-magic-link-login`). Where it is installed, the Plugins screen says so, and the feature waits while it is active (`replaces` in its settings).
+- Change: **Magic login links** replaces pixolette’s WP Magic Link Login (`wp-magic-link-login`, CodeCanyon), in part. Where it is installed, the Plugins screen says so, and the feature waits while it is active (`replaces` in its settings).
 
 ### 0.12.0
 
@@ -1519,7 +1519,7 @@ Where a feature replaces one of them, SEO Pro Stack imports the settings it can,
 | --- | --- | --- | --- |
 | Admin Bar & Dashboard Access Control | Collins Agbonghama | [WordPress.org](https://wordpress.org/plugins/admin-bar-dashboard-control/) | Admin bar and dashboard access |
 | Admin Menu Editor (and Pro) | Janis Elsts | [WordPress.org](https://wordpress.org/plugins/admin-menu-editor/) | Organise the admin menu |
-| WP Magic Link Login (`wp-magic-link-login`) | not known | not on WordPress.org; no public source found | Magic login links |
+| WP Magic Link Login | pixolette | [CodeCanyon](https://codecanyon.net/item/wp-magic-login-link-passwordless-authentication-wordpress-plugin/23269915) (premium plugin) | Magic login links |
 | Widget Disable | required | [WordPress.org](https://wordpress.org/plugins/wp-widget-disable/), [GitHub](https://github.com/wearerequired/WP-Widget-Disable) | Dashboard and sidebar widgets |
 | Hostinger Tools | Hostinger | [WordPress.org](https://wordpress.org/plugins/hostinger/), [source (WordPress.org SVN)](https://plugins.svn.wordpress.org/hostinger/trunk/) | Turn off unused remote access (XML-RPC and application passwords), Maintenance mode |
 | Disable Bloat for WordPress & WooCommerce (and PRO) | Rock Solid | [WordPress.org](https://wordpress.org/plugins/disable-dashboard-for-woocommerce/), [website](https://disablebloat.com/) | Tidy admin screens, Tidy WooCommerce admin, Tidy the login screen, Simpler block editor, Limit post revisions, Remove WordPress extras, Fewer Heartbeat requests, Lighter WooCommerce pages, Turn off unused remote access (XML-RPC and application passwords) |

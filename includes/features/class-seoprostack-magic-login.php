@@ -58,7 +58,7 @@ class SEOProStack_Magic_Login extends SEOProStack_Feature {
                 'tab'         => 'admin',
                 'label'       => __('Magic login links', 'seoprostack'),
                 'description' => __('Adds “Email me a login link” to the login screen. The link works once and expires after a few minutes. Passwords keep working.', 'seoprostack'),
-                // Not on WordPress.org; listed so the Plugins screen finds it on sites that have it.
+                // pixolette's CodeCanyon plugin; listed so the Plugins screen finds it on sites that have it.
                 'replaces'    => array('wp-magic-link-login' => 'WP Magic Link Login'),
             ),
             'magic_login_expiry' => array(
