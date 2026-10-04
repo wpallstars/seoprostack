@@ -137,7 +137,7 @@ class SEOProStack_Magic_Login extends SEOProStack_Feature {
             'login-button-text' => '',
             'logout-link-text'  => '',
             'redirect_to'       => '',
-        ), $atts, self::SHORTCODE);
+        ), (array) $atts, self::SHORTCODE); // WordPress passes '' when there are no attributes.
 
         // The page the shortcode is on; wp_validate_redirect() keeps it on this site.
         $host     = isset($_SERVER['HTTP_HOST']) ? sanitize_text_field(wp_unslash($_SERVER['HTTP_HOST'])) : '';
@@ -382,9 +382,9 @@ class SEOProStack_Magic_Login extends SEOProStack_Feature {
      */
     private static function render_confirm() {
         list($user, $token) = self::link_from_request();
-        $error              = self::verify($user, $token);
-        if (is_wp_error($error)) {
-            self::render_link_error($error);
+        $user               = self::verify($user, $token);
+        if (is_wp_error($user)) {
+            self::render_link_error($user);
             return;
         }
 
@@ -419,9 +419,9 @@ class SEOProStack_Magic_Login extends SEOProStack_Feature {
         }
 
         list($user, $token) = self::link_from_request();
-        $error              = self::verify($user, $token);
-        if (is_wp_error($error)) {
-            self::render_link_error($error);
+        $user               = self::verify($user, $token);
+        if (is_wp_error($user)) {
+            self::render_link_error($user);
             return;
         }
 
@@ -477,7 +477,7 @@ class SEOProStack_Magic_Login extends SEOProStack_Feature {
      *
      * @param WP_User|false $user  User.
      * @param string        $token Token from the link.
-     * @return true|WP_Error
+     * @return WP_User|WP_Error The user the link is for, or why it fails.
      */
     private static function verify($user, $token) {
         $invalid = new WP_Error('seoprostack_invalid', __('This login link is invalid or has already been used.', 'seoprostack'));
@@ -496,7 +496,7 @@ class SEOProStack_Magic_Login extends SEOProStack_Feature {
             return new WP_Error('seoprostack_expired', __('This login link has expired.', 'seoprostack'));
         }
 
-        return true;
+        return $user;
     }
 
     /* --------------------------------------------------------------------- */

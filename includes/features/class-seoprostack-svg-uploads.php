@@ -239,7 +239,11 @@ class SEOProStack_Svg_Uploads extends SEOProStack_Feature {
         if (filesize($path) > self::MAX_BYTES) {
             return new WP_Error('svg_too_large', __('it is larger than 10 MB.', 'seoprostack'));
         }
-        $clean = self::clean(file_get_contents($path)); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents -- local file.
+        $dirty = file_get_contents($path); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents -- local file.
+        if (false === $dirty) {
+            return new WP_Error('svg_unreadable', __('the file could not be read.', 'seoprostack'));
+        }
+        $clean = self::clean($dirty);
         if (is_wp_error($clean)) {
             return $clean;
         }
@@ -483,8 +487,12 @@ class SEOProStack_Svg_Uploads extends SEOProStack_Feature {
      * @return bool
      */
     private static function use_is_bounded(DOMDocument $dom) {
-        $ids = array();
-        foreach ((new DOMXPath($dom))->query('//*[@id]') as $el) {
+        $ids   = array();
+        $nodes = (new DOMXPath($dom))->query('//*[@id]');
+        if (false === $nodes) {
+            return false;
+        }
+        foreach ($nodes as $el) {
             if ($el instanceof DOMElement) {
                 $ids[$el->getAttribute('id')] = $el;
             }
@@ -692,7 +700,7 @@ class SEOProStack_Svg_Uploads extends SEOProStack_Feature {
         $height = self::length($root->getAttribute('height'));
         if (!$width || !$height) {
             $box = preg_split('/[\s,]+/', trim($root->getAttribute('viewBox')));
-            if (4 !== count($box) || (float) $box[2] <= 0 || (float) $box[3] <= 0) {
+            if (!is_array($box) || 4 !== count($box) || (float) $box[2] <= 0 || (float) $box[3] <= 0) {
                 return null;
             }
             $width  = (float) $box[2];

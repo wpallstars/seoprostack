@@ -74,6 +74,7 @@ class SEOProStack_Plugin_Manager {
             }
         }
         foreach ($categories as $slug) {
+            $slug = (string) $slug;
             if (!isset($ordered[$slug])) {
                 $ordered[$slug] = ucwords(str_replace(array('-', '_'), ' ', $slug));
             }
@@ -268,7 +269,7 @@ class SEOProStack_Plugin_Manager {
      *
      * @param string[] $slugs    Plugin slugs.
      * @param bool     $complete Set to false when a request failed for another reason.
-     * @return object[]
+     * @return \stdClass[]
      */
     private static function fetch_plugins(array $slugs, &$complete = true) {
         self::load_admin_includes();
@@ -309,7 +310,7 @@ class SEOProStack_Plugin_Manager {
                 ),
             ));
 
-            if (!is_wp_error($info) && !empty($info->slug)) {
+            if ($info instanceof stdClass && !empty($info->slug)) {
                 $plugins[] = $info;
             } elseif (is_wp_error($info) && in_array($info->get_error_message(), array('closed', 'Plugin not found.'), true)) {
                 $plugins[] = self::removed_stub($slug, array());
@@ -326,7 +327,7 @@ class SEOProStack_Plugin_Manager {
      *
      * @param string $slug wordpress.org slug.
      * @param array  $data Entry from seoprostack_get_removed_plugins(), or empty.
-     * @return object
+     * @return \stdClass
      */
     private static function removed_stub($slug, array $data) {
         return (object) array(
@@ -347,7 +348,7 @@ class SEOProStack_Plugin_Manager {
      * cache for the name and compatibility, and the removed list otherwise.
      *
      * @param string $slug Plugin slug.
-     * @return object
+     * @return \stdClass
      */
     private static function info_for($slug) {
         foreach (seoprostack_get_free_plugins() as $category => $slugs) {
@@ -406,7 +407,7 @@ class SEOProStack_Plugin_Manager {
      * (closed on WordPress.org).
      *
      * @param string      $slug   Plugin slug.
-     * @param object|null $plugin Plugin info or stub, to tell why it cannot be installed.
+     * @param \stdClass|null $plugin Plugin info or stub, to tell why it cannot be installed.
      * @return array{status:string,file:string,update:bool}
      */
     private static function plugin_state($slug, $plugin = null) {
@@ -492,9 +493,9 @@ class SEOProStack_Plugin_Manager {
     /**
      * Data attributes the JS reads from a card or row.
      *
-     * @param object $plugin Plugin info or stub.
-     * @param array  $state  From plugin_state().
-     * @param string $name   Plain-text name.
+     * @param \stdClass $plugin Plugin info or stub.
+     * @param array     $state  From plugin_state().
+     * @param string    $name   Plain-text name.
      * @return string Escaped attributes.
      */
     private static function item_attributes($plugin, array $state, $name) {
@@ -510,7 +511,7 @@ class SEOProStack_Plugin_Manager {
     /**
      * Card for a plugin WordPress.org no longer serves: no install, clear status.
      *
-     * @param object $plugin Stub from removed_stub().
+     * @param \stdClass $plugin Stub from removed_stub().
      */
     private static function removed_card($plugin) {
         $state = self::plugin_state($plugin->slug, $plugin);
@@ -566,7 +567,7 @@ class SEOProStack_Plugin_Manager {
     /**
      * Best icon URL from plugin info.
      *
-     * @param object $plugin Plugin info.
+     * @param \stdClass $plugin Plugin info.
      * @return string
      */
     private static function icon_url($plugin) {
@@ -710,7 +711,7 @@ class SEOProStack_Plugin_Manager {
     /**
      * Cards in core Plugins → Add New markup.
      *
-     * @param object[] $plugins Plugin info objects.
+     * @param array<\stdClass|array<string,mixed>> $plugins Plugin info objects, or arrays from the cache.
      * @return string HTML.
      */
     public static function generate_plugin_cards(array $plugins) {
@@ -813,7 +814,7 @@ class SEOProStack_Plugin_Manager {
             </div>
             <?php
         }
-        return ob_get_clean();
+        return (string) ob_get_clean();
     }
 
     /**
@@ -864,7 +865,7 @@ class SEOProStack_Plugin_Manager {
     /**
      * Compact table rows for the All list, one per plugin.
      *
-     * @param object[] $plugins  Plugin info objects.
+     * @param array<\stdClass|array<string,mixed>> $plugins  Plugin info objects, or arrays from the cache.
      * @param string   $category Category slug, for unique checkbox ids.
      * @return string HTML.
      */
@@ -934,7 +935,7 @@ class SEOProStack_Plugin_Manager {
             </tr>
             <?php
         }
-        return ob_get_clean();
+        return (string) ob_get_clean();
     }
 
     /**
@@ -989,12 +990,12 @@ class SEOProStack_Plugin_Manager {
     /**
      * A button the JS runs in place.
      *
-     * @param string $action  install|activate|deactivate|uninstall.
-     * @param string $classes Extra classes.
-     * @param string $text    Button text.
-     * @param string $label   Accessible label naming the plugin.
-     * @param object $plugin  Plugin info.
-     * @param array  $state   From plugin_state().
+     * @param string    $action  install|activate|deactivate|uninstall.
+     * @param string    $classes Extra classes.
+     * @param string    $text    Button text.
+     * @param string    $label   Accessible label naming the plugin.
+     * @param \stdClass $plugin  Plugin info.
+     * @param array     $state   From plugin_state().
      * @return string
      */
     private static function action_button($action, $classes, $text, $label, $plugin, array $state) {
@@ -1012,9 +1013,9 @@ class SEOProStack_Plugin_Manager {
     /**
      * Install / Update / Activate / Deactivate / Uninstall buttons for a state.
      *
-     * @param object $plugin Plugin info or stub.
-     * @param array  $state  From plugin_state().
-     * @param string $name   Plain-text name.
+     * @param \stdClass $plugin Plugin info or stub.
+     * @param array     $state  From plugin_state().
+     * @param string    $name   Plain-text name.
      * @return string HTML list items.
      */
     private static function state_buttons($plugin, array $state, $name) {

@@ -101,9 +101,9 @@ class SEOProStack_Agency_Dashboard extends SEOProStack_Feature {
     }
 
     /**
-     * Published and draft pages.
+     * Published and draft pages, by ID ('' for none; PHP makes numeric keys integers).
      *
-     * @return array<string,string>
+     * @return array<int|string,string>
      */
     public static function page_options() {
         $out   = array('' => __('None', 'seoprostack'));
@@ -141,7 +141,7 @@ class SEOProStack_Agency_Dashboard extends SEOProStack_Feature {
      * @return string
      */
     public static function shortcode($atts) {
-        $atts = shortcode_atts(array('order_page' => '', 'call_page' => '', 'show' => implode(',', self::PARTS)), $atts, self::SHORTCODE);
+        $atts = shortcode_atts(array('order_page' => '', 'call_page' => '', 'show' => implode(',', self::PARTS)), (array) $atts, self::SHORTCODE); // WordPress passes '' when there are no attributes.
         wp_enqueue_style('seoprostack-client-dashboard-style');
         return self::render(array(
             'orderPage' => (string) $atts['order_page'],
@@ -238,7 +238,7 @@ class SEOProStack_Agency_Dashboard extends SEOProStack_Feature {
      * Fluent Boards tasks for an email address, newest first.
      *
      * @param string $email Email address.
-     * @return object[]
+     * @return \FluentBoards\App\Models\Task[]
      */
     private static function tasks_for($email) {
         if ('' === $email || !class_exists('FluentBoards\App\Models\TaskMeta') || !class_exists('SEOProStack_Agency_Orders')) {
@@ -264,7 +264,7 @@ class SEOProStack_Agency_Dashboard extends SEOProStack_Feature {
     /**
      * One order: name, stage as a step of the board's stages, date and conversation link.
      *
-     * @param object $task Task.
+     * @param \FluentBoards\App\Models\Task $task Task.
      * @return string
      */
     private static function order_html($task) {
@@ -388,7 +388,7 @@ class SEOProStack_Agency_Dashboard extends SEOProStack_Feature {
             $items .= '<span class="sps-client__name">' . esc_html($event ? (string) $event->title : __('Call', 'seoprostack')) . '</span>';
             $items .= '<span class="sps-client__stage">' . esc_html('pending' === (string) $booking->status ? __('Waiting for confirmation', 'seoprostack') : __('Booked', 'seoprostack')) . '</span>';
             $meta   = array(esc_html($when . ' (' . $zone->getName() . ')'));
-            if (method_exists($booking, 'getConfirmationUrl')) {
+            if (is_object($booking) && method_exists($booking, 'getConfirmationUrl')) {
                 $meta[] = '<a href="' . esc_url((string) $booking->getConfirmationUrl()) . '">' . esc_html__('Details', 'seoprostack') . '</a>';
             }
             $items .= '<span class="sps-client__meta">' . implode(' · ', $meta) . '</span></li>';
@@ -447,7 +447,7 @@ class SEOProStack_Agency_Dashboard extends SEOProStack_Feature {
             $items .= '<span class="sps-client__stage">' . esc_html(SEOProStack_Agency_Orders::money($payment->payment_total, (string) $payment->currency)) . '</span>';
             $meta   = array();
             if (!empty($payment->created_at)) {
-                $meta[] = esc_html(mysql2date(get_option('date_format'), (string) $payment->created_at));
+                $meta[] = esc_html((string) mysql2date(get_option('date_format'), (string) $payment->created_at));
             }
             $meta[] = esc_html(isset($status[(string) $payment->status]) ? $status[(string) $payment->status] : (string) $payment->status);
             if ('subscription' === (string) $payment->transaction_type) {
@@ -482,7 +482,7 @@ class SEOProStack_Agency_Dashboard extends SEOProStack_Feature {
             }
             $percent = (int) tutor_utils()->get_course_completed_percent($id, $user_id);
             $html   .= '<li class="sps-client__item' . (100 <= $percent ? ' is-done' : '') . '">';
-            $html   .= '<a class="sps-client__name" href="' . esc_url(get_permalink($id)) . '">' . esc_html(get_the_title($id)) . '</a>';
+            $html   .= '<a class="sps-client__name" href="' . esc_url((string) get_permalink($id)) . '">' . esc_html(get_the_title($id)) . '</a>';
             /* translators: %d: percentage */
             $html .= '<span class="sps-client__stage">' . esc_html(sprintf(__('%d%% done', 'seoprostack'), $percent)) . '</span>';
             $html .= sprintf('<progress class="sps-client__progress" max="100" value="%1$d">%1$d%%</progress>', $percent);

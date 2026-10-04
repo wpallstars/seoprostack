@@ -224,9 +224,9 @@ class SEOProStack_Agency_Orders extends SEOProStack_Feature {
     }
 
     /**
-     * Tutor LMS courses.
+     * Tutor LMS courses, by ID ('' for none; PHP makes numeric keys integers).
      *
-     * @return array<string,string>
+     * @return array<int|string,string>
      */
     public static function course_options() {
         $out = array('' => __('None', 'seoprostack'));
@@ -291,9 +291,9 @@ class SEOProStack_Agency_Orders extends SEOProStack_Feature {
      * A form was sent (for payment forms: after the payment, when Fluent
      * Forms runs its form actions).
      *
-     * @param int    $entry_id  Entry ID.
-     * @param array  $form_data Submitted data.
-     * @param object $form      Form.
+     * @param int                         $entry_id  Entry ID.
+     * @param array                       $form_data Submitted data.
+     * @param \FluentForm\App\Models\Form $form      Form.
      */
     public static function submitted($entry_id, $form_data, $form) {
         $form_id = isset($form->id) ? (int) $form->id : 0;
@@ -328,8 +328,8 @@ class SEOProStack_Agency_Orders extends SEOProStack_Feature {
      * A lead (quote request, referral): a task on the sales board, linked to
      * the FluentCRM contact the form's own feed added.
      *
-     * @param object $entry Entry.
-     * @param object $form  Form.
+     * @param \FluentForm\App\Models\Submission $entry Entry.
+     * @param \FluentForm\App\Models\Form       $form  Form.
      */
     private static function add_lead($entry, $form) {
         $client = self::client($entry);
@@ -348,8 +348,8 @@ class SEOProStack_Agency_Orders extends SEOProStack_Feature {
     /**
      * A support request: a Fluent Support conversation from the client.
      *
-     * @param object $entry Entry.
-     * @param object $form  Form.
+     * @param \FluentForm\App\Models\Submission $entry Entry.
+     * @param \FluentForm\App\Models\Form       $form  Form.
      */
     private static function open_request($entry, $form) {
         $client = self::client($entry);
@@ -383,7 +383,7 @@ class SEOProStack_Agency_Orders extends SEOProStack_Feature {
      * named "… Order Form", so a copied order form for a new service works
      * with nothing to set.
      *
-     * @param object $form Form.
+     * @param \FluentForm\App\Models\Form $form Form.
      * @return bool
      */
     private static function is_order_form($form) {
@@ -402,7 +402,7 @@ class SEOProStack_Agency_Orders extends SEOProStack_Feature {
     /**
      * Whether an entry has an amount to pay that is not paid yet.
      *
-     * @param object $entry Entry.
+     * @param \FluentForm\App\Models\Submission $entry Entry.
      * @return bool
      */
     private static function unpaid($entry) {
@@ -412,8 +412,8 @@ class SEOProStack_Agency_Orders extends SEOProStack_Feature {
     /**
      * Start an order once: contact, login, task, conversation, course, space.
      *
-     * @param object $entry Entry.
-     * @param object $form  Form.
+     * @param \FluentForm\App\Models\Submission $entry Entry.
+     * @param \FluentForm\App\Models\Form       $form  Form.
      */
     public static function start($entry, $form) {
         $entry_id = (int) $entry->id;
@@ -495,10 +495,10 @@ class SEOProStack_Agency_Orders extends SEOProStack_Feature {
     /**
      * Run one step, log the outcome on the entry and keep going on failure.
      *
-     * @param object   $entry    Entry.
-     * @param object   $form     Form.
-     * @param string   $name     Step name.
-     * @param callable $callback Returns an ID (0 when skipped) or a WP_Error.
+     * @param \FluentForm\App\Models\Submission $entry    Entry.
+     * @param \FluentForm\App\Models\Form       $form     Form.
+     * @param string                            $name     Step name.
+     * @param callable                          $callback Returns an ID (0 when skipped) or a WP_Error.
      * @return int
      */
     private static function step($entry, $form, $name, $callback) {
@@ -521,11 +521,11 @@ class SEOProStack_Agency_Orders extends SEOProStack_Feature {
     /**
      * Add a line to the entry's log in Fluent Forms.
      *
-     * @param object $entry  Entry.
-     * @param object $form   Form.
-     * @param string $status success or failed.
-     * @param string $title  Step.
-     * @param string $text   What happened.
+     * @param \FluentForm\App\Models\Submission $entry  Entry.
+     * @param \FluentForm\App\Models\Form       $form   Form.
+     * @param string                            $status success or failed.
+     * @param string                            $title  Step.
+     * @param string                            $text   What happened.
      */
     private static function log($entry, $form, $status, $title, $text) {
         do_action('fluentform/log_data', array( // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- Fluent Forms' own logging hook.
@@ -543,7 +543,7 @@ class SEOProStack_Agency_Orders extends SEOProStack_Feature {
     /**
      * The client's email address and name from an entry.
      *
-     * @param object $entry Entry.
+     * @param \FluentForm\App\Models\Submission $entry Entry.
      * @return array{email:string,name:string,first:string,last:string}
      */
     private static function client($entry) {
@@ -571,8 +571,8 @@ class SEOProStack_Agency_Orders extends SEOProStack_Feature {
     /**
      * The entry's answers as "label: value" pairs, plus the amount paid.
      *
-     * @param object $entry Entry.
-     * @param object $form  Form.
+     * @param \FluentForm\App\Models\Submission $entry Entry.
+     * @param \FluentForm\App\Models\Form       $form  Form.
      * @return array<string,string>
      */
     private static function details($entry, $form) {
@@ -616,8 +616,8 @@ class SEOProStack_Agency_Orders extends SEOProStack_Feature {
      * The client's user ID: who sent the form, a user with that email, or a
      * new login when that setting is on.
      *
-     * @param object $entry  Entry.
-     * @param array  $client Client.
+     * @param \FluentForm\App\Models\Submission $entry  Entry.
+     * @param array                             $client Client.
      * @return int|WP_Error
      */
     private static function user_for($entry, array $client) {
@@ -707,13 +707,13 @@ class SEOProStack_Agency_Orders extends SEOProStack_Feature {
     /**
      * Add the order's task to the chosen board, in its first stage.
      *
-     * @param object $entry  Entry.
-     * @param object $form   Form.
-     * @param array  $client Client.
-     * @param array  $order  Order so far.
-     * @param string $title  Task title.
-     * @param array  $lines  Details.
-     * @param string $board  Setting that holds the board.
+     * @param \FluentForm\App\Models\Submission $entry  Entry.
+     * @param \FluentForm\App\Models\Form       $form   Form.
+     * @param array                             $client Client.
+     * @param array                             $order  Order so far.
+     * @param string                            $title  Task title.
+     * @param array                             $lines  Details.
+     * @param string                            $board  Setting that holds the board.
      * @return int|WP_Error
      */
     private static function add_task($entry, $form, array $client, array $order, $title, array $lines, $board = 'agency_orders_board') {
@@ -771,11 +771,11 @@ class SEOProStack_Agency_Orders extends SEOProStack_Feature {
     /**
      * Open a Fluent Support conversation for the order, from the client.
      *
-     * @param object $entry  Entry.
-     * @param object $form   Form.
-     * @param array  $client Client.
-     * @param string $title  Title.
-     * @param array  $lines  Details.
+     * @param \FluentForm\App\Models\Submission $entry  Entry.
+     * @param \FluentForm\App\Models\Form       $form   Form.
+     * @param array                             $client Client.
+     * @param string                            $title  Title.
+     * @param array                             $lines  Details.
      * @return int|WP_Error
      */
     private static function open_ticket($entry, $form, array $client, $title, array $lines) {
@@ -867,7 +867,7 @@ class SEOProStack_Agency_Orders extends SEOProStack_Feature {
     /**
      * The order an entry of a task belongs to.
      *
-     * @param object $task Task.
+     * @param \FluentBoards\App\Models\Task $task Task.
      * @return array|null
      */
     public static function task_order($task) {
@@ -879,8 +879,8 @@ class SEOProStack_Agency_Orders extends SEOProStack_Feature {
     /**
      * A task moved stage: tell the client in the order's conversation.
      *
-     * @param object $task         Task.
-     * @param int    $old_stage_id Previous stage.
+     * @param \FluentBoards\App\Models\Task $task         Task.
+     * @param int                           $old_stage_id Previous stage.
      */
     public static function stage_changed($task, $old_stage_id) {
         if (!is_object($task) || empty($task->id) || (int) $task->stage_id === (int) $old_stage_id) {
@@ -912,10 +912,10 @@ class SEOProStack_Agency_Orders extends SEOProStack_Feature {
         /**
          * Filters the reply that tells a client their order moved stage.
          *
-         * @param string $message Plain text.
-         * @param object $task    Fluent Boards task.
-         * @param object $stage   Its new stage.
-         * @param array  $order   The order: service, entry, form, ticket, user, email, name.
+         * @param string                        $message Plain text.
+         * @param \FluentBoards\App\Models\Task $task    Fluent Boards task.
+         * @param object                        $stage   Its new stage.
+         * @param array                         $order   The order: service, entry, form, ticket, user, email, name.
          */
         $message = (string) apply_filters('seoprostack_agency_update_message', $message, $task, $stage, $order);
         try {
@@ -932,7 +932,7 @@ class SEOProStack_Agency_Orders extends SEOProStack_Feature {
      * are an agent (an administrator becomes one, as when they first open
      * Fluent Support), else the first agent.
      *
-     * @return object|null
+     * @return \FluentSupport\App\Models\Agent|null
      */
     private static function agent() {
         if (!class_exists('FluentSupport\App\Models\Agent')) {
@@ -955,8 +955,8 @@ class SEOProStack_Agency_Orders extends SEOProStack_Feature {
     /**
      * A project brief: add it to the client's latest order.
      *
-     * @param object $entry Entry.
-     * @param object $form  Form.
+     * @param \FluentForm\App\Models\Submission $entry Entry.
+     * @param \FluentForm\App\Models\Form       $form  Form.
      */
     private static function add_brief($entry, $form) {
         $client = self::client($entry);

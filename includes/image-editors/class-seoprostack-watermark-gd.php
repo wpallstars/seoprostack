@@ -39,8 +39,12 @@ class SEOProStack_Watermark_GD extends WP_Image_Editor_GD {
         $width  = max(1, (int) $width);
         $height = max(1, (int) $height);
         $scaled = wp_imagecreatetruecolor($width, $height);
+        $clear  = $scaled ? imagecolorallocatealpha($scaled, 0, 0, 0, 127) : false;
+        if (!$scaled || false === $clear) {
+            return new WP_Error('watermark_mark', __('The watermark picture could not be resized.', 'seoprostack'));
+        }
         imagealphablending($scaled, false);
-        imagefill($scaled, 0, 0, imagecolorallocatealpha($scaled, 0, 0, 0, 127));
+        imagefill($scaled, 0, 0, $clear);
         imagecopyresampled($scaled, $mark, 0, 0, 0, 0, $width, $height, imagesx($mark), imagesy($mark));
 
         $opacity = max(0.0, min(1.0, (float) $opacity));
