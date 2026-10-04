@@ -17,7 +17,7 @@
 
 One free plugin for a faster, tidier WordPress. It does the jobs of 40+ single-purpose plugins, each a switch you turn on.
 
-SEO Pro Stack does the jobs that usually take dozens of small plugins: a calmer, faster admin, better writing and media tools, safer logins, and tested settings for the plugins we recommend. Each feature is one switch, so you add only what you use. Fewer plugins means fewer updates, conflicts and slowdowns. Free and open source: no pro version, nothing locked.
+SEO Pro Stack does the jobs that usually take dozens of small plugins: a calmer, faster admin, better writing and media tools, safer logins, and tested settings for the plugins we recommend. Each feature is one switch, so you add only what you use. Fewer plugins means fewer updates, conflicts and slowdowns. Free and open source: no paid version, nothing locked.
 
 If this saves you time, headaches and costs, feel free to [buy me a coffee](https://buymeacoffee.com/marcusquinn), or whatever you like, to invest in making more things open-source.
 
@@ -1256,7 +1256,7 @@ There are two builds of each version:
 - **GitHub release** (`seoprostack-X.Y.Z.zip` on the repository’s Releases page): everything, including Updates from GitHub (the shared updater in `includes/github-updater/` and its setting in `includes/features/class-seoprostack-github-updates.php`), so sites get each release as a normal update.
 - **WordPress.org** (once listed): the same files without those two (listed in `.distignore-wporg`) and without the `GitHub Plugin URI`, `Primary Branch` and `Release Asset` header lines, because plugins hosted there may not install or update code from elsewhere. SEO Pro Stack loads them only when they are present. It has no affiliate links either: those listed in `.wporg-links` are replaced by plain ones when it is built.
 
-GitHub releases are the stable beta channel: each version comes out there first, as soon as it is ready. WordPress.org gets a version 90 days after its GitHub release, once it has been used on real sites, except security releases, which go to WordPress.org at once.
+GitHub releases are the stable beta channel: each version comes out there first, as soon as it is ready. WordPress.org gets a version 30 days after its GitHub release, once it has been used on real sites, except security releases, which go to WordPress.org at once.
 
 Releasing on GitHub:
 
@@ -1362,6 +1362,13 @@ Deleting the plugin removes its settings and cached data, the profile pictures a
 Deactivating the plugin removes the WebP and AVIF rules from the uploads folder’s `.htaccess` (for every site when network-deactivated), the LiteSpeed background request rules from the site’s `.htaccess` (on multisite, when network-deactivated or deactivated on the main site) and the must-use file of Load plugins only where needed (on multisite, when network-deactivated).
 
 ## Changelog
+
+### Unreleased
+
+- Fix: **Load plugins only where needed** with page learning no longer reads code in a page's scripts and styles, such as `items[0]` in a Custom HTML block, as unknown shortcodes, or `[1]` footnote marks as shortcodes. Such pages loaded every plugin (GitHub issue #425).
+- Fix: a page whose content is unknown no longer makes every page of its kind (all posts, say) load every plugin. That page still loads every plugin; the kind is learned from a page with known content (GitHub issue #425).
+- Change: the plugin description says "no paid version" instead of "no pro version".
+- Change: WordPress.org gets each version 30 days after its GitHub release instead of 90 (from WP Plugin Starter 1.0.18); security releases still go there at once.
 
 ### 0.14.1
 

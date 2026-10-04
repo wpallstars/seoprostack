@@ -15,7 +15,7 @@ One free plugin for a faster, tidier WordPress. It does the jobs of 40+ single-p
 
 Faster admin, writing, media, safer logins and tested plugin settings.
 
-Free and open source: no pro version, nothing locked.
+Free and open source: no paid version, nothing locked.
 
 Features safe on every site start on; those needing choices stay off. Use **Settings → SEO Pro Stack**; **Search features** also finds replaced plugins. Replacements import settings once, never change the original's and wait while it is active.
 
@@ -121,7 +121,7 @@ Random, hashed links work once for an hour. Password-step two-factor checks are 
 
 = Where do updates come from? =
 
-From where you installed it. GitHub gets new versions first; WordPress.org 90 days later, security fixes at once.
+From where you installed it. GitHub gets new versions first; WordPress.org 30 days later, security fixes at once.
 
 = Where do I get help? =
 

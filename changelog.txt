@@ -2,6 +2,12 @@
 
 Every change to SEO Pro Stack. readme.txt lists the latest version in short.
 
+= Unreleased =
+* Fix: Load plugins only where needed with page learning no longer reads code in a page's scripts and styles, such as items[0] in a Custom HTML block, as unknown shortcodes, or [1] footnote marks as shortcodes. Such pages loaded every plugin.
+* Fix: a page whose content is unknown no longer makes every page of its kind (all posts, say) load every plugin. That page still loads every plugin; the kind is learned from a page with known content.
+* Change: the plugin description says "no paid version" instead of "no pro version".
+* Change: WordPress.org gets each version 30 days after its GitHub release instead of 90 (from WP Plugin Starter 1.0.18); security releases still go there at once.
+
 = 0.14.1 =
 * Change: Load plugins only where needed skips plugins for people who are logged in on every site. Also skip them for people who are logged in has been on by default since 0.14.0, but only for new installs, so administrators of older sites still got every plugin on the site; updating switches it on there too. Switch it off again to give logged-in people every plugin.
 * Change: the Plugins menu in the admin bar shows what is loaded: plugins loaded on the page are bold, active plugins skipped there are grey, and deactivated plugins are grey and struck through. Skipped plugins used to look loaded.

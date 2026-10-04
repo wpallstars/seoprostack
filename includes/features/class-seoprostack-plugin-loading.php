@@ -1227,8 +1227,13 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
             && !is_preview() && empty($_SERVER['HTTP_AUTHORIZATION']) && empty($_SERVER['REDIRECT_HTTP_AUTHORIZATION'])
             && empty($_SERVER['PHP_AUTH_USER']) && isset($_SERVER['REQUEST_METHOD']) && 'GET' === $_SERVER['REQUEST_METHOD']
             && did_action('wp_footer') && 200 === http_response_code()) {
-            $kinds[$key] = array('needs' => self::page_needs($state), 'learned' => time());
-            $learned_kind = true;
+            $needs = self::page_needs($state);
+            // A page whose own content is unknown cannot show which plugins
+            // the kind needs; a page of that kind with known content learns it.
+            if (false !== $needs) {
+                $kinds[$key] = array('needs' => $needs, 'learned' => time());
+                $learned_kind = true;
+            }
         }
         if ($current && !$state['relearn'] && !$learned_kind) {
             delete_option(SEOProStack_Plugin_Loader::FRONT_LOCK);
@@ -1602,7 +1607,7 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
      * conservatively by examining registered global templates and widgets.
      *
      * @param array $state Full-request registration owners.
-     * @return string[]
+     * @return string[]|false False when the page's own content is unknown.
      */
     private static function page_needs(array $state) {
         global $wp_query, $shortcode_tags;
@@ -1611,7 +1616,9 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
             'blocks' => self::front_blocks($state), 'shortcodes' => self::front_shortcodes(),
         )) : array();
         if (false === $own_content) {
-            return $state['active'];
+            // Requests for such pages load every plugin anyway (start_front()
+            // checks each post's own content), so the kind is not learned here.
+            return false;
         }
         // Remaining assets (including analytics and dependencies) mean a plugin
         // still contributes to this page after other features have dequeued it.
