@@ -5,7 +5,7 @@ Tags: magic login, iframe, schedule posts, auto upload images, admin
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 0.13.0
+Stable tag: 0.14.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -135,14 +135,11 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 
 == Changelog ==
 
-= Unreleased =
-* New: screenshots. Header buttons are Source code, Support and Buy me a coffee.
-
-= 0.13.0 =
-* New: Developer admins: only chosen administrators change plugins, themes, admins and site settings.
-* New: unused large settings stop loading.
-* New: Hosting needs explains a LiteSpeed object cache that is not working.
-* Fix: fitted admin menu no longer stays too wide.
-* Change: WP Crontrol says whether the server's cron job runs.
+= 0.14.0 =
+* New: Network Plugins offers to activate plugins on each site.
+* New: safe features start on for new installs; a Server tab.
+* New: Plugin sizes shows OPcache memory per plugin.
+* Fix: page learning recognises Kadence Blocks content.
+* Fix: Remove CPT base never redirects archives home.
 
 Older: `changelog.txt`.

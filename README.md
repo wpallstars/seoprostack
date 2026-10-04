@@ -21,7 +21,7 @@ SEO Pro Stack does the jobs that usually take dozens of small plugins: a calmer,
 
 If this saves you time, headaches and costs, feel free to [buy me a coffee](https://buymeacoffee.com/marcusquinn), or whatever you like, to invest in making more things open-source.
 
-Version: 0.13.0
+Version: 0.14.0
 
 <!-- github-only:start -->
 ## Screenshots
@@ -1363,8 +1363,10 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folderâ
 
 ## Changelog
 
-### Unreleased
+### 0.14.0
 
+- New: on multisite, the Network Plugins screen offers to [activate network-activated plugins on each site instead](#load-plugins-only-where-needed-plugins), so Load plugins only where needed can leave them out where they are not used. Every site keeps running them, new sites get them, and **Undo** network-activates them again. Plugins that must run everywhere (email, cache, security, network tools, those that can only be network-activated) stay network-activated and the notice says why. Nothing moves until a super admin asks (GitHub issue #419).
+- Change: in the Licence checks dialog, **Once a day** is the highlighted button instead of **Allow once now**, as it is the choice most sites want: pages do not wait and the owner is not asked again (GitHub issue #410).
 - Fix: **Load plugins only where needed** skipped nothing on the pages of most sites built with Kadence Blocks. Block settings such as `["","",""]` were read as unknown shortcodes, block widgets were read with their slashes escaped, and inner blocks only the editor registers (accordion panes, countdown timers) counted as unknown, so pages and synced patterns using them loaded every plugin and their page kinds were learned as needing every plugin. On one site the content of 266 of 300 posts is now recognised, up from 208, and its synced patterns and widgets need 5 plugins instead of all 52. Unknown blocks and shortcodes still load every plugin (GitHub issue #417).
 - New: **Plugin sizes** shows the OPcache memory each pluginâ€™s compiled PHP takes now, under its size and in the totals rows, so the plugins that use most of the shared OPcache stand out. Read once each time the Plugins screen opens, never stored; left out when OPcache is off or its status is kept from sites (GitHub issue #412).
 - Change: the settings screen's header buttons are **Source code** (the GitHub repository) and **Support** (GitHub issues, was Report a problem), with **Buy me a coffee**, on one row.
