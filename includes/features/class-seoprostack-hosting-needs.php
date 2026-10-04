@@ -478,14 +478,14 @@ class SEOProStack_Hosting_Needs extends SEOProStack_Feature {
                 }
             }
         }
-        // Display order: known kinds first, then any others.
+        // Display order; only kinds with a label (others cannot be shown).
         $ordered = array();
         foreach (array_keys(self::kinds()) as $kind) {
             if (isset($peaks[$kind])) {
                 $ordered[$kind] = $peaks[$kind];
             }
         }
-        return $ordered + $peaks;
+        return $ordered;
     }
 
     /* ------------------------------------------------------------------

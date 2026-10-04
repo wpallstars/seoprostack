@@ -996,7 +996,10 @@ class SEOProStack_Database_Cleanup extends SEOProStack_Feature {
      */
     private static function waiting() {
         $waiting = get_transient(self::WAITING);
-        if (is_array($waiting) && isset($waiting['counts'], $waiting['tables']) && is_array($waiting['counts']) && is_array($waiting['tables'])) {
+        // Use the cached counts only when every value is plain; recount otherwise.
+        if (is_array($waiting) && isset($waiting['counts'], $waiting['tables']) && is_array($waiting['counts']) && is_array($waiting['tables'])
+            && count(array_filter($waiting['counts'], 'is_scalar')) === count($waiting['counts'])
+            && count(array_filter($waiting['tables'], 'is_scalar')) === count($waiting['tables'])) {
             $counts = array();
             foreach ($waiting['counts'] as $kind => $count) {
                 $counts[(string) $kind] = (int) $count;
