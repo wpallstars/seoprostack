@@ -2,8 +2,9 @@
 
 Every change to SEO Pro Stack. readme.txt lists the latest version in short.
 
-= Unreleased =
+= 0.12.3 =
 * New, off by default: Pinned posts for any post type can lift pinned items to the top of Kadence Blocks Pro query loops (Query Loop (Adv)), in every loop or only the ones you tick. Page 1 starts with the pins that match the loop's filters, in the loop's order; later pages leave them out without repeating or skipping items. The settings show while Kadence Blocks Pro is active.
+* Fix: Kadence Pro 1.2.5 caused "Failed opening .../kadence-pro/vendor/composer/../psr/container/..." PHP warnings when another plugin loaded a shared library, because its class map lists 348 files it does not ship. Fixes for other plugins drops those entries as SEO Pro Stack loads, so the class loads from the plugin that has it.
 
 = 0.12.2 =
 * Change: Magic login links replaces pixolette's WP Magic Link Login (wp-magic-link-login, CodeCanyon), in part. Where it is installed, the Plugins screen says so, and the feature waits while it is active. Pages using its [wpmll_form] shortcode keep a login form after it is deactivated: the login link form, or WordPress's password form while Magic login links is off.
