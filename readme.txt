@@ -138,6 +138,7 @@ Use **Report a problem** in Settings → SEO Pro Stack or [GitHub](https://githu
 * New: Plugins screen suggests deactivating Hostinger's default plugins.
 * Fix: no "Table doesn't exist" errors on network sites without Fluent tables.
 * Fix: Short addresses for custom post types works for post types registered without a query variable, instead of "page not found".
+* Fix: MainWP Child's Branding footer text no longer shows below front-end pages.
 
 Older: `changelog.txt`.
 
