@@ -357,7 +357,11 @@ final class SEOProStack_Setup {
             ),
             'speed' => array(
                 'label'       => __('Speed', 'seoprostack'),
-                'description' => __('Front-end loading for visitors. Logged-in users are not affected, unless you also preload pages in the admin.', 'seoprostack'),
+                'description' => __('Loading pages faster, for visitors and in the editor.', 'seoprostack'),
+            ),
+            'server' => array(
+                'label'       => __('Server', 'seoprostack'),
+                'description' => __('The database, server load, PHP memory and calls to other sites.', 'seoprostack'),
             ),
             'plugins' => array(
                 'label'       => __('Plugins', 'seoprostack'),

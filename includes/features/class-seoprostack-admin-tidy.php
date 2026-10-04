@@ -33,7 +33,7 @@ class SEOProStack_Admin_Tidy extends SEOProStack_Feature {
         return array(
             self::KEY => array(
                 'type'        => 'bool',
-                'default'     => false,
+                'default'     => true,
                 'tab'         => 'admin',
                 'label'       => __('Tidy admin screens', 'seoprostack'),
                 'description' => __('Remove WordPress text and tools from wp-admin that most people never need. Applies to everyone.', 'seoprostack'),

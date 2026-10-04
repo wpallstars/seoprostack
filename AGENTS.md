@@ -40,9 +40,17 @@ this plugin's WordPress.org submission state: `LAUNCH.md`. Past changes:
   and clean-up are core; auto-tagging, AI and automatic linking are
   specialist), build the core part, keep pages made with the plugin
   working after it is deactivated, and stop recommending it.
-- On by default, at the owner's request: Hide admin bar items, which hides
-  Comments and + New, No fade between admin screens, Quiet Freemius prompts,
-  Quiet Appsero prompts, Fixes for other plugins and Updates from GitHub (GitHub builds only).
+- On by default, at the owner's request: every feature that is safe on any
+  site, for speed, the server, plugin loading and a tidier admin (Load
+  plugins only where needed with **Also skip them for people who are logged
+  in**, so it takes every chance from the start), plus Updates from GitHub
+  (GitHub builds only). README.md → Features lists them. Features that need
+  choices about the site, or change its content, files, people or other
+  plugins' settings, stay off. A changed default reaches new installs
+  only, as the first migration stores every setting; a new setting's
+  default reaches every site (#404).
+- The Server tab holds the database, server load, PHP memory and outbound
+  calls; Speed holds page loading. Put new features of that kind there.
 - Updates from GitHub (`includes/features/class-seoprostack-github-updates.php`,
   in `SEOProStack_Setup::OPTIONAL_FEATURES` and `.distignore-wporg`) is the
   setting for the shared updater: off, Early updates from GitHub, waiting

@@ -55,7 +55,7 @@ class SEOProStack_Database_Keys extends SEOProStack_Feature {
         return array(self::KEY => array(
             'type' => 'bool',
             'default' => false,
-            'tab' => 'plugins',
+            'tab' => 'server',
             'label' => __('Database key cleanup', 'seoprostack'),
             'description' => __('Review leftover and duplicate database indexes under Tools → Database keys, with the plugin that added each and what to do first. Nothing is removed until you choose a key and confirm. Back up the database first. Site Health counts duplicate keys even while this is off.', 'seoprostack'),
         ));
@@ -738,7 +738,7 @@ class SEOProStack_Database_Keys extends SEOProStack_Feature {
             : sprintf(
                 /* translators: %s: link to the setting */
                 esc_html__('Turn on %s in SEO Pro Stack to review and remove them one at a time, with a restore statement for each.', 'seoprostack'),
-                '<a href="' . esc_url(admin_url('options-general.php?page=seoprostack&tab=plugins')) . '">' . esc_html__('Database key cleanup', 'seoprostack') . '</a>'
+                '<a href="' . esc_url(admin_url('options-general.php?page=seoprostack&tab=server')) . '">' . esc_html__('Database key cleanup', 'seoprostack') . '</a>'
             )) . '</p>';
         return $result;
     }

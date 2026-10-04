@@ -193,7 +193,7 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
         return array(
             self::KEY      => array(
                 'type'        => 'bool',
-                'default'     => false,
+                'default'     => true,
                 'tab'         => 'plugins',
                 'label'       => __('Load plugins only where needed', 'seoprostack'),
                 'description' => __('Makes wp-admin faster by loading plugins only on screens that need them. After learning, plain site page views also skip plugins with nothing seen there. Login and permission plugins always load. The menu stays the same. Saving, background tasks, and the Plugins and core settings screens load every plugin.', 'seoprostack'),
@@ -216,7 +216,7 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
             ),
             self::FRONT_USERS_KEY => array(
                 'type'        => 'bool',
-                'default'     => false,
+                'default'     => true,
                 'parent'      => self::KEY,
                 'label'       => __('Also skip them for people who are logged in', 'seoprostack'),
                 'description' => __('When off, people who are logged in, such as editors, get every plugin on the site, including what plugins add to the admin bar there.', 'seoprostack'),

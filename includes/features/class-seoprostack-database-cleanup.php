@@ -120,8 +120,8 @@ class SEOProStack_Database_Cleanup extends SEOProStack_Feature {
         $settings = array(
             self::KEY => array(
                 'type'        => 'bool',
-                'default'     => false,
-                'tab'         => 'speed',
+                'default'     => true,
+                'tab'         => 'server',
                 'label'       => __('Clean the database weekly', 'seoprostack'),
                 'description' => __('Once a week, in the background, remove what WordPress and plugins leave behind: expired temporary data, old spam and bin contents, old automatic drafts and details of deleted posts. Revisions are left to Limit post revisions.', 'seoprostack'),
                 // Only where LiteSpeed Cache on a LiteSpeed server does WP-Optimize's other jobs (see below).
@@ -1161,7 +1161,7 @@ class SEOProStack_Database_Cleanup extends SEOProStack_Feature {
         }
         check_admin_referer(self::PUT_BACK);
         self::cron_put_back();
-        wp_safe_redirect(admin_url('options-general.php?page=seoprostack&tab=speed'));
+        wp_safe_redirect(admin_url('options-general.php?page=seoprostack&tab=server'));
         exit;
     }
 
@@ -1175,7 +1175,7 @@ class SEOProStack_Database_Cleanup extends SEOProStack_Feature {
         check_admin_referer(self::ACTION);
         // What is left after the time limit is removed in the background.
         self::run(false, self::BUDGET);
-        wp_safe_redirect(admin_url('options-general.php?page=seoprostack&tab=speed'));
+        wp_safe_redirect(admin_url('options-general.php?page=seoprostack&tab=server'));
         exit;
     }
 

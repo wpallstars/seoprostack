@@ -251,7 +251,7 @@ class SEOProStack_Admin_Menu extends SEOProStack_Feature {
         $settings = array(
             self::KEY => array(
                 'type'        => 'bool',
-                'default'     => false,
+                'default'     => true,
                 'tab'         => 'admin',
                 'label'       => __('Organise the admin menu', 'seoprostack'),
                 'description' => __('Group the menu into Content, Communications, SEO, Shop and Admin, with Administrators and Developers menus that open to the side, the same way on every site. WordPress’s own entries come first, then plugins’ in A–Z order.', 'seoprostack'),
@@ -262,7 +262,7 @@ class SEOProStack_Admin_Menu extends SEOProStack_Feature {
             ),
             self::WRITERS_KEY => array(
                 'type'        => 'bool',
-                'default'     => true,
+                'default'     => false,
                 'parent'      => self::KEY,
                 'reload'      => true,
                 'label'       => __('Writers see only writing', 'seoprostack'),

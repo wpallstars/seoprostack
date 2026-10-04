@@ -42,7 +42,7 @@ class SEOProStack_Image_Loading extends SEOProStack_Feature {
         return array(
             self::KEY => array(
                 'type'        => 'bool',
-                'default'     => false,
+                'default'     => true,
                 'tab'         => 'speed',
                 'label'       => __('Image loading', 'seoprostack'),
                 'description' => __('Choose which pictures load straight away and which wait until the visitor scrolls near them. Uses the browser’s own lazy loading that WordPress adds, so pages are not rewritten.', 'seoprostack'),

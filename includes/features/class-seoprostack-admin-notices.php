@@ -106,7 +106,7 @@ class SEOProStack_Admin_Notices extends SEOProStack_Feature {
         return array(
             self::KEY => array(
                 'type'        => 'bool',
-                'default'     => false,
+                'default'     => true,
                 'tab'         => 'admin',
                 'label'       => __('Hide admin notices', 'seoprostack'),
                 'description' => __('Move plugin and theme notices behind a megaphone in the admin bar, with a dot while there are notices. Messages about what you just did, such as “Settings saved”, stay on the page.', 'seoprostack'),

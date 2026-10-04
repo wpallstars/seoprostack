@@ -116,8 +116,8 @@ class SEOProStack_Hosting_Needs extends SEOProStack_Feature {
         return array(
             self::KEY => array(
                 'type'        => 'bool',
-                'default'     => false,
-                'tab'         => 'plugins',
+                'default'     => true,
+                'tab'         => 'server',
                 'label'       => __('Hosting needs', 'seoprostack'),
                 'description' => __('Check whether your hosting fits this site, and what to ask your host for. Compares OPcache, which keeps PHP code in memory, with the code your plugins and theme can load, and the PHP memory limit with the most memory a request used in the last 7 days. Shown below the plugin list and in Tools → Site Health.', 'seoprostack'),
             ),

@@ -59,7 +59,7 @@ class SEOProStack_Editor_Tidy extends SEOProStack_Feature {
         return array(
             self::KEY => array(
                 'type'        => 'bool',
-                'default'     => false,
+                'default'     => true,
                 'tab'         => 'content',
                 'label'       => __('Simpler block editor', 'seoprostack'),
                 'description' => __('Turn off parts of the block editor most people never use, such as the welcome guide and the block directory, and open it faster. Applies to everyone.', 'seoprostack'),

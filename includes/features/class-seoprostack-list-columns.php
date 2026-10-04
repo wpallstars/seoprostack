@@ -69,7 +69,7 @@ class SEOProStack_List_Columns extends SEOProStack_Feature {
         return array(
             self::KEY => array(
                 'type'        => 'bool',
-                'default'     => false,
+                'default'     => true,
                 'tab'         => 'admin',
                 'label'       => __('Readable list columns', 'seoprostack'),
                 'description' => __('Keep the title column of post, page, user and other lists wide enough to read when plugins add columns of their own. The other columns get narrower instead.', 'seoprostack'),

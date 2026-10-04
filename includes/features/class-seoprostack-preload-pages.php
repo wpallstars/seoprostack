@@ -30,7 +30,7 @@ class SEOProStack_Preload_Pages extends SEOProStack_Feature {
         return array(
             self::KEY => array(
                 'type'        => 'bool',
-                'default'     => false,
+                'default'     => true,
                 'tab'         => 'speed',
                 'label'       => __('Load pages before the click', 'seoprostack'),
                 'description' => __('When a visitor points at or starts to tap a link on your site, the browser starts loading that page so it opens almost instantly.', 'seoprostack'),

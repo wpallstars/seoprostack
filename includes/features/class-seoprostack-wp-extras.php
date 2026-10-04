@@ -34,7 +34,7 @@ class SEOProStack_Wp_Extras extends SEOProStack_Feature {
         return array(
             self::KEY => array(
                 'type'        => 'bool',
-                'default'     => false,
+                'default'     => true,
                 'tab'         => 'speed',
                 'label'       => __('Remove WordPress extras', 'seoprostack'),
                 'description' => __('Leave out scripts and tags WordPress adds to every page that most sites never use, such as the emoji script. Applies to everyone.', 'seoprostack'),
