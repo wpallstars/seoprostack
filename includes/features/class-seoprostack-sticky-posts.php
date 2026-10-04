@@ -9,7 +9,9 @@
  * category/term archives you choose. Uses the core "sticky_posts" list, so
  * existing sticky posts, themes and blocks keep working; wp-admin calls them
  * "Pinned", the word most sites and apps use. Replaces "Sticky Posts
- * Switch"; its settings are imported once.
+ * Switch"; its settings are imported once. Optionally, an ACF/SCF
+ * true/false field (such as "Featured") drives the pin both ways, and
+ * Kadence Blocks Pro query loops list pinned items first.
  *
  * @package SEOProStack
  * @since 0.3.0
@@ -61,6 +63,15 @@ class SEOProStack_Sticky_Posts extends SEOProStack_Feature {
                 'label'   => __('Post types that can be pinned', 'seoprostack'),
                 'options' => $types,
             ),
+            'sticky_posts_fields' => array(
+                'type'        => 'multi',
+                'default'     => array(),
+                'parent'      => self::KEY,
+                'hidden'      => !self::fields_active(),
+                'label'       => __('Pin from a true/false field', 'seoprostack'),
+                'description' => __('ACF or Secure Custom Fields true/false fields of the pinnable types, such as “Featured”. Items are pinned while the field is on, and pinning or unpinning an item sets the field. When you choose a field, items of its type are pinned and unpinned to match it. In the editor, the field is the pin.', 'seoprostack'),
+                'options'     => array(__CLASS__, 'field_options'),
+            ),
             'sticky_posts_home' => array(
                 'type'        => 'multi',
                 'open'        => true,
@@ -94,7 +105,7 @@ class SEOProStack_Sticky_Posts extends SEOProStack_Feature {
                 'parent'      => self::KEY,
                 'hidden'      => !self::kadence_active(),
                 'label'       => __('Lift to the top of Kadence query loops', 'seoprostack'),
-                'description' => __('Pinned items lead the first page of Kadence Blocks Pro’s Query Loop (Adv) blocks, in the loop’s own order and filters, and are not repeated on later pages.', 'seoprostack'),
+                'description' => __('Pinned items lead Kadence Blocks Pro’s Query Loop (Adv) blocks, in the loop’s own order and filters, followed by the rest in the same order. They count towards each page, so every page keeps the loop’s size and nothing is repeated or skipped.', 'seoprostack'),
             ),
             'sticky_posts_kadence_loops' => array(
                 'type'        => 'multi',
@@ -144,6 +155,83 @@ class SEOProStack_Sticky_Posts extends SEOProStack_Feature {
     }
 
     /**
+     * Whether ACF, ACF Pro or Secure Custom Fields is active (as stored).
+     *
+     * @return bool
+     */
+    private static function fields_active() {
+        $active = self::active_plugins();
+        return isset($active['advanced-custom-fields-pro']) || isset($active['advanced-custom-fields']) || isset($active['secure-custom-fields']);
+    }
+
+    /**
+     * Top-level true/false fields of the post types that can be chosen as
+     * pinnable (all of them, so a type ticked in the same save keeps its
+     * field), by type.
+     *
+     * @return array<string,array<string,array{key:string,label:string}>> Type => field name => key and label.
+     */
+    private static function true_false_fields() {
+        static $found = null;
+        if (null !== $found) {
+            return $found;
+        }
+        $found = array();
+        if (!function_exists('acf_get_field_groups') || !function_exists('acf_get_fields')) {
+            return $found;
+        }
+        foreach (array_keys(SEOProStack_Duplicate_Posts::post_type_options()) as $type) {
+            foreach ((array) acf_get_field_groups(array('post_type' => $type)) as $group) {
+                foreach ((array) acf_get_fields($group) as $field) {
+                    if (isset($field['type'], $field['name'], $field['key']) && 'true_false' === $field['type'] && '' !== $field['name']) {
+                        $found[$type][$field['name']] = array(
+                            'key'   => (string) $field['key'],
+                            'label' => '' !== (string) $field['label'] ? (string) $field['label'] : (string) $field['name'],
+                        );
+                    }
+                }
+            }
+        }
+        return $found;
+    }
+
+    /**
+     * True/false fields that can drive the pin ("type|field_name" => label).
+     *
+     * @return array<string,string>
+     */
+    public static function field_options() {
+        $options = array();
+        foreach (self::true_false_fields() as $type => $fields) {
+            $object = get_post_type_object($type);
+            $name   = $object ? $object->labels->name : $type;
+            foreach ($fields as $field => $info) {
+                /* translators: 1: post type name, 2: field label, 3: field name */
+                $options[$type . '|' . $field] = sprintf(__('%1$s: %2$s (%3$s)', 'seoprostack'), $name, $info['label'], $field);
+            }
+        }
+        return $options;
+    }
+
+    /**
+     * Chosen pin fields.
+     *
+     * @param mixed $value Setting value (default: the stored one).
+     * @return array<string,string[]> Post type => field names.
+     */
+    private static function linked_fields($value = null) {
+        $value = null === $value ? SEOProStack_Settings::get('sticky_posts_fields') : $value;
+        $links = array();
+        foreach ((array) $value as $item) {
+            $parts = explode('|', (string) $item, 2);
+            if (2 === count($parts) && '' !== $parts[0] && '' !== $parts[1]) {
+                $links[$parts[0]][] = $parts[1];
+            }
+        }
+        return $links;
+    }
+
+    /**
      * Public taxonomies.
      *
      * @return array<string,string>
@@ -185,10 +273,19 @@ class SEOProStack_Sticky_Posts extends SEOProStack_Feature {
      * Register hooks.
      */
     public static function boot() {
+        // Also when the feature is switched on in the same save.
+        add_action('update_option_' . SEOProStack_Settings::OPTION, array(__CLASS__, 'settings_saved'), 10, 2);
         if (!self::enabled()) {
             return;
         }
 
+        if (self::linked_fields()) {
+            add_action('added_post_meta', array(__CLASS__, 'field_changed'), 10, 4);
+            add_action('updated_post_meta', array(__CLASS__, 'field_changed'), 10, 4);
+            add_action('deleted_post_meta', array(__CLASS__, 'field_deleted'), 10, 3);
+            add_action('post_stuck', array(__CLASS__, 'pin_changed'));
+            add_action('post_unstuck', array(__CLASS__, 'pin_changed'));
+        }
         add_action('wp_ajax_' . self::AJAX, array(__CLASS__, 'ajax'));
         add_action('admin_init', array(__CLASS__, 'admin_columns'));
         add_action('enqueue_block_editor_assets', array(__CLASS__, 'block_editor'));
@@ -212,6 +309,7 @@ class SEOProStack_Sticky_Posts extends SEOProStack_Feature {
         }
         if (SEOProStack_Settings::get('sticky_posts_kadence') && self::kadence_active()) {
             add_filter('kadence_blocks_pro_query_loop_query_vars', array(__CLASS__, 'kadence_query_vars'), 20, 3);
+            add_filter('found_posts', array(__CLASS__, 'found_posts'), 10, 2);
         }
     }
 
@@ -248,6 +346,137 @@ class SEOProStack_Sticky_Posts extends SEOProStack_Feature {
         if (is_sticky($post_id)) {
             unstick_post($post_id);
         }
+    }
+
+    /* --------------------------------------------------------------------- */
+    /* Pin from a field                                                       */
+    /* --------------------------------------------------------------------- */
+
+    /**
+     * Set while the pin and a field are being matched, so neither side
+     * answers the other.
+     *
+     * @var bool
+     */
+    private static $syncing = false;
+
+    /**
+     * Whether a stored true/false value is on.
+     *
+     * @param mixed $value Meta value.
+     * @return bool
+     */
+    private static function field_on($value) {
+        return is_scalar($value) && filter_var($value, FILTER_VALIDATE_BOOLEAN);
+    }
+
+    /**
+     * A linked field was added or changed: pin or unpin the item.
+     *
+     * @param int    $meta_id  Meta ID (unused).
+     * @param int    $post_id  Post ID.
+     * @param string $meta_key Meta key.
+     * @param mixed  $value    New value.
+     */
+    public static function field_changed($meta_id, $post_id, $meta_key, $value) {
+        unset($meta_id);
+        $type  = get_post_type($post_id);
+        $links = self::linked_fields();
+        if (self::$syncing || !$type || empty($links[$type]) || !in_array($meta_key, $links[$type], true) || !self::type_enabled($type)) {
+            return;
+        }
+        self::$syncing = true;
+        self::set_sticky((int) $post_id, self::field_on($value));
+        self::$syncing = false;
+    }
+
+    /**
+     * A linked field was deleted: unpin the item.
+     *
+     * @param int[]  $meta_ids Meta IDs (unused).
+     * @param int    $post_id  Post ID.
+     * @param string $meta_key Meta key.
+     */
+    public static function field_deleted($meta_ids, $post_id, $meta_key) {
+        self::field_changed(0, $post_id, $meta_key, false);
+    }
+
+    /**
+     * The item was pinned or unpinned (pin column, Quick Edit, core): set its
+     * linked fields to match.
+     *
+     * @param int $post_id Post ID.
+     */
+    public static function pin_changed($post_id) {
+        $type  = get_post_type($post_id);
+        $links = self::linked_fields();
+        if (self::$syncing || !$type || empty($links[$type])) {
+            return;
+        }
+        $on     = is_sticky($post_id);
+        $fields = self::true_false_fields();
+        self::$syncing = true;
+        foreach ($links[$type] as $field) {
+            if (isset($fields[$type][$field]) && function_exists('update_field')) {
+                // By key, so ACF keeps its reference to the field.
+                update_field($fields[$type][$field]['key'], $on ? 1 : 0, (int) $post_id);
+            } else {
+                update_post_meta((int) $post_id, $field, $on ? '1' : '0');
+            }
+        }
+        self::$syncing = false;
+    }
+
+    /**
+     * Settings saved: newly chosen fields pin and unpin items to match.
+     *
+     * @param mixed $old Previous settings.
+     * @param mixed $new New settings.
+     */
+    public static function settings_saved($old, $new) {
+        if (!is_array($new) || empty($new[self::KEY])) {
+            return;
+        }
+        $before = self::linked_fields(is_array($old) && !empty($old[self::KEY]) && isset($old['sticky_posts_fields']) ? $old['sticky_posts_fields'] : array());
+        $after  = self::linked_fields(isset($new['sticky_posts_fields']) ? $new['sticky_posts_fields'] : array());
+        $types  = isset($new['sticky_posts_types']) ? (array) $new['sticky_posts_types'] : array();
+        foreach ($after as $type => $fields) {
+            $added = array_diff($fields, isset($before[$type]) ? $before[$type] : array());
+            if ($added && in_array($type, $types, true)) {
+                self::match_fields($type, $fields);
+            }
+        }
+    }
+
+    /**
+     * Pin the items of a type whose fields are on, and unpin the rest.
+     *
+     * @param string   $type   Post type.
+     * @param string[] $fields Field names (pinned while any is on).
+     * @return int[] IDs of the type pinned afterwards.
+     */
+    public static function match_fields($type, array $fields) {
+        $clauses = array('relation' => 'OR');
+        foreach ($fields as $field) {
+            $clauses[] = array('key' => $field, 'value' => array('1', 'true', 'yes', 'on'), 'compare' => 'IN');
+        }
+        $on = array_map('intval', get_posts(array(
+            'post_type'        => $type,
+            'post_status'      => 'any',
+            'posts_per_page'   => -1,
+            'fields'           => 'ids',
+            'no_found_rows'    => true,
+            'meta_query'       => $clauses, // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query -- once, when a field is chosen.
+        )));
+        $sticky = array_map('intval', (array) get_option('sticky_posts', array()));
+        $others = array_filter($sticky, function ($id) use ($type) {
+            return get_post_type($id) !== $type;
+        });
+        $list = array_values(array_unique(array_merge($others, $on)));
+        if ($list !== $sticky) {
+            update_option('sticky_posts', $list);
+        }
+        return $on;
     }
 
     /* --------------------------------------------------------------------- */
@@ -482,14 +711,17 @@ class SEOProStack_Sticky_Posts extends SEOProStack_Feature {
     }
 
     /**
-     * Whether the editor control applies (core handles blog posts).
+     * Whether the editor control applies (core handles blog posts). Not for
+     * types pinned from a field: the field is the pin there, and saving its
+     * box would undo a pin set separately.
      *
      * @param WP_Post|null $post Post.
      * @return bool
      */
     private static function editor_applies($post) {
+        $links = self::linked_fields();
         return $post instanceof WP_Post && 'post' !== $post->post_type && self::type_enabled($post->post_type)
-            && current_user_can('edit_post', $post->ID);
+            && empty($links[$post->post_type]) && current_user_can('edit_post', $post->ID);
     }
 
     /**
@@ -610,10 +842,12 @@ class SEOProStack_Sticky_Posts extends SEOProStack_Feature {
 
     /**
      * Kadence Blocks Pro query loops (also their filter and pagination
-     * requests): pinned items of the pinnable types lead page 1, in the
-     * loop's own order and filters, and are left out of every page's own
-     * results, so later pages neither repeat nor skip items. Kadence pages
-     * with an offset; page 1 has none.
+     * requests): pinned items of the pinnable types lead the loop, in its
+     * own order and filters, then the rest in the same order. Pinned items
+     * take places on the pages like any other item, so each page keeps the
+     * loop's size and nothing is repeated or skipped. The loop's own query
+     * leaves them out and starts that many places earlier; lift() puts the
+     * page's pinned items back in front.
      *
      * @param array $query   WP_Query arguments.
      * @param mixed $meta    Query loop settings (unused).
@@ -644,18 +878,87 @@ class SEOProStack_Sticky_Posts extends SEOProStack_Feature {
             return $query;
         }
 
+        // The pinned items this loop shows, in its own order and filters.
+        $pinned = self::kadence_pinned($query, $types, $ids, $in);
+        if (!$pinned) {
+            return $query;
+        }
+
         if ($in) {
             // Core ignores post__not_in alongside post__in; an empty
             // post__in would list everything.
-            $rest              = array_values(array_diff($in, $ids));
+            $rest              = array_values(array_diff($in, $pinned));
             $query['post__in'] = $rest ? $rest : array(0);
         } else {
-            $query['post__not_in'] = array_merge($out, $ids);
+            $query['post__not_in'] = array_merge($out, $pinned);
         }
 
-        $first             = empty($query['offset']) && (empty($query['paged']) || (int) $query['paged'] <= 1);
-        $query[self::LOOP] = $first ? array('types' => $types, 'ids' => $ids) : array();
+        $count = count($pinned);
+        $per   = isset($query['posts_per_page']) ? (int) $query['posts_per_page'] : 0;
+        if ($per > 0) {
+            // Kadence pages with an offset: perPage × (page − 1) plus the
+            // loop's own offset. Pinned items fill the first places, then
+            // the rest follow, so the rest start that many places earlier.
+            $paged = isset($query['paged']) ? max(1, (int) $query['paged']) : 1;
+            $start = isset($query['offset']) ? max(0, (int) $query['offset']) : $per * ($paged - 1);
+            $slice = array_slice($pinned, $start, $per);
+            $query['offset'] = max(0, $start - $count);
+            // An offset of 0 counts as none, and WP_Query would page instead.
+            $query['paged'] = 1;
+            $take  = $per - count($slice);
+        } else {
+            // No page size (an inherited query): all pinned items on page 1.
+            $first = empty($query['offset']) && (empty($query['paged']) || (int) $query['paged'] <= 1);
+            $slice = $first ? $pinned : array();
+            $take  = -1;
+        }
+
+        $query[self::LOOP] = array('types' => $types, 'ids' => $slice, 'take' => $take, 'count' => $count);
         return $query;
+    }
+
+    /**
+     * Pinned IDs a Kadence query loop shows, in its order.
+     *
+     * @param array $query Loop query arguments.
+     * @param array $types Pinnable post types in the loop.
+     * @param int[] $ids   Pinned IDs not left out by the loop.
+     * @param int[] $in    The loop's own post__in, if any.
+     * @return int[]
+     */
+    private static function kadence_pinned(array $query, array $types, array $ids, array $in) {
+        $orderby = isset($query['orderby']) ? $query['orderby'] : '';
+        if ($in && 'post__in' === $orderby) {
+            // Chosen posts keep the order they were chosen in.
+            $ids = array_values(array_intersect($in, $ids));
+        }
+        $vars = $query;
+        unset($vars['offset'], $vars['paged'], $vars[self::LOOP]);
+        $vars = array_merge($vars, array(
+            'post_type'           => $types,
+            'post__in'            => $ids,
+            'posts_per_page'      => -1,
+            'fields'              => 'ids',
+            'no_found_rows'       => true,
+            'ignore_sticky_posts' => true,
+            'suppress_filters'    => false,
+            'orderby'             => '' !== $orderby ? $orderby : 'date',
+            'seoprostack_sticky'  => false,
+        ));
+        return array_map('intval', get_posts($vars));
+    }
+
+    /**
+     * Kadence query loops: count the pinned items in the loop's total, so
+     * its result count and page numbers include them.
+     *
+     * @param int      $found Found posts.
+     * @param WP_Query $query Query.
+     * @return int
+     */
+    public static function found_posts($found, $query) {
+        $loop = $query instanceof WP_Query ? $query->get(self::LOOP) : null;
+        return is_array($loop) && !empty($loop['count']) ? (int) $found + (int) $loop['count'] : $found;
     }
 
     /**
@@ -667,7 +970,7 @@ class SEOProStack_Sticky_Posts extends SEOProStack_Feature {
     private static function context(WP_Query $query) {
         $loop = $query->get(self::LOOP);
         if (is_array($loop) && !empty($loop['types'])) {
-            // A Kadence query loop's first page (see kadence_query_vars()).
+            // A Kadence query loop (see kadence_query_vars()).
             return in_array($query->get('fields'), array('', 'all'), true) ? array_values((array) $loop['types']) : null;
         }
         if (!$query->is_main_query() || $query->is_paged() || $query->is_feed() || ($query->get('ignore_sticky_posts') && !$query->get('seoprostack_sticky'))) {
@@ -723,15 +1026,23 @@ class SEOProStack_Sticky_Posts extends SEOProStack_Feature {
             return $posts;
         }
 
-        $vars = $query->query_vars;
         if (is_array($loop)) {
-            // Kadence query loop: its own filters and order, without the
-            // exclusion of pinned items added for its pages.
-            $vars['post_type']    = $types;
-            $vars['post__not_in'] = array_values(array_diff(array_map('intval', (array) $query->get('post__not_in')), $ids));
-            $vars[self::LOOP]     = null;
-            unset($vars['post__in']);
-        } elseif ($query->is_home()) {
+            // Kadence query loop: this page's pinned items, already in the
+            // loop's order and filters (kadence_query_vars()), then as many
+            // of the rest as the page has room for.
+            _prime_post_caches($ids, false, false);
+            $sticky = array_values(array_filter(array_map('get_post', $ids)));
+            $take   = isset($loop['take']) ? (int) $loop['take'] : -1;
+            $rest   = $take >= 0 ? array_slice((array) $posts, 0, $take) : (array) $posts;
+
+            self::$lifted      = array_map('intval', wp_list_pluck($sticky, 'ID'));
+            $merged            = array_merge($sticky, $rest);
+            $query->post_count = count($merged);
+            return $merged;
+        }
+
+        $vars = $query->query_vars;
+        if ($query->is_home()) {
             // Blog home: only the post type differs from core's own sticky query.
             $vars = array('post_type' => $types, 'post_status' => 'publish');
         } else {

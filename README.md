@@ -299,7 +299,9 @@ Tick **Share a preview link** in the editor of a draft, pending or scheduled pos
 
 Adds a narrow pin column to the lists of the post types you choose, and a **Pin to the top** option in the editor for types other than posts. Wherever WordPress says “Sticky” in post lists, Quick Edit, Bulk Edit and the editors, it says “Pinned”, the word most sites and apps use (core still calls them sticky posts, so themes and blocks see no change). Pinned items lead the first page of the blog home, their post type archive and chosen term archives (categories, tags or custom taxonomies). It uses core’s sticky list, so existing sticky posts, themes and blocks keep working.
 
-With Kadence Blocks Pro active, **Lift to the top of Kadence query loops** does the same for Query Loop (Adv) blocks: pinned items of the pinnable post types lead page 1 in the loop’s own order (an A–Z loop lists its pins A–Z, then everything else A–Z), and only those that match the loop’s filters and facets. They are left out of every page’s own results, so later pages neither repeat nor skip items. **Only in these Kadence query loops** limits it to the loops you tick; leave them all unticked for every loop. It works through Kadence’s `kadence_blocks_pro_query_loop_query_vars` filter, which its filter and pagination requests also use; a site snippet that already fixes pinned items for a loop on that filter should be removed when this is turned on.
+With ACF, ACF Pro or Secure Custom Fields active, **Pin from a true/false field** ties the pin to a true/false field of a pinnable type, such as a “Featured” field: an item is pinned while the field is on, however the field is set (editor, REST API, WP-CLI, imports), and pinning or unpinning it in the pin column or Quick Edit sets the field. When you choose a field, the items of its type are pinned and unpinned to match it, so the field decides. In the editor the field is the pin: **Pin to the top** is not shown for that type, so saving the field’s box cannot undo a pin set elsewhere. Only top-level fields of a field group are listed.
+
+With Kadence Blocks Pro active, **Lift to the top of Kadence query loops** does the same for Query Loop (Adv) blocks: pinned items of the pinnable post types lead the loop in its own order (an A–Z loop lists its pins A–Z, then everything else A–Z), and only those that match the loop’s filters and facets. Pinned items take places on the pages like any other item, so every page keeps the loop’s size however many items are pinned, nothing is repeated or skipped, and the loop’s result count and number of pages include them. **Only in these Kadence query loops** limits it to the loops you tick; leave them all unticked for every loop. It works through Kadence’s `kadence_blocks_pro_query_loop_query_vars` filter, which its filter and pagination requests also use; a site snippet that already fixes pinned items for a loop on that filter should be removed when this is turned on.
 
 ### Select all across pages (Content)
 
@@ -1227,8 +1229,10 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folder�
 
 ## Changelog
 
-### Unreleased
+### 0.12.4
 
+- New, off by default: **Pin from a true/false field** (Pinned posts for any post type) pins items while an ACF or Secure Custom Fields true/false field of their type is on, such as “Featured”, and pinning or unpinning an item sets the field (`post_stuck` / `post_unstuck`). Choosing a field pins and unpins the items of its type to match it. In the editor, the field takes the place of **Pin to the top** (GitHub issue #355).
+- Changed: in Kadence query loops, pinned items take places on the pages instead of being added on top of page 1, so a loop with many pinned items keeps its page size, and its result count and number of pages include them (they were short by the number of pinned items).
 - Changed: the LiteSpeed Cache preset turns CSS Minify and JS Minify off (it turned them on). Without Combine, LiteSpeed Cache minified every file again on each page missing the page cache, adding 0.25–1.2 s to those pages on test sites (GitHub issue #285). Apply the preset again to take the change; LiteSpeed hosting explains the choice.
 
 ### 0.12.3

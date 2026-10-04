@@ -5,7 +5,7 @@ Tags: magic login, iframe, schedule posts, auto upload images, admin
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 0.12.3
+Stable tag: 0.12.4
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -129,12 +129,10 @@ Use **Report a problem** in Settings → SEO Pro Stack or [GitHub](https://githu
 
 == Changelog ==
 
-= Unreleased =
+= 0.12.4 =
+* New, off: pin items from an ACF or SCF true/false field, such as "Featured".
+* Change: pinned items in Kadence query loops count towards each page, and result counts include them.
 * Change: LiteSpeed Cache preset leaves CSS and JS Minify off, for faster uncached pages.
-
-= 0.12.3 =
-* New, off: Pinned posts can lead Kadence Blocks Pro query loops.
-* Fix: no "Failed opening" warnings from Kadence Pro when other plugins load shared code.
 
 Older: `changelog.txt`.
 
