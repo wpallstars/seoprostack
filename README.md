@@ -928,6 +928,7 @@ Adds a **Size** column to the Plugins screen: each plugin’s total disk use, sp
 - Two rows below the list total every installed plugin and the active ones (network-activated ones on the Network Plugins screen), whichever view is open. Plugins outside the view are measured after those on screen.
 - The screen opens straight away; missing sizes are measured in the background a few seconds at a time.
 - Sizes are kept until the plugin’s version changes.
+- **OPcache** under each size is the memory the plugin’s compiled PHP takes in OPcache now, read once each time the screen opens and never stored. Every PHP worker shares that memory, and a full OPcache throws out the oldest code first, so this shows which plugins use most of it. Only files PHP has loaded since OPcache last restarted count, so a plugin that is not active shows none; the totals rows add it up. It is left out when OPcache is off or the host keeps its status from sites (`opcache.restrict_api`). Hosting needs uses the same numbers to size OPcache.
 - Free Plugins’ **All** list shows the same sizes for installed plugins, whether or not this setting is on.
 
 ### Database key cleanup (Server)
@@ -1363,6 +1364,7 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folder�
 
 ### Unreleased
 
+- New: **Plugin sizes** shows the OPcache memory each plugin’s compiled PHP takes now, under its size and in the totals rows, so the plugins that use most of the shared OPcache stand out. Read once each time the Plugins screen opens, never stored; left out when OPcache is off or its status is kept from sites (GitHub issue #412).
 - Change: the settings screen's header buttons are **Source code** (the GitHub repository) and **Support** (GitHub issues, was Report a problem), with **Buy me a coffee**, on one row.
 - New: screenshots of the settings screen and the Read Me tab, for WordPress.org (`.wordpress-org/screenshot-N.png`, captioned in `readme.txt`) and at the top of this README on GitHub, and WordPress.org icons: the banner’s picture on its own, without words (`.wordpress-org/icon.svg`, exported as `icon-256x256.png` and `icon-128x128.png` by `scripts/build-banner.sh`) (GitHub issue #409).
 - Developers: core files synced with the starter plugin 1.0.13 and its `main`: `{Prefix}_Setup::header_links()` takes a `source` link; the Read Me tab leaves out anything between `<!-- github-only:start -->` and `<!-- github-only:end -->`, such as this README's Screenshots section; `README.md`'s `Version:` line holds the version itself, and `scripts/preflight-release.sh` checks it; `scripts/rename-plugin.sh` leaves out the CodeFactor badge until CodeFactor has the repository (GitHub issue #409).
