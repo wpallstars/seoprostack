@@ -1341,6 +1341,7 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folderâ
 
 ### Unreleased
 
+- Fix: Remove CPT base no longer sends a post type's archive (and any other item) to the home page with a 301 when the plugin that registers the chosen post types is not loaded on that request, for example while Load plugins only where needed skips it or during an outage. `is_singular()` with an empty list matches any item, the front page included; browsers keep 301s, so visitors were sent home long after the site recovered. The redirect now needs a chosen type registered and the item to be of that type (GitHub issue #390).
 - Developers: `scripts/update-brand-icons.js` escapes every slash in an npm package name (CodeQL `js/incomplete-sanitization`). Nothing changes for sites.
 
 ### 0.13.0

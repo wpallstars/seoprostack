@@ -3,6 +3,7 @@
 Every change to SEO Pro Stack. readme.txt lists the latest version in short.
 
 = Unreleased =
+* Fix: Remove CPT base no longer sends a post type's archive (and any other item) to the home page with a permanent redirect when the plugin that registers the chosen post types is not loaded on that request. Browsers keep such redirects, so visitors were sent home long after the site recovered.
 * Developers: scripts/update-brand-icons.js escapes every slash in an npm package name (CodeQL js/incomplete-sanitization). Nothing changes for sites.
 
 = 0.13.0 =
