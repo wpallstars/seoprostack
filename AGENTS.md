@@ -27,8 +27,8 @@ own release checks (presets and starter data) are in
 
 User docs: `README.md` (developers, and the Read Me tab) and `readme.txt`
 (WordPress.org). Development: `DEVELOPMENT.md`. Releases: `RELEASING.md`;
-this plugin's WordPress.org submission state: `LAUNCH.md`. Manual test
-checklists: `TESTING.md`.
+this plugin's WordPress.org submission state: `LAUNCH.md`. Past changes:
+`changelog.txt`; planned work: GitHub issues.
 
 ## Features
 
@@ -49,16 +49,6 @@ checklists: `TESTING.md`.
   for Git Updater. It also reads the older `SEOPROSTACK_GITHUB_TOKEN` and
   `seoprostack_github_*` filters. A parked example of turning updates off is
   on the `feature/disable-updates-parked` branch.
-- A feature that replaces another plugin also removes the slug from
-  `admin/data/free-plugins.php` with a comment, and gets a row in
-  `README.md` → Features table (replaced plugins) and `README.md` → Credits:
-  plugin, maker, its WordPress.org page and its maker's own source repository
-  (check each link with `gh api repos/{owner}/{repo}` or the WordPress.org
-  plugin API; never link a mirror or guess a URL), and the feature. So does
-  a feature modelled on another plugin. Commit, then run
-  `php scripts/replaced-plugins.php --write` to update the count and
-  download sizes above the Features table; preflight fails when the count is
-  out of date.
 - The Read Me tab's banner source is `.wordpress-org/banner.svg`; rebuild it
   with `scripts/build-banner.sh`.
 - No page caching or CSS and JS minification in SEO Pro Stack (owner's
@@ -66,17 +56,6 @@ checklists: `TESTING.md`.
   leave them to plugins that specialise in them (LiteSpeed Cache,
   WP-Optimize). SEO Pro Stack may recommend those plugins and set them up
   through their presets, saving through their own code.
-- The LiteSpeed Cache preset leaves CSS and JS Minify off (owner's
-  decision, #285): without Combine, LiteSpeed Cache re-minifies every file
-  on each page-cache miss (0.25–1.2 s per page on Hostinger), and Combine
-  breaks pages. Don't turn them back on in the preset; `README.md` →
-  LiteSpeed hosting has the numbers.
-- Time uncached pages straight to the origin (`curl --resolve`), not from
-  the hosting server through Cloudflare: those requests are held to 2.2 s
-  whenever PHP takes 1.2–2.1 s, which visitors never see (#285).
-- Features that rein in other plugins (Ask before licence checks, Quiet
-  Freemius prompts) hand the choice to the owner instead of deciding for
-  them, as `STANDARDS.md` → Code rules says.
 - Link Whisper retirement does not need historic click data or replacement
   analytics (owner's choice): leave the toolkit's click counting off for the
   rollout; separate analytics plugins and apps can cover those needs.
@@ -92,6 +71,9 @@ Read the doc for your task first (`STANDARDS.md` → Agent docs):
   `docs/presets.md`.
 - Changing which plugins Free Plugins or Pro Plugins recommend:
   `docs/plugin-directory.md`.
+- Adding a feature that replaces another plugin, or is modelled on one:
+  `docs/replaced-plugins.md`.
+- Testing, or timing pages on a live site: `TESTING.md`.
 - SEO Pro Stack writes other plugins' settings only through presets and
   starter data, and only when someone asks.
 

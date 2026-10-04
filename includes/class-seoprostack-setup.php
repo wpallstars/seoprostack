@@ -262,6 +262,35 @@ final class SEOProStack_Setup {
         // stay listed.
         add_filter('seoprostack_stored_active_plugins', array('SEOProStack_Plugin_Loader', 'stored_active_plugins'));
         add_filter('seoprostack_plugins_skipped', array('SEOProStack_Plugin_Loader', 'is_filtered'));
+
+        if (is_admin()) {
+            self::prime_admin_options();
+        }
+    }
+
+    /**
+     * Small options that are not autoloaded but that every admin screen
+     * reads, mostly to tidy up after a feature switched off (and so missing
+     * on most sites): one query for all, instead of one each. Options that
+     * can grow (the admin menu cache, the plugin map, licence call records)
+     * are left out. WordPress 6.4 and newer.
+     */
+    private static function prime_admin_options() {
+        if (!function_exists('wp_prime_option_caches')) {
+            return;
+        }
+        wp_prime_option_caches(array(
+            'seoprostack_autoload_changes',            // SEOProStack_Autoload_Options::CHANGES
+            'seoprostack_litespeed_server',            // SEOProStack_Litespeed::OPTION
+            'seoprostack_hardening_files',             // SEOProStack_Hardening::FILES_STATE (single site)
+            'seoprostack_nextgen_synced',              // SEOProStack_Nextgen_Images::SYNCED
+            'seoprostack_noabort_rules',               // SEOProStack_Plugin_Fixes::NOABORT_SYNCED (single site)
+            'seoprostack_restrict_imported',           // SEOProStack_Restrict_Content::IMPORT_OPTION
+            'seoprostack_short_links_presets',         // SEOProStack_Short_Links::PRESETS_OPTION
+            'seoprostack_database_cleanup_cron_seen',  // SEOProStack_Database_Cleanup::CRON_SEEN
+            'seoprostack_link_tables',                 // SEOProStack_Link_Index::VERSION
+            'seoprostack_link_index',                  // SEOProStack_Link_Index::STATE
+        ));
     }
 
     /**

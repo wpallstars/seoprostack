@@ -48,6 +48,13 @@ To add or update a preset, on a throwaway site (never a live one):
    as intended, `reset`, `undo`.
 8. Add a changelog line in `README.md`, `changelog.txt` and `readme.txt`.
 
+Owner's decisions for single presets:
+
+- LiteSpeed Cache leaves CSS and JS Minify off (#285): without Combine,
+  LiteSpeed Cache re-minifies every file on each page-cache miss
+  (0.25–1.2 s per page on Hostinger), and Combine breaks pages. Don't turn
+  them back on; `README.md` → LiteSpeed hosting has the numbers.
+
 ## Starter data
 
 `starters/{plugin-folder}.json` holds starter data: the lists, tags, fields,

@@ -64,9 +64,9 @@ check_presets_starters() {
 			;;
 		esac
 	done <<<"$out"
-	if [ -z "$counts" ] && [ "$errors" -eq 0 ]; then
+	if [[ -z "$counts" && "$errors" -eq 0 ]]; then
 		err "presets and starter data check did not run"
-	elif [ "$errors" -eq 0 ]; then
+	elif [[ "$errors" -eq 0 ]]; then
 		local presets starters settings
 		read -r presets starters settings <<<"$counts"
 		ok "$presets presets and $starters starter files parse; none of the $settings starter settings is also in a preset"
@@ -76,7 +76,7 @@ check_presets_starters() {
 
 plugin_preflight() {
 	local dir="$1"
-	if [ -d "$dir/presets" ] || [ -d "$dir/starters" ]; then
+	if [[ -d "$dir/presets" || -d "$dir/starters" ]]; then
 		check_presets_starters "$dir"
 	fi
 	return 0

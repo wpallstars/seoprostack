@@ -177,6 +177,14 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
     private static $frequent_writes = null;
 
     /**
+     * Site pages forgotten in this request: 0 not yet, 1 once, 2 changed
+     * again since, so forgotten again at shutdown.
+     *
+     * @var int
+     */
+    private static $front_forgotten = 0;
+
+    /**
      * Settings.
      *
      * @return array
@@ -1406,11 +1414,31 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
             && isset($_SERVER['REQUEST_METHOD']) && 'GET' === $_SERVER['REQUEST_METHOD'];
     }
 
-    /** Invalidate the public map without changing the admin map. */
+    /**
+     * Invalidate the public map without changing the admin map: at the first
+     * change in a request, and once more at its end if more changes followed.
+     * Saving one post fires save_post and several post meta hooks, and a bulk
+     * edit or an import many more; each used to write a new revision and
+     * delete two options (four queries each).
+     */
     public static function forget_front() {
         if (defined('WP_UNINSTALL_PLUGIN')) {
             return;
         }
+        if (1 === self::$front_forgotten) {
+            // A site page learned since the first change must not keep it.
+            self::$front_forgotten = 2;
+            add_action('shutdown', array(__CLASS__, 'forget_front_now'), 0);
+        }
+        if (0 !== self::$front_forgotten) {
+            return;
+        }
+        self::$front_forgotten = 1;
+        self::forget_front_now();
+    }
+
+    /** Write a new revision for site pages and drop what was learned for them. */
+    public static function forget_front_now() {
         $revision = wp_generate_uuid4();
         update_option(SEOProStack_Plugin_Loader::FRONT_REVISION, $revision, true);
         $front = get_option(SEOProStack_Plugin_Loader::FRONT, array());
