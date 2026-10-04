@@ -36,6 +36,7 @@ scripts/rename-plugin.sh
 scripts/replaced-plugins.php
 scripts/smoke-test.sh
 scripts/sync-core.sh
+scripts/update-test.sh
 
 # CI and tool configuration.
 .github/
@@ -43,6 +44,8 @@ scripts/sync-core.sh
 .gitattributes
 .gitignore
 .gitleaks.toml
+.codacy.yml
+sonar-project.properties
 composer.json
 phpcs.xml.dist
 phpstan.neon.dist

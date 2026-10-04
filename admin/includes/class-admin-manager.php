@@ -23,6 +23,10 @@ class SEOProStack_Admin_Manager {
     /** Hook suffix returned by add_options_page(). */
     const HOOK = 'settings_page_' . self::PAGE;
 
+    /** Admin stylesheet and script, relative to the plugin folder. */
+    const CSS_FILE = 'admin/css/seoprostack-admin.css';
+    const JS_FILE  = 'admin/js/seoprostack-admin.js';
+
     /**
      * Register hooks (once).
      */
@@ -178,10 +182,10 @@ class SEOProStack_Admin_Manager {
         }
 
         $tab = self::get_active_tab();
-        $css = file_exists(SEOPROSTACK_DIR . 'admin/css/seoprostack-admin.css') ? filemtime(SEOPROSTACK_DIR . 'admin/css/seoprostack-admin.css') : SEOPROSTACK_VERSION;
-        $js  = file_exists(SEOPROSTACK_DIR . 'admin/js/seoprostack-admin.js') ? filemtime(SEOPROSTACK_DIR . 'admin/js/seoprostack-admin.js') : SEOPROSTACK_VERSION;
+        $css = file_exists(SEOPROSTACK_DIR . self::CSS_FILE) ? filemtime(SEOPROSTACK_DIR . self::CSS_FILE) : SEOPROSTACK_VERSION;
+        $js  = file_exists(SEOPROSTACK_DIR . self::JS_FILE) ? filemtime(SEOPROSTACK_DIR . self::JS_FILE) : SEOPROSTACK_VERSION;
 
-        wp_enqueue_style('seoprostack-admin', SEOPROSTACK_URL . 'admin/css/seoprostack-admin.css', array('dashicons'), $css);
+        wp_enqueue_style('seoprostack-admin', SEOPROSTACK_URL . self::CSS_FILE, array('dashicons'), $css);
 
         /**
          * Filter the admin script's dependencies; enqueue what a tab needs.
@@ -195,7 +199,7 @@ class SEOProStack_Admin_Manager {
             wp_enqueue_media();
         }
 
-        wp_enqueue_script('seoprostack-admin', SEOPROSTACK_URL . 'admin/js/seoprostack-admin.js', $deps, $js, true);
+        wp_enqueue_script('seoprostack-admin', SEOPROSTACK_URL . self::JS_FILE, $deps, $js, true);
         wp_set_script_translations('seoprostack-admin', 'seoprostack');
 
         /**
@@ -264,11 +268,6 @@ class SEOProStack_Admin_Manager {
         $tabs   = self::get_tabs();
         $active = self::get_active_tab();
         $links  = SEOProStack_Setup::header_links();
-        $groups = array(
-            'settings' => __('Settings', 'seoprostack'),
-            'discover' => __('Discover', 'seoprostack'),
-            'about'    => __('About', 'seoprostack'),
-        );
         ?>
         <div class="wrap sps-wrap">
             <header class="sps-header">
@@ -317,27 +316,7 @@ class SEOProStack_Admin_Manager {
                 </div>
             </header>
 
-            <nav class="sps-nav" aria-label="<?php esc_attr_e('SEO Pro Stack sections', 'seoprostack'); ?>">
-                <?php foreach ($groups as $group => $group_label) : ?>
-                    <?php
-                    $group_tabs = array_filter($tabs, function ($tab) use ($group) {
-                        return isset($tab['group']) && $tab['group'] === $group;
-                    });
-                    if (!$group_tabs) {
-                        continue;
-                    }
-                    ?>
-                    <div class="sps-nav__group" role="group" aria-label="<?php echo esc_attr($group_label); ?>">
-                        <?php foreach ($group_tabs as $slug => $tab) : ?>
-                            <a href="<?php echo esc_url(self::tab_url($slug)); ?>"
-                               class="sps-nav__tab<?php echo $slug === $active ? ' is-active' : ''; ?>"
-                               <?php echo $slug === $active ? 'aria-current="page"' : ''; ?>>
-                                <?php echo esc_html($tab['label']); ?>
-                            </a>
-                        <?php endforeach; ?>
-                    </div>
-                <?php endforeach; ?>
-            </nav>
+            <?php self::render_nav($tabs, $active); ?>
 
             <?php // Core moves admin notices after this marker instead of into the header. ?>
             <hr class="wp-header-end" />
@@ -354,6 +333,57 @@ class SEOProStack_Admin_Manager {
                 }
                 ?>
             </div>
+        </div>
+        <?php
+    }
+
+    /**
+     * Render the tab navigation: one labelled group of links per section
+     * that has tabs.
+     *
+     * @param array  $tabs   Tabs (get_tabs()).
+     * @param string $active Active tab slug.
+     */
+    private static function render_nav(array $tabs, $active) {
+        $groups = array(
+            'settings' => __('Settings', 'seoprostack'),
+            'discover' => __('Discover', 'seoprostack'),
+            'about'    => __('About', 'seoprostack'),
+        );
+        ?>
+        <nav class="sps-nav" aria-label="<?php esc_attr_e('SEO Pro Stack sections', 'seoprostack'); ?>">
+            <?php
+            foreach ($groups as $group => $group_label) {
+                $group_tabs = array_filter($tabs, function ($tab) use ($group) {
+                    return isset($tab['group']) && $tab['group'] === $group;
+                });
+                if ($group_tabs) {
+                    self::render_nav_group($group_label, $group_tabs, $active);
+                }
+            }
+            ?>
+        </nav>
+        <?php
+    }
+
+    /**
+     * Render one navigation group. A group of links, not form controls, so
+     * role="group" with a label rather than <fieldset>.
+     *
+     * @param string $label  Group label.
+     * @param array  $tabs   The group's tabs.
+     * @param string $active Active tab slug.
+     */
+    private static function render_nav_group($label, array $tabs, $active) {
+        ?>
+        <div class="sps-nav__group" role="group" aria-label="<?php echo esc_attr($label); ?>">
+            <?php foreach ($tabs as $slug => $tab) : ?>
+                <a href="<?php echo esc_url(self::tab_url($slug)); ?>"
+                   class="sps-nav__tab<?php echo $slug === $active ? ' is-active' : ''; ?>"
+                   <?php echo $slug === $active ? 'aria-current="page"' : ''; ?>>
+                    <?php echo esc_html($tab['label']); ?>
+                </a>
+            <?php endforeach; ?>
         </div>
         <?php
     }

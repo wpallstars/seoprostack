@@ -31,6 +31,8 @@ function seoprostack_uninstall_site() {
 
     $options = array(
         'seoprostack_options',
+        // The settings save lock, if a save stopped before releasing it.
+        'seoprostack_options_lock',
         'seoprostack_db_version',
         // Development builds released as "WP Allstars".
         'wp_allstars_options',
