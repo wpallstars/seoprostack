@@ -58,6 +58,13 @@ How changes are made and checked: `DEVELOPMENT.md`. Releases: `RELEASING.md`.
 - `boot()` returns early unless `self::enabled()`. Features are **off by
   default**; the plugin's `AGENTS.md` lists any the owner asked to be on.
   Turning another feature on by default needs the owner's say.
+- A changed default is only sure to reach new installs. A stored setting
+  keeps its value, and every setting is stored, defaults included, by each
+  migration and by any save on the settings screen (`set()` writes them all
+  back). Until then, a setting with no stored value (one added since)
+  follows the current default, so a new setting's default reaches every
+  site. To change a stored value on existing sites, set it in `migrate()`
+  with a `DB_VERSION` bump, and only where the owner agrees.
 - A feature that replaces another plugin sets `'replaces' => array(slug => name)`
   and imports that plugin's settings in `migrate()` with
   `self::import_setting()` (fills only unset keys). It never writes or
@@ -113,6 +120,27 @@ How changes are made and checked: `DEVELOPMENT.md`. Releases: `RELEASING.md`.
   line for a new plugin; keep all three when replacing the starter's
   README and readme.txt. `scripts/preflight-release.sh` warns when a credit
   is missing.
+- Licence: the starter is GPL-3.0-or-later with additional terms under
+  GPL-3.0 section 7(b), set out in `ATTRIBUTION.txt`, and so is every plugin
+  made from it (WordPress.org accepts GPLv3). The terms make the credit part
+  of the licence: keep the copyright notices, the line starting "Made from "
+  in `README.md` and `readme.txt`, and `ATTRIBUTION.txt`. Keep `LICENSE` and
+  `ATTRIBUTION.txt` (core files; both ship in both zips, and `ATTRIBUTION.txt`
+  keeps the starter's names word for word), the `License:` and
+  `License URI:` headers in the main file and `readme.txt` (the same licence
+  in both), the GPL notice in the main file's comment, the SPDX lines at the
+  top of each source file (licence, copyright, and the pointer to
+  `ATTRIBUTION.txt`; a plugin's own new files carry its own copyright), and
+  the starter's copyright line, "Copyright (C) 2026 Marcus Quinn", in the
+  main file and in `README.md` → License. Add your own copyright line above
+  it; never replace or remove the starter's. `scripts/rename-plugin.sh`
+  writes both for a new plugin: the plugin's own (this year and `--author`),
+  then the starter's as "Parts copyright (C) 2026 Marcus Quinn, from" the
+  starter's name and link. `scripts/preflight-release.sh` errors when
+  `LICENSE` or `ATTRIBUTION.txt` is missing from a zip or the two licences
+  differ, and warns when the licence is not GPL-3.0-or-later, when
+  `ATTRIBUTION.txt` is missing, or when a copyright line or a source file's
+  SPDX copyright line is missing.
 - Every plugin except SEO Pro Stack keeps the line starting "Works well
   with " that recommends SEO Pro Stack
   (<https://github.com/wpallstars/seoprostack>), the base plugin for every
@@ -177,6 +205,15 @@ adds docs as it grows.
   `function_exists()` or `method_exists()`.
 - Capability and nonce checks on every admin action and AJAX handler; escape on
   output; sanitise through the schema.
+- SQL goes through `$wpdb->prepare()`: values as `%s`, `%d` or `%f`, and the
+  plugin's own table and column names as `%i` (WordPress 6.2), never put
+  into the query string. Core tables use `$wpdb->posts`, `$wpdb->options`
+  and the like. Plugin Check warns
+  `PluginCheck.Security.DirectDB.UnescapedDBParameter` otherwise.
+- A notice shown once after an action, read from a query argument
+  (`?{prefix}_done=…`), adds that argument to `removable_query_args`, so
+  WordPress takes it out of the address and a reload does not show the
+  notice again.
 - Prefix everything global with `{prefix}_`, `{Prefix}_` or `{PREFIX}_`. The
   shared GitHub updater is the one exception: its `wpallstars_` names are the
   same in every plugin, so that one copy can stand in for the others.
@@ -207,7 +244,10 @@ adds docs as it grows.
   `WP_Query`, cron, the HTTP API, the Settings and REST APIs) before writing
   your own, and follow the WordPress Coding Standards (`phpcs.xml.dist`).
   Fix a PHPCS finding in the code; an inline `phpcs:ignore` needs the
-  sniff and the reason, on that line only.
+  sniff and the reason, on that line only. The same goes for an inline
+  `NOSONAR` (SonarCloud): the reason on that line, such as
+  `// NOSONAR: a cache key, not security.` for `md5()` used as a
+  fingerprint or cache key.
 
 ## Performance
 

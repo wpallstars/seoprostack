@@ -32,6 +32,10 @@
 #
 # Needs a clean working tree. Then update README.md, readme.txt,
 # changelog.txt, AGENTS.md and the banner (STANDARDS.md and DEVELOPMENT.md say how).
+#
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Marcus Quinn
+# Additional terms (GPL-3.0 section 7(b)): ATTRIBUTION.txt
 
 set -euo pipefail
 
@@ -208,7 +212,7 @@ set_badges() {
 	BADGES="<!-- On GitHub only: the Read Me tab skips this block. scripts/rename-plugin.sh rewrites it. -->
 [![CI]($url/actions/workflows/ci.yml/badge.svg?branch=main)]($url/actions/workflows/ci.yml)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=$key&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=$key)
-[![License: GPL v2 or later](https://img.shields.io/badge/License-GPL%20v2%20or%20later-blue.svg)](LICENSE)
+[![License: GPL v3 or later](https://img.shields.io/badge/License-GPL%20v3%20or%20later-blue.svg)](LICENSE)
 [![Latest release](https://img.shields.io/github/v/release/$repo)]($url/releases)
 
 [![Lines of code](docs/metrics/badges/loc.svg)](docs/metrics/repo-metrics.md)
@@ -243,6 +247,26 @@ set_credit() {
 			{ print }' "$file" >"$TMP_FILE"
 		replace_with_tmp "$file" || true
 	done
+	return 0
+}
+
+# Copyright (STANDARDS.md → Structure): the new plugin's own line (this year,
+# its Author), then the starter's, kept as "Parts copyright". Split strings,
+# as in set_credit, so renaming this script leaves them alone.
+set_copyright() {
+	local main_file="$1"
+	local name="WP Plugin ""Starter"
+	local url="https://github.com/wpallstars/wp-plugin-""starter-template-for-ai-coding"
+	local starter="Copyright (C) 2026 Marcus ""Quinn"
+	local parts="Parts copyright (C) 2026 Marcus ""Quinn"
+	local owner year
+	owner="$(plugin_header_field "$(head -c 8192 "$main_file")" "Author")"
+	year="$(date +%Y)"
+	set_line "$main_file" " * $starter" " * Copyright (C) $year $owner
+ * $parts, from $name ($url)"
+	set_line README.md "$starter" "Copyright (C) $year $owner
+
+$parts, from [$name]($url)."
 	return 0
 }
 
@@ -407,6 +431,7 @@ main() {
 	set_version "$slug.php" "$starter_version"
 	set_badges "$repo"
 	set_credit
+	set_copyright "$slug.php"
 	check_php
 
 	printf '%d files changed, %d renamed. Run composer update --lock (the package name changed), review with git diff and git status, then commit.\n' "$changed" "$moved"

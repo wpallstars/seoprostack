@@ -9,6 +9,10 @@
  * through it. Add settings with the `seoprostack_settings_schema` filter or by
  * registering a feature (see SEOProStack_Feature).
  *
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ * SPDX-FileCopyrightText: 2026 Marcus Quinn
+ * Additional terms (GPL-3.0 section 7(b)): ATTRIBUTION.txt
+ *
  * @package SEOProStack
  * @since 0.3.0
  */
