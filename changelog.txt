@@ -2,6 +2,9 @@
 
 Every change to SEO Pro Stack. readme.txt lists the latest version in short.
 
+= Unreleased =
+* Change: the LiteSpeed Cache preset turns CSS Minify and JS Minify off instead of on. Without Combine, LiteSpeed Cache minified every CSS and JS file again on each page that was not in the page cache, which added 0.25 to 1.2 seconds to those pages on test sites. Apply the preset again to take the change.
+
 = 0.12.3 =
 * New, off by default: Pinned posts for any post type can lift pinned items to the top of Kadence Blocks Pro query loops (Query Loop (Adv)), in every loop or only the ones you tick. Page 1 starts with the pins that match the loop's filters, in the loop's order; later pages leave them out without repeating or skipping items. The settings show while Kadence Blocks Pro is active.
 * Fix: Kadence Pro 1.2.5 caused "Failed opening .../kadence-pro/vendor/composer/../psr/container/..." PHP warnings when another plugin loaded a shared library, because its class map lists 348 files it does not ship. Fixes for other plugins drops those entries as SEO Pro Stack loads, so the class loads from the plugin that has it.

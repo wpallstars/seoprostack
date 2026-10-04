@@ -67,6 +67,14 @@ checklists: `TESTING.md`.
   leave them to plugins that specialise in them (LiteSpeed Cache,
   WP-Optimize). SEO Pro Stack may recommend those plugins and set them up
   through their presets, saving through their own code.
+- The LiteSpeed Cache preset leaves CSS and JS Minify off (owner's
+  decision, #285): without Combine, LiteSpeed Cache re-minifies every file
+  on each page-cache miss (0.25–1.2 s per page on Hostinger), and Combine
+  breaks pages. Don't turn them back on in the preset; `README.md` →
+  LiteSpeed hosting has the numbers.
+- Time uncached pages straight to the origin (`curl --resolve`), not from
+  the hosting server through Cloudflare: those requests are held to 2.2 s
+  whenever PHP takes 1.2–2.1 s, which visitors never see (#285).
 - Features that rein in other plugins (Ask before licence checks, Quiet
   Freemius prompts) hand the choice to the owner instead of deciding for
   them, as `STANDARDS.md` → Code rules says.

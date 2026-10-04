@@ -129,6 +129,9 @@ Use **Report a problem** in Settings → SEO Pro Stack or [GitHub](https://githu
 
 == Changelog ==
 
+= Unreleased =
+* Change: LiteSpeed Cache preset leaves CSS and JS Minify off, for faster uncached pages.
+
 = 0.12.3 =
 * New, off: Pinned posts can lead Kadence Blocks Pro query loops.
 * Fix: no "Failed opening" warnings from Kadence Pro when other plugins load shared code.
