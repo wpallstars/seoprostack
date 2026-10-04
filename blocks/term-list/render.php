@@ -13,4 +13,8 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-echo SEOProStack_Spectra_Blocks::render_terms((array) $attributes); // phpcs:ignore WordPress.Security.EscapeOutput -- escaped while built.
+$seoprostack_attributes = (array) $attributes;
+if (isset($block->context['postId'])) {
+    $seoprostack_attributes['postId'] = (int) $block->context['postId'];
+}
+echo SEOProStack_Term_List::render($seoprostack_attributes); // phpcs:ignore WordPress.Security.EscapeOutput -- escaped while built.

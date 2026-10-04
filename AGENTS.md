@@ -33,6 +33,14 @@ checklists: `TESTING.md`.
 
 ## Features
 
+- Scope (owner's principle): offer everything a core CMS should have, so
+  set-up is quick, easy and fast, and daily use is intuitive and versatile,
+  with WordPress's own APIs, blocks and screens, compatible with Kadence and
+  its light and dark modes on the front end. Specialist Pro add-ons stay
+  with their providers. When a plugin mixes the two (TaxoPress: displays
+  and clean-up are core; auto-tagging, AI and automatic linking are
+  specialist), build the core part, keep pages made with the plugin
+  working after it is deactivated, and stop recommending it.
 - On by default, at the owner's request: Hide admin bar items, which hides
   Comments and + New, No fade between admin screens, Quiet Freemius prompts,
   Fixes for other plugins and Updates from GitHub (GitHub builds only).

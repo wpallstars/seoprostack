@@ -1,0 +1,98 @@
+/* seoprostack/related-posts. Colours and fonts come from the theme unless set on the block. */
+
+:where(.wp-block-seoprostack-related-posts) {
+	margin-top: 2em;
+	margin-bottom: 1.5em;
+}
+
+.wp-block-seoprostack-related-posts__title {
+	margin: 0 0 0.75em;
+}
+
+/* Two classes, so theme content list rules (Kadence's .single-content ul) do not indent it. */
+.wp-block-seoprostack-related-posts .wp-block-seoprostack-related-posts__list {
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.sps-related--list .wp-block-seoprostack-related-posts__list {
+	padding-left: 1.25em;
+	list-style: disc;
+}
+
+.sps-related--list .wp-block-seoprostack-related-posts__item + .wp-block-seoprostack-related-posts__item {
+	margin-top: 0.4em;
+}
+
+.wp-block-seoprostack-related-posts__date {
+	display: inline-block;
+	font-size: 0.875em;
+	opacity: 0.75;
+}
+
+/* Grid: a card per post. Borders are translucent so they suit light and dark palettes (Kadence's switcher included). */
+.sps-related--grid .wp-block-seoprostack-related-posts__list {
+	display: grid;
+	grid-template-columns: repeat(var(--sps-related-columns, 4), minmax(0, 1fr));
+	gap: 1.25em;
+}
+
+.sps-related--grid .wp-block-seoprostack-related-posts__item {
+	display: flex;
+	flex-direction: column;
+	gap: 0.35em;
+	margin: 0;
+}
+
+.sps-related--grid .wp-block-seoprostack-related-posts__link {
+	display: flex;
+	flex-direction: column;
+	gap: 0.6em;
+	text-decoration: none;
+	font-weight: 600;
+	line-height: 1.35;
+}
+
+.sps-related--grid .wp-block-seoprostack-related-posts__link:hover .wp-block-seoprostack-related-posts__name,
+.sps-related--grid .wp-block-seoprostack-related-posts__link:focus .wp-block-seoprostack-related-posts__name {
+	text-decoration: underline;
+}
+
+.wp-block-seoprostack-related-posts__media {
+	display: block;
+	overflow: hidden;
+	aspect-ratio: 16 / 10;
+	border-radius: 4px;
+	background: rgba(127, 127, 127, 0.12);
+}
+
+.wp-block-seoprostack-related-posts__media img {
+	display: block;
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+	transition: transform 0.3s ease;
+}
+
+.wp-block-seoprostack-related-posts__link:hover .wp-block-seoprostack-related-posts__media img {
+	transform: scale(1.03);
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.wp-block-seoprostack-related-posts__media img {
+		transition: none;
+	}
+}
+
+@media (max-width: 1024px) {
+	.sps-related--grid .wp-block-seoprostack-related-posts__list {
+		grid-template-columns: repeat(var(--sps-related-columns-small, 2), minmax(0, 1fr));
+	}
+}
+
+@media (max-width: 600px) {
+	.sps-related--grid .wp-block-seoprostack-related-posts__list {
+		grid-template-columns: minmax(0, 1fr);
+	}
+}

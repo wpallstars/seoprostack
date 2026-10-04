@@ -1,0 +1,33 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "seoprostack/related-posts",
+	"version": "0.11.11",
+	"title": "Related posts",
+	"category": "widgets",
+	"icon": "excerpt-view",
+	"description": "Posts that share the most categories, tags or other terms with this one.",
+	"keywords": [ "related", "similar", "posts", "tags", "categories" ],
+	"textdomain": "seoprostack",
+	"usesContext": [ "postId" ],
+	"attributes": {
+		"taxonomies": { "type": "array", "items": { "type": "string" }, "default": [] },
+		"number": { "type": "number", "default": 4 },
+		"layout": { "type": "string", "enum": [ "grid", "list" ], "default": "grid" },
+		"columns": { "type": "number", "default": 4 },
+		"showImage": { "type": "boolean", "default": true },
+		"showDate": { "type": "boolean", "default": false },
+		"showTitle": { "type": "boolean", "default": true },
+		"title": { "type": "string", "default": "" }
+	},
+	"supports": {
+		"html": false,
+		"anchor": true,
+		"align": [ "wide", "full" ],
+		"color": { "background": true, "text": true, "link": true },
+		"spacing": { "margin": true, "padding": true },
+		"typography": { "fontSize": true, "lineHeight": true }
+	},
+	"editorScript": "file:./index.js",
+	"style": "file:./style.css"
+}

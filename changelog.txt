@@ -2,7 +2,11 @@
 
 Every change to SEO Pro Stack. readme.txt lists the latest version in short.
 
-= Unreleased =
+= 0.12.0 =
+* New, off by default: Tag clouds and related posts (Content tab). A Related posts block, also added after the content of chosen post types, weighs shared rare terms above common ones and respects Restrict content. The Term list block gains tag clouds, comma-separated lines, A–Z indexes, the current post's terms, order and number limits, and groups (by top-level term or Tag Groups' groups) under headings, in an accordion or in tabs, styled for light and dark palettes such as Kadence's.
+* New: after TaxoPress or Tag Groups is deactivated, their taxonomies, blocks, shortcodes, widgets and template functions keep working from their saved settings, which are only read. Automatic term links, auto-tagging and Tag Groups Pro's post filters are left out. The feature switches itself on while either is active and in use (settings version 20).
+* New: Term tools adds All | Unused (N) above term lists, to find terms with no posts and delete them in bulk.
+* Change: Discover no longer recommends TaxoPress Pro.
 * Change: Pro Plugins no longer recommends Comment Goblin: its server, commentgoblin.com, answered with a certificate for another name, so its site and update checks failed. Sites that have it keep its fix in Fixes for other plugins.
 * Fix: on LiteSpeed servers, Action Scheduler runs (WooCommerce, Rank Math, FluentCRM and others) and WordPress cron were stopped as soon as the request that started them hung up, because LiteSpeed stops PHP then, before the request has sent output. Actions failed after 300 seconds, and a query stopped in the middle left "Commands out of sync" database errors at shutdown. Fixes for other plugins sets LiteSpeed's noabort variable for those two requests in a block at the top of .htaccess, removed when the fix is turned off or SEO Pro Stack is deactivated.
 

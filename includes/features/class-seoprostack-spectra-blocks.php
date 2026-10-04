@@ -44,12 +44,6 @@ class SEOProStack_Spectra_Blocks extends SEOProStack_Feature {
     /** Stylesheet for Spectra blocks that keep their saved HTML. */
     const LEGACY_STYLE = 'seoprostack-spectra-legacy';
 
-    /** List markers offered by the block ('' = theme default). */
-    const MARKERS = array('', 'none', 'disc', 'circle', 'square', 'decimal');
-
-    /** Most terms a list shows (filterable through seoprostack_term_list_args). */
-    const MAX_TERMS = 1000;
-
     /**
      * Settings.
      *
@@ -101,7 +95,7 @@ class SEOProStack_Spectra_Blocks extends SEOProStack_Feature {
             return;
         }
         // boot() runs on init, which is where blocks are registered.
-        register_block_type(SEOPROSTACK_DIR . 'blocks/term-list');
+        SEOProStack_Term_List::register();
         if (!WP_Block_Type_Registry::get_instance()->is_registered(self::LEGACY)) {
             // No attributes are declared, so all of Spectra's stored ones
             // reach render_legacy() unchanged.
@@ -209,218 +203,37 @@ class SEOProStack_Spectra_Blocks extends SEOProStack_Feature {
             $mapped['gap'] = $a['rowGap'];
         }
 
-        $classes = array('wp-block-seoprostack-term-list');
+        $classes = array();
         if (!empty($a['block_id'])) {
             $classes[] = 'uagb-block-' . sanitize_html_class((string) $a['block_id']);
         }
 
         // The Term list's styles and drop-down script are registered with
         // its block type, which is not the block being drawn here.
-        $type = WP_Block_Type_Registry::get_instance()->get_registered(self::BLOCK);
-        if ($type) {
-            foreach ($type->style_handles as $handle) {
-                wp_enqueue_style($handle);
-            }
-            if ('dropdown' === $layout) {
-                foreach ($type->view_script_handles as $handle) {
-                    wp_enqueue_script($handle);
-                }
-            }
-        }
+        SEOProStack_Term_List::enqueue_assets('dropdown' === $layout);
 
         return self::render_terms($mapped, $classes);
     }
 
     /**
-     * Build a term list.
+     * Build a term list (kept for code that calls it; see SEOProStack_Term_List).
      *
      * @param array    $attributes Term list attributes (see blocks/term-list/block.json).
      * @param string[] $classes    Extra wrapper classes.
      * @return string HTML, or '' when there is nothing to show.
      */
     public static function render_terms(array $attributes, array $classes = array()) {
-        $a        = $attributes;
-        $name     = isset($a['taxonomy']) ? sanitize_key($a['taxonomy']) : 'category';
-        $taxonomy = get_taxonomy($name);
-        if (!$taxonomy || !is_taxonomy_viewable($taxonomy)) {
-            return '';
-        }
-
-        $layout   = isset($a['layout']) && in_array($a['layout'], array('list', 'grid', 'dropdown'), true) ? $a['layout'] : 'list';
-        $children = !empty($a['showChildren']) && is_taxonomy_hierarchical($name);
-        $count    = !empty($a['showCount']);
-
-        $args = array(
-            'taxonomy'   => $name,
-            'hide_empty' => empty($a['showEmpty']),
-            'number'     => self::MAX_TERMS,
-        );
-        if (!$children) {
-            $args['parent'] = 0;
-        }
-        /**
-         * Filters the get_terms() arguments of a Term list.
-         *
-         * @param array $args       get_terms() arguments.
-         * @param array $attributes Block attributes.
-         */
-        $terms = get_terms(apply_filters('seoprostack_term_list_args', $args, $a));
-        $terms = is_array($terms) ? $terms : array();
-
-        $style   = array();
-        $classes = array_merge($classes, array('sps-term-list--' . $layout));
-        $marker  = isset($a['marker']) && in_array($a['marker'], self::MARKERS, true) ? $a['marker'] : '';
-        if ('list' === $layout && '' !== $marker) {
-            $classes[] = 'sps-term-list--marker-' . $marker;
-        }
-        if ('dropdown' !== $layout) {
-            $link  = self::clean_color(isset($a['linkColor']) ? $a['linkColor'] : '');
-            $hover = self::clean_color(isset($a['linkHoverColor']) ? $a['linkHoverColor'] : '');
-            if ('' !== $link) {
-                $classes[] = 'has-sps-link-color';
-                $style[]   = '--sps-term-link:' . $link;
-            }
-            if ('' !== $hover) {
-                $classes[] = 'has-sps-hover-color';
-                $style[]   = '--sps-term-link-hover:' . $hover;
-            }
-            if (isset($a['gap']) && is_numeric($a['gap'])) {
-                $classes[] = 'has-sps-gap';
-                $style[]   = '--sps-term-gap:' . max(0, min(200, (int) $a['gap'])) . 'px';
-            }
-        }
-        if ('grid' === $layout) {
-            $columns = isset($a['columns']) ? max(1, min(6, (int) $a['columns'])) : 3;
-            $style[] = '--sps-term-columns:' . $columns;
-            $style[] = '--sps-term-columns-small:' . min($columns, 2);
-        }
-
-        $wrapper = array('class' => implode(' ', $classes));
-        if ($style) {
-            $wrapper['style'] = implode(';', $style) . ';';
-        }
-        $wrapper = function_exists('get_block_wrapper_attributes') ? get_block_wrapper_attributes($wrapper) : '';
-        if ('' === $wrapper) {
-            $wrapper = sprintf('class="%s"', esc_attr(implode(' ', $classes)));
-        }
-
-        if (!$terms) {
-            $empty = isset($a['emptyText']) ? trim((string) $a['emptyText']) : '';
-            return '' === $empty ? '' : sprintf('<div %s><p class="wp-block-seoprostack-term-list__empty">%s</p></div>', $wrapper, esc_html($empty));
-        }
-
-        // Group by parent; terms whose parent is not listed start a branch.
-        $ids = array();
-        foreach ($terms as $term) {
-            $ids[(int) $term->term_id] = true;
-        }
-        $tree = array();
-        foreach ($terms as $term) {
-            $parent          = $children && isset($ids[(int) $term->parent]) ? (int) $term->parent : 0;
-            $tree[$parent][] = $term;
-        }
-
-        if ('dropdown' === $layout) {
-            $id   = function_exists('wp_unique_id') ? wp_unique_id('sps-term-select-') : 'sps-term-select-' . wp_rand();
-            $html = sprintf('<label class="screen-reader-text" for="%s">%s</label>', esc_attr($id), esc_html($taxonomy->labels->name));
-            $html .= sprintf('<select id="%s" class="wp-block-seoprostack-term-list__select" data-sps-term-select><option value="">%s</option>', esc_attr($id), esc_html($taxonomy->labels->name));
-            $html .= self::options($tree, 0, 0, $count);
-            $html .= '</select>';
-            return sprintf('<div %s>%s</div>', $wrapper, $html);
-        }
-
-        $labels = null;
-        if ('grid' === $layout && $count) {
-            $type   = !empty($a['postType']) ? get_post_type_object((string) $a['postType']) : null;
-            $type   = $type ? $type : get_post_type_object((string) reset($taxonomy->object_type));
-            $labels = $type ? $type->labels : null;
-        }
-
-        return sprintf('<div %s>%s</div>', $wrapper, self::items($tree, 0, $count, $labels, 'wp-block-seoprostack-term-list__list'));
+        return SEOProStack_Term_List::render($attributes, $classes);
     }
 
     /**
-     * A level of the list.
-     *
-     * @param array<int,WP_Term[]> $tree   Terms by parent ID.
-     * @param int                  $parent Parent term ID.
-     * @param bool                 $count  Show post counts.
-     * @param object|null          $labels Post type labels for grid counts, or null.
-     * @param string               $class  List class.
-     * @return string
-     */
-    private static function items(array $tree, $parent, $count, $labels, $class) {
-        if (empty($tree[$parent])) {
-            return '';
-        }
-        $html = '<ul class="' . esc_attr($class) . '">';
-        foreach ($tree[$parent] as $term) {
-            $link = get_term_link($term);
-            if (is_wp_error($link)) {
-                continue;
-            }
-            $html .= '<li class="wp-block-seoprostack-term-list__item"><a class="wp-block-seoprostack-term-list__link" href="' . esc_url($link) . '">' . esc_html($term->name) . '</a>';
-            if ($count) {
-                $number = (int) $term->count;
-                $text   = $labels && 0 === $parent
-                    ? number_format_i18n($number) . ' ' . (1 === $number ? $labels->singular_name : $labels->name)
-                    : '(' . number_format_i18n($number) . ')';
-                $html  .= ' <span class="wp-block-seoprostack-term-list__count">' . esc_html($text) . '</span>';
-            }
-            $html .= self::items($tree, (int) $term->term_id, $count, $labels, 'wp-block-seoprostack-term-list__children');
-            $html .= '</li>';
-        }
-        return $html . '</ul>';
-    }
-
-    /**
-     * Drop-down options, children indented under their parent.
-     *
-     * @param array<int,WP_Term[]> $tree   Terms by parent ID.
-     * @param int                  $parent Parent term ID.
-     * @param int                  $depth  Depth.
-     * @param bool                 $count  Show post counts.
-     * @return string
-     */
-    private static function options(array $tree, $parent, $depth, $count) {
-        if (empty($tree[$parent])) {
-            return '';
-        }
-        $html = '';
-        foreach ($tree[$parent] as $term) {
-            $link = get_term_link($term);
-            if (is_wp_error($link)) {
-                continue;
-            }
-            $text  = str_repeat("\u{2014} ", $depth) . $term->name . ($count ? ' (' . number_format_i18n((int) $term->count) . ')' : '');
-            $html .= '<option value="' . esc_url($link) . '">' . esc_html($text) . '</option>';
-            $html .= self::options($tree, (int) $term->term_id, $depth + 1, $count);
-        }
-        return $html;
-    }
-
-    /**
-     * A CSS colour: hex, rgb()/rgba(), a CSS variable, or a palette colour
-     * stored as "var:preset|color|slug". Palette colours become the preset
-     * variable, with the slug kebab-cased as core does, so themes that swap
-     * palettes for dark mode (Kadence's "theme-palette3" →
-     * --wp--preset--color--theme-palette-3) change the colour too.
+     * A CSS colour (kept for code that calls it; see SEOProStack_Term_List).
      *
      * @param mixed $color Colour.
      * @return string Clean colour, or ''.
      */
     public static function clean_color($color) {
-        $color = trim((string) $color);
-        if (0 === strpos($color, 'var:preset|color|')) {
-            $slug = preg_replace('/[^a-z0-9-]/i', '', _wp_to_kebab_case(substr($color, 17)));
-            return '' === $slug ? '' : 'var(--wp--preset--color--' . $slug . ')';
-        }
-        if (preg_match('/^#(?:[0-9a-f]{3,4}|[0-9a-f]{6}|[0-9a-f]{8})$/i', $color)
-            || preg_match('/^rgba?\(\s*[0-9.%\s,\/]+\)$/i', $color)
-            || preg_match('/^var\(--[a-z0-9_-]+\)$/i', $color)) {
-            return $color;
-        }
-        return '';
+        return SEOProStack_Term_List::clean_color($color);
     }
 
     /**
