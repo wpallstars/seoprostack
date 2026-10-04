@@ -107,7 +107,9 @@ class SEOProStack_Database_Cleanup extends SEOProStack_Feature {
 
     /**
      * Hosts' agents that add tasks from outside plugins, on web requests
-     * only: Hostinger's Monarx agent (mnx_*, from PHP's auto_prepend_file).
+     * only: Hostinger's Monarx agent (mnx_*, the monarxprotect PHP
+     * extension). Plugin fixes registers their schedules on cron and WP-CLI
+     * requests, where the agent does not.
      */
     const HOST_CRON = array('mnx_');
 
