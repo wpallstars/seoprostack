@@ -1366,7 +1366,7 @@ final class SEOProStack_Plugin_Loader {
      */
     public static function fingerprint(array $plugins) {
         sort($plugins);
-        return md5(implode("\n", $plugins));
+        return md5(implode("\n", $plugins)); // NOSONAR: a cache or lock key, not security.
     }
 
     /**

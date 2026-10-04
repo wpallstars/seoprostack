@@ -689,7 +689,7 @@ class SEOProStack_Hosting_Needs extends SEOProStack_Feature {
             }
             if ($using && is_readable($file)) {
                 // A changed drop-in starts a new test, without accusing it on day one.
-                $identity = md5($name . '|' . (string) filemtime($file) . '|' . ($on ? $kind . '|' . $host . '|' . $port : ''));
+                $identity = md5($name . '|' . (string) filemtime($file) . '|' . ($on ? $kind . '|' . $host . '|' . $port : '')); // NOSONAR: a fingerprint to notice changes, not security.
                 if (isset($previous['identity'], $previous['probe']) && $previous['identity'] === $identity) {
                     $found = false;
                     $value = wp_cache_get('hosting_probe', 'seoprostack', true, $found);

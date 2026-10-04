@@ -247,7 +247,7 @@ class SEOProStack_Hardening extends SEOProStack_Feature {
         // Servers that do not read .htaccess files get no block. The server
         // is in the hash, so a site moved to another server is synced again.
         $rules = ($on && !empty($is_apache)) ? self::files_rules() : array();
-        $want  = $on ? md5(implode("\n", self::files_rules()) . "\n" . implode("\n", $targets) . "\n" . ($rules ? 'htaccess' : 'none')) : '';
+        $want  = $on ? md5(implode("\n", self::files_rules()) . "\n" . implode("\n", $targets) . "\n" . ($rules ? 'htaccess' : 'none')) : ''; // NOSONAR: a fingerprint to notice changes, not security; stored, so it stays md5.
         $state = (array) get_site_option(self::FILES_STATE, array());
         $had   = isset($state['hash']) ? $state['hash'] : '';
         if ($had === $want && (!isset($state['status']) || 'unwritable' !== $state['status'])) {

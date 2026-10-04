@@ -448,7 +448,7 @@ class SEOProStack_Word_Import extends SEOProStack_Feature {
 
         $parts  = $this->inline($p);
         $inline = trim(implode('', array_filter($parts, 'is_string')));
-        $inline = preg_replace('#^(<br>\s*)+|(<br>\s*)+$#', '', $inline);
+        $inline = preg_replace('#(?:^(?:<br>\s*)+)|(?:(?:<br>\s*)+$)#', '', $inline);
 
         if ($num) {
             $images = implode('', array_map(function ($part) {
@@ -500,7 +500,7 @@ class SEOProStack_Word_Import extends SEOProStack_Feature {
      * @return string
      */
     private function wrap($tag, $text) {
-        $text = trim(preg_replace('#^(<br>\s*)+|(<br>\s*)+$#', '', trim($text)));
+        $text = trim(preg_replace('#(?:^(?:<br>\s*)+)|(?:(?:<br>\s*)+$)#', '', trim($text)));
         if ('' === trim(wp_strip_all_tags($text))) {
             return '';
         }

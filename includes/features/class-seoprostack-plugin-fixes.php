@@ -805,7 +805,7 @@ class SEOProStack_Plugin_Fixes extends SEOProStack_Feature {
             return;
         }
         $rules = (self::enabled() && SEOProStack_Litespeed::is_server()) ? self::noabort_rules() : array();
-        $want  = $rules ? md5(implode("\n", $rules)) : '';
+        $want  = $rules ? md5(implode("\n", $rules)) : ''; // NOSONAR: a fingerprint to notice changes, not security; stored, so it stays md5.
         if ((string) get_site_option(self::NOABORT_SYNCED, '') === $want) {
             return;
         }

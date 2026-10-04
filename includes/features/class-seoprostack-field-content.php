@@ -173,7 +173,7 @@ class SEOProStack_Field_Content extends SEOProStack_Feature {
         }
         $content = implode("\n", $parts);
         // Keeping an excerpt differs from explicitly replacing it with empty text.
-        $hash = md5($content . "\0" . ('' !== $source ? "excerpt\0" . $excerpt : 'keep_excerpt'));
+        $hash = md5($content . "\0" . ('' !== $source ? "excerpt\0" . $excerpt : 'keep_excerpt')); // NOSONAR: a fingerprint to notice changes, not security; stored, so it stays md5.
         if ($hash === get_post_meta($post_id, self::HASH_META, true)) {
             return false;
         }

@@ -250,7 +250,7 @@ class SEOProStack_Svg_Uploads extends SEOProStack_Feature {
         if (false === file_put_contents($path, $clean)) { // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_file_put_contents -- temporary or uploaded file.
             return new WP_Error('svg_unwritable', __('the cleaned file could not be saved.', 'seoprostack'));
         }
-        self::$cleaned[md5($clean)] = true;
+        self::$cleaned[md5($clean)] = true; // NOSONAR: a cache or lock key, not security.
         return true;
     }
 

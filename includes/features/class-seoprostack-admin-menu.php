@@ -716,7 +716,7 @@ class SEOProStack_Admin_Menu extends SEOProStack_Feature {
         }
         $plugins = array_values(array_unique($plugins));
         sort($plugins);
-        return md5(implode('|', $plugins));
+        return md5(implode('|', $plugins)); // NOSONAR: a cache or lock key, not security.
     }
 
     /**
@@ -1004,7 +1004,7 @@ class SEOProStack_Admin_Menu extends SEOProStack_Feature {
         if (!isset($item[0]) || !is_string($item[0]) || false === stripos($item[0], '<img')) {
             return $item;
         }
-        if (!preg_match('#<img\b[^>]*\bsrc=(["\'])(data:image/svg\+xml;base64,[A-Za-z0-9+/=]+)\1[^>]*>#i', $item[0], $img)) {
+        if (!preg_match('#<img\b[^>]*\bsrc=(["\'])(data:image/svg\+xml;base64,[a-z0-9+/=]+)\1[^>]*>#i', $item[0], $img)) {
             return $item;
         }
         $icon    = isset($item[6]) ? (string) $item[6] : '';
