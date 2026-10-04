@@ -58,19 +58,30 @@ Reviewers read the code. Check each against the guidelines before submitting:
 - [ ] **Links in the directories** (Pro Plugins, Hosting, Tools): link straight
       to the product. Affiliate links must be disclosed and not cloaked
       (guideline 12).
-- [ ] **Admin notices** (guideline 11): the plugin's own notices are
-      contextual and dismissible; no promotions in the dashboard.
-- [ ] **Defaults** (guideline 11 and the owner's rule): only Hide admin bar
-      items, No fade between admin screens, Quiet Freemius prompts and Fixes
-      for other plugins are on after activation (Updates from GitHub, also on,
-      is not in this build). Say so in the description, as now.
-- [ ] **Quiet Freemius prompts** (guidelines 7, 9 and 11): it uses the
-      filters Freemius provides for this, stores nothing in the other plugins
-      (none is opted in or out), keeps their licence, account and support
-      features working, and switches off in one click. It only stops prompts
-      that guideline 11 asks plugins to keep few, and it means fewer opt-ins
-      to Freemius's data collection, not more. If a reviewer asks, offer to
-      make it off by default.
+- [x] **Admin notices** (guideline 11): the plugin's own notices are
+      contextual and dismissible; no promotions in the dashboard. Checked
+      for 1.0.0: result notices appear once after an action and drop their
+      query arguments (Replace media, Resize uploads, WebP and AVIF images,
+      Watermark, Duplicate posts, Post versions, Term tools, Short links,
+      presets, deleted-plugin clean-up). Replaced plugins shows only on the
+      Plugins screen with a Hide link. The Rank Math pillar warning shows
+      only on the selected post type's list and goes when fixed. The
+      Developers note shows only on the settings screen it limits. Example
+      notices show only when their setting is on.
+- [x] **Defaults** (guideline 11 and the owner's rule): only Hide admin bar
+      items, No fade between admin screens, Quiet Freemius prompts, Quiet
+      Appsero prompts and Fixes for other plugins are on after activation
+      (Updates from GitHub, also on, is not in this build). Say so in the
+      description, as now (`readme.txt` → Description does).
+- [ ] **Quiet Freemius and Appsero prompts** (guidelines 7, 9 and 11): Quiet
+      Freemius uses the filters Freemius provides for this; Quiet Appsero
+      removes the notice, deactivation-survey and theme-switch hooks from each
+      Appsero Insights object, since Appsero has no filters. Neither stores
+      anything in the other plugins (none is opted in or out); both keep
+      licence, account and support features working, and switch off in one
+      click. They only stop prompts that guideline 11 asks plugins to keep
+      few, and they mean less data sent to Freemius and Appsero, not more. If
+      a reviewer asks, offer to make them off by default.
 - [ ] **Files outside the plugin folder**: Load plugins only where needed
       writes a loader to `wp-content/mu-plugins`, and WebP and AVIF images and
       Watermark write `.htaccess` files in uploads. All are opt-in and removed

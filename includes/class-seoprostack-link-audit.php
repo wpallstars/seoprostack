@@ -14,26 +14,28 @@ final class SEOProStack_Link_Audit {
     /**
      * Read a known table, distinguishing missing schema and query failure.
      *
-     * @param string $suffix Constant table suffix from collect().
-     * @param string $where Constant condition, never request data.
-     * @param string[] $columns Required columns.
+     * @param string               $suffix Constant table suffix from collect().
+     * @param array<string,string> $where  Optional: one column => value to
+     *                                     count; the column must exist.
      * @return int|null
      */
-    private static function count($suffix, $where = '', $columns = array()) {
+    private static function count($suffix, array $where = array()) {
         global $wpdb;
         if (!SEOProStack_Link_Index::has_table($suffix)) {
             return '' === $wpdb->last_error ? 0 : null;
         }
         $table = $wpdb->prefix . $suffix;
-        if ($columns) {
-            // phpcs:ignore WordPress.DB.DirectDatabaseQuery, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- identifier comes only from this class's constant suffixes.
-            $actual = $wpdb->get_col("SHOW COLUMNS FROM `$table`");
-            if (array_diff($columns, $actual)) {
+        // phpcs:disable WordPress.DB.DirectDatabaseQuery -- a one-off read of another plugin's tables for the retirement report; nothing to cache.
+        if ($where) {
+            $column = (string) key($where);
+            if (!in_array($column, (array) $wpdb->get_col($wpdb->prepare('SHOW COLUMNS FROM %i', $table)), true)) {
                 return null;
             }
+            $count = $wpdb->get_var($wpdb->prepare('SELECT COUNT(*) FROM %i WHERE %i = %s', $table, $column, $where[$column]));
+        } else {
+            $count = $wpdb->get_var($wpdb->prepare('SELECT COUNT(*) FROM %i', $table));
         }
-        // phpcs:ignore WordPress.DB.DirectDatabaseQuery, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- table and condition are fixed by collect(), not submitted values.
-        $count = $wpdb->get_var("SELECT COUNT(*) FROM `$table` $where");
+        // phpcs:enable WordPress.DB.DirectDatabaseQuery
         return '' === $wpdb->last_error && null !== $count ? (int) $count : null;
     }
 
@@ -52,7 +54,7 @@ final class SEOProStack_Link_Audit {
             $count = self::count($table);
             $findings[] = array('item' => $label, 'status' => null === $count ? 'unknown' : ($count ? 'blocked' : 'clear'), 'count' => $count, 'note' => __('Saved rules and their undo history are not imported. Export and validate replacements before retiring Link Whisper.', 'seoprostack'));
         }
-        $custom = self::count('wpil_target_keyword_data', "WHERE keyword_type = 'custom-keyword'", array('keyword_type'));
+        $custom = self::count('wpil_target_keyword_data', array('keyword_type' => 'custom-keyword'));
         $findings[] = array('item' => __('Custom target keywords', 'seoprostack'), 'status' => null === $custom ? 'unknown' : ($custom ? 'blocked' : 'clear'), 'count' => $custom, 'note' => __('Rank Math keywords remain available. Link Whisper-only custom keywords need an explicit migration.', 'seoprostack'));
         $clicks = self::count('wpil_click_data');
         $tracking = $whisper && !get_option('wpil_disable_click_tracking', false);

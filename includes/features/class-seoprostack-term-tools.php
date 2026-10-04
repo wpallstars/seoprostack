@@ -282,6 +282,7 @@ class SEOProStack_Term_Tools extends SEOProStack_Feature {
         add_filter("bulk_actions-edit-{$taxonomy}", array(__CLASS__, 'bulk_actions'));
         add_filter("handle_bulk_actions-edit-{$taxonomy}", array(__CLASS__, 'handle'), 10, 3);
         add_action('admin_notices', array(__CLASS__, 'notice'));
+        add_filter('removable_query_args', array(__CLASS__, 'removable_query_args'));
         add_action('admin_footer', array(__CLASS__, 'fields'));
         add_action('admin_footer', array(__CLASS__, 'unused_link'));
         self::$screen_taxonomy = $taxonomy;
@@ -742,6 +743,18 @@ class SEOProStack_Term_Tools extends SEOProStack_Feature {
                 $text  = __('Nothing was changed. Please try again.', 'seoprostack');
         }
         printf('<div class="notice %1$s is-dismissible"><p>%2$s</p></div>', esc_attr($class), esc_html($text));
+    }
+
+    /**
+     * Drop the notice argument from the address after showing it, so a
+     * reload does not show the notice again.
+     *
+     * @param string[] $args Query arguments.
+     * @return string[]
+     */
+    public static function removable_query_args($args) {
+        $args[] = self::NOTICE;
+        return $args;
     }
 
     /**
