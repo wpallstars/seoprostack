@@ -129,6 +129,9 @@ Use **Report a problem** in Settings → SEO Pro Stack or [GitHub](https://githu
 
 == Changelog ==
 
+= Unreleased =
+* New: Hosting needs finds the site's CDN and suggests one when there is none.
+
 = 0.12.6 =
 * Fix: pinned items on archives take places on the pages, so none shows twice.
 

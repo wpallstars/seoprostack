@@ -2,6 +2,9 @@
 
 Every change to SEO Pro Stack. readme.txt lists the latest version in short.
 
+= Unreleased =
+* New: Hosting needs finds the CDN in front of the site (Cloudflare, QUIC.cloud, Bunny CDN, CDN77, Fastly, Sucuri, or one set up in LiteSpeed Cache, CDN Enabler or Jetpack) and suggests one when there is none: QUIC.cloud through LiteSpeed Cache on a LiteSpeed server, Cloudflare's free plan elsewhere. Site Health Info gains a CDN line. When the site cannot reach its own home page, the CDN is shown as unknown and nothing is suggested.
+
 = 0.12.6 =
 * Fix: on post type archives and the term archives you choose, pinned items now take places on the pages, as in Kadence query loops: the archive's pinned items lead it in its order, then the rest in the same order, each page keeps its size, and no item shows twice. Pinned items were added on top of page 1, which made it longer, and listed again in their own place on a later page.
 
