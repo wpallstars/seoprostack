@@ -351,6 +351,9 @@ delete_site_transient('wpallstars_github_releases');
 delete_site_transient('seoprostack_github_releases');
 // Fixes for other plugins: Comment Goblin's update server failed recently.
 delete_site_transient('seoprostack_comment_goblin_failed');
+// Fixes for other plugins: what the LiteSpeed noabort block holds (the
+// block itself is removed on deactivation).
+delete_site_option('seoprostack_noabort_rules');
 
 // The must-use file of "Load plugins only where needed", if it is ours.
 $seoprostack_loader = WPMU_PLUGIN_DIR . '/seoprostack-plugin-loading.php';
