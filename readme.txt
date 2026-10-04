@@ -130,6 +130,8 @@ Use **Report a problem** in Settings → SEO Pro Stack or [GitHub](https://githu
 == Changelog ==
 
 = Unreleased =
+* New, off: pin items from an ACF or SCF true/false field, such as "Featured".
+* Change: pinned items in Kadence query loops count towards each page, and result counts include them.
 * Change: LiteSpeed Cache preset leaves CSS and JS Minify off, for faster uncached pages.
 
 = 0.12.3 =
