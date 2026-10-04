@@ -1226,7 +1226,7 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folder�
 
 ## Changelog
 
-### Unreleased
+### 0.12.3
 
 - New, off by default: **Pinned posts for any post type** can lift pinned items to the top of Kadence Blocks Pro query loops (Query Loop (Adv)), in every loop or only the ones you tick (`sticky_posts_kadence`, `sticky_posts_kadence_loops`). Kadence pages its loops with an offset, so WordPress’s own sticky handling either ignored the pins or showed them again on every page; now page 1 starts with the pins that match the loop’s filters, in the loop’s order, and later pages leave them out without skipping items. The settings show while Kadence Blocks Pro is active.
 - Fix: Kadence Pro 1.2.5 caused “Failed opening …/kadence-pro/vendor/composer/../psr/container/…” PHP warnings when another plugin loaded a shared library, because its class map lists 348 files it does not ship. **Fixes for other plugins** drops those entries as SEO Pro Stack loads, so the class loads from the plugin that has it.
