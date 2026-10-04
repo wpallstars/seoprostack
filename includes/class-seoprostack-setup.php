@@ -101,6 +101,7 @@ final class SEOProStack_Setup {
         'SEOProStack_Licence_Calls',
         'SEOProStack_Plugin_Fixes',
         'SEOProStack_Hosting_Needs',
+        'SEOProStack_Snippets_Audit',
         'SEOProStack_Plugin_References',
         'SEOProStack_Agency_Orders',
         'SEOProStack_Agency_Dashboard',
