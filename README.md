@@ -1229,7 +1229,7 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folder�
 
 ## Changelog
 
-### Unreleased
+### 0.12.4
 
 - New, off by default: **Pin from a true/false field** (Pinned posts for any post type) pins items while an ACF or Secure Custom Fields true/false field of their type is on, such as “Featured”, and pinning or unpinning an item sets the field (`post_stuck` / `post_unstuck`). Choosing a field pins and unpins the items of its type to match it. In the editor, the field takes the place of **Pin to the top** (GitHub issue #355).
 - Changed: in Kadence query loops, pinned items take places on the pages instead of being added on top of page 1, so a loop with many pinned items keeps its page size, and its result count and number of pages include them (they were short by the number of pinned items).

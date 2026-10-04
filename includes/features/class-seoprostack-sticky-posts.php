@@ -466,7 +466,6 @@ class SEOProStack_Sticky_Posts extends SEOProStack_Feature {
             'posts_per_page'   => -1,
             'fields'           => 'ids',
             'no_found_rows'    => true,
-            'suppress_filters' => true,
             'meta_query'       => $clauses, // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query -- once, when a field is chosen.
         )));
         $sticky = array_map('intval', (array) get_option('sticky_posts', array()));

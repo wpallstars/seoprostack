@@ -2,7 +2,7 @@
 
 Every change to SEO Pro Stack. readme.txt lists the latest version in short.
 
-= Unreleased =
+= 0.12.4 =
 * New, off by default: Pinned posts for any post type can pin items from an ACF or Secure Custom Fields true/false field of a pinnable type, such as "Featured". Items are pinned while the field is on (whether it is set in the editor, through the REST API, WP-CLI or an import), and pinning or unpinning an item in the pin column or Quick Edit sets the field. Choosing a field pins and unpins the items of its type to match it. In the editor, the field takes the place of the Pin to the top option. The setting shows while ACF, ACF Pro or Secure Custom Fields is active.
 * Change: in Kadence Blocks Pro query loops, pinned items now take places on the pages like any other item instead of being added on top of page 1, so each page keeps the loop's size however many items are pinned (pinned items in the loop's order, then the rest in the same order). The loop's result count and number of pages now include the pinned items; they were short by that number.
 * Change: the LiteSpeed Cache preset turns CSS Minify and JS Minify off instead of on. Without Combine, LiteSpeed Cache minified every CSS and JS file again on each page that was not in the page cache, which added 0.25 to 1.2 seconds to those pages on test sites. Apply the preset again to take the change.
