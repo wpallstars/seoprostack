@@ -277,7 +277,7 @@
 .sps-wrap .sps-go-pro::before {
 	content: "\f155";
 	margin-inline-end: 4px;
-	font: normal 16px/1 dashicons;
+	font: normal 16px/1 dashicons, sans-serif;
 	vertical-align: -3px;
 	color: #dba617;
 }

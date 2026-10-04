@@ -2343,7 +2343,7 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
             // "FluentCRM" and "Fluent Forms".
             $pro_name = self::before_tagline((string) $headers['name']);
             if (preg_match('/\b(pro|premium)\b/i', $pro_name)) {
-                $stripped = self::plain_name(preg_replace('/\b(pro|premium|add[\s-]*ons?|addons?|pack)\b/i', '', $pro_name));
+                $stripped = self::plain_name(preg_replace('/\b(pro|premium|add[\s-]*ons?|pack)\b/i', '', $pro_name));
                 if ('' !== $stripped && isset($by_name[$stripped])) {
                     $bases[] = $by_name[$stripped];
                 }
