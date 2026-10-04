@@ -131,6 +131,9 @@ Use **Report a problem** in Settings → SEO Pro Stack or [GitHub](https://githu
 
 == Changelog ==
 
+= Unreleased =
+* Fix: menu width; WP Crontrol cron status.
+
 = 0.12.8 =
 * New: database clean-up removes tasks of plugins that are gone.
 * New: Hosting needs names settings saved on most page views.

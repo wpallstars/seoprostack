@@ -5,6 +5,8 @@ Every change to SEO Pro Stack. readme.txt lists the latest version in short.
 = Unreleased =
 * Changed: for questions, ask aidevops, which reads the plugin's docs and code to answer (Built with AI, and the Read Me's Report a problem paragraph). The plugin also credits WP Plugin Starter, the starter it is made from.
 * Developers: core files synced with the starter plugin 1.0.8: STANDARDS.md keeps both credits in every plugin and scripts/preflight-release.sh warns when one is missing; scripts/update-test.sh accepts the release asset's API address that the GitHub updater offers with WPALLSTARS_GITHUB_TOKEN, so the test no longer fails for a private repository. Nothing changes for sites.
+* Fix: Fit the menu to its names no longer keeps the menu wider than its names need after a one-off wider measurement (a badge or notice since gone): a remembered width more than 24 px above what a screen needs is replaced by that screen's.
+* Change: Fixes for other plugins turns WP Crontrol's "The DISABLE_WP_CRON constant is set to true" notice, which cannot be dismissed, into whether the server's cron job runs: fine while no scheduled event is more than 15 minutes late, a warning naming a late event, and an error once one is more than an hour late.
 
 = 0.12.8 =
 * New: Clean the database weekly can remove scheduled tasks of plugins that are no longer active (unticked by default): tasks nothing ran on web cron checks at least 7 days apart. WordPress's own, hosts' agents' (Hostinger's Monarx, mnx_*) and installed plugins' tasks are never removed; the options list what will go and what went, with Put back.
