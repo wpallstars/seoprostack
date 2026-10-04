@@ -235,6 +235,9 @@ final class SEOProStack_Setup {
         require_once SEOPROSTACK_DIR . 'includes/class-seoprostack-really-simple-security.php';
         require_once SEOPROSTACK_DIR . 'includes/class-seoprostack-term-list.php';
         require_once SEOPROSTACK_DIR . 'includes/class-seoprostack-term-legacy.php';
+        if (is_multisite()) {
+            require_once SEOPROSTACK_DIR . 'includes/class-seoprostack-network-plugins.php';
+        }
         // Usually loaded already by the must-use file of "Load plugins only
         // where needed"; features ask it which plugins are active.
         if (!class_exists('SEOProStack_Plugin_Loader', false)) {
@@ -253,6 +256,9 @@ final class SEOProStack_Setup {
         SEOProStack_Litespeed::init();
         SEOProStack_WP_Optimize::init();
         SEOProStack_Really_Simple_Security::init();
+        if (class_exists('SEOProStack_Network_Plugins', false)) {
+            SEOProStack_Network_Plugins::init();
+        }
 
         // Fixes that cannot wait for the features' boot on init.
         SEOProStack_Plugin_Fixes::early();
