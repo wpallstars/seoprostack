@@ -328,7 +328,11 @@ class SEOProStack_Remove_Cpt_Base extends SEOProStack_Feature {
      * Send old addresses with the base to the short one.
      */
     public static function redirect_old() {
-        if ('' !== self::$resolved || !is_singular(self::types()) || is_preview() || is_embed() || is_feed() || is_trackback()) {
+        // No chosen type registered on this request (its plugin not loaded):
+        // is_singular( array() ) is true for any item, front page included,
+        // and a 301 from that is cached by browsers long after (#390).
+        $types = self::types();
+        if (!$types || '' !== self::$resolved || !is_singular($types) || is_preview() || is_embed() || is_feed() || is_trackback()) {
             return;
         }
         $method = isset($_SERVER['REQUEST_METHOD']) ? strtoupper(sanitize_key(wp_unslash($_SERVER['REQUEST_METHOD']))) : 'GET';
@@ -336,7 +340,7 @@ class SEOProStack_Remove_Cpt_Base extends SEOProStack_Feature {
             return;
         }
         $post = get_queried_object();
-        if (!$post instanceof WP_Post || 'publish' !== $post->post_status || self::is_taken($post)) {
+        if (!$post instanceof WP_Post || !in_array($post->post_type, $types, true) || 'publish' !== $post->post_status || self::is_taken($post)) {
             return;
         }
         $target = get_permalink($post);
