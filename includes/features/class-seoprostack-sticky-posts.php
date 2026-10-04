@@ -471,7 +471,7 @@ class SEOProStack_Sticky_Posts extends SEOProStack_Feature {
         $on = array_map('intval', get_posts(array(
             'post_type'        => $type,
             'post_status'      => 'any',
-            'posts_per_page'   => -1,
+            'posts_per_page'   => -1, // phpcs:ignore WordPressVIPMinimum.Performance.NoPaging -- IDs only, once when a field is chosen; every match goes into sticky_posts.
             'fields'           => 'ids',
             'no_found_rows'    => true,
             'meta_query'       => $clauses, // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query -- once, when a field is chosen.
@@ -900,7 +900,8 @@ class SEOProStack_Sticky_Posts extends SEOProStack_Feature {
             $rest              = array_values(array_diff($in, $pinned));
             $query['post__in'] = $rest ? $rest : array(0);
         } else {
-            $query['post__not_in'] = array_merge($out, $pinned);
+            // The loop's own exclusions plus the few pinned IDs shown first; paging by offset needs them left out in SQL.
+            $query['post__not_in'] = array_merge($out, $pinned); // phpcs:ignore WordPressVIPMinimum.Performance.WPQueryParams.PostNotIn_post__not_in -- see above.
         }
 
         $count = count($pinned);
@@ -947,7 +948,7 @@ class SEOProStack_Sticky_Posts extends SEOProStack_Feature {
         $vars = array_merge($vars, array(
             'post_type'           => $types,
             'post__in'            => $ids,
-            'posts_per_page'      => -1,
+            'posts_per_page'      => -1, // phpcs:ignore WordPressVIPMinimum.Performance.NoPaging -- limited by post__in, the pinned IDs.
             'fields'              => 'ids',
             'no_found_rows'       => true,
             'ignore_sticky_posts' => true,

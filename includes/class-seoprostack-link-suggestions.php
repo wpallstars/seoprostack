@@ -133,7 +133,9 @@ HTML;
         if (!SEOProStack_Link_Index::eligible($post)) {
             return array();
         }
-        $args = array('post_type' => SEOProStack_Link_Index::types(), 'post_status' => 'publish', 'has_password' => false, 'post__not_in' => array($post_id), 'posts_per_page' => 40, 'no_found_rows' => true);
+        // One more than the 40 wanted: the page itself can be among them and
+        // is dropped below, which is cheaper than post__not_in.
+        $args = array('post_type' => SEOProStack_Link_Index::types(), 'post_status' => 'publish', 'has_password' => false, 'posts_per_page' => 41, 'no_found_rows' => true);
         $candidates = array();
         if ('incoming' === $direction) {
             foreach (self::phrases($post) as $phrase) {
@@ -151,7 +153,7 @@ HTML;
                 $candidates[$target->ID] = $target;
             }
         } elseif ('' !== $target_search) {
-            $query = new WP_Query(array_merge($args, array('s' => sanitize_text_field($target_search), 'posts_per_page' => 80)));
+            $query = new WP_Query(array_merge($args, array('s' => sanitize_text_field($target_search), 'posts_per_page' => 81)));
             $candidates = $query->posts;
         } else {
             $taxonomies = get_object_taxonomies($post->post_type);
@@ -166,6 +168,10 @@ HTML;
             $query = new WP_Query(count($tax_query) > 1 ? array_merge($args, array('tax_query' => $tax_query)) : $args);
             $candidates = $query->posts;
         }
+        // A page never links to itself.
+        $candidates = array_values(array_filter($candidates, function ($candidate) use ($post_id) {
+            return !$candidate instanceof WP_Post || (int) $candidate->ID !== (int) $post_id;
+        }));
         /** Filter bounded candidate posts for language or editorial rules. */
         $candidates = apply_filters('seoprostack_link_suggestion_candidates', array_slice($candidates, 0, 80), $post, $direction);
         $results = array();
