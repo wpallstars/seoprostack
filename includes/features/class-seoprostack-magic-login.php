@@ -33,6 +33,9 @@ class SEOProStack_Magic_Login extends SEOProStack_Feature {
     /** wp-login.php action. */
     const ACTION = 'seoprostack_magic_link';
 
+    /** WP Magic Link Login's shortcode, kept working after it goes. */
+    const SHORTCODE = 'wpmll_form';
+
     /** User meta holding the pending token hash. */
     const META = '_seoprostack_magic_login';
 
@@ -96,11 +99,93 @@ class SEOProStack_Magic_Login extends SEOProStack_Feature {
      * Register hooks when enabled.
      */
     public static function boot() {
+        // Pages made with WP Magic Link Login keep working after it is
+        // deactivated, whether or not this feature is on.
+        add_action('init', array(__CLASS__, 'register_shortcode'), 20);
         if (!self::enabled()) {
             return;
         }
         add_filter('lost_password_html_link', array(__CLASS__, 'add_login_link'));
         add_action('login_form_' . self::ACTION, array(__CLASS__, 'handle'));
+    }
+
+    /**
+     * Take over WP Magic Link Login's [wpmll_form] shortcode, unless that
+     * plugin (still active) has registered it.
+     */
+    public static function register_shortcode() {
+        if (!shortcode_exists(self::SHORTCODE)) {
+            add_shortcode(self::SHORTCODE, array(__CLASS__, 'shortcode'));
+        }
+    }
+
+    /**
+     * [wpmll_form]: the login link form, a password login form while this
+     * feature is off, or a log out link for people already logged in.
+     *
+     * Attributes, as WP Magic Link Login's: heading, description,
+     * login-button-text, logout-link-text and redirect_to (an address, or
+     * "current-page").
+     *
+     * @param array|string $atts Shortcode attributes.
+     * @return string
+     */
+    public static function shortcode($atts) {
+        $atts = shortcode_atts(array(
+            'heading'           => '',
+            'description'       => '',
+            'login-button-text' => '',
+            'logout-link-text'  => '',
+            'redirect_to'       => '',
+        ), $atts, self::SHORTCODE);
+
+        // The page the shortcode is on; wp_validate_redirect() keeps it on this site.
+        $host     = isset($_SERVER['HTTP_HOST']) ? sanitize_text_field(wp_unslash($_SERVER['HTTP_HOST'])) : '';
+        $uri      = isset($_SERVER['REQUEST_URI']) ? sanitize_url(wp_unslash($_SERVER['REQUEST_URI'])) : '/';
+        $current  = wp_validate_redirect(set_url_scheme('//' . $host . $uri), home_url('/'));
+        $redirect = 'current-page' === $atts['redirect_to'] ? $current : (string) $atts['redirect_to'];
+        $redirect = '' !== $redirect ? wp_validate_redirect(sanitize_url($redirect), '') : '';
+
+        if (is_user_logged_in()) {
+            $text = '' !== $atts['logout-link-text'] ? $atts['logout-link-text'] : __('Log out', 'seoprostack');
+            return sprintf(
+                '<p class="sps-magic-logout"><a href="%s">%s</a></p>',
+                esc_url(wp_logout_url($redirect ? $redirect : $current)),
+                esc_html($text)
+            );
+        }
+
+        $html = '<div class="sps-magic-form">';
+        if ('' !== $atts['heading']) {
+            $html .= '<h3>' . esc_html($atts['heading']) . '</h3>';
+        }
+        if ('' !== $atts['description']) {
+            $html .= '<p>' . esc_html($atts['description']) . '</p>';
+        }
+
+        if (!self::enabled()) {
+            $html .= wp_login_form(array(
+                'echo'     => false,
+                'redirect' => $redirect ? $redirect : $current,
+            ));
+            return $html . '</div>';
+        }
+
+        static $count = 0;
+        ++$count;
+        $id     = 'sps-magic-login-' . $count;
+        $button = '' !== $atts['login-button-text'] ? $atts['login-button-text'] : __('Email me a login link', 'seoprostack');
+
+        $html .= sprintf('<form method="post" action="%s">', esc_url(self::url()));
+        $html .= sprintf(
+            '<p><label for="%1$s">%2$s</label><br /><input type="text" name="user_login" id="%1$s" class="input" autocapitalize="off" autocomplete="username" required="required" /></p>',
+            esc_attr($id),
+            esc_html__('Username or Email Address', 'seoprostack')
+        );
+        $html .= wp_nonce_field(self::ACTION . '_request', '_seoprostack_nonce', false, false);
+        $html .= sprintf('<input type="hidden" name="redirect_to" value="%s" />', esc_attr($redirect));
+        $html .= sprintf('<p><button type="submit" class="button wp-element-button">%s</button></p>', esc_html($button));
+        return $html . '</form></div>';
     }
 
     /**
