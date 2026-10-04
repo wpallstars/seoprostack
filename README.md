@@ -59,6 +59,8 @@ A new install starts with the features that are safe on every site switched on, 
 - **Plugins:** Load plugins only where needed, with **Also skip them for people who are logged in**, so it takes every chance to skip plugins once it has learned; Clean up deleted plugins, Plugin sizes and Fixes for other plugins.
 - **Admin and editor:** Organise the admin menu, More menu in the admin bar, Hide admin bar items (Comments and + New), Hide admin notices, Tidy admin screens, Tidy the dashboard, Tidy WooCommerce admin, Readable list columns, Simpler block editor, Notification emails (plugin and theme auto-update reports, unless an update failed), No fade between admin screens, Quiet Freemius prompts and Quiet Appsero prompts.
 
+Also offered on Server: **Faster page counts on long lists**, off by default, with exact totals counted separately from the page.
+
 Copies installed from GitHub releases also have Updates from GitHub on. Sites that already had SEO Pro Stack keep their own settings: the defaults apply to new installs. Each feature can be switched off on its card. Features that replace a separate plugin say so on their card (“Replaces: …”) and import that plugin’s settings once when SEO Pro Stack is updated. The other plugin’s own settings are never changed or deleted. While that plugin is active, the feature waits and the plugin keeps doing the job, so the two never run side by side; the card says so, with a deactivate link that comes back to the same settings tab. Deactivate the plugin to switch over. The Plugins screen lists installed plugins that SEO Pro Stack can replace, with what to do next for each: deactivate it (its setting is on), switch the setting on, or delete it once inactive (single sites; on multisite another site may use it). Each of those plugins also gets a note under its own row saying which SEO Pro Stack setting makes it redundant and what to do next, including inactive plugins whose setting is still off; the notes are not hidden by **Hide**. When an active plugin does things on the site that SEO Pro Stack does not (such as Disable Bloat’s REST API switches), the line names them instead of saying the plugin can go. **Hide** hides the lines shown for that person until another step is needed. Plugins that web hosts add to every new site (Hostinger AI and Hostinger Easy Onboarding) get a note under their row while active, saying what they are for and recommending deactivating them if that is not used, with a Deactivate link; nothing is deactivated or deleted for you.
 
 SEO Pro Stack replaces **53 plugins**, some of them in part, with free and Pro editions counted separately. The 44 that can be downloaded come to 41.9 MB zipped; SEO Pro Stack is 3.1 MB.
@@ -527,6 +529,14 @@ WordPress’s Heartbeat asks the server for news every minute while an admin scr
 
 - **Limit** (both ticked by default): on the site, Heartbeat is left out (a script that needs it still loads it, slowed); on other admin screens it runs once an hour (`heartbeat_settings`; before WordPress 6.7, every 2 minutes, its longest). News such as an expired login waits for the next page.
 - Replaces Disable Bloat’s Heartbeat switch, which turns it off everywhere, editors included. It is imported once (both choices) while Disable Bloat is active.
+
+### Faster page counts on long lists (Server)
+
+Off by default. WordPress normally counts every matching post while fetching one page (`SQL_CALC_FOUND_ROWS`). This fetches the page without that keyword and counts the matching rows separately, without sorting or limiting them. Databases can do this faster on long archives, searches, admin lists and REST collections; totals and page numbers stay exact.
+
+- Uses `posts_request` and `found_posts_query`; WordPress still applies its own total filters and caches the results. Grouped and distinct queries count their result rows, not every joined row.
+- Only recognisable, paged post queries are changed. Queries without totals, suppressed filters, unusual select fields, SQL comments or unsupported clauses keep WordPress’s query. A later plugin’s replacement request is not used to build a count.
+- No database changes or background tasks. Switching it off restores WordPress’s normal counting; its setting lives in the main settings option and is removed on uninstall.
 
 ### Clean the database weekly (Server)
 
@@ -1369,6 +1379,7 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folder�
 - Fix: a page whose content is unknown no longer makes every page of its kind (all posts, say) load every plugin. That page still loads every plugin; the kind is learned from a page with known content (GitHub issue #425).
 - Change: the plugin description says "no paid version" instead of "no pro version".
 - Change: WordPress.org gets each version 30 days after its GitHub release instead of 90 (from WP Plugin Starter 1.0.18); security releases still go there at once.
+- New: **Faster page counts on long lists** (Server, off by default) counts matching rows separately from paged post queries, keeping exact totals and page numbers (GitHub issue #430).
 
 ### 0.14.1
 
