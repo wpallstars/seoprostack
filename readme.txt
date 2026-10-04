@@ -13,19 +13,19 @@ One free plugin for a faster, tidier WordPress. It does the jobs of 40+ single-p
 
 == Description ==
 
-Faster admin, writing, media, safer logins and tested plugin settings. Turn on only what you use.
+Faster admin, writing, media, safer logins and tested plugin settings.
 
 Free and open source: no pro version, nothing locked.
 
-Off by default except Hide admin bar items (Comments and + New), No fade between admin screens, Quiet Freemius prompts and Fixes for other plugins. Use **Settings → SEO Pro Stack**; **Search features** also finds replaced plugins. Replacements import settings once, leave them alone and wait while the original plugin is active.
+Off by default except Hide admin bar items (Comments and + New), No fade between admin screens, Quiet Freemius prompts and Fixes for other plugins. Use **Settings → SEO Pro Stack**; **Search features** also finds replaced plugins. Replacements import settings once, never change the original's and wait while it is active.
 
 = A calmer, faster admin =
 
 * **Organise the admin menu**: the same sections on every site, role previews, client safeguards, writing only for contributors.
-* **Tidy the dashboard**, **Dashboard and sidebar widgets**, **Hide admin notices** (behind a megaphone) and a **More menu** for plugins' admin bar items: only what you use stays in view.
+* **Tidy the dashboard**, **Dashboard and sidebar widgets**, **Hide admin notices** (behind a megaphone) and a **More menu** for plugins' admin bar items.
 * **Quiet Freemius prompts** (on): no opt-in nags, upgrade offers or deactivation surveys.
 * **Tidy admin screens**, **Tidy WooCommerce admin**, **Tidy the login screen**, **Simpler block editor**, **Remove WordPress extras**, **Fewer Heartbeat requests**, **Limit post revisions** and **Lighter WooCommerce pages**: most of Disable Bloat.
-* **Modern admin colours**, **No fade between admin screens** (on), **Readable list columns** and **Notification emails** (stop routine emails one by one).
+* **Modern admin colours**, **No fade between admin screens** (on), **Readable list columns** and **Notification emails** (stop routine emails).
 
 = Safer logins and access =
 
@@ -43,7 +43,7 @@ Off by default except Hide admin bar items (Comments and + New), No fade between
 * **Custom fields to content**: ACF/SCF text into content and excerpts for chosen post types; skipped fields and WP-CLI sync. Replaces content; check templates for duplicate display.
 * **Restrict content**: posts, parts of posts, categories, blocks and shop products only for members or chosen roles. **Menu item visibility** by login or role.
 * **iFrame block** (only the domains and roles you allow), **Link cards**, **Wikipedia previews**, **Word documents**, **Brand icons** and **Like, save and share**.
-* **Spectra block replacements**: Spectra pages keep working after it is gone. **TranslatePress colours** follow Kadence light and dark modes.
+* **Spectra block replacements** keep pages working without Spectra. **TranslatePress colours** follow Kadence light and dark modes. **Kadence query filters** scroll to results.
 
 = Media =
 
@@ -131,6 +131,7 @@ Use **Report a problem** in Settings → SEO Pro Stack or [GitHub](https://githu
 
 = 0.12.2 =
 * New, off: Image loading chooses which pictures load straight away. Replaces Flying Images' lazy loading, in part.
+* New, off: Kadence query filters scroll to results.
 * Change: Magic login links replaces WP Magic Link Login, in part; its [wpmll_form] pages keep working.
 * Change: Tidy the dashboard starts AI Engine Advisor hidden, for developers only.
 * Fix: MainWP Child's Branding footer text no longer shows below front-end pages.

@@ -724,6 +724,14 @@ Lets a site stop using Spectra (Ultimate Addons for Gutenberg) without losing co
 - The options panel lists the posts that still contain Spectra blocks, with edit links.
 - Switches on if Spectra is active and its blocks are in use (settings version 5). Spectra has no settings to import; its blocks carry their own styles.
 
+### Kadence query filters scroll to results (Content)
+
+When a visitor changes a filter (a checkbox, radio button or drop-down) in a Kadence Blocks Pro query loop, the results reload in place, and on a long list the visitor is left partway down the page. This scrolls back up to the top of the loop.
+
+- Scrolls only when the top of the loop is above the window, less **Space above the results** (0 px by default; set it to the height of a sticky header), the admin bar and any `scroll-padding-top` the theme sets. A filter placed outside its loop scrolls to the page’s only loop, or else to the filter itself.
+- With reduced motion set in the visitor’s system, the jump is instant instead of smooth.
+- The script is under 1 KB, printed inline in the footer, without jQuery or a file to download, and only on pages where a query loop (`kadence/query`) was drawn: in the content, a Kadence Element, a block template or a widget. Other pages get nothing. Nothing changes without Kadence Blocks Pro.
+
 ### Copy linked images to Media Library (Media)
 
 When a post is saved, images linked from other sites are copied into the Media Library, resized, attached to the post, and the content is changed to serve the local copy.
@@ -1219,6 +1227,7 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folder�
 
 - Change: **Magic login links** replaces pixolette’s WP Magic Link Login (`wp-magic-link-login`, CodeCanyon), in part. Where it is installed, the Plugins screen says so, and the feature waits while it is active (`replaces` in its settings). Pages using its `[wpmll_form]` shortcode keep a login form after it is deactivated: the login link form, or WordPress’s password form while Magic login links is off.
 - New, off by default: **Image loading** (Speed tab) chooses how many pictures at the top of a post or page load straight away and which pictures and iframes are never lazy-loaded, through WordPress’s own lazy loading (`SEOProStack_Image_Loading`). Replaces Flying Images’ lazy loading, in part, importing its exclusions (settings version 21).
+- New, off by default: **Kadence query filters scroll to results** (Content tab). Changing a filter in a Kadence Blocks Pro query loop scrolls back up to the loop, less an offset for sticky headers (**Space above the results**), instantly with reduced motion. A small inline script, printed only on pages with a query loop, so sites need no custom snippet for it.
 - Changed: Tidy the dashboard shows AI Engine Advisor (`mwai_advisor_widget`) to developers only, in the third column, and unticks it in Screen Options once per person (a `start_hidden` rule; people who saved Screen Options before get it added to their list once), so it starts hidden; ticking it shows it from then on. New `seoprostack_dashboard_start_hidden` user meta, removed on uninstall.
 - Fix: MainWP Child printed the Branding extension’s **Global footer** text, unstyled, below the footer of every front-end page. **Fixes for other plugins** (on by default) leaves it out of the front end; the admin footer text stays.
 
