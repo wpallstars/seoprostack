@@ -117,8 +117,8 @@ function seoprostack_uninstall_site() {
     $options[] = 'seoprostack_link_index';
     $options[] = 'seoprostack_link_tables';
     foreach (array('seoprostack_links', 'seoprostack_link_health', 'seoprostack_link_clicks') as $suffix) {
-        // phpcs:ignore WordPress.DB.DirectDatabaseQuery, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- uninstall removes only fixed plugin-owned table names.
-        $wpdb->query("DROP TABLE IF EXISTS {$wpdb->prefix}$suffix");
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- uninstall removes only fixed plugin-owned table names.
+        $wpdb->query($wpdb->prepare('DROP TABLE IF EXISTS %i', $wpdb->prefix . $suffix));
     }
     foreach (array('_seoprostack_link_scan', '_seoprostack_link_map', '_seoprostack_link_undo') as $meta_key) {
         delete_post_meta_by_key($meta_key);

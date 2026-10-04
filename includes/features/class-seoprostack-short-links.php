@@ -224,6 +224,7 @@ class SEOProStack_Short_Links extends SEOProStack_Feature {
             add_filter('post_row_actions', array(__CLASS__, 'row_actions'), PHP_INT_MAX, 2);
             add_action('pre_get_posts', array(__CLASS__, 'list_query'));
             add_action('admin_notices', array(__CLASS__, 'notices'));
+            add_filter('removable_query_args', array(__CLASS__, 'removable_query_args'));
         }
 
         if (!self::enabled()) {
@@ -1224,6 +1225,17 @@ class SEOProStack_Short_Links extends SEOProStack_Feature {
             printf('<div class="notice notice-success is-dismissible"><p>%s</p></div>', esc_html($text));
         }
         // phpcs:enable
+    }
+
+    /**
+     * Drop the notice arguments from the address after showing them, so a
+     * reload does not show the notices again.
+     *
+     * @param string[] $args Query arguments.
+     * @return string[]
+     */
+    public static function removable_query_args($args) {
+        return array_merge($args, array('sps_link_notice', 'sps_imported', 'sps_skipped', 'sps_left'));
     }
 
     /* --------------------------------------------------------------------- */
