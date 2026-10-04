@@ -2,6 +2,9 @@
 
 Every change to SEO Pro Stack. readme.txt lists the latest version in short.
 
+= Unreleased =
+* Developers: scripts/update-brand-icons.js escapes every slash in an npm package name (CodeQL js/incomplete-sanitization). Nothing changes for sites.
+
 = 0.13.0 =
 * New, off by default: Developer admins (Admin tab). Choose which administrators are developers; everyone else, client administrators included, cannot install, delete or edit plugin and theme code, switch plugins on or off or change the theme, make administrators or edit developers, change the site addresses and administration email, or change permalinks or search engine visibility (all ticked by default), and optionally cannot run updates or add unfiltered HTML. SEO Pro Stack's settings and Plugins row are for developers only. No lockout: switching it on ticks only the person switching it on, the person saving stays on the list, and when no ticked person is still an administrator every administrator is a developer. Organise the admin menu's Client safeguards and developer list moved here: sites that had them on get Developer admins switched on with the same limits and developers.
 * New, off by default: Load large settings only where they are used (Speed, single sites). Learns large settings that visitor pages never read, stops autoloading them after enough samples, and restores original flags when switched off or uninstalled. Values stay unchanged; Hosting needs names the three largest settings.

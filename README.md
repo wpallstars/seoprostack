@@ -1339,6 +1339,10 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folderâ
 
 ## Changelog
 
+### Unreleased
+
+- Developers: `scripts/update-brand-icons.js` escapes every slash in an npm package name (CodeQL `js/incomplete-sanitization`). Nothing changes for sites.
+
 ### 0.13.0
 
 - New: [**Developer admins**](#developer-admins-admin) (off by default): choose which administrators are developers; everyone else, client administrators included, cannot install, delete or edit plugin and theme code, switch plugins on or off or change the theme, make administrators or edit developers, change the site addresses and administration email, or change permalinks or search engine visibility (all ticked by default), and optionally cannot run updates or add unfiltered HTML. SEO Pro Stack's settings and Plugins row are for developers only. No lockout: switching it on ticks only the person switching it on, the person saving stays on the list, and when no ticked person is still an administrator every administrator is a developer. Organise the admin menu's **Client safeguards** and developer list moved here (settings version 22 imports them with the same limits and developers), so they work without the organised menu.
