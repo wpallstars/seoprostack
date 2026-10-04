@@ -40,6 +40,9 @@ RELEASING.md
 ROADMAP.md
 STABILITY.md
 TESTING.md
+DESIGN.md
+# Agent and developer task docs (STANDARDS.md → Agent docs).
+/docs
 /scripts
 reference-plugins
 project-documents

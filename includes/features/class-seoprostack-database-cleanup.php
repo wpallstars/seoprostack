@@ -52,8 +52,11 @@ class SEOProStack_Database_Cleanup extends SEOProStack_Feature {
     /** Clean now (admin-post action and nonce). */
     const ACTION = 'seoprostack_database_cleanup_now';
 
-    /** The plugin this replaces on LiteSpeed servers with LiteSpeed Cache. */
-    const REPLACES = array('wp-optimize' => 'WP-Optimize');
+    /** The editions this replaces on LiteSpeed servers with LiteSpeed Cache. */
+    const REPLACES = array(
+        'wp-optimize'         => 'WP-Optimize',
+        'wp-optimize-premium' => 'WP-Optimize Premium',
+    );
 
     /** Seconds a background or Clean now run may take. */
     const BUDGET = 20;

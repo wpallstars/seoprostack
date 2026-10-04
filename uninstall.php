@@ -99,11 +99,28 @@ function seoprostack_uninstall_site() {
     $options[] = 'seoprostack_kadence_brand_icons';
     // Clean the database weekly: the last cleanup's counts.
     $options[] = 'seoprostack_database_cleanup_last';
+    // Linking caches and anonymous daily click totals. Approved links are
+    // ordinary post content and remain; Link Whisper and Rank Math stay untouched.
+    $options[] = 'seoprostack_link_index';
+    $options[] = 'seoprostack_link_tables';
+    foreach (array('seoprostack_links', 'seoprostack_link_health', 'seoprostack_link_clicks') as $suffix) {
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- uninstall removes only fixed plugin-owned table names.
+        $wpdb->query("DROP TABLE IF EXISTS {$wpdb->prefix}$suffix");
+    }
+    foreach (array('_seoprostack_link_scan', '_seoprostack_link_map', '_seoprostack_link_undo') as $meta_key) {
+        delete_post_meta_by_key($meta_key);
+    }
+    foreach (array('seoprostack_link_batch', 'seoprostack_link_click_prune', 'seoprostack_link_click_prune_more') as $hook) {
+        wp_unschedule_hook($hook);
+    }
     foreach ($options as $option) {
         delete_option($option);
     }
     wp_unschedule_hook('seoprostack_database_cleanup');
     wp_unschedule_hook('seoprostack_database_cleanup_more');
+
+    // Copied content and excerpts stay; only the sync fingerprint is ours.
+    delete_post_meta_by_key('_seoprostack_field_content_hash');
 
     // Order flow: links between form entries, tasks and conversations. The
     // entries, tasks, conversations and their log lines are that plugin's
@@ -332,6 +349,8 @@ delete_site_option('seoprostack_nextgen_rules');
 // before it was shared). Only a cache: another plugin's copy asks again.
 delete_site_transient('wpallstars_github_releases');
 delete_site_transient('seoprostack_github_releases');
+// Fixes for other plugins: Comment Goblin's update server failed recently.
+delete_site_transient('seoprostack_comment_goblin_failed');
 
 // The must-use file of "Load plugins only where needed", if it is ours.
 $seoprostack_loader = WPMU_PLUGIN_DIR . '/seoprostack-plugin-loading.php';
