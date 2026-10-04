@@ -45,22 +45,42 @@ own, `readme.txt` headroom, and the community files.
 
 ## WordPress.org: guideline review for this plugin
 
-Reviewers read the code. Check each against the guidelines before submitting:
+Reviewers read the code. Check each against the guidelines before submitting.
+Reviewed on `main` at 0.13.0 plus #418 and #419 (GitHub issue #77):
+`scripts/preflight-release.sh --strict` had 0 errors and only the
+release-time warnings (Unreleased sections, slug, tag), and
+`scripts/plugin-check.sh` had 0 errors and 0 warnings on the WordPress.org
+zip. Check again after changes that touch an item.
 
-- [ ] **No code from elsewhere** (guideline 8): the WordPress.org zip has no
+- [x] **No code from elsewhere** (guideline 8): the WordPress.org zip has no
       GitHub updater, no `GitHub Plugin URI` headers and no other installer; Free
       Plugins installs only WordPress.org plugins through core. Preflight
       checks this.
-- [ ] **External services** (guidelines 6 and 7): every service the plugin
+- [x] **External services** (guidelines 6 and 7): every service the plugin
       contacts is in `readme.txt` → External services, with what is sent and
       when, and links to terms and privacy policy (WordPress.org API,
       screenshot services, Google Analytics). Preflight lists hosts in the code
-      that the readme does not name.
-- [ ] **Scripts and styles ship with the plugin** (guideline 8); Google's
-      gtag.js is part of the Analytics service.
+      that the readme does not name: only google.com, facebook.com and
+      trustpilot.com, the example destinations of starter short links, which
+      are never contacted.
+- [x] **Scripts and styles ship with the plugin** (guideline 8); Google's
+      gtag.js is part of the Analytics service. Preflight: no scripts or
+      styles loaded from other sites.
 - [ ] **Links in the directories** (Pro Plugins, Hosting, Tools): link straight
       to the product. Affiliate links must be disclosed and not cloaked
-      (guideline 12).
+      (guideline 12: "must directly link to the affiliate service, not a
+      redirect or cloaked URL"); guideline 11 adds "tracking referrals via
+      those ads is not permitted" for advertising in the dashboard.
+      Disclosed in `readme.txt` → Affiliate disclosure. The WordPress.org
+      build keeps the same links: `scripts/build-release.sh` only leaves out
+      `.distignore-wporg` files and updater headers. Open, for the owner:
+      Namecheap's link (`namecheap.pxf.io` in
+      `admin/data/hosting-providers.php`) is a tracking redirect, not
+      Namecheap's own domain, so it fails guideline 12 as written; and
+      whether the referral codes (Liquid Web `irpid=` in
+      `admin/data/pro-plugins.php` and `admin/partials/theme-panel.php`,
+      `ref=`, `REFERRALCODE=`, `referral_code=` in Pro Plugins, Hosting and
+      Tools) stay in the WordPress.org build, given guideline 11.
 - [x] **Admin notices** (guideline 11): the plugin's own notices are
       contextual and dismissible; no promotions in the dashboard. Checked
       for 1.0.0: result notices appear once after an action and drop their
@@ -71,12 +91,12 @@ Reviewers read the code. Check each against the guidelines before submitting:
       only on the selected post type's list and goes when fixed. The
       Developers note shows only on the settings screen it limits. Example
       notices show only when their setting is on.
-- [x] **Defaults** (guideline 11 and the owner's rule): only Hide admin bar
-      items, No fade between admin screens, Quiet Freemius prompts, Quiet
-      Appsero prompts and Fixes for other plugins are on after activation
-      (Updates from GitHub, also on, is not in this build). Say so in the
-      description, as now (`readme.txt` → Description does).
-- [ ] **Quiet Freemius and Appsero prompts** (guidelines 7, 9 and 11): Quiet
+- [x] **Defaults** (guideline 11 and the owner's rule): features safe on
+      every site start on (`README.md` → Features lists them); those that
+      need choices or change content, files, people or other plugins'
+      settings stay off. Updates from GitHub, also on in GitHub builds, is
+      not in this build. `readme.txt` → Description says so.
+- [x] **Quiet Freemius and Appsero prompts** (guidelines 7, 9 and 11): Quiet
       Freemius uses the filters Freemius provides for this; Quiet Appsero
       removes the notice, deactivation-survey and theme-switch hooks from each
       Appsero Insights object, since Appsero has no filters. Neither stores
@@ -85,17 +105,29 @@ Reviewers read the code. Check each against the guidelines before submitting:
       click. They only stop prompts that guideline 11 asks plugins to keep
       few, and they mean less data sent to Freemius and Appsero, not more. If
       a reviewer asks, offer to make them off by default.
-- [ ] **Files outside the plugin folder**: Load plugins only where needed
-      writes a loader to `wp-content/mu-plugins`, and WebP and AVIF images and
-      Watermark write `.htaccess` files in uploads. All are opt-in and removed
-      when turned off or on uninstall; say so in `readme.txt`.
-- [ ] **Uninstall** removes every option, meta key, transient, cron hook and
-      file the plugin adds (`uninstall.php`).
-- [ ] **GPL** (guideline 1): all code and images GPL-compatible; credit any
-      bundled third-party code in `readme.txt`.
-- [ ] **Name and trademarks** (guideline 17): the name does not start with
+- [x] **Files outside the plugin folder**: on by default, Load plugins only
+      where needed writes a loader to `wp-content/mu-plugins`, and Fixes for
+      other plugins a block at the top of the site's `.htaccess` on LiteSpeed
+      servers (`# BEGIN SEO Pro Stack background requests`). Optional: Block
+      web access to log and backup files (the site's `.htaccess`), WebP and
+      AVIF images (uploads' `.htaccess`) and Watermark (an `.htaccess` that
+      keeps its originals folder private). Each is removed when switched off
+      or SEO Pro Stack is deactivated, except Watermark's, which stays with
+      the originals. `readme.txt` → FAQ says so.
+- [x] **Uninstall** removes every option, meta key, transient, cron hook and
+      file the plugin adds (`uninstall.php`). The smoke test fails on options
+      and cron hooks left behind; meta keys were checked by hand. Kept on
+      purpose: `_seoprostack_source_url` on imported media, which stays, and
+      the plugins moved by Network Plugins stay activated on each site.
+- [x] **GPL** (guideline 1): all code and images GPL-compatible; credit any
+      bundled third-party code in `readme.txt`. The only third-party files
+      are the brand icons (`assets/brand-icons/`): Simple Icons (CC0) and
+      Font Awesome Free brand icons (CC BY 4.0, GPLv3-compatible), credited
+      in `assets/brand-icons/LICENSE.txt`, which ships, and in `readme.txt`.
+- [x] **Name and trademarks** (guideline 17): the name does not start with
       someone else's brand ("WordPress", "WP", "Woo"...).
-- [ ] **Complete plugin** (guideline 16): nothing unfinished or placeholder.
+- [x] **Complete plugin** (guideline 16): nothing unfinished or placeholder
+      (no TODO, FIXME or placeholder text in the shipped code).
 
 Once listed, sites with the GitHub build update from WordPress.org unless
 **Early updates from GitHub** is on, which keeps them on GitHub releases.
