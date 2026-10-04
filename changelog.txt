@@ -3,6 +3,7 @@
 Every change to SEO Pro Stack. readme.txt lists the latest version in short.
 
 = Unreleased =
+* New: Plugin sizes shows the OPcache memory each plugin's compiled PHP takes now, under its size and in the totals rows. Read once each time the Plugins screen opens, never stored; left out when OPcache is off or its status is kept from sites.
 * Change: in the Licence checks dialog, Once a day is the highlighted button instead of Allow once now, as it is the choice most sites want: pages do not wait and the owner is not asked again.
 * Change: the settings screen's header buttons are Source code (the GitHub repository) and Support (GitHub issues, was Report a problem), with Buy me a coffee, on one row.
 * New: screenshots of the settings screen and the Read Me tab for WordPress.org (.wordpress-org/screenshot-N.png, captioned in readme.txt) and in README.md on GitHub, and WordPress.org icons: the banner's picture on its own (.wordpress-org/icon.svg, exported as icon-256x256.png and icon-128x128.png by scripts/build-banner.sh).
