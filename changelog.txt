@@ -2,7 +2,7 @@
 
 Every change to SEO Pro Stack. readme.txt lists the latest version in short.
 
-= Unreleased =
+= 0.14.0 =
 * New: on multisite, the Network Plugins screen offers to activate network-activated plugins on each site instead, so Load plugins only where needed can leave them out where they are not used. Every site keeps running them, new sites get them, and Undo network-activates them again. Plugins that must run everywhere (email, cache, security, network tools, those that can only be network-activated) stay network-activated and the notice says why. Nothing moves until a super admin asks.
 * Fix: Load plugins only where needed skipped nothing on the pages of most sites built with Kadence Blocks. Block settings such as ["","",""] were read as unknown shortcodes, block widgets were read with their slashes escaped, and inner blocks only the editor registers (accordion panes, countdown timers) counted as unknown, so pages and synced patterns using them loaded every plugin and their page kinds were learned as needing every plugin. On one site the content of 266 of 300 posts is now recognised, up from 208, and its synced patterns and widgets need 5 plugins instead of all 52. Unknown blocks and shortcodes still load every plugin.
 * Developers: SonarCloud findings checked. Website screenshots writes a failed service's message on one debug.log line; Load plugins only where needed drops a regular expression alternative that another one already covers; four regular expressions group their alternatives explicitly (same matches); the Go Pro icon's font has a generic fallback. md5 is used only to notice changes and for cache and lock keys, never for security, and those lines say so for SonarCloud; stored fingerprints stay md5. Nothing else changes for sites.
