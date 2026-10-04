@@ -5,7 +5,7 @@ Tags: magic login, iframe, schedule posts, auto upload images, admin
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 0.12.7
+Stable tag: 0.12.8
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -129,25 +129,16 @@ Use **Report a problem** in Settings → SEO Pro Stack or [GitHub](https://githu
 
 == Changelog ==
 
-= Unreleased =
-* New: Clean the database weekly can remove scheduled tasks of plugins that are no longer active.
-* New: Hosting needs names settings saved again on almost every page view.
-* New: Ask before licence checks stops five premium plugins saving their licence on every request.
-* Fix: Load plugins only where needed keeps what it learned for site pages when plugins save records on page views.
-* New: Really Simple Security 301 .htaccess redirect preset, with guarded native Apply, Reset and Undo; explicit owner action only.
-* New: Site Health names code snippets that slow pages or are not needed.
-
-= 0.12.7 =
-* New: Hosting needs finds the site's CDN and suggests one when there is none.
-* New: block web access to log and backup files, and Site Health names any anyone can download.
-* Fix: archives with pinned items no longer repeat or skip items that share a date.
-
-= 0.12.6 =
-* Fix: pinned items on archives take places on the pages, so none shows twice.
+= 0.12.8 =
+* New: database clean-up removes tasks of plugins that are gone.
+* New: Hosting needs names settings saved on most page views.
+* New: five premium plugins stop saving their licence on every request.
+* Fix: Load plugins only where needed keeps what it learned.
+* New: Really Simple Security 301 redirect preset.
+* New: Site Health names slow or unused code snippets.
+* New: Database key cleanup names each key's plugin.
+* Fix: settings saved at once no longer undo each other.
+* Fix: one notice per convertible Spectra block.
+* Change: clashing short addresses link to both items.
 
 Older: `changelog.txt`.
-
-== Upgrade Notice ==
-
-= 0.11.5 =
-Load plugins only where needed works again on updated sites. With HTTP Requests Manager blocking requests and a private repository: install 0.11.5 once by hand.
