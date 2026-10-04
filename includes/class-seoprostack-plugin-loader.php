@@ -2,6 +2,10 @@
 /**
  * Load chosen plugins in wp-admin only on the screens that need them.
  *
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ * SPDX-FileCopyrightText: 2026 Marcus Quinn
+ * Additional terms (GPL-3.0 section 7(b)): SEOPROSTACK-ATTRIBUTION.txt
+ *
  * Runs from a small must-use file that SEO Pro Stack writes when "Load
  * plugins only where needed" is switched on (see
  * SEOProStack_Plugin_Loading), so it starts before any plugin loads and may
@@ -63,10 +67,6 @@
  * again). `?seoprostack-load-all=1` loads every plugin for one request and
  * learns that screen again; the SEOPROSTACK_LOAD_ALL_PLUGINS constant
  * turns filtering off.
- *
- * SPDX-License-Identifier: GPL-3.0-or-later
- * SPDX-FileCopyrightText: 2026 Marcus Quinn
- * Additional terms (GPL-3.0 section 7(b)): SEOPROSTACK-ATTRIBUTION.txt
  *
  * @package SEOProStack
  * @since 0.4.0

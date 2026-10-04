@@ -2,6 +2,10 @@
 /**
  * Fixes for other plugins.
  *
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ * SPDX-FileCopyrightText: 2026 Marcus Quinn
+ * Additional terms (GPL-3.0 section 7(b)): SEOPROSTACK-ATTRIBUTION.txt
+ *
  * Works around bugs in other plugins that slow sites down, through those
  * plugins' own hooks. Nothing is stored and no other plugin's settings are
  * changed: switching this off brings each bug back as it was.
@@ -130,10 +134,6 @@
  * registered with the interval stored with the task, so it stays scheduled.
  * Its code is not there, so nothing runs, as before. Other tasks whose
  * schedule is missing are still dropped, as WordPress intends.
- *
- * SPDX-License-Identifier: GPL-3.0-or-later
- * SPDX-FileCopyrightText: 2026 Marcus Quinn
- * Additional terms (GPL-3.0 section 7(b)): SEOPROSTACK-ATTRIBUTION.txt
  *
  * @package SEOProStack
  */

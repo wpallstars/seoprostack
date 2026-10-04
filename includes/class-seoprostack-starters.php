@@ -2,6 +2,10 @@
 /**
  * Starter data: example lists, tags, fields and boards for other plugins.
  *
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ * SPDX-FileCopyrightText: 2026 Marcus Quinn
+ * Additional terms (GPL-3.0 section 7(b)): SEOPROSTACK-ATTRIBUTION.txt
+ *
  * Presets (SEOProStack_Presets) set options. Some plugins keep the way you
  * organise your data in their own tables instead: FluentCRM's lists and tags,
  * Fluent Boards' boards. A starter adds SEO Pro Stack's example set of those,
@@ -74,10 +78,6 @@
  * no tickets, no members or posts, no enrolments, pages and settings
  * unchanged). Everything runs through the plugin's own models and fires its
  * own created and deleted actions.
- *
- * SPDX-License-Identifier: GPL-3.0-or-later
- * SPDX-FileCopyrightText: 2026 Marcus Quinn
- * Additional terms (GPL-3.0 section 7(b)): SEOPROSTACK-ATTRIBUTION.txt
  *
  * @package SEOProStack
  * @since 0.7.0
