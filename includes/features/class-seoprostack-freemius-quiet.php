@@ -21,6 +21,10 @@
  * in, and the opt-in page that a plugin shows in place of its own until you
  * choose "Skip" once (that choice is the plugin's to store).
  *
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ * SPDX-FileCopyrightText: 2026 Marcus Quinn
+ * Additional terms (GPL-3.0 section 7(b)): SEOPROSTACK-ATTRIBUTION.txt
+ *
  * @package SEOProStack
  * @since 0.7.0
  */

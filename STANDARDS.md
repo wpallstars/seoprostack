@@ -42,14 +42,11 @@ How changes are made and checked: `DEVELOPMENT.md`. Releases: `RELEASING.md`.
   `scripts/sync-core.sh` in each plugin; `scripts/sync-core.sh --check` lists
   core files that differ. A new plugin starts as a copy of the starter
   renamed with `scripts/rename-plugin.sh`.
-- Every plugin keeps up with the starter. The weekly Starter sync workflow
-  (`.github/workflows/starter-sync.yml`) compares the plugin's core files
-  with the starter's and keeps one issue labelled `starter-sync` open while
-  any differ, with the files and the steps; it closes the issue once they
-  match. Work that issue like any other: sync, check the starter's
-  changelog for changes the plugin's own files need, lint, smoke test,
-  pull request. A change the plugin made to a core file goes into the
-  starter first.
+- Every plugin keeps up with the starter: the weekly Starter sync workflow
+  keeps one `starter-sync` issue open while core files differ
+  (`DEVELOPMENT.md` → Starter sync). Work it like any other issue: sync,
+  check the starter's changelog for changes the plugin's own files need,
+  lint, smoke test, pull request.
 - One class per feature in `includes/features/`, extending `{Prefix}_Feature`,
   registered in `{Prefix}_Setup::FEATURES`. Features some builds leave out
   go in `{Prefix}_Setup::OPTIONAL_FEATURES` and load only when present.
@@ -58,6 +55,13 @@ How changes are made and checked: `DEVELOPMENT.md`. Releases: `RELEASING.md`.
 - `boot()` returns early unless `self::enabled()`. Features are **off by
   default**; the plugin's `AGENTS.md` lists any the owner asked to be on.
   Turning another feature on by default needs the owner's say.
+- A changed default is only sure to reach new installs. A stored setting
+  keeps its value, and every setting is stored, defaults included, by each
+  migration and by any save on the settings screen (`set()` writes them all
+  back). Until then, a setting with no stored value (one added since)
+  follows the current default, so a new setting's default reaches every
+  site. To change a stored value on existing sites, set it in `migrate()`
+  with a `DB_VERSION` bump, and only where the owner agrees.
 - A feature that replaces another plugin sets `'replaces' => array(slug => name)`
   and imports that plugin's settings in `migrate()` with
   `self::import_setting()` (fills only unset keys). It never writes or
@@ -113,6 +117,27 @@ How changes are made and checked: `DEVELOPMENT.md`. Releases: `RELEASING.md`.
   line for a new plugin; keep all three when replacing the starter's
   README and readme.txt. `scripts/preflight-release.sh` warns when a credit
   is missing.
+- Licence: the starter is GPL-3.0-or-later with additional terms under
+  GPL-3.0 section 7(b), set out in `ATTRIBUTION.txt`, and so is every plugin
+  made from it (WordPress.org accepts GPLv3). The terms make the credit part
+  of the licence: keep the copyright notices, the line starting "Made from "
+  in `README.md` and `readme.txt`, and `ATTRIBUTION.txt`. Keep `LICENSE` and
+  `ATTRIBUTION.txt` (core files; both ship in both zips, and `ATTRIBUTION.txt`
+  keeps the starter's names word for word), the `License:` and
+  `License URI:` headers in the main file and `readme.txt` (the same licence
+  in both), the GPL notice in the main file's comment, the SPDX lines at the
+  top of each source file (licence, copyright, and the pointer to
+  `ATTRIBUTION.txt`; a plugin's own new files carry its own copyright), and
+  the starter's copyright line, "Copyright (C) 2026 Marcus Quinn", in the
+  main file and in `README.md` → License. Add your own copyright line above
+  it; never replace or remove the starter's. `scripts/rename-plugin.sh`
+  writes both for a new plugin: the plugin's own (this year and `--author`),
+  then the starter's as "Parts copyright (C) 2026 Marcus Quinn, from" the
+  starter's name and link. `scripts/preflight-release.sh` errors when
+  `LICENSE` or `ATTRIBUTION.txt` is missing from a zip or the two licences
+  differ, and warns when the licence is not GPL-3.0-or-later, when
+  `ATTRIBUTION.txt` is missing, or when a copyright line or a source file's
+  SPDX copyright line is missing.
 - Every plugin except SEO Pro Stack keeps the line starting "Works well
   with " that recommends SEO Pro Stack
   (<https://github.com/wpallstars/seoprostack>), the base plugin for every
@@ -177,6 +202,15 @@ adds docs as it grows.
   `function_exists()` or `method_exists()`.
 - Capability and nonce checks on every admin action and AJAX handler; escape on
   output; sanitise through the schema.
+- SQL goes through `$wpdb->prepare()`: values as `%s`, `%d` or `%f`, and the
+  plugin's own table and column names as `%i` (WordPress 6.2), never put
+  into the query string. Core tables use `$wpdb->posts`, `$wpdb->options`
+  and the like. Plugin Check warns
+  `PluginCheck.Security.DirectDB.UnescapedDBParameter` otherwise.
+- A notice shown once after an action, read from a query argument
+  (`?{prefix}_done=…`), adds that argument to `removable_query_args`, so
+  WordPress takes it out of the address and a reload does not show the
+  notice again.
 - Prefix everything global with `{prefix}_`, `{Prefix}_` or `{PREFIX}_`. The
   shared GitHub updater is the one exception: its `wpallstars_` names are the
   same in every plugin, so that one copy can stand in for the others.
@@ -207,7 +241,10 @@ adds docs as it grows.
   `WP_Query`, cron, the HTTP API, the Settings and REST APIs) before writing
   your own, and follow the WordPress Coding Standards (`phpcs.xml.dist`).
   Fix a PHPCS finding in the code; an inline `phpcs:ignore` needs the
-  sniff and the reason, on that line only.
+  sniff and the reason, on that line only. The same goes for an inline
+  `NOSONAR` (SonarCloud): the reason on that line, such as
+  `// NOSONAR: a cache key, not security.` for `md5()` used as a
+  fingerprint or cache key.
 
 ## Performance
 
@@ -404,43 +441,19 @@ WordPress:
    `phpstan-baseline.neon` or add a `phpcs:ignore` without a reason.
 2. The user reviews on one local test site per plugin, shared by every
    session and worktree. It shows a **combined preview**: `origin/main` plus
-   every open pull request from the repository, merged together. Update it
-   only with the script, from any worktree:
+   every open pull request, merged together. Update it only with
+   `scripts/preview-site.sh`, from any worktree (`--dry-run` reports what it
+   would include); how it works, conflicts and throwaway sites for checks
+   of your own: `DEVELOPMENT.md` → Preview site.
 
-   ```bash
-   scripts/preview-site.sh             # the first run on a clone takes the site: scripts/preview-site.sh "<site>"
-   scripts/preview-site.sh --dry-run   # report what would be included, copy nothing
-   ```
-
-   It fetches `origin`, merges each open PR's branch onto `origin/main` in PR
-   order without touching any checkout, leaves out branches that conflict
-   (and lists them), copies the result with `.distignore` applied (exactly
-   what a release build contains), and writes
-   `<site>/wp-content/{slug}-synced-from.txt` listing what is included.
-   A lock stops two runs at once. Because every run includes everyone's
-   pushed work, no session hides another's.
-
-   - **Never** `rsync` your worktree into the shared site: it hides every
-     other session's work until the next run. Do not use Git hooks either:
-     they are shared by every worktree and would deploy the wrong checkout.
+   - **Never** `rsync` your worktree into the shared site or deploy it with
+     Git hooks (shared by every worktree): either hides every other
+     session's work or deploys the wrong checkout.
    - Only pushed work with an open PR is included. Before asking the user to
      look at unmerged work, push the branch and open a draft PR, then run the
-     script. It says so if the branch you run it from is missing or has
-     commits that are not pushed.
-   - After merging a PR, run the script again, then check that the stamp
-     lists your merge in `main` before telling the user to look.
-   - Conflicts only in `changelog.txt`, `readme.txt` or `README.md` do not
-     leave a branch out: every PR adds lines at the top of the same
-     changelogs, so each merge to `main` would otherwise drop every other
-     open PR. The preview keeps both sides' lines there and says so in the
-     stamp; still merge `origin/main` into your branch before it merges.
-   - If your branch is left out because it conflicts in other files, merge
-     `origin/main` into it (or wait for the other PR), push and run the
-     script again. Tell the user which PRs are left out.
-   - To check your branch on its own, or for checks the user will not look
-     at, use a throwaway site of your own (step 4's Docker image on a free
-     port), which no one else overwrites:
-     `rsync -a --delete --delete-excluded --exclude-from=.distignore ./ "<site>/wp-content/plugins/{slug}/"`.
+     script. After merging a PR, run it again and check that the stamp lists
+     your merge in `main` before telling the user to look. Tell the user
+     which PRs it leaves out.
    - Size every test site, shared or throwaway, as `DEVELOPMENT.md` → Test
      site resources says. PHP's defaults fill up and the slowdowns look like
      bugs.

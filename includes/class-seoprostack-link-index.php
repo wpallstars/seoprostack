@@ -6,6 +6,10 @@
  * Our fallback index is only populated otherwise. Health results are shared
  * by address; visitor requests never build indexes or check remote sites.
  *
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ * SPDX-FileCopyrightText: 2026 Marcus Quinn
+ * Additional terms (GPL-3.0 section 7(b)): SEOPROSTACK-ATTRIBUTION.txt
+ *
  * @package SEOProStack
  */
 

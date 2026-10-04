@@ -1,6 +1,10 @@
 /**
  * seoprostack/post-reactions editor script: a preview of the buttons and
  * which ones to show. Plain ES5, no build step; the server renders the block.
+ *
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ * SPDX-FileCopyrightText: 2026 Marcus Quinn
+ * Additional terms (GPL-3.0 section 7(b)): SEOPROSTACK-ATTRIBUTION.txt
  */
 (function (blocks, element, blockEditor, components, i18n) {
 	'use strict';

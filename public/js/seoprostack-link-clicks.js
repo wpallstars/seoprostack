@@ -1,4 +1,10 @@
-/* Optional aggregate link events: no cookies, visitor IDs or destination URLs. */
+/*
+ * Optional aggregate link events: no cookies, visitor IDs or destination URLs.
+ *
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ * SPDX-FileCopyrightText: 2026 Marcus Quinn
+ * Additional terms (GPL-3.0 section 7(b)): SEOPROSTACK-ATTRIBUTION.txt
+ */
 (function () {
     'use strict';
     if (navigator.globalPrivacyControl || navigator.doNotTrack === '1' || window.doNotTrack === '1' || navigator.webdriver) {

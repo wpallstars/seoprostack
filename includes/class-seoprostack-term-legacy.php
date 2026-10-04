@@ -19,6 +19,10 @@
  * Left out, so their shortcodes and blocks show nothing instead of raw
  * text: Tag Groups Pro's post filters and post lists, and its group info.
  *
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ * SPDX-FileCopyrightText: 2026 Marcus Quinn
+ * Additional terms (GPL-3.0 section 7(b)): SEOPROSTACK-ATTRIBUTION.txt
+ *
  * @package SEOProStack
  * @since 0.11.11
  */

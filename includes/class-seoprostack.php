@@ -3,6 +3,10 @@
  * SEO Pro Stack bootstrap and feature registry. The features and anything
  * else only this plugin needs come from SEOProStack_Setup.
  *
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ * SPDX-FileCopyrightText: 2026 Marcus Quinn
+ * Additional terms (GPL-3.0 section 7(b)): ATTRIBUTION.txt
+ *
  * @package SEOProStack
  * @since 0.3.0
  */

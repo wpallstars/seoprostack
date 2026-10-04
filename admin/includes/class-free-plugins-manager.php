@@ -9,6 +9,10 @@
  * updates.js binds its Update Now handler; cards and rows share their
  * buttons (see SEOProStack_Plugin_Manager::state_buttons()).
  *
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ * SPDX-FileCopyrightText: 2025 Marcus Quinn
+ * Additional terms (GPL-3.0 section 7(b)): SEOPROSTACK-ATTRIBUTION.txt
+ *
  * @package SEOProStack
  * @since 0.2.0
  */

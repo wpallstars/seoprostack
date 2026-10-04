@@ -15,6 +15,10 @@
  * exists are removed from the last two lists and a notice says how many.
  * Replaces the maintainer's "Fix 'Plugin file does not exist' Notices".
  *
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ * SPDX-FileCopyrightText: 2026 Marcus Quinn
+ * Additional terms (GPL-3.0 section 7(b)): SEOPROSTACK-ATTRIBUTION.txt
+ *
  * @package SEOProStack
  * @since 0.4.0
  */

@@ -6,6 +6,10 @@
  * picker or icon is drawn. Icons already in use come with the page; the
  * list and the other shapes load from the plugin's icon files in the
  * background, which the browser keeps.
+ *
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ * SPDX-FileCopyrightText: 2026 Marcus Quinn
+ * Additional terms (GPL-3.0 section 7(b)): SEOPROSTACK-ATTRIBUTION.txt
  */
 (function () {
 	'use strict';

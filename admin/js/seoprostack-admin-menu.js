@@ -15,6 +15,10 @@
  * wp-settings cookie (setUserSetting), as one letter per section, so the
  * page is drawn folded the next time without a flash.
  *
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ * SPDX-FileCopyrightText: 2026 Marcus Quinn
+ * Additional terms (GPL-3.0 section 7(b)): SEOPROSTACK-ATTRIBUTION.txt
+ *
  * @package SEOProStack
  */
 (function (cfg) {

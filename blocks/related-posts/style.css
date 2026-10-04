@@ -1,4 +1,10 @@
-/* seoprostack/related-posts. Colours and fonts come from the theme unless set on the block. */
+/*
+ * seoprostack/related-posts. Colours and fonts come from the theme unless set on the block.
+ *
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ * SPDX-FileCopyrightText: 2026 Marcus Quinn
+ * Additional terms (GPL-3.0 section 7(b)): SEOPROSTACK-ATTRIBUTION.txt
+ */
 
 :where(.wp-block-seoprostack-related-posts) {
 	margin-top: 2em;

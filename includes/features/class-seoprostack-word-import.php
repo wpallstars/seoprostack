@@ -13,6 +13,10 @@
  * Replaces Mammoth .docx converter, without its 600 KB JavaScript library or
  * meta box.
  *
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ * SPDX-FileCopyrightText: 2026 Marcus Quinn
+ * Additional terms (GPL-3.0 section 7(b)): SEOPROSTACK-ATTRIBUTION.txt
+ *
  * @package SEOProStack
  * @since 0.9.1
  */

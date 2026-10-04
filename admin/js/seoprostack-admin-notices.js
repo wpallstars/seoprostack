@@ -23,6 +23,10 @@
  * Notices kept from plugins this screen skipped carry data-sps-stored; using
  * one's dismiss control tells the server to stop showing it (dismissed()).
  *
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ * SPDX-FileCopyrightText: 2026 Marcus Quinn
+ * Additional terms (GPL-3.0 section 7(b)): SEOPROSTACK-ATTRIBUTION.txt
+ *
  * @package SEOProStack
  */
 (function ($, cfg) {

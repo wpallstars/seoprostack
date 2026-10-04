@@ -16,6 +16,10 @@
  * imported, and so is its term order (the `term_order` column it adds to
  * the terms table), which is read and never changed.
  *
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ * SPDX-FileCopyrightText: 2026 Marcus Quinn
+ * Additional terms (GPL-3.0 section 7(b)): SEOPROSTACK-ATTRIBUTION.txt
+ *
  * @package SEOProStack
  * @since 0.9.0
  */

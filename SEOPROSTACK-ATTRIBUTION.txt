@@ -1,0 +1,63 @@
+ATTRIBUTION
+
+SEO Pro Stack (https://github.com/wpallstars/seoprostack) is free software:
+you can use, change and share it, commercially too, under the GNU General
+Public License version 3 or any later version (LICENSE), with the additional
+terms below.
+
+Copyright (C) 2025-2026 Marcus Quinn
+
+These terms cover SEO Pro Stack's own code: every file whose licence lines
+point to this file. The parts that come from WP Plugin Starter (the core files
+in scripts/core-files.txt, and the files made from the starter's) carry the
+starter's terms in ATTRIBUTION.txt as well.
+
+
+WHAT THE LICENCE REQUIRES
+
+- Keep LICENSE, this file, ATTRIBUTION.txt, and the licence lines at the top
+  of each file (SPDX-License-Identifier, SPDX-FileCopyrightText and the
+  pointer to this file).
+- Keep the copyright notice "Copyright (C) 2025-2026 Marcus Quinn" wherever
+  it appears. A work made from SEO Pro Stack puts its own copyright line
+  first, then "Parts copyright (C) 2025-2026 Marcus Quinn, from SEO Pro Stack"
+  with the link, in its main plugin file and in README.md -> License.
+- Share the source code, under the same licence and these terms, with anyone
+  you give the work to (GPL-3.0 sections 4 to 6).
+
+
+ADDITIONAL TERMS (GPL-3.0 SECTION 7(b))
+
+Under section 7(b) of the GNU General Public License version 3, which allows
+"requiring preservation of specified reasonable legal notices or author
+attributions in that material or in the Appropriate Legal Notices displayed by
+works containing it", the copyright holder adds these terms to the material
+from SEO Pro Stack, which includes its README.md and readme.txt:
+
+1. Keep the copyright notices above, unchanged, in the files and places they
+   appear.
+2. Keep this author attribution in the work's README.md and, when it has
+   one, its readme.txt, with the link working:
+
+     Made from SEO Pro Stack (https://github.com/wpallstars/seoprostack).
+
+   In Markdown, the name may be the link text. More words may follow on the
+   same line.
+3. Keep this file, unchanged, with the work.
+
+They are meant only as the notice and attribution terms section 7(b) allows,
+and ask nothing more. Conveying the work without them is not permitted under
+the licence (section 8 sets out what then happens to the rights it grants).
+
+
+PREFERRED, NOT REQUIRED
+
+SEO Pro Stack credits aidevops (https://aidevops.sh), the AI harness it is
+built and maintained with, and sends questions there (the Built with AI
+section of README.md). Please keep those lines too.
+
+
+QUESTIONS
+
+Open an issue in SEO Pro Stack's repository:
+https://github.com/wpallstars/seoprostack/issues

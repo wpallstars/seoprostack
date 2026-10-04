@@ -4,6 +4,10 @@
  * Plain ES5 with wp.element.createElement so the plugin needs no build step.
  * The saved content is empty: the server builds the list, and the editor
  * shows the same output for the post being edited.
+ *
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ * SPDX-FileCopyrightText: 2026 Marcus Quinn
+ * Additional terms (GPL-3.0 section 7(b)): SEOPROSTACK-ATTRIBUTION.txt
  */
 (function (blocks, element, blockEditor, components, i18n, data, ServerSideRender) {
 	'use strict';

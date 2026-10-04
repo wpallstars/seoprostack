@@ -2,6 +2,10 @@
  * seoprostack/client-dashboard. Colours and fonts come from the theme unless
  * set on the block; borders and bars use currentColor and translucent
  * neutrals so they suit light and dark palettes (Kadence's switcher included).
+ *
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ * SPDX-FileCopyrightText: 2026 Marcus Quinn
+ * Additional terms (GPL-3.0 section 7(b)): SEOPROSTACK-ATTRIBUTION.txt
  */
 
 :where(.wp-block-seoprostack-client-dashboard) {

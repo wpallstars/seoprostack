@@ -2,6 +2,10 @@
  * seoprostack/saved-posts editor script: settings and an example list.
  * Plain ES5, no build step; the server renders the block and the front-end
  * script fills it with the visitor's own saved posts.
+ *
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ * SPDX-FileCopyrightText: 2026 Marcus Quinn
+ * Additional terms (GPL-3.0 section 7(b)): SEOPROSTACK-ATTRIBUTION.txt
  */
 (function (blocks, element, blockEditor, components, i18n) {
 	'use strict';

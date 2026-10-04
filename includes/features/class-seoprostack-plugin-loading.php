@@ -28,6 +28,10 @@
  * What was learned is forgotten when plugins are activated, deactivated or
  * updated, so screens load every plugin once more while it is relearned.
  *
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ * SPDX-FileCopyrightText: 2026 Marcus Quinn
+ * Additional terms (GPL-3.0 section 7(b)): SEOPROSTACK-ATTRIBUTION.txt
+ *
  * @package SEOProStack
  * @since 0.4.0
  */

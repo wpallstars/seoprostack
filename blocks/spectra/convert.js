@@ -14,6 +14,10 @@
  * something (media ID, size, alignment, colours).
  *
  * Plain ES5 so the plugin needs no build step.
+ *
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ * SPDX-FileCopyrightText: 2026 Marcus Quinn
+ * Additional terms (GPL-3.0 section 7(b)): SEOPROSTACK-ATTRIBUTION.txt
  */
 (function (blocks, element, blockEditor, components, compose, data, hooks, i18n, parser, wpDom) {
 	'use strict';

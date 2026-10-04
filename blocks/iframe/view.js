@@ -2,6 +2,10 @@
  * seoprostack/iframe: pass the page's query string (e.g. UTM tags) to iframes
  * that opt in with data-seoprostack-pass-params. Existing parameters on the
  * iframe URL win. Runs in the browser so cached pages keep working.
+ *
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ * SPDX-FileCopyrightText: 2026 Marcus Quinn
+ * Additional terms (GPL-3.0 section 7(b)): SEOPROSTACK-ATTRIBUTION.txt
  */
 (function () {
 	'use strict';

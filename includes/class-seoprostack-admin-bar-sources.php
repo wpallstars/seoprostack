@@ -8,6 +8,10 @@
  * add_menu(): WordPress itself, a plugin, a must-use plugin or a theme.
  * Nothing else changes; the bar renders exactly as WordPress's own.
  *
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ * SPDX-FileCopyrightText: 2026 Marcus Quinn
+ * Additional terms (GPL-3.0 section 7(b)): SEOPROSTACK-ATTRIBUTION.txt
+ *
  * @package SEOProStack
  * @since 0.5.0
  */
