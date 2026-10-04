@@ -100,6 +100,10 @@ function seoprostack_uninstall_site() {
     $options[] = 'seoprostack_kadence_brand_icons';
     // Clean the database weekly: the last cleanup's counts.
     $options[] = 'seoprostack_database_cleanup_last';
+    // Clean the database weekly: scheduled tasks seen with no code, and the
+    // ones it removed (they stay removed).
+    $options[] = 'seoprostack_database_cleanup_cron_seen';
+    $options[] = 'seoprostack_database_cleanup_cron_removed';
     // Linking caches and anonymous daily click totals. Approved links are
     // ordinary post content and remain; Link Whisper and Rank Math stay untouched.
     $options[] = 'seoprostack_link_index';
