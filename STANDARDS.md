@@ -41,6 +41,14 @@ How changes are made and checked: `DEVELOPMENT.md`. Releases: `RELEASING.md`.
   `scripts/sync-core.sh` in each plugin; `scripts/sync-core.sh --check` lists
   core files that differ. A new plugin starts as a copy of the starter
   renamed with `scripts/rename-plugin.sh`.
+- Every plugin keeps up with the starter. The weekly Starter sync workflow
+  (`.github/workflows/starter-sync.yml`) compares the plugin's core files
+  with the starter's and keeps one issue labelled `starter-sync` open while
+  any differ, with the files and the steps; it closes the issue once they
+  match. Work that issue like any other: sync, check the starter's
+  changelog for changes the plugin's own files need, lint, smoke test,
+  pull request. A change the plugin made to a core file goes into the
+  starter first.
 - One class per feature in `includes/features/`, extending `{Prefix}_Feature`,
   registered in `{Prefix}_Setup::FEATURES`. Features some builds leave out
   go in `{Prefix}_Setup::OPTIONAL_FEATURES` and load only when present.
@@ -64,7 +72,13 @@ How changes are made and checked: `DEVELOPMENT.md`. Releases: `RELEASING.md`.
   tables, bold, italic, inline code, links (http(s) and `#heading` links,
   with GitHub-style heading IDs) and images from the plugin folder on a line
   of their own (`![alt](admin/images/banner.svg)`). Use only that Markdown,
-  or extend the renderer in the same change.
+  or extend the renderer in the same change. It leaves out HTML comments and
+  the badges block under the title (`<!-- aidevops:badges:start -->` to
+  `<!-- aidevops:badges:end -->`), which is for GitHub only: CI, SonarCloud,
+  Codacy, CodeFactor, license, latest release, and the repository facts in
+  `docs/metrics/` that `.github/workflows/repo-metrics.yml` keeps up to date.
+  `scripts/rename-plugin.sh` rebuilds the block for the new repository; add
+  the new Codacy badge once Codacy has the repository.
 - Update `README.md` (feature section, hooks, changelog), `changelog.txt`
   (the user-facing changelog entry) and `readme.txt` in the same change.
   `readme.txt` must stay under 10 KB for WordPress.org: one short line per
@@ -85,7 +99,23 @@ adds docs as it grows.
 - `AGENTS.md` holds the plugin's names (the placeholder table), the rules
   for this plugin that apply to any change (a line or two each, such as
   features the owner asked to be on), and one line for each doc saying when
-  to read it.
+  to read it. Near the top it tells agents to read this file before any
+  change.
+- Agents keep the plugin at the starter's standard; the starter is where
+  the standard is set, not the plugin's copy of it:
+  - Before work, look for an open `starter-sync` issue. If one is open,
+    the plugin's core files, this file included, are behind: read the
+    starter's copy of any core file or rule the task touches, and do that
+    issue first when the task changes the same files.
+  - Never change a core file only in the plugin. A fix or rule every
+    plugin needs goes to the starter first, as a pull request or an issue
+    there with the plugin's case, then comes back with
+    `scripts/sync-core.sh`. Only the plugin's own files (`{Prefix}_Setup`,
+    features, `phpstan-plugin.neon`, `scripts/preflight-plugin.sh`,
+    `AGENTS.md`, `docs/`) take changes for this plugin alone.
+  - Steps that need the owner's accounts or make secrets (SonarCloud,
+    Codacy, `SYNC_PAT`: `DEVELOPMENT.md` → Services setup) are listed for
+    the owner, not done by an agent.
 - Guidance for one kind of task (a procedure, a checklist, a data format,
   a list of choices) goes in `docs/{topic}.md`, named for the task
   (`docs/presets.md`). `AGENTS.md` names it with when to read it: "Adding
@@ -100,7 +130,8 @@ adds docs as it grows.
   has its own format, and a doc serves every tool. Add one only when agents
   keep getting a task wrong even with its doc, and have it read that doc.
 - `scripts/preflight-release.sh` warns when `AGENTS.md` is over 150 lines,
-  names a doc that does not exist, or leaves out one in `docs/`.
+  does not name `STANDARDS.md`, names a doc that does not exist, or leaves
+  out one in `docs/`.
 
 ## Code rules
 
@@ -159,16 +190,22 @@ It replaces Git Updater.
 - Keep anything that installs or updates code from outside WordPress.org in
   that folder (and in a feature listed in `.distignore-wporg`, when a plugin
   has a setting for it), because the WordPress.org build leaves them out.
-- Never add an `Update URI` header. Tokens for private repositories come only
-  from `wp-config.php` (`WPALLSTARS_GITHUB_TOKEN`) or the filter, go only to
-  api.github.com and are never stored.
+- Never put an `Update URI` header in the main file in Git: WordPress.org
+  rejects it. `scripts/build-release.sh` adds
+  `Update URI: https://github.com/{owner}/{repo}` to the GitHub zip only, so
+  WordPress.org never offers a plugin of the same slug in its place, and the
+  updater never takes WordPress.org's answer for that build. A site moves to
+  WordPress.org updates only by installing the WordPress.org build.
+- Tokens for private repositories come only from `wp-config.php`
+  (`WPALLSTARS_GITHUB_TOKEN`) or the filter, go only to api.github.com and
+  are never stored.
 
 ## Releases
 
 GitHub releases are the early channel; WordPress.org gets settled versions.
 Sites install the latest GitHub release whose tag is a plain version and the
-asset whose name starts with the plugin folder (the shared updater; Git
-Updater, where still active, reads `Version:` on `main` instead), so:
+asset named exactly `{folder}-X.Y.Z.zip` (the shared updater; Git Updater,
+where still active, reads `Version:` on `main` instead), so:
 
 - Publish the GitHub release (tag `vX.Y.Z`, asset `{slug}-X.Y.Z.zip` with a
   `{slug}/` folder, built with `.distignore`) straight after the version
@@ -177,9 +214,9 @@ Updater, where still active, reads `Version:` on `main` instead), so:
   mark test releases as pre-releases on GitHub.
 - The WordPress.org build is the release build without the files in
   `.distignore-wporg` (the GitHub updater) and the `GitHub Plugin URI`,
-  `Primary Branch` and `Release Asset` header lines. Its zip is named
-  `wordpress-org-{slug}-X.Y.Z.zip` so no updater picks it; never attach it
-  to a GitHub release.
+  `Primary Branch` and `Release Asset` header lines, and has no
+  `Update URI`. Its zip is named `wordpress-org-{slug}-X.Y.Z.zip` so no
+  updater picks it; never attach it to a GitHub release.
 - Any plugin released on GitHub (made from the starter or not) follows the
   same pattern: a `GitHub Plugin URI: owner/repo` header (and
   `Release Asset: true`), plain version tags, and a `{folder}-X.Y.Z.zip`
