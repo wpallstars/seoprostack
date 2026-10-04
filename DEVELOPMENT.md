@@ -54,7 +54,7 @@ Every pull request and every push to `main` runs these in GitHub Actions
 | Shell scripts | `scripts/lint.sh shell` | ShellCheck findings in `scripts/`. |
 | Workflows | `scripts/lint.sh workflows` | actionlint findings in `.github/workflows/`. |
 | Coding standards | `scripts/lint.sh phpcs` | WordPress Coding Standards: escaping, sanitising, nonces, prepared SQL, i18n, PHP 7.4 and WordPress 6.2 compatibility; slow and unlimited queries, `ORDER BY RAND()`, short cache times and long remote timeouts (`phpcs.xml.dist`). |
-| Static analysis | `scripts/lint.sh phpstan` | Unknown functions, classes and methods, wrong argument counts and types, dead code (PHPStan level 5, `phpstan.neon.dist`). |
+| Static analysis | `scripts/lint.sh phpstan` | Unknown functions, classes and methods, wrong argument counts and types, dead code, `false` and `null` results used as values (PHPStan level 7 without the `missingType.*` checks, `phpstan.neon.dist`). |
 | Release build | `scripts/preflight-release.sh --offline` | Versions, headers, `readme.txt`, presets (where the plugin has them) and the contents of both zips. |
 | Plugin Check | `scripts/plugin-check.sh` | The WordPress.org review tool, on both zips. |
 | Smoke test | `scripts/smoke-test.sh --wp 6.2 --php 7.4` and `scripts/smoke-test.sh` | Installs the GitHub zip on a site with 10,000 posts, loads the site and admin screens with default settings and with every feature on, runs cron, uninstalls. Lists each page's queries. Fails on any PHP message, a failed page, a full table scan or large sort in the plugin's own queries, or leftover options. |
@@ -152,6 +152,24 @@ are by design, each scoped to its files with the reason; and leaves
 coverage out, as the smoke test, not unit tests, checks the plugin. Fix
 other findings in the code. Without the `SONAR_TOKEN` secret the job is
 skipped; setting it up: Services setup below.
+
+### Scorecard
+
+`.github/workflows/scorecard.yml` runs OpenSSF Scorecard on pushes to
+`main`, every Monday, when branch protection changes, and from the Actions
+tab (**Run workflow**). It checks the repository's security practices
+(pinned actions, token permissions, branch protection, code review and
+more), puts the results in Security → Code scanning and publishes them for
+the Scorecard badge. It needs no setup. In a private repository the job is
+skipped: publishing needs a public one, and minutes cost money there.
+Fix what it finds in the repository, or dismiss the alert with the reason.
+
+### Release
+
+`.github/workflows/release.yml` runs when a `vX.Y.Z` tag is pushed: it
+checks the tag is on `main`, runs the preflight, builds the zips and
+publishes the GitHub release, with signed build provenance in a public
+repository. It needs no setup. Steps: `RELEASING.md` → GitHub release.
 
 ### Starter sync
 
@@ -302,20 +320,21 @@ it at that standard:
    and qlty, plus GitHub's CodeQL (JavaScript and GitHub Actions; it has
    no PHP support, so PHPStan, SonarCloud and Codacy cover the PHP),
    Dependabot security alerts, secret scanning with push protection, and
-   OpenSSF Scorecard. Socket keeps checking dependencies. Connect any
+   OpenSSF Scorecard (Actions → **Scorecard** → **Run workflow** once; it
+   then runs by itself). Socket keeps checking dependencies. Connect any
    service still missing with Services setup above.
 2. Fix what they find in the code, in small pull requests by area
    (security first). Each finding is either fixed, explained in an inline
    comment, or marked as a false positive in that service with the reason.
-3. Raise the PHPStan level one step at a time (6, then higher if the
-   findings are real bugs and not noise). The baseline is already empty.
+3. Raise the PHPStan level one step at a time (8 next, if the findings
+   are real bugs and not noise). The baseline is already empty.
 4. Require the CI checks on `main` (Lint, Release build, both Smoke
    tests) with a branch ruleset, without "branch must be up to date": the
    checks are fast, and changelog lines conflict on every merge.
 5. Turn on private vulnerability reporting (Settings → Security), which
-   `SECURITY.md` asks reporters to use, and add the CI badge to
-   `README.md`. `SECURITY.md`, `CONTRIBUTING.md` and the issue and pull
-   request templates are already in place.
+   `SECURITY.md` asks reporters to use, and add the CI and Scorecard badges
+   to `README.md`. `SECURITY.md`, `CONTRIBUTING.md`, `CODE_OF_CONDUCT.md`
+   and the issue and pull request templates are already in place.
 6. Run `workflows/public-launch-checklist.md` from the AI DevOps framework
    for anything public: no private paths, site names or secrets in the code,
    history, issues or docs. Run the history scan above again for commits
