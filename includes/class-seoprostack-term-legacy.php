@@ -408,9 +408,20 @@ final class SEOProStack_Term_Legacy {
         if (!empty($c['exclude_terms'])) {
             $attributes['exclude'] = self::term_ids($c['exclude_terms'], $attributes['taxonomy']); // phpcs:ignore WordPressVIPMinimum.Performance.WPQueryParams -- Term list block attribute (terms), not a post query.
         }
-        $classes = isset($c['wrap_class']) ? array_map('sanitize_html_class', preg_split('/\s+/', (string) $c['wrap_class']) ?: array()) : array();
+        $classes = self::classes(isset($c['wrap_class']) ? $c['wrap_class'] : '');
         SEOProStack_Term_List::enqueue_assets(false);
         return SEOProStack_Term_List::render($attributes, $classes, false);
+    }
+
+    /**
+     * CSS class names from a space-separated setting.
+     *
+     * @param mixed $value Class names.
+     * @return string[]
+     */
+    private static function classes($value) {
+        $names = preg_split('/\s+/', (string) $value, -1, PREG_SPLIT_NO_EMPTY);
+        return is_array($names) ? array_map('sanitize_html_class', $names) : array();
     }
 
     /**
@@ -481,7 +492,7 @@ final class SEOProStack_Term_Legacy {
         if (!empty($atts['exclude_terms'])) {
             $attributes['exclude'] = self::term_ids($atts['exclude_terms'], $attributes['taxonomy']); // phpcs:ignore WordPressVIPMinimum.Performance.WPQueryParams -- Term list block attribute (terms), not a post query.
         }
-        $classes = isset($atts['div_class']) ? array_map('sanitize_html_class', preg_split('/\s+/', (string) $atts['div_class']) ?: array()) : array();
+        $classes = self::classes(isset($atts['div_class']) ? $atts['div_class'] : '');
         SEOProStack_Term_List::enqueue_assets(SEOProStack_Term_List::needs_script($attributes));
         return SEOProStack_Term_List::render($attributes, $classes, false);
     }

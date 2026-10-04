@@ -618,15 +618,8 @@ class SEOProStack_Restrict_Content extends SEOProStack_Feature {
         );
         $terms = array_keys(self::restricted_terms());
         if ($terms) {
-            $by_taxonomy = array();
-            $found = get_terms(array('include' => $terms, 'hide_empty' => false, 'taxonomy' => get_taxonomies()));
-            foreach (is_array($found) ? $found : array() as $term) {
-                if ($term instanceof WP_Term) {
-                    $by_taxonomy[$term->taxonomy][] = $term->term_id;
-                }
-            }
             $tax_query = array('relation' => 'OR');
-            foreach ($by_taxonomy as $taxonomy => $term_ids) {
+            foreach (self::terms_by_taxonomy($terms) as $taxonomy => $term_ids) {
                 $tax_query[] = array(
                     'taxonomy'         => $taxonomy,
                     'terms'            => $term_ids,
@@ -649,6 +642,26 @@ class SEOProStack_Restrict_Content extends SEOProStack_Feature {
             }
         }
         return self::$hidden;
+    }
+
+    /**
+     * Term IDs grouped by taxonomy, for a tax query.
+     *
+     * @param int[] $term_ids Term IDs in any taxonomy.
+     * @return array<string, int[]>
+     */
+    private static function terms_by_taxonomy(array $term_ids) {
+        $found = get_terms(array('include' => $term_ids, 'hide_empty' => false, 'taxonomy' => get_taxonomies()));
+        if (!is_array($found)) {
+            return array();
+        }
+        $by_taxonomy = array();
+        foreach ($found as $term) {
+            if ($term instanceof WP_Term) {
+                $by_taxonomy[$term->taxonomy][] = $term->term_id;
+            }
+        }
+        return $by_taxonomy;
     }
 
     /**

@@ -1034,7 +1034,7 @@ class SEOProStack_Nextgen_Images extends SEOProStack_Feature {
             }
             return;
         }
-        $synced = get_option(self::SYNCED) === md5((string) wp_json_encode(self::site_rules()));
+        $synced = get_option(self::SYNCED) === md5((string) wp_json_encode(self::site_rules())); // NOSONAR: a fingerprint to notice changed settings, not security.
         if ($synced && is_multisite()) {
             // The network's list is cleared when the plugin is deactivated
             // network-wide; this site must join it again.
@@ -1080,7 +1080,7 @@ class SEOProStack_Nextgen_Images extends SEOProStack_Feature {
             if ('unwritable' === $status) {
                 delete_option(self::SYNCED);
             } else {
-                update_option(self::SYNCED, md5((string) wp_json_encode($sites[$blog])), true);
+                update_option(self::SYNCED, md5((string) wp_json_encode($sites[$blog])), true); // NOSONAR: a fingerprint to notice changed settings, not security.
             }
             if ($new) {
                 self::schedule();
