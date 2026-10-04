@@ -970,8 +970,18 @@ class SEOProStack_Database_Cleanup extends SEOProStack_Feature {
             }
             // A task whose time passed runs at the next cron run, as WordPress does.
             $time = isset($item['time']) ? (int) $item['time'] : time();
-            if (!isset($crons[$time][$item['hook']][$item['key']])) {
-                $crons[$time][$item['hook']][$item['key']] = $item['event'];
+            $hook = (string) $item['hook'];
+            $key  = (string) $item['key'];
+            if (!isset($crons[$time][$hook][$key])) {
+                // The event as core stores it: schedule, args and, if it repeats, interval.
+                $event = array(
+                    'schedule' => isset($item['event']['schedule']) && is_string($item['event']['schedule']) ? $item['event']['schedule'] : false,
+                    'args'     => isset($item['event']['args']) && is_array($item['event']['args']) ? $item['event']['args'] : array(),
+                );
+                if (isset($item['event']['interval'])) {
+                    $event['interval'] = max(0, (int) $item['event']['interval']);
+                }
+                $crons[$time][$hook][$key] = $event;
                 $count++;
             }
             $hooks[] = (string) $item['hook'];

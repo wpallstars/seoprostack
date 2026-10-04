@@ -143,11 +143,11 @@ class SEOProStack_Menu_Visibility extends SEOProStack_Feature {
     /**
      * Whether the current visitor sees an item.
      *
-     * @param WP_Post|object{ID: int|string} $item Menu item.
+     * @param WP_Post|object $item Menu item.
      * @return bool
      */
     public static function visible($item) {
-        $rule = self::rule((int) $item->ID);
+        $rule = self::rule(isset($item->ID) ? (int) $item->ID : 0);
         switch ($rule['show']) {
             case 'in':
                 $visible = self::logged_in();

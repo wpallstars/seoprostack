@@ -268,7 +268,7 @@ class SEOProStack_Screenshots extends SEOProStack_Feature {
      * to the current post. The browser window keeps the image's shape.
      *
      * @param array|string $atts    Attributes.
-     * @param string       $content Caption.
+     * @param string|null  $content Caption.
      * @return string
      */
     public static function shortcode($atts, $content = '') {

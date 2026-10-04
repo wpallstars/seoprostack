@@ -1208,7 +1208,7 @@ class SEOProStack_Restrict_Content extends SEOProStack_Feature {
      * Content Control's [content_control] shortcode, once it is deactivated.
      *
      * @param array|string $atts    Attributes.
-     * @param string       $content Content.
+     * @param string|null  $content Content.
      * @return string
      */
     public static function shortcode($atts, $content = '') {
