@@ -560,16 +560,16 @@ if (!defined('ABSPATH')) {
             'button_group' => array(
                 array(
                     'text' => 'Home Page',
-                    'url' => 'https://automatorwp.com/',
+                    'url' => 'https://automatorwp.com/?ref=215',
                     'primary' => true
                 ),
                 array(
                     'text' => 'Pricing',
-                    'url' => 'https://automatorwp.com/'
+                    'url' => 'https://automatorwp.com/?ref=215'
                 ),
                 array(
                     'text' => 'Integrations',
-                    'url' => 'https://automatorwp.com/all-triggers-and-actions/'
+                    'url' => 'https://automatorwp.com/all-triggers-and-actions/?ref=215'
                 )
             ),
             'free_slug' => 'automatorwp'

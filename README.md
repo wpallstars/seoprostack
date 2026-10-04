@@ -1242,7 +1242,7 @@ Fluent Query Logger is under **Debug**, with a reminder to deactivate or delete 
 
 FlyingPress and Link Whisper are not recommended. Neither are Fluent Connect (ThriveCart), Fluent Forms Connector for MailPoet or Mautic Integration For Fluent Forms: these connectors are not used in the recommended stack. Legacy WPManageNinja plugins NinjaDB, WP Faq Builder and Testimonials Builder are also left out: their last updates were in 2017, 2018 and 2019 respectively.
 
-Some directory links are the developer's affiliate or referral links, which may earn a commission or account credit and sometimes give you a discount. They do not change what we recommend, and nothing is added to your public site. Kadence and Fluent/WPManageNinja product, pricing and add-on links carry the developer's referral ID, including the matching **Go Pro** links in Free Plugins. WordPress.org install/details links and GitHub source links stay direct. Other product, pricing and documentation links stay direct when no matching referral link is available; the Bit Apps store, Fiverr Pro and the Speedy Index Telegram bot have separate referral links.
+Some directory links are the developer's affiliate or referral links, which may earn a commission or account credit and sometimes give you a discount. They do not change what we recommend, and nothing is added to your public site. Kadence, Fluent/WPManageNinja and AutomatorWP product, pricing and add-on links carry the developer's referral ID, including the matching **Go Pro** links in Free Plugins. WordPress.org install/details links and GitHub source links stay direct. Other product, pricing and documentation links stay direct when no matching referral link is available; the Bit Apps store, Fiverr Pro and the Speedy Index Telegram bot have separate referral links.
 
 ## Requirements
 
@@ -1367,6 +1367,7 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folderâ
 
 - Change: **Load plugins only where needed** skips plugins for people who are logged in on every site. **Also skip them for people who are logged in** has been on by default since 0.14.0, but only for new installs, so administrators of older sites still got every plugin on the site; updating switches it on there too. Switch it off again to give logged-in people every plugin (GitHub issue #426).
 - Change: the **Plugins menu in the admin bar** shows what is loaded: plugins loaded on the page are bold, active plugins skipped there are grey, and deactivated plugins are grey and struck through. Skipped plugins used to look loaded (GitHub issue #426).
+- Change: AutomatorWP Pro's links in Pro Plugins, and its **Go Pro** link in Free Plugins, carry the developer's referral ID (GitHub issue #431).
 
 ### 0.14.0
 
