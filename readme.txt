@@ -64,8 +64,9 @@ Features safe on every site start on; those needing choices stay off. Use **Sett
 * **Load pages before the click**, **Delay scripts until interaction**, **Delayed Google Analytics** and a faster editor with Kadence Blocks.
 * **Ask before licence checks**: premium plugins call home once, daily or never, as you choose.
 * **Clean the database weekly**: old spam, bin and expired data, and tasks of plugins that are gone.
-* **Count terms and comments in the background** (Server, off): batches and Recount now; counts can lag.
+* **Count terms and comments in the background** (off): Recount now; counts lag.
 * **Load large settings only where they are used** (single sites).
+* **Faster page counts on long lists** (off): separate counts, exact page numbers.
 * **Database key cleanup**: duplicate indexes and the plugin that added each, in Site Health; remove one by one, with restore SQL.
 * **Load plugins only where needed**: skips plugins a page does not use, in admin and on the site, with always-load bypasses.
 
@@ -135,9 +136,6 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 3. The Read Me tab, showing the plugin's guide.
 
 == Changelog ==
-
-= Unreleased =
-* New: background term/comment recounts (off).
 
 = 0.14.2 =
 * Fix: page learning skips fewer pages: code in scripts and styles is not read as shortcodes.
