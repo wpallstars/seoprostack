@@ -159,9 +159,9 @@ Groups the admin menu under the headings **Content**, **Communications**, **SEO*
 
 Lays out the Dashboard the same way on every site, from rules made from 12 sites arranged by hand with Admin Menu Editor Pro (`admin/data/dashboard.php`):
 
-- **Columns**: first WordPress’s browser and PHP update warnings when shown, then Quick Draft, Activity and WooCommerce reviews; then Fluent Forms, Fluent Support and FluentSMTP statistics; then visitor statistics (Burst), Rank Math, At a Glance and Site Health. Widgets that are not listed stay in the column their plugin chose, below the listed ones.
+- **Columns**: first WordPress’s browser and PHP update warnings when shown, then Quick Draft, Activity and WooCommerce reviews; then Fluent Forms, Fluent Support and FluentSMTP statistics; then visitor statistics (Burst), Rank Math, At a Glance, Site Health and AI Engine Advisor. Widgets that are not listed stay in the column their plugin chose, below the listed ones.
 - **Hidden for everyone**: the Welcome panel, WordPress Events and News, WooCommerce Status and WooCommerce Setup (they repeat WooCommerce → Home), Pretty Links quick add, Link Whisper’s link health box and Debug Log Manager (it reads the whole debug log on every Dashboard load; its screen under Tools shows the same entries).
-- **Developers only**: Site Health status. Developers are the ones chosen in Organise the admin menu; without it, people who can manage options (super admins on multisite).
+- **Developers only**: Site Health status and AI Engine Advisor. AI Engine Advisor (a daily list of general advice about the site’s plugins) also starts unticked in Screen Options, once per person, including people who saved Screen Options before; ticking it there shows it from then on. Developers are the ones chosen in Organise the admin menu; without it, people who can manage options (super admins on multisite).
 - **People who can publish**: At a Glance and the form, support and email statistics, so contributors do not see them. People who cannot edit posts, such as subscribers and customers, see no boxes.
 - Everyone gets the same layout and boxes cannot be dragged. **Let people rearrange boxes** (off by default) allows dragging and keeps each person’s own arrangement; until someone rearranges, they get the layout above. Saved arrangements are never deleted, so switching the feature off gives them back.
 - Works alongside Hide dashboard widgets: boxes it hides stay hidden.
@@ -1151,7 +1151,7 @@ Developers can add settings, tabs and directory entries with filters:
 - `seoprostack_is_writer`: whether the current person sees only writing screens with Organise the admin menu’s **Writers see only writing** (bool, user ID).
 - `seoprostack_writer_hides_page`: whether writers do not get a menu page (bool, menu address, capability it asks for). Return false to give writers a plugin page, such as an AI writing tool.
 - `seoprostack_writer_hides_post_type`: whether writers do not get a post type’s list, Add New and edit screens (bool, post type). By default, plugins’ post types without the content editor.
-- `seoprostack_dashboard_layout`: change how Tidy the dashboard lays out widgets: `columns` (column => widget IDs), `hidden`, `developers` and `reports` (widget IDs).
+- `seoprostack_dashboard_layout`: change how Tidy the dashboard lays out widgets: `columns` (column => widget IDs), `hidden`, `developers`, `reports` and `start_hidden` (widget IDs).
 - `seoprostack_can_change_settings`: return false to stop the current user changing SEO Pro Stack’s settings (on top of `manage_options`).
 - `seoprostack_admin_bar_star`: return false to hide the admin bar star that opens SEO Pro Stack’s settings.
 - `seoprostack_licence_call`: whether an outgoing request is a licence check that Ask before licence checks holds (bool, address, request arguments). Update checks are never held, whatever it returns.
@@ -1201,6 +1201,10 @@ Deleting the plugin removes its settings and cached data, the profile pictures a
 Deactivating the plugin removes the WebP and AVIF rules from the uploads folder’s `.htaccess` (for every site when network-deactivated), the LiteSpeed background request rules from the site’s `.htaccess` (on multisite, when network-deactivated or deactivated on the main site) and the must-use file of Load plugins only where needed (on multisite, when network-deactivated).
 
 ## Changelog
+
+### Unreleased
+
+- Changed: Tidy the dashboard shows AI Engine Advisor (`mwai_advisor_widget`) to developers only, in the third column, and unticks it in Screen Options once per person (a `start_hidden` rule; people who saved Screen Options before get it added to their list once), so it starts hidden; ticking it shows it from then on. New `seoprostack_dashboard_start_hidden` user meta, removed on uninstall.
 
 ### 0.12.1
 
