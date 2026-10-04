@@ -10,7 +10,7 @@
  * nothing is deactivated or deleted here.
  *
  * @package SEOProStack
- * @since 0.12.1
+ * @since 0.13.0
  */
 
 if (!defined('ABSPATH')) {
