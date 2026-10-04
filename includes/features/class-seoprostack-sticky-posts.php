@@ -652,6 +652,8 @@ class SEOProStack_Sticky_Posts extends SEOProStack_Feature {
         ?>
         <style>
             .fixed .column-seoprostack_sticky { width: 20px; padding-left: 2px; padding-right: 2px; text-align: center; }
+            <?php /* Admin Columns Pro layouts set every column's width from these variables, with !important, so a column with no width there was 0 px wide. A width set in the layout (-width-user) still wins. */ ?>
+            .wp-list-table { --ac-col-seoprostack_sticky-width: 32px; }
             .column-seoprostack_sticky .dashicons { color: #8c8f94; }
             .wp-core-ui .seoprostack-sticky { cursor: pointer; padding: 0; }
             .wp-core-ui .seoprostack-sticky[aria-pressed="false"] .dashicons { opacity: .4; }
