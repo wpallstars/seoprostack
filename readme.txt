@@ -5,7 +5,7 @@ Tags: magic login, iframe, schedule posts, auto upload images, admin
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 0.12.8
+Stable tag: 0.13.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -133,19 +133,11 @@ Use **Report a problem** in Settings → SEO Pro Stack or [GitHub](https://githu
 
 == Changelog ==
 
-= Unreleased =
+= 0.13.0 =
+* New: Developer admins: only chosen administrators change plugins, themes, admins and site settings.
 * New: unused large settings stop loading.
-* Fix: menu width; WP Crontrol cron status.
-
-= 0.12.8 =
-* New: database clean-up removes tasks of plugins that are gone.
-* New: Hosting needs names settings saved on most page views.
-* New: five premium plugins stop saving licences on every request.
-* Fix: Load plugins only where needed keeps what it learned.
-* New: Really Simple Security 301 redirect preset.
-* New: Site Health names slow snippets and each database key's plugin.
-* Fix: settings saved at once no longer undo each other.
-* Fix: one notice per convertible Spectra block.
-* Change: clashing short addresses link to both.
+* New: Hosting needs explains a LiteSpeed object cache that is not working.
+* Fix: fitted admin menu no longer stays too wide.
+* Change: WP Crontrol says whether the server's cron job runs.
 
 Older: `changelog.txt`.
