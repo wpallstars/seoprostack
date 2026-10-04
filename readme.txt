@@ -5,7 +5,7 @@ Tags: magic login, iframe, schedule posts, auto upload images, admin
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 0.14.0
+Stable tag: 0.14.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -135,11 +135,9 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 
 == Changelog ==
 
-= 0.14.0 =
-* New: Network Plugins offers to activate plugins on each site.
-* New: safe features start on for new installs; a Server tab.
-* New: Plugin sizes shows OPcache memory per plugin.
-* Fix: page learning recognises Kadence Blocks content.
-* Fix: Remove CPT base never redirects archives home.
+= 0.14.1 =
+* Change: plugin skipping for logged-in people now on for older sites too.
+* Change: admin bar Plugins menu shows loaded, skipped and deactivated plugins.
+* Change: no affiliate links in the WordPress.org build.
 
 Older: `changelog.txt`.

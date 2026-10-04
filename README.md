@@ -21,7 +21,7 @@ SEO Pro Stack does the jobs that usually take dozens of small plugins: a calmer,
 
 If this saves you time, headaches and costs, feel free to [buy me a coffee](https://buymeacoffee.com/marcusquinn), or whatever you like, to invest in making more things open-source.
 
-Version: 0.14.0
+Version: 0.14.1
 
 <!-- github-only:start -->
 ## Screenshots
@@ -1363,7 +1363,7 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folderâ
 
 ## Changelog
 
-### Unreleased
+### 0.14.1
 
 - Change: **Load plugins only where needed** skips plugins for people who are logged in on every site. **Also skip them for people who are logged in** has been on by default since 0.14.0, but only for new installs, so administrators of older sites still got every plugin on the site; updating switches it on there too. Switch it off again to give logged-in people every plugin (GitHub issue #426).
 - Change: the **Plugins menu in the admin bar** shows what is loaded: plugins loaded on the page are bold, active plugins skipped there are grey, and deactivated plugins are grey and struck through. Skipped plugins used to look loaded (GitHub issue #426).

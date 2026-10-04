@@ -2,7 +2,7 @@
 
 Every change to SEO Pro Stack. readme.txt lists the latest version in short.
 
-= Unreleased =
+= 0.14.1 =
 * Change: Load plugins only where needed skips plugins for people who are logged in on every site. Also skip them for people who are logged in has been on by default since 0.14.0, but only for new installs, so administrators of older sites still got every plugin on the site; updating switches it on there too. Switch it off again to give logged-in people every plugin.
 * Change: the Plugins menu in the admin bar shows what is loaded: plugins loaded on the page are bold, active plugins skipped there are grey, and deactivated plugins are grey and struck through. Skipped plugins used to look loaded.
 * Change: AutomatorWP Pro's links in Pro Plugins, and its Go Pro link in Free Plugins, carry the developer's referral ID.
