@@ -875,6 +875,16 @@ Off by default. Turn it on, then open **Tools → Database keys**. It reads inde
 - The non-autoloaded `seoprostack_database_keys_log` option records time, administrator ID, key, result and restore SQL, saved before each removal. A pending entry means the result was not recorded; check the database before restoring. Uninstall removes the log but does not undo changes to keys. Copy the log first.
 - The `admin_post_seoprostack_database_keys` handler checks `manage_options`, feature state and a nonce on both steps. A database advisory lock serializes removals and log writes without waiting; if it is unavailable, nothing is removed. Confirmation renders on the normal Tools page, with its own review nonce.
 
+### Code Snippets in Site Health
+
+Always on, advice only, with no setting: while Code Snippets or Code Snippets Pro is active, a **Code Snippets** test in Tools → Site Health names the snippets that slow pages or are not needed, each linking to its edit screen. It reads Code Snippets' table (and the network's on multisite, at most 500 snippets each) and never changes a snippet. A snippet is named when it is:
+
+- **Front-end styles, head scripts or footer scripts, active**: Code Snippets Pro serves these through a separate request to WordPress on every page (such as `/?code-snippets-js-snippets=footer`), which page caches skip. On one client site that request took 0.56–0.89 s for 221 bytes needed on one page. Active admin styles are named too: they add a request on every admin screen.
+- **A content snippet nothing uses**: active, but its ID is not in a `[code_snippet]` shortcode or Code Snippets Pro block in any post (drafts included, trash not), in the Text, Custom HTML or block widgets, or in the theme's settings. Page builders that keep their content elsewhere are not searched, so the advice says to check them first.
+- **A sample, or old and off**: Code Snippets' own samples, and inactive snippets unchanged for six months.
+- **Code an SEO Pro Stack setting does**: Kadence query loop pinning (Pinned posts for any post type), Rank Math focus keywords (Rank Math defaults), term slugs set when a term is created (Term tools), copying ACF fields into content (Custom fields to content) and scrolling to Kadence query loop results (Kadence query filters scroll to results). It links to the setting.
+- **Saving the post again from `save_post`**: `wp_update_post()` inside a `save_post` hook without removing the hook first, so every save writes the post twice and runs the hook again.
+
 ### Plugin presets (Plugins)
 
 SEO Pro Stack keeps its chosen settings for other plugins, chosen for speed, privacy and quiet admin screens. With this on, each plugin that has a preset says on the Plugins screen whether its settings match (**Preset: settings match**, or **Preset: 3 settings differ**). Its row offers:
@@ -1282,6 +1292,7 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folder�
 - New: **Ask before licence checks** keeps the stored licence state of Complianz Pro, Really Simple Security Pro, Fluent Forms Pro, Tutor LMS Pro and WP-Optimize Premium when they save it again on every request with only a new timestamp (seen with GPL Vault's patches), while the licence is valid for more than a week (`SEOProStack_Option_Writes::KNOWN`). With **Load plugins only where needed** on, its must-use file loads this first, so saves made while those plugins load are covered too (GitHub issue #279).
 - Fix: **Load plugins only where needed** no longer forgets what it learned for site pages whenever an option is saved on a page view or by cron, by SEO Pro Stack's own records, or by plugins that save an option on every request: those are records, not settings, and restarted the learning on every page view (GitHub issue #279).
 - New: Really Simple Security 9.8.3 preset selects its 301 .htaccess redirect on supported single sites with working HTTPS. Apply, Reset and Undo use its own save code and verify rules; failed saves report rollback status and keep the previous undo copy. Nothing changes automatically (GitHub issue #295).
+- New: a **Code Snippets** test in Site Health, while Code Snippets is active, names snippets that add an uncached request to every page (front-end styles and scripts), content snippets nothing uses, samples and old inactive snippets, code an SEO Pro Stack setting does (with a link to it) and `save_post` code that saves the post twice. Snippets are never changed (`SEOProStack_Snippets_Audit`, GitHub issue #293).
 
 ### 0.12.7
 
