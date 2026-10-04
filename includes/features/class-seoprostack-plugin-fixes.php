@@ -118,6 +118,19 @@
  * is set: fine while no event is more than 15 minutes late, a warning
  * naming a later event, and an error once one is more than an hour late.
  *
+ * Hostinger's Monarx agent (the monarxprotect PHP extension) schedules
+ * mnx_versions_cron_event every 10 minutes, on its own mnx_ten_minutes
+ * schedule, but registers that schedule (and the task's code) only on web
+ * requests. Where a cron job runs wp-cron.php or WP-CLI from the command
+ * line, each due run fails to reschedule the task ("Cron reschedule event
+ * error for hook: mnx_versions_cron_event, Error code: invalid_schedule",
+ * thousands of lines a day in error_log), WordPress drops it, and the next
+ * web visit schedules it again. On cron and WP-CLI requests, a missing
+ * schedule of a host's task (Database cleanup's HOST_CRON prefixes) is
+ * registered with the interval stored with the task, so it stays scheduled.
+ * Its code is not there, so nothing runs, as before. Other tasks whose
+ * schedule is missing are still dropped, as WordPress intends.
+ *
  * @package SEOProStack
  */
 
@@ -186,6 +199,14 @@ class SEOProStack_Plugin_Fixes extends SEOProStack_Feature {
     const CRON_MISSED = 3600;
 
     /**
+     * Schedules of hosts' tasks stored in each site's cron option (name =>
+     * interval in seconds), by site ID, found once per request.
+     *
+     * @var array<int, array<string, int>>
+     */
+    private static $host_schedules = array();
+
+    /**
      * Settings.
      *
      * @return array
@@ -198,7 +219,7 @@ class SEOProStack_Plugin_Fixes extends SEOProStack_Feature {
                 'default'     => true,
                 'tab'         => 'plugins',
                 'label'       => __('Fixes for other plugins', 'seoprostack'),
-                'description' => __('Works around bugs in other plugins that slow your site down, without changing their settings. Lasso Lite (Simple URLs) stops contacting its server on every admin screen. Deactivating Freesoul Deactivate Plugins or its PRO add-on deactivates both and removes the must-use file it leaves behind. Readabler no longer contacts its server on every Plugins screen load, or stops that screen with a critical error when it cannot. Tutor LMS Pro stops adding warnings to the debug log when there is no update. Tutor LMS gets its order, cart and coupon tables on every site of a network. Tutor LMS Pro no longer makes the Plugins screen check every plugin for updates on each load. Comment Goblin no longer waits for its update server on every admin screen while that server fails. MainWP Child no longer prints its Branding "Global footer" text, unstyled, below every front-end page. On LiteSpeed servers, scheduled tasks (WordPress cron and Action Scheduler, used by WooCommerce and others) finish instead of stopping partway, through a few lines at the top of .htaccess. Kadence Pro no longer causes "Failed opening" warnings when other plugins load shared code. WP Crontrol says whether the server\'s cron job runs, instead of only that DISABLE_WP_CRON is set. Turn this off if a fix causes a problem.', 'seoprostack'),
+                'description' => __('Works around bugs in other plugins that slow your site down, without changing their settings. Lasso Lite (Simple URLs) stops contacting its server on every admin screen. Deactivating Freesoul Deactivate Plugins or its PRO add-on deactivates both and removes the must-use file it leaves behind. Readabler no longer contacts its server on every Plugins screen load, or stops that screen with a critical error when it cannot. Tutor LMS Pro stops adding warnings to the debug log when there is no update. Tutor LMS gets its order, cart and coupon tables on every site of a network. Tutor LMS Pro no longer makes the Plugins screen check every plugin for updates on each load. Comment Goblin no longer waits for its update server on every admin screen while that server fails. MainWP Child no longer prints its Branding "Global footer" text, unstyled, below every front-end page. On LiteSpeed servers, scheduled tasks (WordPress cron and Action Scheduler, used by WooCommerce and others) finish instead of stopping partway, through a few lines at the top of .htaccess. Kadence Pro no longer causes "Failed opening" warnings when other plugins load shared code. WP Crontrol says whether the server\'s cron job runs, instead of only that DISABLE_WP_CRON is set. On Hostinger, a server cron job no longer fills the error log with "invalid_schedule" errors for the Monarx security agent\'s tasks (mnx_versions_cron_event). Turn this off if a fix causes a problem.', 'seoprostack'),
             ),
         );
     }
@@ -240,6 +261,76 @@ class SEOProStack_Plugin_Fixes extends SEOProStack_Feature {
         add_action('wp_footer', array(__CLASS__, 'mainwp_no_front_end_footer'), 0);
         // Before WP Crontrol's status notice, which uses priority 20.
         add_action('crontrol/tab-header', array(__CLASS__, 'crontrol_status'), 19);
+        // wp-cron.php defines DOING_CRON before loading WordPress; WP-CLI
+        // runs tasks (wp cron event run) without it.
+        if (wp_doing_cron() || (defined('WP_CLI') && WP_CLI)) {
+            // Last, so a schedule other code registers is kept as it is.
+            // phpcs:ignore WordPress.WP.CronInterval.ChangeDetected -- the host's own interval, stored with its task; no new schedule of SEO Pro Stack's.
+            add_filter('cron_schedules', array(__CLASS__, 'host_cron_schedules'), PHP_INT_MAX);
+        }
+    }
+
+    /**
+     * Register the schedules of hosts' tasks that their agent registers only
+     * on web requests (Hostinger's Monarx: mnx_ten_minutes), with the
+     * interval stored with the task, so running such a task from the command
+     * line can reschedule it instead of logging invalid_schedule and
+     * dropping it. Only missing schedules, and only for hosts' tasks.
+     *
+     * @param mixed $schedules Schedules by name.
+     * @return mixed
+     */
+    public static function host_cron_schedules($schedules) {
+        if (!is_array($schedules) || !function_exists('_get_cron_array')) {
+            return $schedules;
+        }
+        $site = get_current_blog_id();
+        if (!isset(self::$host_schedules[$site])) {
+            self::$host_schedules[$site] = array();
+            $prefixes = class_exists('SEOProStack_Database_Cleanup', false) ? SEOProStack_Database_Cleanup::HOST_CRON : array('mnx_');
+            foreach ((array) _get_cron_array() as $hooks) {
+                if (!is_array($hooks)) {
+                    continue;
+                }
+                foreach ($hooks as $hook => $events) {
+                    if (!is_array($events) || !self::is_host_task((string) $hook, $prefixes)) {
+                        continue;
+                    }
+                    foreach ($events as $event) {
+                        if (is_array($event) && !empty($event['schedule']) && is_string($event['schedule'])
+                            && isset($event['interval']) && (int) $event['interval'] > 0) {
+                            self::$host_schedules[$site][$event['schedule']] = (int) $event['interval'];
+                        }
+                    }
+                }
+            }
+        }
+        foreach (self::$host_schedules[$site] as $name => $interval) {
+            if (!isset($schedules[$name])) {
+                // Not translated: this filter can run before translations load.
+                $schedules[$name] = array(
+                    'interval' => $interval,
+                    'display'  => $name,
+                );
+            }
+        }
+        return $schedules;
+    }
+
+    /**
+     * Whether a task belongs to a host's agent.
+     *
+     * @param string   $hook     Task (hook) name.
+     * @param string[] $prefixes Hosts' task name prefixes.
+     * @return bool
+     */
+    private static function is_host_task($hook, array $prefixes) {
+        foreach ($prefixes as $prefix) {
+            if (0 === strpos($hook, $prefix)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
