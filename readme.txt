@@ -131,7 +131,8 @@ Use **Report a problem** in Settings → SEO Pro Stack or [GitHub](https://githu
 
 = Unreleased =
 * Fix: no "Table doesn't exist" log errors on network sites without Fluent Forms tables.
-* Change: Magic login links replaces WP Magic Link Login, in part.
+* Change: Magic login links replaces WP Magic Link Login, in part; its [wpmll_form] pages keep working.
+* New, off: Image loading chooses which pictures load straight away. Replaces Flying Images' lazy loading, in part.
 
 = 0.12.0 =
 * New, off: Tag clouds and related posts: tag clouds, A–Z indexes, grouped terms in tabs or accordions, and a Related posts block. TaxoPress and Tag Groups pages keep working after they are removed.

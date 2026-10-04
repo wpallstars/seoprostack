@@ -65,6 +65,7 @@ SEO Pro Stack replaces **52 plugins**, some of them in part, with free and Pro e
 | Load pages before the click | Speed | Flying Pages |
 | Delay scripts until interaction | Speed | Flying Scripts |
 | Delayed Google Analytics | Speed | Flying Analytics |
+| Image loading | Speed | Flying Images, in part |
 | Clean the database weekly | Speed | WP-Optimize and WP-Optimize Premium, in part, where LiteSpeed Cache runs on a LiteSpeed server |
 | 410 Gone for removed pages | Links | Ultimate 410 |
 | Old post addresses | Links | Slugs Manager: Delete Old Permalinks |
@@ -114,6 +115,7 @@ Adds “Email me a login link” to the login screen, next to “Lost your passw
 - Links are stored only as a keyed hash and are removed when used, when they expire, and on uninstall.
 - Passwords keep working. Administrators can be required to use their password.
 - Uses the core login screen and core `wp_login` / `login_redirect` hooks, so activity logs, redirect rules and two-factor plugins that use `wp_login` still apply. Two-factor plugins that only check the password step are not asked; on those sites exclude administrators or leave the feature off.
+- Pages made with WP Magic Link Login keep working after it is deactivated: its `[wpmll_form]` shortcode shows the login link form, with its `heading`, `description`, `login-button-text`, `logout-link-text` and `redirect_to` (an address on this site, or `current-page`) attributes. People already logged in see a log out link. While Magic login links is off, the shortcode shows WordPress’s password login form instead, so the page still lets people log in. While WP Magic Link Login is active, its own shortcode is left in place. Its other settings (allowed email domains, accounts for new email addresses, the landing page, hiding the password form, one IP address per link) are not replaced.
 
 ### Admin bar and dashboard access (Admin)
 
@@ -424,6 +426,15 @@ Scripts whose tag or code contains a keyword you list (for example a chat widget
 ### Delayed Google Analytics (Speed)
 
 Adds Google Analytics 4 (standard gtag.js) with your measurement ID, loaded after the first interaction or after a few seconds so it does not compete with the page. Logged-in users are not tracked. Turn off any other plugin that adds the same ID.
+
+### Image loading (Speed)
+
+WordPress already lazy-loads pictures and iframes with the browser’s own `loading="lazy"`, and loads the first three pictures in the content straight away. This tunes that through core’s filters, so pages are never rewritten and nothing is added for the browser to run.
+
+- **Load straight away**: how many pictures at the top of the content load without waiting (0–20; 3, WordPress’s default; `wp_omit_loading_attr_threshold`).
+- **Never lazy-load pictures containing**: one line per text to find in a picture’s tag (its address, class or other attributes), such as a logo’s file name or a slider’s class. Pictures and iframes with the `skip-lazy` or `no-lazy` class, or a `data-skip-lazy` or `data-no-lazy` attribute, always load straight away. Applies to content pictures (including `loading="lazy"` saved in blocks, through `wp_content_img_tag`), pictures shown with `wp_get_attachment_image()` such as featured images, and content iframes. Developers can change the list with the `seoprostack_image_loading_exclude` filter.
+- Replaces Flying Images’ lazy loading, in part: its exclusions are imported once (settings version 21, leaving out its example `your-logo.png`), and the feature switches on where its lazy loading was on. It waits while Flying Images is active. Not replaced: its free CDN through Statically with compression and WebP on the fly (use [WebP and AVIF images](#webp-and-avif-images-media), or a CDN such as Cloudflare or QUIC.cloud set up by its own plugin), its own `srcset` for pictures outside the Media Library (WordPress adds `srcset` to Media Library pictures), and its JavaScript lazy loading with a placeholder and of background pictures, which rewrites every page.
+- Logged-in visitors are treated the same. The settings live in the main settings option and are removed on uninstall.
 
 ### Remove WordPress extras (Speed)
 
@@ -1202,7 +1213,8 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folder�
 ### Unreleased
 
 - Fix: on a network where Fluent Forms, Fluent Boards or FluentCommunity is active but a site has no tables for it, settings upgrades no longer log “Table doesn’t exist” database errors for that site: the agency order lists look for the table first.
-- Change: **Magic login links** replaces pixolette’s WP Magic Link Login (`wp-magic-link-login`, CodeCanyon), in part. Where it is installed, the Plugins screen says so, and the feature waits while it is active (`replaces` in its settings).
+- Change: **Magic login links** replaces pixolette’s WP Magic Link Login (`wp-magic-link-login`, CodeCanyon), in part. Where it is installed, the Plugins screen says so, and the feature waits while it is active (`replaces` in its settings). Pages using its `[wpmll_form]` shortcode keep a login form after it is deactivated: the login link form, or WordPress’s password form while Magic login links is off.
+- New, off by default: **Image loading** (Speed tab) chooses how many pictures at the top of the content load straight away and which pictures and iframes are never lazy-loaded, through WordPress’s own lazy loading (`SEOProStack_Image_Loading`). Replaces Flying Images’ lazy loading, in part, importing its exclusions (settings version 21).
 
 ### 0.12.0
 
@@ -1559,6 +1571,7 @@ Where a feature replaces one of them, SEO Pro Stack imports the settings it can,
 | Flying Pages | Gijo Varghese | [WordPress.org](https://wordpress.org/plugins/flying-pages/), [GitHub](https://github.com/gijo-varghese/flying-pages) | Load pages before the click |
 | Flying Scripts | Gijo Varghese | [WordPress.org](https://wordpress.org/plugins/flying-scripts/) | Delay scripts until interaction |
 | Flying Analytics | Gijo Varghese | [WordPress.org](https://wordpress.org/plugins/flying-analytics/), [GitHub](https://github.com/gijo-varghese/flying-analytics) | Delayed Google Analytics |
+| Flying Images | Gijo Varghese | [WordPress.org](https://wordpress.org/plugins/nazy-load/), [source (WordPress.org SVN)](https://plugins.svn.wordpress.org/nazy-load/trunk/) | Image loading |
 | WP-Optimize and WP-Optimize Premium | David Anderson / Team Updraft | [WordPress.org (free edition)](https://wordpress.org/plugins/wp-optimize/), [source (free edition, WordPress.org SVN)](https://plugins.svn.wordpress.org/wp-optimize/trunk/) | Clean the database weekly (where LiteSpeed Cache runs on a LiteSpeed server) |
 | Ultimate 410 Gone Status Code | tiny web | [WordPress.org](https://wordpress.org/plugins/ultimate-410/) | 410 Gone for removed pages |
 | Remove CPT base | kubiq | [WordPress.org](https://wordpress.org/plugins/remove-cpt-base/) | Short addresses for custom post types |

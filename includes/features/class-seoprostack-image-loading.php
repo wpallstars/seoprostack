@@ -140,7 +140,9 @@ class SEOProStack_Image_Loading extends SEOProStack_Feature {
              *
              * @param string[] $keywords Text to look for.
              */
-            $keywords = array_values(array_filter(array_map('strval', (array) apply_filters('seoprostack_image_loading_exclude', $keywords)), 'strlen'));
+            $keywords = array_values(array_filter(array_map('strval', (array) apply_filters('seoprostack_image_loading_exclude', $keywords)), function ($keyword) {
+                return '' !== $keyword;
+            }));
         }
         return $keywords;
     }
