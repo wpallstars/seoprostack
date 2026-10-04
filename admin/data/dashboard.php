@@ -15,6 +15,9 @@
  *               without it, people who can manage options).
  * - reports:    statistics only people who can publish see (not
  *               contributors).
+ * - start_hidden: widgets that start unticked in Screen Options, once
+ *               per person (also people who saved Screen Options before);
+ *               ticking one shows it from then on.
  *
  * People who cannot edit posts (subscribers, customers) see no widgets,
  * and the Welcome panel is hidden for everyone.
@@ -30,7 +33,7 @@ if (!defined('ABSPATH')) {
 }
 
 return array(
-    'columns'    => array(
+    'columns'      => array(
         // Writing and what is happening on the site.
         'normal'  => array(
             // Core's warnings stay at the top, where WordPress puts them.
@@ -52,9 +55,10 @@ return array(
             'rank_math_dashboard_widget',
             'dashboard_right_now',
             'dashboard_site_health',
+            'mwai_advisor_widget',
         ),
     ),
-    'hidden'     => array(
+    'hidden'       => array(
         'dashboard_primary',                // WordPress Events and News.
         'woocommerce_dashboard_status',     // Repeats WooCommerce → Home.
         'wc_admin_dashboard_setup',         // WooCommerce Setup: repeats WooCommerce → Home's task list.
@@ -66,10 +70,16 @@ return array(
         // under Tools shows the same entries.
         'debug_log_manager_widget',
     ),
-    'developers' => array(
+    'developers'   => array(
         'dashboard_site_health',
+        'mwai_advisor_widget',              // AI Engine Advisor.
     ),
-    'reports'    => array(
+    'start_hidden' => array(
+        // AI Engine Advisor: a daily list of general advice about the
+        // site's plugins, too much for a Dashboard.
+        'mwai_advisor_widget',
+    ),
+    'reports'      => array(
         'dashboard_right_now',
         'fluentform_stat_widget',
         'fluent_support_reports_widget',

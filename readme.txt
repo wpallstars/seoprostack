@@ -129,6 +129,9 @@ Use **Report a problem** in Settings → SEO Pro Stack or [GitHub](https://githu
 
 == Changelog ==
 
+= Unreleased =
+* Change: Tidy the dashboard starts AI Engine Advisor hidden, for developers only.
+
 = 0.12.1 =
 * New: Term tools: slug patterns, bulk action and 301 redirects.
 * New: Plugins screen suggests deactivating Hostinger's default plugins.

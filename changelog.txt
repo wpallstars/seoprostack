@@ -2,6 +2,9 @@
 
 Every change to SEO Pro Stack. readme.txt lists the latest version in short.
 
+= Unreleased =
+* Change: Tidy the dashboard shows AI Engine Advisor only to developers, in the third column, and starts it hidden: tick it in Screen Options to show it.
+
 = 0.12.1 =
 * New: Term tools Options has a slug prefix and suffix per public taxonomy, such as best- or how-to- and -guide or -statistics, applied on term creation and editing. Apply slug pattern converts selected existing terms, with 301 redirects from their old archive addresses.
 * New: the Plugins screen recommends deactivating Hostinger AI and Hostinger Easy Onboarding, which Hostinger adds to new sites, while they are active: a note under each row says what it is for, with a Deactivate link. Nothing is deactivated for you. Other host plugins can be added with the seoprostack_host_plugins filter.

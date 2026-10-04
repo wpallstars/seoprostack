@@ -28,6 +28,9 @@ class SEOProStack_Dashboard_Layout extends SEOProStack_Feature {
     /** Let people rearrange boxes. */
     const REARRANGE_KEY = 'dashboard_layout_rearrange';
 
+    /** User meta: start_hidden widgets already unticked for this person. */
+    const START_HIDDEN_META = 'seoprostack_dashboard_start_hidden';
+
     /** Dashboard columns, in order. */
     const COLUMNS = array('normal', 'side', 'column3', 'column4');
 
@@ -76,7 +79,7 @@ class SEOProStack_Dashboard_Layout extends SEOProStack_Feature {
     /**
      * Rules, from admin/data/dashboard.php.
      *
-     * @return array{columns:array<string,string[]>,hidden:string[],developers:string[],reports:string[]}
+     * @return array{columns:array<string,string[]>,hidden:string[],developers:string[],reports:string[],start_hidden:string[]}
      */
     public static function rules() {
         static $rules = null;
@@ -86,11 +89,12 @@ class SEOProStack_Dashboard_Layout extends SEOProStack_Feature {
              * Filter how Tidy the dashboard lays out widgets.
              *
              * @param array $rules columns (column => widget IDs), hidden,
-             *                     developers and reports (widget IDs).
+             *                     developers, reports and start_hidden
+             *                     (widget IDs).
              */
             $data  = apply_filters('seoprostack_dashboard_layout', is_array($data) ? $data : array());
             $rules = array();
-            foreach (array('columns', 'hidden', 'developers', 'reports') as $key) {
+            foreach (array('columns', 'hidden', 'developers', 'reports', 'start_hidden') as $key) {
                 $rules[$key] = isset($data[$key]) && is_array($data[$key]) ? $data[$key] : array();
             }
         }
@@ -141,6 +145,7 @@ class SEOProStack_Dashboard_Layout extends SEOProStack_Feature {
         if (empty($wp_meta_boxes['dashboard']) || !$present) {
             return;
         }
+        self::start_hidden(array_keys($present));
 
         $order = array_fill_keys(self::COLUMNS, array());
         foreach ($rules['columns'] as $context => $ids) {
@@ -168,6 +173,45 @@ class SEOProStack_Dashboard_Layout extends SEOProStack_Feature {
             // wp_dashboard_setup runs before the page header is printed.
             add_action('admin_head', array(__CLASS__, 'lock_style'));
             add_action('admin_print_footer_scripts', array(__CLASS__, 'lock'), 20);
+        }
+    }
+
+    /**
+     * Untick start_hidden widgets in Screen Options, once per person, so
+     * ticking one shows it from then on.
+     *
+     * Until someone saves Screen Options, WordPress hides the boxes in
+     * default_hidden_meta_boxes. Someone who saved them before (or before
+     * the widget arrived) has a list without it, so it is added to that
+     * list once and remembered in START_HIDDEN_META.
+     *
+     * @param string[] $present IDs of widgets this person sees.
+     */
+    private static function start_hidden(array $present) {
+        $ids  = array_values(array_intersect(self::rules()['start_hidden'], $present));
+        $user = get_current_user_id();
+        if (!$ids || !$user) {
+            return;
+        }
+        $done   = get_user_meta($user, self::START_HIDDEN_META, true);
+        $done   = is_array($done) ? $done : array();
+        $new    = array_values(array_diff($ids, $done));
+        $hidden = get_user_option('metaboxhidden_dashboard', $user);
+        if (!is_array($hidden)) {
+            // Hidden until this person saves Screen Options; from then on
+            // their saved list says, so it is not added to it later.
+            add_filter('default_hidden_meta_boxes', function ($defaults, $screen) use ($ids) {
+                if ($screen instanceof WP_Screen && 'dashboard' === $screen->id) {
+                    $defaults = array_values(array_unique(array_merge((array) $defaults, $ids)));
+                }
+                return $defaults;
+            }, 10, 2);
+        } elseif ($new) {
+            // Where WordPress saves Screen Options (wp_ajax_closed_postboxes).
+            update_user_meta($user, 'metaboxhidden_dashboard', array_values(array_unique(array_merge($hidden, $new))));
+        }
+        if ($new) {
+            update_user_meta($user, self::START_HIDDEN_META, array_values(array_merge($done, $new)));
         }
     }
 
