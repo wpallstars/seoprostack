@@ -996,11 +996,16 @@ class SEOProStack_Database_Cleanup extends SEOProStack_Feature {
      */
     private static function waiting() {
         $waiting = get_transient(self::WAITING);
-        if (!is_array($waiting) || !isset($waiting['counts'], $waiting['tables'])) {
-            $run     = self::run(true);
-            $waiting = array('counts' => $run['counts'], 'tables' => $run['tables']);
-            set_transient(self::WAITING, $waiting, HOUR_IN_SECONDS);
+        if (is_array($waiting) && isset($waiting['counts'], $waiting['tables']) && is_array($waiting['counts']) && is_array($waiting['tables'])) {
+            $counts = array();
+            foreach ($waiting['counts'] as $kind => $count) {
+                $counts[(string) $kind] = (int) $count;
+            }
+            return array('counts' => $counts, 'tables' => array_map('strval', array_values($waiting['tables'])));
         }
+        $run     = self::run(true);
+        $waiting = array('counts' => $run['counts'], 'tables' => $run['tables']);
+        set_transient(self::WAITING, $waiting, HOUR_IN_SECONDS);
         return $waiting;
     }
 

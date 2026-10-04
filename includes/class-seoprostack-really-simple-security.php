@@ -39,6 +39,9 @@ final class SEOProStack_Really_Simple_Security {
             return new WP_Error('seoprostack_rsssl_api', __('Really Simple Security’s save API is unavailable on this request. Open its settings first.', 'seoprostack'));
         }
         $manager = $plugin->admin->htaccess_file_manager;
+        if (!is_object($manager)) {
+            return new WP_Error('seoprostack_rsssl_api', __('Really Simple Security’s rule-file API is unsupported.', 'seoprostack'));
+        }
         foreach (array('get_root_htaccess_target_path', 'get_rule_content_for_path', 'get_rule_lines_for_path', 'is_valid_htaccess_file_path') as $method) {
             if (!is_callable(array($manager, $method))) {
                 return new WP_Error('seoprostack_rsssl_api', __('Really Simple Security’s rule-file API is unsupported.', 'seoprostack'));

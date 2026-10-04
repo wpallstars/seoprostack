@@ -412,12 +412,13 @@ class SEOProStack_Brand_Icons extends SEOProStack_Feature {
             $html = self::shortcode(array(
                 'name'      => $m[1],
                 // The item's title attribute already names the link.
-                'title_tag' => '' === (string) $item->post_excerpt ? 'true' : 'false',
+                'title_tag' => !isset($item->post_excerpt) || '' === (string) $item->post_excerpt ? 'true' : 'false',
             ));
             if ('' !== $html) {
+                $classes         = isset($item->classes) ? (array) $item->classes : array();
+                $classes[]       = 'simple-icon';
                 $item->title     = $html;
-                $item->classes   = (array) $item->classes;
-                $item->classes[] = 'simple-icon';
+                $item->classes   = $classes;
             }
         }
         return $items;

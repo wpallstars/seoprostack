@@ -218,7 +218,7 @@ class SEOProStack_Paste_Media extends SEOProStack_Feature {
             'failed'   => __('The pasted image could not be uploaded: %s', 'seoprostack'),
         );
 
-        wp_register_script(self::HANDLE, false, $deps, SEOPROSTACK_VERSION, true);
+        wp_register_script(self::HANDLE, false, array_values(array_filter($deps)), SEOPROSTACK_VERSION, true);
         wp_enqueue_script(self::HANDLE);
         wp_add_inline_script(self::HANDLE, 'window.seoprostackPaste = ' . wp_json_encode($data) . ';' . "\n" . self::script());
     }

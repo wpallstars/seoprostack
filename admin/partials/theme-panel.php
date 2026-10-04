@@ -15,6 +15,7 @@ if (!isset($theme_data, $author) || !is_object($theme_data)) {
 }
 
 $seoprostack_slug      = SEOProStack_Theme_Manager::SLUG;
+$seoprostack_name      = isset($theme_data->name) ? (string) $theme_data->name : 'Kadence';
 $seoprostack_installed = wp_get_theme($seoprostack_slug);
 $seoprostack_is_active = get_stylesheet() === $seoprostack_slug;
 // The installed theme's own screenshot comes from this site, so a host or
@@ -40,12 +41,12 @@ $seoprostack_links     = array(
 <article class="sps-card sps-theme-card">
     <div class="sps-theme-card__media">
         <?php if ($seoprostack_screenshot) : ?>
-            <img src="<?php echo esc_url($seoprostack_screenshot); ?>" alt="<?php echo esc_attr(sprintf(/* translators: %s: theme name */ __('%s screenshot', 'seoprostack'), $theme_data->name)); ?>" />
+            <img src="<?php echo esc_url($seoprostack_screenshot); ?>" alt="<?php echo esc_attr(sprintf(/* translators: %s: theme name */ __('%s screenshot', 'seoprostack'), $seoprostack_name)); ?>" />
         <?php endif; ?>
     </div>
     <div class="sps-theme-card__body">
         <h3 class="sps-theme-card__title">
-            <?php echo esc_html($theme_data->name); ?>
+            <?php echo esc_html($seoprostack_name); ?>
             <?php if ($seoprostack_is_active) : ?>
                 <span class="sps-badge sps-badge--success"><?php esc_html_e('Active', 'seoprostack'); ?></span>
             <?php elseif ($seoprostack_installed->exists()) : ?>

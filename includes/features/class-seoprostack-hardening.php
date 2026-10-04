@@ -456,8 +456,13 @@ class SEOProStack_Hardening extends SEOProStack_Feature {
      */
     public static function exposed() {
         $cached = get_transient(self::EXPOSED);
-        if (is_array($cached) && isset($cached['files'])) {
-            return $cached;
+        if (is_array($cached) && isset($cached['files']) && is_array($cached['files'])) {
+            return array(
+                'files'   => $cached['files'],
+                'checked' => isset($cached['checked']) ? (int) $cached['checked'] : 0,
+                'failed'  => isset($cached['failed']) ? (int) $cached['failed'] : 0,
+                'more'    => isset($cached['more']) ? (int) $cached['more'] : 0,
+            );
         }
         $result     = array('files' => array(), 'checked' => 0, 'failed' => 0, 'more' => 0);
         $candidates = self::candidates();

@@ -542,7 +542,7 @@ class SEOProStack_Term_Tools extends SEOProStack_Feature {
                 $parents[] = $term instanceof WP_Term ? (int) $term->parent : 0;
             }
             $parents = array_unique($parents);
-            $created = wp_insert_term($name, $taxonomy, array('parent' => 1 === count($parents) && !in_array(reset($parents), $term_ids, true) ? reset($parents) : 0));
+            $created = wp_insert_term($name, $taxonomy, array('parent' => 1 === count($parents) && !in_array(reset($parents), $term_ids, true) ? max(0, (int) reset($parents)) : 0));
             if (is_wp_error($created)) {
                 return 'failed';
             }
@@ -563,11 +563,11 @@ class SEOProStack_Term_Tools extends SEOProStack_Feature {
                 $children = get_terms(array('taxonomy' => $taxonomy, 'parent' => $term->term_id, 'hide_empty' => false, 'fields' => 'ids'));
                 foreach (is_array($children) ? $children : array() as $child) {
                     if ((int) $child !== $target->term_id) {
-                        wp_update_term((int) $child, $taxonomy, array('parent' => $target->term_id));
+                        wp_update_term((int) $child, $taxonomy, array('parent' => max(0, $target->term_id)));
                     }
                 }
                 if ((int) $target->parent === $term->term_id) {
-                    wp_update_term($target->term_id, $taxonomy, array('parent' => (int) $term->parent));
+                    wp_update_term($target->term_id, $taxonomy, array('parent' => max(0, (int) $term->parent)));
                 }
             }
             $old = array_merge(array($taxonomy . ':' . $term->slug), (array) get_term_meta($term->term_id, self::OLD, false));

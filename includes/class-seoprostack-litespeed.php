@@ -234,6 +234,9 @@ final class SEOProStack_Litespeed {
             'object-port' => (int) $port,
         );
         $conf = \LiteSpeed\Conf::cls();
+        if (!is_object($conf)) {
+            return false;
+        }
         if (self::network_active()) {
             if (!is_callable(array($conf, 'network_update')) || !class_exists('\LiteSpeed\Activation')) {
                 return false;
@@ -243,8 +246,10 @@ final class SEOProStack_Litespeed {
                 $conf->network_update($id, $value);
             }
             \LiteSpeed\Activation::cls()->update_files();
-        } else {
+        } elseif (is_callable(array($conf, 'update_confs'))) {
             $conf->update_confs($matrix);
+        } else {
+            return false;
         }
         self::flush_object_cache($kind, (string) $host, (int) $port, (int) self::conf('object-db_id', 0));
         return true;
