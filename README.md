@@ -912,11 +912,11 @@ Lays your site icon, site logo or a picture you choose faintly over pictures as 
 
 ### Plugins menu in the admin bar (Plugins)
 
-Adds a plugin icon to the right of the admin bar, in wp-admin and on the site. It opens a one-column list of every plugin, which scrolls when it is taller than the window; active ones are bold. Choosing one asks “Activate …?” or “Deactivate …?”, then runs WordPress’s own activate or deactivate action and returns you to the page you were on.
+Adds a plugin icon to the right of the admin bar, in wp-admin and on the site. It opens a one-column list of every plugin, which scrolls when it is taller than the window. Plugins loaded on the page are bold; active plugins that are not loaded there are grey; deactivated plugins are grey and struck through. Choosing one asks “Activate …?” or “Deactivate …?”, then runs WordPress’s own activate or deactivate action and returns you to the page you were on.
 
 - The icon sits next to the account menu, with the notices megaphone (when Hide admin notices is on) and then other plugins’ admin bar items to its left.
 - Only shown to people who can activate plugins, and only lists plugins they may switch.
-- With Load plugins only where needed on, plugins skipped on the current screen still show as active; hover one to see that it is not loaded there. Above the list, a line says how many plugins the screen loaded, with a link to reload it with every plugin.
+- With Load plugins only where needed on, plugins skipped on the current screen or page are grey but not struck through, since they are still active; hover one to see that it is not loaded there, and choosing one deactivates it. Above the list, a line says how many plugins the screen loaded, with a link to reload it with every plugin.
 - If the page you were on belonged to the plugin you switched off, you land on the Plugins screen instead of an error.
 - Network-activated plugins are left to the Network Plugins screen.
 - Plugin names are cached and refreshed when plugins change or the Plugins screen opens, so page loads do not read plugin files.
@@ -1133,7 +1133,7 @@ On by default. Works around bugs in other plugins that slow the site down or lea
 
 ### Load plugins only where needed (Plugins)
 
-Makes wp-admin faster on sites with many plugins. On by default, with **Also skip them for people who are logged in** on too, so it learns from the first screens and pages and then takes every chance it has. It chooses every active plugin automatically, except login and permission plugins, network-activated plugins and plugins in **Always load these plugins**. That bypass list starts empty. Add a plugin if a box, field or menu entry is missing or something breaks; the admin bar reload links fix one-off cases. Sites that ticked plugins in the old **Plugins to load only where needed** list keep the plugins they left unticked in the bypass list; sites that ticked none start with it empty.
+Makes wp-admin faster on sites with many plugins. On by default, with **Also skip them for people who are logged in** on too, so it learns from the first screens and pages and then takes every chance it has. Sites installed before that became the default get it switched on when they update to the next version after 0.14.0; switch it off again to give logged-in people every plugin on the site. It chooses every active plugin automatically, except login and permission plugins, network-activated plugins and plugins in **Always load these plugins**. That bypass list starts empty. Add a plugin if a box, field or menu entry is missing or something breaks; the admin bar reload links fix one-off cases. Sites that ticked plugins in the old **Plugins to load only where needed** list keep the plugins they left unticked in the bypass list; sites that ticked none start with it empty.
 
 Plugins load where they are needed:
 
@@ -1362,6 +1362,11 @@ Deleting the plugin removes its settings and cached data, the profile pictures a
 Deactivating the plugin removes the WebP and AVIF rules from the uploads folder’s `.htaccess` (for every site when network-deactivated), the LiteSpeed background request rules from the site’s `.htaccess` (on multisite, when network-deactivated or deactivated on the main site) and the must-use file of Load plugins only where needed (on multisite, when network-deactivated).
 
 ## Changelog
+
+### Unreleased
+
+- Change: **Load plugins only where needed** skips plugins for people who are logged in on every site. **Also skip them for people who are logged in** has been on by default since 0.14.0, but only for new installs, so administrators of older sites still got every plugin on the site; updating switches it on there too. Switch it off again to give logged-in people every plugin (GitHub issue #426).
+- Change: the **Plugins menu in the admin bar** shows what is loaded: plugins loaded on the page are bold, active plugins skipped there are grey, and deactivated plugins are grey and struck through. Skipped plugins used to look loaded (GitHub issue #426).
 
 ### 0.14.0
 
