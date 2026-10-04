@@ -3,9 +3,11 @@
  * Switch plugins on and off from the admin bar.
  *
  * Adds a plugin icon to the right of the admin bar (in wp-admin and on the
- * site) that opens a one-column list of every plugin; active ones are bold.
- * Plugins that "Load plugins only where needed" skips on the current
- * screen still show as active, since they are. Choosing one asks for
+ * site) that opens a one-column list of every plugin: plugins loaded here
+ * are bold; plugins that "Load plugins only where needed" skips on the
+ * current screen or page are grey (they are still active, and switching
+ * one deactivates it); deactivated plugins are grey and struck through.
+ * Choosing one asks for
  * confirmation, naming the plugin, then runs core's own activate or
  * deactivate action and returns to the page you were on. If that page
  * belonged to the plugin just switched off, you land on the Plugins screen
@@ -180,7 +182,9 @@ class SEOProStack_Plugin_Toggle extends SEOProStack_Feature {
             $meta = array('class' => $item['active'] ? 'is-active' : 'is-inactive');
             if ($item['skipped']) {
                 $meta['class'] .= ' is-skipped';
-                $meta['title']  = __('Active. Not loaded on this screen, to make it faster.', 'seoprostack');
+                $meta['title']  = is_admin()
+                    ? __('Active. Not loaded on this screen, to make it faster.', 'seoprostack')
+                    : __('Active. Not loaded on this page, to make it faster.', 'seoprostack');
             }
             $bar->add_node(array(
                 'id'     => self::NODE . '-' . substr(md5($file), 0, 12),
@@ -237,8 +241,11 @@ class SEOProStack_Plugin_Toggle extends SEOProStack_Feature {
             . "{$node}>.ab-item .ab-icon:before{content:\"\\f106\";top:2px}"
             . "{$node} .ab-sub-wrapper{width:max-content;max-width:min(24rem,calc(100vw - 16px));max-height:calc(100vh - var(--wp-admin--admin-bar--height,32px));overflow-y:auto;overscroll-behavior:contain}"
             . "{$node} .ab-submenu .ab-item{height:auto;min-width:0;padding-block:3px;line-height:1.5;white-space:normal}"
-            . "{$node} .ab-submenu .is-inactive .ab-item{opacity:.7}"
+            // Bold: loaded here. Grey: not loaded here (skipped on this
+            // screen or page, or deactivated). Struck through: deactivated.
             . "{$node} .ab-submenu .is-active .ab-item{font-weight:600}"
+            . "{$node} .ab-submenu .is-inactive .ab-item,{$node} .ab-submenu .is-skipped .ab-item{font-weight:400;opacity:.7}"
+            . "{$node} .ab-submenu .is-inactive .ab-item{text-decoration:line-through}"
             . "{$node} .ab-submenu .ab-item:hover,{$node} .ab-submenu .ab-item:focus{opacity:1}";
         wp_add_inline_style('admin-bar', $css);
 

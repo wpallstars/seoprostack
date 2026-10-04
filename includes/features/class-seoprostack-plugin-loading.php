@@ -313,6 +313,9 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
      *      and the site's first learn bypassed every plugin it skips
      *      automatically, so the feature did nothing. Where the feature is
      *      off, page learning is switched on, the new default.
+     * v23: skipping plugins for logged-in people is switched on: sites
+     *      installed before it became the default (#404) kept it off, so
+     *      administrators saw every plugin load on the site (#426).
      */
     public static function migrate(array $options, $from_version) {
         $active = array_values(array_diff(SEOProStack_Plugin_Loader::stored_active_plugins(), array(plugin_basename(SEOPROSTACK_FILE))));
@@ -334,6 +337,10 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
         if ($from_version < 19 && empty($options[self::KEY])) {
             // Page learning is now on by default; it takes effect only once the feature is switched on.
             $options[SEOProStack_Plugin_Loader::PAGES_KEY] = true;
+        }
+        if ($from_version < 23) {
+            // The owner's default for every site, not only new ones.
+            $options[self::FRONT_USERS_KEY] = true;
         }
         if (0 === (int) $from_version) {
             // A new site has no site-wide choices to keep.

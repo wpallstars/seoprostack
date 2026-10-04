@@ -193,8 +193,11 @@ final class SEOProStack_Setup {
      *      move to Developer admins: switched on where the menu was
      *      organised with safeguards on, limited to code changes and
      *      administrators as before, with the same developers.
+     * v23: Load plugins only where needed: switch on "Also skip them for
+     *      people who are logged in" on sites installed before it became
+     *      the default (owner's choice, #426).
      */
-    const DB_VERSION = 22;
+    const DB_VERSION = 23;
 
     /**
      * Tab slugs renamed in 0.4.0, old => new. Settings that still use an
