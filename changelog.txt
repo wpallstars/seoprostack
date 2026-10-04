@@ -8,6 +8,7 @@ Every change to SEO Pro Stack. readme.txt lists the latest version in short.
 * New, off by default: Kadence query filters scroll to results (Content tab). Changing a filter in a Kadence Blocks Pro query loop scrolls back up to the results, less an offset for sticky headers, instantly with reduced motion. A small inline script, only on pages with a query loop.
 * Fix: MainWP Child printed the Branding extension's Global footer text, unstyled, below the footer of every front-end page (such as "Email support@… for assistance."). Fixes for other plugins (on by default) leaves it out of the front end; the admin footer text and MainWP's settings stay.
 * Change: Tidy the dashboard shows AI Engine Advisor only to developers, in the third column, and starts it hidden: tick it in Screen Options to show it.
+* New, off by default: Pinned posts for any post type can lift pinned items to the top of Kadence Blocks Pro query loops (Query Loop (Adv)), in every loop or only the ones you tick. Page 1 starts with the pins that match the loop's filters, in the loop's order; later pages leave them out without repeating or skipping items. The settings show while Kadence Blocks Pro is active.
 
 = 0.12.1 =
 * New: Term tools Options has a slug prefix and suffix per public taxonomy, such as best- or how-to- and -guide or -statistics, applied on term creation and editing. Apply slug pattern converts selected existing terms, with 301 redirects from their old archive addresses.
