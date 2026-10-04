@@ -78,7 +78,7 @@ Features safe on every site start on; those needing choices stay off. Use **Sett
 
 = Affiliate disclosure =
 
-Some Discover vendor and Go Pro links may earn the developer a commission or credit. They do not affect recommendations or appear on your public site.
+The WordPress.org version has no affiliate links. In GitHub builds, some Discover links may earn the developer a commission; they never affect recommendations.
 
 = External services =
 
@@ -121,7 +121,7 @@ Random, hashed links work once for an hour. Password-step two-factor checks are 
 
 = Where do updates come from? =
 
-From where you installed it. New versions come out on GitHub first.
+From where you installed it. GitHub gets new versions first; WordPress.org 90 days later, security fixes at once.
 
 = Where do I get help? =
 

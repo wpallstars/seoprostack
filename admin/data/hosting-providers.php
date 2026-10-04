@@ -113,7 +113,7 @@ function seoprostack_get_hosting_providers() {
             'button_group' => array(
                 array(
                     'text' => 'Home Page',
-                    'url' => 'https://namecheap.pxf.io/B0GoZ9',
+                    'url' => 'https://www.namecheap.com/promos/',
                     'primary' => true
                 ),
                 array(
