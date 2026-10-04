@@ -348,7 +348,8 @@ final class SEOProStack_Autoload_Options extends SEOProStack_Feature {
      * wp_load_alloptions(true) refreshes the object cache before a plugin
      * updates or removes its own known entry (WooCommerce, Link Whisper, ICS
      * Calendar); it does not read other settings by name. Any other call
-     * might. Comments mentioning the function are not calls.
+     * might. Comments and strings naming the function (such as Plugin Check's
+     * list of deprecated functions) are not calls.
      */
     private static function reads_alloptions($source) {
         // Possessive \s*+ so "( true )" cannot backtrack into a match.
@@ -361,7 +362,7 @@ final class SEOProStack_Autoload_Options extends SEOProStack_Feature {
         }
         $code = '';
         foreach (token_get_all($source) as $token) {
-            if (is_array($token) && in_array($token[0], array(T_COMMENT, T_DOC_COMMENT, T_INLINE_HTML), true)) {
+            if (is_array($token) && in_array($token[0], array(T_COMMENT, T_DOC_COMMENT, T_INLINE_HTML, T_CONSTANT_ENCAPSED_STRING, T_ENCAPSED_AND_WHITESPACE), true)) {
                 $code .= ' ';
                 continue;
             }
