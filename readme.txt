@@ -5,7 +5,7 @@ Tags: magic login, iframe, schedule posts, auto upload images, admin
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 0.12.5
+Stable tag: 0.12.6
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -128,6 +128,9 @@ From where you installed it. New versions come out on GitHub first.
 Use **Report a problem** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpallstars/seoprostack/issues).
 
 == Changelog ==
+
+= 0.12.6 =
+* Fix: pinned items on archives take places on the pages, so none shows twice.
 
 = 0.12.5 =
 * New, on: Quiet Appsero prompts, no usage-data nags or deactivation surveys.
