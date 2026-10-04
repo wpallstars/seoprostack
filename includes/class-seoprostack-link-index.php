@@ -216,7 +216,7 @@ final class SEOProStack_Link_Index {
             // Never automatically request query-bearing URLs or admin/API endpoints.
             $raw = WP_Http::make_absolute_url(html_entity_decode($href, ENT_QUOTES, 'UTF-8'), $base);
             $path = (string) wp_parse_url($raw, PHP_URL_PATH);
-            $checkable = null === wp_parse_url($raw, PHP_URL_QUERY) && !preg_match('~/(?:wp-admin|wp-json)(?:/|$)|/wp-login\.php$~i', $path);
+            $checkable = null === wp_parse_url($raw, PHP_URL_QUERY) && !preg_match('~(?:/(?:wp-admin|wp-json)(?:/|$))|(?:/wp-login\.php$)~i', $path);
             $links[$hash] = array('url' => $url, 'target' => $identity['target'], 'occurrences' => 1, 'checkable' => $checkable);
         }
         return array('links' => $links, 'truncated' => $truncated);
@@ -361,7 +361,7 @@ final class SEOProStack_Link_Index {
         $result = array('status' => 0, 'redirects' => 0, 'error' => '');
         for ($hop = 0; $hop <= 3; ++$hop) {
             $path = (string) wp_parse_url($url, PHP_URL_PATH);
-            if (!wp_http_validate_url($url) || null !== wp_parse_url($url, PHP_URL_QUERY) || preg_match('~/(?:wp-admin|wp-json)(?:/|$)|/wp-login\.php$~i', $path)) {
+            if (!wp_http_validate_url($url) || null !== wp_parse_url($url, PHP_URL_QUERY) || preg_match('~(?:/(?:wp-admin|wp-json)(?:/|$))|(?:/wp-login\.php$)~i', $path)) {
                 $result['error'] = 'unsafe_url';
                 break;
             }

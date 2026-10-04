@@ -454,7 +454,7 @@ class SEOProStack_Admin_Notices extends SEOProStack_Feature {
      */
     private static function hash($plugin, $html) {
         $text = trim((string) preg_replace('/\s+/', ' ', wp_strip_all_tags($html)));
-        return md5($plugin . "\n" . ('' === $text ? $html : $text));
+        return md5($plugin . "\n" . ('' === $text ? $html : $text)); // NOSONAR: a fingerprint to notice changes, not security; stored, so it stays md5.
     }
 
     /**

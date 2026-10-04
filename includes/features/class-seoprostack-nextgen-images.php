@@ -961,7 +961,7 @@ class SEOProStack_Nextgen_Images extends SEOProStack_Feature {
      * @return string copy, original or unknown (nothing to test, or no answer).
      */
     private static function check_rules(array $sites) {
-        $rules  = md5((string) wp_json_encode(self::rules_for($sites)));
+        $rules  = md5((string) wp_json_encode(self::rules_for($sites))); // NOSONAR: a fingerprint to notice changes, not security.
         $cached = get_transient(self::CHECK);
         if (is_array($cached) && isset($cached['rules'], $cached['result']) && $cached['rules'] === $rules) {
             return $cached['result'];
