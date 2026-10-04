@@ -1202,7 +1202,7 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folderâ
 
 ## Changelog
 
-### Unreleased
+### 0.12.1
 
 - New: **Term tools** Options has a slug prefix and suffix per public taxonomy, such as `best-` or `how-to-` and `-guide` or `-statistics`, applied on creation and editing, plus **Apply slug pattern** for selected existing terms with 301 redirects from their old archives.
 - New: the Plugins screen recommends deactivating plugins web hosts add to new sites while they are active: Hostinger AI and Hostinger Easy Onboarding. A note under each row says what it is for, with a Deactivate link; nothing is deactivated for you. Add others with the `seoprostack_host_plugins` filter.
