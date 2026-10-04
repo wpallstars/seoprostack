@@ -355,6 +355,11 @@ delete_metadata('user', 0, 'seoprostack_licence_later', '', true);
 // Dashboard boxes Tidy the dashboard has unticked once in Screen Options
 // (the boxes stay unticked: that is WordPress's own setting).
 delete_metadata('user', 0, 'seoprostack_dashboard_start_hidden', '', true);
+// Hidden "network-activated plugins" notices (multisite).
+delete_metadata('user', 0, 'seoprostack_network_plugins_hidden', '', true);
+// Plugins moved from the network to each site, kept for Undo. The plugins
+// stay activated on each site.
+delete_site_option('seoprostack_network_moved');
 
 // Plugin caches, network-wide because plugins are shared by every site. On
 // single sites these calls remove the ordinary option and transient.

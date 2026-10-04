@@ -117,7 +117,7 @@ Imported media stays. Deleting removes settings, caches, profile pictures, WebP/
 
 = Does it work on multisite? =
 
-Yes. Settings are per site, and Free Plugins shows only to super admins.
+Yes. Settings are per site, and Free Plugins shows only to super admins. The Network Plugins screen offers to activate network-activated plugins on each site instead, so each site loads them only where needed.
 
 = Is the magic login safe? =
 
