@@ -14,6 +14,12 @@
  * uninstall. The Recommended plugins list (All) shows the same sizes for
  * installed plugins whether or not this setting is on.
  *
+ * Each cell also shows how much OPcache memory the plugin's compiled PHP
+ * takes now (opcache_get_status() with scripts, read once per screen and
+ * never stored), since that memory is what each PHP worker shares and what
+ * a full cache evicts first. Only files PHP has loaded since OPcache last
+ * restarted are counted, so an inactive plugin shows none.
+ *
  * @package SEOProStack
  * @since 0.4.0
  */
@@ -53,7 +59,7 @@ class SEOProStack_Plugin_Sizes extends SEOProStack_Feature {
                 'default'     => true,
                 'tab'         => 'plugins',
                 'label'       => __('Plugin sizes', 'seoprostack'),
-                'description' => __('Add a Size column to the Plugins screen with each plugin’s PHP, JavaScript, CSS, media and other files, so heavy plugins stand out. Click the column heading to sort. Totals for installed and active plugins are shown below the list.', 'seoprostack'),
+                'description' => __('Add a Size column to the Plugins screen with each plugin’s PHP, JavaScript, CSS, media and other files, and the OPcache memory its compiled code takes now, so heavy plugins stand out. Click the column heading to sort. Totals for installed and active plugins are shown below the list.', 'seoprostack'),
             ),
         );
     }
@@ -127,16 +133,80 @@ class SEOProStack_Plugin_Sizes extends SEOProStack_Feature {
                 esc_html__('Measuring…', 'seoprostack')
             );
         }
-        return self::cell($sizes);
+        return self::cell($sizes, self::opcache_for(array($file)));
+    }
+
+    /**
+     * OPcache memory now used by each plugin's compiled scripts.
+     *
+     * Read once per request. Empty when OPcache is off, its scripts list is
+     * kept from this site (opcache.restrict_api) or PHP runs from the
+     * command line, where OPcache is a different cache from the web's.
+     *
+     * @return array<string,array{bytes:int,files:int}>|null Keyed by plugin folder (or file, for single-file plugins); null when unknown.
+     */
+    public static function opcache() {
+        static $by_plugin = false;
+        if (false !== $by_plugin) {
+            return $by_plugin;
+        }
+        $by_plugin = null;
+        if ('cli' === PHP_SAPI || !function_exists('opcache_get_status') || !filter_var(ini_get('opcache.enable'), FILTER_VALIDATE_BOOLEAN)) {
+            return $by_plugin;
+        }
+        // False when opcache.restrict_api keeps this script out.
+        $status = @opcache_get_status(true); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
+        if (!is_array($status) || empty($status['opcache_enabled']) || !isset($status['scripts']) || !is_array($status['scripts'])) {
+            return $by_plugin;
+        }
+        $root      = wp_normalize_path(trailingslashit(WP_PLUGIN_DIR));
+        $length    = strlen($root);
+        $by_plugin = array();
+        foreach ($status['scripts'] as $path => $script) {
+            $path = wp_normalize_path((string) (isset($script['full_path']) ? $script['full_path'] : $path));
+            if (0 !== strncmp($path, $root, $length)) {
+                continue;
+            }
+            $relative = substr($path, $length);
+            $slash    = strpos($relative, '/');
+            $key      = false === $slash ? $relative : substr($relative, 0, $slash);
+            if (!isset($by_plugin[$key])) {
+                $by_plugin[$key] = array('bytes' => 0, 'files' => 0);
+            }
+            $by_plugin[$key]['bytes'] += isset($script['memory_consumption']) ? (int) $script['memory_consumption'] : 0;
+            $by_plugin[$key]['files']++;
+        }
+        return $by_plugin;
+    }
+
+    /**
+     * OPcache memory for some plugins together.
+     *
+     * @param string[] $files Plugin files.
+     * @return int|null Bytes; null when OPcache cannot be read.
+     */
+    private static function opcache_for(array $files) {
+        $by_plugin = self::opcache();
+        if (null === $by_plugin) {
+            return null;
+        }
+        $bytes = 0;
+        foreach ($files as $file) {
+            $dir  = dirname($file);
+            $key  = '.' === $dir ? $file : $dir;
+            $bytes += isset($by_plugin[$key]) ? $by_plugin[$key]['bytes'] : 0;
+        }
+        return $bytes;
     }
 
     /**
      * Cell markup.
      *
-     * @param array $sizes Sizes in bytes, keyed by group plus total.
+     * @param array    $sizes   Sizes in bytes, keyed by group plus total.
+     * @param int|null $opcache OPcache memory in bytes; null when OPcache cannot be read.
      * @return string
      */
-    public static function cell(array $sizes) {
+    public static function cell(array $sizes, $opcache = null) {
         $labels = array(
             'php'   => __('PHP', 'seoprostack'),
             'js'    => __('JS', 'seoprostack'),
@@ -150,11 +220,21 @@ class SEOProStack_Plugin_Sizes extends SEOProStack_Feature {
                 $parts[] = sprintf('<span>%1$s %2$s</span>', esc_html($labels[$group]), esc_html((string) size_format($sizes[$group], 1)));
             }
         }
+        $memory = '';
+        if ($opcache) {
+            $memory = sprintf(
+                '<span class="sps-size__opcache" title="%1$s">%2$s</span>',
+                esc_attr__('OPcache memory its compiled PHP takes now. Only files PHP has loaded since OPcache last restarted count, so a plugin that is not active shows none.', 'seoprostack'),
+                /* translators: %s: memory size, such as 2.1 MB. */
+                esc_html(sprintf(__('OPcache %s', 'seoprostack'), (string) size_format($opcache, 1)))
+            );
+        }
         return sprintf(
-            '<span class="sps-size" data-sps-size="%1$d"><strong>%2$s</strong>%3$s</span>',
+            '<span class="sps-size" data-sps-size="%1$d"><strong>%2$s</strong>%3$s%4$s</span>',
             (int) $sizes['total'],
             esc_html((string) size_format($sizes['total'], 1)),
-            $parts ? '<span class="sps-size__parts">' . implode(' ', $parts) . '</span>' : ''
+            $parts ? '<span class="sps-size__parts">' . implode(' ', $parts) . '</span>' : '',
+            $memory
         );
     }
 
@@ -205,13 +285,14 @@ class SEOProStack_Plugin_Sizes extends SEOProStack_Feature {
         if (!$plugins) {
             return null;
         }
-        $zero   = array('sizes' => array_fill_keys(array_merge(self::GROUPS, array('total')), 0), 'count' => 0, 'missing' => 0);
+        $zero   = array('sizes' => array_fill_keys(array_merge(self::GROUPS, array('total')), 0), 'count' => 0, 'missing' => 0, 'files' => array());
         $totals = array('installed' => $zero, 'active' => $zero);
         foreach ($plugins as $file => $plugin) {
             $sizes  = self::valid($cache, $file, (array) $plugin);
             $active = $network ? is_plugin_active_for_network($file) : SEOProStack_Plugin_Loader::is_active($file);
             foreach ($active ? array('installed', 'active') : array('installed') as $key) {
                 $totals[$key]['count']++;
+                $totals[$key]['files'][] = $file;
                 if (null === $sizes) {
                     $totals[$key]['missing']++;
                     continue;
@@ -235,7 +316,7 @@ class SEOProStack_Plugin_Sizes extends SEOProStack_Feature {
                 /* translators: %s: number of plugins. */
                 $label = sprintf(_n('%s active plugin', '%s active plugins', $total['count'], 'seoprostack'), $count);
             }
-            $cell = $total['sizes']['total'] ? self::cell($total['sizes']) : ''; // Nothing measured yet, or no plugins.
+            $cell = $total['sizes']['total'] ? self::cell($total['sizes'], self::opcache_for($total['files'])) : ''; // Nothing measured yet, or no plugins.
             if ($total['missing']) {
                 $cell .= sprintf(
                     '<span class="sps-size__missing">%s</span>',
@@ -290,7 +371,7 @@ class SEOProStack_Plugin_Sizes extends SEOProStack_Feature {
             }
             $sizes        = self::measure($file);
             $cache[$file] = array('v' => (string) $plugins[$file]['Version'], 's' => $sizes);
-            $done[$file]  = self::cell($sizes);
+            $done[$file]  = self::cell($sizes, self::opcache_for(array($file)));
         }
 
         self::save($cache);
@@ -426,6 +507,7 @@ class SEOProStack_Plugin_Sizes extends SEOProStack_Feature {
             .sps-size-totals td { background: #f6f7f7; }
             .sps-size-totals tr:first-child td { border-top: 2px solid #c3c4c7; }
             .sps-size-totals tr + tr td { border-top: 1px solid #dcdcde; }
+            .sps-size__opcache { display: block; margin-top: 2px; font-size: 12px; color: #646970; }
             .sps-size__missing { display: block; margin-top: 2px; font-size: 12px; color: #646970; font-style: italic; }
             @media screen and (max-width: 782px) {
                 .sps-size-totals td:not(.column-primary):not(.column-<?php echo esc_attr(self::COLUMN); ?>) { display: none !important; }
