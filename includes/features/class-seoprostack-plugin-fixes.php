@@ -91,6 +91,14 @@
  * switch, and the block is removed when this is switched off or SEO Pro
  * Stack is deactivated. This is the one fix that writes a file.
  *
+ * MainWP Child (checked with 6.2.1) prints the Branding extension's "Global
+ * footer" text on every front-end page, at wp_footer after the theme's
+ * footer and outside any element, so it shows unstyled below the site's
+ * footer (as "Email support@… for assistance." did on agency sites). Its
+ * branding_global_footer callback is removed on the front end; the same
+ * text set as "Dashboard footer" still shows in the admin footer, and
+ * MainWP's saved settings are left alone.
+ *
  * @package SEOProStack
  */
 
@@ -136,6 +144,9 @@ class SEOProStack_Plugin_Fixes extends SEOProStack_Feature {
     /** After Comment Goblin's update server fails, answer from here (a site transient) until it runs out. */
     const CG_FAILED = 'seoprostack_comment_goblin_failed';
 
+    /** MainWP Child's branding class, whose wp_footer callback prints the Global footer. */
+    const MAINWP_BRANDING = 'MainWP\Child\MainWP_Child_Branding';
+
     /** .htaccess marker of the noabort rules. */
     const NOABORT_MARKER = 'SEO Pro Stack background requests';
 
@@ -155,7 +166,7 @@ class SEOProStack_Plugin_Fixes extends SEOProStack_Feature {
                 'default'     => true,
                 'tab'         => 'plugins',
                 'label'       => __('Fixes for other plugins', 'seoprostack'),
-                'description' => __('Works around bugs in other plugins that slow your site down, without changing their settings. Lasso Lite (Simple URLs) stops contacting its server on every admin screen. Deactivating Freesoul Deactivate Plugins or its PRO add-on deactivates both and removes the must-use file it leaves behind. Readabler no longer contacts its server on every Plugins screen load, or stops that screen with a critical error when it cannot. Tutor LMS Pro stops adding warnings to the debug log when there is no update. Tutor LMS gets its order, cart and coupon tables on every site of a network. Tutor LMS Pro no longer makes the Plugins screen check every plugin for updates on each load. Comment Goblin no longer waits for its update server on every admin screen while that server fails. On LiteSpeed servers, scheduled tasks (WordPress cron and Action Scheduler, used by WooCommerce and others) finish instead of stopping partway, through a few lines at the top of .htaccess. Turn this off if a fix causes a problem.', 'seoprostack'),
+                'description' => __('Works around bugs in other plugins that slow your site down, without changing their settings. Lasso Lite (Simple URLs) stops contacting its server on every admin screen. Deactivating Freesoul Deactivate Plugins or its PRO add-on deactivates both and removes the must-use file it leaves behind. Readabler no longer contacts its server on every Plugins screen load, or stops that screen with a critical error when it cannot. Tutor LMS Pro stops adding warnings to the debug log when there is no update. Tutor LMS gets its order, cart and coupon tables on every site of a network. Tutor LMS Pro no longer makes the Plugins screen check every plugin for updates on each load. Comment Goblin no longer waits for its update server on every admin screen while that server fails. MainWP Child no longer prints its Branding "Global footer" text, unstyled, below every front-end page. On LiteSpeed servers, scheduled tasks (WordPress cron and Action Scheduler, used by WooCommerce and others) finish instead of stopping partway, through a few lines at the top of .htaccess. Turn this off if a fix causes a problem.', 'seoprostack'),
             ),
         );
     }
@@ -193,6 +204,28 @@ class SEOProStack_Plugin_Fixes extends SEOProStack_Feature {
         add_action('current_screen', array(__CLASS__, 'tutor_pro_no_forced_check'), 0);
         add_filter('pre_http_request', array(__CLASS__, 'cg_skip_failed'), 10, 3);
         add_action('http_api_debug', array(__CLASS__, 'cg_note_failure'), 10, 5);
+        // Before MainWP Child's callback, which uses priority 15.
+        add_action('wp_footer', array(__CLASS__, 'mainwp_no_front_end_footer'), 0);
+    }
+
+    /**
+     * Remove MainWP Child's Branding "Global footer" from the front end,
+     * where it is printed after the theme's footer, outside any element.
+     */
+    public static function mainwp_no_front_end_footer() {
+        global $wp_filter;
+        if (!isset($wp_filter['wp_footer'])) {
+            return;
+        }
+        foreach ($wp_filter['wp_footer']->callbacks as $priority => $callbacks) {
+            foreach ($callbacks as $callback) {
+                $function = $callback['function'];
+                if (is_array($function) && is_object($function[0]) && 'branding_global_footer' === $function[1]
+                    && is_a($function[0], self::MAINWP_BRANDING)) {
+                    remove_action('wp_footer', $function, $priority);
+                }
+            }
+        }
     }
 
     /**
