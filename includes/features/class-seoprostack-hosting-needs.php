@@ -362,7 +362,7 @@ class SEOProStack_Hosting_Needs extends SEOProStack_Feature {
             }
             $days++;
             $total += array_sum($data['hours']);
-            $peak   = max($peak, (int) max($data['hours']));
+            $peak   = $data['hours'] ? max($peak, (int) max($data['hours'])) : $peak;
             foreach ($data['kinds'] as $kind => $stats) {
                 if (!isset($stats['n'], $stats['sum'], $stats['max'], $stats['b']) || !is_array($stats['b'])) {
                     continue;
@@ -1712,7 +1712,7 @@ class SEOProStack_Hosting_Needs extends SEOProStack_Feature {
                 return $step;
             }
         }
-        return end($steps);
+        return (int) end($steps);
     }
 
     /**

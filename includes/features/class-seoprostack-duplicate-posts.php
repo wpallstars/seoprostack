@@ -402,7 +402,7 @@ class SEOProStack_Duplicate_Posts extends SEOProStack_Feature {
             self::copy_meta($post->ID, $new_id);
         }
         if (isset($copy['thumbnail']) && has_post_thumbnail($post)) {
-            set_post_thumbnail($new_id, get_post_thumbnail_id($post));
+            set_post_thumbnail($new_id, (int) get_post_thumbnail_id($post));
         }
         if (isset($copy['template'])) {
             $template = get_post_meta($post->ID, '_wp_page_template', true);

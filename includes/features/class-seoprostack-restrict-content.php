@@ -619,7 +619,8 @@ class SEOProStack_Restrict_Content extends SEOProStack_Feature {
         $terms = array_keys(self::restricted_terms());
         if ($terms) {
             $by_taxonomy = array();
-            foreach (get_terms(array('include' => $terms, 'hide_empty' => false, 'taxonomy' => get_taxonomies())) as $term) {
+            $found = get_terms(array('include' => $terms, 'hide_empty' => false, 'taxonomy' => get_taxonomies()));
+            foreach (is_array($found) ? $found : array() as $term) {
                 if ($term instanceof WP_Term) {
                     $by_taxonomy[$term->taxonomy][] = $term->term_id;
                 }
@@ -1545,7 +1546,7 @@ class SEOProStack_Restrict_Content extends SEOProStack_Feature {
     private static function cc_ids($options) {
         $selected = is_array($options) && isset($options['selected']) ? $options['selected'] : array();
         if (is_string($selected) || is_int($selected)) {
-            return wp_parse_id_list($selected);
+            return wp_parse_id_list((string) $selected);
         }
         $ids = array();
         foreach ((array) $selected as $item) {

@@ -454,7 +454,7 @@ class SEOProStack_Post_Reactions extends SEOProStack_Feature {
      * @return string
      */
     public static function sc_button($atts) {
-        $atts = shortcode_atts(array('post_id' => '', 'site_id' => '', 'group_id' => ''), $atts, 'favorite_button');
+        $atts = shortcode_atts(array('post_id' => '', 'site_id' => '', 'group_id' => ''), (array) $atts, 'favorite_button');
         return self::buttons(self::sc_post($atts), array('share' => false));
     }
 
@@ -465,7 +465,7 @@ class SEOProStack_Post_Reactions extends SEOProStack_Feature {
      * @return string
      */
     public static function sc_count($atts) {
-        $atts    = shortcode_atts(array('post_id' => '', 'site_id' => ''), $atts, 'favorite_count');
+        $atts    = shortcode_atts(array('post_id' => '', 'site_id' => ''), (array) $atts, 'favorite_count');
         $post_id = self::sc_post($atts);
         if (!$post_id) {
             return '';
@@ -492,7 +492,7 @@ class SEOProStack_Post_Reactions extends SEOProStack_Feature {
             'thumbnail_size'     => 'thumbnail',
             'include_excerpts'   => 'false',
             'no_favorites'       => '',
-        ), $atts, 'user_favorites');
+        ), (array) $atts, 'user_favorites');
         return self::saved_list(array(
             'empty'    => (string) $atts['no_favorites'],
             'excerpts' => 'true' === $atts['include_excerpts'],
@@ -519,7 +519,7 @@ class SEOProStack_Post_Reactions extends SEOProStack_Feature {
      * @return string
      */
     public static function sc_clear($atts) {
-        $atts = shortcode_atts(array('site_id' => '', 'text' => ''), $atts, 'clear_favorites_button');
+        $atts = shortcode_atts(array('site_id' => '', 'text' => ''), (array) $atts, 'clear_favorites_button');
         self::enqueue();
         $text = '' !== (string) $atts['text'] ? (string) $atts['text'] : __('Clear saved posts', 'seoprostack');
         return '<button type="button" class="sps-reactions__button sps-reactions__clear" data-sps-clear>' . esc_html($text) . '</button>';

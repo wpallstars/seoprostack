@@ -125,6 +125,6 @@ class SEOProStack_Kadence_Library extends SEOProStack_Feature {
             isset($licence['env']) ? (string) $licence['env'] : '',
             $files,
         );
-        return substr(wp_hash(wp_json_encode($parts), 'nonce'), 0, 20);
+        return substr(wp_hash((string) wp_json_encode($parts), 'nonce'), 0, 20);
     }
 }

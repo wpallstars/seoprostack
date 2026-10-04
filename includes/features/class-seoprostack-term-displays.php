@@ -265,7 +265,7 @@ class SEOProStack_Term_Displays extends SEOProStack_Feature {
          */
         $args = (array) apply_filters('seoprostack_related_posts_args', $args, $post);
 
-        $key = md5(wp_json_encode($args)) . ':' . wp_cache_get_last_changed('posts') . ':' . wp_cache_get_last_changed('terms');
+        $key = md5((string) wp_json_encode($args)) . ':' . wp_cache_get_last_changed('posts') . ':' . wp_cache_get_last_changed('terms');
         $ids = wp_cache_get($key, self::CACHE);
         if (!is_array($ids)) {
             $tt_ids = wp_get_object_terms((int) $post->ID, (array) $args['taxonomies'], array('fields' => 'tt_ids'));

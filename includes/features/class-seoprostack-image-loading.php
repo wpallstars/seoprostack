@@ -127,7 +127,7 @@ class SEOProStack_Image_Loading extends SEOProStack_Feature {
         static $keywords = null;
         if (null === $keywords) {
             $keywords = array('skip-lazy', 'no-lazy', 'data-skip-lazy', 'data-no-lazy');
-            foreach (preg_split('/\r?\n/', (string) SEOProStack_Settings::get('image_loading_exclude'), -1, PREG_SPLIT_NO_EMPTY) as $line) {
+            foreach (preg_split('/\r?\n/', (string) SEOProStack_Settings::get('image_loading_exclude'), -1, PREG_SPLIT_NO_EMPTY) ?: array() as $line) {
                 $line = trim($line);
                 if ('' !== $line) {
                     $keywords[] = $line;

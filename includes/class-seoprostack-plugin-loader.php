@@ -763,7 +763,7 @@ final class SEOProStack_Plugin_Loader {
                     && array_diff(array_keys($query), array('paged', 'page', 'cpage'))) {
                     return array(); // Competing selectors have subtle core precedence; never inspect the wrong post.
                 }
-                $query[$name] = sanitize_text_field(wp_unslash($value));
+                $query[$name] = sanitize_text_field((string) wp_unslash($value));
             }
         }
         $allowed = array_merge(array('s', 'p', 'page_id', 'paged', 'page', 'cpage', 'name', 'pagename', 'post_type',
@@ -787,7 +787,11 @@ final class SEOProStack_Plugin_Loader {
             $post = get_post((int) ($query['p'] ?? $query['page_id']));
         } elseif (!empty($query['pagename']) || !empty($query['name'])) {
             $type = !empty($query['pagename']) ? 'page' : ('' !== $type ? $type : 'post');
-            $post = self::front_post_by_path((string) ($query['pagename'] ?? $query['name']), $type, $path);
+            $slug = $query['pagename'] ?? $query['name'];
+            if (!is_string($slug)) {
+                return array(); // name[]=… is not a page kind.
+            }
+            $post = self::front_post_by_path($slug, $type, $path);
         } elseif (('' === $path || isset($query['paged'])) && !array_diff(array_keys($query), array('paged', 'page', 'cpage'))
             && 'page' === get_option('show_on_front')) {
             $post = get_post((int) get_option('page_on_front'));
@@ -797,7 +801,7 @@ final class SEOProStack_Plugin_Loader {
                 return array();
             }
             foreach (array('year' => 'Y', 'monthnum' => 'm', 'day' => 'd') as $var => $format) {
-                if (isset($query[$var]) && (int) $query[$var] !== (int) gmdate($format, strtotime($post->post_date))) {
+                if (isset($query[$var]) && (int) $query[$var] !== (int) gmdate($format, (int) strtotime($post->post_date))) {
                     return array();
                 }
             }
@@ -825,7 +829,7 @@ final class SEOProStack_Plugin_Loader {
                 return array('kind' => 'taxonomy:' . $name);
             }
         }
-        if (isset($query['taxonomy'], $query['term']) && in_array($query['taxonomy'], (array) ($routes['tax_vars'] ?? array()), true)) {
+        if (isset($query['taxonomy'], $query['term']) && is_string($query['taxonomy']) && in_array($query['taxonomy'], (array) ($routes['tax_vars'] ?? array()), true)) {
             return array('kind' => 'taxonomy:' . $query['taxonomy']);
         }
         if (isset($query['cat']) || isset($query['category_name'])) {

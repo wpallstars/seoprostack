@@ -554,7 +554,7 @@ class SEOProStack_Post_Versions extends SEOProStack_Feature {
         SEOProStack_Duplicate_Posts::copy_meta($post_id, $original->ID, true);
 
         if (has_post_thumbnail($post)) {
-            set_post_thumbnail($original->ID, get_post_thumbnail_id($post));
+            set_post_thumbnail($original->ID, (int) get_post_thumbnail_id($post));
         } else {
             delete_post_thumbnail($original->ID);
         }

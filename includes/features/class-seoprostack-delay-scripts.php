@@ -112,7 +112,8 @@ class SEOProStack_Delay_Scripts extends SEOProStack_Feature {
      * @return string[]
      */
     public static function keywords() {
-        return preg_split('/\n/', (string) SEOProStack_Settings::get('delay_scripts_keywords'), -1, PREG_SPLIT_NO_EMPTY);
+        $keywords = preg_split('/\n/', (string) SEOProStack_Settings::get('delay_scripts_keywords'), -1, PREG_SPLIT_NO_EMPTY);
+        return is_array($keywords) ? $keywords : array();
     }
 
     /**
@@ -123,7 +124,7 @@ class SEOProStack_Delay_Scripts extends SEOProStack_Feature {
             return;
         }
         $uri = isset($_SERVER['REQUEST_URI']) ? wp_unslash($_SERVER['REQUEST_URI']) : ''; // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- compared only.
-        foreach (preg_split('/\n/', (string) SEOProStack_Settings::get('delay_scripts_exclude'), -1, PREG_SPLIT_NO_EMPTY) as $page) {
+        foreach (preg_split('/\n/', (string) SEOProStack_Settings::get('delay_scripts_exclude'), -1, PREG_SPLIT_NO_EMPTY) ?: array() as $page) {
             if ('' !== trim($page) && false !== stripos($uri, trim($page))) {
                 return;
             }
@@ -171,6 +172,9 @@ class SEOProStack_Delay_Scripts extends SEOProStack_Feature {
         }
         $loader = '<script id="seoprostack-delay">' . self::loader_js() . '</script>';
         $pos    = strripos($html, '</body>');
+        if (false === $pos) {
+            return $original;
+        }
         return substr($html, 0, $pos) . $loader . substr($html, $pos);
     }
 

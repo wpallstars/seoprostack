@@ -318,7 +318,7 @@ function seoprostack_uninstall_orphan_copies() {
                 continue;
             }
             $copy = wp_normalize_path($file->getPathname());
-            if (is_file(substr($copy, 0, strrpos($copy, '.')))) {
+            if (is_file(substr($copy, 0, (int) strrpos($copy, '.')))) {
                 continue;
             }
             // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- only for orphan-looking files.

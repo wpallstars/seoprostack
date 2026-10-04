@@ -231,7 +231,7 @@ class SEOProStack_Field_Content extends SEOProStack_Feature {
                     WP_CLI::error(__('You cannot edit a post in this batch.', 'seoprostack'));
                     return;
                 }
-                $result = self::sync((int) $id);
+                $result = self::sync($id instanceof WP_Post ? $id->ID : (int) $id);
                 if (is_wp_error($result)) {
                     WP_CLI::error($result->get_error_message());
                     return;

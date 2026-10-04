@@ -490,7 +490,7 @@ class SEOProStack_Admin_Menu extends SEOProStack_Feature {
      */
     public static function moves() {
         $moves = array();
-        foreach (preg_split('/[\r\n]+/', (string) SEOProStack_Settings::get(self::MOVES_KEY)) as $line) {
+        foreach (preg_split('/[\r\n]+/', (string) SEOProStack_Settings::get(self::MOVES_KEY)) ?: array() as $line) {
             $line = trim($line);
             if ('' === $line || '#' === $line[0]) {
                 continue;

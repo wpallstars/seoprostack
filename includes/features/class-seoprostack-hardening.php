@@ -510,7 +510,7 @@ class SEOProStack_Hardening extends SEOProStack_Feature {
             $result['label']  = _n('A log or backup file can be downloaded by anyone', 'Log or backup files can be downloaded by anyone', count($exposed['files']), 'seoprostack');
             $items            = '';
             foreach ($exposed['files'] as $file) {
-                $items .= '<li><code>' . esc_html($file['name']) . '</code> (' . esc_html(size_format($file['size'])) . ')</li>';
+                $items .= '<li><code>' . esc_html($file['name']) . '</code> (' . esc_html((string) size_format($file['size'])) . ')</li>';
             }
             $result['description'] .= '<ul>' . $items . '</ul>';
             $result['actions']      = '<p>' . sprintf(

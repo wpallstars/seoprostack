@@ -694,7 +694,7 @@ class SEOProStack_Nextgen_Images extends SEOProStack_Feature {
      * @return string[]
      */
     private static function type_args(array $types) {
-        return array_slice(array_pad(array_values($types), 3, reset($types)), 0, 3);
+        return array_slice(array_pad(array_values($types), 3, (string) reset($types)), 0, 3);
     }
 
     /**
@@ -961,7 +961,7 @@ class SEOProStack_Nextgen_Images extends SEOProStack_Feature {
      * @return string copy, original or unknown (nothing to test, or no answer).
      */
     private static function check_rules(array $sites) {
-        $rules  = md5(wp_json_encode(self::rules_for($sites)));
+        $rules  = md5((string) wp_json_encode(self::rules_for($sites)));
         $cached = get_transient(self::CHECK);
         if (is_array($cached) && isset($cached['rules'], $cached['result']) && $cached['rules'] === $rules) {
             return $cached['result'];
@@ -982,7 +982,8 @@ class SEOProStack_Nextgen_Images extends SEOProStack_Feature {
         if (is_wp_error($response) || 200 !== $code) {
             $result = 'unknown';
         } else {
-            $type   = strtolower((string) wp_remote_retrieve_header($response, 'content-type'));
+            $type   = wp_remote_retrieve_header($response, 'content-type');
+            $type   = strtolower(is_array($type) ? (string) end($type) : $type);
             // A WebP original only has an AVIF copy.
             $result = (false !== strpos($type, 'image/avif') || false !== strpos($type, 'image/webp')) && false === strpos($type, $sample['type']) ? 'copy' : 'original';
         }
@@ -1033,7 +1034,7 @@ class SEOProStack_Nextgen_Images extends SEOProStack_Feature {
             }
             return;
         }
-        $synced = get_option(self::SYNCED) === md5(wp_json_encode(self::site_rules()));
+        $synced = get_option(self::SYNCED) === md5((string) wp_json_encode(self::site_rules()));
         if ($synced && is_multisite()) {
             // The network's list is cleared when the plugin is deactivated
             // network-wide; this site must join it again.
@@ -1079,7 +1080,7 @@ class SEOProStack_Nextgen_Images extends SEOProStack_Feature {
             if ('unwritable' === $status) {
                 delete_option(self::SYNCED);
             } else {
-                update_option(self::SYNCED, md5(wp_json_encode($sites[$blog])), true);
+                update_option(self::SYNCED, md5((string) wp_json_encode($sites[$blog])), true);
             }
             if ($new) {
                 self::schedule();

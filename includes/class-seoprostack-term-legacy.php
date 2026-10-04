@@ -180,7 +180,7 @@ final class SEOProStack_Term_Legacy {
      * @param callable $callback Callback.
      */
     private static function shortcode($tag, $callback) {
-        if (!shortcode_exists($tag)) {
+        if ('' !== $tag && !shortcode_exists($tag)) {
             add_shortcode($tag, $callback);
         }
     }
@@ -408,7 +408,7 @@ final class SEOProStack_Term_Legacy {
         if (!empty($c['exclude_terms'])) {
             $attributes['exclude'] = self::term_ids($c['exclude_terms'], $attributes['taxonomy']); // phpcs:ignore WordPressVIPMinimum.Performance.WPQueryParams -- Term list block attribute (terms), not a post query.
         }
-        $classes = isset($c['wrap_class']) ? array_map('sanitize_html_class', preg_split('/\s+/', (string) $c['wrap_class'])) : array();
+        $classes = isset($c['wrap_class']) ? array_map('sanitize_html_class', preg_split('/\s+/', (string) $c['wrap_class']) ?: array()) : array();
         SEOProStack_Term_List::enqueue_assets(false);
         return SEOProStack_Term_List::render($attributes, $classes, false);
     }
@@ -481,7 +481,7 @@ final class SEOProStack_Term_Legacy {
         if (!empty($atts['exclude_terms'])) {
             $attributes['exclude'] = self::term_ids($atts['exclude_terms'], $attributes['taxonomy']); // phpcs:ignore WordPressVIPMinimum.Performance.WPQueryParams -- Term list block attribute (terms), not a post query.
         }
-        $classes = isset($atts['div_class']) ? array_map('sanitize_html_class', preg_split('/\s+/', (string) $atts['div_class'])) : array();
+        $classes = isset($atts['div_class']) ? array_map('sanitize_html_class', preg_split('/\s+/', (string) $atts['div_class']) ?: array()) : array();
         SEOProStack_Term_List::enqueue_assets(SEOProStack_Term_List::needs_script($attributes));
         return SEOProStack_Term_List::render($attributes, $classes, false);
     }

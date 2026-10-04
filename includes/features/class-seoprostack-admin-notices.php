@@ -354,9 +354,10 @@ class SEOProStack_Admin_Notices extends SEOProStack_Feature {
         libxml_clear_errors();
         libxml_use_internal_errors($prev);
         $xpath = new DOMXPath($doc);
-        $root  = $xpath->query('//div[@id="sps-notices-root"]')->item(0);
+        $nodes = $xpath->query('//div[@id="sps-notices-root"]');
+        $root  = $nodes ? $nodes->item(0) : null;
         $found = array();
-        if ($root) {
+        if ($root instanceof DOMElement) {
             self::find_notices($root, $xpath, $found);
         }
         return $found;
@@ -386,11 +387,12 @@ class SEOProStack_Admin_Notices extends SEOProStack_Feature {
             $class  = ' ' . preg_replace('/\s+/', ' ', $el->getAttribute('class')) . ' ';
             $notice = ('div' === strtolower($el->tagName) && preg_match('/ (updated|error|notice) /', $class)) || false !== strpos($class, ' update-nag ');
             $hidden = $el->hasAttribute('hidden') || false !== strpos($class, ' hidden ') || preg_match('/display\s*:\s*none/i', $el->getAttribute('style'));
+            $within = $notice ? false : $xpath->query($inside, $el);
             if ($notice) {
                 if (!$hidden) {
                     $found[] = trim((string) $el->ownerDocument->saveHTML($el));
                 }
-            } elseif ($xpath->query($inside, $el)->length) {
+            } elseif ($within && $within->length) {
                 self::find_notices($el, $xpath, $found);
             } elseif (!$hidden && '' !== trim($el->textContent) && preg_match('/(^|[\s_-])(notices?|nag|notification|alert|banner|promo|announcement)([\s_-]|$)/i', $el->getAttribute('class') . ' ' . $el->getAttribute('id'))) {
                 $found[] = trim((string) $el->ownerDocument->saveHTML($el));

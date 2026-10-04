@@ -957,7 +957,7 @@ class SEOProStack_Sticky_Posts extends SEOProStack_Feature {
             'seoprostack_sticky'  => false,
             self::STABLE          => true,
         ));
-        return array_map('intval', get_posts($vars));
+        return wp_parse_id_list(get_posts($vars));
     }
 
     /**
@@ -1008,8 +1008,9 @@ class SEOProStack_Sticky_Posts extends SEOProStack_Feature {
         if ($query->is_category() || $query->is_tag() || $query->is_tax()) {
             $term = $query->get_queried_object();
             if ($term instanceof WP_Term && in_array($term->taxonomy, (array) SEOProStack_Settings::get('sticky_posts_taxonomies'), true)) {
-                $types = get_taxonomy($term->taxonomy)->object_type;
-                $types = array_values(array_intersect($types, (array) SEOProStack_Settings::get('sticky_posts_types')));
+                $taxonomy = get_taxonomy($term->taxonomy);
+                $types    = $taxonomy ? (array) $taxonomy->object_type : array();
+                $types    = array_values(array_intersect($types, (array) SEOProStack_Settings::get('sticky_posts_types')));
                 return $types ? $types : null;
             }
         }
@@ -1191,6 +1192,7 @@ class SEOProStack_Sticky_Posts extends SEOProStack_Feature {
         }
         $sticky = get_posts(array_merge($vars, array(
             'post__in'            => $ids,
+            'fields'              => 'all',
             'posts_per_page'      => count($ids),
             'paged'               => 1,
             'offset'              => 0,
