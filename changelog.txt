@@ -2,6 +2,9 @@
 
 Every change to SEO Pro Stack. readme.txt lists the latest version in short.
 
+= Unreleased =
+* New, off by default: Pinned posts for any post type can lift pinned items to the top of Kadence Blocks Pro query loops (Query Loop (Adv)), in every loop or only the ones you tick. Page 1 starts with the pins that match the loop's filters, in the loop's order; later pages leave them out without repeating or skipping items. The settings show while Kadence Blocks Pro is active.
+
 = 0.12.2 =
 * Change: Magic login links replaces pixolette's WP Magic Link Login (wp-magic-link-login, CodeCanyon), in part. Where it is installed, the Plugins screen says so, and the feature waits while it is active. Pages using its [wpmll_form] shortcode keep a login form after it is deactivated: the login link form, or WordPress's password form while Magic login links is off.
 * New, off by default: Image loading (Speed tab) chooses how many pictures at the top of a post or page load straight away and which pictures and iframes are never lazy-loaded, through WordPress's own lazy loading, without rewriting pages. Replaces Flying Images' lazy loading, in part, importing its exclusions (settings version 21).

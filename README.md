@@ -299,6 +299,8 @@ Tick **Share a preview link** in the editor of a draft, pending or scheduled pos
 
 Adds a narrow pin column to the lists of the post types you choose, and a **Pin to the top** option in the editor for types other than posts. Wherever WordPress says “Sticky” in post lists, Quick Edit, Bulk Edit and the editors, it says “Pinned”, the word most sites and apps use (core still calls them sticky posts, so themes and blocks see no change). Pinned items lead the first page of the blog home, their post type archive and chosen term archives (categories, tags or custom taxonomies). It uses core’s sticky list, so existing sticky posts, themes and blocks keep working.
 
+With Kadence Blocks Pro active, **Lift to the top of Kadence query loops** does the same for Query Loop (Adv) blocks: pinned items of the pinnable post types lead page 1 in the loop’s own order (an A–Z loop lists its pins A–Z, then everything else A–Z), and only those that match the loop’s filters and facets. They are left out of every page’s own results, so later pages neither repeat nor skip items. **Only in these Kadence query loops** limits it to the loops you tick; leave them all unticked for every loop. It works through Kadence’s `kadence_blocks_pro_query_loop_query_vars` filter, which its filter and pagination requests also use; a site snippet that already fixes pinned items for a loop on that filter should be removed when this is turned on.
+
 ### Select all across pages (Content)
 
 Tick the “select all” box in a post list with more than one page and a bar offers **Select all N items**: every item matching the current filters, search and status. Bulk actions (Move to Bin, Restore, Delete Permanently, Edit and plugin actions) then apply to all of them, still checked against each item’s permissions. Unticking any row clears the choice.
@@ -1222,6 +1224,10 @@ Deleting the plugin removes its settings and cached data, the profile pictures a
 Deactivating the plugin removes the WebP and AVIF rules from the uploads folder’s `.htaccess` (for every site when network-deactivated), the LiteSpeed background request rules from the site’s `.htaccess` (on multisite, when network-deactivated or deactivated on the main site) and the must-use file of Load plugins only where needed (on multisite, when network-deactivated).
 
 ## Changelog
+
+### Unreleased
+
+- New, off by default: **Pinned posts for any post type** can lift pinned items to the top of Kadence Blocks Pro query loops (Query Loop (Adv)), in every loop or only the ones you tick (`sticky_posts_kadence`, `sticky_posts_kadence_loops`). Kadence pages its loops with an offset, so WordPress’s own sticky handling either ignored the pins or showed them again on every page; now page 1 starts with the pins that match the loop’s filters, in the loop’s order, and later pages leave them out without skipping items. The settings show while Kadence Blocks Pro is active.
 
 ### 0.12.2
 

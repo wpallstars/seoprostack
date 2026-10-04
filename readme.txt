@@ -129,6 +129,9 @@ Use **Report a problem** in Settings → SEO Pro Stack or [GitHub](https://githu
 
 == Changelog ==
 
+= Unreleased =
+* New, off: Pinned posts can lead Kadence Blocks Pro query loops.
+
 = 0.12.2 =
 * New, off: Image loading replaces Flying Images' lazy loading, in part.
 * New, off: Kadence query filters scroll to results.

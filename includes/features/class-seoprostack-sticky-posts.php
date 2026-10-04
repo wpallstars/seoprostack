@@ -26,6 +26,9 @@ class SEOProStack_Sticky_Posts extends SEOProStack_Feature {
     /** AJAX action. */
     const AJAX = 'seoprostack_sticky';
 
+    /** Query var that marks a Kadence query loop whose pins are handled here. */
+    const LOOP = 'seoprostack_sticky_loop';
+
     /**
      * IDs lifted to the top of the main query.
      *
@@ -85,7 +88,59 @@ class SEOProStack_Sticky_Posts extends SEOProStack_Feature {
                 'description' => __('For example, each category page shows its pinned posts first.', 'seoprostack'),
                 'options'     => array(__CLASS__, 'taxonomy_options'),
             ),
+            'sticky_posts_kadence' => array(
+                'type'        => 'bool',
+                'default'     => false,
+                'parent'      => self::KEY,
+                'hidden'      => !self::kadence_active(),
+                'label'       => __('Lift to the top of Kadence query loops', 'seoprostack'),
+                'description' => __('Pinned items lead the first page of Kadence Blocks Pro’s Query Loop (Adv) blocks, in the loop’s own order and filters, and are not repeated on later pages.', 'seoprostack'),
+            ),
+            'sticky_posts_kadence_loops' => array(
+                'type'        => 'multi',
+                'open'        => true,
+                'default'     => array(),
+                'parent'      => self::KEY,
+                'hidden'      => !self::kadence_active(),
+                'label'       => __('Only in these Kadence query loops', 'seoprostack'),
+                'description' => __('Leave all unticked to lift pinned items in every query loop.', 'seoprostack'),
+                'options'     => array(__CLASS__, 'kadence_loop_options'),
+            ),
         );
+    }
+
+    /**
+     * Whether Kadence Blocks Pro is active (as stored, so it does not depend
+     * on the order plugins load in).
+     *
+     * @return bool
+     */
+    private static function kadence_active() {
+        return isset(self::active_plugins()['kadence-blocks-pro']);
+    }
+
+    /**
+     * Kadence Blocks Pro query loops (the "kadence_query" posts).
+     *
+     * @return array<int,string> ID => title
+     */
+    public static function kadence_loop_options() {
+        $options = array();
+        $loops   = get_posts(array(
+            'post_type'      => 'kadence_query',
+            'post_status'    => array('publish', 'draft', 'private'),
+            'posts_per_page' => 100,
+            'orderby'        => 'title',
+            'order'          => 'ASC',
+            'no_found_rows'  => true,
+        ));
+        foreach ($loops as $loop) {
+            $options[(int) $loop->ID] = '' !== $loop->post_title
+                ? $loop->post_title
+                /* translators: %d: query loop ID */
+                : sprintf(__('Query loop %d', 'seoprostack'), $loop->ID);
+        }
+        return $options;
     }
 
     /**
@@ -148,10 +203,15 @@ class SEOProStack_Sticky_Posts extends SEOProStack_Feature {
             foreach (array('load-edit.php', 'load-post.php', 'load-post-new.php') as $hook) {
                 add_action($hook, array(__CLASS__, 'pinned_words'));
             }
-        } else {
+        }
+        // Front end, plus admin-ajax for query loops filtered in place.
+        if (!is_admin() || wp_doing_ajax()) {
             add_action('pre_get_posts', array(__CLASS__, 'pre_get_posts'));
             add_filter('the_posts', array(__CLASS__, 'lift'), 10, 2);
             add_filter('post_class', array(__CLASS__, 'post_class'), 10, 3);
+        }
+        if (SEOProStack_Settings::get('sticky_posts_kadence') && self::kadence_active()) {
+            add_filter('kadence_blocks_pro_query_loop_query_vars', array(__CLASS__, 'kadence_query_vars'), 20, 3);
         }
     }
 
@@ -549,12 +609,67 @@ class SEOProStack_Sticky_Posts extends SEOProStack_Feature {
     /* --------------------------------------------------------------------- */
 
     /**
+     * Kadence Blocks Pro query loops (also their filter and pagination
+     * requests): pinned items of the pinnable types lead page 1, in the
+     * loop's own order and filters, and are left out of every page's own
+     * results, so later pages neither repeat nor skip items. Kadence pages
+     * with an offset; page 1 has none.
+     *
+     * @param array $query   WP_Query arguments.
+     * @param mixed $meta    Query loop settings (unused).
+     * @param int   $loop_id Query loop ("kadence_query") ID.
+     * @return array
+     */
+    public static function kadence_query_vars($query, $meta = null, $loop_id = 0) {
+        unset($meta);
+        // Only loops of posts: lift() cannot place bare IDs.
+        if (!is_array($query) || (isset($query['fields']) && !in_array($query['fields'], array('', 'all'), true))) {
+            return $query;
+        }
+        $only = array_map('intval', (array) SEOProStack_Settings::get('sticky_posts_kadence_loops'));
+        if ($only && !in_array((int) $loop_id, $only, true)) {
+            return $query;
+        }
+        $wanted = isset($query['post_type']) && '' !== $query['post_type'] ? (array) $query['post_type'] : array('post');
+        $types  = array_values(array_intersect($wanted, (array) SEOProStack_Settings::get('sticky_posts_types')));
+        $ids    = array_map('intval', (array) get_option('sticky_posts', array()));
+        $out    = isset($query['post__not_in']) ? array_map('intval', (array) $query['post__not_in']) : array();
+        $in     = !empty($query['post__in']) ? array_map('intval', (array) $query['post__in']) : array();
+        // Pins the loop leaves out itself stay out.
+        $ids = array_values(array_diff($ids, $out));
+        if ($in) {
+            $ids = array_values(array_intersect($ids, $in));
+        }
+        if (!$types || !$ids) {
+            return $query;
+        }
+
+        if ($in) {
+            // Core ignores post__not_in alongside post__in; an empty
+            // post__in would list everything.
+            $rest              = array_values(array_diff($in, $ids));
+            $query['post__in'] = $rest ? $rest : array(0);
+        } else {
+            $query['post__not_in'] = array_merge($out, $ids);
+        }
+
+        $first             = empty($query['offset']) && (empty($query['paged']) || (int) $query['paged'] <= 1);
+        $query[self::LOOP] = $first ? array('types' => $types, 'ids' => $ids) : array();
+        return $query;
+    }
+
+    /**
      * Where the main query lifts sticky items, or null.
      *
      * @param WP_Query $query Query.
      * @return string[]|null Post types to lift.
      */
     private static function context(WP_Query $query) {
+        $loop = $query->get(self::LOOP);
+        if (is_array($loop) && !empty($loop['types'])) {
+            // A Kadence query loop's first page (see kadence_query_vars()).
+            return in_array($query->get('fields'), array('', 'all'), true) ? array_values((array) $loop['types']) : null;
+        }
         if (!$query->is_main_query() || $query->is_paged() || $query->is_feed() || ($query->get('ignore_sticky_posts') && !$query->get('seoprostack_sticky'))) {
             return null;
         }
@@ -581,6 +696,11 @@ class SEOProStack_Sticky_Posts extends SEOProStack_Feature {
      * @param WP_Query $query Query.
      */
     public static function pre_get_posts($query) {
+        if (null !== $query->get(self::LOOP, null)) {
+            // Kadence query loops: pinned items are lifted here, not by core.
+            $query->set('ignore_sticky_posts', true);
+            return;
+        }
         if ($query->is_main_query() && $query->is_home() && !$query->is_feed() && !$query->get('ignore_sticky_posts')) {
             $query->set('ignore_sticky_posts', true);
             $query->set('seoprostack_sticky', true);
@@ -596,13 +716,22 @@ class SEOProStack_Sticky_Posts extends SEOProStack_Feature {
      */
     public static function lift($posts, $query) {
         $types = self::context($query);
-        $ids   = array_map('intval', (array) get_option('sticky_posts', array()));
+        $loop  = $query->get(self::LOOP);
+        $ids   = is_array($loop) && isset($loop['ids']) ? $loop['ids'] : get_option('sticky_posts', array());
+        $ids   = array_map('intval', (array) $ids);
         if (!$types || !$ids) {
             return $posts;
         }
 
         $vars = $query->query_vars;
-        if ($query->is_home()) {
+        if (is_array($loop)) {
+            // Kadence query loop: its own filters and order, without the
+            // exclusion of pinned items added for its pages.
+            $vars['post_type']    = $types;
+            $vars['post__not_in'] = array_values(array_diff(array_map('intval', (array) $query->get('post__not_in')), $ids));
+            $vars[self::LOOP]     = null;
+            unset($vars['post__in']);
+        } elseif ($query->is_home()) {
             // Blog home: only the post type differs from core's own sticky query.
             $vars = array('post_type' => $types, 'post_status' => 'publish');
         } else {
