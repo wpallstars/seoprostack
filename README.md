@@ -1256,7 +1256,7 @@ There are two builds of each version:
 - **GitHub release** (`seoprostack-X.Y.Z.zip` on the repositoryâ€™s Releases page): everything, including Updates from GitHub (the shared updater in `includes/github-updater/` and its setting in `includes/features/class-seoprostack-github-updates.php`), so sites get each release as a normal update.
 - **WordPress.org** (once listed): the same files without those two (listed in `.distignore-wporg`) and without the `GitHub Plugin URI`, `Primary Branch` and `Release Asset` header lines, because plugins hosted there may not install or update code from elsewhere. SEO Pro Stack loads them only when they are present. It has no affiliate links either: those listed in `.wporg-links` are replaced by plain ones when it is built.
 
-GitHub releases are the stable beta channel: each version comes out there first, as soon as it is ready. WordPress.org gets a version 90 days after its GitHub release, once it has been used on real sites, except security releases, which go to WordPress.org at once.
+GitHub releases are the stable beta channel: each version comes out there first, as soon as it is ready. WordPress.org gets a version 30 days after its GitHub release, once it has been used on real sites, except security releases, which go to WordPress.org at once.
 
 Releasing on GitHub:
 
@@ -1368,6 +1368,7 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folderâ
 - Fix: **Load plugins only where needed** with page learning no longer reads code in a page's scripts and styles, such as `items[0]` in a Custom HTML block, as unknown shortcodes, or `[1]` footnote marks as shortcodes. Such pages loaded every plugin (GitHub issue #425).
 - Fix: a page whose content is unknown no longer makes every page of its kind (all posts, say) load every plugin. That page still loads every plugin; the kind is learned from a page with known content (GitHub issue #425).
 - Change: the plugin description says "no paid version" instead of "no pro version".
+- Change: WordPress.org gets each version 30 days after its GitHub release instead of 90 (from WP Plugin Starter 1.0.18); security releases still go there at once.
 
 ### 0.14.1
 

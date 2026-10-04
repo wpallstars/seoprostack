@@ -121,7 +121,7 @@ Random, hashed links work once for an hour. Password-step two-factor checks are 
 
 = Where do updates come from? =
 
-From where you installed it. GitHub gets new versions first; WordPress.org 90 days later, security fixes at once.
+From where you installed it. GitHub gets new versions first; WordPress.org 30 days later, security fixes at once.
 
 = Where do I get help? =
 
