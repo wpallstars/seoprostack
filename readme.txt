@@ -62,7 +62,7 @@ Off by default except Hide admin bar items (Comments and + New), No fade between
 * **Internal linking tools** (off): approved suggestions, undo, counts, orphans and read-only Link Whisper retirement checks. Link health and click totals are separate opt-ins.
 * **Load pages before the click**, **Delay scripts until interaction**, **Delayed Google Analytics** and a faster editor with Kadence Blocks.
 * **Ask before licence checks**: premium plugins call home once, daily or never, as you choose.
-* **Clean the database weekly**: old spam, bin and expired data.
+* **Clean the database weekly**: old spam, bin and expired data, and scheduled tasks of plugins that are gone.
 * **Database key cleanup**: remove leftover and duplicate indexes one by one, with restore SQL. Back up first.
 * **Load plugins only where needed**: skips plugins a page does not use, in the admin and on the site, with always-load bypasses.
 
@@ -128,6 +128,9 @@ From where you installed it. New versions come out on GitHub first.
 Use **Report a problem** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpallstars/seoprostack/issues).
 
 == Changelog ==
+
+= Unreleased =
+* New: Clean the database weekly can remove scheduled tasks of plugins that are no longer active.
 
 = 0.12.7 =
 * New: Hosting needs finds the site's CDN and suggests one when there is none.
