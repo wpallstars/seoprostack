@@ -881,16 +881,17 @@ Presets so far:
 | Plugin | What the preset does |
 |---|---|
 | Antispam Bee | Time check on with the other spam checks; no Gravatar checks, Dashboard spam chart or count, or email per spam comment. |
-| Burst Statistics | No non-critical Burst dashboard notices; critical notices, tracking settings and the generated tracking script unchanged. |
+| Burst Statistics | No non-critical Burst dashboard notices; statistics kept 24 months, then deleted by Burst's daily job (instead of kept forever; deleted statistics cannot be restored); critical notices, tracking settings and the generated tracking script unchanged. |
 | Code Snippets | No upgrade notices or Snippets admin bar menu; editor defaults left alone. Per-site settings only, not unified network settings. |
 | EventON Lite | Scripts and styles only on pages with a calendar or event; no Google Fonts. |
 | FluentCRM | Contacts' IP addresses anonymised; FluentCRM's own avatar instead of Gravatar and ui-avatars.com. |
+| FluentSMTP | Email logs kept 2 years instead of 14 days; connections and credentials unchanged. Shows once a connection is saved. |
 | Fluent Forms | No weekly email summary, no IP address stored with entries, no admin bar menu. |
 | HTTP Requests Manager | Only logs calls to other servers. Its blocking modes also blocked every request after a page's first 3 seconds or 3 requests, which stopped WordPress's and SEO Pro Stack's update checks; Ask before licence checks holds licence checks instead. |
 | Kadence Blocks | Google Fonts served from the site, in the blocks and (with the Kadence theme) the theme. |
 | Lasso Lite (Simple URLs) | No affiliate programme bar or Dashboard banner. |
 | LiteSpeed Cache | Worked out for each site (see below). No news and promotions fetched from LiteSpeed; CSS and JS Minify off (they slowed every uncached page); the cache purged after updates; on a LiteSpeed server, the page cache and browser cache on; LiteSpeed's copy of each job an SEO Pro Stack feature does turned off. |
-| Rank Math SEO | No Frontend Stats Bar below the admin bar; modules and email schedules unchanged. |
+| Rank Math SEO | No Frontend Stats Bar below the admin bar; 24 months of Analytics data kept (365 days, which Rank Math doubles to compare periods), or as many as the site's Rank Math plan allows; modules and email schedules unchanged. |
 | Simple CAPTCHA with Cloudflare Turnstile | Login, registration, lost password, comment and Fluent Forms protected; widget follows light or dark mode and shows only when needed. |
 | Tutor LMS | Student profile pages private; course reviews wait for approval; courses written in the block editor; a quiz is submitted when its time runs out; courses complete when every lesson, quiz and assignment is done, and can be retaken. |
 | WooCommerce | No usage data, remote error logs, marketplace suggestions or Order attribution tracking; Deferred emails on so checkout does not wait for the mail server. |
@@ -898,7 +899,7 @@ Presets so far:
 
 WooCommerce's **Deferred emails** sends order emails through Action Scheduler after checkout. It needs WP-Cron or a server cron. If order emails arrive late or not at all, check **WooCommerce → Status → Scheduled Actions**, group `woocommerce-emails`, for pending or failed `woocommerce_send_queued_transactional_email` actions, and turn **Deferred emails** off in **WooCommerce → Settings → Advanced → Features**. Applying the preset is optional; Reset puts this setting back to Off and Undo restores its previous value.
 
-They are JSON files in `presets/`, one per plugin folder. Each names its settings for the dialog under `settings`: setting path => `label` (the plugin's own wording), `description` and `values` (stored value => what it means, with `"null"` for not stored). `docs/presets.md` explains how they are made and checked. A preset can be worked out for each site with `when`: option name => a condition, or a list that must all hold (`single_site`, `feature:{key}` for an SEO Pro Stack feature that is on, `feature:{key}:{item}` for a chosen item of it, `litespeed_server`, and more through the `seoprostack_preset_condition` filter; a leading `!` turns one round, as in `!litespeed_server`); options whose conditions fail are left out on that site. A setting named in a preset whose defaults are all "not stored" is removed again on reset, and an option left empty that way is deleted, so the plugin's own defaults apply as on a fresh install.
+They are JSON files in `presets/`, one per plugin folder. Each names its settings for the dialog under `settings`: setting path => `label` (the plugin's own wording), `description` and `values` (stored value => what it means, with `"null"` for not stored). `docs/presets.md` explains how they are made and checked. A preset can be worked out for each site with `when`: option name => a condition, or a list that must all hold (`single_site`, `feature:{key}` for an SEO Pro Stack feature that is on, `feature:{key}:{item}` for a chosen item of it, `option:{name}` for an option the plugin has stored, `litespeed_server`, and more through the `seoprostack_preset_condition` filter; a leading `!` turns one round, as in `!litespeed_server`); options whose conditions fail are left out on that site. A number the plugin caps on each site (such as by plan) can have `limits`: setting path => `filter` (the plugin's own filter for the most it allows) and `max` (the value it filters); a preset value above the limit is lowered to it, and the dialog says so. Analytics and statistics presets keep 24 months of data. A setting named in a preset whose defaults are all "not stored" is removed again on reset, and an option left empty that way is deleted, so the plugin's own defaults apply as on a fresh install.
 
 #### LiteSpeed hosting
 
@@ -1243,6 +1244,9 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folder�
 ### Unreleased
 
 - New, on by default: **Quiet Appsero prompts** (Admin tab) removes the “Allow … to collect diagnostic data” notice, the deactivation survey and its submission, and the report a theme sends when it is switched away from, from plugins and themes that bundle Appsero, such as Easy Video Reviews. Licences stay, nothing is opted in or out, and plugins already opted in keep sending their weekly report (GitHub issue #317).
+- New: a FluentSMTP preset keeps email logs for 2 years instead of 14 days, so you can still check whether an email went out a year or two later. Connections and credentials are not touched. It shows once FluentSMTP has a saved connection, because FluentSMTP expects all its settings once it stores any (new `option:{name}` preset condition).
+- Change: the Burst Statistics preset keeps 24 months of statistics, then Burst's own daily job deletes older ones (Burst keeps them forever by default). The dialog warns that deleted statistics cannot be restored; Undo puts back the settings only.
+- Change: the Rank Math SEO preset keeps 24 months of Analytics data (Analytics Database 365 days, which Rank Math doubles to compare periods), or as many days as the site's Rank Math plan allows, and the dialog says when that is fewer. Presets gain `limits` for numbers a plugin caps on each site.
 
 ### 0.12.4
 
