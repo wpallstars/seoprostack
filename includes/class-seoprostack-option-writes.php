@@ -132,13 +132,17 @@ class SEOProStack_Option_Writes {
             'mu'     => self::path(WPMU_PLUGIN_DIR),
             'theme'  => self::path(WP_CONTENT_DIR . '/themes'),
         );
-        $own = self::path(dirname(__DIR__));
+        $own  = self::path(dirname(__DIR__));
+        $self = str_replace('\\', '/', __FILE__);
         // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_debug_backtrace -- names the plugin saving an option, on counted page views only.
         foreach (debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS) as $frame) {
             if (empty($frame['file'])) {
                 continue;
             }
             $file = str_replace('\\', '/', $frame['file']);
+            if ($file === $self) {
+                continue; // This class noting the write.
+            }
             if (0 === strpos($file, $own)) {
                 return '';
             }

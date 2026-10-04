@@ -1267,6 +1267,9 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folderâ
 ### Unreleased
 
 - New: **Clean the database weekly** can remove scheduled tasks of plugins that are no longer active (unticked by default): tasks nothing ran on web cron checks at least 7 days apart, never WordPress's own, hosts' agents' (`mnx_*`) or installed plugins'. The options list what will go and what went, with **Put back** (GitHub issue #278).
+- New: **Hosting needs** counts the options saved on 1 in 20 page views and names those saved on most of them, with the plugin that saves them (`seoprostack_hosting_writes`); each save is a database write and clears the object cache's copy of the autoloaded options (GitHub issue #279).
+- New: **Ask before licence checks** keeps the stored licence state of Complianz Pro, Really Simple Security Pro, Fluent Forms Pro, Tutor LMS Pro and WP-Optimize Premium when they save it again on every request with only a new timestamp (seen with GPL Vault's patches), while the licence is valid for more than a week (`SEOProStack_Option_Writes::KNOWN`). With **Load plugins only where needed** on, its must-use file loads this first, so saves made while those plugins load are covered too (GitHub issue #279).
+- Fix: **Load plugins only where needed** no longer forgets what it learned for site pages whenever an option is saved on a page view or by cron, by SEO Pro Stack's own records, or by plugins that save an option on every request: those are records, not settings, and restarted the learning on every page view (GitHub issue #279).
 
 ### 0.12.7
 
