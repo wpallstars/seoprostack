@@ -737,7 +737,8 @@ class SEOProStack_Hosting_Needs extends SEOProStack_Feature {
         $response = wp_remote_head(home_url('/'), array(
             'timeout'     => 5,
             'redirection' => 0,
-            'sslverify'   => false, // Only its headers are read.
+            // Core's filter for requests to the site itself, as its loopback test uses.
+            'sslverify'   => apply_filters('https_local_ssl_verify', false), // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- core's own filter.
         ));
         if (is_wp_error($response) || !wp_remote_retrieve_response_code($response)) {
             return 'unknown';
