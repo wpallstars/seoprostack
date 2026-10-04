@@ -905,11 +905,23 @@ final class SEOProStack_Plugin_Loader {
     public static function content_needs($content, array $front) {
         $needs = array();
         preg_match_all('/<!--\s+wp:([^\s>]+)/', $content, $blocks);
-        preg_match_all('/(?<!\[)\[([^<>&\/\[\]\x00-\x20=]+)(?=[\s\]\/])/', $content, $shortcodes);
+        // Block comments are removed (do_blocks, priority 9) before shortcodes
+        // run (priority 11), so their attributes, such as ["","",""], are not
+        // shortcodes. Attributes cannot hold "-->": core escapes "--" in them.
+        $text = (string) preg_replace('/<!--\s+\/?wp:.*?-->/s', '', $content);
+        preg_match_all('/(?<!\[)\[([^<>&\/\[\]\x00-\x20=]+)(?=[\s\]\/])/', $text, $shortcodes);
         foreach (array('blocks' => $blocks[1], 'shortcodes' => $shortcodes[1]) as $kind => $names) {
             foreach ($names as $name) {
                 if ('blocks' === $kind && false === strpos($name, '/')) {
                     $name = 'core/' . $name;
+                }
+                if ('blocks' === $kind && !array_key_exists($name, (array) ($front['blocks'] ?? array()))) {
+                    $owners = self::namespace_owners($name, (array) ($front['blocks'] ?? array()));
+                    if (false === $owners) {
+                        return false;
+                    }
+                    $needs = array_merge($needs, $owners);
+                    continue;
                 }
                 if (!array_key_exists($name, (array) ($front[$kind] ?? array())) || false === $front[$kind][$name]) {
                     return false;
@@ -921,6 +933,32 @@ final class SEOProStack_Plugin_Loader {
             }
         }
         return array_values(array_unique(array_filter($needs)));
+    }
+
+    /**
+     * Owners of an unregistered block's namespace. Inner blocks such as
+     * kadence/pane are registered only in the editor and saved as plain
+     * markup; the plugins that own the namespace's other blocks style and
+     * render around them. A namespace with no registered block, or one with
+     * an unknown owner, is unknown.
+     *
+     * @param string               $name   Block name.
+     * @param array<string,string|false> $blocks Registered block => owner ('' core, false unknown).
+     * @return string[]|false
+     */
+    private static function namespace_owners($name, array $blocks) {
+        $prefix = substr($name, 0, (int) strpos($name, '/') + 1);
+        $owners = array();
+        foreach ($blocks as $block => $owner) {
+            if (0 !== strpos((string) $block, $prefix)) {
+                continue;
+            }
+            if (false === $owner) {
+                return false;
+            }
+            $owners[] = $owner;
+        }
+        return $owners ? array_values(array_unique($owners)) : false;
     }
 
     /** Whether a full request still describes the content it started with. */

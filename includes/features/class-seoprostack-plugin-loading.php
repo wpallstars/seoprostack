@@ -1665,7 +1665,16 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
         if (count($posts) >= 100) {
             return $state['active']; // Too much global content to inspect cheaply.
         }
-        $texts = array(wp_json_encode(get_option('widget_block', array())), wp_json_encode(get_option('widget_text', array())));
+        // Each widget's own text: JSON of the option writes "/" as "\/", which
+        // made every namespaced block in a block widget unknown.
+        $texts = array();
+        foreach (array('widget_block' => 'content', 'widget_text' => 'text', 'widget_custom_html' => 'content') as $option => $field) {
+            foreach ((array) get_option($option, array()) as $instance) {
+                if (is_array($instance) && isset($instance[$field]) && is_string($instance[$field])) {
+                    $texts[] = $instance[$field];
+                }
+            }
+        }
         foreach ($posts as $post) {
             if (!($post instanceof WP_Post)) {
                 continue;
