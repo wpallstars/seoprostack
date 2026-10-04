@@ -1203,9 +1203,10 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folder�
 
 ## Changelog
 
-### Unreleased
+### 0.12.2
 
 - Changed: Tidy the dashboard shows AI Engine Advisor (`mwai_advisor_widget`) to developers only, in the third column, and unticks it in Screen Options once per person (a `start_hidden` rule; people who saved Screen Options before get it added to their list once), so it starts hidden; ticking it shows it from then on. New `seoprostack_dashboard_start_hidden` user meta, removed on uninstall.
+- Fix: MainWP Child printed the Branding extension’s **Global footer** text, unstyled, below the footer of every front-end page. **Fixes for other plugins** (on by default) leaves it out of the front end; the admin footer text stays.
 
 ### 0.12.1
 
@@ -1213,7 +1214,6 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folder�
 - New: the Plugins screen recommends deactivating plugins web hosts add to new sites while they are active: Hostinger AI and Hostinger Easy Onboarding. A note under each row says what it is for, with a Deactivate link; nothing is deactivated for you. Add others with the `seoprostack_host_plugins` filter.
 - Fix: on a network where Fluent Forms, Fluent Boards or FluentCommunity is active but a site has no tables for it, settings upgrades no longer log “Table doesn’t exist” database errors for that site: the agency order lists look for the table first.
 - Fix: **Short addresses for custom post types** no longer gives “page not found” at the short address of post types registered without a query variable (`query_var` false, as some custom post type tools register them); their links already dropped the base, so the items could not be reached.
-- Fix: MainWP Child printed the Branding extension’s **Global footer** text, unstyled, below the footer of every front-end page. **Fixes for other plugins** (on by default) leaves it out of the front end; the admin footer text stays.
 
 ### 0.12.0
 
