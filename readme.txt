@@ -5,7 +5,7 @@ Tags: magic login, iframe, schedule posts, auto upload images, admin
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 0.12.0
+Stable tag: 0.12.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -129,17 +129,11 @@ Use **Report a problem** in Settings → SEO Pro Stack or [GitHub](https://githu
 
 == Changelog ==
 
-= Unreleased =
+= 0.12.1 =
 * New: Term tools: slug patterns, bulk action and 301 redirects.
 * New: Plugins screen suggests deactivating Hostinger's default plugins.
 * Fix: no "Table doesn't exist" errors on network sites without Fluent tables.
 * Fix: Short addresses for custom post types works for post types registered without a query variable, instead of "page not found".
-
-= 0.12.0 =
-* New, off: Tag clouds and related posts: tag clouds, A–Z indexes, grouped terms in tabs or accordions, and a Related posts block. TaxoPress and Tag Groups pages keep working after removal.
-* New: Term tools finds unused terms.
-* Change: Discover no longer recommends TaxoPress Pro or Comment Goblin.
-* Fix: LiteSpeed no longer stops scheduled tasks partway.
 
 Older: `changelog.txt`.
 
