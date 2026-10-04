@@ -974,7 +974,7 @@ class SEOProStack_Licence_Calls extends SEOProStack_Feature {
                             <?php self::hidden_fields(); ?>
                             <input type="hidden" name="id" value="<?php echo esc_attr($id); ?>" />
                             <?php foreach ($buttons as $do => $label) : ?>
-                                <button type="submit" name="do" value="<?php echo esc_attr($do); ?>" class="button<?php echo 'once' === $do ? ' button-primary' : ''; ?>" aria-pressed="<?php echo $do === $mode ? 'true' : 'false'; ?>"><?php echo esc_html($label); ?></button>
+                                <button type="submit" name="do" value="<?php echo esc_attr($do); ?>" class="button<?php echo 'daily' === $do ? ' button-primary' : ''; ?>" aria-pressed="<?php echo $do === $mode ? 'true' : 'false'; ?>"><?php echo esc_html($label); ?></button>
                             <?php endforeach; ?>
                             <?php if ('ask' !== $mode) : ?>
                                 <button type="submit" name="do" value="forget" class="button-link sps-licence__forget"><?php esc_html_e('Forget my choice', 'seoprostack'); ?></button>
