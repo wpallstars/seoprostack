@@ -427,7 +427,7 @@ class SEOProStack_Watermark_Images extends SEOProStack_Feature {
     /**
      * Watermark editor classes in WordPress's order of preference.
      *
-     * @return string[]
+     * @return list<class-string<SEOProStack_Watermark_GD|SEOProStack_Watermark_Imagick>>
      */
     private static function editor_classes() {
         require_once ABSPATH . WPINC . '/class-wp-image-editor.php';
@@ -515,6 +515,9 @@ class SEOProStack_Watermark_Images extends SEOProStack_Feature {
         }
         if ($record && !self::$finalizing) {
             $file = get_attached_file($attachment_id);
+            if (!$file) {
+                return $metadata;
+            }
             foreach (self::file_names($file, $metadata) as $name) {
                 if (!isset($record['files'][$name]) && is_file(dirname($file) . '/' . $name)) {
                     $record['files'][$name] = (int) filesize(dirname($file) . '/' . $name);
@@ -595,7 +598,7 @@ class SEOProStack_Watermark_Images extends SEOProStack_Feature {
         }
         wp_raise_memory_limit('image');
 
-        $file   = get_attached_file($attachment_id);
+        $file   = (string) get_attached_file($attachment_id); // unmarkable() checked that it is a file.
         $dir    = dirname($file);
         $record = self::record($attachment_id);
         $first  = !$record;
@@ -771,7 +774,10 @@ class SEOProStack_Watermark_Images extends SEOProStack_Feature {
             return new WP_Error('watermark_changed', __('This picture was edited or replaced after it was marked, so the kept original is out of date.', 'seoprostack'));
         }
 
-        $file   = get_attached_file($attachment_id);
+        $file = get_attached_file($attachment_id);
+        if (!$file) { // record_current() found it; never restore into an empty folder path.
+            return new WP_Error('watermark_changed', __('This picture was edited or replaced after it was marked, so the kept original is out of date.', 'seoprostack'));
+        }
         $meta   = wp_get_attachment_metadata($attachment_id);
         $dir    = dirname($file);
         $source = $dir . '/' . $record['source'];
