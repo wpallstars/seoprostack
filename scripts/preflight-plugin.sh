@@ -2,6 +2,10 @@
 # SEO Pro Stack's own release checks. scripts/preflight-release.sh (a core
 # file from the starter plugin) sources this file and calls plugin_preflight
 # with the unpacked GitHub build; section, ok, warn and err come from there.
+#
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Marcus Quinn
+# Additional terms (GPL-3.0 section 7(b)): SEOPROSTACK-ATTRIBUTION.txt
 
 # Presets and starter data must never set the same setting: Add starter data
 # leaves stored settings alone and Apply preset overwrites them, so a shared

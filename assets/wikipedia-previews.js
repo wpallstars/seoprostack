@@ -5,6 +5,10 @@
  * Elements are marked on the server with data-wp-lang and data-wp-title.
  * The summary comes from Wikipedia's REST API only when a preview opens, and
  * is kept for the rest of the visit. Plain ES5; no jQuery.
+ *
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ * SPDX-FileCopyrightText: 2026 Marcus Quinn
+ * Additional terms (GPL-3.0 section 7(b)): SEOPROSTACK-ATTRIBUTION.txt
  */
 (function () {
 	'use strict';

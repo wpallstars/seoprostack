@@ -12,6 +12,10 @@
  * Localized data: window.seoprostackAdmin, with the shared helpers in
  * window.seoprostackAdmin.api and SEO Pro Stack's own data from
  * SEOProStack_Setup::script_data().
+ *
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ * SPDX-FileCopyrightText: 2026 Marcus Quinn
+ * Additional terms (GPL-3.0 section 7(b)): SEOPROSTACK-ATTRIBUTION.txt
  */
 (function ($, wp, cfg) {
 	'use strict';

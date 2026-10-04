@@ -16,6 +16,10 @@
  * their menu_order. Other plugins' settings that
  * features imported from are never touched.
  *
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ * SPDX-FileCopyrightText: 2026 Marcus Quinn
+ * Additional terms (GPL-3.0 section 7(b)): ATTRIBUTION.txt (the starter's parts), SEOPROSTACK-ATTRIBUTION.txt
+ *
  * @package SEOProStack
  */
 

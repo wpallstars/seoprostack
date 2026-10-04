@@ -1,4 +1,10 @@
-/* seoprostack/term-list. Colours, fonts and list spacing come from the theme unless set on the block. */
+/*
+ * seoprostack/term-list. Colours, fonts and list spacing come from the theme unless set on the block.
+ *
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ * SPDX-FileCopyrightText: 2026 Marcus Quinn
+ * Additional terms (GPL-3.0 section 7(b)): SEOPROSTACK-ATTRIBUTION.txt
+ */
 
 /* Space below the block; :where() keeps it weaker than the block's own margin setting and theme layouts. */
 :where(.wp-block-seoprostack-term-list) {

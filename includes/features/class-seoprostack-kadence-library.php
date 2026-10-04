@@ -19,6 +19,10 @@
  * changes (see admin/js/seoprostack-kadence-library.js), and a style lets
  * the browser skip drawing patterns that are off screen.
  *
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ * SPDX-FileCopyrightText: 2026 Marcus Quinn
+ * Additional terms (GPL-3.0 section 7(b)): SEOPROSTACK-ATTRIBUTION.txt
+ *
  * @package SEOProStack
  * @since 0.6.0
  */

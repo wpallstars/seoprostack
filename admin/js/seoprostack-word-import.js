@@ -5,6 +5,10 @@
  * core blocks, which replace it.
  *
  * Plain ES5 with wp.element.createElement so the plugin needs no build step.
+ *
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ * SPDX-FileCopyrightText: 2026 Marcus Quinn
+ * Additional terms (GPL-3.0 section 7(b)): SEOPROSTACK-ATTRIBUTION.txt
  */
 (function (wp, cfg) {
 	'use strict';

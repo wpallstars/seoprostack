@@ -6,7 +6,7 @@
 <!-- On GitHub only: the Read Me tab skips this block. scripts/rename-plugin.sh rewrites it. -->
 [![CI](https://github.com/wpallstars/seoprostack/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/wpallstars/seoprostack/actions/workflows/ci.yml)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=wpallstars_seoprostack&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=wpallstars_seoprostack)
-[![License: GPL v2 or later](https://img.shields.io/badge/License-GPL%20v2%20or%20later-blue.svg)](LICENSE)
+[![License: GPL v3 or later](https://img.shields.io/badge/License-GPL%20v3%20or%20later-blue.svg)](LICENSE)
 [![Latest release](https://img.shields.io/github/v/release/wpallstars/seoprostack)](https://github.com/wpallstars/seoprostack/releases)
 
 [![Lines of code](docs/metrics/badges/loc.svg)](docs/metrics/repo-metrics.md)
@@ -1377,6 +1377,7 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folder�
 ### Unreleased
 
 - New: **Faster page counts on long lists** (Server, off by default) counts matching rows separately from paged post queries, keeping exact totals and page numbers (GitHub issue #430).
+- Change: the licence is now GPL-3.0-or-later (was GPL-2.0-or-later), with additional terms under GPL-3.0 section 7(b) that keep the copyright notices and credits: `SEOPROSTACK-ATTRIBUTION.txt` for SEO Pro Stack's own code, and WP Plugin Starter's `ATTRIBUTION.txt` for the parts from the starter. Every source file has SPDX licence lines, and both release zips ship `LICENSE` and both terms files. Core files synced from WP Plugin Starter 1.0.19. Nothing changes for users (GitHub issue #422).
 - Fix: **Fixes for other plugins**: on Hostinger, a server cron job no longer fills `error_log` with “Cron reschedule event error for hook: mnx_versions_cron_event, Error code: invalid_schedule”. The Monarx security agent registers its 10-minute schedule only on web requests; on cron and WP-CLI requests that schedule is now registered from the task’s stored interval (GitHub issue #437).
 
 ### 0.14.2
@@ -1864,4 +1865,8 @@ Made from [WP Plugin Starter](https://github.com/wpallstars/wp-plugin-starter-te
 
 ## License
 
-GPL-2.0-or-later.
+GPL-3.0-or-later (the full text is in `LICENSE`), with additional terms under GPL-3.0 section 7(b): `SEOPROSTACK-ATTRIBUTION.txt` for SEO Pro Stack's own code, and `ATTRIBUTION.txt` for the parts from WP Plugin Starter. Keep the copyright notices and the credits they name.
+
+Copyright (C) 2025-2026 Marcus Quinn
+
+Parts copyright (C) 2026 Marcus Quinn, from [WP Plugin Starter](https://github.com/wpallstars/wp-plugin-starter-template-for-ai-coding).

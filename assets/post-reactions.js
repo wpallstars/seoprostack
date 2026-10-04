@@ -3,6 +3,10 @@
  * shortcodes. The page may be cached, so state is loaded here: like totals
  * and, for logged-in people, what they liked and saved (with a fresh nonce).
  * Visitors' likes and saved posts stay in localStorage. No cookies.
+ *
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ * SPDX-FileCopyrightText: 2026 Marcus Quinn
+ * Additional terms (GPL-3.0 section 7(b)): SEOPROSTACK-ATTRIBUTION.txt
  */
 (function (cfg) {
 	'use strict';

@@ -17,6 +17,10 @@
  * are added only where Simple Icons has no icon of that name, mostly brands
  * whose owners asked Simple Icons to remove them (LinkedIn, Microsoft, Slack).
  * Each shard with Font Awesome icons carries its attribution under "//".
+ *
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ * SPDX-FileCopyrightText: 2026 Marcus Quinn
+ * Additional terms (GPL-3.0 section 7(b)): SEOPROSTACK-ATTRIBUTION.txt
  */
 'use strict';
 

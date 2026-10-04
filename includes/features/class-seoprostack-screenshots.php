@@ -13,6 +13,10 @@
  * is saved or a page shows one that is missing (WP-Cron), and again after a
  * set number of days. Until one exists, a box with a link to the page shows.
  *
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ * SPDX-FileCopyrightText: 2026 Marcus Quinn
+ * Additional terms (GPL-3.0 section 7(b)): SEOPROSTACK-ATTRIBUTION.txt
+ *
  * @package SEOProStack
  * @since 0.4.0
  */

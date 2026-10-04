@@ -2,6 +2,10 @@
  * seoprostack/brand-icon editor script. Plain ES5, no build step; the server
  * renders the block. Icons are found through GET seoprostack/v1/brand-icons
  * (never the whole set) and drawn here from their path data.
+ *
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ * SPDX-FileCopyrightText: 2026 Marcus Quinn
+ * Additional terms (GPL-3.0 section 7(b)): SEOPROSTACK-ATTRIBUTION.txt
  */
 (function (blocks, element, blockEditor, components, i18n, apiFetch, url) {
 	'use strict';

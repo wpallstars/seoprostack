@@ -31,6 +31,10 @@
  * Until 0.13.0 this was "Client safeguards" in Organise the admin menu;
  * its switch and developer list are imported (settings version 22).
  *
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ * SPDX-FileCopyrightText: 2026 Marcus Quinn
+ * Additional terms (GPL-3.0 section 7(b)): SEOPROSTACK-ATTRIBUTION.txt
+ *
  * @package SEOProStack
  * @since 0.13.0
  */

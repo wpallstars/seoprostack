@@ -6,8 +6,8 @@ Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 7.4
 Stable tag: 0.14.2
-License: GPLv2 or later
-License URI: https://www.gnu.org/licenses/gpl-2.0.html
+License: GPLv3 or later
+License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
 One free plugin for a faster, tidier WordPress. It does the jobs of 40+ single-purpose plugins, each a switch you turn on.
 

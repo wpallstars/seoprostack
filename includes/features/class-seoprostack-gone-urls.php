@@ -9,6 +9,10 @@
  * are affected, so a live page can never be taken down by mistake. Visitors
  * still see the theme's normal not-found page. Replaces "Ultimate 410".
  *
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ * SPDX-FileCopyrightText: 2026 Marcus Quinn
+ * Additional terms (GPL-3.0 section 7(b)): SEOPROSTACK-ATTRIBUTION.txt
+ *
  * @package SEOProStack
  * @since 0.3.0
  */

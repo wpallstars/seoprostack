@@ -1,6 +1,10 @@
 /**
  * Order by hand: drag rows by their handle, or focus a handle and press the
  * up or down arrow key. The rows shown are saved in their new order.
+ *
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ * SPDX-FileCopyrightText: 2026 Marcus Quinn
+ * Additional terms (GPL-3.0 section 7(b)): SEOPROSTACK-ATTRIBUTION.txt
  */
 (function ($, cfg) {
     if (!cfg) {

@@ -8,6 +8,10 @@
  * Themes style button:hover, :focus and :active (Kadence: its button
  * colours and a drop shadow). A clicked button keeps focus, so every state
  * is set here, or the theme's look stays until the page is reloaded.
+ *
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ * SPDX-FileCopyrightText: 2026 Marcus Quinn
+ * Additional terms (GPL-3.0 section 7(b)): SEOPROSTACK-ATTRIBUTION.txt
  */
 .sps-reactions {
 	display: flex;

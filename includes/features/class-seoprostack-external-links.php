@@ -5,6 +5,10 @@
  * Mark links in rendered content, never in stored posts. A CSS mask follows
  * currentColor, including hover and Kadence's live palette changes.
  *
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ * SPDX-FileCopyrightText: 2026 Marcus Quinn
+ * Additional terms (GPL-3.0 section 7(b)): SEOPROSTACK-ATTRIBUTION.txt
+ *
  * @package SEOProStack
  */
 

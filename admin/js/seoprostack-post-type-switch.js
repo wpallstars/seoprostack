@@ -2,6 +2,10 @@
  * Change post type: a Post type choice in the block editor's summary panel.
  * Saves unsaved changes first, asks, changes the type, then reloads the
  * editor at the post's new address.
+ *
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ * SPDX-FileCopyrightText: 2026 Marcus Quinn
+ * Additional terms (GPL-3.0 section 7(b)): SEOPROSTACK-ATTRIBUTION.txt
  */
 (function (wp, cfg) {
     if (!wp || !cfg || !wp.plugins || !wp.element || !wp.components) {
