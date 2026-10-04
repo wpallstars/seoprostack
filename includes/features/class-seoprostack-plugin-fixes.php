@@ -110,6 +110,14 @@
  * is missing are dropped from Kadence Pro's class map, so the lookup goes
  * straight on to the plugin that has the class.
  *
+ * WP Crontrol (checked with 1.21.2) shows "The DISABLE_WP_CRON constant is
+ * set to true. WP-Cron spawning is disabled." on its Cron Events screen
+ * whenever that constant is set, with no way to dismiss it, and does not
+ * say whether the cron job on the server that should replace it runs. Its
+ * notice now says that instead, by Site Health's measure when the constant
+ * is set: fine while no event is more than 15 minutes late, a warning
+ * naming a later event, and an error once one is more than an hour late.
+ *
  * @package SEOProStack
  */
 
@@ -170,6 +178,13 @@ class SEOProStack_Plugin_Fixes extends SEOProStack_Feature {
     /** Whether Kadence Pro's class map has been cleaned in this request. */
     private static $kadence_pro_cleaned = false;
 
+    /** WP Crontrol's notice about DISABLE_WP_CRON (its wp_admin_notice() id). */
+    const CRONTROL_NOTICE = 'crontrol-status-notice';
+
+    /** An event is late, and then missed, this long after its time (Site Health's, with DISABLE_WP_CRON). */
+    const CRON_LATE   = 900;
+    const CRON_MISSED = 3600;
+
     /**
      * Settings.
      *
@@ -183,7 +198,7 @@ class SEOProStack_Plugin_Fixes extends SEOProStack_Feature {
                 'default'     => true,
                 'tab'         => 'plugins',
                 'label'       => __('Fixes for other plugins', 'seoprostack'),
-                'description' => __('Works around bugs in other plugins that slow your site down, without changing their settings. Lasso Lite (Simple URLs) stops contacting its server on every admin screen. Deactivating Freesoul Deactivate Plugins or its PRO add-on deactivates both and removes the must-use file it leaves behind. Readabler no longer contacts its server on every Plugins screen load, or stops that screen with a critical error when it cannot. Tutor LMS Pro stops adding warnings to the debug log when there is no update. Tutor LMS gets its order, cart and coupon tables on every site of a network. Tutor LMS Pro no longer makes the Plugins screen check every plugin for updates on each load. Comment Goblin no longer waits for its update server on every admin screen while that server fails. MainWP Child no longer prints its Branding "Global footer" text, unstyled, below every front-end page. On LiteSpeed servers, scheduled tasks (WordPress cron and Action Scheduler, used by WooCommerce and others) finish instead of stopping partway, through a few lines at the top of .htaccess. Kadence Pro no longer causes "Failed opening" warnings when other plugins load shared code. Turn this off if a fix causes a problem.', 'seoprostack'),
+                'description' => __('Works around bugs in other plugins that slow your site down, without changing their settings. Lasso Lite (Simple URLs) stops contacting its server on every admin screen. Deactivating Freesoul Deactivate Plugins or its PRO add-on deactivates both and removes the must-use file it leaves behind. Readabler no longer contacts its server on every Plugins screen load, or stops that screen with a critical error when it cannot. Tutor LMS Pro stops adding warnings to the debug log when there is no update. Tutor LMS gets its order, cart and coupon tables on every site of a network. Tutor LMS Pro no longer makes the Plugins screen check every plugin for updates on each load. Comment Goblin no longer waits for its update server on every admin screen while that server fails. MainWP Child no longer prints its Branding "Global footer" text, unstyled, below every front-end page. On LiteSpeed servers, scheduled tasks (WordPress cron and Action Scheduler, used by WooCommerce and others) finish instead of stopping partway, through a few lines at the top of .htaccess. Kadence Pro no longer causes "Failed opening" warnings when other plugins load shared code. WP Crontrol says whether the server\'s cron job runs, instead of only that DISABLE_WP_CRON is set. Turn this off if a fix causes a problem.', 'seoprostack'),
             ),
         );
     }
@@ -223,6 +238,69 @@ class SEOProStack_Plugin_Fixes extends SEOProStack_Feature {
         add_action('http_api_debug', array(__CLASS__, 'cg_note_failure'), 10, 5);
         // Before MainWP Child's callback, which uses priority 15.
         add_action('wp_footer', array(__CLASS__, 'mainwp_no_front_end_footer'), 0);
+        // Before WP Crontrol's status notice, which uses priority 20.
+        add_action('crontrol/tab-header', array(__CLASS__, 'crontrol_status'), 19);
+    }
+
+    /**
+     * WP Crontrol's screen: with DISABLE_WP_CRON set, have its notice say
+     * whether the server's cron job runs.
+     */
+    public static function crontrol_status() {
+        if (!defined('DISABLE_WP_CRON') || !DISABLE_WP_CRON) {
+            return;
+        }
+        add_filter('wp_admin_notice_markup', array(__CLASS__, 'crontrol_status_markup'), 10, 3);
+    }
+
+    /**
+     * Replace WP Crontrol's DISABLE_WP_CRON notice with how late the
+     * scheduled events are. Only the notice that names the constant (in
+     * any language, as WP Crontrol puts the name in with %s): the same
+     * notice naming a cron runner plugin (Cavalcade, Cron Control) stays.
+     *
+     * @param string $markup  Notice markup.
+     * @param string $message Notice message.
+     * @param array  $args    Notice arguments.
+     * @return string
+     */
+    public static function crontrol_status_markup($markup, $message, $args) {
+        // wp_get_admin_notice() (WordPress 6.4) runs this filter, so it is there.
+        if (!is_array($args) || !isset($args['id']) || self::CRONTROL_NOTICE !== $args['id']
+            || false === strpos((string) $message, 'DISABLE_WP_CRON') || !function_exists('wp_get_admin_notice')) {
+            return $markup;
+        }
+        // Once, and not for the notice made here.
+        remove_filter('wp_admin_notice_markup', array(__CLASS__, 'crontrol_status_markup'), 10);
+        $now  = time();
+        $hook = '';
+        $time = $now;
+        $cron = function_exists('_get_cron_array') ? _get_cron_array() : array();
+        foreach ((array) $cron as $timestamp => $hooks) {
+            if ((int) $timestamp < $time && is_array($hooks) && $hooks) {
+                $time = (int) $timestamp;
+                $hook = (string) key($hooks);
+            }
+        }
+        $late = $now - $time;
+        if ($late > self::CRON_LATE) {
+            $text = sprintf(
+                /* translators: 1: DISABLE_WP_CRON, 2: event hook name, 3: how late, such as "2 hours". */
+                __('%1$s is set, so a cron job on the server must run WordPress cron, but the scheduled event %2$s is %3$s late. Check that your host\'s control panel has a cron job that runs wp-cron.php (or wp cron event run --due-now) every few minutes, and that it works.', 'seoprostack'),
+                'DISABLE_WP_CRON',
+                $hook,
+                human_time_diff($time, $now)
+            );
+            $type = $late > self::CRON_MISSED ? 'error' : 'warning';
+        } else {
+            $text = sprintf(
+                /* translators: %s: DISABLE_WP_CRON */
+                __('WordPress cron runs from a cron job on the server (%s is set): no scheduled event is more than 15 minutes late.', 'seoprostack'),
+                'DISABLE_WP_CRON'
+            );
+            $type = 'success';
+        }
+        return wp_get_admin_notice(esc_html($text), array('id' => self::CRONTROL_NOTICE, 'type' => $type));
     }
 
     /**
