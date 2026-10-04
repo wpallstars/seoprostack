@@ -99,7 +99,9 @@ Extend settings, tabs and directories with filters. See the Read Me tab.
 
 = Built with AI =
 
-Built with [aidevops](https://aidevops.sh), the developer's free, open-source AI harness. [Source](https://github.com/marcusquinn/aidevops).
+Built with [aidevops](https://aidevops.sh), the developer's free, open-source AI harness. [Source](https://github.com/marcusquinn/aidevops). Questions: ask aidevops; it reads the plugin's docs and code.
+
+Made from WP Plugin Starter (https://github.com/wpallstars/wp-plugin-starter-template-for-ai-coding).
 
 == Installation ==
 
