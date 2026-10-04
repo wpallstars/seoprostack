@@ -99,6 +99,17 @@
  * text set as "Dashboard footer" still shows in the admin footer, and
  * MainWP's saved settings are left alone.
  *
+ * Kadence Pro 1.2.5 moved its libraries (PSR interfaces, StellarWP, DI52,
+ * LiquidWeb Harbor) into vendor-prefixed/ under new names but kept the old
+ * names in its Composer class map: 348 of its 354 entries point at files it
+ * does not ship. Its autoloader goes first, so when another plugin that
+ * ships one of those libraries itself (AI Engine Pro, Kadence Conversions
+ * and others ship psr/container) asks for a class, PHP warns "Failed
+ * opening" for the missing file before the right copy loads. As SEO Pro
+ * Stack loads (or as Kadence Pro does, if later), the entries whose folder
+ * is missing are dropped from Kadence Pro's class map, so the lookup goes
+ * straight on to the plugin that has the class.
+ *
  * @package SEOProStack
  */
 
@@ -153,6 +164,12 @@ class SEOProStack_Plugin_Fixes extends SEOProStack_Feature {
     /** What the noabort block holds now (a hash, '' for none), as a site option. */
     const NOABORT_SYNCED = 'seoprostack_noabort_rules';
 
+    /** Kadence Pro's Composer folder, below the plugins folder. */
+    const KADENCE_PRO_VENDOR = 'kadence-pro/vendor';
+
+    /** Whether Kadence Pro's class map has been cleaned in this request. */
+    private static $kadence_pro_cleaned = false;
+
     /**
      * Settings.
      *
@@ -166,7 +183,7 @@ class SEOProStack_Plugin_Fixes extends SEOProStack_Feature {
                 'default'     => true,
                 'tab'         => 'plugins',
                 'label'       => __('Fixes for other plugins', 'seoprostack'),
-                'description' => __('Works around bugs in other plugins that slow your site down, without changing their settings. Lasso Lite (Simple URLs) stops contacting its server on every admin screen. Deactivating Freesoul Deactivate Plugins or its PRO add-on deactivates both and removes the must-use file it leaves behind. Readabler no longer contacts its server on every Plugins screen load, or stops that screen with a critical error when it cannot. Tutor LMS Pro stops adding warnings to the debug log when there is no update. Tutor LMS gets its order, cart and coupon tables on every site of a network. Tutor LMS Pro no longer makes the Plugins screen check every plugin for updates on each load. Comment Goblin no longer waits for its update server on every admin screen while that server fails. MainWP Child no longer prints its Branding "Global footer" text, unstyled, below every front-end page. On LiteSpeed servers, scheduled tasks (WordPress cron and Action Scheduler, used by WooCommerce and others) finish instead of stopping partway, through a few lines at the top of .htaccess. Turn this off if a fix causes a problem.', 'seoprostack'),
+                'description' => __('Works around bugs in other plugins that slow your site down, without changing their settings. Lasso Lite (Simple URLs) stops contacting its server on every admin screen. Deactivating Freesoul Deactivate Plugins or its PRO add-on deactivates both and removes the must-use file it leaves behind. Readabler no longer contacts its server on every Plugins screen load, or stops that screen with a critical error when it cannot. Tutor LMS Pro stops adding warnings to the debug log when there is no update. Tutor LMS gets its order, cart and coupon tables on every site of a network. Tutor LMS Pro no longer makes the Plugins screen check every plugin for updates on each load. Comment Goblin no longer waits for its update server on every admin screen while that server fails. MainWP Child no longer prints its Branding "Global footer" text, unstyled, below every front-end page. On LiteSpeed servers, scheduled tasks (WordPress cron and Action Scheduler, used by WooCommerce and others) finish instead of stopping partway, through a few lines at the top of .htaccess. Kadence Pro no longer causes "Failed opening" warnings when other plugins load shared code. Turn this off if a fix causes a problem.', 'seoprostack'),
             ),
         );
     }
@@ -226,6 +243,101 @@ class SEOProStack_Plugin_Fixes extends SEOProStack_Feature {
                 }
             }
         }
+    }
+
+    /**
+     * Fixes that must run before init, called as SEO Pro Stack loads.
+     *
+     * The setting is read from the stored option: SEOProStack_Settings::get()
+     * builds the settings schema, whose labels are translated, and
+     * translations must not load before init.
+     */
+    public static function early() {
+        $stored = get_option(SEOProStack_Settings::OPTION, array());
+        if (is_array($stored) && array_key_exists(self::KEY, $stored) && !$stored[self::KEY]) {
+            return;
+        }
+        if (!self::kadence_pro_clean_class_map()) {
+            // Kadence Pro loads after SEO Pro Stack: network-activated SEO
+            // Pro Stack with Kadence Pro active on the site only.
+            add_action('plugin_loaded', array(__CLASS__, 'kadence_pro_loaded'));
+            add_action('network_plugin_loaded', array(__CLASS__, 'kadence_pro_loaded'));
+        }
+    }
+
+    /**
+     * A plugin file was loaded: clean Kadence Pro's class map once it is.
+     *
+     * @param string $file Full path of the plugin's main file.
+     */
+    public static function kadence_pro_loaded($file) {
+        if (false !== strpos(wp_normalize_path((string) $file), '/' . dirname(self::KADENCE_PRO_VENDOR) . '/')) {
+            self::kadence_pro_clean_class_map();
+        }
+    }
+
+    /**
+     * Drop the entries of Kadence Pro's Composer class map whose folder is
+     * missing, so lookups go on to the autoloader of a plugin that has the
+     * class instead of PHP warning about a missing file. Entries that exist
+     * (its own classes and vendor-prefixed/) stay.
+     *
+     * @return bool Whether Kadence Pro's autoloader was found (and cleaned).
+     */
+    private static function kadence_pro_clean_class_map() {
+        if (self::$kadence_pro_cleaned) {
+            return true;
+        }
+        // Composer 2 lists its autoloaders. The ClassLoader class is shared,
+        // and the first plugin to load one decides which copy every plugin
+        // gets: a Composer 1 copy has no list (PHP throws Error).
+        if (!class_exists('Composer\Autoload\ClassLoader', false)) {
+            return false;
+        }
+        try {
+            $loaders = \Composer\Autoload\ClassLoader::getRegisteredLoaders();
+        } catch (\Error $e) {
+            return false;
+        }
+        $vendor = wp_normalize_path(WP_PLUGIN_DIR) . '/' . self::KADENCE_PRO_VENDOR;
+        $loader = null;
+        foreach ($loaders as $dir => $registered) {
+            if ($registered instanceof \Composer\Autoload\ClassLoader && wp_normalize_path((string) $dir) === $vendor) {
+                $loader = $registered;
+                break;
+            }
+        }
+        if (null === $loader) {
+            return false;
+        }
+        self::$kadence_pro_cleaned = true;
+
+        // One check per folder (122 in 1.2.5) instead of one per class (354);
+        // well under a millisecond.
+        $folders = array();
+        $missing = array();
+        foreach ($loader->getClassMap() as $class => $path) {
+            $folder = dirname((string) $path);
+            if (!isset($folders[$folder])) {
+                $folders[$folder] = is_dir($folder);
+            }
+            if (!$folders[$folder]) {
+                $missing[] = $class;
+            }
+        }
+        if ($missing) {
+            // ClassLoader has no way to remove entries, so do it from inside.
+            $drop = function (array $classes) {
+                foreach ($classes as $class) {
+                    unset($this->classMap[$class]);
+                }
+            };
+            $bound = \Closure::bind($drop, $loader, get_class($loader));
+            if ($bound) {
+                $bound($missing);
+            }
+        }
+        return true;
     }
 
     /**

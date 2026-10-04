@@ -131,6 +131,7 @@ Use **Report a problem** in Settings → SEO Pro Stack or [GitHub](https://githu
 
 = Unreleased =
 * New, off: Pinned posts can lead Kadence Blocks Pro query loops.
+* Fix: no "Failed opening" warnings from Kadence Pro when other plugins load shared code.
 
 = 0.12.2 =
 * New, off: Image loading replaces Flying Images' lazy loading, in part.

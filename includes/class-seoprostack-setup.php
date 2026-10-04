@@ -242,6 +242,9 @@ final class SEOProStack_Setup {
         SEOProStack_Litespeed::init();
         SEOProStack_WP_Optimize::init();
 
+        // Fixes that cannot wait for the features' boot on init.
+        SEOProStack_Plugin_Fixes::early();
+
         // "Load plugins only where needed" may skip plugins on a request;
         // they still count as active, and saved choices that belong to them
         // stay listed.
