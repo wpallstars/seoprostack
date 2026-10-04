@@ -1241,7 +1241,7 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folder�
 
 ## Changelog
 
-### Unreleased
+### 0.12.5
 
 - New, on by default: **Quiet Appsero prompts** (Admin tab) removes the “Allow … to collect diagnostic data” notice, the deactivation survey and its submission, and the report a theme sends when it is switched away from, from plugins and themes that bundle Appsero, such as Easy Video Reviews. Licences stay, nothing is opted in or out, and plugins already opted in keep sending their weekly report (GitHub issue #317).
 - New: a FluentSMTP preset keeps email logs for 2 years instead of 14 days, so you can still check whether an email went out a year or two later. Connections and credentials are not touched. It shows once FluentSMTP has a saved connection, because FluentSMTP expects all its settings once it stores any (new `option:{name}` preset condition).
