@@ -43,8 +43,8 @@ class SEOProStack_Heartbeat extends SEOProStack_Feature {
         return array(
             self::KEY => array(
                 'type'        => 'bool',
-                'default'     => false,
-                'tab'         => 'speed',
+                'default'     => true,
+                'tab'         => 'server',
                 'label'       => __('Fewer Heartbeat requests', 'seoprostack'),
                 'description' => __('WordPress asks the server for news every minute while an admin screen is open, and each request loads the whole site. Editors keep it for post locks and autosave. Applies to everyone.', 'seoprostack'),
                 'replaces'    => SEOProStack_Disable_Bloat::PLUGINS,

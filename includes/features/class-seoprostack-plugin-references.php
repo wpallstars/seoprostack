@@ -43,7 +43,7 @@ class SEOProStack_Plugin_References extends SEOProStack_Feature {
         return array(
             self::KEY => array(
                 'type'        => 'bool',
-                'default'     => false,
+                'default'     => true,
                 'tab'         => 'plugins',
                 'label'       => __('Clean up deleted plugins', 'seoprostack'),
                 'description' => __('When plugin folders were deleted outside the Plugins screen, WordPress keeps their uninstall and “Recently active” entries. Opening the Plugins screen removes them. WordPress itself switches off missing active plugins there.', 'seoprostack'),

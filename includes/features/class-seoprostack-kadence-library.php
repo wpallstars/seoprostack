@@ -40,7 +40,7 @@ class SEOProStack_Kadence_Library extends SEOProStack_Feature {
         return array(
             self::KEY => array(
                 'type'        => 'bool',
-                'default'     => false,
+                'default'     => true,
                 'tab'         => 'speed',
                 'label'       => __('Faster editor with Kadence Blocks', 'seoprostack'),
                 'description' => __('Kadence Blocks puts its whole design library into every editor page, often more than 10 MB. This loads the library when you open it instead, and keeps it in your browser until Kadence updates it, so the editor and the library open faster. Nothing changes if Kadence Blocks is not active.', 'seoprostack'),

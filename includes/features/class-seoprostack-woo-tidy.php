@@ -33,7 +33,7 @@ class SEOProStack_Woo_Tidy extends SEOProStack_Feature {
         return array(
             self::KEY => array(
                 'type'        => 'bool',
-                'default'     => false,
+                'default'     => true,
                 'tab'         => 'admin',
                 'label'       => __('Tidy WooCommerce admin', 'seoprostack'),
                 'description' => __('Remove WooCommerce’s promotions and prompts from wp-admin. Orders, products, reports and WooCommerce’s own settings are not changed. Does nothing without WooCommerce.', 'seoprostack'),

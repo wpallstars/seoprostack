@@ -28,7 +28,7 @@ class SEOProStack_Notification_Emails extends SEOProStack_Feature {
         return array(
             self::KEY => array(
                 'type'        => 'bool',
-                'default'     => false,
+                'default'     => true,
                 'tab'         => 'admin',
                 'label'       => __('Notification emails', 'seoprostack'),
                 'description' => __('Stop routine WordPress emails you do not need, such as auto-update reports. Only the emails you tick are stopped.', 'seoprostack'),

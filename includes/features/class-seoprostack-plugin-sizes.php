@@ -50,7 +50,7 @@ class SEOProStack_Plugin_Sizes extends SEOProStack_Feature {
         return array(
             self::KEY => array(
                 'type'        => 'bool',
-                'default'     => false,
+                'default'     => true,
                 'tab'         => 'plugins',
                 'label'       => __('Plugin sizes', 'seoprostack'),
                 'description' => __('Add a Size column to the Plugins screen with each plugin’s PHP, JavaScript, CSS, media and other files, so heavy plugins stand out. Click the column heading to sort. Totals for installed and active plugins are shown below the list.', 'seoprostack'),

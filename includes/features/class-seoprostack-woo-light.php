@@ -51,7 +51,7 @@ class SEOProStack_Woo_Light extends SEOProStack_Feature {
         return array(
             self::KEY => array(
                 'type'        => 'bool',
-                'default'     => false,
+                'default'     => true,
                 'tab'         => 'speed',
                 'label'       => __('Lighter WooCommerce pages', 'seoprostack'),
                 'description' => __('WooCommerce loads its scripts on every page. Keep them to shop pages and pages with WooCommerce blocks or shortcodes. Applies to everyone. Does nothing without WooCommerce.', 'seoprostack'),

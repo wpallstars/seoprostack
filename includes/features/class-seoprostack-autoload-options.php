@@ -35,8 +35,8 @@ final class SEOProStack_Autoload_Options extends SEOProStack_Feature {
     public static function settings() {
         return array(self::KEY => array(
             'type' => 'bool',
-            'default' => false,
-            'tab' => 'speed',
+            'default' => true,
+            'tab' => 'server',
             'label' => __('Load large settings only where they are used', 'seoprostack'),
             'description' => __('Other plugins save settings that load on every request. Learn which large ones site pages do not use, then load those only when asked for. Turning this off puts them back. Single sites only.', 'seoprostack'),
         ));
@@ -505,7 +505,7 @@ final class SEOProStack_Autoload_Options extends SEOProStack_Feature {
     }
 
     public static function render($tab) {
-        if ('speed' !== $tab || !current_user_can('manage_options')) {
+        if ('server' !== $tab || !current_user_can('manage_options')) {
             return;
         }
         $state = (array) get_option(self::STATE, array());

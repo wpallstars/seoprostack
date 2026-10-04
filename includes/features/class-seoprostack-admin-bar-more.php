@@ -57,7 +57,7 @@ class SEOProStack_Admin_Bar_More extends SEOProStack_Feature {
         return array(
             self::KEY => array(
                 'type'        => 'bool',
-                'default'     => false,
+                'default'     => true,
                 'tab'         => 'admin',
                 'label'       => __('More menu in the admin bar', 'seoprostack'),
                 'description' => __('Put the items plugins and themes add to the left of the admin bar in one … menu, last on that side, so the bar stays on one line and never covers the page. Point at … to open it. Works in wp-admin and on the site.', 'seoprostack'),

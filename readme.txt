@@ -17,16 +17,16 @@ Faster admin, writing, media, safer logins and tested plugin settings.
 
 Free and open source: no pro version, nothing locked.
 
-Off by default except Hide admin bar items (Comments and + New), No fade between admin screens, Quiet Freemius and Appsero prompts and Fixes for other plugins. Use **Settings → SEO Pro Stack**; **Search features** also finds replaced plugins. Replacements import settings once, never change the original's and wait while it is active.
+New sites start with the speed, server, plugin-loading and admin features that are safe everywhere on; those needing choices, or changing content, stay off. Use **Settings → SEO Pro Stack**; **Search features** also finds replaced plugins. Replacements import settings once, never change the original's and wait while it is active.
 
 = A calmer, faster admin =
 
 * **Developer admins**: only the administrators you choose can install, switch or edit plugins and themes, make administrators or change site addresses and permalinks.
 * **Organise the admin menu**: the same sections on every site, role previews, writing only for contributors.
 * **Tidy the dashboard**, **Dashboard and sidebar widgets**, **Hide admin notices** (behind a megaphone) and a **More menu** for plugins' admin bar items.
-* **Quiet Freemius prompts** and **Quiet Appsero prompts** (on): no opt-in nags, upgrade offers or deactivation surveys.
+* **Quiet Freemius prompts** and **Quiet Appsero prompts**: no opt-in nags, upgrade offers or deactivation surveys.
 * **Tidy admin screens**, **Tidy WooCommerce admin**, **Tidy the login screen**, **Simpler block editor**, **Remove WordPress extras**, **Fewer Heartbeat requests**, **Limit post revisions** and **Lighter WooCommerce pages**: most of Disable Bloat.
-* **Modern admin colours**, **No fade between admin screens** (on), **Readable list columns** and **Notification emails** (stop routine emails).
+* **Modern admin colours**, **No fade between admin screens**, **Readable list columns** and **Notification emails** (stop routine emails).
 
 = Safer logins and access =
 
@@ -72,7 +72,7 @@ Off by default except Hide admin bar items (Comments and + New), No fade between
 
 * **Plugin presets** and **starter data**: our tested settings for other plugins, and the lists, tags, forms and boards we use in Fluent plugins; only when you ask, and undoable.
 * **Plugins menu** in the admin bar, **Plugin sizes**, **Clean up deleted plugins** and **Hosting needs** (what to ask your host for).
-* **Fixes for other plugins** (on): works around their bugs, such as Lasso Lite calling its server on every admin screen.
+* **Fixes for other plugins**: works around their bugs, such as Lasso Lite calling its server on every admin screen.
 * **Agency**: order flow, client dashboard and examples.
 * **Discover**: the Kadence theme and the free and Pro plugins, hosting and tools we use.
 
@@ -107,7 +107,7 @@ Made from WP Plugin Starter (https://github.com/wpallstars/wp-plugin-starter-tem
 
 == Installation ==
 
-Install from Plugins → Add New, activate, then turn on features in Settings → SEO Pro Stack.
+Install from Plugins → Add New and activate. Change features in Settings → SEO Pro Stack.
 
 == Frequently Asked Questions ==
 
