@@ -130,6 +130,8 @@ Use **Report a problem** in Settings → SEO Pro Stack or [GitHub](https://githu
 == Changelog ==
 
 = 0.12.2 =
+* New, off: Image loading chooses which pictures load straight away. Replaces Flying Images' lazy loading, in part.
+* Change: Magic login links replaces WP Magic Link Login, in part; its [wpmll_form] pages keep working.
 * Change: Tidy the dashboard starts AI Engine Advisor hidden, for developers only.
 * Fix: MainWP Child's Branding footer text no longer shows below front-end pages.
 
