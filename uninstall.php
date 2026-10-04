@@ -357,6 +357,24 @@ delete_site_transient('seoprostack_comment_goblin_failed');
 // Fixes for other plugins: what the LiteSpeed noabort block holds (the
 // block itself is removed on deactivation).
 delete_site_option('seoprostack_noabort_rules');
+// Turn off unused remote access: the log and backup files block, which
+// deactivation removes unless a file could not be written then.
+$seoprostack_files = (array) get_site_option('seoprostack_hardening_files', array());
+foreach (isset($seoprostack_files['targets']) && is_array($seoprostack_files['targets']) ? $seoprostack_files['targets'] : array() as $seoprostack_htaccess) {
+    if (!is_string($seoprostack_htaccess) || '.htaccess' !== basename($seoprostack_htaccess) || !is_file($seoprostack_htaccess) || !wp_is_writable($seoprostack_htaccess)) {
+        continue;
+    }
+    $seoprostack_contents = (string) file_get_contents($seoprostack_htaccess); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents -- local file.
+    $seoprostack_cleaned  = preg_replace('/# BEGIN SEO Pro Stack log and backup files\r?\n.*?# END SEO Pro Stack log and backup files[^\n]*(\n|$)\s*/s', '', $seoprostack_contents);
+    if (null !== $seoprostack_cleaned && $seoprostack_cleaned !== $seoprostack_contents) {
+        if ('' === trim($seoprostack_cleaned)) {
+            wp_delete_file($seoprostack_htaccess);
+        } else {
+            file_put_contents($seoprostack_htaccess, $seoprostack_cleaned, LOCK_EX); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_file_put_contents -- as insert_with_markers().
+        }
+    }
+}
+delete_site_option('seoprostack_hardening_files');
 
 // The must-use file of "Load plugins only where needed", if it is ours.
 $seoprostack_loader = WPMU_PLUGIN_DIR . '/seoprostack-plugin-loading.php';

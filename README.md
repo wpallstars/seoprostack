@@ -96,14 +96,19 @@ WordPress 7.0 fades from one wp-admin screen to the next, using the browser’s 
 
 ### Turn off unused remote access (Admin)
 
-Off by default, with two independent choices, both unchecked:
+Off by default, with three independent choices, all unchecked:
 
 - **Turn off XML-RPC**: direct requests to `xmlrpc.php` return HTTP 403, including unauthenticated methods such as pingbacks. Removes the `X-Pingback` response header and RSD discovery link. Jetpack and some mobile apps need XML-RPC; leave this unchecked if you use them.
 - **Turn off application passwords**: core stops accepting application passwords and hides their profile section and the Authorize application screen. Existing application passwords are not deleted; they work again when this choice is unchecked, if core allows them. Normal password login and the REST API stay available.
+- **Block web access to log and backup files**: requests for `.log`, `.sql`, `.sql.gz` and `.bak` files, `error_log`, `php_errorlog` and copies of `wp-config.php` (such as `wp-config-old.php`; not the real one) return HTTP 403, in every folder. Plugins write debug logs to the uploads folder under random names (AI Engine's `mwai_*.log` holds chatbot conversations), and PHP's `error_log` holds server paths and SQL; random names do not hide them, because `.log` URLs are guessed and crawled. A marked block (`# BEGIN SEO Pro Stack log and backup files`) goes at the top of the site's `.htaccess`, and of the `.htaccess` in wp-content or the uploads folder only when that folder is outside the site's folder (rules cover the folders below them). On Nginx, which does not read `.htaccess` files, the options show a `location` rule to copy; other servers get a note to ask the host. When a file cannot be written, the options show the block to add by hand. The block follows the switch, not the plugins the feature waits for, because they do not block these files. On multisite the main site's choice covers the network, which shares the files. Files are never deleted or moved: they belong to their plugins.
 
-Imports enabled switches from active Hostinger Tools (`hostinger_tools`) and Disable Bloat once, without overwriting choices already saved here or changing their options. The feature waits until those plugins are deactivated. Only these two functions are replaced here, and Hostinger’s maintenance mode by [Maintenance mode](#maintenance-mode-maintenance): the Plugins screen names Hostinger’s HTTPS and www redirects, llms.txt generation and MCP connection when they are on, instead of suggesting removal. Keep Hostinger Tools if you still use those or its hosting tools. No separate options or files are stored; uninstall removes these settings with the rest.
+Imports enabled switches from active Hostinger Tools (`hostinger_tools`) and Disable Bloat once, without overwriting choices already saved here or changing their options. The feature waits until those plugins are deactivated. Only these two functions are replaced here, and Hostinger’s maintenance mode by [Maintenance mode](#maintenance-mode-maintenance): the Plugins screen names Hostinger’s HTTPS and www redirects, llms.txt generation and MCP connection when they are on, instead of suggesting removal. Keep Hostinger Tools if you still use those or its hosting tools.
 
-Uses core’s `xmlrpc_enabled`, `wp_headers` and `wp_is_application_passwords_available` filters, removes `rsd_link` from `wp_head`, and refuses XML-RPC during `init`.
+**Log and backup files in Site Health** (always on, advice only, even with the feature off): once a day, the files with those names and something in them in the top level of the site's folder, the WordPress folder, wp-content (`debug.log` included) and the uploads folder are each asked for with one `HEAD` request, largest first, at most 10 a day. Files that answer HTTP 200 are named, with their size, as a recommended improvement under Security in Tools → Site Health, with a link to the choice above; their contents are never read. Copies of `wp-config.php` are blocked but not asked for, because asking for a PHP file runs it. When every request fails, the test says the files could not be checked rather than that none were found. `WP_DEBUG_LOG` handling is left as it is.
+
+The block's place and state are kept in the `seoprostack_hardening_files` site option, and the last check in the `seoprostack_exposed_files` transient. Deactivation removes the block (on multisite, network-wide deactivation or the main site's), and uninstall removes it if a file could not be written then, with the option and transient.
+
+Uses core’s `xmlrpc_enabled`, `wp_headers` and `wp_is_application_passwords_available` filters, removes `rsd_link` from `wp_head`, refuses XML-RPC during `init`, and adds the test through `site_status_tests`.
 
 ### Magic login links (Admin)
 
@@ -1245,6 +1250,7 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folder�
 ### Unreleased
 
 - New: **Hosting needs** finds the CDN in front of the site (Cloudflare, QUIC.cloud, Bunny CDN, CDN77, Fastly, Sucuri, or one set up in LiteSpeed Cache, CDN Enabler or Jetpack) and suggests one when there is none: QUIC.cloud through LiteSpeed Cache on a LiteSpeed server, Cloudflare's free plan elsewhere. Site Health Info gains a CDN line. When the site cannot reach its own home page, the CDN is shown as unknown and nothing is suggested (GitHub issue #345).
+- New: **Turn off unused remote access** can block web access to log and backup files (`.log`, `.sql`, `.sql.gz`, `.bak`, `error_log`, `php_errorlog`, copies of `wp-config.php`) through a marked block at the top of `.htaccess`, with a rule to copy on Nginx. A Site Health test, always on, names such files in the site's main folders that anyone can download, checked once a day (GitHub issue #277).
 
 ### 0.12.6
 

@@ -31,7 +31,7 @@ Off by default except Hide admin bar items (Comments and + New), No fade between
 
 * **Magic login links**: one-time links by email that link scanners cannot use up.
 * **Admin bar and dashboard access**: keep subscribers and customers out of wp-admin; never administrators.
-* **Turn off unused remote access**: XML-RPC and application passwords.
+* **Turn off unused remote access**: XML-RPC and application passwords, and web access to log and backup files. Site Health names any such file anyone can download.
 * **Maintenance mode**: a 503 page search engines understand, with 24-hour bypass links you can revoke.
 
 = Writing and publishing =
@@ -131,6 +131,7 @@ Use **Report a problem** in Settings → SEO Pro Stack or [GitHub](https://githu
 
 = Unreleased =
 * New: Hosting needs finds the site's CDN and suggests one when there is none.
+* New: block web access to log and backup files, and Site Health names any anyone can download.
 
 = 0.12.6 =
 * Fix: pinned items on archives take places on the pages, so none shows twice.
