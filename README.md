@@ -1247,6 +1247,7 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folderâ
 - New: a FluentSMTP preset keeps email logs for 2 years instead of 14 days, so you can still check whether an email went out a year or two later. Connections and credentials are not touched. It shows once FluentSMTP has a saved connection, because FluentSMTP expects all its settings once it stores any (new `option:{name}` preset condition).
 - Change: the Burst Statistics preset keeps 24 months of statistics, then Burst's own daily job deletes older ones (Burst keeps them forever by default). The dialog warns that deleted statistics cannot be restored; Undo puts back the settings only.
 - Change: the Rank Math SEO preset keeps 24 months of Analytics data (Analytics Database 365 days, which Rank Math doubles to compare periods), or as many days as the site's Rank Math plan allows, and the dialog says when that is fewer. Presets gain `limits` for numbers a plugin caps on each site.
+- Fix: in Admin Columns Pro layouts that give the pin column (Pinned posts for any post type) no width, the column was 0 px wide and its pin buttons sat on top of the titles: Admin Columns Pro sets every layout column's width from its own CSS variables with `!important`. The pin column now gives that variable a default of 32 px; a width set in the layout still applies (GitHub issue #359).
 
 ### 0.12.4
 
