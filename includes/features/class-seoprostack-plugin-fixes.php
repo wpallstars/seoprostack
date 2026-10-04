@@ -76,6 +76,21 @@
  * at once with the "request failed" error it already handles, for 12 hours
  * (a site transient, so for every site of a network).
  *
+ * Action Scheduler (in WooCommerce, Rank Math, FluentCRM and others) runs
+ * queued actions in a request it starts itself and does not wait for, and
+ * WordPress starts cron (wp-cron.php) the same way. A LiteSpeed server stops
+ * PHP as soon as the caller hangs up, unless the request has sent output
+ * already, so ignore_user_abort() does not help: the run stops partway,
+ * Action Scheduler marks its actions failed after 300 seconds, and a query
+ * stopped in the middle leaves "Commands out of sync" database errors for
+ * every query at shutdown. LiteSpeed's noabort variable keeps those two
+ * requests running; LiteSpeed Cache sets it for its own background request
+ * the same way. On LiteSpeed servers the rules go in a block at the top of
+ * the site's .htaccess (before WordPress's rules, which end rule processing
+ * for existing files on a network), on a network following the main site's
+ * switch, and the block is removed when this is switched off or SEO Pro
+ * Stack is deactivated. This is the one fix that writes a file.
+ *
  * @package SEOProStack
  */
 
@@ -121,6 +136,12 @@ class SEOProStack_Plugin_Fixes extends SEOProStack_Feature {
     /** After Comment Goblin's update server fails, answer from here (a site transient) until it runs out. */
     const CG_FAILED = 'seoprostack_comment_goblin_failed';
 
+    /** .htaccess marker of the noabort rules. */
+    const NOABORT_MARKER = 'SEO Pro Stack background requests';
+
+    /** What the noabort block holds now (a hash, '' for none), as a site option. */
+    const NOABORT_SYNCED = 'seoprostack_noabort_rules';
+
     /**
      * Settings.
      *
@@ -134,7 +155,7 @@ class SEOProStack_Plugin_Fixes extends SEOProStack_Feature {
                 'default'     => true,
                 'tab'         => 'plugins',
                 'label'       => __('Fixes for other plugins', 'seoprostack'),
-                'description' => __('Works around bugs in other plugins that slow your site down, without changing their settings. Lasso Lite (Simple URLs) stops contacting its server on every admin screen. Deactivating Freesoul Deactivate Plugins or its PRO add-on deactivates both and removes the must-use file it leaves behind. Readabler no longer contacts its server on every Plugins screen load, or stops that screen with a critical error when it cannot. Tutor LMS Pro stops adding warnings to the debug log when there is no update. Tutor LMS gets its order, cart and coupon tables on every site of a network. Tutor LMS Pro no longer makes the Plugins screen check every plugin for updates on each load. Comment Goblin no longer waits for its update server on every admin screen while that server fails. Turn this off if a fix causes a problem.', 'seoprostack'),
+                'description' => __('Works around bugs in other plugins that slow your site down, without changing their settings. Lasso Lite (Simple URLs) stops contacting its server on every admin screen. Deactivating Freesoul Deactivate Plugins or its PRO add-on deactivates both and removes the must-use file it leaves behind. Readabler no longer contacts its server on every Plugins screen load, or stops that screen with a critical error when it cannot. Tutor LMS Pro stops adding warnings to the debug log when there is no update. Tutor LMS gets its order, cart and coupon tables on every site of a network. Tutor LMS Pro no longer makes the Plugins screen check every plugin for updates on each load. Comment Goblin no longer waits for its update server on every admin screen while that server fails. On LiteSpeed servers, scheduled tasks (WordPress cron and Action Scheduler, used by WooCommerce and others) finish instead of stopping partway, through a few lines at the top of .htaccess. Turn this off if a fix causes a problem.', 'seoprostack'),
             ),
         );
     }
@@ -145,6 +166,10 @@ class SEOProStack_Plugin_Fixes extends SEOProStack_Feature {
      * active.
      */
     public static function boot() {
+        if (is_admin()) {
+            // Also when switched off, to remove the block.
+            add_action('admin_init', array(__CLASS__, 'noabort_maybe_sync'));
+        }
         if (!self::enabled()) {
             return;
         }
@@ -526,6 +551,106 @@ class SEOProStack_Plugin_Fixes extends SEOProStack_Feature {
     private static function load_plugin_state() {
         if (!class_exists('SEOProStack_Replaced_Plugins')) {
             require_once SEOPROSTACK_DIR . 'admin/includes/class-replaced-plugins.php';
+        }
+    }
+
+    /**
+     * Rules that keep LiteSpeed running WordPress cron and Action
+     * Scheduler's async request after their caller hangs up. The path
+     * pattern also matches a network's subfolder sites.
+     *
+     * @return string[]
+     */
+    public static function noabort_rules() {
+        return array(
+            '<IfModule LiteSpeed>',
+            'RewriteEngine On',
+            'RewriteRule (^|/)wp-cron\.php$ - [E=noabort:1]',
+            'RewriteCond %{QUERY_STRING} (^|&)action=as_async_request_queue_runner(&|$)',
+            'RewriteRule (^|/)wp-admin/admin-ajax\.php$ - [E=noabort:1]',
+            '</IfModule>',
+        );
+    }
+
+    /**
+     * Keep the noabort block in step with the switch and the server, from
+     * the main site's admin screens (a network shares one .htaccess). Reads
+     * one site option when nothing changed.
+     */
+    public static function noabort_maybe_sync() {
+        if (is_multisite() && !is_main_site()) {
+            return;
+        }
+        $rules = (self::enabled() && SEOProStack_Litespeed::is_server()) ? self::noabort_rules() : array();
+        $want  = $rules ? md5(implode("\n", $rules)) : '';
+        if ((string) get_site_option(self::NOABORT_SYNCED, '') === $want) {
+            return;
+        }
+        // Retry on a later admin screen while the file cannot be written.
+        if (self::noabort_write($rules)) {
+            if ('' === $want) {
+                delete_site_option(self::NOABORT_SYNCED);
+            } else {
+                update_site_option(self::NOABORT_SYNCED, $want);
+            }
+        }
+    }
+
+    /**
+     * The site's root .htaccess (the network's on multisite).
+     *
+     * @return string
+     */
+    private static function noabort_file() {
+        if (!function_exists('get_home_path')) {
+            require_once ABSPATH . 'wp-admin/includes/file.php';
+        }
+        return get_home_path() . '.htaccess';
+    }
+
+    /**
+     * Write the block at the top of .htaccess, or remove it.
+     *
+     * @param string[] $rules Rules; empty removes the block.
+     * @return bool Whether the file is as asked now.
+     */
+    private static function noabort_write(array $rules) {
+        $file   = self::noabort_file();
+        $exists = is_file($file);
+        if (!$rules && !$exists) {
+            return true;
+        }
+        $contents = $exists ? (string) file_get_contents($file) : ''; // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents -- local file.
+        $begin    = '# BEGIN ' . self::NOABORT_MARKER;
+        $end      = '# END ' . self::NOABORT_MARKER;
+        $quoted   = preg_quote(self::NOABORT_MARKER, '/');
+        $cleaned  = preg_replace('/# BEGIN ' . $quoted . '\r?\n.*?# END ' . $quoted . '[^\n]*(\n|$)\s*/s', '', $contents);
+        if (null === $cleaned) {
+            return false;
+        }
+        $block = $rules ? $begin . "\n" . implode("\n", $rules) . "\n" . $end . "\n\n" : '';
+        $new   = $block . ltrim($cleaned, "\r\n");
+        if ($new === $contents) {
+            return true;
+        }
+        if (!($exists ? wp_is_writable($file) : wp_is_writable(dirname($file)))) {
+            return false;
+        }
+        // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_file_put_contents -- as insert_with_markers(), which can only append a new block.
+        return false !== file_put_contents($file, $new, LOCK_EX);
+    }
+
+    /**
+     * Plugin deactivated: remove the noabort block, unless only a network's
+     * subsite deactivated it (the network shares the file).
+     *
+     * @param bool $network_wide Deactivated for the whole network.
+     */
+    public static function deactivate($network_wide = false) {
+        if (!is_multisite() || $network_wide || is_main_site()) {
+            if (self::noabort_write(array())) {
+                delete_site_option(self::NOABORT_SYNCED);
+            }
         }
     }
 
