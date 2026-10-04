@@ -3,6 +3,7 @@
 Every change to SEO Pro Stack. readme.txt lists the latest version in short.
 
 = Unreleased =
+* Fix: Load plugins only where needed skipped nothing on the pages of most sites built with Kadence Blocks. Block settings such as ["","",""] were read as unknown shortcodes, block widgets were read with their slashes escaped, and inner blocks only the editor registers (accordion panes, countdown timers) counted as unknown, so pages and synced patterns using them loaded every plugin and their page kinds were learned as needing every plugin. On one site the content of 266 of 300 posts is now recognised, up from 208, and its synced patterns and widgets need 5 plugins instead of all 52. Unknown blocks and shortcodes still load every plugin.
 * New: Plugin sizes shows the OPcache memory each plugin's compiled PHP takes now, under its size and in the totals rows. Read once each time the Plugins screen opens, never stored; left out when OPcache is off or its status is kept from sites.
 * Change: in the Licence checks dialog, Once a day is the highlighted button instead of Allow once now, as it is the choice most sites want: pages do not wait and the owner is not asked again.
 * Change: the settings screen's header buttons are Source code (the GitHub repository) and Support (GitHub issues, was Report a problem), with Buy me a coffee, on one row.
