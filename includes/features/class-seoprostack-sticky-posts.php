@@ -165,7 +165,9 @@ class SEOProStack_Sticky_Posts extends SEOProStack_Feature {
     }
 
     /**
-     * Top-level true/false fields of the pinnable types, by type.
+     * Top-level true/false fields of the post types that can be chosen as
+     * pinnable (all of them, so a type ticked in the same save keeps its
+     * field), by type.
      *
      * @return array<string,array<string,array{key:string,label:string}>> Type => field name => key and label.
      */
@@ -178,7 +180,7 @@ class SEOProStack_Sticky_Posts extends SEOProStack_Feature {
         if (!function_exists('acf_get_field_groups') || !function_exists('acf_get_fields')) {
             return $found;
         }
-        foreach ((array) SEOProStack_Settings::get('sticky_posts_types') as $type) {
+        foreach (array_keys(SEOProStack_Duplicate_Posts::post_type_options()) as $type) {
             foreach ((array) acf_get_field_groups(array('post_type' => $type)) as $group) {
                 foreach ((array) acf_get_fields($group) as $field) {
                     if (isset($field['type'], $field['name'], $field['key']) && 'true_false' === $field['type'] && '' !== $field['name']) {
