@@ -83,6 +83,9 @@ class SEOProStack_Hosting_Needs extends SEOProStack_Feature {
     /** AJAX action for the row on the Plugins screen. */
     const AJAX = 'seoprostack_hosting_needs';
 
+    /** admin-post action and nonce: point LiteSpeed Cache's object cache at the server found. */
+    const FIX = 'seoprostack_object_cache_fix';
+
     /** Site Health test ID; core posts it to health-check-{ID}. */
     const TEST = 'seoprostack-opcache';
 
@@ -146,6 +149,7 @@ class SEOProStack_Hosting_Needs extends SEOProStack_Feature {
         }
         add_action('wp_ajax_health-check-' . self::TEST, array(__CLASS__, 'ajax_test'));
         add_action('wp_ajax_' . self::AJAX, array(__CLASS__, 'ajax_row'));
+        add_action('admin_post_' . self::FIX, array(__CLASS__, 'fix_object_cache'));
         add_action('load-plugins.php', array(__CLASS__, 'load_screen'));
     }
 
@@ -610,13 +614,20 @@ class SEOProStack_Hosting_Needs extends SEOProStack_Feature {
      * Check only from admin, cron or WP-CLI, at most daily. Keep the previous
      * probe in the database: an object-cache transient cannot detect fallback.
      *
-     * @return array Daily cache state, kind, name and available backend.
+     * @return array Daily cache state, kind, name, available backend, and for
+     *               an unreachable cache the cause (extension, dropin or
+     *               server for LiteSpeed Cache's; probe when a test value
+     *               was lost) and a local server LiteSpeed Cache could use
+     *               (fix: kind, host, port), if any.
      */
     private static function object_cache_facts() {
         $previous = get_option(self::OBJECT_CACHE, array());
         $previous = is_array($previous) ? $previous : array();
-        $empty    = array('state' => 'unknown', 'kind' => '', 'name' => '', 'available' => '', 'extension' => false);
-        if ((!is_admin() && !wp_doing_cron() && !(defined('WP_CLI') && WP_CLI)) || (isset($previous['checked']) && time() - $previous['checked'] < DAY_IN_SECONDS)) {
+        $empty    = array('state' => 'unknown', 'kind' => '', 'name' => '', 'available' => '', 'extension' => false, 'cause' => '', 'fix' => array());
+        $fresh    = isset($previous['checked']) && time() - $previous['checked'] < DAY_IN_SECONDS;
+        // A missing PHP extension the host has since turned on is checked again at once.
+        $recheck = $fresh && 'extension' === ($previous['cause'] ?? '') && extension_loaded(self::cache_extension((string) ($previous['kind'] ?? '')));
+        if ((!is_admin() && !wp_doing_cron() && !(defined('WP_CLI') && WP_CLI)) || ($fresh && !$recheck)) {
             return $previous + $empty;
         }
         // An atomic, short-lived lock prevents concurrent Site Health checks.
@@ -634,16 +645,17 @@ class SEOProStack_Hosting_Needs extends SEOProStack_Feature {
             wp_cache_delete('notoptions', 'options');
             $previous = get_option(self::OBJECT_CACHE, array());
             $previous = is_array($previous) ? $previous : array();
-            if (isset($previous['checked']) && time() - $previous['checked'] < DAY_IN_SECONDS) {
+            $recheck  = 'extension' === ($previous['cause'] ?? '') && extension_loaded(self::cache_extension((string) ($previous['kind'] ?? '')));
+            if (!$recheck && isset($previous['checked']) && time() - $previous['checked'] < DAY_IN_SECONDS) {
                 return $previous + $empty;
             }
             $facts = $empty + array('checked' => time());
             $using = wp_using_ext_object_cache();
-            $ls    = in_array('litespeed-cache', self::active_slugs(), true);
-            $on    = $ls && (bool) get_option('litespeed.conf.object', false);
-            $kind  = (int) get_option('litespeed.conf.object-kind', 0) ? 'Redis' : 'Memcached';
-            $host  = (string) get_option('litespeed.conf.object-host', 'localhost');
-            $port  = (int) get_option('litespeed.conf.object-port', 'Redis' === $kind ? 6379 : 11211);
+            $ls    = in_array('litespeed-cache', self::active_slugs(), true) || SEOProStack_Litespeed::network_active();
+            $on    = $ls && (bool) SEOProStack_Litespeed::conf('object', false);
+            $kind  = (int) SEOProStack_Litespeed::conf('object-kind', 0) ? 'Redis' : 'Memcached';
+            $host  = (string) SEOProStack_Litespeed::conf('object-host', 'localhost');
+            $port  = (int) SEOProStack_Litespeed::conf('object-port', self::cache_port($kind));
             $file  = WP_CONTENT_DIR . '/object-cache.php';
             $name  = '';
             if (is_readable($file)) {
@@ -653,8 +665,20 @@ class SEOProStack_Hosting_Needs extends SEOProStack_Feature {
             $facts['name']  = $on ? 'LiteSpeed Cache' : $name;
             $facts['kind']  = $on ? $kind : (false !== stripos($name, 'redis') ? 'Redis' : (false !== stripos($name, 'memcached') ? 'Memcached' : ''));
             $facts['state'] = $using ? 'working' : 'off';
-            if ($on && (!$using || !self::cache_server($host, $port, $kind))) {
+            $answers        = $on && extension_loaded(self::cache_extension($kind)) && self::cache_server($host, $port, $kind);
+            if ($on && (!$using || !$answers)) {
                 $facts['state'] = 'unreachable';
+                if (!extension_loaded(self::cache_extension($kind))) {
+                    $facts['cause'] = 'extension';
+                } elseif ($answers) {
+                    // The server answers, so LiteSpeed Cache's drop-in is missing or not loaded.
+                    $facts['cause'] = 'dropin';
+                } else {
+                    $facts['cause'] = 'server';
+                }
+                if ('dropin' !== $facts['cause']) {
+                    $facts['fix'] = self::find_cache_server($kind, $host, $port, true);
+                }
             }
             if ($using && is_readable($file)) {
                 // A changed drop-in starts a new test, without accusing it on day one.
@@ -672,33 +696,15 @@ class SEOProStack_Hosting_Needs extends SEOProStack_Feature {
                 if (!wp_cache_set('hosting_probe', $facts['probe'], 'seoprostack', 0)) {
                     $facts['state'] = 'unreachable';
                 }
+                if ('unreachable' === $facts['state'] && '' === $facts['cause']) {
+                    $facts['cause'] = 'probe';
+                }
             }
             if (!$using) {
-                foreach (array('Memcached' => 'memcached', 'Redis' => 'redis') as $backend => $extension) {
-                    if (!extension_loaded($extension)) {
-                        continue;
-                    }
-                    $addresses = array('127.0.0.1', '::1', 'localhost');
-                    // Hosts sometimes provide a Unix socket instead of a TCP listener.
-                    $socket = (string) ini_get('Redis' === $backend ? 'redis.sock' : 'memcached.sess_save_path');
-                    if ('Redis' === $backend && defined('WP_REDIS_PATH')) {
-                        $socket = (string) WP_REDIS_PATH;
-                    }
-                    if (0 === strpos($socket, '/')) {
-                        $addresses[] = $socket;
-                    }
-                    if ($ls && $kind === $backend && 0 === strpos($host, '/')) {
-                        $addresses[] = $host;
-                    }
-                    foreach (array_unique($addresses) as $address) {
-                        if (self::cache_server($address, 'Redis' === $backend ? 6379 : 11211, $backend)) {
-                            $facts['available'] = $backend;
-                            break 2;
-                        }
-                    }
-                }
-                $hostinger = defined('HOSTINGER') || (bool) array_intersect(array('hostinger', 'hostinger-ai-assistant', 'hostinger-easy-onboarding'), self::active_slugs());
-                $facts['extension'] = $hostinger && !extension_loaded('memcached');
+                // When LiteSpeed Cache's cache is on, its fix is the server found.
+                $server             = $on ? $facts['fix'] : self::find_cache_server($kind, $ls ? $host : '', 0, false);
+                $facts['available'] = $server ? $server['kind'] : '';
+                $facts['extension'] = self::hostinger() && !extension_loaded('memcached');
             }
             update_option(self::OBJECT_CACHE, $facts, false);
             return $facts;
@@ -714,9 +720,10 @@ class SEOProStack_Hosting_Needs extends SEOProStack_Feature {
      * @param string $host Host or absolute Unix socket path.
      * @param int    $port TCP port.
      * @param string $kind Redis or Memcached.
+     * @param bool   $auth Whether a Redis server asking for a password counts.
      * @return bool Whether that cache server answered.
      */
-    private static function cache_server($host, $port, $kind) {
+    private static function cache_server($host, $port, $kind, $auth = true) {
         if ('' === $host || preg_match('/[\s\x00]/', $host) || false !== strpos($host, '://') || ($port < 1 || $port > 65535) && 0 !== strpos($host, '/')) {
             return false;
         }
@@ -735,11 +742,97 @@ class SEOProStack_Hosting_Needs extends SEOProStack_Feature {
             }
             // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged -- A timed-out or closed socket is a failed check.
             $reply = @fgets($stream, 256);
-            return is_string($reply) && ('Redis' === $kind ? 0 === strpos($reply, '+PONG') || 0 === strpos($reply, '-NOAUTH') : 0 === strpos($reply, 'VERSION '));
+            return is_string($reply) && ('Redis' === $kind ? 0 === strpos($reply, '+PONG') || ($auth && 0 === strpos($reply, '-NOAUTH')) : 0 === strpos($reply, 'VERSION '));
         } finally {
             // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fclose -- Closing a diagnostic socket, not a file.
             fclose($stream);
         }
+    }
+
+    /**
+     * PHP extension LiteSpeed Cache's drop-in needs for a cache.
+     *
+     * @param string $kind Redis or Memcached.
+     * @return string
+     */
+    private static function cache_extension($kind) {
+        return 'Redis' === $kind ? 'redis' : 'memcached';
+    }
+
+    /**
+     * Default port of a cache.
+     *
+     * @param string $kind Redis or Memcached.
+     * @return int
+     */
+    private static function cache_port($kind) {
+        return 'Redis' === $kind ? 6379 : 11211;
+    }
+
+    /**
+     * Whether the site is on Hostinger, from its constant or its plugins.
+     *
+     * @return bool
+     */
+    private static function hostinger() {
+        return defined('HOSTINGER') || (bool) array_intersect(array('hostinger', 'hostinger-ai-assistant', 'hostinger-easy-onboarding'), self::active_slugs());
+    }
+
+    /**
+     * Local addresses to look for a cache at: loopback over IPv4 and IPv6
+     * (Hostinger's Memcached listens only on ::1), and Unix sockets.
+     *
+     * @param string $kind Redis or Memcached.
+     * @param string $host Configured host; used when it is a socket.
+     * @return string[]
+     */
+    private static function cache_addresses($kind, $host) {
+        $addresses = array('127.0.0.1', '::1', 'localhost');
+        // Hosts sometimes provide a Unix socket instead of a TCP listener.
+        $socket = (string) ini_get('Redis' === $kind ? 'redis.sock' : 'memcached.sess_save_path');
+        if ('Redis' === $kind && defined('WP_REDIS_PATH')) {
+            $socket = (string) WP_REDIS_PATH;
+        }
+        if (0 === strpos($socket, '/')) {
+            $addresses[] = $socket;
+        }
+        if (0 === strpos($host, '/')) {
+            $addresses[] = $host;
+        }
+        return array_values(array_unique($addresses));
+    }
+
+    /**
+     * A local cache server LiteSpeed Cache could use: the configured kind
+     * first, then the other, each only where PHP loads its extension.
+     *
+     * @param string $kind   Configured kind: Redis or Memcached.
+     * @param string $host   Configured host.
+     * @param int    $port   Configured port (0: the default ports only).
+     * @param bool   $failed Whether the configured address already failed, so is skipped
+     *                       and Redis servers that ask for a password are not offered.
+     * @return array Kind, host and port, or empty when none answers.
+     */
+    private static function find_cache_server($kind, $host, $port, $failed) {
+        foreach ('Redis' === $kind ? array('Redis', 'Memcached') : array('Memcached', 'Redis') as $backend) {
+            if (!extension_loaded(self::cache_extension($backend))) {
+                continue;
+            }
+            $mine  = $backend === $kind;
+            $ports = array_values(array_unique(array_filter(array($mine ? (int) $port : 0, self::cache_port($backend)))));
+            foreach (self::cache_addresses($backend, $mine ? $host : '') as $address) {
+                $socket = 0 === strpos($address, '/');
+                foreach ($socket ? array(0) : $ports as $try) {
+                    if ($failed && $mine && $address === $host && ($socket || $try === (int) $port)) {
+                        continue;
+                    }
+                    if (self::cache_server($address, $try, $backend, !$failed)) {
+                        return array('kind' => $backend, 'host' => $address, 'port' => $try);
+                    }
+                }
+            }
+        }
+        return array();
     }
 
     /**
@@ -1106,11 +1199,62 @@ class SEOProStack_Hosting_Needs extends SEOProStack_Feature {
     }
 
     /**
+     * Advice for an object cache that is on but not working, by cause, with
+     * a link to point LiteSpeed Cache at a local server that answers.
+     *
+     * @param array $cache From object_cache_facts().
+     * @return array Status, text and, when there is one, action (url, label).
+     */
+    private static function unreachable_advice(array $cache) {
+        $fix    = !empty($cache['fix']['host']) ? $cache['fix'] : array();
+        $action = array();
+        if ($fix && SEOProStack_Litespeed::can_save_object_cache()) {
+            $address = 0 === strpos($fix['host'], '/') ? $fix['host'] : (false !== strpos($fix['host'], ':') ? '[' . $fix['host'] . ']' : $fix['host']) . ':' . $fix['port'];
+            $action  = array(
+                'url'   => wp_nonce_url(admin_url('admin-post.php?action=' . self::FIX), self::FIX),
+                /* translators: 1: Redis or Memcached, 2: address such as [::1]:11211. */
+                'label' => sprintf(__('Use %1$s at %2$s', 'seoprostack'), $fix['kind'], $address),
+            );
+        }
+        $found = $fix
+            /* translators: %s: Redis or Memcached. */
+            ? ' ' . sprintf(__('%s answers on this server at another address, so LiteSpeed Cache can use that instead.', 'seoprostack'), $fix['kind'])
+            : '';
+        if ('LiteSpeed Cache' !== $cache['name'] || 'probe' === $cache['cause']) {
+            return array('recommended', sprintf(
+                /* translators: %s: object cache drop-in name. */
+                __('The object cache (%s) did not keep a test value between daily checks, so it may be falling back to the database. Check its connection settings or ask your host to check its server. Clearing or evicting the cache can also cause this warning.', 'seoprostack'),
+                '' !== $cache['name'] ? $cache['name'] : 'object-cache.php'
+            ), $action);
+        }
+        if ('extension' === $cache['cause']) {
+            $text = sprintf(
+                /* translators: 1: Redis or Memcached, 2: PHP version such as 8.5, 3: PHP extension name. */
+                __('The object cache is turned on in LiteSpeed Cache for %1$s, but PHP %2$s on this site does not load the %3$s extension, so every request goes to the database. Turn on %3$s in your host’s PHP extension settings for PHP %2$s, or ask your host to.', 'seoprostack'),
+                $cache['kind'],
+                PHP_MAJOR_VERSION . '.' . PHP_MINOR_VERSION,
+                self::cache_extension($cache['kind'])
+            );
+            if (self::hostinger()) {
+                $text .= ' ' . __('Hostinger’s Object Cache switch in hPanel turns it on only for some PHP versions, so it can be missing after a PHP update.', 'seoprostack');
+            }
+            return array('recommended', $text . $found, $action);
+        }
+        if ('dropin' === $cache['cause']) {
+            return array('recommended', __('The object cache is turned on in LiteSpeed Cache and its server answers, but WordPress is not using it: LiteSpeed Cache’s object-cache.php is missing or another one is in its place. Save LiteSpeed Cache → Cache → Object again to put it back.', 'seoprostack'));
+        }
+        return array('recommended', ($fix
+            ? __('The object cache is turned on in LiteSpeed Cache but its server does not answer at the host and port set in LiteSpeed Cache → Cache → Object, so every request goes to the database.', 'seoprostack')
+            : __('The object cache is turned on in LiteSpeed Cache but cannot reach its server, so every request goes to the database. Check the host and port in LiteSpeed Cache → Cache → Object, or ask your host which one they provide.', 'seoprostack')) . $found, $action);
+    }
+
+    /**
      * Advice beyond OPcache and memory: page cache, object cache,
      * autoloaded options, PHP version and traffic now.
      *
      * @param array $needs From assess(), without advice.
-     * @return array[] Each status (recommended or info) and text.
+     * @return array[] Each status (recommended or info), text and an
+     *                 optional action (url, label).
      */
     private static function advice(array $needs) {
         $advice  = array();
@@ -1148,13 +1292,7 @@ class SEOProStack_Hosting_Needs extends SEOProStack_Feature {
         }
         $cache  = $needs['facts']['object_cache'];
         if ('unreachable' === $cache['state']) {
-            $advice[] = array('recommended', 'LiteSpeed Cache' === $cache['name']
-                ? __('The object cache is turned on in LiteSpeed Cache but cannot reach its server, so every request goes to the database. Check the host and port in LiteSpeed Cache → Cache → Object, or ask your host which one they provide.', 'seoprostack')
-                : sprintf(
-                    /* translators: %s: object cache drop-in name. */
-                    __('The object cache (%s) did not keep a test value between daily checks, so it may be falling back to the database. Check its connection settings or ask your host to check its server. Clearing or evicting the cache can also cause this warning.', 'seoprostack'),
-                    '' !== $cache['name'] ? $cache['name'] : 'object-cache.php'
-                ));
+            $advice[] = self::unreachable_advice($cache);
         } elseif ('off' === $cache['state'] && '' !== $cache['available']) {
             $advice[] = array('recommended', sprintf(
                 /* translators: %s: Redis or Memcached. */
@@ -1761,6 +1899,44 @@ class SEOProStack_Hosting_Needs extends SEOProStack_Feature {
         }
         add_action('admin_head', array(__CLASS__, 'style'));
         add_action('admin_print_footer_scripts', array(__CLASS__, 'script'));
+        add_action(is_network_admin() ? 'network_admin_notices' : 'admin_notices', array(__CLASS__, 'fix_notice'));
+    }
+
+    /**
+     * Point LiteSpeed Cache's object cache at the local server the daily
+     * check found, after checking again that it answers, and check again.
+     * Saved through LiteSpeed Cache's own code, only when asked.
+     */
+    public static function fix_object_cache() {
+        check_admin_referer(self::FIX);
+        if (!SEOProStack_Litespeed::can_save_object_cache()) {
+            wp_die(esc_html__('You are not allowed to do that.', 'seoprostack'), '', array('response' => 403));
+        }
+        $facts  = get_option(self::OBJECT_CACHE, array());
+        $fix    = is_array($facts) && !empty($facts['fix']['host']) ? $facts['fix'] : array();
+        $result = 'failed';
+        if ($fix && extension_loaded(self::cache_extension($fix['kind'])) && self::cache_server($fix['host'], (int) $fix['port'], $fix['kind'], false)
+            && SEOProStack_Litespeed::save_object_cache($fix['kind'], $fix['host'], (int) $fix['port'])) {
+            $result = 'saved';
+            // Check again on the next look.
+            delete_option(self::OBJECT_CACHE);
+        }
+        $back = wp_get_referer();
+        wp_safe_redirect(add_query_arg(self::FIX, $result, $back ? $back : self_admin_url('plugins.php')));
+        exit;
+    }
+
+    /**
+     * Say what the object cache link did.
+     */
+    public static function fix_notice() {
+        // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Only picks which fixed message to show.
+        $result = isset($_GET[self::FIX]) ? sanitize_key(wp_unslash($_GET[self::FIX])) : '';
+        if ('saved' === $result) {
+            printf('<div class="notice notice-success is-dismissible"><p>%s</p></div>', esc_html__('LiteSpeed Cache’s object cache now uses the server that answered. Hosting needs checks it again below.', 'seoprostack'));
+        } elseif ('failed' === $result) {
+            printf('<div class="notice notice-error is-dismissible"><p>%s</p></div>', esc_html__('LiteSpeed Cache’s object cache settings were not changed: the server did not answer this time, or LiteSpeed Cache is not active.', 'seoprostack'));
+        }
     }
 
     /**
@@ -1778,7 +1954,7 @@ class SEOProStack_Hosting_Needs extends SEOProStack_Feature {
             $items[] = array('info', self::worker_text($needs['worker']), array());
         }
         foreach ($needs['advice'] as $advice) {
-            $items[] = array($advice[0], $advice[1], array());
+            $items[] = array($advice[0], $advice[1], array(), $advice[2] ?? array());
         }
         $icons = array(
             'good'        => 'yes-alt',
@@ -1789,12 +1965,14 @@ class SEOProStack_Hosting_Needs extends SEOProStack_Feature {
         $html = '<ul class="sps-hosting__list">';
         foreach ($items as $item) {
             list($status, $summary, $ask) = $item;
-            $html .= sprintf(
-                '<li class="is-%1$s"><span class="dashicons dashicons-%2$s" aria-hidden="true"></span><span>%3$s%4$s</span></li>',
+            $action = $item[3] ?? array();
+            $html  .= sprintf(
+                '<li class="is-%1$s"><span class="dashicons dashicons-%2$s" aria-hidden="true"></span><span>%3$s%4$s%5$s</span></li>',
                 esc_attr($status),
                 esc_attr($icons[$status]),
                 esc_html($summary),
-                $ask ? ' ' . self::ask_html($ask) : ''
+                $ask ? ' ' . self::ask_html($ask) : '',
+                $action ? sprintf(' <a href="%1$s">%2$s</a>', esc_url($action['url']), esc_html($action['label'])) : ''
             );
         }
         $html .= '</ul>' . self::plans_html($needs);
