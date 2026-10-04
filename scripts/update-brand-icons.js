@@ -73,7 +73,7 @@ function slugify(name) {
 
 async function fetchPackage(name, dir) {
 	// A scoped name has one slash (@scope/name); escape every slash anyway.
-	const res = await fetch('https://registry.npmjs.org/' + name.replace(/\//g, '%2F') + '/latest');
+	const res = await fetch('https://registry.npmjs.org/' + name.replaceAll('/', '%2F') + '/latest');
 	if (!res.ok) {
 		throw new Error(name + ': registry said ' + res.status);
 	}
