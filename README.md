@@ -1242,7 +1242,7 @@ Fluent Query Logger is under **Debug**, with a reminder to deactivate or delete 
 
 FlyingPress and Link Whisper are not recommended. Neither are Fluent Connect (ThriveCart), Fluent Forms Connector for MailPoet or Mautic Integration For Fluent Forms: these connectors are not used in the recommended stack. Legacy WPManageNinja plugins NinjaDB, WP Faq Builder and Testimonials Builder are also left out: their last updates were in 2017, 2018 and 2019 respectively.
 
-Some directory links are the developer's affiliate or referral links, which may earn a commission or account credit and sometimes give you a discount. They do not change what we recommend, and nothing is added to your public site. Kadence, Fluent/WPManageNinja and AutomatorWP product, pricing and add-on links carry the developer's referral ID, including the matching **Go Pro** links in Free Plugins. WordPress.org install/details links and GitHub source links stay direct. Other product, pricing and documentation links stay direct when no matching referral link is available; the Bit Apps store, Fiverr Pro and the Speedy Index Telegram bot have separate referral links.
+In GitHub builds, some directory links are the developer's affiliate or referral links, which may earn a commission or account credit and sometimes give you a discount. They do not change what we recommend, and nothing is added to your public site. The WordPress.org build has plain links instead (`.wporg-links`). Kadence, Fluent/WPManageNinja and AutomatorWP product, pricing and add-on links carry the developer's referral ID, including the matching **Go Pro** links in Free Plugins. WordPress.org install/details links and GitHub source links stay direct. Other product, pricing and documentation links stay direct when no matching referral link is available; the Bit Apps store, Fiverr Pro and the Speedy Index Telegram bot have separate referral links.
 
 ## Requirements
 
@@ -1254,9 +1254,9 @@ Some directory links are the developer's affiliate or referral links, which may 
 There are two builds of each version:
 
 - **GitHub release** (`seoprostack-X.Y.Z.zip` on the repositoryâ€™s Releases page): everything, including Updates from GitHub (the shared updater in `includes/github-updater/` and its setting in `includes/features/class-seoprostack-github-updates.php`), so sites get each release as a normal update.
-- **WordPress.org** (once listed): the same files without those two (listed in `.distignore-wporg`) and without the `GitHub Plugin URI`, `Primary Branch` and `Release Asset` header lines, because plugins hosted there may not install or update code from elsewhere. SEO Pro Stack loads them only when they are present.
+- **WordPress.org** (once listed): the same files without those two (listed in `.distignore-wporg`) and without the `GitHub Plugin URI`, `Primary Branch` and `Release Asset` header lines, because plugins hosted there may not install or update code from elsewhere. SEO Pro Stack loads them only when they are present. It has no affiliate links either: those listed in `.wporg-links` are replaced by plain ones when it is built.
 
-GitHub releases can go out as often as needed, so they work as the early channel; WordPress.org gets the versions that have settled.
+GitHub releases are the stable beta channel: each version comes out there first, as soon as it is ready. WordPress.org gets a version 90 days after its GitHub release, once it has been used on real sites, except security releases, which go to WordPress.org at once.
 
 Releasing on GitHub:
 
@@ -1368,6 +1368,9 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folderâ
 - Change: **Load plugins only where needed** skips plugins for people who are logged in on every site. **Also skip them for people who are logged in** has been on by default since 0.14.0, but only for new installs, so administrators of older sites still got every plugin on the site; updating switches it on there too. Switch it off again to give logged-in people every plugin (GitHub issue #426).
 - Change: the **Plugins menu in the admin bar** shows what is loaded: plugins loaded on the page are bold, active plugins skipped there are grey, and deactivated plugins are grey and struck through. Skipped plugins used to look loaded (GitHub issue #426).
 - Change: AutomatorWP Pro's links in Pro Plugins, and its **Go Pro** link in Free Plugins, carry the developer's referral ID (GitHub issue #431).
+- Change: two release channels (see [Updates and releases](#updates-and-releases)). GitHub releases are the stable beta channel; WordPress.org gets each version 90 days after its GitHub release, except security releases, which go to WordPress.org at once.
+- Change: the WordPress.org build has no affiliate or referral links. `.wporg-links` lists each one with its plain address, and `scripts/build-release.sh` swaps them in that build only; `scripts/preflight-release.sh` errors when one is left and warns about other addresses with referral parameters. GitHub builds keep them, as disclosed under Discover (GitHub issue #77).
+- Change: the Namecheap **Home Page** button on the Hosting tab links straight to Namecheap's promotions page instead of through a redirect.
 
 ### 0.14.0
 

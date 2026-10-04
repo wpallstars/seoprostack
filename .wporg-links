@@ -1,0 +1,35 @@
+# Affiliate and referral links, and their plain replacements in the
+# WordPress.org build (scripts/build-release.sh; STANDARDS.md → Releases).
+# One per line: the text, a tab, the replacement (nothing removes the text).
+# HTML-escaped forms (&amp;, &#038;) are replaced too. Kept out of both zips.
+# Add a line here whenever a referral link is added to the plugin;
+# scripts/preflight-release.sh warns about ones it finds that are not here.
+
+# Fluent and WPManageNinja products (admin/data/pro-plugins.php).
+?ref=4630	
+# AutomatorWP (admin/data/pro-plugins.php).
+?ref=215	
+# Kadence on Liquid Web (admin/data/pro-plugins.php, admin/partials/theme-panel.php).
+?irpid=4858868&utm_medium=affiliate&irgwc=1&afsrc=1	
+# Bit Apps store and Rank Math (admin/data/pro-plugins.php).
+https://bitapps.pro?r=8064	https://bitapps.pro/
+https://rankmath.com/?ref=marcus%20quinn	https://rankmath.com/
+# Hosting (admin/data/hosting-providers.php, admin/data/tools.php).
+https://www.cloudron.io/?refcode=d28ae00540f92a76	https://www.cloudron.io/
+https://hetzner.cloud/?ref=yzKK5uvR2AD0	https://hetzner.cloud/
+https://hostinger.com?REFERRALCODE=1MARCUS454	https://hostinger.com/
+https://www.101domain.com/affiliate/evergreenje.html	https://www.101domain.com/
+# Tools (admin/data/tools.php).
+https://app.advise.so/checkout/community-subscription?via=marcus	https://app.advise.so/checkout/community-subscription
+https://advise.so/?via=marcus	https://advise.so/
+https://seoutils.app?aff=qqnw7	https://seoutils.app/
+https://dataforseo.com/?aff=180706	https://dataforseo.com/
+https://go.fiverr.com/visit/?bta=1046189&brand=fp	https://www.fiverr.com/
+https://t.me/SpeedyIndexBot?start=1085503882	https://t.me/SpeedyIndexBot
+https://codeium.com/refer?referral_code=64jn4h5hnnw2ymv3	https://codeium.com/
+https://lowfruits.io/?via=marcusquinn	https://lowfruits.io/
+https://keysearch.co/?via=marcus	https://keysearch.co/
+https://smartlead.ai/?via=marcus-quinn	https://smartlead.ai/
+https://searchatlas.com/?fpr=marcus62	https://searchatlas.com/
+https://screenstudio.lemonsqueezy.com?aff=qqnw7	https://screenstudio.lemonsqueezy.com/
+https://muraena.ai?deal=marcusquinn	https://muraena.ai/
