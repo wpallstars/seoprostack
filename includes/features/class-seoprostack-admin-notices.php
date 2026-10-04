@@ -250,7 +250,8 @@ class SEOProStack_Admin_Notices extends SEOProStack_Feature {
                 foreach ($callbacks as $id => $callback) {
                     $plugin = SEOProStack_Plugin_Loader::plugin_for_callback($callback['function']);
                     if ('' !== $plugin && isset($watched[$plugin])) {
-                        $wp_filter[$name]->callbacks[$priority][$id]['function'] = self::recorder($callback['function'], $plugin);
+                        $callback['function'] = self::recorder($callback['function'], $plugin);
+                        $wp_filter[$name]->callbacks[$priority][$id] = $callback;
                     }
                 }
             }

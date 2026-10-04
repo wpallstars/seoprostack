@@ -61,3 +61,25 @@ parameters:
 		-
 			identifier: deadCode.unreachable
 			path: includes/features/class-seoprostack-post-reactions.php
+		# WordPress's GD editor holds a GdImage (PHP 8) or a resource (PHP 7);
+		# with phpVersion 7.4 the GD functions' stubs take only a resource.
+		# Found from level 7 only, so not reported when unmatched at level 5.
+		-
+			identifier: argument.type
+			message: '#expects resource, GdImage\|resource given#'
+			path: includes/image-editors/class-seoprostack-watermark-gd.php
+			reportUnmatched: false
+		# The stubs limit set_post_type() to 'post' and 'page'; it takes any
+		# registered type, and can_switch() has checked this one. Level 7 only.
+		-
+			identifier: argument.type
+			message: '#set_post_type expects#'
+			path: includes/features/class-seoprostack-post-type-switch.php
+			reportUnmatched: false
+		# wp_setup_nav_menu_item() adds classes to menu items (WP_Post); the
+		# stubs do not list it. Level 7 only.
+		-
+			identifier: property.notFound
+			message: '#WP_Post::\$classes#'
+			path: includes/features/class-seoprostack-brand-icons.php
+			reportUnmatched: false

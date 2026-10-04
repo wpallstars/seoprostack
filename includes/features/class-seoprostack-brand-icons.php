@@ -401,8 +401,8 @@ class SEOProStack_Brand_Icons extends SEOProStack_Feature {
     /**
      * Menu items titled "#name#" show that icon, as with Simple Icons.
      *
-     * @param array $items Menu items.
-     * @return array
+     * @param array<int, WP_Post|stdClass> $items Menu items.
+     * @return array<int, WP_Post|stdClass>
      */
     public static function menu_items($items) {
         foreach ($items as $item) {

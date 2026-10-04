@@ -1984,7 +1984,8 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
                 if ('' === $plugin || $self === $plugin) {
                     continue;
                 }
-                $wp_filter[$hook]->callbacks[$priority][$id]['function'] = self::table_watcher($callback['function'], $plugin, $type);
+                $callback['function'] = self::table_watcher($callback['function'], $plugin, $type);
+                $wp_filter[$hook]->callbacks[$priority][$id] = $callback;
             }
         }
     }

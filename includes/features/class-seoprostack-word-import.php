@@ -512,7 +512,8 @@ class SEOProStack_Word_Import extends SEOProStack_Feature {
      *
      * @param DOMElement $parent Paragraph, hyperlink or similar.
      * @param string     $href   Link around this content.
-     * @return array<int,string|array{html:string}> HTML strings, and pictures.
+     * @return array<int,string|array<string,mixed>> For a paragraph, HTML strings and pictures
+     *                                              (merge()); otherwise the run() pieces.
      */
     private function inline(DOMElement $parent, $href = '') {
         $runs = array();
