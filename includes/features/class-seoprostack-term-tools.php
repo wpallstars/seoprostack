@@ -51,8 +51,10 @@ class SEOProStack_Term_Tools extends SEOProStack_Feature {
                 'default'     => false,
                 'tab'         => 'content',
                 'label'       => __('Term tools', 'seoprostack'),
-                'description' => __('Merge categories or tags, move them to another taxonomy, set their parent or apply slug patterns. Old addresses redirect to the new ones. Set prefixes and suffixes below the Content settings.', 'seoprostack'),
+                'description' => __('Merge categories or tags, move them to another taxonomy, set their parent or apply slug patterns. Old addresses redirect to the new ones. Set slug prefixes and suffixes in Options.', 'seoprostack'),
                 'replaces'    => array('term-management-tools' => 'Term Management Tools'),
+                // The slug pattern table is this feature's own panel.
+                'panel'       => true,
             ),
             self::PATTERNS => array(
                 'type'    => 'lines',
@@ -80,7 +82,7 @@ class SEOProStack_Term_Tools extends SEOProStack_Feature {
      */
     public static function boot() {
         // Settings remain editable even while the feature is switched off.
-        add_action('seoprostack_settings_tab_after', array(__CLASS__, 'pattern_fields'));
+        add_action('seoprostack_setting_panel', array(__CLASS__, 'pattern_fields'), 10, 2);
         add_action('admin_post_seoprostack_term_patterns', array(__CLASS__, 'save_patterns'));
         if (!self::enabled()) {
             return;
@@ -135,42 +137,44 @@ class SEOProStack_Term_Tools extends SEOProStack_Feature {
     }
 
     /**
-     * One row per public taxonomy, using the existing settings tab hook.
+     * Slug prefix and suffix per public taxonomy, in Term tools' Options.
      *
-     * @param string $tab Settings tab.
+     * @param string $key   Setting key.
+     * @param array  $field Schema entry.
      */
-    public static function pattern_fields($tab) {
-        if ('content' !== $tab || !SEOProStack_Settings::can_change()) {
+    public static function pattern_fields($key, $field = array()) {
+        if (self::KEY !== $key || !SEOProStack_Settings::can_change()) {
             return;
         }
         $patterns = self::patterns();
         ?>
-        <section class="sps-card">
-            <h2><?php esc_html_e('Term slug patterns', 'seoprostack'); ?></h2>
-            <p><?php esc_html_e('When Term tools is on, these prefixes and suffixes apply to every new or edited term. Leave both empty to keep slugs unchanged. For existing terms, select Apply slug pattern in the term list. Old addresses redirect with a 301.', 'seoprostack'); ?></p>
+        <div class="sps-panel-note sps-term-patterns">
+            <p><strong><?php esc_html_e('Slug patterns', 'seoprostack'); ?></strong></p>
+            <p class="description"><?php esc_html_e('Words added to the slug of every new or edited term while Term tools is on: a prefix such as best- or how-to-, a suffix such as -guide or -statistics. With best- and -guide, a new term “Technology” gets the slug best-technology-guide. Leave both empty to keep a taxonomy’s slugs as they are.', 'seoprostack'); ?></p>
+            <p class="description"><?php esc_html_e('Slugs are permanent addresses, so use words that stay true, not dates. To change existing terms, select them in the term list and choose Apply slug pattern; their old addresses redirect with a 301.', 'seoprostack'); ?></p>
             <form method="post" action="<?php echo esc_url(admin_url('admin-post.php')); ?>">
                 <input type="hidden" name="action" value="seoprostack_term_patterns" />
                 <?php wp_nonce_field('seoprostack_term_patterns'); ?>
-                <table class="widefat">
+                <table class="widefat striped">
                     <thead><tr><th scope="col"><?php esc_html_e('Taxonomy', 'seoprostack'); ?></th><th scope="col"><?php esc_html_e('Prefix', 'seoprostack'); ?></th><th scope="col"><?php esc_html_e('Suffix', 'seoprostack'); ?></th></tr></thead>
                     <tbody>
                     <?php foreach (get_taxonomies(array('public' => true), 'objects') as $taxonomy) : ?>
                         <?php if (!current_user_can($taxonomy->cap->manage_terms)) { continue; } ?>
                         <tr>
-                            <th scope="row"><?php echo esc_html($taxonomy->labels->name . ' (' . $taxonomy->name . ')'); ?></th>
+                            <td><?php echo esc_html($taxonomy->labels->name); ?> <code><?php echo esc_html($taxonomy->name); ?></code></td>
                             <?php foreach (array('prefix', 'suffix') as $part) : ?>
                                 <td>
                                     <label class="screen-reader-text" for="sps-pattern-<?php echo esc_attr($taxonomy->name . '-' . $part); ?>"><?php echo esc_html($taxonomy->labels->name . ' — ' . ('prefix' === $part ? __('Prefix', 'seoprostack') : __('Suffix', 'seoprostack'))); ?></label>
-                                    <input type="text" id="sps-pattern-<?php echo esc_attr($taxonomy->name . '-' . $part); ?>" name="seoprostack_patterns[<?php echo esc_attr($taxonomy->name); ?>][<?php echo esc_attr($part); ?>]" value="<?php echo esc_attr(self::affix($patterns[$taxonomy->name][$part] ?? '', $part)); ?>" placeholder="<?php echo esc_attr('prefix' === $part ? 'best-' : '-awards'); ?>" />
+                                    <input type="text" class="code" id="sps-pattern-<?php echo esc_attr($taxonomy->name . '-' . $part); ?>" name="seoprostack_patterns[<?php echo esc_attr($taxonomy->name); ?>][<?php echo esc_attr($part); ?>]" value="<?php echo esc_attr(self::affix($patterns[$taxonomy->name][$part] ?? '', $part)); ?>" placeholder="<?php echo esc_attr('prefix' === $part ? 'best-' : '-guide'); ?>" />
                                 </td>
                             <?php endforeach; ?>
                         </tr>
                     <?php endforeach; ?>
                     </tbody>
                 </table>
-                <?php submit_button(__('Save slug patterns', 'seoprostack')); ?>
+                <p><?php submit_button(__('Save slug patterns', 'seoprostack'), 'secondary', 'submit', false); ?></p>
             </form>
-        </section>
+        </div>
         <?php
     }
 
@@ -195,7 +199,7 @@ class SEOProStack_Term_Tools extends SEOProStack_Feature {
             }
         }
         SEOProStack_Settings::set(self::PATTERNS, wp_json_encode($patterns));
-        wp_safe_redirect(admin_url('admin.php?page=seoprostack&tab=content'));
+        wp_safe_redirect(admin_url('options-general.php?page=seoprostack&tab=content'));
         exit;
     }
 

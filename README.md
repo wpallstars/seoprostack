@@ -354,7 +354,7 @@ Bulk actions on category, tag and other term lists:
 - **Set parent** (hierarchical taxonomies). A term cannot go below itself or its own children.
 - **Apply slug pattern**: add the taxonomy's prefix and suffix to selected existing terms, keeping their old addresses as redirects.
 
-**Term slug patterns**, below the Content settings, has one row per public taxonomy. Set a prefix such as `best-` and a suffix such as `-awards` to make a new Technology term's slug `best-technology-awards`. Patterns apply on every term creation or edit, including imports and REST requests, while Term tools is on. Saving a pattern does not change existing terms until they are edited or selected for the bulk action. Empty fields leave slugs unchanged; existing prefixes and suffixes are not added twice. WordPress handles unique slugs.
+**Slug patterns**, in Term tools' Options, has one row per public taxonomy. Set a prefix such as `best-` or `how-to-` and a suffix such as `-guide` or `-statistics`: with `best-` and `-guide`, a new Technology term's slug is `best-technology-guide`. Slugs are permanent addresses, so use words that stay true rather than dates. Patterns apply on every term creation or edit, including imports and REST requests, while Term tools is on. Saving a pattern does not change existing terms until they are edited or selected for the bulk action. Empty fields leave slugs unchanged; existing prefixes and suffixes are not added twice. WordPress handles unique slugs.
 
 Old archive addresses of merged, moved and patterned terms redirect with a 301 to the term that took over, when they would otherwise be a 404. Replaces Term Management Tools, which has no settings; the feature switches itself on while it is active.
 
