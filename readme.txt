@@ -5,7 +5,7 @@ Tags: magic login, iframe, schedule posts, auto upload images, admin
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 0.11.11
+Stable tag: 0.12.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -38,7 +38,8 @@ Off by default except Hide admin bar items (Comments and + New), No fade between
 
 * **Publishing queue**: posts without a date go to the next free time slot.
 * **Duplicate posts**, **Staged new versions** (edit a live post as a draft) and **Shareable preview links** for people without an account.
-* **Pinned posts for any post type**, **Select all across pages**, **Order by hand**, **Change post type**, **Term tools** (merge, move, set parent), **Search custom fields** and **Old post addresses**.
+* **Pinned posts for any post type**, **Select all across pages**, **Order by hand**, **Change post type**, **Term tools** (merge, move, set parent, unused terms), **Search custom fields** and **Old post addresses**.
+* **Tag clouds and related posts**: tag clouds, A–Z indexes, grouped terms in tabs or accordions, and a Related posts block. TaxoPress and Tag Groups pages keep working after they are gone.
 * **Custom fields to content**: ACF/SCF text into content and excerpts for chosen post types; skipped fields and WP-CLI sync. Replaces content; check templates for duplicate display.
 * **Restrict content**: posts, parts of posts, categories, blocks and shop products only for members or chosen roles. **Menu item visibility** by login or role.
 * **iFrame block** (only the domains and roles you allow), **Link cards**, **Wikipedia previews**, **Word documents**, **Brand icons** and **Like, save and share**.
@@ -130,16 +131,13 @@ Use **Report a problem** in Settings → SEO Pro Stack or [GitHub](https://githu
 
 = Unreleased =
 * New: Term tools: slug patterns, bulk action and 301 redirects.
-* Change: Pro Plugins no longer recommends Comment Goblin.
+* Fix: no "Table doesn't exist" log errors on network sites without Fluent Forms tables.
 
-= 0.11.11 =
-* Developers: shorter agent guide and synced starter files. Nothing changes for users.
-
-= 0.11.10 =
-* Change: Refined Discover recommendations; added Fluent Query Logger under Debug.
-* New, off: approved local linking and undo, reports, opt-in health/click checks and read-only Link Whisper audit; Custom fields to content with excerpts and WP-CLI sync.
-* Fix: WP-Optimize Premium handling, Tutor LMS network tables and slow Tutor LMS Pro/Comment Goblin admin screens.
-* Fix: Long Rank Math keywords wrap in the SEO Details column instead of pushing lists off the page.
+= 0.12.0 =
+* New, off: Tag clouds and related posts: tag clouds, A–Z indexes, grouped terms in tabs or accordions, and a Related posts block. TaxoPress and Tag Groups pages keep working after they are removed.
+* New: Term tools finds unused terms.
+* Change: Discover no longer recommends TaxoPress Pro or Comment Goblin.
+* Fix: LiteSpeed no longer stops scheduled tasks partway.
 
 Older: `changelog.txt`.
 

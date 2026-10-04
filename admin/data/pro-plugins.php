@@ -352,21 +352,8 @@ if (!defined('ABSPATH')) {
             ),
             'free_slug' => 'social-engine'
         ),
-        'taxopress' => array(
-            'name' => 'TaxoPress Pro',
-            'description' => 'Advanced taxonomy and tag management tools.',
-            'button_group' => array(
-                array(
-                    'text' => 'Home Page',
-                    'url' => 'https://taxopress.com/',
-                    'primary' => true
-                ),
-                array(
-                    'text' => 'Pricing',
-                    'url' => 'https://taxopress.com/pro/'
-                )
-            )
-        ),
+        // TaxoPress Pro removed: Tag clouds and related posts and Term tools
+        // cover it (SEOProStack_Term_Displays).
         'tutor' => array(
             'name' => 'Tutor LMS Pro',
             'description' => 'Premium LMS features including certificate builder.',

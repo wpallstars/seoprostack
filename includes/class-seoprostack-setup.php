@@ -73,6 +73,7 @@ final class SEOProStack_Setup {
         'SEOProStack_Post_Reactions',
         'SEOProStack_Brand_Icons',
         'SEOProStack_Spectra_Blocks',
+        'SEOProStack_Term_Displays',
         'SEOProStack_Short_Links',
         'SEOProStack_Remove_Cpt_Base',
         'SEOProStack_Gone_Urls',
@@ -177,8 +178,11 @@ final class SEOProStack_Setup {
      * v19: Load plugins only where needed: clear the bypasses v18 and the
      *      site's first learn added for empty lists, and switch page
      *      learning on where the feature is off.
+     * v20: switch on Tag clouds and related posts while TaxoPress or Tag
+     *      Groups is active with displays, groups or taxonomies, with the
+     *      post types TaxoPress adds related posts to.
      */
-    const DB_VERSION = 19;
+    const DB_VERSION = 20;
 
     /**
      * Tab slugs renamed in 0.4.0, old => new. Settings that still use an
@@ -216,6 +220,8 @@ final class SEOProStack_Setup {
         require_once SEOPROSTACK_DIR . 'includes/class-seoprostack-disable-bloat.php';
         require_once SEOPROSTACK_DIR . 'includes/class-seoprostack-litespeed.php';
         require_once SEOPROSTACK_DIR . 'includes/class-seoprostack-wp-optimize.php';
+        require_once SEOPROSTACK_DIR . 'includes/class-seoprostack-term-list.php';
+        require_once SEOPROSTACK_DIR . 'includes/class-seoprostack-term-legacy.php';
         // Usually loaded already by the must-use file of "Load plugins only
         // where needed"; features ask it which plugins are active.
         if (!class_exists('SEOProStack_Plugin_Loader', false)) {

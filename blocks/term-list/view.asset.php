@@ -11,5 +11,5 @@ if (!defined('ABSPATH')) {
 
 return array(
     'dependencies' => array(),
-    'version'      => '0.4.0',
+    'version'      => '0.11.11',
 );
