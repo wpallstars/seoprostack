@@ -2,8 +2,9 @@
  * Convert Spectra blocks in the editor.
  *
  * With Spectra deactivated, the editor shows its blocks as "missing" blocks
- * that keep their original markup. This adds a Convert button to the ones
- * that have a core equivalent (or the Term list), and a Convert all button.
+ * that keep their original markup. The ones that have a core equivalent (or
+ * the Term list) get their own editor view instead: one warning with Convert
+ * and Convert all buttons, in place of core's "not supported" warning.
  * New blocks are made with createBlock(), so core writes markup that is valid
  * for the running WordPress version. Nothing is stored until the post is
  * saved, and saving keeps a revision.
@@ -14,16 +15,14 @@
  *
  * Plain ES5 so the plugin needs no build step.
  */
-(function (blocks, element, blockEditor, components, compose, data, hooks, i18n, parser) {
+(function (blocks, element, blockEditor, components, compose, data, hooks, i18n, parser, wpDom) {
 	'use strict';
 
 	var el = element.createElement;
-	var Fragment = element.Fragment;
 	var __ = i18n.__;
 	var _n = i18n._n;
 	var sprintf = i18n.sprintf;
 	var createBlock = blocks.createBlock;
-	var Notice = components.Notice;
 
 	var REL = ['nofollow', 'noopener', 'noreferrer', 'sponsored', 'ugc'];
 	var ALIGN = ['left', 'center', 'right'];
@@ -346,14 +345,38 @@
 		}
 	}
 
-	var withConvert = compose.createHigherOrderComponent(function (BlockEdit) {
-		return function (props) {
-			if (props.name !== 'core/missing' || !convertible({ name: props.name, attributes: props.attributes })) {
-				return el(BlockEdit, props);
-			}
-			var all = findAll(data.select('core/block-editor').getBlocks());
-			var actions = [{
-				label: __('Convert', 'seoprostack'),
+	/** What each Spectra block is called and what Convert makes of it. */
+	function describe(name) {
+		switch (name) {
+			case 'uagb/advanced-heading':
+				return [__('Heading', 'seoprostack'), __('a Heading block', 'seoprostack')];
+			case 'uagb/image':
+				return [__('Image', 'seoprostack'), __('an Image block', 'seoprostack')];
+			case 'uagb/buttons':
+			case 'uagb/buttons-child':
+				return [__('Buttons', 'seoprostack'), __('a Buttons block', 'seoprostack')];
+			case 'uagb/testimonial':
+				return [__('Testimonial', 'seoprostack'), __('Quote blocks', 'seoprostack')];
+			case 'uagb/taxonomy-list':
+				return [__('Taxonomy List', 'seoprostack'), __('a Term list block', 'seoprostack')];
+		}
+		return [name, __('core blocks', 'seoprostack')];
+	}
+
+	/**
+	 * Edit view for a convertible Spectra block, in place of core's "missing"
+	 * block, so the block shows one notice (with Convert) instead of ours plus
+	 * core's "Your site doesn't include support" warning. Same markup as core's
+	 * own: a warning, then a preview of the HTML Spectra saved.
+	 */
+	function ConvertEdit(props) {
+		var attributes = props.attributes;
+		var blockProps = blockEditor.useBlockProps({ className: 'has-warning sps-spectra-convert' });
+		var all = findAll(data.select('core/block-editor').getBlocks());
+		var names = describe(attributes.originalName);
+		var actions = [
+			el(components.Button, {
+				key: 'convert',
 				variant: 'primary',
 				onClick: function () {
 					var block = data.select('core/block-editor').getBlock(props.clientId);
@@ -361,23 +384,42 @@
 						run([block]);
 					}
 				}
-			}];
-			if (all.length > 1) {
-				actions.push({
-					/* translators: %d: number of blocks */
-					label: sprintf(__('Convert all %d', 'seoprostack'), all.length),
-					variant: 'secondary',
-					onClick: function () {
-						run(findAll(data.select('core/block-editor').getBlocks()));
-					}
-				});
+			}, __('Convert', 'seoprostack'))
+		];
+		if (all.length > 1) {
+			actions.push(el(components.Button, {
+				key: 'convert-all',
+				variant: 'secondary',
+				onClick: function () {
+					run(findAll(data.select('core/block-editor').getBlocks()));
+				}
+			}, sprintf(
+				/* translators: %d: number of blocks */
+				__('Convert all %d', 'seoprostack'),
+				all.length
+			)));
+		}
+		var html = attributes.originalUndelimitedContent || '';
+		var preview = html && wpDom && wpDom.safeHTML ? el(element.RawHTML, {}, wpDom.safeHTML(html)) : null;
+		return el('div', blockProps,
+			el(blockEditor.Warning, { actions: actions },
+				sprintf(
+					/* translators: 1: Spectra block name, 2: what it becomes */
+					__('Spectra %1$s block. Spectra is not active, so Convert turns it into %2$s. Nothing changes until you save.', 'seoprostack'),
+					names[0],
+					names[1]
+				)
+			),
+			preview
+		);
+	}
+
+	var withConvert = compose.createHigherOrderComponent(function (BlockEdit) {
+		return function (props) {
+			if (props.name !== 'core/missing' || !convertible({ name: props.name, attributes: props.attributes })) {
+				return el(BlockEdit, props);
 			}
-			return el(Fragment, {},
-				el(Notice, { status: 'info', isDismissible: false, actions: actions, className: 'sps-spectra-convert' },
-					__('This Spectra block can be converted to a core block (Spectra’s Taxonomy List becomes a Term list). Nothing changes until you save.', 'seoprostack')
-				),
-				el(BlockEdit, props)
-			);
+			return el(ConvertEdit, props);
 		};
 	}, 'withSpectraConvert');
 
@@ -391,5 +433,6 @@
 	window.wp.data,
 	window.wp.hooks,
 	window.wp.i18n,
-	window.wp.blockSerializationDefaultParser
+	window.wp.blockSerializationDefaultParser,
+	window.wp.dom
 );
