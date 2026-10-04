@@ -339,6 +339,9 @@ delete_metadata('user', 0, 'seoprostack_replaced_plugins_hidden', '', true);
 delete_metadata('user', 0, 'seoprostack_git_updater_dismissed', '', true);
 // "Ask me again" in Ask before licence checks.
 delete_metadata('user', 0, 'seoprostack_licence_later', '', true);
+// Dashboard boxes Tidy the dashboard has unticked once in Screen Options
+// (the boxes stay unticked: that is WordPress's own setting).
+delete_metadata('user', 0, 'seoprostack_dashboard_start_hidden', '', true);
 
 // Plugin caches, network-wide because plugins are shared by every site. On
 // single sites these calls remove the ordinary option and transient.
