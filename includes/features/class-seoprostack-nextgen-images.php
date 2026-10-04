@@ -971,7 +971,8 @@ class SEOProStack_Nextgen_Images extends SEOProStack_Feature {
             return 'unknown';
         }
         $response = wp_remote_head(add_query_arg('sps-check', time(), $sample['url']), array(
-            'timeout'     => 5,
+            // One static picture from this site's own server; the settings screen waits on it.
+            'timeout'     => 3,
             'redirection' => 2,
             'headers'     => array('Accept' => 'image/avif,image/webp,image/*,*/*;q=0.8'),
             // As core's own loopback requests (WP_Site_Health).

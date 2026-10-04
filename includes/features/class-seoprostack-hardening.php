@@ -469,7 +469,7 @@ class SEOProStack_Hardening extends SEOProStack_Feature {
             }
             $result['checked']++;
             $response = wp_remote_head($file['url'], array(
-                'timeout'     => 5,
+                'timeout'     => 5, // phpcs:ignore WordPressVIPMinimum.Performance.RemoteRequestTimeout -- Site Health's async test and its weekly cron check only, once a day.
                 'redirection' => 0,
                 // Core's filter for requests to the site itself, as its loopback test uses.
                 'sslverify'   => apply_filters('https_local_ssl_verify', false), // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- core's own filter.

@@ -404,7 +404,7 @@ class SEOProStack_Short_Links extends SEOProStack_Feature {
         $ids = get_posts(array(
             'post_type'   => self::TYPE,
             'post_status' => 'publish',
-            'numberposts' => -1,
+            'numberposts' => -1, // phpcs:ignore WordPressVIPMinimum.Performance.NoPaging -- IDs only, when a link changes; every live link goes into the map.
             'fields'      => 'ids',
             'orderby'     => 'ID',
             'order'       => 'ASC',
@@ -726,7 +726,7 @@ class SEOProStack_Short_Links extends SEOProStack_Feature {
         $ids = get_posts(array(
             'post_type'   => self::TYPE,
             'post_status' => 'any',
-            'numberposts' => -1,
+            'numberposts' => -1, // phpcs:ignore WordPressVIPMinimum.Performance.NoPaging -- once per site, the handful of starter review links.
             'fields'      => 'ids',
             'meta_key'    => self::META . 'preset', // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key -- once per site.
         ));

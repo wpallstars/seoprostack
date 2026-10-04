@@ -606,7 +606,7 @@ class SEOProStack_Restrict_Content extends SEOProStack_Feature {
         $query = array(
             'post_type'        => 'any',
             'post_status'      => 'any',
-            'posts_per_page'   => -1,
+            'posts_per_page'   => -1, // phpcs:ignore WordPressVIPMinimum.Performance.NoPaging -- IDs only, of posts with a rule or in a restricted term, once per request with a comment query; a partial list would show hidden posts' comments.
             'fields'           => 'ids',
             'no_found_rows'    => true,
         );

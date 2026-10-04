@@ -308,7 +308,7 @@ final class SEOProStack_Term_List {
             $args['include'] = array_map('intval', (array) $a['include']);
         }
         if (!empty($a['exclude'])) {
-            $args['exclude'] = array_map('intval', (array) $a['exclude']);
+            $args['exclude'] = array_map('intval', (array) $a['exclude']); // phpcs:ignore WordPressVIPMinimum.Performance.WPQueryParams -- get_terms(), capped at MAX_TERMS, not a post query.
         }
         /**
          * Filters the get_terms() arguments of a Term list.

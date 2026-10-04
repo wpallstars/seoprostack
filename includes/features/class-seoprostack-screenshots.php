@@ -911,7 +911,7 @@ class SEOProStack_Screenshots extends SEOProStack_Feature {
         if (!wp_http_validate_url($url)) {
             return new WP_Error('seoprostack_screenshot_unreachable', __('The site could not be found, or is not on the public internet.', 'seoprostack'));
         }
-        $check = wp_safe_remote_head($url, array('timeout' => 15, 'redirection' => 5));
+        $check = wp_safe_remote_head($url, array('timeout' => 15, 'redirection' => 5)); // phpcs:ignore WordPressVIPMinimum.Performance.RemoteRequestTimeout -- cron only (run_capture()); another site's page may be slow.
         if (is_wp_error($check)) {
             /* translators: %s: error message */
             return new WP_Error('seoprostack_screenshot_unreachable', sprintf(__('The page could not be reached: %s', 'seoprostack'), $check->get_error_message()));
@@ -1072,7 +1072,7 @@ class SEOProStack_Screenshots extends SEOProStack_Feature {
         $image   = (string) $request['url'];
 
         if (!empty($request['json'])) {
-            $response = wp_safe_remote_get($image, array('timeout' => 90, 'headers' => $headers));
+            $response = wp_safe_remote_get($image, array('timeout' => 90, 'headers' => $headers)); // phpcs:ignore WordPressVIPMinimum.Performance.RemoteRequestTimeout -- cron only; the service loads the page in a browser first.
             if (is_wp_error($response)) {
                 /* translators: %s: error message */
                 return new WP_Error('seoprostack_screenshot_service', sprintf(__('The screenshot service did not answer: %s', 'seoprostack'), $response->get_error_message()));
@@ -1092,7 +1092,7 @@ class SEOProStack_Screenshots extends SEOProStack_Feature {
             return new WP_Error('seoprostack_screenshot_tmp', __('A temporary file could not be made.', 'seoprostack'));
         }
         $response = wp_safe_remote_get($image, array(
-            'timeout'             => 90,
+            'timeout'             => 90, // phpcs:ignore WordPressVIPMinimum.Performance.RemoteRequestTimeout -- cron only; the service loads the page in a browser first.
             'headers'             => $headers,
             'stream'              => true,
             'filename'            => $tmp,

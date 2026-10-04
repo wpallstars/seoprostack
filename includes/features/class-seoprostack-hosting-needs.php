@@ -973,7 +973,7 @@ class SEOProStack_Hosting_Needs extends SEOProStack_Feature {
      */
     private static function cdn_probe() {
         $response = wp_remote_head(home_url('/'), array(
-            'timeout'     => 5,
+            'timeout'     => 5, // phpcs:ignore WordPressVIPMinimum.Performance.RemoteRequestTimeout -- at most hourly (facts()), mostly from Site Health's async test and the Plugins screen's background row; an uncached home page can take 2 s.
             'redirection' => 0,
             // Core's filter for requests to the site itself, as its loopback test uses.
             'sslverify'   => apply_filters('https_local_ssl_verify', false), // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- core's own filter.
