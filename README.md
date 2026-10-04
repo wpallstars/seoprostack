@@ -1219,6 +1219,7 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folder�
 
 - Change: **Magic login links** replaces pixolette’s WP Magic Link Login (`wp-magic-link-login`, CodeCanyon), in part. Where it is installed, the Plugins screen says so, and the feature waits while it is active (`replaces` in its settings). Pages using its `[wpmll_form]` shortcode keep a login form after it is deactivated: the login link form, or WordPress’s password form while Magic login links is off.
 - New, off by default: **Image loading** (Speed tab) chooses how many pictures at the top of a post or page load straight away and which pictures and iframes are never lazy-loaded, through WordPress’s own lazy loading (`SEOProStack_Image_Loading`). Replaces Flying Images’ lazy loading, in part, importing its exclusions (settings version 21).
+- Fix: MainWP Child printed the Branding extension’s **Global footer** text, unstyled, below the footer of every front-end page. **Fixes for other plugins** (on by default) leaves it out of the front end; the admin footer text stays.
 
 ### 0.12.1
 
@@ -1226,7 +1227,6 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folder�
 - New: the Plugins screen recommends deactivating plugins web hosts add to new sites while they are active: Hostinger AI and Hostinger Easy Onboarding. A note under each row says what it is for, with a Deactivate link; nothing is deactivated for you. Add others with the `seoprostack_host_plugins` filter.
 - Fix: on a network where Fluent Forms, Fluent Boards or FluentCommunity is active but a site has no tables for it, settings upgrades no longer log “Table doesn’t exist” database errors for that site: the agency order lists look for the table first.
 - Fix: **Short addresses for custom post types** no longer gives “page not found” at the short address of post types registered without a query variable (`query_var` false, as some custom post type tools register them); their links already dropped the base, so the items could not be reached.
-- Fix: MainWP Child printed the Branding extension’s **Global footer** text, unstyled, below the footer of every front-end page. **Fixes for other plugins** (on by default) leaves it out of the front end; the admin footer text stays.
 
 ### 0.12.0
 
