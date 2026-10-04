@@ -313,7 +313,7 @@ Tick **Share a preview link** in the editor of a draft, pending or scheduled pos
 
 ### Pinned posts for any post type (Content)
 
-Adds a narrow pin column to the lists of the post types you choose, and a **Pin to the top** option in the editor for types other than posts. Wherever WordPress says “Sticky” in post lists, Quick Edit, Bulk Edit and the editors, it says “Pinned”, the word most sites and apps use (core still calls them sticky posts, so themes and blocks see no change). Pinned items lead the first page of the blog home, their post type archive and chosen term archives (categories, tags or custom taxonomies). On archives they take places on the pages, so each page keeps its size and nothing shows twice. It uses core’s sticky list, so existing sticky posts, themes and blocks keep working.
+Adds a narrow pin column to the lists of the post types you choose, and a **Pin to the top** option in the editor for types other than posts. Wherever WordPress says “Sticky” in post lists, Quick Edit, Bulk Edit and the editors, it says “Pinned”, the word most sites and apps use (core still calls them sticky posts, so themes and blocks see no change). Pinned items lead the first page of the blog home, their post type archive and chosen term archives (categories, tags or custom taxonomies). On archives they take places on the pages, so each page keeps its size and nothing shows twice; these lists also end their order with the post ID, so items sharing a date keep one place across pages. It uses core’s sticky list, so existing sticky posts, themes and blocks keep working.
 
 With ACF, ACF Pro or Secure Custom Fields active, **Pin from a true/false field** ties the pin to a true/false field of a pinnable type, such as a “Featured” field: an item is pinned while the field is on, however the field is set (editor, REST API, WP-CLI, imports), and pinning or unpinning it in the pin column or Quick Edit sets the field. When you choose a field, the items of its type are pinned and unpinned to match it, so the field decides. In the editor the field is the pin: **Pin to the top** is not shown for that type, so saving the field’s box cannot undo a pin set elsewhere. Only top-level fields of a field group are listed.
 
@@ -1247,10 +1247,11 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folder�
 
 ## Changelog
 
-### Unreleased
+### 0.12.7
 
 - New: **Hosting needs** finds the CDN in front of the site (Cloudflare, QUIC.cloud, Bunny CDN, CDN77, Fastly, Sucuri, or one set up in LiteSpeed Cache, CDN Enabler or Jetpack) and suggests one when there is none: QUIC.cloud through LiteSpeed Cache on a LiteSpeed server, Cloudflare's free plan elsewhere. Site Health Info gains a CDN line. When the site cannot reach its own home page, the CDN is shown as unknown and nothing is suggested (GitHub issue #345).
 - New: **Turn off unused remote access** can block web access to log and backup files (`.log`, `.sql`, `.sql.gz`, `.bak`, `error_log`, `php_errorlog`, copies of `wp-config.php`) through a marked block at the top of `.htaccess`, with a rule to copy on Nginx. A Site Health test, always on, names such files in the site's main folders that anyone can download, checked once a day (GitHub issue #277).
+- Fix: lists that Pinned posts for any post type handles (blog home, post type and term archives, Kadence query loops) end their `ORDER BY` with the post ID (`posts_orderby`). WordPress sorts by date or title alone, so items sharing a date, common after an import, came back in a different order on each page and showed twice or not at all. Random, `post__in` and ID orders are left alone (GitHub issue #366).
 
 ### 0.12.6
 
