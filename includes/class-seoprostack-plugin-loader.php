@@ -119,6 +119,9 @@ final class SEOProStack_Plugin_Loader {
     /** One-time preservation of the owner's saved site-wide skip choices. */
     const FRONT_MIGRATED = 'seoprostack_plugin_front_migrated';
 
+    /** "[name" followed by a space, "]" or "/": a possible shortcode tag in content. */
+    const SHORTCODE_NAME = '/(?<!\[)\[([^<>&\/\[\]\x00-\x20=]+)(?=[\s\]\/])/';
+
     /** Opt-in page learning and plugins the owner wants to keep loading. */
     const PAGES_KEY = 'plugin_loading_pages';
     const KEEP_KEY  = 'plugin_loading_pages_keep';
@@ -609,7 +612,10 @@ final class SEOProStack_Plugin_Loader {
         if ('' !== $key) {
             $page = isset($front['kinds'][$key]) ? $front['kinds'][$key] : array();
             if (empty($page['learned'])) {
-                if (self::take_front_lock()) {
+                // A page whose own content is unknown cannot teach its kind
+                // (learn_front() skips it), so it loads every plugin without
+                // learning, and a page of that kind with known content learns.
+                if (false !== self::content_needs((string) ($context['content'] ?? ''), $front) && self::take_front_lock()) {
                     self::$mode   = 'full';
                     self::$reason = 'learning';
                     self::attribute();
@@ -909,8 +915,29 @@ final class SEOProStack_Plugin_Loader {
         // run (priority 11), so their attributes, such as ["","",""], are not
         // shortcodes. Attributes cannot hold "-->": core escapes "--" in them.
         $text = (string) preg_replace('/<!--\s+\/?wp:.*?-->/s', '', $content);
-        preg_match_all('/(?<!\[)\[([^<>&\/\[\]\x00-\x20=]+)(?=[\s\]\/])/', $text, $shortcodes);
-        foreach (array('blocks' => $blocks[1], 'shortcodes' => $shortcodes[1]) as $kind => $names) {
+        $registered = (array) ($front['shortcodes'] ?? array());
+        // Script and style bodies (Custom HTML blocks) hold code such as
+        // items[0] or data['on']: only registered names there are shortcodes.
+        $code_names = array();
+        $text = (string) preg_replace_callback('/<(script|style)\b[^>]*>(.*?)<\/\1\s*>/is', function ($element) use ($registered, &$code_names) {
+            preg_match_all(self::SHORTCODE_NAME, $element[2], $found);
+            foreach ($found[1] as $name) {
+                if (array_key_exists($name, $registered)) {
+                    $code_names[] = $name;
+                }
+            }
+            return '';
+        }, $text);
+        preg_match_all(self::SHORTCODE_NAME, $text, $shortcodes);
+        $names = array();
+        foreach ($shortcodes[1] as $name) {
+            // Unregistered text that no plugin would name a shortcode, such as
+            // [1] footnote marks or [elem.name], is not unknown content.
+            if (array_key_exists($name, $registered) || preg_match('/^[A-Za-z_][A-Za-z0-9_:-]*$/', $name)) {
+                $names[] = $name;
+            }
+        }
+        foreach (array('blocks' => $blocks[1], 'shortcodes' => array_merge($names, $code_names)) as $kind => $names) {
             foreach ($names as $name) {
                 if ('blocks' === $kind && false === strpos($name, '/')) {
                     $name = 'core/' . $name;
