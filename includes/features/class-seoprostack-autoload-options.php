@@ -4,9 +4,10 @@
  *
  * A removable MU sampler observes pre_option, including plugin bootstrap reads.
  * Unselected requests read no learning option and perform no database work.
- * A daily safety scan pauses changes if any other active plugin, MU plugin or
- * theme calls wp_load_alloptions(): dynamic keys cannot safely be attributed to
- * one plugin. Incomplete scans also pause changes. Core defaults are extracted
+ * A daily safety scan, on a sampled admin screen only, pauses changes if any
+ * other active plugin, MU plugin or theme calls wp_load_alloptions() other
+ * than to refresh the cache: dynamic keys cannot safely be attributed to one
+ * plugin. Incomplete scans also pause changes. Core defaults are extracted
  * from the installed schema (without calling populate_options()). No values are
  * collected, displayed or deleted, including the rebuildable dirsize cache.
  *
@@ -133,7 +134,9 @@ final class SEOProStack_Autoload_Options extends SEOProStack_Feature {
             self::unlock();
             return;
         }
-        if (empty(self::$state['surveyed']) || time() - self::$state['surveyed'] >= DAY_IN_SECONDS) {
+        // The survey reads option metadata and scans active code: keep that
+        // work off visitor pages, which only observe reads.
+        if ('admin' === self::$kind && (empty(self::$state['surveyed']) || time() - self::$state['surveyed'] >= DAY_IN_SECONDS)) {
             self::survey();
         }
         add_filter('pre_option', array(__CLASS__, 'observe'), -PHP_INT_MAX, 3);
@@ -257,51 +260,114 @@ final class SEOProStack_Autoload_Options extends SEOProStack_Feature {
         return array_fill_keys(array_merge($matches[1], $extra[1]), true);
     }
 
-    /** Pause globally rather than guess ownership of dynamically indexed alloptions. */
+    /**
+     * Pause globally rather than guess ownership of dynamically indexed alloptions.
+     *
+     * Each active plugin's result is kept until that plugin's folder or main
+     * file changes (an update replaces both), so a day's scan reads only new
+     * or changed plugins. Must-use plugins and themes are read every time.
+     * A scan cut short by the file limit carries on the next day.
+     */
     private static function direct_readers() {
-        $roots = array(WPMU_PLUGIN_DIR, get_template_directory(), get_stylesheet_directory());
+        $own = dirname(__DIR__, 2);
+        $roots = array(WPMU_PLUGIN_DIR => '', get_template_directory() => '', get_stylesheet_directory() => '');
         foreach (self::stored_active_plugins() as $file) {
-            if ($file !== plugin_basename(dirname(__DIR__, 2) . '/seoprostack.php')) {
-                // A root-level plugin can include sibling files; scan that
-                // directory too rather than claim its includes are safe.
-                $roots[] = '.' === dirname($file) ? WP_PLUGIN_DIR : WP_PLUGIN_DIR . '/' . dirname($file);
+            if ($file !== plugin_basename($own . '/seoprostack.php')) {
+                // A single-file plugin is scanned alone: scanning its folder
+                // would read every installed plugin, active or not.
+                $main = WP_PLUGIN_DIR . '/' . $file;
+                $roots['.' === dirname($file) ? $main : dirname($main)] = $main;
             }
         }
-        $fs = new WP_Filesystem_Direct(null);
+        $cache = (array) (self::$state['scanned'] ?? array());
+        $kept = array();
         $count = 0;
+        $result = '';
+        foreach ($roots as $root => $main) {
+            if (!file_exists($root)) {
+                continue;
+            }
+            $print = $main ? filemtime($root) . ':' . (is_file($main) ? filemtime($main) : 0) : '';
+            if ($print && isset($cache[$root][0]) && $cache[$root][0] === $print) {
+                $found = (string) $cache[$root][1];
+            } else {
+                $found = self::scan_root($root, $own, $count);
+            }
+            if ($print && 'scan' !== $found) {
+                $kept[$root] = array($print, $found);
+            }
+            if ('direct' === $found) {
+                $result = 'direct';
+            } elseif ('scan' === $found && '' === $result) {
+                $result = 'scan';
+            }
+        }
+        self::$state['scanned'] = $kept;
+        return $result;
+    }
+
+    /** One folder or file: '' when safe, 'direct' or 'scan' when changes must pause. */
+    private static function scan_root($root, $own, &$count) {
+        $fs = new WP_Filesystem_Direct(null);
         try {
-            foreach (array_unique($roots) as $root) {
-                if (!file_exists($root)) {
+            $files = is_dir($root) ? new RecursiveIteratorIterator(new RecursiveDirectoryIterator($root, FilesystemIterator::SKIP_DOTS)) : array(new SplFileInfo($root));
+            foreach ($files as $file) {
+                $path = $file->getPathname();
+                if (0 === strpos($path, $own . '/')) {
+                    continue; // Our only alloptions lookup tests protected active_plugins.
+                }
+                if (dirname($path) === WPMU_PLUGIN_DIR && strtolower($file->getExtension()) === 'php' && strcmp($file->getFilename(), self::FILE) < 0) {
+                    return 'scan'; // An earlier MU plugin may read options before observation starts.
+                }
+                if ($file->isLink() && $file->isDir()) {
+                    return 'scan'; // Do not silently skip executable symlinked includes.
+                }
+                // A plugin's uninstall.php runs only while it is being deleted.
+                if (!in_array(strtolower($file->getExtension()), array('php', 'inc', 'phtml', 'php5', 'php7', 'php8'), true) || self::FILE === $file->getFilename() || $file->isDir()
+                    || ('uninstall.php' === $file->getFilename() && dirname($path) === $root)) {
                     continue;
                 }
-                $files = is_dir($root) ? new RecursiveIteratorIterator(new RecursiveDirectoryIterator($root, FilesystemIterator::SKIP_DOTS)) : array(new SplFileInfo($root));
-                foreach ($files as $file) {
-                    $path = $file->getPathname();
-                    if (0 === strpos($path, dirname(__DIR__, 2) . '/')) {
-                        continue; // Our only alloptions lookup tests protected active_plugins.
-                    }
-                    if (dirname($path) === WPMU_PLUGIN_DIR && strtolower($file->getExtension()) === 'php' && strcmp($file->getFilename(), self::FILE) < 0) {
-                        return 'scan'; // An earlier MU plugin may read options before observation starts.
-                    }
-                    if ($file->isLink() && $file->isDir()) {
-                        return 'scan'; // Do not silently skip executable symlinked includes.
-                    }
-                    if (!in_array(strtolower($file->getExtension()), array('php', 'inc', 'phtml', 'php5', 'php7', 'php8'), true) || self::FILE === $file->getFilename() || $file->isDir()) {
-                        continue;
-                    }
-                    $source = $fs->get_contents($path);
-                    if (++$count > 4000 || false === $source) {
-                        return 'scan';
-                    }
-                    if (preg_match('/\bwp_load_alloptions\s*\(/', $source)) {
-                        return 'direct';
-                    }
+                $source = $fs->get_contents($path);
+                // WooCommerce alone has over 4,000 PHP files.
+                if (++$count > 15000 || false === $source) {
+                    return 'scan';
+                }
+                if (self::reads_alloptions($source)) {
+                    return 'direct';
                 }
             }
         } catch (UnexpectedValueException $e) {
             return 'scan';
         }
         return '';
+    }
+
+    /**
+     * Whether code calls wp_load_alloptions() in a way that may read settings by name.
+     *
+     * wp_load_alloptions(true) refreshes the object cache before a plugin
+     * updates or removes its own known entry (WooCommerce, Link Whisper, ICS
+     * Calendar); it does not read other settings by name. Any other call
+     * might. Comments mentioning the function are not calls.
+     */
+    private static function reads_alloptions($source) {
+        // Possessive \s*+ so "( true )" cannot backtrack into a match.
+        $call = '/\bwp_load_alloptions\s*\(\s*+(?!true\s*\))/i';
+        if (!preg_match($call, $source)) {
+            return false;
+        }
+        if (!function_exists('token_get_all')) {
+            return true;
+        }
+        $code = '';
+        foreach (token_get_all($source) as $token) {
+            if (is_array($token) && in_array($token[0], array(T_COMMENT, T_DOC_COMMENT, T_INLINE_HTML), true)) {
+                $code .= ' ';
+                continue;
+            }
+            $code .= is_array($token) ? $token[1] : $token;
+        }
+        return (bool) preg_match($call, $code);
     }
 
     private static function decide() {
