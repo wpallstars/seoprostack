@@ -130,6 +130,7 @@ Use **Report a problem** in Settings → SEO Pro Stack or [GitHub](https://githu
 
 = Unreleased =
 * Change: Pro Plugins no longer recommends Comment Goblin.
+* Fix: LiteSpeed no longer stops scheduled tasks partway.
 
 = 0.11.11 =
 * Developers: shorter agent guide and synced starter files. Nothing changes for users.
