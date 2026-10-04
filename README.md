@@ -1255,6 +1255,7 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folderâ
 
 - New: **Hosting needs** finds the CDN in front of the site (Cloudflare, QUIC.cloud, Bunny CDN, CDN77, Fastly, Sucuri, or one set up in LiteSpeed Cache, CDN Enabler or Jetpack) and suggests one when there is none: QUIC.cloud through LiteSpeed Cache on a LiteSpeed server, Cloudflare's free plan elsewhere. Site Health Info gains a CDN line. When the site cannot reach its own home page, the CDN is shown as unknown and nothing is suggested (GitHub issue #345).
 - New: **Turn off unused remote access** can block web access to log and backup files (`.log`, `.sql`, `.sql.gz`, `.bak`, `error_log`, `php_errorlog`, copies of `wp-config.php`) through a marked block at the top of `.htaccess`, with a rule to copy on Nginx. A Site Health test, always on, names such files in the site's main folders that anyone can download, checked once a day (GitHub issue #277).
+- New: **Clean the database weekly** can remove scheduled tasks of plugins that are no longer active (unticked by default): tasks nothing ran on web cron checks at least 7 days apart, never WordPress's own, hosts' agents' (`mnx_*`) or installed plugins'. The options list what will go and what went, with **Put back** (GitHub issue #278).
 
 ### 0.12.6
 
