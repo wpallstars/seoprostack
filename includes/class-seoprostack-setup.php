@@ -232,6 +232,8 @@ final class SEOProStack_Setup {
         if (!class_exists('SEOProStack_Plugin_Loader', false)) {
             require_once SEOPROSTACK_DIR . 'includes/class-seoprostack-plugin-loader.php';
         }
+        // Also loaded by that must-use file, before other plugins.
+        require_once SEOPROSTACK_DIR . 'includes/class-seoprostack-option-writes.php';
     }
 
     /**

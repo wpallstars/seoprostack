@@ -170,6 +170,13 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
     private static $front_seen = array();
 
     /**
+     * Options Hosting needs found saved on most page views, once read.
+     *
+     * @var array<string,array>|null
+     */
+    private static $frequent_writes = null;
+
+    /**
      * Settings.
      *
      * @return array
@@ -1347,6 +1354,9 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
         if ('seoprostack_options' !== $name && (!self::enabled() || !SEOProStack_Settings::get(SEOProStack_Plugin_Loader::PAGES_KEY))) {
             return;
         }
+        if ('seoprostack_options' !== $name && self::record_write((string) $name)) {
+            return;
+        }
         // Settings of any content plugin can change what an old route needs.
         // Exclude volatile core caches and this loader's own learning writes.
         if (0 === strpos((string) $name, '_transient_') || 0 === strpos((string) $name, '_site_transient_')
@@ -1356,6 +1366,44 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
             return;
         }
         self::forget_front();
+    }
+
+    /**
+     * Whether an option write keeps a record rather than changing a setting,
+     * so what was learned for site pages stays. Options that plugins save on
+     * every request (licence timestamps, counters) otherwise restarted the
+     * learning on each one (GitHub issue #279).
+     *
+     * @param string $name Option name.
+     * @return bool
+     */
+    private static function record_write($name) {
+        // SEO Pro Stack's own records; its settings are seoprostack_options.
+        if (0 === strpos($name, 'seoprostack_')) {
+            return true;
+        }
+        // Licence options plugins save again with a new timestamp, and
+        // options Hosting needs found saved on most page views.
+        if (SEOProStack_Option_Writes::known($name)) {
+            return true;
+        }
+        if (class_exists('SEOProStack_Hosting_Needs', false) && SEOProStack_Hosting_Needs::enabled()) {
+            if (null === self::$frequent_writes) {
+                $writes                = SEOProStack_Hosting_Needs::frequent_writes();
+                self::$frequent_writes = $writes['options'];
+            }
+            if (isset(self::$frequent_writes[$name])) {
+                return true;
+            }
+        }
+        // Settings change in wp-admin, through AJAX, the REST API or the
+        // command line, or when a form is sent; cron and page views only
+        // keep records.
+        if (wp_doing_cron()) {
+            return true;
+        }
+        return !is_admin() && !wp_doing_ajax() && !(defined('REST_REQUEST') && REST_REQUEST) && !(defined('WP_CLI') && WP_CLI)
+            && isset($_SERVER['REQUEST_METHOD']) && 'GET' === $_SERVER['REQUEST_METHOD'];
     }
 
     /** Invalidate the public map without changing the admin map. */

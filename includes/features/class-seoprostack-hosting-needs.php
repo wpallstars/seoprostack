@@ -53,6 +53,15 @@ class SEOProStack_Hosting_Needs extends SEOProStack_Feature {
     /** Option: Y-m-d => rate, hours (requests per hour) and kinds (samples, seconds, buckets, slowest). */
     const TRAFFIC = 'seoprostack_hosting_traffic';
 
+    /** Option: Y-m-d => pages (page views counted) and options (name => n pages that saved it, source). */
+    const WRITES = 'seoprostack_hosting_writes';
+
+    /** Page views counted before options saved on most of them are named. */
+    const WRITES_ENOUGH = 20;
+
+    /** Most options kept a day, those saved on the most page views first. */
+    const WRITES_MAX = 50;
+
     /** Transient: database size, autoloaded options and products, read at most hourly. */
     const FACTS = 'seoprostack_hosting_facts';
 
@@ -119,6 +128,8 @@ class SEOProStack_Hosting_Needs extends SEOProStack_Feature {
         if (!self::enabled()) {
             return;
         }
+        // Started earlier by the must-use file of Load plugins only where needed.
+        SEOProStack_Option_Writes::watch();
         add_action('shutdown', array(__CLASS__, 'record'), PHP_INT_MAX);
         // Site Health also runs its tests from cron, outside wp-admin.
         add_filter('site_status_tests', array(__CLASS__, 'tests'));
@@ -126,6 +137,10 @@ class SEOProStack_Hosting_Needs extends SEOProStack_Feature {
         // Plugins change autoloaded options and tables.
         add_action('activated_plugin', array(__CLASS__, 'forget_facts'));
         add_action('deactivated_plugin', array(__CLASS__, 'forget_facts'));
+        // Count option writes afresh once the plugins saving them may have changed.
+        add_action('deactivated_plugin', array(__CLASS__, 'forget_writes'));
+        add_action('upgrader_process_complete', array(__CLASS__, 'forget_writes'));
+        add_action('seoprostack_setting_saved', array(__CLASS__, 'setting_saved'));
         if (!is_admin()) {
             return;
         }
@@ -146,6 +161,8 @@ class SEOProStack_Hosting_Needs extends SEOProStack_Feature {
             return; // The command line has its own limit, often none, and no visitors.
         }
         $kind = self::kind();
+        // Before this request's own writes below.
+        self::record_writes($kind);
         self::record_peak($kind);
         self::sample($kind);
     }
@@ -208,6 +225,115 @@ class SEOProStack_Hosting_Needs extends SEOProStack_Feature {
         unset($stats);
         krsort($traffic);
         update_option(self::TRAFFIC, array_slice($traffic, 0, self::DAYS, true), false);
+    }
+
+    /**
+     * On a counted page view (1 in 20), record which options it saved.
+     *
+     * @param string $kind Kind of request.
+     */
+    private static function record_writes($kind) {
+        $writes = SEOProStack_Option_Writes::writes();
+        if (null === $writes || 'site' !== $kind) {
+            return;
+        }
+        $day    = gmdate('Y-m-d');
+        $stored = get_option(self::WRITES, array());
+        $stored = is_array($stored) ? $stored : array();
+        if (!isset($stored[$day]['pages'], $stored[$day]['options']) || !is_array($stored[$day]['options'])) {
+            $stored[$day] = array('pages' => 0, 'options' => array());
+        }
+        $stored[$day]['pages']++;
+        $options = &$stored[$day]['options'];
+        foreach ($writes as $name => $write) {
+            // SEO Pro Stack's own records are its business, not a plugin's.
+            if (0 === strpos((string) $name, 'seoprostack_')) {
+                continue;
+            }
+            if (!isset($options[$name]['n'])) {
+                $options[$name] = array('n' => 0, 'source' => '');
+            }
+            $options[$name]['n']++;
+            if ('' !== $write[1]) {
+                $options[$name]['source'] = $write[1];
+            }
+        }
+        uasort($options, function ($a, $b) {
+            return $b['n'] - $a['n'];
+        });
+        $options = array_slice($options, 0, self::WRITES_MAX, true);
+        unset($options);
+        krsort($stored);
+        update_option(self::WRITES, array_slice($stored, 0, self::DAYS, true), false);
+    }
+
+    /**
+     * Options saved on more than half the page views counted in the last
+     * 7 days, once enough are counted.
+     *
+     * @return array{pages: int, options: array<string,array>} options: name => share (0-1) and source (type:slug)
+     */
+    public static function frequent_writes() {
+        $stored = get_option(self::WRITES, array());
+        $since  = gmdate('Y-m-d', time() - (self::DAYS - 1) * DAY_IN_SECONDS);
+        $pages  = 0;
+        $counts = array();
+        $source = array();
+        foreach (is_array($stored) ? $stored : array() as $day => $data) {
+            if ((string) $day < $since || !isset($data['pages'], $data['options']) || !is_array($data['options'])) {
+                continue;
+            }
+            $pages += (int) $data['pages'];
+            foreach ($data['options'] as $name => $option) {
+                $counts[$name] = (isset($counts[$name]) ? $counts[$name] : 0) + (int) $option['n'];
+                if (!empty($option['source'])) {
+                    $source[$name] = (string) $option['source'];
+                }
+            }
+        }
+        $frequent = array();
+        if ($pages >= self::WRITES_ENOUGH) {
+            arsort($counts);
+            foreach ($counts as $name => $n) {
+                if ($n * 2 > $pages) {
+                    $frequent[(string) $name] = array('share' => min(1, $n / $pages), 'source' => isset($source[$name]) ? $source[$name] : '');
+                }
+            }
+        }
+        return array('pages' => $pages, 'options' => $frequent);
+    }
+
+    /**
+     * Options saved on most page views, as a list: each with the plugin
+     * that saved it, when known, and how often.
+     *
+     * @param array $options From frequent_writes().
+     * @return string
+     */
+    private static function writes_text(array $options) {
+        $plugins = self::active_plugins();
+        $parts   = array();
+        foreach ($options as $name => $option) {
+            $from  = '';
+            $split = explode(':', $option['source'], 2);
+            if ('plugin' === $split[0] && isset($split[1])) {
+                $from = $split[1];
+                $file = isset($plugins[$from]) ? WP_PLUGIN_DIR . '/' . $plugins[$from] : '';
+                if ('' !== $file && is_file($file) && function_exists('get_plugin_data')) {
+                    $data = get_plugin_data($file, false, false);
+                    $from = !empty($data['Name']) ? $data['Name'] : $from;
+                }
+            } elseif (isset($split[1])) {
+                $from = $split[1];
+            }
+            $share   = number_format_i18n(100 * $option['share']) . '%';
+            $parts[] = '' !== $from
+                /* translators: 1: option name, 2: plugin name, 3: share of page views, such as 95%. */
+                ? sprintf(__('%1$s (%2$s, %3$s of page views)', 'seoprostack'), $name, $from, $share)
+                /* translators: 1: option name, 2: share of page views, such as 95%. */
+                : sprintf(__('%1$s (%2$s of page views)', 'seoprostack'), $name, $share);
+        }
+        return implode(', ', $parts);
     }
 
     /**
@@ -642,6 +768,25 @@ class SEOProStack_Hosting_Needs extends SEOProStack_Feature {
     }
 
     /**
+     * Count option writes afresh.
+     */
+    public static function forget_writes() {
+        delete_option(self::WRITES);
+    }
+
+    /**
+     * Ask before licence checks switched: the licence options it keeps
+     * are saved, or not, from now on.
+     *
+     * @param string $key Setting key.
+     */
+    public static function setting_saved($key) {
+        if ('licence_calls' === $key) {
+            self::forget_writes();
+        }
+    }
+
+    /**
      * Whether a page cache serves pages before WordPress loads: an
      * advanced-cache.php drop-in, LiteSpeed's server cache, or a page cache
      * plugin. Caches run by the host outside the site cannot be seen.
@@ -895,6 +1040,7 @@ class SEOProStack_Hosting_Needs extends SEOProStack_Feature {
             'dynamic'    => $dynamic,
             'page_cache' => $page_cache,
             'cdn'        => self::cdn($facts),
+            'writes'     => self::frequent_writes(),
             'measured'   => null !== $seconds,
             'seconds'    => $site['seconds'],
             'plans'      => SEOProStack_Hosting_Plans::plans($site, $now_rps),
@@ -1024,6 +1170,18 @@ class SEOProStack_Hosting_Needs extends SEOProStack_Feature {
                 number_format_i18n($needs['facts']['postmeta']),
                 number_format_i18n($needs['facts']['products'])
             ));
+        }
+        if ($needs['writes']['options']) {
+            $text = sprintf(
+                /* translators: %s: list of option names, each with its plugin and share of page views. */
+                __('These settings are saved again on almost every page view, which slows pages and clears the object cache: %s.', 'seoprostack'),
+                self::writes_text($needs['writes']['options'])
+            );
+            if (!SEOProStack_Settings::get('licence_calls')
+                && array_filter(array_keys($needs['writes']['options']), array('SEOProStack_Option_Writes', 'known'))) {
+                $text .= ' ' . __('Turn on Ask before licence checks: it keeps the licence settings SEO Pro Stack knows are saved this way while their licence is valid.', 'seoprostack');
+            }
+            $advice[] = array('recommended', $text);
         }
         if ($needs['facts']['autoload'] > MB_IN_BYTES) {
             $advice[] = array('recommended', sprintf(
@@ -1969,6 +2127,18 @@ class SEOProStack_Hosting_Needs extends SEOProStack_Feature {
             'label' => __('Options loaded on every request', 'seoprostack'),
             /* translators: 1: size, 2: number of options. */
             'value' => sprintf(__('%1$s in %2$s options', 'seoprostack'), self::size($facts['autoload']), number_format_i18n($facts['autoload_count'])),
+        );
+        $writes = $needs['writes'];
+        $fields['option_writes'] = array(
+            'label' => __('Settings saved on most page views', 'seoprostack'),
+            'value' => $writes['pages'] < self::WRITES_ENOUGH
+                ? sprintf(
+                    /* translators: 1: page views counted so far, 2: page views needed. */
+                    __('Not known yet (%1$s of %2$s page views counted)', 'seoprostack'),
+                    number_format_i18n($writes['pages']),
+                    number_format_i18n(self::WRITES_ENOUGH)
+                )
+                : ($writes['options'] ? self::writes_text($writes['options']) : __('None', 'seoprostack')),
         );
         $fields['php_version'] = array(
             'label' => __('PHP version', 'seoprostack'),
