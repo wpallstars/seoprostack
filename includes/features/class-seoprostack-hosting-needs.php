@@ -439,11 +439,12 @@ class SEOProStack_Hosting_Needs extends SEOProStack_Feature {
      * autoloaded options and products. Read at most hourly, from table
      * statistics rather than counting rows.
      *
-     * @return array db (bytes), postmeta (rows, estimated), autoload (bytes), autoload_count, products.
+     * @return array db (bytes), postmeta (rows, estimated), autoload (bytes), autoload_count, products,
+     *               cdn_probe (from cdn_probe()).
      */
     public static function facts() {
         $facts = get_transient(self::FACTS);
-        if (is_array($facts) && isset($facts['db'], $facts['postmeta'], $facts['autoload'], $facts['autoload_count'], $facts['products'])) {
+        if (is_array($facts) && isset($facts['db'], $facts['postmeta'], $facts['autoload'], $facts['autoload_count'], $facts['products'], $facts['cdn_probe'])) {
             $facts['object_cache'] = self::object_cache_facts();
             return $facts;
         }
@@ -472,6 +473,7 @@ class SEOProStack_Hosting_Needs extends SEOProStack_Feature {
             'autoload'       => isset($autoload['bytes']) ? (int) $autoload['bytes'] : 0,
             'autoload_count' => isset($autoload['n']) ? (int) $autoload['n'] : 0,
             'products'       => $products && isset($products->publish) ? (int) $products->publish : 0,
+            'cdn_probe'      => self::cdn_probe(),
         );
         set_transient(self::FACTS, $facts, HOUR_IN_SECONDS);
         $facts['object_cache'] = self::object_cache_facts();
@@ -663,6 +665,112 @@ class SEOProStack_Hosting_Needs extends SEOProStack_Feature {
     }
 
     /**
+     * The CDN in front of the site, if any: from the headers of the request
+     * being served, a plugin that sets one up, or the headers of the home
+     * page.
+     *
+     * @param array $facts From facts().
+     * @return array state (found, none or unknown) and name (the provider, when found).
+     */
+    private static function cdn(array $facts) {
+        // Headers a CDN adds to the requests it passes to the site.
+        $passed = array(
+            'HTTP_CF_RAY'            => 'Cloudflare',
+            'HTTP_X_SUCURI_CLIENTIP' => 'Sucuri',
+        );
+        foreach ($passed as $header => $name) {
+            if (!empty($_SERVER[$header])) {
+                return array('state' => 'found', 'name' => $name);
+            }
+        }
+        $name = self::cdn_plugin();
+        if ('' !== $name) {
+            return array('state' => 'found', 'name' => $name);
+        }
+        $probe = isset($facts['cdn_probe']) ? (string) $facts['cdn_probe'] : 'unknown';
+        if ('unknown' === $probe || '' === $probe) {
+            return array('state' => '' === $probe ? 'none' : 'unknown', 'name' => '');
+        }
+        return array('state' => 'found', 'name' => $probe);
+    }
+
+    /**
+     * An active plugin that serves the site's files from a CDN.
+     *
+     * @return string Its CDN's name, or an empty string.
+     */
+    private static function cdn_plugin() {
+        $active = self::active_slugs();
+        if (in_array('litespeed-cache', $active, true)) {
+            if (get_option(SEOProStack_Litespeed::PREFIX . 'cdn-quic', false)) {
+                return 'QUIC.cloud';
+            }
+            if (get_option(SEOProStack_Litespeed::PREFIX . 'cdn', false)) {
+                return __('A CDN set up in LiteSpeed Cache', 'seoprostack');
+            }
+        }
+        if (in_array('cloudflare', $active, true) && '' !== (string) get_option('cloudflare_cached_domain_name', '')) {
+            return 'Cloudflare';
+        }
+        if (in_array('bunnycdn', $active, true) && '' !== (string) get_option('bunnycdn_cdn_hostname', '') && (int) get_option('bunnycdn_cdn_status', 1) > 0) {
+            return 'Bunny CDN';
+        }
+        if (in_array('cdn-enabler', $active, true)) {
+            $settings = get_option('cdn_enabler', array());
+            if (is_array($settings) && !empty($settings['cdn_hostname'])) {
+                return __('A CDN set up in CDN Enabler', 'seoprostack');
+            }
+        }
+        if (in_array('jetpack', $active, true) && array_intersect(array('photon', 'photon-cdn'), (array) get_option('jetpack_active_modules', array()))) {
+            return __('Jetpack’s Site Accelerator', 'seoprostack');
+        }
+        return '';
+    }
+
+    /**
+     * Ask the home page for its headers and name the CDN that answered.
+     * Each header is one the provider's own responses carry.
+     *
+     * @return string The CDN's name, an empty string for none, or unknown when the site did not answer.
+     */
+    private static function cdn_probe() {
+        $response = wp_remote_head(home_url('/'), array(
+            'timeout'     => 5,
+            'redirection' => 0,
+            // Core's filter for requests to the site itself, as its loopback test uses.
+            'sslverify'   => apply_filters('https_local_ssl_verify', false), // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- core's own filter.
+        ));
+        if (is_wp_error($response) || !wp_remote_retrieve_response_code($response)) {
+            return 'unknown';
+        }
+        // A header sent more than once comes back as a list.
+        $get    = function ($name) use ($response) {
+            $value = wp_remote_retrieve_header($response, $name);
+            return strtolower(trim(is_array($value) ? implode(', ', $value) : (string) $value));
+        };
+        $has    = function ($name) use ($get) {
+            return '' !== $get($name);
+        };
+        $server = $get('server');
+        if ($has('cf-ray') || 'cloudflare' === $server) {
+            return 'Cloudflare';
+        }
+        if ($has('x-qc-cache')) {
+            return 'QUIC.cloud';
+        }
+        if ($has('cdn-pullzone') || $has('cdn-requestid') || 0 === strpos($server, 'bunnycdn')) {
+            return 'Bunny CDN';
+        }
+        if ($has('x-77-pop') || $has('x-77-cache') || 0 === strpos($server, 'cdn77')) {
+            return 'CDN77';
+        }
+        if ($has('fastly-restarts') || 0 === strpos($get('x-served-by'), 'cache-')) {
+            return 'Fastly';
+        }
+        return '';
+    }
+
+    /**
      * Active plugins that make a shop, membership, course or community
      * site: more visitors are logged in or have a cart, so the page cache
      * serves fewer pages, and those pages take longer.
@@ -745,7 +853,7 @@ class SEOProStack_Hosting_Needs extends SEOProStack_Feature {
      *
      * @param float $budget Seconds to spend measuring plugin code.
      * @return array code, opcache, memory, worker (bytes per PHP worker, or 0), traffic, facts,
-     *               dynamic (plugin names), page_cache, measured (time per request), seconds
+     *               dynamic (plugin names), page_cache, cdn (from cdn()), measured (time per request), seconds
      *               (per request, as the plans use it), plans and
      *               advice (list of status => sentence).
      */
@@ -786,6 +894,7 @@ class SEOProStack_Hosting_Needs extends SEOProStack_Feature {
             'facts'      => $facts,
             'dynamic'    => $dynamic,
             'page_cache' => $page_cache,
+            'cdn'        => self::cdn($facts),
             'measured'   => null !== $seconds,
             'seconds'    => $site['seconds'],
             'plans'      => SEOProStack_Hosting_Plans::plans($site, $now_rps),
@@ -886,6 +995,11 @@ class SEOProStack_Hosting_Needs extends SEOProStack_Feature {
             $advice[] = array('recommended', __('No page cache was found, so every page view runs PHP. A page cache, from your host or a plugin, serves most pages without PHP and cuts the PHP workers you need. If your host caches pages itself, ignore this.', 'seoprostack'));
         }
         $advice = array_merge($advice, self::litespeed_advice());
+        if ('none' === $needs['cdn']['state']) {
+            $advice[] = array('recommended', SEOProStack_Litespeed::is_server()
+                ? __('No CDN was found in front of this site. A CDN serves pages and files from servers near each visitor and takes load off this server; on a LiteSpeed server, use QUIC.cloud (it has a free plan), set up from LiteSpeed Cache. If your host already puts a CDN in front of the site, ignore this.', 'seoprostack')
+                : __('No CDN was found in front of this site. A CDN serves pages and files from servers near each visitor and takes load off this server; Cloudflare’s free plan is set up at Cloudflare, with its Cloudflare plugin here to clear its cache. If your host already puts a CDN in front of the site, ignore this.', 'seoprostack'));
+        }
         $cache  = $needs['facts']['object_cache'];
         if ('unreachable' === $cache['state']) {
             $advice[] = array('recommended', 'LiteSpeed Cache' === $cache['name']
@@ -1825,6 +1939,13 @@ class SEOProStack_Hosting_Needs extends SEOProStack_Feature {
         $fields['page_cache'] = array(
             'label' => __('Page cache', 'seoprostack'),
             'value' => $needs['page_cache'] ? __('Found', 'seoprostack') : __('None found (a cache run by the host cannot be seen)', 'seoprostack'),
+        );
+        $cdn           = $needs['cdn'];
+        $fields['cdn'] = array(
+            'label' => __('CDN', 'seoprostack'),
+            'value' => 'found' === $cdn['state'] ? $cdn['name'] : ('none' === $cdn['state']
+                ? __('None found', 'seoprostack')
+                : __('Unknown (the site did not answer its own request)', 'seoprostack')),
         );
         $fields['object_cache'] = array(
             'label' => __('Persistent object cache', 'seoprostack'),
