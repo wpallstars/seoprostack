@@ -21,7 +21,7 @@ SEO Pro Stack does the jobs that usually take dozens of small plugins: a calmer,
 
 If this saves you time, headaches and costs, feel free to [buy me a coffee](https://buymeacoffee.com/marcusquinn), or whatever you like, to invest in making more things open-source.
 
-Version: 0.14.1
+Version: 0.14.2
 
 <!-- github-only:start -->
 ## Screenshots
@@ -1373,7 +1373,7 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folderâ
 
 ## Changelog
 
-### Unreleased
+### 0.14.2
 
 - Fix: **Load plugins only where needed** with page learning no longer reads code in a page's scripts and styles, such as `items[0]` in a Custom HTML block, as unknown shortcodes, or `[1]` footnote marks as shortcodes. Such pages loaded every plugin (GitHub issue #425).
 - Fix: a page whose content is unknown no longer makes every page of its kind (all posts, say) load every plugin. That page still loads every plugin; the kind is learned from a page with known content (GitHub issue #425).
