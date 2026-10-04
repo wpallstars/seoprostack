@@ -74,6 +74,7 @@ final class SEOProStack_Setup {
         'SEOProStack_Brand_Icons',
         'SEOProStack_Spectra_Blocks',
         'SEOProStack_Term_Displays',
+        'SEOProStack_Kadence_Filters',
         'SEOProStack_Short_Links',
         'SEOProStack_Remove_Cpt_Base',
         'SEOProStack_Gone_Urls',
