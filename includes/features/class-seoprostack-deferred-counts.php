@@ -244,20 +244,20 @@ class SEOProStack_Deferred_Counts extends SEOProStack_Feature {
     }
 
     /**
-     * Never race an active runner when persistence failed or nothing is pending.
+     * Prefer a short lock, but never abort a save when a recount cannot be queued.
      *
      * @param callable $count Immediate recount.
      */
     private static function immediate($count) {
-        if (!self::lock(30)) {
-            wp_die(esc_html__('The recount is busy or the database is unavailable. Please retry this change.', 'seoprostack'), '', array('response' => 503));
-        }
+        $locked = self::lock(2);
         self::$running = true;
         try {
             $count();
         } finally {
             self::$running = false;
-            self::lock(null);
+            if ($locked) {
+                self::lock(null);
+            }
         }
     }
 
