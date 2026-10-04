@@ -1181,6 +1181,10 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folder�
 
 ## Changelog
 
+### Unreleased
+
+- Change: **Pro Plugins** no longer recommends Comment Goblin: its server, commentgoblin.com, answered with a certificate for another name, so its site and update checks failed. Sites that have it keep its fix in **Fixes for other plugins**.
+
 ### 0.11.11
 
 - Developers: `AGENTS.md`, which AI agents read in every session, is now a short map (155 → 89 lines). The preset and starter data procedure moved to `docs/presets.md` and the plugin directory choices to `docs/plugin-directory.md`; `AGENTS.md` says when to read each (`STANDARDS.md` → Agent docs, from the starter). Core files synced from the starter: the release preflight checks `AGENTS.md` and `docs/`, `docs/` never ships, a failing settings options list no longer stops a page, and `scripts/sync-core.sh` can update itself. Nothing changes for users.

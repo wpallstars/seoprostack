@@ -90,21 +90,6 @@ if (!defined('ABSPATH')) {
             ),
             'free_slug' => 'code-snippets'
         ),
-        'comment-goblin' => array(
-            'name' => 'Comment Goblin',
-            'description' => 'Advanced comment management and spam protection system.',
-            'button_group' => array(
-                array(
-                    'text' => 'Home Page',
-                    'url' => 'https://commentgoblin.com/',
-                    'primary' => true
-                ),
-                array(
-                    'text' => 'Pricing',
-                    'url' => 'https://commentgoblin.com/#pricing'
-                )
-            )
-        ),
         'complianz-gdpr' => array(
             'name' => 'Complianz Privacy Suite',
             'description' => 'Complete GDPR/CCPA compliance solution with advanced features.',

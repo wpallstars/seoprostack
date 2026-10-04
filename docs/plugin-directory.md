@@ -22,5 +22,9 @@ Plugins and Pro Plugins (`admin/data/free-plugins.php`,
   (`wp-faq-builder`) and Testimonials Builder (`testimonials-builder`) are
   not recommendations: last updated in 2017, 2018 and 2019 respectively
   (WordPress.org checked 2026-10-03).
+- Do not recommend Comment Goblin (owner's choice, 2026-10-04): its
+  commentgoblin.com server served a certificate for another name, so its
+  site and update checks failed. Its fix in Fixes for other plugins and its
+  admin menu group stay for sites that have it installed.
 - A plugin that a feature replaces leaves the list: see `AGENTS.md` →
   Features.
