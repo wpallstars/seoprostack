@@ -70,6 +70,11 @@ this plugin's WordPress.org submission state: `LAUNCH.md`. Past changes:
 - Load plugins only where needed skips plugins on some requests. When
   checking the debug log, look for messages from a skipped plugin too: they
   are SEO Pro Stack's to fix.
+- Affiliate and referral links (Discover tabs, Theme panel) are for GitHub
+  builds only (owner's decision, #77): whenever you add one, add it, or its
+  referral query, to `.wporg-links` with its plain address, so the
+  WordPress.org build has none. Link straight to the service, never through
+  a redirect or short link.
 
 ## Task docs
 
