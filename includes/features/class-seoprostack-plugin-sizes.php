@@ -147,13 +147,13 @@ class SEOProStack_Plugin_Sizes extends SEOProStack_Feature {
         $parts = array();
         foreach (self::GROUPS as $group) {
             if (!empty($sizes[$group])) {
-                $parts[] = sprintf('<span>%1$s %2$s</span>', esc_html($labels[$group]), esc_html(size_format($sizes[$group], 1)));
+                $parts[] = sprintf('<span>%1$s %2$s</span>', esc_html($labels[$group]), esc_html((string) size_format($sizes[$group], 1)));
             }
         }
         return sprintf(
             '<span class="sps-size" data-sps-size="%1$d"><strong>%2$s</strong>%3$s</span>',
             (int) $sizes['total'],
-            esc_html(size_format($sizes['total'], 1)),
+            esc_html((string) size_format($sizes['total'], 1)),
             $parts ? '<span class="sps-size__parts">' . implode(' ', $parts) . '</span>' : ''
         );
     }

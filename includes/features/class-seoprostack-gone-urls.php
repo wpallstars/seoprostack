@@ -84,7 +84,7 @@ class SEOProStack_Gone_Urls extends SEOProStack_Feature {
         $home = wp_parse_url(home_url('/'));
         if (preg_match('#^(https?:)?//#i', $url)) {
             $parts = wp_parse_url($url);
-            if (empty($parts['host']) || strtolower($parts['host']) !== strtolower($home['host'])) {
+            if (!is_array($parts) || !is_array($home) || empty($parts['host']) || empty($home['host']) || strtolower($parts['host']) !== strtolower($home['host'])) {
                 return null;
             }
             $url = isset($parts['path']) ? $parts['path'] : '/';
@@ -102,7 +102,7 @@ class SEOProStack_Gone_Urls extends SEOProStack_Feature {
      */
     public static function rules() {
         $rules = array();
-        foreach (preg_split('/\n/', (string) SEOProStack_Settings::get('gone_urls_list'), -1, PREG_SPLIT_NO_EMPTY) as $line) {
+        foreach (preg_split('/\n/', (string) SEOProStack_Settings::get('gone_urls_list'), -1, PREG_SPLIT_NO_EMPTY) ?: array() as $line) {
             $prefix = '*' === substr($line, -1);
             $path   = self::normalise($prefix ? substr($line, 0, -1) : $line);
             if (null !== $path && '' !== $path) {
@@ -179,7 +179,7 @@ class SEOProStack_Gone_Urls extends SEOProStack_Feature {
             return;
         }
 
-        $lines   = preg_split('/\n/', (string) SEOProStack_Settings::get('gone_urls_list'), -1, PREG_SPLIT_NO_EMPTY);
+        $lines   = preg_split('/\n/', (string) SEOProStack_Settings::get('gone_urls_list'), -1, PREG_SPLIT_NO_EMPTY) ?: array();
         $lines[] = trailingslashit($path);
         SEOProStack_Settings::set('gone_urls_list', implode("\n", array_slice($lines, -self::MAX_AUTO)));
     }

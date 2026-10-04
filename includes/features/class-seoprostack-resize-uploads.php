@@ -499,7 +499,7 @@ class SEOProStack_Resize_Uploads extends SEOProStack_Feature {
     public static function resize_attachment($attachment_id) {
         $attachment_id = (int) $attachment_id;
         $file          = get_attached_file($attachment_id);
-        $mime          = get_post_mime_type($attachment_id);
+        $mime          = (string) get_post_mime_type($attachment_id);
         $meta          = wp_get_attachment_metadata($attachment_id);
         if (!$file || !is_file($file) || !is_array($meta) || !wp_attachment_is_image($attachment_id) || 'image/svg+xml' === $mime) {
             return new WP_Error('resize_not_image', __('Not a picture that can be resized.', 'seoprostack'));

@@ -191,7 +191,7 @@ class SEOProStack_Wikipedia_Previews extends SEOProStack_Feature {
      * @return string
      */
     private static function site_lang() {
-        $lang = self::clean_lang(strtok(str_replace('_', '-', (string) get_locale()), '-'));
+        $lang = self::clean_lang((string) strtok(str_replace('_', '-', (string) get_locale()), '-'));
         return '' !== $lang ? $lang : 'en';
     }
 

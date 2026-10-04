@@ -224,6 +224,6 @@ class SEOProStack_Hosting_Plans {
                 return $step;
             }
         }
-        return end($steps);
+        return (int) end($steps);
     }
 }

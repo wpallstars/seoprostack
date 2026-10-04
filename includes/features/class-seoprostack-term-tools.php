@@ -389,7 +389,8 @@ class SEOProStack_Term_Tools extends SEOProStack_Feature {
         if ($screen && is_taxonomy_hierarchical($screen->taxonomy)) {
             $actions['seoprostack_parent'] = __('Set parent…', 'seoprostack');
         }
-        if ($screen && taxonomy_exists($screen->taxonomy) && get_taxonomy($screen->taxonomy)->public) {
+        $taxonomy = $screen ? get_taxonomy($screen->taxonomy) : false;
+        if ($taxonomy && $taxonomy->public) {
             $actions['seoprostack_pattern'] = __('Apply slug pattern', 'seoprostack');
         }
         return $actions;
@@ -526,6 +527,9 @@ class SEOProStack_Term_Tools extends SEOProStack_Feature {
         if ('' === $name) {
             return 'merge_name';
         }
+        if ('' === $taxonomy) {
+            return 'failed';
+        }
         $target = get_term_by('name', $name, $taxonomy);
         if (!$target) {
             // A name that only matches by slug, such as different capitals.
@@ -556,7 +560,8 @@ class SEOProStack_Term_Tools extends SEOProStack_Feature {
             }
             // Children move to the merged term, not to the old term's parent.
             if (is_taxonomy_hierarchical($taxonomy)) {
-                foreach (get_terms(array('taxonomy' => $taxonomy, 'parent' => $term->term_id, 'hide_empty' => false, 'fields' => 'ids')) as $child) {
+                $children = get_terms(array('taxonomy' => $taxonomy, 'parent' => $term->term_id, 'hide_empty' => false, 'fields' => 'ids'));
+                foreach (is_array($children) ? $children : array() as $child) {
                     if ((int) $child !== $target->term_id) {
                         wp_update_term((int) $child, $taxonomy, array('parent' => $target->term_id));
                     }
@@ -566,7 +571,7 @@ class SEOProStack_Term_Tools extends SEOProStack_Feature {
                 }
             }
             $old = array_merge(array($taxonomy . ':' . $term->slug), (array) get_term_meta($term->term_id, self::OLD, false));
-            $deleted = wp_delete_term($term->term_id, $taxonomy, array('default' => $target->term_id, 'force_default' => true));
+            $deleted = wp_delete_term($term->term_id, $taxonomy, array('default' => max(1, $target->term_id), 'force_default' => true));
             if (true !== $deleted) {
                 continue;
             }
@@ -601,7 +606,8 @@ class SEOProStack_Term_Tools extends SEOProStack_Feature {
         foreach ($term_ids as $id) {
             $ids[] = (int) $id;
             if (is_taxonomy_hierarchical($from)) {
-                $ids = array_merge($ids, array_map('intval', get_term_children((int) $id, $from)));
+                $children = get_term_children((int) $id, $from);
+                $ids      = array_merge($ids, is_array($children) ? array_map('intval', $children) : array());
             }
         }
         $ids     = array_values(array_unique($ids));

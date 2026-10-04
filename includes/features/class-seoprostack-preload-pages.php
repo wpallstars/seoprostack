@@ -171,7 +171,7 @@ class SEOProStack_Preload_Pages extends SEOProStack_Feature {
      */
     public static function patterns() {
         $patterns = array();
-        foreach (preg_split('/\n/', (string) SEOProStack_Settings::get('preload_pages_exclude'), -1, PREG_SPLIT_NO_EMPTY) as $line) {
+        foreach (preg_split('/\n/', (string) SEOProStack_Settings::get('preload_pages_exclude'), -1, PREG_SPLIT_NO_EMPTY) ?: array() as $line) {
             $line = trim($line);
             if ('' === $line) {
                 continue;

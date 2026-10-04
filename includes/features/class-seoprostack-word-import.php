@@ -629,7 +629,9 @@ class SEOProStack_Word_Import extends SEOProStack_Feature {
         $flush   = function () use (&$out, &$buffer, &$current) {
             if (null !== $current && '' !== $buffer) {
                 // Spaces at the ends stay outside the formatting: "word <strong>bold</strong> word".
-                preg_match('/^(\s*)(.*?)(\s*)$/s', $buffer, $m);
+                if (!preg_match('/^(\s*)(.*?)(\s*)$/s', $buffer, $m)) {
+                    $m = array($buffer, '', $buffer, ''); // A PCRE limit: keep the text, untrimmed.
+                }
                 $html = $m[2];
                 if ('' !== $html) {
                     // Formats inside links: <a><strong>…</strong></a>.

@@ -305,7 +305,7 @@ class SEOProStack_Screenshots extends SEOProStack_Feature {
 
         $classes = array('browser-shot');
         foreach (array($a['image_class'], $a['class']) as $class) {
-            foreach (preg_split('/\s+/', (string) $class, -1, PREG_SPLIT_NO_EMPTY) as $name) {
+            foreach (preg_split('/\s+/', (string) $class, -1, PREG_SPLIT_NO_EMPTY) ?: array() as $name) {
                 $classes[] = sanitize_html_class($name);
             }
         }
@@ -541,7 +541,7 @@ class SEOProStack_Screenshots extends SEOProStack_Feature {
         $link = '' !== $args['link'] ? esc_url($args['link']) : '';
         if ('' !== $link) {
             $target = in_array($args['target'], array('_blank', '_self', '_parent', '_top'), true) ? $args['target'] : '';
-            $rel    = preg_split('/\s+/', strtolower(preg_replace('/[^A-Za-z\s-]/', '', (string) $args['rel'])), -1, PREG_SPLIT_NO_EMPTY);
+            $rel    = preg_split('/\s+/', strtolower((string) preg_replace('/[^A-Za-z\s-]/', '', (string) $args['rel'])), -1, PREG_SPLIT_NO_EMPTY) ?: array();
             if ('_blank' === $target) {
                 $rel[] = 'noopener';
             }
@@ -993,8 +993,8 @@ class SEOProStack_Screenshots extends SEOProStack_Feature {
                 $request['url'] = add_query_arg(array_map('rawurlencode', array(
                     'access_key'    => $key,
                     'url'           => $url,
-                    'width'         => $width,
-                    'height'        => $height,
+                    'width'         => (string) $width,
+                    'height'        => (string) $height,
                     'format'        => $png ? 'png' : 'jpeg',
                     'fresh'         => 'true',
                     'response_type' => 'image',
@@ -1021,8 +1021,8 @@ class SEOProStack_Screenshots extends SEOProStack_Feature {
                     'screenshot'                   => 'true',
                     'meta'                         => 'false',
                     'type'                         => $png ? 'png' : 'jpeg',
-                    'viewport.width'               => $width,
-                    'viewport.height'              => $height,
+                    'viewport.width'               => (string) $width,
+                    'viewport.height'              => (string) $height,
                     'viewport.deviceScaleFactor'   => '1',
                 )), '' !== $key ? 'https://pro.microlink.io/' : 'https://api.microlink.io/');
                 if ('' !== $key) {
@@ -1106,7 +1106,8 @@ class SEOProStack_Screenshots extends SEOProStack_Feature {
 
         $status = (int) wp_remote_retrieve_response_code($response);
         // Screenshot Machine answers errors with a picture and this header.
-        $problem = (string) wp_remote_retrieve_header($response, 'x-screenshotmachine-response');
+        $problem = wp_remote_retrieve_header($response, 'x-screenshotmachine-response');
+        $problem = is_array($problem) ? implode(', ', $problem) : (string) $problem;
         if (200 !== $status || '' !== $problem) {
             $message = '' !== $problem ? $problem : trim(wp_strip_all_tags((string) file_get_contents($tmp, false, null, 0, 300))); // phpcs:ignore WordPress.WP.AlternativeFunctions -- our temporary file.
             wp_delete_file($tmp);

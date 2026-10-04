@@ -334,7 +334,7 @@ class SEOProStack_Preview_Links extends SEOProStack_Feature {
         }
         $cfg = self::editor_config($post);
         ?>
-        <div class="misc-pub-section seoprostack-preview-link" data-config="<?php echo esc_attr(wp_json_encode($cfg)); ?>">
+        <div class="misc-pub-section seoprostack-preview-link" data-config="<?php echo esc_attr((string) wp_json_encode($cfg)); ?>">
             <label><input type="checkbox" class="seoprostack-preview-toggle" <?php checked('' !== $cfg['url']); ?> /> <?php echo esc_html($cfg['i18n']['label']); ?></label>
             <p class="seoprostack-preview-url"<?php echo '' === $cfg['url'] ? ' hidden' : ''; ?>>
                 <input type="text" class="widefat code" readonly value="<?php echo esc_attr($cfg['url']); ?>" aria-label="<?php echo esc_attr($cfg['i18n']['label']); ?>" onfocus="this.select()" />

@@ -230,7 +230,7 @@ class SEOProStack_Admin_Bar_More extends SEOProStack_Feature {
             return $theme->exists() ? (string) $theme->get('Name') : null;
         }
         if (0 === strpos($source, 'mu--')) {
-            $name = substr($source, 4);
+            $name = (string) substr($source, 4);
             if (!function_exists('get_mu_plugins')) {
                 require_once ABSPATH . 'wp-admin/includes/plugin.php';
             }

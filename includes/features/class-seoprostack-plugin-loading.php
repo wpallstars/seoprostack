@@ -957,7 +957,7 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
         // As core builds Customize's return= link; core escapes menu links when it prints them.
         $uri = isset($_SERVER['REQUEST_URI']) ? remove_query_arg(wp_removable_query_args(), wp_unslash($_SERVER['REQUEST_URI'])) : ''; // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- only compared with menu links and put back into them.
         if (!is_string($uri) || '' === $uri) {
-            $uri = wp_parse_url(admin_url('/'), PHP_URL_PATH);
+            $uri = (string) wp_parse_url(admin_url('/'), PHP_URL_PATH);
         }
         return array(
             '{sps-here:u}' => urlencode($uri), // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.urlencode_urlencode -- form encoding on purpose; {sps-here:r} is the raw one.
@@ -2314,7 +2314,7 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
                 'pro'       => 'Elementor Pro tested up to',
             ));
             // The name before a tagline: "FluentCRM - Marketing Automation" is "fluentcrm".
-            $name = self::plain_name(preg_split('/\s+[-–—:|]\s+/u', (string) $headers_of[$slug]['name'])[0]);
+            $name = self::plain_name(self::before_tagline((string) $headers_of[$slug]['name']));
             if ('' !== $name && !isset($by_name[$name])) {
                 $by_name[$name] = $slug;
             }
@@ -2340,7 +2340,7 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
             }
             // "FluentCRM Pro" and "Fluent Forms Pro Add On Pack" need
             // "FluentCRM" and "Fluent Forms".
-            $pro_name = preg_split('/\s+[-–—:|]\s+/u', (string) $headers['name'])[0];
+            $pro_name = self::before_tagline((string) $headers['name']);
             if (preg_match('/\b(pro|premium)\b/i', $pro_name)) {
                 $stripped = self::plain_name(preg_replace('/\b(pro|premium|add[\s-]*ons?|addons?|pack)\b/i', '', $pro_name));
                 if ('' !== $stripped && isset($by_name[$stripped])) {
@@ -2380,6 +2380,18 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
             $deps[$file] = array_values(array_unique(array_merge(isset($deps[$file]) ? $deps[$file] : array(), $files)));
         }
         return $deps;
+    }
+
+    /**
+     * A plugin name without its tagline: "FluentCRM - Marketing Automation"
+     * is "FluentCRM". A name that is not valid UTF-8 is returned whole.
+     *
+     * @param string $name Plugin name.
+     * @return string
+     */
+    private static function before_tagline($name) {
+        $parts = preg_split('/\s+[-–—:|]\s+/u', $name);
+        return is_array($parts) && isset($parts[0]) ? $parts[0] : $name;
     }
 
     /**

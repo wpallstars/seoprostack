@@ -330,7 +330,7 @@ class SEOProStack_Auto_Upload extends SEOProStack_Feature {
             return new WP_Error('seoprostack_not_image', __('The file is not an allowed image type.', 'seoprostack'));
         }
 
-        $extension = wp_get_default_extension_for_mime_type($mime);
+        $extension = (string) wp_get_default_extension_for_mime_type($mime);
         $tmp       = $this->maybe_resize($tmp, $mime, $extension);
 
         $file = array(
@@ -363,7 +363,8 @@ class SEOProStack_Auto_Upload extends SEOProStack_Feature {
          */
         do_action('seoprostack_image_imported', $attachment_id, $url, $post_id);
 
-        return wp_get_attachment_url($attachment_id);
+        $local = wp_get_attachment_url($attachment_id);
+        return $local ? $local : new WP_Error('seoprostack_no_url', __('The imported image has no address.', 'seoprostack'));
     }
 
     /**

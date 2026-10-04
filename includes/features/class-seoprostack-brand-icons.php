@@ -310,7 +310,7 @@ class SEOProStack_Brand_Icons extends SEOProStack_Feature {
         $color = '' !== $args['color'] ? $args['color'] : self::brand_color($icon['hex']);
         $size  = '' !== $args['size'] ? $args['size'] : '1.5rem';
         $class = 'sps-brand-icon simple-icon-' . $slug;
-        foreach (preg_split('/\s+/', (string) $args['class']) as $extra) {
+        foreach (preg_split('/\s+/', (string) $args['class']) ?: array() as $extra) {
             $extra = sanitize_html_class($extra);
             $class .= '' !== $extra ? ' ' . $extra : '';
         }
@@ -382,7 +382,7 @@ class SEOProStack_Brand_Icons extends SEOProStack_Feature {
             'class'     => '',
             'cache'     => 'true',
             'title_tag' => 'true',
-        ), $atts, 'simple_icon');
+        ), (array) $atts, 'simple_icon');
         $slug = self::find($atts['name']);
         if ('' === $slug) {
             return '';

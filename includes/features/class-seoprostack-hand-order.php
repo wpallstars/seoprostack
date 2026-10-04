@@ -255,7 +255,7 @@ class SEOProStack_Hand_Order extends SEOProStack_Feature {
      */
     public static function terms_clauses($clauses, $taxonomies, $args) {
         global $wpdb;
-        if (1 !== count((array) $taxonomies) || !self::taxonomy_enabled(reset($taxonomies))) {
+        if (1 !== count((array) $taxonomies) || !self::taxonomy_enabled((string) reset($taxonomies))) {
             return $clauses;
         }
         if (empty($args['orderby']) || 'name' !== $args['orderby'] || (isset($args['fields']) && 'count' === $args['fields'])) {
@@ -526,8 +526,13 @@ class SEOProStack_Hand_Order extends SEOProStack_Feature {
             // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- reads every row's place; not cached.
             $rows = $wpdb->get_results($wpdb->prepare("SELECT ID, menu_order FROM {$wpdb->posts} WHERE post_type = %s AND post_status NOT IN ('trash', 'auto-draft', 'inherit') ORDER BY menu_order ASC, post_date DESC, ID ASC", $type));
         }
-        $all     = array_map('intval', wp_list_pluck($rows, 'ID'));
-        $current = array_combine($all, array_map('intval', wp_list_pluck($rows, 'menu_order')));
+        $all     = array();
+        $current = array();
+        foreach ((array) $rows as $row) {
+            $id           = (int) $row->ID;
+            $all[]        = $id;
+            $current[$id] = (int) $row->menu_order;
+        }
         $changed = array();
         foreach (self::permute($all, $ids) as $i => $id) {
             if ($current[$id] !== $i + 1) {

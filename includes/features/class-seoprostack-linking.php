@@ -238,7 +238,7 @@ class SEOProStack_Linking extends SEOProStack_Feature {
             }
             $scan = get_post_meta($post->ID, SEOProStack_Link_Index::META, true);
             $current = is_array($scan) && isset($scan['hash']) && hash_equals($scan['hash'], hash('sha256', $post->post_content));
-            echo '<tr><td data-label="' . esc_attr__('Page', 'seoprostack') . '"><a href="' . esc_url(get_permalink($post)) . '">' . esc_html($post->post_title) . '</a>';
+            echo '<tr><td data-label="' . esc_attr__('Page', 'seoprostack') . '"><a href="' . esc_url((string) get_permalink($post)) . '">' . esc_html($post->post_title) . '</a>';
             if ('native' === $data['provider'] && (!$current || !empty($scan['truncated']))) {
                 echo '<br><strong>' . esc_html__('Incomplete or stale scan', 'seoprostack') . '</strong>';
             }
@@ -271,7 +271,7 @@ class SEOProStack_Linking extends SEOProStack_Feature {
             echo '<p>' . esc_html__('No safe text matches in this candidate set. Try incoming links, a specific target, or edit the source manually.', 'seoprostack') . '</p>';
         }
         foreach ($results as $proposal) {
-            echo '<section class="sps-link-opportunity"><h3>' . esc_html(get_the_title($proposal['source'])) . ' → ' . esc_html(get_the_title($proposal['target'])) . '</h3><p>' . esc_html($proposal['context']) . '</p><p><a href="' . esc_url(get_permalink($proposal['target'])) . '">' . esc_html__('View target page', 'seoprostack') . '</a> · <a href="' . esc_url(get_edit_post_link($proposal['source'])) . '">' . esc_html__('Edit source manually', 'seoprostack') . '</a></p>';
+            echo '<section class="sps-link-opportunity"><h3>' . esc_html(get_the_title($proposal['source'])) . ' → ' . esc_html(get_the_title($proposal['target'])) . '</h3><p>' . esc_html($proposal['context']) . '</p><p><a href="' . esc_url((string) get_permalink($proposal['target'])) . '">' . esc_html__('View target page', 'seoprostack') . '</a> · <a href="' . esc_url((string) get_edit_post_link($proposal['source'])) . '">' . esc_html__('Edit source manually', 'seoprostack') . '</a></p>';
             if ($proposal['editable']) {
                 self::form('insert', $proposal['source'], $proposal['target']);
                 echo '<input type="hidden" name="phrase" value="' . esc_attr($proposal['phrase']) . '"><input type="hidden" name="hash" value="' . esc_attr($proposal['hash']) . '">';
@@ -304,7 +304,7 @@ class SEOProStack_Linking extends SEOProStack_Feature {
         $rows = $wpdb->get_results("SELECT url,status,redirects,checked_at,error FROM {$wpdb->prefix}seoprostack_link_health ORDER BY checked_at DESC LIMIT 100");
         echo '<div class="sps-link-table"><table class="widefat striped"><thead><tr><th scope="col">' . esc_html__('Address', 'seoprostack') . '</th><th scope="col">' . esc_html__('HTTP / error', 'seoprostack') . '</th><th scope="col">' . esc_html__('Redirects', 'seoprostack') . '</th><th scope="col">' . esc_html__('Checked', 'seoprostack') . '</th></tr></thead><tbody>';
         foreach ($rows as $row) {
-            echo '<tr><td data-label="' . esc_attr__('Address', 'seoprostack') . '">' . esc_html($row->url) . '</td><td data-label="' . esc_attr__('HTTP / error', 'seoprostack') . '">' . esc_html($row->error ? $row->error : ($row->status ? (string) $row->status : __('Pending', 'seoprostack'))) . '</td><td data-label="' . esc_attr__('Redirects', 'seoprostack') . '">' . esc_html((string) $row->redirects) . '</td><td data-label="' . esc_attr__('Checked', 'seoprostack') . '">' . esc_html($row->checked_at ? wp_date('Y-m-d H:i', (int) $row->checked_at) : '—') . '</td></tr>';
+            echo '<tr><td data-label="' . esc_attr__('Address', 'seoprostack') . '">' . esc_html($row->url) . '</td><td data-label="' . esc_attr__('HTTP / error', 'seoprostack') . '">' . esc_html($row->error ? $row->error : ($row->status ? (string) $row->status : __('Pending', 'seoprostack'))) . '</td><td data-label="' . esc_attr__('Redirects', 'seoprostack') . '">' . esc_html((string) $row->redirects) . '</td><td data-label="' . esc_attr__('Checked', 'seoprostack') . '">' . esc_html($row->checked_at ? (string) wp_date('Y-m-d H:i', (int) $row->checked_at) : '—') . '</td></tr>';
         }
         echo '</tbody></table></div>';
     }

@@ -398,7 +398,8 @@ class SEOProStack_Replace_Media extends SEOProStack_Feature {
         if (is_array($new_meta)) {
             wp_update_attachment_metadata($attachment_id, $new_meta);
         }
-        $new_file = get_attached_file($attachment_id, true);
+        $attached = get_attached_file($attachment_id, true);
+        $new_file = $attached ? $attached : $new_file;
         $new_meta = is_array($new_meta) ? $new_meta : array();
 
         $posts = self::update_links($old_urls, self::file_urls($attachment_id, $new_file, $new_meta, array()));

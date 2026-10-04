@@ -415,7 +415,7 @@ JS;
                     'confirm' => sprintf(_n('Remove %s old address? Links to it will show “not found”.', 'Remove all %s old addresses? Links to them will show “not found”.', $total, 'seoprostack'), $count),
                 );
                 ?>
-                <form id="sps-old-addresses" method="post" action="<?php echo esc_url(admin_url('admin-post.php')); ?>" data-total="<?php echo (int) $total; ?>" data-i18n="<?php echo esc_attr(wp_json_encode($i18n)); ?>">
+                <form id="sps-old-addresses" method="post" action="<?php echo esc_url(admin_url('admin-post.php')); ?>" data-total="<?php echo (int) $total; ?>" data-i18n="<?php echo esc_attr((string) wp_json_encode($i18n)); ?>">
                     <input type="hidden" name="action" value="<?php echo esc_attr(self::ACTION); ?>">
                     <input type="hidden" name="all" value="">
                     <?php wp_nonce_field(self::ACTION); ?>
@@ -468,7 +468,7 @@ JS;
                             <tr>
                                 <th scope="row" class="check-column"><input type="checkbox" name="mids[]" value="<?php echo (int) $row->meta_id; ?>" aria-label="<?php echo esc_attr($slug); ?>"></th>
                                 <td>
-                                    <strong><?php echo $url ? '<a href="' . esc_url($url) . '">' . esc_html(wp_parse_url($url, PHP_URL_PATH)) . '</a>' : esc_html($slug); ?></strong>
+                                    <strong><?php echo $url ? '<a href="' . esc_url($url) . '">' . esc_html((string) wp_parse_url($url, PHP_URL_PATH)) . '</a>' : esc_html($slug); ?></strong>
                                     <?php if (current_user_can('edit_post', $post->ID)) : ?>
                                         <div class="row-actions"><span class="delete"><a class="submitdelete" href="<?php echo esc_url($remove); ?>"><?php esc_html_e('Remove', 'seoprostack'); ?></a></span></div>
                                     <?php endif; ?>
