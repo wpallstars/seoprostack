@@ -5,7 +5,7 @@ Tags: magic login, iframe, schedule posts, auto upload images, admin
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 0.14.2
+Stable tag: 0.15.0
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -137,9 +137,10 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 
 == Changelog ==
 
-= 0.14.2 =
-* Fix: page learning skips fewer pages: code in scripts and styles is not read as shortcodes.
-* Fix: one page with unknown content no longer makes its kind load every plugin.
-* Change: WordPress.org gets each version 30 days after GitHub.
+= 0.15.0 =
+* New: count terms and comments in the background (off).
+* New: faster page counts on long lists (off).
+* Fix: no Monarx cron errors in error_log on Hostinger.
+* Change: licence GPL-3.0-or-later with attribution terms.
 
 Older: `changelog.txt`.

@@ -21,7 +21,7 @@ SEO Pro Stack does the jobs that usually take dozens of small plugins: a calmer,
 
 If this saves you time, headaches and costs, feel free to [buy me a coffee](https://buymeacoffee.com/marcusquinn), or whatever you like, to invest in making more things open-source.
 
-Version: 0.14.2
+Version: 0.15.0
 
 <!-- github-only:start -->
 ## Screenshots
@@ -1386,7 +1386,7 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folderâ
 
 ## Changelog
 
-### Unreleased
+### 0.15.0
 
 - New, off by default: **Count terms and comments in the background** (Server) batches recounts after saves, imports and deletions, with a five-minute scheduled task and **Recount now**. Preserves taxonomy callbacks, including WooCommerce's; counts can lag, including the first approved comment. Switching off flushes a batch and finishes any remainder in the background (GitHub issue #429).
 - New: **Faster page counts on long lists** (Server, off by default) counts matching rows separately from paged post queries, keeping exact totals and page numbers (GitHub issue #430).
