@@ -963,7 +963,7 @@ class SEOProStack_Admin_Menu extends SEOProStack_Feature {
      * File and query arguments of an address.
      *
      * @param string $slug Address.
-     * @return array{file: string, args: array<string,string>}
+     * @return array{file: string, args: array<int|string,string>}
      */
     private static function parse_slug($slug) {
         $slug  = str_replace('&amp;', '&', (string) $slug);

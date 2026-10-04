@@ -98,7 +98,7 @@ final class SEOProStack_Link_Clicks {
         $origin = $request->get_header('origin');
         $home = wp_parse_url(home_url());
         $parts = $origin ? wp_parse_url($origin) : false;
-        if ($origin && (!is_array($parts) || !isset($parts['host'], $parts['scheme']) || strtolower($parts['host']) !== strtolower($home['host']) || $parts['scheme'] !== $home['scheme'] || (isset($parts['port']) ? $parts['port'] : 0) !== (isset($home['port']) ? $home['port'] : 0))) {
+        if ($origin && (!is_array($parts) || !is_array($home) || !isset($parts['host'], $parts['scheme'], $home['host'], $home['scheme']) || strtolower($parts['host']) !== strtolower($home['host']) || $parts['scheme'] !== $home['scheme'] || (isset($parts['port']) ? $parts['port'] : 0) !== (isset($home['port']) ? $home['port'] : 0))) {
             return new WP_Error('origin', __('This event is not from this site.', 'seoprostack'), array('status' => 403));
         }
         $post_id = absint($request['post']);

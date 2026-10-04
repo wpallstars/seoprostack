@@ -143,7 +143,7 @@ class SEOProStack_Menu_Visibility extends SEOProStack_Feature {
     /**
      * Whether the current visitor sees an item.
      *
-     * @param WP_Post|object $item Menu item.
+     * @param WP_Post|object{ID: int|string} $item Menu item.
      * @return bool
      */
     public static function visible($item) {
@@ -199,7 +199,7 @@ class SEOProStack_Menu_Visibility extends SEOProStack_Feature {
             $found = false;
             foreach ($items as $item) {
                 $parent = isset($item->menu_item_parent) ? (int) $item->menu_item_parent : 0;
-                if ($parent && isset($hidden[$parent]) && !isset($hidden[(int) $item->ID])) {
+                if ($parent && isset($item->ID, $hidden[$parent]) && !isset($hidden[(int) $item->ID])) {
                     $hidden[(int) $item->ID] = true;
                     $found                   = true;
                 }

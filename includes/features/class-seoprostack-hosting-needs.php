@@ -478,7 +478,14 @@ class SEOProStack_Hosting_Needs extends SEOProStack_Feature {
                 }
             }
         }
-        return array_intersect_key(array_merge(self::kinds(), $peaks), $peaks); // Display order.
+        // Display order; only kinds with a label (others cannot be shown).
+        $ordered = array();
+        foreach (array_keys(self::kinds()) as $kind) {
+            if (isset($peaks[$kind])) {
+                $ordered[$kind] = $peaks[$kind];
+            }
+        }
+        return $ordered;
     }
 
     /* ------------------------------------------------------------------
@@ -1316,7 +1323,7 @@ class SEOProStack_Hosting_Needs extends SEOProStack_Feature {
                 self::writes_text($needs['writes']['options'])
             );
             if (!SEOProStack_Settings::get('licence_calls')
-                && array_filter(array_keys($needs['writes']['options']), array('SEOProStack_Option_Writes', 'known'))) {
+                && array_filter(array_map('strval', array_keys($needs['writes']['options'])), array('SEOProStack_Option_Writes', 'known'))) {
                 $text .= ' ' . __('Turn on Ask before licence checks: it keeps the licence settings SEO Pro Stack knows are saved this way while their licence is valid.', 'seoprostack');
             }
             $advice[] = array('recommended', $text);

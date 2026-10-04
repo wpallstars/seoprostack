@@ -382,7 +382,7 @@ final class SEOProStack_Link_Index {
                 $response = wp_safe_remote_get($url, $args);
             }
             if (is_wp_error($response)) {
-                $result['error'] = sanitize_key($response->get_error_code());
+                $result['error'] = sanitize_key((string) $response->get_error_code());
                 break;
             }
             $result['status'] = wp_remote_retrieve_response_code($response);
@@ -404,8 +404,8 @@ final class SEOProStack_Link_Index {
     public static function report($page) {
         $page = max(1, (int) $page);
         if ('rank_math' === self::provider()) {
-            $controller = self::rank_math_api();
-            $data = call_user_func(array($controller, 'get_posts_data'), array('page' => $page, 'per_page' => 30, 'post_type' => self::types()));
+            $callback = array(self::rank_math_api(), 'get_posts_data');
+            $data = is_callable($callback) ? call_user_func($callback, array('page' => $page, 'per_page' => 30, 'post_type' => self::types())) : null;
             if (is_array($data) && isset($data['posts'], $data['pages'])) {
                 return array('posts' => $data['posts'], 'pages' => (int) $data['pages'], 'provider' => 'rank_math');
             }
@@ -414,6 +414,9 @@ final class SEOProStack_Link_Index {
         $rows = array();
         global $wpdb;
         foreach ($query->posts as $post) {
+            if (!$post instanceof WP_Post) {
+                continue; // A pre_get_posts filter asked for IDs only.
+            }
             // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- only the fallback index supplies these counts.
             $out = $wpdb->get_results($wpdb->prepare("SELECT kind,SUM(occurrences) AS amount FROM {$wpdb->prefix}seoprostack_links WHERE post_id = %d GROUP BY kind", $post->ID), OBJECT_K);
             // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- indexed incoming destinations; self-links do not rescue orphan candidates.

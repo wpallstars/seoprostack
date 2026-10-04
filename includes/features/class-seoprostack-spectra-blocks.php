@@ -240,7 +240,7 @@ class SEOProStack_Spectra_Blocks extends SEOProStack_Feature {
      * Posts that contain Spectra blocks, newest change first.
      *
      * @param int $limit Most rows.
-     * @return object[] ID, post_title, post_type, post_status.
+     * @return array<int, object{ID: string, post_title: string, post_type: string, post_status: string}>
      */
     public static function posts_with_blocks($limit = 50) {
         global $wpdb;

@@ -101,7 +101,7 @@ class SEOProStack_Admin_Bar_Sources extends WP_Admin_Bar {
             $roots['core'] = wp_normalize_path(ABSPATH);
         }
         // eval()'d code reports "path/file.php(12) : eval()'d code".
-        $file = preg_replace('/\(\d+\) : .*$/', '', $file);
+        $file = (string) preg_replace('/\(\d+\) : .*$/', '', $file);
 
         foreach ($roots as $type => $root) {
             if (0 !== strpos($file, $root)) {
@@ -114,7 +114,7 @@ class SEOProStack_Admin_Bar_Sources extends WP_Admin_Bar {
             }
             $slash = strpos($rest, '/');
             // A single-file plugin is known by its file name without ".php".
-            $name = false === $slash ? preg_replace('/\.php$/', '', $rest) : substr($rest, 0, $slash);
+            $name = (string) (false === $slash ? preg_replace('/\.php$/', '', $rest) : substr($rest, 0, $slash));
             if ('' === $name) {
                 return '';
             }

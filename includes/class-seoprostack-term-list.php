@@ -80,7 +80,9 @@ final class SEOProStack_Term_List {
         }
         if ($script) {
             foreach ($type->view_script_handles as $handle) {
-                wp_enqueue_script($handle);
+                if ('' !== $handle) {
+                    wp_enqueue_script($handle);
+                }
             }
         }
     }
@@ -317,7 +319,10 @@ final class SEOProStack_Term_List {
          * @param array $attributes Block attributes.
          */
         $terms = get_terms(apply_filters('seoprostack_term_list_args', $args, $a));
-        return is_array($terms) ? array_values($terms) : array();
+        // A filter that asks for IDs or names gets no list, not broken links.
+        return is_array($terms) ? array_values(array_filter($terms, function ($term) {
+            return $term instanceof WP_Term;
+        })) : array();
     }
 
     /**

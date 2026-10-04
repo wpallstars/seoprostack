@@ -228,7 +228,7 @@ final class SEOProStack_Starters {
         if ($starter['set']) {
             // A set adds what it can: ready when any of its plugins is.
             foreach (array_keys($starter['items']) as $type) {
-                if ('pages' !== $type && 'seoprostack_settings' !== $type && self::type_ready($type)) {
+                if ('pages' !== $type && 'seoprostack_settings' !== $type && self::type_ready((string) $type)) {
                     return true;
                 }
             }
@@ -1008,6 +1008,7 @@ final class SEOProStack_Starters {
             return null;
         }
         $serial = (int) \FluentCommunity\App\Models\BaseSpace::query()->withoutGlobalScopes()->max('serial') + 1;
+        /** @var \FluentCommunity\App\Models\Space|null $space FluentCommunity's model create() returns the new model. */
         $space  = \FluentCommunity\App\Models\Space::create(apply_filters('fluent_community/space/create_data', array( // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- FluentCommunity's own filter, as its screen applies it.
             'title'       => sanitize_text_field((string) $item['title']),
             'slug'        => sanitize_title(isset($item['slug']) ? (string) $item['slug'] : (string) $item['title']),
@@ -1179,8 +1180,8 @@ final class SEOProStack_Starters {
      * Finish a starter-owned event's CRM feed, without replacing an owner's feed.
      * A failed save can be retried by Add; pre-existing events never reach here.
      *
-     * @param object $event Booking event.
-     * @param array  $item  Starter item.
+     * @param \FluentBooking\App\Models\CalendarSlot $event Booking event.
+     * @param array                                  $item  Starter item.
      * @return bool Whether setup is complete.
      */
     private static function booking_feed($event, array $item) {

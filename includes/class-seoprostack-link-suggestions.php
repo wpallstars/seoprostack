@@ -141,7 +141,9 @@ HTML;
             foreach (self::phrases($post) as $phrase) {
                 $query = new WP_Query(array_merge($args, array('s' => $phrase, 'sentence' => true)));
                 foreach ($query->posts as $candidate) {
-                    $candidates[$candidate->ID] = $candidate;
+                    if ($candidate instanceof WP_Post) {
+                        $candidates[$candidate->ID] = $candidate;
+                    }
                 }
                 if (count($candidates) >= 80) {
                     break;
