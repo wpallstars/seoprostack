@@ -18,9 +18,8 @@ only what is SEO Pro Stack's own.
 | `{Name}` | SEO Pro Stack |
 | `{css}` | `sps` |
 
-Core files (`scripts/core-files.txt`) come from the starter
-(`wpallstars/wp-plugin-starter-template-for-ai-coding`): change them there
-first, then run `scripts/sync-core.sh` here. SEO Pro Stack's own admin
+Core files are listed in `scripts/core-files.txt` (`STANDARDS.md` → Agent
+docs says how to change them). SEO Pro Stack's own admin
 styles and script are `admin/css/seoprostack-tabs.css` and
 `admin/js/seoprostack-tabs.js` (loaded from `SEOProStack_Setup`), and its
 own release checks (presets and starter data) are in

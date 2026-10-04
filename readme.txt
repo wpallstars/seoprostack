@@ -5,7 +5,7 @@ Tags: magic login, iframe, schedule posts, auto upload images, admin
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 0.12.7
+Stable tag: 0.12.8
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -129,22 +129,17 @@ Use **Report a problem** in Settings → SEO Pro Stack or [GitHub](https://githu
 
 == Changelog ==
 
-= Unreleased =
+= 0.12.8 =
 * New: Clean the database weekly can remove scheduled tasks of plugins that are no longer active.
 * New: Hosting needs names settings saved again on almost every page view.
 * New: Ask before licence checks stops five premium plugins saving their licence on every request.
 * Fix: Load plugins only where needed keeps what it learned for site pages when plugins save records on page views.
 * New: Really Simple Security 301 .htaccess redirect preset, with guarded native Apply, Reset and Undo; explicit owner action only.
 * New: Site Health names code snippets that slow pages or are not needed.
+* New: Database key cleanup names which plugin added each key, and Site Health counts duplicate keys.
+* Fix: two settings saves at the same moment no longer undo each other.
+* Fix: one editor notice per convertible Spectra block.
 * Change: Short addresses for custom post types links to the pages and items whose addresses clash.
-
-= 0.12.7 =
-* New: Hosting needs finds the site's CDN and suggests one when there is none.
-* New: block web access to log and backup files, and Site Health names any anyone can download.
-* Fix: archives with pinned items no longer repeat or skip items that share a date.
-
-= 0.12.6 =
-* Fix: pinned items on archives take places on the pages, so none shows twice.
 
 Older: `changelog.txt`.
 

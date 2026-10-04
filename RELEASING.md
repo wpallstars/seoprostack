@@ -15,25 +15,27 @@ None of the scripts below tags, publishes, uploads or commits anything.
 | `scripts/build-release.sh [--ref REF] [--out DIR]` | Builds both zips from a Git ref (default `HEAD`) into `dist/` (gitignored), with `SHA256SUMS`. Files come from Git, never the working tree. |
 | `scripts/preflight-release.sh [--ref REF] [--strict] [--offline]` | Checks versions, headers, readme, both zips (layout, development files, PHP 7.4 and JS syntax, updater code), remote assets, presets and starter data where the plugin has them, and the Git tag. Errors stop a release; `--strict` also fails on warnings, for a WordPress.org submission. |
 | `scripts/plugin-check.sh [--ref REF] [--zip FILE]` | Runs Plugin Check on both zips in a disposable WordPress in Docker, then removes it. |
+| `scripts/update-test.sh [--from X.Y.Z] [--to X.Y.Z] [--wp VERSION] [--php VERSION] [--keep-log FILE]` | After a release: installs the previous GitHub release (default: the one before the newest) on a disposable WordPress in Docker and checks that it is offered the new one from its asset (WP-CLI, **Check again** on the Updates screen, the Plugins screen), that the update installs and the plugin stays active, and that `debug.log` stays empty. Then removes the site. Reads releases with `gh`. |
 
 The two builds of each version:
 
 | Zip | Contents | Goes to |
 |-----|----------|---------|
-| `{slug}-X.Y.Z.zip` | Files in Git, less `.distignore` | GitHub release asset |
-| `wordpress-org-{slug}-X.Y.Z.zip` | The same, less `.distignore-wporg` (the GitHub updater) and the `GitHub Plugin URI`, `Primary Branch` and `Release Asset` header lines | WordPress.org only |
+| `{slug}-X.Y.Z.zip` | Files in Git, less `.distignore`, with `Update URI: https://github.com/{owner}/{repo}` added to the main file | GitHub release asset |
+| `wordpress-org-{slug}-X.Y.Z.zip` | The same, less `.distignore-wporg` (the GitHub updater) and the `GitHub Plugin URI`, `Primary Branch` and `Release Asset` header lines, without `Update URI` | WordPress.org only |
 
-Sites install the release asset whose name starts with `{slug}` (the shared
-GitHub updater, and Git Updater where it is still active), so the
-WordPress.org zip is named differently and must never be attached to a
-GitHub release.
+Sites install the release asset named exactly `{slug}-X.Y.Z.zip` (the
+shared GitHub updater), so the WordPress.org zip is named differently and
+must never be attached to a GitHub release. The `Update URI` stops
+WordPress.org offering a plugin of the same slug to sites on the GitHub
+build.
 
 Plugin Check reports the GitHub updater as an updater
-(`plugin_updater_detected`, `update_modification_detected`, and
-`OffloadedContent` for its raw.githubusercontent.com address) and its shared
-`wpallstars_` names as unprefixed, in the GitHub zip; `scripts/plugin-check.sh`
-lists those as expected there and fails on the updater findings in the
-WordPress.org zip.
+(`plugin_updater_detected` for the `Update URI` header and the updater files,
+`update_modification_detected`, and `OffloadedContent` for its
+raw.githubusercontent.com address) and its shared `wpallstars_` names as
+unprefixed, in the GitHub zip; `scripts/plugin-check.sh` lists those as
+expected there and fails on the updater findings in the WordPress.org zip.
 
 ## GitHub release
 
@@ -61,9 +63,12 @@ WordPress.org zip.
    Sites with the shared updater see the release when they next check.
    Sites still on Git Updater are offered the `Version:` on `main` before the
    release exists, so do this in the same sitting as the merge.
-4. Check the release has exactly one asset, `{slug}-X.Y.Z.zip`, and on a
-   site with the previous version that **Check again** on the Updates screen
-   shows the update and that it installs.
+4. Run `scripts/update-test.sh`. It checks the release has exactly one
+   asset, `{slug}-X.Y.Z.zip`, and that a site with the previous version
+   sees the update with **Check again** on the Updates screen and installs
+   it. For a private repository, export a read-only token as
+   `WPALLSTARS_GITHUB_TOKEN` first (below); the test site reads it from the
+   environment. Without Docker, check the same by hand on a test site.
 
 Sites read the repository without signing in, so it must be public for sites
 to get updates. While it is private, a test site can use a read-only token

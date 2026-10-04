@@ -84,9 +84,13 @@
 			// "Select all" and "Clear" for long checkbox lists: one save for the lot.
 			$(document).on('click', '[data-sps-check-all], [data-sps-check-none]', function () {
 				var all = this.hasAttribute('data-sps-check-all');
-				var $group = $('#' + $(this).attr(all ? 'data-sps-check-all' : 'data-sps-check-none'));
-				$group.find(':checkbox').prop('checked', all);
-				Settings.save($group);
+				// By id, so the attribute is never read as a selector.
+				var group = document.getElementById(this.getAttribute(all ? 'data-sps-check-all' : 'data-sps-check-none'));
+				if (!group) {
+					return;
+				}
+				$(group).find(':checkbox').prop('checked', all);
+				Settings.save($(group));
 			});
 			// Forms that change data elsewhere ask first.
 			$(document).on('submit', 'form[data-sps-confirm]', function (event) {

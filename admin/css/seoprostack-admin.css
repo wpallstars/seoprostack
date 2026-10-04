@@ -18,13 +18,13 @@
 	--sps-success: #008a20;
 	--sps-error: #d63638;
 	--sps-radius: 8px;
-	--sps-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+	--sps-shadow: 0 1px 2px rgb(0 0 0 / 4%);
 	--sps-focus: 0 0 0 2px var(--sps-surface), 0 0 0 4px var(--sps-accent);
 
 	margin-block-start: 0;
-	margin-inline-start: -20px;
-	margin-inline-end: 0;
+	margin-inline: -20px 0;
 	color: var(--sps-text);
+
 	/* Start below the Screen Options / Notices tabs, so they never narrow the header. */
 	clear: both;
 }
@@ -133,6 +133,7 @@
 	line-height: normal;
 	color: var(--sps-text);
 	background: var(--sps-surface);
+
 	/* Border and corners stay core's, so they match core buttons in each version. */
 	box-shadow: none;
 	transition: border-color 0.1s ease-in-out, box-shadow 0.1s ease-in-out;
@@ -443,7 +444,7 @@
 .sps-panel-note--warning p::before {
 	content: "\f534";
 	margin-inline-end: 6px;
-	font: 16px/1 dashicons;
+	font: 16px/1 dashicons, sans-serif;
 	vertical-align: -3px;
 	color: #dba617;
 }
@@ -686,7 +687,7 @@
 
 .sps-status.is-saved::before {
 	content: "\f147";
-	font: normal 18px/1 dashicons;
+	font: normal 18px/1 dashicons, sans-serif;
 }
 
 .sps-status.is-error {
@@ -777,11 +778,11 @@
 	padding: 6px 10px;
 	text-align: start;
 	vertical-align: top;
-	border: 1px solid rgba(127, 127, 127, 0.25);
+	border: 1px solid rgb(127 127 127 / 25%);
 }
 
 .sps-readme th {
-	background: rgba(127, 127, 127, 0.08);
+	background: rgb(127 127 127 / 8%);
 }
 
 /* Responsive --------------------------------------------------------- */

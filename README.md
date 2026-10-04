@@ -2,6 +2,20 @@
 
 # SEO Pro Stack
 
+<!-- aidevops:badges:start -->
+<!-- On GitHub only: the Read Me tab skips this block. scripts/rename-plugin.sh rewrites it. -->
+[![CI](https://github.com/wpallstars/seoprostack/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/wpallstars/seoprostack/actions/workflows/ci.yml)
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=wpallstars_seoprostack&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=wpallstars_seoprostack)
+[![CodeFactor](https://www.codefactor.io/repository/github/wpallstars/seoprostack/badge)](https://www.codefactor.io/repository/github/wpallstars/seoprostack)
+[![License: GPL v2 or later](https://img.shields.io/badge/License-GPL%20v2%20or%20later-blue.svg)](LICENSE)
+[![Latest release](https://img.shields.io/github/v/release/wpallstars/seoprostack)](https://github.com/wpallstars/seoprostack/releases)
+
+[![Lines of code](docs/metrics/badges/loc.svg)](docs/metrics/repo-metrics.md)
+[![Dependencies](docs/metrics/badges/dependencies.svg)](docs/metrics/repo-metrics.md)
+
+[![Languages by lines of code](docs/metrics/badges/languages.svg)](docs/metrics/repo-metrics.md)
+<!-- aidevops:badges:end -->
+
 One free plugin for a faster, tidier WordPress. It does the jobs of 40+ single-purpose plugins, each a switch you turn on.
 
 SEO Pro Stack does the jobs that usually take dozens of small plugins: a calmer, faster admin, better writing and media tools, safer logins, and tested settings for the plugins we recommend. Each feature is one switch, so you add only what you use. Fewer plugins means fewer updates, conflicts and slowdowns. Free and open source: no pro version, nothing locked.
@@ -744,7 +758,7 @@ Lets a site stop using Spectra (Ultimate Addons for Gutenberg) without losing co
 - Adds a **Term list** block (Widgets category): the terms of any public taxonomy as a list (with child terms, post counts, list markers, spacing and link colours; palette colours are stored as palette references, so they follow dark mode switchers such as Kadence’s), a grid of boxes with “3 Posts”-style counts, or a drop-down that opens the chosen term. Built on the server, with up to 1,000 terms.
 - Spectra’s Taxonomy List saves no HTML, so after deactivating Spectra its blocks would show nothing. They are drawn by the Term list instead, with the same taxonomy, layout, counts, hierarchy, colours and spacing.
 - Other Spectra blocks keep their saved text, links and pictures. Until they are converted, pages with Spectra images, buttons or testimonials get a small stylesheet in place of Spectra’s (an option, on by default). Spectra’s per-block colours and sizes are not kept.
-- In the editor, Spectra Heading, Image, Buttons, Testimonial and Taxonomy List blocks get a **Convert** button (and **Convert all**) that rebuilds them as core Heading and Paragraph, Image, Buttons, Quote and Term list blocks, keeping text, links (new tab, nofollow), alt text, captions, alignment and text colours. Other Spectra blocks are left as they are. Nothing changes until the post is saved. Before a post with Spectra blocks changes, its current version is stored as a revision, even if it was never edited before (imported posts, for example), so Revisions can bring it back.
+- In the editor, Spectra Heading, Image, Buttons, Testimonial and Taxonomy List blocks show one notice, in place of WordPress's "not supported" warning, with a **Convert** button (and **Convert all**) that rebuilds them as core Heading and Paragraph, Image, Buttons, Quote and Term list blocks, keeping text, links (new tab, nofollow), alt text, captions, alignment and text colours. Other Spectra blocks are left as they are. Nothing changes until the post is saved. Before a post with Spectra blocks changes, its current version is stored as a revision, even if it was never edited before (imported posts, for example), so Revisions can bring it back.
 - The options panel lists the posts that still contain Spectra blocks, with edit links.
 - Switches on if Spectra is active and its blocks are in use (settings version 5). Spectra has no settings to import; its blocks carry their own styles.
 
@@ -1290,7 +1304,7 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folder�
 
 ## Changelog
 
-### Unreleased
+### 0.12.8
 
 - New: **Clean the database weekly** can remove scheduled tasks of plugins that are no longer active (unticked by default): tasks nothing ran on web cron checks at least 7 days apart, never WordPress's own, hosts' agents' (`mnx_*`) or installed plugins'. The options list what will go and what went, with **Put back** (GitHub issue #278).
 - New: **Hosting needs** counts the options saved on 1 in 20 page views and names those saved on most of them, with the plugin that saves them (`seoprostack_hosting_writes`); each save is a database write and clears the object cache's copy of the autoloaded options (GitHub issue #279).
@@ -1300,6 +1314,10 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folder�
 - New: a **Code Snippets** test in Site Health, while Code Snippets is active, names snippets that add an uncached request to every page (front-end styles and scripts), content snippets nothing uses, samples and old inactive snippets, code an SEO Pro Stack setting does (with a link to it) and `save_post` code that saves the post twice. Snippets are never changed (`SEOProStack_Snippets_Audit`, GitHub issue #293).
 - New: **Database key cleanup** names the plugin that added each key and the key that covers a duplicate, even while the plugin is active and the key is kept, with what to do first (deactivate the plugin that re-creates it). It separates redundant keys (offered) from leftovers nothing covers (listed, offered only on request), names the plugin that uses `wdbi_` keys by searching installed plugins, warns when Scalability Pro and Index WP MySQL For Speed overlap, and shows a size fallback where InnoDB statistics are not readable. A new Site Health test, always on, counts duplicate keys (GitHub issue #297).
 - Change: **Short addresses for custom post types** lists each address a page or post already has with links to edit both the page or post and the item, the item's current address, and what changing each slug does (renaming the page or post hands its address to the item). It listed only the addresses and said to rename one of each pair, without saying which items or how.
+- Fix: a site on the GitHub build can no longer be offered an unrelated WordPress.org plugin with the same folder name: `scripts/build-release.sh` adds an `Update URI` header on github.com to the GitHub zip's main file (the WordPress.org zip has none), and the shared GitHub updater (1.1.0) never takes WordPress.org's answer for it. With a token it takes only `seoprostack-{version}.zip`; it tries again within the hour when a release's requirements cannot be read, and downloads only from https addresses on a GitHub host (GitHub issue #371).
+- Fix: two settings saved at the same moment (two tabs, or two admins) no longer undo each other: a save holds a short lock (`seoprostack_options_lock`, removed on uninstall) while it reads and writes (GitHub issue #371).
+- Developers: core files synced with the starter plugin 1.0.7: settings renderers and sanitizers from a map, the Read Me tab leaves out the badges block and HTML comments, scripts report failures instead of success. New core files: `.codacy.yml`, `sonar-project.properties`, and the SonarCloud, Repository metrics and Starter sync workflows. README.md shows badges on GitHub; `LICENSE` added (GitHub issue #371).
+- Fix: in the editor, a Spectra block that can be converted shows one notice, naming the block and what **Convert** makes of it, instead of SEO Pro Stack's notice above WordPress's "Your site doesn't include support for this block" warning (GitHub issue #375).
 
 ### 0.12.7
 
