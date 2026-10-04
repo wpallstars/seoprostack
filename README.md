@@ -21,7 +21,23 @@ SEO Pro Stack does the jobs that usually take dozens of small plugins: a calmer,
 
 If this saves you time, headaches and costs, feel free to [buy me a coffee](https://buymeacoffee.com/marcusquinn), or whatever you like, to invest in making more things open-source.
 
-Version: {SEOPROSTACK_VERSION}
+Version: 0.13.0
+
+<!-- github-only:start -->
+## Screenshots
+
+**Settings → SEO Pro Stack**: the Admin tab, with search and the Source code, Support and Buy me a coffee links.
+
+![The SEO Pro Stack settings screen on the Admin tab](.wordpress-org/screenshot-1.png)
+
+**The Speed tab**: each feature is one switch, with its options and the plugin it replaces.
+
+![The Speed tab with Load pages before the click switched on](.wordpress-org/screenshot-2.png)
+
+**The Read Me tab** shows this file inside WordPress, banner included.
+
+![The Read Me tab showing README.md](.wordpress-org/screenshot-3.png)
+<!-- github-only:end -->
 
 ## Where to find it
 
@@ -32,7 +48,7 @@ Go to **Settings → SEO Pro Stack**, or click the star next to your name in the
 - **Discover**: Theme, Free Plugins, Pro Plugins, Hosting and Tools.
 - **About**: this Read Me.
 
-**Report a problem**, at the top right of the screen, opens the plugin’s [GitHub issues](https://github.com/wpallstars/seoprostack/issues) in a new tab. Say what you did, what you expected and what happened, with the versions of WordPress, PHP and SEO Pro Stack. Leave out passwords, licence keys and personal data, since issues are public. For questions, ask [aidevops](https://aidevops.sh) (Built with AI below). **Buy me a coffee**, next to it, opens the maker’s [Buy Me a Coffee](https://buymeacoffee.com/marcusquinn) page in a new tab.
+At the top right of the screen, **Source code** opens the plugin’s [GitHub repository](https://github.com/wpallstars/seoprostack) in a new tab, and **Support** opens its [GitHub issues](https://github.com/wpallstars/seoprostack/issues) in a new tab. Say what you did, what you expected and what happened, with the versions of WordPress, PHP and SEO Pro Stack. Leave out passwords, licence keys and personal data, since issues are public. For questions, ask [aidevops](https://aidevops.sh) (Built with AI below). **Buy me a coffee**, next to it, opens the maker’s [Buy Me a Coffee](https://buymeacoffee.com/marcusquinn) page in a new tab.
 
 ## Features
 
@@ -1347,6 +1363,9 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folder�
 
 ### Unreleased
 
+- Change: the settings screen's header buttons are **Source code** (the GitHub repository) and **Support** (GitHub issues, was Report a problem), with **Buy me a coffee**, on one row.
+- New: screenshots of the settings screen and the Read Me tab, for WordPress.org (`.wordpress-org/screenshot-N.png`, captioned in `readme.txt`) and at the top of this README on GitHub, and WordPress.org icons: the banner’s picture on its own, without words (`.wordpress-org/icon.svg`, exported as `icon-256x256.png` and `icon-128x128.png` by `scripts/build-banner.sh`) (GitHub issue #409).
+- Developers: core files synced with the starter plugin 1.0.13 and its `main`: `{Prefix}_Setup::header_links()` takes a `source` link; the Read Me tab leaves out anything between `<!-- github-only:start -->` and `<!-- github-only:end -->`, such as this README's Screenshots section; `README.md`'s `Version:` line holds the version itself, and `scripts/preflight-release.sh` checks it; `scripts/rename-plugin.sh` leaves out the CodeFactor badge until CodeFactor has the repository (GitHub issue #409).
 - Change: a new install starts with the features that are safe on every site switched on: Load pages before the click, Image loading, Remove WordPress extras, Lighter WooCommerce pages, Faster editor with Kadence Blocks, Fewer Heartbeat requests, Clean the database weekly, Load large settings only where they are used, Hosting needs, Load plugins only where needed (also for people who are logged in), Clean up deleted plugins, Plugin sizes, Organise the admin menu, More menu in the admin bar, Hide admin notices, Tidy admin screens, Tidy the dashboard, Tidy WooCommerce admin, Readable list columns, Simpler block editor and Notification emails. Features that need choices about the site, or change its content, files, people or other plugins’ settings, stay off, including Writers see only writing within Organise the admin menu. Sites that already have SEO Pro Stack keep their settings (GitHub issue #404).
 - Fix: Notification emails no longer stops plugin and theme auto-update reports when an update failed; only reports where every update worked are stopped, as for WordPress’s own updates.
 - Change: a new **Server** tab, after Speed, holds Fewer Heartbeat requests, Clean the database weekly, Load large settings only where they are used, Hosting needs and Database key cleanup, so Speed is about loading pages (GitHub issue #404).
