@@ -5,6 +5,10 @@
 #
 # Usage: scripts/rename-plugin.sh --slug SLUG --name NAME --prefix Prefix
 #                                 [--const PREFIX] [--css CSS] [--repo OWNER/REPO]
+#                                 [--description TEXT] [--author NAME]
+#                                 [--author-uri URL] [--plugin-uri URL]
+#                                 [--contributors USERS] [--donate URL|none]
+#                                 [--version X.Y.Z]
 #   --slug    Plugin folder, main file and text domain (my-plugin).
 #   --name    Plugin Name (My Plugin).
 #   --prefix  Class prefix (MyPlugin: MyPlugin_Settings).
@@ -13,6 +17,18 @@
 #   --css     CSS class and data attribute prefix (default: the lower-case
 #             prefix; a short one such as mp keeps the markup readable).
 #   --repo    GitHub repository, owner/repo (default: wpallstars/SLUG).
+#   --version The new plugin's first version (default: 0.1.0). The changelogs
+#             in README.md, readme.txt and changelog.txt start again with it.
+# The rest are the maker's details; each one left out keeps the starter's:
+#   --description   One line, up to 150 characters: the Description header,
+#                   the readme.txt short description and the line under
+#                   README.md's title.
+#   --author        Author header.
+#   --author-uri    Author URI header and the settings screen's website button.
+#   --plugin-uri    Plugin URI header (default: the GitHub repository page).
+#   --contributors  readme.txt Contributors, WordPress.org usernames (a, b).
+#   --donate        readme.txt Donate link and the settings screen's donate
+#                   button; none takes both out.
 #
 # Needs a clean working tree. Then update README.md, readme.txt,
 # changelog.txt, AGENTS.md and the banner (STANDARDS.md and DEVELOPMENT.md say how).
@@ -33,12 +49,12 @@ die() {
 TMP_FILE=""
 
 cleanup() {
-	[ -z "$TMP_FILE" ] || rm -f "$TMP_FILE"
+	[[ -z "$TMP_FILE" ]] || rm -f "$TMP_FILE"
 	return 0
 }
 
 usage() {
-	sed -n '2,19p' "$0" | sed 's/^# \{0,1\}//'
+	sed -n '2,34p' "$0" | sed 's/^# \{0,1\}//'
 	return 0
 }
 
@@ -46,19 +62,263 @@ need() {
 	local flag="$1"
 	local value="$2"
 	local pattern="$3"
-	[ -n "$value" ] || die "$flag is needed (see --help)"
-	printf '%s' "$value" | grep -Eq "$pattern" || die "$flag '$value' must match $pattern"
+	[[ -n "$value" ]] || die "$flag is needed (see --help)"
+	grep -Eq "$pattern" <<<"$value" || die "$flag '$value' must match $pattern"
+	return 0
+}
+
+# Like need, for a flag that may be left out.
+allow() {
+	local flag="$1"
+	local value="$2"
+	local pattern="$3"
+	[[ -z "$value" ]] || need "$flag" "$value" "$pattern"
+	return 0
+}
+
+# Swap in $TMP_FILE by rename, never in place: bash reads a running script as
+# it goes, and this file is one of those changed.
+replace_with_tmp() {
+	local file="$1"
+	cmp -s "$TMP_FILE" "$file" && return 1
+	cp "$TMP_FILE" "$file.rename-new"
+	if [[ -x "$file" ]]; then chmod 755 "$file.rename-new"; else chmod 644 "$file.rename-new"; fi
+	mv -f "$file.rename-new" "$file"
+	return 0
+}
+
+# Set the value of the first "Field: value" line (a plugin or readme.txt
+# header), keeping what comes before the value; with no value, drop the line.
+set_field() {
+	local file="$1"
+	local field="$2"
+	local value="$3"
+	[[ -f "$file" ]] || return 0
+	FIELD="$field" VALUE="$value" awk '
+		!done && match($0, "^[ \t*#/]*" ENVIRON["FIELD"] ":[ \t]*") {
+			done = 1
+			if (ENVIRON["VALUE"] != "") print substr($0, 1, RLENGTH) ENVIRON["VALUE"]
+			next
+		}
+		{ print }' "$file" >"$TMP_FILE"
+	replace_with_tmp "$file" || true
+	return 0
+}
+
+# Replace the first line that is exactly OLD with NEW.
+set_line() {
+	local file="$1"
+	local old="$2"
+	local new="$3"
+	[[ -f "$file" ]] || return 0
+	OLD="$old" NEW="$new" awk '
+		!done && $0 == ENVIRON["OLD"] { print ENVIRON["NEW"]; done = 1; next }
+		{ print }' "$file" >"$TMP_FILE"
+	replace_with_tmp "$file" || true
+	return 0
+}
+
+# Set one 'key' => 'URL' header link in the Setup class; with no URL, drop it.
+set_link() {
+	local file="$1"
+	local key="$2"
+	local url="$3"
+	[[ -f "$file" ]] || return 0
+	Q="'" KEY="$key" URL="$url" awk '
+		BEGIN { q = ENVIRON["Q"] }
+		!done && match($0, "^[ \t]*" q ENVIRON["KEY"] q "[ \t]*=>[ \t]*" q) {
+			done = 1
+			if (ENVIRON["URL"] != "") print substr($0, 1, RLENGTH) ENVIRON["URL"] q ","
+			next
+		}
+		{ print }' "$file" >"$TMP_FILE"
+	replace_with_tmp "$file" || true
+	return 0
+}
+
+# Replace what follows the line that is exactly HEADING, up to the next line
+# matching NEXT (with no NEXT, the end), with BODY; with no BODY, drop the
+# heading too.
+set_section() {
+	local file="$1"
+	local heading="$2"
+	local next="$3"
+	local body="$4"
+	[[ -f "$file" ]] || return 0
+	HEADING="$heading" NEXT="$next" BODY="$body" awk '
+		skip && ENVIRON["NEXT"] != "" && $0 ~ ENVIRON["NEXT"] {
+			skip = 0
+			if (ENVIRON["BODY"] != "") print ""
+		}
+		skip { next }
+		!done && $0 == ENVIRON["HEADING"] {
+			done = 1
+			skip = 1
+			if (ENVIRON["BODY"] != "") print $0 "\n\n" ENVIRON["BODY"]
+			next
+		}
+		{ print }' "$file" >"$TMP_FILE"
+	replace_with_tmp "$file" || true
+	return 0
+}
+
+# Start the new plugin at its own version, with a changelog of its own.
+set_version() {
+	local main_file="$1"
+	local starter="$2"
+	local first="First version, made from $FROM_NAME $starter."
+	set_field "$main_file" "Version" "$VERSION"
+	set_field readme.txt "Stable tag" "$VERSION"
+	CONST="${TO_CONST}_VERSION" VALUE="$VERSION" awk '
+		!done && match($0, "^define\\(\047" ENVIRON["CONST"] "\047,[ \t]*\047") {
+			done = 1
+			print substr($0, 1, RLENGTH) ENVIRON["VALUE"] "\047);"
+			next
+		}
+		{ print }' "$main_file" >"$TMP_FILE"
+	replace_with_tmp "$main_file" || true
+	set_section readme.txt "== Upgrade Notice ==" '^== ' ""
+	set_section readme.txt "== Changelog ==" '^== ' "= $VERSION =
+* $first
+
+Every change: changelog.txt."
+	set_section changelog.txt "== Changelog ==" "" "Every change to $TO_NAME. readme.txt lists the latest version in short.
+
+= $VERSION =
+* $first"
+	set_section README.md "## Changelog" '^## ' "### $VERSION
+
+- $first"
+	return 0
+}
+
+# Rebuild README.md's GitHub badges block for the new repository. The
+# SonarCloud key is owner_repo; the Codacy badge has a per-project ID, so it
+# is left out until the new repository's own Codacy badge is added.
+set_badges() {
+	local repo="$1"
+	local url="https://github.com/$repo"
+	local key="${repo/\//_}"
+	[[ -f README.md ]] || return 0
+	BADGES="<!-- On GitHub only: the Read Me tab skips this block. scripts/rename-plugin.sh rewrites it. -->
+[![CI]($url/actions/workflows/ci.yml/badge.svg?branch=main)]($url/actions/workflows/ci.yml)
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=$key&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=$key)
+[![CodeFactor](https://www.codefactor.io/repository/github/$repo/badge)](https://www.codefactor.io/repository/github/$repo)
+[![License: GPL v2 or later](https://img.shields.io/badge/License-GPL%20v2%20or%20later-blue.svg)](LICENSE)
+[![Latest release](https://img.shields.io/github/v/release/$repo)]($url/releases)
+
+[![Lines of code](docs/metrics/badges/loc.svg)](docs/metrics/repo-metrics.md)
+[![Dependencies](docs/metrics/badges/dependencies.svg)](docs/metrics/repo-metrics.md)
+
+[![Languages by lines of code](docs/metrics/badges/languages.svg)](docs/metrics/repo-metrics.md)" awk '
+		$0 == "<!-- aidevops:badges:end -->" { skip = 0 }
+		skip { next }
+		{ print }
+		$0 == "<!-- aidevops:badges:start -->" { print ENVIRON["BADGES"]; skip = 1 }' README.md >"$TMP_FILE"
+	replace_with_tmp README.md || true
+	return 0
+}
+
+# The starter's credit, kept in every plugin made from it (STANDARDS.md →
+# Structure): the renaming above turned the starter's name and repository in
+# it into the new plugin's, so write the line again. The strings are split so
+# that renaming this script leaves them alone.
+set_credit() {
+	local name="WP Plugin ""Starter"
+	local url="https://github.com/wpallstars/wp-plugin-""starter-template-for-ai-coding"
+	local file line
+	for file in README.md readme.txt; do
+		[[ -f "$file" ]] || continue
+		if [[ "$file" = README.md ]]; then
+			line="Made from [$name]($url), the wpallstars starter plugin. Its shared standards and the weekly Starter sync keep this plugin up to date."
+		else
+			line="Made from $name ($url), the wpallstars starter plugin."
+		fi
+		LINE="$line" awk '
+			!done && index($0, "Made from ") == 1 { print ENVIRON["LINE"]; done = 1; next }
+			{ print }' "$file" >"$TMP_FILE"
+		replace_with_tmp "$file" || true
+	done
+	return 0
+}
+
+# Put the maker's details in, after the renaming. Empty ones stay as they are.
+set_identity() {
+	local main_file="$1"
+	local setup_file="$2"
+	local old_description="$3"
+	if [[ -n "$DESCRIPTION" ]]; then
+		set_field "$main_file" "Description" "$DESCRIPTION"
+		set_line readme.txt "$old_description" "$DESCRIPTION"
+		set_line README.md "$old_description" "$DESCRIPTION"
+	fi
+	[[ -z "$AUTHOR" ]] || set_field "$main_file" "Author" "$AUTHOR"
+	if [[ -n "$AUTHOR_URI" ]]; then
+		set_field "$main_file" "Author URI" "$AUTHOR_URI"
+		set_link "$setup_file" website "$AUTHOR_URI"
+	fi
+	[[ -z "$PLUGIN_URI" ]] || set_field "$main_file" "Plugin URI" "$PLUGIN_URI"
+	[[ -z "$CONTRIBUTORS" ]] || set_field readme.txt "Contributors" "$CONTRIBUTORS"
+	if [[ "$DONATE" = none ]]; then
+		set_field readme.txt "Donate link" ""
+		set_link "$setup_file" donate ""
+	elif [[ -n "$DONATE" ]]; then
+		set_field readme.txt "Donate link" "$DONATE"
+		set_link "$setup_file" donate "$DONATE"
+	fi
+	return 0
+}
+
+DESCRIPTION=""
+AUTHOR=""
+AUTHOR_URI=""
+PLUGIN_URI=""
+CONTRIBUTORS=""
+DONATE=""
+VERSION="0.1.0"
+
+check_identity() {
+	local url='^https?://[^[:space:]<>"'\''\\]+$'
+	case "$DESCRIPTION$AUTHOR" in
+	*[[:cntrl:]]* | *'*/'*) die "--description and --author are one line, without */ or control characters" ;;
+	*) ;;
+	esac
+	[[ "${#DESCRIPTION}" -le 150 ]] || die "--description is ${#DESCRIPTION} characters; WordPress.org allows 150"
+	allow --author "$AUTHOR" '^[^<>]+$'
+	allow --author-uri "$AUTHOR_URI" "$url"
+	allow --plugin-uri "$PLUGIN_URI" "$url"
+	allow --contributors "$CONTRIBUTORS" '^[A-Za-z0-9_.@-]+(, ?[A-Za-z0-9_.@-]+)*$'
+	[[ "$DONATE" = none ]] || allow --donate "$DONATE" "$url"
+	need --version "$VERSION" '^[0-9]+\.[0-9]+\.[0-9]+$'
+	return 0
+}
+
+# Stop if a renamed PHP file no longer parses (the changes stay for git diff).
+check_php() {
+	command -v php >/dev/null 2>&1 || {
+		printf 'rename-plugin: php not found; run php -l on the changed files yourself\n' >&2
+		return 0
+	}
+	local file bad=0
+	while IFS= read -r file; do
+		[[ -f "$file" ]] || continue
+		php -l "$file" >/dev/null 2>&1 || {
+			php -l "$file" >&2 || true
+			bad=1
+		}
+	done < <(git ls-files '*.php')
+	[[ "$bad" -eq 0 ]] || die "the renamed PHP above does not parse; see git diff"
 	return 0
 }
 
 main() {
 	local slug="" name="" prefix="" const="" css="" repo=""
-	while [ $# -gt 0 ]; do
+	while [[ $# -gt 0 ]]; do
 		local arg="$1"
 		local value="${2:-}"
 		case "$arg" in
-		--slug | --name | --prefix | --const | --css | --repo)
-			[ $# -ge 2 ] || die "$arg needs a value"
+		--slug | --name | --prefix | --const | --css | --repo | --description | --author | --author-uri | --plugin-uri | --contributors | --donate | --version)
+			[[ $# -ge 2 ]] || die "$arg needs a value"
 			case "$arg" in
 			--slug) slug="$value" ;;
 			--name) name="$value" ;;
@@ -66,6 +326,14 @@ main() {
 			--const) const="$value" ;;
 			--css) css="$value" ;;
 			--repo) repo="$value" ;;
+			--description) DESCRIPTION="$value" ;;
+			--author) AUTHOR="$value" ;;
+			--author-uri) AUTHOR_URI="$value" ;;
+			--plugin-uri) PLUGIN_URI="$value" ;;
+			--contributors) CONTRIBUTORS="$value" ;;
+			--donate) DONATE="$value" ;;
+			--version) VERSION="$value" ;;
+			*) ;; # The outer pattern lists every option that takes a value.
 			esac
 			shift
 			;;
@@ -78,20 +346,23 @@ main() {
 		shift
 	done
 
-	[ -n "$const" ] || const="$(printf '%s' "$prefix" | tr '[:lower:]' '[:upper:]')"
-	[ -n "$css" ] || css="$(printf '%s' "$const" | tr '[:upper:]' '[:lower:]')"
-	[ -n "$repo" ] || repo="wpallstars/$slug"
+	[[ -n "$const" ]] || const="$(printf '%s' "$prefix" | tr '[:lower:]' '[:upper:]')"
+	[[ -n "$css" ]] || css="$(printf '%s' "$const" | tr '[:upper:]' '[:lower:]')"
+	[[ -n "$repo" ]] || repo="wpallstars/$slug"
 	need --slug "$slug" '^[a-z][a-z0-9-]*[a-z0-9]$'
-	need --name "$name" '^[^/\\]+$'
+	# Quotes and $ are escaped where the name lands in code (plugin_map); /, \,
+	# <, > and % are not allowed: paths, comments, HTML and sprintf formats.
+	need --name "$name" '^[^/\\<>%[:cntrl:]]+$'
 	need --prefix "$prefix" '^[A-Z][A-Za-z0-9]*$'
 	need --const "$const" '^[A-Z][A-Z0-9]*$'
 	need --css "$css" '^[a-z][a-z0-9]*$'
 	need --repo "$repo" '^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$'
+	check_identity
 
 	local root
 	root="$(git rev-parse --show-toplevel)" || die "run this inside a checkout of the plugin"
 	cd "$root"
-	[ -z "$(git status --porcelain)" ] || die "commit or put away your changes first"
+	[[ -z "$(git status --porcelain)" ]] || die "commit or put away your changes first"
 	plugin_identity HEAD || die "cannot tell which plugin this is"
 	plugin_names_as FROM
 
@@ -99,31 +370,41 @@ main() {
 	export TO_PREFIX
 	TO_PREFIX="$(printf '%s' "$const" | tr '[:upper:]' '[:lower:]')"
 	export TO_CSS="$css" TO_REPO="$repo"
-	[ "$TO_SLUG" != "$FROM_SLUG" ] || die "the slug is already $slug"
+	[[ "$TO_SLUG" != "$FROM_SLUG" ]] || die "the slug is already $slug"
 
 	printf 'Renaming %s to %s: %s / %s / %s / %s / %s / %s\n' "$FROM_NAME" "$name" "$slug" "$TO_PREFIX" "$prefix" "$const" "$css" "$repo"
 
-	local file target changed=0 moved=0
+	local file kind target changed=0 moved=0
 	trap cleanup EXIT
 	TMP_FILE="$(mktemp "${TMPDIR:-/tmp}/rename-plugin.XXXXXX")"
 	local tmp="$TMP_FILE"
 	while IFS= read -r file; do
-		[ -f "$file" ] || continue
+		[[ -f "$file" ]] || continue
 		# Text files only (pictures and other binaries keep their bytes).
 		if grep -Iq . "$file"; then
-			plugin_map <"$file" >"$tmp"
-			if ! cmp -s "$tmp" "$file"; then
-				cat "$tmp" >"$file"
+			# The path only tells plugin_map how to escape the name.
+			kind="$file"
+			plugin_map "$kind" <"$file" >"$tmp"
+			if replace_with_tmp "$file"; then
 				changed=$((changed + 1))
 			fi
 		fi
 		target="$(printf '%s' "$file" | plugin_map)"
-		if [ "$target" != "$file" ]; then
+		if [[ "$target" != "$file" ]]; then
 			mkdir -p "$(dirname "$target")"
 			git mv "$file" "$target"
 			moved=$((moved + 1))
 		fi
 	done < <(git ls-files)
+
+	local old_description starter_version
+	old_description="$(plugin_header_field "$(head -c 8192 "$slug.php")" "Description")"
+	starter_version="$(plugin_header_field "$(head -c 8192 "$slug.php")" "Version")"
+	set_identity "$slug.php" "includes/class-$TO_PREFIX-setup.php" "$old_description"
+	set_version "$slug.php" "$starter_version"
+	set_badges "$repo"
+	set_credit
+	check_php
 
 	printf '%d files changed, %d renamed. Run composer update --lock (the package name changed), review with git diff and git status, then commit.\n' "$changed" "$moved"
 	return 0

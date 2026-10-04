@@ -15,7 +15,9 @@
  *
  * It also records when each old address last redirected someone (at most
  * once a day per address), and lists them under Tools → Old addresses with
- * the post and the last use, so the owner can remove the ones nobody needs.
+ * the post and the last use, so the owner can remove the ones nobody needs:
+ * one, the ticked ones, every one across all pages (tick the whole page,
+ * then "Select all"), or all of them with Remove all.
  *
  * Replaces Slugs Manager: Delete Old Permalinks (closed on WordPress.org).
  *
@@ -273,7 +275,71 @@ class SEOProStack_Old_Slugs extends SEOProStack_Feature {
      * Add the Tools page.
      */
     public static function menu() {
-        add_management_page(__('Old addresses', 'seoprostack'), __('Old addresses', 'seoprostack'), 'edit_others_posts', self::PAGE, array(__CLASS__, 'page'));
+        $hook = add_management_page(__('Old addresses', 'seoprostack'), __('Old addresses', 'seoprostack'), 'edit_others_posts', self::PAGE, array(__CLASS__, 'page'));
+        if ($hook) {
+            add_action('load-' . $hook, array(__CLASS__, 'assets'));
+        }
+    }
+
+    /**
+     * The page's script: the header box ticks the rows, "Select all" takes
+     * in every page, and removing all asks first.
+     */
+    public static function assets() {
+        wp_enqueue_script('common');
+        wp_add_inline_script('common', self::js());
+    }
+
+    /**
+     * Script for the list. Reads its numbers and words from the form's data
+     * attributes.
+     *
+     * @return string
+     */
+    private static function js() {
+        return <<<'JS'
+jQuery(function ($) {
+    var $form = $('#sps-old-addresses'), $table = $form.find('.wp-list-table');
+    if (!$table.length) { return; }
+    var i18n = $form.data('i18n') || {}, total = parseInt($form.data('total'), 10) || 0;
+    var $all = $form.find('input[name="all"]'), $bar = $form.find('.sps-old-addresses-all');
+    var heads = 'thead .check-column input[type="checkbox"], tfoot .check-column input[type="checkbox"]';
+    function boxes() { return $table.find('tbody .check-column input[type="checkbox"]'); }
+    function link(label, fn) { return $('<button type="button" class="button-link"></button>').text(label).on('click', fn); }
+    function render() {
+        var $b = boxes(), on = $b.length > 0 && $b.filter(':checked').length === $b.length;
+        $table.find(heads).prop('checked', on);
+        if (!on) { $all.val(''); }
+        if (!on || total <= $b.length) { $bar.hide().find('p').empty(); return; }
+        var $p = $bar.find('p').empty();
+        if ($all.val()) {
+            $p.append(document.createTextNode(i18n.all + ' ')).append(link(i18n.clear, function () { boxes().prop('checked', false); render(); }));
+        } else {
+            $p.append(document.createTextNode(i18n.page + ' ')).append(link(i18n.select, function () { $all.val('1'); render(); }));
+        }
+        $bar.show();
+    }
+    $table.on('change', heads, function () {
+        var head = this;
+        // Core's list-table script ticks the rows first (and inverts them
+        // on Shift); do it here only where that did not happen.
+        setTimeout(function () {
+            var $b = boxes(), n = $b.filter(':checked').length;
+            if (head.checked && 0 === n) { $b.prop('checked', true); }
+            if (!head.checked && n === $b.length) { $b.prop('checked', false); }
+            $all.val('');
+            render();
+        }, 0);
+    });
+    $table.on('change', 'tbody .check-column input[type="checkbox"]', function () { setTimeout(render, 0); });
+    $form.find('[name="remove_all"]').on('click', function (e) {
+        if (!window.confirm(i18n.confirm)) { e.preventDefault(); }
+    });
+    $form.find('[name="remove"]').on('click', function (e) {
+        if ($all.val() && !window.confirm(i18n.confirm)) { e.preventDefault(); }
+    });
+});
+JS;
     }
 
     /**
@@ -321,8 +387,8 @@ class SEOProStack_Old_Slugs extends SEOProStack_Feature {
             <h1><?php esc_html_e('Old addresses', 'seoprostack'); ?></h1>
             <?php if ($removed >= 0) : ?>
                 <div class="notice notice-success is-dismissible"><p><?php
-                    /* translators: %d: number of old addresses */
-                    echo esc_html(sprintf(_n('%d old address removed.', '%d old addresses removed.', $removed, 'seoprostack'), $removed));
+                    /* translators: %s: number of old addresses */
+                    echo esc_html(sprintf(_n('%s old address removed.', '%s old addresses removed.', $removed, 'seoprostack'), number_format_i18n($removed)));
                 ?></p></div>
             <?php endif; ?>
             <?php if ($cleared > 0) : ?>
@@ -335,12 +401,28 @@ class SEOProStack_Old_Slugs extends SEOProStack_Feature {
             <?php if (!$rows) : ?>
                 <p><?php esc_html_e('No old addresses.', 'seoprostack'); ?></p>
             <?php else : ?>
-                <form method="post" action="<?php echo esc_url(admin_url('admin-post.php')); ?>">
+                <?php
+                $count = number_format_i18n($total);
+                $i18n  = array(
+                    /* translators: %s: number of old addresses on this page */
+                    'page'    => sprintf(__('All %s old addresses on this page are selected.', 'seoprostack'), number_format_i18n(count($rows))),
+                    /* translators: %s: number of old addresses */
+                    'select'  => sprintf(__('Select all %s old addresses', 'seoprostack'), $count),
+                    /* translators: %s: number of old addresses */
+                    'all'     => sprintf(__('All %s old addresses are selected. Remove selected removes every one of them.', 'seoprostack'), $count),
+                    'clear'   => __('Clear selection', 'seoprostack'),
+                    /* translators: %s: number of old addresses */
+                    'confirm' => sprintf(_n('Remove %s old address? Links to it will show “not found”.', 'Remove all %s old addresses? Links to them will show “not found”.', $total, 'seoprostack'), $count),
+                );
+                ?>
+                <form id="sps-old-addresses" method="post" action="<?php echo esc_url(admin_url('admin-post.php')); ?>" data-total="<?php echo (int) $total; ?>" data-i18n="<?php echo esc_attr(wp_json_encode($i18n)); ?>">
                     <input type="hidden" name="action" value="<?php echo esc_attr(self::ACTION); ?>">
+                    <input type="hidden" name="all" value="">
                     <?php wp_nonce_field(self::ACTION); ?>
                     <div class="tablenav top">
                         <div class="alignleft actions">
                             <?php submit_button(__('Remove selected', 'seoprostack'), 'secondary', 'remove', false); ?>
+                            <?php submit_button(__('Remove all', 'seoprostack'), 'delete', 'remove_all', false); ?>
                         </div>
                         <div class="tablenav-pages"><span class="displaying-num"><?php
                             /* translators: %s: number of old addresses */
@@ -358,6 +440,7 @@ class SEOProStack_Old_Slugs extends SEOProStack_Feature {
                         ?>
                         </div>
                     </div>
+                    <div class="notice notice-info inline sps-old-addresses-all" role="status" style="display:none"><p></p></div>
                     <table class="wp-list-table widefat fixed striped">
                         <thead>
                             <tr>
@@ -421,12 +504,20 @@ class SEOProStack_Old_Slugs extends SEOProStack_Feature {
     }
 
     /**
-     * admin-post: remove one old address (link) or the selected ones (form).
+     * admin-post: remove one old address (link), the selected ones (form),
+     * or all of them (Remove all, or every page selected).
      */
     public static function handle() {
         check_admin_referer(self::ACTION);
         if (!current_user_can('edit_others_posts')) {
             wp_die(esc_html__('You are not allowed to remove old addresses.', 'seoprostack'), '', array('response' => 403));
+        }
+        $back = wp_get_referer();
+        $back = $back ? remove_query_arg(array('removed'), $back) : admin_url('tools.php?page=' . self::PAGE);
+        // phpcs:ignore WordPress.Security.NonceVerification.Missing -- checked above.
+        if (isset($_POST['remove_all']) || !empty($_POST['all'])) {
+            wp_safe_redirect(add_query_arg('removed', self::remove_all(), remove_query_arg('paged', $back)));
+            exit;
         }
         $mids = array();
         // phpcs:disable WordPress.Security.NonceVerification -- checked above.
@@ -445,9 +536,39 @@ class SEOProStack_Old_Slugs extends SEOProStack_Feature {
             }
         }
         $done = self::clear($rows);
-        $back = wp_get_referer();
-        $back = $back ? remove_query_arg(array('removed'), $back) : admin_url('tools.php?page=' . self::PAGE);
         wp_safe_redirect(add_query_arg('removed', $done, $back));
         exit;
+    }
+
+    /**
+     * Remove every old address of posts the user may edit, a batch at a
+     * time, stopping after about 20 seconds (the page then shows how many
+     * are left, and Remove all carries on).
+     *
+     * @return int Rows deleted.
+     */
+    private static function remove_all() {
+        global $wpdb;
+        $done  = 0;
+        $after = 0;
+        $can   = array();
+        $start = microtime(true);
+        do {
+            // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- reads old slug rows to remove; not cached.
+            $rows = (array) $wpdb->get_results($wpdb->prepare("SELECT meta_id, post_id FROM {$wpdb->postmeta} WHERE meta_key = %s AND meta_id > %d ORDER BY meta_id ASC LIMIT %d", self::META, $after, self::BATCH), ARRAY_N);
+            $mine = array();
+            foreach ($rows as $row) {
+                $after = (int) $row[0];
+                $post  = (int) $row[1];
+                if (!isset($can[$post])) {
+                    $can[$post] = current_user_can('edit_post', $post);
+                }
+                if ($can[$post]) {
+                    $mine[] = array($after, $post);
+                }
+            }
+            $done += self::clear($mine);
+        } while (count($rows) === self::BATCH && microtime(true) - $start < 20);
+        return $done;
     }
 }

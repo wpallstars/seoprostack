@@ -41,8 +41,8 @@
  *   (the settings offer those as choices);
  * - wherever a plugin that needs it loads (`Requires Plugins`,
  *   `WC requires at least` with WooCommerce in its name,
- *   `Elementor tested up to`, or named as a WooCommerce, Elementor or
- *   Contact Form 7 add-on).
+ *   `Elementor tested up to`, named as a WooCommerce, Elementor or
+ *   Contact Form 7 add-on, or a Pro or Premium add-on named after it).
  * Plugins that need a ticked plugin follow it: they load where it loads.
  *
  * On the site itself, plugins ticked for the site ("Plugins to skip on the
@@ -92,7 +92,7 @@ final class SEOProStack_Plugin_Loader {
     const HISTORY = 'seoprostack_plugin_screens';
 
     /** Map format; a change makes SEO Pro Stack learn again. */
-    const MAP_VERSION = 8;
+    const MAP_VERSION = 10;
 
     /** SEO Pro Stack's own settings page (Settings > SEO Pro Stack). */
     const SETTINGS_PAGE = 'seoprostack';
@@ -114,7 +114,7 @@ final class SEOProStack_Plugin_Loader {
     const FRONT_USERS_KEY = 'plugin_loading_front_users';
 
     /** Format of what is learned on the site; a change makes it learn again. */
-    const FRONT_VERSION = 4;
+    const FRONT_VERSION = 5;
 
     /** One-time preservation of the owner's saved site-wide skip choices. */
     const FRONT_MIGRATED = 'seoprostack_plugin_front_migrated';
@@ -389,6 +389,18 @@ final class SEOProStack_Plugin_Loader {
         }
 
         $options = get_option('seoprostack_options', array());
+        // Plugins often save options while their files load, before
+        // SEO Pro Stack's features start: Hosting needs counts those writes
+        // and Ask before licence checks keeps known licence timestamps.
+        if (is_array($options) && (!empty($options['hosting_needs']) || !empty($options['licence_calls']))) {
+            require_once __DIR__ . '/class-seoprostack-option-writes.php';
+            if (!empty($options['hosting_needs'])) {
+                SEOProStack_Option_Writes::watch();
+            }
+            if (!empty($options['licence_calls'])) {
+                SEOProStack_Option_Writes::keep();
+            }
+        }
         if (!is_array($options) || empty($options[self::SWITCH_KEY])) {
             return;
         }
@@ -585,7 +597,7 @@ final class SEOProStack_Plugin_Loader {
             return;
         }
         $keep = isset($options[self::KEEP_KEY]) ? (array) $options[self::KEEP_KEY] : array();
-        $chosen = array_unique(array_merge((array) ($options[self::FRONT_KEY] ?? array()), self::front_automatic(self::$raw, $front)));
+        $chosen = array_unique(array_merge((array) ($options[self::FRONT_KEY] ?? array()), self::front_automatic(self::$raw, $front, !$logged_in)));
         $chosen = array_diff(array_intersect(self::$raw, $chosen), $keep);
         // Page learning adds to the site-wide list only on plain public requests.
         // Sessions and authentication still use the chosen site-wide list.
@@ -961,14 +973,24 @@ final class SEOProStack_Plugin_Loader {
     }
 
     /**
-     * Plugins with no learned contribution to the site.
+     * Plugins with no learned contribution to the site and, for visitors
+     * (who have no admin bar), plugins that only add to the admin bar.
      *
-     * @param string[] $active Active plugin files.
-     * @param array    $front  What was learned on the site.
+     * @param string[] $active  Active plugin files.
+     * @param array    $front   What was learned on the site.
+     * @param bool     $visitor Whether the request has no login cookie.
      * @return string[]
      */
-    public static function front_automatic(array $active, array $front) {
-        return array_values(array_diff($active, array_keys(array_filter((array) ($front['notes'] ?? array())))));
+    public static function front_automatic(array $active, array $front, $visitor = false) {
+        $notes = (array) ($front['notes'] ?? array());
+        $skip  = array();
+        foreach ($active as $file) {
+            $list = isset($notes[$file]) ? array_values(array_unique((array) $notes[$file])) : array();
+            if (!$list || ($visitor && array('bar') === $list)) {
+                $skip[] = $file;
+            }
+        }
+        return $skip;
     }
 
     /**

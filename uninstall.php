@@ -37,6 +37,8 @@ function seoprostack_uninstall_site() {
 
     $options = array(
         'seoprostack_options',
+        // The settings save lock, if a save stopped before releasing it.
+        'seoprostack_options_lock',
         'seoprostack_db_version',
         // Development builds released as "WP Allstars".
         'wp_allstars_options',
@@ -82,6 +84,10 @@ function seoprostack_uninstall_site() {
     $options[] = 'seoprostack_hosting_memory';
     $options[] = 'seoprostack_hosting_code';
     $options[] = 'seoprostack_hosting_traffic';
+    $options[] = 'seoprostack_hosting_writes';
+    $options[] = 'seoprostack_hosting_object_cache';
+    $options[] = 'seoprostack_hosting_object_cache_lock';
+    wp_cache_delete('hosting_probe', 'seoprostack');
     // Whether the site runs on a LiteSpeed server, for WP-CLI.
     $options[] = 'seoprostack_litespeed_server';
     // Ask before licence checks: choices and times. Kept answers are
@@ -102,11 +108,32 @@ function seoprostack_uninstall_site() {
     $options[] = 'seoprostack_kadence_brand_icons';
     // Clean the database weekly: the last cleanup's counts.
     $options[] = 'seoprostack_database_cleanup_last';
+    // Clean the database weekly: scheduled tasks seen with no code, and the
+    // ones it removed (they stay removed).
+    $options[] = 'seoprostack_database_cleanup_cron_seen';
+    $options[] = 'seoprostack_database_cleanup_cron_removed';
+    // Linking caches and anonymous daily click totals. Approved links are
+    // ordinary post content and remain; Link Whisper and Rank Math stay untouched.
+    $options[] = 'seoprostack_link_index';
+    $options[] = 'seoprostack_link_tables';
+    foreach (array('seoprostack_links', 'seoprostack_link_health', 'seoprostack_link_clicks') as $suffix) {
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- uninstall removes only fixed plugin-owned table names.
+        $wpdb->query("DROP TABLE IF EXISTS {$wpdb->prefix}$suffix");
+    }
+    foreach (array('_seoprostack_link_scan', '_seoprostack_link_map', '_seoprostack_link_undo') as $meta_key) {
+        delete_post_meta_by_key($meta_key);
+    }
+    foreach (array('seoprostack_link_batch', 'seoprostack_link_click_prune', 'seoprostack_link_click_prune_more') as $hook) {
+        wp_unschedule_hook($hook);
+    }
     foreach ($options as $option) {
         delete_option($option);
     }
     wp_unschedule_hook('seoprostack_database_cleanup');
     wp_unschedule_hook('seoprostack_database_cleanup_more');
+
+    // Copied content and excerpts stay; only the sync fingerprint is ours.
+    delete_post_meta_by_key('_seoprostack_field_content_hash');
 
     // Order flow: links between form entries, tasks and conversations. The
     // entries, tasks, conversations and their log lines are that plugin's
@@ -325,6 +352,9 @@ delete_metadata('user', 0, 'seoprostack_replaced_plugins_hidden', '', true);
 delete_metadata('user', 0, 'seoprostack_git_updater_dismissed', '', true);
 // "Ask me again" in Ask before licence checks.
 delete_metadata('user', 0, 'seoprostack_licence_later', '', true);
+// Dashboard boxes Tidy the dashboard has unticked once in Screen Options
+// (the boxes stay unticked: that is WordPress's own setting).
+delete_metadata('user', 0, 'seoprostack_dashboard_start_hidden', '', true);
 
 // Plugin caches, network-wide because plugins are shared by every site. On
 // single sites these calls remove the ordinary option and transient.
@@ -335,6 +365,29 @@ delete_site_option('seoprostack_nextgen_rules');
 // before it was shared). Only a cache: another plugin's copy asks again.
 delete_site_transient('wpallstars_github_releases');
 delete_site_transient('seoprostack_github_releases');
+// Fixes for other plugins: Comment Goblin's update server failed recently.
+delete_site_transient('seoprostack_comment_goblin_failed');
+// Fixes for other plugins: what the LiteSpeed noabort block holds (the
+// block itself is removed on deactivation).
+delete_site_option('seoprostack_noabort_rules');
+// Turn off unused remote access: the log and backup files block, which
+// deactivation removes unless a file could not be written then.
+$seoprostack_files = (array) get_site_option('seoprostack_hardening_files', array());
+foreach (isset($seoprostack_files['targets']) && is_array($seoprostack_files['targets']) ? $seoprostack_files['targets'] : array() as $seoprostack_htaccess) {
+    if (!is_string($seoprostack_htaccess) || '.htaccess' !== basename($seoprostack_htaccess) || !is_file($seoprostack_htaccess) || !wp_is_writable($seoprostack_htaccess)) {
+        continue;
+    }
+    $seoprostack_contents = (string) file_get_contents($seoprostack_htaccess); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents -- local file.
+    $seoprostack_cleaned  = preg_replace('/# BEGIN SEO Pro Stack log and backup files\r?\n.*?# END SEO Pro Stack log and backup files[^\n]*(\n|$)\s*/s', '', $seoprostack_contents);
+    if (null !== $seoprostack_cleaned && $seoprostack_cleaned !== $seoprostack_contents) {
+        if ('' === trim($seoprostack_cleaned)) {
+            wp_delete_file($seoprostack_htaccess);
+        } else {
+            file_put_contents($seoprostack_htaccess, $seoprostack_cleaned, LOCK_EX); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_file_put_contents -- as insert_with_markers().
+        }
+    }
+}
+delete_site_option('seoprostack_hardening_files');
 
 // The must-use file of "Load plugins only where needed", if it is ours.
 $seoprostack_loader = WPMU_PLUGIN_DIR . '/seoprostack-plugin-loading.php';

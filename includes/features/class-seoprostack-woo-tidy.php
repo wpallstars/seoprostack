@@ -42,7 +42,7 @@ class SEOProStack_Woo_Tidy extends SEOProStack_Feature {
             ),
             self::ITEMS_KEY => array(
                 'type'        => 'multi',
-                'default'     => array('suggestions', 'extensions', 'connect', 'app_email'),
+                'default'     => array('suggestions', 'payment_suggestions', 'extensions', 'connect', 'app_email'),
                 'parent'      => self::KEY,
                 'label'       => __('Remove', 'seoprostack'),
                 'options'     => array(__CLASS__, 'item_options'),
@@ -59,6 +59,7 @@ class SEOProStack_Woo_Tidy extends SEOProStack_Feature {
     public static function item_options() {
         return array(
             'suggestions' => __('Marketplace suggestions: extensions WooCommerce promotes on its screens', 'seoprostack'),
+            'payment_suggestions' => __('Payments settings: payment plugins WooCommerce suggests under “More payment options” (a link to its marketplace stays)', 'seoprostack'),
             'extensions'  => __('Extensions menu entry (the page still opens from Plugins)', 'seoprostack'),
             'connect'     => __('“Connect your store to WooCommerce.com” notices', 'seoprostack'),
             'app_email'   => __('“Get the WooCommerce app” in new order emails', 'seoprostack'),
@@ -96,6 +97,11 @@ class SEOProStack_Woo_Tidy extends SEOProStack_Feature {
             // stops the WooPayments welcome page that it adds as a menu entry.
             add_filter('woocommerce_allow_marketplace_suggestions', '__return_false', 99);
         }
+        if (isset($items['payment_suggestions'])) {
+            // The Payments screen (React, WooCommerce 9.7+) reads them from
+            // its providers route and shows only a link when there are none.
+            add_filter('rest_request_after_callbacks', array(__CLASS__, 'remove_payment_suggestions'), 10, 3);
+        }
         if (isset($items['extensions']) && is_admin()) {
             // WooCommerce registers the entry at admin_menu priority 70.
             add_action('admin_menu', array(__CLASS__, 'remove_extensions_menu'), 999);
@@ -127,6 +133,29 @@ class SEOProStack_Woo_Tidy extends SEOProStack_Feature {
                 remove_submenu_page('woocommerce-marketing', $item[2]);
             }
         }
+    }
+
+    /**
+     * Leave out the payment plugins WooCommerce suggests under "More
+     * payment options" on WooCommerce → Settings → Payments. Payment
+     * methods already set up, and the suggested ones WooCommerce lists
+     * among them, are unchanged.
+     *
+     * @param mixed           $response Response.
+     * @param array           $handler  Route handler.
+     * @param WP_REST_Request $request  Request.
+     * @return mixed
+     */
+    public static function remove_payment_suggestions($response, $handler, $request) {
+        if (!$request instanceof WP_REST_Request || '/wc-admin/settings/payments/providers' !== $request->get_route()) {
+            return $response;
+        }
+        $data = $response instanceof WP_REST_Response ? $response->get_data() : null;
+        if (is_array($data) && isset($data['suggestions'])) {
+            $data['suggestions'] = array();
+            $response->set_data($data);
+        }
+        return $response;
     }
 
     /**

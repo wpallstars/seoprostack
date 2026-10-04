@@ -128,13 +128,85 @@ class SEOProStack_Replaced_Plugins {
         $back = wp_get_referer();
         $back = $back ? $back : admin_url('plugins.php');
         // Network-wide plugins are deactivated in the network admin.
-        if (is_plugin_active($file) && !is_plugin_active_for_network($file)) {
+        if (in_array($file, self::stored_plugins(), true) && !is_plugin_active_for_network($file)) {
             deactivate_plugins($file);
-            update_option('recently_activated', array($file => time()) + (array) get_option('recently_activated'), false);
-            $back = add_query_arg(self::DONE, 1, $back);
+            if (self::save_plugin_state($file, false)) {
+                update_option('recently_activated', array($file => time()) + (array) get_option('recently_activated'), false);
+                $back = add_query_arg(self::DONE, 1, $back);
+            }
         }
         wp_safe_redirect($back);
         exit;
+    }
+
+    /**
+     * Make sure a plugin's new state is saved, after core's activate_plugin()
+     * or deactivate_plugins() has run its hooks.
+     *
+     * Plugins that load fewer plugins on some requests guard saves of
+     * `active_plugins`. Freesoul Deactivate Plugins, for one, saves the full
+     * list it read when the page loaded instead of the new one, unless the
+     * request is the Plugins screen's own action, so a change made anywhere
+     * else is lost without a word. When the stored list does not have the
+     * change, save that one change to it, with those filters paused.
+     *
+     * @param string $file   Plugin file.
+     * @param bool   $active Whether it should be active on this site.
+     * @return bool Whether the stored list now has it that way.
+     */
+    public static function save_plugin_state($file, $active) {
+        $stored = self::stored_plugins();
+        if (in_array($file, $stored, true) === $active) {
+            return true;
+        }
+        if ($active) {
+            $stored[] = $file;
+            sort($stored);
+        } else {
+            $stored = array_values(array_diff($stored, array($file)));
+        }
+        self::without_list_filters(function () use ($stored) {
+            update_option('active_plugins', $stored);
+        });
+        return in_array($file, self::stored_plugins(), true) === $active;
+    }
+
+    /**
+     * Plugins stored as active on this site, as saved: not as other plugins
+     * filter the list for the current request.
+     *
+     * @return string[] Plugin files.
+     */
+    public static function stored_plugins() {
+        $stored = self::without_list_filters(function () {
+            return get_option('active_plugins', array());
+        });
+        return is_array($stored) ? array_values(array_filter($stored, 'is_string')) : array();
+    }
+
+    /**
+     * Run a callback with the filters on reading and saving `active_plugins`
+     * paused, then put them back.
+     *
+     * @param callable $callback Callback.
+     * @return mixed What the callback returns.
+     */
+    private static function without_list_filters(callable $callback) {
+        global $wp_filter;
+        $paused = array();
+        foreach (array('pre_option_active_plugins', 'option_active_plugins', 'pre_update_option_active_plugins') as $hook) {
+            if (isset($wp_filter[$hook])) {
+                $paused[$hook] = $wp_filter[$hook];
+                unset($wp_filter[$hook]);
+            }
+        }
+        try {
+            return $callback();
+        } finally {
+            foreach ($paused as $hook => $filters) {
+                $wp_filter[$hook] = $filters; // phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited -- puts back what was paused above.
+            }
+        }
     }
 
     /**
@@ -255,6 +327,71 @@ class SEOProStack_Replaced_Plugins {
         if (null !== $states) {
             return $states;
         }
+        $installed = self::installed_plugins();
+        // Active where this screen can deactivate it: network-wide in the
+        // network admin, on this site otherwise. Stored lists, so plugins
+        // skipped on this screen still count.
+        $here = is_multisite() && is_network_admin()
+            ? array_keys((array) get_site_option('active_sitewide_plugins', array()))
+            : SEOProStack_Feature::stored_active_plugins();
+        $all  = SEOProStack_Feature::active_plugins();
+
+        $states = array();
+        foreach (self::replaced() as $slug => $plugin) {
+            $item = isset($installed[$slug]) ? self::item($installed[$slug], (string) $slug, $plugin, $here, $all) : null;
+            if ($item) {
+                $states[$item['file']] = $item;
+            }
+        }
+        return $states;
+    }
+
+    /**
+     * The state of one installed replaced plugin, or null when it needs no step.
+     *
+     * @param string                                             $file   Plugin file.
+     * @param string                                             $slug   Plugin folder.
+     * @param array{name:string,settings:array<string,string>}   $plugin From replaced().
+     * @param string[]                                           $here   Plugin files active where this screen can deactivate them.
+     * @param array<string,mixed>                                $all    Active plugins, keyed by folder.
+     * @return array{slug:string,file:string,name:string,step:string,settings:array<string,string>,extras:string[]}|null
+     */
+    private static function item($file, $slug, array $plugin, array $here, array $all) {
+        $step = self::step($file, $slug, $plugin['settings'], $here, $all);
+        if ('' === $step) {
+            return null;
+        }
+        $extras = array();
+        if ('deactivate' === $step || 'switch_on' === $step) {
+            /**
+             * What a replaced plugin does on this site that SEO Pro Stack,
+             * as set up, does not. When there is any, the notice lists it
+             * instead of saying the plugin can go.
+             *
+             * @param string[] $extras Plain names.
+             * @param string   $slug   Plugin folder.
+             */
+            $extras = array_values(array_filter(array_map('strval', (array) apply_filters('seoprostack_replaced_plugin_extras', array(), $slug))));
+        }
+        if ($extras) {
+            $step = 'deactivate' === $step ? 'partial' : 'switch_on_partial';
+        }
+        return array(
+            'slug'     => $slug,
+            'file'     => $file,
+            'name'     => $plugin['name'],
+            'step'     => $step,
+            'settings' => $plugin['settings'],
+            'extras'   => $extras,
+        );
+    }
+
+    /**
+     * Installed plugins in a folder, keyed by folder name.
+     *
+     * @return array<string,string> slug => plugin file.
+     */
+    private static function installed_plugins() {
         if (!function_exists('get_plugins')) {
             require_once ABSPATH . 'wp-admin/includes/plugin.php';
         }
@@ -265,60 +402,33 @@ class SEOProStack_Replaced_Plugins {
                 $installed[$slug] = $file;
             }
         }
+        return $installed;
+    }
 
-        $network = is_multisite() && is_network_admin();
-        // Active where this screen can deactivate it: network-wide in the
-        // network admin, on this site otherwise. Stored lists, so plugins
-        // skipped on this screen still count.
-        $here = $network
-            ? array_keys((array) get_site_option('active_sitewide_plugins', array()))
-            : SEOProStack_Feature::stored_active_plugins();
-        $all  = SEOProStack_Feature::active_plugins();
-
-        $items = array();
-        foreach (self::replaced() as $slug => $plugin) {
-            if (!isset($installed[$slug])) {
-                continue;
-            }
-            $file   = $installed[$slug];
-            $all_on = true;
-            foreach (array_keys($plugin['settings']) as $key) {
-                $all_on = $all_on && (bool) SEOProStack_Settings::get($key);
-            }
-
-            if (in_array($file, $here, true)) {
-                $step = $all_on ? 'deactivate' : 'switch_on';
-            } elseif (!isset($all[$slug]) && !is_multisite()) {
-                $step = $all_on ? 'delete' : 'switch_on_inactive';
-            } else {
-                continue;
-            }
-            $extras = array();
-            if ('deactivate' === $step || 'switch_on' === $step) {
-                /**
-                 * What a replaced plugin does on this site that SEO Pro Stack,
-                 * as set up, does not. When there is any, the notice lists it
-                 * instead of saying the plugin can go.
-                 *
-                 * @param string[] $extras Plain names.
-                 * @param string   $slug   Plugin folder.
-                 */
-                $extras = array_values(array_filter(array_map('strval', (array) apply_filters('seoprostack_replaced_plugin_extras', array(), (string) $slug))));
-            }
-            if ($extras) {
-                $step = 'deactivate' === $step ? 'partial' : 'switch_on_partial';
-            }
-            $items[$file] = array(
-                'slug'     => (string) $slug,
-                'file'     => $file,
-                'name'     => $plugin['name'],
-                'step'     => $step,
-                'settings' => $plugin['settings'],
-                'extras'   => $extras,
-            );
+    /**
+     * The step an installed replaced plugin needs, before extras: deactivate
+     * or switch_on when active here, delete or switch_on_inactive when
+     * inactive everywhere on a single site, '' for none.
+     *
+     * @param string               $file     Plugin file.
+     * @param string               $slug     Plugin folder.
+     * @param array<string,string> $settings Setting key => label of the settings that replace it.
+     * @param string[]             $here     Plugin files active where this screen can deactivate them.
+     * @param array<string,mixed>  $all      Active plugins, keyed by folder.
+     * @return string
+     */
+    private static function step($file, $slug, array $settings, array $here, array $all) {
+        $all_on = true;
+        foreach (array_keys($settings) as $key) {
+            $all_on = $all_on && (bool) SEOProStack_Settings::get($key);
         }
-        $states = $items;
-        return $states;
+        if (in_array($file, $here, true)) {
+            return $all_on ? 'deactivate' : 'switch_on';
+        }
+        if (!isset($all[$slug]) && !is_multisite()) {
+            return $all_on ? 'delete' : 'switch_on_inactive';
+        }
+        return '';
     }
 
     /**

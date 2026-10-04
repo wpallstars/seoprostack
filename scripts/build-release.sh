@@ -4,13 +4,15 @@
 # Two builds of the same version, both with one {slug}/ folder inside (the
 # slug is the main file's name, scripts/lib/plugin.sh):
 #   {slug}-X.Y.Z.zip
-#       GitHub release asset: the files in Git, less .distignore.
+#       GitHub release asset: the files in Git, less .distignore, with an
+#       "Update URI: https://github.com/{owner}/{repo}" header added under
+#       "GitHub Plugin URI", so WordPress.org never offers another plugin
+#       with the same slug in its place.
 #   wordpress-org-{slug}-X.Y.Z.zip
 #       WordPress.org build: the same, less the files in .distignore-wporg and
-#       the GitHub updater header lines. Its name does not start with the
-#       slug, so no updater picks it even if it is attached to a GitHub
-#       release by mistake (it takes the first asset whose name starts with
-#       the plugin slug). Never attach it to a GitHub release.
+#       the GitHub updater header lines, and without Update URI. Its name is
+#       not {slug}-X.Y.Z.zip, so no updater installs it even if it is
+#       attached to a GitHub release by mistake. Never attach it to one.
 #   SHA256SUMS
 #
 # Files come from the Git ref (git archive), never from the working tree, so
@@ -51,7 +53,7 @@ usage() {
 }
 
 cleanup() {
-	if [ -n "$TMP_DIR" ] && [ -d "$TMP_DIR" ]; then
+	if [[ -n "$TMP_DIR" ]] && [[ -d "$TMP_DIR" ]]; then
 		rm -rf "$TMP_DIR"
 	fi
 	return 0
@@ -92,6 +94,37 @@ make_zip() {
 	return 0
 }
 
+# Add "Update URI: https://github.com/{owner}/{repo}" under the GitHub Plugin
+# URI header of the GitHub build's main file (WordPress 5.8+ then never asks
+# WordPress.org about it). Fails when there is no such header or it is not a
+# repository.
+add_update_uri() {
+	local main="$1"
+	local added="$main.tmp"
+	awk '
+		!done && /^[[:space:]*]*GitHub Plugin URI:/ {
+			print
+			repo = $0
+			sub(/^[^:]*:[[:space:]]*/, "", repo)
+			sub(/[[:space:]]+$/, "", repo)
+			sub(/^(https?:\/\/)?(www\.)?github\.com\//, "", repo)
+			sub(/(\.git)?\/*$/, "", repo)
+			if (repo !~ /^[A-Za-z0-9][A-Za-z0-9-]*\/[A-Za-z0-9._-]+$/) { exit 2 }
+			prefix = $0
+			sub(/GitHub Plugin URI:.*/, "", prefix)
+			printf "%sUpdate URI:        https://github.com/%s\n", prefix, repo
+			done = 1
+			next
+		}
+		{ print }
+		END { if (!done) { exit 3 } }' "$main" >"$added" || {
+		rm -f "$added"
+		die "no usable GitHub Plugin URI header in $MAIN_FILE for the Update URI"
+	}
+	mv "$added" "$main"
+	return 0
+}
+
 # Remove the GitHub updater header lines from the main file of a build.
 strip_updater_headers() {
 	local main="$1"
@@ -106,16 +139,16 @@ main() {
 	local out=""
 	local quiet=0
 	local arg
-	while [ $# -gt 0 ]; do
+	while [[ $# -gt 0 ]]; do
 		arg="$1"
 		case "$arg" in
 		--ref)
-			[ $# -ge 2 ] || die "--ref needs a value"
+			[[ $# -ge 2 ]] || die "--ref needs a value"
 			ref="$2"
 			shift
 			;;
 		--out)
-			[ $# -ge 2 ] || die "--out needs a value"
+			[[ $# -ge 2 ]] || die "--out needs a value"
 			out="$2"
 			shift
 			;;
@@ -142,13 +175,13 @@ main() {
 	SLUG="$PLUGIN_SLUG"
 	MAIN_FILE="$PLUGIN_MAIN_FILE"
 	version="$(version_at "$sha")"
-	[ -n "$version" ] || die "no Version: header in $MAIN_FILE at $ref"
+	[[ -n "$version" ]] || die "no Version: header in $MAIN_FILE at $ref"
 
-	if [ "$ref" = "HEAD" ] && [ -n "$(git status --porcelain --untracked-files=no)" ] && [ "$quiet" -eq 0 ]; then
+	if [[ "$ref" = "HEAD" ]] && [[ -n "$(git status --porcelain --untracked-files=no)" ]] && [[ "$quiet" -eq 0 ]]; then
 		printf 'Note: uncommitted changes are not in the build (it is made from HEAD).\n'
 	fi
 
-	[ -n "$out" ] || out="$root/dist"
+	[[ -n "$out" ]] || out="$root/dist"
 	mkdir -p "$out"
 	out="$(cd "$out" && pwd)"
 
@@ -160,7 +193,7 @@ main() {
 	# .distignore lists itself and is export-ignored, so read it from Git.
 	git show "$sha:.distignore" >"$TMP_DIR/distignore" || die ".distignore missing at $ref"
 	rsync -a --exclude-from="$TMP_DIR/distignore" "$TMP_DIR/src/" "$TMP_DIR/github/$SLUG/"
-	[ -f "$TMP_DIR/github/$SLUG/$MAIN_FILE" ] || die "$MAIN_FILE is not in the build; check .distignore"
+	[[ -f "$TMP_DIR/github/$SLUG/$MAIN_FILE" ]] || die "$MAIN_FILE is not in the build; check .distignore"
 
 	if git cat-file -e "$sha:$WPORG_IGNORE" 2>/dev/null; then
 		git show "$sha:$WPORG_IGNORE" >"$TMP_DIR/wporg-ignore"
@@ -169,6 +202,7 @@ main() {
 	fi
 	rsync -a --exclude-from="$TMP_DIR/wporg-ignore" "$TMP_DIR/github/$SLUG/" "$TMP_DIR/wporg/$SLUG/"
 	strip_updater_headers "$TMP_DIR/wporg/$SLUG/$MAIN_FILE"
+	add_update_uri "$TMP_DIR/github/$SLUG/$MAIN_FILE"
 
 	local github_zip="$out/$SLUG-$version.zip"
 	local wporg_zip="$out/wordpress-org-$SLUG-$version.zip"
@@ -180,7 +214,7 @@ main() {
 		printf '%s  %s\n' "$(sha256_of "$wporg_zip")" "$(basename "$wporg_zip")"
 	} >"$out/SHA256SUMS"
 
-	if [ "$quiet" -eq 1 ]; then
+	if [[ "$quiet" -eq 1 ]]; then
 		printf '%s\n%s\n' "$github_zip" "$wporg_zip"
 		return 0
 	fi

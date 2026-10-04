@@ -16,6 +16,19 @@ if (!defined('ABSPATH')) {
 
 class SEOProStack_Settings_Manager {
 
+    /** Control renderer for each child field type (render_field()); any other type is text. */
+    private const CONTROLS = array(
+        'select'  => 'render_select',
+        'multi'   => 'render_multi',
+        'url'     => 'render_url',
+        'times'   => 'render_times',
+        'int'     => 'render_int',
+        'lines'   => 'render_textarea',
+        'domains' => 'render_textarea',
+        'media'   => 'render_media',
+        'bool'    => 'render_bool',
+    );
+
     /**
      * Render matching settings from every tab, grouped by tab.
      *
@@ -44,6 +57,7 @@ class SEOProStack_Settings_Manager {
                 </h2>
                 <p class="sps-section__desc" role="status">
                     <?php
+                    // role="status" rather than <output>: screen readers announce <output> changes unevenly.
                     echo esc_html($count
                         /* translators: %d: number of matching features */
                         ? sprintf(_n('%d feature found.', '%d features found.', $count, 'seoprostack'), $count)
@@ -123,18 +137,17 @@ class SEOProStack_Settings_Manager {
      * @param array  $field Schema entry.
      */
     public static function render_card($key, array $field) {
-        // Hidden options are wiring set by starter data or code, not choices.
-        $children = array_filter(SEOProStack_Settings::children_of($key), function ($child) {
-            return empty($child['hidden']);
-        });
-        $value    = SEOProStack_Settings::get($key);
-        $id       = 'sps-' . $key;
-        $panel_id = $id . '-panel';
-        $is_bool  = 'bool' === $field['type'];
+        $children = self::visible_children($key);
+        // A feature may render its whole panel itself (seoprostack_setting_panel).
+        $has_panel = $children || !empty($field['panel']);
+        $id        = 'sps-' . $key;
+        $panel_id  = $id . '-panel';
+        $is_bool   = 'bool' === $field['type'];
+        $value     = SEOProStack_Settings::get($key);
         ?>
-        <section class="sps-card sps-setting<?php echo ($is_bool && $value) ? ' is-on' : ''; ?><?php echo $children ? ' has-panel' : ''; ?>" data-setting-card="<?php echo esc_attr($key); ?>">
+        <section class="<?php echo esc_attr(self::card_classes($is_bool && $value, $has_panel)); ?>" data-setting-card="<?php echo esc_attr($key); ?>">
             <?php // Clicking the header (outside the switch) opens the options; only the switch changes the value. ?>
-            <div class="sps-setting__header"<?php echo $children ? ' data-sps-panel-toggle' : ''; ?>>
+            <div class="sps-setting__header"<?php echo $has_panel ? ' data-sps-panel-toggle' : ''; ?>>
                 <?php if ($is_bool) : ?>
                     <span class="sps-switch">
                         <input type="checkbox"
@@ -160,7 +173,7 @@ class SEOProStack_Settings_Manager {
                     <?php self::render_replaces($field); ?>
                 </div>
 
-                <?php if ($children) : ?>
+                <?php if ($has_panel) : ?>
                     <button type="button"
                             class="sps-setting__expand button-link"
                             aria-expanded="false"
@@ -172,7 +185,7 @@ class SEOProStack_Settings_Manager {
                 <?php endif; ?>
             </div>
 
-            <?php if ($children) : ?>
+            <?php if ($has_panel) : ?>
                 <div class="sps-setting__panel" id="<?php echo esc_attr($panel_id); ?>" hidden>
                     <?php
                     /**
@@ -191,6 +204,30 @@ class SEOProStack_Settings_Manager {
             <?php endif; ?>
         </section>
         <?php
+    }
+
+    /**
+     * A setting's child settings that are shown. Hidden options are wiring
+     * set by starter data or code, not choices.
+     *
+     * @param string $key Setting key.
+     * @return array<string,array>
+     */
+    private static function visible_children($key) {
+        return array_filter(SEOProStack_Settings::children_of($key), function ($child) {
+            return empty($child['hidden']);
+        });
+    }
+
+    /**
+     * A setting card's classes.
+     *
+     * @param bool $is_on     Whether its switch is on.
+     * @param bool $has_panel Whether it has an options panel.
+     * @return string
+     */
+    private static function card_classes($is_on, $has_panel) {
+        return 'sps-card sps-setting' . ($is_on ? ' is-on' : '') . ($has_panel ? ' has-panel' : '');
     }
 
     /**
@@ -279,154 +316,8 @@ class SEOProStack_Settings_Manager {
             <?php endif; ?>
             <div class="sps-field__control">
                 <?php
-                switch ($field['type']) {
-                    case 'select':
-                        printf('<select %s>', $attrs); // phpcs:ignore WordPress.Security.EscapeOutput -- escaped above.
-                        $choices = SEOProStack_Settings::options_for($field);
-                        if (!empty($field['open']) && '' !== (string) $value && !array_key_exists((string) $value, $choices)) {
-                            // A saved choice whose plugin is not loaded here stays shown.
-                            $choices[(string) $value] = (string) $value;
-                        }
-                        foreach ($choices as $option_value => $option_label) {
-                            printf(
-                                '<option value="%1$s"%2$s>%3$s</option>',
-                                esc_attr((string) $option_value),
-                                selected((string) $value, (string) $option_value, false),
-                                esc_html($option_label)
-                            );
-                        }
-                        echo '</select>';
-                        break;
-
-                    case 'multi':
-                        $chosen  = array_map('strval', (array) $value);
-                        $choices = SEOProStack_Settings::options_for($field);
-                        // With some plugins skipped on this request, a saved
-                        // choice may belong to one of them; keep it too.
-                        if (!empty($field['open']) || SEOProStack_Feature::plugins_skipped()) {
-                            // Saved items that are not registered right now stay visible so they can be unticked.
-                            foreach (array_diff($chosen, array_map('strval', array_keys($choices))) as $missing) {
-                                $choices[$missing] = $missing;
-                            }
-                        }
-                        $long = count($choices) > 12;
-                        if ($long) {
-                            // Long lists (such as every active plugin) scroll, with quick choices.
-                            printf(
-                                '<span class="sps-checkboxes__all"><button type="button" class="button-link" data-sps-check-all="%1$s">%2$s</button> · <button type="button" class="button-link" data-sps-check-none="%1$s">%3$s</button></span>',
-                                esc_attr($id),
-                                esc_html__('Select all', 'seoprostack'),
-                                esc_html__('Clear', 'seoprostack')
-                            );
-                        }
-                        // The group carries data-sps-setting; the JS saves every checked value.
-                        printf(
-                            '<fieldset class="sps-checkboxes%3$s" data-sps-multi %1$s aria-labelledby="%2$s">',
-                            $attrs, // phpcs:ignore WordPress.Security.EscapeOutput -- escaped above.
-                            esc_attr($id . '-label'),
-                            $long ? ' is-long' : ''
-                        );
-                        foreach ($choices as $option_value => $option_label) {
-                            printf(
-                                '<label class="sps-checkbox"><input type="checkbox" value="%1$s"%2$s /> %3$s</label>',
-                                esc_attr((string) $option_value),
-                                checked(in_array((string) $option_value, $chosen, true), true, false),
-                                esc_html($option_label)
-                            );
-                        }
-                        echo '</fieldset>';
-                        break;
-
-                    case 'url':
-                        printf(
-                            '<input type="text" class="regular-text code" inputmode="url" %1$s value="%2$s" placeholder="%3$s" />',
-                            $attrs, // phpcs:ignore WordPress.Security.EscapeOutput -- escaped above.
-                            esc_attr((string) $value),
-                            esc_attr(isset($field['placeholder']) ? $field['placeholder'] : '')
-                        );
-                        break;
-
-                    case 'times':
-                        printf(
-                            '<input type="text" class="regular-text" %1$s value="%2$s" placeholder="%3$s" autocomplete="off" />',
-                            $attrs, // phpcs:ignore WordPress.Security.EscapeOutput -- escaped above.
-                            esc_attr((string) $value),
-                            esc_attr(isset($field['placeholder']) ? $field['placeholder'] : '')
-                        );
-                        break;
-
-                    case 'int':
-                        printf(
-                            '<input type="number" class="small-text" %1$s value="%2$s" min="%3$s" max="%4$s" step="1" inputmode="numeric" />',
-                            $attrs, // phpcs:ignore WordPress.Security.EscapeOutput -- escaped above.
-                            esc_attr((string) $value),
-                            esc_attr(isset($field['min']) ? (string) $field['min'] : ''),
-                            esc_attr(isset($field['max']) ? (string) $field['max'] : '')
-                        );
-                        if (!empty($field['unit'])) {
-                            echo ' <span class="sps-field__unit">' . esc_html($field['unit']) . '</span>';
-                        }
-                        break;
-
-                    case 'lines':
-                    case 'domains':
-                        printf(
-                            '<textarea class="large-text code" rows="%1$d" %2$s placeholder="%3$s">%4$s</textarea>',
-                            isset($field['rows']) ? (int) $field['rows'] : 3,
-                            $attrs, // phpcs:ignore WordPress.Security.EscapeOutput -- escaped above.
-                            esc_attr(isset($field['placeholder']) ? $field['placeholder'] : ''),
-                            esc_textarea((string) $value)
-                        );
-                        break;
-
-                    case 'media':
-                        // The hidden input carries data-sps-setting; the JS sets it
-                        // from the media dialog and saves it.
-                        $image_id = (int) $value;
-                        $preview  = $image_id ? wp_get_attachment_image_url($image_id, 'thumbnail') : '';
-                        echo '<div class="sps-media" data-sps-media>';
-                        printf(
-                            '<input type="hidden" data-sps-setting="%1$s" value="%2$s" />',
-                            esc_attr($key),
-                            esc_attr((string) $image_id)
-                        );
-                        if ($preview) {
-                            printf('<img class="sps-media__preview" src="%s" alt="" />', esc_url($preview));
-                        } else {
-                            echo '<img class="sps-media__preview" alt="" hidden />';
-                        }
-                        printf(
-                            '<button type="button" class="button sps-media__choose" id="%1$s" aria-describedby="%2$s">%3$s</button>',
-                            esc_attr($id),
-                            esc_attr($desc_id),
-                            esc_html__('Choose picture', 'seoprostack')
-                        );
-                        printf(
-                            '<button type="button" class="button-link sps-media__remove"%1$s>%2$s</button>',
-                            $image_id ? '' : ' hidden',
-                            esc_html__('Remove', 'seoprostack')
-                        );
-                        echo '</div>';
-                        break;
-
-                    case 'bool':
-                        printf(
-                            '<span class="sps-switch"><input type="checkbox" role="switch" class="sps-switch__input" %1$s %2$s /><span class="sps-switch__track" aria-hidden="true"></span></span>',
-                            $attrs, // phpcs:ignore WordPress.Security.EscapeOutput -- escaped above.
-                            checked((bool) $value, true, false)
-                        );
-                        break;
-
-                    case 'text':
-                    default:
-                        printf(
-                            '<input type="text" class="regular-text" %1$s value="%2$s" placeholder="%3$s" />',
-                            $attrs, // phpcs:ignore WordPress.Security.EscapeOutput -- escaped above.
-                            esc_attr((string) $value),
-                            esc_attr(isset($field['placeholder']) ? $field['placeholder'] : '')
-                        );
-                        break;
-                }
+                $method = isset(self::CONTROLS[$field['type']]) ? self::CONTROLS[$field['type']] : 'render_text';
+                self::$method($key, $field, $value, $attrs);
                 ?>
                 <span class="sps-status" data-sps-status="<?php echo esc_attr($key); ?>" aria-hidden="true"></span>
                 <?php if (!empty($field['description']) || !empty($field['tokens'])) : ?>
@@ -445,5 +336,235 @@ class SEOProStack_Settings_Manager {
             </div>
         </div>
         <?php
+    }
+
+    /**
+     * A placeholder attribute's value.
+     *
+     * @param array $field Schema entry.
+     * @return string
+     */
+    private static function placeholder(array $field) {
+        return esc_attr(isset($field['placeholder']) ? $field['placeholder'] : '');
+    }
+
+    /**
+     * Render a select control.
+     *
+     * @param string $key   Setting key.
+     * @param array  $field Schema entry.
+     * @param mixed  $value Current value.
+     * @param string $attrs Escaped id, data-sps-setting and aria-describedby.
+     */
+    private static function render_select($key, array $field, $value, $attrs) {
+        printf('<select %s>', $attrs); // phpcs:ignore WordPress.Security.EscapeOutput -- escaped in render_field().
+        $choices = SEOProStack_Settings::options_for($field);
+        if (!empty($field['open']) && '' !== (string) $value && !array_key_exists((string) $value, $choices)) {
+            // A saved choice whose plugin is not loaded here stays shown.
+            $choices[(string) $value] = (string) $value;
+        }
+        foreach ($choices as $option_value => $option_label) {
+            printf(
+                '<option value="%1$s"%2$s>%3$s</option>',
+                esc_attr((string) $option_value),
+                selected((string) $value, (string) $option_value, false),
+                esc_html($option_label)
+            );
+        }
+        echo '</select>';
+    }
+
+    /**
+     * Render a multi control: a group of checkboxes, with quick choices
+     * when the list is long.
+     *
+     * @param string $key   Setting key.
+     * @param array  $field Schema entry.
+     * @param mixed  $value Current value.
+     * @param string $attrs Escaped id, data-sps-setting and aria-describedby.
+     */
+    private static function render_multi($key, array $field, $value, $attrs) {
+        $id      = 'sps-' . $key;
+        $chosen  = array_map('strval', (array) $value);
+        $choices = SEOProStack_Settings::options_for($field);
+        // With some plugins skipped on this request, a saved
+        // choice may belong to one of them; keep it too.
+        if (!empty($field['open']) || SEOProStack_Feature::plugins_skipped()) {
+            // Saved items that are not registered right now stay visible so they can be unticked.
+            foreach (array_diff($chosen, array_map('strval', array_keys($choices))) as $missing) {
+                $choices[$missing] = $missing;
+            }
+        }
+        $long = count($choices) > 12;
+        if ($long) {
+            // Long lists (such as every active plugin) scroll, with quick choices.
+            printf(
+                '<span class="sps-checkboxes__all"><button type="button" class="button-link" data-sps-check-all="%1$s">%2$s</button> · <button type="button" class="button-link" data-sps-check-none="%1$s">%3$s</button></span>',
+                esc_attr($id),
+                esc_html__('Select all', 'seoprostack'),
+                esc_html__('Clear', 'seoprostack')
+            );
+        }
+        // The group carries data-sps-setting; the JS saves every checked value.
+        printf(
+            '<fieldset class="sps-checkboxes%3$s" data-sps-multi %1$s aria-labelledby="%2$s">',
+            $attrs, // phpcs:ignore WordPress.Security.EscapeOutput -- escaped in render_field().
+            esc_attr($id . '-label'),
+            $long ? ' is-long' : ''
+        );
+        foreach ($choices as $option_value => $option_label) {
+            printf(
+                '<label class="sps-checkbox"><input type="checkbox" value="%1$s"%2$s /> %3$s</label>',
+                esc_attr((string) $option_value),
+                checked(in_array((string) $option_value, $chosen, true), true, false),
+                esc_html($option_label)
+            );
+        }
+        echo '</fieldset>';
+    }
+
+    /**
+     * Render a url control.
+     *
+     * @param string $key   Setting key.
+     * @param array  $field Schema entry.
+     * @param mixed  $value Current value.
+     * @param string $attrs Escaped id, data-sps-setting and aria-describedby.
+     */
+    private static function render_url($key, array $field, $value, $attrs) {
+        printf(
+            '<input type="text" class="regular-text code" inputmode="url" %1$s value="%2$s" placeholder="%3$s" />',
+            $attrs, // phpcs:ignore WordPress.Security.EscapeOutput -- escaped in render_field().
+            esc_attr((string) $value),
+            self::placeholder($field) // phpcs:ignore WordPress.Security.EscapeOutput -- escaped in placeholder().
+        );
+    }
+
+    /**
+     * Render a times control.
+     *
+     * @param string $key   Setting key.
+     * @param array  $field Schema entry.
+     * @param mixed  $value Current value.
+     * @param string $attrs Escaped id, data-sps-setting and aria-describedby.
+     */
+    private static function render_times($key, array $field, $value, $attrs) {
+        printf(
+            '<input type="text" class="regular-text" %1$s value="%2$s" placeholder="%3$s" autocomplete="off" />',
+            $attrs, // phpcs:ignore WordPress.Security.EscapeOutput -- escaped in render_field().
+            esc_attr((string) $value),
+            self::placeholder($field) // phpcs:ignore WordPress.Security.EscapeOutput -- escaped in placeholder().
+        );
+    }
+
+    /**
+     * Render an int control, with its unit.
+     *
+     * @param string $key   Setting key.
+     * @param array  $field Schema entry.
+     * @param mixed  $value Current value.
+     * @param string $attrs Escaped id, data-sps-setting and aria-describedby.
+     */
+    private static function render_int($key, array $field, $value, $attrs) {
+        printf(
+            '<input type="number" class="small-text" %1$s value="%2$s" min="%3$s" max="%4$s" step="1" inputmode="numeric" />',
+            $attrs, // phpcs:ignore WordPress.Security.EscapeOutput -- escaped in render_field().
+            esc_attr((string) $value),
+            esc_attr(isset($field['min']) ? (string) $field['min'] : ''),
+            esc_attr(isset($field['max']) ? (string) $field['max'] : '')
+        );
+        if (!empty($field['unit'])) {
+            echo ' <span class="sps-field__unit">' . esc_html($field['unit']) . '</span>';
+        }
+    }
+
+    /**
+     * Render a lines or domains control.
+     *
+     * @param string $key   Setting key.
+     * @param array  $field Schema entry.
+     * @param mixed  $value Current value.
+     * @param string $attrs Escaped id, data-sps-setting and aria-describedby.
+     */
+    private static function render_textarea($key, array $field, $value, $attrs) {
+        printf(
+            '<textarea class="large-text code" rows="%1$d" %2$s placeholder="%3$s">%4$s</textarea>',
+            isset($field['rows']) ? (int) $field['rows'] : 3,
+            $attrs, // phpcs:ignore WordPress.Security.EscapeOutput -- escaped in render_field().
+            self::placeholder($field), // phpcs:ignore WordPress.Security.EscapeOutput -- escaped in placeholder().
+            esc_textarea((string) $value)
+        );
+    }
+
+    /**
+     * Render a media control. The hidden input carries data-sps-setting; the
+     * JS sets it from the media dialog and saves it.
+     *
+     * @param string $key   Setting key.
+     * @param array  $field Schema entry.
+     * @param mixed  $value Current value.
+     * @param string $attrs Escaped id, data-sps-setting and aria-describedby.
+     */
+    private static function render_media($key, array $field, $value, $attrs) {
+        $id       = 'sps-' . $key;
+        $image_id = (int) $value;
+        $preview  = $image_id ? wp_get_attachment_image_url($image_id, 'thumbnail') : '';
+        echo '<div class="sps-media" data-sps-media>';
+        printf(
+            '<input type="hidden" data-sps-setting="%1$s" value="%2$s" />',
+            esc_attr($key),
+            esc_attr((string) $image_id)
+        );
+        if ($preview) {
+            printf('<img class="sps-media__preview" src="%s" alt="" />', esc_url($preview));
+        } else {
+            echo '<img class="sps-media__preview" alt="" hidden />';
+        }
+        printf(
+            '<button type="button" class="button sps-media__choose" id="%1$s" aria-describedby="%2$s">%3$s</button>',
+            esc_attr($id),
+            esc_attr($id . '-desc'),
+            esc_html__('Choose picture', 'seoprostack')
+        );
+        printf(
+            '<button type="button" class="button-link sps-media__remove"%1$s>%2$s</button>',
+            $image_id ? '' : ' hidden',
+            esc_html__('Remove', 'seoprostack')
+        );
+        echo '</div>';
+    }
+
+    /**
+     * Render a bool control: a native checkbox shown as a switch (its checked
+     * state is exposed natively, so it needs no aria-checked).
+     *
+     * @param string $key   Setting key.
+     * @param array  $field Schema entry.
+     * @param mixed  $value Current value.
+     * @param string $attrs Escaped id, data-sps-setting and aria-describedby.
+     */
+    private static function render_bool($key, array $field, $value, $attrs) {
+        printf(
+            '<span class="sps-switch"><input type="checkbox" role="switch" class="sps-switch__input" %1$s %2$s /><span class="sps-switch__track" aria-hidden="true"></span></span>',
+            $attrs, // phpcs:ignore WordPress.Security.EscapeOutput -- escaped in render_field().
+            checked((bool) $value, true, false)
+        );
+    }
+
+    /**
+     * Render a text control (also any type without its own control).
+     *
+     * @param string $key   Setting key.
+     * @param array  $field Schema entry.
+     * @param mixed  $value Current value.
+     * @param string $attrs Escaped id, data-sps-setting and aria-describedby.
+     */
+    private static function render_text($key, array $field, $value, $attrs) {
+        printf(
+            '<input type="text" class="regular-text" %1$s value="%2$s" placeholder="%3$s" />',
+            $attrs, // phpcs:ignore WordPress.Security.EscapeOutput -- escaped in render_field().
+            esc_attr((string) $value),
+            self::placeholder($field) // phpcs:ignore WordPress.Security.EscapeOutput -- escaped in placeholder().
+        );
     }
 }

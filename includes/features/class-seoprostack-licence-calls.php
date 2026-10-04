@@ -28,6 +28,10 @@
  * that asks for versions, update data or packages), WordPress.org, the
  * site itself, and calls from WordPress or SEO Pro Stack.
  *
+ * Also keeps the stored value of licence options that some plugins save
+ * again on every request with only a new timestamp, while the licence is
+ * valid (SEOProStack_Option_Writes::KNOWN).
+ *
  * Stored: choices and times in the seoprostack_licence_calls option (not
  * autoloaded), one day's answers in seoprostack_lc_* transients, and who
  * chose "Ask me again" in the seoprostack_licence_later user meta. Request
@@ -112,6 +116,9 @@ class SEOProStack_Licence_Calls extends SEOProStack_Feature {
         if (!self::enabled()) {
             return;
         }
+        // Licence options that plugins save again on every request with
+        // only a new timestamp (SEOProStack_Option_Writes::KNOWN).
+        SEOProStack_Option_Writes::keep();
         // Late, so a plugin that already answered or blocked the call (such
         // as HTTP Requests Manager) keeps its answer.
         add_filter('pre_http_request', array(__CLASS__, 'pre_http'), 100, 3);

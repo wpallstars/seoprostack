@@ -1,0 +1,30 @@
+{
+    "name": "HTTP Requests Manager",
+    "tested": "1.3.11",
+    "updated": "2026-10-03",
+    "notes": "Only logs requests: it lists every call the site makes to other servers, how long each took and which plugin made it, and blocks nothing. Its blocking modes (Smart block and both Block external modes) also block every request once a page has taken 3 seconds or made 3 requests, and cut each request to 2 seconds and one redirect. On our sites that blocked WordPress's own update checks (api.wordpress.org and Hostinger's copy of it, also from WP-CLI), SEO Pro Stack's update checks, LiteSpeed Cache's calls to the site itself and WooCommerce's translation downloads. Turn on SEO Pro Stack's Ask before licence checks (Plugins tab) for the licence checks those modes were blocking: each waits for your choice instead. Custom rules are kept but only used in Smart block. Logging writes each request to HTTP Requests Manager's own tables; switch it off on its Settings tab when you are not looking at calls.",
+    "options": {
+        "http-requests-manager": {
+            "mode": "log"
+        }
+    },
+    "defaults": {
+        "http-requests-manager": {
+            "mode": null
+        }
+    },
+    "settings": {
+        "http-requests-manager.mode": {
+            "label": "Operation mode",
+            "description": "Whether HTTP Requests Manager only logs calls to other servers or also blocks and shortens them.",
+            "values": {
+                "log": "Only log HTTP requests",
+                "log_all": "Only log HTTP requests (+ cron requests)",
+                "block_smart": "Smart block",
+                "block_external": "Block external requests",
+                "block_external_no_wp": "Block external requests (allow WordPress.org only)",
+                "null": "Only log HTTP requests (not set)"
+            }
+        }
+    }
+}

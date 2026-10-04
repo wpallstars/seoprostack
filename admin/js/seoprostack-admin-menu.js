@@ -140,6 +140,15 @@
 	}
 
 	/**
+	 * Most a remembered width may be above what this screen needs. Screens
+	 * differ by a few pixels (3 to 14 seen) through badges, entries and
+	 * fonts some plugins add on their own screens only; a bigger gap is a
+	 * one-off (a badge or notice since gone) that would otherwise keep the
+	 * menu wide until the plugins change.
+	 */
+	var FIT_SLACK = 24;
+
+	/**
 	 * The widest width this person's menu has needed with the same plugins,
 	 * language and SEO Pro Stack version (cfg.widthKey), kept in the
 	 * wp-settings cookie. Plugins add entries, badges and fonts on some
@@ -154,10 +163,20 @@
 		return match && match[1] === cfg.widthKey ? parseInt(match[2], 10) : 0;
 	}
 
+	/**
+	 * Remember this screen's width when it is wider, or when the
+	 * remembered one is more than FIT_SLACK above it (then this screen's
+	 * replaces it). Returns the width to keep.
+	 */
 	function remember(width) {
-		if (cfg.widthKey && 'function' === typeof window.setUserSetting && width > remembered()) {
-			window.setUserSetting('spsmw', cfg.widthKey + 'w' + width);
+		var kept = remembered();
+		if (width > kept || kept > width + FIT_SLACK) {
+			kept = width;
+			if (cfg.widthKey && 'function' === typeof window.setUserSetting) {
+				window.setUserSetting('spsmw', cfg.widthKey + 'w' + width);
+			}
 		}
+		return kept;
 	}
 
 	/**
@@ -226,8 +245,7 @@
 		});
 		body.classList.remove('sps-menu-measure');
 		var measured = Math.max(FIT_MIN, Math.min(FIT_MAX, Math.ceil(need) + 2));
-		remember(measured);
-		var width = Math.max(measured, Math.min(FIT_MAX, remembered()));
+		var width = Math.max(measured, Math.min(FIT_MAX, remember(measured)));
 		if (width > fitted) {
 			fitted = width;
 			if (width > FIT_MIN) {

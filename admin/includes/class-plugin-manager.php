@@ -188,6 +188,8 @@ class SEOProStack_Plugin_Manager {
                 if (is_wp_error($result) && 'unexpected_output' !== $result->get_error_code()) {
                     self::send_action_error($slug, wp_strip_all_tags($result->get_error_message()));
                 }
+                // Another plugin may have kept the save from happening.
+                SEOProStack_Replaced_Plugins::save_plugin_state($file, true);
             }
         } elseif ('deactivate' === $do) {
             if (!current_user_can('deactivate_plugin', $file)) {
@@ -203,6 +205,7 @@ class SEOProStack_Plugin_Manager {
             ob_start();
             deactivate_plugins($file);
             ob_end_clean();
+            SEOProStack_Replaced_Plugins::save_plugin_state($file, false);
         } else {
             wp_send_json_error(array('message' => __('Unknown action.', 'seoprostack')), 400);
         }
@@ -946,9 +949,12 @@ class SEOProStack_Plugin_Manager {
         $note = '';
         // Tools for fixing problems and admin jobs, which slow every request
         // or add checks while active, so they are not left on day to day.
-        $occasional = array('advanced-database-cleaner', 'debug-log-manager', 'gotmls', 'query-monitor', 'user-switching', 'wp-crontrol');
+        $occasional = array('advanced-database-cleaner', 'debug-log-manager', 'fluent-query-logger', 'gotmls', 'query-monitor', 'user-switching', 'wp-crontrol');
         if (in_array($slug, $occasional, true)) {
             $note = __('Not needed day to day: deactivate or delete it so the site runs at full speed, and turn it on only when you need it to look into a problem or for admin work.', 'seoprostack');
+        }
+        if ('fluent-query-logger' === $slug) {
+            $note .= ' ' . __('Last updated in July 2022: check compatibility before using it.', 'seoprostack');
         }
         /**
          * Filter the note shown under a recommended plugin in Free Plugins,

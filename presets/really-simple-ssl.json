@@ -1,0 +1,23 @@
+{
+  "name": "Really Simple Security",
+  "tested": "9.8.3",
+  "updated": "2026-10-03",
+  "notes": "Selects the plugin's 301 .htaccess redirect, only by owner request on a single-site Apache or LiteSpeed installation with SSL already enabled and an existing writable root .htaccess. Requires the verified 9.8.3 save API. HTTPS is checked with certificate validation only when changing the setting. Apply, reset and undo save through the plugin and verify its redirect block; failures are reported and rollback is attempted. Fresh activation stores no rsssl_options: reset removes just redirect (the field default is false, no redirect). No activation, licence, HSTS or other security preference is included. Unsupported sites must use the plugin's own settings screen.",
+  "options": { "rsssl_options": { "redirect": "htaccess" } },
+  "defaults": { "rsssl_options": { "redirect": null } },
+  "when": { "rsssl_options": ["single_site", "rsssl_htaccess_ready"] },
+  "settings": {
+    "rsssl_options.redirect": {
+      "label": "Redirect method",
+      "description": "Redirects HTTP requests to HTTPS with a 301 redirect using the plugin's own .htaccess rules.",
+      "values": {
+        "htaccess": "301 .htaccess redirect (read instructions first)",
+        "wp_redirect": "301 PHP redirect",
+        "none": "No redirect",
+        "false": "No redirect (field default)",
+        "": "No redirect",
+        "null": "Not stored: no redirect (plugin default)"
+      }
+    }
+  }
+}

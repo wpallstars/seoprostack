@@ -53,8 +53,20 @@ class SEOProStack_Hosting_Needs extends SEOProStack_Feature {
     /** Option: Y-m-d => rate, hours (requests per hour) and kinds (samples, seconds, buckets, slowest). */
     const TRAFFIC = 'seoprostack_hosting_traffic';
 
+    /** Option: Y-m-d => pages (page views counted) and options (name => n pages that saved it, source). */
+    const WRITES = 'seoprostack_hosting_writes';
+
+    /** Page views counted before options saved on most of them are named. */
+    const WRITES_ENOUGH = 20;
+
+    /** Most options kept a day, those saved on the most page views first. */
+    const WRITES_MAX = 50;
+
     /** Transient: database size, autoloaded options and products, read at most hourly. */
     const FACTS = 'seoprostack_hosting_facts';
+
+    /** Non-autoloaded daily object-cache facts and a cross-request probe. */
+    const OBJECT_CACHE = 'seoprostack_hosting_object_cache';
 
     /** One request in this many records its time (filter seoprostack_hosting_sample_rate). */
     const SAMPLE = 20;
@@ -116,6 +128,8 @@ class SEOProStack_Hosting_Needs extends SEOProStack_Feature {
         if (!self::enabled()) {
             return;
         }
+        // Started earlier by the must-use file of Load plugins only where needed.
+        SEOProStack_Option_Writes::watch();
         add_action('shutdown', array(__CLASS__, 'record'), PHP_INT_MAX);
         // Site Health also runs its tests from cron, outside wp-admin.
         add_filter('site_status_tests', array(__CLASS__, 'tests'));
@@ -123,6 +137,10 @@ class SEOProStack_Hosting_Needs extends SEOProStack_Feature {
         // Plugins change autoloaded options and tables.
         add_action('activated_plugin', array(__CLASS__, 'forget_facts'));
         add_action('deactivated_plugin', array(__CLASS__, 'forget_facts'));
+        // Count option writes afresh once the plugins saving them may have changed.
+        add_action('deactivated_plugin', array(__CLASS__, 'forget_writes'));
+        add_action('upgrader_process_complete', array(__CLASS__, 'forget_writes'));
+        add_action('seoprostack_setting_saved', array(__CLASS__, 'setting_saved'));
         if (!is_admin()) {
             return;
         }
@@ -143,6 +161,8 @@ class SEOProStack_Hosting_Needs extends SEOProStack_Feature {
             return; // The command line has its own limit, often none, and no visitors.
         }
         $kind = self::kind();
+        // Before this request's own writes below.
+        self::record_writes($kind);
         self::record_peak($kind);
         self::sample($kind);
     }
@@ -205,6 +225,115 @@ class SEOProStack_Hosting_Needs extends SEOProStack_Feature {
         unset($stats);
         krsort($traffic);
         update_option(self::TRAFFIC, array_slice($traffic, 0, self::DAYS, true), false);
+    }
+
+    /**
+     * On a counted page view (1 in 20), record which options it saved.
+     *
+     * @param string $kind Kind of request.
+     */
+    private static function record_writes($kind) {
+        $writes = SEOProStack_Option_Writes::writes();
+        if (null === $writes || 'site' !== $kind) {
+            return;
+        }
+        $day    = gmdate('Y-m-d');
+        $stored = get_option(self::WRITES, array());
+        $stored = is_array($stored) ? $stored : array();
+        if (!isset($stored[$day]['pages'], $stored[$day]['options']) || !is_array($stored[$day]['options'])) {
+            $stored[$day] = array('pages' => 0, 'options' => array());
+        }
+        $stored[$day]['pages']++;
+        $options = &$stored[$day]['options'];
+        foreach ($writes as $name => $write) {
+            // SEO Pro Stack's own records are its business, not a plugin's.
+            if (0 === strpos((string) $name, 'seoprostack_')) {
+                continue;
+            }
+            if (!isset($options[$name]['n'])) {
+                $options[$name] = array('n' => 0, 'source' => '');
+            }
+            $options[$name]['n']++;
+            if ('' !== $write[1]) {
+                $options[$name]['source'] = $write[1];
+            }
+        }
+        uasort($options, function ($a, $b) {
+            return $b['n'] - $a['n'];
+        });
+        $options = array_slice($options, 0, self::WRITES_MAX, true);
+        unset($options);
+        krsort($stored);
+        update_option(self::WRITES, array_slice($stored, 0, self::DAYS, true), false);
+    }
+
+    /**
+     * Options saved on more than half the page views counted in the last
+     * 7 days, once enough are counted.
+     *
+     * @return array{pages: int, options: array<string,array>} options: name => share (0-1) and source (type:slug)
+     */
+    public static function frequent_writes() {
+        $stored = get_option(self::WRITES, array());
+        $since  = gmdate('Y-m-d', time() - (self::DAYS - 1) * DAY_IN_SECONDS);
+        $pages  = 0;
+        $counts = array();
+        $source = array();
+        foreach (is_array($stored) ? $stored : array() as $day => $data) {
+            if ((string) $day < $since || !isset($data['pages'], $data['options']) || !is_array($data['options'])) {
+                continue;
+            }
+            $pages += (int) $data['pages'];
+            foreach ($data['options'] as $name => $option) {
+                $counts[$name] = (isset($counts[$name]) ? $counts[$name] : 0) + (int) $option['n'];
+                if (!empty($option['source'])) {
+                    $source[$name] = (string) $option['source'];
+                }
+            }
+        }
+        $frequent = array();
+        if ($pages >= self::WRITES_ENOUGH) {
+            arsort($counts);
+            foreach ($counts as $name => $n) {
+                if ($n * 2 > $pages) {
+                    $frequent[(string) $name] = array('share' => min(1, $n / $pages), 'source' => isset($source[$name]) ? $source[$name] : '');
+                }
+            }
+        }
+        return array('pages' => $pages, 'options' => $frequent);
+    }
+
+    /**
+     * Options saved on most page views, as a list: each with the plugin
+     * that saved it, when known, and how often.
+     *
+     * @param array $options From frequent_writes().
+     * @return string
+     */
+    private static function writes_text(array $options) {
+        $plugins = self::active_plugins();
+        $parts   = array();
+        foreach ($options as $name => $option) {
+            $from  = '';
+            $split = explode(':', $option['source'], 2);
+            if ('plugin' === $split[0] && isset($split[1])) {
+                $from = $split[1];
+                $file = isset($plugins[$from]) ? WP_PLUGIN_DIR . '/' . $plugins[$from] : '';
+                if ('' !== $file && is_file($file) && function_exists('get_plugin_data')) {
+                    $data = get_plugin_data($file, false, false);
+                    $from = !empty($data['Name']) ? $data['Name'] : $from;
+                }
+            } elseif (isset($split[1])) {
+                $from = $split[1];
+            }
+            $share   = number_format_i18n(100 * $option['share']) . '%';
+            $parts[] = '' !== $from
+                /* translators: 1: option name, 2: plugin name, 3: share of page views, such as 95%. */
+                ? sprintf(__('%1$s (%2$s, %3$s of page views)', 'seoprostack'), $name, $from, $share)
+                /* translators: 1: option name, 2: share of page views, such as 95%. */
+                : sprintf(__('%1$s (%2$s of page views)', 'seoprostack'), $name, $share);
+        }
+        return implode(', ', $parts);
     }
 
     /**
@@ -436,11 +565,13 @@ class SEOProStack_Hosting_Needs extends SEOProStack_Feature {
      * autoloaded options and products. Read at most hourly, from table
      * statistics rather than counting rows.
      *
-     * @return array db (bytes), postmeta (rows, estimated), autoload (bytes), autoload_count, products.
+     * @return array db (bytes), postmeta (rows, estimated), autoload (bytes), autoload_count, products,
+     *               cdn_probe (from cdn_probe()).
      */
     public static function facts() {
         $facts = get_transient(self::FACTS);
-        if (is_array($facts) && isset($facts['db'], $facts['postmeta'], $facts['autoload'], $facts['autoload_count'], $facts['products'])) {
+        if (is_array($facts) && isset($facts['db'], $facts['postmeta'], $facts['autoload'], $facts['autoload_count'], $facts['products'], $facts['cdn_probe'])) {
+            $facts['object_cache'] = self::object_cache_facts();
             return $facts;
         }
         global $wpdb;
@@ -468,9 +599,165 @@ class SEOProStack_Hosting_Needs extends SEOProStack_Feature {
             'autoload'       => isset($autoload['bytes']) ? (int) $autoload['bytes'] : 0,
             'autoload_count' => isset($autoload['n']) ? (int) $autoload['n'] : 0,
             'products'       => $products && isset($products->publish) ? (int) $products->publish : 0,
+            'cdn_probe'      => self::cdn_probe(),
         );
         set_transient(self::FACTS, $facts, HOUR_IN_SECONDS);
+        $facts['object_cache'] = self::object_cache_facts();
         return $facts;
+    }
+
+    /**
+     * Check only from admin, cron or WP-CLI, at most daily. Keep the previous
+     * probe in the database: an object-cache transient cannot detect fallback.
+     *
+     * @return array Daily cache state, kind, name and available backend.
+     */
+    private static function object_cache_facts() {
+        $previous = get_option(self::OBJECT_CACHE, array());
+        $previous = is_array($previous) ? $previous : array();
+        $empty    = array('state' => 'unknown', 'kind' => '', 'name' => '', 'available' => '', 'extension' => false);
+        if ((!is_admin() && !wp_doing_cron() && !(defined('WP_CLI') && WP_CLI)) || (isset($previous['checked']) && time() - $previous['checked'] < DAY_IN_SECONDS)) {
+            return $previous + $empty;
+        }
+        // An atomic, short-lived lock prevents concurrent Site Health checks.
+        $lock = self::OBJECT_CACHE . '_lock';
+        if (!add_option($lock, time(), '', false)) {
+            if ((int) get_option($lock) < time() - MINUTE_IN_SECONDS) {
+                delete_option($lock);
+            }
+            return $previous + $empty;
+        }
+        try {
+            // Another request may have finished between our first read and the
+            // lock. Re-read even when a fallback cache kept stale local options.
+            wp_cache_delete(self::OBJECT_CACHE, 'options');
+            wp_cache_delete('notoptions', 'options');
+            $previous = get_option(self::OBJECT_CACHE, array());
+            $previous = is_array($previous) ? $previous : array();
+            if (isset($previous['checked']) && time() - $previous['checked'] < DAY_IN_SECONDS) {
+                return $previous + $empty;
+            }
+            $facts = $empty + array('checked' => time());
+            $using = wp_using_ext_object_cache();
+            $ls    = in_array('litespeed-cache', self::active_slugs(), true);
+            $on    = $ls && (bool) get_option('litespeed.conf.object', false);
+            $kind  = (int) get_option('litespeed.conf.object-kind', 0) ? 'Redis' : 'Memcached';
+            $host  = (string) get_option('litespeed.conf.object-host', 'localhost');
+            $port  = (int) get_option('litespeed.conf.object-port', 'Redis' === $kind ? 6379 : 11211);
+            $file  = WP_CONTENT_DIR . '/object-cache.php';
+            $name  = '';
+            if (is_readable($file)) {
+                $header = get_file_data($file, array('name' => 'Plugin Name'));
+                $name   = $header['name'];
+            }
+            $facts['name']  = $on ? 'LiteSpeed Cache' : $name;
+            $facts['kind']  = $on ? $kind : (false !== stripos($name, 'redis') ? 'Redis' : (false !== stripos($name, 'memcached') ? 'Memcached' : ''));
+            $facts['state'] = $using ? 'working' : 'off';
+            if ($on && (!$using || !self::cache_server($host, $port, $kind))) {
+                $facts['state'] = 'unreachable';
+            }
+            if ($using && is_readable($file)) {
+                // A changed drop-in starts a new test, without accusing it on day one.
+                $identity = md5($name . '|' . (string) filemtime($file) . '|' . ($on ? $kind . '|' . $host . '|' . $port : ''));
+                if (isset($previous['identity'], $previous['probe']) && $previous['identity'] === $identity) {
+                    $found = false;
+                    $value = wp_cache_get('hosting_probe', 'seoprostack', true, $found);
+                    if (!$found || $value !== $previous['probe']) {
+                        $facts['state'] = 'unreachable';
+                    }
+                }
+                $facts['identity'] = $identity;
+                $facts['probe']    = wp_generate_uuid4();
+                // No TTL: an overdue daily check must not mistake expiry for fallback.
+                if (!wp_cache_set('hosting_probe', $facts['probe'], 'seoprostack', 0)) {
+                    $facts['state'] = 'unreachable';
+                }
+            }
+            if (!$using) {
+                foreach (array('Memcached' => 'memcached', 'Redis' => 'redis') as $backend => $extension) {
+                    if (!extension_loaded($extension)) {
+                        continue;
+                    }
+                    $addresses = array('127.0.0.1', '::1', 'localhost');
+                    // Hosts sometimes provide a Unix socket instead of a TCP listener.
+                    $socket = (string) ini_get('Redis' === $backend ? 'redis.sock' : 'memcached.sess_save_path');
+                    if ('Redis' === $backend && defined('WP_REDIS_PATH')) {
+                        $socket = (string) WP_REDIS_PATH;
+                    }
+                    if (0 === strpos($socket, '/')) {
+                        $addresses[] = $socket;
+                    }
+                    if ($ls && $kind === $backend && 0 === strpos($host, '/')) {
+                        $addresses[] = $host;
+                    }
+                    foreach (array_unique($addresses) as $address) {
+                        if (self::cache_server($address, 'Redis' === $backend ? 6379 : 11211, $backend)) {
+                            $facts['available'] = $backend;
+                            break 2;
+                        }
+                    }
+                }
+                $hostinger = defined('HOSTINGER') || (bool) array_intersect(array('hostinger', 'hostinger-ai-assistant', 'hostinger-easy-onboarding'), self::active_slugs());
+                $facts['extension'] = $hostinger && !extension_loaded('memcached');
+            }
+            update_option(self::OBJECT_CACHE, $facts, false);
+            return $facts;
+        } finally {
+            delete_option($lock);
+        }
+    }
+
+    /**
+     * Confirm the protocol, not just an open port. No credentials or writes.
+     * Each connection and reply has a short timeout (under 0.5 s in total).
+     *
+     * @param string $host Host or absolute Unix socket path.
+     * @param int    $port TCP port.
+     * @param string $kind Redis or Memcached.
+     * @return bool Whether that cache server answered.
+     */
+    private static function cache_server($host, $port, $kind) {
+        if ('' === $host || preg_match('/[\s\x00]/', $host) || false !== strpos($host, '://') || ($port < 1 || $port > 65535) && 0 !== strpos($host, '/')) {
+            return false;
+        }
+        $address = 0 === strpos($host, '/') ? 'unix://' . $host : 'tcp://' . (false !== strpos($host, ':') ? '[' . trim($host, '[]') . ']' : $host) . ':' . $port;
+        // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged -- An unavailable cache is the expected diagnostic result.
+        $stream = @stream_socket_client($address, $errno, $error, 0.2);
+        if (!$stream) {
+            return false;
+        }
+        try {
+            stream_set_timeout($stream, 0, 100000);
+            $command = 'Redis' === $kind ? "*1\r\n$4\r\nPING\r\n" : "version\r\n";
+            // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged, WordPress.WP.AlternativeFunctions.file_system_operations_fwrite -- Diagnostic socket, not a file; WP_Filesystem cannot write to it.
+            if (@fwrite($stream, $command) !== strlen($command)) {
+                return false;
+            }
+            // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged -- A timed-out or closed socket is a failed check.
+            $reply = @fgets($stream, 256);
+            return is_string($reply) && ('Redis' === $kind ? 0 === strpos($reply, '+PONG') || 0 === strpos($reply, '-NOAUTH') : 0 === strpos($reply, 'VERSION '));
+        } finally {
+            // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fclose -- Closing a diagnostic socket, not a file.
+            fclose($stream);
+        }
+    }
+
+    /**
+     * Label for the cached daily check.
+     *
+     * @param array $cache From object_cache_facts().
+     * @return string
+     */
+    private static function object_cache_label(array $cache) {
+        if ('unreachable' === $cache['state']) {
+            return __('Configured, not reachable', 'seoprostack');
+        }
+        if ('working' === $cache['state']) {
+            return '' !== $cache['kind']
+                /* translators: %s: Redis or Memcached. */
+                ? sprintf(__('Yes (%s)', 'seoprostack'), $cache['kind']) : __('Yes', 'seoprostack');
+        }
+        return 'unknown' === $cache['state'] ? __('Not checked yet', 'seoprostack') : __('No', 'seoprostack');
     }
 
     /**
@@ -478,6 +765,25 @@ class SEOProStack_Hosting_Needs extends SEOProStack_Feature {
      */
     public static function forget_facts() {
         delete_transient(self::FACTS);
+    }
+
+    /**
+     * Count option writes afresh.
+     */
+    public static function forget_writes() {
+        delete_option(self::WRITES);
+    }
+
+    /**
+     * Ask before licence checks switched: the licence options it keeps
+     * are saved, or not, from now on.
+     *
+     * @param string $key Setting key.
+     */
+    public static function setting_saved($key) {
+        if ('licence_calls' === $key) {
+            self::forget_writes();
+        }
     }
 
     /**
@@ -501,6 +807,112 @@ class SEOProStack_Hosting_Needs extends SEOProStack_Feature {
             $known[] = 'litespeed-cache';
         }
         return (bool) array_intersect($known, self::active_slugs());
+    }
+
+    /**
+     * The CDN in front of the site, if any: from the headers of the request
+     * being served, a plugin that sets one up, or the headers of the home
+     * page.
+     *
+     * @param array $facts From facts().
+     * @return array state (found, none or unknown) and name (the provider, when found).
+     */
+    private static function cdn(array $facts) {
+        // Headers a CDN adds to the requests it passes to the site.
+        $passed = array(
+            'HTTP_CF_RAY'            => 'Cloudflare',
+            'HTTP_X_SUCURI_CLIENTIP' => 'Sucuri',
+        );
+        foreach ($passed as $header => $name) {
+            if (!empty($_SERVER[$header])) {
+                return array('state' => 'found', 'name' => $name);
+            }
+        }
+        $name = self::cdn_plugin();
+        if ('' !== $name) {
+            return array('state' => 'found', 'name' => $name);
+        }
+        $probe = isset($facts['cdn_probe']) ? (string) $facts['cdn_probe'] : 'unknown';
+        if ('unknown' === $probe || '' === $probe) {
+            return array('state' => '' === $probe ? 'none' : 'unknown', 'name' => '');
+        }
+        return array('state' => 'found', 'name' => $probe);
+    }
+
+    /**
+     * An active plugin that serves the site's files from a CDN.
+     *
+     * @return string Its CDN's name, or an empty string.
+     */
+    private static function cdn_plugin() {
+        $active = self::active_slugs();
+        if (in_array('litespeed-cache', $active, true)) {
+            if (get_option(SEOProStack_Litespeed::PREFIX . 'cdn-quic', false)) {
+                return 'QUIC.cloud';
+            }
+            if (get_option(SEOProStack_Litespeed::PREFIX . 'cdn', false)) {
+                return __('A CDN set up in LiteSpeed Cache', 'seoprostack');
+            }
+        }
+        if (in_array('cloudflare', $active, true) && '' !== (string) get_option('cloudflare_cached_domain_name', '')) {
+            return 'Cloudflare';
+        }
+        if (in_array('bunnycdn', $active, true) && '' !== (string) get_option('bunnycdn_cdn_hostname', '') && (int) get_option('bunnycdn_cdn_status', 1) > 0) {
+            return 'Bunny CDN';
+        }
+        if (in_array('cdn-enabler', $active, true)) {
+            $settings = get_option('cdn_enabler', array());
+            if (is_array($settings) && !empty($settings['cdn_hostname'])) {
+                return __('A CDN set up in CDN Enabler', 'seoprostack');
+            }
+        }
+        if (in_array('jetpack', $active, true) && array_intersect(array('photon', 'photon-cdn'), (array) get_option('jetpack_active_modules', array()))) {
+            return __('Jetpack’s Site Accelerator', 'seoprostack');
+        }
+        return '';
+    }
+
+    /**
+     * Ask the home page for its headers and name the CDN that answered.
+     * Each header is one the provider's own responses carry.
+     *
+     * @return string The CDN's name, an empty string for none, or unknown when the site did not answer.
+     */
+    private static function cdn_probe() {
+        $response = wp_remote_head(home_url('/'), array(
+            'timeout'     => 5,
+            'redirection' => 0,
+            // Core's filter for requests to the site itself, as its loopback test uses.
+            'sslverify'   => apply_filters('https_local_ssl_verify', false), // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- core's own filter.
+        ));
+        if (is_wp_error($response) || !wp_remote_retrieve_response_code($response)) {
+            return 'unknown';
+        }
+        // A header sent more than once comes back as a list.
+        $get    = function ($name) use ($response) {
+            $value = wp_remote_retrieve_header($response, $name);
+            return strtolower(trim(is_array($value) ? implode(', ', $value) : (string) $value));
+        };
+        $has    = function ($name) use ($get) {
+            return '' !== $get($name);
+        };
+        $server = $get('server');
+        if ($has('cf-ray') || 'cloudflare' === $server) {
+            return 'Cloudflare';
+        }
+        if ($has('x-qc-cache')) {
+            return 'QUIC.cloud';
+        }
+        if ($has('cdn-pullzone') || $has('cdn-requestid') || 0 === strpos($server, 'bunnycdn')) {
+            return 'Bunny CDN';
+        }
+        if ($has('x-77-pop') || $has('x-77-cache') || 0 === strpos($server, 'cdn77')) {
+            return 'CDN77';
+        }
+        if ($has('fastly-restarts') || 0 === strpos($get('x-served-by'), 'cache-')) {
+            return 'Fastly';
+        }
+        return '';
     }
 
     /**
@@ -586,7 +998,7 @@ class SEOProStack_Hosting_Needs extends SEOProStack_Feature {
      *
      * @param float $budget Seconds to spend measuring plugin code.
      * @return array code, opcache, memory, worker (bytes per PHP worker, or 0), traffic, facts,
-     *               dynamic (plugin names), page_cache, measured (time per request), seconds
+     *               dynamic (plugin names), page_cache, cdn (from cdn()), measured (time per request), seconds
      *               (per request, as the plans use it), plans and
      *               advice (list of status => sentence).
      */
@@ -627,6 +1039,8 @@ class SEOProStack_Hosting_Needs extends SEOProStack_Feature {
             'facts'      => $facts,
             'dynamic'    => $dynamic,
             'page_cache' => $page_cache,
+            'cdn'        => self::cdn($facts),
+            'writes'     => self::frequent_writes(),
             'measured'   => null !== $seconds,
             'seconds'    => $site['seconds'],
             'plans'      => SEOProStack_Hosting_Plans::plans($site, $now_rps),
@@ -727,13 +1141,47 @@ class SEOProStack_Hosting_Needs extends SEOProStack_Feature {
             $advice[] = array('recommended', __('No page cache was found, so every page view runs PHP. A page cache, from your host or a plugin, serves most pages without PHP and cuts the PHP workers you need. If your host caches pages itself, ignore this.', 'seoprostack'));
         }
         $advice = array_merge($advice, self::litespeed_advice());
-        if (!wp_using_ext_object_cache() && self::big_data($needs['facts'])) {
+        if ('none' === $needs['cdn']['state']) {
+            $advice[] = array('recommended', SEOProStack_Litespeed::is_server()
+                ? __('No CDN was found in front of this site. A CDN serves pages and files from servers near each visitor and takes load off this server; on a LiteSpeed server, use QUIC.cloud (it has a free plan), set up from LiteSpeed Cache. If your host already puts a CDN in front of the site, ignore this.', 'seoprostack')
+                : __('No CDN was found in front of this site. A CDN serves pages and files from servers near each visitor and takes load off this server; Cloudflare’s free plan is set up at Cloudflare, with its Cloudflare plugin here to clear its cache. If your host already puts a CDN in front of the site, ignore this.', 'seoprostack'));
+        }
+        $cache  = $needs['facts']['object_cache'];
+        if ('unreachable' === $cache['state']) {
+            $advice[] = array('recommended', 'LiteSpeed Cache' === $cache['name']
+                ? __('The object cache is turned on in LiteSpeed Cache but cannot reach its server, so every request goes to the database. Check the host and port in LiteSpeed Cache → Cache → Object, or ask your host which one they provide.', 'seoprostack')
+                : sprintf(
+                    /* translators: %s: object cache drop-in name. */
+                    __('The object cache (%s) did not keep a test value between daily checks, so it may be falling back to the database. Check its connection settings or ask your host to check its server. Clearing or evicting the cache can also cause this warning.', 'seoprostack'),
+                    '' !== $cache['name'] ? $cache['name'] : 'object-cache.php'
+                ));
+        } elseif ('off' === $cache['state'] && '' !== $cache['available']) {
+            $advice[] = array('recommended', sprintf(
+                /* translators: %s: Redis or Memcached. */
+                __('%s is available on this server but the site is not using it. Turn it on in LiteSpeed Cache → Cache → Object, or use your host’s object cache plugin, to save database work even on a small site.', 'seoprostack'),
+                $cache['available']
+            ));
+        } elseif ('off' === $cache['state'] && $cache['extension']) {
+            $advice[] = array('recommended', __('The Memcached PHP extension is not enabled on this Hostinger site. If your plan includes object caching, turn on Memcached in hPanel’s PHP settings, then enable it in LiteSpeed Cache → Cache → Object, or ask your host which cache they provide.', 'seoprostack'));
+        } elseif ('off' === $cache['state'] && self::big_data($needs['facts'])) {
             $advice[] = array('recommended', sprintf(
                 /* translators: 1: postmeta rows, 2: products. */
                 __('This site has about %1$s rows of post data and %2$s products, so a persistent object cache (Redis or Memcached) would save database work on every request. Ask your host for one, with its object cache plugin.', 'seoprostack'),
                 number_format_i18n($needs['facts']['postmeta']),
                 number_format_i18n($needs['facts']['products'])
             ));
+        }
+        if ($needs['writes']['options']) {
+            $text = sprintf(
+                /* translators: %s: list of option names, each with its plugin and share of page views. */
+                __('These settings are saved again on almost every page view, which slows pages and clears the object cache: %s.', 'seoprostack'),
+                self::writes_text($needs['writes']['options'])
+            );
+            if (!SEOProStack_Settings::get('licence_calls')
+                && array_filter(array_keys($needs['writes']['options']), array('SEOProStack_Option_Writes', 'known'))) {
+                $text .= ' ' . __('Turn on Ask before licence checks: it keeps the licence settings SEO Pro Stack knows are saved this way while their licence is valid.', 'seoprostack');
+            }
+            $advice[] = array('recommended', $text);
         }
         if ($needs['facts']['autoload'] > MB_IN_BYTES) {
             $advice[] = array('recommended', sprintf(
@@ -1659,9 +2107,16 @@ class SEOProStack_Hosting_Needs extends SEOProStack_Feature {
             'label' => __('Page cache', 'seoprostack'),
             'value' => $needs['page_cache'] ? __('Found', 'seoprostack') : __('None found (a cache run by the host cannot be seen)', 'seoprostack'),
         );
+        $cdn           = $needs['cdn'];
+        $fields['cdn'] = array(
+            'label' => __('CDN', 'seoprostack'),
+            'value' => 'found' === $cdn['state'] ? $cdn['name'] : ('none' === $cdn['state']
+                ? __('None found', 'seoprostack')
+                : __('Unknown (the site did not answer its own request)', 'seoprostack')),
+        );
         $fields['object_cache'] = array(
             'label' => __('Persistent object cache', 'seoprostack'),
-            'value' => wp_using_ext_object_cache() ? __('Yes', 'seoprostack') : __('No', 'seoprostack'),
+            'value' => self::object_cache_label($facts['object_cache']),
         );
         $fields['site_kind'] = array(
             'label' => __('Shop, membership or course plugins', 'seoprostack'),
@@ -1681,6 +2136,18 @@ class SEOProStack_Hosting_Needs extends SEOProStack_Feature {
             'label' => __('Options loaded on every request', 'seoprostack'),
             /* translators: 1: size, 2: number of options. */
             'value' => sprintf(__('%1$s in %2$s options', 'seoprostack'), self::size($facts['autoload']), number_format_i18n($facts['autoload_count'])),
+        );
+        $writes = $needs['writes'];
+        $fields['option_writes'] = array(
+            'label' => __('Settings saved on most page views', 'seoprostack'),
+            'value' => $writes['pages'] < self::WRITES_ENOUGH
+                ? sprintf(
+                    /* translators: 1: page views counted so far, 2: page views needed. */
+                    __('Not known yet (%1$s of %2$s page views counted)', 'seoprostack'),
+                    number_format_i18n($writes['pages']),
+                    number_format_i18n(self::WRITES_ENOUGH)
+                )
+                : ($writes['options'] ? self::writes_text($writes['options']) : __('None', 'seoprostack')),
         );
         $fields['php_version'] = array(
             'label' => __('PHP version', 'seoprostack'),

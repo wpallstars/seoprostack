@@ -240,15 +240,21 @@ class SEOProStack_Remove_Cpt_Base extends SEOProStack_Feature {
             return $query_vars;
         }
         $object = get_post_type_object($item->post_type);
-        if (!$object || !$object->query_var) {
+        if (!$object) {
             return $query_vars;
         }
         self::$resolved = $item->post_type;
         // Keep what else was asked for, such as a feed, embed or comment page.
-        $resolved                       = array_diff_key($query_vars, array_flip(self::MATCHED));
-        $resolved['post_type']          = $item->post_type;
-        $resolved[$object->query_var]   = $path;
-        $resolved['name']               = $path;
+        $resolved              = array_diff_key($query_vars, array_flip(self::MATCHED));
+        $resolved['post_type'] = $item->post_type;
+        if ($object->query_var) {
+            $resolved[$object->query_var] = $path;
+            $resolved['name']             = $path;
+        } else {
+            // Registered with query_var => false: query it the way
+            // WordPress's own rewrite rules for such types do.
+            $resolved[$object->hierarchical ? 'pagename' : 'name'] = $path;
+        }
         if ('' !== $page) {
             $resolved['page'] = $page;
         }
@@ -345,7 +351,11 @@ class SEOProStack_Remove_Cpt_Base extends SEOProStack_Feature {
         }
         $query = isset($_SERVER['QUERY_STRING']) ? (string) wp_unslash($_SERVER['QUERY_STRING']) : ''; // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- passed through as-is, not output.
         parse_str($query, $args);
-        unset($args[get_post_type_object($post->post_type)->query_var], $args['post_type'], $args['p'], $args['name'], $args['page']);
+        $query_var = get_post_type_object($post->post_type)->query_var;
+        if ($query_var) {
+            unset($args[$query_var]);
+        }
+        unset($args['post_type'], $args['p'], $args['name'], $args['pagename'], $args['page']);
         if (wp_safe_redirect($args ? add_query_arg(urlencode_deep($args), $target) : $target, 301, 'SEO Pro Stack')) {
             exit;
         }
@@ -385,17 +395,63 @@ class SEOProStack_Remove_Cpt_Base extends SEOProStack_Feature {
         if (!$taken) {
             return;
         }
+        $taken = array_values(array_unique(array_map('strval', $taken)));
         sort($taken);
-        $shown = array_slice($taken, 0, 5);
-        printf(
-            '<div class="sps-panel-note sps-panel-note--warning"><p>%s</p></div>',
-            esc_html(sprintf(
-                /* translators: %s: comma-separated item names */
-                __('A page or post already has the short address of: %s. Those items keep their old address; rename one of each pair to change that.', 'seoprostack'),
-                implode(', ', array_map(function ($name) {
-                    return '/' . urldecode($name) . '/';
-                }, $shown)) . (count($taken) > 5 ? ', …' : '')
-            ))
-        );
+        $limit = 10;
+        $shown = array_slice($taken, 0, $limit);
+
+        // The page or post and the item(s) at each address, to link to them.
+        $pairs = array_fill_keys($shown, array());
+        foreach (get_posts(array(
+            'post_type'        => array_merge(array('post', 'page'), self::types()),
+            'post_status'      => 'publish',
+            'post_parent'      => 0,
+            'post_name__in'    => $shown,
+            'posts_per_page'   => 100,
+            'no_found_rows'    => true,
+        )) as $post) {
+            if (isset($pairs[$post->post_name])) {
+                $pairs[$post->post_name][] = $post;
+            }
+        }
+
+        echo '<div class="sps-panel-note sps-panel-note--warning"><p>';
+        esc_html_e('These items keep their old address because a page or post already has their short one. To fix one, edit one of its pair and change its slug (the last part of its address). Change the page’s or post’s slug when the item should own the address: the item takes it over, so links to it then reach the item. Change the item’s slug to keep the page or post there: WordPress redirects the item’s old address.', 'seoprostack');
+        echo '</p><ul class="sps-panel-list">';
+        foreach ($pairs as $name => $posts) {
+            $links = array();
+            // Pages and posts first, then the items.
+            usort($posts, function ($a, $b) {
+                return (int) !in_array($a->post_type, array('post', 'page'), true) - (int) !in_array($b->post_type, array('post', 'page'), true);
+            });
+            foreach ($posts as $post) {
+                $links[] = self::pair_link($post);
+            }
+            echo '<li><code>' . esc_html('/' . urldecode((string) $name) . '/') . '</code> ' . implode(' · ', $links) . '</li>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped in pair_link().
+        }
+        if (count($taken) > $limit) {
+            /* translators: %d: number of addresses not listed */
+            echo '<li>' . esc_html(sprintf(_n('and %d more', 'and %d more', count($taken) - $limit, 'seoprostack'), count($taken) - $limit)) . '</li>';
+        }
+        echo '</ul></div>';
+    }
+
+    /**
+     * One side of a clashing pair: its title, linked to its editor, with its
+     * post type and, for an item, the address it keeps.
+     *
+     * @param WP_Post $post Page, post or item.
+     * @return string HTML.
+     */
+    private static function pair_link(WP_Post $post) {
+        $title  = '' !== trim((string) $post->post_title) ? $post->post_title : __('(no title)', 'seoprostack');
+        $edit   = current_user_can('edit_post', (int) $post->ID) ? get_edit_post_link((int) $post->ID) : '';
+        $type   = get_post_type_object($post->post_type);
+        $detail = $type ? $type->labels->singular_name : $post->post_type;
+        if (!in_array($post->post_type, array('post', 'page'), true)) {
+            $detail .= ', ' . urldecode(wp_make_link_relative((string) get_permalink($post)));
+        }
+        $html = $edit ? '<a href="' . esc_url($edit) . '">' . esc_html($title) . '</a>' : esc_html($title);
+        return $html . ' <span class="description">(' . esc_html($detail) . ')</span>';
     }
 }

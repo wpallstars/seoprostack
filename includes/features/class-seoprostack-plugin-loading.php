@@ -170,6 +170,13 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
     private static $front_seen = array();
 
     /**
+     * Options Hosting needs found saved on most page views, once read.
+     *
+     * @var array<string,array>|null
+     */
+    private static $frequent_writes = null;
+
+    /**
      * Settings.
      *
      * @return array
@@ -196,7 +203,7 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
                 'default'     => array(),
                 'parent'      => self::KEY,
                 'label'       => __('Plugins to skip on the site', 'seoprostack'),
-                'description' => __('After learning, plugins with nothing seen on the site are skipped automatically on plain page views. Tick other plugins only if you want them skipped too; leave security, caching, cookie and analytics plugins unticked. Logins, sending forms, background tasks and addresses with extra arguments still load every plugin, and so does a plugin that another loading plugin needs.', 'seoprostack'),
+                'description' => __('After learning, plugins with nothing seen on the site are skipped automatically on plain page views, and so, for visitors, are plugins that only add to the admin bar. Tick other plugins only if you want them skipped too; leave security, caching, cookie and analytics plugins unticked. Logins, sending forms, background tasks and addresses with extra arguments still load every plugin, and so does a plugin that another loading plugin needs.', 'seoprostack'),
                 'options'     => array(__CLASS__, 'front_plugin_options'),
             ),
             self::FRONT_USERS_KEY => array(
@@ -208,7 +215,7 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
             ),
             SEOProStack_Plugin_Loader::PAGES_KEY => array(
                 'type'        => 'bool',
-                'default'     => false,
+                'default'     => true,
                 'parent'      => self::KEY,
                 'label'       => __('Learn which plugins each page needs', 'seoprostack'),
                 'description' => __('For visitors without cookies. Each page kind learns once, then new posts of that type use their own blocks and shortcodes to keep the plugins they need. Decisions stay until content or settings change. Unknown pages or content load every plugin. Lists and search keep content plugins; plugins that change every page stay loaded. WooCommerce stays for shop pages, cart displays and store notices; without Lighter WooCommerce pages it keeps loading everywhere. Requests that change things load every plugin.', 'seoprostack'),
@@ -287,13 +294,42 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
         add_action('admin_footer', array(__CLASS__, 'remember_screen'), PHP_INT_MAX);
     }
 
-    /** Preserve saved selections; a new site starts with no bypasses. */
+    /**
+     * Keep saved choices; a site without them starts with no bypasses.
+     * Every site stores every setting, so an empty stored list is a
+     * default, not a choice.
+     *
+     * v18: plugins left unticked in the old "Plugins to load only where
+     *      needed" list keep loading, as always-load bypasses.
+     * v19: undoes v18 where that list was empty: it bypassed every plugin,
+     *      and the site's first learn bypassed every plugin it skips
+     *      automatically, so the feature did nothing. Where the feature is
+     *      off, page learning is switched on, the new default.
+     */
     public static function migrate(array $options, $from_version) {
+        $active = array_values(array_diff(SEOProStack_Plugin_Loader::stored_active_plugins(), array(plugin_basename(SEOPROSTACK_FILE))));
         if (!array_key_exists(self::LIST_KEY, $options)) {
-            $old = SEOProStack_Plugin_Loader::LIST_KEY;
-            $options[self::LIST_KEY] = array_key_exists($old, $options)
-                ? array_values(array_diff(SEOProStack_Plugin_Loader::stored_active_plugins(), (array) $options[$old]))
-                : array();
+            $old = (array) ($options[SEOProStack_Plugin_Loader::LIST_KEY] ?? array());
+            $options[self::LIST_KEY] = $old ? array_values(array_diff($active, $old)) : array();
+        } elseif ($from_version < 19 && $active && !array_diff($active, (array) $options[self::LIST_KEY])) {
+            // Bypassing every plugin is v18's result for an empty list, never a choice.
+            $options[self::LIST_KEY] = array();
+        }
+
+        $keep = SEOProStack_Plugin_Loader::KEEP_KEY;
+        if ($from_version < 19 && get_option(SEOProStack_Plugin_Loader::FRONT_MIGRATED) && empty($options[self::FRONT_KEY]) && !empty($options[$keep])) {
+            $front = get_option(SEOProStack_Plugin_Loader::FRONT, array());
+            if (is_array($front) && !empty($front['notes'])) {
+                $options[$keep] = array_values(array_diff((array) $options[$keep], SEOProStack_Plugin_Loader::front_automatic($active, $front)));
+            }
+        }
+        if ($from_version < 19 && empty($options[self::KEY])) {
+            // Page learning is now on by default; it takes effect only once the feature is switched on.
+            $options[SEOProStack_Plugin_Loader::PAGES_KEY] = true;
+        }
+        if (0 === (int) $from_version) {
+            // A new site has no site-wide choices to keep.
+            update_option(SEOProStack_Plugin_Loader::FRONT_MIGRATED, true, false);
         }
         return $options;
     }
@@ -654,7 +690,8 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
         $learned = SEOProStack_Plugin_Loader::front_current();
         $notes   = $learned && isset($front['notes']) ? (array) $front['notes'] : array();
         $active  = SEOProStack_Plugin_Loader::stored_active_plugins();
-        $automatic = $learned ? SEOProStack_Plugin_Loader::front_automatic($active, $front) : array();
+        // As for visitors: logged-in people get every plugin unless chosen otherwise.
+        $automatic = $learned ? SEOProStack_Plugin_Loader::front_automatic($active, $front, true) : array();
         $chosen = array_diff(array_unique(array_merge($automatic, (array) SEOProStack_Settings::get(self::FRONT_KEY))), (array) SEOProStack_Settings::get(SEOProStack_Plugin_Loader::KEEP_KEY));
         $skipped = $learned ? SEOProStack_Plugin_Loader::front_skipped($chosen, $front) : array();
         $self    = plugin_basename(SEOPROSTACK_FILE);
@@ -690,6 +727,8 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
                 }
                 if (!$parts) {
                     $parts[] = in_array($file, $skipped, true) ? __('skipped: nothing seen on the site', 'seoprostack') : __('nothing seen on the site', 'seoprostack');
+                } elseif (array($texts['bar']) === $parts && in_array($file, $skipped, true)) {
+                    $parts[] = __('skipped for visitors, who have no admin bar', 'seoprostack');
                 }
             }
             if (isset($fdp[$file])) {
@@ -1299,7 +1338,8 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
         }
         $changed = false;
         $options = get_option(SEOProStack_Settings::OPTION, array());
-        if (is_array($options) && array_key_exists(self::FRONT_KEY, $options)) {
+        // An empty list is the stored default: nothing was chosen, so nothing is kept.
+        if (is_array($options) && !empty($options[self::FRONT_KEY])) {
             $automatic = SEOProStack_Plugin_Loader::front_automatic($active, array('notes' => $notes));
             $keep = array_values(array_unique(array_merge((array) ($options[SEOProStack_Plugin_Loader::KEEP_KEY] ?? array()), array_diff($automatic, (array) $options[self::FRONT_KEY], array(plugin_basename(SEOPROSTACK_FILE))))));
             $options[SEOProStack_Plugin_Loader::KEEP_KEY] = $keep;
@@ -1314,6 +1354,9 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
         if ('seoprostack_options' !== $name && (!self::enabled() || !SEOProStack_Settings::get(SEOProStack_Plugin_Loader::PAGES_KEY))) {
             return;
         }
+        if ('seoprostack_options' !== $name && self::record_write((string) $name)) {
+            return;
+        }
         // Settings of any content plugin can change what an old route needs.
         // Exclude volatile core caches and this loader's own learning writes.
         if (0 === strpos((string) $name, '_transient_') || 0 === strpos((string) $name, '_site_transient_')
@@ -1323,6 +1366,44 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
             return;
         }
         self::forget_front();
+    }
+
+    /**
+     * Whether an option write keeps a record rather than changing a setting,
+     * so what was learned for site pages stays. Options that plugins save on
+     * every request (licence timestamps, counters) otherwise restarted the
+     * learning on each one (GitHub issue #279).
+     *
+     * @param string $name Option name.
+     * @return bool
+     */
+    private static function record_write($name) {
+        // SEO Pro Stack's own records; its settings are seoprostack_options.
+        if (0 === strpos($name, 'seoprostack_')) {
+            return true;
+        }
+        // Licence options plugins save again with a new timestamp, and
+        // options Hosting needs found saved on most page views.
+        if (SEOProStack_Option_Writes::known($name)) {
+            return true;
+        }
+        if (class_exists('SEOProStack_Hosting_Needs', false) && SEOProStack_Hosting_Needs::enabled()) {
+            if (null === self::$frequent_writes) {
+                $writes                = SEOProStack_Hosting_Needs::frequent_writes();
+                self::$frequent_writes = $writes['options'];
+            }
+            if (isset(self::$frequent_writes[$name])) {
+                return true;
+            }
+        }
+        // Settings change in wp-admin, through AJAX, the REST API or the
+        // command line, or when a form is sent; cron and page views only
+        // keep records.
+        if (wp_doing_cron()) {
+            return true;
+        }
+        return !is_admin() && !wp_doing_ajax() && !(defined('REST_REQUEST') && REST_REQUEST) && !(defined('WP_CLI') && WP_CLI)
+            && isset($_SERVER['REQUEST_METHOD']) && 'GET' === $_SERVER['REQUEST_METHOD'];
     }
 
     /** Invalidate the public map without changing the admin map. */
@@ -2151,8 +2232,23 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
 
     /**
      * Which active plugins each active plugin needs: its `Requires Plugins`
-     * header, WooCommerce and Elementor add-on headers, and add-ons named
-     * after WooCommerce, Elementor or Contact Form 7.
+     * header, WooCommerce and Elementor add-on headers, add-ons named
+     * after WooCommerce, Elementor or Contact Form 7, and paid (Pro or
+     * Premium) add-ons of another active plugin.
+     *
+     * A paid add-on counts when its folder is the base plugin's with
+     * "-addon-pro", "-premium", "-pro" or "pro" after it
+     * ("fluent-booking-pro", "fluentformpro"), matches a known alias
+     * ("fluentcampaign-pro" for "fluent-crm"), or its name is the base
+     * plugin's with Pro, Premium or Add-On added ("FluentCRM Pro" for
+     * "FluentCRM - Marketing Automation For WordPress", "Fluent Forms Pro
+     * Add On Pack" for "Fluent Forms"). Paid replacements get no
+     * dependency when the free plugin is inactive. Few declare `Requires
+     * Plugins`, and a paid add-on loaded without its base shows a
+     * "requires the base plugin" notice on every screen that skipped the
+     * base, while a base loaded without its add-on loses the add-on's
+     * features on its own screens. So each needs the other: the two load
+     * together or not at all.
      *
      * `WC requires at least` counts only when the plugin's name says
      * WooCommerce (as WordPress.org asks of add-ons): general plugins that
@@ -2173,17 +2269,62 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
             'elementor'      => '/(^|-)elementor(-|$)/',
             'contact-form-7' => '/(^|-)(contact-form-7|cf7|wpcf7)(-|$)/',
         );
+        $aliases = array(
+            'fluentcampaign-pro' => 'fluent-crm',
+            'wp-social-ninja-pro' => 'wp-social-reviews',
+            'bookly-addon-pro' => 'bookly-responsive-appointment-booking-tool',
+        );
 
-        $deps = array();
+        $headers_of = array();
+        $by_name    = array();
         foreach ($by_slug as $slug => $file) {
-            $headers = get_file_data(WP_PLUGIN_DIR . '/' . $file, array(
+            $headers_of[$slug] = get_file_data(WP_PLUGIN_DIR . '/' . $file, array(
                 'requires'  => 'Requires Plugins',
                 'name'      => 'Plugin Name',
                 'wc'        => 'WC requires at least',
                 'elementor' => 'Elementor tested up to',
                 'pro'       => 'Elementor Pro tested up to',
             ));
+            // The name before a tagline: "FluentCRM - Marketing Automation" is "fluentcrm".
+            $name = self::plain_name(preg_split('/\s+[-–—:|]\s+/u', (string) $headers_of[$slug]['name'])[0]);
+            if ('' !== $name && !isset($by_name[$name])) {
+                $by_name[$name] = $slug;
+            }
+        }
+
+        $deps = array();
+        $pros = array(); // Base plugin file => its Pro add-ons' files.
+        foreach ($by_slug as $slug => $file) {
+            $headers = $headers_of[$slug];
             $needs = array_map('trim', explode(',', (string) $headers['requires']));
+            // Paid add-ons: "fluent-booking-pro" and "fluentformpro" need
+            // "fluent-booking" and "fluentform". Match each suffix
+            // independently: an alias or a shorter match must not hide
+            // another active parent with an exact slug match.
+            $bases = array();
+            foreach (array('-addon-pro', '-premium', '-pro', 'pro') as $suffix) {
+                if (strlen($slug) > strlen($suffix) && substr($slug, -strlen($suffix)) === $suffix) {
+                    $bases[] = substr($slug, 0, -strlen($suffix));
+                }
+            }
+            if (isset($aliases[$slug])) {
+                $bases[] = $aliases[$slug];
+            }
+            // "FluentCRM Pro" and "Fluent Forms Pro Add On Pack" need
+            // "FluentCRM" and "Fluent Forms".
+            $pro_name = preg_split('/\s+[-–—:|]\s+/u', (string) $headers['name'])[0];
+            if (preg_match('/\b(pro|premium)\b/i', $pro_name)) {
+                $stripped = self::plain_name(preg_replace('/\b(pro|premium|add[\s-]*ons?|addons?|pack)\b/i', '', $pro_name));
+                if ('' !== $stripped && isset($by_name[$stripped])) {
+                    $bases[] = $by_name[$stripped];
+                }
+            }
+            foreach ($bases as $base) {
+                if ($base !== $slug && isset($by_slug[$base])) {
+                    $needs[] = $base;
+                    $pros[$by_slug[$base]][] = $file;
+                }
+            }
             if ('' !== $headers['wc'] && preg_match('/\b(woocommerce|woo|wc)\b/i', (string) $headers['name'])) {
                 $needs[] = 'woocommerce';
             }
@@ -2205,7 +2346,23 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
                 $deps[$file] = $files;
             }
         }
+        // A base plugin needs its Pro add-on too: the add-on adds to the
+        // base plugin's own screens, which it rarely registers itself.
+        foreach ($pros as $file => $files) {
+            $deps[$file] = array_values(array_unique(array_merge(isset($deps[$file]) ? $deps[$file] : array(), $files)));
+        }
         return $deps;
+    }
+
+    /**
+     * A plugin name in lower case letters and digits only, for comparing
+     * names: "Fluent Forms" and "FluentForms" are both "fluentforms".
+     *
+     * @param string $name Plugin name.
+     * @return string
+     */
+    private static function plain_name($name) {
+        return (string) preg_replace('/[^a-z0-9]+/', '', strtolower(wp_strip_all_tags((string) $name)));
     }
 
     /* --------------------------------------------------------------------- */
