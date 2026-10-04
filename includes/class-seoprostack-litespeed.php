@@ -170,6 +170,133 @@ final class SEOProStack_Litespeed {
     }
 
     /**
+     * Whether LiteSpeed Cache is active for the whole network, where it
+     * keeps object cache settings in network options.
+     *
+     * @return bool
+     */
+    public static function network_active() {
+        if (!is_multisite()) {
+            return false;
+        }
+        if (!function_exists('is_plugin_active_for_network')) {
+            require_once ABSPATH . 'wp-admin/includes/plugin.php';
+        }
+        return is_plugin_active_for_network(self::SLUG . '/litespeed-cache.php');
+    }
+
+    /**
+     * One of LiteSpeed Cache's settings as it uses it: the network's value
+     * when it is active for the network and has one there.
+     *
+     * @param string $id      Setting, without the litespeed.conf. prefix.
+     * @param mixed  $default Value when it is not saved.
+     * @return mixed
+     */
+    public static function conf($id, $default) {
+        if (self::network_active()) {
+            $value = get_site_option(self::PREFIX . $id, null);
+            if (null !== $value) {
+                return $value;
+            }
+        }
+        return get_option(self::PREFIX . $id, $default);
+    }
+
+    /**
+     * Who may change LiteSpeed Cache's object cache settings: network
+     * administrators when it is active for the network.
+     *
+     * @return bool
+     */
+    public static function can_save_object_cache() {
+        return current_user_can(self::network_active() ? 'manage_network_options' : 'manage_options');
+    }
+
+    /**
+     * Point LiteSpeed Cache's object cache at a server, through its own save
+     * code, which rewrites its object-cache.php settings file as its screen
+     * does, then empty the cache there. Other object cache settings are
+     * left alone.
+     *
+     * @param string $kind Redis or Memcached.
+     * @param string $host Host or Unix socket path.
+     * @param int    $port Port (0 for a socket).
+     * @return bool Whether LiteSpeed Cache's code was there to save it.
+     */
+    public static function save_object_cache($kind, $host, $port) {
+        if (!class_exists('\LiteSpeed\Conf') || !is_callable(array('\LiteSpeed\Conf', 'cls'))) {
+            return false;
+        }
+        $matrix = array(
+            'object-kind' => 'Redis' === $kind,
+            'object-host' => (string) $host,
+            'object-port' => (int) $port,
+        );
+        $conf = \LiteSpeed\Conf::cls();
+        if (self::network_active()) {
+            if (!is_callable(array($conf, 'network_update')) || !class_exists('\LiteSpeed\Activation')) {
+                return false;
+            }
+            // As LiteSpeed Cache's network settings screen saves them.
+            foreach ($matrix as $id => $value) {
+                $conf->network_update($id, $value);
+            }
+            \LiteSpeed\Activation::cls()->update_files();
+        } else {
+            $conf->update_confs($matrix);
+        }
+        self::flush_object_cache($kind, (string) $host, (int) $port, (int) self::conf('object-db_id', 0));
+        return true;
+    }
+
+    /**
+     * Empty the cache at the new address, as LiteSpeed Cache does when it
+     * reconnects: it may hold settings and posts from when the site last
+     * used it, and this request saved to the database only. Connects with
+     * the PHP extension, because LiteSpeed Cache refuses to connect again in
+     * a request where its drop-in failed (LITESPEED_OC_FAILURE). Like its
+     * Purge All, Memcached is emptied for every site using that server;
+     * Redis only for its database number.
+     *
+     * @param string $kind Redis or Memcached.
+     * @param string $host Host or Unix socket path.
+     * @param int    $port Port (0 for a socket).
+     * @param int    $db   Redis database number.
+     * @return bool Whether it was emptied.
+     */
+    private static function flush_object_cache($kind, $host, $port, $db) {
+        try {
+            if ('Redis' === $kind) {
+                if (!class_exists('Redis')) {
+                    return false;
+                }
+                $redis = new Redis();
+                if (!($port ? $redis->connect($host, $port, 0.5) : $redis->connect($host))) {
+                    return false;
+                }
+                if ($db && !$redis->select($db)) {
+                    return false;
+                }
+                $done = (bool) $redis->flushDb();
+                $redis->close();
+                return $done;
+            }
+            if (!class_exists('Memcached')) {
+                return false;
+            }
+            $memcached = new Memcached();
+            $memcached->setOption(Memcached::OPT_CONNECT_TIMEOUT, 500);
+            $memcached->addServer($host, $port);
+            $done = $memcached->flush();
+            $memcached->quit();
+            return $done;
+        } catch (Exception $e) {
+            return false;
+        }
+    }
+
+    /**
      * Free Plugins note for WP-Optimize: needed for its page cache on other
      * servers; on LiteSpeed servers LiteSpeed Cache and SEO Pro Stack do its
      * jobs.
