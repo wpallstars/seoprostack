@@ -1198,6 +1198,10 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folder�
 
 ## Changelog
 
+### Unreleased
+
+- Fix: on a network where Fluent Forms, Fluent Boards or FluentCommunity is active but a site has no tables for it, settings upgrades no longer log “Table doesn’t exist” database errors for that site: the agency order lists look for the table first.
+
 ### 0.12.0
 
 - New, off by default: **Tag clouds and related posts** (Content tab). A **Related posts** block, also added after the content of chosen post types, weighs shared rare terms above common ones and respects Restrict content. The **Term list** block gains tag clouds, comma-separated lines, A–Z indexes, the current post’s terms, order and number limits, and groups (by top-level term or Tag Groups’ groups) under headings, in an accordion or in tabs, styled for light and dark palettes such as Kadence’s.
