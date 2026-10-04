@@ -17,13 +17,13 @@ Faster admin, writing, media, safer logins and tested plugin settings.
 
 Free and open source: no pro version, nothing locked.
 
-Off by default except Hide admin bar items (Comments and + New), No fade between admin screens, Quiet Freemius prompts and Fixes for other plugins. Use **Settings → SEO Pro Stack**; **Search features** also finds replaced plugins. Replacements import settings once, never change the original's and wait while it is active.
+Off by default except Hide admin bar items (Comments and + New), No fade between admin screens, Quiet Freemius and Appsero prompts and Fixes for other plugins. Use **Settings → SEO Pro Stack**; **Search features** also finds replaced plugins. Replacements import settings once, never change the original's and wait while it is active.
 
 = A calmer, faster admin =
 
 * **Organise the admin menu**: the same sections on every site, role previews, client safeguards, writing only for contributors.
 * **Tidy the dashboard**, **Dashboard and sidebar widgets**, **Hide admin notices** (behind a megaphone) and a **More menu** for plugins' admin bar items.
-* **Quiet Freemius prompts** (on): no opt-in nags, upgrade offers or deactivation surveys.
+* **Quiet Freemius prompts** and **Quiet Appsero prompts** (on): no opt-in nags, upgrade offers or deactivation surveys.
 * **Tidy admin screens**, **Tidy WooCommerce admin**, **Tidy the login screen**, **Simpler block editor**, **Remove WordPress extras**, **Fewer Heartbeat requests**, **Limit post revisions** and **Lighter WooCommerce pages**: most of Disable Bloat.
 * **Modern admin colours**, **No fade between admin screens** (on), **Readable list columns** and **Notification emails** (stop routine emails).
 
@@ -128,6 +128,9 @@ From where you installed it. New versions come out on GitHub first.
 Use **Report a problem** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpallstars/seoprostack/issues).
 
 == Changelog ==
+
+= Unreleased =
+* New, on: Quiet Appsero prompts, no usage-data nags or deactivation surveys.
 
 = 0.12.4 =
 * New, off: pin items from an ACF or SCF true/false field, such as "Featured".

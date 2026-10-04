@@ -43,7 +43,7 @@ checklists: `TESTING.md`.
   working after it is deactivated, and stop recommending it.
 - On by default, at the owner's request: Hide admin bar items, which hides
   Comments and + New, No fade between admin screens, Quiet Freemius prompts,
-  Fixes for other plugins and Updates from GitHub (GitHub builds only).
+  Quiet Appsero prompts, Fixes for other plugins and Updates from GitHub (GitHub builds only).
 - Updates from GitHub (`includes/features/class-seoprostack-github-updates.php`,
   in `SEOProStack_Setup::OPTIONAL_FEATURES` and `.distignore-wporg`) is the
   setting for the shared updater: off, Early updates from GitHub, waiting

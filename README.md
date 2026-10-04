@@ -23,7 +23,7 @@ Go to **Settings → SEO Pro Stack**, or click the star next to your name in the
 
 ## Features
 
-Every feature is off by default except four: Hide admin bar items, which hides Comments and + New from the admin bar, No fade between admin screens, Quiet Freemius prompts and Fixes for other plugins. Copies installed from GitHub releases also have Updates from GitHub on. Features that replace a separate plugin say so on their card (“Replaces: …”) and import that plugin’s settings once when SEO Pro Stack is updated. The other plugin’s own settings are never changed or deleted. While that plugin is active, the feature waits and the plugin keeps doing the job, so the two never run side by side; the card says so, with a deactivate link that comes back to the same settings tab. Deactivate the plugin to switch over. The Plugins screen lists installed plugins that SEO Pro Stack can replace, with what to do next for each: deactivate it (its setting is on), switch the setting on, or delete it once inactive (single sites; on multisite another site may use it). Each of those plugins also gets a note under its own row saying which SEO Pro Stack setting makes it redundant and what to do next, including inactive plugins whose setting is still off; the notes are not hidden by **Hide**. When an active plugin does things on the site that SEO Pro Stack does not (such as Disable Bloat’s REST API switches), the line names them instead of saying the plugin can go. **Hide** hides the lines shown for that person until another step is needed. Plugins that web hosts add to every new site (Hostinger AI and Hostinger Easy Onboarding) get a note under their row while active, saying what they are for and recommending deactivating them if that is not used, with a Deactivate link; nothing is deactivated or deleted for you.
+Every feature is off by default except five: Hide admin bar items, which hides Comments and + New from the admin bar, No fade between admin screens, Quiet Freemius prompts, Quiet Appsero prompts and Fixes for other plugins. Copies installed from GitHub releases also have Updates from GitHub on. Features that replace a separate plugin say so on their card (“Replaces: …”) and import that plugin’s settings once when SEO Pro Stack is updated. The other plugin’s own settings are never changed or deleted. While that plugin is active, the feature waits and the plugin keeps doing the job, so the two never run side by side; the card says so, with a deactivate link that comes back to the same settings tab. Deactivate the plugin to switch over. The Plugins screen lists installed plugins that SEO Pro Stack can replace, with what to do next for each: deactivate it (its setting is on), switch the setting on, or delete it once inactive (single sites; on multisite another site may use it). Each of those plugins also gets a note under its own row saying which SEO Pro Stack setting makes it redundant and what to do next, including inactive plugins whose setting is still off; the notes are not hidden by **Hide**. When an active plugin does things on the site that SEO Pro Stack does not (such as Disable Bloat’s REST API switches), the line names them instead of saying the plugin can go. **Hide** hides the lines shown for that person until another step is needed. Plugins that web hosts add to every new site (Hostinger AI and Hostinger Easy Onboarding) get a note under their row while active, saying what they are for and recommending deactivating them if that is not used, with a Deactivate link; nothing is deactivated or deleted for you.
 
 SEO Pro Stack replaces **53 plugins**, some of them in part, with free and Pro editions counted separately. The 44 that can be downloaded come to 41.9 MB zipped; SEO Pro Stack is 3.1 MB.
 
@@ -202,6 +202,17 @@ This turns those prompts off. On a test site with six such plugins, the five opt
 - Kept: licence activation and its dialogs, the Account, Contact Us and Support pages, licence, trial-ending and payment notices, Opt Out for plugins you opted in to, and “Complete activation now” for plugins that only work with a licence.
 - A plugin that has not been opted in or skipped yet still shows its opt-in page in place of its own first screen. Choose **Skip** there once; the plugin keeps that choice.
 - Upgrade links that plugins add themselves, without Freemius, are not touched. Organise the admin menu leaves many of them out of the menu.
+
+### Quiet Appsero prompts (Admin)
+
+Appsero is a usage-tracking and licensing kit that many plugins bundle, such as Easy Video Reviews, each with its own copy. Each copy shows an “Allow … to collect diagnostic data and usage information” notice on every admin screen until it is answered (answering “No thanks” sends Appsero a “tracking skipped” report), prints a “Goodbyes are always hard” survey on the Plugins screen that opens when the plugin is deactivated and sends the answer with the site’s name, address, admin email and server details, and, in themes, sends those details when the theme is switched away from, whether or not you opted in.
+
+This removes the notice, the survey and its submission, and the theme-switch report from every copy. Deactivating goes straight through. **On by default**; switch it off to get the prompts back.
+
+- Copies are found by their class (`Appsero\Insights`, a copy under a plugin’s own namespace, or a subclass), since versions differ between plugins. Appsero has no filter for these, so their hooks are removed after `admin_init`.
+- Nothing is saved in the other plugins: none is opted in or out.
+- Kept: licence pages and licence notices (`Appsero\License`), and the plugin’s own opt-in and opt-out handling.
+- Plugins you already allowed keep sending their weekly report until you opt out in the plugin; check each plugin’s settings for its usage-tracking option.
 
 ### More menu in the admin bar (Admin)
 
@@ -1228,6 +1239,10 @@ Deleting the plugin removes its settings and cached data, the profile pictures a
 Deactivating the plugin removes the WebP and AVIF rules from the uploads folder’s `.htaccess` (for every site when network-deactivated), the LiteSpeed background request rules from the site’s `.htaccess` (on multisite, when network-deactivated or deactivated on the main site) and the must-use file of Load plugins only where needed (on multisite, when network-deactivated).
 
 ## Changelog
+
+### Unreleased
+
+- New, on by default: **Quiet Appsero prompts** (Admin tab) removes the “Allow … to collect diagnostic data” notice, the deactivation survey and its submission, and the report a theme sends when it is switched away from, from plugins and themes that bundle Appsero, such as Easy Video Reviews. Licences stay, nothing is opted in or out, and plugins already opted in keep sending their weekly report (GitHub issue #317).
 
 ### 0.12.4
 
