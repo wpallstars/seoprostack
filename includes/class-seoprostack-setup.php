@@ -85,6 +85,7 @@ final class SEOProStack_Setup {
         'SEOProStack_Preload_Pages',
         'SEOProStack_Delay_Scripts',
         'SEOProStack_Delayed_Analytics',
+        'SEOProStack_Image_Loading',
         'SEOProStack_Wp_Extras',
         'SEOProStack_Heartbeat',
         'SEOProStack_Database_Cleanup',
@@ -181,8 +182,10 @@ final class SEOProStack_Setup {
      * v20: switch on Tag clouds and related posts while TaxoPress or Tag
      *      Groups is active with displays, groups or taxonomies, with the
      *      post types TaxoPress adds related posts to.
+     * v21: import Flying Images' lazy loading exclusions (Image loading),
+     *      switched on where its lazy loading is on.
      */
-    const DB_VERSION = 20;
+    const DB_VERSION = 21;
 
     /**
      * Tab slugs renamed in 0.4.0, old => new. Settings that still use an

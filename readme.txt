@@ -130,6 +130,9 @@ Use **Report a problem** in Settings → SEO Pro Stack or [GitHub](https://githu
 == Changelog ==
 
 = Unreleased =
+* Change: Magic login links replaces WP Magic Link Login, in part; its [wpmll_form] pages keep working.
+* New, off: Image loading chooses which pictures load straight away. Replaces Flying Images' lazy loading, in part.
+* Fix: MainWP Child's Branding footer text no longer shows below front-end pages.
 * Change: Tidy the dashboard starts AI Engine Advisor hidden, for developers only.
 
 = 0.12.1 =
@@ -137,7 +140,6 @@ Use **Report a problem** in Settings → SEO Pro Stack or [GitHub](https://githu
 * New: Plugins screen suggests deactivating Hostinger's default plugins.
 * Fix: no "Table doesn't exist" errors on network sites without Fluent tables.
 * Fix: Short addresses for custom post types works for post types registered without a query variable, instead of "page not found".
-* Fix: MainWP Child's Branding footer text no longer shows below front-end pages.
 
 Older: `changelog.txt`.
 
