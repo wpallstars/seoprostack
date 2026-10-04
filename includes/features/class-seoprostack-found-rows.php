@@ -180,6 +180,10 @@ class SEOProStack_Found_Rows extends SEOProStack_Feature {
             return '';
         }
         $end = $limit[0][1];
+        // Masked literals or expressions must not hide an unsupported tail.
+        if (!preg_match('/^LIMIT\s+\d+\s*(?:(?:,\s*\d+)|(?:OFFSET\s+\d+))?\s*$/i', substr($sql, $end))) {
+            return '';
+        }
         $mask = substr($mask, 0, $end);
         if (preg_match('/\bORDER\s+BY\b/i', $mask, $order, PREG_OFFSET_CAPTURE)) {
             $suffix = substr($mask, $order[0][1] + strlen($order[0][0]));
