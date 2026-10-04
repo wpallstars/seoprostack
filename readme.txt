@@ -5,7 +5,7 @@ Tags: magic login, iframe, schedule posts, auto upload images, admin
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 0.12.6
+Stable tag: 0.12.7
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -129,17 +129,13 @@ Use **Report a problem** in Settings → SEO Pro Stack or [GitHub](https://githu
 
 == Changelog ==
 
-= Unreleased =
+= 0.12.7 =
 * New: Hosting needs finds the site's CDN and suggests one when there is none.
 * New: block web access to log and backup files, and Site Health names any anyone can download.
+* Fix: archives with pinned items no longer repeat or skip items that share a date.
 
 = 0.12.6 =
 * Fix: pinned items on archives take places on the pages, so none shows twice.
-
-= 0.12.5 =
-* New, on: Quiet Appsero prompts, no usage-data nags or deactivation surveys.
-* New: FluentSMTP preset keeps email logs 2 years. Burst and Rank Math presets keep 24 months of statistics.
-* Fix: pin column no longer 0 px wide in Admin Columns Pro layouts.
 
 Older: `changelog.txt`.
 

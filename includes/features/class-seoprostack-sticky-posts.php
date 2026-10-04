@@ -31,6 +31,9 @@ class SEOProStack_Sticky_Posts extends SEOProStack_Feature {
     /** Query var that marks a Kadence query loop whose pins are handled here. */
     const LOOP = 'seoprostack_sticky_loop';
 
+    /** Query var that ends a list's order with the post ID (posts_orderby()). */
+    const STABLE = 'seoprostack_stable_order';
+
     /**
      * IDs lifted to the top of the main query.
      *
@@ -308,6 +311,7 @@ class SEOProStack_Sticky_Posts extends SEOProStack_Feature {
             add_filter('post_class', array(__CLASS__, 'post_class'), 10, 3);
             add_filter('post_limits', array(__CLASS__, 'post_limits'), 10, 2);
             add_filter('found_posts', array(__CLASS__, 'found_posts'), 10, 2);
+            add_filter('posts_orderby', array(__CLASS__, 'posts_orderby'), 99, 2);
         }
         if (SEOProStack_Settings::get('sticky_posts_kadence') && self::kadence_active()) {
             add_filter('kadence_blocks_pro_query_loop_query_vars', array(__CLASS__, 'kadence_query_vars'), 20, 3);
@@ -950,6 +954,7 @@ class SEOProStack_Sticky_Posts extends SEOProStack_Feature {
             'suppress_filters'    => false,
             'orderby'             => '' !== $orderby ? $orderby : 'date',
             'seoprostack_sticky'  => false,
+            self::STABLE          => true,
         ));
         return array_map('intval', get_posts($vars));
     }
@@ -1020,6 +1025,7 @@ class SEOProStack_Sticky_Posts extends SEOProStack_Feature {
         if (null !== $query->get(self::LOOP, null)) {
             // Kadence query loops: pinned items are lifted here, not by core.
             $query->set('ignore_sticky_posts', true);
+            $query->set(self::STABLE, true);
             return;
         }
         if (!$query->is_main_query() || $query->is_feed() || ($query->get('ignore_sticky_posts') && !$query->get('seoprostack_sticky'))) {
@@ -1028,12 +1034,38 @@ class SEOProStack_Sticky_Posts extends SEOProStack_Feature {
         if ($query->is_home()) {
             $query->set('ignore_sticky_posts', true);
             $query->set('seoprostack_sticky', true);
+            $query->set(self::STABLE, true);
             return;
         }
         $types = self::archive_types($query);
         if ($types) {
+            $query->set(self::STABLE, true);
             self::page_archive($query, $types);
         }
+    }
+
+    /**
+     * Lists this feature pages (blog home, post type and term archives,
+     * Kadence query loops) end their order with the post ID. WordPress sorts
+     * by date (or title) alone, so items with the same date, common after an
+     * import, come back in a different order on each page: some show twice
+     * and others never. The ID keeps the order and only settles those ties.
+     *
+     * @param string   $orderby ORDER BY clause, without the keywords.
+     * @param WP_Query $query   Query.
+     * @return string
+     */
+    public static function posts_orderby($orderby, $query) {
+        global $wpdb;
+        if (!$query instanceof WP_Query || !$query->get(self::STABLE) || '' === trim((string) $orderby)) {
+            return $orderby;
+        }
+        if (preg_match('/\bRAND\s*\(|\bFIELD\s*\(|(^|[\s.,(])ID\b/i', $orderby)) {
+            // Random, hand-picked (post__in) or already ordered by ID.
+            return $orderby;
+        }
+        $order = preg_match('/\bDESC\s*$/i', $orderby) ? 'DESC' : 'ASC';
+        return $orderby . ", {$wpdb->posts}.ID {$order}";
     }
 
     /**
@@ -1166,6 +1198,7 @@ class SEOProStack_Sticky_Posts extends SEOProStack_Feature {
             'suppress_filters'    => false,
             'orderby'             => !empty($vars['orderby']) ? $vars['orderby'] : 'date',
             'seoprostack_sticky'  => false,
+            self::STABLE          => true,
         )));
         if (!$sticky) {
             return $posts;
