@@ -37,7 +37,13 @@ To add or update a preset, on a throwaway site (never a live one):
    Apply preset dialog: `label` as the plugin's screen words it, a short
    `description`, and `values` (stored value => what it shows, `"null"` for
    not stored, saying the plugin's default). Take them from the plugin's
-   settings screen code; `scripts/preflight-release.sh` fails on a missing one.
+    settings screen code; `scripts/preflight-release.sh` fails on a missing one.
+    Keep 24 months of analytics or statistics data (owner's default). A number
+    the plugin caps on each site (such as by plan) gets `limits` with the
+    plugin's own filter, so the preset never writes more than the site allows.
+    A plugin that expects all its settings once it stores any gets
+    `"when": {"<option>": "option:<option>"}`, so a partial option is never
+    written before the plugin saves its own.
 7. Check on a second fresh site: `diff`, `apply`, confirm the plugin behaves
    as intended, `reset`, `undo`.
 8. Add a changelog line in `README.md`, `changelog.txt` and `readme.txt`.

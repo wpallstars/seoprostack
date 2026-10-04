@@ -1,0 +1,52 @@
+{
+    "name": "FluentSMTP",
+    "tested": "2.4.1",
+    "updated": "2026-10-04",
+    "notes": "Keeps the email log for 2 years instead of FluentSMTP's 14 days, so \"did we send this to them?\" can still be answered a year or two later (two yearly cycles), while the log table stays bounded. 730 days is the longest choice FluentSMTP's Delete Logs menu offers; 0 turns deletion off but the screen then shows the field blank. FluentSMTP deletes old logs from its own daily job, so the option is all that changes. Logging stays on so there is a log to keep. Connections, the default and fallback connection and every credential are not in the preset, so they are never touched. FluentSMTP stores its settings only once a connection is saved, and then expects all of them, so the preset shows only after that.",
+    "when": {
+        "fluentmail-settings": "option:fluentmail-settings"
+    },
+    "options": {
+        "fluentmail-settings": {
+            "misc": {
+                "log_emails": "yes",
+                "log_saved_interval_days": "730"
+            }
+        }
+    },
+    "defaults": {
+        "fluentmail-settings": {
+            "misc": {
+                "log_emails": "yes",
+                "log_saved_interval_days": "14"
+            }
+        }
+    },
+    "settings": {
+        "fluentmail-settings.misc.log_emails": {
+            "label": "Log Emails",
+            "description": "Keeps a copy of every email sent, for the Email Logs screen.",
+            "values": {
+                "yes": "On",
+                "no": "Off",
+                "null": "On (not set)"
+            }
+        },
+        "fluentmail-settings.misc.log_saved_interval_days": {
+            "label": "Delete Logs",
+            "description": "How long a logged email is kept before FluentSMTP deletes it automatically.",
+            "values": {
+                "7": "After 7 Days",
+                "14": "After 14 Days",
+                "30": "After 30 Days",
+                "60": "After 60 Days",
+                "90": "After 90 Days",
+                "180": "After 6 Months",
+                "365": "After 1 Year",
+                "730": "After 2 Years",
+                "0": "Never (shown blank)",
+                "null": "After 14 Days (not set)"
+            }
+        }
+    }
+}

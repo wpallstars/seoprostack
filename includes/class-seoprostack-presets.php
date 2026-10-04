@@ -31,9 +31,16 @@
  *             defaults on this site. Conditions: single_site,
  *             feature:{key} (an SEO Pro Stack feature is on),
  *             feature:{key}:{item} (and that item of it is chosen),
+ *             option:{name} (the option is stored, for plugins that
+ *             expect their whole option once it exists),
  *             litespeed_server, and more through the
  *             seoprostack_preset_condition filter. A leading "!" turns a
  *             condition round (!litespeed_server: not a LiteSpeed server).
+ * - limits:   optional, for numbers the plugin caps on each site (such as by
+ *             plan): setting path => filter (the plugin's own filter for the
+ *             most it allows) and max (the value it filters, the plugin's
+ *             default). A preset value above the filtered limit is lowered
+ *             to it, and the Apply preset dialog says so.
  *
  * Secrets are never stored or changed: option names and keys that look like
  * licence keys, API keys, tokens, passwords or similar are skipped when a
@@ -113,6 +120,14 @@ final class SEOProStack_Presets {
      * @return array
      */
     private static function for_this_site(array $preset) {
+        if (!empty($preset['limits']) && is_array($preset['limits'])) {
+            foreach ($preset['limits'] as $path => $limit) {
+                if (is_string($path) && is_array($limit) && !empty($limit['filter']) && is_string($limit['filter'])) {
+                    $preset = self::limit($preset, $path, $limit);
+                }
+            }
+        }
+        unset($preset['limits']);
         if (empty($preset['when']) || !is_array($preset['when'])) {
             return $preset;
         }
@@ -125,6 +140,46 @@ final class SEOProStack_Presets {
             }
         }
         unset($preset['when']);
+        return $preset;
+    }
+
+    /**
+     * Lower a numeric preset value to the most the plugin allows on this
+     * site (its own filter, such as a plan limit), and say so in the
+     * setting's description.
+     *
+     * @param array  $preset Preset from its file.
+     * @param string $path   Setting path (option name, then keys, joined with dots).
+     * @param array  $limit  filter: the plugin's filter for the most it allows; max: the value it filters.
+     * @return array
+     */
+    private static function limit(array $preset, $path, array $limit) {
+        $keys  = explode('.', $path);
+        $value = $preset['options'] ?? null;
+        foreach ($keys as $key) {
+            if (!is_array($value) || !array_key_exists($key, $value)) {
+                return $preset;
+            }
+            $value = $value[$key];
+        }
+        $most = apply_filters($limit['filter'], isset($limit['max']) ? $limit['max'] : 0); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.DynamicHooknameFound -- reads the other plugin's own limit.
+        if (!is_numeric($value) || !is_numeric($most) || (float) $value <= (float) $most) {
+            return $preset;
+        }
+        $most = 0 + $most;
+        $slot = &$preset['options'];
+        foreach ($keys as $key) {
+            $slot = &$slot[$key];
+        }
+        $slot = is_string($value) ? (string) $most : $most;
+        unset($slot);
+        if (isset($preset['settings'][$path]) && is_array($preset['settings'][$path])) {
+            $about = &$preset['settings'][$path];
+            /* translators: 1: the most the plugin allows on this site, 2: the preset's value. */
+            $note = sprintf(__('The plugin allows at most %1$s on this site (such as by its plan), so the preset sets %1$s instead of %2$s.', 'seoprostack'), $most, $value);
+            $about['description'] = trim((isset($about['description']) ? (string) $about['description'] : '') . ' ' . $note);
+            unset($about);
+        }
         return $preset;
     }
 
@@ -147,6 +202,9 @@ final class SEOProStack_Presets {
             if ($holds && isset($parts[2])) {
                 $holds = in_array($parts[2], (array) SEOProStack_Settings::get($key . '_items'), true);
             }
+        } elseif ('option' === $parts[0] && isset($parts[1])) {
+            list($exists) = self::read(substr($condition, 7));
+            $holds = $exists;
         } else {
             $holds = false;
         }
