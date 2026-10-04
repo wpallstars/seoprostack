@@ -33,7 +33,7 @@ Go to **Settings → SEO Pro Stack**, or click the star next to your name in the
 - **Discover**: Theme, Free Plugins, Pro Plugins, Hosting and Tools.
 - **About**: this Read Me.
 
-**Report a problem**, at the top right of the screen, opens the plugin’s [GitHub issues](https://github.com/wpallstars/seoprostack/issues) in a new tab. Say what you did, what you expected and what happened, with the versions of WordPress, PHP and SEO Pro Stack. Leave out passwords, licence keys and personal data, since issues are public. **Buy me a coffee**, next to it, opens the maker’s [Buy Me a Coffee](https://buymeacoffee.com/marcusquinn) page in a new tab.
+**Report a problem**, at the top right of the screen, opens the plugin’s [GitHub issues](https://github.com/wpallstars/seoprostack/issues) in a new tab. Say what you did, what you expected and what happened, with the versions of WordPress, PHP and SEO Pro Stack. Leave out passwords, licence keys and personal data, since issues are public. For questions, ask [aidevops](https://aidevops.sh) (Built with AI below). **Buy me a coffee**, next to it, opens the maker’s [Buy Me a Coffee](https://buymeacoffee.com/marcusquinn) page in a new tab.
 
 ## Features
 
@@ -1304,6 +1304,11 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folder�
 
 ## Changelog
 
+### Unreleased
+
+- Changed: for questions, ask [aidevops](https://aidevops.sh), which reads the plugin's docs and code to answer (Built with AI, and the Report a problem paragraph above). The plugin also credits WP Plugin Starter, the starter it is made from.
+- Developers: core files synced with the starter plugin 1.0.8: `STANDARDS.md` keeps both credits in every plugin and `scripts/preflight-release.sh` warns when one is missing; `scripts/update-test.sh` accepts the release asset's API address that the GitHub updater offers with `WPALLSTARS_GITHUB_TOKEN`, so the test no longer fails for a private repository. Nothing changes for sites.
+
 ### 0.12.8
 
 - New: **Clean the database weekly** can remove scheduled tasks of plugins that are no longer active (unticked by default): tasks nothing ran on web cron checks at least 7 days apart, never WordPress's own, hosts' agents' (`mnx_*`) or installed plugins'. The options list what will go and what went, with **Put back** (GitHub issue #278).
@@ -1732,6 +1737,10 @@ Where a feature replaces one of them, SEO Pro Stack imports the settings it can,
 ## Built with AI
 
 SEO Pro Stack is built and maintained with [aidevops](https://aidevops.sh), the same developer's open-source AI harness for creating and managing anything online with AI, plugins like this one included. It is free on [GitHub](https://github.com/marcusquinn/aidevops).
+
+Questions about using, changing or building on SEO Pro Stack: ask aidevops. Open this repository, or the site it runs on, with aidevops and ask; it reads the plugin's docs and code to answer, and can report a problem for you.
+
+Made from [WP Plugin Starter](https://github.com/wpallstars/wp-plugin-starter-template-for-ai-coding), the wpallstars starter plugin. Its shared standards and the weekly Starter sync keep this plugin up to date.
 
 ## License
 
