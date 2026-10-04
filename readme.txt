@@ -130,20 +130,15 @@ Use **Report a problem** in Settings → SEO Pro Stack or [GitHub](https://githu
 == Changelog ==
 
 = 0.12.8 =
-* New: Clean the database weekly can remove scheduled tasks of plugins that are no longer active.
-* New: Hosting needs names settings saved again on almost every page view.
-* New: Ask before licence checks stops five premium plugins saving their licence on every request.
-* Fix: Load plugins only where needed keeps what it learned for site pages when plugins save records on page views.
-* New: Really Simple Security 301 .htaccess redirect preset, with guarded native Apply, Reset and Undo; explicit owner action only.
-* New: Site Health names code snippets that slow pages or are not needed.
-* New: Database key cleanup names which plugin added each key, and Site Health counts duplicate keys.
-* Fix: two settings saves at the same moment no longer undo each other.
-* Fix: one editor notice per convertible Spectra block.
-* Change: Short addresses for custom post types links to the pages and items whose addresses clash.
+* New: database clean-up removes tasks of plugins that are gone.
+* New: Hosting needs names settings saved on most page views.
+* New: five premium plugins stop saving their licence on every request.
+* Fix: Load plugins only where needed keeps what it learned.
+* New: Really Simple Security 301 redirect preset.
+* New: Site Health names slow or unused code snippets.
+* New: Database key cleanup names each key's plugin.
+* Fix: settings saved at once no longer undo each other.
+* Fix: one notice per convertible Spectra block.
+* Change: clashing short addresses link to both items.
 
 Older: `changelog.txt`.
-
-== Upgrade Notice ==
-
-= 0.11.5 =
-Load plugins only where needed works again on updated sites. With HTTP Requests Manager blocking requests and a private repository: install 0.11.5 once by hand.
