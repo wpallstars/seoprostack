@@ -1373,13 +1373,16 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folderâ
 
 ## Changelog
 
+### Unreleased
+
+- New: **Faster page counts on long lists** (Server, off by default) counts matching rows separately from paged post queries, keeping exact totals and page numbers (GitHub issue #430).
+
 ### 0.14.2
 
 - Fix: **Load plugins only where needed** with page learning no longer reads code in a page's scripts and styles, such as `items[0]` in a Custom HTML block, as unknown shortcodes, or `[1]` footnote marks as shortcodes. Such pages loaded every plugin (GitHub issue #425).
 - Fix: a page whose content is unknown no longer makes every page of its kind (all posts, say) load every plugin. That page still loads every plugin; the kind is learned from a page with known content (GitHub issue #425).
 - Change: the plugin description says "no paid version" instead of "no pro version".
 - Change: WordPress.org gets each version 30 days after its GitHub release instead of 90 (from WP Plugin Starter 1.0.18); security releases still go there at once.
-- New: **Faster page counts on long lists** (Server, off by default) counts matching rows separately from paged post queries, keeping exact totals and page numbers (GitHub issue #430).
 
 ### 0.14.1
 
