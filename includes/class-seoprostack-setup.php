@@ -37,6 +37,7 @@ final class SEOProStack_Setup {
         'SEOProStack_Notification_Emails',
         'SEOProStack_Admin_Notices',
         'SEOProStack_Freemius_Quiet',
+        'SEOProStack_Appsero_Quiet',
         'SEOProStack_Admin_Bar_More',
         'SEOProStack_Admin_Bar_Hide',
         'SEOProStack_List_Columns',
@@ -54,6 +55,7 @@ final class SEOProStack_Setup {
         'SEOProStack_Menu_Visibility',
         'SEOProStack_Restrict_Content',
         'SEOProStack_Field_Search',
+        'SEOProStack_Field_Content',
         'SEOProStack_Editor_Tidy',
         'SEOProStack_Translatepress_Colours',
         'SEOProStack_Auto_Upload',
@@ -72,16 +74,20 @@ final class SEOProStack_Setup {
         'SEOProStack_Post_Reactions',
         'SEOProStack_Brand_Icons',
         'SEOProStack_Spectra_Blocks',
+        'SEOProStack_Term_Displays',
+        'SEOProStack_Kadence_Filters',
         'SEOProStack_Short_Links',
         'SEOProStack_Remove_Cpt_Base',
         'SEOProStack_Gone_Urls',
         'SEOProStack_Old_Slugs',
         'SEOProStack_Rank_Math_Defaults',
         'SEOProStack_External_Links',
+        'SEOProStack_Linking',
         'SEOProStack_Maintenance',
         'SEOProStack_Preload_Pages',
         'SEOProStack_Delay_Scripts',
         'SEOProStack_Delayed_Analytics',
+        'SEOProStack_Image_Loading',
         'SEOProStack_Wp_Extras',
         'SEOProStack_Heartbeat',
         'SEOProStack_Database_Cleanup',
@@ -175,8 +181,13 @@ final class SEOProStack_Setup {
      * v19: Load plugins only where needed: clear the bypasses v18 and the
      *      site's first learn added for empty lists, and switch page
      *      learning on where the feature is off.
+     * v20: switch on Tag clouds and related posts while TaxoPress or Tag
+     *      Groups is active with displays, groups or taxonomies, with the
+     *      post types TaxoPress adds related posts to.
+     * v21: import Flying Images' lazy loading exclusions (Image loading),
+     *      switched on where its lazy loading is on.
      */
-    const DB_VERSION = 19;
+    const DB_VERSION = 21;
 
     /**
      * Tab slugs renamed in 0.4.0, old => new. Settings that still use an
@@ -215,11 +226,15 @@ final class SEOProStack_Setup {
         require_once SEOPROSTACK_DIR . 'includes/class-seoprostack-litespeed.php';
         require_once SEOPROSTACK_DIR . 'includes/class-seoprostack-wp-optimize.php';
         require_once SEOPROSTACK_DIR . 'includes/class-seoprostack-really-simple-security.php';
+        require_once SEOPROSTACK_DIR . 'includes/class-seoprostack-term-list.php';
+        require_once SEOPROSTACK_DIR . 'includes/class-seoprostack-term-legacy.php';
         // Usually loaded already by the must-use file of "Load plugins only
         // where needed"; features ask it which plugins are active.
         if (!class_exists('SEOProStack_Plugin_Loader', false)) {
             require_once SEOPROSTACK_DIR . 'includes/class-seoprostack-plugin-loader.php';
         }
+        // Also loaded by that must-use file, before other plugins.
+        require_once SEOPROSTACK_DIR . 'includes/class-seoprostack-option-writes.php';
     }
 
     /**
@@ -231,6 +246,9 @@ final class SEOProStack_Setup {
         SEOProStack_Litespeed::init();
         SEOProStack_WP_Optimize::init();
         SEOProStack_Really_Simple_Security::init();
+
+        // Fixes that cannot wait for the features' boot on init.
+        SEOProStack_Plugin_Fixes::early();
 
         // "Load plugins only where needed" may skip plugins on a request;
         // they still count as active, and saved choices that belong to them
@@ -322,7 +340,8 @@ final class SEOProStack_Setup {
 
     /**
      * Admin requests: load and start the Discover tabs, the plugin
-     * installer and the Agency examples.
+     * installer, the Agency examples and the Plugins screen notes on
+     * plugins hosts add to new sites.
      */
     public static function admin() {
         $files = array(
@@ -338,6 +357,7 @@ final class SEOProStack_Setup {
             'admin/includes/class-tools-manager.php',
             'admin/includes/class-theme-manager.php',
             'admin/includes/class-agency-examples.php',
+            'admin/includes/class-host-plugins.php',
         );
         foreach ($files as $file) {
             require_once SEOPROSTACK_DIR . $file;
@@ -346,6 +366,7 @@ final class SEOProStack_Setup {
         SEOProStack_Theme_Manager::init();
         SEOProStack_Plugin_Manager::init();
         SEOProStack_Agency_Examples::init();
+        SEOProStack_Host_Plugins::init();
 
         // Priority 0, so other code filtering the tabs sees these as before.
         add_filter('seoprostack_admin_tabs', array(__CLASS__, 'discover_tabs'), 0);

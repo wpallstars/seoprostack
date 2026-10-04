@@ -26,6 +26,7 @@ phpstan-plugin.neon
 .aider*
 # Local AI tooling state (aidevops), never part of the plugin.
 .agents
+.task-counter
 .security-analysis
 *.bak
 .metadata_never_index
@@ -40,6 +41,9 @@ RELEASING.md
 ROADMAP.md
 STABILITY.md
 TESTING.md
+DESIGN.md
+# Agent and developer task docs (STANDARDS.md → Agent docs).
+/docs
 /scripts
 reference-plugins
 project-documents

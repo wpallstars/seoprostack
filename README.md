@@ -23,14 +23,15 @@ Go to **Settings → SEO Pro Stack**, or click the star next to your name in the
 
 ## Features
 
-Every feature is off by default except four: Hide admin bar items, which hides Comments and + New from the admin bar, No fade between admin screens, Quiet Freemius prompts and Fixes for other plugins. Copies installed from GitHub releases also have Updates from GitHub on. Features that replace a separate plugin say so on their card (“Replaces: …”) and import that plugin’s settings once when SEO Pro Stack is updated. The other plugin’s own settings are never changed or deleted. While that plugin is active, the feature waits and the plugin keeps doing the job, so the two never run side by side; the card says so, with a deactivate link that comes back to the same settings tab. Deactivate the plugin to switch over. The Plugins screen lists installed plugins that SEO Pro Stack can replace, with what to do next for each: deactivate it (its setting is on), switch the setting on, or delete it once inactive (single sites; on multisite another site may use it). Each of those plugins also gets a note under its own row saying which SEO Pro Stack setting makes it redundant and what to do next, including inactive plugins whose setting is still off; the notes are not hidden by **Hide**. When an active plugin does things on the site that SEO Pro Stack does not (such as Disable Bloat’s REST API switches), the line names them instead of saying the plugin can go. **Hide** hides the lines shown for that person until another step is needed.
+Every feature is off by default except five: Hide admin bar items, which hides Comments and + New from the admin bar, No fade between admin screens, Quiet Freemius prompts, Quiet Appsero prompts and Fixes for other plugins. Copies installed from GitHub releases also have Updates from GitHub on. Features that replace a separate plugin say so on their card (“Replaces: …”) and import that plugin’s settings once when SEO Pro Stack is updated. The other plugin’s own settings are never changed or deleted. While that plugin is active, the feature waits and the plugin keeps doing the job, so the two never run side by side; the card says so, with a deactivate link that comes back to the same settings tab. Deactivate the plugin to switch over. The Plugins screen lists installed plugins that SEO Pro Stack can replace, with what to do next for each: deactivate it (its setting is on), switch the setting on, or delete it once inactive (single sites; on multisite another site may use it). Each of those plugins also gets a note under its own row saying which SEO Pro Stack setting makes it redundant and what to do next, including inactive plugins whose setting is still off; the notes are not hidden by **Hide**. When an active plugin does things on the site that SEO Pro Stack does not (such as Disable Bloat’s REST API switches), the line names them instead of saying the plugin can go. **Hide** hides the lines shown for that person until another step is needed. Plugins that web hosts add to every new site (Hostinger AI and Hostinger Easy Onboarding) get a note under their row while active, saying what they are for and recommending deactivating them if that is not used, with a Deactivate link; nothing is deactivated or deleted for you.
 
-SEO Pro Stack replaces **46 plugins**, some of them in part, with free and Pro editions counted separately. The 41 that can be downloaded come to 36.7 MB zipped; SEO Pro Stack is 2.9 MB.
+SEO Pro Stack replaces **53 plugins**, some of them in part, with free and Pro editions counted separately. The 44 that can be downloaded come to 41.9 MB zipped; SEO Pro Stack is 3.1 MB.
 
 | Feature | Tab | Replaces |
 | --- | --- | --- |
 | Hide the admin bar, Block dashboard access | Admin | Admin Bar & Dashboard Access Control |
 | Turn off unused remote access | Admin | Hostinger Tools and Disable Bloat (PRO), in part |
+| Magic login links | Admin | WP Magic Link Login, in part |
 | Organise the admin menu | Admin | Admin Menu Editor (Pro) |
 | Hide dashboard widgets, Disable sidebar widgets | Admin | Widget Disable |
 | Tidy admin screens, Tidy WooCommerce admin, Tidy the login screen, Simpler block editor, Limit post revisions, Remove WordPress extras, Fewer Heartbeat requests, Lighter WooCommerce pages | Admin, Content, Speed | Disable Bloat (PRO), in part |
@@ -46,6 +47,7 @@ SEO Pro Stack replaces **46 plugins**, some of them in part, with free and Pro e
 | Change post type | Content | Post Type Switcher |
 | Order by hand | Content | Simple Custom Post Order |
 | Term tools | Content | Term Management Tools |
+| Tag clouds and related posts, Term tools | Content | TaxoPress (and Pro) and Tag Groups (and Pro), in part |
 | Search custom fields | Content | ACF: Better Search |
 | Website screenshots | Content | Browser Shots |
 | Link cards | Content | Bookmark Card |
@@ -63,12 +65,14 @@ SEO Pro Stack replaces **46 plugins**, some of them in part, with free and Pro e
 | Load pages before the click | Speed | Flying Pages |
 | Delay scripts until interaction | Speed | Flying Scripts |
 | Delayed Google Analytics | Speed | Flying Analytics |
-| Clean the database weekly | Speed | WP-Optimize, in part, where LiteSpeed Cache runs on a LiteSpeed server |
+| Image loading | Speed | Flying Images, in part |
+| Clean the database weekly | Speed | WP-Optimize and WP-Optimize Premium, in part, where LiteSpeed Cache runs on a LiteSpeed server |
 | 410 Gone for removed pages | Links | Ultimate 410 |
 | Old post addresses | Links | Slugs Manager: Delete Old Permalinks |
 | Short addresses for custom post types | Links | Remove CPT base |
 | Short links | Links | Pretty Links |
-| External link icons | Links | Link Whisper's icon only; not its linking tools |
+| External link icons | Links | Link Whisper's icon only |
+| Internal linking tools | Links | Selected Link Whisper workflows, after per-site retirement checks |
 | Maintenance mode | Maintenance | Hostinger Tools, in part |
 | Updates from GitHub (GitHub builds only) | Maintenance | Git Updater |
 | Plugins menu in the admin bar | Plugins | Plugin Toggle |
@@ -92,14 +96,19 @@ WordPress 7.0 fades from one wp-admin screen to the next, using the browser’s 
 
 ### Turn off unused remote access (Admin)
 
-Off by default, with two independent choices, both unchecked:
+Off by default, with three independent choices, all unchecked:
 
 - **Turn off XML-RPC**: direct requests to `xmlrpc.php` return HTTP 403, including unauthenticated methods such as pingbacks. Removes the `X-Pingback` response header and RSD discovery link. Jetpack and some mobile apps need XML-RPC; leave this unchecked if you use them.
 - **Turn off application passwords**: core stops accepting application passwords and hides their profile section and the Authorize application screen. Existing application passwords are not deleted; they work again when this choice is unchecked, if core allows them. Normal password login and the REST API stay available.
+- **Block web access to log and backup files**: requests for `.log`, `.sql`, `.sql.gz` and `.bak` files, `error_log`, `php_errorlog` and copies of `wp-config.php` (such as `wp-config-old.php`; not the real one) return HTTP 403, in every folder. Plugins write debug logs to the uploads folder under random names (AI Engine's `mwai_*.log` holds chatbot conversations), and PHP's `error_log` holds server paths and SQL; random names do not hide them, because `.log` URLs are guessed and crawled. A marked block (`# BEGIN SEO Pro Stack log and backup files`) goes at the top of the site's `.htaccess`, and of the `.htaccess` in wp-content or the uploads folder only when that folder is outside the site's folder (rules cover the folders below them). On Nginx, which does not read `.htaccess` files, the options show a `location` rule to copy; other servers get a note to ask the host. When a file cannot be written, the options show the block to add by hand. The block follows the switch, not the plugins the feature waits for, because they do not block these files. On multisite the main site's choice covers the network, which shares the files. Files are never deleted or moved: they belong to their plugins.
 
-Imports enabled switches from active Hostinger Tools (`hostinger_tools`) and Disable Bloat once, without overwriting choices already saved here or changing their options. The feature waits until those plugins are deactivated. Only these two functions are replaced here, and Hostinger’s maintenance mode by [Maintenance mode](#maintenance-mode-maintenance): the Plugins screen names Hostinger’s HTTPS and www redirects, llms.txt generation and MCP connection when they are on, instead of suggesting removal. Keep Hostinger Tools if you still use those or its hosting tools. No separate options or files are stored; uninstall removes these settings with the rest.
+Imports enabled switches from active Hostinger Tools (`hostinger_tools`) and Disable Bloat once, without overwriting choices already saved here or changing their options. The feature waits until those plugins are deactivated. Only these two functions are replaced here, and Hostinger’s maintenance mode by [Maintenance mode](#maintenance-mode-maintenance): the Plugins screen names Hostinger’s HTTPS and www redirects, llms.txt generation and MCP connection when they are on, instead of suggesting removal. Keep Hostinger Tools if you still use those or its hosting tools.
 
-Uses core’s `xmlrpc_enabled`, `wp_headers` and `wp_is_application_passwords_available` filters, removes `rsd_link` from `wp_head`, and refuses XML-RPC during `init`.
+**Log and backup files in Site Health** (always on, advice only, even with the feature off): once a day, the files with those names and something in them in the top level of the site's folder, the WordPress folder, wp-content (`debug.log` included) and the uploads folder are each asked for with one `HEAD` request, largest first, at most 10 a day. Files that answer HTTP 200 are named, with their size, as a recommended improvement under Security in Tools → Site Health, with a link to the choice above; their contents are never read. Copies of `wp-config.php` are blocked but not asked for, because asking for a PHP file runs it. When every request fails, the test says the files could not be checked rather than that none were found. `WP_DEBUG_LOG` handling is left as it is.
+
+The block's place and state are kept in the `seoprostack_hardening_files` site option, and the last check in the `seoprostack_exposed_files` transient. Deactivation removes the block (on multisite, network-wide deactivation or the main site's), and uninstall removes it if a file could not be written then, with the option and transient.
+
+Uses core’s `xmlrpc_enabled`, `wp_headers` and `wp_is_application_passwords_available` filters, removes `rsd_link` from `wp_head`, refuses XML-RPC during `init`, and adds the test through `site_status_tests`.
 
 ### Magic login links (Admin)
 
@@ -111,6 +120,7 @@ Adds “Email me a login link” to the login screen, next to “Lost your passw
 - Links are stored only as a keyed hash and are removed when used, when they expire, and on uninstall.
 - Passwords keep working. Administrators can be required to use their password.
 - Uses the core login screen and core `wp_login` / `login_redirect` hooks, so activity logs, redirect rules and two-factor plugins that use `wp_login` still apply. Two-factor plugins that only check the password step are not asked; on those sites exclude administrators or leave the feature off.
+- Pages made with WP Magic Link Login keep working after it is deactivated: its `[wpmll_form]` shortcode shows the login link form, with its `heading`, `description`, `login-button-text`, `logout-link-text` and `redirect_to` (an address on this site, or `current-page`) attributes. People already logged in see a log out link. While Magic login links is off, the shortcode shows WordPress’s password login form instead, so the page still lets people log in. While WP Magic Link Login is active, its own shortcode is left in place. Its other settings (allowed email domains, accounts for new email addresses, the landing page, hiding the password form, one IP address per link) are not replaced.
 
 ### Admin bar and dashboard access (Admin)
 
@@ -157,9 +167,9 @@ Groups the admin menu under the headings **Content**, **Communications**, **SEO*
 
 Lays out the Dashboard the same way on every site, from rules made from 12 sites arranged by hand with Admin Menu Editor Pro (`admin/data/dashboard.php`):
 
-- **Columns**: first WordPress’s browser and PHP update warnings when shown, then Quick Draft, Activity and WooCommerce reviews; then Fluent Forms, Fluent Support and FluentSMTP statistics; then visitor statistics (Burst), Rank Math, At a Glance and Site Health. Widgets that are not listed stay in the column their plugin chose, below the listed ones.
+- **Columns**: first WordPress’s browser and PHP update warnings when shown, then Quick Draft, Activity and WooCommerce reviews; then Fluent Forms, Fluent Support and FluentSMTP statistics; then visitor statistics (Burst), Rank Math, At a Glance, Site Health and AI Engine Advisor. Widgets that are not listed stay in the column their plugin chose, below the listed ones.
 - **Hidden for everyone**: the Welcome panel, WordPress Events and News, WooCommerce Status and WooCommerce Setup (they repeat WooCommerce → Home), Pretty Links quick add, Link Whisper’s link health box and Debug Log Manager (it reads the whole debug log on every Dashboard load; its screen under Tools shows the same entries).
-- **Developers only**: Site Health status. Developers are the ones chosen in Organise the admin menu; without it, people who can manage options (super admins on multisite).
+- **Developers only**: Site Health status and AI Engine Advisor. AI Engine Advisor (a daily list of general advice about the site’s plugins) also starts unticked in Screen Options, once per person, including people who saved Screen Options before; ticking it there shows it from then on. Developers are the ones chosen in Organise the admin menu; without it, people who can manage options (super admins on multisite).
 - **People who can publish**: At a Glance and the form, support and email statistics, so contributors do not see them. People who cannot edit posts, such as subscribers and customers, see no boxes.
 - Everyone gets the same layout and boxes cannot be dragged. **Let people rearrange boxes** (off by default) allows dragging and keeps each person’s own arrangement; until someone rearranges, they get the layout above. Saved arrangements are never deleted, so switching the feature off gives them back.
 - Works alongside Hide dashboard widgets: boxes it hides stay hidden.
@@ -197,6 +207,17 @@ This turns those prompts off. On a test site with six such plugins, the five opt
 - Kept: licence activation and its dialogs, the Account, Contact Us and Support pages, licence, trial-ending and payment notices, Opt Out for plugins you opted in to, and “Complete activation now” for plugins that only work with a licence.
 - A plugin that has not been opted in or skipped yet still shows its opt-in page in place of its own first screen. Choose **Skip** there once; the plugin keeps that choice.
 - Upgrade links that plugins add themselves, without Freemius, are not touched. Organise the admin menu leaves many of them out of the menu.
+
+### Quiet Appsero prompts (Admin)
+
+Appsero is a usage-tracking and licensing kit that many plugins bundle, such as Easy Video Reviews, each with its own copy. Each copy shows an “Allow … to collect diagnostic data and usage information” notice on every admin screen until it is answered (answering “No thanks” sends Appsero a “tracking skipped” report), prints a “Goodbyes are always hard” survey on the Plugins screen that opens when the plugin is deactivated and sends the answer with the site’s name, address, admin email and server details, and, in themes, sends those details when the theme is switched away from, whether or not you opted in.
+
+This removes the notice, the survey and its submission, and the theme-switch report from every copy. Deactivating goes straight through. **On by default**; switch it off to get the prompts back.
+
+- Copies are found by their class (`Appsero\Insights`, a copy under a plugin’s own namespace, or a subclass), since versions differ between plugins. Appsero has no filter for these, so their hooks are removed after `admin_init`.
+- Nothing is saved in the other plugins: none is opted in or out.
+- Kept: licence pages and licence notices (`Appsero\License`), and the plugin’s own opt-in and opt-out handling.
+- Plugins you already allowed keep sending their weekly report until you opt out in the plugin; check each plugin’s settings for its usage-tracking option.
 
 ### More menu in the admin bar (Admin)
 
@@ -249,7 +270,7 @@ Keeps the title column of post, page, user, media and plugins’ lists wide enou
 - Checked again when columns are switched on or off in Screen Options and when the window changes size. On phones, where WordPress stacks columns under the title, nothing changes.
 - **Columns to remove** (all ticked by default): Complianz’s Website Scan, Post Type Switcher’s Type and Burst Statistics’ Pageviews are taken out of every list, and out of Screen Options. Admin Columns still offers them in its column editor, so a layout made there can add them back. To hide other columns for yourself only, untick them in Screen Options.
 - **Author and date last** (on by default): on lists of posts, pages, media and other content, Author and Date are moved to the end, after the columns plugins add. A column layout chosen in Admin Columns still wins.
-- Rank Math’s **SEO Details** column gets room for its longest line (“Schema: Article (BlogPosting)”), and each of its lines stays on one line.
+- Rank Math’s **SEO Details** column gets room for its usual longest line (“Schema: Article (BlogPosting)”). The score and link counts stay on one line; a longer keyword or schema wraps between words, indented under its label, so it never pushes the list off the page.
 - A small script on list screens; only the two settings above are stored.
 
 ### Avatars without Gravatar (Admin)
@@ -292,7 +313,11 @@ Tick **Share a preview link** in the editor of a draft, pending or scheduled pos
 
 ### Pinned posts for any post type (Content)
 
-Adds a narrow pin column to the lists of the post types you choose, and a **Pin to the top** option in the editor for types other than posts. Wherever WordPress says “Sticky” in post lists, Quick Edit, Bulk Edit and the editors, it says “Pinned”, the word most sites and apps use (core still calls them sticky posts, so themes and blocks see no change). Pinned items lead the first page of the blog home, their post type archive and chosen term archives (categories, tags or custom taxonomies). It uses core’s sticky list, so existing sticky posts, themes and blocks keep working.
+Adds a narrow pin column to the lists of the post types you choose, and a **Pin to the top** option in the editor for types other than posts. Wherever WordPress says “Sticky” in post lists, Quick Edit, Bulk Edit and the editors, it says “Pinned”, the word most sites and apps use (core still calls them sticky posts, so themes and blocks see no change). Pinned items lead the first page of the blog home, their post type archive and chosen term archives (categories, tags or custom taxonomies). On archives they take places on the pages, so each page keeps its size and nothing shows twice; these lists also end their order with the post ID, so items sharing a date keep one place across pages. It uses core’s sticky list, so existing sticky posts, themes and blocks keep working.
+
+With ACF, ACF Pro or Secure Custom Fields active, **Pin from a true/false field** ties the pin to a true/false field of a pinnable type, such as a “Featured” field: an item is pinned while the field is on, however the field is set (editor, REST API, WP-CLI, imports), and pinning or unpinning it in the pin column or Quick Edit sets the field. When you choose a field, the items of its type are pinned and unpinned to match it, so the field decides. In the editor the field is the pin: **Pin to the top** is not shown for that type, so saving the field’s box cannot undo a pin set elsewhere. Only top-level fields of a field group are listed.
+
+With Kadence Blocks Pro active, **Lift to the top of Kadence query loops** does the same for Query Loop (Adv) blocks: pinned items of the pinnable post types lead the loop in its own order (an A–Z loop lists its pins A–Z, then everything else A–Z), and only those that match the loop’s filters and facets. Pinned items take places on the pages like any other item, so every page keeps the loop’s size however many items are pinned, nothing is repeated or skipped, and the loop’s result count and number of pages include them. **Only in these Kadence query loops** limits it to the loops you tick; leave them all unticked for every loop. It works through Kadence’s `kadence_blocks_pro_query_loop_query_vars` filter, which its filter and pagination requests also use; a site snippet that already fixes pinned items for a loop on that filter should be removed when this is turned on.
 
 ### Select all across pages (Content)
 
@@ -346,13 +371,31 @@ Drag rows by their handle, or focus the handle and use the arrow keys, in the li
 
 ### Term tools (Content)
 
-Three bulk actions on category, tag and other term lists:
+Bulk actions on category, tag and other term lists:
 
 - **Merge into**: the chosen terms become one (an existing term by name, or a new one). Their posts and child terms move to it.
 - **Move to taxonomy**: the terms, and the terms below them, become terms of another taxonomy with their posts, fields and IDs. A term whose slug the other taxonomy already uses stays where it is; merge them first.
 - **Set parent** (hierarchical taxonomies). A term cannot go below itself or its own children.
+- **Apply slug pattern**: add the taxonomy's prefix and suffix to selected existing terms, keeping their old addresses as redirects.
 
-Old archive addresses of merged and moved terms redirect with a 301 to the term that took over, when they would otherwise be a 404. Replaces Term Management Tools, which has no settings; the feature switches itself on while it is active.
+**Slug patterns**, in Term tools' Options, has one row per public taxonomy. Set a prefix such as `best-` or `how-to-` and a suffix such as `-guide` or `-statistics`: with `best-` and `-guide`, a new Technology term's slug is `best-technology-guide`. Slugs are permanent addresses, so use words that stay true rather than dates. Patterns apply on every term creation or edit, including imports and REST requests, while Term tools is on. Saving a pattern does not change existing terms until they are edited or selected for the bulk action. Empty fields leave slugs unchanged; existing prefixes and suffixes are not added twice. WordPress handles unique slugs.
+
+Old archive addresses of merged, moved and patterned terms redirect with a 301 to the term that took over, when they would otherwise be a 404. Replaces Term Management Tools, which has no settings; the feature switches itself on while it is active.
+
+**All | Unused (N)** above each term list shows only terms with no posts, so they can be checked and removed with the core **Delete** bulk action: the clean-up TaxoPress’ Manage Terms screen offers.
+
+### Tag clouds and related posts (Content)
+
+Shows categories, tags and other terms the way readers browse them, and posts related to the one being read, with WordPress’s own blocks, so a site needs no taxonomy plugin to do it.
+
+- **Related posts** block (Widgets category): posts of the same type that share the most categories, tags or other terms with the post being read. Terms used on few posts count for more than ones used everywhere, so a tag on every post does not make every post related; newer posts come first among equals. A grid of cards with featured images, or a list, with dates and a heading if wanted, and a choice of which taxonomies to compare. It works in Query Loops and templates. Password-protected posts, and posts Restrict content hides from the visitor, are left out. Results are kept in the object cache until posts or terms change.
+- **Add related posts after the content of**: post types that get the list after their content, without a block. Posts that already have the block are left alone.
+- The **Term list** block gains a **tag cloud** (sizes on a log scale between the smallest and largest text, plain or as boxes), a **comma-separated line**, an **A–Z index** with letter links, **This post’s terms** (in Query Loops too), an order (name, most posts first, random), a most-terms limit (keeping those with the most posts) and a fewest-posts threshold. Terms can be **grouped** by their top-level term, or by Tag Groups’ groups, under headings, in an **accordion** (`<details>`, no script) or in **tabs** (keyboard arrows, Home and End; without the script they stay under headings). Styles use the theme’s colours and translucent borders, so they suit light and dark palettes, Kadence’s switcher included.
+- **After TaxoPress is deactivated**: taxonomies made with it stay registered with their saved choices (labels, archives, address base, REST, admin column), so their terms, archives and post links stay. Its Terms Display, Terms for Current Post and Related Posts blocks, shortcodes (`[taxopress_termsdisplay]`, `[taxopress_postterms]`, `[taxopress_relatedposts]`) and widgets, terms it added after post content, and the `st_tag_cloud()`, `st_the_tags()` and `st_related_posts()` template functions are drawn with the blocks above from its saved displays: taxonomy, format (list, cloud, boxes, comma-separated), order, number, sizes, chosen and excluded terms, titles and empty texts.
+- **After Tag Groups (or Pro) is deactivated**: its groups are read in place, so the Term list can group by them. Its tabbed, accordion, alphabetical and list clouds, as blocks or shortcodes (`[tag_groups_cloud]`, `[tag_groups_accordion]`, `[tag_groups_alphabet_tabs]`, `[tag_groups_alphabetical_index]`, `[tag_groups_tag_list]` and the Pro table, combined cloud and shuffle box), are drawn with the Term list from their settings: groups, taxonomy, order, amount, sizes, terms of a post, and unassigned terms.
+- Saved TaxoPress and Tag Groups settings are only read, never changed, so turning either plugin back on finds everything as it was.
+- Left out, on purpose: automatic term links inside post content, automatic and AI tagging, synonyms and linked terms, and Tag Groups Pro’s front-end post filters and post lists (their shortcodes and blocks show nothing once it is deactivated). They are specialist tools for sites that rely on them, and Pro editions keep them; a core site needs the displays and the clean-up.
+- Switches on while TaxoPress or Tag Groups is active and has displays, groups or taxonomies, with the post types TaxoPress adds related posts to (settings version 20).
 
 ### Search custom fields (Content)
 
@@ -362,6 +405,17 @@ With Advanced Custom Fields or Secure Custom Fields active, searches on the site
 - As in core, each word must match somewhere in the post (title, excerpt, content or a field), and `-word` leaves out posts that have it anywhere.
 - Only the main search of a page or admin list: widgets, blocks, REST requests and the media library keep core’s search, as do queries that choose their own search columns.
 - No settings. Replaces ACF: Better Search; the feature switches itself on while it is active.
+
+### Custom fields to content (Content)
+
+Off by default. Copies top-level ACF or SCF text, text area and WYSIWYG fields into WordPress post content so site search, SEO analysis and internal-linking tools can read them.
+
+- Select the post types to sync, then reload the settings screen. Each selected type has its own included field types, skipped field names or keys (one per line), excerpt source and label-and-value or values-only format. Uncheck a type to stop syncing it.
+- **Replaces existing post content.** Only enable it for posts built from fields, and skip private fields before saving posts or running a batch. If your template displays both the fields and post content, the copy appears twice: check the template first. Theme and builder templates cannot reliably be detected from settings alone.
+- A chosen excerpt field replaces the excerpt with its plain text, including clearing it when the field is empty, excluded or missing. A blank source leaves the existing excerpt alone. Nested groups, repeaters, non-text fields and skipped fields are never copied.
+- Runs after ACF saves, sanitises HTML, preserves backslashes and guards against recursive saves. A hash of the generated content and excerpt prevents another content update when nothing changed. WordPress's original save can still change its modification time; this feature makes no additional update or revision on an unchanged sync.
+- With the feature enabled, sync existing posts using `wp seoprostack fields sync --post-type=page --user=admin` (replace the type and administrator login). Runs in batches of 100; the same unchanged-content check applies. ACF or SCF must be active.
+- Disabling leaves copied content and excerpts in place. Uninstall removes settings and `_seoprostack_field_content_hash` fingerprints, not the copies.
 
 ### Simpler block editor (Content)
 
@@ -396,6 +450,15 @@ Scripts whose tag or code contains a keyword you list (for example a chat widget
 
 Adds Google Analytics 4 (standard gtag.js) with your measurement ID, loaded after the first interaction or after a few seconds so it does not compete with the page. Logged-in users are not tracked. Turn off any other plugin that adds the same ID.
 
+### Image loading (Speed)
+
+WordPress already lazy-loads pictures and iframes with the browser’s own `loading="lazy"`, and loads the first three pictures of a post or page straight away. This tunes that through core’s filters, so pages are never rewritten and nothing is added for the browser to run.
+
+- **Load straight away**: how many pictures at the top of a post or page load without waiting (0–20; 3, WordPress’s default; `wp_omit_loading_attr_threshold`). WordPress counts a featured image shown above the content as the first.
+- **Never lazy-load pictures containing**: one line per text to find in a picture’s tag (its address, class or other attributes), such as a logo’s file name or a slider’s class. Pictures and iframes with the `skip-lazy` or `no-lazy` class, or a `data-skip-lazy` or `data-no-lazy` attribute, always load straight away. Applies to content pictures (including `loading="lazy"` saved in blocks, through `wp_content_img_tag`), pictures shown with `wp_get_attachment_image()` such as featured images, and content iframes. Developers can change the list with the `seoprostack_image_loading_exclude` filter.
+- Replaces Flying Images’ lazy loading, in part: its exclusions are imported once (settings version 21, leaving out its example `your-logo.png`), and the feature switches on where its lazy loading was on. It waits while Flying Images is active. Not replaced: its free CDN through Statically with compression and WebP on the fly (use [WebP and AVIF images](#webp-and-avif-images-media), or a CDN such as Cloudflare or QUIC.cloud set up by its own plugin), its own `srcset` for pictures outside the Media Library (WordPress adds `srcset` to Media Library pictures), and its JavaScript lazy loading with a placeholder and of background pictures, which rewrites every page.
+- Logged-in visitors are treated the same. The settings live in the main settings option and are removed on uninstall.
+
 ### Remove WordPress extras (Speed)
 
 Leaves out scripts and tags WordPress adds to every page that most sites never use, with core’s own hooks. Nothing is stored.
@@ -415,13 +478,17 @@ WordPress’s Heartbeat asks the server for news every minute while an admin scr
 
 WordPress and plugins leave rows behind that nothing reads again, and they slow down queries and backups. Once a week, at 3am site time, in the background, this removes them:
 
-- **Remove** (all ticked by default): expired transients (also with an object cache, for rows stored before it came), posts and comments that have been in the bin longer than WordPress keeps them (`EMPTY_TRASH_DAYS`, 30 days by default), spam comments older than that, automatic drafts older than 7 days (as WordPress's own daily cleanup), and post, comment and term meta whose post, comment or term no longer exists (rows for ID 0 were never attached and stay).
+- **Remove** (all but scheduled tasks ticked by default): expired transients (also with an object cache, for rows stored before it came), posts and comments that have been in the bin longer than WordPress keeps them (`EMPTY_TRASH_DAYS`, 30 days by default), spam comments older than that, automatic drafts older than 7 days (as WordPress's own daily cleanup), and post, comment and term meta whose post, comment or term no longer exists (rows for ID 0 were never attached and stay).
+- **Scheduled tasks from plugins that are no longer active** (unticked by default, because unlike the others it changes what other code finds): a removed plugin's scheduled tasks stay in the autoloaded `cron` option for good. WordPress runs nothing for a task with no code, then schedules a recurring one again, so the option grows and is rewritten after every cron run (on one Hostinger site, 32 such tasks, and `cron` the most-written option).
+  - **Checked as cron runs them.** At the end of a web cron request, which loads every plugin, at most hourly while the switch is on, each task with no code is noted. Tasks hosts add from outside plugins only on web requests (Hostinger's Monarx agent, `mnx_*`, from PHP's `auto_prepend_file`) would look orphaned from WP-CLI, so WP-CLI requests never check. Where cron runs from WP-CLI, an admin screen asks for a check in the background when none ran for 12 hours: `wp-cron.php?doing_wp_cron=seoprostack-check`. That lock value matches no lock, so `wp-cron.php` loads WordPress and runs no tasks.
+  - **Removed** when nothing ran a task on checks at least 7 days apart, with a check in the last 2 days, and none in the request doing the removal either. Never removed: WordPress's own tasks (`wp_*`, `delete_expired_transients`, `recovery_mode_clean_expired_keys`, `upgrader_scheduled_cleanup`, `importer_scheduled_cleanup`, `publish_future_post`, `do_pings`), `mnx_*`, SEO Pro Stack's own, and tasks of installed plugins, active or not. Those are tasks whose name starts with a plugin's folder, main file or text domain, or with their first part, as LiteSpeed Cache's `litespeed_task_*` do. Also never removed: tasks whose name's first part other code in the request uses (Rank Math's `rank_math/...` tasks while it is active, even with their modules off), and tasks put back.
+  - Removed with `wp_unschedule_hook()`. The options panel lists the tasks waiting to go, with the recommended plugin each most likely came from, and when they were last checked. After a cleanup it lists what went, with **Put back**: that restores the tasks exactly as they were stored (their plugin's own schedule may be gone) and keeps them from then on. `--dry-run` lists the tasks too.
 - **Optimise tables with free space** (off by default): runs `OPTIMIZE TABLE` on this site's tables with at least 1 MB of free space that is also a tenth of the table's size. A large table can be busy for a moment while it is rebuilt.
 - Revisions are left to **Limit post revisions**.
 - Posts and comments are removed with `wp_delete_post()` and `wp_delete_comment()`, so their meta, files and counts follow; transients with `delete_expired_transients()`. Work is done in batches for up to 20 seconds; the rest follows a minute later (`seoprostack_database_cleanup_more`).
 - The options panel lists what is waiting (counted once an hour), the last cleanup and the next one, with **Clean now**. `wp seoprostack clean-database [--dry-run]` does the same from the command line, with the chosen items, also while the switch is off.
 - Replaces WP-Optimize's scheduled cleanup where LiteSpeed Cache runs on a LiteSpeed server, which keeps pages and handles CSS and JS there. Elsewhere WP-Optimize's page cache is still needed, so this runs alongside it and the card does not name it. WP-Optimize's scheduled cleanup choices (transients, bin, spam, auto-drafts, orphaned post and comment meta, optimise) are imported once if its schedule is on; the switch comes on only where it replaces WP-Optimize. Settings version 14.
-- Stores the last cleanup in `seoprostack_database_cleanup_last` (not autoloaded); deactivating SEO Pro Stack stops the schedule and uninstalling removes both.
+- Stores the last cleanup in `seoprostack_database_cleanup_last`, the scheduled-task checks in `seoprostack_database_cleanup_cron_seen` and the tasks removed last in `seoprostack_database_cleanup_cron_removed` (none autoloaded). Deactivating SEO Pro Stack stops the schedule, and uninstalling removes them all (removed tasks stay removed).
 
 ### Lighter WooCommerce pages (Speed)
 
@@ -525,6 +592,55 @@ colour, including hover, focus and Kadence's live light/dark palette switch.
   recommend removing Link Whisper. Its embedded icons take precedence;
   turn its icon off to use this one, and deactivate it only if its other
   tools are not needed. No Link Whisper settings are imported or changed.
+
+### Internal linking tools (Links)
+
+Off by default. Open **Tools → Links** after enabling **Internal linking tools**
+in the Links tab. It can run alongside Link Whisper while you compare the two
+on staging; it never deactivates another plugin or changes its settings.
+
+- **Pages**: incoming, internal and external link counts, and orphan candidates.
+  Uses Rank Math's link-counter report when its public API and tables are
+  available; otherwise builds a local stored-content index in small cron batches.
+  An orphan candidate is not proof that menus, builders or dynamic content never
+  link to that page. Refresh the index after imports or changing providers.
+- **Suggestions**: incoming or outgoing opportunities from published page titles
+  and Rank Math focus keywords, with a destination search and context preview.
+  Local and bounded, with no AI account or outside service. Each insertion needs
+  your approval. Automatic edits are limited to screened HTML and simple core
+  blocks without shortcodes; builders and dynamic content need manual editing.
+  Saves use normal WordPress hooks, require transactional WordPress tables, and
+  keep a conflict-checked undo record. Undo refuses to erase later edits.
+- **Link health**: separately opt in to cached background checks of linked
+  public addresses, never on visitor page loads. Query-bearing, login, API and
+  private-network addresses are excluded. Results are cached for seven days;
+  404/410 responses are candidates to review, not automatic content changes.
+  When Rank Math Link Genius's report is detected, open that report instead of
+  running a second crawler; confirm it is accessible and current on this site.
+- **Count link clicks**: separately opt in; off by default. Counts approximate
+  events on indexed links in public singular content, not unique visitors.
+  Stores only daily totals, source post IDs and destination paths (plus public
+  page IDs for plain permalinks), with up to 90 days of retained totals. No
+  cookies, IP addresses, user IDs, queries or visitor profiles. Logged-in visits,
+  Do Not Track and Global Privacy Control are excluded. Public signatures can
+  be replayed, so counts are capped at 5,000 events per link per UTC day. Server
+  logs and other plugins are separate; review your own consent requirements.
+  Turning counting off adds no counting script or event route and leaves
+  retained totals available until expiry. Clear page caches after opt-out.
+  Retiring Link Whisper does not require keeping its click history or enabling
+  this counter: separate analytics plugins or apps can cover those needs.
+- **Retire Link Whisper**: read-only, point-in-time checks for stored rules,
+  target keywords, related-post dependencies and click history. Unknown schemas
+  remain blockers. Back up, recheck each site and validate rendered content on
+  staging before deciding to deactivate it. Keyword autolinking, URL replacement,
+  AI/cloud workflows, dynamic builder coverage and imported click history are not
+  blanket replacements. A clear report is not a safety certificate.
+
+WP-CLI: `wp seoprostack links audit --format=json` is read-only and works with
+the toolkit off. `wp seoprostack links index` requests a background scan;
+`wp seoprostack links index --batch` processes one bounded batch. WordPress cron
+must run. Uninstall removes only this toolkit's tables, metadata and scheduled
+jobs; approved links remain in your content and third-party data stays intact.
 
 ### Publishing queue (Content)
 
@@ -631,6 +747,14 @@ Lets a site stop using Spectra (Ultimate Addons for Gutenberg) without losing co
 - In the editor, Spectra Heading, Image, Buttons, Testimonial and Taxonomy List blocks get a **Convert** button (and **Convert all**) that rebuilds them as core Heading and Paragraph, Image, Buttons, Quote and Term list blocks, keeping text, links (new tab, nofollow), alt text, captions, alignment and text colours. Other Spectra blocks are left as they are. Nothing changes until the post is saved. Before a post with Spectra blocks changes, its current version is stored as a revision, even if it was never edited before (imported posts, for example), so Revisions can bring it back.
 - The options panel lists the posts that still contain Spectra blocks, with edit links.
 - Switches on if Spectra is active and its blocks are in use (settings version 5). Spectra has no settings to import; its blocks carry their own styles.
+
+### Kadence query filters scroll to results (Content)
+
+When a visitor changes a filter (a checkbox, radio button or drop-down) in a Kadence Blocks Pro query loop, the results reload in place, and on a long list the visitor is left partway down the page. This scrolls back up to the top of the loop.
+
+- Scrolls only when the top of the loop is above the window, less **Space above the results** (0 px by default; set it to the height of a sticky header), the admin bar and any `scroll-padding-top` the theme sets. A filter placed outside its loop scrolls to the page’s only loop, or else to the filter itself.
+- With reduced motion set in the visitor’s system, the jump is instant instead of smooth.
+- The script is under 1 KB, printed inline in the footer, without jQuery or a file to download, and only on pages where a query loop (`kadence/query`) was drawn: in the content, a Kadence Element, a block template or a widget. Other pages get nothing. Nothing changes without Kadence Blocks Pro.
 
 ### Copy linked images to Media Library (Media)
 
@@ -766,24 +890,26 @@ Presets so far:
 | Plugin | What the preset does |
 |---|---|
 | Antispam Bee | Time check on with the other spam checks; no Gravatar checks, Dashboard spam chart or count, or email per spam comment. |
-| Burst Statistics | No non-critical Burst dashboard notices; critical notices, tracking settings and the generated tracking script unchanged. |
+| Burst Statistics | No non-critical Burst dashboard notices; statistics kept 24 months, then deleted by Burst's daily job (instead of kept forever; deleted statistics cannot be restored); critical notices, tracking settings and the generated tracking script unchanged. |
 | Code Snippets | No upgrade notices or Snippets admin bar menu; editor defaults left alone. Per-site settings only, not unified network settings. |
 | EventON Lite | Scripts and styles only on pages with a calendar or event; no Google Fonts. |
 | FluentCRM | Contacts' IP addresses anonymised; FluentCRM's own avatar instead of Gravatar and ui-avatars.com. |
+| FluentSMTP | Email logs kept 2 years instead of 14 days; connections and credentials unchanged. Shows once a connection is saved. |
 | Fluent Forms | No weekly email summary, no IP address stored with entries, no admin bar menu. |
+| HTTP Requests Manager | Only logs calls to other servers. Its blocking modes also blocked every request after a page's first 3 seconds or 3 requests, which stopped WordPress's and SEO Pro Stack's update checks; Ask before licence checks holds licence checks instead. |
 | Kadence Blocks | Google Fonts served from the site, in the blocks and (with the Kadence theme) the theme. |
 | Lasso Lite (Simple URLs) | No affiliate programme bar or Dashboard banner. |
-| LiteSpeed Cache | Worked out for each site (see below). No news and promotions fetched from LiteSpeed; CSS and JS minified; the cache purged after updates; on a LiteSpeed server, the page cache and browser cache on; LiteSpeed's copy of each job an SEO Pro Stack feature does turned off. |
-| Rank Math SEO | No Frontend Stats Bar below the admin bar; modules and email schedules unchanged. |
+| LiteSpeed Cache | Worked out for each site (see below). No news and promotions fetched from LiteSpeed; CSS and JS Minify off (they slowed every uncached page); the cache purged after updates; on a LiteSpeed server, the page cache and browser cache on; LiteSpeed's copy of each job an SEO Pro Stack feature does turned off. |
+| Rank Math SEO | No Frontend Stats Bar below the admin bar; 24 months of Analytics data kept (365 days, which Rank Math doubles to compare periods), or as many as the site's Rank Math plan allows; modules and email schedules unchanged. |
 | Really Simple Security | 301 .htaccess redirect on supported single-site Apache/LiteSpeed installations with working HTTPS; saved through the plugin, including Reset and Undo. |
 | Simple CAPTCHA with Cloudflare Turnstile | Login, registration, lost password, comment and Fluent Forms protected; widget follows light or dark mode and shows only when needed. |
 | Tutor LMS | Student profile pages private; course reviews wait for approval; courses written in the block editor; a quiz is submitted when its time runs out; courses complete when every lesson, quiz and assignment is done, and can be retaken. |
 | WooCommerce | No usage data, remote error logs, marketplace suggestions or Order attribution tracking; Deferred emails on so checkout does not wait for the mail server. |
-| WP-Optimize | On servers other than LiteSpeed, the page cache on (WP-Optimize's own defaults: pages kept 24 hours, not for logged-in people); no caching menu in the admin bar; images, minification and cleanup schedules unchanged (see below). |
+| WP-Optimize and WP-Optimize Premium | On servers other than LiteSpeed, the page cache on (WP-Optimize's own defaults: pages kept 24 hours, not for logged-in people); no caching menu in the admin bar; images, minification and cleanup schedules unchanged (see below). |
 
 WooCommerce's **Deferred emails** sends order emails through Action Scheduler after checkout. It needs WP-Cron or a server cron. If order emails arrive late or not at all, check **WooCommerce → Status → Scheduled Actions**, group `woocommerce-emails`, for pending or failed `woocommerce_send_queued_transactional_email` actions, and turn **Deferred emails** off in **WooCommerce → Settings → Advanced → Features**. Applying the preset is optional; Reset puts this setting back to Off and Undo restores its previous value.
 
-They are JSON files in `presets/`, one per plugin folder. Each names its settings for the dialog under `settings`: setting path => `label` (the plugin's own wording), `description` and `values` (stored value => what it means, with `"null"` for not stored). AGENTS.md → Plugin presets explains how they are made and checked. A preset can be worked out for each site with `when`: option name => a condition, or a list that must all hold (`single_site`, `feature:{key}` for an SEO Pro Stack feature that is on, `feature:{key}:{item}` for a chosen item of it, `litespeed_server`, and more through the `seoprostack_preset_condition` filter; a leading `!` turns one round, as in `!litespeed_server`); options whose conditions fail are left out on that site. A setting named in a preset whose defaults are all "not stored" is removed again on reset, and an option left empty that way is deleted, so the plugin's own defaults apply as on a fresh install.
+They are JSON files in `presets/`, one per plugin folder. Each names its settings for the dialog under `settings`: setting path => `label` (the plugin's own wording), `description` and `values` (stored value => what it means, with `"null"` for not stored). `docs/presets.md` explains how they are made and checked. A preset can be worked out for each site with `when`: option name => a condition, or a list that must all hold (`single_site`, `feature:{key}` for an SEO Pro Stack feature that is on, `feature:{key}:{item}` for a chosen item of it, `option:{name}` for an option the plugin has stored, `litespeed_server`, and more through the `seoprostack_preset_condition` filter; a leading `!` turns one round, as in `!litespeed_server`); options whose conditions fail are left out on that site. A number the plugin caps on each site (such as by plan) can have `limits`: setting path => `filter` (the plugin's own filter for the most it allows) and `max` (the value it filters); a preset value above the limit is lowered to it, and the dialog says so. Analytics and statistics presets keep 24 months of data. A setting named in a preset whose defaults are all "not stored" is removed again on reset, and an option left empty that way is deleted, so the plugin's own defaults apply as on a fresh install.
 
 #### Really Simple Security redirects
 
@@ -795,13 +921,16 @@ WP-CLI: `wp --user=<administrator> seoprostack presets apply really-simple-ssl -
 
 #### LiteSpeed hosting
 
-On LiteSpeed hosting, LiteSpeed Cache and SEO Pro Stack together do what WP-Optimize does: LiteSpeed Cache keeps pages (in the server's own cache, the fastest one there), browser caching and CSS and JS; SEO Pro Stack does images (WebP and AVIF copies, Resize large uploads), Heartbeat, WordPress extras and script delay. SEO Pro Stack knows the site runs on a LiteSpeed server (OpenLiteSpeed, LiteSpeed Enterprise or LiteSpeed Web ADC) from the server's own variables, as LiteSpeed Cache does, and remembers it in the `seoprostack_litespeed_server` option (not autoloaded) for WP-CLI, which does not see them. There, Free Plugins notes under WP-Optimize that this site does not need it, and Hosting needs names the web server, suggests LiteSpeed Cache, and warns when WP-Optimize's page cache or minify runs alongside it.
+WP-Optimize Premium installs in `wp-optimize-premium`, rather than `wp-optimize`. Both editions use the same cleanup options and `wpo_cache_config`: Clean the database weekly waits for either active edition on LiteSpeed hosting, and imports the same scheduled cleanup choices. Premium is offered the preset from `presets/wp-optimize.json` through `seoprostack_plugin_presets`, with the same conditions and Apply, Reset and Undo save path; an explicitly supplied Premium preset takes precedence. The preset's tested version comes from the free edition, not a separate Premium test. SEO Pro Stack leaves both editions' cache and minify options alone when checking for overlap. Deactivation of either edition can remove the `WP_CACHE` line LiteSpeed Cache needs; the Plugins row warns to save **LiteSpeed Cache → Cache** settings afterwards (with Enable Cache on), and check for a file permission warning. SEO Pro Stack does not rewrite `wp-config.php` automatically.
+
+On LiteSpeed hosting, LiteSpeed Cache and SEO Pro Stack together do what WP-Optimize does: LiteSpeed Cache keeps pages (in the server's own cache, the fastest one there) and browser caching; SEO Pro Stack does images (WebP and AVIF copies, Resize large uploads), Heartbeat, WordPress extras and script delay. SEO Pro Stack knows the site runs on a LiteSpeed server (OpenLiteSpeed, LiteSpeed Enterprise or LiteSpeed Web ADC) from the server's own variables, as LiteSpeed Cache does, and remembers it in the `seoprostack_litespeed_server` option (not autoloaded) for WP-CLI, which does not see them. There, Free Plugins notes under WP-Optimize that this site does not need it, and Hosting needs names the web server, suggests LiteSpeed Cache, and warns when WP-Optimize's page cache or minify runs alongside it.
 
 On other servers WP-Optimize is the page cache, so Free Plugins notes that under it, and its preset turns the page cache on there (`"when": {"wpo_cache_config": "!litespeed_server"}`) and nothing else that SEO Pro Stack already does (images, database cleanup) or that writes `.htaccess` (Gzip, browser caching). Storing the setting is not enough, so after Apply, Reset or Undo, `SEOProStack_WP_Optimize::save_through_plugin()` (`includes/class-seoprostack-wp-optimize.php`, on `seoprostack_plugin_preset_changed`) saves it again through WP-Optimize's own `WP_Optimize_Cache_Commands::save_cache_settings()`, which writes or removes `advanced-cache.php`, the `WP_CACHE` line in `wp-config.php` and its config file, and purges, as its Cache screen does. That code only acts when its stored switch changes, so the switch is first set from the files (`WP_CACHE` and its own `advanced-cache.php`). WP-Optimize does not tell OPcache that `wp-config.php` changed, so for `opcache.revalidate_freq` seconds requests still saw the old `WP_CACHE` and an Undo straight after a Reset left it out; SEO Pro Stack calls `opcache_invalidate()` on `wp-config.php` afterwards, unless `opcache.restrict_api` does not allow it.
 
 The LiteSpeed Cache preset is worked out for each site, from the `when` conditions in `presets/litespeed-cache.json` (`litespeed_server` comes from `includes/class-seoprostack-litespeed.php`):
 
-- **Every site**: notifications off, CSS Minify and JS Minify on (not combined: with HTTP/2 combining saves little and breaks more), Purge All On Upgrade on, so pages never point at old CSS and JS.
+- **Every site**: notifications off, CSS Minify and JS Minify off, Purge All On Upgrade on, so pages never point at old CSS and JS.
+- **Why Minify is off** (GitHub issue #285): with Combine off, LiteSpeed Cache 7.9 minifies and rewrites every CSS and JS file again on every page that misses the page cache (`LiteSpeed\Optimize::_build_single_hash_url()`, which never reuses the file it saved). On Hostinger test sites that took 0.25–1.2 s per uncached page (augustawards.com posts: 1.98 s with Minify, 0.99 s without), while compression and HTTP/2 already make the files small and quick to fetch. Combine avoids the repeat work but breaks more pages, so it stays off too. Cached pages are not affected either way. Sites that turn Minify back on keep working; they pay that time on each page the cache does not hold yet (first visits after a purge, search, query strings, crawlers).
 - **On a LiteSpeed server**: Enable Cache and Browser Cache on. Elsewhere they are left alone: the page cache needs the server (or QUIC.cloud, which SEO Pro Stack cannot see).
 - **Where an SEO Pro Stack feature does the job**, LiteSpeed's copy is turned off, so the two never both do it: Load JS Deferred with Delay scripts until people interact, Next-Gen Image Format with WebP and AVIF copies, Frontend and Backend Heartbeat Control with Fewer Heartbeat requests (on the site and admin screens it limits; LiteSpeed's editor Heartbeat is left alone), and Remove WordPress Emoji with Remove WordPress extras (emoji).
 - Nothing that needs QUIC.cloud is turned on (critical and unused CSS, image optimisation, the crawler), and the object cache is left to the host.
@@ -851,6 +980,8 @@ Checks whether the hosting fits the site, and says what to ask the host for. It 
 - **Memory per PHP worker**: the highest use plus 32 MB for PHP itself, with OPcache’s memory shared by all workers.
 - **Traffic**: 1 in 20 requests that reach PHP records how long it took and the hour it ran in, in a small option that is not autoloaded, kept for 7 days. Requests a page cache serves never reach PHP, so they are not counted, which is what sizing PHP needs. Change the rate with the `seoprostack_hosting_sample_rate` filter (0 stops it).
 - **The site**: database size, rows of post data, products and options loaded on every request (from table statistics, read at most hourly), whether a page cache or persistent object cache is in use, and whether shop, membership, course or community plugins are active, where more visitors skip the page cache and pages take longer. It advises a page cache when none is found, an object cache above 500,000 rows of post data or 10,000 products, trimming options loaded on every request above 1 MB, and PHP 8.2 or later. On a LiteSpeed server it names the server, suggests LiteSpeed Cache (whose page cache only counts there), and warns when WP-Optimize's page cache or minify runs alongside it (see Plugin presets → LiteSpeed hosting).
+- **CDN**: whether a CDN serves the site, from the headers a CDN adds to the request being served (Cloudflare, Sucuri), a plugin that sets one up (QUIC.cloud or a CDN in LiteSpeed Cache, the Cloudflare plugin signed in, Bunny CDN, CDN Enabler, Jetpack's Site Accelerator), or the headers of the home page, asked for at most hourly from the admin (Cloudflare, QUIC.cloud, Bunny CDN, CDN77, Fastly; each header checked against the provider's own responses). With none found it suggests one: QUIC.cloud through LiteSpeed Cache on a LiteSpeed server (it has a free plan), Cloudflare's free plan elsewhere. When the site cannot reach its own home page, the CDN is unknown and nothing is suggested. SEO Pro Stack does not run a CDN or rewrite pages for one, and never turns one on in another plugin.
+- **Settings saved on every page view**: some plugins save an option again on almost every request although only a timestamp in it changes (on one Hostinger site, five premium plugins' licence options). Each save is a database write and, with an object cache, rewrites the cached autoloaded options that every request reads. On 1 in 20 page views (GET requests outside wp-admin, cron and WP-CLI), the options saved are counted with the plugin, must-use plugin or theme that saved them, in the non-autoloaded `seoprostack_hosting_writes` option, kept for 7 days. Once 20 page views are counted, options saved on more than half of them are recommended for a look: "These settings are saved again on almost every page view, which slows pages and clears the object cache", each with its plugin and share of page views (also in Site Health Info). If one is a licence option **Ask before licence checks** knows, it suggests turning that on. Transients and SEO Pro Stack's own options are not counted. Counts start again when a plugin is deactivated or updated, or Ask before licence checks is switched. Plugins often save these while their files load: with **Load plugins only where needed** on, its must-use file starts the count before other plugins load; otherwise it starts when SEO Pro Stack loads, so plugins whose folders sort before `seoprostack` are counted only for saves made later in the request.
 - **Object cache health**: at most once a day, from the admin, Site Health cron or WP-CLI, checks LiteSpeed Cache's configured server and looks for unused local Redis or Memcached when its PHP extension is loaded, including configured Unix sockets. A reachable unused cache is recommended even on a small site. A turned-on but unreachable cache is flagged, and the site facts name Redis or Memcached when known. Other drop-ins are named from their header and checked by keeping a test value until the next daily check; the first check starts the test. A cache flush or eviction can also lose that value, so the warning asks the host to check rather than treating it as proof of a broken server. Hostinger sites without Memcached's extension enabled are pointed to hPanel's PHP settings when no usable backend was found. These checks never change another plugin's settings and never open connections on visitors' requests. Daily results and the probe token are kept in the non-autoloaded `seoprostack_hosting_object_cache` option, with a short-lived `_lock` option; both and the test key are removed on uninstall. Each server probe uses short connection and reply timeouts, below half a second.
 
 **Hosting to buy.** A table gives PHP workers, RAM, CPU cores, object cache and kind of hosting for low, medium and high traffic (10,000, 100,000 and 1,000,000 visits a month), and for the traffic measured now once 30 requests are sampled, with the OPcache settings and PHP memory limit that suit them all. Only traffic is assumed, and the table says how:
@@ -884,16 +1015,34 @@ Until a choice is made the check is held: nothing is sent, and the plugin gets W
 
 Licence checks are calls whose address or form names a licence (`licence`, `license`, `licensing`, a `license` or `license_key` field, EDD’s check, activate and deactivate actions), plus any request the `seoprostack_licence_call` filter marks. Never held: WordPress’s update checks, update details and downloads (by call stack, and addresses that ask for versions, update data or packages), so updates keep working; WordPress.org; the site itself; and calls made by WordPress or SEO Pro Stack. It runs after other `pre_http_request` filters, so a request another plugin (such as HTTP Requests Manager) already answered or blocked is left alone.
 
+**Licence options saved on every request.** Some premium plugins (as patched by GPL Vault, on one Hostinger site) save their licence state again on almost every request, page views included, with only a new timestamp. With this on, the stored value is kept while the stored licence is valid and only the timestamp would change, so nothing is written. Any other change, a licence that is not valid, or one whose stored expiry is less than a week away, is saved as usual, and the plugin then renews it. Known options (`SEOProStack_Option_Writes::KNOWN` in `includes/class-seoprostack-option-writes.php`, one line each):
+
+| Option | Plugin | What changes |
+|--------|--------|--------------|
+| `cmplz_transients` → `cmplz_license_status` | Complianz Pro | `expires` (other entries of the option still save) |
+| `rsssl_transients` → `rsssl_pro_license_status` | Really Simple Security Pro | `expires` (as above) |
+| `_ff_fluentform_pro_license_status_checking` | Fluent Forms Pro | `next_timestamp` |
+| `tutor_license_info` | Tutor LMS Pro | `activated_at` (while `activated`) |
+| `wp-optimize-premium_updater_options` | WP-Optimize Premium | `wp55_option_migrated`, added then removed |
+
+Fluent Forms Pro saves its option while its file loads, and Complianz and Really Simple Security may too. Those plugins load before SEO Pro Stack, because plugins load in folder order. With **Load plugins only where needed** on, its must-use file loads this check before any plugin; otherwise only saves made after SEO Pro Stack loads are kept. **Hosting needs** names options still saved on most page views.
+
 Stored: the choices and times in `seoprostack_licence_calls` (not autoloaded, written when something changes, “last seen” at most once a minute), one day’s answers in `seoprostack_lc_*` transients and “Ask me again” in the `seoprostack_licence_later` user meta, all removed on uninstall. Request forms, which can hold licence keys, are never stored; a hash tells answers apart. Tested on WordPress 6.2 and 7.1 with PHP 7.4, with a stand-in licence server and with Kadence Blocks 3.7.12, Kadence Blocks Pro 2.8.19.1 and Kadence Pro 1.2.5. Kadence makes three licence checks (Kadence Pro on its settings screen and in the block editor, Kadence Blocks’ StellarWP account check in the block editor), each when its own cache runs out; all three are caught, Once a day answers repeats from the kept answer, and Never sends nothing, with no PHP messages. Kadence does not cache a failed check, so while one is held it tries again on the next block editor load (held at once, no wait), and with `WP_DEBUG` on Kadence Blocks writes each failure to the debug log, licence key included, as it does whenever its server cannot be reached.
 
 ### Fixes for other plugins (Plugins)
 
-On by default. Works around bugs in other plugins that slow the site down or leave it broken, through those plugins’ own hooks. Nothing is stored and no other plugin’s settings are changed, so turning this off brings each bug back as it was (a file already deleted stays deleted). Turn it off if a fix causes a problem.
+On by default. Works around bugs in other plugins that slow the site down or leave it broken, through those plugins’ own hooks. No other plugin’s settings are changed, so turning this off brings each bug back as it was (a file already deleted stays deleted). The one fix that writes a file is the LiteSpeed block in `.htaccess`, which is removed when this is turned off or SEO Pro Stack is deactivated. Turn it off if a fix causes a problem.
 
 - **Lasso Lite (Simple URLs)**: version 159 saves lasso.link’s whole reply, `{"site_id": "…"}`, as its site ID instead of the ID inside it, then rejects what it saved. So on every admin request by an administrator, admin-ajax included, it asks lasso.link again (about 200–400 ms each on a test site), sending the site address, versions and support email. Its `lasso_lite_estimate_earning_site_id` filter now gets the ID from the saved reply. Lasso Lite then sends its install report once and stops asking; its other reports (each setup step once, and a weekly earnings estimate in the background) work as its makers intended.
 - **Tutor LMS Pro**: version 4.1.0’s updater reads the version, download address and tested WordPress version from any update reply with status 200, even one with empty details, as the “no update” reply of copies sold by GPL resellers is. Each update check then adds PHP warnings and deprecation notices to the debug log and WP-CLI output (ten when its plugin details are opened too). Such a reply, from the server or from a `pre_http_request` filter, is completed with the installed version and no download address, so Tutor LMS Pro sees no update, as the reply meant. Status stays 200 for its licence check before updating, and replies that offer an update are left alone.
 - **Freesoul Deactivate Plugins and Freesoul Deactivate Plugins PRO** (2.6.9 and 1.3.0.0): deactivating one left the other active (PRO needs the free plugin), and Freesoul’s must-use file, `wp-content/mu-plugins/eos-deactivate-plugins.php`, was left behind on networks, and on single sites whenever Freesoul’s own code did not run during the deactivation (PRO’s own deactivation hook never runs). A file left behind keeps skipping plugins by Freesoul’s saved rules on single sites and shows an error on every admin screen. Deactivating either one, from the Plugins screen, the admin bar’s Plugins menu or WP-CLI, now deactivates both in the same place (this site, or the whole network). Once neither is active on any site, the file is deleted, if it says it is Freesoul’s; opening the Plugins screen also deletes one left from before. Activating Freesoul puts the file back.
 - **Readabler** (2.0.18, and other Merkulove plugins built on the same code): it asked its server for product information on every load of the Plugins screen, waiting up to 60 seconds, even with the answer cached for a day. When that request failed (a timeout, its server down, or HTTP Requests Manager blocking it), it added an admin notice that throws an exception, and the Plugins screen stopped with “There has been a critical error on this website”. The request now waits until the cached answer runs out, and the throwing notice is removed before it runs; Readabler still logs the failure.
+- **Tutor LMS** (4.1.0): it names its foreign keys the same on every site (`fk_tutor_order_item_order_id` and eight more), but MySQL and MariaDB allow each name once per database. On a network, or sites sharing a database, only the first site got its order, cart and coupon tables; on the others its installer failed quietly, and its 3.8.0 upgrade then failed on every admin screen with “Foreign key constraint is incorrectly formed”. Its cart and coupon tables also pointed at `{prefix}users`, which subsites do not have. When Tutor creates a table, a foreign key name another table already has now gets the site’s table prefix, and the users table is the network’s, so the first site keeps Tutor’s own names. On an admin screen of a site where Tutor is installed but `tutor_order_items` is missing, Tutor’s own installer runs once (if it still fails, the next try waits a day).
+- **Tutor LMS Pro** (4.0.9): its updater deleted WordPress’s saved update data and checked for updates again on every load of the Plugins screen, so that screen waited for every plugin’s update and licence servers each time (several seconds with many premium plugins; **Ask before licence checks** leaves checks inside WordPress’s update process alone). That step is removed; WordPress still checks from the Plugins screen, at most once an hour.
+- **Comment Goblin** (1.2.0): it asks its server for update details on every read of WordPress’s update data, which happens many times on each admin screen, and keeps the answer only when the request succeeds. While its server failed (commentgoblin.com served a certificate for another name), each read waited about 0.3 seconds: 25 times, about 7.5 seconds, on one Plugins screen. After a failure, its update check now gets the same “request failed” error at once for 12 hours, for every site of a network.
+- **MainWP Child** (6.2.1): the MainWP Branding extension’s **Global footer** text is printed on every front-end page, after the theme’s footer and outside any element, so it shows unstyled below the site’s footer (such as “Email support@… for assistance.”, under Readabler’s button). It is no longer printed on the front end. Text set as **Dashboard footer** still shows in the admin footer, and MainWP’s settings are not changed.
+- **Action Scheduler and WordPress cron on LiteSpeed servers**: Action Scheduler (part of WooCommerce, Rank Math, FluentCRM and others) runs queued actions in a request it starts and does not wait for, and WordPress starts cron (`wp-cron.php`) the same way. A LiteSpeed server stops PHP as soon as the caller hangs up, unless the request has already sent output, so PHP’s `ignore_user_abort()` cannot keep it running. Runs stopped partway: Action Scheduler marked their actions failed after 300 seconds (89 in 30 days on one WooCommerce site), and a query stopped in the middle left “Commands out of sync” database errors for every query at shutdown. On LiteSpeed servers, a block at the top of the site’s `.htaccess` (`# BEGIN SEO Pro Stack background requests`) sets LiteSpeed’s `noabort` variable for those two requests, as LiteSpeed Cache does for its own background request. It goes before WordPress’s rules, which on a network end rule processing for files that exist. On a network the main site’s switch decides, because the sites share the file.
+- **Kadence Pro** (1.2.5): it moved its libraries (PSR interfaces, StellarWP, DI52, LiquidWeb Harbor) into `vendor-prefixed/` under new names, but its Composer class map still lists them under the old names: 348 of its 354 entries point at files it does not ship. Its autoloader goes first, so when another plugin that ships one of those libraries itself asks for a class (AI Engine Pro, Kadence Conversions, WP Mailster and others ship `psr/container`), PHP writes “Failed opening …/kadence-pro/vendor/composer/../psr/container/src/ContainerInterface.php” warnings before the right copy loads. As SEO Pro Stack loads, or as Kadence Pro does if it loads later, the entries whose folder is missing are dropped from Kadence Pro’s class map (under a millisecond), so the lookup goes straight on to the plugin that has the class. Kadence Pro’s own classes are kept, and its files are not changed.
 
 ### Load plugins only where needed (Plugins)
 
@@ -937,7 +1086,7 @@ Other screens, such as the About screens, skip them. On a test site with 191 act
   - What was learned is kept in the `seoprostack_plugin_front` option (with `seoprostack_plugin_front_lock` while learning), forgotten with the rest when plugins change, and removed on uninstall.
   - **Learn which plugins each page needs** is on by default (it does nothing until Load plugins only where needed is on); switch it off to skip only site-wide. It learns once per page kind: singles by post type, the front page, blog home, post type and taxonomy archives, author and date archives, and search. Every later address of a learned kind can skip content-only plugins on its first visit. Before plugins load, saved rewrite rules and one post lookup identify the page and match its own blocks and shortcodes to their learned owners. Global templates, widgets, menus, secondary loops and remaining assets keep their owners. Lists and search keep all registered block and shortcode owners, since another result can use them. Unknown global page hooks, security and permission hooks, and dependencies keep loading. **Always load these plugins on the site** opts a plugin out.
   - **WooCommerce PHP.** With Lighter WooCommerce pages on and both its scripts and cart fragments chosen, page learning can skip WooCommerce itself on plain pages. Shop, product, category, cart, checkout and account pages, WooCommerce shortcodes and blocks, mini carts and cart values printed by a theme keep it. Store notices and configured WooCommerce widgets keep it everywhere. Remaining WooCommerce assets (including tracking scripts) keep it on the pages using them. An extension that keeps loading also keeps WooCommerce; extensions chosen in the site-wide list follow the content owner on pages using it. New or unknown WooCommerce security callbacks keep it everywhere.
-  - **Public pages only.** Kind learning applies to cookie-free public GET requests without authentication, including search, pagination and harmless campaign tags. Cookies and authentication still use the site-wide choices. Unknown routes, kinds, blocks or shortcodes load every plugin; custom post templates and indirect reusable content also take that safe path. Decisions have no expiry and no per-address list or writes: only a kind's first successful learn saves it. Content, metadata, term, theme, plugin and stored-setting changes invalidate decisions; `seoprostack_plugin_front_revision` rejects stale in-flight learning. The existing options are removed on uninstall. No visitor identity or session is stored, and page-cache plugins themselves are not automatically skipped. Clear your page cache after changing choices. Themes or custom code with unreported plugin dependencies should use the opt-out list.
+  - **Public pages only.** Kind learning applies to cookie-free public GET requests without authentication, including search, pagination and harmless campaign tags. Cookies and authentication still use the site-wide choices. Unknown routes, kinds, blocks or shortcodes load every plugin; custom post templates and indirect reusable content also take that safe path. Decisions have no expiry and no per-address list or writes: only a kind's first successful learn saves it. Content, metadata, term, theme, plugin and stored-setting changes invalidate decisions; `seoprostack_plugin_front_revision` rejects stale in-flight learning. Settings change in wp-admin, through AJAX, the REST API or WP-CLI, or when a form is sent, so options saved on page views (GET requests) and by cron are records, not settings, and leave decisions alone. So do SEO Pro Stack's own records, the licence options **Ask before licence checks** knows, and options **Hosting needs** found saved on most page views: plugins that save those on every request kept restarting the learning. The existing options are removed on uninstall. No visitor identity or session is stored, and page-cache plugins themselves are not automatically skipped. Clear your page cache after changing choices. Themes or custom code with unreported plugin dependencies should use the opt-out list.
 - Works from a small must-use file, `wp-content/mu-plugins/seoprostack-plugin-loading.php`, written when the feature is switched on and removed when it is switched off or SEO Pro Stack is deactivated or deleted. If that folder is not writable, the settings say so. On multisite the file serves every site and filters only where the feature is on; network-activated plugins always load.
 
 ### Updates from GitHub (Maintenance)
@@ -999,7 +1148,13 @@ The Agency tab shows example data for a digital marketing agency, to rename and 
 - **Free Plugins**: recommended plugins from WordPress.org by category. Install, Activate, Deactivate and Uninstall all work in place, so you can set up many in a row without leaving the page: an installed plugin shows Activate and Uninstall, an active one shows Deactivate. **All** lists every recommended plugin grouped by category, with the disk space each installed one takes (as in Plugin sizes, measured in the background), a checkbox per plugin and per group and bulk actions (Install and activate, Install, Activate, Deactivate, Uninstall) that run one plugin at a time with progress, and can be stopped. Bulk Uninstall deactivates active plugins first. Plugins that need a newer WordPress or PHP, or that WordPress.org has closed, cannot be selected. Activate and Deactivate accept only WordPress.org plugins on the recommended list; install and uninstall use WordPress’s own requests, so FTP details are asked for where needed. Shown only to users who can install plugins (on multisite, super admins); plugins active for the whole network are left alone.
 - **Pro Plugins, Hosting, Tools**: filterable directories with links to each product. Pro plugins show a badge when their free version is already on the site.
 
-Some directory links are the developer's affiliate or referral links, which may earn a commission or account credit and sometimes give you a discount. They do not change what we recommend, and nothing is added to your public site. Product, pricing and documentation links stay direct when no matching referral link is available; Kadence bundles, the Bit Apps store, Fiverr Pro and the Speedy Index Telegram bot have separate referral links.
+Free Plugins includes WPManageNinja's Fluent products, including FluentAuth, FluentSnippets and Fluent Query Logger, plus Paymattic, Ninja Tables, Ninja Charts, Ninja Job Board and Custom Feed for TikTok. Pro Plugins also lists FluentAffiliate Pro, FluentPlayer Pro, Paymattic Pro and AzonPress. FluentAuth, FluentSnippets and Fluent Query Logger are free only; AzonPress has no listed WordPress.org free version. Choose only what your site needs. Nothing is installed or activated just by opening a directory.
+
+Fluent Query Logger is under **Debug**, with a reminder to deactivate or delete it when not troubleshooting. Its WordPress.org release was last updated in July 2022; Ninja Job Board was last updated in December 2023, so check their compatibility before using them.
+
+FlyingPress and Link Whisper are not recommended. Neither are Fluent Connect (ThriveCart), Fluent Forms Connector for MailPoet or Mautic Integration For Fluent Forms: these connectors are not used in the recommended stack. Legacy WPManageNinja plugins NinjaDB, WP Faq Builder and Testimonials Builder are also left out: their last updates were in 2017, 2018 and 2019 respectively.
+
+Some directory links are the developer's affiliate or referral links, which may earn a commission or account credit and sometimes give you a discount. They do not change what we recommend, and nothing is added to your public site. Kadence and Fluent/WPManageNinja product, pricing and add-on links carry the developer's referral ID, including the matching **Go Pro** links in Free Plugins. WordPress.org install/details links and GitHub source links stay direct. Other product, pricing and documentation links stay direct when no matching referral link is available; the Bit Apps store, Fiverr Pro and the Speedy Index Telegram bot have separate referral links.
 
 ## Requirements
 
@@ -1058,6 +1213,7 @@ Developers can add settings, tabs and directory entries with filters:
 - `seoprostack_watermark_attachment`: return false to leave a picture unmarked (attachment ID).
 - `seoprostack_short_link_target`: change where a short link sends a visitor (target address, link post ID); return `''` to leave the address to WordPress.
 - `seoprostack_short_link_count_click`: return false to not count a click (link post ID).
+- `seoprostack_link_health_provider`: detected health-report provider (`rank_math` or `native`); return `native` if this site's Link Genius report is unavailable. This does not enable background checks.
 - `seoprostack_screenshot_request`: change the request sent to the screenshot service (`url`, `headers`, `json`; page URL, browser width, height, service), for example to use another service. The response must be a JPEG, PNG or WebP picture, or JSON with `data.screenshot.url` when `json` is true.
 - `seoprostack_term_list_args`: change the `get_terms()` arguments of a Term list (arguments, block attributes), for example to order by count or exclude terms.
 - `seoprostack_admin_bar_more_items`: change which top-level admin bar items go in the More menu (item IDs in bar order, `WP_Admin_Bar`).
@@ -1066,7 +1222,7 @@ Developers can add settings, tabs and directory entries with filters:
 - `seoprostack_is_writer`: whether the current person sees only writing screens with Organise the admin menu’s **Writers see only writing** (bool, user ID).
 - `seoprostack_writer_hides_page`: whether writers do not get a menu page (bool, menu address, capability it asks for). Return false to give writers a plugin page, such as an AI writing tool.
 - `seoprostack_writer_hides_post_type`: whether writers do not get a post type’s list, Add New and edit screens (bool, post type). By default, plugins’ post types without the content editor.
-- `seoprostack_dashboard_layout`: change how Tidy the dashboard lays out widgets: `columns` (column => widget IDs), `hidden`, `developers` and `reports` (widget IDs).
+- `seoprostack_dashboard_layout`: change how Tidy the dashboard lays out widgets: `columns` (column => widget IDs), `hidden`, `developers`, `reports` and `start_hidden` (widget IDs).
 - `seoprostack_can_change_settings`: return false to stop the current user changing SEO Pro Stack’s settings (on top of `manage_options`).
 - `seoprostack_admin_bar_star`: return false to hide the admin bar star that opens SEO Pro Stack’s settings.
 - `seoprostack_licence_call`: whether an outgoing request is a licence check that Ask before licence checks holds (bool, address, request arguments). Update checks are never held, whatever it returns.
@@ -1082,6 +1238,7 @@ Developers can add settings, tabs and directory entries with filters:
 - `seoprostack_starters`: add or change starter data (plugin folder => `name`, `tested`, `updated`, `notes` and `items`, as in `starters/*.json`).
 - `seoprostack_woo_light_shop_page`: whether a page keeps WooCommerce’s scripts with Lighter WooCommerce pages on (bool), for products the content check does not see.
 - `seoprostack_replaced_plugin_extras`: what a replaced plugin does on this site that SEO Pro Stack does not (plain names, plugin folder). The Plugins screen names them instead of saying the plugin can go.
+- `seoprostack_host_plugins`: plugins web hosts add to new sites, which the Plugins screen recommends deactivating while active (plugin folder => `host` name and `use`, plain text completing “It is not needed to run your site, only for …”).
 - `seoprostack_menu_item_visible`: whether the current visitor sees a menu item (bool, menu item, its rule: `show` and `roles`), for membership plugins with their own levels.
 - `seoprostack_can_see_content`: whether the current visitor may see a post’s content (bool, post ID, the rules it follows: `show`, `roles`, and `term` when the rule is a term’s; empty when everyone may). Return true to let members of your own levels in.
 - `seoprostack_block_visible`: whether the current visitor sees a block (bool, parsed block, its rule: `show` and `roles`).
@@ -1114,13 +1271,92 @@ Read a setting with `SEOProStack_Settings::get( 'key' )`.
 
 Deleting the plugin removes its settings and cached data, the profile pictures and generated avatars in `uploads/seoprostack-avatars/`, the WebP and AVIF copies of pictures, including copies left by pictures deleted while the plugin was inactive, and short links with their categories and click counts (Pretty Links’ and Lasso Lite’s own links are left alone), and the must-use file of Load plugins only where needed, the cached GitHub releases, and who hid lines of the Plugins screen notice about replaced plugins (and, from older versions, who dismissed the Git Updater notice), menu item visibility rules (Nav Menu Roles’ own rules stay), Restrict content’s rules on posts and terms (that content shows to everyone again; block rules stay in posts but do nothing), the hand order of terms and the old term addresses kept for redirects, when old post addresses were last used (the old addresses themselves are WordPress’s and keep redirecting), and the order flow's links on Fluent Forms entries and Fluent Boards tasks (the entries, tasks, conversations, contacts and example data stay: they are those plugins' data). Posts keep their hand order in core’s Order field. Imported media, Link card pictures and screenshots stay in the Media Library because your posts use them. Watermarked pictures stay marked, and their unmarked originals stay in the `uploads/seoprostack-originals-…` folder so they are not lost; delete that folder if you do not need them.
 
-Deactivating the plugin removes the WebP and AVIF rules from the uploads folder’s `.htaccess` (for every site when network-deactivated) and the must-use file of Load plugins only where needed (on multisite, when network-deactivated).
+Deactivating the plugin removes the WebP and AVIF rules from the uploads folder’s `.htaccess` (for every site when network-deactivated), the LiteSpeed background request rules from the site’s `.htaccess` (on multisite, when network-deactivated or deactivated on the main site) and the must-use file of Load plugins only where needed (on multisite, when network-deactivated).
 
 ## Changelog
 
 ### Unreleased
 
-- New: Really Simple Security 9.8.3 preset selects its 301 .htaccess redirect on supported single sites with working HTTPS. Apply, Reset and Undo use its own save code and verify rules; failed saves report rollback status and keep the previous undo copy. Nothing changes automatically.
+- New: **Clean the database weekly** can remove scheduled tasks of plugins that are no longer active (unticked by default): tasks nothing ran on web cron checks at least 7 days apart, never WordPress's own, hosts' agents' (`mnx_*`) or installed plugins'. The options list what will go and what went, with **Put back** (GitHub issue #278).
+- New: **Hosting needs** counts the options saved on 1 in 20 page views and names those saved on most of them, with the plugin that saves them (`seoprostack_hosting_writes`); each save is a database write and clears the object cache's copy of the autoloaded options (GitHub issue #279).
+- New: **Ask before licence checks** keeps the stored licence state of Complianz Pro, Really Simple Security Pro, Fluent Forms Pro, Tutor LMS Pro and WP-Optimize Premium when they save it again on every request with only a new timestamp (seen with GPL Vault's patches), while the licence is valid for more than a week (`SEOProStack_Option_Writes::KNOWN`). With **Load plugins only where needed** on, its must-use file loads this first, so saves made while those plugins load are covered too (GitHub issue #279).
+- Fix: **Load plugins only where needed** no longer forgets what it learned for site pages whenever an option is saved on a page view or by cron, by SEO Pro Stack's own records, or by plugins that save an option on every request: those are records, not settings, and restarted the learning on every page view (GitHub issue #279).
+- New: Really Simple Security 9.8.3 preset selects its 301 .htaccess redirect on supported single sites with working HTTPS. Apply, Reset and Undo use its own save code and verify rules; failed saves report rollback status and keep the previous undo copy. Nothing changes automatically (GitHub issue #295).
+
+### 0.12.7
+
+- New: **Hosting needs** finds the CDN in front of the site (Cloudflare, QUIC.cloud, Bunny CDN, CDN77, Fastly, Sucuri, or one set up in LiteSpeed Cache, CDN Enabler or Jetpack) and suggests one when there is none: QUIC.cloud through LiteSpeed Cache on a LiteSpeed server, Cloudflare's free plan elsewhere. Site Health Info gains a CDN line. When the site cannot reach its own home page, the CDN is shown as unknown and nothing is suggested (GitHub issue #345).
+- New: **Turn off unused remote access** can block web access to log and backup files (`.log`, `.sql`, `.sql.gz`, `.bak`, `error_log`, `php_errorlog`, copies of `wp-config.php`) through a marked block at the top of `.htaccess`, with a rule to copy on Nginx. A Site Health test, always on, names such files in the site's main folders that anyone can download, checked once a day (GitHub issue #277).
+- Fix: lists that Pinned posts for any post type handles (blog home, post type and term archives, Kadence query loops) end their `ORDER BY` with the post ID (`posts_orderby`). WordPress sorts by date or title alone, so items sharing a date, common after an import, came back in a different order on each page and showed twice or not at all. Random, `post__in` and ID orders are left alone (GitHub issue #366).
+
+### 0.12.6
+
+- Fix: on post type archives and chosen term archives, pinned items take places on the pages, as in Kadence query loops (`post_limits` starts the rest after the pinned items before the page). Page 1 keeps its size and no item shows twice; pinned items were added on top of page 1 and listed again later. The blog home keeps WordPress's own sticky behaviour (GitHub issue #363).
+
+### 0.12.5
+
+- New, on by default: **Quiet Appsero prompts** (Admin tab) removes the “Allow … to collect diagnostic data” notice, the deactivation survey and its submission, and the report a theme sends when it is switched away from, from plugins and themes that bundle Appsero, such as Easy Video Reviews. Licences stay, nothing is opted in or out, and plugins already opted in keep sending their weekly report (GitHub issue #317).
+- New: a FluentSMTP preset keeps email logs for 2 years instead of 14 days, so you can still check whether an email went out a year or two later. Connections and credentials are not touched. It shows once FluentSMTP has a saved connection, because FluentSMTP expects all its settings once it stores any (new `option:{name}` preset condition).
+- Change: the Burst Statistics preset keeps 24 months of statistics, then Burst's own daily job deletes older ones (Burst keeps them forever by default). The dialog warns that deleted statistics cannot be restored; Undo puts back the settings only.
+- Change: the Rank Math SEO preset keeps 24 months of Analytics data (Analytics Database 365 days, which Rank Math doubles to compare periods), or as many days as the site's Rank Math plan allows, and the dialog says when that is fewer. Presets gain `limits` for numbers a plugin caps on each site.
+- Fix: in Admin Columns Pro layouts that give the pin column (Pinned posts for any post type) no width, the column was 0 px wide and its pin buttons sat on top of the titles: Admin Columns Pro sets every layout column's width from its own CSS variables with `!important`. The pin column now gives that variable a default of 32 px; a width set in the layout still applies (GitHub issue #359).
+
+### 0.12.4
+
+- New, off by default: **Pin from a true/false field** (Pinned posts for any post type) pins items while an ACF or Secure Custom Fields true/false field of their type is on, such as “Featured”, and pinning or unpinning an item sets the field (`post_stuck` / `post_unstuck`). Choosing a field pins and unpins the items of its type to match it. In the editor, the field takes the place of **Pin to the top** (GitHub issue #355).
+- Changed: in Kadence query loops, pinned items take places on the pages instead of being added on top of page 1, so a loop with many pinned items keeps its page size, and its result count and number of pages include them (they were short by the number of pinned items).
+- Changed: the LiteSpeed Cache preset turns CSS Minify and JS Minify off (it turned them on). Without Combine, LiteSpeed Cache minified every file again on each page missing the page cache, adding 0.25–1.2 s to those pages on test sites (GitHub issue #285). Apply the preset again to take the change; LiteSpeed hosting explains the choice.
+
+### 0.12.3
+
+- New, off by default: **Pinned posts for any post type** can lift pinned items to the top of Kadence Blocks Pro query loops (Query Loop (Adv)), in every loop or only the ones you tick (`sticky_posts_kadence`, `sticky_posts_kadence_loops`). Kadence pages its loops with an offset, so WordPress’s own sticky handling either ignored the pins or showed them again on every page; now page 1 starts with the pins that match the loop’s filters, in the loop’s order, and later pages leave them out without skipping items. The settings show while Kadence Blocks Pro is active.
+- Fix: Kadence Pro 1.2.5 caused “Failed opening …/kadence-pro/vendor/composer/../psr/container/…” PHP warnings when another plugin loaded a shared library, because its class map lists 348 files it does not ship. **Fixes for other plugins** drops those entries as SEO Pro Stack loads, so the class loads from the plugin that has it.
+
+### 0.12.2
+
+- Change: **Magic login links** replaces pixolette’s WP Magic Link Login (`wp-magic-link-login`, CodeCanyon), in part. Where it is installed, the Plugins screen says so, and the feature waits while it is active (`replaces` in its settings). Pages using its `[wpmll_form]` shortcode keep a login form after it is deactivated: the login link form, or WordPress’s password form while Magic login links is off.
+- New, off by default: **Image loading** (Speed tab) chooses how many pictures at the top of a post or page load straight away and which pictures and iframes are never lazy-loaded, through WordPress’s own lazy loading (`SEOProStack_Image_Loading`). Replaces Flying Images’ lazy loading, in part, importing its exclusions (settings version 21).
+- New, off by default: **Kadence query filters scroll to results** (Content tab). Changing a filter in a Kadence Blocks Pro query loop scrolls back up to the loop, less an offset for sticky headers (**Space above the results**), instantly with reduced motion. A small inline script, printed only on pages with a query loop, so sites need no custom snippet for it.
+- Changed: Tidy the dashboard shows AI Engine Advisor (`mwai_advisor_widget`) to developers only, in the third column, and unticks it in Screen Options once per person (a `start_hidden` rule; people who saved Screen Options before get it added to their list once), so it starts hidden; ticking it shows it from then on. New `seoprostack_dashboard_start_hidden` user meta, removed on uninstall.
+- Fix: MainWP Child printed the Branding extension’s **Global footer** text, unstyled, below the footer of every front-end page. **Fixes for other plugins** (on by default) leaves it out of the front end; the admin footer text stays.
+
+### 0.12.1
+
+- New: **Term tools** Options has a slug prefix and suffix per public taxonomy, such as `best-` or `how-to-` and `-guide` or `-statistics`, applied on creation and editing, plus **Apply slug pattern** for selected existing terms with 301 redirects from their old archives.
+- New: the Plugins screen recommends deactivating plugins web hosts add to new sites while they are active: Hostinger AI and Hostinger Easy Onboarding. A note under each row says what it is for, with a Deactivate link; nothing is deactivated for you. Add others with the `seoprostack_host_plugins` filter.
+- Fix: on a network where Fluent Forms, Fluent Boards or FluentCommunity is active but a site has no tables for it, settings upgrades no longer log “Table doesn’t exist” database errors for that site: the agency order lists look for the table first.
+- Fix: **Short addresses for custom post types** no longer gives “page not found” at the short address of post types registered without a query variable (`query_var` false, as some custom post type tools register them); their links already dropped the base, so the items could not be reached.
+
+### 0.12.0
+
+- New, off by default: **Tag clouds and related posts** (Content tab). A **Related posts** block, also added after the content of chosen post types, weighs shared rare terms above common ones and respects Restrict content. The **Term list** block gains tag clouds, comma-separated lines, A–Z indexes, the current post’s terms, order and number limits, and groups (by top-level term or Tag Groups’ groups) under headings, in an accordion or in tabs, styled for light and dark palettes such as Kadence’s.
+- New: after TaxoPress or Tag Groups is deactivated, their taxonomies, blocks, shortcodes, widgets and template functions keep working from their saved settings, which are only read. Automatic term links, auto-tagging and Tag Groups Pro’s post filters are left out. The feature switches itself on while either is active and in use (settings version 20).
+- New: **Term tools** adds **All | Unused (N)** above term lists, to find terms with no posts and delete them in bulk.
+- Changed: Discover no longer recommends TaxoPress Pro.
+- Change: **Pro Plugins** no longer recommends Comment Goblin: its server, commentgoblin.com, answered with a certificate for another name, so its site and update checks failed. Sites that have it keep its fix in **Fixes for other plugins**.
+- Fix: on LiteSpeed servers, Action Scheduler runs (WooCommerce, Rank Math, FluentCRM and others) and WordPress cron were stopped partway when their caller hung up: actions failed after 300 seconds, and “Commands out of sync” database errors filled the PHP error log. **Fixes for other plugins** sets LiteSpeed’s `noabort` for those requests in a block at the top of `.htaccess`.
+
+### 0.11.11
+
+- Developers: `AGENTS.md`, which AI agents read in every session, is now a short map (155 → 89 lines). The preset and starter data procedure moved to `docs/presets.md` and the plugin directory choices to `docs/plugin-directory.md`; `AGENTS.md` says when to read each (`STANDARDS.md` → Agent docs, from the starter). Core files synced from the starter: the release preflight checks `AGENTS.md` and `docs/`, `docs/` never ships, a failing settings options list no longer stops a page, and `scripts/sync-core.sh` can update itself. Nothing changes for users.
+
+### 0.11.10
+
+- New, off by default: Internal linking tools, with local owner-approved suggestions and conflict-checked undo, incoming/outgoing counts and orphan candidates, optional cached link-health checks, and read-only Link Whisper retirement checks. Reuses Rank Math where available, without a required dependency.
+- New, separately opt-in and off by default: daily aggregate link click events, without cookies or visitor identifiers, with privacy-signal exclusions and 90-day retention. No production migration or Link Whisper deactivation is automatic.
+- Changed: Discover no longer recommends FlyingPress, Link Whisper, Fluent Connect (ThriveCart), Fluent Forms Connector for MailPoet or Mautic Integration For Fluent Forms. Other Fluent/WPManageNinja recommendations and referral links stay.
+- New: Fluent Query Logger under Debug, with a troubleshooting-only reminder and a warning to check compatibility because its WordPress.org release was last updated in July 2022.
+- New, off by default: **Custom fields to content** copies selected ACF/SCF text into content and excerpts, with per-post-type choices, skipped fields, unchanged-output checks and WP-CLI batch sync.
+- Fix: **Clean the database weekly** recognises WP-Optimize Premium (`wp-optimize-premium`), waits while it is active and offers its replacement on LiteSpeed hosting. Premium shares the WP-Optimize preset and save handler. Both editions have a Plugins screen warning to save LiteSpeed Cache’s settings after deactivation, which can remove its `WP_CACHE` line.
+- Fix: **Readable list columns** kept every line of Rank Math’s SEO Details on one line, so a long focus keyword (“Keyword: Sustainability and ESG Brilliance Awards”) ran out of the column and pushed the list off the page. The keyword and schema lines now wrap between words, indented under their label; the score and link counts still stay on one line.
+- Fix: on networks, and sites sharing a database, Tutor LMS made its order, cart and coupon tables only on the first site, because its foreign key names must be unique in the database; on the others its upgrade then failed on every admin screen. **Fixes for other plugins** gives a name already taken the site’s table prefix, points its cart and coupon tables at the network’s users table, and runs Tutor’s own installer once on a site that is missing them.
+- Fix: Tutor LMS Pro made every load of the Plugins screen check every plugin’s update and licence servers; **Fixes for other plugins** leaves that to WordPress’s own check, at most once an hour. Comment Goblin asked its update server again on every read of the update data, many times per admin screen, while that server failed; a failure is now kept for 12 hours. On one network, together they made admin screens take 12–17 s.
+
+### 0.11.9
+
+- New: plugin preset for HTTP Requests Manager: Only log HTTP requests. Its Smart block and Block external modes also block every request once a page has taken 3 seconds or made 3 requests (WP-CLI included), so they blocked WordPress's own update checks (api.wordpress.org and Hostinger's wpapi.hostinger.io), SEO Pro Stack's GitHub update checks and LiteSpeed Cache's calls to the site. **Ask before licence checks** holds the licence checks those modes were used to stop.
+- Changed: all Kadence and Fluent/WPManageNinja vendor links use the supplied referral IDs, keeping product paths and pricing anchors. Kadence bundles now link directly to Liquid Web; Scalability Pro links to its current Super Speedy Plugins product and pricing section.
+- New: 11 missing WPManageNinja free plugins and add-ons, plus FluentAffiliate Pro, FluentPlayer Pro, Paymattic Pro and AzonPress in Pro Plugins. Matching free cards and All rows use the referral links for Go Pro; no invented FluentAuth Pro or AzonPress free version.
 
 ### 0.11.8
 
@@ -1406,6 +1642,7 @@ Where a feature replaces one of them, SEO Pro Stack imports the settings it can,
 | --- | --- | --- | --- |
 | Admin Bar & Dashboard Access Control | Collins Agbonghama | [WordPress.org](https://wordpress.org/plugins/admin-bar-dashboard-control/) | Admin bar and dashboard access |
 | Admin Menu Editor (and Pro) | Janis Elsts | [WordPress.org](https://wordpress.org/plugins/admin-menu-editor/) | Organise the admin menu |
+| WP Magic Link Login | pixolette | [CodeCanyon](https://codecanyon.net/item/wp-magic-login-link-passwordless-authentication-wordpress-plugin/23269915) (premium plugin) | Magic login links |
 | Widget Disable | required | [WordPress.org](https://wordpress.org/plugins/wp-widget-disable/), [GitHub](https://github.com/wearerequired/WP-Widget-Disable) | Dashboard and sidebar widgets |
 | Hostinger Tools | Hostinger | [WordPress.org](https://wordpress.org/plugins/hostinger/), [source (WordPress.org SVN)](https://plugins.svn.wordpress.org/hostinger/trunk/) | Turn off unused remote access (XML-RPC and application passwords), Maintenance mode |
 | Disable Bloat for WordPress & WooCommerce (and PRO) | Rock Solid | [WordPress.org](https://wordpress.org/plugins/disable-dashboard-for-woocommerce/), [website](https://disablebloat.com/) | Tidy admin screens, Tidy WooCommerce admin, Tidy the login screen, Simpler block editor, Limit post revisions, Remove WordPress extras, Fewer Heartbeat requests, Lighter WooCommerce pages, Turn off unused remote access (XML-RPC and application passwords) |
@@ -1423,6 +1660,8 @@ Where a feature replaces one of them, SEO Pro Stack imports the settings it can,
 | Post Type Switcher | John James Jacoby | [WordPress.org](https://wordpress.org/plugins/post-type-switcher/), [GitHub](https://github.com/JJJ/post-type-switcher) | Change post type |
 | Simple Custom Post Order | Colorlib | [WordPress.org](https://wordpress.org/plugins/simple-custom-post-order/), [GitHub](https://github.com/ColorlibHQ/simple-custom-post-order) | Order by hand |
 | Term Management Tools | scribu, theMikeD | [WordPress.org](https://wordpress.org/plugins/term-management-tools/), [GitHub](https://github.com/theMikeD/wp-term-management-tools) | Term tools |
+| TaxoPress (and Pro) | PublishPress | [WordPress.org](https://wordpress.org/plugins/simple-tags/), [GitHub](https://github.com/publishpress/publishpress-taxonomies) | Tag clouds and related posts, Term tools (unused terms) |
+| Tag Groups (and Pro) | Christoph Amthor, PublishPress | [WordPress.org](https://wordpress.org/plugins/tag-groups/), [GitHub](https://github.com/publishpress/publishpress-tag-groups) | Tag clouds and related posts |
 | ACF: Better Search | Mateusz Gbiorczyk | [WordPress.org](https://wordpress.org/plugins/acf-better-search/) | Search custom fields |
 | Slugs Manager: Delete Old Permalinks | WPFactory | [WordPress.org](https://wordpress.org/plugins/remove-old-slugspermalinks/) (closed), [GitHub](https://github.com/wpcodefactory/remove-old-slugspermalinks) | Old post addresses |
 | Browser Shots | Kevin Leary, Ben Gillbanks | [WordPress.org](https://wordpress.org/plugins/browser-shots/), [GitHub](https://github.com/BinaryMoon/browser-shots) | Website screenshots |
@@ -1443,11 +1682,12 @@ Where a feature replaces one of them, SEO Pro Stack imports the settings it can,
 | Flying Pages | Gijo Varghese | [WordPress.org](https://wordpress.org/plugins/flying-pages/), [GitHub](https://github.com/gijo-varghese/flying-pages) | Load pages before the click |
 | Flying Scripts | Gijo Varghese | [WordPress.org](https://wordpress.org/plugins/flying-scripts/) | Delay scripts until interaction |
 | Flying Analytics | Gijo Varghese | [WordPress.org](https://wordpress.org/plugins/flying-analytics/), [GitHub](https://github.com/gijo-varghese/flying-analytics) | Delayed Google Analytics |
-| WP-Optimize | David Anderson / Team Updraft | [WordPress.org](https://wordpress.org/plugins/wp-optimize/), [source (WordPress.org SVN)](https://plugins.svn.wordpress.org/wp-optimize/trunk/) | Clean the database weekly (where LiteSpeed Cache runs on a LiteSpeed server) |
+| Flying Images | Gijo Varghese | [WordPress.org](https://wordpress.org/plugins/nazy-load/), [source (WordPress.org SVN)](https://plugins.svn.wordpress.org/nazy-load/trunk/) | Image loading |
+| WP-Optimize and WP-Optimize Premium | David Anderson / Team Updraft | [WordPress.org (free edition)](https://wordpress.org/plugins/wp-optimize/), [source (free edition, WordPress.org SVN)](https://plugins.svn.wordpress.org/wp-optimize/trunk/) | Clean the database weekly (where LiteSpeed Cache runs on a LiteSpeed server) |
 | Ultimate 410 Gone Status Code | tiny web | [WordPress.org](https://wordpress.org/plugins/ultimate-410/) | 410 Gone for removed pages |
 | Remove CPT base | kubiq | [WordPress.org](https://wordpress.org/plugins/remove-cpt-base/) | Short addresses for custom post types |
 | Pretty Links | Blair Williams | [WordPress.org](https://wordpress.org/plugins/pretty-link/) | Short links |
-| Link Whisper | Link Whisper team | [website](https://linkwhisper.com/) (premium plugin) | External link icons only; linking tools are not replaced |
+| Link Whisper | Link Whisper team | [website](https://linkwhisper.com/) (premium plugin) | External link icons and selected local linking workflows; per-site retirement checks required |
 | Plugin Toggle | Cedaro | [WordPress.org](https://wordpress.org/plugins/plugin-toggle/), [GitHub](https://github.com/cedaro/plugin-toggle) | Plugins menu in the admin bar |
 | Fix ‘Plugin file does not exist’ Notices | WP All Stars | [GitHub](https://github.com/wpallstars/wp-fix-plugin-does-not-exist-notices) | Clean up deleted plugins |
 | Freesoul Deactivate Plugins | Jose Mortellaro | [WordPress.org](https://wordpress.org/plugins/freesoul-deactivate-plugins/), [GitHub](https://github.com/JoseMortellaro/freesoul-deactivate-plugins) | Load plugins only where needed (not a replacement yet: its page-by-page rules on the site are not covered) |

@@ -49,6 +49,67 @@
  * now skipped while its cached answer is there, and the throwing notice is
  * removed before it runs (Readabler already logs the failure itself).
  *
+ * Tutor LMS 4.1.0 names its foreign keys the same on every site
+ * (fk_tutor_order_item_order_id and eight more), but MySQL and MariaDB need
+ * each name once per database. On a network, or sites sharing a database,
+ * only the first site gets its order, cart and coupon tables; on the others
+ * Tutor's installer fails quietly, and its 3.8.0 upgrade then fails on every
+ * admin screen ("Foreign key constraint is incorrectly formed") because
+ * tutor_order_items is missing. Its cart and coupon tables also point at
+ * {prefix}users, which subsites do not have. When Tutor creates a table, a
+ * name another table already has gets the site's table prefix, and the
+ * users table is the network's. On an admin screen of a site where Tutor is
+ * installed but tutor_order_items is missing, Tutor's own installer is run
+ * once (a failure waits a day before the next try).
+ *
+ * Tutor LMS Pro 4.0.9's updater deletes the update_plugins transient and runs
+ * wp_update_plugins() on every load of the Plugins screen, so that screen
+ * waits for every plugin's update and licence servers each time (seconds on
+ * a site with many premium plugins). Its closure is removed, and WordPress's
+ * own check on that screen, at most once an hour, stays.
+ *
+ * Comment Goblin 1.2.0 asks its server for update details on every read of
+ * the update_plugins transient (many times on each admin screen), and keeps
+ * the answer for a day only when the request succeeds. While its server
+ * fails (as commentgoblin.com did, with a certificate for another name), each
+ * read waits for that failure. After a failure, its update check is answered
+ * at once with the "request failed" error it already handles, for 12 hours
+ * (a site transient, so for every site of a network).
+ *
+ * Action Scheduler (in WooCommerce, Rank Math, FluentCRM and others) runs
+ * queued actions in a request it starts itself and does not wait for, and
+ * WordPress starts cron (wp-cron.php) the same way. A LiteSpeed server stops
+ * PHP as soon as the caller hangs up, unless the request has sent output
+ * already, so ignore_user_abort() does not help: the run stops partway,
+ * Action Scheduler marks its actions failed after 300 seconds, and a query
+ * stopped in the middle leaves "Commands out of sync" database errors for
+ * every query at shutdown. LiteSpeed's noabort variable keeps those two
+ * requests running; LiteSpeed Cache sets it for its own background request
+ * the same way. On LiteSpeed servers the rules go in a block at the top of
+ * the site's .htaccess (before WordPress's rules, which end rule processing
+ * for existing files on a network), on a network following the main site's
+ * switch, and the block is removed when this is switched off or SEO Pro
+ * Stack is deactivated. This is the one fix that writes a file.
+ *
+ * MainWP Child (checked with 6.2.1) prints the Branding extension's "Global
+ * footer" text on every front-end page, at wp_footer after the theme's
+ * footer and outside any element, so it shows unstyled below the site's
+ * footer (as "Email support@… for assistance." did on agency sites). Its
+ * branding_global_footer callback is removed on the front end; the same
+ * text set as "Dashboard footer" still shows in the admin footer, and
+ * MainWP's saved settings are left alone.
+ *
+ * Kadence Pro 1.2.5 moved its libraries (PSR interfaces, StellarWP, DI52,
+ * LiquidWeb Harbor) into vendor-prefixed/ under new names but kept the old
+ * names in its Composer class map: 348 of its 354 entries point at files it
+ * does not ship. Its autoloader goes first, so when another plugin that
+ * ships one of those libraries itself (AI Engine Pro, Kadence Conversions
+ * and others ship psr/container) asks for a class, PHP warns "Failed
+ * opening" for the missing file before the right copy loads. As SEO Pro
+ * Stack loads (or as Kadence Pro does, if later), the entries whose folder
+ * is missing are dropped from Kadence Pro's class map, so the lookup goes
+ * straight on to the plugin that has the class.
+ *
  * @package SEOProStack
  */
 
@@ -85,6 +146,30 @@ class SEOProStack_Plugin_Fixes extends SEOProStack_Feature {
     /** Merkulove "Unity" classes: {Plugin} is the plugin's own namespace part. */
     const UNITY = '/^Merkulove\\\\(\w+)\\\\Unity\\\\(UnityActions|EnvatoItem)$/';
 
+    /** After a failed Tutor table repair, wait this long (a transient) before trying again. */
+    const TUTOR_RETRY = 'seoprostack_tutor_tables_retry';
+
+    /** Tutor LMS Pro's updater class, whose current_screen closure forces update checks. */
+    const TUTOR_PRO_UPDATER = 'TutorPRO\ThemeumUpdater\Update';
+
+    /** After Comment Goblin's update server fails, answer from here (a site transient) until it runs out. */
+    const CG_FAILED = 'seoprostack_comment_goblin_failed';
+
+    /** MainWP Child's branding class, whose wp_footer callback prints the Global footer. */
+    const MAINWP_BRANDING = 'MainWP\Child\MainWP_Child_Branding';
+
+    /** .htaccess marker of the noabort rules. */
+    const NOABORT_MARKER = 'SEO Pro Stack background requests';
+
+    /** What the noabort block holds now (a hash, '' for none), as a site option. */
+    const NOABORT_SYNCED = 'seoprostack_noabort_rules';
+
+    /** Kadence Pro's Composer folder, below the plugins folder. */
+    const KADENCE_PRO_VENDOR = 'kadence-pro/vendor';
+
+    /** Whether Kadence Pro's class map has been cleaned in this request. */
+    private static $kadence_pro_cleaned = false;
+
     /**
      * Settings.
      *
@@ -98,7 +183,7 @@ class SEOProStack_Plugin_Fixes extends SEOProStack_Feature {
                 'default'     => true,
                 'tab'         => 'plugins',
                 'label'       => __('Fixes for other plugins', 'seoprostack'),
-                'description' => __('Works around bugs in other plugins that slow your site down, without changing their settings. Lasso Lite (Simple URLs) stops contacting its server on every admin screen. Deactivating Freesoul Deactivate Plugins or its PRO add-on deactivates both and removes the must-use file it leaves behind. Readabler no longer contacts its server on every Plugins screen load, or stops that screen with a critical error when it cannot. Tutor LMS Pro stops adding warnings to the debug log when there is no update. Turn this off if a fix causes a problem.', 'seoprostack'),
+                'description' => __('Works around bugs in other plugins that slow your site down, without changing their settings. Lasso Lite (Simple URLs) stops contacting its server on every admin screen. Deactivating Freesoul Deactivate Plugins or its PRO add-on deactivates both and removes the must-use file it leaves behind. Readabler no longer contacts its server on every Plugins screen load, or stops that screen with a critical error when it cannot. Tutor LMS Pro stops adding warnings to the debug log when there is no update. Tutor LMS gets its order, cart and coupon tables on every site of a network. Tutor LMS Pro no longer makes the Plugins screen check every plugin for updates on each load. Comment Goblin no longer waits for its update server on every admin screen while that server fails. MainWP Child no longer prints its Branding "Global footer" text, unstyled, below every front-end page. On LiteSpeed servers, scheduled tasks (WordPress cron and Action Scheduler, used by WooCommerce and others) finish instead of stopping partway, through a few lines at the top of .htaccess. Kadence Pro no longer causes "Failed opening" warnings when other plugins load shared code. Turn this off if a fix causes a problem.', 'seoprostack'),
             ),
         );
     }
@@ -109,6 +194,10 @@ class SEOProStack_Plugin_Fixes extends SEOProStack_Feature {
      * active.
      */
     public static function boot() {
+        if (is_admin()) {
+            // Also when switched off, to remove the block.
+            add_action('admin_init', array(__CLASS__, 'noabort_maybe_sync'));
+        }
         if (!self::enabled()) {
             return;
         }
@@ -125,6 +214,280 @@ class SEOProStack_Plugin_Fixes extends SEOProStack_Feature {
         // (WordPress returns those without the http_response filter).
         add_filter('http_response', array(__CLASS__, 'tutor_pro_no_update'), 10, 3);
         add_filter('pre_http_request', array(__CLASS__, 'tutor_pro_no_update'), PHP_INT_MAX, 3);
+        add_filter('dbdelta_create_queries', array(__CLASS__, 'tutor_create_queries'));
+        // Before Tutor's upgrader, which uses priority 10.
+        add_action('admin_init', array(__CLASS__, 'tutor_repair_tables'), 5);
+        // Before Tutor LMS Pro's closure, which uses priority 10.
+        add_action('current_screen', array(__CLASS__, 'tutor_pro_no_forced_check'), 0);
+        add_filter('pre_http_request', array(__CLASS__, 'cg_skip_failed'), 10, 3);
+        add_action('http_api_debug', array(__CLASS__, 'cg_note_failure'), 10, 5);
+        // Before MainWP Child's callback, which uses priority 15.
+        add_action('wp_footer', array(__CLASS__, 'mainwp_no_front_end_footer'), 0);
+    }
+
+    /**
+     * Remove MainWP Child's Branding "Global footer" from the front end,
+     * where it is printed after the theme's footer, outside any element.
+     */
+    public static function mainwp_no_front_end_footer() {
+        global $wp_filter;
+        if (!isset($wp_filter['wp_footer'])) {
+            return;
+        }
+        foreach ($wp_filter['wp_footer']->callbacks as $priority => $callbacks) {
+            foreach ($callbacks as $callback) {
+                $function = $callback['function'];
+                if (is_array($function) && is_object($function[0]) && 'branding_global_footer' === $function[1]
+                    && is_a($function[0], self::MAINWP_BRANDING)) {
+                    remove_action('wp_footer', $function, $priority);
+                }
+            }
+        }
+    }
+
+    /**
+     * Fixes that must run before init, called as SEO Pro Stack loads.
+     *
+     * The setting is read from the stored option: SEOProStack_Settings::get()
+     * builds the settings schema, whose labels are translated, and
+     * translations must not load before init.
+     */
+    public static function early() {
+        $stored = get_option(SEOProStack_Settings::OPTION, array());
+        if (is_array($stored) && array_key_exists(self::KEY, $stored) && !$stored[self::KEY]) {
+            return;
+        }
+        if (!self::kadence_pro_clean_class_map()) {
+            // Kadence Pro loads after SEO Pro Stack: network-activated SEO
+            // Pro Stack with Kadence Pro active on the site only.
+            add_action('plugin_loaded', array(__CLASS__, 'kadence_pro_loaded'));
+            add_action('network_plugin_loaded', array(__CLASS__, 'kadence_pro_loaded'));
+        }
+    }
+
+    /**
+     * A plugin file was loaded: clean Kadence Pro's class map once it is.
+     *
+     * @param string $file Full path of the plugin's main file.
+     */
+    public static function kadence_pro_loaded($file) {
+        if (false !== strpos(wp_normalize_path((string) $file), '/' . dirname(self::KADENCE_PRO_VENDOR) . '/')) {
+            self::kadence_pro_clean_class_map();
+        }
+    }
+
+    /**
+     * Drop the entries of Kadence Pro's Composer class map whose folder is
+     * missing, so lookups go on to the autoloader of a plugin that has the
+     * class instead of PHP warning about a missing file. Entries that exist
+     * (its own classes and vendor-prefixed/) stay.
+     *
+     * @return bool Whether Kadence Pro's autoloader was found (and cleaned).
+     */
+    private static function kadence_pro_clean_class_map() {
+        if (self::$kadence_pro_cleaned) {
+            return true;
+        }
+        // Composer 2 lists its autoloaders. The ClassLoader class is shared,
+        // and the first plugin to load one decides which copy every plugin
+        // gets: a Composer 1 copy has no list (PHP throws Error).
+        if (!class_exists('Composer\Autoload\ClassLoader', false)) {
+            return false;
+        }
+        try {
+            $loaders = \Composer\Autoload\ClassLoader::getRegisteredLoaders();
+        } catch (\Error $e) {
+            return false;
+        }
+        $vendor = wp_normalize_path(WP_PLUGIN_DIR) . '/' . self::KADENCE_PRO_VENDOR;
+        $loader = null;
+        foreach ($loaders as $dir => $registered) {
+            if ($registered instanceof \Composer\Autoload\ClassLoader && wp_normalize_path((string) $dir) === $vendor) {
+                $loader = $registered;
+                break;
+            }
+        }
+        if (null === $loader) {
+            return false;
+        }
+        self::$kadence_pro_cleaned = true;
+
+        // One check per folder (122 in 1.2.5) instead of one per class (354);
+        // well under a millisecond.
+        $folders = array();
+        $missing = array();
+        foreach ($loader->getClassMap() as $class => $path) {
+            $folder = dirname((string) $path);
+            if (!isset($folders[$folder])) {
+                $folders[$folder] = is_dir($folder);
+            }
+            if (!$folders[$folder]) {
+                $missing[] = $class;
+            }
+        }
+        if ($missing) {
+            // ClassLoader has no way to remove entries, so do it from inside.
+            $drop = function (array $classes) {
+                foreach ($classes as $class) {
+                    unset($this->classMap[$class]);
+                }
+            };
+            $bound = \Closure::bind($drop, $loader, get_class($loader));
+            if ($bound) {
+                $bound($missing);
+            }
+        }
+        return true;
+    }
+
+    /**
+     * Remove Tutor LMS Pro's current_screen closure, which deletes the
+     * update_plugins transient and runs wp_update_plugins() on every load of
+     * the Plugins screen. WordPress's own check on that screen (at most once
+     * an hour) stays.
+     */
+    public static function tutor_pro_no_forced_check() {
+        global $wp_filter;
+        if (!isset($wp_filter['current_screen'])) {
+            return;
+        }
+        foreach ($wp_filter['current_screen']->callbacks as $priority => $callbacks) {
+            foreach ($callbacks as $callback) {
+                if (!$callback['function'] instanceof Closure) {
+                    continue;
+                }
+                $scope = (new ReflectionFunction($callback['function']))->getClosureScopeClass();
+                if ($scope && self::TUTOR_PRO_UPDATER === $scope->getName()) {
+                    remove_action('current_screen', $callback['function'], $priority);
+                }
+            }
+        }
+    }
+
+    /**
+     * Whether a request is Comment Goblin's update check.
+     *
+     * @param mixed $url Request address.
+     * @return bool
+     */
+    private static function is_cg_update_check($url) {
+        return defined('CG_API_BASE') && is_string(CG_API_BASE) && is_string($url)
+            && 0 === strpos($url, CG_API_BASE . 'plugin-details');
+    }
+
+    /**
+     * While Comment Goblin's update server is known to fail, answer its
+     * update check with the error it already handles, without waiting.
+     *
+     * @param false|array|WP_Error $pre  Answer from an earlier filter.
+     * @param array                $args Request arguments.
+     * @param string               $url  Request address.
+     * @return false|array|WP_Error
+     */
+    public static function cg_skip_failed($pre, $args, $url) {
+        if (false !== $pre || !self::is_cg_update_check($url) || !get_site_transient(self::CG_FAILED)) {
+            return $pre;
+        }
+        return new WP_Error(
+            'http_request_failed',
+            __('Comment Goblin’s update server failed recently. SEO Pro Stack waits 12 hours before asking it again.', 'seoprostack'),
+            array('seoprostack' => 'comment_goblin')
+        );
+    }
+
+    /**
+     * Note a failed Comment Goblin update check, which Comment Goblin does
+     * not keep, so it is not asked again on every read of update_plugins.
+     * Answers from pre_http_request filters, this fix's included, do not
+     * reach http_api_debug.
+     *
+     * @param array|WP_Error $response Answer.
+     * @param string         $context  "response".
+     * @param string         $class    Transport.
+     * @param array          $args     Request arguments.
+     * @param string         $url      Request address.
+     */
+    public static function cg_note_failure($response, $context, $class, $args, $url) {
+        if ('response' !== $context || !self::is_cg_update_check($url)) {
+            return;
+        }
+        if (!is_wp_error($response) && 200 === (int) wp_remote_retrieve_response_code($response) && '' !== wp_remote_retrieve_body($response)) {
+            return;
+        }
+        set_site_transient(self::CG_FAILED, 1, 12 * HOUR_IN_SECONDS);
+    }
+
+    /**
+     * Tutor LMS's CREATE TABLE statements: foreign key names another table
+     * already has get this site's table prefix, and the users table is the
+     * network's.
+     *
+     * @param array $queries CREATE TABLE statements by table name.
+     * @return array
+     */
+    public static function tutor_create_queries($queries) {
+        global $wpdb;
+        $own   = $wpdb->prefix . 'tutor_';
+        $taken = null;
+        foreach ($queries as $table => $query) {
+            if (!is_string($table) || !is_string($query) || 0 !== strpos($table, $own)) {
+                continue;
+            }
+            if ($wpdb->users !== $wpdb->prefix . 'users') {
+                $query = (string) preg_replace('/(REFERENCES\s+`?)' . preg_quote($wpdb->prefix . 'users', '/') . '(`?\s*\()/i', '${1}' . $wpdb->users . '${2}', $query);
+            }
+            if (preg_match_all('/CONSTRAINT\s+`?(\w+)`?\s+FOREIGN\s+KEY/i', $query, $names)) {
+                if (null === $taken) {
+                    $taken = array();
+                    // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- names of existing foreign keys, read only while a table is being created.
+                    foreach ((array) $wpdb->get_results('SELECT CONSTRAINT_NAME, TABLE_NAME FROM information_schema.REFERENTIAL_CONSTRAINTS WHERE CONSTRAINT_SCHEMA = DATABASE()') as $row) {
+                        $taken[strtolower($row->CONSTRAINT_NAME)] = $row->TABLE_NAME;
+                    }
+                }
+                foreach ($names[1] as $name) {
+                    $holder = isset($taken[strtolower($name)]) ? $taken[strtolower($name)] : null;
+                    if (null !== $holder && 0 !== strcasecmp($holder, $table) && 0 !== stripos($name, $wpdb->prefix)) {
+                        $query = (string) preg_replace('/(CONSTRAINT\s+`?)' . preg_quote($name, '/') . '\b/i', '${1}' . $wpdb->prefix . $name, $query);
+                    }
+                }
+            }
+            $queries[$table] = $query;
+        }
+        return $queries;
+    }
+
+    /**
+     * Admin screens of a site where Tutor LMS is installed but its order
+     * tables are missing: run Tutor's own installer, which now succeeds.
+     */
+    public static function tutor_repair_tables() {
+        global $wpdb;
+        if (!is_callable(array('TUTOR\Tutor', 'create_database')) || !get_option('tutor_version') || get_transient(self::TUTOR_RETRY)) {
+            return;
+        }
+        if (self::tutor_has_order_items()) {
+            return;
+        }
+        $suppressed = $wpdb->suppress_errors(true);
+        call_user_func(array('TUTOR\Tutor', 'create_database'));
+        $wpdb->suppress_errors($suppressed);
+        if (!self::tutor_has_order_items()) {
+            set_transient(self::TUTOR_RETRY, 1, DAY_IN_SECONDS);
+        }
+    }
+
+    /**
+     * Whether this site has Tutor's tutor_order_items table (asks the
+     * database each time).
+     *
+     * @phpstan-impure
+     * @return bool
+     */
+    private static function tutor_has_order_items() {
+        global $wpdb;
+        $table = $wpdb->prefix . 'tutor_order_items';
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- whether Tutor's table exists.
+        return $table === $wpdb->get_var($wpdb->prepare('SHOW TABLES LIKE %s', $wpdb->esc_like($table)));
     }
 
     /**
@@ -333,6 +696,106 @@ class SEOProStack_Plugin_Fixes extends SEOProStack_Feature {
     private static function load_plugin_state() {
         if (!class_exists('SEOProStack_Replaced_Plugins')) {
             require_once SEOPROSTACK_DIR . 'admin/includes/class-replaced-plugins.php';
+        }
+    }
+
+    /**
+     * Rules that keep LiteSpeed running WordPress cron and Action
+     * Scheduler's async request after their caller hangs up. The path
+     * pattern also matches a network's subfolder sites.
+     *
+     * @return string[]
+     */
+    public static function noabort_rules() {
+        return array(
+            '<IfModule LiteSpeed>',
+            'RewriteEngine On',
+            'RewriteRule (^|/)wp-cron\.php$ - [E=noabort:1]',
+            'RewriteCond %{QUERY_STRING} (^|&)action=as_async_request_queue_runner(&|$)',
+            'RewriteRule (^|/)wp-admin/admin-ajax\.php$ - [E=noabort:1]',
+            '</IfModule>',
+        );
+    }
+
+    /**
+     * Keep the noabort block in step with the switch and the server, from
+     * the main site's admin screens (a network shares one .htaccess). Reads
+     * one site option when nothing changed.
+     */
+    public static function noabort_maybe_sync() {
+        if (is_multisite() && !is_main_site()) {
+            return;
+        }
+        $rules = (self::enabled() && SEOProStack_Litespeed::is_server()) ? self::noabort_rules() : array();
+        $want  = $rules ? md5(implode("\n", $rules)) : '';
+        if ((string) get_site_option(self::NOABORT_SYNCED, '') === $want) {
+            return;
+        }
+        // Retry on a later admin screen while the file cannot be written.
+        if (self::noabort_write($rules)) {
+            if ('' === $want) {
+                delete_site_option(self::NOABORT_SYNCED);
+            } else {
+                update_site_option(self::NOABORT_SYNCED, $want);
+            }
+        }
+    }
+
+    /**
+     * The site's root .htaccess (the network's on multisite).
+     *
+     * @return string
+     */
+    private static function noabort_file() {
+        if (!function_exists('get_home_path')) {
+            require_once ABSPATH . 'wp-admin/includes/file.php';
+        }
+        return get_home_path() . '.htaccess';
+    }
+
+    /**
+     * Write the block at the top of .htaccess, or remove it.
+     *
+     * @param string[] $rules Rules; empty removes the block.
+     * @return bool Whether the file is as asked now.
+     */
+    private static function noabort_write(array $rules) {
+        $file   = self::noabort_file();
+        $exists = is_file($file);
+        if (!$rules && !$exists) {
+            return true;
+        }
+        $contents = $exists ? (string) file_get_contents($file) : ''; // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents -- local file.
+        $begin    = '# BEGIN ' . self::NOABORT_MARKER;
+        $end      = '# END ' . self::NOABORT_MARKER;
+        $quoted   = preg_quote(self::NOABORT_MARKER, '/');
+        $cleaned  = preg_replace('/# BEGIN ' . $quoted . '\r?\n.*?# END ' . $quoted . '[^\n]*(\n|$)\s*/s', '', $contents);
+        if (null === $cleaned) {
+            return false;
+        }
+        $block = $rules ? $begin . "\n" . implode("\n", $rules) . "\n" . $end . "\n\n" : '';
+        $new   = $block . ltrim($cleaned, "\r\n");
+        if ($new === $contents) {
+            return true;
+        }
+        if (!($exists ? wp_is_writable($file) : wp_is_writable(dirname($file)))) {
+            return false;
+        }
+        // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_file_put_contents -- as insert_with_markers(), which can only append a new block.
+        return false !== file_put_contents($file, $new, LOCK_EX);
+    }
+
+    /**
+     * Plugin deactivated: remove the noabort block, unless only a network's
+     * subsite deactivated it (the network shares the file).
+     *
+     * @param bool $network_wide Deactivated for the whole network.
+     */
+    public static function deactivate($network_wide = false) {
+        if (!is_multisite() || $network_wide || is_main_site()) {
+            if (self::noabort_write(array())) {
+                delete_site_option(self::NOABORT_SYNCED);
+            }
         }
     }
 

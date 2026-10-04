@@ -52,8 +52,11 @@ class SEOProStack_Database_Cleanup extends SEOProStack_Feature {
     /** Clean now (admin-post action and nonce). */
     const ACTION = 'seoprostack_database_cleanup_now';
 
-    /** The plugin this replaces on LiteSpeed servers with LiteSpeed Cache. */
-    const REPLACES = array('wp-optimize' => 'WP-Optimize');
+    /** The editions this replaces on LiteSpeed servers with LiteSpeed Cache. */
+    const REPLACES = array(
+        'wp-optimize'         => 'WP-Optimize',
+        'wp-optimize-premium' => 'WP-Optimize Premium',
+    );
 
     /** Seconds a background or Clean now run may take. */
     const BUDGET = 20;
@@ -67,6 +70,46 @@ class SEOProStack_Database_Cleanup extends SEOProStack_Feature {
 
     /** Free space a table needs before it is optimised: 1 MB and a tenth of its size. */
     const FREE_MIN = 1048576;
+
+    /**
+     * Scheduled tasks seen without code on cron requests: when checked, and
+     * per hook when first and last seen so; hooks put back. Not autoloaded.
+     */
+    const CRON_SEEN = 'seoprostack_database_cleanup_cron_seen';
+
+    /** Scheduled tasks the last cleanup removed, as stored, for Put back. */
+    const CRON_REMOVED = 'seoprostack_database_cleanup_cron_removed';
+
+    /** Put back (admin-post action and nonce). */
+    const PUT_BACK = 'seoprostack_database_cleanup_put_back';
+
+    /** Days a task must have had no code, between two checks. */
+    const CRON_DAYS = 7;
+
+    /** Seconds after which a check no longer counts (the code may be back): 2 days. */
+    const CRON_FRESH = 172800;
+
+    /** Value of wp-cron.php's lock that loads WordPress for a check and runs no tasks. */
+    const CRON_CHECK = 'seoprostack-check';
+
+    /** Transient: a check was asked for from the admin within the hour. */
+    const CRON_ASKED = 'seoprostack_database_cleanup_cron_asked';
+
+    /** WordPress's own scheduled tasks, some with code only in the admin. */
+    const CORE_CRON = array(
+        'delete_expired_transients',
+        'recovery_mode_clean_expired_keys',
+        'upgrader_scheduled_cleanup',
+        'importer_scheduled_cleanup',
+        'publish_future_post',
+        'do_pings',
+    );
+
+    /**
+     * Hosts' agents that add tasks from outside plugins, on web requests
+     * only: Hostinger's Monarx agent (mnx_*, from PHP's auto_prepend_file).
+     */
+    const HOST_CRON = array('mnx_');
 
     /**
      * Settings.
@@ -86,7 +129,8 @@ class SEOProStack_Database_Cleanup extends SEOProStack_Feature {
             ),
             self::ITEMS_KEY => array(
                 'type'    => 'multi',
-                'default' => array_keys(self::item_options()),
+                // Scheduled tasks change how other code behaves: chosen only by hand.
+                'default' => array_values(array_diff(array_keys(self::item_options()), array('orphaned_cron'))),
                 'parent'  => self::KEY,
                 'label'   => __('Remove', 'seoprostack'),
                 'options' => array(__CLASS__, 'item_options'),
@@ -121,6 +165,8 @@ class SEOProStack_Database_Cleanup extends SEOProStack_Feature {
             /* translators: %s: number of days */
             'auto_drafts'   => sprintf(__('Automatic drafts older than %s days', 'seoprostack'), number_format_i18n(self::AUTO_DRAFT_DAYS)),
             'orphaned_meta' => __('Details of posts, comments and terms that no longer exist', 'seoprostack'),
+            /* translators: %s: number of days */
+            'orphaned_cron' => sprintf(__('Scheduled tasks from plugins that are no longer active (no code to run them for %s days)', 'seoprostack'), number_format_i18n(self::CRON_DAYS)),
         );
     }
 
@@ -210,6 +256,18 @@ class SEOProStack_Database_Cleanup extends SEOProStack_Feature {
             add_action('admin_init', array(__CLASS__, 'sync_schedule'));
             add_action('seoprostack_setting_panel', array(__CLASS__, 'panel'), 10, 2);
             add_action('admin_post_' . self::ACTION, array(__CLASS__, 'clean_now'));
+            add_action('admin_post_' . self::PUT_BACK, array(__CLASS__, 'put_back'));
+        }
+        if (self::switched_on()) {
+            // Which scheduled tasks have code, seen as cron runs them: on
+            // web cron requests, which load every plugin (WP-CLI may not run
+            // what hosts add to web requests). Sites whose cron runs from
+            // WP-CLI are checked by a request the admin asks for.
+            if (wp_doing_cron() && !(defined('WP_CLI') && WP_CLI)) {
+                add_action('shutdown', array(__CLASS__, 'cron_observe'));
+            } elseif (is_admin() && !wp_doing_ajax()) {
+                add_action('admin_init', array(__CLASS__, 'cron_ask'));
+            }
         }
         // Can be used before switching on, to see what would go.
         if (defined('WP_CLI') && WP_CLI && class_exists('WP_CLI')) {
@@ -404,6 +462,8 @@ class SEOProStack_Database_Cleanup extends SEOProStack_Feature {
                     $total += (int) self::orphan_query($table, true);
                 }
                 return $total;
+            case 'orphaned_cron':
+                return count(self::cron_candidates());
             default:
                 $total = 0;
                 foreach (self::passes($item) as $pass) {
@@ -455,6 +515,10 @@ class SEOProStack_Database_Cleanup extends SEOProStack_Feature {
             $before = self::count('transients');
             delete_expired_transients(true);
             return array('removed' => max(0, $before - self::count('transients')), 'done' => true);
+        }
+
+        if ('orphaned_cron' === $item) {
+            return array('removed' => self::cron_remove(), 'done' => true);
         }
 
         if ('orphaned_meta' === $item) {
@@ -623,6 +687,305 @@ class SEOProStack_Database_Cleanup extends SEOProStack_Feature {
     // phpcs:enable WordPress.DB.DirectDatabaseQuery
 
     /* --------------------------------------------------------------------- */
+    /* Scheduled tasks of plugins that are gone                               */
+    /* --------------------------------------------------------------------- */
+
+    /**
+     * Hooks of this site's scheduled tasks.
+     *
+     * @return string[]
+     */
+    private static function cron_hooks() {
+        $hooks = array();
+        foreach ((array) _get_cron_array() as $events) {
+            if (is_array($events)) {
+                foreach (array_keys($events) as $hook) {
+                    $hooks[(string) $hook] = true;
+                }
+            }
+        }
+        return array_keys($hooks);
+    }
+
+    /**
+     * What the checks found.
+     *
+     * @return array{checked: int, hooks: array<string,int[]>, keep: string[]}
+     */
+    private static function cron_seen() {
+        $seen = get_option(self::CRON_SEEN, array());
+        $seen = is_array($seen) ? $seen : array();
+        return array(
+            'checked' => isset($seen['checked']) ? (int) $seen['checked'] : 0,
+            'hooks'   => isset($seen['hooks']) && is_array($seen['hooks']) ? $seen['hooks'] : array(),
+            'keep'    => isset($seen['keep']) && is_array($seen['keep']) ? array_values(array_map('strval', $seen['keep'])) : array(),
+        );
+    }
+
+    /**
+     * At the end of a web cron request (every plugin loaded), at most hourly:
+     * note each scheduled task with no code to run it. A task seen with code
+     * starts again from nothing.
+     */
+    public static function cron_observe() {
+        $seen = self::cron_seen();
+        $now  = time();
+        if ($now - $seen['checked'] < HOUR_IN_SECONDS) {
+            return;
+        }
+        $hooks = array();
+        foreach (self::cron_hooks() as $hook) {
+            if (has_action($hook) || self::cron_live($hook)) {
+                continue;
+            }
+            $first        = isset($seen['hooks'][$hook][0]) ? (int) $seen['hooks'][$hook][0] : $now;
+            $hooks[$hook] = array($first, $now);
+        }
+        update_option(self::CRON_SEEN, array('checked' => $now, 'hooks' => $hooks, 'keep' => $seen['keep']), false);
+    }
+
+    /**
+     * From an admin screen, when no check ran for 12 hours (cron runs from
+     * WP-CLI, or seldom): ask wp-cron.php for one in the background, as
+     * WordPress starts cron. Its lock value matches no lock, so wp-cron.php
+     * loads WordPress and runs no tasks; cron_observe() checks at its end.
+     */
+    public static function cron_ask() {
+        $seen = self::cron_seen();
+        if (time() - $seen['checked'] < 12 * HOUR_IN_SECONDS || get_transient(self::CRON_ASKED)) {
+            return;
+        }
+        set_transient(self::CRON_ASKED, 1, HOUR_IN_SECONDS);
+        wp_remote_get(add_query_arg('doing_wp_cron', self::CRON_CHECK, site_url('wp-cron.php')), array(
+            'timeout'   => 0.01,
+            'blocking'  => false,
+            // Core's filter for requests to the site itself.
+            'sslverify' => apply_filters('https_local_ssl_verify', false), // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- core's own filter, as spawn_cron() uses.
+        ));
+    }
+
+    /**
+     * Whether a hook is never removed: WordPress's own, hosts' agents', SEO
+     * Pro Stack's, one put back, one whose name starts with the folder, main
+     * file or text domain of an installed plugin, active or not (it may add
+     * its code again, and reactivating it must still work), or one whose
+     * name's first part other code in this request uses (cron_live()).
+     *
+     * @param string   $hook Hook.
+     * @param string[] $keep Hooks put back.
+     * @return bool
+     */
+    private static function cron_protected($hook, array $keep) {
+        if (0 === strpos($hook, 'wp_') || 0 === strpos($hook, 'seoprostack_') || in_array($hook, self::CORE_CRON, true) || in_array($hook, $keep, true)) {
+            return true;
+        }
+        foreach (self::HOST_CRON as $prefix) {
+            if (0 === strpos($hook, $prefix)) {
+                return true;
+            }
+        }
+        $name = self::cron_name($hook);
+        foreach (self::installed_prefixes() as $prefix) {
+            if (0 === strpos($name, $prefix)) {
+                return true;
+            }
+        }
+        return self::cron_live($hook);
+    }
+
+    /**
+     * A name compared with plugin folders and other hooks: lower case, with
+     * - and / as _.
+     *
+     * @param string $name Hook or folder.
+     * @return string
+     */
+    private static function cron_name($name) {
+        return str_replace(array('-', '/'), '_', strtolower($name));
+    }
+
+    /**
+     * The first part of a hook's name, with its separator (rank_math/... and
+     * burst_... give rank_ and burst_), or '' when shorter than 3 characters.
+     *
+     * @param string $name Hook.
+     * @return string
+     */
+    private static function cron_namespace($name) {
+        return preg_match('/^([a-z0-9]{3,})_/', self::cron_name($name), $match) ? $match[1] . '_' : '';
+    }
+
+    /**
+     * Whether another hook with code in this request starts the same way:
+     * the plugin that owns the name is still running, so a task of its that
+     * nothing runs (a module turned off, say) is left alone. Folders do not
+     * always match hooks: Rank Math's folder is seo-by-rank-math, its tasks
+     * rank_math/....
+     *
+     * @param string $hook Hook.
+     * @return bool
+     */
+    private static function cron_live($hook) {
+        static $live = null;
+        if (null === $live) {
+            global $wp_filter;
+            $live = array();
+            foreach (array_keys((array) $wp_filter) as $name) {
+                $space = self::cron_namespace((string) $name);
+                if ('' !== $space && !isset($live[$space]) && has_filter($name)) {
+                    $live[$space] = true;
+                }
+            }
+        }
+        $space = self::cron_namespace($hook);
+        return '' !== $space && isset($live[$space]);
+    }
+
+    /**
+     * Folders, main files and text domains of installed plugins, and their
+     * first parts, as compared with hooks: LiteSpeed Cache's tasks are
+     * litespeed_task_..., not litespeed_cache_.... Three letters or more, so
+     * short names do not match everything.
+     *
+     * @return string[]
+     */
+    private static function installed_prefixes() {
+        if (!function_exists('get_plugins')) {
+            require_once ABSPATH . 'wp-admin/includes/plugin.php';
+        }
+        $prefixes = array();
+        foreach ((array) get_plugins() as $file => $data) {
+            $folder = dirname($file);
+            $names  = array('.' === $folder ? '' : $folder, basename($file, '.php'), isset($data['TextDomain']) ? (string) $data['TextDomain'] : '');
+            foreach ($names as $name) {
+                if (strlen($name) >= 3) {
+                    $prefixes[] = self::cron_name($name);
+                    $prefixes[] = self::cron_namespace($name);
+                }
+            }
+        }
+        return array_values(array_filter(array_unique($prefixes)));
+    }
+
+    /**
+     * Tasks to remove: no code on checks at least CRON_DAYS apart, the last
+     * one recent, none in this request either, and not protected.
+     *
+     * @return string[]
+     */
+    public static function cron_candidates() {
+        $seen = self::cron_seen();
+        if (!$seen['hooks'] || time() - $seen['checked'] > self::CRON_FRESH) {
+            return array();
+        }
+        $current    = array_flip(self::cron_hooks());
+        $candidates = array();
+        foreach ($seen['hooks'] as $hook => $times) {
+            $hook = (string) $hook;
+            if (!isset($current[$hook]) || !is_array($times) || count($times) < 2) {
+                continue;
+            }
+            if ((int) $times[1] - (int) $times[0] < self::CRON_DAYS * DAY_IN_SECONDS) {
+                continue;
+            }
+            if (has_action($hook) || self::cron_protected($hook, $seen['keep'])) {
+                continue;
+            }
+            $candidates[] = $hook;
+        }
+        sort($candidates);
+        return $candidates;
+    }
+
+    /**
+     * The recommended plugin a hook most likely came from, by its folder on
+     * WordPress.org (installed plugins' hooks are never removed).
+     *
+     * @param string $hook Hook.
+     * @return string Folder, or '' when unknown.
+     */
+    public static function cron_plugin($hook) {
+        if (!function_exists('seoprostack_get_free_plugins')) {
+            return '';
+        }
+        $name = self::cron_name($hook);
+        foreach (seoprostack_get_free_plugins() as $slugs) {
+            foreach ((array) $slugs as $slug) {
+                if (strlen((string) $slug) >= 3 && 0 === strpos($name, self::cron_name((string) $slug))) {
+                    return (string) $slug;
+                }
+            }
+        }
+        return '';
+    }
+
+    /**
+     * Remove the candidates' tasks, keeping them as stored for Put back.
+     *
+     * @return int Hooks removed.
+     */
+    private static function cron_remove() {
+        $hooks = self::cron_candidates();
+        if (!$hooks) {
+            return 0;
+        }
+        $wanted = array_flip($hooks);
+        $events = array();
+        foreach ((array) _get_cron_array() as $time => $by_hook) {
+            foreach ((array) $by_hook as $hook => $keyed) {
+                if (isset($wanted[$hook])) {
+                    foreach ((array) $keyed as $key => $event) {
+                        $events[] = array('time' => (int) $time, 'hook' => (string) $hook, 'key' => (string) $key, 'event' => $event);
+                    }
+                }
+            }
+        }
+        foreach ($hooks as $hook) {
+            wp_unschedule_hook($hook);
+        }
+        update_option(self::CRON_REMOVED, array('time' => time(), 'events' => $events), false);
+        $seen = self::cron_seen();
+        update_option(self::CRON_SEEN, array('checked' => $seen['checked'], 'hooks' => array_diff_key($seen['hooks'], $wanted), 'keep' => $seen['keep']), false);
+        return count($hooks);
+    }
+
+    /**
+     * Put back the tasks the last cleanup removed, exactly as they were
+     * stored (their plugin's own schedule may no longer exist), and never
+     * remove them again.
+     *
+     * @return int Tasks put back.
+     */
+    public static function cron_put_back() {
+        $removed = get_option(self::CRON_REMOVED, array());
+        if (!is_array($removed) || empty($removed['events']) || !is_array($removed['events'])) {
+            return 0;
+        }
+        $crons = (array) _get_cron_array();
+        $count = 0;
+        $hooks = array();
+        foreach ($removed['events'] as $item) {
+            if (!is_array($item) || empty($item['hook']) || !isset($item['key'], $item['event']) || !is_array($item['event'])) {
+                continue;
+            }
+            // A task whose time passed runs at the next cron run, as WordPress does.
+            $time = isset($item['time']) ? (int) $item['time'] : time();
+            if (!isset($crons[$time][$item['hook']][$item['key']])) {
+                $crons[$time][$item['hook']][$item['key']] = $item['event'];
+                $count++;
+            }
+            $hooks[] = (string) $item['hook'];
+        }
+        ksort($crons);
+        _set_cron_array($crons);
+        delete_option(self::CRON_REMOVED);
+        $seen = self::cron_seen();
+        update_option(self::CRON_SEEN, array('checked' => $seen['checked'], 'hooks' => $seen['hooks'], 'keep' => array_values(array_unique(array_merge($seen['keep'], $hooks)))), false);
+        delete_transient(self::WAITING);
+        return $count;
+    }
+
+    /* --------------------------------------------------------------------- */
     /* Admin                                                                  */
     /* --------------------------------------------------------------------- */
 
@@ -674,6 +1037,7 @@ class SEOProStack_Database_Cleanup extends SEOProStack_Feature {
         } else {
             echo '<p>' . esc_html__('Nothing is waiting to be removed.', 'seoprostack') . '</p>';
         }
+        self::cron_panel();
 
         $last = get_option(self::LAST, array());
         if (is_array($last) && !empty($last['time'])) {
@@ -713,6 +1077,77 @@ class SEOProStack_Database_Cleanup extends SEOProStack_Feature {
     }
 
     /**
+     * Scheduled tasks in the panel, when chosen: the ones to be removed,
+     * when the last check ran, and the last removal with Put back.
+     */
+    private static function cron_panel() {
+        if (!in_array('orphaned_cron', (array) SEOProStack_Settings::get(self::ITEMS_KEY), true)) {
+            return;
+        }
+        $candidates = self::cron_candidates();
+        if ($candidates) {
+            echo '<p>' . esc_html__('Scheduled tasks to be removed (nothing runs them):', 'seoprostack') . '</p><ul class="ul-disc">';
+            foreach ($candidates as $hook) {
+                $plugin = self::cron_plugin($hook);
+                echo '<li><code>' . esc_html($hook) . '</code>';
+                if ('' !== $plugin) {
+                    /* translators: %s: plugin folder on WordPress.org */
+                    echo ' ' . esc_html(sprintf(__('(probably %s)', 'seoprostack'), $plugin));
+                }
+                echo '</li>';
+            }
+            echo '</ul>';
+        }
+        $seen = self::cron_seen();
+        if ($seen['checked']) {
+            echo '<p>' . esc_html(sprintf(
+                /* translators: 1: date and time, 2: number of days */
+                __('Scheduled tasks last checked %1$s, as cron runs them. A task is removed once nothing has run it for %2$s days.', 'seoprostack'),
+                wp_date(get_option('date_format') . ' ' . get_option('time_format'), $seen['checked']),
+                number_format_i18n(self::CRON_DAYS)
+            )) . '</p>';
+        } else {
+            echo '<p>' . esc_html(sprintf(
+                /* translators: %s: number of days */
+                __('Scheduled tasks are checked as cron runs them, hourly at most. A task is removed once nothing has run it for %s days.', 'seoprostack'),
+                number_format_i18n(self::CRON_DAYS)
+            )) . '</p>';
+        }
+        $removed = get_option(self::CRON_REMOVED, array());
+        if (is_array($removed) && !empty($removed['events']) && is_array($removed['events'])) {
+            $hooks = array_values(array_unique(array_filter(array_map(function ($item) {
+                return is_array($item) && isset($item['hook']) ? (string) $item['hook'] : '';
+            }, $removed['events']))));
+            echo '<p>' . esc_html(sprintf(
+                /* translators: 1: date and time, 2: list of hooks */
+                __('Removed %1$s: %2$s.', 'seoprostack'),
+                wp_date(get_option('date_format') . ' ' . get_option('time_format'), isset($removed['time']) ? (int) $removed['time'] : time()),
+                implode(', ', $hooks)
+            )) . '</p>';
+            printf(
+                '<form method="post" action="%1$s"><input type="hidden" name="action" value="%2$s" />',
+                esc_url(admin_url('admin-post.php')),
+                esc_attr(self::PUT_BACK)
+            );
+            wp_nonce_field(self::PUT_BACK);
+            printf('<p><button type="submit" class="button">%1$s</button> %2$s</p></form>', esc_html__('Put back', 'seoprostack'), esc_html__('They are kept from then on.', 'seoprostack'));
+        }
+    }
+
+    /**
+     * Put back, from the panel.
+     */
+    public static function put_back() {
+        if (!SEOProStack_Settings::can_change()) {
+            wp_die(esc_html__('You cannot change these settings.', 'seoprostack'), '', array('response' => 403));
+        }
+        check_admin_referer(self::PUT_BACK);
+        self::cron_put_back();
+        wp_safe_redirect(admin_url('options-general.php?page=seoprostack&tab=speed'));
+        exit;
+    }
+
+    /**
      * Clean now, from the panel.
      */
     public static function clean_now() {
@@ -742,8 +1177,10 @@ class SEOProStack_Database_Cleanup extends SEOProStack_Feature {
 
     /**
      * Remove expired transients, old bin contents and spam, old automatic
-     * drafts and orphaned meta, as chosen in Clean the database weekly, and
-     * optimise tables if that is on. Works while the switch is off too.
+     * drafts, orphaned meta and scheduled tasks nothing runs, as chosen in
+     * Clean the database weekly, and optimise tables if that is on. Works
+     * while the switch is off too (scheduled tasks are only checked while it
+     * is on). --dry-run lists the scheduled tasks it would remove.
      *
      * ## OPTIONS
      *
@@ -759,10 +1196,15 @@ class SEOProStack_Database_Cleanup extends SEOProStack_Feature {
      * @param array $assoc Options.
      */
     public static function cli($args, $assoc) {
-        $dry = !empty($assoc['dry-run']);
-        $run = self::run($dry, 0);
+        $dry   = !empty($assoc['dry-run']);
+        $hooks = $dry && in_array('orphaned_cron', (array) SEOProStack_Settings::get(self::ITEMS_KEY), true) ? self::cron_candidates() : array();
+        $run   = self::run($dry, 0);
         foreach ($run['counts'] as $item => $count) {
             WP_CLI::log(sprintf('%-14s %d', $item, $count));
+        }
+        foreach ($hooks as $hook) {
+            $plugin = self::cron_plugin($hook);
+            WP_CLI::log(sprintf('%-14s %s', 'task', $hook . ('' !== $plugin ? ' (probably ' . $plugin . ')' : '')));
         }
         foreach ($run['tables'] as $table) {
             WP_CLI::log(sprintf('%-14s %s', 'optimise', $table));

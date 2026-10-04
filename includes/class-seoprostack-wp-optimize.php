@@ -22,6 +22,9 @@ final class SEOProStack_WP_Optimize {
     /** WP-Optimize's plugin folder. */
     const SLUG = 'wp-optimize';
 
+    /** Premium replaces the free edition, rather than loading as an add-on. */
+    const PREMIUM_SLUG = 'wp-optimize-premium';
+
     /** WP-Optimize's page cache settings. */
     const CACHE = 'wpo_cache_config';
 
@@ -29,7 +32,23 @@ final class SEOProStack_WP_Optimize {
      * Register hooks.
      */
     public static function init() {
+        add_filter('seoprostack_plugin_presets', array(__CLASS__, 'premium_preset'));
         add_action('seoprostack_plugin_preset_changed', array(__CLASS__, 'save_through_plugin'), 10, 2);
+    }
+
+    /**
+     * Offer the shared options for Premium without maintaining a second JSON.
+     * Keep an explicitly supplied Premium preset in preference to the alias.
+     *
+     * @param array $presets Plugin folder => preset.
+     * @return array
+     */
+    public static function premium_preset($presets) {
+        if (isset($presets[self::SLUG]) && !isset($presets[self::PREMIUM_SLUG])) {
+            $presets[self::PREMIUM_SLUG] = $presets[self::SLUG];
+            $presets[self::PREMIUM_SLUG]['name'] = 'WP-Optimize Premium';
+        }
+        return $presets;
     }
 
     /**
@@ -46,7 +65,7 @@ final class SEOProStack_WP_Optimize {
      * @param string[] $names Option names written.
      */
     public static function save_through_plugin($slug, $names) {
-        if (self::SLUG !== $slug || !in_array(self::CACHE, (array) $names, true)) {
+        if (!in_array($slug, array(self::SLUG, self::PREMIUM_SLUG), true) || !in_array(self::CACHE, (array) $names, true)) {
             return;
         }
         if (!class_exists('WPO_Cache_Config') || !class_exists('WP_Optimize_Cache_Commands')) {

@@ -1,16 +1,22 @@
 {
     "name": "Burst Statistics",
     "tested": "3.7.2",
-    "updated": "2026-10-02",
-    "notes": "Hides non-critical notices in Burst's dashboard; critical notices stay visible. This admin-only preference is read directly from settings and is not included in Burst's generated tracking script. Burst incidentally rebuilds that script when its settings screen saves, but Apply, Reset and Undo do not need to rebuild it. Tracking and privacy settings (privacy_level, ghost_mode, enable_do_not_track, enable_turbo_mode, track_url_change and track_external_links) are deliberately left out because they need that file rewrite. Email report recipients, onboarding state, data-sharing choices and update schedules stay as the owner chose them; site-specific recipients and settings with cron, file or service side effects are not shared preferences. Burst has no separate dashboard widget or admin bar display switch in this version.",
+    "updated": "2026-10-04",
+    "notes": "Hides non-critical notices in Burst's dashboard; critical notices stay visible. Keeps 24 months of statistics, so a full previous year can still be compared year on year, instead of keeping them forever: Burst's own daily job (burst_daily) deletes statistics older than 24 months, so the table stays bounded without a new schedule or a file rewrite. Deleted statistics cannot be restored: Undo preset puts back the settings, not the deleted rows. Archiving instead of deleting needs Burst Pro. These admin-only preferences are read directly from settings and are not included in Burst's generated tracking script. Burst incidentally rebuilds that script when its settings screen saves, but Apply, Reset and Undo do not need to rebuild it. Tracking and privacy settings (privacy_level, ghost_mode, enable_do_not_track, enable_turbo_mode, track_url_change and track_external_links) are deliberately left out because they need that file rewrite. Email report recipients, onboarding state, data-sharing choices and update schedules stay as the owner chose them; site-specific recipients and settings with cron, file or service side effects are not shared preferences. Burst has no separate dashboard widget or admin bar display switch in this version.",
     "options": {
         "burst_options_settings": {
-            "dismiss_non_error_notices": 1
+            "dismiss_non_error_notices": 1,
+            "archive_data": "delete",
+            "archive_after_months": 24,
+            "confirm_delete_data": true
         }
     },
     "defaults": {
         "burst_options_settings": {
-            "dismiss_non_error_notices": null
+            "dismiss_non_error_notices": null,
+            "archive_data": null,
+            "archive_after_months": null,
+            "confirm_delete_data": null
         }
     },
     "settings": {
@@ -21,6 +27,34 @@
                 "1": "On",
                 "0": "Off",
                 "null": "Off (not set)"
+            }
+        },
+        "burst_options_settings.archive_data": {
+            "label": "Choose how to manage old statistics",
+            "description": "Deletes statistics older than the months below, every day. Deleted statistics cannot be restored, not even by Undo preset.",
+            "values": {
+                "none": "Don't manage",
+                "archive": "Automatically Archive",
+                "delete": "Automatically Delete",
+                "null": "Don't manage (not set)"
+            }
+        },
+        "burst_options_settings.archive_after_months": {
+            "label": "Retain data for how many months?",
+            "description": "24 months keeps a full previous year to compare with.",
+            "values": {
+                "null": "24 (not set)"
+            }
+        },
+        "burst_options_settings.confirm_delete_data": {
+            "label": "Please confirm the deletion, without the possibility to restore.",
+            "description": "Warning: Burst deletes old statistics only with this ticked, and they cannot be restored.",
+            "values": {
+                "true": "Ticked",
+                "false": "Not ticked",
+                "1": "Ticked",
+                "0": "Not ticked",
+                "null": "Not ticked (not set)"
             }
         }
     }

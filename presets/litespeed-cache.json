@@ -1,12 +1,12 @@
 {
     "name": "LiteSpeed Cache",
     "tested": "7.9.1",
-    "updated": "2026-10-02",
-    "notes": "Sets LiteSpeed Cache up to do, with SEO Pro Stack, what WP-Optimize does on LiteSpeed hosting. LiteSpeed Cache keeps pages, browser caching and CSS and JS; SEO Pro Stack does images, Heartbeat, WordPress extras and script delay. Every site: notifications off (news and promotions fetched from LiteSpeed's servers), CSS and JS minified (not combined: with HTTP/2 combining saves little and breaks more), and the whole cache purged when plugins or themes update, so pages never point at old CSS and JS. On a LiteSpeed server, SEO Pro Stack also turns the page cache and browser cache on; elsewhere it leaves them alone, because the page cache needs the server. Where an SEO Pro Stack feature does a job, LiteSpeed's copy is turned off, so the two never both do it: Load JS Deferred with Delay scripts until people interact, Next-Gen Image Format with WebP and AVIF copies, Heartbeat control with Fewer Heartbeat requests (site and admin screens; editors are left alone), and Remove WordPress Emoji with Remove WordPress extras. Nothing that needs QUIC.cloud is turned on (critical and unused CSS, image optimisation, the crawler), and the object cache is left to the host. Applying saves through LiteSpeed Cache's own code, so its .htaccess rules, WP_CACHE line and purges follow. On multisite only the settings for every site apply: LiteSpeed Cache keeps most settings for the whole network there.",
+    "updated": "2026-10-04",
+    "notes": "Sets LiteSpeed Cache up to do, with SEO Pro Stack, what WP-Optimize does on LiteSpeed hosting. LiteSpeed Cache keeps pages and browser caching; SEO Pro Stack does images, Heartbeat, WordPress extras and script delay. Every site: notifications off (news and promotions fetched from LiteSpeed's servers), CSS and JS Minify off, and the whole cache purged when plugins or themes update, so pages never point at old CSS and JS. Minify is off because, without Combine, LiteSpeed Cache minifies and rewrites every CSS and JS file again on every page that is not in the page cache: on test sites that added 0.25 to 1.2 seconds to each such page, while compression and HTTP/2 already make the files small and quick. Combine avoids that cost but often breaks pages. Turning Minify back on works, at that cost to every uncached page. On a LiteSpeed server, SEO Pro Stack also turns the page cache and browser cache on; elsewhere it leaves them alone, because the page cache needs the server. Where an SEO Pro Stack feature does a job, LiteSpeed's copy is turned off, so the two never both do it: Load JS Deferred with Delay scripts until people interact, Next-Gen Image Format with WebP and AVIF copies, Heartbeat control with Fewer Heartbeat requests (site and admin screens; editors are left alone), and Remove WordPress Emoji with Remove WordPress extras. Nothing that needs QUIC.cloud is turned on (critical and unused CSS, image optimisation, the crawler, its CDN), and the object cache is left to the host. QUIC.cloud's CDN, which Hosting needs suggests on LiteSpeed servers without one, needs the site linked to a QUIC.cloud account first, which a preset cannot do: set it up from LiteSpeed Cache. Applying saves through LiteSpeed Cache's own code, so its .htaccess rules, WP_CACHE line and purges follow. On multisite only the settings for every site apply: LiteSpeed Cache keeps most settings for the whole network there.",
     "options": {
         "litespeed.conf.news": "",
-        "litespeed.conf.optm-css_min": "1",
-        "litespeed.conf.optm-js_min": "1",
+        "litespeed.conf.optm-css_min": "",
+        "litespeed.conf.optm-js_min": "",
         "litespeed.conf.purge-upgrade": "1",
         "litespeed.conf.cache": "1",
         "litespeed.conf.cache-browser": "1",
@@ -51,7 +51,7 @@
         },
         "litespeed.conf.optm-css_min": {
             "label": "CSS Minify",
-            "description": "Minify CSS files and inline CSS code.",
+            "description": "Minify CSS files and inline CSS code. Left off: without Combine, LiteSpeed Cache minifies every CSS file again on each page not in the page cache, which slows those pages more than the smaller files save.",
             "values": {
                 "1": "On",
                 "": "Off",
@@ -61,7 +61,7 @@
         },
         "litespeed.conf.optm-js_min": {
             "label": "JS Minify",
-            "description": "Minify JS files and inline JS codes.",
+            "description": "Minify JS files and inline JS codes. Left off: without Combine, LiteSpeed Cache minifies every JS file again on each page not in the page cache, which slows those pages more than the smaller files save.",
             "values": {
                 "1": "On",
                 "": "Off",

@@ -7,6 +7,7 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
+// FlyingPress and Link Whisper are not recommended, at the owner's request.
  function seoprostack_get_pro_plugins() {
     return array(
         'admin-columns' => array(
@@ -89,21 +90,6 @@ if (!defined('ABSPATH')) {
             ),
             'free_slug' => 'code-snippets'
         ),
-        'comment-goblin' => array(
-            'name' => 'Comment Goblin',
-            'description' => 'Advanced comment management and spam protection system.',
-            'button_group' => array(
-                array(
-                    'text' => 'Home Page',
-                    'url' => 'https://commentgoblin.com/',
-                    'primary' => true
-                ),
-                array(
-                    'text' => 'Pricing',
-                    'url' => 'https://commentgoblin.com/#pricing'
-                )
-            )
-        ),
         'complianz-gdpr' => array(
             'name' => 'Complianz Privacy Suite',
             'description' => 'Complete GDPR/CCPA compliance solution with advanced features.',
@@ -129,16 +115,16 @@ if (!defined('ABSPATH')) {
             'button_group' => array(
                 array(
                     'text' => 'Home Page',
-                    'url' => 'https://fluentcrm.com/',
+                    'url' => 'https://fluentcrm.com/?ref=4630',
                     'primary' => true
                 ),
                 array(
                     'text' => 'Pricing',
-                    'url' => 'https://fluentcrm.com/pricing/'
+                    'url' => 'https://fluentcrm.com/pricing/?ref=4630'
                 ),
                 array(
                     'text' => 'Automation Pack',
-                    'url' => 'https://fluentcrm.com/modules/automation-pack/'
+                    'url' => 'https://fluentcrm.com/modules/automation-pack/?ref=4630'
                 )
             ),
             'free_slug' => 'fluent-crm'
@@ -149,16 +135,16 @@ if (!defined('ABSPATH')) {
             'button_group' => array(
                 array(
                     'text' => 'Home Page',
-                    'url' => 'https://fluentforms.com/',
+                    'url' => 'https://fluentforms.com/?ref=4630',
                     'primary' => true
                 ),
                 array(
                     'text' => 'Pricing',
-                    'url' => 'https://fluentforms.com/pricing/'
+                    'url' => 'https://fluentforms.com/pricing/?ref=4630'
                 ),
                 array(
                     'text' => 'PDF Add-on',
-                    'url' => 'https://fluentforms.com/modules/pdf-add-on/'
+                    'url' => 'https://fluentforms.com/modules/pdf-add-on/?ref=4630'
                 )
             ),
             'free_slug' => 'fluentform'
@@ -201,12 +187,12 @@ if (!defined('ABSPATH')) {
             'button_group' => array(
                 array(
                     'text' => 'Home Page',
-                    'url' => 'https://fluentsupport.com/',
+                    'url' => 'https://fluentsupport.com/?ref=4630',
                     'primary' => true
                 ),
                 array(
                     'text' => 'Pricing',
-                    'url' => 'https://fluentsupport.com/pricing/'
+                    'url' => 'https://fluentsupport.com/pricing/?ref=4630'
                 )
             ),
             'free_slug' => 'fluent-support'
@@ -217,12 +203,12 @@ if (!defined('ABSPATH')) {
             'button_group' => array(
                 array(
                     'text' => 'Home Page',
-                    'url' => 'https://fluentbooking.com/',
+                    'url' => 'https://fluentbooking.com/?ref=4630',
                     'primary' => true
                 ),
                 array(
                     'text' => 'Pricing',
-                    'url' => 'https://fluentbooking.com/pricing/'
+                    'url' => 'https://fluentbooking.com/pricing/?ref=4630'
                 )
             ),
             'free_slug' => 'fluent-booking'
@@ -233,16 +219,16 @@ if (!defined('ABSPATH')) {
             'button_group' => array(
                 array(
                     'text' => 'Home Page',
-                    'url' => 'https://fluentcart.com/',
+                    'url' => 'https://fluentcart.com/?ref=4630',
                     'primary' => true
                 ),
                 array(
                     'text' => 'Pricing',
-                    'url' => 'https://fluentcart.com/pricing/'
+                    'url' => 'https://fluentcart.com/pricing/?ref=4630'
                 ),
                 array(
                     'text' => 'Free vs Pro',
-                    'url' => 'https://fluentcart.com/free-vs-pro/'
+                    'url' => 'https://fluentcart.com/free-vs-pro/?ref=4630'
                 )
             ),
             'free_slug' => 'fluent-cart'
@@ -253,38 +239,23 @@ if (!defined('ABSPATH')) {
             'button_group' => array(
                 array(
                     'text' => 'Home Page',
-                    'url' => 'https://www.liquidweb.com/software/kadence/blocks/',
+                    'url' => 'https://www.liquidweb.com/software/kadence/blocks/?irpid=4858868&utm_medium=affiliate&irgwc=1&afsrc=1',
                     'primary' => true
                 ),
                 array(
                     'text' => 'Pricing',
-                    'url' => 'https://www.liquidweb.com/software/kadence/#pricing'
+                    'url' => 'https://www.liquidweb.com/software/kadence/?irpid=4858868&utm_medium=affiliate&irgwc=1&afsrc=1#pricing'
                 ),
                 array(
                     'text' => 'Theme Pro',
-                    'url' => 'https://www.liquidweb.com/software/kadence/theme/'
+                    'url' => 'https://www.liquidweb.com/software/kadence/theme/?irpid=4858868&utm_medium=affiliate&irgwc=1&afsrc=1'
                 ),
                 array(
                     'text' => 'Kadence bundles',
-                    'url' => 'https://stellarwp.pxf.io/1rgM9z'
+                    'url' => 'https://www.liquidweb.com/software/kadence/?irpid=4858868&utm_medium=affiliate&irgwc=1&afsrc=1'
                 )
             ),
             'free_slug' => 'kadence-blocks'
-        ),
-        'link-whisper' => array(
-            'name' => 'Link Whisper',
-            'description' => 'AI-powered internal linking suggestions and management.',
-            'button_group' => array(
-                array(
-                    'text' => 'Home Page',
-                    'url' => 'https://linkwhisper.com/',
-                    'primary' => true
-                ),
-                array(
-                    'text' => 'Pricing',
-                    'url' => 'https://linkwhisper.com/pricing/'
-                )
-            )
         ),
         'media-file-renamer' => array(
             'name' => 'Media File Renamer Pro',
@@ -308,12 +279,12 @@ if (!defined('ABSPATH')) {
             'button_group' => array(
                 array(
                     'text' => 'Home Page',
-                    'url' => 'https://wpmanageninja.com/ninja-tables/',
+                    'url' => 'https://wpmanageninja.com/ninja-tables/?ref=4630',
                     'primary' => true
                 ),
                 array(
                     'text' => 'Pricing',
-                    'url' => 'https://wpmanageninja.com/downloads/ninja-tables-pro-add-on/'
+                    'url' => 'https://wpmanageninja.com/downloads/ninja-tables-pro-add-on/?ref=4630'
                 )
             ),
             'free_slug' => 'ninja-tables'
@@ -356,12 +327,12 @@ if (!defined('ABSPATH')) {
             'button_group' => array(
                 array(
                     'text' => 'Home Page',
-                    'url' => 'https://scalability.pro/',
+                    'url' => 'https://www.superspeedyplugins.com/product/scalability-pro/',
                     'primary' => true
                 ),
                 array(
                     'text' => 'Pricing',
-                    'url' => 'https://scalability.pro/#pricing'
+                    'url' => 'https://www.superspeedyplugins.com/product/scalability-pro/#ss-pricing'
                 )
             )
         ),
@@ -381,21 +352,8 @@ if (!defined('ABSPATH')) {
             ),
             'free_slug' => 'social-engine'
         ),
-        'taxopress' => array(
-            'name' => 'TaxoPress Pro',
-            'description' => 'Advanced taxonomy and tag management tools.',
-            'button_group' => array(
-                array(
-                    'text' => 'Home Page',
-                    'url' => 'https://taxopress.com/',
-                    'primary' => true
-                ),
-                array(
-                    'text' => 'Pricing',
-                    'url' => 'https://taxopress.com/pro/'
-                )
-            )
-        ),
+        // TaxoPress Pro removed: Tag clouds and related posts and Term tools
+        // cover it (SEOProStack_Term_Displays).
         'tutor' => array(
             'name' => 'Tutor LMS Pro',
             'description' => 'Premium LMS features including certificate builder.',
@@ -441,12 +399,12 @@ if (!defined('ABSPATH')) {
             'button_group' => array(
                 array(
                     'text' => 'Home Page',
-                    'url' => 'https://wpsocialninja.com/',
+                    'url' => 'https://wpsocialninja.com/?ref=4630',
                     'primary' => true
                 ),
                 array(
                     'text' => 'Pricing',
-                    'url' => 'https://wpsocialninja.com/price/'
+                    'url' => 'https://wpsocialninja.com/price/?ref=4630'
                 )
             ),
             'free_slug' => 'wp-social-reviews'
@@ -473,12 +431,12 @@ if (!defined('ABSPATH')) {
             'button_group' => array(
                 array(
                     'text' => 'Home Page',
-                    'url' => 'https://fluentboards.com/',
+                    'url' => 'https://fluentboards.com/?ref=4630',
                     'primary' => true
                 ),
                 array(
                     'text' => 'Pricing',
-                    'url' => 'https://fluentboards.com/pricing/'
+                    'url' => 'https://fluentboards.com/pricing/?ref=4630'
                 )
             ),
             'free_slug' => 'fluent-boards'
@@ -489,12 +447,12 @@ if (!defined('ABSPATH')) {
             'button_group' => array(
                 array(
                     'text' => 'Home Page',
-                    'url' => 'https://fluentcommunity.co/',
+                    'url' => 'https://fluentcommunity.co/?ref=4630',
                     'primary' => true
                 ),
                 array(
                     'text' => 'Pricing',
-                    'url' => 'https://fluentcommunity.co/pricing/'
+                    'url' => 'https://fluentcommunity.co/pricing/?ref=4630'
                 )
             ),
             'free_slug' => 'fluent-community'
@@ -518,12 +476,12 @@ if (!defined('ABSPATH')) {
             'button_group' => array(
                 array(
                     'text' => 'Home Page',
-                    'url' => 'https://www.liquidweb.com/software/kadence/kadence-template-gallery/',
+                    'url' => 'https://www.liquidweb.com/software/kadence/kadence-template-gallery/?irpid=4858868&utm_medium=affiliate&irgwc=1&afsrc=1',
                     'primary' => true
                 ),
                 array(
                     'text' => 'Kadence bundles',
-                    'url' => 'https://stellarwp.pxf.io/1rgM9z'
+                    'url' => 'https://www.liquidweb.com/software/kadence/?irpid=4858868&utm_medium=affiliate&irgwc=1&afsrc=1'
                 )
             ),
             'free_slug' => 'kadence-starter-templates'
@@ -563,23 +521,6 @@ if (!defined('ABSPATH')) {
                 )
             ),
             'free_slug' => 'easy-video-reviews'
-        ),
-        'flying-press' => array(
-            'name' => 'Flying Press',
-            'description' => 'Advanced WordPress performance optimization and speed enhancement suite.',
-            'button_group' => array(
-                array(
-                    'text' => 'Home Page',
-                    'url' => 'https://flyingpress.com/?ref=crlv',
-                    'primary' => true
-                ),
-                array(
-                    'text' => 'Pricing',
-                    'url' => 'https://flyingpress.com/pricing/'
-                )
-            )
-            // No free_slug: SEO Pro Stack's Speed tab replaces Flying Analytics,
-            // Flying Pages and Flying Scripts, so they are not recommended.
         ),
         'translatepress' => array(
             'name' => 'TranslatePress Pro',
@@ -711,6 +652,69 @@ if (!defined('ABSPATH')) {
                 array(
                     'text' => 'Add-ons',
                     'url' => 'https://www.myeventon.com/addons/'
+                )
+            )
+        ),
+        'fluent-affiliate' => array(
+            'name' => 'FluentAffiliate Pro',
+            'description' => 'Manage an affiliate programme with referrals, commissions, partner dashboards and payouts.',
+            'button_group' => array(
+                array(
+                    'text' => 'Home Page',
+                    'url' => 'https://fluentaffiliate.com/?ref=4630',
+                    'primary' => true
+                ),
+                array(
+                    'text' => 'Pricing',
+                    'url' => 'https://fluentaffiliate.com/?ref=4630#pricing'
+                )
+            ),
+            'free_slug' => 'fluent-affiliate'
+        ),
+        'fluent-player' => array(
+            'name' => 'FluentPlayer Pro',
+            'description' => 'A video player with lead capture, forms, playlists and viewing reports.',
+            'button_group' => array(
+                array(
+                    'text' => 'Home Page',
+                    'url' => 'https://fluentplayer.com/?ref=4630',
+                    'primary' => true
+                ),
+                array(
+                    'text' => 'Pricing',
+                    'url' => 'https://fluentplayer.com/pricing/?ref=4630'
+                )
+            ),
+            'free_slug' => 'fluent-player'
+        ),
+        'paymattic' => array(
+            'name' => 'Paymattic Pro',
+            'description' => 'Payment and donation forms with subscriptions, recurring donations and more payment gateways.',
+            'button_group' => array(
+                array(
+                    'text' => 'Home Page',
+                    'url' => 'https://paymattic.com/?ref=4630',
+                    'primary' => true
+                ),
+                array(
+                    'text' => 'Pricing',
+                    'url' => 'https://paymattic.com/pricing/?ref=4630'
+                )
+            ),
+            'free_slug' => 'wp-payment-form'
+        ),
+        'azonpress' => array(
+            'name' => 'AzonPress',
+            'description' => 'Amazon affiliate product displays, comparison tables and affiliate link management.',
+            'button_group' => array(
+                array(
+                    'text' => 'Home Page',
+                    'url' => 'https://azonpress.com/?ref=4630',
+                    'primary' => true
+                ),
+                array(
+                    'text' => 'Pricing',
+                    'url' => 'https://azonpress.com/pricing/?ref=4630'
                 )
             )
         )
