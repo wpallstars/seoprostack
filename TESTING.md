@@ -26,6 +26,19 @@ Use two fresh, isolated single-site Apache/LiteSpeed WordPress sites with Really
 - [ ] Broken/untrusted HTTPS fails before mutation. A native rule-save failure returns an error, reports whether rollback completed and does not replace or consume the previous undo snapshot. Retry after resolving the native writer error.
 - [ ] Inspect the standard PHP/debug log for new SEO Pro Stack or affected-plugin diagnostics; run existing PHP lint, PHPCS, PHPStan and release preset metadata checks.
 
+### Developer admins
+
+Use a throwaway single site with two administrators, `dev` and `client`, and a second plugin and theme installed. Not the shared preview site: switching this on there limits its other administrators.
+
+- [ ] As `dev`, switch on Developer admins: only `dev` is ticked under Developers. Untick yourself and save: you are ticked again.
+- [ ] As `client`, compare with `wp --user=client eval 'var_dump(current_user_can("install_plugins"));'`: Settings → SEO Pro Stack gives 403 and is not in the menu, the admin bar star and SEO Pro Stack's Plugins row are gone, Add New Plugin gives 403, other plugins have no Activate or Deactivate link, themes have no Activate button, Administrator is not offered in Add New User or Settings → General's New User Default Role, and `dev`'s profile cannot be edited.
+- [ ] As `client`, Settings → General shows the addresses and administration email read-only with a note and still saves the site title; Settings → Reading shows search engine visibility read-only; Settings → Permalinks is read-only and a forced POST gives 403.
+- [ ] Tick **Update WordPress…** and **Add unfiltered HTML…**: `client` loses the Update buttons and `unfiltered_html`; `dev` keeps everything.
+- [ ] Demote `dev` to Editor with WP-CLI: `client` becomes a developer (nobody locked out). Promote `dev` again: `client` is limited again.
+- [ ] With Organise the admin menu on, `client` does not see the Developers menu; `dev`'s **Preview the admin as › Client administrator** shows the same limits.
+- [ ] Upgrade from 0.12.x with the menu organised and Client safeguards on: Developer admins is on with the code and administrator limits and the same developers.
+- [ ] Check the debug log for new messages.
+
 ### Multisite Category
 
 - [ ] Verify "Multisite" category appears in plugin list filters

@@ -12,7 +12,7 @@
  * - plugins: plugin folder => place, for entries that are not listed under
  *            menus, matched to the plugin that handles the page. Plugins
  *            placed in super-admin are also hidden from the Plugins screen
- *            for people who are not developers while safeguards are on.
+ *            for people who are not developers while Developer admins is on.
  * - hidden:  addresses (or menu>address) of entries left out of the menu.
  *
  * A place is a section (top, content, communications, seo, shop,

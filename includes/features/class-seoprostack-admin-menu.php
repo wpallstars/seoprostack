@@ -20,13 +20,11 @@
  * front end. The plugin that owns each page is looked up once and kept
  * until plugins change.
  *
- * Client safeguards (on by default): people who are not developers do not
- * see or open Developers pages, cannot install, delete or edit the code of
- * plugins and themes, do not see developer plugins on the Plugins screen,
- * cannot change developer accounts, cannot make administrators and cannot
- * change SEO Pro Stack's settings. Updates keep working. Developers are
- * super admins on multisite, and the administrators ticked under Developers
- * on single sites.
+ * With Developer admins on (SEOProStack_Developers, which says who is a
+ * developer and what only developers can do), people who are not
+ * developers do not see or open Developers pages, and do not see or switch
+ * developer plugins on the Plugins screen. Until 0.13.0 this and the
+ * developer list were this feature's "Client safeguards".
  *
  * Writers (on by default): people who can write posts but not edit other
  * people's, such as contributors and authors, do not see or open plugin
@@ -48,14 +46,8 @@ class SEOProStack_Admin_Menu extends SEOProStack_Feature {
 
     const KEY = 'admin_menu';
 
-    /** Setting: client safeguards. */
-    const SAFEGUARDS_KEY = 'admin_menu_safeguards';
-
     /** Setting: writers see only screens for writing. */
     const WRITERS_KEY = 'admin_menu_writers';
-
-    /** Setting: developer accounts (single sites). */
-    const DEVELOPERS_KEY = 'admin_menu_developers';
 
     /** Setting: "address = place" lines. */
     const MOVES_KEY = 'admin_menu_moves';
@@ -184,19 +176,6 @@ class SEOProStack_Admin_Menu extends SEOProStack_Feature {
     /** Menus sorted like sections: WordPress's entries, then plugins' A–Z. */
     const SORTED_PARENTS = array('options-general.php', 'tools.php', 'themes.php');
 
-    /** Capabilities people who are not developers lose while safeguards are on. */
-    const BLOCKED_CAPS = array(
-        'install_plugins' => true,
-        'upload_plugins'  => true,
-        'delete_plugins'  => true,
-        'edit_plugins'    => true,
-        'install_themes'  => true,
-        'upload_themes'   => true,
-        'delete_themes'   => true,
-        'edit_themes'     => true,
-        'edit_files'      => true,
-    );
-
     /**
      * Capabilities every contributor or author has. A plugin page that asks
      * only for one of these is open to anyone who can write, usually by
@@ -281,13 +260,6 @@ class SEOProStack_Admin_Menu extends SEOProStack_Feature {
                     'admin-menu-editor'     => 'Admin Menu Editor',
                 ),
             ),
-            self::SAFEGUARDS_KEY => array(
-                'type'        => 'bool',
-                'default'     => true,
-                'parent'      => self::KEY,
-                'label'       => __('Client safeguards', 'seoprostack'),
-                'description' => __('People who are not developers cannot see the Developers menu, install, delete or edit plugins and themes, see developer plugins, change developer accounts, make administrators or change these settings. Updates still work.', 'seoprostack'),
-            ),
             self::WRITERS_KEY => array(
                 'type'        => 'bool',
                 'default'     => true,
@@ -314,17 +286,6 @@ class SEOProStack_Admin_Menu extends SEOProStack_Feature {
             ),
         );
 
-        if (!is_multisite()) {
-            $settings[self::DEVELOPERS_KEY] = array(
-                'type'        => 'multi',
-                'default'     => array(),
-                'parent'      => self::KEY,
-                'label'       => __('Developers', 'seoprostack'),
-                'description' => __('Administrators who see the Developers menu and are not limited by the safeguards. Everyone is ticked when you switch this on; administrators added later are not. You stay on the list.', 'seoprostack'),
-                'options'     => array(__CLASS__, 'developer_options'),
-            );
-        }
-
         $settings[self::MOVES_KEY] = array(
             'type'        => 'lines',
             'default'     => '',
@@ -340,32 +301,9 @@ class SEOProStack_Admin_Menu extends SEOProStack_Feature {
     }
 
     /**
-     * Administrators who can be developers.
-     *
-     * @return array<string,string> User ID => name.
-     */
-    public static function developer_options() {
-        $options = array();
-        $users   = get_users(array(
-            'capability' => 'manage_options',
-            'orderby'    => 'display_name',
-            'number'     => 200,
-            'fields'     => array('ID', 'display_name', 'user_login'),
-        ));
-        foreach ($users as $user) {
-            $options[(string) $user->ID] = $user->display_name === $user->user_login
-                ? $user->display_name
-                : sprintf('%1$s (%2$s)', $user->display_name, $user->user_login);
-        }
-        return $options;
-    }
-
-    /**
      * Register hooks.
      */
     public static function boot() {
-        // Even while off, so switching on fills in the developers.
-        add_action('seoprostack_setting_saved', array(__CLASS__, 'setting_saved'), 10, 2);
         add_action('seoprostack_setting_panel', array(__CLASS__, 'panel'), 10, 2);
         add_action('upgrader_process_complete', array(__CLASS__, 'forget'));
 
@@ -380,9 +318,7 @@ class SEOProStack_Admin_Menu extends SEOProStack_Feature {
             add_filter('map_meta_cap', array(__CLASS__, 'map_meta_cap'), 10, 4);
         }
         if (self::safeguards_on() && is_user_logged_in() && !self::is_developer()) {
-            add_filter('editable_roles', array(__CLASS__, 'editable_roles'));
             add_filter('all_plugins', array(__CLASS__, 'all_plugins'));
-            add_filter('seoprostack_can_change_settings', '__return_false');
             if (is_admin()) {
                 add_action('admin_init', array(__CLASS__, 'block_page'));
             }
@@ -411,79 +347,38 @@ class SEOProStack_Admin_Menu extends SEOProStack_Feature {
     }
 
     /**
-     * Whether client safeguards are on.
+     * Whether people who are not developers are kept out of the Developers
+     * menu and developer plugins: while Developer admins is on.
      *
      * @return bool
      */
     public static function safeguards_on() {
-        return (bool) SEOProStack_Settings::get(self::SAFEGUARDS_KEY);
+        return SEOProStack_Developers::enabled();
     }
 
     /**
-     * Whether a user is a developer: a super admin on multisite; on single
-     * sites an administrator ticked under Developers. When none of the
-     * ticked people is still an administrator (or nobody is ticked), every
-     * administrator is, so nobody is ever locked out.
+     * Whether a user is a developer (SEOProStack_Developers::is_developer()).
+     * Not while the current user previews another role: see
+     * not_developer_in_view().
      *
      * @param int $user_id User ID; the current user by default.
      * @return bool
      */
     public static function is_developer($user_id = 0) {
-        static $cache = array();
-        $user_id = $user_id ? (int) $user_id : get_current_user_id();
-        if (!$user_id) {
-            return false;
-        }
-        if ('' !== self::$view_as && get_current_user_id() === $user_id) {
-            // Previewing another role: see what they see.
-            return false;
-        }
-        if (!isset($cache[$user_id])) {
-            if (is_multisite()) {
-                $developer = is_super_admin($user_id);
-            } else {
-                $listed = array_filter(array_map('intval', (array) SEOProStack_Settings::get(self::DEVELOPERS_KEY)), function ($id) {
-                    return $id > 0 && user_can($id, 'manage_options');
-                });
-                $developer = $listed ? in_array($user_id, $listed, true) : user_can($user_id, 'manage_options');
-            }
-            /**
-             * Filter whether a user is a developer for Organise the admin menu.
-             *
-             * @param bool $developer Whether the user is a developer.
-             * @param int  $user_id   User ID.
-             */
-            $cache[$user_id] = (bool) apply_filters('seoprostack_is_developer', $developer, $user_id);
-        }
-        return $cache[$user_id];
+        return SEOProStack_Developers::is_developer($user_id);
     }
 
     /**
-     * After a save: tick every administrator when the feature is switched on
-     * with nobody ticked (which already makes every administrator a
-     * developer), and keep the person saving on the developer list.
+     * While previewing another role, the person previewing is not a
+     * developer anywhere (Developer admins too), so they see what that
+     * role sees.
      *
-     * @param string $key   Setting key.
-     * @param mixed  $value Saved value.
+     * @param bool $developer Whether the user is a developer.
+     * @param int  $user_id   User ID.
+     * @return bool
      */
-    public static function setting_saved($key, $value = null) {
-        if (is_multisite()) {
-            return;
-        }
-        if (self::KEY === $key && $value) {
-            // Settings are stored with every default, so an empty list is
-            // the only sign that nobody has been chosen yet.
-            if (!array_filter((array) SEOProStack_Settings::get(self::DEVELOPERS_KEY))) {
-                SEOProStack_Settings::set(self::DEVELOPERS_KEY, array_map('strval', array_keys(self::developer_options())));
-            }
-        } elseif (self::DEVELOPERS_KEY === $key) {
-            $ids = array_map('intval', (array) $value);
-            $me  = get_current_user_id();
-            if ($ids && $me && !in_array($me, $ids, true)) {
-                $ids[] = $me;
-                SEOProStack_Settings::set(self::DEVELOPERS_KEY, array_map('strval', $ids));
-            }
-        }
+    public static function not_developer_in_view($developer, $user_id) {
+        return '' !== self::$view_as && get_current_user_id() === (int) $user_id ? false : $developer;
     }
 
     /* --------------------------------------------------------------------- */
@@ -2022,8 +1917,8 @@ class SEOProStack_Admin_Menu extends SEOProStack_Feature {
     }
 
     /**
-     * Take away installing, deleting and editing code, switching developer
-     * plugins on or off, and changing developers and administrators.
+     * Take away switching developer plugins on or off. (Everything else
+     * only developers can do is in SEOProStack_Developers.)
      *
      * @param string[] $caps    Primitive capabilities.
      * @param string   $cap     Capability checked.
@@ -2032,60 +1927,12 @@ class SEOProStack_Admin_Menu extends SEOProStack_Feature {
      * @return string[]
      */
     public static function map_meta_cap($caps, $cap, $user_id, $args) {
-        static $watched = array(
-            'activate_plugin'   => true,
-            'deactivate_plugin' => true,
-            'edit_user'         => true,
-            'delete_user'       => true,
-            'remove_user'       => true,
-            'promote_user'      => true,
-        );
         // Return before is_developer(): it checks manage_options, which comes
         // back through this filter.
-        if ((!isset(self::BLOCKED_CAPS[$cap]) && !isset($watched[$cap])) || !$user_id || self::is_developer((int) $user_id)) {
+        if (('activate_plugin' !== $cap && 'deactivate_plugin' !== $cap) || !$user_id || !isset($args[0]) || self::is_developer((int) $user_id)) {
             return $caps;
         }
-        if (isset(self::BLOCKED_CAPS[$cap])) {
-            return array('do_not_allow');
-        }
-        switch ($cap) {
-            case 'activate_plugin':
-            case 'deactivate_plugin':
-                if (isset($args[0]) && isset(self::developer_plugins()[dirname((string) $args[0])])) {
-                    return array('do_not_allow');
-                }
-                break;
-            case 'edit_user':
-            case 'delete_user':
-            case 'remove_user':
-                if (isset($args[0]) && (int) $args[0] !== (int) $user_id && self::is_developer((int) $args[0])) {
-                    return array('do_not_allow');
-                }
-                break;
-            case 'promote_user':
-                // Also administrators: their role is not offered (see
-                // editable_roles()), so the role list would demote them.
-                if (isset($args[0]) && (self::is_developer((int) $args[0]) || user_can((int) $args[0], 'manage_options'))) {
-                    return array('do_not_allow');
-                }
-                break;
-        }
-        return $caps;
-    }
-
-    /**
-     * Do not offer roles that can manage options, such as Administrator.
-     *
-     * @param array $roles Roles.
-     * @return array
-     */
-    public static function editable_roles($roles) {
-        foreach ((array) $roles as $role => $data) {
-            if (!empty($data['capabilities']['manage_options'])) {
-                unset($roles[$role]);
-            }
-        }
-        return $roles;
+        return isset(self::developer_plugins()[dirname((string) $args[0])]) ? array('do_not_allow') : $caps;
     }
 
     /**
@@ -2377,6 +2224,7 @@ class SEOProStack_Admin_Menu extends SEOProStack_Feature {
             return;
         }
         self::$view_as = $role;
+        add_filter('seoprostack_is_developer', array(__CLASS__, 'not_developer_in_view'), PHP_INT_MAX, 2);
         add_filter('map_meta_cap', array(__CLASS__, 'view_caps'), 20, 4);
         add_action('admin_bar_menu', array(__CLASS__, 'view_bar'), 1);
         add_action('admin_footer', array(__CLASS__, 'view_notice'));

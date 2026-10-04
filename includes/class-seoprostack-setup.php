@@ -28,6 +28,7 @@ final class SEOProStack_Setup {
         'SEOProStack_Admin_Page_Fade',
         'SEOProStack_Admin_Access',
         'SEOProStack_Hardening',
+        'SEOProStack_Developers',
         'SEOProStack_Admin_Menu',
         'SEOProStack_Widget_Control',
         'SEOProStack_Dashboard_Layout',
@@ -188,8 +189,12 @@ final class SEOProStack_Setup {
      *      post types TaxoPress adds related posts to.
      * v21: import Flying Images' lazy loading exclusions (Image loading),
      *      switched on where its lazy loading is on.
+     * v22: Organise the admin menu's client safeguards and developer list
+     *      move to Developer admins: switched on where the menu was
+     *      organised with safeguards on, limited to code changes and
+     *      administrators as before, with the same developers.
      */
-    const DB_VERSION = 21;
+    const DB_VERSION = 22;
 
     /**
      * Tab slugs renamed in 0.4.0, old => new. Settings that still use an
