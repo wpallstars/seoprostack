@@ -12,6 +12,20 @@ This document provides testing checklist for the SEO Pro Stack Plugin to ensure 
 
 ## Feature-Specific Testing
 
+### Really Simple Security redirect preset
+
+Use two fresh, isolated single-site Apache/LiteSpeed WordPress sites with Really Simple Security 9.8.3, trusted working HTTPS and an existing writable root `.htaccess`. Do not use the shared preview or live sites.
+
+- [ ] Export fresh `rsssl_options`: activation stores nothing; compare after selecting **Redirect method → 301 .htaccess redirect (read instructions first)** in the plugin's own screen. Confirm only `redirect` enters the preset, with accurate labels/defaults.
+- [ ] Enable Plugin presets and use the Plugins-screen dialog; confirm Apply selected setting, Reset and Undo change the preference and dedicated **Really Simple Security Redirect** block together.
+- [ ] Run `wp --user=<administrator> seoprostack presets list`, `diff really-simple-ssl`, `apply really-simple-ssl --only=rsssl_options.redirect`, `reset really-simple-ssl` and `undo really-simple-ssl`. CLI needs a plugin-recognised server type; use its existing server override only for a verified test server.
+- [ ] A second Apply changes zero settings, keeps the undo snapshot and does not duplicate rules or probe HTTPS.
+- [ ] Change an unrelated security setting after Apply, then Undo: the newer unrelated setting and unrelated `.htaccess` blocks survive.
+- [ ] HTTP paths with query strings return 301 to the same HTTPS path/query. Certificate validation succeeds, redirects terminate and login/admin remain accessible.
+- [ ] Missing/inactive plugin, unsupported version/API/server, multisite, SSL disabled, unwritable/symlinked rule file and plugin-managed write lockout cause no preference/rule mutation. Explicit actions return an explanation.
+- [ ] Broken/untrusted HTTPS fails before mutation. A native rule-save failure returns an error, reports whether rollback completed and does not replace or consume the previous undo snapshot. Retry after resolving the native writer error.
+- [ ] Inspect the standard PHP/debug log for new SEO Pro Stack or affected-plugin diagnostics; run existing PHP lint, PHPCS, PHPStan and release preset metadata checks.
+
 ### Multisite Category
 
 - [ ] Verify "Multisite" category appears in plugin list filters

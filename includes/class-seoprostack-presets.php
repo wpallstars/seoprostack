@@ -609,6 +609,10 @@ final class SEOProStack_Presets {
      * @return int|WP_Error Number of settings changed.
      */
     public static function write($slug, $set = 'options', $only = null) {
+        $error = apply_filters('seoprostack_preset_write_check', null, $slug);
+        if (is_wp_error($error)) {
+            return $error;
+        }
         $preset = self::get($slug);
         if (!$preset) {
             return new WP_Error('seoprostack_no_preset', __('There is no preset for this plugin.', 'seoprostack'));
@@ -645,7 +649,13 @@ final class SEOProStack_Presets {
             if (array() === $value && is_array($wanted) && $wanted && !self::is_list($wanted)) {
                 $value = null; // Every named setting removed: the plugin's defaults apply.
             }
-            self::store($name, $value, $exists, $current);
+            $result = apply_filters('seoprostack_preset_store', null, $slug, $name, $value);
+            if (is_wp_error($result)) {
+                return $result;
+            }
+            if (true !== $result) {
+                self::store($name, $value, $exists, $current);
+            }
         }
 
         $undo        = self::undo_data();
@@ -687,6 +697,10 @@ final class SEOProStack_Presets {
      * @return int|WP_Error Number of options put back.
      */
     public static function undo($slug) {
+        $error = apply_filters('seoprostack_preset_write_check', null, $slug);
+        if (is_wp_error($error)) {
+            return $error;
+        }
         $undo = self::undo_data();
         if (empty($undo[$slug]['options']) || !is_array($undo[$slug]['options'])) {
             return new WP_Error('seoprostack_no_undo', __('There is nothing to undo for this plugin.', 'seoprostack'));
@@ -698,7 +712,14 @@ final class SEOProStack_Presets {
                 continue;
             }
             list($exists, $current) = self::read($name);
-            self::store($name, empty($saved['existed']) || !isset($saved['value']) ? null : $saved['value'], $exists, $current);
+            $value  = empty($saved['existed']) || !isset($saved['value']) ? null : $saved['value'];
+            $result = apply_filters('seoprostack_preset_store', null, $slug, $name, $value);
+            if (is_wp_error($result)) {
+                return $result; // Keep the undo copy until the native save succeeds.
+            }
+            if (true !== $result) {
+                self::store($name, $value, $exists, $current);
+            }
             $names[] = $name;
             $count++;
         }
