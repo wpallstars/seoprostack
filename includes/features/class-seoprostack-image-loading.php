@@ -56,7 +56,7 @@ class SEOProStack_Image_Loading extends SEOProStack_Feature {
                 'unit'        => __('pictures', 'seoprostack'),
                 'parent'      => self::KEY,
                 'label'       => __('Load straight away', 'seoprostack'),
-                'description' => __('The first pictures in the content load without waiting, so what shows first is not delayed. WordPress’s default is 3; 0 lazy-loads them all.', 'seoprostack'),
+                'description' => __('The first pictures on a post or page load without waiting, so what shows first is not delayed. A featured image counts as the first. WordPress’s default is 3; 0 lazy-loads them all.', 'seoprostack'),
             ),
             'image_loading_exclude' => array(
                 'type'        => 'lines',
