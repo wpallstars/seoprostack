@@ -306,10 +306,14 @@ class SEOProStack_Sticky_Posts extends SEOProStack_Feature {
             add_action('pre_get_posts', array(__CLASS__, 'pre_get_posts'));
             add_filter('the_posts', array(__CLASS__, 'lift'), 10, 2);
             add_filter('post_class', array(__CLASS__, 'post_class'), 10, 3);
+            add_filter('post_limits', array(__CLASS__, 'post_limits'), 10, 2);
+            add_filter('found_posts', array(__CLASS__, 'found_posts'), 10, 2);
         }
         if (SEOProStack_Settings::get('sticky_posts_kadence') && self::kadence_active()) {
             add_filter('kadence_blocks_pro_query_loop_query_vars', array(__CLASS__, 'kadence_query_vars'), 20, 3);
-            add_filter('found_posts', array(__CLASS__, 'found_posts'), 10, 2);
+            if (!has_filter('found_posts', array(__CLASS__, 'found_posts'))) {
+                add_filter('found_posts', array(__CLASS__, 'found_posts'), 10, 2);
+            }
         }
     }
 
@@ -981,6 +985,16 @@ class SEOProStack_Sticky_Posts extends SEOProStack_Feature {
         if ($query->is_home()) {
             return (array) SEOProStack_Settings::get('sticky_posts_home');
         }
+        return self::archive_types($query);
+    }
+
+    /**
+     * Post types a post type or term archive lifts, on any of its pages.
+     *
+     * @param WP_Query $query Main query.
+     * @return string[]|null
+     */
+    private static function archive_types(WP_Query $query) {
         if ($query->is_post_type_archive()) {
             $types = array_intersect((array) $query->get('post_type'), (array) SEOProStack_Settings::get('sticky_posts_archives'));
             return $types ? array_values($types) : null;
@@ -989,7 +1003,8 @@ class SEOProStack_Sticky_Posts extends SEOProStack_Feature {
             $term = $query->get_queried_object();
             if ($term instanceof WP_Term && in_array($term->taxonomy, (array) SEOProStack_Settings::get('sticky_posts_taxonomies'), true)) {
                 $types = get_taxonomy($term->taxonomy)->object_type;
-                return array_values(array_intersect($types, (array) SEOProStack_Settings::get('sticky_posts_types')));
+                $types = array_values(array_intersect($types, (array) SEOProStack_Settings::get('sticky_posts_types')));
+                return $types ? $types : null;
             }
         }
         return null;
@@ -997,6 +1012,7 @@ class SEOProStack_Sticky_Posts extends SEOProStack_Feature {
 
     /**
      * On the blog home, take over from core so the chosen types are lifted.
+     * On post type and term archives, pinned items take places on the pages.
      *
      * @param WP_Query $query Query.
      */
@@ -1006,10 +1022,94 @@ class SEOProStack_Sticky_Posts extends SEOProStack_Feature {
             $query->set('ignore_sticky_posts', true);
             return;
         }
-        if ($query->is_main_query() && $query->is_home() && !$query->is_feed() && !$query->get('ignore_sticky_posts')) {
+        if (!$query->is_main_query() || $query->is_feed() || ($query->get('ignore_sticky_posts') && !$query->get('seoprostack_sticky'))) {
+            return;
+        }
+        if ($query->is_home()) {
             $query->set('ignore_sticky_posts', true);
             $query->set('seoprostack_sticky', true);
+            return;
         }
+        $types = self::archive_types($query);
+        if ($types) {
+            self::page_archive($query, $types);
+        }
+    }
+
+    /**
+     * Post type and term archives: the pinned items in the archive lead it,
+     * in its order, then the rest in the same order. Like Kadence query
+     * loops, pinned items take places on the pages, so each page keeps its
+     * size and nothing is repeated: the archive's own query leaves them out
+     * and starts that many places earlier (post_limits()), and lift() puts
+     * the page's pinned items in front. The page number stays as it is, so
+     * pagination links and the page title are unchanged.
+     *
+     * @param WP_Query $query Main query, before it runs.
+     * @param string[] $types Pinnable post types the archive lists.
+     */
+    private static function page_archive(WP_Query $query, array $types) {
+        $ids = array_map('intval', (array) get_option('sticky_posts', array()));
+        $out = array_map('intval', (array) $query->get('post__not_in'));
+        $in  = array_map('intval', array_filter((array) $query->get('post__in')));
+        $ids = array_values(array_diff($ids, $out));
+        if ($in) {
+            $ids = array_values(array_intersect($ids, $in));
+        }
+        if (!$ids || '' !== (string) $query->get('offset')) {
+            // Nothing pinned here, or a theme pages with its own offset.
+            return;
+        }
+        $vars = $query->query_vars;
+        unset($vars['post__not_in']);
+        $pinned = self::kadence_pinned($vars, $types, $ids, $in);
+        if (!$pinned) {
+            return;
+        }
+        if ($in) {
+            $rest = array_values(array_diff($in, $pinned));
+            $query->set('post__in', $rest ? $rest : array(0));
+        } else {
+            $query->set('post__not_in', array_merge($out, $pinned));
+        }
+        $query->set('ignore_sticky_posts', true);
+
+        $count = count($pinned);
+        $per   = (int) $query->get('posts_per_page');
+        if (0 === $per) {
+            $per = (int) get_option('posts_per_page');
+        }
+        if ($per < 1 || $query->get('nopaging')) {
+            // One page: all pinned items lead it.
+            $query->set(self::LOOP, array('types' => $types, 'ids' => $pinned, 'take' => -1, 'count' => $count));
+            return;
+        }
+        $start = $per * (max(1, (int) $query->get('paged')) - 1);
+        $slice = array_slice($pinned, $start, $per);
+        $query->set(self::LOOP, array(
+            'types' => $types,
+            'ids'   => $slice,
+            'take'  => $per - count($slice),
+            'count' => $count,
+            // The rest start this many places in, a page's worth at a time.
+            'limit' => array(max(0, $start - $count), $per),
+        ));
+    }
+
+    /**
+     * Archives paged by page_archive(): the rest of the items start where
+     * the pinned items before this page leave off.
+     *
+     * @param string   $limits LIMIT clause.
+     * @param WP_Query $query  Query.
+     * @return string
+     */
+    public static function post_limits($limits, $query) {
+        $loop = $query instanceof WP_Query ? $query->get(self::LOOP) : null;
+        if (!is_array($loop) || empty($loop['limit']) || '' === $limits) {
+            return $limits;
+        }
+        return sprintf('LIMIT %d, %d', (int) $loop['limit'][0], (int) $loop['limit'][1]);
     }
 
     /**
@@ -1036,6 +1136,12 @@ class SEOProStack_Sticky_Posts extends SEOProStack_Feature {
             $sticky = array_values(array_filter(array_map('get_post', $ids)));
             $take   = isset($loop['take']) ? (int) $loop['take'] : -1;
             $rest   = $take >= 0 ? array_slice((array) $posts, 0, $take) : (array) $posts;
+
+            if (!$posts && $sticky && !empty($loop['limit'])) {
+                // Only pinned items on this archive page: WordPress counts
+                // the rest only when it finds some, so count them here.
+                self::archive_count($query, $loop);
+            }
 
             self::$lifted      = array_map('intval', wp_list_pluck($sticky, 'ID'));
             $merged            = array_merge($sticky, $rest);
@@ -1073,6 +1179,26 @@ class SEOProStack_Sticky_Posts extends SEOProStack_Feature {
         $merged            = array_merge($sticky, array_values($rest));
         $query->post_count = count($merged);
         return $merged;
+    }
+
+    /**
+     * Total and page count of an archive page that holds only pinned items.
+     *
+     * @param WP_Query $query Main query.
+     * @param array    $loop  Plan from page_archive().
+     */
+    private static function archive_count(WP_Query $query, array $loop) {
+        $vars = $query->query_vars;
+        unset($vars[self::LOOP], $vars['offset'], $vars['paged']);
+        $rest = new WP_Query(array_merge($vars, array(
+            'fields'              => 'ids',
+            'posts_per_page'      => 1,
+            'no_found_rows'       => false,
+            'ignore_sticky_posts' => true,
+            'seoprostack_sticky'  => false,
+        )));
+        $query->found_posts   = (int) $loop['count'] + (int) $rest->found_posts;
+        $query->max_num_pages = (int) ceil($query->found_posts / max(1, (int) $loop['limit'][1]));
     }
 
     /**

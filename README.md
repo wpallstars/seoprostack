@@ -308,7 +308,7 @@ Tick **Share a preview link** in the editor of a draft, pending or scheduled pos
 
 ### Pinned posts for any post type (Content)
 
-Adds a narrow pin column to the lists of the post types you choose, and a **Pin to the top** option in the editor for types other than posts. Wherever WordPress says “Sticky” in post lists, Quick Edit, Bulk Edit and the editors, it says “Pinned”, the word most sites and apps use (core still calls them sticky posts, so themes and blocks see no change). Pinned items lead the first page of the blog home, their post type archive and chosen term archives (categories, tags or custom taxonomies). It uses core’s sticky list, so existing sticky posts, themes and blocks keep working.
+Adds a narrow pin column to the lists of the post types you choose, and a **Pin to the top** option in the editor for types other than posts. Wherever WordPress says “Sticky” in post lists, Quick Edit, Bulk Edit and the editors, it says “Pinned”, the word most sites and apps use (core still calls them sticky posts, so themes and blocks see no change). Pinned items lead the first page of the blog home, their post type archive and chosen term archives (categories, tags or custom taxonomies). On archives they take places on the pages, so each page keeps its size and nothing shows twice. It uses core’s sticky list, so existing sticky posts, themes and blocks keep working.
 
 With ACF, ACF Pro or Secure Custom Fields active, **Pin from a true/false field** ties the pin to a true/false field of a pinnable type, such as a “Featured” field: an item is pinned while the field is on, however the field is set (editor, REST API, WP-CLI, imports), and pinning or unpinning it in the pin column or Quick Edit sets the field. When you choose a field, the items of its type are pinned and unpinned to match it, so the field decides. In the editor the field is the pin: **Pin to the top** is not shown for that type, so saving the field’s box cannot undo a pin set elsewhere. Only top-level fields of a field group are listed.
 
@@ -1240,6 +1240,10 @@ Deleting the plugin removes its settings and cached data, the profile pictures a
 Deactivating the plugin removes the WebP and AVIF rules from the uploads folder’s `.htaccess` (for every site when network-deactivated), the LiteSpeed background request rules from the site’s `.htaccess` (on multisite, when network-deactivated or deactivated on the main site) and the must-use file of Load plugins only where needed (on multisite, when network-deactivated).
 
 ## Changelog
+
+### 0.12.6
+
+- Fix: on post type archives and chosen term archives, pinned items take places on the pages, as in Kadence query loops (`post_limits` starts the rest after the pinned items before the page). Page 1 keeps its size and no item shows twice; pinned items were added on top of page 1 and listed again later. The blog home keeps WordPress's own sticky behaviour (GitHub issue #363).
 
 ### 0.12.5
 
