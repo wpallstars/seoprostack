@@ -132,6 +132,7 @@ Use **Report a problem** in Settings → SEO Pro Stack or [GitHub](https://githu
 = Unreleased =
 * New: Plugins screen suggests deactivating Hostinger's default plugins.
 * Fix: no "Table doesn't exist" errors on network sites without Fluent tables.
+* Fix: Short addresses for custom post types works for post types registered without a query variable, instead of "page not found".
 
 = 0.12.0 =
 * New, off: Tag clouds and related posts: tag clouds, A–Z indexes, grouped terms in tabs or accordions, and a Related posts block. TaxoPress and Tag Groups pages keep working after removal.
