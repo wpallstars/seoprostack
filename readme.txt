@@ -39,8 +39,8 @@ Off by default except Hide admin bar items (Comments and + New), No fade between
 * **Publishing queue**: posts without a date go to the next free time slot.
 * **Duplicate posts**, **Staged new versions** (edit a live post as a draft) and **Shareable preview links** for people without an account.
 * **Pinned posts for any post type**, **Select all across pages**, **Order by hand**, **Change post type**, **Term tools** (merge, move, set parent, unused terms), **Search custom fields** and **Old post addresses**.
-* **Tag clouds and related posts**: tag clouds, A–Z indexes, grouped terms in tabs or accordions, and a Related posts block. TaxoPress and Tag Groups pages keep working after they are gone.
-* **Custom fields to content**: ACF/SCF text into content and excerpts for chosen post types; skipped fields and WP-CLI sync. Replaces content; check templates for duplicate display.
+* **Tag clouds and related posts**: A–Z indexes, grouped terms in tabs or accordions and a Related posts block. TaxoPress and Tag Groups pages keep working after they are gone.
+* **Custom fields to content**: ACF/SCF text into content and excerpts, with WP-CLI sync. It replaces content: check templates for fields shown twice.
 * **Restrict content**: posts, parts of posts, categories, blocks and shop products only for members or chosen roles. **Menu item visibility** by login or role.
 * **iFrame block** (only the domains and roles you allow), **Link cards**, **Wikipedia previews**, **Word documents**, **Brand icons** and **Like, save and share**.
 * **Spectra block replacements** keep pages working without Spectra. **TranslatePress colours** follow Kadence light and dark modes. **Kadence query filters** scroll to results.
@@ -58,21 +58,21 @@ Off by default except Hide admin bar items (Comments and + New), No fade between
 
 * **Rank Math defaults**: empty keywords from titles, pillar warnings and selected-post removal.
 * **Short links** such as /go/offer/ with click counts, **Short addresses for custom post types** and **410 Gone** for removed pages.
-* **External link icons**: text-link colours and Kadence dark mode, without scripts or downloads; only Link Whisper's icon, not its linking tools.
-* **Internal linking tools** (off): approved suggestions, undo, counts, orphan candidates and read-only Link Whisper retirement checks. Health checks and daily click totals are separate opt-ins; review each site before removal.
+* **External link icons**: text-link colours and Kadence dark mode, without scripts; replaces Link Whisper's icon only.
+* **Internal linking tools** (off): approved suggestions, undo, counts, orphans and read-only Link Whisper retirement checks. Link health and click totals are separate opt-ins.
 * **Load pages before the click**, **Delay scripts until interaction**, **Delayed Google Analytics** and a faster editor with Kadence Blocks.
 * **Ask before licence checks**: premium plugins call home once, daily or never, as you choose.
 * **Clean the database weekly**: old spam, bin and expired data.
-* **Database key cleanup**: review leftover and duplicate indexes and confirm each removal; restore SQL is kept. Back up first.
-* **Load plugins only where needed**: automatic admin choices and unused site plugin skips, with always-load bypasses and idle admin relearning.
+* **Database key cleanup**: remove leftover and duplicate indexes one by one, with restore SQL. Back up first.
+* **Load plugins only where needed**: skips plugins a page does not use, in the admin and on the site, with always-load bypasses.
 
 = Plugins and set-up =
 
 * **Plugin presets** and **starter data**: our tested settings for other plugins, and the lists, tags, forms and boards we use in Fluent plugins; only when you ask, and undoable.
 * **Plugins menu** in the admin bar, **Plugin sizes**, **Clean up deleted plugins** and **Hosting needs** (what to ask your host for).
-* **Fixes for other plugins** (on): works around their bugs, such as Lasso Lite calling its server on every admin screen and Tutor LMS Pro's update-check warnings.
+* **Fixes for other plugins** (on): works around their bugs, such as Lasso Lite calling its server on every admin screen.
 * **Agency**: order flow, client dashboard and examples.
-* **Discover**: the Kadence theme, recommended free plugins installed in place, and the Pro plugins, hosting and tools we use.
+* **Discover**: the Kadence theme and the free and Pro plugins, hosting and tools we use.
 
 = Affiliate disclosure =
 
@@ -130,7 +130,7 @@ Use **Report a problem** in Settings → SEO Pro Stack or [GitHub](https://githu
 == Changelog ==
 
 = 0.12.2 =
-* New, off: Image loading chooses which pictures load straight away. Replaces Flying Images' lazy loading, in part.
+* New, off: Image loading replaces Flying Images' lazy loading, in part.
 * New, off: Kadence query filters scroll to results.
 * Change: Magic login links replaces WP Magic Link Login, in part; its [wpmll_form] pages keep working.
 * Change: Tidy the dashboard starts AI Engine Advisor hidden, for developers only.
