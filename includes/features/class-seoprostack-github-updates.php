@@ -144,7 +144,7 @@ class SEOProStack_Github_Updates extends SEOProStack_Feature {
      * @return string
      */
     private static function error_cache_key() {
-        return 'ghu-' . md5(dirname(plugin_basename(SEOPROSTACK_FILE)) . '_error');
+        return 'ghu-' . md5(dirname(plugin_basename(SEOPROSTACK_FILE)) . '_error'); // NOSONAR: a cache or lock key, not security.
     }
 
     /**

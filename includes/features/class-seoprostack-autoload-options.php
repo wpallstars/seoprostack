@@ -114,7 +114,7 @@ final class SEOProStack_Autoload_Options extends SEOProStack_Feature {
             return;
         }
         global $wpdb;
-        self::$lock = 'sps_autoload_' . md5($wpdb->options);
+        self::$lock = 'sps_autoload_' . md5($wpdb->options); // NOSONAR: a cache or lock key, not security.
         // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- connection-owned lock, no option/cache can arbitrate concurrent samples.
         if ('1' !== (string) $wpdb->get_var($wpdb->prepare('SELECT GET_LOCK(%s, 0)', self::$lock))) {
             self::$lock = '';
@@ -457,7 +457,7 @@ final class SEOProStack_Autoload_Options extends SEOProStack_Feature {
         update_option(self::RESET, bin2hex(random_bytes(16)), false);
         global $wpdb;
         $own_lock = !empty(self::$lock);
-        $lock = 'sps_autoload_' . md5($wpdb->options);
+        $lock = 'sps_autoload_' . md5($wpdb->options); // NOSONAR: a cache or lock key, not security.
         // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- serialize owner-requested undo with an in-flight sample; its cancellation token also invalidates stale state.
         $acquired = $own_lock || '1' === (string) $wpdb->get_var($wpdb->prepare('SELECT GET_LOCK(%s, 5)', $lock));
         if ($acquired) {

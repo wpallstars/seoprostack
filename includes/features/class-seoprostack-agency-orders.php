@@ -552,7 +552,7 @@ class SEOProStack_Agency_Orders extends SEOProStack_Feature {
         $email = '';
         $first = '';
         $last  = '';
-        foreach ($data as $key => $value) {
+        foreach ($data as $value) {
             if ('' === $email && is_string($value) && is_email($value)) {
                 $email = sanitize_email($value);
             }

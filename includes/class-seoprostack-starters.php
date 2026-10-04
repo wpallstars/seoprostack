@@ -875,7 +875,7 @@ final class SEOProStack_Starters {
             case 'fluentcrm_settings':
                 $value = self::resolve_setting($item);
                 fluentcrm_update_option((string) $item['option'], $value);
-                return array('option' => (string) $item['option'], 'hash' => md5((string) wp_json_encode($value)), 'name' => (string) $item['option']);
+                return array('option' => (string) $item['option'], 'hash' => md5((string) wp_json_encode($value)), 'name' => (string) $item['option']); // NOSONAR: a fingerprint to notice changes, not security; stored, so it stays md5.
 
             case 'fluentform_forms':
                 return self::create_form($item);
@@ -913,7 +913,7 @@ final class SEOProStack_Starters {
                 if (is_wp_error($id) || !$id) {
                     return null;
                 }
-                return array('id' => (int) $id, 'hash' => md5((string) get_post_field('post_content', $id, 'raw')), 'name' => (string) $item['title']);
+                return array('id' => (int) $id, 'hash' => md5((string) get_post_field('post_content', $id, 'raw')), 'name' => (string) $item['title']); // NOSONAR: a fingerprint to notice changes, not security; stored, so it stays md5.
 
             case 'seoprostack_settings':
                 $key   = (string) $item['key'];
@@ -921,7 +921,7 @@ final class SEOProStack_Starters {
                 if (is_wp_error($value)) {
                     return null;
                 }
-                return array('key' => $key, 'hash' => md5((string) wp_json_encode($value)), 'name' => $key);
+                return array('key' => $key, 'hash' => md5((string) wp_json_encode($value)), 'name' => $key); // NOSONAR: a fingerprint to notice changes, not security; stored, so it stays md5.
         }
         return null;
     }
@@ -977,7 +977,7 @@ final class SEOProStack_Starters {
                 continue;
             }
             $current = SEOProStack_Settings::get($key);
-            if (md5((string) wp_json_encode($current)) !== $record['hash']) {
+            if (md5((string) wp_json_encode($current)) !== $record['hash']) { // NOSONAR: a fingerprint to notice changes, not security; stored, so it stays md5.
                 return false; // Changed by someone since: leave it.
             }
             $wanted = self::setting_value($item);
@@ -988,7 +988,7 @@ final class SEOProStack_Starters {
             if (is_wp_error($value) || $value === $current) {
                 return false;
             }
-            $records[$i]['hash'] = md5((string) wp_json_encode($value));
+            $records[$i]['hash'] = md5((string) wp_json_encode($value)); // NOSONAR: a fingerprint to notice changes, not security; stored, so it stays md5.
             return true;
         }
         return false;
@@ -1085,7 +1085,7 @@ final class SEOProStack_Starters {
                 }
             }
         }
-        return array('id' => (int) $course, 'children' => $children, 'hash' => md5((string) get_post_field('post_content', $course, 'raw')), 'name' => (string) $item['title']);
+        return array('id' => (int) $course, 'children' => $children, 'hash' => md5((string) get_post_field('post_content', $course, 'raw')), 'name' => (string) $item['title']); // NOSONAR: a fingerprint to notice changes, not security; stored, so it stays md5.
     }
 
     /**
@@ -1266,7 +1266,7 @@ final class SEOProStack_Starters {
         }
 
         $stored = \FluentForm\App\Models\Form::find($id);
-        return array('id' => $id, 'hash' => md5((string) ($stored ? $stored->form_fields : '')), 'name' => $title);
+        return array('id' => $id, 'hash' => md5((string) ($stored ? $stored->form_fields : '')), 'name' => $title); // NOSONAR: a fingerprint to notice changes, not security; stored, so it stays md5.
     }
 
     /**
@@ -1880,7 +1880,7 @@ final class SEOProStack_Starters {
                 if (null === $stored || '' === $stored) {
                     return false;
                 }
-                if (md5((string) wp_json_encode($stored)) !== (string) $record['hash']) {
+                if (md5((string) wp_json_encode($stored)) !== (string) $record['hash']) { // NOSONAR: a fingerprint to notice changes, not security; stored, so it stays md5.
                     return $name;
                 }
                 fluentcrm_delete_option($option);
@@ -1904,7 +1904,7 @@ final class SEOProStack_Starters {
                 }
                 $id = (int) $form->id;
                 if (\FluentForm\App\Models\Submission::where('form_id', $id)->count() > 0
-                    || md5((string) $form->form_fields) !== (string) $record['hash']
+                    || md5((string) $form->form_fields) !== (string) $record['hash'] // NOSONAR: a fingerprint to notice changes, not security; stored, so it stays md5.
                     || self::form_embedded($id)) {
                     return $name;
                 }
@@ -1952,7 +1952,7 @@ final class SEOProStack_Starters {
                     'posts_per_page'   => 1,
                     'no_found_rows'    => true,
                 ));
-                if ($enrolled || md5((string) $course->post_content) !== (string) $record['hash']) {
+                if ($enrolled || md5((string) $course->post_content) !== (string) $record['hash']) { // NOSONAR: a fingerprint to notice changes, not security; stored, so it stays md5.
                     return $name;
                 }
                 foreach (array_reverse(isset($record['children']) ? (array) $record['children'] : array()) as $child) {
@@ -1966,7 +1966,7 @@ final class SEOProStack_Starters {
                 if (!$page || 'page' !== $page->post_type || 'trash' === $page->post_status) {
                     return false;
                 }
-                if ('draft' !== $page->post_status || md5((string) $page->post_content) !== (string) $record['hash']) {
+                if ('draft' !== $page->post_status || md5((string) $page->post_content) !== (string) $record['hash']) { // NOSONAR: a fingerprint to notice changes, not security; stored, so it stays md5.
                     return $name;
                 }
                 wp_delete_post((int) $page->ID, true);
@@ -1978,7 +1978,7 @@ final class SEOProStack_Starters {
                 if (!isset($schema[$key])) {
                     return false;
                 }
-                if (md5((string) wp_json_encode(SEOProStack_Settings::get($key))) !== (string) $record['hash']) {
+                if (md5((string) wp_json_encode(SEOProStack_Settings::get($key))) !== (string) $record['hash']) { // NOSONAR: a fingerprint to notice changes, not security; stored, so it stays md5.
                     return $name;
                 }
                 SEOProStack_Settings::set($key, isset($schema[$key]['default']) ? $schema[$key]['default'] : null);

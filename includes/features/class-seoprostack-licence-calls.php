@@ -363,7 +363,7 @@ class SEOProStack_Licence_Calls extends SEOProStack_Feature {
             $body = self::stable($body);
         }
         $method = isset($args['method']) ? strtoupper((string) $args['method']) : 'GET';
-        return md5($method . ' ' . $url . ' ' . (is_string($body) ? $body : (string) wp_json_encode($body)));
+        return md5($method . ' ' . $url . ' ' . (is_string($body) ? $body : (string) wp_json_encode($body))); // NOSONAR: a cache or lock key, not security.
     }
 
     /**
