@@ -1,0 +1,133 @@
+{
+  "schema": "aidevops.repo-metrics.v1",
+  "schema_version": 1,
+  "generated_at": "2026-10-04T09:31:06Z",
+  "tool": {
+    "name": "aidevops repo-metrics",
+    "version": "1.0.0"
+  },
+  "repo": {
+    "name": "seoprostack",
+    "slug": "wpallstars/seoprostack"
+  },
+  "summary": {
+    "source_files": 338,
+    "code": 61667,
+    "comments": 20150,
+    "blanks": 5928,
+    "languages": 9,
+    "dependencies": 12
+  },
+  "languages": [
+    {
+      "name": "PHP",
+      "files": 155,
+      "code": 41976,
+      "comments": 18735,
+      "blanks": 4001,
+      "percentage": 68.07,
+      "color": "#4F5D95"
+    },
+    {
+      "name": "JavaScript",
+      "files": 29,
+      "code": 5847,
+      "comments": 740,
+      "blanks": 450,
+      "percentage": 9.48,
+      "color": "#f1e05a"
+    },
+    {
+      "name": "JSON",
+      "files": 98,
+      "code": 5266,
+      "comments": 0,
+      "blanks": 0,
+      "percentage": 8.54,
+      "color": "#292929"
+    },
+    {
+      "name": "Shell",
+      "files": 14,
+      "code": 2657,
+      "comments": 434,
+      "blanks": 277,
+      "percentage": 4.31,
+      "color": "#89e051"
+    },
+    {
+      "name": "Markdown",
+      "files": 15,
+      "code": 2647,
+      "comments": 0,
+      "blanks": 667,
+      "percentage": 4.29,
+      "color": "#083fa1"
+    },
+    {
+      "name": "CSS",
+      "files": 14,
+      "code": 2342,
+      "comments": 174,
+      "blanks": 478,
+      "percentage": 3.8,
+      "color": "#563d7c"
+    },
+    {
+      "name": "SVG",
+      "files": 2,
+      "code": 539,
+      "comments": 18,
+      "blanks": 6,
+      "percentage": 0.87,
+      "color": "#6e7781"
+    },
+    {
+      "name": "YAML",
+      "files": 10,
+      "code": 385,
+      "comments": 46,
+      "blanks": 47,
+      "percentage": 0.62,
+      "color": "#cb171e"
+    },
+    {
+      "name": "TOML",
+      "files": 1,
+      "code": 8,
+      "comments": 3,
+      "blanks": 2,
+      "percentage": 0.01,
+      "color": "#9c4221"
+    }
+  ],
+  "dependencies": {
+    "direct": 6,
+    "locked": 12,
+    "total": 12,
+    "ecosystems": [
+      "composer"
+    ],
+    "manifests": [
+      {
+        "path": "composer.json",
+        "ecosystem": "composer",
+        "direct": 6,
+        "locked": 12,
+        "dependencies": [
+          "dealerdirect/phpcodesniffer-composer-installer",
+          "phpcompatibility/phpcompatibility-wp",
+          "phpstan/extension-installer",
+          "phpstan/phpstan",
+          "szepeviktor/phpstan-wordpress",
+          "wp-coding-standards/wpcs"
+        ]
+      }
+    ]
+  },
+  "refresh": {
+    "default_policy": "weekly scheduled refresh plus manual runs; skip generated outputs younger than 24h in managed workflows",
+    "cost_profile": "fast local git/unignored-file scan; no network by default",
+    "top_languages": 6
+  }
+}
