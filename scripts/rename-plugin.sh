@@ -24,7 +24,7 @@
 #                   the readme.txt short description and the line under
 #                   README.md's title.
 #   --author        Author header.
-#   --author-uri    Author URI header and the settings screen's website button.
+#   --author-uri    Author URI header.
 #   --plugin-uri    Plugin URI header (default: the GitHub repository page).
 #   --contributors  readme.txt Contributors, WordPress.org usernames (a, b).
 #   --donate        readme.txt Donate link and the settings screen's donate
@@ -167,7 +167,10 @@ set_version() {
 	local main_file="$1"
 	local starter="$2"
 	local first="First version, made from $FROM_NAME $starter."
-	set_field "$main_file" "Version" "$VERSION"
+	local file
+	for file in "$main_file" README.md; do
+		set_field "$file" "Version" "$VERSION"
+	done
 	set_field readme.txt "Stable tag" "$VERSION"
 	CONST="${TO_CONST}_VERSION" VALUE="$VERSION" awk '
 		!done && match($0, "^define\\(\047" ENVIRON["CONST"] "\047,[ \t]*\047") {
@@ -193,8 +196,10 @@ Every change: changelog.txt."
 }
 
 # Rebuild README.md's GitHub badges block for the new repository. The
-# SonarCloud key is owner_repo; the Codacy badge has a per-project ID, so it
-# is left out until the new repository's own Codacy badge is added.
+# SonarCloud key is owner_repo. The Codacy badge has a per-project ID, and
+# CodeFactor's badge is a broken image until the repository is added on
+# codefactor.io, so both are left out until that service has the new
+# repository (DEVELOPMENT.md → Services setup).
 set_badges() {
 	local repo="$1"
 	local url="https://github.com/$repo"
@@ -203,7 +208,6 @@ set_badges() {
 	BADGES="<!-- On GitHub only: the Read Me tab skips this block. scripts/rename-plugin.sh rewrites it. -->
 [![CI]($url/actions/workflows/ci.yml/badge.svg?branch=main)]($url/actions/workflows/ci.yml)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=$key&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=$key)
-[![CodeFactor](https://www.codefactor.io/repository/github/$repo/badge)](https://www.codefactor.io/repository/github/$repo)
 [![License: GPL v2 or later](https://img.shields.io/badge/License-GPL%20v2%20or%20later-blue.svg)](LICENSE)
 [![Latest release](https://img.shields.io/github/v/release/$repo)]($url/releases)
 
@@ -255,7 +259,6 @@ set_identity() {
 	[[ -z "$AUTHOR" ]] || set_field "$main_file" "Author" "$AUTHOR"
 	if [[ -n "$AUTHOR_URI" ]]; then
 		set_field "$main_file" "Author URI" "$AUTHOR_URI"
-		set_link "$setup_file" website "$AUTHOR_URI"
 	fi
 	[[ -z "$PLUGIN_URI" ]] || set_field "$main_file" "Plugin URI" "$PLUGIN_URI"
 	[[ -z "$CONTRIBUTORS" ]] || set_field readme.txt "Contributors" "$CONTRIBUTORS"

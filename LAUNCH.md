@@ -29,7 +29,7 @@ own, `readme.txt` headroom, and the community files.
       from launch). Change it if the plugin gets its own page.
 - [ ] **Changelog**: name the Unreleased section for the version submitted, in
       `readme.txt` and `changelog.txt`.
-- [ ] **Assets** for the SVN `assets/` folder (not in the plugin zip):
+- [x] **Assets** for the SVN `assets/` folder (not in the plugin zip):
       `banner-772x250` and `banner-1544x500` (PNG or JPG, up to 4 MB),
       `icon-128x128` and `icon-256x256` (PNG, JPG or GIF, up to 1 MB) and
       optionally `icon.svg`, and `screenshot-N` (PNG or JPG, up to 10 MB), with a
@@ -38,7 +38,10 @@ own, `readme.txt` headroom, and the community files.
       The banners are done: `.wordpress-org/banner-772x250.png` and
       `banner-1544x500.png`, built from `.wordpress-org/banner.svg` with
       `scripts/build-banner.sh` (which also writes the Read Me tab's
-      `admin/images/banner.svg`). Icons and screenshots are still to do.
+      `admin/images/banner.svg`). The icons are the banner's picture on its
+      own, without words: `.wordpress-org/icon.svg`, exported by the same
+      script as `icon-256x256.png` and `icon-128x128.png`. Screenshots 1–3
+      are `.wordpress-org/screenshot-N.png`, captioned in `readme.txt`.
 
 ## WordPress.org: guideline review for this plugin
 

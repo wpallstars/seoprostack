@@ -136,6 +136,30 @@ http_status() {
 	return 0
 }
 
+# README.md's "Version: X.Y.Z" line under the intro, shown on GitHub and in
+# the Read Me tab, must match the plugin's Version. A {PREFIX}_VERSION
+# placeholder still works in the Read Me tab, but GitHub shows it as written.
+check_readme_version() {
+	local sha="$1"
+	local version="$2"
+	git cat-file -e "$sha:README.md" 2>/dev/null || return 0
+	local line
+	# Read to the end and keep the first match: sed quitting early would end
+	# git show with SIGPIPE on a README over the pipe buffer (pipefail, set -e).
+	line="$(git show "$sha:README.md" | sed -nE 's/^Version:[[:space:]]*//p')"
+	line="${line%%$'\n'*}"
+	if [[ -z "$line" ]]; then
+		return 0
+	elif [[ "$line" = "$version" ]]; then
+		ok "README.md Version: matches"
+	elif [[ "$line" = "{${VERSION_CONSTANT}}" ]]; then
+		warn "README.md shows 'Version: $line' on GitHub; write the version ($version) instead"
+	else
+		err "README.md Version: is '$line', Version: is '$version'"
+	fi
+	return 0
+}
+
 check_versions() {
 	local plugin_header="$1"
 	local readme="$2"
@@ -321,6 +345,90 @@ check_wporg() {
 		*) warn "contributor '$user' has no WordPress.org profile (HTTP $status); Contributors must be WordPress.org usernames, case-sensitive" ;;
 		esac
 	done
+	return 0
+}
+
+# WIDTHxHEIGHT of a PNG at the ref, from its header (empty if not a PNG).
+png_size() {
+	local sha="$1"
+	local path="$2"
+	local bytes
+	# od stops reading after the header, so git may get SIGPIPE: ignore that.
+	bytes="$(git cat-file blob "$sha:$path" 2>/dev/null | od -An -tu1 -N24 || true)"
+	awk '{ for (i = 1; i <= NF; i++) b[++n] = $i }
+		END {
+			if (n < 24 || b[2] != 80 || b[3] != 78 || b[4] != 71) exit
+			printf "%dx%d", ((b[17] * 256 + b[18]) * 256 + b[19]) * 256 + b[20], ((b[21] * 256 + b[22]) * 256 + b[23]) * 256 + b[24]
+		}' <<<"$bytes"
+	return 0
+}
+
+# The listing images in .wordpress-org/ (copied to WordPress.org's SVN
+# assets/ folder): banners and icons at their sizes, and screenshot-N files
+# numbered from 1 with one readme.txt caption each.
+check_wporg_assets() {
+	local sha="$1"
+	local readme="$2"
+	section "WordPress.org assets (.wordpress-org/)"
+
+	local files
+	files="$(git ls-tree --name-only "$sha" .wordpress-org/ | sed 's|^\.wordpress-org/||')"
+
+	local spec name size found file
+	for spec in banner:772x250 banner:1544x500 icon:128x128 icon:256x256; do
+		name="${spec%%:*}-${spec#*:}"
+		found=""
+		for file in "$name.png" "$name.jpg"; do
+			grep -qxF "$file" <<<"$files" && found="$file" && break
+		done
+		if [[ -z "$found" ]]; then
+			if [[ "${spec%%:*}" = icon ]]; then
+				warn "no $name.png; WordPress.org shows a generated pattern instead (scripts/build-banner.sh builds it from icon.svg)"
+			else
+				warn "no $name.png; the WordPress.org page has no banner (scripts/build-banner.sh builds it from banner.svg)"
+			fi
+			continue
+		fi
+		size="$(png_size "$sha" ".wordpress-org/$found")"
+		if [[ -z "$size" ]]; then
+			note "$found: size not checked (not a PNG)"
+		elif [[ "$size" = "${spec#*:}" ]]; then
+			ok "$found ($size)"
+		else
+			warn "$found is $size, not ${spec#*:}"
+		fi
+	done
+	if grep -qxF "icon.svg" <<<"$files"; then ok "icon.svg"; fi
+
+	local shots captions
+	shots="$(grep -E '^screenshot-[0-9]+\.(png|jpe?g|gif)$' <<<"$files" | sed -E 's/^screenshot-([0-9]+)\..*/\1/' | sort -n || true)"
+	captions="$(awk '/^== *[Ss]creenshots *==/ { s = 1; next } s && /^== / { exit } s && /^[0-9]+\. / { sub(/\..*/, ""); print }' <<<"$readme" | sort -n)"
+	if [[ -z "$shots" ]] && [[ -z "$captions" ]]; then
+		note "no screenshots"
+		return 0
+	fi
+	local numbers dupes count
+	numbers="$(sort -un <<<"$shots")"
+	dupes="$(uniq -d <<<"$shots")"
+	[[ -z "$dupes" ]] || err "more than one screenshot file for number $(number_list "$dupes") (keep one of .png, .jpg, .gif)"
+	count="$(grep -c . <<<"$numbers" || true)"
+	if [[ "$count" -gt 0 ]] && [[ "$numbers" != "$(seq 1 "$count")" ]]; then
+		err "screenshot files are numbered $(number_list "$numbers"); WordPress.org needs 1, 2, 3 and so on with no gaps"
+	fi
+	if [[ "$numbers" = "$(sort -un <<<"$captions")" ]]; then
+		ok "$count screenshots, each with a readme.txt caption"
+	else
+		err "screenshot files ($(number_list "$numbers")) and readme.txt Screenshots captions ($(number_list "$captions")) do not match: one caption per .wordpress-org/screenshot-N file; GitHub-only pictures go in docs/images/"
+	fi
+	return 0
+}
+
+# Numbers, one per line, as "1, 2, 3" ("none" when there are none).
+number_list() {
+	local numbers="$1"
+	local list
+	list="$(grep . <<<"$numbers" | paste -sd ',' - | sed 's/,/, /g' || true)"
+	printf '%s' "${list:-none}"
 	return 0
 }
 
@@ -672,8 +780,10 @@ main() {
 	printf '%s preflight: %s (%s)\n' "$PLUGIN_NAME" "$ref" "${sha:0:12}"
 	VERSION=""
 	check_versions "$plugin_header" "$readme" "$main_php"
+	check_readme_version "$sha" "$VERSION"
 	check_readme "$readme" "$plugin_header" "$VERSION"
 	check_wporg "$readme" "$plugin_header"
+	check_wporg_assets "$sha" "$readme"
 
 	local zips github_zip wporg_zip
 	zips="$("$root/scripts/build-release.sh" --ref "$sha" --out "$TMP_DIR/dist" --quiet)" || die "build failed"

@@ -17,7 +17,7 @@ Faster admin, writing, media, safer logins and tested plugin settings.
 
 Free and open source: no pro version, nothing locked.
 
-New sites start with the speed, server, plugin-loading and admin features that are safe everywhere on; those needing choices, or changing content, stay off. Use **Settings → SEO Pro Stack**; **Search features** also finds replaced plugins. Replacements import settings once, never change the original's and wait while it is active.
+Features safe on every site start on; those needing choices stay off. Use **Settings → SEO Pro Stack**; **Search features** also finds replaced plugins. Replacements import settings once, never change the original's and wait while it is active.
 
 = A calmer, faster admin =
 
@@ -41,7 +41,7 @@ New sites start with the speed, server, plugin-loading and admin features that a
 * **Duplicate posts**, **Staged new versions** (edit a live post as a draft) and **Shareable preview links** for people without an account.
 * **Pinned posts for any post type**, **Select all across pages**, **Order by hand**, **Change post type**, **Term tools** (merge, move, set parent, unused terms), **Search custom fields** and **Old post addresses**.
 * **Tag clouds and related posts**: A–Z indexes, grouped terms in tabs or accordions and a Related posts block. TaxoPress and Tag Groups pages keep working after they are gone.
-* **Custom fields to content**: ACF/SCF text into content and excerpts, with WP-CLI sync. Check templates for fields shown twice.
+* **Custom fields to content**: ACF/SCF text into content and excerpts, with WP-CLI sync.
 * **Restrict content**: posts, parts of posts, categories, blocks and shop products only for members or chosen roles. **Menu item visibility** by login or role.
 * **iFrame block** (only the domains and roles you allow), **Link cards**, **Wikipedia previews**, **Word documents**, **Brand icons** and **Like, save and share**.
 * **Spectra block replacements** keep pages working without Spectra. **TranslatePress colours** follow Kadence light and dark modes. **Kadence query filters** scroll to results.
@@ -60,7 +60,7 @@ New sites start with the speed, server, plugin-loading and admin features that a
 * **Rank Math defaults**: empty keywords from titles, pillar warnings and selected-post removal.
 * **Short links** such as /go/offer/ with click counts, **Short addresses for custom post types** and **410 Gone** for removed pages.
 * **External link icons**: text-link colours and Kadence dark mode, without scripts; replaces Link Whisper's icon only.
-* **Internal linking tools** (off): approved suggestions, undo, counts, orphans and read-only Link Whisper retirement checks. Link health and click totals are separate opt-ins.
+* **Internal linking tools** (off): approved suggestions, undo, counts, orphans and read-only Link Whisper retirement checks.
 * **Load pages before the click**, **Delay scripts until interaction**, **Delayed Google Analytics** and a faster editor with Kadence Blocks.
 * **Ask before licence checks**: premium plugins call home once, daily or never, as you choose.
 * **Clean the database weekly**: old spam, bin and expired data, and tasks of plugins that are gone.
@@ -72,7 +72,7 @@ New sites start with the speed, server, plugin-loading and admin features that a
 
 * **Plugin presets** and **starter data**: our tested settings for other plugins, and the lists, tags, forms and boards we use in Fluent plugins; only when you ask, and undoable.
 * **Plugins menu** in the admin bar, **Plugin sizes**, **Clean up deleted plugins** and **Hosting needs** (what to ask your host for).
-* **Fixes for other plugins**: works around their bugs, such as Lasso Lite calling its server on every admin screen.
+* **Fixes for other plugins**: works around their known bugs.
 * **Agency**: order flow, client dashboard and examples.
 * **Discover**: the Kadence theme and the free and Pro plugins, hosting and tools we use.
 
@@ -127,11 +127,20 @@ Random, hashed links work once for an hour. Password-step two-factor checks are 
 
 From where you installed it. New versions come out on GitHub first.
 
-= Where do I report a problem? =
+= Where do I get help? =
 
-Use **Report a problem** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpallstars/seoprostack/issues).
+Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpallstars/seoprostack/issues).
+
+== Screenshots ==
+
+1. The settings screen (Settings → SEO Pro Stack) on the Admin tab.
+2. The Speed tab: each feature is one switch.
+3. The Read Me tab, showing the plugin's guide.
 
 == Changelog ==
+
+= Unreleased =
+* New: screenshots. Header buttons are Source code, Support and Buy me a coffee.
 
 = 0.13.0 =
 * New: Developer admins: only chosen administrators change plugins, themes, admins and site settings.

@@ -42,7 +42,8 @@ expected there and fails on the updater findings in the WordPress.org zip.
 ## GitHub release
 
 1. In a pull request, set the version in `{slug}.php` (`Version:` and
-   `{PREFIX}_VERSION`) and `readme.txt` (`Stable tag:`), rename the
+   `{PREFIX}_VERSION`), `readme.txt` (`Stable tag:`) and `README.md` (the
+   `Version:` line under the intro, which GitHub shows as written), rename the
    changelog's Unreleased section to the version in `readme.txt`,
    `changelog.txt` and `README.md`, and add an upgrade notice if people need
    to act. `readme.txt` keeps only the newest version, in short, and must stay
@@ -142,7 +143,10 @@ separate from the account password and is set on the WordPress.org profile
 3. Copy trunk to the tag: `svn cp trunk tags/X.Y.Z`. `Stable tag:` in
    `trunk/readme.txt` and `tags/X.Y.Z/readme.txt` must be `X.Y.Z`; never
    `trunk`.
-4. Put the banners, icons and screenshots in `assets/`.
+4. Copy the listing images from `.wordpress-org/` to `assets/`: the banner
+   and icon PNGs, `icon.svg` and the `screenshot-N` files (not
+   `banner.svg`, which is only a source). `scripts/preflight-release.sh`
+   checks them under "WordPress.org assets".
 5. `svn ci -m "Release X.Y.Z"`, then check the plugin page and download.
 6. Consider release confirmation emails (Plugin Handbook → Release
    Confirmation Emails), so a release goes out only after it is confirmed.
