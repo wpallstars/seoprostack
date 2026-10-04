@@ -5,7 +5,7 @@ Tags: magic login, iframe, schedule posts, auto upload images, admin
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 0.14.1
+Stable tag: 0.14.2
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -65,6 +65,7 @@ Features safe on every site start on; those needing choices stay off. Use **Sett
 * **Ask before licence checks**: premium plugins call home once, daily or never, as you choose.
 * **Clean the database weekly**: old spam, bin and expired data, and tasks of plugins that are gone.
 * **Load large settings only where they are used** (single sites).
+* **Faster page counts on long lists** (off): separate counts, exact page numbers.
 * **Database key cleanup**: duplicate indexes and the plugin that added each, in Site Health; remove one by one, with restore SQL.
 * **Load plugins only where needed**: skips plugins a page does not use, in admin and on the site, with always-load bypasses.
 
@@ -135,9 +136,9 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 
 == Changelog ==
 
-= 0.14.1 =
-* Change: plugin skipping for logged-in people now on for older sites too.
-* Change: admin bar Plugins menu shows loaded, skipped and deactivated plugins.
-* Change: no affiliate links in the WordPress.org build.
+= 0.14.2 =
+* Fix: page learning skips fewer pages: code in scripts and styles is not read as shortcodes.
+* Fix: one page with unknown content no longer makes its kind load every plugin.
+* Change: WordPress.org gets each version 30 days after GitHub.
 
 Older: `changelog.txt`.
