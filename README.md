@@ -1304,7 +1304,7 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folderâ
 
 ## Changelog
 
-### Unreleased
+### 0.12.8
 
 - New: **Clean the database weekly** can remove scheduled tasks of plugins that are no longer active (unticked by default): tasks nothing ran on web cron checks at least 7 days apart, never WordPress's own, hosts' agents' (`mnx_*`) or installed plugins'. The options list what will go and what went, with **Put back** (GitHub issue #278).
 - New: **Hosting needs** counts the options saved on 1 in 20 page views and names those saved on most of them, with the plugin that saves them (`seoprostack_hosting_writes`); each save is a database write and clears the object cache's copy of the autoloaded options (GitHub issue #279).
