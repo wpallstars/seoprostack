@@ -28,7 +28,8 @@ How changes are made and checked: `DEVELOPMENT.md`. Releases: `RELEASING.md`.
   (`includes/class-{prefix}-settings.php`), the admin screen and Read Me tab
   (`admin/`), the shared GitHub updater (`includes/github-updater/`), the
   scripts, the CI workflow and tool configuration, and the shared docs (this
-  file, `DEVELOPMENT.md`, `RELEASING.md`, `CONTRIBUTING.md`, `SECURITY.md`).
+  file, `DEVELOPMENT.md`, `RELEASING.md`, `CONTRIBUTING.md`,
+  `CODE_OF_CONDUCT.md`, `SECURITY.md`).
   A plugin's copy differs from the starter's only in the names above. They
   hold no code for one plugin: they read `{Prefix}_Setup`
   (`includes/class-{prefix}-setup.php`: features, settings tabs, header
@@ -287,7 +288,11 @@ where still active, reads `Version:` on `main` instead), so:
 
 - Publish the GitHub release (tag `vX.Y.Z`, asset `{slug}-X.Y.Z.zip` with a
   `{slug}/` folder, built with `.distignore`) straight after the version
-  change reaches `main`.
+  change reaches `main`: push the tag, and the Release workflow
+  (`.github/workflows/release.yml`) builds, checks and publishes it, with
+  signed build provenance in a public repository
+  (`provenance-{slug}-X.Y.Z.sigstore.json`). No other asset name may start
+  with `{slug}`: Git Updater installs the first one that does.
 - Never put a pre-release version (`-beta1`, `-rc1`) in `Version:` on `main`;
   mark test releases as pre-releases on GitHub.
 - The WordPress.org build is the release build without the files in
@@ -301,7 +306,8 @@ where still active, reads `Version:` on `main` instead), so:
   asset with a `{folder}/` inside.
 - Build both zips with `scripts/build-release.sh`, check them with
   `scripts/preflight-release.sh` and `scripts/plugin-check.sh`. None of them
-  tags, publishes or uploads anything.
+  tags, publishes or uploads anything; only the Release workflow publishes,
+  and only from a tag someone pushed.
 - Releasing and submitting to WordPress.org need the owner's say. A private
   repository cannot be read by sites without a token
   (`WPALLSTARS_GITHUB_TOKEN`).

@@ -262,7 +262,7 @@ class SEOProStack_Admin_Menu extends SEOProStack_Feature {
             ),
             self::WRITERS_KEY => array(
                 'type'        => 'bool',
-                'default'     => true,
+                'default'     => false,
                 'parent'      => self::KEY,
                 'reload'      => true,
                 'label'       => __('Writers see only writing', 'seoprostack'),

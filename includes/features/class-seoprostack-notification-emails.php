@@ -39,7 +39,7 @@ class SEOProStack_Notification_Emails extends SEOProStack_Feature {
                 'default'     => array('auto_plugin_update', 'auto_theme_update'),
                 'parent'      => self::KEY,
                 'label'       => __('Do not send', 'seoprostack'),
-                'description' => __('Password reset links are always sent to people who are not administrators.', 'seoprostack'),
+                'description' => __('Password reset links are always sent to people who are not administrators. Auto-update reports are still sent when an update fails.', 'seoprostack'),
                 'options'     => array(__CLASS__, 'email_options'),
             ),
         );
@@ -145,10 +145,10 @@ class SEOProStack_Notification_Emails extends SEOProStack_Feature {
             add_filter('auto_core_update_send_email', array(__CLASS__, 'filter_core_update_email'), 10, 2);
         }
         if (isset($off['auto_plugin_update'])) {
-            add_filter('auto_plugin_update_send_email', $no);
+            add_filter('auto_plugin_update_send_email', array(__CLASS__, 'filter_item_update_email'), 10, 2);
         }
         if (isset($off['auto_theme_update'])) {
-            add_filter('auto_theme_update_send_email', $no);
+            add_filter('auto_theme_update_send_email', array(__CLASS__, 'filter_item_update_email'), 10, 2);
         }
     }
 
@@ -176,5 +176,22 @@ class SEOProStack_Notification_Emails extends SEOProStack_Feature {
      */
     public static function filter_core_update_email($send, $type) {
         return 'success' === $type ? false : $send;
+    }
+
+    /**
+     * Stop plugin and theme auto-update emails when every update worked;
+     * keep them when any update failed.
+     *
+     * @param bool  $send    Whether to send.
+     * @param mixed $results Update results; each has a result that is true on success.
+     * @return bool
+     */
+    public static function filter_item_update_email($send, $results = array()) {
+        foreach ((array) $results as $result) {
+            if (!is_object($result) || !isset($result->result) || true !== $result->result) {
+                return $send;
+            }
+        }
+        return false;
     }
 }
