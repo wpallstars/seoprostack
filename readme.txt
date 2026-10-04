@@ -43,7 +43,7 @@ Features safe on every site start on; those needing choices stay off. Use **Sett
 * **Tag clouds and related posts**: A–Z indexes, grouped terms in tabs or accordions and a Related posts block. TaxoPress and Tag Groups pages keep working after they are gone.
 * **Custom fields to content**: ACF/SCF text into content and excerpts, with WP-CLI sync.
 * **Restrict content**: posts, parts of posts, categories, blocks and shop products only for members or chosen roles. **Menu item visibility** by login or role.
-* **iFrame block** (only the domains and roles you allow), **Link cards**, **Wikipedia previews**, **Word documents**, **Brand icons** and **Like, save and share**.
+* **iFrame block** (only the domains and roles you allow), **Link cards**, **Wikipedia previews**, **Word documents**, **Brand icons** (Simple Icons, Font Awesome Free) and **Like, save and share**.
 * **Spectra block replacements** keep pages working without Spectra. **TranslatePress colours** follow Kadence light and dark modes. **Kadence query filters** scroll to results.
 
 = Media =
@@ -90,14 +90,10 @@ Some Discover vendor and Go Pro links may earn the developer a commission or cre
 * **ApiFlash** (api.apiflash.com): [terms](https://apiflash.com/terms_of_service), [privacy policy](https://apiflash.com/privacy_policy).
 * **Screenshot Machine** (api.screenshotmachine.com): [terms](https://www.screenshotmachine.com/termsandconditions.php), [privacy policy](https://www.screenshotmachine.com/privacypolicy.php).
 * **Wikipedia** (*.wikipedia.org): Wikipedia previews load in the visitor’s browser when opened. [Privacy policy](https://foundation.wikimedia.org/wiki/Policy:Privacy_policy).
-* **Linked websites**: opted-in health checks contact public addresses in cached background batches, without queries or visitor data; their privacy policies apply. Click events stay on this site: daily totals for up to 90 days, no tracking cookies or visitor identifiers. Review consent and server logs.
+* **Linked websites**: opted-in health checks contact public addresses in cached background batches, without queries or visitor data; their privacy policies apply. Clicks stay on this site as daily totals for 90 days, without cookies or visitor IDs. Review consent and server logs.
 * **GitHub** (github.com, api.github.com), GitHub builds only: checks named repositories up to twice daily for releases; no site data sent. [Privacy](https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement).
 
-Other chosen addresses: Copy linked images downloads linked images; Link cards downloads page pictures; iFrames load embedded pages. Avatars without Gravatar stops gravatar.com requests. Short-link counts set a year-long cookie (`sps_link_` plus the link ID, holding “1”); totals only, no IP addresses. No other data is sent.
-
-= Developers =
-
-Filters extend settings, tabs and directories; see the Read Me tab.
+Other chosen addresses: Copy linked images downloads linked images; Link cards downloads page pictures; iFrames load embedded pages. Short-link counts set a year-long cookie (`sps_link_` plus the link ID, holding “1”); totals only, no IP addresses. No other data is sent.
 
 = Built with AI =
 
@@ -113,11 +109,11 @@ Install from Plugins → Add New and activate. Change features in Settings → S
 
 = What happens if I deactivate or delete the plugin? =
 
-Imported media stays. Deleting removes settings, caches, profile pictures, WebP/AVIF copies, short links and the must-use file. Watermarked originals stay in `uploads/seoprostack-originals-…`.
+Deactivating removes the must-use file of Load plugins only where needed, the `.htaccess` rules of Fixes for other plugins (LiteSpeed servers; both on by default) and those of optional features. Deleting also removes settings, caches, profile pictures, WebP/AVIF copies and short links; imported media and watermarked originals stay.
 
 = Does it work on multisite? =
 
-Yes. Settings are per site, and Free Plugins shows only to super admins. The Network Plugins screen offers to activate network-activated plugins on each site instead, so each site loads them only where needed.
+Yes. Settings are per site; Free Plugins is for super admins. Network Plugins offers to activate network-activated plugins per site, so each loads them only where needed.
 
 = Is the magic login safe? =
 
