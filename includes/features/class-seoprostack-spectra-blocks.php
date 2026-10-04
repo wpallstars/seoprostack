@@ -117,7 +117,7 @@ class SEOProStack_Spectra_Blocks extends SEOProStack_Feature {
         wp_enqueue_script(
             self::HANDLE,
             SEOPROSTACK_URL . $file,
-            array('wp-blocks', 'wp-element', 'wp-block-editor', 'wp-components', 'wp-compose', 'wp-data', 'wp-hooks', 'wp-i18n', 'wp-block-serialization-default-parser'),
+            array('wp-blocks', 'wp-element', 'wp-block-editor', 'wp-components', 'wp-compose', 'wp-data', 'wp-hooks', 'wp-i18n', 'wp-block-serialization-default-parser', 'wp-dom'),
             $ver,
             true
         );
