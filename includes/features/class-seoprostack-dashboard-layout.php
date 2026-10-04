@@ -107,10 +107,9 @@ class SEOProStack_Dashboard_Layout extends SEOProStack_Feature {
      * @return bool
      */
     private static function developer() {
-        if (class_exists('SEOProStack_Admin_Menu') && SEOProStack_Admin_Menu::enabled()) {
-            return SEOProStack_Admin_Menu::is_developer();
-        }
-        return is_multisite() ? is_super_admin() : current_user_can('manage_options');
+        // Every administrator while Developer admins is off; false while
+        // previewing another role (Organise the admin menu).
+        return SEOProStack_Developers::is_developer();
     }
 
     /**

@@ -11,7 +11,7 @@
  *               below the listed ones.
  * - hidden:     widgets nobody sees: news, plugin promotions and boxes
  *               that repeat a plugin's own screen.
- * - developers: widgets only developers see (see Organise the admin menu;
+ * - developers: widgets only developers see (see Developer admins;
  *               without it, people who can manage options).
  * - reports:    statistics only people who can publish see (not
  *               contributors).

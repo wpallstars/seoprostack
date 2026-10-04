@@ -21,7 +21,8 @@ Off by default except Hide admin bar items (Comments and + New), No fade between
 
 = A calmer, faster admin =
 
-* **Organise the admin menu**: the same sections on every site, role previews, client safeguards, writing only for contributors.
+* **Developer admins**: only the administrators you choose can install, switch or edit plugins and themes, make administrators or change site addresses and permalinks.
+* **Organise the admin menu**: the same sections on every site, role previews, writing only for contributors.
 * **Tidy the dashboard**, **Dashboard and sidebar widgets**, **Hide admin notices** (behind a megaphone) and a **More menu** for plugins' admin bar items.
 * **Quiet Freemius prompts** and **Quiet Appsero prompts** (on): no opt-in nags, upgrade offers or deactivation surveys.
 * **Tidy admin screens**, **Tidy WooCommerce admin**, **Tidy the login screen**, **Simpler block editor**, **Remove WordPress extras**, **Fewer Heartbeat requests**, **Limit post revisions** and **Lighter WooCommerce pages**: most of Disable Bloat.
