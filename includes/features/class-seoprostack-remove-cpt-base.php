@@ -409,7 +409,6 @@ class SEOProStack_Remove_Cpt_Base extends SEOProStack_Feature {
             'post_name__in'    => $shown,
             'posts_per_page'   => 100,
             'no_found_rows'    => true,
-            'suppress_filters' => true,
         )) as $post) {
             if (isset($pairs[$post->post_name])) {
                 $pairs[$post->post_name][] = $post;
@@ -417,7 +416,7 @@ class SEOProStack_Remove_Cpt_Base extends SEOProStack_Feature {
         }
 
         echo '<div class="sps-panel-note sps-panel-note--warning"><p>';
-        esc_html_e('These items keep their old address because a page or post already has their short one. To give an item its short address, edit one of its pair and change its slug (the last part of its address). Changing the item’s slug is usually safer: WordPress redirects its old address, which it does not do for pages.', 'seoprostack');
+        esc_html_e('These items keep their old address because a page or post already has their short one. To fix one, edit one of its pair and change its slug (the last part of its address). Change the page’s or post’s slug when the item should own the address: the item takes it over, so links to it then reach the item. Change the item’s slug to keep the page or post there: WordPress redirects the item’s old address.', 'seoprostack');
         echo '</p><ul class="sps-panel-list">';
         foreach ($pairs as $name => $posts) {
             $links = array();
