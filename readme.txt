@@ -5,7 +5,7 @@ Tags: magic login, iframe, schedule posts, auto upload images, admin
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 0.12.1
+Stable tag: 0.12.2
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -130,18 +130,14 @@ Use **Report a problem** in Settings → SEO Pro Stack or [GitHub](https://githu
 == Changelog ==
 
 = Unreleased =
-* Change: Magic login links replaces WP Magic Link Login, in part; its [wpmll_form] pages keep working.
-* New, off: Image loading chooses which pictures load straight away. Replaces Flying Images' lazy loading, in part.
-* New, off: Kadence query filters scroll to results.
-* Fix: MainWP Child's Branding footer text no longer shows below front-end pages.
-* Change: Tidy the dashboard starts AI Engine Advisor hidden, for developers only.
 * New, off: Pinned posts can lead Kadence Blocks Pro query loops.
 
-= 0.12.1 =
-* New: Term tools: slug patterns, bulk action and 301 redirects.
-* New: Plugins screen suggests deactivating Hostinger's default plugins.
-* Fix: no "Table doesn't exist" errors on network sites without Fluent tables.
-* Fix: Short addresses for custom post types works for post types registered without a query variable, instead of "page not found".
+= 0.12.2 =
+* New, off: Image loading chooses which pictures load straight away. Replaces Flying Images' lazy loading, in part.
+* New, off: Kadence query filters scroll to results.
+* Change: Magic login links replaces WP Magic Link Login, in part; its [wpmll_form] pages keep working.
+* Change: Tidy the dashboard starts AI Engine Advisor hidden, for developers only.
+* Fix: MainWP Child's Branding footer text no longer shows below front-end pages.
 
 Older: `changelog.txt`.
 
