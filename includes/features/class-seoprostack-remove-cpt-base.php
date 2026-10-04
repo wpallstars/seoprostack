@@ -240,15 +240,21 @@ class SEOProStack_Remove_Cpt_Base extends SEOProStack_Feature {
             return $query_vars;
         }
         $object = get_post_type_object($item->post_type);
-        if (!$object || !$object->query_var) {
+        if (!$object) {
             return $query_vars;
         }
         self::$resolved = $item->post_type;
         // Keep what else was asked for, such as a feed, embed or comment page.
-        $resolved                       = array_diff_key($query_vars, array_flip(self::MATCHED));
-        $resolved['post_type']          = $item->post_type;
-        $resolved[$object->query_var]   = $path;
-        $resolved['name']               = $path;
+        $resolved              = array_diff_key($query_vars, array_flip(self::MATCHED));
+        $resolved['post_type'] = $item->post_type;
+        if ($object->query_var) {
+            $resolved[$object->query_var] = $path;
+            $resolved['name']             = $path;
+        } else {
+            // Registered with query_var => false: query it the way
+            // WordPress's own rewrite rules for such types do.
+            $resolved[$object->hierarchical ? 'pagename' : 'name'] = $path;
+        }
         if ('' !== $page) {
             $resolved['page'] = $page;
         }
@@ -345,7 +351,11 @@ class SEOProStack_Remove_Cpt_Base extends SEOProStack_Feature {
         }
         $query = isset($_SERVER['QUERY_STRING']) ? (string) wp_unslash($_SERVER['QUERY_STRING']) : ''; // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- passed through as-is, not output.
         parse_str($query, $args);
-        unset($args[get_post_type_object($post->post_type)->query_var], $args['post_type'], $args['p'], $args['name'], $args['page']);
+        $query_var = get_post_type_object($post->post_type)->query_var;
+        if ($query_var) {
+            unset($args[$query_var]);
+        }
+        unset($args['post_type'], $args['p'], $args['name'], $args['pagename'], $args['page']);
         if (wp_safe_redirect($args ? add_query_arg(urlencode_deep($args), $target) : $target, 301, 'SEO Pro Stack')) {
             exit;
         }
