@@ -19,7 +19,7 @@
  * JavaScript lazy loading of background pictures, which rewrites every page.
  *
  * @package SEOProStack
- * @since 0.12.1
+ * @since 0.12.2
  */
 
 if (!defined('ABSPATH')) {

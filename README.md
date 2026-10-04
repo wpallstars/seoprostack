@@ -23,7 +23,7 @@ Go to **Settings → SEO Pro Stack**, or click the star next to your name in the
 
 ## Features
 
-Every feature is off by default except four: Hide admin bar items, which hides Comments and + New from the admin bar, No fade between admin screens, Quiet Freemius prompts and Fixes for other plugins. Copies installed from GitHub releases also have Updates from GitHub on. Features that replace a separate plugin say so on their card (“Replaces: …”) and import that plugin’s settings once when SEO Pro Stack is updated. The other plugin’s own settings are never changed or deleted. While that plugin is active, the feature waits and the plugin keeps doing the job, so the two never run side by side; the card says so, with a deactivate link that comes back to the same settings tab. Deactivate the plugin to switch over. The Plugins screen lists installed plugins that SEO Pro Stack can replace, with what to do next for each: deactivate it (its setting is on), switch the setting on, or delete it once inactive (single sites; on multisite another site may use it). Each of those plugins also gets a note under its own row saying which SEO Pro Stack setting makes it redundant and what to do next, including inactive plugins whose setting is still off; the notes are not hidden by **Hide**. When an active plugin does things on the site that SEO Pro Stack does not (such as Disable Bloat’s REST API switches), the line names them instead of saying the plugin can go. **Hide** hides the lines shown for that person until another step is needed.
+Every feature is off by default except four: Hide admin bar items, which hides Comments and + New from the admin bar, No fade between admin screens, Quiet Freemius prompts and Fixes for other plugins. Copies installed from GitHub releases also have Updates from GitHub on. Features that replace a separate plugin say so on their card (“Replaces: …”) and import that plugin’s settings once when SEO Pro Stack is updated. The other plugin’s own settings are never changed or deleted. While that plugin is active, the feature waits and the plugin keeps doing the job, so the two never run side by side; the card says so, with a deactivate link that comes back to the same settings tab. Deactivate the plugin to switch over. The Plugins screen lists installed plugins that SEO Pro Stack can replace, with what to do next for each: deactivate it (its setting is on), switch the setting on, or delete it once inactive (single sites; on multisite another site may use it). Each of those plugins also gets a note under its own row saying which SEO Pro Stack setting makes it redundant and what to do next, including inactive plugins whose setting is still off; the notes are not hidden by **Hide**. When an active plugin does things on the site that SEO Pro Stack does not (such as Disable Bloat’s REST API switches), the line names them instead of saying the plugin can go. **Hide** hides the lines shown for that person until another step is needed. Plugins that web hosts add to every new site (Hostinger AI and Hostinger Easy Onboarding) get a note under their row while active, saying what they are for and recommending deactivating them if that is not used, with a Deactivate link; nothing is deactivated or deleted for you.
 
 SEO Pro Stack replaces **53 plugins**, some of them in part, with free and Pro editions counted separately. The 44 that can be downloaded come to 41.9 MB zipped; SEO Pro Stack is 3.1 MB.
 
@@ -351,13 +351,16 @@ Drag rows by their handle, or focus the handle and use the arrow keys, in the li
 
 ### Term tools (Content)
 
-Three bulk actions on category, tag and other term lists:
+Bulk actions on category, tag and other term lists:
 
 - **Merge into**: the chosen terms become one (an existing term by name, or a new one). Their posts and child terms move to it.
 - **Move to taxonomy**: the terms, and the terms below them, become terms of another taxonomy with their posts, fields and IDs. A term whose slug the other taxonomy already uses stays where it is; merge them first.
 - **Set parent** (hierarchical taxonomies). A term cannot go below itself or its own children.
+- **Apply slug pattern**: add the taxonomy's prefix and suffix to selected existing terms, keeping their old addresses as redirects.
 
-Old archive addresses of merged and moved terms redirect with a 301 to the term that took over, when they would otherwise be a 404. Replaces Term Management Tools, which has no settings; the feature switches itself on while it is active.
+**Slug patterns**, in Term tools' Options, has one row per public taxonomy. Set a prefix such as `best-` or `how-to-` and a suffix such as `-guide` or `-statistics`: with `best-` and `-guide`, a new Technology term's slug is `best-technology-guide`. Slugs are permanent addresses, so use words that stay true rather than dates. Patterns apply on every term creation or edit, including imports and REST requests, while Term tools is on. Saving a pattern does not change existing terms until they are edited or selected for the bulk action. Empty fields leave slugs unchanged; existing prefixes and suffixes are not added twice. WordPress handles unique slugs.
+
+Old archive addresses of merged, moved and patterned terms redirect with a 301 to the term that took over, when they would otherwise be a 404. Replaces Term Management Tools, which has no settings; the feature switches itself on while it is active.
 
 **All | Unused (N)** above each term list shows only terms with no posts, so they can be checked and removed with the core **Delete** bulk action: the clean-up TaxoPress’ Manage Terms screen offers.
 
@@ -1174,6 +1177,7 @@ Developers can add settings, tabs and directory entries with filters:
 - `seoprostack_starters`: add or change starter data (plugin folder => `name`, `tested`, `updated`, `notes` and `items`, as in `starters/*.json`).
 - `seoprostack_woo_light_shop_page`: whether a page keeps WooCommerce’s scripts with Lighter WooCommerce pages on (bool), for products the content check does not see.
 - `seoprostack_replaced_plugin_extras`: what a replaced plugin does on this site that SEO Pro Stack does not (plain names, plugin folder). The Plugins screen names them instead of saying the plugin can go.
+- `seoprostack_host_plugins`: plugins web hosts add to new sites, which the Plugins screen recommends deactivating while active (plugin folder => `host` name and `use`, plain text completing “It is not needed to run your site, only for …”).
 - `seoprostack_menu_item_visible`: whether the current visitor sees a menu item (bool, menu item, its rule: `show` and `roles`), for membership plugins with their own levels.
 - `seoprostack_can_see_content`: whether the current visitor may see a post’s content (bool, post ID, the rules it follows: `show`, `roles`, and `term` when the rule is a term’s; empty when everyone may). Return true to let members of your own levels in.
 - `seoprostack_block_visible`: whether the current visitor sees a block (bool, parsed block, its rule: `show` and `roles`).
@@ -1212,9 +1216,15 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folder�
 
 ### Unreleased
 
-- Fix: on a network where Fluent Forms, Fluent Boards or FluentCommunity is active but a site has no tables for it, settings upgrades no longer log “Table doesn’t exist” database errors for that site: the agency order lists look for the table first.
 - Change: **Magic login links** replaces pixolette’s WP Magic Link Login (`wp-magic-link-login`, CodeCanyon), in part. Where it is installed, the Plugins screen says so, and the feature waits while it is active (`replaces` in its settings). Pages using its `[wpmll_form]` shortcode keep a login form after it is deactivated: the login link form, or WordPress’s password form while Magic login links is off.
-- New, off by default: **Image loading** (Speed tab) chooses how many pictures at the top of the content load straight away and which pictures and iframes are never lazy-loaded, through WordPress’s own lazy loading (`SEOProStack_Image_Loading`). Replaces Flying Images’ lazy loading, in part, importing its exclusions (settings version 21).
+- New, off by default: **Image loading** (Speed tab) chooses how many pictures at the top of a post or page load straight away and which pictures and iframes are never lazy-loaded, through WordPress’s own lazy loading (`SEOProStack_Image_Loading`). Replaces Flying Images’ lazy loading, in part, importing its exclusions (settings version 21).
+
+### 0.12.1
+
+- New: **Term tools** Options has a slug prefix and suffix per public taxonomy, such as `best-` or `how-to-` and `-guide` or `-statistics`, applied on creation and editing, plus **Apply slug pattern** for selected existing terms with 301 redirects from their old archives.
+- New: the Plugins screen recommends deactivating plugins web hosts add to new sites while they are active: Hostinger AI and Hostinger Easy Onboarding. A note under each row says what it is for, with a Deactivate link; nothing is deactivated for you. Add others with the `seoprostack_host_plugins` filter.
+- Fix: on a network where Fluent Forms, Fluent Boards or FluentCommunity is active but a site has no tables for it, settings upgrades no longer log “Table doesn’t exist” database errors for that site: the agency order lists look for the table first.
+- Fix: **Short addresses for custom post types** no longer gives “page not found” at the short address of post types registered without a query variable (`query_var` false, as some custom post type tools register them); their links already dropped the base, so the items could not be reached.
 
 ### 0.12.0
 

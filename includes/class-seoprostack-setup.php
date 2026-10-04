@@ -331,7 +331,8 @@ final class SEOProStack_Setup {
 
     /**
      * Admin requests: load and start the Discover tabs, the plugin
-     * installer and the Agency examples.
+     * installer, the Agency examples and the Plugins screen notes on
+     * plugins hosts add to new sites.
      */
     public static function admin() {
         $files = array(
@@ -347,6 +348,7 @@ final class SEOProStack_Setup {
             'admin/includes/class-tools-manager.php',
             'admin/includes/class-theme-manager.php',
             'admin/includes/class-agency-examples.php',
+            'admin/includes/class-host-plugins.php',
         );
         foreach ($files as $file) {
             require_once SEOPROSTACK_DIR . $file;
@@ -355,6 +357,7 @@ final class SEOProStack_Setup {
         SEOProStack_Theme_Manager::init();
         SEOProStack_Plugin_Manager::init();
         SEOProStack_Agency_Examples::init();
+        SEOProStack_Host_Plugins::init();
 
         // Priority 0, so other code filtering the tabs sees these as before.
         add_filter('seoprostack_admin_tabs', array(__CLASS__, 'discover_tabs'), 0);
