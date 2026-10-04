@@ -130,6 +130,7 @@ Use **Report a problem** in Settings → SEO Pro Stack or [GitHub](https://githu
 == Changelog ==
 
 = Unreleased =
+* New: Term tools: slug patterns, bulk action and 301 redirects.
 * New: Plugins screen suggests deactivating Hostinger's default plugins.
 * Fix: no "Table doesn't exist" errors on network sites without Fluent tables.
 * Fix: Short addresses for custom post types works for post types registered without a query variable, instead of "page not found".

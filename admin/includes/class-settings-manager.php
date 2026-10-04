@@ -127,14 +127,16 @@ class SEOProStack_Settings_Manager {
         $children = array_filter(SEOProStack_Settings::children_of($key), function ($child) {
             return empty($child['hidden']);
         });
-        $value    = SEOProStack_Settings::get($key);
-        $id       = 'sps-' . $key;
-        $panel_id = $id . '-panel';
-        $is_bool  = 'bool' === $field['type'];
+        // A feature may render its whole panel itself (seoprostack_setting_panel).
+        $has_panel = $children || !empty($field['panel']);
+        $value     = SEOProStack_Settings::get($key);
+        $id        = 'sps-' . $key;
+        $panel_id  = $id . '-panel';
+        $is_bool   = 'bool' === $field['type'];
         ?>
-        <section class="sps-card sps-setting<?php echo ($is_bool && $value) ? ' is-on' : ''; ?><?php echo $children ? ' has-panel' : ''; ?>" data-setting-card="<?php echo esc_attr($key); ?>">
+        <section class="sps-card sps-setting<?php echo ($is_bool && $value) ? ' is-on' : ''; ?><?php echo $has_panel ? ' has-panel' : ''; ?>" data-setting-card="<?php echo esc_attr($key); ?>">
             <?php // Clicking the header (outside the switch) opens the options; only the switch changes the value. ?>
-            <div class="sps-setting__header"<?php echo $children ? ' data-sps-panel-toggle' : ''; ?>>
+            <div class="sps-setting__header"<?php echo $has_panel ? ' data-sps-panel-toggle' : ''; ?>>
                 <?php if ($is_bool) : ?>
                     <span class="sps-switch">
                         <input type="checkbox"
@@ -160,7 +162,7 @@ class SEOProStack_Settings_Manager {
                     <?php self::render_replaces($field); ?>
                 </div>
 
-                <?php if ($children) : ?>
+                <?php if ($has_panel) : ?>
                     <button type="button"
                             class="sps-setting__expand button-link"
                             aria-expanded="false"
@@ -172,7 +174,7 @@ class SEOProStack_Settings_Manager {
                 <?php endif; ?>
             </div>
 
-            <?php if ($children) : ?>
+            <?php if ($has_panel) : ?>
                 <div class="sps-setting__panel" id="<?php echo esc_attr($panel_id); ?>" hidden>
                     <?php
                     /**

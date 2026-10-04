@@ -348,13 +348,16 @@ Drag rows by their handle, or focus the handle and use the arrow keys, in the li
 
 ### Term tools (Content)
 
-Three bulk actions on category, tag and other term lists:
+Bulk actions on category, tag and other term lists:
 
 - **Merge into**: the chosen terms become one (an existing term by name, or a new one). Their posts and child terms move to it.
 - **Move to taxonomy**: the terms, and the terms below them, become terms of another taxonomy with their posts, fields and IDs. A term whose slug the other taxonomy already uses stays where it is; merge them first.
 - **Set parent** (hierarchical taxonomies). A term cannot go below itself or its own children.
+- **Apply slug pattern**: add the taxonomy's prefix and suffix to selected existing terms, keeping their old addresses as redirects.
 
-Old archive addresses of merged and moved terms redirect with a 301 to the term that took over, when they would otherwise be a 404. Replaces Term Management Tools, which has no settings; the feature switches itself on while it is active.
+**Slug patterns**, in Term tools' Options, has one row per public taxonomy. Set a prefix such as `best-` or `how-to-` and a suffix such as `-guide` or `-statistics`: with `best-` and `-guide`, a new Technology term's slug is `best-technology-guide`. Slugs are permanent addresses, so use words that stay true rather than dates. Patterns apply on every term creation or edit, including imports and REST requests, while Term tools is on. Saving a pattern does not change existing terms until they are edited or selected for the bulk action. Empty fields leave slugs unchanged; existing prefixes and suffixes are not added twice. WordPress handles unique slugs.
+
+Old archive addresses of merged, moved and patterned terms redirect with a 301 to the term that took over, when they would otherwise be a 404. Replaces Term Management Tools, which has no settings; the feature switches itself on while it is active.
 
 **All | Unused (N)** above each term list shows only terms with no posts, so they can be checked and removed with the core **Delete** bulk action: the clean-up TaxoPress’ Manage Terms screen offers.
 
@@ -1201,6 +1204,7 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folder�
 
 ### Unreleased
 
+- New: **Term tools** Options has a slug prefix and suffix per public taxonomy, such as `best-` or `how-to-` and `-guide` or `-statistics`, applied on creation and editing, plus **Apply slug pattern** for selected existing terms with 301 redirects from their old archives.
 - New: the Plugins screen recommends deactivating plugins web hosts add to new sites while they are active: Hostinger AI and Hostinger Easy Onboarding. A note under each row says what it is for, with a Deactivate link; nothing is deactivated for you. Add others with the `seoprostack_host_plugins` filter.
 - Fix: on a network where Fluent Forms, Fluent Boards or FluentCommunity is active but a site has no tables for it, settings upgrades no longer log “Table doesn’t exist” database errors for that site: the agency order lists look for the table first.
 - Fix: **Short addresses for custom post types** no longer gives “page not found” at the short address of post types registered without a query variable (`query_var` false, as some custom post type tools register them); their links already dropped the base, so the items could not be reached.
