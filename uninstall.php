@@ -112,6 +112,7 @@ function seoprostack_uninstall_site() {
     // ones it removed (they stay removed).
     $options[] = 'seoprostack_database_cleanup_cron_seen';
     $options[] = 'seoprostack_database_cleanup_cron_removed';
+    $options[] = 'seoprostack_deferred_counts_queue';
     // Linking caches and anonymous daily click totals. Approved links are
     // ordinary post content and remain; Link Whisper and Rank Math stay untouched.
     $options[] = 'seoprostack_link_index';
@@ -131,6 +132,7 @@ function seoprostack_uninstall_site() {
     }
     wp_unschedule_hook('seoprostack_database_cleanup');
     wp_unschedule_hook('seoprostack_database_cleanup_more');
+    wp_unschedule_hook('seoprostack_deferred_counts');
 
     // Copied content and excerpts stay; only the sync fingerprint is ours.
     delete_post_meta_by_key('_seoprostack_field_content_hash');

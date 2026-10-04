@@ -116,6 +116,8 @@ SEO Pro Stack replaces **53 plugins**, some of them in part, with free and Pro e
 
 These plugins showed what sites need. [Credits](#credits) thanks their makers and links to each one.
 
+Also available, off by default: **Count terms and comments in the background** on the Server tab, for imports, bulk edits and shops.
+
 ### Modern admin colours (Admin)
 
 Uses the WordPress “Modern” admin colour scheme for every user while enabled. Switching it also updates your own profile: on selects Modern, off selects the WordPress default. Other users’ saved choices are not changed and return when the setting is off.
@@ -527,6 +529,16 @@ WordPress’s Heartbeat asks the server for news every minute while an admin scr
 
 - **Limit** (both ticked by default): on the site, Heartbeat is left out (a script that needs it still loads it, slowed); on other admin screens it runs once an hour (`heartbeat_settings`; before WordPress 6.7, every 2 minutes, its longest). News such as an expired login waits for the next page.
 - Replaces Disable Bloat’s Heartbeat switch, which turns it off everywhere, editors included. It is imported once (both choices) while Disable Bloat is active.
+
+### Count terms and comments in the background (Server)
+
+Off by default. Saves, imports and deletions queue the affected categories, tags, product terms and comment post IDs instead of repeating their count queries in each request. A single scheduled task starts about five minutes later; new work does not postpone it.
+
+- Counts in widgets, term lists, hide-empty lists and code reading a count straight after a change can be a few minutes behind, including a post's first approved comment. On quiet sites, or with WordPress cron disabled, counts wait until scheduled tasks run.
+- **Recount now** processes up to 500 queued IDs. Any remaining work follows in another scheduled batch. WooCommerce and other taxonomies keep their own counting callbacks.
+- Switching it off recounts one batch immediately, stops deferring new changes and finishes any remainder in the background. Queued taxonomies whose plugin is not loaded stay queued until it is available again; do not deactivate a taxonomy's plugin before recounting its terms.
+- The non-autoloaded option `seoprostack_deferred_counts_queue` holds term taxonomy IDs per taxonomy and post IDs for comments. Atomic updates preserve simultaneous writers. IDs stay queued until a successful recount acknowledges their processing generation, so interrupted runs and new changes during a recount are retried. Cron and the manual action load all plugins. Uninstall removes the queue and the `seoprostack_deferred_counts` hook.
+- Developers can run the scheduled task with `wp cron event run seoprostack_deferred_counts`.
 
 ### Clean the database weekly (Server)
 
@@ -1362,6 +1374,10 @@ Deleting the plugin removes its settings and cached data, the profile pictures a
 Deactivating the plugin removes the WebP and AVIF rules from the uploads folder’s `.htaccess` (for every site when network-deactivated), the LiteSpeed background request rules from the site’s `.htaccess` (on multisite, when network-deactivated or deactivated on the main site) and the must-use file of Load plugins only where needed (on multisite, when network-deactivated).
 
 ## Changelog
+
+### Unreleased
+
+- New, off by default: **Count terms and comments in the background** (Server) batches recounts after saves, imports and deletions, with a five-minute scheduled task and **Recount now**. Preserves taxonomy callbacks, including WooCommerce's; counts can lag, including the first approved comment. Switching off flushes a batch and finishes any remainder in the background (GitHub issue #429).
 
 ### 0.14.2
 
