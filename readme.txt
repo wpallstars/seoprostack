@@ -67,7 +67,7 @@ Features safe on every site start on; those needing choices stay off. Use **Sett
 * **Count terms and comments in the background** (off).
 * **Load large settings only where they are used** (single sites).
 * **Faster page counts on long lists** (off): separate counts, exact page numbers.
-* **Database key cleanup**: duplicate indexes and the plugin that added each, in Site Health; remove one by one, with restore SQL.
+* **Database key cleanup**: duplicate indexes and who added them, in Site Health, with restore SQL. **Add database keys** (off): faster custom field lookups.
 * **Load plugins only where needed**: skips plugins a page does not use, in admin and on the site, with always-load bypasses.
 
 = Plugins and set-up =
