@@ -921,7 +921,8 @@ final class SEOProStack_Plugin_Loader {
      * too.
      *
      * @param string $content Post content.
-     * @param array  $front   Learned blocks and shortcodes.
+     * @param array  $front   Learned blocks and shortcodes; 'live' when they
+     *                        are this full request's registrations.
      * @param int    $depth   Nesting of synced patterns looked up so far.
      * @return string[]|false Plugins the content needs, or false when unknown.
      */
@@ -950,8 +951,11 @@ final class SEOProStack_Plugin_Loader {
         $names = array();
         foreach ($shortcodes[1] as $name) {
             // Unregistered text that no plugin would name a shortcode, such as
-            // [1] footnote marks or [elem.name], is not unknown content.
-            if (array_key_exists($name, $registered) || preg_match('/^[A-Za-z_][A-Za-z0-9_:-]*$/', $name)) {
+            // [1] footnote marks or [elem.name], is not unknown content. With
+            // live registrations (a request with every plugin, after it
+            // rendered), no unregistered name had a handler, such as one left
+            // by a removed plugin: fewer plugins cannot add one (#493).
+            if (array_key_exists($name, $registered) || (empty($front['live']) && preg_match('/^[A-Za-z_][A-Za-z0-9_:-]*$/', $name))) {
                 $names[] = $name;
             }
         }
@@ -961,7 +965,7 @@ final class SEOProStack_Plugin_Loader {
                     $name = 'core/' . $name;
                 }
                 if ('blocks' === $kind && !array_key_exists($name, (array) ($front['blocks'] ?? array()))) {
-                    $owners = self::namespace_owners($name, (array) ($front['blocks'] ?? array()));
+                    $owners = self::namespace_owners($name, (array) ($front['blocks'] ?? array()), !empty($front['live']));
                     if (false === $owners) {
                         return false;
                     }
@@ -1043,14 +1047,18 @@ final class SEOProStack_Plugin_Loader {
      * Owners of an unregistered block's namespace. Inner blocks such as
      * kadence/pane are registered only in the editor and saved as plain
      * markup; the plugins that own the namespace's other blocks style and
-     * render around them. A namespace with no registered block, or one with
-     * an unknown owner, is unknown.
+     * render around them. A namespace with an unknown owner is unknown, and
+     * so is one with no registered block, unless the registrations are live:
+     * then no active plugin has the namespace, such as blocks left by a
+     * removed plugin, which show their saved markup whichever plugins load
+     * (GitHub issue #493).
      *
      * @param string               $name   Block name.
      * @param array<string,string|false> $blocks Registered block => owner ('' core, false unknown).
+     * @param bool                 $live   Whether $blocks are this full request's registrations.
      * @return string[]|false
      */
-    private static function namespace_owners($name, array $blocks) {
+    private static function namespace_owners($name, array $blocks, $live = false) {
         $prefix = substr($name, 0, (int) strpos($name, '/') + 1);
         $owners = array();
         foreach ($blocks as $block => $owner) {
@@ -1062,7 +1070,10 @@ final class SEOProStack_Plugin_Loader {
             }
             $owners[] = $owner;
         }
-        return $owners ? array_values(array_unique($owners)) : false;
+        if ($owners) {
+            return array_values(array_unique($owners));
+        }
+        return $live ? array() : false;
     }
 
     /** Whether a full request still describes the content it started with. */
