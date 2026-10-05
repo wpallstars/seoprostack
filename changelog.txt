@@ -2,6 +2,9 @@
 
 Every change to SEO Pro Stack. readme.txt lists the latest version in short.
 
+= Unreleased =
+* New: Plugin sizes has Measure page time above the Plugins list. It loads the home page and the newest post three times each, with every active plugin loaded, and shows each plugin's page time and database queries in its Size column, with a summary above the list. Nothing is measured until someone clicks; a must-use file does the measuring and is removed afterwards. Single sites only.
+
 = 1.0.0 =
 * First stable release: SEO Pro Stack is now 1.0.0. Nothing changes on sites coming from 0.15.0.
 * Developers: core files from WP Plugin Starter 1.0.20. STANDARDS.md → Performance forbids an index that duplicates one a table already has (other plugins or the host may have added it), instead of any index on WordPress's own tables; an index on a table the plugin does not own is opt-in.

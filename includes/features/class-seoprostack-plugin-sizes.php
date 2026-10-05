@@ -88,7 +88,17 @@ class SEOProStack_Plugin_Sizes extends SEOProStack_Feature {
             add_action('load-plugins.php', array(__CLASS__, 'load_screen'));
             if (!is_multisite()) {
                 add_action('wp_ajax_' . self::COST_AJAX, array(__CLASS__, 'ajax_cost'));
+                register_deactivation_hook(SEOPROSTACK_FILE, array(__CLASS__, 'deactivate'));
             }
+        }
+    }
+
+    /**
+     * On deactivation, end a Measure page time left unfinished.
+     */
+    public static function deactivate() {
+        if (self::cost()) {
+            SEOProStack_Plugin_Cost::stop();
         }
     }
 

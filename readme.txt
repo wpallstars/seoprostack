@@ -73,7 +73,7 @@ Features safe on every site start on; those needing choices stay off. Use **Sett
 = Plugins and set-up =
 
 * **Plugin presets** and **starter data**: our tested settings for other plugins, and the lists, tags, forms and boards we use in Fluent plugins; only when you ask, and undoable.
-* **Plugins menu** in the admin bar, **Plugin sizes**, **Clean up deleted plugins** and **Hosting needs** (what to ask your host for).
+* **Plugins menu** in the admin bar, **Plugin sizes** with page time, **Clean up deleted plugins** and **Hosting needs** (what hosting to buy).
 * **Fixes for other plugins**: works around their known bugs.
 * **Agency**: order flow, client dashboard and examples.
 * **Discover**: the Kadence theme and the free and Pro plugins, hosting and tools we use.
