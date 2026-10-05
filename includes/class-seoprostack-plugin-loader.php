@@ -375,6 +375,15 @@ final class SEOProStack_Plugin_Loader {
     private static $reason = '';
 
     /**
+     * Shortcode names and blocks that content_needs() let pass because no
+     * plugin registered them on this full request ('collect'), for
+     * learn_front() to save as leftovers (GitHub issue #497).
+     *
+     * @var array{shortcodes: array<string,bool>, blocks: array<string,bool>}
+     */
+    private static $unlisted = array('shortcodes' => array(), 'blocks' => array());
+
+    /**
      * Start: decide whether this request may be filtered.
      *
      * @param string $self SEO Pro Stack's plugin file, such as "seoprostack/seoprostack.php".
@@ -618,11 +627,19 @@ final class SEOProStack_Plugin_Loader {
         $key = (string) ($context['kind'] ?? '');
         if ('' !== $key) {
             $page = isset($front['kinds'][$key]) ? $front['kinds'][$key] : array();
-            if (empty($page['learned'])) {
-                // A page whose own content is unknown cannot teach its kind
-                // (learn_front() skips it), so it loads every plugin without
-                // learning, and a page of that kind with known content learns.
-                if (false !== self::content_needs((string) ($context['content'] ?? ''), $front) && self::take_front_lock()) {
+            $text = (string) ($context['content'] ?? '');
+            $content = self::content_needs($text, $front);
+            if (empty($page['learned']) || false === $content) {
+                // Unrecognised content is never evidence for skipping, so this
+                // request loads every plugin. It learns when the kind is new
+                // and the content known, or when the only unknown names are
+                // ones no plugin registered when the site was learned, such
+                // as shortcodes left by an old theme: with every plugin loaded,
+                // learn_front() saves those still unregistered as leftovers,
+                // so later pages with them can skip (GitHub issue #497). Other
+                // unknown content loads every plugin without learning.
+                if ((false !== $content || false !== self::content_needs($text, array('live' => true) + $front))
+                    && self::take_front_lock()) {
                     self::$mode   = 'full';
                     self::$reason = 'learning';
                     self::attribute();
@@ -631,10 +648,6 @@ final class SEOProStack_Plugin_Loader {
             }
             $candidates = array_diff((array) ($front['candidates'] ?? array()), $keep);
             $chosen = array_diff(array_unique(array_merge($chosen, $candidates)), $keep);
-            $content = self::content_needs((string) ($context['content'] ?? ''), $front);
-            if (false === $content) {
-                return; // Unrecognised content is never evidence for skipping.
-            }
             $needed = array_merge((array) ($page['needs'] ?? array()), $content);
             if (!empty($context['id']) && in_array((int) $context['id'], (array) ($front['woo_pages'] ?? array()), true)) {
                 $needed[] = 'woocommerce/woocommerce.php';
@@ -958,7 +971,9 @@ final class SEOProStack_Plugin_Loader {
      *
      * @param string $content Post content.
      * @param array  $front   Learned blocks and shortcodes; 'live' when they
-     *                        are this full request's registrations.
+     *                        are this full request's registrations, 'collect'
+     *                        to note the unregistered names it lets pass
+     *                        (take_unlisted()), 'inert' the learned leftovers.
      * @param int    $depth   Nesting of synced patterns looked up so far.
      * @return string[]|false Plugins the content needs, or false when unknown.
      */
@@ -990,9 +1005,19 @@ final class SEOProStack_Plugin_Loader {
             // [1] footnote marks or [elem.name], is not unknown content. With
             // live registrations (a request with every plugin, after it
             // rendered), no unregistered name had a handler, such as one left
-            // by a removed plugin: fewer plugins cannot add one (#493).
-            if (array_key_exists($name, $registered) || (empty($front['live']) && preg_match('/^[A-Za-z_][A-Za-z0-9_:-]*$/', $name))) {
+            // by a removed plugin: fewer plugins cannot add one (#493). Such
+            // names in a page's own content are saved as leftovers ('inert')
+            // and need no plugin before plugins load either (#497).
+            if (array_key_exists($name, $registered)) {
                 $names[] = $name;
+            } elseif (preg_match('/^[A-Za-z_][A-Za-z0-9_:-]*$/', $name)) {
+                if (!empty($front['live'])) {
+                    if (!empty($front['collect'])) {
+                        self::$unlisted['shortcodes'][$name] = true;
+                    }
+                } elseif (!isset($front['inert']['shortcodes'][$name])) {
+                    $names[] = $name;
+                }
             }
         }
         foreach (array('blocks' => $blocks[1], 'shortcodes' => array_merge($names, $code_names)) as $kind => $names) {
@@ -1001,9 +1026,15 @@ final class SEOProStack_Plugin_Loader {
                     $name = 'core/' . $name;
                 }
                 if ('blocks' === $kind && !array_key_exists($name, (array) ($front['blocks'] ?? array()))) {
+                    if (empty($front['live']) && isset($front['inert']['blocks'][$name])) {
+                        continue; // A learned leftover: its namespace had no registered block (#497).
+                    }
                     $owners = self::namespace_owners($name, (array) ($front['blocks'] ?? array()), !empty($front['live']));
                     if (false === $owners) {
                         return false;
+                    }
+                    if (!$owners && !empty($front['collect'])) {
+                        self::$unlisted['blocks'][$name] = true;
                     }
                     $needs = array_merge($needs, $owners);
                     continue;
@@ -1110,6 +1141,18 @@ final class SEOProStack_Plugin_Loader {
             return array_values(array_unique($owners));
         }
         return $live ? array() : false;
+    }
+
+    /**
+     * The unregistered names content_needs() noted with 'collect', emptied
+     * for the next check.
+     *
+     * @return array{shortcodes: array<string,bool>, blocks: array<string,bool>}
+     */
+    public static function take_unlisted() {
+        $found = self::$unlisted;
+        self::$unlisted = array('shortcodes' => array(), 'blocks' => array());
+        return $found;
     }
 
     /** Whether a full request still describes the content it started with. */

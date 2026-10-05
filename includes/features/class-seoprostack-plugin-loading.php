@@ -1307,10 +1307,27 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
             // A page whose own content is unknown cannot show which plugins
             // the kind needs; a page of that kind with known content learns it.
             if (false !== $needs) {
+                // A kind learned already learns again only from a page with
+                // leftovers (start_front()); it keeps what it needed (#497).
+                if (!empty($kinds[$key]['needs']) && !$state['relearn']) {
+                    $needs = array_values(array_unique(array_merge((array) $kinds[$key]['needs'], $needs)));
+                }
                 $kinds[$key] = array('needs' => $needs, 'learned' => time());
                 $learned_kind = true;
             }
         }
+        $unlisted = SEOProStack_Plugin_Loader::take_unlisted();
+        $blocks = self::front_blocks($state);
+        $shortcodes = self::front_shortcodes();
+        if ($current) {
+            // Registrations seen on earlier learns of this plugin set stay
+            // known, so a name a plugin registers only on some pages never
+            // becomes a leftover.
+            $blocks = array_merge((array) ($previous['blocks'] ?? array()), $blocks);
+            $shortcodes = array_merge((array) ($previous['shortcodes'] ?? array()), $shortcodes);
+        }
+        $inert = self::front_inert($current ? (array) ($previous['inert'] ?? array()) : array(),
+            $learned_kind ? $unlisted : array(), $blocks, $shortcodes);
         if ($current && !$state['relearn'] && !$learned_kind) {
             delete_option(SEOProStack_Plugin_Loader::FRONT_LOCK);
             return; // An unsupported or unsuccessful public request must not rewrite the learned map.
@@ -1333,8 +1350,9 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
             'failed'  => array(),
             'kinds'   => $kinds,
             'routes'  => self::front_routes(),
-            'blocks'  => self::front_blocks($state),
-            'shortcodes' => self::front_shortcodes(),
+            'blocks'  => $blocks,
+            'shortcodes' => $shortcodes,
+            'inert'   => $inert,
             'woo_shop' => in_array($woo, $state['active'], true) ? (int) get_option('woocommerce_shop_page_id') : 0,
             'woo_pages' => array_values(array_filter(array_map('intval', array(
                 get_option('woocommerce_shop_page_id'), get_option('woocommerce_cart_page_id'),
@@ -1423,6 +1441,42 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
             $owners[$tag] = SEOProStack_Plugin_Loader::plugin_for_callback($callback);
         }
         return $owners;
+    }
+
+    /**
+     * Leftovers: shortcode names and blocks in a learned page's own content
+     * that no plugin registered with every plugin loaded, such as an old
+     * theme's [one_third] or a removed plugin's blocks. Nothing turns them
+     * into output, so they need no plugin before plugins load either. A name
+     * any learn of this plugin set registered, or a block whose namespace
+     * has a registered block, is not one (GitHub issue #497).
+     *
+     * @param array $previous   Leftovers learned before for this plugin set.
+     * @param array $found      From SEOProStack_Plugin_Loader::take_unlisted().
+     * @param array $blocks     Known block => owner.
+     * @param array $shortcodes Known shortcode => owner.
+     * @return array{shortcodes: array<string,bool>, blocks: array<string,bool>}
+     */
+    private static function front_inert(array $previous, array $found, array $blocks, array $shortcodes) {
+        $inert = array('shortcodes' => array(), 'blocks' => array());
+        $prefixes = array();
+        foreach (array_keys($blocks) as $block) {
+            $prefixes[substr((string) $block, 0, (int) strpos((string) $block, '/') + 1)] = true;
+        }
+        foreach (array('shortcodes', 'blocks') as $kind) {
+            $names = array_merge(array_keys((array) ($previous[$kind] ?? array())), array_keys((array) ($found[$kind] ?? array())));
+            foreach ($names as $name) {
+                $name = (string) $name;
+                $known = 'shortcodes' === $kind ? array_key_exists($name, $shortcodes)
+                    : array_key_exists($name, $blocks) || isset($prefixes[substr($name, 0, (int) strpos($name, '/') + 1)]);
+                if (!$known) {
+                    $inert[$kind][$name] = true;
+                }
+            }
+            // Bounded: the map loads on every request.
+            $inert[$kind] = array_slice($inert[$kind], 0, 200, true);
+        }
+        return $inert;
     }
 
     /**
@@ -1817,8 +1871,12 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
     private static function page_needs(array $state) {
         global $wp_query, $shortcode_tags;
         $needs = self::$front_seen;
+        // With this request's registrations ('live'): a name no plugin
+        // registered is plain text, noted ('collect') so learn_front() saves
+        // it as a leftover for start_front() (GitHub issue #497).
+        SEOProStack_Plugin_Loader::take_unlisted();
         $own_content = is_singular() ? SEOProStack_Plugin_Loader::content_needs((string) get_post_field('post_content', get_queried_object_id()), array(
-            'blocks' => self::front_blocks($state), 'shortcodes' => self::front_shortcodes(),
+            'blocks' => self::front_blocks($state), 'shortcodes' => self::front_shortcodes(), 'live' => true, 'collect' => true,
         )) : array();
         if (false === $own_content) {
             // Requests for such pages load every plugin anyway (start_front()
