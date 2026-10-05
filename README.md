@@ -1441,6 +1441,10 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folderâ
 
 ## Changelog
 
+### Unreleased
+
+- Fix: a plugin deleted while still active stays in WordPress's list of active plugins until someone opens the Plugins screen, though WordPress never loads it. SEO Pro Stack no longer counts it as active: **Load plugins only where needed** no longer waits for good on a site that still lists a deleted Freesoul Deactivate Plugins (so that site learned nothing after an update), features no longer wait for other deleted plugins they replace, and Freesoul's must-use file is removed when only such entries are left (GitHub issue #521).
+
 ### 1.3.7
 
 - Fix: **Load plugins only where needed**: more options other plugins save again on wp-admin page views, without a form being sent, no longer make the site's pages learn again: MainWP Child's `html-regression-track-admin-assets` (the scripts and styles the admin page loaded), StellarWP Uplink's `stellarwp_uplink_update_status_*` (licence and update status for each Kadence or StellarWP product), Burst Statistics' `burst_installed_integrations`, and Really Simple Security's `rsssl_admin_notices` and `rsssl_plusone_count`. On one site they reset the learning 11 times in about 40 minutes of someone working in wp-admin, so visitors loaded every plugin until pages learned again (GitHub issue #512).

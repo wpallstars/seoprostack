@@ -833,18 +833,24 @@ class SEOProStack_Plugin_Fixes extends SEOProStack_Feature {
     /**
      * Whether Freesoul or PRO is active on this site, for the network, or on
      * any site of the network, as stored (not as filtered for this request).
+     * A listed plugin whose files were deleted is not in use: WordPress never
+     * loads it (GitHub issue #521).
      *
      * @return bool
      */
     private static function fdp_in_use() {
+        $installed = array_values(array_filter(self::FDP, array(__CLASS__, 'plugin_installed')));
+        if (!$installed) {
+            return false;
+        }
         if (!function_exists('is_plugin_active_for_network')) {
             require_once ABSPATH . 'wp-admin/includes/plugin.php';
         }
         self::load_plugin_state();
         if (!is_multisite()) {
-            return (bool) array_intersect(self::FDP, SEOProStack_Replaced_Plugins::stored_plugins());
+            return (bool) array_intersect($installed, SEOProStack_Replaced_Plugins::stored_plugins());
         }
-        if (array_filter(self::FDP, 'is_plugin_active_for_network')) {
+        if (array_filter($installed, 'is_plugin_active_for_network')) {
             return true;
         }
         $sites = get_sites(array('fields' => 'ids', 'number' => self::FDP_MAX_SITES + 1));
@@ -853,7 +859,7 @@ class SEOProStack_Plugin_Fixes extends SEOProStack_Feature {
         }
         foreach ($sites as $site_id) {
             switch_to_blog($site_id);
-            $used = (bool) array_intersect(self::FDP, SEOProStack_Replaced_Plugins::stored_plugins());
+            $used = (bool) array_intersect($installed, SEOProStack_Replaced_Plugins::stored_plugins());
             restore_current_blog();
             if ($used) {
                 return true;
