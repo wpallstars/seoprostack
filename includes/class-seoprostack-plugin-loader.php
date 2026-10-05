@@ -123,6 +123,9 @@ final class SEOProStack_Plugin_Loader {
     /** One-time preservation of the owner's saved site-wide skip choices. */
     const FRONT_MIGRATED = 'seoprostack_plugin_front_migrated';
 
+    /** Last changes that made the site's pages learn again, with why. Not autoloaded. */
+    const FRONT_FORGETS = 'seoprostack_plugin_front_forgets';
+
     /** "[name" followed by a space, "]" or "/": a possible shortcode tag in content. */
     const SHORTCODE_NAME = '/(?<!\[)\[([^<>&\/\[\]\x00-\x20=]+)(?=[\s\]\/])/';
 
@@ -911,9 +914,21 @@ final class SEOProStack_Plugin_Loader {
         return $result;
     }
 
-    /** Content ownership learned with all plugins; unknown syntax loads everything. */
-    public static function content_needs($content, array $front) {
+    /**
+     * Content ownership learned with all plugins; unknown syntax loads everything.
+     *
+     * Synced patterns (core/block) are looked up and their content checked
+     * too, unless $front['indirect'] says the caller already included every
+     * synced pattern in $content (page_needs() does).
+     *
+     * @param string $content Post content.
+     * @param array  $front   Learned blocks and shortcodes, and 'indirect'.
+     * @param int    $depth   Nesting of synced patterns looked up so far.
+     * @return string[]|false Plugins the content needs, or false when unknown.
+     */
+    public static function content_needs($content, array $front, $depth = 0) {
         $needs = array();
+        $synced = false;
         preg_match_all('/<!--\s+wp:([^\s>]+)/', $content, $blocks);
         // Block comments are removed (do_blocks, priority 9) before shortcodes
         // run (priority 11), so their attributes, such as ["","",""], are not
@@ -958,12 +973,74 @@ final class SEOProStack_Plugin_Loader {
                     return false;
                 }
                 $needs[] = $front[$kind][$name];
-                if ('core/block' === $name || 'core/pattern' === $name || 'core/template-part' === $name) {
-                    return false; // Indirect content is not available in the one-post lookup.
+                if ('blocks' !== $kind || !in_array($name, array('core/block', 'core/pattern', 'core/template-part'), true)) {
+                    continue;
+                }
+                if ('core/block' !== $name) {
+                    return false; // Patterns and template parts from files are not looked up here.
+                }
+                if (!empty($front['indirect'])) {
+                    continue;
+                }
+                if (!$synced) {
+                    $synced = true;
+                    $found  = self::synced_needs($content, $front, $depth);
+                    if (false === $found) {
+                        return false;
+                    }
+                    $needs = array_merge($needs, $found);
                 }
             }
         }
         return array_values(array_unique(array_filter($needs)));
+    }
+
+    /**
+     * What the synced patterns in some content need: each one's published
+     * content, checked like the post's own (GitHub issue #450). A pattern
+     * without a reference, one that is missing, too many of them or nesting
+     * deeper than three is unknown.
+     *
+     * @param string $content Content with core/block comments.
+     * @param array  $front   As for content_needs().
+     * @param int    $depth   Nesting so far.
+     * @return string[]|false
+     */
+    private static function synced_needs($content, array $front, $depth) {
+        global $wpdb;
+        if ($depth >= 3) {
+            return false;
+        }
+        $all = preg_match_all('/<!--\s+wp:block(?=[\s\/]|-->)/', $content);
+        preg_match_all('/<!--\s+wp:block\s+(\{.*?\})\s*\/?-->/s', $content, $found);
+        $refs = array();
+        foreach ($found[1] as $json) {
+            $attrs = json_decode($json, true);
+            if (is_array($attrs) && isset($attrs['ref']) && is_numeric($attrs['ref'])) {
+                $refs[] = (int) $attrs['ref'];
+            }
+        }
+        if (!$refs || count($refs) !== $all) {
+            return false;
+        }
+        $refs = array_values(array_unique($refs));
+        if (count($refs) > 20) {
+            return false;
+        }
+        $needs = array();
+        foreach ($refs as $ref) {
+            // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- before plugins load; one row per synced pattern.
+            $text = $wpdb->get_var($wpdb->prepare("SELECT post_content FROM {$wpdb->posts} WHERE ID = %d AND post_type = 'wp_block' AND post_status = 'publish'", $ref));
+            if (null === $text) {
+                return false;
+            }
+            $inner = self::content_needs((string) $text, $front, $depth + 1);
+            if (false === $inner) {
+                return false;
+            }
+            $needs = array_merge($needs, $inner);
+        }
+        return $needs;
     }
 
     /**
@@ -1610,8 +1687,45 @@ final class SEOProStack_Plugin_Loader {
         if ('' !== $plugin) {
             self::$registered['blocks'][$plugin] = true;
             self::$registered['block_names'][(string) $block_type] = $plugin;
+        } elseif (self::called_from_always_loaded()) {
+            // A network-activated or must-use plugin, or the theme: it loads
+            // on every request, so pages using the block need no plugin
+            // (GitHub issue #449). Other callers stay unknown.
+            self::$registered['block_names'][(string) $block_type] = '';
         }
         return $args;
+    }
+
+    /**
+     * Whether the current call comes from code that loads on every request
+     * whatever this loader skips: a network-activated plugin, a must-use
+     * plugin or the theme.
+     *
+     * @return bool
+     */
+    private static function called_from_always_loaded() {
+        $roots = array(trailingslashit(wp_normalize_path(WPMU_PLUGIN_DIR)), trailingslashit(wp_normalize_path(get_theme_root())));
+        if (is_multisite()) {
+            $plugins = trailingslashit(wp_normalize_path(WP_PLUGIN_DIR));
+            foreach (array_keys((array) get_site_option('active_sitewide_plugins', array())) as $file) {
+                if (false !== strpos($file, '/')) {
+                    $roots[] = $plugins . strtok($file, '/') . '/';
+                }
+            }
+        }
+        // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_debug_backtrace -- only while learning, with every plugin loaded.
+        foreach (debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS) as $frame) {
+            if (empty($frame['file'])) {
+                continue;
+            }
+            $file = wp_normalize_path($frame['file']);
+            foreach ($roots as $root) {
+                if (0 === strpos($file, $root)) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     /**
