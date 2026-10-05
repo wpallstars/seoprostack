@@ -1438,6 +1438,10 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folderâ
 
 ## Changelog
 
+### Unreleased
+
+- Fix: **Load plugins only where needed**: a page whose own content holds shortcodes or blocks that no plugin registers, such as an old theme's `[one_third]` and `[button]` or a removed plugin's blocks, now skips plugins too. Such a page loaded every plugin on every visit, and a front page like that was never learned, so it never skipped anything. Its own content is matched before plugins load, when an unregistered name could not be told from a shortcode a skipped plugin would handle. Now such a page learns once with every plugin loaded. The names still unregistered then are saved as leftovers, which need no plugin, and its kind keeps what it needed before. On one site's front page with seven old theme shortcodes, and on posts with blocks left by a removed code block plugin, the page then needs no plugin, or only Kadence Blocks for its other blocks. Registrations each learn sees are kept, so a shortcode that a plugin registers only on some pages never becomes a leftover (GitHub issue #497).
+
 ### 1.3.4
 
 - Fix: **Load plugins only where needed**: shortcodes and blocks left by a removed plugin no longer make pages load every plugin. A shortcode in a widget or template part made every page load every plugin, and on one site nothing was skipped on any page. Blocks in posts listed on archives and search, here Code Block Pro's after it was removed, made those page kinds load every plugin. Learning runs with every plugin loaded, after the page is shown. A shortcode name, or block namespace, that no plugin has registered by then has no handler, so WordPress shows the plain text or saved markup whichever plugins load. Such names in widgets, template parts and listed posts now need no plugin. Plugins that turn them into output through content, widget or block filters stay loaded as page hooks. A postâ€™s own content keeps the stricter check because that runs before plugins load (GitHub issue #493).
