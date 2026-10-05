@@ -21,7 +21,7 @@ SEO Pro Stack does the jobs that usually take dozens of small plugins: a calmer,
 
 If this saves you time, headaches and costs, feel free to [buy me a coffee](https://buymeacoffee.com/marcusquinn), or whatever you like, to invest in making more things open-source.
 
-Version: 1.3.5
+Version: 1.3.6
 
 <!-- github-only:start -->
 ## Screenshots
@@ -1439,7 +1439,7 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folder�
 
 ## Changelog
 
-### Unreleased
+### 1.3.6
 
 - Fix: **Magic login links** keeps HandyPlugins’ Magic Login blocks working in pages and synced patterns after that plugin is removed, with a login-link form or WordPress’s password form while the feature is off. Saved text, safe redirects and logged-in visibility are preserved, and page learning recognises the block (GitHub issue #463).
 - Fix: **Load plugins only where needed**: a shortcode or block that a plugin registers only on some posts of a page kind is no longer saved as a leftover when the kind was learned on another post, where it was unregistered. Such a name needed no plugin on that kind's pages, so on the posts using it the plugin could be skipped and the shortcode shown as plain text. Before a name is saved as a leftover, the active plugins' own code is now searched for one that registers it; that plugin then loads on the pages using it. On a test site with 63 active plugins, the search found the right plugin for 107 of the 114 shortcodes the plugins registered, and none for the wrong one, in about 2 to 3 seconds once per learned name; a plugin registering a shortcode only for posts with a custom field, which 1.3.5 skipped on such a post, now loads there and shows it. Names that the search has not finished within its time limit are not saved as leftovers (GitHub issue #507).
