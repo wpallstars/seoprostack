@@ -2,6 +2,9 @@
 
 Every change to SEO Pro Stack. readme.txt lists the latest version in short.
 
+= Unreleased =
+* Fix: Load plugins only where needed kept what an older SEO Pro Stack had learned about the site's pages and admin screens when SEO Pro Stack was updated without WordPress's updater (WP-CLI with --skip-plugins, a deploy, an upload or a Git pull), so a fix to page learning did not reach those sites until their content changed. A new SEO Pro Stack version now learns again on its first request, however it was installed, and the settings list it among the changes that made pages learn again. New `seoprostack_plugin_learned_by` option, removed on uninstall.
+
 = 1.3.1 =
 * Fix: on sites with a persistent object cache (LiteSpeed, Redis, Memcached), Load plugins only where needed could stop learning the site's pages after they were reset, so every page loaded every plugin until the cache dropped an old copy of what was learned. WordPress removes a deleted option only from its list of options loaded on every request, so a second cached copy stayed and the next save was lost. SEO Pro Stack now removes both, and saves over an old copy on sites that are stuck.
 
