@@ -63,13 +63,13 @@ Also offered on Server: **Faster page counts on long lists**, off by default, wi
 
 Copies installed from GitHub releases also have Updates from GitHub on. Sites that already had SEO Pro Stack keep their own settings: the defaults apply to new installs. Each feature can be switched off on its card. Features that replace a separate plugin say so on their card (“Replaces: …”) and import that plugin’s settings once when SEO Pro Stack is updated. The other plugin’s own settings are never changed or deleted. While that plugin is active, the feature waits and the plugin keeps doing the job, so the two never run side by side; the card says so, with a deactivate link that comes back to the same settings tab. Deactivate the plugin to switch over. The Plugins screen lists installed plugins that SEO Pro Stack can replace, with what to do next for each: deactivate it (its setting is on), switch the setting on, or delete it once inactive (single sites; on multisite another site may use it). Each of those plugins also gets a note under its own row saying which SEO Pro Stack setting makes it redundant and what to do next, including inactive plugins whose setting is still off; the notes are not hidden by **Hide**. When an active plugin does things on the site that SEO Pro Stack does not (such as Disable Bloat’s REST API switches), the line names them instead of saying the plugin can go. **Hide** hides the lines shown for that person until another step is needed. Plugins that web hosts add to every new site (Hostinger AI and Hostinger Easy Onboarding) get a note under their row while active, saying what they are for and recommending deactivating them if that is not used, with a Deactivate link; nothing is deactivated or deleted for you.
 
-SEO Pro Stack replaces **53 plugins**, some of them in part, with free and Pro editions counted separately. The 44 that can be downloaded come to 41.9 MB zipped; SEO Pro Stack is 3.1 MB.
+SEO Pro Stack replaces **54 plugins**, some of them in part, with free and Pro editions counted separately. The 45 that can be downloaded come to 44.3 MB zipped; SEO Pro Stack is 3.3 MB.
 
 | Feature | Tab | Replaces |
 | --- | --- | --- |
 | Hide the admin bar, Block dashboard access | Admin | Admin Bar & Dashboard Access Control |
 | Turn off unused remote access | Admin | Hostinger Tools and Disable Bloat (PRO), in part |
-| Magic login links | Admin | WP Magic Link Login, in part |
+| Magic login links | Admin | WP Magic Link Login and Magic Login, in part |
 | Organise the admin menu | Admin | Admin Menu Editor (Pro) |
 | Hide dashboard widgets, Disable sidebar widgets | Admin | Widget Disable |
 | Tidy admin screens, Tidy WooCommerce admin, Tidy the login screen, Simpler block editor, Limit post revisions, Remove WordPress extras, Fewer Heartbeat requests, Lighter WooCommerce pages | Admin, Content, Speed | Disable Bloat (PRO), in part |
@@ -161,6 +161,7 @@ Adds “Email me a login link” to the login screen, next to “Lost your passw
 - Passwords keep working. Administrators can be required to use their password.
 - Uses the core login screen and core `wp_login` / `login_redirect` hooks, so activity logs, redirect rules and two-factor plugins that use `wp_login` still apply. Two-factor plugins that only check the password step are not asked; on those sites exclude administrators or leave the feature off.
 - Pages made with WP Magic Link Login keep working after it is deactivated: its `[wpmll_form]` shortcode shows the login link form, with its `heading`, `description`, `login-button-text`, `logout-link-text` and `redirect_to` (an address on this site, or `current-page`) attributes. People already logged in see a log out link. While Magic login links is off, the shortcode shows WordPress’s password login form instead, so the page still lets people log in. While WP Magic Link Login is active, its own shortcode is left in place. Its other settings (allowed email domains, accounts for new email addresses, the landing page, hiding the password form, one IP address per link) are not replaced.
+- Pages and synced patterns made with HandyPlugins’ Magic Login keep their `magic-login/login-block` form after it is deactivated or deleted, too. Saved title, description, field and button labels, redirect address and logged-in visibility are kept. Redirects stay on this site. While Magic login links is off, the block shows WordPress’s password form instead. This is a rendering-only fallback, with no editor script; Magic Login’s own block is left alone while it is active. Its AJAX submission, hide-after-submit behaviour, redirection rules and Pro features are not replaced.
 
 ### Admin bar and dashboard access (Admin)
 
@@ -1438,6 +1439,10 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folder�
 
 ## Changelog
 
+### Unreleased
+
+- Fix: **Magic login links** keeps HandyPlugins’ Magic Login blocks working in pages and synced patterns after that plugin is removed, with a login-link form or WordPress’s password form while the feature is off. Saved text, safe redirects and logged-in visibility are preserved, and page learning recognises the block (GitHub issue #463).
+
 ### 1.3.5
 
 - Fix: **Load plugins only where needed**: a page whose own content holds shortcodes or blocks that no plugin registers, such as an old theme's `[one_third]` and `[button]` or a removed plugin's blocks, now skips plugins too. Such a page loaded every plugin on every visit, and a front page like that was never learned, so it never skipped anything. Its own content is matched before plugins load, when an unregistered name could not be told from a shortcode a skipped plugin would handle. Now such a page learns once with every plugin loaded. The names still unregistered then are saved as leftovers of its page kind, which need no plugin on that kind's pages, and the kind keeps what it needed before. On one site's front page with seven old theme shortcodes, and on posts with blocks left by a removed code block plugin, the page then needs no plugin, or only Kadence Blocks for its other blocks. A name that any learn saw registered is never a leftover, and leftovers of one kind do not count on another, so a plugin that registers a shortcode only for its own post type still loads there. A plugin that registers one only on some posts of a kind, but not on the post that learned it, is the remaining risk (GitHub issue #497).
@@ -1921,6 +1926,7 @@ Where a feature replaces one of them, SEO Pro Stack imports the settings it can,
 | Admin Bar & Dashboard Access Control | Collins Agbonghama | [WordPress.org](https://wordpress.org/plugins/admin-bar-dashboard-control/) | Admin bar and dashboard access |
 | Admin Menu Editor (and Pro) | Janis Elsts | [WordPress.org](https://wordpress.org/plugins/admin-menu-editor/) | Organise the admin menu |
 | WP Magic Link Login | pixolette | [CodeCanyon](https://codecanyon.net/item/wp-magic-login-link-passwordless-authentication-wordpress-plugin/23269915) (premium plugin) | Magic login links |
+| Magic Login | HandyPlugins | [WordPress.org](https://wordpress.org/plugins/magic-login/), [GitHub](https://github.com/HandyPlugins/magic-login) | Magic login links, in part |
 | Widget Disable | required | [WordPress.org](https://wordpress.org/plugins/wp-widget-disable/), [GitHub](https://github.com/wearerequired/WP-Widget-Disable) | Dashboard and sidebar widgets |
 | Hostinger Tools | Hostinger | [WordPress.org](https://wordpress.org/plugins/hostinger/), [source (WordPress.org SVN)](https://plugins.svn.wordpress.org/hostinger/trunk/) | Turn off unused remote access (XML-RPC and application passwords), Maintenance mode |
 | Disable Bloat for WordPress & WooCommerce (and PRO) | Rock Solid | [WordPress.org](https://wordpress.org/plugins/disable-dashboard-for-woocommerce/), [website](https://disablebloat.com/) | Tidy admin screens, Tidy WooCommerce admin, Tidy the login screen, Simpler block editor, Limit post revisions, Remove WordPress extras, Fewer Heartbeat requests, Lighter WooCommerce pages, Turn off unused remote access (XML-RPC and application passwords) |
