@@ -1485,13 +1485,21 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
     /**
      * Whether this request only keeps records: a scheduled task, a
      * background task through AJAX or the REST API with nobody signed in
-     * (GitHub issue #461), or a page of the site viewed (GET) rather than
-     * wp-admin, AJAX, the REST API, the command line or a sent form.
+     * (GitHub issue #461), a failed login (GitHub issue #489), or a page of
+     * the site viewed (GET) rather than wp-admin, AJAX, the REST API, the
+     * command line or a sent form.
      *
      * @return bool
      */
     private static function record_request() {
         if (wp_doing_cron()) {
+            return true;
+        }
+        // Login limiters (Really Simple Security, Limit Login Attempts) save
+        // each failed attempt from wp_login_failed, on any login address;
+        // bots send them all day. WordPress counts the action before its
+        // callbacks run, so their writes are covered.
+        if (did_action('wp_login_failed')) {
             return true;
         }
         // LiteSpeed's async calls, FluentCRM's scheduler and view counters

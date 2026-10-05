@@ -1440,6 +1440,7 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folder�
 ### Unreleased
 
 - Fix: **Load plugins only where needed**: FluentCRM’s background tasks no longer make the site’s pages learn again. FluentCRM and FluentCRM Pro save eight run timestamps (`_fcrm_last_scheduler`, `_fcrm_last_email_process_cleanup`, `_fcrm_last_five_minutes_run`, `_fc_last_sequence_run`, `_fc_last_funnel_processor_ran` and others); `RECORD_OPTIONS` now knows them by the prefixes `_fcrm_last_` and `_fc_last_` instead of two exact names (GitHub issue #487).
+- Fix: **Load plugins only where needed**: failed logins no longer make the site’s pages learn again. Login limiters such as Really Simple Security Pro save each failed attempt as an option (`rsssl_failed_login_attempt_ip_*`) from `wp_login_failed`, in a POST that counted as a settings change; bots try to log in all day, so on some sites pages never stayed learned. Options saved in a request where a login failed are now records, on wp-login.php, XML-RPC, the REST API and custom login addresses alike (GitHub issue #489).
 
 ### 1.3.2
 
