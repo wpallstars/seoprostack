@@ -125,9 +125,10 @@ class SEOProStack_Database_Keys extends SEOProStack_Feature {
     /**
      * Whether $other starts with $key's columns in the same order and
      * directions. A whole column, or a longer prefix of it, covers a shorter
-     * prefix: meta_value(32) serves every lookup meta_value(15) does.
+     * prefix: meta_value(32) serves every lookup meta_value(15) does. Add
+     * database keys uses it to skip a key an existing one covers.
      */
-    private static function covered(array $key, array $other) {
+    public static function covered(array $key, array $other) {
         if (count($key) > count($other) || !self::ordinary($other, true)) {
             return false;
         }
@@ -296,6 +297,10 @@ class SEOProStack_Database_Keys extends SEOProStack_Feature {
                 : __('WordPress', 'seoprostack');
             return $owner;
         }
+        if (0 === strpos($lower, SEOProStack_Added_Keys::PREFIX)) {
+            $owner['name'] = __('SEO Pro Stack (Add database keys)', 'seoprostack');
+            return $owner;
+        }
         if (isset($active[self::IWMFS]) && in_array($lower, self::IWMFS_KEYS, true)) {
             $owner['slug'] = self::IWMFS;
         } else {
@@ -387,6 +392,8 @@ class SEOProStack_Database_Keys extends SEOProStack_Feature {
                     $blocked = __('it is a unique, full-text, spatial or other special key.', 'seoprostack');
                 } elseif (array_intersect(array_column($key, 'COLUMN_NAME'), $foreign)) {
                     $blocked = __('it holds a column of a foreign key.', 'seoprostack');
+                } elseif (0 === strpos($lower, SEOProStack_Added_Keys::PREFIX)) {
+                    $blocked = __('SEO Pro Stack added it. Remove it under Tools → Add database keys (turn on Add database keys on the Server tab first).', 'seoprostack');
                 } elseif ($owner['active']) {
                     /* translators: %s: plugin name */
                     $blocked = sprintf(__('%s is active and re-creates this key.', 'seoprostack'), $owner['name']);

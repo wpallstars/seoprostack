@@ -39,6 +39,12 @@ function seoprostack_uninstall_site() {
     SEOProStack_Autoload_Options::stop();
     delete_option(SEOProStack_Autoload_Options::RESET);
 
+    // Add database keys: remove the keys it added to this site's tables
+    // (named sps_…); other keys stay. Then its log goes with the options.
+    require_once __DIR__ . '/includes/features/class-seoprostack-database-keys.php';
+    require_once __DIR__ . '/includes/features/class-seoprostack-added-keys.php';
+    SEOProStack_Added_Keys::remove_all();
+
     $options = array(
         'seoprostack_options',
         // The settings save lock, if a save stopped before releasing it.
@@ -109,6 +115,8 @@ function seoprostack_uninstall_site() {
     $options[] = 'seoprostack_plugin_presets_undo';
     // Restore statements only: uninstall never changes database indexes.
     $options[] = 'seoprostack_database_keys_log';
+    // Add database keys: its log (the keys it added were removed above).
+    $options[] = SEOProStack_Added_Keys::OPTION;
     // Record of starter data added to other plugins. The lists, tags, fields
     // and boards themselves are that plugin's data now, and stay.
     $options[] = 'seoprostack_starters_added';
