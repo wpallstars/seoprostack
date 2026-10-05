@@ -117,8 +117,14 @@ final class SEOProStack_Plugin_Loader {
     const FRONT_KEY       = 'plugin_loading_front';
     const FRONT_USERS_KEY = 'plugin_loading_front_users';
 
-    /** Format of what is learned on the site; a change makes it learn again. */
-    const FRONT_VERSION = 5;
+    /**
+     * Format of what is learned on the site; a change makes it learn again.
+     * 6: leftovers are checked against plugin code first (GitHub issue #507).
+     */
+    const FRONT_VERSION = 6;
+
+    /** Which names each active plugin's code registers, per plugin version (#507). Not autoloaded. */
+    const FRONT_CODE = 'seoprostack_plugin_front_code';
 
     /** One-time preservation of the owner's saved site-wide skip choices. */
     const FRONT_MIGRATED = 'seoprostack_plugin_front_migrated';
