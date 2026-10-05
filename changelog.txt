@@ -2,6 +2,9 @@
 
 Every change to SEO Pro Stack. readme.txt lists the latest version in short.
 
+= Unreleased =
+* Fix: with Load plugins only where needed, a page with shortcodes or blocks that no plugin registers (left by an old theme or a removed plugin) in its own content learns once and then skips plugins, instead of loading every plugin on every visit.
+
 = 1.3.4 =
 * Fix: with Load plugins only where needed, shortcodes and blocks left by a removed plugin, in a widget or in posts listed on archives, no longer make pages load every plugin.
 * Fix: Load plugins only where needed learns and skips plugins on items served at short addresses (Short addresses for custom post types), which used only the site-wide choices. Readabler's cron timestamp no longer makes pages learn again.
