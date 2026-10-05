@@ -122,7 +122,7 @@ class SEOProStack_Outbound_Calls extends SEOProStack_Feature {
      * @param string               $url  Address.
      * @return false|array|WP_Error
      */
-    public static function block($pre, $args, $url) {
+    public static function block($pre, $args, $url) { // NOSONAR: $args is in the pre_http_request signature, before $url.
         if (false !== $pre) {
             return $pre;
         }
@@ -132,10 +132,10 @@ class SEOProStack_Outbound_Calls extends SEOProStack_Feature {
         }
         // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_debug_backtrace -- names the code making a call to a blocked host, only for such calls.
         $trace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS);
-        if (self::during_updates($trace)) {
+        if (SEOProStack_Licence_Calls::during_updates($trace)) {
             return $pre;
         }
-        $source = self::source($trace);
+        $source = SEOProStack_Licence_Calls::source($trace, true);
         if (!isset(self::blocks()[self::id($source, $host)]) || self::never_block($host, $source)) {
             return $pre;
         }
@@ -154,17 +154,21 @@ class SEOProStack_Outbound_Calls extends SEOProStack_Feature {
      * @param string               $url  Address.
      * @return false|array|WP_Error
      */
-    public static function start($pre, $args, $url) {
+    public static function start($pre, $args, $url) { // NOSONAR: $args is in the pre_http_request signature, before $url.
         $host = self::host((string) $url);
         if ('' === $host) {
             return $pre;
         }
+        // A plugin's own update checks count for that plugin (they are never blocked).
         // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_debug_backtrace -- names the code making a call, once per call.
-        $trace  = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS);
-        $source = self::during_updates($trace) ? 'core' : self::source($trace);
+        $source = SEOProStack_Licence_Calls::source(debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS), true);
         $id     = self::id($source, $host);
-        $path   = substr((string) wp_parse_url((string) $url, PHP_URL_PATH), 0, 100);
-        self::count($id, $source, $host, $path);
+        if (!isset(self::$found[$id])) {
+            self::$found[$id] = array('source' => $source, 'host' => $host);
+        }
+        self::$found[$id]['path']  = substr((string) wp_parse_url((string) $url, PHP_URL_PATH), 0, 100);
+        self::$found[$id]['where'] = self::where();
+        self::add($id, 'calls', 1);
         if (false !== $pre) {
             self::add($id, 'skipped', 1);
             return $pre;
@@ -216,23 +220,6 @@ class SEOProStack_Outbound_Calls extends SEOProStack_Feature {
             }
             self::$found[$id]['answer'] = 0 === $code ? __('No answer', 'seoprostack') : (string) $code;
         }
-    }
-
-    /**
-     * Start a row's changes for this request.
-     *
-     * @param string $id     Row ID.
-     * @param string $source type:slug, "core" or "seoprostack".
-     * @param string $host   Host.
-     * @param string $path   Path of the call.
-     */
-    private static function count($id, $source, $host, $path) {
-        if (!isset(self::$found[$id])) {
-            self::$found[$id] = array('source' => $source, 'host' => $host);
-        }
-        self::$found[$id]['path']  = $path;
-        self::$found[$id]['where'] = self::where();
-        self::add($id, 'calls', 1);
     }
 
     /**
@@ -364,61 +351,6 @@ class SEOProStack_Outbound_Calls extends SEOProStack_Feature {
     }
 
     /**
-     * Whether WordPress's update code made the call.
-     *
-     * @param array $trace Backtrace.
-     * @return bool
-     */
-    private static function during_updates(array $trace) {
-        $functions = array(
-            'wp_update_plugins', 'wp_update_themes', 'wp_version_check', 'wp_maybe_auto_update',
-            'plugins_api', 'themes_api', 'wp_get_update_data', 'get_plugin_updates', 'get_theme_updates', 'download_url',
-        );
-        foreach ($trace as $frame) {
-            if (empty($frame['class']) && isset($frame['function']) && in_array($frame['function'], $functions, true)) {
-                return true;
-            }
-            if (!empty($frame['class']) && (is_a($frame['class'], 'WP_Upgrader', true) || is_a($frame['class'], 'WP_Automatic_Updater', true))) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    /**
-     * The code nearest to the call: plugin, must-use plugin or theme
-     * (type:slug), SEO Pro Stack ("seoprostack") or WordPress ("core").
-     *
-     * @param array $trace Backtrace.
-     * @return string
-     */
-    private static function source(array $trace) {
-        $roots = array(
-            'plugin' => wp_normalize_path(WP_PLUGIN_DIR) . '/',
-            'mu'     => wp_normalize_path(WPMU_PLUGIN_DIR) . '/',
-            'theme'  => wp_normalize_path(get_theme_root()) . '/',
-        );
-        $own = wp_normalize_path(SEOPROSTACK_DIR);
-        foreach ($trace as $frame) {
-            if (empty($frame['file'])) {
-                continue;
-            }
-            $file = wp_normalize_path($frame['file']);
-            if (0 === strpos($file, $own)) {
-                return 'seoprostack';
-            }
-            foreach ($roots as $type => $root) {
-                if (0 === strpos($file, $root)) {
-                    $rest = substr($file, strlen($root));
-                    $slug = false !== strpos($rest, '/') ? substr($rest, 0, strpos($rest, '/')) : $rest;
-                    return $type . ':' . $slug;
-                }
-            }
-        }
-        return 'core';
-    }
-
-    /**
      * Whether a source's calls to a host may never be blocked.
      *
      * @param string $host   Host.
@@ -522,14 +454,6 @@ class SEOProStack_Outbound_Calls extends SEOProStack_Feature {
             'allowed' => __('Allowed again.', 'seoprostack'),
             'forgot'  => __('The list is cleared. Blocks stay.', 'seoprostack'),
         );
-        $names = array(
-            'page'  => __('visitor pages', 'seoprostack'),
-            'admin' => __('admin', 'seoprostack'),
-            'ajax'  => __('AJAX', 'seoprostack'),
-            'cron'  => __('cron', 'seoprostack'),
-            'rest'  => __('REST', 'seoprostack'),
-            'cli'   => __('WP-CLI', 'seoprostack'),
-        );
         echo '<div class="wrap"><h1>' . esc_html__('Calls to other sites', 'seoprostack') . '</h1>';
         if (isset($notices[$done])) {
             echo '<div class="notice notice-success is-dismissible"><p>' . esc_html($notices[$done]) . '</p></div>';
@@ -549,44 +473,62 @@ class SEOProStack_Outbound_Calls extends SEOProStack_Feature {
         }
         echo '</tr></thead><tbody>';
         foreach ($rows as $id => $row) {
-            $sent = (int) $row['sent'];
-            /* translators: 1: calls sent; 2: calls not sent */
-            $calls = sprintf(__('%1$s sent, %2$s not sent', 'seoprostack'), number_format_i18n($sent), number_format_i18n((int) $row['skipped']));
-            if ((int) $row['errors']) {
-                /* translators: %s: number of failed calls */
-                $calls .= ', ' . sprintf(_n('%s failed', '%s failed', (int) $row['errors'], 'seoprostack'), number_format_i18n((int) $row['errors']));
-            }
-            $time = $sent ? sprintf(
-                /* translators: 1: total time; 2: average time; 3: slowest call */
-                __('%1$s in all, %2$s on average, slowest %3$s', 'seoprostack'),
-                self::ms((float) $row['ms']),
-                self::ms((float) $row['ms'] / $sent),
-                self::ms((float) $row['max'])
-            ) : '–';
-            $where = implode(', ', array_intersect_key($names, (array) $row['where']));
-            $last  = $row['last'] ? sprintf(
-                /* translators: %s: time ago */
-                __('%s ago', 'seoprostack'),
-                human_time_diff((int) $row['last'])
-            ) : '–';
-            echo '<tr><td>' . esc_html(self::source_name($row['source'])) . '</td>';
-            echo '<td>' . esc_html($row['host']) . (empty($row['path']) ? '' : '<br><code>' . esc_html($row['path']) . '</code>') . '</td>';
-            echo '<td>' . esc_html($calls) . '</td><td>' . esc_html($time) . '</td>';
-            echo '<td>' . esc_html((string) ($row['answer'] ?? '–')) . '</td><td>' . esc_html($where) . '</td><td>' . esc_html($last) . '</td><td>';
-            // Checked first: a stored block here is never applied (see block()).
-            if (self::never_block($row['host'], $row['source'])) {
-                echo esc_html__('Never blocked', 'seoprostack');
-            } elseif (isset($blocks[$id])) {
-                echo '<strong>' . esc_html__('Blocked', 'seoprostack') . '</strong> ';
-                self::form('allow', __('Allow', 'seoprostack'), $id);
-            } else {
-                self::form('block', __('Block', 'seoprostack'), $id);
-            }
-            echo '</td></tr>';
+            self::row($id, $row, isset($blocks[$id]));
         }
         echo '</tbody></table><p>';
         self::form('forget', __('Clear the list', 'seoprostack'));
         echo '</p></div>';
+    }
+
+    /**
+     * One row of the Tools page.
+     *
+     * @param string $id      Row ID.
+     * @param array  $row     Counts.
+     * @param bool   $blocked Whether the owner blocked it.
+     */
+    private static function row($id, array $row, $blocked) {
+        $names = array(
+            'page'  => __('visitor pages', 'seoprostack'),
+            'admin' => __('admin', 'seoprostack'),
+            'ajax'  => __('AJAX', 'seoprostack'),
+            'cron'  => __('cron', 'seoprostack'),
+            'rest'  => __('REST', 'seoprostack'),
+            'cli'   => __('WP-CLI', 'seoprostack'),
+        );
+        $sources = array(
+            'core'        => __('WordPress', 'seoprostack'),
+            'seoprostack' => __('SEO Pro Stack', 'seoprostack'),
+        );
+        $sent = (int) $row['sent'];
+        /* translators: 1: calls sent; 2: calls not sent */
+        $calls = sprintf(__('%1$s sent, %2$s not sent', 'seoprostack'), number_format_i18n($sent), number_format_i18n((int) $row['skipped']));
+        if ((int) $row['errors']) {
+            /* translators: %s: number of failed calls */
+            $calls .= ', ' . sprintf(_n('%s failed', '%s failed', (int) $row['errors'], 'seoprostack'), number_format_i18n((int) $row['errors']));
+        }
+        $time = '–';
+        if ($sent) {
+            /* translators: 1: total time; 2: average time; 3: slowest call */
+            $time = sprintf(__('%1$s in all, %2$s on average, slowest %3$s', 'seoprostack'), self::ms((float) $row['ms']), self::ms((float) $row['ms'] / $sent), self::ms((float) $row['max']));
+        }
+        /* translators: %s: time ago */
+        $last = $row['last'] ? sprintf(__('%s ago', 'seoprostack'), human_time_diff((int) $row['last'])) : '–';
+        $from = $sources[$row['source']] ?? SEOProStack_Licence_Calls::source_name($row['source']);
+        echo '<tr><td>' . esc_html($from) . '</td>';
+        echo '<td>' . esc_html($row['host']) . (empty($row['path']) ? '' : '<br><code>' . esc_html($row['path']) . '</code>') . '</td>';
+        echo '<td>' . esc_html($calls) . '</td><td>' . esc_html($time) . '</td>';
+        echo '<td>' . esc_html((string) ($row['answer'] ?? '–')) . '</td><td>' . esc_html(implode(', ', array_intersect_key($names, (array) $row['where']))) . '</td><td>' . esc_html($last) . '</td><td>';
+        // Checked first: a stored block here is never applied (see block()).
+        if (self::never_block($row['host'], $row['source'])) {
+            echo esc_html__('Never blocked', 'seoprostack');
+        } elseif ($blocked) {
+            echo '<strong>' . esc_html__('Blocked', 'seoprostack') . '</strong> ';
+            self::form('allow', __('Allow', 'seoprostack'), $id);
+        } else {
+            self::form('block', __('Block', 'seoprostack'), $id);
+        }
+        echo '</td></tr>';
     }
 
     /**
@@ -611,46 +553,11 @@ class SEOProStack_Outbound_Calls extends SEOProStack_Feature {
      * @return string
      */
     private static function ms($ms) {
-        /* translators: %s: seconds */
-        return $ms >= 1000 ? sprintf(__('%s s', 'seoprostack'), number_format_i18n($ms / 1000, 1)) : sprintf(
-            /* translators: %s: milliseconds */
-            __('%s ms', 'seoprostack'),
-            number_format_i18n($ms, $ms < 10 ? 1 : 0)
-        );
-    }
-
-    /**
-     * Name of a source.
-     *
-     * @param string $source Source.
-     * @return string
-     */
-    private static function source_name($source) {
-        if ('core' === $source) {
-            return __('WordPress', 'seoprostack');
+        if ($ms >= 1000) {
+            /* translators: %s: seconds */
+            return sprintf(__('%s s', 'seoprostack'), number_format_i18n($ms / 1000, 1));
         }
-        if ('seoprostack' === $source) {
-            return __('SEO Pro Stack', 'seoprostack');
-        }
-        $parts = explode(':', (string) $source, 2);
-        $slug  = $parts[1] ?? '';
-        if ('plugin' === $parts[0]) {
-            if (!function_exists('get_plugins')) {
-                require_once ABSPATH . 'wp-admin/includes/plugin.php';
-            }
-            foreach (get_plugins() as $file => $data) {
-                if (dirname($file) === $slug || $file === $slug) {
-                    return $data['Name'];
-                }
-            }
-            return $slug;
-        }
-        if ('theme' === $parts[0]) {
-            $theme = wp_get_theme($slug);
-            /* translators: %s: theme name */
-            return sprintf(__('%s (theme)', 'seoprostack'), $theme->exists() ? $theme->get('Name') : $slug);
-        }
-        /* translators: %s: must-use plugin file */
-        return sprintf(__('%s (must-use plugin)', 'seoprostack'), $slug);
+        /* translators: %s: milliseconds */
+        return sprintf(__('%s ms', 'seoprostack'), number_format_i18n($ms, $ms < 10 ? 1 : 0));
     }
 }

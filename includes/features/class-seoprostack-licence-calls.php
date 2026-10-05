@@ -278,12 +278,13 @@ class SEOProStack_Licence_Calls extends SEOProStack_Feature {
     /**
      * Whether WordPress's update code made the call: checking for, showing
      * or installing updates. Read from the call stack, so a plugin's licence
-     * call that also fetches its updates is never held there.
+     * call that also fetches its updates is never held there. Calls to other
+     * sites never blocks these either.
      *
      * @param array $trace Backtrace.
      * @return bool
      */
-    private static function during_updates(array $trace) {
+    public static function during_updates(array $trace) {
         $functions = array(
             'wp_update_plugins', 'wp_update_themes', 'wp_version_check', 'wp_maybe_auto_update',
             'plugins_api', 'themes_api', 'get_site_transient', 'set_site_transient',
@@ -302,12 +303,14 @@ class SEOProStack_Licence_Calls extends SEOProStack_Feature {
 
     /**
      * The plugin, must-use plugin or theme that made the call: the code
-     * nearest to the request. Empty for WordPress and SEO Pro Stack.
+     * nearest to the request. Empty for WordPress and SEO Pro Stack, or,
+     * with $named (Calls to other sites), "core" and "seoprostack".
      *
      * @param array $trace Backtrace.
+     * @param bool  $named Name WordPress and SEO Pro Stack.
      * @return string type:slug
      */
-    private static function source(array $trace) {
+    public static function source(array $trace, $named = false) {
         $roots = array(
             'plugin' => wp_normalize_path(WP_PLUGIN_DIR) . '/',
             'mu'     => wp_normalize_path(WPMU_PLUGIN_DIR) . '/',
@@ -320,7 +323,7 @@ class SEOProStack_Licence_Calls extends SEOProStack_Feature {
             }
             $file = wp_normalize_path($frame['file']);
             if (0 === strpos($file, $own)) {
-                return '';
+                return $named ? 'seoprostack' : '';
             }
             foreach ($roots as $type => $root) {
                 if (0 === strpos($file, $root)) {
@@ -330,7 +333,7 @@ class SEOProStack_Licence_Calls extends SEOProStack_Feature {
                 }
             }
         }
-        return '';
+        return $named ? 'core' : '';
     }
 
     /**
@@ -809,7 +812,7 @@ class SEOProStack_Licence_Calls extends SEOProStack_Feature {
      * @param string $source type:slug.
      * @return string
      */
-    private static function source_name($source) {
+    public static function source_name($source) {
         $parts = explode(':', (string) $source, 2);
         $type  = $parts[0];
         $slug  = isset($parts[1]) ? $parts[1] : '';
