@@ -1437,6 +1437,10 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folder�
 
 ## Changelog
 
+### Unreleased
+
+- Fix: **Load plugins only where needed**: a shortcode left by a removed plugin in a widget or template part no longer makes every page load every plugin. Page learning treated any unregistered shortcode name in that site-wide content as unknown, so on one site it skipped nothing on any page. Learning runs with every plugin loaded, after the page is shown, so a name still unregistered then has no handler, and WordPress shows it as plain text whichever plugins load. Such names in site-wide content now need no plugin. A post's own content keeps the stricter check, because that runs before plugins load (GitHub issue #493).
+
 ### 1.3.3
 
 - Fix: **Load plugins only where needed**: FluentCRM’s background tasks no longer make the site’s pages learn again. FluentCRM and FluentCRM Pro save eight run timestamps (`_fcrm_last_scheduler`, `_fcrm_last_email_process_cleanup`, `_fcrm_last_five_minutes_run`, `_fc_last_sequence_run`, `_fc_last_funnel_processor_ran` and others); `RECORD_OPTIONS` now knows them by the prefixes `_fcrm_last_` and `_fc_last_` instead of two exact names (GitHub issue #487).

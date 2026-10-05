@@ -921,7 +921,8 @@ final class SEOProStack_Plugin_Loader {
      * too.
      *
      * @param string $content Post content.
-     * @param array  $front   Learned blocks and shortcodes.
+     * @param array  $front   Learned blocks and shortcodes; 'live' when the
+     *                        shortcodes are this full request's registrations.
      * @param int    $depth   Nesting of synced patterns looked up so far.
      * @return string[]|false Plugins the content needs, or false when unknown.
      */
@@ -950,8 +951,11 @@ final class SEOProStack_Plugin_Loader {
         $names = array();
         foreach ($shortcodes[1] as $name) {
             // Unregistered text that no plugin would name a shortcode, such as
-            // [1] footnote marks or [elem.name], is not unknown content.
-            if (array_key_exists($name, $registered) || preg_match('/^[A-Za-z_][A-Za-z0-9_:-]*$/', $name)) {
+            // [1] footnote marks or [elem.name], is not unknown content. With
+            // live registrations (a request with every plugin, after it
+            // rendered), no unregistered name had a handler, such as one left
+            // by a removed plugin: fewer plugins cannot add one (#493).
+            if (array_key_exists($name, $registered) || (empty($front['live']) && preg_match('/^[A-Za-z_][A-Za-z0-9_:-]*$/', $name))) {
                 $names[] = $name;
             }
         }
