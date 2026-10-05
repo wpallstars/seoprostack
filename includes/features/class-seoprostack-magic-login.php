@@ -109,10 +109,9 @@ class SEOProStack_Magic_Login extends SEOProStack_Feature {
      * Register hooks when enabled.
      */
     public static function boot() {
-        // Pages made with WP Magic Link Login keep working after it is
+        // Pages made with either replaced login plugin keep working after it is
         // deactivated, whether or not this feature is on.
-        add_action('init', array(__CLASS__, 'register_shortcode'), 20);
-        add_action('init', array(__CLASS__, 'register_block'), 20);
+        add_action('init', array(__CLASS__, 'register_forms'), 20);
         if (!self::enabled()) {
             return;
         }
@@ -121,35 +120,33 @@ class SEOProStack_Magic_Login extends SEOProStack_Feature {
     }
 
     /**
-     * Take over WP Magic Link Login's [wpmll_form] shortcode, unless that
-     * plugin (still active) has registered it.
+     * Rendering-only fallbacks for the replaced shortcode and block.
+     * Existing registrations win; Magic Login's block schema lives in
+     * HandyPlugins/magic-login's includes/block.php.
      */
-    public static function register_shortcode() {
+    public static function register_forms() {
         if (!shortcode_exists(self::SHORTCODE)) {
             add_shortcode(self::SHORTCODE, array(__CLASS__, 'shortcode'));
         }
-    }
-
-    /**
-     * Rendering-only takeover; Magic Login's own registration always wins.
-     * Its schema lives in HandyPlugins/magic-login's includes/block.php.
-     */
-    public static function register_block() {
         $active = self::replaced_active(self::KEY);
         if (isset($active['magic-login']) || WP_Block_Type_Registry::get_instance()->is_registered(self::BLOCK)) {
             return;
         }
+        $attributes = array('redirectTo' => array('type' => 'string'));
+        $labels = array(
+            'title'       => __('Login with Email', 'seoprostack'),
+            'description' => __('Please enter your username or email address. You will receive an email message to log in.', 'seoprostack'),
+            'loginLabel'  => __('Username or Email Address', 'seoprostack'),
+            'buttonLabel' => __('Send me the link', 'seoprostack'),
+        );
+        foreach ($labels as $name => $label) {
+            $attributes[$name] = array('type' => 'string', 'default' => $label);
+        }
+        foreach (array('hideLoggedIn' => true, 'hideFormAfterSubmit' => true, 'cancelRedirection' => false) as $name => $default) {
+            $attributes[$name] = array('type' => 'boolean', 'default' => $default);
+        }
         register_block_type(self::BLOCK, array(
-            'attributes'      => array(
-                'title'               => array('type' => 'string', 'default' => __('Login with Email', 'seoprostack')),
-                'description'         => array('type' => 'string', 'default' => __('Please enter your username or email address. You will receive an email message to log in.', 'seoprostack')),
-                'loginLabel'          => array('type' => 'string', 'default' => __('Username or Email Address', 'seoprostack')),
-                'buttonLabel'         => array('type' => 'string', 'default' => __('Send me the link', 'seoprostack')),
-                'redirectTo'          => array('type' => 'string'),
-                'hideLoggedIn'        => array('type' => 'boolean', 'default' => true),
-                'hideFormAfterSubmit' => array('type' => 'boolean', 'default' => true),
-                'cancelRedirection'   => array('type' => 'boolean', 'default' => false),
-            ),
+            'attributes'      => $attributes,
             'render_callback' => array(__CLASS__, 'render_block'),
         ));
     }
@@ -164,12 +161,16 @@ class SEOProStack_Magic_Login extends SEOProStack_Feature {
         if (is_user_logged_in() && !empty($attributes['hideLoggedIn'])) {
             return '';
         }
+        $redirect = !empty($attributes['redirectTo']) ? $attributes['redirectTo'] : 'current-page';
+        if (!empty($attributes['cancelRedirection'])) {
+            $redirect = '';
+        }
         return self::shortcode(array(
             'heading'           => $attributes['title'],
             'description'       => $attributes['description'],
             'login-label'       => $attributes['loginLabel'],
             'login-button-text' => $attributes['buttonLabel'],
-            'redirect_to'       => !empty($attributes['cancelRedirection']) ? '' : (!empty($attributes['redirectTo']) ? $attributes['redirectTo'] : 'current-page'),
+            'redirect_to'       => $redirect,
         ));
     }
 
