@@ -5,7 +5,7 @@ Tags: magic login, iframe, schedule posts, auto upload images, admin
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.0.0
+Stable tag: 1.1.0
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -137,11 +137,10 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 
 == Changelog ==
 
-= 1.0.0 =
-* First stable release. Includes 0.15.0:
-* New: count terms and comments in the background (off).
-* New: faster page counts on long lists (off).
-* Fix: no Monarx cron errors in error_log on Hostinger.
-* Change: licence GPL-3.0-or-later with attribution terms.
+= 1.1.0 =
+* New: Plugin sizes measures each plugin's page time and queries.
+* Fix: page learning knows blocks from network-activated and must-use plugins and the theme.
+* Fix: pages with synced patterns can skip plugins.
+* Fix: page learning resets far less often, and says why it did.
 
 Older: `changelog.txt`.
