@@ -186,12 +186,14 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
     /**
      * Options other plugins save as records, even in a signed-in admin's
      * request, found by the reset record on real sites (GitHub issue #461):
-     * FluentCRM's scheduler, Really Simple Security's header test, MainWP
-     * Child's system monitor. Names ending in "." are prefixes (LiteSpeed
-     * Cache's async tasks and crawler).
+     * FluentCRM's scheduler and sequences, Really Simple Security's header
+     * test, MainWP Child's system monitor and request IDs, Readabler's
+     * process timestamps (GitHub issue #483). Names ending in "." or "_" are
+     * prefixes (also LiteSpeed Cache's async tasks and crawler).
      */
-    const RECORD_OPTIONS = array('_fcrm_last_scheduler', 'rsssl_csp_header_test_status', 'mainwp_child_system_monitor_data_cron',
-        'litespeed.task.', 'litespeed.crawler.');
+    const RECORD_OPTIONS = array('_fcrm_last_scheduler', '_fc_last_sequence_run', 'rsssl_csp_header_test_status',
+        'rsssl_csp_header_test_status_', 'mainwp_child_system_monitor_', 'mainwp_child_advanced_request_',
+        'mdp_readabler_pid_', 'litespeed.task.', 'litespeed.crawler.');
 
     /**
      * Site pages forgotten in this request: 0 not yet, 1 once, 2 changed
@@ -1547,7 +1549,7 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
             return true;
         }
         foreach (self::RECORD_OPTIONS as $record) {
-            if ('.' === substr($record, -1) ? 0 === strpos($name, $record) : $name === $record) {
+            if (in_array(substr($record, -1), array('.', '_'), true) ? 0 === strpos($name, $record) : $name === $record) {
                 return true;
             }
         }
