@@ -2,15 +2,17 @@
 
 Every change to SEO Pro Stack. readme.txt lists the latest version in short.
 
+= Unreleased =
+* Fix: two settings saves at the same moment can no longer both take over a stale save lock, so one no longer overwrites the other. A save keeps the settings of features not loaded on that request. Text settings sent as a list are refused instead of saved as "Array", and an address with a backslash is refused. From WP Plugin Starter 1.0.21.
+* Fix: Updates from GitHub (shared updater 1.1.1) finds the release zip whatever the case of the repository name, and reports a renamed or moved repository instead of finding no release.
+* Developers: core files from WP Plugin Starter 1.0.21. The smoke, update and Plugin Check scripts fail when they cannot check and remove every container; .wporg-links replaces whole links only, also in SVG, XML and translation files; the preflight finds referral links written with &amp; and scans Markdown, CSS, SVG, XML and translation files; rename-plugin.sh and sync-core.sh stop on failed writes, and sync-core.sh refuses symbolic links and compares the executable bit.
+
 = 1.1.0 =
 * New: Plugin sizes has Measure page time above the Plugins list. It loads the home page and the newest post three times each, with every active plugin loaded, and shows each plugin's page time and database queries in its Size column, with a summary above the list. Nothing is measured until someone clicks; a must-use file does the measuring and is removed afterwards. Single sites only.
 * New, off by default: Calls to other sites (Server tab). Tools → Calls to other sites lists each plugin's, theme's and must-use plugin's calls through WordPress's HTTP API by host: calls sent and not sent, failures, total, average and slowest time, last answer, where they were made and the last path (no query string). Block stops one plugin's calls to one host; payment services, WordPress.org and WordPress.com, the site itself, WordPress, SEO Pro Stack and WordPress's update code are never blocked. New `seoprostack_outbound_never_block` filter, `admin_post_seoprostack_outbound_calls` action and the `seoprostack_outbound_calls` and `seoprostack_outbound_blocks` options (not autoloaded), removed on uninstall.
 * Fix: Load plugins only where needed with page learning loaded every plugin on pages using a block from a network-activated plugin, a must-use plugin or the theme. Those blocks now need no plugin.
 * Fix: pages with synced patterns loaded every plugin. Their patterns are now looked up and their blocks and shortcodes count as the page's; a missing one still loads every plugin.
 * Fix: custom fields that plugins save on page views or in scheduled tasks no longer make the site's pages learn again; on some sites that happened every few minutes. The settings list the last changes that did, and why.
-* Fix: two settings saves at the same moment can no longer both take over a stale save lock, so one no longer overwrites the other. A save keeps the settings of features not loaded on that request. Text settings sent as a list are refused instead of saved as "Array", and an address with a backslash is refused. From WP Plugin Starter 1.0.21.
-* Fix: Updates from GitHub (shared updater 1.1.1) finds the release zip whatever the case of the repository name, and reports a renamed or moved repository instead of finding no release.
-* Developers: core files from WP Plugin Starter 1.0.21. The smoke, update and Plugin Check scripts fail when they cannot check and remove every container; .wporg-links replaces whole links only, also in SVG, XML and translation files; the preflight finds referral links written with &amp; and scans Markdown, CSS, SVG, XML and translation files; rename-plugin.sh and sync-core.sh stop on failed writes, and sync-core.sh refuses symbolic links and compares the executable bit.
 
 = 1.0.0 =
 * First stable release: SEO Pro Stack is now 1.0.0. Nothing changes on sites coming from 0.15.0.

@@ -1405,6 +1405,12 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folder�
 
 ## Changelog
 
+### Unreleased
+
+- Fix: two settings saves at the same moment can no longer both take over a stale save lock, so one no longer overwrites the other. A save keeps the settings of features not loaded on that request. Text settings sent as a list are refused instead of saved as "Array", and an address with a backslash is refused. From WP Plugin Starter 1.0.21 (GitHub issue #457).
+- Fix: Updates from GitHub (shared updater 1.1.1) finds the release zip whatever the case of the repository name, and reports a renamed or moved repository instead of finding no release.
+- Developers: core files from WP Plugin Starter 1.0.21. The smoke, update and Plugin Check scripts fail when they cannot check and remove every container; `.wporg-links` replaces whole links only, also in SVG, XML and translation files; the preflight finds referral links written with `&amp;` and scans Markdown, CSS, SVG, XML and translation files; `rename-plugin.sh` and `sync-core.sh` stop on failed writes, and `sync-core.sh` refuses symbolic links and compares the executable bit.
+
 ### 1.1.0
 
 - New: **Plugin sizes** has **Measure page time** above the Plugins list. It loads the home page and the newest post three times each, with every active plugin loaded, and shows each plugin’s page time and database queries in its Size column (details on hover: loading time and memory, hooks and shortcodes, query time, calls to other sites), the active plugins’ total below the list, and a summary above it: time and queries a page, split into plugins, theme and WordPress. Nothing is measured until someone clicks; a must-use file does the measuring and is removed when it ends. Single sites only (GitHub issue #447).
@@ -1412,9 +1418,6 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folder�
 - Fix: **Load plugins only where needed** with page learning loaded every plugin on pages using a block from a network-activated plugin, a must-use plugin or the theme, as the block had no owner among the plugins it can skip. Those blocks now need no plugin (GitHub issue #449).
 - Fix: pages with synced patterns loaded every plugin. Their patterns are now looked up and their blocks and shortcodes count as the page’s; a missing one still loads every plugin (GitHub issue #450).
 - Fix: custom fields that plugins save on page views or in scheduled tasks (view counters, caches, syncs) no longer make the site’s pages learn again; on some sites that happened every few minutes. The settings now list the last changes that did, with the hook, the option, field, post type or taxonomy, and the kind of request (GitHub issue #451).
-- Fix: two settings saves at the same moment can no longer both take over a stale save lock, so one no longer overwrites the other. A save keeps the settings of features not loaded on that request. Text settings sent as a list are refused instead of saved as "Array", and an address with a backslash is refused. From WP Plugin Starter 1.0.21 (GitHub issue #457).
-- Fix: Updates from GitHub (shared updater 1.1.1) finds the release zip whatever the case of the repository name, and reports a renamed or moved repository instead of finding no release.
-- Developers: core files from WP Plugin Starter 1.0.21. The smoke, update and Plugin Check scripts fail when they cannot check and remove every container; `.wporg-links` replaces whole links only, also in SVG, XML and translation files; the preflight finds referral links written with `&amp;` and scans Markdown, CSS, SVG, XML and translation files; `rename-plugin.sh` and `sync-core.sh` stop on failed writes, and `sync-core.sh` refuses symbolic links and compares the executable bit.
 
 ### 1.0.0
 
