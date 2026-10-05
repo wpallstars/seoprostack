@@ -5,7 +5,7 @@ Tags: magic login, iframe, schedule posts, auto upload images, admin
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.2.0
+Stable tag: 1.3.0
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -137,10 +137,10 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 
 == Changelog ==
 
-= 1.2.0 =
-* New: add database keys for meta lookups (off).
-* New: calls to other sites, by plugin and host (off).
-* Fix: background tasks no longer reset page learning.
-* Fix: settings saves at the same moment no longer clash.
+= 1.3.0 =
+* New: recommended speed settings, one click each.
+* New: remember admin counts between screens (off).
+* Fix: settings saves on sites with many pages.
+* Fix: unused synced patterns no longer stop skipping.
 
 Older: `changelog.txt`.
