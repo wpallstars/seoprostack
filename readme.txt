@@ -5,7 +5,7 @@ Tags: magic login, iframe, schedule posts, auto upload images, admin
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.3.2
+Stable tag: 1.3.3
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -137,8 +137,8 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 
 == Changelog ==
 
-= 1.3.2 =
-* Fix: page learning starts again after any update.
-* Fix: fewer background tasks reset page learning.
+= 1.3.3 =
+* Fix: FluentCRM tasks no longer reset page learning.
+* Fix: failed logins no longer reset page learning.
 
 Older: `changelog.txt`.
