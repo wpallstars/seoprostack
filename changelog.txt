@@ -5,6 +5,7 @@ Every change to SEO Pro Stack. readme.txt lists the latest version in short.
 = Unreleased =
 * Fix: Magic login links keeps HandyPlugins' Magic Login blocks working in pages and synced patterns after the plugin is removed. Saved text, safe redirects and logged-in visibility are preserved. With the feature off, WordPress's password form keeps login available; page learning recognises the block.
 * Fix: with Load plugins only where needed, a shortcode or block that a plugin registers only on some posts is no longer taken for a leftover from an old theme or removed plugin: the active plugins' code is searched first, so that plugin keeps loading on the posts using it.
+* Developers: STANDARDS.md from WP Plugin Starter 1.0.22. Performance has a new rule, Small choice lists: a select or multi setting's options callable runs on every settings save, so it must never list what grows with the site (the cause of the settings-save memory fix in 1.3.0).
 
 = 1.3.5 =
 * Fix: with Load plugins only where needed, a page with shortcodes or blocks that no plugin registers (left by an old theme or a removed plugin) in its own content learns once and then skips plugins, instead of loading every plugin on every visit.
