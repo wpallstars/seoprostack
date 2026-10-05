@@ -135,7 +135,8 @@ class SEOProStack_Magic_Login extends SEOProStack_Feature {
      * Its schema lives in HandyPlugins/magic-login's includes/block.php.
      */
     public static function register_block() {
-        if (self::replaced_active(self::KEY) || WP_Block_Type_Registry::get_instance()->is_registered(self::BLOCK)) {
+        $active = self::replaced_active(self::KEY);
+        if (isset($active['magic-login']) || WP_Block_Type_Registry::get_instance()->is_registered(self::BLOCK)) {
             return;
         }
         register_block_type(self::BLOCK, array(
@@ -168,7 +169,7 @@ class SEOProStack_Magic_Login extends SEOProStack_Feature {
             'description'       => $attributes['description'],
             'login-label'       => $attributes['loginLabel'],
             'login-button-text' => $attributes['buttonLabel'],
-            'redirect_to'       => !empty($attributes['cancelRedirection']) ? '' : ($attributes['redirectTo'] ?? 'current-page'),
+            'redirect_to'       => !empty($attributes['cancelRedirection']) ? '' : (!empty($attributes['redirectTo']) ? $attributes['redirectTo'] : 'current-page'),
         ));
     }
 
@@ -219,8 +220,9 @@ class SEOProStack_Magic_Login extends SEOProStack_Feature {
 
         if (!self::enabled()) {
             $html .= wp_login_form(array(
-                'echo'     => false,
-                'redirect' => $redirect ? $redirect : $current,
+                'echo'           => false,
+                'redirect'       => $redirect ? $redirect : $current,
+                'label_username' => $atts['login-label'],
             ));
             return $html . '</div>';
         }
