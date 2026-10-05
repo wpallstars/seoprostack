@@ -21,7 +21,7 @@ SEO Pro Stack does the jobs that usually take dozens of small plugins: a calmer,
 
 If this saves you time, headaches and costs, feel free to [buy me a coffee](https://buymeacoffee.com/marcusquinn), or whatever you like, to invest in making more things open-source.
 
-Version: 1.3.3
+Version: 1.3.4
 
 <!-- github-only:start -->
 ## Screenshots
@@ -1438,7 +1438,7 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folderâ
 
 ## Changelog
 
-### Unreleased
+### 1.3.4
 
 - Fix: **Load plugins only where needed**: shortcodes and blocks left by a removed plugin no longer make pages load every plugin. A shortcode in a widget or template part made every page load every plugin, and on one site nothing was skipped on any page. Blocks in posts listed on archives and search, here Code Block Pro's after it was removed, made those page kinds load every plugin. Learning runs with every plugin loaded, after the page is shown. A shortcode name, or block namespace, that no plugin has registered by then has no handler, so WordPress shows the plain text or saved markup whichever plugins load. Such names in widgets, template parts and listed posts now need no plugin. Plugins that turn them into output through content, widget or block filters stay loaded as page hooks. A postâ€™s own content keeps the stricter check because that runs before plugins load (GitHub issue #493).
 - Fix: **Load plugins only where needed** now learns and skips plugins on items served by **Short addresses for custom post types** (`/item/` instead of `/type/item/`). Before plugins load, the saved rewrite rules read such an address as a post that does not exist, so those pages never had a page kind: they used only the site-wide choices and their kind was never learned. On one site, those pages skipped no plugins where Freesoul Deactivate Plugins had skipped several. Page learning now saves the chosen post types with its routes and looks an item up only where no page or post is, as Short addresses itself does. Readabler's `readabler_cron_hook_timestamp`, saved as Readabler loads, is now a record and no longer makes the site's pages learn again (GitHub issue #495).
