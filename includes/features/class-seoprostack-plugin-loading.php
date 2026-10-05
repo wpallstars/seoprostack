@@ -1847,9 +1847,11 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
             // Other searches, terms and pagination pages can render different content.
             $needs = array_merge($needs, array_values(self::front_blocks($state)), array_values(self::front_shortcodes()));
         }
-        // Global template parts and reusable blocks can add content outside the
-        // post. Page-specific templates are captured while they render above.
-        $posts = array_merge($posts, get_posts(array('post_type' => array('wp_template_part', 'wp_block'),
+        // Global template parts can add content outside the post. Page-specific
+        // templates are captured while they render above. Synced patterns count
+        // only where something uses them (looked up below), so a leftover one
+        // nothing uses does not stop skipping on the whole site (#469).
+        $posts = array_merge($posts, get_posts(array('post_type' => 'wp_template_part',
             'numberposts' => 100, 'post_status' => 'publish', 'suppress_filters' => false)));
         if (count($posts) >= 100) {
             return $state['active']; // Too much global content to inspect cheaply.
@@ -1881,13 +1883,16 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
             $needs[] = $state['registered']['types'][$object->name];
         }
         $content = implode("\n", $texts);
-        // Every published synced pattern is in $content already (fewer than
-        // 100, checked above), so references to them are known.
-        $global_needs = SEOProStack_Plugin_Loader::content_needs($content, array('blocks' => self::front_blocks($state), 'shortcodes' => self::front_shortcodes(), 'indirect' => true));
-        if (false === $global_needs) {
-            return $state['active'];
+        // Each source on its own, so the synced patterns it uses are looked up
+        // within content_needs()'s per-content limit.
+        $front = array('blocks' => self::front_blocks($state), 'shortcodes' => self::front_shortcodes());
+        foreach ($texts as $text) {
+            $text_needs = SEOProStack_Plugin_Loader::content_needs((string) $text, $front);
+            if (false === $text_needs) {
+                return $state['active'];
+            }
+            $needs = array_merge($needs, $text_needs);
         }
-        $needs = array_merge($needs, $global_needs);
         if (class_exists('WooCommerce', false) && (did_action('woocommerce_before_mini_cart') || did_filter('lostpassword_url')
             || false !== strpos($content, 'wp:woocommerce/'))) {
             $needs[] = 'woocommerce/woocommerce.php';

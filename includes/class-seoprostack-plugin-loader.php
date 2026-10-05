@@ -918,11 +918,10 @@ final class SEOProStack_Plugin_Loader {
      * Content ownership learned with all plugins; unknown syntax loads everything.
      *
      * Synced patterns (core/block) are looked up and their content checked
-     * too, unless $front['indirect'] says the caller already included every
-     * synced pattern in $content (page_needs() does).
+     * too.
      *
      * @param string $content Post content.
-     * @param array  $front   Learned blocks and shortcodes, and 'indirect'.
+     * @param array  $front   Learned blocks and shortcodes.
      * @param int    $depth   Nesting of synced patterns looked up so far.
      * @return string[]|false Plugins the content needs, or false when unknown.
      */
@@ -978,9 +977,6 @@ final class SEOProStack_Plugin_Loader {
                 }
                 if ('core/block' !== $name) {
                     return false; // Patterns and template parts from files are not looked up here.
-                }
-                if (!empty($front['indirect'])) {
-                    continue;
                 }
                 if (!$synced) {
                     $synced = true;
