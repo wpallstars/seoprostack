@@ -21,7 +21,7 @@ SEO Pro Stack does the jobs that usually take dozens of small plugins: a calmer,
 
 If this saves you time, headaches and costs, feel free to [buy me a coffee](https://buymeacoffee.com/marcusquinn), or whatever you like, to invest in making more things open-source.
 
-Version: 0.15.0
+Version: 1.0.0
 
 <!-- github-only:start -->
 ## Screenshots
@@ -1385,6 +1385,11 @@ Deleting the plugin removes its settings and cached data, the profile pictures a
 Deactivating the plugin removes the WebP and AVIF rules from the uploads folder’s `.htaccess` (for every site when network-deactivated), the LiteSpeed background request rules from the site’s `.htaccess` (on multisite, when network-deactivated or deactivated on the main site) and the must-use file of Load plugins only where needed (on multisite, when network-deactivated).
 
 ## Changelog
+
+### 1.0.0
+
+- First stable release: SEO Pro Stack is now 1.0.0. Nothing changes on sites coming from 0.15.0.
+- Developers: core files from WP Plugin Starter 1.0.20. `STANDARDS.md` → Performance forbids an index that duplicates one a table already has (other plugins or the host may have added it), instead of any index on WordPress's own tables; an index on a table the plugin does not own is opt-in (GitHub issue #445).
 
 ### 0.15.0
 
