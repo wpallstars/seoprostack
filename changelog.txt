@@ -2,7 +2,7 @@
 
 Every change to SEO Pro Stack. readme.txt lists the latest version in short.
 
-= Unreleased =
+= 1.3.7 =
 * Fix: with Load plugins only where needed, more options that plugins save again on wp-admin page views no longer make the site's pages learn again: MainWP Child's HTML Regression asset list, StellarWP Uplink's update status for Kadence and StellarWP products, Burst Statistics' detected integrations, and Really Simple Security's notice cache and menu badge count.
 * Fix: with Load plugins only where needed, anything a plugin saves while a wp-admin screen is only viewed, and opening the post editor, no longer makes the site's pages learn again, whichever plugin it is. Sent forms, links that change something, AJAX, the REST API, WP-CLI and content, plugin and theme changes still do.
 * Changed: Load plugins only where needed replaces Freesoul Deactivate Plugins and its PRO add-on. The Plugins screen suggests removing them, and the feature waits while either is active. Freesoul's hand-made lists are not imported: only plugins learned as not needed are skipped.

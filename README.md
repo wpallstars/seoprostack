@@ -21,7 +21,7 @@ SEO Pro Stack does the jobs that usually take dozens of small plugins: a calmer,
 
 If this saves you time, headaches and costs, feel free to [buy me a coffee](https://buymeacoffee.com/marcusquinn), or whatever you like, to invest in making more things open-source.
 
-Version: 1.3.6
+Version: 1.3.7
 
 <!-- github-only:start -->
 ## Screenshots
@@ -1441,7 +1441,7 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folderâ
 
 ## Changelog
 
-### Unreleased
+### 1.3.7
 
 - Fix: **Load plugins only where needed**: more options other plugins save again on wp-admin page views, without a form being sent, no longer make the site's pages learn again: MainWP Child's `html-regression-track-admin-assets` (the scripts and styles the admin page loaded), StellarWP Uplink's `stellarwp_uplink_update_status_*` (licence and update status for each Kadence or StellarWP product), Burst Statistics' `burst_installed_integrations`, and Really Simple Security's `rsssl_admin_notices` and `rsssl_plusone_count`. On one site they reset the learning 11 times in about 40 minutes of someone working in wp-admin, so visitors loaded every plugin until pages learned again (GitHub issue #512).
 - Fix: **Load plugins only where needed**: anything other plugins save while a wp-admin screen is only being viewed (no form sent, no security token or action in the address) no longer makes the site's pages learn again, whichever plugin saves it, so new plugins' notice caches, licence status and similar records need no list. Opening the post editor, which saves its edit lock, no longer does either. Sent forms, links that change something, AJAX, the REST API, WP-CLI, database upgrades and content, plugin and theme changes still do (GitHub issue #515).
