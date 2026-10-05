@@ -7,6 +7,15 @@ Follow the site's theme, not the visitor's system colour preference. Use
 with `color-switch-light` and `color-switch-dark`; no script or separate
 dark icon is needed. Shared styling rules are in `STANDARDS.md`.
 
+## Settings panels
+
+A feature's Options panel shows its status and the choices people need.
+Bypasses for plugins or themes the feature does not handle go last, in the
+closed **Troubleshooting** section (`'group' => 'troubleshooting'`), which
+opens by itself when one of them is in use, so a saved choice is never
+hidden. Their descriptions name the problem each one fixes. The section uses
+the shared `--sps-*` colours, so it follows every admin colour scheme.
+
 ## External link icons
 
 `includes/features/class-seoprostack-external-links.php` adds a small
