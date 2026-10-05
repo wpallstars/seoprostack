@@ -1437,6 +1437,10 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folder�
 
 ## Changelog
 
+### Unreleased
+
+- Fix: on sites with a persistent object cache (LiteSpeed, Redis, Memcached), **Load plugins only where needed** could stop learning the site’s pages after they were reset, so every page loaded every plugin until the cache dropped an old copy of `seoprostack_plugin_front`. WordPress’s `delete_option()` removes an autoloaded option from `alloptions` only, so a copy a request had cached under the option’s own name stayed; `get_option()` returned it, so `update_option()` tried to update the missing row and returned `false` without saving. SEO Pro Stack now deletes both copies and saves over an old one, so a stuck site learns again on its next page view (GitHub issue #476).
+
 ### 1.3.0
 
 - New, on by default: **Recommended speed settings** (Speed tab). A plan below the Speed tab’s settings, from the site’s own size and plugins: which speed and server settings to turn on, why for this site and what each costs, and why the others are not recommended here. **Turn on** changes one setting as its switch would; **Undo** puts it back while it is still as the plan left it. Changes nothing until someone clicks. New `admin_post_seoprostack_speed_plan` action and `seoprostack_speed_plan` log option (not autoloaded), removed on uninstall (GitHub issue #468).

@@ -1095,6 +1095,35 @@ final class SEOProStack_Plugin_Loader {
     }
 
     /**
+     * Delete one of the loader's options and its own object cache entry.
+     * delete_option() takes an autoloaded option out of alloptions only. A
+     * request that read the option before alloptions had it also cached it
+     * under its own name; that copy outlives the row, get_option() returns
+     * it, and update_option() then updates a row that is gone, so nothing
+     * learned is saved until a persistent cache drops it (GitHub issue #476).
+     *
+     * @param string $name Option name.
+     */
+    public static function drop_option($name) {
+        delete_option($name);
+        wp_cache_delete($name, 'options');
+    }
+
+    /**
+     * Save one of the loader's options over any stale cached copy (see
+     * drop_option()), so a site that is stuck saves again.
+     *
+     * @param string $name     Option name.
+     * @param mixed  $value    Value.
+     * @param bool   $autoload Whether to load it on every request.
+     * @return bool
+     */
+    public static function save_option($name, $value, $autoload) {
+        wp_cache_delete($name, 'options');
+        return update_option($name, $value, $autoload);
+    }
+
+    /**
      * Start learning the site unless another request is (for two minutes at
      * most, in case that request failed). Two requests at once may both
      * learn, which does no harm.

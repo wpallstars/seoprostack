@@ -603,7 +603,7 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
             $front = get_option(SEOProStack_Plugin_Loader::FRONT);
             if (is_array($front) && !empty($front['failed'])) {
                 $front['failed'] = array();
-                update_option(SEOProStack_Plugin_Loader::FRONT, $front, true);
+                SEOProStack_Plugin_Loader::save_option(SEOProStack_Plugin_Loader::FRONT, $front, true);
             }
         }
     }
@@ -628,16 +628,16 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
         delete_option(SEOProStack_Plugin_Loader::FRONT_LOCK);
         delete_option(SEOProStack_Plugin_Loader::FRONT_FAILED);
         if (false !== get_option(SEOProStack_Plugin_Loader::MAP)) {
-            delete_option(SEOProStack_Plugin_Loader::MAP);
+            SEOProStack_Plugin_Loader::drop_option(SEOProStack_Plugin_Loader::MAP);
         }
         if (false !== get_option(SEOProStack_Plugin_Loader::MENU)) {
-            delete_option(SEOProStack_Plugin_Loader::MENU);
+            SEOProStack_Plugin_Loader::drop_option(SEOProStack_Plugin_Loader::MENU);
         }
         if (false !== get_option(SEOProStack_Plugin_Loader::FRONT)) {
             // Plugin and theme updates, the switch, reset: say so in the record.
             self::$forget_cause = self::$forget_cause ?? array('hook' => (string) (current_filter() ?: 'reset'), 'key' => '');
             self::note_forget();
-            delete_option(SEOProStack_Plugin_Loader::FRONT);
+            SEOProStack_Plugin_Loader::drop_option(SEOProStack_Plugin_Loader::FRONT);
         }
     }
 
@@ -1218,7 +1218,7 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
         }
 
         if ($map !== $stored) {
-            update_option(SEOProStack_Plugin_Loader::MAP, $map, true);
+            SEOProStack_Plugin_Loader::save_option(SEOProStack_Plugin_Loader::MAP, $map, true);
         }
         if (null !== self::$menu && get_option(SEOProStack_Plugin_Loader::MENU) !== self::$menu) {
             update_option(SEOProStack_Plugin_Loader::MENU, self::$menu, false);
@@ -1306,7 +1306,7 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
             delete_option(SEOProStack_Plugin_Loader::FRONT_LOCK);
             return; // Preserving choices invalidates this map; the next full visit learns it.
         }
-        update_option(SEOProStack_Plugin_Loader::FRONT, array(
+        SEOProStack_Plugin_Loader::save_option(SEOProStack_Plugin_Loader::FRONT, array(
             'version' => SEOProStack_Plugin_Loader::FRONT_VERSION,
             'revision' => $state['front_revision'],
             'active'  => $print,
@@ -1628,13 +1628,15 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
     public static function forget_front_now() {
         $revision = wp_generate_uuid4();
         update_option(SEOProStack_Plugin_Loader::FRONT_REVISION, $revision, true);
+        // Not a stale cached copy of a map that is already gone (GitHub issue #476).
+        wp_cache_delete(SEOProStack_Plugin_Loader::FRONT, 'options');
         $front = get_option(SEOProStack_Plugin_Loader::FRONT, array());
         if (is_array($front) && !empty($front['failed'])) {
             $front['kinds'] = array();
             $front['revision'] = $revision;
             update_option(SEOProStack_Plugin_Loader::FRONT, $front, true);
         } else {
-            delete_option(SEOProStack_Plugin_Loader::FRONT);
+            SEOProStack_Plugin_Loader::drop_option(SEOProStack_Plugin_Loader::FRONT);
         }
         delete_option(SEOProStack_Plugin_Loader::FRONT_LOCK);
     }
