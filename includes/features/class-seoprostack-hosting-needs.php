@@ -636,8 +636,9 @@ class SEOProStack_Hosting_Needs extends SEOProStack_Feature {
         $previous = is_array($previous) ? $previous : array();
         $empty    = array('state' => 'unknown', 'kind' => '', 'name' => '', 'available' => '', 'extension' => false, 'cause' => '', 'fix' => array());
         $fresh    = isset($previous['checked']) && time() - $previous['checked'] < DAY_IN_SECONDS;
-        // A missing PHP extension the host has since turned on is checked again at
-        // once, as is a lost test value for LiteSpeed Cache's cache (see below).
+        // An object cache turned on or off, or a missing PHP extension the host
+        // has since turned on, is checked again at once, as is a lost test value
+        // for LiteSpeed Cache's cache (see below).
         $recheck = $fresh && self::recheck_cache($previous);
         if ((!is_admin() && !wp_doing_cron() && !(defined('WP_CLI') && WP_CLI)) || ($fresh && !$recheck)) {
             return $previous + $empty;
@@ -732,14 +733,23 @@ class SEOProStack_Hosting_Needs extends SEOProStack_Feature {
 
     /**
      * Whether a daily result should be checked again before the day is out:
-     * a PHP extension the host has since turned on, or a test value lost by
-     * LiteSpeed Cache's cache, which is no longer tested that way.
+     * an object cache turned on or off since, a PHP extension the host has
+     * since turned on, or a test value lost by LiteSpeed Cache's cache, which
+     * is no longer tested that way.
      *
      * @param array $previous Stored result of object_cache_facts().
      * @return bool
      */
     private static function recheck_cache(array $previous) {
         $cause = (string) ($previous['cause'] ?? '');
+        $state = (string) ($previous['state'] ?? '');
+        // Stored while WordPress was not using a cache ('off', or LiteSpeed
+        // Cache's drop-in missing) and it is now, or the other way round. The
+        // new result cannot disagree the same way, so this runs once.
+        $using = wp_using_ext_object_cache();
+        if ($using ? ('off' === $state || 'dropin' === $cause) : 'working' === $state) {
+            return true;
+        }
         if ('extension' === $cause) {
             return extension_loaded(self::cache_extension((string) ($previous['kind'] ?? '')));
         }
