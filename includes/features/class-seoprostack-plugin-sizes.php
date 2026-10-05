@@ -20,6 +20,10 @@
  * a full cache evicts first. Only files PHP has loaded since OPcache last
  * restarted are counted, so an inactive plugin shows none.
  *
+ * On single sites, Measure page time above the list measures each active
+ * plugin's page time and database queries when someone clicks it
+ * (SEOProStack_Plugin_Cost), and each cell shows the plugin's share.
+ *
  * SPDX-License-Identifier: GPL-3.0-or-later
  * SPDX-FileCopyrightText: 2026 Marcus Quinn
  * Additional terms (GPL-3.0 section 7(b)): SEOPROSTACK-ATTRIBUTION.txt
@@ -45,6 +49,9 @@ class SEOProStack_Plugin_Sizes extends SEOProStack_Feature {
     /** AJAX action. */
     const AJAX = 'seoprostack_plugin_sizes';
 
+    /** AJAX action of Measure page time (SEOProStack_Plugin_Cost::AJAX). */
+    const COST_AJAX = 'seoprostack_plugin_cost';
+
     /** Seconds one AJAX request may spend measuring. */
     const BUDGET = 3;
 
@@ -63,7 +70,7 @@ class SEOProStack_Plugin_Sizes extends SEOProStack_Feature {
                 'default'     => true,
                 'tab'         => 'plugins',
                 'label'       => __('Plugin sizes', 'seoprostack'),
-                'description' => __('Add a Size column to the Plugins screen with each plugin’s PHP, JavaScript, CSS, media and other files, and the OPcache memory its compiled code takes now, so heavy plugins stand out. Click the column heading to sort. Totals for installed and active plugins are shown below the list.', 'seoprostack'),
+                'description' => __('Add a Size column to the Plugins screen with each plugin’s PHP, JavaScript, CSS, media and other files, and the OPcache memory its compiled code takes now, so heavy plugins stand out. Click the column heading to sort. Totals for installed and active plugins are shown below the list. Measure page time, above the list, adds each active plugin’s page time and database queries.', 'seoprostack'),
             ),
         );
     }
@@ -79,7 +86,44 @@ class SEOProStack_Plugin_Sizes extends SEOProStack_Feature {
         add_action('wp_ajax_' . self::AJAX, array(__CLASS__, 'ajax_measure'));
         if (self::enabled()) {
             add_action('load-plugins.php', array(__CLASS__, 'load_screen'));
+            if (!is_multisite()) {
+                add_action('wp_ajax_' . self::COST_AJAX, array(__CLASS__, 'ajax_cost'));
+            }
         }
+    }
+
+    /**
+     * Measure page time, with every plugin (SEOProStack_Plugin_Cost), loaded only when used.
+     *
+     * @return bool Whether it is available: single sites only.
+     */
+    private static function cost() {
+        if (is_multisite()) {
+            return false;
+        }
+        if (!class_exists('SEOProStack_Plugin_Cost')) {
+            require_once SEOPROSTACK_DIR . 'includes/class-seoprostack-plugin-cost.php';
+        }
+        return true;
+    }
+
+    /**
+     * One step of Measure page time.
+     */
+    public static function ajax_cost() {
+        if (self::cost()) {
+            SEOProStack_Plugin_Cost::ajax();
+        }
+    }
+
+    /**
+     * Page time and queries of some plugins, as last measured.
+     *
+     * @param string[] $files Plugin files.
+     * @return string Markup, or an empty string.
+     */
+    private static function cost_line(array $files) {
+        return self::enabled() && !is_network_admin() && self::cost() ? SEOProStack_Plugin_Cost::line($files) : '';
     }
 
     /**
@@ -95,6 +139,9 @@ class SEOProStack_Plugin_Sizes extends SEOProStack_Feature {
         add_action('manage_plugins_custom_column', array(__CLASS__, 'render_column'), 10, 2);
         add_action('admin_print_footer_scripts', array(__CLASS__, 'script'));
         add_action('admin_head', array(__CLASS__, 'style'));
+        if (!is_network_admin() && self::cost()) {
+            SEOProStack_Plugin_Cost::load_screen();
+        }
     }
 
     /**
@@ -137,7 +184,7 @@ class SEOProStack_Plugin_Sizes extends SEOProStack_Feature {
                 esc_html__('Measuring…', 'seoprostack')
             );
         }
-        return self::cell($sizes, self::opcache_for(array($file)));
+        return self::cell($sizes, self::opcache_for(array($file)), self::cost_line(array($file)));
     }
 
     /**
@@ -208,9 +255,10 @@ class SEOProStack_Plugin_Sizes extends SEOProStack_Feature {
      *
      * @param array    $sizes   Sizes in bytes, keyed by group plus total.
      * @param int|null $opcache OPcache memory in bytes; null when OPcache cannot be read.
+     * @param string   $cost    Page time line (escaped markup), or an empty string.
      * @return string
      */
-    public static function cell(array $sizes, $opcache = null) {
+    public static function cell(array $sizes, $opcache = null, $cost = '') {
         $labels = array(
             'php'   => __('PHP', 'seoprostack'),
             'js'    => __('JS', 'seoprostack'),
@@ -234,11 +282,12 @@ class SEOProStack_Plugin_Sizes extends SEOProStack_Feature {
             );
         }
         return sprintf(
-            '<span class="sps-size" data-sps-size="%1$d"><strong>%2$s</strong>%3$s%4$s</span>',
+            '<span class="sps-size" data-sps-size="%1$d"><strong>%2$s</strong>%3$s%4$s%5$s</span>',
             (int) $sizes['total'],
             esc_html((string) size_format($sizes['total'], 1)),
             $parts ? '<span class="sps-size__parts">' . implode(' ', $parts) . '</span>' : '',
-            $memory
+            $memory,
+            $cost
         );
     }
 
@@ -320,7 +369,8 @@ class SEOProStack_Plugin_Sizes extends SEOProStack_Feature {
                 /* translators: %s: number of plugins. */
                 $label = sprintf(_n('%s active plugin', '%s active plugins', $total['count'], 'seoprostack'), $count);
             }
-            $cell = $total['sizes']['total'] ? self::cell($total['sizes'], self::opcache_for($total['files'])) : ''; // Nothing measured yet, or no plugins.
+            $cost = 'active' === $key && !$network ? self::cost_line($total['files']) : '';
+            $cell = $total['sizes']['total'] ? self::cell($total['sizes'], self::opcache_for($total['files']), $cost) : ''; // Nothing measured yet, or no plugins.
             if ($total['missing']) {
                 $cell .= sprintf(
                     '<span class="sps-size__missing">%s</span>',
@@ -375,7 +425,7 @@ class SEOProStack_Plugin_Sizes extends SEOProStack_Feature {
             }
             $sizes        = self::measure($file);
             $cache[$file] = array('v' => (string) $plugins[$file]['Version'], 's' => $sizes);
-            $done[$file]  = self::cell($sizes, self::opcache_for(array($file)));
+            $done[$file]  = self::cell($sizes, self::opcache_for(array($file)), $network ? '' : self::cost_line(array($file)));
         }
 
         self::save($cache);
@@ -513,6 +563,10 @@ class SEOProStack_Plugin_Sizes extends SEOProStack_Feature {
             .sps-size-totals tr + tr td { border-top: 1px solid #dcdcde; }
             .sps-size__opcache { display: block; margin-top: 2px; font-size: 12px; color: #646970; }
             .sps-size__missing { display: block; margin-top: 2px; font-size: 12px; color: #646970; font-style: italic; }
+            .sps-size__cost { display: block; margin-top: 2px; font-size: 12px; color: #646970; }
+            .sps-cost { margin: 12px 0 8px; }
+            .sps-cost p { margin: 0; }
+            .sps-cost__status { margin-left: 4px; color: #646970; }
             @media screen and (max-width: 782px) {
                 .sps-size-totals td:not(.column-primary):not(.column-<?php echo esc_attr(self::COLUMN); ?>) { display: none !important; }
                 .sps-size-totals td.column-<?php echo esc_attr(self::COLUMN); ?>:not(.hidden) { display: block !important; }

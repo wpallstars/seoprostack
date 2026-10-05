@@ -2,7 +2,7 @@
 /**
  * Remove SEO Pro Stack options, caches, pending login links, uploaded profile
  * pictures, generated avatars, WebP/AVIF copies of pictures, short links and
- * the plugin-loading must-use file on uninstall (every site on multisite).
+ * SEO Pro Stack's must-use files on uninstall (every site on multisite).
  *
  * Imported media and Link card pictures (and their `_seoprostack_source_url`
  * / legacy `_wp_allstars_source_url` meta) are left in place because posts
@@ -91,6 +91,9 @@ function seoprostack_uninstall_site() {
     $options[] = 'seoprostack_hosting_writes';
     $options[] = 'seoprostack_hosting_object_cache';
     $options[] = 'seoprostack_hosting_object_cache_lock';
+    // Plugin sizes: the last Measure page time. Its token and each page's
+    // findings are seoprostack_cost_* transients, removed with the others below.
+    $options[] = 'seoprostack_plugin_cost';
     wp_cache_delete('hosting_probe', 'seoprostack');
     // Whether the site runs on a LiteSpeed server, for WP-CLI.
     $options[] = 'seoprostack_litespeed_server';
@@ -400,13 +403,21 @@ foreach (isset($seoprostack_files['targets']) && is_array($seoprostack_files['ta
 }
 delete_site_option('seoprostack_hardening_files');
 
-// The must-use file of "Load plugins only where needed", if it is ours.
-$seoprostack_loader = WPMU_PLUGIN_DIR . '/seoprostack-plugin-loading.php';
-if (is_file($seoprostack_loader)) {
+// The must-use files of "Load plugins only where needed" and of a Measure
+// page time that did not finish (Plugin sizes), if they are ours.
+$seoprostack_mu_files = array(
+    'seoprostack-plugin-loading.php'   => 'seoprostack-plugin-loading',
+    '000-seoprostack-plugin-cost.php' => 'SEO Pro Stack page time profiler',
+);
+foreach ($seoprostack_mu_files as $seoprostack_mu_file => $seoprostack_marker) {
+    $seoprostack_mu_file = WPMU_PLUGIN_DIR . '/' . $seoprostack_mu_file;
+    if (!is_file($seoprostack_mu_file)) {
+        continue;
+    }
     require_once ABSPATH . 'wp-admin/includes/class-wp-filesystem-base.php';
     require_once ABSPATH . 'wp-admin/includes/class-wp-filesystem-direct.php';
     $seoprostack_fs = new WP_Filesystem_Direct(null);
-    if (false !== strpos((string) $seoprostack_fs->get_contents($seoprostack_loader), 'seoprostack-plugin-loading')) {
-        $seoprostack_fs->delete($seoprostack_loader);
+    if (false !== strpos((string) $seoprostack_fs->get_contents($seoprostack_mu_file), $seoprostack_marker)) {
+        $seoprostack_fs->delete($seoprostack_mu_file);
     }
 }
