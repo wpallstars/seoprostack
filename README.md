@@ -653,6 +653,7 @@ Serves items of the post types you choose at `/item-name/` instead of `/type/ite
 - Pages, posts and categories keep their addresses. When a published page or post has the same name as an item, the item keeps its old address, and the options panel lists each clashing address with links to edit the page or post and the item, so you can change one's slug. Rename the page or post when the item should own the address (such as a directory entry that is the main page for its topic): the item takes the address over, so links to it reach the item. Rename the item to keep the page or post there: WordPress redirects the item's old address. Items of hierarchical types keep their parents in the address (`/parent/child/`).
 - Feeds, embeds and comment pages of an item work at the short address. Archives such as `/product/` keep theirs.
 - Only post types with a fixed base are offered; a base with tags such as `%product_cat%` cannot be removed.
+- With **Learn which plugins each page needs**, an item at its short address is learned and skips plugins like other singles of its type: page learning saves the chosen types and looks the item up only where no page or post is. Two items of different types at one address, and child items whose address another rule matches, use the site-wide choices.
 - Replaces Remove CPT base and imports its chosen post types.
 
 ### Short links (Links)

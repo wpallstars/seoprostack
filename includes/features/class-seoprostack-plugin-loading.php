@@ -188,12 +188,13 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
      * request, found by the reset record on real sites (GitHub issue #461):
      * FluentCRM's run timestamps (GitHub issue #487), Really Simple
      * Security's header test, MainWP Child's system monitor and request IDs,
-     * Readabler's process timestamps (GitHub issue #483). Names ending in "."
+     * Readabler's process timestamps (GitHub issue #483) and the cron
+     * timestamp it saves as it loads (GitHub issue #495). Names ending in "."
      * or "_" are prefixes (also LiteSpeed Cache's async tasks and crawler).
      */
     const RECORD_OPTIONS = array('_fcrm_last_', '_fc_last_', 'rsssl_csp_header_test_status',
         'rsssl_csp_header_test_status_', 'mainwp_child_system_monitor_', 'mainwp_child_advanced_request_',
-        'mdp_readabler_pid_', 'litespeed.task.', 'litespeed.crawler.');
+        'mdp_readabler_pid_', 'readabler_cron_hook_timestamp', 'litespeed.task.', 'litespeed.crawler.');
 
     /**
      * Site pages forgotten in this request: 0 not yet, 1 once, 2 changed
@@ -1398,6 +1399,10 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
                 $routes['tax_vars'][$object->query_var] = $name;
             }
         }
+        // Types served at /item/ by Short addresses for custom post types, so
+        // their pages have a kind before plugins load (GitHub issue #495).
+        $routes['short_types'] = class_exists('SEOProStack_Remove_Cpt_Base', false) && SEOProStack_Remove_Cpt_Base::enabled()
+            ? SEOProStack_Remove_Cpt_Base::types() : array();
         return $routes;
     }
 
