@@ -32,7 +32,7 @@ Features safe on every site start on; those needing choices stay off. Use **Sett
 
 * **Magic login links**: one-time links by email that link scanners cannot use up.
 * **Admin bar and dashboard access**: keep subscribers and customers out of wp-admin; never administrators.
-* **Turn off unused remote access**: XML-RPC and application passwords, and web access to log and backup files. Site Health names any such public file.
+* **Turn off unused remote access**: XML-RPC and application passwords, and web access to log and backup files. Site Health names any such public file, and says if anyone can list the files in your uploads folder.
 * **Maintenance mode**: a 503 page search engines understand, with 24-hour bypass links you can revoke.
 
 = Writing and publishing =
@@ -73,7 +73,7 @@ Features safe on every site start on; those needing choices stay off. Use **Sett
 = Plugins and set-up =
 
 * **Plugin presets** and **starter data**: our tested settings for other plugins, and the lists, tags, forms and boards we use in Fluent plugins; only when you ask, and undoable.
-* **Plugins menu** in the admin bar, **Plugin sizes** with page time, **Clean up deleted plugins** and **Hosting needs** (what hosting to buy).
+* **Plugins menu** in the admin bar, **Plugin sizes** with page time, **Clean up deleted plugins** and **Hosting needs** (what hosting to buy, and how PHP runs).
 * **Fixes for other plugins**: works around their known bugs.
 * **Agency**: order flow, client dashboard and examples.
 * **Discover**: the Kadence theme and the free and Pro plugins, hosting and tools we use.

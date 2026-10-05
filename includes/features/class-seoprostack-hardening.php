@@ -13,6 +13,11 @@
  * can download, checked once a day. Files are never deleted or moved: they
  * belong to the plugins that write them.
  *
+ * Directory listing: a second Site Health test, always on, asks for this
+ * month's uploads folder once a day and says when the server lists its
+ * files. Advice only: an Options line in .htaccess can stop a whole Apache
+ * site loading where the host does not allow it.
+ *
  * SPDX-License-Identifier: GPL-3.0-or-later
  * SPDX-FileCopyrightText: 2026 Marcus Quinn
  * Additional terms (GPL-3.0 section 7(b)): SEOPROSTACK-ATTRIBUTION.txt
@@ -44,6 +49,15 @@ class SEOProStack_Hardening extends SEOProStack_Feature {
 
     /** Most files requested per check. */
     const MAX_REQUESTS = 10;
+
+    /** Transient: whether the uploads folder lists its files (daily). */
+    const LISTING = 'seoprostack_directory_listing';
+
+    /** Site Health test of directory listing. */
+    const LISTING_TEST = 'seoprostack-directory-listing';
+
+    /** Most of the folder's page read, in bytes: enough for its title. */
+    const LISTING_BYTES = 8192;
 
     /** File names the block denies and the test looks for. */
     const FILES_PATTERN = '/^(error_log|php_errorlog|wp-config.+\.php)$|\.(log|sql|sql\.gz|bak)$/';
@@ -126,6 +140,7 @@ class SEOProStack_Hardening extends SEOProStack_Feature {
             // Also when switched off, to remove the block.
             add_action('admin_init', array(__CLASS__, 'files_maybe_sync'));
             add_action('wp_ajax_health-check-' . self::TEST, array(__CLASS__, 'ajax_test'));
+            add_action('wp_ajax_health-check-' . self::LISTING_TEST, array(__CLASS__, 'ajax_listing_test'));
             add_action('seoprostack_setting_panel', array(__CLASS__, 'panel'), 10, 2);
         }
         if (!self::enabled()) {
@@ -393,6 +408,11 @@ class SEOProStack_Hardening extends SEOProStack_Feature {
             'test'              => self::TEST,
             'async_direct_test' => array(__CLASS__, 'test_files'),
         );
+        $tests['async'][self::LISTING_TEST] = array(
+            'label'             => __('Directory listing', 'seoprostack'),
+            'test'              => self::LISTING_TEST,
+            'async_direct_test' => array(__CLASS__, 'test_listing'),
+        );
         return $tests;
     }
 
@@ -537,6 +557,125 @@ class SEOProStack_Hardening extends SEOProStack_Feature {
                 _n('%d smaller file was not checked today.', '%d smaller files were not checked today.', $exposed['more'], 'seoprostack'),
                 $exposed['more']
             )) . '</p>';
+        }
+        return $result;
+    }
+
+    /* ------------------------------------------------------------------
+     * Directory listing: the Site Health test
+     * ------------------------------------------------------------------ */
+
+    /**
+     * Run the directory listing test for the Site Health screen.
+     */
+    public static function ajax_listing_test() {
+        check_ajax_referer('health-check-site-status');
+        if (!current_user_can('view_site_health_checks')) {
+            wp_send_json_error();
+        }
+        wp_send_json_success(self::test_listing());
+    }
+
+    /**
+     * Folder to ask for: this month's uploads folder, which WordPress gives
+     * no index file, else the uploads folder, so the index.php files
+     * WordPress ships in its top folders cannot hide the answer. Never
+     * creates a folder.
+     *
+     * @return string URL, or '' when both have an index file or none exists.
+     */
+    private static function listing_url() {
+        $uploads = wp_upload_dir(null, false);
+        if (!empty($uploads['error'])) {
+            return '';
+        }
+        $folders = array(
+            array($uploads['path'], $uploads['url']),
+            array($uploads['basedir'], $uploads['baseurl']),
+        );
+        foreach ($folders as $folder) {
+            list($path, $url) = $folder;
+            if ('' === (string) $path || '' === (string) $url || !is_dir($path)) {
+                continue;
+            }
+            foreach (array('index.php', 'index.html', 'index.htm') as $index) {
+                if (file_exists(trailingslashit($path) . $index)) {
+                    continue 2;
+                }
+            }
+            return trailingslashit($url);
+        }
+        return '';
+    }
+
+    /**
+     * Whether the uploads folder lists its files, checked at most once a day
+     * with one GET that reads only the start of the page.
+     *
+     * @return array{state:string,url:string} State on, off, failed or skipped.
+     */
+    public static function listing() {
+        $cached = get_transient(self::LISTING);
+        if (is_array($cached) && isset($cached['state'], $cached['url'])) {
+            return array('state' => (string) $cached['state'], 'url' => (string) $cached['url']);
+        }
+        $url    = self::listing_url();
+        $result = array('state' => 'skipped', 'url' => $url);
+        if ('' !== $url) {
+            $response = wp_remote_get($url, array(
+                'timeout'             => 5, // phpcs:ignore WordPressVIPMinimum.Performance.RemoteRequestTimeout -- Site Health's async test and its weekly cron check only, once a day.
+                'redirection'         => 0,
+                'limit_response_size' => self::LISTING_BYTES,
+                // Core's filter for requests to the site itself, as its loopback test uses.
+                'sslverify'           => apply_filters('https_local_ssl_verify', false), // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- core's own filter.
+            ));
+            if (is_wp_error($response)) {
+                $result['state'] = 'failed';
+            } else {
+                // Apache, LiteSpeed and nginx's autoindex all title the page so.
+                $listed          = 200 === (int) wp_remote_retrieve_response_code($response)
+                    && false !== stripos((string) wp_remote_retrieve_body($response), '<title>Index of');
+                $result['state'] = $listed ? 'on' : 'off';
+            }
+        }
+        set_transient(self::LISTING, $result, DAY_IN_SECONDS);
+        return $result;
+    }
+
+    /**
+     * Directory listing test.
+     *
+     * @return array
+     */
+    public static function test_listing() {
+        $listing = self::listing();
+        $result  = array(
+            'label'       => __('Folders do not list their files', 'seoprostack'),
+            'status'      => 'good',
+            'badge'       => array(
+                'label' => __('Security', 'seoprostack'),
+                'color' => 'blue',
+            ),
+            'description' => '<p>' . esc_html__('When directory listing is on, anyone who opens a folder without an index file sees every file in it, including private uploads such as invoices and form attachments. Empty index.php files only cover the folder they are in. SEO Pro Stack asks for this month’s uploads folder once a day, as a visitor would.', 'seoprostack') . '</p>',
+            'actions'     => '',
+            'test'        => 'seoprostack_directory_listing',
+        );
+        if ('on' === $listing['state']) {
+            $result['status']       = 'recommended';
+            $result['label']        = __('Anyone can list the files in your uploads folder', 'seoprostack');
+            $result['description'] .= '<p><a href="' . esc_url($listing['url']) . '">' . esc_html($listing['url']) . '</a></p>';
+            $result['actions']      = '<p>' . sprintf(
+                /* translators: 1: Apache and LiteSpeed directive, 2: nginx directive. */
+                esc_html__('Ask your host to turn off directory listing for the whole site: %1$s on Apache and LiteSpeed, %2$s on nginx. SEO Pro Stack does not add it to .htaccess itself: where the host does not allow it, that line stops the whole site loading.', 'seoprostack'),
+                '<code>Options -Indexes</code>',
+                '<code>autoindex off;</code>'
+            ) . '</p>';
+        } elseif ('failed' === $listing['state']) {
+            $result['label']        = __('Directory listing could not be checked', 'seoprostack');
+            $result['description'] .= '<p>' . esc_html__('This site could not reach its own uploads folder, so whether it lists its files is unknown.', 'seoprostack') . '</p>';
+        } elseif ('skipped' === $listing['state']) {
+            $result['label']        = __('Directory listing was not checked', 'seoprostack');
+            $result['description'] .= '<p>' . esc_html__('The uploads folder has an index file, so asking for it cannot show whether the server lists files.', 'seoprostack') . '</p>';
         }
         return $result;
     }
