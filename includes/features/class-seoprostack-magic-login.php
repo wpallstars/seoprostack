@@ -222,7 +222,7 @@ class SEOProStack_Magic_Login extends SEOProStack_Feature {
             $html .= wp_login_form(array(
                 'echo'           => false,
                 'redirect'       => $redirect ? $redirect : $current,
-                'label_username' => $atts['login-label'],
+                'label_username' => esc_html($atts['login-label']),
             ));
             return $html . '</div>';
         }
