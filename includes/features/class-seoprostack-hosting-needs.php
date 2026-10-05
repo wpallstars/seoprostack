@@ -1841,7 +1841,9 @@ class SEOProStack_Hosting_Needs extends SEOProStack_Feature {
         if ('fpm-fcgi' === $sapi) {
             return 'pm.max_children';
         }
-        if ('litespeed' === $sapi || SEOProStack_Litespeed::is_server()) {
+        // The server is only a guess while how PHP runs is not known yet: a
+        // LiteSpeed server can also run PHP as FastCGI or CGI.
+        if ('litespeed' === $sapi || ('' === $sapi && SEOProStack_Litespeed::is_server())) {
             return 'LSAPI_CHILDREN';
         }
         return 'apache2handler' === $sapi ? 'MaxRequestWorkers' : '';

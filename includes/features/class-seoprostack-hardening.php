@@ -633,7 +633,8 @@ class SEOProStack_Hardening extends SEOProStack_Feature {
                 $result['state'] = 'failed';
             } else {
                 // Apache, LiteSpeed and nginx's autoindex all title the page so.
-                $listed          = 200 === (int) wp_remote_retrieve_response_code($response)
+                $code            = (int) wp_remote_retrieve_response_code($response);
+                $listed          = $code >= 200 && $code < 300
                     && false !== stripos((string) wp_remote_retrieve_body($response), '<title>Index of');
                 $result['state'] = $listed ? 'on' : 'off';
             }
