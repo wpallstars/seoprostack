@@ -984,7 +984,8 @@ Off by default. Turn it on, then open **Tools → Calls to other sites**: which 
 - **Never blocked**: payment services (Stripe, PayPal, Braintree, Square, Mollie, Klarna, Adyen, Authorize.net, Checkout.com, Razorpay, Paystack, PayFast, GoCardless), WordPress.org and WordPress.com, the site itself, WordPress’s and SEO Pro Stack’s own calls, and anything WordPress’s update code runs (update checks and downloads, whichever plugin’s code makes the call). The `seoprostack_outbound_never_block` filter can add hosts.
 - Only calls made through WordPress’s HTTP API are seen; code that uses cURL or sockets directly is not.
 - **Clear the list** starts counting again; blocks stay. The 200 most recently seen rows are kept.
-- Stored: counts in `seoprostack_outbound_calls`, written once at the end of a request that made calls, and blocks in `seoprostack_outbound_blocks`, both not autoloaded and removed on uninstall. Requests running at the same moment can each write their own counts, so totals are close, not exact. The `admin_post_seoprostack_outbound_calls` handler checks `manage_options` and a nonce.
+- Visitor pages are counted on 1 view in 20, each counting 20 times, so their numbers are estimates and most page views write nothing; admin screens, AJAX, cron, REST and WP-CLI are counted every time.
+- Stored: counts in `seoprostack_outbound_calls`, written once at the end of a counted request that made calls, and blocks in `seoprostack_outbound_blocks`, both not autoloaded and removed on uninstall. Requests running at the same moment can each write their own counts, so totals are close, not exact. The `admin_post_seoprostack_outbound_calls` handler checks `manage_options` and a nonce.
 
 ### Code Snippets in Site Health
 

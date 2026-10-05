@@ -15,7 +15,8 @@
  *
  * Stored: counts in seoprostack_outbound_calls and blocks in
  * seoprostack_outbound_blocks (both not autoloaded). Counts are written at
- * shutdown, only on requests that made calls.
+ * shutdown, only on requests that made calls; visitor pages are sampled
+ * (SAMPLE), so most page views write nothing.
  *
  * SPDX-License-Identifier: GPL-3.0-or-later
  * SPDX-FileCopyrightText: 2026 Marcus Quinn
@@ -43,6 +44,9 @@ class SEOProStack_Outbound_Calls extends SEOProStack_Feature {
 
     /** Rows kept; the least recently seen go first. */
     const MAX_ROWS = 200;
+
+    /** Visitor pages counted: 1 in this many, each counting this many times, so most page views write nothing. */
+    const SAMPLE = 20;
 
     /** Hosts never blocked: payments, WordPress.org and WordPress.com (WooPayments, Jetpack). */
     const NEVER_BLOCK = array(
@@ -73,6 +77,14 @@ class SEOProStack_Outbound_Calls extends SEOProStack_Feature {
      * @var array<string,array>|null
      */
     private static $blocks = null;
+
+    /**
+     * How many times this request's calls count: 1, SAMPLE on a sampled
+     * visitor page, 0 on other visitor pages; null until the first call.
+     *
+     * @var int|null
+     */
+    private static $weight = null;
 
     /**
      * Settings.
@@ -157,6 +169,15 @@ class SEOProStack_Outbound_Calls extends SEOProStack_Feature {
     public static function start($pre, $args, $url) { // NOSONAR: $args is in the pre_http_request signature, before $url.
         $host = self::host((string) $url);
         if ('' === $host) {
+            return $pre;
+        }
+        if (null === self::$weight) {
+            self::$weight = 1;
+            if ('page' === self::where()) {
+                self::$weight = 1 === wp_rand(1, self::SAMPLE) ? self::SAMPLE : 0;
+            }
+        }
+        if (!self::$weight) {
             return $pre;
         }
         // A plugin's own update checks count for that plugin (they are never blocked).
@@ -258,7 +279,7 @@ class SEOProStack_Outbound_Calls extends SEOProStack_Feature {
                 'first'  => $now,
             );
             foreach (array('calls', 'sent', 'skipped', 'errors', 'ms') as $sum) {
-                $row[$sum] = ($row[$sum] ?? 0) + ($change[$sum] ?? 0);
+                $row[$sum] = ($row[$sum] ?? 0) + ($change[$sum] ?? 0) * (int) self::$weight;
             }
             $row['ms']  = round((float) $row['ms'], 1);
             $row['max'] = round(max((float) ($row['max'] ?? 0), (float) ($change['max'] ?? 0)), 1);
@@ -460,7 +481,7 @@ class SEOProStack_Outbound_Calls extends SEOProStack_Feature {
         }
         echo '<p>' . esc_html(sprintf(
             /* translators: %s: how long ago counting started */
-            __('Calls made through WordPress since %s ago, slowest first. A page waits for each call it makes, unless the call is sent without waiting for the answer. Not sent: another plugin, Ask before licence checks or a block here answered without calling.', 'seoprostack'),
+            __('Calls made through WordPress since %s ago, slowest first. A page waits for each call it makes, unless the call is sent without waiting for the answer. Not sent: another plugin, Ask before licence checks or a block here answered without calling. Visitor pages are counted on 1 view in 20, each counting 20 times, so their numbers are estimates.', 'seoprostack'),
             human_time_diff((int) $stored['since'])
         )) . '</p>';
         if (!$rows) {
