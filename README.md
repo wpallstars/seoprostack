@@ -21,7 +21,7 @@ SEO Pro Stack does the jobs that usually take dozens of small plugins: a calmer,
 
 If this saves you time, headaches and costs, feel free to [buy me a coffee](https://buymeacoffee.com/marcusquinn), or whatever you like, to invest in making more things open-source.
 
-Version: 1.3.1
+Version: 1.3.2
 
 <!-- github-only:start -->
 ## Screenshots
@@ -1437,7 +1437,7 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folder�
 
 ## Changelog
 
-### Unreleased
+### 1.3.2
 
 - Fix: **Load plugins only where needed** kept what an older SEO Pro Stack had learned about the site’s pages and admin screens when SEO Pro Stack was updated without WordPress’s updater, so a fix to page learning did not reach those sites until their content changed. Forgetting ran only on `upgrader_process_complete`, which WP-CLI with `--skip-plugins`, deploys, uploads and Git pulls never run. A new SEO Pro Stack version now forgets on its first request, however it was installed, and the settings list it as `seoprostack_updated` among the changes that made pages learn again. New `seoprostack_plugin_learned_by` option (autoloaded), removed on uninstall (GitHub issue #481).
 - Fix: **Load plugins only where needed** still made the site’s pages learn again every few minutes on sites with MainWP Child, Really Simple Security, FluentCRM or Readabler: their background AJAX requests save records 1.2.0 did not know, `mainwp_child_system_monitor_last_run`, `mainwp_child_advanced_request_ids_last_cleanup` and `mainwp_child_advanced_request_id_*`, `rsssl_csp_header_test_status_expiry`, `_fc_last_sequence_run` and `mdp_readabler_pid_*_timestamp`. `SEOProStack_Plugin_Loading::RECORD_OPTIONS` entries ending in `_` are now prefixes too, so each plugin’s records are known by their name’s start (GitHub issue #483).
