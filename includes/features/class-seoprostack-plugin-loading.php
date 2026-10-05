@@ -252,6 +252,14 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
                 'tab'         => 'plugins',
                 'label'       => __('Load plugins only where needed', 'seoprostack'),
                 'description' => __('Makes wp-admin faster by loading plugins only on screens that need them. After learning, plain site page views also skip plugins with nothing seen there. Login and permission plugins always load. The menu stays the same. Saving, background tasks, and the Plugins and core settings screens load every plugin.', 'seoprostack'),
+                // Both filter the plugin list, so this waits while Freesoul
+                // is active (SEOProStack_Plugin_Loader::start() too). PRO
+                // needs the free plugin; Fixes for other plugins deactivates
+                // both together and removes Freesoul's must-use file.
+                'replaces'    => array(
+                    'freesoul-deactivate-plugins-pro' => 'Freesoul Deactivate Plugins PRO',
+                    'freesoul-deactivate-plugins'     => 'Freesoul Deactivate Plugins',
+                ),
             ),
             self::LIST_KEY => array(
                 'type'        => 'multi',
@@ -764,8 +772,7 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
 
     /**
      * Active plugins for "Plugins to skip on the site", file => name, with
-     * what SEO Pro Stack saw each add to the site, and whether Freesoul
-     * Deactivate Plugins skips it there.
+     * what SEO Pro Stack saw each add to the site.
      *
      * @return array<string,string>
      */
@@ -790,13 +797,6 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
             'email'   => __('changes how email is sent', 'seoprostack'),
             'bar'     => __('adds to the admin bar', 'seoprostack'),
         );
-        // Freesoul Deactivate Plugins' lists for the whole site (read only).
-        $fdp = array();
-        foreach (array('eos_dp_frontend_everywhere', 'eos_dp_unlogged') as $option) {
-            $list = get_option($option);
-            $fdp  = array_merge($fdp, is_array($list) ? array_filter($list, 'is_string') : array());
-        }
-        $fdp = array_flip($fdp);
 
         $options = array();
         foreach (SEOProStack_Plugin_Loader::stored_active_plugins() as $file) {
@@ -815,9 +815,6 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
                 } elseif (array($texts['bar']) === $parts && in_array($file, $skipped, true)) {
                     $parts[] = __('skipped for visitors, who have no admin bar', 'seoprostack');
                 }
-            }
-            if (isset($fdp[$file])) {
-                $parts[] = __('Freesoul Deactivate Plugins skips it on the site', 'seoprostack');
             }
             $label          = isset($names[$file]) ? $names[$file] : $file;
             $options[$file] = $parts ? $label . ' (' . implode('; ', $parts) . ')' : $label;

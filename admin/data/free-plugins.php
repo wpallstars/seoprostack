@@ -41,9 +41,8 @@ if (!defined('ABSPATH')) {
 // Git Updater is not listed: Updates from GitHub replaces it in builds from
 // GitHub releases (includes/features/class-seoprostack-github-updates.php).
 // Freesoul Deactivate Plugins (free and PRO) is not listed: Load plugins only
-// where needed does its job in wp-admin and for the whole site. It does not
-// set "replaces" yet, so the Plugins screen does not suggest removing it,
-// until page-by-page rules on the site are covered too (GitHub issue #90).
+// where needed replaces it, learning which plugins each screen and page kind
+// needs instead of hand-made lists (GitHub issue #226).
 // Disable All WordPress Updates is not listed: the Speed and Plugins
 // features cover why it was used (fewer outgoing requests, a faster
 // wp-admin), and it stops WordPress's own update request, which also hides
