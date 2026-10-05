@@ -181,6 +181,16 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
     private static $frequent_writes = null;
 
     /**
+     * Options other plugins save as records, even in a signed-in admin's
+     * request, found by the reset record on real sites (GitHub issue #461):
+     * FluentCRM's scheduler, Really Simple Security's header test, MainWP
+     * Child's system monitor. Names ending in "." are prefixes (LiteSpeed
+     * Cache's async tasks and crawler).
+     */
+    const RECORD_OPTIONS = array('_fcrm_last_scheduler', 'rsssl_csp_header_test_status', 'mainwp_child_system_monitor_data_cron',
+        'litespeed.task.', 'litespeed.crawler.');
+
+    /**
      * Site pages forgotten in this request: 0 not yet, 1 once, 2 changed
      * again since, so forgotten again at shutdown.
      *
@@ -1458,14 +1468,24 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
     }
 
     /**
-     * Whether this request only keeps records: a scheduled task, or a page
-     * of the site viewed (GET) rather than wp-admin, AJAX, the REST API, the
-     * command line or a sent form.
+     * Whether this request only keeps records: a scheduled task, a
+     * background task through AJAX or the REST API with nobody signed in
+     * (GitHub issue #461), or a page of the site viewed (GET) rather than
+     * wp-admin, AJAX, the REST API, the command line or a sent form.
      *
      * @return bool
      */
     private static function record_request() {
         if (wp_doing_cron()) {
+            return true;
+        }
+        // LiteSpeed's async calls, FluentCRM's scheduler and view counters
+        // run through admin-ajax.php or a REST loopback without a user.
+        // Application passwords and MainWP's sign-in set one, so changes
+        // through them still count. The user is only asked for once it is
+        // set up, so an option saved while it is worked out is not a loop.
+        if ((wp_doing_ajax() || (defined('REST_REQUEST') && REST_REQUEST)) && did_action('set_current_user')
+            && !(defined('WP_CLI') && WP_CLI) && 0 === get_current_user_id()) {
             return true;
         }
         return !is_admin() && !wp_doing_ajax() && !(defined('REST_REQUEST') && REST_REQUEST) && !(defined('WP_CLI') && WP_CLI)
@@ -1512,6 +1532,11 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
         // options Hosting needs found saved on most page views.
         if (SEOProStack_Option_Writes::known($name)) {
             return true;
+        }
+        foreach (self::RECORD_OPTIONS as $record) {
+            if ('.' === substr($record, -1) ? 0 === strpos($name, $record) : $name === $record) {
+                return true;
+            }
         }
         if (class_exists('SEOProStack_Hosting_Needs', false) && SEOProStack_Hosting_Needs::enabled()) {
             if (null === self::$frequent_writes) {
