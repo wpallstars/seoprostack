@@ -261,45 +261,71 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
                     'freesoul-deactivate-plugins'     => 'Freesoul Deactivate Plugins',
                 ),
             ),
+            // The feature decides; these are bypasses for a plugin or theme
+            // it does not handle, so they sit closed under Troubleshooting
+            // (GitHub issue #514), opening when one is in use.
             self::LIST_KEY => array(
                 'type'        => 'multi',
                 'default'     => array(),
                 'parent'      => self::KEY,
+                'group'       => 'troubleshooting',
                 'label'       => __('Always load these plugins', 'seoprostack'),
-                'description' => __('Add a plugin if a box, field or menu entry is missing or something breaks; for a one-off problem, use the reload links in the admin bar Plugins menu.', 'seoprostack'),
+                'description' => __('If a box, field or menu entry is missing in wp-admin, or a screen breaks, add the plugin it belongs to. For a one-off problem, use the reload links in the admin bar Plugins menu instead.', 'seoprostack'),
                 'options'     => array(__CLASS__, 'plugin_options'),
-            ),
-            self::FRONT_KEY => array(
-                'type'        => 'multi',
-                'default'     => array(),
-                'parent'      => self::KEY,
-                'label'       => __('Plugins to skip on the site', 'seoprostack'),
-                'description' => __('After learning, plugins with nothing seen on the site are skipped automatically on plain page views, and so, for visitors, are plugins that only add to the admin bar. Tick other plugins only if you want them skipped too; leave security, caching, cookie and analytics plugins unticked. Logins, sending forms, background tasks and addresses with extra arguments still load every plugin, and so does a plugin that another loading plugin needs.', 'seoprostack'),
-                'options'     => array(__CLASS__, 'front_plugin_options'),
-            ),
-            self::FRONT_USERS_KEY => array(
-                'type'        => 'bool',
-                'default'     => true,
-                'parent'      => self::KEY,
-                'label'       => __('Also skip them for people who are logged in', 'seoprostack'),
-                'description' => __('When off, people who are logged in, such as editors, get every plugin on the site, including what plugins add to the admin bar there.', 'seoprostack'),
-            ),
-            SEOProStack_Plugin_Loader::PAGES_KEY => array(
-                'type'        => 'bool',
-                'default'     => true,
-                'parent'      => self::KEY,
-                'label'       => __('Learn which plugins each page needs', 'seoprostack'),
-                'description' => __('For visitors without cookies. Each page kind learns once, then new posts of that type use their own blocks and shortcodes to keep the plugins they need. Decisions stay until content or settings change. Unknown pages or content load every plugin. Lists and search keep content plugins; plugins that change every page stay loaded. WooCommerce stays for shop pages, cart displays and store notices; without Lighter WooCommerce pages it keeps loading everywhere. Requests that change things load every plugin.', 'seoprostack'),
             ),
             SEOProStack_Plugin_Loader::KEEP_KEY => array(
                 'type'        => 'multi',
                 'default'     => array(),
                 'parent'      => self::KEY,
+                'group'       => 'troubleshooting',
                 'label'       => __('Always load these plugins on the site', 'seoprostack'),
-                'description' => __('Add a plugin here if something it shows on the site is missing.', 'seoprostack'),
+                'description' => __('If something a plugin shows on the site is missing, add that plugin.', 'seoprostack'),
                 'options'     => array(__CLASS__, 'plugin_options'),
             ),
+            self::FRONT_USERS_KEY => array(
+                'type'        => 'bool',
+                'default'     => true,
+                'parent'      => self::KEY,
+                'group'       => 'troubleshooting',
+                'label'       => __('Also skip them for people who are logged in', 'seoprostack'),
+                'description' => __('If something on the site is missing only for people who are logged in, such as editors, switch this off: they then get every plugin on the site, including what plugins add to the admin bar there.', 'seoprostack'),
+            ),
+            SEOProStack_Plugin_Loader::PAGES_KEY => array(
+                'type'        => 'bool',
+                'default'     => true,
+                'parent'      => self::KEY,
+                'group'       => 'troubleshooting',
+                'label'       => __('Learn which plugins each page needs', 'seoprostack'),
+                'description' => __('If something is missing on some pages of the site but not on others, switch this off: plugins are then skipped the same way on every page instead of by what each kind of page uses. While on, each kind of page learns once which plugins its content needs, for visitors without cookies; unknown pages and requests that change things load every plugin.', 'seoprostack'),
+            ),
+            self::FRONT_KEY => array(
+                'type'        => 'multi',
+                'default'     => array(),
+                'parent'      => self::KEY,
+                'group'       => 'troubleshooting',
+                'label'       => __('Plugins to skip on the site', 'seoprostack'),
+                'description' => __('Skipped automatically, after learning: plugins with nothing seen on the site, on plain page views, and, for visitors, plugins that only add to the admin bar. Logins, sending forms, background tasks and addresses with extra arguments still load every plugin, and so does a plugin that another loading plugin needs. If a page of the site failed after a plugin was ticked here, untick it.', 'seoprostack'),
+                'options'     => array(__CLASS__, 'front_plugin_options'),
+            ),
         );
+    }
+
+    /**
+     * Open the Troubleshooting section while the site loads every plugin
+     * after a page failed with fewer, since the note above it says to
+     * untick a plugin there.
+     *
+     * @param bool   $open Whether it starts open.
+     * @param string $key  Parent setting key.
+     * @return bool
+     */
+    public static function troubleshooting_open($open, $key) {
+        if ($open || self::KEY !== $key || !self::enabled()) {
+            return (bool) $open;
+        }
+        $front = get_option(SEOProStack_Plugin_Loader::FRONT, array());
+        return (bool) SEOProStack_Plugin_Loader::front_failed()
+            || (is_array($front) && !empty($front['failed']) && SEOProStack_Plugin_Loader::front_current());
     }
 
     /**
@@ -333,6 +359,7 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
         add_action('added_option', array(__CLASS__, 'front_option_changed'), 10, 1);
         add_action('deleted_option', array(__CLASS__, 'front_option_changed'), 10, 1);
         add_action('seoprostack_setting_panel', array(__CLASS__, 'panel_status'), 10, 2);
+        add_filter('seoprostack_troubleshooting_open', array(__CLASS__, 'troubleshooting_open'), 10, 2);
         if (is_admin()) {
             add_action('admin_init', array(__CLASS__, 'maybe_sync'));
         } elseif (self::enabled()) {
