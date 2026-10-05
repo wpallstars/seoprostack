@@ -1314,11 +1314,34 @@ final class SEOProStack_Plugin_Loader {
         if (defined('SEOPROSTACK_LOAD_ALL_PLUGINS') && SEOPROSTACK_LOAD_ALL_PLUGINS) {
             return false;
         }
+        if (!self::view_request()) {
+            return false;
+        }
+        // Only people who are logged in, so the login screen and anything a
+        // plugin does for visitors are never affected.
+        foreach (array_keys($_COOKIE) as $name) {
+            if (0 === strpos((string) $name, 'wordpress_logged_in_')) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Whether this request only views a screen: GET or HEAD, with no
+     * security token and no action other than opening an editor. WordPress
+     * asks for a token on every link that changes something (activating a
+     * plugin or theme, trashing a post, updating), and forms are sent with
+     * POST, so a request like this changes no settings.
+     *
+     * @return bool
+     */
+    public static function view_request() {
         $method = isset($_SERVER['REQUEST_METHOD']) ? strtoupper(sanitize_key(wp_unslash($_SERVER['REQUEST_METHOD']))) : '';
         if ('GET' !== $method && 'HEAD' !== $method) {
             return false;
         }
-        // phpcs:disable WordPress.Security.NonceVerification.Recommended -- only reading which screen this is.
+        // phpcs:disable WordPress.Security.NonceVerification.Recommended -- only reading which kind of request this is.
         if (isset($_GET['_wpnonce']) || isset($_GET['bulk_edit']) || isset($_GET['doaction'])) {
             return false;
         }
@@ -1329,14 +1352,7 @@ final class SEOProStack_Plugin_Loader {
             }
         }
         // phpcs:enable
-        // Only people who are logged in, so the login screen and anything a
-        // plugin does for visitors are never affected.
-        foreach (array_keys($_COOKIE) as $name) {
-            if (0 === strpos((string) $name, 'wordpress_logged_in_')) {
-                return true;
-            }
-        }
-        return false;
+        return true;
     }
 
     /**

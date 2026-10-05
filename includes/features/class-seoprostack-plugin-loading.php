@@ -212,8 +212,10 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
      * admin page loaded, StellarWP Uplink's licence and update status for
      * each Kadence or StellarWP product, Burst Statistics' detected
      * integrations, and Really Simple Security's notice cache and menu badge
-     * count. Names ending in "." or "_" are prefixes (also LiteSpeed Cache's
-     * async tasks and crawler).
+     * count; plain wp-admin views now keep records by rule (GitHub issue
+     * #515), so new ones need no entry, but these are also saved through
+     * AJAX or the REST API by a signed-in admin. Names ending in "." or "_"
+     * are prefixes (also LiteSpeed Cache's async tasks and crawler).
      */
     const RECORD_OPTIONS = array('_fcrm_last_', '_fc_last_', 'rsssl_csp_header_test_status',
         'rsssl_csp_header_test_status_', 'rsssl_admin_notices', 'rsssl_plusone_count',
@@ -1759,9 +1761,10 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
     /**
      * Whether this request only keeps records: a scheduled task, a
      * background task through AJAX or the REST API with nobody signed in
-     * (GitHub issue #461), a failed login (GitHub issue #489), or a page of
-     * the site viewed (GET) rather than wp-admin, AJAX, the REST API, the
-     * command line or a sent form.
+     * (GitHub issue #461), a failed login (GitHub issue #489), a page of the
+     * site viewed (GET), or a wp-admin screen viewed without a security
+     * token or an action (GitHub issue #515), rather than AJAX, the REST
+     * API, the command line, a sent form or a link that changes something.
      *
      * @return bool
      */
@@ -1785,8 +1788,29 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
             && !(defined('WP_CLI') && WP_CLI) && 0 === get_current_user_id()) {
             return true;
         }
-        return !is_admin() && !wp_doing_ajax() && !(defined('REST_REQUEST') && REST_REQUEST) && !(defined('WP_CLI') && WP_CLI)
-            && isset($_SERVER['REQUEST_METHOD']) && 'GET' === $_SERVER['REQUEST_METHOD'];
+        if (wp_doing_ajax() || (defined('REST_REQUEST') && REST_REQUEST) || (defined('WP_CLI') && WP_CLI)) {
+            return false;
+        }
+        if (!is_admin()) {
+            return isset($_SERVER['REQUEST_METHOD']) && 'GET' === $_SERVER['REQUEST_METHOD'];
+        }
+        // Plugins save notice caches, licence status and asset lists on
+        // every wp-admin screen they load on (StellarWP Uplink, Burst, Really
+        // Simple Security, MainWP Child: GitHub issue #512), and opening the
+        // editor saves its edit lock. Settings are saved with a sent form,
+        // AJAX, the REST API or a link with a security token, so a plain
+        // view keeps records. Database upgrades (wp_installing()) and any
+        // argument named like a token still count as changes.
+        if (wp_installing() || !SEOProStack_Plugin_Loader::view_request()) {
+            return false;
+        }
+        // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- only reading which arguments there are.
+        foreach (array_keys($_GET) as $arg) {
+            if (false !== stripos((string) $arg, 'nonce')) {
+                return false;
+            }
+        }
+        return true;
     }
 
     /**
