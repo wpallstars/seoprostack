@@ -348,8 +348,8 @@ class SEOProStack_Hosting_Needs extends SEOProStack_Feature {
      * Traffic that reached PHP in the last 7 days.
      *
      * @return array samples, days, per_day (requests a day), peak_hour (requests in the busiest
-     *               hour), p95 (seconds, all kinds), site_p95 (seconds, pages; null below 30
-     *               samples) and kinds (kind => n, avg, p95).
+     *               hour), avg and p95 (seconds, all kinds), site_avg and site_p95 (seconds,
+     *               pages; null below 30 samples) and kinds (kind => n, avg, p95).
      */
     public static function traffic() {
         $stored = get_option(self::TRAFFIC, array());
@@ -383,13 +383,16 @@ class SEOProStack_Hosting_Needs extends SEOProStack_Feature {
                 'p95' => self::p95($kinds[$kind]),
             );
         }
+        $pages = isset($kinds['site']) && $kinds['site']['n'] >= self::ENOUGH;
         return array(
             'samples'   => $all['n'],
             'days'      => $days,
             'per_day'   => $days ? (int) round($total / $days) : 0,
             'peak_hour' => $peak,
+            'avg'       => $all['n'] ? $all['sum'] / $all['n'] : 0.0,
             'p95'       => self::p95($all),
-            'site_p95'  => isset($kinds['site']) && $kinds['site']['n'] >= self::ENOUGH ? self::p95($kinds['site']) : null,
+            'site_avg'  => $pages ? $kinds['site']['sum'] / $kinds['site']['n'] : null,
+            'site_p95'  => $pages ? self::p95($kinds['site']) : null,
             'kinds'     => $summary,
         );
     }
@@ -1103,7 +1106,8 @@ class SEOProStack_Hosting_Needs extends SEOProStack_Feature {
      * @param float $budget Seconds to spend measuring plugin code.
      * @return array code, opcache, memory, worker (bytes per PHP worker, or 0), traffic, facts,
      *               dynamic (plugin names), page_cache, cdn (from cdn()), measured (time per request), seconds
-     *               (per request, as the plans use it), plans and
+     *               (average per page, as the traffic levels use it), now_seconds (average per
+     *               request, as the Now plan uses it), plans and
      *               advice (list of status => sentence).
      */
     public static function assess($budget) {
@@ -1120,11 +1124,16 @@ class SEOProStack_Hosting_Needs extends SEOProStack_Feature {
         $dynamic    = self::dynamic();
         $page_cache = self::page_cache();
         $enough     = $traffic['samples'] >= self::ENOUGH;
-        // Visitors' pages only, once enough are sampled. Admin screens, imports
-        // and cron take far longer and say nothing about visitor traffic.
-        $seconds = $traffic['site_p95'];
+        // Workers busy at once = requests a second × the average time each
+        // holds a worker (Little's law); the busiest hour and its bursts
+        // already allow for peaks, so the slowest 5% are not counted twice.
+        // Traffic levels: visitors' pages only, once enough are sampled. Admin
+        // screens, imports and cron take far longer and do not grow with visits.
+        $seconds = $traffic['site_avg'];
         $site    = array(
             'seconds'      => null !== $seconds ? max(0.05, $seconds) : ($dynamic ? SEOProStack_Hosting_Plans::SECONDS_DYNAMIC : SEOProStack_Hosting_Plans::SECONDS),
+            // Now: every request sampled, as the busiest hour counts them all.
+            'now_seconds'  => max(0.05, $traffic['avg']),
             'worker'       => $worker,
             'opcache'      => $opcache['need']['memory'],
             'db'           => $facts['db'],
@@ -1135,19 +1144,20 @@ class SEOProStack_Hosting_Needs extends SEOProStack_Feature {
         // The busiest hour measured, with bursts within it.
         $now_rps = $enough ? $traffic['peak_hour'] / HOUR_IN_SECONDS * SEOProStack_Hosting_Plans::BURST : null;
         $needs   = array(
-            'code'       => $code,
-            'opcache'    => $opcache,
-            'memory'     => $memory,
-            'worker'     => $worker,
-            'traffic'    => $traffic,
-            'facts'      => $facts,
-            'dynamic'    => $dynamic,
-            'page_cache' => $page_cache,
-            'cdn'        => self::cdn($facts),
-            'writes'     => self::frequent_writes(),
-            'measured'   => null !== $seconds,
-            'seconds'    => $site['seconds'],
-            'plans'      => SEOProStack_Hosting_Plans::plans($site, $now_rps),
+            'code'        => $code,
+            'opcache'     => $opcache,
+            'memory'      => $memory,
+            'worker'      => $worker,
+            'traffic'     => $traffic,
+            'facts'       => $facts,
+            'dynamic'     => $dynamic,
+            'page_cache'  => $page_cache,
+            'cdn'         => self::cdn($facts),
+            'writes'      => self::frequent_writes(),
+            'measured'    => null !== $seconds,
+            'seconds'     => $site['seconds'],
+            'now_seconds' => $site['now_seconds'],
+            'plans'       => SEOProStack_Hosting_Plans::plans($site, $now_rps),
         );
         $needs['advice'] = self::advice($needs);
         return $needs;
@@ -1187,17 +1197,19 @@ class SEOProStack_Hosting_Needs extends SEOProStack_Feature {
     /**
      * The time per page the plans use, as a sentence.
      *
-     * @param bool  $measured Measured from enough pages.
-     * @param float $seconds  Seconds per page.
-     * @param int   $pages    Pages timed so far.
+     * @param bool       $measured Measured from enough pages.
+     * @param float      $seconds  Average seconds per page.
+     * @param int        $pages    Pages timed so far.
+     * @param float|null $p95      Seconds 95% of pages took no longer than, when measured.
      * @return string
      */
-    private static function page_time_text($measured, $seconds, $pages) {
+    private static function page_time_text($measured, $seconds, $pages, $p95) {
         if ($measured) {
             return sprintf(
-                /* translators: %s: seconds. */
-                __('95%% of pages took under %s seconds.', 'seoprostack'),
-                number_format_i18n($seconds, 2)
+                /* translators: 1: average seconds, 2: seconds. */
+                __('Pages took %1$s seconds on average, and 95%% took under %2$s seconds.', 'seoprostack'),
+                number_format_i18n($seconds, 2),
+                number_format_i18n((float) $p95, 2)
             );
         }
         return sprintf(
@@ -1274,23 +1286,24 @@ class SEOProStack_Hosting_Needs extends SEOProStack_Feature {
         if (isset($needs['plans']['now'])) {
             $now      = $needs['plans']['now'];
             $advice[] = array('info', sprintf(
-                /* translators: 1: requests, 2: number of PHP workers. */
+                /* translators: 1: requests, 2: seconds, 3: number of PHP workers. */
                 _n(
-                    'Traffic now: about %1$s requests reached PHP in the busiest hour of the last 7 days. With bursts, this site needs %2$s PHP worker.',
-                    'Traffic now: about %1$s requests reached PHP in the busiest hour of the last 7 days. With bursts, this site needs %2$s PHP workers.',
+                    'Traffic now: about %1$s requests reached PHP in the busiest hour of the last 7 days, taking %2$s seconds on average (admin screens, the REST API and cron included). With bursts, this site needs %3$s PHP worker.',
+                    'Traffic now: about %1$s requests reached PHP in the busiest hour of the last 7 days, taking %2$s seconds on average (admin screens, the REST API and cron included). With bursts, this site needs %3$s PHP workers.',
                     $now['workers'],
                     'seoprostack'
                 ),
                 number_format_i18n($traffic['peak_hour']),
+                number_format_i18n($needs['now_seconds'], 2),
                 number_format_i18n($now['workers'])
-            ) . ' ' . self::page_time_text($needs['measured'], $needs['seconds'], $pages));
+            ) . ' ' . self::page_time_text($needs['measured'], $needs['seconds'], $pages, $traffic['site_p95']));
         } else {
             $advice[] = array('info', sprintf(
                 /* translators: 1: requests sampled so far, 2: requests needed. */
                 __('Traffic is measured from now on: 1 in 20 requests that reach PHP records its time and hour. The Now plan appears once %2$s are recorded (%1$s so far).', 'seoprostack'),
                 number_format_i18n($traffic['samples']),
                 number_format_i18n(self::ENOUGH)
-            ) . ' ' . self::page_time_text($needs['measured'], $needs['seconds'], $pages));
+            ) . ' ' . self::page_time_text($needs['measured'], $needs['seconds'], $pages, $traffic['site_p95']));
         }
         if (!$needs['page_cache']) {
             $advice[] = array('recommended', __('No page cache was found, so every page view runs PHP. A page cache, from your host or a plugin, serves most pages without PHP and cuts the PHP workers you need. If your host caches pages itself, ignore this.', 'seoprostack'));

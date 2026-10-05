@@ -4,6 +4,7 @@ Every change to SEO Pro Stack. readme.txt lists the latest version in short.
 
 = Unreleased =
 * Changed: Load plugins only where needed shows only its switch and status. Its other settings, bypasses for a plugin or theme it does not handle, are in a closed Troubleshooting section of its Options, which opens by itself when one of them is changed or a page of the site failed with fewer plugins. Each says which problem it fixes. Values and defaults are unchanged.
+* Fix: Hosting needs no longer asks for more PHP workers and CPU cores than a site needs. Workers come from the average time per request, not the time 95% of pages took (rounded up to its timing slot), which counted slow requests twice on top of the busiest hour and its bursts. Now uses the average of every request, admin screens and cron included, as its busiest hour counts them all; the traffic levels use visitors' pages. On one measured site, Now went from 7 workers and 8 CPU cores to 4 and 4. The traffic line shows both averages and the 95% page time.
 
 = 1.3.7 =
 * Fix: with Load plugins only where needed, more options that plugins save again on wp-admin page views no longer make the site's pages learn again: MainWP Child's HTML Regression asset list, StellarWP Uplink's update status for Kadence and StellarWP products, Burst Statistics' detected integrations, and Really Simple Security's notice cache and menu badge count.
