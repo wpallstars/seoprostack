@@ -1441,6 +1441,8 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folder�
 
 ### Unreleased
 
+- Fix: **Magic login links** keeps HandyPlugins’ Magic Login blocks working in pages and synced patterns after that plugin is removed, with a login-link form or WordPress’s password form while the feature is off. Saved text, safe redirects and logged-in visibility are preserved, and page learning recognises the block (GitHub issue #463).
+
 - Fix: **Load plugins only where needed**: shortcodes and blocks left by a removed plugin no longer make pages load every plugin. A shortcode in a widget or template part made every page load every plugin, and on one site nothing was skipped on any page. Blocks in posts listed on archives and search, here Code Block Pro's after it was removed, made those page kinds load every plugin. Learning runs with every plugin loaded, after the page is shown. A shortcode name, or block namespace, that no plugin has registered by then has no handler, so WordPress shows the plain text or saved markup whichever plugins load. Such names in widgets, template parts and listed posts now need no plugin. Plugins that turn them into output through content, widget or block filters stay loaded as page hooks. A post’s own content keeps the stricter check because that runs before plugins load (GitHub issue #493).
 - Fix: **Load plugins only where needed** now learns and skips plugins on items served by **Short addresses for custom post types** (`/item/` instead of `/type/item/`). Before plugins load, the saved rewrite rules read such an address as a post that does not exist, so those pages never had a page kind: they used only the site-wide choices and their kind was never learned. On one site, those pages skipped no plugins where Freesoul Deactivate Plugins had skipped several. Page learning now saves the chosen post types with its routes and looks an item up only where no page or post is, as Short addresses itself does. Readabler's `readabler_cron_hook_timestamp`, saved as Readabler loads, is now a record and no longer makes the site's pages learn again (GitHub issue #495).
 
@@ -1457,7 +1459,6 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folder�
 ### 1.3.1
 
 - Fix: on sites with a persistent object cache (LiteSpeed, Redis, Memcached), **Load plugins only where needed** could stop learning the site’s pages after they were reset, so every page loaded every plugin until the cache dropped an old copy of `seoprostack_plugin_front`. WordPress’s `delete_option()` removes an autoloaded option from `alloptions` only, so a copy a request had cached under the option’s own name stayed; `get_option()` returned it, so `update_option()` tried to update the missing row and returned `false` without saving. SEO Pro Stack now deletes both copies and saves over an old one, so a stuck site learns again on its next page view (GitHub issue #476).
-- Fix: **Magic login links** keeps HandyPlugins’ Magic Login blocks working in pages and synced patterns after that plugin is removed, with a login-link form or WordPress’s password form while the feature is off. Saved text, safe redirects and logged-in visibility are preserved, and page learning recognises the block (GitHub issue #463).
 
 ### 1.3.0
 
