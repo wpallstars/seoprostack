@@ -74,6 +74,23 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
     const FRONT_USERS_KEY = SEOProStack_Plugin_Loader::FRONT_USERS_KEY;
 
     /**
+     * Seconds and files one learning request may spend looking up would-be
+     * leftovers in plugin code (front_code_check(); a later learn continues).
+     */
+    const FRONT_CODE_BUDGET = 3;
+    const FRONT_CODE_FILES  = 40000;
+
+    /**
+     * A shortcode name as plugin code registers it: the first argument of a
+     * call whose name holds "shortcode" (add_shortcode(), addShortcode(),
+     * $this->add_shortcode()), the third of shortcode_atts(), or the value
+     * of a constant or property whose name holds "shortcode", each also
+     * through apply_filters(). A name that code merely mentions, such as
+     * 'button', is not one.
+     */
+    const FRONT_CODE_SHORTCODE = '/(?:\w*shortcode\w*\s*\(\s*|shortcode_atts\s*\([^;]*?,\s*|(?:const\s+|\$)\w*short_?code\w*\s*=\s*)(?:apply_filters\s*\(\s*[\'"][\w.\/-]*[\'"]\s*,\s*)?([\'"])([A-Za-z0-9_:.-]+)\1/i';
+
+    /**
      * Hooks that change who is logged in or where logins go: plugins on
      * them always load on the site (with the loader's ALWAYS_HOOKS).
      */
@@ -1326,12 +1343,16 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
             $blocks = array_merge((array) ($previous['blocks'] ?? array()), $blocks);
             $shortcodes = array_merge((array) ($previous['shortcodes'] ?? array()), $shortcodes);
         }
+        // A name that would become a leftover is looked up in the active
+        // plugins' code first: a plugin may register it only on some posts,
+        // not on the one that learned the kind (GitHub issue #507).
+        $unchecked = self::front_code_check($kinds, $key, $learned_kind ? $unlisted : array(), $blocks, $shortcodes, $state['active']);
         // Leftovers count only for the page kind that learned them: a plugin
         // that registers a shortcode only for its own post type, or only on
         // pages, still loads on those (#497).
         foreach ($kinds as $name => $kind) {
             $found = $learned_kind && $name === $key ? $unlisted : array();
-            $inert = self::front_inert((array) ($kind['inert'] ?? array()), $found, $blocks, $shortcodes);
+            $inert = self::front_inert((array) ($kind['inert'] ?? array()), $found, $blocks, $shortcodes, $unchecked);
             unset($kinds[$name]['inert']);
             if ($inert['shortcodes'] || $inert['blocks']) {
                 $kinds[$name]['inert'] = $inert;
@@ -1459,32 +1480,209 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
      * any learn of this plugin set registered, or a block whose namespace
      * has a registered block, is not one (GitHub issue #497).
      *
+     * Names that plugin code registers are not leftovers either, and names
+     * not yet looked up in every active plugin's code wait (#507).
+     *
      * @param array $previous   Leftovers learned before for this plugin set.
      * @param array $found      From SEOProStack_Plugin_Loader::take_unlisted().
      * @param array $blocks     Known block => owner.
      * @param array $shortcodes Known shortcode => owner.
+     * @param array $unchecked  From front_code_check().
      * @return array{shortcodes: array<string,bool>, blocks: array<string,bool>}
      */
-    private static function front_inert(array $previous, array $found, array $blocks, array $shortcodes) {
-        $inert = array('shortcodes' => array(), 'blocks' => array());
-        $prefixes = array();
-        foreach (array_keys($blocks) as $block) {
-            $prefixes[substr((string) $block, 0, (int) strpos((string) $block, '/') + 1)] = true;
-        }
+    private static function front_inert(array $previous, array $found, array $blocks, array $shortcodes, array $unchecked = array()) {
+        $inert = self::front_unknown(array($previous, $found), $blocks, $shortcodes);
         foreach (array('shortcodes', 'blocks') as $kind) {
-            $names = array_merge(array_keys((array) ($previous[$kind] ?? array())), array_keys((array) ($found[$kind] ?? array())));
-            foreach ($names as $name) {
-                $name = (string) $name;
-                $known = 'shortcodes' === $kind ? array_key_exists($name, $shortcodes)
-                    : array_key_exists($name, $blocks) || isset($prefixes[substr($name, 0, (int) strpos($name, '/') + 1)]);
-                if (!$known) {
-                    $inert[$kind][$name] = true;
-                }
-            }
+            $inert[$kind] = array_diff_key($inert[$kind], (array) ($unchecked[$kind] ?? array()));
             // Bounded: the map loads on every request.
             $inert[$kind] = array_slice($inert[$kind], 0, 200, true);
         }
         return $inert;
+    }
+
+    /**
+     * Shortcode names and blocks in some lists that no learn registered: a
+     * block whose namespace has a registered block counts as registered.
+     *
+     * @param array[] $lists      Lists of 'shortcodes' and 'blocks' name => true.
+     * @param array   $blocks     Known block => owner.
+     * @param array   $shortcodes Known shortcode => owner.
+     * @return array{shortcodes: array<string,bool>, blocks: array<string,bool>}
+     */
+    private static function front_unknown(array $lists, array $blocks, array $shortcodes) {
+        $unknown = array('shortcodes' => array(), 'blocks' => array());
+        $prefixes = array();
+        foreach (array_keys($blocks) as $block) {
+            $prefixes[substr((string) $block, 0, (int) strpos((string) $block, '/') + 1)] = true;
+        }
+        foreach ($lists as $list) {
+            foreach (array('shortcodes', 'blocks') as $kind) {
+                foreach (array_keys((array) ($list[$kind] ?? array())) as $name) {
+                    $name = (string) $name;
+                    $known = 'shortcodes' === $kind ? array_key_exists($name, $shortcodes)
+                        : array_key_exists($name, $blocks) || isset($prefixes[substr($name, 0, (int) strpos($name, '/') + 1)]);
+                    if (!$known) {
+                        $unknown[$kind][$name] = true;
+                    }
+                }
+            }
+        }
+        return $unknown;
+    }
+
+    /**
+     * Look up would-be leftovers in the active plugins' own code (GitHub
+     * issue #507). A plugin may register a shortcode or block only on some
+     * posts, so a learn on another post of the kind does not see it. Where
+     * one plugin's code names it, it becomes that plugin's, so pages using it
+     * load that plugin; where several do, it becomes unknown, so they load
+     * every plugin. Shortcode names count where FRONT_CODE_SHORTCODE finds
+     * them in PHP files; blocks by the name in a block.json or the first
+     * argument of register_block_type().
+     *
+     * Results are kept per plugin version (FRONT_CODE), so each plugin is
+     * read once for a name. A name not yet looked up in every plugin within
+     * this request's budget is returned: it is not saved as a leftover, and
+     * a later learn continues.
+     *
+     * @param array    $kinds      Learned kinds, with their saved leftovers.
+     * @param string   $key        This request's kind ('' when none).
+     * @param array    $found      Names this request found unregistered.
+     * @param array    $blocks     Known block => owner; gains owners found.
+     * @param array    $shortcodes Known shortcode => owner; gains owners found.
+     * @param string[] $active     Active plugins.
+     * @return array{shortcodes: array<string,bool>, blocks: array<string,bool>} Names not looked up yet.
+     */
+    private static function front_code_check(array $kinds, $key, array $found, array &$blocks, array &$shortcodes, array $active) {
+        $lists = '' !== $key ? array($found) : array();
+        foreach ($kinds as $kind) {
+            $lists[] = (array) ($kind['inert'] ?? array());
+        }
+        $pending = self::front_unknown($lists, $blocks, $shortcodes);
+        $unchecked = array('shortcodes' => array(), 'blocks' => array());
+        if (!$pending['shortcodes'] && !$pending['blocks']) {
+            return $unchecked;
+        }
+        $cache = get_option(SEOProStack_Plugin_Loader::FRONT_CODE, array());
+        $cache = is_array($cache) ? $cache : array();
+        $kept = array();
+        $owners = array('shortcodes' => array(), 'blocks' => array());
+        $start = microtime(true);
+        $left = self::FRONT_CODE_FILES;
+        foreach ($active as $file) {
+            $main = WP_PLUGIN_DIR . '/' . $file;
+            if (plugin_basename(SEOPROSTACK_FILE) === $file || !is_file($main)) {
+                continue;
+            }
+            $print = (string) filemtime($main);
+            $entry = isset($cache[$file]['print']) && $print === $cache[$file]['print'] ? (array) $cache[$file]
+                : array('print' => $print, 'shortcodes' => array(), 'blocks' => array());
+            $todo = array();
+            foreach (array('shortcodes', 'blocks') as $type) {
+                $entry[$type] = (array) ($entry[$type] ?? array());
+                $todo[$type] = array_diff_key($pending[$type], $entry[$type]);
+            }
+            if ($todo['shortcodes'] || $todo['blocks']) {
+                $hits = self::front_code_names($main, $todo, $start, $left);
+                foreach ($todo as $type => $names) {
+                    foreach (array_keys($names) as $name) {
+                        if (null === $hits) {
+                            $unchecked[$type][$name] = true;
+                        } else {
+                            $entry[$type][$name] = isset($hits[$type][$name]);
+                        }
+                    }
+                }
+            }
+            foreach (array('shortcodes', 'blocks') as $type) {
+                foreach (array_keys($pending[$type]) as $name) {
+                    if (!empty($entry[$type][$name])) {
+                        $owners[$type][$name][] = $file;
+                    }
+                }
+                // Bounded: the newest names looked up for each plugin.
+                $entry[$type] = array_slice($entry[$type], -500, null, true);
+            }
+            $kept[$file] = $entry;
+        }
+        if ($kept !== $cache) {
+            update_option(SEOProStack_Plugin_Loader::FRONT_CODE, $kept, false);
+        }
+        foreach ($owners as $type => $names) {
+            foreach ($names as $name => $files) {
+                if (isset($unchecked[$type][$name])) {
+                    continue; // Another plugin may name it too.
+                }
+                $owner = 1 === count($files) ? $files[0] : false;
+                if ('shortcodes' === $type) {
+                    $shortcodes[$name] = $owner;
+                } else {
+                    $blocks[$name] = $owner;
+                }
+            }
+        }
+        return $unchecked;
+    }
+
+    /**
+     * Which of some shortcode names and blocks one plugin's code names, or
+     * null when the budget ran out or its folder could not be read.
+     *
+     * @param string $main  The plugin's main file.
+     * @param array  $todo  'shortcodes' and 'blocks' name => true.
+     * @param float  $start microtime(true) when the lookup began.
+     * @param int    $left  Files that may still be read; counts down.
+     * @return array|null
+     */
+    private static function front_code_names($main, array $todo, $start, &$left) {
+        $hits = array('shortcodes' => array(), 'blocks' => array());
+        $spaces = array();
+        foreach (array_keys($todo['blocks']) as $block) {
+            $spaces[substr((string) $block, 0, (int) strpos((string) $block, '/') + 1)] = true;
+        }
+        $dir = dirname($main);
+        try {
+            $files = WP_PLUGIN_DIR === $dir ? array(new SplFileInfo($main)) : new RecursiveIteratorIterator(new RecursiveCallbackFilterIterator(
+                new RecursiveDirectoryIterator($dir, FilesystemIterator::SKIP_DOTS),
+                static function ($item) {
+                    return !$item->isDir() || !in_array($item->getFilename(), array('node_modules', '.git', 'tests'), true);
+                }
+            ));
+            foreach ($files as $item) {
+                $json = 'block.json' === $item->getFilename();
+                if (!$item->isFile() || (!$json && !in_array(strtolower($item->getExtension()), array('php', 'inc'), true)) || $item->getSize() > 2097152) {
+                    continue;
+                }
+                if (--$left < 0 || microtime(true) - $start > self::FRONT_CODE_BUDGET) {
+                    return null;
+                }
+                $code = file_get_contents($item->getPathname()); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents -- a local plugin file.
+                if (!is_string($code)) {
+                    continue;
+                }
+                if ($todo['shortcodes'] && !$json && false !== stripos($code, 'shortcode')) {
+                    // A file that registers names from a variable, such as
+                    // WooCommerce's list: any quoted name in it counts.
+                    preg_match_all(preg_match('/add_shortcode\s*\(\s*[^\'"\s)]/i', $code) ? '/([\'"])([A-Za-z0-9_:.-]+)\1/' : self::FRONT_CODE_SHORTCODE, $code, $found);
+                    foreach (array_intersect_key($todo['shortcodes'], array_flip($found[2])) as $name => $yes) {
+                        $hits['shortcodes'][$name] = $yes;
+                    }
+                }
+                foreach (array_keys($spaces) as $space) {
+                    if (false === strpos($code, (string) $space)) {
+                        continue;
+                    }
+                    preg_match_all($json ? '/"name"\s*:\s*"([a-z0-9-]+\/[a-z0-9-]+)"/' : '/register_block_type\w*\s*\(\s*[\'"]([a-z0-9-]+\/[a-z0-9-]+)[\'"]/', $code, $found);
+                    foreach (array_intersect_key($todo['blocks'], array_flip($found[1])) as $name => $yes) {
+                        $hits['blocks'][$name] = $yes;
+                    }
+                    break;
+                }
+            }
+        } catch (UnexpectedValueException $e) {
+            return null; // An unreadable folder.
+        }
+        return $hits;
     }
 
     /**
@@ -1524,7 +1722,8 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
         if (0 === strpos((string) $name, '_transient_') || 0 === strpos((string) $name, '_site_transient_')
             || in_array($name, array('cron', SEOProStack_Plugin_Loader::FRONT, SEOProStack_Plugin_Loader::FRONT_LOCK,
                 SEOProStack_Plugin_Loader::FRONT_REVISION, SEOProStack_Plugin_Loader::FRONT_FAILED, SEOProStack_Plugin_Loader::FRONT_MIGRATED,
-                SEOProStack_Plugin_Loader::MAP, SEOProStack_Plugin_Loader::MENU, SEOProStack_Plugin_Loader::HISTORY), true)) {
+                SEOProStack_Plugin_Loader::FRONT_CODE, SEOProStack_Plugin_Loader::MAP, SEOProStack_Plugin_Loader::MENU,
+                SEOProStack_Plugin_Loader::HISTORY), true)) {
             return;
         }
         self::$forget_cause = self::$forget_cause ?? array('hook' => (string) current_filter(), 'key' => (string) $name);
