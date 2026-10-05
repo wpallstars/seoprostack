@@ -739,6 +739,7 @@ final class SEOProStack_Plugin_Loader {
         }
         $path = trim(substr($path, strlen(trailingslashit($home))), '/');
         $query = array();
+        $short = ''; // A page rule's path no page has: a short address, if nothing else matches.
         if ('' !== $path) {
             foreach ((array) get_option('rewrite_rules', array()) as $rule => $target) {
                 if (preg_match('#^' . str_replace('#', '\\#', $rule) . '#', $path, $matches)) {
@@ -752,12 +753,20 @@ final class SEOProStack_Plugin_Loader {
                             return array(); // An ambiguous or over-budget lookup cannot reject a page rule.
                         }
                         if (null === $page) {
+                            if ('' === $short && is_string($query['pagename'])) {
+                                $short = $query['pagename'];
+                            }
                             $query = array(); // Core's verbose page rules must validate the page before accepting a match.
                             continue;
                         }
                     }
                     break;
                 }
+            }
+            if (!$query && '' !== $short && !empty($routes['short_types'])) {
+                // WordPress keeps the unmatched page rule, which short
+                // addresses resolve (SEOProStack_Remove_Cpt_Base::resolve()).
+                $query = array('pagename' => $short);
             }
             if (!$query) {
                 return array();
@@ -799,12 +808,17 @@ final class SEOProStack_Plugin_Loader {
         if (!empty($query['p']) || !empty($query['page_id'])) {
             $post = get_post((int) ($query['p'] ?? $query['page_id']));
         } elseif (!empty($query['pagename']) || !empty($query['name'])) {
-            $type = !empty($query['pagename']) ? 'page' : ('' !== $type ? $type : 'post');
+            $typed = '' !== $type;
+            $type = !empty($query['pagename']) ? 'page' : ($typed ? $type : 'post');
             $slug = $query['pagename'] ?? $query['name'];
             if (!is_string($slug)) {
                 return array(); // name[]=… is not a page kind.
             }
             $post = self::front_post_by_path($slug, $type, $path);
+            if (null === $post && !$typed) {
+                // No page or post here: an item at its short address (GitHub issue #495).
+                $post = self::front_short_item($slug, $routes, $path);
+            }
         } elseif (('' === $path || isset($query['paged'])) && !array_diff(array_keys($query), array('paged', 'page', 'cpage'))
             && 'page' === get_option('show_on_front')) {
             $post = get_post((int) get_option('page_on_front'));
@@ -912,6 +926,28 @@ final class SEOProStack_Plugin_Loader {
             }
         }
         return $result;
+    }
+
+    /**
+     * The item at a short address: Short addresses for custom post types
+     * serve chosen types at /item/ when no page or post is there
+     * (SEOProStack_Remove_Cpt_Base::resolve()), learned in the routes.
+     *
+     * @param string $slug         Path WordPress matched.
+     * @param array  $routes       Learned routes.
+     * @param string $request_path Requested path.
+     * @return WP_Post|null|false False when ambiguous or over budget.
+     */
+    private static function front_short_item($slug, array $routes, $request_path) {
+        $found = null;
+        foreach ((array) ($routes['short_types'] ?? array()) as $type) {
+            $item = self::front_post_by_path($slug, (string) $type, $request_path);
+            if (false === $item || ($item && $found)) {
+                return false; // Items of two types at one address: which one WordPress shows is not checked here.
+            }
+            $found = $item ? $item : $found;
+        }
+        return $found;
     }
 
     /**
