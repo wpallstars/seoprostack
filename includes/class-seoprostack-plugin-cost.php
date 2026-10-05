@@ -113,6 +113,14 @@ final class SEOProStack_Plugin_Cost {
      */
     private static $shortcodes = array();
 
+    /**
+     * Core set-up not yet marked before the first plugin or theme file:
+     * 'plugins', 'theme' or ''.
+     *
+     * @var string
+     */
+    private static $setup = '';
+
     /* ------------------------------------------------------------------
      * Profiler: runs from the must-use file, before plugins load.
      * ------------------------------------------------------------------ */
@@ -150,7 +158,9 @@ final class SEOProStack_Plugin_Cost {
         add_action('muplugins_loaded', array(__CLASS__, 'core_done'), PHP_INT_MIN);
         add_action('plugin_loaded', array(__CLASS__, 'plugin_loaded'), PHP_INT_MIN);
         add_action('plugins_loaded', array(__CLASS__, 'plugins_loaded'), PHP_INT_MIN);
+        add_filter('option_active_plugins', array(__CLASS__, 'plugins_next'), PHP_INT_MAX);
         add_action('setup_theme', array(__CLASS__, 'core_done'), PHP_INT_MIN);
+        add_filter('get_available_languages', array(__CLASS__, 'theme_next'), PHP_INT_MAX);
         add_action('after_setup_theme', array(__CLASS__, 'theme_loaded'), PHP_INT_MIN);
         add_filter('template_include', array(__CLASS__, 'template'), PHP_INT_MAX);
         add_filter('pre_do_shortcode_tag', array(__CLASS__, 'shortcode_start'), PHP_INT_MAX, 2);
@@ -236,6 +246,52 @@ final class SEOProStack_Plugin_Cost {
      */
     public static function core_done() {
         self::mark('core', false, '');
+        self::$setup = 'muplugins_loaded' === current_action() ? 'plugins' : 'theme';
+    }
+
+    /**
+     * Core reads the active plugins just before it loads their files: its
+     * set-up since must-use plugins loaded (post types, taxonomies) is WordPress's.
+     *
+     * @param mixed $value Active plugins.
+     * @return mixed
+     */
+    public static function plugins_next($value) {
+        self::setup_done('plugins', 'wp_get_active_and_valid_plugins');
+        return $value;
+    }
+
+    /**
+     * Core's locale switcher starts just before the theme's functions.php
+     * files load: translations and locale set-up since setup_theme are WordPress's.
+     *
+     * @param mixed $value Available languages.
+     * @return mixed
+     */
+    public static function theme_next($value) {
+        self::setup_done('theme', 'WP_Locale_Switcher::__construct');
+        return $value;
+    }
+
+    /**
+     * Mark core's set-up done when core itself (not a plugin or the theme) is
+     * the caller, once, outside callbacks.
+     *
+     * @param string $which  'plugins' or 'theme'.
+     * @param string $caller Core function that loads them next.
+     */
+    private static function setup_done($which, $caller) {
+        if ($which !== self::$setup || self::$stack) {
+            return;
+        }
+        // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_debug_backtrace -- a few calls per measured page, to tell core's call from others.
+        foreach (debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 8) as $frame) {
+            if ($caller === (isset($frame['class']) ? $frame['class'] . '::' : '') . $frame['function']) {
+                self::$setup = '';
+                self::mark('core', false, '');
+                return;
+            }
+        }
     }
 
     /**
@@ -244,6 +300,7 @@ final class SEOProStack_Plugin_Cost {
      * @param string $file Its path.
      */
     public static function plugin_loaded($file) {
+        self::$setup = '';
         self::mark(self::plugin_key(plugin_basename((string) $file)), true, '');
     }
 
@@ -258,6 +315,7 @@ final class SEOProStack_Plugin_Cost {
      * The theme's functions.php files have loaded.
      */
     public static function theme_loaded() {
+        self::$setup = '';
         self::mark('theme--' . get_stylesheet(), true, 'core');
     }
 
@@ -787,7 +845,11 @@ final class SEOProStack_Plugin_Cost {
         } elseif ('finish' === $step) {
             self::ajax_finish();
         }
-        self::stop();
+        // Stop: only the measurement this user started, never someone else's.
+        $current = get_transient(self::TOKEN);
+        if (!is_array($current) || (int) ($current['user'] ?? 0) === get_current_user_id()) {
+            self::stop();
+        }
         wp_send_json_success();
     }
 
