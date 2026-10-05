@@ -88,6 +88,7 @@ function seoprostack_uninstall_site() {
     $options[] = 'seoprostack_plugin_front_failed';
     $options[] = 'seoprostack_plugin_front_migrated';
     $options[] = 'seoprostack_plugin_front_forgets';
+    $options[] = 'seoprostack_plugin_learned_by';
     $options[] = 'seoprostack_access_roles';
     $options[] = 'seoprostack_admin_bar_items';
     $options[] = 'seoprostack_admin_menu';
