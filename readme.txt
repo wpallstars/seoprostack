@@ -21,7 +21,7 @@ Features safe on every site start on; those needing choices stay off. Use **Sett
 
 = A calmer, faster admin =
 
-* **Developer admins**: only the administrators you choose can install, switch or edit plugins and themes, make administrators or change site addresses and permalinks.
+* **Developer admins**: only chosen administrators can manage plugins, themes, admins and site addresses.
 * **Organise the admin menu**: the same sections on every site, role previews, writing only for contributors.
 * **Tidy the dashboard**, **Dashboard and sidebar widgets**, **Hide admin notices** (behind a megaphone) and a **More menu** for plugins' admin bar items.
 * **Quiet Freemius prompts** and **Quiet Appsero prompts**: no opt-in nags, upgrade offers or deactivation surveys.
@@ -53,7 +53,7 @@ Features safe on every site start on; those needing choices stay off. Use **Sett
 * **Resize large uploads**, **Replace media files** and **Watermark pictures**, keeping the originals.
 * **SVG uploads** for chosen roles, cleaned on upload.
 * **Website screenshots**: a block and the `[browser-shot]` shortcode, saved to the Media Library.
-* **Avatars without Gravatar**: served from your own site.
+* **Avatars without Gravatar**: served by your own site.
 
 = Links and speed =
 
@@ -62,8 +62,8 @@ Features safe on every site start on; those needing choices stay off. Use **Sett
 * **External link icons**: text-link colours and Kadence dark mode, without scripts; replaces Link Whisper's icon only.
 * **Internal linking tools** (off): approved suggestions, undo, counts, orphans and read-only Link Whisper retirement checks.
 * **Load pages before the click**, **Delay scripts until interaction**, **Delayed Google Analytics** and a faster editor with Kadence Blocks.
-* **Ask before licence checks**: premium plugins call home once, daily or never, as you choose.
-* **Clean the database weekly**: old spam, bin and expired data, and tasks of plugins that are gone.
+* **Ask before licence checks**: premium plugins call home once, daily or never. **Calls to other sites** (off): who calls which site, how long it takes, with blocks.
+* **Clean the database weekly**: old spam, bin and expired data, and gone plugins' tasks.
 * **Count terms and comments in the background** (off).
 * **Load large settings only where they are used** (single sites).
 * **Faster page counts on long lists** (off): separate counts, exact page numbers.

@@ -974,6 +974,19 @@ Off by default. Turn it on, then open **Tools → Database keys**. It reads inde
 - The non-autoloaded `seoprostack_database_keys_log` option records time, administrator ID, key, result and restore SQL, saved before each removal. A pending entry means the result was not recorded; check the database before restoring. Uninstall removes the log but does not undo changes to keys. Copy the log first.
 - The `admin_post_seoprostack_database_keys` handler checks `manage_options`, feature state and a nonce on both steps. A database advisory lock serializes removals and log writes without waiting; if it is unavailable, nothing is removed. Confirmation renders on the normal Tools page, with its own review nonce.
 
+### Calls to other sites (Server)
+
+Off by default. Turn it on, then open **Tools → Calls to other sites**: which plugin, theme or must-use plugin calls which other site through WordPress, how often, and how long pages wait for it, slowest first.
+
+- Each row is one plugin (or WordPress, or SEO Pro Stack) and one host: calls sent and not sent, failures, time in all, on average and the slowest call, the last answer (status code or error), where the calls were made (visitor pages, admin, AJAX, cron, REST, WP-CLI), the path of the last call and when it was made. Query strings are never kept, so licence keys and tokens in addresses are not stored.
+- **Not sent** counts calls another filter answered without calling: another plugin, **Ask before licence checks** or a block here.
+- **Block** makes that plugin’s calls to that site fail straight away with a `seoprostack_blocked` error, as if the site could not be reached; other plugins’ calls to it still go. **Allow** undoes it. Blocks are checked before Ask before licence checks.
+- **Never blocked**: payment services (Stripe, PayPal, Braintree, Square, Mollie, Klarna, Adyen, Authorize.net, Checkout.com, Razorpay, Paystack, PayFast, GoCardless), WordPress.org and WordPress.com, the site itself, WordPress’s and SEO Pro Stack’s own calls, and anything WordPress’s update code runs (update checks and downloads, whichever plugin’s code makes the call). The `seoprostack_outbound_never_block` filter can add hosts.
+- Only calls made through WordPress’s HTTP API are seen; code that uses cURL or sockets directly is not.
+- **Clear the list** starts counting again; blocks stay. The 200 most recently seen rows are kept.
+- Visitor pages are counted on 1 view in 20, each counting 20 times, so their numbers are estimates and most page views write nothing; admin screens, AJAX, cron, REST and WP-CLI are counted every time.
+- Stored: counts in `seoprostack_outbound_calls`, written once at the end of a counted request that made calls, and blocks in `seoprostack_outbound_blocks`, both not autoloaded and removed on uninstall. Requests running at the same moment can each write their own counts, so totals are close, not exact. The `admin_post_seoprostack_outbound_calls` handler checks `manage_options` and a nonce.
+
 ### Code Snippets in Site Health
 
 Always on, advice only, with no setting: while Code Snippets or Code Snippets Pro is active, a **Code Snippets** test in Tools → Site Health names the snippets that slow pages or are not needed, each linking to its edit screen. It reads Code Snippets' table (and the network's on multisite, at most 500 snippets each) and never changes a snippet. A snippet is named when it is:
@@ -1342,6 +1355,7 @@ Developers can add settings, tabs and directory entries with filters:
 - `seoprostack_can_change_settings`: return false to stop the current user changing SEO Pro Stack’s settings (on top of `manage_options`).
 - `seoprostack_admin_bar_star`: return false to hide the admin bar star that opens SEO Pro Stack’s settings.
 - `seoprostack_licence_call`: whether an outgoing request is a licence check that Ask before licence checks holds (bool, address, request arguments). Update checks are never held, whatever it returns.
+- `seoprostack_outbound_never_block`: whether Calls to other sites may never block a source's calls to a host (bool, host, source: `plugin:folder`, `mu:file`, `theme:folder`, `core` or `seoprostack`). True by default for payment services, WordPress.org and WordPress.com, the site itself, WordPress and SEO Pro Stack.
 - `seoprostack_hosting_sample_rate`: Hosting needs records the time of 1 in this many requests (default 20; 0 stops recording traffic).
 - `seoprostack_plugin_presets`: add or change plugin presets (plugin folder => `name`, `tested`, `updated`, `notes`, `options`, `defaults`, optional `settings` and `cache`, as in `presets/*.json`). Secret-looking names are removed after the filter runs.
 - `seoprostack_preset_condition`: whether a preset's `when` condition holds on this site (`$holds`, `$condition`); false for conditions SEO Pro Stack does not know.
@@ -1394,6 +1408,7 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folder�
 ### 1.1.0
 
 - New: **Plugin sizes** has **Measure page time** above the Plugins list. It loads the home page and the newest post three times each, with every active plugin loaded, and shows each plugin’s page time and database queries in its Size column (details on hover: loading time and memory, hooks and shortcodes, query time, calls to other sites), the active plugins’ total below the list, and a summary above it: time and queries a page, split into plugins, theme and WordPress. Nothing is measured until someone clicks; a must-use file does the measuring and is removed when it ends. Single sites only (GitHub issue #447).
+- New, off by default: **Calls to other sites** (Server tab). **Tools → Calls to other sites** lists which plugin, theme or must-use plugin calls which other site through WordPress, how often, how long pages wait (total, average, slowest), the last answer, where the calls are made and the last path, without query strings. **Block** stops one plugin’s calls to one site; payment services, WordPress.org and WordPress.com, the site itself, WordPress, SEO Pro Stack and WordPress’s update code are never blocked. New `seoprostack_outbound_never_block` filter and the `seoprostack_outbound_calls` and `seoprostack_outbound_blocks` options (not autoloaded), removed on uninstall (GitHub issue #452).
 - Fix: **Load plugins only where needed** with page learning loaded every plugin on pages using a block from a network-activated plugin, a must-use plugin or the theme, as the block had no owner among the plugins it can skip. Those blocks now need no plugin (GitHub issue #449).
 - Fix: pages with synced patterns loaded every plugin. Their patterns are now looked up and their blocks and shortcodes count as the page’s; a missing one still loads every plugin (GitHub issue #450).
 - Fix: custom fields that plugins save on page views or in scheduled tasks (view counters, caches, syncs) no longer make the site’s pages learn again; on some sites that happened every few minutes. The settings now list the last changes that did, with the hook, the option, field, post type or taxonomy, and the kind of request (GitHub issue #451).
