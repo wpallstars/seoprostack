@@ -40,6 +40,9 @@ class SEOProStack_Magic_Login extends SEOProStack_Feature {
     /** WP Magic Link Login's shortcode, kept working after it goes. */
     const SHORTCODE = 'wpmll_form';
 
+    /** HandyPlugins' dynamic block, kept working after Magic Login goes. */
+    const BLOCK = 'magic-login/login-block';
+
     /** User meta holding the pending token hash. */
     const META = '_seoprostack_magic_login';
 
@@ -66,7 +69,10 @@ class SEOProStack_Magic_Login extends SEOProStack_Feature {
                 'label'       => __('Magic login links', 'seoprostack'),
                 'description' => __('Adds “Email me a login link” to the login screen. The link works once and expires after a few minutes. Passwords keep working.', 'seoprostack'),
                 // pixolette's CodeCanyon plugin; listed so the Plugins screen finds it on sites that have it.
-                'replaces'    => array('wp-magic-link-login' => 'WP Magic Link Login'),
+                'replaces'    => array(
+                    'wp-magic-link-login' => 'WP Magic Link Login',
+                    'magic-login'         => 'Magic Login',
+                ),
             ),
             'magic_login_expiry' => array(
                 'type'        => 'int',
@@ -106,6 +112,7 @@ class SEOProStack_Magic_Login extends SEOProStack_Feature {
         // Pages made with WP Magic Link Login keep working after it is
         // deactivated, whether or not this feature is on.
         add_action('init', array(__CLASS__, 'register_shortcode'), 20);
+        add_action('init', array(__CLASS__, 'register_block'), 20);
         if (!self::enabled()) {
             return;
         }
@@ -124,6 +131,48 @@ class SEOProStack_Magic_Login extends SEOProStack_Feature {
     }
 
     /**
+     * Rendering-only takeover; Magic Login's own registration always wins.
+     * Its schema lives in HandyPlugins/magic-login's includes/block.php.
+     */
+    public static function register_block() {
+        if (self::replaced_active(self::KEY) || WP_Block_Type_Registry::get_instance()->is_registered(self::BLOCK)) {
+            return;
+        }
+        register_block_type(self::BLOCK, array(
+            'attributes'      => array(
+                'title'               => array('type' => 'string', 'default' => __('Login with Email', 'seoprostack')),
+                'description'         => array('type' => 'string', 'default' => __('Please enter your username or email address. You will receive an email message to log in.', 'seoprostack')),
+                'loginLabel'          => array('type' => 'string', 'default' => __('Username or Email Address', 'seoprostack')),
+                'buttonLabel'         => array('type' => 'string', 'default' => __('Send me the link', 'seoprostack')),
+                'redirectTo'          => array('type' => 'string'),
+                'hideLoggedIn'        => array('type' => 'boolean', 'default' => true),
+                'hideFormAfterSubmit' => array('type' => 'boolean', 'default' => true),
+                'cancelRedirection'   => array('type' => 'boolean', 'default' => false),
+            ),
+            'render_callback' => array(__CLASS__, 'render_block'),
+        ));
+    }
+
+    /**
+     * Map the saved block to our existing login form, without its AJAX handler.
+     *
+     * @param array $attributes Saved block attributes, with registered defaults.
+     * @return string
+     */
+    public static function render_block($attributes) {
+        if (is_user_logged_in() && !empty($attributes['hideLoggedIn'])) {
+            return '';
+        }
+        return self::shortcode(array(
+            'heading'           => $attributes['title'],
+            'description'       => $attributes['description'],
+            'login-label'       => $attributes['loginLabel'],
+            'login-button-text' => $attributes['buttonLabel'],
+            'redirect_to'       => !empty($attributes['cancelRedirection']) ? '' : ($attributes['redirectTo'] ?? 'current-page'),
+        ));
+    }
+
+    /**
      * [wpmll_form]: the login link form, a password login form while this
      * feature is off, or a log out link for people already logged in.
      *
@@ -138,6 +187,7 @@ class SEOProStack_Magic_Login extends SEOProStack_Feature {
         $atts = shortcode_atts(array(
             'heading'           => '',
             'description'       => '',
+            'login-label'       => __('Username or Email Address', 'seoprostack'),
             'login-button-text' => '',
             'logout-link-text'  => '',
             'redirect_to'       => '',
@@ -184,7 +234,7 @@ class SEOProStack_Magic_Login extends SEOProStack_Feature {
         $html .= sprintf(
             '<p><label for="%1$s">%2$s</label><br /><input type="text" name="user_login" id="%1$s" class="input" autocapitalize="off" autocomplete="username" required="required" /></p>',
             esc_attr($id),
-            esc_html__('Username or Email Address', 'seoprostack')
+            esc_html($atts['login-label'])
         );
         $html .= wp_nonce_field(self::ACTION . '_request', '_seoprostack_nonce', false, false);
         $html .= sprintf('<input type="hidden" name="redirect_to" value="%s" />', esc_attr($redirect));

@@ -69,7 +69,7 @@ SEO Pro Stack replaces **53 plugins**, some of them in part, with free and Pro e
 | --- | --- | --- |
 | Hide the admin bar, Block dashboard access | Admin | Admin Bar & Dashboard Access Control |
 | Turn off unused remote access | Admin | Hostinger Tools and Disable Bloat (PRO), in part |
-| Magic login links | Admin | WP Magic Link Login, in part |
+| Magic login links | Admin | WP Magic Link Login and Magic Login, in part |
 | Organise the admin menu | Admin | Admin Menu Editor (Pro) |
 | Hide dashboard widgets, Disable sidebar widgets | Admin | Widget Disable |
 | Tidy admin screens, Tidy WooCommerce admin, Tidy the login screen, Simpler block editor, Limit post revisions, Remove WordPress extras, Fewer Heartbeat requests, Lighter WooCommerce pages | Admin, Content, Speed | Disable Bloat (PRO), in part |
@@ -161,6 +161,7 @@ Adds “Email me a login link” to the login screen, next to “Lost your passw
 - Passwords keep working. Administrators can be required to use their password.
 - Uses the core login screen and core `wp_login` / `login_redirect` hooks, so activity logs, redirect rules and two-factor plugins that use `wp_login` still apply. Two-factor plugins that only check the password step are not asked; on those sites exclude administrators or leave the feature off.
 - Pages made with WP Magic Link Login keep working after it is deactivated: its `[wpmll_form]` shortcode shows the login link form, with its `heading`, `description`, `login-button-text`, `logout-link-text` and `redirect_to` (an address on this site, or `current-page`) attributes. People already logged in see a log out link. While Magic login links is off, the shortcode shows WordPress’s password login form instead, so the page still lets people log in. While WP Magic Link Login is active, its own shortcode is left in place. Its other settings (allowed email domains, accounts for new email addresses, the landing page, hiding the password form, one IP address per link) are not replaced.
+- Pages and synced patterns made with HandyPlugins’ Magic Login keep their `magic-login/login-block` form after it is deactivated or deleted, too. Saved title, description, field and button labels, redirect address and logged-in visibility are kept. Redirects stay on this site. While Magic login links is off, the block shows WordPress’s password form instead. This is a rendering-only fallback, with no editor script; Magic Login’s own block is left alone while it is active. Its AJAX submission, hide-after-submit behaviour, redirection rules and Pro features are not replaced.
 
 ### Admin bar and dashboard access (Admin)
 
@@ -1440,6 +1441,7 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folder�
 ### Unreleased
 
 - Fix: on sites with a persistent object cache (LiteSpeed, Redis, Memcached), **Load plugins only where needed** could stop learning the site’s pages after they were reset, so every page loaded every plugin until the cache dropped an old copy of `seoprostack_plugin_front`. WordPress’s `delete_option()` removes an autoloaded option from `alloptions` only, so a copy a request had cached under the option’s own name stayed; `get_option()` returned it, so `update_option()` tried to update the missing row and returned `false` without saving. SEO Pro Stack now deletes both copies and saves over an old one, so a stuck site learns again on its next page view (GitHub issue #476).
+- Fix: **Magic login links** keeps HandyPlugins’ Magic Login blocks working in pages and synced patterns after that plugin is removed, with a login-link form or WordPress’s password form while the feature is off. Saved text, safe redirects and logged-in visibility are preserved, and page learning recognises the block (GitHub issue #463).
 
 ### 1.3.0
 
@@ -1901,6 +1903,7 @@ Where a feature replaces one of them, SEO Pro Stack imports the settings it can,
 | Admin Bar & Dashboard Access Control | Collins Agbonghama | [WordPress.org](https://wordpress.org/plugins/admin-bar-dashboard-control/) | Admin bar and dashboard access |
 | Admin Menu Editor (and Pro) | Janis Elsts | [WordPress.org](https://wordpress.org/plugins/admin-menu-editor/) | Organise the admin menu |
 | WP Magic Link Login | pixolette | [CodeCanyon](https://codecanyon.net/item/wp-magic-login-link-passwordless-authentication-wordpress-plugin/23269915) (premium plugin) | Magic login links |
+| Magic Login | HandyPlugins | [WordPress.org](https://wordpress.org/plugins/magic-login/), [GitHub](https://github.com/HandyPlugins/magic-login) | Magic login links, in part |
 | Widget Disable | required | [WordPress.org](https://wordpress.org/plugins/wp-widget-disable/), [GitHub](https://github.com/wearerequired/WP-Widget-Disable) | Dashboard and sidebar widgets |
 | Hostinger Tools | Hostinger | [WordPress.org](https://wordpress.org/plugins/hostinger/), [source (WordPress.org SVN)](https://plugins.svn.wordpress.org/hostinger/trunk/) | Turn off unused remote access (XML-RPC and application passwords), Maintenance mode |
 | Disable Bloat for WordPress & WooCommerce (and PRO) | Rock Solid | [WordPress.org](https://wordpress.org/plugins/disable-dashboard-for-woocommerce/), [website](https://disablebloat.com/) | Tidy admin screens, Tidy WooCommerce admin, Tidy the login screen, Simpler block editor, Limit post revisions, Remove WordPress extras, Fewer Heartbeat requests, Lighter WooCommerce pages, Turn off unused remote access (XML-RPC and application passwords) |
