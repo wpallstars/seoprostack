@@ -132,6 +132,7 @@ function seoprostack_uninstall_site() {
     $options[] = 'seoprostack_database_cleanup_cron_seen';
     $options[] = 'seoprostack_database_cleanup_cron_removed';
     $options[] = 'seoprostack_deferred_counts_queue';
+    $options[] = 'seoprostack_admin_counts';
     // Linking caches and anonymous daily click totals. Approved links are
     // ordinary post content and remain; Link Whisper and Rank Math stay untouched.
     $options[] = 'seoprostack_link_index';

@@ -118,7 +118,7 @@ SEO Pro Stack replaces **53 plugins**, some of them in part, with free and Pro e
 
 These plugins showed what sites need. [Credits](#credits) thanks their makers and links to each one.
 
-Also available, off by default: **Count terms and comments in the background** on the Server tab, for imports, bulk edits and shops.
+Also available, off by default: **Count terms and comments in the background** on the Server tab, for imports, bulk edits and shops, and **Remember admin counts**, for large sites without a persistent object cache.
 
 ### Modern admin colours (Admin)
 
@@ -541,6 +541,16 @@ Off by default. Saves, imports and deletions queue the affected categories, tags
 - Switching it off recounts one batch immediately, stops deferring new changes and finishes any remainder in the background. Queued taxonomies whose plugin is not loaded stay queued until it is available again; do not deactivate a taxonomy's plugin before recounting its terms.
 - The non-autoloaded option `seoprostack_deferred_counts_queue` holds term taxonomy IDs per taxonomy and post IDs for comments. Atomic updates preserve simultaneous writers. IDs stay queued until a successful recount acknowledges their processing generation, so interrupted runs and new changes during a recount are retried. Cron and the manual action load all plugins. Uninstall removes the queue and the `seoprostack_deferred_counts` hook.
 - Developers can run the scheduled task with `wp cron event run seoprostack_deferred_counts`.
+
+### Remember admin counts (Server)
+
+Off by default. Without a persistent object cache, WordPress counts every comment on every admin screen for the Comments menu (with WooCommerce, five counts and a sixth for pending product reviews), and counts posts on list screens and the dashboard. This keeps those counts between requests. Measured locally with 300,000 posts, 500,000 comments and WooCommerce: a settings screen’s queries went from 189 ms to 12 ms.
+
+- Kept: the site’s comment counts as the `wp_count_comments` filters finish them (so WooCommerce’s, which leave out order notes and reviews, stay as WooCommerce makes them); each post type’s counts as WordPress caches them (not the per-person counts of people who cannot read private posts); `count_users()` for the current site (used on Users below 10,000 people); WooCommerce’s pending product reviews count.
+- Counted again on the next request after a change: posts of that type when one changes status, is saved or deleted; comments when one is added, changes status, is edited, deleted or recounted; people when someone joins, leaves or changes role. A request that changes something counts it afresh, and a count made by a request that started before the change is not kept.
+- Changes made straight in the database, not through WordPress, show within an hour: no count is kept longer.
+- Does nothing when a persistent object cache (Redis, Memcached) is in use: WordPress keeps these counts there already.
+- Stored in the `seoprostack_admin_counts` option, not autoloaded, written at most once a request and only when something was counted or changed; removed when the setting is turned off and on uninstall.
 
 ### Faster page counts on long lists (Server)
 
@@ -1417,6 +1427,10 @@ Deleting the plugin removes its settings and cached data, the database keys Add 
 Deactivating the plugin removes the WebP and AVIF rules from the uploads folder’s `.htaccess` (for every site when network-deactivated), the LiteSpeed background request rules from the site’s `.htaccess` (on multisite, when network-deactivated or deactivated on the main site) and the must-use file of Load plugins only where needed (on multisite, when network-deactivated).
 
 ## Changelog
+
+### Unreleased
+
+- New, off by default: **Remember admin counts** (Server tab). On sites without a persistent object cache, the site’s comment counts (as WooCommerce adjusts them), each post type’s counts, `count_users()` and WooCommerce’s pending product reviews count are kept between requests instead of counted on every admin screen, and counted again after any change through WordPress; a count is kept at most an hour. Measured with 500,000 comments and WooCommerce: a settings screen’s queries went from 189 ms to 12 ms. New `seoprostack_admin_counts` option (not autoloaded), removed when turned off and on uninstall (GitHub issue #464).
 
 ### 1.2.0
 
