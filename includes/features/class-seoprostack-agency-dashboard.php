@@ -105,17 +105,15 @@ class SEOProStack_Agency_Dashboard extends SEOProStack_Feature {
     }
 
     /**
-     * Published and draft pages, by ID ('' for none; PHP makes numeric keys integers).
+     * Choices for the order and call pages: none only. Both selects are
+     * hidden wiring and open, so any page ID is kept without a list, and
+     * every settings save checks every select: listing every page there
+     * ran out of memory on sites with tens of thousands of pages.
      *
-     * @return array<int|string,string>
+     * @return array<string,string>
      */
     public static function page_options() {
-        $out   = array('' => __('None', 'seoprostack'));
-        $pages = get_pages(array('post_status' => 'publish,draft', 'sort_column' => 'post_title'));
-        foreach (is_array($pages) ? $pages : array() as $page) {
-            $out[(string) $page->ID] = '' !== $page->post_title ? $page->post_title : '#' . $page->ID;
-        }
-        return $out;
+        return array('' => __('None', 'seoprostack'));
     }
 
     /**

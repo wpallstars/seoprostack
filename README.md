@@ -54,7 +54,7 @@ At the top right of the screen, **Source code** opens the plugin’s [GitHub rep
 
 A new install starts with the features that are safe on every site switched on, so it is faster and tidier straight away, and leaves off those that need choices about the site or change its content, files, people or other plugins’ settings. On by default:
 
-- **Speed:** Load pages before the click, Image loading, Remove WordPress extras, Lighter WooCommerce pages and Faster editor with Kadence Blocks (the last two do nothing without those plugins).
+- **Speed:** Recommended speed settings, Load pages before the click, Image loading, Remove WordPress extras, Lighter WooCommerce pages and Faster editor with Kadence Blocks (the last two do nothing without those plugins).
 - **Server:** Fewer Heartbeat requests, Clean the database weekly, Load large settings only where they are used and Hosting needs.
 - **Plugins:** Load plugins only where needed, with **Also skip them for people who are logged in**, so it takes every chance to skip plugins once it has learned; Clean up deleted plugins, Plugin sizes and Fixes for other plugins.
 - **Admin and editor:** Organise the admin menu, More menu in the admin bar, Hide admin bar items (Comments and + New), Hide admin notices, Tidy admin screens, Tidy the dashboard, Tidy WooCommerce admin, Readable list columns, Simpler block editor, Notification emails (plugin and theme auto-update reports, unless an update failed), No fade between admin screens, Quiet Freemius prompts and Quiet Appsero prompts.
@@ -493,6 +493,15 @@ Turns off parts of the block editor most people never use, for everyone.
 WordPress keeps every revision of every post. This keeps the newest few (10 by default, 0 to 100) with core’s `wp_revisions_to_keep` filter, or fewer where another filter or `WP_POST_REVISIONS` asks for fewer. Core removes older ones the next time a post is saved; with 0, it stops saving revisions and leaves the saved ones alone. Autosaves still work. Nothing is stored or deleted by SEO Pro Stack.
 
 - Replaces Disable Bloat PRO’s post revisions switch, imported once as 0 while it is active.
+
+### Recommended speed settings (Speed)
+
+On by default; it changes nothing until you click. Below the Speed tab’s settings, a plan from this site’s own size and plugins: which of SEO Pro Stack’s speed and server settings to turn on, why for this site, and what each costs, with the reason when one is not recommended here.
+
+- Recommended when turned off here: the features on by default because they are safe on any site (Load plugins only where needed, Load pages before the click, Image loading, Remove WordPress extras, Fewer Heartbeat requests, Clean the database weekly; Lighter WooCommerce pages with WooCommerce, Faster editor with Kadence Blocks with Kadence Blocks, Load large settings only where they are used on single sites).
+- Recommended from the site’s size, using the database’s own row estimates: **Remember admin counts** from about 100,000 comments or posts-table entries without a persistent object cache; **Faster page counts on long lists** from about 50,000 posts-table entries; **Count terms and comments in the background** from 1,000 products or about 100,000 category and tag links; **Add database keys** from about 500,000 custom field rows (it then offers the keys under **Tools → Add database keys**, each added only on click there).
+- Not in the plan, as they need your choices: Delay scripts until interaction and Delayed Google Analytics.
+- **Turn on** changes one setting, exactly as its switch would. **Undo** puts it back while it is still as the plan left it. The last 50 changes are kept in the `seoprostack_speed_plan` option (not autoloaded), removed on uninstall. Only people who may change SEO Pro Stack’s settings see the plan.
 
 ### Load pages before the click (Speed)
 
@@ -1430,6 +1439,8 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folder�
 
 ### Unreleased
 
+- New, on by default: **Recommended speed settings** (Speed tab). A plan below the Speed tab’s settings, from the site’s own size and plugins: which speed and server settings to turn on, why for this site and what each costs, and why the others are not recommended here. **Turn on** changes one setting as its switch would; **Undo** puts it back while it is still as the plan left it. Changes nothing until someone clicks. New `admin_post_seoprostack_speed_plan` action and `seoprostack_speed_plan` log option (not autoloaded), removed on uninstall (GitHub issue #468).
+- Fix: saving a setting ran out of memory on sites with tens of thousands of pages: every save listed every page for the Client dashboard’s hidden page choices. They now keep the page ID without a list (GitHub issue #468).
 - New, off by default: **Remember admin counts** (Server tab). On sites without a persistent object cache, the site’s comment counts (as WooCommerce adjusts them), each post type’s counts, `count_users()` and WooCommerce’s pending product reviews count are kept between requests instead of counted on every admin screen, and counted again after any change through WordPress; a count is kept at most an hour. Measured with 500,000 comments and WooCommerce: a settings screen’s queries went from 189 ms to 12 ms. New `seoprostack_admin_counts` option (not autoloaded), removed when turned off and on uninstall (GitHub issue #464).
 
 ### 1.2.0
