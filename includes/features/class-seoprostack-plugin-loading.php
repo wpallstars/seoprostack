@@ -1312,7 +1312,7 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
                 if (!empty($kinds[$key]['needs']) && !$state['relearn']) {
                     $needs = array_values(array_unique(array_merge((array) $kinds[$key]['needs'], $needs)));
                 }
-                $kinds[$key] = array('needs' => $needs, 'learned' => time());
+                $kinds[$key] = array('needs' => $needs, 'learned' => time(), 'inert' => (array) ($kinds[$key]['inert'] ?? array()));
                 $learned_kind = true;
             }
         }
@@ -1326,8 +1326,17 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
             $blocks = array_merge((array) ($previous['blocks'] ?? array()), $blocks);
             $shortcodes = array_merge((array) ($previous['shortcodes'] ?? array()), $shortcodes);
         }
-        $inert = self::front_inert($current ? (array) ($previous['inert'] ?? array()) : array(),
-            $learned_kind ? $unlisted : array(), $blocks, $shortcodes);
+        // Leftovers count only for the page kind that learned them: a plugin
+        // that registers a shortcode only for its own post type, or only on
+        // pages, still loads on those (#497).
+        foreach ($kinds as $name => $kind) {
+            $found = $learned_kind && $name === $key ? $unlisted : array();
+            $inert = self::front_inert((array) ($kind['inert'] ?? array()), $found, $blocks, $shortcodes);
+            unset($kinds[$name]['inert']);
+            if ($inert['shortcodes'] || $inert['blocks']) {
+                $kinds[$name]['inert'] = $inert;
+            }
+        }
         if ($current && !$state['relearn'] && !$learned_kind) {
             delete_option(SEOProStack_Plugin_Loader::FRONT_LOCK);
             return; // An unsupported or unsuccessful public request must not rewrite the learned map.
@@ -1352,7 +1361,6 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
             'routes'  => self::front_routes(),
             'blocks'  => $blocks,
             'shortcodes' => $shortcodes,
-            'inert'   => $inert,
             'woo_shop' => in_array($woo, $state['active'], true) ? (int) get_option('woocommerce_shop_page_id') : 0,
             'woo_pages' => array_values(array_filter(array_map('intval', array(
                 get_option('woocommerce_shop_page_id'), get_option('woocommerce_cart_page_id'),

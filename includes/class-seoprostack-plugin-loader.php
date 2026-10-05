@@ -628,6 +628,8 @@ final class SEOProStack_Plugin_Loader {
         if ('' !== $key) {
             $page = isset($front['kinds'][$key]) ? $front['kinds'][$key] : array();
             $text = (string) ($context['content'] ?? '');
+            // Leftovers learned on a page of this kind only (learn_front()).
+            $front['inert'] = (array) ($page['inert'] ?? array());
             $content = self::content_needs($text, $front);
             if (empty($page['learned']) || false === $content) {
                 // Unrecognised content is never evidence for skipping, so this
