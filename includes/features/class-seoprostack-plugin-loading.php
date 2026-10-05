@@ -189,6 +189,14 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
     private static $front_forgotten = 0;
 
     /**
+     * The first change that made the site's pages learn again in this
+     * request: hook and option, meta key or post type (GitHub issue #451).
+     *
+     * @var array{hook:string,key:string}|null
+     */
+    private static $forget_cause = null;
+
+    /**
      * Settings.
      *
      * @return array
@@ -253,9 +261,11 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
         add_action('seoprostack_setting_saved', array(__CLASS__, 'setting_saved'));
         // A route must not keep an old decision after its content or layout changes.
         if (self::enabled() && SEOProStack_Settings::get(SEOProStack_Plugin_Loader::PAGES_KEY)) {
-            foreach (array('save_post', 'added_post_meta', 'updated_post_meta', 'deleted_post_meta', 'deleted_post',
-                'edited_term', 'delete_term', 'switch_theme', 'set_object_terms') as $hook) {
-                add_action($hook, array(__CLASS__, 'forget_front'));
+            foreach (array('save_post', 'deleted_post', 'edited_term', 'delete_term', 'switch_theme', 'set_object_terms') as $hook) {
+                add_action($hook, array(__CLASS__, 'forget_front'), 10, 4);
+            }
+            foreach (array('added_post_meta', 'updated_post_meta', 'deleted_post_meta') as $hook) {
+                add_action($hook, array(__CLASS__, 'post_meta_changed'), 10, 3);
             }
         }
         add_action('updated_option', array(__CLASS__, 'front_option_changed'), 10, 1);
@@ -614,6 +624,9 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
             delete_option(SEOProStack_Plugin_Loader::MENU);
         }
         if (false !== get_option(SEOProStack_Plugin_Loader::FRONT)) {
+            // Plugin and theme updates, the switch, reset: say so in the record.
+            self::$forget_cause = self::$forget_cause ?? array('hook' => (string) (current_filter() ?: 'reset'), 'key' => '');
+            self::note_forget();
             delete_option(SEOProStack_Plugin_Loader::FRONT);
         }
     }
@@ -838,6 +851,39 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
             esc_html_e('Open any page of the site once: SEO Pro Stack then checks what each plugin adds there and shows it next to each plugin below. Until then the site loads every plugin.', 'seoprostack');
             echo '</p></div>';
         }
+        self::forget_status();
+    }
+
+    /**
+     * The last changes that made the site's pages learn again, so a change
+     * that happens every few minutes can be found (GitHub issue #451).
+     */
+    private static function forget_status() {
+        $list = get_option(SEOProStack_Plugin_Loader::FRONT_FORGETS, array());
+        if (!is_array($list) || !$list) {
+            return;
+        }
+        $format = get_option('date_format') . ' ' . get_option('time_format');
+        echo '<div class="sps-panel-note"><p>';
+        esc_html_e('Site pages learn again after changes to content or settings. Last changes that did so:', 'seoprostack');
+        echo '</p><ul>';
+        foreach (array_slice($list, 0, 5) as $item) {
+            if (!is_array($item)) {
+                continue;
+            }
+            $what = (string) ($item['hook'] ?? '');
+            if ('' !== (string) ($item['key'] ?? '')) {
+                $what .= ' (' . $item['key'] . ')';
+            }
+            echo '<li>' . esc_html(sprintf(
+                /* translators: 1: date and time, 2: hook and option, field, post type or taxonomy, 3: request kind such as cron or admin POST */
+                __('%1$s: %2$s, %3$s', 'seoprostack'),
+                wp_date($format, (int) ($item['time'] ?? 0)),
+                $what,
+                (string) ($item['kind'] ?? '')
+            )) . '</li>';
+        }
+        echo '</ul></div>';
     }
 
     /* --------------------------------------------------------------------- */
@@ -1389,7 +1435,63 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
                 SEOProStack_Plugin_Loader::MAP, SEOProStack_Plugin_Loader::MENU, SEOProStack_Plugin_Loader::HISTORY), true)) {
             return;
         }
+        self::$forget_cause = self::$forget_cause ?? array('hook' => (string) current_filter(), 'key' => (string) $name);
         self::forget_front();
+    }
+
+    /**
+     * A post's custom field changed. Plugins write fields on page views and
+     * in scheduled tasks (view counters, caches, syncs), so those are records
+     * there, as option writes are (GitHub issue #451); publishing a scheduled
+     * post still forgets through save_post.
+     *
+     * @param int|int[] $meta_id   Meta ID or IDs.
+     * @param int       $object_id Post ID.
+     * @param string    $meta_key  Meta key.
+     */
+    public static function post_meta_changed($meta_id, $object_id = 0, $meta_key = '') {
+        if (self::record_request()) {
+            return;
+        }
+        self::$forget_cause = self::$forget_cause ?? array('hook' => (string) current_filter(), 'key' => (string) $meta_key);
+        self::forget_front();
+    }
+
+    /**
+     * Whether this request only keeps records: a scheduled task, or a page
+     * of the site viewed (GET) rather than wp-admin, AJAX, the REST API, the
+     * command line or a sent form.
+     *
+     * @return bool
+     */
+    private static function record_request() {
+        if (wp_doing_cron()) {
+            return true;
+        }
+        return !is_admin() && !wp_doing_ajax() && !(defined('REST_REQUEST') && REST_REQUEST) && !(defined('WP_CLI') && WP_CLI)
+            && isset($_SERVER['REQUEST_METHOD']) && 'GET' === $_SERVER['REQUEST_METHOD'];
+    }
+
+    /**
+     * What kind of request this is, for the record of why pages learn again.
+     *
+     * @return string
+     */
+    private static function request_kind() {
+        if (wp_doing_cron()) {
+            return 'cron';
+        }
+        if (defined('WP_CLI') && WP_CLI) {
+            return 'cli';
+        }
+        if (defined('REST_REQUEST') && REST_REQUEST) {
+            return 'rest';
+        }
+        if (wp_doing_ajax()) {
+            return 'ajax';
+        }
+        $method = isset($_SERVER['REQUEST_METHOD']) ? strtoupper(sanitize_key(wp_unslash($_SERVER['REQUEST_METHOD']))) : '';
+        return (is_admin() ? 'admin' : 'site') . ('' !== $method ? ' ' . $method : '');
     }
 
     /**
@@ -1423,11 +1525,7 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
         // Settings change in wp-admin, through AJAX, the REST API or the
         // command line, or when a form is sent; cron and page views only
         // keep records.
-        if (wp_doing_cron()) {
-            return true;
-        }
-        return !is_admin() && !wp_doing_ajax() && !(defined('REST_REQUEST') && REST_REQUEST) && !(defined('WP_CLI') && WP_CLI)
-            && isset($_SERVER['REQUEST_METHOD']) && 'GET' === $_SERVER['REQUEST_METHOD'];
+        return self::record_request();
     }
 
     /**
@@ -1450,7 +1548,55 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
             return;
         }
         self::$front_forgotten = 1;
+        if (null === self::$forget_cause) {
+            self::$forget_cause = array('hook' => (string) current_filter(), 'key' => self::hook_subject(func_get_args()));
+        }
+        if (false !== get_option(SEOProStack_Plugin_Loader::FRONT)) {
+            self::note_forget();
+        }
         self::forget_front_now();
+    }
+
+    /**
+     * The post type, taxonomy or theme a content hook is about, from its
+     * arguments (save_post, deleted_post, edited_term, delete_term,
+     * switch_theme, set_object_terms).
+     *
+     * @param array $args Hook arguments.
+     * @return string
+     */
+    private static function hook_subject(array $args) {
+        switch (current_filter()) {
+            case 'save_post':
+            case 'deleted_post':
+                $post = isset($args[1]) && $args[1] instanceof WP_Post ? $args[1] : get_post(isset($args[0]) ? (int) $args[0] : 0);
+                return $post instanceof WP_Post ? $post->post_type : '';
+            case 'edited_term':
+            case 'delete_term':
+                return isset($args[2]) && is_string($args[2]) ? $args[2] : '';
+            case 'set_object_terms':
+                return isset($args[3]) && is_string($args[3]) ? $args[3] : '';
+            case 'switch_theme':
+                return isset($args[0]) && is_string($args[0]) ? $args[0] : '';
+        }
+        return '';
+    }
+
+    /**
+     * Keep the last 20 reasons the site's pages had to learn again, so the
+     * settings can say what keeps resetting them.
+     */
+    private static function note_forget() {
+        $cause = (array) self::$forget_cause;
+        $list  = get_option(SEOProStack_Plugin_Loader::FRONT_FORGETS, array());
+        $list  = is_array($list) ? $list : array();
+        array_unshift($list, array(
+            'time' => time(),
+            'hook' => substr((string) ($cause['hook'] ?? ''), 0, 100),
+            'key'  => substr((string) ($cause['key'] ?? ''), 0, 191),
+            'kind' => self::request_kind(),
+        ));
+        update_option(SEOProStack_Plugin_Loader::FRONT_FORGETS, array_slice($list, 0, 20), false);
     }
 
     /** Write a new revision for site pages and drop what was learned for them. */
@@ -1710,7 +1856,9 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
             $needs[] = $state['registered']['types'][$object->name];
         }
         $content = implode("\n", $texts);
-        $global_needs = SEOProStack_Plugin_Loader::content_needs($content, array('blocks' => self::front_blocks($state), 'shortcodes' => self::front_shortcodes()));
+        // Every published synced pattern is in $content already (fewer than
+        // 100, checked above), so references to them are known.
+        $global_needs = SEOProStack_Plugin_Loader::content_needs($content, array('blocks' => self::front_blocks($state), 'shortcodes' => self::front_shortcodes(), 'indirect' => true));
         if (false === $global_needs) {
             return $state['active'];
         }
