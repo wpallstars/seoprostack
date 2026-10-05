@@ -66,6 +66,9 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
     /** Query arg: the screen to return to after checking every screen again. */
     const RETURN_ARG = 'return';
 
+    /** Option: the SEO Pro Stack version that learned what is saved. */
+    const LEARNED_BY = 'seoprostack_plugin_learned_by';
+
     /** Settings: plugins to skip on the site, and whether for logged-in people too. */
     const FRONT_KEY       = SEOProStack_Plugin_Loader::FRONT_KEY;
     const FRONT_USERS_KEY = SEOProStack_Plugin_Loader::FRONT_USERS_KEY;
@@ -265,6 +268,16 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
      * Register hooks.
      */
     public static function boot() {
+        // A new SEO Pro Stack version learns again, however it was updated:
+        // WP-CLI with --skip-plugins, deploys and uploads never run
+        // upgrader_process_complete (GitHub issue #481). Before the hooks
+        // below, so saving the version does not count as a settings change.
+        if (SEOPROSTACK_VERSION !== get_option(self::LEARNED_BY)) {
+            self::$forget_cause = array('hook' => 'seoprostack_updated', 'key' => SEOPROSTACK_VERSION);
+            self::forget();
+            self::$forget_cause = null;
+            update_option(self::LEARNED_BY, SEOPROSTACK_VERSION, true);
+        }
         // Forget what was learned when plugin code changes (activation and
         // deactivation change the fingerprint by themselves).
         add_action('upgrader_process_complete', array(__CLASS__, 'forget'));
