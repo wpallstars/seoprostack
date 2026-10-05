@@ -183,7 +183,7 @@ class SEOProStack_Outbound_Calls extends SEOProStack_Feature {
      * @param string         $url      Address.
      */
     public static function end($response, $context, $class, $args, $url) {
-        unset($class, $args);
+        unset($class);
         if ('response' !== $context) {
             return;
         }
@@ -206,6 +206,9 @@ class SEOProStack_Outbound_Calls extends SEOProStack_Feature {
         if (is_wp_error($response)) {
             self::add($id, 'errors', 1);
             self::$found[$id]['answer'] = substr($response->get_error_message(), 0, 120);
+        } elseif (is_array($args) && isset($args['blocking']) && !$args['blocking']) {
+            // Sent without waiting (WordPress's cron spawn): there is no answer to judge.
+            self::$found[$id]['answer'] = __('Not waited for', 'seoprostack');
         } else {
             $code = (int) wp_remote_retrieve_response_code($response);
             if ($code >= 400 || 0 === $code) {

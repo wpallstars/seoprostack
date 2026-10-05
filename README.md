@@ -1407,6 +1407,7 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folder�
 ### Unreleased
 
 - New: **Plugin sizes** has **Measure page time** above the Plugins list. It loads the home page and the newest post three times each, with every active plugin loaded, and shows each plugin’s page time and database queries in its Size column (details on hover: loading time and memory, hooks and shortcodes, query time, calls to other sites), the active plugins’ total below the list, and a summary above it: time and queries a page, split into plugins, theme and WordPress. Nothing is measured until someone clicks; a must-use file does the measuring and is removed when it ends. Single sites only (GitHub issue #447).
+- New, off by default: **Calls to other sites** (Server tab). **Tools → Calls to other sites** lists which plugin, theme or must-use plugin calls which other site through WordPress, how often, how long pages wait (total, average, slowest), the last answer, where the calls are made and the last path, without query strings. **Block** stops one plugin’s calls to one site; payment services, WordPress.org and WordPress.com, the site itself, WordPress, SEO Pro Stack and WordPress’s update code are never blocked. New `seoprostack_outbound_never_block` filter and the `seoprostack_outbound_calls` and `seoprostack_outbound_blocks` options (not autoloaded), removed on uninstall (GitHub issue #452).
 
 ### 1.0.0
 
