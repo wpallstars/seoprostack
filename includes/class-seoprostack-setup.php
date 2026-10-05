@@ -89,6 +89,7 @@ final class SEOProStack_Setup {
         'SEOProStack_External_Links',
         'SEOProStack_Linking',
         'SEOProStack_Maintenance',
+        'SEOProStack_Speed_Plan',
         'SEOProStack_Preload_Pages',
         'SEOProStack_Delay_Scripts',
         'SEOProStack_Delayed_Analytics',

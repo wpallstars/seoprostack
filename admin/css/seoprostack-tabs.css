@@ -2,7 +2,7 @@
  * SEO Pro Stack's own admin screen styles, after the shared stylesheet
  * (seoprostack-admin.css, a core file from the starter plugin): the Free
  * Plugins, Pro Plugins, Hosting, Tools and Theme tabs, the Agency tab's
- * example data and the watermark note. Uses the shared --sps-* variables.
+ * example data, the Speed tab's recommended settings and the watermark note. Uses the shared --sps-* variables.
  *
  * Enqueued by SEOProStack_Setup::enqueue_assets() (seoprostack_admin_enqueue).
  *
@@ -46,6 +46,33 @@
 	display: flex;
 	flex-wrap: wrap;
 	gap: 8px;
+}
+
+/* Speed tab: recommended speed settings, in the same box. */
+.sps-plan__items {
+	display: grid;
+	gap: 0;
+	margin: 0;
+}
+
+.sps-plan__item {
+	display: grid;
+	gap: 4px;
+	margin: 0;
+	padding-block: 10px;
+	border-block-start: 1px solid var(--sps-border);
+}
+
+.sps-plan__item form {
+	margin: 0;
+}
+
+.sps-plan__state {
+	font-weight: 600;
+}
+
+.sps-plan__item--skip {
+	opacity: 0.8;
 }
 
 
