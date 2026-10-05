@@ -1439,7 +1439,7 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folderâ
 
 ### Unreleased
 
-- Fix: **Load plugins only where needed**: a shortcode left by a removed plugin in a widget or template part no longer makes every page load every plugin. Page learning treated any unregistered shortcode name in that site-wide content as unknown, so on one site it skipped nothing on any page. Learning runs with every plugin loaded, after the page is shown, so a name still unregistered then has no handler, and WordPress shows it as plain text whichever plugins load. Such names in site-wide content now need no plugin. A post's own content keeps the stricter check, because that runs before plugins load (GitHub issue #493).
+- Fix: **Load plugins only where needed**: shortcodes and blocks left by a removed plugin no longer make pages load every plugin. A shortcode in a widget or template part made every page load every plugin, and on one site nothing was skipped on any page. Blocks in posts listed on archives and search, here Code Block Pro's after it was removed, made those page kinds load every plugin. Learning runs with every plugin loaded, after the page is shown. A shortcode name, or block namespace, that no plugin has registered by then has no handler, so WordPress shows the plain text or saved markup whichever plugins load. Such names in widgets, template parts and listed posts now need no plugin. Plugins that turn them into output through content, widget or block filters stay loaded as page hooks. A post's own content keeps the stricter check, because that runs before plugins load (GitHub issue #493).
 
 ### 1.3.3
 

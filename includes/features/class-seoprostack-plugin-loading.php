@@ -1910,9 +1910,12 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
         $content = implode("\n", $texts);
         // Each source on its own, so the synced patterns it uses are looked up
         // within content_needs()'s per-content limit. 'live': these are this
-        // request's registrations with every plugin, so a shortcode left by a
-        // removed plugin in a widget does not make every page kind unknown
-        // (#493). start_front() keeps the stricter check before plugins load.
+        // request's registrations with every plugin, so a shortcode or block
+        // left by a removed plugin in a widget or listed post does not make
+        // the page kind unknown (#493). Plugins that turn such text into
+        // output through the_content, widget_ or render_block filters are kept
+        // as page hooks. start_front() keeps the stricter check before plugins
+        // load.
         $front = array('blocks' => self::front_blocks($state), 'shortcodes' => self::front_shortcodes(), 'live' => true);
         foreach ($texts as $text) {
             $text_needs = SEOProStack_Plugin_Loader::content_needs((string) $text, $front);
