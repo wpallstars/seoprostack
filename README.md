@@ -21,7 +21,7 @@ SEO Pro Stack does the jobs that usually take dozens of small plugins: a calmer,
 
 If this saves you time, headaches and costs, feel free to [buy me a coffee](https://buymeacoffee.com/marcusquinn), or whatever you like, to invest in making more things open-source.
 
-Version: 1.0.0
+Version: 1.1.0
 
 <!-- github-only:start -->
 ## Screenshots
@@ -1391,7 +1391,7 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folder�
 
 ## Changelog
 
-### Unreleased
+### 1.1.0
 
 - New: **Plugin sizes** has **Measure page time** above the Plugins list. It loads the home page and the newest post three times each, with every active plugin loaded, and shows each plugin’s page time and database queries in its Size column (details on hover: loading time and memory, hooks and shortcodes, query time, calls to other sites), the active plugins’ total below the list, and a summary above it: time and queries a page, split into plugins, theme and WordPress. Nothing is measured until someone clicks; a must-use file does the measuring and is removed when it ends. Single sites only (GitHub issue #447).
 - Fix: **Load plugins only where needed** with page learning loaded every plugin on pages using a block from a network-activated plugin, a must-use plugin or the theme, as the block had no owner among the plugins it can skip. Those blocks now need no plugin (GitHub issue #449).
