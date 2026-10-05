@@ -21,7 +21,7 @@ SEO Pro Stack does the jobs that usually take dozens of small plugins: a calmer,
 
 If this saves you time, headaches and costs, feel free to [buy me a coffee](https://buymeacoffee.com/marcusquinn), or whatever you like, to invest in making more things open-source.
 
-Version: 1.1.0
+Version: 1.2.0
 
 <!-- github-only:start -->
 ## Screenshots
@@ -1418,7 +1418,7 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folder�
 
 ## Changelog
 
-### Unreleased
+### 1.2.0
 
 - New, off by default: **Add database keys** (Server tab). **Tools → Add database keys** offers a key on `postmeta` and on `usermeta` (single sites) for finding posts and people by a custom field’s value, and one on Action Scheduler’s tasks, each added online only when someone clicks, never when an existing key covers it, and removed with **Remove** or on uninstall. Only `sps_` keys are ever removed; Database key cleanup lists them as SEO Pro Stack’s. New `wp seoprostack keys list|add|remove` command, `admin_post_seoprostack_add_keys` action and `seoprostack_added_keys` log option (not autoloaded), removed on uninstall (GitHub issue #455).
 - New, off by default: **Calls to other sites** (Server tab). **Tools → Calls to other sites** lists which plugin, theme or must-use plugin calls which other site through WordPress, how often, how long pages wait (total, average, slowest), the last answer, where the calls are made and the last path, without query strings. **Block** stops one plugin’s calls to one site; payment services, WordPress.org and WordPress.com, the site itself, WordPress, SEO Pro Stack and WordPress’s update code are never blocked. New `seoprostack_outbound_never_block` filter and the `seoprostack_outbound_calls` and `seoprostack_outbound_blocks` options (not autoloaded), removed on uninstall (GitHub issue #452).
