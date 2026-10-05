@@ -4,6 +4,9 @@ Every change to SEO Pro Stack. readme.txt lists the latest version in short.
 
 = Unreleased =
 * New: Plugin sizes has Measure page time above the Plugins list. It loads the home page and the newest post three times each, with every active plugin loaded, and shows each plugin's page time and database queries in its Size column, with a summary above the list. Nothing is measured until someone clicks; a must-use file does the measuring and is removed afterwards. Single sites only.
+* Fix: Load plugins only where needed with page learning loaded every plugin on pages using a block from a network-activated plugin, a must-use plugin or the theme. Those blocks now need no plugin.
+* Fix: pages with synced patterns loaded every plugin. Their patterns are now looked up and their blocks and shortcodes count as the page's; a missing one still loads every plugin.
+* Fix: custom fields that plugins save on page views or in scheduled tasks no longer make the site's pages learn again; on some sites that happened every few minutes. The settings list the last changes that did, and why.
 
 = 1.0.0 =
 * First stable release: SEO Pro Stack is now 1.0.0. Nothing changes on sites coming from 0.15.0.
