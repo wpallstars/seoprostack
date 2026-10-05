@@ -56,6 +56,15 @@ class SEOProStack_Magic_Login extends SEOProStack_Feature {
     const USER_COOLDOWN = 60;
 
     /**
+     * Plugins replaced, folder => name. pixolette's is a CodeCanyon plugin,
+     * listed so the Plugins screen finds it on sites that have it.
+     */
+    const REPLACES = array(
+        'wp-magic-link-login' => 'WP Magic Link Login',
+        'magic-login'         => 'Magic Login',
+    );
+
+    /**
      * Settings.
      *
      * @return array
@@ -68,11 +77,7 @@ class SEOProStack_Magic_Login extends SEOProStack_Feature {
                 'tab'         => 'admin',
                 'label'       => __('Magic login links', 'seoprostack'),
                 'description' => __('Adds “Email me a login link” to the login screen. The link works once and expires after a few minutes. Passwords keep working.', 'seoprostack'),
-                // pixolette's CodeCanyon plugin; listed so the Plugins screen finds it on sites that have it.
-                'replaces'    => array(
-                    'wp-magic-link-login' => 'WP Magic Link Login',
-                    'magic-login'         => 'Magic Login',
-                ),
+                'replaces'    => self::REPLACES,
             ),
             'magic_login_expiry' => array(
                 'type'        => 'int',
