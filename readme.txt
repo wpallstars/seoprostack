@@ -138,9 +138,9 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 == Changelog ==
 
 = 1.1.0 =
-* New: Plugin sizes measures each plugin's page time and queries.
-* Fix: page learning knows blocks from network-activated and must-use plugins and the theme.
+* New: Plugin sizes measures page time and queries.
+* Fix: page learning knows network, must-use and theme blocks.
 * Fix: pages with synced patterns can skip plugins.
-* Fix: page learning resets far less often, and says why it did.
+* Fix: page learning resets less often, and says why.
 
 Older: `changelog.txt`.
