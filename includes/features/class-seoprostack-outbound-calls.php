@@ -471,7 +471,7 @@ class SEOProStack_Outbound_Calls extends SEOProStack_Feature {
         $blocks = self::blocks();
         $done   = '';
         if ('forget' === $do) {
-            delete_option(self::OPTION);
+            update_option(self::OPTION, array('since' => time(), 'rows' => array()), false);
             $done = 'forgot';
         } elseif ('allow' === $do && isset($blocks[$id])) {
             unset($blocks[$id]);
@@ -570,11 +570,12 @@ class SEOProStack_Outbound_Calls extends SEOProStack_Feature {
             echo '<td>' . esc_html($row['host']) . (empty($row['path']) ? '' : '<br><code>' . esc_html($row['path']) . '</code>') . '</td>';
             echo '<td>' . esc_html($calls) . '</td><td>' . esc_html($time) . '</td>';
             echo '<td>' . esc_html((string) ($row['answer'] ?? '–')) . '</td><td>' . esc_html($where) . '</td><td>' . esc_html($last) . '</td><td>';
-            if (isset($blocks[$id])) {
+            // Checked first: a stored block here is never applied (see block()).
+            if (self::never_block($row['host'], $row['source'])) {
+                echo esc_html__('Never blocked', 'seoprostack');
+            } elseif (isset($blocks[$id])) {
                 echo '<strong>' . esc_html__('Blocked', 'seoprostack') . '</strong> ';
                 self::form('allow', __('Allow', 'seoprostack'), $id);
-            } elseif (self::never_block($row['host'], $row['source'])) {
-                echo esc_html__('Never blocked', 'seoprostack');
             } else {
                 self::form('block', __('Block', 'seoprostack'), $id);
             }

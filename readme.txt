@@ -63,6 +63,7 @@ Features safe on every site start on; those needing choices stay off. Use **Sett
 * **Internal linking tools** (off): approved suggestions, undo, counts, orphans and read-only Link Whisper retirement checks.
 * **Load pages before the click**, **Delay scripts until interaction**, **Delayed Google Analytics** and a faster editor with Kadence Blocks.
 * **Ask before licence checks**: premium plugins call home once, daily or never, as you choose.
+* **Calls to other sites** (off): which plugin calls which site, how often and how long pages wait; block one plugin's calls to one site. Payments and updates are never blocked.
 * **Clean the database weekly**: old spam, bin and expired data, and tasks of plugins that are gone.
 * **Count terms and comments in the background** (off).
 * **Load large settings only where they are used** (single sites).
