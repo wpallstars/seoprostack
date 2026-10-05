@@ -2,6 +2,9 @@
 
 Every change to SEO Pro Stack. readme.txt lists the latest version in short.
 
+= Unreleased =
+* Fix: with Load plugins only where needed, more options that plugins save again on wp-admin page views no longer make the site's pages learn again: MainWP Child's HTML Regression asset list, StellarWP Uplink's update status for Kadence and StellarWP products, Burst Statistics' detected integrations, and Really Simple Security's notice cache and menu badge count.
+
 = 1.3.6 =
 * Fix: Magic login links keeps HandyPlugins' Magic Login blocks working in pages and synced patterns after the plugin is removed. Saved text, safe redirects and logged-in visibility are preserved. With the feature off, WordPress's password form keeps login available; page learning recognises the block.
 * Fix: with Load plugins only where needed, a shortcode or block that a plugin registers only on some posts is no longer taken for a leftover from an old theme or removed plugin: the active plugins' code is searched first, so that plugin keeps loading on the posts using it.

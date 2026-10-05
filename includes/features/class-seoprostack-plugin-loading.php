@@ -206,11 +206,19 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
      * FluentCRM's run timestamps (GitHub issue #487), Really Simple
      * Security's header test, MainWP Child's system monitor and request IDs,
      * Readabler's process timestamps (GitHub issue #483) and the cron
-     * timestamp it saves as it loads (GitHub issue #495). Names ending in "."
-     * or "_" are prefixes (also LiteSpeed Cache's async tasks and crawler).
+     * timestamp it saves as it loads (GitHub issue #495). Saved again on
+     * wp-admin page views without a form being sent (GitHub issue #512):
+     * MainWP Child's HTML Regression list of the scripts and styles the
+     * admin page loaded, StellarWP Uplink's licence and update status for
+     * each Kadence or StellarWP product, Burst Statistics' detected
+     * integrations, and Really Simple Security's notice cache and menu badge
+     * count. Names ending in "." or "_" are prefixes (also LiteSpeed Cache's
+     * async tasks and crawler).
      */
     const RECORD_OPTIONS = array('_fcrm_last_', '_fc_last_', 'rsssl_csp_header_test_status',
-        'rsssl_csp_header_test_status_', 'mainwp_child_system_monitor_', 'mainwp_child_advanced_request_',
+        'rsssl_csp_header_test_status_', 'rsssl_admin_notices', 'rsssl_plusone_count',
+        'mainwp_child_system_monitor_', 'mainwp_child_advanced_request_', 'html-regression-track-admin-assets',
+        'stellarwp_uplink_update_status_', 'burst_installed_integrations',
         'mdp_readabler_pid_', 'readabler_cron_hook_timestamp', 'litespeed.task.', 'litespeed.crawler.');
 
     /**
