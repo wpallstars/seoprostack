@@ -21,7 +21,7 @@ SEO Pro Stack does the jobs that usually take dozens of small plugins: a calmer,
 
 If this saves you time, headaches and costs, feel free to [buy me a coffee](https://buymeacoffee.com/marcusquinn), or whatever you like, to invest in making more things open-source.
 
-Version: 1.2.0
+Version: 1.3.0
 
 <!-- github-only:start -->
 ## Screenshots
@@ -1437,7 +1437,7 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folder�
 
 ## Changelog
 
-### Unreleased
+### 1.3.0
 
 - New, on by default: **Recommended speed settings** (Speed tab). A plan below the Speed tab’s settings, from the site’s own size and plugins: which speed and server settings to turn on, why for this site and what each costs, and why the others are not recommended here. **Turn on** changes one setting as its switch would; **Undo** puts it back while it is still as the plan left it. Changes nothing until someone clicks. New `admin_post_seoprostack_speed_plan` action and `seoprostack_speed_plan` log option (not autoloaded), removed on uninstall (GitHub issue #468).
 - Fix: saving a setting ran out of memory on sites with tens of thousands of pages: every save listed every page for the Client dashboard’s hidden page choices. They now keep the page ID without a list (GitHub issue #468).
