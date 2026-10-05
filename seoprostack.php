@@ -3,7 +3,7 @@
  * Plugin Name:       SEO Pro Stack
  * Plugin URI:        https://github.com/wpallstars/seoprostack
  * Description:       One free plugin for a faster, tidier WordPress. It does the jobs of 40+ single-purpose plugins, each a switch you turn on.
- * Version:           1.3.5
+ * Version:           1.3.6
  * Requires at least: 6.2
  * Requires PHP:      7.4
  * Author:            Marcus Quinn
@@ -39,7 +39,7 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-define('SEOPROSTACK_VERSION', '1.3.5');
+define('SEOPROSTACK_VERSION', '1.3.6');
 define('SEOPROSTACK_FILE', __FILE__);
 define('SEOPROSTACK_DIR', plugin_dir_path(__FILE__));
 define('SEOPROSTACK_URL', plugin_dir_url(__FILE__));
