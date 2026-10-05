@@ -412,6 +412,15 @@ final class SEOProStack_Plugin_Loader {
         if (!in_array(self::$self, self::$raw, true) && !isset($network[self::$self])) {
             return; // SEO Pro Stack is not active here; the must-use file is left over.
         }
+        // Load plugins only where needed replaces Freesoul Deactivate Plugins
+        // and waits while it is active here or for the network (its
+        // 'replaces'), since both filter the plugin list. This covers the
+        // network, where the must-use file serves every site.
+        foreach (array_merge(self::$raw, array_keys($network)) as $file) {
+            if (0 === strpos((string) $file, 'freesoul-deactivate-plugins')) {
+                return;
+            }
+        }
 
         $options = get_option('seoprostack_options', array());
         // Plugins often save options while their files load, before
