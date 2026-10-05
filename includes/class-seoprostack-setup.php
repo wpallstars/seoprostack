@@ -96,6 +96,7 @@ final class SEOProStack_Setup {
         'SEOProStack_Wp_Extras',
         'SEOProStack_Heartbeat',
         'SEOProStack_Deferred_Counts',
+        'SEOProStack_Admin_Counts',
         'SEOProStack_Found_Rows',
         'SEOProStack_Database_Cleanup',
         'SEOProStack_Autoload_Options',

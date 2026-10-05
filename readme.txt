@@ -64,10 +64,10 @@ Features safe on every site start on; those needing choices stay off. Use **Sett
 * **Load pages before the click**, **Delay scripts until interaction**, **Delayed Google Analytics** and a faster editor with Kadence Blocks.
 * **Ask before licence checks**: premium plugins call home once, daily or never. **Calls to other sites** (off): who calls which site, how long it takes, with blocks.
 * **Clean the database weekly**: old spam, bin and expired data, and gone plugins' tasks.
-* **Count terms and comments in the background** (off).
+* **Count terms and comments in the background** and **Remember admin counts** (off).
 * **Load large settings only where they are used** (single sites).
-* **Faster page counts on long lists** (off): separate counts, exact page numbers.
-* **Database key cleanup**: duplicate indexes and who added them, in Site Health, with restore SQL. **Add database keys** (off): faster custom field lookups.
+* **Faster page counts on long lists** (off), with exact page numbers.
+* **Database key cleanup**: duplicate indexes and who added them, with restore SQL. **Add database keys** (off): faster custom field lookups.
 * **Load plugins only where needed**: skips plugins a page does not use, in admin and on the site, with always-load bypasses.
 
 = Plugins and set-up =
