@@ -648,9 +648,11 @@ final class SEOProStack_Plugin_Cost {
             sprintf(__('Loading: %1$s, %2$s of memory.', 'seoprostack'), self::ms($sum['load']), (string) size_format((int) $sum['mem'], 1)),
             /* translators: %s: time, such as 29 ms. */
             sprintf(__('Hooks and shortcodes: %s.', 'seoprostack'), self::ms(max(0, $sum['ms'] - $sum['load']))),
-            /* translators: 1: number of database queries; 2: time, such as 3 ms. */
-            sprintf(__('Database queries: %1$s, taking %2$s (part of the time above).', 'seoprostack'), number_format_i18n(round($sum['q'])), self::ms($sum['qms'])),
         );
+        if ($sum['q'] >= 0.5) {
+            /* translators: 1: number of database queries; 2: time, such as 3 ms. */
+            $details[] = sprintf(__('Database queries: %1$s, taking %2$s (part of the time above).', 'seoprostack'), number_format_i18n(round($sum['q'])), self::ms($sum['qms']));
+        }
         if ($sum['http'] >= 0.5) {
             /* translators: 1: number of calls; 2: time, such as 120 ms. */
             $details[] = sprintf(__('Calls to other sites: %1$s, taking %2$s.', 'seoprostack'), number_format_i18n(round($sum['http'])), self::ms($sum['hms']));
@@ -689,7 +691,7 @@ final class SEOProStack_Plugin_Cost {
                 'other'   => __('other code %s', 'seoprostack'),
             );
             foreach ($names as $group => $name) {
-                if ($groups[$group] >= 0.5) {
+                if ($groups[$group] >= 0.1) {
                     $parts[] = sprintf($name, self::ms($groups[$group]));
                 }
             }
@@ -888,7 +890,7 @@ final class SEOProStack_Plugin_Cost {
             $total['q']  += $share * (int) $result['q'];
             foreach ((array) $result['owners'] as $owner => $found) {
                 foreach ((array) $found as $what => $value) {
-                    $owners[$owner][$what] = ($owners[$owner][$what] ?? 0) + $share * $value;
+                    $owners[$owner][$what] = round(($owners[$owner][$what] ?? 0) + $share * $value, 3);
                 }
             }
         }
