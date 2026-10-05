@@ -2,6 +2,9 @@
 
 Every change to SEO Pro Stack. readme.txt lists the latest version in short.
 
+= Unreleased =
+* Fix: FluentCRM's background tasks no longer make the site's pages learn again: all eight of its run timestamps are known as records, not only two.
+
 = 1.3.2 =
 * Fix: Load plugins only where needed kept what an older SEO Pro Stack had learned about the site's pages and admin screens when SEO Pro Stack was updated without WordPress's updater (WP-CLI with --skip-plugins, a deploy, an upload or a Git pull), so a fix to page learning did not reach those sites until their content changed. A new SEO Pro Stack version now learns again on its first request, however it was installed, and the settings list it among the changes that made pages learn again. New `seoprostack_plugin_learned_by` option, removed on uninstall.
 * Fix: Load plugins only where needed still made the site's pages learn again every few minutes on sites with MainWP Child, Really Simple Security, FluentCRM or Readabler: their background tasks save more records than 1.2.0 knew (system monitor runs, request IDs, header test expiry, sequence runs, process timestamps). Those records are now known by their name's start, so the site's pages stay learned.

@@ -1437,6 +1437,10 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folder�
 
 ## Changelog
 
+### Unreleased
+
+- Fix: **Load plugins only where needed**: FluentCRM’s background tasks no longer make the site’s pages learn again. FluentCRM and FluentCRM Pro save eight run timestamps (`_fcrm_last_scheduler`, `_fcrm_last_email_process_cleanup`, `_fcrm_last_five_minutes_run`, `_fc_last_sequence_run`, `_fc_last_funnel_processor_ran` and others); `RECORD_OPTIONS` now knows them by the prefixes `_fcrm_last_` and `_fc_last_` instead of two exact names (GitHub issue #487).
+
 ### 1.3.2
 
 - Fix: **Load plugins only where needed** kept what an older SEO Pro Stack had learned about the site’s pages and admin screens when SEO Pro Stack was updated without WordPress’s updater, so a fix to page learning did not reach those sites until their content changed. Forgetting ran only on `upgrader_process_complete`, which WP-CLI with `--skip-plugins`, deploys, uploads and Git pulls never run. A new SEO Pro Stack version now forgets on its first request, however it was installed, and the settings list it as `seoprostack_updated` among the changes that made pages learn again. New `seoprostack_plugin_learned_by` option (autoloaded), removed on uninstall (GitHub issue #481).
