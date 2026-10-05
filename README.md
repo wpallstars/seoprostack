@@ -21,7 +21,7 @@ SEO Pro Stack does the jobs that usually take dozens of small plugins: a calmer,
 
 If this saves you time, headaches and costs, feel free to [buy me a coffee](https://buymeacoffee.com/marcusquinn), or whatever you like, to invest in making more things open-source.
 
-Version: 1.3.4
+Version: 1.3.5
 
 <!-- github-only:start -->
 ## Screenshots
@@ -1438,7 +1438,7 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folderâ
 
 ## Changelog
 
-### Unreleased
+### 1.3.5
 
 - Fix: **Load plugins only where needed**: a page whose own content holds shortcodes or blocks that no plugin registers, such as an old theme's `[one_third]` and `[button]` or a removed plugin's blocks, now skips plugins too. Such a page loaded every plugin on every visit, and a front page like that was never learned, so it never skipped anything. Its own content is matched before plugins load, when an unregistered name could not be told from a shortcode a skipped plugin would handle. Now such a page learns once with every plugin loaded. The names still unregistered then are saved as leftovers of its page kind, which need no plugin on that kind's pages, and the kind keeps what it needed before. On one site's front page with seven old theme shortcodes, and on posts with blocks left by a removed code block plugin, the page then needs no plugin, or only Kadence Blocks for its other blocks. A name that any learn saw registered is never a leftover, and leftovers of one kind do not count on another, so a plugin that registers a shortcode only for its own post type still loads there. A plugin that registers one only on some posts of a kind, but not on the post that learned it, is the remaining risk (GitHub issue #497).
 

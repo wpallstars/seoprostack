@@ -2,7 +2,7 @@
 
 Every change to SEO Pro Stack. readme.txt lists the latest version in short.
 
-= Unreleased =
+= 1.3.5 =
 * Fix: with Load plugins only where needed, a page with shortcodes or blocks that no plugin registers (left by an old theme or a removed plugin) in its own content learns once and then skips plugins, instead of loading every plugin on every visit.
 
 = 1.3.4 =
