@@ -90,6 +90,9 @@ function seoprostack_uninstall_site() {
     $options[] = 'seoprostack_plugin_front_forgets';
     $options[] = 'seoprostack_plugin_front_code';
     $options[] = 'seoprostack_plugin_learned_by';
+    $options[] = 'seoprostack_plugin_updates_full';
+    // Correct update counts: updates counted with every plugin loaded.
+    $options[] = 'seoprostack_update_counts';
     $options[] = 'seoprostack_access_roles';
     $options[] = 'seoprostack_admin_bar_items';
     $options[] = 'seoprostack_admin_menu';
