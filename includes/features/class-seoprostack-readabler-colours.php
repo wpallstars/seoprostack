@@ -31,24 +31,28 @@ class SEOProStack_Readabler_Colours extends SEOProStack_Feature {
     /** Readabler's front-end style handle; its inline CSS sets the colours. */
     const HANDLE = 'mdp-readabler';
 
+    /** Readabler's default white and blue. */
+    const WHITE = '#ffffff';
+    const BLUE  = 'rgba(33, 111, 243, 1)';
+
     /**
      * Readabler's colour settings: option => setting => its default
      * (Readabler 2.0.18).
      */
     const SAVED = array(
         'mdp_readabler_open_button_settings' => array(
-            'button_color'         => '#ffffff',
-            'button_color_hover'   => 'rgba(33, 111, 243, 1)',
-            'button_bgcolor'       => 'rgba(33, 111, 243, 1)',
-            'button_bgcolor_hover' => '#ffffff',
+            'button_color'         => self::WHITE,
+            'button_color_hover'   => self::BLUE,
+            'button_bgcolor'       => self::BLUE,
+            'button_bgcolor_hover' => self::WHITE,
         ),
         'mdp_readabler_modal_popup_settings' => array(
-            'popup_background_color'      => '#ffffff',
+            'popup_background_color'      => self::WHITE,
             'popup_background_color_dark' => '#16191b',
             'popup_text_color'            => '#333',
             'popup_text_color_dark'       => '#deeffd',
-            'popup_key_color'             => 'rgba(33, 111, 243, 1)',
-            'popup_key_color_dark'        => 'rgba(33, 111, 243, 1)',
+            'popup_key_color'             => self::BLUE,
+            'popup_key_color_dark'        => self::BLUE,
         ),
     );
 
