@@ -5,7 +5,7 @@ Tags: magic login, iframe, schedule posts, auto upload images, admin
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.3.10
+Stable tag: 1.3.11
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -137,8 +137,7 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 
 == Changelog ==
 
-= 1.3.10 =
-* New: Clean up every site now (networks); Hosting needs flags high memory limits, slow pages.
-* Fix: Pinned posts keeps its true/false field without ACF.
+= 1.3.11 =
+* Fix: Burst Statistics finishes its database upgrade when its tables differ in collation.
 
 Older: `changelog.txt`.

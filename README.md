@@ -21,7 +21,7 @@ SEO Pro Stack does the jobs that usually take dozens of small plugins: a calmer,
 
 If this saves you time, headaches and costs, feel free to [buy me a coffee](https://buymeacoffee.com/marcusquinn), or whatever you like, to invest in making more things open-source.
 
-Version: 1.3.10
+Version: 1.3.11
 
 <!-- github-only:start -->
 ## Screenshots
@@ -1461,7 +1461,7 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folder�
 
 ## Changelog
 
-### Unreleased
+### 1.3.11
 
 - Fix: **Fixes for other plugins** lets Burst Statistics 3.7.2 finish its database upgrade to lookup tables on sites whose `{prefix}burst_statistics` table is older than those tables and has another collation (`utf8mb4_unicode_ci` next to the database default `utf8mb4_unicode_520_ci`). The upgrade failed on every run with “Illegal mix of collations”, adding the same database error to the PHP log every 5 minutes, indefinitely (864 times in 3 days on one site), and kept the old columns. While that upgrade is pending, and only during Burst’s upgrade runs, its join compares the names in the lookup table’s collation; Burst’s tables are not changed (GitHub issue #550).
 
