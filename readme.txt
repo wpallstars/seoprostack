@@ -141,10 +141,4 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 * Fix: a deleted plugin still listed as active no longer makes Load plugins only where needed, or other features, wait.
 * Fix: Hosting needs checks the object cache only on web requests, not from WP-CLI or command-line cron.
 
-= 1.3.8 =
-* New: Correct update counts; a Directory listing test in Site Health.
-* New: Hosting needs says how PHP runs and names the PHP worker setting.
-* Fix: Hosting needs sizes PHP workers from the average request time, and no longer warns about a working LiteSpeed Cache object cache.
-* Fix: Load plugins only where needed loads every plugin when an update check is due.
-
 Older: `changelog.txt`.
