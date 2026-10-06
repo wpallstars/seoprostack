@@ -8,7 +8,7 @@
  * assumption, and every assumption is a constant here so it can be stated.
  *
  * PHP workers follow from Little's law: requests per second that reach PHP
- * in a burst, times the seconds each takes, is how many run at once. One
+ * in a burst, times the seconds each takes on average, is how many run at once. One
  * more is kept for cron and the admin, and each level has a minimum,
  * because slow outside calls and imports hold workers for longer.
  *
@@ -156,14 +156,16 @@ class SEOProStack_Hosting_Plans {
      * Plans for low, medium and high traffic, and for now when traffic has
      * been measured.
      *
-     * @param array      $site    See plan(), plus page_cache and dynamic (bool).
+     * @param array      $site    See plan(), plus page_cache and dynamic (bool), and
+     *                            now_seconds (per request of every kind, for Now; optional).
      * @param float|null $now_rps Measured requests per second in a burst, or null.
      * @return array level => plan, with visits for the traffic levels.
      */
     public static function plans(array $site, $now_rps) {
         $plans = array();
         if (null !== $now_rps) {
-            $plans['now'] = self::plan('now', $now_rps, $site);
+            $now          = isset($site['now_seconds']) ? array('seconds' => $site['now_seconds']) + $site : $site;
+            $plans['now'] = self::plan('now', $now_rps, $now);
         }
         foreach (self::VISITS as $level => $visits) {
             $plans[$level]           = self::plan($level, self::burst_rps($visits, $site['page_cache'], $site['dynamic']), $site);
@@ -211,7 +213,7 @@ class SEOProStack_Hosting_Plans {
             number_format_i18n(self::PEAK_HOUR),
             number_format_i18n(self::BURST),
             $cached,
-            $measured ? __('measured from this site’s pages', 'seoprostack') : __('typical for this kind of site, until enough pages are timed', 'seoprostack')
+            $measured ? __('the average measured from this site’s pages (for Now, from every request)', 'seoprostack') : __('typical for this kind of site, until enough pages are timed', 'seoprostack')
         );
     }
 
