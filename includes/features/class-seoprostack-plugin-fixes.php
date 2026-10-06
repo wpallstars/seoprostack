@@ -139,6 +139,17 @@
  * Its code is not there, so nothing runs, as before. Other tasks whose
  * schedule is missing are still dropped, as WordPress intends.
  *
+ * Burst Statistics 3.7.2 moves browser, browser version, device and
+ * platform names from {prefix}burst_statistics into lookup tables, which it
+ * creates with the database's default collation. When the statistics table
+ * is older and has another collation (utf8mb4_unicode_ci next to
+ * utf8mb4_unicode_520_ci), the upgrade's join by name fails with "Illegal
+ * mix of collations" on every run, every 5 minutes, and never finishes.
+ * While that upgrade is pending, and only during Burst's upgrade runs, that
+ * one statement compares the names in the lookup table's collation, so the
+ * upgrade finishes and Burst drops the old columns itself. Burst's tables
+ * are not changed.
+ *
  * @package SEOProStack
  */
 
@@ -223,6 +234,17 @@ class SEOProStack_Plugin_Fixes extends SEOProStack_Feature {
      */
     private static $host_schedules = array();
 
+    /** Burst Statistics' option that is set while its lookup-table upgrade is pending. */
+    const BURST_UPGRADE = 'burst_db_upgrade_upgrade_lookup_tables';
+
+    /**
+     * Collation to compare each Burst Statistics item's names in ('' for
+     * none), found once per request.
+     *
+     * @var array<string, string>
+     */
+    private static $burst_collations = array();
+
     /**
      * Settings.
      *
@@ -236,7 +258,7 @@ class SEOProStack_Plugin_Fixes extends SEOProStack_Feature {
                 'default'     => true,
                 'tab'         => 'plugins',
                 'label'       => __('Fixes for other plugins', 'seoprostack'),
-                'description' => __('Works around bugs in other plugins that slow your site down, without changing their settings. Lasso Lite (Simple URLs) stops contacting its server on every admin screen. Deactivating Freesoul Deactivate Plugins or its PRO add-on deactivates both and removes the must-use file it leaves behind. Readabler no longer contacts its server on every Plugins screen load, or stops that screen with a critical error when it cannot. Tutor LMS Pro and Tutor LMS Certificate Builder stop adding warnings to the debug log when there is no update. Tutor LMS gets its order, cart and coupon tables on every site of a network. Tutor LMS Pro no longer makes the Plugins screen check every plugin for updates on each load. Comment Goblin no longer waits for its update server on every admin screen while that server fails. MainWP Child no longer prints its Branding "Global footer" text, unstyled, below every front-end page. On LiteSpeed servers, scheduled tasks (WordPress cron and Action Scheduler, used by WooCommerce and others) finish instead of stopping partway, through a few lines at the top of .htaccess. Kadence Pro no longer causes "Failed opening" warnings when other plugins load shared code. WP Crontrol says whether the server\'s cron job runs, instead of only that DISABLE_WP_CRON is set. On Hostinger, a server cron job no longer fills the error log with "invalid_schedule" errors for the Monarx security agent\'s tasks (mnx_versions_cron_event). Turn this off if a fix causes a problem.', 'seoprostack'),
+                'description' => __('Works around bugs in other plugins that slow your site down, without changing their settings. Lasso Lite (Simple URLs) stops contacting its server on every admin screen. Deactivating Freesoul Deactivate Plugins or its PRO add-on deactivates both and removes the must-use file it leaves behind. Readabler no longer contacts its server on every Plugins screen load, or stops that screen with a critical error when it cannot. Tutor LMS Pro and Tutor LMS Certificate Builder stop adding warnings to the debug log when there is no update. Tutor LMS gets its order, cart and coupon tables on every site of a network. Tutor LMS Pro no longer makes the Plugins screen check every plugin for updates on each load. Comment Goblin no longer waits for its update server on every admin screen while that server fails. MainWP Child no longer prints its Branding "Global footer" text, unstyled, below every front-end page. On LiteSpeed servers, scheduled tasks (WordPress cron and Action Scheduler, used by WooCommerce and others) finish instead of stopping partway, through a few lines at the top of .htaccess. Kadence Pro no longer causes "Failed opening" warnings when other plugins load shared code. WP Crontrol says whether the server\'s cron job runs, instead of only that DISABLE_WP_CRON is set. On Hostinger, a server cron job no longer fills the error log with "invalid_schedule" errors for the Monarx security agent\'s tasks (mnx_versions_cron_event). Burst Statistics finishes its database upgrade instead of logging a database error every 5 minutes when its tables differ in collation. Turn this off if a fix causes a problem.', 'seoprostack'),
             ),
         );
     }
@@ -285,6 +307,128 @@ class SEOProStack_Plugin_Fixes extends SEOProStack_Feature {
             // phpcs:ignore WordPress.WP.CronInterval.ChangeDetected -- the host's own interval, stored with its task; no new schedule of SEO Pro Stack's.
             add_filter('cron_schedules', array(__CLASS__, 'host_cron_schedules'), PHP_INT_MAX);
         }
+        // Around Burst Statistics' database upgrade, which runs from its cron
+        // tasks and, when cron cannot start, from its dashboard on admin_init:
+        // before its callbacks (priority 10) and after them.
+        foreach (array('burst_upgrade_iteration', 'burst_daily') as $hook) {
+            add_action($hook, array(__CLASS__, 'burst_collation_start'), 0);
+            add_action($hook, array(__CLASS__, 'burst_collation_stop'), PHP_INT_MAX);
+        }
+        if (is_admin()) {
+            add_action('admin_init', array(__CLASS__, 'burst_collation_dashboard'), 0);
+            add_action('admin_init', array(__CLASS__, 'burst_collation_stop'), PHP_INT_MAX);
+        }
+    }
+
+    /**
+     * Burst Statistics' dashboard, which runs a step of its database upgrade
+     * itself when cron cannot start: watch its queries there too.
+     */
+    public static function burst_collation_dashboard() {
+        // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- which screen this is; nothing is saved.
+        if (isset($_GET['page']) && 'burst' === $_GET['page']) {
+            self::burst_collation_start();
+        }
+    }
+
+    /**
+     * While Burst Statistics' lookup-table upgrade is pending, compare the
+     * names in its join in one collation (burst_lookup_collation()).
+     * Nothing is added when Burst is not active or that upgrade is done.
+     */
+    public static function burst_collation_start() {
+        if (defined('BURST_VERSION') && get_option(self::BURST_UPGRADE)) {
+            add_filter('query', array(__CLASS__, 'burst_lookup_collation'));
+        }
+    }
+
+    /**
+     * Burst Statistics' upgrade step has run: stop watching queries.
+     */
+    public static function burst_collation_stop() {
+        remove_filter('query', array(__CLASS__, 'burst_lookup_collation'));
+    }
+
+    /**
+     * Burst Statistics' lookup-table upgrade joins {prefix}burst_statistics
+     * to a lookup table by name (p.{item} = m.name). When the two columns
+     * differ in collation, as when the statistics table is older than the
+     * database's default collation that the lookup tables were created
+     * with, MySQL and MariaDB refuse the join ("Illegal mix of collations")
+     * and the upgrade fails on every run. Only that statement is changed:
+     * the statistics side is compared in the lookup table's collation
+     * (keeping the lookup table's index on name usable), when both columns
+     * share a character set.
+     *
+     * @param mixed $query SQL statement.
+     * @return mixed
+     */
+    public static function burst_lookup_collation($query) {
+        global $wpdb;
+        if (!is_string($query) || false === strpos($query, '999999')) {
+            return $query;
+        }
+        $burst = preg_quote($wpdb->prefix . 'burst_', '/');
+        $match = preg_match(
+            '/^(?P<head>\s*UPDATE\s+' . $burst . 'statistics\s+AS\s+t\s+JOIN\s+\(\s*'
+            . 'SELECT\s+p\.(?P<item>browser_version|browser|device|platform)\s*,\s*p\.ID\s*,\s*COALESCE\(\s*m\.ID\s*,\s*0\s*\)\s+AS\s+(?P=item)_id\s+'
+            . 'FROM\s+' . $burst . 'statistics\s+p\s+'
+            . 'LEFT\s+JOIN\s+' . $burst . '(?P=item)s\s+m\s+ON\s+)p\.(?P=item)'
+            . '(?P<tail>\s*=\s*m\.name\s+WHERE\s+p\.(?P=item)_id\s*=\s*999999\s+LIMIT\s+\d+\s*\)\s+'
+            . 'AS\s+s\s+ON\s+t\.ID\s*=\s*s\.ID\s+SET\s+t\.(?P=item)_id\s*=\s*s\.(?P=item)_id\s*;?\s*)$/i',
+            $query,
+            $parts
+        );
+        if (1 !== $match) {
+            return $query;
+        }
+        $collation = self::burst_join_collation($parts['item']);
+        if ('' === $collation) {
+            return $query;
+        }
+        return $parts['head'] . 'p.' . $parts['item'] . ' COLLATE ' . $collation . $parts['tail'];
+    }
+
+    /**
+     * The collation to compare a Burst Statistics item's names in: its
+     * lookup table's, when that differs from the statistics column's and
+     * both share a character set (COLLATE needs the same one); '' when
+     * nothing needs changing. Read once per item and request.
+     *
+     * @param string $item browser, browser_version, device or platform.
+     * @return string
+     */
+    private static function burst_join_collation($item) {
+        global $wpdb;
+        if (isset(self::$burst_collations[$item])) {
+            return self::$burst_collations[$item];
+        }
+        self::$burst_collations[$item] = '';
+        $statistics = $wpdb->prefix . 'burst_statistics';
+        $lookup     = $wpdb->prefix . 'burst_' . $item . 's';
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- the two columns' collations, read once while Burst's upgrade runs.
+        $rows    = $wpdb->get_results(
+            $wpdb->prepare(
+                'SELECT TABLE_NAME AS tbl, CHARACTER_SET_NAME AS charset, COLLATION_NAME AS coll FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND ((TABLE_NAME = %s AND COLUMN_NAME = %s) OR (TABLE_NAME = %s AND COLUMN_NAME = %s))',
+                $statistics,
+                $item,
+                $lookup,
+                'name'
+            )
+        );
+        $columns = array();
+        foreach ((array) $rows as $row) {
+            $columns[0 === strcasecmp((string) $row->tbl, $statistics) ? 'statistics' : 'lookup'] = $row;
+        }
+        if (isset($columns['statistics'], $columns['lookup'])) {
+            $from = $columns['statistics'];
+            $to   = $columns['lookup'];
+            if ((string) $from->charset === (string) $to->charset && (string) $from->coll !== (string) $to->coll
+                && preg_match('/^\w+$/', (string) $to->coll)) {
+                self::$burst_collations[$item] = (string) $to->coll;
+            }
+        }
+        return self::$burst_collations[$item];
     }
 
     /**
