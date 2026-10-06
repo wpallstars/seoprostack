@@ -121,6 +121,12 @@ class SEOProStack_Dark_Image_Contrast extends SEOProStack_Feature {
         $kept   = get_option(self::KEPT, array());
         if (is_array($kept) && $kept) {
             $config['keep'] = array_values($kept);
+            // The stems are relative to it, also when it is not /uploads/.
+            $uploads = wp_get_upload_dir();
+            $path    = empty($uploads['baseurl']) ? '' : (string) wp_parse_url($uploads['baseurl'], PHP_URL_PATH);
+            if ('' !== $path) {
+                $config['uploads'] = untrailingslashit($path);
+            }
         }
         wp_add_inline_script(self::HANDLE, 'window.seoprostackDarkImageContrast = ' . wp_json_encode($config) . ';', 'before');
     }
@@ -208,23 +214,31 @@ class SEOProStack_Dark_Image_Contrast extends SEOProStack_Feature {
      * and clear LiteSpeed Cache's pages, which hold the old list.
      */
     public static function rebuild() {
-        $ids = get_posts(
-            array(
-                'post_type'        => 'attachment',
-                'post_status'      => 'any',
-                'fields'           => 'ids',
-                'posts_per_page'   => 1000, // phpcs:ignore WordPress.WP.PostsPerPage.posts_per_page_posts_per_page -- IDs of ticked pictures only, when a box is ticked or cleared.
-                'no_found_rows'    => true,
-                'meta_key'         => self::META, // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key -- only when a box is ticked or cleared.
-            )
-        );
         $stems = array();
-        foreach ($ids as $id) {
-            $file = (string) get_post_meta($id, '_wp_attached_file', true);
-            if ('' !== $file) {
-                $stems[] = self::stem($file);
+        $batch = 100;
+        $page  = 1;
+        do {
+            // Every ticked picture, a batch at a time.
+            $ids = get_posts(
+                array(
+                    'post_type'      => 'attachment',
+                    'post_status'    => 'any',
+                    'fields'         => 'ids',
+                    'posts_per_page' => $batch,
+                    'paged'          => $page++,
+                    'orderby'        => 'ID',
+                    'order'          => 'ASC',
+                    'no_found_rows'  => true,
+                    'meta_key'       => self::META, // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key -- only when a box is ticked or cleared.
+                )
+            );
+            foreach ($ids as $id) {
+                $file = (string) get_post_meta($id, '_wp_attached_file', true);
+                if ('' !== $file) {
+                    $stems[] = self::stem($file);
+                }
             }
-        }
+        } while ($batch === count($ids));
         $stems = array_values(array_unique($stems));
         sort($stems);
         if ($stems) {

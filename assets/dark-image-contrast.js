@@ -72,6 +72,8 @@
     var watermarks = false !== config.watermarks;
     // Pictures ticked Keep colours in dark mode: upload-relative stems.
     var keep = Array.isArray(config.keep) ? config.keep : [];
+    // Path of the uploads folder (/wp-content/uploads, or a custom one).
+    var uploads = 'string' === typeof config.uploads ? config.uploads.replace(/\/+$/, '') : '';
     var originals = new WeakMap(); // el -> { part: opacity before changes }.
     var tints = new Map(); // Background image address -> Promise of its tint.
     var pending = []; // Elements waiting for the watermark look.
@@ -482,7 +484,8 @@
     /**
      * Whether an address is a picture ticked Keep colours in dark mode in the
      * Media Library: any size (-300x200), WebP/AVIF copy (.png.webp) or
-     * multisite uploads folder of it.
+     * multisite uploads folder of it. Matched under the site's uploads
+     * folder, or any /uploads/ folder (a CDN or offloaded copy).
      */
     function kept(url) {
         if (!keep.length || !url) {
@@ -495,7 +498,14 @@
             // A malformed address cannot be one of the site's uploads.
             return false;
         }
-        var m = /\/uploads\/(.+?)(?:-\d+x\d+)?\.[a-z0-9]+(?:\.(?:webp|avif))?$/i.exec(path);
+        var rel = '';
+        if (uploads && 0 === path.indexOf(uploads + '/')) {
+            rel = path.slice(uploads.length + 1);
+        } else {
+            var u = /\/uploads\/(.+)$/.exec(path);
+            rel = u ? u[1] : '';
+        }
+        var m = /^(.+?)(?:-\d+x\d+)?\.[a-z0-9]+(?:\.(?:webp|avif))?$/i.exec(rel);
         if (!m) {
             return false;
         }
