@@ -26,7 +26,7 @@ Features safe on every site start on; those needing choices stay off. Use **Sett
 * **Tidy the dashboard**, **Dashboard and sidebar widgets**, **Hide admin notices** (behind a megaphone) and a **More menu** for plugins' admin bar items.
 * **Quiet Freemius prompts** and **Quiet Appsero prompts**: no opt-in nags, upgrade offers or deactivation surveys.
 * **Tidy admin screens**, **Tidy WooCommerce admin**, **Tidy the login screen**, **Simpler block editor**, **Remove WordPress extras**, **Fewer Heartbeat requests**, **Limit post revisions** and **Lighter WooCommerce pages**: most of Disable Bloat.
-* **Modern admin colours**, **No fade between admin screens**, **Readable list columns** and **Notification emails** (stop routine emails).
+* **Modern admin colours**, **No fade between admin screens**, **Correct update counts**, **Readable list columns** and **Notification emails** (stop routine emails).
 
 = Safer logins and access =
 
