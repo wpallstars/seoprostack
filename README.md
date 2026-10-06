@@ -21,7 +21,7 @@ SEO Pro Stack does the jobs that usually take dozens of small plugins: a calmer,
 
 If this saves you time, headaches and costs, feel free to [buy me a coffee](https://buymeacoffee.com/marcusquinn), or whatever you like, to invest in making more things open-source.
 
-Version: 1.3.14
+Version: 1.3.15
 
 <!-- github-only:start -->
 ## Screenshots
@@ -1476,6 +1476,10 @@ Deleting the plugin removes its settings and cached data, the database keys Add 
 Deactivating the plugin removes the WebP and AVIF rules from the uploads folder’s `.htaccess` (for every site when network-deactivated), the LiteSpeed background request rules from the site’s `.htaccess` (on multisite, when network-deactivated or deactivated on the main site) and the must-use file of Load plugins only where needed (on multisite, when network-deactivated).
 
 ## Changelog
+
+### 1.3.15
+
+- New: **Dark mode image contrast** → **Keep watermarks subtle** (on by default while Dark mode image contrast is on). Logos and drawings with a transparent background shown faintly on purpose (under 75% opacity, as an image or the background of a block or its overlay, such as Kadence row and column background overlays) stay faint in dark mode, at no more than 1.2:1 contrast with the background behind them: a white watermark that would stand out on a dark page is made fainter, and a dark one that would all but vanish is inverted (hue kept), then made faint. Light mode is untouched; the class `seoprostack-keep-colours` keeps one as it is (GitHub issue #569).
 
 ### 1.3.14
 
