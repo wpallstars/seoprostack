@@ -5,7 +5,7 @@ Tags: magic login, iframe, schedule posts, auto upload images, admin
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.3.9
+Stable tag: 1.3.10
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -137,8 +137,9 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 
 == Changelog ==
 
-= 1.3.9 =
-* Fix: a deleted plugin still listed as active no longer makes Load plugins only where needed, or other features, wait.
-* Fix: Hosting needs checks the object cache only on web requests, not from WP-CLI or command-line cron.
+= 1.3.10 =
+* New: Clean up every site now, for network administrators, removes deleted plugins' leftovers from every site.
+* New: Hosting needs says when PHP's memory limit is far above what the site uses, and what may slow pages that take over a second.
+* Fix: Pinned posts keeps Pin from a true/false field when settings are saved without ACF loaded.
 
 Older: `changelog.txt`.
