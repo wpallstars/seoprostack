@@ -317,6 +317,31 @@ class SEOProStack_Outbound_Calls extends SEOProStack_Feature {
     }
 
     /**
+     * Sites that visitors' pages waited for, most waiting first (for Hosting
+     * needs). Empty while the feature is off.
+     *
+     * @param int $limit Most hosts to return.
+     * @return string[] Host names.
+     */
+    public static function page_hosts($limit = 3) {
+        if (!self::enabled()) {
+            return array();
+        }
+        $waits = array();
+        // The site's own address: WordPress starts cron by calling it, without waiting.
+        $own = array(self::host(home_url()), self::host(site_url()));
+        foreach (self::stored()['rows'] as $row) {
+            $waited = !isset($row['answer']) || __('Not waited for', 'seoprostack') !== $row['answer'];
+            if (!empty($row['where']['page']) && !empty($row['sent']) && !empty($row['host']) && $waited && !in_array($row['host'], $own, true)) {
+                $host         = (string) $row['host'];
+                $waits[$host] = ($waits[$host] ?? 0) + (float) ($row['ms'] ?? 0);
+            }
+        }
+        arsort($waits);
+        return array_slice(array_map('strval', array_keys($waits)), 0, max(1, (int) $limit));
+    }
+
+    /**
      * Blocks.
      *
      * @return array<string,array>

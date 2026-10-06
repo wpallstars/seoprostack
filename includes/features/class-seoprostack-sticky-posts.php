@@ -183,10 +183,11 @@ class SEOProStack_Sticky_Posts extends SEOProStack_Feature {
         if (null !== $found) {
             return $found;
         }
-        $found = array();
-        if (!function_exists('acf_get_field_groups') || !function_exists('acf_get_fields')) {
-            return $found;
+        if (!self::fields_loaded() || !function_exists('acf_get_field_groups') || !function_exists('acf_get_fields')) {
+            // Not cached: the fields may be ready later on this request.
+            return array();
         }
+        $found = array();
         foreach (array_keys(SEOProStack_Duplicate_Posts::post_type_options()) as $type) {
             foreach ((array) acf_get_field_groups(array('post_type' => $type)) as $group) {
                 foreach ((array) acf_get_fields($group) as $field) {
@@ -203,16 +204,38 @@ class SEOProStack_Sticky_Posts extends SEOProStack_Feature {
     }
 
     /**
+     * Whether ACF or Secure Custom Fields is loaded and has registered its
+     * field groups on this request (at `acf/init`).
+     *
+     * @return bool
+     */
+    private static function fields_loaded() {
+        return function_exists('acf_get_field_groups') && function_exists('acf_get_fields') && did_action('acf/init') > 0;
+    }
+
+    /**
      * True/false fields that can drive the pin ("type|field_name" => label).
+     *
+     * A settings save checks every setting against these options, so on a
+     * request where the fields cannot be read (ACF skipped by plugin loading,
+     * or before `acf/init`), the chosen fields stay options and are kept.
      *
      * @return array<string,string>
      */
     public static function field_options() {
+        $fields = self::true_false_fields();
+        if (!self::fields_loaded()) {
+            foreach (self::linked_fields() as $type => $names) {
+                foreach ($names as $name) {
+                    $fields[$type][$name] = array('key' => '', 'label' => $name);
+                }
+            }
+        }
         $options = array();
-        foreach (self::true_false_fields() as $type => $fields) {
+        foreach ($fields as $type => $by_name) {
             $object = get_post_type_object($type);
             $name   = $object ? $object->labels->name : $type;
-            foreach ($fields as $field => $info) {
+            foreach ($by_name as $field => $info) {
                 /* translators: 1: post type name, 2: field label, 3: field name */
                 $options[$type . '|' . $field] = sprintf(__('%1$s: %2$s (%3$s)', 'seoprostack'), $name, $info['label'], $field);
             }
