@@ -31,6 +31,8 @@ class SEOProStack_Dark_Image_Contrast extends SEOProStack_Feature {
 
     const HANDLE = 'seoprostack-dark-image-contrast';
 
+    const WATERMARKS = 'dark_image_contrast_watermarks';
+
     /** Whether the page's body has a dark mode switch class. @var bool */
     private static $switcher = false;
 
@@ -47,6 +49,13 @@ class SEOProStack_Dark_Image_Contrast extends SEOProStack_Feature {
                 'tab'         => 'media',
                 'label'       => __('Dark mode image contrast', 'seoprostack'),
                 'description' => __('In Kadence’s dark mode, transparent logos, icons and drawings that would be hard to see on the background behind them are lightened or darkened to stand out. Photos and images without transparency are left alone. To keep an image as it is, add the class seoprostack-keep-colours to it or its block. Nothing changes without the Kadence Pro dark mode switcher.', 'seoprostack'),
+            ),
+            self::WATERMARKS => array(
+                'type'        => 'bool',
+                'default'     => true,
+                'parent'      => self::KEY,
+                'label'       => __('Keep watermarks subtle', 'seoprostack'),
+                'description' => __('Logos and drawings shown faintly on purpose (under 75% opacity, such as a row or column background overlay) stay faint in dark mode: a white watermark that would stand out on a dark page is made fainter, and one that would vanish is lightened, then made faint. Add the class seoprostack-keep-colours to keep one as it is.', 'seoprostack'),
             ),
         );
     }
@@ -84,5 +93,7 @@ class SEOProStack_Dark_Image_Contrast extends SEOProStack_Feature {
         }
         $js = 'assets/dark-image-contrast.js';
         wp_enqueue_script(self::HANDLE, SEOPROSTACK_URL . $js, array(), (string) filemtime(SEOPROSTACK_DIR . $js), true);
+        $config = array('watermarks' => (bool) SEOProStack_Settings::get(self::WATERMARKS));
+        wp_add_inline_script(self::HANDLE, 'window.seoprostackDarkImageContrast = ' . wp_json_encode($config) . ';', 'before');
     }
 }

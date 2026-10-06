@@ -21,7 +21,7 @@ SEO Pro Stack does the jobs that usually take dozens of small plugins: a calmer,
 
 If this saves you time, headaches and costs, feel free to [buy me a coffee](https://buymeacoffee.com/marcusquinn), or whatever you like, to invest in making more things open-source.
 
-Version: 1.3.14
+Version: 1.3.15
 
 <!-- github-only:start -->
 ## Screenshots
@@ -974,6 +974,7 @@ Logos, icons and drawings with a transparent background are usually made for a l
 - Only the image’s visible pixels are measured: transparent margins in the file count for nothing, so a logo with wide empty edges is judged by the logo.
 - Left alone: photos and other images without transparency (JPEGs, logos on a white box), images with many colours (a cut-out photo), images with a clear part already showing (a white book in a montage), mostly filled images such as banners and badges whose text already stands out from their own colours, images with a CSS filter of their own, images from other sites that cannot be read, Kadence’s dark logo and `<picture>` images with their own dark version.
 - Each change is tried on the image first: inverting its lightness while keeping its hue (a dark blue logo turns light blue, so brand colours stay recognisable), else white, else black. White and black are never used on an image with detail inside its shape (text in a box, an outline round a fill), which a silhouette would wipe out. One is used only when it makes most of the image clear and clearly improves on it.
+- **Keep watermarks subtle** (on by default): logos and drawings with a transparent background shown faintly on purpose, under 75% opacity, as an image or the background of a block or its overlay (Kadence row and column background overlays), stay faint in dark mode at no more than 1.2:1 contrast with the background behind them. A white watermark that would stand out on a dark page is made fainter; a dark one that would all but vanish is inverted (hue kept), then made faint. Only their opacity, and for inverted ones their filter, changes while dark mode is on. Turn it off to leave faint images to the theme.
 - To keep an image as it is, add the class `seoprostack-keep-colours` to it or a block around it (Advanced → Additional CSS class(es)).
 - Switching back to light restores the original at once, with no script. Images are measured when they come near the window (and again when a lazy loader or `srcset` swaps them), at most 128 × 128 pixels each, in the visitor’s browser: nothing is stored or sent anywhere.
 - A script of about 6 KB compressed, with no dependencies, loaded in the footer only on pages whose `<body>` has a colour switch class.
@@ -1475,6 +1476,10 @@ Deleting the plugin removes its settings and cached data, the database keys Add 
 Deactivating the plugin removes the WebP and AVIF rules from the uploads folder’s `.htaccess` (for every site when network-deactivated), the LiteSpeed background request rules from the site’s `.htaccess` (on multisite, when network-deactivated or deactivated on the main site) and the must-use file of Load plugins only where needed (on multisite, when network-deactivated).
 
 ## Changelog
+
+### 1.3.15
+
+- New: **Dark mode image contrast** → **Keep watermarks subtle** (on by default while Dark mode image contrast is on). Logos and drawings with a transparent background shown faintly on purpose (under 75% opacity, as an image or the background of a block or its overlay, such as Kadence row and column background overlays) stay faint in dark mode, at no more than 1.2:1 contrast with the background behind them: a white watermark that would stand out on a dark page is made fainter, and a dark one that would all but vanish is inverted (hue kept), then made faint. Light mode is untouched; the class `seoprostack-keep-colours` keeps one as it is (GitHub issue #569).
 
 ### 1.3.14
 
