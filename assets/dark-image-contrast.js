@@ -24,7 +24,9 @@
  *   tried on the sampled pixels; one is used only when it makes most of the
  *   image reach 3:1 and clearly improves on the original. Inverting with the
  *   hue kept comes first, so brand colours stay recognisable, then white,
- *   then black. It replaces the theme's filter on that image.
+ *   then black, which are skipped for images with detail inside their shape
+ *   (text in a box). It replaces the theme's filter on that image. Mostly
+ *   filled images (banners, badges) with a clear part are left alone.
  *
  * Opt out: the class seoprostack-keep-colours on the image or any parent.
  *
@@ -276,8 +278,46 @@
         for (var t = 0; t < counts.length && t < 12; t++) {
             top += counts[t];
         }
+        if (top < n * 0.8) {
+            return null;
+        }
         px.clear = clear / (cw * ch);
-        return top >= n * 0.8 ? px : null;
+        px.detail = detail(data, cw, ch);
+        return px;
+    }
+
+    /**
+     * Whether the image has detail inside its shape (text in a box, an
+     * outline round a fill): strong edges between visible pixels, at least a
+     * quarter as many as edges against transparency. A white or black
+     * silhouette would wipe that detail out.
+     */
+    function detail(data, cw, ch) {
+        var inner = 0;
+        var outer = 0;
+        function edge(i, j) {
+            var a = data[i + 3];
+            var b = data[j + 3];
+            if (a >= 128 && b >= 128) {
+                if (ratio(lum(data[i], data[i + 1], data[i + 2]), lum(data[j], data[j + 1], data[j + 2])) >= MIN_RATIO) {
+                    inner++;
+                }
+            } else if ((a >= 128 && b < 16) || (a < 16 && b >= 128)) {
+                outer++;
+            }
+        }
+        for (var y = 0; y < ch; y++) {
+            for (var x = 0; x < cw; x++) {
+                var i = (y * cw + x) * 4;
+                if (x + 1 < cw) {
+                    edge(i, i + 4);
+                }
+                if (y + 1 < ch) {
+                    edge(i, i + cw * 4);
+                }
+            }
+        }
+        return inner >= outer * 0.25;
     }
 
     /**
@@ -369,6 +409,9 @@
         var best = '';
         var bestShare = before;
         for (var i = 0; i < FILTERS.length; i++) {
+            if (px.detail && 'invert' !== FILTERS[i]) {
+                continue; // A silhouette would hide the detail.
+            }
             var share = lowShare(px, bg, FILTERS[i], null);
             if (share <= 0.2) {
                 best = FILTERS[i];
@@ -401,16 +444,40 @@
         }
         var src = img.currentSrc || img.src || '';
         var saved = state.get(img);
-        if (!saved || saved.src !== src) {
-            var px = null;
-            // Unmarked first: a filter of its own means hands off.
-            img.removeAttribute(ATTR);
-            var own = getComputedStyle(img).filter;
-            if (src && eligible(img) && ('none' === own || baseFilter() === own)) {
-                px = pixels(img);
+        if (saved && saved.src === src) {
+            if (saved.done) {
+                mark(img, saved);
             }
-            saved = { src: src, px: px };
-            state.set(img, saved);
+            return;
+        }
+        saved = { src: src, px: null, done: false };
+        state.set(img, saved);
+        // Unmarked first: a filter of its own means hands off.
+        img.removeAttribute(ATTR);
+        var own = getComputedStyle(img).filter;
+        if (!src || !eligible(img) || ('none' !== own && baseFilter() !== own)) {
+            saved.done = true;
+            return;
+        }
+        // A loaded image may not be decoded yet; drawn then, it is blank.
+        var run = function () {
+            if (state.get(img) === saved) {
+                saved.px = pixels(img);
+                saved.done = true;
+                mark(img, saved);
+            }
+        };
+        if (img.decode) {
+            img.decode().then(run, run);
+        } else {
+            run();
+        }
+    }
+
+    /** Mark the image with the filter it needs, if any, for this mode. */
+    function mark(img, saved) {
+        if (!isDark()) {
+            return;
         }
         var bg = saved.px ? backdrop(img) : null;
         var name = bg ? choose(saved.px, bg) : '';
