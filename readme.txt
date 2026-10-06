@@ -5,7 +5,7 @@ Tags: magic login, iframe, schedule posts, auto upload images, admin
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.3.7
+Stable tag: 1.3.8
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -137,7 +137,10 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 
 == Changelog ==
 
-= 1.3.7 =
-* Fix: viewing wp-admin screens no longer makes pages learn again which plugins they need.
+= 1.3.8 =
+* New: Correct update counts; a Directory listing test in Site Health.
+* New: Hosting needs says how PHP runs and names the PHP worker setting.
+* Fix: Hosting needs sizes PHP workers from the average request time, and no longer warns about a working LiteSpeed Cache object cache.
+* Fix: Load plugins only where needed loads every plugin when an update check is due.
 
 Older: `changelog.txt`.
