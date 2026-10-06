@@ -988,8 +988,17 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
                 $caps[$item[1]] = true;
             }
         }
+        self::$pages = self::page_owners();
+        $owners     = array();
+        $hook_owners = array();
+        foreach (self::$pages as $slug => $page) {
+            $owners[$slug]             = $page['plugins'];
+            $hook_owners[$page['hook']] = $page['plugins'];
+        }
         self::$menu = array(
             'caps'             => array_keys($caps),
+            'owners'           => $owners,
+            'hook_owners'      => $hook_owners,
             'menu'             => array_map(array(__CLASS__, 'copy_item'), (array) $menu),
             'submenu'          => $submenus,
             'hooks'            => $hooks,
@@ -998,7 +1007,6 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
             'admin_page_hooks' => (array) $admin_page_hooks,
             'parents'          => (array) $_parent_pages,
         );
-        self::$pages = self::page_owners();
     }
 
     /**
@@ -1120,7 +1128,7 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
      * Pages handled only by the theme or must-use code need no plugin.
      * Pages with no handler are left out, so they load every plugin.
      *
-     * @return array<string,array{plugins: string[], parent: string}>
+     * @return array<string,array{plugins: string[], parent: string, hook: string}>
      */
     private static function page_owners() {
         global $_parent_pages, $admin_page_hooks, $wp_filter;
@@ -1158,7 +1166,7 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
                 }
             }
             if (null !== $found) {
-                $owners[$slug] = array('plugins' => array_keys($found), 'parent' => $parent);
+                $owners[$slug] = array('plugins' => array_keys($found), 'parent' => $parent, 'hook' => $hook);
             }
         }
         return $owners;
@@ -2982,6 +2990,38 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
         $copy = get_option(SEOProStack_Plugin_Loader::MENU);
         if (!is_array($copy) || !isset($copy['menu'], $copy['submenu'], $copy['hooks'], $copy['handled'], $copy['admin_page_hooks'], $copy['parents'])) {
             return;
+        }
+        // A loaded plugin's registrations are authoritative, even when it
+        // removed a page since the copy was saved. Old copies and pages with
+        // unknown owners keep the existing fallback.
+        $state  = SEOProStack_Plugin_Loader::state();
+        $loaded = array_fill_keys(array_diff($state['active'], $state['skipped']), true);
+        $keep   = function ($owners) use ($loaded) {
+            foreach ((array) $owners as $plugin) {
+                if (isset($loaded[$plugin])) {
+                    return false;
+                }
+            }
+            return true;
+        };
+        $entry = function ($item) use ($copy, $keep) {
+            return !isset($item[2]) || $keep($copy['owners'][$item[2]] ?? array());
+        };
+        $copy['menu'] = array_filter((array) $copy['menu'], $entry);
+        foreach ($copy['submenu'] as $parent => $items) {
+            $copy['submenu'][$parent] = array_filter((array) $items, $entry);
+        }
+        foreach (array('hooks', 'handled') as $key) {
+            $copy[$key] = array_filter((array) $copy[$key], function ($hook) use ($copy, $keep) {
+                return $keep($copy['hook_owners'][$hook] ?? array());
+            });
+        }
+        foreach (array('admin_page_hooks', 'parents') as $key) {
+            foreach ($copy[$key] as $slug => $value) {
+                if (!$keep($copy['owners'][$slug] ?? array())) {
+                    unset($copy[$key][$slug]);
+                }
+            }
         }
         $menu    = is_array($menu) ? $menu : array(); // phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited -- restoring entries.
         $submenu = is_array($submenu) ? $submenu : array(); // phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited -- as above.

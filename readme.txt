@@ -137,6 +137,9 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 
 == Changelog ==
 
+= Unreleased =
+* Fix: Load plugins only where needed no longer restores removed menu entries or blank old pages of loaded plugins.
+
 = 1.3.15 =
 * New: Dark mode image contrast keeps watermarks subtle (on by default).
 
