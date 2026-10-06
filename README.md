@@ -21,7 +21,7 @@ SEO Pro Stack does the jobs that usually take dozens of small plugins: a calmer,
 
 If this saves you time, headaches and costs, feel free to [buy me a coffee](https://buymeacoffee.com/marcusquinn), or whatever you like, to invest in making more things open-source.
 
-Version: 1.3.16
+Version: 1.3.17
 
 <!-- github-only:start -->
 ## Screenshots
@@ -1489,7 +1489,7 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folderâ
 
 ## Changelog
 
-### Unreleased
+### 1.3.17
 
 - New, off by default: **Readabler colours** (Content tab) gives Readabler's accessibility button and popup the site's palette colours, so they follow the Kadence light and dark mode switcher. Readabler picks its light or dark popup colours from the visitor's system setting (`prefers-color-scheme`) and prints fixed colours on `:root`, so they could not follow the site from Readabler's settings. The button is palette 5, palette 1 on hover, with a palette 9 icon; the popup is palette 9 with palette 4 text and palette 5 controls. Readabler's own colours are not changed, are used where the theme has no palette, and return when this is off (GitHub issue #580).
 
