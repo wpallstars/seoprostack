@@ -41,7 +41,7 @@
 
     var body = document.body;
     var canvas = document.createElement('canvas');
-    var ctx = canvas.getContext && canvas.getContext('2d', { willReadFrequently: true });
+    var ctx = canvas.getContext?.('2d', { willReadFrequently: true });
     if (!body || !ctx || !window.getComputedStyle || !window.WeakMap) {
         return;
     }
@@ -64,7 +64,7 @@
     }
 
     function clamp(x) {
-        return x < 0 ? 0 : (x > 255 ? 255 : Math.round(x));
+        return Math.min(255, Math.max(0, Math.round(x)));
     }
 
     function lum(r, g, b) {
@@ -79,20 +79,37 @@
         return body.classList.contains('color-switch-dark');
     }
 
+    /** An alpha value such as "0.5" or "50%"; none is opaque. */
+    function alpha(str) {
+        if (undefined === str) {
+            return 1;
+        }
+        var n = Number.parseFloat(str);
+        return str.endsWith('%') ? n / 100 : n;
+    }
+
     /**
-     * Parse a computed colour into [r, g, b, a], or null when unreadable.
+     * Parse a computed colour, rgb(), rgba() or color(srgb …), into
+     * [r, g, b, a], or null when unreadable.
      */
     function parse(str) {
-        var m = /^rgba?\(\s*([\d.]+)[,\s]+([\d.]+)[,\s]+([\d.]+)(?:\s*[,/]\s*([\d.]+)(%?))?\s*\)$/.exec(str);
-        if (m) {
-            var a = undefined === m[4] ? 1 : parseFloat(m[4]) / (m[5] ? 100 : 1);
-            return [+m[1], +m[2], +m[3], a];
+        var m = /^(rgba?|color)\(([^()]*)\)$/.exec(str);
+        if (!m) {
+            return null;
         }
-        m = /^color\(srgb\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)(?:\s*\/\s*([\d.]+)(%?))?\s*\)$/.exec(str);
-        if (m) {
-            return [m[1] * 255, m[2] * 255, m[3] * 255, undefined === m[4] ? 1 : parseFloat(m[4]) / (m[5] ? 100 : 1)];
+        var parts = m[2].replace('/', ' ').split(/[\s,]+/).filter(Boolean);
+        var scale = 1;
+        if ('color' === m[1]) {
+            if ('srgb' !== parts.shift()) {
+                return null;
+            }
+            scale = 255;
         }
-        return null;
+        if (parts.length < 3 || parts.length > 4) {
+            return null;
+        }
+        var out = [Number(parts[0]) * scale, Number(parts[1]) * scale, Number(parts[2]) * scale, alpha(parts[3])];
+        return out.some(Number.isNaN) ? null : out;
     }
 
     /**
@@ -110,8 +127,8 @@
         var sum = [0, 0, 0, 0];
         var lo = 1;
         var hi = 0;
-        for (var i = 0; i < found.length; i++) {
-            var col = parse(found[i]);
+        for (const item of found) {
+            var col = parse(item);
             if (!col) {
                 return null;
             }
@@ -172,8 +189,9 @@
                 continue;
             }
             var cs = getComputedStyle(n);
-            var opacity = parseFloat(cs.opacity);
-            if ('absolute' !== cs.position || 'none' === cs.display || 'hidden' === cs.visibility || !(opacity > 0)) {
+            var opacity = Number.parseFloat(cs.opacity);
+            var shown = opacity > 0; // False for NaN too.
+            if ('absolute' !== cs.position || 'none' === cs.display || 'hidden' === cs.visibility || !shown) {
                 continue;
             }
             var r = n.getBoundingClientRect();
@@ -201,7 +219,7 @@
         var layers = [];
         var child = null;
         var found = 0;
-        for (var el = img; el && 1 === el.nodeType && !found; el = el.parentElement) {
+        for (var el = img; 1 === el?.nodeType && !found; el = el.parentElement) {
             if (child) {
                 found = addOverlays(layers, el, child, x, y);
             }
@@ -245,7 +263,9 @@
             ctx.drawImage(img, 0, 0, cw, ch);
             data = ctx.getImageData(0, 0, cw, ch).data;
         } catch (e) {
-            return null; // Cross-origin, or not decodable.
+            // Expected for images from other sites without CORS, or not
+            // decodable: their pixels cannot be read, so leave them alone.
+            return null;
         }
         var clear = 0;
         var px = [];
@@ -265,12 +285,7 @@
             return null;
         }
         // Flat colours: a few colours cover most of it.
-        var counts = [];
-        for (var key in buckets) {
-            if (Object.prototype.hasOwnProperty.call(buckets, key)) {
-                counts.push(buckets[key]);
-            }
-        }
+        var counts = Object.values(buckets);
         counts.sort(function (p, q) {
             return q - p;
         });
@@ -335,7 +350,7 @@
         var re = /(brightness|contrast)\(([\d.]+)(%?)\)/g;
         var m;
         while ((m = re.exec(filter))) {
-            out.push([m[1], parseFloat(m[2]) / (m[3] ? 100 : 1)]);
+            out.push([m[1], alpha(m[2] + m[3])]);
         }
         return out;
     }
@@ -347,9 +362,9 @@
     function filtered(name, r, g, b, base) {
         if ('' === name) {
             var p = [r, g, b];
-            for (var s = 0; s < base.length; s++) {
+            for (const step of base) {
                 for (var j = 0; j < 3; j++) {
-                    p[j] = clamp('brightness' === base[s][0] ? p[j] * base[s][1] : (p[j] - 127.5) * base[s][1] + 127.5);
+                    p[j] = clamp('brightness' === step[0] ? p[j] * step[1] : (p[j] - 127.5) * step[1] + 127.5);
                 }
             }
             return p;
@@ -408,18 +423,18 @@
         }
         var best = '';
         var bestShare = before;
-        for (var i = 0; i < FILTERS.length; i++) {
-            if (px.detail && 'invert' !== FILTERS[i]) {
+        for (const name of FILTERS) {
+            if (px.detail && 'invert' !== name) {
                 continue; // A silhouette would hide the detail.
             }
-            var share = lowShare(px, bg, FILTERS[i], null);
+            var share = lowShare(px, bg, name, null);
             if (share <= 0.2) {
-                best = FILTERS[i];
+                best = name;
                 bestShare = share;
                 break;
             }
             if (share < bestShare) {
-                best = FILTERS[i];
+                best = name;
                 bestShare = share;
             }
         }
@@ -431,11 +446,11 @@
             return false;
         }
         var pic = img.parentElement;
-        if (pic && 'PICTURE' === pic.tagName && pic.querySelector('source[media*="prefers-color-scheme"]')) {
+        if ('PICTURE' === pic?.tagName && pic.querySelector('source[media*="prefers-color-scheme"]')) {
             return false;
         }
         var src = img.currentSrc || img.src || '';
-        return !/^data:image\/jpe?g|\.jpe?g(?:$|[?#])/i.test(src);
+        return !/(?:^data:image\/jpe?g)|(?:\.jpe?g(?:$|[?#]))/i.test(src);
     }
 
     function check(img) {
@@ -548,7 +563,7 @@
         // Lazy loaders and srcset swap the picture: measure it again.
         document.addEventListener('load', function (e) {
             var img = e.target;
-            if (img && 'IMG' === img.tagName && seen.has(img)) {
+            if ('IMG' === img?.tagName && seen.has(img)) {
                 check(img);
             }
         }, true);
