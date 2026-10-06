@@ -21,7 +21,7 @@ SEO Pro Stack does the jobs that usually take dozens of small plugins: a calmer,
 
 If this saves you time, headaches and costs, feel free to [buy me a coffee](https://buymeacoffee.com/marcusquinn), or whatever you like, to invest in making more things open-source.
 
-Version: 1.3.11
+Version: 1.3.12
 
 <!-- github-only:start -->
 ## Screenshots
@@ -1284,6 +1284,7 @@ New releases of SEO Pro Stack, and of any other installed plugin that names its 
 - **Which release.** The repository’s latest release (GitHub leaves out drafts and pre-releases) whose tag is a plain version number (`1.2.3` or `v1.2.3`). The zip is the release asset whose name starts with the plugin’s folder name (`seoprostack-1.2.3.zip`); the WordPress.org build (`wordpress-org-…`) is never picked. `Requires at least` and `Requires PHP` are read from the released main file, so WordPress does not offer a version the site cannot run.
 - **How often.** GitHub is asked when WordPress checks for updates, at most once every 12 hours per repository (an hour after a failure, keeping the last answer), and again when **Check again** is pressed on the Updates screen. Answers are kept in the `wpallstars_github_releases` site transient, removed on uninstall. Unauthenticated GitHub API requests are limited to 60 an hour per server; one plugin costs one or two requests per check.
 - **Private repositories** need a GitHub token with read access to the repository’s contents: `define( 'WPALLSTARS_GITHUB_TOKEN', '…' );` in `wp-config.php` (one token for every plugin using the shared updater; `SEOPROSTACK_GITHUB_TOKEN` still works), or the `wpallstars_github_token` filter (token, owner/repo) for a token per repository. The token goes only to api.github.com: downloads ask the API for the file and fetch it from the short-lived address GitHub gives, without the token. It is never stored or shown.
+- **Icons and banners.** The Updates screen shows each plugin's own icon, and **View details** its banner, when the plugin ships them under WordPress.org's names (`icon.svg`, `icon-256x256.png`, `icon-128x128.png`, `banner-772x250.png`, `banner-1544x500.png`, or `banner.svg`) in `admin/images/`, `assets/` or `.wordpress-org/`. They are the installed files, so the screen asks GitHub for nothing; without them WordPress shows its plug.
 - **Plugins also on WordPress.org** keep their WordPress.org updates. **Early updates from GitHub** (off by default) takes them from GitHub instead, as soon as they are released.
 - **With Git Updater active**, this waits and Git Updater keeps updating (Early updates from GitHub is passed on through its `gu_override_dot_org` filter). The Plugins screen suggests deactivating and deleting it. GitLab, Bitbucket, Gitea and themes are not covered; keep Git Updater if you need those.
 
@@ -1460,6 +1461,11 @@ Deleting the plugin removes its settings and cached data, the database keys Add 
 Deactivating the plugin removes the WebP and AVIF rules from the uploads folder’s `.htaccess` (for every site when network-deactivated), the LiteSpeed background request rules from the site’s `.htaccess` (on multisite, when network-deactivated or deactivated on the main site) and the must-use file of Load plugins only where needed (on multisite, when network-deactivated).
 
 ## Changelog
+
+### 1.3.12
+
+- New: **Updates from GitHub** shows SEO Pro Stack’s icon on the Updates screen, and its banner in **View details**, instead of WordPress’s grey plug, for every plugin it updates that ships WordPress.org-style listing images (`admin/images/`, `assets/` or `.wordpress-org/`). They are the installed files (`admin/images/icon.svg`, new, about 9 KB, and `admin/images/banner.svg`), so the screen asks GitHub for nothing. Sites see the icon from the update after this one, as the installed version builds the update entry (GitHub issue #554).
+- Developers: core files synced with the starter plugin 1.0.25: shared updater 1.2.0 (the icons and banners above), `scripts/build-banner.sh` also writes `admin/images/icon.svg`, and `scripts/preflight-release.sh` warns when it is missing.
 
 ### 1.3.11
 
