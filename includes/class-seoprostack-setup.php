@@ -64,6 +64,7 @@ final class SEOProStack_Setup {
         'SEOProStack_Field_Content',
         'SEOProStack_Editor_Tidy',
         'SEOProStack_Translatepress_Colours',
+        'SEOProStack_Readabler_Colours',
         'SEOProStack_Auto_Upload',
         'SEOProStack_Paste_Media',
         'SEOProStack_Svg_Uploads',

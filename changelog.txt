@@ -2,6 +2,9 @@
 
 Every change to SEO Pro Stack. readme.txt lists the latest version in short.
 
+= Unreleased =
+* New, off by default: Readabler colours (Content tab) gives Readabler's accessibility button and popup the site's palette colours, so they follow the Kadence light and dark mode switcher. Readabler picks its light or dark popup colours from the visitor's system setting and keeps fixed colours, so they could not follow the site from Readabler's settings. The button is palette 5, palette 1 on hover, with a palette 9 icon; the popup is palette 9 with palette 4 text and palette 5 controls. Readabler's own colours are not changed, are used where the theme has no palette, and return when this is off (GitHub issue #580).
+
 = 1.3.16 =
 * New: Dark mode image contrast: Keep colours in dark mode, without typing a class. In the Media Library, tick Keep colours in dark mode in a picture's details: it is shown as it is in dark mode wherever it is used, at any size, as a WebP or AVIF copy and as a background (such as Kadence row and column background overlays). In the block editor, turn on Keep colours in dark mode in the Dark mode panel of an image, cover, group, columns, gallery or Kadence row, column, image, gallery or info box block: every picture in it is kept (the class seoprostack-keep-colours, added to or removed from the block's Additional CSS class(es)). Both show only while Dark mode image contrast is on (GitHub issue #572).
 * Fix: Load plugins only where needed restores saved menu entries and page registrations only when their owners are not loaded on this screen. Loaded plugins' removed or moved entries no longer return, and their old addresses no longer get blank stand-in pages. Skipped plugins' entries and the fallback for unknown ownership are kept (GitHub issue #571).
