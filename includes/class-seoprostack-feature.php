@@ -80,7 +80,7 @@ abstract class SEOProStack_Feature {
      * Whether a listed plugin file is one WordPress would load: a valid path
      * to a file that exists, as wp_get_active_and_valid_plugins() checks. A
      * plugin deleted while active stays listed until the Plugins screen is
-     * opened (GitHub issue #521).
+     * opened.
      *
      * @param string $file Plugin file, such as "akismet/akismet.php".
      * @return bool
