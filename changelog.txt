@@ -4,6 +4,8 @@ Every change to SEO Pro Stack. readme.txt lists the latest version in short.
 
 = Unreleased =
 * Changed: Load plugins only where needed shows only its switch and status. Its other settings, bypasses for a plugin or theme it does not handle, are in a closed Troubleshooting section of its Options, which opens by itself when one of them is changed or a page of the site failed with fewer plugins. Each says which problem it fixes. Values and defaults are unchanged.
+* New: Hosting needs says how PHP runs (PHP-FPM, LiteSpeed, FastCGI, Apache's mod_php or CGI) in Site Health Info, and advises asking the host for PHP-FPM or LiteSpeed when PHP runs inside Apache or starts afresh for every request. Its PHP worker lines name the server's setting for them, such as pm.max_children, so they can be sent to a host as they are.
+* New: a Directory listing test in Site Health. Once a day it checks whether anyone can list the files in the uploads folder, and if so, what to ask the host for. Nothing is written to server files.
 
 = 1.3.7 =
 * Fix: with Load plugins only where needed, more options that plugins save again on wp-admin page views no longer make the site's pages learn again: MainWP Child's HTML Regression asset list, StellarWP Uplink's update status for Kadence and StellarWP products, Burst Statistics' detected integrations, and Really Simple Security's notice cache and menu badge count.
