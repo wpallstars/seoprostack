@@ -1479,6 +1479,10 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folderâ
 
 ## Changelog
 
+### Unreleased
+
+- Fix: **Load plugins only where needed** no longer brings back removed or moved menu entries of plugins loaded on the current screen, or opens their old addresses as blank pages. Skipped plugins' entries are still restored; copies without known ownership keep the existing fallback (GitHub issue #571).
+
 ### 1.3.15
 
 - New: **Dark mode image contrast** â†’ **Keep watermarks subtle** (on by default while Dark mode image contrast is on). Logos and drawings with a transparent background shown faintly on purpose (under 75% opacity, as an image or the background of a block or its overlay, such as Kadence row and column background overlays) stay faint in dark mode, at no more than 1.2:1 contrast with the background behind them: a white watermark that would stand out on a dark page is made fainter, and a dark one that would all but vanish is inverted (hue kept), then made faint. Light mode is untouched; the class `seoprostack-keep-colours` keeps one as it is (GitHub issue #569).
