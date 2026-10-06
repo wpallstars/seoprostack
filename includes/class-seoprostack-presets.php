@@ -41,6 +41,16 @@
  *             most it allows) and max (the value it filters, the plugin's
  *             default). A preset value above the filtered limit is lowered
  *             to it, and the Apply preset dialog says so.
+ * - records:  optional, for options stored as a list of records (AI Engine's
+ *             chatbots): option name => the key that names each record
+ *             (botId). The preset names records by that key ({"default":
+ *             {...}}) and its settings are merged into the stored record
+ *             with that name, as for named keys; paths are option, name,
+ *             key (mwai_chatbots.default.window). Other records and their
+ *             order stay as they are, and records that are not stored are
+ *             never added.
+ * - also:     optional, other plugin folders the preset is for too (a Pro
+ *             version in its own folder): folder => plugin name.
  *
  * Secrets are never stored or changed: option names and keys that look like
  * licence keys, API keys, tokens, passwords or similar are skipped when a
@@ -96,6 +106,14 @@ final class SEOProStack_Presets {
             $data = wp_json_file_decode($file, array('associative' => true));
             if (is_array($data)) {
                 $presets[basename($file, '.json')] = $data;
+            }
+        }
+        foreach ($presets as $data) {
+            foreach (isset($data['also']) && is_array($data['also']) ? $data['also'] : array() as $folder => $name) {
+                if (is_string($folder) && '' !== $folder && !isset($presets[$folder])) {
+                    $presets[$folder]         = $data;
+                    $presets[$folder]['name'] = (string) $name;
+                }
             }
         }
 
@@ -241,7 +259,13 @@ final class SEOProStack_Presets {
             'defaults' => array(),
             'settings' => array(),
             'cache'    => array('groups' => array(), 'keys' => array()),
+            'records'  => array(),
         );
+        foreach (isset($preset['records']) && is_array($preset['records']) ? $preset['records'] : array() as $name => $key) {
+            if (is_string($name) && '' !== $name && is_string($key) && '' !== $key) {
+                $clean['records'][$name] = $key;
+            }
+        }
         if (!empty($preset['cache']) && is_array($preset['cache'])) {
             if (!empty($preset['cache']['groups']) && is_array($preset['cache']['groups'])) {
                 foreach ($preset['cache']['groups'] as $group) {
@@ -518,6 +542,76 @@ final class SEOProStack_Presets {
     }
 
     /**
+     * A stored value and a preset's value for it, as they are compared and
+     * merged. For an option kept as a list of records (`records`), the
+     * stored records keyed by their name, and only the preset's records
+     * that are stored.
+     *
+     * @param array  $preset  Preset.
+     * @param string $name    Option name.
+     * @param mixed  $current Stored value.
+     * @param mixed  $wanted  Preset value.
+     * @return array{0:mixed,1:mixed}|null Stored and wanted values; null when the preset has nothing for what is stored.
+     */
+    private static function pair(array $preset, $name, $current, $wanted) {
+        if (empty($preset['records'][$name])) {
+            return array($current, $wanted);
+        }
+        $id = $preset['records'][$name];
+        if (!is_array($current) || !self::is_list($current) || !is_array($wanted)) {
+            return null;
+        }
+        $records = array();
+        foreach ($current as $record) {
+            $key = self::record_name($record, $id);
+            if (null !== $key && !isset($records[$key])) {
+                $records[$key] = $record;
+            }
+        }
+        $wanted = array_intersect_key($wanted, $records);
+        return $wanted ? array($records, $wanted) : null;
+    }
+
+    /**
+     * Records keyed by name back into the stored list, in its order. A
+     * record whose name is there twice changes only the first time.
+     *
+     * @param array  $preset  Preset.
+     * @param string $name    Option name.
+     * @param mixed  $records Merged value (records keyed by name for `records` options).
+     * @param mixed  $stored  Stored list.
+     * @return mixed
+     */
+    private static function unpair(array $preset, $name, $records, $stored) {
+        if (empty($preset['records'][$name]) || !is_array($records) || !is_array($stored)) {
+            return $records;
+        }
+        $id   = $preset['records'][$name];
+        $list = array();
+        foreach ($stored as $record) {
+            $key = self::record_name($record, $id);
+            if (null !== $key && isset($records[$key]) && is_array($records[$key])) {
+                $list[] = $records[$key];
+                unset($records[$key]);
+            } else {
+                $list[] = $record;
+            }
+        }
+        return $list;
+    }
+
+    /**
+     * The name of a stored record (its botId, for example).
+     *
+     * @param mixed  $record Record.
+     * @param string $id     Key that names it.
+     * @return string|null
+     */
+    private static function record_name($record, $id) {
+        return is_array($record) && isset($record[$id]) && is_scalar($record[$id]) && '' !== (string) $record[$id] ? (string) $record[$id] : null;
+    }
+
+    /**
      * Settings that differ from a preset's options or defaults.
      *
      * @param string $slug Plugin folder.
@@ -532,7 +626,10 @@ final class SEOProStack_Presets {
         }
         foreach ($preset[$set] as $name => $wanted) {
             list(, $current) = self::read($name);
-            self::diff_into($diffs, $name, $current, $wanted);
+            $pair = self::pair($preset, $name, $current, $wanted);
+            if (null !== $pair) {
+                self::diff_into($diffs, $name, $pair[0], $pair[1]);
+            }
         }
         return $diffs;
     }
@@ -631,7 +728,8 @@ final class SEOProStack_Presets {
             $wants = array();
             foreach ($preset[$set] as $name => $wanted) {
                 list(, $current) = self::read($name);
-                $picked = self::pick((string) $name, $current, $wanted, $diffs);
+                $pair   = self::pair($preset, $name, $current, $wanted);
+                $picked = null === $pair ? null : self::pick((string) $name, $pair[0], $pair[1], $diffs);
                 if (null !== $picked) {
                     $wants[$name] = $picked[0];
                 }
@@ -645,14 +743,16 @@ final class SEOProStack_Presets {
         $backup = array();
         foreach ($wants as $name => $wanted) {
             list($exists, $current) = self::read($name);
-            if (is_object($current)) {
+            $pair = is_object($current) ? null : self::pair($preset, $name, $current, $wanted);
+            if (null === $pair) {
                 continue;
             }
             $backup[$name] = array('existed' => $exists, 'value' => self::strip_secrets($current));
-            $value         = self::merge($current, $wanted);
-            if (array() === $value && is_array($wanted) && $wanted && !self::is_list($wanted)) {
+            $value         = self::merge($pair[0], $pair[1]);
+            if (array() === $value && is_array($wanted) && $wanted && !self::is_list($wanted) && empty($preset['records'][$name])) {
                 $value = null; // Every named setting removed: the plugin's defaults apply.
             }
+            $value = self::unpair($preset, $name, $value, $current);
             $result = apply_filters('seoprostack_preset_store', null, $slug, $name, $value);
             if (is_wp_error($result)) {
                 return $result;

@@ -43,7 +43,11 @@ To add or update a preset, on a throwaway site (never a live one):
     plugin's own filter, so the preset never writes more than the site allows.
     A plugin that expects all its settings once it stores any gets
     `"when": {"<option>": "option:<option>"}`, so a partial option is never
-    written before the plugin saves its own.
+    written before the plugin saves its own. An option stored as a list of
+    records (AI Engine's `mwai_chatbots`) gets `"records": {"<option>":
+    "<key that names each record>"}`, and the preset names records by that
+    key: never replace such a list whole. A Pro version in its own folder
+    gets `"also": {"<folder>": "<name>"}` instead of a copy of the file.
 7. Check on a second fresh site: `diff`, `apply`, confirm the plugin behaves
    as intended, `reset`, `undo`.
 8. Add a changelog line in `README.md`, `changelog.txt` and `readme.txt`.
@@ -54,6 +58,10 @@ Owner's decisions for single presets:
   LiteSpeed Cache re-minifies every file on each page-cache miss
   (0.25–1.2 s per page on Hostinger), and Combine breaks pages. Don't turn
   them back on; `README.md` → LiteSpeed hosting has the numbers.
+- Readabler and AI Engine keep their floating buttons in opposite corners
+  (#577): Readabler bottom left, AI Engine's chatbot bubble bottom right,
+  as the owner set them on a live site. Colours, chatbot names, instructions
+  and models stay each site's own.
 
 ## Starter data
 

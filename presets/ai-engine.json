@@ -1,0 +1,82 @@
+{
+    "name": "AI Engine",
+    "tested": "3.8.3",
+    "updated": "2026-10-06",
+    "also": {
+        "ai-engine-pro": "AI Engine (Pro)"
+    },
+    "notes": "Shows the Default chatbot on every page as a popup, its bubble in the bottom right corner (AI Engine's default, kept so it stays clear of Readabler's accessibility button, which Readabler's preset puts bottom left). The popup can open to the full screen and has a copy button on answers. The chatbot still needs an AI service and its key in AI Engine's settings; until then it cannot answer. AI Engine keeps its chatbots as a list, so only the chatbot named default is changed, and only when AI Engine has stored it (open AI Engine's Chatbots screen once on a new site); other chatbots stay as they are. Its name, instructions, model and avatar are each site's own, so they are left alone. Modules, models, limits and statistics are left alone too. AI Engine reads these settings on each page, so nothing needs saving again.",
+    "records": {
+        "mwai_chatbots": "botId"
+    },
+    "options": {
+        "mwai_options": {
+            "botId": "default"
+        },
+        "mwai_chatbots": {
+            "default": {
+                "window": true,
+                "iconPosition": "bottom-right",
+                "fullscreen": true,
+                "copyButton": true
+            }
+        }
+    },
+    "defaults": {
+        "mwai_options": {
+            "botId": null
+        },
+        "mwai_chatbots": {
+            "default": {
+                "window": false,
+                "iconPosition": "bottom-right",
+                "fullscreen": false,
+                "copyButton": false
+            }
+        }
+    },
+    "settings": {
+        "mwai_options.botId": {
+            "label": "Site-Wide Chatbot",
+            "description": "The chatbot shown on every page of the site.",
+            "values": {
+                "default": "Default",
+                "null": "None (AI Engine's default)"
+            }
+        },
+        "mwai_chatbots.default.window": {
+            "label": "Popup",
+            "description": "The Default chatbot opens from a bubble in a corner of the page, instead of sitting in the page.",
+            "values": {
+                "true": "On",
+                "false": "Off (AI Engine's default)"
+            }
+        },
+        "mwai_chatbots.default.iconPosition": {
+            "label": "Position",
+            "description": "The corner the Default chatbot's bubble shows in. Bottom right keeps it clear of Readabler's button.",
+            "values": {
+                "bottom-right": "Bottom Right (AI Engine's default)",
+                "bottom-left": "Bottom Left",
+                "top-right": "Top Right",
+                "top-left": "Top Left"
+            }
+        },
+        "mwai_chatbots.default.fullscreen": {
+            "label": "Full Screen",
+            "description": "The popup can open to the full screen.",
+            "values": {
+                "true": "On",
+                "false": "Off (AI Engine's default)"
+            }
+        },
+        "mwai_chatbots.default.copyButton": {
+            "label": "Copy Button",
+            "description": "A button that copies an answer.",
+            "values": {
+                "true": "On",
+                "false": "Off (AI Engine's default)"
+            }
+        }
+    }
+}
