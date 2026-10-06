@@ -27,6 +27,13 @@
  *   then black, which are skipped for images with detail inside their shape
  *   (text in a box). It replaces the theme's filter on that image. Mostly
  *   filled images (banners, badges) with a clear part are left alone.
+ * - Watermarks (unless window.seoprostackDarkImageContrast.watermarks is
+ *   false): transparent images drawn under 75% opacity, as an <img> or a
+ *   background of an element or its ::before or ::after (Kadence row and
+ *   column overlays), are kept at watermark-level contrast (1.3:1 at most)
+ *   by lowering their opacity, inverted first (hue kept) when they have all
+ *   but vanished. Marked with data-seoprostack-watermark and a
+ *   --seoprostack-wm-* opacity, applied in dark mode only.
  *
  * Opt out: the class seoprostack-keep-colours on the image or any parent.
  *
@@ -55,6 +62,21 @@
     var seen = new WeakMap(); // img -> true once near the window.
     var probe = document.createElement('img'); // For the base filter.
     var timer = 0;
+
+    var WM_ATTR = 'data-seoprostack-watermark';
+    var WM_OPACITY = 0.75; // Drawn under this opacity on purpose: a watermark.
+    var WM_MAX = 1.3; // Watermark-level contrast, at most.
+    var WM_MIN = 1.08; // Under this, a watermark has all but vanished.
+    var NOT_WATERMARKS = /^(img|script|style|link|meta|noscript|template|br|svg|path|g|use|source|option)$/i;
+    var config = window.seoprostackDarkImageContrast || {};
+    var watermarks = false !== config.watermarks;
+    var originals = new WeakMap(); // el -> { part: opacity before changes }.
+    var tints = new Map(); // Background image address -> Promise of its tint.
+    var pending = []; // Elements waiting for the watermark look.
+    var scanning = false;
+    var idle = window.requestIdleCallback || function (fn) {
+        return setTimeout(fn, 50);
+    };
 
     // Relative luminance of each sRGB channel value.
     var LIN = [];
@@ -210,16 +232,17 @@
     }
 
     /**
-     * The colour behind the image, or null when unknown.
+     * The colour behind the image, or null when unknown. From: the element
+     * whose background is the first one under it (default: the image's own).
      */
-    function backdrop(img) {
+    function backdrop(img, from) {
         var rect = img.getBoundingClientRect();
         var x = rect.left + rect.width / 2;
         var y = rect.top + rect.height / 2;
         var layers = [];
         var child = null;
         var found = 0;
-        for (var el = img; 1 === el?.nodeType && !found; el = el.parentElement) {
+        for (var el = from || img; 1 === el?.nodeType && !found; el = el.parentElement) {
             if (child) {
                 found = addOverlays(layers, el, child, x, y);
             }
@@ -243,10 +266,10 @@
     }
 
     /**
-     * Visible pixels [r, g, b, a, ...] of a transparent, flat-coloured
-     * image, with its transparent share as .clear, or null to leave it alone.
+     * The image's pixels, at most AREA of them, as { data, cw, ch }, or null
+     * when they cannot be read.
      */
-    function pixels(img) {
+    function sample(img) {
         var w = img.naturalWidth || img.clientWidth;
         var h = img.naturalHeight || img.clientHeight;
         if (!w || !h) {
@@ -255,18 +278,31 @@
         var s = Math.min(1, Math.sqrt(AREA / (w * h)));
         var cw = Math.max(1, Math.round(w * s));
         var ch = Math.max(1, Math.round(h * s));
-        var data;
         canvas.width = cw;
         canvas.height = ch;
         ctx.clearRect(0, 0, cw, ch);
         try {
             ctx.drawImage(img, 0, 0, cw, ch);
-            data = ctx.getImageData(0, 0, cw, ch).data;
+            return { data: ctx.getImageData(0, 0, cw, ch).data, cw: cw, ch: ch };
         } catch (e) {
             // Expected for images from other sites without CORS, or not
             // decodable: their pixels cannot be read, so leave them alone.
             return null;
         }
+    }
+
+    /**
+     * Visible pixels [r, g, b, a, ...] of a transparent, flat-coloured
+     * image, with its transparent share as .clear, or null to leave it alone.
+     */
+    function pixels(img) {
+        var got = sample(img);
+        if (!got) {
+            return null;
+        }
+        var data = got.data;
+        var cw = got.cw;
+        var ch = got.ch;
         var clear = 0;
         var px = [];
         var buckets = {};
@@ -474,10 +510,17 @@
             saved.done = true;
             return;
         }
+        // Drawn faintly on purpose: a watermark, kept faint (below).
+        saved.opacity = original(img, 'self', getComputedStyle(img));
+        saved.faint = watermarks && saved.opacity < WM_OPACITY;
         // A loaded image may not be decoded yet; drawn then, it is blank.
         var run = function () {
             if (state.get(img) === saved) {
-                saved.px = pixels(img);
+                if (saved.faint) {
+                    saved.tint = tint(img);
+                } else {
+                    saved.px = pixels(img);
+                }
                 saved.done = true;
                 mark(img, saved);
             }
@@ -494,6 +537,10 @@
         if (!isDark()) {
             return;
         }
+        if (saved.faint) {
+            fade(img, 'self', saved.tint, saved.opacity, true);
+            return;
+        }
         var bg = saved.px ? backdrop(img) : null;
         var name = bg ? choose(saved.px, bg) : '';
         if (name) {
@@ -502,6 +549,216 @@
             }
         } else if (img.hasAttribute(ATTR)) {
             img.removeAttribute(ATTR);
+        }
+    }
+
+    /*
+     * Watermarks: images drawn faintly on purpose, behind content. Light on
+     * a light page, they stand out on a dark one (or vanish, if dark). In
+     * dark mode they are kept at watermark-level contrast: their opacity is
+     * lowered, after inverting them (hue kept) when they have all but
+     * vanished. A watermark is a single url() background of an element or
+     * its ::before or ::after (Kadence row and column overlays), or an <img>,
+     * drawn under WM_OPACITY. Its colour is the average of its visible
+     * pixels; images from other sites that cannot be read are left alone.
+     */
+
+    /**
+     * Opacity of an element (part 'self') or its ::before or ::after before
+     * any change here, remembered from the first look.
+     */
+    function original(el, part, cs) {
+        var saved = originals.get(el);
+        if (!saved) {
+            saved = {};
+            originals.set(el, saved);
+        }
+        if (!(part in saved)) {
+            var o = Number.parseFloat(cs.opacity);
+            saved[part] = Number.isNaN(o) ? 1 : o;
+        }
+        return saved[part];
+    }
+
+    /**
+     * Average colour and opacity [r, g, b, a] of a transparent image's
+     * visible pixels, or null for an image without transparency or
+     * unreadable.
+     */
+    function tint(img) {
+        var got = sample(img);
+        if (!got) {
+            return null;
+        }
+        var data = got.data;
+        var sum = [0, 0, 0, 0];
+        var n = 0;
+        for (var i = 0; i < data.length; i += 4) {
+            var a = data[i + 3];
+            if (a >= 16) {
+                n++;
+                sum[0] += data[i] * a;
+                sum[1] += data[i + 1] * a;
+                sum[2] += data[i + 2] * a;
+                sum[3] += a;
+            }
+        }
+        var all = got.cw * got.ch;
+        if (n < 16 || all - n < all * 0.05) {
+            return null;
+        }
+        return [sum[0] / sum[3], sum[1] / sum[3], sum[2] / sum[3], sum[3] / n / 255];
+    }
+
+    /** The tint of a background image, loaded once per address. */
+    function urlTint(url) {
+        if (!tints.has(url)) {
+            tints.set(url, new Promise(function (resolve) {
+                var im = new Image();
+                im.onload = function () {
+                    var done = function () {
+                        resolve(tint(im));
+                    };
+                    if (im.decode) {
+                        im.decode().then(done, done);
+                    } else {
+                        done();
+                    }
+                };
+                im.onerror = function () {
+                    resolve(null);
+                };
+                im.src = url;
+            }));
+        }
+        return tints.get(url);
+    }
+
+    /**
+     * How to show a watermark of colour c at strength k (its opacity times
+     * its pixels' own) on bg: { name, scale }, a filter ('' or 'invert') and
+     * a factor for its opacity.
+     */
+    function plan(c, k, bg, base, canInvert) {
+        var bgLum = lum(bg[0], bg[1], bg[2]);
+        function shown(name, scale) {
+            var f = filtered(name, c[0], c[1], c[2], base);
+            var a = k * scale;
+            return ratio(lum(
+                clamp(f[0]) * a + bg[0] * (1 - a),
+                clamp(f[1]) * a + bg[1] * (1 - a),
+                clamp(f[2]) * a + bg[2] * (1 - a)
+            ), bgLum);
+        }
+        var name = '';
+        if (canInvert && shown('', 1) < WM_MIN && shown('invert', 1) >= WM_MIN) {
+            name = 'invert';
+        }
+        if (shown(name, 1) <= WM_MAX) {
+            return { name: name, scale: 1 };
+        }
+        var lo = 0;
+        var hi = 1;
+        for (var i = 0; i < 14; i++) {
+            var mid = (lo + hi) / 2;
+            if (shown(name, mid) > WM_MAX) {
+                hi = mid;
+            } else {
+                lo = mid;
+            }
+        }
+        return { name: name, scale: lo };
+    }
+
+    /** Mark a part of an element with its watermark change, or none. */
+    function setPart(el, part, opacity, how) {
+        var keep = function (t) {
+            return t && t !== part && t !== part + '-invert';
+        };
+        var tokens = (el.getAttribute(WM_ATTR) || '').split(' ').filter(keep);
+        var prop = '--seoprostack-wm-' + part;
+        if (how && (how.name || how.scale < 1)) {
+            tokens.push(part);
+            if (how.name) {
+                tokens.push(part + '-invert');
+            }
+            el.style.setProperty(prop, String(Math.round(opacity * how.scale * 1000) / 1000));
+        } else {
+            el.style.removeProperty(prop);
+        }
+        if (tokens.length) {
+            el.setAttribute(WM_ATTR, tokens.join(' '));
+        } else {
+            el.removeAttribute(WM_ATTR);
+        }
+    }
+
+    /**
+     * Keep a watermark faint. Part: 'self' (the element or <img>), 'before'
+     * or 'after'. Its background is the element's own for ::before and
+     * ::after, the parent's for the element.
+     */
+    function fade(el, part, c, opacity, isImg) {
+        var from = 'self' !== part || isImg ? el : el.parentElement;
+        var bg = c && from ? backdrop(el, from) : null;
+        // Inverting an element would invert its content too.
+        var how = bg ? plan(c, opacity * c[3], bg, isImg ? steps(baseFilter()) : [], isImg || 'self' !== part) : null;
+        setPart(el, part, opacity, how);
+    }
+
+    /** Look for background-image watermarks on an element. */
+    function inspect(el) {
+        if (!isDark() || !el.isConnected || NOT_WATERMARKS.test(el.tagName) || el.closest(KEEP)) {
+            return;
+        }
+        ['self', 'before', 'after'].forEach(function (part) {
+            var cs = getComputedStyle(el, 'self' === part ? null : '::' + part);
+            if ('none' === cs.display || ('self' !== part && /^(none|normal)$/.test(cs.content))) {
+                return;
+            }
+            var m = /^url\("?([^")]+)"?\)$/.exec(cs.backgroundImage);
+            if (!m) {
+                return;
+            }
+            var opacity = original(el, part, cs);
+            if (opacity > 0 && opacity < WM_OPACITY) {
+                urlTint(m[1]).then(function (c) {
+                    if (isDark()) {
+                        fade(el, part, c, opacity, false);
+                    }
+                });
+            }
+        });
+    }
+
+    /** Look through elements a few milliseconds at a time, when idle. */
+    function scanChunk() {
+        var end = Date.now() + 8;
+        while (pending.length && Date.now() < end) {
+            inspect(pending.pop());
+        }
+        if (pending.length) {
+            idle(scanChunk);
+        } else {
+            scanning = false;
+        }
+    }
+
+    /** Queue a subtree for the watermark look. */
+    function scan(root) {
+        if (!watermarks || !isDark()) {
+            return;
+        }
+        if (1 === root.nodeType && root !== body) {
+            pending.push(root);
+        }
+        var all = root.querySelectorAll('*');
+        for (const el of all) {
+            pending.push(el);
+        }
+        if (!scanning && pending.length) {
+            scanning = true;
+            idle(scanChunk);
         }
     }
 
@@ -545,6 +802,7 @@
                 check(img);
             }
         });
+        scan(body);
     }
 
     function start() {
@@ -553,9 +811,16 @@
         style.textContent = 'body.color-switch-dark img[' + ATTR + '="invert"]{filter:invert(1) hue-rotate(180deg)}'
             + 'body.color-switch-dark img[' + ATTR + '="white"]{filter:brightness(0) invert(1)}'
             + 'body.color-switch-dark img[' + ATTR + '="black"]{filter:brightness(0)}';
+        var dark = 'body.color-switch-dark [' + WM_ATTR + '~="';
+        ['self', 'before', 'after'].forEach(function (part) {
+            var pseudo = 'self' === part ? '' : '::' + part;
+            style.textContent += dark + part + '"]' + pseudo + '{opacity:var(--seoprostack-wm-' + part + ')!important}'
+                + dark + part + '-invert"]' + pseudo + '{filter:invert(1) hue-rotate(180deg)!important}';
+        });
         document.head.appendChild(style);
 
         trackAll(document);
+        scan(body);
         probe.hidden = true;
         probe.alt = '';
         body.appendChild(probe);
@@ -589,6 +854,7 @@
                     Array.prototype.forEach.call(record.addedNodes, function (node) {
                         if (1 === node.nodeType) {
                             trackAll(node);
+                            scan(node);
                         }
                     });
                 });
