@@ -1457,6 +1457,10 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folderâ
 
 ## Changelog
 
+### Unreleased
+
+- Fix: **Pinned posts**: **Pin from a true/false field** keeps its fields when SEO Pro Stack's settings are saved on a request where ACF or Secure Custom Fields has not loaded its fields (skipped by plugin loading, or before `acf/init`), as when another setting is saved or a settings update runs. The setting was found empty a day after it was set, so ticking the field no longer pinned new items. Unticking a field with ACF loaded still clears it (GitHub issue #531).
+
 ### 1.3.9
 
 - Fix: **Hosting needs** checks the object cache only on web requests (admin screens, Site Health, cron started over HTTP). WP-CLI and cron run from the command line get the stored result: they can run another PHP, with other extensions, than the site's pages. On Hostinger, `/usr/bin/php` (WP-CLI and hPanel cron jobs) is the account's PHP, not the site's; a site whose pages ran PHP 8.1 without `memcached` was reported working because its cron job ran PHP 8.5 (GitHub issue #537).
