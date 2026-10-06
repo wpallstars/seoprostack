@@ -1456,6 +1456,10 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folderâ
 
 ## Changelog
 
+### Unreleased
+
+- Fix: a plugin deleted while still active stays in WordPress's list of active plugins until someone opens the Plugins screen, though WordPress never loads it. SEO Pro Stack no longer counts it as active: **Load plugins only where needed** no longer waits for good on a site that still lists a deleted Freesoul Deactivate Plugins (so that site learned nothing after an update), features no longer wait for other deleted plugins they replace, and Freesoul's must-use file is removed when only such entries are left (GitHub issue #521).
+
 ### 1.3.8
 
 - Fix: **Hosting needs** no longer asks for more PHP workers and CPU cores than a site needs. PHP workers come from the average time per request (Little's law), not the time 95% of pages took, rounded up to its timing slot, which counted slow requests twice on top of the busiest hour and its bursts. **Now** uses the average of every sampled request, admin screens, the REST API and cron included, because its busiest hour counts them all; low, medium and high traffic use visitors' pages. On one measured site Now went from 7 workers and 8 CPU cores to 4 and 4. The traffic line shows both averages and the 95% page time (GitHub issue #530).

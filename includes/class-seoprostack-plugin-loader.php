@@ -421,9 +421,12 @@ final class SEOProStack_Plugin_Loader {
         // Load plugins only where needed replaces Freesoul Deactivate Plugins
         // and waits while it is active here or for the network (its
         // 'replaces'), since both filter the plugin list. This covers the
-        // network, where the must-use file serves every site.
+        // network, where the must-use file serves every site. An entry whose
+        // files were deleted stays listed until the Plugins screen is opened,
+        // but WordPress never loads it, so it does not count (GitHub issue #521).
         foreach (array_merge(self::$raw, array_keys($network)) as $file) {
-            if (0 === strpos((string) $file, 'freesoul-deactivate-plugins')) {
+            if (0 === strpos((string) $file, 'freesoul-deactivate-plugins')
+                && 0 === validate_file((string) $file) && is_file(WP_PLUGIN_DIR . '/' . $file)) {
                 return;
             }
         }
