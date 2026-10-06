@@ -2,6 +2,21 @@
 /**
  * Plugin presets: SEO Pro Stack's preferred settings for other plugins.
  *
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ * SPDX-FileCopyrightText: 2026 Marcus Quinn
+ * Additional terms (GPL-3.0 section 7(b)): SEOPROSTACK-ATTRIBUTION.txt
+ *
+ * @package SEOProStack
+ * @since 0.5.0
+ */
+
+if (!defined('ABSPATH')) {
+    exit;
+}
+
+/**
+ * Load and apply plugin presets.
+ *
  * A preset is a JSON file in presets/, named after the plugin's folder
  * (presets/antispam-bee.json), with:
  * - name:     the plugin's name;
@@ -60,19 +75,7 @@
  *
  * Presets are made with WP-CLI (see SEOProStack_Plugin_Presets::cli_export()
  * and docs/presets.md).
- *
- * SPDX-License-Identifier: GPL-3.0-or-later
- * SPDX-FileCopyrightText: 2026 Marcus Quinn
- * Additional terms (GPL-3.0 section 7(b)): SEOPROSTACK-ATTRIBUTION.txt
- *
- * @package SEOProStack
- * @since 0.5.0
  */
-
-if (!defined('ABSPATH')) {
-    exit;
-}
-
 final class SEOProStack_Presets {
 
     /** Option holding the settings to put back, per plugin folder. Not autoloaded. */
