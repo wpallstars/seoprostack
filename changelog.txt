@@ -2,6 +2,9 @@
 
 Every change to SEO Pro Stack. readme.txt lists the latest version in short.
 
+= Unreleased =
+* New: Clean up deleted plugins has a Clean up every site now button for network administrators on a multisite. It checks every site and removes entries for plugins whose files are gone from each site's active plugins (through WordPress's own check), uninstall entries and "Recently active" list, and from the network's lists, then says what it removed.
+
 = 1.3.9 =
 * Fix: Hosting needs checks the object cache only from the admin, not from WP-CLI or cron run from the command line, which can use another PHP than the site's pages. On a Hostinger site whose pages ran PHP 8.1 without Memcached, it said the cache worked because its cron job ran PHP 8.5.
 * Fix: a plugin deleted while still active, which stays listed until the Plugins screen is opened, no longer counts as active. Load plugins only where needed no longer waits for good on a site that still lists a deleted Freesoul Deactivate Plugins, features no longer wait for other deleted plugins they replace, and Freesoul's must-use file is removed when only such entries are left.

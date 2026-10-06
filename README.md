@@ -1176,6 +1176,8 @@ Shown in three places:
 
 When plugin folders are deleted outside the Plugins screen (by FTP, a file manager or a migration), WordPress keeps their uninstall entries, which load on every request, and their “Recently active” entries. With this on, opening the Plugins screen removes entries for plugins that no longer exist and says which ones. WordPress itself already switches off missing active plugins on that screen.
 
+On a multisite, the setting's Options panel has a **Clean up every site now** button for network administrators, whether the switch is on or off: the Plugins screens of most sites are rarely opened, so their leftovers can stay for good. One press checks every site (up to 1,000) and removes entries for plugins whose files are gone: each site's active plugins, through WordPress's own check (`validate_active_plugins()`, as on the Plugins screen, which also checks the network's active plugins), its uninstall entries and its “Recently active” list, and the network's “Recently active” list. A notice then says how many sites were checked and which deleted plugins were removed. A site whose active plugins changed learns its pages again with **Load plugins only where needed**, as it does when the Plugins screen cleans them.
+
 ### Ask before licence checks (Plugins)
 
 Premium plugins and themes check their licence with their maker’s server, often while a page loads, so the page waits for that server (on owner sites, some checked on every admin screen or every visit). With this on, each plugin’s licence check waits for the site owner’s say. The first time a plugin tries, an administrator is asked in a dialog on the next admin screen, per plugin and server:
@@ -1456,6 +1458,10 @@ Deleting the plugin removes its settings and cached data, the database keys Add 
 Deactivating the plugin removes the WebP and AVIF rules from the uploads folder’s `.htaccess` (for every site when network-deactivated), the LiteSpeed background request rules from the site’s `.htaccess` (on multisite, when network-deactivated or deactivated on the main site) and the must-use file of Load plugins only where needed (on multisite, when network-deactivated).
 
 ## Changelog
+
+### Unreleased
+
+- New: **Clean up deleted plugins** has a **Clean up every site now** button for network administrators on a multisite. It checks every site and removes entries for plugins whose files are gone from each site's active plugins (through WordPress's own check), uninstall entries and “Recently active” list, and from the network's lists, then says what it removed. Sites whose Plugins screen nobody opens no longer keep a deleted plugin listed as active (GitHub issue #527).
 
 ### 1.3.9
 
