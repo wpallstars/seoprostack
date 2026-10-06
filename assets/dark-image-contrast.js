@@ -18,10 +18,13 @@
  *   colours, even gradients and absolutely positioned overlays (Kadence row
  *   overlays, Cover block backgrounds) composited in. A background picture or
  *   video, or a colour it cannot read, leaves the image alone.
- * - Each filter is tried on the sampled pixels; one is used only when it
- *   makes most of the image reach 3:1 contrast (WCAG 1.4.11) and clearly
- *   improves on the original. Inverting with the hue kept comes first, so
- *   brand colours stay recognisable, then white, then black.
+ * - Only images with most (60%) of their visible pixels under 3:1 contrast
+ *   (WCAG 1.4.11) against it change; the theme's own dark mode image filter
+ *   (Kadence Pro's brightness and contrast) is allowed for. Each filter is
+ *   tried on the sampled pixels; one is used only when it makes most of the
+ *   image reach 3:1 and clearly improves on the original. Inverting with the
+ *   hue kept comes first, so brand colours stay recognisable, then white,
+ *   then black. It replaces the theme's filter on that image.
  *
  * Opt out: the class seoprostack-keep-colours on the image or any parent.
  *
@@ -48,6 +51,7 @@
     var FILTERS = ['invert', 'white', 'black'];
     var state = new WeakMap(); // img -> { src, px }.
     var seen = new WeakMap(); // img -> true once near the window.
+    var probe = document.createElement('img'); // For the base filter.
     var timer = 0;
 
     // Relative luminance of each sRGB channel value.
@@ -276,9 +280,39 @@
     }
 
     /**
-     * A pixel after a filter, as CSS filter functions do it (sRGB).
+     * The filter every image gets in this mode, such as Kadence Pro's
+     * brightness(0.9) contrast(1.2) in dark mode, read from a hidden image
+     * with no classes. An image with another filter has one of its own.
      */
-    function filtered(name, r, g, b) {
+    function baseFilter() {
+        return getComputedStyle(probe).filter;
+    }
+
+    /** Brightness and contrast steps of a filter; others are ignored. */
+    function steps(filter) {
+        var out = [];
+        var re = /(brightness|contrast)\(([\d.]+)(%?)\)/g;
+        var m;
+        while ((m = re.exec(filter))) {
+            out.push([m[1], parseFloat(m[2]) / (m[3] ? 100 : 1)]);
+        }
+        return out;
+    }
+
+    /**
+     * A pixel after a filter, as CSS filter functions do it (sRGB). With no
+     * name, the base filter's steps apply.
+     */
+    function filtered(name, r, g, b, base) {
+        if ('' === name) {
+            var p = [r, g, b];
+            for (var s = 0; s < base.length; s++) {
+                for (var j = 0; j < 3; j++) {
+                    p[j] = clamp('brightness' === base[s][0] ? p[j] * base[s][1] : (p[j] - 127.5) * base[s][1] + 127.5);
+                }
+            }
+            return p;
+        }
         if ('white' === name) {
             return [255, 255, 255];
         }
@@ -300,12 +334,12 @@
     }
 
     /** Share of visible pixels below 3:1 against the background. */
-    function lowShare(px, bg, name) {
+    function lowShare(px, bg, name, base) {
         var bgLum = lum(bg[0], bg[1], bg[2]);
         var low = 0;
         for (var i = 0; i < px.length; i += 4) {
             var a = px[i + 3] / 255;
-            var f = filtered(name, px[i], px[i + 1], px[i + 2]);
+            var f = filtered(name, px[i], px[i + 1], px[i + 2], base);
             var l = lum(
                 clamp(f[0]) * a + bg[0] * (1 - a),
                 clamp(f[1]) * a + bg[1] * (1 - a),
@@ -320,14 +354,16 @@
 
     /** The filter to use, or '' for none. */
     function choose(px, bg) {
-        var before = lowShare(px, bg, '');
-        if (before < 0.4) {
+        var before = lowShare(px, bg, '', steps(baseFilter()));
+        // A clear part already shows (a white book in a montage, white text
+        // on a banner): recolouring would spoil it. Only mostly hidden images.
+        if (before < 0.6) {
             return '';
         }
         var best = '';
         var bestShare = before;
         for (var i = 0; i < FILTERS.length; i++) {
-            var share = lowShare(px, bg, FILTERS[i]);
+            var share = lowShare(px, bg, FILTERS[i], null);
             if (share <= 0.2) {
                 best = FILTERS[i];
                 bestShare = share;
@@ -363,7 +399,8 @@
             var px = null;
             // Unmarked first: a filter of its own means hands off.
             img.removeAttribute(ATTR);
-            if (src && eligible(img) && 'none' === getComputedStyle(img).filter) {
+            var own = getComputedStyle(img).filter;
+            if (src && eligible(img) && ('none' === own || baseFilter() === own)) {
                 px = pixels(img);
             }
             saved = { src: src, px: px };
@@ -431,6 +468,9 @@
         document.head.appendChild(style);
 
         trackAll(document);
+        probe.hidden = true;
+        probe.alt = '';
+        body.appendChild(probe);
 
         // Lazy loaders and srcset swap the picture: measure it again.
         document.addEventListener('load', function (e) {
