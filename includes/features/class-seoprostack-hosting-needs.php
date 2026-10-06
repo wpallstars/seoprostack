@@ -626,8 +626,12 @@ class SEOProStack_Hosting_Needs extends SEOProStack_Feature {
     }
 
     /**
-     * Check only from admin, cron or WP-CLI, at most daily. Keep the previous
-     * probe in the database: an object-cache transient cannot detect fallback.
+     * Check only from admin screens and cron on web requests, at most daily.
+     * WP-CLI and cron run from the command line can use another PHP, with
+     * other extensions, than the one serving the site (on Hostinger, the
+     * account's PHP rather than the site's), so they get the stored result.
+     * Keep the previous probe in the database: an object-cache transient
+     * cannot detect fallback.
      *
      * @return array Daily cache state, kind, name, available backend, and for
      *               an unreachable cache the cause (extension, dropin or
@@ -642,7 +646,7 @@ class SEOProStack_Hosting_Needs extends SEOProStack_Feature {
         $fresh    = isset($previous['checked']) && time() - $previous['checked'] < DAY_IN_SECONDS;
         // A missing PHP extension the host has since turned on is checked again at once.
         $recheck = $fresh && 'extension' === ($previous['cause'] ?? '') && extension_loaded(self::cache_extension((string) ($previous['kind'] ?? '')));
-        if ((!is_admin() && !wp_doing_cron() && !(defined('WP_CLI') && WP_CLI)) || ($fresh && !$recheck)) {
+        if ('' === self::live_sapi() || (!is_admin() && !wp_doing_cron()) || ($fresh && !$recheck)) {
             return $previous + $empty;
         }
         // An atomic, short-lived lock prevents concurrent Site Health checks.
