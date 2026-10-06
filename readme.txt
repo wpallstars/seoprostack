@@ -5,7 +5,7 @@ Tags: magic login, iframe, schedule posts, auto upload images, admin
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.3.13
+Stable tag: 1.3.14
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -32,7 +32,7 @@ Features safe on every site start on; those needing choices stay off. Use **Sett
 
 * **Magic login links**: one-time links by email that link scanners cannot use up.
 * **Admin bar and dashboard access**: keep subscribers and customers out of wp-admin; never administrators.
-* **Turn off unused remote access**: XML-RPC and application passwords, and web access to log and backup files. Site Health names any such public file, and says if anyone can list the files in your uploads folder.
+* **Turn off unused remote access**: XML-RPC and application passwords, and web access to log and backup files. Site Health names such public files, and a listable uploads folder.
 * **Maintenance mode**: a 503 page search engines understand, with 24-hour bypass links you can revoke.
 
 = Writing and publishing =
@@ -51,7 +51,7 @@ Features safe on every site start on; those needing choices stay off. Use **Sett
 * **Copy linked images to Media Library** on save, and **Paste into the Media Library**.
 * **WebP and AVIF images**: smaller files for browsers that support them, at the same address.
 * **Resize large uploads**, **Replace media files** and **Watermark pictures**, keeping the originals.
-* **SVG uploads** for chosen roles, cleaned on upload.
+* **SVG uploads** for chosen roles, cleaned on upload. **Dark mode image contrast** for logos.
 * **Website screenshots**: a block and the `[browser-shot]` shortcode, saved to the Media Library.
 * **Avatars without Gravatar**: served by your own site.
 
@@ -137,7 +137,7 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 
 == Changelog ==
 
-= 1.3.13 =
-* New: View details for GitHub builds shows this readme and screenshots.
+= 1.3.14 =
+* New: Dark mode image contrast for logos (off by default).
 
 Older: `changelog.txt`.
