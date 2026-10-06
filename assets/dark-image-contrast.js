@@ -30,7 +30,7 @@
  * - Watermarks (unless window.seoprostackDarkImageContrast.watermarks is
  *   false): transparent images drawn under 75% opacity, as an <img> or a
  *   background of an element or its ::before or ::after (Kadence row and
- *   column overlays), are kept at watermark-level contrast (1.3:1 at most)
+ *   column overlays), are kept at watermark-level contrast (1.2:1 at most)
  *   by lowering their opacity, inverted first (hue kept) when they have all
  *   but vanished. Marked with data-seoprostack-watermark and a
  *   --seoprostack-wm-* opacity, applied in dark mode only.
@@ -65,7 +65,7 @@
 
     var WM_ATTR = 'data-seoprostack-watermark';
     var WM_OPACITY = 0.75; // Drawn under this opacity on purpose: a watermark.
-    var WM_MAX = 1.3; // Watermark-level contrast, at most.
+    var WM_MAX = 1.2; // Watermark-level contrast, at most.
     var WM_MIN = 1.08; // Under this, a watermark has all but vanished.
     var NOT_WATERMARKS = /^(img|script|style|link|meta|noscript|template|br|svg|path|g|use|source|option)$/i;
     var config = window.seoprostackDarkImageContrast || {};
