@@ -209,8 +209,10 @@ final class SEOProStack_Setup {
      * v23: Load plugins only where needed: switch on "Also skip them for
      *      people who are logged in" on sites installed before it became
      *      the default (owner's choice, #426).
+     * v24: Readable list columns: remove Readabler's column where Columns
+     *      to remove was stored before it was offered (#575).
      */
-    const DB_VERSION = 23;
+    const DB_VERSION = 24;
 
     /**
      * Tab slugs renamed in 0.4.0, old => new. Settings that still use an

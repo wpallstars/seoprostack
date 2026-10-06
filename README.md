@@ -339,7 +339,7 @@ Keeps the title column of post, page, user, media and plugins’ lists wide enou
 - When the main column of a list is narrower than a fifth of the table, or another column has been squeezed to nothing (columns without a width of their own get none once the others add up to more than the table), it gives the main column a quarter of the table and narrows the other columns towards the narrowest they can be without breaking words. Narrow columns whose content fits (checkboxes, icons, counts) keep their width. When even that is not enough room, the main column gives up some of its quarter, down to 120 px (or 12% of the table), before other columns break words. Lists with room to spare stay as they are.
 - Each list is fitted before it is first shown, so it never flashes up squeezed: the script loads in the page head and fits a list as soon as its rows are in. Until then the list is hidden; if the script never gets to it, the list shows after two seconds as WordPress lays it out. Without JavaScript, nothing is hidden.
 - Checked again when columns are switched on or off in Screen Options and when the window changes size. On phones, where WordPress stacks columns under the title, nothing changes.
-- **Columns to remove** (all ticked by default): Complianz’s Website Scan, Post Type Switcher’s Type and Burst Statistics’ Pageviews are taken out of every list, and out of Screen Options. Admin Columns still offers them in its column editor, so a layout made there can add them back. To hide other columns for yourself only, untick them in Screen Options.
+- **Columns to remove** (all ticked by default): Complianz’s Website Scan, Post Type Switcher’s Type, Burst Statistics’ Pageviews and Readabler’s accessibility column are taken out of every list, and out of Screen Options. Admin Columns still offers them in its column editor, so a layout made there can add them back. To hide other columns for yourself only, untick them in Screen Options.
 - **Author and date last** (on by default): on lists of posts, pages, media and other content, Author and Date are moved to the end, after the columns plugins add. A column layout chosen in Admin Columns still wins.
 - Rank Math’s **SEO Details** column gets room for its usual longest line (“Schema: Article (BlogPosting)”). The score and link counts stay on one line; a longer keyword or schema wraps between words, indented under its label, so it never pushes the list off the page.
 - A small script on list screens; only the two settings above are stored.
@@ -1482,6 +1482,7 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folder�
 ### Unreleased
 
 - Fix: **Load plugins only where needed** no longer brings back removed or moved menu entries of plugins loaded on the current screen, or opens their old addresses as blank pages. Skipped plugins' entries are still restored; copies without known ownership keep the existing fallback (GitHub issue #571).
+- Change: **Readable list columns** also removes Readabler’s column (its logo, for accessibility issues and usage) from post and page lists. It is a new choice in **Columns to remove**, ticked on new sites and on sites that already have SEO Pro Stack; untick it to bring the column back. Readabler’s own settings are not changed (GitHub issue #575).
 
 ### 1.3.15
 

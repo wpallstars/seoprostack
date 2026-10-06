@@ -106,7 +106,25 @@ class SEOProStack_List_Columns extends SEOProStack_Feature {
             'cmplz_scan' => __('Complianz Website Scan (Complianz)', 'seoprostack'),
             'post_type'  => __('Type (Post Type Switcher)', 'seoprostack'),
             'pageviews'  => __('Pageviews (Burst Statistics)', 'seoprostack'),
+            'readabler'  => __('Accessibility (Readabler)', 'seoprostack'),
         );
+    }
+
+    /**
+     * v24: Readabler's column is removed on sites that stored the list
+     * before it was offered, as on new sites (#575). A list that was
+     * stored empty is a choice, and stays empty.
+     *
+     * @param array $options      Stored settings (raw, without defaults).
+     * @param int   $from_version Stored settings version before this upgrade.
+     * @return array
+     */
+    public static function migrate(array $options, $from_version) {
+        if ((int) $from_version > 0 && $from_version < 24 && !empty($options[self::REMOVE_KEY]) && is_array($options[self::REMOVE_KEY])
+            && !in_array('readabler', $options[self::REMOVE_KEY], true)) {
+            $options[self::REMOVE_KEY][] = 'readabler';
+        }
+        return $options;
     }
 
     /**
