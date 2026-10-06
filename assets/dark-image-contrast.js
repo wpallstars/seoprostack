@@ -224,7 +224,7 @@
 
     /**
      * Visible pixels [r, g, b, a, ...] of a transparent, flat-coloured
-     * image, or null to leave it alone.
+     * image, with its transparent share as .clear, or null to leave it alone.
      */
     function pixels(img) {
         var w = img.naturalWidth || img.clientWidth;
@@ -276,6 +276,7 @@
         for (var t = 0; t < counts.length && t < 12; t++) {
             top += counts[t];
         }
+        px.clear = clear / (cw * ch);
         return top >= n * 0.8 ? px : null;
     }
 
@@ -355,9 +356,14 @@
     /** The filter to use, or '' for none. */
     function choose(px, bg) {
         var before = lowShare(px, bg, '', steps(baseFilter()));
-        // A clear part already shows (a white book in a montage, white text
-        // on a banner): recolouring would spoil it. Only mostly hidden images.
+        // A clear part already shows (a white book in a montage): recolouring
+        // would spoil it. Only mostly hidden images.
         if (before < 0.6) {
+            return '';
+        }
+        // Mostly filled, such as a banner or badge, with some of it clear
+        // (white text on coloured bands): it carries its own contrast.
+        if (px.clear < 0.4 && before <= 0.9) {
             return '';
         }
         var best = '';
