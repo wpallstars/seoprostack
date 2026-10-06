@@ -2,6 +2,9 @@
 
 Every change to SEO Pro Stack. readme.txt lists the latest version in short.
 
+= Unreleased =
+* Fix: Fixes for other plugins lets Burst Statistics 3.7.2 finish its database upgrade on sites whose statistics table is older than its lookup tables and has another collation. The upgrade failed on every run with "Illegal mix of collations", adding the same database error to the PHP log every 5 minutes, indefinitely. Its join now compares names in the lookup table's collation, while that upgrade runs; Burst's tables are not changed.
+
 = 1.3.10 =
 * New: Clean up deleted plugins has a Clean up every site now button for network administrators on a multisite. It checks every site and removes entries for plugins whose files are gone from each site's active plugins (through WordPress's own check), uninstall entries and "Recently active" list, and from the network's lists, then says what it removed.
 * New: Hosting needs says when PHP's memory limit is far above what the site uses (over 2 GB and over 4 times what it needs, or no limit at all), with a lower limit to ask for. A lower limit stops a runaway request before it uses the server's memory. It is information only.
