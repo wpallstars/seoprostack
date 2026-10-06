@@ -1,0 +1,116 @@
+{
+    "name": "Readabler",
+    "tested": "2.0.18",
+    "updated": "2026-10-06",
+    "notes": "Puts Readabler's accessibility button in the bottom left corner, 30 px from the edges, so it never sits on a chatbot bubble (AI Engine and most chat plugins use the bottom right, which is also Readabler's default). The accessibility popup opens in the middle of the screen, the page can still scroll while it is open, and a click outside closes it. The analyzer stays on, but without its column in post lists, its box in the editor and its admin bar item, for quieter admin screens (Readable list columns also removes the column). The button's and popup's colours are left alone: they are each site's brand colours, so set them in Readabler. Readabler stores each tab's settings as one option and fills any missing setting with its default, so applying before Readabler's screen was saved is safe. Settings are read on each page, so nothing needs saving again.",
+    "options": {
+        "mdp_readabler_open_button_settings": {
+            "button_position": "bottom-left",
+            "button_margin": "30"
+        },
+        "mdp_readabler_modal_popup_settings": {
+            "popup_position": "center",
+            "popup_scroll": "on",
+            "popup_close_anywhere": "on"
+        },
+        "mdp_readabler_analyzer_settings": {
+            "analyzer_column": "off",
+            "analyzer_metabox": "off",
+            "analyzer_admin_bar": "off"
+        }
+    },
+    "defaults": {
+        "mdp_readabler_open_button_settings": {
+            "button_position": "bottom-right",
+            "button_margin": "10"
+        },
+        "mdp_readabler_modal_popup_settings": {
+            "popup_position": "right",
+            "popup_scroll": "off",
+            "popup_close_anywhere": "off"
+        },
+        "mdp_readabler_analyzer_settings": {
+            "analyzer_column": "on",
+            "analyzer_metabox": "on",
+            "analyzer_admin_bar": "on"
+        }
+    },
+    "settings": {
+        "mdp_readabler_open_button_settings.button_position": {
+            "label": "Position",
+            "description": "Where the floating accessibility button shows on the page. Bottom left keeps it clear of chatbot bubbles.",
+            "values": {
+                "top-left": "Top Left",
+                "top-right": "Top Right",
+                "left-center": "Left Center",
+                "right-center": "Right Center",
+                "bottom-left": "Bottom Left",
+                "bottom-center": "Bottom Center",
+                "bottom-right": "Bottom Right",
+                "null": "Bottom Right (Readabler's default)"
+            }
+        },
+        "mdp_readabler_open_button_settings.button_margin": {
+            "label": "Margin",
+            "description": "Space between the button and the edges of the screen, in pixels.",
+            "values": {
+                "null": "10 (Readabler's default)"
+            }
+        },
+        "mdp_readabler_modal_popup_settings.popup_position": {
+            "label": "Popup position",
+            "description": "Where the accessibility popup first opens.",
+            "values": {
+                "right": "Right",
+                "center": "Center",
+                "left": "Left",
+                "null": "Right (Readabler's default)"
+            }
+        },
+        "mdp_readabler_modal_popup_settings.popup_scroll": {
+            "label": "Scroll",
+            "description": "The page can still scroll while the popup is open.",
+            "values": {
+                "on": "On",
+                "off": "Off",
+                "null": "Off (Readabler's default)"
+            }
+        },
+        "mdp_readabler_modal_popup_settings.popup_close_anywhere": {
+            "label": "Close anywhere",
+            "description": "A click outside the popup closes it.",
+            "values": {
+                "on": "On",
+                "off": "Off",
+                "null": "Off (Readabler's default)"
+            }
+        },
+        "mdp_readabler_analyzer_settings.analyzer_column": {
+            "label": "Post list column",
+            "description": "The analyzer's column in post and page lists.",
+            "values": {
+                "on": "On",
+                "off": "Off",
+                "null": "On (Readabler's default)"
+            }
+        },
+        "mdp_readabler_analyzer_settings.analyzer_metabox": {
+            "label": "Metabox",
+            "description": "The analyzer's box in the editor.",
+            "values": {
+                "on": "On",
+                "off": "Off",
+                "null": "On (Readabler's default)"
+            }
+        },
+        "mdp_readabler_analyzer_settings.analyzer_admin_bar": {
+            "label": "Admin bar",
+            "description": "The analyzer's item in the admin bar.",
+            "values": {
+                "on": "On",
+                "off": "Off",
+                "null": "On (Readabler's default)"
+            }
+        }
+    }
+}
