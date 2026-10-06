@@ -2,7 +2,7 @@
 
 Every change to SEO Pro Stack. readme.txt lists the latest version in short.
 
-= Unreleased =
+= 1.3.8 =
 * New: Correct update counts (Admin tab, on by default). The numbers next to Dashboard › Updates, Plugins and Appearance no longer count updates already installed by the host, a deploy or a file upload, which WordPress keeps counting for up to 12 hours while the Updates screen lists none. Only the numbers change.
 * Fix: with Load plugins only where needed, a wp-admin screen where WordPress's twice-daily update check is due loads every plugin, at most once an hour, so updates that plugins such as Kadence Blocks and SliceWP add are in the check. Screens that skip those plugins still count their updates.
 * Changed: Load plugins only where needed shows only its switch and status. Its other settings, bypasses for a plugin or theme it does not handle, are in a closed Troubleshooting section of its Options, which opens by itself when one of them is changed or a page of the site failed with fewer plugins. Each says which problem it fixes. Values and defaults are unchanged.

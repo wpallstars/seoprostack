@@ -21,7 +21,7 @@ SEO Pro Stack does the jobs that usually take dozens of small plugins: a calmer,
 
 If this saves you time, headaches and costs, feel free to [buy me a coffee](https://buymeacoffee.com/marcusquinn), or whatever you like, to invest in making more things open-source.
 
-Version: 1.3.7
+Version: 1.3.8
 
 <!-- github-only:start -->
 ## Screenshots
@@ -1456,8 +1456,10 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folderâ
 
 ## Changelog
 
-### Unreleased
+### 1.3.8
 
+- Fix: **Hosting needs** no longer asks for more PHP workers and CPU cores than a site needs. PHP workers come from the average time per request (Little's law), not the time 95% of pages took, rounded up to its timing slot, which counted slow requests twice on top of the busiest hour and its bursts. **Now** uses the average of every sampled request, admin screens, the REST API and cron included, because its busiest hour counts them all; low, medium and high traffic use visitors' pages. On one measured site Now went from 7 workers and 8 CPU cores to 4 and 4. The traffic line shows both averages and the 95% page time (GitHub issue #530).
+- Fix: **Hosting needs** no longer warns that LiteSpeed Cache's object cache "did not keep a test value between daily checks" while it works. LiteSpeed Cache's Purge All, on every plugin update by default, empties the object cache, and shared Memcached drops values nobody reads, so the test value was lost. Its cache is now checked only by asking its server, which shows whether it falls back to the database; other object caches still keep a test value. A warning stored by an older version is checked again on the next admin screen (GitHub issue #524).
 - New: **Correct update counts** (Admin tab, on by default). The numbers next to Dashboard â€º Updates, Plugins and Appearance no longer count updates already installed by the host, a deploy or a file upload, which WordPress keeps counting until its next check, up to 12 hours later, while the Updates screen lists none. Only the numbers change; WordPress's update checks and the Updates screen are left alone (GitHub issue #535).
 - Fix: with **Load plugins only where needed**, an admin screen where WordPress's twice-daily update check is due loads every plugin (at most once an hour), so plugins that add their updates only while loaded, such as Kadence Blocks and SliceWP, are in the check; the admin bar says why. Screens that skip plugins count the updates those plugins added on the last screen that loaded them all (`seoprostack_update_counts` and `seoprostack_plugin_updates_full` options, not autoloaded, removed on uninstall) (GitHub issue #535).
 - Changed: **Load plugins only where needed** shows only its switch and status. Its five other settings are bypasses for a plugin or theme it does not handle, so they moved to a closed **Troubleshooting** section at the end of its Options, which opens by itself when one of them differs from its default or a page of the site failed with fewer plugins. Each now says which problem it fixes, and **Plugins to skip on the site** no longer invites ticking more plugins. Values and defaults are unchanged (GitHub issue #514).
