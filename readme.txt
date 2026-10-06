@@ -137,6 +137,9 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 
 == Changelog ==
 
+= Unreleased =
+* Fix: deleting spam comments corrects wrong comment counts on posts; Recount now repairs them all (Count terms and comments in the background).
+
 = 1.3.17 =
 * New, off by default: Readabler colours follow Kadence's palette and dark mode.
 

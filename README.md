@@ -567,7 +567,8 @@ WordPress’s Heartbeat asks the server for news every minute while an admin scr
 Off by default. Saves, imports and deletions queue the affected categories, tags, product terms and comment post IDs instead of repeating their count queries in each request. A single scheduled task starts about five minutes later; new work does not postpone it.
 
 - Counts in widgets, term lists, hide-empty lists and code reading a count straight after a change can be a few minutes behind, including a post's first approved comment. On quiet sites, or with WordPress cron disabled, counts wait until scheduled tasks run.
-- **Recount now** processes up to 500 queued IDs. Any remaining work follows in another scheduled batch. WooCommerce and other taxonomies keep their own counting callbacks.
+- Deleting a spam, pending or binned comment also checks its post's comment count, once per post per request, and recounts it when it is wrong. WordPress recounts only when an approved comment is deleted, so a count already wrong (from database edits, imports or other plugins) stayed on the posts list after its spam was deleted. Posts whose count is right are not recounted, so their caches stay.
+- **Recount now** first queues posts whose comment count does not match their approved comments (up to 5,000, of post types with comments; other types are left alone, as some plugins keep their own numbers in `comment_count`), then processes up to 500 queued IDs. Any remaining work follows in another scheduled batch. WooCommerce and other taxonomies keep their own counting callbacks.
 - Switching it off recounts one batch immediately, stops deferring new changes and finishes any remainder in the background. Queued taxonomies whose plugin is not loaded stay queued until it is available again; do not deactivate a taxonomy's plugin before recounting its terms.
 - The non-autoloaded option `seoprostack_deferred_counts_queue` holds term taxonomy IDs per taxonomy and post IDs for comments. Atomic updates preserve simultaneous writers. IDs stay queued until a successful recount acknowledges their processing generation, so interrupted runs and new changes during a recount are retried. Cron and the manual action load all plugins. Uninstall removes the queue and the `seoprostack_deferred_counts` hook.
 - Developers can run the scheduled task with `wp cron event run seoprostack_deferred_counts`.
@@ -1488,6 +1489,10 @@ Deleting the plugin removes its settings and cached data, the database keys Add 
 Deactivating the plugin removes the WebP and AVIF rules from the uploads folder’s `.htaccess` (for every site when network-deactivated), the LiteSpeed background request rules from the site’s `.htaccess` (on multisite, when network-deactivated or deactivated on the main site) and the must-use file of Load plugins only where needed (on multisite, when network-deactivated).
 
 ## Changelog
+
+### Unreleased
+
+- Fix: **Count terms and comments in the background** corrects a post's comment count when its spam, pending or binned comments are deleted and the count is wrong. WordPress recounts only when an approved comment is deleted, so counts already wrong (from database edits, imports or other plugins) stayed on the posts list after the spam was deleted. **Recount now** also finds and recounts every post whose comment count does not match its approved comments (GitHub issue #585).
 
 ### 1.3.17
 

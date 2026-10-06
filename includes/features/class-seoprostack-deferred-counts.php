@@ -21,11 +21,17 @@ class SEOProStack_Deferred_Counts extends SEOProStack_Feature {
     const ACTION = 'seoprostack_deferred_counts_now';
     const BATCH = 500;
 
+    /** Posts with a wrong comment count that Recount now queues at most. */
+    const REPAIR = 5000;
+
     /** @var array Original taxonomy callbacks, including core's empty default. */
     private static $original = array();
 
     /** @var bool Whether counts must run immediately in this request. */
     private static $running = false;
+
+    /** @var array<int,true> Posts whose comment count this request checked. */
+    private static $checked = array();
 
     /** @return array Settings schema. */
     public static function settings() {
@@ -34,7 +40,7 @@ class SEOProStack_Deferred_Counts extends SEOProStack_Feature {
             'default'     => false,
             'tab'         => 'server',
             'label'       => __('Count terms and comments in the background', 'seoprostack'),
-            'description' => __('Batch recounts after saves, imports and deletions. Counts in widgets, term lists and hide-empty lists, including the first approved comment, can be a few minutes behind. On quiet sites they wait until WordPress runs its scheduled tasks.', 'seoprostack'),
+            'description' => __('Batch recounts after saves, imports and deletions. Counts in widgets, term lists and hide-empty lists, including the first approved comment, can be a few minutes behind. On quiet sites they wait until WordPress runs its scheduled tasks. Deleting spam, pending or binned comments also corrects their post\'s comment count when it is wrong.', 'seoprostack'),
         ));
     }
 
@@ -57,6 +63,65 @@ class SEOProStack_Deferred_Counts extends SEOProStack_Feature {
         add_action('init', array(__CLASS__, 'wrap_taxonomies'), PHP_INT_MAX);
         add_action('registered_taxonomy', array(__CLASS__, 'wrap_taxonomy'));
         add_filter('pre_wp_update_comment_count_now', array(__CLASS__, 'queue_comment'), 99, 3);
+        add_action('deleted_comment', array(__CLASS__, 'comment_deleted'), 10, 2);
+    }
+
+    /**
+     * WordPress recounts a post only when an approved comment is deleted, so
+     * a count that is already wrong (database edits, imports, other plugins)
+     * stays wrong when the spam under it is deleted. Check each post once a
+     * request and recount only a wrong count, so posts whose count is right
+     * keep their caches.
+     *
+     * @param int|string      $comment_id Comment ID.
+     * @param WP_Comment|null $comment    The deleted comment.
+     */
+    public static function comment_deleted($comment_id, $comment = null) {
+        if (!$comment instanceof WP_Comment || '1' === (string) $comment->comment_approved) {
+            return;
+        }
+        $post_id = (int) $comment->comment_post_ID;
+        if ($post_id <= 0 || isset(self::$checked[$post_id])) {
+            return;
+        }
+        self::$checked[$post_id] = true;
+        $post = get_post($post_id);
+        if (!$post || !post_type_supports($post->post_type, 'comments')) {
+            return;
+        }
+        global $wpdb;
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- the query wp_update_comment_count_now() runs, to skip a recount that changes nothing.
+        $approved = (int) $wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM {$wpdb->comments} WHERE comment_post_ID = %d AND comment_approved = '1'", $post_id));
+        if ($approved !== (int) $post->comment_count) {
+            wp_update_comment_count($post_id);
+        }
+    }
+
+    /**
+     * Posts, of types with comments, whose stored count is not their number
+     * of approved comments. Other types are left alone: some plugins keep
+     * their own numbers in comment_count.
+     *
+     * @return int[]
+     */
+    private static function wrong_comment_counts() {
+        global $wpdb;
+        $types = array_values(get_post_types_by_support('comments'));
+        if (!$types) {
+            return array();
+        }
+        $in = implode(',', array_fill(0, count($types), '%s'));
+        // phpcs:disable WordPress.DB.DirectDatabaseQuery, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- manual repair; only generated %s placeholders, every value is prepared.
+        $high = $wpdb->get_col($wpdb->prepare(
+            "SELECT p.ID FROM {$wpdb->posts} p WHERE p.comment_count > 0 AND p.post_type IN ($in) AND p.comment_count <> (SELECT COUNT(*) FROM {$wpdb->comments} c WHERE c.comment_post_ID = p.ID AND c.comment_approved = '1') LIMIT %d",
+            array_merge($types, array(self::REPAIR))
+        ));
+        $low = $wpdb->get_col($wpdb->prepare(
+            "SELECT DISTINCT c.comment_post_ID FROM {$wpdb->comments} c INNER JOIN {$wpdb->posts} p ON p.ID = c.comment_post_ID WHERE c.comment_approved = '1' AND p.comment_count = 0 AND p.post_type IN ($in) LIMIT %d",
+            array_merge($types, array(self::REPAIR))
+        ));
+        // phpcs:enable
+        return array_slice(array_values(array_unique(array_map('intval', array_merge((array) $high, (array) $low)))), 0, self::REPAIR);
     }
 
     /** Wrap taxonomies registered before and during init. */
@@ -304,6 +369,29 @@ class SEOProStack_Deferred_Counts extends SEOProStack_Feature {
         }
     }
 
+    /**
+     * Queue posts whose comment count is wrong, for the next run.
+     *
+     * @return int Posts queued.
+     */
+    public static function repair_comment_counts() {
+        $ids = self::wrong_comment_counts();
+        if (!$ids) {
+            return 0;
+        }
+        if (false === self::queue(array('' => $ids))) {
+            // The queue is busy: count them now rather than lose the repair.
+            self::immediate(function () use ($ids) {
+                foreach ($ids as $id) {
+                    wp_update_comment_count_now($id);
+                }
+            });
+            return count($ids);
+        }
+        self::schedule();
+        return count($ids);
+    }
+
     /** @param string $key Saved setting. */
     public static function setting_saved($key) {
         if (self::KEY === $key && !self::enabled()) {
@@ -335,7 +423,7 @@ class SEOProStack_Deferred_Counts extends SEOProStack_Feature {
         }
         $url = wp_nonce_url(add_query_arg('action', self::ACTION, admin_url('admin-post.php')), self::ACTION);
         echo '<p><a class="button" href="' . esc_url($url) . '">' . esc_html__('Recount now', 'seoprostack') . '</a></p>';
-        echo '<p class="description">' . esc_html__('Recount up to 500 queued items now. Any remaining items follow in the background.', 'seoprostack') . '</p>';
+        echo '<p class="description">' . esc_html__('Recount up to 500 queued items now, with posts whose comment count is wrong, such as after comments were deleted straight from the database. Any remaining items follow in the background.', 'seoprostack') . '</p>';
     }
 
     /** Capability and nonce protected manual recount. */
@@ -344,6 +432,7 @@ class SEOProStack_Deferred_Counts extends SEOProStack_Feature {
             wp_die(esc_html__('You cannot recount this site.', 'seoprostack'), '', array('response' => 403));
         }
         check_admin_referer(self::ACTION);
+        self::repair_comment_counts();
         self::run();
         wp_safe_redirect(admin_url('options-general.php?page=seoprostack&tab=server'));
         exit;
