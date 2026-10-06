@@ -21,7 +21,7 @@ SEO Pro Stack does the jobs that usually take dozens of small plugins: a calmer,
 
 If this saves you time, headaches and costs, feel free to [buy me a coffee](https://buymeacoffee.com/marcusquinn), or whatever you like, to invest in making more things open-source.
 
-Version: 1.3.15
+Version: 1.3.16
 
 <!-- github-only:start -->
 ## Screenshots
@@ -1479,8 +1479,9 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folder�
 
 ## Changelog
 
-### Unreleased
+### 1.3.16
 
+- New: **Dark mode image contrast** → **Keep colours in dark mode**, without typing a class. In the Media Library, tick **Keep colours in dark mode** in a picture's details (list, grid or media window): it is shown as it is in dark mode wherever it is used, at any size, as a WebP or AVIF copy, and as a background (such as Kadence row and column background overlays). In the block editor, turn on **Keep colours in dark mode** in the **Dark mode** panel of an image, cover, group, columns, gallery or Kadence row, column, image, gallery or info box block: every picture in it is kept. The switch adds or removes the class `seoprostack-keep-colours` in the block's Additional CSS class(es). Both show only while Dark mode image contrast is on (GitHub issue #572).
 - Fix: **Load plugins only where needed** no longer brings back removed or moved menu entries of plugins loaded on the current screen, or opens their old addresses as blank pages. Skipped plugins' entries are still restored; copies without known ownership keep the existing fallback (GitHub issue #571).
 - Change: **Readable list columns** also removes Readabler’s column (its logo, for accessibility issues and usage) from post and page lists. It is a new choice in **Columns to remove**, ticked on new sites and on sites that already have SEO Pro Stack; untick it to bring the column back. Readabler’s own settings are not changed (GitHub issue #575).
 
