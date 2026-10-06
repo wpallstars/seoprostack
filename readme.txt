@@ -68,7 +68,7 @@ Features safe on every site start on; those needing choices stay off. Use **Sett
 * **Load large settings only where they are used** (single sites).
 * **Faster page counts on long lists** (off), with exact page numbers.
 * **Database key cleanup**: duplicate indexes and who added them, with restore SQL. **Add database keys** (off): faster custom field lookups.
-* **Load plugins only where needed**: skips plugins a page does not use, in admin and on the site.
+* **Load plugins only where needed**: skips unused plugins in admin and on the site. Learns page kinds only on cookie-free, unauthenticated public GET requests.
 
 = Plugins and set-up =
 
