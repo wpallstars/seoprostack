@@ -137,6 +137,9 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 
 == Changelog ==
 
+= Unreleased =
+* New, off by default: Readabler colours follow the Kadence palette and its light and dark modes.
+
 = 1.3.16 =
 * New: Keep colours in dark mode for a picture (Media Library) or a block (block editor sidebar).
 * Fix: Load plugins only where needed no longer restores removed menu entries or blank old pages of loaded plugins.

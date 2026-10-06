@@ -363,6 +363,14 @@ Makes TranslatePress's floating and shortcode language switchers follow the site
 - Covers the current and legacy switchers. Sizes, positions, flags, borders' widths, dropdowns and language links stay as TranslatePress sets them.
 - Only a small front-end stylesheet is added. No scripts, outside services or changes to TranslatePress's saved settings. Turning it off restores TranslatePress's own colours on the next page load.
 
+### Readabler colours (Content)
+
+Gives Readabler's accessibility button and popup the site's palette colours, so they follow Kadence's light and dark mode switcher. **Off by default**; nothing changes without Readabler.
+
+- Readabler keeps fixed colours, prints them on `:root` and picks its light or dark popup colours from the visitor's system setting (`prefers-color-scheme`), not the site's switcher. Palette colours typed into Readabler's settings would stay light in dark mode, so this sets Readabler's colour variables on the body instead, the same for light and dark, and the palette decides.
+- Button: palette 5, palette 1 on hover, icon palette 9. Popup: background palette 9, text palette 4, switches and other controls palette 5, with their translucent shades mixed from it.
+- Each colour falls back to the one saved in Readabler, so a theme without Kadence's palette keeps Readabler's colours. Sizes, positions and Readabler's saved settings are not changed; it works with Readabler's **Late load** setting too. Turning it off restores Readabler's own colours on the next page load.
+
 ### Duplicate posts (Content)
 
 Adds **Duplicate** to post lists, the editor and the admin bar for the post types you choose. The copy is always a new draft; the original is never changed. Choose what else is copied: excerpt, author, featured image, terms, custom fields (including SEO settings), template, format, menu order, password and date.
@@ -1086,7 +1094,7 @@ Presets so far:
 | Lasso Lite (Simple URLs) | No affiliate programme bar or Dashboard banner. |
 | LiteSpeed Cache | Worked out for each site (see below). No news and promotions fetched from LiteSpeed; CSS and JS Minify off (they slowed every uncached page); the cache purged after updates; on a LiteSpeed server, the page cache and browser cache on; LiteSpeed's copy of each job an SEO Pro Stack feature does turned off. |
 | Rank Math SEO | No Frontend Stats Bar below the admin bar; 24 months of Analytics data kept (365 days, which Rank Math doubles to compare periods), or as many as the site's Rank Math plan allows; modules and email schedules unchanged. |
-| Readabler | Accessibility button bottom left, 30 px from the edges, clear of chatbot bubbles; the popup opens in the middle, the page still scrolls, and a click outside closes it; no analyzer column in post lists, box in the editor or admin bar item. Colours stay each site's own. |
+| Readabler | Accessibility button bottom left, 30 px from the edges, clear of chatbot bubbles; the popup opens in the middle, the page still scrolls, and a click outside closes it; no analyzer column in post lists, box in the editor or admin bar item. Colours are left alone; **Readabler colours** (Content tab) makes them follow the Kadence palette in light and dark mode. |
 | Really Simple Security | 301 .htaccess redirect on supported single-site Apache/LiteSpeed installations with working HTTPS; saved through the plugin, including Reset and Undo. |
 | Simple CAPTCHA with Cloudflare Turnstile | Login, registration, lost password, comment and Fluent Forms protected; widget follows light or dark mode and shows only when needed. |
 | Tutor LMS | Student profile pages private; course reviews wait for approval; courses written in the block editor; a quiz is submitted when its time runs out; courses complete when every lesson, quiz and assignment is done, and can be retaken. |
@@ -1480,6 +1488,10 @@ Deleting the plugin removes its settings and cached data, the database keys Add 
 Deactivating the plugin removes the WebP and AVIF rules from the uploads folder’s `.htaccess` (for every site when network-deactivated), the LiteSpeed background request rules from the site’s `.htaccess` (on multisite, when network-deactivated or deactivated on the main site) and the must-use file of Load plugins only where needed (on multisite, when network-deactivated).
 
 ## Changelog
+
+### Unreleased
+
+- New, off by default: **Readabler colours** (Content tab) gives Readabler's accessibility button and popup the site's palette colours, so they follow the Kadence light and dark mode switcher. Readabler picks its light or dark popup colours from the visitor's system setting (`prefers-color-scheme`) and prints fixed colours on `:root`, so they could not follow the site from Readabler's settings. The button is palette 5, palette 1 on hover, with a palette 9 icon; the popup is palette 9 with palette 4 text and palette 5 controls. Readabler's own colours are not changed, are used where the theme has no palette, and return when this is off (GitHub issue #580).
 
 ### 1.3.16
 
