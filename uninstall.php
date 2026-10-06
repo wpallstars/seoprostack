@@ -104,8 +104,10 @@ function seoprostack_uninstall_site() {
     // findings are seoprostack_cost_* transients, removed with the others below.
     $options[] = 'seoprostack_plugin_cost';
     wp_cache_delete('hosting_probe', 'seoprostack');
-    // Whether the site runs on a LiteSpeed server, for WP-CLI.
+    // Whether the site runs on a LiteSpeed server, and how PHP runs on web
+    // requests, for WP-CLI.
     $options[] = 'seoprostack_litespeed_server';
+    $options[] = 'seoprostack_php_sapi';
     // Ask before licence checks: choices and times. Kept answers are
     // seoprostack_lc_* transients, removed with the others below.
     $options[] = 'seoprostack_licence_calls';
