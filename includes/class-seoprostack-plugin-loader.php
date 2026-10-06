@@ -18,7 +18,9 @@
  * loaded ("learning"). Everything else loads every plugin: saving
  * (POST), links carrying a nonce or an action, AJAX, REST, cron, WP-CLI,
  * the Plugins, update, settings and widgets screens, the
- * Customizer, screens of plugins it does not know yet, and the site itself.
+ * Customizer, screens of plugins it does not know yet, the site itself, and
+ * a screen where WordPress's twice-daily update check is due (at most once
+ * an hour), so the check sees every plugin's updates.
  *
  * A ticked plugin loads:
  * - on its own screens: pages it added to the menu, and the posts and
@@ -94,6 +96,9 @@ final class SEOProStack_Plugin_Loader {
 
     /** Safe admin visits retained across map invalidation. Not autoloaded. */
     const HISTORY = 'seoprostack_plugin_screens';
+
+    /** When a screen last loaded every plugin for WordPress's update check. Not autoloaded. */
+    const UPDATES_FULL = 'seoprostack_plugin_updates_full';
 
     /** Map format; a change makes SEO Pro Stack learn again. */
     const MAP_VERSION = 10;
@@ -373,8 +378,9 @@ final class SEOProStack_Plugin_Loader {
     /**
      * Why a 'full' request loads every plugin: 'always' (a screen that is
      * never filtered), 'learning' (not learned yet, or learned again),
-     * 'error' (a plugin failed here with fewer plugins) or 'needed' (the
-     * screen needs every ticked plugin).
+     * 'error' (a plugin failed here with fewer plugins), 'needed' (the
+     * screen needs every ticked plugin) or 'updates' (WordPress checks for
+     * updates on this request: update_check_due()).
      *
      * @var string
      */
@@ -489,6 +495,11 @@ final class SEOProStack_Plugin_Loader {
             self::$reason = 'needed';
             return;
         }
+        if (self::update_check_due()) {
+            self::$skipped = array();
+            self::$reason  = 'updates';
+            return;
+        }
         self::filter();
         // A page whose plugin was skipped is not registered: core would say
         // "not allowed". Load it again with every plugin instead.
@@ -499,6 +510,37 @@ final class SEOProStack_Plugin_Loader {
             // Before WP_Customize_Widgets can remap widgets at wp_loaded.
             add_action('wp_loaded', array(__CLASS__, 'check_customizer_registrations'), 0);
         }
+    }
+
+    /**
+     * Whether WordPress checks for updates on this admin request, so it
+     * should load every plugin. Core's 12-hourly checks run on admin_init on
+     * any screen (_maybe_update_core(), _maybe_update_plugins(),
+     * _maybe_update_themes()) and save what plugins' updaters add while the
+     * check runs, so a check made with plugins skipped would leave their
+     * updates out until the next one. At most once an hour, in case the
+     * checks never run here (updates switched off). Reads only the three
+     * stored checks, which core reads on every admin screen anyway.
+     *
+     * @return bool
+     */
+    private static function update_check_due() {
+        $now = time();
+        $due = false;
+        foreach (array('update_core', 'update_plugins', 'update_themes') as $name) {
+            $current = get_site_transient($name);
+            $due     = !is_object($current) || !isset($current->last_checked)
+                || 12 * HOUR_IN_SECONDS <= $now - (int) $current->last_checked
+                || ('update_core' === $name && (!isset($current->version_checked) || (string) get_bloginfo('version') !== (string) $current->version_checked));
+            if ($due) {
+                break;
+            }
+        }
+        if (!$due || $now - (int) get_option(self::UPDATES_FULL, 0) < HOUR_IN_SECONDS) {
+            return false;
+        }
+        self::save_option(self::UPDATES_FULL, $now, false);
+        return true;
     }
 
     /**
