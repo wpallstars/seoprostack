@@ -139,6 +139,7 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 
 = Unreleased =
 * Fix: Load plugins only where needed no longer restores removed menu entries or blank old pages of loaded plugins.
+* Change: Readable list columns also removes Readabler's column from post and page lists (Columns to remove).
 
 = 1.3.15 =
 * New: Dark mode image contrast keeps watermarks subtle (on by default).
