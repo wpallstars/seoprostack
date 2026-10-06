@@ -21,7 +21,7 @@ SEO Pro Stack does the jobs that usually take dozens of small plugins: a calmer,
 
 If this saves you time, headaches and costs, feel free to [buy me a coffee](https://buymeacoffee.com/marcusquinn), or whatever you like, to invest in making more things open-source.
 
-Version: 1.3.8
+Version: 1.3.9
 
 <!-- github-only:start -->
 ## Screenshots
@@ -1456,8 +1456,9 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folderâ
 
 ## Changelog
 
-### Unreleased
+### 1.3.9
 
+- Fix: **Hosting needs** checks the object cache only on web requests (admin screens, Site Health, cron started over HTTP). WP-CLI and cron run from the command line get the stored result: they can run another PHP, with other extensions, than the site's pages. On Hostinger, `/usr/bin/php` (WP-CLI and hPanel cron jobs) is the account's PHP, not the site's; a site whose pages ran PHP 8.1 without `memcached` was reported working because its cron job ran PHP 8.5 (GitHub issue #537).
 - Fix: a plugin deleted while still active stays in WordPress's list of active plugins until someone opens the Plugins screen, though WordPress never loads it. SEO Pro Stack no longer counts it as active: **Load plugins only where needed** no longer waits for good on a site that still lists a deleted Freesoul Deactivate Plugins (so that site learned nothing after an update), features no longer wait for other deleted plugins they replace, and Freesoul's must-use file is removed when only such entries are left (GitHub issue #521).
 
 ### 1.3.8
@@ -1470,7 +1471,6 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folderâ
 - Developers: core files synced from WP Plugin Starter 1.0.24. A child setting with `'group' => 'troubleshooting'` is shown in that closed section of its parent's Options; the `seoprostack_troubleshooting_open` filter (open, setting key) opens it, for a feature that fell back after an error. `STANDARDS.md` also says a replacing feature keeps its list in a `REPLACES` class constant.
 - New: **Hosting needs** says how PHP runs (Site Health Info, next to the web server): PHP-FPM, LiteSpeed's LSAPI, FastCGI, Apache's mod_php or CGI, in plain words, remembered from the admin for cron and WP-CLI (`seoprostack_php_sapi` option, not autoloaded, removed on uninstall). With mod_php or CGI, which hold PHP's memory in every Apache process or lose OPcache on every request, it advises asking the host for PHP-FPM or LSAPI. The memory per PHP worker line and the plans' PHP workers row name the server's setting for how many there are (`pm.max_children`, `LSAPI_CHILDREN` with CloudLinux's entry processes, or `MaxRequestWorkers`), so they can be sent to a host as they are (GitHub issue #517).
 - New: a **Directory listing** Site Health test, always on, beside Log and backup files. Once a day it asks for this month's uploads folder as a visitor would and, when the server lists its files, asks the host to turn listing off (`Options -Indexes`, or `autoindex off;` on nginx). Advice only: SEO Pro Stack writes no server files (GitHub issue #517).
-- Fix: **Hosting needs** checks the object cache only on web requests (admin screens, Site Health, cron started over HTTP). WP-CLI and cron run from the command line get the stored result: they can run another PHP, with other extensions, than the site's pages. On Hostinger, `/usr/bin/php` (WP-CLI and hPanel cron jobs) is the account's PHP, not the site's; a site whose pages ran PHP 8.1 without `memcached` was reported working because its cron job ran PHP 8.5 (GitHub issue #537).
 
 ### 1.3.7
 
