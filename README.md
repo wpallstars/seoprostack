@@ -21,7 +21,7 @@ SEO Pro Stack does the jobs that usually take dozens of small plugins: a calmer,
 
 If this saves you time, headaches and costs, feel free to [buy me a coffee](https://buymeacoffee.com/marcusquinn), or whatever you like, to invest in making more things open-source.
 
-Version: 1.3.9
+Version: 1.3.10
 
 <!-- github-only:start -->
 ## Screenshots
@@ -1460,7 +1460,7 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folder�
 
 ## Changelog
 
-### Unreleased
+### 1.3.10
 
 - New: **Clean up deleted plugins** has a **Clean up every site now** button for network administrators on a multisite. It checks every site and removes entries for plugins whose files are gone from each site's active plugins (through WordPress's own check), uninstall entries and “Recently active” list, and from the network's lists, then says what it removed. Sites whose Plugins screen nobody opens no longer keep a deleted plugin listed as active (GitHub issue #527).
 - New: **Hosting needs** says when PHP's memory limit is far above what the site uses: over 2 GB and over 4 times the limit it needs, or no limit at all. It is information only, in the row and the PHP memory test in Site Health, with the highest use in 7 days and a lower limit to ask for, which stops a runaway request before it uses the server's memory (GitHub issue #533).

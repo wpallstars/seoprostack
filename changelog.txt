@@ -2,7 +2,7 @@
 
 Every change to SEO Pro Stack. readme.txt lists the latest version in short.
 
-= Unreleased =
+= 1.3.10 =
 * New: Clean up deleted plugins has a Clean up every site now button for network administrators on a multisite. It checks every site and removes entries for plugins whose files are gone from each site's active plugins (through WordPress's own check), uninstall entries and "Recently active" list, and from the network's lists, then says what it removed.
 * New: Hosting needs says when PHP's memory limit is far above what the site uses (over 2 GB and over 4 times what it needs, or no limit at all), with a lower limit to ask for. A lower limit stops a runaway request before it uses the server's memory. It is information only.
 * New: Hosting needs recommends fixes when pages take over 1 second on average, naming the causes it can see: Load plugins only where needed off or not yet learned, large autoloaded options, settings saved on most page views, no working object cache, and other sites that pages wait for. With none found it suggests Query Monitor.

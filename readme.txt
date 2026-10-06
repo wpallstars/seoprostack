@@ -5,7 +5,7 @@ Tags: magic login, iframe, schedule posts, auto upload images, admin
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.3.9
+Stable tag: 1.3.10
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -105,7 +105,7 @@ Made from WP Plugin Starter (https://github.com/wpallstars/wp-plugin-starter-tem
 
 == Installation ==
 
-Install from Plugins → Add New and activate. Change features in Settings → SEO Pro Stack.
+Install from Plugins → Add New and activate. Set features in Settings → SEO Pro Stack.
 
 == Frequently Asked Questions ==
 
@@ -115,15 +115,15 @@ Deactivating removes the must-use file of Load plugins only where needed, the `.
 
 = Does it work on multisite? =
 
-Yes. Settings are per site; Free Plugins is for super admins. Network Plugins offers to activate network-activated plugins per site, so each loads them only where needed.
+Yes. Settings are per site; Free Plugins is for super admins. Network Plugins offers to activate network plugins per site, so each loads them only where needed.
 
 = Is the magic login safe? =
 
-Random, hashed links work once for an hour. Password-step two-factor checks are skipped: with those choose “Everyone except administrators”.
+Random, hashed links work once for an hour. Password-step two-factor checks are skipped: then choose “Everyone except administrators”.
 
 = Where do updates come from? =
 
-From where you installed it. GitHub gets new versions first; WordPress.org 30 days later, security fixes at once.
+From where you installed it. GitHub gets new versions first; WordPress.org 30 days on, security fixes at once.
 
 = Where do I get help? =
 
@@ -137,8 +137,8 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 
 == Changelog ==
 
-= 1.3.9 =
-* Fix: a deleted plugin still listed as active no longer makes Load plugins only where needed, or other features, wait.
-* Fix: Hosting needs checks the object cache only on web requests, not from WP-CLI or command-line cron.
+= 1.3.10 =
+* New: Clean up every site now (networks); Hosting needs flags high memory limits, slow pages.
+* Fix: Pinned posts keeps its true/false field without ACF.
 
 Older: `changelog.txt`.
