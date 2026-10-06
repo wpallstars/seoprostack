@@ -105,7 +105,7 @@ Made from WP Plugin Starter (https://github.com/wpallstars/wp-plugin-starter-tem
 
 == Installation ==
 
-Install from Plugins → Add New and activate. Change features in Settings → SEO Pro Stack.
+Install from Plugins → Add New and activate. Set features in Settings → SEO Pro Stack.
 
 == Frequently Asked Questions ==
 
@@ -115,15 +115,15 @@ Deactivating removes the must-use file of Load plugins only where needed, the `.
 
 = Does it work on multisite? =
 
-Yes. Settings are per site; Free Plugins is for super admins. Network Plugins offers to activate network-activated plugins per site, so each loads them only where needed.
+Yes. Settings are per site; Free Plugins is for super admins. Network Plugins offers to activate network plugins per site, so each loads them only where needed.
 
 = Is the magic login safe? =
 
-Random, hashed links work once for an hour. Password-step two-factor checks are skipped: with those choose “Everyone except administrators”.
+Random, hashed links work once for an hour. Password-step two-factor checks are skipped: then choose “Everyone except administrators”.
 
 = Where do updates come from? =
 
-From where you installed it. GitHub gets new versions first; WordPress.org 30 days later, security fixes at once.
+From where you installed it. GitHub gets new versions first; WordPress.org 30 days on, security fixes at once.
 
 = Where do I get help? =
 
@@ -138,8 +138,7 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 == Changelog ==
 
 = 1.3.10 =
-* New: Clean up every site now, for network administrators, removes deleted plugins' leftovers from every site.
-* New: Hosting needs says when PHP's memory limit is far above what the site uses, and what may slow pages that take over a second.
-* Fix: Pinned posts keeps Pin from a true/false field when settings are saved without ACF loaded.
+* New: Clean up every site now (networks); Hosting needs flags high memory limits, slow pages.
+* Fix: Pinned posts keeps its true/false field without ACF.
 
 Older: `changelog.txt`.
