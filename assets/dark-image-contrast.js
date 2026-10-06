@@ -510,9 +510,17 @@
             saved.done = true;
             return;
         }
+        // Fading in (lazy loaders): judge it at the opacity it ends at.
+        var fadeIn = watermarks ? fading(img, function () {
+            check(img);
+        }) : 0;
+        if (1 === fadeIn) {
+            state.delete(img);
+            return;
+        }
         // Drawn faintly on purpose: a watermark, kept faint (below).
         saved.opacity = original(img, 'self', getComputedStyle(img));
-        saved.faint = watermarks && saved.opacity < WM_OPACITY;
+        saved.faint = watermarks && 0 === fadeIn && faint(saved.opacity);
         // A loaded image may not be decoded yet; drawn then, it is blank.
         var run = function () {
             if (state.get(img) === saved) {
@@ -563,21 +571,60 @@
      * pixels; images from other sites that cannot be read are left alone.
      */
 
+    /** Drawn faintly on purpose: visible, but under WM_OPACITY. */
+    function faint(opacity) {
+        return opacity > 0 && opacity < WM_OPACITY;
+    }
+
     /**
      * Opacity of an element (part 'self') or its ::before or ::after before
-     * any change here, remembered from the first look.
+     * any change here. Only a watermark's is remembered (it is the one
+     * changed); others are read again next time, as they may still change.
      */
     function original(el, part, cs) {
         var saved = originals.get(el);
-        if (!saved) {
-            saved = {};
-            originals.set(el, saved);
+        if (saved && part in saved) {
+            return saved[part];
         }
-        if (!(part in saved)) {
-            var o = Number.parseFloat(cs.opacity);
-            saved[part] = Number.isNaN(o) ? 1 : o;
+        var o = Number.parseFloat(cs.opacity);
+        o = Number.isNaN(o) ? 1 : o;
+        if (faint(o)) {
+            if (!saved) {
+                saved = {};
+                originals.set(el, saved);
+            }
+            saved[part] = o;
         }
-        return saved[part];
+        return o;
+    }
+
+    /**
+     * Opacity transitions or animations running on an element or its
+     * ::before or ::after (fading in): 0 for none; 1 for ones that end, with
+     * done called then; 2 for endless ones, never a watermark.
+     */
+    function fading(el, done) {
+        if (!el.getAnimations) {
+            return 0;
+        }
+        var running = el.getAnimations({ subtree: true }).filter(function (a) {
+            var fx = a.effect;
+            return fx && fx.target === el && 'running' === a.playState && fx.getKeyframes().some(function (k) {
+                return 'opacity' in k;
+            });
+        });
+        if (!running.length) {
+            return 0;
+        }
+        if (running.some(function (a) {
+            return Infinity === a.effect.getComputedTiming().endTime;
+        })) {
+            return 2;
+        }
+        Promise.all(running.map(function (a) {
+            return a.finished;
+        })).then(done, done);
+        return 1;
     }
 
     /**
@@ -711,6 +758,12 @@
         if (!isDark() || !el.isConnected || NOT_WATERMARKS.test(el.tagName) || el.closest(KEEP)) {
             return;
         }
+        // Fading in (animate on scroll): look again at the opacity it ends at.
+        if (fading(el, function () {
+            inspect(el);
+        })) {
+            return;
+        }
         ['self', 'before', 'after'].forEach(function (part) {
             var cs = getComputedStyle(el, 'self' === part ? null : '::' + part);
             if ('none' === cs.display || ('self' !== part && /^(none|normal)$/.test(cs.content))) {
@@ -721,7 +774,7 @@
                 return;
             }
             var opacity = original(el, part, cs);
-            if (opacity > 0 && opacity < WM_OPACITY) {
+            if (faint(opacity)) {
                 urlTint(m[1]).then(function (c) {
                     if (isDark()) {
                         fade(el, part, c, opacity, false);
