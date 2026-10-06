@@ -102,6 +102,18 @@ class SEOProStack_Hosting_Needs extends SEOProStack_Feature {
     /** Share of a limit above which more is suggested. */
     const NEAR = 0.8;
 
+    /**
+     * A memory limit above this many times what the site needs, and above
+     * HIGH_LIMIT_MB, is pointed out as higher than needed.
+     */
+    const HIGH_LIMIT = 4;
+
+    /** Smallest memory limit pointed out as higher than needed, in MB. */
+    const HIGH_LIMIT_MB = 2048;
+
+    /** Average seconds per page above which pages are called slow. */
+    const SLOW_PAGE = 1.0;
+
     /** Values offered for opcache.memory_consumption, in MB. */
     const MEMORY_STEPS = array(128, 192, 256, 384, 512, 768, 1024, 1536, 2048);
 
@@ -1315,6 +1327,47 @@ class SEOProStack_Hosting_Needs extends SEOProStack_Feature {
     }
 
     /**
+     * Pages that reach PHP are slow: the causes this plugin can see, each
+     * with what addresses it, or where to look when none applies.
+     *
+     * @param array $needs From assess(), without advice.
+     * @return array Status, text and, when there is one, action (url, label).
+     */
+    private static function slow_advice(array $needs) {
+        $causes = array();
+        if (!SEOProStack_Settings::get(SEOProStack_Plugin_Loading::KEY)) {
+            $causes[] = __('Load plugins only where needed (Plugins tab) is off: turn it on so pages load only the plugins they use', 'seoprostack');
+        } elseif (!SEOProStack_Plugin_Loader::front_current() || SEOProStack_Plugin_Loader::front_failed()) {
+            $causes[] = __('Load plugins only where needed has not learned the site’s pages yet, so they load every plugin: open any page of the site, and see its Options on the Plugins tab', 'seoprostack');
+        }
+        if ($needs['facts']['autoload'] > MB_IN_BYTES) {
+            /* translators: %s: size. */
+            $causes[] = sprintf(__('options loaded on every request total %s (below)', 'seoprostack'), self::size($needs['facts']['autoload']));
+        }
+        if ($needs['writes']['options']) {
+            $causes[] = __('settings saved again on most page views (below)', 'seoprostack');
+        }
+        if (in_array($needs['facts']['object_cache']['state'], array('off', 'unreachable'), true)) {
+            $causes[] = __('no persistent object cache (Redis or Memcached) is working, so each page asks the database for everything it needs', 'seoprostack');
+        }
+        $hosts = SEOProStack_Outbound_Calls::page_hosts();
+        if ($hosts) {
+            /* translators: %s: list of host names. */
+            $causes[] = sprintf(__('pages wait for calls to other sites (%s); see Tools → Calls to other sites', 'seoprostack'), implode(', ', $hosts));
+        }
+        /* translators: %s: seconds. */
+        $text = sprintf(__('Pages that reach PHP take %s seconds on average, which is slow.', 'seoprostack'), number_format_i18n($needs['seconds'], 2));
+        if ($causes) {
+            /* translators: %s: list of causes, separated by semicolons. */
+            return array('recommended', $text . ' ' . sprintf(__('Causes found: %s.', 'seoprostack'), implode('; ', $causes)));
+        }
+        $action = current_user_can('install_plugins')
+            ? array('url' => self_admin_url('plugin-install.php?tab=plugin-information&plugin=query-monitor'), 'label' => __('Query Monitor', 'seoprostack'))
+            : array();
+        return array('recommended', $text . ' ' . __('No common cause was found; Query Monitor on a slow page shows which plugin takes the time.', 'seoprostack'), $action);
+    }
+
+    /**
      * Advice beyond OPcache and memory: page cache, object cache,
      * autoloaded options, how PHP runs, PHP version and traffic now.
      *
@@ -1347,6 +1400,9 @@ class SEOProStack_Hosting_Needs extends SEOProStack_Feature {
                 number_format_i18n($traffic['samples']),
                 number_format_i18n(self::ENOUGH)
             ) . ' ' . self::page_time_text($needs['measured'], $needs['seconds'], $pages, $traffic['site_p95']));
+        }
+        if ($needs['measured'] && $needs['seconds'] > self::SLOW_PAGE) {
+            $advice[] = self::slow_advice($needs);
         }
         if (!$needs['page_cache']) {
             $advice[] = array('recommended', __('No page cache was found, so every page view runs PHP. A page cache, from your host or a plugin, serves most pages without PHP and cuts the PHP workers you need. If your host caches pages itself, ignore this.', 'seoprostack'));
@@ -1708,6 +1764,7 @@ class SEOProStack_Hosting_Needs extends SEOProStack_Feature {
                 'summary' => __('Memory use is recorded from now on. Check again after the site has had some visits.', 'seoprostack'),
                 'ask'     => array(),
                 'fields'  => $fields,
+                'note'    => '',
             );
         }
         $near  = array();
@@ -1758,6 +1815,43 @@ class SEOProStack_Hosting_Needs extends SEOProStack_Feature {
             'summary' => $summary,
             'ask'     => $ask,
             'fields'  => $fields,
+            'note'    => $near ? '' : self::high_limit_note((string) $server),
+        );
+    }
+
+    /**
+     * When the server's memory limit is far above what any request used: a
+     * lower one stops a runaway request (a stuck import, a plugin loop)
+     * before it takes most of the server's memory. Information only: hosts
+     * set this, and a high limit is not a fault on its own.
+     *
+     * @param string $server The server's memory_limit setting.
+     * @return string Sentence, or '' when the limit is not far above.
+     */
+    private static function high_limit_note($server) {
+        $limit = wp_convert_hr_to_bytes($server);
+        $need  = self::memory_limit_need();
+        if ($limit > 0 && ($limit <= self::HIGH_LIMIT * $need * MB_IN_BYTES || $limit <= self::HIGH_LIMIT_MB * MB_IN_BYTES)) {
+            return '';
+        }
+        $peak = 0;
+        foreach (self::peaks() as $pair) {
+            $peak = max($peak, $pair[0]);
+        }
+        if ($limit <= 0) {
+            return sprintf(
+                /* translators: 1: memory used, 2: memory limit such as 768M. */
+                __('PHP has no memory limit, but no request used more than %1$s in 7 days. A limit, such as %2$s, stops a runaway request before it uses the server’s memory.', 'seoprostack'),
+                self::size($peak),
+                $need . 'M'
+            );
+        }
+        return sprintf(
+            /* translators: 1: memory limit, 2: memory used, 3: memory limit such as 768M. */
+            __('PHP’s memory limit is %1$s, but no request used more than %2$s in 7 days. A lower limit, such as %3$s, stops a runaway request before it uses the server’s memory.', 'seoprostack'),
+            self::size($limit),
+            self::size($peak),
+            $need . 'M'
         );
     }
 
@@ -2144,6 +2238,9 @@ class SEOProStack_Hosting_Needs extends SEOProStack_Feature {
             array($needs['opcache']['status'], $needs['opcache']['summary'], $needs['opcache']['ask']),
             array($needs['memory']['status'], $needs['memory']['summary'], $needs['memory']['ask']),
         );
+        if ('' !== $needs['memory']['note']) {
+            $items[] = array('info', $needs['memory']['note'], array());
+        }
         if ($needs['worker']) {
             $items[] = array('info', self::worker_text($needs['worker']), array());
         }
@@ -2349,6 +2446,9 @@ class SEOProStack_Hosting_Needs extends SEOProStack_Feature {
             ? __('Requests come close to the PHP memory limit', 'seoprostack')
             : __('PHP memory has room for this site', 'seoprostack');
         $description = '<p>' . esc_html__('Each request can use memory up to the PHP memory limit. SEO Pro Stack records the most memory a request used each day, for pages, the admin and the REST API with cron.', 'seoprostack') . '</p>';
+        if ('' !== $part['note']) {
+            $description .= '<p>' . esc_html($part['note']) . '</p>';
+        }
         $result      = self::result('seoprostack_memory', $label, $part, $description);
         if ($part['ask']) {
             $result['actions'] .= '<p>' . esc_html__('If your host lets sites raise it themselves, WP_MEMORY_LIMIT (pages) and WP_MAX_MEMORY_LIMIT (admin) in wp-config.php do the same.', 'seoprostack') . '</p>';
