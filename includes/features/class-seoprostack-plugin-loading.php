@@ -3235,6 +3235,10 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
                 /* translators: %d: active plugins */
                 $title = _n('%d plugin loaded: this screen needs it', 'All %d plugins loaded: this screen needs them all', $total, 'seoprostack');
                 break;
+            case 'updates':
+                /* translators: %d: active plugins */
+                $title = _n('%d plugin loaded while WordPress checks for updates', 'All %d plugins loaded while WordPress checks for updates', $total, 'seoprostack');
+                break;
             default:
                 /* translators: %d: active plugins */
                 $title = _n('This screen always loads its %d plugin', 'This screen always loads all %d plugins', $total, 'seoprostack');
