@@ -71,6 +71,7 @@ final class SEOProStack_Setup {
         'SEOProStack_Replace_Media',
         'SEOProStack_Nextgen_Images',
         'SEOProStack_Watermark_Images',
+        'SEOProStack_Dark_Image_Contrast',
         'SEOProStack_Post_Scheduler',
         'SEOProStack_Iframe_Block',
         'SEOProStack_Screenshots',
