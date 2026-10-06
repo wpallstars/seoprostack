@@ -21,7 +21,7 @@ SEO Pro Stack does the jobs that usually take dozens of small plugins: a calmer,
 
 If this saves you time, headaches and costs, feel free to [buy me a coffee](https://buymeacoffee.com/marcusquinn), or whatever you like, to invest in making more things open-source.
 
-Version: 1.3.12
+Version: 1.3.13
 
 <!-- github-only:start -->
 ## Screenshots
@@ -1479,10 +1479,12 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folder�
 ### Unreleased
 
 - New, off by default: **Dark mode image contrast** (Media tab). In Kadence’s dark mode, transparent logos, icons and drawings that would be hard to see on the background really behind them (the image’s own, then each surrounding block’s, padding included) are lightened or darkened with a CSS filter, keeping their hue where that is enough. Photos, images without transparency, images with a clear part already showing and images with a filter of their own are left alone; the class `seoprostack-keep-colours` keeps any image as it is. Switching back to light restores them at once (GitHub issue #565).
+
+### 1.3.13
 - New: **Updates from GitHub** fills **View details** as WordPress.org would, from each plugin's installed `readme.txt`: the Description, Installation, FAQ, Screenshots and Changelog tabs (Other Notes for any other section), Compatible up to, the donate link and the author linked to `Author URI`. It showed a one-line description and a changelog with only a link. The Changelog tab starts with a newer release's notes from GitHub, when there are any; nothing more is asked of GitHub. `Tested up to: 7.1` counts for every 7.1.x, so the Updates screen says "Compatibility with WordPress 7.1.2: Yes (according to its author)" instead of "Not tested" (GitHub issue #563).
 - New: GitHub builds ship SEO Pro Stack's three screenshots for View details, as WebP (`admin/images/screenshot-1.webp` to `screenshot-3.webp`, about 165 KB together). The WordPress.org build leaves them out: WordPress.org shows its own.
 - Fix: the banner's tagline sits above the box where View details writes the plugin name, which hid most of it.
-- Developers: core files synced with the starter plugin 1.0.27: shared updater 1.3.0 (View details above), `scripts/build-banner.sh` also writes `admin/images/screenshot-N.webp` from `.wordpress-org/screenshot-N.png` (needs `cwebp`), `scripts/build-release.sh` leaves them out of the WordPress.org zip, and `scripts/preflight-release.sh` checks both.
+- Developers: core files synced with the starter plugin 1.0.27: shared updater 1.3.0 (View details above), `scripts/build-banner.sh` also writes `admin/images/screenshot-N.webp` from `.wordpress-org/screenshot-N.png` (needs `cwebp`), `scripts/build-release.sh` leaves them out of the WordPress.org zip, and `scripts/preflight-release.sh` checks both. Also from 1.0.27: `scripts/smoke-test.sh` fails if uninstalling leaves any of the plugin's own database tables (`{$wpdb->prefix}seoprostack_*`), and plugins with a JavaScript build keep its sources out of release zips (`DEVELOPMENT.md` → JavaScript builds; nothing changes for SEO Pro Stack, which has none).
 
 ### 1.3.12
 
