@@ -569,8 +569,16 @@
         }, true);
 
         if (window.MutationObserver) {
-            // After a switch, wait for colour transitions to finish.
+            // After a switch, wait for colour transitions to finish. Other
+            // body class changes (some themes add classes as the page
+            // scrolls) are ignored: measuring again costs layout and pixels.
+            var wasDark = isDark();
             new MutationObserver(function () {
+                var dark = isDark();
+                if (dark === wasDark) {
+                    return;
+                }
+                wasDark = dark;
                 if (timer) {
                     clearTimeout(timer);
                 }
