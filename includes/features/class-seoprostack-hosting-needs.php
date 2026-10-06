@@ -639,8 +639,9 @@ class SEOProStack_Hosting_Needs extends SEOProStack_Feature {
         $previous = is_array($previous) ? $previous : array();
         $empty    = array('state' => 'unknown', 'kind' => '', 'name' => '', 'available' => '', 'extension' => false, 'cause' => '', 'fix' => array());
         $fresh    = isset($previous['checked']) && time() - $previous['checked'] < DAY_IN_SECONDS;
-        // A missing PHP extension the host has since turned on is checked again at once.
-        $recheck = $fresh && 'extension' === ($previous['cause'] ?? '') && extension_loaded(self::cache_extension((string) ($previous['kind'] ?? '')));
+        // A missing PHP extension the host has since turned on is checked again at
+        // once, as is a lost test value for LiteSpeed Cache's cache (see below).
+        $recheck = $fresh && self::recheck_cache($previous);
         if ((!is_admin() && !wp_doing_cron() && !(defined('WP_CLI') && WP_CLI)) || ($fresh && !$recheck)) {
             return $previous + $empty;
         }
@@ -659,7 +660,7 @@ class SEOProStack_Hosting_Needs extends SEOProStack_Feature {
             wp_cache_delete('notoptions', 'options');
             $previous = get_option(self::OBJECT_CACHE, array());
             $previous = is_array($previous) ? $previous : array();
-            $recheck  = 'extension' === ($previous['cause'] ?? '') && extension_loaded(self::cache_extension((string) ($previous['kind'] ?? '')));
+            $recheck  = self::recheck_cache($previous);
             if (!$recheck && isset($previous['checked']) && time() - $previous['checked'] < DAY_IN_SECONDS) {
                 return $previous + $empty;
             }
@@ -694,7 +695,12 @@ class SEOProStack_Hosting_Needs extends SEOProStack_Feature {
                     $facts['fix'] = self::find_cache_server($kind, $host, $port, true);
                 }
             }
-            if ($using && is_readable($file)) {
+            // LiteSpeed Cache's drop-in falls back only when it cannot connect,
+            // which asking its server above shows. A test value kept for a day
+            // would be lost to its Purge All (which empties the object cache,
+            // on every plugin update by default) or to eviction on a shared
+            // server, and warn about a cache that works.
+            if ($using && is_readable($file) && !($on && defined('LSCWP_OBJECT_CACHE'))) {
                 // A changed drop-in starts a new test, without accusing it on day one.
                 $identity = md5($name . '|' . (string) filemtime($file) . '|' . ($on ? $kind . '|' . $host . '|' . $port : '')); // NOSONAR: a fingerprint to notice changes, not security.
                 if (isset($previous['identity'], $previous['probe']) && $previous['identity'] === $identity) {
@@ -725,6 +731,24 @@ class SEOProStack_Hosting_Needs extends SEOProStack_Feature {
         } finally {
             delete_option($lock);
         }
+    }
+
+    /**
+     * Whether a daily result should be checked again before the day is out:
+     * a PHP extension the host has since turned on, or a test value lost by
+     * LiteSpeed Cache's cache, which is no longer tested that way.
+     *
+     * @param array $previous Stored result of object_cache_facts().
+     * @return bool
+     */
+    private static function recheck_cache(array $previous) {
+        $cause = (string) ($previous['cause'] ?? '');
+        if ('extension' === $cause) {
+            return extension_loaded(self::cache_extension((string) ($previous['kind'] ?? '')));
+        }
+        // Only with its drop-in loaded, which the new check does not test, so
+        // this runs once; another drop-in in its place is still tested daily.
+        return 'probe' === $cause && 'LiteSpeed Cache' === ($previous['name'] ?? '') && defined('LSCWP_OBJECT_CACHE');
     }
 
     /**
