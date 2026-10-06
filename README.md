@@ -965,6 +965,19 @@ Lays your site icon, site logo or a picture you choose faintly over pictures as 
 - Uses Imagick or GD, whichever WordPress uses.
 - Imports Easy Watermark’s image watermark (preferring one added to new uploads): the picture, position, opacity, scale and backup choice, and switches on if Easy Watermark is active with it added to uploads. Text watermarks are not imported. Pictures Easy Watermark already marked are left alone.
 
+### Dark mode image contrast (Media)
+
+Logos, icons and drawings with a transparent background are usually made for a light page, so in Kadence’s dark mode a dark logo on a dark section all but disappears (on one site, 93% of a client logo was under 3:1 contrast). Kadence has a dark logo for the header only. With this on, those images are lightened or darkened while dark mode is on, with no second copy of each image. **Off by default**; nothing changes without the Kadence Pro dark mode switcher (or a theme that switches palettes the same way, with `color-switch-dark` on `<body>`).
+
+- Only images that are mostly hard to see change: over 60% of their visible pixels under 3:1 contrast (WCAG’s minimum for graphics) against the background really behind them, with the theme’s dark mode image filter (Kadence Pro’s `brightness(.9) contrast(1.2)`) allowed for.
+- That background is found the way the browser paints it: the image’s own background (which also fills its padding), then each surrounding block’s (columns, rows, cards and their padding), with translucent colours, even gradients and overlays such as Kadence row overlays and Cover block backgrounds blended in. Images over a background picture or video, or a colour that cannot be read, are left alone. A white logo on a light green box in dark mode is darkened, so the colour of each section counts, not the page’s.
+- The colour of the image is its own: transparent margins in the file count for nothing, and so does the padding around it.
+- Left alone: photos and other images without transparency (JPEGs, logos on a white box), images with many colours or a clear part already showing (a cut-out photo, white text on a banner), images with a CSS filter of their own, images from other sites that cannot be read, Kadence’s dark logo and `<picture>` images with their own dark version.
+- Each change is tried on the image first: inverting its lightness while keeping its hue (a dark blue logo turns light blue, so brand colours stay recognisable), else white, else black. One is used only when it makes most of the image clear and clearly improves on it.
+- To keep an image as it is, add the class `seoprostack-keep-colours` to it or a block around it (Advanced → Additional CSS class(es)).
+- Switching back to light restores the original at once, with no script. Images are measured when they come near the window (and again when a lazy loader or `srcset` swaps them), at most 128 × 128 pixels each, in the visitor’s browser: nothing is stored or sent anywhere.
+- A script of about 6 KB compressed, with no dependencies, loaded in the footer only on pages whose `<body>` has a colour switch class.
+
 ### Plugins menu in the admin bar (Plugins)
 
 Adds a plugin icon to the right of the admin bar, in wp-admin and on the site. It opens a one-column list of every plugin, which scrolls when it is taller than the window. Plugins loaded on the page are bold; active plugins that are not loaded there are grey; deactivated plugins are grey and struck through. Choosing one asks “Activate …?” or “Deactivate …?”, then runs WordPress’s own activate or deactivate action and returns you to the page you were on.
@@ -1465,6 +1478,7 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folder�
 
 ### Unreleased
 
+- New, off by default: **Dark mode image contrast** (Media tab). In Kadence’s dark mode, transparent logos, icons and drawings that would be hard to see on the background really behind them (the image’s own, then each surrounding block’s, padding included) are lightened or darkened with a CSS filter, keeping their hue where that is enough. Photos, images without transparency, images with a clear part already showing and images with a filter of their own are left alone; the class `seoprostack-keep-colours` keeps any image as it is. Switching back to light restores them at once (GitHub issue #565).
 - New: **Updates from GitHub** fills **View details** as WordPress.org would, from each plugin's installed `readme.txt`: the Description, Installation, FAQ, Screenshots and Changelog tabs (Other Notes for any other section), Compatible up to, the donate link and the author linked to `Author URI`. It showed a one-line description and a changelog with only a link. The Changelog tab starts with a newer release's notes from GitHub, when there are any; nothing more is asked of GitHub. `Tested up to: 7.1` counts for every 7.1.x, so the Updates screen says "Compatibility with WordPress 7.1.2: Yes (according to its author)" instead of "Not tested" (GitHub issue #563).
 - New: GitHub builds ship SEO Pro Stack's three screenshots for View details, as WebP (`admin/images/screenshot-1.webp` to `screenshot-3.webp`, about 165 KB together). The WordPress.org build leaves them out: WordPress.org shows its own.
 - Fix: the banner's tagline sits above the box where View details writes the plugin name, which hid most of it.

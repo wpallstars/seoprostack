@@ -3,6 +3,7 @@
 Every change to SEO Pro Stack. readme.txt lists the latest version in short.
 
 = Unreleased =
+* New, off by default: Dark mode image contrast (Media tab). In Kadence's dark mode, transparent logos, icons and drawings that would be hard to see on the background really behind them are lightened or darkened, keeping their hue where that is enough. Photos, images without transparency and images with a clear part already showing are left alone; the class seoprostack-keep-colours keeps any image as it is.
 * New: Updates from GitHub fills View details as WordPress.org would, from each plugin's installed readme.txt: the Description, Installation, FAQ, Screenshots and Changelog tabs (Other Notes for any other section), Compatible up to, the donate link and the author linked to Author URI. The Changelog tab starts with a newer release's notes from GitHub, when there are any; nothing more is asked of GitHub. "Tested up to: 7.1" counts for every 7.1.x, so the Updates screen shows the author's compatibility instead of "Not tested".
 * New: GitHub builds ship SEO Pro Stack's three screenshots for View details, as WebP (about 165 KB together). The WordPress.org build leaves them out.
 * Fix: the banner's tagline sits above the box where View details writes the plugin name.
