@@ -21,7 +21,7 @@ SEO Pro Stack does the jobs that usually take dozens of small plugins: a calmer,
 
 If this saves you time, headaches and costs, feel free to [buy me a coffee](https://buymeacoffee.com/marcusquinn), or whatever you like, to invest in making more things open-source.
 
-Version: 1.3.13
+Version: 1.3.14
 
 <!-- github-only:start -->
 ## Screenshots
@@ -1476,7 +1476,7 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folder�
 
 ## Changelog
 
-### Unreleased
+### 1.3.14
 
 - New, off by default: **Dark mode image contrast** (Media tab). In Kadence’s dark mode, transparent logos, icons and drawings that would be hard to see on the background really behind them (the image’s own, then each surrounding block’s, padding included) are lightened or darkened with a CSS filter, keeping their hue where that is enough. Photos, images without transparency, images with a clear part already showing and images with a filter of their own are left alone; the class `seoprostack-keep-colours` keeps any image as it is. Switching back to light restores them at once (GitHub issue #565).
 
