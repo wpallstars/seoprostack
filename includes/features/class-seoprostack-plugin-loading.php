@@ -994,6 +994,10 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
         foreach (self::$pages as $slug => $page) {
             $owners[$slug]             = $page['plugins'];
             $hook_owners[$page['hook']] = $page['plugins'];
+            if ('tools.php' === $page['parent']) {
+                // add_submenu_page() also registers this legacy Tools alias.
+                $hook_owners[get_plugin_page_hookname($slug, 'edit.php')] = $page['plugins'];
+            }
         }
         self::$menu = array(
             'caps'             => array_keys($caps),
