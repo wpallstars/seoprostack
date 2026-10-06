@@ -21,7 +21,7 @@ SEO Pro Stack does the jobs that usually take dozens of small plugins: a calmer,
 
 If this saves you time, headaches and costs, feel free to [buy me a coffee](https://buymeacoffee.com/marcusquinn), or whatever you like, to invest in making more things open-source.
 
-Version: 1.3.17
+Version: 1.3.18
 
 <!-- github-only:start -->
 ## Screenshots
@@ -1490,7 +1490,7 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folderâ
 
 ## Changelog
 
-### Unreleased
+### 1.3.18
 
 - Fix: **Count terms and comments in the background** corrects a post's comment count when its spam, pending or binned comments are deleted and the count is wrong. WordPress recounts only when an approved comment is deleted, so counts already wrong (from database edits, imports or other plugins) stayed on the posts list after the spam was deleted. **Recount now** also finds and recounts every post whose comment count does not match its approved comments (GitHub issue #585).
 
