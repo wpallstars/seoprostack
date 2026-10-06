@@ -215,6 +215,12 @@ function seoprostack_uninstall_site() {
     wp_unschedule_hook('seoprostack_watermark_batch');
     delete_option('seoprostack_watermark_job');
 
+    // Dark mode image contrast: pictures ticked Keep colours in dark mode.
+    // The class seoprostack-keep-colours stays in blocks; it does nothing
+    // without the plugin.
+    delete_post_meta_by_key('_seoprostack_keep_colours');
+    delete_option('seoprostack_keep_colours');
+
     // Screenshots stay in the Media Library because posts may use them;
     // only the records that matched them to pages go.
     wp_unschedule_hook('seoprostack_screenshot');

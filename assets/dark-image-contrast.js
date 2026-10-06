@@ -70,6 +70,8 @@
     var NOT_WATERMARKS = /^(img|script|style|link|meta|noscript|template|br|svg|path|g|use|source|option)$/i;
     var config = window.seoprostackDarkImageContrast || {};
     var watermarks = false !== config.watermarks;
+    // Pictures ticked Keep colours in dark mode: upload-relative stems.
+    var keep = Array.isArray(config.keep) ? config.keep : [];
     var originals = new WeakMap(); // el -> { part: opacity before changes }.
     var tints = new Map(); // Background image address -> Promise of its tint.
     var pending = []; // Elements waiting for the watermark look.
@@ -477,8 +479,34 @@
         return best && bestShare <= before - 0.25 ? best : '';
     }
 
+    /**
+     * Whether an address is a picture ticked Keep colours in dark mode in the
+     * Media Library: any size (-300x200), WebP/AVIF copy (.png.webp) or
+     * multisite uploads folder of it.
+     */
+    function kept(url) {
+        if (!keep.length || !url) {
+            return false;
+        }
+        var path;
+        try {
+            path = decodeURIComponent(new URL(url, document.baseURI).pathname);
+        } catch (e) {
+            // A malformed address cannot be one of the site's uploads.
+            return false;
+        }
+        var m = /\/uploads\/(.+?)(?:-\d+x\d+)?\.[a-z0-9]+(?:\.(?:webp|avif))?$/i.exec(path);
+        if (!m) {
+            return false;
+        }
+        var stem = m[1].replace(/-(?:scaled|rotated)$/, '');
+        return keep.some(function (k) {
+            return stem === k || stem.endsWith('/' + k);
+        });
+    }
+
     function eligible(img) {
-        if (img.closest(KEEP) || img.classList.contains('kadence-dark-mode-logo')) {
+        if (img.closest(KEEP) || img.classList.contains('kadence-dark-mode-logo') || kept(img.currentSrc || img.src)) {
             return false;
         }
         var pic = img.parentElement;
@@ -770,7 +798,7 @@
                 return;
             }
             var m = /^url\("?([^")]+)"?\)$/.exec(cs.backgroundImage);
-            if (!m) {
+            if (!m || kept(m[1])) {
                 return;
             }
             var opacity = original(el, part, cs);
