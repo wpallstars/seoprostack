@@ -29,6 +29,10 @@
  * the installed version and no download address, so the updater sees no
  * update, as the reply meant. Status stays 200 (its licence check before
  * updating reads it), and replies that offer an update are left alone.
+ * Tutor LMS Certificate Builder (checked with 1.3.2) ships the same updater
+ * and registers as a free product, so every copy gets that empty reply
+ * (four warnings per check, about version, download_url, tested_wp_version
+ * and url); its reply is completed the same way.
  *
  * Freesoul Deactivate Plugins 2.6.9 and its PRO add-on (1.3.0.0, which
  * needs the free plugin) leave pieces behind when switched off. Deactivating
@@ -174,6 +178,15 @@ class SEOProStack_Plugin_Fixes extends SEOProStack_Feature {
     /** After a failed Tutor table repair, wait this long (a transient) before trying again. */
     const TUTOR_RETRY = 'seoprostack_tutor_tables_retry';
 
+    /**
+     * Products whose Themeum updater misreads an empty "no update" reply:
+     * product slug => name and the constant holding the installed version.
+     */
+    const THEMEUM_PRODUCTS = array(
+        'tutor-pro'                     => array('Tutor LMS Pro', 'TUTOR_PRO_VERSION'),
+        'tutor-lms-certificate-builder' => array('Tutor LMS Certificate Builder', 'TUTOR_CB_VERSION'),
+    );
+
     /** Tutor LMS Pro's updater class, whose current_screen closure forces update checks. */
     const TUTOR_PRO_UPDATER = 'TutorPRO\ThemeumUpdater\Update';
 
@@ -223,7 +236,7 @@ class SEOProStack_Plugin_Fixes extends SEOProStack_Feature {
                 'default'     => true,
                 'tab'         => 'plugins',
                 'label'       => __('Fixes for other plugins', 'seoprostack'),
-                'description' => __('Works around bugs in other plugins that slow your site down, without changing their settings. Lasso Lite (Simple URLs) stops contacting its server on every admin screen. Deactivating Freesoul Deactivate Plugins or its PRO add-on deactivates both and removes the must-use file it leaves behind. Readabler no longer contacts its server on every Plugins screen load, or stops that screen with a critical error when it cannot. Tutor LMS Pro stops adding warnings to the debug log when there is no update. Tutor LMS gets its order, cart and coupon tables on every site of a network. Tutor LMS Pro no longer makes the Plugins screen check every plugin for updates on each load. Comment Goblin no longer waits for its update server on every admin screen while that server fails. MainWP Child no longer prints its Branding "Global footer" text, unstyled, below every front-end page. On LiteSpeed servers, scheduled tasks (WordPress cron and Action Scheduler, used by WooCommerce and others) finish instead of stopping partway, through a few lines at the top of .htaccess. Kadence Pro no longer causes "Failed opening" warnings when other plugins load shared code. WP Crontrol says whether the server\'s cron job runs, instead of only that DISABLE_WP_CRON is set. On Hostinger, a server cron job no longer fills the error log with "invalid_schedule" errors for the Monarx security agent\'s tasks (mnx_versions_cron_event). Turn this off if a fix causes a problem.', 'seoprostack'),
+                'description' => __('Works around bugs in other plugins that slow your site down, without changing their settings. Lasso Lite (Simple URLs) stops contacting its server on every admin screen. Deactivating Freesoul Deactivate Plugins or its PRO add-on deactivates both and removes the must-use file it leaves behind. Readabler no longer contacts its server on every Plugins screen load, or stops that screen with a critical error when it cannot. Tutor LMS Pro and Tutor LMS Certificate Builder stop adding warnings to the debug log when there is no update. Tutor LMS gets its order, cart and coupon tables on every site of a network. Tutor LMS Pro no longer makes the Plugins screen check every plugin for updates on each load. Comment Goblin no longer waits for its update server on every admin screen while that server fails. MainWP Child no longer prints its Branding "Global footer" text, unstyled, below every front-end page. On LiteSpeed servers, scheduled tasks (WordPress cron and Action Scheduler, used by WooCommerce and others) finish instead of stopping partway, through a few lines at the top of .htaccess. Kadence Pro no longer causes "Failed opening" warnings when other plugins load shared code. WP Crontrol says whether the server\'s cron job runs, instead of only that DISABLE_WP_CRON is set. On Hostinger, a server cron job no longer fills the error log with "invalid_schedule" errors for the Monarx security agent\'s tasks (mnx_versions_cron_event). Turn this off if a fix causes a problem.', 'seoprostack'),
             ),
         );
     }
@@ -252,8 +265,8 @@ class SEOProStack_Plugin_Fixes extends SEOProStack_Feature {
         add_action('admin_notices', array(__CLASS__, 'unity_drop_throwing_notice'), 0);
         // Replies from the server, and replies a filter made up instead
         // (WordPress returns those without the http_response filter).
-        add_filter('http_response', array(__CLASS__, 'tutor_pro_no_update'), 10, 3);
-        add_filter('pre_http_request', array(__CLASS__, 'tutor_pro_no_update'), PHP_INT_MAX, 3);
+        add_filter('http_response', array(__CLASS__, 'themeum_no_update'), 10, 3);
+        add_filter('pre_http_request', array(__CLASS__, 'themeum_no_update'), PHP_INT_MAX, 3);
         add_filter('dbdelta_create_queries', array(__CLASS__, 'tutor_create_queries'));
         // Before Tutor's upgrader, which uses priority 10.
         add_action('admin_init', array(__CLASS__, 'tutor_repair_tables'), 5);
@@ -664,27 +677,29 @@ class SEOProStack_Plugin_Fixes extends SEOProStack_Feature {
     }
 
     /**
-     * Tutor LMS Pro's "no update" reply, completed with the installed
-     * version so its updater does not read missing details.
+     * The "no update" reply to a Themeum updater (Tutor LMS Pro, Tutor LMS
+     * Certificate Builder), completed with the installed version so the
+     * updater does not read missing details.
      *
      * @param mixed  $response HTTP response (false from pre_http_request when no filter answered).
      * @param array  $args     Request arguments.
      * @param string $url      Request address.
      * @return mixed
      */
-    public static function tutor_pro_no_update($response, $args, $url) {
+    public static function themeum_no_update($response, $args, $url) {
         if (!is_array($response) || !isset($response['body']) || !is_string($response['body'])
-            || !defined('TUTOR_PRO_VERSION') || !is_string($url)
-            || !preg_match('#/themeum-products/v1/(plugin-update-status|check-update)/?$#', $url)) {
+            || !is_string($url) || !preg_match('#/themeum-products/v1/(plugin-update-status|check-update)/?$#', $url)) {
             return $response;
         }
         $body = isset($args['body']) ? $args['body'] : array();
         if (is_string($body)) {
             parse_str($body, $body);
         }
-        if (!is_array($body) || !isset($body['product_slug']) || 'tutor-pro' !== strtolower((string) $body['product_slug'])) {
+        $slug = is_array($body) && isset($body['product_slug']) ? strtolower((string) $body['product_slug']) : '';
+        if (!isset(self::THEMEUM_PRODUCTS[$slug]) || !defined(self::THEMEUM_PRODUCTS[$slug][1])) {
             return $response;
         }
+        list($name, $constant) = self::THEMEUM_PRODUCTS[$slug];
         $data = json_decode($response['body']);
         if (!is_object($data) || !isset($data->status) || 200 !== (int) $data->status
             || !isset($data->body_response) || isset($data->body_response->version)
@@ -693,10 +708,11 @@ class SEOProStack_Plugin_Fixes extends SEOProStack_Feature {
         }
         $data->body_response = (object) array_merge(
             array(
-                'plugin_name'       => 'Tutor LMS Pro',
-                'version'           => (string) TUTOR_PRO_VERSION,
+                'plugin_name'       => $name,
+                'version'           => (string) constant($constant),
                 'download_url'      => '',
                 'tested_wp_version' => '',
+                'url'               => '',
                 'updated_at'        => '',
                 'change_log'        => '',
             ),
