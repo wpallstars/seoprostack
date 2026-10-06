@@ -72,6 +72,9 @@ class SEOProStack_Hosting_Needs extends SEOProStack_Feature {
     /** Non-autoloaded daily object-cache facts and a cross-request probe. */
     const OBJECT_CACHE = 'seoprostack_hosting_object_cache';
 
+    /** How PHP runs (php_sapi_name()) on web requests, for cron and WP-CLI. Not autoloaded. */
+    const SAPI = 'seoprostack_php_sapi';
+
     /** One request in this many records its time (filter seoprostack_hosting_sample_rate). */
     const SAMPLE = 20;
 
@@ -151,6 +154,7 @@ class SEOProStack_Hosting_Needs extends SEOProStack_Feature {
         if (!is_admin()) {
             return;
         }
+        add_action('admin_init', array(__CLASS__, 'remember_sapi'));
         add_action('wp_ajax_health-check-' . self::TEST, array(__CLASS__, 'ajax_test'));
         add_action('wp_ajax_' . self::AJAX, array(__CLASS__, 'ajax_row'));
         add_action('admin_post_' . self::FIX, array(__CLASS__, 'fix_object_cache'));
@@ -1285,7 +1289,7 @@ class SEOProStack_Hosting_Needs extends SEOProStack_Feature {
 
     /**
      * Advice beyond OPcache and memory: page cache, object cache,
-     * autoloaded options, PHP version and traffic now.
+     * autoloaded options, how PHP runs, PHP version and traffic now.
      *
      * @param array $needs From assess(), without advice.
      * @return array[] Each status (recommended or info), text and an
@@ -1372,6 +1376,12 @@ class SEOProStack_Hosting_Needs extends SEOProStack_Feature {
                 __('Largest settings: %s. “Load large settings only where they are used” on the Speed tab can learn which to stop loading on site pages. Turn it off to undo its changes.', 'seoprostack'),
                 implode(', ', $largest)
             ));
+        }
+        $runs = self::php_runs();
+        if ('recommended' === $runs['status']) {
+            $advice[] = array('recommended', 'apache2handler' === $runs['sapi']
+                ? __('PHP runs inside Apache (mod_php), so every Apache process holds PHP’s memory, even those that only serve images and files. Ask your host to run PHP with PHP-FPM, or on a LiteSpeed server with LSAPI.', 'seoprostack')
+                : __('A new PHP starts for every request (CGI), so OPcache is lost each time and the site’s code is compiled again. Ask your host to run PHP with PHP-FPM, or on a LiteSpeed server with LSAPI.', 'seoprostack'));
         }
         if (version_compare(PHP_VERSION, '8.2', '<')) {
             $advice[] = array('recommended', sprintf(
@@ -1820,18 +1830,134 @@ class SEOProStack_Hosting_Needs extends SEOProStack_Feature {
     private static function worker_text($worker) {
         $opcache = (int) ini_get('opcache.memory_consumption');
         if ($opcache && extension_loaded('Zend OPcache')) {
-            return sprintf(
+            $text = sprintf(
                 /* translators: 1: memory per worker, 2: OPcache memory. */
                 __('Each PHP worker needs up to about %1$s, plus %2$s of OPcache shared by all of them.', 'seoprostack'),
                 self::size($worker),
                 self::size($opcache * MB_IN_BYTES)
             );
+        } else {
+            $text = sprintf(
+                /* translators: %s: memory per worker. */
+                __('Each PHP worker needs up to about %s.', 'seoprostack'),
+                self::size($worker)
+            );
         }
-        return sprintf(
-            /* translators: %s: memory per worker. */
-            __('Each PHP worker needs up to about %s.', 'seoprostack'),
-            self::size($worker)
+        $setting = self::worker_setting();
+        if ('LSAPI_CHILDREN' === $setting) {
+            $text .= ' ' . __('LiteSpeed sets how many there are with LSAPI_CHILDREN; on CloudLinux hosts, such as Hostinger, the plan’s entry processes limit them.', 'seoprostack');
+        } elseif ('pm.max_children' === $setting) {
+            $text .= ' ' . __('PHP-FPM sets how many there are with pm.max_children.', 'seoprostack');
+        } elseif ('MaxRequestWorkers' === $setting) {
+            $text .= ' ' . __('With mod_php, Apache’s MaxRequestWorkers sets how many there are.', 'seoprostack');
+        }
+        return $text;
+    }
+
+    /**
+     * The server's setting for the number of PHP workers, so a line can be
+     * sent to the host as it is. Hosting plans call them PHP workers.
+     *
+     * @return string pm.max_children, LSAPI_CHILDREN, MaxRequestWorkers or ''.
+     */
+    private static function worker_setting() {
+        $sapi = self::sapi();
+        if ('fpm-fcgi' === $sapi) {
+            return 'pm.max_children';
+        }
+        // The server is only a guess while how PHP runs is not known yet: a
+        // LiteSpeed server can also run PHP as FastCGI or CGI.
+        if ('litespeed' === $sapi || ('' === $sapi && SEOProStack_Litespeed::is_server())) {
+            return 'LSAPI_CHILDREN';
+        }
+        return 'apache2handler' === $sapi ? 'MaxRequestWorkers' : '';
+    }
+
+    /* ------------------------------------------------------------------
+     * How PHP runs
+     * ------------------------------------------------------------------ */
+
+    /**
+     * How PHP runs on this request, or '' on the command line.
+     *
+     * @return string
+     */
+    private static function live_sapi() {
+        $sapi = (string) php_sapi_name();
+        if ((defined('WP_CLI') && WP_CLI) || in_array($sapi, array('cli', 'phpdbg', 'embed'), true)) {
+            return '';
+        }
+        return $sapi;
+    }
+
+    /**
+     * How PHP runs on web requests: this one's, or the one remembered for
+     * cron run from the command line and WP-CLI.
+     *
+     * @return string
+     */
+    private static function sapi() {
+        $sapi = self::live_sapi();
+        return '' !== $sapi ? $sapi : (string) get_option(self::SAPI, '');
+    }
+
+    /**
+     * Remember how PHP runs for the command line, only when it changes.
+     */
+    public static function remember_sapi() {
+        $sapi = self::live_sapi();
+        if ('' !== $sapi && get_option(self::SAPI, '') !== $sapi) {
+            update_option(self::SAPI, $sapi, false);
+        }
+    }
+
+    /**
+     * How PHP runs, in plain words.
+     *
+     * @return array{status:string,text:string,sapi:string} Status good,
+     *         recommended (ask the host to change it) or unknown.
+     */
+    private static function php_runs() {
+        $sapi  = self::sapi();
+        $words = array(
+            'fpm-fcgi'       => array('good', __('PHP-FPM: PHP workers stay running and share OPcache', 'seoprostack')),
+            'litespeed'      => array('good', __('LiteSpeed (LSAPI): PHP workers stay running and share OPcache', 'seoprostack')),
+            'apache2handler' => array('recommended', __('Apache with mod_php: PHP runs inside every Apache process, including those serving images and files', 'seoprostack')),
+            'cgi'            => array('recommended', __('CGI: a new PHP for every request, so OPcache is lost each time', 'seoprostack')),
         );
+        if ('cgi-fcgi' === $sapi) {
+            // Persistent FastCGI workers keep OPcache; plain CGI under this
+            // name does not, which shows as an OPcache started with this request.
+            $words[$sapi] = self::opcache_starts_with_request()
+                ? array('recommended', __('FastCGI, with a new PHP for every request, so OPcache is lost each time', 'seoprostack'))
+                : array('good', __('FastCGI: PHP workers stay running and keep OPcache', 'seoprostack'));
+        }
+        if ('' === $sapi) {
+            return array('status' => 'unknown', 'text' => __('Not known yet: found on the next admin page load', 'seoprostack'), 'sapi' => '');
+        }
+        if (!isset($words[$sapi])) {
+            return array('status' => 'unknown', 'text' => $sapi, 'sapi' => $sapi);
+        }
+        return array('status' => $words[$sapi][0], 'text' => $words[$sapi][1] . ' (' . $sapi . ')', 'sapi' => $sapi);
+    }
+
+    /**
+     * Whether OPcache started with this web request, as it does when a new
+     * PHP starts for every request. Also true once after the host restarts
+     * PHP, on that first request only.
+     *
+     * @return bool
+     */
+    private static function opcache_starts_with_request() {
+        if ('' === self::live_sapi() || !function_exists('opcache_get_status')) {
+            return false;
+        }
+        $status = @opcache_get_status(false); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged -- false when opcache.restrict_api keeps this script out.
+        if (!is_array($status) || empty($status['opcache_enabled']) || !isset($status['opcache_statistics']['start_time'])) {
+            return false;
+        }
+        $start = isset($_SERVER['REQUEST_TIME']) ? (int) $_SERVER['REQUEST_TIME'] : time();
+        return (int) $status['opcache_statistics']['start_time'] >= $start - 1;
     }
 
     /**
@@ -1841,18 +1967,23 @@ class SEOProStack_Hosting_Needs extends SEOProStack_Feature {
      * @return array
      */
     private static function plan_rows(array $needs) {
-        $plans  = $needs['plans'];
-        $need   = $needs['opcache']['need'];
-        $limit  = self::memory_limit_need();
-        $rows   = array(
-            __('PHP workers', 'seoprostack') => array(),
+        $plans   = $needs['plans'];
+        $need    = $needs['opcache']['need'];
+        $limit   = self::memory_limit_need();
+        $setting = self::worker_setting();
+        $workers = '' !== $setting
+            /* translators: %s: the server's setting, such as pm.max_children. */
+            ? sprintf(__('PHP workers (%s)', 'seoprostack'), $setting)
+            : __('PHP workers', 'seoprostack');
+        $rows    = array(
+            $workers                         => array(),
             __('RAM', 'seoprostack')         => array(),
             __('CPU cores', 'seoprostack')   => array(),
             __('Object cache', 'seoprostack') => array(),
             __('Hosting', 'seoprostack')     => array(),
         );
         foreach ($plans as $level => $plan) {
-            $rows[__('PHP workers', 'seoprostack')][$level]  = number_format_i18n($plan['workers']);
+            $rows[$workers][$level]                          = number_format_i18n($plan['workers']);
             /* translators: %s: number of gigabytes. */
             $rows[__('RAM', 'seoprostack')][$level]          = sprintf(__('%s GB', 'seoprostack'), number_format_i18n($plan['ram']));
             $rows[__('CPU cores', 'seoprostack')][$level]    = number_format_i18n($plan['cpu']);
@@ -2315,6 +2446,10 @@ class SEOProStack_Hosting_Needs extends SEOProStack_Feature {
         $fields['web_server'] = array(
             'label' => __('Web server', 'seoprostack'),
             'value' => SEOProStack_Litespeed::server_name(),
+        );
+        $fields['php_sapi'] = array(
+            'label' => __('How PHP runs', 'seoprostack'),
+            'value' => self::php_runs()['text'],
         );
         $fields['page_cache'] = array(
             'label' => __('Page cache', 'seoprostack'),

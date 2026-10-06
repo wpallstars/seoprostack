@@ -90,6 +90,9 @@ function seoprostack_uninstall_site() {
     $options[] = 'seoprostack_plugin_front_forgets';
     $options[] = 'seoprostack_plugin_front_code';
     $options[] = 'seoprostack_plugin_learned_by';
+    $options[] = 'seoprostack_plugin_updates_full';
+    // Correct update counts: updates counted with every plugin loaded.
+    $options[] = 'seoprostack_update_counts';
     $options[] = 'seoprostack_access_roles';
     $options[] = 'seoprostack_admin_bar_items';
     $options[] = 'seoprostack_admin_menu';
@@ -104,8 +107,10 @@ function seoprostack_uninstall_site() {
     // findings are seoprostack_cost_* transients, removed with the others below.
     $options[] = 'seoprostack_plugin_cost';
     wp_cache_delete('hosting_probe', 'seoprostack');
-    // Whether the site runs on a LiteSpeed server, for WP-CLI.
+    // Whether the site runs on a LiteSpeed server, and how PHP runs on web
+    // requests, for WP-CLI.
     $options[] = 'seoprostack_litespeed_server';
+    $options[] = 'seoprostack_php_sapi';
     // Ask before licence checks: choices and times. Kept answers are
     // seoprostack_lc_* transients, removed with the others below.
     $options[] = 'seoprostack_licence_calls';

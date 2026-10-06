@@ -37,6 +37,7 @@ final class SEOProStack_Setup {
         'SEOProStack_Widget_Control',
         'SEOProStack_Dashboard_Layout',
         'SEOProStack_Admin_Tidy',
+        'SEOProStack_Update_Count',
         'SEOProStack_Woo_Tidy',
         'SEOProStack_Login_Screen',
         'SEOProStack_Notification_Emails',

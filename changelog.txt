@@ -3,6 +3,11 @@
 Every change to SEO Pro Stack. readme.txt lists the latest version in short.
 
 = Unreleased =
+* New: Correct update counts (Admin tab, on by default). The numbers next to Dashboard › Updates, Plugins and Appearance no longer count updates already installed by the host, a deploy or a file upload, which WordPress keeps counting for up to 12 hours while the Updates screen lists none. Only the numbers change.
+* Fix: with Load plugins only where needed, a wp-admin screen where WordPress's twice-daily update check is due loads every plugin, at most once an hour, so updates that plugins such as Kadence Blocks and SliceWP add are in the check. Screens that skip those plugins still count their updates.
+* Changed: Load plugins only where needed shows only its switch and status. Its other settings, bypasses for a plugin or theme it does not handle, are in a closed Troubleshooting section of its Options, which opens by itself when one of them is changed or a page of the site failed with fewer plugins. Each says which problem it fixes. Values and defaults are unchanged.
+* New: Hosting needs says how PHP runs (PHP-FPM, LiteSpeed, FastCGI, Apache's mod_php or CGI) in Site Health Info, and advises asking the host for PHP-FPM or LiteSpeed when PHP runs inside Apache or starts afresh for every request. Its PHP worker lines name the server's setting for them, such as pm.max_children, so they can be sent to a host as they are.
+* New: a Directory listing test in Site Health. Once a day it checks whether anyone can list the files in the uploads folder, and if so, what to ask the host for. Nothing is written to server files.
 * Fix: Hosting needs no longer warns that LiteSpeed Cache's object cache "did not keep a test value between daily checks" while it works. Its Purge All, on every plugin update by default, empties the object cache, so the test value was lost. LiteSpeed Cache's cache is now checked only by asking its server, which shows whether it falls back to the database; other object caches still keep a test value. The warning clears on the next admin screen.
 
 = 1.3.7 =

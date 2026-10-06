@@ -26,13 +26,13 @@ Features safe on every site start on; those needing choices stay off. Use **Sett
 * **Tidy the dashboard**, **Dashboard and sidebar widgets**, **Hide admin notices** (behind a megaphone) and a **More menu** for plugins' admin bar items.
 * **Quiet Freemius prompts** and **Quiet Appsero prompts**: no opt-in nags, upgrade offers or deactivation surveys.
 * **Tidy admin screens**, **Tidy WooCommerce admin**, **Tidy the login screen**, **Simpler block editor**, **Remove WordPress extras**, **Fewer Heartbeat requests**, **Limit post revisions** and **Lighter WooCommerce pages**: most of Disable Bloat.
-* **Modern admin colours**, **No fade between admin screens**, **Readable list columns** and **Notification emails** (stop routine emails).
+* **Modern admin colours**, **No fade between admin screens**, **Correct update counts**, **Readable list columns** and **Notification emails** (stop routine emails).
 
 = Safer logins and access =
 
 * **Magic login links**: one-time links by email that link scanners cannot use up.
 * **Admin bar and dashboard access**: keep subscribers and customers out of wp-admin; never administrators.
-* **Turn off unused remote access**: XML-RPC and application passwords, and web access to log and backup files. Site Health names any such public file.
+* **Turn off unused remote access**: XML-RPC and application passwords, and web access to log and backup files. Site Health names any such public file, and says if anyone can list the files in your uploads folder.
 * **Maintenance mode**: a 503 page search engines understand, with 24-hour bypass links you can revoke.
 
 = Writing and publishing =
@@ -73,7 +73,7 @@ Features safe on every site start on; those needing choices stay off. Use **Sett
 = Plugins and set-up =
 
 * **Plugin presets** and **starter data**: our tested settings for other plugins, and the lists, tags, forms and boards we use in Fluent plugins; only when you ask, and undoable.
-* **Plugins menu** in the admin bar, **Plugin sizes** with page time, **Clean up deleted plugins** and **Hosting needs** (what hosting to buy).
+* **Plugins menu** in the admin bar, **Plugin sizes** with page time, **Clean up deleted plugins** and **Hosting needs** (what hosting to buy, and how PHP runs).
 * **Fixes for other plugins**: works around their known bugs.
 * **Agency**: order flow, client dashboard and examples.
 * **Discover**: the Kadence theme and the free and Pro plugins, hosting and tools we use.

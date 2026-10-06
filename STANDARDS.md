@@ -62,12 +62,16 @@ How changes are made and checked: `DEVELOPMENT.md`. Releases: `RELEASING.md`.
   follows the current default, so a new setting's default reaches every
   site. To change a stored value on existing sites, set it in `migrate()`
   with a `DB_VERSION` bump, and only where the owner agrees.
-- A feature that replaces another plugin sets `'replaces' => array(slug => name)`
-  and imports that plugin's settings in `migrate()` with
-  `self::import_setting()` (fills only unset keys). It never writes or
-  deletes the other plugin's options. While that plugin is active the
-  feature waits, and the Plugins screen suggests deactivating and deleting
-  it (`admin/includes/class-replaced-plugins.php`) with no extra code.
+- A feature that replaces another plugin lists it in a class constant on the
+  feature class, `const REPLACES = array(slug => name);`, and sets
+  `'replaces' => self::REPLACES`. Other code (migrations, audits, checks for
+  active plugins) reads `self::REPLACES` too, never a copy of the list, and
+  `scripts/replaced-plugins.php` counts it. The feature imports that
+  plugin's settings in `migrate()` with `self::import_setting()` (fills
+  only unset keys). It never writes or deletes the other plugin's options.
+  While that plugin is active the feature waits, and the Plugins screen
+  suggests deactivating and deleting it
+  (`admin/includes/class-replaced-plugins.php`) with no extra code.
 - Migrations run once per `{Prefix}_Setup::DB_VERSION`. After a release, a
   new or changed import needs a version bump and a line in its docblock.
 - New options, post meta, user meta, transients, cron hooks and files must be
@@ -219,7 +223,8 @@ adds docs as it grows.
   (which plugins, screens or items it applies to) from what it can detect.
   Settings are there to bypass something that causes a problem, not choices
   people need to understand first. A new setting must earn its place;
-  prefer detecting the right behaviour plus a short bypass list.
+  prefer detecting the right behaviour plus a short bypass list. Put
+  bypasses under Troubleshooting (`'group' => 'troubleshooting'`).
 - Site owner in control, performance first: the owner decides what their site
   sends, contacts and shows. Calls to outside services are opt-in where they
   are not the point of the feature, made only as often and for as long as
