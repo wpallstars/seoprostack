@@ -5,7 +5,7 @@ Tags: magic login, iframe, schedule posts, auto upload images, admin
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.3.24
+Stable tag: 1.3.25
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -138,10 +138,7 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 
 == Changelog ==
 
-= Unreleased =
+= 1.3.25 =
 * Fix: with Load plugins only where needed, the update check after a plugin update loads every plugin, so the update count matches the Updates screen.
-
-= 1.3.24 =
-* Changed: Copy linked images to Media Library replaces Auto Upload Images and imports its settings.
 
 Older: `changelog.txt`.

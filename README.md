@@ -21,7 +21,7 @@ SEO Pro Stack does the jobs that usually take dozens of small plugins: a calmer,
 
 If this saves you time, headaches and costs, feel free to [buy me a coffee](https://buymeacoffee.com/marcusquinn), or whatever you like, to invest in making more things open-source.
 
-Version: 1.3.24
+Version: 1.3.25
 
 <!-- github-only:start -->
 ## Screenshots
@@ -1515,7 +1515,7 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folderâ
 
 ## Changelog
 
-### 1.3.24
+### 1.3.25
 
 - Fix: with **Load plugins only where needed**, the update check that follows a plugin update loads every plugin again. Updating a plugin deletes WordPress's saved plugin check, and within an hour of the last full load for updates the next check ran on a screen that skips plugins, so it kept WordPress.org offers that paid plugins of the same name take out (WooCommerce GoCardless, WooCommerce Subscriptions). The admin bar then counted updates that the Updates screen, which checks again with every plugin, did not list. The once-an-hour limit now applies only where the checks do not run (GitHub issue #616).
 

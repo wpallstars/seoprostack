@@ -2,7 +2,7 @@
 
 Every change to SEO Pro Stack. readme.txt lists the latest version in short.
 
-= Unreleased =
+= 1.3.25 =
 * Fix: with Load plugins only where needed, the update check that follows a plugin update loads every plugin again. Updating a plugin deletes WordPress's saved plugin check, and within an hour of the last full load for updates the next check ran on a screen that skips plugins, so it kept WordPress.org offers that paid plugins of the same name take out (WooCommerce GoCardless, WooCommerce Subscriptions). The admin bar then counted updates that the Updates screen, which checks again with every plugin, did not list. The once-an-hour limit now applies only where the checks do not run (GitHub issue #616).
 
 = 1.3.24 =
