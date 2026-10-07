@@ -326,7 +326,9 @@ class SEOProStack_Admin_Menu extends SEOProStack_Feature {
             // After plugins add theirs (YellowPencil adds at 999).
             add_action('admin_bar_menu', array(__CLASS__, 'remove_bar_items'), PHP_INT_MAX);
             if (is_admin()) {
-                add_action('admin_init', array(__CLASS__, 'block_page'));
+                // Before plugins' own admin_init redirects, which can send
+                // people on to a page (YellowPencil to its editor).
+                add_action('admin_init', array(__CLASS__, 'block_page'), 0);
             }
         }
         if (is_admin() && SEOProStack_Settings::get(self::WRITERS_KEY)) {
