@@ -683,7 +683,7 @@ class SEOProStack_Database_Charset extends SEOProStack_Feature {
             $start  = microtime(true);
             $result = self::convert($name);
             if (is_wp_error($result)) {
-                WP_CLI::error(sprintf('%s: %s (%d converted before it.)', $name, $result->get_error_message(), $done));
+                WP_CLI::error($name . ': ' . $result->get_error_message() . ($done ? sprintf(' (%d converted before it.)', $done) : ''));
                 return;
             }
             $done++;
