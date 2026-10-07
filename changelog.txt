@@ -2,7 +2,7 @@
 
 Every change to SEO Pro Stack. readme.txt lists the latest version in short.
 
-= Unreleased =
+= 1.3.22 =
 * Fix: Fixes for other plugins now reaches Tutor LMS Pro's notifications table. 1.3.21's fix for dbDelta() altering unchanged columns of choices in capitals started on init, but Tutor LMS Pro runs dbDelta() earlier, during plugins_loaded, so its ALTER TABLE still ran on every request. The fix now starts as SEO Pro Stack loads (GitHub issue #607).
 
 = 1.3.21 =
