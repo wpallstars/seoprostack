@@ -140,6 +140,7 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 
 = Unreleased =
 * Changed: Copy linked images to Media Library replaces Auto Upload Images and imports its settings.
+* Fix: with Load plugins only where needed, the update check after a plugin update loads every plugin, so the update count matches the Updates screen.
 
 = 1.3.23 =
 * New: Database character set finds tables that cannot store emoji and converts them to utf8mb4 when asked.
