@@ -52,6 +52,8 @@ At the top right of the screen, **Source code** opens the plugin’s [GitHub rep
 
 ## Features
 
+The WordPress.org listing gives short feature summaries; the sections below keep the full details, limits and settings.
+
 A new install starts with the features that are safe on every site switched on, so it is faster and tidier straight away, and leaves off those that need choices about the site or change its content, files, people or other plugins’ settings. On by default:
 
 - **Speed:** Recommended speed settings, Load pages before the click, Image loading, Remove WordPress extras, Lighter WooCommerce pages and Faster editor with Kadence Blocks (the last two do nothing without those plugins).
@@ -1488,12 +1490,13 @@ Read a setting with `SEOProStack_Settings::get( 'key' )`.
 
 Deleting the plugin removes its settings and cached data, the database keys Add database keys added, the profile pictures and generated avatars in `uploads/seoprostack-avatars/`, the WebP and AVIF copies of pictures, including copies left by pictures deleted while the plugin was inactive, and short links with their categories and click counts (Pretty Links’ and Lasso Lite’s own links are left alone), and the must-use files of Load plugins only where needed and of an unfinished Measure page time, the cached GitHub releases, and who hid lines of the Plugins screen notice about replaced plugins (and, from older versions, who dismissed the Git Updater notice), menu item visibility rules (Nav Menu Roles’ own rules stay), Restrict content’s rules on posts and terms (that content shows to everyone again; block rules stay in posts but do nothing), the hand order of terms and the old term addresses kept for redirects, when old post addresses were last used (the old addresses themselves are WordPress’s and keep redirecting), and the order flow's links on Fluent Forms entries and Fluent Boards tasks (the entries, tasks, conversations, contacts and example data stay: they are those plugins' data). Posts keep their hand order in core’s Order field. Imported media, Link card pictures and screenshots stay in the Media Library because your posts use them. Watermarked pictures stay marked, and their unmarked originals stay in the `uploads/seoprostack-originals-…` folder so they are not lost; delete that folder if you do not need them.
 
-Deactivating the plugin removes the WebP and AVIF rules from the uploads folder’s `.htaccess` (for every site when network-deactivated), the LiteSpeed background request rules from the site’s `.htaccess` (on multisite, when network-deactivated or deactivated on the main site) and the must-use file of Load plugins only where needed (on multisite, when network-deactivated).
+Deactivating the plugin removes the must-use file of Load plugins only where needed (on multisite, when network-deactivated). It also tries to remove the WebP and AVIF rules from the uploads folder’s `.htaccess` (for every site when network-deactivated) and the LiteSpeed background request rules from the site’s `.htaccess` (on multisite, when network-deactivated or deactivated on the main site). Marked rules can remain when the file is not writable.
 
 ## Changelog
 
 ### Unreleased
 
+- Docs: shortened the WordPress.org listing to stay under 10 KB; full feature details remain here. Clarified that deactivation's `.htaccess` cleanup is best-effort when files are not writable (GitHub issue #587).
 - New: the **LiteSpeed Cache preset** turns on LiteSpeed Cache's crawler on LiteSpeed servers that allow it, so pages are cached again soon after a purge (every plugin, theme or core update purges them) and visitors mostly get cached pages. It crawls the whole sitemap once a day instead of every 3.5 days; pages still cached cost the server little. The crawler keeps the sitemap set in LiteSpeed Cache, or is given the site's sitemap index (Rank Math's, Yoast's or WordPress's own); sites without one are left alone. Server IP stays the site's own choice. The crawler needs no QUIC.cloud account, as the preset said before (GitHub issue #588).
 - Fix: **Fixes for other plugins** keeps LiteSpeed Cache's crawler turns to 240 seconds. LiteSpeed Cache plans 900, but LiteSpeed hosts such as Hostinger end a request at 300 seconds, so the turn was killed and its lane stayed taken for an hour: the crawler worked about 5 minutes an hour. A `LITESPEED_CRAWLER_DURATION` the site defines is kept (GitHub issue #590).
 

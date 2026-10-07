@@ -111,7 +111,7 @@ Install from Plugins → Add New and activate. Set features in Settings → SEO 
 
 = What happens if I deactivate or delete the plugin? =
 
-Deactivation removes Load plugins only where needed's must-use file and Fixes for other plugins' (LiteSpeed) and optional features' `.htaccess` rules. Deletion removes settings, caches, profile pictures, WebP/AVIF copies and short links too; imported media and watermarked originals stay.
+Deactivation removes Load plugins only where needed's must-use file and tries to remove marked `.htaccess` rules. Deletion removes settings, caches, profile pictures, WebP/AVIF copies and short links too; imported media and watermarked originals stay.
 
 = Does it work on multisite? =
 
@@ -138,6 +138,7 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 == Changelog ==
 
 = Unreleased =
+* Docs: shorter listing; `.htaccess` cleanup is best-effort.
 * New: the LiteSpeed Cache preset turns on LiteSpeed Cache's crawler, daily, so pages are cached again soon after updates purge them.
 * Fix: LiteSpeed Cache's crawler turns end before LiteSpeed hosts stop the request, so the crawler keeps going instead of waiting an hour.
 
