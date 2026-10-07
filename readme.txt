@@ -139,6 +139,7 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 
 = Unreleased =
 * Fix: Load plugins only where needed keeps what pages learned when admin screens save bookkeeping, such as the edit lock.
+* Fix: Fixes for other plugins stops Tutor LMS Pro altering its notifications table on every request.
 
 = 1.3.20 =
 * New: Hosting needs recommends Crawl now after updates empty the page cache, and says when a crawl is starting.
