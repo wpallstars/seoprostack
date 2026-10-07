@@ -134,7 +134,7 @@ class SEOProStack_Developers extends SEOProStack_Feature {
 
         $settings[self::LIMITS_KEY] = array(
             'type'        => 'multi',
-            'default'     => array('code', 'activate', 'admins', 'site', 'search'),
+            'default'     => array('code', 'activate', 'admins', 'site', 'search', 'html'),
             'parent'      => self::KEY,
             'reload'      => true,
             'label'       => __('Only developers can', 'seoprostack'),

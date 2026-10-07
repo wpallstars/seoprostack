@@ -323,6 +323,8 @@ class SEOProStack_Admin_Menu extends SEOProStack_Feature {
         }
         if (self::safeguards_on() && is_user_logged_in() && !self::is_developer()) {
             add_filter('all_plugins', array(__CLASS__, 'all_plugins'));
+            // After plugins add theirs (YellowPencil adds at 999).
+            add_action('admin_bar_menu', array(__CLASS__, 'remove_bar_items'), PHP_INT_MAX);
             if (is_admin()) {
                 add_action('admin_init', array(__CLASS__, 'block_page'));
             }
@@ -424,12 +426,15 @@ class SEOProStack_Admin_Menu extends SEOProStack_Feature {
              * Filter where menu entries go.
              *
              * @param array $catalog `menus` (address => place), `plugins`
-             *                       (plugin folder => place) and `hidden`
-             *                       (addresses left out of the menu). A place
-             *                       is a section key or another menu's address.
+             *                       (plugin folder => place), `hidden`
+             *                       (addresses left out of the menu) and `bar`
+             *                       (plugin folder => admin bar item IDs
+             *                       removed for people who are not developers
+             *                       while it is in Developers). A place is a
+             *                       section key or another menu's address.
              */
             $catalog = (array) apply_filters('seoprostack_admin_menu_catalog', $data);
-            $catalog += array('menus' => array(), 'plugins' => array(), 'hidden' => array());
+            $catalog += array('menus' => array(), 'plugins' => array(), 'hidden' => array(), 'bar' => array());
             // A list of addresses, or address => true.
             $hidden = array();
             foreach ((array) $catalog['hidden'] as $k => $v) {
@@ -1953,6 +1958,24 @@ class SEOProStack_Admin_Menu extends SEOProStack_Feature {
             }
         }
         return $plugins;
+    }
+
+    /**
+     * Remove the admin bar items of plugins placed in Developers (catalog
+     * `bar`), such as YellowPencil's Edit With YellowPencil, which lead to
+     * pages refused to people who are not developers.
+     *
+     * @param WP_Admin_Bar $wp_admin_bar Admin bar.
+     */
+    public static function remove_bar_items($wp_admin_bar) {
+        $developer = self::developer_plugins();
+        foreach ((array) self::catalog()['bar'] as $folder => $ids) {
+            if (isset($developer[(string) $folder])) {
+                foreach ((array) $ids as $id) {
+                    $wp_admin_bar->remove_node((string) $id);
+                }
+            }
+        }
     }
 
     /**

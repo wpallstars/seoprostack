@@ -14,6 +14,9 @@
  *            placed in super-admin are also hidden from the Plugins screen
  *            for people who are not developers while Developer admins is on.
  * - hidden:  addresses (or menu>address) of entries left out of the menu.
+ * - bar:     plugin folder => admin bar item IDs, removed for people who
+ *            are not developers while that plugin is placed in super-admin
+ *            and Developer admins is on.
  *
  * A place is a section (top, content, communications, seo, shop,
  * admin-heading, admin, super-admin) or the address of another menu, to go
@@ -107,7 +110,6 @@ return array(
         'syndication_links'                     => 'admin',
         'affiliate-wp'                          => 'admin',
         'ics-calendar'                          => 'admin',
-        'yellow-pencil-changes'                 => 'admin',
         'kadence-conversions'                   => 'admin',
         'kadence-starter'                       => 'admin',
         'kadence-shop-kit-settings'             => 'admin',
@@ -178,8 +180,15 @@ return array(
         'editorskit-getting-started'            => 'super-admin',
         'menu_editor'                           => 'super-admin',
         'ws-admin-bar-editor'                   => 'super-admin',
+        // YellowPencil restyles the whole site. Its editor pages have no
+        // menu of their own (they sit under its About page), so they are
+        // placed here to be refused to people who are not developers.
+        'yellow-pencil-changes'                 => 'super-admin',
+        'yellow-pencil-editor'                  => 'super-admin',
+        'yellow-pencil-customize-type'          => 'super-admin',
 
         // Pages that belong inside another menu.
+        'yellow-pencil'                         => 'yellow-pencil-changes',
         'easy-watermark'                        => 'upload.php',
         'imsanity-options'                      => 'upload.php',
         'terms-conditions'                      => 'complianz',
@@ -294,6 +303,16 @@ return array(
         'performant-translations'               => 'super-admin',
         'action-scheduler'                      => 'super-admin',
         'wp-fix-plugin-does-not-exist-notices'  => 'super-admin',
+        'waspthemes-yellow-pencil'              => 'super-admin',
+        'yellow-pencil-visual-theme-customizer' => 'super-admin',
+    ),
+
+    // Admin bar items of plugins, by plugin folder: removed for people who
+    // are not developers while the plugin is placed in Developers, so they
+    // get no link to a page they are refused.
+    'bar' => array(
+        'waspthemes-yellow-pencil'              => array('yp'),
+        'yellow-pencil-visual-theme-customizer' => array('yp'),
     ),
 
     // Entries left out of the menu. Their pages still open, and keep the

@@ -21,7 +21,7 @@ SEO Pro Stack does the jobs that usually take dozens of small plugins: a calmer,
 
 If this saves you time, headaches and costs, feel free to [buy me a coffee](https://buymeacoffee.com/marcusquinn), or whatever you like, to invest in making more things open-source.
 
-Version: 1.3.19
+Version: 1.3.20
 
 <!-- github-only:start -->
 ## Screenshots
@@ -180,7 +180,7 @@ Off by default. For sites where you build or look after the site and a client al
 - **Developers**: super admins on multisite. On single sites, tick them in the list of administrators. Switching the feature on ticks you; tick anyone else who builds or looks after the site.
 - **You cannot lock yourself out**: the person who switches the feature on or saves the list is always kept on it, people who are not developers cannot change SEO Pro Stack’s settings, and if no ticked person is an administrator any more (accounts deleted or demoted), every administrator counts as a developer. WP-CLI and cron run as nobody and are never limited.
 - **SEO Pro Stack is for developers only**: people who are not developers do not see Settings → SEO Pro Stack (opening it gives a 403), its star in the admin bar, or its row on the Plugins screen, and cannot deactivate it.
-- **Only developers can** (the first five ticked by default):
+- **Only developers can** (all but updates ticked by default):
   - **Install, delete or edit the code of plugins and themes**: installing, uploading and deleting plugins and themes, and the plugin and theme file editors.
   - **Switch plugins on or off and change the theme**: Activate and Deactivate on the Plugins screen (each link and bulk action), and activating a theme in Appearance → Themes and the Customizer. The Plugins and Themes screens stay open, so updates and Appearance → Menus and Widgets keep working.
   - **Make administrators, and edit or delete developers**: roles that can manage options (such as Administrator) are not offered when adding people or changing roles, nor as the default role for new accounts in Settings → General; administrators’ roles cannot be changed; developers’ accounts cannot be edited or deleted (their own accounts still can).
@@ -1497,6 +1497,11 @@ Deleting the plugin removes its settings and cached data, the database keys Add 
 Deactivating the plugin removes the WebP and AVIF rules from the uploads folder’s `.htaccess` (for every site when network-deactivated), the LiteSpeed background request rules from the site’s `.htaccess` (on multisite, when network-deactivated or deactivated on the main site) and the must-use file of Load plugins only where needed (on multisite, when network-deactivated).
 
 ## Changelog
+
+### 1.3.20
+
+- Change: [**Developer admins**](#developer-admins-admin) ticks **Add unfiltered HTML, such as scripts, to content** by default, so only **Update WordPress, plugins, themes and translations** starts unticked. Sites that already have SEO Pro Stack keep their choices (GitHub issue #598).
+- Change: [**Organise the admin menu**](#organise-the-admin-menu-admin) puts YellowPencil in the **Developers** menu, with its Appearance → YellowPencil Editor link inside it. Its visual editor restyles the whole site, so while Developer admins is on, people who are not developers do not see it in the menu, the admin bar (**Edit With YellowPencil**) or the Plugins screen, and its editor pages are refused (GitHub issue #598).
 
 ### 1.3.19
 
