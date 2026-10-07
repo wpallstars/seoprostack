@@ -160,6 +160,17 @@
  * cleanly and the next one, 10 minutes later, carries on
  * (seoprostack_litespeed_crawler_duration filter; 0 leaves it alone).
  *
+ * WordPress 6.9 and later (checked up to 7.1.3 and trunk) compare a table's
+ * column type with the lower-case type in a plugin's CREATE TABLE statement
+ * in dbDelta(), so a column whose choices have capitals, such as Tutor LMS
+ * Pro 4.1.0's `status` enum('READ','UNREAD') in tutor_notifications, looks
+ * changed every time and is altered again. Tutor LMS Pro runs dbDelta() for
+ * that table on every request: an ALTER TABLE of 40-120 ms on each admin
+ * screen and AJAX request. Such a column, when the table already has it
+ * exactly as written, is left out of the statement, so dbDelta() leaves it
+ * as it is. Any real difference is still altered, and new tables are
+ * created as written.
+ *
  * @package SEOProStack
  */
 
@@ -271,7 +282,7 @@ class SEOProStack_Plugin_Fixes extends SEOProStack_Feature {
                 'default'     => true,
                 'tab'         => 'plugins',
                 'label'       => __('Fixes for other plugins', 'seoprostack'),
-                'description' => __('Works around bugs in other plugins that slow your site down, without changing their settings. Lasso Lite (Simple URLs) stops contacting its server on every admin screen. Deactivating Freesoul Deactivate Plugins or its PRO add-on deactivates both and removes the must-use file it leaves behind. Readabler no longer contacts its server on every Plugins screen load, or stops that screen with a critical error when it cannot. Tutor LMS Pro and Tutor LMS Certificate Builder stop adding warnings to the debug log when there is no update. Tutor LMS gets its order, cart and coupon tables on every site of a network. Tutor LMS Pro no longer makes the Plugins screen check every plugin for updates on each load. Comment Goblin no longer waits for its update server on every admin screen while that server fails. MainWP Child no longer prints its Branding "Global footer" text, unstyled, below every front-end page. On LiteSpeed servers, scheduled tasks (WordPress cron and Action Scheduler, used by WooCommerce and others) finish instead of stopping partway, through a few lines at the top of .htaccess. Kadence Pro no longer causes "Failed opening" warnings when other plugins load shared code. WP Crontrol says whether the server\'s cron job runs, instead of only that DISABLE_WP_CRON is set. On Hostinger, a server cron job no longer fills the error log with "invalid_schedule" errors for the Monarx security agent\'s tasks (mnx_versions_cron_event). Burst Statistics finishes its database upgrade instead of logging a database error every 5 minutes when its tables differ in collation. LiteSpeed Cache\'s crawler works in turns short enough for LiteSpeed hosts, instead of being stopped partway and waiting an hour. Turn this off if a fix causes a problem.', 'seoprostack'),
+                'description' => __('Works around bugs in other plugins that slow your site down, without changing their settings. Lasso Lite (Simple URLs) stops contacting its server on every admin screen. Deactivating Freesoul Deactivate Plugins or its PRO add-on deactivates both and removes the must-use file it leaves behind. Readabler no longer contacts its server on every Plugins screen load, or stops that screen with a critical error when it cannot. Tutor LMS Pro and Tutor LMS Certificate Builder stop adding warnings to the debug log when there is no update. Tutor LMS gets its order, cart and coupon tables on every site of a network. Tutor LMS Pro no longer makes the Plugins screen check every plugin for updates on each load. Comment Goblin no longer waits for its update server on every admin screen while that server fails. MainWP Child no longer prints its Branding "Global footer" text, unstyled, below every front-end page. On LiteSpeed servers, scheduled tasks (WordPress cron and Action Scheduler, used by WooCommerce and others) finish instead of stopping partway, through a few lines at the top of .htaccess. Kadence Pro no longer causes "Failed opening" warnings when other plugins load shared code. WP Crontrol says whether the server\'s cron job runs, instead of only that DISABLE_WP_CRON is set. On Hostinger, a server cron job no longer fills the error log with "invalid_schedule" errors for the Monarx security agent\'s tasks (mnx_versions_cron_event). Burst Statistics finishes its database upgrade instead of logging a database error every 5 minutes when its tables differ in collation. LiteSpeed Cache\'s crawler works in turns short enough for LiteSpeed hosts, instead of being stopped partway and waiting an hour. Tutor LMS Pro, and other plugins whose tables have a column of choices in capitals, no longer change their table on every request. Turn this off if a fix causes a problem.', 'seoprostack'),
             ),
         );
     }
@@ -303,6 +314,7 @@ class SEOProStack_Plugin_Fixes extends SEOProStack_Feature {
         add_filter('http_response', array(__CLASS__, 'themeum_no_update'), 10, 3);
         add_filter('pre_http_request', array(__CLASS__, 'themeum_no_update'), PHP_INT_MAX, 3);
         add_filter('dbdelta_create_queries', array(__CLASS__, 'tutor_create_queries'));
+        add_filter('dbdelta_create_queries', array(__CLASS__, 'dbdelta_same_choices'));
         // Before Tutor's upgrader, which uses priority 10.
         add_action('admin_init', array(__CLASS__, 'tutor_repair_tables'), 5);
         // Before Tutor LMS Pro's closure, which uses priority 10.
@@ -821,6 +833,76 @@ class SEOProStack_Plugin_Fixes extends SEOProStack_Feature {
             $queries[$table] = $query;
         }
         return $queries;
+    }
+
+    /**
+     * CREATE TABLE statements for tables that exist: leave out each enum or
+     * set column whose choices have capitals and that the table already has
+     * exactly as written, which dbDelta() (WordPress 6.9 and later) compares
+     * in lower case and so would alter on every call. dbDelta() leaves the
+     * columns a statement does not list as they are; any real difference
+     * keeps the line, and new tables are created as written.
+     *
+     * @param array $queries CREATE TABLE statements by table name.
+     * @return array
+     */
+    public static function dbdelta_same_choices($queries) {
+        global $wpdb;
+        if (!is_array($queries)) {
+            return $queries;
+        }
+        foreach ($queries as $table => $query) {
+            if (!is_string($table) || !is_string($query) || !preg_match('/^[A-Za-z0-9_$]+$/', $table)
+                || !preg_match('/\b(?:enum|set)\s*\([^)]*[A-Z]/i', $query)) {
+                continue;
+            }
+            $suppressed = $wpdb->suppress_errors(true);
+            // phpcs:ignore WordPress.DB.DirectDatabaseQuery, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- dbDelta() reads the same; the table name is checked above.
+            $columns = $wpdb->get_results("DESCRIBE `{$table}`");
+            $wpdb->suppress_errors($suppressed);
+            if (!$columns) {
+                continue;
+            }
+            $have = array();
+            foreach ($columns as $column) {
+                $have[strtolower((string) $column->Field)] = $column;
+            }
+            $lines = explode("\n", $query);
+            $kept  = array();
+            foreach ($lines as $line) {
+                if (self::same_choices_column($line, $have)) {
+                    continue;
+                }
+                $kept[] = $line;
+            }
+            if (count($kept) !== count($lines)) {
+                $queries[$table] = implode("\n", $kept);
+            }
+        }
+        return $queries;
+    }
+
+    /**
+     * Whether a CREATE TABLE line is an enum or set column with capitals in
+     * its choices that the table already has exactly: same type, byte for
+     * byte, and the same NULL or NOT NULL, with nothing else set. Lines
+     * without a comma at the end are kept, so the statement stays valid.
+     *
+     * @param string               $line One line of the statement.
+     * @param array<string,\stdClass> $have The table's columns (DESCRIBE rows), by lower-case name.
+     * @return bool
+     */
+    private static function same_choices_column($line, array $have) {
+        if (!preg_match("/^\\s*`?(\\w+)`?\\s+((?:enum|set)\\((?:[^()']|'(?:[^'\\\\]|\\\\.|'')*')*\\))(?:\\s+(NOT\\s+NULL|NULL))?\\s*,\\s*$/i", $line, $match)) {
+            return false;
+        }
+        $type = $match[2];
+        if (strtolower($type) === $type || !isset($have[strtolower($match[1])])) {
+            return false;
+        }
+        $column   = $have[strtolower($match[1])];
+        $not_null = isset($match[3]) && 0 === stripos($match[3], 'NOT');
+        return $type === (string) $column->Type && ($not_null ? 'NO' : 'YES') === (string) $column->Null;
     }
 
     /**
