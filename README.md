@@ -95,6 +95,7 @@ SEO Pro Stack replaces **56 plugins**, some of them in part, with free and Pro e
 | Brand icons | Content | Popular Brand Icons – Simple Icons |
 | Spectra block replacements | Content | Spectra |
 | Paste into the Media Library | Media | The Paste |
+| Copy linked images to Media Library | Media | Auto Upload Images |
 | SVG uploads | Media | Safe SVG |
 | Resize large uploads | Media | Imsanity |
 | Replace media files | Media | Enable Media Replace |
@@ -896,6 +897,7 @@ When a post is saved, images linked from other sites are copied into the Media L
 - Excluded domains (and their subdomains) are left alone. Your own site is always excluded.
 - File name and alt text patterns support tokens such as `%filename%`, `%post_title%` and `%date%`. Existing alt text is kept.
 - Up to 10 images are imported per save; the rest are imported on the next save.
+- Imports Auto Upload Images’ maximum width and height, excluded addresses (as domains), and file name and alt text patterns when every token in them is one listed here, and switches on if Auto Upload Images is active. Its default alt pattern, `%image_alt%`, keeps each image’s own alt text, so it becomes an empty pattern. Images in custom fields, excluded post types and serving images from another address are not reproduced; while Auto Upload Images is active and set to do those, the Plugins screen names them instead of saying it can go.
 
 ### Paste into the Media Library (Media)
 
@@ -1513,6 +1515,10 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folder�
 
 ## Changelog
 
+### Unreleased
+
+- Changed: **Copy linked images to Media Library** replaces **Auto Upload Images**. The Plugins screen notes it on that plugin's row (and in its notice while it is active), and the feature imports its maximum width and height, excluded addresses, and file name and alt text patterns, switching on while it is active (settings version 25). While it is active and set to copy images in custom fields, skip post types or serve images from another address, the Plugins screen names those instead of saying it can go (GitHub issue #613).
+
 ### 1.3.23
 
 - New: **Database character set** (Server tab). A Site Health test, always on, lists this site's tables that cannot store emoji (the older `utf8`/`utf8mb3` character set), where saving a setting, custom field or comment with an emoji fails without a message. With the setting on, **Tools → Database character set** converts them to `utf8mb4` in the collation WordPress uses for new tables, one table or all at once, never waiting long for a busy table; tables in other character sets are listed, never converted. New `wp seoprostack charset list|convert` command, `admin_post_seoprostack_database_charset` action and `seoprostack_database_charset_log` option (not autoloaded), removed on uninstall (GitHub issue #610).
@@ -2128,6 +2134,7 @@ Where a feature replaces one of them, SEO Pro Stack imports the settings it can,
 | Font Awesome Free (brand icons, CC BY 4.0) | Fonticons, Inc. | [GitHub](https://github.com/FortAwesome/Font-Awesome) | Brand icons, for brands Simple Icons does not have |
 | Spectra | Brainstorm Force | [WordPress.org](https://wordpress.org/plugins/ultimate-addons-for-gutenberg/), [GitHub](https://github.com/brainstormforce/wp-spectra) | Spectra block replacements |
 | The Paste | Jörn Lund | [WordPress.org](https://wordpress.org/plugins/the-paste/), [GitHub](https://github.com/mcguffin/the-paste) | Paste into the Media Library |
+| Auto Upload Images | Ali Irani | [WordPress.org](https://wordpress.org/plugins/auto-upload-images/), [GitHub](https://github.com/airani/wp-auto-upload) | Copy linked images to Media Library |
 | Safe SVG | 10up | [WordPress.org](https://wordpress.org/plugins/safe-svg/), [GitHub](https://github.com/10up/safe-svg) | SVG uploads |
 | Imsanity | Shane Bishop | [WordPress.org](https://wordpress.org/plugins/imsanity/), [GitHub](https://github.com/nosilver4u/imsanity) | Resize large uploads |
 | Enable Media Replace | ShortPixel | [WordPress.org](https://wordpress.org/plugins/enable-media-replace/), [GitHub](https://github.com/short-pixel-optimizer/enable-media-replace) | Replace media files |

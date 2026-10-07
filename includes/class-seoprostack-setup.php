@@ -213,8 +213,10 @@ final class SEOProStack_Setup {
      *      the default (owner's choice, #426).
      * v24: Readable list columns: remove Readabler's column where Columns
      *      to remove was stored before it was offered (#575).
+     * v25: import Auto Upload Images' settings (Copy linked images to Media
+     *      Library), switched on while it is active (#613).
      */
-    const DB_VERSION = 24;
+    const DB_VERSION = 25;
 
     /**
      * Tab slugs renamed in 0.4.0, old => new. Settings that still use an
