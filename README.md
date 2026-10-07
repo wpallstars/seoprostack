@@ -21,7 +21,7 @@ SEO Pro Stack does the jobs that usually take dozens of small plugins: a calmer,
 
 If this saves you time, headaches and costs, feel free to [buy me a coffee](https://buymeacoffee.com/marcusquinn), or whatever you like, to invest in making more things open-source.
 
-Version: 1.3.18
+Version: 1.3.19
 
 <!-- github-only:start -->
 ## Screenshots
@@ -1498,7 +1498,7 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folderâ
 
 ## Changelog
 
-### Unreleased
+### 1.3.19
 
 - New: the **LiteSpeed Cache preset** turns on LiteSpeed Cache's crawler on LiteSpeed servers that allow it, so pages are cached again soon after a purge (every plugin, theme or core update purges them) and visitors mostly get cached pages. It crawls the whole sitemap once a day instead of every 3.5 days; pages still cached cost the server little. The crawler keeps the sitemap set in LiteSpeed Cache, or is given the site's sitemap index (Rank Math's, Yoast's or WordPress's own); sites without one are left alone. Server IP stays the site's own choice. The crawler needs no QUIC.cloud account, as the preset said before (GitHub issue #588).
 - Fix: **Fixes for other plugins** keeps LiteSpeed Cache's crawler turns to 240 seconds. LiteSpeed Cache plans 900, but LiteSpeed hosts such as Hostinger end a request at 300 seconds, so the turn was killed and its lane stayed taken for an hour: the crawler worked about 5 minutes an hour. A `LITESPEED_CRAWLER_DURATION` the site defines is kept (GitHub issue #590).
