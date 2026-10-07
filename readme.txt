@@ -13,11 +13,11 @@ One free plugin for a faster, tidier WordPress. It does the jobs of 40+ single-p
 
 == Description ==
 
-Faster admin, writing, media, safer logins and tested plugin settings.
+Faster admin, easier publishing and safer logins.
 
 Free and open source: no paid version, nothing locked.
 
-Safe features start on; those needing choices stay off. Use **Settings → SEO Pro Stack**; **Search features** finds replaced plugins too. Replacements import settings once, leave the original's unchanged and wait while it is active.
+Safe features start on; others stay off. In **Settings → SEO Pro Stack**, **Search features** finds replacements too. They import settings once, leave originals unchanged and wait while the old plugin is active.
 
 = A calmer, faster admin =
 
@@ -30,18 +30,18 @@ Safe features start on; those needing choices stay off. Use **Settings → SEO P
 
 = Safer logins and access =
 
-* **Magic login links**: one-time links by email that link scanners cannot use up.
-* **Admin bar and dashboard access**: keep subscribers and customers out of wp-admin; never administrators.
-* **Turn off unused remote access**: XML-RPC and application passwords, and web access to log and backup files. Site Health names such public files, and a listable uploads folder.
-* **Maintenance mode**: a 503 page search engines understand, with 24-hour bypass links you can revoke.
+* **Magic login links**: one-time email links, safe from link scanners.
+* **Admin bar and dashboard access**: no wp-admin for subscribers or customers; admins keep access.
+* **Turn off unused remote access**: XML-RPC, application passwords and public logs/backups. Site Health flags exposed files and listable uploads.
+* **Maintenance mode**: a 503 page with revocable 24-hour bypass links.
 
 = Writing and publishing =
 
-* **Publishing queue**: posts without a date go to the next free time slot.
+* **Publishing queue**: undated posts take the next free slot.
 * **Duplicate posts**, **Staged new versions** (draft edits to live posts) and **Shareable preview links** without an account.
 * **Pinned posts for any post type**, **Select all across pages**, **Order by hand**, **Change post type**, **Term tools**, **Search custom fields** and **Old post addresses**.
-* **Tag clouds and related posts**: A–Z indexes, term tabs, accordions and related posts. Keeps TaxoPress and Tag Groups pages working without them.
-* **Custom fields to content**: ACF/SCF text into content and excerpts, with WP-CLI sync.
+* **Tag clouds and related posts**: A–Z, tabs, accordions and related posts; TaxoPress and Tag Groups pages work without them.
+* **Custom fields to content**: ACF/SCF text to content and excerpts; WP-CLI sync.
 * **Restrict content**: posts, categories, blocks and products by membership or role. **Menu item visibility** by login or role.
 * **iFrame block** (allowed domains and roles), **Link cards**, **Wikipedia previews**, **Word documents**, **Brand icons** and **Like, save and share**.
 * **Spectra block replacements**, Kadence light/dark **TranslatePress colours** and scroll-to-results **Kadence query filters**.
@@ -49,11 +49,11 @@ Safe features start on; those needing choices stay off. Use **Settings → SEO P
 = Media =
 
 * **Copy linked images to Media Library** on save, and **Paste into the Media Library**.
-* **WebP and AVIF images**: smaller files for browsers that support them, at the same address.
-* **Resize large uploads**, **Replace media files** and **Watermark pictures**, keeping the originals.
-* **SVG uploads** for chosen roles, cleaned on upload. **Dark mode image contrast** for logos.
-* **Website screenshots**: a block and the `[browser-shot]` shortcode, saved to the Media Library.
-* **Avatars without Gravatar**: served by your own site.
+* **WebP and AVIF images**: smaller files, same address, for supporting browsers.
+* **Resize large uploads**, **Replace media files** and **Watermark pictures**, keeping originals.
+* **SVG uploads**: cleaned, chosen roles only. **Dark mode image contrast** for logos.
+* **Website screenshots**: block and `[browser-shot]` shortcode; saved to Media Library.
+* **Avatars without Gravatar**: served locally.
 
 = Links and speed =
 
@@ -63,10 +63,10 @@ Safe features start on; those needing choices stay off. Use **Settings → SEO P
 * **Internal linking tools** (off): suggestions, undo, counts, orphans and read-only Link Whisper checks.
 * **Recommended speed settings**, **Load pages before the click**, **Delay scripts until interaction**, **Delayed Google Analytics** and faster Kadence Blocks editing.
 * **Ask before licence checks**: once, daily or never. **Calls to other sites** (off): callers, hosts, times and blocks.
-* **Clean the database weekly**: old spam, bin and expired data, and gone plugins' tasks.
+* **Clean the database weekly**: spam, bin, expired data and gone plugins' tasks.
 * **Count terms and comments in the background** and **Remember admin counts** (off).
 * **Load large settings only where they are used** (single sites).
-* **Faster page counts on long lists** (off), with exact page numbers.
+* **Faster page counts on long lists** (off): exact page numbers.
 * **Database key cleanup**: duplicate indexes, owners and restore SQL. **Add database keys** (off): faster custom field lookups.
 * **Load plugins only where needed**: skips unused plugins. Learns page kinds only on cookie-free, unauthenticated public GET requests.
 
@@ -74,9 +74,9 @@ Safe features start on; those needing choices stay off. Use **Settings → SEO P
 
 * **Plugin presets** and **starter data**: tested settings and Fluent lists, tags, forms and boards; only when asked, with undo.
 * **Plugins menu**, **Plugin sizes** with page time, **Clean up deleted plugins** and **Hosting needs** for plans and PHP.
-* **Fixes for other plugins**: works around their known bugs.
+* **Fixes for other plugins**: known bug workarounds.
 * **Agency**: order flow, client dashboard and examples.
-* **Discover**: the Kadence theme and the free and Pro plugins, hosting and tools we use.
+* **Discover**: Kadence, free and Pro plugins, hosting and tools we use.
 
 = Affiliate disclosure =
 
@@ -111,11 +111,11 @@ Install from Plugins → Add New and activate. Set features in Settings → SEO 
 
 = What happens if I deactivate or delete the plugin? =
 
-Deactivating removes the must-use file of Load plugins only where needed and the `.htaccess` rules of Fixes for other plugins (LiteSpeed) and optional features. Deleting also removes settings, caches, profile pictures, WebP/AVIF copies and short links; imported media and watermarked originals stay.
+Deactivation removes Load plugins only where needed's must-use file and Fixes for other plugins' (LiteSpeed) and optional features' `.htaccess` rules. Deletion removes settings, caches, profile pictures, WebP/AVIF copies and short links too; imported media and watermarked originals stay.
 
 = Does it work on multisite? =
 
-Yes. Settings are per site; Free Plugins is for super admins. Network Plugins offers per-site activation to load plugins only where needed.
+Yes: per-site settings, Free Plugins for super admins. Network Plugins offers per-site activation for loading only where needed.
 
 = Is the magic login safe? =
 
