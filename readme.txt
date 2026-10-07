@@ -137,6 +137,9 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 
 == Changelog ==
 
+= Unreleased =
+* New: the LiteSpeed Cache preset turns on LiteSpeed Cache's crawler, daily, so pages are cached again soon after updates purge them.
+
 = 1.3.18 =
 * Fix: deleting spam comments corrects wrong comment counts on posts; Recount now repairs up to 5,000 posts each time (Count terms and comments in the background).
 

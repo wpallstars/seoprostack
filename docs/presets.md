@@ -58,6 +58,11 @@ Owner's decisions for single presets:
   LiteSpeed Cache re-minifies every file on each page-cache miss
   (0.25–1.2 s per page on Hostinger), and Combine breaks pages. Don't turn
   them back on; `README.md` → LiteSpeed hosting has the numbers.
+- LiteSpeed Cache turns its crawler on, once a day, where the server allows
+  it and the site has a sitemap (#588), to cache pages again after the
+  purges that updates cause. The sitemap is worked out on each site
+  (`SEOProStack_Litespeed::crawler_sitemap()`); Server IP stays out, as it
+  is the site's own.
 - Readabler and AI Engine keep their floating buttons in opposite corners
   (#577): Readabler bottom left, AI Engine's chatbot bubble bottom right,
   as the owner set them on a live site. Colours, chatbot names, instructions

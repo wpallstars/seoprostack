@@ -48,7 +48,9 @@ if (!defined('ABSPATH')) {
  *             feature:{key}:{item} (and that item of it is chosen),
  *             option:{name} (the option is stored, for plugins that
  *             expect their whole option once it exists),
- *             litespeed_server, and more through the
+ *             litespeed_server, litespeed_crawler (that server lets
+ *             LiteSpeed Cache's crawler run and the site has a
+ *             sitemap), and more through the
  *             seoprostack_preset_condition filter. A leading "!" turns a
  *             condition round (!litespeed_server: not a LiteSpeed server).
  * - limits:   optional, for numbers the plugin caps on each site (such as by
