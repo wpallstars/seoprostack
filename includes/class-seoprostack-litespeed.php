@@ -184,9 +184,13 @@ final class SEOProStack_Litespeed {
         }
         $url = '';
         if (class_exists('\RankMath\Helper') && \RankMath\Helper::is_module_active('sitemap')) {
-            $url = class_exists('\RankMath\Sitemap\Router')
-                ? \RankMath\Sitemap\Router::get_base_url('sitemap_index.xml')
-                : home_url('/sitemap_index.xml');
+            // As Rank Math builds it (its index slug can be filtered).
+            $index = class_exists('\RankMath\Sitemap\Sitemap')
+                ? \RankMath\Sitemap\Sitemap::get_sitemap_index_slug() . '.xml'
+                : 'sitemap_index.xml';
+            $url   = class_exists('\RankMath\Sitemap\Router')
+                ? \RankMath\Sitemap\Router::get_base_url($index)
+                : home_url('/' . $index);
         } elseif (class_exists('WPSEO_Options') && WPSEO_Options::get('enable_xml_sitemap')) {
             $url = class_exists('WPSEO_Sitemaps_Router')
                 ? WPSEO_Sitemaps_Router::get_base_url('sitemap_index.xml')
