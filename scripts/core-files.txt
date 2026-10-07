@@ -16,11 +16,9 @@ includes/github-updater/
 admin/settings.php
 admin/data/readme.php
 admin/includes/class-admin-manager.php
-admin/includes/class-admin-page.php
 admin/includes/class-settings-manager.php
 admin/includes/class-readme-manager.php
 admin/includes/class-replaced-plugins.php
-admin/css/seoprostack-header.css
 admin/css/seoprostack-admin.css
 admin/js/seoprostack-admin.js
 
