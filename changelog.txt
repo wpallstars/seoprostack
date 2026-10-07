@@ -2,7 +2,7 @@
 
 Every change to SEO Pro Stack. readme.txt lists the latest version in short.
 
-= Unreleased =
+= 1.3.23 =
 * New: Database character set (Server tab). A Site Health test, always on, lists this site's tables that cannot store emoji (the older utf8/utf8mb3 character set), where saving a setting, custom field or comment with an emoji fails without a message. With the setting on, Tools → Database character set converts them to utf8mb4 in the collation WordPress uses for new tables, one table or all at once, never waiting long for a busy table; tables in other character sets are listed, never converted. New `wp seoprostack charset list|convert` command, admin_post_seoprostack_database_charset action and seoprostack_database_charset_log option (not autoloaded), removed on uninstall (GitHub issue #610).
 
 = 1.3.22 =
