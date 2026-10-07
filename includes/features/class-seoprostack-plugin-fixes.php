@@ -314,7 +314,6 @@ class SEOProStack_Plugin_Fixes extends SEOProStack_Feature {
         add_filter('http_response', array(__CLASS__, 'themeum_no_update'), 10, 3);
         add_filter('pre_http_request', array(__CLASS__, 'themeum_no_update'), PHP_INT_MAX, 3);
         add_filter('dbdelta_create_queries', array(__CLASS__, 'tutor_create_queries'));
-        add_filter('dbdelta_create_queries', array(__CLASS__, 'dbdelta_same_choices'));
         // Before Tutor's upgrader, which uses priority 10.
         add_action('admin_init', array(__CLASS__, 'tutor_repair_tables'), 5);
         // Before Tutor LMS Pro's closure, which uses priority 10.
@@ -636,6 +635,9 @@ class SEOProStack_Plugin_Fixes extends SEOProStack_Feature {
         if (is_array($stored) && array_key_exists(self::KEY, $stored) && !$stored[self::KEY]) {
             return;
         }
+        // Tutor LMS Pro runs dbDelta() for its notifications table on
+        // tutor_loaded, during plugins_loaded, before boot() on init.
+        add_filter('dbdelta_create_queries', array(__CLASS__, 'dbdelta_same_choices'));
         if (!self::kadence_pro_clean_class_map()) {
             // Kadence Pro loads after SEO Pro Stack: network-activated SEO
             // Pro Stack with Kadence Pro active on the site only.
