@@ -138,6 +138,6 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 == Changelog ==
 
 = 1.3.18 =
-* Fix: deleting spam comments corrects wrong comment counts on posts; Recount now repairs them all (Count terms and comments in the background).
+* Fix: deleting spam comments corrects wrong comment counts on posts; Recount now repairs up to 5,000 posts each time (Count terms and comments in the background).
 
 Older: `changelog.txt`.

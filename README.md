@@ -1492,7 +1492,7 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folderâ
 
 ### 1.3.18
 
-- Fix: **Count terms and comments in the background** corrects a post's comment count when its spam, pending or binned comments are deleted and the count is wrong. WordPress recounts only when an approved comment is deleted, so counts already wrong (from database edits, imports or other plugins) stayed on the posts list after the spam was deleted. **Recount now** also finds and recounts every post whose comment count does not match its approved comments (GitHub issue #585).
+- Fix: **Count terms and comments in the background** corrects a post's comment count when its spam, pending or binned comments are deleted and the count is wrong. WordPress recounts only when an approved comment is deleted, so counts already wrong (from database edits, imports or other plugins) stayed on the posts list after the spam was deleted. **Recount now** also finds and recounts posts whose comment count does not match their approved comments, up to 5,000 each time it is used (GitHub issue #585).
 
 ### 1.3.17
 

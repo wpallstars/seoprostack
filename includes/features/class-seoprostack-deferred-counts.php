@@ -113,7 +113,7 @@ class SEOProStack_Deferred_Counts extends SEOProStack_Feature {
         $in = implode(',', array_fill(0, count($types), '%s'));
         // phpcs:disable WordPress.DB.DirectDatabaseQuery, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- manual repair; only generated %s placeholders, every value is prepared.
         $high = $wpdb->get_col($wpdb->prepare(
-            "SELECT p.ID FROM {$wpdb->posts} p WHERE p.comment_count > 0 AND p.post_type IN ($in) AND p.comment_count <> (SELECT COUNT(*) FROM {$wpdb->comments} c WHERE c.comment_post_ID = p.ID AND c.comment_approved = '1') LIMIT %d",
+            "SELECT p.ID FROM {$wpdb->posts} p WHERE p.comment_count <> 0 AND p.post_type IN ($in) AND p.comment_count <> (SELECT COUNT(*) FROM {$wpdb->comments} c WHERE c.comment_post_ID = p.ID AND c.comment_approved = '1') LIMIT %d",
             array_merge($types, array(self::REPAIR))
         ));
         $low = $wpdb->get_col($wpdb->prepare(
