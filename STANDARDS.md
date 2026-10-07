@@ -107,10 +107,18 @@ How changes are made and checked: `DEVELOPMENT.md`. Releases: `RELEASING.md`.
   screenshot copies ship, and that each `screenshot-N` has a caption.
   The `Version: X.Y.Z` line under the intro holds the version itself (GitHub
   shows it as written) and changes with every release (`RELEASING.md`).
+- Settings → {Name} is the settings screen; with its own top-level menu, a plugin names it in `{Prefix}_Setup::MENU_PARENT`
+  and the screen is **Settings**, last in that menu (not also under Settings). Link to it with
+  `{Prefix}_Admin_Manager::page_url()` or `tab_url()`, never a fixed `options-general.php` address.
 - The settings screen's header links come from `{Prefix}_Setup::header_links()`:
   `source` (the GitHub repository, **Source code**), `support` (its issues,
   **Support**) and `donate` (**Buy me a coffee**); leave one out for no
-  button. Keep the labels short so the buttons fit on one row.
+  button, and keep labels short so they fit one row. The plugin's own screens show
+  the same header (`{Prefix}_Admin_Manager::enqueue_header()`, `render_header()`)
+  and their sections as the same tabs (`.{css}-nav`, `.{css}-nav__tab`, `is-active`).
+- Settings tabs in one group (between dividers) switch without a reload. A
+  `{prefix}_admin_tabs` tab joins with `'preload' => true` once it is cheap
+  to draw and its script works with its panel hidden.
 - Update `README.md` (feature section, hooks, changelog), `changelog.txt`
   (the user-facing changelog entry) and `readme.txt` in the same change.
   `readme.txt` must stay under 10 KB for WordPress.org: one short line per
@@ -145,32 +153,27 @@ How changes are made and checked: `DEVELOPMENT.md`. Releases: `RELEASING.md`.
   differ, and warns when the licence is not GPL-3.0-or-later, when
   `ATTRIBUTION.txt` is missing, or when a copyright line or a source file's
   SPDX copyright line is missing.
-- Every plugin except SEO Pro Stack keeps the line starting "Works well
-  with " that recommends SEO Pro Stack
+- Every plugin except SEO Pro Stack ends `README.md` → **Built with AI** with
+  the line starting "Works well with " that recommends SEO Pro Stack
   (<https://github.com/wpallstars/seoprostack>), the base plugin for every
-  site, at the end of `README.md` → **Built with AI**. Keep it out of
-  `readme.txt`, admin notices and the plugin's own screens other than the
-  Read Me tab: WordPress.org's guidelines are strict about plugins promoting
-  other plugins, and those are the places its reviewers check.
-  `scripts/preflight-release.sh` warns when the line is missing from
-  `README.md` or appears in `readme.txt`.
+  site. Keep it out of `readme.txt`, admin notices and the plugin's screens
+  other than the Read Me tab: WordPress.org's reviewers check those places
+  for plugins promoting others. `scripts/preflight-release.sh` warns when the
+  line is missing from `README.md` or appears in `readme.txt`.
 - `.distignore` lists files kept out of the release zip. Add new
   development-only files there (the preflight fails when a known one gets in),
   then check the build with Plugin Check.
 
 ## Agent docs
 
-AI agents read `AGENTS.md` in every session, whatever the task, so every
-line there costs every session. Keep it a short map; put the detail where
-only the task that needs it reads it. This works the same for a small
-plugin and a large one: a small plugin has only `AGENTS.md`, a large one
-adds docs as it grows.
+AI agents read `AGENTS.md` in every session, so every line there costs every
+session: keep it a short map and put the detail where only the task that needs
+it reads it. A small plugin has only `AGENTS.md`; a large one adds docs.
 
 - `AGENTS.md` holds the plugin's names (the placeholder table), the rules
   for this plugin that apply to any change (a line or two each, such as
   features the owner asked to be on), and one line for each doc saying when
-  to read it. Near the top it tells agents to read this file before any
-  change.
+  to read it. Near the top it tells agents to read this file before any change.
 - Agents keep the plugin at the starter's standard; the starter is where
   the standard is set, not the plugin's copy of it:
   - Before work, look for an open `starter-sync` issue. If one is open,
@@ -182,7 +185,7 @@ adds docs as it grows.
     there with the plugin's case, then comes back with
     `scripts/sync-core.sh`. Only the plugin's own files (`{Prefix}_Setup`,
     features, `phpstan-plugin.neon`, `scripts/preflight-plugin.sh`,
-    `AGENTS.md`, `docs/`) take changes for this plugin alone.
+    `AGENTS.md`, `LAUNCH.md`, `docs/`) take changes for this plugin alone.
   - Steps that need the owner's accounts or make secrets (SonarCloud,
     Codacy, `SYNC_PAT`: `DEVELOPMENT.md` → Services setup) are listed for
     the owner, not done by an agent.
@@ -216,8 +219,7 @@ adds docs as it grows.
   `PluginCheck.Security.DirectDB.UnescapedDBParameter` otherwise.
 - A notice shown once after an action, read from a query argument
   (`?{prefix}_done=…`), adds that argument to `removable_query_args`, so
-  WordPress takes it out of the address and a reload does not show the
-  notice again.
+  WordPress takes it out of the address and a reload does not show the notice again.
 - Prefix everything global with `{prefix}_`, `{Prefix}_` or `{PREFIX}_`. The
   shared GitHub updater is the one exception: its `wpallstars_` names are the
   same in every plugin, so that one copy can stand in for the others.
@@ -234,17 +236,17 @@ adds docs as it grows.
   needed (cache answers, never on every page load), and never block a
   visitor's page when they can run later. Features that rein in other
   plugins hand the choice to the owner instead of deciding for them.
-  WordPress update checks and downloads are the exception: leave them alone
-  (next rule).
+  WordPress update checks and downloads are the exception: leave them alone (next rule).
 - Do not change WordPress update behaviour (update transients, `auto_update_*`
-  filters, update checks) outside the shared GitHub updater. Plugin Check
-  reports `plugin_updater_detected` as an error, and WordPress.org asks plugins
-  not to interfere with the updater.
-- Leave no PHP errors, warnings, notices or deprecations behind. Fix any that
-  the plugin causes as you find them, in the same change when it is small,
-  or as a tracked issue. That includes ones in other plugins that only happen
-  because of this one. Messages that other plugins cause on their own are
-  theirs: mention them, do not hide them.
+  filters, update checks, including when and where they run) outside the
+  shared GitHub updater. Plugin Check reports `plugin_updater_detected` as an
+  error, and WordPress.org asks plugins not to interfere with the updater. A
+  change to update behaviour goes in the shared updater, so it reaches GitHub
+  builds only.
+- Leave no PHP errors, warnings, notices or deprecations behind. Fix any the
+  plugin causes, including ones in other plugins that happen only because of
+  this one, in the same change when small or as a tracked issue. Messages
+  other plugins cause on their own are theirs: mention them, do not hide them.
 - WordPress first: use core's APIs (options, transients, the object cache,
   `WP_Query`, cron, the HTTP API, the Settings and REST APIs) before writing
   your own, and follow the WordPress Coding Standards (`phpcs.xml.dist`).
@@ -288,8 +290,7 @@ a test site take the site down.
     first and skip any whose leading columns an existing key covers. An
     index on a table the plugin does not own (WordPress's or another
     plugin's) is opt-in, and uninstall removes only the ones it added.
-  - Admin lists of large tables page, sort only on indexed columns, and
-    cache their counts.
+  - Admin lists of large tables page, sort only on indexed columns and cache counts.
 - **Options:** one autoloaded settings array (`{prefix}_options`). Store
   large or rarely used data with autoload off (`update_option( $name,
   $value, false )`) or in the plugin's own table. Never write an option or
@@ -310,15 +311,23 @@ a test site take the site down.
   `wp_suspend_cache_invalidation()`, then turn them back on.
 - **No request per page view.** No admin-ajax, REST or remote request on
   every visitor page unless the feature needs it; remote requests a page
-  waits on have a short timeout (at most 3 seconds).
+  waits on have a short timeout (at most 3 seconds). Admin screens do not
+  wait on remote requests either when the answer can be fetched in cron
+  and cached: licence and update servers are the usual cause of slow admin
+  screens.
+- **Clear only your own cache.** Delete the plugin's own object-cache keys
+  or groups, never the whole object cache (`wp_cache_flush()`): on many
+  hosts every site on the account shares one memcached server, so a flush
+  empties every site's cache, and each of their pages is slower on its next
+  uncached load (measured on a host with 14 sites: about 0.2 seconds a
+  page, up to 0.5).
 - **Measure on large data.** `scripts/smoke-test.sh` loads every page on a
   site seeded with thousands of posts and meta rows, reports query counts
   and times, and fails on a full table or index scan, or a large sort, in
   the plugin's own queries (`DEVELOPMENT.md` → Smoke test). PHPCS flags the
-  patterns above as you write them (`WordPress.DB.SlowDBQuery` and
-  WordPress VIP's performance sniffs, `phpcs.xml.dist`). An exception, such
-  as an unlimited query over a list that cannot grow, needs an inline
-  `phpcs:ignore` with the reason.
+  patterns above as you write them (`WordPress.DB.SlowDBQuery` and VIP's
+  performance sniffs, `phpcs.xml.dist`); an exception, such as an unlimited
+  query over a list that cannot grow, needs an inline `phpcs:ignore` with why.
 
 ## Updates from GitHub
 
@@ -336,6 +345,15 @@ It replaces Git Updater.
   to core. It only adds entries for those plugins; it never removes or blocks
   other updates. Its icon, banner and View details (`readme.txt` and the
   screenshots) are the installed plugin's own files.
+- Update checks that fall due while someone opens an admin screen run in
+  WP-Cron instead. Core runs them on `admin_init` when its stored check is
+  12 hours old, so that screen waits while WordPress and every plugin's own
+  updater ask their servers (seconds on hosts with many premium plugins).
+  The updater moves only those three checks (`_maybe_update_core`,
+  `_maybe_update_plugins`, `_maybe_update_themes`) to core's own cron events,
+  and leaves them where they are while WP-Cron is not running. The checks on
+  the Plugins, Themes and Updates screens, the twice-daily checks, the checks
+  after updating and automatic updates stay as in core.
 - It is the same in every plugin apart from its text domain and `@package`.
   Change it in the starter, raise the version in its `load.php`, and copy it
   to each plugin. Plugins change what it does only through its filters
@@ -354,6 +372,10 @@ It replaces Git Updater.
 - Tokens for private repositories come only from `wp-config.php`
   (`WPALLSTARS_GITHUB_TOKEN`) or the filter, go only to api.github.com and
   are never stored.
+- Release answers are cached for 12 hours (an hour after a failure). "Check
+  again" on the Updates screen, or a core check that starts without the
+  `update_plugins` site transient (cleared, say, with `wp transient delete
+  update_plugins --network`), asks GitHub again, at most once a minute.
 
 ## Releases
 
@@ -449,8 +471,7 @@ While a repository is private, CI and review apps only advise: nothing is
 required to merge, for speed. Fix failures your change causes before merging;
 open an issue for any other failure and merge anyway. Do not turn on branch
 protection, required checks or paid reviewers. At public launch (owner's say),
-run the full sweep in `DEVELOPMENT.md` → At public launch, which makes the
-checks required.
+run the sweep in `DEVELOPMENT.md` → At public launch, which makes them required.
 
 The checks catch errors, not wrong behaviour, so also verify on real
 WordPress:
@@ -496,5 +517,4 @@ WordPress:
    Check text, backgrounds, borders and palette colours chosen in block
    settings in both.
 
-Note: since WordPress 5.6, posts restored from the Bin become drafts. Republish
-test posts after bulk-trash tests.
+Note: since WordPress 5.6, posts restored from the Bin become drafts; republish test posts after.
