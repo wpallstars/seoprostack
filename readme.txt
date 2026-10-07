@@ -137,6 +137,9 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 
 == Changelog ==
 
+= Unreleased =
+* Fix: Load plugins only where needed keeps what pages learned when admin screens save bookkeeping, such as the edit lock.
+
 = 1.3.20 =
 * New: Hosting needs recommends Crawl now after updates empty the page cache, and says when a crawl is starting.
 * Change: Developer admins limits unfiltered HTML by default on new installs.

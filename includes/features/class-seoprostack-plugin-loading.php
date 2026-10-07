@@ -216,12 +216,24 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
      * #515), so new ones need no entry, but these are also saved through
      * AJAX or the REST API by a signed-in admin. Names ending in "." or "_"
      * are prefixes (also LiteSpeed Cache's async tasks and crawler).
+     * Update caches and bookkeeping (GitHub issue #602): WordPress's flag
+     * for changed suggested privacy policy text, which admin screens and
+     * AJAX flip back and forth, the update and licence caches of plugins
+     * using EDD Software Licensing's updater, and Freemius's API cache.
      */
     const RECORD_OPTIONS = array('_fcrm_last_', '_fc_last_', 'rsssl_csp_header_test_status',
         'rsssl_csp_header_test_status_', 'rsssl_admin_notices', 'rsssl_plusone_count',
         'mainwp_child_system_monitor_', 'mainwp_child_advanced_request_', 'html-regression-track-admin-assets',
         'stellarwp_uplink_update_status_', 'burst_installed_integrations',
-        'mdp_readabler_pid_', 'readabler_cron_hook_timestamp', 'litespeed.task.', 'litespeed.crawler.');
+        'mdp_readabler_pid_', 'readabler_cron_hook_timestamp', 'litespeed.task.', 'litespeed.crawler.',
+        '_wp_suggested_policy_text_has_changed', 'edd_sl_', 'edd_api_request_', 'fs_api_cache');
+
+    /**
+     * Post fields WordPress keeps about editing, not content: the lock
+     * Heartbeat renews while a post is open, and who last saved it (saving
+     * forgets through save_post). GitHub issue #602.
+     */
+    const RECORD_META = array('_edit_lock', '_edit_last');
 
     /**
      * Site pages forgotten in this request: 0 not yet, 1 once, 2 changed
@@ -1787,7 +1799,7 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
      * @param string    $meta_key  Meta key.
      */
     public static function post_meta_changed($meta_id, $object_id = 0, $meta_key = '') {
-        if (self::record_request()) {
+        if (in_array((string) $meta_key, self::RECORD_META, true) || self::record_request()) {
             return;
         }
         self::$forget_cause = self::$forget_cause ?? array('hook' => (string) current_filter(), 'key' => (string) $meta_key);
