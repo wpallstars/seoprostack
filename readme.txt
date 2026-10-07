@@ -138,6 +138,9 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 
 == Changelog ==
 
+= Unreleased =
+* Change: Load plugins only where needed no longer loads login-check plugins (two-factor, CAPTCHA, login limits) on every admin screen; logins still load every plugin.
+
 = 1.3.25 =
 * Fix: with Load plugins only where needed, the update check after a plugin update loads every plugin, so the update count matches the Updates screen.
 
