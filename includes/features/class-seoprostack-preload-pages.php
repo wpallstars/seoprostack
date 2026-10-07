@@ -318,9 +318,12 @@ class SEOProStack_Preload_Pages extends SEOProStack_Feature {
             . '@keyframes sps-nav-dot1{0%,74%{opacity:1}75%,100%{opacity:0}}'
             . '@keyframes sps-nav-dot2{0%,24%{opacity:0}25%,74%{opacity:1}75%,100%{opacity:0}}'
             . '@keyframes sps-nav-dot3{0%,49%{opacity:0}50%,74%{opacity:1}75%,100%{opacity:0}}'
-            . '#sps-nav-wait{margin:10px 20px 0 2px;color:#1d2327;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Oxygen-Sans,Ubuntu,Cantarell,"Helvetica Neue",sans-serif}'
+            // Padding, not margin, above it: a margin would pass up through
+            // the content area on screens that unfloat it (Fluent Boards) and
+            // move the whole page, menu included, down.
+            . '#sps-nav-wait{margin:0 20px 0 2px;padding-top:10px;color:#1d2327;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Oxygen-Sans,Ubuntu,Cantarell,"Helvetica Neue",sans-serif}'
             . '#sps-nav-wait .sps-nav-wait__title{display:block;margin:0;padding:9px 0 4px;font-size:23px;font-weight:400;line-height:1.3;color:inherit}'
-            . '#sps-nav-wait.is-tab{clear:both;margin:16px 2px}'
+            . '#sps-nav-wait.is-tab{clear:both;margin:0 2px;padding-top:16px}'
             . '.sps-nav-wait__dots span{margin-inline-start:.2em}'
             . '#wpbody-content.sps-nav-waiting>:not(#sps-nav-wait),.sps-nav-hidden{display:none!important}'
             . 'html.sps-nav-busy #adminmenu li.menu-top:not(:hover):not(.current):not(.wp-has-current-submenu),'
@@ -332,7 +335,7 @@ class SEOProStack_Preload_Pages extends SEOProStack_Feature {
             . "{$shell} body>:not(#wpwrap),{$shell} #wpwrap>:not(#adminmenumain):not(#wpcontent),{$shell} #wpcontent>:not(#wpadminbar):not(#wpbody),{$shell} #wpbody>:not(#wpbody-content){display:none!important}"
             . '@media screen and (max-width:782px){'
             . "{$shell} #wpcontent{padding-inline-start:10px!important}"
-            . '#sps-nav-wait{margin:10px 12px 0 0}'
+            . '#sps-nav-wait{margin:0 12px 0 0}'
             . '}';
         wp_add_inline_style('wp-admin', $css);
     }
