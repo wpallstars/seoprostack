@@ -331,7 +331,7 @@ class SEOProStack_Preload_Pages extends SEOProStack_Feature {
             . "{$shell},{$shell} body{background:#f0f0f1!important}"
             . "{$shell} #wpwrap,{$shell} #wpcontent,{$shell} #wpbody,{$shell} #wpbody-content{background:transparent!important}"
             . "{$shell} #wpcontent{padding-inline-start:20px!important;padding-inline-end:0!important}"
-            . "{$shell} #wpbody,{$shell} #wpbody-content{margin-top:0!important;padding-top:0!important}"
+            . "{$shell} #wpbody-content{margin-top:0!important;padding-top:0!important}"
             . "{$shell} body>:not(#wpwrap),{$shell} #wpwrap>:not(#adminmenumain):not(#wpcontent),{$shell} #wpcontent>:not(#wpadminbar):not(#wpbody),{$shell} #wpbody>:not(#wpbody-content){display:none!important}"
             . '@media screen and (max-width:782px){'
             . "{$shell} #wpcontent{padding-inline-start:10px!important}"
