@@ -138,6 +138,9 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 
 == Changelog ==
 
+= Unreleased =
+* Fix: with the admin sidebar collapsed, menu icons no longer cover the names in the Administrators and Developers menus.
+
 = 1.3.27 =
 * Developers: shared coding standards updated. The update-check changes in this version are for GitHub builds only.
 

@@ -1518,6 +1518,10 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folderâ
 
 ## Changelog
 
+### Unreleased
+
+- Fixed: with the admin sidebar collapsed, the Administrators and Developers menus drew their entries' icons over the names. WordPress gives the menus that open from the collapsed sidebar less room before the names, so those menus now show the names without icons, as WordPress's own menus do there; the full sidebar keeps the icons (GitHub issue #629).
+
 ### 1.3.27
 
 - New (GitHub builds): admin screens no longer wait for update checks. When WordPress's last core, plugin or theme update check is 12 hours old, the next admin screen opened ran it, waiting while WordPress and every plugin's own updater asked their servers. **Updates from GitHub** (shared updater 1.4.0) now schedules that check as WordPress's own cron event, and WP-Cron starts it in the background as the screen finishes. The Plugins, Themes and Updates screens still check as before, as do the twice-daily checks, the checks after updating and automatic updates; while WP-Cron is not running, or when a check cannot be scheduled, the checks stay on admin screens. New `wpallstars_github_updater_checks_in_cron` filter. It replaces the separate "Update checks in cron" must-use file, which can be deleted (GitHub issue #627).
