@@ -1501,7 +1501,7 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folderâ
 
 ### Unreleased
 
-- Fix: **Load plugins only where needed** kept what the site's pages learned for only a few hours on some sites, so pages that reach PHP, LiteSpeed Cache's crawler included, loaded every plugin again. WordPress's flag for changed suggested privacy policy text (`_wp_suggested_policy_text_has_changed`, flipped by admin screens and AJAX), the edit lock Heartbeat renews while a post is open (`_edit_lock`), and update caches (EDD Software Licensing's `edd_sl_*` and `edd_api_request_*`, Freemius's `fs_api_cache`) no longer make the site's pages learn again. Saving a post still does (GitHub issue #602).
+- Fix: On some sites, **Load plugins only where needed** forgot what the site's pages had learned after a few hours, so pages that reach PHP, LiteSpeed Cache's crawler included, loaded every plugin again. WordPress's flag for changed suggested privacy policy text (`_wp_suggested_policy_text_has_changed`, flipped by admin screens and AJAX), the edit lock Heartbeat renews while a post is open (`_edit_lock`), and update caches (EDD Software Licensing's `edd_sl_*` and `edd_api_request_*`, Freemius's `fs_api_cache`) no longer make the site's pages learn again. Saving a post still does (GitHub issue #602).
 
 ### 1.3.20
 
