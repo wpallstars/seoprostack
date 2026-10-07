@@ -137,6 +137,9 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 
 == Changelog ==
 
+= Unreleased =
+* Fix: Fixes for other plugins now reaches Tutor LMS Pro's notifications table, which 1.3.21's fix missed.
+
 = 1.3.21 =
 * Fix: Load plugins only where needed keeps what pages learned when admin screens save bookkeeping, such as the edit lock.
 * Fix: Fixes for other plugins stops Tutor LMS Pro altering its notifications table on every request.
