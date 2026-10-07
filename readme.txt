@@ -5,7 +5,7 @@ Tags: magic login, iframe, schedule posts, auto upload images, admin
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.3.20
+Stable tag: 1.3.21
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -137,13 +137,8 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 
 == Changelog ==
 
-= Unreleased =
+= 1.3.21 =
 * Fix: Load plugins only where needed keeps what pages learned when admin screens save bookkeeping, such as the edit lock.
 * Fix: Fixes for other plugins stops Tutor LMS Pro altering its notifications table on every request.
-
-= 1.3.20 =
-* New: Hosting needs recommends Crawl now after updates empty the page cache, and says when a crawl is starting.
-* Change: Developer admins limits unfiltered HTML by default on new installs.
-* Change: YellowPencil goes in the Developers menu, out of reach of people who are not developers.
 
 Older: `changelog.txt`.

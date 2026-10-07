@@ -853,12 +853,12 @@ class SEOProStack_Plugin_Fixes extends SEOProStack_Feature {
         }
         foreach ($queries as $table => $query) {
             if (!is_string($table) || !is_string($query) || !preg_match('/^[A-Za-z0-9_$]+$/', $table)
-                || !preg_match('/\b(?:enum|set)\s*\([^)]*[A-Z]/i', $query)) {
+                || !preg_match('/\b(?i:enum|set)\s*\([^)]*[A-Z]/', $query)) {
                 continue;
             }
             $suppressed = $wpdb->suppress_errors(true);
-            // phpcs:ignore WordPress.DB.DirectDatabaseQuery, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- dbDelta() reads the same; the table name is checked above.
-            $columns = $wpdb->get_results("DESCRIBE `{$table}`");
+            // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- dbDelta() reads the same, just before.
+            $columns = $wpdb->get_results($wpdb->prepare('DESCRIBE %i', $table));
             $wpdb->suppress_errors($suppressed);
             if (!$columns) {
                 continue;
