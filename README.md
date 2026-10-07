@@ -21,7 +21,7 @@ SEO Pro Stack does the jobs that usually take dozens of small plugins: a calmer,
 
 If this saves you time, headaches and costs, feel free to [buy me a coffee](https://buymeacoffee.com/marcusquinn), or whatever you like, to invest in making more things open-source.
 
-Version: 1.3.23
+Version: 1.3.24
 
 <!-- github-only:start -->
 ## Screenshots
@@ -1515,7 +1515,7 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folderâ
 
 ## Changelog
 
-### Unreleased
+### 1.3.24
 
 - Changed: **Copy linked images to Media Library** replaces **Auto Upload Images**. The Plugins screen notes it on that plugin's row (and in its notice while it is active), and the feature imports its maximum width and height, excluded addresses, and file name and alt text patterns, switching on while it is active (settings version 25). While it is active and set to copy images in custom fields, skip post types or serve images from another address, the Plugins screen names those instead of saying it can go (GitHub issue #613).
 
