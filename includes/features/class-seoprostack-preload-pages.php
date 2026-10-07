@@ -323,7 +323,7 @@ class SEOProStack_Preload_Pages extends SEOProStack_Feature {
             // move the whole page, menu included, down.
             . '#sps-nav-wait{margin:0 20px 0 2px;padding-top:10px;color:#1d2327;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Oxygen-Sans,Ubuntu,Cantarell,"Helvetica Neue",sans-serif}'
             . '#sps-nav-wait .sps-nav-wait__title{display:block;margin:0;padding:9px 0 4px;font-size:23px;font-weight:400;line-height:1.3;color:inherit}'
-            . '#sps-nav-wait.is-tab{clear:both;margin:0 2px;padding-top:16px}'
+            . '#sps-nav-wait.is-tab{clear:both;margin:0;padding-top:8px}'
             . '.sps-nav-wait__dots span{margin-inline-start:.2em}'
             . '#wpbody-content.sps-nav-waiting>:not(#sps-nav-wait),.sps-nav-hidden{display:none!important}'
             . 'html.sps-nav-busy #adminmenu li.menu-top:not(:hover):not(.current):not(.wp-has-current-submenu),'
@@ -591,7 +591,17 @@ class SEOProStack_Preload_Pages extends SEOProStack_Feature {
 				}
 			}
 		}
-		keep.parentNode.insertBefore(placeholder('', true), keep.nextSibling);
+		var wait = placeholder('', true);
+		keep.parentNode.insertBefore(wait, keep.nextSibling);
+		// Dots under the navigation's first entry, wherever its block starts.
+		var first = nav.querySelector('a');
+		if (first) {
+			var to = first.getBoundingClientRect(), from = wait.getBoundingClientRect();
+			var gap = 'rtl' === getComputedStyle(wait).direction ? from.right - to.right : to.left - from.left;
+			if (gap > 0) {
+				wait.style.paddingInlineStart = Math.round(gap) + 'px';
+			}
+		}
 		body.setAttribute('aria-busy', 'true');
 	}
 
