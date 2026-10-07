@@ -2,6 +2,9 @@
 
 Every change to SEO Pro Stack. readme.txt lists the latest version in short.
 
+= 1.3.18 =
+* Fix: Count terms and comments in the background corrects a post's comment count when its spam, pending or binned comments are deleted and the count is wrong. WordPress recounts only when an approved comment is deleted, so counts already wrong (from database edits, imports or other plugins) stayed on the posts list after the spam was deleted. Recount now also finds and recounts posts whose comment count does not match their approved comments, up to 5,000 each time it is used (GitHub issue #585).
+
 = 1.3.17 =
 * New, off by default: Readabler colours (Content tab) gives Readabler's accessibility button and popup the site's palette colours, so they follow the Kadence light and dark mode switcher. Readabler picks its light or dark popup colours from the visitor's system setting and keeps fixed colours, so they could not follow the site from Readabler's settings. The button is palette 5, palette 1 on hover, with a palette 9 icon; the popup is palette 9 with palette 4 text and palette 5 controls. Readabler's own colours are not changed, are used where the theme has no palette, and return when this is off (GitHub issue #580).
 

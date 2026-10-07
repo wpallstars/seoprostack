@@ -5,7 +5,7 @@ Tags: magic login, iframe, schedule posts, auto upload images, admin
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.3.17
+Stable tag: 1.3.18
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -137,7 +137,7 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 
 == Changelog ==
 
-= 1.3.17 =
-* New, off by default: Readabler colours follow Kadence's palette and dark mode.
+= 1.3.18 =
+* Fix: deleting spam comments corrects wrong comment counts on posts; Recount now repairs up to 5,000 posts each time (Count terms and comments in the background).
 
 Older: `changelog.txt`.
