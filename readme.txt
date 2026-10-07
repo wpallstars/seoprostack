@@ -17,16 +17,16 @@ Faster admin, writing, media, safer logins and tested plugin settings.
 
 Free and open source: no paid version, nothing locked.
 
-Features safe on every site start on; those needing choices stay off. Use **Settings → SEO Pro Stack**; **Search features** also finds replaced plugins. Replacements import settings once, never change the original's and wait while it is active.
+Safe features start on; those needing choices stay off. Use **Settings → SEO Pro Stack**; **Search features** finds replaced plugins too. Replacements import settings once, leave the original's unchanged and wait while it is active.
 
 = A calmer, faster admin =
 
-* **Developer admins**: only chosen administrators can manage plugins, themes, admins and site addresses.
-* **Organise the admin menu**: the same sections on every site, role previews, writing only for contributors.
-* **Tidy the dashboard**, **Dashboard and sidebar widgets**, **Hide admin notices** (behind a megaphone) and a **More menu** for plugins' admin bar items.
-* **Quiet Freemius prompts** and **Quiet Appsero prompts**: no opt-in nags, upgrade offers or deactivation surveys.
-* **Tidy admin screens**, **Tidy WooCommerce admin**, **Tidy the login screen**, **Simpler block editor**, **Remove WordPress extras**, **Fewer Heartbeat requests**, **Limit post revisions** and **Lighter WooCommerce pages**: most of Disable Bloat.
-* **Modern admin colours**, **No fade between admin screens**, **Correct update counts**, **Readable list columns** and **Notification emails** (stop routine emails).
+* **Developer admins**: chosen admins manage plugins, themes, admins and site addresses.
+* **Organise the admin menu**: consistent sections, role previews, writing-only contributor menus.
+* **Tidy the dashboard**, **Dashboard and sidebar widgets**, **Hide admin notices** and a **More menu** for admin bar items.
+* **Quiet Freemius prompts** and **Quiet Appsero prompts**: no nags, upgrade offers or exit surveys.
+* **Tidy admin screens**, **Tidy WooCommerce admin**, **Tidy the login screen**, **Simpler block editor**, **Remove WordPress extras**, **Fewer Heartbeat requests**, **Limit post revisions** and **Lighter WooCommerce pages**.
+* **Modern admin colours**, **No fade between admin screens**, **Correct update counts**, **Readable list columns** and **Notification emails**.
 
 = Safer logins and access =
 
@@ -38,13 +38,13 @@ Features safe on every site start on; those needing choices stay off. Use **Sett
 = Writing and publishing =
 
 * **Publishing queue**: posts without a date go to the next free time slot.
-* **Duplicate posts**, **Staged new versions** (edit a live post as a draft) and **Shareable preview links** for people without an account.
-* **Pinned posts for any post type**, **Select all across pages**, **Order by hand**, **Change post type**, **Term tools** (merge, move, set parent, unused terms), **Search custom fields** and **Old post addresses**.
-* **Tag clouds and related posts**: A–Z indexes, grouped terms in tabs or accordions and a Related posts block. TaxoPress and Tag Groups pages keep working after they are gone.
+* **Duplicate posts**, **Staged new versions** (draft edits to live posts) and **Shareable preview links** without an account.
+* **Pinned posts for any post type**, **Select all across pages**, **Order by hand**, **Change post type**, **Term tools**, **Search custom fields** and **Old post addresses**.
+* **Tag clouds and related posts**: A–Z indexes, term tabs, accordions and related posts. Keeps TaxoPress and Tag Groups pages working without them.
 * **Custom fields to content**: ACF/SCF text into content and excerpts, with WP-CLI sync.
-* **Restrict content**: posts, parts of posts, categories, blocks and shop products only for members or chosen roles. **Menu item visibility** by login or role.
-* **iFrame block** (only the domains and roles you allow), **Link cards**, **Wikipedia previews**, **Word documents**, **Brand icons** (Simple Icons, Font Awesome Free) and **Like, save and share**.
-* **Spectra block replacements** keep pages working without Spectra. **TranslatePress colours** follow Kadence light and dark modes. **Kadence query filters** scroll to results.
+* **Restrict content**: posts, categories, blocks and products by membership or role. **Menu item visibility** by login or role.
+* **iFrame block** (allowed domains and roles), **Link cards**, **Wikipedia previews**, **Word documents**, **Brand icons** and **Like, save and share**.
+* **Spectra block replacements**, Kadence light/dark **TranslatePress colours** and scroll-to-results **Kadence query filters**.
 
 = Media =
 
@@ -58,22 +58,22 @@ Features safe on every site start on; those needing choices stay off. Use **Sett
 = Links and speed =
 
 * **Rank Math defaults**: empty keywords from titles, pillar warnings and selected-post removal.
-* **Short links** such as /go/offer/ with click counts, **Short addresses for custom post types** and **410 Gone** for removed pages.
-* **External link icons**: text-link colours and Kadence dark mode, without scripts; replaces Link Whisper's icon only.
-* **Internal linking tools** (off): approved suggestions, undo, counts, orphans and read-only Link Whisper retirement checks.
-* **Recommended speed settings**, **Load pages before the click**, **Delay scripts until interaction**, **Delayed Google Analytics** and a faster editor with Kadence Blocks.
-* **Ask before licence checks**: premium plugins call home once, daily or never. **Calls to other sites** (off): who calls which site, how long, with blocks.
+* **Short links** with click counts, **Short addresses for custom post types** and **410 Gone** for removed pages.
+* **External link icons**: Kadence colours, no scripts; replaces Link Whisper's icon only.
+* **Internal linking tools** (off): suggestions, undo, counts, orphans and read-only Link Whisper checks.
+* **Recommended speed settings**, **Load pages before the click**, **Delay scripts until interaction**, **Delayed Google Analytics** and faster Kadence Blocks editing.
+* **Ask before licence checks**: once, daily or never. **Calls to other sites** (off): callers, hosts, times and blocks.
 * **Clean the database weekly**: old spam, bin and expired data, and gone plugins' tasks.
 * **Count terms and comments in the background** and **Remember admin counts** (off).
 * **Load large settings only where they are used** (single sites).
 * **Faster page counts on long lists** (off), with exact page numbers.
-* **Database key cleanup**: duplicate indexes and who added them, with restore SQL. **Add database keys** (off): faster custom field lookups.
-* **Load plugins only where needed**: skips unused plugins in admin and on the site. Learns page kinds only on cookie-free, unauthenticated public GET requests.
+* **Database key cleanup**: duplicate indexes, owners and restore SQL. **Add database keys** (off): faster custom field lookups.
+* **Load plugins only where needed**: skips unused plugins. Learns page kinds only on cookie-free, unauthenticated public GET requests.
 
 = Plugins and set-up =
 
-* **Plugin presets** and **starter data**: our tested settings for other plugins, and the lists, tags, forms and boards we use in Fluent plugins; only when you ask, and undoable.
-* **Plugins menu** in the admin bar, **Plugin sizes** with page time, **Clean up deleted plugins** and **Hosting needs** (what hosting to buy, and how PHP runs).
+* **Plugin presets** and **starter data**: tested settings and Fluent lists, tags, forms and boards; only when asked, with undo.
+* **Plugins menu**, **Plugin sizes** with page time, **Clean up deleted plugins** and **Hosting needs** for plans and PHP.
 * **Fixes for other plugins**: works around their known bugs.
 * **Agency**: order flow, client dashboard and examples.
 * **Discover**: the Kadence theme and the free and Pro plugins, hosting and tools we use.
@@ -111,11 +111,11 @@ Install from Plugins → Add New and activate. Set features in Settings → SEO 
 
 = What happens if I deactivate or delete the plugin? =
 
-Deactivating removes the must-use file of Load plugins only where needed, the `.htaccess` rules of Fixes for other plugins (LiteSpeed servers; both on by default) and those of optional features. Deleting also removes settings, caches, profile pictures, WebP/AVIF copies and short links; imported media and watermarked originals stay.
+Deactivating removes the must-use file of Load plugins only where needed and the `.htaccess` rules of Fixes for other plugins (LiteSpeed) and optional features. Deleting also removes settings, caches, profile pictures, WebP/AVIF copies and short links; imported media and watermarked originals stay.
 
 = Does it work on multisite? =
 
-Yes. Settings are per site; Free Plugins is for super admins. Network Plugins offers to activate network plugins per site, so each loads them only where needed.
+Yes. Settings are per site; Free Plugins is for super admins. Network Plugins offers per-site activation to load plugins only where needed.
 
 = Is the magic login safe? =
 
