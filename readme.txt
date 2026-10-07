@@ -115,7 +115,7 @@ Deactivation removes Load plugins only where needed's must-use file and tries to
 
 = Does it work on multisite? =
 
-Yes: per-site settings, Free Plugins for super admins. Network Plugins offers per-site activation for loading only where needed.
+Yes: per-site settings, Free Plugins for super admins. Network Plugins offers per-site activation when “Load plugins only where needed” is on for the main site.
 
 = Is the magic login safe? =
 
