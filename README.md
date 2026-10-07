@@ -63,7 +63,7 @@ Also offered on Server: **Faster page counts on long lists**, off by default, wi
 
 Copies installed from GitHub releases also have Updates from GitHub on. Sites that already had SEO Pro Stack keep their own settings: the defaults apply to new installs. Each feature can be switched off on its card. Features that replace a separate plugin say so on their card (“Replaces: …”) and import that plugin’s settings once when SEO Pro Stack is updated. The other plugin’s own settings are never changed or deleted. While that plugin is active, the feature waits and the plugin keeps doing the job, so the two never run side by side; the card says so, with a deactivate link that comes back to the same settings tab. Deactivate the plugin to switch over. The Plugins screen lists installed plugins that SEO Pro Stack can replace, with what to do next for each: deactivate it (its setting is on), switch the setting on, or delete it once inactive (single sites; on multisite another site may use it). Each of those plugins also gets a note under its own row saying which SEO Pro Stack setting makes it redundant and what to do next, including inactive plugins whose setting is still off; the notes are not hidden by **Hide**. When an active plugin does things on the site that SEO Pro Stack does not (such as Disable Bloat’s REST API switches), the line names them instead of saying the plugin can go. **Hide** hides the lines shown for that person until another step is needed. Plugins that web hosts add to every new site (Hostinger AI and Hostinger Easy Onboarding) get a note under their row while active, saying what they are for and recommending deactivating them if that is not used, with a Deactivate link; nothing is deactivated or deleted for you.
 
-SEO Pro Stack replaces **56 plugins**, some of them in part, with free and Pro editions counted separately. The 46 that can be downloaded come to 44.9 MB zipped; SEO Pro Stack is 3.3 MB.
+SEO Pro Stack replaces **57 plugins**, some of them in part, with free and Pro editions counted separately. The 47 that can be downloaded come to 45.3 MB zipped; SEO Pro Stack is 3.5 MB.
 
 | Feature | Tab | Replaces |
 | --- | --- | --- |
@@ -95,6 +95,7 @@ SEO Pro Stack replaces **56 plugins**, some of them in part, with free and Pro e
 | Brand icons | Content | Popular Brand Icons – Simple Icons |
 | Spectra block replacements | Content | Spectra |
 | Paste into the Media Library | Media | The Paste |
+| Copy linked images to Media Library | Media | Auto Upload Images |
 | SVG uploads | Media | Safe SVG |
 | Resize large uploads | Media | Imsanity |
 | Replace media files | Media | Enable Media Replace |
@@ -896,6 +897,7 @@ When a post is saved, images linked from other sites are copied into the Media L
 - Excluded domains (and their subdomains) are left alone. Your own site is always excluded.
 - File name and alt text patterns support tokens such as `%filename%`, `%post_title%` and `%date%`. Existing alt text is kept.
 - Up to 10 images are imported per save; the rest are imported on the next save.
+- Imports Auto Upload Images’ maximum width and height, excluded addresses (as domains), and file name and alt text patterns when every token in them is one listed here, and switches on if Auto Upload Images is active. Its default alt pattern, `%image_alt%`, keeps each image’s own alt text, so it becomes an empty pattern. Images in custom fields, excluded post types and serving images from another address are not reproduced; while Auto Upload Images is active and set to do those, the Plugins screen names them instead of saying it can go.
 
 ### Paste into the Media Library (Media)
 
@@ -1513,6 +1515,10 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folder�
 
 ## Changelog
 
+### Unreleased
+
+- Changed: **Copy linked images to Media Library** replaces **Auto Upload Images**. The Plugins screen notes it on that plugin's row (and in its notice while it is active), and the feature imports its maximum width and height, excluded addresses, and file name and alt text patterns, switching on while it is active (settings version 25). While it is active and set to copy images in custom fields, skip post types or serve images from another address, the Plugins screen names those instead of saying it can go (GitHub issue #613).
+
 ### 1.3.23
 
 - New: **Database character set** (Server tab). A Site Health test, always on, lists this site's tables that cannot store emoji (the older `utf8`/`utf8mb3` character set), where saving a setting, custom field or comment with an emoji fails without a message. With the setting on, **Tools → Database character set** converts them to `utf8mb4` in the collation WordPress uses for new tables, one table or all at once, never waiting long for a busy table; tables in other character sets are listed, never converted. New `wp seoprostack charset list|convert` command, `admin_post_seoprostack_database_charset` action and `seoprostack_database_charset_log` option (not autoloaded), removed on uninstall (GitHub issue #610).
@@ -2128,6 +2134,7 @@ Where a feature replaces one of them, SEO Pro Stack imports the settings it can,
 | Font Awesome Free (brand icons, CC BY 4.0) | Fonticons, Inc. | [GitHub](https://github.com/FortAwesome/Font-Awesome) | Brand icons, for brands Simple Icons does not have |
 | Spectra | Brainstorm Force | [WordPress.org](https://wordpress.org/plugins/ultimate-addons-for-gutenberg/), [GitHub](https://github.com/brainstormforce/wp-spectra) | Spectra block replacements |
 | The Paste | Jörn Lund | [WordPress.org](https://wordpress.org/plugins/the-paste/), [GitHub](https://github.com/mcguffin/the-paste) | Paste into the Media Library |
+| Auto Upload Images | Ali Irani | [WordPress.org](https://wordpress.org/plugins/auto-upload-images/), [GitHub](https://github.com/airani/wp-auto-upload) | Copy linked images to Media Library |
 | Safe SVG | 10up | [WordPress.org](https://wordpress.org/plugins/safe-svg/), [GitHub](https://github.com/10up/safe-svg) | SVG uploads |
 | Imsanity | Shane Bishop | [WordPress.org](https://wordpress.org/plugins/imsanity/), [GitHub](https://github.com/nosilver4u/imsanity) | Resize large uploads |
 | Enable Media Replace | ShortPixel | [WordPress.org](https://wordpress.org/plugins/enable-media-replace/), [GitHub](https://github.com/short-pixel-optimizer/enable-media-replace) | Replace media files |

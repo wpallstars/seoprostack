@@ -7,6 +7,8 @@
  * local copy. Works for the block editor (REST), the classic editor and
  * programmatic wp_insert_post() calls made by users who can upload files.
  *
+ * Replaces "Auto Upload Images" and imports its settings.
+ *
  * SPDX-License-Identifier: GPL-3.0-or-later
  * SPDX-FileCopyrightText: 2026 Marcus Quinn
  * Additional terms (GPL-3.0 section 7(b)): SEOPROSTACK-ATTRIBUTION.txt
@@ -26,6 +28,18 @@ class SEOProStack_Auto_Upload extends SEOProStack_Feature {
     /** Attachment meta holding the original remote URL (for de-duplication). */
     const SOURCE_META = '_seoprostack_source_url';
 
+    /** Plugins this feature replaces: slug => name. */
+    const REPLACES = array('auto-upload-images' => 'Auto Upload Images');
+
+    /** Auto Upload Images' settings option. */
+    const AUI_OPTION = 'aui-setting';
+
+    /** Pattern tokens SEO Pro Stack fills, as Auto Upload Images names them. */
+    const AUI_TOKENS = array(
+        '%today_date%' => '%date%',
+        '%today_day%'  => '%day%',
+    );
+
     /**
      * Settings.
      *
@@ -39,6 +53,7 @@ class SEOProStack_Auto_Upload extends SEOProStack_Feature {
                 'tab'         => 'media',
                 'label'       => __('Copy linked images to Media Library', 'seoprostack'),
                 'description' => __('When a post is saved, copy images from any external image links into the Media Library, resize, and change the link to serve the local copy.', 'seoprostack'),
+                'replaces'    => self::REPLACES,
             ),
             'auto_upload_max_width' => array(
                 'type'        => 'int',
@@ -88,9 +103,113 @@ class SEOProStack_Auto_Upload extends SEOProStack_Feature {
     }
 
     /**
+     * Import Auto Upload Images' settings, and switch on while it is active:
+     * the largest width and height, excluded addresses (as domains), and the
+     * file name and alt text patterns when SEO Pro Stack fills every token in
+     * them. Its alt pattern "%image_alt%" (its default: keep the image's own
+     * alt text) becomes an empty pattern, which does the same here. Images in
+     * custom fields, excluded post types and a different image address are
+     * not imported; the Plugins screen names them while it is active.
+     *
+     * @param array $options      Stored settings.
+     * @param int   $from_version Stored settings version.
+     * @return array
+     */
+    public static function migrate(array $options, $from_version) {
+        if (array_intersect_key(self::REPLACES, self::active_plugins())) {
+            $options = self::import_setting($options, self::KEY, true);
+        }
+
+        $theirs = self::aui_settings();
+        if (!$theirs) {
+            return $options;
+        }
+        foreach (array('max_width' => 'auto_upload_max_width', 'max_height' => 'auto_upload_max_height') as $from => $to) {
+            if (isset($theirs[$from]) && is_numeric($theirs[$from]) && (int) $theirs[$from] > 0) {
+                $options = self::import_setting($options, $to, (int) $theirs[$from]);
+            }
+        }
+        if (!empty($theirs['exclude_urls']) && is_string($theirs['exclude_urls'])) {
+            $domains = SEOProStack_Settings::parse_domains($theirs['exclude_urls']);
+            if ($domains) {
+                $options = self::import_setting($options, 'auto_upload_exclude_domains', implode("\n", $domains));
+            }
+        }
+        if (isset($theirs['image_name'])) {
+            $options = self::import_setting($options, 'auto_upload_filename_pattern', self::aui_pattern($theirs['image_name'], 'auto_upload_filename_pattern'));
+        }
+        if (isset($theirs['alt_name'])) {
+            $alt     = '%image_alt%' === trim((string) $theirs['alt_name']) ? '' : self::aui_pattern($theirs['alt_name'], 'auto_upload_alt_pattern');
+            $options = self::import_setting($options, 'auto_upload_alt_pattern', $alt);
+        }
+        return $options;
+    }
+
+    /**
+     * Auto Upload Images' stored settings.
+     *
+     * @return array
+     */
+    private static function aui_settings() {
+        $theirs = get_option(self::AUI_OPTION, array());
+        return is_array($theirs) ? $theirs : array();
+    }
+
+    /**
+     * An Auto Upload Images pattern in SEO Pro Stack's tokens, or null when it
+     * is empty or uses a token SEO Pro Stack does not fill.
+     *
+     * @param mixed  $pattern Their pattern.
+     * @param string $key     Our setting key, for its tokens.
+     * @return string|null
+     */
+    private static function aui_pattern($pattern, $key) {
+        $pattern = trim(strtr(is_string($pattern) ? $pattern : '', self::AUI_TOKENS));
+        if ('' === $pattern) {
+            return null;
+        }
+        $schema = self::settings();
+        $tokens = isset($schema[$key]['tokens']) ? (array) $schema[$key]['tokens'] : array();
+        preg_match_all('/%[^%\s]*%/', $pattern, $used);
+        return array_diff($used[0], $tokens) ? null : $pattern;
+    }
+
+    /**
+     * What Auto Upload Images does on this site that this feature does not.
+     *
+     * @param string[] $extras Plain names.
+     * @param string   $slug   Plugin folder.
+     * @return string[]
+     */
+    public static function aui_extras($extras, $slug) {
+        if (!isset(self::REPLACES[$slug])) {
+            return $extras;
+        }
+        $theirs = self::aui_settings();
+        if (!empty($theirs['custom_fields']) && is_array($theirs['custom_fields'])) {
+            $extras[] = __('Images in custom fields', 'seoprostack');
+        }
+        if (!empty($theirs['exclude_post_types']) && is_array($theirs['exclude_post_types'])) {
+            $extras[] = __('Excluded post types', 'seoprostack');
+        }
+        if (!empty($theirs['base_url']) && is_string($theirs['base_url'])) {
+            $theirs_host = strtolower((string) wp_parse_url($theirs['base_url'], PHP_URL_HOST));
+            $our_host    = strtolower((string) wp_parse_url(home_url(), PHP_URL_HOST));
+            if ('' !== $theirs_host && preg_replace('/^www\./', '', $theirs_host) !== preg_replace('/^www\./', '', $our_host)) {
+                $extras[] = __('Images served from another address', 'seoprostack');
+            }
+        }
+        return array_values(array_unique($extras));
+    }
+
+    /**
      * Register hooks when enabled.
      */
     public static function boot() {
+        // Replacement advice is needed even while the feature waits or is off.
+        if (is_admin()) {
+            add_filter('seoprostack_replaced_plugin_extras', array(__CLASS__, 'aui_extras'), 10, 2);
+        }
         if (!self::enabled()) {
             return;
         }

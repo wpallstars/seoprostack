@@ -138,6 +138,9 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 
 == Changelog ==
 
+= Unreleased =
+* Changed: Copy linked images to Media Library replaces Auto Upload Images and imports its settings.
+
 = 1.3.23 =
 * New: Database character set finds tables that cannot store emoji and converts them to utf8mb4 when asked.
 

@@ -2,6 +2,9 @@
 
 Every change to SEO Pro Stack. readme.txt lists the latest version in short.
 
+= Unreleased =
+* Changed: Copy linked images to Media Library replaces Auto Upload Images. The Plugins screen notes it on that plugin's row (and in its notice while it is active), and the feature imports its maximum width and height, excluded addresses, and file name and alt text patterns, switching on while it is active (settings version 25). While it is active and set to copy images in custom fields, skip post types or serve images from another address, the Plugins screen names those instead of saying it can go (GitHub issue #613).
+
 = 1.3.23 =
 * New: Database character set (Server tab). A Site Health test, always on, lists this site's tables that cannot store emoji (the older utf8/utf8mb3 character set), where saving a setting, custom field or comment with an emoji fails without a message. With the setting on, Tools → Database character set converts them to utf8mb4 in the collation WordPress uses for new tables, one table or all at once, never waiting long for a busy table; tables in other character sets are listed, never converted. New `wp seoprostack charset list|convert` command, admin_post_seoprostack_database_charset action and seoprostack_database_charset_log option (not autoloaded), removed on uninstall (GitHub issue #610).
 
