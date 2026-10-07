@@ -111,7 +111,7 @@ Install from Plugins → Add New and activate. Set features in Settings → SEO 
 
 = What happens if I deactivate or delete the plugin? =
 
-Deactivation removes Load plugins only where needed's must-use file and Fixes for other plugins' (LiteSpeed) and optional features' `.htaccess` rules. Deletion removes settings, caches, profile pictures, WebP/AVIF copies and short links too; imported media and watermarked originals stay.
+Deactivation removes Load plugins only where needed's must-use file and tries to remove marked `.htaccess` rules. Deletion removes settings, caches, profile pictures, WebP/AVIF copies and short links too; imported media and watermarked originals stay.
 
 = Does it work on multisite? =
 
