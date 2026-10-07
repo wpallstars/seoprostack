@@ -14,6 +14,9 @@
  *   cache on only on a LiteSpeed server. Its feature:… conditions turn
  *   LiteSpeed's copy of a job off where SEO Pro Stack's feature for it is
  *   on, so the two never both do it.
+ * - Answers the litespeed_crawler condition and fills in the site's
+ *   sitemap, so the preset turns LiteSpeed Cache's crawler on where the
+ *   server allows it, to cache pages again after a purge.
  * - Saves preset changes through LiteSpeed Cache's own save code, so its
  *   .htaccess rules, wp-config.php WP_CACHE line, cron and purges follow,
  *   as when settings are saved on its screen.
@@ -49,6 +52,7 @@ final class SEOProStack_Litespeed {
     public static function init() {
         add_action('admin_init', array(__CLASS__, 'remember'));
         add_filter('seoprostack_preset_condition', array(__CLASS__, 'condition'), 10, 2);
+        add_filter('seoprostack_plugin_presets', array(__CLASS__, 'preset_sitemap'));
         add_action('seoprostack_plugin_preset_changed', array(__CLASS__, 'save_through_plugin'), 10, 2);
         add_filter('seoprostack_free_plugin_note', array(__CLASS__, 'free_plugin_note'), 10, 2);
         add_action('after_plugin_row', array(__CLASS__, 'wp_optimize_row_note'));
@@ -134,14 +138,87 @@ final class SEOProStack_Litespeed {
     }
 
     /**
-     * The litespeed_server preset condition.
+     * The litespeed_server and litespeed_crawler preset conditions.
+     *
+     * litespeed_crawler: a LiteSpeed server that lets LiteSpeed Cache's
+     * crawler run, and a sitemap for it to crawl.
      *
      * @param bool   $holds     Whether it holds so far.
      * @param string $condition Condition.
      * @return bool
      */
     public static function condition($holds, $condition) {
-        return 'litespeed_server' === $condition ? self::is_server() : $holds;
+        if ('litespeed_server' === $condition) {
+            return self::is_server();
+        }
+        if ('litespeed_crawler' === $condition) {
+            return self::is_server() && self::crawler_allowed() && '' !== self::crawler_sitemap();
+        }
+        return $holds;
+    }
+
+    /**
+     * Whether the server lets LiteSpeed Cache's crawler run, as LiteSpeed
+     * Cache checks it (\LiteSpeed\Router::can_crawl()): the server's
+     * X-LSCACHE variable, when set, names "crawler". WP-CLI does not see it.
+     *
+     * @return bool
+     */
+    private static function crawler_allowed() {
+        // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- compared only.
+        $flags = isset($_SERVER['X-LSCACHE']) ? (string) wp_unslash($_SERVER['X-LSCACHE']) : null;
+        return null === $flags || false !== strpos($flags, 'crawler');
+    }
+
+    /**
+     * The sitemap for LiteSpeed Cache's crawler: the list already set in
+     * LiteSpeed Cache, or else the site's sitemap index (Rank Math's,
+     * Yoast's, or WordPress's own).
+     *
+     * @return string One URL per line, or '' when none is known.
+     */
+    public static function crawler_sitemap() {
+        $stored = self::conf('crawler-sitemap', '');
+        if (is_string($stored) && '' !== trim($stored)) {
+            return trim($stored);
+        }
+        $url = '';
+        if (class_exists('\RankMath\Helper') && \RankMath\Helper::is_module_active('sitemap')) {
+            $url = class_exists('\RankMath\Sitemap\Router')
+                ? \RankMath\Sitemap\Router::get_base_url('sitemap_index.xml')
+                : home_url('/sitemap_index.xml');
+        } elseif (class_exists('WPSEO_Options') && WPSEO_Options::get('enable_xml_sitemap')) {
+            $url = class_exists('WPSEO_Sitemaps_Router')
+                ? WPSEO_Sitemaps_Router::get_base_url('sitemap_index.xml')
+                : home_url('/sitemap_index.xml');
+        } elseif (function_exists('wp_sitemaps_get_server') && wp_sitemaps_get_server()->sitemaps_enabled()) {
+            $url = get_sitemap_url('index');
+        }
+
+        /**
+         * Filter the sitemap SEO Pro Stack's LiteSpeed Cache preset gives
+         * LiteSpeed Cache's crawler, when none is set there yet.
+         *
+         * @param string $url Sitemap index URL, or '' when none is known (the preset then leaves the crawler alone).
+         */
+        $url = apply_filters('seoprostack_crawler_sitemap', is_string($url) ? $url : '');
+        return is_string($url) ? trim($url) : '';
+    }
+
+    /**
+     * Fill in the crawler's sitemap in the LiteSpeed Cache preset, which
+     * can only be known on each site.
+     *
+     * @param array<string,array> $presets Plugin folder => preset.
+     * @return array<string,array>
+     */
+    public static function preset_sitemap($presets) {
+        $name = self::PREFIX . 'crawler-sitemap';
+        if (is_array($presets) && isset($presets[self::SLUG]['options']) && is_array($presets[self::SLUG]['options'])
+            && array_key_exists($name, $presets[self::SLUG]['options'])) {
+            $presets[self::SLUG]['options'][$name] = self::crawler_sitemap();
+        }
+        return $presets;
     }
 
     /**
