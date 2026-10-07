@@ -101,7 +101,7 @@ final class SEOProStack_Plugin_Loader {
     const UPDATES_FULL = 'seoprostack_plugin_updates_full';
 
     /** Map format; a change makes SEO Pro Stack learn again. */
-    const MAP_VERSION = 10;
+    const MAP_VERSION = 11;
 
     /** SEO Pro Stack's own settings page (Settings > SEO Pro Stack). */
     const SETTINGS_PAGE = 'seoprostack';

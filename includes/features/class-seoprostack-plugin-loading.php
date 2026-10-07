@@ -99,6 +99,19 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
         'logout_url', 'register_url', 'lostpassword_url', 'user_has_cap', 'map_meta_cap',
     );
 
+    /**
+     * Hooks that make a plugin load on every admin screen, with the loader's
+     * ALWAYS_HOOKS: who is logged in, where their sessions are kept, and the
+     * log out link in the admin bar. Admin screens that skip plugins are
+     * only views by someone already logged in (no form, action, nonce,
+     * AJAX, REST or cron), where login checks, registration, lost passwords
+     * and setting login cookies never run; wp-login.php and saves load every
+     * plugin. So plugins on those hooks load only on screens that use them.
+     * Permission hooks keep their plugins on every screen
+     * (SEOProStack_Plugin_Loader::PERMISSION_HOOKS).
+     */
+    const ADMIN_ALWAYS_HOOKS = array('determine_current_user', 'session_token_manager', 'logout_url');
+
     /** Hooks that check logins or block requests. */
     const FRONT_LOGIN_HOOKS = array(
         'authenticate', 'wp_authenticate_user', 'wp_login', 'wp_login_failed', 'login_init', 'login_form',
@@ -799,7 +812,7 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
             }
             $label = isset($names[$file]) ? $names[$file] : $file;
             if (in_array($file, $always, true)) {
-                $label .= ' ' . __('(always loads: it changes the login address or the plugin list)', 'seoprostack');
+                $label .= ' ' . __('(always loads: it changes who is logged in, the login address or the plugin list)', 'seoprostack');
             } elseif (in_array($file, $changes, true)) {
                 $label .= ' ' . __('(changes permissions)', 'seoprostack');
             }
@@ -2776,7 +2789,8 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
     }
 
     /**
-     * Plugins that always load, and plugins that change permissions.
+     * Plugins that load on every admin screen, and plugins that change
+     * permissions (which also load on every admin screen).
      *
      * @return array{0: string[], 1: string[]}
      */
@@ -2784,8 +2798,7 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
         return array(
             self::plugins_on_hooks(function ($name) {
                 return in_array($name, SEOProStack_Plugin_Loader::ALWAYS_HOOKS, true)
-                    || in_array($name, self::FRONT_ALWAYS_HOOKS, true)
-                    || in_array($name, self::FRONT_LOGIN_HOOKS, true);
+                    || in_array($name, self::ADMIN_ALWAYS_HOOKS, true);
             }),
             self::plugins_on_hooks(function ($name) {
                 return in_array($name, SEOProStack_Plugin_Loader::PERMISSION_HOOKS, true);
