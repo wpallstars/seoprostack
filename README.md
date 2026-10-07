@@ -1516,6 +1516,10 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folderâ
 
 ## Changelog
 
+### Unreleased
+
+- New: **Hosting needs** recommends LiteSpeed Cache's Cache WP-Admin (Cache â†’ Object) while its object cache works, with a **Turn on Cache WP-Admin** link for administrators. Off, admin screens read only transients from the object cache and ask the database for the rest; on Hostinger test sites, Pages took about 1.4 seconds with it on against 2 seconds off. The link checks again that the cache works and its server answers, then saves only that setting through LiteSpeed Cache's own code, emptying nothing. Changes saved through WordPress keep the cache current either way; the recommendation says to use Purge All after changing the database outside WordPress, and, with Cache WP-Admin on and the cache unreachable, to Purge All once it works again (GitHub issue #619).
+
 ### 1.3.25
 
 - Fix: with **Load plugins only where needed**, the update check that follows a plugin update loads every plugin again. Updating a plugin deletes WordPress's saved plugin check, and within an hour of the last full load for updates the next check ran on a screen that skips plugins, so it kept WordPress.org offers that paid plugins of the same name take out (WooCommerce GoCardless, WooCommerce Subscriptions). The admin bar then counted updates that the Updates screen, which checks again with every plugin, did not list. The once-an-hour limit now applies only where the checks do not run (GitHub issue #616).
