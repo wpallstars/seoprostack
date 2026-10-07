@@ -15,7 +15,7 @@ One free plugin for a faster, tidier WordPress. It does the jobs of 40+ single-p
 
 Faster admin, easier publishing and safer logins.
 
-Free and open source: no paid version, nothing locked.
+Free, open source, no locked features.
 
 Safe features start on; others stay off. In **Settings → SEO Pro Stack**, **Search features** finds replacements too. They import settings once, leave originals unchanged and wait while the old plugin is active.
 
