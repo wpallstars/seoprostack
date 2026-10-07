@@ -139,6 +139,7 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 == Changelog ==
 
 = Unreleased =
+* New: Hosting needs recommends LiteSpeed Cache's Cache WP-Admin while its object cache works, for faster admin screens, with a link to turn it on.
 * Change: Load plugins only where needed no longer loads login-check plugins (two-factor, CAPTCHA, login limits) on every admin screen; logins still load every plugin.
 
 = 1.3.25 =

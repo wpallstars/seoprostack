@@ -94,6 +94,9 @@ class SEOProStack_Hosting_Needs extends SEOProStack_Feature {
     /** admin-post action and nonce: point LiteSpeed Cache's object cache at the server found. */
     const FIX = 'seoprostack_object_cache_fix';
 
+    /** admin-post action and nonce: turn on LiteSpeed Cache's Cache WP-Admin. */
+    const ADMIN_CACHE = 'seoprostack_admin_cache_on';
+
     /** Site Health test ID; core posts it to health-check-{ID}. */
     const TEST = 'seoprostack-opcache';
 
@@ -172,6 +175,7 @@ class SEOProStack_Hosting_Needs extends SEOProStack_Feature {
         add_action('wp_ajax_health-check-' . self::TEST, array(__CLASS__, 'ajax_test'));
         add_action('wp_ajax_' . self::AJAX, array(__CLASS__, 'ajax_row'));
         add_action('admin_post_' . self::FIX, array(__CLASS__, 'fix_object_cache'));
+        add_action('admin_post_' . self::ADMIN_CACHE, array(__CLASS__, 'turn_on_admin_cache'));
         add_action('load-plugins.php', array(__CLASS__, 'load_screen'));
     }
 
@@ -1330,6 +1334,38 @@ class SEOProStack_Hosting_Needs extends SEOProStack_Feature {
     }
 
     /**
+     * LiteSpeed Cache's Cache WP-Admin. Off, admin screens read only
+     * transients from its object cache and ask the database for the rest;
+     * they still write and delete there, so turning it on shows admin
+     * screens what the site's pages already read. Recommended only while
+     * the daily check finds the cache working. With it on and the cache not
+     * reachable, changes saved meanwhile were not cleared from the cache, so
+     * it should be emptied once it answers again.
+     *
+     * @param array $cache From object_cache_facts().
+     * @return array[] Each status, text and, when there is one, action (url, label).
+     */
+    private static function admin_cache_advice(array $cache) {
+        if ('LiteSpeed Cache' !== $cache['name'] || !(bool) SEOProStack_Litespeed::conf('object', false)) {
+            return array();
+        }
+        $on = SEOProStack_Litespeed::admin_cache();
+        if ('unreachable' === $cache['state'] && $on) {
+            return array(array('recommended', __('Cache WP-Admin is on in LiteSpeed Cache, so admin screens read the object cache too. Once it works again, empty it with LiteSpeed Cache → Toolbox → Purge All: changes saved while it could not be reached were not cleared from it, so pages and admin screens could show older values.', 'seoprostack')));
+        }
+        if ('working' !== $cache['state'] || $on) {
+            return array();
+        }
+        $action = SEOProStack_Litespeed::can_save_object_cache()
+            ? array(
+                'url'   => wp_nonce_url(admin_url('admin-post.php?action=' . self::ADMIN_CACHE), self::ADMIN_CACHE),
+                'label' => __('Turn on Cache WP-Admin', 'seoprostack'),
+            )
+            : array();
+        return array(array('recommended', __('LiteSpeed Cache’s object cache works, but Cache WP-Admin (LiteSpeed Cache → Cache → Object) is off, so admin screens ask the database for everything. Turn it on to make admin screens faster. Changes saved through WordPress update the cache either way, so admin screens show what the site’s pages show; after changing the database outside WordPress (a database tool, a restore or an SQL import), use LiteSpeed Cache → Toolbox → Purge All.', 'seoprostack'), $action));
+    }
+
+    /**
      * Pages that reach PHP are slow: the causes this plugin can see, each
      * with what addresses it, or where to look when none applies.
      *
@@ -1435,6 +1471,7 @@ class SEOProStack_Hosting_Needs extends SEOProStack_Feature {
                 number_format_i18n($needs['facts']['products'])
             ));
         }
+        $advice = array_merge($advice, self::admin_cache_advice($cache));
         if ($needs['writes']['options']) {
             $text = sprintf(
                 /* translators: %s: list of option names, each with its plugin and share of page views. */
@@ -2218,7 +2255,31 @@ class SEOProStack_Hosting_Needs extends SEOProStack_Feature {
     }
 
     /**
-     * Say what the object cache link did.
+     * Turn on LiteSpeed Cache's Cache WP-Admin, only while the daily check
+     * finds its object cache working and its server still answers. Saved
+     * through LiteSpeed Cache's own code, only when asked.
+     */
+    public static function turn_on_admin_cache() {
+        check_admin_referer(self::ADMIN_CACHE);
+        if (!SEOProStack_Litespeed::can_save_object_cache()) {
+            wp_die(esc_html__('You are not allowed to do that.', 'seoprostack'), '', array('response' => 403));
+        }
+        $facts  = get_option(self::OBJECT_CACHE, array());
+        $kind   = (int) SEOProStack_Litespeed::conf('object-kind', 0) ? 'Redis' : 'Memcached';
+        $result = 'failed';
+        if (is_array($facts) && 'working' === ($facts['state'] ?? '') && 'LiteSpeed Cache' === ($facts['name'] ?? '')
+            && wp_using_ext_object_cache() && extension_loaded(self::cache_extension($kind))
+            && self::cache_server((string) SEOProStack_Litespeed::conf('object-host', 'localhost'), (int) SEOProStack_Litespeed::conf('object-port', self::cache_port($kind)), $kind)
+            && SEOProStack_Litespeed::save_admin_cache()) {
+            $result = 'saved';
+        }
+        $back = wp_get_referer();
+        wp_safe_redirect(add_query_arg(self::ADMIN_CACHE, $result, $back ? $back : self_admin_url('plugins.php')));
+        exit;
+    }
+
+    /**
+     * Say what the object cache links did.
      */
     public static function fix_notice() {
         // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Only picks which fixed message to show.
@@ -2227,6 +2288,13 @@ class SEOProStack_Hosting_Needs extends SEOProStack_Feature {
             printf('<div class="notice notice-success is-dismissible"><p>%s</p></div>', esc_html__('LiteSpeed Cache’s object cache now uses the server that answered. Hosting needs checks it again below.', 'seoprostack'));
         } elseif ('failed' === $result) {
             printf('<div class="notice notice-error is-dismissible"><p>%s</p></div>', esc_html__('LiteSpeed Cache’s object cache settings were not changed: the server did not answer this time, or LiteSpeed Cache is not active.', 'seoprostack'));
+        }
+        // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Only picks which message to show.
+        $admin = isset($_GET[self::ADMIN_CACHE]) ? sanitize_key(wp_unslash($_GET[self::ADMIN_CACHE])) : '';
+        if ('saved' === $admin) {
+            printf('<div class="notice notice-success is-dismissible"><p>%s</p></div>', esc_html__('Cache WP-Admin is on in LiteSpeed Cache: admin screens now read its object cache too.', 'seoprostack'));
+        } elseif ('failed' === $admin) {
+            printf('<div class="notice notice-error is-dismissible"><p>%s</p></div>', esc_html__('Cache WP-Admin was not turned on: LiteSpeed Cache’s object cache did not answer this time, or LiteSpeed Cache is not active.', 'seoprostack'));
         }
     }
 

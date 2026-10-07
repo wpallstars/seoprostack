@@ -20,6 +20,8 @@
  * - Saves preset changes through LiteSpeed Cache's own save code, so its
  *   .htaccess rules, wp-config.php WP_CACHE line, cron and purges follow,
  *   as when settings are saved on its screen.
+ * - Saves object cache settings for Hosting needs (a server that answers,
+ *   Cache WP-Admin) the same way, only when someone asks.
  * - Notes in Free Plugins that WP-Optimize is not needed on LiteSpeed
  *   servers, and is for its page cache elsewhere.
  *
@@ -310,14 +312,51 @@ final class SEOProStack_Litespeed {
      * @return bool Whether LiteSpeed Cache's code was there to save it.
      */
     public static function save_object_cache($kind, $host, $port) {
-        if (!class_exists('\LiteSpeed\Conf') || !is_callable(array('\LiteSpeed\Conf', 'cls'))) {
-            return false;
-        }
-        $matrix = array(
+        $saved = self::save_object_settings(array(
             'object-kind' => 'Redis' === $kind,
             'object-host' => (string) $host,
             'object-port' => (int) $port,
-        );
+        ));
+        if (!$saved) {
+            return false;
+        }
+        self::flush_object_cache($kind, (string) $host, (int) $port, (int) self::conf('object-db_id', 0));
+        return true;
+    }
+
+    /**
+     * Whether LiteSpeed Cache's object cache is used on admin screens too
+     * (its Cache WP-Admin setting). Off, admin screens read only transients
+     * from it and ask the database for everything else; they still write and
+     * delete there, so the cache stays as current as the database.
+     *
+     * @return bool
+     */
+    public static function admin_cache() {
+        return (bool) self::conf('object-admin', false);
+    }
+
+    /**
+     * Turn on Cache WP-Admin, through LiteSpeed Cache's own save code.
+     *
+     * @return bool Whether LiteSpeed Cache's code was there to save it.
+     */
+    public static function save_admin_cache() {
+        return self::save_object_settings(array('object-admin' => true));
+    }
+
+    /**
+     * Save object cache settings as LiteSpeed Cache's settings screen does
+     * (its network settings screen when it is active for the network), which
+     * also rewrites the settings file its object-cache.php reads.
+     *
+     * @param array<string,mixed> $matrix Setting, without the litespeed.conf. prefix => value.
+     * @return bool Whether LiteSpeed Cache's code was there to save them.
+     */
+    private static function save_object_settings(array $matrix) {
+        if (!class_exists('\LiteSpeed\Conf') || !is_callable(array('\LiteSpeed\Conf', 'cls'))) {
+            return false;
+        }
         $conf = \LiteSpeed\Conf::cls();
         if (!is_object($conf)) {
             return false;
@@ -326,17 +365,16 @@ final class SEOProStack_Litespeed {
             if (!is_callable(array($conf, 'network_update')) || !class_exists('\LiteSpeed\Activation')) {
                 return false;
             }
-            // As LiteSpeed Cache's network settings screen saves them.
             foreach ($matrix as $id => $value) {
                 $conf->network_update($id, $value);
             }
             \LiteSpeed\Activation::cls()->update_files();
-        } elseif (is_callable(array($conf, 'update_confs'))) {
-            $conf->update_confs($matrix);
-        } else {
+            return true;
+        }
+        if (!is_callable(array($conf, 'update_confs'))) {
             return false;
         }
-        self::flush_object_cache($kind, (string) $host, (int) $port, (int) self::conf('object-db_id', 0));
+        $conf->update_confs($matrix);
         return true;
     }
 
