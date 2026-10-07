@@ -298,8 +298,9 @@ class SEOProStack_Preload_Pages extends SEOProStack_Feature {
      * sideways), and their bars outside the content area hidden. From the
      * click (sps-nav-busy), menu entries lose backgrounds a screen's styles
      * gave them: Fluent Boards colours `.toplevel_page_fluent-boards`, which
-     * is its menu entry's class too, so the entry turned white once it was no
-     * longer the current one.
+     * WordPress also gives its menu entry and link, so the entry turned white
+     * once it was no longer the current one. The dots show one, two, three,
+     * then none, each for 0.4 s.
      *
      * No fade between screens: WordPress 7.0's fade is what No fade between
      * admin screens (SEOProStack_Admin_Page_Fade) turns off.
@@ -314,15 +315,16 @@ class SEOProStack_Preload_Pages extends SEOProStack_Feature {
             . '.sps-nav-wait__dots span+span{animation-name:sps-nav-dot2}'
             . '.sps-nav-wait__dots span+span+span{animation-name:sps-nav-dot3}'
             . '}'
-            . '@keyframes sps-nav-dot1{0%,19%{opacity:0}20%,100%{opacity:1}}'
-            . '@keyframes sps-nav-dot2{0%,44%{opacity:0}45%,100%{opacity:1}}'
-            . '@keyframes sps-nav-dot3{0%,69%{opacity:0}70%,100%{opacity:1}}'
+            . '@keyframes sps-nav-dot1{0%,74%{opacity:1}75%,100%{opacity:0}}'
+            . '@keyframes sps-nav-dot2{0%,24%{opacity:0}25%,74%{opacity:1}75%,100%{opacity:0}}'
+            . '@keyframes sps-nav-dot3{0%,49%{opacity:0}50%,74%{opacity:1}75%,100%{opacity:0}}'
             . '#sps-nav-wait{margin:10px 20px 0 2px;color:#1d2327;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Oxygen-Sans,Ubuntu,Cantarell,"Helvetica Neue",sans-serif}'
             . '#sps-nav-wait .sps-nav-wait__title{display:block;margin:0;padding:9px 0 4px;font-size:23px;font-weight:400;line-height:1.3;color:inherit}'
             . '#sps-nav-wait.is-tab{clear:both;margin:16px 2px}'
             . '.sps-nav-wait__dots span{margin-inline-start:.2em}'
             . '#wpbody-content.sps-nav-waiting>:not(#sps-nav-wait),.sps-nav-hidden{display:none!important}'
-            . 'html.sps-nav-busy #adminmenu li.menu-top:not(:hover){background-color:transparent}'
+            . 'html.sps-nav-busy #adminmenu li.menu-top:not(:hover):not(.current):not(.wp-has-current-submenu),'
+            . 'html.sps-nav-busy #adminmenu li.menu-top:not(:hover):not(.opensub):not(.current):not(.wp-has-current-submenu)>a.menu-top:not(:focus){background-color:transparent}'
             . "{$shell},{$shell} body{background:#f0f0f1!important}"
             . "{$shell} #wpwrap,{$shell} #wpcontent,{$shell} #wpbody,{$shell} #wpbody-content{background:transparent!important}"
             . "{$shell} #wpcontent{padding-inline-start:20px!important;padding-inline-end:0!important}"
