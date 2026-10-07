@@ -125,7 +125,7 @@ function seoprostack_uninstall_site() {
     // Add database keys: its log (the keys it added were removed above).
     $options[] = SEOProStack_Added_Keys::OPTION;
     // Database character set: its log. Converted tables stay utf8mb4.
-    $options[] = SEOProStack_Database_Charset::LOG;
+    $options[] = 'seoprostack_database_charset_log';
     // Record of starter data added to other plugins. The lists, tags, fields
     // and boards themselves are that plugin's data now, and stay.
     $options[] = 'seoprostack_starters_added';

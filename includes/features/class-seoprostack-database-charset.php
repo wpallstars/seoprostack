@@ -195,6 +195,38 @@ class SEOProStack_Database_Charset extends SEOProStack_Feature {
     }
 
     /**
+     * One table from SHOW TABLE STATUS, if it cannot store 4-byte characters.
+     *
+     * @param array<string,mixed> $row  SHOW TABLE STATUS row.
+     * @param bool                $core One of WordPress's own tables.
+     * @return array{name:string,collation:string,rows:int,size:int,columns:array<string,string>,convert:bool}|null
+     */
+    private static function inspect(array $row, $core) {
+        $collation = (string) $row['Collation'];
+        $utf8mb4   = 'utf8mb4' === self::charset($collation);
+        if ($utf8mb4 && !$core) {
+            return null; // Plugin tables in utf8mb4: their columns are not read, to keep this quick.
+        }
+        $columns = self::old_columns((string) $row['Name']);
+        if (false === $columns || ($utf8mb4 && !$columns)) {
+            return null;
+        }
+        $charsets    = array_map(array(__CLASS__, 'charset'), array_merge(array($collation), array_values($columns)));
+        $convertible = !array_diff($charsets, self::CONVERTIBLE);
+        if (!$convertible && !$columns) {
+            return null; // No text at all: nothing to garble or lose.
+        }
+        return array(
+            'name'      => (string) $row['Name'],
+            'collation' => $collation,
+            'rows'      => (int) $row['Rows'],
+            'size'      => (int) $row['Data_length'] + (int) $row['Index_length'],
+            'columns'   => $columns,
+            'convert'   => $convertible,
+        );
+    }
+
+    /**
      * This site's tables that cannot store 4-byte characters.
      *
      * Read with SHOW TABLE STATUS and SHOW FULL COLUMNS: on a busy shared
@@ -229,31 +261,12 @@ class SEOProStack_Database_Charset extends SEOProStack_Feature {
             if (empty($row['Engine']) || empty($row['Collation'])) {
                 continue; // A view, or a table the database could not open.
             }
-            $name               = (string) $row['Name'];
-            $collations[$name]  = (string) $row['Collation'];
-            $utf8mb4            = 'utf8mb4' === self::charset($row['Collation']);
-            if ($utf8mb4 && !isset($core[$name])) {
-                continue;
+            $name              = (string) $row['Name'];
+            $collations[$name] = (string) $row['Collation'];
+            $table             = self::inspect($row, isset($core[$name]));
+            if ($table) {
+                $tables[$name] = $table;
             }
-            $columns = self::old_columns($name);
-            if (false === $columns || ($utf8mb4 && !$columns)) {
-                continue;
-            }
-            $convertible = in_array(self::charset($row['Collation']), self::CONVERTIBLE, true);
-            foreach ($columns as $collation) {
-                $convertible = $convertible && in_array(self::charset($collation), self::CONVERTIBLE, true);
-            }
-            if (!$convertible && !$columns) {
-                continue; // No text at all: nothing to garble or lose.
-            }
-            $tables[$name] = array(
-                'name'      => $name,
-                'collation' => (string) $row['Collation'],
-                'rows'      => (int) $row['Rows'],
-                'size'      => (int) $row['Data_length'] + (int) $row['Index_length'],
-                'columns'   => $columns,
-                'convert'   => $convertible,
-            );
         }
         $wpdb->suppress_errors($previous);
         uasort($tables, function ($a, $b) {
@@ -501,29 +514,50 @@ class SEOProStack_Database_Charset extends SEOProStack_Feature {
      * ------------------------------------------------------------------ */
 
     /**
-     * Add the test.
+     * Add the test (run after the page loads: it reads every table's status).
      *
      * @param array $tests Tests.
      * @return array
      */
     public static function tests($tests) {
         $tests['async'][self::TEST] = array(
-            'label'             => __('Database tables that cannot store emoji', 'seoprostack'),
             'test'              => self::TEST,
             'async_direct_test' => array(__CLASS__, 'test'),
+            'label'             => __('Database tables that cannot store emoji', 'seoprostack'),
         );
         return $tests;
     }
 
     /**
-     * Run the test for the Site Health screen.
+     * Answer the Site Health screen.
      */
     public static function ajax_test() {
         check_ajax_referer('health-check-site-status');
-        if (!current_user_can('view_site_health_checks')) {
-            wp_send_json_error();
+        if (current_user_can('view_site_health_checks')) {
+            wp_send_json_success(self::test());
         }
-        wp_send_json_success(self::test());
+        wp_send_json_error();
+    }
+
+    /**
+     * A Site Health result.
+     *
+     * @param string $status  good or recommended.
+     * @param string $label   Heading.
+     * @param string $more    HTML after the explanation.
+     * @param string $actions HTML actions.
+     * @return array
+     */
+    private static function result($status, $label, $more = '', $actions = '') {
+        $about = esc_html__('Tables in the older utf8 (utf8mb3) character set cannot store emoji and some other characters, so saving settings, custom fields or comments that contain them fails without a message. WordPress converts its tables only when upgrading from before version 4.2, so a site moved later from an older database can keep them.', 'seoprostack');
+        return array(
+            'test'        => 'seoprostack_database_charset',
+            'status'      => $status,
+            'label'       => $label,
+            'description' => '<p>' . $about . '</p>' . $more,
+            'actions'     => $actions,
+            'badge'       => array('label' => __('Performance', 'seoprostack'), 'color' => 'blue'),
+        );
     }
 
     /**
@@ -532,31 +566,14 @@ class SEOProStack_Database_Charset extends SEOProStack_Feature {
      * @return array
      */
     public static function test() {
-        $result = array(
-            'label'       => __('Every database table can store emoji', 'seoprostack'),
-            'status'      => 'good',
-            'badge'       => array(
-                'label' => __('Performance', 'seoprostack'),
-                'color' => 'blue',
-            ),
-            'description' => '<p>' . esc_html__('Tables in the older utf8 (utf8mb3) character set cannot store emoji and some other characters, so saving settings, custom fields or comments that contain them fails without a message. WordPress converts its tables only when upgrading from before version 4.2, so a site moved later from an older database can keep them.', 'seoprostack') . '</p>',
-            'actions'     => '',
-            'test'        => 'seoprostack_database_charset',
-        );
         $survey = self::survey();
         if (is_wp_error($survey)) {
-            $result['status'] = 'recommended';
-            $result['label']  = __('Database character sets could not be checked', 'seoprostack');
-            $result['description'] .= '<p>' . esc_html($survey->get_error_message()) . '</p>';
-            return $result;
-        }
-        if (!$survey['tables']) {
-            return $result;
+            return self::result('recommended', __('Database character sets could not be checked', 'seoprostack'), '<p>' . esc_html($survey->get_error_message()) . '</p>');
         }
         $count = count($survey['tables']);
-        $result['status'] = 'recommended';
-        /* translators: %d: number of tables */
-        $result['label'] = sprintf(_n('%d database table cannot store emoji', '%d database tables cannot store emoji', $count, 'seoprostack'), $count);
+        if (!$count) {
+            return self::result('good', __('Every database table can store emoji', 'seoprostack'));
+        }
         $items = '';
         foreach (array_slice($survey['tables'], 0, self::HEALTH_MAX, true) as $name => $table) {
             $items .= '<li><code>' . esc_html($name) . '</code>: ' . esc_html($table['collation'] . ', ' . size_format($table['size'])) . '</li>';
@@ -565,15 +582,16 @@ class SEOProStack_Database_Charset extends SEOProStack_Feature {
             /* translators: %d: number of tables */
             $items .= '<li>' . esc_html(sprintf(__('and %d more', 'seoprostack'), $count - self::HEALTH_MAX)) . '</li>';
         }
-        $result['description'] .= '<ul>' . $items . '</ul>';
-        $result['actions'] = '<p>' . (self::enabled()
+        $action = self::enabled()
             ? '<a href="' . esc_url(admin_url('tools.php?page=' . self::PAGE)) . '">' . esc_html__('Convert them in Tools → Database character set', 'seoprostack') . '</a>'
             : sprintf(
                 /* translators: %s: link to the setting */
                 esc_html__('Turn on %s in SEO Pro Stack to convert them when you click, after backing up the database.', 'seoprostack'),
                 '<a href="' . esc_url(admin_url('options-general.php?page=seoprostack&tab=server')) . '">' . esc_html__('Database character set', 'seoprostack') . '</a>'
-            )) . '</p>';
-        return $result;
+            );
+        /* translators: %d: number of tables */
+        $label = sprintf(_n('%d database table cannot store emoji', '%d database tables cannot store emoji', $count, 'seoprostack'), $count);
+        return self::result('recommended', $label, '<ul>' . $items . '</ul>', '<p>' . $action . '</p>');
     }
 
     /* ------------------------------------------------------------------
@@ -605,26 +623,17 @@ class SEOProStack_Database_Charset extends SEOProStack_Feature {
      */
     public static function cli($args, $assoc_args = array()) {
         $command = $args[0] ?? 'list';
-        $survey  = self::survey(true);
+        if (!in_array($command, array('list', 'convert'), true)) {
+            WP_CLI::error('Usage: wp seoprostack charset list|convert <table>...|convert --all');
+            return;
+        }
+        $survey = self::survey(true);
         if (is_wp_error($survey)) {
             WP_CLI::error($survey->get_error_message());
             return;
         }
         if ('list' === $command) {
-            $items = array();
-            foreach ($survey['tables'] as $name => $table) {
-                $items[] = array('table' => $name, 'collation' => $table['collation'], 'rows' => $table['rows'], 'size' => size_format($table['size']), 'columns' => implode(',', array_keys($table['columns'])), 'convert' => $table['convert'] ? 'yes' : 'no: other character set');
-            }
-            if (!$items) {
-                WP_CLI::success('Every table can store emoji.');
-                return;
-            }
-            WP_CLI\Utils\format_items('table', $items, array('table', 'collation', 'rows', 'size', 'columns', 'convert'));
-            WP_CLI::log('Converts to ' . $survey['target'] . '.');
-            return;
-        }
-        if ('convert' !== $command) {
-            WP_CLI::error('Usage: wp seoprostack charset list|convert <table>...|convert --all');
+            self::cli_list($survey);
             return;
         }
         if (!self::enabled()) {
@@ -637,19 +646,49 @@ class SEOProStack_Database_Charset extends SEOProStack_Feature {
                 return $table['convert'];
             }));
         }
+        self::cli_convert($names, $survey['target']);
+    }
+
+    /**
+     * WP-CLI: list the tables.
+     *
+     * @param array $survey Survey.
+     */
+    private static function cli_list(array $survey) {
+        if (!$survey['tables']) {
+            WP_CLI::success('Every table can store emoji.');
+            return;
+        }
+        $items = array();
+        foreach ($survey['tables'] as $name => $table) {
+            $items[] = array('table' => $name, 'collation' => $table['collation'], 'rows' => $table['rows'], 'size' => size_format($table['size']), 'columns' => implode(',', array_keys($table['columns'])), 'convert' => $table['convert'] ? 'yes' : 'no: other character set');
+        }
+        WP_CLI\Utils\format_items('table', $items, array('table', 'collation', 'rows', 'size', 'columns', 'convert'));
+        WP_CLI::log('Converts to ' . $survey['target'] . '.');
+    }
+
+    /**
+     * WP-CLI: convert tables in turn, stopping at the first that fails.
+     *
+     * @param string[] $names  Tables.
+     * @param string   $target Collation.
+     */
+    private static function cli_convert(array $names, $target) {
         if (!$names) {
             WP_CLI::error('Name the tables to convert, or use --all.');
             return;
         }
+        $done = 0;
         foreach ($names as $name) {
             $start  = microtime(true);
             $result = self::convert($name);
             if (is_wp_error($result)) {
-                WP_CLI::error($name . ': ' . $result->get_error_message());
+                WP_CLI::error(sprintf('%s: %s (%d converted before it.)', $name, $result->get_error_message(), $done));
                 return;
             }
-            WP_CLI::log(sprintf('%s: converted to %s in %ds.', $name, $survey['target'], (int) round(microtime(true) - $start)));
+            $done++;
+            WP_CLI::log(sprintf('%s: converted to %s in %ds.', $name, $target, (int) round(microtime(true) - $start)));
         }
-        WP_CLI::success(count($names) . ' converted.');
+        WP_CLI::success($done . ' converted.');
     }
 }
