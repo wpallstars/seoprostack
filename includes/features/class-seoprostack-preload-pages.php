@@ -286,23 +286,17 @@ class SEOProStack_Preload_Pages extends SEOProStack_Feature {
     }
 
     /**
-     * Admin styles for moving between screens: the placeholder shown while
-     * the next screen loads, and a short fade between screens in browsers
-     * with cross-document view transitions, with the menu and admin bar
-     * held still. Both pages of a move must opt in, so this is on every
-     * admin screen. No fade when the visitor asks for reduced motion.
+     * Admin styles for the placeholder shown while the next screen loads
+     * (print_admin_navigation()). It uses the text colour, so it suits every
+     * admin colour scheme, and pulses only when motion is welcome. No fade
+     * between screens: WordPress 7.0's fade is what No fade between admin
+     * screens (SEOProStack_Admin_Page_Fade) turns off.
      */
     public static function admin_navigation_style() {
         if (!self::full_admin_screen()) {
             return;
         }
         $css = '@media (prefers-reduced-motion:no-preference){'
-            . '@view-transition{navigation:auto}'
-            . '#adminmenuwrap{view-transition-name:sps-admin-menu}'
-            . '#wpadminbar{view-transition-name:sps-admin-bar}'
-            . '::view-transition-group(root){animation-duration:.15s}'
-            . '::view-transition-group(sps-admin-menu),::view-transition-group(sps-admin-bar),::view-transition-new(sps-admin-menu),::view-transition-new(sps-admin-bar){animation:none}'
-            . '::view-transition-old(sps-admin-menu),::view-transition-old(sps-admin-bar){display:none}'
             . '.sps-nav-wait__line{animation:sps-nav-wait 1s ease-in-out infinite alternate}'
             . '}'
             . '@keyframes sps-nav-wait{to{opacity:.14}}'
@@ -316,7 +310,8 @@ class SEOProStack_Preload_Pages extends SEOProStack_Feature {
     /**
      * Print the script that answers a click on an admin link straight
      * away: the admin menu marks the new screen, and the content area shows
-     * its title and a placeholder until the page arrives. The page still
+     * its title and a placeholder until the page arrives. Screens still
+     * change at once when it does (no fade). The page still
      * loads as normal, so every screen and plugin works as before; only
      * what shows while waiting changes.
      *
