@@ -1045,6 +1045,19 @@ Off by default. Turn it on, then open **Tools → Add database keys**: a few dat
 - WP-CLI: `wp seoprostack keys list`, `wp seoprostack keys add <key>` and `wp seoprostack keys remove <key>` (`postmeta`, `usermeta` or `actionscheduler`), with the setting on.
 - Administrators of a single site and super admins on multisite. One change at a time: a database advisory lock, not waited for. The `admin_post_seoprostack_add_keys` handler checks a nonce. The last 50 changes (time, administrator ID, table, key, result) are kept in the `seoprostack_added_keys` option, not autoloaded, removed on uninstall.
 
+### Database character set (Server)
+
+Tables in the older `utf8` (`utf8mb3`) character set cannot store emoji and some other characters (four bytes in UTF-8). Saving a setting, custom field or comment that contains one to such a table fails without a message: on one site, Kadence Blocks lost its product catalog over a single 🎉. WordPress converts its tables only when upgrading from before 4.2, so a site moved later from an older database can keep them for good.
+
+- **Site Health** (always on, even with the setting off) reports "N database tables cannot store emoji" as recommended, listing the first 20 with their collation and size and how many more there are, and links to the Tools page or the setting.
+- Off by default. Turn it on, then open **Tools → Database character set**: the list shows each table, its collation, rows and size, and its text columns not in `utf8mb4`. **Convert** converts one table; **Convert all** converts every table up to 512 MB, smallest first. Larger tables show the WP-CLI command, as a web request may time out; the page never converts them.
+- Tables are converted with `ALTER TABLE … CONVERT TO CHARACTER SET utf8mb4`, as WordPress's own upgrade does, which keeps every row (and, like core's, makes `TEXT` columns `MEDIUMTEXT` so they still hold as much). Converted tables get the collation WordPress uses for new tables (`$wpdb->collate`), or else the most common `utf8mb4` one among the site's tables, so they compare text the same way as WordPress's new tables and do not add "Illegal mix of collations" errors. Tables already in `utf8mb4` are not changed.
+- Tables in other character sets (such as `latin1`) are listed, never converted: their text may have been stored in the wrong character set, and converting would garble it. Tables with no text columns are left out.
+- Back up the database first and choose a quiet time: while a table converts, the database holds back changes to it (reading goes on). On one busy shared server, a 240 MB `wp_postmeta` took 35 seconds. A conversion waits at most 15 seconds for a table that another query is using, then stops with nothing changed, so requests never queue behind it.
+- Only tables with this site's prefix are read, with `SHOW TABLE STATUS` and `SHOW FULL COLUMNS` for each table (a table whose default is `utf8mb4` can still have older columns), only for Site Health (after its page loads), the Tools page and WP-CLI.
+- WP-CLI: `wp seoprostack charset list` (with the setting off too), `wp seoprostack charset convert <table>...` and `wp seoprostack charset convert --all`, with the setting on.
+- Administrators of a single site and super admins on multisite. One conversion at a time: a database advisory lock, not waited for. The `admin_post_seoprostack_database_charset` handler checks a nonce. The last 100 conversions (time, administrator ID, table, collation before and after, result, seconds) are kept in the `seoprostack_database_charset_log` option, not autoloaded, removed on uninstall; a pending entry means the request stopped before the result was recorded. Uninstall leaves converted tables as they are.
+
 ### Calls to other sites (Server)
 
 Off by default. Turn it on, then open **Tools → Calls to other sites**: which plugin, theme or must-use plugin calls which other site through WordPress, how often, and how long pages wait for it, slowest first.
@@ -1499,6 +1512,10 @@ Deleting the plugin removes its settings and cached data, the database keys Add 
 Deactivating the plugin removes the WebP and AVIF rules from the uploads folder’s `.htaccess` (for every site when network-deactivated), the LiteSpeed background request rules from the site’s `.htaccess` (on multisite, when network-deactivated or deactivated on the main site) and the must-use file of Load plugins only where needed (on multisite, when network-deactivated).
 
 ## Changelog
+
+### Unreleased
+
+- New: **Database character set** (Server tab). A Site Health test, always on, lists this site's tables that cannot store emoji (the older `utf8`/`utf8mb3` character set), where saving a setting, custom field or comment with an emoji fails without a message. With the setting on, **Tools → Database character set** converts them to `utf8mb4` in the collation WordPress uses for new tables, one table or all at once, never waiting long for a busy table; tables in other character sets are listed, never converted. New `wp seoprostack charset list|convert` command, `admin_post_seoprostack_database_charset` action and `seoprostack_database_charset_log` option (not autoloaded), removed on uninstall (GitHub issue #610).
 
 ### 1.3.22
 

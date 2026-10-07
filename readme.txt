@@ -68,6 +68,7 @@ Safe features start on; others stay off. In **Settings → SEO Pro Stack**, **Se
 * **Load large settings only where they are used** (single sites).
 * **Faster page counts on long lists** (off): exact page numbers.
 * **Database key cleanup**: duplicate indexes, owners and restore SQL. **Add database keys** (off): faster custom field lookups.
+* **Database character set**: finds tables that cannot store emoji; converts them to utf8mb4 when asked (off).
 * **Load plugins only where needed**: skips unused plugins. Learns page kinds only on cookie-free, unauthenticated public GET requests.
 
 = Plugins and set-up =
@@ -136,6 +137,9 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 3. The Read Me tab, showing the plugin's guide.
 
 == Changelog ==
+
+= Unreleased =
+* New: Database character set finds tables that cannot store emoji and converts them to utf8mb4 when asked.
 
 = 1.3.22 =
 * Fix: Fixes for other plugins now reaches Tutor LMS Pro's notifications table, which 1.3.21's fix missed.
