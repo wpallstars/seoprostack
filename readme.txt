@@ -140,6 +140,7 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 = Unreleased =
 * New: the LiteSpeed Cache preset turns on LiteSpeed Cache's crawler, daily, so pages are cached again soon after updates purge them.
 * Fix: LiteSpeed Cache's crawler turns end before LiteSpeed hosts stop the request, so the crawler keeps going instead of waiting an hour.
+* New: Hosting needs shows how LiteSpeed Cache's crawler is doing and what stops it (a stopped turn, failed pages left on its blocklist, a CDN in its way), each with a one-click fix, plus Crawl now.
 
 = 1.3.18 =
 * Fix: deleting spam comments corrects wrong comment counts on posts; Recount now repairs up to 5,000 posts each time (Count terms and comments in the background).
