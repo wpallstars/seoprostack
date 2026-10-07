@@ -2,7 +2,7 @@
 
 Every change to SEO Pro Stack. readme.txt lists the latest version in short.
 
-= Unreleased =
+= 1.3.20 =
 * New: Hosting needs recommends Crawl now after a Purge All (every plugin, theme or core update does one by default). After a finished crawl, LiteSpeed Cache's crawler stops each WP-Cron turn before reading the reset file a purge leaves, until its crawl interval has passed (a day with the preset), so pages were cached again only as visitors opened them. Shown while the next full crawl is over an hour away (GitHub issue #596).
 * Fix: right after Crawl now, Hosting needs said LiteSpeed Cache's crawler had not crawled yet. After a finished crawl, the first turn makes a new list of pages and LiteSpeed Cache stops it there; the line now says a full crawl is starting and WP-Cron caches the pages from its next run, and the notice after Crawl now says the same (GitHub issue #596).
 

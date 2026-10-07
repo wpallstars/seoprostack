@@ -21,7 +21,7 @@ SEO Pro Stack does the jobs that usually take dozens of small plugins: a calmer,
 
 If this saves you time, headaches and costs, feel free to [buy me a coffee](https://buymeacoffee.com/marcusquinn), or whatever you like, to invest in making more things open-source.
 
-Version: 1.3.19
+Version: 1.3.20
 
 <!-- github-only:start -->
 ## Screenshots
@@ -1499,7 +1499,7 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folderâ
 
 ## Changelog
 
-### Unreleased
+### 1.3.20
 
 - New: **Hosting needs** recommends **Crawl now** after a Purge All (every update does one): after a finished crawl, LiteSpeed Cache's crawler otherwise waits up to its crawl interval, a day with the preset, before caching the pages again (GitHub issue #596).
 - Fix: right after **Crawl now**, Hosting needs said LiteSpeed Cache's crawler had not crawled yet. It now says a full crawl is starting: the first turn makes the list of pages, and WP-Cron caches them from its next run (GitHub issue #596).
