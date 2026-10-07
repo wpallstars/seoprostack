@@ -137,6 +137,9 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 
 == Changelog ==
 
+= Unreleased =
+* New: Hosting needs recommends Crawl now after updates empty the page cache, and says when a crawl is starting.
+
 = 1.3.19 =
 * New: the LiteSpeed Cache preset turns on its crawler, daily, to cache pages again after updates; Hosting needs shows the crawler and fixes what stops it in one click.
 * Fix: LiteSpeed Cache's crawler turns end before the host stops them, so it no longer waits an hour.

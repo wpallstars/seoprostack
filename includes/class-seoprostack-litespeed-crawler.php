@@ -9,6 +9,9 @@
  * and finds what stops it, each with a one-click fix through LiteSpeed
  * Cache's own code, only when someone clicks:
  *
+ * - A Purge All (every update does one) after the last full crawl: the
+ *   crawler waits for its next full crawl, up to the crawl interval away.
+ *   Fix: Crawl now.
  * - A turn that stopped without finishing: LiteSpeed Cache keeps its lane
  *   file and waits an hour before the next turn. Fix: release the lane and
  *   start again.
@@ -118,8 +121,9 @@ final class SEOProStack_Litespeed_Crawler {
      * @return array on, summary, crawlers, interval, duration, stopped (seconds since the
      *               lane was last touched, when the turn stopped, else 0), failed (rows),
      *               idle (seconds since the last turn of a crawl in progress, when too
-     *               long, else 0) and origin (this server's address, when Server IP
-     *               should be it, else '').
+     *               long, else 0), purged (seconds since a Purge All after the last
+     *               full crawl, when the next one is over an hour away, else 0) and
+     *               origin (this server's address, when Server IP should be it, else '').
      */
     private static function state() {
         if (null !== self::$state) {
@@ -134,6 +138,7 @@ final class SEOProStack_Litespeed_Crawler {
             'stopped'  => 0,
             'failed'   => array(),
             'idle'     => 0,
+            'purged'   => 0,
             'origin'   => '',
         );
         if (!$state['on']) {
@@ -148,21 +153,10 @@ final class SEOProStack_Litespeed_Crawler {
             $state['crawlers'] = max(1, count((array) $crawler->list_crawlers()));
         }
 
-        $lane = $crawler->json_local_path() . '.pid';
-        if (file_exists($lane)) {
-            $age = time() - (int) filemtime($lane);
-            if ($age > $state['duration'] + self::STOPPED_AFTER) {
-                $state['stopped'] = $age;
-            }
-        }
-
-        foreach ((array) \LiteSpeed\Crawler_Map::cls()->list_blacklist(self::BLOCKLIST_MAX) as $row) {
-            $row = (array) $row;
-            // B: failed (no cache header, an error or a timeout); N: cannot be cached.
-            if (isset($row['id'], $row['res']) && false !== strpos((string) $row['res'], 'B')) {
-                $state['failed'][] = $row;
-            }
-        }
+        $path              = $crawler->json_local_path();
+        $state['stopped']  = self::stopped($path . '.pid', $state['duration']);
+        $state['failed']   = self::failed();
+        $state['purged']   = self::purged($path . '.reset', $summary, $state['interval']);
 
         $last = (int) ($summary['last_start_time'] ?? 0);
         if (!$state['stopped'] && 'touchedEnd' !== ($summary['done'] ?? '') && $last && time() - $last > self::IDLE_AFTER) {
@@ -172,6 +166,64 @@ final class SEOProStack_Litespeed_Crawler {
         $state['origin'] = self::origin();
         self::$state     = $state;
         return $state;
+    }
+
+    /**
+     * How long ago a turn that stopped without finishing last touched its
+     * lane file, which LiteSpeed Cache keeps until it is an hour old.
+     *
+     * @param string $lane     Lane file.
+     * @param int    $duration Turn length, seconds.
+     * @return int Seconds, or 0 when no turn stopped.
+     */
+    private static function stopped($lane, $duration) {
+        if (!file_exists($lane)) {
+            return 0;
+        }
+        $age = time() - (int) filemtime($lane);
+        return $age > $duration + self::STOPPED_AFTER ? $age : 0;
+    }
+
+    /**
+     * Blocklisted pages that failed (B: no cache header, an error or a
+     * timeout), not those that cannot be cached (N).
+     *
+     * @return array[] Rows with id.
+     */
+    private static function failed() {
+        $failed = array();
+        foreach ((array) \LiteSpeed\Crawler_Map::cls()->list_blacklist(self::BLOCKLIST_MAX) as $row) {
+            $row = (array) $row;
+            if (isset($row['id'], $row['res']) && false !== strpos((string) $row['res'], 'B')) {
+                $failed[] = $row;
+            }
+        }
+        return $failed;
+    }
+
+    /**
+     * How long ago a Purge All emptied the page cache after the last full
+     * crawl. Purge All (and rebuilding the list) leaves the reset file for
+     * the next turn to start the crawl again from the top; after a finished
+     * crawl, WP-Cron's turns stop before reading it until the crawl interval
+     * has passed.
+     *
+     * @param string $reset    Reset file.
+     * @param array  $summary  LiteSpeed Cache's crawler summary.
+     * @param int    $interval Crawl interval, seconds.
+     * @return int Seconds, or 0 when there was none or the next full crawl is within the hour.
+     */
+    private static function purged($reset, array $summary, $interval) {
+        $began = (int) ($summary['this_full_beginning_time'] ?? 0);
+        if (!$began || 'touchedEnd' !== ($summary['done'] ?? '') || !file_exists($reset)) {
+            return 0;
+        }
+        $finished = $began + (int) ($summary['last_full_time_cost'] ?? 0);
+        $purged   = (int) filemtime($reset);
+        if ($purged < $finished || $finished + $interval - time() <= self::IDLE_AFTER) {
+            return 0;
+        }
+        return max(1, time() - $purged);
     }
 
     /**
@@ -282,13 +334,17 @@ final class SEOProStack_Litespeed_Crawler {
             return array(array('info', __('LiteSpeed Cache’s crawler is off, so after each purge (every plugin, theme or core update) pages are cached again only when someone visits them. Apply preset for LiteSpeed Cache turns it on, daily, with the site’s sitemap.', 'seoprostack'), array()));
         }
 
-        $advice = array();
-        $crawl  = $can ? array(self::link('crawl', __('Crawl now', 'seoprostack'))) : array();
-        $advice[] = array('info', self::status_text($state), array_values(array_filter(array_merge($crawl, array($screen)))));
+        $crawl    = $can ? array(self::link('crawl', __('Crawl now', 'seoprostack'))) : array();
+        $problems = array();
         foreach (self::problems($state) as $problem) {
-            $advice[] = array('recommended', $problem['text'], $can && $problem['fix'] ? array($problem['fix']) : array());
+            $problems[] = array('recommended', $problem['text'], $can && $problem['fix'] ? array($problem['fix']) : array());
+            // Crawl now once: on the problem it fixes, not also on the status.
+            if ($crawl && $problem['fix'] && $problem['fix']['url'] === $crawl[0]['url']) {
+                $crawl = array();
+            }
         }
-        return $advice;
+        $status = array('info', self::status_text($state), array_values(array_filter(array_merge($crawl, array($screen)))));
+        return array_merge(array($status), $problems);
     }
 
     /**
@@ -326,6 +382,14 @@ final class SEOProStack_Litespeed_Crawler {
                 self::span($state['duration'])
             );
         }
+        if ((int) ($summary['last_start_time'] ?? 0) && 'touchedEnd' !== ($summary['done'] ?? '')) {
+            // A new crawl's first turn rebuilds the list and stops; the next starts at the top.
+            return sprintf(
+                /* translators: %s: number of pages. */
+                __('LiteSpeed Cache’s crawler is starting a full crawl of %s pages: it has made its list, and WP-Cron starts caching them within 10 minutes.', 'seoprostack'),
+                number_format_i18n($pages)
+            );
+        }
         return __('LiteSpeed Cache’s crawler is on and has not crawled yet. WP-Cron starts it within 10 minutes; Crawl now starts it at once.', 'seoprostack');
     }
 
@@ -336,26 +400,35 @@ final class SEOProStack_Litespeed_Crawler {
      * @return array[] Each text and fix (url, label, or an empty array).
      */
     private static function problems(array $state) {
+        // State key (seconds) => text with %s for that time, fix, fix label.
+        $timed = array(
+            'purged'  => array(
+                /* translators: %s: time ago. */
+                __('The page cache was emptied %s ago (Purge All, as every plugin, theme or core update does), after the crawler’s last full crawl. It waits for its next full crawl, so until then pages are cached again only when visitors open them.', 'seoprostack'),
+                'crawl',
+                __('Crawl now', 'seoprostack'),
+            ),
+            'stopped' => array(
+                /* translators: %s: time ago. */
+                __('A crawler turn stopped without finishing %s ago, often because the host ended the request. LiteSpeed Cache waits until an hour has passed before it starts another.', 'seoprostack'),
+                'release',
+                __('Carry on now', 'seoprostack'),
+            ),
+            'idle'    => array(
+                /* translators: %s: length of time. */
+                __('The crawl in progress has not had a turn for %s. WP-Cron starts one every 10 minutes, so it may not be running: with DISABLE_WP_CRON set, check the server’s cron job.', 'seoprostack'),
+                'crawl',
+                __('Crawl now', 'seoprostack'),
+            ),
+        );
         $problems = array();
-        if ($state['stopped']) {
-            $problems[] = array(
-                'text' => sprintf(
-                    /* translators: %s: time ago. */
-                    __('A crawler turn stopped without finishing %s ago, often because the host ended the request. LiteSpeed Cache waits until an hour has passed before it starts another.', 'seoprostack'),
-                    self::span($state['stopped'])
-                ),
-                'fix'  => self::link('release', __('Carry on now', 'seoprostack')),
-            );
-        }
-        if ($state['idle']) {
-            $problems[] = array(
-                'text' => sprintf(
-                    /* translators: %s: time ago. */
-                    __('The crawl in progress has not had a turn for %s. WP-Cron starts one every 10 minutes, so it may not be running: with DISABLE_WP_CRON set, check the server’s cron job.', 'seoprostack'),
-                    self::span($state['idle'])
-                ),
-                'fix'  => self::link('crawl', __('Crawl now', 'seoprostack')),
-            );
+        foreach ($timed as $key => $problem) {
+            if ($state[$key]) {
+                $problems[] = array(
+                    'text' => sprintf($problem[0], self::span($state[$key])),
+                    'fix'  => self::link($problem[1], $problem[2]),
+                );
+            }
         }
         $failed = count($state['failed']);
         if ($failed) {
@@ -473,8 +546,8 @@ final class SEOProStack_Litespeed_Crawler {
         $count = isset($_GET[self::COUNT]) ? absint(wp_unslash($_GET[self::COUNT])) : 0;
         // phpcs:enable
         $messages = array(
-            'crawl'            => array('success', __('LiteSpeed Cache’s crawler has started. It works in turns of a few minutes, every 10 minutes, until every page is cached.', 'seoprostack')),
-            'release'          => array('success', __('The stopped crawler turn was cleared, and the crawler has started again.', 'seoprostack')),
+            'crawl'            => array('success', __('LiteSpeed Cache’s crawler has started. After a finished crawl it first makes a new list of pages, then WP-Cron caches them in turns of a few minutes, every 10 minutes, until every page is cached.', 'seoprostack')),
+            'release'          => array('success', __('The stopped crawler turn was cleared, and the crawler has carried on from where it stopped.', 'seoprostack')),
             'retry'            => array('success', sprintf(
                 /* translators: %s: number of pages. */
                 _n('%s page is back on the crawler’s list. It is tried again on the crawler’s next pass.', '%s pages are back on the crawler’s list. They are tried again on the crawler’s next pass.', $count, 'seoprostack'),
