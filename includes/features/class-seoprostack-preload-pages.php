@@ -510,8 +510,9 @@ class SEOProStack_Preload_Pages extends SEOProStack_Feature {
 	function leaving(e) {
 		var a = pending;
 		pending = null;
-		// Another handler asked to confirm leaving (unsaved changes): leave the screen alone.
-		if (!a || e.defaultPrevented || e.returnValue) {
+		// Another handler asked to confirm leaving (unsaved changes): leave the
+		// screen alone. returnValue is a string, empty unless a handler set it.
+		if (!a || e.defaultPrevented || ('string' === typeof e.returnValue && '' !== e.returnValue)) {
 			return;
 		}
 		undo();
