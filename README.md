@@ -21,7 +21,7 @@ SEO Pro Stack does the jobs that usually take dozens of small plugins: a calmer,
 
 If this saves you time, headaches and costs, feel free to [buy me a coffee](https://buymeacoffee.com/marcusquinn), or whatever you like, to invest in making more things open-source.
 
-Version: 1.3.21
+Version: 1.3.22
 
 <!-- github-only:start -->
 ## Screenshots
@@ -1500,7 +1500,7 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folder�
 
 ## Changelog
 
-### Unreleased
+### 1.3.22
 
 - Fix: **Fixes for other plugins** now reaches Tutor LMS Pro’s notifications table. 1.3.21’s fix for `dbDelta()` altering unchanged columns of choices in capitals started on `init`, but Tutor LMS Pro runs `dbDelta()` earlier, during `plugins_loaded`, so its `ALTER TABLE` still ran on every request. The fix now starts as SEO Pro Stack loads (GitHub issue #607).
 
