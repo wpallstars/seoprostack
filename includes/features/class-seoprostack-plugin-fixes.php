@@ -150,6 +150,16 @@
  * upgrade finishes and Burst drops the old columns itself. Burst's tables
  * are not changed.
  *
+ * LiteSpeed Cache 7.9.1's crawler plans each turn for 900 seconds and raises
+ * max_execution_time to match, but LiteSpeed hosts such as Hostinger end a
+ * PHP request at 300 seconds whatever PHP allows. The turn is killed
+ * partway, its lane file (wp-content/litespeed/crawler/meta.data.pid) stays,
+ * and LiteSpeed Cache ignores that file only once it is an hour old, so
+ * the crawler worked about 5 minutes an hour. Its LITESPEED_CRAWLER_DURATION
+ * constant is now 240 seconds unless the site defines it, so each turn ends
+ * cleanly and the next one, 10 minutes later, carries on
+ * (seoprostack_litespeed_crawler_duration filter; 0 leaves it alone).
+ *
  * @package SEOProStack
  */
 
@@ -234,6 +244,9 @@ class SEOProStack_Plugin_Fixes extends SEOProStack_Feature {
      */
     private static $host_schedules = array();
 
+    /** LiteSpeed Cache crawler turn, in seconds: under the 300 seconds LiteSpeed hosts such as Hostinger allow a request. */
+    const LSC_CRAWLER_DURATION = 240;
+
     /** Burst Statistics' option that is set while its lookup-table upgrade is pending. */
     const BURST_UPGRADE = 'burst_db_upgrade_upgrade_lookup_tables';
 
@@ -258,7 +271,7 @@ class SEOProStack_Plugin_Fixes extends SEOProStack_Feature {
                 'default'     => true,
                 'tab'         => 'plugins',
                 'label'       => __('Fixes for other plugins', 'seoprostack'),
-                'description' => __('Works around bugs in other plugins that slow your site down, without changing their settings. Lasso Lite (Simple URLs) stops contacting its server on every admin screen. Deactivating Freesoul Deactivate Plugins or its PRO add-on deactivates both and removes the must-use file it leaves behind. Readabler no longer contacts its server on every Plugins screen load, or stops that screen with a critical error when it cannot. Tutor LMS Pro and Tutor LMS Certificate Builder stop adding warnings to the debug log when there is no update. Tutor LMS gets its order, cart and coupon tables on every site of a network. Tutor LMS Pro no longer makes the Plugins screen check every plugin for updates on each load. Comment Goblin no longer waits for its update server on every admin screen while that server fails. MainWP Child no longer prints its Branding "Global footer" text, unstyled, below every front-end page. On LiteSpeed servers, scheduled tasks (WordPress cron and Action Scheduler, used by WooCommerce and others) finish instead of stopping partway, through a few lines at the top of .htaccess. Kadence Pro no longer causes "Failed opening" warnings when other plugins load shared code. WP Crontrol says whether the server\'s cron job runs, instead of only that DISABLE_WP_CRON is set. On Hostinger, a server cron job no longer fills the error log with "invalid_schedule" errors for the Monarx security agent\'s tasks (mnx_versions_cron_event). Burst Statistics finishes its database upgrade instead of logging a database error every 5 minutes when its tables differ in collation. Turn this off if a fix causes a problem.', 'seoprostack'),
+                'description' => __('Works around bugs in other plugins that slow your site down, without changing their settings. Lasso Lite (Simple URLs) stops contacting its server on every admin screen. Deactivating Freesoul Deactivate Plugins or its PRO add-on deactivates both and removes the must-use file it leaves behind. Readabler no longer contacts its server on every Plugins screen load, or stops that screen with a critical error when it cannot. Tutor LMS Pro and Tutor LMS Certificate Builder stop adding warnings to the debug log when there is no update. Tutor LMS gets its order, cart and coupon tables on every site of a network. Tutor LMS Pro no longer makes the Plugins screen check every plugin for updates on each load. Comment Goblin no longer waits for its update server on every admin screen while that server fails. MainWP Child no longer prints its Branding "Global footer" text, unstyled, below every front-end page. On LiteSpeed servers, scheduled tasks (WordPress cron and Action Scheduler, used by WooCommerce and others) finish instead of stopping partway, through a few lines at the top of .htaccess. Kadence Pro no longer causes "Failed opening" warnings when other plugins load shared code. WP Crontrol says whether the server\'s cron job runs, instead of only that DISABLE_WP_CRON is set. On Hostinger, a server cron job no longer fills the error log with "invalid_schedule" errors for the Monarx security agent\'s tasks (mnx_versions_cron_event). Burst Statistics finishes its database upgrade instead of logging a database error every 5 minutes when its tables differ in collation. LiteSpeed Cache\'s crawler works in turns short enough for LiteSpeed hosts, instead of being stopped partway and waiting an hour. Turn this off if a fix causes a problem.', 'seoprostack'),
             ),
         );
     }
@@ -300,6 +313,9 @@ class SEOProStack_Plugin_Fixes extends SEOProStack_Feature {
         add_action('wp_footer', array(__CLASS__, 'mainwp_no_front_end_footer'), 0);
         // Before WP Crontrol's status notice, which uses priority 20.
         add_action('crontrol/tab-header', array(__CLASS__, 'crontrol_status'), 19);
+        // Now (init, priority 0): LiteSpeed Cache reads the constant when a
+        // crawl starts and in its role simulation (init, priority 5).
+        self::litespeed_crawler_duration();
         // wp-cron.php defines DOING_CRON before loading WordPress; WP-CLI
         // runs tasks (wp cron event run) without it.
         if (wp_doing_cron() || (defined('WP_CLI') && WP_CLI)) {
@@ -317,6 +333,27 @@ class SEOProStack_Plugin_Fixes extends SEOProStack_Feature {
         if (is_admin()) {
             add_action('admin_init', array(__CLASS__, 'burst_collation_dashboard'), 0);
             add_action('admin_init', array(__CLASS__, 'burst_collation_stop'), PHP_INT_MAX);
+        }
+    }
+
+    /**
+     * Give LiteSpeed Cache's crawler turns that end before the host stops
+     * the request (see the file docblock), unless the site sets its own.
+     */
+    private static function litespeed_crawler_duration() {
+        if (!defined('LSCWP_V') || defined('LITESPEED_CRAWLER_DURATION')) {
+            return;
+        }
+
+        /**
+         * Filter how long each LiteSpeed Cache crawler turn runs, in seconds.
+         *
+         * @param int $seconds Seconds; keep it under the most the host lets a request run. 0 leaves LiteSpeed Cache's own 900.
+         */
+        $seconds = (int) apply_filters('seoprostack_litespeed_crawler_duration', self::LSC_CRAWLER_DURATION);
+        if ($seconds > 0) {
+            // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedConstantFound -- LiteSpeed Cache's own constant, which it reads.
+            define('LITESPEED_CRAWLER_DURATION', $seconds);
         }
     }
 
