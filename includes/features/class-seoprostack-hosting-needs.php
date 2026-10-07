@@ -43,6 +43,7 @@ if (!defined('ABSPATH')) {
 }
 
 require_once SEOPROSTACK_DIR . 'includes/class-seoprostack-hosting-plans.php';
+require_once SEOPROSTACK_DIR . 'includes/class-seoprostack-litespeed-crawler.php';
 
 class SEOProStack_Hosting_Needs extends SEOProStack_Feature {
 
@@ -163,6 +164,7 @@ class SEOProStack_Hosting_Needs extends SEOProStack_Feature {
         add_action('deactivated_plugin', array(__CLASS__, 'forget_writes'));
         add_action('upgrader_process_complete', array(__CLASS__, 'forget_writes'));
         add_action('seoprostack_setting_saved', array(__CLASS__, 'setting_saved'));
+        SEOProStack_Litespeed_Crawler::init();
         if (!is_admin()) {
             return;
         }
@@ -1232,10 +1234,11 @@ class SEOProStack_Hosting_Needs extends SEOProStack_Feature {
         if (!in_array('litespeed-cache', $active, true)) {
             return array(array('recommended', __('This site runs on a LiteSpeed server, whose own page cache is the fastest one here. Install LiteSpeed Cache to use it, then choose Apply preset for it on the Plugins screen.', 'seoprostack')));
         }
-        if (!in_array('wp-optimize', $active, true) || !SEOProStack_Litespeed::wp_optimize_overlap()) {
-            return array();
+        $advice = SEOProStack_Litespeed_Crawler::advice();
+        if (in_array('wp-optimize', $active, true) && SEOProStack_Litespeed::wp_optimize_overlap()) {
+            $advice[] = array('recommended', __('WP-Optimize’s page cache or minify runs alongside LiteSpeed Cache, so pages are cached or minified twice. Turn them off in WP-Optimize: LiteSpeed Cache and SEO Pro Stack’s speed features do those jobs on LiteSpeed servers.', 'seoprostack'));
         }
-        return array(array('recommended', __('WP-Optimize’s page cache or minify runs alongside LiteSpeed Cache, so pages are cached or minified twice. Turn them off in WP-Optimize: LiteSpeed Cache and SEO Pro Stack’s speed features do those jobs on LiteSpeed servers.', 'seoprostack')));
+        return $advice;
     }
 
     /**
@@ -2256,14 +2259,22 @@ class SEOProStack_Hosting_Needs extends SEOProStack_Feature {
         $html = '<ul class="sps-hosting__list">';
         foreach ($items as $item) {
             list($status, $summary, $ask) = $item;
-            $action = $item[3] ?? array();
-            $html  .= sprintf(
+            // One action (url, label), or a list of them.
+            $actions = $item[3] ?? array();
+            if (isset($actions['url'])) {
+                $actions = array($actions);
+            }
+            $links = '';
+            foreach ($actions as $action) {
+                $links .= sprintf(' <a href="%1$s">%2$s</a>', esc_url($action['url']), esc_html($action['label']));
+            }
+            $html .= sprintf(
                 '<li class="is-%1$s"><span class="dashicons dashicons-%2$s" aria-hidden="true"></span><span>%3$s%4$s%5$s</span></li>',
                 esc_attr($status),
                 esc_attr($icons[$status]),
                 esc_html($summary),
                 $ask ? ' ' . self::ask_html($ask) : '',
-                $action ? sprintf(' <a href="%1$s">%2$s</a>', esc_url($action['url']), esc_html($action['label'])) : ''
+                $links
             );
         }
         $html .= '</ul>' . self::plans_html($needs);
