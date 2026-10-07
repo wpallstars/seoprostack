@@ -197,17 +197,16 @@ class SEOProStack_Database_Charset extends SEOProStack_Feature {
     /**
      * One table from SHOW TABLE STATUS, if it cannot store 4-byte characters.
      *
-     * @param array<string,mixed> $row  SHOW TABLE STATUS row.
-     * @param bool                $core One of WordPress's own tables.
+     * A table whose default is utf8mb4 can still have older columns: changing
+     * only the default (ALTER TABLE … DEFAULT CHARSET) leaves them as they were.
+     *
+     * @param array<string,mixed> $row SHOW TABLE STATUS row.
      * @return array{name:string,collation:string,rows:int,size:int,columns:array<string,string>,convert:bool}|null
      */
-    private static function inspect(array $row, $core) {
+    private static function inspect(array $row) {
         $collation = (string) $row['Collation'];
         $utf8mb4   = 'utf8mb4' === self::charset($collation);
-        if ($utf8mb4 && !$core) {
-            return null; // Plugin tables in utf8mb4: their columns are not read, to keep this quick.
-        }
-        $columns = self::old_columns((string) $row['Name']);
+        $columns   = self::old_columns((string) $row['Name']);
         if (false === $columns || ($utf8mb4 && !$columns)) {
             return null;
         }
@@ -231,8 +230,8 @@ class SEOProStack_Database_Charset extends SEOProStack_Feature {
      *
      * Read with SHOW TABLE STATUS and SHOW FULL COLUMNS: on a busy shared
      * server a query of information_schema.COLUMNS for every table timed
-     * out. Columns are read for WordPress's own tables and for every table
-     * whose default is not utf8mb4.
+     * out. Reading one table's columns is quick, and this runs only for
+     * Site Health (after its page loads), the Tools page and WP-CLI.
      *
      * @param bool $fresh Read again, not this request's copy.
      * @return array{target:string,tables:array<string,array{name:string,collation:string,rows:int,size:int,columns:array<string,string>,convert:bool}>}|WP_Error
@@ -254,7 +253,6 @@ class SEOProStack_Database_Charset extends SEOProStack_Feature {
             self::$survey = new WP_Error('status', __('The database did not allow reading its tables.', 'seoprostack'));
             return self::$survey;
         }
-        $core       = array_flip($wpdb->tables('all'));
         $collations = array();
         $tables     = array();
         foreach ($status as $row) {
@@ -263,7 +261,7 @@ class SEOProStack_Database_Charset extends SEOProStack_Feature {
             }
             $name              = (string) $row['Name'];
             $collations[$name] = (string) $row['Collation'];
-            $table             = self::inspect($row, isset($core[$name]));
+            $table             = self::inspect($row);
             if ($table) {
                 $tables[$name] = $table;
             }
@@ -277,12 +275,32 @@ class SEOProStack_Database_Charset extends SEOProStack_Feature {
     }
 
     /**
+     * Why a table cannot be converted now, if it cannot.
+     *
+     * @param array  $survey Fresh survey.
+     * @param string $table  Table.
+     * @param int    $max    Largest size in bytes, or 0 for any.
+     * @return WP_Error|null
+     */
+    private static function refusal(array $survey, $table, $max) {
+        if (!isset($survey['tables'][$table]) || !$survey['tables'][$table]['convert']) {
+            return new WP_Error('state', __('This table cannot be converted here, or is converted already. Look at the list again.', 'seoprostack'));
+        }
+        if ($max && $survey['tables'][$table]['size'] > $max) {
+            /* translators: %s: WP-CLI command */
+            return new WP_Error('large', sprintf(__('Large table: convert it with WP-CLI, as a web request may time out: %s', 'seoprostack'), 'wp seoprostack charset convert ' . $table));
+        }
+        return null;
+    }
+
+    /**
      * Convert one table to utf8mb4, after checking it again.
      *
      * @param string $table Table.
+     * @param int    $max   Largest size in bytes to convert, or 0 for any (WP-CLI).
      * @return true|WP_Error
      */
-    public static function convert($table) {
+    public static function convert($table, $max = 0) {
         global $wpdb;
         $lock = 'sps_charset_' . substr(hash('sha256', DB_NAME), 0, 30);
         // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- connection-owned advisory lock, not stored state.
@@ -294,8 +312,9 @@ class SEOProStack_Database_Charset extends SEOProStack_Feature {
             if (is_wp_error($survey)) {
                 return $survey;
             }
-            if (!isset($survey['tables'][$table]) || !$survey['tables'][$table]['convert']) {
-                return new WP_Error('state', __('This table cannot be converted here, or is converted already. Look at the list again.', 'seoprostack'));
+            $refusal = self::refusal($survey, $table, (int) $max);
+            if ($refusal) {
+                return $refusal;
             }
             $target = $survey['target'];
             $from   = $survey['tables'][$table]['collation'];
@@ -388,7 +407,7 @@ class SEOProStack_Database_Charset extends SEOProStack_Feature {
         }
         $done = 0;
         foreach ($names as $name) {
-            $result = self::convert($name);
+            $result = self::convert($name, self::LARGE);
             if (is_wp_error($result)) {
                 $message = $name . ': ' . $result->get_error_message();
                 if ($done) {
