@@ -286,32 +286,63 @@ class SEOProStack_Preload_Pages extends SEOProStack_Feature {
     }
 
     /**
-     * Admin styles for the placeholder shown while the next screen loads
-     * (print_admin_navigation()). It uses the text colour, so it suits every
-     * admin colour scheme, and pulses only when motion is welcome. No fade
-     * between screens: WordPress 7.0's fade is what No fade between admin
-     * screens (SEOProStack_Admin_Page_Fade) turns off.
+     * Admin styles for what shows while the next screen loads
+     * (print_admin_navigation()): the screen's title with dots that appear
+     * one by one (all three at once when motion is not welcome), in core's
+     * own heading style so the page's styles cannot move it.
+     *
+     * While it shows (sps-nav-shell on <html>), the leaving screen's own
+     * look is put back to core's: the usual background (many plugins colour
+     * their screens), the content area's usual padding (WooCommerce, Fluent
+     * Forms and others remove it, so the next screen's content would jump
+     * sideways), and their bars outside the content area hidden. From the
+     * click (sps-nav-busy), menu entries lose backgrounds a screen's styles
+     * gave them: Fluent Boards colours `.toplevel_page_fluent-boards`, which
+     * is its menu entry's class too, so the entry turned white once it was no
+     * longer the current one.
+     *
+     * No fade between screens: WordPress 7.0's fade is what No fade between
+     * admin screens (SEOProStack_Admin_Page_Fade) turns off.
      */
     public static function admin_navigation_style() {
         if (!self::full_admin_screen()) {
             return;
         }
-        $css = '@media (prefers-reduced-motion:no-preference){'
-            . '.sps-nav-wait__line{animation:sps-nav-wait 1s ease-in-out infinite alternate}'
+        $shell = 'html.sps-nav-shell';
+        $css   = '@media (prefers-reduced-motion:no-preference){'
+            . '.sps-nav-wait__dots span{animation:sps-nav-dot1 1.6s linear infinite}'
+            . '.sps-nav-wait__dots span+span{animation-name:sps-nav-dot2}'
+            . '.sps-nav-wait__dots span+span+span{animation-name:sps-nav-dot3}'
             . '}'
-            . '@keyframes sps-nav-wait{to{opacity:.14}}'
-            . '#wpbody-content.sps-nav-waiting>:not(#sps-nav-wait){display:none!important}'
-            . '.sps-nav-wait__line{max-width:46em;height:.9em;margin:1.2em 0;border-radius:3px;background:currentColor;opacity:.07}'
-            . '.sps-nav-wait__line:nth-child(3n+2){max-width:34em}'
-            . '.sps-nav-wait__line:nth-child(3n){max-width:40em}';
+            . '@keyframes sps-nav-dot1{0%,19%{opacity:0}20%,100%{opacity:1}}'
+            . '@keyframes sps-nav-dot2{0%,44%{opacity:0}45%,100%{opacity:1}}'
+            . '@keyframes sps-nav-dot3{0%,69%{opacity:0}70%,100%{opacity:1}}'
+            . '#sps-nav-wait{margin:10px 20px 0 2px;color:#1d2327;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Oxygen-Sans,Ubuntu,Cantarell,"Helvetica Neue",sans-serif}'
+            . '#sps-nav-wait .sps-nav-wait__title{display:block;margin:0;padding:9px 0 4px;font-size:23px;font-weight:400;line-height:1.3;color:inherit}'
+            . '#sps-nav-wait.is-tab{clear:both;margin:16px 2px}'
+            . '.sps-nav-wait__dots span{margin-inline-start:.2em}'
+            . '#wpbody-content.sps-nav-waiting>:not(#sps-nav-wait),.sps-nav-hidden{display:none!important}'
+            . 'html.sps-nav-busy #adminmenu li.menu-top:not(:hover){background-color:transparent}'
+            . "{$shell},{$shell} body{background:#f0f0f1!important}"
+            . "{$shell} #wpwrap,{$shell} #wpcontent,{$shell} #wpbody,{$shell} #wpbody-content{background:transparent!important}"
+            . "{$shell} #wpcontent{padding-inline-start:20px!important;padding-inline-end:0!important}"
+            . "{$shell} #wpbody,{$shell} #wpbody-content{margin-top:0!important;padding-top:0!important}"
+            . "{$shell} body>:not(#wpwrap),{$shell} #wpwrap>:not(#adminmenumain):not(#wpcontent),{$shell} #wpcontent>:not(#wpadminbar):not(#wpbody),{$shell} #wpbody>:not(#wpbody-content){display:none!important}"
+            . '@media screen and (max-width:782px){'
+            . "{$shell} #wpcontent{padding-inline-start:10px!important}"
+            . '#sps-nav-wait{margin:10px 12px 0 0}'
+            . '}';
         wp_add_inline_style('wp-admin', $css);
     }
 
     /**
      * Print the script that answers a click on an admin link straight
      * away: the admin menu marks the new screen, and the content area shows
-     * its title and a placeholder until the page arrives. Screens still
-     * change at once when it does (no fade). The page still
+     * its title, with dots, on core's usual layout until the page arrives.
+     * A link in the screen's own navigation (tabs, a `nav` element, or the
+     * All | Published views above a list) keeps that navigation in view,
+     * marks the clicked entry and shows the dots below it instead. Screens
+     * still change at once when the page arrives (no fade). The page still
      * loads as normal, so every screen and plugin works as before; only
      * what shows while waiting changes.
      *
@@ -353,7 +384,10 @@ class SEOProStack_Preload_Pages extends SEOProStack_Feature {
 	if (!cfg || window.self !== window.top || !document.addEventListener || !Element.prototype.closest) {
 		return;
 	}
-	var pending = null, pendingTimer = 0, showTimer = 0, undoTimer = 0, changed = [];
+	var pending = null, pendingTimer = 0, showTimer = 0, undoTimer = 0, changed = [], hidden = [];
+	// A screen's own navigation, and the classes that mark its current entry.
+	var NAV = '.nav-tab-wrapper, nav, [role="tablist"], .subsubsub';
+	var ACTIVE = ['nav-tab-active', 'is-active', 'active', 'current', 'selected'];
 
 	// An admin screen this page would leave for, opened in this tab.
 	function linkFor(e) {
@@ -453,33 +487,107 @@ class SEOProStack_Preload_Pages extends SEOProStack_Feature {
 		return copy.textContent.replace(/\s+/g, ' ').trim();
 	}
 
+	// The screen's own navigation the link is in, if any.
+	function navFor(a) {
+		var body = document.getElementById('wpbody-content');
+		var nav = a.closest(NAV);
+		return body && nav && body.contains(nav) ? nav : null;
+	}
+
+	function activeClasses(el) {
+		return ACTIVE.filter(function (name) { return el.classList.contains(name); });
+	}
+
+	// Mark the clicked entry of that navigation current, as the next screen will.
+	function markTab(nav, a) {
+		var marks = [];
+		var links = nav.querySelectorAll('a');
+		for (var i = 0; i < links.length; i++) {
+			var items = [links[i]];
+			if (links[i].parentNode && 'LI' === links[i].parentNode.tagName) {
+				items.push(links[i].parentNode);
+			}
+			for (var j = 0; j < items.length; j++) {
+				var classes = activeClasses(items[j]);
+				var current = items[j].getAttribute('aria-current');
+				if (classes.length || null !== current) {
+					marks.push([j, classes, current]);
+					edit(items[j], [], classes);
+					items[j].removeAttribute('aria-current');
+				}
+			}
+		}
+		var item = a.parentNode && 'LI' === a.parentNode.tagName ? a.parentNode : null;
+		marks.forEach(function (mark) {
+			var el = mark[0] && item ? item : a;
+			edit(el, mark[1], []);
+			if (null !== mark[2]) {
+				el.setAttribute('aria-current', mark[2]);
+			}
+		});
+	}
+
+	// Title (if any) followed by dots that appear one by one.
+	function placeholder(title, tab) {
+		var wait = document.createElement('div');
+		wait.id = 'sps-nav-wait';
+		wait.className = tab ? 'sps-nav-wait is-tab' : 'sps-nav-wait';
+		wait.setAttribute('role', 'status');
+		var line = document.createElement(tab ? 'div' : 'h1');
+		line.className = 'sps-nav-wait__title';
+		line.textContent = title;
+		var dots = document.createElement('span');
+		dots.className = 'sps-nav-wait__dots';
+		dots.setAttribute('aria-hidden', 'true');
+		for (var i = 0; i < 3; i++) {
+			dots.appendChild(document.createElement('span')).textContent = '.';
+		}
+		line.appendChild(dots);
+		var label = document.createElement('span');
+		label.className = 'screen-reader-text';
+		label.textContent = cfg.loading;
+		wait.appendChild(line);
+		wait.appendChild(label);
+		return wait;
+	}
+
+	// Another screen: its title on core's usual layout, nothing else.
 	function show(title) {
 		var body = document.getElementById('wpbody-content');
 		if (!body || document.getElementById('sps-nav-wait')) {
 			return;
 		}
-		var wait = document.createElement('div');
-		wait.id = 'sps-nav-wait';
-		wait.className = 'wrap sps-nav-wait';
-		wait.setAttribute('role', 'status');
-		if (title) {
-			var h1 = document.createElement('h1');
-			h1.textContent = title;
-			wait.appendChild(h1);
-		}
-		var label = document.createElement('span');
-		label.className = 'screen-reader-text';
-		label.textContent = cfg.loading;
-		wait.appendChild(label);
-		for (var i = 0; i < 6; i++) {
-			var line = document.createElement('div');
-			line.className = 'sps-nav-wait__line';
-			wait.appendChild(line);
-		}
-		body.insertBefore(wait, body.firstChild);
+		body.insertBefore(placeholder(title, false), body.firstChild);
 		body.classList.add('sps-nav-waiting');
 		body.setAttribute('aria-busy', 'true');
+		document.documentElement.classList.add('sps-nav-shell');
 		window.scrollTo(0, 0);
+	}
+
+	// Another part of this screen: keep everything up to its navigation and
+	// show the dots below it. Hidden from the navigation's own block (the
+	// child of the .wrap it is in) outwards, so a header around it stays.
+	function showTab(nav) {
+		var body = document.getElementById('wpbody-content');
+		if (!body || document.getElementById('sps-nav-wait') || !body.contains(nav)) {
+			return;
+		}
+		var wrap = nav.closest('.wrap');
+		var container = wrap && body.contains(wrap) ? wrap : body;
+		var keep = nav;
+		while (keep.parentNode && keep.parentNode !== container) {
+			keep = keep.parentNode;
+		}
+		for (var el = keep; el && el !== body; el = el.parentNode) {
+			for (var next = el.nextElementSibling; next; next = next.nextElementSibling) {
+				if (!next.classList.contains('sps-nav-hidden')) {
+					next.classList.add('sps-nav-hidden');
+					hidden.push(next);
+				}
+			}
+		}
+		keep.parentNode.insertBefore(placeholder('', true), keep.nextSibling);
+		body.setAttribute('aria-busy', 'true');
 	}
 
 	function undo() {
@@ -496,6 +604,9 @@ class SEOProStack_Preload_Pages extends SEOProStack_Feature {
 			body.classList.remove('sps-nav-waiting');
 			body.removeAttribute('aria-busy');
 		}
+		document.documentElement.classList.remove('sps-nav-shell', 'sps-nav-busy');
+		hidden.forEach(function (el) { el.classList.remove('sps-nav-hidden'); });
+		hidden = [];
 		for (var i = changed.length - 1; i >= 0; i--) {
 			changed[i][0].className = changed[i][1];
 			if (changed[i][2] === null) {
@@ -516,12 +627,19 @@ class SEOProStack_Preload_Pages extends SEOProStack_Feature {
 			return;
 		}
 		undo();
+		document.documentElement.classList.add('sps-nav-busy');
 		var link = menuLinkFor(a);
 		if (link) {
 			highlight(link);
 		}
-		var title = titleFor(link);
-		showTimer = setTimeout(function () { show(title); }, 100);
+		var nav = navFor(a);
+		if (nav) {
+			markTab(nav, a);
+			showTimer = setTimeout(function () { showTab(nav); }, 100);
+		} else {
+			var title = titleFor(link);
+			showTimer = setTimeout(function () { show(title); }, 100);
+		}
 		undoTimer = setTimeout(undo, 30000);
 		document.addEventListener('keydown', undo, true);
 		document.addEventListener('pointerdown', undo, true);
