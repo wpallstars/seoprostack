@@ -353,7 +353,7 @@ class SEOProStack_Preload_Pages extends SEOProStack_Feature {
 	if (!cfg || window.self !== window.top || !document.addEventListener || !Element.prototype.closest) {
 		return;
 	}
-	var pending = null, pendingTimer = 0, showTimer = 0, undoTimer = 0, listening = false, changed = [];
+	var pending = null, pendingTimer = 0, showTimer = 0, undoTimer = 0, changed = [];
 
 	// An admin screen this page would leave for, opened in this tab.
 	function linkFor(e) {
@@ -535,11 +535,10 @@ class SEOProStack_Preload_Pages extends SEOProStack_Feature {
 		pending = a;
 		clearTimeout(pendingTimer);
 		pendingTimer = setTimeout(function () { pending = null; }, 1000);
-		// Added on the first click, after the page's own handlers, so they run first.
-		if (!listening) {
-			listening = true;
-			window.addEventListener('beforeunload', leaving);
-		}
+		// Added again on every click, so it runs after every handler the page
+		// has added by then, including ones that ask to confirm leaving.
+		window.removeEventListener('beforeunload', leaving);
+		window.addEventListener('beforeunload', leaving);
 	});
 
 	window.addEventListener('pageshow', function (e) {
