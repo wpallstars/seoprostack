@@ -21,7 +21,7 @@ SEO Pro Stack does the jobs that usually take dozens of small plugins: a calmer,
 
 If this saves you time, headaches and costs, feel free to [buy me a coffee](https://buymeacoffee.com/marcusquinn), or whatever you like, to invest in making more things open-source.
 
-Version: 1.3.22
+Version: 1.3.23
 
 <!-- github-only:start -->
 ## Screenshots
@@ -1513,7 +1513,7 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folderâ
 
 ## Changelog
 
-### Unreleased
+### 1.3.23
 
 - New: **Database character set** (Server tab). A Site Health test, always on, lists this site's tables that cannot store emoji (the older `utf8`/`utf8mb3` character set), where saving a setting, custom field or comment with an emoji fails without a message. With the setting on, **Tools â†’ Database character set** converts them to `utf8mb4` in the collation WordPress uses for new tables, one table or all at once, never waiting long for a busy table; tables in other character sets are listed, never converted. New `wp seoprostack charset list|convert` command, `admin_post_seoprostack_database_charset` action and `seoprostack_database_charset_log` option (not autoloaded), removed on uninstall (GitHub issue #610).
 

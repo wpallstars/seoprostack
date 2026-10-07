@@ -5,7 +5,7 @@ Tags: magic login, iframe, schedule posts, auto upload images, admin
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.3.22
+Stable tag: 1.3.23
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -138,10 +138,7 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 
 == Changelog ==
 
-= Unreleased =
+= 1.3.23 =
 * New: Database character set finds tables that cannot store emoji and converts them to utf8mb4 when asked.
-
-= 1.3.22 =
-* Fix: Fixes for other plugins now reaches Tutor LMS Pro's notifications table, which 1.3.21's fix missed.
 
 Older: `changelog.txt`.
