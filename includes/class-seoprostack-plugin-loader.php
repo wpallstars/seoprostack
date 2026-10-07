@@ -516,31 +516,64 @@ final class SEOProStack_Plugin_Loader {
      * Whether WordPress checks for updates on this admin request, so it
      * should load every plugin. Core's 12-hourly checks run on admin_init on
      * any screen (_maybe_update_core(), _maybe_update_plugins(),
-     * _maybe_update_themes()) and save what plugins' updaters add while the
-     * check runs, so a check made with plugins skipped would leave their
-     * updates out until the next one. At most once an hour, in case the
-     * checks never run here (updates switched off). Reads only the three
-     * stored checks, which core reads on every admin screen anyway.
+     * _maybe_update_themes()) and save what plugins' updaters add or take
+     * out while the check runs, so a check made with plugins skipped would
+     * keep offers they take out (WordPress.org offers for paid plugins of
+     * the same name) and leave out their own until the next one.
+     *
+     * At most once an hour while the checks do not run here (updates
+     * switched off), so screens still skip plugins. When they ran on the
+     * request that loaded every plugin, the limit is lifted
+     * (updates_checked()): updating a plugin deletes the saved plugin check,
+     * so a new one is due straight away, and it too must load every plugin
+     * (GitHub issue #616). Reads only the three stored checks, which core
+     * reads on every admin screen anyway.
      *
      * @return bool
      */
     private static function update_check_due() {
         $now = time();
-        $due = false;
-        foreach (array('update_core', 'update_plugins', 'update_themes') as $name) {
-            $current = get_site_transient($name);
-            $due     = !is_object($current) || !isset($current->last_checked)
-                || 12 * HOUR_IN_SECONDS <= $now - (int) $current->last_checked
-                || ('update_core' === $name && (!isset($current->version_checked) || (string) get_bloginfo('version') !== (string) $current->version_checked));
-            if ($due) {
-                break;
-            }
-        }
-        if (!$due || $now - (int) get_option(self::UPDATES_FULL, 0) < HOUR_IN_SECONDS) {
+        if (!self::update_checks_due() || $now - (int) get_option(self::UPDATES_FULL, 0) < HOUR_IN_SECONDS) {
             return false;
         }
         self::save_option(self::UPDATES_FULL, $now, false);
+        // After core's checks, which run at the default priority.
+        add_action('admin_init', array(__CLASS__, 'updates_checked'), PHP_INT_MAX);
         return true;
+    }
+
+    /**
+     * Whether one of WordPress's update checks is due: the stored check is
+     * missing, 12 hours old, or (WordPress) made for another version, as
+     * _maybe_update_core(), _maybe_update_plugins() and
+     * _maybe_update_themes() decide.
+     *
+     * @return bool
+     */
+    private static function update_checks_due() {
+        $now = time();
+        foreach (array('update_core', 'update_plugins', 'update_themes') as $name) {
+            $current = get_site_transient($name);
+            if (!is_object($current) || !isset($current->last_checked)
+                || 12 * HOUR_IN_SECONDS <= $now - (int) $current->last_checked
+                || ('update_core' === $name && (!isset($current->version_checked) || (string) get_bloginfo('version') !== (string) $current->version_checked))) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * On a request that loaded every plugin for the update checks, once
+     * they have run: lift the hourly limit when none is due any more, so
+     * the next due check (after a plugin update, for one) also loads every
+     * plugin. When one is still due, the checks do not run here, and the
+     * limit stays.
+     */
+    public static function updates_checked() {
+        if (!self::update_checks_due()) {
+            self::drop_option(self::UPDATES_FULL);
+        }
     }
 
     /**
