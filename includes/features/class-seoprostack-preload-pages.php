@@ -672,10 +672,19 @@ JS
 		}
 		var wait = placeholder('', true);
 		keep.parentNode.insertBefore(wait, keep.nextSibling);
-		// Dots under the navigation's first entry, wherever its block starts.
+		// First dot under the first letter of the navigation's first entry,
+		// where the tab's own text starts (its link's padding left out),
+		// wherever the navigation's block starts.
 		var first = nav.querySelector('a');
-		if (first) {
-			var to = first.getBoundingClientRect(), from = wait.getBoundingClientRect();
+		var dot = wait.querySelector('.sps-nav-wait__dots span');
+		if (first && dot) {
+			var text = document.createRange();
+			text.selectNodeContents(first);
+			var to = text.getBoundingClientRect();
+			if (!to.width) {
+				to = first.getBoundingClientRect();
+			}
+			var from = dot.getBoundingClientRect();
 			var gap = 'rtl' === getComputedStyle(wait).direction ? from.right - to.right : to.left - from.left;
 			if (gap > 0) {
 				wait.style.paddingInlineStart = Math.round(gap) + 'px';
