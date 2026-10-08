@@ -134,6 +134,7 @@ class SEOProStack_Preload_Pages extends SEOProStack_Feature {
                 add_action('admin_print_footer_scripts', array(__CLASS__, 'print_admin_rules'));
                 add_action('admin_enqueue_scripts', array(__CLASS__, 'admin_navigation_style'));
                 add_action('admin_print_footer_scripts', array(__CLASS__, 'print_admin_navigation'));
+                add_action('adminmenu', array(__CLASS__, 'print_menu_icon_colours'));
             }
             return;
         }
@@ -375,6 +376,52 @@ class SEOProStack_Preload_Pages extends SEOProStack_Feature {
             'window.seoprostackAdminNav = ' . wp_json_encode($data) . ";\n" . self::admin_navigation_script(),
             array('id' => 'sps-admin-nav')
         );
+    }
+
+    /**
+     * Colour the admin menu's SVG icons as soon as the menu is printed.
+     * Core's svg-painter colours them for the admin colour scheme only when
+     * the whole page has loaded, so until then plugins' icons (Fluent,
+     * Tutor LMS, Rank Math and others) show in their own colours, mostly
+     * black: with screens changing at once, each click flashed them from
+     * the scheme's colour to black and back. This does the same as
+     * svg-painter's paintElement(), with the colours core prints in the
+     * page head (_wpColorScheme); svg-painter then paints them the same
+     * again and handles hover as before.
+     */
+    public static function print_menu_icon_colours() {
+        if (!function_exists('wp_print_inline_script_tag')) {
+            return;
+        }
+        wp_print_inline_script_tag(<<<'JS'
+(function (scheme) {
+	'use strict';
+	var icons = scheme && scheme.icons;
+	if (!icons || !window.atob || !window.btoa || !document.querySelectorAll) {
+		return;
+	}
+	Array.prototype.forEach.call(document.querySelectorAll('#adminmenu .wp-menu-image.svg'), function (el) {
+		var item = el.parentNode && el.parentNode.parentNode;
+		var current = item && item.classList && (item.classList.contains('current') || item.classList.contains('wp-has-current-submenu'));
+		var color = icons[current ? 'current' : 'base'];
+		var found = (el.getAttribute('style') || '').match(/data:image\/svg\+xml;base64,([A-Za-z0-9+\/=]+)/);
+		var xml;
+		if (!found || !color || !/^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(color)) {
+			return;
+		}
+		try {
+			xml = window.atob(found[1])
+				.replace(/fill="(.+?)"/g, 'fill="' + color + '"')
+				.replace(/style="(.+?)"/g, 'style="fill:' + color + '"')
+				.replace(/fill:.*?;/g, 'fill: ' + color + ';');
+			el.setAttribute('style', 'background-image: url("data:image/svg+xml;base64,' + window.btoa(xml) + '") !important;');
+		} catch (error) {
+			// Leave it to svg-painter.
+		}
+	});
+})(window._wpColorScheme);
+JS
+            , array('id' => 'sps-menu-icons'));
     }
 
     /**
