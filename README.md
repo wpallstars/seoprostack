@@ -21,7 +21,7 @@ SEO Pro Stack does the jobs that usually take dozens of small plugins: a calmer,
 
 If this saves you time, headaches and costs, feel free to [buy me a coffee](https://buymeacoffee.com/marcusquinn), or whatever you like, to invest in making more things open-source.
 
-Version: 1.3.28
+Version: 1.3.29
 
 <!-- github-only:start -->
 ## Screenshots
@@ -1012,7 +1012,7 @@ Adds a **Size** column to the Plugins screen: each plugin’s total disk use, sp
 - Two rows below the list total every installed plugin and the active ones (network-activated ones on the Network Plugins screen), whichever view is open. Plugins outside the view are measured after those on screen.
 - The screen opens straight away; missing sizes are measured in the background a few seconds at a time.
 - Sizes are kept until the plugin’s version changes.
-- **OPcache** under each size is the memory the plugin’s compiled PHP takes in OPcache now, read once each time the screen opens and never stored. Every PHP worker shares that memory, and a full OPcache throws out the oldest code first, so this shows which plugins use most of it. Only files PHP has loaded since OPcache last restarted count, so a plugin that is not active shows none; the totals rows add it up. It is left out when OPcache is off or the host keeps its status from sites (`opcache.restrict_api`). Hosting needs uses the same numbers to size OPcache.
+- **OPcache** under each size is the memory the plugin’s compiled PHP takes in OPcache now. Listing every cached script takes tens of milliseconds on a server with thousands, so the totals are kept in the `seoprostack_plugin_opcache` site transient (removed on uninstall) with OPcache’s state, and listed again whenever any script is compiled, recompiled or cleared, or OPcache restarts. Every PHP worker shares that memory, and a full OPcache throws out the oldest code first, so this shows which plugins use most of it. Only files PHP has loaded since OPcache last restarted count, so a plugin that is not active shows none; the totals rows add it up. It is left out when OPcache is off or the host keeps its status from sites (`opcache.restrict_api`). Hosting needs uses the same numbers to size OPcache.
 - Free Plugins’ **All** list shows the same sizes for installed plugins, whether or not this setting is on.
 - **Measure page time**, above the list (single sites), shows what each active plugin costs a page. Click it and SEO Pro Stack loads the home page and the newest post three times each, keeps each page’s fastest run and averages the pages. Each plugin’s Size cell then shows its **Page time** and database queries; hover for the details: time and memory to load its files, time in its hooks and shortcodes, its database queries and their time, and its calls to other sites. The active plugins’ total is below the list, and above it the time and queries a page, split into plugins, must-use plugins, theme and WordPress, with a note when plugins or the theme have changed since.
   - Every active plugin loads for the measurement, including those Load plugins only where needed skips, so the numbers are what each plugin costs when it loads.
@@ -1519,6 +1519,11 @@ Deleting the plugin removes its settings and cached data, the database keys Add 
 Deactivating the plugin removes the WebP and AVIF rules from the uploads folder’s `.htaccess` (for every site when network-deactivated), the LiteSpeed background request rules from the site’s `.htaccess` (on multisite, when network-deactivated or deactivated on the main site) and the must-use file of Load plugins only where needed (on multisite, when network-deactivated).
 
 ## Changelog
+
+### 1.3.29
+
+- Faster: SEO Pro Stack’s own work on the Plugins screen takes about half the time (379 ms and 111 queries down to 179 ms and 57 queries, on a live site with 76 installed plugins). Starter data checks which items are missing once per plugin instead of twice (for its link and its description); Plugin sizes keeps the OPcache memory per plugin until OPcache changes, instead of listing every cached script on each view (72–108 ms down to under 1 ms); and Load plugins only where needed builds the current address once while copying the admin menu, instead of for each of its 300 entries (71 ms down to 15 ms). The figures shown are the same (GitHub issue #633).
+- Docs: clearing WordPress’s saved plugin update check with WP-CLI needs `--network` (`wp transient delete update_plugins --network`), as it is a site transient; without it the command finds nothing to delete (GitHub issue #634).
 
 ### 1.3.28
 

@@ -2,6 +2,10 @@
 
 Every change to SEO Pro Stack. readme.txt lists the latest version in short.
 
+= 1.3.29 =
+* Faster: SEO Pro Stack's own work on the Plugins screen takes about half the time (379 ms and 111 queries down to 179 ms and 57 queries, on a live site with 76 installed plugins). Starter data checks which items are missing once per plugin instead of twice (for its link and its description); Plugin sizes keeps the OPcache memory per plugin until OPcache changes, instead of listing every cached script on each view (72–108 ms down to under 1 ms); and Load plugins only where needed builds the current address once while copying the admin menu, instead of for each of its 300 entries (71 ms down to 15 ms). The figures shown are the same. New seoprostack_plugin_opcache site transient, removed on uninstall (GitHub issue #633).
+* Docs: clearing WordPress's saved plugin update check with WP-CLI needs --network (wp transient delete update_plugins --network), as it is a site transient; without it the command finds nothing to delete (GitHub issue #634).
+
 = 1.3.28 =
 * New: with Load pages before the click's Also in the admin on, admin screens answer a click at once. The admin menu marks the new screen and the content area shows its title with dots while the page loads (a screen's own tabs stay in view, with the new tab marked), instead of nothing changing until it arrives (0.6–4 seconds a screen on a live site with 50 plugins). Pages still load as normal, so screens and plugins work as before. The admin menu's icons are also drawn in their colours from the first moment, instead of grey until the page had loaded (GitHub issue #631).
 * Fix: changing tabs on SEO Pro Stack's settings screen showed the admin menu alone for a moment, the header and tabs blinking out and back, as the browser drew the screen before reading its header. Chrome and Edge now keep the previous screen in view until the new one can be drawn whole, as on lighter screens such as SEO Pro Stats' (GitHub issue #631).
