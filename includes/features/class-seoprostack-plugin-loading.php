@@ -1527,8 +1527,8 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
         }
         // Types served at /item/ by Short addresses for custom post types, so
         // their pages have a kind before plugins load (GitHub issue #495).
-        $routes['short_types'] = class_exists('SEOProStack_Remove_Cpt_Base', false) && SEOProStack_Remove_Cpt_Base::enabled()
-            ? SEOProStack_Remove_Cpt_Base::types() : array();
+        // Includes types other plugins add while the feature is off.
+        $routes['short_types'] = class_exists('SEOProStack_Remove_Cpt_Base', false) ? SEOProStack_Remove_Cpt_Base::types() : array();
         return $routes;
     }
 
