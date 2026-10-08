@@ -558,7 +558,14 @@
 				var li = document.createElement('li');
 				var link = document.createElement('a');
 				link.setAttribute('href', entry.u);
-				link.innerHTML = entry.t; // Menu titles, printed the same way by WordPress.
+				// Menu titles, printed the same way by WordPress. Parsed apart
+				// from the page: innerHTML here, while the page is still being
+				// read, would cancel the wait for the footer that draws SEO Pro
+				// Stack's screens whole (SEOProStack_Setup::print_whole_screen).
+				var title = new window.DOMParser().parseFromString(entry.t, 'text/html').body;
+				while (title.firstChild) {
+					link.appendChild(title.firstChild);
+				}
 				if (entry.c) {
 					li.className = 'current';
 					link.className = 'current';

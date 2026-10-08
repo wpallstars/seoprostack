@@ -2,7 +2,9 @@
 
 Every change to SEO Pro Stack. readme.txt lists the latest version in short.
 
-= Unreleased =
+= 1.3.28 =
+* New: with Load pages before the click's Also in the admin on, admin screens answer a click at once. The admin menu marks the new screen and the content area shows its title with dots while the page loads (a screen's own tabs stay in view, with the new tab marked), instead of nothing changing until it arrives (0.6–4 seconds a screen on a live site with 50 plugins). Pages still load as normal, so screens and plugins work as before. The admin menu's icons are also drawn in their colours from the first moment, instead of grey until the page had loaded (GitHub issue #631).
+* Fix: changing tabs on SEO Pro Stack's settings screen showed the admin menu alone for a moment, the header and tabs blinking out and back, as the browser drew the screen before reading its header. Chrome and Edge now keep the previous screen in view until the new one can be drawn whole, as on lighter screens such as SEO Pro Stats' (GitHub issue #631).
 * Fix: with the admin sidebar collapsed, the Administrators and Developers menus drew their entries' icons over the names. WordPress gives the menus that open from the collapsed sidebar less room before the names, so those menus now show the names without icons, as WordPress's own menus do there; the full sidebar keeps the icons (GitHub issue #629).
 
 = 1.3.27 =

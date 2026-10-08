@@ -21,7 +21,7 @@ SEO Pro Stack does the jobs that usually take dozens of small plugins: a calmer,
 
 If this saves you time, headaches and costs, feel free to [buy me a coffee](https://buymeacoffee.com/marcusquinn), or whatever you like, to invest in making more things open-source.
 
-Version: 1.3.27
+Version: 1.3.28
 
 <!-- github-only:start -->
 ## Screenshots
@@ -134,7 +134,7 @@ WordPress 7.0 fades from one wp-admin screen to the next, using the browser’s 
 - Also paints the toolbar's strip in the menu's colour before the toolbar is drawn. Core prints the toolbar after the admin menu, so with a long menu the first paint showed a white strip at the top for a moment on every screen change.
 - Only page changes are affected. Animations inside a screen, such as in the site editor, stay.
 - No effect before WordPress 7.0, which has no fade, or for people whose system asks for reduced motion, who never get it.
-- Goes well with Load pages before the click’s **Also in the admin**, which downloads admin screens when you point at their links.
+- Goes well with Load pages before the click’s **Also in the admin**, which downloads admin screens when you point at their links and shows the next screen’s menu entry and title as soon as you click.
 
 ### Turn off unused remote access (Admin)
 
@@ -530,6 +530,8 @@ On by default; it changes nothing until you click. Below the Speed tab’s setti
 Uses the browser’s Speculation Rules to download (or fully prepare) a page when a visitor points at or starts to tap a link to it. On WordPress 6.8 and later it tunes core’s built-in speculative loading; earlier versions get the rules added directly. Admin, login, file and query-string links are always skipped; add your own exclusions such as `/cart` or `logout`. Browsers without Speculation Rules ignore it. Logged-in users are not affected.
 
 **Also in the admin** (off by default) downloads admin screens when you point at their links, with the same “When to start” setting. Screens are only downloaded (prefetch), never fully prepared, so their scripts do not run before the click. Skipped: links whose query string contains `action`, `nonce`, `dismiss` or `download`; screens that change something when opened or are slow to build (`post.php`, `post-new.php`, `customize.php`, `site-editor.php`, `update-core.php`, `update.php`, `upgrade.php`, `plugin-install.php`, `theme-install.php`, `admin-ajax.php`, `admin-post.php`, `async-upload.php`); `#` and `download` links, anything in a `.no-prefetch` element, and your own exclusions.
+
+With **Also in the admin** on, clicking a link to another admin screen also answers at once: the admin menu marks the new screen, and after 100 ms (so screens already downloaded open without it) the content area shows the screen’s title, with dots that appear one by one, on WordPress’s usual background and layout until the page arrives, so colours and spacing a plugin gives its own screen do not stay behind or jump when the next screen opens. A link in the screen’s own navigation, such as its tabs or the All | Published views above a list, keeps that navigation in view, marks the new entry and shows the dots below it. The page itself loads as normal, so every screen and plugin works as before. Nothing changes when the screen asks to confirm leaving (unsaved changes), for links that open a new tab or download or export something, or on screens inside a frame; a key or pointer press while waiting (Esc stops the load) puts the screen back. Screens still change straight away, without a fade (**No fade between admin screens**).
 
 ### Delay scripts until interaction (Speed)
 
@@ -1518,8 +1520,10 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folder�
 
 ## Changelog
 
-### Unreleased
+### 1.3.28
 
+- New: with Load pages before the click’s **Also in the admin** on, admin screens answer a click at once. The admin menu marks the new screen and the content area shows its title with dots while the page loads (a screen’s own tabs stay in view, with the new tab marked), instead of nothing changing until it arrives (0.6–4 seconds a screen on a live site with 50 plugins). Pages still load as normal, so screens and plugins work as before. The admin menu’s icons are also drawn in their colours from the first moment, instead of grey until the page had loaded (GitHub issue #631).
+- Fixed: changing tabs on SEO Pro Stack’s settings screen showed the admin menu alone for a moment, the header and tabs blinking out and back, as the browser drew the screen before reading its header. Chrome and Edge now keep the previous screen in view until the new one can be drawn whole, as on lighter screens such as SEO Pro Stats’ (GitHub issue #631).
 - Fixed: with the admin sidebar collapsed, the Administrators and Developers menus drew their entries' icons over the names. WordPress gives the menus that open from the collapsed sidebar less room before the names, so those menus now show the names without icons, as WordPress's own menus do there; the full sidebar keeps the icons (GitHub issue #629).
 
 ### 1.3.27
