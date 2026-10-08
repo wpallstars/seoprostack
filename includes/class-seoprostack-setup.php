@@ -454,6 +454,21 @@ final class SEOProStack_Setup {
         wp_enqueue_style('seoprostack-tabs', SEOPROSTACK_URL . $css, array('seoprostack-admin'), file_exists(SEOPROSTACK_DIR . $css) ? (string) filemtime(SEOPROSTACK_DIR . $css) : SEOPROSTACK_VERSION);
         wp_enqueue_script('seoprostack-tabs', SEOPROSTACK_URL . $js, array('seoprostack-admin'), file_exists(SEOPROSTACK_DIR . $js) ? (string) filemtime(SEOPROSTACK_DIR . $js) : SEOPROSTACK_VERSION, true);
         wp_set_script_translations('seoprostack-tabs', 'seoprostack');
+        add_action('admin_head', array(__CLASS__, 'print_whole_screen'));
+    }
+
+    /**
+     * Draw SEO Pro Stack's screens whole. The browser otherwise draws a
+     * screen as soon as it has read the admin menu, before the admin bar,
+     * header, tabs and settings (about 700 KB of page), so changing tabs
+     * showed the menu alone for a moment: header and tabs blinked out and
+     * back. This asks it to wait until the page has been read up to the
+     * footer (Chrome and Edge 124+; other browsers ignore it), keeping the
+     * previous screen in view until then, as lighter screens such as SEO
+     * Pro Stats' do anyway.
+     */
+    public static function print_whole_screen() {
+        echo '<link rel="expect" href="#wpfooter" blocking="render" />' . "\n";
     }
 
     /**
