@@ -21,7 +21,7 @@ SEO Pro Stack does the jobs that usually take dozens of small plugins: a calmer,
 
 If this saves you time, headaches and costs, feel free to [buy me a coffee](https://buymeacoffee.com/marcusquinn), or whatever you like, to invest in making more things open-source.
 
-Version: 1.3.29
+Version: 1.3.30
 
 <!-- github-only:start -->
 ## Screenshots
@@ -1522,7 +1522,7 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folderâ
 
 ## Changelog
 
-### Unreleased
+### 1.3.30
 
 - New: other plugins can serve their own post types at short addresses with the `seoprostack_short_address_types` filter, also while Short addresses for custom post types is switched off, so a plugin can offer the choice where its post type is set up (SEO Pro Directory does, per directory). The featureâ€™s panel lists the post types other plugins added. With no plugin using the filter and the feature off, nothing runs on page views (GitHub issue #637).
 
