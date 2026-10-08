@@ -21,7 +21,7 @@ SEO Pro Stack does the jobs that usually take dozens of small plugins: a calmer,
 
 If this saves you time, headaches and costs, feel free to [buy me a coffee](https://buymeacoffee.com/marcusquinn), or whatever you like, to invest in making more things open-source.
 
-Version: 1.3.27
+Version: 1.3.28
 
 <!-- github-only:start -->
 ## Screenshots
@@ -1520,7 +1520,7 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folder�
 
 ## Changelog
 
-### Unreleased
+### 1.3.28
 
 - New: with Load pages before the click’s **Also in the admin** on, admin screens answer a click at once. The admin menu marks the new screen and the content area shows its title with dots while the page loads (a screen’s own tabs stay in view, with the new tab marked), instead of nothing changing until it arrives (0.6–4 seconds a screen on a live site with 50 plugins). Pages still load as normal, so screens and plugins work as before. The admin menu’s icons are also drawn in their colours from the first moment, instead of grey until the page had loaded (GitHub issue #631).
 - Fixed: changing tabs on SEO Pro Stack’s settings screen showed the admin menu alone for a moment, the header and tabs blinking out and back, as the browser drew the screen before reading its header. Chrome and Edge now keep the previous screen in view until the new one can be drawn whole, as on lighter screens such as SEO Pro Stats’ (GitHub issue #631).
