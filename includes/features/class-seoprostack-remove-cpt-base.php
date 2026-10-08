@@ -127,9 +127,21 @@ class SEOProStack_Remove_Cpt_Base extends SEOProStack_Feature {
         foreach (array('save_post', 'deleted_post', 'trashed_post', 'untrashed_post', 'update_option_' . SEOProStack_Settings::OPTION) as $hook) {
             add_action($hook, array(__CLASS__, 'forget_taken'));
         }
-        if (!self::enabled()) {
+        if (self::enabled()) {
+            self::hook();
             return;
         }
+        // Other plugins can add their post types with the
+        // seoprostack_short_address_types filter, also while the switch is
+        // off. They add it as they load, so look once all have loaded; a
+        // site with neither adds no hooks that run on page views.
+        add_action('init', array(__CLASS__, 'hook_for_others'), 1);
+    }
+
+    /**
+     * Hook into links, requests and redirects.
+     */
+    private static function hook() {
         add_filter('post_type_link', array(__CLASS__, 'short_link'), 10, 2);
         add_filter('request', array(__CLASS__, 'resolve'));
         // Before redirect_canonical() and the 410 Gone check.
@@ -137,7 +149,30 @@ class SEOProStack_Remove_Cpt_Base extends SEOProStack_Feature {
     }
 
     /**
-     * Chosen post types that can lose their base right now.
+     * Switched off: hook in only when another plugin adds post types.
+     */
+    public static function hook_for_others() {
+        if (has_filter('seoprostack_short_address_types')) {
+            self::hook();
+        }
+    }
+
+    /**
+     * Post types chosen in the settings: none while switched off.
+     *
+     * @return string[]
+     */
+    private static function chosen() {
+        if (!self::enabled()) {
+            return array();
+        }
+        return array_values(array_filter((array) SEOProStack_Settings::get('remove_cpt_base_types'), 'is_string'));
+    }
+
+    /**
+     * Post types that can lose their base right now: those chosen, and
+     * those other plugins add with the seoprostack_short_address_types
+     * filter.
      *
      * @return string[]
      */
@@ -145,10 +180,20 @@ class SEOProStack_Remove_Cpt_Base extends SEOProStack_Feature {
         if ('' === (string) get_option('permalink_structure')) {
             return array();
         }
-        $types = array();
-        foreach ((array) SEOProStack_Settings::get('remove_cpt_base_types') as $type) {
+        /**
+         * Filter the post types served at short addresses (/item/ instead
+         * of /type/item/). Add a post type your plugin registers to serve
+         * its items there, also while the feature is switched off; add the
+         * filter before `init`. Types that are not registered or have no
+         * fixed base are left out.
+         *
+         * @param string[] $types Post types chosen in the settings (none while switched off).
+         */
+        $wanted = (array) apply_filters('seoprostack_short_address_types', self::chosen());
+        $types  = array();
+        foreach (array_unique(array_filter($wanted, 'is_string')) as $type) {
             if (post_type_exists($type) && null !== self::prefix($type)) {
-                $types[] = (string) $type;
+                $types[] = $type;
             }
         }
         return $types;
@@ -393,8 +438,21 @@ class SEOProStack_Remove_Cpt_Base extends SEOProStack_Feature {
             );
             return;
         }
-        if (!self::enabled()) {
+        $types = self::types();
+        if (!$types) {
             return;
+        }
+        $added = array();
+        foreach (array_diff($types, self::chosen()) as $type) {
+            $object  = get_post_type_object($type);
+            $added[] = ($object ? $object->labels->name : $type) . ' (/' . self::prefix($type) . '/)';
+        }
+        if ($added) {
+            printf(
+                '<div class="sps-panel-note"><p>%s</p></div>',
+                /* translators: %s: list of post types, such as Businesses (/directory/) */
+                esc_html(sprintf(__('Other plugins also serve these at short addresses: %s. Change that in their settings.', 'seoprostack'), implode(', ', $added)))
+            );
         }
         $taken = array();
         foreach (self::taken() as $names) {

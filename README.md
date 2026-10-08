@@ -680,6 +680,7 @@ Serves items of the post types you choose at `/item-name/` instead of `/type/ite
 - Only post types with a fixed base are offered; a base with tags such as `%product_cat%` cannot be removed.
 - With **Learn which plugins each page needs**, an item at its short address is learned and skips plugins like other singles of its type: page learning saves the chosen types and looks the item up only where no page or post is. Two items of different types at one address, and child items whose address another rule matches, use the site-wide choices.
 - Replaces Remove CPT base and imports its chosen post types.
+- Other plugins can serve their own post types at short addresses with the `seoprostack_short_address_types` filter, also while this feature is off, so their users choose it where the post type is set up (SEO Pro Directory does, per directory). The panel lists those post types.
 
 ### Short links (Links)
 
@@ -1488,6 +1489,7 @@ Developers can add settings, tabs and directory entries with filters:
 - `seoprostack_can_see_content`: whether the current visitor may see a post’s content (bool, post ID, the rules it follows: `show`, `roles`, and `term` when the rule is a term’s; empty when everyone may). Return true to let members of your own levels in.
 - `seoprostack_block_visible`: whether the current visitor sees a block (bool, parsed block, its rule: `show` and `roles`).
 - `seoprostack_switchable_post_types`: post types Change post type offers (name => label).
+- `seoprostack_short_address_types`: post types served at short addresses (`/item/`), the ones chosen in Short addresses for custom post types first (none while it is off); add yours before `init` to serve its items there.
 
 Actions:
 
@@ -1519,6 +1521,10 @@ Deleting the plugin removes its settings and cached data, the database keys Add 
 Deactivating the plugin removes the WebP and AVIF rules from the uploads folder’s `.htaccess` (for every site when network-deactivated), the LiteSpeed background request rules from the site’s `.htaccess` (on multisite, when network-deactivated or deactivated on the main site) and the must-use file of Load plugins only where needed (on multisite, when network-deactivated).
 
 ## Changelog
+
+### Unreleased
+
+- New: other plugins can serve their own post types at short addresses with the `seoprostack_short_address_types` filter, also while Short addresses for custom post types is switched off, so a plugin can offer the choice where its post type is set up (SEO Pro Directory does, per directory). The feature’s panel lists the post types other plugins added. With no plugin using the filter and the feature off, nothing runs on page views (GitHub issue #637).
 
 ### 1.3.29
 
