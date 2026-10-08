@@ -5,7 +5,7 @@ Tags: magic login, iframe, schedule posts, auto upload images, admin
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.3.29
+Stable tag: 1.3.30
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -138,7 +138,7 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 
 == Changelog ==
 
-= 1.3.29 =
-* Faster: SEO Pro Stack's own work on the Plugins screen takes about half the time (starter data checks, OPcache figures in Plugin sizes, the admin menu copy). The figures shown are the same.
+= 1.3.30 =
+* New: other plugins can serve their own post types at short addresses (the seoprostack_short_address_types filter), also while Short addresses for custom post types is off.
 
 Older: `changelog.txt`.
