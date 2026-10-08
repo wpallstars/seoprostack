@@ -134,7 +134,8 @@ class SEOProStack_Preload_Pages extends SEOProStack_Feature {
                 add_action('admin_print_footer_scripts', array(__CLASS__, 'print_admin_rules'));
                 add_action('admin_enqueue_scripts', array(__CLASS__, 'admin_navigation_style'));
                 add_action('admin_print_footer_scripts', array(__CLASS__, 'print_admin_navigation'));
-                add_action('adminmenu', array(__CLASS__, 'print_menu_icon_colours'));
+                add_action('admin_head', array(__CLASS__, 'print_menu_icon_colours'), 20);
+                add_action('adminmenu', array(__CLASS__, 'print_menu_icons_done'));
             }
             return;
         }
@@ -379,7 +380,7 @@ class SEOProStack_Preload_Pages extends SEOProStack_Feature {
     }
 
     /**
-     * Colour the admin menu's SVG icons as soon as the menu is printed.
+     * Colour the admin menu's SVG icons as the menu arrives.
      * Core's svg-painter colours them for the admin colour scheme only when
      * the whole page has loaded, so until then plugins' icons (Fluent,
      * Tutor LMS, Rank Math and others) show in their own colours, mostly
@@ -388,19 +389,39 @@ class SEOProStack_Preload_Pages extends SEOProStack_Feature {
      * svg-painter's paintElement(), with the colours core prints in the
      * page head (_wpColorScheme); svg-painter then paints them the same
      * again and handles hover as before.
+     *
+     * Printed in the page head: it watches the page as it is read and
+     * colours each icon before the browser draws it (a script after the
+     * menu alone came one frame too late), then stops when the menu is
+     * complete (print_menu_icons_done()).
      */
     public static function print_menu_icon_colours() {
-        if (!function_exists('wp_print_inline_script_tag')) {
+        if (!self::full_admin_screen() || !function_exists('wp_print_inline_script_tag')) {
             return;
         }
         wp_print_inline_script_tag(<<<'JS'
-(function (scheme) {
+(function () {
 	'use strict';
-	var icons = scheme && scheme.icons;
-	if (!icons || !window.atob || !window.btoa || !document.querySelectorAll) {
+	if (!window.MutationObserver || !window.atob || !window.btoa) {
 		return;
 	}
-	Array.prototype.forEach.call(document.querySelectorAll('#adminmenu .wp-menu-image.svg'), function (el) {
+	var observer = new MutationObserver(paint);
+	function paint() {
+		var icons = window._wpColorScheme && window._wpColorScheme.icons;
+		if (!icons) {
+			return;
+		}
+		Array.prototype.forEach.call(document.querySelectorAll('#adminmenu .wp-menu-image.svg:not([data-sps-icon])'), function (el) {
+			el.setAttribute('data-sps-icon', '');
+			colour(el, icons);
+		});
+	}
+	window.seoprostackMenuIcons = function () {
+		observer.disconnect();
+		paint();
+	};
+	observer.observe(document.documentElement, { childList: true, subtree: true });
+	function colour(el, icons) {
 		var item = el.parentNode && el.parentNode.parentNode;
 		var current = item && item.classList && (item.classList.contains('current') || item.classList.contains('wp-has-current-submenu'));
 		var color = icons[current ? 'current' : 'base'];
@@ -418,10 +439,21 @@ class SEOProStack_Preload_Pages extends SEOProStack_Feature {
 		} catch (error) {
 			// Leave it to svg-painter.
 		}
-	});
-})(window._wpColorScheme);
+	}
+})();
 JS
             , array('id' => 'sps-menu-icons'));
+    }
+
+    /**
+     * Colour any icons left and stop watching, after the menu
+     * (print_menu_icon_colours()).
+     */
+    public static function print_menu_icons_done() {
+        if (!self::full_admin_screen() || !function_exists('wp_print_inline_script_tag')) {
+            return;
+        }
+        wp_print_inline_script_tag('window.seoprostackMenuIcons && window.seoprostackMenuIcons();', array('id' => 'sps-menu-icons-done'));
     }
 
     /**
