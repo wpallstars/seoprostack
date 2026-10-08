@@ -1125,12 +1125,20 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
      * @return array<string,string> Placeholder => form.
      */
     private static function here_forms() {
+        // Once per address: copy_item() asks for every menu entry (300 on
+        // a site with 50 plugins), and remove_query_arg() rebuilds the
+        // address for each removable argument.
+        static $forms = array();
+        $request = isset($_SERVER['REQUEST_URI']) ? (string) wp_unslash($_SERVER['REQUEST_URI']) : ''; // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- only a key here.
+        if (isset($forms[$request])) {
+            return $forms[$request];
+        }
         // As core builds Customize's return= link; core escapes menu links when it prints them.
-        $uri = isset($_SERVER['REQUEST_URI']) ? remove_query_arg(wp_removable_query_args(), wp_unslash($_SERVER['REQUEST_URI'])) : ''; // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- only compared with menu links and put back into them.
+        $uri = '' !== $request ? remove_query_arg(wp_removable_query_args(), $request) : '';
         if (!is_string($uri) || '' === $uri) {
             $uri = (string) wp_parse_url(admin_url('/'), PHP_URL_PATH);
         }
-        return array(
+        return $forms[$request] = array(
             '{sps-here:u}' => urlencode($uri), // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.urlencode_urlencode -- form encoding on purpose; {sps-here:r} is the raw one.
             '{sps-here:r}' => rawurlencode($uri),
             '{sps-here:h}' => str_replace('&', '&#038;', $uri),
