@@ -403,6 +403,8 @@ delete_site_option('seoprostack_network_moved');
 // Plugin caches, network-wide because plugins are shared by every site. On
 // single sites these calls remove the ordinary option and transient.
 delete_site_option('seoprostack_plugin_sizes');
+// OPcache memory per plugin, kept until OPcache changes (Plugin sizes).
+delete_site_transient('seoprostack_plugin_opcache');
 delete_site_transient('seoprostack_plugin_names');
 delete_site_option('seoprostack_nextgen_rules');
 // Latest GitHub releases (the shared GitHub updater, and its cache from

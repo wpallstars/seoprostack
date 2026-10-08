@@ -157,6 +157,15 @@ final class SEOProStack_Starters {
     private static $starters = null;
 
     /**
+     * Missing items worked out in this request, by plugin folder. The
+     * Plugins screen asks twice for each row (its links and its
+     * description); adding or removing starter data clears it.
+     *
+     * @var array<string,array<string,string[]>>
+     */
+    private static $missing = array();
+
+    /**
      * Every starter, keyed by plugin folder.
      *
      * @return array<string,array>
@@ -403,6 +412,9 @@ final class SEOProStack_Starters {
         if (!self::ready($slug)) {
             return array();
         }
+        if (isset(self::$missing[$slug])) {
+            return self::$missing[$slug];
+        }
         $out = array();
         foreach (self::items($slug) as $type => $items) {
             foreach ($items as $item) {
@@ -411,7 +423,7 @@ final class SEOProStack_Starters {
                 }
             }
         }
-        return $out;
+        return self::$missing[$slug] = $out;
     }
 
     /**
@@ -460,6 +472,7 @@ final class SEOProStack_Starters {
      * @param array  $records Type => records; empty removes the plugin's entry.
      */
     private static function save_added($slug, array $records) {
+        self::$missing = array();
         $all = get_option(self::ADDED, array());
         $all = is_array($all) ? $all : array();
         $records = array_filter($records);
@@ -488,6 +501,7 @@ final class SEOProStack_Starters {
         if (!self::ready($slug)) {
             return new WP_Error('seoprostack_starter_inactive', __('Activate the plugin first.', 'seoprostack'));
         }
+        self::$missing = array();
         $records = self::added($slug);
         $count   = 0;
         try {
@@ -528,6 +542,7 @@ final class SEOProStack_Starters {
         } catch (Throwable $e) {
             // Each addition is saved immediately, including a Booking event
             // whose later integration save failed. Do not overwrite that record.
+            self::$missing = array();
             return new WP_Error('seoprostack_starter_failed', $e->getMessage());
         }
         self::save_added($slug, $records);
@@ -548,6 +563,7 @@ final class SEOProStack_Starters {
         if (!self::ready($slug)) {
             return new WP_Error('seoprostack_starter_inactive', __('Activate the plugin first.', 'seoprostack'));
         }
+        self::$missing = array();
         $removed = 0;
         $kept    = array();
         $left    = array();
@@ -582,6 +598,7 @@ final class SEOProStack_Starters {
                 }
             }
         } catch (Throwable $e) {
+            self::$missing = array();
             return new WP_Error('seoprostack_starter_failed', $e->getMessage());
         }
         self::save_added($slug, $left);

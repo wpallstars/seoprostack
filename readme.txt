@@ -5,7 +5,7 @@ Tags: magic login, iframe, schedule posts, auto upload images, admin
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.3.28
+Stable tag: 1.3.29
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -138,9 +138,7 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 
 == Changelog ==
 
-= 1.3.28 =
-* New: with Load pages before the click's Also in the admin on, admin screens answer a click at once: the menu marks the new screen and the screen's title shows with dots until the page arrives. Admin menu icons show in their colours from the start.
-* Fix: changing tabs on SEO Pro Stack's settings screen no longer blinks out the header and tabs.
-* Fix: with the admin sidebar collapsed, menu icons no longer cover the names in the Administrators and Developers menus.
+= 1.3.29 =
+* Faster: SEO Pro Stack's own work on the Plugins screen takes about half the time (starter data checks, OPcache figures in Plugin sizes, the admin menu copy). The figures shown are the same.
 
 Older: `changelog.txt`.

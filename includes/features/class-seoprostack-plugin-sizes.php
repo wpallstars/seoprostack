@@ -15,10 +15,14 @@
  * installed plugins whether or not this setting is on.
  *
  * Each cell also shows how much OPcache memory the plugin's compiled PHP
- * takes now (opcache_get_status() with scripts, read once per screen and
- * never stored), since that memory is what each PHP worker shares and what
- * a full cache evicts first. Only files PHP has loaded since OPcache last
- * restarted are counted, so an inactive plugin shows none.
+ * takes now, since that memory is what each PHP worker shares and what a
+ * full cache evicts first. Only files PHP has loaded since OPcache last
+ * restarted are counted, so an inactive plugin shows none. Listing every
+ * cached script (opcache_get_status() with scripts) takes tens of
+ * milliseconds on a server with thousands, so the per-plugin totals are kept
+ * in a network-wide transient with OPcache's state (start and restart
+ * times, script count, used and wasted memory), and the list is read again
+ * whenever that state has changed: the figures are always the current ones.
  *
  * On single sites, Measure page time above the list measures each active
  * plugin's page time and database queries when someone clicks it
@@ -42,6 +46,9 @@ class SEOProStack_Plugin_Sizes extends SEOProStack_Feature {
 
     /** Network-wide option: plugin file => array(v => version, s => sizes). */
     const CACHE = 'seoprostack_plugin_sizes';
+
+    /** Network-wide transient: OPcache memory per plugin and the OPcache state it was read in. */
+    const OPCACHE = 'seoprostack_plugin_opcache';
 
     /** Column ID. */
     const COLUMN = 'seoprostack_size';
@@ -200,9 +207,11 @@ class SEOProStack_Plugin_Sizes extends SEOProStack_Feature {
     /**
      * OPcache memory now used by each plugin's compiled scripts.
      *
-     * Read once per request. Empty when OPcache is off, its scripts list is
-     * kept from this site (opcache.restrict_api) or PHP runs from the
-     * command line, where OPcache is a different cache from the web's.
+     * Read once per request, from the kept totals while OPcache's state is
+     * the one they were read in, otherwise from the scripts list. Empty when
+     * OPcache is off, its status is kept from this site
+     * (opcache.restrict_api) or PHP runs from the command line, where
+     * OPcache is a different cache from the web's.
      *
      * @return array<string,array{bytes:int,files:int}>|null Keyed by plugin folder (or file, for single-file plugins); null when unknown.
      */
@@ -215,7 +224,18 @@ class SEOProStack_Plugin_Sizes extends SEOProStack_Feature {
         if ('cli' === PHP_SAPI || !function_exists('opcache_get_status') || !filter_var(ini_get('opcache.enable'), FILTER_VALIDATE_BOOLEAN)) {
             return $by_plugin;
         }
-        // False when opcache.restrict_api keeps this script out.
+        // Without the scripts list this takes microseconds. False when
+        // opcache.restrict_api keeps this script out.
+        $status = @opcache_get_status(false); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
+        if (!is_array($status) || empty($status['opcache_enabled'])) {
+            return $by_plugin;
+        }
+        $state  = self::opcache_state($status);
+        $stored = get_site_transient(self::OPCACHE);
+        if ('' !== $state && is_array($stored) && isset($stored['state'], $stored['plugins']) && $state === $stored['state'] && is_array($stored['plugins'])) {
+            return $by_plugin = $stored['plugins'];
+        }
+        // The scripts list: tens of milliseconds with thousands of scripts.
         $status = @opcache_get_status(true); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
         if (!is_array($status) || empty($status['opcache_enabled']) || !isset($status['scripts']) || !is_array($status['scripts'])) {
             return $by_plugin;
@@ -237,7 +257,42 @@ class SEOProStack_Plugin_Sizes extends SEOProStack_Feature {
             $by_plugin[$key]['bytes'] += isset($script['memory_consumption']) ? (int) $script['memory_consumption'] : 0;
             $by_plugin[$key]['files']++;
         }
+        // Keyed by the state that came with this list, so it is used only
+        // while OPcache holds exactly these scripts.
+        $state = self::opcache_state($status);
+        if ('' !== $state) {
+            set_site_transient(self::OPCACHE, array('state' => $state, 'plugins' => $by_plugin), DAY_IN_SECONDS);
+        }
         return $by_plugin;
+    }
+
+    /**
+     * What OPcache holds, in short: when it started and last restarted,
+     * how many scripts it has and its used and wasted memory. Compiling,
+     * recompiling or invalidating any script, or a restart, changes it, so
+     * per-plugin figures kept with it are what the scripts list says now.
+     *
+     * @param array $status opcache_get_status() result.
+     * @return string Empty when OPcache does not report these.
+     */
+    private static function opcache_state(array $status) {
+        $stats  = isset($status['opcache_statistics']) && is_array($status['opcache_statistics']) ? $status['opcache_statistics'] : array();
+        $memory = isset($status['memory_usage']) && is_array($status['memory_usage']) ? $status['memory_usage'] : array();
+        $parts  = array();
+        foreach (array('start_time', 'last_restart_time', 'num_cached_scripts') as $key) {
+            if (!isset($stats[$key])) {
+                return '';
+            }
+            $parts[] = (int) $stats[$key];
+        }
+        foreach (array('used_memory', 'wasted_memory') as $key) {
+            if (!isset($memory[$key])) {
+                return '';
+            }
+            $parts[] = (int) $memory[$key];
+        }
+        $parts[] = wp_normalize_path(WP_PLUGIN_DIR);
+        return implode('|', $parts);
     }
 
     /**
