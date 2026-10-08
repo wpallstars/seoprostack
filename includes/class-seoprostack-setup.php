@@ -454,7 +454,7 @@ final class SEOProStack_Setup {
         wp_enqueue_style('seoprostack-tabs', SEOPROSTACK_URL . $css, array('seoprostack-admin'), file_exists(SEOPROSTACK_DIR . $css) ? (string) filemtime(SEOPROSTACK_DIR . $css) : SEOPROSTACK_VERSION);
         wp_enqueue_script('seoprostack-tabs', SEOPROSTACK_URL . $js, array('seoprostack-admin'), file_exists(SEOPROSTACK_DIR . $js) ? (string) filemtime(SEOPROSTACK_DIR . $js) : SEOPROSTACK_VERSION, true);
         wp_set_script_translations('seoprostack-tabs', 'seoprostack');
-        add_action('admin_head', array(__CLASS__, 'print_whole_screen'));
+        add_action('admin_head', array(__CLASS__, 'print_whole_screen'), PHP_INT_MAX);
     }
 
     /**
@@ -466,6 +466,12 @@ final class SEOProStack_Setup {
      * footer (Chrome and Edge 124+; other browsers ignore it), keeping the
      * previous screen in view until then, as lighter screens such as SEO
      * Pro Stats' do anyway.
+     *
+     * Printed last in the head: Chrome forgets the request whenever HTML is
+     * parsed into the page before the footer is read (jQuery does so as it
+     * loads in the head), and then warns "Did not find element expected to
+     * be parsed". Scripts that run while the page is read should parse HTML
+     * with DOMParser instead, as the admin menu's flyouts do.
      */
     public static function print_whole_screen() {
         echo '<link rel="expect" href="#wpfooter" blocking="render" />' . "\n";
