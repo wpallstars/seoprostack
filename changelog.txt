@@ -4,6 +4,7 @@ Every change to SEO Pro Stack. readme.txt lists the latest version in short.
 
 = Unreleased =
 * Changed: the banner's words are centred top to bottom, with the same layout as the other wpallstars plugins' banners (GitHub issue #642).
+* New: View details (Plugins and Updates screens) shows the banner with its words higher, above the plugin name WordPress writes over its lower left; the README and the Read Me tab keep them centred. GitHub builds ship it as admin/images/banner-details.svg, shown by the shared GitHub updater 1.5.0 (from WP Plugin Starter); the WordPress.org banners have that layout too (GitHub issue #646).
 
 = 1.3.30 =
 * New: other plugins can serve their own post types at short addresses with the seoprostack_short_address_types filter, also while Short addresses for custom post types is switched off, so a plugin can offer the choice where its post type is set up (SEO Pro Directory does, per directory). The feature's panel lists the post types other plugins added. With no plugin using the filter and the feature off, nothing runs on page views (GitHub issue #637).
