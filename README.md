@@ -1525,6 +1525,7 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folderâ
 ### Unreleased
 
 - Changed: the banner's words are centred top to bottom, with the same layout as the other wpallstars plugins' banners (GitHub issue #642).
+- New: **View details** (Plugins and Updates screens) shows the banner with its words higher, above the plugin name WordPress writes over its lower left; this README and the Read Me tab keep them centred (GitHub issue #646).
 
 ### 1.3.30
 
