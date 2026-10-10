@@ -237,6 +237,40 @@ repository or a paid GitHub plan. Connect Codacy, CodeFactor and SonarCloud
 at public launch. \`SYNC_PAT\` is needed only once \`main\` is protected
 (\`DEVELOPMENT.md\` → Services setup, step 4).
 
+## Before 1.0
+
+Tick these off; \`scripts/preflight-release.sh\` checks most of them (Starter
+leftovers lists what is still the starter's).
+
+- [ ] Description: the \`Description:\` header and \`readme.txt\`'s short
+  description (150 characters at most) say what this plugin does, not the
+  starter's.
+- [ ] \`README.md\` and \`readme.txt\` open with this plugin's own offering (what
+  it does, for whom, why it differs), then getting started and a guide. Keep
+  both credits (Built with AI, Made from).
+- [ ] \`readme.txt\`: under 10 KB, up to 5 tags, Tested up to the latest
+  WordPress, FAQ, an External services section for every service the plugin
+  contacts, one Screenshots caption per screenshot.
+- [ ] Banner and icon: in \`.wordpress-org/banner.svg\` replace the headline and
+  tagline, and replace the starter's plug on the stack with this plugin's own
+  mark (the same in \`.wordpress-org/icon.svg\`); run \`scripts/build-banner.sh\`
+  and check the icon reads at 128 px.
+- [ ] Screenshots of this plugin in \`.wordpress-org/screenshot-N.png\`
+  (\`scripts/build-banner.sh\` makes the View details copies).
+- [ ] \`AGENTS.md\` describes this plugin; \`DESIGN.md\` and search keywords, if
+  the plugin has them, are current.
+- [ ] Version 1.0.0 everywhere: \`Version:\`, the version constant, \`Stable tag:\`,
+  \`README.md\`'s Version line and the three changelogs.
+- [ ] \`scripts/sync-core.sh --check\` lists no differences from the starter.
+- [ ] Checks pass: \`scripts/lint.sh\`, \`scripts/preflight-release.sh\` (no
+  errors; each warning understood), \`scripts/smoke-test.sh\`,
+  \`scripts/plugin-check.sh\` (no errors on either zip).
+- [ ] The owner has seen it on a test site (\`scripts/preview-site.sh\`) and
+  approved the banner, icon and screenshots.
+- [ ] WordPress.org: if the Plugin Name gives another slug, ask for this
+  plugin's slug in the submission notes.
+- [ ] After the release: \`scripts/update-test.sh\`.
+
 ## At public launch
 
 First follow \`DEVELOPMENT.md\` → Secrets in history, then
@@ -304,30 +338,18 @@ EOF
 	return 0
 }
 
-# Rebuild README.md's GitHub badges block for the new repository. The
-# SonarCloud key is owner_repo. The Codacy badge has a per-project ID, and
-# CodeFactor's badge is a broken image until the repository is added on
-# codefactor.io, so both are left out until that service has the new
-# repository (DEVELOPMENT.md → Services setup).
+# Rebuild README.md's GitHub badges block for the new repository, in the
+# starter's three rows (plugin_badges). The SonarCloud key is owner_repo.
+# Codacy's badge has a per-project ID, and CodeFactor's and Scorecard's are
+# broken images until that service has the repository, so they are left
+# out until then (DEVELOPMENT.md → Services setup; scripts/readme-badges.sh
+# adds them).
 set_badges() {
 	local repo="$1"
-	local url="https://github.com/$repo"
-	local key="${repo/\//_}"
+	local readme=""
 	[[ -f README.md ]] || return 0
-	BADGES="<!-- On GitHub only: the Read Me tab skips this block. scripts/rename-plugin.sh rewrites it. -->
-[![CI]($url/actions/workflows/ci.yml/badge.svg?branch=main)]($url/actions/workflows/ci.yml)
-[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=$key&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=$key)
-[![License: GPL v3 or later](https://img.shields.io/badge/License-GPL%20v3%20or%20later-blue.svg)](LICENSE)
-[![Latest release](https://img.shields.io/github/v/release/$repo)]($url/releases)
-
-[![Lines of code](docs/metrics/badges/loc.svg)](docs/metrics/repo-metrics.md)
-[![Dependencies](docs/metrics/badges/dependencies.svg)](docs/metrics/repo-metrics.md)
-
-[![Languages by lines of code](docs/metrics/badges/languages.svg)](docs/metrics/repo-metrics.md)" awk '
-		$0 == "<!-- aidevops:badges:end -->" { skip = 0 }
-		skip { next }
-		{ print }
-		$0 == "<!-- aidevops:badges:start -->" { print ENVIRON["BADGES"]; skip = 1 }' README.md >"$TMP_FILE"
+	[[ ! -f readme.txt ]] || readme="$(<readme.txt)"
+	plugin_badges_replace "$(plugin_badges "$repo" "$readme" sonarcloud "")" <README.md >"$TMP_FILE"
 	replace_with_tmp README.md || true
 	return 0
 }

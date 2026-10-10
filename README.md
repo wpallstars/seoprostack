@@ -1522,6 +1522,10 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folderâ
 
 ## Changelog
 
+### Unreleased
+
+- Developers: core files synced from WP Plugin Starter (d5fc891): the shared updater's licence and attribution lines are at the top of its header, within the release preflight's scan; simpler fenced-code handling in the Read Me tab; checks for starter leftovers and README badges; and `scripts/readme-badges.sh` for the standard three-row badges block (GitHub issue #653).
+
 ### 1.3.31
 
 - Changed: the banner's words are centred top to bottom, with the same layout as the other wpallstars plugins' banners (GitHub issue #642).
