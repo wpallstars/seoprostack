@@ -27,7 +27,6 @@ html.sps-dark {
 }
 
 @supports (color: color-mix(in srgb, red 10%, transparent)) {
-
 	html.sps-dark {
 		--sps-ui-accent: color-mix(in srgb, var(--sps-ui-accent-fill) 55%, #fff);
 	}
@@ -516,7 +515,6 @@ html.sps-dark .sps-wrap .sps-plugins .button.sps-uninstall:is(:hover, :focus) {
 }
 
 @media (prefers-reduced-motion: no-preference) {
-
 	html.sps-theme-ready body,
 	html.sps-theme-ready :is(.sps-header, .sps-nav, .sps-card, .components-card) {
 		transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
