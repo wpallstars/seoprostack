@@ -3,8 +3,9 @@
 ## Colour mode
 
 Only the settings screen from `SEOProStack_Admin_Manager::hook()` has a
-per-person colour mode. Light is the default and leaves WordPress's admin
-colours untouched. Dark uses the WordPress admin greys below; System follows
+per-person colour mode. Light is the default and keeps WordPress's admin
+colours, apart from the scheme colour's brightness (Accent, below). Dark uses
+the WordPress admin greys below; System follows
 `prefers-color-scheme` live. The front end, editor and other admin screens
 keep their own colours. This matches SEO Pro Stats' colour mode (#219).
 
@@ -37,11 +38,35 @@ The choice is user meta `seoprostack_admin_theme`, saved with a nonce and
 | warning | `#f0c33c` |
 
 Plugin `--sps-*` and WordPress `--wp-components-color-*` tokens read this
-palette. Primary buttons keep the admin colour scheme's fill. Accent text
-uses `color-mix(in srgb, var(--wp-admin-theme-color) 55%, #fff)` with a
-`#72aee6` fallback. Classic element rules use `:where()` to preserve focus
-and class rules; descriptions and table lists match core specificity.
-Colours ease for 0.2 seconds after load, never with reduced motion.
+palette. Classic element rules use `:where()` to preserve focus and class
+rules; descriptions and table lists match core specificity. Colours ease for
+0.2 seconds after load, never with reduced motion.
+
+### Accent
+
+The accent follows the person's admin colour scheme (Profile → Admin Color
+Scheme, or Modern admin colours), as on SEO Pro Stats' screens (its issues #228
+and #239). WordPress sets the scheme's `--wp-admin-theme-color` on `body`
+(`body.admin-color-*`), so the accent tokens sit on `body` too: on `html`
+they would resolve to the default blue, whatever the scheme. A live change of
+the body class (the Modern admin colours switch) recolours the screen at once.
+
+- **Dark**: the logo and switches keep the scheme's colour as a fill
+  (`--sps-ui-accent-fill`). Primary buttons are darkened to at most OKLCH
+  lightness 0.53 (`--sps-ui-primary`, also `--wp-components-color-accent`), so
+  their light labels read at 4.5:1 on lighter fills such as Sunrise's. Accent
+  text, links, tabs and outlines keep its hue at a lighter tone,
+  `oklch(from accent max(l, 0.75) min(c, 0.15) h)`, which reads at 5.4:1 or
+  more on every dark surface. Older browsers use `color-mix(accent 55%, #fff)`,
+  then `#72aee6`. Menu items' focus ring and external links take it too.
+- **Light**: the scheme's colour keeps its hue, with its luminance lowered to
+  at most 0.15 (0.12 and 0.096 for the darker tones), so it reads at 4.6:1 or
+  more on `#f0f0f0` and behind white labels. Modern and Ectoplasm are under
+  the cap and unchanged; Sunrise `#ad631e` becomes `#a05b1b`. The capped
+  colour replaces `--wp-admin-theme-color` inside `body`, so WordPress's
+  buttons, fields and components take it too. The classic schemes' bright link
+  hover and focus (`#0096dd`, 3.3:1) become `#005e8e`. Older browsers keep the
+  scheme's colour.
 
 ## Banner and icon
 
