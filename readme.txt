@@ -5,7 +5,7 @@ Tags: magic login, iframe, schedule posts, auto upload images, admin
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.3.30
+Stable tag: 1.3.31
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -139,7 +139,10 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 
 == Changelog ==
 
-= 1.3.30 =
-* New: other plugins can serve their own post types at short addresses (the seoprostack_short_address_types filter), also while Short addresses for custom post types is off.
+= 1.3.31 =
+* Changed: the banner's words are centred top to bottom, as on the other wpallstars plugins' banners; on WordPress.org and in View details they sit higher, clear of the plugin name.
+* New: the settings screen's tabs switch at once, without loading the page again.
+* Fix: the Read Me tab shows a paragraph written over several lines as one paragraph, and fenced code blocks as code.
+* Faster: Database clean-up removes old auto-drafts through the posts table's index, instead of reading every post.
 
 Older: `changelog.txt`.
