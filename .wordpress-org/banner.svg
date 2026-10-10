@@ -65,10 +65,14 @@
     </linearGradient>
     <!-- A five-pointed star, radius 1, centred on 0,0 -->
     <polygon id="star" points="0,-1 0.2245,-0.309 0.9511,-0.309 0.3633,0.118 0.5878,0.809 0,0.382 -0.5878,0.809 -0.3633,0.118 -0.9511,-0.309 -0.2245,-0.309"/>
-    <!-- A lightning bolt laid flat on the top tile's face (centre 1214,0 in
-         the tile's coordinates): drawn upright, then squashed to 0.58 of its
-         height, the face's foreshortening, so it lies on the tile. -->
-    <polygon id="bolt" points="1193.3,-48.9 1255.9,-48.9 1217.7,-12.6 1258,-12.6 1172.1,48.9 1191.2,5.8 1143.5,5.8"/>
+    <!-- A lightning bolt laid flat on the top tile's face, on the tile's
+         isometric axes: drawn in the 20-unit icon space WP Plugin Starter
+         uses for its Plugins icon, through the same face matrix (icon x along
+         the top-right edge, icon y along the top-left edge). The top bar and
+         notches run along icon x, so they are parallel to the tile's edges,
+         and the strokes fall steeply to the front-left. Tile coordinates:
+         use it inside the top tile's translate(0 238). -->
+    <polygon id="bolt" transform="matrix(4.95 2.871 -4.95 2.871 1214 -57.42)" points="9.8,-2 3.4,-2 8.6,7.2 3.8,7.2 13.8,22 11.4,11.2 16.6,11.2"/>
   </defs>
 
   <!-- Background -->
@@ -121,7 +125,7 @@
         <use xlink:href="#bolt" transform="translate(0 -6)"/>
         <use xlink:href="#bolt" transform="translate(0 -7)"/>
       </g>
-      <use xlink:href="#bolt" transform="translate(0 -8)" fill="url(#gold)" stroke="#ffffea" stroke-width="2"/>
+      <use xlink:href="#bolt" transform="translate(0 -8)" fill="url(#gold)" stroke="#ffffea" stroke-width="0.35"/>
     </g>
   </g>
 

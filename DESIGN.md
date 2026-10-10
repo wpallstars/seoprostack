@@ -10,8 +10,12 @@ Stats: all red with rising bars). SEO Pro Stack's banner
 (`.wordpress-org/banner.svg`) and icon (`.wordpress-org/icon.svg`) have red,
 cream and blue tiles, blue stars and a blue glow, and a gold lightning bolt
 (for speed) laid flat and slightly raised on the top tile. Keep the stack;
-change only the colours or the top tile's picture. Keep the two files in
-step and rebuild with `scripts/build-banner.sh`.
+change only the colours or the top tile's picture. Draw the top tile's
+picture on the tile's isometric axes, as the starter's Plugins icon is: in a
+20-unit space through `matrix(4.95 2.871 -4.95 2.871 1214 -57.42)`, so its
+straight edges run parallel to the tile's edges; squashing it straight down
+is not enough. Keep the two files in step and rebuild with
+`scripts/build-banner.sh`.
 
 ## Theme colours
 

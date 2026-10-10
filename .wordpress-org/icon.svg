@@ -43,8 +43,9 @@
     </linearGradient>
     <!-- A five-pointed star, radius 1, centred on 0,0 -->
     <polygon id="star" points="0,-1 0.2245,-0.309 0.9511,-0.309 0.3633,0.118 0.5878,0.809 0,0.382 -0.5878,0.809 -0.3633,0.118 -0.9511,-0.309 -0.2245,-0.309"/>
-    <!-- The banner's lightning bolt, laid flat on the top tile's face -->
-    <polygon id="bolt" points="1193.3,-48.9 1255.9,-48.9 1217.7,-12.6 1258,-12.6 1172.1,48.9 1191.2,5.8 1143.5,5.8"/>
+    <!-- The banner's lightning bolt, laid flat on the top tile's face on its
+         isometric axes (the banner's comment says how) -->
+    <polygon id="bolt" transform="matrix(4.95 2.871 -4.95 2.871 1214 -57.42)" points="9.8,-2 3.4,-2 8.6,7.2 3.8,7.2 13.8,22 11.4,11.2 16.6,11.2"/>
   </defs>
 
   <!-- Background -->
@@ -94,7 +95,7 @@
         <use xlink:href="#bolt" transform="translate(0 -6)"/>
         <use xlink:href="#bolt" transform="translate(0 -7)"/>
       </g>
-      <use xlink:href="#bolt" transform="translate(0 -8)" fill="url(#gold)" stroke="#ffffea" stroke-width="2"/>
+      <use xlink:href="#bolt" transform="translate(0 -8)" fill="url(#gold)" stroke="#ffffea" stroke-width="0.35"/>
     </g>
   </g>
 
