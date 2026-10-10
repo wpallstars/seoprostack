@@ -1,5 +1,14 @@
 # SEO Pro Stack design
 
+## Banner and icon
+
+The banner (`.wordpress-org/banner.svg`) and icon (`.wordpress-org/icon.svg`)
+show a gold lightning bolt with a red edge and cream outline under the
+wpallstars arc of five stars, on the shared navy background with red and
+cream stripes. The bolt stands for speed and keeps SEO Pro Stack apart from
+WP Plugin Starter, whose picture is a plugin stack. Keep the two pictures in
+step and rebuild with `scripts/build-banner.sh`.
+
 ## Theme colours
 
 Follow the site's theme, not the visitor's system colour preference. Use
