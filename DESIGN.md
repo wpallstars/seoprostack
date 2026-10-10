@@ -2,11 +2,15 @@
 
 ## Banner and icon
 
-The banner (`.wordpress-org/banner.svg`) and icon (`.wordpress-org/icon.svg`)
-show a gold lightning bolt with a red edge and cream outline under the
-wpallstars arc of five stars, on the shared navy background with red and
-cream stripes. The bolt stands for speed and keeps SEO Pro Stack apart from
-WP Plugin Starter, whose picture is a plugin stack. Keep the two pictures in
+Every wpallstars plugin's banner and icon share one picture: the stack of
+tiles under the arc of five stars, on the navy background with red and cream
+stripes. Each plugin varies only the tiles' colours and the picture on the
+top tile (WP Plugin Starter: all red with the WordPress Plugins icon; SEO Pro
+Stats: all red with rising bars). SEO Pro Stack's banner
+(`.wordpress-org/banner.svg`) and icon (`.wordpress-org/icon.svg`) have red,
+cream and blue tiles, blue stars and a blue glow, and a gold lightning bolt
+(for speed) laid flat and slightly raised on the top tile. Keep the stack;
+change only the colours or the top tile's picture. Keep the two files in
 step and rebuild with `scripts/build-banner.sh`.
 
 ## Theme colours
