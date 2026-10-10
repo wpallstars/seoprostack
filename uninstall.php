@@ -388,8 +388,13 @@ if (is_multisite()) {
 // Unused magic login links and profile pictures (user meta is network-wide).
 delete_metadata('user', 0, '_seoprostack_magic_login', '', true);
 delete_metadata('user', 0, 'seoprostack_avatar', '', true);
-// Per-person colour mode for the plugin's own settings screen.
+// Per-person colour mode for wp-admin. The mode shared with other wpallstars
+// plugins goes only when none of them is still installed (their hooks do not
+// run during an uninstall, so check their main files).
 delete_metadata('user', 0, 'seoprostack_admin_theme', '', true);
+if (!file_exists(WP_PLUGIN_DIR . '/seoprostats/seoprostats.php')) {
+    delete_metadata('user', 0, 'wpallstars_admin_theme', '', true);
+}
 // Hidden "SEO Pro Stack can do the job of these plugins" lines.
 delete_metadata('user', 0, 'seoprostack_replaced_plugins_hidden', '', true);
 // Dismissed "Install Git Updater" notices (GitHub builds).
