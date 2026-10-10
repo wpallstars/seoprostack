@@ -1527,6 +1527,7 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folderâ
 
 ### Unreleased
 
+- Changed: the banner and icon show a gold lightning bolt under the arc of five stars, instead of the plugin stack, so SEO Pro Stack is easy to tell apart from WP Plugin Starter on the Plugins and Updates screens, in **View details**, on WordPress.org and on GitHub (GitHub issue #656).
 - Developers: core files synced from WP Plugin Starter (d5fc891): the shared updater's licence and attribution lines are at the top of its header, within the release preflight's scan; simpler fenced-code handling in the Read Me tab; checks for starter leftovers and README badges; and `scripts/readme-badges.sh` for the standard three-row badges block (GitHub issue #653).
 
 ### 1.3.31
