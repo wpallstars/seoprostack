@@ -21,6 +21,7 @@ Safe features start on; others stay off. In **Settings → SEO Pro Stack**, **Se
 
 = A calmer, faster admin =
 
+* **Light, Dark or System**: per-person colour mode for this plugin's settings only, next to Buy me a coffee.
 * **Developer admins**: chosen admins manage plugins, themes, admins and site addresses.
 * **Organise the admin menu**: consistent sections, role previews, writing-only contributor menus.
 * **Tidy the dashboard**, **Dashboard and sidebar widgets**, **Hide admin notices** and a **More menu** for admin bar items.

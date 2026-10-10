@@ -51,6 +51,8 @@ Go to **Settings → SEO Pro Stack**, or click the star next to your name in the
 - **Discover**: Theme, Free Plugins, Pro Plugins, Hosting and Tools.
 - **About**: this Read Me.
 
+The colour mode button after **Buy me a coffee** offers **Light** (the default), **Dark** and **System** (follows your computer, including changes while the screen is open). It remembers your choice for your account, not for everyone on the site. Only SEO Pro Stack's settings screen changes; the rest of WordPress, the editor and your site keep their own colours. The menu works with arrow keys, Home, End and Escape. If saving fails, the previous mode comes back with an announcement.
+
 At the top right of the screen, **Source code** opens the plugin’s [GitHub repository](https://github.com/wpallstars/seoprostack) in a new tab, and **Support** opens its [GitHub issues](https://github.com/wpallstars/seoprostack/issues) in a new tab. Say what you did, what you expected and what happened, with the versions of WordPress, PHP and SEO Pro Stack. Leave out passwords, licence keys and personal data, since issues are public. For questions, ask [aidevops](https://aidevops.sh) (Built with AI below). **Buy me a coffee**, next to it, opens the maker’s [Buy Me a Coffee](https://buymeacoffee.com/marcusquinn) page in a new tab.
 
 ## Features

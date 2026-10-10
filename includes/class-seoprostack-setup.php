@@ -426,6 +426,7 @@ final class SEOProStack_Setup {
             'admin/includes/class-theme-manager.php',
             'admin/includes/class-agency-examples.php',
             'admin/includes/class-host-plugins.php',
+            'includes/admin/class-seoprostack-admin-theme.php',
         );
         foreach ($files as $file) {
             require_once SEOPROSTACK_DIR . $file;
@@ -435,6 +436,7 @@ final class SEOProStack_Setup {
         SEOProStack_Plugin_Manager::init();
         SEOProStack_Agency_Examples::init();
         SEOProStack_Host_Plugins::init();
+        SEOProStack_Admin_Theme::init();
 
         // Priority 0, so other code filtering the tabs sees these as before.
         add_filter('seoprostack_admin_tabs', array(__CLASS__, 'discover_tabs'), 0);
