@@ -243,10 +243,6 @@ class SEOProStack_Plugin_Fixes extends SEOProStack_Feature {
     /** WP Crontrol's notice about DISABLE_WP_CRON (its wp_admin_notice() id). */
     const CRONTROL_NOTICE = 'crontrol-status-notice';
 
-    /** An event is late, and then missed, this long after its time (Site Health's, with DISABLE_WP_CRON). */
-    const CRON_LATE   = 900;
-    const CRON_MISSED = 3600;
-
     /**
      * Schedules of hosts' tasks stored in each site's cron option (name =>
      * interval in seconds), by site ID, found once per request.
@@ -572,26 +568,16 @@ class SEOProStack_Plugin_Fixes extends SEOProStack_Feature {
         }
         // Once, and not for the notice made here.
         remove_filter('wp_admin_notice_markup', array(__CLASS__, 'crontrol_status_markup'), 10);
-        $now  = time();
-        $hook = '';
-        $time = $now;
-        $cron = function_exists('_get_cron_array') ? _get_cron_array() : array();
-        foreach ((array) $cron as $timestamp => $hooks) {
-            if ((int) $timestamp < $time && is_array($hooks) && $hooks) {
-                $time = (int) $timestamp;
-                $hook = (string) key($hooks);
-            }
-        }
-        $late = $now - $time;
-        if ($late > self::CRON_LATE) {
+        $event = SEOProStack_Hosting_Needs::overdue_event();
+        if ($event && $event['late'] > SEOProStack_Hosting_Needs::CRON_LATE) {
             $text = sprintf(
                 /* translators: 1: DISABLE_WP_CRON, 2: event hook name, 3: how late, such as "2 hours". */
                 __('%1$s is set, so a cron job on the server must run WordPress cron, but the scheduled event %2$s is %3$s late. Check that your host\'s control panel has a cron job that runs wp-cron.php (or wp cron event run --due-now) every few minutes, and that it works.', 'seoprostack'),
                 'DISABLE_WP_CRON',
-                $hook,
-                human_time_diff($time, $now)
+                $event['hook'],
+                human_time_diff($event['time'], time())
             );
-            $type = $late > self::CRON_MISSED ? 'error' : 'warning';
+            $type = $event['late'] > SEOProStack_Hosting_Needs::CRON_MISSED ? 'error' : 'warning';
         } else {
             $text = sprintf(
                 /* translators: %s: DISABLE_WP_CRON */

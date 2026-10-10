@@ -11,7 +11,9 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-// Define hosting providers
+// Define hosting providers. Optional cron_jobs: where the host's control
+// panel keeps cron jobs, named by Hosting needs' notice about scheduled jobs
+// not running (DISABLE_WP_CRON) when the site is on that host.
 function seoprostack_get_hosting_providers() {
     return array(
         'cloudron' => array(
@@ -32,6 +34,7 @@ function seoprostack_get_hosting_providers() {
         'hostinger' => array(
             'name' => 'Hostinger',
             'description' => 'Affordable WordPress hosting with good performance and user-friendly management tools.',
+            'cron_jobs' => 'hPanel: Advanced → Cron Jobs',
             'button_group' => array(
                 array(
                     'text' => 'Home Page',

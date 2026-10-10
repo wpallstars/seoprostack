@@ -130,6 +130,13 @@ class SEOProStack_Hosting_Needs extends SEOProStack_Feature {
     /** Values offered for opcache.max_accelerated_files. */
     const FILE_STEPS = array(10000, 20000, 30000, 50000, 100000, 200000, 500000);
 
+    /** A scheduled event is late, and then missed, this long after its time (Site Health's, with DISABLE_WP_CRON). */
+    const CRON_LATE   = 900;
+    const CRON_MISSED = 3600;
+
+    /** Site Health test ID: scheduled events with DISABLE_WP_CRON. */
+    const CRON_TEST = 'seoprostack_cron';
+
     /**
      * Settings.
      *
@@ -142,7 +149,7 @@ class SEOProStack_Hosting_Needs extends SEOProStack_Feature {
                 'default'     => true,
                 'tab'         => 'server',
                 'label'       => __('Hosting needs', 'seoprostack'),
-                'description' => __('Check whether your hosting fits this site, and what to ask your host for. Compares OPcache, which keeps PHP code in memory, with the code your plugins and theme can load, and the PHP memory limit with the most memory a request used in the last 7 days. Shown below the plugin list and in Tools → Site Health.', 'seoprostack'),
+                'description' => __('Check whether your hosting fits this site, and what to ask your host for. Compares OPcache, which keeps PHP code in memory, with the code your plugins and theme can load, and the PHP memory limit with the most memory a request used in the last 7 days. Shown below the plugin list and in Tools → Site Health. When WP-Cron is turned off (DISABLE_WP_CRON) and no cron job on the server runs the scheduled jobs, says so on the Dashboard and Plugins screens, with the commands for this site.', 'seoprostack'),
             ),
         );
     }
@@ -177,6 +184,12 @@ class SEOProStack_Hosting_Needs extends SEOProStack_Feature {
         add_action('admin_post_' . self::FIX, array(__CLASS__, 'fix_object_cache'));
         add_action('admin_post_' . self::ADMIN_CACHE, array(__CLASS__, 'turn_on_admin_cache'));
         add_action('load-plugins.php', array(__CLASS__, 'load_screen'));
+        if (self::needs_server_cron()) {
+            add_action('load-index.php', array(__CLASS__, 'cron_screen'));
+            add_action('load-plugins.php', array(__CLASS__, 'cron_screen'));
+            // SEO Pro Stats 1.4.2+ gives the same advice on its own screens.
+            add_filter('seoprostats_schedule_notice', '__return_false');
+        }
     }
 
     /* ------------------------------------------------------------------
@@ -2451,6 +2464,215 @@ class SEOProStack_Hosting_Needs extends SEOProStack_Feature {
     }
 
     /* ------------------------------------------------------------------
+     * Scheduled events (DISABLE_WP_CRON)
+     * ------------------------------------------------------------------ */
+
+    /**
+     * The oldest scheduled event past its time, from the cron option
+     * (autoloaded, so no query). Also used by the WP Crontrol fix.
+     *
+     * @return array{hook: string, time: int, late: int}|null Null when none is due.
+     */
+    public static function overdue_event() {
+        $now  = time();
+        $time = $now;
+        $hook = '';
+        $cron = function_exists('_get_cron_array') ? _get_cron_array() : array();
+        foreach ((array) $cron as $timestamp => $hooks) {
+            if ((int) $timestamp < $time && is_array($hooks) && $hooks) {
+                $time = (int) $timestamp;
+                $hook = (string) key($hooks);
+            }
+        }
+        if ('' === $hook) {
+            return null;
+        }
+        return array(
+            'hook' => $hook,
+            'time' => $time,
+            'late' => $now - $time,
+        );
+    }
+
+    /**
+     * Whether a cron job on the server must run scheduled events: WP-Cron
+     * is turned off (DISABLE_WP_CRON) and no plugin runs them instead
+     * (Cavalcade, Cron Control: the ones WP Crontrol names).
+     *
+     * @return bool
+     */
+    public static function needs_server_cron() {
+        if (!defined('DISABLE_WP_CRON') || !DISABLE_WP_CRON) {
+            return false;
+        }
+        return !class_exists('HM\Cavalcade\Plugin\Job') && !class_exists('Automattic\WP\Cron_Control');
+    }
+
+    /**
+     * How late the oldest scheduled event is, when it is late enough to
+     * say so (Site Health's thresholds with DISABLE_WP_CRON).
+     *
+     * @return array{hook: string, time: int, late: int, status: string}|null Status warning or error; null when on time.
+     */
+    public static function cron_late() {
+        $event = self::needs_server_cron() ? self::overdue_event() : null;
+        if (!$event || $event['late'] <= self::CRON_LATE) {
+            return null;
+        }
+        $event['status'] = $event['late'] > self::CRON_MISSED ? 'error' : 'warning';
+        return $event;
+    }
+
+    /**
+     * What is late, in a sentence.
+     *
+     * @param array $event From overdue_event().
+     * @return string
+     */
+    public static function cron_late_text(array $event) {
+        return sprintf(
+            /* translators: 1: DISABLE_WP_CRON, 2: event hook name, 3: how late, such as "2 hours". */
+            __('WP-Cron is turned off on this site (%1$s in wp-config.php), so a cron job on the server must run WordPress’s scheduled jobs, for every plugin: updates, emails, shop and statistics queues. The scheduled event %2$s is %3$s late.', 'seoprostack'),
+            'DISABLE_WP_CRON',
+            $event['hook'],
+            human_time_diff($event['time'], time())
+        );
+    }
+
+    /**
+     * Commands that run this site's scheduled events. PHP on wp-cron.php
+     * runs the main site's events only, so a network's other sites get the
+     * WP-CLI command with their address.
+     *
+     * @return string[]
+     */
+    public static function cron_commands() {
+        $path     = untrailingslashit(ABSPATH);
+        $commands = array();
+        if (!is_multisite() || is_main_site()) {
+            $commands[] = 'php ' . $path . '/wp-cron.php';
+        }
+        $commands[] = 'wp cron event run --due-now --path=' . $path . (is_multisite() ? ' --url=' . home_url('/') : '');
+        return $commands;
+    }
+
+    /**
+     * How to add the server's cron job: the commands, the address, and
+     * where this host's control panel keeps cron jobs, if known.
+     *
+     * @return string HTML.
+     */
+    public static function cron_help_html() {
+        $html = '<p>' . esc_html__('Add a cron job in your hosting control panel that runs every 5 minutes or more often, with one of these commands:', 'seoprostack') . '</p><ul class="ul-disc">';
+        foreach (self::cron_commands() as $command) {
+            $html .= '<li><code>' . esc_html($command) . '</code></li>';
+        }
+        $html .= '</ul><p>' . esc_html(sprintf(
+            /* translators: %s: the site's wp-cron.php address. */
+            __('Where the host asks for an address to open instead: %s', 'seoprostack'),
+            site_url('wp-cron.php')
+        )) . '</p>';
+        $host = self::cron_host();
+        if ($host) {
+            $html .= '<p>' . esc_html(sprintf(
+                /* translators: 1: host name, 2: where its control panel keeps cron jobs. */
+                __('On %1$s, cron jobs are in %2$s.', 'seoprostack'),
+                $host['name'],
+                $host['cron_jobs']
+            )) . '</p>';
+        }
+        return $html;
+    }
+
+    /**
+     * This site's host, when known and its entry in
+     * admin/data/hosting-providers.php says where its cron jobs are.
+     *
+     * @return array{name: string, cron_jobs: string}|array{} Empty when unknown.
+     */
+    private static function cron_host() {
+        $key = self::hostinger() ? 'hostinger' : '';
+        if ('' === $key) {
+            return array();
+        }
+        // Loaded on admin requests; Site Health also runs its tests from cron.
+        if (!function_exists('seoprostack_get_hosting_providers')) {
+            require_once SEOPROSTACK_DIR . 'admin/data/hosting-providers.php';
+        }
+        $providers = seoprostack_get_hosting_providers();
+        if (empty($providers[$key]['name']) || empty($providers[$key]['cron_jobs'])) {
+            return array();
+        }
+        return array(
+            'name'      => (string) $providers[$key]['name'],
+            'cron_jobs' => (string) $providers[$key]['cron_jobs'],
+        );
+    }
+
+    /**
+     * Dashboard and Plugins screens: add the notice for people who can fix
+     * it (on a network, the network admin shows the main site's events).
+     */
+    public static function cron_screen() {
+        if (!current_user_can(is_network_admin() ? 'manage_network_options' : 'manage_options')) {
+            return;
+        }
+        add_action(is_network_admin() ? 'network_admin_notices' : 'admin_notices', array(__CLASS__, 'cron_notice'));
+    }
+
+    /**
+     * Say that scheduled events are not running, and how to run them. Goes
+     * away by itself once they run again.
+     */
+    public static function cron_notice() {
+        $event = self::cron_late();
+        if (!$event) {
+            return;
+        }
+        printf(
+            '<div class="notice notice-%1$s seoprostack-cron-notice"><p><strong>%2$s</strong> %3$s</p>%4$s</div>',
+            esc_attr($event['status']),
+            esc_html__('Scheduled jobs are not running.', 'seoprostack'),
+            esc_html(self::cron_late_text($event)),
+            wp_kses_post(self::cron_help_html())
+        );
+    }
+
+    /**
+     * Site Health test: whether the server's cron job runs scheduled
+     * events. Only with DISABLE_WP_CRON; otherwise core's own tests (late
+     * events, loopback requests) cover it.
+     *
+     * @return array
+     */
+    public static function test_cron() {
+        $event  = self::cron_late();
+        $result = array(
+            'label'       => __('Scheduled events run from the server’s cron job', 'seoprostack'),
+            'status'      => 'good',
+            'badge'       => array(
+                'label' => __('Performance', 'seoprostack'),
+                'color' => 'blue',
+            ),
+            'description' => '<p>' . esc_html(sprintf(
+                /* translators: %s: DISABLE_WP_CRON */
+                __('WP-Cron is turned off on this site (%s in wp-config.php), and a cron job on the server runs WordPress’s scheduled jobs: no scheduled event is more than 15 minutes late.', 'seoprostack'),
+                'DISABLE_WP_CRON'
+            )) . '</p>',
+            'actions'     => '',
+            'test'        => self::CRON_TEST,
+        );
+        if ($event) {
+            $missed                = 'error' === $event['status'];
+            $result['label']       = $missed ? __('Scheduled events are not running', 'seoprostack') : __('A scheduled event is late', 'seoprostack');
+            $result['status']      = $missed ? 'critical' : 'recommended';
+            $result['description'] = '<p>' . esc_html(self::cron_late_text($event)) . '</p>';
+            $result['actions']     = self::cron_help_html();
+        }
+        return $result;
+    }
+
+    /* ------------------------------------------------------------------
      * Site Health
      * ------------------------------------------------------------------ */
 
@@ -2476,6 +2698,12 @@ class SEOProStack_Hosting_Needs extends SEOProStack_Feature {
             $tests['direct']['seoprostack_memory'] = array(
                 'label' => __('PHP memory', 'seoprostack'),
                 'test'  => array(__CLASS__, 'test_memory'),
+            );
+        }
+        if (self::needs_server_cron()) {
+            $tests['direct'][self::CRON_TEST] = array(
+                'label' => __('Scheduled events', 'seoprostack'),
+                'test'  => array(__CLASS__, 'test_cron'),
             );
         }
         return $tests;
