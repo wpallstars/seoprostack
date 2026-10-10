@@ -51,6 +51,8 @@ Go to **Settings → SEO Pro Stack**, or click the star next to your name in the
 - **Discover**: Theme, Free Plugins, Pro Plugins, Hosting and Tools.
 - **About**: this Read Me.
 
+The colour mode button after **Buy me a coffee** offers **Light** (the default), **Dark** and **System** (follows your computer, including changes while the screen is open). It remembers your choice for your account, not for everyone on the site. Only SEO Pro Stack's settings screen changes; the rest of WordPress, the editor and your site keep their own colours. The menu works with arrow keys, Home, End and Escape. If saving fails, the previous mode comes back with an announcement.
+
 At the top right of the screen, **Source code** opens the plugin’s [GitHub repository](https://github.com/wpallstars/seoprostack) in a new tab, and **Support** opens its [GitHub issues](https://github.com/wpallstars/seoprostack/issues) in a new tab. Say what you did, what you expected and what happened, with the versions of WordPress, PHP and SEO Pro Stack. Leave out passwords, licence keys and personal data, since issues are public. For questions, ask [aidevops](https://aidevops.sh) (Built with AI below). **Buy me a coffee**, next to it, opens the maker’s [Buy Me a Coffee](https://buymeacoffee.com/marcusquinn) page in a new tab.
 
 ## Features
@@ -1527,6 +1529,7 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folder�
 
 ### Unreleased
 
+- New: **Light**, **Dark** and **System** colour modes for SEO Pro Stack's settings screen, chosen with the icon after **Buy me a coffee** and remembered per person. System follows the computer live; the rest of WordPress and the front end keep their colours. Accessible keyboard menu and save-failure recovery, matching SEO Pro Stats (GitHub issue #655).
 - Changed: the banner and icon show a gold lightning bolt lying on the top tile of the red, cream and blue stack, in the tiles' isometric perspective, instead of the WordPress Plugins icon, so SEO Pro Stack is easy to tell apart from WP Plugin Starter on the Plugins and Updates screens, in **View details**, on WordPress.org and on GitHub, while keeping the stack of tiles every wpallstars plugin shares (GitHub issues #656, #660 and #662).
 - Developers: core files synced from WP Plugin Starter (d5fc891): the shared updater's licence and attribution lines are at the top of its header, within the release preflight's scan; simpler fenced-code handling in the Read Me tab; checks for starter leftovers and README badges; and `scripts/readme-badges.sh` for the standard three-row badges block (GitHub issue #653).
 
