@@ -1,5 +1,48 @@
 # SEO Pro Stack design
 
+## Colour mode
+
+Only the settings screen from `SEOProStack_Admin_Manager::hook()` has a
+per-person colour mode. Light is the default and leaves WordPress's admin
+colours untouched. Dark uses the WordPress admin greys below; System follows
+`prefers-color-scheme` live. The front end, editor and other admin screens
+keep their own colours. This matches SEO Pro Stats' colour mode (#219).
+
+An icon button after **Buy me a coffee** opens Light (sun), Dark (moon) and
+System (half-filled circle), with a tick on the current choice. Menu items
+use `menuitemradio`, arrow keys, Home, End and Escape; closing after selection
+or Escape returns focus. Changes and failed saves are announced with
+`wp.a11y.speak`. The header wraps at narrow widths; logical properties keep
+the menu aligned in RTL. Its items have a 36px minimum height.
+
+The choice is user meta `seoprostack_admin_theme`, saved with a nonce and
+`read` capability, and removed on uninstall. `admin_head` at priority 1 sets
+`sps-theme-{mode}` and `sps-dark` before first paint. All dark overrides require
+`html.sps-dark`; `sps-themechange` on `document` carries `{ mode, dark }`.
+
+`admin/css/seoprostack-theme.css` defines the palette once as `--sps-ui-*`:
+
+| Token | Dark value |
+| --- | --- |
+| canvas | `#101517` |
+| surface | `#1d2327` |
+| raised | `#2c3338` |
+| border | `#3c434a` |
+| field-border | `#8c8f94` |
+| text | `#f0f0f1` |
+| muted | `#c3c4c7` |
+| subtle | `#a7aaad` |
+| good | `#68de7c` |
+| bad | `#ff8085` |
+| warning | `#f0c33c` |
+
+Plugin `--sps-*` and WordPress `--wp-components-color-*` tokens read this
+palette. Primary buttons keep the admin colour scheme's fill. Accent text
+uses `color-mix(in srgb, var(--wp-admin-theme-color) 55%, #fff)` with a
+`#72aee6` fallback. Classic element rules use `:where()` to preserve focus
+and class rules; descriptions and table lists match core specificity.
+Colours ease for 0.2 seconds after load, never with reduced motion.
+
 ## Banner and icon
 
 The banner (`.wordpress-org/banner.svg`) and icon (`.wordpress-org/icon.svg`)

@@ -3,6 +3,7 @@
 Every change to SEO Pro Stack. readme.txt lists the latest version in short.
 
 = Unreleased =
+* New: Light, Dark and System colour modes for SEO Pro Stack's settings screen, chosen with the icon after Buy me a coffee and remembered per person. System follows the computer live; the rest of WordPress and the front end keep their colours. Accessible keyboard menu and save-failure recovery, matching SEO Pro Stats (GitHub issue #655).
 * Changed: the banner and icon show a gold lightning bolt under the arc of five stars, instead of the plugin stack, so SEO Pro Stack is easy to tell apart from WP Plugin Starter on the Plugins and Updates screens, in View details, on WordPress.org and on GitHub (GitHub issue #656).
 * Developers: core files synced from WP Plugin Starter (d5fc891): the shared updater's licence and attribution lines are at the top of its header, within the release preflight's scan; simpler fenced-code handling in the Read Me tab; checks for starter leftovers and README badges; and scripts/readme-badges.sh for the standard three-row badges block (GitHub issue #653).
 

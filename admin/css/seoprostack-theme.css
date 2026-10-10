@@ -1,0 +1,517 @@
+/**
+ * Per-person colour mode, scoped to SEO Pro Stack's settings screen.
+ * Palette and classic WordPress overrides match SEO Pro Stats #219.
+ * Light leaves WordPress untouched; every dark rule requires html.sps-dark.
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ * SPDX-FileCopyrightText: 2026 Marcus Quinn
+ * Additional terms (GPL-3.0 section 7(b)): SEOPROSTACK-ATTRIBUTION.txt
+ */
+
+html.sps-dark {
+	--sps-ui-canvas: #101517;
+	--sps-ui-surface: #1d2327;
+	--sps-ui-raised: #2c3338;
+	--sps-ui-border: #3c434a;
+	--sps-ui-field-border: #8c8f94;
+	--sps-ui-text: #f0f0f1;
+	--sps-ui-muted: #c3c4c7;
+	--sps-ui-subtle: #a7aaad;
+	--sps-ui-good: #68de7c;
+	--sps-ui-bad: #ff8085;
+	--sps-ui-warning: #f0c33c;
+	--sps-ui-accent-fill: var(--wp-admin-theme-color, #2271b1);
+	--sps-ui-accent: #72aee6;
+
+	color-scheme: dark;
+	background: var(--sps-ui-canvas);
+}
+
+@supports (color: color-mix(in srgb, red 10%, transparent)) {
+
+	html.sps-dark {
+		--sps-ui-accent: color-mix(in srgb, var(--sps-ui-accent-fill) 55%, #fff);
+	}
+}
+
+html.sps-dark .sps-wrap {
+	--sps-accent: var(--sps-ui-accent);
+	--sps-accent-dark: var(--sps-ui-text);
+	--sps-text: var(--sps-ui-text);
+	--sps-muted: var(--sps-ui-muted);
+	--sps-border: var(--sps-ui-border);
+	--sps-surface: var(--sps-ui-surface);
+	--sps-subtle: var(--sps-ui-raised);
+	--sps-divider: var(--sps-ui-raised);
+	--sps-hover: var(--sps-ui-raised);
+	--sps-success: var(--sps-ui-good);
+	--sps-error: var(--sps-ui-bad);
+	--sps-shadow: 0 1px 2px rgb(0 0 0 / 40%);
+}
+
+html.sps-dark body {
+	--wp-components-color-background: var(--sps-ui-surface);
+	--wp-components-color-foreground: var(--sps-ui-text);
+	--wp-components-color-foreground-inverted: var(--sps-ui-surface);
+	--wp-components-color-gray-100: var(--sps-ui-raised);
+	--wp-components-color-gray-200: var(--sps-ui-border);
+	--wp-components-color-gray-300: var(--sps-ui-border);
+	--wp-components-color-gray-400: #646970;
+	--wp-components-color-gray-600: var(--sps-ui-field-border);
+	--wp-components-color-gray-700: var(--sps-ui-subtle);
+	--wp-components-color-gray-800: var(--sps-ui-muted);
+
+	color: var(--sps-ui-text);
+	background: var(--sps-ui-canvas);
+}
+
+html.sps-dark :is(#wpwrap, #wpcontent, #wpbody-content) {
+	background: var(--sps-ui-canvas);
+}
+
+/* Low-specificity classic elements preserve core focus and class rules. */
+
+:where(html.sps-dark :is(#wpbody, .components-modal__frame)) :is(h1, h2, h3, h4, h5, h6) {
+	color: var(--sps-ui-text);
+}
+
+:where(html.sps-dark :is(#wpbody, #wpfooter, .components-modal__frame)) a {
+	color: var(--sps-ui-accent);
+}
+
+:where(html.sps-dark :is(#wpbody, #wpfooter, .components-modal__frame)) a:is(:hover, :active) {
+	color: var(--sps-ui-text);
+}
+
+/* Match core's p.description rather than losing to its specificity. */
+
+html.sps-dark #wpfooter,
+:where(html.sps-dark #wpbody) :is(p, span, div).description {
+	color: var(--sps-ui-muted);
+}
+
+:where(html.sps-dark #wpbody) :is(code, kbd) {
+	color: var(--sps-ui-text);
+	background: rgb(255 255 255 / 10%);
+}
+
+:where(html.sps-dark #wpbody) :is(.form-table th, label) {
+	color: inherit;
+}
+
+html.sps-dark :is(#screen-meta, #screen-meta-links .show-settings) {
+	color: var(--sps-ui-muted);
+	background: var(--sps-ui-surface);
+	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark :is(#contextual-help-back, .contextual-help-tabs .active) {
+	background: var(--sps-ui-raised);
+	border-color: var(--sps-ui-border);
+}
+
+:where(html.sps-dark :is(#wpbody, .components-modal__frame)) :is(input:not([type="checkbox"], [type="radio"], [type="submit"], [type="button"], [type="reset"], [type="file"], [type="color"], [type="range"]), textarea, select) {
+	color: var(--sps-ui-text);
+	background-color: var(--sps-ui-canvas);
+	border-color: var(--sps-ui-field-border);
+}
+
+:where(html.sps-dark #wpbody) :is(input, textarea)::placeholder {
+	color: var(--sps-ui-subtle);
+}
+
+:where(html.sps-dark #wpbody) :is(input:disabled, textarea:disabled, select:disabled, input[readonly], textarea[readonly]) {
+	color: var(--sps-ui-subtle);
+	background-color: var(--sps-ui-raised);
+	border-color: var(--sps-ui-border);
+}
+
+:where(html.sps-dark #wpbody) select:not([multiple], .components-select-control__input) {
+	background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20width%3D%2220%22%20height%3D%2220%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cpath%20d%3D%22M5%206l5%205%205-5%202%201-7%207-7-7%202-1z%22%20fill%3D%22%23c3c4c7%22%2F%3E%3C%2Fsvg%3E");
+}
+
+:where(html.sps-dark #wpbody) :is(input[type="checkbox"], input[type="radio"]) {
+	background: var(--sps-ui-canvas);
+	border-color: var(--sps-ui-field-border);
+}
+
+html.sps-dark .wp-core-ui :is(.button:not(.button-primary), .button-secondary) {
+	color: var(--sps-ui-accent);
+	background: var(--sps-ui-surface);
+	border-color: var(--sps-ui-accent);
+}
+
+html.sps-dark .wp-core-ui :is(.button:not(.button-primary), .button-secondary):is(:hover, :focus) {
+	color: var(--sps-ui-text);
+	background: var(--sps-ui-raised);
+	border-color: var(--sps-ui-text);
+}
+
+html.sps-dark .wp-core-ui :is(.button:disabled, .button.disabled) {
+	color: var(--sps-ui-subtle) !important;
+	background: var(--sps-ui-raised) !important;
+	border-color: var(--sps-ui-border) !important;
+}
+
+html.sps-dark .wp-core-ui .button-link {
+	color: var(--sps-ui-accent);
+}
+
+html.sps-dark #wpbody :is(.notice, div.updated, div.error) {
+	color: var(--sps-ui-text);
+	background: var(--sps-ui-surface);
+	box-shadow: none;
+}
+
+html.sps-dark #wpbody .notice-dismiss::before {
+	color: var(--sps-ui-muted);
+}
+
+html.sps-dark :is(#wpbody, .components-modal__frame) :is(.widefat, .postbox, .card, .stuffbox) {
+	color: var(--sps-ui-text);
+	background: var(--sps-ui-surface);
+	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark :is(#wpbody, .components-modal__frame) .widefat :is(td, th) {
+	color: var(--sps-ui-text);
+	border-color: var(--sps-ui-border);
+}
+
+/* Core paints table lists and paragraphs dark grey separately. */
+
+html.sps-dark :is(#wpbody, .components-modal__frame) .widefat :is(ol, ul, p) {
+	color: inherit;
+}
+
+html.sps-dark #wpbody .widefat :is(thead th, thead td, tfoot th, tfoot td) {
+	color: var(--sps-ui-muted);
+}
+
+html.sps-dark :is(#wpbody, .components-modal__frame) :is(.striped > tbody > :nth-child(odd), ul.striped > :nth-child(odd), .alternate) {
+	background-color: rgb(255 255 255 / 4%);
+}
+
+/* WordPress components, including popovers outside the plugin wrapper. */
+
+html.sps-dark :is(.components-card, .components-modal__frame, .components-modal__header, .components-popover__content, .components-dropdown-menu__menu, .components-panel, .components-panel__body) {
+	color: var(--sps-ui-text);
+	background-color: var(--sps-ui-surface);
+	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark .components-card {
+	box-shadow: 0 0 0 1px var(--sps-ui-border);
+}
+
+html.sps-dark :is(.components-card__header, .components-card__footer, .components-card__divider) {
+	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark .components-popover__content {
+	box-shadow: 0 0 0 1px var(--sps-ui-border), 0 6px 18px rgb(0 0 0 / 45%);
+}
+
+html.sps-dark .components-modal__screen-overlay {
+	background-color: rgb(0 0 0 / 60%);
+}
+
+:where(html.sps-dark) .components-button {
+	color: inherit;
+}
+
+html.sps-dark .components-button:is(.is-secondary, .is-tertiary, .is-link):not(:disabled, [aria-disabled="true"]) {
+	color: var(--sps-ui-accent);
+}
+
+html.sps-dark .components-button.is-secondary:not(:disabled, [aria-disabled="true"]) {
+	background: transparent;
+	box-shadow: inset 0 0 0 1px var(--sps-ui-accent);
+}
+
+html.sps-dark .components-button:is(.is-secondary, .is-tertiary):hover:not(:disabled, [aria-disabled="true"]) {
+	color: var(--sps-ui-text);
+	background: var(--sps-ui-raised);
+}
+
+html.sps-dark .components-button:is(:disabled, [aria-disabled="true"]):not(.is-primary) {
+	color: var(--sps-ui-subtle);
+}
+
+html.sps-dark :is(.components-input-control__container, .components-text-control__input, .components-textarea-control__input, .components-select-control__input, .components-form-token-field__input-container) {
+	color: var(--sps-ui-text);
+	background-color: var(--sps-ui-canvas);
+}
+
+html.sps-dark :is(.components-input-control__container input, .components-input-control__container select, .components-form-token-field__input) {
+	color: var(--sps-ui-text);
+	background: transparent;
+}
+
+html.sps-dark .components-input-control__backdrop {
+	border-color: var(--sps-ui-field-border) !important;
+}
+
+html.sps-dark :is(.components-text-control__input, .components-textarea-control__input) {
+	border-color: var(--sps-ui-field-border);
+}
+
+html.sps-dark :is(.components-input-control__suffix, .components-select-control__arrow-wrapper, .components-input-control__prefix, .components-base-control__help, .components-checkbox-control__help, .components-form-token-field__help) {
+	color: var(--sps-ui-muted);
+}
+
+html.sps-dark .components-checkbox-control__input[type="checkbox"]:not(:checked, :indeterminate),
+html.sps-dark .components-form-toggle:not(.is-checked) .components-form-toggle__track {
+	background: var(--sps-ui-canvas);
+	border-color: var(--sps-ui-field-border);
+}
+
+html.sps-dark .components-form-toggle:not(.is-checked) .components-form-toggle__thumb {
+	background: var(--sps-ui-muted);
+	border-color: var(--sps-ui-muted);
+}
+
+html.sps-dark :is(.components-form-token-field__token-text, .components-form-token-field__remove-token.components-button) {
+	color: var(--sps-ui-text);
+	background: var(--sps-ui-raised);
+}
+
+html.sps-dark .components-toggle-group-control {
+	background: var(--sps-ui-canvas);
+	border-color: var(--sps-ui-field-border);
+}
+
+html.sps-dark :is(.components-tab-panel__tabs-item, .components-tab-panel__tabs .components-button) {
+	color: var(--sps-ui-muted);
+}
+
+html.sps-dark .components-tab-panel__tabs-item:is(.is-active, :hover) {
+	color: var(--sps-ui-text);
+}
+
+html.sps-dark :is(.components-menu-item__button, .components-menu-group__label) {
+	color: var(--sps-ui-text);
+}
+
+html.sps-dark .components-menu-item__button:hover:not(:disabled) {
+	color: var(--sps-ui-accent);
+	background: var(--sps-ui-raised);
+}
+
+html.sps-dark .components-menu-group + .components-menu-group {
+	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark .components-notice {
+	color: var(--sps-ui-text);
+	background-color: var(--sps-ui-raised);
+}
+
+html.sps-dark .components-notice.is-success {
+	background-color: rgb(0 163 42 / 16%);
+}
+
+html.sps-dark .components-notice.is-warning {
+	background-color: rgb(219 166 23 / 14%);
+}
+
+html.sps-dark .components-notice.is-error {
+	background-color: rgb(214 54 56 / 18%);
+}
+
+html.sps-dark .components-notice__dismiss {
+	color: var(--sps-ui-muted);
+}
+
+html.sps-dark .components-spinner {
+	background: var(--sps-ui-field-border);
+}
+
+/* Plugin-specific fixed light colours; shared starter files stay intact. */
+
+html.sps-dark .sps-header__logo {
+	background: var(--sps-ui-accent-fill);
+}
+
+html.sps-dark .sps-badge--success {
+	color: var(--sps-ui-good);
+	background: rgb(0 163 42 / 16%);
+	border-color: rgb(104 222 124 / 35%);
+}
+
+html.sps-dark .sps-setting.has-panel .sps-setting__header:hover {
+	background: var(--sps-ui-raised);
+}
+
+html.sps-dark :is(.sps-setting__panel, .sps-code) {
+	color: var(--sps-ui-text);
+	background: var(--sps-ui-canvas);
+}
+
+html.sps-dark .sps-replaces__active {
+	color: var(--sps-ui-warning);
+}
+
+html.sps-dark :is(.sps-panel-note, .sps-field + .sps-field, .sps-field + .sps-troubleshooting),
+html.sps-dark .sps-wrap .sps-readme h3 {
+	border-color: var(--sps-ui-raised);
+}
+
+html.sps-dark .sps-panel-note--warning {
+	color: var(--sps-ui-text);
+}
+
+html.sps-dark .sps-checkboxes.is-long {
+	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark :is(.sps-media__preview, .sps-watermark-note__mark) {
+	background: repeating-conic-gradient(var(--sps-ui-raised) 0% 25%, var(--sps-ui-surface) 0% 50%) 0 0 / 16px 16px;
+}
+
+html.sps-dark .sps-switch__track {
+	background: var(--sps-ui-canvas);
+	border-color: var(--sps-ui-muted);
+}
+
+html.sps-dark .sps-switch__track::after {
+	background: var(--sps-ui-muted);
+}
+
+html.sps-dark .sps-switch__input:checked + .sps-switch__track {
+	background: var(--sps-ui-accent-fill);
+	border-color: var(--sps-ui-accent-fill);
+}
+
+html.sps-dark .sps-switch__input:checked + .sps-switch__track::after {
+	background: #fff;
+}
+
+html.sps-dark .sps-wrap .sps-plugins .plugin-card {
+	color: var(--sps-ui-text);
+	background: var(--sps-ui-surface);
+	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark .sps-wrap .sps-plugins .plugin-card-bottom {
+	color: var(--sps-ui-muted);
+	background: var(--sps-ui-raised);
+	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark .sps-wrap .sps-filter {
+	background: var(--sps-ui-surface);
+	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark .sps-wrap .sps-filter .filter-links a {
+	color: var(--sps-ui-accent);
+}
+
+html.sps-dark .sps-wrap .sps-filter .filter-links a.current {
+	color: var(--sps-ui-text);
+	border-color: var(--sps-ui-accent);
+}
+
+html.sps-dark .sps-wrap :is(.sps-removed-icon, .sps-go-pro::before) {
+	color: var(--sps-ui-warning);
+}
+
+html.sps-dark .sps-wrap .sps-plugins .button.sps-uninstall {
+	color: var(--sps-ui-bad);
+	border-color: currentcolor;
+}
+
+html.sps-dark .sps-wrap .sps-plugins .button.sps-uninstall:is(:hover, :focus) {
+	color: var(--sps-ui-canvas);
+	background: var(--sps-ui-bad);
+}
+
+/* Header menu: shared layout in both modes, token colours in Dark. */
+
+.sps-theme {
+	position: relative;
+	display: inline-flex;
+}
+
+.sps-wrap .sps-theme__toggle {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	min-width: 32px;
+	padding-inline: 6px;
+}
+
+.sps-theme__toggle svg,
+.sps-theme__item svg {
+	width: 18px;
+	height: 18px;
+	fill: currentcolor;
+	flex: none;
+}
+
+.sps-theme__menu {
+	position: absolute;
+	z-index: 1000;
+	inset-block-start: calc(100% + 4px);
+	inset-inline-end: 0;
+	display: grid;
+	min-width: 168px;
+	padding: 4px;
+	color: var(--sps-text);
+	background: var(--sps-surface);
+	border: 1px solid var(--sps-border);
+	border-radius: 4px;
+	box-shadow: 0 4px 12px rgb(0 0 0 / 15%);
+}
+
+.sps-theme__menu[hidden] {
+	display: none;
+}
+
+.sps-wrap .sps-theme__item {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	min-height: 36px;
+	margin: 0;
+	padding: 0 10px;
+	font: inherit;
+	font-size: 13px;
+	color: inherit;
+	text-align: start;
+	cursor: pointer;
+	background: none;
+	border: 0;
+	border-radius: 2px;
+}
+
+.sps-wrap .sps-theme__item:is(:hover, :focus) {
+	color: var(--sps-accent);
+	background: var(--sps-subtle);
+	outline: none;
+}
+
+.sps-wrap .sps-theme__item:focus-visible {
+	box-shadow: inset 0 0 0 2px var(--sps-accent);
+}
+
+.sps-theme__check {
+	margin-inline-start: auto;
+	visibility: hidden;
+}
+
+.sps-theme__item[aria-checked="true"] {
+	font-weight: 600;
+}
+
+.sps-theme__item[aria-checked="true"] .sps-theme__check {
+	visibility: visible;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+
+	html.sps-theme-ready body,
+	html.sps-theme-ready :is(.sps-header, .sps-nav, .sps-card, .components-card) {
+		transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+	}
+}
