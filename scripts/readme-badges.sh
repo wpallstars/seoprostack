@@ -78,6 +78,9 @@ main() {
 	root="$(git rev-parse --show-toplevel)" || die "run this inside a checkout of the plugin"
 	cd "$root"
 	plugin_identity HEAD || die "cannot tell which plugin this is"
+	[[ -f "$PLUGIN_MAIN_FILE" ]] || die "no $PLUGIN_MAIN_FILE in the working tree"
+	# Match the working-tree README files, even before a URI change is committed.
+	PLUGIN_REPO="$(plugin_header_field "$(<"$PLUGIN_MAIN_FILE")" "GitHub Plugin URI")"
 	[[ -n "$PLUGIN_REPO" ]] || die "$PLUGIN_MAIN_FILE has no GitHub Plugin URI header (owner/repo)"
 	[[ -f README.md ]] || die "no README.md"
 	[[ -f readme.txt ]] || die "no readme.txt (the requirements come from its header)"
