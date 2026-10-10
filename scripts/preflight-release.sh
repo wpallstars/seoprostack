@@ -24,12 +24,17 @@ set -euo pipefail
 
 readonly UPDATER_HEADERS='GitHub Plugin URI|Primary Branch|Release Asset|Update URI'
 # Development files that must never be in a release zip (paths inside the slug folder).
-readonly DEV_FILES='^[^/]+/(\.git|\.agents|\.wordpress-org|\.distignore|\.distignore-wporg|\.wporg-links|\.gitattributes|\.gitignore|\.woodpecker\.yml|\.github|\.editorconfig|\.gitleaks\.toml|\.codacy\.yml|sonar-project\.properties|\.aidevops\.json|\.task-counter|composer\.(json|lock)|phpcs\.xml(\.dist)?|phpstan(-baseline|-plugin)?\.neon(\.dist)?|vendor|AGENTS\.md|CODE_OF_CONDUCT\.md|CONTRIBUTING\.md|DEVELOPMENT\.md|LAUNCH\.md|SECURITY\.md|STANDARDS\.md|RELEASING\.md|ROADMAP\.md|STABILITY\.md|TESTING\.md|docs|scripts|dist|node_modules|reference-plugins|project-documents|packages|package(-lock)?\.json|pnpm-(lock|workspace)\.yaml|tsconfig(\.[A-Za-z0-9_-]+)?\.json|webpack\.config\.js|eslint\.config\.m?js|\.npmrc|\.nvmrc|\.browserslistrc)(/|$)|(^|/)(\.DS_Store|__MACOSX|Thumbs\.db)(/|$)|\.(bak|log|orig|swp)$'
+readonly DEV_FILES='^[^/]+/(\.git|\.agents|\.wordpress-org|\.distignore|\.distignore-wporg|\.wporg-links|\.gitattributes|\.gitignore|\.woodpecker\.yml|\.github|\.editorconfig|\.gitleaks\.toml|\.codacy\.yml|\.eslintrc\.json|phpmd\.xml(\.dist)?|sonar-project\.properties|\.aidevops\.json|\.task-counter|composer\.(json|lock)|phpcs\.xml(\.dist)?|phpstan(-baseline|-plugin)?\.neon(\.dist)?|vendor|AGENTS\.md|CODE_OF_CONDUCT\.md|CONTRIBUTING\.md|DEVELOPMENT\.md|LAUNCH\.md|SECURITY\.md|STANDARDS\.md|STYLING\.md|RELEASING\.md|ROADMAP\.md|STABILITY\.md|TESTING\.md|docs|scripts|dist|node_modules|reference-plugins|project-documents|packages|package(-lock)?\.json|pnpm-(lock|workspace)\.yaml|tsconfig(\.[A-Za-z0-9_-]+)?\.json|webpack\.config\.js|eslint\.config\.m?js|\.npmrc|\.nvmrc|\.browserslistrc)(/|$)|(^|/)(\.DS_Store|__MACOSX|Thumbs\.db)(/|$)|\.(bak|log|orig|swp)$'
 readonly README_MAX_BYTES=10240
 readonly SHORT_DESC_MAX=150
 readonly MAX_TAGS=5
 # AGENTS.md is read in every agent session; longer guidance goes in docs/.
 readonly AGENTS_MD_MAX_LINES=150
+# The starter's repository, split so plugin_map leaves it unchanged, and the
+# line only the starter's AGENTS.md has (scripts/rename-plugin.sh writes a
+# plugin its own).
+readonly STARTER_REPO="wpallstars/wp-plugin-""starter-template-for-ai-coding"
+readonly STARTER_AGENTS_LINE="starter plugin: what every wpallstars plugin is made from"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 readonly SCRIPT_DIR
 # shellcheck source=scripts/lib/plugin.sh disable=SC1091 # followed only with -x
@@ -781,9 +786,10 @@ check_core_files() {
 }
 
 # AGENTS.md stays a short map (STANDARDS.md → Agent docs): under
-# AGENTS_MD_MAX_LINES lines, it sends agents to STANDARDS.md, and it names
-# every docs/*.md (top level) and only ones that exist, so agents find each
-# task doc. Warnings: only a person can judge
+# AGENTS_MD_MAX_LINES lines, it sends agents to STANDARDS.md, a plugin's is
+# its own (not the starter's), and it names every docs/*.md (top level) and
+# only ones that exist, so agents find each task doc. Warnings: only a person
+# can judge
 # what moves.
 check_agent_docs() {
 	local sha="$1"
@@ -801,6 +807,10 @@ check_agent_docs() {
 	fi
 	if ! grep -qF 'STANDARDS.md' <<<"$agents"; then
 		warn "AGENTS.md does not send agents to STANDARDS.md, so they miss the rules every plugin shares"
+		problems=1
+	fi
+	if [[ "$PLUGIN_REPO" != "$STARTER_REPO" ]] && grep -qF "$STARTER_AGENTS_LINE" <<<"$agents"; then
+		warn "AGENTS.md still describes the starter, not this plugin: write the plugin's own (scripts/rename-plugin.sh → set_agents shows the shape)"
 		problems=1
 	fi
 	local doc

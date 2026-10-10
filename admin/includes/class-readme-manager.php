@@ -3,9 +3,11 @@
  * SEO Pro Stack Read Me tab.
  *
  * Renders README.md with a small, escaping Markdown subset
- * (headings with GitHub-style IDs, lists, tables, bold, italic, inline code,
- * http(s) links, links to headings and images from the plugin's folder).
- * HTML comments, the GitHub badges block and github-only blocks are left out.
+ * (headings with GitHub-style IDs, paragraphs and list items that wrap over
+ * several lines, lists, tables, fenced code blocks, bold, italic, inline
+ * code, http(s) links, links to headings and images from the plugin's
+ * folder). HTML comments, the GitHub badges block and github-only blocks are
+ * left out.
  *
  * SPDX-License-Identifier: GPL-3.0-or-later
  * SPDX-FileCopyrightText: 2026 Marcus Quinn
@@ -52,11 +54,119 @@ class SEOProStack_Readme_Manager {
         // then 'body') and the heading IDs used so far.
         $state = array('list' => '', 'table' => '', 'ids' => array());
         $html  = '';
-        foreach (preg_split('/\r\n|\r|\n/', $markdown) ?: array() as $line) {
-            $html .= self::block(trim($line), $state);
+        // The open fenced code block: its fence, the fence's indent and its lines.
+        $code = null;
+        foreach (self::join_wrapped_lines($markdown) as $line) {
+            $trim = trim($line);
+            if (null === $code && '' !== self::fence_opens($trim)) {
+                $html .= self::close_blocks($state);
+                $code  = array('fence' => self::fence_opens($trim), 'indent' => strlen($line) - strlen(ltrim($line)), 'lines' => array());
+                continue;
+            }
+            if (null === $code) {
+                $html .= self::block($trim, $state);
+            } elseif (self::fence_closes($trim, $code['fence'])) {
+                $html .= self::code_block($code['lines']);
+                $code  = null;
+            } else {
+                // Keep the code's own indent, less the fence's.
+                $code['lines'][] = (string) preg_replace('/^ {0,' . $code['indent'] . '}/', '', $line);
+            }
+        }
+        if (null !== $code) {
+            $html .= self::code_block($code['lines']);
         }
 
         return $html . self::close_blocks($state);
+    }
+
+    /**
+     * Lines of Markdown, with each line that only continues a paragraph or
+     * list item (Markdown wrapped at a fixed width) joined to the line it
+     * continues, as GitHub shows them. Lines in fenced code blocks stay as
+     * they are.
+     *
+     * @param string $markdown Markdown with "\n" line ends.
+     * @return string[] Lines.
+     */
+    private static function join_wrapped_lines($markdown) {
+        $lines = array();
+        $fence = ''; // The open code block's fence.
+        $open  = false; // Whether the last line is a paragraph or list item.
+        foreach (explode("\n", $markdown) as $line) {
+            $kind = self::line_kind(trim($line));
+            if ('' !== $fence || 'fence' === $kind) {
+                $fence   = '' === $fence ? self::fence_opens(trim($line)) : (self::fence_closes(trim($line), $fence) ? '' : $fence);
+                $lines[] = $line;
+                $open    = false;
+                continue;
+            }
+            if ($open && 'text' === $kind) {
+                $lines[count($lines) - 1] .= ' ' . trim($line);
+                continue;
+            }
+            $lines[] = $line;
+            $open    = in_array($kind, array('text', 'item'), true);
+        }
+
+        return $lines;
+    }
+
+    /**
+     * What a line is, for joining wrapped lines: 'blank', 'fence', 'item'
+     * (a list item), 'block' (a heading, table line or image, which never
+     * continues a paragraph) or 'text'.
+     *
+     * @param string $trim Line without surrounding whitespace.
+     * @return string
+     */
+    private static function line_kind($trim) {
+        if ('' === $trim) {
+            return 'blank';
+        }
+        if ('' !== self::fence_opens($trim)) {
+            return 'fence';
+        }
+        if (preg_match('/^(?:[-*]|\d+\.)\s/', $trim)) {
+            return 'item';
+        }
+        if (self::is_table_line($trim) || preg_match('/^(?:#{1,6}(?:\s.*)?|!\[[^\]]*\]\([^)\s]+\))$/', $trim)) {
+            return 'block';
+        }
+        return 'text';
+    }
+
+    /**
+     * The fence a line opens a fenced code block with: three or more ` or
+     * ~, then perhaps a language. '' when it opens none.
+     *
+     * @param string $trim Line without surrounding whitespace.
+     * @return string The fence, such as ``` or ~~~~.
+     */
+    private static function fence_opens($trim) {
+        return preg_match('/^(`{3,}(?!.*`)|~{3,})/', $trim, $m) ? $m[1] : '';
+    }
+
+    /**
+     * Whether a line closes the code block a fence opened: the same
+     * character, at least as many times, and nothing else.
+     *
+     * @param string $trim  Line without surrounding whitespace.
+     * @param string $fence The opening fence.
+     * @return bool
+     */
+    private static function fence_closes($trim, $fence) {
+        return 1 === preg_match('/^' . preg_quote($fence[0], '/') . '{' . strlen($fence) . ',}$/', $trim);
+    }
+
+    /**
+     * A fenced code block, escaped.
+     *
+     * @param string[] $lines Its lines.
+     * @return string HTML.
+     */
+    private static function code_block(array $lines) {
+        return '<pre class="sps-readme-code"><code>' . esc_html(rtrim(implode("\n", $lines), "\n")) . '</code></pre>';
     }
 
     /**
@@ -179,11 +289,13 @@ class SEOProStack_Readme_Manager {
      * @return string ID.
      */
     private static function anchor($text, array &$ids) {
-        $text = preg_replace('/\[([^\]]+)\]\([^)]*\)/', '$1', $text);
+        // preg_replace() gives null on a failed match (invalid UTF-8): the
+        // text as it was, or no ID, so the heading becomes "section".
+        $text = preg_replace('/\[([^\]]+)\]\([^)]*\)/', '$1', $text) ?? $text;
         $text = str_replace(array('`', '*'), '', $text);
         $id   = function_exists('mb_strtolower') ? mb_strtolower($text, 'UTF-8') : strtolower($text);
-        $id   = preg_replace('/[^\p{L}\p{N}\s_-]/u', '', $id);
-        $id   = preg_replace('/\s/u', '-', trim($id));
+        $id   = (string) preg_replace('/[^\p{L}\p{N}\s_-]/u', '', $id);
+        $id   = (string) preg_replace('/\s/u', '-', trim($id));
         $base = '' === $id ? 'section' : $id;
         $id   = $base;
         $n    = 0;
@@ -246,10 +358,11 @@ class SEOProStack_Readme_Manager {
      * @return string HTML.
      */
     private static function inline($text) {
+        // A failed match (null) leaves the escaped text unformatted.
         $text = esc_html($text);
-        $text = preg_replace('/`([^`]+)`/', '<code>$1</code>', $text);
-        $text = preg_replace('/\*\*(.+?)\*\*/', '<strong>$1</strong>', $text);
-        $text = preg_replace('/(?<![*\w])\*(?!\s)(.+?)(?<!\s)\*(?![*\w])/', '<em>$1</em>', $text);
+        $text = preg_replace('/`([^`]+)`/', '<code>$1</code>', $text) ?? $text;
+        $text = preg_replace('/\*\*(.+?)\*\*/', '<strong>$1</strong>', $text) ?? $text;
+        $text = preg_replace('/(?<![*\w])\*(?!\s)(.+?)(?<!\s)\*(?![*\w])/', '<em>$1</em>', $text) ?? $text;
 
         return preg_replace_callback('/\[([^\]]+)\]\(([^)\s]+)\)/', function ($m) {
             $url = esc_url(html_entity_decode($m[2]), array('http', 'https'));
@@ -260,6 +373,6 @@ class SEOProStack_Readme_Manager {
                 return $m[1];
             }
             return sprintf('<a href="%1$s" target="_blank" rel="noopener noreferrer">%2$s</a>', $url, $m[1]);
-        }, $text);
+        }, $text) ?? $text;
     }
 }

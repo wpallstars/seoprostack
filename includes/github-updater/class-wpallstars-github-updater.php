@@ -628,7 +628,7 @@ final class WPAllStars_GitHub_Updater {
         }
 
         $tag     = rawurldecode($match[1]);
-        $version = preg_replace('/^v/i', '', $tag);
+        $version = (string) preg_replace('/^v/i', '', $tag);
         if (!preg_match(self::VERSION_PATTERN, $version)) {
             return null;
         }
@@ -724,7 +724,7 @@ final class WPAllStars_GitHub_Updater {
 
         $data    = json_decode(wp_remote_retrieve_body($response), true);
         $tag     = is_array($data) && isset($data['tag_name']) ? (string) $data['tag_name'] : '';
-        $version = preg_replace('/^v/i', '', $tag);
+        $version = (string) preg_replace('/^v/i', '', $tag);
         // Numbers only: anything else is not a finished version.
         if (!preg_match(self::VERSION_PATTERN, $version)) {
             return null;
@@ -779,7 +779,7 @@ final class WPAllStars_GitHub_Updater {
         $head  = substr((string) $file, 0, 8192);
         foreach (array('requires' => 'Requires at least', 'requires_php' => 'Requires PHP') as $key => $header) {
             if (preg_match('/^(?:[ \t]*<\?php)?[ \t\/*#@]*' . preg_quote($header, '/') . ':(.*)$/mi', $head, $match)) {
-                $value = trim(preg_replace('/\s*(?:\*\/|\?>).*/', '', $match[1]));
+                $value = trim((string) preg_replace('/\s*(?:\*\/|\?>).*/', '', $match[1]));
                 if (preg_match(self::VERSION_PATTERN, $value)) {
                     $found[$key] = $value;
                 }
@@ -942,7 +942,7 @@ final class WPAllStars_GitHub_Updater {
      */
     private static function file_for_slug($slug) {
         $updates = get_site_transient('update_plugins');
-        foreach (self::plugins() as $file => $plugin) {
+        foreach (array_keys(self::plugins()) as $file) {
             if (dirname($file) !== $slug) {
                 continue;
             }
