@@ -1531,8 +1531,8 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folderâ
 ### Unreleased
 
 - Developers: core files synced from WP Plugin Starter (1ae9182): `DEVELOPMENT.md` no longer lists Qlty, which wpallstars no longer uses; the workflows run on a self-hosted runner only when the repository variable `CI_RUNNER` names one (not set here, so nothing changes), and CI's lint job uses a pinned, checksum-verified ShellCheck 0.11.0; `scripts/readme-badges.sh` matches the starter's again (GitHub issue #668).
-- Fix (GitHub builds): **Check again** on the Updates screen offers a release published since the last check, and a failed check for updates on GitHub is shown under the plugin on the Plugins screen, with a **Check again now** link, and on the Updates screen, instead of failing silently (shared updater 1.6.0 from WP Plugin Starter 1.0.31).
-- Developers: core files synced from WP Plugin Starter 1.0.31: the shared updater above, and `STANDARDS.md` has the rules for every banner and icon picture (GitHub issue #671).
+- Fix (GitHub builds): **Check again** on the Updates screen offers a release published since the last check, and a failed check for updates on GitHub is shown under the plugin on the Plugins screen, with a **Check again now** link, and on the Updates screen, instead of failing silently (shared updater 1.6.1 from WP Plugin Starter 1.0.32).
+- Developers: core files synced from WP Plugin Starter 1.0.32: the shared updater above; `STANDARDS.md` has the rules for every banner and icon picture; repository metrics refresh again (`repo-metrics.yml` uses aidevops v3.39.1) (GitHub issue #671).
 
 ### 1.3.32
 
