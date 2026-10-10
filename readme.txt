@@ -142,11 +142,12 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 
 = Unreleased =
 * New: Light, Dark or System colour mode for the settings screen, per person.
+* Fix: a colour scheme picked in your profile sticks with Modern admin colours on.
 * Changed: a lightning bolt on the top tile of the banner and icon.
 * Developers: core files synced from WP Plugin Starter (d5fc891).
 
 = 1.3.31 =
-* Changed: the banner's words are centred top to bottom, as on the other wpallstars plugins' banners; on WordPress.org and in View details they sit higher, clear of the plugin name.
+* Changed: the banner's words are centred top to bottom; on WordPress.org and in View details they sit higher.
 * New: the settings screen's tabs switch at once, without loading the page again.
 * Fix: the Read Me tab shows a paragraph written over several lines as one paragraph, and fenced code blocks as code.
 * Faster: Database clean-up removes old auto-drafts through the posts table's index, instead of reading every post.
