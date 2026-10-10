@@ -241,7 +241,7 @@ html.sps-dark :is(#wpwrap, #wpcontent, #wpbody, #wpbody-content) {
 }
 
 /* Headings; another plugin's own heading colour still wins. */
-:where(html.sps-dark :is(#wpbody, .components-modal__frame, .media-modal, #TB_window)) :is(h1, h2, h3, h4, h5, h6) {
+:where(html.sps-dark :is(#wpbody, .components-modal__frame, .media-modal, [id="TB_window"])) :is(h1, h2, h3, h4, h5, h6) {
 	color: var(--sps-ui-text);
 }
 
@@ -250,12 +250,12 @@ html.sps-dark #wpbody :is(#dashboard-widgets, #poststuff, #nav-menu-meta, #col-l
 	color: var(--sps-ui-text);
 }
 
-:where(html.sps-dark :is(#wpbody, #wpfooter, .components-modal__frame, .media-modal, #TB_window, .wp-pointer)) a {
+:where(html.sps-dark :is(#wpbody, #wpfooter, .components-modal__frame, .media-modal, [id="TB_window"], .wp-pointer)) a {
 	color: var(--sps-ui-accent);
 }
 
 /* WordPress darkens links on hover and focus (#135e96, #043959). */
-:where(html.sps-dark :is(#wpbody, #wpfooter, .components-modal__frame, .media-modal, #TB_window, .wp-pointer)) a:is(:hover, :active, :focus) {
+:where(html.sps-dark :is(#wpbody, #wpfooter, .components-modal__frame, .media-modal, [id="TB_window"], .wp-pointer)) a:is(:hover, :active, :focus) {
 	color: var(--sps-ui-text);
 }
 
@@ -319,7 +319,7 @@ html.sps-dark #contextual-help-columns {
 /* Fields ------------------------------------------------------------------ */
 
 /* WordPress's own :focus rules still win, so the focus ring stays. */
-:where(html.sps-dark :is(#wpbody, .components-modal__frame, .media-modal, #TB_window, #sps-notices-wrap)) :is(input:not([type="checkbox"], [type="radio"], [type="submit"], [type="button"], [type="reset"], [type="file"], [type="color"], [type="range"], [type="image"]), textarea, select) {
+:where(html.sps-dark :is(#wpbody, .components-modal__frame, .media-modal, [id="TB_window"], #sps-notices-wrap)) :is(input:not([type="checkbox"], [type="radio"], [type="submit"], [type="button"], [type="reset"], [type="file"], [type="color"], [type="range"], [type="image"]), textarea, select) {
 	color: var(--sps-ui-text);
 	background-color: var(--sps-ui-canvas);
 	border-color: var(--sps-ui-field-border);
@@ -610,12 +610,12 @@ html.sps-dark #wpbody .postbox-container .empty-container::after {
 	color: var(--sps-ui-subtle);
 }
 
-html.sps-dark #wpbody :is(#major-publishing-actions, #post-status-info, .wp-editor-tabs + .wp-editor-container, #misc-publishing-actions, .community-events-footer, #dashboard_right_now .sub, #dashboard_activity .subsubsub, #dashboard-widgets .community-events li, #dashboard_primary .rss-widget, .activity-block, #published-posts li, #future-posts li) {
+html.sps-dark #wpbody :is(#major-publishing-actions, #post-status-info, .wp-editor-tabs + .wp-editor-container, #misc-publishing-actions, .community-events-footer, [id="dashboard_right_now"] .sub, [id="dashboard_activity"] .subsubsub, #dashboard-widgets .community-events li, [id="dashboard_primary"] .rss-widget, .activity-block, #published-posts li, #future-posts li) {
 	background: transparent;
 	border-color: var(--sps-ui-border);
 }
 
-html.sps-dark #wpbody :is(#dashboard_right_now .sub, #major-publishing-actions, .community-events-footer) {
+html.sps-dark #wpbody :is([id="dashboard_right_now"] .sub, #major-publishing-actions, .community-events-footer) {
 	color: var(--sps-ui-muted);
 	background: var(--sps-ui-raised);
 }
@@ -634,13 +634,13 @@ html.sps-dark #wpbody :is(#future-posts, #published-posts) li:nth-child(odd) {
 	background-color: var(--sps-ui-stripe);
 }
 
-html.sps-dark #wpbody :is(#dashboard_right_now li a::before, #dashboard_right_now li > span::before, .community-events .event-icon, #dashboard_activity .comment-meta, .rss-widget span.rss-date, #dashboard_activity .comment-item cite, .misc-pub-section::before, #post-body .misc-pub-post-status::before) {
+html.sps-dark #wpbody :is([id="dashboard_right_now"] li a::before, [id="dashboard_right_now"] li > span::before, .community-events .event-icon, [id="dashboard_activity"] .comment-meta, .rss-widget span.rss-date, [id="dashboard_activity"] .comment-item cite, .misc-pub-section::before, #post-body .misc-pub-post-status::before) {
 	color: var(--sps-ui-subtle);
 }
 
-html.sps-dark #wpbody #dashboard_activity :is(.activity-block, .comment-item),
+html.sps-dark #wpbody [id="dashboard_activity"] :is(.activity-block, .comment-item),
 html.sps-dark #wpbody .community-events :is(li, .activity-block),
-html.sps-dark #wpbody :is(#dashboard_site_health .health-check-widget-title-section, #dashboard_php_nag .dashboard-php-nag) {
+html.sps-dark #wpbody :is([id="dashboard_site_health"] .health-check-widget-title-section, [id="dashboard_php_nag"] .dashboard-php-nag) {
 	border-color: var(--sps-ui-border);
 }
 
@@ -953,10 +953,21 @@ html.sps-dark .media-modal-backdrop {
 
 /* Pop-ups ----------------------------------------------------------------- */
 
-html.sps-dark :is(#TB_window, #TB_title, #TB_ajaxContent, .wp-pointer-content, .wp-pointer-buttons) {
+html.sps-dark :is(.wp-pointer-content, .wp-pointer-buttons) {
 	color: var(--sps-ui-text);
 	background: var(--sps-ui-surface);
 	border-color: var(--sps-ui-border);
+}
+
+/*
+ * Thickbox (View details and older plugins' pop-ups). Its IDs are matched
+ * as attributes, as they are not kebab-case; WordPress styles them by ID,
+ * so these need !important to win.
+ */
+html.sps-dark :is([id="TB_window"], [id="TB_title"], [id="TB_ajaxContent"]) {
+	color: var(--sps-ui-text) !important;
+	background: var(--sps-ui-surface) !important;
+	border-color: var(--sps-ui-border) !important;
 }
 
 html.sps-dark .wp-pointer-content :is(h3 + p, p) {
