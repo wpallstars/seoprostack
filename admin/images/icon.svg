@@ -3,10 +3,11 @@
   SEO Pro Stack icon (WordPress.org icons).
   Source: .wordpress-org/icon.svg. Edit that, then run scripts/build-banner.sh,
   which exports icon-256x256.png and icon-128x128.png from it.
-  The banner's picture (.wordpress-org/banner.svg) on its own: the gold
-  lightning bolt with a red edge, the logo's arc of five stars, and the red
-  double stripes with cream between, on the banner's navy and blue glow. No
-  words, so it reads at 128 pixels. Keep the picture in step with the banner's.
+  The banner's picture (.wordpress-org/banner.svg) on its own: the red, cream
+  and blue plugin stack with SEO Pro Stack's gold lightning bolt on the top
+  tile, the logo's arc of five stars, and the red double stripes with cream
+  between, on the banner's navy and blue glow. No words, so it reads at 128
+  pixels. Keep the picture in step with the banner's.
 -->
 
 <svg
@@ -14,14 +15,14 @@
    height="256"
    viewBox="0 0 256 256"
    version="1.1"
-   id="svg36"
+   id="svg47"
    xmlns:xlink="http://www.w3.org/1999/xlink"
    xmlns="http://www.w3.org/2000/svg"
    xmlns:svg="http://www.w3.org/2000/svg">
   <title
      id="title1">SEO Pro Stack</title>
   <defs
-     id="defs16">
+     id="defs15">
     <linearGradient
        id="bg"
        x1="0"
@@ -75,23 +76,6 @@
          stop-opacity="0"
          id="stop7" />
     </radialGradient>
-    <radialGradient
-       id="glow-bolt"
-       cx="1214"
-       cy="315"
-       r="200"
-       gradientUnits="userSpaceOnUse">
-      <stop
-         offset="0"
-         stop-color="#ffc94d"
-         stop-opacity="0.35"
-         id="stop8" />
-      <stop
-         offset="1"
-         stop-color="#ffc94d"
-         stop-opacity="0"
-         id="stop9" />
-    </radialGradient>
     <linearGradient
        id="gold"
        x1="0"
@@ -101,200 +85,275 @@
       <stop
          offset="0"
          stop-color="#ffe08a"
-         id="stop10" />
+         id="stop8" />
       <stop
          offset="1"
          stop-color="#f5a524"
-         id="stop11" />
+         id="stop9" />
     </linearGradient>
     <linearGradient
-       id="bolt-face"
-       x1="1106"
-       y1="152"
-       x2="1322"
-       y2="470"
-       gradientUnits="userSpaceOnUse">
-      <stop
-         offset="0"
-         stop-color="#ffe9a8"
-         id="stop12" />
-      <stop
-         offset="0.5"
-         stop-color="#ffc94d"
-         id="stop13" />
-      <stop
-         offset="1"
-         stop-color="#f5a524"
-         id="stop14" />
-    </linearGradient>
-    <linearGradient
-       id="bolt-edge"
+       id="top-red"
        x1="0"
        y1="0"
-       x2="0"
+       x2="1"
        y2="1">
       <stop
          offset="0"
-         stop-color="#bb0000"
-         id="stop15" />
+         stop-color="#ef4444"
+         id="stop10" />
       <stop
          offset="1"
-         stop-color="#700000"
-         id="stop16" />
+         stop-color="#bb0000"
+         id="stop11" />
+    </linearGradient>
+    <linearGradient
+       id="top-cream"
+       x1="0"
+       y1="0"
+       x2="1"
+       y2="1">
+      <stop
+         offset="0"
+         stop-color="#ffffea"
+         id="stop12" />
+      <stop
+         offset="1"
+         stop-color="#d8dee9"
+         id="stop13" />
+    </linearGradient>
+    <linearGradient
+       id="top-blue"
+       x1="0"
+       y1="0"
+       x2="1"
+       y2="1">
+      <stop
+         offset="0"
+         stop-color="#4466ff"
+         id="stop14" />
+      <stop
+         offset="1"
+         stop-color="#0022cc"
+         id="stop15" />
     </linearGradient>
     <!-- A five-pointed star, radius 1, centred on 0,0 -->
     <polygon
        id="star"
        points="0,-1 0.2245,-0.309 0.9511,-0.309 0.3633,0.118 0.5878,0.809 0,0.382 -0.5878,0.809 -0.3633,0.118 -0.9511,-0.309 -0.2245,-0.309" />
-    <!-- A lightning bolt, centred on x 1214 under the stars, y 152 to 470 -->
+    <!-- The banner's lightning bolt, laid flat on the top tile's face on its
+         isometric axes (the banner's comment says how) -->
     <polygon
        id="bolt"
-       points="1200,152 1318,152 1246,270 1322,270 1160,470 1196,330 1106,330" />
+       transform="matrix(4.95 2.871 -4.95 2.871 1214 -57.42)"
+       points="9.8,-2 3.4,-2 8.6,7.2 3.8,7.2 13.8,22 11.4,11.2 16.6,11.2" />
   </defs>
   <!-- Background -->
   <rect
      width="256"
      height="256"
      fill="url(#bg)"
-     id="rect16" />
+     id="rect15" />
   <rect
      width="256"
      height="256"
      fill="url(#glow-blue)"
-     id="rect17" />
+     id="rect16" />
   <!-- wpallstars.com's red double lines, with a cream line between them. -->
   <g
-     id="g23">
+     id="g22">
     <rect
        y="0"
        width="256"
        height="4"
        fill="#bb0000"
-       id="rect18" />
+       id="rect17" />
     <rect
        y="4"
        width="256"
        height="3"
        fill="#ffffea"
-       id="rect19" />
+       id="rect18" />
     <rect
        y="7"
        width="256"
        height="4"
        fill="#bb0000"
-       id="rect20" />
+       id="rect19" />
     <rect
        y="245"
        width="256"
        height="4"
        fill="#bb0000"
-       id="rect21" />
+       id="rect20" />
     <rect
        y="249"
        width="256"
        height="3"
        fill="#ffffea"
-       id="rect22" />
+       id="rect21" />
     <rect
        y="252"
        width="256"
        height="4"
        fill="#bb0000"
-       id="rect23" />
+       id="rect22" />
   </g>
-  <!-- The banner's picture, in the banner's coordinates: 376 x 463 from
-       1026,24 (stars to the bolt's red edge), centred on 1214,255, scaled
-       to fit between the stripes. -->
+  <!-- The banner's picture, in the banner's coordinates: 376 x 443 from
+       1026,24, centred on 1214,245.5, scaled to fit between the stripes. -->
   <g
-     transform="translate(128 128) scale(0.48) translate(-1214 -255)"
-     id="g36">
-    <!-- The bolt: a red edge (copies stepped down and right), then the gold
-       face with a cream outline, as the stars have -->
-    <circle
-       cx="1214"
-       cy="315"
-       r="200"
-       fill="url(#glow-bolt)"
-       id="circle23" />
+     transform="translate(128 128) scale(0.5) translate(-1214 -245.5)"
+     id="g47">
+    <!-- The stack: red, cream and blue layers, each with a top face and two sides -->
     <g
        stroke-linejoin="round"
-       id="g30">
+       id="g42">
       <g
-         fill="url(#bolt-edge)"
-         stroke="#700000"
-         stroke-width="5"
-         id="g29">
-        <use
-           xlink:href="#bolt"
-           transform="translate(14 14)"
-           id="use23" />
-        <use
-           xlink:href="#bolt"
-           transform="translate(12 12)"
-           id="use24" />
-        <use
-           xlink:href="#bolt"
-           transform="translate(10 10)"
-           id="use25" />
-        <use
-           xlink:href="#bolt"
-           transform="translate(8 8)"
-           id="use26" />
-        <use
-           xlink:href="#bolt"
-           transform="translate(6 6)"
-           id="use27" />
-        <use
-           xlink:href="#bolt"
-           transform="translate(4 4)"
-           id="use28" />
-        <use
-           xlink:href="#bolt"
-           transform="translate(2 2)"
-           id="use29" />
+         transform="translate(0 350)"
+         id="g25">
+        <polygon
+           points="1064,0 1214,87 1214,117 1064,30"
+           fill="#001aa3"
+           id="polygon22" />
+        <polygon
+           points="1214,87 1364,0 1364,30 1214,117"
+           fill="#00137a"
+           id="polygon23" />
+        <polygon
+           points="1214,-87 1364,0 1214,87 1064,0"
+           fill="url(#top-blue)"
+           id="polygon24" />
+        <polygon
+           points="1214,-61 1319,0 1214,61 1109,0"
+           fill="none"
+           stroke="#ffffff"
+           stroke-opacity="0.3"
+           stroke-width="2"
+           id="polygon25" />
       </g>
-      <use
-         xlink:href="#bolt"
-         fill="url(#bolt-face)"
-         stroke="#ffffea"
-         stroke-width="5"
-         id="use30" />
+      <g
+         transform="translate(0 294)"
+         id="g29">
+        <polygon
+           points="1064,0 1214,87 1214,117 1064,30"
+           fill="#b9c2d4"
+           id="polygon26" />
+        <polygon
+           points="1214,87 1364,0 1364,30 1214,117"
+           fill="#949fb5"
+           id="polygon27" />
+        <polygon
+           points="1214,-87 1364,0 1214,87 1064,0"
+           fill="url(#top-cream)"
+           id="polygon28" />
+        <polygon
+           points="1214,-61 1319,0 1214,61 1109,0"
+           fill="none"
+           stroke="#001537"
+           stroke-opacity="0.18"
+           stroke-width="2"
+           id="polygon29" />
+      </g>
+      <g
+         transform="translate(0 238)"
+         id="g41">
+        <polygon
+           points="1064,0 1214,87 1214,117 1064,30"
+           fill="#940000"
+           id="polygon30" />
+        <polygon
+           points="1214,87 1364,0 1364,30 1214,117"
+           fill="#700000"
+           id="polygon31" />
+        <polygon
+           points="1214,-87 1364,0 1214,87 1064,0"
+           fill="url(#top-red)"
+           id="polygon32" />
+        <!-- SEO Pro Stack's lightning bolt on the top face, as on the banner -->
+        <use
+           xlink:href="#bolt"
+           transform="translate(5 3)"
+           fill="#5c0000"
+           fill-opacity="0.55"
+           id="use32" />
+        <g
+           fill="#c97f0e"
+           id="g40">
+          <use
+             xlink:href="#bolt"
+             id="use33" />
+          <use
+             xlink:href="#bolt"
+             transform="translate(0 -1)"
+             id="use34" />
+          <use
+             xlink:href="#bolt"
+             transform="translate(0 -2)"
+             id="use35" />
+          <use
+             xlink:href="#bolt"
+             transform="translate(0 -3)"
+             id="use36" />
+          <use
+             xlink:href="#bolt"
+             transform="translate(0 -4)"
+             id="use37" />
+          <use
+             xlink:href="#bolt"
+             transform="translate(0 -5)"
+             id="use38" />
+          <use
+             xlink:href="#bolt"
+             transform="translate(0 -6)"
+             id="use39" />
+          <use
+             xlink:href="#bolt"
+             transform="translate(0 -7)"
+             id="use40" />
+        </g>
+        <use
+           xlink:href="#bolt"
+           transform="translate(0 -8)"
+           fill="url(#gold)"
+           stroke="#ffffea"
+           stroke-width="0.35"
+           id="use41" />
+      </g>
     </g>
-    <!-- The logo's arc of five stars: gold in the middle, floating above the bolt -->
+    <!-- The logo's arc of five stars: gold in the middle, floating above the stack -->
     <circle
        cx="1214"
        cy="76"
        r="120"
        fill="url(#glow-gold)"
-       id="circle30" />
+       id="circle42" />
     <g
        stroke-linejoin="round"
-       id="g35">
+       id="g46">
       <g
          fill="#0022cc"
          stroke="#ffffea"
          stroke-width="5"
-         id="g34">
+         id="g45">
         <use
            xlink:href="#star"
            transform="translate(1043 150) scale(17)"
            stroke-width="0.3"
-           id="use31" />
+           id="use42" />
         <use
            xlink:href="#star"
            transform="translate(1110 100) scale(26)"
            stroke-width="0.2"
-           id="use32" />
+           id="use43" />
         <use
            xlink:href="#star"
            transform="translate(1318 100) scale(26)"
            stroke-width="0.2"
-           id="use33" />
+           id="use44" />
         <use
            xlink:href="#star"
            transform="translate(1385 150) scale(17)"
            stroke-width="0.3"
-           id="use34" />
+           id="use45" />
       </g>
       <use
          xlink:href="#star"
@@ -302,7 +361,7 @@
          fill="url(#gold)"
          stroke="#ffffea"
          stroke-width="0.11"
-         id="use35" />
+         id="use46" />
     </g>
   </g>
 </svg>

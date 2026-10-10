@@ -45,12 +45,20 @@ Colours ease for 0.2 seconds after load, never with reduced motion.
 
 ## Banner and icon
 
-The banner (`.wordpress-org/banner.svg`) and icon (`.wordpress-org/icon.svg`)
-show a gold lightning bolt with a red edge and cream outline under the
-wpallstars arc of five stars, on the shared navy background with red and
-cream stripes. The bolt stands for speed and keeps SEO Pro Stack apart from
-WP Plugin Starter, whose picture is a plugin stack. Keep the two pictures in
-step and rebuild with `scripts/build-banner.sh`.
+Every wpallstars plugin's banner and icon share one picture: the stack of
+tiles under the arc of five stars, on the navy background with red and cream
+stripes. Each plugin varies only the tiles' colours and the picture on the
+top tile (WP Plugin Starter: all red with the WordPress Plugins icon; SEO Pro
+Stats: all red with rising bars). SEO Pro Stack's banner
+(`.wordpress-org/banner.svg`) and icon (`.wordpress-org/icon.svg`) have red,
+cream and blue tiles, blue stars and a blue glow, and a gold lightning bolt
+(for speed) laid flat and slightly raised on the top tile. Keep the stack;
+change only the colours or the top tile's picture. Draw the top tile's
+picture on the tile's isometric axes, as the starter's Plugins icon is: in a
+20-unit space through `matrix(4.95 2.871 -4.95 2.871 1214 -57.42)`, so its
+straight edges run parallel to the tile's edges; squashing it straight down
+is not enough. Keep the two files in step and rebuild with
+`scripts/build-banner.sh`.
 
 ## Theme colours
 
