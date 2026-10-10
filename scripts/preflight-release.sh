@@ -35,6 +35,15 @@ readonly AGENTS_MD_MAX_LINES=150
 # plugin its own).
 readonly STARTER_REPO="wpallstars/wp-plugin-""starter-template-for-ai-coding"
 readonly STARTER_AGENTS_LINE="starter plugin: what every wpallstars plugin is made from"
+# What a plugin made from the starter still has of the starter's own until
+# it is replaced (check_starter_leftovers): banner words, the plug on the
+# stack, the description, and the screenshots' Git blob ids. Split, so
+# scripts/rename-plugin.sh leaves them unchanged.
+readonly STARTER_HEADLINE=">Built with ""AI</text>"
+readonly STARTER_TAGLINE="A clean start for ""WordPress plugins"
+readonly STARTER_PLUG="The WordPress Plugins icon (Dashicons ""admin-plugins"
+readonly STARTER_DESCRIPTION="A clean start for a ""WordPress plugin"
+readonly STARTER_SCREENSHOTS="screenshot-1.png:f6c4b1fdc4b2440263193056ab03f78c5dd3a3b8 screenshot-2.png:94e0c48d55b5f126d02b2b81a4a00d6eac4b5718"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 readonly SCRIPT_DIR
 # shellcheck source=scripts/lib/plugin.sh disable=SC1091 # followed only with -x
@@ -834,6 +843,74 @@ check_agent_docs() {
 	return 0
 }
 
+# What a plugin still has of the starter's own (LAUNCH.md → Before 1.0):
+# the banner's words, the plug on the stack in the banner and icon, the
+# description, and the screenshots. Warnings: a plugin may keep a credit on
+# purpose, and only a person writes its own.
+check_starter_leftovers() {
+	local sha="$1"
+	local plugin_header="$2"
+	local readme="$3"
+	section "Starter leftovers"
+	if [[ "$PLUGIN_REPO" = "$STARTER_REPO" ]]; then
+		note "this is the starter"
+		return 0
+	fi
+	local problems=0 banner file svg short
+	# A missing banner or icon is not a leftover (WordPress.org assets warns).
+	banner="$(file_at "$sha" .wordpress-org/banner.svg)"
+	if grep -qF "$STARTER_HEADLINE" <<<"$banner" || grep -qF "$STARTER_TAGLINE" <<<"$banner"; then
+		warn ".wordpress-org/banner.svg still has the starter's words (Built with AI, A clean start for WordPress plugins): write this plugin's headline and tagline in both words groups, then scripts/build-banner.sh"
+		problems=1
+	fi
+	for file in banner.svg icon.svg; do
+		svg="$(file_at "$sha" ".wordpress-org/$file")"
+		if grep -qF "$STARTER_PLUG" <<<"$svg"; then
+			warn ".wordpress-org/$file still has the starter's plug on the stack: draw this plugin's own mark, then scripts/build-banner.sh"
+			problems=1
+		fi
+	done
+	if grep -qF "$STARTER_DESCRIPTION" <<<"$(field "$plugin_header" "Description")"; then
+		warn "$MAIN_FILE's Description: is still the starter's: say what this plugin does"
+		problems=1
+	fi
+	short="$(awk 'NR == 1 { next } !h && /^[ \t]*$/ { h = 1; next } h && /^==/ { exit } h && !/^[ \t]*$/ { print; exit }' <<<"$readme")"
+	if grep -qF "$STARTER_DESCRIPTION" <<<"$short"; then
+		warn "readme.txt's short description is still the starter's: say what this plugin does (150 characters at most)"
+		problems=1
+	fi
+	starter_screenshots "$sha" || problems=1
+	[[ "$problems" -eq 1 ]] || ok "no starter banner words, plug, description or screenshots"
+	return 0
+}
+
+# A file's contents at the ref; nothing when it is not there.
+file_at() {
+	local sha="$1"
+	local path="$2"
+	local blob
+	blob="$(git rev-parse --verify --quiet "$sha:$path")" || return 0
+	git cat-file blob "$blob"
+	return 0
+}
+
+# Warn for each .wordpress-org/screenshot-N.png that is still the starter's
+# file (the same Git blob). Returns 1 when one is.
+starter_screenshots() {
+	local sha="$1"
+	local spec path blob found=0
+	for spec in $STARTER_SCREENSHOTS; do
+		path=".wordpress-org/${spec%%:*}"
+		blob="$(git rev-parse --verify --quiet "$sha:$path")" || blob=""
+		if [[ "$blob" = "${spec#*:}" ]]; then
+			warn "$path is still the starter's screenshot: show this plugin (and caption it in readme.txt)"
+			found=1
+		fi
+	done
+	[[ "$found" -eq 0 ]] || return 1
+	return 0
+}
+
 # Every plugin keeps two credits in README.md and readme.txt (STANDARDS.md →
 # Structure): Built with AI, linking aidevops, and the line starting
 # "Made from " that links the starter. Warnings: a person writes them.
@@ -955,6 +1032,109 @@ check_recommendation() {
 	return 0
 }
 
+# README.md's badges block is the starter's three rows (STANDARDS.md →
+# Structure; scripts/readme-badges.sh writes it). Warnings: GitHub shows a
+# split row or a tall chart beside badges as misaligned rows, and
+# requirement badges that disagree with readme.txt mislead.
+check_badges() {
+	local sha="$1"
+	local readme="$2"
+	section "README badges"
+	if [[ -z "$PLUGIN_REPO" ]]; then
+		note "no GitHub Plugin URI header: badges not checked"
+		return 0
+	fi
+	local text block expected problems=0 rows
+	text="$(file_at "$sha" README.md)"
+	if ! grep -qxF "$PLUGIN_BADGES_START" <<<"$text"; then
+		warn "README.md has no badges block under its title (scripts/readme-badges.sh writes one between $PLUGIN_BADGES_START and $PLUGIN_BADGES_END)"
+		return 0
+	fi
+	block="$(plugin_badges_current <<<"$text")"
+	expected="$(plugin_badges "$PLUGIN_REPO" "$readme" "$(plugin_badge_services "$block")" "$(plugin_badge_codacy "$block")")"
+	if [[ "$block" = "$expected" ]]; then
+		ok "README.md badges block: status, requirements (as in readme.txt) and size, languages chart"
+		return 0
+	fi
+	if grep -qF '<!--' <<<"$(sed 1d <<<"$block")"; then
+		warn "README.md's badges block has a comment after its first line, which splits a row on GitHub"
+		problems=1
+	fi
+	rows="$(awk '/^[[:space:]]*$/ { gap = 1; next } /<!--/ { next } { if (gap || !n) n++; gap = 0 } END { print n + 0 }' <<<"$block")"
+	if [[ "$rows" -gt 3 ]]; then
+		warn "README.md's badges block has $rows rows (a blank line starts a row); keep three: status, requirements and size, the languages chart"
+		problems=1
+	fi
+	badge_tall_images "$sha" "$block" || problems=1
+	badge_requirements "$block" "$readme" || problems=1
+	if [[ "$problems" -eq 0 ]]; then
+		warn "README.md's badges block differs from the starter's three rows (STANDARDS.md → Structure)"
+	fi
+	note "scripts/readme-badges.sh rewrites the block (--check shows it)"
+	return 0
+}
+
+# Warn for a picture in the badges block that is taller than a badge (from
+# its SVG's height) unless it is alone in the last row. Returns 1 when one is.
+badge_tall_images() {
+	local sha="$1"
+	local block="$2"
+	local last found=0 row path count svg height
+	# Each picture from this plugin's files as "row path", rows counted as
+	# GitHub's paragraphs.
+	local pictures
+	pictures="$(awk '/^[[:space:]]*$/ { gap = 1; next } /<!--/ { next }
+		{ if (gap || !n) n++; gap = 0
+		  if (match($0, /^\[!\[[^]]*\]\([^)]+\)/)) {
+			s = substr($0, RSTART, RLENGTH); sub(/^\[!\[[^]]*\]\(/, "", s); sub(/\)$/, "", s)
+			print n " " s
+		  } }' <<<"$block")"
+	last="$(awk '/^[[:space:]]*$/ { gap = 1; next } /<!--/ { next } { if (gap || !n) n++; gap = 0 } END { print n + 0 }' <<<"$block")"
+	while read -r row path; do
+		# Only pictures in the repository have a height to read.
+		if [[ -z "$path" ]] || [[ "$path" == http* ]]; then
+			continue
+		fi
+		# Here-strings, not a pipe: sed stops at the first <svg (pipefail).
+		svg="$(file_at "$sha" "$path")"
+		height="$(sed -nE '/<svg/{s/.*<svg[^>]* height="([0-9]+).*/\1/p;q;}' <<<"$svg")"
+		if [[ -z "$height" ]] || [[ "$height" -le 30 ]]; then
+			continue
+		fi
+		count="$(grep -c "^$row " <<<"$pictures" || true)"
+		if [[ "$row" != "$last" ]] || [[ "$count" -gt 1 ]]; then
+			warn "$path is $height px high, so the badges beside it misalign: put it alone in the badges block's last row"
+			found=1
+		fi
+	done <<<"$pictures"
+	[[ "$found" -eq 0 ]] || return 1
+	return 0
+}
+
+# Warn when a requirement badge says another version than readme.txt's
+# header. Returns 1 when one does.
+badge_requirements() {
+	local block="$1"
+	local readme="$2"
+	local spec label key pattern shown want found=0
+	for spec in 'Requires WordPress|Requires at least|badge/WordPress-([0-9.]+)%2B' \
+		'Tested up to|Tested up to|badge/tested%20up%20to-([0-9.]+)-' \
+		'Requires PHP|Requires PHP|badge/PHP-([0-9.]+)%2B'; do
+		IFS='|' read -r label key pattern <<<"$spec"
+		shown=""
+		if [[ "$block" =~ $pattern ]]; then
+			shown="${BASH_REMATCH[1]}"
+		fi
+		want="$(field "$readme" "$key")"
+		if [[ "$shown" != "$want" ]] && [[ -n "$shown" ]]; then
+			warn "README.md's $label badge says $shown, readme.txt's $key: says ${want:-nothing}"
+			found=1
+		fi
+	done
+	[[ "$found" -eq 0 ]] || return 1
+	return 0
+}
+
 check_git() {
 	local ref="$1"
 	local sha="$2"
@@ -1039,9 +1219,11 @@ main() {
 		check_core_files
 	fi
 	check_agent_docs "$sha"
+	check_starter_leftovers "$sha" "$plugin_header" "$readme"
 	check_credits "$sha"
 	check_licence "$sha"
 	check_recommendation "$sha"
+	check_badges "$sha" "$readme"
 	check_git "$ref" "$sha" "$VERSION"
 
 	printf '\n%s error(s), %s warning(s).\n' "$ERRORS" "$WARNINGS"

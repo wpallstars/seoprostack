@@ -9,6 +9,9 @@
 [![License: GPL v3 or later](https://img.shields.io/badge/License-GPL%20v3%20or%20later-blue.svg)](LICENSE)
 [![Latest release](https://img.shields.io/github/v/release/wpallstars/seoprostack)](https://github.com/wpallstars/seoprostack/releases)
 
+[![Requires WordPress](https://img.shields.io/badge/WordPress-6.2%2B-21759B.svg?logo=wordpress)](readme.txt)
+[![Tested up to](https://img.shields.io/badge/tested%20up%20to-7.1-21759B.svg?logo=wordpress)](readme.txt)
+[![Requires PHP](https://img.shields.io/badge/PHP-7.4%2B-777BB4.svg?logo=php)](readme.txt)
 [![Lines of code](docs/metrics/badges/loc.svg)](docs/metrics/repo-metrics.md)
 [![Dependencies](docs/metrics/badges/dependencies.svg)](docs/metrics/repo-metrics.md)
 
@@ -1521,6 +1524,10 @@ Deleting the plugin removes its settings and cached data, the database keys Add 
 Deactivating the plugin removes the WebP and AVIF rules from the uploads folder’s `.htaccess` (for every site when network-deactivated), the LiteSpeed background request rules from the site’s `.htaccess` (on multisite, when network-deactivated or deactivated on the main site) and the must-use file of Load plugins only where needed (on multisite, when network-deactivated).
 
 ## Changelog
+
+### Unreleased
+
+- Developers: core files synced from WP Plugin Starter (d5fc891): the shared updater's licence and attribution lines are at the top of its header, within the release preflight's scan; simpler fenced-code handling in the Read Me tab; checks for starter leftovers and README badges; and `scripts/readme-badges.sh` for the standard three-row badges block (GitHub issue #653).
 
 ### 1.3.31
 
