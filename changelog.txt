@@ -3,6 +3,7 @@
 Every change to SEO Pro Stack. readme.txt lists the latest version in short.
 
 = Unreleased =
+* Fix: in dark mode, the settings screen's switches, links, tabs, outlines and logo follow the admin colour scheme, as SEO Pro Stats' screens do. They were WordPress's old default blue in every scheme, Modern included, because the scheme's colour was read before WordPress sets it. Accent text keeps the scheme's hue at a lighter tone that reads at 4.5:1 or more on the dark surfaces, and primary buttons are darkened just enough for their labels. In light mode, lighter schemes' colours, such as Sunrise's orange, are darkened just enough to read at 4.5:1, and the classic schemes' bright link hover is darker. Turning Modern admin colours on or off recolours the screen at once (GitHub issue #670).
 * Developers: core files synced from WP Plugin Starter (1ae9182): DEVELOPMENT.md no longer lists Qlty, which wpallstars no longer uses; the workflows run on a self-hosted runner only when the repository variable CI_RUNNER names one (not set here, so nothing changes), and CI's lint job uses a pinned, checksum-verified ShellCheck 0.11.0; scripts/readme-badges.sh matches the starter's again (GitHub issue #668).
 
 = 1.3.32 =

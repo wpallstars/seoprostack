@@ -1,7 +1,9 @@
 /**
  * Per-person colour mode, scoped to SEO Pro Stack's settings screen.
- * Palette and classic WordPress overrides match SEO Pro Stats #219.
- * Light leaves WordPress untouched; every dark rule requires html.sps-dark.
+ * Palette, classic WordPress overrides and the admin colour scheme's accent
+ * match SEO Pro Stats (its #219, #228 and #239). Light is WordPress's own,
+ * apart from the scheme colour's brightness; every dark rule requires
+ * html.sps-dark.
  * SPDX-License-Identifier: GPL-3.0-or-later
  * SPDX-FileCopyrightText: 2026 Marcus Quinn
  * Additional terms (GPL-3.0 section 7(b)): SEOPROSTACK-ATTRIBUTION.txt
@@ -19,17 +21,115 @@ html.sps-dark {
 	--sps-ui-good: #68de7c;
 	--sps-ui-bad: #ff8085;
 	--sps-ui-warning: #f0c33c;
-	--sps-ui-accent-fill: var(--wp-admin-theme-color, #2271b1);
-	--sps-ui-accent: #72aee6;
 
 	color-scheme: dark;
 	background: var(--sps-ui-canvas);
 }
 
+/*
+ * The accent, on body: WordPress sets the admin colour scheme's
+ * --wp-admin-theme-color on body (admin-color-*), so on html it is still
+ * the default blue. Reading it here follows every scheme, and a live change
+ * of the body class (the Modern admin colours switch). The text accent
+ * keeps the scheme's hue and raises its lightness (OKLCH) to read at 4.5:1
+ * on every dark surface; older browsers mix it with white instead. Also
+ * WordPress components' theme variables (in dialogs and popovers too).
+ */
+html.sps-dark body {
+	--sps-ui-accent-fill: var(--wp-admin-theme-color, #2271b1);
+	--sps-ui-accent: #72aee6;
+	--wp-components-color-background: var(--sps-ui-surface);
+	--wp-components-color-foreground: var(--sps-ui-text);
+	--wp-components-color-foreground-inverted: var(--sps-ui-surface);
+	--wp-components-color-gray-100: var(--sps-ui-raised);
+	--wp-components-color-gray-200: var(--sps-ui-border);
+	--wp-components-color-gray-300: var(--sps-ui-border);
+	--wp-components-color-gray-400: #646970;
+	--wp-components-color-gray-600: var(--sps-ui-field-border);
+	--wp-components-color-gray-700: var(--sps-ui-subtle);
+	--wp-components-color-gray-800: var(--sps-ui-muted);
+
+	/* ExternalLink: the accent, and the text colour on hover (WordPress darkens it). */
+	--wpds-color-foreground-interactive-brand: var(--sps-ui-accent);
+	--wpds-color-foreground-interactive-brand-active: var(--sps-ui-text);
+
+	/* Menu items' focus ring: WordPress's design tokens fix it at #3858e9 in every scheme. */
+	--wpds-color-stroke-focus: var(--sps-ui-accent);
+
+	color: var(--sps-ui-text);
+	background: var(--sps-ui-canvas);
+}
+
 @supports (color: color-mix(in srgb, red 10%, transparent)) {
-	html.sps-dark {
+	html.sps-dark body {
 		--sps-ui-accent: color-mix(in srgb, var(--sps-ui-accent-fill) 55%, #fff);
 	}
+}
+
+/*
+ * Primary buttons: the scheme's fill, darkened only where light text on it
+ * would fall below 4.5:1 (lighter fills, such as Sunrise's). Older browsers
+ * keep the scheme's own fill, as WordPress does.
+ */
+@supports (color: oklch(from red max(l, 0.75) min(c, 0.15) h)) {
+	html.sps-dark body {
+		--sps-ui-accent: oklch(from var(--sps-ui-accent-fill) max(l, 0.75) min(c, 0.15) h);
+		--sps-ui-primary: oklch(from var(--sps-ui-accent-fill) min(l, 0.53) c h);
+		--sps-ui-primary-hover: oklch(from var(--sps-ui-primary) calc(l - 0.06) c h);
+		--wp-components-color-accent: var(--sps-ui-primary);
+		--wp-components-color-accent-darker-10: var(--sps-ui-primary-hover);
+		--wp-components-color-accent-darker-20: oklch(from var(--sps-ui-primary) calc(l - 0.12) c h);
+	}
+
+	html.sps-dark .wp-core-ui .button-primary:not(:disabled, .disabled) {
+		background: var(--sps-ui-primary);
+		border-color: var(--sps-ui-primary);
+	}
+
+	html.sps-dark .wp-core-ui .button-primary:is(:hover, :focus):not(:disabled, .disabled) {
+		background: var(--sps-ui-primary-hover);
+		border-color: var(--sps-ui-primary-hover);
+	}
+}
+
+/*
+ * Light mode keeps the scheme's hue, at a brightness that reads at 4.5:1:
+ * its luminance is lowered to at most 0.15 (0.12 and 0.096 for the darker
+ * tones), which keeps its hue and saturation and reads on the lightest
+ * greys (#f0f0f0) and behind white labels. Darker schemes' colours, such as
+ * Modern's, are under the cap and stay as they are. Read on body, where
+ * WordPress sets them; used by everything inside it, which is all of
+ * WordPress's buttons, fields and components on this screen. Menu items'
+ * focus ring reads a design token WordPress fixes at #3858e9 in every
+ * scheme; it takes the scheme's colour too.
+ */
+html:not(.sps-dark) body {
+	--wpds-color-stroke-focus: var(--wp-admin-theme-color, #2271b1);
+}
+
+@supports (color: color(from red xyz-d65 calc(x * min(1, 0.15 / y)) min(y, 0.15) z)) {
+	html:not(.sps-dark) body {
+		--wpds-color-stroke-focus: var(--sps-scheme-fill);
+		--sps-scheme-fill: color(from var(--wp-admin-theme-color, #2271b1) xyz-d65 calc(x * min(1, 0.15 / y)) min(y, 0.15) calc(z * min(1, 0.15 / y)));
+		--sps-scheme-fill-10: color(from var(--wp-admin-theme-color-darker-10, #135e96) xyz-d65 calc(x * min(1, 0.12 / y)) min(y, 0.12) calc(z * min(1, 0.12 / y)));
+		--sps-scheme-fill-20: color(from var(--wp-admin-theme-color-darker-20, #0a4b78) xyz-d65 calc(x * min(1, 0.096 / y)) min(y, 0.096) calc(z * min(1, 0.096 / y)));
+	}
+
+	html:not(.sps-dark) body > * {
+		--wp-admin-theme-color: var(--sps-scheme-fill);
+		--wp-admin-theme-color-darker-10: var(--sps-scheme-fill-10);
+		--wp-admin-theme-color-darker-20: var(--sps-scheme-fill-20);
+	}
+}
+
+/*
+ * The classic schemes (Light, Blue, Midnight, Sunrise, Ectoplasm, Ocean,
+ * Coffee) brighten links on hover and focus, to 3.3:1 on white; this is
+ * their link blue darkened instead. As specific as their rule, so it wins
+ * by order and any rule with a class still wins.
+ */
+:where(html:not(.sps-dark) body:is(.admin-color-light, .admin-color-blue, .admin-color-midnight, .admin-color-sunrise, .admin-color-ectoplasm, .admin-color-ocean, .admin-color-coffee) :is(#wpbody, .components-modal__frame)) a:is(:hover, :active, :focus) {
+	color: #005e8e;
 }
 
 html.sps-dark .sps-wrap {
@@ -47,22 +147,6 @@ html.sps-dark .sps-wrap {
 	--sps-shadow: 0 1px 2px rgb(0 0 0 / 40%);
 }
 
-html.sps-dark body {
-	--wp-components-color-background: var(--sps-ui-surface);
-	--wp-components-color-foreground: var(--sps-ui-text);
-	--wp-components-color-foreground-inverted: var(--sps-ui-surface);
-	--wp-components-color-gray-100: var(--sps-ui-raised);
-	--wp-components-color-gray-200: var(--sps-ui-border);
-	--wp-components-color-gray-300: var(--sps-ui-border);
-	--wp-components-color-gray-400: #646970;
-	--wp-components-color-gray-600: var(--sps-ui-field-border);
-	--wp-components-color-gray-700: var(--sps-ui-subtle);
-	--wp-components-color-gray-800: var(--sps-ui-muted);
-
-	color: var(--sps-ui-text);
-	background: var(--sps-ui-canvas);
-}
-
 html.sps-dark :is(#wpwrap, #wpcontent, #wpbody-content) {
 	background: var(--sps-ui-canvas);
 }
@@ -77,7 +161,8 @@ html.sps-dark :is(#wpwrap, #wpcontent, #wpbody-content) {
 	color: var(--sps-ui-accent);
 }
 
-:where(html.sps-dark :is(#wpbody, #wpfooter, .components-modal__frame)) a:is(:hover, :active) {
+/* WordPress darkens links on hover and focus (#135e96, #043959). */
+:where(html.sps-dark :is(#wpbody, #wpfooter, .components-modal__frame)) a:is(:hover, :active, :focus) {
 	color: var(--sps-ui-text);
 }
 
@@ -128,6 +213,20 @@ html.sps-dark :is(#contextual-help-back, .contextual-help-tabs .active) {
 	background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20width%3D%2220%22%20height%3D%2220%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cpath%20d%3D%22M5%206l5%205%205-5%202%201-7%207-7-7%202-1z%22%20fill%3D%22%23c3c4c7%22%2F%3E%3C%2Fsvg%3E");
 }
 
+/* WordPress's own select:hover and :focus (.wp-core-ui) paint #1e1e1e text and borders. */
+html.sps-dark .wp-core-ui select:is(:hover, :focus) {
+	color: var(--sps-ui-text);
+}
+
+html.sps-dark .wp-core-ui select:hover {
+	border-color: var(--sps-ui-text);
+}
+
+html.sps-dark .wp-core-ui select:disabled:is(:hover, :focus) {
+	color: var(--sps-ui-subtle);
+	border-color: var(--sps-ui-border);
+}
+
 :where(html.sps-dark #wpbody) :is(input[type="checkbox"], input[type="radio"]) {
 	background: var(--sps-ui-canvas);
 	border-color: var(--sps-ui-field-border);
@@ -163,6 +262,19 @@ html.sps-dark #wpbody :is(.notice, div.updated, div.error) {
 
 html.sps-dark #wpbody .notice-dismiss::before {
 	color: var(--sps-ui-muted);
+}
+
+/* WordPress paints notice text #1e1e1e and links in darker tones of the scheme. */
+html.sps-dark #wpbody :is(.notice, div.updated, div.error) :is(p, .notice-title) {
+	color: inherit;
+}
+
+html.sps-dark #wpbody :is(.notice, div.updated, div.error) a {
+	color: var(--sps-ui-accent);
+}
+
+html.sps-dark #wpbody :is(.notice, div.updated, div.error) a:is(:hover, :active, :focus) {
+	color: var(--sps-ui-text);
 }
 
 html.sps-dark :is(#wpbody, .components-modal__frame) :is(.widefat, .postbox, .card, .stuffbox) {
@@ -230,6 +342,29 @@ html.sps-dark .components-button.is-secondary:not(:disabled, [aria-disabled="tru
 html.sps-dark .components-button:is(.is-secondary, .is-tertiary):hover:not(:disabled, [aria-disabled="true"]) {
 	color: var(--sps-ui-text);
 	background: var(--sps-ui-raised);
+}
+
+/* WordPress paints other buttons the scheme's colour on hover and while their menu is open. */
+html.sps-dark .components-button:not(.is-primary, .is-secondary, .is-tertiary, .is-pressed, .is-destructive):is(:hover, [aria-expanded="true"]):not(:disabled, [aria-disabled="true"]) {
+	color: var(--sps-ui-accent);
+}
+
+/* A pressed button is filled with the text colour; WordPress's primary hover would make its label white. */
+html.sps-dark .components-button.is-pressed:not(:disabled, [aria-disabled="true"]) {
+	color: var(--sps-ui-surface);
+}
+
+/* Destructive buttons in the light red (WordPress's #cc1818, #710d0d on hover). */
+html.sps-dark .components-button.is-destructive:not(.is-primary, :disabled, [aria-disabled="true"]) {
+	color: var(--sps-ui-bad);
+}
+
+html.sps-dark .components-button.is-destructive.is-secondary:not(:disabled, [aria-disabled="true"]) {
+	box-shadow: inset 0 0 0 1px var(--sps-ui-bad);
+}
+
+html.sps-dark .components-button.is-destructive:not(.is-primary):hover:not(:disabled, [aria-disabled="true"]) {
+	color: var(--sps-ui-text);
 }
 
 html.sps-dark .components-button:is(:disabled, [aria-disabled="true"]):not(.is-primary) {
