@@ -9,6 +9,9 @@
 [![License: GPL v3 or later](https://img.shields.io/badge/License-GPL%20v3%20or%20later-blue.svg)](LICENSE)
 [![Latest release](https://img.shields.io/github/v/release/wpallstars/seoprostack)](https://github.com/wpallstars/seoprostack/releases)
 
+[![Requires WordPress](https://img.shields.io/badge/WordPress-6.2%2B-21759B.svg?logo=wordpress)](readme.txt)
+[![Tested up to](https://img.shields.io/badge/tested%20up%20to-7.1-21759B.svg?logo=wordpress)](readme.txt)
+[![Requires PHP](https://img.shields.io/badge/PHP-7.4%2B-777BB4.svg?logo=php)](readme.txt)
 [![Lines of code](docs/metrics/badges/loc.svg)](docs/metrics/repo-metrics.md)
 [![Dependencies](docs/metrics/badges/dependencies.svg)](docs/metrics/repo-metrics.md)
 
