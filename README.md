@@ -1528,6 +1528,10 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folderâ
 
 ## Changelog
 
+### Unreleased
+
+- Developers: core files synced from WP Plugin Starter (1ae9182): `DEVELOPMENT.md` no longer lists Qlty, which wpallstars no longer uses; the workflows run on a self-hosted runner only when the repository variable `CI_RUNNER` names one (not set here, so nothing changes), and CI's lint job uses a pinned, checksum-verified ShellCheck 0.11.0; `scripts/readme-badges.sh` matches the starter's again (GitHub issue #668).
+
 ### 1.3.32
 
 - New: **Hosting needs** says when WP-Cron is turned off (`DISABLE_WP_CRON`) but no cron job on the server runs the scheduled jobs: a warning once an event is 15 minutes late (an error past an hour) on the Dashboard and Plugins screens, with the commands for this site and, on Hostinger, where hPanel keeps cron jobs, and a Site Health test. It hides SEO Pro Stats's matching notice, and WP Crontrol's screen uses the same check (GitHub issue #659).
