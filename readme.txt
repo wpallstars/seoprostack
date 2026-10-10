@@ -140,6 +140,7 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 == Changelog ==
 
 = Unreleased =
+* Changed: a lightning bolt on the banner and icon.
 * Developers: core files synced from WP Plugin Starter (d5fc891), fixing the updater licence warning and adding starter-leftover and README-badge checks.
 
 = 1.3.31 =
