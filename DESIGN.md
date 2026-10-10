@@ -45,8 +45,8 @@ rules; descriptions and table lists match core specificity. Colours ease for
 ### Accent
 
 The accent follows the person's admin colour scheme (Profile → Admin Color
-Scheme, or Modern admin colours), as on SEO Pro Stats' screens (its #228 and
-#239). WordPress sets the scheme's `--wp-admin-theme-color` on `body`
+Scheme, or Modern admin colours), as on SEO Pro Stats' screens (its issues
+#228 and #239). WordPress sets the scheme's `--wp-admin-theme-color` on `body`
 (`body.admin-color-*`), so the accent tokens sit on `body` too: on `html`
 they would resolve to the default blue, whatever the scheme. A live change of
 the body class (the Modern admin colours switch) recolours the screen at once.
