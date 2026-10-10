@@ -48,10 +48,10 @@ Use a throwaway single site with two administrators, `dev` and `client`, and a s
 - [ ] Upgrade from 0.12.x with the menu organised and Client safeguards on: Developer admins is on with the code and administrator limits and the same developers.
 - [ ] Check the debug log for new messages.
 
-## Modern admin colours
+## Removed Modern admin colours (settings version 26)
 
-- [ ] Switch it on: every user sees the "Modern" scheme, and your profile is set to Modern.
-- [ ] Switch it off: your profile goes back to the WordPress default; other users keep their own choice.
+- [ ] Upgrade a site with Modern admin colours on: the setting is gone from the Admin tab and from `seoprostack_options`, and each user sees the scheme saved in their profile (a user with Sunrise saved sees Sunrise).
+- [ ] On WordPress 6.x with it on: users with no `admin_color` or with `fresh` get `modern`; users with another scheme, or with a `seoprostack_own_admin_color` mark, keep theirs, and the marks are removed. On WordPress 7.0 or later, or with it off, no `admin_color` is written.
 
 ## Front-end features
 

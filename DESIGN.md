@@ -65,11 +65,11 @@ ease for 0.2 seconds after load, never with reduced motion.
 ### Accent
 
 The accent follows the person's admin colour scheme (Profile → Admin Color
-Scheme, or Modern admin colours), as on SEO Pro Stats' screens (its issues #228
-and #239). WordPress sets the scheme's `--wp-admin-theme-color` on `body`
-(`body.admin-color-*`), so the accent tokens sit on `body` too: on `html`
-they would resolve to the default blue, whatever the scheme. A live change of
-the body class (the Modern admin colours switch) recolours the screen at once.
+Scheme), as on SEO Pro Stats' screens (its issues #228 and #239). WordPress
+sets the scheme's `--wp-admin-theme-color` on `body` (`body.admin-color-*`),
+so the accent tokens sit on `body` too: on `html` they would resolve to the
+default blue, whatever the scheme. A live change of the body class recolours
+the screen at once.
 
 - **Dark** (every admin screen): the logo and switches keep the scheme's
   colour as a fill (`--sps-ui-accent-fill`). Primary buttons are darkened to

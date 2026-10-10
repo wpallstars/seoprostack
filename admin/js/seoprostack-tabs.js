@@ -2,7 +2,6 @@
  * SEO Pro Stack's own admin screen parts, after the shared admin script
  * (seoprostack-admin.js, a core file from the starter plugin).
  *
- * - Colours: live switch for Modern admin colours.
  * - Directories: client-side filter for Pro/Hosting/Tools cards.
  * - Plugins: AJAX category cards, the All list, in-place install, activate,
  *   deactivate and uninstall, and bulk actions.
@@ -28,35 +27,6 @@
 	var post = cfg.api.post;
 	var speak = cfg.api.speak;
 	var errorMessage = cfg.api.errorMessage;
-
-	/* ------------------------------------------------------------------ */
-	/* Modern admin colours (live switch, no reload)                       */
-	/* ------------------------------------------------------------------ */
-
-	var Colors = {
-		init: function () {
-			$(document).on('seoprostack:setting-saved', function (event, key, value) {
-				if (key === 'modern_admin_colors' && cfg.colorSchemes) {
-					Colors.apply(value ? cfg.colorSchemes.enabled : cfg.colorSchemes.disabled);
-				}
-			});
-		},
-
-		apply: function (scheme) {
-			if (!scheme) {
-				return;
-			}
-			var $link = $('#colors-css');
-			if (!scheme.url) {
-				$link.remove();
-			} else if ($link.length) {
-				$link.attr('href', scheme.url);
-			} else {
-				$('<link rel="stylesheet" id="colors-css" media="all">').attr('href', scheme.url).appendTo('head');
-			}
-			document.body.className = document.body.className.replace(/\badmin-color-\S+/g, '').trim() + ' admin-color-' + scheme.name;
-		}
-	};
 
 	/* ------------------------------------------------------------------ */
 	/* Directory filter (Pro / Hosting / Tools)                            */
@@ -861,7 +831,6 @@
 	};
 
 	$(function () {
-		Colors.init();
 		Directory.init();
 		Plugins.init();
 		Theme.init();

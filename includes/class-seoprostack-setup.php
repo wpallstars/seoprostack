@@ -28,7 +28,6 @@ final class SEOProStack_Setup {
      * Each lives in includes/features/class-{lowercase-hyphenated-name}.php.
      */
     const FEATURES = array(
-        'SEOProStack_Admin_Colors',
         'SEOProStack_Admin_Page_Fade',
         'SEOProStack_Admin_Access',
         'SEOProStack_Hardening',
@@ -215,8 +214,12 @@ final class SEOProStack_Setup {
      *      to remove was stored before it was offered (#575).
      * v25: import Auto Upload Images' settings (Copy linked images to Media
      *      Library), switched on while it is active (#613).
+     * v26: Modern admin colours is removed; everyone's saved admin colour
+     *      scheme applies again. Where it was on before WordPress 7.0,
+     *      people who never picked a scheme keep Modern
+     *      (retire_admin_colors(), #678).
      */
-    const DB_VERSION = 25;
+    const DB_VERSION = 26;
 
     /**
      * Tab slugs renamed in 0.4.0, old => new. Settings that still use an
@@ -338,8 +341,9 @@ final class SEOProStack_Setup {
             $options += $renamed;
         }
 
+        $options = self::retire_admin_colors($options, $from_version);
+
         $legacy_map = array(
-            'wp_allstars_admin_color_scheme' => 'modern_admin_colors',
             'wp_allstars_auto_upload_images' => 'auto_upload_images',
             'wp_allstars_max_width'          => 'auto_upload_max_width',
             'wp_allstars_max_height'         => 'auto_upload_max_height',
@@ -357,6 +361,101 @@ final class SEOProStack_Setup {
         }
 
         return $options;
+    }
+
+    /**
+     * Modern admin colours is removed (#678). It only showed the "Modern"
+     * scheme in place of each person's saved one, so everyone's own choice
+     * applies again. Before WordPress 7.0, people who never picked a scheme
+     * would see core's "Fresh" instead of the Modern they saw while it was
+     * on: save Modern for them, once (keep_modern_scheme()). From 7.0 Modern
+     * is core's default and core's own upgrade moved saved Fresh to Modern,
+     * so nothing is written there. Other schemes are never changed.
+     *
+     * @param array $options      Stored settings (raw, without defaults).
+     * @param int   $from_version Stored settings version before this upgrade.
+     * @return array Settings without the removed key.
+     */
+    private static function retire_admin_colors(array $options, $from_version) {
+        global $wpdb;
+
+        $key = 'modern_admin_colors';
+        if ((int) $from_version >= 26) {
+            return $options;
+        }
+        if (array_key_exists($key, $options)) {
+            $was_on = !empty($options[$key]);
+        } else {
+            // Pre-0.3.0 sites, before the settings were one option.
+            $legacy = get_option('wp_allstars_admin_color_scheme', '');
+            $was_on = null !== $legacy && '' !== $legacy && SEOProStack_Settings::sanitize_value($legacy, array('type' => 'bool'));
+        }
+        unset($options[$key]);
+
+        // People who picked their own scheme while it was on.
+        $own_choice = $wpdb->get_blog_prefix() . 'seoprostack_own_admin_color';
+        if ($was_on && version_compare(get_bloginfo('version'), '7.0-alpha', '<')) {
+            self::keep_modern_scheme($own_choice);
+        }
+        delete_metadata('user', 0, $own_choice, '', true);
+
+        return $options;
+    }
+
+    /**
+     * Save the "Modern" admin colour scheme for this site's users who never
+     * picked one: none saved, or "Fresh", which WordPress before 7.0 saves
+     * for every new user (wp_insert_user()) and 7.0's upgrade treats the
+     * same way. Not for people who picked their own scheme while Modern
+     * admin colours was on. One query finds them, then two per 500 users.
+     *
+     * @param string $own_choice User meta key marking an own choice.
+     */
+    private static function keep_modern_scheme($own_choice) {
+        global $wpdb;
+
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- one-off step in the settings upgrade.
+        $rows = $wpdb->get_results($wpdb->prepare(
+            "SELECT c.user_id, MAX(s.umeta_id) AS saved FROM {$wpdb->usermeta} c"
+            . " LEFT JOIN {$wpdb->usermeta} s ON s.user_id = c.user_id AND s.meta_key = %s"
+            . " LEFT JOIN {$wpdb->usermeta} o ON o.user_id = c.user_id AND o.meta_key = %s"
+            . " WHERE c.meta_key = %s AND o.umeta_id IS NULL AND (s.umeta_id IS NULL OR s.meta_value IN (%s, %s))"
+            . ' GROUP BY c.user_id',
+            'admin_color',
+            $own_choice,
+            $wpdb->get_blog_prefix() . 'capabilities',
+            'fresh',
+            ''
+        ));
+
+        foreach (array_chunk((array) $rows, 500) as $chunk) {
+            $saved   = array();
+            $missing = array();
+            foreach ($chunk as $row) {
+                if ($row->saved) {
+                    $saved[] = (int) $row->user_id;
+                } else {
+                    $missing[] = (int) $row->user_id;
+                }
+            }
+            if ($saved) {
+                $in = implode(',', array_fill(0, count($saved), '%d'));
+                // phpcs:ignore WordPress.DB.DirectDatabaseQuery,WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare,WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber -- one-off step in the settings upgrade; placeholders built above, values passed as one array.
+                $wpdb->query($wpdb->prepare("UPDATE {$wpdb->usermeta} SET meta_value = %s WHERE meta_key = %s AND meta_value IN (%s, %s) AND user_id IN ($in)", array_merge(array('modern', 'admin_color', 'fresh', ''), $saved)));
+            }
+            if ($missing) {
+                $values = implode(',', array_fill(0, count($missing), '(%d, %s, %s)'));
+                $args   = array();
+                foreach ($missing as $user_id) {
+                    array_push($args, $user_id, 'admin_color', 'modern');
+                }
+                // phpcs:ignore WordPress.DB.DirectDatabaseQuery,WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare -- one-off step in the settings upgrade; placeholders built above.
+                $wpdb->query($wpdb->prepare("INSERT INTO {$wpdb->usermeta} (user_id, meta_key, meta_value) VALUES $values", $args));
+            }
+            foreach (array_merge($saved, $missing) as $user_id) {
+                wp_cache_delete($user_id, 'user_meta');
+            }
+        }
     }
 
     /**
@@ -447,8 +546,8 @@ final class SEOProStack_Setup {
 
     /**
      * SEO Pro Stack's own admin styles and script, after the shared ones:
-     * the discover tabs, the Agency tab's example data, the watermark note
-     * and the live admin colour switch.
+     * the discover tabs, the Agency tab's example data and the watermark
+     * note.
      */
     public static function enqueue_assets() {
         $css = 'admin/css/seoprostack-tabs.css';
@@ -537,8 +636,8 @@ final class SEOProStack_Setup {
     }
 
     /**
-     * Data for the admin script: admin colour schemes for the live switch,
-     * and the plugin sizes request on the Free Plugins tab.
+     * Data for the admin script: messages, and the plugin sizes request on
+     * the Free Plugins tab.
      *
      * @param array  $data Script data.
      * @param string $tab  Active tab.
@@ -550,8 +649,7 @@ final class SEOProStack_Setup {
             'noMatches'  => __('No matches.', 'seoprostack'),
             'activated'  => __('Activated', 'seoprostack'),
         ));
-        $data['colorSchemes'] = SEOProStack_Admin_Colors::scheme_urls();
-        $data['sizes']        = 'recommended' === $tab && class_exists('SEOProStack_Plugin_Sizes') ? array(
+        $data['sizes'] = 'recommended' === $tab && class_exists('SEOProStack_Plugin_Sizes') ? array(
             'action' => SEOProStack_Plugin_Sizes::AJAX,
             'nonce'  => wp_create_nonce(SEOProStack_Plugin_Sizes::AJAX),
         ) : null;

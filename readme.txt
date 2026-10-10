@@ -27,7 +27,7 @@ Safe features start on; others stay off. In **Settings → SEO Pro Stack**, **Se
 * **Tidy the dashboard**, **Dashboard and sidebar widgets**, **Hide admin notices** and a **More menu** for admin bar items.
 * **Quiet Freemius prompts** and **Quiet Appsero prompts**: no nags, upgrade offers or exit surveys.
 * **Tidy admin screens**, **Tidy WooCommerce admin**, **Tidy the login screen**, **Simpler block editor**, **Remove WordPress extras**, **Fewer Heartbeat requests**, **Limit post revisions** and **Lighter WooCommerce pages**.
-* **Modern admin colours**, **No fade between admin screens**, **Correct update counts**, **Readable list columns** and **Notification emails**.
+* **No fade between admin screens**, **Correct update counts**, **Readable list columns** and **Notification emails**.
 
 = Safer logins and access =
 
