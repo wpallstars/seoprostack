@@ -5,7 +5,7 @@ Tags: magic login, iframe, schedule posts, auto upload images, admin
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.3.32
+Stable tag: 1.3.33
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -140,11 +140,10 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 
 == Changelog ==
 
-= 1.3.32 =
-* New: Hosting needs warns when DISABLE_WP_CRON is set but no server cron job runs.
-* New: Light, Dark or System colour mode for the settings screen, per person.
-* Fix: a colour scheme picked in your profile sticks with Modern admin colours on.
-* Changed: a lightning bolt on the top tile of the banner and icon.
-* Developers: core files synced from WP Plugin Starter (d5fc891).
+= 1.3.33 =
+* New: Light, Dark or System mode for all of wp-admin, from an icon in the admin bar, shared with SEO Pro Stats.
+* Fix: in dark mode, the settings screen's accents follow your admin colour scheme.
+* Fix (GitHub builds): Check again offers new releases at once, and failed update checks are shown.
+* Developers: core files synced from WP Plugin Starter 1.0.32.
 
 Older: `changelog.txt`.

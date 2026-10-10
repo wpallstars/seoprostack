@@ -24,7 +24,7 @@ SEO Pro Stack does the jobs that usually take dozens of small plugins: a calmer,
 
 If this saves you time, headaches and costs, feel free to [buy me a coffee](https://buymeacoffee.com/marcusquinn), or whatever you like, to invest in making more things open-source.
 
-Version: 1.3.32
+Version: 1.3.33
 
 <!-- github-only:start -->
 ## Screenshots
@@ -1528,11 +1528,14 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folderâ
 
 ## Changelog
 
-### Unreleased
+### 1.3.33
 
-- Developers: core files synced from WP Plugin Starter (1ae9182): `DEVELOPMENT.md` no longer lists Qlty, which wpallstars no longer uses; the workflows run on a self-hosted runner only when the repository variable `CI_RUNNER` names one (not set here, so nothing changes), and CI's lint job uses a pinned, checksum-verified ShellCheck 0.11.0; `scripts/readme-badges.sh` matches the starter's again (GitHub issue #668).
+- New: the colour mode covers all of wp-admin and moves to an icon in the admin bar, just left of your name. A click turns **Dark** on or off; its menu offers **Light**, **Dark** and **System**. Dark gives every admin screen (Dashboard, lists, Plugins, the block editor's panels, Media, Site Health and SEO Pro Stack's own screen) dark backgrounds while your admin colour scheme, Modern included, keeps its menu, admin bar and accent colour. The choice is shared with SEO Pro Stats (user meta `wpallstars_admin_theme`, kept on uninstall while SEO Pro Stats is installed), and a change in either plugin shows in both at once. The button in SEO Pro Stack's header is gone. New `seoprostack_admin_dark_screen` filter keeps a screen light (GitHub issue #655).
+- Fix: in dark mode, the settings screen's switches, links, tabs, outlines and logo follow the admin colour scheme, as SEO Pro Stats' screens do. They were WordPress's old default blue in every scheme, Modern included, because the scheme's colour was read before WordPress sets it. Accent text keeps the scheme's hue at a lighter tone that reads at 4.5:1 or more on the dark surfaces, and primary buttons are darkened just enough for their labels. In light mode, lighter schemes' colours, such as Sunrise's orange, are darkened just enough to read at 4.5:1, and the classic schemes' bright link hover is darker. Turning **Modern admin colours** on or off recolours the screen at once (GitHub issue #670).
 - Fix (GitHub builds): **Check again** on the Updates screen offers a release published since the last check, and a failed check for updates on GitHub is shown under the plugin on the Plugins screen, with a **Check again now** link, and on the Updates screen, instead of failing silently (shared updater 1.6.1 from WP Plugin Starter 1.0.32).
+- Developers: core files synced from WP Plugin Starter (1ae9182): the workflows run on a self-hosted runner only when the repository variable `CI_RUNNER` names one (not set here, so nothing changes), and CI's lint job uses a pinned, checksum-verified ShellCheck 0.11.0; `scripts/readme-badges.sh` matches the starter's again (GitHub issue #668).
 - Developers: core files synced from WP Plugin Starter 1.0.32: the shared updater above; `STANDARDS.md` has the rules for every banner and icon picture; repository metrics refresh again (`repo-metrics.yml` uses aidevops v3.39.1) (GitHub issue #671).
+- Developers: `DEVELOPMENT.md` keeps Qlty among the organization's review apps, and says to merge without its check when the monthly minutes run out and never to make it required, as in WP Plugin Starter (GitHub issue #675).
 
 ### 1.3.32
 
