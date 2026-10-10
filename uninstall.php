@@ -186,6 +186,9 @@ function seoprostack_uninstall_site() {
 
     // Notices kept for each person from plugins that some screens skip.
     delete_metadata('user', 0, $wpdb->get_blog_prefix() . 'seoprostack_stored_notices', '', true);
+    // People who picked their own admin colour scheme while Modern admin
+    // colours was on. Their scheme (core's admin_color) is theirs and stays.
+    delete_metadata('user', 0, $wpdb->get_blog_prefix() . 'seoprostack_own_admin_color', '', true);
 
     // Short links and their categories. Pretty Links' own links, if any
     // were imported, are untouched.
