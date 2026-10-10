@@ -610,13 +610,11 @@ class SEOProStack_Database_Cleanup extends SEOProStack_Feature {
                 ));
             default:
                 // auto_drafts, as wp_delete_auto_drafts(): post_date, in site time.
-                // Every post type in the table, so the type_status_date index
-                // is used rather than a scan of every post.
+                // Registered post types, so the type_status_date index is
+                // used rather than a scan of every post. WordPress's own daily
+                // wp_delete_auto_drafts() still clears unregistered types.
                 $before = wp_date('Y-m-d H:i:s', time() - self::AUTO_DRAFT_DAYS * DAY_IN_SECONDS);
-                $types  = array_map('strval', (array) $wpdb->get_col($wpdb->prepare('SELECT DISTINCT post_type FROM %i', $wpdb->posts)));
-                if (!$types) {
-                    return $count ? 0 : array();
-                }
+                $types  = array_values(array_map('strval', get_post_types()));
                 $in = implode(', ', array_fill(0, count($types), '%s'));
                 if ($count) {
                     // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare, WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber -- $in holds only placeholders built above; every type is prepared.

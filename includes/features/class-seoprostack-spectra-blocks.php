@@ -241,27 +241,23 @@ class SEOProStack_Spectra_Blocks extends SEOProStack_Feature {
     }
 
     /**
-     * Posts that contain Spectra blocks, newest change first.
+     * Posts that contain Spectra blocks, newest first.
+     *
+     * By ID, so the database reads posts newest first and stops at the
+     * limit, rather than sorting every match.
      *
      * @param int $limit Most rows.
      * @return array<int, object{ID: string, post_title: string, post_type: string, post_status: string}>
      */
     public static function posts_with_blocks($limit = 50) {
         global $wpdb;
-        // Sorted here, not in SQL: only the few matching rows are sorted,
-        // where ORDER BY would sort every post the index range reads.
         // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- a one-off scan for the settings panel and the upgrade import.
         $rows = $wpdb->get_results($wpdb->prepare(
-            "SELECT ID, post_title, post_type, post_status, post_modified FROM {$wpdb->posts} WHERE post_type NOT IN ('revision', 'attachment') AND post_status IN ('publish', 'future', 'draft', 'pending', 'private') AND post_content LIKE %s",
-            '%' . $wpdb->esc_like('<!-- wp:uagb/') . '%'
+            "SELECT ID, post_title, post_type, post_status FROM {$wpdb->posts} WHERE post_type NOT IN ('revision', 'attachment') AND post_status IN ('publish', 'future', 'draft', 'pending', 'private') AND post_content LIKE %s ORDER BY ID DESC LIMIT %d",
+            '%' . $wpdb->esc_like('<!-- wp:uagb/') . '%',
+            max(1, (int) $limit)
         ));
-        if (!is_array($rows)) {
-            return array();
-        }
-        usort($rows, static function ($a, $b) {
-            return strcmp((string) $b->post_modified, (string) $a->post_modified) ?: (int) $b->ID - (int) $a->ID;
-        });
-        return array_slice($rows, 0, max(1, (int) $limit));
+        return is_array($rows) ? $rows : array();
     }
 
     /**
@@ -301,7 +297,7 @@ class SEOProStack_Spectra_Blocks extends SEOProStack_Feature {
         echo '</ul>';
         if (count($rows) > $limit) {
             /* translators: %d: number of posts listed */
-            echo '<p>' . esc_html(sprintf(__('Showing the %d most recently changed.', 'seoprostack'), $limit)) . '</p>';
+            echo '<p>' . esc_html(sprintf(__('Showing the %d newest.', 'seoprostack'), $limit)) . '</p>';
         }
         echo '</div>';
     }
