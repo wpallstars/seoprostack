@@ -61,7 +61,7 @@
 
 	function cleanColor(color) {
 		color = String(color || '').trim();
-		return /^#(?:[0-9a-f]{3,4}|[0-9a-f]{6}|[0-9a-f]{8})$/i.test(color) || /^rgba?\(\s*[0-9.%\s,\/]+\)$/i.test(color) ? color : '';
+		return /^#(?:[0-9a-f]{3,4}|[0-9a-f]{6}|[0-9a-f]{8})$/i.test(color) || /^rgba?\(\s*[0-9.%\s,/]+\)$/i.test(color) ? color : '';
 	}
 
 	/**
