@@ -248,13 +248,20 @@ class SEOProStack_Spectra_Blocks extends SEOProStack_Feature {
      */
     public static function posts_with_blocks($limit = 50) {
         global $wpdb;
+        // Sorted here, not in SQL: only the few matching rows are sorted,
+        // where ORDER BY would sort every post the index range reads.
         // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- a one-off scan for the settings panel and the upgrade import.
         $rows = $wpdb->get_results($wpdb->prepare(
-            "SELECT ID, post_title, post_type, post_status FROM {$wpdb->posts} WHERE post_type NOT IN ('revision', 'attachment') AND post_status IN ('publish', 'future', 'draft', 'pending', 'private') AND post_content LIKE %s ORDER BY post_modified DESC LIMIT %d",
-            '%' . $wpdb->esc_like('<!-- wp:uagb/') . '%',
-            max(1, (int) $limit)
+            "SELECT ID, post_title, post_type, post_status, post_modified FROM {$wpdb->posts} WHERE post_type NOT IN ('revision', 'attachment') AND post_status IN ('publish', 'future', 'draft', 'pending', 'private') AND post_content LIKE %s",
+            '%' . $wpdb->esc_like('<!-- wp:uagb/') . '%'
         ));
-        return is_array($rows) ? $rows : array();
+        if (!is_array($rows)) {
+            return array();
+        }
+        usort($rows, static function ($a, $b) {
+            return strcmp((string) $b->post_modified, (string) $a->post_modified) ?: (int) $b->ID - (int) $a->ID;
+        });
+        return array_slice($rows, 0, max(1, (int) $limit));
     }
 
     /**

@@ -610,17 +610,20 @@ class SEOProStack_Database_Cleanup extends SEOProStack_Feature {
                 ));
             default:
                 // auto_drafts, as wp_delete_auto_drafts(): post_date, in site time.
+                // Every post type in the table, so the type_status_date index
+                // is used rather than a scan of every post.
                 $before = wp_date('Y-m-d H:i:s', time() - self::AUTO_DRAFT_DAYS * DAY_IN_SECONDS);
-                if ($count) {
-                    return (int) $wpdb->get_var($wpdb->prepare(
-                        "SELECT COUNT(*) FROM %i p WHERE p.post_status = 'auto-draft' AND p.post_date < %s",
-                        $wpdb->posts, $before
-                    ));
+                $types  = array_map('strval', (array) $wpdb->get_col($wpdb->prepare('SELECT DISTINCT post_type FROM %i', $wpdb->posts)));
+                if (!$types) {
+                    return $count ? 0 : array();
                 }
-                return $wpdb->get_col($wpdb->prepare(
-                    "SELECT p.ID FROM %i p WHERE p.post_status = 'auto-draft' AND p.post_date < %s LIMIT %d",
-                    $wpdb->posts, $before, self::BATCH
-                ));
+                $in = implode(', ', array_fill(0, count($types), '%s'));
+                if ($count) {
+                    // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare, WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber -- $in holds only placeholders built above; every type is prepared.
+                    return (int) $wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM {$wpdb->posts} p WHERE p.post_type IN ($in) AND p.post_status = 'auto-draft' AND p.post_date < %s", array_merge($types, array($before))));
+                }
+                // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare, WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber -- $in holds only placeholders built above; every type is prepared.
+                return $wpdb->get_col($wpdb->prepare("SELECT p.ID FROM {$wpdb->posts} p WHERE p.post_type IN ($in) AND p.post_status = 'auto-draft' AND p.post_date < %s LIMIT %d", array_merge($types, array($before, self::BATCH))));
         }
     }
 
