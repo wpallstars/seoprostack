@@ -58,7 +58,8 @@ Safe features start on; others stay off. In **Settings → SEO Pro Stack**, **Se
 = Links and speed =
 
 * **Rank Math defaults**: empty keywords from titles, pillar warnings and selected-post removal.
-* **Short links** with click counts, **Short addresses for custom post types** and **410 Gone** for removed pages.
+* **Short links** with click counts and **410 Gone** for removed pages.
+* **Short addresses for custom post types**: other plugins can add their own types through `seoprostack_short_address_types`, even while this feature is off; the panel lists them.
 * **External link icons**: Kadence colours, no scripts; replaces Link Whisper's icon only.
 * **Internal linking tools** (off): suggestions, undo, counts, orphans and read-only Link Whisper checks.
 * **Recommended speed settings**, **Load pages before the click**, **Delay scripts until interaction**, **Delayed Google Analytics** and faster Kadence Blocks editing.
