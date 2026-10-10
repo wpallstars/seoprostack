@@ -1,13 +1,32 @@
 /**
- * Per-person colour mode, scoped to SEO Pro Stack's settings screen.
- * Palette, classic WordPress overrides and the admin colour scheme's accent
- * match SEO Pro Stats (its #219, #228 and #239). Light is WordPress's own,
- * apart from the scheme colour's brightness; every dark rule requires
- * html.sps-dark.
+ * Colour mode for the whole of wp-admin (SEOProStack_Admin_Theme,
+ * admin/js/seoprostack-theme.js): Light is WordPress's own look; Dark gives
+ * every admin screen dark surfaces.
+ *
+ * Every dark rule waits for `sps-dark` on <html>, which a small script in
+ * each screen's <head> sets before anything is drawn (Dark, or System while
+ * the computer is dark), so nothing flashes. The admin menu and admin bar
+ * keep the admin colour scheme's own colours, and its accent (Modern's
+ * blue, Sunrise's orange...) stays the accent: it is read at runtime from
+ * --wp-admin-theme-color on body, where WordPress sets it, never fixed here.
+ *
+ * The palette is WordPress's admin greys, defined once (--sps-ui-*), the
+ * same as SEO Pro Stats' (wpallstars/seoprostats#219). WordPress
+ * components' theme variables (--wp-components-color-*) and design tokens
+ * (--wpds-*) take their dark values from it; classic admin styles, which
+ * paint fixed light colours, get the same values below. Broad element rules
+ * sit in :where(), so any rule with a class, from WordPress or another
+ * plugin, still wins.
+ *
+ * The block editor's own chrome turns dark; its canvas keeps the theme's
+ * colours, as visitors see them.
+ *
  * SPDX-License-Identifier: GPL-3.0-or-later
  * SPDX-FileCopyrightText: 2026 Marcus Quinn
  * Additional terms (GPL-3.0 section 7(b)): SEOPROSTACK-ATTRIBUTION.txt
  */
+
+/* Palette ------------------------------------------------------------- */
 
 html.sps-dark {
 	--sps-ui-canvas: #101517;
@@ -21,6 +40,9 @@ html.sps-dark {
 	--sps-ui-good: #68de7c;
 	--sps-ui-bad: #ff8085;
 	--sps-ui-warning: #f0c33c;
+	--sps-ui-info: #72aee6;
+	--sps-ui-hover: rgb(255 255 255 / 6%);
+	--sps-ui-stripe: rgb(255 255 255 / 4%);
 
 	color-scheme: dark;
 	background: var(--sps-ui-canvas);
@@ -28,36 +50,124 @@ html.sps-dark {
 
 /*
  * The accent, on body: WordPress sets the admin colour scheme's
- * --wp-admin-theme-color on body (admin-color-*), so on html it is still
- * the default blue. Reading it here follows every scheme, and a live change
- * of the body class (the Modern admin colours switch). The text accent
- * keeps the scheme's hue and raises its lightness (OKLCH) to read at 4.5:1
- * on every dark surface; older browsers mix it with white instead. Also
- * WordPress components' theme variables (in dialogs and popovers too).
+ * --wp-admin-theme-color on body (admin-color-*); on html it is still the
+ * default blue, whatever the scheme. Text and lines in the accent keep the
+ * scheme's hue and raise its lightness (OKLCH) to read at 4.5:1 on every
+ * dark surface; older browsers mix it with white instead.
  */
 html.sps-dark body {
 	--sps-ui-accent-fill: var(--wp-admin-theme-color, #2271b1);
 	--sps-ui-accent: #72aee6;
-	--wp-components-color-background: var(--sps-ui-surface);
-	--wp-components-color-foreground: var(--sps-ui-text);
-	--wp-components-color-foreground-inverted: var(--sps-ui-surface);
-	--wp-components-color-gray-100: var(--sps-ui-raised);
-	--wp-components-color-gray-200: var(--sps-ui-border);
-	--wp-components-color-gray-300: var(--sps-ui-border);
-	--wp-components-color-gray-400: #646970;
-	--wp-components-color-gray-600: var(--sps-ui-field-border);
-	--wp-components-color-gray-700: var(--sps-ui-subtle);
-	--wp-components-color-gray-800: var(--sps-ui-muted);
-
-	/* ExternalLink: the accent, and the text colour on hover (WordPress darkens it). */
-	--wpds-color-foreground-interactive-brand: var(--sps-ui-accent);
-	--wpds-color-foreground-interactive-brand-active: var(--sps-ui-text);
-
-	/* Menu items' focus ring: WordPress's design tokens fix it at #3858e9 in every scheme. */
-	--wpds-color-stroke-focus: var(--sps-ui-accent);
+	--sps-ui-primary: var(--sps-ui-accent-fill);
+	--sps-ui-primary-hover: var(--wp-admin-theme-color-darker-10, #135e96);
 
 	color: var(--sps-ui-text);
 	background: var(--sps-ui-canvas);
+}
+
+/*
+ * WordPress components and design tokens. The block editor and other
+ * React screens set the tokens' light values inline on their own wrappers
+ * (a theme provider), so the dark values are set there too, and win.
+ */
+html.sps-dark :is(body, body [style*="--wpds-color"], body [style*="--wp-components-color"]) {
+	/* WordPress components, in dialogs and popovers too (outside the screen's wrapper). */
+	--wp-components-color-background: var(--sps-ui-surface) !important;
+	--wp-components-color-foreground: var(--sps-ui-text) !important;
+	--wp-components-color-foreground-inverted: var(--sps-ui-surface) !important;
+	--wp-components-color-gray-100: var(--sps-ui-raised) !important;
+	--wp-components-color-gray-200: var(--sps-ui-border) !important;
+	--wp-components-color-gray-300: var(--sps-ui-border) !important;
+	--wp-components-color-gray-400: #646970 !important;
+	--wp-components-color-gray-600: var(--sps-ui-field-border) !important;
+	--wp-components-color-gray-700: var(--sps-ui-subtle) !important;
+	--wp-components-color-gray-800: var(--sps-ui-muted) !important;
+
+	/* WordPress's design tokens (WordPress 7), fixed light in every scheme. */
+	--wpds-color-background-surface-neutral: var(--sps-ui-surface) !important;
+	--wpds-color-background-surface-neutral-strong: var(--sps-ui-surface) !important;
+	--wpds-color-background-surface-neutral-weak: var(--sps-ui-canvas) !important;
+	--wpds-color-background-surface-brand: var(--sps-ui-raised) !important;
+	--wpds-color-background-surface-success: #1c3d24 !important;
+	--wpds-color-background-surface-success-weak: #16291b !important;
+	--wpds-color-background-surface-info: #1b3048 !important;
+	--wpds-color-background-surface-info-weak: #152333 !important;
+	--wpds-color-background-surface-warning: #42341a !important;
+	--wpds-color-background-surface-warning-weak: #2e2716 !important;
+	--wpds-color-background-surface-caution: #3f3a17 !important;
+	--wpds-color-background-surface-caution-weak: #2b2814 !important;
+	--wpds-color-background-surface-error: #4a2224 !important;
+	--wpds-color-background-surface-error-weak: #33191b !important;
+	--wpds-color-background-interactive-neutral-strong: var(--sps-ui-text) !important;
+	--wpds-color-background-interactive-neutral-strong-active: #fff !important;
+	--wpds-color-background-interactive-neutral-strong-disabled: var(--sps-ui-raised) !important;
+	--wpds-color-background-interactive-neutral-weak-active: var(--sps-ui-raised) !important;
+	--wpds-color-background-interactive-brand-strong: var(--sps-ui-primary) !important;
+	--wpds-color-background-interactive-brand-strong-active: var(--sps-ui-primary-hover) !important;
+	--wpds-color-background-interactive-brand-strong-disabled: var(--sps-ui-raised) !important;
+	--wpds-color-background-interactive-brand-weak-active: var(--sps-ui-raised) !important;
+	--wpds-color-background-interactive-error-active: #33191b !important;
+	--wpds-color-background-interactive-error-strong-disabled: var(--sps-ui-raised) !important;
+	--wpds-color-background-interactive-error-weak-active: #4a2224 !important;
+	--wpds-color-background-track-neutral-weak: var(--sps-ui-raised) !important;
+	--wpds-color-background-track-neutral: var(--sps-ui-border) !important;
+	--wpds-color-background-thumb-neutral-weak: var(--sps-ui-field-border) !important;
+	--wpds-color-background-thumb-neutral-weak-active: var(--sps-ui-muted) !important;
+	--wpds-color-background-thumb-brand: var(--sps-ui-accent) !important;
+	--wpds-color-background-thumb-brand-active: var(--sps-ui-accent) !important;
+	--wpds-color-background-thumb-brand-disabled: var(--sps-ui-border) !important;
+	--wpds-color-background-thumb-neutral-weak-disabled: var(--sps-ui-border) !important;
+	--wpds-color-foreground-content-neutral: var(--sps-ui-text) !important;
+	--wpds-color-foreground-content-neutral-weak: var(--sps-ui-subtle) !important;
+	--wpds-color-foreground-content-success: #b8f0c1 !important;
+	--wpds-color-foreground-content-success-weak: var(--sps-ui-good) !important;
+	--wpds-color-foreground-content-info: #c5dcf5 !important;
+	--wpds-color-foreground-content-info-weak: var(--sps-ui-info) !important;
+	--wpds-color-foreground-content-warning: #f5dfb0 !important;
+	--wpds-color-foreground-content-warning-weak: var(--sps-ui-warning) !important;
+	--wpds-color-foreground-content-caution: #f3e7a6 !important;
+	--wpds-color-foreground-content-caution-weak: var(--sps-ui-warning) !important;
+	--wpds-color-foreground-content-error: #ffd0d2 !important;
+	--wpds-color-foreground-content-error-weak: var(--sps-ui-bad) !important;
+	--wpds-color-foreground-interactive-neutral: var(--sps-ui-text) !important;
+	--wpds-color-foreground-interactive-neutral-active: #fff !important;
+	--wpds-color-foreground-interactive-neutral-disabled: #8c8f94 !important;
+	--wpds-color-foreground-interactive-neutral-strong: var(--sps-ui-canvas) !important;
+	--wpds-color-foreground-interactive-neutral-strong-active: var(--sps-ui-canvas) !important;
+	--wpds-color-foreground-interactive-neutral-weak: var(--sps-ui-subtle) !important;
+	--wpds-color-foreground-interactive-neutral-weak-active: var(--sps-ui-text) !important;
+	--wpds-color-foreground-interactive-brand: var(--sps-ui-accent) !important;
+	--wpds-color-foreground-interactive-brand-active: var(--sps-ui-text) !important;
+	--wpds-color-foreground-interactive-error: var(--sps-ui-bad) !important;
+	--wpds-color-foreground-interactive-error-active: #ffd0d2 !important;
+	--wpds-color-stroke-surface-neutral: var(--sps-ui-border) !important;
+	--wpds-color-stroke-surface-neutral-weak: var(--sps-ui-raised) !important;
+	--wpds-color-stroke-surface-neutral-strong: var(--sps-ui-field-border) !important;
+	--wpds-color-stroke-surface-brand: var(--sps-ui-border) !important;
+	--wpds-color-stroke-surface-brand-strong: var(--sps-ui-accent) !important;
+	--wpds-color-stroke-surface-success: #2e6b3a !important;
+	--wpds-color-stroke-surface-success-strong: var(--sps-ui-good) !important;
+	--wpds-color-stroke-surface-info: #2c5683 !important;
+	--wpds-color-stroke-surface-info-strong: var(--sps-ui-info) !important;
+	--wpds-color-stroke-surface-warning: #7a5d22 !important;
+	--wpds-color-stroke-surface-warning-strong: var(--sps-ui-warning) !important;
+	--wpds-color-stroke-surface-caution: #6e6223 !important;
+	--wpds-color-stroke-surface-caution-strong: var(--sps-ui-warning) !important;
+	--wpds-color-stroke-surface-error: #7d3437 !important;
+	--wpds-color-stroke-surface-error-strong: var(--sps-ui-bad) !important;
+	--wpds-color-stroke-interactive-neutral: var(--sps-ui-field-border) !important;
+	--wpds-color-stroke-interactive-neutral-active: var(--sps-ui-muted) !important;
+	--wpds-color-stroke-interactive-neutral-disabled: var(--sps-ui-border) !important;
+	--wpds-color-stroke-interactive-neutral-strong: var(--sps-ui-muted) !important;
+	--wpds-color-stroke-interactive-brand: var(--sps-ui-accent) !important;
+	--wpds-color-stroke-interactive-brand-active: var(--sps-ui-text) !important;
+	--wpds-color-stroke-interactive-brand-disabled: var(--sps-ui-border) !important;
+	--wpds-color-stroke-interactive-error: var(--sps-ui-bad) !important;
+	--wpds-color-stroke-interactive-error-active: #ffd0d2 !important;
+	--wpds-color-stroke-interactive-error-strong: var(--sps-ui-bad) !important;
+
+	/* Menu items' focus ring: WordPress fixes it at #3858e9 in every scheme. */
+	--wpds-color-stroke-focus: var(--sps-ui-accent) !important;
 }
 
 @supports (color: color-mix(in srgb, red 10%, transparent)) {
@@ -67,9 +177,9 @@ html.sps-dark body {
 }
 
 /*
- * Primary buttons: the scheme's fill, darkened only where light text on it
- * would fall below 4.5:1 (lighter fills, such as Sunrise's). Older browsers
- * keep the scheme's own fill, as WordPress does.
+ * Primary fills: the scheme's colour, darkened only where white labels on
+ * it would fall below 4.5:1 (lighter fills, such as Sunrise's). Older
+ * browsers keep the scheme's own fill, as WordPress does.
  */
 @supports (color: oklch(from red max(l, 0.75) min(c, 0.15) h)) {
 	html.sps-dark body {
@@ -81,111 +191,116 @@ html.sps-dark body {
 		--wp-components-color-accent-darker-20: oklch(from var(--sps-ui-primary) calc(l - 0.12) c h);
 	}
 
-	html.sps-dark .wp-core-ui .button-primary:not(:disabled, .disabled) {
+	html.sps-dark .wp-core-ui .button-primary:not(:disabled, .disabled, .button-disabled) {
 		background: var(--sps-ui-primary);
 		border-color: var(--sps-ui-primary);
 	}
 
-	html.sps-dark .wp-core-ui .button-primary:is(:hover, :focus):not(:disabled, .disabled) {
+	html.sps-dark .wp-core-ui .button-primary:is(:hover, :focus):not(:disabled, .disabled, .button-disabled) {
 		background: var(--sps-ui-primary-hover);
 		border-color: var(--sps-ui-primary-hover);
 	}
 }
 
 /*
- * Light mode keeps the scheme's hue, at a brightness that reads at 4.5:1:
- * its luminance is lowered to at most 0.15 (0.12 and 0.096 for the darker
- * tones), which keeps its hue and saturation and reads on the lightest
- * greys (#f0f0f0) and behind white labels. Darker schemes' colours, such as
- * Modern's, are under the cap and stay as they are. Read on body, where
- * WordPress sets them; used by everything inside it, which is all of
- * WordPress's buttons, fields and components on this screen. Menu items'
- * focus ring reads a design token WordPress fixes at #3858e9 in every
- * scheme; it takes the scheme's colour too.
+ * Light mode, on SEO Pro Stack's own screen only: the scheme's hue, at a
+ * brightness that reads at 4.5:1. Its luminance is lowered to at most 0.15
+ * (0.12 and 0.096 for the darker tones), keeping hue and saturation; darker
+ * schemes' colours, such as Modern's, are under the cap and stay as they
+ * are. Computed on body, where WordPress sets the scheme, and given back on
+ * body's children, as a custom property cannot refer to itself.
  */
-html:not(.sps-dark) body {
+html:not(.sps-dark) body.sps-own-screen {
 	--wpds-color-stroke-focus: var(--wp-admin-theme-color, #2271b1);
 }
 
 @supports (color: color(from red xyz-d65 calc(x * min(1, 0.15 / y)) min(y, 0.15) z)) {
-	html:not(.sps-dark) body {
-		--wpds-color-stroke-focus: var(--sps-scheme-fill);
+	html:not(.sps-dark) body.sps-own-screen {
 		--sps-scheme-fill: color(from var(--wp-admin-theme-color, #2271b1) xyz-d65 calc(x * min(1, 0.15 / y)) min(y, 0.15) calc(z * min(1, 0.15 / y)));
 		--sps-scheme-fill-10: color(from var(--wp-admin-theme-color-darker-10, #135e96) xyz-d65 calc(x * min(1, 0.12 / y)) min(y, 0.12) calc(z * min(1, 0.12 / y)));
 		--sps-scheme-fill-20: color(from var(--wp-admin-theme-color-darker-20, #0a4b78) xyz-d65 calc(x * min(1, 0.096 / y)) min(y, 0.096) calc(z * min(1, 0.096 / y)));
+		--wpds-color-stroke-focus: var(--sps-scheme-fill);
 	}
 
-	html:not(.sps-dark) body > * {
+	html:not(.sps-dark) body.sps-own-screen > * {
 		--wp-admin-theme-color: var(--sps-scheme-fill);
 		--wp-admin-theme-color-darker-10: var(--sps-scheme-fill-10);
 		--wp-admin-theme-color-darker-20: var(--sps-scheme-fill-20);
 	}
 }
 
-/*
- * The classic schemes (Light, Blue, Midnight, Sunrise, Ectoplasm, Ocean,
- * Coffee) brighten links on hover and focus, to 3.3:1 on white; this is
- * their link blue darkened instead. As specific as their rule, so it wins
- * by order and any rule with a class still wins.
- */
-:where(html:not(.sps-dark) body:is(.admin-color-light, .admin-color-blue, .admin-color-midnight, .admin-color-sunrise, .admin-color-ectoplasm, .admin-color-ocean, .admin-color-coffee) :is(#wpbody, .components-modal__frame)) a:is(:hover, :active, :focus) {
+/* The classic schemes brighten links on hover and focus (3.3:1 on white); darken them instead. */
+:where(html:not(.sps-dark) body.sps-own-screen:is(.admin-color-light, .admin-color-blue, .admin-color-midnight, .admin-color-sunrise, .admin-color-ectoplasm, .admin-color-ocean, .admin-color-coffee) :is(#wpbody, .components-modal__frame)) a:is(:hover, :active, :focus) {
 	color: #005e8e;
 }
 
-html.sps-dark .sps-wrap {
-	--sps-accent: var(--sps-ui-accent);
-	--sps-accent-dark: var(--sps-ui-text);
-	--sps-text: var(--sps-ui-text);
-	--sps-muted: var(--sps-ui-muted);
-	--sps-border: var(--sps-ui-border);
-	--sps-surface: var(--sps-ui-surface);
-	--sps-subtle: var(--sps-ui-raised);
-	--sps-divider: var(--sps-ui-raised);
-	--sps-hover: var(--sps-ui-raised);
-	--sps-success: var(--sps-ui-good);
-	--sps-error: var(--sps-ui-bad);
-	--sps-shadow: 0 1px 2px rgb(0 0 0 / 40%);
-}
+/* The page --------------------------------------------------------------- */
 
-html.sps-dark :is(#wpwrap, #wpcontent, #wpbody-content) {
+html.sps-dark :is(#wpwrap, #wpcontent, #wpbody, #wpbody-content) {
 	background: var(--sps-ui-canvas);
 }
 
-/* Low-specificity classic elements preserve core focus and class rules. */
-
-:where(html.sps-dark :is(#wpbody, .components-modal__frame)) :is(h1, h2, h3, h4, h5, h6) {
+/* Headings; another plugin's own heading colour still wins. */
+:where(html.sps-dark :is(#wpbody, .components-modal__frame, .media-modal, [id="TB_window"])) :is(h1, h2, h3, h4, h5, h6) {
 	color: var(--sps-ui-text);
 }
 
-:where(html.sps-dark :is(#wpbody, #wpfooter, .components-modal__frame)) a {
+/* WordPress's headings with a fixed #1d2327 behind an ID. */
+html.sps-dark #wpbody :is(#dashboard-widgets, #poststuff, #nav-menu-meta, #col-left, #col-right) :is(h2, h3, h4) {
+	color: var(--sps-ui-text);
+}
+
+:where(html.sps-dark :is(#wpbody, #wpfooter, .components-modal__frame, .media-modal, [id="TB_window"], .wp-pointer)) a {
 	color: var(--sps-ui-accent);
 }
 
 /* WordPress darkens links on hover and focus (#135e96, #043959). */
-:where(html.sps-dark :is(#wpbody, #wpfooter, .components-modal__frame)) a:is(:hover, :active, :focus) {
+:where(html.sps-dark :is(#wpbody, #wpfooter, .components-modal__frame, .media-modal, [id="TB_window"], .wp-pointer)) a:is(:hover, :active, :focus) {
 	color: var(--sps-ui-text);
 }
 
-/* Match core's p.description rather than losing to its specificity. */
-
+/* As specific as WordPress's own p.description, so it wins by order. */
 html.sps-dark #wpfooter,
-:where(html.sps-dark #wpbody) :is(p, span, div).description {
+:where(html.sps-dark :is(#wpbody, .media-modal)) :is(p, span, div).description,
+:where(html.sps-dark #wpbody) :is(.howto, .subsubsub, .displaying-num, .count, .post-state, .widefat .row-title + .post-state) {
 	color: var(--sps-ui-muted);
 }
 
-:where(html.sps-dark #wpbody) :is(code, kbd) {
+/* Help under fields on term and other add/edit forms (WordPress: #646970). */
+html.sps-dark #wpbody :is(.form-wrap p, p.help, .form-wrap .edit-term-notes, .form-wrap .edit-term-notes strong) {
+	color: var(--sps-ui-muted);
+}
+
+:where(html.sps-dark :is(#wpbody, .media-modal)) :is(code, kbd) {
 	color: var(--sps-ui-text);
 	background: rgb(255 255 255 / 10%);
 }
 
-:where(html.sps-dark #wpbody) :is(.form-table th, label) {
+:where(html.sps-dark :is(#wpbody, .media-modal)) :is(.form-table th, label, legend, dt, .form-table td) {
 	color: inherit;
 }
 
+:where(html.sps-dark #wpbody) hr {
+	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark #wpbody :is(.subsubsub a .count, .subsubsub a.current .count, .subsubsub .count) {
+	color: var(--sps-ui-subtle);
+}
+
+html.sps-dark #wpbody .subsubsub a.current {
+	color: var(--sps-ui-text);
+}
+
+/* Screen Options and Help. */
 html.sps-dark :is(#screen-meta, #screen-meta-links .show-settings) {
 	color: var(--sps-ui-muted);
 	background: var(--sps-ui-surface);
 	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark #screen-meta-links .show-settings:is(:hover, :focus, :active) {
+	color: var(--sps-ui-text);
 }
 
 html.sps-dark :is(#contextual-help-back, .contextual-help-tabs .active) {
@@ -193,23 +308,35 @@ html.sps-dark :is(#contextual-help-back, .contextual-help-tabs .active) {
 	border-color: var(--sps-ui-border);
 }
 
-:where(html.sps-dark :is(#wpbody, .components-modal__frame)) :is(input:not([type="checkbox"], [type="radio"], [type="submit"], [type="button"], [type="reset"], [type="file"], [type="color"], [type="range"]), textarea, select) {
+html.sps-dark .contextual-help-tabs a:hover {
+	color: var(--sps-ui-text);
+}
+
+html.sps-dark #contextual-help-columns {
+	border-color: var(--sps-ui-border);
+}
+
+/* Fields ------------------------------------------------------------------ */
+
+/* WordPress's own :focus rules still win, so the focus ring stays. */
+:where(html.sps-dark :is(#wpbody, .components-modal__frame, .media-modal, [id="TB_window"], #sps-notices-wrap)) :is(input:not([type="checkbox"], [type="radio"], [type="submit"], [type="button"], [type="reset"], [type="file"], [type="color"], [type="range"], [type="image"]), textarea, select) {
 	color: var(--sps-ui-text);
 	background-color: var(--sps-ui-canvas);
 	border-color: var(--sps-ui-field-border);
 }
 
-:where(html.sps-dark #wpbody) :is(input, textarea)::placeholder {
+:where(html.sps-dark :is(#wpbody, .media-modal)) :is(input, textarea)::placeholder {
 	color: var(--sps-ui-subtle);
 }
 
-:where(html.sps-dark #wpbody) :is(input:disabled, textarea:disabled, select:disabled, input[readonly], textarea[readonly]) {
+:where(html.sps-dark :is(#wpbody, .media-modal)) :is(input:disabled, textarea:disabled, select:disabled, input[readonly], textarea[readonly]) {
 	color: var(--sps-ui-subtle);
 	background-color: var(--sps-ui-raised);
 	border-color: var(--sps-ui-border);
 }
 
-:where(html.sps-dark #wpbody) select:not([multiple], .components-select-control__input) {
+/* The select arrow, drawn light (WordPress draws it dark grey). */
+:where(html.sps-dark :is(#wpbody, .media-modal)) select:not([multiple], .components-select-control__input) {
 	background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20width%3D%2220%22%20height%3D%2220%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cpath%20d%3D%22M5%206l5%205%205-5%202%201-7%207-7-7%202-1z%22%20fill%3D%22%23c3c4c7%22%2F%3E%3C%2Fsvg%3E");
 }
 
@@ -227,84 +354,656 @@ html.sps-dark .wp-core-ui select:disabled:is(:hover, :focus) {
 	border-color: var(--sps-ui-border);
 }
 
-:where(html.sps-dark #wpbody) :is(input[type="checkbox"], input[type="radio"]) {
+:where(html.sps-dark :is(#wpbody, .media-modal, #sps-notices-wrap)) :is(input[type="checkbox"], input[type="radio"]) {
 	background: var(--sps-ui-canvas);
 	border-color: var(--sps-ui-field-border);
 }
 
-html.sps-dark .wp-core-ui :is(.button:not(.button-primary), .button-secondary) {
+html.sps-dark input[type="checkbox"]:checked::before {
+	content: url("data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2020%2020%27%3E%3Cpath%20d%3D%27M14.83%204.89l1.34.94-5.81%208.38H9.02L5.78%209.67l1.34-1.25%202.57%202.4z%27%20fill%3D%27%2372aee6%27%2F%3E%3C%2Fsvg%3E");
+}
+
+html.sps-dark input[type="radio"]:checked::before {
+	background-color: var(--sps-ui-accent);
+}
+
+/* Buttons ---------------------------------------------------------------- */
+
+/* Secondary buttons outlined in the light accent; primary ones keep the scheme's fill. */
+html.sps-dark .wp-core-ui :is(.button:not(.button-primary), .button-secondary),
+html.sps-dark .wrap .page-title-action {
 	color: var(--sps-ui-accent);
 	background: var(--sps-ui-surface);
 	border-color: var(--sps-ui-accent);
 }
 
-html.sps-dark .wp-core-ui :is(.button:not(.button-primary), .button-secondary):is(:hover, :focus) {
+html.sps-dark .wp-core-ui :is(.button:not(.button-primary), .button-secondary):is(:hover, :focus),
+html.sps-dark .wrap .page-title-action:is(:hover, :focus) {
 	color: var(--sps-ui-text);
 	background: var(--sps-ui-raised);
 	border-color: var(--sps-ui-text);
 }
 
-html.sps-dark .wp-core-ui :is(.button:disabled, .button.disabled) {
+html.sps-dark .wp-core-ui :is(.button:disabled, .button.disabled, .button-disabled, .button-secondary:disabled, .button-primary:disabled, .button-primary.disabled, .button-primary-disabled) {
 	color: var(--sps-ui-subtle) !important;
 	background: var(--sps-ui-raised) !important;
 	border-color: var(--sps-ui-border) !important;
+	text-shadow: none !important;
 }
 
 html.sps-dark .wp-core-ui .button-link {
 	color: var(--sps-ui-accent);
 }
 
-html.sps-dark #wpbody :is(.notice, div.updated, div.error) {
+html.sps-dark .wp-core-ui .button-link:is(:hover, :active) {
+	color: var(--sps-ui-text);
+}
+
+/* Delete, Trash and Spam links (WordPress: #b32d2e, 2.5:1 on dark). */
+html.sps-dark .wp-core-ui .button-link-delete,
+html.sps-dark #wpbody :is(.submitdelete, .row-actions .delete a, .row-actions .trash a, .row-actions .spam a, .delete-theme, a.delete, .deletion, .button-link-delete, .vim-destructive, .resume-link, .plugins .paused .plugin-title) {
+	color: var(--sps-ui-bad);
+}
+
+html.sps-dark #wpbody :is(.submitdelete, .row-actions .delete a, .row-actions .trash a, .row-actions .spam a, a.delete, .vim-destructive):is(:hover, :focus) {
+	color: #ffd0d2;
+}
+
+/* Notices ---------------------------------------------------------------- */
+
+html.sps-dark :is(#wpbody, #sps-notices-wrap, .media-modal) :is(.notice, div.updated, div.error, .update-nag, .update-message) {
 	color: var(--sps-ui-text);
 	background: var(--sps-ui-surface);
 	box-shadow: none;
 }
 
-html.sps-dark #wpbody .notice-dismiss::before {
-	color: var(--sps-ui-muted);
-}
-
 /* WordPress paints notice text #1e1e1e and links in darker tones of the scheme. */
-html.sps-dark #wpbody :is(.notice, div.updated, div.error) :is(p, .notice-title) {
+html.sps-dark :is(#wpbody, #sps-notices-wrap) :is(.notice, div.updated, div.error, .update-nag) :is(p, .notice-title, li, h2, h3, strong) {
 	color: inherit;
 }
 
-html.sps-dark #wpbody :is(.notice, div.updated, div.error) a {
+html.sps-dark :is(#wpbody, #sps-notices-wrap) :is(.notice, div.updated, div.error, .update-nag, .update-message) a {
 	color: var(--sps-ui-accent);
 }
 
-html.sps-dark #wpbody :is(.notice, div.updated, div.error) a:is(:hover, :active, :focus) {
+html.sps-dark :is(#wpbody, #sps-notices-wrap) :is(.notice, div.updated, div.error, .update-nag, .update-message) a:is(:hover, :active, :focus) {
 	color: var(--sps-ui-text);
 }
 
-html.sps-dark :is(#wpbody, .components-modal__frame) :is(.widefat, .postbox, .card, .stuffbox) {
+html.sps-dark :is(#wpbody, #sps-notices-wrap) .notice-dismiss::before {
+	color: var(--sps-ui-muted);
+}
+
+/* Inline notices on tinted backgrounds (plugin updates, Site Health). */
+html.sps-dark .notice-alt.notice-warning,
+html.sps-dark .notice-alt.update-message:not(.notice-error, .notice-success, .updated-message) {
+	background-color: #2e2716;
+}
+
+html.sps-dark .notice-alt.notice-error {
+	background-color: #33191b;
+}
+
+html.sps-dark .notice-alt:is(.notice-success, .updated-message) {
+	background-color: #16291b;
+}
+
+html.sps-dark .notice-alt.notice-info {
+	background-color: #152333;
+}
+
+html.sps-dark :is(.update-message, .updating-message, .updated-message, .notice-alt)::before {
+	color: inherit;
+}
+
+html.sps-dark :is(.notice-warning, .update-message, .update-nag):not(.notice-error, .notice-success)::before {
+	color: var(--sps-ui-warning);
+}
+
+/* SEO Pro Stack's notices panel (the admin bar's megaphone) also shows other plugins' notices. */
+html.sps-dark #sps-notices-wrap {
+	color: var(--sps-ui-text);
+	background: var(--sps-ui-canvas);
+	border-color: var(--sps-ui-border);
+	box-shadow: 0 8px 24px rgb(0 0 0 / 55%);
+}
+
+/* Tables ----------------------------------------------------------------- */
+
+html.sps-dark :is(#wpbody, .components-modal__frame, .media-modal) :is(.widefat, .postbox, .card, .stuffbox, .welcome-panel-content) {
 	color: var(--sps-ui-text);
 	background: var(--sps-ui-surface);
 	border-color: var(--sps-ui-border);
 }
 
-html.sps-dark :is(#wpbody, .components-modal__frame) .widefat :is(td, th) {
+html.sps-dark :is(#wpbody, .components-modal__frame) .widefat :is(td, th, thead td, thead th, tfoot td, tfoot th) {
 	color: var(--sps-ui-text);
 	border-color: var(--sps-ui-border);
 }
 
-/* Core paints table lists and paragraphs dark grey separately. */
-
-html.sps-dark :is(#wpbody, .components-modal__frame) .widefat :is(ol, ul, p) {
+/* WordPress paints lists and paragraphs in tables dark grey. */
+html.sps-dark :is(#wpbody, .components-modal__frame) .widefat :is(ol, ul, p, .column-description, .plugin-description) {
 	color: inherit;
 }
 
-html.sps-dark #wpbody .widefat :is(thead th, thead td, tfoot th, tfoot td) {
+html.sps-dark #wpbody .widefat :is(thead th, thead td, tfoot th, tfoot td),
+html.sps-dark #wpbody .widefat :is(thead, tfoot) :is(th, td) a {
 	color: var(--sps-ui-muted);
 }
 
-html.sps-dark :is(#wpbody, .components-modal__frame) :is(.striped > tbody > :nth-child(odd), ul.striped > :nth-child(odd), .alternate) {
-	background-color: rgb(255 255 255 / 4%);
+html.sps-dark #wpbody .widefat :is(thead, tfoot) :is(th, td) a:is(:hover, :focus),
+html.sps-dark #wpbody .widefat .sorted a,
+html.sps-dark #wpbody .widefat .sorting-indicator::before {
+	color: var(--sps-ui-text);
 }
 
-/* WordPress components, including popovers outside the plugin wrapper. */
+html.sps-dark :is(#wpbody, .components-modal__frame) :is(.striped > tbody > :nth-child(odd), ul.striped > :nth-child(odd), .alternate) {
+	background-color: var(--sps-ui-stripe);
+}
 
-html.sps-dark :is(.components-card, .components-modal__frame, .components-modal__header, .components-popover__content, .components-dropdown-menu__menu, .components-panel, .components-panel__body) {
+html.sps-dark #wpbody .wp-list-table :is(.row-title, .column-primary strong a, .plugin-title strong, .theme-title strong) {
+	color: var(--sps-ui-accent);
+}
+
+html.sps-dark #wpbody .wp-list-table :is(.row-title, .column-primary strong a):is(:hover, :focus) {
+	color: var(--sps-ui-text);
+}
+
+html.sps-dark #wpbody .wp-list-table .plugin-title strong,
+html.sps-dark #wpbody .wp-list-table .theme-title strong {
+	color: var(--sps-ui-text);
+}
+
+html.sps-dark #wpbody .row-actions span {
+	color: var(--sps-ui-subtle);
+}
+
+html.sps-dark #wpbody .wp-list-table tr:is(.inline-edit-row, .inline-editor) td,
+html.sps-dark #wpbody :is(.inline-edit-row fieldset .inline-edit-group, .inline-edit-row .inline-edit-col, #bulk-titles, #bulk-titles-list) {
+	color: var(--sps-ui-text);
+	background: var(--sps-ui-surface);
+	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark #wpbody :is(.tablenav, .tablenav-pages) {
+	color: var(--sps-ui-muted);
+}
+
+html.sps-dark #wpbody .tablenav .tablenav-pages-navspan.button.disabled {
+	color: var(--sps-ui-subtle);
+}
+
+/* Plugins: every row (WordPress: #fff), active rows (#f0f6fc), and update rows. */
+html.sps-dark #wpbody .plugins tr {
+	background: var(--sps-ui-surface);
+}
+
+html.sps-dark #wpbody .plugins :is(.active th, .active td, tr.active + tr.plugin-update-tr .plugin-update) {
+	background-color: #1a2a38;
+}
+
+html.sps-dark #wpbody .plugins :is(.inactive th, .inactive td, .plugin-update-tr .plugin-update, .paused th, .paused td) {
+	background-color: var(--sps-ui-surface);
+}
+
+/* Comments: Unapprove (WordPress: #996800), dates, and rows waiting or undone. */
+html.sps-dark #wpbody #the-comment-list :is(.unapprove a, .vim-u) {
+	color: var(--sps-ui-warning);
+}
+
+html.sps-dark #wpbody :is(#submitted-on, .submitted-on, .comment-meta, .comment-author cite) {
+	color: var(--sps-ui-muted);
+}
+
+html.sps-dark #wpbody #the-comment-list :is(tr.undo, div.undo),
+html.sps-dark #wpbody #replyerror {
+	background-color: var(--sps-ui-raised);
+	border-color: var(--sps-ui-border);
+}
+
+/* Nothing to show (WordPress: #646970). */
+html.sps-dark #wpbody :is(.no-items, .no-media, .no-items td) {
+	color: var(--sps-ui-muted);
+}
+
+html.sps-dark #wpbody .plugins :is(th, td),
+html.sps-dark #wpbody .plugins .plugin-update-tr .plugin-update {
+	box-shadow: inset 0 -1px 0 var(--sps-ui-border);
+}
+
+html.sps-dark #wpbody .plugins :is(.plugin-version-author-uri, .second) {
+	color: var(--sps-ui-muted);
+}
+
+/* Comments awaiting moderation (WordPress: #fcf9e8). */
+html.sps-dark #wpbody #the-comment-list tr.unapproved :is(th, td),
+html.sps-dark #wpbody .unapproved .comment-item {
+	background-color: #2e2716;
+}
+
+html.sps-dark #wpbody :is(#replyrow, #replyrow td, .comment-ays, .comment-ays th) {
+	color: var(--sps-ui-text);
+	background: var(--sps-ui-surface);
+	border-color: var(--sps-ui-border);
+}
+
+/* Boxes: dashboard widgets, editor meta boxes, cards ----------------------- */
+
+html.sps-dark #wpbody :is(.postbox-header, .postbox .hndle, .stuffbox .hndle) {
+	color: var(--sps-ui-text);
+	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark #wpbody .postbox :is(.handle-order-higher, .handle-order-lower, .handlediv) {
+	color: var(--sps-ui-muted);
+}
+
+html.sps-dark #wpbody .postbox .inside :is(p, li, td, th, .misc-pub-section, .rss-widget) {
+	color: inherit;
+}
+
+html.sps-dark #wpbody :is(.sortable-placeholder, .postbox-container .empty-container) {
+	border-color: var(--sps-ui-field-border);
+}
+
+html.sps-dark #wpbody .postbox-container .empty-container::after {
+	color: var(--sps-ui-subtle);
+}
+
+html.sps-dark #wpbody :is(#major-publishing-actions, #post-status-info, .wp-editor-tabs + .wp-editor-container, #misc-publishing-actions, .community-events-footer, [id="dashboard_right_now"] .sub, [id="dashboard_activity"] .subsubsub, #dashboard-widgets .community-events li, [id="dashboard_primary"] .rss-widget, .activity-block, #published-posts li, #future-posts li) {
+	background: transparent;
+	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark #wpbody :is([id="dashboard_right_now"] .sub, #major-publishing-actions, .community-events-footer) {
+	color: var(--sps-ui-muted);
+	background: var(--sps-ui-raised);
+}
+
+/* Activity: recent comments (WordPress: #f6f7f7, #fcf9e8 waiting) and alternate posts. */
+html.sps-dark #wpbody #activity-widget #the-comment-list .comment-item {
+	background: var(--sps-ui-surface);
+	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark #wpbody #activity-widget #the-comment-list .unapproved {
+	background-color: #2e2716;
+}
+
+html.sps-dark #wpbody :is(#future-posts, #published-posts) li:nth-child(odd) {
+	background-color: var(--sps-ui-stripe);
+}
+
+html.sps-dark #wpbody :is([id="dashboard_right_now"] li a::before, [id="dashboard_right_now"] li > span::before, .community-events .event-icon, [id="dashboard_activity"] .comment-meta, .rss-widget span.rss-date, [id="dashboard_activity"] .comment-item cite, .misc-pub-section::before, #post-body .misc-pub-post-status::before) {
+	color: var(--sps-ui-subtle);
+}
+
+html.sps-dark #wpbody [id="dashboard_activity"] :is(.activity-block, .comment-item),
+html.sps-dark #wpbody .community-events :is(li, .activity-block),
+html.sps-dark #wpbody :is([id="dashboard_site_health"] .health-check-widget-title-section, [id="dashboard_php_nag"] .dashboard-php-nag) {
+	border-color: var(--sps-ui-border);
+}
+
+/* Welcome panel (WordPress 6.x: its header is already dark). */
+html.sps-dark #wpbody .welcome-panel {
+	background: var(--sps-ui-surface);
+}
+
+html.sps-dark #wpbody .welcome-panel-column-container {
+	color: var(--sps-ui-text);
+	background: var(--sps-ui-surface);
+	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark #wpbody .welcome-panel-column-container :is(h3, p) {
+	color: inherit;
+}
+
+/* Tabs, filters and cards --------------------------------------------------- */
+
+html.sps-dark #wpbody :is(.nav-tab-wrapper, .wrap h2.nav-tab-wrapper, h1.nav-tab-wrapper) {
+	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark #wpbody .nav-tab {
+	color: var(--sps-ui-muted);
+	background: var(--sps-ui-raised);
+	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark #wpbody .nav-tab:is(:hover, :focus) {
+	color: var(--sps-ui-text);
+	background: var(--sps-ui-border);
+}
+
+html.sps-dark #wpbody :is(.nav-tab-active, .nav-tab-active:hover, .nav-tab-active:focus, .nav-tab-active:focus:active) {
+	color: var(--sps-ui-text);
+	background: var(--sps-ui-canvas);
+	border-bottom-color: var(--sps-ui-canvas);
+}
+
+/* Plugin and theme installers' filter bar, and their cards. */
+html.sps-dark #wpbody .wp-filter,
+html.sps-dark #wpbody :is(.plugin-card, .theme-browser .theme, .plugin-install-php .plugin-card) {
+	color: var(--sps-ui-text);
+	background: var(--sps-ui-surface);
+	border-color: var(--sps-ui-border);
+	box-shadow: none;
+}
+
+html.sps-dark #wpbody .filter-links li > a {
+	color: var(--sps-ui-muted);
+	border-bottom-color: var(--sps-ui-surface);
+}
+
+html.sps-dark #wpbody .filter-links li > a:is(:hover, :focus),
+html.sps-dark #wpbody .filter-links .current {
+	color: var(--sps-ui-text);
+}
+
+html.sps-dark #wpbody .filter-links .current {
+	border-bottom-color: var(--sps-ui-accent);
+}
+
+html.sps-dark #wpbody :is(.plugin-card-bottom, .plugin-card .column-compatibility, .plugin-card .column-updated) {
+	color: var(--sps-ui-muted);
+	background: var(--sps-ui-raised);
+	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark #wpbody .plugin-card :is(.desc, .authors, .plugin-dependencies, .column-description p) {
+	color: inherit;
+}
+
+html.sps-dark #wpbody .plugin-card .plugin-dependencies {
+	background: var(--sps-ui-raised);
+}
+
+/* Themes. */
+html.sps-dark #wpbody .theme-browser .theme :is(.theme-name, .theme-actions) {
+	color: var(--sps-ui-text);
+	background: var(--sps-ui-raised);
+	box-shadow: inset 0 1px 0 var(--sps-ui-border);
+}
+
+html.sps-dark #wpbody .theme-browser .theme.active :is(.theme-name, .theme-actions) {
+	background: #2c3338;
+}
+
+html.sps-dark #wpbody .theme-browser .theme .theme-screenshot {
+	background: var(--sps-ui-canvas);
+}
+
+html.sps-dark #wpbody .theme-browser .theme.add-new-theme :is(a::after, span::after) {
+	color: var(--sps-ui-muted);
+	background: var(--sps-ui-surface);
+	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark .theme-overlay :is(.theme-wrap, .theme-actions, .theme-header) {
+	color: var(--sps-ui-text);
+	background: var(--sps-ui-surface);
+	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark .theme-overlay .theme-header :is(.close, .left, .right) {
+	color: var(--sps-ui-muted);
+	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark .theme-overlay .theme-header :is(.close, .left, .right):is(:hover, :focus) {
+	color: var(--sps-ui-text);
+	background: var(--sps-ui-raised);
+}
+
+html.sps-dark .theme-overlay :is(.theme-version, .theme-author, .theme-description, .theme-tags) {
+	color: var(--sps-ui-muted);
+}
+
+/* Users: the admin colour scheme picker. */
+html.sps-dark #wpbody .color-option:is(.selected, :hover) {
+	background: var(--sps-ui-raised);
+}
+
+/* Site Health and Privacy ---------------------------------------------------- */
+
+html.sps-dark #wpbody :is(.health-check-header, .privacy-settings-header, .health-check-body .health-check-accordion, .privacy-settings-accordion) {
+	color: var(--sps-ui-text);
+	background: var(--sps-ui-surface);
+	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark :is(.health-check-header, .privacy-settings-header) {
+	background: var(--sps-ui-surface);
+	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark :is(.health-check-header, .privacy-settings-header) :is(h1, .health-check-tab, .privacy-settings-tab) {
+	color: var(--sps-ui-text);
+}
+
+html.sps-dark :is(.health-check-tab, .privacy-settings-tab).active {
+	box-shadow: inset 0 -3px var(--sps-ui-accent);
+}
+
+html.sps-dark :is(.health-check-accordion-trigger, .privacy-settings-accordion-trigger) {
+	color: var(--sps-ui-text);
+	background: var(--sps-ui-surface);
+	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark :is(.health-check-accordion-trigger, .privacy-settings-accordion-trigger):is(:hover, :active) {
+	background: var(--sps-ui-raised);
+}
+
+html.sps-dark :is(.health-check-accordion-trigger, .privacy-settings-accordion-trigger) .title,
+html.sps-dark :is(.health-check-accordion-trigger, .privacy-settings-accordion-trigger) .icon {
+	color: inherit;
+	border-color: var(--sps-ui-muted);
+}
+
+html.sps-dark :is(.health-check-accordion-panel, .privacy-settings-accordion-panel) {
+	color: var(--sps-ui-text);
+	background: var(--sps-ui-canvas);
+	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark :is(.health-check-accordion, .privacy-settings-accordion) :is(.health-check-accordion-heading, .privacy-settings-accordion-heading) {
+	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark .site-health-view-passed {
+	color: var(--sps-ui-text);
+	border-color: var(--sps-ui-field-border);
+}
+
+html.sps-dark .site-health-progress-wrapper .site-health-progress-label {
+	color: var(--sps-ui-text);
+}
+
+html.sps-dark .site-health-progress svg circle {
+	stroke: var(--sps-ui-border);
+}
+
+html.sps-dark .health-check-body .health-check-accordion .badge {
+	color: var(--sps-ui-text);
+	border-color: currentcolor;
+}
+
+html.sps-dark .privacy-settings-accordion-actions :is(.success, .privacy-text-copy) {
+	color: var(--sps-ui-good);
+}
+
+/* Classic editor, menus and widgets -------------------------------------------- */
+
+html.sps-dark #wpbody :is(#titlediv #title, #post-status-info, .wp-editor-container, .quicktags-toolbar, .wp-editor-area, .html-active .switch-html, .tmce-active .switch-tmce, #wp-content-editor-tools) {
+	color: var(--sps-ui-text);
+	background: var(--sps-ui-surface);
+	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark #wpbody #wp-content-editor-tools {
+	background: var(--sps-ui-canvas);
+}
+
+html.sps-dark #wpbody .wp-switch-editor {
+	color: var(--sps-ui-muted);
+	background: var(--sps-ui-raised);
+	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark #wpbody .quicktags-toolbar input.button {
+	color: var(--sps-ui-text);
+	background: var(--sps-ui-raised);
+	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark #wpbody :is(.mce-toolbar-grp, .mce-panel, .mce-statusbar, div.mce-toolbar-grp > div) {
+	background: var(--sps-ui-raised);
+	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark #wpbody .mce-toolbar .mce-btn-group .mce-btn :is(button, i, .mce-txt) {
+	color: var(--sps-ui-text);
+}
+
+html.sps-dark #wpbody :is(.menu-item-handle, .menu-item-settings, #menu-settings-column .accordion-section-content, .nav-menus-php .metabox-holder .accordion-section-title, #menu-management .menu-edit, #nav-menu-header, #nav-menu-footer, .menu-settings, .manage-menus, .widget-top, .widget-inside, .widgets-holder-wrap, .accordion-section, .accordion-section-title) {
+	color: var(--sps-ui-text);
+	background: var(--sps-ui-surface);
+	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark #wpbody :is(.menu-item-handle:hover, .accordion-section-title:hover, .accordion-section.open .accordion-section-title) {
+	background: var(--sps-ui-raised);
+}
+
+html.sps-dark #wpbody :is(#nav-menu-header, #nav-menu-footer, .manage-menus) {
+	background: var(--sps-ui-raised);
+}
+
+html.sps-dark #wpbody :is(.menu-item-handle .item-type, .item-controls .item-type, .accordion-section-title::after, .menu-item-handle .item-edit) {
+	color: var(--sps-ui-subtle);
+}
+
+html.sps-dark #wpbody :is(.tabs-panel, .category-tabs .tabs, .categorydiv div.tabs-panel, .customlinkdiv div.tabs-panel, .posttypediv div.tabs-panel, .taxonomydiv div.tabs-panel, .wp-tab-panel, .wp-tab-active) {
+	background: var(--sps-ui-canvas);
+	border-color: var(--sps-ui-border);
+}
+
+/* Media library ------------------------------------------------------------- */
+
+html.sps-dark :is(.media-modal-content, .media-frame-content, .media-frame-title, .media-frame-router, .media-frame-toolbar .media-toolbar, .media-frame-menu, .media-menu, .attachments-browser .media-toolbar, .media-frame.mode-grid .media-toolbar, .uploader-inline, .media-frame .attachments-browser, .media-modal .media-frame-content) {
+	color: var(--sps-ui-text);
+	background: var(--sps-ui-surface);
+	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark .media-frame.mode-grid,
+html.sps-dark .media-frame.mode-grid .attachments-browser {
+	background: transparent;
+}
+
+html.sps-dark :is(.media-sidebar, .attachment-details, .media-frame-content[data-columns] .attachments-browser .media-sidebar, .media-modal .edit-attachment-frame .attachment-info, .edit-attachment-frame .attachment-media-view) {
+	color: var(--sps-ui-text);
+	background: var(--sps-ui-raised);
+	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark :is(.media-menu .media-menu-item, .media-router .media-menu-item, .media-modal-close, .edit-media-header .left, .edit-media-header .right) {
+	color: var(--sps-ui-muted);
+	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark :is(.media-menu .media-menu-item:hover, .media-menu .active, .media-router .media-menu-item.active, .media-router .media-menu-item:hover, .media-modal-close:hover, .edit-media-header :is(.left, .right):hover) {
+	color: var(--sps-ui-text);
+	background: var(--sps-ui-raised);
+}
+
+html.sps-dark .media-router .media-menu-item.active::after {
+	background: var(--sps-ui-accent);
+}
+
+html.sps-dark :is(.attachment-preview, .attachment .thumbnail, .wp-core-ui .attachment-preview) {
+	background: var(--sps-ui-raised);
+	box-shadow: inset 0 0 15px rgb(0 0 0 / 40%), inset 0 0 0 1px rgb(0 0 0 / 30%);
+}
+
+html.sps-dark .attachment :is(.filename, .title) {
+	color: var(--sps-ui-text);
+	background: rgb(16 21 23 / 85%);
+	box-shadow: inset 0 0 0 1px rgb(255 255 255 / 10%);
+}
+
+html.sps-dark :is(.attachment-info, .attachment-details .setting, .media-sidebar .setting) :is(.name, .description, span, .filename, .uploaded, .file-size, .dimensions) {
+	color: var(--sps-ui-muted);
+}
+
+html.sps-dark :is(.media-modal, .media-frame) :is(.upload-ui, .post-upload-ui, .max-upload-size, .upload-instructions, .drag-drop-info, .no-media) {
+	color: var(--sps-ui-muted);
+}
+
+html.sps-dark :is(.drag-drop .drag-drop-area, #drag-drop-area, .uploader-inline .has-upload-message) {
+	border-color: var(--sps-ui-field-border);
+}
+
+html.sps-dark .media-modal-backdrop {
+	background: #000;
+	opacity: 0.8;
+}
+
+/* Pop-ups ----------------------------------------------------------------- */
+
+html.sps-dark :is(.wp-pointer-content, .wp-pointer-buttons) {
+	color: var(--sps-ui-text);
+	background: var(--sps-ui-surface);
+	border-color: var(--sps-ui-border);
+}
+
+/*
+ * Thickbox (View details and older plugins' pop-ups). Its IDs are matched
+ * as attributes, as they are not kebab-case; WordPress styles them by ID,
+ * so these need !important to win.
+ */
+html.sps-dark :is([id="TB_window"], [id="TB_title"], [id="TB_ajaxContent"]) {
+	color: var(--sps-ui-text) !important;
+	background: var(--sps-ui-surface) !important;
+	border-color: var(--sps-ui-border) !important;
+}
+
+html.sps-dark .wp-pointer-content :is(h3 + p, p) {
+	color: inherit;
+}
+
+html.sps-dark .wp-pointer-top .wp-pointer-arrow-inner,
+html.sps-dark .wp-pointer-undefined .wp-pointer-arrow-inner {
+	border-bottom-color: var(--sps-ui-surface);
+}
+
+/* Plugin details (an admin screen in a frame). */
+html.sps-dark #plugin-information :is(#plugin-information-title, #plugin-information-tabs, #plugin-information-footer, .fyi, #section-holder, #section-holder .section) {
+	color: var(--sps-ui-text);
+	background-color: var(--sps-ui-surface);
+	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark #plugin-information #plugin-information-tabs a {
+	color: var(--sps-ui-muted);
+}
+
+html.sps-dark #plugin-information #plugin-information-tabs a.current {
+	color: var(--sps-ui-text);
+	background: var(--sps-ui-canvas);
+	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark #plugin-information :is(.fyi .counter-back, .fyi-description, .fyi h3) {
+	color: var(--sps-ui-text);
+	background-color: var(--sps-ui-raised);
+}
+
+/* WordPress components ------------------------------------------------------- */
+
+html.sps-dark :is(.components-card, .components-modal__frame, .components-modal__header, .components-popover__content, .components-dropdown-menu__menu, .components-panel, .components-panel__body, .components-panel__header) {
 	color: var(--sps-ui-text);
 	background-color: var(--sps-ui-surface);
 	border-color: var(--sps-ui-border);
@@ -314,7 +1013,7 @@ html.sps-dark .components-card {
 	box-shadow: 0 0 0 1px var(--sps-ui-border);
 }
 
-html.sps-dark :is(.components-card__header, .components-card__footer, .components-card__divider) {
+html.sps-dark :is(.components-card__header, .components-card__footer, .components-card__divider, .components-modal__header) {
 	border-color: var(--sps-ui-border);
 }
 
@@ -322,14 +1021,28 @@ html.sps-dark .components-popover__content {
 	box-shadow: 0 0 0 1px var(--sps-ui-border), 0 6px 18px rgb(0 0 0 / 45%);
 }
 
+html.sps-dark .components-popover__arrow :is(.components-popover__triangle-bg) {
+	fill: var(--sps-ui-border);
+}
+
+html.sps-dark .components-popover__arrow .components-popover__triangle {
+	fill: var(--sps-ui-surface);
+}
+
 html.sps-dark .components-modal__screen-overlay {
 	background-color: rgb(0 0 0 / 60%);
 }
 
-:where(html.sps-dark) .components-button {
-	color: inherit;
+html.sps-dark .components-panel__body-toggle.components-button,
+html.sps-dark .components-panel__body-title {
+	color: var(--sps-ui-text);
 }
 
+html.sps-dark .components-panel__body-title:hover {
+	background: var(--sps-ui-raised);
+}
+
+/* Secondary, tertiary and link buttons in the light accent. */
 html.sps-dark .components-button:is(.is-secondary, .is-tertiary, .is-link):not(:disabled, [aria-disabled="true"]) {
 	color: var(--sps-ui-accent);
 }
@@ -349,9 +1062,10 @@ html.sps-dark .components-button:not(.is-primary, .is-secondary, .is-tertiary, .
 	color: var(--sps-ui-accent);
 }
 
-/* A pressed button is filled with the text colour; WordPress's primary hover would make its label white. */
+/* A pressed button is filled with the text colour; keep its label the surface colour. */
 html.sps-dark .components-button.is-pressed:not(:disabled, [aria-disabled="true"]) {
 	color: var(--sps-ui-surface);
+	background: var(--sps-ui-text);
 }
 
 /* Destructive buttons in the light red (WordPress's #cc1818, #710d0d on hover). */
@@ -367,16 +1081,22 @@ html.sps-dark .components-button.is-destructive:not(.is-primary):hover:not(:disa
 	color: var(--sps-ui-text);
 }
 
+/* Plain (icon) buttons take the text colour; any more specific rule wins. */
+:where(html.sps-dark) .components-button {
+	color: inherit;
+}
+
 html.sps-dark .components-button:is(:disabled, [aria-disabled="true"]):not(.is-primary) {
 	color: var(--sps-ui-subtle);
 }
 
-html.sps-dark :is(.components-input-control__container, .components-text-control__input, .components-textarea-control__input, .components-select-control__input, .components-form-token-field__input-container) {
+html.sps-dark :is(.components-input-control__container, .components-text-control__input, .components-textarea-control__input, .components-select-control__input, .components-form-token-field__input-container, .components-search-control__input, .block-editor-inserter__search .components-search-control__input) {
 	color: var(--sps-ui-text);
 	background-color: var(--sps-ui-canvas);
 }
 
-html.sps-dark :is(.components-input-control__container input, .components-input-control__container select, .components-form-token-field__input) {
+html.sps-dark .components-input-control__container :is(input, select),
+html.sps-dark .components-form-token-field__input {
 	color: var(--sps-ui-text);
 	background: transparent;
 }
@@ -394,6 +1114,7 @@ html.sps-dark :is(.components-input-control__suffix, .components-select-control_
 }
 
 html.sps-dark .components-checkbox-control__input[type="checkbox"]:not(:checked, :indeterminate),
+html.sps-dark .components-radio-control__input[type="radio"]:not(:checked),
 html.sps-dark .components-form-toggle:not(.is-checked) .components-form-toggle__track {
 	background: var(--sps-ui-canvas);
 	border-color: var(--sps-ui-field-border);
@@ -422,13 +1143,18 @@ html.sps-dark .components-tab-panel__tabs-item:is(.is-active, :hover) {
 	color: var(--sps-ui-text);
 }
 
-html.sps-dark :is(.components-menu-item__button, .components-menu-group__label) {
+html.sps-dark :is(.components-menu-item__button, .components-menu-group__label, .components-menu-items-choice) {
 	color: var(--sps-ui-text);
 }
 
 html.sps-dark .components-menu-item__button:hover:not(:disabled) {
 	color: var(--sps-ui-accent);
 	background: var(--sps-ui-raised);
+}
+
+html.sps-dark .components-menu-item__info,
+html.sps-dark .components-menu-item__shortcut {
+	color: var(--sps-ui-subtle);
 }
 
 html.sps-dark .components-menu-group + .components-menu-group {
@@ -456,12 +1182,128 @@ html.sps-dark .components-notice__dismiss {
 	color: var(--sps-ui-muted);
 }
 
+html.sps-dark .components-snackbar {
+	color: var(--sps-ui-canvas);
+	background: var(--sps-ui-text);
+}
+
 html.sps-dark .components-spinner {
 	background: var(--sps-ui-field-border);
 }
 
-/* Plugin-specific fixed light colours; shared starter files stay intact. */
+html.sps-dark .components-guide__page,
+html.sps-dark .components-guide .components-modal__content {
+	background: var(--sps-ui-surface);
+}
 
+/* The block editor's chrome (header, sidebars, inserter, list view); the canvas keeps the theme's colours. */
+html.sps-dark :is(.interface-interface-skeleton__header, .interface-interface-skeleton__sidebar, .interface-interface-skeleton__secondary-sidebar, .interface-interface-skeleton__footer, .interface-interface-skeleton__actions, .interface-complementary-area, .interface-complementary-area-header, .editor-header, .edit-post-header, .editor-sidebar, .editor-post-publish-panel, .editor-post-publish-panel__header, .editor-post-publish-panel__footer, .block-editor-inserter__main-area, .block-editor-inserter__menu, .block-editor-inserter__panel-header, .block-editor-inserter__search, .block-editor-tabbed-sidebar, .block-editor-tabbed-sidebar__tablist-and-close-button, .editor-list-view-sidebar, .block-editor-block-inspector, .block-editor-block-card, .edit-post-meta-boxes-area, .edit-post-meta-boxes-main, .edit-post-layout__metaboxes, .editor-document-bar, .block-editor-block-toolbar, .block-editor-block-contextual-toolbar, .block-editor-block-list__block-popover .components-toolbar, .block-editor-block-breadcrumb, .editor-post-panel__row, .editor-sidebar__panel-tabs, .block-editor-inserter__tablist-and-close-button, .block-editor-inserter__category-panel) {
+	color: var(--sps-ui-text);
+	background-color: var(--sps-ui-surface);
+	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark :is(.editor-document-bar, .editor-document-bar__command) {
+	background-color: var(--sps-ui-raised);
+}
+
+html.sps-dark :is(.editor-document-bar__shortcut, .block-editor-block-card__description, .editor-post-panel__row-label, .block-editor-inserter__panel-title, .block-editor-block-types-list__item-title, .editor-post-publish-panel__prepublish p, .block-editor-inspector-controls-tabs__hint) {
+	color: var(--sps-ui-muted);
+}
+
+/* Text the editor paints in fixed greys (#2f2f2f, #757575, #1e1e1e). */
+html.sps-dark :is(.editor-document-bar__post-type-label, .editor-post-last-edited-panel, .editor-post-last-edited-panel .components-text) {
+	color: var(--sps-ui-muted);
+}
+
+html.sps-dark :is(.block-editor-block-breadcrumb__current, .block-editor-block-breadcrumb__button, .editor-post-card-panel__title, .editor-post-card-panel__title-name) {
+	color: var(--sps-ui-text);
+}
+
+/* Panels' open and close arrows (#1e1e1e). */
+html.sps-dark .components-panel__arrow {
+	color: var(--sps-ui-muted);
+	fill: currentcolor;
+}
+
+html.sps-dark .block-editor-block-types-list__item:is(:hover, :focus) {
+	color: var(--sps-ui-accent);
+	background: var(--sps-ui-raised);
+}
+
+html.sps-dark :is(.block-editor-block-toolbar, .block-editor-block-contextual-toolbar, .components-accessible-toolbar, .block-editor-block-list__block-popover .components-toolbar-group) {
+	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark :is(.block-editor-list-view-leaf, .block-editor-list-view-block-select-button) {
+	color: var(--sps-ui-text);
+}
+
+html.sps-dark .block-editor-list-view-leaf:is(:hover, .is-hovered) .block-editor-list-view-block-select-button {
+	background: var(--sps-ui-raised);
+}
+
+html.sps-dark .edit-post-meta-boxes-area :is(.postbox, .postbox-header, #poststuff h2.hndle) {
+	color: var(--sps-ui-text);
+	background: var(--sps-ui-surface);
+	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark :is(.edit-post-meta-boxes-main__presenter, .edit-post-meta-boxes-main__presenter button) {
+	color: var(--sps-ui-text);
+	background: var(--sps-ui-raised);
+	box-shadow: 0 1px var(--sps-ui-border);
+}
+
+/* SEO Pro Stack's additions to WordPress's screens -------------------------- */
+
+/* Plugins: sizes (class-seoprostack-plugin-sizes.php) and page cost (class-seoprostack-plugin-cost.php). */
+html.sps-dark #wpbody :is(.sps-size.is-pending, .sps-size__parts, .sps-size__opcache, .sps-size__missing, .sps-size__cost) {
+	color: var(--sps-ui-muted);
+}
+
+html.sps-dark #wpbody .sps-size-sort:is(:hover, :focus) {
+	color: var(--sps-ui-accent);
+}
+
+html.sps-dark #wpbody .sps-size-totals td {
+	background: var(--sps-ui-raised);
+	border-color: var(--sps-ui-border);
+}
+
+/* Plugins: Hosting needs (class-seoprostack-hosting-needs.php). */
+html.sps-dark #wpbody .sps-hosting > tr > td,
+html.sps-dark #wpbody .sps-hosting__plans table {
+	background: var(--sps-ui-raised);
+	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark #wpbody .sps-hosting__plans :is(th, td, thead th) {
+	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark #wpbody :is(.sps-hosting__list .dashicons, .sps-hosting__plans thead th span, .sps-hosting__plans tbody th, .sps-hosting__note, .sps-hosting.is-pending .sps-hosting__cell, .sps-hosting.is-failed .sps-hosting__cell) {
+	color: var(--sps-ui-muted);
+}
+
+/* SEO Pro Stack's own screens ---------------------------------------------- */
+
+html.sps-dark .sps-wrap {
+	--sps-accent: var(--sps-ui-accent);
+	--sps-accent-dark: var(--sps-ui-text);
+	--sps-text: var(--sps-ui-text);
+	--sps-muted: var(--sps-ui-muted);
+	--sps-border: var(--sps-ui-border);
+	--sps-surface: var(--sps-ui-surface);
+	--sps-subtle: var(--sps-ui-raised);
+	--sps-divider: var(--sps-ui-raised);
+	--sps-hover: var(--sps-ui-raised);
+	--sps-success: var(--sps-ui-good);
+	--sps-error: var(--sps-ui-bad);
+	--sps-shadow: 0 1px 2px rgb(0 0 0 / 40%);
+}
+
+/* The header's logo keeps the scheme's own fill behind its white star. */
 html.sps-dark .sps-header__logo {
 	background: var(--sps-ui-accent-fill);
 }
@@ -567,91 +1409,10 @@ html.sps-dark .sps-wrap .sps-plugins .button.sps-uninstall:is(:hover, :focus) {
 	background: var(--sps-ui-bad);
 }
 
-/* Header menu: shared layout in both modes, token colours in Dark. */
-
-.sps-theme {
-	position: relative;
-	display: inline-flex;
-}
-
-.sps-wrap .sps-theme__toggle {
-	display: inline-flex;
-	align-items: center;
-	justify-content: center;
-	min-width: 32px;
-	padding-inline: 6px;
-}
-
-.sps-theme__toggle svg,
-.sps-theme__item svg {
-	width: 18px;
-	height: 18px;
-	fill: currentcolor;
-	flex: none;
-}
-
-.sps-theme__menu {
-	position: absolute;
-	z-index: 1000;
-	inset-block-start: calc(100% + 4px);
-	inset-inline-end: 0;
-	display: grid;
-	min-width: 168px;
-	padding: 4px;
-	color: var(--sps-text);
-	background: var(--sps-surface);
-	border: 1px solid var(--sps-border);
-	border-radius: 4px;
-	box-shadow: 0 4px 12px rgb(0 0 0 / 15%);
-}
-
-.sps-theme__menu[hidden] {
-	display: none;
-}
-
-.sps-wrap .sps-theme__item {
-	display: flex;
-	align-items: center;
-	gap: 8px;
-	min-height: 36px;
-	margin: 0;
-	padding: 0 10px;
-	font: inherit;
-	font-size: 13px;
-	color: inherit;
-	text-align: start;
-	cursor: pointer;
-	background: none;
-	border: 0;
-	border-radius: 2px;
-}
-
-.sps-wrap .sps-theme__item:is(:hover, :focus) {
-	color: var(--sps-accent);
-	background: var(--sps-subtle);
-	outline: none;
-}
-
-.sps-wrap .sps-theme__item:focus-visible {
-	box-shadow: inset 0 0 0 2px var(--sps-accent);
-}
-
-.sps-theme__check {
-	margin-inline-start: auto;
-	visibility: hidden;
-}
-
-.sps-theme__item[aria-checked="true"] {
-	font-weight: 600;
-}
-
-.sps-theme__item[aria-checked="true"] .sps-theme__check {
-	visibility: visible;
-}
-
+/* Changing mode eases the colours, never with reduced motion. */
 @media (prefers-reduced-motion: no-preference) {
 	html.sps-theme-ready body,
-	html.sps-theme-ready :is(.sps-header, .sps-nav, .sps-card, .components-card) {
+	html.sps-theme-ready :is(#wpwrap, #wpcontent, .postbox, .card, .widefat, .notice, .sps-header, .sps-nav, .sps-card, .components-card) {
 		transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
 	}
 }
