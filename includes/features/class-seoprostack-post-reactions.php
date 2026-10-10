@@ -760,7 +760,7 @@ class SEOProStack_Post_Reactions extends SEOProStack_Feature {
                         continue;
                     }
                     $p = get_post($id);
-                    if ($types && !in_array($p->post_type, $types, true)) {
+                    if (!$p instanceof WP_Post || ($types && !in_array($p->post_type, $types, true))) {
                         continue;
                     }
                     $items[] = array(

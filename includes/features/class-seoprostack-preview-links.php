@@ -237,6 +237,7 @@ class SEOProStack_Preview_Links extends SEOProStack_Feature {
      *
      * @param WP_Post|null $post Post.
      * @return bool
+     * @phpstan-assert-if-true WP_Post $post
      */
     private static function can_share($post) {
         return $post instanceof WP_Post && is_post_type_viewable($post->post_type) && current_user_can('edit_post', $post->ID);

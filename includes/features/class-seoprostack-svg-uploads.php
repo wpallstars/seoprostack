@@ -290,7 +290,7 @@ class SEOProStack_Svg_Uploads extends SEOProStack_Feature {
         libxml_use_internal_errors($previous);
 
         $root = $loaded ? $dom->documentElement : null;
-        if (!$root || 'svg' !== strtolower($root->localName) || !in_array((string) $root->namespaceURI, array('', self::NS_SVG), true)) {
+        if (!$root || 'svg' !== self::local_name($root) || !in_array((string) $root->namespaceURI, array('', self::NS_SVG), true)) {
             return $invalid;
         }
 
@@ -309,6 +309,17 @@ class SEOProStack_Svg_Uploads extends SEOProStack_Feature {
     }
 
     /**
+     * A node's name without its prefix, in lower case. Parsed XML always has
+     * a local name; the node name is the fallback DOM allows for.
+     *
+     * @param DOMNode $node Element or attribute.
+     * @return string
+     */
+    private static function local_name(DOMNode $node) {
+        return strtolower($node->localName ?? $node->nodeName);
+    }
+
+    /**
      * Clean a node's children: keep allowed elements (cleaned) and text;
      * comments, processing instructions and entity references are removed,
      * and CDATA becomes text.
@@ -317,7 +328,10 @@ class SEOProStack_Svg_Uploads extends SEOProStack_Feature {
      * @param string  $ns   Namespace of the root element.
      */
     private static function clean_children(DOMNode $node, $ns) {
-        $doc      = $node instanceof DOMDocument ? $node : $node->ownerDocument;
+        $doc = $node instanceof DOMDocument ? $node : $node->ownerDocument;
+        if (!$doc instanceof DOMDocument) {
+            return;
+        }
         $children = iterator_to_array($node->childNodes, false);
         foreach ($children as $child) {
             if ($child instanceof DOMElement) {
@@ -345,7 +359,7 @@ class SEOProStack_Svg_Uploads extends SEOProStack_Feature {
      * @return bool
      */
     private static function keep_element(DOMElement $el, $ns) {
-        $name = strtolower($el->localName);
+        $name = self::local_name($el);
         if ((string) $el->namespaceURI !== $ns || !isset(self::elements()[$name])) {
             return false;
         }
@@ -367,7 +381,7 @@ class SEOProStack_Svg_Uploads extends SEOProStack_Feature {
      * @param string     $ns Namespace of the root element.
      */
     private static function clean_element(DOMElement $el, $ns) {
-        $tag   = strtolower($el->localName);
+        $tag   = self::local_name($el);
         $attrs = iterator_to_array($el->attributes, false);
         foreach ($attrs as $attr) {
             if (!self::keep_attribute($attr, $tag)) {
@@ -387,11 +401,11 @@ class SEOProStack_Svg_Uploads extends SEOProStack_Feature {
     private static function keep_attribute(DOMAttr $attr, $tag) {
         $uri = (string) $attr->namespaceURI;
         if (self::NS_XLINK === $uri) {
-            $name = 'xlink:' . strtolower($attr->localName);
+            $name = 'xlink:' . self::local_name($attr);
         } elseif (self::NS_XML === $uri) {
-            $name = 'xml:' . strtolower($attr->localName);
+            $name = 'xml:' . self::local_name($attr);
         } elseif ('' === $uri && false === strpos($attr->nodeName, ':')) {
-            $name = strtolower($attr->localName);
+            $name = self::local_name($attr);
         } else {
             return false;
         }
@@ -528,7 +542,7 @@ class SEOProStack_Svg_Uploads extends SEOProStack_Feature {
         }
         $path[$key] = true;
         $count      = 1;
-        if ('use' === strtolower($el->localName)) {
+        if ('use' === self::local_name($el)) {
             $target = substr(self::href($el), 1);
             if (isset($ids[$target])) {
                 $sub = self::expanded_count($ids[$target], $ids, $memo, $path);

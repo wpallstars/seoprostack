@@ -262,7 +262,7 @@ final class SEOProStack_Link_Index {
         // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- our derived fallback index must match the saved post.
         $wpdb->delete($wpdb->prefix . 'seoprostack_links', array('post_id' => $post_id), array('%d'));
         $post = get_post($post_id);
-        if (!self::eligible($post)) {
+        if (!$post instanceof WP_Post || !self::eligible($post)) {
             delete_post_meta($post_id, self::META);
             delete_post_meta($post_id, self::MAP);
             return;
@@ -417,7 +417,7 @@ final class SEOProStack_Link_Index {
         $query = new WP_Query(array('post_type' => self::types(), 'post_status' => 'publish', 'has_password' => false, 'posts_per_page' => 30, 'paged' => $page, 'orderby' => 'title', 'order' => 'ASC'));
         $rows = array();
         global $wpdb;
-        foreach ($query->posts as $post) {
+        foreach ($query->posts ?? array() as $post) {
             if (!$post instanceof WP_Post) {
                 continue; // A pre_get_posts filter asked for IDs only.
             }

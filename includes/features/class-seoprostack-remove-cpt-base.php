@@ -404,7 +404,8 @@ class SEOProStack_Remove_Cpt_Base extends SEOProStack_Feature {
         }
         $query = isset($_SERVER['QUERY_STRING']) ? (string) wp_unslash($_SERVER['QUERY_STRING']) : ''; // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- passed through as-is, not output.
         parse_str($query, $args);
-        $query_var = get_post_type_object($post->post_type)->query_var;
+        $type      = get_post_type_object($post->post_type);
+        $query_var = $type ? $type->query_var : '';
         if ($query_var) {
             unset($args[$query_var]);
         }

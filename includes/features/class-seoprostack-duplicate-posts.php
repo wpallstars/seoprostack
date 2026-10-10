@@ -316,23 +316,24 @@ class SEOProStack_Duplicate_Posts extends SEOProStack_Feature {
         $post_id = isset($_GET['post']) ? absint(wp_unslash($_GET['post'])) : 0;
         check_admin_referer(self::ACTION . '_' . $post_id);
 
-        if (!self::can_duplicate($post_id)) {
+        $post = get_post($post_id);
+        if (!$post instanceof WP_Post || !self::can_duplicate($post_id)) {
             wp_die(esc_html__('Sorry, you are not allowed to duplicate this item.', 'seoprostack'), '', array('response' => 403, 'back_link' => true));
         }
 
-        $new_id = self::duplicate(get_post($post_id));
+        $new_id = self::duplicate($post);
         if (is_wp_error($new_id)) {
             wp_die(esc_html($new_id->get_error_message()), '', array('response' => 500, 'back_link' => true));
         }
 
         $then = isset($_GET['then']) ? sanitize_key(wp_unslash($_GET['then'])) : 'edit';
+        $list = add_query_arg('post_type', $post->post_type, admin_url('edit.php'));
         if ('list' === $then) {
-            $post     = get_post($post_id);
-            $referer  = wp_get_referer();
-            $fallback = add_query_arg('post_type', $post->post_type, admin_url('edit.php'));
-            $target   = add_query_arg('seoprostack_duplicated', $new_id, $referer ? $referer : $fallback);
+            $referer = wp_get_referer();
+            $target  = add_query_arg('seoprostack_duplicated', $new_id, $referer ? $referer : $list);
         } else {
-            $target = get_edit_post_link($new_id, 'url');
+            // No edit link (a post type without an editor): back to the list.
+            $target = get_edit_post_link($new_id, 'url') ?? add_query_arg('seoprostack_duplicated', $new_id, $list);
         }
 
         wp_safe_redirect($target);
@@ -516,13 +517,14 @@ class SEOProStack_Duplicate_Posts extends SEOProStack_Feature {
     public static function notice() {
         // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- display only.
         $new_id = isset($_GET['seoprostack_duplicated']) ? absint(wp_unslash($_GET['seoprostack_duplicated'])) : 0;
-        if (!$new_id || !current_user_can('edit_post', $new_id)) {
+        $link = $new_id ? get_edit_post_link($new_id) : null;
+        if (null === $link || !current_user_can('edit_post', $new_id)) {
             return;
         }
         printf(
             '<div class="notice notice-success is-dismissible"><p>%1$s <a href="%2$s">%3$s</a></p></div>',
             esc_html__('Draft copy created.', 'seoprostack'),
-            esc_url(get_edit_post_link($new_id)),
+            esc_url($link),
             /* translators: %s: post title */
             esc_html(sprintf(__('Edit “%s”', 'seoprostack'), get_the_title($new_id)))
         );

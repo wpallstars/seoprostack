@@ -134,7 +134,8 @@ class SEOProStack_Link_Card_Block extends SEOProStack_Feature {
         $title       = isset($attributes['title']) ? trim(wp_strip_all_tags((string) $attributes['title'])) : '';
         $description = isset($attributes['description']) ? trim(wp_strip_all_tags((string) $attributes['description'])) : '';
         $site        = isset($attributes['siteName']) ? trim(wp_strip_all_tags((string) $attributes['siteName'])) : '';
-        $host        = preg_replace('/^www\./i', '', (string) wp_parse_url($url, PHP_URL_HOST));
+        $host        = (string) wp_parse_url($url, PHP_URL_HOST);
+        $host        = preg_replace('/^www\./i', '', $host) ?? $host;
         $site        = '' !== $site ? $site : $host;
         $title       = '' !== $title ? $title : $url;
         $position    = isset($attributes['mediaPosition']) && in_array($attributes['mediaPosition'], self::POSITIONS, true) ? $attributes['mediaPosition'] : 'right';

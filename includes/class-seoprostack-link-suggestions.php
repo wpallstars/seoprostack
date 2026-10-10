@@ -134,7 +134,7 @@ HTML;
      */
     public static function find($post_id, $direction, $target_id = 0, $target_search = '') {
         $post = get_post($post_id);
-        if (!SEOProStack_Link_Index::eligible($post)) {
+        if (!$post instanceof WP_Post || !SEOProStack_Link_Index::eligible($post)) {
             return array();
         }
         // One more than the 40 wanted: the page itself can be among them and
@@ -144,7 +144,7 @@ HTML;
         if ('incoming' === $direction) {
             foreach (self::phrases($post) as $phrase) {
                 $query = new WP_Query(array_merge($args, array('s' => $phrase, 'sentence' => true)));
-                foreach ($query->posts as $candidate) {
+                foreach ($query->posts ?? array() as $candidate) {
                     if ($candidate instanceof WP_Post) {
                         $candidates[$candidate->ID] = $candidate;
                     }
@@ -160,7 +160,7 @@ HTML;
             }
         } elseif ('' !== $target_search) {
             $query = new WP_Query(array_merge($args, array('s' => sanitize_text_field($target_search), 'posts_per_page' => 81)));
-            $candidates = $query->posts;
+            $candidates = $query->posts ?? array();
         } else {
             $taxonomies = get_object_taxonomies($post->post_type);
             $tax_query = array('relation' => 'OR');
@@ -172,7 +172,7 @@ HTML;
             }
             // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_tax_query -- owner-requested editorial search, capped at 40 candidates and never run for visitors.
             $query = new WP_Query(count($tax_query) > 1 ? array_merge($args, array('tax_query' => $tax_query)) : $args);
-            $candidates = $query->posts;
+            $candidates = $query->posts ?? array();
         }
         // A page never links to itself.
         $candidates = array_values(array_filter($candidates, function ($candidate) use ($post_id) {
@@ -214,7 +214,7 @@ HTML;
     /** @param WP_Post $source Locked source. @param int $source_id Source. @param int $target_id Target. @param string $phrase Anchor. @param string $hash Snapshot. @return true|WP_Error */
     private static function insert_locked($source, $source_id, $target_id, $phrase, $hash) {
         $target = get_post($target_id);
-        if (!current_user_can('edit_post', $source_id) || !SEOProStack_Link_Index::eligible($source) || !SEOProStack_Link_Index::eligible($target) || $source_id === $target_id) {
+        if (!$target instanceof WP_Post || !current_user_can('edit_post', $source_id) || !SEOProStack_Link_Index::eligible($source) || !SEOProStack_Link_Index::eligible($target) || $source_id === $target_id) {
             return new WP_Error('not_allowed', __('This content cannot be changed.', 'seoprostack'));
         }
         if (!hash_equals(hash('sha256', $source->post_content), $hash) || (function_exists('wp_check_post_lock') && wp_check_post_lock($source_id))) {

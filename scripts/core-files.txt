@@ -16,9 +16,11 @@ includes/github-updater/
 admin/settings.php
 admin/data/readme.php
 admin/includes/class-admin-manager.php
+admin/includes/class-admin-page.php
 admin/includes/class-settings-manager.php
 admin/includes/class-readme-manager.php
 admin/includes/class-replaced-plugins.php
+admin/css/seoprostack-header.css
 admin/css/seoprostack-admin.css
 admin/js/seoprostack-admin.js
 
@@ -46,6 +48,8 @@ scripts/update-test.sh
 .gitignore
 .gitleaks.toml
 .codacy.yml
+.eslintrc.json
+phpmd.xml.dist
 sonar-project.properties
 composer.json
 phpcs.xml.dist
@@ -53,6 +57,7 @@ phpstan.neon.dist
 
 # Shared docs.
 STANDARDS.md
+STYLING.md
 DEVELOPMENT.md
 RELEASING.md
 CONTRIBUTING.md

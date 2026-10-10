@@ -56,7 +56,7 @@ class SEOProStack_Update_Count extends SEOProStack_Feature {
      */
     private static $seen = array();
 
-    /** @var array<string,string> Installed plugin versions read on this request. */
+    /** @var array<string,string|null> Installed plugin versions read on this request; null when not installed. */
     private static $versions = array();
 
     /**

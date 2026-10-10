@@ -845,7 +845,7 @@ final class SEOProStack_Starters {
         $value = preg_replace_callback('/\{url:([^{}]+)\}/', function ($m) {
             $id = self::find_id('pages', $m[1]);
             return $id ? esc_url((string) get_permalink($id)) : '#';
-        }, $value);
+        }, $value) ?? $value;
         $pattern = '/\{(' . implode('|', array_keys(self::TOKENS)) . '):([^{}]+)\}/';
         if (preg_match('/^' . trim($pattern, '/') . '$/', $value, $m)) {
             return self::find_id(self::TOKENS[$m[1]], $m[2]);

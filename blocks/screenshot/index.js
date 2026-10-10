@@ -65,7 +65,7 @@
 	 * "4/3" → [4, 3]; anything else → null (the browser window).
 	 */
 	function parseRatio(ratio) {
-		var m = /^\s*(\d{1,5})\s*[\/:]\s*(\d{1,5})\s*$/.exec(ratio || '');
+		var m = /^\s*(\d{1,5})\s*[/:]\s*(\d{1,5})\s*$/.exec(ratio || '');
 		return m && +m[1] && +m[2] ? [+m[1], +m[2]] : null;
 	}
 

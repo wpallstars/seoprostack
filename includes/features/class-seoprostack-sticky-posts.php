@@ -754,6 +754,7 @@ class SEOProStack_Sticky_Posts extends SEOProStack_Feature {
      *
      * @param WP_Post|null $post Post.
      * @return bool
+     * @phpstan-assert-if-true WP_Post $post
      */
     private static function editor_applies($post) {
         $links = self::linked_fields();

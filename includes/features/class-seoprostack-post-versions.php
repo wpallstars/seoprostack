@@ -264,7 +264,7 @@ class SEOProStack_Post_Versions extends SEOProStack_Feature {
                 wp_kses(sprintf(
                     /* translators: %s: linked original post title */
                     __('New version of %s. Publishing replaces it.', 'seoprostack'),
-                    sprintf('<a href="%1$s">%2$s</a>', esc_url(get_edit_post_link($original->ID)), esc_html(get_the_title($original)))
+                    sprintf('<a href="%1$s">%2$s</a>', esc_url(self::edit_url($original->ID)), esc_html(get_the_title($original)))
                 ), array('a' => array('href' => array())))
             );
         } elseif (self::can_stage($post)) {
@@ -386,19 +386,33 @@ class SEOProStack_Post_Versions extends SEOProStack_Feature {
 
         $draft = self::pending_version($post_id);
         if ($draft) {
-            wp_safe_redirect(get_edit_post_link($draft->ID, 'url'));
+            wp_safe_redirect(self::edit_url($draft->ID));
             exit;
         }
 
+        $post = get_post($post_id);
+        if (!$post instanceof WP_Post) {
+            wp_die(esc_html__('Sorry, you cannot stage a new version of this item.', 'seoprostack'), '', array('response' => 404, 'back_link' => true));
+        }
         $parts  = array_diff(SEOProStack_Duplicate_Posts::all_parts(), array('date'));
-        $new_id = SEOProStack_Duplicate_Posts::duplicate(get_post($post_id), $parts, array('post_status' => 'draft'));
+        $new_id = SEOProStack_Duplicate_Posts::duplicate($post, $parts, array('post_status' => 'draft'));
         if (is_wp_error($new_id)) {
             wp_die(esc_html($new_id->get_error_message()), '', array('response' => 500, 'back_link' => true));
         }
         update_post_meta($new_id, self::META, $post_id);
 
-        wp_safe_redirect(get_edit_post_link($new_id, 'url'));
+        wp_safe_redirect(self::edit_url($new_id));
         exit;
+    }
+
+    /**
+     * A post's edit screen address; the Posts screen when it has none.
+     *
+     * @param int $post_id Post ID.
+     * @return string
+     */
+    private static function edit_url($post_id) {
+        return get_edit_post_link($post_id, 'url') ?? admin_url('edit.php');
     }
 
     /**
@@ -500,7 +514,7 @@ class SEOProStack_Post_Versions extends SEOProStack_Feature {
             wp_die(esc_html__('Sorry, this version cannot be published.', 'seoprostack'), '', array('response' => 403, 'back_link' => true));
         }
         if (self::STATUS !== $draft->post_status || !self::merge($draft)) {
-            wp_safe_redirect(get_edit_post_link($draft_id, 'url'));
+            wp_safe_redirect(self::edit_url($draft_id));
             exit;
         }
 

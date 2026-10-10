@@ -1443,7 +1443,7 @@ class SEOProStack_Admin_Menu extends SEOProStack_Feature {
         $kids  = array();
         foreach ($items as $item) {
             $class   = isset($item[4]) ? (string) $item[4] : '';
-            $item[4] = trim(preg_replace('/(^|\s)sps-menu-divider(?=\s|$)/', ' ', $class));
+            $item[4] = trim(preg_replace('/(^|\s)sps-menu-divider(?=\s|$)/', ' ', $class) ?? $class);
             if (false !== strpos($class, 'sps-menu-plain')) {
                 if (current_user_can($item[1])) {
                     $kids[] = array(

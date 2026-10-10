@@ -853,7 +853,7 @@ final class SEOProStack_Plugin_Loader {
                 if (preg_match('#^' . str_replace('#', '\\#', $rule) . '#', $path, $matches)) {
                     $target = preg_replace_callback('/\$matches\[(\d+)\]/', function ($match) use ($matches) {
                         return rawurlencode($matches[(int) $match[1]] ?? '');
-                    }, (string) $target);
+                    }, (string) $target) ?? '';
                     parse_str((string) wp_parse_url($target, PHP_URL_QUERY), $query);
                     if (isset($query['pagename'])) {
                         $page = self::front_post_by_path($query['pagename'], 'page', $path);

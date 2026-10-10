@@ -31,7 +31,7 @@
 #                   button; none takes both out.
 #
 # Needs a clean working tree. Then update README.md, readme.txt,
-# changelog.txt, AGENTS.md and the banner (STANDARDS.md and DEVELOPMENT.md say how).
+# changelog.txt, AGENTS.md, LAUNCH.md and the banner (STANDARDS.md and DEVELOPMENT.md say how).
 #
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Marcus Quinn
@@ -43,6 +43,11 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 readonly SCRIPT_DIR
 # shellcheck source=scripts/lib/plugin.sh disable=SC1091 # followed only with -x
 . "$SCRIPT_DIR/lib/plugin.sh"
+
+# The starter's name and repository page, kept in every plugin's credits and
+# AGENTS.md. Split, so that renaming this script leaves them alone.
+readonly STARTER_NAME="WP Plugin ""Starter"
+readonly STARTER_URL="https://github.com/wpallstars/wp-plugin-""starter-template-for-ai-coding"
 
 die() {
 	local message="$1"
@@ -215,6 +220,87 @@ Every change: changelog.txt."
 	set_section README.md "## Changelog" '^## ' "### $VERSION
 
 - $first"
+	# Launch state belongs to this plugin, not the repository it was copied from.
+	cat >"$TMP_FILE" <<EOF
+# $TO_NAME launch state
+
+Version: $VERSION
+
+In development; no release yet. The repository is private. Making it public
+needs the owner's say.
+
+## While private
+
+Follow \`DEVELOPMENT.md\` → While private. No branch protection or repository
+rules, CodeQL, secret scanning or Scorecard are on: they need a public
+repository or a paid GitHub plan. Connect Codacy, CodeFactor and SonarCloud
+at public launch. \`SYNC_PAT\` is needed only once \`main\` is protected
+(\`DEVELOPMENT.md\` → Services setup, step 4).
+
+## At public launch
+
+First follow \`DEVELOPMENT.md\` → Secrets in history, then
+\`DEVELOPMENT.md\` → At public launch. Update this file with what is on.
+
+## WordPress.org
+
+Not submitted. Follow \`RELEASING.md\` → WordPress.org when the owner says,
+and record the submission here.
+EOF
+	replace_with_tmp LAUNCH.md || true
+	return 0
+}
+
+# The agent guide belongs to this plugin too: the starter's describes the
+# starter (what every plugin is made from), which is wrong for a plugin.
+set_agents() {
+	cat >"$TMP_FILE" <<EOF
+# $TO_NAME — agent guide
+
+$TO_NAME: a wpallstars plugin made from $STARTER_NAME. Say here, in a line or
+two, what it does and who it is for.
+
+**Read \`STANDARDS.md\` before any change.** It holds the rules every plugin
+made from the starter shares: structure and core files, code rules,
+performance, Updates from GitHub, releases and testing; styling (admin
+forms, front-end dark mode) is in \`STYLING.md\`. The starter holds the
+master copy of both and of every core file (\`scripts/core-files.txt\`).
+This file holds only what is $TO_NAME's own.
+
+| Placeholder in \`STANDARDS.md\` | $TO_NAME |
+|---|---|
+| \`{slug}\` | \`$TO_SLUG\` (main file \`$TO_SLUG.php\`) |
+| \`{prefix}\` | \`$TO_PREFIX\` |
+| \`{Prefix}\` | \`$TO_PACKAGE\` |
+| \`{PREFIX}\` | \`$TO_CONST\` |
+| \`{Name}\` | $TO_NAME |
+| \`{css}\` | \`$TO_CSS\` |
+
+User docs: \`README.md\` (developers, and the Read Me tab) and \`readme.txt\`.
+Development: \`DEVELOPMENT.md\`. Releases: \`RELEASING.md\`; launch state:
+\`LAUNCH.md\`. Keep this file a short map: guidance for one kind of task goes
+in \`docs/\` (\`STANDARDS.md\` → Agent docs); there is none yet.
+
+## What belongs here
+
+- $TO_NAME's own features: settings, features and wiring in
+  \`${TO_PACKAGE}_Setup\` (\`includes/class-$TO_PREFIX-setup.php\`), each
+  feature in its own files. Add a line here for each rule only this plugin
+  has.
+- Core files (\`scripts/core-files.txt\`) come from the starter: do not change
+  them here. \`scripts/sync-core.sh\` updates them (\`--check\` lists what
+  differs). A fix every plugin needs goes to the starter first.
+- Keep the credits in \`README.md\` and \`readme.txt\`: **Built with AI** to
+  aidevops (<https://aidevops.sh>) and the "Made from" line crediting the
+  starter (\`STANDARDS.md\` → Structure).
+
+## Test sites
+
+Install the GitHub build on a local test site with
+\`scripts/preview-site.sh\` (see \`DEVELOPMENT.md\`), or install the GitHub
+zip from \`scripts/build-release.sh\` on any test site.
+EOF
+	replace_with_tmp AGENTS.md || true
 	return 0
 }
 
@@ -248,11 +334,10 @@ set_badges() {
 
 # The starter's credit, kept in every plugin made from it (STANDARDS.md →
 # Structure): the renaming above turned the starter's name and repository in
-# it into the new plugin's, so write the line again. The strings are split so
-# that renaming this script leaves them alone.
+# it into the new plugin's, so write the line again.
 set_credit() {
-	local name="WP Plugin ""Starter"
-	local url="https://github.com/wpallstars/wp-plugin-""starter-template-for-ai-coding"
+	local name="$STARTER_NAME"
+	local url="$STARTER_URL"
 	local file line
 	for file in README.md readme.txt; do
 		[[ -f "$file" ]] || continue
@@ -271,11 +356,11 @@ set_credit() {
 
 # Copyright (STANDARDS.md → Structure): the new plugin's own line (this year,
 # its Author), then the starter's, kept as "Parts copyright". Split strings,
-# as in set_credit, so renaming this script leaves them alone.
+# as STARTER_NAME, so renaming this script leaves them alone.
 set_copyright() {
 	local main_file="$1"
-	local name="WP Plugin ""Starter"
-	local url="https://github.com/wpallstars/wp-plugin-""starter-template-for-ai-coding"
+	local name="$STARTER_NAME"
+	local url="$STARTER_URL"
 	local starter="Copyright (C) 2026 Marcus ""Quinn"
 	local parts="Parts copyright (C) 2026 Marcus ""Quinn"
 	local owner year
@@ -448,6 +533,7 @@ main() {
 	starter_version="$(plugin_header_field "$(head -c 8192 "$slug.php")" "Version")"
 	set_identity "$slug.php" "includes/class-$TO_PREFIX-setup.php" "$old_description"
 	set_version "$slug.php" "$starter_version"
+	set_agents
 	set_badges "$repo"
 	set_credit
 	set_copyright "$slug.php"
