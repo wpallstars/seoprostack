@@ -141,6 +141,7 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 == Changelog ==
 
 = Unreleased =
+* New: Hosting needs warns when DISABLE_WP_CRON is set but no server cron job runs.
 * New: Light, Dark or System colour mode for the settings screen, per person.
 * Fix: a colour scheme picked in your profile sticks with Modern admin colours on.
 * Changed: a lightning bolt on the top tile of the banner and icon.
@@ -149,7 +150,7 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 = 1.3.31 =
 * Changed: the banner's words are centred top to bottom; on WordPress.org and in View details they sit higher.
 * New: the settings screen's tabs switch at once, without loading the page again.
-* Fix: the Read Me tab shows a paragraph written over several lines as one paragraph, and fenced code blocks as code.
-* Faster: Database clean-up removes old auto-drafts through the posts table's index, instead of reading every post.
+* Fix: the Read Me tab shows wrapped paragraphs and fenced code as GitHub does.
+* Faster: Database clean-up finds old auto-drafts through an index.
 
 Older: `changelog.txt`.
