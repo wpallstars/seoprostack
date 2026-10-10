@@ -403,8 +403,15 @@ html.sps-dark .sps-wrap .sps-filter {
 	border-color: var(--sps-ui-border);
 }
 
+/* Core gives every filter link a 4px #fff bottom border (blending into its
+   white bar) and the admin theme colour on hover, both wrong on dark. */
 html.sps-dark .sps-wrap .sps-filter .filter-links a {
 	color: var(--sps-ui-accent);
+	border-bottom-color: var(--sps-ui-surface);
+}
+
+html.sps-dark .sps-wrap .sps-filter .filter-links a:is(:hover, :focus) {
+	color: var(--sps-ui-text);
 }
 
 html.sps-dark .sps-wrap .sps-filter .filter-links a.current {

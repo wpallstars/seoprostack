@@ -21,7 +21,7 @@ Safe features start on; others stay off. In **Settings → SEO Pro Stack**, **Se
 
 = A calmer, faster admin =
 
-* **Light, Dark or System**: per-person colour mode for this plugin's settings only, next to Buy me a coffee.
+* **Light, Dark or System** mode for this plugin's screen, per person.
 * **Developer admins**: chosen admins manage plugins, themes, admins and site addresses.
 * **Organise the admin menu**: consistent sections, role previews, writing-only contributor menus.
 * **Tidy the dashboard**, **Dashboard and sidebar widgets**, **Hide admin notices** and a **More menu** for admin bar items.
@@ -60,7 +60,7 @@ Safe features start on; others stay off. In **Settings → SEO Pro Stack**, **Se
 
 * **Rank Math defaults**: empty keywords from titles, pillar warnings and selected-post removal.
 * **Short links** with click counts and **410 Gone** for removed pages.
-* **Short addresses for custom post types**: other plugins can add their own types through `seoprostack_short_address_types`, even while this feature is off; the panel lists them.
+* **Short addresses for custom post types**; plugins add types with `seoprostack_short_address_types`.
 * **External link icons**: Kadence colours, no scripts; replaces Link Whisper's icon only.
 * **Internal linking tools** (off): suggestions, undo, counts, orphans and read-only Link Whisper checks.
 * **Recommended speed settings**, **Load pages before the click**, **Delay scripts until interaction**, **Delayed Google Analytics** and faster Kadence Blocks editing.
@@ -141,8 +141,9 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 == Changelog ==
 
 = Unreleased =
+* New: Light, Dark or System colour mode for the settings screen, per person.
 * Changed: a lightning bolt on the top tile of the banner and icon.
-* Developers: core files synced from WP Plugin Starter (d5fc891), fixing the updater licence warning and adding starter-leftover and README-badge checks.
+* Developers: core files synced from WP Plugin Starter (d5fc891).
 
 = 1.3.31 =
 * Changed: the banner's words are centred top to bottom, as on the other wpallstars plugins' banners; on WordPress.org and in View details they sit higher, clear of the plugin name.
