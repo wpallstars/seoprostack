@@ -21,7 +21,7 @@ SEO Pro Stack does the jobs that usually take dozens of small plugins: a calmer,
 
 If this saves you time, headaches and costs, feel free to [buy me a coffee](https://buymeacoffee.com/marcusquinn), or whatever you like, to invest in making more things open-source.
 
-Version: 1.3.30
+Version: 1.3.31
 
 <!-- github-only:start -->
 ## Screenshots
@@ -1522,10 +1522,15 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folderâ
 
 ## Changelog
 
-### Unreleased
+### 1.3.31
 
 - Changed: the banner's words are centred top to bottom, with the same layout as the other wpallstars plugins' banners (GitHub issue #642).
 - New: **View details** (Plugins and Updates screens) shows the banner with its words higher, above the plugin name WordPress writes over its lower left; this README and the Read Me tab keep them centred (GitHub issue #646).
+- New: the settings screen's tabs switch at once, without loading the page again; the address follows the tab shown, so Back, reload and bookmarks work as before. Discover tabs and search results still open as pages (from WP Plugin Starter, GitHub issue #650).
+- Fix: the Read Me tab shows a paragraph or list item written over several lines as one paragraph, as GitHub does, and fenced code blocks as code; a line whose formatting cannot be read keeps its text (from WP Plugin Starter, GitHub issue #650).
+- Faster: Database clean-up counts and removes old auto-drafts through the posts table's index, instead of reading every post; WordPress's own daily clean-up still covers post types no plugin registers any more. Spectra block replacements' panel lists the 50 newest posts with Spectra blocks (it listed the 50 most recently changed), so the database stops reading once it has found them, instead of sorting every match (GitHub issue #650).
+- Developers: core files synced from WP Plugin Starter (28d9aeb): PHPStan at level 8, with SEO Pro Stack's own null-handling findings fixed; the settings header's styles in `admin/css/seoprostack-header.css`, with `SEOProStack_Admin_Manager::enqueue_header()` and `render_header()` for other screens; `STYLING.md`; Codacy's `.eslintrc.json` and `phpmd.xml.dist`; and `scripts/smoke-test.sh` failing a full scan or sort of 1,000 rows or more in the plugin's own queries (GitHub issue #650).
+- Docs: the WordPress.org readme describes how other plugins use short addresses (GitHub issue #645); its changelog lists this version's changes (GitHub issue #644).
 
 ### 1.3.30
 
