@@ -5,7 +5,7 @@ Tags: magic login, iframe, schedule posts, auto upload images, admin
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.3.31
+Stable tag: 1.3.32
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -140,17 +140,11 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 
 == Changelog ==
 
-= Unreleased =
+= 1.3.32 =
 * New: Hosting needs warns when DISABLE_WP_CRON is set but no server cron job runs.
 * New: Light, Dark or System colour mode for the settings screen, per person.
 * Fix: a colour scheme picked in your profile sticks with Modern admin colours on.
 * Changed: a lightning bolt on the top tile of the banner and icon.
 * Developers: core files synced from WP Plugin Starter (d5fc891).
-
-= 1.3.31 =
-* Changed: the banner's words are centred top to bottom; on WordPress.org and in View details they sit higher.
-* New: the settings screen's tabs switch at once, without loading the page again.
-* Fix: the Read Me tab shows wrapped paragraphs and fenced code as GitHub does.
-* Faster: Database clean-up finds old auto-drafts through an index.
 
 Older: `changelog.txt`.

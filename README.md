@@ -24,7 +24,7 @@ SEO Pro Stack does the jobs that usually take dozens of small plugins: a calmer,
 
 If this saves you time, headaches and costs, feel free to [buy me a coffee](https://buymeacoffee.com/marcusquinn), or whatever you like, to invest in making more things open-source.
 
-Version: 1.3.31
+Version: 1.3.32
 
 <!-- github-only:start -->
 ## Screenshots
@@ -1528,7 +1528,7 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folderâ
 
 ## Changelog
 
-### Unreleased
+### 1.3.32
 
 - New: **Hosting needs** says when WP-Cron is turned off (`DISABLE_WP_CRON`) but no cron job on the server runs the scheduled jobs: a warning once an event is 15 minutes late (an error past an hour) on the Dashboard and Plugins screens, with the commands for this site and, on Hostinger, where hPanel keeps cron jobs, and a Site Health test. It hides SEO Pro Stats's matching notice, and WP Crontrol's screen uses the same check (GitHub issue #659).
 - New: **Light**, **Dark** and **System** colour modes for SEO Pro Stack's settings screen, chosen with the icon after **Buy me a coffee** and remembered per person. System follows the computer live; the rest of WordPress and the front end keep their colours. Accessible keyboard menu and save-failure recovery, matching SEO Pro Stats (GitHub issue #655).
