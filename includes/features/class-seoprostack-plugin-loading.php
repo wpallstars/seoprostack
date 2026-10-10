@@ -1059,13 +1059,14 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
                 $shown[$item[2]] = true;
             }
         }
-        foreach (self::$menu['menu'] as $position => $item) {
+        $copy = self::$menu;
+        foreach ($copy['menu'] as $position => $item) {
             $slug = isset($item[2]) ? self::here_slug($item[2]) : null;
             if (null !== $slug && !isset($shown[$slug]) && !isset($shown[$renamed($slug)])) {
-                unset(self::$menu['menu'][$position]);
+                unset($copy['menu'][$position]);
             }
         }
-        foreach (self::$menu['submenu'] as $parent => $items) {
+        foreach ($copy['submenu'] as $parent => $items) {
             $kept       = array();
             $parent_now = isset($submenu[$parent]) ? $parent : $renamed($parent);
             foreach (isset($submenu[$parent_now]) ? (array) $submenu[$parent_now] : array() as $item) {
@@ -1075,13 +1076,14 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
             }
             foreach ($items as $position => $item) {
                 if (isset($item[2]) && !isset($kept[self::here_slug($item[2])])) {
-                    unset(self::$menu['submenu'][$parent][$position]);
+                    unset($copy['submenu'][$parent][$position]);
                 }
             }
-            if (empty(self::$menu['submenu'][$parent])) {
-                unset(self::$menu['submenu'][$parent]);
+            if (empty($copy['submenu'][$parent])) {
+                unset($copy['submenu'][$parent]);
             }
         }
+        self::$menu = $copy;
     }
 
     /**
@@ -1155,7 +1157,7 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
      */
     public static function strip_counts($item) {
         if (is_array($item) && isset($item[0]) && is_string($item[0]) && false !== strpos($item[0], '<span')) {
-            $item[0] = trim(preg_replace('#\s*<span[^>]*class="[^"]*\b(awaiting-mod|update-plugins|menu-counter|count-\d+)\b[^"]*"[^>]*>(?:[^<]|<span[^>]*>[^<]*</span>)*</span>#', '', $item[0]));
+            $item[0] = trim(preg_replace('#\s*<span[^>]*class="[^"]*\b(awaiting-mod|update-plugins|menu-counter|count-\d+)\b[^"]*"[^>]*>(?:[^<]|<span[^>]*>[^<]*</span>)*</span>#', '', $item[0]) ?? $item[0]);
         }
         return $item;
     }
@@ -2950,7 +2952,7 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
             // "FluentCRM" and "Fluent Forms".
             $pro_name = self::before_tagline((string) $headers['name']);
             if (preg_match('/\b(pro|premium)\b/i', $pro_name)) {
-                $stripped = self::plain_name(preg_replace('/\b(pro|premium|add[\s-]*ons?|pack)\b/i', '', $pro_name));
+                $stripped = self::plain_name(preg_replace('/\b(pro|premium|add[\s-]*ons?|pack)\b/i', '', $pro_name) ?? '');
                 if ('' !== $stripped && isset($by_name[$stripped])) {
                     $bases[] = $by_name[$stripped];
                 }

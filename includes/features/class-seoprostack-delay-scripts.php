@@ -164,10 +164,13 @@ class SEOProStack_Delay_Scripts extends SEOProStack_Feature {
             if (!$matched || false !== stripos($attrs, 'data-seoprostack-nodelay')) {
                 return $m[0];
             }
-            $count++;
             $original = isset($type[1]) ? $type[1] : '';
             $attrs    = preg_replace('#\btype\s*=\s*["\']?[^"\'\s>]+["\']?#i', '', $attrs);
-            $attrs    = preg_replace('#\bsrc\s*=#i', 'data-seoprostack-src=', $attrs);
+            $attrs    = null === $attrs ? null : preg_replace('#\bsrc\s*=#i', 'data-seoprostack-src=', $attrs);
+            if (null === $attrs) {
+                return $m[0]; // A failed match leaves the script as it was, not delayed.
+            }
+            $count++;
             return sprintf('<script type="%1$s" data-seoprostack-type="%2$s"%3$s>%4$s</script>', self::TYPE, esc_attr($original), $attrs, $m[2]);
         }, $html);
 

@@ -131,7 +131,7 @@ class SEOProStack_Brand_Icons extends SEOProStack_Feature {
             return $name;
         }
         $name = str_replace(array('+', '.', '&'), array('plus', 'dot', 'and'), $name);
-        return preg_replace('/[^a-z0-9]/', '', remove_accents($name));
+        return preg_replace('/[^a-z0-9]/', '', remove_accents($name)) ?? '';
     }
 
     /**
@@ -353,6 +353,9 @@ class SEOProStack_Brand_Icons extends SEOProStack_Feature {
             return '';
         }
         $icon = self::icon($slug);
+        if (null === $icon) {
+            return '';
+        }
         $url  = isset($attributes['url']) ? esc_url_raw(trim((string) $attributes['url'])) : '';
         $name = isset($attributes['label']) && '' !== trim((string) $attributes['label']) ? trim(wp_strip_all_tags((string) $attributes['label'])) : $icon['title'];
         $size = self::css_size(isset($attributes['size']) ? $attributes['size'] : 32);
@@ -388,7 +391,8 @@ class SEOProStack_Brand_Icons extends SEOProStack_Feature {
             'title_tag' => 'true',
         ), (array) $atts, 'simple_icon');
         $slug = self::find($atts['name']);
-        if ('' === $slug) {
+        $icon = '' === $slug ? null : self::icon($slug);
+        if (null === $icon) {
             return '';
         }
         $title = !in_array(strtolower((string) $atts['title_tag']), array('false', '0', 'no', ''), true);
@@ -398,7 +402,7 @@ class SEOProStack_Brand_Icons extends SEOProStack_Feature {
             'class' => (string) $atts['class'],
             'title' => $title,
             // Without the tooltip (menus with a title attribute), still named.
-            'label' => self::icon($slug)['title'],
+            'label' => $icon['title'],
         ));
     }
 

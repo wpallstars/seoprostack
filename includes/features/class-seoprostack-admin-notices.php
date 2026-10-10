@@ -395,12 +395,12 @@ class SEOProStack_Admin_Notices extends SEOProStack_Feature {
             $within = $notice ? false : $xpath->query($inside, $el);
             if ($notice) {
                 if (!$hidden) {
-                    $found[] = trim((string) $el->ownerDocument->saveHTML($el));
+                    $found[] = trim((string) $xpath->document->saveHTML($el));
                 }
             } elseif ($within && $within->length) {
                 self::find_notices($el, $xpath, $found);
             } elseif (!$hidden && '' !== trim($el->textContent) && preg_match('/(^|[\s_-])(notices?|nag|notification|alert|banner|promo|announcement)([\s_-]|$)/i', $el->getAttribute('class') . ' ' . $el->getAttribute('id'))) {
-                $found[] = trim((string) $el->ownerDocument->saveHTML($el));
+                $found[] = trim((string) $xpath->document->saveHTML($el));
             }
         }
     }

@@ -230,7 +230,8 @@ class SEOProStack_Field_Content extends SEOProStack_Feature {
         $page = 1;
         do {
             $query = new WP_Query(array('post_type' => $type, 'post_status' => 'any', 'posts_per_page' => 100, 'paged' => $page, 'fields' => 'ids', 'orderby' => 'ID', 'order' => 'ASC', 'no_found_rows' => true));
-            foreach ($query->posts as $id) {
+            $ids   = $query->posts ?? array();
+            foreach ($ids as $id) {
                 if (!current_user_can('edit_post', $id)) {
                     WP_CLI::error(__('You cannot edit a post in this batch.', 'seoprostack'));
                     return;
@@ -243,7 +244,7 @@ class SEOProStack_Field_Content extends SEOProStack_Feature {
                 $changed += true === $result ? 1 : 0;
             }
             ++$page;
-        } while (100 === count($query->posts));
+        } while (100 === count($ids));
         /* translators: %d: number of posts changed. */
         WP_CLI::success(sprintf(__('Synced %d posts; unchanged posts were left alone.', 'seoprostack'), $changed));
     }

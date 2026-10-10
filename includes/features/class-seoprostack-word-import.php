@@ -195,7 +195,8 @@ class SEOProStack_Word_Import extends SEOProStack_Feature {
     public function convert($path, $post_id = 0, $name = '') {
         $this->zip      = new ZipArchive();
         $this->post_id  = (int) $post_id;
-        $this->doc_name = preg_replace('/\.docx$/i', '', wp_basename((string) $name));
+        $base           = wp_basename((string) $name);
+        $this->doc_name = preg_replace('/\.docx$/i', '', $base) ?? $base;
         if (true !== $this->zip->open($path)) {
             return new WP_Error('seoprostack_word_open', __('This is not a Word document WordPress can read.', 'seoprostack'));
         }
@@ -209,7 +210,7 @@ class SEOProStack_Word_Import extends SEOProStack_Feature {
         $this->read_styles();
         $this->read_numbering();
 
-        $body = $this->child($document->documentElement, 'body');
+        $body = $this->child($document, 'body');
         $html = $body ? $this->blocks($body) : '';
         $this->zip->close();
 
@@ -221,10 +222,10 @@ class SEOProStack_Word_Import extends SEOProStack_Feature {
     }
 
     /**
-     * Parse an XML part of the document.
+     * Parse an XML part of the document: its root element.
      *
      * @param string $name Part path.
-     * @return DOMDocument|null
+     * @return DOMElement|null
      */
     private function xml($name) {
         $stat = $this->zip->statName($name);
@@ -241,7 +242,7 @@ class SEOProStack_Word_Import extends SEOProStack_Feature {
         $loaded   = $dom->loadXML($xml, LIBXML_NONET | LIBXML_COMPACT);
         libxml_clear_errors();
         libxml_use_internal_errors($previous);
-        return $loaded ? $dom : null;
+        return $loaded && $dom->documentElement instanceof DOMElement ? $dom->documentElement : null;
     }
 
     /**
@@ -252,7 +253,7 @@ class SEOProStack_Word_Import extends SEOProStack_Feature {
         if (!$dom) {
             return;
         }
-        foreach ($dom->documentElement->childNodes as $rel) {
+        foreach ($dom->childNodes as $rel) {
             if (!$rel instanceof DOMElement || 'Relationship' !== $rel->localName) {
                 continue;
             }
@@ -271,7 +272,7 @@ class SEOProStack_Word_Import extends SEOProStack_Feature {
         if (!$dom) {
             return;
         }
-        foreach ($dom->documentElement->childNodes as $style) {
+        foreach ($dom->childNodes as $style) {
             if (!$style instanceof DOMElement || 'style' !== $style->localName) {
                 continue;
             }
@@ -308,7 +309,7 @@ class SEOProStack_Word_Import extends SEOProStack_Feature {
         }
         $abstract = array();
         $nums     = array();
-        foreach ($dom->documentElement->childNodes as $node) {
+        foreach ($dom->childNodes as $node) {
             if (!$node instanceof DOMElement) {
                 continue;
             }
@@ -452,7 +453,7 @@ class SEOProStack_Word_Import extends SEOProStack_Feature {
 
         $parts  = $this->inline($p);
         $inline = trim(implode('', array_filter($parts, 'is_string')));
-        $inline = preg_replace('#(?:^(?:<br>\s*)+)|(?:(?:<br>\s*)+$)#', '', $inline);
+        $inline = preg_replace('#(?:^(?:<br>\s*)+)|(?:(?:<br>\s*)+$)#', '', $inline) ?? $inline;
 
         if ($num) {
             $images = implode('', array_map(function ($part) {
@@ -504,7 +505,8 @@ class SEOProStack_Word_Import extends SEOProStack_Feature {
      * @return string
      */
     private function wrap($tag, $text) {
-        $text = trim(preg_replace('#(?:^(?:<br>\s*)+)|(?:(?:<br>\s*)+$)#', '', trim($text)));
+        $text = trim($text);
+        $text = trim(preg_replace('#(?:^(?:<br>\s*)+)|(?:(?:<br>\s*)+$)#', '', $text) ?? $text);
         if ('' === trim(wp_strip_all_tags($text))) {
             return '';
         }

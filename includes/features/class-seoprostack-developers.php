@@ -520,9 +520,10 @@ class SEOProStack_Developers extends SEOProStack_Feature {
         if ('' === $limit) {
             return;
         }
-        $text = 'site' === $limit
+        $screen = get_current_screen();
+        $text   = 'site' === $limit
             ? __('Only developers can change the WordPress address, the site address and the administration email.', 'seoprostack')
-            : ('options-permalink' === get_current_screen()->id
+            : ($screen && 'options-permalink' === $screen->id
                 ? __('Only developers can change permalinks.', 'seoprostack')
                 : __('Only developers can change search engine visibility.', 'seoprostack'));
         echo '<div class="notice notice-info"><p>' . esc_html($text) . '</p></div>';
@@ -551,7 +552,8 @@ class SEOProStack_Developers extends SEOProStack_Feature {
         if ('' === $limit) {
             return;
         }
-        $screen    = get_current_screen()->id;
+        $current   = get_current_screen();
+        $screen    = $current ? $current->id : '';
         $selectors = array(
             'options-general'   => '#siteurl, #home, #new_admin_email',
             'options-reading'   => '#blog_public',

@@ -220,6 +220,9 @@ class SEOProStack_Replace_Media extends SEOProStack_Feature {
             wp_die(esc_html__('Sorry, you are not allowed to edit this item.', 'seoprostack'), '', array('response' => 403, 'back_link' => true));
         }
         $post  = get_post($id);
+        if (!$post instanceof WP_Post) {
+            wp_die(esc_html__('Sorry, you are not allowed to edit this item.', 'seoprostack'), '', array('response' => 404, 'back_link' => true));
+        }
         $file  = get_attached_file($id);
         $url   = wp_get_attachment_url($id);
         $meta  = wp_get_attachment_metadata($id);
@@ -247,7 +250,7 @@ class SEOProStack_Replace_Media extends SEOProStack_Feature {
                 <?php echo wp_get_attachment_image($id, array(120, 120), true, array('style' => 'max-width:120px;height:auto')); ?>
                 <p><strong><?php esc_html_e('Current file', 'seoprostack'); ?></strong><br><?php echo esc_html(implode(' · ', $details)); ?><br>
                     <a href="<?php echo esc_url((string) $url); ?>" target="_blank" rel="noopener"><?php esc_html_e('View file', 'seoprostack'); ?></a>
-                    · <a href="<?php echo esc_url(get_edit_post_link($id)); ?>"><?php esc_html_e('Edit details', 'seoprostack'); ?></a></p>
+                    · <a href="<?php echo esc_url(get_edit_post_link($id) ?? admin_url('upload.php')); ?>"><?php esc_html_e('Edit details', 'seoprostack'); ?></a></p>
             </div>
 
             <form method="post" enctype="multipart/form-data" action="<?php echo esc_url(admin_url('admin-post.php')); ?>">

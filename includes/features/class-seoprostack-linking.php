@@ -237,7 +237,7 @@ class SEOProStack_Linking extends SEOProStack_Feature {
         foreach ($data['posts'] as $row) {
             $row = (object) $row;
             $post = get_post((int) $row->post_id);
-            if (!SEOProStack_Link_Index::eligible($post)) {
+            if (!$post instanceof WP_Post || !SEOProStack_Link_Index::eligible($post)) {
                 continue;
             }
             $scan = get_post_meta($post->ID, SEOProStack_Link_Index::META, true);
@@ -264,7 +264,7 @@ class SEOProStack_Linking extends SEOProStack_Feature {
     private static function suggestions_panel() {
         $post_id = absint(self::query('post'));
         $post = get_post($post_id);
-        if (!SEOProStack_Link_Index::eligible($post)) {
+        if (!$post instanceof WP_Post || !SEOProStack_Link_Index::eligible($post)) {
             echo '<p>' . esc_html__('Choose Suggestions beside a published page on the Pages tab.', 'seoprostack') . '</p>';
             return;
         }

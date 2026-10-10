@@ -151,7 +151,7 @@ class SEOProStack_Paste_Media extends SEOProStack_Feature {
             '%H-%M-%S'   => '%time%',
         ));
         $left = preg_replace('/%(post_title|user|date|time)%/', '', $template);
-        if (false !== strpos($left, '<') || false !== strpos($left, '%')) {
+        if (null === $left || false !== strpos($left, '<') || false !== strpos($left, '%')) {
             return null;
         }
         return $template;
