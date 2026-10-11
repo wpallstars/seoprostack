@@ -443,7 +443,7 @@
 	 * Fluent Support...) and LiteSpeed Cache have their own light and dark
 	 * modes, kept in this browser. A choice made here is passed on, so their
 	 * screens open in the same mode from the next one on (the screen's
-	 * <head> does the same while Dark or System is chosen).
+	 * <head> does the same once a mode has been chosen, Light included).
 	 */
 	function shareMode(which) {
 		try {

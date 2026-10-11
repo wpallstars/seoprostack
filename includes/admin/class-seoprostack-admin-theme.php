@@ -131,6 +131,25 @@ final class SEOProStack_Admin_Theme {
     }
 
     /**
+     * Whether the current person has saved a mode, in either plugin, rather
+     * than having Light as the default.
+     *
+     * @return bool
+     */
+    private static function chosen() {
+        $user_id = get_current_user_id();
+        if (!$user_id) {
+            return false;
+        }
+        foreach (array(self::SHARED_META, self::META) as $key) {
+            if (in_array(get_user_meta($user_id, $key, true), self::MODES, true)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
      * Take part for everyone who can open wp-admin: dark mode covers every
      * admin screen.
      *
@@ -288,22 +307,25 @@ final class SEOProStack_Admin_Theme {
     /**
      * Set the mode's classes on <html> before anything is drawn.
      *
-     * While Dark or System is chosen, it also passes the choice to the Fluent
+     * Once someone has chosen a mode (Light included, so a choice made in
+     * another browser reaches this one), it also passes it to the Fluent
      * plugins' own colour mode (FluentCRM, Fluent Booking, FluentSMTP, Fluent
      * Support...) and LiteSpeed Cache's, kept in the browser, before their
      * own scripts read it, so their screens open in the same mode, without
-     * a flash.
+     * a flash. Light as the default, never chosen, leaves their own choice.
      */
     public static function head() {
         if (!self::screen_applies()) {
             return;
         }
-        $script = '(function(r,m){var q=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)"),d=m==="dark"||(m==="system"&&!!q&&q.matches);'
+        $mode   = self::mode();
+        $chosen = 'light' !== $mode || self::chosen();
+        $script = '(function(r,m,c){var q=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)"),d=m==="dark"||(m==="system"&&!!q&&q.matches);'
             . 'r.classList.add("sps-theme-"+m);'
             . 'if(d){r.classList.add("sps-dark");}'
-            . 'if(m!=="light"){try{var s=localStorage;s.setItem("fluent_theme_mode",m);s.setItem("fs-theme",m==="system"?"system:"+(d?"dark":"light"):m);'
+            . 'if(c){try{var s=localStorage;s.setItem("fluent_theme_mode",m);s.setItem("fs-theme",m==="system"?"system:"+(d?"dark":"light"):m);'
             . 'if(m==="system"){s.removeItem("litespeed-dark-preference");}else{s.setItem("litespeed-dark-preference",m);}}catch(e){}}'
-            . '})(document.documentElement,' . wp_json_encode(self::mode()) . ');';
+            . '})(document.documentElement,' . wp_json_encode($mode) . ',' . ($chosen ? 'true' : 'false') . ');';
         wp_print_inline_script_tag($script, array('id' => 'seoprostack-theme-mode'));
     }
 
