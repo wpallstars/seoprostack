@@ -104,7 +104,9 @@ zip. Check again after changes that touch an item.
       licence, account and support features working, and switch off in one
       click. They only stop prompts that guideline 11 asks plugins to keep
       few, and they mean less data sent to Freemius and Appsero, not more. If
-      a reviewer asks, offer to make them off by default.
+      a reviewer asks, offer to make them off by default. Quiet Imagify
+      suggestions uses WP Media's own filter and reads its dismissal option
+      as set without saving it, the same kind of switch.
 - [x] **Files outside the plugin folder**: on by default, Load plugins only
       where needed writes a loader to `wp-content/mu-plugins`, and Fixes for
       other plugins a block at the top of the site's `.htaccess` on LiteSpeed

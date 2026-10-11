@@ -64,7 +64,7 @@ A new install starts with the features that are safe on every site switched on, 
 - **Speed:** Recommended speed settings, Load pages before the click, Image loading, Remove WordPress extras, Lighter WooCommerce pages and Faster editor with Kadence Blocks (the last two do nothing without those plugins).
 - **Server:** Fewer Heartbeat requests, Clean the database weekly, Load large settings only where they are used and Hosting needs.
 - **Plugins:** Load plugins only where needed, with **Also skip them for people who are logged in**, so it takes every chance to skip plugins once it has learned; Clean up deleted plugins, Plugin sizes and Fixes for other plugins.
-- **Admin and editor:** Organise the admin menu, More menu in the admin bar, Hide admin bar items (Comments and + New), Hide admin notices, Tidy admin screens, Correct update counts, Tidy the dashboard, Tidy WooCommerce admin, Readable list columns, Simpler block editor, Notification emails (plugin and theme auto-update reports, unless an update failed), No fade between admin screens, Quiet Freemius prompts and Quiet Appsero prompts.
+- **Admin and editor:** Organise the admin menu, More menu in the admin bar, Hide admin bar items (Comments and + New), Hide admin notices, Tidy admin screens, Correct update counts, Tidy the dashboard, Tidy WooCommerce admin, Readable list columns, Simpler block editor, Notification emails (plugin and theme auto-update reports, unless an update failed), No fade between admin screens, Quiet Freemius prompts, Quiet Appsero prompts and Quiet Imagify suggestions.
 
 Also offered on Server: **Faster page counts on long lists**, off by default, with exact totals counted separately from the page.
 
@@ -284,6 +284,13 @@ This removes the notice, the survey and its submission, and the theme-switch rep
 - Nothing is saved in the other plugins: none is opted in or out.
 - Kept: licence pages and licence notices (`Appsero\License`), and the plugin’s own opt-in and opt-out handling.
 - Plugins you already allowed keep sending their weekly report until you opt out in the plugin; check each plugin’s settings for its usage-tracking option.
+
+### Quiet Imagify suggestions (Admin)
+
+Rank Math Pro, WP Rocket and BackWPup bundle WP Media’s “plugin family” code, which shows “Rank Math recommends optimizing your images to improve Core Web Vitals and search rankings in Google using Imagify” (or the same from WP Rocket) with an **Install Imagify Plugin** button in the Media Library, the editors’ media windows and image blocks, and on Rank Math → General Settings, until someone who can install plugins dismisses it. SEO Pro Stack optimises pictures itself with [WebP and AVIF images](#webp-and-avif-images-media) and [Resize large uploads](#resize-large-uploads-media), so this turns the suggestion off. **On by default**; switch it off to get it back.
+
+- Uses the code’s own switches: the `wpmedia_plugin_family_show_imagify_banner` filter (its version 1.0.8 and later) and, for older copies, its dismissal option `plugin_family_dismiss_promote_imagify`, read as dismissed but never saved.
+- Nothing is saved in the other plugins, and Imagify can still be installed from the Plugins screen.
 
 ### More menu in the admin bar (Admin)
 
