@@ -24,7 +24,7 @@ SEO Pro Stack does the jobs that usually take dozens of small plugins: a calmer,
 
 If this saves you time, headaches and costs, feel free to [buy me a coffee](https://buymeacoffee.com/marcusquinn), or whatever you like, to invest in making more things open-source.
 
-Version: 1.3.34
+Version: 1.3.35
 
 <!-- github-only:start -->
 ## Screenshots
@@ -52,6 +52,8 @@ Go to **Settings → SEO Pro Stack**, or click the star next to your name in the
 - **About**: this Read Me.
 
 The colour mode icon in the admin bar, just left of your name, sets **Light** (the default), **Dark** or **System** (follows your computer, including changes while a screen is open) for the whole of wp-admin. A click turns Dark on or off; point at it, or press the down arrow, for all three. Dark gives every admin screen, the block editor's panels included, dark backgrounds, and keeps your admin colour scheme's menu, admin bar and accent colour (Modern's blue, Sunrise's orange...), at a brightness that stays readable. In Light, SEO Pro Stack's own screen also keeps lighter schemes' colours readable. The editor's canvas and your site keep the theme's colours. It remembers your choice for your account, not for everyone on the site, and SEO Pro Stats uses the same choice: changing it in either plugin changes both, at once. The menu works with arrow keys, Home, End and Escape. If saving fails, the previous mode comes back with an announcement. Other plugins can keep a screen light with the `seoprostack_admin_dark_screen` filter.
+
+Dark also covers the screens of the plugins SEO Pro Stack recommends where they have no dark mode of their own (Rank Math, Admin Columns, ACF, Kadence Blocks' Design Library, Fluent Forms and the searchable dropdowns many plugins use), and the placeholder shown while **Load pages before the click** opens the next admin screen, so nothing flashes white. Text another plugin leaves hard to read in Dark (below WCAG AA: 4.5:1, or 3:1 for large text) gets the nearest colour of the same hue that reads, as screens load and change and on hover; only text colours change, and Light undoes it. The `seoprostack_admin_dark_contrast_guard` filter (`bool $guards, WP_Screen|null $screen`) turns that off for a screen. Fluent plugins (FluentCRM, Fluent Booking, FluentSMTP, Fluent Boards, Fluent Support) and LiteSpeed Cache keep their own light and dark modes in your browser; they follow the mode chosen here, and their own dark designs are left as they are.
 
 At the top right of the screen, **Source code** opens the plugin’s [GitHub repository](https://github.com/wpallstars/seoprostack) in a new tab, and **Support** opens its [GitHub issues](https://github.com/wpallstars/seoprostack/issues) in a new tab. Say what you did, what you expected and what happened, with the versions of WordPress, PHP and SEO Pro Stack. Leave out passwords, licence keys and personal data, since issues are public. For questions, ask [aidevops](https://aidevops.sh) (Built with AI below). **Buy me a coffee**, next to it, opens the maker’s [Buy Me a Coffee](https://buymeacoffee.com/marcusquinn) page in a new tab.
 
@@ -1523,6 +1525,13 @@ Deleting the plugin removes its settings and cached data, the database keys Add 
 Deactivating the plugin removes the WebP and AVIF rules from the uploads folder’s `.htaccess` (for every site when network-deactivated), the LiteSpeed background request rules from the site’s `.htaccess` (on multisite, when network-deactivated or deactivated on the main site) and the must-use file of Load plugins only where needed (on multisite, when network-deactivated).
 
 ## Changelog
+
+### 1.3.35
+
+- Fix: in **Dark** mode, moving between admin screens with **Load pages before the click** (**Also in the admin**) no longer flashes white: the placeholder shown while the next screen loads is dark too (GitHub issue #680).
+- Fix: **Dark** mode covers more of wp-admin and other plugins' screens: the block editor's title and command bar on hover, the save panel and the area around the canvas (the canvas keeps the theme's colours); searchable dropdowns (Select2 and selectWoo, Chosen, Choices.js, Tom Select, jQuery UI) in themes' and plugins' settings; Rank Math's screens, editor sidebar, meta boxes and toolbar scores; Admin Columns (Pro) settings, filters, smart filters and inline editing; Advanced Custom Fields and Secure Custom Fields; Kadence Blocks' Design Library; and Fluent Forms' screens (GitHub issue #680).
+- New: in **Dark** mode, text another plugin leaves hard to read (below WCAG AA, 4.5:1, or 3:1 for large text) gets the nearest colour of the same hue that reads, on load, as screens change and on hover; it is undone in **Light**. The `seoprostack_admin_dark_contrast_guard` filter turns it off for a screen (GitHub issue #680).
+- New: Fluent plugins (FluentCRM, Fluent Booking, FluentSMTP, Fluent Boards, Fluent Support) and LiteSpeed Cache, which keep their own light and dark modes in your browser, follow the colour mode chosen in the admin bar. Their own dark designs are left as they are. SEO Pro Stack's admin bar and colour mode stay on Fluent screens with "no conflict" mode on (GitHub issue #680).
 
 ### 1.3.34
 
