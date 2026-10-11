@@ -49,6 +49,9 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
             'type' => 'bool', 'default' => false, 'tab' => 'media',
             'label' => __('Media in cloud storage', 'seoprostack'),
             'description' => __('Copy pictures to S3-compatible storage in the background and serve uploaded pictures from its public address. Files stay on this server too. Needs the SEOPROSTACK_MEDIA_STORAGE constants in wp-config.php. Purge page caches after switching on or off.', 'seoprostack'),
+            // No child settings: the constants, progress and Test connection
+            // panel (panel_status()) is this feature's own panel.
+            'panel' => true,
         ));
     }
 
