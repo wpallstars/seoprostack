@@ -487,7 +487,8 @@ With Advanced Custom Fields or Secure Custom Fields active, searches on the site
 - Fields are found through the reference ACF keeps next to each value (`_{meta key}` → `field_…`), so every repeater row counts and other plugins’ post meta is never searched. Password and other fields are left out.
 - As in core, each word must match somewhere in the post (title, excerpt, content or a field), and `-word` leaves out posts that have it anywhere.
 - Only the main search of a page or admin list: widgets, blocks, REST requests and the media library keep core’s search, as do queries that choose their own search columns.
-- No settings. Replaces ACF: Better Search; the feature switches itself on while it is active.
+- Leave out fields your pages never show, such as private notes or contact details kept for your own use. A search result never shows the matched value, but the match tells which post holds it, so someone who knows part of an email address, phone number or name could find whose it is. Plugins that define fields leave theirs out with the `seoprostack_field_search_field` filter (see Extending), and may keep them searchable in admin lists; site owners list field names or field keys, one per line, in **Fields to leave out** under Troubleshooting. Leaving out a group, repeater or flexible content field leaves out everything in it.
+- Replaces ACF: Better Search; the feature switches itself on while it is active.
 
 ### Custom fields to content (Content)
 
@@ -1522,6 +1523,7 @@ Developers can add settings, tabs and directory entries with filters:
 - `seoprostack_block_visible`: whether the current visitor sees a block (bool, parsed block, its rule: `show` and `roles`).
 - `seoprostack_switchable_post_types`: post types Change post type offers (name => label).
 - `seoprostack_short_address_types`: post types served at short addresses (`/item/`), the ones chosen in Short addresses for custom post types first (none while it is off); add yours before `init` to serve its items there.
+- `seoprostack_field_search_field`: whether Search custom fields looks in a field’s values (bool, ACF field array, `site` for searches on the site or `admin` for admin list searches); false already when **Fields to leave out** lists the field. Return false for fields your pages never show. Returning false for a group, repeater or flexible content field leaves out everything in it.
 
 Actions:
 
