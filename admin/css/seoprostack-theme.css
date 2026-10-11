@@ -1478,6 +1478,62 @@ html.sps-dark #wpbody ul.ff_dashboard_stats li:hover a {
 }
 
 /*
+ * Fluent Forms' screens (Element UI 2, white surfaces and #606266 text; it
+ * has no dark mode of its own). Only its screens: the other Fluent plugins
+ * use their own dark mode (the head script keeps it in step). Element's
+ * pop-ups are added to body, so they are covered too.
+ */
+html.sps-dark body[class*="page_fluent_forms"] :is(.ff_header, .ff_card, .ff_table, .el-table, .el-table tr, .el-table th.el-table__cell, .el-table__expanded-cell, .el-dialog, .el-message-box, .el-select-dropdown, .el-dropdown-menu, .el-popover, .el-picker-panel, .el-tabs--border-card, .el-collapse-item__header, .el-collapse-item__wrap, .el-pagination, .el-card, .ff_form_wrap, .ff_section_head) {
+	color: var(--sps-ui-text);
+	background-color: var(--sps-ui-surface);
+	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark body[class*="page_fluent_forms"] :is(.el-table td.el-table__cell, .el-table th.el-table__cell.is-leaf, .el-table--border, .el-table--group, .el-dialog__header, .el-dialog__footer, .el-tabs__nav-wrap, .el-popper[x-placement] .popper__arrow) {
+	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark body[class*="page_fluent_forms"] :is(.el-table::before, .el-table--border::after, .el-table--group::after, .el-tabs__nav-wrap::after) {
+	background-color: var(--sps-ui-border);
+}
+
+html.sps-dark body[class*="page_fluent_forms"] :is(.el-table--striped .el-table__body tr.el-table__row--striped td.el-table__cell, .el-tabs--border-card > .el-tabs__header, .el-pagination.is-background :is(.btn-prev, .btn-next, .el-pager li):not(.active), .ff_shortcode_btn, .el-button--info:not(.is-plain), .el-input-group__append, .el-input-group__prepend) {
+	color: var(--sps-ui-text);
+	background-color: var(--sps-ui-raised);
+	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark body[class*="page_fluent_forms"] :is(.el-table--enable-row-hover .el-table__body tr:hover > td.el-table__cell, .el-select-dropdown__item:is(.hover, :hover), .el-dropdown-menu__item:not(.is-disabled):hover, .el-table__body tr.current-row > td.el-table__cell) {
+	background-color: var(--sps-ui-border);
+}
+
+html.sps-dark body[class*="page_fluent_forms"] :is(.el-input__inner, .el-textarea__inner, .el-range-editor.el-input__inner, .el-range-input) {
+	color: var(--sps-ui-text);
+	background-color: var(--sps-ui-canvas);
+	border-color: var(--sps-ui-field-border);
+}
+
+html.sps-dark body[class*="page_fluent_forms"] :is(.el-button--default, .el-button:not([class*="el-button--"]), .el-radio-button__inner) {
+	color: var(--sps-ui-text);
+	background-color: var(--sps-ui-raised);
+	border-color: var(--sps-ui-field-border);
+}
+
+html.sps-dark body[class*="page_fluent_forms"] :is(.el-button--default, .el-button:not([class*="el-button--"]), .el-radio-button__inner):is(:hover, :focus) {
+	color: #fff;
+	background-color: var(--sps-ui-border);
+}
+
+html.sps-dark body[class*="page_fluent_forms"] :is(.el-table, .el-table th.el-table__cell > .cell, .el-dialog__title, .el-dialog__body, .el-message-box__title, .el-message-box__content, .el-select-dropdown__item, .el-dropdown-menu__item, .el-tabs__item:not(.is-active), .el-pagination__total, .el-pagination__jump, .el-collapse-item__header, .el-form-item__label, .el-checkbox__label, .el-radio__label) {
+	color: var(--sps-ui-text);
+}
+
+html.sps-dark body[class*="page_fluent_forms"] .ff_header .ff_menu li.active .ff_menu_link {
+	color: var(--sps-ui-text);
+	background-color: #1b3048;
+}
+
+/*
  * Rank Math: its screens, the editor's sidebar and meta boxes (#fff, #f8f9fa
  * and #f0f2f4 surfaces, #b5bfc9 lines, #242628 text). Each selector is Rank
  * Math's own behind html.sps-dark, so it wins.
@@ -1531,6 +1587,40 @@ html.sps-dark .rank-math-page .rank-math-tab:not(.rank-math-options-panel-conten
 html.sps-dark .rank-math-page .rank-math-tab:not(.rank-math-options-panel-content):is(:hover, :focus, .is-active) {
 	color: var(--sps-ui-text);
 	background: var(--sps-ui-surface);
+}
+
+/* Its React screens' tabs (styles it prints inline): along the top, and down the side of settings. */
+html.sps-dark .rank-math-tab-panel > .components-tab-panel__tabs .components-tab-panel__tabs-item,
+html.sps-dark .rank-math-tab-panel > .components-tab-panel__tabs[aria-orientation="vertical"] .components-tab-panel__tabs-item {
+	color: var(--sps-ui-muted);
+	background: var(--sps-ui-raised);
+	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark .rank-math-tab-panel > .components-tab-panel__tabs .components-tab-panel__tabs-item:is(:hover, :focus, .is-active),
+html.sps-dark .rank-math-tab-panel > .components-tab-panel__tabs[aria-orientation="vertical"] .components-tab-panel__tabs-item:is(:hover, :focus, .is-active) {
+	color: var(--sps-ui-text);
+	background: var(--sps-ui-surface);
+}
+
+html.sps-dark .rank-math-tab-panel > .components-tab-panel__tabs .components-tab-panel__tabs-item.separator {
+	color: var(--sps-ui-subtle);
+	background: var(--sps-ui-canvas);
+}
+
+html.sps-dark .rank-math-tab-panel > .components-tab-panel__tab-content {
+	background: var(--sps-ui-canvas);
+}
+
+html.sps-dark :is(.rank-math-seo-analysis-header, .rank-math-import-export .components-tab-panel__tabs-item.is-active, .rank-math-import-export .components-tab-panel__tabs-item::after) {
+	color: var(--sps-ui-text);
+	background: var(--sps-ui-surface);
+}
+
+html.sps-dark :is(.rank-math-wrap, .rank-math-page #wpbody) :is(.components-text-control__input, .components-textarea-control__input) {
+	color: var(--sps-ui-text);
+	background-color: var(--sps-ui-canvas);
+	border-color: var(--sps-ui-field-border);
 }
 
 html.sps-dark .rank-math-tabs-navigation:not(.rank-math-custom) a,
@@ -1680,6 +1770,45 @@ html.sps-dark :is(.rank-math-sidebar-panel, .rank-math-modal-overlay) .notice-er
 }
 
 /*
+ * ACF and Secure Custom Fields: field groups, tabs, galleries, files,
+ * relationships and the field group editor (following ACF's own acf-dark.css,
+ * which it loads only for the Dark Mode plugin).
+ */
+html.sps-dark :is(.acf-box, .acf-fields.-border, .acf-input-prepend, .acf-input-append, .acf-fields > .acf-tab-wrap, .acf-fields > .acf-tab-wrap .acf-tab-group li.active a, .acf-file-uploader .show-if-value, .acf-relationship .filters, .acf-accordion, .acf-flexible-content .layout, .acf-flexible-content .layout .acf-fc-layout-handle .acf-fc-layout-order, #acf-field-group-fields :is(.acf-field-list-wrap, .acf-field-list .no-fields-message, .acf-field-object)) {
+	color: var(--sps-ui-text);
+	background-color: var(--sps-ui-surface);
+	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark :is(.acf-tfoot, .acf-fields > .acf-tab-wrap .acf-tab-group, .acf-fields > .acf-tab-wrap .acf-tab-group li a, .acf-fields.-sidebar::before, .acf-fields.-sidebar.-left > .acf-tab-wrap.-left .acf-tab-group li a, .acf-file-uploader .show-if-value .file-icon, .acf-oembed, .acf-gallery, .acf-gallery .acf-gallery-attachment .margin, .acf-gallery .acf-gallery-side, .acf-gallery .acf-gallery-side .acf-gallery-side-info, .acf-gallery .acf-gallery-toolbar, .acf-button-group label:not(.selected), .acf-switch:not(.-on), .acf-link .link-wrap, .acf-relationship .selection, .acf-relationship .selection :is(.choices, .choices-list, .values), .acf-taxonomy-field .categorychecklist-holder, .acf-google-map, .acf-flexible-content .layout .acf-fc-layout-handle, #wpbody .acf-table, #acf-field-group-fields .acf-field-object .acf-field .acf-label, #acf-field-group-fields .acf-field-object.ui-sortable-placeholder) {
+	color: var(--sps-ui-text);
+	background-color: var(--sps-ui-raised);
+	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark :is(.acf-gallery .acf-gallery-main, .acf-fields.-sidebar.-left::before) {
+	background: var(--sps-ui-canvas);
+}
+
+html.sps-dark :is(.acf-fields > .acf-field, .acf-field[data-width] + .acf-field[data-width], .acf-box :is(.title, .footer), .acf-thead, .acf-field.acf-accordion .acf-accordion-content > .acf-fields, #wpbody .acf-table > :is(tbody, thead) > tr > :is(td, th)) {
+	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark :is(.acf-box h2, .acf-thead, .acf-fields > .acf-tab-wrap .acf-tab-group li a:hover) {
+	color: var(--sps-ui-text);
+}
+
+html.sps-dark :is(.acf-box, .acf-table.-clear, #acf-field-group-fields .acf-field-object) :is(table, tbody, tr, td, th) {
+	background: transparent;
+}
+
+html.sps-dark :is(.acf-oembed .title, .acf-google-map .title, .acf-switch:not(.-on) .acf-switch-slider) {
+	color: #fff;
+	background-color: #50626f;
+	border-color: var(--sps-ui-border);
+}
+
+/*
  * Admin Columns and Admin Columns Pro: its settings, and on list screens
  * Pro's filters, smart filters, segments and editing. Its colours are
  * partly variables, set again per admin colour scheme on body.
@@ -1697,6 +1826,21 @@ html.sps-dark body[class] {
 
 html.sps-dark body.settings_page_codepress-admin-columns {
 	background: var(--sps-ui-canvas);
+}
+
+/* Its newer screens use utility classes (acu-bg-[white], acu-bg-[#fff]...). */
+html.sps-dark :is(.ac-header-bar, .ac-column-header, .acu-bg-\[white\], .acu-bg-\[\#fff\]) {
+	color: var(--sps-ui-text);
+	background-color: var(--sps-ui-surface);
+	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark :is(.acu-bg-\[\#F9FAFB\], .acu-bg-\[\#F5F5F5\], .acu-bg-\[\#F1F5F9\], .acu-bg-\[\#f0f0f0\], .acu-bg-\[\#eee\]) {
+	background-color: var(--sps-ui-raised);
+}
+
+html.sps-dark :is(.acu-border-solid, .acu-border, .acu-border-b, .acu-border-t) {
+	border-color: var(--sps-ui-border);
 }
 
 html.sps-dark :is(.ac-article, .ac-section__header, .ac-modal__dialog, .ac-confirmation__modal, .ac-pointer-modal, .ac-pointer-modal__arrow, .ac-message, .ac-settings-banner, .ac-probanner__card, .ac-column, .acui-dropdown-menu, .acui-tooltip-content.-reference, .acui-input-group input, .acp-sh-container, .acp-filter-group__input, .acp-smartfilters-filter, .ac-segments, .ac-table-button.-segments.-open, .ac-bulk-log__items, .ac-modal.-bulkedit .ac-modal__dialog__content.-editable, .aceditable.-internal_link .acp-post-list, .select2-dropdown, .select2-container--acs2 :is(.select2-selection--single, .select2-selection--multiple)) {
