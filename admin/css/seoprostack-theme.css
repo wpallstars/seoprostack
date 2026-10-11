@@ -4212,6 +4212,367 @@ html.sps-dark:not(.vgse-dark-mode) #vgse-wrapper .remodal-cancel:is(:hover, :foc
 	background-color: #722020;
 }
 
+/*
+ * Bit Integrations (admin.php?page=bit-integrations): one React screen
+ * with no dark mode of its own. A light sheet (#f8f9fd) under a dark
+ * purple band; #fff panels, cards, menus and dialogs; #031b4e and #5f6d8a
+ * text, some set important; #e4e9f4 lines; and #7902f8 text and icons,
+ * 2.4:1 on dark, so a lavender here (5:1 or more). The band, its white
+ * logo and the integrations' tiles, whose logos are drawn for a light
+ * ground, keep their colours. Its rules sit in :where(), under the app's
+ * id, so ours win over its classes and follow each other in order.
+ */
+html.sps-dark .toplevel_page_bit-integrations #btcd-app {
+	--sps-bi-accent: #b98cff;
+	--deep: 255, 255, 255;
+
+	color: var(--sps-ui-text);
+	background-color: var(--sps-ui-canvas);
+}
+
+/* The sheet, its tables, and the panels' icon squares and extra rows (#f8f9fd). */
+html.sps-dark .toplevel_page_bit-integrations #btcd-app :where(.route-wrp, .btcd-pg, .btcd-scroll, .f-table .thead .tr, .f-table .thead .tr .th, .f-table .tbody .tr, .f-table .tbody .tr .td, .btcd-opt-icn, .btcd-opt-extra-row, .btcd-link-row-icn, .btcd-doc-card-icn, .btcd-log-filters, .tag-picker-field-wrap) {
+	background: var(--sps-ui-canvas);
+}
+
+html.sps-dark .toplevel_page_bit-integrations #btcd-app :where(.route-wrp) {
+	box-shadow: 0 0 0 1px var(--sps-ui-border);
+}
+
+/* Panels, cards, notices, menus and dialogs (#fff). */
+html.sps-dark .toplevel_page_bit-integrations #btcd-app :where(.btcd-panel, .btcd-link-row, .btcd-doc-card, .btcd-prod-card, .btcd-doc-btn, .conn-notice, .tools, .btcd-modal, .btcd-drawer, .btcd-t-action-wrp, .btcd-menu-list, .btcd-m-a, .btcd-menu-btn, .btcd-menu-li, .btcd-bulk-menu-btn, .btcd-bulk-menu-list, .btcd-columns-btn, .btcd-columns-menu, .btcd-reexec-btn, .btcd-log-head__refresh, .ai-tool-dropdown, .tag-modal-content, .tag-picker-modal-content, .btcbi-md-preview, .btcbi-md-insert__trigger, .btcbi-md-insert__menu, .btcbi-md-mode.is-active, .pro-blur .pro, #form-res) {
+	background: var(--sps-ui-surface);
+}
+
+html.sps-dark .toplevel_page_bit-integrations #btcd-app :where(.white, .app-link-active) {
+	background: var(--sps-ui-surface) !important;
+}
+
+/* Icon buttons, step numbers, chips, tags, table heads and copy fields (#fafafa to #e6e6e6). */
+html.sps-dark .toplevel_page_bit-integrations #btcd-app :where(.icn-btn:not(.btcd-inte-card *, .btcd-pagination *), .btcd-stp:not(.stp-a), .bar, .opt, .cpyTxt input, .field-key-cpy input.readonly, .copyCustomTrigger, .webhook-table-scroll thead, .tbl-webhook-head, .resp-mdl__chip, .ai-tool-option, .field-container .field-wrapper .field, .tag-btn-all, .tag-pill, .table-tag-badge, .table-tag-more-badge, .tag-modal-btn-cancel, .btcbi-md-preview :is(code, pre), .btcbi-md-modes, .btcd-skel, .btn:disabled, .msl-chip, .msl-grp-title, .msl-disabled > .msl, .btcd-log-chip.is-active) {
+	background: var(--sps-ui-raised);
+}
+
+html.sps-dark .toplevel_page_bit-integrations #btcd-app :where(.gray, .tag-picker-btn-cancel) {
+	color: var(--sps-ui-text) !important;
+	background: var(--sps-ui-raised) !important;
+	border-color: var(--sps-ui-field-border) !important;
+}
+
+html.sps-dark .toplevel_page_bit-integrations #btcd-app :where(.cpyTxt button, .msl-chip-delete, .btcbi-md-sep) {
+	background: var(--sps-ui-border);
+}
+
+html.sps-dark .toplevel_page_bit-integrations #btcd-app :where(.btcd-row-selected > .td) {
+	background: #1b3048 !important;
+}
+
+html.sps-dark .toplevel_page_bit-integrations #btcd-app :where(button:disabled) {
+	background: var(--sps-ui-raised) !important;
+}
+
+/*
+ * Fields: its own (#fff, #e2e2e2 lines and #2a054f text, set important),
+ * multi-selects closed (open, they join their menu, below), the label on
+ * a select's line, and unticked boxes.
+ */
+html.sps-dark .toplevel_page_bit-integrations #btcd-app :where(.btcd-paper-inp, .btcd-mt-sel select, .btcd-mt-inp, .btcd-table-top .f-search input, .btcd-log-search input, .tag-edit-input) {
+	color: var(--sps-ui-text) !important;
+}
+
+html.sps-dark .toplevel_page_bit-integrations #btcd-app :where(.btcd-paper-inp, .btcd-mt-sel select, .btcd-table-top .f-search, .btcd-log-search input, .field-key-cpy input:not(.readonly), .tag-edit-input, .msl-wrp > .msl, .btcd-paper-drpdwn .msl, .tag-picker-multiselect .msl, .btcd-mt-sel small, .btcd-ck-wrp input:not(:checked) ~ .btcd-mrk) {
+	background-color: var(--sps-ui-canvas);
+}
+
+html.sps-dark .toplevel_page_bit-integrations #btcd-app :where(.btcd-paper-inp, .btcd-table-top .f-search, .btcd-log-search input, .field-key-cpy :is(input, button), .tag-edit-input, .tag-modal-input, .msl:not(.msl-active, .msl-active-up), .btcd-mt-sel select, .btcd-mt-inp > :is(input, textarea), .btcd-mt-inp > :is(input, textarea) + span, .btcd-ck-wrp input:not(:checked) ~ .btcd-mrk) {
+	border-color: var(--sps-ui-field-border) !important;
+}
+
+html.sps-dark .toplevel_page_bit-integrations #btcd-app :where(.btcd-mt-inp > :is(input, textarea)) {
+	border-top-color: transparent !important;
+}
+
+html.sps-dark .toplevel_page_bit-integrations #btcd-app :where(.btcd-mt-inp > :is(input, textarea) + span)::before,
+html.sps-dark .toplevel_page_bit-integrations #btcd-app :where(.btcd-mt-inp > :is(input, textarea) + span)::after {
+	border-top-color: var(--sps-ui-field-border);
+}
+
+html.sps-dark .toplevel_page_bit-integrations #btcd-app :where(.btcd-paper-inp:disabled) {
+	color: var(--sps-ui-subtle) !important;
+	background-color: var(--sps-ui-raised) !important;
+}
+
+html.sps-dark .toplevel_page_bit-integrations #btcd-app :where(.btcd-paper-inp:focus, .btcd-mt-sel select:focus, .btcd-mt-inp > :is(input, textarea):focus) {
+	border-color: var(--sps-bi-accent) !important;
+	box-shadow: 0 0 0 1px var(--sps-bi-accent) !important;
+}
+
+html.sps-dark .toplevel_page_bit-integrations #btcd-app :where(.btcd-mt-inp > :is(input, textarea):focus) {
+	border-top-color: transparent !important;
+}
+
+html.sps-dark .toplevel_page_bit-integrations #btcd-app :where(.btcd-mt-inp > :is(input, textarea):focus + span)::before,
+html.sps-dark .toplevel_page_bit-integrations #btcd-app :where(.btcd-mt-inp > :is(input, textarea):focus + span)::after {
+	border-top-color: var(--sps-bi-accent) !important;
+	box-shadow: inset 0 2px var(--sps-bi-accent);
+}
+
+/*
+ * Multi-selects: open, the field and its menu are one (#fff) in a grey
+ * shadow, here also a field line around both; options, chosen and group
+ * titles.
+ */
+html.sps-dark .toplevel_page_bit-integrations #btcd-app :where(.msl-vars) {
+	--active-menu-background: var(--sps-ui-surface);
+	--active-menu-shadow: 0 0 0 1px var(--sps-ui-field-border), 0 4px 12px 0 rgb(0 0 0 / 50%);
+}
+
+html.sps-dark .toplevel_page_bit-integrations #btcd-app :where(.msl-options, .msl.msl-active, .tag-picker-multiselect .msl.msl-active) {
+	color: var(--sps-ui-text);
+	background: var(--sps-ui-surface);
+}
+
+html.sps-dark .toplevel_page_bit-integrations #btcd-app :where(.msl-option-active, .tag-picker-multiselect .msl-option-active) {
+	color: var(--sps-ui-text);
+	background: rgb(121 2 248 / 30%);
+}
+
+html.sps-dark .toplevel_page_bit-integrations #btcd-app :where(.msl-option-disable) {
+	color: rgb(255 255 255 / 40%);
+}
+
+html.sps-dark .toplevel_page_bit-integrations #btcd-app :where(.tag-picker-multiselect .msl-chip) {
+	color: var(--sps-ui-text);
+	background: rgb(121 2 248 / 25%);
+	border-color: #5b3a8f;
+}
+
+html.sps-dark .toplevel_page_bit-integrations #btcd-app :where(.msl-options)::-webkit-scrollbar-thumb {
+	background: rgb(255 255 255 / 20%);
+}
+
+/* Hover and pressed (#fafbff to #d3d3d3). */
+html.sps-dark .toplevel_page_bit-integrations #btcd-app :where(.btcd-link-row:hover, .btcd-doc-btn:hover, .btcd-menu-list > a:hover, .btcd-menu-list button:hover, .btcd-mnu:hover, .btcd-bulk-menu-list button:hover, .btcd-exec-toggle:hover, .btcd-pane:hover, .f-table .thead .tr .th:hover, .f-table .tbody .tr:hover, .f-table .tbody .tr .td:hover, .btcd-pagination .icn-btn:hover, .tag-add-btn:hover, .table-tag-add-btn:hover, .msl-option:focus, .msl-options .msl-option:hover, .msl-arrow-btn:hover, .msl-clear-btn:hover, .btcd-btn-o-white:hover, .btcd-btn-o-gray:hover, .white:hover, #connections-page .connections-edit-cancel-btn) {
+	background: var(--sps-ui-raised) !important;
+}
+
+html.sps-dark .toplevel_page_bit-integrations #btcd-app :where(.icn-btn:not(.btcd-inte-card *, .btcd-pagination *):is(:hover, :active), .btcd-link-row:hover .btcd-link-row-icn, .ai-tool-option:hover, .table-tag-remove-btn:hover, .tag-modal-btn-cancel:hover, .msl-chip-delete:hover, .gray:is(:hover, :active), .tag-picker-btn-cancel:hover, #connections-page .connections-edit-cancel-btn:is(:hover, :active)) {
+	background: var(--sps-ui-border) !important;
+}
+
+html.sps-dark .toplevel_page_bit-integrations #btcd-app :where(.btcd-ck-wrp input:checked ~ .btcd-mrk) {
+	background-color: #7902f8;
+	border-color: #7902f8 !important;
+}
+
+/* Checked radios' dot, #7902f8 set important for the whole page: white, as on other screens. */
+html.sps-dark .toplevel_page_bit-integrations input[type="radio"]:checked::before {
+	background-color: #fff !important;
+}
+
+/* Lines (#e4e9f4, #e2e2e2, #dedce4, #c7c7c7...). */
+html.sps-dark .toplevel_page_bit-integrations #btcd-app :where(.btcd-panel, .btcd-panel > * + *, .btcd-opt-icn, .btcd-opt-extra-row, .btcd-link-row-icn, .btcd-doc-card, .btcd-doc-card-icn, .btcd-prod-card, .btcd-scroll, .f-table .thead .tr .th, .f-table .tbody .tr .td, .conn-notice:not(.conn-notice-legacy), .btcd-reexec-btn, .btcd-log-head__refresh, .resp-mdl__tabs, .btcd-menu-li > div:not(.btcd-m-li-itm), .btcd-pane, .sub-tree, .btcd-hr, .ai-tool-dropdown, .ai-tool-option, .tag-btn-all, .tag-pill, .tag-picker-modal-content, .tag-picker-field-wrap, .table-tag-more-badge, .btcd-bulk-menu-btn, .btcd-bulk-menu-list, .btcd-columns-btn, .btcd-columns-menu, .btcbi-md-preview, .btcbi-md-preview blockquote, .btcbi-md-insert__trigger, .btcbi-md-insert__menu, .btcbi-md-insert__group, .btcd-param-t-wrp .btcd-param-t, .btcd-param-t-wrp .btcd-param-t .tr:first-child, .btcd-stp:not(.stp-a), .note, .chatgpt, .upsert_rec) {
+	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark .toplevel_page_bit-integrations #btcd-app :where(.btcd-doc-btn, .btcd-btn-o-gray, .btcd-btn-o-white) {
+	border-color: var(--sps-ui-field-border);
+}
+
+html.sps-dark .toplevel_page_bit-integrations #btcd-app :where(.table-webhook-div, .json-editor section) {
+	border-color: var(--sps-ui-border) !important;
+}
+
+html.sps-dark .toplevel_page_bit-integrations #btcd-app :where(.btcd-stp-line:not(.stp-line-a)) {
+	background: var(--sps-ui-border);
+}
+
+html.sps-dark .toplevel_page_bit-integrations #btcd-app :where(.f-table .thead .tr .th) {
+	box-shadow: none;
+}
+
+/* Text set dark (#031b4e, #2a054f, #303b55...). */
+html.sps-dark .toplevel_page_bit-integrations #btcd-app :where(.btcd-pg, .btcd-pg-title, .btcd-group-title, .btcd-opt-name, .btcd-doc-card-title, .btcd-link-row, .btcd-doc-card, .btcd-prod-card, .btcd-doc-btn, .btcd-modal, .f-table .tbody .tr .td, .btcd-log-head__title .f-lg, .btcd-record-type, .conn-notice .conn-notice-title, .note .note-text, .note .note-text b, .btcd-ck-wrp, .popper-icn, .pro-blur .pro > a, .chatgpt, .chatgpt > a, .btcbi-md-preview, .btcbi-md-mode:hover:not(.is-active), .btcbi-md-insert__trigger:hover:not(:disabled, .is-open), .btcbi-md-insert__item, .ai-tool-dropdown-title, .ai-tool-option, .tag-filter-title, .tag-modal-title, .tag-btn-all, .tag-btn, .tag-icon-btn:hover, .tag-add-btn:hover, .tag-modal-btn-cancel, .table-tag-badge, .table-tag-remove-btn:hover, .table-tag-add-btn:hover, .tag-picker-multiselect .msl-input, .btcd-bulk-menu-list button, .btcd-exec-toggle:hover, .resp-mdl__tab:hover, .btcd-secret-fld-btn:hover, .btcd-table-top .f-search .icn-btn:is(:hover, :active), .f-table .thead .tr .th:hover, .btcd-pagination .icn-btn:hover, .msl-chip-delete) {
+	color: var(--sps-ui-text);
+}
+
+html.sps-dark .toplevel_page_bit-integrations #btcd-app :where(.bar:hover)::before {
+	color: var(--sps-ui-text);
+}
+
+html.sps-dark .toplevel_page_bit-integrations #btcd-app :where(.btcd-btn-o-gray:hover) {
+	color: var(--sps-ui-text) !important;
+}
+
+/* Quieter text (#5f6d8a, #64748b, #666...), 3:1 to 4:1 on dark. */
+html.sps-dark .toplevel_page_bit-integrations #btcd-app :where(.btcd-pg-sub, .btcd-opt-desc, .btcd-opt-extra-lbl, .btcd-doc-card-txt, .btcd-link-row-meta, .btcd-link-row-icn, .btcd-prod-desc, .btcd-mdl-subtitle, .btcd-pagination > small, .btcd-pagination .icn-btn, .f-table, .f-table .thead .tr .th, .btcd-table-top .f-search .icn-btn, .btcd-columns-btn, .btcd-bulk-selected, .btcd-bulk-menu-btn, .btcd-bulk-menu-item-icon, .btcd-exec-id, .btcd-exec-toggle, .btcd-exec-count, .btcd-reexec-btn, .btcd-log-head__sub, .btcd-log-head__refresh, .btcd-log-chip, .btcd-log-date, .btcd-log-empty .data-txt, .btcd-no-data > div, .resp-mdl__chip, .resp-mdl__tab, .note, .conn-notice, .connection-select-wrap .connection-loading-txt, .btcbi-md-preview blockquote, .btcbi-md-mode, .btcbi-md-insert__trigger, .tag-modal-label, .tag-picker-subtitle, .tag-picker-counter, .tag-add-btn, .table-tag-more-badge, .table-tag-add-btn, .btcd-secret-fld-btn, .txt-dp, .btcd-t-link > div > a, .btcd-t-link > a, .btcd-mt-sel small, .btcd-mt-inp > :is(input, textarea) + span, .btcd-param-t-wrp .btcd-param-t .tr:first-child, .btcd-stp:not(.stp-a), .btcd-s-tab-link) {
+	color: var(--sps-ui-muted);
+}
+
+html.sps-dark .toplevel_page_bit-integrations #btcd-app :where(.msl-input)::before {
+	color: var(--sps-ui-muted);
+}
+
+html.sps-dark .toplevel_page_bit-integrations #btcd-app :where(.btcd-btn-o-gray) {
+	color: var(--sps-ui-muted) !important;
+}
+
+/* Its purple as text, icons and outlines (#7902f8, #9736ff, #391794). */
+html.sps-dark .toplevel_page_bit-integrations #btcd-app :where(.txt-purple, .icn-btn:not(.btcd-inte-card *, .btcd-pagination *), .btcd-opt-icn, .btcd-opt-lnk, .btcd-doc-card-icn, .btcd-doc-card-cta, .btcd-link-row:hover .btcd-link-row-arw, .btcd-prod-card:hover .btcd-prod-arw, .tools, .tools > span, .btcd-menu-btn, .btcd-mnu:hover, .btcd-s-tab-link:hover, .s-t-l-active, .btcd-stp.stp-a, .cpyTxt input, .field-key-cpy button, .conn-notice:not(.conn-notice-legacy) .conn-notice-icn, .btcd-log-chip:is(:hover, .is-active), .btcd-log-linkbtn, .btcd-reexec-btn:hover, .btcd-log-head__refresh:hover:not(:disabled), .btcd-columns-btn:hover, .btcbi-md-preview a, .btcbi-md-mode.is-active, .btcbi-md-insert__trigger.is-open, .btcbi-md-insert__item:hover, .btcd-mt-inp > :is(input, textarea):focus + span, .btcd-mt-sel select:focus ~ small) {
+	color: var(--sps-bi-accent);
+}
+
+html.sps-dark .toplevel_page_bit-integrations #btcd-app :where(.btcd-stp.stp-a) {
+	border-color: var(--sps-bi-accent);
+}
+
+html.sps-dark .toplevel_page_bit-integrations #btcd-app :where(.s-t-l-active)::before {
+	background: var(--sps-bi-accent);
+}
+
+html.sps-dark .toplevel_page_bit-integrations #btcd-app :where(.btcd-btn-o-purple) {
+	color: var(--sps-bi-accent) !important;
+	border-color: var(--sps-bi-accent);
+}
+
+html.sps-dark .toplevel_page_bit-integrations #btcd-app :where(.btcd-btn-o-purple:hover) {
+	color: #fff !important;
+	border-color: #7902f8;
+}
+
+/* Blue, green and red text (#0069ff, #0051e8, green, #b32318, #d31f1f...). */
+html.sps-dark .toplevel_page_bit-integrations #btcd-app :where(.icn-blue, .btcd-link, .txt-webhook-resbtn, .tab-box .tab-item) {
+	color: var(--sps-ui-info);
+}
+
+html.sps-dark .toplevel_page_bit-integrations #btcd-app :where(.tutoriallink:not(.youtube, .chatgpt), .tutoriallink:not(.youtube, .chatgpt) a) {
+	color: var(--sps-ui-good);
+}
+
+html.sps-dark .toplevel_page_bit-integrations #btcd-app :where(.btcd-group-title--danger, .btcd-opt-icn--danger, .field-container .field-wrapper .remove-field, .tag-clear-btn, .tag-icon-btn.delete:hover) {
+	color: var(--sps-ui-bad);
+}
+
+html.sps-dark .toplevel_page_bit-integrations #btcd-app :where(.btcd-panel--danger, .btcd-panel--danger > * + *, .btcd-opt-icn--danger) {
+	border-color: #7d3437;
+}
+
+/* Status: badges, notices and tags (#e6f6ee, #fef4e2, #fdecea...), and the What's New labels (#f6cbff, #c3e2f2, #00ffbf, #ffd000). */
+html.sps-dark .toplevel_page_bit-integrations #btcd-app :where(.resp-badge--success, .changelog-content .new-improvement) {
+	color: var(--sps-ui-good);
+	background: #183a24;
+}
+
+html.sps-dark .toplevel_page_bit-integrations #btcd-app :where(.resp-badge--warn, .changelog-content .fixes) {
+	color: var(--sps-ui-warning);
+	background: #3a3016;
+}
+
+html.sps-dark .toplevel_page_bit-integrations #btcd-app :where(.resp-badge--error) {
+	color: var(--sps-ui-bad);
+	background: #3e1c1e;
+}
+
+html.sps-dark .toplevel_page_bit-integrations #btcd-app :where(.resp-badge--neutral) {
+	color: var(--sps-ui-muted);
+	background: var(--sps-ui-raised);
+}
+
+html.sps-dark .toplevel_page_bit-integrations #btcd-app :where(.btcd-reexec-badge, .changelog-content .new-integration) {
+	color: #c5dcf5;
+	background: #1b3048;
+}
+
+html.sps-dark .toplevel_page_bit-integrations #btcd-app :where(.changelog-content .new-trigger) {
+	color: #f0c4ff;
+	background: #3d1f47;
+}
+
+html.sps-dark .toplevel_page_bit-integrations #btcd-app :where(.conn-notice.conn-notice-legacy) {
+	color: #f5dfb0;
+	background: #2e2716;
+	border-color: #52431c #52431c #52431c #d99326;
+}
+
+html.sps-dark .toplevel_page_bit-integrations #btcd-app :where(.conn-notice.conn-notice-legacy .conn-notice-title) {
+	color: var(--sps-ui-warning);
+}
+
+html.sps-dark .toplevel_page_bit-integrations #btcd-app :where(#connections-page .connections-app-tag) {
+	color: var(--sps-ui-muted);
+	background: var(--sps-ui-raised);
+	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark .toplevel_page_bit-integrations #btcd-app :where(#connections-page .connections-auth-tag) {
+	color: var(--sps-ui-warning);
+	background: #3a3016;
+	border-color: #52431c;
+}
+
+html.sps-dark .toplevel_page_bit-integrations #btcd-app :where(#connections-page .connections-edit-cancel-btn) {
+	color: var(--sps-ui-muted);
+	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark .toplevel_page_bit-integrations #btcd-app :where(#connections-page .connections-edit-cancel-btn:is(:hover, :active), #connections-page .connections-empty-note) {
+	color: var(--sps-ui-text);
+}
+
+/* Switches: a #d6d6d6 track when off; the knob kept light. */
+html.sps-dark .toplevel_page_bit-integrations #btcd-app :where(.btcd-toggle) {
+	background: var(--sps-ui-field-border);
+}
+
+/*
+ * Kept: the integrations' tiles (#f0f8ff, their logos drawn for a light
+ * ground) with their #031b4e names, and What's New (#fff), whose icon,
+ * left to the browser's button text, turns white in Dark.
+ */
+html.sps-dark .toplevel_page_bit-integrations #btcd-app :where(.btcd-inte-card:not(.add-inte), .changelog-btn) {
+	color: #031b4e;
+}
+
+/* Its scroll bars (#dcdcdc, #2a054f when pointed at). */
+html.sps-dark .toplevel_page_bit-integrations ::-webkit-scrollbar-thumb {
+	background: #646970;
+}
+
+html.sps-dark .toplevel_page_bit-integrations ::-webkit-scrollbar-thumb:hover {
+	background: var(--sps-ui-field-border);
+}
+
+html.sps-dark .toplevel_page_bit-integrations ::-webkit-scrollbar-track:hover {
+	background: var(--sps-ui-raised);
+}
+
+/* Outside the app: Tagify's suggestions, and WordPress's media dialog, given #7902f8 links and #d3d3d3 field lines. */
+html.sps-dark .toplevel_page_bit-integrations .tagify__dropdown {
+	--tagify-dd-bg-color: var(--sps-ui-surface);
+	--tagify-dd-text-color: var(--sps-ui-text);
+}
+
+html.sps-dark .toplevel_page_bit-integrations .tagify {
+	--tags-border-color: var(--sps-ui-field-border);
+	--tags-hover-border-color: var(--sps-ui-muted);
+	--tags-disabled-bg: var(--sps-ui-raised);
+	--tag-bg: var(--sps-ui-raised);
+	--tag-hover: var(--sps-ui-border);
+	--tag-text-color: var(--sps-ui-text);
+	--tag-text-color--edit: var(--sps-ui-text);
+	--tag-remove-btn-color: var(--sps-ui-text);
+	--placeholder-color: rgb(255 255 255 / 45%);
+	--placeholder-color-focus: rgb(255 255 255 / 30%);
+}
+
+html.sps-dark .toplevel_page_bit-integrations .media-modal :is(a, button:hover) {
+	color: var(--sps-ui-accent) !important;
+}
+
+html.sps-dark .toplevel_page_bit-integrations .media-modal :is(input, textarea, select) {
+	border-color: var(--sps-ui-field-border) !important;
+}
+
 /* SEO Pro Stack's additions to WordPress's screens -------------------------- */
 
 /* Plugins: sizes (class-seoprostack-plugin-sizes.php) and page cost (class-seoprostack-plugin-cost.php). */
