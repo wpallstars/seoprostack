@@ -1535,6 +1535,7 @@ Actions:
 - `seoprostack_image_imported`: an external image was imported.
 - `seoprostack_image_upload_error`: an image could not be imported.
 - `seoprostack_media_replaced`: a Media Library item’s file was replaced (attachment ID, old path, new path, IDs of posts whose links changed). Use it to purge caches.
+- `seoprostack_media_files_changed`: WebP copies or watermarks changed an attachment's files (attachment ID). File writers can fire this action to queue Media in cloud storage again.
 - `seoprostack_screenshot_saved`: a screenshot was saved to the Media Library (attachment ID, page URL, post ID or 0).
 - `seoprostack_screenshot_failed`: a screenshot could not be taken (page URL, `WP_Error`).
 - `seoprostack_agency_order_started`: the order flow started an order (Fluent Forms entry ID, Fluent Boards task ID, Fluent Support ticket ID and client's user ID; 0 where none).
@@ -1555,6 +1556,10 @@ Deleting the plugin removes its settings and cached data, the database keys Add 
 Deactivating the plugin removes the WebP and AVIF rules from the uploads folder’s `.htaccess` (for every site when network-deactivated), the LiteSpeed background request rules from the site’s `.htaccess` (on multisite, when network-deactivated or deactivated on the main site) and the must-use file of Load plugins only where needed (on multisite, when network-deactivated).
 
 ## Changelog
+
+### Unreleased
+
+- New: **Media in cloud storage** copies pictures, sizes and WebP copies to S3-compatible storage in background batches, serves confirmed objects from the public bucket, and keeps local files and saved addresses. Constants-only connection, per-site switch, cached test, progress and WP-CLI commands (GitHub issue #684).
 
 ### 1.3.35
 

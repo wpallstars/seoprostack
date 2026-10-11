@@ -272,9 +272,20 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
     private static function queue_delete($record, $keys) {
         foreach ($keys as $key) {
             $job = array('kind' => 'delete', 'key' => $key, 'signature' => $record['signature'], 'next' => 0);
-            add_option(self::JOB . 'delete_' . hash('sha256', $record['signature'] . $key), $job, '', false);
+            add_option(self::delete_job_name($record['signature'], $key), $job, '', false);
         }
         self::schedule(10);
+    }
+
+    /**
+     * Put the destination in the indexed name so archived jobs cannot delay cleanup.
+     *
+     * @param string $signature Destination fingerprint.
+     * @param string $key Object key.
+     * @return string
+     */
+    private static function delete_job_name($signature, $key) {
+        return self::JOB . 'delete_' . $signature . '_' . hash('sha256', $key);
     }
 
     /**
@@ -301,8 +312,12 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
      */
     private static function jobs($limit = 20, $after = '', $kind = '') {
         global $wpdb;
+        if ($kind) {
+            // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- bounded lookup through option_name's unique index.
+            return $wpdb->get_col($wpdb->prepare("SELECT option_name FROM {$wpdb->options} WHERE option_name LIKE %s AND option_name > %s ORDER BY option_name LIMIT %d", $wpdb->esc_like(self::JOB . $kind) . '%', $after, (int) $limit));
+        }
         // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- bounded lookup through option_name's unique index.
-        return $wpdb->get_col($wpdb->prepare("SELECT option_name FROM {$wpdb->options} WHERE option_name LIKE %s AND option_name > %s ORDER BY option_name LIMIT %d", $wpdb->esc_like(self::JOB . $kind) . '%', $after, (int) $limit));
+        return $wpdb->get_col($wpdb->prepare("SELECT option_name FROM {$wpdb->options} WHERE (option_name LIKE %s OR option_name LIKE %s) AND option_name > %s ORDER BY option_name LIMIT %d", $wpdb->esc_like(self::JOB . 'delete_' . self::config()['signature'] . '_') . '%', $wpdb->esc_like(self::JOB . 'retry_') . '%', $after, (int) $limit));
     }
 
     /** Cron actions do not return the CLI's attempt count. */
@@ -561,7 +576,7 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
                 return false;
             }
             // A key brought back by an edit must not be removed by an old cleanup job.
-            delete_option(self::JOB . 'delete_' . hash('sha256', $config['signature'] . $key));
+            delete_option(self::delete_job_name($config['signature'], $key));
         }
         $record['state'] = $record['files'] ? 'uploaded' : 'skipped';
         $record['attempts'] = 0;
