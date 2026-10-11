@@ -1625,6 +1625,105 @@ html.sps-dark :is(.rank-math-box footer, .module-listing .rank-math-box .status,
 	border-color: var(--sps-ui-border);
 }
 
+/* Setup wizard: its own page (no wp-admin header), with #fff and #f8f9fa panels. */
+html.sps-dark body.rank-math-wizard {
+	color: var(--sps-ui-text);
+}
+
+html.sps-dark .rank-math-wizard :is(.wrapper, .rank-math-wizard-tutorial .rank-math-tabs-content, .wizard-content--import .import-plugin .field-td .inside) {
+	color: var(--sps-ui-text);
+	background: var(--sps-ui-surface);
+	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark .rank-math-wizard :is(.wizard-content--requirements .rank-math-setup-mode ul li label, .wizard-content--requirements .rank-math-table tr:nth-child(odd), .field-wrap .field-row.features-child, .wizard-content--yoursite .rank-math-wizard-tutorial header, .wizard-content--yoursite .components-tab-panel__tabs, .wizard-content--yoursite .rank-math-tabs-content, .rank-math-wap-connect-cta) {
+	color: var(--sps-ui-text);
+	background: var(--sps-ui-raised);
+	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark .rank-math-wizard .wizard-content--requirements .rank-math-setup-mode ul li label.is-checked {
+	border-color: var(--sps-ui-accent);
+}
+
+html.sps-dark .rank-math-wizard :is(.wizard-content--requirements .rank-math-setup-mode ul li label p, .wizard-content--requirements .rank-math-setup-mode p, .text-center, .main-content > header p, .main-content header.sitemap-title p, .main-content header.redirections-header p, .return-to-dashboard a, .next-fetch, .wizard-navigation a:not(.active), .field-description, .cmb2-metabox-description, .rank-math-collapsible-trigger),
+html.sps-dark .rank-math-wizard #rank-math-pro-cta :is(p, ul, .rank-math-cta-text),
+html.sps-dark .rank-math-wizard .rank-math-steps-progress > .components-tab-panel__tabs[role="tablist"] .components-tab-panel__tabs-item:not(.is-active, :first-of-type),
+html.sps-dark .rank-math-wizard .rank-math-steps-progress > .components-tab-panel__tabs[role="tablist"] .components-tab-panel__tabs-item.is-done.components-tab-panel__tabs-item,
+html.sps-dark .rank-math-wizard .wizard-content--requirements .rank-math-collapsible-trigger :is(.dashicons, .dashicons span),
+html.sps-dark .rank-math-wizard .wizard-content--yoursite .components-tab-panel__tabs .components-button {
+	color: var(--sps-ui-muted);
+}
+
+html.sps-dark .rank-math-wizard :is(h1, h2, h3, h4, .components-checkbox-control__label, .field-th, [id^="field-metabox-rank"] .field-row .field-th, .field-th h3, .wizard-content--import .import-plugin .field-th h3, .field-row.field-multicheck-inline.with-description .field-description, .wizard-content--requirements .rank-math-table th, .wizard-content--requirements .wizard-conflicts td, .wizard-content--requirements .rank-math-setup-mode ul li label .rank-math-mode-title, .wizard-content--yoursite .components-tab-panel__tabs .components-button.is-active),
+html.sps-dark .rank-math-wizard #rank-math-pro-cta .rank-math-cta-box h3 {
+	color: var(--sps-ui-text);
+}
+
+html.sps-dark .rank-math-wizard .wizard-content--requirements .rank-math-setup-mode.is-free ul li:last-child .rank-math-mode-title,
+html.sps-dark .rank-math-wizard .wizard-content--requirements .rank-math-setup-mode ul li label.is-disabled .rank-math-mode-title {
+	color: var(--sps-ui-subtle);
+}
+
+html.sps-dark .rank-math-wizard a:not(.button, .components-button, .share-twitter, .share-facebook),
+html.sps-dark .rank-math-wizard .rank-math-button.components-button.button-link {
+	color: var(--sps-ui-accent);
+}
+
+html.sps-dark .rank-math-wizard .field-metabox .note {
+	color: var(--sps-ui-warning);
+	background: rgb(240 195 60 / 18%);
+}
+
+html.sps-dark .rank-math-wizard [id^="field-metabox-rank"] .field-row {
+	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark .rank-math-wizard :is(.components-text-control__input, .components-textarea-control__input, input[type="text"], input[type="url"], input[type="email"], textarea, select),
+html.sps-dark .rank-math-wizard .field-td .rank-math-select-with-searchbox,
+html.sps-dark .rank-math-wizard .rank-math-text-control.components-base-control .components-base-control__field .components-text-control__input {
+	color: var(--sps-ui-text);
+	background-color: var(--sps-ui-canvas);
+	border-color: var(--sps-ui-field-border);
+}
+
+html.sps-dark .rank-math-wizard :is(.rank-math-button.components-button.button-secondary, .rank-math-button.components-button.button-primary-outline) {
+	color: var(--sps-ui-text);
+	background: var(--sps-ui-raised);
+}
+
+html.sps-dark .rank-math-wizard .steps-progress-skeleton .field-row .top::before,
+html.sps-dark .rank-math-wizard .steps-progress-skeleton .field-row .top::after,
+html.sps-dark .rank-math-wizard .steps-progress-skeleton .field-row .bottom::before,
+html.sps-dark .rank-math-wizard .steps-progress-skeleton .field-row .bottom::after {
+	background-color: var(--sps-ui-raised);
+	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark .rank-math-wizard .wizard-content--requirements .rank-math-collapsible-trigger.rank-math-button.components-button.button-link:hover {
+	background: var(--sps-ui-hover);
+}
+
+html.sps-dark .rank-math-wizard :is(.wizard-navigation span, .wizard-navigation a.active span, .wizard-navigation a.done span),
+html.sps-dark .rank-math-steps-progress > .components-tab-panel__tabs[role="tablist"] .components-tab-panel__tabs-item:not(:first-of-type)::before {
+	box-shadow: inset 0 0 0 2px var(--sps-ui-canvas);
+}
+
+html.sps-dark .rank-math-wizard .wizard-navigation a:first-child::before {
+	background: var(--sps-ui-canvas);
+}
+
+@media screen and (max-width: 595px) {
+	html.sps-dark .rank-math-steps-progress > .components-tab-panel__tabs[role="tablist"] .components-tab-panel__tabs-item:first-of-type {
+		background-color: var(--sps-ui-canvas);
+	}
+}
+
+/* The logo's dark "Math": turned light, its purple kept. */
+html.sps-dark .rank-math-wizard .logo img {
+	filter: invert(1) hue-rotate(180deg);
+}
+
 /* The editor toolbar's SEO and Content AI scores: pale fills of their status colour, tinted dark here (Rank Math's selectors use seven classes). */
 html.sps-dark .editor-editor-interface .interface-pinned-items button.components-button[aria-label] .rank-math-toolbar-score {
 	color: var(--sps-ui-text);
