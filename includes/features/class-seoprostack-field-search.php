@@ -140,14 +140,16 @@ class SEOProStack_Field_Search extends SEOProStack_Feature {
             if (!is_array($field) || empty($field['key'])) {
                 continue;
             }
-            $search = !in_array((string) $field['key'], $skip, true)
-                && !(isset($field['name']) && in_array((string) $field['name'], $skip, true));
+            $listed = in_array((string) $field['key'], $skip, true)
+                || (isset($field['name']) && in_array((string) $field['name'], $skip, true));
             /**
              * Filter whether Search custom fields looks in a field's values.
              *
              * Runs once per request and context for each field, before the
              * fields inside it: returning false for a group, repeater or
-             * flexible content field leaves out every field inside it.
+             * flexible content field leaves out every field inside it. A
+             * field listed in Fields to leave out stays out whatever this
+             * returns.
              *
              * @param bool   $search  Whether to search the field. False when
              *                        Fields to leave out lists it.
@@ -155,7 +157,8 @@ class SEOProStack_Field_Search extends SEOProStack_Feature {
              * @param string $context 'site' for searches on the site, 'admin'
              *                        for admin list searches.
              */
-            if (!apply_filters('seoprostack_field_search_field', $search, $field, $context)) {
+            $search = apply_filters('seoprostack_field_search_field', !$listed, $field, $context);
+            if ($listed || !$search) {
                 continue;
             }
             if (isset($field['type']) && in_array($field['type'], self::TYPES, true)) {
