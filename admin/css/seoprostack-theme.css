@@ -2097,6 +2097,36 @@ html.sps-dark .ui-datepicker td .ui-state-highlight {
 	background: var(--sps-ui-raised);
 }
 
+/*
+ * CMB2's settings pages and fields (AutomatorWP's Settings and others):
+ * rows (#fff), title rows and repeat tables (#fafafa), group titles and
+ * lines (#e9e9e9), labels (#222) and help (#666).
+ */
+html.sps-dark .cmb2-options-page .cmb2-metabox > .cmb-row {
+	background: var(--sps-ui-surface);
+	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark :is(.cmb2-options-page .cmb2-wrap .cmb-type-title, .cmb-repeat-table, .cmb-repeatable-group .cmb-group-title) {
+	background-color: var(--sps-ui-raised);
+}
+
+html.sps-dark :is(.cmb-repeatable-grouping, .cmb-repeat-table .cmb-row.cmb-repeat-row + .cmb-repeat-row, .cmb2-postbox .cmb-row, .cmb2-postbox .cmb-repeatable-group, .cmb-type-group .cmb-row, .cmb-type-group .cmb-repeatable-group) {
+	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark .cmb-repeat-table .cmb-row.cmb-repeat-row::before {
+	border-right-color: var(--sps-ui-border);
+}
+
+html.sps-dark :is(.cmb-th, .cmb2-postbox .cmb-row .cmbhandle, .cmb-type-group .cmb-row .cmbhandle) {
+	color: var(--sps-ui-text);
+}
+
+html.sps-dark :is(p, span).cmb2-metabox-description {
+	color: var(--sps-ui-muted);
+}
+
 /* Other plugins ------------------------------------------------------------- */
 
 /* Kadence Blocks: the Design Library button in the editor's toolbar (#1e1e1e outline). */
@@ -5877,6 +5907,71 @@ html.sps-dark .code-snippets-changelog-entries .dashicons-shield {
 
 html.sps-dark .code-snippets-changelog-entries .dashicons-open-folder {
 	color: #dba88a;
+}
+
+/*
+ * AutomatorWP (admin.php?page=automatorwp and automatorwp_add_ons; its
+ * Settings are CMB2's, above). Its add-on cards stand bare on the page, so
+ * WordPress's card colours (above) come off them; their tiles keep the
+ * #fff most of their pictures are drawn on. The dashboard's automation
+ * types (#efefef frames), list stripes (#f6f7f7), and the #f5f5f5 veil
+ * that fades out the last row of add-ons and integrations; the cards'
+ * #1d2327 names and #e5e5e5 Installed, and the videos' #3c434a titles.
+ */
+html.sps-dark #wpbody :is(.automatorwp-plugin-card, .automatorwp-plugin-card .plugin-card-bottom) {
+	background: transparent;
+	border-color: transparent;
+}
+
+html.sps-dark .automatorwp-dashboard .plugin-card .plugin-card-top .thumbnail a::after {
+	background: linear-gradient(0deg, var(--sps-ui-canvas), transparent);
+}
+
+html.sps-dark .automatorwp-automation-type-dialog .automatorwp-automation-types .automatorwp-automation-type:not(:hover, .automatorwp-automation-type-selected) {
+	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark .automatorwp-dashboard :is(.automatorwp-automations, .automatorwp-latest-logs) li:nth-child(odd) {
+	background-color: var(--sps-ui-raised);
+}
+
+html.sps-dark .automatorwp-dashboard :is(.automatorwp-automations, .automatorwp-latest-logs) li > div:last-child > span {
+	color: var(--sps-ui-muted);
+}
+
+html.sps-dark :is(.automatorwp-plugin-card .name a, .automatorwp-dashboard .automatorwp-dashboard-video a) {
+	color: var(--sps-ui-text);
+}
+
+html.sps-dark .automatorwp-plugin-card .installed span {
+	color: var(--sps-ui-text);
+	background: var(--sps-ui-raised);
+}
+
+/*
+ * Its logo's wordmark is #222, unreadable on the dark page. The picture
+ * keeps its robot; the wordmark is drawn over it in the text colour, with
+ * the same logo as a mask (as Fluent Forms' above).
+ */
+html.sps-dark .automatorwp-dashboard-logo {
+	position: relative;
+}
+
+html.sps-dark .automatorwp-dashboard-logo img {
+	clip-path: inset(0 75% 0 0);
+}
+
+html.sps-dark .automatorwp-dashboard-logo::after {
+	position: absolute;
+	top: 0;
+	left: 0;
+	height: 100%;
+	aspect-ratio: 667 / 140;
+	pointer-events: none;
+	content: "";
+	background-color: var(--sps-ui-text);
+	mask: url("../../../automatorwp/assets/img/automatorwp-brand-logo.svg") left center / contain no-repeat;
+	clip-path: inset(0 0 0 25%);
 }
 
 /* SEO Pro Stack's additions to WordPress's screens -------------------------- */
