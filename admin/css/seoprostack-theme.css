@@ -385,12 +385,22 @@ html.sps-dark .wp-core-ui select:disabled:is(:hover, :focus) {
 	border-color: var(--sps-ui-field-border);
 }
 
+/*
+ * Ticks and dots in white: on the dark field (WordPress 6), and on
+ * WordPress 7's fill in the scheme's colour, which is its Dark primary here
+ * so white reads at 4.5:1 in every scheme (Modern's blue under a light-blue
+ * tick read at 2.4:1).
+ */
+html.sps-dark input:is([type="checkbox"], [type="radio"]):checked {
+	--wp-admin-theme-color: var(--sps-ui-primary);
+}
+
 html.sps-dark input[type="checkbox"]:checked::before {
-	content: url("data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2020%2020%27%3E%3Cpath%20d%3D%27M14.83%204.89l1.34.94-5.81%208.38H9.02L5.78%209.67l1.34-1.25%202.57%202.4z%27%20fill%3D%27%2372aee6%27%2F%3E%3C%2Fsvg%3E");
+	content: url("data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2020%2020%27%3E%3Cpath%20d%3D%27M14.83%204.89l1.34.94-5.81%208.38H9.02L5.78%209.67l1.34-1.25%202.57%202.4z%27%20fill%3D%27%23ffffff%27%2F%3E%3C%2Fsvg%3E");
 }
 
 html.sps-dark input[type="radio"]:checked::before {
-	background-color: var(--sps-ui-accent);
+	background-color: #fff;
 }
 
 /* Buttons ---------------------------------------------------------------- */
