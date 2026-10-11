@@ -24,7 +24,7 @@ SEO Pro Stack does the jobs that usually take dozens of small plugins: a calmer,
 
 If this saves you time, headaches and costs, feel free to [buy me a coffee](https://buymeacoffee.com/marcusquinn), or whatever you like, to invest in making more things open-source.
 
-Version: 1.3.36
+Version: 1.3.37
 
 <!-- github-only:start -->
 ## Screenshots
@@ -1557,9 +1557,9 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folderâ
 
 ## Changelog
 
-### Unreleased
+### 1.3.37
 
-- New: **Media in cloud storage** copies pictures, sizes and WebP copies to S3-compatible storage in background batches, serves confirmed objects from the public bucket, and keeps local files and saved addresses. Constants-only connection, per-site switch, cached test, progress and WP-CLI commands (GitHub issue #684).
+- New: **Media in cloud storage** copies pictures, sizes and WebP copies to S3-compatible storage in background batches, serves confirmed objects from the public bucket, and keeps local files and saved addresses. Constants-only connection, per-site switch, connection test, progress and WP-CLI commands (GitHub issue #684).
 
 ### 1.3.36
 

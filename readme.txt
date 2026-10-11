@@ -5,7 +5,7 @@ Tags: magic login, iframe, schedule posts, auto upload images, admin
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.3.36
+Stable tag: 1.3.37
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -142,8 +142,7 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 
 == Changelog ==
 
-= 1.3.36 =
-* Fix: Dark mode covers more screens: Rank Math's setup wizard, WooCommerce, Kadence Blocks and Starter Templates, Fluent Forms' editor, Meow Apps, rich text fields and loading animations.
-* New: a colour mode change shows at once in every admin tab open in the same browser.
+= 1.3.37 =
+* New: Media in cloud storage (off by default) copies pictures, their sizes and WebP copies to S3-compatible storage such as Cloudflare R2 in the background, and serves them from the bucket. Local files stay.
 
 Older: `changelog.txt`.
