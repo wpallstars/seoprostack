@@ -1551,6 +1551,77 @@ html.sps-dark .components-modal__frame :is(.kb-pattern-inline-title, .block-edit
 	color: var(--sps-ui-muted);
 }
 
+/*
+ * Kadence's own screens: the Blocks settings and home, the theme's dashboard
+ * and Starter Templates (white heads, panels and cards, #2d3748 titles).
+ */
+html.sps-dark #wpbody :is(.kadence_blocks_dash_head, .kadence_theme_dash_head, .kadence_blocks_dashboard_main, .side-panel .components-panel, .nav-tab-content, .kad-featured-items, .kad-panel-left .kt_plugin_box .kt-blocks-config-settings, .kadence-dashboard-tab-panel .components-tab-panel__tabs .components-button.active-tab, .dashboard-pro-settings .link-item.locked-item, .kst-split-screen-options .kst-split-screen-option--templates) {
+	color: var(--sps-ui-text);
+	background: var(--sps-ui-surface);
+	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark #wpbody :is(.kst-split-screen-options .kst-split-screen-option--ai, .kst-split-screen-options-mock .kst-split-screen-option:first-child, h3.section-sub-head, .builder_box_inner h5.activated.plugin-not-installed) {
+	color: var(--sps-ui-text);
+	background: var(--sps-ui-raised);
+}
+
+html.sps-dark #wpbody :is(.kadence_blocks_item, .link-item, .kt_plugin_box, .changelog-version, .kt-modal-settings-field, .kt-modal-item-title, .kt-main h2, .kt-promo-three .kt-promo-box, .kt-promo-full .kt-newsletter-promo.kt-promo-box) {
+	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark #wpbody :is(.kadence_blocks_dash_head h1, .kadence_theme_dash_head h1, .kt-promo-three .kt-promo-box, .kt-promo-three .kt-promo-box h3, .kt-main h2, .kt_plugin_welcome h1, .kt_plugin_welcome .builder_box_inner h4, .kst-split-screen-options .kst-split-screen-title, .kb-section-title--black, .kb-upsell-content__heading, .kb-upsell-content__description) {
+	color: var(--sps-ui-text);
+}
+
+html.sps-dark #wpbody .kst-split-screen-options .kst-split-screen-description {
+	color: var(--sps-ui-muted);
+}
+
+/* Its Save Changes button is white on white (`.kt-main .submit input#submit`). */
+html.sps-dark #wpbody .kt-main .submit input#submit {
+	color: #fff;
+	background: var(--sps-ui-primary);
+	border-color: var(--sps-ui-primary);
+}
+
+html.sps-dark #wpbody .kt-main .submit input#submit:is(:hover, :focus) {
+	background: var(--sps-ui-primary-hover);
+	border-color: var(--sps-ui-primary-hover);
+}
+
+/* The home screen's three coloured cards: tinted dark surfaces with light text. */
+html.sps-dark #wpbody .kb-action-card {
+	color: var(--sps-ui-text);
+}
+
+html.sps-dark #wpbody .kb-action-card--blue {
+	background-color: #1b3048;
+}
+
+html.sps-dark #wpbody .kb-action-card--green {
+	background-color: #183a24;
+}
+
+html.sps-dark #wpbody .kb-action-card--yellow {
+	background-color: #3a3016;
+	border-color: #7a6a26;
+}
+
+html.sps-dark #wpbody .kb-action-card :is(h2, h3, h4, p) {
+	color: inherit;
+}
+
+html.sps-dark #wpbody .kb-action-card__icon {
+	color: var(--sps-ui-text);
+	background: rgb(255 255 255 / 8%);
+	border-color: rgb(255 255 255 / 25%);
+}
+
+html.sps-dark #wpbody .kb-action-card__icon svg :is(path, rect, circle, line, polyline) {
+	fill: currentcolor;
+}
+
 /* Fluent Forms: the dashboard's Latest Form Submissions (#f9f9f9 stripes, #0073aa links). */
 html.sps-dark #wpbody ul.ff_dashboard_stats li {
 	border-color: var(--sps-ui-border);
