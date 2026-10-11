@@ -1477,9 +1477,14 @@ html.sps-dark .components-modal__frame :is(.kb-action-button, .kb-subtab-button,
 	background-color: var(--sps-ui-raised);
 }
 
+/* The chosen library: a pill drawn on its inner span in WordPress's foreground colour, which is light in Dark. */
 html.sps-dark .components-modal__frame .kb-prebuilt-library-actions .components-button.kb-action-button.is-pressed:not(:disabled) {
-	color: var(--sps-ui-text);
-	background-color: var(--sps-ui-raised);
+	background-color: transparent;
+}
+
+html.sps-dark .components-modal__frame .kb-prebuilt-library-actions .components-button.kb-action-button.is-pressed > span {
+	color: #fff;
+	background-color: var(--sps-ui-primary);
 }
 
 /* The fade above the sidebar's Style row. */
