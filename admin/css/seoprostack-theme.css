@@ -5974,6 +5974,468 @@ html.sps-dark .automatorwp-dashboard-logo::after {
 	clip-path: inset(0 0 0 25%);
 }
 
+/*
+ * Advanced DB Cleaner (admin.php?page=advanced_db_cleaner): a React app
+ * drawn with Tailwind's colour classes, with no dark mode of its own: #fff
+ * and grey grounds (#f9fafb to #d1d5db), black and grey text (#111827 to
+ * #4b5563), #e5e7eb lines, and pale blue, green, orange and red tints with
+ * darker text of the same hue. Its menus and dialogs open in Headless UI's
+ * portal, outside the app. Each class is mapped to the palette here, in
+ * :where() under the app, so ours follow each other in order (states after
+ * rest). Coloured fills (its blue, emerald and red buttons, the WooCommerce
+ * offer's dark band) and the white knobs and dots of switches and chosen
+ * radios keep their colours.
+ */
+html.sps-dark .toplevel_page_advanced_db_cleaner :is(#adbc-plugin-root, #headlessui-portal-root) {
+	color: var(--sps-ui-text);
+}
+
+/* Lines with no colour of their own (Tailwind's #e5e7eb); any colour class wins. */
+:where(html.sps-dark .toplevel_page_advanced_db_cleaner :is(#adbc-plugin-root, #headlessui-portal-root) *) {
+	border-color: var(--sps-ui-border);
+}
+
+/*
+ * Grounds: #fff, then #f9fafb, #f3f4f6, #e5e7eb and #d1d5db, some see-through.
+ * Round #fff ones too when outlined (dialogs' Cancel, radios and the dot in an
+ * unchosen one, Add-ons activity's icons), on a line (a scan's steps) or
+ * shadowed (the progress ring); not switches' knobs or chosen radios' dots.
+ */
+html.sps-dark .toplevel_page_advanced_db_cleaner :is(#adbc-plugin-root, #headlessui-portal-root) :where(.bg-white:not(.rounded-full), .bg-white.rounded-full:is(.border, .z-10, .shadow-md), .rounded-full.border.bg-white > .rounded-full.bg-white) {
+	background-color: var(--sps-ui-surface);
+}
+
+html.sps-dark .toplevel_page_advanced_db_cleaner :is(#adbc-plugin-root, #headlessui-portal-root) :where(.bg-white\/95) {
+	background-color: rgb(29 35 39 / 95%);
+}
+
+html.sps-dark .toplevel_page_advanced_db_cleaner :is(#adbc-plugin-root, #headlessui-portal-root) :where(.bg-white\/80) {
+	background-color: rgb(29 35 39 / 80%);
+}
+
+html.sps-dark .toplevel_page_advanced_db_cleaner :is(#adbc-plugin-root, #headlessui-portal-root) :where(.bg-white\/40) {
+	background-color: rgb(29 35 39 / 40%);
+}
+
+html.sps-dark .toplevel_page_advanced_db_cleaner :is(#adbc-plugin-root, #headlessui-portal-root) :where(.bg-gray-50, .bg-slate-50) {
+	background-color: #242b30;
+}
+
+html.sps-dark .toplevel_page_advanced_db_cleaner :is(#adbc-plugin-root, #headlessui-portal-root) :where(.bg-gray-50\/50) {
+	background-color: var(--sps-ui-stripe);
+}
+
+html.sps-dark .toplevel_page_advanced_db_cleaner :is(#adbc-plugin-root, #headlessui-portal-root) :where(.bg-gray-100) {
+	background-color: var(--sps-ui-raised);
+}
+
+html.sps-dark .toplevel_page_advanced_db_cleaner :is(#adbc-plugin-root, #headlessui-portal-root) :where(.bg-gray-100\/80) {
+	background-color: rgb(44 51 56 / 80%);
+}
+
+html.sps-dark .toplevel_page_advanced_db_cleaner :is(#adbc-plugin-root, #headlessui-portal-root) :where(.bg-gray-200, .bg-slate-200) {
+	background-color: var(--sps-ui-border);
+}
+
+html.sps-dark .toplevel_page_advanced_db_cleaner :is(#adbc-plugin-root, #headlessui-portal-root) :where(.bg-gray-200\/80) {
+	background-color: rgb(60 67 74 / 80%);
+}
+
+html.sps-dark .toplevel_page_advanced_db_cleaner :is(#adbc-plugin-root, #headlessui-portal-root) :where(.bg-gray-300) {
+	background-color: #50575e;
+}
+
+html.sps-dark .toplevel_page_advanced_db_cleaner :is(#adbc-plugin-root, #headlessui-portal-root) :where(.bg-gray-300\/80) {
+	background-color: rgb(80 87 94 / 80%);
+}
+
+@media (width >= 768px) {
+	html.sps-dark .toplevel_page_advanced_db_cleaner :is(#adbc-plugin-root, #headlessui-portal-root) :where(.md\:bg-white) {
+		background-color: var(--sps-ui-surface);
+	}
+}
+
+@media (width >= 1280px) {
+	html.sps-dark .toplevel_page_advanced_db_cleaner :is(#adbc-plugin-root, #headlessui-portal-root) :where(.xl\:bg-gray-50) {
+		background-color: #242b30;
+	}
+}
+
+/* Tints: blue (#eff6ff to #bfdbfe), green, yellow and amber, orange, red and purple. */
+html.sps-dark .toplevel_page_advanced_db_cleaner :is(#adbc-plugin-root, #headlessui-portal-root) :where(.bg-blue-50, .bg-sky-100) {
+	background-color: #152333;
+}
+
+html.sps-dark .toplevel_page_advanced_db_cleaner :is(#adbc-plugin-root, #headlessui-portal-root) :where(.bg-blue-50\/70) {
+	background-color: rgb(21 35 51 / 70%);
+}
+
+html.sps-dark .toplevel_page_advanced_db_cleaner :is(#adbc-plugin-root, #headlessui-portal-root) :where(.bg-blue-100) {
+	background-color: #1b3048;
+}
+
+html.sps-dark .toplevel_page_advanced_db_cleaner :is(#adbc-plugin-root, #headlessui-portal-root) :where(.bg-blue-200) {
+	background-color: #1f3a5c;
+}
+
+html.sps-dark .toplevel_page_advanced_db_cleaner :is(#adbc-plugin-root, #headlessui-portal-root) :where(.bg-green-50, .bg-emerald-50) {
+	background-color: #16291b;
+}
+
+html.sps-dark .toplevel_page_advanced_db_cleaner :is(#adbc-plugin-root, #headlessui-portal-root) :where(.bg-green-100) {
+	background-color: #183a24;
+}
+
+html.sps-dark .toplevel_page_advanced_db_cleaner :is(#adbc-plugin-root, #headlessui-portal-root) :where(.bg-green-200) {
+	background-color: #1e4a2d;
+}
+
+html.sps-dark .toplevel_page_advanced_db_cleaner :is(#adbc-plugin-root, #headlessui-portal-root) :where(.bg-yellow-50, .bg-amber-50) {
+	background-color: #2e2716;
+}
+
+html.sps-dark .toplevel_page_advanced_db_cleaner :is(#adbc-plugin-root, #headlessui-portal-root) :where(.bg-yellow-100, .bg-amber-100) {
+	background-color: #3a3016;
+}
+
+html.sps-dark .toplevel_page_advanced_db_cleaner :is(#adbc-plugin-root, #headlessui-portal-root) :where(.bg-orange-100) {
+	background-color: #2e2213;
+}
+
+html.sps-dark .toplevel_page_advanced_db_cleaner :is(#adbc-plugin-root, #headlessui-portal-root) :where(.bg-red-50) {
+	background-color: #33191b;
+}
+
+html.sps-dark .toplevel_page_advanced_db_cleaner :is(#adbc-plugin-root, #headlessui-portal-root) :where(.bg-red-100) {
+	background-color: #4a2224;
+}
+
+html.sps-dark .toplevel_page_advanced_db_cleaner :is(#adbc-plugin-root, #headlessui-portal-root) :where(.bg-red-100\/80) {
+	background-color: rgb(74 34 36 / 80%);
+}
+
+html.sps-dark .toplevel_page_advanced_db_cleaner :is(#adbc-plugin-root, #headlessui-portal-root) :where(.bg-red-200) {
+	background-color: #5c2a2d;
+}
+
+html.sps-dark .toplevel_page_advanced_db_cleaner :is(#adbc-plugin-root, #headlessui-portal-root) :where(.bg-purple-100) {
+	background-color: #2a1f3d;
+}
+
+html.sps-dark .toplevel_page_advanced_db_cleaner :is(#adbc-plugin-root, #headlessui-portal-root) :where(.bg-purple-200\/80) {
+	background-color: rgb(53 39 77 / 80%);
+}
+
+/*
+ * Gradients (Premium's feature icons, the Summary before a clean, an events
+ * log's head, the help cards): their grey and tinted ends as the grounds
+ * above. Premium's heading is text cut from a gradient (from #1f2937): its
+ * ends turn light, as text does in Dark.
+ */
+html.sps-dark .toplevel_page_advanced_db_cleaner :is(#adbc-plugin-root, #headlessui-portal-root) :where(.from-gray-50) {
+	--tw-gradient-from: #242b30 var(--tw-gradient-from-position);
+}
+
+html.sps-dark .toplevel_page_advanced_db_cleaner :is(#adbc-plugin-root, #headlessui-portal-root) :where(.from-gray-100, .from-slate-100) {
+	--tw-gradient-from: var(--sps-ui-raised) var(--tw-gradient-from-position);
+}
+
+html.sps-dark .toplevel_page_advanced_db_cleaner :is(#adbc-plugin-root, #headlessui-portal-root) :where(.from-blue-50) {
+	--tw-gradient-from: #152333 var(--tw-gradient-from-position);
+}
+
+html.sps-dark .toplevel_page_advanced_db_cleaner :is(#adbc-plugin-root, #headlessui-portal-root) :where(.from-emerald-50) {
+	--tw-gradient-from: #16291b var(--tw-gradient-from-position);
+}
+
+html.sps-dark .toplevel_page_advanced_db_cleaner :is(#adbc-plugin-root, #headlessui-portal-root) :where(.bg-clip-text.from-gray-800) {
+	--tw-gradient-from: var(--sps-ui-text) var(--tw-gradient-from-position);
+}
+
+html.sps-dark .toplevel_page_advanced_db_cleaner :is(#adbc-plugin-root, #headlessui-portal-root) :where(.bg-clip-text.via-indigo-600) {
+	--tw-gradient-stops: var(--tw-gradient-from), #a5b4fc var(--tw-gradient-via-position), var(--tw-gradient-to);
+}
+
+html.sps-dark .toplevel_page_advanced_db_cleaner :is(#adbc-plugin-root, #headlessui-portal-root) :where(.to-gray-100) {
+	--tw-gradient-to: var(--sps-ui-raised) var(--tw-gradient-to-position);
+}
+
+html.sps-dark .toplevel_page_advanced_db_cleaner :is(#adbc-plugin-root, #headlessui-portal-root) :where(.to-gray-200) {
+	--tw-gradient-to: var(--sps-ui-border) var(--tw-gradient-to-position);
+}
+
+html.sps-dark .toplevel_page_advanced_db_cleaner :is(#adbc-plugin-root, #headlessui-portal-root) :where(.to-blue-50) {
+	--tw-gradient-to: #152333 var(--tw-gradient-to-position);
+}
+
+html.sps-dark .toplevel_page_advanced_db_cleaner :is(#adbc-plugin-root, #headlessui-portal-root) :where(.to-green-50) {
+	--tw-gradient-to: #16291b var(--tw-gradient-to-position);
+}
+
+html.sps-dark .toplevel_page_advanced_db_cleaner :is(#adbc-plugin-root, #headlessui-portal-root) :where(.to-indigo-50) {
+	--tw-gradient-to: #1c1f3b var(--tw-gradient-to-position);
+}
+
+html.sps-dark .toplevel_page_advanced_db_cleaner :is(#adbc-plugin-root, #headlessui-portal-root) :where(.bg-clip-text.to-purple-600) {
+	--tw-gradient-to: #d8b4fe var(--tw-gradient-to-position);
+}
+
+/* Grounds when pointed at, open or disabled. */
+html.sps-dark .toplevel_page_advanced_db_cleaner :is(#adbc-plugin-root, #headlessui-portal-root) :where(.hover\:bg-white:hover) {
+	background-color: var(--sps-ui-surface);
+}
+
+html.sps-dark .toplevel_page_advanced_db_cleaner :is(#adbc-plugin-root, #headlessui-portal-root) :where(.hover\:bg-gray-50:hover) {
+	background-color: #242b30;
+}
+
+html.sps-dark .toplevel_page_advanced_db_cleaner :is(#adbc-plugin-root, #headlessui-portal-root) :where(.hover\:bg-gray-100:hover, .disabled\:bg-gray-100:disabled) {
+	background-color: var(--sps-ui-raised);
+}
+
+html.sps-dark .toplevel_page_advanced_db_cleaner :is(#adbc-plugin-root, #headlessui-portal-root) :where(.hover\:bg-gray-200:hover) {
+	background-color: var(--sps-ui-border);
+}
+
+html.sps-dark .toplevel_page_advanced_db_cleaner :is(#adbc-plugin-root, #headlessui-portal-root) :where(.hover\:bg-gray-200\/80:hover) {
+	background-color: rgb(60 67 74 / 80%);
+}
+
+html.sps-dark .toplevel_page_advanced_db_cleaner :is(#adbc-plugin-root, #headlessui-portal-root) :where(.hover\:bg-gray-300:hover) {
+	background-color: #50575e;
+}
+
+html.sps-dark .toplevel_page_advanced_db_cleaner :is(#adbc-plugin-root, #headlessui-portal-root) :where(.hover\:bg-gray-300\/40:hover) {
+	background-color: rgb(80 87 94 / 40%);
+}
+
+html.sps-dark .toplevel_page_advanced_db_cleaner :is(#adbc-plugin-root, #headlessui-portal-root) :where(.hover\:bg-blue-50:hover) {
+	background-color: #152333;
+}
+
+html.sps-dark .toplevel_page_advanced_db_cleaner :is(#adbc-plugin-root, #headlessui-portal-root) :where(.hover\:bg-blue-100:hover) {
+	background-color: #1b3048;
+}
+
+html.sps-dark .toplevel_page_advanced_db_cleaner :is(#adbc-plugin-root, #headlessui-portal-root) :where(.hover\:bg-blue-200:hover) {
+	background-color: #1f3a5c;
+}
+
+html.sps-dark .toplevel_page_advanced_db_cleaner :is(#adbc-plugin-root, #headlessui-portal-root) :where(.hover\:bg-yellow-100:hover) {
+	background-color: #3a3016;
+}
+
+html.sps-dark .toplevel_page_advanced_db_cleaner :is(#adbc-plugin-root, #headlessui-portal-root) :where(.hover\:bg-red-50:hover) {
+	background-color: #33191b;
+}
+
+html.sps-dark .toplevel_page_advanced_db_cleaner :is(#adbc-plugin-root, #headlessui-portal-root) :where(.hover\:bg-red-100:hover) {
+	background-color: #4a2224;
+}
+
+html.sps-dark .toplevel_page_advanced_db_cleaner :is(#adbc-plugin-root, #headlessui-portal-root) :where(.hover\:bg-red-200:hover) {
+	background-color: #5c2a2d;
+}
+
+@media (width >= 768px) {
+	html.sps-dark .toplevel_page_advanced_db_cleaner :is(#adbc-plugin-root, #headlessui-portal-root) :where(.md\:hover\:bg-gray-100:hover) {
+		background-color: var(--sps-ui-raised);
+	}
+}
+
+html.sps-dark .toplevel_page_advanced_db_cleaner :is(#adbc-plugin-root, #headlessui-portal-root) :where(.group:hover .group-hover\:from-gray-200) {
+	--tw-gradient-from: var(--sps-ui-border) var(--tw-gradient-from-position);
+}
+
+html.sps-dark .toplevel_page_advanced_db_cleaner :is(#adbc-plugin-root, #headlessui-portal-root) :where(.group:hover .group-hover\:to-gray-300) {
+	--tw-gradient-to: #50575e var(--tw-gradient-to-position);
+}
+
+/* Text: black and dark greys, then blues, reds, greens, yellows and purples too dark for Dark. */
+html.sps-dark .toplevel_page_advanced_db_cleaner :is(#adbc-plugin-root, #headlessui-portal-root) :where(.text-black, .text-gray-900, .text-gray-800, .text-slate-900) {
+	color: var(--sps-ui-text);
+}
+
+html.sps-dark .toplevel_page_advanced_db_cleaner :is(#adbc-plugin-root, #headlessui-portal-root) :where(.text-gray-700, .text-gray-600, .text-slate-600) {
+	color: var(--sps-ui-muted);
+}
+
+html.sps-dark .toplevel_page_advanced_db_cleaner :is(#adbc-plugin-root, #headlessui-portal-root) :where(.text-gray-500) {
+	color: var(--sps-ui-subtle);
+}
+
+html.sps-dark .toplevel_page_advanced_db_cleaner :is(#adbc-plugin-root, #headlessui-portal-root) :where(.text-blue-500, .text-blue-600, .text-blue-700, .text-blue-800, .text-blue-900, .text-sky-600, .text-sky-700, .text-cyan-600) {
+	color: var(--sps-ui-accent);
+}
+
+html.sps-dark .toplevel_page_advanced_db_cleaner :is(#adbc-plugin-root, #headlessui-portal-root) :where(.text-red-500, .text-red-600, .text-red-700, .text-red-900) {
+	color: var(--sps-ui-bad);
+}
+
+html.sps-dark .toplevel_page_advanced_db_cleaner :is(#adbc-plugin-root, #headlessui-portal-root) :where(.text-green-600, .text-green-700, .text-green-800, .text-emerald-600, .text-emerald-700) {
+	color: var(--sps-ui-good);
+}
+
+html.sps-dark .toplevel_page_advanced_db_cleaner :is(#adbc-plugin-root, #headlessui-portal-root) :where(.text-yellow-600, .text-yellow-700, .text-yellow-800, .text-yellow-900, .text-amber-700, .text-amber-800, .text-orange-600, .text-orange-800) {
+	color: var(--sps-ui-warning);
+}
+
+html.sps-dark .toplevel_page_advanced_db_cleaner :is(#adbc-plugin-root, #headlessui-portal-root) :where(.text-indigo-600) {
+	color: #a5b4fc;
+}
+
+html.sps-dark .toplevel_page_advanced_db_cleaner :is(#adbc-plugin-root, #headlessui-portal-root) :where(.text-purple-600, .text-purple-900) {
+	color: #d8b4fe;
+}
+
+/* Its classes set with !important (the current menu item's blue, table text). */
+html.sps-dark .toplevel_page_advanced_db_cleaner :is(#adbc-plugin-root, #headlessui-portal-root) :where(.\!text-gray-900) {
+	color: var(--sps-ui-text) !important;
+}
+
+html.sps-dark .toplevel_page_advanced_db_cleaner :is(#adbc-plugin-root, #headlessui-portal-root) :where(.\!text-gray-500) {
+	color: var(--sps-ui-subtle) !important;
+}
+
+html.sps-dark .toplevel_page_advanced_db_cleaner :is(#adbc-plugin-root, #headlessui-portal-root) :where(.\!text-blue-500, .\!text-blue-600, .\!text-blue-700) {
+	color: var(--sps-ui-accent) !important;
+}
+
+html.sps-dark .toplevel_page_advanced_db_cleaner :is(#adbc-plugin-root, #headlessui-portal-root) :where(.\!text-yellow-600) {
+	color: var(--sps-ui-warning) !important;
+}
+
+html.sps-dark .toplevel_page_advanced_db_cleaner :is(#adbc-plugin-root, #headlessui-portal-root) :where(.placeholder\:\!text-gray-500)::placeholder {
+	color: var(--sps-ui-subtle) !important;
+}
+
+/* Text when pointed at: lighter, as WordPress's links in Dark. */
+html.sps-dark .toplevel_page_advanced_db_cleaner :is(#adbc-plugin-root, #headlessui-portal-root) :where(.hover\:text-black:hover, .hover\:text-gray-900:hover, .hover\:text-gray-800:hover, .hover\:text-slate-900\/80:hover, .hover\:text-blue-500:hover, .hover\:text-blue-600:hover, .hover\:text-blue-700:hover, .hover\:text-blue-800:hover, .hover\:text-sky-600:hover, .hover\:text-cyan-700:hover, .group:hover .group-hover\:text-black, .group:hover .group-hover\:text-gray-900, .group:hover .group-hover\:text-blue-600, .group:hover .group-hover\:text-blue-700) {
+	color: var(--sps-ui-text);
+}
+
+html.sps-dark .toplevel_page_advanced_db_cleaner :is(#adbc-plugin-root, #headlessui-portal-root) :where(.hover\:text-gray-700:hover) {
+	color: var(--sps-ui-muted);
+}
+
+html.sps-dark .toplevel_page_advanced_db_cleaner :is(#adbc-plugin-root, #headlessui-portal-root) :where(.hover\:text-gray-500:hover) {
+	color: var(--sps-ui-subtle);
+}
+
+html.sps-dark .toplevel_page_advanced_db_cleaner :is(#adbc-plugin-root, #headlessui-portal-root) :where(.hover\:text-red-500:hover, .hover\:text-red-700:hover, .group:hover .group-hover\:text-red-700) {
+	color: #ffd0d2;
+}
+
+html.sps-dark .toplevel_page_advanced_db_cleaner :is(#adbc-plugin-root, #headlessui-portal-root) :where(.hover\:\!text-blue-500:hover, .hover\:\!text-blue-600:hover, .hover\:\!text-blue-700:hover, .hover\:\!text-blue-800:hover, .hover\:\!text-blue-900:hover, .hover\:\!text-sky-600:hover) {
+	color: var(--sps-ui-text) !important;
+}
+
+html.sps-dark .toplevel_page_advanced_db_cleaner :is(#adbc-plugin-root, #headlessui-portal-root) :where(.hover\:\!text-gray-600:hover) {
+	color: var(--sps-ui-muted) !important;
+}
+
+/* Lines: greys (#f3f4f6 to #d1d5db; #9ca3af stronger; black and #111827 strongest), then the tints' own. */
+html.sps-dark .toplevel_page_advanced_db_cleaner :is(#adbc-plugin-root, #headlessui-portal-root) :where(.border-gray-100, .border-gray-200, .border-gray-200\/60, .border-gray-200\/70, .border-gray-200\/80, .border-gray-300, .border-gray-300\/80, .border-slate-300, .disabled\:border-gray-300:disabled, .divide-gray-100 > :not([hidden]) ~ :not([hidden]), .divide-gray-200 > :not([hidden]) ~ :not([hidden])) {
+	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark .toplevel_page_advanced_db_cleaner :is(#adbc-plugin-root, #headlessui-portal-root) :where(.border-b-gray-300\/80) {
+	border-bottom-color: var(--sps-ui-border);
+}
+
+html.sps-dark .toplevel_page_advanced_db_cleaner :is(#adbc-plugin-root, #headlessui-portal-root) :where(.border-gray-400, .border-gray-400\/70, .border-gray-400\/80) {
+	border-color: var(--sps-ui-field-border);
+}
+
+html.sps-dark .toplevel_page_advanced_db_cleaner :is(#adbc-plugin-root, #headlessui-portal-root) :where(.border-black, .border-gray-900) {
+	border-color: var(--sps-ui-muted);
+}
+
+html.sps-dark .toplevel_page_advanced_db_cleaner :is(#adbc-plugin-root, #headlessui-portal-root) :where(.border-blue-100, .border-blue-200, .border-blue-300) {
+	border-color: #2c5683;
+}
+
+html.sps-dark .toplevel_page_advanced_db_cleaner :is(#adbc-plugin-root, #headlessui-portal-root) :where(.border-green-100, .border-green-200, .border-green-800, .border-emerald-100) {
+	border-color: #2e6b3a;
+}
+
+html.sps-dark .toplevel_page_advanced_db_cleaner :is(#adbc-plugin-root, #headlessui-portal-root) :where(.border-red-100, .border-red-200, .border-red-300) {
+	border-color: #7d3437;
+}
+
+html.sps-dark .toplevel_page_advanced_db_cleaner :is(#adbc-plugin-root, #headlessui-portal-root) :where(.border-orange-100, .border-amber-200, .border-yellow-200) {
+	border-color: #7a5d22;
+}
+
+html.sps-dark .toplevel_page_advanced_db_cleaner :is(#adbc-plugin-root, #headlessui-portal-root) :where(.border-indigo-200, .border-purple-200) {
+	border-color: #4b3f72;
+}
+
+html.sps-dark .toplevel_page_advanced_db_cleaner :is(#adbc-plugin-root, #headlessui-portal-root) :where(.\!border-gray-300) {
+	border-color: var(--sps-ui-border) !important;
+}
+
+html.sps-dark .toplevel_page_advanced_db_cleaner :is(#adbc-plugin-root, #headlessui-portal-root) :where(.\!border-gray-400, .\!border-gray-400\/60) {
+	border-color: var(--sps-ui-field-border) !important;
+}
+
+html.sps-dark .toplevel_page_advanced_db_cleaner :is(#adbc-plugin-root, #headlessui-portal-root) :where(.\!border-black) {
+	border-color: var(--sps-ui-muted) !important;
+}
+
+html.sps-dark .toplevel_page_advanced_db_cleaner :is(#adbc-plugin-root, #headlessui-portal-root) :where(.\!border-blue-100) {
+	border-color: #2c5683 !important;
+}
+
+html.sps-dark .toplevel_page_advanced_db_cleaner :is(#adbc-plugin-root, #headlessui-portal-root) :where(.ring-gray-200, .ring-gray-300) {
+	--tw-ring-color: var(--sps-ui-border);
+}
+
+html.sps-dark .toplevel_page_advanced_db_cleaner :is(#adbc-plugin-root, #headlessui-portal-root) :where(.ring-gray-400) {
+	--tw-ring-color: var(--sps-ui-field-border);
+}
+
+html.sps-dark .toplevel_page_advanced_db_cleaner :is(#adbc-plugin-root, #headlessui-portal-root) :where(.shadow-gray-200) {
+	--tw-shadow-color: rgb(0 0 0 / 50%);
+}
+
+/* Lines when pointed at or focused. */
+html.sps-dark .toplevel_page_advanced_db_cleaner :is(#adbc-plugin-root, #headlessui-portal-root) :where(.hover\:border-gray-400:hover, .group:hover .group-hover\:border-gray-400) {
+	border-color: var(--sps-ui-field-border);
+}
+
+html.sps-dark .toplevel_page_advanced_db_cleaner :is(#adbc-plugin-root, #headlessui-portal-root) :where(.hover\:border-gray-800:hover, .focus\:border-black:focus, .focus\:border-gray-800:focus) {
+	border-color: var(--sps-ui-muted);
+}
+
+html.sps-dark .toplevel_page_advanced_db_cleaner :is(#adbc-plugin-root, #headlessui-portal-root) :where(.hover\:border-blue-200:hover) {
+	border-color: #2c5683;
+}
+
+html.sps-dark .toplevel_page_advanced_db_cleaner :is(#adbc-plugin-root, #headlessui-portal-root) :where(.hover\:border-emerald-200:hover) {
+	border-color: #2e6b3a;
+}
+
+html.sps-dark .toplevel_page_advanced_db_cleaner :is(#adbc-plugin-root, #headlessui-portal-root) :where(.hover\:border-red-300:hover) {
+	border-color: #7d3437;
+}
+
+html.sps-dark .toplevel_page_advanced_db_cleaner :is(#adbc-plugin-root, #headlessui-portal-root) :where(.focus\:\!border-black:focus, .focus\:\!border-gray-800:focus) {
+	border-color: var(--sps-ui-muted) !important;
+}
+
+html.sps-dark .toplevel_page_advanced_db_cleaner :is(#adbc-plugin-root, #headlessui-portal-root) :where(.hover\:ring-gray-300:hover) {
+	--tw-ring-color: var(--sps-ui-border);
+}
+
+html.sps-dark .toplevel_page_advanced_db_cleaner :is(#adbc-plugin-root, #headlessui-portal-root) :where(.hover\:ring-gray-400:hover) {
+	--tw-ring-color: var(--sps-ui-field-border);
+}
+
+html.sps-dark .toplevel_page_advanced_db_cleaner :is(#adbc-plugin-root, #headlessui-portal-root) :where(.hover\:shadow-gray-400:hover) {
+	--tw-shadow-color: rgb(0 0 0 / 60%);
+}
+
 /* SEO Pro Stack's additions to WordPress's screens -------------------------- */
 
 /* Plugins: sizes (class-seoprostack-plugin-sizes.php) and page cost (class-seoprostack-plugin-cost.php). */
