@@ -64,7 +64,8 @@ class SEOProStack_Network_Manager {
             SEOProStack_Admin_Manager::PAGE,
             array('SEOProStack_Admin_Manager', 'render_settings_page')
         );
-        self::$hook = is_string($hook) ? $hook : '';
+        // A string, or false for people who cannot see the screen.
+        self::$hook = (string) $hook;
         if ('' !== self::$hook) {
             // The browser title names the tab shown, as on each site's screen.
             add_action('load-' . self::$hook, array('SEOProStack_Admin_Page', 'title_tab'));
@@ -166,11 +167,11 @@ class SEOProStack_Network_Manager {
      * @return array{lines:array<int,array<int,array{text:string,url?:string}>>,copy:string}
      */
     private static function sites($key) {
-        $differences = SEOProStack_Network_Sites::differences();
+        $differences = SEOProStack_Network_Differences::differences();
         $applied     = SEOProStack_Network_Settings::is_applied($key);
         if (!$differences['checked']) {
             /* translators: %d: number of sites */
-            return self::note(sprintf(__('This network has more than %d sites, so they are not compared here.', 'seoprostack'), SEOProStack_Network_Sites::MAX_SITES));
+            return self::note(sprintf(__('This network has more than %d sites, so they are not compared here.', 'seoprostack'), SEOProStack_Network_Differences::MAX_SITES));
         }
         if (!$differences['total']) {
             return self::note(__('No site has used SEO Pro Stack yet. Each starts with these settings.', 'seoprostack'));
@@ -225,7 +226,7 @@ class SEOProStack_Network_Manager {
      *
      * @param string                                   $key   Card's setting key.
      * @param int[]                                    $ids   The sites that differ.
-     * @param array<int,array{name:string,url:string}> $sites Site ID => name and address (SEOProStack_Network_Sites::differences()).
+     * @param array<int,array{name:string,url:string}> $sites Site ID => name and address (SEOProStack_Network_Differences::differences()).
      * @return array<int,array{text:string,url?:string}>
      */
     private static function site_links($key, array $ids, array $sites) {
@@ -285,17 +286,6 @@ class SEOProStack_Network_Manager {
     }
 
     /**
-     * The card a setting is on: its own key, or its parent's.
-     *
-     * @param string $key Setting key.
-     * @return string
-     */
-    private static function card_of($key) {
-        $schema = SEOProStack_Settings::schema();
-        return !empty($schema[$key]['parent']) ? (string) $schema[$key]['parent'] : (string) $key;
-    }
-
-    /**
      * Check an AJAX request from the network screen, and read its setting key.
      *
      * @return string Setting key.
@@ -323,7 +313,7 @@ class SEOProStack_Network_Manager {
             wp_send_json_error(array('message' => $value->get_error_message()), 400);
         }
 
-        $card = self::card_of($key);
+        $card = SEOProStack_Settings::card_of($key);
         wp_send_json_success(array(
             'key'     => $key,
             'value'   => $value,
@@ -362,7 +352,7 @@ class SEOProStack_Network_Manager {
      */
     public static function ajax_copy() {
         $key     = self::ajax_key();
-        $changed = SEOProStack_Network_Sites::copy($key);
+        $changed = SEOProStack_Network_Differences::copy($key);
         if (is_wp_error($changed)) {
             wp_send_json_error(array('message' => $changed->get_error_message()), 400);
         }

@@ -11,6 +11,7 @@ includes/class-seoprostack-feature.php
 includes/class-seoprostack-settings.php
 includes/class-seoprostack-network-settings.php
 includes/class-seoprostack-network-sites.php
+includes/class-seoprostack-network-differences.php
 
 # Shared GitHub updater: only the newest copy on a site runs.
 includes/github-updater/
