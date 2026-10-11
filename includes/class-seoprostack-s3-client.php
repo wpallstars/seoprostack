@@ -37,13 +37,17 @@ final class SEOProStack_S3_Client {
      * @param string $path Local file.
      * @param string $content_type MIME type.
      * @param string $cache_control Cache policy.
+     * @param string $digest Expected content digest, when copying an attachment.
      * @return true|WP_Error
      */
-    public function put_file($key, $path, $content_type, $cache_control) {
-        // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents -- local file, bounded by the caller's memory cap.
-        $body = file_get_contents($path);
+    public function put_file($key, $path, $content_type, $cache_control, $digest = '') {
+        // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents, WordPress.PHP.NoSilencedErrors.Discouraged -- local file; concurrent deletion is handled as WP_Error below.
+        $body = @file_get_contents($path);
         if (false === $body) {
             return new WP_Error('storage_read', __('The local picture could not be read.', 'seoprostack'));
+        }
+        if ($digest && !hash_equals($digest, hash('sha256', $body))) {
+            return new WP_Error('storage_changed', __('The local picture changed while being copied. It will be retried.', 'seoprostack'));
         }
         return $this->put($key, $body, $content_type, $cache_control);
     }

@@ -485,7 +485,10 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
                 }
                 $bytes = (int) filesize($path);
                 $mtime = (int) filemtime($path);
-                $files[$config['prefix'] . $relative] = array('path' => $path, 'relative' => $relative, 'size' => $bytes, 'mtime' => $mtime, 'type' => $type['type'], 'version' => substr(hash('sha256', $bytes . ':' . $mtime), 0, 12));
+                // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged -- concurrent deletion produces an empty digest and a handled read failure.
+                $digest = $bytes <= self::size_cap() && is_readable($path) ? @hash_file('sha256', $path) : '';
+                $digest = is_string($digest) ? $digest : '';
+                $files[$config['prefix'] . $relative] = array('path' => $path, 'relative' => $relative, 'size' => $bytes, 'mtime' => $mtime, 'type' => $type['type'], 'digest' => $digest, 'version' => $digest);
             }
         }
         return $files;
@@ -537,7 +540,7 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
                 continue;
             }
             $previous = isset($old['files'][$key]) ? $old['files'][$key] : array();
-            $same = isset($old['signature']) && $old['signature'] === $config['signature'] && !empty($previous['confirmed']) && isset($previous['size'], $previous['mtime']) && $previous['size'] === $info['size'] && $previous['mtime'] === $info['mtime'];
+            $same = isset($old['signature']) && $old['signature'] === $config['signature'] && !empty($previous['confirmed']) && !empty($info['digest']) && isset($previous['digest']) && $previous['digest'] === $info['digest'];
             if (!$same) {
                 // Persist the attempted key before PUT: deletion or a fatal error
                 // must not lose an object whose server accepted the request.
@@ -548,7 +551,7 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
                 update_post_meta($id, self::META, $pending);
                 /** Filter the public object cache policy. @param string $policy Cache-Control. */
                 $policy = (string) apply_filters('seoprostack_media_storage_cache_control', 'public, max-age=31536000, immutable');
-                $result = self::client()->put_file($key, $info['path'], $info['type'], $policy);
+                $result = $info['digest'] ? self::client()->put_file($key, $info['path'], $info['type'], $policy, $info['digest']) : new WP_Error('storage_read', __('The local picture could not be read.', 'seoprostack'));
                 if (is_wp_error($result)) {
                     $pending['error'] = $result->get_error_message();
                     if (self::attachment_exists($id)) {
