@@ -5,7 +5,7 @@ Tags: magic login, iframe, schedule posts, auto upload images, admin
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.3.38
+Stable tag: 1.3.39
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -142,8 +142,9 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 
 == Changelog ==
 
-= 1.3.38 =
-* New: Search custom fields can leave out fields your pages never show (Fields to leave out, and a filter for plugins), so a search cannot tell which post holds a private value.
-* Change: Search custom fields looks only at the searched fields' current names, which makes searches faster.
+= 1.3.39 =
+* New: Quiet Imagify suggestions (on by default).
+* Fix: Complianz and similar plugins work again in the Administrators and Developers menus.
+* Fix: no read_post notice on every admin page with GOTMLS active.
 
 Older: `changelog.txt`.
