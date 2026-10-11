@@ -1918,6 +1918,63 @@ html.sps-dark .rank-math-variables-dropdown li::after {
 	background: var(--sps-ui-border);
 }
 
+/* Titles & Meta: a field with variables, its Example preview and its variables menu. */
+html.sps-dark :is(.rank-math-select-variable, .rank-math-select-with-searchbox) {
+	background-color: transparent;
+}
+
+html.sps-dark :is(.rank-math-select-variable, .rank-math-select-with-searchbox) .select-menu {
+	color: var(--sps-ui-text);
+	background: var(--sps-ui-surface);
+	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark .rank-math-select-with-searchbox .components-button.is-secondary,
+html.sps-dark .rank-math-select-with-searchbox .components-button.is-secondary:is(:hover, :active, :focus):not(:disabled) {
+	color: var(--sps-ui-text);
+	background-color: var(--sps-ui-canvas);
+}
+
+html.sps-dark .rank-math-select-with-searchbox label {
+	color: var(--sps-ui-text);
+}
+
+html.sps-dark .rank-math-select-variable .select-menu ul li:not(:last-child) {
+	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark .rank-math-select-variable .select-menu ul li:hover {
+	background: var(--sps-ui-raised);
+}
+
+html.sps-dark .rank-math-select-variable .select-menu ul li div:first-of-type p {
+	color: var(--sps-ui-text);
+	background-color: var(--sps-ui-raised);
+}
+
+html.sps-dark .rank-math-select-variable .select-menu ul li .description {
+	color: var(--sps-ui-muted);
+}
+
+html.sps-dark :is(.rank-math-select-variable, .rank-math-select-with-searchbox) .select-menu .components-search-control .components-base-control__field .components-input-control__container .components-input-control__input,
+html.sps-dark :is(.rank-math-select-variable, .rank-math-select-with-searchbox) .select-menu .components-search-control .components-base-control__field .components-input-control__container .components-input-control__input:focus {
+	color: var(--sps-ui-text);
+	background: var(--sps-ui-canvas);
+	border-color: var(--sps-ui-field-border);
+}
+
+html.sps-dark :is(.rank-math-preview-title, .rank-math-variables-preview) {
+	color: #99c3ff;
+}
+
+html.sps-dark :is(.rank-math-preview-title, .rank-math-variables-preview)::before {
+	color: var(--sps-ui-muted);
+}
+
+html.sps-dark :is(.rank-math-description, .cmb2-id-pt-post-default-snippet-desc) .rank-math-variables-preview {
+	color: #bdc1c6;
+}
+
 /* The search preview, in Google's own dark colours. */
 html.sps-dark :is(.serp-preview, .serp-preview-body, .mobile-preview .serp-preview-body) {
 	color: var(--sps-ui-text);
