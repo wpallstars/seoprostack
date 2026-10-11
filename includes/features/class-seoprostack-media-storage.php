@@ -406,15 +406,8 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
         if ($watermark && empty($watermark['ended'])) {
             return 0;
         }
-        // add_option is atomic across requests; a crashed batch's lease expires.
-        $lease = (int) get_option(self::LOCK, 0);
-        if ($lease && $lease < time()) {
-            global $wpdb;
-            // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- compare-and-delete prevents two stale-lock recoveries releasing a new lease.
-            $wpdb->query($wpdb->prepare("DELETE FROM {$wpdb->options} WHERE option_name = %s AND option_value = %s", self::LOCK, (string) $lease));
-            wp_cache_delete(self::LOCK, 'options');
-        }
-        if (!add_option(self::LOCK, time() + 300, '', false)) {
+        $lease = self::lease();
+        if ('' === $lease) {
             return 0;
         }
         $start = microtime(true);
@@ -431,10 +424,43 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
                 ++$attempts;
             }
         } finally {
-            delete_option(self::LOCK);
+            self::release($lease);
         }
         self::reschedule();
         return $attempts;
+    }
+
+    /**
+     * Take the batch lease: a row in the options table that only one request
+     * can insert (INSERT IGNORE, as WP_Upgrader::create_lock() does;
+     * add_option() checks then upserts, so two requests can both "add" it).
+     * A lease past its expiry was left by a batch that stopped, and is taken
+     * over. The value is the expiry and a value unique to this batch, so a
+     * batch deletes only the lease it read or holds.
+     *
+     * @return string The lease this batch holds; empty when another batch runs.
+     */
+    private static function lease() {
+        global $wpdb;
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- read past the options cache: the lease changes under it.
+        $held = (string) $wpdb->get_var($wpdb->prepare("SELECT option_value FROM {$wpdb->options} WHERE option_name = %s", self::LOCK));
+        if ('' !== $held && (int) strtok($held, ' ') < time()) {
+            self::release($held);
+        }
+        $value = (time() + 300) . ' ' . wp_generate_uuid4();
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- an atomic insert is the lease; the options API cannot do it.
+        return $wpdb->query($wpdb->prepare("INSERT IGNORE INTO {$wpdb->options} (option_name, option_value, autoload) VALUES (%s, %s, 'no')", self::LOCK, $value)) ? $value : '';
+    }
+
+    /**
+     * Delete the batch lease if it still has the given value.
+     *
+     * @param string $value Lease value.
+     */
+    private static function release($value) {
+        global $wpdb;
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- compare-and-delete; the lease row is never cached (see lease()).
+        $wpdb->query($wpdb->prepare("DELETE FROM {$wpdb->options} WHERE option_name = %s AND option_value = %s", self::LOCK, $value));
     }
 
     /**
@@ -1007,7 +1033,9 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
     }
 
     /**
-     * Explicit PUT/HEAD/DELETE probe; cache only a safe status, not connection data.
+     * Explicit PUT/HEAD/DELETE probe. Every test sends requests, so a
+     * corrected constant is tested at once; the result kept for the panel is
+     * a safe status, not connection data.
      *
      * @return true|WP_Error
      */
@@ -1016,10 +1044,6 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
             return new WP_Error('storage_off', __('Switch on Media in cloud storage and set its constants first.', 'seoprostack'));
         }
         $config = self::config();
-        $cached = get_transient(self::TEST);
-        if (is_array($cached) && $cached['signature'] === $config['signature']) {
-            return $cached['ok'] ? true : new WP_Error('storage_test', $cached['message']);
-        }
         $client = self::client();
         $key = $config['prefix'] . 'seoprostack-probe-' . get_current_blog_id() . '-' . wp_generate_uuid4();
         $body = 'SEO Pro Stack storage probe';
@@ -1033,8 +1057,20 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
             self::queue_delete(array('signature' => $config['signature']), array($key));
             $result = $deleted;
         }
-        set_transient(self::TEST, array('signature' => $config['signature'], 'ok' => !is_wp_error($result), 'message' => is_wp_error($result) ? $result->get_error_message() : __('Connection test passed.', 'seoprostack')), 5 * MINUTE_IN_SECONDS);
+        set_transient(self::TEST, array('connection' => self::test_id(), 'ok' => !is_wp_error($result), 'message' => is_wp_error($result) ? $result->get_error_message() : __('Connection test passed.', 'seoprostack')), 5 * MINUTE_IN_SECONDS);
         return $result;
+    }
+
+    /**
+     * Which connection a kept test result belongs to: the destination and
+     * the signing inputs, so changing the key, secret or region hides an old
+     * result. A keyed hash, so the secret itself is never stored.
+     *
+     * @return string
+     */
+    private static function test_id() {
+        $config = self::config();
+        return hash_hmac('sha256', $config['signature'] . "\n" . $config['region'] . "\n" . $config['key_id'], $config['secret']);
     }
 
     /** Capability and nonce checked explicit admin probe. */
@@ -1082,7 +1118,7 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
                 self::schedule(60);
             }
             $test = get_transient(self::TEST);
-            if (is_array($test) && $test['signature'] === $config['signature']) {
+            if (is_array($test) && isset($test['connection'], $test['message']) && is_string($test['connection']) && hash_equals(self::test_id(), $test['connection'])) {
                 echo '<p>' . esc_html($test['message']) . '</p>';
             }
             echo '<p><a class="button" href="' . esc_url(wp_nonce_url(admin_url('admin-post.php?action=seoprostack_storage_test'), 'seoprostack_storage_test')) . '">' . esc_html__('Test connection', 'seoprostack') . '</a></p>';
@@ -1128,7 +1164,7 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
      * : Most attachments to upload (default 10).
      *
      * [--retry-failed]
-     * : Retry failed attachments without waiting for back-off.
+     * : Retry failed attachments and remote deletions without waiting for back-off.
      *
      * @param string[] $args Positional arguments.
      * @param array $assoc Named arguments.
@@ -1168,6 +1204,22 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
                     self::queue((int) $job['id']);
                 }
             }
+            // This connection's failed remote deletions are due now, too, so
+            // fixed credentials also clear them (and the last error) at once.
+            // Each is one small request, so all of them, a page at a time.
+            $after = '';
+            do {
+                $names = self::jobs(200, $after, 'delete_' . self::config()['signature'] . '_');
+                foreach ($names as $name) {
+                    $after = $name;
+                    $job = get_option($name);
+                    if (is_array($job) && isset($job['next']) && $job['next'] > time()) {
+                        $job['next'] = 0;
+                        update_option($name, $job, false);
+                    }
+                }
+            } while ($names);
+            delete_option(self::CURSOR);
         }
         // Use the same lock, budget and watermark guard as cron.
         $start = microtime(true);
