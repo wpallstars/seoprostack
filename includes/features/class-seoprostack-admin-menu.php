@@ -1415,7 +1415,8 @@ class SEOProStack_Admin_Menu extends SEOProStack_Feature {
     private static function menu_hook(array $item, $url) {
         $id = isset($item[5]) ? preg_replace('|[^a-zA-Z0-9_:.]|', '-', (string) $item[5]) : '';
         $classes = array();
-        foreach (preg_split('/\s+/', isset($item[4]) ? (string) $item[4] : '', -1, PREG_SPLIT_NO_EMPTY) as $class) {
+        $tokens  = preg_split('/\s+/', isset($item[4]) ? (string) $item[4] : '', -1, PREG_SPLIT_NO_EMPTY);
+        foreach (false === $tokens ? array() : $tokens as $class) {
             // Core's top-level styles, and this feature's own markers, stay
             // off. The rest exactly as core prints them (a post type menu's
             // is toplevel_page_edit?post_type=…); the script sets them as
