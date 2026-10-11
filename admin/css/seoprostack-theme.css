@@ -1510,6 +1510,22 @@ html.sps-dark .ts-dropdown :is(.active, .create:hover) {
 	background-color: var(--sps-ui-raised);
 }
 
+/* WordPress's colour picker: the button's #f6f7f7 label and Iris's #fff panel; the swatch and colours stay. */
+html.sps-dark .wp-color-result-text {
+	color: var(--sps-ui-text);
+	background: var(--sps-ui-raised);
+	border-left-color: var(--sps-ui-field-border);
+}
+
+html.sps-dark .wp-color-result:is(:hover, :focus) {
+	color: var(--sps-ui-text);
+}
+
+html.sps-dark .iris-picker.iris-border {
+	background-color: var(--sps-ui-surface);
+	border-color: var(--sps-ui-border);
+}
+
 /* jQuery UI: date pickers, autocomplete lists and dialogs. */
 html.sps-dark :is(.ui-datepicker, .ui-autocomplete, .ui-menu, .ui-dialog, .ui-widget.ui-widget-content) {
 	color: var(--sps-ui-text);
@@ -2923,6 +2939,13 @@ html.sps-dark :is(.acu-bg-\[\#F9FAFB\], .acu-bg-\[\#F5F5F5\], .acu-bg-\[\#F1F5F9
 	background-color: var(--sps-ui-raised);
 }
 
+/* Add-ons' "Detected on your site" pills (#E6F9F1, #00875A text). */
+html.sps-dark .acu-bg-\[\#E6F9F1\] {
+	color: var(--sps-ui-good);
+	background-color: #183a24;
+	border-color: #23502f;
+}
+
 html.sps-dark :is(.acu-border-solid, .acu-border, .acu-border-b, .acu-border-t) {
 	border-color: var(--sps-ui-border);
 }
@@ -2949,6 +2972,20 @@ html.sps-dark :is(.acui-list .acui-list-item.-active, .ac-menu-group-list .ac-me
 	color: var(--sps-ui-text);
 	background: #1b3048;
 	border-color: var(--sps-ui-info);
+}
+
+/* A column's switched-on features (export, sorting, editing...): #F1F5F9 squares with #475569 icons. */
+html.sps-dark .ac-header-toggle.-active {
+	color: var(--sps-ui-accent);
+	background-color: #1b3048;
+	border-color: var(--sps-ui-info);
+}
+
+/* Disabled buttons, such as Save Changes before a change (#e6e6e6, !important). */
+html.sps-dark .acui-button.-disabled {
+	color: var(--sps-ui-subtle) !important;
+	background: var(--sps-ui-raised) !important;
+	border-color: var(--sps-ui-border) !important;
 }
 
 html.sps-dark .acui-table.ac-is-striped tbody tr:not(.is-selected):nth-child(2n) {
