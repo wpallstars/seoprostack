@@ -440,15 +440,21 @@
 
 	/*
 	 * Fluent plugins (FluentCRM, Fluent Booking, FluentSMTP, Fluent Boards,
-	 * Fluent Support...) have their own light and dark modes, kept in this
-	 * browser. A choice made here is passed on, so their screens open in
-	 * the same mode from the next one on (the screen's <head> does the same
-	 * while Dark or System is chosen).
+	 * Fluent Support...) and LiteSpeed Cache have their own light and dark
+	 * modes, kept in this browser. A choice made here is passed on, so their
+	 * screens open in the same mode from the next one on (the screen's
+	 * <head> does the same while Dark or System is chosen).
 	 */
-	function shareWithFluent(which) {
+	function shareMode(which) {
 		try {
 			window.localStorage.setItem('fluent_theme_mode', which);
 			window.localStorage.setItem('fs-theme', which === 'system' ? 'system:' + (media && media.matches ? 'dark' : 'light') : which);
+			// LiteSpeed Cache follows the system when nothing is saved.
+			if (which === 'system') {
+				window.localStorage.removeItem('litespeed-dark-preference');
+			} else {
+				window.localStorage.setItem('litespeed-dark-preference', which);
+			}
 		} catch (e) {
 			// Storage is off: their own choice stays.
 		}
@@ -475,7 +481,7 @@
 					throw new Error('not saved');
 				}
 				document.dispatchEvent(new CustomEvent(EVENT, { detail: { mode: which, source: SOURCE } }));
-				shareWithFluent(which);
+				shareMode(which);
 			})
 			.catch(function () {
 				apply(previous);

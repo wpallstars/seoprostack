@@ -1477,6 +1477,265 @@ html.sps-dark #wpbody ul.ff_dashboard_stats li:hover a {
 	color: var(--sps-ui-text);
 }
 
+/*
+ * Rank Math: its screens, the editor's sidebar and meta boxes (#fff, #f8f9fa
+ * and #f0f2f4 surfaces, #b5bfc9 lines, #242628 text). Each selector is Rank
+ * Math's own behind html.sps-dark, so it wins.
+ */
+html.sps-dark .rank-math-page :is(#wpwrap, .dashboard-wrapper, .dashboard-wrapper::before),
+html.sps-dark .rank-math-page {
+	background: var(--sps-ui-canvas);
+}
+
+html.sps-dark :is(.rank-math-header, .rank-math-page #wpfooter, .rank-math-box, .rank-math-tabs-content:not(.rank-math-custom), .rank-math-accordion, .rank-math-tab-panel .components-tab-panel__tab-content .field-wrap, .rank-math-import-export .rank-math-settings-backup-form .list-table.with-action, .wrap .rank-math-accordion-content .rank-math-notice, [id^="cmb2-metabox-rank"] .cmb2-radio-list, #rank-math-metabox-wrapper, .rank-math-checklist, #rank_math_keyword_density .inner-wrapper, #rank-math-pro-cta :is(.rank-math-cta-box, .rank-math-cta-table)) {
+	color: var(--sps-ui-text);
+	background: var(--sps-ui-surface);
+	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark :is(.rank-math-box footer, .module-listing .rank-math-box .status, .rank-math-tab-header, .rank-math-accordion header, .rank-math-wrap h3.health-check-accordion-heading, .form-footer:not(.rank-math-custom), .consent-box, .rank-math-gray-box, .rank-math-console-db-info, #console-updating-manually-progress, [id^="cmb2-metabox-rank"] .cmb-big-labels .cmb2-checkbox-list li label, .rank-math-editor .field-group, .rank-math-sidebar-panel .rank-math-tooltip-content, .wp-list-table td .rank-math-column-value) {
+	color: var(--sps-ui-text);
+	background: var(--sps-ui-raised);
+	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark :is(.rank-math-box header h3, .rank-math-breadcrumbs .active, .rank-math-header h1) {
+	color: var(--sps-ui-text);
+}
+
+html.sps-dark :is(.rank-math-box header p, .rank-math-tab-header p, .rank-math-breadcrumbs, .rank-math-header a.rank-math-help) {
+	color: var(--sps-ui-muted);
+}
+
+html.sps-dark :is(.rank-math-page, .rank-math-wrap, #rank-math-metabox-wrapper, .rank-math-sidebar-panel) code {
+	color: var(--sps-ui-text);
+	background: var(--sps-ui-raised);
+}
+
+/* Mode (Easy, Advanced) and the screens' tabs. */
+html.sps-dark .rank-math-mode-selector button.is-link {
+	color: var(--sps-ui-muted) !important;
+}
+
+html.sps-dark .rank-math-mode-selector button.is-link.is-active,
+html.sps-dark .rank-math-mode-selector .rank-math-button.components-button:hover:not(:disabled) {
+	color: var(--sps-ui-text) !important;
+}
+
+html.sps-dark .rank-math-page .rank-math-tab:not(.rank-math-options-panel-content) {
+	color: var(--sps-ui-muted);
+	background: var(--sps-ui-raised);
+	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark .rank-math-page .rank-math-tab:not(.rank-math-options-panel-content):is(:hover, :focus, .is-active) {
+	color: var(--sps-ui-text);
+	background: var(--sps-ui-surface);
+}
+
+html.sps-dark .rank-math-tabs-navigation:not(.rank-math-custom) a,
+html.sps-dark .rank-math-tabs-navigation:not(.rank-math-custom) .separator {
+	color: var(--sps-ui-muted);
+	background: var(--sps-ui-raised);
+	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark .rank-math-tabs-navigation:not(.rank-math-custom) a:is(:hover, :focus, .active),
+html.sps-dark .rank-math-tabs-navigation:not(.rank-math-custom) a.active::after {
+	color: var(--sps-ui-accent);
+	background: var(--sps-ui-surface);
+}
+
+html.sps-dark :is(.rank-math-box-tabs, .rank-math-tabs > .cmb-row.tab-header, .rank-math-tabs > .components-tab-panel__tabs, .rank-math-editor > .components-tab-panel__tabs) {
+	background: var(--sps-ui-raised);
+	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark .rank-math-box-tabs > a.active-tab,
+html.sps-dark .rank-math-box-tabs > a.active-tab::after {
+	color: var(--sps-ui-text);
+	background: var(--sps-ui-surface);
+}
+
+html.sps-dark .rank-math-tabs > .components-tab-panel__tabs button {
+	color: var(--sps-ui-muted);
+}
+
+html.sps-dark .rank-math-tabs > .components-tab-panel__tabs button:is(:hover, .is-active) {
+	color: var(--sps-ui-text);
+}
+
+html.sps-dark .rank-math-tabs > .components-tab-panel__tabs button:hover i {
+	background: var(--sps-ui-border);
+	box-shadow: 0 0 0 8px var(--sps-ui-border);
+}
+
+/* Secondary buttons (#f8f9fa). */
+html.sps-dark :is(.rank-math-page, .rank-math-sidebar-panel :is(.components-panel__body, .components-modal__content), .rank-math-modal :is(.components-panel__body, .components-modal__content)) :is(.button, .button-secondary, .is-secondary):not(.is-primary, .button-primary, .is-red, .is-link, .is-tertiary),
+html.sps-dark :is(a.rank-math-variables-button.button-secondary, .rank-math-search-dropdown > .rank-math-button.components-button.button-secondary, .rank-math-social-preview-button, .rank-math-button-devices .button.button-small) {
+	color: var(--sps-ui-text);
+	background: var(--sps-ui-raised);
+	border-color: var(--sps-ui-field-border);
+}
+
+html.sps-dark :is(.rank-math-page, .rank-math-sidebar-panel :is(.components-panel__body, .components-modal__content), .rank-math-modal :is(.components-panel__body, .components-modal__content)) :is(.button, .button-secondary, .is-secondary):not(.is-primary, .button-primary, .is-red, .is-link, .is-tertiary):is(:hover, :focus, .active):not(:disabled),
+html.sps-dark :is(a.rank-math-variables-button.button-secondary:hover, .rank-math-search-dropdown > .rank-math-button.components-button.button-secondary:hover) {
+	color: #fff;
+	background: var(--sps-ui-border);
+}
+
+/* Fields Rank Math paints white. */
+html.sps-dark :is(.rank-math-editor .field-group, .rank-math-tabs, [id^="cmb2-metabox-rank"], .rank-math-variables-dropdown, .rank-math-box) :is(input[type="text"], input[type="url"], input[type="number"], textarea, select, .regular-text, .select2-container--default .select2-selection--single),
+html.sps-dark :is(.rank-math-editor .field-group, .rank-math-tabs, [id^="cmb2-metabox-rank"], .rank-math-box) :is(input[type="text"], input[type="url"], input[type="number"], textarea, select, .regular-text):focus {
+	color: var(--sps-ui-text);
+	background-color: var(--sps-ui-canvas);
+	border-color: var(--sps-ui-field-border);
+}
+
+/* Dropdowns: variables, option search and the focus keyword's suggestions. */
+html.sps-dark :is(.rank-math-variables-dropdown, .rank-math-search-dropdown, .tagify__dropdown) {
+	color: var(--sps-ui-text);
+	background: var(--sps-ui-surface);
+	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark .rank-math-variables-dropdown li:hover {
+	background: var(--sps-ui-raised);
+}
+
+html.sps-dark .rank-math-variables-dropdown li::after {
+	background: var(--sps-ui-border);
+}
+
+/* The search preview, in Google's own dark colours. */
+html.sps-dark :is(.serp-preview, .serp-preview-body, .mobile-preview .serp-preview-body) {
+	color: var(--sps-ui-text);
+	background: var(--sps-ui-surface);
+}
+
+html.sps-dark .serp-preview .serp-title {
+	color: #99c3ff;
+}
+
+html.sps-dark .serp-preview :is(.serp-url, .serp-description, .serp-rating-value) {
+	color: #bdc1c6;
+}
+
+html.sps-dark .serp-preview .serp-url::after {
+	filter: invert(1);
+}
+
+html.sps-dark .serp-preview-input input[disabled],
+html.sps-dark .rank-math-editor .serp-preview-input input[disabled] {
+	color: var(--sps-ui-text);
+	background: var(--sps-ui-raised);
+}
+
+html.sps-dark .serp-preview-menus ul li.current {
+	color: var(--sps-ui-text);
+	border-color: var(--sps-ui-text);
+}
+
+html.sps-dark .serp-preview-result-stats {
+	color: var(--sps-ui-subtle);
+	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark .noindex-preview .serp-preview-noindex {
+	background: #2e2716;
+}
+
+html.sps-dark .noindex-preview .serp-preview-noindex :is(h3, p) {
+	color: var(--sps-ui-text);
+}
+
+/* Social previews (Facebook, X). */
+html.sps-dark :is(.rank-math-social-preview-item-wrapper, .rank-math-social-preview-facebook .rank-math-social-preview-meta, .rank-math-social-preview .rank-math-social-preview-caption, .rank-math-social-preview-twitter .rank-math-social-preview-item-wrapper .rank-math-social-preview-caption) {
+	color: var(--sps-ui-text);
+	background: var(--sps-ui-raised);
+	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark .rank-math-social-preview-twitter .rank-math-social-preview-item-wrapper:hover,
+html.sps-dark .rank-math-social-preview-twitter .rank-math-social-preview-item-wrapper:hover .rank-math-social-preview-caption {
+	background: var(--sps-ui-border);
+}
+
+/* Notices in the sidebar and its pop-ups. */
+html.sps-dark :is(.rank-math-sidebar-panel, .rank-math-modal-overlay) :is(.notice, div.error, div.updated) {
+	color: var(--sps-ui-text);
+	background: var(--sps-ui-surface);
+}
+
+html.sps-dark :is(.rank-math-sidebar-panel, .rank-math-modal-overlay) :is(.notice-info, .notice-success).notice-alt {
+	background: #1b3048;
+}
+
+html.sps-dark :is(.rank-math-sidebar-panel, .rank-math-modal-overlay) .notice-warning.notice-alt {
+	background: #2e2716;
+}
+
+html.sps-dark :is(.rank-math-sidebar-panel, .rank-math-modal-overlay) .notice-error.notice-alt {
+	background: #33191b;
+}
+
+/*
+ * Admin Columns and Admin Columns Pro: its settings, and on list screens
+ * Pro's filters, smart filters, segments and editing. Its colours are
+ * partly variables, set again per admin colour scheme on body.
+ */
+html.sps-dark body[class] {
+	--ac-text-color: var(--sps-ui-text);
+	--ac-table-color: var(--sps-ui-muted);
+	--ac-border-grey: var(--sps-ui-border);
+	--ac-table-border: var(--sps-ui-border);
+	--ac-button-bg: var(--sps-ui-raised);
+	--ac-form-input-border: var(--sps-ui-field-border);
+	--ac-link: var(--sps-ui-accent);
+	--ac-link-hover: var(--sps-ui-text);
+}
+
+html.sps-dark body.settings_page_codepress-admin-columns {
+	background: var(--sps-ui-canvas);
+}
+
+html.sps-dark :is(.ac-article, .ac-section__header, .ac-modal__dialog, .ac-confirmation__modal, .ac-pointer-modal, .ac-pointer-modal__arrow, .ac-message, .ac-settings-banner, .ac-probanner__card, .ac-column, .acui-dropdown-menu, .acui-tooltip-content.-reference, .acui-input-group input, .acp-sh-container, .acp-filter-group__input, .acp-smartfilters-filter, .ac-segments, .ac-table-button.-segments.-open, .ac-bulk-log__items, .ac-modal.-bulkedit .ac-modal__dialog__content.-editable, .aceditable.-internal_link .acp-post-list, .select2-dropdown, .select2-container--acs2 :is(.select2-selection--single, .select2-selection--multiple)) {
+	color: var(--sps-ui-text);
+	background: var(--sps-ui-surface);
+	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark :is(.ac-section, .ac-modal__dialog__content.-accent, .ac-modal__dialog__footer, .ac-modal.-blocking, .ac-settings-banner__feature-group, .ac-settings-banner__btn-secondary, .ac-probanner__feature-box, .ac-probanner__cta-secondary, .ac-feedback-button, .acui-badge, .acui-dropdown-group, .acui-table thead :is(td, th), .acui-skeleton-item, .acp-filter-group, .acp-smartfilters-selector, .acp-smartfilters-value-group, .ac-segments__instructions, .acp-scrolling-indicator, .acp-scrolling-indicator__dragger, .acp-scrolling-indicator__actions button, .ac-edit-popper, .ac-edit-popper__caret, .aceditable .input__controlgroup .input__control__prepend, table.wp-list-table .acp-be-editrow, .wp-list-table.acp-co-enabled :is(.acp-co-is-being-dragged, .acp-co-dragover), body.ac-wp-media .acp-smartfilter-actions .acp-smartfilters-filter.-form) {
+	color: var(--sps-ui-text);
+	background: var(--sps-ui-raised);
+	border-color: var(--sps-ui-border);
+}
+
+/* Hover, open and active states (#eaf2fa, #ecf7ff, #e2e8f0, #f1f5f9). */
+html.sps-dark :is(.ac-column.-opened .ac-column-header, .acui-button-default:is(:hover, :active, :focus), .acui-dropdown.-selectv2 .acui-dropdown-item:is(:hover, :focus), .acui-list .acui-list-item:is(:hover, :focus), .ac-menu-group-list .ac-menu-group-list__container:hover, .ac-menu-group-list .ac-menu-group-list__link:hover, .ac-menu-group-list.-white .ac-menu-group-list__link:hover, .ac-segments .ac-segment:hover, .aceditable.-internal_link .acp-post-list__item:hover, .ac-settings-banner__btn-secondary:hover, .ac-probanner__cta-secondary:hover, .ac-feedback-button:hover, .ac-modal__dialog__close:hover) {
+	color: var(--sps-ui-text);
+	background: var(--sps-ui-border);
+}
+
+html.sps-dark :is(.acui-list .acui-list-item.-active, .ac-menu-group-list .ac-menu-group-list__link.active, select.-default.-active, .acp-filter-container :is(.acp-filter-searchfield, .acp-filter-date-yearly).-active, .acp-filter-group.-active, .svelte-select.-wordpress.-active, .select2-container--acs2 .select2-selection--multiple li.select2-selection__choice, .ac-message.ac-message--styled.notice-info, .ac-settings-banner__badge, .ac-probanner__badge, .ac-probanner__quote, .ac-modal.-promotion .ac-promo-modal__badge) {
+	color: var(--sps-ui-text);
+	background: #1b3048;
+	border-color: var(--sps-ui-info);
+}
+
+html.sps-dark .acui-table.ac-is-striped tbody tr:not(.is-selected):nth-child(2n) {
+	background: var(--sps-ui-stripe);
+}
+
+html.sps-dark .acp-smartfilters-filter.-error {
+	background: #33191b;
+}
+
+/* Sticky header and footer cells on wide tables. */
+html.sps-dark body.acp-sticky-column-enabled.acp-overflow-table .wp-list-table :is(thead, tfoot) tr :is(th, td) {
+	background: var(--sps-ui-surface);
+}
+
 /* SEO Pro Stack's additions to WordPress's screens -------------------------- */
 
 /* Plugins: sizes (class-seoprostack-plugin-sizes.php) and page cost (class-seoprostack-plugin-cost.php). */

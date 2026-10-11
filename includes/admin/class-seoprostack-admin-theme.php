@@ -252,8 +252,9 @@ final class SEOProStack_Admin_Theme {
      *
      * While Dark or System is chosen, it also passes the choice to the Fluent
      * plugins' own colour mode (FluentCRM, Fluent Booking, FluentSMTP, Fluent
-     * Support...), kept in the browser, before their own scripts in <head>
-     * read it, so their screens open in the same mode, without a flash.
+     * Support...) and LiteSpeed Cache's, kept in the browser, before their
+     * own scripts read it, so their screens open in the same mode, without
+     * a flash.
      */
     public static function head() {
         if (!self::screen_applies()) {
@@ -262,7 +263,8 @@ final class SEOProStack_Admin_Theme {
         $script = '(function(r,m){var q=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)"),d=m==="dark"||(m==="system"&&!!q&&q.matches);'
             . 'r.classList.add("sps-theme-"+m);'
             . 'if(d){r.classList.add("sps-dark");}'
-            . 'if(m!=="light"){try{localStorage.setItem("fluent_theme_mode",m);localStorage.setItem("fs-theme",m==="system"?"system:"+(d?"dark":"light"):m);}catch(e){}}'
+            . 'if(m!=="light"){try{var s=localStorage;s.setItem("fluent_theme_mode",m);s.setItem("fs-theme",m==="system"?"system:"+(d?"dark":"light"):m);'
+            . 'if(m==="system"){s.removeItem("litespeed-dark-preference");}else{s.setItem("litespeed-dark-preference",m);}}catch(e){}}'
             . '})(document.documentElement,' . wp_json_encode(self::mode()) . ');';
         wp_print_inline_script_tag($script, array('id' => 'seoprostack-theme-mode'));
     }
