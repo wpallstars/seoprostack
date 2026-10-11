@@ -25,7 +25,7 @@ Safe features start on; others stay off. In **Settings → SEO Pro Stack**, **Se
 * **Developer admins**: chosen admins manage plugins, themes, admins and site addresses.
 * **Organise the admin menu**: consistent sections, role previews, writing-only contributor menus.
 * **Tidy the dashboard**, **Dashboard and sidebar widgets**, **Hide admin notices** and a **More menu** for admin bar items.
-* **Quiet Freemius prompts** and **Quiet Appsero prompts**: no nags, upgrade offers or exit surveys.
+* **Quiet Freemius prompts** and **Quiet Appsero prompts**: no nags, upgrade offers or exit surveys. **Quiet Imagify suggestions**: no "install Imagify" boxes from Rank Math Pro, WP Rocket or BackWPup.
 * **Tidy admin screens**, **Tidy WooCommerce admin**, **Tidy the login screen**, **Simpler block editor**, **Remove WordPress extras**, **Fewer Heartbeat requests**, **Limit post revisions** and **Lighter WooCommerce pages**.
 * **No fade between admin screens**, **Correct update counts**, **Readable list columns** and **Notification emails**.
 
@@ -143,7 +143,8 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 == Changelog ==
 
 = 1.3.39 =
-* Fix: with Organise the admin menu, plugins that look for their own menu (such as Complianz) no longer stop with a JavaScript error when it sits in Administrators or Developers.
-* Fix: no "map_meta_cap was called incorrectly" notice on every admin page when GOTMLS Anti-Malware is active.
+* New: Quiet Imagify suggestions (on by default).
+* Fix: Complianz and similar plugins work again in the Administrators and Developers menus.
+* Fix: no read_post notice on every admin page with GOTMLS active.
 
 Older: `changelog.txt`.
