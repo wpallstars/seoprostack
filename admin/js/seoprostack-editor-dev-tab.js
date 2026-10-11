@@ -186,7 +186,14 @@
             list.style.setProperty('--sps-dev-left', String(button.offsetLeft));
             list.style.setProperty('--sps-dev-width', String(button.offsetWidth));
             list.style.setProperty('--sps-dev-right', String(list.offsetWidth - button.offsetLeft - button.offsetWidth));
-            postTab.setAttribute('aria-selected', 'false');
+            if (postTab.getAttribute('aria-selected') === 'true') {
+                postTab.setAttribute('aria-selected', 'false');
+                postTab.setAttribute('data-sps-dev-unselected', '');
+            }
+        } else if (postTab.hasAttribute('data-sps-dev-unselected')) {
+            // The editor still has Post chosen and will not mark it again.
+            postTab.removeAttribute('data-sps-dev-unselected');
+            postTab.setAttribute('aria-selected', area() === DOC ? 'true' : 'false');
         }
         list.classList.toggle('sps-dev-tab-open', isOpen);
         button.setAttribute('aria-selected', isOpen ? 'true' : 'false');
