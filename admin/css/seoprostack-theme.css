@@ -1821,6 +1821,15 @@ html.sps-dark .neko-page :is(.neko-link, .neko-settings-head, .neko-tab-title.ac
 	color: var(--sps-ui-accent);
 }
 
+/* The PHP info on the Meow Apps dashboard: Xdebug's row sets white inline. */
+html.sps-dark [id="meow-common-phpinfo"] td[style*="background-color: white"] {
+	background-color: var(--sps-ui-surface) !important;
+}
+
+html.sps-dark [id="meow-common-phpinfo"] td[style*="background-color: white"] a {
+	color: var(--sps-ui-accent) !important;
+}
+
 /*
  * Fluent Forms' screens (Element UI 2, white surfaces and #606266 text; it
  * has no dark mode of its own). Only its screens: the other Fluent plugins
