@@ -215,7 +215,7 @@ function seoprostack_uninstall_site() {
 
     // Cloud objects belong to the owner and stay; only local records go.
     wp_unschedule_hook('seoprostack_media_storage_batch');
-    foreach (array('_seoprostack_storage', '_seoprostack_storage_done', '_seoprostack_storage_state', '_seoprostack_storage_skipped') as $meta_key) {
+    foreach (array('_seoprostack_storage', '_seoprostack_storage_done', '_seoprostack_storage_state', '_seoprostack_storage_skipped', '_seoprostack_storage_generation') as $meta_key) {
         delete_post_meta_by_key($meta_key);
     }
     foreach (array('seoprostack_storage_lock', 'seoprostack_storage_cursor', 'seoprostack_storage_error') as $option) {
