@@ -1559,6 +1559,10 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folderâ
 
 ## Changelog
 
+### Unreleased
+
+- New: **Search custom fields** can leave fields out. A search never shows a matched value, but a match tells which post holds it, so fields your pages never show should not be searched. Plugins that define fields leave theirs out with the `seoprostack_field_search_field` filter, which also says whether the search is on the site or in an admin list; site owners list field names or keys in **Fields to leave out**, under Troubleshooting. Leaving out a group, repeater or flexible content field leaves out everything in it. With neither, searches are unchanged (GitHub issue #688).
+
 ### 1.3.37
 
 - New: **Media in cloud storage** copies pictures, sizes and WebP copies to S3-compatible storage in background batches, serves confirmed objects from the public bucket, and keeps local files and saved addresses. Constants-only connection, per-site switch, connection test, progress and WP-CLI commands (GitHub issue #684).
