@@ -1532,6 +1532,11 @@ html.sps-dark .iris-picker.iris-border {
 	border-color: var(--sps-ui-border);
 }
 
+/* Iris's slider is also a jQuery UI widget, which the next rule paints: it stays clear, so the strip's colours show. */
+html.sps-dark .iris-picker .iris-slider-offset.ui-widget-content {
+	background: transparent;
+}
+
 /* jQuery UI: date pickers, autocomplete lists and dialogs. */
 html.sps-dark :is(.ui-datepicker, .ui-autocomplete, .ui-menu, .ui-dialog, .ui-widget.ui-widget-content) {
 	color: var(--sps-ui-text);
