@@ -66,6 +66,32 @@ html.sps-dark {
 	--wc-red: var(--sps-ui-bad);
 	--wc-secondary-text: var(--sps-ui-muted);
 
+	/* Really Simple Plugins' palette (see Really Simple Plugins below). */
+	--rsp-background-block-color: var(--sps-ui-surface);
+	--rsp-background-color: var(--sps-ui-canvas);
+	--rsp-input-background-color: var(--sps-ui-canvas);
+	--rsp-border-color: var(--sps-ui-border);
+	--rsp-text-color: var(--sps-ui-text);
+	--rsp-text-color-light: var(--sps-ui-muted);
+	--rsp-text-color-hover: var(--sps-ui-good);
+	--rsp-grey-100: #242b30;
+	--rsp-grey-200: var(--sps-ui-raised);
+	--rsp-grey-300: var(--sps-ui-border);
+	--rsp-grey-400: var(--sps-ui-field-border);
+	--rsp-grey-500: #8c8f94;
+	--rsp-grey-600: var(--sps-ui-subtle);
+	--rsp-yellow-faded: #2e2716;
+	--rsp-orange-faded: #2e2213;
+	--rsp-blue-faded: #152333;
+	--rsp-dark-blue-faded: #152333;
+	--rsp-wp-blue-faded: #1b3048;
+	--rsp-green-faded: #16291b;
+	--rsp-red-faded: #33191b;
+	--rsp-pink-faded: #331a28;
+
+	/* Really Simple Security's New pill (on yellow) names this colour but never sets it. */
+	--rsp-text-color-dark: #1d2327;
+
 	color-scheme: dark;
 	background: var(--sps-ui-canvas);
 }
@@ -213,12 +239,12 @@ html.sps-dark :is(body, body [style*="--wpds-color"], body [style*="--wp-compone
 		--wp-components-color-accent-darker-20: oklch(from var(--sps-ui-primary) calc(l - 0.12) c h);
 	}
 
-	html.sps-dark .wp-core-ui .button-primary:not(:disabled, .disabled, .button-disabled) {
+	html.sps-dark .wp-core-ui .button-primary:not(:disabled, [disabled], .disabled, .button-disabled) {
 		background: var(--sps-ui-primary);
 		border-color: var(--sps-ui-primary);
 	}
 
-	html.sps-dark .wp-core-ui .button-primary:is(:hover, :focus):not(:disabled, .disabled, .button-disabled) {
+	html.sps-dark .wp-core-ui .button-primary:is(:hover, :focus):not(:disabled, [disabled], .disabled, .button-disabled) {
 		background: var(--sps-ui-primary-hover);
 		border-color: var(--sps-ui-primary-hover);
 	}
@@ -348,8 +374,9 @@ html.sps-dark #contextual-help-columns {
 
 /*
  * WordPress's own :focus rules still win, so the focus ring stays. Pop-ups
- * added to <body> are listed too: jQuery UI date pickers, and Admin Columns'
- * inline editor and modals (bulk editing). The Customizer (.wp-customizer)
+ * added to <body> are listed too: WordPress components' modals (plugins'
+ * React dialogs), jQuery UI date pickers, and Admin Columns' inline editor
+ * and modals (bulk editing). The Customizer (.wp-customizer)
  * has no #wpbody; its preview is a frame of its own, so this reaches only
  * its controls. Fields in the block editor's canvas keep the theme's look
  * (see Headings).
@@ -360,18 +387,18 @@ html.sps-dark #contextual-help-columns {
 	border-color: var(--sps-ui-field-border);
 }
 
-:where(html.sps-dark :is(#wpbody, .wp-customizer, .media-modal, .ac-edit-popper, .ac-modal)) :is(input, textarea):where(:not(.editor-styles-wrapper *))::placeholder {
+:where(html.sps-dark :is(#wpbody, .wp-customizer, .components-modal__frame, .media-modal, .ac-edit-popper, .ac-modal)) :is(input, textarea):where(:not(.editor-styles-wrapper *))::placeholder {
 	color: var(--sps-ui-subtle);
 }
 
-:where(html.sps-dark :is(#wpbody, .wp-customizer, .media-modal, .ac-edit-popper, .ac-modal)) :is(input:disabled, textarea:disabled, select:disabled, input[readonly], textarea[readonly]):where(:not(.editor-styles-wrapper *)) {
+:where(html.sps-dark :is(#wpbody, .wp-customizer, .components-modal__frame, .media-modal, .ac-edit-popper, .ac-modal)) :is(input:disabled, textarea:disabled, select:disabled, input[readonly], textarea[readonly]):where(:not(.editor-styles-wrapper *)) {
 	color: var(--sps-ui-subtle);
 	background-color: var(--sps-ui-raised);
 	border-color: var(--sps-ui-border);
 }
 
 /* The select arrow, drawn light (WordPress draws it dark grey). */
-:where(html.sps-dark :is(#wpbody, .wp-customizer, .media-modal, .ui-datepicker, .ac-edit-popper, .ac-modal)) select:not([multiple], .components-select-control__input):where(:not(.editor-styles-wrapper *)) {
+:where(html.sps-dark :is(#wpbody, .wp-customizer, .components-modal__frame, .media-modal, .ui-datepicker, .ac-edit-popper, .ac-modal)) select:not([multiple], .components-select-control__input):where(:not(.editor-styles-wrapper *)) {
 	background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20width%3D%2220%22%20height%3D%2220%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cpath%20d%3D%22M5%206l5%205%205-5%202%201-7%207-7-7%202-1z%22%20fill%3D%22%23c3c4c7%22%2F%3E%3C%2Fsvg%3E");
 }
 
@@ -389,7 +416,15 @@ html.sps-dark .wp-core-ui select:disabled:where(:not(.editor-styles-wrapper *)):
 	border-color: var(--sps-ui-border);
 }
 
-:where(html.sps-dark :is(#wpbody, .wp-customizer, .media-modal, #sps-notices-wrap, .ac-edit-popper, .ac-modal)) :is(input[type="checkbox"], input[type="radio"]):where(:not(.editor-styles-wrapper *)) {
+/* WordPress's own disabled select (.wp-core-ui): #f6f7f7, with a white text shadow. */
+html.sps-dark .wp-core-ui select:is(:disabled, .disabled):where(:not(.editor-styles-wrapper *)) {
+	color: var(--sps-ui-subtle);
+	background-color: var(--sps-ui-raised);
+	border-color: var(--sps-ui-border);
+	text-shadow: none;
+}
+
+:where(html.sps-dark :is(#wpbody, .wp-customizer, .components-modal__frame, .media-modal, #sps-notices-wrap, .ac-edit-popper, .ac-modal)) :is(input[type="checkbox"], input[type="radio"]):where(:not(.editor-styles-wrapper *)) {
 	background: var(--sps-ui-canvas);
 	border-color: var(--sps-ui-field-border);
 }
@@ -429,7 +464,8 @@ html.sps-dark .wrap .page-title-action:is(:hover, :focus) {
 	border-color: var(--sps-ui-text);
 }
 
-html.sps-dark .wp-core-ui :is(.button:disabled, .button.disabled, .button-disabled, .button-secondary:disabled, .button-primary:disabled, .button-primary.disabled, .button-primary-disabled) {
+/* Disabled buttons; a link (<a>) is disabled with the disabled attribute. */
+html.sps-dark .wp-core-ui :is(.button:disabled, .button[disabled], .button.disabled, .button-disabled, .button-secondary:is(:disabled, [disabled]), .button-primary:is(:disabled, [disabled]), .button-primary.disabled, .button-primary-disabled) {
 	color: var(--sps-ui-subtle) !important;
 	background: var(--sps-ui-raised) !important;
 	border-color: var(--sps-ui-border) !important;
@@ -3925,6 +3961,359 @@ html.sps-dark :is(.woocommerce-reports-wide, .woocommerce-reports-wrap) .postbox
 /* The charts' axis labels (Flot sets #545454 inline). */
 html.sps-dark :is(.woocommerce-reports-wide, .woocommerce-reports-wrap) .chart-placeholder .flot-text {
 	color: var(--sps-ui-muted) !important;
+}
+
+/*
+ * Really Simple Plugins: Complianz, Really Simple Security and Complianz
+ * Terms & Conditions. One palette (--rsp-*, on :root) draws their screens:
+ * #fff cards, #fafafa to #c6c6c6 greys, faded tints for status (#fdf4df,
+ * #e7f1f9, #ecf4ed, #fbebed) and rgba(15, 23, 42, .95) text; it is flipped
+ * in the palette at the top. Status and brand fills are kept. --rsp-white
+ * and --rsp-black are kept too, as each is both a ground and the text on a
+ * coloured fill; the grounds drawn with them, or with a fixed #fff, are set
+ * below.
+ */
+
+/*
+ * Really Simple Security's logo: black lettering. Turned light, with the
+ * lock's yellow brought back (invert, then hue and brightness to #fbba00).
+ */
+html.sps-dark img[src*="really-simple-security-logo"] {
+	filter: invert(1) hue-rotate(190deg) brightness(2.95);
+}
+
+/*
+ * Their search-as-you-type fields (Material UI's Autocomplete: the hosting
+ * provider and page pickers): rgba(0, 0, 0, .87) text and arrow, a faint
+ * black outline, and a #fff list.
+ */
+html.sps-dark :is(.cmplz, .cmplz-modal, .rsssl, .rsssl-modal) :is(.MuiInputBase-root, .MuiAutocomplete-paper) {
+	color: var(--sps-ui-text);
+}
+
+html.sps-dark :is(.cmplz, .cmplz-modal, .rsssl, .rsssl-modal) :is(.MuiAutocomplete-popupIndicator, .MuiAutocomplete-clearIndicator, .MuiAutocomplete-noOptions, .MuiAutocomplete-loading) {
+	color: var(--sps-ui-muted);
+}
+
+html.sps-dark :is(.cmplz, .cmplz-modal, .rsssl, .rsssl-modal) .MuiOutlinedInput-root {
+	background-color: var(--sps-ui-canvas);
+}
+
+html.sps-dark :is(.cmplz, .cmplz-modal, .rsssl, .rsssl-modal) .MuiOutlinedInput-root:not(.Mui-focused) .MuiOutlinedInput-notchedOutline {
+	border-color: var(--sps-ui-field-border);
+}
+
+html.sps-dark :is(.cmplz, .cmplz-modal, .rsssl, .rsssl-modal) .MuiAutocomplete-paper {
+	background-color: var(--sps-ui-raised);
+	border: 1px solid var(--sps-ui-border);
+}
+
+html.sps-dark :is(.cmplz, .cmplz-modal, .rsssl, .rsssl-modal) .MuiAutocomplete-groupLabel {
+	color: var(--sps-ui-muted);
+	background-color: var(--sps-ui-raised);
+}
+
+html.sps-dark :is(.cmplz, .cmplz-modal, .rsssl, .rsssl-modal) .MuiAutocomplete-option.Mui-focused {
+	background-color: var(--sps-ui-hover);
+}
+
+/* Grounds in #fff or --rsp-white: modals, menus, pickers, list items and the security tiles. */
+html.sps-dark :is(.cmplz-modal, .cmplz-modal .cmplz-modal-header, .cmplz-modal .cmplz-modal-header .modal-title, .cmplz-statistics-select-item, .cmplz .cmplz-select-group__content, .cmplz .cmplz-select-group__scroll-button, .rsssl .rsssl-ssl-labs-select-item, .rsssl .rsssl-hardening-select-item, .rsssl-accordeon__content__inner, .rsssl-datatable-placeholder div:nth-child(even)) {
+	background-color: var(--sps-ui-surface);
+}
+
+html.sps-dark #complianz :is(.cmplz-panel__cookie_list .cmplz-panel__list__item, .cmplz-radio-buttons__list__item) {
+	background-color: var(--sps-ui-surface);
+}
+
+/* Lighter tiles and bars (#f9f9f9, #f7f7f7, #f5f5f5 and #f1f1f1): suggested plugins, progress tracks and the current menu item. */
+html.sps-dark :is(.cmplz-suggested-plugin, .cmplz-wscscan-alert, .cmplz-progress-block .cmplz-progress, .cmplz-grid-item-footer .cmplz-progress, .rsssl-progress-block .rsssl-progress, .rsssl-accordeon__header, .rsssl-header-container .rsssl-header .rsssl-header-menu .rsssl-header-menu-item.rsssl-header-menu-item-active) {
+	background-color: var(--sps-ui-raised);
+}
+
+html.sps-dark #complianz :is(#cmplz-scan-progress, #cmplz-sync-progress) {
+	background-color: var(--sps-ui-raised);
+}
+
+html.sps-dark :is(.rsssl .rsssl-divider, .rsssl-placeholder .rsssl-placeholder-line ~ .rsssl-placeholder-line, .cmplz-placeholder .cmplz-placeholder-line ~ .cmplz-placeholder-line) {
+	background-color: var(--sps-ui-border);
+}
+
+html.sps-dark .rsssl-accordeon {
+	border-color: var(--sps-ui-border);
+}
+
+/* Fields: the dropdowns' buttons, unlinked border inputs, the shortcode box and a focused search (#fff, --rsp-white). */
+html.sps-dark :is(.cmplz .cmplz-select-group__trigger:not([disabled], :hover), .cmplz .cmplz-border-input-link:not(.linked), .rsssl .rsssl-shortcode, .rsssl-field-wrap .rsssl-search-bar__inner:focus-within) {
+	background-color: var(--sps-ui-canvas);
+}
+
+/* The border inputs' unit select (#fff, with a #555 arrow). */
+html.sps-dark .cmplz .cmplz-border-input-unit select {
+	background-color: var(--sps-ui-canvas);
+	background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20width%3D%2220%22%20height%3D%2220%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cpath%20d%3D%22M5%206l5%205%205-5%202%201-7%207-7-7%202-1z%22%20fill%3D%22%23c3c4c7%22%2F%3E%3C%2Fsvg%3E");
+}
+
+html.sps-dark .cmplz-switch-root {
+	border-color: var(--sps-ui-field-border);
+}
+
+/* Locked settings: a 80% white veil (now the card's) and its message box. */
+html.sps-dark :is(.cmplz .cmplz-wizard-settings .cmplz-locked, .rsssl div[class^="rsssl-wizard-"] .rsssl-locked, .cmplz-settings-overlay) {
+	background: rgb(29 35 39 / 80%);
+}
+
+html.sps-dark :is(.cmplz .cmplz-wizard-settings .cmplz-locked .cmplz-locked-overlay, .rsssl div[class^="rsssl-wizard-"] .rsssl-locked .rsssl-locked-overlay, .cmplz-settings-overlay .cmplz-settings-overlay-message) {
+	background-color: var(--sps-ui-raised);
+}
+
+/* Loading: placeholders (#fff, #1e1e1e text) and the skeletons' #f2f2f2 bars on #d6d8db, with a white shine. */
+html.sps-dark :is(.cmplz-placeholder, .rsssl-placeholder) {
+	color: var(--sps-ui-text);
+}
+
+html.sps-dark .cmplz-placeholder {
+	background-color: var(--sps-ui-surface);
+}
+
+html.sps-dark :is(#complianz .cmplz-skeleton, .rsssl .rsssl-skeleton):empty {
+	background-color: var(--sps-ui-border);
+	background-image: linear-gradient(100deg, rgb(255 255 255 / 0%), rgb(255 255 255 / 6%) 70%, rgb(255 255 255 / 6%) 15%), linear-gradient(var(--sps-ui-raised) 38px, transparent 0), linear-gradient(var(--sps-ui-raised) 38px, transparent 0), linear-gradient(var(--sps-ui-raised) 38px, transparent 0), linear-gradient(var(--sps-ui-raised) 38px, transparent 0);
+	border-right-color: var(--sps-ui-border);
+}
+
+/* Complianz's secondary and tertiary buttons: #2271b1 text on #fff (its primary ones keep their fill). */
+html.sps-dark :is(.button--secondary, .button--tertiary) {
+	--button-accent-color: var(--sps-ui-accent);
+	--button-secondary-bg: var(--sps-ui-surface);
+}
+
+/* Icon buttons (#2271b1 on #ededed). */
+html.sps-dark .cmplz-button-icon {
+	color: var(--sps-ui-accent);
+	background: var(--sps-ui-raised);
+}
+
+/* Text in their brand or status colours, too dark for Dark: #1e73be hovers, #d7263d errors, #3858e9 and #1e73be labels. */
+html.sps-dark #complianz :is(.cmplz-header-menu a:hover, .cmplz-tips-tricks-element a:hover),
+html.sps-dark .rsssl-wizard-menu-items .rsssl-menu-item-beta-pill,
+html.sps-dark .rsssl-wizard-menu-items .rsssl-submenu-item .rsssl-active a::before,
+html.sps-dark .rsssl-modal .rsssl-modal-footer button:not(.is-primary) {
+	color: var(--sps-ui-accent);
+}
+
+/* Complianz: a premium field's label link (#333 on #ecf4ed). */
+html.sps-dark .cmplz-label-container .cmplz-premium a {
+	color: var(--sps-ui-good);
+	background-color: #16291b;
+}
+
+html.sps-dark #complianz .cmplz-error-text p,
+html.sps-dark :is(a, button, input).button--error:hover {
+	color: var(--sps-ui-bad);
+}
+
+/* Status pills on a yellow fill take their text from the row (now light): set dark. */
+html.sps-dark :is(.cmplz-task-status.cmplz-open, .rsssl-task-status.rsssl-open, .rsssl-mixed-content-scan .rsssl-task-status.rsssl-warning, .rsssl-locked-overlay .rsssl-progress-status:is(.rsssl-open, .rsssl-learning-mode)) {
+	color: #1d2327;
+}
+
+/* Really Simple Security's badges: #333 text on the faded tints, now dark; a grey one in black. */
+html.sps-dark .rsssl :is(.rsssl-badge.rsssl-low, .rsssl-badge-large.rsssl-risk-level-low) {
+	color: var(--sps-ui-warning);
+}
+
+html.sps-dark .rsssl :is(.rsssl-badge.rsssl-high, .rsssl-badge-large.rsssl-risk-level-high) {
+	color: var(--sps-ui-bad);
+}
+
+html.sps-dark .rsssl :is(.rsssl-badge, .rsssl-badge-large).rsssl-default {
+	color: var(--sps-ui-text);
+}
+
+/* The status tiles' inactive scores (#ededed on #f7f7f7). */
+html.sps-dark .rsssl .rsssl-ssl-labs .rsssl-score-snippet.rsssl-test-inactive {
+	color: var(--sps-ui-subtle);
+}
+
+/* Themes: a vulnerable theme's notice (#333 on the yellow tint, now dark; #ffe3e3 and #ffd6d6 when high or critical). */
+html.sps-dark :is(.rsssl-theme-vuln-block, .rsssl-theme-vuln-block .rsssl-theme-vuln-text) {
+	color: var(--sps-ui-text);
+}
+
+html.sps-dark .rsssl-theme-vuln-block.rsssl-high {
+	background: #33191b;
+}
+
+html.sps-dark .rsssl-theme-vuln-block.rsssl-critical {
+	background: #4a2224;
+}
+
+/* Complianz: the banner's contrast checker (#e9f9ef, #fff4e5 and #fdeaea pills). */
+html.sps-dark .cmplz-contrast-checker .cmplz-contrast-value.cmplz-pass-aaa {
+	color: var(--sps-ui-good);
+	background-color: #16291b;
+}
+
+html.sps-dark .cmplz-contrast-checker .cmplz-contrast-value.cmplz-pass-aa {
+	color: var(--sps-ui-warning);
+	background-color: #2e2716;
+}
+
+html.sps-dark .cmplz-contrast-checker .cmplz-contrast-value.cmplz-fail {
+	color: var(--sps-ui-bad);
+	background-color: #33191b;
+}
+
+/* Complianz: Translations (#fff boxes, #f9f9f9 heads and code, #ddd and #eee lines, #333 to #666 text). */
+html.sps-dark :is(.cmplz-translation-automation, .cmplz-translation-management) :is(.cmplz-status-summary, .cmplz-language-files, .cmplz-management-actions, .cmplz-automation-settings, .cmplz-test-results) {
+	background: var(--sps-ui-surface);
+	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark :is(.cmplz-translation-automation, .cmplz-translation-management) :is(.cmplz-language-files table th, .cmplz-cron-status, .cmplz-test-results pre) {
+	background: var(--sps-ui-raised);
+	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark :is(.cmplz-translation-automation, .cmplz-translation-management) .cmplz-language-files table :is(td, th) {
+	border-bottom-color: var(--sps-ui-border);
+}
+
+html.sps-dark :is(.cmplz-translation-automation, .cmplz-translation-management) :is(h4, p strong) {
+	color: var(--sps-ui-text);
+}
+
+html.sps-dark :is(.cmplz-translation-automation, .cmplz-translation-management) :is(.cmplz-error-details, .cmplz-loading) {
+	color: var(--sps-ui-muted);
+}
+
+html.sps-dark :is(.cmplz-translation-automation, .cmplz-translation-management) :is(.cmplz-status-missing, .cmplz-status-error, .cmplz-error) {
+	color: var(--sps-ui-bad);
+}
+
+html.sps-dark :is(.cmplz-translation-automation, .cmplz-translation-management) .cmplz-error {
+	background: #33191b;
+}
+
+/* Complianz: the Website Scan's terms box scroll track (#f1f1f1). */
+html.sps-dark .cmplz-websitescan .cmplz-modal-content-step .wrap-terms::-webkit-scrollbar-track {
+	background: var(--sps-ui-raised);
+}
+
+/*
+ * React Data Table (react-data-table-component: Complianz, Really Simple
+ * Security, and any plugin on its light theme): a #fff table, header, rows,
+ * pagination and empty message, rgba(0, 0, 0, .87) text and grey page
+ * buttons. A plugin's own row stripes name the row more closely, so win; a
+ * ticked row is shown in blue (#e3f2fd in light).
+ */
+html.sps-dark :is(.rdt_Table, .rdt_TableHead, .rdt_TableHeader, .rdt_TableHeadRow, .rdt_TableRow, .rdt_ExpanderRow) {
+	color: var(--sps-ui-text);
+}
+
+html.sps-dark :is(.rdt_Table, .rdt_TableHeader, .rdt_TableHeadRow, .rdt_TableRow, .rdt_ExpanderRow, .rdt_Pagination) {
+	background-color: var(--sps-ui-surface);
+}
+
+/* The empty message and the loading line, as the table's only children without its class names. */
+html.sps-dark .rdt_Table > div:not([class*="rdt_"]) {
+	color: var(--sps-ui-text);
+	background-color: var(--sps-ui-surface);
+}
+
+html.sps-dark .rdt_TableRow:has(input[name^="select-row"]:checked) {
+	background-color: #1b3048;
+}
+
+html.sps-dark :is(.rdt_Pagination, .rdt_Pagination button) {
+	color: var(--sps-ui-muted);
+	fill: var(--sps-ui-muted);
+}
+
+html.sps-dark .rdt_Pagination button:disabled {
+	color: #646970;
+	fill: #646970;
+}
+
+html.sps-dark .rdt_Pagination button:is(:hover, :focus):not(:disabled) {
+	background-color: var(--sps-ui-hover);
+}
+
+/*
+ * React Date Range (react-date-range: Complianz's date filters, in a
+ * Material UI pop-up on <body>): a #fff pop-up, months and list of ranges
+ * with rgba(0, 0, 0, .87) text, #eff2f7 lines and arrow buttons, a dark
+ * month and year select arrow, #fff date boxes, #1d2429 days, and #f8f8f8
+ * days that can't be picked. The chosen range keeps its colour and white
+ * numbers.
+ */
+html.sps-dark .MuiPopover-paper:has(.rdrDateRangePickerWrapper) {
+	color: var(--sps-ui-text);
+	background-color: var(--sps-ui-surface);
+	border: 1px solid var(--sps-ui-border);
+}
+
+html.sps-dark :is(.rdrCalendarWrapper, .rdrDefinedRangesWrapper, .rdrStaticRange) {
+	color: var(--sps-ui-text);
+	background: var(--sps-ui-surface);
+	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark .rdrStaticRange:is(:hover, :focus) .rdrStaticRangeLabel {
+	background: var(--sps-ui-hover);
+}
+
+html.sps-dark .rdrDateDisplayItem {
+	background-color: var(--sps-ui-canvas);
+}
+
+html.sps-dark .rdrDateDisplayItem:not(.rdrDateDisplayItemActive) {
+	border-color: var(--sps-ui-field-border);
+}
+
+html.sps-dark .rdrMonthAndYearPickers select {
+	color: var(--sps-ui-text);
+	background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20width%3D%229%22%20height%3D%226%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cpath%20d%3D%22M1.28.24C.99-.08.51-.08.22.24c-.29.32-.29.83%200%201.14L4.5%206l4.28-4.62c.29-.31.29-.83%200-1.14-.29-.32-.77-.32-1.06%200L4.5%203.71z%22%20fill%3D%22%23c3c4c7%22%2F%3E%3C%2Fsvg%3E");
+}
+
+html.sps-dark .rdrMonthAndYearPickers select:hover {
+	background-color: var(--sps-ui-hover);
+}
+
+html.sps-dark .rdrNextPrevButton {
+	background: var(--sps-ui-raised);
+}
+
+html.sps-dark .rdrNextPrevButton:hover {
+	background: var(--sps-ui-border);
+}
+
+html.sps-dark .rdrPprevButton i {
+	border-right-color: var(--sps-ui-muted);
+}
+
+html.sps-dark .rdrNextButton i {
+	border-left-color: var(--sps-ui-muted);
+}
+
+html.sps-dark .rdrDayNumber span {
+	color: var(--sps-ui-text);
+}
+
+/* Days in other months and days that can't be picked: dimmed, still 4.5:1. */
+html.sps-dark :is(.rdrDayPassive, .rdrDayDisabled) .rdrDayNumber span {
+	color: #8c8f94;
+}
+
+html.sps-dark .rdrDayDisabled {
+	background-color: transparent;
+}
+
+html.sps-dark .rdrInputRangeInput {
+	color: var(--sps-ui-text);
+	background-color: var(--sps-ui-canvas);
+	border-color: var(--sps-ui-field-border);
 }
 
 /* Complianz: the Website Scan column's status pills (#dcfce7, #fef3c7 and #f1f5f9). */
