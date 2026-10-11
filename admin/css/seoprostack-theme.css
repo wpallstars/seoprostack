@@ -4483,6 +4483,34 @@ html.sps-dark .cmplz-websitescan .cmplz-modal-content-step .wrap-terms::-webkit-
 }
 
 /*
+ * Complianz Terms & Conditions (Tools → Terms & Conditions): an older wizard,
+ * drawn by the server, whose header, step menu, section head, intro, fields,
+ * footer and shortcode boxes are a fixed #fff (white again when a current
+ * step is pointed at), with a #dadada progress track and #333 finished
+ * steps. Its text follows the palette, so it sat light on #fff.
+ */
+html.sps-dark .cmplz-terms-conditions :is(.cmplz-header-container .cmplz-header, .cmplz-wizard-menu, .cmplz-wizard-menu .cmplz-step-header.active:hover a, .cmplz-wizard-menu .cmplz-section.active:hover a, .cmplz-master-label > div, .cmplz-section-content-title-header, .cmplz-wizard-intro, .field-group .cmplz-field, .cmplz-section-footer, .cmplz-shortcode, .cmplz-copy-shortcode-text) {
+	background-color: var(--sps-ui-surface);
+}
+
+html.sps-dark .cmplz-terms-conditions .cmplz-wizard-menu .cmplz-wizard-progress-bar {
+	background: var(--sps-ui-border);
+}
+
+html.sps-dark .cmplz-terms-conditions .cmplz-wizard-menu .cmplz-section.cmplz-done a h3 {
+	color: var(--sps-ui-text);
+}
+
+/* The current step and section (#007cba, too dark for Dark). */
+html.sps-dark .cmplz-terms-conditions .cmplz-wizard-menu :is(.cmplz-step-header.active a h2, .cmplz-section.active a h3) {
+	color: var(--sps-ui-accent);
+}
+
+html.sps-dark .cmplz-terms-conditions .cmplz-wizard-menu .cmplz-section.active svg path {
+	fill: var(--sps-ui-accent);
+}
+
+/*
  * React Data Table (react-data-table-component: Complianz, Really Simple
  * Security, and any plugin on its light theme): a #fff table, header, rows,
  * pagination and empty message, rgba(0, 0, 0, .87) text and grey page
