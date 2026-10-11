@@ -63,6 +63,7 @@ final class SEOProStack_Setup {
         'SEOProStack_Field_Search',
         'SEOProStack_Field_Content',
         'SEOProStack_Editor_Tidy',
+        'SEOProStack_Editor_Dev_Tab',
         'SEOProStack_Translatepress_Colours',
         'SEOProStack_Readabler_Colours',
         'SEOProStack_Auto_Upload',

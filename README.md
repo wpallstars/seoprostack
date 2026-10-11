@@ -64,7 +64,7 @@ A new install starts with the features that are safe on every site switched on, 
 - **Speed:** Recommended speed settings, Load pages before the click, Image loading, Remove WordPress extras, Lighter WooCommerce pages and Faster editor with Kadence Blocks (the last two do nothing without those plugins).
 - **Server:** Fewer Heartbeat requests, Clean the database weekly, Load large settings only where they are used and Hosting needs.
 - **Plugins:** Load plugins only where needed, with **Also skip them for people who are logged in**, so it takes every chance to skip plugins once it has learned; Clean up deleted plugins, Plugin sizes and Fixes for other plugins.
-- **Admin and editor:** Organise the admin menu, More menu in the admin bar, Hide admin bar items (Comments and + New), Hide admin notices, Tidy admin screens, Correct update counts, Tidy the dashboard, Tidy WooCommerce admin, Readable list columns, Simpler block editor, Notification emails (plugin and theme auto-update reports, unless an update failed), No fade between admin screens, Quiet Freemius prompts, Quiet Appsero prompts and Quiet Imagify suggestions.
+- **Admin and editor:** Organise the admin menu, More menu in the admin bar, Hide admin bar items (Comments and + New), Hide admin notices, Tidy admin screens, Correct update counts, Tidy the dashboard, Tidy WooCommerce admin, Readable list columns, Simpler block editor, Dev tab in the block editor, Notification emails (plugin and theme auto-update reports, unless an update failed), No fade between admin screens, Quiet Freemius prompts, Quiet Appsero prompts and Quiet Imagify suggestions.
 
 Also offered on Server: **Faster page counts on long lists**, off by default, with exact totals counted separately from the page.
 
@@ -301,7 +301,7 @@ When many plugins add items to the admin bar, it wraps onto a second line that c
 - Settings save straight away, but the bar on the settings page was drawn before the change, so the saved message asks you to reload the page.
 - WordPress’s own items and the right of the bar (the account menu, the notices megaphone, the Plugins menu) are not moved. To remove WordPress items, use Hide admin bar items.
 - Items are matched to the plugin that added them. If another plugin replaces WordPress’s admin bar class, WordPress’s own items are recognised by name, every other item goes in the menu, and Keep on the bar does not apply.
-- Items that show only an icon or numbers get their plugin’s name added in the menu.
+- The menu is text only: plugins’ icons (Dashicons, icon fonts, SVG, images and logos) are hidden there, since they differ in size and some items have none. Items that show only an icon or numbers start with their plugin’s name (or, when that is not known, the item’s tooltip or ID).
 - On phones and tablets, tap **…** to open it. WordPress hides plugins’ items there; the menu shows them, with their submenus open.
 - From the keyboard, Enter opens it and Escape closes it. Opening and closing are WordPress’s own, as for every admin bar menu.
 
@@ -521,6 +521,15 @@ Turns off parts of the block editor most people never use, for everyone.
 - **Block widget editor**: Appearance → Widgets and the Customizer use the classic widgets screen (`use_widgets_block_editor`, as the Classic Widgets plugin does). Block themes have no widgets screen.
 - Replaces part of Disable Bloat: its matching switches are imported once while it is active.
 - **Opens faster**, whatever is ticked: every block editor asks the REST API index for a few site details as it opens (`/?_fields=…`), and core describes every route of every plugin before dropping what was not asked for. When `_fields` leaves `routes` out, the route list reads as empty while the index is built (`rest_dispatch_request`, `rest_endpoints`) and is back before other plugins see the index (`rest_index`). The answer is the same; on a test site with 80 plugins and 1,953 routes it took 8 ms instead of 60.
+
+### Dev tab in the block editor (Content)
+
+Some plugins add panels to the post editor’s sidebar that only the people who build the site need, such as LiteSpeed Cache’s page cache choices. With this on, those panels leave the Post tab and go to a **Dev** tab after **Block**, in A–Z order, which only developers see; everyone else sees neither the tab nor the panels. **On by default.**
+
+- Developers are those of [Developer admins](#developer-admins-admin): super admins on multisite; on single sites the administrators ticked there, or every administrator while it is off (editors and authors then do not see the panels).
+- Moved panels: **Cookiebanner** (Complianz), **LiteSpeed** (LiteSpeed Cache), **Readabler**, **Simple Share Control** (Kadence Simple Share) and **Webmentions** (Webmention). Add or remove panels with the `seoprostack_editor_dev_panels` filter, by meta box ID or by the panel’s title; panels with no meta box ID, such as Webmentions, are also found by their title in the site’s language when the entry names the plugin’s text domain.
+- People who are not developers also lose YellowPencil’s pencil button in the editor’s toolbar, which opens its editor for the whole site’s styles.
+- The panels stay where WordPress puts them: their fields still save with the post, and choices in Preferences → Panels still apply. The Dev tab is the Post tab showing only those panels, and leaves when you choose Post or Block, select a block or close the sidebar. Nothing is stored.
 
 ### Limit post revisions (Content)
 
@@ -1538,6 +1547,7 @@ Developers can add settings, tabs and directory entries with filters:
 - `seoprostack_can_see_content`: whether the current visitor may see a post’s content (bool, post ID, the rules it follows: `show`, `roles`, and `term` when the rule is a term’s; empty when everyone may). Return true to let members of your own levels in.
 - `seoprostack_block_visible`: whether the current visitor sees a block (bool, parsed block, its rule: `show` and `roles`).
 - `seoprostack_switchable_post_types`: post types Change post type offers (name => label).
+- `seoprostack_editor_dev_panels`: panels the block editor’s Dev tab holds (list of `id`, a meta box ID or `''`; `title`, the panel’s English title; and optionally `domain`, the plugin’s text domain, to find the title in other languages too).
 - `seoprostack_short_address_types`: post types served at short addresses (`/item/`), the ones chosen in Short addresses for custom post types first (none while it is off); add yours before `init` to serve its items there.
 - `seoprostack_field_search_field`: whether Search custom fields looks in a field’s values (bool, ACF field array, `site` for searches on the site or `admin` for admin list searches); false already when **Fields to leave out** lists the field, which then stays out whatever you return. Return false for fields your pages never show. Returning false for a group, repeater or flexible content field leaves out everything in it.
 
