@@ -146,6 +146,57 @@
         });
     }
 
+    /** The sidebar's tab list, its Post tab, and core's last tab (Block), copied for the Dev tab's look. */
+    function findTabs() {
+        var list = document.querySelector(TABS);
+        if (!list) {
+            return null;
+        }
+        var tabs = list.querySelectorAll('[role="tab"]:not([data-sps-dev-tab])');
+        var postTab = list.querySelector('[data-tab-id="' + DOC + '"]');
+        if (!postTab || !tabs.length) {
+            return null;
+        }
+        return { list: list, postTab: postTab, model: tabs[tabs.length - 1] };
+    }
+
+    /** Without a tab to put them in, the panels stay in the Post tab. */
+    function removeTab(panels) {
+        open = false;
+        mark(panels, false);
+        clearView();
+        if (button && button.parentNode) {
+            button.parentNode.removeChild(button);
+        }
+    }
+
+    function placeTab(tabs) {
+        if (!button || button.parentNode !== tabs.list) {
+            button = makeButton(tabs.model);
+            tabs.list.appendChild(button);
+            watchTabs(tabs.list);
+        }
+    }
+
+    /** Post shows as not chosen while Dev is open, and as chosen again after. */
+    function markPostTab(postTab, isOpen) {
+        if (isOpen && postTab.getAttribute('aria-selected') === 'true') {
+            postTab.setAttribute('aria-selected', 'false');
+            postTab.setAttribute('data-sps-dev-unselected', '');
+        } else if (!isOpen && postTab.hasAttribute('data-sps-dev-unselected')) {
+            // The editor still has Post chosen and will not mark it again.
+            postTab.removeAttribute('data-sps-dev-unselected');
+            postTab.setAttribute('aria-selected', area() === DOC ? 'true' : 'false');
+        }
+    }
+
+    /** Move the tab line under Dev. */
+    function underline(list) {
+        list.style.setProperty('--sps-dev-left', String(button.offsetLeft));
+        list.style.setProperty('--sps-dev-width', String(button.offsetWidth));
+        list.style.setProperty('--sps-dev-right', String(list.offsetWidth - button.offsetLeft - button.offsetWidth));
+    }
+
     function render() {
         queued = false;
         var panels = findPanels();
@@ -153,49 +204,26 @@
             mark(panels, true);
             return;
         }
-        var list = document.querySelector(TABS);
-        var postTab = list && list.querySelector('[data-tab-id="' + DOC + '"]');
-        // Core's last tab (Block), copied for the Dev tab's look.
-        var tabs = list ? list.querySelectorAll('[role="tab"]:not([data-sps-dev-tab])') : [];
-        var model = tabs.length ? tabs[tabs.length - 1] : null;
-        var shown = panels.filter(function (el) {
+        var tabs = findTabs();
+        var shown = panels.some(function (el) {
             return !el.classList.contains('is-hidden');
         });
-        // Without a tab to put them in, the panels stay in the Post tab.
-        if (!postTab || !model || !shown.length) {
-            open = false;
-            mark(panels, false);
-            clearView();
-            if (button && button.parentNode) {
-                button.parentNode.removeChild(button);
-            }
+        if (!tabs || !shown) {
+            removeTab(panels);
             return;
         }
         mark(panels, true);
-        if (!button || button.parentNode !== list) {
-            button = makeButton(model);
-            list.appendChild(button);
-            watchTabs(list);
-        }
+        placeTab(tabs);
 
-        var view = document.getElementById(postTab.getAttribute('aria-controls') || '');
+        var view = document.getElementById(tabs.postTab.getAttribute('aria-controls') || '');
         var isOpen = open && area() === DOC && !!view;
         clearView();
         if (isOpen) {
             showView(view, panels);
-            list.style.setProperty('--sps-dev-left', String(button.offsetLeft));
-            list.style.setProperty('--sps-dev-width', String(button.offsetWidth));
-            list.style.setProperty('--sps-dev-right', String(list.offsetWidth - button.offsetLeft - button.offsetWidth));
-            if (postTab.getAttribute('aria-selected') === 'true') {
-                postTab.setAttribute('aria-selected', 'false');
-                postTab.setAttribute('data-sps-dev-unselected', '');
-            }
-        } else if (postTab.hasAttribute('data-sps-dev-unselected')) {
-            // The editor still has Post chosen and will not mark it again.
-            postTab.removeAttribute('data-sps-dev-unselected');
-            postTab.setAttribute('aria-selected', area() === DOC ? 'true' : 'false');
+            underline(tabs.list);
         }
-        list.classList.toggle('sps-dev-tab-open', isOpen);
+        markPostTab(tabs.postTab, isOpen);
+        tabs.list.classList.toggle('sps-dev-tab-open', isOpen);
         button.setAttribute('aria-selected', isOpen ? 'true' : 'false');
     }
 
