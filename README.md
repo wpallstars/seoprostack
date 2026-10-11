@@ -24,7 +24,7 @@ SEO Pro Stack does the jobs that usually take dozens of small plugins: a calmer,
 
 If this saves you time, headaches and costs, feel free to [buy me a coffee](https://buymeacoffee.com/marcusquinn), or whatever you like, to invest in making more things open-source.
 
-Version: 1.3.38
+Version: 1.3.39
 
 <!-- github-only:start -->
 ## Screenshots
@@ -1558,6 +1558,11 @@ Deleting the plugin removes its settings and cached data, the database keys Add 
 Deactivating the plugin removes the WebP and AVIF rules from the uploads folder’s `.htaccess` (for every site when network-deactivated), the LiteSpeed background request rules from the site’s `.htaccess` (on multisite, when network-deactivated or deactivated on the main site) and the must-use file of Load plugins only where needed (on multisite, when network-deactivated).
 
 ## Changelog
+
+### 1.3.39
+
+- Fix: with **Organise the admin menu**, plugins’ scripts that look for their own menu by WordPress’s markup (such as Complianz, on every screen and tab) find it again for the menus in Administrators and Developers, so their screens no longer stop with a JavaScript error, and the current entry in the menu’s third level follows the plugin’s tabs. The menu looks and works as before (GitHub issue #692).
+- Fix: with **Organise the admin menu** and GOTMLS Anti-Malware both active, every admin page no longer adds a “map_meta_cap was called incorrectly” notice about `read_post` to the debug log (GitHub issue #696).
 
 ### 1.3.38
 
