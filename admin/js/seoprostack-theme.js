@@ -372,12 +372,57 @@
 		};
 	}());
 
+	/*
+	 * Rich text fields (TinyMCE) outside the post's content, such as a
+	 * profile's biography, a term's description or another plugin's field:
+	 * their frame takes the mode too. The post's own content keeps the
+	 * theme's editor styles, as the block editor's canvas does.
+	 */
+	var MCE_ID = 'sps-mce-dark';
+	var MCE_CSS = 'html.sps-dark,html.sps-dark body.mce-content-body{color:#f0f0f1;background:#101517}'
+		+ 'html.sps-dark body.mce-content-body a{color:#72aee6}'
+		+ 'html.sps-dark body.mce-content-body :is(code,pre,kbd){color:#f0f0f1;background:#2c3338}'
+		+ 'html.sps-dark body.mce-content-body :is(hr,blockquote,table,td,th){border-color:#3c434a}';
+	function mceFrame(editor) {
+		var doc;
+		if (!editor || editor.id === 'content' || typeof editor.getDoc !== 'function') {
+			return;
+		}
+		try {
+			doc = editor.getDoc();
+		} catch (e) {
+			return;
+		}
+		if (!doc || !doc.documentElement || !doc.head) {
+			return;
+		}
+		if (!doc.getElementById(MCE_ID)) {
+			var style = doc.createElement('style');
+			style.id = MCE_ID;
+			style.textContent = MCE_CSS;
+			doc.head.appendChild(style);
+		}
+		doc.documentElement.classList.toggle('sps-dark', root.classList.contains('sps-dark'));
+	}
+	function mceAll() {
+		var editors = window.tinymce && typeof window.tinymce.get === 'function' ? window.tinymce.get() : null;
+		if (editors && editors.forEach) {
+			editors.forEach(mceFrame);
+		}
+	}
+	if (window.jQuery) {
+		window.jQuery(document).on('tinymce-editor-init', function (event, editor) {
+			mceFrame(editor);
+		});
+	}
+
 	// Classes on <html>, the admin bar icon, its name and the menu's tick.
 	function paint(which) {
 		var nowDark = !!data.applies && isDark(which);
 		if (data.applies) {
 			order.forEach(function (value) { root.classList.toggle('sps-theme-' + value, value === which); });
 			root.classList.toggle('sps-dark', nowDark);
+			mceAll();
 		}
 		if (top) {
 			var holder = top.querySelector('.ab-icon');
