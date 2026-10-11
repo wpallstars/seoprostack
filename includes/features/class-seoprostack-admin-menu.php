@@ -200,6 +200,17 @@ class SEOProStack_Admin_Menu extends SEOProStack_Feature {
     );
 
     /**
+     * Capability of the menu entries that are never printed (see
+     * page_markers()). marker_cap() maps it to do_not_allow, so no one has
+     * it, super admins included. The entries cannot ask for do_not_allow
+     * itself: core checks each entry's capability while it prints the menu,
+     * and a plugin that gives a post type 'read_post' => 'do_not_allow' (such
+     * as GOTMLS Anti-Malware) makes WordPress treat that name as read_post,
+     * with a notice on every admin page because no post is given.
+     */
+    const MARKER_CAP = 'seoprostack_menu_marker';
+
+    /**
      * The real menu while the organised one is printed.
      *
      * @var array|null
@@ -354,6 +365,8 @@ class SEOProStack_Admin_Menu extends SEOProStack_Feature {
         }
         add_filter('parent_file', array(__CLASS__, 'organise'), PHP_INT_MAX);
         add_filter('submenu_file', array(__CLASS__, 'submenu_file'), PHP_INT_MAX);
+        // Last, so no other filter grants the entries that are never printed.
+        add_filter('map_meta_cap', array(__CLASS__, 'marker_cap'), PHP_INT_MAX, 2);
         // Before anything else reads the menu after it is printed (such as
         // Load plugins only where needed, which compares it with its copy).
         add_action('adminmenu', array(__CLASS__, 'restore'), 1);
@@ -1192,7 +1205,7 @@ class SEOProStack_Admin_Menu extends SEOProStack_Feature {
                 // that is never printed.
                 global $plugin_page;
                 if (isset($plugin_page) && is_string($plugin_page)) {
-                    $out_sub[$parent_file][] = array('', 'do_not_allow', $plugin_page, '');
+                    $out_sub[$parent_file][] = array('', self::MARKER_CAP, $plugin_page, '');
                 }
                 $out_sub = array($parent_file => $out_sub[$parent_file]) + $out_sub;
             }
@@ -1320,7 +1333,7 @@ class SEOProStack_Admin_Menu extends SEOProStack_Feature {
                 $moved = true;
             } elseif (!$moved && !empty($out_sub[$slug])) {
                 foreach ($out_sub[$slug] as $child) {
-                    if (!is_array($child) || !isset($child[2]) || '' === (string) $child[0] || 'do_not_allow' === $child[1] || !current_user_can($child[1])) {
+                    if (!is_array($child) || !isset($child[2]) || '' === (string) $child[0] || self::MARKER_CAP === $child[1] || !current_user_can($child[1])) {
                         continue;
                     }
                     $child_class = isset($child[4]) ? (string) $child[4] : '';
@@ -1481,9 +1494,20 @@ class SEOProStack_Admin_Menu extends SEOProStack_Feature {
         }
         $markers = array();
         foreach ($files as $file) {
-            $markers[] = array('', 'do_not_allow', $file, '');
+            $markers[] = array('', self::MARKER_CAP, $file, '');
         }
         return $markers;
+    }
+
+    /**
+     * No one has the capability of the entries that are never printed.
+     *
+     * @param string[] $caps Primitive capabilities the check needs.
+     * @param string   $cap  Capability checked.
+     * @return string[]
+     */
+    public static function marker_cap($caps, $cap) {
+        return self::MARKER_CAP === $cap ? array('do_not_allow') : $caps;
     }
 
     /**
