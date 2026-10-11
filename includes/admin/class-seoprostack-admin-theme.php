@@ -69,6 +69,44 @@ final class SEOProStack_Admin_Theme {
         add_action('wp_ajax_' . self::ACTION, array(__CLASS__, 'save'));
         // The admin bar's links, when the script has not loaded.
         add_action('admin_post_' . self::ACTION, array(__CLASS__, 'save_and_return'));
+        // Fluent plugins' "no conflict" mode removes other plugins' scripts from their screens.
+        add_filter('fluentform/exclude_js_slugs_from_dequeue', array(__CLASS__, 'fluent_keep_path'));
+        foreach (array('fluent_crm_asset_listed_slugs', 'fluent_boards/asset_listed_slugs', 'fluent_booking/asset_listed_slugs') as $hook) {
+            add_filter($hook, array(__CLASS__, 'fluent_keep_pattern'));
+        }
+    }
+
+    /**
+     * Keep SEO Pro Stack's scripts on Fluent Forms' screens, which its "no
+     * conflict" mode would remove: the colour mode's menu, the contrast
+     * guard and the other admin-wide tools (faster navigation, notices).
+     * Fluent Forms matches part of each script's address.
+     *
+     * @param mixed $slugs Parts of addresses to keep.
+     * @return array<int,string>
+     */
+    public static function fluent_keep_path($slugs) {
+        $slugs   = is_array($slugs) ? $slugs : array();
+        $slugs[] = '/' . basename(SEOPROSTACK_DIR) . '/';
+        return $slugs;
+    }
+
+    /**
+     * The same for FluentCRM, Fluent Boards and Fluent Booking, which match
+     * addresses with regular expression parts. Scripts only: Fluent Booking
+     * applies the list to styles too, and its screens keep their own colour
+     * mode, without SEO Pro Stack's stylesheet.
+     *
+     * @param mixed $slugs Regular expression parts of addresses to keep.
+     * @return array<int,string>
+     */
+    public static function fluent_keep_pattern($slugs) {
+        $slugs = is_array($slugs) ? $slugs : array();
+        if (doing_action('wp_print_styles')) {
+            return $slugs;
+        }
+        $slugs[] = '\/' . preg_quote(basename(SEOPROSTACK_DIR), '/') . '\/';
+        return $slugs;
     }
 
     /**

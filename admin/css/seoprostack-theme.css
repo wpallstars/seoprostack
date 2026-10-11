@@ -1533,6 +1533,24 @@ html.sps-dark body[class*="page_fluent_forms"] .ff_header .ff_menu li.active .ff
 	background-color: #1b3048;
 }
 
+html.sps-dark body[class*="page_fluent_forms"] :is(.ff_header .ff_menu_link, .ff_header .global-search-menu-button .shortcut) {
+	color: var(--sps-ui-muted);
+}
+
+html.sps-dark body[class*="page_fluent_forms"] :is(.el-table .cell strong, .lead-title, .ff_card_title, .el-dialog h4, .ff_section_title, .ff_header .ff_menu_link:hover) {
+	color: var(--sps-ui-text);
+}
+
+html.sps-dark body[class*="page_fluent_forms"] :is(.el-button--soft, .el-button--soft-2) {
+	color: var(--sps-ui-accent);
+	background-color: #1b3048;
+	border-color: transparent;
+}
+
+html.sps-dark body[class*="page_fluent_forms"] .el-radio-group.ff_radio_group_s2 {
+	background-color: var(--sps-ui-raised);
+}
+
 /*
  * Rank Math: its screens, the editor's sidebar and meta boxes (#fff, #f8f9fa
  * and #f0f2f4 surfaces, #b5bfc9 lines, #242628 text). Each selector is Rank
@@ -1608,8 +1626,17 @@ html.sps-dark .rank-math-tab-panel > .components-tab-panel__tabs .components-tab
 	background: var(--sps-ui-canvas);
 }
 
-html.sps-dark .rank-math-tab-panel > .components-tab-panel__tab-content {
+html.sps-dark .rank-math-tab-panel > .components-tab-panel__tab-content,
+html.sps-dark .rank-math-tab-panel > .components-tab-panel__tabs + .components-tab-panel__tab-content {
 	background: var(--sps-ui-canvas);
+}
+
+/* Its selects and toggle groups (inline styles, three classes deep). */
+html.sps-dark .rank-math-select-control.rank-math-select-control.rank-math-select-control .components-select-control__input,
+html.sps-dark .components-base-control .components-base-control__field .rank-math-toggle-group-control.components-toggle-group-control {
+	color: var(--sps-ui-text);
+	background-color: var(--sps-ui-canvas);
+	border-color: var(--sps-ui-field-border);
 }
 
 html.sps-dark :is(.rank-math-seo-analysis-header, .rank-math-import-export .components-tab-panel__tabs-item.is-active, .rank-math-import-export .components-tab-panel__tabs-item::after) {
