@@ -98,14 +98,42 @@
 		var watcher = null;
 		var on = false;
 		var bgs = null;
+		var probe;
+		var probed = new Map();
 
+		/*
+		 * A computed colour as sRGB. Colours in other spaces (oklch, as the
+		 * Dark primary on WordPress's buttons, color-mix() results) are read
+		 * as the browser paints them, through a one-pixel canvas; taken as
+		 * transparent, the button's text was measured on what is behind the
+		 * button instead.
+		 */
 		function rgb(value) {
-			var m = /rgba?\(([^)]+)\)/.exec(value || '');
-			if (!m) {
-				return null;
+			var m = /^rgba?\(([^)]+)\)$/.exec(value || '');
+			if (m) {
+				var p = m[1].split(/[\s,/]+/).filter(Boolean).map(parseFloat);
+				return { r: p[0], g: p[1], b: p[2], a: p.length > 3 ? p[3] : 1 };
 			}
-			var p = m[1].split(/[\s,/]+/).filter(Boolean).map(parseFloat);
-			return { r: p[0], g: p[1], b: p[2], a: p.length > 3 ? p[3] : 1 };
+			if (!value || probed.has(value)) {
+				return value ? probed.get(value) : null;
+			}
+			if (probe === undefined) {
+				var canvas = document.createElement('canvas');
+				canvas.width = 1;
+				canvas.height = 1;
+				probe = canvas.getContext('2d', { willReadFrequently: true });
+			}
+			var out = null;
+			if (probe) {
+				probe.clearRect(0, 0, 1, 1);
+				probe.fillStyle = 'rgba(0, 0, 0, 0)';
+				probe.fillStyle = value;
+				probe.fillRect(0, 0, 1, 1);
+				var d = probe.getImageData(0, 0, 1, 1).data;
+				out = { r: d[0], g: d[1], b: d[2], a: d[3] / 255 };
+			}
+			probed.set(value, out);
+			return out;
 		}
 		function over(top, under) {
 			return { r: top.r * top.a + under.r * (1 - top.a), g: top.g * top.a + under.g * (1 - top.a), b: top.b * top.a + under.b * (1 - top.a), a: 1 };

@@ -262,8 +262,14 @@ html.sps-dark :is(#wpwrap, #wpcontent, #wpbody, #wpbody-content) {
 	background: var(--sps-ui-canvas);
 }
 
-/* Headings; another plugin's own heading colour still wins. */
-:where(html.sps-dark :is(#wpbody, .components-modal__frame, .media-modal, [id="TB_window"])) :is(h1, h2, h3, h4, h5, h6) {
+/*
+ * Headings; another plugin's own heading colour still wins. This, the link
+ * and code rules below and the field rules never reach the block editor's
+ * canvas (.editor-styles-wrapper) where it is not in a frame of its own
+ * (widget areas, in Widgets and the Customizer): it keeps the theme's
+ * colours, as in the post editor.
+ */
+:where(html.sps-dark :is(#wpbody, .wp-customizer, .components-modal__frame, .media-modal, [id="TB_window"])) :is(h1, h2, h3, h4, h5, h6):where(:not(.editor-styles-wrapper *)) {
 	color: var(--sps-ui-text);
 }
 
@@ -272,12 +278,12 @@ html.sps-dark #wpbody :is(#dashboard-widgets, #poststuff, #nav-menu-meta, #col-l
 	color: var(--sps-ui-text);
 }
 
-:where(html.sps-dark :is(#wpbody, #wpfooter, .components-modal__frame, .media-modal, [id="TB_window"], .wp-pointer)) a {
+:where(html.sps-dark :is(#wpbody, #wpfooter, .wp-customizer, .components-modal__frame, .media-modal, [id="TB_window"], .wp-pointer)) a:where(:not(.editor-styles-wrapper *)) {
 	color: var(--sps-ui-accent);
 }
 
 /* WordPress darkens links on hover and focus (#135e96, #043959). */
-:where(html.sps-dark :is(#wpbody, #wpfooter, .components-modal__frame, .media-modal, [id="TB_window"], .wp-pointer)) a:is(:hover, :active, :focus) {
+:where(html.sps-dark :is(#wpbody, #wpfooter, .wp-customizer, .components-modal__frame, .media-modal, [id="TB_window"], .wp-pointer)) a:where(:not(.editor-styles-wrapper *)):is(:hover, :active, :focus) {
 	color: var(--sps-ui-text);
 }
 
@@ -293,7 +299,7 @@ html.sps-dark #wpbody :is(.form-wrap p, p.help, .form-wrap .edit-term-notes, .fo
 	color: var(--sps-ui-muted);
 }
 
-:where(html.sps-dark :is(#wpbody, .media-modal)) :is(code, kbd) {
+:where(html.sps-dark :is(#wpbody, .media-modal)) :is(code, kbd):where(:not(.editor-styles-wrapper *)) {
 	color: var(--sps-ui-text);
 	background: rgb(255 255 255 / 10%);
 }
@@ -343,44 +349,47 @@ html.sps-dark #contextual-help-columns {
 /*
  * WordPress's own :focus rules still win, so the focus ring stays. Pop-ups
  * added to <body> are listed too: jQuery UI date pickers, and Admin Columns'
- * inline editor and modals (bulk editing).
+ * inline editor and modals (bulk editing). The Customizer (.wp-customizer)
+ * has no #wpbody; its preview is a frame of its own, so this reaches only
+ * its controls. Fields in the block editor's canvas keep the theme's look
+ * (see Headings).
  */
-:where(html.sps-dark :is(#wpbody, .components-modal__frame, .media-modal, [id="TB_window"], #sps-notices-wrap, .ui-datepicker, .ac-edit-popper, .ac-modal)) :is(input:not([type="checkbox"], [type="radio"], [type="submit"], [type="button"], [type="reset"], [type="file"], [type="color"], [type="range"], [type="image"]), textarea, select) {
+:where(html.sps-dark :is(#wpbody, .wp-customizer, .components-modal__frame, .media-modal, [id="TB_window"], #sps-notices-wrap, .ui-datepicker, .ac-edit-popper, .ac-modal)) :is(input:not([type="checkbox"], [type="radio"], [type="submit"], [type="button"], [type="reset"], [type="file"], [type="color"], [type="range"], [type="image"]), textarea, select):where(:not(.editor-styles-wrapper *)) {
 	color: var(--sps-ui-text);
 	background-color: var(--sps-ui-canvas);
 	border-color: var(--sps-ui-field-border);
 }
 
-:where(html.sps-dark :is(#wpbody, .media-modal, .ac-edit-popper, .ac-modal)) :is(input, textarea)::placeholder {
+:where(html.sps-dark :is(#wpbody, .wp-customizer, .media-modal, .ac-edit-popper, .ac-modal)) :is(input, textarea):where(:not(.editor-styles-wrapper *))::placeholder {
 	color: var(--sps-ui-subtle);
 }
 
-:where(html.sps-dark :is(#wpbody, .media-modal, .ac-edit-popper, .ac-modal)) :is(input:disabled, textarea:disabled, select:disabled, input[readonly], textarea[readonly]) {
+:where(html.sps-dark :is(#wpbody, .wp-customizer, .media-modal, .ac-edit-popper, .ac-modal)) :is(input:disabled, textarea:disabled, select:disabled, input[readonly], textarea[readonly]):where(:not(.editor-styles-wrapper *)) {
 	color: var(--sps-ui-subtle);
 	background-color: var(--sps-ui-raised);
 	border-color: var(--sps-ui-border);
 }
 
 /* The select arrow, drawn light (WordPress draws it dark grey). */
-:where(html.sps-dark :is(#wpbody, .media-modal, .ui-datepicker, .ac-edit-popper, .ac-modal)) select:not([multiple], .components-select-control__input) {
+:where(html.sps-dark :is(#wpbody, .wp-customizer, .media-modal, .ui-datepicker, .ac-edit-popper, .ac-modal)) select:not([multiple], .components-select-control__input):where(:not(.editor-styles-wrapper *)) {
 	background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20width%3D%2220%22%20height%3D%2220%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cpath%20d%3D%22M5%206l5%205%205-5%202%201-7%207-7-7%202-1z%22%20fill%3D%22%23c3c4c7%22%2F%3E%3C%2Fsvg%3E");
 }
 
 /* WordPress's own select:hover and :focus (.wp-core-ui) paint #1e1e1e text and borders. */
-html.sps-dark .wp-core-ui select:is(:hover, :focus) {
+html.sps-dark .wp-core-ui select:where(:not(.editor-styles-wrapper *)):is(:hover, :focus) {
 	color: var(--sps-ui-text);
 }
 
-html.sps-dark .wp-core-ui select:hover {
+html.sps-dark .wp-core-ui select:where(:not(.editor-styles-wrapper *)):hover {
 	border-color: var(--sps-ui-text);
 }
 
-html.sps-dark .wp-core-ui select:disabled:is(:hover, :focus) {
+html.sps-dark .wp-core-ui select:disabled:where(:not(.editor-styles-wrapper *)):is(:hover, :focus) {
 	color: var(--sps-ui-subtle);
 	border-color: var(--sps-ui-border);
 }
 
-:where(html.sps-dark :is(#wpbody, .media-modal, #sps-notices-wrap, .ac-edit-popper, .ac-modal)) :is(input[type="checkbox"], input[type="radio"]) {
+:where(html.sps-dark :is(#wpbody, .wp-customizer, .media-modal, #sps-notices-wrap, .ac-edit-popper, .ac-modal)) :is(input[type="checkbox"], input[type="radio"]):where(:not(.editor-styles-wrapper *)) {
 	background: var(--sps-ui-canvas);
 	border-color: var(--sps-ui-field-border);
 }
@@ -1431,7 +1440,7 @@ html.sps-dark .components-guide .components-modal__content {
 }
 
 /* The block editor's chrome (header, sidebars, inserter, list view); the canvas keeps the theme's colours. */
-html.sps-dark :is(.interface-interface-skeleton__header, .interface-interface-skeleton__sidebar, .interface-interface-skeleton__secondary-sidebar, .interface-interface-skeleton__footer, .interface-interface-skeleton__actions, .interface-complementary-area, .interface-complementary-area-header, .editor-header, .edit-post-header, .editor-sidebar, .editor-post-publish-panel, .editor-post-publish-panel__header, .editor-post-publish-panel__footer, .block-editor-inserter__main-area, .block-editor-inserter__menu, .block-editor-inserter__panel-header, .block-editor-inserter__search, .block-editor-tabbed-sidebar, .block-editor-tabbed-sidebar__tablist-and-close-button, .editor-list-view-sidebar, .block-editor-block-inspector, .block-editor-block-card, .edit-post-meta-boxes-area, .edit-post-meta-boxes-main, .edit-post-layout__metaboxes, .editor-document-bar, .block-editor-block-toolbar, .block-editor-block-contextual-toolbar, .block-editor-block-list__block-popover .components-toolbar, .block-editor-block-breadcrumb, .editor-post-panel__row, .editor-sidebar__panel-tabs, .block-editor-inserter__tablist-and-close-button, .block-editor-inserter__category-panel) {
+html.sps-dark :is(.interface-interface-skeleton__header, .interface-interface-skeleton__sidebar, .interface-interface-skeleton__secondary-sidebar, .interface-interface-skeleton__footer, .interface-interface-skeleton__actions, .interface-complementary-area, .interface-complementary-area-header, .editor-header, .edit-post-header, .edit-widgets-header, .editor-sidebar, .editor-post-publish-panel, .editor-post-publish-panel__header, .editor-post-publish-panel__footer, .block-editor-inserter__main-area, .block-editor-inserter__menu, .block-editor-inserter__panel-header, .block-editor-inserter__search, .block-editor-tabbed-sidebar, .block-editor-tabbed-sidebar__tablist-and-close-button, .editor-list-view-sidebar, .block-editor-block-inspector, .block-editor-block-card, .edit-post-meta-boxes-area, .edit-post-meta-boxes-main, .edit-post-layout__metaboxes, .editor-document-bar, .block-editor-block-toolbar, .block-editor-block-contextual-toolbar, .block-editor-block-list__block-popover .components-toolbar, .block-editor-block-breadcrumb, .editor-post-panel__row, .editor-sidebar__panel-tabs, .block-editor-inserter__tablist-and-close-button, .block-editor-inserter__category-panel) {
 	color: var(--sps-ui-text);
 	background-color: var(--sps-ui-surface);
 	border-color: var(--sps-ui-border);
@@ -1439,6 +1448,11 @@ html.sps-dark :is(.interface-interface-skeleton__header, .interface-interface-sk
 
 html.sps-dark :is(.editor-document-bar, .editor-document-bar__command) {
 	background-color: var(--sps-ui-raised);
+}
+
+/* The inserter's and list view's close button, on their tabs (#fff behind its icon). */
+html.sps-dark .block-editor-tabbed-sidebar__close-button {
+	background: var(--sps-ui-surface);
 }
 
 html.sps-dark :is(.editor-document-bar__shortcut, .block-editor-block-card__description, .editor-post-panel__row-label, .block-editor-inserter__panel-title, .block-editor-block-types-list__item-title, .editor-post-publish-panel__prepublish p, .block-editor-inspector-controls-tabs__hint) {
@@ -1502,14 +1516,33 @@ html.sps-dark .editor-document-bar__back.components-button.has-icon.has-text:hov
 	color: var(--sps-ui-text);
 }
 
-/* The grey around the canvas (#ddd) and the panels' keyboard toggles (#fff). */
-html.sps-dark :is(.editor-visual-editor, .edit-post-visual-editor) {
+/* The grey around the canvas (#ddd; #f0f0f0 behind Widgets' widget areas) and the panels' keyboard toggles (#fff). */
+html.sps-dark :is(.editor-visual-editor, .edit-post-visual-editor, .blocks-widgets-container .interface-interface-skeleton__content) {
 	background-color: var(--sps-ui-canvas);
 }
 
 html.sps-dark :is(.editor-layout__toggle-publish-panel, .editor-layout__toggle-sidebar-panel, .editor-layout__toggle-entities-saved-states-panel) {
 	background-color: var(--sps-ui-surface);
 	border-color: var(--sps-ui-border);
+}
+
+/*
+ * The canvas where it is not in a frame of its own (widget areas, in
+ * Widgets and the Customizer): WordPress resets its text to the colour
+ * scheme's (color: initial), white under Dark, on its white page.
+ */
+html.sps-dark .editor-styles-wrapper {
+	color-scheme: light;
+}
+
+/* Widgets: each widget area's title bar, over its blocks (#fff). */
+html.sps-dark .wp-block[data-type="core/widget-area"] .components-panel__body > .components-panel__body-title {
+	background: var(--sps-ui-surface);
+}
+
+/* Widgets' Add block button, pressed (#1e1e1e): filled with the text colour, as pressed buttons are elsewhere. */
+html.sps-dark .blocks-widgets-container .edit-widgets-header-toolbar > .components-button.has-icon.is-pressed {
+	background: var(--sps-ui-text);
 }
 
 html.sps-dark .editor-post-content-information {
@@ -1522,8 +1555,8 @@ html.sps-dark .editor-post-content-information {
  * Its controls pane, the panes that slide out beside it (widgets, menu
  * items, themes) and the bar under it: #f0f0f1 behind #fff section titles,
  * #50575e and #2c3338 text and #dcdcde lines, mostly set under IDs. The
- * preview keeps the site's colours. Its fields and links follow the rules
- * above (#customize-controls is in their lists).
+ * preview keeps the site's colours. Its headings, links and fields follow
+ * the rules above (.wp-customizer is in their lists).
  */
 html.sps-dark .wp-customizer :is(#customize-controls, #customize-sidebar-outer-content, #available-widgets, #available-widgets-filter, #available-menu-items, #customize-preview, .wp-full-overlay-sidebar .wp-full-overlay-header, .wp-full-overlay-footer, .wp-full-overlay-footer .devices, .customize-controls-close, .customize-controls-preview-toggle, .control-panel-themes .customize-themes-full-container, .customize-preview-header.themes-filter-bar, .filter-drawer, .themes-filter-bar .feature-filter-toggle.open, .theme-overlay .theme-actions, .theme-header),
 html.sps-dark .wp-customizer.outer-section-open #customize-controls .wp-full-overlay-sidebar-content,
@@ -1538,6 +1571,7 @@ html.sps-dark .wp-customizer :is(#customize-theme-controls, #customize-outer-the
 html.sps-dark .wp-customizer #customize-controls #customize-theme-controls .customize-themes-panel .accordion-section-title,
 html.sps-dark .wp-customizer #customize-theme-controls .control-panel-themes > .accordion-section-title,
 html.sps-dark .wp-customizer #customize-controls .customize-info :is(.accordion-section-title, .customize-panel-description, .customize-section-description),
+html.sps-dark .wp-customizer #customize-controls .no-widget-areas-rendered-notice,
 html.sps-dark .wp-customizer #customize-controls .panel-meta.customize-info .accordion-section-title:hover,
 html.sps-dark .wp-customizer #customize-controls .cannot-expand:hover .accordion-section-title,
 html.sps-dark .wp-customizer #customize-outer-theme-controls .customize-info .customize-section-description,
@@ -1553,9 +1587,14 @@ html.sps-dark .wp-customizer :is(.menu-item-bar .menu-item-handle, .customize-co
 	border-left-color: var(--sps-ui-border);
 }
 
-html.sps-dark .wp-customizer :is(.menu-item-settings, .customize-control-widget_form .widget-inside, #customize-theme-controls .widget-reorder-nav, #customize-theme-controls .move-widget-area, #available-menu-items :is(.open, [id="available-menu-items-search"]) .accordion-section-title, #available-menu-items .accordion-section-content .new-content-item-wrapper, .customize-control-dropdown-pages .new-content-item-wrapper) {
+html.sps-dark .wp-customizer :is(.menu-item-settings, .customize-control-widget_form .widget-inside, #customize-theme-controls .widget-reorder-nav, #customize-theme-controls .move-widget-area, #available-menu-items .open .accordion-section-title, #available-menu-items .accordion-section-content .new-content-item-wrapper, .customize-control-dropdown-pages .new-content-item-wrapper) {
 	background: var(--sps-ui-canvas);
 	border-color: var(--sps-ui-border);
+}
+
+/* The menu items' search bar (#f0f0f1 under two IDs). */
+html.sps-dark .wp-customizer #available-menu-items #available-menu-items-search .accordion-section-title {
+	background: var(--sps-ui-canvas);
 }
 
 html.sps-dark .wp-customizer :is(.customize-control-widget_form.wide-widget-control:is(.expanding, .expanded:not(.collapsing)) .widget-top, #available-widgets .widget-tpl:is(:hover, .selected)) {
@@ -1585,6 +1624,19 @@ html.sps-dark .wp-customizer :is(.customize-controls-close, .customize-controls-
 
 html.sps-dark .wp-customizer .wp-full-overlay-footer .devices button:is(.active, :focus, .active:hover) {
 	border-bottom-color: var(--sps-ui-accent);
+}
+
+/* The device buttons: a #f0f0f1 glow at their left, #fff on hover, #646970 icons. */
+html.sps-dark .wp-customizer .wp-full-overlay-footer .devices {
+	box-shadow: -20px 0 10px -5px var(--sps-ui-canvas);
+}
+
+html.sps-dark .wp-customizer .wp-full-overlay-footer .devices button:is(:hover, :focus) {
+	background-color: var(--sps-ui-surface);
+}
+
+html.sps-dark .wp-customizer .wp-full-overlay-footer .devices button::before {
+	color: var(--sps-ui-muted);
 }
 
 /* Text set in greys (#50575e, #2c3338, #3c434a, #1d2327). */
@@ -1647,6 +1699,25 @@ html.sps-dark .wp-customizer :is(body.adding-widget .add-new-widget, .adding-men
 	background: var(--sps-ui-raised);
 }
 
+/* Block-based widget areas: the pane, block settings and inserter (#fff), the toolbar over the blocks (#f0f0f1) and the welcome guide's line. */
+html.sps-dark .wp-customizer #customize-theme-controls .customize-pane-child:is(.customize-widgets__sidebar-section, .customize-widgets-layout__inspector),
+html.sps-dark .wp-customizer :is(.customize-widgets-layout__inserter-panel, .block-editor-inserter__quick-inserter .block-editor-inserter__panel-content) {
+	background: var(--sps-ui-canvas);
+}
+
+html.sps-dark .wp-customizer .customize-widgets-header {
+	background: var(--sps-ui-surface);
+}
+
+/* Its Add block button, pressed (#1e1e1e): filled with the text colour, as pressed buttons are elsewhere. */
+html.sps-dark .wp-customizer .customize-widgets-header-toolbar .customize-widgets-header-toolbar__inserter-toggle.components-button.has-icon.is-pressed {
+	background: var(--sps-ui-text);
+}
+
+html.sps-dark .wp-customizer :is(.customize-widgets-header, .customize-widgets-layout__inserter-panel-header, .customize-widgets-welcome-guide__separator) {
+	border-color: var(--sps-ui-border);
+}
+
 /*
  * Kadence's controls: section titles in its panels and radio groups
  * (#f9f9f9), buttons and sortable items (#fff), field lines (#e2e4e7,
@@ -1687,9 +1758,15 @@ html.sps-dark .wp-customizer :is(.kadence-build-tabs .nav-tab.nav-tab-active, .k
 	background: var(--sps-ui-surface);
 }
 
+/* The other builder tab keeps WordPress's tab grey (#dcdcde), as wp-admin's tabs do in Dark. */
+html.sps-dark .wp-customizer .kadence-build-tabs .nav-tab:not(.nav-tab-active) {
+	color: var(--sps-ui-muted);
+	background: var(--sps-ui-raised);
+}
+
 html.sps-dark .wp-customizer :is(.kadence-build-tabs .nav-tab:not(.nav-tab-active), .kadence-compontent-tabs .kadence-compontent-tabs-button:not(.nav-tab-active)):hover {
 	color: var(--sps-ui-text) !important;
-	background: var(--sps-ui-raised) !important;
+	background: var(--sps-ui-border) !important;
 	border-bottom-color: var(--sps-ui-surface);
 }
 
@@ -1701,14 +1778,16 @@ html.sps-dark .wp-customizer :is(.kadence-sorter-item-panel-content .components-
 	color: var(--sps-ui-bad);
 }
 
-/* Its tour button, beside Close (#f0f0f1, #fff on hover). */
-html.sps-dark .wp-customizer #customize-header-actions button[id="kadence-tour"] {
+/* Its tour button, beside Close (#f0f0f1, #fff on hover, set under two IDs; its icon takes fill and stroke from the button). */
+html.sps-dark .wp-customizer #customize-header-actions button#kadence-tour {
 	color: var(--sps-ui-muted);
+	fill: currentcolor;
+	stroke: currentcolor;
 	background: var(--sps-ui-canvas);
 	border-color: var(--sps-ui-canvas) var(--sps-ui-border) var(--sps-ui-canvas) var(--sps-ui-canvas);
 }
 
-html.sps-dark .wp-customizer #customize-header-actions button[id="kadence-tour"]:is(:hover, :focus, .active) {
+html.sps-dark .wp-customizer #customize-header-actions button#kadence-tour:is(:hover, :focus, .active) {
 	color: var(--sps-ui-accent);
 	background: var(--sps-ui-surface);
 	border-top-color: var(--sps-ui-accent);
