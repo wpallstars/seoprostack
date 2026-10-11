@@ -75,6 +75,27 @@ final class SEOProStack_Admin_Theme {
         foreach (array('fluent_crm_asset_listed_slugs', 'fluent_boards/asset_listed_slugs', 'fluent_booking/asset_listed_slugs') as $hook) {
             add_filter($hook, array(__CLASS__, 'fluent_keep_pattern'));
         }
+        add_filter('vg_sheet_editor/js_data', array(__CLASS__, 'sheet_editor_mode'));
+    }
+
+    /**
+     * WP Sheet Editor's spreadsheet has its own dark mode, one setting for
+     * the whole site (Auto, which follows the computer, Light or Dark). For
+     * someone who has chosen a mode here, the spreadsheet opens in that mode
+     * instead (System as Auto), so it matches the rest of wp-admin; its
+     * setting is not changed. The script keeps the two in step on the
+     * screen (admin/js/seoprostack-theme.js).
+     *
+     * @param mixed $settings The spreadsheet's settings for its script.
+     * @return mixed
+     */
+    public static function sheet_editor_mode($settings) {
+        if (!is_array($settings) || !self::chosen() || !self::screen_applies()) {
+            return $settings;
+        }
+        $mode                   = self::mode();
+        $settings['color_mode'] = 'system' === $mode ? '' : $mode;
+        return $settings;
     }
 
     /**

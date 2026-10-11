@@ -442,6 +442,42 @@
 	hookMce();
 	document.addEventListener('readystatechange', hookMce);
 
+	/*
+	 * WP Sheet Editor's spreadsheet has its own dark mode (vgse-dark-mode on
+	 * <html>), which opens in this mode once one is chosen
+	 * (SEOProStack_Admin_Theme::sheet_editor_mode()). A change here switches
+	 * it too, and its own Dark mode switch (in its Settings menu) changes
+	 * this mode, so the two always match.
+	 */
+	function sheetEditor() {
+		var sheet = window.vgse_editor_settings;
+		return !!data.applies && !!sheet && !!sheet.is_backend && !!sheet.is_editor_page;
+	}
+	function sheetMode(nowDark) {
+		var box = document.getElementById('toggle_dark_mode');
+		root.classList.toggle('vgse-dark-mode', nowDark);
+		if (box) {
+			box.checked = nowDark;
+		}
+	}
+	document.addEventListener('sps-themechange', function (event) {
+		if (sheetEditor()) {
+			sheetMode(!!(event.detail && event.detail.dark));
+		}
+	});
+	document.addEventListener('change', function (event) {
+		var box = event.target;
+		if (!box || box.id !== 'toggle_dark_mode' || !sheetEditor()) {
+			return;
+		}
+		if (saving) {
+			// The last change is still being saved: the spreadsheet stays as the screen is.
+			sheetMode(dark);
+			return;
+		}
+		choose(box.checked ? 'dark' : 'light');
+	});
+
 	// Classes on <html>, the admin bar icon, its name and the menu's tick.
 	function paint(which) {
 		var nowDark = !!data.applies && isDark(which);
