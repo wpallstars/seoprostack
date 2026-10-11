@@ -446,6 +446,11 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
             return;
         }
         $due = self::next_due();
+        if (null === $due) {
+            // Nothing waiting, retrying or left to delete: an old error no
+            // longer applies, so the panel and status stop showing it.
+            delete_option(self::ERROR);
+        }
         if (null !== $due && $due <= time() + 60) {
             return;
         }
