@@ -1477,6 +1477,17 @@ html.sps-dark .components-modal__frame :is(.kb-action-button, .kb-subtab-button,
 	background-color: var(--sps-ui-raised);
 }
 
+/* Its category list sets #f5f5f5 through six classes. */
+html.sps-dark .components-modal__frame .kt-prebuilt-sidebar .kb-library-sidebar-bottom button.components-button.kb-category-button {
+	color: var(--sps-ui-muted);
+	background-color: transparent;
+}
+
+html.sps-dark .components-modal__frame .kt-prebuilt-sidebar .kb-library-sidebar-bottom button.components-button.kb-category-button:is(.is-pressed, :hover, :focus) {
+	color: var(--sps-ui-text);
+	background-color: var(--sps-ui-raised);
+}
+
 html.sps-dark .components-modal__frame :is(.kb-pattern-inline-title, .block-editor-block-patterns-list__item-title) {
 	color: var(--sps-ui-muted);
 }
