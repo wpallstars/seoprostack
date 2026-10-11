@@ -13,6 +13,11 @@
  * somewhere in the post (title, excerpt, content or a field), and `-word`
  * leaves out posts that have it anywhere.
  *
+ * Fields listed in Fields to leave out (Troubleshooting), and fields a
+ * plugin leaves out with the `seoprostack_field_search_field` filter, are
+ * not searched; leaving out a group, repeater or flexible content field
+ * leaves out every field inside it.
+ *
  * Only the main query of a search page or admin list: widgets, blocks,
  * REST requests and the media library keep core's search.
  *
@@ -34,6 +39,9 @@ class SEOProStack_Field_Search extends SEOProStack_Feature {
 
     const KEY = 'field_search';
 
+    /** Field names or keys that are never searched, one per line. */
+    const SKIP_KEY = 'field_search_skip';
+
     /** Field types whose values are searched. */
     const TYPES = array('text', 'textarea', 'wysiwyg', 'email', 'url', 'number', 'select', 'checkbox', 'radio');
 
@@ -51,6 +59,18 @@ class SEOProStack_Field_Search extends SEOProStack_Feature {
                 'label'       => __('Search custom fields', 'seoprostack'),
                 'description' => __('Searches on the site and in admin lists also look in text fields made with Advanced Custom Fields or Secure Custom Fields, including repeater and flexible content rows.', 'seoprostack'),
                 'replaces'    => array('acf-better-search' => 'ACF: Better Search'),
+            ),
+            // Plugins that define fields leave theirs out with the
+            // seoprostack_field_search_field filter; this list is the bypass
+            // for site owners without code, so it sits under Troubleshooting.
+            self::SKIP_KEY => array(
+                'type'        => 'lines',
+                'default'     => '',
+                'rows'        => 4,
+                'parent'      => self::KEY,
+                'group'       => 'troubleshooting',
+                'label'       => __('Fields to leave out', 'seoprostack'),
+                'description' => __('One field name or field key per line. Searches never look in these fields; a group, repeater or flexible content field leaves out everything in it. Add fields your pages never show, such as private notes: a search shows no values, but a match tells which post holds what someone searched for.', 'seoprostack'),
             ),
         );
     }
@@ -78,48 +98,79 @@ class SEOProStack_Field_Search extends SEOProStack_Feature {
     }
 
     /**
-     * Keys (field_…) of the searched fields, sub fields included.
+     * Keys (field_…) of the searched fields, sub fields included, once per
+     * request and context.
      *
+     * @param string $context 'site' for searches on the site, 'admin' for
+     *                        admin list searches.
      * @return string[]
      */
-    public static function field_keys() {
-        static $keys = null;
-        if (null !== $keys) {
-            return $keys;
+    public static function field_keys($context = 'site') {
+        static $cache = array();
+        $context = 'admin' === $context ? 'admin' : 'site';
+        if (isset($cache[$context])) {
+            return $cache[$context];
         }
         $keys = array();
-        if (!function_exists('acf_get_field_groups') || !function_exists('acf_get_fields')) {
-            return $keys;
+        if (function_exists('acf_get_field_groups') && function_exists('acf_get_fields')) {
+            $skip = preg_split('/[\r\n]+/', (string) SEOProStack_Settings::get(self::SKIP_KEY)) ?: array();
+            $skip = array_values(array_filter(array_map('trim', $skip), function ($line) {
+                return '' !== $line;
+            }));
+            foreach ((array) acf_get_field_groups() as $group) {
+                self::collect((array) acf_get_fields($group), $keys, $skip, $context);
+            }
         }
-        foreach ((array) acf_get_field_groups() as $group) {
-            self::collect((array) acf_get_fields($group), $keys);
-        }
-        $keys = array_values(array_unique($keys));
-        return $keys;
+        $cache[$context] = array_values(array_unique($keys));
+        return $cache[$context];
     }
 
     /**
      * Add the searched fields' keys, looking inside repeaters, groups and
-     * flexible content layouts.
+     * flexible content layouts. A field that is left out takes every field
+     * inside it with it.
      *
-     * @param array    $fields Fields.
-     * @param string[] $keys   Keys found so far.
+     * @param array    $fields  Fields.
+     * @param string[] $keys    Keys found so far.
+     * @param string[] $skip    Field names and keys in Fields to leave out.
+     * @param string   $context 'site' or 'admin'.
      */
-    private static function collect(array $fields, array &$keys) {
+    private static function collect(array $fields, array &$keys, array $skip, $context) {
         foreach ($fields as $field) {
             if (!is_array($field) || empty($field['key'])) {
+                continue;
+            }
+            $listed = in_array((string) $field['key'], $skip, true)
+                || (isset($field['name']) && in_array((string) $field['name'], $skip, true));
+            /**
+             * Filter whether Search custom fields looks in a field's values.
+             *
+             * Runs once per request and context for each field, before the
+             * fields inside it: returning false for a group, repeater or
+             * flexible content field leaves out every field inside it. A
+             * field listed in Fields to leave out stays out whatever this
+             * returns.
+             *
+             * @param bool   $search  Whether to search the field. False when
+             *                        Fields to leave out lists it.
+             * @param array  $field   ACF field array (key, name, type, parent…).
+             * @param string $context 'site' for searches on the site, 'admin'
+             *                        for admin list searches.
+             */
+            $search = apply_filters('seoprostack_field_search_field', !$listed, $field, $context);
+            if ($listed || !$search) {
                 continue;
             }
             if (isset($field['type']) && in_array($field['type'], self::TYPES, true)) {
                 $keys[] = (string) $field['key'];
             }
             if (!empty($field['sub_fields']) && is_array($field['sub_fields'])) {
-                self::collect($field['sub_fields'], $keys);
+                self::collect($field['sub_fields'], $keys, $skip, $context);
             }
             if (!empty($field['layouts']) && is_array($field['layouts'])) {
                 foreach ($field['layouts'] as $layout) {
                     if (!empty($layout['sub_fields']) && is_array($layout['sub_fields'])) {
-                        self::collect($layout['sub_fields'], $keys);
+                        self::collect($layout['sub_fields'], $keys, $skip, $context);
                     }
                 }
             }
@@ -147,7 +198,7 @@ class SEOProStack_Field_Search extends SEOProStack_Feature {
             return $search;
         }
         $terms = (array) $query->get('search_terms');
-        $keys  = self::field_keys();
+        $keys  = self::field_keys(is_admin() ? 'admin' : 'site');
         if (!$terms || !$keys) {
             return $search;
         }
