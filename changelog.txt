@@ -2,6 +2,10 @@
 
 Every change to SEO Pro Stack. readme.txt lists the latest version in short.
 
+= 1.3.36 =
+* Fix: Dark mode covers more screens: Rank Math's setup wizard and the example previews and menus in Titles & Meta; WooCommerce Home and Analytics; Admin Columns' totals row; the Media Library's search; the theme details overlay and plugin details; rich text fields outside the post editor, such as the profile's biography; Fluent Forms' editor, settings menus and reports; Kadence Blocks' settings and home, the Kadence theme's dashboard and Starter Templates; Meow Apps' screens (Media File Renamer, AI Engine and the rest); and the loading animations of WordPress, Kadence and WooCommerce (GitHub issue #683).
+* New: a colour mode change shows at once in every admin tab and window open in the same browser, in the admin bar icon and in SEO Pro Stats' button alike, and on a screen brought back with Back (GitHub issue #683).
+
 = 1.3.35 =
 * Fix: in Dark mode, moving between admin screens with Load pages before the click (Also in the admin) no longer flashes white: the placeholder shown while the next screen loads is dark too (GitHub issue #680).
 * Fix: Dark mode covers more of wp-admin and other plugins' screens: the block editor's title and command bar on hover, the save panel and the area around the canvas (the canvas keeps the theme's colours); searchable dropdowns (Select2 and selectWoo, Chosen, Choices.js, Tom Select, jQuery UI) in themes' and plugins' settings; Rank Math's screens, editor sidebar, meta boxes and toolbar scores; Admin Columns (Pro) settings, filters, smart filters and inline editing; Advanced Custom Fields and Secure Custom Fields; Kadence Blocks' Design Library; and Fluent Forms' screens (GitHub issue #680).
