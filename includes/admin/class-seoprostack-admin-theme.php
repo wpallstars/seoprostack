@@ -380,9 +380,10 @@ final class SEOProStack_Admin_Theme {
      * Once someone has chosen a mode (Light included, so a choice made in
      * another browser reaches this one), it also passes it to the Fluent
      * plugins' own colour mode (FluentCRM, Fluent Booking, FluentSMTP, Fluent
-     * Support...) and LiteSpeed Cache's, kept in the browser, before their
-     * own scripts read it, so their screens open in the same mode, without
-     * a flash. Light as the default, never chosen, leaves their own choice.
+     * Support...), LiteSpeed Cache's and Bit Social's, kept in the browser,
+     * before their own scripts read it, so their screens open in the same
+     * mode, without a flash. Light as the default, never chosen, leaves their
+     * own choice.
      */
     public static function head() {
         if (!self::screen_applies()) {
@@ -403,7 +404,8 @@ final class SEOProStack_Admin_Theme {
             . 'r.classList.add("sps-theme-"+m);'
             . 'if(d){r.classList.add("sps-dark");}'
             . 'if(c){try{var s=localStorage;s.setItem("fluent_theme_mode",m);s.setItem("fs-theme",m==="system"?"system:"+(d?"dark":"light"):m);'
-            . 'if(m==="system"){s.removeItem("litespeed-dark-preference");}else{s.setItem("litespeed-dark-preference",m);}}catch(e){}}'
+            . 'if(m==="system"){s.removeItem("litespeed-dark-preference");}else{s.setItem("litespeed-dark-preference",m);}'
+            . 'var b=JSON.parse(s.getItem("bit-social-config")||"{}")||{};b.isDarkTheme=d;s.setItem("bit-social-config",JSON.stringify(b));}catch(e){}}'
             . '})(document.documentElement,' . wp_json_encode($mode) . ',' . ($chosen ? 'true' : 'false') . ');';
         return wp_get_inline_script_tag($script, array('id' => 'seoprostack-theme-mode'));
     }

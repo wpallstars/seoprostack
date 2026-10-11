@@ -548,12 +548,14 @@
 
 	/*
 	 * Fluent plugins (FluentCRM, Fluent Booking, FluentSMTP, Fluent Boards,
-	 * Fluent Support...) and LiteSpeed Cache have their own light and dark
-	 * modes, kept in this browser. A choice made here is passed on, so their
-	 * screens open in the same mode from the next one on (the screen's
-	 * <head> does the same once a mode has been chosen, Light included).
+	 * Fluent Support...), LiteSpeed Cache and Bit Social have their own light
+	 * and dark modes, kept in this browser. A choice made here is passed on,
+	 * so their screens open in the same mode from the next one on (the
+	 * screen's <head> does the same once a mode has been chosen, Light
+	 * included).
 	 */
 	function shareMode(which) {
+		var bit;
 		try {
 			window.localStorage.setItem('fluent_theme_mode', which);
 			window.localStorage.setItem('fs-theme', which === 'system' ? 'system:' + (media && media.matches ? 'dark' : 'light') : which);
@@ -563,6 +565,10 @@
 			} else {
 				window.localStorage.setItem('litespeed-dark-preference', which);
 			}
+			// Bit Social keeps its mode with its other choices (its menu's width...).
+			bit = JSON.parse(window.localStorage.getItem('bit-social-config') || '{}') || {};
+			bit.isDarkTheme = isDark(which);
+			window.localStorage.setItem('bit-social-config', JSON.stringify(bit));
 		} catch (e) {
 			// Storage is off: their own choice stays.
 		}
