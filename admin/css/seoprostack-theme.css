@@ -44,6 +44,23 @@ html.sps-dark {
 	--sps-ui-hover: rgb(255 255 255 / 6%);
 	--sps-ui-stripe: rgb(255 255 255 / 4%);
 
+	/* Meow Apps' NekoUI palette (see Meow Apps below). */
+	--neko-wp-background-color: var(--sps-ui-canvas);
+	--neko-background-color: var(--sps-ui-canvas);
+	--neko-input-background: var(--sps-ui-canvas);
+	--neko-input-border: var(--sps-ui-field-border);
+	--neko-font-color: var(--sps-ui-text);
+	--neko-gray-30: var(--sps-ui-text);
+	--neko-gray-40: var(--sps-ui-muted);
+	--neko-gray-50: var(--sps-ui-subtle);
+	--neko-gray-60: #8c8f94;
+	--neko-gray-70: #646970;
+	--neko-gray-80: #50575e;
+	--neko-gray-90: var(--sps-ui-border);
+	--neko-gray-95: var(--sps-ui-raised);
+	--neko-gray-98: #242b30;
+	--neko-secondary: #1b3048;
+
 	color-scheme: dark;
 	background: var(--sps-ui-canvas);
 }
@@ -1244,14 +1261,15 @@ html.sps-dark .components-spinner {
  */
 html.sps-dark :is(.spinner, img:is([src*="/spinner"], [src*="wpspin"], [src*="/loading.gif"], [src*="loadingAnimation"], [src*="ajax-loader"], [src*="/icons/loader.svg"])),
 html.sps-dark .imgedit-wait::before,
-html.sps-dark #TB_window.plugin-details-modal.thickbox-loading::before,
+html.sps-dark [id="TB_window"].plugin-details-modal.thickbox-loading::before,
 html.sps-dark .blockUI.blockOverlay::before,
 html.sps-dark .woocommerce .loader::before {
 	filter: invert(1) hue-rotate(180deg);
 }
 
-html.sps-dark #TB_window.plugin-details-modal.thickbox-loading::before {
-	background-color: transparent;
+/* Over WordPress's #TB_window... white (an ID selector). */
+html.sps-dark [id="TB_window"].plugin-details-modal.thickbox-loading::before {
+	background-color: transparent !important;
 }
 
 /* Their white veils over content while it loads (blockUI sets it inline). */
@@ -1263,9 +1281,10 @@ html.sps-dark .blockUI.blockOverlay {
 	background-color: var(--sps-ui-canvas) !important;
 }
 
-html.sps-dark #TB_load {
-	background-color: var(--sps-ui-raised);
-	border-color: var(--sps-ui-border);
+/* Over thickbox's #TB_load colours (an ID selector). */
+html.sps-dark [id="TB_load"] {
+	background-color: var(--sps-ui-raised) !important;
+	border-color: var(--sps-ui-border) !important;
 }
 
 html.sps-dark .components-guide__page,
@@ -1682,27 +1701,9 @@ html.sps-dark #wpbody ul.ff_dashboard_stats li:hover a {
  * Meow Apps dashboard): NekoUI, styled-components with fixed colours (white
  * panels, #2a303c text) and no dark mode. Its stable `neko-*` class names
  * and AI Engine's `mwai-*` ones are styled here; the blue header and brand
- * buttons stay as they are. Its :root palette is flipped too, for the parts
- * that read it.
+ * buttons stay as they are. Its :root palette is flipped too (in the
+ * palette at the top), for the parts that read it.
  */
-html.sps-dark {
-	--neko-wp-background-color: var(--sps-ui-canvas);
-	--neko-background-color: var(--sps-ui-canvas);
-	--neko-input-background: var(--sps-ui-canvas);
-	--neko-input-border: var(--sps-ui-field-border);
-	--neko-font-color: var(--sps-ui-text);
-	--neko-gray-30: var(--sps-ui-text);
-	--neko-gray-40: var(--sps-ui-muted);
-	--neko-gray-50: var(--sps-ui-subtle);
-	--neko-gray-60: #8c8f94;
-	--neko-gray-70: #646970;
-	--neko-gray-80: #50575e;
-	--neko-gray-90: var(--sps-ui-border);
-	--neko-gray-95: var(--sps-ui-raised);
-	--neko-gray-98: #242b30;
-	--neko-secondary: #1b3048;
-}
-
 html.sps-dark .neko-page {
 	color: var(--sps-ui-text);
 	background-color: var(--sps-ui-canvas);
@@ -1999,7 +2000,7 @@ html.sps-dark body[class*="page_fluent_forms"] .completion-rates-gauge-section .
 	background-color: var(--sps-ui-raised);
 }
 
-html.sps-dark body[class*="page_fluent_forms"] :is(.fluentform-reports :is(.ff_card .ff_card_head :is(h3, h4), .title-section h3, .no-data-state h4, .form-title, .reports-tabs-section .reports-main-tabs .el-tabs__item:is(.is-active, :hover), .reports-header .reports-title, .el-icon-arrow-up, .advanced-filter-section .filter-group .filter-label), .form-stats-section :is(.section-title, .stats-card .stats-content .stats-value), .conversion-chart-section :is(.chart-header h3, .chart-legend .legend-info .info-value), .completion-rates-gauge-section :is(.gauge-percentage, .stat-value), .submission-heatmap-section .date-cell, .transactions-table-section :is(.transactions-table-header h3, .modern-table .amount-text), .top-performing-subscription-plan-section .total-amount, .payment-by-type-section :is(.amount-value, .status-amount), .country-heatmap-section .submission-country-heatmap :is(.card-header h3, .stats-summary .stat-item .stat-value), .report-line-chart .line-chart-header h3, .line-chart-header .chart-type-toggle .el-radio-button.is-active .el-radio-button__inner, .summary-value, .method-name, .chart-title-section h3, .no-data h4, .source-url, .email-info .email-address, .country-name, .date-info .date-value, #ff_reports .header-label, .ff_card_head h3) {
+html.sps-dark body[class*="page_fluent_forms"] #wpbody :is(.fluentform-reports :is(.ff_card .ff_card_head :is(h3, h4), .title-section h3, .no-data-state h4, .form-title, .reports-tabs-section .reports-main-tabs .el-tabs__item:is(.is-active, :hover), .reports-header .reports-title, .el-icon-arrow-up, .advanced-filter-section .filter-group .filter-label), .form-stats-section :is(.section-title, .stats-card .stats-content .stats-value), .conversion-chart-section :is(.chart-header h3, .chart-legend .legend-info .info-value), .completion-rates-gauge-section :is(.gauge-percentage, .stat-value), .submission-heatmap-section .date-cell, .transactions-table-section :is(.transactions-table-header h3, .modern-table .amount-text), .top-performing-subscription-plan-section .total-amount, .payment-by-type-section :is(.amount-value, .status-amount), .country-heatmap-section .submission-country-heatmap :is(.card-header h3, .stats-summary .stat-item .stat-value), .report-line-chart .line-chart-header h3, .line-chart-header .chart-type-toggle .el-radio-button.is-active .el-radio-button__inner, .summary-value, .method-name, .chart-title-section h3, .no-data h4, .source-url, .email-info .email-address, .country-name, .date-info .date-value, [id="ff_reports"] .header-label, .ff_card_head h3) {
 	color: var(--sps-ui-text);
 }
 
@@ -2017,7 +2018,7 @@ html.sps-dark body[class*="page_fluent_forms"] .el-radio-group.ff_radio_group_s2
 }
 
 /* Fluent Forms' form editor: the top menu, the form canvas and the fields sidebar. */
-html.sps-dark body[class*="page_fluent_forms"] :is(.form_internal_menu, .form_internal_menu_inner, .form-editor--body, #js-form-editor--body .form-editor__body-content, .panel__body .panel__placeholder, .panel__body--item, .vddl-list__handle_scrollable, .form-editor--sidebar-content .nav-tab-list, .nav-tab-items, .option-fields-section, .ff_layout_section_sidebar, .ff_sidebar_toggle, .editor-inserter__content-item, .form-editor--sidebar .ff_option_group, .form-editor--sidebar .ff_option_group__row, .ff_conv_section .panel__body--item.selected, .ff-entry-ranking-editor__item, .editor_play_video, .wp_vue_editor_wrapper, .ff_conditions_warp .group-container .group-preview) {
+html.sps-dark body[class*="page_fluent_forms"] #wpbody :is(.form_internal_menu, .form_internal_menu_inner, .form-editor--body, [id="js-form-editor--body"] .form-editor__body-content, .panel__body .panel__placeholder, .panel__body--item, .vddl-list__handle_scrollable, .form-editor--sidebar-content .nav-tab-list, .nav-tab-items, .option-fields-section, .ff_layout_section_sidebar, .ff_sidebar_toggle, .editor-inserter__content-item, .form-editor--sidebar .ff_option_group, .form-editor--sidebar .ff_option_group__row, .ff_conv_section .panel__body--item.selected, .ff-entry-ranking-editor__item, .editor_play_video, .wp_vue_editor_wrapper, .ff_conditions_warp .group-container .group-preview) {
 	color: var(--sps-ui-text);
 	background-color: var(--sps-ui-surface);
 	border-color: var(--sps-ui-border);
@@ -2201,7 +2202,7 @@ html.sps-dark .rank-math-wizard .wizard-navigation a:first-child::before {
 	background: var(--sps-ui-canvas);
 }
 
-@media screen and (max-width: 595px) {
+@media screen and (width <= 595px) {
 	html.sps-dark .rank-math-steps-progress > .components-tab-panel__tabs[role="tablist"] .components-tab-panel__tabs-item:first-of-type {
 		background-color: var(--sps-ui-canvas);
 	}
@@ -2681,8 +2682,11 @@ html.sps-dark .acp-mf-sticky-container.-more::after {
 	border-color: var(--sps-ui-border);
 }
 
-/* WooCommerce's React screens (Home, Analytics) --------------------------- */
-/* Header, cards, summaries, charts, tables and the date range picker: #fff, #f8f9fa, #f0f0f0 and #e0e0e0 surfaces with #1e1e1e text. */
+/*
+ * WooCommerce's React screens (Home, Analytics): header, cards, summaries,
+ * charts, tables and the date range picker: #fff, #f8f9fa, #f0f0f0 and
+ * #e0e0e0 surfaces with #1e1e1e text.
+ */
 html.sps-dark :is(.woocommerce-layout__header, .woocommerce-layout__footer, .woocommerce-layout__activity-panel-header, .woocommerce-summary, .woocommerce-dashboard__store-performance .woocommerce-summary, .woocommerce-calendar, .woocommerce-table.is-empty, .woocommerce-empty-activity-card, .woocommerce-filters-advanced .components-card__body, .woocommerce-filters__advanced-filters .components-card__body, .woocommerce-pagination__page-arrows-buttons, .woocommerce-segmented-selection__container) {
 	color: var(--sps-ui-text);
 	background: var(--sps-ui-canvas);
