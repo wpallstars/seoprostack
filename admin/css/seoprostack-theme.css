@@ -3583,6 +3583,11 @@ html.sps-dark table.wc_status_table :is(td, th) :is(.red, mark.error) {
 	color: var(--sps-ui-bad);
 }
 
+/*
+ * Emails: the frame around the preview. The preview keeps the email's own
+ * colours, as the Customizer's preview keeps the site's, and the colour
+ * swatches show the colours chosen.
+ */
 html.sps-dark .wc-settings-email-preview-container {
 	background: var(--sps-ui-surface);
 	border-color: var(--sps-ui-border);
@@ -4096,6 +4101,25 @@ html.sps-dark :is(.radio-thumbnail .icon-wrapper.icon-col:hover, .items-per-row-
 
 html.sps-dark .radio-thumbnail .icon-wrapper {
 	border-color: var(--sps-ui-field-border);
+}
+
+/*
+ * Settings, Design: the colour fields (#fff, #cdcfd5 lines). Choosing a
+ * preset outlines them in its colour for five seconds, then sets #cdcfd5
+ * inline.
+ */
+html.sps-dark .color-picker-wrapper label.color-picker-input {
+	background-color: var(--sps-ui-canvas);
+	border-color: var(--sps-ui-field-border);
+}
+
+html.sps-dark .color-picker-wrapper label.color-picker-input[style*="rgb(205, 207, 213)"] {
+	border-color: var(--sps-ui-field-border) !important;
+}
+
+html.sps-dark .color-picker-wrapper label.color-picker-input input[type="color"] {
+	background-color: transparent;
+	border-right-color: var(--sps-ui-field-border);
 }
 
 /* Settings, Advanced (Tutor LMS Pro): the visibility columns, coloured inline (#f7f7f7, #fff). */
