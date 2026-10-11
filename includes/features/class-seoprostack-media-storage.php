@@ -930,7 +930,11 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
             return $data;
         }
         $remote = $config['url'] . '/';
-        $pattern = '#(?:' . preg_quote($remote, '#') . '|' . preg_quote(str_replace('/', '\/', $remote), '#') . ')((?:[^\s<>"\'\\\\]|\\\\/)+)#';
+        // Only standalone addresses: one inside another service's URL (a
+        // proxy's ?url=, an archive's path) belongs to that service and stays.
+        // Block attributes write a quote or > before an address as \u0022,
+        // \u0027 or \u003e. Parentheses end an address, as in CSS url().
+        $pattern = '#(?:(?<![\w.~+%:/?\#@&=-])|(?<=\\\\u0022)|(?<=\\\\u0027)|(?<=\\\\u003e))(?:' . preg_quote($remote, '#') . '|' . preg_quote(str_replace('/', '\/', $remote), '#') . ')((?:[^\s<>"\'\\\\()]|\\\\/)+)#';
         foreach (array('post_content', 'post_excerpt') as $field) {
             if (empty($data[$field])) {
                 continue;
