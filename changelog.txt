@@ -2,7 +2,7 @@
 
 Every change to SEO Pro Stack. readme.txt lists the latest version in short.
 
-= Unreleased =
+= 1.3.34 =
 * Removed: the Modern admin colours setting. Pick a scheme in your profile (Users → Profile → Admin Color Scheme) instead; from WordPress 7.0, Modern is WordPress's own default ("Default" in the list). After the update everyone sees the scheme saved in their profile again. On sites where the setting was on and WordPress is older than 7.0, people who never picked a scheme keep Modern: it is saved in their profile once, during the update, in place of none or of Fresh, which WordPress saves for every new user (WordPress 7.0 makes the same change when it updates). Other schemes, and a scheme someone picked while the setting was on, are not changed (settings version 26; GitHub issue #678).
 
 = 1.3.33 =

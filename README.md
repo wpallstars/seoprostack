@@ -24,7 +24,7 @@ SEO Pro Stack does the jobs that usually take dozens of small plugins: a calmer,
 
 If this saves you time, headaches and costs, feel free to [buy me a coffee](https://buymeacoffee.com/marcusquinn), or whatever you like, to invest in making more things open-source.
 
-Version: 1.3.33
+Version: 1.3.34
 
 <!-- github-only:start -->
 ## Screenshots
@@ -1523,6 +1523,10 @@ Deleting the plugin removes its settings and cached data, the database keys Add 
 Deactivating the plugin removes the WebP and AVIF rules from the uploads folder’s `.htaccess` (for every site when network-deactivated), the LiteSpeed background request rules from the site’s `.htaccess` (on multisite, when network-deactivated or deactivated on the main site) and the must-use file of Load plugins only where needed (on multisite, when network-deactivated).
 
 ## Changelog
+
+### 1.3.34
+
+- Removed: the **Modern admin colours** setting. Pick a scheme in your profile (**Users → Profile → Admin Color Scheme**) instead; from WordPress 7.0, Modern is WordPress's own default ("Default" in the list). After the update everyone sees the scheme saved in their profile again. On sites where the setting was on and WordPress is older than 7.0, people who never picked a scheme keep Modern: it is saved in their profile once, during the update, in place of none or of Fresh, which WordPress saves for every new user (WordPress 7.0 makes the same change when it updates). Other schemes, and a scheme someone picked while the setting was on, are not changed (settings version 26; GitHub issue #678).
 
 ### 1.3.33
 
