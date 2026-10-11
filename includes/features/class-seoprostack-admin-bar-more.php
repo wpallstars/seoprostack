@@ -199,14 +199,49 @@ class SEOProStack_Admin_Bar_More extends SEOProStack_Feature {
                 'parent' => self::NODE,
             );
             $title = (string) $nodes[$id]->title;
-            $name  = isset($sources[$id]) && '' !== $sources[$id] && !self::has_words($title) ? self::source_name($sources[$id]) : null;
-            if (null !== $name) {
+            if (!self::has_words($title)) {
                 // The menu shows no icons, and numbers alone say little in a
                 // list: lead with who it is from.
-                $args['title'] = '<span class="sps-more-name">' . esc_html($name) . '</span>' . $title;
+                $source        = isset($sources[$id]) ? (string) $sources[$id] : '';
+                $args['title'] = '<span class="sps-more-name">' . esc_html(self::label($id, $nodes[$id], $source)) . '</span>' . $title;
             }
             $wp_admin_bar->add_node($args);
         }
+    }
+
+    /**
+     * Visible name for an item whose title has no words: the plugin, theme
+     * or must-use plugin that added it, else its tooltip, its text for
+     * screen readers, or its ID (when sources are unknown).
+     *
+     * @param string $id     Item ID.
+     * @param stdClass $node Admin bar node (WP_Admin_Bar::get_nodes()).
+     * @param string $source Source key, or ''.
+     * @return string
+     */
+    private static function label($id, $node, $source) {
+        $name = '' !== $source ? self::source_name($source) : null;
+        if (null !== $name && '' !== $name) {
+            return $name;
+        }
+        $title = (string) $node->title;
+        $found = array();
+        if (!empty($node->meta['title'])) {
+            $found[] = (string) $node->meta['title'];
+        }
+        if (preg_match('#\btitle=["\']([^"\']+)["\']#i', $title, $m)) {
+            $found[] = $m[1];
+        }
+        if (preg_match('#<(span|div)[^>]*class=["\'][^"\']*screen-reader-text[^"\']*["\'][^>]*>(.*?)</\1>#is', $title, $m)) {
+            $found[] = $m[2];
+        }
+        foreach ($found as $text) {
+            $text = trim(html_entity_decode(wp_strip_all_tags($text), ENT_QUOTES, 'UTF-8'));
+            if ('' !== $text) {
+                return $text;
+            }
+        }
+        return ucfirst(trim(str_replace(array('-', '_'), ' ', $id)));
     }
 
     /**
