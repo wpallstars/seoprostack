@@ -114,9 +114,10 @@ function seoprostack_uninstall_site() {
     // Ask before licence checks: choices and times. Kept answers are
     // seoprostack_lc_* transients, removed with the others below.
     $options[] = 'seoprostack_licence_calls';
-    // Calls to other sites: counts and blocks.
+    // Calls to other sites: counts, choices and the record of choices.
     $options[] = 'seoprostack_outbound_calls';
     $options[] = 'seoprostack_outbound_blocks';
+    $options[] = 'seoprostack_outbound_history';
     // Plugin presets' undo copies. Settings presets changed in other plugins
     // are those plugins' settings now, and stay.
     $options[] = 'seoprostack_plugin_presets_undo';
