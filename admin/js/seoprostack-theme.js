@@ -417,6 +417,31 @@
 		});
 	}
 
+	/*
+	 * Its init event comes after the frame's content styles have painted it
+	 * white, a flash in Dark. TinyMCE's PreInit comes before them; TinyMCE
+	 * loads after this script, and editors start once the page is parsed
+	 * (or later, as Fluent Forms' do), so it is hooked then.
+	 */
+	var mceHooked = false;
+	function hookMce() {
+		var mce = window.tinymce;
+		if (mceHooked || !mce || typeof mce.on !== 'function') {
+			return;
+		}
+		mceHooked = true;
+		mce.on('AddEditor', function (event) {
+			var editor = event && event.editor;
+			if (editor && typeof editor.on === 'function') {
+				editor.on('PreInit', function () {
+					mceFrame(editor);
+				});
+			}
+		});
+	}
+	hookMce();
+	document.addEventListener('readystatechange', hookMce);
+
 	// Classes on <html>, the admin bar icon, its name and the menu's tick.
 	function paint(which) {
 		var nowDark = !!data.applies && isDark(which);

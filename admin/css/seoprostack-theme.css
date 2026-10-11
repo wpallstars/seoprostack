@@ -2116,7 +2116,7 @@ html.sps-dark body[class*="page_fluent_forms"] .ff_header .ff_menu li.active .ff
 	background-color: #1b3048;
 }
 
-html.sps-dark body[class*="page_fluent_forms"] :is(.ff_header .ff_menu_link, .ff_header .global-search-menu-button .shortcut) {
+html.sps-dark body[class*="page_fluent_forms"] :is(.ff_header .ff_menu_link, .ff_header .global-search-menu-button :is(.shortcut, .el-icon-search)) {
 	color: var(--sps-ui-muted);
 }
 
@@ -2128,6 +2128,57 @@ html.sps-dark body[class*="page_fluent_forms"] :is(.el-button--soft, .el-button-
 	color: var(--sps-ui-accent);
 	background-color: #1b3048;
 	border-color: transparent;
+}
+
+/* Disabled primary buttons (#8dbffd with white labels), such as Export while entries load. */
+html.sps-dark body[class*="page_fluent_forms"] .el-button--primary:is(.is-disabled, .is-disabled:hover, .is-disabled:focus) {
+	color: var(--sps-ui-muted);
+	background-color: #1b3048;
+	border-color: #24405f;
+}
+
+/*
+ * The bars and masks shown while a screen's data loads (#f2f2f2 skeleton
+ * rows, a 90% white mask over charts and tables): white flashes in Dark.
+ */
+html.sps-dark body[class*="page_fluent_forms"] :is(.el-skeleton__item, .el-skeleton__first-line, .el-skeleton__paragraph) {
+	background: var(--sps-ui-raised);
+}
+
+html.sps-dark body[class*="page_fluent_forms"] .el-skeleton.is-animated .el-skeleton__item {
+	background: linear-gradient(90deg, var(--sps-ui-raised) 25%, var(--sps-ui-border) 37%, var(--sps-ui-raised) 63%);
+	background-size: 400% 100%;
+}
+
+html.sps-dark body[class*="page_fluent_forms"] .el-skeleton__image svg {
+	fill: var(--sps-ui-border);
+}
+
+html.sps-dark body[class*="page_fluent_forms"] .el-loading-mask {
+	background-color: rgb(29 35 39 / 90%);
+}
+
+/*
+ * Its logo's wordmark is #2c2c2c, unreadable on the dark head. The picture
+ * keeps its blue icon; the wordmark is drawn over it in the text colour,
+ * with the same logo as a mask (if the file moves, only the icon shows).
+ */
+html.sps-dark body[class*="page_fluent_forms"] .ff_header .plugin-name {
+	position: relative;
+}
+
+html.sps-dark body[class*="page_fluent_forms"] .ff_header .plugin-name img {
+	clip-path: inset(0 76% 0 0);
+}
+
+html.sps-dark body[class*="page_fluent_forms"] .ff_header .plugin-name::after {
+	position: absolute;
+	inset: 0;
+	pointer-events: none;
+	content: "";
+	background-color: var(--sps-ui-text);
+	mask: url("../../../fluentform/assets/img/fluentform-logo.svg") left center / contain no-repeat;
+	clip-path: inset(0 0 0 24%);
 }
 
 /* Fluent Forms' settings menus (global and per form), fixed table columns and badges. */
