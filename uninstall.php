@@ -215,7 +215,7 @@ function seoprostack_uninstall_site() {
 
     // Cloud objects belong to the owner and stay; only local records go.
     wp_unschedule_hook('seoprostack_media_storage_batch');
-    foreach (array('_seoprostack_storage', '_seoprostack_storage_done', '_seoprostack_storage_state') as $meta_key) {
+    foreach (array('_seoprostack_storage', '_seoprostack_storage_done', '_seoprostack_storage_state', '_seoprostack_storage_skipped') as $meta_key) {
         delete_post_meta_by_key($meta_key);
     }
     foreach (array('seoprostack_storage_lock', 'seoprostack_storage_cursor', 'seoprostack_storage_error') as $option) {
@@ -225,7 +225,7 @@ function seoprostack_uninstall_site() {
     delete_transient('seoprostack_storage_counts');
     do {
         // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- indexed one-off cleanup in bounded batches.
-        $jobs = $wpdb->get_col($wpdb->prepare("SELECT option_name FROM {$wpdb->options} WHERE option_name LIKE %s LIMIT 200", $wpdb->esc_like('seoprostack_storage_job_') . '%'));
+        $jobs = $wpdb->get_col($wpdb->prepare("SELECT option_name FROM {$wpdb->options} WHERE option_name LIKE %s OR option_name LIKE %s LIMIT 200", $wpdb->esc_like('seoprostack_storage_job_') . '%', $wpdb->esc_like('seoprostack_storage_url_') . '%'));
         foreach ($jobs as $option) {
             delete_option($option);
         }
