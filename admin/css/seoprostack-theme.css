@@ -988,7 +988,7 @@ html.sps-dark #wpbody .mce-toolbar .mce-btn-group .mce-btn.mce-listbox {
 	border-color: var(--sps-ui-field-border);
 }
 
-html.sps-dark #wpbody :is(.menu-item-handle, .menu-item-settings, #menu-settings-column .accordion-section-content, .nav-menus-php .metabox-holder .accordion-section-title, #menu-management .menu-edit, #nav-menu-header, #nav-menu-footer, .menu-settings, .manage-menus, .widget-top, .widget-inside, .widgets-holder-wrap, .accordion-section, .accordion-section-title) {
+html.sps-dark #wpbody :is(.menu-item-handle, .menu-item-settings, #menu-settings-column .accordion-section-content, .nav-menus-php .metabox-holder .accordion-section-title, #menu-management .menu-edit, #menu-management .menu-edit #post-body, #nav-menu-header, #nav-menu-footer, .menu-settings, .manage-menus, .widget-top, .widget-inside, .widgets-holder-wrap, .accordion-section, .accordion-section-title) {
 	color: var(--sps-ui-text);
 	background: var(--sps-ui-surface);
 	border-color: var(--sps-ui-border);
@@ -1007,9 +1007,23 @@ html.sps-dark #wpbody .accordion-section-title::after {
 	color: var(--sps-ui-subtle);
 }
 
-html.sps-dark #wpbody :is(.tabs-panel, .category-tabs .tabs, .categorydiv div.tabs-panel, .customlinkdiv div.tabs-panel, .posttypediv div.tabs-panel, .taxonomydiv div.tabs-panel, .wp-tab-panel, .wp-tab-active) {
+html.sps-dark #wpbody :is(.tabs-panel, .category-tabs .tabs, .add-menu-item-tabs .tabs, .categorydiv div.tabs-panel, .customlinkdiv div.tabs-panel, .posttypediv div.tabs-panel, .taxonomydiv div.tabs-panel, .wp-tab-panel, .wp-tab-active) {
 	background: var(--sps-ui-canvas);
 	border-color: var(--sps-ui-border);
+}
+
+/* Menus' Bulk Select (#f6f7f7, #dcdcde lines; #2271b1 while on, #0a4b78 on #f0f0f1 when pointed at or focused). */
+html.sps-dark #wpbody label.bulk-select-button {
+	color: var(--sps-ui-text);
+	background: var(--sps-ui-raised);
+	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark #wpbody .bulk-selection label.bulk-select-button,
+html.sps-dark #wpbody label.bulk-select-button:is(:hover, :active, :focus-within),
+html.sps-dark #wpbody input.bulk-select-switcher:focus + .bulk-select-button-label {
+	color: var(--sps-ui-accent);
+	border-color: var(--sps-ui-accent);
 }
 
 /* Code editors -------------------------------------------------------------- */
@@ -3428,7 +3442,8 @@ html.sps-dark .acf-fields.-sidebar.-left:not(.seamless > *)::before {
 	background: var(--sps-ui-canvas);
 }
 
-html.sps-dark :is(.acf-fields > .acf-field, .acf-field[data-width] + .acf-field[data-width], .acf-box :is(.title, .footer), .acf-thead, .acf-field.acf-accordion .acf-accordion-content > .acf-fields, #wpbody .acf-table > :is(tbody, thead) > tr > :is(td, th)) {
+html.sps-dark :is(.acf-fields > .acf-field, .acf-field[data-width] + .acf-field[data-width], .acf-box :is(.title, .footer), .acf-thead, .acf-field.acf-accordion .acf-accordion-content > .acf-fields, #wpbody .acf-table > :is(tbody, thead) > tr > :is(td, th)),
+html.sps-dark .seamless > .acf-fields.-sidebar::before {
 	border-color: var(--sps-ui-border);
 }
 
