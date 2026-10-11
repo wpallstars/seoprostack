@@ -113,6 +113,7 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
         }
         add_filter('wp_get_attachment_url', array(__CLASS__, 'attachment_url'), 20, 2);
         add_filter('image_downsize', array(__CLASS__, 'downsize'), 20, 3);
+        add_filter('wp_calculate_image_srcset_meta', array(__CLASS__, 'srcset_meta'), 20, 3);
         add_filter('wp_calculate_image_srcset', array(__CLASS__, 'srcset'), 20, 5);
         add_filter('wp_content_img_tag', array(__CLASS__, 'content_image'), 10, 3);
         add_filter('rest_request_before_callbacks', array(__CLASS__, 'rest_before'), 10, 3);
@@ -646,6 +647,8 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
             $local = trailingslashit($uploads['baseurl']) . ($site_path ? substr($relative, strlen($site_path) + 1) : $relative);
             $target = isset($record['files'][$key . '.webp']) ? $key . '.webp' : $key;
             $map[$local] = $config['url'] . '/' . implode('/', array_map('rawurlencode', explode('/', $target))) . '?v=' . $record['files'][$target]['version'];
+            $encoded = trailingslashit($uploads['baseurl']) . implode('/', array_map('rawurlencode', explode('/', $site_path ? substr($relative, strlen($site_path) + 1) : $relative)));
+            $map[$encoded] = $map[$local];
         }
         return $map;
     }
@@ -687,6 +690,32 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
             $image[0] = self::attachment_url($image[0], $id);
         }
         return $image;
+    }
+
+    /**
+     * Match encoded public filenames before core checks the source against metadata.
+     * This copy is only used for srcset calculation, never saved to the database.
+     *
+     * @param array $meta Image metadata.
+     * @param int[] $size Dimensions.
+     * @param string $src Selected source.
+     * @return array
+     */
+    public static function srcset_meta($meta, $size, $src) {
+        if (!self::serving() || 0 !== strpos($src, self::config()['url'] . '/')) {
+            return $meta;
+        }
+        if (isset($meta['file']) && is_string($meta['file'])) {
+            $meta['file'] = implode('/', array_map('rawurlencode', explode('/', $meta['file'])));
+        }
+        if (isset($meta['sizes']) && is_array($meta['sizes'])) {
+            foreach ($meta['sizes'] as $name => $entry) {
+                if (is_array($entry) && isset($entry['file']) && is_string($entry['file'])) {
+                    $meta['sizes'][$name]['file'] = rawurlencode($entry['file']);
+                }
+            }
+        }
+        return $meta;
     }
 
     /**
