@@ -4120,6 +4120,64 @@ html.sps-dark .tutor-license-page-wrapper .tutor-license-info .tutor-license-inf
 	color: var(--sps-ui-text);
 }
 
+/*
+ * WP Sheet Editor: its spreadsheet has a dark mode of its own
+ * (vgse-dark-mode on <html>), which follows this one
+ * (SEOProStack_Admin_Theme::sheet_editor_mode(), admin/js/seoprostack-theme.js)
+ * and keeps its own colours. Its other screens (setup, settings, custom
+ * columns) have none: #f1f1f1 buttons, step numbers and current settings
+ * tab, light lines, and pale Save and Close buttons.
+ */
+html.sps-dark:not(.vgse-dark-mode) #wpwrap #vgse-wrapper .button:not(.button-primary) {
+	color: var(--sps-ui-accent);
+	background: var(--sps-ui-surface);
+	box-shadow: inset 0 0 0 1px var(--sps-ui-accent);
+}
+
+html.sps-dark:not(.vgse-dark-mode) #wpwrap #vgse-wrapper .button:not(.button-primary):is(:hover, :focus) {
+	color: var(--sps-ui-text);
+	background: var(--sps-ui-raised);
+	box-shadow: inset 0 0 0 1px var(--sps-ui-text);
+}
+
+html.sps-dark .quick-setup-page-content ol > li::before {
+	color: var(--sps-ui-text);
+	background: var(--sps-ui-raised);
+}
+
+html.sps-dark:not(.vgse-dark-mode) .wpse-settings-form-wrapper .tabs-links a {
+	color: var(--sps-ui-muted);
+	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark:not(.vgse-dark-mode) .wpse-settings-form-wrapper .tabs-links a.tab-active {
+	color: var(--sps-ui-text);
+	background-color: var(--sps-ui-raised);
+}
+
+/* Lines: beside the settings, and under each custom column (in the text's colour). */
+html.sps-dark:not(.vgse-dark-mode) :is(.wpse-settings-form-wrapper form.wpse-set-settings, #vgse-wrapper .column-wrapper) {
+	border-color: var(--sps-ui-border);
+}
+
+/* Save and Close (#81c784 and #e57373 under white): its own dark mode's fills, darker on hover so white still reads at 4.5:1. */
+html.sps-dark:not(.vgse-dark-mode) #vgse-wrapper :is(.remodal-confirm, .remodal-cancel) {
+	color: #fff;
+	background-color: #037103;
+}
+
+html.sps-dark:not(.vgse-dark-mode) #vgse-wrapper .remodal-cancel {
+	background-color: #8e2727;
+}
+
+html.sps-dark:not(.vgse-dark-mode) #vgse-wrapper .remodal-confirm:is(:hover, :focus) {
+	background-color: #025a02;
+}
+
+html.sps-dark:not(.vgse-dark-mode) #vgse-wrapper .remodal-cancel:is(:hover, :focus) {
+	background-color: #722020;
+}
+
 /* SEO Pro Stack's additions to WordPress's screens -------------------------- */
 
 /* Plugins: sizes (class-seoprostack-plugin-sizes.php) and page cost (class-seoprostack-plugin-cost.php). */
