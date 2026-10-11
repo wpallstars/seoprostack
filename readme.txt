@@ -5,7 +5,7 @@ Tags: magic login, iframe, schedule posts, auto upload images, admin
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.3.39
+Stable tag: 1.3.40
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -65,7 +65,7 @@ Safe features start on; others stay off. In **Settings → SEO Pro Stack**, **Se
 * **External link icons**: Kadence colours, no scripts; replaces Link Whisper's icon only.
 * **Internal linking tools** (off): suggestions, undo, counts, orphans and read-only Link Whisper checks.
 * **Recommended speed settings**, **Load pages before the click**, **Delay scripts until interaction**, **Delayed Google Analytics** and faster Kadence Blocks editing.
-* **Ask before licence checks**: once, daily or never. **Calls to other sites** (off): callers, hosts, times and blocks.
+* **Ask before licence checks**: once, daily or never. **Calls to other sites** (off): callers, hosts, slow calls, limits and blocks.
 * **Clean the database weekly**: spam, bin, expired data and gone plugins' tasks.
 * **Count terms and comments in the background** and **Remember admin counts** (off).
 * **Load large settings only where they are used** (single sites).
@@ -142,9 +142,7 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 
 == Changelog ==
 
-= 1.3.39 =
-* New: Quiet Imagify suggestions (on by default).
-* Fix: Complianz and similar plugins work again in the Administrators and Developers menus.
-* Fix: no read_post notice on every admin page with GOTMLS active.
+= 1.3.40 =
+* New: Calls to other sites replaces HTTP Requests Manager (unfixed security flaw): marks slow calls; allow, limit to 3 seconds or block each plugin and site, with a record of choices.
 
 Older: `changelog.txt`.

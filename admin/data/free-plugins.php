@@ -26,8 +26,10 @@ if (!defined('ABSPATH')) {
 // Bookmark Card (Link cards), Wikipedia Preview (Wikipedia previews),
 // Mammoth .docx converter (Word documents in the editor), Favorites
 // (Like, save and share), Popular Brand Icons – Simple Icons (Brand
-// icons) and Content Control (Restrict content; closed on WordPress.org on
-// 2026-08-12, so the Members category it was alone in is gone too).
+// icons), Content Control (Restrict content; closed on WordPress.org on
+// 2026-08-12, so the Members category it was alone in is gone too) and HTTP
+// Requests Manager (Calls to other sites; its latest release, 1.3.11, has an
+// unauthenticated stored XSS with no fix, CVE-2026-39724).
 // WP-Optimize stays listed, also on LiteSpeed servers, with a note
 // (SEOProStack_Litespeed::free_plugin_note()): Clean the database weekly
 // replaces it only on LiteSpeed servers with LiteSpeed Cache; elsewhere its
@@ -156,7 +158,6 @@ function seoprostack_get_free_plugins() {
             'wp-social-reviews'
         ),
         'speed' => array(
-            'http-requests-manager',
             'index-wp-mysql-for-speed',
             'litespeed-cache',
             'wp-optimize'
