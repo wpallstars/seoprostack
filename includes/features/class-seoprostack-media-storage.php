@@ -112,6 +112,7 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
             return;
         }
         add_filter('wp_get_attachment_url', array(__CLASS__, 'attachment_url'), 20, 2);
+        add_filter('wp_get_original_image_url', array(__CLASS__, 'original_url'), 20, 2);
         add_filter('image_downsize', array(__CLASS__, 'downsize'), 20, 3);
         add_filter('wp_calculate_image_srcset_meta', array(__CLASS__, 'srcset_meta'), 20, 3);
         add_filter('wp_calculate_image_srcset', array(__CLASS__, 'srcset'), 20, 5);
@@ -693,6 +694,27 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
             $image[0] = self::attachment_url($image[0], $id);
         }
         return $image;
+    }
+
+    /**
+     * Do not derive a kept-original address from a remote size or WebP address.
+     * An oversized or unconfirmed original must keep its own local address.
+     *
+     * @param string|false $url Previous original URL.
+     * @param int $id Attachment ID.
+     * @return string|false
+     */
+    public static function original_url($url, $id) {
+        if (!self::serving()) {
+            return $url;
+        }
+        ++self::$local;
+        try {
+            $original = wp_get_original_image_url($id);
+        } finally {
+            --self::$local;
+        }
+        return $original ? self::attachment_url($original, $id) : $original;
     }
 
     /**
