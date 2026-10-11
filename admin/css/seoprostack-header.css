@@ -126,6 +126,13 @@
 	border-color: #b8e6bf;
 }
 
+/* The network screen (multisite), so it is never taken for a site's. */
+.sps-badge--network {
+	color: #fff;
+	background: var(--sps-accent);
+	border-color: var(--sps-accent);
+}
+
 /* Search ------------------------------------------------------------- */
 
 /* Stretch, so the field always matches the button's height, whatever

@@ -34,6 +34,9 @@ class SEOProStack_Field_Content extends SEOProStack_Feature {
                 'tab' => 'content',
                 'label' => __('Custom fields to content', 'seoprostack'),
                 'description' => __('Copies ACF or SCF text into post content for search, SEO analysis and internal links. This replaces existing content. Warning: if your template also displays post content, the copied fields will appear twice. Check your template before enabling a post type. Copies remain when disabled.', 'seoprostack'),
+                // Each site's own fields and templates, checked before it
+                // rewrites content: the network never sets it (multisite).
+                'network' => false,
             ),
             'field_content_types' => array(
                 'type' => 'multi',

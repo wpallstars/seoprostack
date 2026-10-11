@@ -37,6 +37,8 @@ final class SEOProStack {
      */
     public static function load() {
         require_once SEOPROSTACK_DIR . 'includes/class-seoprostack-settings.php';
+        require_once SEOPROSTACK_DIR . 'includes/class-seoprostack-network-settings.php';
+        require_once SEOPROSTACK_DIR . 'includes/class-seoprostack-network-sites.php';
         require_once SEOPROSTACK_DIR . 'includes/class-seoprostack-feature.php';
         require_once SEOPROSTACK_DIR . 'includes/class-seoprostack-setup.php';
         SEOProStack_Setup::load();

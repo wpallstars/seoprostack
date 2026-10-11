@@ -245,6 +245,9 @@ class SEOProStack_Nextgen_Images extends SEOProStack_Feature {
             // Also when switched off, to take this site out of the rules
             // however the switch was turned off.
             add_action('admin_init', array(__CLASS__, 'maybe_sync_rules'));
+            if (is_multisite()) {
+                add_action('seoprostack_network_setting_panel', array(__CLASS__, 'network_panel'));
+            }
         }
 
         if (!self::enabled()) {
@@ -1202,6 +1205,18 @@ class SEOProStack_Nextgen_Images extends SEOProStack_Feature {
     /* --------------------------------------------------------------------- */
     /* Admin                                                                  */
     /* --------------------------------------------------------------------- */
+
+    /**
+     * On the network screen (multisite): one set of rules serves every site.
+     *
+     * @param string $key Setting key.
+     */
+    public static function network_panel($key) {
+        if (self::KEY !== $key) {
+            return;
+        }
+        echo '<div class="sps-panel-note"><p>' . esc_html__('Every site’s pictures are below the main site’s uploads folder, so one set of rules there serves the whole network, for the formats any site uses. Each site converts its own pictures.', 'seoprostack') . '</p></div>';
+    }
 
     /**
      * Progress and how copies are sent, in the settings panel.

@@ -74,7 +74,8 @@ class SEOProStack_Admin_Counts extends SEOProStack_Feature {
      * Register hooks.
      */
     public static function boot() {
-        add_action('update_option_seoprostack_options', array(__CLASS__, 'options_updated'), 10, 2);
+        // Also the network's changes (multisite), which update_option misses.
+        add_action('seoprostack_settings_changed', array(__CLASS__, 'options_updated'), 10, 2);
         if (!self::enabled() || wp_using_ext_object_cache()) {
             return;
         }
@@ -99,7 +100,7 @@ class SEOProStack_Admin_Counts extends SEOProStack_Feature {
 
     /**
      * Forget the counts when the feature is turned off (settings screen,
-     * WP-CLI or the settings API).
+     * WP-CLI, the settings API or the network on multisite).
      *
      * @param mixed $old Previous settings.
      * @param mixed $new Saved settings.

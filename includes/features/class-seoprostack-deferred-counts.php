@@ -48,7 +48,7 @@ class SEOProStack_Deferred_Counts extends SEOProStack_Feature {
     public static function boot() {
         add_action(self::HOOK, array(__CLASS__, 'run'));
         add_action('seoprostack_setting_saved', array(__CLASS__, 'setting_saved'));
-        add_action('update_option_seoprostack_options', array(__CLASS__, 'options_updated'), 10, 2);
+        add_action('seoprostack_settings_changed', array(__CLASS__, 'options_updated'), 10, 2);
         if (is_admin()) {
             add_action('seoprostack_setting_panel', array(__CLASS__, 'panel'), 10, 2);
             add_action('admin_post_' . self::ACTION, array(__CLASS__, 'recount_now'));
@@ -402,9 +402,10 @@ class SEOProStack_Deferred_Counts extends SEOProStack_Feature {
     }
 
     /**
-     * Also flush changes made through WP-CLI or the settings API.
+     * Also flush changes made through WP-CLI, the settings API or the
+     * network (multisite).
      *
-     * @param array $old Previous settings.
+     * @param array $old Previous settings, as features read them.
      * @param array $new Saved settings.
      */
     public static function options_updated($old, $new) {

@@ -4,11 +4,13 @@
  * everyone else (client administrators) away from changes that can break
  * the site or lock people out.
  *
- * Developers are super admins on multisite, and the administrators ticked
- * under Developers on single sites. Nobody can be locked out: the person
- * who switches this on or saves the list is always kept on it, and when
- * none of the people on it is still an administrator, every administrator
- * is a developer. WP-CLI and cron run as nobody and are never limited.
+ * Developers are the administrators ticked under Developers, and on
+ * multisite the network's super admins, who are developers on every site:
+ * each site's list shows them ticked and locked, so its developers cannot
+ * untick them. Nobody can be locked out: the person who switches this on
+ * or saves the list is always kept on it, and on single sites, when none
+ * of the people on it is still an administrator, every administrator is a
+ * developer. WP-CLI and cron run as nobody and are never limited.
  *
  * Chosen in "Only developers can" (each one a capability taken away with
  * map_meta_cap, or a core setting kept as it is):
@@ -47,7 +49,7 @@ class SEOProStack_Developers extends SEOProStack_Feature {
 
     const KEY = 'developers';
 
-    /** Setting: developer accounts (single sites). */
+    /** Setting: developer accounts (on multisite, besides super admins). */
     const USERS_KEY = 'developers_users';
 
     /** Setting: what only developers can do. */
@@ -121,15 +123,20 @@ class SEOProStack_Developers extends SEOProStack_Feature {
             ),
         );
 
-        if (!is_multisite()) {
-            $settings[self::USERS_KEY] = array(
-                'type'        => 'multi',
-                'default'     => array(),
-                'parent'      => self::KEY,
-                'label'       => __('Developers', 'seoprostack'),
-                'description' => __('Administrators who are not limited. When you switch this on, you are ticked; tick anyone else who builds or looks after the site. If nobody ticked is still an administrator, every administrator is a developer.', 'seoprostack'),
-                'options'     => array(__CLASS__, 'developer_options'),
-            );
+        $settings[self::USERS_KEY] = array(
+            'type'        => 'multi',
+            'default'     => array(),
+            'parent'      => self::KEY,
+            'label'       => __('Developers', 'seoprostack'),
+            'description' => is_multisite()
+                ? __('Administrators of this site who are not limited. Super admins are developers on every site, so they are always ticked. When you switch this on, you are ticked; tick anyone else who builds or looks after the site.', 'seoprostack')
+                : __('Administrators who are not limited. When you switch this on, you are ticked; tick anyone else who builds or looks after the site. If nobody ticked is still an administrator, every administrator is a developer.', 'seoprostack'),
+            'options'     => array(__CLASS__, 'developer_options'),
+            // The site's own people: the network never sets them.
+            'network'     => false,
+        );
+        if (is_multisite()) {
+            $settings[self::USERS_KEY]['locked'] = array(__CLASS__, 'super_admin_ids');
         }
 
         $settings[self::LIMITS_KEY] = array(
@@ -138,9 +145,7 @@ class SEOProStack_Developers extends SEOProStack_Feature {
             'parent'      => self::KEY,
             'reload'      => true,
             'label'       => __('Only developers can', 'seoprostack'),
-            'description' => is_multisite()
-                ? __('Developers are the network’s super admins.', 'seoprostack')
-                : __('Everyone else, administrators included, cannot.', 'seoprostack'),
+            'description' => __('Everyone else, administrators included, cannot.', 'seoprostack'),
             'options'     => array(__CLASS__, 'limit_options'),
         );
 
@@ -165,24 +170,60 @@ class SEOProStack_Developers extends SEOProStack_Feature {
     }
 
     /**
-     * Administrators who can be developers.
+     * Administrators who can be developers: on multisite, the super admins
+     * first (members of the site or not), then the site's administrators.
      *
      * @return array<string,string> User ID => name.
      */
     public static function developer_options() {
-        $options = array();
-        $users   = get_users(array(
+        $users = array_merge(self::super_admins(), get_users(array(
             'capability' => 'manage_options',
             'orderby'    => 'display_name',
             'number'     => 200,
             'fields'     => array('ID', 'display_name', 'user_login'),
-        ));
+        )));
+        $options = array();
         foreach ($users as $user) {
-            $options[(string) $user->ID] = $user->display_name === $user->user_login
-                ? $user->display_name
-                : sprintf('%1$s (%2$s)', $user->display_name, $user->user_login);
+            $options += array(
+                (string) $user->ID => $user->display_name === $user->user_login
+                    ? $user->display_name
+                    : sprintf('%1$s (%2$s)', $user->display_name, $user->user_login),
+            );
         }
         return $options;
+    }
+
+    /**
+     * The network's super admins, who are developers on every site, as
+     * locked choices in the Developers list. None on single sites.
+     *
+     * @return string[] User IDs.
+     */
+    public static function super_admin_ids() {
+        return array_map(function ($user) {
+            return (string) $user->ID;
+        }, self::super_admins());
+    }
+
+    /**
+     * The network's super admins (multisite).
+     *
+     * @return \stdClass[] Database rows (get_users() with a list of fields),
+     *                     each with ID, display_name and user_login.
+     */
+    private static function super_admins() {
+        static $users = null;
+        if (null === $users) {
+            $logins = is_multisite() ? array_values(array_filter((array) get_super_admins(), 'is_string')) : array();
+            // blog_id 0: members of this site or not.
+            $users = $logins ? get_users(array(
+                'blog_id'   => 0,
+                'login__in' => $logins,
+                'orderby'   => 'display_name',
+                'fields'    => array('ID', 'display_name', 'user_login'),
+            )) : array();
+        }
+        return $users;
     }
 
     /**
@@ -260,10 +301,11 @@ class SEOProStack_Developers extends SEOProStack_Feature {
     }
 
     /**
-     * Whether a user is a developer: a super admin on multisite; on single
-     * sites, while this is on, an administrator ticked under Developers
-     * (every administrator when none of the ticked people still is one),
-     * and while it is off, every administrator.
+     * Whether a user is a developer. On multisite: a super admin, or while
+     * this is on, an administrator of the site ticked under Developers. On
+     * single sites, while this is on, an administrator ticked under
+     * Developers (every administrator when none of the ticked people still
+     * is one), and while it is off, every administrator.
      *
      * @param int $user_id User ID; the current user by default.
      * @return bool
@@ -274,16 +316,18 @@ class SEOProStack_Developers extends SEOProStack_Feature {
         if (!$user_id) {
             return false;
         }
-        if (!isset($cache[$user_id])) {
+        // Each site has its own list (multisite).
+        $cache_key = get_current_blog_id() . ':' . $user_id;
+        if (!isset($cache[$cache_key])) {
             if (is_multisite()) {
-                $developer = is_super_admin($user_id);
+                $developer = is_super_admin($user_id) || (self::enabled() && in_array($user_id, self::listed(), true));
             } elseif (!self::enabled()) {
                 $developer = user_can($user_id, 'manage_options');
             } else {
                 $listed    = self::listed();
                 $developer = $listed ? in_array($user_id, $listed, true) : user_can($user_id, 'manage_options');
             }
-            $cache[$user_id] = $developer;
+            $cache[$cache_key] = $developer;
         }
         /**
          * Filter whether a user is a developer (Developer admins, and the
@@ -293,7 +337,7 @@ class SEOProStack_Developers extends SEOProStack_Feature {
          * @param bool $developer Whether the user is a developer.
          * @param int  $user_id   User ID.
          */
-        return (bool) apply_filters('seoprostack_is_developer', $cache[$user_id], $user_id);
+        return (bool) apply_filters('seoprostack_is_developer', $cache[$cache_key], $user_id);
     }
 
     /**
@@ -319,17 +363,22 @@ class SEOProStack_Developers extends SEOProStack_Feature {
     /**
      * After a save: keep the person saving on the developer list when this
      * is switched on or the list changes, so nobody locks themselves out.
+     * Super admins are developers anyway (and never stored on the list),
+     * and the network's changes are saved by nobody.
      *
      * @param string $key   Setting key.
      * @param mixed  $value Saved value.
      */
     public static function setting_saved($key, $value = null) {
-        if (is_multisite() || (self::KEY !== $key && self::USERS_KEY !== $key) || (self::KEY === $key && !$value)) {
+        if ((self::KEY !== $key && self::USERS_KEY !== $key) || (self::KEY === $key && !$value)) {
             return;
         }
-        $me  = get_current_user_id();
+        $me = get_current_user_id();
+        if (!$me || (is_multisite() && is_super_admin($me))) {
+            return;
+        }
         $ids = array_map('intval', (array) SEOProStack_Settings::get(self::USERS_KEY));
-        if ($me && user_can($me, 'manage_options') && !in_array($me, $ids, true)) {
+        if (user_can($me, 'manage_options') && !in_array($me, $ids, true)) {
             $ids[] = $me;
             SEOProStack_Settings::set(self::USERS_KEY, array_map('strval', $ids));
         }

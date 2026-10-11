@@ -612,13 +612,15 @@ class SEOProStack_Plugin_Fixes extends SEOProStack_Feature {
     /**
      * Fixes that must run before init, called as SEO Pro Stack loads.
      *
-     * The setting is read from the stored option: SEOProStack_Settings::get()
-     * builds the settings schema, whose labels are translated, and
-     * translations must not load before init.
+     * The setting is read from the stored option, with the network's value
+     * when it applies one to every site (multisite):
+     * SEOProStack_Settings::get() builds the settings schema, whose labels
+     * are translated, and translations must not load before init.
      */
     public static function early() {
         $stored = get_option(SEOProStack_Settings::OPTION, array());
-        if (is_array($stored) && array_key_exists(self::KEY, $stored) && !$stored[self::KEY]) {
+        $stored = array_merge(is_array($stored) ? $stored : array(), SEOProStack_Network_Settings::enforced());
+        if (array_key_exists(self::KEY, $stored) && !$stored[self::KEY]) {
             return;
         }
         // Tutor LMS Pro runs dbDelta() for its notifications table on

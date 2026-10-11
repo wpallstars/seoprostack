@@ -112,6 +112,10 @@ class SEOProStack_Screenshots extends SEOProStack_Feature {
                 'parent'      => self::KEY,
                 'label'       => __('Service key', 'seoprostack'),
                 'description' => __('Your ApiFlash access key, Screenshot Machine key or Microlink API key. Thum.io needs none. You can set SEOPROSTACK_SCREENSHOTS_KEY in wp-config.php instead.', 'seoprostack'),
+                // An account's key: the network never shows it to every
+                // site's administrators. One key for every site of a
+                // network goes in wp-config.php (multisite).
+                'network'     => false,
             ),
             'screenshots_width' => array(
                 'type'        => 'int',

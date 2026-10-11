@@ -303,8 +303,9 @@ class SEOProStack_Sticky_Posts extends SEOProStack_Feature {
      * Register hooks.
      */
     public static function boot() {
-        // Also when the feature is switched on in the same save.
-        add_action('update_option_' . SEOProStack_Settings::OPTION, array(__CLASS__, 'settings_saved'), 10, 2);
+        // Also when the feature is switched on in the same save, and when
+        // the network changes the settings (multisite).
+        add_action('seoprostack_settings_changed', array(__CLASS__, 'settings_saved'), 10, 2);
         if (!self::enabled()) {
             return;
         }

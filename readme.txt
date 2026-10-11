@@ -121,7 +121,7 @@ Deactivation restores local image addresses, removes the must-use file and tries
 
 = Does it work on multisite? =
 
-Yes: per-site settings, Free Plugins for super admins. Network Plugins offers per-site activation when “Load plugins only where needed” is on for the main site.
+Yes. **Network Admin → Settings → SEO Pro Stack** sets new sites' settings and can apply each card to every site. Super admins are developers on every site.
 
 = Is the magic login safe? =
 
