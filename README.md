@@ -127,10 +127,6 @@ These plugins showed what sites need. [Credits](#credits) thanks their makers an
 
 Also available, off by default: **Count terms and comments in the background** on the Server tab, for imports, bulk edits and shops, and **Remember admin counts**, for large sites without a persistent object cache.
 
-### Modern admin colours (Admin)
-
-Uses the WordPress “Modern” admin colour scheme for every user while enabled. Switching it also updates your own profile: on selects Modern, off selects the WordPress default. Other users’ saved choices are not changed and return when the setting is off. Picking another scheme in your own profile (**Users → Profile → Admin Color Scheme**) turns the setting off, so your choice sticks. People who cannot change SEO Pro Stack's settings leave it on; the scheme they pick applies to them until the setting is turned on again.
-
 ### No fade between admin screens (Admin)
 
 WordPress 7.0 fades from one wp-admin screen to the next, using the browser’s view transitions. The fade can flash, and each screen change waits for it. With this on, screens change straight away, as before 7.0. **On by default**; switch it off to get the fade back.
