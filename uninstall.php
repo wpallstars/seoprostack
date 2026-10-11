@@ -223,11 +223,15 @@ function seoprostack_uninstall_site() {
     }
     delete_transient('seoprostack_storage_test');
     delete_transient('seoprostack_storage_counts');
+    // A cursor through the names visits each row once: a row that cannot be
+    // deleted is left behind instead of being selected again forever.
+    $after = '';
     do {
         // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- indexed one-off cleanup in bounded batches.
-        $jobs = $wpdb->get_col($wpdb->prepare("SELECT option_name FROM {$wpdb->options} WHERE option_name LIKE %s OR option_name LIKE %s LIMIT 200", $wpdb->esc_like('seoprostack_storage_job_') . '%', $wpdb->esc_like('seoprostack_storage_url_') . '%'));
+        $jobs = $wpdb->get_col($wpdb->prepare("SELECT option_name FROM {$wpdb->options} WHERE (option_name LIKE %s OR option_name LIKE %s) AND option_name > %s ORDER BY option_name LIMIT 200", $wpdb->esc_like('seoprostack_storage_job_') . '%', $wpdb->esc_like('seoprostack_storage_url_') . '%', $after));
         foreach ($jobs as $option) {
             delete_option($option);
+            $after = $option;
         }
     } while ($jobs);
 
