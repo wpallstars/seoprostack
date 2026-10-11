@@ -578,7 +578,7 @@
 	 * which link is current, is copied to the entry's third level.
 	 *
 	 * @param {Element}      menu The menu (#adminmenu).
-	 * @param {Object}       hook {i: id, c: classes, u: address}.
+	 * @param {Object}       hook {i: id, c: classes, u: address, t: title}.
 	 * @param {Array}        kids The entry's third level, as for its flyout.
 	 * @param {Element|null} list The entry's flyout list, if it has one.
 	 */
@@ -590,9 +590,16 @@
 		item.className = (hook.c + (kids.length ? ' wp-has-submenu' : '') + ' sps-menu-stub').trim();
 		item.hidden = true;
 		item.style.display = 'none';
+		// The link as core prints it (a.menu-top with the menu's classes,
+		// its title in .wp-menu-name), for scripts that look for those.
 		var top = document.createElement('a');
 		top.setAttribute('href', hook.u);
 		top.setAttribute('tabindex', '-1');
+		top.className = ((kids.length ? 'wp-has-submenu wp-not-current-submenu ' : '') + 'menu-top ' + hook.c).trim();
+		var name = document.createElement('div');
+		name.className = 'wp-menu-name';
+		title(name, hook.t || '');
+		top.appendChild(name);
 		item.appendChild(top);
 		if (!kids.length) {
 			menu.appendChild(item);

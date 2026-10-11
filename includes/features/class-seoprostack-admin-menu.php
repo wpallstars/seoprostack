@@ -1410,7 +1410,7 @@ class SEOProStack_Admin_Menu extends SEOProStack_Feature {
      *
      * @param array  $item Top-level entry, as registered.
      * @param string $url  Its address.
-     * @return array{i: string, c: string, u: string}|null
+     * @return array{i: string, c: string, u: string, t: string}|null
      */
     private static function menu_hook(array $item, $url) {
         $id = isset($item[5]) ? preg_replace('|[^a-zA-Z0-9_:.]|', '-', (string) $item[5]) : '';
@@ -1432,6 +1432,8 @@ class SEOProStack_Admin_Menu extends SEOProStack_Feature {
             'i' => (string) $id,
             'c' => implode(' ', $classes),
             'u' => esc_url_raw(str_replace(array('&#038;', '&amp;'), '&', $url)),
+            // Its title, as core prints it in .wp-menu-name.
+            't' => isset($item[0]) ? (string) $item[0] : '',
         );
     }
 
