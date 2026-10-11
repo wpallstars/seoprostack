@@ -224,7 +224,7 @@ class SEOProStack_Replace_Media extends SEOProStack_Feature {
             wp_die(esc_html__('Sorry, you are not allowed to edit this item.', 'seoprostack'), '', array('response' => 404, 'back_link' => true));
         }
         $file  = get_attached_file($id);
-        $url   = wp_get_attachment_url($id);
+        $url   = class_exists('SEOProStack_Media_Storage') ? SEOProStack_Media_Storage::local_url($id) : wp_get_attachment_url($id);
         $meta  = wp_get_attachment_metadata($id);
         $name  = SEOProStack_Settings::get('replace_media_name');
         $date  = SEOProStack_Settings::get('replace_media_date');

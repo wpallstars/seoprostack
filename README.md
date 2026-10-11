@@ -968,6 +968,34 @@ Saves a smaller WebP and AVIF copy of every JPEG and PNG picture in the Media Li
 - Deleting a picture deletes its copies. Deactivating the plugin removes the rules, so browsers get the originals; deleting it also deletes the copies.
 - Imports CompressX’s formats, quality level, PNG exclusion and cache setting, and its resize limit into Resize large uploads, and switches on if CompressX is active. Copies CompressX made in `wp-content/compressx-nextgen` are moved next to the pictures instead of being made again, so they keep working after CompressX is deleted.
 
+### Media in cloud storage (Media)
+
+**Off by default.** Copies image attachments to an S3-compatible bucket in WP-Cron batches, newest first, and serves confirmed copies from the bucket's public address. All local files stay untouched. Switching off immediately restores local addresses; **purge page caches after switching on or off**. Each multisite site has its own switch, with one network-wide connection in `wp-config.php`.
+
+Set these string constants in `wp-config.php`, before WordPress loads. No connection values are saved in the database or shown in the settings screen.
+
+| Constant | Purpose |
+|---|---|
+| `SEOPROSTACK_MEDIA_STORAGE_ENDPOINT` | S3 API endpoint from your provider, not the public picture address. |
+| `SEOPROSTACK_MEDIA_STORAGE_REGION` | Signing region; optional, defaults to `auto` for R2 or `us-east-1` elsewhere. |
+| `SEOPROSTACK_MEDIA_STORAGE_BUCKET` | Bucket name. |
+| `SEOPROSTACK_MEDIA_STORAGE_KEY_ID` | Access key, with access to this bucket only. |
+| `SEOPROSTACK_MEDIA_STORAGE_SECRET` | Secret access key; never put it in a post, settings field or support message. |
+| `SEOPROSTACK_MEDIA_STORAGE_URL` | Public bucket or CDN address, without a trailing slash. Use HTTPS on an HTTPS site. |
+| `SEOPROSTACK_MEDIA_STORAGE_PREFIX` | Optional folder prefix so installs can share a bucket. |
+
+For **Cloudflare R2**, create a bucket, connect a custom domain for public reading, and create an R2 API token with **Object Read & Write**, restricted to that bucket. Copy its S3 endpoint, access key and secret into the constants; set region to `auto` and the public URL to the connected custom domain. The development `r2.dev` address is not for production. Public access is the bucket's job: the plugin sends no ACL headers. AWS S3 and other compatible services use their own endpoint, region, bucket policy and public address.
+
+- Copies the attached picture, WordPress's kept `original_image`, generated sizes, and registered `.webp` copies made by **WebP and AVIF images**. An uploaded WebP copy is preferred. AVIF copies and unmarked watermark backups are not uploaded. Watermark batches finish before storage batches begin.
+- Each object key mirrors its path below the main uploads folder, including `sites/{id}` on multisite. Requests use path-style S3 REST and Signature Version 4 with the real payload hash. No SDK is needed.
+- New, edited, regenerated, replaced, watermarked and converted images are queued. A completed attachment records its files in `_seoprostack_storage`; unchanged files are not sent again. Oversized files stay local: single PUTs are limited to 16 MiB, or a quarter of available PHP memory after a 16 MiB reserve, whichever is smaller. Other media types stay local.
+- Attachment URLs, image sizes, featured images, `srcset`, REST view responses and content image tags with `wp-image-{id}` use uploaded objects. A short `?v=` version derived from file size and modification time avoids stale same-name replacements. The bucket/CDN must include that query in its cache key.
+- Saved posts and excerpts always keep local addresses, including image block attributes. Admin screens, admin-ajax and REST edit responses remain local. Images without attachment IDs, CSS backgrounds, and addresses stored in options or meta are not rewritten.
+- Objects use `Content-Type` from the file extension and `Cache-Control: public, max-age=31536000, immutable`; `seoprostack_media_storage_cache_control` can change the cache policy. Only explicit tests and background workers contact the API, never visitors or a settings screen render.
+- Deleting an attachment queues its recorded objects for deletion, even with the switch off; queued deletes wait until it is on. Obsolete files are removed remotely after an edit. Jobs from another endpoint, bucket or prefix are retained rather than sent to the wrong connection; old buckets must be managed separately after moving.
+- The settings card names missing constants, shows progress and the last safe error, and offers **Test connection**. Tests PUT, HEAD and DELETE a small probe and cache the answer for five minutes. Failed uploads retry after one, six and then 24 hours. WP-Cron must be running.
+- CLI: `wp seoprostack media-storage status`, `test`, or `upload [--limit=<n>] [--retry-failed]`. Upload is bounded (default ten attachments), then cron continues. Upload and test refuse while off or unconfigured. Removing the plugin removes records and jobs, **not objects in the bucket**.
+
 ### Watermark pictures (Media)
 
 Lays your site icon, site logo or a picture you choose faintly over pictures as they are uploaded. By default the site icon goes in the bottom-right corner at 30% opacity, at up to 10% of the picture’s width and height, so it looks the same on every size.
@@ -1519,6 +1547,8 @@ Actions:
 Read a setting with `SEOProStack_Settings::get( 'key' )`.
 
 ## Uninstall
+
+Media in cloud storage's records, jobs and cached tests are removed on every site. Objects in the bucket are kept; deleting the plugin never contacts the storage service. Local addresses were kept in saved content, so posts keep working without it.
 
 Deleting the plugin removes its settings and cached data, the database keys Add database keys added, the profile pictures and generated avatars in `uploads/seoprostack-avatars/`, the WebP and AVIF copies of pictures, including copies left by pictures deleted while the plugin was inactive, and short links with their categories and click counts (Pretty Links’ and Lasso Lite’s own links are left alone), and the must-use files of Load plugins only where needed and of an unfinished Measure page time, the cached GitHub releases, and who hid lines of the Plugins screen notice about replaced plugins (and, from older versions, who dismissed the Git Updater notice), menu item visibility rules (Nav Menu Roles’ own rules stay), Restrict content’s rules on posts and terms (that content shows to everyone again; block rules stay in posts but do nothing), the hand order of terms and the old term addresses kept for redirects, when old post addresses were last used (the old addresses themselves are WordPress’s and keep redirecting), and the order flow's links on Fluent Forms entries and Fluent Boards tasks (the entries, tasks, conversations, contacts and example data stay: they are those plugins' data). Posts keep their hand order in core’s Order field. Imported media, Link card pictures and screenshots stay in the Media Library because your posts use them. Watermarked pictures stay marked, and their unmarked originals stay in the `uploads/seoprostack-originals-…` folder so they are not lost; delete that folder if you do not need them.
 

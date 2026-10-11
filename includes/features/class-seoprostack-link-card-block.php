@@ -228,7 +228,7 @@ class SEOProStack_Link_Card_Block extends SEOProStack_Feature {
         }
         return array(
             'id'  => $id,
-            'src' => (string) wp_get_attachment_image_url($id, 'medium'),
+            'src' => (string) (class_exists('SEOProStack_Media_Storage') ? SEOProStack_Media_Storage::local_url($id, 'medium') : wp_get_attachment_image_url($id, 'medium')),
         );
     }
 

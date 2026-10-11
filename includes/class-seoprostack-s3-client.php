@@ -73,7 +73,8 @@ final class SEOProStack_S3_Client {
         if (is_wp_error($response)) {
             return $response;
         }
-        return array('status' => wp_remote_retrieve_response_code($response), 'size' => (int) wp_remote_retrieve_header($response, 'content-length'), 'etag' => (string) wp_remote_retrieve_header($response, 'etag'));
+        $etag = wp_remote_retrieve_header($response, 'etag');
+        return array('status' => (int) wp_remote_retrieve_response_code($response), 'size' => (int) wp_remote_retrieve_header($response, 'content-length'), 'etag' => is_string($etag) ? $etag : '');
     }
 
     /**

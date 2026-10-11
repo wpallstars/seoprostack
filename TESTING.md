@@ -21,6 +21,17 @@ The smoke test measures queries on a fresh site. To measure a live site:
 - Compare with the feature on and off on the same page, a few times each,
   and with Query Monitor for the queries and HTTP requests it adds.
 
+## Media in cloud storage
+
+Use an isolated WordPress and MinIO container on the same Docker network, not the shared preview. Create a throwaway bucket with anonymous reading and set the documented constants in wp-config.php (API endpoint uses MinIO's container host and port; public URL uses its published address). Keep credentials out of logs. Size PHP as DEVELOPMENT.md says.
+
+- [ ] Switch on; run `wp seoprostack media-storage test` (PUT, HEAD, DELETE), import three JPEG/PNG images, then `upload` and `status`. Confirm every size, kept original and registered WebP copy appears under the correct prefix. `curl -I` a public object including `?v=`: correct type, size and immutable cache header.
+- [ ] Check a published post's image `src`, `srcset` and featured image, plus REST media `source_url` in view context. Admin and REST edit remain local. Run upload again: no unchanged PUTs. Compare local file counts and checksums before and after.
+- [ ] Enable WebP copies, watermark then convert: only marked WebP files are served; active watermark batches delay storage. Replace with Keep the file name: contents and version query change. Remove a size and delete an attachment: obsolete objects return 404 after the next batch.
+- [ ] With Copy linked images on, save bucket URLs in content, links, excerpts and escaped image block attributes: stored addresses are local and no attachment is imported. Switch off: output local, upload/test refused and no API traffic; delete while off and re-enable to drain cleanup. Missing constants also make no requests.
+- [ ] Exercise oversized files, a refused PUT and later recovery with `--retry-failed`, and multisite `sites/{id}` keys and independent switches. Check the panel, attachment details, safe errors and debug log; credentials must not appear in HTML, options, meta or CLI output. Uninstall clears jobs and records, leaving bucket objects.
+- [ ] Run `scripts/lint.sh`, `scripts/smoke-test.sh --wp 6.2 --php 7.4` and `scripts/smoke-test.sh`. Before release the maintainer repeats public query-string delivery against Cloudflare R2.
+
 ## Really Simple Security redirect preset
 
 Use two fresh, isolated single-site Apache/LiteSpeed WordPress sites with Really Simple Security 9.8.3, trusted working HTTPS and an existing writable root `.htaccess`. Do not use the shared preview or live sites.

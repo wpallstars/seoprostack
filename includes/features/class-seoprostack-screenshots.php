@@ -1273,7 +1273,7 @@ class SEOProStack_Screenshots extends SEOProStack_Feature {
         $meta  = wp_get_attachment_metadata($attachment_id);
         $taken = (int) get_post_meta($attachment_id, self::META_TAKEN, true);
         return array(
-            'src'    => (string) wp_get_attachment_image_url($attachment_id, 'large'),
+            'src'    => (string) (class_exists('SEOProStack_Media_Storage') ? SEOProStack_Media_Storage::local_url($attachment_id, 'large') : wp_get_attachment_image_url($attachment_id, 'large')),
             'width'  => is_array($meta) && isset($meta['width']) ? (int) $meta['width'] : 0,
             'height' => is_array($meta) && isset($meta['height']) ? (int) $meta['height'] : 0,
             'taken'  => $taken ? wp_date(get_option('date_format'), $taken) : '',

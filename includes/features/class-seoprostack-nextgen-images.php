@@ -432,6 +432,7 @@ class SEOProStack_Nextgen_Images extends SEOProStack_Feature {
         }
         update_post_meta($attachment_id, self::META, $record);
         update_post_meta($attachment_id, self::DONE, $signature);
+        do_action('seoprostack_media_files_changed', $attachment_id);
         return $record;
     }
 
@@ -820,7 +821,7 @@ class SEOProStack_Nextgen_Images extends SEOProStack_Feature {
      *
      * @return array{dir:string,url:string}|null
      */
-    private static function main_uploads() {
+    public static function main_uploads() {
         $switched = false;
         if (is_multisite() && !is_main_site()) {
             switch_to_blog(get_main_site_id());
@@ -1007,7 +1008,7 @@ class SEOProStack_Nextgen_Images extends SEOProStack_Feature {
         foreach (array_map('intval', $ids) as $id) {
             $record = get_post_meta($id, self::META, true);
             $file   = get_attached_file($id);
-            $url    = wp_get_attachment_url($id);
+            $url    = class_exists('SEOProStack_Media_Storage') ? SEOProStack_Media_Storage::local_url($id) : wp_get_attachment_url($id);
             if (!$file || !$url || !is_array($record)) {
                 continue;
             }

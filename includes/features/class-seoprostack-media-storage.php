@@ -22,10 +22,15 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
     const LOCK = 'seoprostack_storage_lock';
     const TEST = 'seoprostack_storage_test';
     const ERROR = 'seoprostack_storage_error';
+    const STATE = '_seoprostack_storage_state';
+    const CURSOR = 'seoprostack_storage_cursor';
+    const COUNTS = 'seoprostack_storage_counts';
     const BUDGET = 25;
 
     /** Local-address calls must bypass output filters. @var int */
     private static $local = 0;
+    /** Nested REST requests' edit contexts. @var bool[] */
+    private static $rest = array();
 
     /** @return array<string,array> */
     public static function settings() {
@@ -59,7 +64,8 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
         }
         if ('' === $config['region']) {
             $host = (string) wp_parse_url($config['endpoint'], PHP_URL_HOST);
-            $config['region'] = substr($host, -26) === '.r2.cloudflarestorage.com' ? 'auto' : 'us-east-1';
+            $suffix = '.r2.cloudflarestorage.com';
+            $config['region'] = substr($host, -strlen($suffix)) === $suffix ? 'auto' : 'us-east-1';
         }
         foreach (array('endpoint', 'url') as $key) {
             $parts = wp_parse_url($config[$key]);
@@ -104,6 +110,8 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
         add_filter('image_downsize', array(__CLASS__, 'downsize'), 20, 3);
         add_filter('wp_calculate_image_srcset', array(__CLASS__, 'srcset'), 20, 5);
         add_filter('wp_content_img_tag', array(__CLASS__, 'content_image'), 10, 3);
+        add_filter('rest_request_before_callbacks', array(__CLASS__, 'rest_before'), 10, 3);
+        add_filter('rest_request_after_callbacks', array(__CLASS__, 'rest_after'), 10, 3);
     }
 
     /**
@@ -130,7 +138,33 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
     private static function serving() {
         // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- context only, no mutation.
         $edit = defined('REST_REQUEST') && REST_REQUEST && isset($_REQUEST['context']) && 'edit' === $_REQUEST['context'];
-        return !self::$local && !is_admin() && !$edit && self::ready();
+        return !self::$local && !is_admin() && !$edit && !in_array(true, self::$rest, true) && self::ready();
+    }
+
+    /**
+     * Observe the parsed REST context, including JSON/internal requests.
+     *
+     * @param mixed $response Current response.
+     * @param array $handler Route handler.
+     * @param WP_REST_Request $request Parsed request.
+     * @return mixed
+     */
+    public static function rest_before($response, $handler, $request) {
+        self::$rest[] = 'edit' === $request->get_param('context');
+        return $response;
+    }
+
+    /**
+     * Restore the parent context after a REST callback.
+     *
+     * @param mixed $response Current response.
+     * @param array $handler Route handler.
+     * @param WP_REST_Request $request Parsed request.
+     * @return mixed
+     */
+    public static function rest_after($response, $handler, $request) {
+        array_pop(self::$rest);
+        return $response;
     }
 
     /**
@@ -143,6 +177,7 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
             return;
         }
         delete_post_meta($id, self::DONE);
+        delete_transient(self::COUNTS);
         // An old retry must not delay a new edit.
         delete_option(self::JOB . 'retry_' . (int) $id);
         if (self::ready()) {
@@ -227,7 +262,7 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
     public static function deleted($id) {
         $record = get_post_meta($id, self::META, true);
         if (is_array($record) && !empty($record['files']) && isset($record['signature'])) {
-            self::queue_delete($record, array_keys($record['files']));
+            self::queue_delete($record, array_map('strval', array_keys($record['files'])));
         }
         delete_option(self::JOB . 'retry_' . (int) $id);
     }
@@ -236,16 +271,17 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
      * Indexed option-name lookup, never read all jobs into memory.
      *
      * @param int $limit Maximum rows.
+     * @param string $after Cursor through the option_name index.
      * @return string[]
      */
-    private static function jobs($limit = 20) {
+    private static function jobs($limit = 20, $after = '') {
         global $wpdb;
         // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- bounded lookup through option_name's unique index.
-        return $wpdb->get_col($wpdb->prepare("SELECT option_name FROM {$wpdb->options} WHERE option_name LIKE %s ORDER BY option_name LIMIT %d", $wpdb->esc_like(self::JOB) . '%', (int) $limit));
+        return $wpdb->get_col($wpdb->prepare("SELECT option_name FROM {$wpdb->options} WHERE option_name LIKE %s AND option_name > %s ORDER BY option_name LIMIT %d", $wpdb->esc_like(self::JOB) . '%', $after, (int) $limit));
     }
 
     /** Run uploads and deletes off the page, waiting for watermark jobs. */
-    public static function run_batch() {
+    public static function run_batch($limit = 10) {
         if (!self::ready()) {
             return;
         }
@@ -257,7 +293,10 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
         // add_option is atomic across requests; a crashed batch's lease expires.
         $lease = (int) get_option(self::LOCK, 0);
         if ($lease && $lease < time()) {
-            delete_option(self::LOCK);
+            global $wpdb;
+            // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- compare-and-delete prevents two stale-lock recoveries releasing a new lease.
+            $wpdb->query($wpdb->prepare("DELETE FROM {$wpdb->options} WHERE option_name = %s AND option_value = %s", self::LOCK, (string) $lease));
+            wp_cache_delete(self::LOCK, 'options');
         }
         if (!add_option(self::LOCK, time() + 300, '', false)) {
             return;
@@ -265,7 +304,7 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
         $start = microtime(true);
         try {
             self::process_jobs($start);
-            foreach (self::waiting(10) as $id) {
+            foreach (self::waiting(max(1, min(10, (int) $limit))) as $id) {
                 if (!self::more_time($start, self::BUDGET)) {
                     break;
                 }
@@ -286,11 +325,16 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
      */
     private static function process_jobs($start) {
         $config = self::config();
-        foreach (self::jobs() as $name) {
+        $names = self::jobs(20, (string) get_option(self::CURSOR, ''));
+        if (!$names) {
+            $names = self::jobs();
+        }
+        foreach ($names as $name) {
             if (!self::more_time($start, self::BUDGET)) {
                 return;
             }
             $job = get_option($name);
+            update_option(self::CURSOR, $name, false);
             if (!is_array($job) || $job['signature'] !== $config['signature'] || $job['next'] > time()) {
                 continue;
             }
@@ -406,15 +450,23 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
         $pending['state'] = 'failed';
         $pending['attempts'] = $attempt;
         update_post_meta($id, self::META, $pending);
+        update_post_meta($id, self::STATE, 'failed');
+        delete_transient(self::COUNTS);
         clearstatcache();
         $files = self::files($id);
+        $start = microtime(true);
         foreach ($files as $key => $info) {
+            if (!self::more_time($start, self::BUDGET)) {
+                $job['next'] = time() + 60;
+                update_option(self::JOB . 'retry_' . $id, $job, false);
+                return false;
+            }
             if ($info['size'] > self::size_cap()) {
                 ++$record['skipped'];
                 continue;
             }
             $previous = isset($old['files'][$key]) ? $old['files'][$key] : array();
-            $same = isset($old['signature']) && $old['signature'] === $config['signature'] && isset($previous['size'], $previous['mtime']) && $previous['size'] === $info['size'] && $previous['mtime'] === $info['mtime'];
+            $same = isset($old['signature']) && $old['signature'] === $config['signature'] && !empty($previous['confirmed']) && isset($previous['size'], $previous['mtime']) && $previous['size'] === $info['size'] && $previous['mtime'] === $info['mtime'];
             if (!$same) {
                 /** Filter the public object cache policy. @param string $policy Cache-Control. */
                 $policy = (string) apply_filters('seoprostack_media_storage_cache_control', 'public, max-age=31536000, immutable');
@@ -429,7 +481,15 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
                 }
             }
             unset($info['path'], $info['type']);
+            $info['confirmed'] = true;
             $record['files'][$key] = $info;
+            $pending['signature'] = $config['signature'];
+            $pending['files'][$key] = $info;
+            if (get_post($id)) {
+                update_post_meta($id, self::META, $pending);
+            }
+            // A key brought back by an edit must not be removed by an old cleanup job.
+            delete_option(self::JOB . 'delete_' . hash('sha256', $config['signature'] . $key));
         }
         $record['state'] = $record['files'] ? 'uploaded' : 'skipped';
         $record['attempts'] = 0;
@@ -445,6 +505,7 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
             self::queue_delete($old, array_keys(array_diff_key($old['files'], $record['files'])));
         }
         update_post_meta($id, self::META, $record);
+        update_post_meta($id, self::STATE, $record['state']);
         delete_option(self::JOB . 'retry_' . $id);
         return true;
     }
@@ -569,10 +630,11 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
                 continue;
             }
             $text = wp_unslash($data[$field]);
-            $text = str_replace(str_replace('/', '\/', $remote), $remote, $text);
+            // JSON permits plain slashes too; normalise escaped block attributes first.
+            $text = str_replace('\/', '/', $text);
             $text = preg_replace_callback('#' . preg_quote($remote, '#') . '([^\s<>"\'\\\\]+)#', function ($match) use ($uploads) {
-                $path = preg_replace('/\?v=[a-f0-9]+$/', '', $match[1]);
-                $path = preg_replace('/\.(jpe?g|png|webp)\.webp$/i', '.$1', $path);
+                $path = preg_replace('/\?v=[a-f0-9]+$/', '', $match[1]) ?? $match[1];
+                $path = preg_replace('/\.(jpe?g|png|webp)\.webp$/i', '.$1', $path) ?? $path;
                 if (false !== strpos(rawurldecode($path), '..')) {
                     return $match[0];
                 }
@@ -590,16 +652,19 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
      */
     public static function counts() {
         global $wpdb;
+        $cached = get_transient(self::COUNTS);
+        if (is_array($cached) && $cached['signature'] === self::config()['signature']) {
+            return $cached['counts'];
+        }
         $counts = array('uploaded' => 0, 'waiting' => 0, 'skipped' => 0, 'failed' => 0);
         // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- explicit status query, no visitor page.
-        $rows = $wpdb->get_results($wpdb->prepare("SELECT m.meta_value, d.meta_value AS done FROM {$wpdb->posts} p LEFT JOIN {$wpdb->postmeta} m ON p.ID = m.post_id AND m.meta_key = %s LEFT JOIN {$wpdb->postmeta} d ON p.ID = d.post_id AND d.meta_key = %s WHERE p.post_type = 'attachment' AND p.post_mime_type LIKE %s", self::META, self::DONE, 'image/%'));
+        $rows = $wpdb->get_results($wpdb->prepare("SELECT CASE WHEN p.post_mime_type NOT LIKE %s THEN 'skipped' WHEN d.meta_value = %s THEN COALESCE(m.meta_value, 'failed') ELSE 'waiting' END AS state, COUNT(*) AS total FROM {$wpdb->posts} p LEFT JOIN {$wpdb->postmeta} m ON p.ID = m.post_id AND m.meta_key = %s LEFT JOIN {$wpdb->postmeta} d ON p.ID = d.post_id AND d.meta_key = %s WHERE p.post_type = 'attachment' GROUP BY state", 'image/%', self::config()['signature'], self::STATE, self::DONE));
         foreach ($rows as $row) {
-            $record = maybe_unserialize($row->meta_value);
-            $state = $row->done === self::config()['signature'] && is_array($record) && isset($record['state']) ? $record['state'] : 'waiting';
-            if (isset($counts[$state])) {
-                ++$counts[$state];
+            if (isset($counts[$row->state])) {
+                $counts[$row->state] = (int) $row->total;
             }
         }
+        set_transient(self::COUNTS, array('signature' => self::config()['signature'], 'counts' => $counts), 5 * MINUTE_IN_SECONDS);
         return $counts;
     }
 
@@ -619,10 +684,11 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
         }
         $client = self::client();
         $key = $config['prefix'] . 'seoprostack-probe-' . get_current_blog_id() . '-' . wp_generate_uuid4();
-        $result = $client->put($key, 'SEO Pro Stack storage probe', 'text/plain', 'no-store');
+        $body = 'SEO Pro Stack storage probe';
+        $result = $client->put($key, $body, 'text/plain', 'no-store');
         if (!is_wp_error($result)) {
             $head = $client->head($key);
-            $result = is_wp_error($head) ? $head : (26 === $head['size'] ? true : new WP_Error('storage_probe', __('The probe size did not match.', 'seoprostack')));
+            $result = is_wp_error($head) ? $head : (strlen($body) === $head['size'] ? true : new WP_Error('storage_probe', __('The probe size did not match.', 'seoprostack')));
         }
         $deleted = $client->delete($key);
         if (is_wp_error($deleted)) {
@@ -749,7 +815,7 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
         $start = microtime(true);
         do {
             $before = count(self::waiting($limit));
-            self::run_batch();
+            self::run_batch($limit);
             $limit -= min(10, $before);
         } while ($before && $limit > 0 && self::more_time($start, 60));
         self::schedule();
