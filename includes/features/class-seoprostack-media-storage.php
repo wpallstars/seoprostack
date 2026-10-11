@@ -850,6 +850,14 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
         $config = self::config();
         echo '<div class="sps-panel-note">';
         echo '<p>' . esc_html($config['missing'] ? __('Missing or invalid constants: ', 'seoprostack') . implode(', ', $config['missing']) : __('The connection constants are set.', 'seoprostack')) . '</p>';
+        echo '<ul>';
+        foreach (array('ENDPOINT', 'REGION', 'BUCKET', 'KEY_ID', 'SECRET', 'URL', 'PREFIX') as $suffix) {
+            $name = 'SEOPROSTACK_MEDIA_STORAGE_' . $suffix;
+            $set = defined($name) && is_string(constant($name)) && '' !== constant($name);
+            $status = $set ? __('Set', 'seoprostack') : (in_array($suffix, array('REGION', 'PREFIX'), true) ? __('Using the default', 'seoprostack') : __('Not set', 'seoprostack'));
+            echo '<li><code>' . esc_html($name) . '</code>: ' . esc_html($status) . '</li>';
+        }
+        echo '</ul>';
         if (is_ssl() && 'https' !== wp_parse_url($config['url'], PHP_URL_SCHEME)) {
             echo '<p>' . esc_html__('Use an HTTPS public storage address to avoid mixed content.', 'seoprostack') . '</p>';
         }
@@ -884,6 +892,11 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
         }
         $record = get_post_meta($post->ID, self::META, true);
         $state = is_array($record) && isset($record['state']) ? $record['state'] : 'waiting';
+        if (get_post_meta($post->ID, self::DONE, true) !== self::config()['signature']) {
+            $state = 'waiting';
+        }
+        $labels = array('uploaded' => __('Uploaded; local files kept.', 'seoprostack'), 'waiting' => __('Waiting to upload.', 'seoprostack'), 'failed' => __('Upload failed; local files are served.', 'seoprostack'), 'skipped' => __('Kept on this server.', 'seoprostack'));
+        $state = self::ready() ? (isset($labels[$state]) ? $labels[$state] : $labels['waiting']) : __('Off or not configured; local files are served.', 'seoprostack');
         $fields['seoprostack_storage'] = array('label' => __('Media in cloud storage', 'seoprostack'), 'input' => 'html', 'html' => esc_html($state));
         return $fields;
     }
@@ -909,6 +922,9 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
         $action = isset($args[0]) ? $args[0] : 'status';
         if ('status' === $action) {
             WP_CLI::log(self::ready() ? 'Configured and on.' : 'Off or missing constants.');
+            if (self::config()['missing']) {
+                WP_CLI::log('Missing or invalid: ' . implode(', ', self::config()['missing']));
+            }
             foreach (self::counts() as $state => $count) {
                 WP_CLI::log($state . ': ' . $count);
             }

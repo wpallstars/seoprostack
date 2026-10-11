@@ -100,7 +100,7 @@ final class SEOProStack_S3_Client {
     private function request($method, $key, $body = '', $headers = array()) {
         $config = $this->config;
         $parts  = wp_parse_url($config['endpoint']);
-        if (!is_array($parts) || empty($parts['host']) || empty($parts['scheme']) || !in_array($parts['scheme'], array('http', 'https'), true) || isset($parts['query'], $parts['fragment']) || isset($parts['user']) || isset($parts['pass'])) {
+        if (!is_array($parts) || empty($parts['host']) || empty($parts['scheme']) || !in_array($parts['scheme'], array('http', 'https'), true) || isset($parts['query']) || isset($parts['fragment']) || isset($parts['user']) || isset($parts['pass'])) {
             return new WP_Error('storage_endpoint', __('Check the storage endpoint address.', 'seoprostack'));
         }
         $host = $parts['host'] . (isset($parts['port']) ? ':' . $parts['port'] : '');
@@ -139,7 +139,7 @@ final class SEOProStack_S3_Client {
         // Only allow a short machine code, never the service's echoed request.
         $code = '';
         if (preg_match('/<Code>([A-Za-z0-9]{1,64})<\/Code>/', wp_remote_retrieve_body($response), $match)) {
-            $code = $match[1];
+            $code = str_replace(array($config['key_id'], $config['secret']), '[redacted]', $match[1]);
         }
         return new WP_Error('storage_http', sprintf('Storage HTTP %d%s', $status, $code ? ' (' . $code . ')' : ''));
     }
