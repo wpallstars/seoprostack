@@ -24,7 +24,7 @@ SEO Pro Stack does the jobs that usually take dozens of small plugins: a calmer,
 
 If this saves you time, headaches and costs, feel free to [buy me a coffee](https://buymeacoffee.com/marcusquinn), or whatever you like, to invest in making more things open-source.
 
-Version: 1.3.37
+Version: 1.3.38
 
 <!-- github-only:start -->
 ## Screenshots
@@ -1559,8 +1559,9 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folder�
 
 ## Changelog
 
-### Unreleased
+### 1.3.38
 
+- Change: **Search custom fields** checks only the searched fields’ current meta names before matching values, including group, repeater and flexible content rows, while keeping the field reference check, so searches do less work. Values under a field’s former name are no longer searched; clone and unsupported containers keep the previous search (GitHub issue #689).
 - New: **Search custom fields** can leave fields out. A search never shows a matched value, but a match tells which post holds it, so fields your pages never show should not be searched. Plugins that define fields leave theirs out with the `seoprostack_field_search_field` filter, which also says whether the search is on the site or in an admin list; site owners list field names or keys in **Fields to leave out**, under Troubleshooting. Leaving out a group, repeater or flexible content field leaves out everything in it. With neither, searches are unchanged (GitHub issue #688).
 
 ### 1.3.37
