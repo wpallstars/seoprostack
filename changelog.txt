@@ -2,6 +2,20 @@
 
 Every change to SEO Pro Stack. readme.txt lists the latest version in short.
 
+= 1.3.40 =
+* New: Calls to other sites (Server tab) replaces HTTP Requests Manager, whose latest release (1.3.11) has an unauthenticated stored XSS with no fix (CVE-2026-39724). Slow calls are marked (someone waited 3 seconds or more for one, or 1 second on average), and each plugin and site gets a choice: Allow, Limit to 3 seconds (while someone waits; not cron, WP-CLI or downloads), Block on visitor pages or Block everywhere, with who chose it and when. The last 50 changes are listed under Choices made. Blocks made before keep blocking everywhere. Hosting needs' slow-page advice leaves out blocked calls. Free Plugins no longer lists HTTP Requests Manager and its preset is removed; the Plugins screen suggests deactivating and deleting it, naming its Smart block limits and rules while they are on. New seoprostack_outbound_history option (not autoloaded), removed on uninstall (GitHub issue #693).
+* Fix: Calls to other sites said pages do not wait for calls that do not read the answer ('blocking' => false, as when WordPress starts cron), and Hosting needs left them out of its slow-page advice. With cURL, as on most hosts, WordPress still waits for them, up to their time limit: on a test site, such a call to a site that answered after 6 seconds took 6 seconds. They now count as waits, can be limited, and show Answer not read (GitHub issue #693).
+* Fix: on narrow screens, Tools → Calls to other sites scrolled sideways as a whole (773 pixels wide on a 375-pixel phone); now only its table scrolls (GitHub issue #693).
+
+= 1.3.39 =
+* New, on by default: Quiet Imagify suggestions (Admin tab). Rank Math Pro, WP Rocket and BackWPup no longer show "… recommends optimizing your images … using Imagify" with an Install Imagify Plugin button in the Media Library, the editor and Rank Math's settings, since WebP and AVIF images and Resize large uploads do that job. It uses WP Media's own filter and reads its dismissal option as set without saving it; switch it off to get the suggestion back (GitHub issue #700).
+* Fix: with Organise the admin menu, plugins' scripts that look for their own menu by WordPress's markup (such as Complianz, on every screen and tab) find it again for the menus in Administrators and Developers, so their screens no longer stop with a JavaScript error, and the current entry in the menu's third level follows the plugin's tabs. The menu looks and works as before (GitHub issue #692).
+* Fix: with Organise the admin menu and GOTMLS Anti-Malware both active, every admin page no longer adds a "map_meta_cap was called incorrectly" notice about read_post to the debug log (GitHub issue #696).
+
+= 1.3.38 =
+* Change: Search custom fields checks only the searched fields’ current meta names before matching values, including group, repeater and flexible content rows, while keeping the field reference check. Values under a field’s former name are no longer searched; clone and unsupported containers keep the previous search (GitHub issue #689).
+* New: Search custom fields can leave fields out. A search never shows a matched value, but a match tells which post holds it, so fields your pages never show should not be searched. Plugins that define fields leave theirs out with the new seoprostack_field_search_field filter, which also says whether the search is on the site or in an admin list; site owners list field names or keys in Fields to leave out, under Troubleshooting. Leaving out a group, repeater or flexible content field leaves out everything in it. With neither, searches are unchanged (GitHub issue #688).
+
 = 1.3.37 =
 * New: Media in cloud storage copies image attachments and their sizes and WebP copies to S3-compatible storage, Cloudflare R2 first, in background batches. Confirmed uploads are served from the public bucket while local files and saved addresses stay. Constants-only configuration, per-site switches, connection test, progress and WP-CLI commands (GitHub issue #684).
 

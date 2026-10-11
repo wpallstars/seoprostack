@@ -200,6 +200,17 @@ class SEOProStack_Admin_Menu extends SEOProStack_Feature {
     );
 
     /**
+     * Capability of the menu entries that are never printed (see
+     * page_markers()). marker_cap() maps it to do_not_allow, so no one has
+     * it, super admins included. The entries cannot ask for do_not_allow
+     * itself: core checks each entry's capability while it prints the menu,
+     * and a plugin that gives a post type 'read_post' => 'do_not_allow' (such
+     * as GOTMLS Anti-Malware) makes WordPress treat that name as read_post,
+     * with a notice on every admin page because no post is given.
+     */
+    const MARKER_CAP = 'seoprostack_menu_marker';
+
+    /**
      * The real menu while the organised one is printed.
      *
      * @var array|null
@@ -238,6 +249,17 @@ class SEOProStack_Admin_Menu extends SEOProStack_Feature {
      * @var array
      */
     private static $flyouts = array();
+
+    /**
+     * WordPress's markup for the plugin menus the Admin and Super Admin
+     * menus hold, printed after the menu: entry class => {i: the id core
+     * gives the menu (item[5], such as toplevel_page_complianz), c: its
+     * classes (item[4], without menu-top), u: its address}. See
+     * print_flyouts().
+     *
+     * @var array
+     */
+    private static $hooks = array();
 
     /**
      * Role being previewed, or ''.
@@ -343,6 +365,8 @@ class SEOProStack_Admin_Menu extends SEOProStack_Feature {
         }
         add_filter('parent_file', array(__CLASS__, 'organise'), PHP_INT_MAX);
         add_filter('submenu_file', array(__CLASS__, 'submenu_file'), PHP_INT_MAX);
+        // Last, so no other filter grants the entries that are never printed.
+        add_filter('map_meta_cap', array(__CLASS__, 'marker_cap'), PHP_INT_MAX, 2);
         // Before anything else reads the menu after it is printed (such as
         // Load plugins only where needed, which compares it with its copy).
         add_action('adminmenu', array(__CLASS__, 'restore'), 1);
@@ -1181,7 +1205,7 @@ class SEOProStack_Admin_Menu extends SEOProStack_Feature {
                 // that is never printed.
                 global $plugin_page;
                 if (isset($plugin_page) && is_string($plugin_page)) {
-                    $out_sub[$parent_file][] = array('', 'do_not_allow', $plugin_page, '');
+                    $out_sub[$parent_file][] = array('', self::MARKER_CAP, $plugin_page, '');
                 }
                 $out_sub = array($parent_file => $out_sub[$parent_file]) + $out_sub;
             }
@@ -1193,6 +1217,7 @@ class SEOProStack_Admin_Menu extends SEOProStack_Feature {
         $groups        = $layout['groups'];
         $menus         = array();
         self::$flyouts = array();
+        self::$hooks   = array();
         foreach (self::MENUS as $key => $icon) {
             $items = $groups[$key];
             unset($groups[$key]);
@@ -1308,7 +1333,7 @@ class SEOProStack_Admin_Menu extends SEOProStack_Feature {
                 $moved = true;
             } elseif (!$moved && !empty($out_sub[$slug])) {
                 foreach ($out_sub[$slug] as $child) {
-                    if (!is_array($child) || !isset($child[2]) || '' === (string) $child[0] || 'do_not_allow' === $child[1] || !current_user_can($child[1])) {
+                    if (!is_array($child) || !isset($child[2]) || '' === (string) $child[0] || self::MARKER_CAP === $child[1] || !current_user_can($child[1])) {
                         continue;
                     }
                     $child_class = isset($child[4]) ? (string) $child[4] : '';
@@ -1357,6 +1382,12 @@ class SEOProStack_Admin_Menu extends SEOProStack_Feature {
                 $classes            .= ' sps-menu-has-sub';
                 self::$flyouts[$id] = $kids;
             }
+            if (!$moved && !isset($item['kids'])) {
+                $hook = self::menu_hook($item, $url);
+                if (null !== $hook) {
+                    self::$hooks[$id] = $hook;
+                }
+            }
             $icon = isset($item[6]) ? (string) $item[6] : '';
             // "none" and "div": the plugin draws the icon with its own CSS,
             // only on its top-level entry.
@@ -1375,6 +1406,48 @@ class SEOProStack_Admin_Menu extends SEOProStack_Feature {
             }
         }
         return array('entries' => $entries, 'current' => $current);
+    }
+
+    /**
+     * The id and classes WordPress prints on a menu's own entry (such as
+     * li#toplevel_page_complianz.toplevel_page_complianz), for a menu that
+     * now sits inside the Admin or Super Admin menu.
+     *
+     * Plugins' scripts find their menu by them, to rename an entry or mark
+     * the one their screen shows (Complianz does, on every load and every
+     * tab). The entry printed in its place is a submenu row without them,
+     * so those scripts stopped with an error. The script prints a hidden
+     * copy of the menu with them instead (seoprostackMenuFlyouts()): a copy,
+     * not the classes on the row itself, so a plugin's changes and core's
+     * handlers for wp-has-submenu cannot change how the row looks or opens.
+     *
+     * @param array  $item Top-level entry, as registered.
+     * @param string $url  Its address.
+     * @return array{i: string, c: string, u: string, t: string}|null
+     */
+    private static function menu_hook(array $item, $url) {
+        $id = isset($item[5]) ? preg_replace('|[^a-zA-Z0-9_:.]|', '-', (string) $item[5]) : '';
+        $classes = array();
+        $tokens  = preg_split('/\s+/', isset($item[4]) ? (string) $item[4] : '', -1, PREG_SPLIT_NO_EMPTY);
+        foreach (false === $tokens ? array() : $tokens as $class) {
+            // Core's top-level styles, and this feature's own markers, stay
+            // off. The rest exactly as core prints them (a post type menu's
+            // is toplevel_page_edit?post_type=…); the script sets them as
+            // a class name, never as markup.
+            if (!preg_match('/^(menu-top(-first|-last)?|sps-.*)$/', $class)) {
+                $classes[] = $class;
+            }
+        }
+        if ('' === (string) $id && !$classes) {
+            return null;
+        }
+        return array(
+            'i' => (string) $id,
+            'c' => implode(' ', $classes),
+            'u' => esc_url_raw(str_replace(array('&#038;', '&amp;'), '&', $url)),
+            // Its title, as core prints it in .wp-menu-name.
+            't' => isset($item[0]) ? (string) $item[0] : '',
+        );
     }
 
     /**
@@ -1421,9 +1494,20 @@ class SEOProStack_Admin_Menu extends SEOProStack_Feature {
         }
         $markers = array();
         foreach ($files as $file) {
-            $markers[] = array('', 'do_not_allow', $file, '');
+            $markers[] = array('', self::MARKER_CAP, $file, '');
         }
         return $markers;
+    }
+
+    /**
+     * No one has the capability of the entries that are never printed.
+     *
+     * @param string[] $caps Primitive capabilities the check needs.
+     * @param string   $cap  Capability checked.
+     * @return string[]
+     */
+    public static function marker_cap($caps, $cap) {
+        return self::MARKER_CAP === $cap ? array('do_not_allow') : $caps;
     }
 
     /**
@@ -1536,7 +1620,9 @@ class SEOProStack_Admin_Menu extends SEOProStack_Feature {
 
     /**
      * Print the third level of the Admin and Super Admin menus, for the
-     * script to add (inside the menu list, where a script may sit).
+     * script to add (inside the menu list, where a script may sit), and
+     * WordPress's markup for the menus they hold (menu_hook()). Both are in
+     * place before plugins' footer scripts look for them.
      *
      * Some plugins take every other plugin's scripts off their own screens
      * (Fluent Forms, Fluent Booking and Fluent Boards do, in
@@ -1556,11 +1642,14 @@ class SEOProStack_Admin_Menu extends SEOProStack_Feature {
             // wp_print_scripts hooks a second time.
             wp_scripts()->do_items(array(self::HANDLE));
         }
+        $flags = JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT;
         printf(
-            '<script>window.seoprostackMenuFlyouts && window.seoprostackMenuFlyouts(%s);</script>',
-            wp_json_encode(self::$flyouts, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT)
+            '<script>window.seoprostackMenuFlyouts && window.seoprostackMenuFlyouts(%s, %s);</script>',
+            wp_json_encode((object) self::$flyouts, $flags),
+            wp_json_encode((object) self::$hooks, $flags)
         );
         self::$flyouts = array();
+        self::$hooks   = array();
     }
 
     /**

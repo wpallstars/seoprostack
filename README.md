@@ -24,7 +24,7 @@ SEO Pro Stack does the jobs that usually take dozens of small plugins: a calmer,
 
 If this saves you time, headaches and costs, feel free to [buy me a coffee](https://buymeacoffee.com/marcusquinn), or whatever you like, to invest in making more things open-source.
 
-Version: 1.3.37
+Version: 1.3.40
 
 <!-- github-only:start -->
 ## Screenshots
@@ -64,13 +64,13 @@ A new install starts with the features that are safe on every site switched on, 
 - **Speed:** Recommended speed settings, Load pages before the click, Image loading, Remove WordPress extras, Lighter WooCommerce pages and Faster editor with Kadence Blocks (the last two do nothing without those plugins).
 - **Server:** Fewer Heartbeat requests, Clean the database weekly, Load large settings only where they are used and Hosting needs.
 - **Plugins:** Load plugins only where needed, with **Also skip them for people who are logged in**, so it takes every chance to skip plugins once it has learned; Clean up deleted plugins, Plugin sizes and Fixes for other plugins.
-- **Admin and editor:** Organise the admin menu, More menu in the admin bar, Hide admin bar items (Comments and + New), Hide admin notices, Tidy admin screens, Correct update counts, Tidy the dashboard, Tidy WooCommerce admin, Readable list columns, Simpler block editor, Notification emails (plugin and theme auto-update reports, unless an update failed), No fade between admin screens, Quiet Freemius prompts and Quiet Appsero prompts.
+- **Admin and editor:** Organise the admin menu, More menu in the admin bar, Hide admin bar items (Comments and + New), Hide admin notices, Tidy admin screens, Correct update counts, Tidy the dashboard, Tidy WooCommerce admin, Readable list columns, Simpler block editor, Notification emails (plugin and theme auto-update reports, unless an update failed), No fade between admin screens, Quiet Freemius prompts, Quiet Appsero prompts and Quiet Imagify suggestions.
 
 Also offered on Server: **Faster page counts on long lists**, off by default, with exact totals counted separately from the page.
 
 Copies installed from GitHub releases also have Updates from GitHub on. Sites that already had SEO Pro Stack keep their own settings: the defaults apply to new installs. Each feature can be switched off on its card. Features that replace a separate plugin say so on their card (“Replaces: …”) and import that plugin’s settings once when SEO Pro Stack is updated. The other plugin’s own settings are never changed or deleted. While that plugin is active, the feature waits and the plugin keeps doing the job, so the two never run side by side; the card says so, with a deactivate link that comes back to the same settings tab. Deactivate the plugin to switch over. The Plugins screen lists installed plugins that SEO Pro Stack can replace, with what to do next for each: deactivate it (its setting is on), switch the setting on, or delete it once inactive (single sites; on multisite another site may use it). Each of those plugins also gets a note under its own row saying which SEO Pro Stack setting makes it redundant and what to do next, including inactive plugins whose setting is still off; the notes are not hidden by **Hide**. When an active plugin does things on the site that SEO Pro Stack does not (such as Disable Bloat’s REST API switches), the line names them instead of saying the plugin can go. **Hide** hides the lines shown for that person until another step is needed. Plugins that web hosts add to every new site (Hostinger AI and Hostinger Easy Onboarding) get a note under their row while active, saying what they are for and recommending deactivating them if that is not used, with a Deactivate link; nothing is deactivated or deleted for you.
 
-SEO Pro Stack replaces **57 plugins**, some of them in part, with free and Pro editions counted separately. The 47 that can be downloaded come to 45.3 MB zipped; SEO Pro Stack is 3.5 MB.
+SEO Pro Stack replaces **58 plugins**, some of them in part, with free and Pro editions counted separately. The 49 that can be downloaded come to 45.0 MB zipped; SEO Pro Stack is 3.6 MB.
 
 | Feature | Tab | Replaces |
 | --- | --- | --- |
@@ -113,6 +113,7 @@ SEO Pro Stack replaces **57 plugins**, some of them in part, with free and Pro e
 | Delayed Google Analytics | Speed | Flying Analytics |
 | Image loading | Speed | Flying Images, in part |
 | Clean the database weekly | Speed | WP-Optimize and WP-Optimize Premium, in part, where LiteSpeed Cache runs on a LiteSpeed server |
+| Calls to other sites | Server | HTTP Requests Manager |
 | 410 Gone for removed pages | Links | Ultimate 410 |
 | Old post addresses | Links | Slugs Manager: Delete Old Permalinks |
 | Short addresses for custom post types | Links | Remove CPT base |
@@ -284,6 +285,13 @@ This removes the notice, the survey and its submission, and the theme-switch rep
 - Nothing is saved in the other plugins: none is opted in or out.
 - Kept: licence pages and licence notices (`Appsero\License`), and the plugin’s own opt-in and opt-out handling.
 - Plugins you already allowed keep sending their weekly report until you opt out in the plugin; check each plugin’s settings for its usage-tracking option.
+
+### Quiet Imagify suggestions (Admin)
+
+Rank Math Pro, WP Rocket and BackWPup bundle WP Media’s “plugin family” code, which shows “Rank Math recommends optimizing your images to improve Core Web Vitals and search rankings in Google using Imagify” (or the same from WP Rocket) with an **Install Imagify Plugin** button in the Media Library, the editors’ media windows and image blocks, and on Rank Math → General Settings, until someone who can install plugins dismisses it. SEO Pro Stack optimises pictures itself with [WebP and AVIF images](#webp-and-avif-images-media) and [Resize large uploads](#resize-large-uploads-media), so this turns the suggestion off. **On by default**; switch it off to get it back.
+
+- Uses the code’s own switches: the `wpmedia_plugin_family_show_imagify_banner` filter (its version 1.0.8 and later) and, for older copies, its dismissal option `plugin_family_dismiss_promote_imagify`, read as dismissed but never saved.
+- Nothing is saved in the other plugins, and Imagify can still be installed from the Plugins screen.
 
 ### More menu in the admin bar (Admin)
 
@@ -484,10 +492,11 @@ Shows categories, tags and other terms the way readers browse them, and posts re
 
 With Advanced Custom Fields or Secure Custom Fields active, searches on the site and in admin lists also look in the values of text-like fields: text, text area, WYSIWYG, email, URL, number, select, checkbox and radio, including fields inside repeater, group and flexible content fields.
 
-- Fields are found through the reference ACF keeps next to each value (`_{meta key}` → `field_…`), so every repeater row counts and other plugins’ post meta is never searched. Password and other fields are left out.
+- Fields are found by their current names and the reference ACF keeps next to each value (`_{meta key}` → `field_…`), so every repeater row counts and other plugins’ post meta is never searched. Values left under a field’s old name after renaming it are not searched. If a searched field is inside a clone or another unsupported container, the search uses the reference alone for the whole field list, as before. Password and other fields are left out.
 - As in core, each word must match somewhere in the post (title, excerpt, content or a field), and `-word` leaves out posts that have it anywhere.
 - Only the main search of a page or admin list: widgets, blocks, REST requests and the media library keep core’s search, as do queries that choose their own search columns.
-- No settings. Replaces ACF: Better Search; the feature switches itself on while it is active.
+- Leave out fields your pages never show, such as private notes or contact details kept for your own use. A search result never shows the matched value, but the match tells which post holds it, so someone who knows part of an email address, phone number or name could find whose it is. Plugins that define fields leave theirs out with the `seoprostack_field_search_field` filter (see Extending), and may keep them searchable in admin lists; site owners list field names or field keys, one per line, in **Fields to leave out** under Troubleshooting, and no plugin can put those back. Leaving out a group, repeater or flexible content field leaves out everything in it.
+- Replaces ACF: Better Search; the feature switches itself on while it is active.
 
 ### Custom fields to content (Content)
 
@@ -1096,16 +1105,25 @@ Tables in the older `utf8` (`utf8mb3`) character set cannot store emoji and some
 
 ### Calls to other sites (Server)
 
-Off by default. Turn it on, then open **Tools → Calls to other sites**: which plugin, theme or must-use plugin calls which other site through WordPress, how often, and how long pages wait for it, slowest first.
+Off by default. Turn it on, then open **Tools → Calls to other sites**: which plugin, theme or must-use plugin calls which other site through WordPress, how often, and how long people wait for it, slowest first, with slow calls marked and a choice for each.
 
-- Each row is one plugin (or WordPress, or SEO Pro Stack) and one host: calls sent and not sent, failures, time in all, on average and the slowest call, the last answer (status code or error), where the calls were made (visitor pages, admin, AJAX, cron, REST, WP-CLI), the path of the last call and when it was made. Query strings are never kept, so licence keys and tokens in addresses are not stored.
-- **Not sent** counts calls another filter answered without calling: another plugin, **Ask before licence checks** or a block here.
-- **Block** makes that plugin’s calls to that site fail straight away with a `seoprostack_blocked` error, as if the site could not be reached; other plugins’ calls to it still go. **Allow** undoes it. Blocks are checked before Ask before licence checks.
-- **Never blocked**: payment services (Stripe, PayPal, Braintree, Square, Mollie, Klarna, Adyen, Authorize.net, Checkout.com, Razorpay, Paystack, PayFast, GoCardless), WordPress.org and WordPress.com, the site itself, WordPress’s and SEO Pro Stack’s own calls, and anything WordPress’s update code runs (update checks and downloads, whichever plugin’s code makes the call). The `seoprostack_outbound_never_block` filter can add hosts.
+- Each row is one plugin (or WordPress, or SEO Pro Stack) and one host: calls sent and not sent, failures, time in all, on average and the slowest call, the last answer (status code or error; **Answer not read** for a call that does not ask for one, such as WordPress starting cron), where the calls were made (visitor pages, admin, AJAX, cron, REST, WP-CLI), the path of the last call and when it was made. Query strings are never kept, so licence keys and tokens in addresses are not stored.
+- **Slow**: someone waited 3 seconds or more for one of the row's calls, or 1 second or more on average. Only calls someone waits for count: visitor pages, admin screens, AJAX and REST, not cron or WP-CLI. Calls that do not read the answer count too: with cURL, as on most hosts, WordPress still waits for them, up to their time limit. Above the table, the page says how many slow rows have no choice yet.
+- **Not sent** counts calls another filter answered without calling: another plugin, **Ask before licence checks** or a choice here.
+- **Choice** for each row, saved with **Save**, applies to that plugin’s calls to that site only; other plugins’ calls to it are not changed:
+  - **Allow**: the calls go ahead as now, and the row shows it has been checked.
+  - **Limit to 3 seconds**: while someone waits (visitor pages, admin screens, AJAX, REST), each call gives up after 3 seconds instead of WordPress’s 5 or the plugin’s own longer time. Cron and WP-CLI are not limited, and neither are downloads.
+  - **Block on visitor pages**: on visitor pages the calls fail straight away with a `seoprostack_blocked` error, as if the site could not be reached; in the admin, AJAX, REST, cron and WP-CLI they go ahead.
+  - **Block everywhere**: the calls always fail straight away with that error.
+  - **Not decided**: removes the choice.
+  Blocks are checked before Ask before licence checks. Under each choice it says who made it and when. Blocks made before these choices block everywhere, as before.
+- **Always allowed**, with no choice: payment services (Stripe, PayPal, Braintree, Square, Mollie, Klarna, Adyen, Authorize.net, Checkout.com, Razorpay, Paystack, PayFast, GoCardless), WordPress.org and WordPress.com, the site itself, WordPress’s and SEO Pro Stack’s own calls, and anything WordPress’s update code runs (update checks and downloads, whichever plugin’s code makes the call). The `seoprostack_outbound_never_block` filter can add hosts.
+- **Choices made**, under the table, lists the last 50 changes: when, who, the plugin and site, the new choice and the one before.
 - Only calls made through WordPress’s HTTP API are seen; code that uses cURL or sockets directly is not.
-- **Clear the list** starts counting again; blocks stay. The 200 most recently seen rows are kept.
+- **Clear the list** starts counting again; choices stay, and rows with a choice stay listed so it can be changed. The 200 most recently seen rows are kept.
 - Visitor pages are counted on 1 view in 20, each counting 20 times, so their numbers are estimates and most page views write nothing; admin screens, AJAX, cron, REST and WP-CLI are counted every time.
-- Stored: counts in `seoprostack_outbound_calls`, written once at the end of a counted request that made calls, and blocks in `seoprostack_outbound_blocks`, both not autoloaded and removed on uninstall. Requests running at the same moment can each write their own counts, so totals are close, not exact. The `admin_post_seoprostack_outbound_calls` handler checks `manage_options` and a nonce.
+- Stored: counts in `seoprostack_outbound_calls`, written once at the end of a counted request that made calls; choices in `seoprostack_outbound_blocks`; the last changes in `seoprostack_outbound_history`. None is autoloaded, and all are removed on uninstall. Requests running at the same moment can each write their own counts, so totals are close, not exact. The `admin_post_seoprostack_outbound_calls` handler checks `manage_options` and a nonce.
+- Replaces HTTP Requests Manager, whose latest release (1.3.11) has an unauthenticated stored XSS with no fix (CVE-2026-39724). While it is active, this feature waits, and the Plugins screen names what it does on the site that SEO Pro Stack does not: its Smart block limits and block rules, or blocking every call to other sites. Its settings and rules are not imported: they cover a whole plugin or a whole site and work only in Smart block. What SEO Pro Stack does not copy, on purpose: Smart block cut every call to 2 seconds and one redirect and blocked every call once a page had taken 3 seconds or made 3 calls, which stopped WordPress’s and SEO Pro Stack’s update checks, LiteSpeed Cache’s calls to the site and WooCommerce’s translation downloads (WP-CLI included); its full log of every call keeps page addresses and answers in two tables. To block every call to other sites, use WordPress’s own `WP_HTTP_BLOCK_EXTERNAL` and `WP_ACCESSIBLE_HOSTS` constants in `wp-config.php`.
 
 ### Code Snippets in Site Health
 
@@ -1139,7 +1157,6 @@ Presets so far:
 | FluentCRM | Contacts' IP addresses anonymised; FluentCRM's own avatar instead of Gravatar and ui-avatars.com. |
 | FluentSMTP | Email logs kept 2 years instead of 14 days; connections and credentials unchanged. Shows once a connection is saved. |
 | Fluent Forms | No weekly email summary, no IP address stored with entries, no admin bar menu. |
-| HTTP Requests Manager | Only logs calls to other servers. Its blocking modes also blocked every request after a page's first 3 seconds or 3 requests, which stopped WordPress's and SEO Pro Stack's update checks; Ask before licence checks holds licence checks instead. |
 | Kadence Blocks | Google Fonts served from the site, in the blocks and (with the Kadence theme) the theme. |
 | Lasso Lite (Simple URLs) | No affiliate programme bar or Dashboard banner. |
 | LiteSpeed Cache | Worked out for each site (see below). No news and promotions fetched from LiteSpeed; CSS and JS Minify off (they slowed every uncached page); the cache purged after updates; on a LiteSpeed server, the page cache and browser cache on, and the crawler on, daily, with the site's sitemap, so pages are cached again after each purge; LiteSpeed's copy of each job an SEO Pro Stack feature does turned off. |
@@ -1225,7 +1242,7 @@ Checks whether the hosting fits the site, and says what to ask the host for. It 
 - **Memory per PHP worker**: the highest use plus 32 MB for PHP itself, with OPcache’s memory shared by all workers. The line and the PHP workers row of the plans name the server's setting for how many there are, so they can be sent to a host as they are: `pm.max_children` (PHP-FPM), `LSAPI_CHILDREN` (LiteSpeed's LSAPI, or a LiteSpeed server while how PHP runs is not known yet; on CloudLinux hosts, such as Hostinger, the plan's entry processes limit them) and `MaxRequestWorkers` (Apache with mod_php). With FastCGI or CGI none is named, even on a LiteSpeed server. Hosting plans call them PHP workers.
 - **How PHP runs** (Site Health Info, next to the web server), from PHP's server API on a web request: PHP-FPM and LiteSpeed's LSAPI keep PHP workers running and sharing OPcache; Apache's mod_php runs PHP inside every Apache process, including those serving images and files; plain CGI starts a new PHP for every request, so OPcache is lost each time. FastCGI is taken as running workers that keep OPcache, unless OPcache started with the request being served. For mod_php and CGI it advises asking the host for PHP-FPM, or LSAPI on a LiteSpeed server. Site Health also runs from cron and WP-CLI, where PHP runs on the command line, so the value is remembered from the admin, only when it changes, in the `seoprostack_php_sapi` option (not autoloaded, removed on uninstall).
 - **Traffic**: 1 in 20 requests that reach PHP records how long it took and the hour it ran in, in a small option that is not autoloaded, kept for 7 days. Requests a page cache serves never reach PHP, so they are not counted, which is what sizing PHP needs. Change the rate with the `seoprostack_hosting_sample_rate` filter (0 stops it).
-- **Slow pages**: once 30 pages are sampled, an average over 1 second is recommended for a look, with the causes this plugin can see, each only when it applies: Load plugins only where needed off, or not yet learned for the site's pages; options loaded on every request over 1 MB; settings saved on most page views; no working persistent object cache (off or unreachable); and, with **Calls to other sites** on, the sites visitors' pages waited for (up to three, most waiting first; calls not waited for, such as WordPress starting cron, are left out). With none of those it suggests Query Monitor on a slow page, to see which plugin takes the time.
+- **Slow pages**: once 30 pages are sampled, an average over 1 second is recommended for a look, with the causes this plugin can see, each only when it applies: Load plugins only where needed off, or not yet learned for the site's pages; options loaded on every request over 1 MB; settings saved on most page views; no working persistent object cache (off or unreachable); and, with **Calls to other sites** on, the sites visitors' pages waited for (up to three, most waiting first; the site's own address, which WordPress calls to start cron, and calls blocked there everywhere or on visitor pages are left out). With none of those it suggests Query Monitor on a slow page, to see which plugin takes the time.
 - **The site**: database size, rows of post data, products and options loaded on every request (from table statistics, read at most hourly), whether a page cache or persistent object cache is in use, and whether shop, membership, course or community plugins are active, where more visitors skip the page cache and pages take longer. It advises a page cache when none is found, an object cache above 500,000 rows of post data or 10,000 products, trimming options loaded on every request above 1 MB, and PHP 8.2 or later. On a LiteSpeed server it names the server, suggests LiteSpeed Cache (whose page cache only counts there), and warns when WP-Optimize's page cache or minify runs alongside it (see Plugin presets → LiteSpeed hosting).
 - **CDN**: whether a CDN serves the site, from the headers a CDN adds to the request being served (Cloudflare, Sucuri), a plugin that sets one up (QUIC.cloud or a CDN in LiteSpeed Cache, the Cloudflare plugin signed in, Bunny CDN, CDN Enabler, Jetpack's Site Accelerator), or the headers of the home page, asked for at most hourly from the admin (Cloudflare, QUIC.cloud, Bunny CDN, CDN77, Fastly; each header checked against the provider's own responses). With none found it suggests one: QUIC.cloud through LiteSpeed Cache on a LiteSpeed server (it has a free plan), Cloudflare's free plan elsewhere. When the site cannot reach its own home page, the CDN is unknown and nothing is suggested. SEO Pro Stack does not run a CDN or rewrite pages for one, and never turns one on in another plugin.
 - **Settings saved on every page view**: some plugins save an option again on almost every request although only a timestamp in it changes (on one Hostinger site, five premium plugins' licence options). Each save is a database write and, with an object cache, rewrites the cached autoloaded options that every request reads. On 1 in 20 page views (GET requests outside wp-admin, cron and WP-CLI), the options saved are counted with the plugin, must-use plugin or theme that saved them, in the non-autoloaded `seoprostack_hosting_writes` option, kept for 7 days. Once 20 page views are counted, options saved on more than half of them are recommended for a look: "These settings are saved again on almost every page view, which slows pages and clears the object cache", each with its plugin and share of page views (also in Site Health Info). If one is a licence option **Ask before licence checks** knows, it suggests turning that on. Transients and SEO Pro Stack's own options are not counted. Counts start again when a plugin is deactivated or updated, or Ask before licence checks is switched. Plugins often save these while their files load: with **Load plugins only where needed** on, its must-use file starts the count before other plugins load; otherwise it starts when SEO Pro Stack loads, so plugins whose folders sort before `seoprostack` are counted only for saves made later in the request.
@@ -1502,7 +1519,7 @@ Developers can add settings, tabs and directory entries with filters:
 - `seoprostack_troubleshooting_open`: whether a setting's Troubleshooting section starts open (open, setting key), for a feature that fell back after an error.
 - `seoprostack_admin_bar_star`: return false to hide the admin bar star that opens SEO Pro Stack’s settings.
 - `seoprostack_licence_call`: whether an outgoing request is a licence check that Ask before licence checks holds (bool, address, request arguments). Update checks are never held, whatever it returns.
-- `seoprostack_outbound_never_block`: whether Calls to other sites may never block a source's calls to a host (bool, host, source: `plugin:folder`, `mu:file`, `theme:folder`, `core` or `seoprostack`). True by default for payment services, WordPress.org and WordPress.com, the site itself, WordPress and SEO Pro Stack.
+- `seoprostack_outbound_never_block`: whether Calls to other sites always allows a source's calls to a host, never limiting or blocking them and offering no choice (bool, host, source: `plugin:folder`, `mu:file`, `theme:folder`, `core` or `seoprostack`). True by default for payment services, WordPress.org and WordPress.com, the site itself, WordPress and SEO Pro Stack.
 - `seoprostack_hosting_sample_rate`: Hosting needs records the time of 1 in this many requests (default 20; 0 stops recording traffic).
 - `seoprostack_plugin_presets`: add or change plugin presets (plugin folder => `name`, `tested`, `updated`, `notes`, `options`, `defaults`, optional `settings` and `cache`, as in `presets/*.json`). Secret-looking names are removed after the filter runs.
 - `seoprostack_preset_condition`: whether a preset's `when` condition holds on this site (`$holds`, `$condition`); false for conditions SEO Pro Stack does not know.
@@ -1522,6 +1539,7 @@ Developers can add settings, tabs and directory entries with filters:
 - `seoprostack_block_visible`: whether the current visitor sees a block (bool, parsed block, its rule: `show` and `roles`).
 - `seoprostack_switchable_post_types`: post types Change post type offers (name => label).
 - `seoprostack_short_address_types`: post types served at short addresses (`/item/`), the ones chosen in Short addresses for custom post types first (none while it is off); add yours before `init` to serve its items there.
+- `seoprostack_field_search_field`: whether Search custom fields looks in a field’s values (bool, ACF field array, `site` for searches on the site or `admin` for admin list searches); false already when **Fields to leave out** lists the field, which then stays out whatever you return. Return false for fields your pages never show. Returning false for a group, repeater or flexible content field leaves out everything in it.
 
 Actions:
 
@@ -1556,6 +1574,23 @@ Deleting the plugin removes its settings and cached data, the database keys Add 
 Deactivating the plugin removes the WebP and AVIF rules from the uploads folder’s `.htaccess` (for every site when network-deactivated), the LiteSpeed background request rules from the site’s `.htaccess` (on multisite, when network-deactivated or deactivated on the main site) and the must-use file of Load plugins only where needed (on multisite, when network-deactivated).
 
 ## Changelog
+
+### 1.3.40
+
+- New: **Calls to other sites** (Server tab) replaces HTTP Requests Manager, whose latest release (1.3.11) has an unauthenticated stored XSS with no fix (CVE-2026-39724). Slow calls are marked (someone waited 3 seconds or more for one, or 1 second on average), and each plugin and site gets a choice: **Allow**, **Limit to 3 seconds** (while someone waits; not cron, WP-CLI or downloads), **Block on visitor pages** or **Block everywhere**, with who chose it and when. The last 50 changes are listed under **Choices made**. Blocks made before keep blocking everywhere. Hosting needs’ slow-page advice leaves out blocked calls. Free Plugins no longer lists HTTP Requests Manager and its preset is removed; the Plugins screen suggests deactivating and deleting it, naming its Smart block limits and rules while they are on. New `seoprostack_outbound_history` option (not autoloaded), removed on uninstall (GitHub issue #693).
+- Fix: **Calls to other sites** said pages do not wait for calls that do not read the answer (`'blocking' => false`, as when WordPress starts cron), and Hosting needs left them out of its slow-page advice. With cURL, as on most hosts, WordPress still waits for them, up to their time limit: on a test site, such a call to a site that answered after 6 seconds took 6 seconds. They now count as waits, can be limited, and show **Answer not read** (GitHub issue #693).
+- Fix: on narrow screens, **Tools → Calls to other sites** scrolled sideways as a whole (773 pixels wide on a 375-pixel phone); now only its table scrolls (GitHub issue #693).
+
+### 1.3.39
+
+- New, on by default: **Quiet Imagify suggestions** (Admin tab). Rank Math Pro, WP Rocket and BackWPup no longer show “… recommends optimizing your images … using Imagify” with an **Install Imagify Plugin** button in the Media Library, the editor and Rank Math’s settings, since WebP and AVIF images and Resize large uploads do that job. It uses WP Media’s own filter and reads its dismissal option as set without saving it; switch it off to get the suggestion back (GitHub issue #700).
+- Fix: with **Organise the admin menu**, plugins’ scripts that look for their own menu by WordPress’s markup (such as Complianz, on every screen and tab) find it again for the menus in Administrators and Developers, so their screens no longer stop with a JavaScript error, and the current entry in the menu’s third level follows the plugin’s tabs. The menu looks and works as before (GitHub issue #692).
+- Fix: with **Organise the admin menu** and GOTMLS Anti-Malware both active, every admin page no longer adds a “map_meta_cap was called incorrectly” notice about `read_post` to the debug log (GitHub issue #696).
+
+### 1.3.38
+
+- Change: **Search custom fields** checks only the searched fields’ current meta names before matching values, including group, repeater and flexible content rows, while keeping the field reference check, so searches do less work. Values under a field’s former name are no longer searched; clone and unsupported containers keep the previous search (GitHub issue #689).
+- New: **Search custom fields** can leave fields out. A search never shows a matched value, but a match tells which post holds it, so fields your pages never show should not be searched. Plugins that define fields leave theirs out with the `seoprostack_field_search_field` filter, which also says whether the search is on the site or in an admin list; site owners list field names or keys in **Fields to leave out**, under Troubleshooting. Leaving out a group, repeater or flexible content field leaves out everything in it. With neither, searches are unchanged (GitHub issue #688).
 
 ### 1.3.37
 
@@ -2264,6 +2299,7 @@ Where a feature replaces one of them, SEO Pro Stack imports the settings it can,
 | Flying Analytics | Gijo Varghese | [WordPress.org](https://wordpress.org/plugins/flying-analytics/), [GitHub](https://github.com/gijo-varghese/flying-analytics) | Delayed Google Analytics |
 | Flying Images | Gijo Varghese | [WordPress.org](https://wordpress.org/plugins/nazy-load/), [source (WordPress.org SVN)](https://plugins.svn.wordpress.org/nazy-load/trunk/) | Image loading |
 | WP-Optimize and WP-Optimize Premium | David Anderson / Team Updraft | [WordPress.org (free edition)](https://wordpress.org/plugins/wp-optimize/), [source (free edition, WordPress.org SVN)](https://plugins.svn.wordpress.org/wp-optimize/trunk/) | Clean the database weekly (where LiteSpeed Cache runs on a LiteSpeed server) |
+| HTTP Requests Manager | veppa | [WordPress.org](https://wordpress.org/plugins/http-requests-manager/), [source (WordPress.org SVN)](https://plugins.svn.wordpress.org/http-requests-manager/trunk/), [website](https://veppa.com/http-requests-manager/) | Calls to other sites |
 | Ultimate 410 Gone Status Code | tiny web | [WordPress.org](https://wordpress.org/plugins/ultimate-410/) | 410 Gone for removed pages |
 | Remove CPT base | kubiq | [WordPress.org](https://wordpress.org/plugins/remove-cpt-base/) | Short addresses for custom post types |
 | Pretty Links | Blair Williams | [WordPress.org](https://wordpress.org/plugins/pretty-link/) | Short links |
