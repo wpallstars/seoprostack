@@ -341,7 +341,8 @@
 						}
 					});
 				});
-				watcher.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['class', 'aria-selected', 'aria-expanded', 'aria-checked'], characterData: false });
+				// Disabled text is not checked, so a control enabled later is checked then.
+				watcher.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['class', 'disabled', 'aria-disabled', 'aria-selected', 'aria-expanded', 'aria-checked'], characterData: false });
 				document.addEventListener('pointerover', hover, true);
 				document.addEventListener('focusin', hover, true);
 				document.addEventListener('pointerout', leave, true);

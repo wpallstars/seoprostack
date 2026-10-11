@@ -188,7 +188,8 @@ final class SEOProStack_Admin_Theme {
 
     /**
      * Whether the current screen turns dark in Dark mode. Every admin
-     * screen does, unless a filter keeps one light.
+     * screen does but SEO Pro Stats' own and Tutor LMS's course builder,
+     * unless a filter keeps one light.
      *
      * @return bool
      */
@@ -197,7 +198,7 @@ final class SEOProStack_Admin_Theme {
             return false;
         }
         $screen = function_exists('get_current_screen') ? get_current_screen() : null;
-        $applies = !self::stats_screen($screen);
+        $applies = !self::stats_screen($screen) && !self::scripted_screen($screen);
         /**
          * Filter whether an admin screen turns dark in Dark mode, for
          * screens whose own design does not suit it. The colour mode icon
@@ -229,6 +230,28 @@ final class SEOProStack_Admin_Theme {
     }
 
     /**
+     * Whether Dark recolours the styles a screen's own script sets (Emotion,
+     * CSS in JS, under hashed class names the stylesheet cannot name; see
+     * admin/js/seoprostack-theme-scripted.js): Tutor LMS's screens.
+     *
+     * @return bool
+     */
+    private static function script_styles() {
+        global $plugin_page;
+        $screen = function_exists('get_current_screen') ? get_current_screen() : null;
+        $tutor  = defined('TUTOR_VERSION') && is_string($plugin_page) && 0 === strpos($plugin_page, 'tutor');
+        /**
+         * Filter whether Dark mode recolours the styles an admin screen's
+         * own script sets (Emotion's): light grounds, dark grey text and
+         * light lines take the dark palette's colours.
+         *
+         * @param bool           $recolours Whether it does. Default true on Tutor LMS's screens.
+         * @param WP_Screen|null $screen    The screen.
+         */
+        return (bool) apply_filters('seoprostack_admin_dark_script_styles', $tutor, $screen);
+    }
+
+    /**
      * Whether this is one of SEO Pro Stats' own screens (Statistics,
      * Settings). SEO Pro Stats styles those with its own colour mode, which
      * follows the same shared choice, so SEO Pro Stack's dark rules stay off
@@ -249,6 +272,23 @@ final class SEOProStack_Admin_Theme {
             $hooks[] = (string) call_user_func(array('SEOProStats_Admin_Manager', 'hook'));
         }
         return in_array($screen->id, $hooks, true);
+    }
+
+    /**
+     * Whether this is a screen drawn by script in colours fixed in its code,
+     * filling the window: Tutor LMS's course builder. Dark could reach only
+     * the parts made of WordPress's own fields and editor, leaving the rest
+     * light, so the screen keeps its own light look.
+     *
+     * @param WP_Screen|null $screen The screen.
+     * @return bool
+     */
+    private static function scripted_screen($screen) {
+        if (!$screen || !defined('TUTOR_VERSION')) {
+            return false;
+        }
+        $builder = '_page_create-course';
+        return substr($screen->id, -strlen($builder)) === $builder;
     }
 
     /**
@@ -273,9 +313,12 @@ final class SEOProStack_Admin_Theme {
     }
 
     /**
-     * The stylesheet and script. The stylesheet loads at once only when it
+     * The stylesheet and scripts. The stylesheet loads at once only when it
      * is needed (Dark, System, or SEO Pro Stack's own screen); otherwise the
-     * script loads it on the first switch to dark.
+     * script loads it on the first switch to dark. On screens styled by
+     * their own script, the script that recolours those styles loads in the
+     * <head> in every mode, before the screen draws, so Dark needs no
+     * redraw and nothing shows light first.
      */
     public static function enqueue() {
         $toggle  = self::shows_toggle();
@@ -289,6 +332,10 @@ final class SEOProStack_Admin_Theme {
         $url = SEOPROSTACK_URL . $css . '?ver=' . filemtime(SEOPROSTACK_DIR . $css);
         if ($applies && ('light' !== $mode || self::own_screen())) {
             wp_enqueue_style(self::STYLE, SEOPROSTACK_URL . $css, array(), (string) filemtime(SEOPROSTACK_DIR . $css));
+        }
+        if ($applies && self::script_styles()) {
+            $scripted = 'admin/js/seoprostack-theme-scripted.js';
+            wp_enqueue_script(self::STYLE . '-scripted', SEOPROSTACK_URL . $scripted, array(), (string) filemtime(SEOPROSTACK_DIR . $scripted), false);
         }
         wp_enqueue_script(self::STYLE, SEOPROSTACK_URL . $js, array('wp-i18n', 'wp-a11y'), (string) filemtime(SEOPROSTACK_DIR . $js), true);
         wp_set_script_translations(self::STYLE, 'seoprostack');

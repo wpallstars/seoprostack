@@ -3815,6 +3815,206 @@ html.sps-dark body[class*="page_mdp_"] .mdp-now-used {
 	background-color: var(--sps-ui-raised);
 }
 
+/*
+ * Tutor LMS: its screens are built from its own components, #fff cards,
+ * tables, fields and menus with #212327 text and #cdcfd5 lines, partly
+ * through its colour properties (set on :root, and inline for the primary
+ * and text colours). Its React parts (Add-ons, coupons, the e-commerce
+ * settings, import and export) set their colours from script, under hashed
+ * class names: admin/js/seoprostack-theme-scripted.js recolours those
+ * (SEOProStack_Admin_Theme::script_styles()). Its course builder is drawn
+ * that way too, filling the window, and is kept light
+ * (SEOProStack_Admin_Theme::screen_applies()).
+ */
+html.sps-dark body.wp-admin {
+	--tutor-body-color: var(--sps-ui-text);
+	--tutor-body-color-rgb: 240, 240, 241;
+	--tutor-color-secondary: var(--sps-ui-muted);
+	--tutor-color-subdued: var(--sps-ui-muted);
+	--tutor-color-muted: var(--sps-ui-subtle);
+	--tutor-color-hints: var(--sps-ui-subtle);
+	--tutor-border-color: var(--sps-ui-border);
+	--tutor-border-color-rgb: 60, 67, 74;
+	--tutor-color-gray: var(--sps-ui-border);
+	--tutor-color-gray-rgb: 60, 67, 74;
+	--tutor-color-gray-10: var(--sps-ui-raised);
+	--tutor-color-white: var(--sps-ui-surface);
+}
+
+html.sps-dark body.tutor-backend {
+	background-color: var(--sps-ui-canvas);
+}
+
+/* Grounds: #fff cards, headers, tables, alerts, modals and menus. */
+html.sps-dark :is(.tutor-bg-white, .tutor-card, .tutor-card-list-item, .tutor-accordion-item, .tutor-alert, .tutor-modal-content-white, .tutor-modal-header, .tutor-modal-footer, .tutor-offcanvas .tutor-offcanvas-main, .tutor-table tr td, .tutor-dashboard-list-table tr th, .tutor-admin-header, .tutor-option-header, h2.tutor-page-heading, .tutor-whats-new-wrapper, .tutor-whats-new-wrapper .tutor-logo-head, .tutor-whats-new-wrapper .tutor-update-available .tutor-update-version, .tutor-emails-lists-wrap, .tnotice, .tutor-user-registration-notice, .tutor-toggle-matrix-field .tutor-toggle-matrix-head, .quiz-builder-question, .quiz-attempt-answers-wrap table td, .tutor-qna-single-question .tutor-qa-reply, .tutor-qna-single-question .tutor-qa-chatlist .tutor-qna-chat .tutor-qna-text, .wrap.tutor-uninstall-wrap, .tutor-wp-dashboard-course-filter :is(.tutor-wp-dashboard-filter-tag-dropdown, .tutor-wp-dashboard-filter-tag)) {
+	color: var(--sps-ui-text);
+	background-color: var(--sps-ui-surface);
+}
+
+html.sps-dark :is(.tutor-table tr th, .tutor-bg-gray-10, .tutor-bg-gray-20, .tutor-bg-light, .tutor-card-list-item:nth-child(2n), .tutor-accordion-item-header, .tutor-modal-content, .tutor-nav-tabs, .tutor-image-upload-list-field :is(.tutor-image-upload-preview, .tutor-image-upload-empty), .tutor-toggle-matrix-field .tutor-toggle-matrix-head .tutor-toggle-matrix-head-icon, .quiz-attempt-answers-wrap table th, .tutor-quiz-attempt-details :is(.explain-toggle, .tutor-quiz-question-feedback-card), .tutor-consent-user-card, .tutor-add-question-wrap, .tutor-available-quizzes .added-quiz-item, .tutor-status-pending-context, .attempt_started, .tutor-avatar) {
+	background-color: var(--sps-ui-raised);
+}
+
+html.sps-dark .tutor-whats-new-wrapper .tutor-update-available {
+	background: #2e2716;
+}
+
+/* Lines (#e0e2ea, #cdcfd5, #e8e8e8...). */
+html.sps-dark :is(.tutor-divider, .tutor-divider-left, .tutor-divider-right, .tutor-divider-top, .tutor-divider-bottom, .tutor-card-secondary, .tutor-card-list-item, .tutor-accordion-item, .tutor-accordion-item-body-content, .tutor-wp-dashboard-header, .tutor-admin-header, .tutor-option-header, .tutor-option-field-row, .tutor-option-single-item .item-wrapper, .item-wrapper > .tutor-option-field-row, .tutor-dashboard-list-table tr :is(th, td), .tutor-nav-tabs, .tutor-whats-new-wrapper .tutor-whats-new-header, .tutor-announcement, .quiz-builder-question, .quiz-attempt-answers-wrap table :is(th, td), h2.tutor-page-heading, .tutor-option-nav-page.tutor-cb-templates-table .item-wrapper) {
+	border-color: var(--sps-ui-border);
+}
+
+/* Text set dark, not from its colour properties. */
+html.sps-dark :is(.tutor-color-secondary, .tutor-alert:is(.tutor-primary, .tutor-success, .tutor-danger, .tutor-warning), .tutor-option-field-row h2, .tnotice__type, .tutor-quiz-builder-group h4, .radio-thumbnail.radio-thumbnail-image label .image-title, .tutor-option-nav-page .create-certificate-steps h4, .report-course-list-wrap .detail .heading) {
+	color: var(--sps-ui-muted);
+}
+
+html.sps-dark :is(table.qna-list-table tr .tutor-qna-title, table.qna-list-table .tutor-qna-question-col.is-read .tutor-qna-content, .tutor-whats-new-wrapper .tutor-update-available .tutor-version-alert p, .tutor-whats-new-wrapper .tutor-update-available .tutor-update-version > div:nth-child(2) h3, .tutor-user-registration-notice > div:nth-child(2) strong, .tutor-option-field-input .logo-upload .logo-upload-wrap, .tutor-quiz-attempt-details .tutor-quiz-question-feedback-title) {
+	color: var(--sps-ui-text);
+}
+
+/* Fields: its own, and WordPress's inside its forms (#fff, #ddd lines, #333 text). */
+html.sps-dark :is(.tutor-form-control, .tutor-input-group-addon, .tutor-dropdown-select-selected, .tutor-option-field-row :is(textarea, input:is([type="text"], [type="email"], [type="number"], [type="password"])), .tutor-quiz-builder-group :is(textarea, input:is([type="text"], [type="email"], [type="number"], [type="password"])), .tutor-admin-search-box-container :is(select, input[type="text"]), .tutor-option-field-input .tutor-type-password button) {
+	--tutor-border-color: var(--sps-ui-field-border);
+
+	color: var(--sps-ui-text);
+	background-color: var(--sps-ui-canvas);
+	border-color: var(--sps-ui-field-border);
+}
+
+html.sps-dark .tutor-form-control:disabled {
+	color: var(--sps-ui-subtle);
+	background: var(--sps-ui-raised);
+	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark .tutor-form-check-input.tutor-form-check-input:not(:checked) {
+	background-color: var(--sps-ui-canvas);
+	border-color: var(--sps-ui-field-border);
+}
+
+/* Switches: a #cdcfd5 track when off; the knob kept light. */
+html.sps-dark .tutor-form-toggle input:not(:checked) ~ .tutor-form-toggle-control {
+	background-color: var(--sps-ui-field-border);
+}
+
+html.sps-dark .tutor-form-toggle input ~ .tutor-form-toggle-control::before {
+	background-color: #fff;
+}
+
+/* Menus: its selects' and filters' lists. */
+html.sps-dark :is(.tutor-form-select-dropdown, .tutor-dropdown, .tutor-dropdown-select-options-container, .search-popup-opener, .search_result) {
+	color: var(--sps-ui-text);
+	background: var(--sps-ui-surface);
+	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark :is(.tutor-form-select-option:hover, .tutor-form-select-option.is-active, .tutor-dropdown-select-option:hover, .tutor-nav-pills .tutor-nav-link:hover, .tutor-accordion-item-header.is-active) {
+	background: var(--sps-ui-hover);
+}
+
+/* Buttons: tertiary and the filters' (#fff), and disabled ones (#e9e9ea). */
+html.sps-dark :is(.tutor-btn-tertiary, .tutor-wp-dashboard-course-filter :is(.tutor-wp-dashboard-filter-order, .tutor-wp-dashboard-filters-button)) {
+	color: var(--sps-ui-text);
+	background-color: var(--sps-ui-surface);
+	border-color: var(--sps-ui-field-border);
+}
+
+html.sps-dark :is(.tutor-btn-tertiary, .tutor-wp-dashboard-course-filter :is(.tutor-wp-dashboard-filter-order, .tutor-wp-dashboard-filters-button)):is(:hover, :focus, :active) {
+	background-color: var(--sps-ui-raised);
+}
+
+html.sps-dark .tutor-wp-dashboard-course-filter .tutor-wp-dashboard-filters-count {
+	color: #fff;
+	background-color: var(--sps-ui-primary);
+}
+
+/* Ghost buttons, such as settings' Reset to Default (#757c8e, 4.4:1 on the page). */
+html.sps-dark .tutor-btn-ghost:not(:hover, :focus, :active) {
+	color: var(--sps-ui-subtle);
+}
+
+html.sps-dark :is(.tutor-btn-primary, .tutor-btn-outline-primary, .tutor-btn-secondary, .tutor-btn-outline-secondary, .tutor-btn-tertiary, .tutor-btn-danger):is([disabled], .disabled) {
+	color: var(--sps-ui-subtle);
+	background-color: var(--sps-ui-raised);
+	border-color: var(--sps-ui-border);
+}
+
+/* Tabs: settings' and tools' side tabs, and its top tabs (the current one #fff). */
+html.sps-dark .tutor-nav.tutor-option-tabs .tutor-nav-link.is-active,
+html.sps-dark .tutor-nav-tabs .tutor-nav-link.is-active {
+	color: var(--sps-ui-text);
+	background-color: var(--sps-ui-raised);
+	border-color: var(--sps-ui-border);
+}
+
+/* Course categories and tags: WordPress's tables, recoloured (#f4f6f9 heads, #fff and #fcfcfd rows). */
+html.sps-dark :is(.taxonomy-course-category, .taxonomy-course-tag).post-type-courses table.wp-list-table {
+	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark :is(.taxonomy-course-category, .taxonomy-course-tag).post-type-courses table.wp-list-table :is(thead, tfoot) :is(th, td) {
+	background: var(--sps-ui-raised);
+}
+
+html.sps-dark :is(.taxonomy-course-category, .taxonomy-course-tag).post-type-courses table.wp-list-table tbody tr :is(th, td) {
+	background: var(--sps-ui-surface);
+	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark :is(.taxonomy-course-category, .taxonomy-course-tag).post-type-courses table.wp-list-table tbody tr:nth-child(2n) :is(th, td) {
+	background: var(--sps-ui-stripe);
+}
+
+html.sps-dark :is(.taxonomy-course-category, .taxonomy-course-tag).post-type-courses :is(textarea, select, input:is([type="text"], [type="search"])):not(:focus) {
+	border-color: var(--sps-ui-field-border);
+}
+
+/* Settings, Design: the items-per-row choices (#fff, #e9edfb when chosen, #eff1f6 columns). */
+html.sps-dark .items-per-row-label .icon-col span {
+	background: var(--sps-ui-raised);
+}
+
+html.sps-dark :is(.radio-thumbnail .icon-wrapper.icon-col:hover, .items-per-row-label input[type="radio"]:checked + .icon-col) {
+	background: #1b3048;
+}
+
+html.sps-dark .radio-thumbnail .icon-wrapper {
+	border-color: var(--sps-ui-field-border);
+}
+
+/* Settings, Advanced (Tutor LMS Pro): the visibility columns, coloured inline (#f7f7f7, #fff). */
+html.sps-dark .tutor-visibility-control-role {
+	background-color: var(--sps-ui-surface) !important;
+}
+
+html.sps-dark .tutor-visibility-control-role[style*="f7f7f7"] {
+	background-color: var(--sps-ui-raised) !important;
+}
+
+/* Settings, License (Tutor LMS Pro): the card (#fff), its key (#f6f8fd), status and lines, and the licence notice. */
+html.sps-dark :is(.tutor-license-page-wrapper .tutor-license-card, .tutor-license-notice-left) {
+	background-color: var(--sps-ui-surface);
+}
+
+html.sps-dark .tutor-license-page-wrapper :is(.tutor-license-key-form-wrapper, .tutor-license-key-wrapper) {
+	background-color: var(--sps-ui-raised);
+}
+
+html.sps-dark .tutor-license-page-wrapper .tutor-license-status.tutor-license-active {
+	color: var(--sps-ui-good);
+	background-color: #1c3d24;
+}
+
+html.sps-dark .tutor-license-page-wrapper :is(.tutor-license-info, .tutor-license-info-item, .tutor-license-info-item-label, .tutor-license-status.tutor-license-expired),
+html.sps-dark body.tutor-backend .tutor-license-notice {
+	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark .tutor-license-page-wrapper .tutor-license-info .tutor-license-info-item-value {
+	color: var(--sps-ui-text);
+}
+
 /* SEO Pro Stack's additions to WordPress's screens -------------------------- */
 
 /* Plugins: sizes (class-seoprostack-plugin-sizes.php) and page cost (class-seoprostack-plugin-cost.php). */
