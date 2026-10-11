@@ -4,6 +4,8 @@ Every change to SEO Pro Stack. readme.txt lists the latest version in short.
 
 = Unreleased =
 * Fix: with Organise the admin menu, plugins' scripts that look for their own menu by WordPress's markup (such as Complianz, on every screen and tab) find it again for the menus in Administrators and Developers, so their screens no longer stop with a JavaScript error, and the current entry in the menu's third level follows the plugin's tabs. The menu looks and works as before (GitHub issue #692).
+
+= 1.3.38 =
 * Change: Search custom fields checks only the searched fields’ current meta names before matching values, including group, repeater and flexible content rows, while keeping the field reference check. Values under a field’s former name are no longer searched; clone and unsupported containers keep the previous search (GitHub issue #689).
 * New: Search custom fields can leave fields out. A search never shows a matched value, but a match tells which post holds it, so fields your pages never show should not be searched. Plugins that define fields leave theirs out with the new seoprostack_field_search_field filter, which also says whether the search is on the site or in an admin list; site owners list field names or keys in Fields to leave out, under Troubleshooting. Leaving out a group, repeater or flexible content field leaves out everything in it. With neither, searches are unchanged (GitHub issue #688).
 
