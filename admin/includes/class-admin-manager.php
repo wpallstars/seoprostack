@@ -280,6 +280,12 @@ class SEOProStack_Admin_Manager {
             );
         }
         self::$hook = is_string($hook) ? $hook : '';
+        if ('' !== self::$hook) {
+            // The browser title names the tab shown (SEOProStack_Admin_Page::title_section()).
+            add_action('load-' . self::$hook, function () {
+                SEOProStack_Admin_Page::title_section(SEOProStack_Admin_Page::tab_label(self::get_active_tab(), self::get_tabs()));
+            });
+        }
     }
 
     /**
@@ -363,7 +369,8 @@ class SEOProStack_Admin_Manager {
 
         /**
          * Filter the data the admin script reads (seoprostackAdmin). Its tab
-         * follows the tab shown; tabs lists the tabs drawn on the page.
+         * follows the tab shown; tabs lists the tabs drawn on the page, and
+         * titles their browser titles (SEOProStack_Admin_Page::page_titles()).
          *
          * @param array  $data Script data.
          * @param string $tab  Active tab.
@@ -373,6 +380,7 @@ class SEOProStack_Admin_Manager {
             'nonce'   => wp_create_nonce(SEOProStack_Settings::NONCE),
             'tab'     => $tab,
             'tabs'    => $page_tabs,
+            'titles'  => SEOProStack_Admin_Page::page_titles($page_tabs, self::get_tabs()),
             'i18n'    => array(
                 'saving'      => __('Saving…', 'seoprostack'),
                 'saved'       => __('Saved', 'seoprostack'),
@@ -473,7 +481,9 @@ class SEOProStack_Admin_Manager {
      * content in `<div class="sps-main">`. A screen with sections puts them
      * between the two as the settings screen's tabs: `<nav class="sps-nav">`
      * holding `<a class="sps-nav__tab">` links, the one shown `is-active`
-     * with `aria-current="page"`.
+     * with `aria-current="page"`, and name it in the browser title with
+     * SEOProStack_Admin_Page::title_section() on the screen's load-{hook}
+     * action.
      */
     public static function render_header() {
         SEOProStack_Admin_Page::header();
