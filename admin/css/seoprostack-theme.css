@@ -1235,6 +1235,39 @@ html.sps-dark .components-spinner {
 	background: var(--sps-ui-field-border);
 }
 
+/*
+ * Loading GIFs drawn for white pages (WordPress's spinner, wpspin and
+ * loading GIFs, thickbox's bar, Kadence's and WooCommerce's loaders): their
+ * edges are blended into white, which shows as a light halo on dark. Inverted
+ * (hue turned back, so coloured arcs keep their colour) they sit cleanly on
+ * dark surfaces. Each selector paints only the GIF.
+ */
+html.sps-dark :is(.spinner, img:is([src*="/spinner"], [src*="wpspin"], [src*="/loading.gif"], [src*="loadingAnimation"], [src*="ajax-loader"], [src*="/icons/loader.svg"])),
+html.sps-dark .imgedit-wait::before,
+html.sps-dark #TB_window.plugin-details-modal.thickbox-loading::before,
+html.sps-dark .blockUI.blockOverlay::before,
+html.sps-dark .woocommerce .loader::before {
+	filter: invert(1) hue-rotate(180deg);
+}
+
+html.sps-dark #TB_window.plugin-details-modal.thickbox-loading::before {
+	background-color: transparent;
+}
+
+/* Their white veils over content while it loads (blockUI sets it inline). */
+html.sps-dark .imgedit-wait {
+	background: var(--sps-ui-canvas);
+}
+
+html.sps-dark .blockUI.blockOverlay {
+	background-color: var(--sps-ui-canvas) !important;
+}
+
+html.sps-dark #TB_load {
+	background-color: var(--sps-ui-raised);
+	border-color: var(--sps-ui-border);
+}
+
 html.sps-dark .components-guide__page,
 html.sps-dark .components-guide .components-modal__content {
 	background: var(--sps-ui-surface);
