@@ -2546,17 +2546,18 @@ html.sps-dark :is(.rank-math-sidebar-panel, .rank-math-modal-overlay) .notice-er
 }
 
 /*
- * ACF and Secure Custom Fields: field groups, tabs, galleries, files,
- * relationships and the field group editor (following ACF's own acf-dark.css,
- * which it loads only for the Dark Mode plugin).
+ * ACF and Secure Custom Fields: fields in editors, terms, users and options
+ * pages: tabs, galleries, files, relationships (following ACF's own
+ * acf-dark.css, which it loads only for the Dark Mode plugin).
  */
-html.sps-dark :is(.acf-box, .acf-fields.-border, .acf-input-prepend, .acf-input-append, .acf-fields > .acf-tab-wrap, .acf-fields > .acf-tab-wrap .acf-tab-group li.active a, .acf-file-uploader .show-if-value, .acf-relationship .filters, .acf-accordion, .acf-flexible-content .layout, .acf-flexible-content .layout .acf-fc-layout-handle .acf-fc-layout-order, #acf-field-group-fields :is(.acf-field-list-wrap, .acf-field-list .no-fields-message, .acf-field-object)) {
+html.sps-dark :is(.acf-box, .acf-fields.-border, .acf-input-prepend, .acf-input-append, .acf-fields > .acf-tab-wrap, .acf-fields > .acf-tab-wrap .acf-tab-group li.active a, .acf-file-uploader .show-if-value, .acf-relationship .filters, .acf-accordion, .acf-flexible-content .layout, .acf-flexible-content .layout .acf-fc-layout-handle .acf-fc-layout-order) {
 	color: var(--sps-ui-text);
 	background-color: var(--sps-ui-surface);
 	border-color: var(--sps-ui-border);
 }
 
-html.sps-dark :is(.acf-tfoot, .acf-fields > .acf-tab-wrap .acf-tab-group, .acf-fields > .acf-tab-wrap .acf-tab-group li a, .acf-fields.-sidebar::before, .acf-fields.-sidebar.-left > .acf-tab-wrap.-left .acf-tab-group li a, .acf-file-uploader .show-if-value .file-icon, .acf-oembed, .acf-gallery, .acf-gallery .acf-gallery-attachment .margin, .acf-gallery .acf-gallery-side, .acf-gallery .acf-gallery-side .acf-gallery-side-info, .acf-gallery .acf-gallery-toolbar, .acf-button-group label:not(.selected), .acf-switch:not(.-on), .acf-link .link-wrap, .acf-relationship .selection, .acf-relationship .selection :is(.choices, .choices-list, .values), .acf-taxonomy-field .categorychecklist-holder, .acf-google-map, .acf-flexible-content .layout .acf-fc-layout-handle, #wpbody .acf-table, #acf-field-group-fields .acf-field-object .acf-field .acf-label, #acf-field-group-fields .acf-field-object.ui-sortable-placeholder) {
+html.sps-dark :is(.acf-tfoot, .acf-fields > .acf-tab-wrap .acf-tab-group, .acf-fields > .acf-tab-wrap .acf-tab-group li a, .acf-fields.-sidebar::before, .acf-fields.-sidebar.-left > .acf-tab-wrap.-left .acf-tab-group li a, .acf-file-uploader .show-if-value .file-icon, .acf-oembed, .acf-gallery, .acf-gallery .acf-gallery-attachment .margin, .acf-gallery .acf-gallery-side, .acf-gallery .acf-gallery-side .acf-gallery-side-info, .acf-gallery .acf-gallery-toolbar, .acf-button-group label:not(.selected), .acf-switch:not(.-on), .acf-link .link-wrap, .acf-relationship .selection, .acf-relationship .selection :is(.choices, .choices-list, .values), .acf-taxonomy-field .categorychecklist-holder, .acf-google-map, .acf-flexible-content .layout .acf-fc-layout-handle),
+html.sps-dark #wpbody .acf-table {
 	color: var(--sps-ui-text);
 	background-color: var(--sps-ui-raised);
 	border-color: var(--sps-ui-border);
@@ -2582,6 +2583,206 @@ html.sps-dark :is(.acf-oembed .title, .acf-google-map .title, .acf-switch:not(.-
 	color: #fff;
 	background-color: #50626f;
 	border-color: var(--sps-ui-border);
+}
+
+/*
+ * Their own screens since ACF 6 (body.acf-admin-page: field groups and their
+ * editor, post types, taxonomies, options pages, tools), which acf-dark.css
+ * predates: #fff and #F9FAFB surfaces, #EBF5FA tints, #344054 text, #EAECF0
+ * lines and #0783BE links (3.9:1 on dark). The slate navigation bar keeps its
+ * colours, and so do the filled buttons.
+ */
+html.sps-dark :is(.acf-headerbar, .acf-admin-toolbar .acf-more ul, .scf-no-beta-features, .acf-modal, .acf-modal .acf-modal-content, .acf-modal.acf-browse-fields-modal .acf-field-picker, .acf-internal-post-type .wp-list-table tbody :is(th, td), .post-type-acf-field-group :is(.acf-field-object .settings, .acf-field.acf-field-setting-fc_layout, .acf-field-setting-fc_layout .acf-field-layout-settings.open)),
+html.sps-dark #acf-admin-tools .acf-meta-box-wrap .acf-fields,
+html.sps-dark #acf-field-group-fields :is(.acf-field-list-wrap, .acf-field-list, .acf-field-list .no-fields-message, .acf-field-object) {
+	color: var(--sps-ui-text);
+	background-color: var(--sps-ui-surface);
+}
+
+html.sps-dark :is(.acf-internal-post-type .wp-list-table :is(thead, tfoot) :is(th, td), .acf-internal-post-type .wp-list-table :is(th, td) .acf-more-items, .acf-admin-toolbar .acf-more ul li.acf-more-section-header, .acf-admin-toolbar .acf-more ul li.acf-more-section-header span:hover, .acf-admin-page :is(.acf-term-search-term-name, .acf-link-field-groups-popup .acf-popup-box .inner .acf-actions, .acf-create-options-page-popup .acf-popup-box .inner .acf-actions, i.acf-field-setting-fc-delete, i.acf-field-setting-fc-duplicate), .acf-field-setting-bidirectional_notes .acf-feature-notice, .acf-field-icon-picker :is(.acf-icon-list, .acf-icon-list-empty, .acf-icon-picker-media-library, .acf-icon-picker-url-tabs), .acf-modal.acf-browse-fields-modal :is(.acf-field-picker .acf-modal-title, .acf-field-type-preview, .acf-field-type-preview .field-type-preview-container, .acf-field-picker .acf-modal-content :is(.acf-field-types-tab, .acf-field-type-search-results) .acf-field-type), .acf-diff .acf-diff-title, :is(.acf-field-setting-display_format, .acf-field-setting-return_format) .acf-radio-list li label code),
+html.sps-dark .post-type-acf-field-group #acf-field-group-fields :is(.acf-thead, .acf-tfoot, .acf-field-object-tab, .acf-field-object-accordion, .acf-field-object.ui-sortable-placeholder, .acf-field-settings-fc_head) {
+	color: var(--sps-ui-text);
+	background-color: var(--sps-ui-raised);
+}
+
+html.sps-dark :is(.acf-headerbar .acf-headerbar-actions, .acf-options-preview, .acf-no-options-pages-wrapper) .disabled {
+	background-color: var(--sps-ui-raised) !important;
+	border-color: var(--sps-ui-border);
+}
+
+/* An open field, its type icons, picked icons and search results' title (#D8EBF5, #EBF5FA). */
+html.sps-dark :is(.post-type-acf-field-group .acf-field-object.open .handle, .acf-admin-page .subtitle, .field-type-icon, .acf-admin-page .acf-field-icon-picker .acf-icon-list .active, .acf-experimental-badge) {
+	color: var(--sps-ui-text);
+	background-color: #1b3048;
+	border-color: #2c5683;
+}
+
+html.sps-dark .field-type-icon::before {
+	background-color: var(--sps-ui-info);
+}
+
+html.sps-dark .post-type-acf-field-group #acf-field-group-fields .acf-field-object:not(.open, .acf-field-object-tab, .acf-field-object-accordion):hover {
+	background-color: #242b30;
+}
+
+html.sps-dark body.acf-admin-page #wpcontent :is(.acf-headerbar, .acf-postbox-header, .postbox, .postbox .inner, .postbox .inside, .acf-field, .acf-field-object, .acf-field-list-wrap, .acf-thead, .acf-tfoot, .acf-field-settings-split, .acf-field-settings-footer, .acf-field-group-settings-footer, .acf-field-settings-tab-bar, .acf-tab-wrap .acf-tab-group, .field-group-setting-split, .rule-groups, .acf-field-seperator, .acf-labels-tip, .acf-regenerate-labels-bar, .acf-checkbox-list, .acf-checkbox-list li, .acf-more ul li a, .acf-more-section-header, .wp-list-table, .wp-list-table :is(th, td), .acf-field-settings-fc_head, .acf-field-layout-settings, .acf-term-search-term-name, .acf-feature-notice, .acf-icon-list, .acf-icon-list-empty, .acf-icon-picker-media-library, .acf-icon-picker-url-tabs, i.acf-field-setting-fc-delete, i.acf-field-setting-fc-duplicate, .acf-meta-box-wrap .acf-fields .acf-input, .scf-no-beta-features),
+html.sps-dark :is(#acf-popup .acf-popup-box, #acf-popup .acf-popup-box .title, #acf-popup .acf-popup-box .acf-actions, .acf-modal, .acf-modal :is(.acf-modal-title, .acf-modal-title .acf-modal-close, .acf-modal-toolbar), .acf-browse-fields-modal :is(.acf-field-type, .acf-field-type-preview)) {
+	border-color: var(--sps-ui-border);
+}
+
+/* Text (#344054, #1D2939, #101828) and secondary text (#475467, #667085, #646970). */
+html.sps-dark :is(.acf-page-title, .acf-headerbar :is(h1, h2), .acf-postbox-header h2.acf-postbox-title, .acf-internal-post-type .wp-list-table :is(th, td), .post-type-acf-field-group :is(.acf-thead li, .acf-field-object .handle li), .acf-admin-toolbar .acf-more ul li a, .acf-no-field-groups-wrapper h2, .acf-modal .acf-modal-title .acf-modal-close),
+html.sps-dark .acf-admin-page :is(h2, .acf-h2, :is(.postbox, .acf-box) :is(.postbox-header, .title) :is(h2, h3), :is(.acf-link-field-groups-popup, .acf-create-options-page-popup) .acf-popup-box .title h3),
+html.sps-dark :is(#acf-popup .acf-confirm-popup .title h3, .acf-admin-page #acf-popup .acf-popup-box .title :is(h1, h2, h3, h4), #acf-update-information :is(.form-table th, .form-table td, .acf-update-changelog), #acf-admin-tools.tool-export .acf-panel h3, #acf-admin-tool-export .acf-panel-selection .acf-label label) {
+	color: var(--sps-ui-text);
+}
+
+html.sps-dark .acf-admin-page #poststuff .postbox-header :is(h2, h3) {
+	color: var(--sps-ui-text) !important;
+}
+
+html.sps-dark :is(.acf-admin-toolbar .acf-more ul li.acf-more-section-header span, .scf-beta-feature-info .description) {
+	color: var(--sps-ui-muted);
+}
+
+/* Tabs in the field settings and the post type and taxonomy screens (#667085, #1D2939 on hover, #0783BE). */
+html.sps-dark :is(.acf-fields, .acf-admin-page.acf-internal-post-type, .acf-browse-fields-modal-wrap) :is(.acf-field-settings-tab-bar, .acf-tab-wrap .acf-tab-group) li a {
+	color: var(--sps-ui-muted);
+}
+
+html.sps-dark :is(.acf-fields, .acf-admin-page.acf-internal-post-type, .acf-browse-fields-modal-wrap) :is(.acf-field-settings-tab-bar, .acf-tab-wrap .acf-tab-group) li a:hover {
+	color: var(--sps-ui-text);
+}
+
+html.sps-dark :is(.acf-fields, .acf-admin-page.acf-internal-post-type, .acf-browse-fields-modal-wrap) :is(.acf-field-settings-tab-bar, .acf-tab-wrap .acf-tab-group) li.active a {
+	color: var(--sps-ui-accent);
+	border-bottom-color: var(--sps-ui-accent);
+}
+
+html.sps-dark .acf-internal-post-type :is(.wp-list-table .post-state, .subsubsub li .count) {
+	color: var(--sps-ui-subtle);
+}
+
+html.sps-dark .acf-admin-page :where(#wpbody-content, #acf-popup, .acf-modal) a:where(:not(.button, .acf-btn, .page-title-action)),
+html.sps-dark .acf-admin-toolbar .acf-more ul li a:is(:hover, .acf-tab.is-active) {
+	color: var(--sps-ui-accent);
+}
+
+html.sps-dark .acf-admin-page :where(#wpbody-content, #acf-popup, .acf-modal) a:where(:not(.button, .acf-btn, .page-title-action)):is(:hover, :focus) {
+	color: var(--sps-ui-text);
+}
+
+/* Outlined and plain buttons (#0783BE, #667085 text, set with !important). */
+html.sps-dark .acf-btn.acf-btn-secondary {
+	color: var(--sps-ui-accent) !important;
+	border-color: var(--sps-ui-accent);
+}
+
+html.sps-dark .acf-btn.acf-btn-secondary:hover {
+	background-color: var(--sps-ui-raised);
+}
+
+html.sps-dark .acf-btn:is(.acf-btn-tertiary, .acf-btn-clear) {
+	color: var(--sps-ui-muted) !important;
+}
+
+html.sps-dark .acf-btn.acf-btn-tertiary {
+	border-color: var(--sps-ui-field-border);
+}
+
+html.sps-dark .acf-btn:is(:disabled, .disabled) {
+	color: var(--sps-ui-subtle) !important;
+	background-color: var(--sps-ui-raised);
+	border-color: var(--sps-ui-border);
+}
+
+/* Its fields: #fff with #D0D5DD borders, #F9FAFB when read-only, and a #667085 select arrow. */
+html.sps-dark .acf-admin-page :is(input:is([type="text"], [type="search"], [type="number"], [type="email"], [type="url"], [type="password"]), textarea, select),
+html.sps-dark .acf-admin-page :is(.acf-input, .rule-groups) .select2-container.-acf .select2-selection__rendered {
+	color: var(--sps-ui-text);
+	background-color: var(--sps-ui-canvas);
+	border-color: var(--sps-ui-field-border);
+}
+
+html.sps-dark .acf-admin-page :is(input[type="text"]:read-only, :is(input:is([type="text"], [type="search"], [type="number"]), textarea, select):disabled) {
+	color: var(--sps-ui-subtle);
+	background-color: var(--sps-ui-raised);
+}
+
+html.sps-dark .acf-admin-page :is(input:is([type="text"], [type="search"], [type="number"]), textarea, select):focus {
+	border-color: var(--sps-ui-accent);
+	outline-color: #2c5683;
+}
+
+html.sps-dark .acf-admin-page select {
+	background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20viewBox%3D%220%200%2024%2024%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cpath%20fill%3D%22none%22%20stroke%3D%22%23c3c4c7%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%20stroke-width%3D%222%22%20d%3D%22M6%209l6%206%206-6%22%2F%3E%3C%2Fsvg%3E");
+}
+
+html.sps-dark .acf-admin-page .select2-container--open .select2-selection__rendered {
+	border-bottom-color: var(--sps-ui-border) !important;
+}
+
+html.sps-dark .acf-admin-page .select2-container--open.select2-container--above .select2-selection__rendered {
+	border-top-color: var(--sps-ui-border) !important;
+}
+
+html.sps-dark .acf-admin-page :is(.field-type-select-results, .schema-property-select-results, .schema-type-select-results, .schema-output-format-select-results) .select2-results__option[aria-selected="true"] {
+	color: var(--sps-ui-text) !important;
+	background-color: #1b3048 !important;
+}
+
+html.sps-dark .acf-admin-page :is(.field-type-select-results, .schema-property-select-results, .schema-type-select-results, .schema-output-format-select-results) .select2-results__group {
+	color: var(--sps-ui-muted);
+	background-color: var(--sps-ui-raised);
+	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark .acf-admin-page :is(input[type="radio"], input[type="checkbox"]) {
+	background-color: var(--sps-ui-canvas);
+	border-color: var(--sps-ui-field-border);
+}
+
+html.sps-dark .acf-admin-page :is(input[type="radio"], input[type="checkbox"]):is(:hover, :checked, :focus-visible) {
+	background-color: #1b3048;
+}
+
+html.sps-dark .acf-admin-page :is(input[type="radio"], input[type="checkbox"]):is(:checked, :focus-visible) {
+	border-color: var(--sps-ui-accent);
+}
+
+/* Switches: a #D0D5DD track; the legacy rule above darkens the slider for older field screens. */
+html.sps-dark body.acf-admin-page #wpcontent .acf-switch:not(.-on) {
+	background-color: #646970;
+}
+
+html.sps-dark body.acf-admin-page #wpcontent .acf-switch:not(.-on):hover {
+	background-color: #787c82;
+}
+
+html.sps-dark body.acf-admin-page #wpcontent .acf-switch .acf-switch-slider {
+	background-color: var(--sps-ui-text);
+}
+
+/* Notices inside fields (#edf2ff and tinted, text set with !important). */
+html.sps-dark .acf-admin-page .acf-field .acf-notice {
+	color: var(--sps-ui-text) !important;
+	background-color: #152333;
+	border-color: #2c5683;
+}
+
+html.sps-dark .acf-admin-page .acf-field .acf-notice.-error {
+	background-color: #33191b;
+	border-color: #7d3437;
+}
+
+html.sps-dark .acf-admin-page .acf-field .acf-notice.-success {
+	background-color: #16291b;
+	border-color: #2e6b3a;
+}
+
+html.sps-dark .acf-admin-page .acf-field .acf-notice.-warning {
+	background-color: #2e2716;
+	border-color: #7a5d22;
 }
 
 /*
