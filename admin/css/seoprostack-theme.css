@@ -1645,6 +1645,149 @@ html.sps-dark #wpbody ul.ff_dashboard_stats li:hover a {
 }
 
 /*
+ * Meow Apps (AI Engine, Media File Renamer, Copytrack, Social Engine and the
+ * Meow Apps dashboard): NekoUI, styled-components with fixed colours (white
+ * panels, #2a303c text) and no dark mode. Its stable `neko-*` class names
+ * and AI Engine's `mwai-*` ones are styled here; the blue header and brand
+ * buttons stay as they are. Its :root palette is flipped too, for the parts
+ * that read it.
+ */
+html.sps-dark {
+	--neko-wp-background-color: var(--sps-ui-canvas);
+	--neko-background-color: var(--sps-ui-canvas);
+	--neko-input-background: var(--sps-ui-canvas);
+	--neko-input-border: var(--sps-ui-field-border);
+	--neko-font-color: var(--sps-ui-text);
+	--neko-gray-30: var(--sps-ui-text);
+	--neko-gray-40: var(--sps-ui-muted);
+	--neko-gray-50: var(--sps-ui-subtle);
+	--neko-gray-60: #8c8f94;
+	--neko-gray-70: #646970;
+	--neko-gray-80: #50575e;
+	--neko-gray-90: var(--sps-ui-border);
+	--neko-gray-95: var(--sps-ui-raised);
+	--neko-gray-98: #242b30;
+	--neko-secondary: #1b3048;
+}
+
+html.sps-dark .neko-page {
+	color: var(--sps-ui-text);
+	background-color: var(--sps-ui-canvas);
+}
+
+html.sps-dark :is(.neko-container, .neko-toolbar, .neko-tab-content, .neko-block-content, .neko-table tbody, .neko-table tbody :is(tr, td), .mwai-cs-panel, .mwai-cs-paper, .mwai-cs-stepper, .mwai-lane, .mwai-wb-side, .mwai-wb-composer, .mwai-composer, .mwai-panel, .vis-ring b, .neko-tab-content section) {
+	color: var(--sps-ui-text);
+	background-color: var(--sps-ui-surface);
+	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark :is(.neko-tab-title:not(.active, [aria-selected="true"]), .neko-container > .align-right, .neko-table tbody tr:hover > td, .mwai-cs-step-dot, .mwai-icon-btn, .mwai-send, .mwai-wb-send, .vis-tag, :is(.mwai-cs-chips, .mwai-cs-template-actions, .mwai-preset-actions, .mwai-thread-actions, .mwai-wb-preset-actions, .mwai-wb-toolbar) > button) {
+	color: var(--sps-ui-text);
+	background-color: var(--sps-ui-raised);
+	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark :is(.neko-tab-title.active, .neko-tab-title[aria-selected="true"]) {
+	background-color: var(--sps-ui-surface);
+	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark .mwai-cs-preview {
+	color: var(--sps-ui-text);
+	background-color: var(--sps-ui-canvas);
+}
+
+html.sps-dark :is(.neko-input, .neko-textarea, .neko-select-option, .neko-input input, .neko-textarea textarea) {
+	color: var(--sps-ui-text);
+	background-color: var(--sps-ui-canvas);
+	border-color: var(--sps-ui-field-border);
+}
+
+/* Its modals and select menus open in portals on body. */
+html.sps-dark .ReactModal__Content.neko-modal {
+	color: var(--sps-ui-text);
+	background-color: var(--sps-ui-surface);
+	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark .neko-modal :is(.button-group, [class*="footer"]) {
+	background-color: var(--sps-ui-raised);
+	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark .neko-modal :is(input.neko-input, textarea.neko-textarea, .neko-input input, .neko-textarea textarea, input[type="text"], textarea) {
+	color: var(--sps-ui-text);
+	background-color: var(--sps-ui-canvas);
+	border-color: var(--sps-ui-field-border);
+}
+
+html.sps-dark .neko-modal :is(h1, h2, h3, h4, label, p, .neko-typo) {
+	color: var(--sps-ui-text);
+}
+
+html.sps-dark :is(.neko-select-options, .neko-select-options > div) {
+	color: var(--sps-ui-text);
+	background-color: var(--sps-ui-surface);
+	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark .neko-select-options .neko-select-option {
+	background-color: transparent;
+	border-color: transparent;
+}
+
+html.sps-dark .neko-select-options .neko-select-option:hover {
+	background-color: var(--sps-ui-raised);
+}
+
+html.sps-dark :is(.neko-input, .neko-textarea, .neko-input input, .neko-textarea textarea)::placeholder {
+	color: var(--sps-ui-subtle);
+	opacity: 1;
+}
+
+html.sps-dark .neko-content:not([aria-checked="true"], [aria-checked="mixed"]) .neko-checkbox-check-container > .neko-checkbox {
+	background-color: var(--sps-ui-canvas);
+	border-color: var(--sps-ui-field-border);
+}
+
+/* Its secondary buttons: near-white with blue text. */
+html.sps-dark .neko-button.secondary {
+	color: var(--sps-ui-accent);
+	background-color: var(--sps-ui-raised);
+	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark .neko-button.secondary:is(:hover, :focus-visible) {
+	color: #fff;
+	background-color: var(--sps-ui-border);
+}
+
+html.sps-dark .neko-button.secondary :is(span, .button-text, .neko-icon) {
+	color: inherit;
+}
+
+html.sps-dark .mwai-cs-step.current {
+	color: var(--sps-ui-accent);
+	background-color: #1b3048;
+}
+
+html.sps-dark :is(.neko-typo, .neko-container-content, .neko-block-content, .neko-tab-content, .neko-tab-title, .neko-tab-label, .neko-label, .neko-label-container, .neko-checkbox-container, .neko-checkbox-group, .neko-content, .neko-settings-content, .neko-tooltip, .neko-select, .neko-select-option, .neko-select-option-label, .neko-select-chevron, .neko-toolbar, .neko-table tbody, .mwai-cs-body, .mwai-cs-panel, .mwai-cs-paper, .mwai-lane, .mwai-wb-main, .mwai-wb-side, .mwai-wb-title, .mwai-stage, .mwai-panel, .mwai-form, .vis-sample) {
+	color: var(--sps-ui-text);
+}
+
+html.sps-dark .neko-page :is(.neko-container, .neko-tab-content, .neko-block-content, .neko-table, .neko-settings-content, .mwai-cs-body, .mwai-wb-main, .mwai-wb-side, .mwai-stage, .mwai-panel) :is(p, li, strong, b, td, th, label, h1, h2, h3, h4, h5, h6, small, section):not([style*="color"]) {
+	color: var(--sps-ui-text);
+}
+
+html.sps-dark :is(.neko-intro-body, .mwai-count, .mwai-lane-empty, .mwai-form label, .mwai-wb-row label, .neko-paging-text) {
+	color: var(--sps-ui-muted);
+}
+
+html.sps-dark .neko-page :is(.neko-link, .neko-settings-head, .neko-tab-title.active .neko-tab-label, .mwai-cs-link, .mwai-cs-footnote a, .neko-container a:not(.neko-button)) {
+	color: var(--sps-ui-accent);
+}
+
+/*
  * Fluent Forms' screens (Element UI 2, white surfaces and #606266 text; it
  * has no dark mode of its own). Only its screens: the other Fluent plugins
  * use their own dark mode (the head script keeps it in step). Element's
