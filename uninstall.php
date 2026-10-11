@@ -213,6 +213,28 @@ function seoprostack_uninstall_site() {
     delete_post_meta_by_key('_seoprostack_nextgen');
     delete_post_meta_by_key('_seoprostack_nextgen_done');
 
+    // Cloud objects belong to the owner and stay; only local records go.
+    wp_unschedule_hook('seoprostack_media_storage_batch');
+    foreach (array('_seoprostack_storage', '_seoprostack_storage_done', '_seoprostack_storage_state', '_seoprostack_storage_skipped', '_seoprostack_storage_generation') as $meta_key) {
+        delete_post_meta_by_key($meta_key);
+    }
+    foreach (array('seoprostack_storage_lock', 'seoprostack_storage_cursor', 'seoprostack_storage_error') as $option) {
+        delete_option($option);
+    }
+    delete_transient('seoprostack_storage_test');
+    delete_transient('seoprostack_storage_counts');
+    // A cursor through the names visits each row once: a row that cannot be
+    // deleted is left behind instead of being selected again forever.
+    $after = '';
+    do {
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- indexed one-off cleanup in bounded batches.
+        $jobs = $wpdb->get_col($wpdb->prepare("SELECT option_name FROM {$wpdb->options} WHERE (option_name LIKE %s OR option_name LIKE %s) AND option_name > %s ORDER BY option_name LIMIT 200", $wpdb->esc_like('seoprostack_storage_job_') . '%', $wpdb->esc_like('seoprostack_storage_url_') . '%', $after));
+        foreach ($jobs as $option) {
+            delete_option($option);
+            $after = $option;
+        }
+    } while ($jobs);
+
     // Watermarks stay on pictures. The unmarked originals are the site
     // owner's pictures, so their folder (uploads/seoprostack-originals-*)
     // is kept; only the records linking them to pictures go.

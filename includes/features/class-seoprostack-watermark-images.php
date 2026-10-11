@@ -663,6 +663,7 @@ class SEOProStack_Watermark_Images extends SEOProStack_Feature {
                 }
             }
         }
+        do_action('seoprostack_media_files_changed', $attachment_id);
         return $metadata;
     }
 
@@ -807,6 +808,7 @@ class SEOProStack_Watermark_Images extends SEOProStack_Feature {
         delete_post_meta($attachment_id, self::META);
         self::delete_backup($record);
         delete_transient('dirsize_cache');
+        do_action('seoprostack_media_files_changed', $attachment_id);
         return 'removed';
     }
 

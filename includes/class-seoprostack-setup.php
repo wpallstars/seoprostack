@@ -71,6 +71,7 @@ final class SEOProStack_Setup {
         'SEOProStack_Replace_Media',
         'SEOProStack_Nextgen_Images',
         'SEOProStack_Watermark_Images',
+        'SEOProStack_Media_Storage',
         'SEOProStack_Dark_Image_Contrast',
         'SEOProStack_Post_Scheduler',
         'SEOProStack_Iframe_Block',
@@ -321,6 +322,7 @@ final class SEOProStack_Setup {
             'seoprostack_database_cleanup_cron_seen',  // SEOProStack_Database_Cleanup::CRON_SEEN
             'seoprostack_link_tables',                 // SEOProStack_Link_Index::VERSION
             'seoprostack_link_index',                  // SEOProStack_Link_Index::STATE
+            'seoprostack_storage_error',              // SEOProStack_Media_Storage::ERROR
         ));
     }
 

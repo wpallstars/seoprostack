@@ -794,7 +794,7 @@ class SEOProStack_Word_Import extends SEOProStack_Feature {
         if ('' !== $alt) {
             update_post_meta($id, '_wp_attachment_image_alt', sanitize_text_field($alt));
         }
-        $src = wp_get_attachment_image_url($id, 'large');
+        $src = class_exists('SEOProStack_Media_Storage') ? SEOProStack_Media_Storage::local_url($id, 'large') : wp_get_attachment_image_url($id, 'large');
         $this->images[$part] = '<img src="' . esc_url((string) $src) . '" alt="' . esc_attr($alt) . '" class="wp-image-' . (int) $id . '">';
         return $this->images[$part];
     }

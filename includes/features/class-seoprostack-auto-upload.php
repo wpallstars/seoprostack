@@ -413,6 +413,7 @@ class SEOProStack_Auto_Upload extends SEOProStack_Feature {
             wp_parse_url(home_url(), PHP_URL_HOST),
             wp_parse_url(site_url(), PHP_URL_HOST),
             wp_parse_url(content_url(), PHP_URL_HOST),
+            defined('SEOPROSTACK_MEDIA_STORAGE_URL') && is_string(SEOPROSTACK_MEDIA_STORAGE_URL) ? wp_parse_url(SEOPROSTACK_MEDIA_STORAGE_URL, PHP_URL_HOST) : null,
         ));
         $excluded = array_merge(
             SEOProStack_Settings::parse_domains(implode("\n", $local_hosts)),
@@ -486,7 +487,7 @@ class SEOProStack_Auto_Upload extends SEOProStack_Feature {
          */
         do_action('seoprostack_image_imported', $attachment_id, $url, $post_id);
 
-        $local = wp_get_attachment_url($attachment_id);
+        $local = class_exists('SEOProStack_Media_Storage') ? SEOProStack_Media_Storage::local_url($attachment_id) : wp_get_attachment_url($attachment_id);
         return $local ? $local : new WP_Error('seoprostack_no_url', __('The imported image has no address.', 'seoprostack'));
     }
 
@@ -509,7 +510,7 @@ class SEOProStack_Auto_Upload extends SEOProStack_Feature {
                 'meta_value'     => esc_url_raw($url), // phpcs:ignore WordPress.DB.SlowDBQuery
             ));
             if ($ids) {
-                return wp_get_attachment_url($ids[0]);
+                return class_exists('SEOProStack_Media_Storage') ? SEOProStack_Media_Storage::local_url($ids[0]) : wp_get_attachment_url($ids[0]);
             }
         }
         return false;

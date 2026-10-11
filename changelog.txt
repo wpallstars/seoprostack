@@ -2,6 +2,9 @@
 
 Every change to SEO Pro Stack. readme.txt lists the latest version in short.
 
+= 1.3.37 =
+* New: Media in cloud storage copies image attachments and their sizes and WebP copies to S3-compatible storage, Cloudflare R2 first, in background batches. Confirmed uploads are served from the public bucket while local files and saved addresses stay. Constants-only configuration, per-site switches, connection test, progress and WP-CLI commands (GitHub issue #684).
+
 = 1.3.36 =
 * Fix: Dark mode covers more screens: Rank Math's setup wizard and the example previews and menus in Titles & Meta; WooCommerce Home and Analytics; Admin Columns' totals row; the Media Library's search; the theme details overlay and plugin details; rich text fields outside the post editor, such as the profile's biography; Fluent Forms' editor, settings menus and reports; Kadence Blocks' settings and home, the Kadence theme's dashboard and Starter Templates; Meow Apps' screens (Media File Renamer, AI Engine and the rest); and the loading animations of WordPress, Kadence and WooCommerce (GitHub issue #683).
 * New: a colour mode change shows at once in every admin tab and window open in the same browser, in the admin bar icon and in SEO Pro Stats' button alike, and on a screen brought back with Back (GitHub issue #683).

@@ -5,17 +5,17 @@ Tags: magic login, iframe, schedule posts, auto upload images, admin
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.3.36
+Stable tag: 1.3.37
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
-One free plugin for a faster, tidier WordPress. It does the jobs of 40+ single-purpose plugins, each a switch you turn on.
+One free plugin for faster, tidier WordPress: the jobs of 40+ plugins, each with a switch.
 
 == Description ==
 
 Faster admin, easier publishing and safer logins.
 
-Free, open source, no locked features.
+Free and open source.
 
 Safe features start on; others stay off. In **Settings → SEO Pro Stack**, **Search features** finds replacements too. They import settings once, leave originals unchanged and wait while the old plugin is active.
 
@@ -51,6 +51,7 @@ Safe features start on; others stay off. In **Settings → SEO Pro Stack**, **Se
 
 * **Copy linked images to Media Library** on save, and **Paste into the Media Library**.
 * **WebP and AVIF images**: smaller files, same address, for supporting browsers.
+* **Media in cloud storage** (off): S3-compatible picture delivery; local files stay.
 * **Resize large uploads**, **Replace media files** and **Watermark pictures**, keeping originals.
 * **SVG uploads**: cleaned, chosen roles only. **Dark mode image contrast** for logos.
 * **Website screenshots**: block and `[browser-shot]` shortcode; saved to Media Library.
@@ -87,9 +88,10 @@ The WordPress.org version has no affiliate links. In GitHub builds, some Discove
 
 = External services =
 
-* **WordPress.org** (api.wordpress.org): lists recommended plugins and the Kadence theme when you open those tabs. See the [WordPress.org privacy policy](https://wordpress.org/about/privacy/).
+* **S3-compatible storage**: opted-in background batches send pictures and signed requests to your endpoint; tests send a probe. Visitors read uploaded pictures publicly. [Cloudflare terms](https://www.cloudflare.com/terms/), [privacy](https://www.cloudflare.com/policies/privacy/); [AWS terms](https://aws.amazon.com/serviceterms/), [privacy](https://aws.amazon.com/privacy/). Other providers' policies apply.
+* **WordPress.org** (api.wordpress.org): lists plugins and Kadence on their tabs. [Privacy](https://wordpress.org/about/privacy/).
 * **Google Analytics** (www.googletagmanager.com): when enabled with a measurement ID, browsers load gtag.js and send Google page views under its privacy policy. Logged-in users are excluded.
-* **Screenshot services**: when enabled, your server sends the page address to your chosen service to make or renew screenshots; visitors do not contact it.
+* **Screenshot services**: when enabled, your server sends page addresses to make screenshots; visitors do not contact them.
 * **Thum.io** (image.thum.io), the default: see [Thum.io](https://www.thum.io/).
 * **Microlink** (api.microlink.io, or pro.microlink.io with a key): [terms](https://microlink.io/tos), [privacy policy](https://microlink.io/privacy).
 * **ApiFlash** (api.apiflash.com): [terms](https://apiflash.com/terms_of_service), [privacy policy](https://apiflash.com/privacy_policy).
@@ -114,7 +116,7 @@ Install from Plugins → Add New and activate. Set features in Settings → SEO 
 
 = What happens if I deactivate or delete the plugin? =
 
-Deactivation removes Load plugins only where needed's must-use file and tries to remove marked `.htaccess` rules. Deletion removes settings, caches, profile pictures, WebP/AVIF copies and short links too; imported media and watermarked originals stay.
+Deactivation restores local image addresses, removes the must-use file and tries to remove marked `.htaccess` rules. Deletion removes settings, caches, profile pictures, WebP/AVIF copies, storage records and short links; imported media, watermarked originals and bucket objects stay.
 
 = Does it work on multisite? =
 
@@ -140,8 +142,7 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 
 == Changelog ==
 
-= 1.3.36 =
-* Fix: Dark mode covers more screens: Rank Math's setup wizard, WooCommerce, Kadence Blocks and Starter Templates, Fluent Forms' editor, Meow Apps, rich text fields and loading animations.
-* New: a colour mode change shows at once in every admin tab open in the same browser.
+= 1.3.37 =
+* New: Media in cloud storage (off by default) copies pictures, their sizes and WebP copies to S3-compatible storage such as Cloudflare R2 in the background, and serves them from the bucket. Local files stay.
 
 Older: `changelog.txt`.
