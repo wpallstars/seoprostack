@@ -268,8 +268,8 @@ class SEOProStack_Plugin_References extends SEOProStack_Feature {
         }
         delete_transient($key);
 
-        $names = isset($result['names']) ? (array) $result['names'] : array();
-        $sites = isset($result['sites']) ? (int) $result['sites'] : 0;
+        $names = (array) ($result['names'] ?? array());
+        $sites = (int) ($result['sites'] ?? 0);
         /* translators: %s: number of sites */
         $text = sprintf(_n('Checked %s site.', 'Checked %s sites.', $sites, 'seoprostack'), number_format_i18n($sites));
         if ($names) {

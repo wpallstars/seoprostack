@@ -370,7 +370,8 @@ class SEOProStack_Developers extends SEOProStack_Feature {
      * @param mixed  $value Saved value.
      */
     public static function setting_saved($key, $value = null) {
-        if ((self::KEY !== $key && self::USERS_KEY !== $key) || (self::KEY === $key && !$value)) {
+        // Only when the list changes, or this is switched on.
+        if (self::USERS_KEY !== $key && (self::KEY !== $key || !$value)) {
             return;
         }
         $me = get_current_user_id();
