@@ -62,12 +62,51 @@ final class SEOProStack_Admin_Theme {
     public static function init() {
         add_filter(self::PARTICIPANTS, array(__CLASS__, 'participate'));
         add_action('admin_enqueue_scripts', array(__CLASS__, 'enqueue'), 20);
-        add_action('admin_head', array(__CLASS__, 'head'), 1);
+        // Before other plugins' own colour mode scripts (Fluent's run at 1).
+        add_action('admin_head', array(__CLASS__, 'head'), 0);
         add_filter('admin_body_class', array(__CLASS__, 'body_class'));
         add_action('admin_bar_init', array(__CLASS__, 'bar_init'));
         add_action('wp_ajax_' . self::ACTION, array(__CLASS__, 'save'));
         // The admin bar's links, when the script has not loaded.
         add_action('admin_post_' . self::ACTION, array(__CLASS__, 'save_and_return'));
+        // Fluent plugins' "no conflict" mode removes other plugins' scripts from their screens.
+        add_filter('fluentform/exclude_js_slugs_from_dequeue', array(__CLASS__, 'fluent_keep_path'));
+        foreach (array('fluent_crm_asset_listed_slugs', 'fluent_boards/asset_listed_slugs', 'fluent_booking/asset_listed_slugs') as $hook) {
+            add_filter($hook, array(__CLASS__, 'fluent_keep_pattern'));
+        }
+    }
+
+    /**
+     * Keep SEO Pro Stack's scripts on Fluent Forms' screens, which its "no
+     * conflict" mode would remove: the colour mode's menu, the contrast
+     * guard and the other admin-wide tools (faster navigation, notices).
+     * Fluent Forms matches part of each script's address.
+     *
+     * @param mixed $slugs Parts of addresses to keep.
+     * @return array<int,string>
+     */
+    public static function fluent_keep_path($slugs) {
+        $slugs   = is_array($slugs) ? $slugs : array();
+        $slugs[] = '/' . basename(SEOPROSTACK_DIR) . '/';
+        return $slugs;
+    }
+
+    /**
+     * The same for FluentCRM, Fluent Boards and Fluent Booking, which match
+     * addresses with regular expression parts. Scripts only: Fluent Booking
+     * applies the list to styles too, and its screens keep their own colour
+     * mode, without SEO Pro Stack's stylesheet.
+     *
+     * @param mixed $slugs Regular expression parts of addresses to keep.
+     * @return array<int,string>
+     */
+    public static function fluent_keep_pattern($slugs) {
+        $slugs = is_array($slugs) ? $slugs : array();
+        if (doing_action('wp_print_styles')) {
+            return $slugs;
+        }
+        $slugs[] = '\/' . preg_quote(basename(SEOPROSTACK_DIR), '/') . '\/';
+        return $slugs;
     }
 
     /**
@@ -89,6 +128,25 @@ final class SEOProStack_Admin_Theme {
             }
         }
         return 'light';
+    }
+
+    /**
+     * Whether the current person has saved a mode, in either plugin, rather
+     * than having Light as the default.
+     *
+     * @return bool
+     */
+    private static function chosen() {
+        $user_id = get_current_user_id();
+        if (!$user_id) {
+            return false;
+        }
+        foreach (array(self::SHARED_META, self::META) as $key) {
+            if (in_array(get_user_meta($user_id, $key, true), self::MODES, true)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
@@ -148,6 +206,25 @@ final class SEOProStack_Admin_Theme {
          * @param WP_Screen|null $screen  The screen.
          */
         return (bool) apply_filters('seoprostack_admin_dark_screen', $applies, $screen);
+    }
+
+    /**
+     * Whether Dark checks the screen's text for contrast and fixes text that
+     * does not read (the contrast guard in admin/js/seoprostack-theme.js).
+     *
+     * @return bool
+     */
+    private static function guards() {
+        $screen = function_exists('get_current_screen') ? get_current_screen() : null;
+        /**
+         * Filter whether Dark mode's contrast guard runs on an admin screen:
+         * it gives text that reads below WCAG AA (4.5:1) against what is
+         * behind it the nearest colour that does.
+         *
+         * @param bool           $guards Whether it runs. Default true.
+         * @param WP_Screen|null $screen The screen.
+         */
+        return (bool) apply_filters('seoprostack_admin_dark_contrast_guard', true, $screen);
     }
 
     /**
@@ -218,6 +295,7 @@ final class SEOProStack_Admin_Theme {
             'mode'    => $mode,
             'applies' => $applies,
             'css'     => $applies ? $url : '',
+            'guard'   => $applies && self::guards(),
             'node'    => $toggle ? 'wp-admin-bar-' . self::NODE : '',
             'icons'   => self::ICONS,
             'ajaxUrl' => admin_url('admin-ajax.php'),
@@ -226,15 +304,28 @@ final class SEOProStack_Admin_Theme {
         )) . ';', 'before');
     }
 
-    /** Set the mode's classes on <html> before anything is drawn. */
+    /**
+     * Set the mode's classes on <html> before anything is drawn.
+     *
+     * Once someone has chosen a mode (Light included, so a choice made in
+     * another browser reaches this one), it also passes it to the Fluent
+     * plugins' own colour mode (FluentCRM, Fluent Booking, FluentSMTP, Fluent
+     * Support...) and LiteSpeed Cache's, kept in the browser, before their
+     * own scripts read it, so their screens open in the same mode, without
+     * a flash. Light as the default, never chosen, leaves their own choice.
+     */
     public static function head() {
         if (!self::screen_applies()) {
             return;
         }
-        $script = '(function(r,m){var q=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)");'
+        $mode   = self::mode();
+        $chosen = 'light' !== $mode || self::chosen();
+        $script = '(function(r,m,c){var q=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)"),d=m==="dark"||(m==="system"&&!!q&&q.matches);'
             . 'r.classList.add("sps-theme-"+m);'
-            . 'if(m==="dark"||(m==="system"&&q&&q.matches)){r.classList.add("sps-dark");}'
-            . '})(document.documentElement,' . wp_json_encode(self::mode()) . ');';
+            . 'if(d){r.classList.add("sps-dark");}'
+            . 'if(c){try{var s=localStorage;s.setItem("fluent_theme_mode",m);s.setItem("fs-theme",m==="system"?"system:"+(d?"dark":"light"):m);'
+            . 'if(m==="system"){s.removeItem("litespeed-dark-preference");}else{s.setItem("litespeed-dark-preference",m);}}catch(e){}}'
+            . '})(document.documentElement,' . wp_json_encode($mode) . ',' . ($chosen ? 'true' : 'false') . ');';
         wp_print_inline_script_tag($script, array('id' => 'seoprostack-theme-mode'));
     }
 

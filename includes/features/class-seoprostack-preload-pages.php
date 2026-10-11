@@ -302,7 +302,8 @@ class SEOProStack_Preload_Pages extends SEOProStack_Feature {
      * gave them: Fluent Boards colours `.toplevel_page_fluent-boards`, which
      * WordPress also gives its menu entry and link, so the entry turned white
      * once it was no longer the current one. The dots show one, two, three,
-     * then none, each for 0.4 s.
+     * then none, each for 0.4 s. In dark mode (sps-dark on <html>) the
+     * background and title take the dark canvas and text instead.
      *
      * No fade between screens: WordPress 7.0's fade is what No fade between
      * admin screens (SEOProStack_Admin_Page_Fade) turns off.
@@ -331,6 +332,9 @@ class SEOProStack_Preload_Pages extends SEOProStack_Feature {
             . 'html.sps-nav-busy #adminmenu li.menu-top:not(:hover):not(.current):not(.wp-has-current-submenu),'
             . 'html.sps-nav-busy #adminmenu li.menu-top:not(:hover):not(.opensub):not(.current):not(.wp-has-current-submenu)>a.menu-top:not(:focus){background-color:transparent}'
             . "{$shell},{$shell} body{background:#f0f0f1!important}"
+            // Dark mode (SEOProStack_Admin_Theme): its canvas and text.
+            . "html.sps-dark.sps-nav-shell,html.sps-dark.sps-nav-shell body{background:var(--sps-ui-canvas,#101517)!important}"
+            . 'html.sps-dark #sps-nav-wait{color:var(--sps-ui-text,#f0f0f1)}'
             . "{$shell} #wpwrap,{$shell} #wpcontent,{$shell} #wpbody,{$shell} #wpbody-content{background:transparent!important}"
             . "{$shell} #wpcontent{padding-inline-start:20px!important;padding-inline-end:0!important}"
             . "{$shell} #wpbody-content{margin-top:0!important;padding-top:0!important}"
