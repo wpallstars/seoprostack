@@ -1828,6 +1828,60 @@ html.sps-dark #wpbody .kb-action-card__icon svg :is(path, rect, circle, line, po
 	fill: currentcolor;
 }
 
+/* Kadence Blocks Pro: the Form Entries head (white, #ebebeb line). */
+html.sps-dark #wpbody .kt_plugin_welcome_title_head {
+	background: var(--sps-ui-surface);
+	border-bottom-color: var(--sps-ui-border);
+}
+
+/*
+ * Kadence Starter Templates: the Site Assist dashboard and Knowledge Base
+ * (`--bg: #fff` for its head and cards, #f2f2f2 chips, #50575e address).
+ */
+html.sps-dark #wpbody .wrap.kadence_starter_dash {
+	--bg: var(--sps-ui-surface);
+	--card-border-color: var(--sps-ui-border);
+
+	color: var(--sps-ui-text);
+}
+
+html.sps-dark #wpbody .kadence_starter_dash :is(.kb-section h2, .kadence-dash-task h3, .kadence-dash-single-task-title, .kadence-dash-title h1, a.kb-assist-frontend-link h2) {
+	color: var(--sps-ui-text);
+}
+
+html.sps-dark #wpbody .kadence_starter_dash :is(a.kb-assist-frontend-link .kb-assist-site-url, .kadence-dash-head-navigation .kadence-dash-nav-item:not(.is-active)) {
+	color: var(--sps-ui-muted);
+}
+
+html.sps-dark #wpbody .kadence_starter_dash .kadence-dash-single-task-subtitle {
+	color: var(--sps-ui-muted);
+	background: var(--sps-ui-raised);
+}
+
+/* Its outlined task buttons and progress bars take WordPress's accent fill as text and bar: the light accent reads on the dark cards. */
+html.sps-dark #wpbody .kadence_starter_dash :is(.kadence-dash-single-task-btn.is-primary, .kadence-dash-task-status) {
+	--wp-components-color-accent: var(--sps-ui-accent);
+	--wp-components-color-accent-inverted: var(--sps-ui-canvas);
+}
+
+/* The progress track's #e0e0de is an inline style. */
+html.sps-dark #wpbody .kadence_starter_dash .kadence-dash-task-status [role="progressbar"] > div {
+	background: var(--sps-ui-raised) !important;
+}
+
+html.sps-dark #wpbody .kadence_starter_dash .kadence-dash-single-task-error {
+	color: var(--sps-ui-bad);
+	background: rgb(255 128 133 / 12%);
+}
+
+html.sps-dark #wpbody .kadence_starter_dash .kadence-dash-task-icon .components-button.kadence-dash-task-icon-btn svg.kadence-dash-task-icon-hover-complete {
+	background: var(--bg);
+}
+
+html.sps-dark #wpbody .kadence_starter_dash .kb-help-single-category .kadence-post-card {
+	border-bottom-color: var(--sps-ui-border);
+}
+
 /* Fluent Forms: the dashboard's Latest Form Submissions (#f9f9f9 stripes, #0073aa links). */
 html.sps-dark #wpbody ul.ff_dashboard_stats li {
 	border-color: var(--sps-ui-border);
