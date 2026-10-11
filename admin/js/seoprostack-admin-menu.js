@@ -7,7 +7,9 @@
  * call to seoprostackMenuFlyouts() straight after the menu, so the third
  * level is in place before the page is drawn. Each entry with a submenu
  * gets a list that opens to the side on hover or keyboard focus; the
- * current page's list shows in place.
+ * current page's list shows in place. Each plugin menu they hold also
+ * gets a hidden copy of WordPress's own markup, for plugins' scripts that
+ * look for it (stub()).
  *
  * Folding (when "Fold sections" is on): each section heading
  * (li.sps-menu-heading) hides or shows the entries after it, up to the
@@ -541,12 +543,107 @@
 		window.addEventListener('load', fit);
 	}
 
-	window.seoprostackMenuFlyouts = function (data) {
-		keepOrder(document.getElementById('adminmenu'));
+	/**
+	 * A menu title, printed the same way by WordPress, into a link. Parsed
+	 * apart from the page: innerHTML here, while the page is still being
+	 * read, would cancel the wait for the footer that draws SEO Pro Stack's
+	 * screens whole (SEOProStack_Setup::print_whole_screen).
+	 */
+	function title(link, html) {
+		var body = new window.DOMParser().parseFromString(html, 'text/html').body;
+		while (body.firstChild) {
+			link.appendChild(body.firstChild);
+		}
+	}
+
+	/** Mark a menu link, and its row, as the current page, or not. */
+	function mark(link, on) {
+		link.classList.toggle('current', on);
+		link.parentNode.classList.toggle('current', on);
+		if (on) {
+			link.setAttribute('aria-current', 'page');
+		} else {
+			link.removeAttribute('aria-current');
+		}
+	}
+
+	/**
+	 * WordPress's markup for a plugin menu now inside the Administrators or
+	 * Developers menu: li#toplevel_page_{hook}.wp-has-submenu with its
+	 * submenu links, hidden, at the end of the menu (outside the sections,
+	 * the order kept and the fitted width). Plugins' scripts that find
+	 * their menu by it (such as Complianz, on every load and every tab)
+	 * then find it instead of stopping with an error, and what they do to
+	 * it cannot change the visible menu. The one change that should show,
+	 * which link is current, is copied to the entry's third level.
+	 *
+	 * @param {Element}      menu The menu (#adminmenu).
+	 * @param {Object}       hook {i: id, c: classes, u: address}.
+	 * @param {Array}        kids The entry's third level, as for its flyout.
+	 * @param {Element|null} list The entry's flyout list, if it has one.
+	 */
+	function stub(menu, hook, kids, list) {
+		var item = document.createElement('li');
+		if (hook.i) {
+			item.id = hook.i;
+		}
+		item.className = (hook.c + (kids.length ? ' wp-has-submenu' : '') + ' sps-menu-stub').trim();
+		item.hidden = true;
+		item.style.display = 'none';
+		var top = document.createElement('a');
+		top.setAttribute('href', hook.u);
+		top.setAttribute('tabindex', '-1');
+		item.appendChild(top);
+		if (!kids.length) {
+			menu.appendChild(item);
+			return;
+		}
+		var sub = document.createElement('ul');
+		sub.className = 'wp-submenu wp-submenu-wrap';
+		var copies = [];
+		kids.forEach(function (entry, n) {
+			var li = document.createElement('li');
+			var link = document.createElement('a');
+			link.setAttribute('href', entry.u);
+			link.setAttribute('tabindex', '-1');
+			title(link, entry.t);
+			if (0 === n) {
+				li.className = 'wp-first-item';
+				link.className = 'wp-first-item';
+			}
+			li.appendChild(link);
+			sub.appendChild(li);
+			if (entry.c) {
+				mark(link, true);
+			}
+			copies.push(link);
+		});
+		item.appendChild(sub);
+		menu.appendChild(item);
+		if (!list || 'function' !== typeof window.MutationObserver) {
+			return;
+		}
+		var shown = Array.prototype.map.call(list.children, function (li) {
+			return li.querySelector('a');
+		});
+		new window.MutationObserver(function () {
+			copies.forEach(function (copy, n) {
+				var on = copy.classList.contains('current');
+				if (shown[n] && on !== shown[n].classList.contains('current')) {
+					mark(shown[n], on);
+				}
+			});
+		}).observe(sub, { subtree: true, attributes: true, attributeFilter: ['class'] });
+	}
+
+	window.seoprostackMenuFlyouts = function (data, hooks) {
+		var menu = document.getElementById('adminmenu');
+		keepOrder(menu);
 		// Headings that do not fold are labels, not links.
 		document.querySelectorAll('#adminmenu li.sps-menu-static > a').forEach(function (link) {
 			link.removeAttribute('href');
 		});
+		var lists = {};
 		Object.keys(data || {}).forEach(function (id) {
 			var item = document.querySelector('#adminmenu li.' + id);
 			if (!item) {
@@ -554,18 +651,12 @@
 			}
 			var list = document.createElement('ul');
 			list.className = 'sps-menu-flyout';
+			lists[id] = list;
 			data[id].forEach(function (entry) {
 				var li = document.createElement('li');
 				var link = document.createElement('a');
 				link.setAttribute('href', entry.u);
-				// Menu titles, printed the same way by WordPress. Parsed apart
-				// from the page: innerHTML here, while the page is still being
-				// read, would cancel the wait for the footer that draws SEO Pro
-				// Stack's screens whole (SEOProStack_Setup::print_whole_screen).
-				var title = new window.DOMParser().parseFromString(entry.t, 'text/html').body;
-				while (title.firstChild) {
-					link.appendChild(title.firstChild);
-				}
+				title(link, entry.t);
 				if (entry.c) {
 					li.className = 'current';
 					link.className = 'current';
@@ -585,6 +676,11 @@
 				paint(item, list);
 			});
 		});
+		if (menu) {
+			Object.keys(hooks || {}).forEach(function (id) {
+				stub(menu, hooks[id], (data && data[id]) || [], lists[id] || null);
+			});
+		}
 		fit();
 	};
 
