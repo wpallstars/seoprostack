@@ -62,7 +62,8 @@ final class SEOProStack_Admin_Theme {
     public static function init() {
         add_filter(self::PARTICIPANTS, array(__CLASS__, 'participate'));
         add_action('admin_enqueue_scripts', array(__CLASS__, 'enqueue'), 20);
-        add_action('admin_head', array(__CLASS__, 'head'), 1);
+        // Before other plugins' own colour mode scripts (Fluent's run at 1).
+        add_action('admin_head', array(__CLASS__, 'head'), 0);
         add_filter('admin_body_class', array(__CLASS__, 'body_class'));
         add_action('admin_bar_init', array(__CLASS__, 'bar_init'));
         add_action('wp_ajax_' . self::ACTION, array(__CLASS__, 'save'));
@@ -151,6 +152,25 @@ final class SEOProStack_Admin_Theme {
     }
 
     /**
+     * Whether Dark checks the screen's text for contrast and fixes text that
+     * does not read (the contrast guard in admin/js/seoprostack-theme.js).
+     *
+     * @return bool
+     */
+    private static function guards() {
+        $screen = function_exists('get_current_screen') ? get_current_screen() : null;
+        /**
+         * Filter whether Dark mode's contrast guard runs on an admin screen:
+         * it gives text that reads below WCAG AA (4.5:1) against what is
+         * behind it the nearest colour that does.
+         *
+         * @param bool           $guards Whether it runs. Default true.
+         * @param WP_Screen|null $screen The screen.
+         */
+        return (bool) apply_filters('seoprostack_admin_dark_contrast_guard', true, $screen);
+    }
+
+    /**
      * Whether this is one of SEO Pro Stats' own screens (Statistics,
      * Settings). SEO Pro Stats styles those with its own colour mode, which
      * follows the same shared choice, so SEO Pro Stack's dark rules stay off
@@ -218,6 +238,7 @@ final class SEOProStack_Admin_Theme {
             'mode'    => $mode,
             'applies' => $applies,
             'css'     => $applies ? $url : '',
+            'guard'   => $applies && self::guards(),
             'node'    => $toggle ? 'wp-admin-bar-' . self::NODE : '',
             'icons'   => self::ICONS,
             'ajaxUrl' => admin_url('admin-ajax.php'),
@@ -226,14 +247,22 @@ final class SEOProStack_Admin_Theme {
         )) . ';', 'before');
     }
 
-    /** Set the mode's classes on <html> before anything is drawn. */
+    /**
+     * Set the mode's classes on <html> before anything is drawn.
+     *
+     * While Dark or System is chosen, it also passes the choice to the Fluent
+     * plugins' own colour mode (FluentCRM, Fluent Booking, FluentSMTP, Fluent
+     * Support...), kept in the browser, before their own scripts in <head>
+     * read it, so their screens open in the same mode, without a flash.
+     */
     public static function head() {
         if (!self::screen_applies()) {
             return;
         }
-        $script = '(function(r,m){var q=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)");'
+        $script = '(function(r,m){var q=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)"),d=m==="dark"||(m==="system"&&!!q&&q.matches);'
             . 'r.classList.add("sps-theme-"+m);'
-            . 'if(m==="dark"||(m==="system"&&q&&q.matches)){r.classList.add("sps-dark");}'
+            . 'if(d){r.classList.add("sps-dark");}'
+            . 'if(m!=="light"){try{localStorage.setItem("fluent_theme_mode",m);localStorage.setItem("fs-theme",m==="system"?"system:"+(d?"dark":"light"):m);}catch(e){}}'
             . '})(document.documentElement,' . wp_json_encode(self::mode()) . ');';
         wp_print_inline_script_tag($script, array('id' => 'seoprostack-theme-mode'));
     }

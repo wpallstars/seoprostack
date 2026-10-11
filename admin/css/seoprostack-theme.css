@@ -1255,6 +1255,228 @@ html.sps-dark :is(.edit-post-meta-boxes-main__presenter, .edit-post-meta-boxes-m
 	box-shadow: 0 1px var(--sps-ui-border);
 }
 
+/* The document bar (the title in the header that opens the command palette): WordPress greys it on hover (#e0e0e0). */
+html.sps-dark :is(.editor-document-bar:hover, .editor-document-bar .components-button:hover) {
+	background-color: var(--sps-ui-border);
+}
+
+html.sps-dark .editor-document-bar__back.components-button.has-icon.has-text {
+	color: var(--sps-ui-muted);
+}
+
+html.sps-dark .editor-document-bar__back.components-button.has-icon.has-text:hover {
+	color: var(--sps-ui-text);
+}
+
+/* The grey around the canvas (#ddd) and the save panel's toggle (#fff). */
+html.sps-dark :is(.editor-visual-editor, .edit-post-visual-editor) {
+	background-color: var(--sps-ui-canvas);
+}
+
+html.sps-dark .editor-layout__toggle-entities-saved-states-panel {
+	background-color: var(--sps-ui-surface);
+	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark .editor-post-content-information {
+	color: var(--sps-ui-muted);
+}
+
+/* Searchable dropdowns ------------------------------------------------------ */
+
+/* Select2 and selectWoo (WooCommerce, Rank Math, Admin Columns and many more): the field, its list and its search. */
+html.sps-dark .select2-container :is(.select2-selection--single, .select2-selection--multiple, .select2-search__field) {
+	color: var(--sps-ui-text);
+	background-color: var(--sps-ui-canvas);
+	border-color: var(--sps-ui-field-border);
+}
+
+html.sps-dark .select2-container .select2-dropdown {
+	color: var(--sps-ui-text);
+	background-color: var(--sps-ui-surface);
+	border-color: var(--sps-ui-field-border);
+}
+
+html.sps-dark .select2-container :is(.select2-selection__rendered, .select2-results__option) {
+	color: var(--sps-ui-text);
+}
+
+html.sps-dark .select2-container :is(.select2-selection__placeholder, .select2-results__group, .select2-results__message) {
+	color: var(--sps-ui-subtle);
+}
+
+html.sps-dark .select2-container .select2-selection__arrow b {
+	border-top-color: var(--sps-ui-muted);
+}
+
+html.sps-dark .select2-container.select2-container--open .select2-selection__arrow b {
+	border-bottom-color: var(--sps-ui-muted);
+	border-top-color: transparent;
+}
+
+html.sps-dark .select2-container .select2-selection__choice {
+	color: var(--sps-ui-text);
+	background-color: var(--sps-ui-raised);
+	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark .select2-container :is(.select2-selection__choice__remove, .select2-selection__clear) {
+	color: var(--sps-ui-muted);
+}
+
+html.sps-dark .select2-container .select2-results__option:is([aria-selected="true"], [data-selected="true"], .select2-results__option--selected) {
+	background-color: var(--sps-ui-raised);
+}
+
+html.sps-dark .select2-container .select2-results__option--highlighted:is([aria-selected], [data-selected], .select2-results__option--selectable) {
+	color: #fff;
+	background-color: var(--sps-ui-primary);
+}
+
+html.sps-dark .select2-container .select2-results__option[aria-disabled="true"] {
+	color: var(--sps-ui-subtle);
+}
+
+html.sps-dark .select2-container.select2-container--disabled :is(.select2-selection--single, .select2-selection--multiple) {
+	background-color: var(--sps-ui-raised);
+}
+
+/* Chosen. */
+html.sps-dark .chosen-container :is(.chosen-single, .chosen-choices, .chosen-drop, .chosen-search input[type="text"], .chosen-choices li.search-field input[type="text"]) {
+	color: var(--sps-ui-text);
+	background: var(--sps-ui-canvas);
+	border-color: var(--sps-ui-field-border);
+	box-shadow: none;
+}
+
+html.sps-dark .chosen-container .chosen-drop {
+	background: var(--sps-ui-surface);
+}
+
+html.sps-dark .chosen-container .chosen-results li {
+	color: var(--sps-ui-text);
+}
+
+html.sps-dark .chosen-container .chosen-results li.highlighted {
+	color: #fff;
+	background: var(--sps-ui-primary);
+}
+
+html.sps-dark .chosen-container-multi .chosen-choices li.search-choice {
+	color: var(--sps-ui-text);
+	background: var(--sps-ui-raised);
+	border-color: var(--sps-ui-border);
+	box-shadow: none;
+}
+
+/* Choices.js. */
+html.sps-dark :is(.choices__inner, .choices__input) {
+	color: var(--sps-ui-text);
+	background-color: var(--sps-ui-canvas);
+	border-color: var(--sps-ui-field-border);
+}
+
+html.sps-dark :is(.choices__list--dropdown, .choices__list[aria-expanded]) {
+	color: var(--sps-ui-text);
+	background-color: var(--sps-ui-surface);
+	border-color: var(--sps-ui-field-border);
+}
+
+html.sps-dark :is(.choices__list--dropdown, .choices__list[aria-expanded]) .choices__item--selectable.is-highlighted {
+	background-color: var(--sps-ui-raised);
+}
+
+/* Tom Select. */
+html.sps-dark .ts-wrapper :is(.ts-control, .ts-control input),
+html.sps-dark .ts-wrapper.single.input-active .ts-control {
+	color: var(--sps-ui-text);
+	background: var(--sps-ui-canvas);
+	border-color: var(--sps-ui-field-border);
+}
+
+html.sps-dark .ts-dropdown {
+	color: var(--sps-ui-text);
+	background: var(--sps-ui-surface);
+	border-color: var(--sps-ui-field-border);
+}
+
+html.sps-dark .ts-dropdown :is(.active, .create:hover) {
+	color: var(--sps-ui-text);
+	background-color: var(--sps-ui-raised);
+}
+
+/* jQuery UI: date pickers, autocomplete lists and dialogs. */
+html.sps-dark :is(.ui-datepicker, .ui-autocomplete, .ui-menu, .ui-dialog, .ui-widget.ui-widget-content) {
+	color: var(--sps-ui-text);
+	background: var(--sps-ui-surface);
+	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark :is(.ui-datepicker .ui-datepicker-header, .ui-dialog .ui-dialog-titlebar, .ui-widget-header) {
+	color: var(--sps-ui-text);
+	background: var(--sps-ui-raised);
+	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark .ui-datepicker :is(th, .ui-datepicker-title, .ui-datepicker-prev, .ui-datepicker-next) {
+	color: var(--sps-ui-text);
+}
+
+html.sps-dark .ui-datepicker td :is(a, span),
+html.sps-dark .ui-menu .ui-menu-item-wrapper {
+	color: var(--sps-ui-text);
+	background: transparent;
+	border-color: transparent;
+}
+
+html.sps-dark .ui-datepicker td :is(a:hover, a.ui-state-hover, .ui-state-active),
+html.sps-dark .ui-menu :is(.ui-state-active, .ui-menu-item-wrapper:hover) {
+	color: #fff;
+	background: var(--sps-ui-primary);
+	border-color: var(--sps-ui-primary);
+}
+
+html.sps-dark .ui-datepicker td .ui-state-highlight {
+	color: var(--sps-ui-text);
+	background: var(--sps-ui-raised);
+}
+
+/* Other plugins ------------------------------------------------------------- */
+
+/* Kadence Blocks: the Design Library button in the editor's toolbar (#1e1e1e outline). */
+html.sps-dark .kadence-toolbar-design-library .kb-toolbar-prebuilt-button {
+	color: var(--sps-ui-text);
+	border-color: var(--sps-ui-field-border);
+}
+
+html.sps-dark .kadence-toolbar-design-library .kb-toolbar-prebuilt-button.components-button:is(:hover, :focus):not(:disabled) {
+	color: #fff;
+	background: var(--sps-ui-primary);
+	border-color: var(--sps-ui-primary);
+}
+
+/* Fluent Forms: the dashboard's Latest Form Submissions (#f9f9f9 stripes, #0073aa links). */
+html.sps-dark #wpbody ul.ff_dashboard_stats li {
+	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark #wpbody ul.ff_dashboard_stats li:nth-child(2n+2) {
+	background: var(--sps-ui-stripe);
+}
+
+html.sps-dark #wpbody ul.ff_dashboard_stats li:hover {
+	background: var(--sps-ui-raised);
+	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark #wpbody ul.ff_dashboard_stats li a {
+	color: var(--sps-ui-accent);
+}
+
+html.sps-dark #wpbody ul.ff_dashboard_stats li:hover a {
+	color: var(--sps-ui-text);
+}
+
 /* SEO Pro Stack's additions to WordPress's screens -------------------------- */
 
 /* Plugins: sizes (class-seoprostack-plugin-sizes.php) and page cost (class-seoprostack-plugin-cost.php). */
