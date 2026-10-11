@@ -335,25 +335,29 @@ html.sps-dark #contextual-help-columns {
 
 /* Fields ------------------------------------------------------------------ */
 
-/* WordPress's own :focus rules still win, so the focus ring stays. */
-:where(html.sps-dark :is(#wpbody, .components-modal__frame, .media-modal, [id="TB_window"], #sps-notices-wrap)) :is(input:not([type="checkbox"], [type="radio"], [type="submit"], [type="button"], [type="reset"], [type="file"], [type="color"], [type="range"], [type="image"]), textarea, select) {
+/*
+ * WordPress's own :focus rules still win, so the focus ring stays. Pop-ups
+ * added to <body> are listed too: jQuery UI date pickers, and Admin Columns'
+ * inline editor and modals (bulk editing).
+ */
+:where(html.sps-dark :is(#wpbody, .components-modal__frame, .media-modal, [id="TB_window"], #sps-notices-wrap, .ui-datepicker, .ac-edit-popper, .ac-modal)) :is(input:not([type="checkbox"], [type="radio"], [type="submit"], [type="button"], [type="reset"], [type="file"], [type="color"], [type="range"], [type="image"]), textarea, select) {
 	color: var(--sps-ui-text);
 	background-color: var(--sps-ui-canvas);
 	border-color: var(--sps-ui-field-border);
 }
 
-:where(html.sps-dark :is(#wpbody, .media-modal)) :is(input, textarea)::placeholder {
+:where(html.sps-dark :is(#wpbody, .media-modal, .ac-edit-popper, .ac-modal)) :is(input, textarea)::placeholder {
 	color: var(--sps-ui-subtle);
 }
 
-:where(html.sps-dark :is(#wpbody, .media-modal)) :is(input:disabled, textarea:disabled, select:disabled, input[readonly], textarea[readonly]) {
+:where(html.sps-dark :is(#wpbody, .media-modal, .ac-edit-popper, .ac-modal)) :is(input:disabled, textarea:disabled, select:disabled, input[readonly], textarea[readonly]) {
 	color: var(--sps-ui-subtle);
 	background-color: var(--sps-ui-raised);
 	border-color: var(--sps-ui-border);
 }
 
 /* The select arrow, drawn light (WordPress draws it dark grey). */
-:where(html.sps-dark :is(#wpbody, .media-modal)) select:not([multiple], .components-select-control__input) {
+:where(html.sps-dark :is(#wpbody, .media-modal, .ui-datepicker, .ac-edit-popper, .ac-modal)) select:not([multiple], .components-select-control__input) {
 	background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20width%3D%2220%22%20height%3D%2220%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cpath%20d%3D%22M5%206l5%205%205-5%202%201-7%207-7-7%202-1z%22%20fill%3D%22%23c3c4c7%22%2F%3E%3C%2Fsvg%3E");
 }
 
@@ -371,7 +375,7 @@ html.sps-dark .wp-core-ui select:disabled:is(:hover, :focus) {
 	border-color: var(--sps-ui-border);
 }
 
-:where(html.sps-dark :is(#wpbody, .media-modal, #sps-notices-wrap)) :is(input[type="checkbox"], input[type="radio"]) {
+:where(html.sps-dark :is(#wpbody, .media-modal, #sps-notices-wrap, .ac-edit-popper, .ac-modal)) :is(input[type="checkbox"], input[type="radio"]) {
 	background: var(--sps-ui-canvas);
 	border-color: var(--sps-ui-field-border);
 }
@@ -1387,6 +1391,11 @@ html.sps-dark .select2-container :is(.select2-selection--single, .select2-select
 	border-color: var(--sps-ui-field-border);
 }
 
+/* A multiple select's search sits inside its field, so it takes the field's colour. */
+html.sps-dark .select2-container .select2-search--inline .select2-search__field {
+	background-color: transparent;
+}
+
 html.sps-dark .select2-container .select2-dropdown {
 	color: var(--sps-ui-text);
 	background-color: var(--sps-ui-surface);
@@ -1830,6 +1839,23 @@ html.sps-dark [id="meow-common-phpinfo"] td[style*="background-color: white"] a 
 	color: var(--sps-ui-accent) !important;
 }
 
+/* AI Engine's Magic Wand menu in list screens' row actions (#fff, #f0f6fc on hover). */
+html.sps-dark .mwai-magic-wand-dropdown {
+	background: var(--sps-ui-surface);
+	border-color: var(--sps-ui-border);
+	box-shadow: 0 2px 8px rgb(0 0 0 / 50%);
+}
+
+html.sps-dark .mwai-magic-wand-dropdown a {
+	color: var(--sps-ui-accent);
+	border-bottom-color: var(--sps-ui-border);
+}
+
+html.sps-dark .mwai-magic-wand-dropdown a:hover {
+	color: var(--sps-ui-text);
+	background: var(--sps-ui-raised);
+}
+
 /*
  * Fluent Forms' screens (Element UI 2, white surfaces and #606266 text; it
  * has no dark mode of its own). Only its screens: the other Fluent plugins
@@ -2263,6 +2289,32 @@ html.sps-dark .editor-editor-interface .interface-pinned-items button.components
 	color: #5fd6ae;
 	background: rgb(36 150 113 / 20%);
 	border-color: #249671;
+}
+
+/* The SEO score on list screens, in the same tints (Rank Math: #dedede, #fce5e2, #fdf0c4 and #4ab147 fills). */
+html.sps-dark .wp-list-table td .rank-math-column-display.seo-score.no-score strong {
+	color: var(--sps-ui-muted);
+	background: var(--sps-ui-raised);
+}
+
+html.sps-dark .wp-list-table td .rank-math-column-display.seo-score.bad strong {
+	color: #f4928e;
+	background: rgb(225 41 37 / 18%);
+}
+
+html.sps-dark .wp-list-table td .rank-math-column-display.seo-score.good strong {
+	color: #f2b65e;
+	background: rgb(179 111 14 / 22%);
+}
+
+html.sps-dark .wp-list-table td .rank-math-column-display.seo-score.great strong {
+	color: #7fd17c;
+	background: rgb(67 159 64 / 20%);
+}
+
+/* The Pillar Content icon beside it: a black outline image. */
+html.sps-dark .rank-math-column-display .is-pillar {
+	filter: invert(1);
 }
 
 html.sps-dark :is(.rank-math-box header h3, .rank-math-breadcrumbs .active, .rank-math-header h1) {
@@ -2947,6 +2999,103 @@ html.sps-dark .acp-mf-sticky-container.-more::after {
 	border-color: var(--sps-ui-border);
 }
 
+/* Inline editing's Edit and Clear buttons on a hovered cell (90% white, through six classes). */
+html.sps-dark #wpbody table.acp-ie-table .acp-ie-controls__item {
+	color: var(--sps-ui-muted);
+	background-color: var(--sps-ui-raised);
+	border-color: var(--sps-ui-field-border);
+}
+
+html.sps-dark #wpbody table.acp-ie-table .acp-ie-controls__item:is(:hover, :focus-visible) {
+	color: var(--sps-ui-accent);
+	background-color: var(--sps-ui-border);
+}
+
+html.sps-dark #wpbody table.acp-ie-table .acp-ie-controls__item:is(.-delete, .-clear):is(:hover, :focus-visible) {
+	color: var(--sps-ui-bad);
+}
+
+/*
+ * The date picker in inline and bulk editing has its own jQuery UI theme
+ * (body.ac-jqui), stronger than the general date picker rules: #fff days, a
+ * #e2e2e2 today, and a #e9e9e9 button bar with #fff buttons.
+ */
+html.sps-dark .ac-jqui #ui-datepicker-div td :is(a, span) {
+	color: var(--sps-ui-text);
+	background: transparent;
+	border-color: transparent;
+}
+
+html.sps-dark .ac-jqui #ui-datepicker-div td .ui-state-highlight {
+	background: var(--sps-ui-raised);
+}
+
+html.sps-dark .ac-jqui #ui-datepicker-div td :is(a:hover, .ui-state-hover, .ui-state-active) {
+	color: #fff;
+	background: var(--sps-ui-primary);
+	border-color: var(--sps-ui-primary);
+}
+
+html.sps-dark .ac-jqui #ui-datepicker-div .ui-datepicker-buttonpane {
+	background: var(--sps-ui-raised);
+	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark .ac-jqui #ui-datepicker-div .ui-datepicker-buttonpane button {
+	color: var(--sps-ui-text);
+	background: var(--sps-ui-surface);
+	border-color: var(--sps-ui-field-border);
+}
+
+html.sps-dark .ac-jqui #ui-datepicker-div .ui-datepicker-buttonpane button:is(:hover, :focus, .ui-state-hover) {
+	background: var(--sps-ui-border);
+}
+
+/*
+ * Svelte Select, in its filters, search and column settings: a #fff field and
+ * list, #e7f2ff or #5897fb hover, a #ddd chosen item, #2271b1 typed text on
+ * hover and #000 group titles (!important).
+ */
+html.sps-dark .svelte-select {
+	--background: var(--sps-ui-canvas);
+	--border: 1px solid var(--sps-ui-field-border);
+	--border-hover: 1px solid var(--sps-ui-text);
+	--list-background: var(--sps-ui-surface);
+	--list-border: 1px solid var(--sps-ui-border);
+	--list-shadow: 0 4px 12px rgb(0 0 0 / 50%);
+	--item-color: var(--sps-ui-text);
+	--input-color: var(--sps-ui-text);
+	--selected-item-color: var(--sps-ui-text);
+	--placeholder-color: var(--sps-ui-subtle);
+	--list-empty-color: var(--sps-ui-subtle);
+	--group-title-color: var(--sps-ui-subtle);
+	--item-is-not-selectable-color: var(--sps-ui-subtle);
+	--icons-color: var(--sps-ui-muted);
+	--item-hover-bg: var(--sps-ui-raised);
+	--item-hover-color: var(--sps-ui-text);
+	--item-active-background: var(--sps-ui-border);
+	--item-is-active-bg: var(--sps-ui-primary);
+	--item-is-active-color: #fff;
+	--multi-item-bg: var(--sps-ui-raised);
+	--multi-item-outline: 1px solid var(--sps-ui-border);
+	--multi-item-clear-icon-color: var(--sps-ui-text);
+	--multi-item-disabled-hover-bg: var(--sps-ui-raised);
+	--multi-item-disabled-hover-color: var(--sps-ui-subtle);
+	--disabled-background: var(--sps-ui-raised);
+	--disabled-border-color: var(--sps-ui-border);
+	--disabled-color: var(--sps-ui-subtle);
+	--disabled-placeholder-color: var(--sps-ui-subtle);
+	--error-background: #33191b;
+}
+
+html.sps-dark .svelte-select:is(.-wordpress, .-acui):hover {
+	--input-color: var(--sps-ui-accent);
+}
+
+html.sps-dark .svelte-select .item.list-group-title {
+	color: var(--sps-ui-subtle) !important;
+}
+
 /*
  * WooCommerce's React screens (Home, Analytics): header, cards, summaries,
  * charts, tables and the date range picker: #fff, #f8f9fa, #f0f0f0 and
@@ -3026,6 +3175,22 @@ html.sps-dark :is(.CalendarDay__default:hover, .CalendarDay__hovered_offset, .Ca
 
 html.sps-dark .CalendarDay__blocked_out_of_range {
 	color: var(--sps-ui-subtle);
+}
+
+/* Complianz: the Website Scan column's status pills (#dcfce7, #fef3c7 and #f1f5f9). */
+html.sps-dark .cmplz-scan-status--done {
+	color: var(--sps-ui-good);
+	background: #183a24;
+}
+
+html.sps-dark .cmplz-scan-status--queued {
+	color: var(--sps-ui-warning);
+	background: #3a3016;
+}
+
+html.sps-dark .cmplz-scan-status--pending {
+	color: var(--sps-ui-muted);
+	background: var(--sps-ui-raised);
 }
 
 /* SEO Pro Stack's additions to WordPress's screens -------------------------- */
