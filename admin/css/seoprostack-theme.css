@@ -938,6 +938,124 @@ html.sps-dark #wpbody :is(.tabs-panel, .category-tabs .tabs, .categorydiv div.ta
 	border-color: var(--sps-ui-border);
 }
 
+/* Code editors -------------------------------------------------------------- */
+
+/*
+ * CodeMirror in its default theme (the theme and plugin file editors,
+ * Custom HTML, and many plugins' code fields): #fff with #f7f7f7 gutters,
+ * and code in dark blues, reds and greens that read at under 3:1 on dark.
+ * Here a dark palette for code (Material's), every colour at 4.5:1 or
+ * more. Editors set to another theme (Code Snippets offers many) keep it.
+ */
+html.sps-dark .CodeMirror.cm-s-default {
+	color: var(--sps-ui-text);
+	background: var(--sps-ui-canvas);
+}
+
+html.sps-dark .cm-s-default :is(.CodeMirror-gutters, .CodeMirror-gutter-filler, .CodeMirror-scrollbar-filler) {
+	background-color: var(--sps-ui-surface);
+	border-right-color: var(--sps-ui-border);
+}
+
+/* WordPress's line numbers are #646970 (3:1 on dark). */
+html.sps-dark .cm-s-default :is(.CodeMirror-linenumber, .CodeMirror-guttermarker-subtle) {
+	color: var(--sps-ui-subtle);
+}
+
+html.sps-dark .cm-s-default .CodeMirror-guttermarker {
+	color: var(--sps-ui-text);
+}
+
+html.sps-dark .cm-s-default .CodeMirror-cursor {
+	border-left-color: var(--sps-ui-text);
+}
+
+html.sps-dark .cm-s-default .CodeMirror-activeline-background {
+	background: var(--sps-ui-hover);
+}
+
+html.sps-dark .cm-s-default .CodeMirror-selected,
+html.sps-dark .cm-s-default :is(.CodeMirror-line, .CodeMirror-line > span, .CodeMirror-line > span > span)::selection {
+	background: #2c5683;
+}
+
+html.sps-dark .cm-s-default :is(.cm-keyword, .cm-builtin) {
+	color: #c792ea;
+}
+
+html.sps-dark .cm-s-default :is(.cm-atom, .cm-number, .cm-string-2) {
+	color: #f78c6c;
+}
+
+html.sps-dark .cm-s-default :is(.cm-def, .cm-header) {
+	color: #82aaff;
+}
+
+html.sps-dark .cm-s-default .cm-variable-2 {
+	color: #89ddff;
+}
+
+html.sps-dark .cm-s-default :is(.cm-variable-3, .cm-type, .cm-attribute) {
+	color: #ffcb6b;
+}
+
+html.sps-dark .cm-s-default :is(.cm-string, .cm-quote) {
+	color: #c3e88d;
+}
+
+html.sps-dark .cm-s-default .cm-tag {
+	color: #f07178;
+}
+
+html.sps-dark .cm-s-default .cm-comment {
+	color: var(--sps-ui-subtle);
+}
+
+html.sps-dark .cm-s-default :is(.cm-meta, .cm-qualifier, .cm-bracket, .cm-hr) {
+	color: var(--sps-ui-muted);
+}
+
+html.sps-dark .cm-s-default .cm-link {
+	color: var(--sps-ui-accent);
+}
+
+html.sps-dark .cm-s-default :is(.cm-error, .cm-invalidchar, .cm-negative, span.CodeMirror-nonmatchingbracket) {
+	color: var(--sps-ui-bad);
+}
+
+/* Its completions (#fff), lint notes (#ffd, WordPress's #fcf9e8 and #fcf0f1) and search bar. */
+html.sps-dark :is(.CodeMirror-hints.default, .CodeMirror-lint-tooltip.cm-s-default) {
+	color: var(--sps-ui-text);
+	background-color: var(--sps-ui-surface);
+	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark .CodeMirror-hints.default .CodeMirror-hint {
+	color: var(--sps-ui-text);
+}
+
+html.sps-dark .CodeMirror-hints.default li.CodeMirror-hint-active {
+	color: #fff;
+	background: var(--sps-ui-primary);
+}
+
+/* In WordPress the notes carry the ground. */
+html.sps-dark .wp-core-ui .CodeMirror-lint-tooltip.cm-s-default {
+	background: none;
+}
+
+html.sps-dark .wp-core-ui .CodeMirror-lint-message-warning {
+	background-color: #2e2716;
+}
+
+html.sps-dark .wp-core-ui .CodeMirror-lint-message-error {
+	background-color: #33191b;
+}
+
+html.sps-dark .cm-s-default :is(.CodeMirror-dialog-top, .CodeMirror-dialog-bottom) {
+	border-color: var(--sps-ui-border);
+}
+
 /* Media library ------------------------------------------------------------- */
 
 html.sps-dark :is(.media-modal-content, .media-frame-content, .media-frame-title, .media-frame-router, .media-frame-toolbar .media-toolbar, .media-frame-menu, .media-menu, .attachments-browser .media-toolbar, .media-frame.mode-grid .media-toolbar, .uploader-inline, .media-frame .attachments-browser, .media-modal .media-frame-content) {
@@ -3426,6 +3544,275 @@ html.sps-dark .cmplz-scan-status--queued {
 html.sps-dark .cmplz-scan-status--pending {
 	color: var(--sps-ui-muted);
 	background: var(--sps-ui-raised);
+}
+
+/*
+ * Readabler and Merkulove's other plugins: their settings screens
+ * (admin.php?page=mdp_...), in Material Components with #fff surfaces,
+ * rgba(10, 33, 56, .87) text and lines, labels on #fff patches that hide
+ * the outline under them, and #0274e6 text (4:1 on dark), raised to the
+ * accent here. Filled buttons keep their blue.
+ */
+html.sps-dark body[class*="page_mdp_"] {
+	--mdc-theme-surface: var(--sps-ui-surface);
+	--mdc-theme-on-surface: var(--sps-ui-text);
+	--mdc-theme-error: var(--sps-ui-bad);
+}
+
+/* The side menu, and the fade under its title and Save changes. */
+html.sps-dark body[class*="page_mdp_"] .mdc-drawer {
+	background-color: var(--sps-ui-surface);
+	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark body[class*="page_mdp_"] .mdc-drawer .mdc-plugin-fixed {
+	background: linear-gradient(to bottom, var(--sps-ui-surface) 0, var(--sps-ui-surface) 60%, transparent 100%);
+}
+
+html.sps-dark body[class*="page_mdp_"] .mdc-drawer .mdc-list-item {
+	color: var(--sps-ui-text);
+}
+
+html.sps-dark body[class*="page_mdp_"] .mdc-drawer :is(.mdc-list-group__subheader, .mdc-drawer__subtitle, .mdc-list-item__graphic) {
+	color: var(--sps-ui-muted);
+}
+
+html.sps-dark body[class*="page_mdp_"] .mdc-drawer .mdc-list-item--activated,
+html.sps-dark body[class*="page_mdp_"] .mdc-drawer .mdc-list-item--activated .mdc-list-item__graphic,
+html.sps-dark body[class*="page_mdp_"] :is(.mdc-list-item--activated, .mdc-list-item--selected):not(.mdc-select__menu *) {
+	color: var(--sps-ui-accent);
+}
+
+html.sps-dark body[class*="page_mdp_"] .mdc-list-divider {
+	border-bottom-color: var(--sps-ui-border) !important;
+}
+
+/* Hover and focus ripples (#0a2138 at 4% to 12%), and the picked option in a select's menu. */
+html.sps-dark body[class*="page_mdp_"] .mdc-list-item:not(.mdc-list-item--activated, .mdc-list-item--selected)::before,
+html.sps-dark body[class*="page_mdp_"] .mdc-list-item:not(.mdc-list-item--activated, .mdc-list-item--selected)::after,
+html.sps-dark body[class*="page_mdp_"] .mdc-select__menu .mdc-list .mdc-list-item--selected::before,
+html.sps-dark body[class*="page_mdp_"] .mdc-select__menu .mdc-list .mdc-list-item--selected::after {
+	background-color: #fff;
+}
+
+/* Text, headings and lists. */
+html.sps-dark body[class*="page_mdp_"] :is(.mdc-list, .mdc-menu .mdc-list, .mdp-aside :is(h2, h3), .mdp-panel.mdp-panel-box :is(h1, h2, h3, h4, h5, h6), .mdc-switch-label, .mdc-accordion, .mdp-accordion, .mdc-changelog :is(h4, li), .mdc-data-table__header-cell, .mdc-data-table__cell, .mdc-system-requirements .mdc-system-requirements-table thead) {
+	color: var(--sps-ui-text);
+}
+
+html.sps-dark body[class*="page_mdp_"] :is(.mdp-tab-title, .mdc-list .mdc-list-item__secondary-text, .mdc-accordion-title i, .mdp-accordion-title i, .mdc-accordion-content, .mdp-accordion-content, .mdc-text-field-helper-line, .mdc-text-field-helper-text, .mdc-select-helper-text, .mdc-icon-field-helper-text, .mdc-icon-field-label, .mdc-media-library-field-helper-text, .mdp-subscribe-form p) {
+	color: var(--sps-ui-muted);
+}
+
+/* Fields: outlined, their text, labels and the select's arrow (#0a2138 at 54%). */
+html.sps-dark body[class*="page_mdp_"] .mdc-text-field:not(.mdc-text-field--disabled) .mdc-text-field__input {
+	color: var(--sps-ui-text);
+}
+
+html.sps-dark body[class*="page_mdp_"] :is(.mdc-select:not(.mdc-select--disabled) .mdc-select__selected-text, .mdc-colorpicker:not(.mdc-text-field--disabled) .mdc-text-field__input) {
+	color: var(--sps-ui-accent);
+}
+
+html.sps-dark body[class*="page_mdp_"] .mdc-text-field__input::placeholder {
+	color: var(--sps-ui-subtle);
+}
+
+html.sps-dark body[class*="page_mdp_"] :is(.mdc-text-field, .mdc-select) .mdc-floating-label {
+	color: var(--sps-ui-muted);
+	background: var(--sps-ui-canvas);
+}
+
+/* The purchase code's label fades from white. */
+html.sps-dark body[class*="page_mdp_"] .mdp-activation-form .mdc-input-width label.mdc-floating-label--float-above {
+	background: linear-gradient(var(--sps-ui-canvas), transparent);
+}
+
+html.sps-dark body[class*="page_mdp_"] :is(.mdc-text-field--focused, .mdc-select--focused) .mdc-floating-label {
+	color: var(--sps-ui-accent);
+}
+
+html.sps-dark body[class*="page_mdp_"] :is(.mdc-text-field--invalid, .mdc-select--invalid) .mdc-floating-label {
+	color: var(--sps-ui-bad);
+}
+
+html.sps-dark body[class*="page_mdp_"] :is(.mdc-text-field--disabled, .mdc-select--disabled) :is(.mdc-text-field__input, .mdc-select__selected-text, .mdc-floating-label) {
+	color: var(--sps-ui-subtle);
+}
+
+html.sps-dark body[class*="page_mdp_"] .mdc-text-field:not(.mdc-text-field--disabled) .mdc-text-field__icon {
+	color: var(--sps-ui-muted);
+}
+
+html.sps-dark body[class*="page_mdp_"] :is(.mdc-text-field, .mdc-select):not(.mdc-text-field--disabled, .mdc-select--disabled, .mdc-text-field--focused, .mdc-select--focused, .mdc-text-field--invalid, .mdc-select--invalid) :is(.mdc-notched-outline__leading, .mdc-notched-outline__notch, .mdc-notched-outline__trailing) {
+	border-color: var(--sps-ui-field-border);
+}
+
+html.sps-dark body[class*="page_mdp_"] :is(.mdc-text-field, .mdc-select):not(.mdc-text-field--disabled, .mdc-select--disabled, .mdc-text-field--focused, .mdc-select--focused, .mdc-text-field--invalid, .mdc-select--invalid) :is(.mdc-text-field__input, .mdc-select__selected-text):hover ~ .mdc-notched-outline :is(.mdc-notched-outline__leading, .mdc-notched-outline__notch, .mdc-notched-outline__trailing) {
+	border-color: var(--sps-ui-muted);
+}
+
+html.sps-dark body[class*="page_mdp_"] .mdc-select:not(.mdc-select--focused, .mdc-select--invalid, .mdc-select--disabled) .mdc-select__dropdown-icon {
+	background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2210%22%20height%3D%225%22%20viewBox%3D%227%2010%2010%205%22%3E%3Cpolygon%20fill%3D%22%23c3c4c7%22%20points%3D%227%2010%2012%2015%2017%2010%22%2F%3E%3C%2Fsvg%3E");
+}
+
+/* Text and outlined buttons; switches that are off (a #0a2138 track). */
+html.sps-dark body[class*="page_mdp_"] .mdc-button:not(:disabled, .mdc-button--raised, .mdc-button--unelevated) {
+	color: var(--sps-ui-accent);
+}
+
+html.sps-dark body[class*="page_mdp_"] .mdc-button--outlined:not(:disabled) {
+	border-color: var(--sps-ui-accent);
+}
+
+html.sps-dark body[class*="page_mdp_"] .mdc-button:disabled {
+	color: var(--sps-ui-subtle);
+}
+
+html.sps-dark body[class*="page_mdp_"] .mdc-switch:not(.mdc-switch--checked) .mdc-switch__track {
+	background-color: var(--sps-ui-muted);
+	border-color: var(--sps-ui-muted);
+}
+
+/*
+ * Icon and image fields: a picture on a light checked ground (#f6f6f6),
+ * Remove on #fff over it, and the Icon Library (#fff). Its icons are black
+ * outlines, the colour set for them shows only on the site: shown light here.
+ */
+html.sps-dark body[class*="page_mdp_"] :is(.mdc-icon-field-img-box, .mdc-media-library-field-image) {
+	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark body[class*="page_mdp_"] :is(.mdc-icon-field-img-box.mdc-with-image, .mdc-media-library-field-image) {
+	background: repeating-conic-gradient(var(--sps-ui-raised) 0% 25%, var(--sps-ui-surface) 0% 50%) 0 0 / 16px 16px;
+}
+
+html.sps-dark body[class*="page_mdp_"] :is(.mdc-icon-field-image, .mdc-icon-field-category-icon-box) img {
+	filter: invert(1);
+}
+
+html.sps-dark body[class*="page_mdp_"] :is(.mdc-icon-field-img-box .mdc-icon-field-remove, .mdc-media-library-field-remove) {
+	background: var(--sps-ui-raised);
+	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark body[class*="page_mdp_"] .mdc-media-library-field-btn {
+	background-color: var(--sps-ui-surface) !important;
+}
+
+html.sps-dark body[class*="page_mdp_"] .mdc-icon-field-modal-box > div {
+	color: var(--sps-ui-text);
+	background: var(--sps-ui-surface);
+}
+
+html.sps-dark body[class*="page_mdp_"] .mdc-icon-field-modal-box > div :is(.mdc-icon-field-modal-header, .mdc-icon-field-modal-footer) {
+	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark body[class*="page_mdp_"] .mdc-icon-field-modal-box .mdc-icon-field-category-icon-box:hover {
+	background: var(--sps-ui-raised);
+}
+
+/* Its colour picker (#fff, opened on body). */
+html.sps-dark body[class*="page_mdp_"] .colorpicker {
+	background: var(--sps-ui-surface);
+	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark body[class*="page_mdp_"] .colorpicker :is(.colorpicker-default__hex-input, .colorpicker-default__r-input, .colorpicker-default__g-input, .colorpicker-default__b-input, .colorpicker-default__a-input) {
+	color: var(--sps-ui-text);
+	background: var(--sps-ui-canvas);
+	border-color: var(--sps-ui-field-border);
+}
+
+html.sps-dark body[class*="page_mdp_"] .colorpicker .colorpicker-default__history {
+	border-top-color: var(--sps-ui-border);
+}
+
+/* Hot keys' key caps, the custom CSS's notes and the PHP box (#fff). */
+html.sps-dark body[class*="page_mdp_"] :is(.mdp-tab-name-hot_keys p.mdc-typography--body2 b, .mdp-php-box > pre, .mdc-system-requirements .mdc-system-requirements-table tbody tr td .mdc-system-value) {
+	color: var(--sps-ui-text);
+	background: var(--sps-ui-raised);
+}
+
+html.sps-dark body[class*="page_mdp_"] .mdc-system-requirements .mdc-system-requirements-table tbody tr {
+	border-top-color: var(--sps-ui-border);
+}
+
+/* Assignments: Include and Exclude (#edf5fd) in boxes tinted green (#eff9eb) or red (#fff3f0) once chosen. */
+html.sps-dark body[class*="page_mdp_"] .mdp-panel.mdp-panel-box:not(.mdp-matching-method, .mdp-green, .mdp-red) {
+	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark body[class*="page_mdp_"] .mdp-panel.mdp-panel-box.mdp-green {
+	background-color: #16291b;
+	border-color: #2e6b3a;
+}
+
+html.sps-dark body[class*="page_mdp_"] .mdp-panel.mdp-panel-box.mdp-red {
+	background-color: #33191b;
+	border-color: #7d3437;
+}
+
+html.sps-dark body[class*="page_mdp_"] .mdp-panel.mdp-panel-box .mdp-button-group :is(.mdp-button-success, .mdp-button-danger, .mdp-button-primary):not(.mdp-active) {
+	color: var(--sps-ui-muted);
+	background: var(--sps-ui-raised);
+}
+
+html.sps-dark body[class*="page_mdp_"] .mdp-panel.mdp-panel-box .mdp-button-group :is(.mdp-button-success, .mdp-button-danger, .mdp-button-primary):not(.mdp-active):is(:hover, :focus) {
+	color: var(--sps-ui-accent);
+}
+
+/* Activation and updates: drop zones, notes (#ebf7fd) and errors (#fff1f0), the changelog's tags. */
+html.sps-dark body[class*="page_mdp_"] :is(.mdp-drop-zone, #mdp-api-key-drop-zone):not(:hover) {
+	border-color: var(--sps-ui-field-border);
+}
+
+html.sps-dark body[class*="page_mdp_"] :is(.mdp-drop-zone, #mdp-api-key-drop-zone).mdp-busy::before {
+	background: var(--sps-ui-surface);
+}
+
+html.sps-dark body[class*="page_mdp_"] :is(.mdc-activation, .mdp-activation) :is(.mdc-info-box, .mdp-info-box) {
+	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark body[class*="page_mdp_"] .mdp-alert {
+	color: var(--sps-ui-text);
+	background: #152333;
+}
+
+html.sps-dark body[class*="page_mdp_"] :is(.mdp-alert-error, .mdp-key-error) {
+	color: var(--sps-ui-text);
+	background: #33191b;
+}
+
+html.sps-dark body[class*="page_mdp_"] .mdc-changelog li.mdp-added::before {
+	color: #f0a8dc;
+}
+
+html.sps-dark body[class*="page_mdp_"] .mdc-changelog li.mdp-removed::before {
+	color: var(--sps-ui-bad);
+}
+
+/* Tables: the data tables (#fff with #0a2138 lines), and Readabler's languages (#fff rows, #ccc pills). */
+html.sps-dark body[class*="page_mdp_"] :is(.mdc-data-table, .mdc-data-table__row) {
+	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark body[class*="page_mdp_"] .mdc-data-table__row:not(.mdc-data-table__row--selected):hover {
+	background-color: var(--sps-ui-hover);
+}
+
+html.sps-dark body[class*="page_mdp_"] #mdp-readabler-settings-language-tbl tbody tr {
+	background: var(--sps-ui-surface);
+}
+
+html.sps-dark body[class*="page_mdp_"] #mdp-readabler-settings-language-tbl tbody tr td span {
+	background: var(--sps-ui-raised);
+	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark body[class*="page_mdp_"] .mdp-now-used {
+	background-color: var(--sps-ui-raised);
 }
 
 /* SEO Pro Stack's additions to WordPress's screens -------------------------- */
