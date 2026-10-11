@@ -5,7 +5,7 @@ Tags: magic login, iframe, schedule posts, auto upload images, admin
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.3.35
+Stable tag: 1.3.36
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -142,9 +142,8 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 
 == Changelog ==
 
-= 1.3.35 =
-* Fix: Dark mode no longer flashes white between admin screens, and covers the block editor's bar, searchable dropdowns, Rank Math, Admin Columns, ACF, Kadence's Design Library and Fluent Forms.
-* New: in Dark mode, other plugins' hard-to-read text is made readable.
-* New: Fluent plugins and LiteSpeed Cache follow the admin bar's colour mode.
+= 1.3.36 =
+* Fix: Dark mode covers more screens: Rank Math's setup wizard, WooCommerce, Kadence Blocks and Starter Templates, Fluent Forms' editor, Meow Apps, rich text fields and loading animations.
+* New: a colour mode change shows at once in every admin tab open in the same browser.
 
 Older: `changelog.txt`.

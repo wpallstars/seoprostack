@@ -64,6 +64,7 @@ final class SEOProStack_Admin_Theme {
         add_action('admin_enqueue_scripts', array(__CLASS__, 'enqueue'), 20);
         // Before other plugins' own colour mode scripts (Fluent's run at 1).
         add_action('admin_head', array(__CLASS__, 'head'), 0);
+        add_filter('style_loader_tag', array(__CLASS__, 'standalone_tag'), 10, 2);
         add_filter('admin_body_class', array(__CLASS__, 'body_class'));
         add_action('admin_bar_init', array(__CLASS__, 'bar_init'));
         add_action('wp_ajax_' . self::ACTION, array(__CLASS__, 'save'));
@@ -293,6 +294,7 @@ final class SEOProStack_Admin_Theme {
         wp_set_script_translations(self::STYLE, 'seoprostack');
         wp_add_inline_script(self::STYLE, 'window.seoprostackTheme = ' . wp_json_encode(array(
             'mode'    => $mode,
+            'user'    => get_current_user_id(),
             'applies' => $applies,
             'css'     => $applies ? $url : '',
             'guard'   => $applies && self::guards(),
@@ -318,6 +320,15 @@ final class SEOProStack_Admin_Theme {
         if (!self::screen_applies()) {
             return;
         }
+        echo self::head_script(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- wp_get_inline_script_tag() output; the mode is one of MODES, JSON-encoded.
+    }
+
+    /**
+     * The <script> tag that sets the mode's classes (head()).
+     *
+     * @return string
+     */
+    private static function head_script() {
         $mode   = self::mode();
         $chosen = 'light' !== $mode || self::chosen();
         $script = '(function(r,m,c){var q=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)"),d=m==="dark"||(m==="system"&&!!q&&q.matches);'
@@ -326,7 +337,33 @@ final class SEOProStack_Admin_Theme {
             . 'if(c){try{var s=localStorage;s.setItem("fluent_theme_mode",m);s.setItem("fs-theme",m==="system"?"system:"+(d?"dark":"light"):m);'
             . 'if(m==="system"){s.removeItem("litespeed-dark-preference");}else{s.setItem("litespeed-dark-preference",m);}}catch(e){}}'
             . '})(document.documentElement,' . wp_json_encode($mode) . ',' . ($chosen ? 'true' : 'false') . ');';
-        wp_print_inline_script_tag($script, array('id' => 'seoprostack-theme-mode'));
+        return wp_get_inline_script_tag($script, array('id' => 'seoprostack-theme-mode'));
+    }
+
+    /**
+     * Screens that draw their own page, without wp-admin's header (Rank
+     * Math's setup wizard, on admin_init): with their stylesheet, the
+     * mode's classes and the dark stylesheet too. In Light, nothing.
+     *
+     * @param string $tag    The stylesheet's <link> tag.
+     * @param string $handle Its handle.
+     * @return string
+     */
+    public static function standalone_tag($tag, $handle) {
+        /**
+         * Stylesheet handles of admin screens that print their own page
+         * (no admin_head), so Dark reaches them with their styles.
+         *
+         * @param string[] $handles Handles. Default Rank Math's setup wizard.
+         */
+        $handles = (array) apply_filters('seoprostack_admin_dark_standalone_styles', array('rank-math-wizard'));
+        if (!is_admin() || did_action('admin_head') || !in_array($handle, $handles, true) || 'light' === self::mode() || !self::screen_applies()) {
+            return $tag;
+        }
+        $css = 'admin/css/seoprostack-theme.css';
+        $url = add_query_arg('ver', (string) filemtime(SEOPROSTACK_DIR . $css), SEOPROSTACK_URL . $css);
+        // phpcs:ignore WordPress.WP.EnqueuedResources.NonEnqueuedStylesheet -- the screen prints only its own handles; this follows its stylesheet.
+        return $tag . self::head_script() . '<link rel="stylesheet" id="' . esc_attr(self::STYLE) . '-css" href="' . esc_url($url) . '" media="all" />' . "\n";
     }
 
     /**
