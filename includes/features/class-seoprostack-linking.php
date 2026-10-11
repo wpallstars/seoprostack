@@ -99,7 +99,28 @@ class SEOProStack_Linking extends SEOProStack_Feature {
 
     /** A read-only retirement report remains available when the toolkit is off. */
     public static function menu() {
-        add_management_page(__('Links', 'seoprostack'), __('Links', 'seoprostack'), 'manage_options', self::PAGE, array(__CLASS__, 'display'));
+        $hook = add_management_page(__('Links', 'seoprostack'), __('Links', 'seoprostack'), 'manage_options', self::PAGE, array(__CLASS__, 'display'));
+        if ($hook) {
+            add_action('load-' . $hook, array(__CLASS__, 'title'));
+        }
+    }
+
+    /** Name the displayed view before WordPress renders the browser title. */
+    public static function title() {
+        $views = self::views();
+        SEOProStack_Admin_Page::title_section($views[self::view()]);
+    }
+
+    /** @return array<string,string> Navigation labels shared with the browser title. */
+    private static function views() {
+        return array('report' => __('Pages', 'seoprostack'), 'suggestions' => __('Suggestions', 'seoprostack'), 'health' => __('Link health', 'seoprostack'), 'clicks' => __('Click events', 'seoprostack'), 'retire' => __('Retire Link Whisper', 'seoprostack'));
+    }
+
+    /** @return string The displayed view, including the unknown-view fallback. */
+    private static function view() {
+        $views = self::views();
+        $view = self::query('view', 'report');
+        return isset($views[$view]) ? $view : 'report';
     }
 
     /** @param string $hook Current screen. */
@@ -195,9 +216,8 @@ class SEOProStack_Linking extends SEOProStack_Feature {
         if (!current_user_can('manage_options')) {
             return;
         }
-        $views = array('report' => __('Pages', 'seoprostack'), 'suggestions' => __('Suggestions', 'seoprostack'), 'health' => __('Link health', 'seoprostack'), 'clicks' => __('Click events', 'seoprostack'), 'retire' => __('Retire Link Whisper', 'seoprostack'));
-        $view = self::query('view', 'report');
-        $view = isset($views[$view]) ? $view : 'report';
+        $views = self::views();
+        $view = self::view();
         echo '<div class="wrap sps-link-tools"><h1>' . esc_html__('Links', 'seoprostack') . '</h1><nav class="nav-tab-wrapper" aria-label="' . esc_attr__('Link tools', 'seoprostack') . '">';
         foreach ($views as $key => $label) {
             echo '<a class="nav-tab' . ($key === $view ? ' nav-tab-active' : '') . '" href="' . esc_url(self::url(array('view' => $key, 'post' => absint(self::query('post'))))) . '"' . ($key === $view ? ' aria-current="page"' : '') . '>' . esc_html($label) . '</a>';
