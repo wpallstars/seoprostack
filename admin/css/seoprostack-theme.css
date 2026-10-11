@@ -1268,12 +1268,12 @@ html.sps-dark .editor-document-bar__back.components-button.has-icon.has-text:hov
 	color: var(--sps-ui-text);
 }
 
-/* The grey around the canvas (#ddd) and the save panel's toggle (#fff). */
+/* The grey around the canvas (#ddd) and the panels' keyboard toggles (#fff). */
 html.sps-dark :is(.editor-visual-editor, .edit-post-visual-editor) {
 	background-color: var(--sps-ui-canvas);
 }
 
-html.sps-dark .editor-layout__toggle-entities-saved-states-panel {
+html.sps-dark :is(.editor-layout__toggle-publish-panel, .editor-layout__toggle-sidebar-panel, .editor-layout__toggle-entities-saved-states-panel) {
 	background-color: var(--sps-ui-surface);
 	border-color: var(--sps-ui-border);
 }
@@ -1453,6 +1453,32 @@ html.sps-dark .kadence-toolbar-design-library .kb-toolbar-prebuilt-button.compon
 	color: #fff;
 	background: var(--sps-ui-primary);
 	border-color: var(--sps-ui-primary);
+}
+
+/* Kadence Blocks: the Design Library (white header and sidebar, #4a5568 titles). Its previews keep the site's colours. */
+html.sps-dark .components-modal__frame :is(.kb-prebuilt-header, .kt-prebuilt-sidebar, .kb-library-sidebar-fixed-bottom, .kb-patterns-filter-dropdown .kb-toggle-button) {
+	color: var(--sps-ui-text);
+	background-color: var(--sps-ui-surface);
+	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark .components-modal__frame :is(.kb-prebuilt-sidebar-header-wrap, .kb-preview-iframe-loader) {
+	background-color: var(--sps-ui-raised);
+	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark .components-modal__frame :is(.kb-action-button, .kb-subtab-button, .kb-context-tab-button, .kb-category-button) {
+	color: var(--sps-ui-muted);
+	background-color: transparent;
+}
+
+html.sps-dark .components-modal__frame :is(.kb-action-button, .kb-subtab-button, .kb-context-tab-button, .kb-category-button):is(.is-pressed, .is-active, :hover, :focus) {
+	color: var(--sps-ui-text);
+	background-color: var(--sps-ui-raised);
+}
+
+html.sps-dark .components-modal__frame :is(.kb-pattern-inline-title, .block-editor-block-patterns-list__item-title) {
+	color: var(--sps-ui-muted);
 }
 
 /* Fluent Forms: the dashboard's Latest Form Submissions (#f9f9f9 stripes, #0073aa links). */
