@@ -740,6 +740,14 @@ html.sps-dark #wpbody .theme-browser .theme.add-new-theme :is(a::after, span::af
 	border-color: var(--sps-ui-border);
 }
 
+html.sps-dark .theme-browser .theme .theme-actions .button:not(.button-primary) {
+	background: var(--sps-ui-surface);
+}
+
+html.sps-dark .theme-overlay .theme-backdrop {
+	background: rgb(16 21 23 / 90%);
+}
+
 html.sps-dark .theme-overlay :is(.theme-wrap, .theme-actions, .theme-header) {
 	color: var(--sps-ui-text);
 	background: var(--sps-ui-surface);
@@ -758,6 +766,14 @@ html.sps-dark .theme-overlay .theme-header :is(.close, .left, .right):is(:hover,
 
 html.sps-dark .theme-overlay :is(.theme-version, .theme-author, .theme-description, .theme-tags) {
 	color: var(--sps-ui-muted);
+}
+
+html.sps-dark .theme-overlay .theme-name {
+	color: var(--sps-ui-text);
+}
+
+html.sps-dark .theme-overlay :is(.theme-tags, .parent-theme) {
+	border-color: var(--sps-ui-border);
 }
 
 /* Users: the admin colour scheme picker. */
@@ -998,7 +1014,7 @@ html.sps-dark .wp-pointer-undefined .wp-pointer-arrow-inner {
 }
 
 /* Plugin details (an admin screen in a frame). */
-html.sps-dark #plugin-information :is(#plugin-information-title, #plugin-information-tabs, #plugin-information-footer, .fyi, #section-holder, #section-holder .section) {
+html.sps-dark #plugin-information :is(#plugin-information-content, #plugin-information-title, #plugin-information-tabs, #plugin-information-footer, .fyi, #section-holder, #section-holder .section) {
 	color: var(--sps-ui-text);
 	background-color: var(--sps-ui-surface);
 	border-color: var(--sps-ui-border);
@@ -1014,9 +1030,14 @@ html.sps-dark #plugin-information #plugin-information-tabs a.current {
 	border-color: var(--sps-ui-border);
 }
 
-html.sps-dark #plugin-information :is(.fyi .counter-back, .fyi-description, .fyi h3) {
+html.sps-dark #plugin-information .fyi .counter-back {
 	color: var(--sps-ui-text);
 	background-color: var(--sps-ui-raised);
+}
+
+html.sps-dark #plugin-information :is(.fyi-description, .fyi h3) {
+	color: var(--sps-ui-text);
+	background-color: transparent;
 }
 
 /* WordPress components ------------------------------------------------------- */
