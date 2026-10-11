@@ -199,13 +199,49 @@ class SEOProStack_Admin_Bar_More extends SEOProStack_Feature {
                 'parent' => self::NODE,
             );
             $title = (string) $nodes[$id]->title;
-            $name  = isset($sources[$id]) && '' !== $sources[$id] && !self::has_words($title) ? self::source_name($sources[$id]) : null;
-            if (null !== $name) {
-                // An icon or numbers alone say little in a list: add who it is from.
-                $args['title'] = $title . '<span class="sps-more-name">' . esc_html($name) . '</span>';
+            if (!self::has_words($title)) {
+                // The menu shows no icons, and numbers alone say little in a
+                // list: lead with who it is from.
+                $source        = isset($sources[$id]) ? (string) $sources[$id] : '';
+                $args['title'] = '<span class="sps-more-name">' . esc_html(self::label($id, $nodes[$id], $source)) . '</span>' . $title;
             }
             $wp_admin_bar->add_node($args);
         }
+    }
+
+    /**
+     * Visible name for an item whose title has no words: the plugin, theme
+     * or must-use plugin that added it, else its tooltip, its text for
+     * screen readers, or its ID (when sources are unknown).
+     *
+     * @param string $id     Item ID.
+     * @param stdClass $node Admin bar node (WP_Admin_Bar::get_nodes()).
+     * @param string $source Source key, or ''.
+     * @return string
+     */
+    private static function label($id, $node, $source) {
+        $name = '' !== $source ? self::source_name($source) : null;
+        if (null !== $name && '' !== $name) {
+            return $name;
+        }
+        $title = (string) $node->title;
+        $found = array();
+        if (!empty($node->meta['title'])) {
+            $found[] = (string) $node->meta['title'];
+        }
+        if (preg_match('#\btitle=["\']([^"\']+)["\']#i', $title, $m)) {
+            $found[] = $m[1];
+        }
+        if (preg_match('#<(span|div)[^>]*class=["\'][^"\']*screen-reader-text[^"\']*["\'][^>]*>(.*?)</\1>#is', $title, $m)) {
+            $found[] = $m[2];
+        }
+        foreach ($found as $text) {
+            $text = trim(html_entity_decode(wp_strip_all_tags($text), ENT_QUOTES, 'UTF-8'));
+            if ('' !== $text) {
+                return $text;
+            }
+        }
+        return ucfirst(trim(str_replace(array('-', '_'), ' ', $id)));
     }
 
     /**
@@ -329,7 +365,7 @@ class SEOProStack_Admin_Bar_More extends SEOProStack_Feature {
             . "{$m}>.ab-item .ab-icon:before{content:\"\\f11c\";top:2px}"
             . "{$m}>.ab-item{cursor:default}"
             . "{$m}>.ab-sub-wrapper{min-width:12rem}"
-            // Moved items are built for the bar: let titles and icons size to the row.
+            // Moved items are built for the bar: let titles size to the row.
             . "{$m} .ab-submenu>li>.ab-item{height:auto;min-height:26px;white-space:nowrap}"
             // Items laid out as a spread-out flex row for the bar (TranslatePress's
             // Translate Site) would spread across the wider menu: keep them left.
@@ -339,21 +375,24 @@ class SEOProStack_Admin_Bar_More extends SEOProStack_Feature {
             // than its icon, and the float then pushes the next rows to the right
             // (Rank Math SEO after AutomatorWP). Each row holds its own floats.
             . "{$m} .ab-submenu>li>.ab-item:after{content:\"\";display:table;clear:both}"
-            . "{$m} .ab-submenu .ab-icon,{$m} .ab-submenu .ab-item:before{padding:3px 0;margin-right:6px}"
-            . "{$m} .ab-submenu img{max-height:20px;vertical-align:middle}"
-            // Some plugins nest an .ab-item in their title (Yoast SEO's logo); size it to its content.
+            // Text only: plugins' icons differ in size, and some have none, so
+            // names would not line up. Dashicons (.ab-icon, .ab-item:before as
+            // YellowPencil), icon fonts (Readabler), SVG (Rank Math SEO), images
+            // and logos (Yoast SEO) are hidden; the arrows to submenus are not.
+            . "{$m} .ab-submenu .ab-item :is(.ab-icon,.dashicons,svg,img,i:empty,[class*=icon],[class*=logo],[class*=fa-]){display:none!important}"
+            . "{$m} .ab-submenu .ab-item:before{content:none!important;display:none!important}"
+            // Some plugins nest an .ab-item in their title; size it to its content.
             . "{$m} .ab-submenu .ab-item .ab-item{min-width:0;padding:0 6px 0 0}"
-            . "{$m} .sps-more-name{margin-left:.5em;opacity:.8;font-size:inherit}"
+            . "{$m} .sps-more-name{margin-right:.5em;font-size:inherit}"
             // Phones and tablets: core hides plugin items there; the menu shows them.
             . "@media screen and (max-width:782px){"
             . "#wpadminbar li#wp-admin-bar-" . self::NODE . "{display:block;position:static}"
             . "{$m}.hover li{display:list-item}"
             . "{$m}>.ab-sub-wrapper{max-height:calc(100vh - 46px);overflow-y:auto;overscroll-behavior:contain}"
             . "{$m} .ab-submenu .ab-label{position:static;width:auto;height:auto;margin:0;clip-path:none;overflow:visible}"
-            . "{$m} .ab-submenu .ab-icon,{$m} .ab-submenu .ab-item:before{width:auto;height:auto;font-size:20px!important;line-height:1!important;text-indent:0}"
             // Their own submenus open in place, since there is no hover.
             . "{$m} .ab-submenu .ab-sub-wrapper{display:block;position:static;margin:0;box-shadow:none;padding-left:16px}"
-            . "{$m} .menupop>.ab-item:before,{$m} .wp-admin-bar-arrow{display:none}"
+            . "{$m} .wp-admin-bar-arrow{display:none}"
             . "}";
         wp_add_inline_style('admin-bar', $css);
 

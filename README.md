@@ -301,7 +301,7 @@ When many plugins add items to the admin bar, it wraps onto a second line that c
 - Settings save straight away, but the bar on the settings page was drawn before the change, so the saved message asks you to reload the page.
 - WordPress’s own items and the right of the bar (the account menu, the notices megaphone, the Plugins menu) are not moved. To remove WordPress items, use Hide admin bar items.
 - Items are matched to the plugin that added them. If another plugin replaces WordPress’s admin bar class, WordPress’s own items are recognised by name, every other item goes in the menu, and Keep on the bar does not apply.
-- Items that show only an icon or numbers get their plugin’s name added in the menu.
+- The menu is text only: plugins’ icons (Dashicons, icon fonts, SVG, images and logos) are hidden there, since they differ in size and some items have none. Items that show only an icon or numbers start with their plugin’s name (or, when that is not known, the item’s tooltip or ID).
 - On phones and tablets, tap **…** to open it. WordPress hides plugins’ items there; the menu shows them, with their submenus open.
 - From the keyboard, Enter opens it and Escape closes it. Opening and closing are WordPress’s own, as for every admin bar menu.
 
