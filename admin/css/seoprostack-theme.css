@@ -903,6 +903,24 @@ html.sps-dark .media-frame.mode-grid .attachments-browser {
 	background: transparent;
 }
 
+/* Fields in the library and its modal: media-views.css styles them under .media-frame (Search media and the details sidebar). */
+html.sps-dark .media-frame :is(input[type="text"], input[type="search"], input[type="url"], input[type="email"], input[type="number"], input[type="password"], textarea, select) {
+	color: var(--sps-ui-text);
+	background-color: var(--sps-ui-canvas);
+	border-color: var(--sps-ui-field-border);
+}
+
+html.sps-dark .media-frame :is(input, textarea)[readonly] {
+	background-color: var(--sps-ui-raised);
+}
+
+/* Rank Math's Generate Alt (pale blue). */
+html.sps-dark button.rank-math-generate-alt-button {
+	color: var(--sps-ui-accent);
+	background: var(--sps-ui-raised);
+	border-color: var(--sps-ui-border);
+}
+
 html.sps-dark :is(.media-sidebar, .attachment-details, .media-frame-content[data-columns] .attachments-browser .media-sidebar, .media-modal .edit-attachment-frame .attachment-info, .edit-attachment-frame .attachment-media-view) {
 	color: var(--sps-ui-text);
 	background: var(--sps-ui-raised);
@@ -2156,6 +2174,119 @@ html.sps-dark .acp-smartfilters-filter.-error {
 /* Sticky header and footer cells on wide tables. */
 html.sps-dark body.acp-sticky-column-enabled.acp-overflow-table .wp-list-table :is(thead, tfoot) tr :is(th, td) {
 	background: var(--sps-ui-surface);
+}
+
+/* Totals row (Calculate) and its menu; Admin Columns sets the row with !important. */
+html.sps-dark .wp-list-table .acp-calculation-row > * {
+	color: var(--sps-ui-text);
+	background: var(--sps-ui-raised) !important;
+	border-color: var(--sps-ui-border) !important;
+}
+
+html.sps-dark .wp-list-table .acp-metric-badge:hover,
+html.sps-dark .wp-list-table .acui-dropdown-trigger:focus-visible .acp-metric-badge,
+html.sps-dark .acp-metric-menu .acp-metric-nav :is(.acp-metric-nav-item:hover, .acp-metric-nav-item.-focused) {
+	background: var(--sps-ui-hover);
+}
+
+html.sps-dark .acp-metric-menu .acp-metric-nav {
+	color: var(--sps-ui-text);
+	background: var(--sps-ui-surface);
+	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark .acp-metric-menu .acp-metric-nav .acp-metric-nav-search input {
+	color: var(--sps-ui-text);
+	background: var(--sps-ui-canvas);
+	border-color: var(--sps-ui-field-border);
+}
+
+html.sps-dark .acp-metric-menu .acp-metric-nav :is(.acp-metric-nav-more, .acp-metric-nav-divider) {
+	color: var(--sps-ui-subtle);
+	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark .acp-mf-sticky-container.-less::before,
+html.sps-dark .acp-mf-sticky-container.-more::after {
+	border-color: var(--sps-ui-border);
+}
+
+/* WooCommerce's React screens (Home, Analytics) --------------------------- */
+/* Header, cards, summaries, charts, tables and the date range picker: #fff, #f8f9fa, #f0f0f0 and #e0e0e0 surfaces with #1e1e1e text. */
+html.sps-dark :is(.woocommerce-layout__header, .woocommerce-layout__footer, .woocommerce-layout__activity-panel-header, .woocommerce-summary, .woocommerce-dashboard__store-performance .woocommerce-summary, .woocommerce-calendar, .woocommerce-table.is-empty, .woocommerce-empty-activity-card, .woocommerce-filters-advanced .components-card__body, .woocommerce-filters__advanced-filters .components-card__body, .woocommerce-pagination__page-arrows-buttons, .woocommerce-segmented-selection__container) {
+	color: var(--sps-ui-text);
+	background: var(--sps-ui-canvas);
+	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark :is(.woocommerce-layout__activity-panel-wrapper, .woocommerce-homescreen .woocommerce-activity-panel, .woocommerce-activity-panel .woocommerce-activity-card, .woocommerce-experimental-list__item, .woocommerce-inbox-message, .woocommerce-inbox-card__footer, .woocommerce-summary__item, .woocommerce-summary__item.is-selected, .woocommerce-stats-overview__stats .woocommerce-summary__item, .woocommerce-dashboard__store-performance .woocommerce-summary__item, .woocommerce-chart, .woocommerce-legend__item > button, .woocommerce-legend__total, .woocommerce-table .woocommerce-pagination, .woocommerce-list__item, .woocommerce-list-item, .woocommerce-image-gallery__toolbar, .woocommerce-calendar__date-picker-title, .woocommerce-filters-date__text, .woocommerce-filters-date__content-controls, .woocommerce-filters-filter__content-list-item.is-selected .woocommerce-filters-filter__button, .woocommerce-segmented-selection__input:checked + label .woocommerce-segmented-selection__label, .woocommerce-select-control .components-base-control, .woocommerce-select-control .woocommerce-select-control__listbox, .woocommerce-experimental-select-control__combo-box-wrapper, .components-popover.woocommerce-experimental-select-control__popover-menu, .woocommerce-search-list__list .woocommerce-search-list__item, .woocommerce-inbox-dismiss-all-modal .woocommerce-usage-modal__message, .d3-chart__container .d3-chart__tooltip, :is(.woocommerce-filters-date__content, .woocommerce-filters-filter__content) .components-popover__content) {
+	color: var(--sps-ui-text);
+	background: var(--sps-ui-surface);
+	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark :is(.woocommerce-summary__item .woocommerce-summary__item-delta, .woocommerce-badge, .woocommerce-segmented-selection__label, .woocommerce-filters-filter__content-list-item .woocommerce-filters-filter__button, .woocommerce-stepper .woocommerce-stepper__step-icon, .woocommerce-flag .woocommerce-flag__fallback, .woocommerce-stock-activity-card .woocommerce-stock-activity-card__stock-quantity, .woocommerce-order-attribution-install-banner .woocommerce-order-attribution-install-banner__text-badge, .woocommerce-chart-placeholder, .woocommerce-table__header, .woocommerce-table__header.is-sorted, .woocommerce-table__item.is-sorted, .woocommerce-search.woocommerce-select-control .woocommerce-select-control__option) {
+	color: var(--sps-ui-text);
+	background-color: var(--sps-ui-raised);
+	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark :is(.woocommerce-layout .woocommerce-experimental-list__item:hover, .woocommerce-layout .woocommerce-inbox-message:hover, .woocommerce-layout .components-panel__body > .components-panel__body-title:hover, .woocommerce-summary__item:is(:hover, :active), .woocommerce-stats-overview__stats .woocommerce-summary__item:is(:hover, :active), .woocommerce-dashboard__store-performance .woocommerce-summary__item:hover, .woocommerce-legend__item > button:hover, .woocommerce-list__item:hover, .woocommerce-segmented-selection__label:is(:hover, :active), .woocommerce-filters-filter__content-list-item .woocommerce-filters-filter__button:hover, .woocommerce-filters-advanced__list-item:hover, .woocommerce-search-list__list .woocommerce-search-list__item:hover, .woocommerce-select-control .woocommerce-select-control__option:is(.is-selected, :hover), .woocommerce-search.woocommerce-select-control .woocommerce-select-control__option:is(.is-selected, :hover, :focus), .woocommerce-homescreen .woocommerce-activity-panel .woocommerce-layout__activity-panel-outbound-link:is(:hover, :focus, :active), .woocommerce-dashboard__chart-block:hover, .woocommerce-dashboard__chart-block .woocommerce-card__body .woocommerce-chart:hover, .woocommerce-dashboard__chart-block .woocommerce-card__body .woocommerce-chart:hover .woocommerce-legend__item > button, .woocommerce-dashboard__chart-block-wrapper:hover :is(.woocommerce-chart, .woocommerce-card__header)) {
+	background-color: var(--sps-ui-raised);
+}
+
+html.sps-dark :is(.woocommerce-layout__header .woocommerce-layout__header-heading, .woocommerce-layout__header .woocommerce-layout__header-meta-icon, .woocommerce-layout__activity-panel-tabs .woocommerce-layout__activity-panel-tab, .woocommerce-layout__inbox-title, .woocommerce-layout__inbox-panel-header.your-store-today .woocommerce-layout__inbox-title .components-text, .woocommerce-summary__item, .woocommerce-summary__item .woocommerce-summary__item-value, .woocommerce-summary__item .woocommerce-summary__item-delta, .woocommerce-legend__list, .woocommerce-list__item-title, .woocommerce-list__item .woocommerce-list__item-title, .woocommerce-stepper .woocommerce-stepper__step-label, .woocommerce-ellipsis-menu__popover :is(.components-base-control__label, .woocommerce-ellipsis-menu__title), .woocommerce-empty-activity-card .woocommerce-activity-card__header .woocommerce-activity-card__title, .woocommerce-homescreen .woocommerce-activity-panel .woocommerce-empty-activity-card h4, article.woocommerce-stats-overview__install-jetpack-promo h2, .woocommerce-experimental-select-control__selected-items.is-read-only, .woocommerce-select-control .components-base-control .woocommerce-select-control__control-input, .woocommerce-pagination__page-arrows-buttons .components-button, .woocommerce-order-attribution-install-banner :is(.woocommerce-order-attribution-install-banner__text-title, .woocommerce-order-attribution-install-banner__text-description, .woocommerce-order-attribution-install-banner__text-badge p), button.woocommerce-table__download-button, .DateRangePickerInput_arrow, .CalendarMonth_caption) {
+	color: var(--sps-ui-text);
+}
+
+html.sps-dark .woocommerce-layout__activity-panel-tabs .woocommerce-layout__activity-panel-tab:is(:hover, .components-button:not(:disabled)),
+html.sps-dark .woocommerce-layout__header .woocommerce-layout__header-meta-icon.components-button:not(:disabled, [aria-disabled="true"]):hover {
+	color: var(--sps-ui-text);
+}
+
+html.sps-dark .components-button.woocommerce-dropdown-button,
+html.sps-dark #wpbody .woocommerce-chart__interval-select .components-select-control__input:not(:disabled, [aria-disabled="true"]):focus {
+	color: var(--sps-ui-text);
+	background-color: var(--sps-ui-canvas);
+	border-color: var(--sps-ui-field-border);
+}
+
+html.sps-dark :is(.woocommerce-chart .woocommerce-chart__header, .woocommerce-chart__interval-select, .woocommerce-legend.woocommerce-legend__direction-column, .woocommerce-chart__footer .woocommerce-legend__direction-column .woocommerce-legend__list, .woocommerce-segmented-selection__item, .woocommerce-filters-date__tabs, .woocommerce-filters-date__content-controls.is-custom, .woocommerce-filters-filter__content-list-item, .woocommerce-filters-advanced, .woocommerce-filters-advanced__list-item, .woocommerce-list__item:not(:first-child), .woocommerce-stats-overview__tabs .components-tab-panel__tabs, .woocommerce-dashboard-section-controls, .woocommerce-summary__item-container.is-dropdown-button, .woocommerce-summary__item-container.is-dropdown-button .components-button, .woocommerce-summary .woocommerce-summary__item-container.is-placeholder, .woocommerce-dashboard__store-performance .woocommerce-summary:not(.is-placeholder) .woocommerce-summary__item-container:first-child .woocommerce-summary__item, .woocommerce-homescreen .woocommerce-activity-panel :is(.components-panel__body, .components-panel__body.is-opened .components-panel__body-toggle, .woocommerce-activity-card:not(:last-of-type), .woocommerce-layout__activity-panel-outbound-link, .woocommerce-layout__activity-panel-empty), article.woocommerce-stats-overview__install-jetpack-promo footer, .woocommerce-abbreviated-card a) {
+	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark .woocommerce-task-list__item:not(.complete) .woocommerce-task__icon,
+html.sps-dark .woocommerce-legend__item > button .woocommerce-legend__item-container .woocommerce-legend__item-checkmark:not(.woocommerce-legend__item-checkmark-checked) {
+	background-color: var(--sps-ui-canvas);
+	border-color: var(--sps-ui-field-border);
+}
+
+/* Loading placeholders: a dim pulse instead of light bars. */
+html.sps-dark :is(.woocommerce-summary__item-container.is-placeholder :is(.woocommerce-summary__item-label, .woocommerce-summary__item-value, .woocommerce-summary__item-delta), .woocommerce-activity-card.is-loading .is-placeholder, .woocommerce-layout .is-placeholder) {
+	background-color: var(--sps-ui-raised);
+}
+
+/* Date range picker (react-dates). */
+html.sps-dark :is(.DayPicker, .DayPicker__horizontal, .CalendarMonth, .CalendarMonthGrid, .DateRangePicker_picker, .SingleDatePicker_picker, .DateInput, .DateInput_input, .DateInput_input__focused, .DateRangePickerInput, .SingleDatePickerInput, .DayPickerNavigation_button__default, .DayPickerNavigation_button__verticalDefault, .DayPickerKeyboardShortcuts_panel, .DayPicker_weekHeader__verticalScrollable, .woocommerce-calendar__react-dates :is(.DayPicker_transitionContainer, .CalendarMonthGrid, .CalendarMonth, .DayPicker)) {
+	color: var(--sps-ui-text);
+	background-color: var(--sps-ui-surface);
+	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark :is(.CalendarDay__default, .CalendarDay__outside, .CalendarDay__blocked_out_of_range, .CalendarDay__blocked_minimum_nights) {
+	color: var(--sps-ui-text);
+	background: var(--sps-ui-surface);
+	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark :is(.CalendarDay__default:hover, .CalendarDay__hovered_offset, .CalendarDay__hovered_span, .CalendarDay__hovered_span:hover) {
+	color: var(--sps-ui-text);
+	background: var(--sps-ui-raised);
+	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark .CalendarDay__blocked_out_of_range {
+	color: var(--sps-ui-subtle);
 }
 
 /* SEO Pro Stack's additions to WordPress's screens -------------------------- */
