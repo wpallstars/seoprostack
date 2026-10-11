@@ -64,6 +64,9 @@ final class SEOProStack_Admin_Theme {
         add_action('admin_enqueue_scripts', array(__CLASS__, 'enqueue'), 20);
         // Before other plugins' own colour mode scripts (Fluent's run at 1).
         add_action('admin_head', array(__CLASS__, 'head'), 0);
+        // The Customizer prints its own page: no admin_head, and admin_enqueue_scripts only with its widgets.
+        add_action('customize_controls_enqueue_scripts', array(__CLASS__, 'enqueue'), 20);
+        add_action('customize_controls_print_styles', array(__CLASS__, 'head'), 0);
         add_filter('style_loader_tag', array(__CLASS__, 'standalone_tag'), 10, 2);
         add_filter('admin_body_class', array(__CLASS__, 'body_class'));
         add_action('admin_bar_init', array(__CLASS__, 'bar_init'));
@@ -342,6 +345,10 @@ final class SEOProStack_Admin_Theme {
      * redraw and nothing shows light first.
      */
     public static function enqueue() {
+        // Once a screen: the Customizer runs admin_enqueue_scripts too, for its widgets.
+        if (wp_script_is(self::STYLE, 'enqueued')) {
+            return;
+        }
         $toggle  = self::shows_toggle();
         $applies = self::screen_applies();
         $mode    = self::mode();

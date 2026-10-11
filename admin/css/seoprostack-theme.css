@@ -1516,6 +1516,204 @@ html.sps-dark .editor-post-content-information {
 	color: var(--sps-ui-muted);
 }
 
+/* The Customizer ------------------------------------------------------------ */
+
+/*
+ * Its controls pane, the panes that slide out beside it (widgets, menu
+ * items, themes) and the bar under it: #f0f0f1 behind #fff section titles,
+ * #50575e and #2c3338 text and #dcdcde lines, mostly set under IDs. The
+ * preview keeps the site's colours. Its fields and links follow the rules
+ * above (#customize-controls is in their lists).
+ */
+html.sps-dark .wp-customizer :is(#customize-controls, #customize-sidebar-outer-content, #available-widgets, #available-widgets-filter, #available-menu-items, #customize-preview, .wp-full-overlay-sidebar .wp-full-overlay-header, .wp-full-overlay-footer, .wp-full-overlay-footer .devices, .customize-controls-close, .customize-controls-preview-toggle, .control-panel-themes .customize-themes-full-container, .customize-preview-header.themes-filter-bar, .filter-drawer, .themes-filter-bar .feature-filter-toggle.open, .theme-overlay .theme-actions, .theme-header),
+html.sps-dark .wp-customizer.outer-section-open #customize-controls .wp-full-overlay-sidebar-content,
+html.sps-dark .wp-customizer .wp-full-overlay.in-themes-panel {
+	color: var(--sps-ui-text);
+	background: var(--sps-ui-canvas);
+	border-color: var(--sps-ui-border);
+}
+
+/* Section titles, the back buttons and the panes' items (#fff, with a #fff left edge that turns the accent on hover). */
+html.sps-dark .wp-customizer :is(#customize-theme-controls, #customize-outer-theme-controls) .accordion-section-title,
+html.sps-dark .wp-customizer #customize-controls #customize-theme-controls .customize-themes-panel .accordion-section-title,
+html.sps-dark .wp-customizer #customize-theme-controls .control-panel-themes > .accordion-section-title,
+html.sps-dark .wp-customizer #customize-controls .customize-info :is(.accordion-section-title, .customize-panel-description, .customize-section-description),
+html.sps-dark .wp-customizer #customize-controls .panel-meta.customize-info .accordion-section-title:hover,
+html.sps-dark .wp-customizer #customize-controls .cannot-expand:hover .accordion-section-title,
+html.sps-dark .wp-customizer #customize-outer-theme-controls .customize-info .customize-section-description,
+html.sps-dark .wp-customizer #available-menu-items .accordion-section-title,
+html.sps-dark .wp-customizer :is(.customize-section-title, .customize-panel-back, .customize-section-back, .control-panel-themes .customize-themes-section-title, .control-section-kadence_section_pro h3 a, #available-widgets .widget-tpl, #available-menu-items .item-tpl, .customize-control-theme .theme, .customize-control-theme .theme :is(.theme-name, .theme-actions), .menu-item-bar .menu-item-handle, .menu-item-reorder-nav, .customize-control-widget_form .widget-top, #screen-options-wrap) {
+	color: var(--sps-ui-text);
+	background-color: var(--sps-ui-surface);
+	border-color: var(--sps-ui-border);
+	border-left-color: var(--sps-ui-surface);
+}
+
+html.sps-dark .wp-customizer :is(.menu-item-bar .menu-item-handle, .customize-control-widget_form .widget-top, .menu-item-reorder-nav, .customize-control-theme .theme, #screen-options-wrap) {
+	border-left-color: var(--sps-ui-border);
+}
+
+html.sps-dark .wp-customizer :is(.menu-item-settings, .customize-control-widget_form .widget-inside, #customize-theme-controls .widget-reorder-nav, #customize-theme-controls .move-widget-area, #available-menu-items :is(.open, [id="available-menu-items-search"]) .accordion-section-title, #available-menu-items .accordion-section-content .new-content-item-wrapper, .customize-control-dropdown-pages .new-content-item-wrapper) {
+	background: var(--sps-ui-canvas);
+	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark .wp-customizer :is(.customize-control-widget_form.wide-widget-control:is(.expanding, .expanded:not(.collapsing)) .widget-top, #available-widgets .widget-tpl:is(:hover, .selected)) {
+	background: var(--sps-ui-raised);
+}
+
+/* Hover, focus and open: WordPress turns the title text and left edge the scheme's colour (#3858e9 reads at 2.8:1 on dark). */
+html.sps-dark .wp-customizer :is(#customize-theme-controls, #customize-outer-theme-controls) .control-section:is(:hover > .accordion-section-title, .open .accordion-section-title, :not(.cannot-expand) .accordion-section-title:is(:hover, :focus)),
+html.sps-dark .wp-customizer :is(.customize-panel-back, .customize-section-back, .control-panel-themes .customize-themes-section-title, .control-section-kadence_section_pro h3 a):is(:hover, :focus) {
+	color: var(--sps-ui-accent);
+	background-color: var(--sps-ui-raised);
+	border-left-color: var(--sps-ui-accent);
+}
+
+html.sps-dark .wp-customizer :is(#customize-theme-controls, #customize-outer-theme-controls) .control-section:is(:hover > .accordion-section-title, .open .accordion-section-title, .accordion-section-title:is(:hover, :focus))::after,
+html.sps-dark .wp-customizer :is(.customize-controls-close, .customize-controls-preview-toggle, .wp-full-overlay .collapse-sidebar):is(:hover, :focus),
+html.sps-dark .wp-customizer .control-panel-themes .customize-themes-section-title.selected,
+html.sps-dark .wp-customizer #customize-controls .customize-info :is(.customize-help-toggle:is(:hover, :focus), .open .customize-help-toggle),
+html.sps-dark .wp-customizer .wp-full-overlay-footer .devices button:is(:hover, :focus)::before {
+	color: var(--sps-ui-accent);
+}
+
+html.sps-dark .wp-customizer :is(.customize-controls-close, .customize-controls-preview-toggle):is(:hover, :focus) {
+	background: var(--sps-ui-surface);
+	border-top-color: var(--sps-ui-accent);
+}
+
+html.sps-dark .wp-customizer .wp-full-overlay-footer .devices button:is(.active, :focus, .active:hover) {
+	border-bottom-color: var(--sps-ui-accent);
+}
+
+/* Text set in greys (#50575e, #2c3338, #3c434a, #1d2327). */
+html.sps-dark .wp-customizer :is(#customize-theme-controls, #customize-outer-theme-controls) .accordion-section-content,
+html.sps-dark .wp-customizer :is(.customize-section-title h3, h3.customize-section-title, .customize-control-title, .customize-control .dropdown-status, .customize-control .dropdown-arrow::after, #available-widgets .widget-title::before, .widget-reorder-nav span:is(:hover, :focus), .menu-item-reorder-nav button:is(:hover, :focus), .menu-item-handle .item-title, .customize-control .widget-action:is(:focus, :hover), #available-menu-items .toggle-indicator::before),
+html.sps-dark .wp-customizer #customize-controls .customize-info .preview-notice .panel-title,
+html.sps-dark .wp-customizer #customize-controls #customize-notifications-area .notice.notification-overlay .notification-message {
+	color: var(--sps-ui-text);
+}
+
+html.sps-dark .wp-customizer #customize-controls :is(.description, .customize-info .preview-notice, .customize-info :is(.customize-panel-description, .customize-section-description), .no-widget-areas-rendered-notice),
+html.sps-dark .wp-customizer :is(.customize-action, .customize-section-title .customize-action, .customize-control-header .inner, .control-section .customize-section-text-before, .control-panel-themes .filter-themes-count .themes-displayed, .themes-filter-bar .search-icon, .menu-item-handle .item-type, .customize-controls-close, .customize-panel-back, .customize-section-back) {
+	color: var(--sps-ui-muted);
+}
+
+/* Lines (#dcdcde, #f0f0f1 under an open section). */
+html.sps-dark .wp-customizer :is(#customize-header-actions, #customize-controls .customize-info, #customize-controls #customize-notifications-area, #customize-theme-controls .control-section.open, #customize-controls :is(.panel-meta, .customize-section-title) > .customize-control-notifications-container, .control-section .customize-section-text-before, #available-widgets-list, .customize-control-widget_form.wide-widget-control .widget-inside, .wp-customizer .menu-settings .menu-theme-locations, .control-section-nav_menu .menu-location-settings, #customize-theme-controls .widget-area-select li) {
+	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark .wp-customizer :is(#customize-theme-controls, #customize-outer-theme-controls) .control-section.open .accordion-section-title {
+	border-bottom-color: var(--sps-ui-border) !important;
+}
+
+html.sps-dark .wp-customizer :is(#customize-theme-controls .control-panel-content:not(.control-panel-nav_menus) .control-section:nth-child(2), #customize-theme-controls .control-panel-nav_menus .control-section-nav_menu, #customize-theme-controls .control-section-nav_menu_locations .accordion-section-title, #accordion-section-themes + .control-section, .control-panel-themes [id="accordion-section-installed_themes"]) {
+	border-top-color: var(--sps-ui-border);
+}
+
+/* Controls: the dropdown's arrow box, media placeholders and their Select button (#f0f0f1, dashed #c3c4c7), and the changeset options (#fff). */
+html.sps-dark .wp-customizer :is(.customize-control .dropdown-arrow, .customize-control .dropdown-status, .customize-control .attachment-media-view .button-add-media) {
+	color: var(--sps-ui-text);
+	background-color: var(--sps-ui-raised);
+}
+
+html.sps-dark .wp-customizer .customize-control .attachment-media-view .button-add-media:is(:hover, :focus) {
+	background-color: var(--sps-ui-border);
+	border-color: var(--sps-ui-accent);
+}
+
+html.sps-dark .wp-customizer :is(.customize-control .attachment-media-view :is(.placeholder, .button-add-media), .customize-control-header .placeholder, .accordion-section .dropdown-content) {
+	border-color: var(--sps-ui-field-border);
+}
+
+html.sps-dark .wp-customizer :is(#customize-control-changeset_status .customize-inside-control-row, #customize-control-changeset_scheduled_date, .preview-link-wrapper .customize-copy-preview-link.preview-control-element.button, .customize-copy-preview-link::before, .customize-copy-preview-link::after, #customize-controls #customize-notifications-area .notice.notification-overlay.notification-changeset-locked .customize-changeset-locked-message) {
+	background: var(--sps-ui-surface) !important;
+	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark .wp-customizer [id="customize-control-changeset_preview_link"] a.disabled {
+	color: var(--sps-ui-subtle);
+}
+
+/* Disabled widget arrows (#fff) and loading menu items. */
+html.sps-dark .wp-customizer :is(#customize-theme-controls :is(.first-widget .move-widget-up, .last-widget .move-widget-down), .move-up-disabled .menus-move-up, .move-down-disabled .menus-move-down, .move-right-disabled .menus-move-right, .move-left-disabled .menus-move-left, .nav-menu-inserted-item-loading .menu-item-handle, .added-menu-item .menu-item-handle.loading) {
+	background-color: var(--sps-ui-surface);
+}
+
+html.sps-dark .wp-customizer :is(body.adding-widget .add-new-widget, .adding-menu-items .add-new-menu-item, .add-menu-toggle.open) {
+	color: var(--sps-ui-text);
+	background: var(--sps-ui-raised);
+}
+
+/*
+ * Kadence's controls: section titles in its panels and radio groups
+ * (#f9f9f9), buttons and sortable items (#fff), field lines (#e2e4e7,
+ * #ddd), #2d3748 text, its Header and Footer builders (#eee under #f7f7f7
+ * rows of #fff items) and the tabs over them (#f9f9f9 active, #000 text).
+ */
+html.sps-dark .wp-customizer :is([id="sub-accordion-section-kadence_customizer_header_builder"], [id="sub-accordion-section-kadence_customizer_footer_builder"]) {
+	background: var(--sps-ui-canvas) !important;
+}
+
+html.sps-dark .wp-customizer :is(.kadence-builder-areas .kadence-builder-group-horizontal, .kadence-control-field.kadence-title-control, .kadence-radio-container-control, .kadence-sorter-drop-social_item_group .kadence-sorter-item-panel-header .kadence-sorter-visiblity, .kadence-palette-popover-copy-paste .components-popover__content, .components-popover__content .kadence-radio-container-control, .kadence-typography-control .kadence-font-family-search) {
+	color: var(--sps-ui-text);
+	background: var(--sps-ui-surface);
+	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark .wp-customizer :is(.kadence-builder-item, .kadence-builder-item-start button.kadence-builder-item, .kadence-sorter-drop .kadence-sorter-item, .kadence-sorter-no-sorting .kadence-sorter-item, .kadence-typography-control .typography-button-wrap > button.components-button, .kadence-locked .components-button.is-single, .kadence-row-layout-control .components-button-group.kadence-radio-container-control .components-button.is-tertiary.active-radio, .kadence-gradient-control .components-custom-gradient-picker__gradient-bar .components-custom-gradient-picker__insert-point-dropdown) {
+	color: var(--sps-ui-text);
+	background: var(--sps-ui-raised);
+	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark .wp-customizer .kadence-builder-item-start button.kadence-builder-item:hover {
+	background: var(--sps-ui-border) !important;
+	border-color: var(--sps-ui-field-border);
+}
+
+html.sps-dark .wp-customizer :is(.kadence-build-tabs, .kadence-build-tabs .nav-tab, .kadence-compontent-tabs, .kadence-popover-tabs.kadence-background-tabs .components-tab-panel__tabs, .kadence-palette-popover-tabs .components-tab-panel__tabs, .sortable-style-tabs .components-tab-panel__tabs, .customize-control-kadence_borders_control .kadence-responsive-controls-content.kadence-border-single-item, .kadence-typography-control .components-button-group :is(.kadence-font-family-list .kadence-font-family-choice, .kadence-font-variant-list .kadence-font-variant-choice), .customize-control:not(.customize-control-kadence_blank_control, .customize-control-kadence_tab_control) + .customize-control) {
+	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark .wp-customizer :is(.kadence-units .components-dropdown-menu, .kadence-range-control input.components-range-control__number, .kadence-radio-container-control button.components-button.is-tertiary, .components-button.kadence-background-icon-indicate, :is(.kadence-border-control, .kadence-boxshadow-control) .kadence-responsive-controls-content input.components-text-control__input, .kadence-select-units select.components-select-control__input, .measure-input-wrap input.measure-inputs, .components-custom-gradient-picker__item .kadence-control-toggle-advanced.only-icon) {
+	border-color: var(--sps-ui-field-border);
+}
+
+html.sps-dark .wp-customizer :is(.kadence-build-tabs .nav-tab.nav-tab-active, .kadence-compontent-tabs .kadence-compontent-tabs-button.nav-tab-active) {
+	color: var(--sps-ui-text);
+	background: var(--sps-ui-surface);
+}
+
+html.sps-dark .wp-customizer :is(.kadence-build-tabs .nav-tab:not(.nav-tab-active), .kadence-compontent-tabs .kadence-compontent-tabs-button:not(.nav-tab-active)):hover {
+	color: var(--sps-ui-text) !important;
+	background: var(--sps-ui-raised) !important;
+	border-bottom-color: var(--sps-ui-surface);
+}
+
+html.sps-dark .wp-customizer :is(.kadence-typography-control .components-button-group :is(.kadence-font-family-choice, .kadence-font-variant-choice, .kadence-font-family-choice .preview-text), .kadence-builder-area .kadence-builder-item-add-icon:is(:hover, :focus)) {
+	color: var(--sps-ui-text) !important;
+}
+
+html.sps-dark .wp-customizer :is(.kadence-sorter-item-panel-content .components-button.kadence-sorter-item-remove, .social-custom-image .components-button.remove-image.is-destructive) {
+	color: var(--sps-ui-bad);
+}
+
+/* Its tour button, beside Close (#f0f0f1, #fff on hover). */
+html.sps-dark .wp-customizer #customize-header-actions button[id="kadence-tour"] {
+	color: var(--sps-ui-muted);
+	background: var(--sps-ui-canvas);
+	border-color: var(--sps-ui-canvas) var(--sps-ui-border) var(--sps-ui-canvas) var(--sps-ui-canvas);
+}
+
+html.sps-dark .wp-customizer #customize-header-actions button[id="kadence-tour"]:is(:hover, :focus, .active) {
+	color: var(--sps-ui-accent);
+	background: var(--sps-ui-surface);
+	border-top-color: var(--sps-ui-accent);
+}
+
 /* Searchable dropdowns ------------------------------------------------------ */
 
 /* Select2 and selectWoo (WooCommerce, Rank Math, Admin Columns and many more): the field, its list and its search. */
