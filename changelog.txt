@@ -3,6 +3,7 @@
 Every change to SEO Pro Stack. readme.txt lists the latest version in short.
 
 = Unreleased =
+* New: the browser title names the settings tab shown, including instant tab switches and Back, and the view shown in Tools → Links (GitHub issue #707).
 * New, on by default: Dev tab in the block editor (Content tab). Panels only the people who build the site need, LiteSpeed Cache's LiteSpeed, Complianz's Cookiebanner, Readabler, Kadence Simple Share's Simple Share Control and Webmention's Webmentions, leave the post editor's Post tab for a Dev tab after Block, in A–Z order, that only developers see (Developer admins: super admins on multisite; the ticked administrators, or every administrator while that is off, on single sites). Everyone else sees neither, nor YellowPencil's pencil button in the editor's toolbar. The panels' fields still save with the post. The seoprostack_editor_dev_panels filter adds or removes panels (GitHub issue #704).
 * Change: More menu in the admin bar is text only. Plugins' icons differed in size and some items had none, so names did not line up; they are hidden in the menu, and items that showed only an icon (such as LiteSpeed Cache) start with their plugin's name.
 

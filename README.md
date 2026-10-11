@@ -1585,6 +1585,10 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folder�
 
 ## Changelog
 
+### Unreleased
+
+- New: the browser title names the settings tab shown, including instant tab switches and Back, and the view shown in Tools → Links (GitHub issue #707).
+
 ### 1.3.40
 
 - New: **Calls to other sites** (Server tab) replaces HTTP Requests Manager, whose latest release (1.3.11) has an unauthenticated stored XSS with no fix (CVE-2026-39724). Slow calls are marked (someone waited 3 seconds or more for one, or 1 second on average), and each plugin and site gets a choice: **Allow**, **Limit to 3 seconds** (while someone waits; not cron, WP-CLI or downloads), **Block on visitor pages** or **Block everywhere**, with who chose it and when. The last 50 changes are listed under **Choices made**. Blocks made before keep blocking everywhere. Hosting needs’ slow-page advice leaves out blocked calls. Free Plugins no longer lists HTTP Requests Manager and its preset is removed; the Plugins screen suggests deactivating and deleting it, naming its Smart block limits and rules while they are on. New `seoprostack_outbound_history` option (not autoloaded), removed on uninstall (GitHub issue #693).
