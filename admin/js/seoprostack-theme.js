@@ -206,7 +206,7 @@
 						color: el.style.getPropertyValue('color'),
 						priority: el.style.getPropertyPriority('color'),
 						transition: el.style.getPropertyValue('transition'),
-						transitionPriority: el.style.getPropertyPriority('transition'),
+						transitionPriority: el.style.getPropertyPriority('transition')
 					};
 					fixed.set(el, entry);
 					el.style.setProperty('color', readable(shown, bg, need), 'important');
@@ -221,7 +221,7 @@
 			var walker = document.createTreeWalker(start, NodeFilter.SHOW_ELEMENT, {
 				acceptNode: function (el) {
 					return el.matches(SKIP) ? NodeFilter.FILTER_REJECT : NodeFilter.FILTER_ACCEPT;
-				},
+				}
 			});
 			for (var el = start; el; el = walker.nextNode()) {
 				if (hasText(el) || fixed.has(el)) {
@@ -244,7 +244,7 @@
 			var walker = document.createTreeWalker(job.root, NodeFilter.SHOW_ELEMENT, {
 				acceptNode: function (el) {
 					return el.matches(SKIP) ? NodeFilter.FILTER_REJECT : NodeFilter.FILTER_ACCEPT;
-				},
+				}
 			});
 			walker.currentNode = job.from;
 			var until = Date.now() + 12;
@@ -367,7 +367,7 @@
 				Array.from(fixed.keys()).forEach(function (el) {
 					settle(el, release(el));
 				});
-			},
+			}
 		};
 	}());
 

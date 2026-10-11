@@ -1613,7 +1613,7 @@ html.sps-dark .rank-math-page {
 	background: var(--sps-ui-canvas);
 }
 
-html.sps-dark :is(.rank-math-header, .rank-math-page #wpfooter, .rank-math-box, .rank-math-tabs-content:not(.rank-math-custom), .rank-math-accordion, .rank-math-tab-panel .components-tab-panel__tab-content .field-wrap, .rank-math-import-export .rank-math-settings-backup-form .list-table.with-action, .wrap .rank-math-accordion-content .rank-math-notice, [id^="cmb2-metabox-rank"] .cmb2-radio-list, #rank-math-metabox-wrapper, .rank-math-checklist, #rank_math_keyword_density .inner-wrapper, #rank-math-pro-cta :is(.rank-math-cta-box, .rank-math-cta-table)) {
+html.sps-dark :is(.rank-math-header, .rank-math-page #wpfooter, .rank-math-box, .rank-math-tabs-content:not(.rank-math-custom), .rank-math-accordion, .rank-math-tab-panel .components-tab-panel__tab-content .field-wrap, .rank-math-import-export .rank-math-settings-backup-form .list-table.with-action, .wrap .rank-math-accordion-content .rank-math-notice, [id^="cmb2-metabox-rank"] .cmb2-radio-list, #rank-math-metabox-wrapper, .rank-math-checklist, [id="rank_math_keyword_density"] .inner-wrapper, #rank-math-pro-cta :is(.rank-math-cta-box, .rank-math-cta-table)) {
 	color: var(--sps-ui-text);
 	background: var(--sps-ui-surface);
 	border-color: var(--sps-ui-border);
@@ -1634,37 +1634,37 @@ html.sps-dark .editor-editor-interface .interface-pinned-items button.components
 
 html.sps-dark .editor-editor-interface .interface-pinned-items button.components-button[aria-label] .rank-math-toolbar-score.bad-fk {
 	color: #f4928e;
-	background: rgba(225, 41, 37, 0.18);
+	background: rgb(225 41 37 / 18%);
 	border-color: #e12925;
 }
 
 html.sps-dark .editor-editor-interface .interface-pinned-items button.components-button[aria-label] .rank-math-toolbar-score.ok-fk {
 	color: #f2b65e;
-	background: rgba(179, 111, 14, 0.22);
+	background: rgb(179 111 14 / 22%);
 	border-color: #b36f0e;
 }
 
 html.sps-dark .editor-editor-interface .interface-pinned-items button.components-button[aria-label] .rank-math-toolbar-score.good-fk {
 	color: #7fd17c;
-	background: rgba(67, 159, 64, 0.2);
+	background: rgb(67 159 64 / 20%);
 	border-color: #439f40;
 }
 
 html.sps-dark .editor-editor-interface .interface-pinned-items button.components-button[aria-label]:not(.is-pressed) .rank-math-toolbar-score.content-ai-score.bad-fk {
 	color: #f48bb0;
-	background: rgba(228, 37, 103, 0.18);
+	background: rgb(228 37 103 / 18%);
 	border-color: #e42567;
 }
 
 html.sps-dark .editor-editor-interface .interface-pinned-items button.components-button[aria-label]:not(.is-pressed) .rank-math-toolbar-score.content-ai-score.ok-fk {
 	color: #f2b65e;
-	background: rgba(179, 111, 14, 0.22);
+	background: rgb(179 111 14 / 22%);
 	border-color: #b36f0e;
 }
 
 html.sps-dark .editor-editor-interface .interface-pinned-items button.components-button[aria-label]:not(.is-pressed) .rank-math-toolbar-score.content-ai-score.good-fk {
 	color: #5fd6ae;
-	background: rgba(36, 150, 113, 0.2);
+	background: rgb(36 150 113 / 20%);
 	border-color: #249671;
 }
 
