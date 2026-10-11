@@ -2599,10 +2599,19 @@ html.sps-dark #acf-field-group-fields :is(.acf-field-list-wrap, .acf-field-list,
 	background-color: var(--sps-ui-surface);
 }
 
-html.sps-dark :is(.acf-internal-post-type .wp-list-table :is(thead, tfoot) :is(th, td), .acf-internal-post-type .wp-list-table :is(th, td) .acf-more-items, .acf-admin-toolbar .acf-more ul li.acf-more-section-header, .acf-admin-toolbar .acf-more ul li.acf-more-section-header span:hover, .acf-admin-page :is(.acf-term-search-term-name, .acf-link-field-groups-popup .acf-popup-box .inner .acf-actions, .acf-create-options-page-popup .acf-popup-box .inner .acf-actions, i.acf-field-setting-fc-delete, i.acf-field-setting-fc-duplicate), .acf-field-setting-bidirectional_notes .acf-feature-notice, .acf-field-icon-picker :is(.acf-icon-list, .acf-icon-list-empty, .acf-icon-picker-media-library, .acf-icon-picker-url-tabs), .acf-modal.acf-browse-fields-modal :is(.acf-field-picker .acf-modal-title, .acf-field-type-preview, .acf-field-type-preview .field-type-preview-container, .acf-field-picker .acf-modal-content :is(.acf-field-types-tab, .acf-field-type-search-results) .acf-field-type), .acf-diff .acf-diff-title, :is(.acf-field-setting-display_format, .acf-field-setting-return_format) .acf-radio-list li label code),
+html.sps-dark :is(.acf-internal-post-type .wp-list-table :is(thead, tfoot) :is(th, td), .acf-internal-post-type .wp-list-table :is(th, td) .acf-more-items, .acf-admin-toolbar .acf-more ul li.acf-more-section-header, .acf-admin-toolbar .acf-more ul li.acf-more-section-header span:hover, .acf-admin-page :is(.acf-term-search-term-name, .acf-link-field-groups-popup .acf-popup-box .inner .acf-actions, .acf-create-options-page-popup .acf-popup-box .inner .acf-actions, i.acf-field-setting-fc-delete, i.acf-field-setting-fc-duplicate), .acf-field-setting-bidirectional_notes .acf-feature-notice, .acf-field-icon-picker :is(.acf-icon-list, .acf-icon-list-empty, .acf-icon-picker-media-library, .acf-icon-picker-url-tabs), .acf-modal.acf-browse-fields-modal :is(.acf-field-picker .acf-modal-title, .acf-field-type-preview, .acf-field-type-preview .field-type-preview-container, .acf-field-picker .acf-modal-content :is(.acf-field-types-tab, .acf-field-type-search-results) .acf-field-type), :is(.acf-admin-page, .acf-browse-fields-modal-wrap) .acf-tab-wrap, .acf-diff .acf-diff-title, :is(.acf-field-setting-display_format, .acf-field-setting-return_format) .acf-radio-list li label code),
 html.sps-dark .post-type-acf-field-group #acf-field-group-fields :is(.acf-thead, .acf-tfoot, .acf-field-object-tab, .acf-field-object-accordion, .acf-field-object.ui-sortable-placeholder, .acf-field-settings-fc_head) {
 	color: var(--sps-ui-text);
 	background-color: var(--sps-ui-raised);
+}
+
+/* Browse Fields: a hovered or picked field type (#EBF5FA), and the preview's light grid picture. */
+html.sps-dark .acf-modal.acf-browse-fields-modal .acf-field-picker .acf-modal-content :is(.acf-field-types-tab, .acf-field-type-search-results) .acf-field-type:is(:hover, :active, .selected) {
+	background-color: #1b3048;
+}
+
+html.sps-dark .acf-modal.acf-browse-fields-modal .acf-field-type-preview {
+	background-image: none;
 }
 
 html.sps-dark :is(.acf-headerbar .acf-headerbar-actions, .acf-options-preview, .acf-no-options-pages-wrapper) .disabled {
@@ -2625,13 +2634,19 @@ html.sps-dark .post-type-acf-field-group #acf-field-group-fields .acf-field-obje
 	background-color: #242b30;
 }
 
-html.sps-dark body.acf-admin-page #wpcontent :is(.acf-headerbar, .acf-postbox-header, .postbox, .postbox .inner, .postbox .inside, .acf-field, .acf-field-object, .acf-field-list-wrap, .acf-thead, .acf-tfoot, .acf-field-settings-split, .acf-field-settings-footer, .acf-field-group-settings-footer, .acf-field-settings-tab-bar, .acf-tab-wrap .acf-tab-group, .field-group-setting-split, .rule-groups, .acf-field-seperator, .acf-labels-tip, .acf-regenerate-labels-bar, .acf-checkbox-list, .acf-checkbox-list li, .acf-more ul li a, .acf-more-section-header, .wp-list-table, .wp-list-table :is(th, td), .acf-field-settings-fc_head, .acf-field-layout-settings, .acf-term-search-term-name, .acf-feature-notice, .acf-icon-list, .acf-icon-list-empty, .acf-icon-picker-media-library, .acf-icon-picker-url-tabs, i.acf-field-setting-fc-delete, i.acf-field-setting-fc-duplicate, .acf-meta-box-wrap .acf-fields .acf-input, .scf-no-beta-features),
+/* Lines; checkbox lists and a dragged field's place keep their transparent borders. */
+html.sps-dark body.acf-admin-page #wpcontent :is(.acf-headerbar, .acf-postbox-header, .postbox, .postbox .inner, .postbox .inside, .acf-field, .acf-field-object:not(.ui-sortable-placeholder), .acf-field-list-wrap, .acf-thead, .acf-tfoot, .acf-field-settings-split, .acf-field-settings-footer, .acf-field-group-settings-footer, .acf-field-settings-tab-bar, .acf-tab-wrap .acf-tab-group, .field-group-setting-split, .rule-groups, .acf-field-seperator, .acf-labels-tip, .acf-regenerate-labels-bar, #acf-admin-tools.tool-export .acf-checkbox-list, #acf-admin-tools.tool-export .acf-checkbox-list li, .acf-more-section-header, .wp-list-table, .wp-list-table :is(th, td), .acf-field-settings-fc_head, .acf-field-layout-settings, .acf-term-search-term-name, .acf-feature-notice, .acf-icon-list, .acf-icon-list-empty, .acf-icon-picker-media-library, .acf-icon-picker-url-tabs, i.acf-field-setting-fc-delete, i.acf-field-setting-fc-duplicate, .acf-meta-box-wrap .acf-fields .acf-input, .scf-no-beta-features),
 html.sps-dark :is(#acf-popup .acf-popup-box, #acf-popup .acf-popup-box .title, #acf-popup .acf-popup-box .acf-actions, .acf-modal, .acf-modal :is(.acf-modal-title, .acf-modal-title .acf-modal-close, .acf-modal-toolbar), .acf-browse-fields-modal :is(.acf-field-type, .acf-field-type-preview)) {
 	border-color: var(--sps-ui-border);
 }
 
+/* The More menu's links are toolbar tabs, with transparent borders but the top one (#F2F4F7). */
+html.sps-dark .acf-admin-toolbar .acf-more ul li a {
+	border-top-color: var(--sps-ui-border);
+}
+
 /* Text (#344054, #1D2939, #101828) and secondary text (#475467, #667085, #646970). */
-html.sps-dark :is(.acf-page-title, .acf-headerbar :is(h1, h2), .acf-postbox-header h2.acf-postbox-title, .acf-internal-post-type .wp-list-table :is(th, td), .post-type-acf-field-group :is(.acf-thead li, .acf-field-object .handle li), .acf-admin-toolbar .acf-more ul li a, .acf-no-field-groups-wrapper h2, .acf-modal .acf-modal-title .acf-modal-close),
+html.sps-dark :is(.acf-page-title, .acf-headerbar :is(h1, h2), .acf-postbox-header h2.acf-postbox-title, .acf-internal-post-type .wp-list-table :is(th, td), .post-type-acf-field-group :is(.acf-thead li, .acf-field-object .handle li), .acf-admin-toolbar .acf-more ul li a, .acf-no-field-groups-wrapper h2, .acf-modal .acf-modal-title :is(h1, h2, .acf-modal-close)),
 html.sps-dark .acf-admin-page :is(h2, .acf-h2, :is(.postbox, .acf-box) :is(.postbox-header, .title) :is(h2, h3), :is(.acf-link-field-groups-popup, .acf-create-options-page-popup) .acf-popup-box .title h3),
 html.sps-dark :is(#acf-popup .acf-confirm-popup .title h3, .acf-admin-page #acf-popup .acf-popup-box .title :is(h1, h2, h3, h4), #acf-update-information :is(.form-table th, .form-table td, .acf-update-changelog), #acf-admin-tools.tool-export .acf-panel h3, #acf-admin-tool-export .acf-panel-selection .acf-label label) {
 	color: var(--sps-ui-text);
@@ -2641,20 +2656,30 @@ html.sps-dark .acf-admin-page #poststuff .postbox-header :is(h2, h3) {
 	color: var(--sps-ui-text) !important;
 }
 
-html.sps-dark :is(.acf-admin-toolbar .acf-more ul li.acf-more-section-header span, .scf-beta-feature-info .description) {
+html.sps-dark :is(.acf-admin-toolbar .acf-more ul li.acf-more-section-header span, .scf-beta-feature-info .description, .acf-modal.acf-browse-fields-modal .acf-field-type-preview .field-type-desc) {
 	color: var(--sps-ui-muted);
 }
 
-/* Tabs in the field settings and the post type and taxonomy screens (#667085, #1D2939 on hover, #0783BE). */
-html.sps-dark :is(.acf-fields, .acf-admin-page.acf-internal-post-type, .acf-browse-fields-modal-wrap) :is(.acf-field-settings-tab-bar, .acf-tab-wrap .acf-tab-group) li a {
+/*
+ * Tabs in a field's settings, the field group's settings, the post type and
+ * taxonomy screens and Browse Fields: #667085, #1D2939 on hover, #0783BE with
+ * a line when picked, and no background. The ID outranks the legacy tab rules
+ * above, which suit tabs in fields on other screens.
+ */
+html.sps-dark body.acf-admin-page #wpcontent :is(.acf-field-settings-tab-bar, .acf-tab-wrap .acf-tab-group) li a,
+html.sps-dark .acf-browse-fields-modal-wrap .acf-tab-wrap .acf-tab-group li a {
 	color: var(--sps-ui-muted);
+	background-color: transparent;
+	border-bottom-color: transparent;
 }
 
-html.sps-dark :is(.acf-fields, .acf-admin-page.acf-internal-post-type, .acf-browse-fields-modal-wrap) :is(.acf-field-settings-tab-bar, .acf-tab-wrap .acf-tab-group) li a:hover {
+html.sps-dark body.acf-admin-page #wpcontent :is(.acf-field-settings-tab-bar, .acf-tab-wrap .acf-tab-group) li a:hover,
+html.sps-dark .acf-browse-fields-modal-wrap .acf-tab-wrap .acf-tab-group li a:hover {
 	color: var(--sps-ui-text);
 }
 
-html.sps-dark :is(.acf-fields, .acf-admin-page.acf-internal-post-type, .acf-browse-fields-modal-wrap) :is(.acf-field-settings-tab-bar, .acf-tab-wrap .acf-tab-group) li.active a {
+html.sps-dark body.acf-admin-page #wpcontent :is(.acf-field-settings-tab-bar, .acf-tab-wrap .acf-tab-group) li.active a,
+html.sps-dark .acf-browse-fields-modal-wrap .acf-tab-wrap .acf-tab-group li.active a {
 	color: var(--sps-ui-accent);
 	border-bottom-color: var(--sps-ui-accent);
 }
@@ -2694,6 +2719,36 @@ html.sps-dark .acf-btn:is(:disabled, .disabled) {
 	color: var(--sps-ui-subtle) !important;
 	background-color: var(--sps-ui-raised);
 	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark .acf-admin-page input::file-selector-button {
+	color: var(--sps-ui-accent) !important;
+	border-color: var(--sps-ui-accent);
+}
+
+html.sps-dark .acf-admin-page input::file-selector-button:hover {
+	color: var(--sps-ui-text) !important;
+	border-color: var(--sps-ui-text);
+}
+
+/*
+ * A picked button in a group (#F9FAFB with #0783BE text; the legacy rule
+ * above styles the others) and chosen items in a multiple select (#EBF5FA).
+ */
+html.sps-dark .acf-admin-page .acf-button-group label.selected {
+	color: var(--sps-ui-accent);
+	background-color: #1b3048;
+	border-color: #2c5683;
+}
+
+html.sps-dark .acf-admin-page .select2-container.-acf .select2-selection--multiple .select2-selection__choice {
+	color: var(--sps-ui-text);
+	background-color: #1b3048;
+	border-color: #2c5683;
+}
+
+html.sps-dark .acf-admin-page .select2-container.-acf .select2-selection--multiple .select2-selection__choice .select2-selection__choice__remove:hover {
+	color: var(--sps-ui-text);
 }
 
 /* Its fields: #fff with #D0D5DD borders, #F9FAFB when read-only, and a #667085 select arrow. */
