@@ -1503,7 +1503,7 @@ html.sps-dark :is(.rank-math-box header h3, .rank-math-breadcrumbs .active, .ran
 	color: var(--sps-ui-text);
 }
 
-html.sps-dark :is(.rank-math-box header p, .rank-math-tab-header p, .rank-math-breadcrumbs, .rank-math-header a.rank-math-help) {
+html.sps-dark :is(.rank-math-box header p, .rank-math-tab-header p, .rank-math-breadcrumbs, .rank-math-header a.rank-math-help, :is(.rank-math-page, .rank-math-tabs, .rank-math-editor) :is(.field-description, .cmb2-metabox-description)) {
 	color: var(--sps-ui-muted);
 }
 
@@ -1764,6 +1764,20 @@ html.sps-dark #wpbody .sps-hosting__plans :is(th, td, thead th) {
 }
 
 html.sps-dark #wpbody :is(.sps-hosting__list .dashicons, .sps-hosting__plans thead th span, .sps-hosting__plans tbody th, .sps-hosting__note, .sps-hosting.is-pending .sps-hosting__cell, .sps-hosting.is-failed .sps-hosting__cell) {
+	color: var(--sps-ui-muted);
+}
+
+/* Licence checks (class-seoprostack-licence-calls.php): a dialog on any screen. */
+html.sps-dark .sps-licence {
+	color: var(--sps-ui-text);
+	background: var(--sps-ui-surface);
+}
+
+html.sps-dark .sps-licence h2 {
+	color: inherit;
+}
+
+html.sps-dark .sps-licence :is(.sps-licence__host, .sps-licence__status, .sps-licence__note, .sps-licence__aside) {
 	color: var(--sps-ui-muted);
 }
 
