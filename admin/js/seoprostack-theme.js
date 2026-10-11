@@ -9,8 +9,9 @@
  * wpallstars plugin with a dark mode shares the choice: after a change is
  * saved, it is sent on `document` as `wpallstars-admin-theme`
  * ({ mode, source }), and changes from the others are applied here
- * without saving or sending again. `sps-themechange` ({ mode, dark }) tells
- * SEO Pro Stack's own screens.
+ * without saving or sending again. Other open screens of the browser
+ * follow through its storage (see tell()). `sps-themechange`
+ * ({ mode, dark }) tells SEO Pro Stack's own screens.
  *
  * SPDX-License-Identifier: GPL-3.0-or-later
  * SPDX-FileCopyrightText: 2026 Marcus Quinn
@@ -460,6 +461,55 @@
 		}
 	}
 
+	/*
+	 * Other open screens (tabs and windows of this browser) follow a saved
+	 * change: it is written to this browser's storage, which tells them
+	 * (the `storage` event), and a screen brought back with Back reads it
+	 * (`pageshow`). Each sends the shared event on, so every wpallstars
+	 * control on that screen follows too.
+	 */
+	var KEY = 'wpallstars_admin_theme';
+	var seen = Date.now();
+	function tell(which) {
+		seen = Date.now();
+		try {
+			window.localStorage.setItem(KEY, JSON.stringify({ user: data.user, mode: which, at: seen }));
+		} catch (e) {
+			// Storage is off: other screens show the change when next opened.
+		}
+	}
+	function heard(raw) {
+		var told;
+		try {
+			told = JSON.parse(raw || 'null');
+		} catch (e) {
+			return;
+		}
+		// Only a newer change, by the same person, to another mode.
+		if (!told || told.user !== data.user || order.indexOf(told.mode) === -1 || !(told.at > seen)) {
+			return;
+		}
+		seen = told.at;
+		if (told.mode !== mode) {
+			apply(told.mode);
+			document.dispatchEvent(new CustomEvent(EVENT, { detail: { mode: told.mode, source: SOURCE } }));
+		}
+	}
+	window.addEventListener('storage', function (event) {
+		if (event.key === KEY) {
+			heard(event.newValue);
+		}
+	});
+	window.addEventListener('pageshow', function (event) {
+		if (event.persisted) {
+			try {
+				heard(window.localStorage.getItem(KEY));
+			} catch (e) {
+				// Storage is off.
+			}
+		}
+	});
+
 	function choose(which) {
 		if (saving || which === mode) {
 			return;
@@ -482,6 +532,7 @@
 				}
 				document.dispatchEvent(new CustomEvent(EVENT, { detail: { mode: which, source: SOURCE } }));
 				shareMode(which);
+				tell(which);
 			})
 			.catch(function () {
 				apply(previous);
@@ -547,13 +598,15 @@
 		});
 	}
 
-	// Another plugin's control changed the mode: follow it, without saving or sending again.
+	// Another plugin's control changed (and saves) the mode: follow it, and tell other screens, without saving.
 	document.addEventListener(EVENT, function (event) {
 		var detail = event.detail || {};
 		if (detail.source === SOURCE || order.indexOf(detail.mode) === -1) {
 			return;
 		}
 		apply(detail.mode);
+		shareMode(detail.mode);
+		tell(detail.mode);
 	});
 	if (media) {
 		var follow = function () {

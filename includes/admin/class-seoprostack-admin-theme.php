@@ -293,6 +293,7 @@ final class SEOProStack_Admin_Theme {
         wp_set_script_translations(self::STYLE, 'seoprostack');
         wp_add_inline_script(self::STYLE, 'window.seoprostackTheme = ' . wp_json_encode(array(
             'mode'    => $mode,
+            'user'    => get_current_user_id(),
             'applies' => $applies,
             'css'     => $applies ? $url : '',
             'guard'   => $applies && self::guards(),
