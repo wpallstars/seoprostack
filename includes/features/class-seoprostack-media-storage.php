@@ -34,6 +34,14 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
     private static $local = 0;
     /** Nested REST requests' edit contexts. @var bool[] */
     private static $rest = array();
+    /** Connection read once per request: constants cannot change. @var array<string,mixed>|null */
+    private static $config = null;
+    /** Main site's uploads folder; false until read. @var array{dir:string,url:string}|null|false */
+    private static $root = false;
+    /** Whether this request may change output addresses, per site. @var array<int,bool> */
+    private static $serving = array();
+    /** Output address maps per site and attachment for this request. @var array<string,array<string,string>> */
+    private static $maps = array();
 
     /** @return array<string,array> */
     public static function settings() {
@@ -50,6 +58,9 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
      * @return array
      */
     public static function config() {
+        if (null !== self::$config) {
+            return self::$config;
+        }
         $config = array('missing' => array());
         foreach (array('endpoint', 'region', 'bucket', 'key_id', 'secret', 'url', 'prefix') as $key) {
             $name = 'SEOPROSTACK_MEDIA_STORAGE_' . strtoupper($key);
@@ -81,6 +92,7 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
         }
         $config['missing'] = array_unique($config['missing']);
         $config['signature'] = hash('sha256', $config['endpoint'] . '\n' . $config['bucket'] . '\n' . $config['prefix']);
+        self::$config = $config;
         return $config;
     }
 
@@ -89,12 +101,37 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
         return self::enabled() && !self::config()['missing'];
     }
 
+    /**
+     * The main site's uploads folder, read once per request: on a subsite
+     * each read switches to the main site, too costly for every image address.
+     *
+     * @return array{dir:string,url:string}|null
+     */
+    private static function root() {
+        if (false === self::$root) {
+            self::$root = SEOProStack_Nextgen_Images::main_uploads();
+        }
+        return self::$root;
+    }
+
+    /**
+     * Drop this request's cached addresses after an attachment's record changes.
+     *
+     * @param int $id Attachment ID.
+     */
+    private static function forget($id) {
+        unset(self::$maps[get_current_blog_id() . ':' . (int) $id]);
+    }
+
     /** Register local hooks even when off; remote work always checks ready(). */
     public static function boot() {
         add_action('seoprostack_setting_saved', array(__CLASS__, 'setting_saved'), 10, 2);
         add_action('seoprostack_setting_panel', array(__CLASS__, 'panel_status'), 10, 2);
         add_action('admin_post_seoprostack_storage_test', array(__CLASS__, 'handle_test'));
-        add_filter('attachment_fields_to_edit', array(__CLASS__, 'attachment_field'), 20, 2);
+        if (is_admin() && self::enabled()) {
+            // Only sites that use the feature see its line on every picture.
+            add_filter('attachment_fields_to_edit', array(__CLASS__, 'attachment_field'), 20, 2);
+        }
         add_action('delete_attachment', array(__CLASS__, 'deleted'));
         add_filter('wp_update_attachment_metadata', array(__CLASS__, 'metadata_updated'), 100, 2);
         add_action('added_post_meta', array(__CLASS__, 'metadata_committed'), 10, 4);
@@ -145,7 +182,15 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
     private static function serving() {
         // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- context only, no mutation.
         $edit = defined('REST_REQUEST') && REST_REQUEST && isset($_REQUEST['context']) && 'edit' === $_REQUEST['context'];
-        return !self::$local && !is_admin() && !$edit && !in_array(true, self::$rest, true) && self::ready();
+        if (self::$local || is_admin() || $edit || in_array(true, self::$rest, true)) {
+            return false;
+        }
+        // Asked for every image address: read the site's switch once.
+        $blog = get_current_blog_id();
+        if (!isset(self::$serving[$blog])) {
+            self::$serving[$blog] = self::ready();
+        }
+        return self::$serving[$blog];
     }
 
     /**
@@ -188,6 +233,7 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
         }
         update_post_meta($id, self::GENERATION, wp_generate_uuid4());
         delete_post_meta($id, self::DONE);
+        self::forget($id);
         delete_transient(self::COUNTS);
         // An old retry must not delay a new edit.
         delete_option(self::JOB . 'retry_' . (int) $id);
@@ -223,14 +269,25 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
     }
 
     /**
-     * Schedule a bounded batch.
+     * Make sure a bounded batch runs within $delay seconds. A later wake-up
+     * (an idle batch sleeping until a back-off ends) is brought forward, so
+     * new work never waits for it.
      *
      * @param int $delay Seconds.
      */
     public static function schedule($delay = 0) {
-        if (self::ready() && !wp_next_scheduled(self::HOOK)) {
-            wp_schedule_single_event(time() + (int) $delay, self::HOOK);
+        if (!self::ready()) {
+            return;
         }
+        $when = time() + max(0, (int) $delay);
+        $next = wp_next_scheduled(self::HOOK);
+        if ($next && $next <= $when) {
+            return;
+        }
+        if ($next) {
+            wp_unschedule_event($next, self::HOOK);
+        }
+        wp_schedule_single_event($when, self::HOOK);
     }
 
     /**
@@ -243,6 +300,8 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
         if (self::KEY !== $key) {
             return;
         }
+        self::$serving = array();
+        self::$maps = array();
         if (self::ready()) {
             self::schedule();
         } else {
@@ -253,6 +312,7 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
     /**
      * Backfill newest attachments first, through the post ID index.
      *
+     * @phpstan-impure Reads the queue, which other requests change.
      * @param int $limit Batch size.
      * @return int[]
      */
@@ -301,6 +361,7 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
             self::queue_delete($record, array_map('strval', array_keys($record['files'])));
         }
         delete_option(self::JOB . 'retry_' . (int) $id);
+        self::forget($id);
         delete_transient(self::COUNTS);
     }
 
@@ -363,16 +424,60 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
                 if (!self::more_time($start, self::BUDGET)) {
                     break;
                 }
-                self::upload_attachment($id);
+                self::upload_attachment($id, $start);
                 ++$attempts;
             }
         } finally {
             delete_option(self::LOCK);
         }
-        if (!self::waiting(1) && !self::jobs(1)) {
-            wp_clear_scheduled_hook(self::HOOK);
-        }
+        self::reschedule();
         return $attempts;
+    }
+
+    /**
+     * Keep the next batch only while work is due: sleep until the first
+     * backed-off job instead of waking every minute, and stop when idle.
+     */
+    private static function reschedule() {
+        if (self::waiting(1)) {
+            return;
+        }
+        $due = self::next_due();
+        if (null !== $due && $due <= time() + 60) {
+            return;
+        }
+        wp_clear_scheduled_hook(self::HOOK);
+        // Work queued between those checks and the clear saw the old event
+        // and did not schedule its own: look again after clearing.
+        $due = self::waiting(1) ? time() : self::next_due();
+        if (null !== $due) {
+            self::schedule(max(10, $due - time()));
+        }
+    }
+
+    /**
+     * When the first job for this connection is due; null when there is none.
+     * Reads at most 500 small rows, only when a batch ends; more counts as due.
+     *
+     * @phpstan-impure Reads jobs, which other requests change.
+     * @return int|null
+     */
+    private static function next_due() {
+        global $wpdb;
+        $signature = self::config()['signature'];
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- bounded lookup through option_name's unique index.
+        $values = $wpdb->get_col($wpdb->prepare("SELECT option_value FROM {$wpdb->options} WHERE option_name LIKE %s OR option_name LIKE %s ORDER BY option_name LIMIT 501", $wpdb->esc_like(self::JOB . 'delete_' . $signature . '_') . '%', $wpdb->esc_like(self::JOB . 'retry_') . '%'));
+        if (count($values) > 500) {
+            return time();
+        }
+        $due = null;
+        foreach ($values as $value) {
+            $job = maybe_unserialize($value);
+            if (is_array($job) && isset($job['signature'], $job['next']) && $job['signature'] === $signature) {
+                $due = null === $due ? (int) $job['next'] : min($due, (int) $job['next']);
+            }
+        }
+        return $due;
     }
 
     /**
@@ -403,7 +508,7 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
                     continue;
                 }
                 delete_option($name);
-                self::upload_attachment((int) $job['id']);
+                self::upload_attachment((int) $job['id'], $start);
                 ++$attempts;
                 continue;
             }
@@ -446,7 +551,7 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
      */
     private static function files($id) {
         $file = get_attached_file($id);
-        $root = SEOProStack_Nextgen_Images::main_uploads();
+        $root = self::root();
         if (!$file || !$root) {
             return array();
         }
@@ -499,12 +604,14 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
      * Upload the whole attachment atomically; unchanged files make no request.
      *
      * @param int $id Attachment ID.
+     * @param float|null $start When the batch began (microtime), so a batch keeps one time budget.
      * @return bool Whether all eligible files were copied.
      */
-    public static function upload_attachment($id) {
+    public static function upload_attachment($id, $start = null) {
         if (!self::ready() || 0 !== strpos((string) get_post_mime_type($id), 'image/')) {
             return false;
         }
+        self::forget($id);
         $config = self::config();
         $generation = get_post_meta($id, self::GENERATION, true);
         $old = get_post_meta($id, self::META, true);
@@ -529,7 +636,7 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
         delete_transient(self::COUNTS);
         clearstatcache();
         $files = self::files($id);
-        $start = microtime(true);
+        $start = null === $start ? microtime(true) : (float) $start;
         foreach ($files as $key => $info) {
             if (!self::more_time($start, self::BUDGET)) {
                 $job['next'] = time() + 60;
@@ -609,6 +716,7 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
             update_option(self::URL_INDEX . hash('sha256', $config['signature'] . $key), $id, false);
         }
         delete_option(self::JOB . 'retry_' . $id);
+        self::forget($id);
         return true;
     }
 
@@ -625,18 +733,37 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
     }
 
     /**
-     * Local to public URL map, only for a completed inventory on this connection.
+     * Local to public URL map, built once per request for each attachment:
+     * one picture's src, size and srcset addresses all ask for it.
      *
      * @param int $id Attachment ID.
      * @return array<string,string>
      */
     private static function map($id) {
+        $cache = get_current_blog_id() . ':' . (int) $id;
+        if (!isset(self::$maps[$cache])) {
+            if (count(self::$maps) >= 500) {
+                // Bound memory in long WP-CLI runs over whole libraries.
+                self::$maps = array();
+            }
+            self::$maps[$cache] = self::build_map($id);
+        }
+        return self::$maps[$cache];
+    }
+
+    /**
+     * Local to public URL map, only for a completed inventory on this connection.
+     *
+     * @param int $id Attachment ID.
+     * @return array<string,string>
+     */
+    private static function build_map($id) {
         $record = get_post_meta($id, self::META, true);
         $config = self::config();
         if (!is_array($record) || empty($record['files']) || 'uploaded' !== $record['state'] || $record['signature'] !== $config['signature'] || get_post_meta($id, self::DONE, true) !== $config['signature']) {
             return array();
         }
-        $root = SEOProStack_Nextgen_Images::main_uploads();
+        $root = self::root();
         $uploads = wp_upload_dir(null, false);
         if (!$root || 0 !== strpos(wp_normalize_path($uploads['basedir']), $root['dir'])) {
             return array();
@@ -822,7 +949,7 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
                 if (substr($relative, -5) === '.webp' && isset($record['files'][substr($key, 0, -5)])) {
                     $relative = substr($relative, 0, -5);
                 }
-                $root = SEOProStack_Nextgen_Images::main_uploads();
+                $root = self::root();
                 $uploads = wp_upload_dir(null, false);
                 if (!$root) {
                     return $match[0];
@@ -934,10 +1061,14 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
             echo '<p>' . esc_html__('Use an HTTPS public storage address to avoid mixed content.', 'seoprostack') . '</p>';
         }
         if (self::ready()) {
-            foreach (self::counts() as $state => $count) {
+            $counts = self::counts();
+            foreach ($counts as $state => $count) {
                 echo '<p>' . esc_html($state . ': ' . number_format_i18n($count)) . '</p>';
             }
-            self::schedule();
+            if ($counts['waiting'] > 0) {
+                // Recover a lost wake-up without waking an idle queue on every view.
+                self::schedule(60);
+            }
             $test = get_transient(self::TEST);
             if (is_array($test) && $test['signature'] === $config['signature']) {
                 echo '<p>' . esc_html($test['message']) . '</p>';
