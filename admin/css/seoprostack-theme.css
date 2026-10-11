@@ -92,6 +92,14 @@ html.sps-dark {
 	/* Really Simple Security's New pill (on yellow) names this colour but never sets it. */
 	--rsp-text-color-dark: #1d2327;
 
+	/* Code Snippets' palette, on :root (its fields' text and lines; see Code Snippets below). Its accent stays. */
+	--cs-color-text: var(--sps-ui-text);
+	--cs-color-text-muted: var(--sps-ui-muted);
+	--cs-color-surface: var(--sps-ui-surface);
+	--cs-color-surface-subtle: var(--sps-ui-raised);
+	--cs-color-border: var(--sps-ui-field-border);
+	--cs-color-border-subtle: var(--sps-ui-border);
+
 	color-scheme: dark;
 	background: var(--sps-ui-canvas);
 }
@@ -295,7 +303,7 @@ html.sps-dark :is(#wpwrap, #wpcontent, #wpbody, #wpbody-content) {
  * (widget areas, in Widgets and the Customizer): it keeps the theme's
  * colours, as in the post editor.
  */
-:where(html.sps-dark :is(#wpbody, .wp-customizer, .components-modal__frame, .media-modal, [id="TB_window"])) :is(h1, h2, h3, h4, h5, h6):where(:not(.editor-styles-wrapper *)) {
+:where(html.sps-dark :is(#wpbody, .wp-customizer, .components-modal__frame, .media-modal, [id="TB_window"], .notification-dialog)) :is(h1, h2, h3, h4, h5, h6):where(:not(.editor-styles-wrapper *)) {
 	color: var(--sps-ui-text);
 }
 
@@ -304,12 +312,12 @@ html.sps-dark #wpbody :is(#dashboard-widgets, #poststuff, #nav-menu-meta, #col-l
 	color: var(--sps-ui-text);
 }
 
-:where(html.sps-dark :is(#wpbody, #wpfooter, .wp-customizer, .components-modal__frame, .media-modal, [id="TB_window"], .wp-pointer)) a:where(:not(.editor-styles-wrapper *)) {
+:where(html.sps-dark :is(#wpbody, #wpfooter, .wp-customizer, .components-modal__frame, .media-modal, [id="TB_window"], .wp-pointer, .notification-dialog)) a:where(:not(.editor-styles-wrapper *)) {
 	color: var(--sps-ui-accent);
 }
 
 /* WordPress darkens links on hover and focus (#135e96, #043959). */
-:where(html.sps-dark :is(#wpbody, #wpfooter, .wp-customizer, .components-modal__frame, .media-modal, [id="TB_window"], .wp-pointer)) a:where(:not(.editor-styles-wrapper *)):is(:hover, :active, :focus) {
+:where(html.sps-dark :is(#wpbody, #wpfooter, .wp-customizer, .components-modal__frame, .media-modal, [id="TB_window"], .wp-pointer, .notification-dialog)) a:where(:not(.editor-styles-wrapper *)):is(:hover, :active, :focus) {
 	color: var(--sps-ui-text);
 }
 
@@ -449,15 +457,19 @@ html.sps-dark input[type="radio"]:checked::before {
 
 /* Buttons ---------------------------------------------------------------- */
 
-/* Secondary buttons outlined in the light accent; primary ones keep the scheme's fill. */
-html.sps-dark .wp-core-ui :is(.button:not(.button-primary), .button-secondary),
+/*
+ * Secondary buttons outlined in the light accent; primary ones keep the
+ * scheme's fill. A .button that is also a .button-link stays a link, as
+ * WordPress draws it (Code Snippets' row actions).
+ */
+html.sps-dark .wp-core-ui :is(.button:not(.button-primary), .button-secondary):where(:not(.button-link)),
 html.sps-dark .wrap .page-title-action {
 	color: var(--sps-ui-accent);
 	background: var(--sps-ui-surface);
 	border-color: var(--sps-ui-accent);
 }
 
-html.sps-dark .wp-core-ui :is(.button:not(.button-primary), .button-secondary):is(:hover, :focus),
+html.sps-dark .wp-core-ui :is(.button:not(.button-primary), .button-secondary):where(:not(.button-link)):is(:hover, :focus),
 html.sps-dark .wrap .page-title-action:is(:hover, :focus) {
 	color: var(--sps-ui-text);
 	background: var(--sps-ui-raised);
@@ -716,7 +728,9 @@ html.sps-dark #wpbody :is(#future-posts, #published-posts) li:nth-child(odd) {
 	background-color: var(--sps-ui-stripe);
 }
 
-html.sps-dark #wpbody :is([id="dashboard_right_now"] li a::before, [id="dashboard_right_now"] li > span::before, .community-events .event-icon, [id="dashboard_activity"] .comment-meta, .rss-widget span.rss-date, [id="dashboard_activity"] .comment-item cite, .misc-pub-section::before, #post-body .misc-pub-post-status::before) {
+/* Pseudo-elements go after :is(), never in it (there they match nothing). */
+html.sps-dark #wpbody :is(.community-events .event-icon, [id="dashboard_activity"] .comment-meta, .rss-widget span.rss-date, [id="dashboard_activity"] .comment-item cite),
+html.sps-dark #wpbody :is([id="dashboard_right_now"] li a, [id="dashboard_right_now"] li > span, .misc-pub-section, #post-body .misc-pub-post-status)::before {
 	color: var(--sps-ui-subtle);
 }
 
@@ -816,10 +830,14 @@ html.sps-dark #wpbody .theme-browser .theme .theme-screenshot {
 	background: var(--sps-ui-canvas);
 }
 
-html.sps-dark #wpbody .theme-browser .theme.add-new-theme :is(a::after, span::after) {
-	color: var(--sps-ui-muted);
-	background: var(--sps-ui-surface);
+/* Add New Theme: a dashed frame (10% black) laid over the card, so only its line changes, and the plus sign's circle. */
+html.sps-dark #wpbody .theme-browser .theme.add-new-theme a::after {
 	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark #wpbody .theme-browser .theme.add-new-theme span::after {
+	color: var(--sps-ui-muted);
+	background: var(--sps-ui-raised);
 }
 
 html.sps-dark .theme-browser .theme .theme-actions .button:not(.button-primary) {
@@ -984,7 +1002,8 @@ html.sps-dark #wpbody :is(#nav-menu-header, #nav-menu-footer, .manage-menus) {
 	background: var(--sps-ui-raised);
 }
 
-html.sps-dark #wpbody :is(.menu-item-handle .item-type, .item-controls .item-type, .accordion-section-title::after, .menu-item-handle .item-edit) {
+html.sps-dark #wpbody :is(.menu-item-handle .item-type, .item-controls .item-type, .menu-item-handle .item-edit),
+html.sps-dark #wpbody .accordion-section-title::after {
 	color: var(--sps-ui-subtle);
 }
 
@@ -1001,10 +1020,17 @@ html.sps-dark #wpbody :is(.tabs-panel, .category-tabs .tabs, .categorydiv div.ta
  * and code in dark blues, reds and greens that read at under 3:1 on dark.
  * Here a dark palette for code (Material's), every colour at 4.5:1 or
  * more. Editors set to another theme (Code Snippets offers many) keep it.
+ * Their frames (#dfdfdf in Code Snippets, #dcdcde in the file editors,
+ * by an ID there) take the fields' line.
  */
 html.sps-dark .CodeMirror.cm-s-default {
 	color: var(--sps-ui-text);
 	background: var(--sps-ui-canvas);
+	border-color: var(--sps-ui-field-border);
+}
+
+html.sps-dark #template :is(textarea, .CodeMirror) {
+	border-color: var(--sps-ui-field-border);
 }
 
 html.sps-dark .cm-s-default :is(.CodeMirror-gutters, .CodeMirror-gutter-filler, .CodeMirror-scrollbar-filler) {
@@ -1111,6 +1137,34 @@ html.sps-dark .cm-s-default :is(.CodeMirror-dialog-top, .CodeMirror-dialog-botto
 	border-color: var(--sps-ui-border);
 }
 
+/*
+ * The theme and plugin file editors' list of files: #f6f7f7 with #dcdcde
+ * lines (#c3c4c7 for the tree's), #f0f0f1 under the pointer, #043959 when
+ * focused, and #646970 notes.
+ */
+html.sps-dark #templateside > ul {
+	background-color: var(--sps-ui-surface);
+	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark #templateside :is([role="treeitem"].hover, [role="treeitem"] .folder-label.hover) {
+	background-color: var(--sps-ui-raised);
+}
+
+html.sps-dark #templateside :is([role="treeitem"] a:focus, [role="treeitem"] .folder-label.focus) {
+	color: var(--sps-ui-text);
+}
+
+html.sps-dark #templateside .tree-folder .tree-folder::after,
+html.sps-dark #templateside .tree-folder > li::before,
+html.sps-dark #templateside .tree-folder > li::after {
+	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark .nonessential {
+	color: var(--sps-ui-muted);
+}
+
 /* Media library ------------------------------------------------------------- */
 
 html.sps-dark :is(.media-modal-content, .media-frame-content, .media-frame-title, .media-frame-router, .media-frame-toolbar .media-toolbar, .media-frame-menu, .media-menu, .attachments-browser .media-toolbar, .media-frame.mode-grid .media-toolbar, .uploader-inline, .media-frame .attachments-browser, .media-modal .media-frame-content) {
@@ -1211,6 +1265,16 @@ html.sps-dark :is([id="TB_window"], [id="TB_title"], [id="TB_ajaxContent"]) {
 
 html.sps-dark .wp-pointer-content :is(h3 + p, p) {
 	color: inherit;
+}
+
+/*
+ * WordPress's notices in a dialog (#fff): the file editors' Heads up! and
+ * the classic editor's post lock. Moved to <body> when shown, so the
+ * heading and link rules (The page) list it too.
+ */
+html.sps-dark .notification-dialog {
+	color: var(--sps-ui-text);
+	background: var(--sps-ui-surface);
 }
 
 html.sps-dark .wp-pointer-top .wp-pointer-arrow-inner,
@@ -1677,7 +1741,9 @@ html.sps-dark .wp-customizer .wp-full-overlay-footer .devices button::before {
 
 /* Text set in greys (#50575e, #2c3338, #3c434a, #1d2327). */
 html.sps-dark .wp-customizer :is(#customize-theme-controls, #customize-outer-theme-controls) .accordion-section-content,
-html.sps-dark .wp-customizer :is(.customize-section-title h3, h3.customize-section-title, .customize-control-title, .customize-control .dropdown-status, .customize-control .dropdown-arrow::after, #available-widgets .widget-title::before, .widget-reorder-nav span:is(:hover, :focus), .menu-item-reorder-nav button:is(:hover, :focus), .menu-item-handle .item-title, .customize-control .widget-action:is(:focus, :hover), #available-menu-items .toggle-indicator::before),
+html.sps-dark .wp-customizer :is(.customize-section-title h3, h3.customize-section-title, .customize-control-title, .customize-control .dropdown-status, .widget-reorder-nav span:is(:hover, :focus), .menu-item-reorder-nav button:is(:hover, :focus), .menu-item-handle .item-title, .customize-control .widget-action:is(:focus, :hover)),
+html.sps-dark .wp-customizer .customize-control .dropdown-arrow::after,
+html.sps-dark .wp-customizer :is(#available-widgets .widget-title, #available-menu-items .toggle-indicator)::before,
 html.sps-dark .wp-customizer #customize-controls .customize-info .preview-notice .panel-title,
 html.sps-dark .wp-customizer #customize-controls #customize-notifications-area .notice.notification-overlay .notification-message {
 	color: var(--sps-ui-text);
@@ -1716,7 +1782,10 @@ html.sps-dark .wp-customizer :is(.customize-control .attachment-media-view :is(.
 	border-color: var(--sps-ui-field-border);
 }
 
-html.sps-dark .wp-customizer :is(#customize-control-changeset_status .customize-inside-control-row, #customize-control-changeset_scheduled_date, .preview-link-wrapper .customize-copy-preview-link.preview-control-element.button, .customize-copy-preview-link::before, .customize-copy-preview-link::after, #customize-controls #customize-notifications-area .notice.notification-overlay.notification-changeset-locked .customize-changeset-locked-message) {
+/* The preview link's Copy button (#fff, by !important) and the two bars fading the link into it. */
+html.sps-dark .wp-customizer :is([id="customize-control-changeset_status"] .customize-inside-control-row, [id="customize-control-changeset_scheduled_date"], .preview-link-wrapper .customize-copy-preview-link.preview-control-element.button, #customize-controls #customize-notifications-area .notice.notification-overlay.notification-changeset-locked .customize-changeset-locked-message),
+html.sps-dark .wp-customizer .customize-copy-preview-link::before,
+html.sps-dark .wp-customizer .customize-copy-preview-link::after {
 	background: var(--sps-ui-surface) !important;
 	border-color: var(--sps-ui-border);
 }
@@ -2705,9 +2774,15 @@ html.sps-dark body[class*="page_fluent_forms"] :is(.el-button--info.is-plain, .s
  * and #f0f2f4 surfaces, #b5bfc9 lines, #242628 text). Each selector is Rank
  * Math's own behind html.sps-dark, so it wins.
  */
-html.sps-dark .rank-math-page :is(#wpwrap, .dashboard-wrapper, .dashboard-wrapper::before),
+html.sps-dark .rank-math-page :is(#wpwrap, .dashboard-wrapper),
 html.sps-dark .rank-math-page {
 	background: var(--sps-ui-canvas);
+}
+
+/* The dashboard's full-width band behind its modules (#f8f9fa, #b5bfc9 lines). */
+html.sps-dark .rank-math-page .dashboard-wrapper::before {
+	background: var(--sps-ui-canvas);
+	border-color: var(--sps-ui-border);
 }
 
 html.sps-dark :is(.rank-math-header, .rank-math-page #wpfooter, .rank-math-box, .rank-math-tabs-content:not(.rank-math-custom), .rank-math-accordion, .rank-math-tab-panel .components-tab-panel__tab-content .field-wrap, .rank-math-import-export .rank-math-settings-backup-form .list-table.with-action, .wrap .rank-math-accordion-content .rank-math-notice, [id^="cmb2-metabox-rank"] .cmb2-radio-list, #rank-math-metabox-wrapper, .rank-math-checklist, [id="rank_math_keyword_density"] .inner-wrapper, #rank-math-pro-cta :is(.rank-math-cta-box, .rank-math-cta-table)) {
@@ -2956,9 +3031,15 @@ html.sps-dark .components-base-control .components-base-control__field .rank-mat
 	border-color: var(--sps-ui-field-border);
 }
 
-html.sps-dark :is(.rank-math-seo-analysis-header, .rank-math-import-export .components-tab-panel__tabs-item.is-active, .rank-math-import-export .components-tab-panel__tabs-item::after) {
+/* Import & Export's chosen tab, and its #fff foot over the bar's line. */
+html.sps-dark :is(.rank-math-seo-analysis-header, .rank-math-import-export .components-tab-panel__tabs-item.is-active),
+html.sps-dark .rank-math-import-export .components-tab-panel__tabs-item::after {
 	color: var(--sps-ui-text);
 	background: var(--sps-ui-surface);
+}
+
+html.sps-dark .rank-math-import-export .components-tab-panel__tabs-item {
+	border-color: var(--sps-ui-border);
 }
 
 html.sps-dark :is(.rank-math-wrap, .rank-math-page #wpbody) :is(.components-text-control__input, .components-textarea-control__input) {
@@ -2980,7 +3061,7 @@ html.sps-dark .rank-math-tabs-navigation:not(.rank-math-custom) a.active::after 
 	background: var(--sps-ui-surface);
 }
 
-html.sps-dark :is(.rank-math-box-tabs, .rank-math-tabs > .cmb-row.tab-header, .rank-math-tabs > .components-tab-panel__tabs, .rank-math-editor > .components-tab-panel__tabs) {
+html.sps-dark :is(.rank-math-box-tabs, .rank-math-tabs > .cmb-row.tab-header, .rank-math-tabs > .components-tab-panel__tabs, .rank-math-editor > .components-tab-panel__tabs, .rank-math-import-export .components-tab-panel__tabs) {
 	background: var(--sps-ui-raised);
 	border-color: var(--sps-ui-border);
 }
@@ -3181,14 +3262,16 @@ html.sps-dark :is(.acf-box, .acf-fields.-border, .acf-input-prepend, .acf-input-
 	border-color: var(--sps-ui-border);
 }
 
-html.sps-dark :is(.acf-tfoot, .acf-fields > .acf-tab-wrap .acf-tab-group, .acf-fields > .acf-tab-wrap .acf-tab-group li a, .acf-fields.-sidebar::before, .acf-fields.-sidebar.-left > .acf-tab-wrap.-left .acf-tab-group li a, .acf-file-uploader .show-if-value .file-icon, .acf-oembed, .acf-gallery, .acf-gallery .acf-gallery-attachment .margin, .acf-gallery .acf-gallery-side, .acf-gallery .acf-gallery-side .acf-gallery-side-info, .acf-gallery .acf-gallery-toolbar, .acf-button-group label:not(.selected), .acf-switch:not(.-on), .acf-link .link-wrap, .acf-relationship .selection, .acf-relationship .selection :is(.choices, .choices-list, .values), .acf-taxonomy-field .categorychecklist-holder, .acf-google-map, .acf-flexible-content .layout .acf-fc-layout-handle),
-html.sps-dark #wpbody .acf-table {
+html.sps-dark :is(.acf-tfoot, .acf-fields > .acf-tab-wrap .acf-tab-group, .acf-fields > .acf-tab-wrap .acf-tab-group li a, .acf-fields.-sidebar.-left > .acf-tab-wrap.-left .acf-tab-group li a, .acf-file-uploader .show-if-value .file-icon, .acf-oembed, .acf-gallery, .acf-gallery .acf-gallery-attachment .margin, .acf-gallery .acf-gallery-side, .acf-gallery .acf-gallery-side .acf-gallery-side-info, .acf-gallery .acf-gallery-toolbar, .acf-button-group label:not(.selected), .acf-switch:not(.-on), .acf-link .link-wrap, .acf-relationship .selection, .acf-relationship .selection :is(.choices, .choices-list, .values), .acf-taxonomy-field .categorychecklist-holder, .acf-google-map, .acf-flexible-content .layout .acf-fc-layout-handle),
+html.sps-dark #wpbody .acf-table,
+html.sps-dark .acf-fields.-sidebar:not(.seamless > *)::before {
 	color: var(--sps-ui-text);
 	background-color: var(--sps-ui-raised);
 	border-color: var(--sps-ui-border);
 }
 
-html.sps-dark :is(.acf-gallery .acf-gallery-main, .acf-fields.-sidebar.-left::before) {
+html.sps-dark .acf-gallery .acf-gallery-main,
+html.sps-dark .acf-fields.-sidebar.-left:not(.seamless > *)::before {
 	background: var(--sps-ui-canvas);
 }
 
@@ -5243,6 +5326,391 @@ html.sps-dark .toplevel_page_bit-integrations .media-modal :is(input, textarea, 
 	border-color: var(--sps-ui-field-border) !important;
 }
 
+/*
+ * Code Snippets (admin.php?page=snippets and its other screens): a #fff
+ * toolbar and type tabs (#f0f0f1 when chosen), #fff and #f6f7f7 boxes,
+ * cards, rows and pop-ups, #e2e2e4 and #c3c4c7 lines, #1d2327 to #666
+ * text, and pale badges and banners. Its fields take its palette (at the
+ * top). The snippet types' coloured badges (PHP, HTML, CSS, JS) keep theirs.
+ */
+html.sps-dark :is(.code-snippets-toolbar, .snippet-type-nav-wrapper, .code-snippets-upsell-banner, .snippet-editor-sidebar .box, .shortcode-tag-wrapper, .import-snippets-card, .code-snippets-card, .code-snippets-updates > *, .kebab-menu-popover, .code-snippets-toolbar-upper .toolbar-more-menu ul) {
+	color: var(--sps-ui-text);
+	background: var(--sps-ui-surface);
+	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark #manage-snippets-container .wp-list-table tr {
+	background: var(--sps-ui-surface);
+}
+
+html.sps-dark :is(.code-snippets-toolbar-upper, .code-snippets-toolbar-lower, .snippet-type-nav .snippet-type-link, .notice + .wrap .snippet-type-nav-wrapper, .kebab-menu-divider, .snippets-card-grid .snippet-description-content, .cloud-search-result .snippet-description-content, .code-line-explanation, .code-snippets-updates .code-snippets-header-wrapper),
+html.sps-dark :is(#settings-sections-tabs .snippet-type-link, .snippets-screen-meta-slot #screen-meta-links) {
+	border-color: var(--sps-ui-border);
+}
+
+/* The page's headings and notes. */
+html.sps-dark :is(.snippets-page-header h1, .snippets-page-header h2, .code-snippets-welcome h1, .code-snippets-changelog-entries, .settings-section .form-table th, .no-snippets-card h4),
+html.sps-dark #import-container > h2:first-of-type {
+	color: var(--sps-ui-text);
+}
+
+html.sps-dark :is(.snippets-page-description, .snippets-search-subtitle, .cloud-snippet-status, .license-status, .column-name .dashicons-lock, .wp-list-table .row-actions, .snippets-list-view .tablenav .pagination-links .tablenav-paging-text, .snippets-list-view .tablenav .tablenav-pages .displaying-num, .code-snippets-upsell-banner .button-link.button-small, .code-line-explanation) {
+	color: var(--sps-ui-muted);
+}
+
+/* The toolbar: its links (#2c3337, #2271b1 when current, pointed at or focused) and More menu. */
+html.sps-dark .code-snippets-toolbar-lower li a {
+	color: var(--sps-ui-text);
+}
+
+html.sps-dark .code-snippets-toolbar :is(.code-snippets-toolbar-lower, .code-snippets-toolbar-upper) li a:is(.active-link, :active, :focus, :hover) {
+	color: var(--sps-ui-accent);
+	border-color: var(--sps-ui-accent);
+}
+
+html.sps-dark .code-snippets-toolbar-upper .toolbar-more-menu a:is(:focus, :hover) {
+	background: var(--sps-ui-raised);
+}
+
+/* PRO chips and badges (#eff5f9), and the other badges' pale tints. */
+html.sps-dark :is(.pro-chip, .badge.pro-badge, .badge.public-badge) {
+	color: var(--sps-ui-accent);
+	background-color: #1b3048;
+}
+
+html.sps-dark .badge.success-badge {
+	color: var(--sps-ui-good);
+	background-color: #16291b;
+}
+
+html.sps-dark .badge.failure-badge {
+	color: var(--sps-ui-bad);
+	background-color: #33191b;
+}
+
+html.sps-dark .badge.info-badge {
+	color: var(--sps-ui-info);
+	background-color: #152333;
+}
+
+html.sps-dark .badge.private-badge {
+	color: var(--sps-ui-warning);
+	background-color: #2e2716;
+}
+
+html.sps-dark :is(.badge.neutral-badge, .badge.neutralDark-badge) {
+	color: var(--sps-ui-muted);
+	background-color: var(--sps-ui-raised);
+}
+
+html.sps-dark .badge.special-badge {
+	color: #d7b4f0;
+	background-color: #2a1f33;
+}
+
+/* The type tabs, and Settings' section tabs: #646970, the chosen one #2271b1 on #f0f0f1; the wrapper fades its ends from #fff. */
+html.sps-dark .snippet-type-nav {
+	background: linear-gradient(0deg, var(--sps-ui-border) 1px, var(--sps-ui-surface) 0);
+}
+
+html.sps-dark .snippet-type-nav-wrapper::before {
+	background: linear-gradient(90deg, var(--sps-ui-surface), transparent);
+}
+
+html.sps-dark .snippet-type-nav-wrapper::after {
+	background: linear-gradient(270deg, var(--sps-ui-surface), transparent);
+}
+
+html.sps-dark :is(.snippet-type-nav, #settings-sections-tabs) .snippet-type-link {
+	color: var(--sps-ui-muted);
+}
+
+html.sps-dark :is(.snippet-type-nav, #settings-sections-tabs) .snippet-type-link:is(.active-type, :active, :focus, :hover) {
+	color: var(--sps-ui-accent);
+}
+
+html.sps-dark :is(.snippet-type-nav, #settings-sections-tabs) .snippet-type-link.active-type {
+	background: var(--sps-ui-raised);
+}
+
+/* List and card views' switch (#f0f0f1); the current one keeps its fill. */
+html.sps-dark .snippet-view-toggle .snippet-view-toggle-option:not(.active-view) {
+	color: var(--sps-ui-muted);
+	background: var(--sps-ui-raised);
+}
+
+html.sps-dark .snippet-view-toggle .snippet-view-toggle-option:not(.active-view):is(:focus, :hover) {
+	color: var(--sps-ui-text);
+}
+
+/* Rows: lines under each (#e1e1e1 and 10% black), names (#2271b1, #579 when inactive), row actions and priority fields (#fff). */
+html.sps-dark .wp-list-table :is(.active-snippet, .inactive-snippet, tr.active-snippet + tr.inactive-snippet) :is(td, th) {
+	box-shadow: inset 0 -1px 0 var(--sps-ui-border);
+}
+
+html.sps-dark .wp-list-table :is(.active-snippet a, .row-actions a:not(.delete), .row-actions .button-link:not(.delete), th.sortable .list-table-sort-button, th.sorted .list-table-sort-button) {
+	color: var(--sps-ui-accent);
+}
+
+html.sps-dark .inactive-snippet a:not(.snippet-condition-count) {
+	color: color-mix(in srgb, var(--sps-ui-accent) 55%, var(--sps-ui-subtle));
+}
+
+html.sps-dark .snippets-table-toolbar .subsubsub a:not(.current) {
+	color: var(--sps-ui-accent);
+}
+
+html.sps-dark :is(.wp-list-table .active-snippet a, .wp-list-table .row-actions :is(a, .button-link):not(.delete), .inactive-snippet a, .snippets-table-toolbar .subsubsub a):is(:focus, :hover) {
+	color: var(--sps-ui-text);
+}
+
+html.sps-dark .snippets-list-view .tablenav .pagination-links .current-page {
+	color: var(--sps-ui-text);
+}
+
+html.sps-dark .wp-list-table :is(.row-actions .button-link.delete, .row-actions .snippet-row-action-error, .delete) {
+	color: var(--sps-ui-bad);
+}
+
+html.sps-dark .wp-list-table .priority-column input,
+html.sps-dark .snippets-card-grid .kebab-menu-priority input.snippet-priority {
+	color: var(--sps-ui-text);
+	background: var(--sps-ui-canvas);
+	border-color: var(--sps-ui-field-border);
+}
+
+/* Its own checkboxes (#fff, #c3c4c7 lines) until ticked, Settings' too, and the separators between status filters. */
+html.sps-dark :is(.wp-list-table .check-column, .tablenav .tablenav-select-all, .cloud-snippets-table .check-column, .code-snippets-card, .settings-section) input[type="checkbox"]:not(:checked, .switch),
+html.sps-dark #adv-settings input[type="checkbox"]:not(:checked) {
+	background: var(--sps-ui-canvas);
+	border-color: var(--sps-ui-field-border);
+}
+
+html.sps-dark .snippets-table-toolbar .subsubsub li + li::before {
+	background: var(--sps-ui-border);
+}
+
+/* Cards (card view and the cloud's results) and the More menu (kebab). */
+html.sps-dark .code-snippets-card footer {
+	background: var(--sps-ui-raised);
+	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark .code-snippets-card :is(a, .cloud-snippet-title-button, .cloud-snippet-tags),
+html.sps-dark .snippets-card-grid .snippet-card-header h3 .snippet-name {
+	color: var(--sps-ui-accent);
+}
+
+html.sps-dark :is(.snippets-card-grid, .cloud-search-result) :is(.snippet-card-tags-label, .snippet-card-modified, .snippet-description-content, .cloud-snippet-author) {
+	color: var(--sps-ui-muted);
+}
+
+html.sps-dark .kebab-menu-trigger {
+	color: var(--sps-ui-accent);
+	background: var(--sps-ui-surface);
+	border-color: var(--sps-ui-accent);
+}
+
+html.sps-dark :is(.kebab-menu-trigger, .kebab-menu-item):is(:focus, :hover) {
+	background: var(--sps-ui-raised);
+}
+
+html.sps-dark :is(.kebab-menu-item, .kebab-menu-row) {
+	color: var(--sps-ui-text);
+}
+
+html.sps-dark .kebab-menu-item:disabled {
+	color: var(--sps-ui-subtle);
+	background: none;
+}
+
+html.sps-dark .kebab-menu-item.kebab-menu-item-destructive {
+	color: var(--sps-ui-bad);
+}
+
+/* The cloud's banners, in the status tints. */
+html.sps-dark .cloud-search .banner-success {
+	color: var(--sps-ui-good);
+	background-color: #16291b;
+}
+
+html.sps-dark .cloud-search .banner-warning {
+	color: var(--sps-ui-warning);
+	background-color: #2e2716;
+}
+
+html.sps-dark .cloud-search .banner-error {
+	color: var(--sps-ui-bad);
+	background-color: #33191b;
+}
+
+html.sps-dark .cloud-search .banner-info {
+	color: var(--sps-ui-info);
+	background-color: #152333;
+}
+
+html.sps-dark .cloud-search .banner-neutral {
+	color: var(--sps-ui-muted);
+	background-color: var(--sps-ui-raised);
+}
+
+html.sps-dark .cloud-search .banner-special {
+	color: #d7b4f0;
+	background-color: #2a1f33;
+}
+
+html.sps-dark .cloud-pro-button.button:is(:focus, :hover) {
+	color: var(--sps-ui-text);
+	background-color: var(--sps-ui-raised);
+}
+
+/* Its dialogs (Preview, Export...): #f6f7f7 content and footer, the Bin button and the priority. */
+html.sps-dark :is(.code-snippets-modal .components-modal__content, .code-snippets-modal .modal-footer, .components-modal__frame.code-snippets-preview-modal .code-snippets-preview-modal__footer) {
+	background: var(--sps-ui-canvas);
+}
+
+html.sps-dark .components-modal__frame.code-snippets-preview-modal .code-snippets-preview-modal__priority {
+	color: var(--sps-ui-muted);
+}
+
+html.sps-dark .components-modal__frame.code-snippets-preview-modal .code-snippets-preview-modal__priority .code-snippets-preview-modal__priority-value {
+	color: var(--sps-ui-text);
+}
+
+html.sps-dark .components-modal__frame.code-snippets-preview-modal .code-snippets-preview-modal__buttons .button-link.code-snippets-preview-modal__trash {
+	color: var(--sps-ui-bad);
+	background: var(--sps-ui-canvas);
+}
+
+html.sps-dark .components-modal__frame.code-snippets-preview-modal .code-snippets-preview-modal__buttons .button-link.code-snippets-preview-modal__trash:is(:focus, :hover) {
+	color: #ffd0d2;
+	background: var(--sps-ui-raised);
+}
+
+/*
+ * Edit Snippet: the type and location dropdowns (react-select, whose
+ * classes end in the part's name; its focused and chosen options by their
+ * own class), tags, the condition editor, the shortcode box, the sidebar's
+ * Delete, and the AI explanation lines.
+ */
+html.sps-dark .code-snippets-select [class*="-control"] {
+	background-color: var(--sps-ui-canvas);
+}
+
+html.sps-dark .code-snippets-select [class*="-control"]:not(:focus-within) {
+	border-color: var(--sps-ui-field-border);
+}
+
+html.sps-dark .code-snippets-select :is([class*="-singleValue"], [class*="-menu"]) {
+	color: var(--sps-ui-text);
+}
+
+html.sps-dark .code-snippets-select [class*="-placeholder"] {
+	color: var(--sps-ui-subtle);
+}
+
+html.sps-dark .code-snippets-select [class*="-indicatorSeparator"] {
+	background-color: var(--sps-ui-border);
+}
+
+html.sps-dark .code-snippets-select [class*="-indicatorContainer"] {
+	color: var(--sps-ui-muted);
+}
+
+html.sps-dark .code-snippets-select [class*="-menu"] {
+	background-color: var(--sps-ui-surface);
+	box-shadow: 0 0 0 1px var(--sps-ui-border), 0 4px 11px rgb(0 0 0 / 40%);
+}
+
+html.sps-dark .code-snippets-select .css-d7l1ni-option {
+	background-color: var(--sps-ui-raised);
+}
+
+html.sps-dark .code-snippets-select .css-tr4s17-option {
+	color: #fff;
+	background-color: var(--sps-ui-primary);
+}
+
+html.sps-dark .snippet-tags-container .components-form-token-field__input-container {
+	background: var(--sps-ui-canvas);
+	border-color: var(--sps-ui-field-border);
+}
+
+html.sps-dark .snippet-condition-editor-container {
+	background: var(--sps-ui-canvas);
+	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark .snippet-editor-sidebar .beta-badge {
+	color: var(--sps-ui-accent);
+}
+
+html.sps-dark :is(.snippet-editor-sidebar .inline-form-field.row-actions .delete-button:not(:disabled), .code-line-explanation .code-line-actions .remove, .generate-button .dashicons-warning) {
+	color: var(--sps-ui-bad);
+}
+
+html.sps-dark .snippet-editor-sidebar .inline-form-field.row-actions .delete-button:not(:disabled):is(:focus, :hover) {
+	color: #ffd0d2;
+}
+
+html.sps-dark .code-line-explanation .code-line-actions .commit {
+	color: var(--sps-ui-good);
+}
+
+/* Import: the drop zone (#fafafa, #ccd0d4 dashes; #f0f6fc when a file is over it), chosen files, results and their notes (#666). */
+html.sps-dark .upload-drop-zone {
+	background-color: var(--sps-ui-canvas);
+	border-color: var(--sps-ui-field-border);
+}
+
+html.sps-dark .upload-drop-zone.drag-over {
+	background-color: #152333;
+}
+
+html.sps-dark .upload-drop-zone.disabled {
+	background-color: var(--sps-ui-raised);
+}
+
+html.sps-dark .selected-files-list > div {
+	background-color: var(--sps-ui-raised);
+	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark :is(.upload-drop-zone .drop-zone-icon, .upload-drop-zone p:last-of-type, .selected-files-list .selected-file-details .file-size, .import-result p.import-result-message, .import-result p.import-result-link, .import-result .import-result-warnings li, .import-select-card td.column-name div, .importer-selector-card p, .import-options-card label .description, .import-section-status p, .no-snippets-card .card-inner) {
+	color: var(--sps-ui-muted);
+}
+
+html.sps-dark :is(.import-result p.import-result-link a, .import-section-status a) {
+	color: var(--sps-ui-accent);
+}
+
+html.sps-dark :is(.selected-files-list button, .import-result .import-result-warnings h3, .license-status-expired) {
+	color: var(--sps-ui-bad);
+}
+
+/* Pro's Remove licence button (#b32d2e, 1.9:1 on dark), set by its ID. */
+html.sps-dark [id="code_snippets_remove_license"] {
+	color: var(--sps-ui-bad) !important;
+	border-color: var(--sps-ui-bad) !important;
+}
+
+/* What's New: the hero's picture frame (#efefef) and the changelog's icons (#85144b, #0074d9 and #5d2f27). */
+html.sps-dark .code-snippets-hero figure {
+	background: var(--sps-ui-raised);
+}
+
+html.sps-dark .code-snippets-changelog-entries .dashicons-chart-line {
+	color: #f08cbc;
+}
+
+html.sps-dark .code-snippets-changelog-entries .dashicons-shield {
+	color: var(--sps-ui-info);
+}
+
+html.sps-dark .code-snippets-changelog-entries .dashicons-open-folder {
+	color: #dba88a;
+}
+
 /* SEO Pro Stack's additions to WordPress's screens -------------------------- */
 
 /* Plugins: sizes (class-seoprostack-plugin-sizes.php) and page cost (class-seoprostack-plugin-cost.php). */
@@ -5397,7 +5865,8 @@ html.sps-dark .sps-wrap .sps-filter .filter-links a.current {
 	border-color: var(--sps-ui-accent);
 }
 
-html.sps-dark .sps-wrap :is(.sps-removed-icon, .sps-go-pro::before) {
+html.sps-dark .sps-wrap .sps-removed-icon,
+html.sps-dark .sps-wrap .sps-go-pro::before {
 	color: var(--sps-ui-warning);
 }
 
