@@ -6,7 +6,7 @@
  * settings sidebar, for developers only (SEOProStack_Developers: super
  * admins on multisite; the administrators ticked under Developer admins on
  * single sites, or every administrator while that is off). Panels that are
- * for developers (PANELS, such as LiteSpeed's and Complianz's Cookiebanner)
+ * for developers (PANELS, such as LiteSpeed's and Webmention's)
  * leave the Post tab and show there, in A–Z order. Everyone else sees
  * neither the tab nor those panels, nor developer tools' toolbar buttons
  * (TOOLBAR_SCRIPTS: YellowPencil's).
@@ -36,14 +36,21 @@ class SEOProStack_Editor_Dev_Tab extends SEOProStack_Feature {
 
     /**
      * Panels moved to the Dev tab. Each is found by its meta box ID, or by
-     * its title as it shows in the sidebar (for panels with no meta box ID).
+     * its title as it shows in the sidebar: the English title, and the title
+     * translated with the plugin's text domain (`domain`) for panels with no
+     * meta box ID.
      */
     const PANELS = array(
         // Complianz.
         array('id' => 'cmplz_hide_banner_meta_box', 'title' => 'Cookiebanner'),
         // LiteSpeed Cache.
         array('id' => 'litespeed_meta_boxes', 'title' => 'LiteSpeed'),
-        array('id' => '', 'title' => 'Simple Share Control'),
+        // Readabler (Merkulove).
+        array('id' => 'readabler', 'title' => 'Readabler'),
+        // Kadence Simple Share.
+        array('id' => '_kt_share_share_control', 'title' => 'Simple Share Control'),
+        // Webmention: a block editor panel, not a meta box.
+        array('id' => '', 'title' => 'Webmentions', 'domain' => 'webmention'),
     );
 
     /**
@@ -70,7 +77,7 @@ class SEOProStack_Editor_Dev_Tab extends SEOProStack_Feature {
                 'default'     => true,
                 'tab'         => 'content',
                 'label'       => __('Dev tab in the block editor', 'seoprostack'),
-                'description' => __('Move developer panels, such as LiteSpeed and Complianz’s Cookiebanner, from the editor’s Post tab to a Dev tab beside Block that only developers see (Developer admins). Everyone else sees neither, nor YellowPencil’s toolbar button.', 'seoprostack'),
+                'description' => __('Move developer panels (LiteSpeed, Complianz’s Cookiebanner, Readabler, Simple Share Control and Webmentions) from the editor’s Post tab to a Dev tab beside Block that only developers see (Developer admins). Everyone else sees neither, nor YellowPencil’s toolbar button.', 'seoprostack'),
             ),
         );
     }
@@ -101,14 +108,16 @@ class SEOProStack_Editor_Dev_Tab extends SEOProStack_Feature {
     /**
      * Panels moved to the Dev tab.
      *
-     * @return array<int,array{id:string,title:string}>
+     * @return array<int,array{id:string,title:string,domain:string}>
      */
     public static function panels() {
         /**
          * Filter the panels the block editor's Dev tab holds.
          *
-         * @param array[] $panels Each: `id`, a meta box ID (or ''), and
-         *                        `title`, the panel's title as it shows.
+         * @param array[] $panels Each: `id`, a meta box ID (or ''); `title`,
+         *                        the panel's English title; and optionally
+         *                        `domain`, the plugin's text domain, to
+         *                        match the title in other languages too.
          */
         $panels = (array) apply_filters('seoprostack_editor_dev_panels', self::PANELS);
         $clean  = array();
@@ -116,10 +125,11 @@ class SEOProStack_Editor_Dev_Tab extends SEOProStack_Feature {
             if (!is_array($panel)) {
                 continue;
             }
-            $id    = isset($panel['id']) ? sanitize_html_class((string) $panel['id']) : '';
-            $title = isset($panel['title']) ? trim(wp_strip_all_tags((string) $panel['title'])) : '';
+            $id     = isset($panel['id']) ? sanitize_html_class((string) $panel['id']) : '';
+            $title  = isset($panel['title']) ? trim(wp_strip_all_tags((string) $panel['title'])) : '';
+            $domain = isset($panel['domain']) ? sanitize_key((string) $panel['domain']) : '';
             if ('' !== $id || '' !== $title) {
-                $clean[] = array('id' => $id, 'title' => $title);
+                $clean[] = array('id' => $id, 'title' => $title, 'domain' => $domain);
             }
         }
         return $clean;
@@ -146,7 +156,7 @@ class SEOProStack_Editor_Dev_Tab extends SEOProStack_Feature {
             return;
         }
 
-        wp_register_script(self::HANDLE, SEOPROSTACK_URL . 'admin/js/seoprostack-editor-dev-tab.js', array('wp-data', 'wp-dom-ready'), SEOPROSTACK_VERSION, true);
+        wp_register_script(self::HANDLE, SEOPROSTACK_URL . 'admin/js/seoprostack-editor-dev-tab.js', array('wp-data', 'wp-dom-ready', 'wp-i18n'), SEOPROSTACK_VERSION, true);
         wp_add_inline_script(self::HANDLE, 'window.seoprostackEditorDevTab = ' . wp_json_encode(array(
             'developer' => $developer,
             'panels'    => $panels,

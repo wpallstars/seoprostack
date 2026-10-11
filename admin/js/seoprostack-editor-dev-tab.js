@@ -19,8 +19,6 @@
     var DOC = 'edit-post/document';
     var TABS = '.editor-sidebar__panel-tabs [role="tablist"], .edit-post-sidebar__panel-tabs [role="tablist"]';
     var ids = [];
-    var titles = {};
-    var hasTitles = false;
     var open = false;
     var queued = false;
     var button = null;
@@ -29,11 +27,26 @@
         if (panel.id) {
             ids.push(panel.id);
         }
-        if (panel.title) {
-            titles[panel.title.toLowerCase()] = true;
-            hasTitles = true;
-        }
     });
+
+    /**
+     * Panel titles to match, in English and, for panels that name their
+     * plugin's text domain, as that plugin shows them (its translations are
+     * loaded by the time panels render, so this runs each time).
+     */
+    function titles() {
+        var set = {};
+        cfg.panels.forEach(function (panel) {
+            if (!panel.title) {
+                return;
+            }
+            set[panel.title.toLowerCase()] = true;
+            if (panel.domain && wp.i18n) {
+                set[wp.i18n.__(panel.title, panel.domain).toLowerCase()] = true;
+            }
+        });
+        return set;
+    }
 
     function text(el) {
         return el ? (el.textContent || '').replace(/\s+/g, ' ').trim() : '';
@@ -62,13 +75,12 @@
                 add(el);
             }
         });
-        if (hasTitles) {
-            document.querySelectorAll('.postbox .hndle, .editor-sidebar__panel .components-panel__body-title, .edit-post-sidebar .components-panel__body-title').forEach(function (heading) {
-                if (titles[text(heading).toLowerCase()]) {
-                    add(heading.closest('.postbox, .components-panel__body'));
-                }
-            });
-        }
+        var wanted = titles();
+        document.querySelectorAll('.postbox .hndle, .editor-sidebar .components-panel__body-title, .edit-post-sidebar .components-panel__body-title').forEach(function (heading) {
+            if (wanted[text(heading).toLowerCase()]) {
+                add(heading.closest('.postbox, .components-panel__body'));
+            }
+        });
         return found;
     }
 

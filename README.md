@@ -527,7 +527,7 @@ Turns off parts of the block editor most people never use, for everyone.
 Some plugins add panels to the post editor’s sidebar that only the people who build the site need, such as LiteSpeed Cache’s page cache choices. With this on, those panels leave the Post tab and go to a **Dev** tab after **Block**, in A–Z order, which only developers see; everyone else sees neither the tab nor the panels. **On by default.**
 
 - Developers are those of [Developer admins](#developer-admins-admin): super admins on multisite; on single sites the administrators ticked there, or every administrator while it is off (editors and authors then do not see the panels).
-- Moved panels: **Cookiebanner** (Complianz), **LiteSpeed** (LiteSpeed Cache) and **Simple Share Control**. Add or remove panels with the `seoprostack_editor_dev_panels` filter, by meta box ID or by the panel’s title.
+- Moved panels: **Cookiebanner** (Complianz), **LiteSpeed** (LiteSpeed Cache), **Readabler**, **Simple Share Control** (Kadence Simple Share) and **Webmentions** (Webmention). Add or remove panels with the `seoprostack_editor_dev_panels` filter, by meta box ID or by the panel’s title; panels with no meta box ID, such as Webmentions, are also found by their title in the site’s language when the entry names the plugin’s text domain.
 - People who are not developers also lose YellowPencil’s pencil button in the editor’s toolbar, which opens its editor for the whole site’s styles.
 - The panels stay where WordPress puts them: their fields still save with the post, and choices in Preferences → Panels still apply. The Dev tab is the Post tab showing only those panels, and leaves when you choose Post or Block, select a block or close the sidebar. Nothing is stored.
 
@@ -1547,7 +1547,7 @@ Developers can add settings, tabs and directory entries with filters:
 - `seoprostack_can_see_content`: whether the current visitor may see a post’s content (bool, post ID, the rules it follows: `show`, `roles`, and `term` when the rule is a term’s; empty when everyone may). Return true to let members of your own levels in.
 - `seoprostack_block_visible`: whether the current visitor sees a block (bool, parsed block, its rule: `show` and `roles`).
 - `seoprostack_switchable_post_types`: post types Change post type offers (name => label).
-- `seoprostack_editor_dev_panels`: panels the block editor’s Dev tab holds (list of `id`, a meta box ID or `''`, and `title`, the panel’s title as it shows).
+- `seoprostack_editor_dev_panels`: panels the block editor’s Dev tab holds (list of `id`, a meta box ID or `''`; `title`, the panel’s English title; and optionally `domain`, the plugin’s text domain, to find the title in other languages too).
 - `seoprostack_short_address_types`: post types served at short addresses (`/item/`), the ones chosen in Short addresses for custom post types first (none while it is off); add yours before `init` to serve its items there.
 - `seoprostack_field_search_field`: whether Search custom fields looks in a field’s values (bool, ACF field array, `site` for searches on the site or `admin` for admin list searches); false already when **Fields to leave out** lists the field, which then stays out whatever you return. Return false for fields your pages never show. Returning false for a group, repeater or flexible content field leaves out everything in it.
 
