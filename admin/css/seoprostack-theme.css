@@ -61,6 +61,11 @@ html.sps-dark {
 	--neko-gray-98: #242b30;
 	--neko-secondary: #1b3048;
 
+	/* WooCommerce's text colours on its older screens (Status, Settings, Reports): #007518, #a00 and #515151. */
+	--wc-green: var(--sps-ui-good);
+	--wc-red: var(--sps-ui-bad);
+	--wc-secondary-text: var(--sps-ui-muted);
+
 	color-scheme: dark;
 	background: var(--sps-ui-canvas);
 }
@@ -443,11 +448,12 @@ html.sps-dark :is(#wpbody, #sps-notices-wrap) :is(.notice, div.updated, div.erro
 	color: inherit;
 }
 
-html.sps-dark :is(#wpbody, #sps-notices-wrap) :is(.notice, div.updated, div.error, .update-nag, .update-message) a {
+/* Primary buttons keep their white label on the scheme's fill (WooCommerce's Get system report). */
+html.sps-dark :is(#wpbody, #sps-notices-wrap) :is(.notice, div.updated, div.error, .update-nag, .update-message) a:not(.button-primary) {
 	color: var(--sps-ui-accent);
 }
 
-html.sps-dark :is(#wpbody, #sps-notices-wrap) :is(.notice, div.updated, div.error, .update-nag, .update-message) a:is(:hover, :active, :focus) {
+html.sps-dark :is(#wpbody, #sps-notices-wrap) :is(.notice, div.updated, div.error, .update-nag, .update-message) a:not(.button-primary):is(:hover, :active, :focus) {
 	color: var(--sps-ui-text);
 }
 
@@ -3212,6 +3218,193 @@ html.sps-dark :is(.CalendarDay__default:hover, .CalendarDay__hovered_offset, .Ca
 
 html.sps-dark .CalendarDay__blocked_out_of_range {
 	color: var(--sps-ui-subtle);
+}
+
+/* Tables that scroll sideways (Customers' AOV and later columns): edge fades into the card, not #fff, and #e0e0e0 row hover. */
+html.sps-dark .woocommerce-table__table::after {
+	background: linear-gradient(90deg, transparent, var(--sps-ui-surface));
+}
+
+html.sps-dark .woocommerce-table__table::before {
+	background: linear-gradient(90deg, var(--sps-ui-surface), transparent);
+}
+
+html.sps-dark .woocommerce-table__table tr:is(:hover, :focus-within) {
+	background-color: var(--sps-ui-hover);
+}
+
+/* Payments: status pills (#f5f5f5, #daffe0 and #fff2d7) and the header's #fff location select. */
+html.sps-dark :is(.woocommerce-status-badge, .woocommerce-status-badge--info) {
+	color: var(--sps-ui-text);
+	background: var(--sps-ui-raised);
+}
+
+html.sps-dark .woocommerce-status-badge--success {
+	color: var(--sps-ui-good);
+	background: #183a24;
+}
+
+html.sps-dark .woocommerce-status-badge--warning {
+	color: var(--sps-ui-warning);
+	background: #3a3016;
+}
+
+html.sps-dark .settings-payment-gateways__header {
+	border-bottom-color: var(--sps-ui-border);
+}
+
+html.sps-dark .settings-payment-gateways__header-title {
+	color: var(--sps-ui-text);
+}
+
+html.sps-dark .settings-payment-gateways__header-select-container {
+	background-color: var(--sps-ui-canvas);
+	border-color: var(--sps-ui-field-border);
+}
+
+html.sps-dark .settings-payment-gateways__header-select-container--indicator::before {
+	background-color: var(--sps-ui-border);
+}
+
+html.sps-dark .components-country-select-control__menu {
+	background-color: var(--sps-ui-surface);
+	border-color: var(--sps-ui-border);
+}
+
+/* Its search field (#fff when focused), countries, #757575 label and #000 placeholder. */
+html.sps-dark .components-country-select-control__search--input {
+	color: var(--sps-ui-text);
+	background-color: var(--sps-ui-canvas);
+}
+
+html.sps-dark :is(.components-country-select-control__item, .components-country-select-control__button.placeholder) {
+	color: var(--sps-ui-text);
+}
+
+html.sps-dark :is(.components-country-select-control__label, .components-country-select-control__item svg) {
+	color: var(--sps-ui-muted);
+}
+
+/*
+ * WooCommerce's older screens. Settings: the #f0f0f1 form (#fff on
+ * Payments) and #f9f9f9 rows; Status: #fcfcfc rows; Reports: the #f5f5f5
+ * period bar and #fff and #fafafa boxes.
+ */
+html.sps-dark body.woocommerce_page_wc-settings :is(#mainform, .woocommerce-embedded-layout__primary) {
+	background-color: var(--sps-ui-canvas);
+}
+
+html.sps-dark body.woocommerce_page_wc-settings.woocommerce-settings-payments-tab :is(#wpbody, #mainform) {
+	background-color: var(--sps-ui-surface);
+}
+
+html.sps-dark body.woocommerce_page_wc-settings.woocommerce-settings-payments-tab .nav-tab-wrapper {
+	background-color: var(--sps-ui-canvas);
+}
+
+/* Settings' tabs are flat, the current one underlined (#505050 and #070707 text), not WordPress's boxes. */
+html.sps-dark body.woocommerce_page_wc-settings #wpbody .nav-tab-wrapper a {
+	color: var(--sps-ui-muted);
+	background: none;
+}
+
+html.sps-dark body.woocommerce_page_wc-settings #wpbody .nav-tab-wrapper a:is(:hover, :focus) {
+	color: var(--sps-ui-accent);
+}
+
+html.sps-dark body.woocommerce_page_wc-settings #wpbody .nav-tab-wrapper .nav-tab-active {
+	color: var(--sps-ui-text);
+	background: none;
+	border-bottom-color: var(--sps-ui-accent);
+}
+
+html.sps-dark :is(table.wc_emails, table.wc_gateways, table.wc_shipping) tr:nth-child(odd) td,
+html.sps-dark :is(table.wc-shipping-classes, table.wc-shipping-zone-methods, table.wc-shipping-zones) :is(.wc-shipping-zone-rows-tfoot .even td, tr.wc-shipping-zone-worldwide td),
+html.sps-dark table.wc_status_table tr:nth-child(2n) :is(td, th) {
+	background: var(--sps-ui-stripe);
+}
+
+html.sps-dark :is(table.wc-shipping-classes, table.wc-shipping-zone-methods, table.wc-shipping-zones) tr.wc-shipping-zone-worldwide td {
+	border-top-color: var(--sps-ui-border);
+}
+
+html.sps-dark :is(table.wc-shipping-classes, table.wc-shipping-zone-methods, table.wc-shipping-zones) td.wc-shipping-zone-worldwide::before {
+	color: var(--sps-ui-muted);
+}
+
+/* Shipping's empty states: a #e9e9e9 globe behind text with a white shadow. */
+html.sps-dark :is(table.wc-shipping-classes, table.wc-shipping-zone-methods, table.wc-shipping-zones) :is(td.wc-shipping-zones-blank-state, td.wc-shipping-zone-method-blank-state)::before {
+	color: var(--sps-ui-raised);
+}
+
+html.sps-dark :is(table.wc-shipping-classes, table.wc-shipping-zone-methods, table.wc-shipping-zones) :is(td.wc-shipping-zones-blank-state, td.wc-shipping-zone-method-blank-state) :is(p, li) {
+	text-shadow: none;
+}
+
+html.sps-dark table.wc_status_table :is(td, th) :is(.red, mark.error) {
+	color: var(--sps-ui-bad);
+}
+
+html.sps-dark .wc-settings-email-preview-container {
+	background: var(--sps-ui-surface);
+	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark :is(.woocommerce-reports-wide, .woocommerce-reports-wrap) .postbox :is(div, h3).stats_range ul {
+	background: var(--sps-ui-raised);
+	border-bottom-color: var(--sps-ui-border);
+}
+
+html.sps-dark :is(.woocommerce-reports-wide, .woocommerce-reports-wrap) .postbox :is(div, h3).stats_range ul li.active {
+	background: var(--sps-ui-surface);
+	box-shadow: 0 4px 0 0 var(--sps-ui-surface);
+}
+
+html.sps-dark :is(.woocommerce-reports-wide, .woocommerce-reports-wrap) .postbox :is(div, h3).stats_range ul li.active a,
+html.sps-dark :is(.woocommerce-reports-wide, .woocommerce-reports-wrap) .postbox :is(div, h3).stats_range ul li.custom :is(div, form) input.range_datepicker,
+html.sps-dark :is(.woocommerce-reports-wide, .woocommerce-reports-wrap) .postbox .chart-widgets li.chart-widget .section_title.open {
+	color: var(--sps-ui-text);
+}
+
+html.sps-dark :is(.woocommerce-reports-wide, .woocommerce-reports-wrap) .postbox :is(.stats_range, .stats_range ul li a, .stats_range .export_csv, .chart-legend, .chart-container, .chart-widgets li.chart-widget, .chart-widgets li.chart-widget h4, .chart-widgets li.chart-widget .section, .chart-widgets li.chart-widget table td) {
+	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark :is(.woocommerce-reports-wide, .woocommerce-reports-wrap) .postbox :is(.chart-legend, .chart-container, .chart-widgets li.chart-widget) {
+	background: var(--sps-ui-surface);
+}
+
+html.sps-dark :is(.woocommerce-reports-wide, .woocommerce-reports-wrap) .postbox .chart-widgets li.chart-widget h4 {
+	color: var(--sps-ui-accent);
+	background: var(--sps-ui-raised);
+}
+
+html.sps-dark :is(.woocommerce-reports-wide, .woocommerce-reports-wrap) .postbox .chart-widgets li.chart-widget h4.section_title:hover {
+	color: var(--sps-ui-bad);
+}
+
+html.sps-dark :is(.woocommerce-reports-wide, .woocommerce-reports-wrap) .postbox .chart-widgets li.chart-widget table :is(td.count, tr.active td) {
+	background: var(--sps-ui-raised);
+}
+
+/* The legend's lines and hover (#dfdfdf, #f7edf7); each series keeps its colour. */
+html.sps-dark :is(.woocommerce-reports-wide, .woocommerce-reports-wrap) .postbox .chart-legend li {
+	color: var(--sps-ui-muted);
+	box-shadow: inset 0 -1px 0 0 var(--sps-ui-border);
+}
+
+html.sps-dark :is(.woocommerce-reports-wide, .woocommerce-reports-wrap) .postbox .chart-legend li:hover {
+	color: var(--sps-ui-text);
+	box-shadow: inset 0 -1px 0 0 var(--sps-ui-border), inset 300px 0 0 var(--sps-ui-raised);
+}
+
+html.sps-dark :is(.woocommerce-reports-wide, .woocommerce-reports-wrap) .postbox .chart-legend li strong {
+	color: var(--sps-ui-text);
+}
+
+/* The charts' axis labels (Flot sets #545454 inline). */
+html.sps-dark :is(.woocommerce-reports-wide, .woocommerce-reports-wrap) .chart-placeholder .flot-text {
+	color: var(--sps-ui-muted) !important;
 }
 
 /* Complianz: the Website Scan column's status pills (#dcfce7, #fef3c7 and #f1f5f9). */
