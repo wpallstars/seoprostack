@@ -1625,6 +1625,49 @@ html.sps-dark :is(.rank-math-box footer, .module-listing .rank-math-box .status,
 	border-color: var(--sps-ui-border);
 }
 
+/* The editor toolbar's SEO and Content AI scores: pale fills of their status colour, tinted dark here. */
+html.sps-dark .interface-pinned-items .rank-math-toolbar-score {
+	color: var(--sps-ui-text);
+	background: var(--sps-ui-raised);
+	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark .interface-pinned-items .rank-math-toolbar-score.bad-fk {
+	color: #f4928e;
+	background: rgba(225, 41, 37, 0.18);
+	border-color: #e12925;
+}
+
+html.sps-dark .interface-pinned-items .rank-math-toolbar-score.ok-fk {
+	color: #f2b65e;
+	background: rgba(179, 111, 14, 0.22);
+	border-color: #b36f0e;
+}
+
+html.sps-dark .interface-pinned-items .rank-math-toolbar-score.good-fk {
+	color: #7fd17c;
+	background: rgba(67, 159, 64, 0.2);
+	border-color: #439f40;
+}
+
+html.sps-dark .interface-pinned-items .rank-math-toolbar-score.content-ai-score.bad-fk {
+	color: #f48bb0;
+	background: rgba(228, 37, 103, 0.18);
+	border-color: #e42567;
+}
+
+html.sps-dark .interface-pinned-items .rank-math-toolbar-score.content-ai-score.ok-fk {
+	color: #f2b65e;
+	background: rgba(179, 111, 14, 0.22);
+	border-color: #b36f0e;
+}
+
+html.sps-dark .interface-pinned-items .rank-math-toolbar-score.content-ai-score.good-fk {
+	color: #5fd6ae;
+	background: rgba(36, 150, 113, 0.2);
+	border-color: #249671;
+}
+
 html.sps-dark :is(.rank-math-box header h3, .rank-math-breadcrumbs .active, .rank-math-header h1) {
 	color: var(--sps-ui-text);
 }
