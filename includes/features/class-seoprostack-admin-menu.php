@@ -1416,12 +1416,14 @@ class SEOProStack_Admin_Menu extends SEOProStack_Feature {
         $id = isset($item[5]) ? preg_replace('|[^a-zA-Z0-9_:.]|', '-', (string) $item[5]) : '';
         $classes = array();
         foreach (preg_split('/\s+/', isset($item[4]) ? (string) $item[4] : '', -1, PREG_SPLIT_NO_EMPTY) as $class) {
-            // Core's top-level styles, and this feature's own markers, stay off.
+            // Core's top-level styles, and this feature's own markers, stay
+            // off. The rest exactly as core prints them (a post type menu's
+            // is toplevel_page_edit?post_type=…); the script sets them as
+            // a class name, never as markup.
             if (!preg_match('/^(menu-top(-first|-last)?|sps-.*)$/', $class)) {
-                $classes[] = sanitize_html_class($class);
+                $classes[] = $class;
             }
         }
-        $classes = array_filter($classes);
         if ('' === (string) $id && !$classes) {
             return null;
         }
