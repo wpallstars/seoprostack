@@ -43,6 +43,7 @@ final class SEOProStack_Setup {
         'SEOProStack_Admin_Notices',
         'SEOProStack_Freemius_Quiet',
         'SEOProStack_Appsero_Quiet',
+        'SEOProStack_Imagify_Quiet',
         'SEOProStack_Admin_Bar_More',
         'SEOProStack_Admin_Bar_Hide',
         'SEOProStack_List_Columns',
