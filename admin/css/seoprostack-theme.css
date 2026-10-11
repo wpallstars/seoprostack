@@ -883,6 +883,11 @@ html.sps-dark #wpbody .mce-toolbar .mce-btn-group .mce-btn :is(button, i, .mce-t
 	color: var(--sps-ui-text);
 }
 
+html.sps-dark #wpbody .mce-toolbar .mce-btn-group .mce-btn.mce-listbox {
+	background: var(--sps-ui-canvas);
+	border-color: var(--sps-ui-field-border);
+}
+
 html.sps-dark #wpbody :is(.menu-item-handle, .menu-item-settings, #menu-settings-column .accordion-section-content, .nav-menus-php .metabox-holder .accordion-section-title, #menu-management .menu-edit, #nav-menu-header, #nav-menu-footer, .menu-settings, .manage-menus, .widget-top, .widget-inside, .widgets-holder-wrap, .accordion-section, .accordion-section-title) {
 	color: var(--sps-ui-text);
 	background: var(--sps-ui-surface);
@@ -1584,8 +1589,13 @@ html.sps-dark body[class*="page_fluent_forms"] :is(.el-table td.el-table__cell, 
 	border-color: var(--sps-ui-border);
 }
 
-html.sps-dark body[class*="page_fluent_forms"] :is(.el-table::before, .el-table--border::after, .el-table--group::after, .el-tabs__nav-wrap::after) {
+html.sps-dark body[class*="page_fluent_forms"] :is(.el-table, .el-tabs__nav-wrap)::before,
+html.sps-dark body[class*="page_fluent_forms"] :is(.el-table--border, .el-table--group, .el-tabs__nav-wrap)::after {
 	background-color: var(--sps-ui-border);
+}
+
+html.sps-dark body[class*="page_fluent_forms"] .editor-inserter__wrapper::after {
+	background-color: var(--sps-ui-surface);
 }
 
 html.sps-dark body[class*="page_fluent_forms"] :is(.el-table--striped .el-table__body tr.el-table__row--striped td.el-table__cell, .el-tabs--border-card > .el-tabs__header, .el-pagination.is-background :is(.btn-prev, .btn-next, .el-pager li):not(.active), .ff_shortcode_btn, .el-button--info:not(.is-plain), .el-input-group__append, .el-input-group__prepend) {
@@ -1638,8 +1648,200 @@ html.sps-dark body[class*="page_fluent_forms"] :is(.el-button--soft, .el-button-
 	border-color: transparent;
 }
 
+/* Fluent Forms' settings menus (global and per form), fixed table columns and badges. */
+html.sps-dark body[class*="page_fluent_forms"] :is(.ff_list_submenu, .el-table__fixed, .el-table__fixed-right, .ff_pagination, .ff_advanced_search, .ff_nav_top.ff_advanced_search, .ff_global_notices .ff_global_notice, .input-with-select .el-select, .file-input, .el-basic-collapse .el-collapse-item__content, .global-search-wrapper :is(.search-commands, .global-search-container ul.search-result li)) {
+	color: var(--sps-ui-text);
+	background-color: var(--sps-ui-surface);
+	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark body[class*="page_fluent_forms"] .ff_list_submenu li:last-child::before {
+	background-color: var(--sps-ui-surface);
+}
+
+html.sps-dark body[class*="page_fluent_forms"] .ff_list_submenu::after {
+	background-color: var(--sps-ui-border);
+}
+
+html.sps-dark body[class*="page_fluent_forms"] :is(.ff_list_button_link, .ff_list li a, .ff_list_border_bottom > li a, .ff_tab_link, .ff-form-item .el-form-item__label, .el-table thead .cell, .ff_table thead, .el-dropdown-link-lg) {
+	color: var(--sps-ui-text);
+}
+
+html.sps-dark body[class*="page_fluent_forms"] .ff_list_submenu li a {
+	color: var(--sps-ui-muted);
+}
+
+html.sps-dark body[class*="page_fluent_forms"] :is(.ff_list_button_link:hover, .ff_list_submenu li a:hover, .ff_list_submenu li.active a, .ff_list_button_s1 .ff_list_button_item.active .ff_list_button_link) {
+	color: var(--sps-ui-text);
+	background-color: var(--sps-ui-raised);
+}
+
+html.sps-dark body[class*="page_fluent_forms"] .ff_list_button_item.active .ff_list_button_link :is(.ff_settings_menu_label, i, span) {
+	color: #fff;
+}
+
+html.sps-dark body[class*="page_fluent_forms"] :is(.global-search-wrapper .global-search-container, .ff_card_block, .ff_card_block .ff_sub_section, .ff_advanced_search_date_range, .ff_pagination .el-input__inner, .el-input-number__decrease, .el-input-number__increase, .el-box-footer, .el-box-header, .el-collapse-settings .el-collapse-item__header, .el-input-gray .el-input__inner, .el-input-gray-light .el-input__inner, .ff_socials li a, .ff_shortcode_btn_thin, .copy_btn) {
+	color: var(--sps-ui-text);
+	background-color: var(--sps-ui-raised);
+	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark body[class*="page_fluent_forms"] .ff_badge {
+	color: var(--sps-ui-text);
+	background-color: var(--sps-ui-raised);
+	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark body[class*="page_fluent_forms"] :is(.ff_badge_active, .ff_badge_primary, .ff_badge_processing, .ff_badge_paypal, .ff_badge_stripe, .ff_badge_amex) {
+	color: var(--sps-ui-info);
+	background-color: #1b3048;
+	border-color: #24405f;
+}
+
+html.sps-dark body[class*="page_fluent_forms"] .ff_badge_paid {
+	color: var(--sps-ui-good);
+	background-color: #183a24;
+	border-color: #23502f;
+}
+
+html.sps-dark body[class*="page_fluent_forms"] .ff_badge_pending:not(.is-solid) {
+	color: var(--sps-ui-warning);
+	background-color: #3a3016;
+	border-color: #52431c;
+}
+
+html.sps-dark body[class*="page_fluent_forms"] .ff_badge_failed {
+	color: var(--sps-ui-bad);
+	background-color: #3e1c1e;
+	border-color: #5a2629;
+}
+
+/* Fluent Forms' Reports. */
+html.sps-dark body[class*="page_fluent_forms"] .fluentform-reports :is(.reports-tabs-section .reports-main-tabs .el-tabs__header, .form-selector .el-select .el-input__inner, .reports-header .reports-controls .pdf-download-btn:hover) {
+	color: var(--sps-ui-text);
+	background-color: var(--sps-ui-surface);
+	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark body[class*="page_fluent_forms"] :is(.form-stats-section .stats-card, .country-heatmap-section .submission-country-heatmap .chart-container, .line-chart-header .chart-type-toggle .el-radio-button.is-active .el-radio-button__inner) {
+	color: var(--sps-ui-text);
+	background-color: var(--sps-ui-surface);
+}
+
+html.sps-dark body[class*="page_fluent_forms"] .form-stats-section .stats-card {
+	box-shadow: 0 0 0 1px var(--sps-ui-border);
+}
+
+html.sps-dark body[class*="page_fluent_forms"] .el-button:is(.el-button--mini, .el-button--small, .el-button--medium):not(.el-button--primary, .el-button--success, .el-button--danger, .el-button--warning, .el-button--info, .el-button--text, .el-button--soft, .el-button--soft-2) {
+	color: var(--sps-ui-text);
+	background-color: var(--sps-ui-raised);
+	border-color: var(--sps-ui-field-border);
+}
+
+html.sps-dark body[class*="page_fluent_forms"] :is(.form-stats-section .stats-card .stats-icon, .completion-rates-gauge-section :is(.stats-bar-horizontal, .completion-stats .weekly-average), .submission-heatmap-section :is(.data-cell.level-0, .heatmap-color-scale-item.level-0), .country-heatmap-section .submission-country-heatmap :is(.chart-wrapper, .chart-wrapper .chart-element, .chart-legend, .stats-summary), .line-chart-header .chart-type-toggle .el-radio-group, .chart-summary, .payment-by-type-section :is(.payment-bar-container, .weekly-average), .fluentform-reports :is(.advanced-filter-section, .reports-header .reports-controls .date-range-display), .transactions-table-section .modern-table :is(.el-table__header-wrapper, .el-table__header th)) {
+	color: var(--sps-ui-text);
+	background-color: var(--sps-ui-raised);
+	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark body[class*="page_fluent_forms"] .submission-heatmap-section .data-cell.level-1 {
+	background-color: #1b3048;
+}
+
+html.sps-dark body[class*="page_fluent_forms"] .completion-rates-gauge-section .completion-stats .stat-row .stat-item .stat-icon:is(.incomplete, .complete) {
+	background-color: var(--sps-ui-raised);
+}
+
+html.sps-dark body[class*="page_fluent_forms"] :is(.fluentform-reports :is(.ff_card .ff_card_head :is(h3, h4), .title-section h3, .no-data-state h4, .form-title, .reports-tabs-section .reports-main-tabs .el-tabs__item:is(.is-active, :hover), .reports-header .reports-title, .el-icon-arrow-up, .advanced-filter-section .filter-group .filter-label), .form-stats-section :is(.section-title, .stats-card .stats-content .stats-value), .conversion-chart-section :is(.chart-header h3, .chart-legend .legend-info .info-value), .completion-rates-gauge-section :is(.gauge-percentage, .stat-value), .submission-heatmap-section .date-cell, .transactions-table-section :is(.transactions-table-header h3, .modern-table .amount-text), .top-performing-subscription-plan-section .total-amount, .payment-by-type-section :is(.amount-value, .status-amount), .country-heatmap-section .submission-country-heatmap :is(.card-header h3, .stats-summary .stat-item .stat-value), .report-line-chart .line-chart-header h3, .line-chart-header .chart-type-toggle .el-radio-button.is-active .el-radio-button__inner, .summary-value, .method-name, .chart-title-section h3, .no-data h4, .source-url, .email-info .email-address, .country-name, .date-info .date-value, #ff_reports .header-label, .ff_card_head h3) {
+	color: var(--sps-ui-text);
+}
+
+html.sps-dark body[class*="page_fluent_forms"] :is(.conversion-chart-section :is(.chart-header, .chart-legend, .chart-nav), .submission-heatmap-section :is(.heatmap-header, .heatmap-header .date-column-header > button, .heatmap-header-actions > button, .heatmap-grid, .date-cell:first-child), .fluentform-reports .ff_card .ff_card_head, .transactions-table-section :is(.transactions-table-header, .modern-table .el-table__body td), .fluentform-reports .reports-header .reports-controls .reports-date-range-controls :is(.el-select .el-input__inner, .el-date-editor)) {
+	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark body[class*="page_fluent_forms"] .el-radio-group.el-radio-button-group {
+	background-color: var(--sps-ui-canvas);
+	border-color: var(--sps-ui-field-border);
+}
+
 html.sps-dark body[class*="page_fluent_forms"] .el-radio-group.ff_radio_group_s2 {
 	background-color: var(--sps-ui-raised);
+}
+
+/* Fluent Forms' form editor: the top menu, the form canvas and the fields sidebar. */
+html.sps-dark body[class*="page_fluent_forms"] :is(.form_internal_menu, .form_internal_menu_inner, .form-editor--body, #js-form-editor--body .form-editor__body-content, .panel__body .panel__placeholder, .panel__body--item, .vddl-list__handle_scrollable, .form-editor--sidebar-content .nav-tab-list, .nav-tab-items, .option-fields-section, .ff_layout_section_sidebar, .ff_sidebar_toggle, .editor-inserter__content-item, .form-editor--sidebar .ff_option_group, .form-editor--sidebar .ff_option_group__row, .ff_conv_section .panel__body--item.selected, .ff-entry-ranking-editor__item, .editor_play_video, .wp_vue_editor_wrapper, .ff_conditions_warp .group-container .group-preview) {
+	color: var(--sps-ui-text);
+	background-color: var(--sps-ui-surface);
+	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark body[class*="page_fluent_forms"] :is(.form-editor--sidebar-content, .ff_conditions_warp, .ff_conditions_warp .group-container, .addresss_editor, .ff_conversion_editor, .ff_conversion_editor :is(.form-editor--body, .form-editor__body-content, .panel__body--list)) {
+	color: var(--sps-ui-text);
+	background-color: var(--sps-ui-canvas) !important;
+	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark body.ff_full_screen[class*="page_fluent_forms"] .ff_screen_editor {
+	color: var(--sps-ui-text);
+	background-color: var(--sps-ui-canvas);
+}
+
+html.sps-dark body[class*="page_fluent_forms"] .nav-tab-list li:not(.active) a {
+	color: var(--sps-ui-text);
+	background-color: var(--sps-ui-raised);
+}
+
+html.sps-dark body[class*="page_fluent_forms"] :is(.new-elements .btn-element, .panel__heading, .panel .panel__placeholder, .vddl-placeholder, .ff-table th, .ff_entry_table_field th, table.editor_table th, .form-editor--sidebar .ff_option_groups_wrap__add, .ff-entry-ranking-editor__index, .wp_vue_editor_wrapper :is(.quicktags-toolbar, div.mce-toolbar-grp, .html-active .switch-html, .tmce-active .switch-tmce)) {
+	color: var(--sps-ui-text);
+	background-color: var(--sps-ui-raised);
+	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark body[class*="page_fluent_forms"] :is(.new-elements .btn-element:hover, .editor-inserter__content-item:hover, .form-editor--sidebar :is(.ff_option_group__handle, .ff_option_group__icon-btn, .ff_option_group__toggle):hover, .form-editor--sidebar .ff_option_groups_wrap__add:hover, .ff_settings_wrapper .ff_sidebar_toggle:is(:hover, :focus)) {
+	color: #fff;
+	background-color: var(--sps-ui-border);
+}
+
+html.sps-dark body[class*="page_fluent_forms"] .panel__body--item.selected {
+	background-color: var(--sps-ui-raised);
+}
+
+html.sps-dark body[class*="page_fluent_forms"] :is(.form_internal_menu, .form_internal_menu .ff_menu_back, .form-editor--sidebar-content, .option-fields-section--title.active, .panel__heading, .ff-table td, .ff_entry_table_field td, table.editor_table td, .empty-dropzone, .vddl-placeholder, .form-editor--sidebar :is(.ff-dynamic-warp, .ff-dynamic-filter-groups, .ff_option_group__head)) {
+	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark body[class*="page_fluent_forms"] :is(.form_internal_menu .ff_menu_link, .form_internal_menu .ff_setting_menu li a, .ff_menu_back .ff_menu_link, .form-editor--sidebar-content .nav-tab-list li a, .option-fields-section--content :is(.el-form-item__label, strong), .addresss_editor .each_address_field label, .ff-entry-ranking-editor__label, .ff_conditions_warp .group-container .group-preview .preview-operator, .ff-el-input--label label, .option-fields-section--title) {
+	color: var(--sps-ui-text);
+}
+
+html.sps-dark body[class*="page_fluent_forms"] :is(.form_internal_menu .ff_menu li.active .ff_menu_link, .ff_filter_selected) {
+	color: var(--sps-ui-accent);
+	background-color: #1b3048;
+	border-color: #1b3048;
+}
+
+html.sps-dark body[class*="page_fluent_forms"] .form_internal_menu :is(.ff_form_name, .ff_form_name_inner) {
+	color: var(--sps-ui-muted);
+}
+
+html.sps-dark body[class*="page_fluent_forms"] .form-editor--sidebar-content .nav-tab-list li a {
+	background-color: transparent !important;
+	border-bottom-color: transparent;
+}
+
+html.sps-dark body[class*="page_fluent_forms"] :is(.form-editor--sidebar-content .nav-tab-list li:is(.active, :hover) a, .option-fields-section--title.active) {
+	color: var(--sps-ui-accent);
+}
+
+html.sps-dark body[class*="page_fluent_forms"] .form-editor--sidebar-content .nav-tab-list li.active a {
+	border-bottom-color: var(--sps-ui-accent);
+}
+
+html.sps-dark body[class*="page_fluent_forms"] :is(.el-button--info.is-plain, .search-element-wrap :is(.el-input__inner, .el-input__inner:is(:focus, :hover), .active .el-input__inner)) {
+	color: var(--sps-ui-text);
+	background-color: var(--sps-ui-raised);
+	border-color: var(--sps-ui-field-border) !important;
 }
 
 /*
