@@ -746,14 +746,17 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
     /**
      * Rewrite core's already-selected srcset candidates.
      *
-     * @param array $sources Candidates.
+     * @param array|false $sources Candidates, or disabled by an earlier filter.
      * @param int[] $size Dimensions.
      * @param string $src Selected source.
      * @param array $meta Metadata.
      * @param int $id Attachment ID.
-     * @return array
+     * @return array|false
      */
     public static function srcset($sources, $size, $src, $meta, $id) {
+        if (!is_array($sources)) {
+            return $sources;
+        }
         foreach ($sources as &$source) {
             $source['url'] = self::attachment_url($source['url'], $id);
         }
