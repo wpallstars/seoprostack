@@ -4347,10 +4347,6 @@ html.sps-dark .toplevel_page_bit-integrations #btcd-app :where(.tag-picker-multi
 	border-color: #5b3a8f;
 }
 
-html.sps-dark .toplevel_page_bit-integrations #btcd-app :where(.msl-options)::-webkit-scrollbar-thumb {
-	background: rgb(255 255 255 / 20%);
-}
-
 /* Hover and pressed (#fafbff to #d3d3d3). */
 html.sps-dark .toplevel_page_bit-integrations #btcd-app :where(.btcd-link-row:hover, .btcd-doc-btn:hover, .btcd-menu-list > a:hover, .btcd-menu-list button:hover, .btcd-mnu:hover, .btcd-bulk-menu-list button:hover, .btcd-exec-toggle:hover, .btcd-pane:hover, .f-table .thead .tr .th:hover, .f-table .tbody .tr:hover, .f-table .tbody .tr .td:hover, .btcd-pagination .icn-btn:hover, .tag-add-btn:hover, .table-tag-add-btn:hover, .msl-option:focus, .msl-options .msl-option:hover, .msl-arrow-btn:hover, .msl-clear-btn:hover, .btcd-btn-o-white:hover, .btcd-btn-o-gray:hover, .white:hover, #connections-page .connections-edit-cancel-btn) {
 	background: var(--sps-ui-raised) !important;
@@ -4533,7 +4529,7 @@ html.sps-dark .toplevel_page_bit-integrations #btcd-app :where(.btcd-inte-card:n
 	color: #031b4e;
 }
 
-/* Its scroll bars (#dcdcdc, #2a054f when pointed at). */
+/* Its scroll bars (#dcdcdc, #2a054f when pointed at), and its menus' (#0000001a). */
 html.sps-dark .toplevel_page_bit-integrations ::-webkit-scrollbar-thumb {
 	background: #646970;
 }
@@ -4544,6 +4540,10 @@ html.sps-dark .toplevel_page_bit-integrations ::-webkit-scrollbar-thumb:hover {
 
 html.sps-dark .toplevel_page_bit-integrations ::-webkit-scrollbar-track:hover {
 	background: var(--sps-ui-raised);
+}
+
+html.sps-dark .toplevel_page_bit-integrations #btcd-app :where(.msl-options)::-webkit-scrollbar-thumb {
+	background: rgb(255 255 255 / 20%);
 }
 
 /* Outside the app: Tagify's suggestions, and WordPress's media dialog, given #7902f8 links and #d3d3d3 field lines. */
@@ -4559,10 +4559,14 @@ html.sps-dark .toplevel_page_bit-integrations .tagify {
 	--tag-bg: var(--sps-ui-raised);
 	--tag-hover: var(--sps-ui-border);
 	--tag-text-color: var(--sps-ui-text);
-	--tag-text-color--edit: var(--sps-ui-text);
 	--tag-remove-btn-color: var(--sps-ui-text);
 	--placeholder-color: rgb(255 255 255 / 45%);
 	--placeholder-color-focus: rgb(255 255 255 / 30%);
+}
+
+/* A tag being edited: black, from a variable whose name is not kebab-case. */
+html.sps-dark .toplevel_page_bit-integrations .tagify__tag--editable .tagify__tag-text {
+	color: var(--sps-ui-text);
 }
 
 html.sps-dark .toplevel_page_bit-integrations .media-modal :is(a, button:hover) {
