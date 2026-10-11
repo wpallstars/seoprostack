@@ -3048,6 +3048,159 @@ html.sps-dark :is(.rank-math-wrap, .rank-math-page #wpbody) :is(.components-text
 	border-color: var(--sps-ui-field-border);
 }
 
+/* Content AI's searches (its tools, the Prompts Library's list): the field and its clear button (#fff, also when pointed at or focused), in a #b5bfc9 frame. */
+html.sps-dark :is(.content-ai-filter .search-field, .rank-math-prompt-modal .grid .column-first) .components-search-control :is(input.components-search-control__input, input.components-input-control__input, .components-input-control__suffix) {
+	background-color: var(--sps-ui-canvas);
+}
+
+html.sps-dark :is(.content-ai-filter .search-field, .rank-math-prompt-modal .grid .column-first) .components-search-control .components-input-control__container {
+	border-color: var(--sps-ui-field-border);
+}
+
+/*
+ * Content AI's other tabs, with a Rank Math AI subscription: Chat's box
+ * (#fff) with its examples and your own messages (40% #dadfe4), its input
+ * bar (#f8f9fa) and field (#fff); History's box; Usage's list; the heads
+ * over them (#f8f9fa, #f6f7f7) and their #b5bfc9 and #dadfe4 lines.
+ * RankBot's gradient bubbles keep theirs; the Content Editor's editor is
+ * WordPress's own (The block editor).
+ */
+html.sps-dark :is(.rank-math-content-chat-page .chat-container, .rank-math-tab-content-history .history-container, .rank-math-tab-content-usage .rank-math-usage-item) {
+	color: var(--sps-ui-text);
+	background: var(--sps-ui-surface);
+	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark :is(.rank-math-tab-content-chat, .rank-math-tab-content-history) .tab-header,
+html.sps-dark :is(.rank-math-content-chat-page .chat-input, .rank-math-content-chat-page .chat-message.user, .prompt-examples .grid > div),
+html.sps-dark .rank-math-tab-content-content-editor .wp-block-columns .wp-block-column:last-child .rank-math-tabs .components-panel__header {
+	color: var(--sps-ui-text);
+	background: var(--sps-ui-raised);
+	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark .rank-math-content-chat-page .prompt-examples h2 {
+	color: var(--sps-ui-text);
+}
+
+html.sps-dark .rank-math-content-chat-page :is(.chat-input textarea, .chat-input .chat-input-textarea, .chat-input-actions .chat-input-buttons) {
+	color: var(--sps-ui-text);
+	background: var(--sps-ui-canvas);
+}
+
+html.sps-dark .rank-math-content-chat-page .chat-input :is(textarea, .chat-input-textarea):not(:hover, :focus) {
+	border-color: var(--sps-ui-field-border);
+}
+
+/* The variables' chips in prompts and messages (#cb10b2 on #feecfb). */
+html.sps-dark :is(.chat-message .message, .chat-input textarea, .chat-input .chat-input-textarea, .prompt-examples .grid > div, .rank-math-prompt-modal .grid .column-second .prompt-preview-content p) span:not([data-rich-text-placeholder]) {
+	color: #f3a3e4;
+	background: #3a1834;
+}
+
+/* History's results (here and in the editor's Content AI dialog): #010907 text and #242628 counts on a pale green tint that stays, #f0f9f6 behind their actions, and the tool's name (#6666c3 on #eeeefa). */
+html.sps-dark :is(.rank-math-tab-content-history, .rank-math-contentai-modal-overlay .rank-math-modal .column-body .column.column-output .inner-wrapper) .output-item .content {
+	color: var(--sps-ui-text);
+}
+
+html.sps-dark :is(.rank-math-tab-content-history, .rank-math-contentai-modal-overlay .rank-math-modal .column-body .column.column-output .inner-wrapper) .output-item .word-count {
+	color: var(--sps-ui-subtle);
+}
+
+html.sps-dark :is(.rank-math-tab-content-history, .rank-math-contentai-modal-overlay .rank-math-modal .column-body .column.column-output .inner-wrapper) .output-item .output-actions {
+	background: transparent;
+}
+
+html.sps-dark .rank-math-tab-content-history .output-item .tool-name {
+	color: #b8b8f5;
+	background: #2a2a4a;
+}
+
+/* Usage: its title row (#f8f9fa, the page's band, with no side padding), its list's head (#50575e on #f6f7f7), lines, labels (#1e1e1e), values (#3c434a) and the loading shimmer (#ececec, #f5f5f5). */
+html.sps-dark .rank-math-tab-content-usage .rank-math-usage-tab-wrapper .tab-header {
+	color: var(--sps-ui-text);
+	background: transparent;
+}
+
+html.sps-dark .rank-math-tab-content-usage .rank-math-usage-header {
+	color: var(--sps-ui-muted);
+	background: var(--sps-ui-raised);
+	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark .rank-math-tab-content-usage .rank-math-usage-list {
+	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark .rank-math-tab-content-usage .rank-math-usage-item-label {
+	color: var(--sps-ui-text);
+}
+
+html.sps-dark .rank-math-tab-content-usage .rank-math-usage-item-value {
+	color: var(--sps-ui-muted);
+}
+
+html.sps-dark .rank-math-tab-content-usage .rank-math-usage-item-value a {
+	color: var(--sps-ui-accent);
+}
+
+html.sps-dark .rank-math-tab-content-usage .rank-math-usage-item--skeleton :is(.rank-math-usage-skeleton-label, .rank-math-usage-skeleton-value) {
+	background-image: linear-gradient(90deg, var(--sps-ui-raised) 25%, var(--sps-ui-border) 50%, var(--sps-ui-raised) 75%);
+}
+
+/* Content Editor: its frame (#b5bfc9), and the sidebar's AI Tools head, which fades from #fff. */
+html.sps-dark .rank-math-tab-content-content-editor .wp-block-columns {
+	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark .rank-math-tab-content-content-editor .wp-block-columns .wp-block-column:last-child .rank-math-tabs .rank-math-tab-content-ai-tools .content-ai-header {
+	background: linear-gradient(180deg, var(--sps-ui-surface) 0%, color-mix(in srgb, var(--sps-ui-surface) 70%, transparent) 80%, transparent 100%);
+}
+
+/* Its tag fields (Tone, Focus Keyword; here and in the editor): #fff, #7f868d lines, #e9ecef tags. */
+html.sps-dark .content-ai-tagify .tagify {
+	--tag-bg: var(--sps-ui-raised);
+	--tag-hover: var(--sps-ui-border);
+	--tag-text-color: var(--sps-ui-text);
+	--tag-remove-btn-color: var(--sps-ui-text);
+	--placeholder-color: rgb(255 255 255 / 45%);
+	--placeholder-color-focus: rgb(255 255 255 / 30%);
+
+	color: var(--sps-ui-text);
+	background: var(--sps-ui-canvas);
+}
+
+html.sps-dark .content-ai-tagify .tagify:not(:hover, :focus, .tagify--focus) {
+	border-color: var(--sps-ui-field-border);
+}
+
+html.sps-dark .content-ai-tagify .tagify .tagify__tag {
+	background: var(--sps-ui-raised);
+}
+
+/* The Prompts Library (from Chat and the editor): #dadfe4 lines, the list's prompts (#fff, #b5bfc9 lines; the chosen one keeps its blue), the form's column (#fff) and a prompt's preview (40% #dadfe4). */
+html.sps-dark .rank-math-prompt-modal :is(.grid, .grid .column-first) {
+	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark .rank-math-prompt-modal .grid .column-second {
+	color: var(--sps-ui-text);
+	background: var(--sps-ui-surface);
+}
+
+html.sps-dark .rank-math-prompt-modal .grid .column-first .prompt-list button:not(.active) {
+	color: var(--sps-ui-text);
+	background: var(--sps-ui-raised);
+}
+
+html.sps-dark .rank-math-prompt-modal .grid .column-first .prompt-list button:not(.active, :hover, :focus) {
+	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark .rank-math-prompt-modal .grid .column-second .prompt-preview-content {
+	background: var(--sps-ui-raised);
+}
+
 html.sps-dark .rank-math-tabs-navigation:not(.rank-math-custom) a,
 html.sps-dark .rank-math-tabs-navigation:not(.rank-math-custom) .separator {
 	color: var(--sps-ui-muted);
