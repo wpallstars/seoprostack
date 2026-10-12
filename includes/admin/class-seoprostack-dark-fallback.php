@@ -8,7 +8,8 @@
  * light border or dark grey text gets the same rule again, behind
  * `html.sps-dark`, with the colour of the dark palette (`--sps-ui-*`):
  * white surfaces, light greys, light tints (as notices'), light borders and
- * dark grey text. Brand colours (saturated buttons, badges), images and
+ * dark grey text, also when painted through one of the stylesheet's own
+ * colour properties (`var(--white)`). Brand colours (saturated buttons, badges), images and
  * custom colours set by script are left as they are. The copy loads right
  * after its stylesheet (style_loader_tag), and keeps the original
  * selector's specificity (`:where(html.sps-dark)`), so it wins over the
@@ -41,7 +42,7 @@ if (!defined('ABSPATH')) {
 final class SEOProStack_Dark_Fallback {
 
     /** The generator's version: a change makes every copy again. */
-    const VERSION = '1';
+    const VERSION = '2';
 
     /** Folder in uploads for the copies. */
     const DIR = 'seoprostack-dark';
@@ -114,8 +115,8 @@ final class SEOProStack_Dark_Fallback {
     /** One declaration: property and value (brackets and quotes kept whole). */
     const DECLARATION = '/(?<prop>-{0,2}[A-Za-z][\w-]*)\s*:\s*(?<val>(?:[^;()"\']++|(?<p>\((?:[^()"\']++|"[^"]*"|\'[^\']*\'|(?&p))*\))|"[^"]*"|\'[^\']*\')*)/';
 
-    /** Colours in a value: hex, rgb(), hsl() and the names above. */
-    const COLOUR = '/#(?:[0-9a-fA-F]{8}|[0-9a-fA-F]{6}|[0-9a-fA-F]{3,4})(?![0-9a-zA-Z])|\b(?:rgba?|hsla?)\([^()]*\)|(?<![\w#-])(?:white|whitesmoke|snow|ghostwhite|aliceblue|ivory|linen|floralwhite|seashell|honeydew|mintcream|azure|lavender|lavenderblush|beige|oldlace|cornsilk|lightyellow|lemonchiffon|mistyrose|antiquewhite|papayawhip|blanchedalmond|gainsboro|lightgr[ae]y|silver|darkgr[ae]y|gr[ae]y|dimgr[ae]y|black)(?![\w-])/i';
+    /** Colours in a value: hex, rgb(), hsl(), oklch() and the names above. */
+    const COLOUR = '/#(?:[0-9a-fA-F]{8}|[0-9a-fA-F]{6}|[0-9a-fA-F]{3,4})(?![0-9a-zA-Z])|\b(?:rgba?|hsla?|oklch)\([^()]*\)|(?<![\w#-])(?:white|whitesmoke|snow|ghostwhite|aliceblue|ivory|linen|floralwhite|seashell|honeydew|mintcream|azure|lavender|lavenderblush|beige|oldlace|cornsilk|lightyellow|lemonchiffon|mistyrose|antiquewhite|papayawhip|blanchedalmond|gainsboro|lightgr[ae]y|silver|darkgr[ae]y|gr[ae]y|dimgr[ae]y|black)(?![\w-])/i';
 
     /** Whether this request gets copies (null until asked). */
     private static $on = null;
@@ -134,6 +135,9 @@ final class SEOProStack_Dark_Fallback {
 
     /** Whether the copy being made leaves out the block editor's canvas. */
     private static $canvas = false;
+
+    /** The stylesheet's custom properties that hold one colour: name => value. */
+    private static $vars = array();
 
     /** Register on admin requests. */
     public static function init() {
@@ -386,7 +390,53 @@ final class SEOProStack_Dark_Fallback {
         self::$base    = rtrim($base, '/');
         self::$canvas  = (bool) $canvas;
         $css           = (string) preg_replace('~/\*.*?\*/~s', '', $css);
+        self::$vars    = self::colour_vars($css);
         return self::block($css);
+    }
+
+    /**
+     * The stylesheet's custom properties that hold one colour, such as
+     * `--white: #fff` or Tailwind's `--color-white`, so rules painting with
+     * `var(--white)` can be copied too. A property given different colours
+     * in the stylesheet (themes, states) is left out.
+     *
+     * @param string $css Stylesheet, without comments.
+     * @return array<string,string>
+     */
+    private static function colour_vars($css) {
+        $vars = array();
+        if (!preg_match_all('/(?<![\w-])(--[\w-]+)\s*:\s*([^;{}]+)/', $css, $found, PREG_SET_ORDER)) {
+            return $vars;
+        }
+        foreach ($found as $m) {
+            $value = strtolower(trim((string) preg_replace('/!\s*important\s*$/i', '', $m[2])));
+            if (!self::parse($value)) {
+                $vars[$m[1]] = false;
+                continue;
+            }
+            if (!isset($vars[$m[1]])) {
+                $vars[$m[1]] = $value;
+            } elseif ($vars[$m[1]] !== $value) {
+                $vars[$m[1]] = false;
+            }
+        }
+        return array_filter($vars, 'is_string');
+    }
+
+    /**
+     * A value with the stylesheet's colour properties (colour_vars()) put
+     * in place of their var().
+     *
+     * @param string $value Value.
+     * @return string
+     */
+    private static function resolve($value) {
+        if (!self::$vars || false === strpos($value, 'var(')) {
+            return $value;
+        }
+        return (string) preg_replace_callback('/var\(\s*(--[\w-]+)\s*(?:,(?:[^()]|\([^()]*\))*)?\)/', function ($m) {
+            return isset(self::$vars[$m[1]]) ? self::$vars[$m[1]] : $m[0];
+        }, $value);
     }
 
     /**
@@ -490,7 +540,7 @@ final class SEOProStack_Dark_Fallback {
             $new = 'color' === $group ? null : self::map($group, $prop, $value);
             if ('bg' === $group) {
                 // Text on a ground the copy keeps (a brand colour, an image) stays as it is.
-                $ground = null !== $new ? 'dark' : (preg_match(self::COLOUR, $value) || false !== stripos($value, 'url(') ? 'kept' : $ground);
+                $ground = null !== $new ? 'dark' : (preg_match(self::COLOUR, self::resolve($value)) || false !== stripos($value, 'url(') ? 'kept' : $ground);
             }
             $declarations[] = array($prop, $value, $flag, $group, $new);
         }
@@ -549,6 +599,9 @@ final class SEOProStack_Dark_Fallback {
      * @return string|null
      */
     private static function map($group, $prop, $value) {
+        if (0 !== strpos($group, '--')) {
+            $value = self::resolve($value);
+        }
         if ('bg' === $group) {
             return false !== stripos($value, 'url(') || false !== stripos($value, 'image-set(') ? null : self::each($value, 'ground');
         }
@@ -729,7 +782,7 @@ final class SEOProStack_Dark_Fallback {
             $hex = (string) $hex;
             return array((float) hexdec(substr($hex, 0, 2)), (float) hexdec(substr($hex, 2, 2)), (float) hexdec(substr($hex, 4, 2)), 8 === strlen($hex) ? hexdec(substr($hex, 6, 2)) / 255 : 1.0);
         }
-        if (!preg_match('/^(rgba?|hsla?)\(([^()]*)\)$/', $value, $m) || preg_match('/[a-z]{3,}/', str_replace(array('deg', 'turn'), '', $m[2]))) {
+        if (!preg_match('/^(rgba?|hsla?|oklch)\(([^()]*)\)$/', $value, $m) || preg_match('/[a-z]{3,}/', str_replace(array('deg', 'turn'), '', $m[2]))) {
             return null;
         }
         $parts = preg_split('/[\s,\/]+/', trim($m[2]), -1, PREG_SPLIT_NO_EMPTY);
@@ -740,12 +793,44 @@ final class SEOProStack_Dark_Fallback {
         if (isset($parts[3])) {
             $alpha = '%' === substr($parts[3], -1) ? (float) $parts[3] / 100 : (float) $parts[3];
         }
+        if ('oklch' === $m[1]) {
+            $rgb = self::from_oklch('%' === substr($parts[0], -1) ? (float) $parts[0] / 100 : (float) $parts[0], '%' === substr($parts[1], -1) ? (float) $parts[1] * 0.004 : (float) $parts[1], (float) $parts[2] * (false !== strpos($parts[2], 'turn') ? 360 : 1));
+            return array($rgb[0], $rgb[1], $rgb[2], max(0.0, min(1.0, $alpha)));
+        }
         if (0 === strpos($m[1], 'hsl')) {
             $hue = (float) $parts[0] * (false !== strpos($parts[0], 'turn') ? 360 : 1);
             $rgb = self::from_hsl(fmod(fmod($hue, 360) + 360, 360), (float) $parts[1] / 100, (float) $parts[2] / 100);
             return array($rgb[0], $rgb[1], $rgb[2], max(0.0, min(1.0, $alpha)));
         }
         return array(self::channel($parts[0]), self::channel($parts[1]), self::channel($parts[2]), max(0.0, min(1.0, $alpha)));
+    }
+
+    /**
+     * RGB (0-255, clipped to sRGB) from OKLCH: lightness (0-1), chroma and
+     * hue (degrees).
+     *
+     * @param float $l Lightness.
+     * @param float $c Chroma.
+     * @param float $h Hue.
+     * @return array{0:float,1:float,2:float}
+     */
+    private static function from_oklch($l, $c, $h) {
+        $a  = $c * cos(deg2rad($h));
+        $b  = $c * sin(deg2rad($h));
+        $l1 = pow($l + 0.3963377774 * $a + 0.2158037573 * $b, 3);
+        $m1 = pow($l - 0.1055613458 * $a - 0.0638541728 * $b, 3);
+        $s1 = pow($l - 0.0894841775 * $a - 1.2914855480 * $b, 3);
+        $lin = array(
+            4.0767416621 * $l1 - 3.3077115913 * $m1 + 0.2309699292 * $s1,
+            -1.2684380046 * $l1 + 2.6097574011 * $m1 - 0.3413193965 * $s1,
+            -0.0041960863 * $l1 - 0.7034186147 * $m1 + 1.7076147010 * $s1,
+        );
+        $out = array();
+        foreach ($lin as $v) {
+            $v     = max(0.0, min(1.0, $v));
+            $out[] = 255 * ($v <= 0.0031308 ? 12.92 * $v : 1.055 * pow($v, 1 / 2.4) - 0.055);
+        }
+        return array($out[0], $out[1], $out[2]);
     }
 
     /**

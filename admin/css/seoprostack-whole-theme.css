@@ -532,10 +532,28 @@ html.sps-dark #sps-notices-wrap {
 
 /* Tables ----------------------------------------------------------------- */
 
-html.sps-dark :is(#wpbody, .components-modal__frame, .media-modal) :is(.widefat, .postbox, .card, .stuffbox, .welcome-panel-content) {
+html.sps-dark :is(#wpbody, .components-modal__frame, .media-modal) :is(.widefat, .postbox, .card, .stuffbox, .welcome-panel-content, .popular-tags, .feature-filter) {
 	color: var(--sps-ui-text);
 	background: var(--sps-ui-surface);
 	border-color: var(--sps-ui-border);
+}
+
+/* Export and Erase Personal Data: rows and their status edge (WordPress: #fff, #f6f7f7). */
+html.sps-dark #wpbody .privacy_requests tbody :is(td, th) {
+	background-color: var(--sps-ui-surface);
+	box-shadow: inset 0 -1px 0 var(--sps-ui-border);
+}
+
+html.sps-dark #wpbody .privacy_requests :is(thead td:first-child, tfoot td:first-child) {
+	border-left-color: var(--sps-ui-surface);
+}
+
+html.sps-dark #wpbody .privacy_requests tbody tr:not(.status-request-confirmed, .status-request-failed) td.check-column {
+	border-left-color: var(--sps-ui-surface);
+}
+
+html.sps-dark #wpbody .privacy_requests tr.status-request-failed td.check-column {
+	background-color: var(--sps-ui-raised);
 }
 
 html.sps-dark :is(#wpbody, .components-modal__frame) .widefat :is(td, th, thead td, thead th, tfoot td, tfoot th) {
@@ -5577,6 +5595,15 @@ html.sps-dark:not(.vgse-dark-mode) #vgse-wrapper .remodal-confirm:is(:hover, :fo
 
 html.sps-dark:not(.vgse-dark-mode) #vgse-wrapper .remodal-cancel:is(:hover, :focus) {
 	background-color: #722020;
+}
+
+/*
+ * Bit Flows and Bit Social: their script moves the screen's stylesheets
+ * into <style> blocks, after the fallback's copies, so their light content
+ * area (#f5f8ff) comes back. Bit Social's own dark mode leaves it too.
+ */
+html.sps-dark :is(.toplevel_page_bit-pi, .toplevel_page_bit-social) #wpcontent {
+	background-color: var(--sps-ui-canvas);
 }
 
 /*

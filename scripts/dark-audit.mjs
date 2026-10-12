@@ -112,6 +112,11 @@ function full(url) {
 	return /^https?:/.test(url) ? url : BASE + (url.startsWith('/') ? '' : '/') + url;
 }
 
+// Whether an address is one of the site's admin screens.
+function own(url) {
+	return url.startsWith(BASE + '/wp-admin/');
+}
+
 // Runs in the page: light surfaces and text below AA.
 function scan() {
 	// Any CSS colour (rgb, oklch, color-mix() results) to sRGB through a 1px canvas.
@@ -211,7 +216,8 @@ function scan() {
 	const light = new Map();
 	const low = new Map();
 	for (const el of document.querySelectorAll('body *')) {
-		if (el.closest('#adminmenumain, #wpadminbar, iframe, svg, .screen-reader-text, [aria-hidden="true"]')) {
+		// Site previews (the block editor's canvas, the site icon's preview) keep the site's colours.
+		if (el.closest('#adminmenumain, #wpadminbar, iframe, svg, .screen-reader-text, [aria-hidden="true"], .editor-styles-wrapper, #site-icon-preview')) {
 			continue;
 		}
 		if (!visible(el)) {
@@ -342,7 +348,8 @@ if (cmd === 'login') {
 	const { b, ctx } = await browser();
 	const page = await ctx.newPage();
 	await page.goto(BASE + '/wp-admin/', { waitUntil: 'domcontentloaded' });
-	const urls = await page.$$eval('#adminmenu a[href]', (as) => [...new Set(as.map((a) => a.href.split('#')[0]))]);
+	// The site's own admin screens only: menus also link to plugins' websites.
+	const urls = (await page.$$eval('#adminmenu a[href]', (as) => [...new Set(as.map((a) => a.href.split('#')[0]))])).filter(own);
 	writeFileSync(file, urls.join('\n') + '\n');
 	console.log(urls.length, 'screens written to', file);
 	await b.close();
@@ -352,7 +359,7 @@ if (cmd === 'login') {
 		fail('Usage: audit <urls-file> <out-dir> [--shots] [--from=N] [--to=N]');
 	}
 	mkdirSync(out, { recursive: true });
-	const all = readFileSync(file, 'utf8').split('\n').map((s) => s.trim()).filter(Boolean);
+	const all = readFileSync(file, 'utf8').split('\n').map((s) => s.trim()).filter(Boolean).map(full).filter(own);
 	const from = Number(flags.from || 0);
 	const to = flags.to === undefined ? all.length : Number(flags.to);
 	const { b, ctx } = await browser();

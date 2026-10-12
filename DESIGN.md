@@ -16,7 +16,9 @@ script in fixed colours, does so by default. The Customizer's controls pane
 is dark (it prints its own page, so the mode's classes are set from
 `customize_controls_print_styles`); its preview keeps the site's colours.
 
-Other plugins' screens get a section each in the stylesheet, every selector
+Every other plugin's screens are dark from their first load through the
+fallback (below). Plugins whose screens need more get a section each in the
+stylesheet, every selector
 behind `html.sps-dark` and on the `--sps-ui-*` palette below. Brand-coloured
 buttons, badges, logos and status dots keep their colours; only white and
 grey surfaces, borders and dark text change. Plugins with a dark mode of
@@ -84,6 +86,34 @@ rules use `:where()` so class and focus rules win, and descriptions and
 table lists match core specificity. WordPress's snake_case IDs
 (`dashboard_right_now`, `TB_window`) are matched as `[id="..."]`. Colours
 ease for 0.2 seconds after load, never with reduced motion.
+
+### Fallback for other plugins
+
+`SEOProStack_Dark_Fallback` makes every other plugin's and theme's screens
+dark without a hand-written section. In Dark, each stylesheet from
+wp-content (not WordPress's own, not SEO Pro Stack's, not the plugins with a
+dark mode of their own) gets a copy holding only its rules that paint a
+light surface, a light border or dark grey text, with the palette's colours:
+white to `surface`, light greys to `canvas`, mid greys to `raised`, light
+tints to a dark tint of the same hue, grey borders to `border`, near-black
+text to `text`, dark grey to `muted`. Saturated brand colours, images,
+faint overlays and coloured text stay; text on a ground the copy keeps (a
+brand button) stays too. The copy loads right after its stylesheet with the
+original selectors behind `:where(html.sps-dark)`, so it wins over the light
+rule it repeats at the same specificity and loses to the hand-written
+sections, which load later. In the block editor the copies leave out
+`.editor-styles-wrapper`, so the canvas keeps the theme's colours.
+
+Copies are cached in `uploads/seoprostack-dark`, one per stylesheet, and made
+again when the file changes; a screen spends at most 0.15 seconds making
+missing ones and leaves the rest to the end of the request. Filters:
+`seoprostack_admin_dark_fallback` (per screen) and
+`seoprostack_admin_dark_fallback_style` (per stylesheet). Not reached:
+inline `style` attributes, `<style>` blocks, colours set by script and
+stylesheets from other hosts; the contrast guard still lightens their
+unreadable text, and screens that need more get a hand-written section.
+
+`scripts/dark-audit.mjs` checks the result (TESTING.md → Dark mode audit).
 
 ### Accent
 
