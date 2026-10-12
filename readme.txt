@@ -145,6 +145,7 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 
 = 1.3.43 =
 * Fix: no white flash in Dark mode while the next admin screen loads after SEO Pro Stats; Rank Math's System Status rows are dark.
+* Fix: Site Health finds and clears Really Simple Security's leftovers after it is deactivated.
 * Fix: Turn off unused remote access puts back its uploads .htaccess blocks when another plugin removes them.
 * Developers: core files synced from WP Plugin Starter, with GitHub updater 1.6.2.
 

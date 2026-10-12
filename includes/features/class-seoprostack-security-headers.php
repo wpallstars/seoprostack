@@ -75,6 +75,12 @@ class SEOProStack_Security_Headers extends SEOProStack_Feature {
     const HSTS_YEAR = 31536000;
     const HSTS_PRELOAD = 63072000;
 
+    /** Explicit cleanup action and Site Health test, independent of the switch. */
+    const CLEANUP = 'seoprostack_rsssl_cleanup';
+
+    /** Keep the file: PHP may still cache an auto_prepend_file pointing to it. */
+    const RSSSL_STUB = "<?php\n// This file was created by Really Simple Security\n// It is no longer used and safe to delete";
+
     /**
      * Settings; off by default.
      *
@@ -169,9 +175,11 @@ class SEOProStack_Security_Headers extends SEOProStack_Feature {
      * Register hooks.
      */
     public static function boot() {
+        add_filter('site_status_tests', array(__CLASS__, 'cleanup_tests'));
         // Replacement advice is needed even while the feature waits or is off.
         if (is_admin()) {
             add_filter('seoprostack_replaced_plugin_extras', array(__CLASS__, 'extras'), 10, 2);
+            add_action('admin_post_' . self::CLEANUP, array(__CLASS__, 'cleanup_action'));
         }
         if (!self::enabled() || 'https' !== wp_parse_url(home_url('/'), PHP_URL_SCHEME)) {
             return;
@@ -405,6 +413,379 @@ class SEOProStack_Security_Headers extends SEOProStack_Feature {
     /* ------------------------------------------------------------------
      * Really Simple Security
      * ------------------------------------------------------------------ */
+
+    /**
+     * Register the read-only test even when headers are switched off.
+     *
+     * @param array $tests Site Health tests.
+     * @return array
+     */
+    public static function cleanup_tests($tests) {
+        $tests['direct'][self::CLEANUP] = array(
+            'label' => __('Really Simple Security leftovers', 'seoprostack'),
+            'test'  => array(__CLASS__, 'test_leftovers'),
+        );
+        return $tests;
+    }
+
+    /**
+     * Read the actual saved activation lists, not the request's skipped plugins.
+     *
+     * @phpstan-impure Depends on the current blog after switch_to_blog().
+     * @return bool
+     */
+    private static function rsssl_active() {
+        // The loader's raw list belongs to the original site, not a switched
+        // subsite. Temporarily bypass only its known activation-list filter.
+        $filter   = array('SEOProStack_Plugin_Loader', 'filter_active');
+        $priority = has_filter('option_active_plugins', $filter);
+        if (false !== $priority) {
+            remove_filter('option_active_plugins', $filter, $priority);
+        }
+        try {
+            $plugins = (array) get_option('active_plugins', array());
+        } finally {
+            if (false !== $priority) {
+                add_filter('option_active_plugins', $filter, $priority);
+            }
+        }
+        if (is_multisite()) {
+            $plugins = array_merge($plugins, array_keys((array) get_site_option('active_sitewide_plugins', array())));
+        }
+        foreach ($plugins as $plugin) {
+            if (isset(self::REPLACES[dirname((string) $plugin)])) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Shared files, resolved on the network's main site by callers.
+     *
+     * @return array<string,array{0:string,1:string,2:string}>
+     */
+    private static function leftover_blocks() {
+        require_once ABSPATH . 'wp-admin/includes/file.php';
+        $root    = get_home_path();
+        $uploads = wp_get_upload_dir();
+        $blocks  = array(
+            $root . '.htaccess' => array('Really Simple Auto Prepend File', '# BEGIN ', '# END '),
+            $root . '.user.ini' => array('Really Simple Auto Prepend File', '; BEGIN ', '; END '),
+        );
+        $ini = (string) ini_get('user_ini.filename');
+        if ($ini && basename($ini) === $ini) {
+            $blocks[$root . $ini] = array('Really Simple Auto Prepend File', '; BEGIN ', '; END ');
+        }
+        if (empty($uploads['error']) && !empty($uploads['basedir'])) {
+            $blocks[trailingslashit($uploads['basedir']) . '.htaccess'] = array('Really Simple Security', '#Begin ', '#End ');
+        }
+        return $blocks;
+    }
+
+    /**
+     * Read a local file without treating unreadable files as clean.
+     *
+     * @param string $file Fixed local path.
+     * @return string|false
+     */
+    private static function leftover_contents($file) {
+        if (!file_exists($file)) {
+            return '';
+        }
+        if (!is_readable($file) || !is_file($file)) {
+            return false;
+        }
+        return file_get_contents($file); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents -- fixed local configuration file, never a URL.
+    }
+
+    /**
+     * Cron hook names on the current site (including events with arguments).
+     *
+     * @return string[]
+     */
+    private static function leftover_cron() {
+        $hooks = array();
+        foreach ((array) _get_cron_array() as $events) {
+            foreach (array_keys($events) as $hook) {
+                if (0 === strpos($hook, 'rsssl_')) {
+                    $hooks[$hook] = $hook;
+                }
+            }
+        }
+        return array_values($hooks);
+    }
+
+    /**
+     * Files left on the main site; incomplete blocks remain visible for repair.
+     *
+     * @return string[]
+     */
+    private static function leftover_files() {
+        $found = array();
+        foreach (self::leftover_blocks() as $file => $block) {
+            $contents = self::leftover_contents($file);
+            if (false === $contents || self::block_leftover($contents, $block)) {
+                $found[] = $file . ': ' . $block[0];
+            }
+            if ('.htaccess' === basename($file) && '# BEGIN ' === $block[1]
+                && self::block_leftover((string) $contents, array('Really Simple Security Disable directory indexing', '# BEGIN ', '# END '))) {
+                $found[] = $file . ': Really Simple Security Disable directory indexing';
+            }
+        }
+        $file     = WP_CONTENT_DIR . '/advanced-headers.php';
+        $contents = self::leftover_contents($file);
+        if (false === $contents || ('' !== trim($contents) && trim(self::RSSSL_STUB) !== trim(str_replace("\r\n", "\n", $contents)))) {
+            $found[] = $file;
+        }
+        return $found;
+    }
+
+    /**
+     * Empty markers left by core are harmless; an incomplete block is not.
+     *
+     * @param string   $contents Local file contents.
+     * @param string[] $block    Marker definition.
+     * @return bool
+     */
+    private static function block_leftover($contents, array $block) {
+        $begin = $block[1] . $block[0];
+        if (false === strpos($contents, $begin)) {
+            return false;
+        }
+        // insert_with_markers() adds explanatory comments even with no rules.
+        $empty = '/^' . preg_quote($begin, '/') . '[\t ]*\r?\n(?:[\t ]*(?:#[^\r\n]*)?\r?\n)*' . preg_quote($block[2] . $block[0], '/') . '[\t ]*(?:\r?\n|$)/m';
+        return false !== strpos((string) preg_replace($empty, '', $contents), $begin);
+    }
+
+    /**
+     * Site Health: check this site and the main site, never scan a whole network.
+     *
+     * @return array
+     */
+    public static function test_leftovers() {
+        $result = array(
+            'label'       => __('No Really Simple Security leftovers were found', 'seoprostack'),
+            'status'      => 'good',
+            'badge'       => array('label' => __('Security', 'seoprostack'), 'color' => 'blue'),
+            'description' => '<p>' . esc_html__('Checks files and scheduled tasks left by Really Simple Security. Cleanup keeps the HTTPS redirect and an empty headers file, never edits wp-config.php and never changes plugin settings.', 'seoprostack') . '</p>',
+            'actions'     => '',
+            'test'        => self::CLEANUP,
+        );
+        if (self::rsssl_active()) {
+            $result['label'] = __('Really Simple Security is active; its files and tasks are left alone', 'seoprostack');
+            return $result;
+        }
+        $found = array_merge(self::leftover_cron(), self::leftover_files());
+        if (is_multisite()) {
+            switch_to_blog(get_main_site_id());
+        }
+        try {
+            if (self::rsssl_active()) {
+                $result['label'] = __('Really Simple Security is active on the main site; cleanup is unavailable', 'seoprostack');
+                return $result;
+            }
+            $found = array_unique(array_merge($found, self::leftover_files(), self::leftover_cron()));
+        } finally {
+            if (is_multisite()) {
+                restore_current_blog();
+            }
+        }
+        if (is_multisite()) {
+            $result['description'] .= '<p>' . esc_html__('Only this site and the network’s main site were checked. Cleanup first checks that Really Simple Security is inactive on every site, then clears scheduled tasks in batches across the network.', 'seoprostack') . '</p>';
+        }
+        if ($found) {
+            $result['status'] = 'recommended';
+            $result['label']  = __('Really Simple Security left files or scheduled tasks behind', 'seoprostack');
+            $result['description'] .= '<ul><li><code>' . implode('</code></li><li><code>', array_map('esc_html', $found)) . '</code></li></ul>';
+        }
+        if (($found || is_multisite()) && current_user_can(is_multisite() ? 'manage_network_options' : 'manage_options')) {
+            $result['actions'] = self::cleanup_form();
+        }
+        return $result;
+    }
+
+    /**
+     * POST only, including continuation requests; state stays on the server.
+     *
+     * @return string
+     */
+    private static function cleanup_form() {
+        return '<form method="post" action="' . esc_url(admin_url('admin-post.php')) . '"><input type="hidden" name="action" value="' . esc_attr(self::CLEANUP) . '">'
+            . wp_nonce_field(self::CLEANUP, '_wpnonce', true, false)
+            . '<p><button type="submit" class="button">' . esc_html__('Check and clear Really Simple Security leftovers', 'seoprostack') . '</button></p></form>';
+    }
+
+    /**
+     * Clear only a complete exact marked block. Core handles canonical htaccess;
+     * its marker API cannot handle semicolon INI or legacy #Begin markers.
+     *
+     * @param string   $file  Fixed local path.
+     * @param string[] $block Marker name, begin prefix and end prefix.
+     * @return bool
+     */
+    private static function clear_leftover_block($file, array $block) {
+        $contents = self::leftover_contents($file);
+        if (false === $contents || is_link($file)) {
+            return false;
+        }
+        $begin = $block[1] . $block[0];
+        if (false === strpos($contents, $begin)) {
+            return true;
+        }
+        $end     = $block[2] . $block[0];
+        $pattern = '/^' . preg_quote($begin, '/') . '[\t ]*\r?\n(.*?)^' . preg_quote($end, '/') . '[\t ]*(?:\r?\n|$)/ms';
+        // Core's marker writer uses substring matches. Reject duplicates,
+        // prefix collisions and nested/malformed blocks before calling it.
+        if (1 !== substr_count($contents, $begin) || 1 !== substr_count($contents, $end)
+            || !preg_match($pattern, $contents, $matches) || !wp_is_writable($file)
+            || preg_match('/^(?:# ?BEGIN |#Begin |; BEGIN |# ?END |#End |; END )/m', $matches[1])) {
+            return false;
+        }
+        if ('# BEGIN ' === $block[1]) {
+            require_once ABSPATH . 'wp-admin/includes/misc.php';
+            return insert_with_markers($file, $block[0], array());
+        }
+        $new = preg_replace($pattern, '', $contents);
+        if (null === $new) {
+            return false;
+        }
+        // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_file_put_contents -- core's marker writer does not support these delimiters.
+        return strlen($new) === file_put_contents($file, $new, LOCK_EX);
+    }
+
+    /**
+     * Keep the stub first, even if removal of a cached prepend later fails.
+     *
+     * @return bool
+     */
+    private static function clear_leftover_files() {
+        $file = WP_CONTENT_DIR . '/advanced-headers.php';
+        if (file_exists($file)) {
+            $contents = self::leftover_contents($file);
+            if (false === $contents || is_link($file) || !is_file($file) || !wp_is_writable($file)
+                || !preg_match('/This file (?:is|was) created by Really Simple Security/', $contents)) {
+                return false;
+            }
+            // Keep the replaced plugin's stub for cached prepend references. A
+            // fixed wp-content/advanced-headers.php path, outside the plugin.
+            if (strlen(self::RSSSL_STUB) !== file_put_contents($file, self::RSSSL_STUB, LOCK_EX)) { // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_file_put_contents, PluginCheck.CodeAnalysis.WriteFile.PluginDirectoryWrite -- see above.
+                return false;
+            }
+        }
+        $done = true;
+        foreach (self::leftover_blocks() as $file => $block) {
+            $done = self::clear_leftover_block($file, $block) && $done;
+            if ('.htaccess' === basename($file) && '# BEGIN ' === $block[1]) {
+                $done = self::clear_leftover_block($file, array('Really Simple Security Disable directory indexing', '# BEGIN ', '# END ')) && $done;
+            }
+        }
+        return $done;
+    }
+
+    /**
+     * Each subsite may have its own uploads rules as well as the shared ones.
+     *
+     * @return bool
+     */
+    private static function clear_site_uploads() {
+        foreach (self::leftover_blocks() as $file => $block) {
+            if ('#Begin ' === $block[1] && !self::clear_leftover_block($file, $block)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
+     * Keyset pagination: deleting an earlier site cannot shift the next batch.
+     *
+     * @param int $after Last processed site ID in this phase.
+     * @return int[]
+     */
+    private static function cleanup_sites($after) {
+        global $wpdb;
+        // WP_Site_Query has no ID-range argument. Scope its clause filter to
+        // this query and remove it even if another query filter throws.
+        $filter = static function (array $clauses) use ($after, $wpdb) {
+            $clauses['where'] .= $wpdb->prepare(" AND {$wpdb->blogs}.blog_id > %d", $after);
+            return $clauses;
+        };
+        add_filter('sites_clauses', $filter);
+        try {
+            return array_map('intval', get_sites(array('network_id' => get_current_network_id(), 'fields' => 'ids', 'number' => 50, 'orderby' => 'id', 'order' => 'ASC')));
+        } finally {
+            remove_filter('sites_clauses', $filter);
+        }
+    }
+
+    /**
+     * Explicit cleanup. Network requests preflight then clean at most 50 sites.
+     * A short-lived user/network-scoped cursor cannot be forged by POST fields.
+     */
+    public static function cleanup_action() {
+        if (!current_user_can(is_multisite() ? 'manage_network_options' : 'manage_options')) {
+            wp_die(esc_html__('You cannot clear these leftovers.', 'seoprostack'), '', array('response' => 403));
+        }
+        check_admin_referer(self::CLEANUP);
+        if (!isset($_SERVER['REQUEST_METHOD']) || 'POST' !== $_SERVER['REQUEST_METHOD']) {
+            wp_die(esc_html__('Use the cleanup button in Site Health.', 'seoprostack'), '', array('response' => 405));
+        }
+        $key   = self::CLEANUP . '_' . get_current_blog_id() . '_' . get_current_user_id();
+        $state = get_site_transient($key);
+        // Restart older offset-based continuations rather than carrying a
+        // potentially skipped site into the cleanup phase.
+        $state = is_array($state) && isset($state['after']) ? $state : array('phase' => 'check', 'after' => 0);
+        $sites = is_multisite() ? self::cleanup_sites((int) $state['after']) : array(get_current_blog_id());
+        foreach ($sites as $site) {
+            if (is_multisite()) {
+                switch_to_blog((int) $site);
+            }
+            try {
+                if (self::rsssl_active()) {
+                    delete_site_transient($key);
+                    wp_die(esc_html__('Really Simple Security is still active on a site. Deactivate all its versions before clearing leftovers.', 'seoprostack'));
+                }
+                if ('clean' === $state['phase'] || !is_multisite()) {
+                    if (!self::clear_site_uploads()) {
+                        delete_site_transient($key);
+                        wp_die(esc_html__('An uploads rules file could not be cleared. Check its permissions and marked blocks, then run the check again.', 'seoprostack'));
+                    }
+                    foreach (self::leftover_cron() as $hook) {
+                        if (false === wp_unschedule_hook($hook)) {
+                            delete_site_transient($key);
+                            wp_die(esc_html__('A scheduled task could not be cleared. Run the check again.', 'seoprostack'));
+                        }
+                    }
+                }
+            } finally {
+                if (is_multisite()) {
+                    restore_current_blog();
+                }
+            }
+        }
+        $more = is_multisite() && 50 === count($sites);
+        if ($more) {
+            $state['after'] = max($sites);
+        } elseif ('check' === $state['phase'] && is_multisite()) {
+            $state = array('phase' => 'clean', 'after' => 0);
+        } else {
+            if (is_multisite()) {
+                switch_to_blog(get_main_site_id());
+            }
+            try {
+                $done = !self::rsssl_active() && self::clear_leftover_files();
+            } finally {
+                if (is_multisite()) {
+                    restore_current_blog();
+                }
+            }
+            delete_site_transient($key);
+            wp_die(esc_html($done ? __('Really Simple Security leftovers cleared. The HTTPS redirect, wp-config.php and plugin settings were kept. The headers stub remains for cached prepend references.', 'seoprostack') : __('Some files could not be cleared. Check their permissions and run Site Health again; the headers file was never deleted.', 'seoprostack')), '', array('back_link' => true));
+        }
+        set_site_transient($key, $state, 15 * MINUTE_IN_SECONDS);
+        wp_die('<p>' . esc_html__('This batch is complete. Continue to check or clear the next batch of sites. Files are cleared only after the network checks and scheduled tasks are complete.', 'seoprostack') . '</p>' . self::cleanup_form(), '', array('response' => 200)); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- form escapes its fixed URL and values and uses core's nonce field.
+    }
 
     /**
      * Really Simple Security's settings while it is active (its network
