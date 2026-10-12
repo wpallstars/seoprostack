@@ -24,7 +24,7 @@ SEO Pro Stack does the jobs that usually take dozens of small plugins: a calmer,
 
 If this saves you time, headaches and costs, feel free to [buy me a coffee](https://buymeacoffee.com/marcusquinn), or whatever you like, to invest in making more things open-source.
 
-Version: 1.3.41
+Version: 1.3.42
 
 <!-- github-only:start -->
 ## Screenshots
@@ -1609,7 +1609,7 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folderâ
 
 ## Changelog
 
-### Unreleased
+### 1.3.42
 
 - Fix: **Dark** mode covers more screens: the Customizer's controls (it no longer opens light; its preview keeps the site's colours), Widgets and Menus; Secure Custom Fields, Admin Columns Pro's date picker, inline and bulk editing, WooCommerce's settings, Payments, Status and Reports, Readabler, Tutor LMS (its script's colours recoloured from the page's head; the course builder keeps its light look), Kadence Starter Site Assist, Fluent Forms' loading skeletons, WP Sheet Editor's setup and settings, Bit Integrations, Complianz with its Terms & Conditions, Really Simple Security, Code Snippets, Rank Math's Content AI, Import & Export and Link Genius, AutomatorWP, CMB2 fields, Advanced DB Cleaner, WP-Optimize, EventON, SliceWP, Antispam Bee, Simple Cloudflare Turnstile, Plugin Groups and Revive.so, whose screens drop other plugins' stylesheets, so Dark's is put back there. TinyMCE frames are dark from the start, and checked boxes and radios get a white tick and dot. New `seoprostack_admin_dark_script_styles` filter (GitHub issue #686).
 - New: Bit Social and WP Sheet Editor's spreadsheet open in the colour mode chosen in the admin bar; WP Sheet Editor's own Dark mode switch changes it too, and its site-wide setting is not changed (GitHub issue #686).
