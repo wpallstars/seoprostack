@@ -5598,15 +5598,6 @@ html.sps-dark:not(.vgse-dark-mode) #vgse-wrapper .remodal-cancel:is(:hover, :foc
 }
 
 /*
- * Bit Flows and Bit Social: their script moves the screen's stylesheets
- * into <style> blocks, after the fallback's copies, so their light content
- * area (#f5f8ff) comes back. Bit Social's own dark mode leaves it too.
- */
-html.sps-dark :is(.toplevel_page_bit-pi, .toplevel_page_bit-social) #wpcontent {
-	background-color: var(--sps-ui-canvas);
-}
-
-/*
  * Bit Integrations (admin.php?page=bit-integrations): one React screen
  * with no dark mode of its own. A light sheet (#f8f9fd) under a dark
  * purple band; #fff panels, cards, menus and dialogs; #031b4e and #5f6d8a
