@@ -15,6 +15,9 @@
  *
  * - Off: no plugin is updated from GitHub (`wpallstars_github_updater_enabled`).
  * - "Early updates from GitHub" (`wpallstars_github_updater_early`).
+ * - "Auto-update plugins from GitHub", on by default: WordPress auto-updates
+ *   the plugins the updater serves (`auto_update_plugin`). This file is in
+ *   GitHub builds only, as the update rule in STANDARDS.md asks.
  * - SEOPROSTACK_GITHUB_TOKEN and the `seoprostack_github_token` and
  *   `seoprostack_github_plugins` filters, from before the updater was
  *   shared, still work.
@@ -38,6 +41,7 @@ class SEOProStack_Github_Updates extends SEOProStack_Feature {
 
     const KEY   = 'github_updates';
     const EARLY = 'github_early_updates';
+    const AUTO  = 'github_auto_updates';
 
     /**
      * Settings.
@@ -63,6 +67,16 @@ class SEOProStack_Github_Updates extends SEOProStack_Feature {
                 'label'       => __('Early updates from GitHub', 'seoprostack'),
                 'description' => __('For plugins that are also on WordPress.org: take each version from GitHub as soon as it is released, instead of waiting for WordPress.org.', 'seoprostack'),
             ),
+            self::AUTO  => array(
+                'type'        => 'bool',
+                // On by default at the owner's request: a plugin installed
+                // from GitHub whose own auto-update toggle was never turned
+                // on falls behind without anyone noticing.
+                'default'     => true,
+                'parent'      => self::KEY,
+                'label'       => __('Auto-update plugins from GitHub', 'seoprostack'),
+                'description' => __('WordPress installs new GitHub releases of these plugins by itself, as it does for plugins with auto-updates on. Other plugins keep their own auto-update choice. Switch off to choose per plugin on the Plugins screen.', 'seoprostack'),
+            ),
         );
     }
 
@@ -85,8 +99,35 @@ class SEOProStack_Github_Updates extends SEOProStack_Feature {
         if (SEOProStack_Settings::get(self::EARLY)) {
             add_filter('wpallstars_github_updater_early', '__return_true');
         }
+        if (SEOProStack_Settings::get(self::AUTO)) {
+            add_filter('auto_update_plugin', array(__CLASS__, 'auto_update'), 10, 2);
+        }
         add_filter('wpallstars_github_token', array(__CLASS__, 'token'), 5, 2);
         add_filter('wpallstars_github_plugins', array(__CLASS__, 'plugins'), 5);
+    }
+
+    /**
+     * Auto-update plugins from GitHub: WordPress auto-updates every plugin
+     * the shared updater serves, whatever its own toggle on the Plugins
+     * screen says. Other plugins keep their choice, and the
+     * `auto_update_plugins` option is never written, so switching this off
+     * brings each plugin's own choice back. WordPress's own off switches
+     * (AUTOMATIC_UPDATER_DISABLED, automatic_updater_disabled) and plugins
+     * filtering later still win.
+     *
+     * @param mixed $update Whether to auto-update, so far.
+     * @param mixed $item   The update offer (or, on the Plugins screen, the
+     *                      plugin's details), with its `plugin` file.
+     * @return mixed
+     */
+    public static function auto_update($update, $item) {
+        // plugins() is public in every copy since the updater was shared.
+        if (!is_object($item) || !isset($item->plugin) || !is_string($item->plugin)
+            || !class_exists('WPAllStars_GitHub_Updater')) {
+            return $update;
+        }
+        $served = WPAllStars_GitHub_Updater::plugins();
+        return isset($served[$item->plugin]) ? true : $update;
     }
 
     /**
