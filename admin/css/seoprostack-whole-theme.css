@@ -2851,6 +2851,37 @@ html.sps-dark :is(.rank-math-box footer, .module-listing .rank-math-box .status,
 	border-color: var(--sps-ui-border);
 }
 
+/*
+ * Status & Tools (status.css): System Status's rows (#f8f9fa titles, #2c3338
+ * text, #50575e icons, #c3c4c7 lines) and the #f8f9fa bars, pulsing in
+ * rgba(0,0,0,.11), shown while they load; Database Tools' #f8f9fa rows.
+ */
+html.sps-dark :is(.rank-math-panel, .rank-math-panel .components-panel__body, .rank-math-tools-table.widefat, .rank-math-tools-table.widefat tr :is(th, td)) {
+	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark :is(.rank-math-panel .components-panel__body > .components-panel__body-title, .rank-math-skeleton.rank-math-system-status .components-panel__body, .rank-math-tools-table.widefat tr:nth-child(odd)) {
+	background: var(--sps-ui-raised);
+}
+
+html.sps-dark .rank-math-panel .components-panel__body > .components-panel__body-title:hover {
+	background: var(--sps-ui-hover);
+}
+
+html.sps-dark :is(.rank-math-panel .components-panel__body-toggle.components-button, .rank-math-panel .components-panel__body-toggle.components-button:focus, .rank-math-status-table thead tr th) {
+	color: var(--sps-ui-text);
+}
+
+html.sps-dark .rank-math-panel .components-panel__body-toggle.components-button svg {
+	fill: var(--sps-ui-muted);
+}
+
+html.sps-dark .rank-math-skeleton.rank-math-system-status .copy-button-wrapper::after,
+html.sps-dark .rank-math-skeleton.rank-math-system-status .components-panel__body::before,
+html.sps-dark .rank-math-skeleton.rank-math-system-status .components-panel__body::after {
+	background: rgb(255 255 255 / 11%);
+}
+
 /* Setup wizard: its own page (no wp-admin header), with #fff and #f8f9fa panels. */
 html.sps-dark body.rank-math-wizard {
 	color: var(--sps-ui-text);
