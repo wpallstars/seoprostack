@@ -279,8 +279,8 @@ class SEOProStack_Hardening extends SEOProStack_Feature {
 
     /**
      * Keep the block in step with the choice, from the main site's admin
-     * screens (a network shares its folders). Reads one site option when
-     * nothing changed; retries while a file cannot be written.
+     * screens (a network shares its folders). Checks the saved state and
+     * written markers; retries while a file cannot be written.
      */
     public static function files_maybe_sync() {
         if (is_multisite() && !is_main_site()) {
@@ -297,8 +297,8 @@ class SEOProStack_Hardening extends SEOProStack_Feature {
 
     /**
      * Keep one marked block in step: write it to the target .htaccess files
-     * and remove it from those it left. Reads one site option when nothing
-     * changed; retries while a file cannot be written.
+     * and remove it from those it left. Checks written markers even when
+     * the saved hash matches; retries while a file cannot be written.
      *
      * @param string        $marker  Block marker.
      * @param string        $state   Site option keeping hash, targets and status.
@@ -315,7 +315,7 @@ class SEOProStack_Hardening extends SEOProStack_Feature {
         $write = ($on && !empty($is_apache)) ? $rules : array();
         $want  = $on ? self::block_hash($rules, $targets, $write) : '';
         $saved = (array) get_site_option($state, array());
-        if (self::block_in_step($saved, $want)) {
+        if (self::block_in_step($saved, $want, $targets, $marker)) {
             return false;
         }
         $old    = isset($saved['targets']) && is_array($saved['targets']) ? $saved['targets'] : array();
@@ -337,15 +337,31 @@ class SEOProStack_Hardening extends SEOProStack_Feature {
     }
 
     /**
-     * Whether the saved state already matches, and was written.
+     * Whether the saved state matches and written blocks are still present.
      *
-     * @param array  $saved Saved state.
-     * @param string $want  Wanted hash; empty when the choice is off.
+     * @param array    $saved   Saved state.
+     * @param string   $want    Wanted hash; empty when the choice is off.
+     * @param string[] $targets Files that need the block.
+     * @param string   $marker  Block marker.
      * @return bool
      */
-    private static function block_in_step(array $saved, $want) {
+    private static function block_in_step(array $saved, $want, array $targets, $marker) {
         $had = isset($saved['hash']) ? $saved['hash'] : '';
-        return $had === $want && (!isset($saved['status']) || 'unwritable' !== $saved['status']);
+        if ($had !== $want || (isset($saved['status']) && 'unwritable' === $saved['status'])) {
+            return false;
+        }
+        if (isset($saved['status']) && 'written' === $saved['status']) {
+            foreach ($targets as $file) {
+                if (!is_readable($file)) {
+                    return false;
+                }
+                $contents = file_get_contents($file); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents -- local .htaccess file.
+                if (false === $contents || false === strpos($contents, '# BEGIN ' . $marker)) {
+                    return false;
+                }
+            }
+        }
+        return true;
     }
 
     /**
