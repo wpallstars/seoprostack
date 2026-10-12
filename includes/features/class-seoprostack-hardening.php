@@ -518,17 +518,30 @@ class SEOProStack_Hardening extends SEOProStack_Feature {
             return;
         }
         if (is_multisite() && !is_main_site()) {
-            if (self::files_on() || self::uploads_on()) {
-                echo '<div class="sps-panel-note"><p>' . esc_html__('Log and backup files and PHP files in uploads are blocked for the whole network from the main site’s settings, which share its .htaccess files.', 'seoprostack') . '</p></div>';
-            }
+            self::subsite_panel();
             return;
         }
         if (self::uploads_on()) {
             self::uploads_panel();
         }
-        if (!self::files_on()) {
-            return;
+        if (self::files_on()) {
+            self::files_panel();
         }
+    }
+
+    /**
+     * On a network's other sites: the blocks are set from the main site.
+     */
+    private static function subsite_panel() {
+        if (self::files_on() || self::uploads_on()) {
+            echo '<div class="sps-panel-note"><p>' . esc_html__('Log and backup files and PHP files in uploads are blocked for the whole network from the main site’s settings, which share its .htaccess files.', 'seoprostack') . '</p></div>';
+        }
+    }
+
+    /**
+     * How the log and backup files block went, in the settings panel.
+     */
+    private static function files_panel() {
         $state  = (array) get_site_option(self::FILES_STATE, array());
         $status = isset($state['status']) ? $state['status'] : '';
         $files  = isset($state['targets']) && is_array($state['targets']) ? $state['targets'] : array();
@@ -609,23 +622,27 @@ class SEOProStack_Hardening extends SEOProStack_Feature {
         if (is_multisite() && !$network_wide && !is_main_site()) {
             return;
         }
-        $state   = (array) get_site_option(self::FILES_STATE, array());
-        $targets = isset($state['targets']) && is_array($state['targets']) ? $state['targets'] : array();
-        $done    = true;
-        foreach (array_unique(array_merge($targets, self::files_targets())) as $file) {
-            $done = self::files_write($file, array()) && $done;
+        self::block_remove(self::FILES_MARKER, self::FILES_STATE, self::files_targets());
+        self::block_remove(self::UPLOADS_MARKER, self::UPLOADS_STATE, self::uploads_targets());
+    }
+
+    /**
+     * Remove a marked block from the files it was written to and those it
+     * would go to now; forget its state once every file is clean.
+     *
+     * @param string   $marker  Block marker.
+     * @param string   $state   Site option keeping its targets.
+     * @param string[] $targets Files it would go to now.
+     */
+    private static function block_remove($marker, $state, array $targets) {
+        $saved = (array) get_site_option($state, array());
+        $old   = isset($saved['targets']) && is_array($saved['targets']) ? $saved['targets'] : array();
+        $done  = true;
+        foreach (array_unique(array_merge($old, $targets)) as $file) {
+            $done = self::files_write($file, array(), $marker) && $done;
         }
         if ($done) {
-            delete_site_option(self::FILES_STATE);
-        }
-        $state   = (array) get_site_option(self::UPLOADS_STATE, array());
-        $targets = isset($state['targets']) && is_array($state['targets']) ? $state['targets'] : array();
-        $done    = true;
-        foreach (array_unique(array_merge($targets, self::uploads_targets())) as $file) {
-            $done = self::files_write($file, array(), self::UPLOADS_MARKER) && $done;
-        }
-        if ($done) {
-            delete_site_option(self::UPLOADS_STATE);
+            delete_site_option($state);
         }
     }
 
@@ -1031,14 +1048,24 @@ class SEOProStack_Hardening extends SEOProStack_Feature {
                 $extras[] = $name;
             }
         }
-        $items  = (array) SEOProStack_Settings::get(self::ITEMS_KEY);
+        return array_values(array_unique(array_merge($extras, self::hostinger_uncovered($theirs))));
+    }
+
+    /**
+     * Hostinger Tools' remote-access switches that are on there but not here.
+     *
+     * @param array $theirs Hostinger Tools settings.
+     * @return string[] Names of the matching choices.
+     */
+    private static function hostinger_uncovered(array $theirs) {
+        $items = self::switched_on() ? (array) SEOProStack_Settings::get(self::ITEMS_KEY) : array();
+        $names = self::item_options();
+        $found = array();
         foreach (array('disable_xml_rpc' => 'xmlrpc', 'disable_authentication_password' => 'app_passwords') as $option => $choice) {
-            if (!empty($theirs[$option])
-                && !(self::switched_on() && in_array($choice, $items, true))) {
-                $names    = self::item_options();
-                $extras[] = $names[$choice];
+            if (!empty($theirs[$option]) && !in_array($choice, $items, true)) {
+                $found[] = $names[$choice];
             }
         }
-        return array_values(array_unique($extras));
+        return $found;
     }
 }
