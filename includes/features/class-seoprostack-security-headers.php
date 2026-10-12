@@ -713,7 +713,9 @@ class SEOProStack_Security_Headers extends SEOProStack_Feature {
         $state = is_array($state) ? $state : array('phase' => 'check', 'offset' => 0);
         $sites = is_multisite() ? get_sites(array('network_id' => get_current_network_id(), 'fields' => 'ids', 'number' => 50, 'offset' => $state['offset'], 'orderby' => 'id', 'order' => 'ASC')) : array(get_current_blog_id());
         foreach ($sites as $site) {
-            switch_to_blog((int) $site);
+            if (is_multisite()) {
+                switch_to_blog((int) $site);
+            }
             try {
                 if (self::rsssl_active()) {
                     delete_site_transient($key);
@@ -732,7 +734,9 @@ class SEOProStack_Security_Headers extends SEOProStack_Feature {
                     }
                 }
             } finally {
-                restore_current_blog();
+                if (is_multisite()) {
+                    restore_current_blog();
+                }
             }
         }
         $more = is_multisite() && 50 === count($sites);
@@ -741,11 +745,15 @@ class SEOProStack_Security_Headers extends SEOProStack_Feature {
         } elseif ('check' === $state['phase'] && is_multisite()) {
             $state = array('phase' => 'clean', 'offset' => 0);
         } else {
-            switch_to_blog(is_multisite() ? get_main_site_id() : get_current_blog_id());
+            if (is_multisite()) {
+                switch_to_blog(get_main_site_id());
+            }
             try {
                 $done = !self::rsssl_active() && self::clear_leftover_files();
             } finally {
-                restore_current_blog();
+                if (is_multisite()) {
+                    restore_current_blog();
+                }
             }
             delete_site_transient($key);
             wp_die(esc_html($done ? __('Really Simple Security leftovers cleared. The HTTPS redirect, wp-config.php and plugin settings were kept. The headers stub remains for cached prepend references.', 'seoprostack') : __('Some files could not be cleared. Check their permissions and run Site Health again; the headers file was never deleted.', 'seoprostack')), '', array('back_link' => true));
