@@ -291,8 +291,8 @@ function path(url) {
 
 function totals(report) {
 	const dark = report.filter((r) => r.dark && !r.error);
-	const sum = (k) => dark.reduce((n, r) => n + (r[k] || 0), 0);
-	return { screens: report.length, dark: dark.length, notDark: report.filter((r) => !r.dark && !r.error).length, errors: report.filter((r) => r.error).length, light: sum('lightCount'), neutral: sum('neutralCount'), wide: sum('wideCount'), low: sum('lowCount') };
+	const sum = (get) => dark.reduce((n, r) => n + (get(r) || 0), 0);
+	return { screens: report.length, dark: dark.length, notDark: report.filter((r) => !r.dark && !r.error).length, errors: report.filter((r) => r.error).length, light: sum((r) => r.lightCount), neutral: sum((r) => r.neutralCount), wide: sum((r) => r.wideCount), low: sum((r) => r.lowCount) };
 }
 
 function summary(report) {
