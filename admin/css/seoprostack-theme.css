@@ -7488,6 +7488,111 @@ html.sps-dark .sct-wrap input[type="checkbox"] {
 	border-color: var(--sps-ui-field-border);
 }
 
+/*
+ * Plugin Groups (Plugins → Plugin Groups, and its filters on Plugins):
+ * Tailwind's .bg-white and greys (--color-gray-*, set on :host), so their
+ * scale is turned over here, on its screen only (Revive.so uses the same
+ * names; --color-white also colours the header's white text, so it stays);
+ * #f6f7f7 buttons, a fixed #f0f0f1 footer (set with two IDs), and #fff
+ * tabs and pills on Plugins. Its green header and buttons keep their colours.
+ */
+html.sps-dark .plugin-groups-main .bg-white {
+	background-color: var(--sps-ui-surface);
+}
+
+html.sps-dark .plugin-groups-main {
+	--color-gray-50: #242b30;
+	--color-gray-100: var(--sps-ui-raised);
+	--color-gray-200: var(--sps-ui-border);
+	--color-gray-300: #50575e;
+	--color-gray-400: #8c8f94;
+	--color-gray-500: var(--sps-ui-subtle);
+	--color-gray-600: var(--sps-ui-muted);
+	--color-gray-700: #dcdcde;
+	--color-gray-800: var(--sps-ui-text);
+	--color-red-50: #33191b;
+	--color-red-200: #6e2b30;
+	--color-red-700: var(--sps-ui-bad);
+	--color-brand-light: #1f2a10;
+}
+
+/* Column heads (#1d2327, a #c3c4c7 line) and their counts (#555 on #ddd; the green one stays). */
+html.sps-dark .plugin-groups-main .section-title {
+	color: var(--sps-ui-text);
+	border-bottom-color: var(--sps-ui-border);
+}
+
+html.sps-dark .plugin-groups-main .count-pill:not(.green) {
+	color: var(--sps-ui-muted);
+	background: var(--sps-ui-border);
+}
+
+/* Picked rows (#eef4e0, set outside its palette) and a row pointed at (#f6f7f7). */
+html.sps-dark .plugin-groups-main :is(.wp-row.selected, .group-row.active-group, .group-row.drag-over) {
+	background-color: #1f2a10;
+}
+
+html.sps-dark .plugin-groups-main .group-row:hover:not(.active-group, .drag-over) {
+	background-color: var(--sps-ui-hover);
+}
+
+html.sps-dark .plugin-groups-main :is(.btn-secondary, .btn-danger) {
+	color: var(--sps-ui-text);
+	background: var(--sps-ui-surface);
+	border-color: var(--sps-ui-field-border);
+}
+
+html.sps-dark .plugin-groups-main .btn-secondary:hover {
+	background: var(--sps-ui-raised);
+	border-color: var(--sps-ui-text);
+}
+
+html.sps-dark .plugin-groups-main .btn-danger {
+	color: var(--sps-ui-bad);
+}
+
+html.sps-dark .plugin-groups-main .btn-danger:hover {
+	background: #33191b;
+	border-color: var(--sps-ui-bad);
+}
+
+html.sps-dark .plugin-groups-main ::-webkit-scrollbar-track {
+	background: var(--sps-ui-surface);
+}
+
+html.sps-dark .plugin-groups-main ::-webkit-scrollbar-thumb {
+	background: #50575e;
+}
+
+html.sps-dark body.plugins_page_plugin-groups #wpwrap #wpfooter {
+	background: var(--sps-ui-canvas);
+	border-top-color: var(--sps-ui-border);
+}
+
+html.sps-dark .plugin-groups :is(.nav-settings.selected, .groups-modern, .groups-pills li a:not(.current, :hover)) {
+	background-color: var(--sps-ui-surface);
+}
+
+html.sps-dark .plugin-groups .groups-modern {
+	border-color: var(--sps-ui-border) var(--sps-ui-surface);
+}
+
+html.sps-dark .plugin-groups .groups-modern li a:is(.current, :hover) {
+	color: var(--sps-ui-text);
+}
+
+html.sps-dark .plugin-groups .groups-modern li :is(a, .count):not(.current, :hover) {
+	color: var(--sps-ui-muted);
+}
+
+html.sps-dark .plugin-groups .groups-modern li a:hover:not(.current) {
+	border-bottom-color: var(--sps-ui-border);
+}
+
+html.sps-dark .plugin-groups .groups-modern li a.current {
+	border-bottom-color: var(--sps-ui-subtle);
+}
+
 /* SEO Pro Stack's additions to WordPress's screens -------------------------- */
 
 /* Plugins: sizes (class-seoprostack-plugin-sizes.php) and page cost (class-seoprostack-plugin-cost.php). */
