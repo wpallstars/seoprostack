@@ -49,7 +49,7 @@ removes `seoprostack_admin_theme`, and `wpallstars_admin_theme` only when no
 other wpallstars plugin is installed. `admin_head` at priority 0 sets `sps-theme-{mode}`
 and `sps-dark` before first paint. All dark overrides require
 `html.sps-dark`; `sps-themechange` on `document` carries `{ mode, dark }`. The
-stylesheet loads only while dark (or on SEO Pro Stack's own screen); the
+whole-admin stylesheet loads only while dark or in System mode; the
 script loads it on the first switch to dark.
 
 The shared header uses `SEOProStack_Admin_Theme` and the starter's
@@ -111,7 +111,9 @@ the screen at once.
   `--wp-admin-theme-color` inside `body`, so WordPress's buttons, fields and
   components take it too. The classic schemes' bright link hover and focus
   (`#0096dd`, 3.3:1) become `#005e8e`. Older browsers keep the scheme's
-  colour. Other screens keep WordPress's own light look.
+  colour. Other screens keep WordPress's own light look. These rules live in
+  `admin/css/seoprostack-tabs.css`, loaded on the settings screen independently
+  of the shared starter palette and the whole-admin stylesheet.
 
 ## Banner and icon
 
