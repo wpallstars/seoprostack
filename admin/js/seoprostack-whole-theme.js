@@ -514,6 +514,8 @@
 	// Classes on <html>, the admin bar icon, its name and the menu's tick.
 	function paint(which) {
 		var nowDark = !!data.applies && isDark(which);
+		// The person's mode, on every screen (head_script()).
+		root.classList.toggle('sps-mode-dark', isDark(which));
 		if (data.applies) {
 			order.forEach(function (value) { root.classList.toggle('sps-theme-' + value, value === which); });
 			root.classList.toggle('sps-dark', nowDark);

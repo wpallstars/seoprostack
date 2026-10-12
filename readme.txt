@@ -5,7 +5,7 @@ Tags: magic login, iframe, schedule posts, auto upload images, admin
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.3.42
+Stable tag: 1.3.43
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -143,9 +143,11 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 
 == Changelog ==
 
-= 1.3.42 =
-* Fix: Dark mode covers the Customizer, Widgets, Menus and the screens of 25 more plugins, such as WooCommerce settings, Tutor LMS, Complianz, Code Snippets and WP-Optimize.
-* New: Bit Social and WP Sheet Editor's spreadsheet open in the colour mode chosen in the admin bar.
-* Fix: Dark mode's contrast fix measures text on WordPress 7's buttons correctly.
+= 1.3.43 =
+* Fix: no white flash in Dark mode while the next admin screen loads after SEO Pro Stats; Rank Math's System Status rows are dark.
+* Fix: Magic login links never skips FluentAuth's authenticator app or passkey step.
+* Fix: Site Health finds and clears Really Simple Security's leftovers after it is deactivated.
+* Fix: Turn off unused remote access puts back its uploads .htaccess blocks when another plugin removes them.
+* Developers: core files synced from WP Plugin Starter, with GitHub updater 1.6.2.
 
 Older: `changelog.txt`.
