@@ -302,13 +302,22 @@ final class SEOProStack_Dark_Fallback {
      */
     private static function later($file, $target, array $how) {
         if (!self::$late) {
-            add_action('shutdown', array(__CLASS__, 'finish'));
+            // Last, after WordPress has flushed the page.
+            add_action('shutdown', array(__CLASS__, 'finish'), PHP_INT_MAX);
         }
         self::$late[$target] = array($file, $how);
     }
 
-    /** Make the copies left to the end of the request, for up to LATE_BUDGET seconds. */
+    /**
+     * Make the copies left to the end of the request, for up to LATE_BUDGET
+     * seconds, after the browser has the whole page where PHP allows it.
+     */
     public static function finish() {
+        if (function_exists('fastcgi_finish_request')) {
+            fastcgi_finish_request();
+        } elseif (function_exists('litespeed_finish_request')) {
+            litespeed_finish_request();
+        }
         $until = microtime(true) + self::LATE_BUDGET;
         foreach (self::$late as $target => $job) {
             if (microtime(true) > $until) {
