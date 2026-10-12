@@ -142,6 +142,9 @@ class SEOProStack_Hardening extends SEOProStack_Feature {
             add_action('wp_ajax_health-check-' . self::TEST, array(__CLASS__, 'ajax_test'));
             add_action('wp_ajax_health-check-' . self::LISTING_TEST, array(__CLASS__, 'ajax_listing_test'));
             add_action('seoprostack_setting_panel', array(__CLASS__, 'panel'), 10, 2);
+            if (is_multisite()) {
+                add_action('seoprostack_network_setting_panel', array(__CLASS__, 'network_panel'));
+            }
         }
         if (!self::enabled()) {
             return;
@@ -368,6 +371,19 @@ class SEOProStack_Hardening extends SEOProStack_Feature {
             echo '<pre class="sps-code">' . esc_html('# BEGIN ' . self::FILES_MARKER . "\n" . implode("\n", self::files_rules()) . "\n# END " . self::FILES_MARKER) . '</pre>';
         }
         echo '</div>';
+    }
+
+    /**
+     * On the network screen (multisite): log and backup files are blocked
+     * for every site from one place.
+     *
+     * @param string $key Setting key.
+     */
+    public static function network_panel($key) {
+        if (self::KEY !== $key) {
+            return;
+        }
+        echo '<div class="sps-panel-note"><p>' . esc_html__('The sites share the main site’s .htaccess files, so the main site’s settings block log and backup files for the whole network.', 'seoprostack') . '</p></div>';
     }
 
     /**

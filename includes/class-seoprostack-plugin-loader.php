@@ -396,6 +396,33 @@ final class SEOProStack_Plugin_Loader {
     private static $unlisted = array('shortcodes' => array(), 'blocks' => array());
 
     /**
+     * SEO Pro Stack's stored settings, with the values the network applies
+     * to every site in place of the site's own (multisite), as
+     * SEOProStack_Settings::all() reads them: that class is not loaded when
+     * the must-use file runs. Without defaults, which the first migration
+     * stores. Both options are cached for the rest of the request.
+     *
+     * @return array
+     */
+    public static function options() {
+        $options = get_option('seoprostack_options', array());
+        $options = is_array($options) ? $options : array();
+        if (!is_multisite()) {
+            return $options;
+        }
+        // SEOProStack_Network_Settings::OPTION: the values of each card
+        // applied to every site are in 'enforced', by card.
+        $network = get_site_option('seoprostack_network', array());
+        $cards   = is_array($network) && isset($network['enforced']) && is_array($network['enforced']) ? $network['enforced'] : array();
+        foreach ($cards as $values) {
+            if (is_array($values)) {
+                $options = array_merge($options, $values);
+            }
+        }
+        return $options;
+    }
+
+    /**
      * Start: decide whether this request may be filtered.
      *
      * @param string $self SEO Pro Stack's plugin file, such as "seoprostack/seoprostack.php".
@@ -431,11 +458,11 @@ final class SEOProStack_Plugin_Loader {
             }
         }
 
-        $options = get_option('seoprostack_options', array());
+        $options = self::options();
         // Plugins often save options while their files load, before
         // SEO Pro Stack's features start: Hosting needs counts those writes
         // and Ask before licence checks keeps known licence timestamps.
-        if (is_array($options) && (!empty($options['hosting_needs']) || !empty($options['licence_calls']))) {
+        if (!empty($options['hosting_needs']) || !empty($options['licence_calls'])) {
             require_once __DIR__ . '/class-seoprostack-option-writes.php';
             if (!empty($options['hosting_needs'])) {
                 SEOProStack_Option_Writes::watch();
@@ -444,7 +471,7 @@ final class SEOProStack_Plugin_Loader {
                 SEOProStack_Option_Writes::keep();
             }
         }
-        if (!is_array($options) || empty($options[self::SWITCH_KEY])) {
+        if (empty($options[self::SWITCH_KEY])) {
             return;
         }
         if (!is_admin()) {
@@ -1562,7 +1589,7 @@ final class SEOProStack_Plugin_Loader {
     private static function plugins_for_screen($screen, array $chosen) {
         $map    = self::$map;
         $deps   = $map['deps'];
-        $options = get_option('seoprostack_options', array());
+        $options = self::options();
         $always = array_merge(array(self::$self), $map['always'], (array) ($map['permissions'] ?? array()), (array) ($options[self::ADMIN_KEEP_KEY] ?? array()));
 
         // Ticked plugins, plus unticked ones that need a ticked plugin.

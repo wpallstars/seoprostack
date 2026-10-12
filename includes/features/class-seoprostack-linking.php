@@ -40,7 +40,8 @@ class SEOProStack_Linking extends SEOProStack_Feature {
         }
         add_action(SEOProStack_Link_Clicks::PRUNE, array('SEOProStack_Link_Clicks', 'prune'));
         add_action(SEOProStack_Link_Clicks::PRUNE_MORE, array('SEOProStack_Link_Clicks', 'prune'));
-        add_action('update_option_' . SEOProStack_Settings::OPTION, array(__CLASS__, 'settings_saved'), 10, 2);
+        // Also the network's changes (multisite), which update_option misses.
+        add_action('seoprostack_settings_changed', array(__CLASS__, 'settings_saved'), 10, 2);
         if (is_admin()) {
             add_action('admin_menu', array(__CLASS__, 'menu'));
             add_action('admin_enqueue_scripts', array(__CLASS__, 'assets'));

@@ -199,7 +199,8 @@ class SEOProStack_Short_Links extends SEOProStack_Feature {
             add_action('seoprostack_setting_panel', array(__CLASS__, 'panel_status'), 10, 2);
         }
         // Switched off: drop the autoloaded list; it is rebuilt when needed.
-        add_action('update_option_' . SEOProStack_Settings::OPTION, array(__CLASS__, 'settings_saved'), 10, 2);
+        // Also by the network (multisite), which update_option misses.
+        add_action('seoprostack_settings_changed', array(__CLASS__, 'settings_saved'), 10, 2);
         if (defined('WP_CLI') && WP_CLI && class_exists('WP_CLI')) {
             WP_CLI::add_command('seoprostack short-links import', array(__CLASS__, 'cli_import'));
         }

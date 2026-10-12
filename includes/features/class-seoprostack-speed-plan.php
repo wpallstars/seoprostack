@@ -241,6 +241,9 @@ class SEOProStack_Speed_Plan extends SEOProStack_Feature {
                 unset($items[$key]);
             } elseif (SEOProStack_Settings::get($key)) {
                 $items[$key]['state'] = 'on';
+            } elseif (SEOProStack_Network_Settings::is_enforced($key)) {
+                // Multisite: the site cannot change what the network sets.
+                $items[$key] = array('state' => 'skip', 'why' => __('The network administrator sets this for every site.', 'seoprostack'), 'cost' => '');
             }
         }
         return $items;
@@ -292,13 +295,17 @@ class SEOProStack_Speed_Plan extends SEOProStack_Feature {
 
     /**
      * Index of the log entry Undo would reverse for a setting, if any: its
-     * latest, not yet undone, with the setting still at the plan's value.
+     * latest, not yet undone, with the setting still at the plan's value
+     * and not set by the network (multisite).
      *
      * @param string $key Setting key.
      * @param array  $log Log.
      * @return int|null
      */
     private static function undoable($key, array $log) {
+        if (SEOProStack_Network_Settings::is_enforced($key)) {
+            return null; // Multisite: the network sets it for every site.
+        }
         for ($i = count($log) - 1; $i >= 0; $i--) {
             if ($key !== $log[$i]['key']) {
                 continue;

@@ -288,7 +288,9 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
             ),
             // The feature decides; these are bypasses for a plugin or theme
             // it does not handle, so they sit closed under Troubleshooting
-            // (GitHub issue #514), opening when one is in use.
+            // (GitHub issue #514), opening when one is in use. The plugin
+            // lists are each site's own fixes, from the plugins active
+            // there: the network never sets them (multisite).
             self::LIST_KEY => array(
                 'type'        => 'multi',
                 'default'     => array(),
@@ -297,6 +299,7 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
                 'label'       => __('Always load these plugins', 'seoprostack'),
                 'description' => __('If a box, field or menu entry is missing in wp-admin, or a screen breaks, add the plugin it belongs to. For a one-off problem, use the reload links in the admin bar Plugins menu instead.', 'seoprostack'),
                 'options'     => array(__CLASS__, 'plugin_options'),
+                'network'     => false,
             ),
             SEOProStack_Plugin_Loader::KEEP_KEY => array(
                 'type'        => 'multi',
@@ -306,6 +309,7 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
                 'label'       => __('Always load these plugins on the site', 'seoprostack'),
                 'description' => __('If something a plugin shows on the site is missing, add that plugin.', 'seoprostack'),
                 'options'     => array(__CLASS__, 'plugin_options'),
+                'network'     => false,
             ),
             self::FRONT_USERS_KEY => array(
                 'type'        => 'bool',
@@ -331,6 +335,7 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
                 'label'       => __('Plugins to skip on the site', 'seoprostack'),
                 'description' => __('Skipped automatically, after learning: plugins with nothing seen on the site, on plain page views, and, for visitors, plugins that only add to the admin bar. Logins, sending forms, background tasks and addresses with extra arguments still load every plugin, and so does a plugin that another loading plugin needs. If a page of the site failed after a plugin was ticked here, untick it.', 'seoprostack'),
                 'options'     => array(__CLASS__, 'front_plugin_options'),
+                'network'     => false,
             ),
         );
     }
@@ -383,7 +388,11 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
         add_action('updated_option', array(__CLASS__, 'front_option_changed'), 10, 1);
         add_action('added_option', array(__CLASS__, 'front_option_changed'), 10, 1);
         add_action('deleted_option', array(__CLASS__, 'front_option_changed'), 10, 1);
+        add_action('seoprostack_settings_changed', array(__CLASS__, 'network_changed'), 10, 0);
         add_action('seoprostack_setting_panel', array(__CLASS__, 'panel_status'), 10, 2);
+        if (is_multisite()) {
+            add_action('seoprostack_network_setting_panel', array(__CLASS__, 'network_panel'));
+        }
         add_filter('seoprostack_troubleshooting_open', array(__CLASS__, 'troubleshooting_open'), 10, 2);
         if (is_admin()) {
             add_action('admin_init', array(__CLASS__, 'maybe_sync'));
@@ -873,6 +882,19 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
         }
         natcasesort($options);
         return $options;
+    }
+
+    /**
+     * On the network screen (multisite): one must-use file serves every
+     * site, and plugins activated for the network always load.
+     *
+     * @param string $key Setting key.
+     */
+    public static function network_panel($key) {
+        if (self::KEY !== $key) {
+            return;
+        }
+        echo '<div class="sps-panel-note"><p>' . esc_html__('One must-use file serves every site and skips plugins only on sites where this is on. Plugins activated for the whole network always load: while this is on for the main site, the Network Plugins screen offers to activate them on each site instead, so they can be left out where they are not used.', 'seoprostack') . '</p></div>';
     }
 
     /**
@@ -1809,6 +1831,18 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
         }
         self::$forget_cause = self::$forget_cause ?? array('hook' => (string) current_filter(), 'key' => (string) $name);
         self::forget_front();
+    }
+
+    /**
+     * The network changed this site's settings (multisite, on the site's
+     * next admin, cron or WP-CLI request): forget page ownership, as when
+     * the site's own settings are saved. Those changes leave the site's
+     * option as it was, so front_option_changed() does not see them.
+     */
+    public static function network_changed() {
+        if (SEOProStack_Network_Sites::syncing()) {
+            self::front_option_changed(SEOProStack_Settings::OPTION);
+        }
     }
 
     /**

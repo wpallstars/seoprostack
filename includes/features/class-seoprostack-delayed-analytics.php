@@ -45,6 +45,8 @@ class SEOProStack_Delayed_Analytics extends SEOProStack_Feature {
                 'label'       => __('Measurement ID', 'seoprostack'),
                 'description' => __('Starts with G-, from Google Analytics › Admin › Data streams.', 'seoprostack'),
                 'placeholder' => 'G-XXXXXXXXXX',
+                // Each site's own data stream: the network never sets it (multisite).
+                'network'     => false,
             ),
             'delayed_analytics_timeout' => array(
                 'type'    => 'int',

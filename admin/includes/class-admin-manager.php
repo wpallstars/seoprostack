@@ -17,6 +17,11 @@
  * plugin's own screens show the same header with enqueue_header() and
  * render_header().
  *
+ * On multisite the network admin has the same screen at Network Admin →
+ * Settings → SEO Pro Stack (SEOProStack_Network_Manager), drawn by the
+ * same code: its cards save network values. page_url() and tab_url() give
+ * its addresses there.
+ *
  * SPDX-License-Identifier: GPL-3.0-or-later
  * SPDX-FileCopyrightText: 2026 Marcus Quinn
  * Additional terms (GPL-3.0 section 7(b)): ATTRIBUTION.txt
@@ -78,21 +83,25 @@ class SEOProStack_Admin_Manager {
     }
 
     /**
-     * Admin file the screen's address uses.
+     * Admin file the screen's address uses, on every site (the network
+     * screen links to it on each site).
      *
      * @return string
      */
-    private static function screen_file() {
+    public static function screen_file() {
         return 'options-general.php' === self::parent() ? 'options-general.php' : 'admin.php';
     }
 
     /**
-     * Address of the screen.
+     * Address of the screen: the network screen in the network admin.
      *
      * @param array $args Extra query args.
      * @return string
      */
     public static function page_url(array $args = array()) {
+        if (is_network_admin()) {
+            return SEOProStack_Network_Manager::page_url($args);
+        }
         return add_query_arg(array_merge(array('page' => self::PAGE), $args), admin_url(self::screen_file()));
     }
 
@@ -119,9 +128,12 @@ class SEOProStack_Admin_Manager {
 
     /**
      * Registered tabs. Settings tabs and Read Me preload: they are drawn
-     * with the other tabs of their group (page_tabs()).
+     * with the other tabs of their group (page_tabs()). The network screen
+     * shows only tabs marked 'network' => true: settings tabs with
+     * settings the network can set (SEOProStack_Settings_Manager::fields_for_tab()),
+     * and Read Me.
      *
-     * @return array<string,array{label:string,group:string,render:callable,preload?:bool,capability?:string}>
+     * @return array<string,array{label:string,group:string,render:callable,preload?:bool,capability?:string,network?:bool}>
      */
     public static function get_tabs() {
         $tabs = array();
@@ -132,13 +144,13 @@ class SEOProStack_Admin_Manager {
         $settings_tabs = self::settings_tabs();
         $has_settings  = false;
         foreach (array_keys($settings_tabs) as $slug) {
-            if (SEOProStack_Settings::fields_for_tab($slug)) {
+            if (SEOProStack_Settings_Manager::fields_for_tab($slug)) {
                 $has_settings = true;
                 break;
             }
         }
         foreach ($settings_tabs as $slug => $tab) {
-            if ($has_settings && !SEOProStack_Settings::fields_for_tab($slug)) {
+            if ($has_settings && !SEOProStack_Settings_Manager::fields_for_tab($slug)) {
                 continue;
             }
             if (!$has_settings && $tabs) {
@@ -148,6 +160,7 @@ class SEOProStack_Admin_Manager {
                 'label'   => $tab['label'],
                 'group'   => 'settings',
                 'preload' => true,
+                'network' => true,
                 'render'  => function () use ($slug, $tab) {
                     SEOProStack_Settings_Manager::render_tab($slug, $tab['label'], $tab['description']);
                 },
@@ -159,6 +172,7 @@ class SEOProStack_Admin_Manager {
                 'label'   => __('Read Me', 'seoprostack'),
                 'group'   => 'about',
                 'preload' => true,
+                'network' => true,
                 'render'  => array('SEOProStack_Readme_Manager', 'display_tab_content'),
             ),
         );
@@ -170,13 +184,19 @@ class SEOProStack_Admin_Manager {
          *                    render callback, optional capability, optional
          *                    preload (true: drawn with the other tabs of its
          *                    group, so switching to it is instant; its script
-         *                    must then work while its panel is hidden).
+         *                    must then work while its panel is hidden),
+         *                    optional network (true: also on the network
+         *                    screen, multisite; its render callback then runs
+         *                    in the network admin, where is_network_admin()
+         *                    is true).
          */
         $tabs = (array) apply_filters('seoprostack_admin_tabs', $tabs);
 
-        // Hide tabs the current user cannot use.
-        return array_filter($tabs, function ($tab) {
-            return empty($tab['capability']) || current_user_can($tab['capability']);
+        // Hide tabs the current user cannot use, and on the network screen
+        // tabs that are only for sites.
+        $network = is_network_admin();
+        return array_filter($tabs, function ($tab) use ($network) {
+            return (empty($tab['capability']) || current_user_can($tab['capability'])) && (!$network || !empty($tab['network']));
         });
     }
 
@@ -281,10 +301,8 @@ class SEOProStack_Admin_Manager {
         }
         self::$hook = is_string($hook) ? $hook : '';
         if ('' !== self::$hook) {
-            // The browser title names the tab shown (SEOProStack_Admin_Page::title_section()).
-            add_action('load-' . self::$hook, function () {
-                SEOProStack_Admin_Page::title_section(SEOProStack_Admin_Page::tab_label(self::get_active_tab(), self::get_tabs()));
-            });
+            // The browser title names the tab shown.
+            add_action('load-' . self::$hook, array('SEOProStack_Admin_Page', 'title_tab'));
         }
     }
 
@@ -333,7 +351,8 @@ class SEOProStack_Admin_Manager {
      * @param string $hook Current admin page hook.
      */
     public static function enqueue_assets($hook) {
-        if (self::hook() !== $hook) {
+        $network = is_network_admin();
+        if ($network ? SEOProStack_Network_Manager::hook() !== $hook : self::hook() !== $hook) {
             return;
         }
 
@@ -357,7 +376,8 @@ class SEOProStack_Admin_Manager {
         }
         $deps = array_values(array_unique(array_filter(array_map('strval', $deps))));
 
-        foreach ($page_tabs as $page_tab) {
+        // The network screen has no media fields (each site has its own pictures).
+        foreach ($network ? array() : $page_tabs as $page_tab) {
             if (self::shows_media_field($page_tab)) {
                 wp_enqueue_media();
                 break;
@@ -370,7 +390,9 @@ class SEOProStack_Admin_Manager {
         /**
          * Filter the data the admin script reads (seoprostackAdmin). Its tab
          * follows the tab shown; tabs lists the tabs drawn on the page, and
-         * titles their browser titles (SEOProStack_Admin_Page::page_titles()).
+         * titles their browser titles (SEOProStack_Admin_Page::page_titles());
+         * network is true on the network screen, whose cards save network
+         * values.
          *
          * @param array  $data Script data.
          * @param string $tab  Active tab.
@@ -381,12 +403,14 @@ class SEOProStack_Admin_Manager {
             'tab'     => $tab,
             'tabs'    => $page_tabs,
             'titles'  => SEOProStack_Admin_Page::page_titles($page_tabs, self::get_tabs()),
+            'network' => $network,
             'i18n'    => array(
                 'saving'      => __('Saving…', 'seoprostack'),
                 'saved'       => __('Saved', 'seoprostack'),
                 'saveFailed'  => __('Could not save. Please try again.', 'seoprostack'),
                 'chooseImage' => __('Choose a picture', 'seoprostack'),
                 'useImage'    => __('Use this picture', 'seoprostack'),
+                'copyConfirm' => __('Copy these settings into every site’s own settings? Each site can change them again afterwards, unless they are applied to every site.', 'seoprostack'),
             ),
         ), $tab));
 
@@ -433,10 +457,11 @@ class SEOProStack_Admin_Manager {
 
     /**
      * Render the page chrome and the tabs drawn on the page (page_tabs()),
-     * each in its own panel; only the active tab's shows.
+     * each in its own panel; only the active tab's shows. The network
+     * screen is the same page in the network admin.
      */
     public static function render_settings_page() {
-        if (!current_user_can('manage_options')) {
+        if (!current_user_can(is_network_admin() ? 'manage_network_options' : 'manage_options')) {
             return;
         }
 

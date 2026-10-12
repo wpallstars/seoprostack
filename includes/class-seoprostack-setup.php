@@ -583,7 +583,9 @@ final class SEOProStack_Setup {
     }
 
     /**
-     * Discover tabs: themes, plugins, hosting and tools.
+     * Discover tabs: themes, plugins, hosting and tools. The directories of
+     * links are also on the network screen (multisite); Theme and Free
+     * Plugins activate for one site, so they stay on each site's screen.
      *
      * @param array $tabs Tabs keyed by slug.
      * @return array
@@ -604,19 +606,22 @@ final class SEOProStack_Setup {
                 'capability' => 'install_plugins',
             ),
             'pro' => array(
-                'label'  => __('Pro Plugins', 'seoprostack'),
-                'group'  => 'discover',
-                'render' => array('SEOProStack_Pro_Plugins_Manager', 'display_tab_content'),
+                'label'   => __('Pro Plugins', 'seoprostack'),
+                'group'   => 'discover',
+                'render'  => array('SEOProStack_Pro_Plugins_Manager', 'display_tab_content'),
+                'network' => true,
             ),
             'hosting' => array(
-                'label'  => __('Hosting', 'seoprostack'),
-                'group'  => 'discover',
-                'render' => array('SEOProStack_Hosting_Manager', 'display_tab_content'),
+                'label'   => __('Hosting', 'seoprostack'),
+                'group'   => 'discover',
+                'render'  => array('SEOProStack_Hosting_Manager', 'display_tab_content'),
+                'network' => true,
             ),
             'tools' => array(
-                'label'  => __('Tools', 'seoprostack'),
-                'group'  => 'discover',
-                'render' => array('SEOProStack_Tools_Manager', 'display_tab_content'),
+                'label'   => __('Tools', 'seoprostack'),
+                'group'   => 'discover',
+                'render'  => array('SEOProStack_Tools_Manager', 'display_tab_content'),
+                'network' => true,
             ),
         ));
     }
