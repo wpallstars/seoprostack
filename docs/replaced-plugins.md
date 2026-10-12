@@ -30,3 +30,24 @@ validation. AJAX submission, hideFormAfterSubmit and the plugin’s redirection
 rules and Pro features are not reproduced. No editor assets are registered,
 and an active replaced plugin or an existing block registration is left alone.
 Magic Login is not listed in Free Plugins, so there is no recommendation to remove.
+
+## Really Simple Security
+
+HTTPS and security headers replaces its free, Pro and Pro Multisite versions
+in part. Tools → Site Health checks leftover auto-prepend blocks in the root
+`.htaccess` and `.user.ini`, a non-stub `wp-content/advanced-headers.php`,
+directory-indexing and uploads rules, and `rsssl_*` scheduled tasks. On a
+network it checks the current and main sites; the explicit cleanup checks
+every site's activation lists first, then clears scheduled tasks in batches
+of 50 sites, with a Continue button between requests.
+Each phase resumes after its last processed site ID, so deleting an earlier
+site cannot skip later sites. This is a live scan, not a fixed snapshot of
+sites created during cleanup.
+
+Cleanup requires a nonce and `manage_options` (on multisite,
+`manage_network_options`), and refuses while any replaced version is active.
+It keeps Really Simple Security's own headers stub so cached prepend paths
+still load, clears only its exact marked blocks (core's marker writer may
+leave empty markers), and keeps the HTTPS redirect. It never edits
+`wp-config.php` or any plugin's settings. Unreadable, unwritable, symlinked
+or incomplete blocks are not silently reported as cleared.
