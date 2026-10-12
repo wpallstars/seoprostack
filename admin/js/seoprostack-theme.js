@@ -758,6 +758,8 @@
 		var follow = function () {
 			if (mode === 'system') {
 				apply('system');
+				// Bit Social and Fluent's fs-theme keep the computer's mode itself, so they follow it too.
+				shareMode('system');
 			}
 		};
 		if (media.addEventListener) {

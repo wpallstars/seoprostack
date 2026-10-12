@@ -40,7 +40,15 @@
 		if (!m) {
 			return null;
 		}
-		var p = m[1].split(/[\s,/]+/).filter(Boolean).map(parseFloat);
+		var parts = m[1].split(/[\s,/]+/).filter(Boolean);
+		// Only plain channel numbers (as styles read back give them); any other form keeps its colour.
+		if (parts.length < 3 || parts.some(function (part) { return part.indexOf('%') !== -1; })) {
+			return null;
+		}
+		var p = parts.map(Number);
+		if (!p.every(isFinite)) {
+			return null;
+		}
 		return { r: p[0], g: p[1], b: p[2], a: p.length > 3 ? p[3] : 1 };
 	}
 	function chroma(c) {
