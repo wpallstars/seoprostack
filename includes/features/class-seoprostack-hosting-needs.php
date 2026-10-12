@@ -1508,11 +1508,12 @@ class SEOProStack_Hosting_Needs extends SEOProStack_Feature {
             foreach (SEOProStack_Autoload_Options::largest() as $option) {
                 $largest[] = $option['option_name'] . ' (' . self::size($option['bytes']) . ')';
             }
-            $advice[] = array('recommended', sprintf(
+            // That setting is for single sites only (multisite).
+            $advice[] = array('recommended', is_multisite()
                 /* translators: %s: three option names and sizes. */
-                __('Largest settings: %s. “Load large settings only where they are used” on the Speed tab can learn which to stop loading on site pages. Turn it off to undo its changes.', 'seoprostack'),
-                implode(', ', $largest)
-            ));
+                ? sprintf(__('Largest settings: %s.', 'seoprostack'), implode(', ', $largest))
+                /* translators: %s: three option names and sizes. */
+                : sprintf(__('Largest settings: %s. “Load large settings only where they are used” on the Server tab can learn which to stop loading on site pages. Turn it off to undo its changes.', 'seoprostack'), implode(', ', $largest)));
         }
         $runs = self::php_runs();
         if ('recommended' === $runs['status']) {

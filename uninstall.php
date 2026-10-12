@@ -50,6 +50,11 @@ function seoprostack_uninstall_site() {
         // The settings save lock, if a save stopped before releasing it.
         'seoprostack_options_lock',
         'seoprostack_db_version',
+        // Multisite: the network changes this site last ran its saving work
+        // for, and the network option's save lock (main site only), if a
+        // save stopped.
+        'seoprostack_network_seen',
+        'seoprostack_network_lock',
         // Development builds released as "WP Allstars".
         'wp_allstars_options',
         'wp_allstars_db_version',
@@ -405,6 +410,8 @@ if (is_multisite()) {
         seoprostack_uninstall_site();
         restore_current_blog();
     }
+    // The network screen's settings (SEOProStack_Network_Settings).
+    delete_site_option('seoprostack_network');
 } else {
     seoprostack_uninstall_site();
 }

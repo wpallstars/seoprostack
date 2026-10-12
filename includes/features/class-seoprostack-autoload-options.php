@@ -37,6 +37,10 @@ final class SEOProStack_Autoload_Options extends SEOProStack_Feature {
     private static $generation = '';
 
     public static function settings() {
+        // Single sites only (boot()): no switch on a network, where it would do nothing.
+        if (is_multisite()) {
+            return array();
+        }
         return array(self::KEY => array(
             'type' => 'bool',
             'default' => true,
@@ -50,7 +54,7 @@ final class SEOProStack_Autoload_Options extends SEOProStack_Feature {
         if (is_multisite()) {
             return;
         }
-        add_action('update_option_seoprostack_options', array(__CLASS__, 'settings_saved'), 10, 2);
+        add_action('seoprostack_settings_changed', array(__CLASS__, 'settings_saved'), 10, 2);
         add_action('seoprostack_settings_tab_after', array(__CLASS__, 'render'));
         register_deactivation_hook(SEOPROSTACK_FILE, array(__CLASS__, 'stop'));
         add_action('activated_plugin', array(__CLASS__, 'stop'));

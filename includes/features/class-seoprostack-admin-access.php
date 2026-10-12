@@ -59,6 +59,9 @@ class SEOProStack_Admin_Access extends SEOProStack_Feature {
                 'description' => __('Hide the toolbar on the front end for roles that never need the admin, such as subscribers and customers. Administrators always keep it.', 'seoprostack'),
                 'replaces'    => $replace,
             ),
+            // The role lists follow the roles each site's plugins add
+            // (sync_roles()), and "Send them to" is a page of the site, so
+            // the network sets only the switches (multisite).
             'hide_admin_bar_roles' => array(
                 'type'        => 'multi',
                 'default'     => $default,
@@ -66,6 +69,7 @@ class SEOProStack_Admin_Access extends SEOProStack_Feature {
                 'label'       => __('Hide it for', 'seoprostack'),
                 'description' => __('Roles that do not see the admin bar.', 'seoprostack') . ' ' . $later,
                 'options'     => $roles,
+                'network'     => false,
             ),
             self::DASHBOARD_KEY => array(
                 'type'        => 'bool',
@@ -82,6 +86,7 @@ class SEOProStack_Admin_Access extends SEOProStack_Feature {
                 'label'       => __('Block it for', 'seoprostack'),
                 'description' => __('Roles that cannot open the dashboard.', 'seoprostack') . ' ' . $later,
                 'options'     => $roles,
+                'network'     => false,
             ),
             'restrict_dashboard_redirect' => array(
                 'type'        => 'url',
@@ -90,6 +95,7 @@ class SEOProStack_Admin_Access extends SEOProStack_Feature {
                 'label'       => __('Send them to', 'seoprostack'),
                 'placeholder' => '/my-account/',
                 'description' => __('A page on this site, such as /my-account/. Leave empty for the home page. With WooCommerce, its My Account page is filled in.', 'seoprostack'),
+                'network'     => false,
             ),
         );
     }

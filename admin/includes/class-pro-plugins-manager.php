@@ -30,7 +30,9 @@ class SEOProStack_Pro_Plugins_Manager {
      */
     public static function display_tab_content() {
         SEOProStack_Link_Cards::render(self::get_pro_plugins(), 'pro', array(
-            'intro'        => __('Premium upgrades we rely on. Badges show when the free version is already on this site.', 'seoprostack'),
+            'intro'        => is_network_admin()
+                ? __('Premium upgrades we rely on. Badges show when the free version is already on the network.', 'seoprostack')
+                : __('Premium upgrades we rely on. Badges show when the free version is already on this site.', 'seoprostack'),
             'search_label' => __('Filter pro plugins…', 'seoprostack'),
         ));
     }

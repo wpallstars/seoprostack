@@ -13,7 +13,9 @@
  * is furthest right. The order is built for whichever applies.
  *
  * Also adds a star next to the account menu that opens SEO Pro Stack's
- * settings, for people who can change them.
+ * settings, for people who can change them. On a network (multisite) it
+ * opens the network screen in the network admin, and on each site it has
+ * a Network settings link for people who can manage the network.
  *
  * SPDX-License-Identifier: GPL-3.0-or-later
  * SPDX-FileCopyrightText: 2026 Marcus Quinn
@@ -63,10 +65,11 @@ final class SEOProStack_Admin_Bar {
     }
 
     /**
-     * Add the star for people who can change SEO Pro Stack's settings.
+     * Add the star for people who can change SEO Pro Stack's settings, or
+     * in the network admin the network's (multisite).
      */
     public static function star_init() {
-        if (is_network_admin() || !SEOProStack_Settings::can_change()) {
+        if (is_network_admin() ? !current_user_can('manage_network_options') : !SEOProStack_Settings::can_change()) {
             return;
         }
         /**
@@ -86,18 +89,50 @@ final class SEOProStack_Admin_Bar {
     }
 
     /**
-     * The star.
+     * The star: the site's settings, or in the network admin the network's.
      *
      * @param WP_Admin_Bar $bar Admin bar.
      */
     public static function star($bar) {
+        $network = is_network_admin();
         $bar->add_node(array(
             'id'     => self::STAR,
             'parent' => 'top-secondary',
             'title'  => '<span class="ab-icon" aria-hidden="true"></span><span class="screen-reader-text">' . esc_html__('SEO Pro Stack', 'seoprostack') . '</span>',
-            'href'   => admin_url('options-general.php?page=seoprostack'),
+            'href'   => $network ? network_admin_url('settings.php?page=seoprostack') : admin_url('options-general.php?page=seoprostack'),
             'meta'   => array('title' => __('SEO Pro Stack', 'seoprostack')),
         ));
+        if (!$network && current_user_can('manage_network_options') && self::network_screen()) {
+            $bar->add_node(array(
+                'id'     => self::STAR . '-network',
+                'parent' => self::STAR,
+                'title'  => esc_html__('Network settings', 'seoprostack'),
+                'href'   => network_admin_url('settings.php?page=seoprostack'),
+            ));
+        }
+    }
+
+    /**
+     * Whether the network has SEO Pro Stack's network screen (multisite):
+     * SEO Pro Stack runs in the network admin when it is active for the
+     * network or on the main site.
+     *
+     * @return bool
+     */
+    private static function network_screen() {
+        if (!is_multisite()) {
+            return false;
+        }
+        if (is_main_site()) {
+            return true; // Running here, so also in the network admin.
+        }
+        $file    = plugin_basename(SEOPROSTACK_FILE);
+        $network = get_site_option('active_sitewide_plugins', array());
+        if (is_array($network) && isset($network[$file])) {
+            return true;
+        }
+        $main = get_blog_option(get_main_site_id(), 'active_plugins', array());
+        return is_array($main) && in_array($file, $main, true);
     }
 
     /**

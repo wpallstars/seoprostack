@@ -135,23 +135,30 @@ class SEOProStack_Link_Cards {
             }
         }
 
-        // free_slug may be one slug or a list of related free plugins.
-        $found  = false;
-        $active = false;
+        // free_slug may be one slug or a list of related free plugins. On
+        // the network screen (multisite), active means for the whole network.
+        $network = is_network_admin();
+        $found   = false;
+        $active  = false;
         foreach ((array) $item['free_slug'] as $slug) {
             if (is_string($slug) && isset($installed[$slug])) {
                 $found  = true;
-                $active = $active || SEOProStack_Plugin_Loader::is_active($installed[$slug]);
+                $active = $active || ($network ? is_plugin_active_for_network($installed[$slug]) : SEOProStack_Plugin_Loader::is_active($installed[$slug]));
             }
         }
         if (!$found) {
             return '';
         }
 
+        if ($active) {
+            $text = $network ? __('Free version network active', 'seoprostack') : __('Free version active', 'seoprostack');
+        } else {
+            $text = __('Free version installed', 'seoprostack');
+        }
         return sprintf(
             '<span class="sps-badge %1$s">%2$s</span>',
             $active ? 'sps-badge--success' : '',
-            esc_html($active ? __('Free version active', 'seoprostack') : __('Free version installed', 'seoprostack'))
+            esc_html($text)
         );
     }
 }

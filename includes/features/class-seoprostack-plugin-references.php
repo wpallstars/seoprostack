@@ -74,11 +74,14 @@ class SEOProStack_Plugin_References extends SEOProStack_Feature {
         if (!is_admin()) {
             return;
         }
-        // The button works whether the switch is on or off.
+        // The button works whether the switch is on or off: in the card's
+        // options on each site, and on the network screen's Plugins tab.
         if (is_multisite()) {
             add_action('seoprostack_setting_panel', array(__CLASS__, 'panel'), 10, 2);
+            add_action('seoprostack_network_settings_tab_after', array(__CLASS__, 'network_section'));
             add_action('admin_post_' . self::NETWORK_ACTION, array(__CLASS__, 'clean_network'));
             add_action('admin_notices', array(__CLASS__, 'network_notice'));
+            add_action('network_admin_notices', array(__CLASS__, 'network_notice'));
         }
         if (!self::enabled()) {
             return;
@@ -137,13 +140,20 @@ class SEOProStack_Plugin_References extends SEOProStack_Feature {
         }
 
         $removed = array();
+        $changed = false;
         foreach (array_keys($value) as $file) {
             if (!self::exists($file)) {
                 unset($value[$file]);
-                $removed[] = (string) $file;
+                $changed = true;
+                // Plugin files are text keys. A number key is not a plugin:
+                // WordPress leaves 0 => false in recently_activated when it
+                // was empty before a deactivation. Removed, but not named.
+                if (is_string($file)) {
+                    $removed[] = $file;
+                }
             }
         }
-        if ($removed) {
+        if ($changed) {
             if ($network) {
                 update_site_option($option, $value);
             } else {
@@ -168,15 +178,41 @@ class SEOProStack_Plugin_References extends SEOProStack_Feature {
             echo '<p>' . esc_html__('Only network administrators can clean up every site of the network.', 'seoprostack') . '</p></div>';
             return;
         }
+        self::clean_form('site');
+        echo '</div>';
+    }
+
+    /**
+     * On the network screen's Plugins tab: Clean up every site now, which
+     * is for the whole network.
+     *
+     * @param string $tab Tab slug.
+     */
+    public static function network_section($tab) {
+        if ('plugins' !== $tab || !current_user_can('manage_network_plugins')) {
+            return;
+        }
+        echo '<div class="sps-examples" id="sps-clean-up-sites">';
+        echo '<h2 class="sps-section__title">' . esc_html__('Clean up deleted plugins on every site', 'seoprostack') . '</h2>';
+        self::clean_form('network');
+        echo '</div>';
+    }
+
+    /**
+     * What Clean up every site now does, and its button.
+     *
+     * @param string $screen Where it is: site or network (the screen to come back to).
+     */
+    private static function clean_form($screen) {
         echo '<p>' . esc_html__('Plugins screens of most sites are rarely opened, so leftovers of deleted plugins can stay there. This checks every site of the network now and removes entries for plugins whose files are gone, active ones included, as WordPress does on the Plugins screen.', 'seoprostack') . '</p>';
         printf(
-            '<form method="post" action="%1$s"><input type="hidden" name="action" value="%2$s" />',
+            '<form method="post" action="%1$s"><input type="hidden" name="action" value="%2$s" /><input type="hidden" name="screen" value="%3$s" />',
             esc_url(admin_url('admin-post.php')),
-            esc_attr(self::NETWORK_ACTION)
+            esc_attr(self::NETWORK_ACTION),
+            esc_attr($screen)
         );
         wp_nonce_field(self::NETWORK_ACTION);
         printf('<p><button type="submit" class="button">%s</button></p></form>', esc_html__('Clean up every site now', 'seoprostack'));
-        echo '</div>';
     }
 
     /**
@@ -215,7 +251,9 @@ class SEOProStack_Plugin_References extends SEOProStack_Feature {
             'sites'  => count($sites),
             'capped' => $capped,
         ), 5 * MINUTE_IN_SECONDS);
-        wp_safe_redirect(admin_url('options-general.php?page=seoprostack&tab=plugins'));
+        // Back to the screen the button was on (clean_form()).
+        $network = isset($_POST['screen']) && 'network' === sanitize_key(wp_unslash($_POST['screen']));
+        wp_safe_redirect($network ? network_admin_url('settings.php?page=seoprostack&tab=plugins') : admin_url('options-general.php?page=seoprostack&tab=plugins'));
         exit;
     }
 
@@ -230,8 +268,8 @@ class SEOProStack_Plugin_References extends SEOProStack_Feature {
         }
         delete_transient($key);
 
-        $names = isset($result['names']) ? (array) $result['names'] : array();
-        $sites = isset($result['sites']) ? (int) $result['sites'] : 0;
+        $names = (array) ($result['names'] ?? array());
+        $sites = (int) ($result['sites'] ?? 0);
         /* translators: %s: number of sites */
         $text = sprintf(_n('Checked %s site.', 'Checked %s sites.', $sites, 'seoprostack'), number_format_i18n($sites));
         if ($names) {

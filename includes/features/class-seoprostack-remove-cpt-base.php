@@ -123,8 +123,9 @@ class SEOProStack_Remove_Cpt_Base extends SEOProStack_Feature {
         // The taken list goes stale when posts or settings change, also while
         // the feature is off. These run only on writes, so reading pages
         // costs nothing (a get_option() of a missing option is a query on
-        // every request before WordPress 6.4).
-        foreach (array('save_post', 'deleted_post', 'trashed_post', 'untrashed_post', 'update_option_' . SEOProStack_Settings::OPTION) as $hook) {
+        // every request before WordPress 6.4). Settings changes include the
+        // network's (multisite), which update_option misses.
+        foreach (array('save_post', 'deleted_post', 'trashed_post', 'untrashed_post', 'seoprostack_settings_changed') as $hook) {
             add_action($hook, array(__CLASS__, 'forget_taken'));
         }
         if (self::enabled()) {
