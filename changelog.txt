@@ -3,7 +3,7 @@
 Every change to SEO Pro Stack. readme.txt lists the latest version in short.
 
 = Unreleased =
-* Fix: Turn off unused remote access restores the log and backup files and PHP in uploads .htaccess blocks when another plugin removes them, on the next main-site admin screen (GitHub issue #718).
+* Fix: Turn off unused remote access restores the log and backup files and PHP in uploads .htaccess blocks when another plugin removes them or leaves their markers without the complete rules, on the next main-site admin screen (GitHub issue #718).
 
 = 1.3.42 =
 * Fix: Dark mode covers more screens: the Customizer's controls (it no longer opens light; its preview keeps the site's colours), Widgets and Menus; Secure Custom Fields, Admin Columns Pro's date picker, inline and bulk editing, WooCommerce's settings, Payments, Status and Reports, Readabler, Tutor LMS (its script's colours recoloured from the page's head; the course builder keeps its light look), Kadence Starter Site Assist, Fluent Forms' loading skeletons, WP Sheet Editor's setup and settings, Bit Integrations, Complianz with its Terms & Conditions, Really Simple Security, Code Snippets, Rank Math's Content AI, Import & Export and Link Genius, AutomatorWP, CMB2 fields, Advanced DB Cleaner, WP-Optimize, EventON, SliceWP, Antispam Bee, Simple Cloudflare Turnstile, Plugin Groups and Revive.so, whose screens drop other plugins' stylesheets, so Dark's is put back there. TinyMCE frames are dark from the start, and checked boxes and radios get a white tick and dot. New seoprostack_admin_dark_script_styles filter (GitHub issue #686).
