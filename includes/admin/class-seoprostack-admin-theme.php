@@ -62,6 +62,7 @@ final class SEOProStack_Admin_Theme {
     public static function init() {
         add_filter(self::PARTICIPANTS, array(__CLASS__, 'participate'));
         add_action('admin_enqueue_scripts', array(__CLASS__, 'enqueue'), 20);
+        add_action('admin_enqueue_scripts', array(__CLASS__, 'keep_style'), PHP_INT_MAX);
         // Before other plugins' own colour mode scripts (Fluent's run at 1).
         add_action('admin_head', array(__CLASS__, 'head'), 0);
         // The Customizer prints its own page: no admin_head, and admin_enqueue_scripts only with its widgets.
@@ -379,6 +380,19 @@ final class SEOProStack_Admin_Theme {
             'action'  => self::ACTION,
             'nonce'   => wp_create_nonce(self::ACTION),
         )) . ';', 'before');
+    }
+
+    /**
+     * Put the stylesheet back where another plugin has taken it off the
+     * page. Revive.so's screens keep only stylesheets named for it (at
+     * admin_enqueue_scripts, 100), which left Dark with no styles there.
+     * The stylesheet is registered only when enqueue() wants it, so Light
+     * stays as it was.
+     */
+    public static function keep_style() {
+        if (wp_style_is(self::STYLE, 'registered') && !wp_style_is(self::STYLE, 'enqueued')) {
+            wp_enqueue_style(self::STYLE);
+        }
     }
 
     /**

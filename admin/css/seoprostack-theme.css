@@ -6858,6 +6858,139 @@ html.sps-dark .toplevel_page_advanced_db_cleaner :is(#adbc-plugin-root, #headles
 }
 
 /*
+ * Revive.so (admin.php?page=reviveso and its tabs, Extension and the PRO
+ * page): Tailwind utilities on its own layout, which wraps #wpbody, on a
+ * body without wp-core-ui. It keeps only its own stylesheets, so
+ * SEOProStack_Admin_Theme::keep_style() puts this one back. A white veil
+ * while it loads, a #fff sidebar, header, content
+ * and footer, #f9fafb picked links and extension cards, #6c7781 switches
+ * on #fff, pale yellow and indigo pills, and #374151 to #111827 text. Its
+ * lines are preflight's #e5e7eb (its border-gray/5 and /10 classes are not
+ * built). Its indigo buttons and the switch's blue keep their colours;
+ * Select2 takes Searchable dropdowns above (its own dark colours follow the
+ * system's setting, not SEO Pro Stack's).
+ */
+html.sps-dark body.revive-so-admin-page .reviveso-loading-icon {
+	background-color: var(--sps-ui-canvas);
+}
+
+html.sps-dark body.revive-so-admin-page :where(.bg-white, .reviveso-settings-tab-upsell) {
+	background-color: var(--sps-ui-surface);
+}
+
+html.sps-dark body.revive-so-admin-page :where(.bg-gray-50, .hover\:bg-gray-50:hover) {
+	background-color: #242b30;
+}
+
+html.sps-dark body.revive-so-admin-page :where(.bg-indigo-50) {
+	background-color: #1c1f3b;
+}
+
+html.sps-dark body.revive-so-admin-page :where(.hover\:bg-indigo-100:hover) {
+	background-color: #262a52;
+}
+
+html.sps-dark body.revive-so-admin-page :where(.bg-yellow-50) {
+	background-color: #2e2716;
+}
+
+html.sps-dark body.revive-so-admin-page :where(.text-black, .text-gray-900) {
+	color: var(--sps-ui-text);
+}
+
+html.sps-dark body.revive-so-admin-page :where(.text-gray-700, .text-gray-600, .reviveso-settings-tab-upsell) {
+	color: var(--sps-ui-muted);
+}
+
+html.sps-dark body.revive-so-admin-page :where(.text-gray-500, .hover\:text-gray-500:hover) {
+	color: var(--sps-ui-subtle);
+}
+
+html.sps-dark body.revive-so-admin-page :where(.text-indigo-600, .focus\:text-indigo-600:focus) {
+	color: #a5b4fc;
+}
+
+html.sps-dark body.revive-so-admin-page :where(.hover\:text-indigo-600:hover, .hover\:text-indigo-500:hover, .hover\:text-indigo-400:hover) {
+	color: #c7d2fe;
+}
+
+html.sps-dark body.revive-so-admin-page :where(.hover\:text-gray-700:hover) {
+	color: var(--sps-ui-muted);
+}
+
+html.sps-dark body.revive-so-admin-page :where(.text-yellow-800) {
+	color: var(--sps-ui-warning);
+}
+
+/* Lines: the border utilities with preflight's colour, its greys and dividers. */
+html.sps-dark body.revive-so-admin-page :where(.border, .border-t, .border-b, .border-r, .border-l, .border-gray-200, .divide-gray-200 > :not([hidden]) ~ :not([hidden]), .divide-gray-300 > :not([hidden]) ~ :not([hidden])) {
+	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark body.revive-so-admin-page :where(.hover\:border-gray-300:hover) {
+	border-color: var(--sps-ui-field-border);
+}
+
+html.sps-dark body.revive-so-admin-page :where(.ring-gray-300) {
+	--tw-ring-color: var(--sps-ui-field-border);
+}
+
+/* WordPress's page sits inside its #fff content panel, which shows through (the page's canvas above). */
+html.sps-dark body.revive-so-admin-page .reviveso-clearfix :is(#wpbody, #wpbody-content) {
+	background: transparent;
+}
+
+/* Its selects keep the browser's own arrow: without wp-core-ui, WordPress's light arrow above would repeat across them. */
+html.sps-dark body.revive-so-admin-page #wpbody select {
+	background-image: none;
+}
+
+/* Its switch when off: a #fff track with a #6c7781 ring, knob and mark. */
+html.sps-dark body.revive-so-admin-page .reviveso-toggle__track {
+	background-color: var(--sps-ui-canvas);
+	border-color: var(--sps-ui-field-border);
+}
+
+html.sps-dark body.revive-so-admin-page .reviveso-toggle__thumb {
+	background-color: var(--sps-ui-field-border);
+	border-color: var(--sps-ui-field-border);
+}
+
+html.sps-dark body.revive-so-admin-page .reviveso-toggle__off {
+	color: var(--sps-ui-field-border);
+}
+
+/* Scheduled Tasks (with Revive.so PRO): Action Scheduler's table on #fff, its pagination and its notice. */
+html.sps-dark body.revive-so-admin-page.revive-so_page_reviveso-scheduled-tasks table.wp-list-table.fixed tbody,
+html.sps-dark body.revive-so-admin-page.revive-so_page_reviveso-scheduled-tasks #message.notice {
+	background-color: var(--sps-ui-surface);
+}
+
+html.sps-dark body.revive-so-admin-page.revive-so_page_reviveso-scheduled-tasks table.wp-list-table.fixed tbody td {
+	color: var(--sps-ui-muted);
+}
+
+html.sps-dark body.revive-so-admin-page.revive-so_page_reviveso-scheduled-tasks table.wp-list-table.fixed tbody > :not([hidden]) ~ :not([hidden]) {
+	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark body.revive-so-admin-page.revive-so_page_reviveso-scheduled-tasks form#action-scheduler-filter .tablenav .tablenav-pages .pagination-links > :is(span:not(.screen-reader-text), a) {
+	--tw-ring-color: var(--sps-ui-field-border);
+
+	color: var(--sps-ui-text);
+}
+
+html.sps-dark body.revive-so-admin-page.revive-so_page_reviveso-scheduled-tasks form#action-scheduler-filter .tablenav .tablenav-pages .pagination-links > :is(span:not(.screen-reader-text), a):hover {
+	background-color: var(--sps-ui-raised);
+}
+
+html.sps-dark body.revive-so-admin-page.revive-so_page_reviveso-scheduled-tasks form#action-scheduler-filter select:is(#bulk-action-selector-top, #bulk-action-selector-bottom) {
+	--tw-ring-color: var(--sps-ui-field-border);
+
+	color: var(--sps-ui-text);
+}
+
+/*
  * WP-Optimize (admin.php?page=WP-Optimize and its wpo_* screens): a fixed
  * #fff header with an #edeeef strip of links and #555d66 page links; in
  * WordPress's postbox, #f2f4f5 field groups and switch tracks, #fff help
