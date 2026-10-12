@@ -437,7 +437,7 @@ final class SEOProStack_Admin_Whole_Theme {
             . 'if(c){try{var s=localStorage;s.setItem("fluent_theme_mode",m);s.setItem("fs-theme",m==="system"?"system:"+(d?"dark":"light"):m);'
             . 'if(m==="system"){s.removeItem("litespeed-dark-preference");}else{s.setItem("litespeed-dark-preference",m);}'
             . 'var b=JSON.parse(s.getItem("bit-social-config")||"{}")||{};b.isDarkTheme=d;s.setItem("bit-social-config",JSON.stringify(b));}catch(e){}}'
-            . '})(document.documentElement,' . wp_json_encode($mode) . ',' . ($chosen ? 'true' : 'false') . ');';
+            . '})(document.documentElement,' . wp_json_encode($mode) . ',' . ($chosen ? 'true' : 'false') . ',' . ($applies ? 'true' : 'false') . ');';
         return wp_get_inline_script_tag($script, array('id' => 'seoprostack-whole-theme-mode'));
     }
 

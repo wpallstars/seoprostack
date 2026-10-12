@@ -3,6 +3,7 @@
 Every change to SEO Pro Stack. readme.txt lists the latest version in short.
 
 = Unreleased =
+* Fix: in Dark mode, the screen shown while the next admin screen loads (Preload pages) was light after a click on a screen that keeps its own look, such as SEO Pro Stats, flashing the content area white until the next screen arrived; it now takes the dark canvas there too. Rank Math's Status & Tools: System Status's rows, and the bars shown while they load, and Database Tools' rows are dark (GitHub issue #725).
 * Developers: core files synced from WP Plugin Starter 0c05983, including shared header Light / Dark / System controls and GitHub updater 1.6.2. The existing whole-admin colour mode keeps its own files and controls without colliding with the shared header; uninstall preserves the shared preference while another wpallstars plugin is installed (GitHub issue #722).
 * Fix: Turn off unused remote access restores the log and backup files and PHP in uploads .htaccess blocks when another plugin removes them or leaves their markers without the complete rules, on the next main-site admin screen (GitHub issue #718).
 
