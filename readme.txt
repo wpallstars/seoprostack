@@ -5,7 +5,7 @@ Tags: magic login, iframe, schedule posts, auto upload images, admin
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.3.43
+Stable tag: 1.3.44
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -35,6 +35,8 @@ Safe features start on; others stay off. **Settings → SEO Pro Stack** has **Se
 * **Magic login links**: one-time email links, safe from link scanners.
 * **Admin bar and dashboard access**: restrict by role; admins keep access.
 * **Turn off unused remote access**: XML-RPC, application passwords and exposed files.
+* **Minimum password length**: 12 characters for new passwords, on by default.
+* **Known vulnerabilities**: shows what the free WPVulnerability plugin finds.
 * **Maintenance mode**: a 503 page with revocable 24-hour bypass links.
 
 = Writing and publishing =
@@ -81,7 +83,7 @@ Safe features start on; others stay off. **Settings → SEO Pro Stack** has **Se
 * **Plugins menu**, **Plugin sizes**, **Clean up deleted plugins** and **Hosting needs**.
 * **Fixes for other plugins**: known bug workarounds.
 * **Agency**: order flow, client dashboard and examples.
-* **Discover**: themes, plugins, hosting and tools.
+* **Recommended**: themes, plugins, hosting and tools.
 
 = Affiliate disclosure =
 
@@ -143,11 +145,10 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 
 == Changelog ==
 
-= 1.3.43 =
-* Fix: no white flash in Dark mode while the next admin screen loads after SEO Pro Stats; Rank Math's System Status rows are dark.
-* Fix: Magic login links never skips FluentAuth's authenticator app or passkey step.
-* Fix: Site Health finds and clears Really Simple Security's leftovers after it is deactivated.
-* Fix: Turn off unused remote access puts back its uploads .htaccess blocks when another plugin removes them.
-* Developers: core files synced from WP Plugin Starter, with GitHub updater 1.6.2.
+= 1.3.44 =
+* New: a Security tab, with Minimum password length (on by default: 12 characters for new passwords) and the findings of WPVulnerability.
+* Change: Theme, Free Plugins, Pro Plugins, Hosting and Tools are one Recommended tab with a second row of tabs.
+* Fix: the post editor keeps plugins that add to it only through scripts, such as YellowPencil's button.
+* Fix: multisite sites keep their earlier settings while taking the network's.
 
 Older: `changelog.txt`.

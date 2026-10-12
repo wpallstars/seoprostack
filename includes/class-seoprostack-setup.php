@@ -30,8 +30,10 @@ final class SEOProStack_Setup {
     const FEATURES = array(
         'SEOProStack_Admin_Page_Fade',
         'SEOProStack_Admin_Access',
-        'SEOProStack_Hardening',
         'SEOProStack_Security_Headers',
+        'SEOProStack_Min_Pass',
+        'SEOProStack_Hardening',
+        'SEOProStack_Vulnerability_Report',
         'SEOProStack_Developers',
         'SEOProStack_Admin_Menu',
         'SEOProStack_Widget_Control',
@@ -491,6 +493,10 @@ final class SEOProStack_Setup {
                 'label'       => __('Admin', 'seoprostack'),
                 'description' => __('The dashboard, admin bar, logins and emails.', 'seoprostack'),
             ),
+            'security' => array(
+                'label'       => __('Security', 'seoprostack'),
+                'description' => __('HTTPS, passwords, remote access and known vulnerabilities. Two-step login and login limits are FluentAuth’s.', 'seoprostack'),
+            ),
             'content' => array(
                 'label'       => __('Content', 'seoprostack'),
                 'description' => __('Writing, editing and publishing posts.', 'seoprostack'),
@@ -602,24 +608,28 @@ final class SEOProStack_Setup {
     }
 
     /**
-     * Discover tabs: themes, plugins, hosting and tools. The directories of
-     * links are also on the network screen (multisite); Theme and Free
-     * Plugins activate for one site, so they stay on each site's screen.
+     * Discover tabs: themes, plugins, hosting and tools, as one Recommended
+     * tab with a second row (the core 'menu'). The directories of links are
+     * also on the network screen (multisite); Theme and Free Plugins
+     * activate for one site, so they stay on each site's screen.
      *
      * @param array $tabs Tabs keyed by slug.
      * @return array
      */
     public static function discover_tabs($tabs) {
+        $menu = __('Recommended', 'seoprostack');
         return array_merge((array) $tabs, array(
             'theme' => array(
                 'label'      => __('Theme', 'seoprostack'),
                 'group'      => 'discover',
+                'menu'       => $menu,
                 'render'     => array('SEOProStack_Theme_Manager', 'display_tab_content'),
                 'capability' => 'switch_themes',
             ),
             'recommended' => array(
                 'label'      => __('Free Plugins', 'seoprostack'),
                 'group'      => 'discover',
+                'menu'       => $menu,
                 'render'     => array('SEOProStack_Free_Plugins_Manager', 'display_tab_content'),
                 // On multisite only super admins can install plugins.
                 'capability' => 'install_plugins',
@@ -627,18 +637,21 @@ final class SEOProStack_Setup {
             'pro' => array(
                 'label'   => __('Pro Plugins', 'seoprostack'),
                 'group'   => 'discover',
+                'menu'    => $menu,
                 'render'  => array('SEOProStack_Pro_Plugins_Manager', 'display_tab_content'),
                 'network' => true,
             ),
             'hosting' => array(
                 'label'   => __('Hosting', 'seoprostack'),
                 'group'   => 'discover',
+                'menu'    => $menu,
                 'render'  => array('SEOProStack_Hosting_Manager', 'display_tab_content'),
                 'network' => true,
             ),
             'tools' => array(
                 'label'   => __('Tools', 'seoprostack'),
                 'group'   => 'discover',
+                'menu'    => $menu,
                 'render'  => array('SEOProStack_Tools_Manager', 'display_tab_content'),
                 'network' => true,
             ),

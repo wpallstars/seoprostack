@@ -91,7 +91,7 @@ class SEOProStack_Security_Headers extends SEOProStack_Feature {
             self::KEY => array(
                 'type'        => 'bool',
                 'default'     => false,
-                'tab'         => 'admin',
+                'tab'         => 'security',
                 'label'       => __('HTTPS and security headers', 'seoprostack'),
                 'description' => __('When the site address starts with https, send visitors who open an http address to the https one, and tell browsers to use HTTPS only, load http pictures and scripts over HTTPS, show the site in frames on this site only, and send less to other sites. Works behind Cloudflare and other proxies.', 'seoprostack'),
                 'replaces'    => self::REPLACES,
@@ -923,11 +923,11 @@ class SEOProStack_Security_Headers extends SEOProStack_Feature {
 
     /**
      * Its switches SEO Pro Stack does not cover. Login protection is
-     * FluentAuth's (in Free Plugins → Admin). "Rename admin user" needs
-     * nothing in its place: WordPress keeps the name it leaves. "Disable
-     * anyone can register" only filters WordPress's setting, so extras()
-     * warns while that setting is still ticked underneath
-     * (registration_ticked()).
+     * FluentAuth's and vulnerability scanning WPVulnerability's (both in
+     * Free Plugins → Admin). "Rename admin user" needs nothing in its place:
+     * WordPress keeps the name it leaves. "Disable anyone can register" only
+     * filters WordPress's setting, so extras() warns while that setting is
+     * still ticked underneath (registration_ticked()).
      *
      * @return array<string,string>
      */
@@ -938,10 +938,10 @@ class SEOProStack_Security_Headers extends SEOProStack_Feature {
             'enable_limited_login_attempts'     => __('Limit login attempts (FluentAuth has it)', 'seoprostack'),
             'event_log_enabled'                 => __('Login event log (FluentAuth has it)', 'seoprostack'),
             'enable_firewall'                   => __('Firewall and IP blocking (FluentAuth blocks IP addresses)', 'seoprostack'),
-            'enforce_password_security_enabled' => __('Enforce strong passwords', 'seoprostack'),
+            'enforce_password_security_enabled' => __('Enforce strong passwords (Minimum password length asks for a length instead)', 'seoprostack'),
             'enforce_frequent_password_change'  => __('Enforce frequent password change', 'seoprostack'),
             'enable_hibp_check'                 => __('Compromised password check', 'seoprostack'),
-            'enable_vulnerability_scanner'      => __('Vulnerability scanning', 'seoprostack'),
+            'enable_vulnerability_scanner'      => __('Vulnerability scanning (WPVulnerability has it; the Security tab shows what it finds)', 'seoprostack'),
             'permission_detection'              => __('File permissions check', 'seoprostack'),
             'change_login_url_enabled'          => __('Custom login address', 'seoprostack'),
             'block_admin_creation'              => __('Block administrator creation outside WordPress', 'seoprostack'),
