@@ -6833,6 +6833,386 @@ html.sps-dark #log-panel pre {
 	background: var(--sps-ui-canvas);
 }
 
+/*
+ * EventON (admin.php?page=eventon and its tabs, and its events): a fixed
+ * #fff header, the settings' #fff panel and the menu's #dcdcde hover,
+ * #f1f1f1 fields and #f0f0f0 switches, #f2f2f2 and #ececec groups, #e8e8e8
+ * icon boxes, the card designer's #eaeaea rows of #fff boxes, #fff
+ * lightboxes and lists, Language's #eaeaea strings, Extend's #e9e9e9
+ * cells, Support's #e6e6e6 tile and its questions, and #202124 text
+ * (--evo_color_1, which also fills dark chips, so it stays). Its lines and
+ * pale greys come from its palette (--evo_*). Its blue and yellow, the
+ * coloured Support tiles, the News panel and its buttons keep their colours.
+ */
+html.sps-dark body {
+	--evo_border_c: var(--sps-ui-border);
+	--evo_linecolor_1: var(--sps-ui-border);
+	--evo_boxcolor_1: var(--sps-ui-raised);
+	--evo_cl_b5: var(--sps-ui-hover);
+	--evo_cl_b10: rgb(255 255 255 / 10%);
+	--evo_cl_b40: var(--sps-ui-subtle);
+	--evo_color_primelite: #152333;
+
+	/* Its black buttons, lifted so they show on dark panels; their text stays white. */
+	--evo_btn_color_1: #50575e;
+	--evoclg0: var(--sps-ui-surface);
+	--evoclg3: #242b30;
+	--evoclg6: #242b30;
+	--evoclg8: #242b30;
+	--evoclg10: var(--sps-ui-raised);
+	--evoclg20: var(--sps-ui-raised);
+	--evoclg30: var(--sps-ui-border);
+}
+
+/* The header, the settings' panel and the arrow joining the menu to it. */
+html.sps-dark h2.settings_m_header,
+html.sps-dark #ajde_customization td.evo_settings_right {
+	background-color: var(--sps-ui-surface);
+}
+
+html.sps-dark .evo_settings_header h2 {
+	border-bottom-color: var(--sps-ui-border);
+}
+
+html.sps-dark .evo_settings_header div {
+	color: var(--sps-ui-text);
+}
+
+/* Its logo, a black calendar drawn in the text's colour. */
+html.sps-dark h2.settings_m_header svg {
+	fill: var(--sps-ui-text);
+}
+
+/* Help marks: a white "!" on #202124 circles. */
+html.sps-dark :is(.evotooltip, .ajdeToolTip)::before,
+html.sps-dark .eventon_custom_lang_line span.ajdeToolTip::before {
+	color: #1d2327;
+	background-color: var(--sps-ui-subtle);
+}
+
+html.sps-dark .evoHbgcg5:hover {
+	background-color: var(--sps-ui-border);
+}
+
+html.sps-dark #acus_arrow::before {
+	border-right-color: var(--sps-ui-surface);
+}
+
+/* The settings' menu: #202124 links (the current one keeps its blue), a #dcdcde hover and grey sub-levels. */
+html.sps-dark #acus_left ul a:not(.focused) {
+	color: var(--sps-ui-muted);
+}
+
+html.sps-dark #acus_left ul a:hover {
+	background-color: var(--sps-ui-hover);
+}
+
+html.sps-dark #acus_left ul a:not(.focused):hover {
+	color: var(--sps-ui-text);
+}
+
+html.sps-dark #acus_left ul :is(.level2 a, .level3 a, a.ny_subfield) {
+	color: var(--sps-ui-text);
+	text-shadow: none;
+	background-color: var(--sps-ui-raised);
+	border-bottom-color: var(--sps-ui-border);
+}
+
+html.sps-dark #evcal_settings #meta_tabs a:is(:hover, .nav-tab-active) {
+	color: var(--sps-ui-text);
+}
+
+/* Text set to #202124: radio and check marks, the order list, buttons with details, icon pickers and chosen values. */
+html.sps-dark :is(#ajde_customization .acus_line label span, #ajdeEVC_arrange_box p, .evoelm_sel3_option_1 .fa, .evo_edittable_sel_val i, .evo_icon_selector ul li i) {
+	color: var(--sps-ui-text);
+}
+
+html.sps-dark :is(.evo_elm_button:not(:hover), .evo_elm_button:not(:hover) .evo_btn_vis) {
+	color: var(--sps-ui-text);
+}
+
+html.sps-dark .evo_elm_button .evo_btn_item_details .evo_btn_info {
+	color: var(--sps-ui-subtle);
+}
+
+/* The Full version's notes in the settings (#d9f4ff, inline). */
+html.sps-dark .evo_elm_button.inbtn[style*="background-color"] {
+	background-color: #152333 !important;
+}
+
+/* Fields: #f1f1f1, #e8e8e8 or #fff, with #c3c4c7 outlines. */
+html.sps-dark :is(.evo_elm_row p.evo_field_container :is(input, textarea), .evo_elm_row select.evo_elm_dropdown, .evoelm_sel2_cur_val, .evo_elm_row .evo_field_plusminus_container.evo_field_container, .evoelm_durationselect .evo_field_container, .eventon_searchbox input[type="text"]) {
+	color: var(--sps-ui-text);
+	background-color: var(--sps-ui-canvas);
+}
+
+html.sps-dark #ajde_customization :is(.ajdebe_dropdown, .customization_right_in .nfe_f_width :is(input, textarea), .customization_right_in .backender_yn_sec :is(input, textarea), .customization_right_in .ajdeSET_hidden_body :is(input, textarea, select)) {
+	color: var(--sps-ui-text);
+	background-color: var(--sps-ui-canvas);
+}
+
+html.sps-dark :is(.evolb_content, .ajde_popup .ajde_popup_text) :is(input:is([type="text"], [type="search"], [type="url"], [type="email"], [type="number"], [type="password"]), textarea, select) {
+	color: var(--sps-ui-text);
+	background-color: var(--sps-ui-canvas);
+	border-color: var(--sps-ui-field-border);
+}
+
+html.sps-dark :is(.evo_elm_row p.evo_field_container :is(input, textarea), .evo_elm_row select.evo_elm_dropdown):not(:focus) {
+	box-shadow: 0 0 0 1px var(--sps-ui-field-border);
+}
+
+html.sps-dark .evo_elm_afterstatement .evo_elm_row p.evo_field_container :is(input, textarea) {
+	background-color: rgb(16 21 23 / 60%);
+}
+
+html.sps-dark .evo_lightbox .evolb_content .evo_elm_row :is(input, textarea):focus {
+	background-color: var(--sps-ui-canvas);
+	box-shadow: 0 0 0 2px var(--sps-ui-muted);
+}
+
+/* Support's search: its yellow button's text (white in Dark from WordPress's buttons), as in Light. */
+html.sps-dark .eventon_searchbox input[type="submit"] {
+	color: #1d2327;
+}
+
+/* Switches: off is a #f0f0f0 track with a #202124 knob and line. */
+html.sps-dark .ajde_yn_btn.NO {
+	background-color: var(--sps-ui-canvas);
+	border-color: var(--sps-ui-field-border);
+}
+
+html.sps-dark :is(.ajde_yn_btn.NO .catchHandle, .yesno_row .ajde_yn_btn.NO .catchHandle) {
+	background-color: var(--sps-ui-muted);
+}
+
+/* Groups: switched-on settings (#f2f2f2, #c6c6c6 nested), hidden sections (#fff, #ececec), notes (#c7e3ec), and their lines. */
+html.sps-dark .backender_yn_sec .evosettings_field_child {
+	background-color: var(--sps-ui-raised);
+}
+
+html.sps-dark .backender_yn_sec .backender_yn_sec {
+	background-color: var(--sps-ui-border);
+}
+
+html.sps-dark .evo_settings_subsection .backender_yn_sec .evosettings_field_child {
+	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark .ajdeSET_hidden_open {
+	border-bottom-color: var(--sps-ui-border);
+}
+
+html.sps-dark .ajdeSET_hidden_open:hover {
+	background-color: var(--sps-ui-hover);
+}
+
+html.sps-dark .ajdeSET_hidden_body {
+	background-color: var(--sps-ui-surface);
+	border-bottom-color: var(--sps-ui-border);
+}
+
+html.sps-dark .ajdeSET_hidden_body .evo_in {
+	background-color: var(--sps-ui-raised);
+}
+
+html.sps-dark .ajdes_notice:not(.evosettings_field_child .ajdes_notice) {
+	background-color: #152333;
+}
+
+html.sps-dark :is(em.hr_line, .evosettings_field_child em.hr_line, .evo_settings_subsection em.hr_line, .ajdeSET_hidden_body .evo_in em.hr_line) {
+	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark #ajde_customization .evo_hideable_show {
+	background-color: var(--sps-ui-raised);
+}
+
+/* Lists and pickers: the order list (#e4e4e4 rows), icon boxes (#e8e8e8; yellow when pointed at), icons (#cdcdcd), the theme picker and choices in a row. */
+html.sps-dark #ajdeEVC_arrange_box {
+	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark #ajdeEVC_arrange_box p {
+	background-color: var(--sps-ui-raised);
+}
+
+html.sps-dark #ajdeEVC_arrange_box p:hover {
+	background-color: var(--sps-ui-border);
+}
+
+html.sps-dark .row_faicons_collection .evo_settings_icon_box {
+	background-color: var(--sps-ui-raised);
+}
+
+html.sps-dark .row_faicons_collection .evo_settings_icon_box:hover,
+html.sps-dark .row_faicons_collection .evo_settings_icon_box:hover * {
+	color: #1d2327;
+}
+
+html.sps-dark .ajde_icons.default:not(.focused) {
+	background-color: var(--sps-ui-raised);
+}
+
+html.sps-dark .ajde_icons.fa em {
+	color: var(--sps-ui-subtle);
+	background-color: var(--sps-ui-border);
+}
+
+html.sps-dark span.colorselector:not(:hover) {
+	border-color: var(--sps-ui-field-border);
+}
+
+html.sps-dark #evo_theme_selection .evo_theme {
+	background-color: var(--sps-ui-raised);
+	border-color: var(--sps-ui-field-border);
+}
+
+html.sps-dark p.evo_row_select span.values,
+html.sps-dark :is(.innersection, .evo_edit_field_box) p.evo_row_select span.values {
+	background-color: var(--sps-ui-raised);
+}
+
+html.sps-dark p.evo_row_select span span:not(.select) {
+	color: var(--sps-ui-muted);
+}
+
+html.sps-dark p.evo_row_select span span:not(.select):hover {
+	background-color: var(--sps-ui-border);
+}
+
+html.sps-dark p.evo_row_select span span.select {
+	background-color: var(--sps-ui-accent-fill);
+}
+
+html.sps-dark .evoelm_blockbtn:not(.on) {
+	background-color: var(--sps-ui-raised);
+}
+
+html.sps-dark .evoelm_blockbtn:not(.on):hover {
+	background-color: var(--sps-ui-border);
+}
+
+/* Dropdowns and lightboxes: #fff panels, #f0f0f0 hovers and #e0e0e0 choices. */
+html.sps-dark :is(.evoelm_sel2_opt_list, .evoelm_sel2_opt_list_in, .evo_elm_lb_window .eelb_in, .evoelm_sel3 .evoelm_sel3_list .evoelm_sel3_item_trig, .evolb_box, .ajde_popup, .evolb_header, .ajde_header) {
+	background-color: var(--sps-ui-surface);
+}
+
+html.sps-dark :is(.evoelm_sel2_opt:hover, .evo_elm_lb_window span:hover) {
+	background: var(--sps-ui-hover);
+}
+
+html.sps-dark .evoelm_sel2_opt.selected {
+	background: var(--sps-ui-raised);
+}
+
+html.sps-dark :is(.evo_lightbox.show .evolb_box, .ajde_admin_lightbox.show .ajde_popup) {
+	color: var(--sps-ui-text);
+	box-shadow: 0 30px 30px 0 rgb(0 0 0 / 50%), 0 0 0 1px var(--sps-ui-border);
+}
+
+html.sps-dark :is(.evolb_close_btn, .ajde_close_pop_btn, .ajde_backbtn, .ajde_close_btn) {
+	color: var(--sps-ui-muted);
+	border-color: var(--sps-ui-muted);
+}
+
+html.sps-dark :is(.evolb_close_btn, .ajde_close_pop_btn, .ajde_backbtn, .ajde_close_btn):hover {
+	color: var(--sps-ui-text);
+	background-color: var(--sps-ui-raised);
+}
+
+/* Emails, webhooks and the card and EventTop designers: #e4ecf2 and #fff panels, #eaeaea rows, #fff boxes, #ddeeff and #dcd4b8 parts. */
+html.sps-dark .evo_email_preview {
+	background-color: var(--sps-ui-raised);
+}
+
+html.sps-dark .evo_email_preview .evo_email_preview_body,
+html.sps-dark #evowhs_container {
+	background-color: var(--sps-ui-surface);
+}
+
+html.sps-dark #evowhs_container p {
+	border-bottom-color: var(--sps-ui-border);
+}
+
+html.sps-dark :is(.ecd_row, .evotop_designer .evotop_design_holder .evotop_design_col) {
+	background-color: var(--sps-ui-raised);
+}
+
+html.sps-dark :is(.ecd_row_box, .evotop_designer .evotop_design_holder .evotop_design_col .evotop_design_field) {
+	background-color: var(--sps-ui-surface);
+}
+
+html.sps-dark .ecd_row_box.hidden {
+	background-color: var(--sps-ui-canvas);
+}
+
+html.sps-dark :is(.ecd_row_box.adding_field, .evotop_designer .evotop_design_holder .evotop_design_col.adding_field) {
+	background-color: var(--sps-ui-border);
+}
+
+html.sps-dark #ecd_adding_buttons {
+	background-color: #152333;
+}
+
+html.sps-dark :is(#evo_card_field_selector, #evotop_field_selector) {
+	background-color: var(--sps-ui-surface);
+}
+
+html.sps-dark :is(#evo_card_field_selector, #evotop_field_selector).focus {
+	background-color: var(--sps-ui-raised);
+}
+
+html.sps-dark :is(#evo_card_field_selector_f, #evotop_field_selector_f) span {
+	background-color: #2e2716;
+}
+
+html.sps-dark .evotop_designer .evotop_add_field_trig b {
+	color: var(--sps-ui-muted);
+	background-color: var(--sps-ui-border);
+}
+
+/* Language: the strings' #eaeaea groups and scroll track, #3c3c3c heads and the #1f1f1f arrow. */
+html.sps-dark .evoLANG_subsec,
+html.sps-dark .evolang_translatable_strings_list::-webkit-scrollbar-track {
+	background-color: var(--sps-ui-raised);
+}
+
+html.sps-dark .evoLANG_subheader,
+html.sps-dark .evoLANG_section_header::after {
+	color: var(--sps-ui-text);
+}
+
+/* Extend: the comparison's #e9e9e9 cells (its blue and yellow heads stay). */
+html.sps-dark .evo_ft_compare .evoft_cell.evoft_cell_1 {
+	background-color: var(--sps-ui-raised);
+}
+
+/* Support: the Common Issues tile (#e6e6e6, inline) and its questions (#dcdcdc heads, #ffeeb9 when pointed at, #f9f9f9 answers). */
+html.sps-dark .evo_tile_content[style*="#e6e6e6"] {
+	background-color: var(--sps-ui-raised) !important;
+}
+
+html.sps-dark :is(.evotrouble_qas h4, .evotrouble_qas h5, .evotrouble_qas p) {
+	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark .evotrouble_qas h4 {
+	background-color: var(--sps-ui-border);
+}
+
+html.sps-dark .evotrouble_qas h5:hover {
+	background-color: var(--sps-ui-hover);
+}
+
+html.sps-dark .evotrouble_qas p {
+	background-color: var(--sps-ui-surface);
+}
+
+html.sps-dark .evo_support_box:not(.special, .twitter, .evo_troubleshoot) {
+	color: var(--sps-ui-text);
+	background-color: var(--sps-ui-raised);
+}
+
 /* SEO Pro Stack's additions to WordPress's screens -------------------------- */
 
 /* Plugins: sizes (class-seoprostack-plugin-sizes.php) and page cost (class-seoprostack-plugin-cost.php). */
