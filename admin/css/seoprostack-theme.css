@@ -7374,6 +7374,120 @@ html.sps-dark .slicewp-field-wrapper .wp-picker-container .wp-color-result.butto
 	background: var(--sps-ui-surface);
 }
 
+/*
+ * Antispam Bee (Settings → Antispam Bee): #fff options joined by #fff
+ * arrows and lines (an arrow's inside is the page's #f0f0f1), #1d2327 and
+ * #3c434a text, #f6f7f7 fields and #dcdcde lines around the links.
+ */
+html.sps-dark .ab-column > ul > li {
+	background: var(--sps-ui-surface);
+}
+
+html.sps-dark .ab-column.ab-arrow > ul > li::before {
+	border-color: var(--sps-ui-surface) transparent;
+}
+
+html.sps-dark .ab-column.ab-arrow > ul > li::after {
+	border-color: var(--sps-ui-canvas) transparent;
+}
+
+html.sps-dark .ab-column.ab-join > ul > li::before {
+	border-right-color: var(--sps-ui-surface);
+}
+
+html.sps-dark .ab-column.ab-diff > ul > li::before {
+	border-bottom-color: var(--sps-ui-surface);
+}
+
+html.sps-dark :is(.ab-column h3, .ab-column > ul > li label) {
+	color: var(--sps-ui-text);
+}
+
+html.sps-dark :is(.ab-column h6, .ab-column > ul > li label span) {
+	color: var(--sps-ui-muted);
+}
+
+html.sps-dark .ab-column :is(input[type="text"], input[type="number"], select) {
+	color: var(--sps-ui-text);
+	background-color: var(--sps-ui-canvas);
+	border-color: var(--sps-ui-field-border);
+}
+
+html.sps-dark .ab-column--submit-service p {
+	border-color: var(--sps-ui-border);
+}
+
+/*
+ * Simple Cloudflare Turnstile (Settings → Cloudflare Turnstile): #fff
+ * accordions (#d7e2eb when open or pointed at, #333 text), panels, cards
+ * and help boxes, #f9f9f9, #f8fafc and #f6f7f7 details, figures and rates,
+ * #fff selects, an orange-tinted error chip, and #50575e and #646970 notes.
+ * Its Review and Donate buttons keep their colours.
+ */
+html.sps-dark :is(.sct-accordion, .sct-panel, .sct-admin-promo, .sct-admin-card) {
+	color: var(--sps-ui-text);
+	background-color: var(--sps-ui-surface);
+	border-color: var(--sps-ui-border);
+	box-shadow: 0 0 0 1px var(--sps-ui-border);
+}
+
+html.sps-dark :is(.sct-active, .sct-accordion:hover) {
+	color: var(--sps-ui-text);
+	background-color: var(--sps-ui-raised);
+}
+
+html.sps-dark .sct-accordion::after {
+	color: var(--sps-ui-subtle);
+}
+
+html.sps-dark :is(.sct-wpconfig-details, .sct-analytics-card, .sct-rate-row) {
+	background: var(--sps-ui-raised);
+	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark :is(.sct-panel tr:not(:last-child), .sct-admin-promo.sct-support .sct-support-item, .sct-table-wrap) {
+	border-color: var(--sps-ui-border);
+}
+
+/* The help box's first line (#f1f1f1, inline) and RelyWP's logo, drawn for white. */
+html.sps-dark .sct-admin-promo .sct-support-item[style*="border-top"] {
+	border-top-color: var(--sps-ui-border) !important;
+}
+
+html.sps-dark .sct-admin-promo img[src*="relywp"] {
+	padding: 2px 6px;
+	background: #f0f0f1;
+	border-radius: 6px;
+}
+
+html.sps-dark .sct-rate-bar {
+	background: var(--sps-ui-border);
+}
+
+html.sps-dark .sct-analytics-card strong {
+	color: var(--sps-ui-text);
+}
+
+html.sps-dark :is(.sct-tab-intro, .sct-analytics-card span, .sct-analytics-card small, .sct-analytics-heading p, .sct-rate-row span, .sct-muted, .sct-error-help) {
+	color: var(--sps-ui-muted);
+}
+
+html.sps-dark .sct-error-chips span {
+	color: #fdba74;
+	background: #2e2213;
+	border-color: #7c2d12;
+}
+
+html.sps-dark .sct-wrap select {
+	color: var(--sps-ui-text);
+	background-color: var(--sps-ui-canvas);
+	border-color: var(--sps-ui-field-border);
+}
+
+html.sps-dark .sct-wrap input[type="checkbox"] {
+	border-color: var(--sps-ui-field-border);
+}
+
 /* SEO Pro Stack's additions to WordPress's screens -------------------------- */
 
 /* Plugins: sizes (class-seoprostack-plugin-sizes.php) and page cost (class-seoprostack-plugin-cost.php). */
