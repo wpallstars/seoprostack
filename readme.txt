@@ -15,16 +15,16 @@ One free plugin for faster, tidier WordPress: the jobs of 40+ plugins, each with
 
 Faster admin, easier publishing and safer logins.
 
-Free and open source. Details are in the plugin's Read Me tab.
+Free and open source. Details: the plugin's Read Me tab.
 
-Safe features start on; others stay off. **Settings → SEO Pro Stack** has feature search. Replacements import settings once, leaving originals unchanged, and wait while the old plugin is active.
+Safe features start on; others stay off. **Settings → SEO Pro Stack** has **Search features**. Replacements import once without changing originals, and wait while the old plugin is active.
 
 = A calmer, faster admin =
 
 * **Light, Dark or System**: per-person wp-admin colour mode.
 * **Developer admins**: choose who manages plugins, themes, admins and site addresses.
 * **Organise the admin menu**: sections, role previews and contributor menus.
-* **Tidy the dashboard**, **Dashboard and sidebar widgets**, **Hide admin notices** and a **More menu** for admin bar items.
+* **Tidy the dashboard**, **Dashboard and sidebar widgets**, **Hide admin notices** and **More menu**.
 * **Quiet Freemius prompts**, **Quiet Appsero prompts** and **Quiet Imagify suggestions**: fewer nags.
 * **Dev tab in the block editor**: developer-only plugin panels.
 * **Tidy admin screens**, **Tidy WooCommerce admin**, **Tidy the login screen**, **Simpler block editor**, **Remove WordPress extras**, **Fewer Heartbeat requests**, **Limit post revisions** and **Lighter WooCommerce pages**.
@@ -40,12 +40,12 @@ Safe features start on; others stay off. **Settings → SEO Pro Stack** has feat
 = Writing and publishing =
 
 * **Publishing queue**: undated posts take the next free slot.
-* **Duplicate posts**, **Staged new versions** (draft edits to live posts) and **Shareable preview links** without an account.
+* **Duplicate posts**, **Staged new versions** and **Shareable preview links**.
 * **Pinned posts for any post type**, **Select all across pages**, **Order by hand**, **Change post type**, **Term tools**, **Search custom fields** and **Old post addresses**.
 * **Tag clouds and related posts**: keeps TaxoPress and Tag Groups pages working.
 * **Custom fields to content**: ACF/SCF text to content and excerpts.
 * **Restrict content** by membership or role. **Menu item visibility** by login or role.
-* **iFrame block** (allowed domains and roles), **Link cards**, **Wikipedia previews**, **Word documents**, **Brand icons** and **Like, save and share**.
+* **iFrame block**, **Link cards**, **Wikipedia previews**, **Word documents**, **Brand icons** and **Like, save and share**.
 * **Spectra block replacements**, **TranslatePress colours** and **Kadence query filters**.
 
 = Media =
