@@ -3459,6 +3459,389 @@ html.sps-dark :is(.rank-math-sidebar-panel, .rank-math-modal-overlay) .notice-er
 }
 
 /*
+ * Link Genius (Rank Math → Link Genius, admin.php?page=rank-math-links-page):
+ * #fff cards, health widget and status tiles (#ddd and #e0e0e0 lines; the
+ * tiles' tints are drawn over the card, so they stay, and pointing at one
+ * makes it #fff), #fcfcfc links with #f3f3f3 sources, a #e0e0e0 progress
+ * bar, #1e1e1e, #23282d, #242628 and #5a5d70 text with #666 and #646970
+ * notes, and pale status badges with dark text.
+ */
+html.sps-dark :is(.rank-math-section-card, .rank-math-link-health-widget),
+html.sps-dark .rank-math-link-status-filters button.components-button:not([class*="link-filter-"]) {
+	background: var(--sps-ui-surface);
+}
+
+html.sps-dark .rank-math-link-status-filters button.components-button:is(:hover, :focus) {
+	background: var(--sps-ui-raised);
+}
+
+html.sps-dark .rank-math-link-status-filters button.components-button:focus {
+	box-shadow: inset 0 0 0 1px var(--sps-ui-text);
+}
+
+html.sps-dark :is(.rank-math-section-card, .rank-math-link-status-filters, .rank-math-link-status-filters button.components-button, .rank-math-background-progress__header, .rank-math-background-progress__meta, .rank-math-link-health-widget__tabs .components-tab-panel__tabs) {
+	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark .rank-math-progress-bar {
+	background-color: var(--sps-ui-border);
+}
+
+html.sps-dark .rank-math-link-list__item {
+	background: var(--sps-ui-raised);
+	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark .rank-math-link-list .rank-math-link-list__item-meta-source {
+	background: var(--sps-ui-border);
+	border-color: #50575e;
+}
+
+html.sps-dark .rank-math-status-chart__legend-item:hover:not(:disabled) {
+	background-color: var(--sps-ui-hover);
+}
+
+html.sps-dark :is(.rank-math-background-progress__header h3.rank-math-background-progress__title, .rank-math-background-progress__stat-value, .rank-math-background-progress__status, .rank-math-link-health-widget__title, .rank-math-link-list__item-url, .rank-math-link-list__item-meta a, .rank-math-link-list__item-meta strong, .rank-math-status-chart__title, .rank-math-status-chart__legend-item, .rank-math-status-chart__legend-percentage, .rank-math-link-status-filters button.components-button .text-large) {
+	color: var(--sps-ui-text);
+}
+
+html.sps-dark :is(.rank-math-background-progress__stat-label, .rank-math-background-progress__loading, .rank-math-background-progress__helper-text, .rank-math-background-progress__meta, .rank-math-background-progress__empty p, .rank-math-link-list__loading, .rank-math-link-list__item-meta, .rank-math-status-chart__empty, .rank-math-status-chart__legend-label, .rank-math-overview-tab__loading, .rank-math-overview-tab__audit-idle, .rank-math-link-status-filters .link-filter-loading, .rank-math-link-status-filters button.components-button h4) {
+	color: var(--sps-ui-muted);
+}
+
+/* The widget's tabs (#6c757d, #23282d pointed at); the picked one keeps its colour, but Unchecked's is #6c757d too. */
+html.sps-dark .rank-math-link-health-widget__tabs .components-tab-panel__tabs-item:not(.is-active) {
+	color: var(--sps-ui-muted);
+}
+
+html.sps-dark .rank-math-link-health-widget__tabs .components-tab-panel__tabs-item:not(.is-active):hover {
+	color: var(--sps-ui-text);
+}
+
+html.sps-dark .rank-math-link-health-widget__tabs .components-tab-panel__tabs-item.is-active.tab-unchecked {
+	color: var(--sps-ui-muted);
+	border-bottom-color: var(--sps-ui-muted);
+}
+
+/* Status badges and notes: pale fills with dark text, as tints with light text. */
+html.sps-dark :is(.rank-math-status-badge--success, .rank-math-status-badge.rank-math-status-completed, .rank-math-link-list__empty, .rank-math-link-type-badge.internal) {
+	color: var(--sps-ui-good);
+	background: #16291b;
+	border-color: #2d5a37;
+}
+
+html.sps-dark .rank-math-link-list__empty p {
+	color: var(--sps-ui-good);
+}
+
+html.sps-dark :is(.rank-math-status-badge--error, .rank-math-status-badge.rank-math-status-failed, .rank-math-link-list__item-error) {
+	color: var(--sps-ui-bad);
+	background: #33191b;
+	border-color: #8a2a33;
+}
+
+html.sps-dark :is(.rank-math-status-badge--marked-safe, .rank-math-status-badge.rank-math-status-processing, .rank-math-link-list__item-safe-reason, .rank-math-link-type-badge.external) {
+	color: var(--sps-ui-info);
+	background: #152333;
+	border-color: #2a4a6b;
+}
+
+html.sps-dark .rank-math-status-badge--blocked {
+	color: #d7b8ef;
+	background: #2a1f33;
+	border-color: #5a3a73;
+}
+
+html.sps-dark .rank-math-status-badge.rank-math-status-pending {
+	color: var(--sps-ui-warning);
+	background: #2e2716;
+	border-color: #7a5c1a;
+}
+
+html.sps-dark :is(.rank-math-status-badge--unchecked, .rank-math-status-badge.rank-math-status-rolled-back) {
+	color: var(--sps-ui-muted);
+	background: var(--sps-ui-raised);
+	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark .rank-math-status-warning {
+	color: var(--sps-ui-warning);
+}
+
+/*
+ * Rank Math's table (Link Genius's Posts and Links, AI Visibility): a #fff
+ * card, #f8f9fa head, #fff and #fafafa rows (#f5f5f5 pointed at), #e0e0e0
+ * and #f0f0f0 lines, #1e1e1e to #6b7280 text, #fff fields and drop-downs.
+ */
+html.sps-dark :is(.rank-math-table-card, .rank-math-table-footer, .rank-math-table-skeleton-list-item, .rank-math-table-column-toggle .rank-math-table-dropdown, .rank-math-table-export .rank-math-table-export-dropdown, .rank-math-keyword-maps-empty) {
+	background: var(--sps-ui-surface);
+}
+
+html.sps-dark .rank-math-table thead,
+html.sps-dark .rank-math-table tbody tr,
+html.sps-dark .rank-math-table tbody .rank-math-table-row,
+html.sps-dark .rank-math-table tbody .rank-math-table-row.is-expanded {
+	background-color: var(--sps-ui-surface);
+}
+
+html.sps-dark .rank-math-table tbody tr:nth-child(2n+1),
+html.sps-dark .rank-math-table tbody .rank-math-table-row:nth-child(odd),
+html.sps-dark .rank-math-table-export .rank-math-table-export-dropdown .rank-math-table-export-footer {
+	background-color: var(--sps-ui-raised);
+}
+
+html.sps-dark .rank-math-table tbody tr:hover,
+html.sps-dark .rank-math-table tbody .rank-math-table-row:hover,
+html.sps-dark .rank-math-table thead th.sortable:hover,
+html.sps-dark .rank-math-multi-select-popover .rank-math-multi-select-option:hover,
+html.sps-dark .rank-math-table-column-toggle .rank-math-table-dropdown .rank-math-table-dropdown-item:hover,
+html.sps-dark .rank-math-table-export .rank-math-table-export-dropdown .rank-math-table-export-option:hover {
+	background-color: var(--sps-ui-hover);
+}
+
+html.sps-dark :is(.rank-math-table, .rank-math-table thead, .rank-math-table tbody tr, .rank-math-table tbody .rank-math-table-row, .rank-math-table-header, .rank-math-table-footer, .rank-math-table-toggle-row, .rank-math-table-column-toggle .rank-math-table-dropdown, .rank-math-table-export .rank-math-table-export-dropdown, .rank-math-table-export .rank-math-table-export-dropdown .rank-math-table-export-footer) {
+	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark .rank-math-table-skeleton-item {
+	background-image: linear-gradient(90deg, var(--sps-ui-raised) 0, var(--sps-ui-border) 40%, var(--sps-ui-raised) 80%);
+}
+
+html.sps-dark :is(.rank-math-table th, .rank-math-table tbody tr td, .rank-math-table tbody .rank-math-table-row .rank-math-table-primary-column, .rank-math-table-header .rank-math-table-title, .rank-math-table-column-toggle .rank-math-table-dropdown .rank-math-table-dropdown-item span, .rank-math-table-export-dropdown .rank-math-table-export-option .rank-math-table-export-option-text strong, .rank-math-multi-select-popover .rank-math-multi-select-option.is-selected label) {
+	color: var(--sps-ui-text);
+}
+
+html.sps-dark :is(.rank-math-table td, .rank-math-table thead th, .rank-math-table-footer, .rank-math-table-footer-stats, .rank-math-table-empty p, .rank-math-table-row-actions, .rank-math-table-export-dropdown .rank-math-table-export-option .rank-math-table-export-option-text span, .rank-math-table-export .rank-math-table-export-dropdown .rank-math-table-export-footer small, .rank-math-multi-select-popover .rank-math-multi-select-option label, .rank-math-keyword-maps-empty p) {
+	color: var(--sps-ui-muted);
+}
+
+html.sps-dark .rank-math-table tbody tr td {
+	color: var(--sps-ui-text);
+}
+
+/* Its fields: the column, export and filter buttons, drop-downs and search. */
+html.sps-dark .rank-math-table-header .rank-math-table-header-actions .is-secondary,
+html.sps-dark .rank-math-table-header .rank-math-table-header-actions .is-secondary:hover,
+html.sps-dark .rank-math-table-filter-inline :is(select, select.components-select-control__input),
+html.sps-dark .rank-math-table-search-inline input[type="search"],
+html.sps-dark .rank-math-multi-select-dropdown .rank-math-multi-select-button,
+html.sps-dark .rank-math-multi-select-wrapper .rank-math-multi-select-dropdown .rank-math-multi-select-button,
+html.sps-dark .rank-math-bulk-update-form-grid.filter-links .rank-math-multi-select-wrapper .rank-math-multi-select-dropdown .rank-math-multi-select-button {
+	color: var(--sps-ui-text);
+	background-color: var(--sps-ui-canvas);
+	border-color: var(--sps-ui-field-border);
+}
+
+html.sps-dark .rank-math-multi-select-wrapper .rank-math-multi-select-dropdown .rank-math-multi-select-button::after {
+	border-color: var(--sps-ui-text);
+}
+
+/* Bulk Update: its #fafafa panels, #ebf5f9 tip, pale summary and progress boxes, and #f0f0f0 lines. */
+html.sps-dark :is(.rank-math-bulk-update-operation-section, .rank-math-bulk-update-step2-panel) {
+	background-color: var(--sps-ui-raised);
+	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark :is(.rank-math-bulk-update-summary-box, .rank-math-bulk-update-progress-content) {
+	background: var(--sps-ui-raised);
+	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark .rank-math-bulk-update-pro-tip {
+	background: #152333;
+	border-color: #2a4a6b;
+}
+
+html.sps-dark :is(.rank-math-bulk-update-pro-tip p, .rank-math-bulk-update-pro-tip .rank-math-pro-tip-title, .rank-math-bulk-update-summary-box h4) {
+	color: var(--sps-ui-info);
+}
+
+html.sps-dark :is(.rank-math-bulk-update-step-header, .rank-math-bulk-update-step-actions, .rank-math-bulk-update-step2-panel-header, .rank-math-bulk-update-summary-row) {
+	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark .rank-math-bulk-update-step:not(:last-child)::after {
+	background: var(--sps-ui-border);
+}
+
+html.sps-dark .rank-math-bulk-update-step-number {
+	border-color: var(--sps-ui-surface);
+}
+
+html.sps-dark :is(.rank-math-bulk-update-step-header h3, .rank-math-bulk-update-operation-select label, .rank-math-bulk-update-step2-panel-header h4, .rank-math-bulk-update-summary-row strong, .rank-math-bulk-update-history-table .components-card__header h3, .rank-math-bulk-update-history-table .rank-math-operation-type, .rank-math-bulk-update-history-table .rank-math-post-title-text) {
+	color: var(--sps-ui-text);
+}
+
+html.sps-dark :is(.rank-math-bulk-update-step-header .rank-math-bulk-update-step-description, .rank-math-bulk-update-step-label, .rank-math-bulk-update-step2-helper, .rank-math-bulk-update-step2-helper .dashicons, .rank-math-bulk-update-step2-panel-header .dashicons, .rank-math-bulk-update-history-table .rank-math-changes-detail p, .rank-math-bulk-update-history-table .rank-math-arrow) {
+	color: var(--sps-ui-muted);
+}
+
+html.sps-dark .rank-math-bulk-update-summary-row span {
+	color: var(--sps-ui-text);
+	background: var(--sps-ui-canvas);
+}
+
+/* Its history: a #fcfcfc table with #fff rows and pale value pills. */
+html.sps-dark .rank-math-bulk-update-history-table .components-card__header,
+html.sps-dark .rank-math-bulk-update-history-table .rank-math-nested-table {
+	background: var(--sps-ui-surface);
+	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark .rank-math-bulk-update-history-table .rank-math-nested-table tbody tr {
+	background-color: var(--sps-ui-raised);
+	border-color: var(--sps-ui-border) !important;
+}
+
+html.sps-dark .rank-math-bulk-update-history-table .rank-math-nested-table :is(thead th, tbody td) {
+	color: var(--sps-ui-text) !important;
+}
+
+html.sps-dark :is(.rank-math-bulk-update-history-table .rank-math-count-badge, .rank-math-bulk-update-history-table .rank-math-post-id-badge) {
+	color: var(--sps-ui-muted);
+	background: var(--sps-ui-raised);
+	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark .rank-math-bulk-update-history-table .rank-math-old-value {
+	color: var(--sps-ui-bad);
+	background: #33191b;
+	border-color: #8a2a33;
+}
+
+html.sps-dark .rank-math-bulk-update-history-table .rank-math-new-value {
+	color: var(--sps-ui-good);
+	background: #16291b;
+	border-color: #2d5a37;
+}
+
+/* Link counts (#f0f0f1, linked ones #e0e5f0) and SEO scores (pale fills). */
+html.sps-dark .rank-math-count-badge {
+	color: var(--sps-ui-text);
+	background-color: var(--sps-ui-raised);
+}
+
+html.sps-dark .rank-math-count-badge.rank-math-count-badge-link:not(:hover) {
+	color: var(--sps-ui-info);
+	background-color: #152333;
+}
+
+html.sps-dark .rank-math-seo-score.na strong {
+	color: var(--sps-ui-muted);
+	background: var(--sps-ui-raised);
+}
+
+html.sps-dark .rank-math-seo-score.bad strong {
+	color: var(--sps-ui-bad);
+	background: #33191b;
+}
+
+html.sps-dark .rank-math-seo-score.good strong {
+	color: var(--sps-ui-warning);
+	background: #2e2716;
+}
+
+/* Link tags (Hyperlink, New tab, Nofollow: #fff, #c3c4c7 lines, dark icons) and type badges. */
+html.sps-dark .rank-math-tag {
+	color: var(--sps-ui-text);
+	background-color: var(--sps-ui-raised);
+	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark .rank-math-tag.rank-math-tag-anchor-type::before,
+html.sps-dark .rank-math-tag.rank-math-tag-new-tab::before,
+html.sps-dark .rank-math-tag.rank-math-tag-nofollow::before {
+	filter: invert(1);
+}
+
+html.sps-dark .rank-math-tag-remove:not(:hover) {
+	color: var(--sps-ui-text);
+	background: rgb(255 255 255 / 12%);
+}
+
+html.sps-dark .rank-math-badge.rank-math-badge-success {
+	color: var(--sps-ui-good);
+	background-color: #16291b;
+}
+
+html.sps-dark .rank-math-badge.rank-math-badge-info {
+	color: var(--sps-ui-info);
+	background-color: #152333;
+}
+
+html.sps-dark .rank-math-badge.rank-math-badge-warning {
+	color: var(--sps-ui-warning);
+	background-color: #2e2716;
+}
+
+html.sps-dark .rank-math-badge.rank-math-badge-danger {
+	color: var(--sps-ui-bad);
+	background-color: #33191b;
+}
+
+/*
+ * Its filter toggles (#50575e; #f0f0f1 groups with a #fff picked button).
+ * Picked and pointed-at ones keep their colours, but Internal, External,
+ * Linked, Orphan and Blocked use dark ones, so these get light versions.
+ */
+html.sps-dark .rank-math-toggle-button-group:not(.is-tab-style, .is-colored) {
+	background-color: var(--sps-ui-raised);
+}
+
+html.sps-dark .rank-math-toggle-button-group .rank-math-toggle-button:not(.is-active, :hover) {
+	color: var(--sps-ui-muted);
+}
+
+html.sps-dark .rank-math-toggle-button-group.is-colored .rank-math-toggle-button {
+	background-color: rgb(255 255 255 / 6%);
+}
+
+html.sps-dark .rank-math-toggle-button-group:not(.is-tab-style, .is-colored) .rank-math-toggle-button.is-active {
+	color: var(--sps-ui-text);
+	background-color: var(--sps-ui-border);
+}
+
+html.sps-dark .rank-math-toggle-button-group .rank-math-toggle-button.status-internal:is(:hover, .is-active) {
+	color: var(--sps-ui-good);
+	border-color: currentcolor;
+}
+
+html.sps-dark .rank-math-toggle-button-group .rank-math-toggle-button:is(.status-external, .status-linked):is(:hover, .is-active) {
+	color: var(--sps-ui-info);
+	border-color: currentcolor;
+}
+
+html.sps-dark .rank-math-toggle-button-group .rank-math-toggle-button.status-orphan:is(:hover, .is-active) {
+	color: var(--sps-ui-warning);
+	border-color: currentcolor;
+}
+
+html.sps-dark .rank-math-toggle-button-group .rank-math-toggle-button.status-blocked:is(:hover, .is-active) {
+	color: #d7b8ef;
+	border-color: currentcolor;
+}
+
+/* Status badges in its tables. */
+html.sps-dark .rank-math-table-status-badge.status-success {
+	color: var(--sps-ui-good);
+	background-color: #16291b;
+}
+
+html.sps-dark .rank-math-table-status-badge.status-warning {
+	color: var(--sps-ui-warning);
+	background-color: #2e2716;
+}
+
+html.sps-dark .rank-math-table-status-badge.status-error {
+	color: var(--sps-ui-bad);
+	background-color: #33191b;
+}
+
+html.sps-dark .rank-math-table-actions button.button-link-edit {
+	background-color: transparent;
+}
+
+/*
  * ACF and Secure Custom Fields: fields in editors, terms, users and options
  * pages: tabs, galleries, files, relationships (following ACF's own
  * acf-dark.css, which it loads only for the Dark Mode plugin).
