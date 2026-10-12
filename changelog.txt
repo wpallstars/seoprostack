@@ -2,6 +2,9 @@
 
 Every change to SEO Pro Stack. readme.txt lists the latest version in short.
 
+= Unreleased =
+* Developers: core files synced from WP Plugin Starter c4da8c2 (1.0.37): scripts/deploy-sites.sh rolls a published release out to every install on an SSH host (a dry run first; the zip checked against GitHub's SHA-256 and provenance; a backup and one result line per install), with its remote part in scripts/lib/deploy-remote.sh and RELEASING.md step 5. scripts/smoke-test.sh --multisite tests a network with the plugin network-activated, and CI runs it. Nothing changes for sites (GitHub issue #742).
+
 = 1.3.44 =
 * New: a Security tab. HTTPS and security headers and Turn off unused remote access moved there from Admin; their settings are unchanged (GitHub issue #733).
 * New, on by default: Minimum password length, on the Security tab. Every new password must be at least 12 characters (8–64), on the profile and reset screens, WooCommerce's account forms and the REST API; passwords already set keep working until changed. Length only, no rules about symbols or capitals (GitHub issue #733).

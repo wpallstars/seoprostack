@@ -1639,6 +1639,10 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folderâ
 
 ## Changelog
 
+### Unreleased
+
+- Developers: core files synced from WP Plugin Starter c4da8c2 (1.0.37): `scripts/deploy-sites.sh` rolls a published release out to every install on an SSH host (a dry run first; the zip checked against GitHub's SHA-256 and provenance; a backup and one result line per install), with its remote part in `scripts/lib/deploy-remote.sh` and RELEASING.md step 5. `scripts/smoke-test.sh --multisite` tests a network with the plugin network-activated, and CI runs it. Nothing changes for sites (GitHub issue #742).
+
 ### 1.3.44
 
 - New: a **Security** tab. [HTTPS and security headers](#https-and-security-headers-security) and [Turn off unused remote access](#turn-off-unused-remote-access-security) moved there from Admin; their settings are unchanged (GitHub issue #733).
