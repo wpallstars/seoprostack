@@ -3,8 +3,9 @@
 Every change to SEO Pro Stack. readme.txt lists the latest version in short.
 
 = Unreleased =
-* Fix: Magic login links sends no link to people FluentAuth asks for an authenticator app or passkey (their role must have one, or they set one up), so a link no longer skips that step; they log in with their password.
-* Change: Organise the admin menu puts FluentAuth in the Administrators menu.
+* Fix: Magic login links sends no link to people FluentAuth asks for an authenticator app or passkey (their role must have one, or they set one up), so a link no longer skips that step; they log in with their password (GitHub issue #728).
+* Change: Organise the admin menu puts FluentAuth in the Administrators menu (GitHub issue #728).
+* Developers: core files synced from WP Plugin Starter 0c05983, including shared header Light / Dark / System controls and GitHub updater 1.6.2. The existing whole-admin colour mode keeps its own files and controls without colliding with the shared header; uninstall preserves the shared preference while another wpallstars plugin is installed (GitHub issue #722).
 * Fix: Turn off unused remote access restores the log and backup files and PHP in uploads .htaccess blocks when another plugin removes them or leaves their markers without the complete rules, on the next main-site admin screen (GitHub issue #718).
 
 = 1.3.42 =

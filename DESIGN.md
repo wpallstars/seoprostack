@@ -2,7 +2,7 @@
 
 ## Colour mode
 
-Every wp-admin screen has a per-person colour mode (`SEOProStack_Admin_Theme`).
+Every wp-admin screen has a per-person colour mode (`SEOProStack_Admin_Whole_Theme`).
 Light is the default and keeps WordPress's admin colours; on SEO Pro Stack's
 own screen only, the scheme colour's brightness is capped (Accent, below).
 Dark gives every admin screen the WordPress admin greys below, while the
@@ -45,14 +45,20 @@ The choice is shared with SEO Pro Stats (wpallstars/seoprostats#251): user meta
 Light; both are saved with a nonce and `read` capability. A saved change is
 sent as `wpallstars-admin-theme` (`{ mode, source }`) on `document`, and the
 other plugin's changes are applied without saving or sending again. Uninstall
-removes `seoprostack_admin_theme`, and `wpallstars_admin_theme` only when SEO
-Pro Stats is not installed. `admin_head` at priority 1 sets `sps-theme-{mode}`
+removes `seoprostack_admin_theme`, and `wpallstars_admin_theme` only when no
+other wpallstars plugin is installed. `admin_head` at priority 0 sets `sps-theme-{mode}`
 and `sps-dark` before first paint. All dark overrides require
 `html.sps-dark`; `sps-themechange` on `document` carries `{ mode, dark }`. The
-stylesheet loads only while dark (or on SEO Pro Stack's own screen); the
+whole-admin stylesheet loads only while dark or in System mode; the
 script loads it on the first switch to dark.
 
-`admin/css/seoprostack-theme.css` defines the palette once as `--sps-ui-*`:
+The shared header uses `SEOProStack_Admin_Theme` and the starter's
+`admin/css/seoprostack-theme.css` / `admin/js/seoprostack-theme.js` on settings,
+network settings and own screens. Whole-admin rules stay off these screens.
+The two controls share the saved choice; separate AJAX actions, asset handles
+and script globals prevent one control from overwriting the other's data.
+
+`admin/css/seoprostack-whole-theme.css` defines the whole-admin palette once as `--sps-ui-*`:
 
 | Token | Dark value |
 | --- | --- |
@@ -105,7 +111,9 @@ the screen at once.
   `--wp-admin-theme-color` inside `body`, so WordPress's buttons, fields and
   components take it too. The classic schemes' bright link hover and focus
   (`#0096dd`, 3.3:1) become `#005e8e`. Older browsers keep the scheme's
-  colour. Other screens keep WordPress's own light look.
+  colour. Other screens keep WordPress's own light look. These rules live in
+  `admin/css/seoprostack-tabs.css`, loaded on the settings screen independently
+  of the shared starter palette and the whole-admin stylesheet.
 
 ## Banner and icon
 
