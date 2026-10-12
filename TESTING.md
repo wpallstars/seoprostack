@@ -46,7 +46,10 @@ node scripts/dark-audit.mjs shot /wp-admin/edit.php one.png
 Keep the output outside the repository (it holds the site's addresses).
 `--from=N --to=N` audits part of the list. The first visit after a plugin
 changes makes its dark copies, so audit twice after deploying, or open the
-screens once first. Light mode needs no audit: nothing loads there.
+screens once first. To measure the fallback alone, run the before audit
+with `add_filter('seoprostack_admin_dark_fallback', '__return_false');` in
+a must-use plugin on the test site, and delete it for the after audit.
+Light mode needs no audit: nothing loads there.
 
 ## Media in cloud storage
 

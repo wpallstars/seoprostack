@@ -116,6 +116,16 @@ plugin's unlayered rules win; the contrast guard still lightens their
 unreadable text, and screens that need more get a hand-written section.
 
 `scripts/dark-audit.mjs` checks the result (TESTING.md → Dark mode audit).
+Measured when it was added (GitHub issue #712), on the shared preview site
+with every recommended plugin: 272 admin menu screens, 266 of them dark
+(the other 6 keep their own look on purpose, such as SEO Pro Stats and
+Tutor LMS's course builder). Without the fallback: 227 light surfaces, 218
+of them not brand colours, 19 full-width. With it: 32 (86% fewer), 23 not
+brand colours, none full-width; text below AA went from 24 to 20. What is
+left is mostly drawn by script: Social Engine's (Meow Apps)
+styled-components panels, FluentCommunity's first-run wizard, Element Plus inputs and
+buttons on Fluent screens, a React Select field, plus a few small notices
+and tiles; brand-coloured badges (EventON, Complianz) keep their colours.
 
 ### Accent
 
