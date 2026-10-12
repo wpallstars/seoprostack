@@ -697,6 +697,28 @@ class SEOProStack_Security_Headers extends SEOProStack_Feature {
     }
 
     /**
+     * Keyset pagination: deleting an earlier site cannot shift the next batch.
+     *
+     * @param int $after Last processed site ID in this phase.
+     * @return int[]
+     */
+    private static function cleanup_sites($after) {
+        global $wpdb;
+        // WP_Site_Query has no ID-range argument. Scope its clause filter to
+        // this query and remove it even if another query filter throws.
+        $filter = static function (array $clauses) use ($after, $wpdb) {
+            $clauses['where'] .= $wpdb->prepare(" AND {$wpdb->blogs}.blog_id > %d", $after);
+            return $clauses;
+        };
+        add_filter('sites_clauses', $filter);
+        try {
+            return array_map('intval', get_sites(array('network_id' => get_current_network_id(), 'fields' => 'ids', 'number' => 50, 'orderby' => 'id', 'order' => 'ASC')));
+        } finally {
+            remove_filter('sites_clauses', $filter);
+        }
+    }
+
+    /**
      * Explicit cleanup. Network requests preflight then clean at most 50 sites.
      * A short-lived user/network-scoped cursor cannot be forged by POST fields.
      */
@@ -710,8 +732,10 @@ class SEOProStack_Security_Headers extends SEOProStack_Feature {
         }
         $key   = self::CLEANUP . '_' . get_current_blog_id() . '_' . get_current_user_id();
         $state = get_site_transient($key);
-        $state = is_array($state) ? $state : array('phase' => 'check', 'offset' => 0);
-        $sites = is_multisite() ? get_sites(array('network_id' => get_current_network_id(), 'fields' => 'ids', 'number' => 50, 'offset' => $state['offset'], 'orderby' => 'id', 'order' => 'ASC')) : array(get_current_blog_id());
+        // Restart older offset-based continuations rather than carrying a
+        // potentially skipped site into the cleanup phase.
+        $state = is_array($state) && isset($state['after']) ? $state : array('phase' => 'check', 'after' => 0);
+        $sites = is_multisite() ? self::cleanup_sites((int) $state['after']) : array(get_current_blog_id());
         foreach ($sites as $site) {
             if (is_multisite()) {
                 switch_to_blog((int) $site);
@@ -741,9 +765,9 @@ class SEOProStack_Security_Headers extends SEOProStack_Feature {
         }
         $more = is_multisite() && 50 === count($sites);
         if ($more) {
-            $state['offset'] += count($sites);
+            $state['after'] = max($sites);
         } elseif ('check' === $state['phase'] && is_multisite()) {
-            $state = array('phase' => 'clean', 'offset' => 0);
+            $state = array('phase' => 'clean', 'after' => 0);
         } else {
             if (is_multisite()) {
                 switch_to_blog(get_main_site_id());

@@ -40,6 +40,9 @@ directory-indexing and uploads rules, and `rsssl_*` scheduled tasks. On a
 network it checks the current and main sites; the explicit cleanup checks
 every site's activation lists first, then clears scheduled tasks in batches
 of 50 sites, with a Continue button between requests.
+Each phase resumes after its last processed site ID, so deleting an earlier
+site cannot skip later sites. This is a live scan, not a fixed snapshot of
+sites created during cleanup.
 
 Cleanup requires a nonce and `manage_options` (on multisite,
 `manage_network_options`), and refuses while any replaced version is active.
