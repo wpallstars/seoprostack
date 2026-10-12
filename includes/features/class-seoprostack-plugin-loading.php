@@ -203,6 +203,15 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
      */
     private static $form_seen = array();
 
+    /**
+     * Plugins whose scripts or styles a post editor being learned had
+     * enqueued before SEO Pro Stack's features took some out for the
+     * person viewing it (note_editor_assets()).
+     *
+     * @var string[]
+     */
+    private static $editor_assets = array();
+
     /** Content actually rendered, including theme templates and secondary loops. */
     private static $front_seen = array();
 
@@ -424,6 +433,12 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
                 add_action('admin_menu', array(__CLASS__, 'capture_menu'), PHP_INT_MAX);
                 add_action('adminmenu', array(__CLASS__, 'prune_menu'));
                 add_action('admin_footer', array(__CLASS__, 'learn'), PHP_INT_MAX);
+                if (0 === strpos($state['screen'], 'post:')) {
+                    // Before the Dev tab takes YellowPencil's script out for
+                    // people who are not developers (priority 100), so who
+                    // learns the editor does not change what it loads.
+                    add_action('admin_enqueue_scripts', array(__CLASS__, 'note_editor_assets'), 99);
+                }
                 if ('customizer' === $state['screen']) {
                     // customize.php has its own footer, not admin_footer.
                     add_action('customize_controls_print_footer_scripts', array(__CLASS__, 'learn'), PHP_INT_MAX);
@@ -1340,6 +1355,13 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
                 // row data in them on this list. Plugins that hook them for
                 // other post types (WooCommerce for products) add nothing here.
                 $map['screens'][$screen] = array_keys(self::$form_seen);
+            } elseif ('post' === $kind) {
+                // Also plugins that add to the editor only through scripts or
+                // styles they enqueue for it, such as YellowPencil's pencil
+                // button in the toolbar (GitHub issue #706).
+                $map['screens'][$screen] = array_values(array_unique(array_merge(
+                    self::form_plugins($kind, $name), self::$editor_assets, self::admin_asset_plugins()
+                )));
             } else {
                 $map['screens'][$screen] = self::form_plugins($kind, $name);
             }
@@ -2229,29 +2251,9 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
         }
         // Remaining assets (including analytics and dependencies) mean a plugin
         // still contributes to this page after other features have dequeued it.
-        $root = (string) wp_parse_url(plugins_url('/'), PHP_URL_PATH);
-        foreach (array(wp_scripts(), wp_styles()) as $assets) {
-            // array_values: array_unique keeps keys, and the loop below reads
-            // 0..count-1 while appending dependencies, so gaps would skip handles.
-            $handles = array_values(array_unique(array_merge($assets->queue, $assets->done)));
-            for ($i = 0; $i < count($handles); $i++) {
-                $handle = $handles[$i];
-                if (empty($assets->registered[$handle])) {
-                    continue;
-                }
-                $asset = $assets->registered[$handle];
-                foreach ((array) $asset->deps as $dep) {
-                    if (!in_array($dep, $handles, true)) {
-                        $handles[] = $dep;
-                    }
-                }
-                $path = (string) wp_parse_url((string) $asset->src, PHP_URL_PATH);
-                if ('' !== $root && 0 === strpos($path, $root)) {
-                    $owner = SEOProStack_Plugin_Loader::plugin_for_file(WP_PLUGIN_DIR . '/' . substr($path, strlen($root)));
-                    if (!in_array($owner, $own_content, true) || in_array($owner, self::$front_seen, true)) {
-                        $needs[] = $owner;
-                    }
-                }
+        foreach (self::asset_owners() as $owner) {
+            if (!in_array($owner, $own_content, true) || in_array($owner, self::$front_seen, true)) {
+                $needs[] = $owner;
             }
         }
         foreach (self::front_sidebars() as $sidebar => $widgets) {
@@ -2507,6 +2509,63 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
             return true;
         }
         return $wp_list_table instanceof WP_Posts_List_Table && $wp_list_table->has_items();
+    }
+
+    /**
+     * Owners of the plugin scripts and styles this request has enqueued or
+     * printed so far, and of the ones they depend on.
+     *
+     * @return string[] Plugin files; '' for a file no active plugin owns.
+     */
+    private static function asset_owners() {
+        $root   = (string) wp_parse_url(plugins_url('/'), PHP_URL_PATH);
+        $owners = array();
+        if ('' === $root) {
+            return $owners;
+        }
+        foreach (array(wp_scripts(), wp_styles()) as $assets) {
+            // array_values: array_unique keeps keys, and the loop below reads
+            // 0..count-1 while appending dependencies, so gaps would skip handles.
+            $handles = array_values(array_unique(array_merge($assets->queue, $assets->done)));
+            for ($i = 0; $i < count($handles); $i++) {
+                $handle = $handles[$i];
+                if (empty($assets->registered[$handle])) {
+                    continue;
+                }
+                $asset = $assets->registered[$handle];
+                foreach ((array) $asset->deps as $dep) {
+                    if (!in_array($dep, $handles, true)) {
+                        $handles[] = $dep;
+                    }
+                }
+                $path = (string) wp_parse_url((string) $asset->src, PHP_URL_PATH);
+                if (0 === strpos($path, $root)) {
+                    $owners[] = SEOProStack_Plugin_Loader::plugin_for_file(WP_PLUGIN_DIR . '/' . substr($path, strlen($root)));
+                }
+            }
+        }
+        return $owners;
+    }
+
+    /**
+     * Other plugins with scripts or styles on this admin screen.
+     *
+     * @return string[]
+     */
+    private static function admin_asset_plugins() {
+        $self = plugin_basename(SEOPROSTACK_FILE);
+        return array_values(array_unique(array_filter(self::asset_owners(), function ($plugin) use ($self) {
+            return '' !== $plugin && $self !== $plugin;
+        })));
+    }
+
+    /**
+     * While a post editor learns (admin_enqueue_scripts, 99): note the
+     * plugins with scripts or styles on it before SEO Pro Stack's features
+     * take some out for the person viewing it.
+     */
+    public static function note_editor_assets() {
+        self::$editor_assets = self::admin_asset_plugins();
     }
 
     /**
