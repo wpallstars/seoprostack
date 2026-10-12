@@ -668,7 +668,7 @@ class SEOProStack_Security_Headers extends SEOProStack_Feature {
                 return false;
             }
             // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_file_put_contents -- retain the replaced plugin's stub for cached prepend references.
-            if (strlen(self::RSSSL_STUB) !== file_put_contents($file, self::RSSSL_STUB, LOCK_EX)) {
+            if (strlen(self::RSSSL_STUB) !== file_put_contents($file, self::RSSSL_STUB, LOCK_EX)) { // phpcs:ignore PluginCheck.CodeAnalysis.WriteFile.PluginDirectoryWrite -- fixed wp-content/advanced-headers.php path, outside the plugin directory; retain the existing prepend stub.
                 return false;
             }
         }
