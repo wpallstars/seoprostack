@@ -1641,6 +1641,10 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folderâ
 
 ## Changelog
 
+### Unreleased
+
+- New: **Dark** mode reaches every plugin's and theme's admin screens, not only those with a hand-written section: SEO Pro Stack makes a dark copy of each of their stylesheets, holding only the rules that paint a light background, a light border or dark grey text, and loads it right after the original; brand colours, pictures and the block editor's canvas keep theirs. On the preview site's 266 dark screens, light surfaces fell from 227 to 32 and full-width light panels from 19 to none. Also dark now: **Settings â†’ Connectors** (WordPress 7) with AI Engine's banner there, the rows of **Export Personal Data** and **Erase Personal Data**, WordPress's popular tags and feature filter boxes, and the content area around Bit Flows' and Bit Social's apps. New `seoprostack_admin_dark_fallback` and `seoprostack_admin_dark_fallback_style` filters; `scripts/dark-audit.mjs` audits a test site's admin screens in Dark (GitHub issue #712).
+
 ### 1.3.44
 
 - New: a **Security** tab. [HTTPS and security headers](#https-and-security-headers-security) and [Turn off unused remote access](#turn-off-unused-remote-access-security) moved there from Admin; their settings are unchanged (GitHub issue #733).
@@ -1652,7 +1656,6 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folderâ
 - Fix: on multisite, **Make every site the same** no longer loses a site's settings from before when that site applies the network's changes at the same moment, so the site still does the saving work for the copied settings on its next admin, cron or WP-CLI request (GitHub issue #731).
 - Developers: core files synced from WP Plugin Starter 2d8ea29 (1.0.36 and later): `SEOProStack_Settings::replace_site_values()` keeps a site's settings from before under its save lock and `SEOProStack_Network_Sites::sync()` reads and records `seoprostack_network_seen` under the same lock; tabs with the same `'menu'` share a second row of tabs; `scripts/sync-core.sh` classes each differing file; new `scripts/preview-browser.sh`; CI checks the ShellCheck runner's architecture only when installing (GitHub issues #731, #723).
 - Fix: [**Load plugins only where needed**](#load-plugins-only-where-needed-plugins) keeps loading, in the post editor, plugins that add to it only through scripts or styles, such as YellowPencil, whose pencil button was missing from the editor's toolbar once the editor was learned. The editor is learned the same whoever opens it, so the Dev tab hiding that button from people who are not developers does not drop it for developers (GitHub issue #706).
-- New: **Dark** mode reaches every plugin's and theme's admin screens, not only those with a hand-written section: SEO Pro Stack makes a dark copy of each of their stylesheets, holding only the rules that paint a light background, a light border or dark grey text, and loads it right after the original; brand colours, pictures and the block editor's canvas keep theirs. On the preview site's 266 dark screens, light surfaces fell from 227 to 32 and full-width light panels from 19 to none. Also dark now: **Settings â†’ Connectors** (WordPress 7) with AI Engine's banner there, the rows of **Export Personal Data** and **Erase Personal Data**, WordPress's popular tags and feature filter boxes, and the content area around Bit Flows' and Bit Social's apps. New `seoprostack_admin_dark_fallback` and `seoprostack_admin_dark_fallback_style` filters; `scripts/dark-audit.mjs` audits a test site's admin screens in Dark (GitHub issue #712).
 
 ### 1.3.43
 
