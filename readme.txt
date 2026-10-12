@@ -21,7 +21,7 @@ Safe features start on; others stay off. **Settings → SEO Pro Stack** has **Se
 
 = A calmer, faster admin =
 
-* **Light, Dark or System**: per-person wp-admin colour mode, from the admin bar or settings header (network settings too).
+* **Light, Dark or System**: per-person wp-admin colour mode, from the admin bar or settings header (network settings too). Dark reaches every plugin's and theme's screens: dark copies of their stylesheets, kept in uploads/seoprostack-dark and deleted on deactivation.
 * **Developer admins**: choose who manages plugins, themes, admins and site addresses.
 * **Organise the admin menu**: sections, role previews and contributor menus.
 * **Tidy the dashboard**, **Dashboard and sidebar widgets**, **Hide admin notices** and **More menu**.

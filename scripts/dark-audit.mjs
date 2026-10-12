@@ -29,7 +29,7 @@
  * SPDX-FileCopyrightText: 2026 Marcus Quinn
  * Additional terms (GPL-3.0 section 7(b)): SEOPROSTACK-ATTRIBUTION.txt
  */
-import { readFileSync, writeFileSync, mkdirSync, existsSync, statSync } from 'node:fs';
+import { readFileSync, writeFileSync, mkdirSync, existsSync, statSync, chmodSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { pathToFileURL } from 'node:url';
@@ -338,7 +338,11 @@ if (cmd === 'login') {
 	await page.fill('#user_pass', pass);
 	await Promise.all([page.waitForNavigation(), page.click('#wp-submit')]);
 	const ok = /\/wp-admin\//.test(page.url());
-	await ctx.storageState({ path: STATE });
+	if (ok) {
+		// Holds the admin's login cookies: readable by this user only.
+		writeFileSync(STATE, JSON.stringify(await ctx.storageState()), { mode: 0o600 });
+		chmodSync(STATE, 0o600);
+	}
 	await b.close();
 	console.log(ok ? 'Logged in; state kept in ' + STATE : 'Login did not reach wp-admin.');
 	process.exit(ok ? 0 : 1);

@@ -139,10 +139,12 @@ final class SEOProStack_Dark_Fallback {
     /** The stylesheet's custom properties that hold one colour: name => value. */
     private static $vars = array();
 
-    /** Register on admin requests. */
+    /**
+     * Register on admin requests. Deactivation removes the copies through
+     * SEOProStack_Setup::remove_dark_copies(), registered on every request.
+     */
     public static function init() {
         add_filter('style_loader_tag', array(__CLASS__, 'tag'), 20, 4);
-        register_deactivation_hook(SEOPROSTACK_FILE, array(__CLASS__, 'deactivate'));
     }
 
     /**
@@ -988,11 +990,6 @@ final class SEOProStack_Dark_Fallback {
         }
         $parts[] = substr($list, $start);
         return $parts;
-    }
-
-    /** Remove the copies (deactivation; uninstall does the same for every site). */
-    public static function deactivate() {
-        self::remove();
     }
 
     /** Remove this site's copies. */
