@@ -5598,6 +5598,16 @@ html.sps-dark:not(.vgse-dark-mode) #vgse-wrapper .remodal-cancel:is(:hover, :foc
 }
 
 /*
+ * Bit Flows and Bit Social: their own dark mode covers the app but leaves
+ * the content area's light ground (#f5f8ff) as a rim around it, and their
+ * script moves the screen's stylesheets (with the fallback's copies) ahead
+ * of their own, so the copy of that rule loses.
+ */
+html.sps-dark :is(.toplevel_page_bit-pi, .toplevel_page_bit-social) #wpcontent {
+	background-color: var(--sps-ui-canvas);
+}
+
+/*
  * Bit Integrations (admin.php?page=bit-integrations): one React screen
  * with no dark mode of its own. A light sheet (#f8f9fd) under a dark
  * purple band; #fff panels, cards, menus and dialogs; #031b4e and #5f6d8a
