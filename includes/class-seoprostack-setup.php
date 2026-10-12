@@ -304,9 +304,21 @@ final class SEOProStack_Setup {
         add_filter('seoprostack_stored_active_plugins', array('SEOProStack_Plugin_Loader', 'stored_active_plugins'));
         add_filter('seoprostack_plugins_skipped', array('SEOProStack_Plugin_Loader', 'is_filtered'));
 
+        // On every request, so deactivating from WP-CLI also removes them.
+        register_deactivation_hook(SEOPROSTACK_FILE, array(__CLASS__, 'remove_dark_copies'));
+
         if (is_admin()) {
             self::prime_admin_options();
         }
+    }
+
+    /**
+     * Plugin deactivated: remove the dark copies of other plugins'
+     * stylesheets (uninstall does the same for every site).
+     */
+    public static function remove_dark_copies() {
+        require_once SEOPROSTACK_DIR . 'includes/admin/class-seoprostack-dark-fallback.php';
+        SEOProStack_Dark_Fallback::remove();
     }
 
     /**
@@ -541,6 +553,7 @@ final class SEOProStack_Setup {
             'admin/includes/class-agency-examples.php',
             'admin/includes/class-host-plugins.php',
             'includes/admin/class-seoprostack-admin-whole-theme.php',
+            'includes/admin/class-seoprostack-dark-fallback.php',
         );
         foreach ($files as $file) {
             require_once SEOPROSTACK_DIR . $file;
@@ -551,6 +564,7 @@ final class SEOProStack_Setup {
         SEOProStack_Agency_Examples::init();
         SEOProStack_Host_Plugins::init();
         SEOProStack_Admin_Whole_Theme::init();
+        SEOProStack_Dark_Fallback::init();
 
         // Priority 0, so other code filtering the tabs sees these as before.
         add_filter('seoprostack_admin_tabs', array(__CLASS__, 'discover_tabs'), 0);

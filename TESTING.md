@@ -21,6 +21,36 @@ The smoke test measures queries on a fresh site. To measure a live site:
 - Compare with the feature on and off on the same page, a few times each,
   and with Query Monitor for the queries and HTTP requests it adds.
 
+## Dark mode audit
+
+`scripts/dark-audit.mjs` opens every screen of the admin menu in Dark on a
+test site (Chromium through Playwright, at 1440 × 900) and lists, per screen,
+the light surfaces (opaque backgrounds with relative luminance above 0.55
+and more than 1500 px², brand colours marked) and the text below WCAG AA
+against what is behind it. It reads the site and the login from environment
+variables only; never commit their values or its output. The user's colour
+mode must be Dark. Run it before and after a change to Dark mode
+(`DESIGN.md` → Colour mode) and compare:
+
+```bash
+export SPS_AUDIT_URL=https://example.test SPS_AUDIT_USER=… SPS_AUDIT_PASS=…
+# Playwright: installed globally, or PLAYWRIGHT_PATH=<its folder>
+node scripts/dark-audit.mjs login
+node scripts/dark-audit.mjs urls urls.txt
+node scripts/dark-audit.mjs audit urls.txt before --shots   # report.json, summary.md, screenshots
+node scripts/dark-audit.mjs audit urls.txt after --shots
+node scripts/dark-audit.mjs compare before/report.json after/report.json
+node scripts/dark-audit.mjs shot /wp-admin/edit.php one.png
+```
+
+Keep the output outside the repository (it holds the site's addresses).
+`--from=N --to=N` audits part of the list. The first visit after a plugin
+changes makes its dark copies, so audit twice after deploying, or open the
+screens once first. To measure the fallback alone, run the before audit
+with `add_filter('seoprostack_admin_dark_fallback', '__return_false');` in
+a must-use plugin on the test site, and delete it for the after audit.
+Light mode needs no audit: nothing loads there.
+
 ## Media in cloud storage
 
 Use an isolated WordPress and MinIO container on the same Docker network, not the shared preview. Create a throwaway bucket with anonymous reading and set the documented constants in wp-config.php (API endpoint uses MinIO's container host and port; public URL uses its published address). Keep credentials out of logs. Size PHP as DEVELOPMENT.md says.
