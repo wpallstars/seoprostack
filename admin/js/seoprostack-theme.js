@@ -225,9 +225,14 @@
 			var was = release(el);
 			var style = getComputedStyle(el);
 			var fg = rgb(style.color);
-			var bg = fg && fg.a > 0 ? behind(el) : null;
+			var size = parseFloat(style.fontSize);
+			/*
+			 * Text at size 0 is not drawn. WP-Optimize's status dots are
+			 * such text on a background of the text's own colour, so a new
+			 * colour turned the dot itself white or black.
+			 */
+			var bg = fg && fg.a > 0 && size > 0 ? behind(el) : null;
 			if (bg && !el.disabled && el.getAttribute('aria-disabled') !== 'true') {
-				var size = parseFloat(style.fontSize);
 				var need = size >= 24 || (size >= 18.6 && parseInt(style.fontWeight, 10) >= 700) ? 3 : 4.5;
 				var shown = fg.a < 1 ? over(fg, bg) : fg;
 				if (ratio(shown, bg) < need) {

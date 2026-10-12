@@ -1542,6 +1542,16 @@ html.sps-dark .blockUI.blockOverlay {
 	background-color: var(--sps-ui-canvas) !important;
 }
 
+/*
+ * blockUI's message box over them (WP-Optimize's Saving... and image
+ * compression dialogs): #fff with #000 text, set inline unless the plugin
+ * passes colours of its own (PayPal Payments' is transparent), which stay.
+ */
+html.sps-dark .blockUI.blockMsg[style*="background-color: rgb(255, 255, 255)"] {
+	color: var(--sps-ui-text) !important;
+	background-color: var(--sps-ui-surface) !important;
+}
+
 /* Over thickbox's #TB_load colours (an ID selector). */
 html.sps-dark [id="TB_load"] {
 	background-color: var(--sps-ui-raised) !important;
@@ -6462,6 +6472,365 @@ html.sps-dark .toplevel_page_advanced_db_cleaner :is(#adbc-plugin-root, #headles
 
 html.sps-dark .toplevel_page_advanced_db_cleaner :is(#adbc-plugin-root, #headlessui-portal-root) :where(.hover\:shadow-gray-400:hover) {
 	--tw-shadow-color: rgb(0 0 0 / 60%);
+}
+
+/*
+ * WP-Optimize (admin.php?page=WP-Optimize and its wpo_* screens): a fixed
+ * #fff header with an #edeeef strip of links and #555d66 page links; in
+ * WordPress's postbox, #f2f4f5 field groups and switch tracks, #fff help
+ * pop-ups, premium links and Feedback menu, and white veils over
+ * premium-only parts; the Overview's #f8fbfc summary, #fff module cards,
+ * pale badges, notices and offer, and #1d2327 to #50575e text. #fff maps
+ * to the surface and #f2f4f5 to raised, as in the postbox. Its orange, the
+ * savings chart's colours, the green and grey dots, and its filled
+ * buttons and pills keep their colours.
+ */
+html.sps-dark :is(.wpo-main-header, .wpo-pages-menu, .wpo-mod-card, .wpo-info__content, .wpo-modal, .wpo_info, .updraft_advert_bottom, .power-tweaks--list .wpo-power-tweak .details) {
+	background-color: var(--sps-ui-surface);
+}
+
+html.sps-dark :is(.wpo-mod-card, .wpo-plugin-family__plugin) {
+	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark .wpo-main-header :is(p.wpo-header-links, p.wpo-header-links__mobile) {
+	background: var(--sps-ui-raised);
+}
+
+html.sps-dark .wpo-main-header .wpo-subheader,
+html.sps-dark .wpo-main-header p:is(.wpo-header-links, .wpo-header-links__mobile) .wpo-header-links__label {
+	color: var(--sps-ui-subtle);
+}
+
+html.sps-dark .wpo-pages-menu > a {
+	color: var(--sps-ui-muted);
+}
+
+html.sps-dark .wpo-pages-menu > a:hover {
+	color: var(--sps-ui-text);
+	background: var(--sps-ui-hover);
+}
+
+html.sps-dark .wpo-pages-menu span.separator {
+	background: var(--sps-ui-border);
+}
+
+html.sps-dark #wp-optimize-nav-page-menu {
+	color: var(--sps-ui-accent);
+}
+
+html.sps-dark #wp-optimize-wrap h2.nav-tab-wrapper .wpo-feedback:hover > span {
+	background: var(--sps-ui-raised);
+}
+
+/* The Overview: its summary, module cards, chart, badges, dots, notices and offer. */
+html.sps-dark .wpo-top-row {
+	background-color: #242b30;
+	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark :is(.wpo-setup-title, .wpo-big-num:not(.wpo-big-num--green, .grey-out), .wpo-mod-big, .wpo-feat-name, .wpo-promo-app .wpo-promo-app-name, .save_settings_reminder) {
+	color: var(--sps-ui-text);
+}
+
+html.sps-dark :is(.wpo-setup-sub, .wpo-setup-meta span, .wpo-savings-sub, .wpo-legend-item, .wpo-modules-label, .wpo-mod-icon-title, .wpo-mod-big span, .wpo-mod-desc, .wpo-feat-val:not(.premium), .wpo-notice, .wpo-promo-app, .wpo-first-child span) {
+	color: var(--sps-ui-muted);
+}
+
+html.sps-dark :is(.wpo-savings-bar-label, .wpo-mod-footer span, a.loading.wpo-refresh-gzip-status) {
+	color: var(--sps-ui-subtle);
+}
+
+html.sps-dark :is(.wpo-dash-link, .wpo-dash-link span.dashicons, .wpo-refresh-btn, .wpo-notice a) {
+	color: var(--sps-ui-accent);
+}
+
+html.sps-dark .wpo-warn {
+	color: var(--sps-ui-warning);
+}
+
+html.sps-dark :is(.wpo-unused-images-count, .wpo-error, .wpo_feat_table .dashicons-no-alt, .wpo_feat_table .updraft-no) {
+	color: var(--sps-ui-bad);
+}
+
+html.sps-dark :is(.wpo_feat_table .dashicons-yes, .wpo_feat_table .updraft-yes) {
+	color: var(--sps-ui-good);
+}
+
+html.sps-dark :is(.wpo-feature-list, .wpo-mod-footer) {
+	border-top-color: var(--sps-ui-border);
+}
+
+html.sps-dark :is(.wpo-bar-wrap, .wpo-bar-wrap--empty .wpo-bar-seg, .wpo-dot-off) {
+	background: var(--sps-ui-border);
+}
+
+html.sps-dark [class*="wpo-badge"] {
+	background: var(--sps-ui-raised);
+}
+
+html.sps-dark .wpo-badge__new {
+	color: var(--sps-ui-accent);
+	background: #1b3048;
+}
+
+html.sps-dark .wpo-badge:is(.active, .scheduled) {
+	color: var(--sps-ui-good);
+	background: #16291b;
+}
+
+html.sps-dark .wpo-badge.inactive {
+	color: var(--sps-ui-muted);
+	border-color: var(--sps-ui-border);
+}
+
+/* Notices keep their #2271b1 left edge. */
+html.sps-dark .wpo-notice {
+	background: #152333;
+	border-color: #2c5683;
+	border-left-color: #2271b1;
+}
+
+html.sps-dark .wpo-notice .wpo-dash-icon {
+	color: var(--sps-ui-info);
+}
+
+html.sps-dark .wpo-promo {
+	background: #2e2213;
+	border-color: #7a5d22;
+}
+
+/* Field groups, switches, help links and pop-ups, and the code, logs and outputs in them. */
+html.sps-dark :is(.wpo-fieldgroup, .wpo-fieldgroup .wpo-toggle-advanced-options span.text, .power-tweaks--list .wpo-power-tweak, .wpo-confirm h4 span.table-name, .wpo-table-usage__premium-mask a.wpo-table-usage__premium-link, a.wpo-analytics__premium-link, a.wpo-unused-images__premium-link, a.wpo-images-dimensions__premium-link) {
+	background: var(--sps-ui-raised);
+}
+
+html.sps-dark .wpo-fieldgroup :is(code, pre.code) {
+	background: rgb(255 255 255 / 10%);
+}
+
+html.sps-dark :is(a.wpo-info__trigger, .wpo-introduction-notice) {
+	background-color: var(--sps-ui-surface);
+}
+
+html.sps-dark span.wpo-info__close {
+	color: var(--sps-ui-muted);
+}
+
+html.sps-dark .wpo_info {
+	color: var(--sps-ui-text);
+}
+
+html.sps-dark #wp-optimize-wrap .switch .slider {
+	background-color: var(--sps-ui-canvas);
+}
+
+html.sps-dark #wp-optimize-wrap .switch .slider.round {
+	border-color: var(--sps-ui-field-border);
+}
+
+html.sps-dark #wp-optimize-wrap .switch .slider::before {
+	background-color: var(--sps-ui-muted);
+	border-color: var(--sps-ui-muted);
+}
+
+html.sps-dark #wp-optimize-wrap .switch .slider::after {
+	border-color: var(--sps-ui-subtle);
+}
+
+html.sps-dark #wp-optimize-wrap .switch input:checked + .slider {
+	background: var(--sps-ui-accent-fill);
+	border-color: var(--sps-ui-accent-fill);
+}
+
+html.sps-dark #wp-optimize-wrap .switch input:checked + .slider::before {
+	background: #fff;
+	border-color: #fff;
+}
+
+html.sps-dark #wp-optimize-wrap .switch input:focus + .slider {
+	box-shadow: 0 0 0 2px var(--sps-ui-raised), 0 0 0 3px var(--sps-ui-field-border);
+}
+
+html.sps-dark .wpo-fieldgroup .wpo-toggle-advanced-options {
+	color: var(--sps-ui-accent);
+}
+
+html.sps-dark .wpo-fieldgroup .button.wpo-toggle-advanced-options span.dashicons {
+	color: var(--sps-ui-muted);
+}
+
+html.sps-dark .wpo-fieldgroup .button.wpo-toggle-advanced-options.opened::before {
+	border-top-color: var(--sps-ui-border);
+}
+
+html.sps-dark .wpo-select2 + .select2-container.select2-container--disabled .select2-selection--single {
+	background-color: var(--sps-ui-raised);
+	border-color: var(--sps-ui-border);
+	text-shadow: none;
+}
+
+html.sps-dark .wp-optimize-setting-is-sensitive td > label::before {
+	color: var(--sps-ui-subtle);
+}
+
+html.sps-dark #wp-optimize-wrap .widefat thead :is(th, td) {
+	border-bottom-color: var(--sps-ui-border);
+}
+
+html.sps-dark #wp-optimize-wrap .red {
+	color: var(--sps-ui-bad);
+}
+
+html.sps-dark .wpo-dashboard-pages-menu .postbox.wpo-dashboard-pages-menu__item h3 .dashicons {
+	color: var(--sps-ui-subtle);
+}
+
+/* Over its ID selectors: the cache and compression outputs, the preload status, the import and compression errors, and the logging list. */
+html.sps-dark #wpbody :is([id="wpo_browser_cache_output"], [id="wpo_gzip_compression_output"], [id="wpo_advanced_cache_output"]) {
+	background: var(--sps-ui-raised);
+	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark #wpbody [id="wp_optimize_preload_cache_status"] {
+	color: var(--sps-ui-subtle);
+}
+
+html.sps-dark #wpbody :is([id="wpo_import_error_message"], [id="wpo_gzip_compression_error_message"]) {
+	color: var(--sps-ui-bad);
+}
+
+html.sps-dark #wp-optimize-logging-options {
+	background-color: var(--sps-ui-surface);
+	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark .wpo_logging_header {
+	border-bottom-color: var(--sps-ui-border);
+}
+
+html.sps-dark .wpo_logging_row:nth-child(even) {
+	background-color: var(--sps-ui-stripe);
+}
+
+/* Minify: its file log, deferred scripts and preloaded assets. */
+html.sps-dark #wp-optimize-wrap .processed .wpo_min_log {
+	background: var(--sps-ui-surface);
+	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark #wp-optimize-wrap .processed .wpo_min_log h5 {
+	border-bottom-color: var(--sps-ui-border);
+}
+
+html.sps-dark #wp-optimize-wrap .processed .wpo_min_log .wpo_min_file_error,
+html.sps-dark #wp-optimize-wrap .processed .wpo_min_log .wpo_min_file_error a {
+	color: var(--sps-ui-warning);
+}
+
+html.sps-dark #wp-optimize-wrap .processed .wpo_min_log ul li.failed .wpo_min_file_url {
+	color: var(--sps-ui-bad);
+}
+
+html.sps-dark #wp-optimize-wrap .defer-js-settings {
+	border-left-color: var(--sps-ui-border);
+}
+
+html.sps-dark #wp-optimize-wrap .asset-preload-list tr.form td,
+html.sps-dark #wp-optimize-wrap .asset-preload-list tr.editing + tr.form td:first-child::before {
+	background: var(--sps-ui-surface);
+}
+
+/* Settings → Power tweaks: running veil, sites list's track and head. */
+html.sps-dark .power-tweaks--list .wpo-power-tweak.running .tweak-is-running {
+	background: rgb(44 51 56 / 90%);
+}
+
+html.sps-dark .power-tweaks--list .wpo-power-tweak .wpo-post-meta-sites-status::-webkit-scrollbar-track {
+	background: var(--sps-ui-raised);
+}
+
+html.sps-dark .power-tweaks--list .wpo-power-tweak .wpo-post-meta-sites-status .wpo-post-meta-sites-table thead th {
+	background: var(--sps-ui-surface);
+}
+
+/* White veils: over premium-only parts, and while it works (.wpo_shade). */
+html.sps-dark :is(.wpo-unused-images__premium-mask, .wpo-images-dimensions__premium-mask) {
+	background: linear-gradient(to bottom, rgb(29 35 39 / 0%), rgb(29 35 39 / 85%));
+}
+
+html.sps-dark :is(.wpo-analytics__premium-mask, .wpo-unused-image-sizes__premium-mask, .wpo-table-usage__premium-mask) {
+	background: linear-gradient(to bottom, rgb(29 35 39 / 30%), rgb(29 35 39 / 85%));
+}
+
+html.sps-dark .wpo_shade {
+	background-color: rgb(29 35 39 / 88%);
+}
+
+/* More plugins (WP-Optimize → Premium Upgrade): the comparison table. */
+html.sps-dark :is(.wpo_feat_table, .wpo_feat_th, .wpo_feat_table td) {
+	background-color: var(--sps-ui-surface);
+}
+
+html.sps-dark .wpo_feat_table td {
+	border-color: var(--sps-ui-canvas);
+}
+
+html.sps-dark .wpo_feat_table td:is(:nth-child(2), :nth-child(3)) {
+	background: #242b30;
+}
+
+html.sps-dark .wpo_feat_table tr.wpo-main-feature-row td {
+	background: var(--sps-ui-raised);
+	border-bottom-color: var(--sps-ui-canvas);
+}
+
+/*
+ * Images → Compress images (smush.css): the compression service's #fff
+ * card (#23282d name, #edeff0 divider, a pale glow), the custom
+ * compression's #cfd2d4 marks, the image tiles' #f2f4f5 frames and the
+ * log's gainsboro panel. A chosen card or tile keeps its blue.
+ */
+html.sps-dark .wpo-fieldgroup .compression_server div#wpo-resmushit-details {
+	background: var(--sps-ui-surface);
+}
+
+html.sps-dark .wpo-fieldgroup .compression_server input[type="radio"]:not(:focus) + div#wpo-resmushit-details:not(:active) {
+	box-shadow: 0 3px 10px -2px rgb(0 0 0 / 50%);
+}
+
+html.sps-dark .wpo-fieldgroup .compression_server input[type="radio"]:not(:focus) + div#wpo-resmushit-details h4 {
+	color: var(--sps-ui-text);
+}
+
+html.sps-dark .wpo-fieldgroup .compression_server input[type="radio"] + div#wpo-resmushit-details::before {
+	border-right-color: var(--sps-ui-border);
+}
+
+html.sps-dark .wpo-fieldgroup .smush-options.custom_compression > span {
+	border-color: var(--sps-ui-field-border);
+}
+
+html.sps-dark .wpo-fieldgroup .smush-options.custom_compression > span.slider-start::after,
+html.sps-dark .wpo-fieldgroup .smush-options.custom_compression > span.slider-end::before {
+	background: var(--sps-ui-raised);
+	border-color: var(--sps-ui-field-border);
+}
+
+html.sps-dark .wpo_smush_image label {
+	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark .wpo_smush_image .button {
+	background: var(--sps-ui-raised);
+}
+
+html.sps-dark .wpo_smush_image .button:hover {
+	background: var(--sps-ui-border);
+}
+
+html.sps-dark #log-panel pre {
+	background: var(--sps-ui-canvas);
 }
 
 /* SEO Pro Stack's additions to WordPress's screens -------------------------- */
