@@ -5,7 +5,7 @@ Tags: magic login, iframe, schedule posts, auto upload images, admin
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.3.40
+Stable tag: 1.3.41
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -143,11 +143,11 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 
 == Changelog ==
 
-= Unreleased =
-* New: browser titles name the settings tab, including instant switches and Back, and the Tools → Links view.
+= 1.3.41 =
 * New: HTTPS and security headers replaces Really Simple Security: HTTPS redirect and security headers, plus PHP blocked in uploads, hidden usernames and one login error message.
-
-= 1.3.40 =
-* New: Calls to other sites replaces HTTP Requests Manager (unfixed security flaw): marks slow calls; allow, limit to 3 seconds or block each plugin and site, with a record of choices.
+* New: multisite network settings, which can apply each card to every site; super admins are developers on every site.
+* New: a Dev tab in the block editor for panels only site builders need (on by default).
+* New: browser titles name the settings tab and the Tools → Links view.
+* Change: the admin bar's More menu is text only.
 
 Older: `changelog.txt`.
