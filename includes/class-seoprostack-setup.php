@@ -535,6 +535,7 @@ final class SEOProStack_Setup {
             'admin/includes/class-agency-examples.php',
             'admin/includes/class-host-plugins.php',
             'includes/admin/class-seoprostack-admin-whole-theme.php',
+            'includes/admin/class-seoprostack-dark-fallback.php',
         );
         foreach ($files as $file) {
             require_once SEOPROSTACK_DIR . $file;
@@ -545,6 +546,7 @@ final class SEOProStack_Setup {
         SEOProStack_Agency_Examples::init();
         SEOProStack_Host_Plugins::init();
         SEOProStack_Admin_Whole_Theme::init();
+        SEOProStack_Dark_Fallback::init();
 
         // Priority 0, so other code filtering the tabs sees these as before.
         add_filter('seoprostack_admin_tabs', array(__CLASS__, 'discover_tabs'), 0);

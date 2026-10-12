@@ -236,6 +236,16 @@ final class SEOProStack_Admin_Whole_Theme {
     }
 
     /**
+     * Whether the current person's Dark (or System) styles load on this
+     * screen: for the fallback (SEOProStack_Dark_Fallback).
+     *
+     * @return bool
+     */
+    public static function darkens() {
+        return 'light' !== self::mode() && self::screen_applies();
+    }
+
+    /**
      * Whether Dark checks the screen's text for contrast and fixes text that
      * does not read (the contrast guard in admin/js/seoprostack-theme.js).
      *
