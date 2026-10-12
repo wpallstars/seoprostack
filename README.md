@@ -24,7 +24,7 @@ SEO Pro Stack does the jobs that usually take dozens of small plugins: a calmer,
 
 If this saves you time, headaches and costs, feel free to [buy me a coffee](https://buymeacoffee.com/marcusquinn), or whatever you like, to invest in making more things open-source.
 
-Version: 1.3.43
+Version: 1.3.44
 
 <!-- github-only:start -->
 ## Screenshots
@@ -1639,7 +1639,7 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folderâ
 
 ## Changelog
 
-### Unreleased
+### 1.3.44
 
 - New: a **Security** tab. [HTTPS and security headers](#https-and-security-headers-security) and [Turn off unused remote access](#turn-off-unused-remote-access-security) moved there from Admin; their settings are unchanged (GitHub issue #733).
 - New, **on by default**: [Minimum password length](#minimum-password-length-security), on the Security tab. Every new password must be at least 12 characters (8â€“64), on the profile and reset screens, WooCommerce's account forms and the REST API; passwords already set keep working until changed. Length only, no rules about symbols or capitals (GitHub issue #733).
