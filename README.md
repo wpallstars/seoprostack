@@ -24,7 +24,7 @@ SEO Pro Stack does the jobs that usually take dozens of small plugins: a calmer,
 
 If this saves you time, headaches and costs, feel free to [buy me a coffee](https://buymeacoffee.com/marcusquinn), or whatever you like, to invest in making more things open-source.
 
-Version: 1.3.42
+Version: 1.3.43
 
 <!-- github-only:start -->
 ## Screenshots
@@ -1610,6 +1610,12 @@ Deleting the plugin removes its settings (on multisite, every site's and the net
 Deactivating the plugin removes the WebP and AVIF rules from the uploads folder’s `.htaccess` (for every site when network-deactivated), the LiteSpeed background request rules from the site’s `.htaccess` (on multisite, when network-deactivated or deactivated on the main site) and the must-use file of Load plugins only where needed (on multisite, when network-deactivated).
 
 ## Changelog
+
+### 1.3.43
+
+- Fix: in **Dark** mode, the screen shown while the next admin screen loads (Preload pages) was light after a click on a screen that keeps its own look, such as SEO Pro Stats, flashing the content area white until the next screen arrived; it now takes the dark canvas there too. Rank Math's Status & Tools: System Status's rows, and the bars shown while they load, and Database Tools' rows are dark (GitHub issue #725).
+- Fix: Turn off unused remote access restores the log and backup files and PHP in uploads `.htaccess` blocks when another plugin removes them or leaves their markers without the complete rules, on the next main-site admin screen (GitHub issue #718).
+- Developers: core files synced from WP Plugin Starter 0c05983, including shared header Light / Dark / System controls and GitHub updater 1.6.2. The existing whole-admin colour mode keeps its own files and controls without colliding with the shared header; uninstall preserves the shared preference while another wpallstars plugin is installed (GitHub issue #722).
 
 ### 1.3.42
 
