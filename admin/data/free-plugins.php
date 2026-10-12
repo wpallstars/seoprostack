@@ -85,7 +85,10 @@ function seoprostack_get_free_plugins() {
             'fluent-security',
             'mainwp-child',
             'mainwp-child-reports',
-            'plugin-groups'
+            'plugin-groups',
+            // Known vulnerabilities, shown on the Security tab
+            // (SEOProStack_Vulnerability_Report).
+            'wpvulnerability'
         ),
         'affiliates' => array(
             'fluent-affiliate',

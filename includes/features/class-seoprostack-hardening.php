@@ -87,7 +87,7 @@ class SEOProStack_Hardening extends SEOProStack_Feature {
             self::KEY => array(
                 'type'        => 'bool',
                 'default'     => false,
-                'tab'         => 'admin',
+                'tab'         => 'security',
                 'label'       => __('Turn off unused remote access', 'seoprostack'),
                 'description' => __('Turn off XML-RPC or application passwords when this site does not use them, block web access to log and backup files and PHP files in the uploads folder, and hide usernames from visitors. Jetpack and some mobile apps need XML-RPC. Application passwords let apps connect to this site without your login password. Plugins and PHP write log files that can hold visitors’ messages, server paths and database queries; Tools → Site Health names any that anyone can download.', 'seoprostack'),
                 'replaces'    => array('hostinger' => 'Hostinger Tools') + SEOProStack_Disable_Bloat::PLUGINS,
@@ -817,7 +817,7 @@ class SEOProStack_Hardening extends SEOProStack_Feature {
             $result['actions']      = '<p>' . sprintf(
                 /* translators: %s: link to the settings */
                 esc_html__('Turn on %s in SEO Pro Stack’s Turn off unused remote access to block them. The files are not deleted: if a plugin wrote one, you can also turn off its debug logging and delete the file.', 'seoprostack'),
-                '<a href="' . esc_url(admin_url('options-general.php?page=seoprostack&tab=admin')) . '">' . esc_html__('Block web access to log and backup files', 'seoprostack') . '</a>'
+                '<a href="' . esc_url(admin_url('options-general.php?page=seoprostack&tab=security')) . '">' . esc_html__('Block web access to log and backup files', 'seoprostack') . '</a>'
             ) . '</p>';
         } elseif ($exposed['checked'] && $exposed['failed'] === $exposed['checked']) {
             $result['label'] = __('Log and backup files could not be checked', 'seoprostack');

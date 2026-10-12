@@ -46,9 +46,9 @@ Version: 1.3.43
 
 Go to **Settings → SEO Pro Stack**, or click the star next to your name in the admin bar (shown to people who can change these settings). The screen has three groups of tabs:
 
-- **Settings**: Admin, Content, Media, Links, Speed, Server, Plugins, Agency and Maintenance. Changes save instantly; there is no Save button.
+- **Settings**: Admin, Security, Content, Media, Links, Speed, Server, Plugins, Agency and Maintenance. Changes save instantly; there is no Save button.
 - **Search features** (next to the plugin name) finds settings on every tab by name, description or the plugin they replace. Results can be switched on and changed in place.
-- **Discover**: Theme, Free Plugins, Pro Plugins, Hosting and Tools.
+- **Discover**: **Recommended**, with Theme, Free Plugins, Pro Plugins, Hosting and Tools in a second row of tabs under the bar.
 - **About**: this Read Me.
 
 On a multisite network, super admins also have **Network Admin → Settings → SEO Pro Stack**, for settings every site starts with or has to use ([Multisite](#multisite) below).
@@ -65,6 +65,7 @@ At the top right of the screen, **Source code** opens the plugin’s [GitHub rep
 
 A new install starts with the features that are safe on every site switched on, so it is faster and tidier straight away, and leaves off those that need choices about the site or change its content, files, people or other plugins’ settings. On by default:
 
+- **Security:** Minimum password length (12 characters, for everyone, when they set a new password).
 - **Speed:** Recommended speed settings, Load pages before the click, Image loading, Remove WordPress extras, Lighter WooCommerce pages and Faster editor with Kadence Blocks (the last two do nothing without those plugins).
 - **Server:** Fewer Heartbeat requests, Clean the database weekly, Load large settings only where they are used (single sites) and Hosting needs.
 - **Plugins:** Load plugins only where needed, with **Also skip them for people who are logged in**, so it takes every chance to skip plugins once it has learned; Clean up deleted plugins, Plugin sizes and Fixes for other plugins.
@@ -79,8 +80,8 @@ SEO Pro Stack replaces **61 plugins**, some of them in part, with free and Pro e
 | Feature | Tab | Replaces |
 | --- | --- | --- |
 | Hide the admin bar, Block dashboard access | Admin | Admin Bar & Dashboard Access Control |
-| Turn off unused remote access | Admin | Hostinger Tools and Disable Bloat (PRO), in part |
-| HTTPS and security headers, Turn off unused remote access, Tidy the login screen, Tidy admin screens, Remove WordPress extras | Admin, Speed | Really Simple Security (and Pro), in part: its login protection is FluentAuth's |
+| Turn off unused remote access | Security | Hostinger Tools and Disable Bloat (PRO), in part |
+| HTTPS and security headers, Turn off unused remote access, Minimum password length, Tidy the login screen, Tidy admin screens, Remove WordPress extras | Security, Admin, Speed | Really Simple Security (and Pro), in part: its login protection is FluentAuth's and its vulnerability scanning WPVulnerability's |
 | Magic login links | Admin | WP Magic Link Login and Magic Login, in part |
 | Organise the admin menu | Admin | Admin Menu Editor (Pro) |
 | Hide dashboard widgets, Disable sidebar widgets | Admin | Widget Disable |
@@ -145,7 +146,7 @@ WordPress 7.0 fades from one wp-admin screen to the next, using the browser’s 
 - No effect before WordPress 7.0, which has no fade, or for people whose system asks for reduced motion, who never get it.
 - Goes well with Load pages before the click’s **Also in the admin**, which downloads admin screens when you point at their links and shows the next screen’s menu entry and title as soon as you click.
 
-### Turn off unused remote access (Admin)
+### Turn off unused remote access (Security)
 
 Off by default, with five independent choices, all unchecked:
 
@@ -155,7 +156,7 @@ Off by default, with five independent choices, all unchecked:
 - **Block PHP files in the uploads folder**: requests for `.php` (and `.php5`, `.phtml`, `.phar` and the like) files anywhere in the uploads folder return HTTP 403 instead of running, so a script that got in through an upload or a vulnerable plugin cannot run. A marked block (`# BEGIN SEO Pro Stack PHP in uploads`) goes at the top of the uploads folder's `.htaccess` (on multisite the main site's, which holds every site's folder), written and removed like the log and backup files block, with a `location` rule to copy on Nginx. Uploads themselves are not PHP files, so nothing a site shows is affected.
 - **Hide usernames from visitors**: the REST API's user lists and other people's profiles (`/wp/v2/users`) answer 401 to people who cannot edit posts, who keep their own (`/wp/v2/users/me`); the block editor's author list still works. Numeric `?author=` addresses answer 404 to visitors instead of redirecting to the author's address, which holds the username, and core's users sitemap is left out. Author archives stay.
 
-Imports enabled switches from active Hostinger Tools (`hostinger_tools`), Disable Bloat and Really Simple Security (XML-RPC, application passwords, debug log location, code execution in uploads, user enumeration) once, without overwriting choices already saved here or changing their options. The feature waits until Hostinger Tools and Disable Bloat are deactivated; it runs beside Really Simple Security, which [HTTPS and security headers](#https-and-security-headers-admin) replaces. Only these functions of Hostinger Tools are replaced here, its maintenance mode by [Maintenance mode](#maintenance-mode-maintenance) and its HTTPS redirect by HTTPS and security headers when that is on: the Plugins screen names Hostinger’s HTTPS redirect (unless HTTPS and security headers is on with its redirect), its www redirect, llms.txt generation and MCP connection when they are on, instead of suggesting removal. Keep Hostinger Tools if you still use those or its hosting tools.
+Imports enabled switches from active Hostinger Tools (`hostinger_tools`), Disable Bloat and Really Simple Security (XML-RPC, application passwords, debug log location, code execution in uploads, user enumeration) once, without overwriting choices already saved here or changing their options. The feature waits until Hostinger Tools and Disable Bloat are deactivated; it runs beside Really Simple Security, which [HTTPS and security headers](#https-and-security-headers-security) replaces. Only these functions of Hostinger Tools are replaced here, its maintenance mode by [Maintenance mode](#maintenance-mode-maintenance) and its HTTPS redirect by HTTPS and security headers when that is on: the Plugins screen names Hostinger’s HTTPS redirect (unless HTTPS and security headers is on with its redirect), its www redirect, llms.txt generation and MCP connection when they are on, instead of suggesting removal. Keep Hostinger Tools if you still use those or its hosting tools.
 
 **Log and backup files in Site Health** (always on, advice only, even with the feature off): once a day, the files with those names and something in them in the top level of the site's folder, the WordPress folder, wp-content (`debug.log` included) and the uploads folder are each asked for with one `HEAD` request, largest first, at most 10 a day. Files that answer HTTP 200 are named, with their size, as a recommended improvement under Security in Tools → Site Health, with a link to the choice above; their contents are never read. Copies of `wp-config.php` are blocked but not asked for, because asking for a PHP file runs it. When every request fails, the test says the files could not be checked rather than that none were found. `WP_DEBUG_LOG` handling is left as it is.
 
@@ -165,7 +166,7 @@ The blocks' places and states are kept in the `seoprostack_hardening_files` and 
 
 Uses core’s `xmlrpc_enabled`, `wp_headers`, `wp_is_application_passwords_available`, `rest_request_before_callbacks` and `wp_sitemaps_add_provider` filters, removes `rsd_link` from `wp_head`, refuses XML-RPC during `init`, answers `?author=` in `template_redirect` before `redirect_canonical()`, and adds the test through `site_status_tests`.
 
-### HTTPS and security headers (Admin)
+### HTTPS and security headers (Security)
 
 Off by default. One switch; SEO Pro Stack picks the values every site should have. It does nothing on a site whose address (Settings → General) starts with `http://`.
 
@@ -176,9 +177,29 @@ Off by default. One switch; SEO Pro Stack picks the values every site should hav
 
 Sending headers writes no files and stores only the settings. Headers that the web server, a CDN or a page cache add are not changed; a page cache keeps the headers it stored until it is cleared.
 
-Replaces Really Simple Security (free and Pro) in part, with the features that cover its basic hardening: [Turn off unused remote access](#turn-off-unused-remote-access-admin) (XML-RPC, application passwords, debug log, code execution in uploads, user enumeration), [Tidy the login screen](#tidy-the-login-screen-admin) (login feedback), [Tidy admin screens](#tidy-admin-screens-admin) (file editors) and [Remove WordPress extras](#remove-wordpress-extras-speed) (WordPress version). Its login protection (two-step login, passkeys, login attempts, event log, IP blocking) is [FluentAuth](https://wordpress.org/plugins/fluent-security/)'s, in Free Plugins → Admin. Settings version 27 imports its switches once while it is active (from its network option when it is network-active), and Hostinger Tools' “Redirect to HTTPS”, without changing their options: the switch goes on when it redirected or sent any of these headers, HSTS covers subdomains when it did, and a redirect it was told not to make (“No redirect”) or frames it allowed are left out. While it is active, the feature waits and the Plugins screen names what it still does here that SEO Pro Stack, as set up, does not (such as its login protection, password rules or vulnerability scanning) instead of saying it can go.
+Replaces Really Simple Security (free and Pro) in part, with the features that cover its basic hardening: [Turn off unused remote access](#turn-off-unused-remote-access-security) (XML-RPC, application passwords, debug log, code execution in uploads, user enumeration), [Tidy the login screen](#tidy-the-login-screen-admin) (login feedback), [Tidy admin screens](#tidy-admin-screens-admin) (file editors) and [Remove WordPress extras](#remove-wordpress-extras-speed) (WordPress version). Its login protection (two-step login, passkeys, login attempts, event log, IP blocking) is [FluentAuth](https://wordpress.org/plugins/fluent-security/)'s, in Free Plugins → Admin. Settings version 27 imports its switches once while it is active (from its network option when it is network-active), and Hostinger Tools' “Redirect to HTTPS”, without changing their options: the switch goes on when it redirected or sent any of these headers, HSTS covers subdomains when it did, and a redirect it was told not to make (“No redirect”) or frames it allowed are left out. While it is active, the feature waits and the Plugins screen names what it still does here that SEO Pro Stack, as set up, does not (such as its login protection, password rules or vulnerability scanning) instead of saying it can go. Its vulnerability scanning is [WPVulnerability](https://wordpress.org/plugins/wpvulnerability/)'s, also in Free Plugins → Admin, whose findings the Security tab shows ([Known vulnerabilities](#known-vulnerabilities-security)); [Minimum password length](#minimum-password-length-security) asks for a length where it rated password strength.
 
 After Really Simple Security is deactivated, **Tools → Site Health** checks its leftover auto-prepend blocks in `.htaccess` and `.user.ini`, its non-empty `wp-content/advanced-headers.php`, directory-indexing and uploads rules, and `rsssl_*` scheduled tasks. **Check and clear Really Simple Security leftovers** requires an administrator (a network administrator on multisite) and refuses while any of its free, Pro or Pro Multisite versions is active. It keeps its own headers stub for cached prepend paths, clears only its marked rules and scheduled tasks, and keeps its HTTPS redirect, `wp-config.php` and every plugin's settings. Files it cannot safely change remain for another check. On a network, Site Health checks this site and the main site; cleanup checks every site's activation lists first, then clears tasks in batches of 50 sites, with a button to continue between batches.
+
+### Minimum password length (Security)
+
+**On by default**, for everyone. Whenever someone sets a new password, it must be at least 12 characters long (8–64, under **Shortest password**). Only the length counts: no rules about symbols, numbers or capitals, so a phrase of ordinary words works and is easier to remember.
+
+- Checked on the profile screens (your own, another person's and Add New User), the password reset form, WooCommerce's account details, password reset and registration forms (when it asks for a password), and the REST API's users endpoint. The message says how long a password must be, and so does the hint on the password reset form.
+- WordPress's “Confirm use of weak password” box cannot get round it; its strength meter still shows.
+- Passwords already set keep working until they are changed. WP-CLI and code that sets a password itself are not checked, and nor are other plugins' own password forms.
+- Two-step login (authenticator app or passkey) and login limits are [FluentAuth](https://wordpress.org/plugins/fluent-security/)'s.
+
+Uses core's `user_profile_update_errors`, `validate_password_reset`, `rest_request_before_callbacks` (the users endpoints, answering 400 before anything is saved) and `password_hint` hooks, and WooCommerce's `woocommerce_save_account_details_errors` and `woocommerce_registration_errors`. Stores nothing but the settings.
+
+### Known vulnerabilities (Security)
+
+Below the Security tab's settings, for administrators. SEO Pro Stack does not check for vulnerabilities itself: [WPVulnerability](https://wordpress.org/plugins/wpvulnerability/) (free, in Free Plugins → Admin) checks WordPress, the plugins, the themes and the server's software (PHP, the web server, the database, ImageMagick, curl and others) against the WPVulnerability Database, which needs no account and, its makers say, keeps nothing about the site. It lists what it finds in Tools → Site Health, on the Plugins and Themes screens and in a dashboard widget, and emails the site's administration email address weekly (its settings change that).
+
+- With WPVulnerability active, the section shows how many of each have known vulnerabilities at its last check, or that it found none, with links to Site Health and its settings (Settings → WPVulnerability).
+- Without it, the section says what it does, with a button to install it, or to activate it when it is installed.
+
+It reads the counts WPVulnerability keeps (`wpvulnerability-{core,plugins,themes,php,…}-vulnerable` options; site options on multisite) on the settings screen only, and sends nothing.
 
 ### Magic login links (Admin)
 
@@ -1461,11 +1482,13 @@ The Agency tab shows example data for a digital marketing agency, to rename and 
 
 ### Discover
 
+The **Recommended** tab holds five sub-tabs, in a second row under the tab bar. Each keeps its own address (`tab=theme`, `tab=recommended` for Free Plugins, `tab=pro`, `tab=hosting` and `tab=tools`), so older links and bookmarks still open it.
+
 - **Theme**: install, activate or customise the Kadence theme.
 - **Free Plugins**: recommended plugins from WordPress.org by category. Install, Activate, Deactivate and Uninstall all work in place, so you can set up many in a row without leaving the page: an installed plugin shows Activate and Uninstall, an active one shows Deactivate. **All** lists every recommended plugin grouped by category, with the disk space each installed one takes (as in Plugin sizes, measured in the background), a checkbox per plugin and per group and bulk actions (Install and activate, Install, Activate, Deactivate, Uninstall) that run one plugin at a time with progress, and can be stopped. Bulk Uninstall deactivates active plugins first. Plugins that need a newer WordPress or PHP, or that WordPress.org has closed, cannot be selected. Activate and Deactivate accept only WordPress.org plugins on the recommended list; install and uninstall use WordPress’s own requests, so FTP details are asked for where needed. Shown only to users who can install plugins (on multisite, super admins); plugins active for the whole network are left alone.
 - **Pro Plugins, Hosting, Tools**: filterable directories with links to each product. Pro plugins show a badge when their free version is already on the site. These three are on the [network screen](#multisite) too, where the badge says **Free version network active** when the free version is active for the whole network. Theme and Free Plugins activate plugins and themes for one site, so they stay on each site's screen.
 
-Free Plugins includes WPManageNinja's Fluent products, including FluentAuth, FluentSnippets and Fluent Query Logger, plus Paymattic, Ninja Tables, Ninja Charts, Ninja Job Board and Custom Feed for TikTok. Pro Plugins also lists FluentAffiliate Pro, FluentPlayer Pro, Paymattic Pro and AzonPress. FluentAuth, FluentSnippets and Fluent Query Logger are free only; AzonPress has no listed WordPress.org free version. Choose only what your site needs. Nothing is installed or activated just by opening a directory.
+Free Plugins → Admin also lists WPVulnerability, whose findings the Security tab shows ([Known vulnerabilities](#known-vulnerabilities-security)). Free Plugins includes WPManageNinja's Fluent products, including FluentAuth, FluentSnippets and Fluent Query Logger, plus Paymattic, Ninja Tables, Ninja Charts, Ninja Job Board and Custom Feed for TikTok. Pro Plugins also lists FluentAffiliate Pro, FluentPlayer Pro, Paymattic Pro and AzonPress. FluentAuth, FluentSnippets and Fluent Query Logger are free only; AzonPress has no listed WordPress.org free version. Choose only what your site needs. Nothing is installed or activated just by opening a directory.
 
 Fluent Query Logger is under **Debug**, with a reminder to deactivate or delete it when not troubleshooting. Its WordPress.org release was last updated in July 2022; Ninja Job Board was last updated in December 2023, so check their compatibility before using them.
 
@@ -1516,7 +1539,7 @@ Switch it on and reload to show the **Bypass link** in its options. Share it onl
 
 Clear your host's, CDN's and plugin's page caches when switching on or off; pages served before WordPress runs cannot be held by this feature. Maintenance and bypass responses ask caches not to store them. The small page has no styles or outside resources, so it uses the browser's default colours.
 
-Imports `hostinger_tools[maintenance_mode]` once (settings version 7), without overwriting an existing choice. Hostinger Tools keeps handling maintenance while active. Its XML-RPC and application-password switches are covered by [Turn off unused remote access](#turn-off-unused-remote-access-admin); its HTTPS, www, llms.txt and MCP switches are not replaced, and the Plugins screen names them when they are on before suggesting it can go. Hostinger's bypass code is never reused. The new `seoprostack_maintenance_token` option is removed on uninstall; the switch and message live in the main settings option.
+Imports `hostinger_tools[maintenance_mode]` once (settings version 7), without overwriting an existing choice. Hostinger Tools keeps handling maintenance while active. Its XML-RPC and application-password switches are covered by [Turn off unused remote access](#turn-off-unused-remote-access-security); its HTTPS, www, llms.txt and MCP switches are not replaced, and the Plugins screen names them when they are on before suggesting it can go. Hostinger's bypass code is never reused. The new `seoprostack_maintenance_token` option is removed on uninstall; the switch and message live in the main settings option.
 
 ## Extending
 
@@ -1618,6 +1641,10 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folder�
 
 ### Unreleased
 
+- New: a **Security** tab. [HTTPS and security headers](#https-and-security-headers-security) and [Turn off unused remote access](#turn-off-unused-remote-access-security) moved there from Admin; their settings are unchanged (GitHub issue #733).
+- New, **on by default**: [Minimum password length](#minimum-password-length-security), on the Security tab. Every new password must be at least 12 characters (8–64), on the profile and reset screens, WooCommerce's account forms and the REST API; passwords already set keep working until changed. Length only, no rules about symbols or capitals (GitHub issue #733).
+- New: [Known vulnerabilities](#known-vulnerabilities-security), on the Security tab, shows how many of WordPress, the plugins, the themes and the server's software WPVulnerability found with known vulnerabilities, with links to Site Health and its settings, or a button to install or activate it. Free Plugins → Admin recommends WPVulnerability. Really Simple Security's notice on the Plugins screen names both replacements (GitHub issue #733).
+- Change: Theme, Free Plugins, Pro Plugins, Hosting and Tools are one **Recommended** tab, with a second row of tabs under the bar. Their addresses are unchanged, so links and bookmarks still work (GitHub issue #733).
 - New, on by default (GitHub builds): **Auto-update plugins from GitHub**, under **Updates from GitHub** (Maintenance tab). WordPress auto-updates every plugin the shared GitHub updater serves (SEO Pro Stack and any installed plugin that names its GitHub repository, including other authors'), whatever its own toggle on the Plugins screen says, so a plugin whose toggle was never turned on no longer falls behind. Sites updated from an earlier version start auto-updating these plugins after this update. Other plugins keep their own choice, and the saved per-plugin choices are never changed: switching it off brings each plugin's toggle back as it was (GitHub issue #726).
 - Fix: the Plugins screen warns, before Really Simple Security is deleted, when its **Disable "anyone can register"** is on while **Settings → General → Anyone can register** is still ticked underneath: that switch only hides WordPress's setting, so registration opened again once the plugin was gone. SEO Pro Stack leaves the setting for the site owner to untick. Single sites only (GitHub issue #727).
 - Fix: on multisite, **Make every site the same** no longer loses a site's settings from before when that site applies the network's changes at the same moment, so the site still does the saving work for the copied settings on its next admin, cron or WP-CLI request (GitHub issue #731).

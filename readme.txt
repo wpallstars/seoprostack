@@ -35,6 +35,8 @@ Safe features start on; others stay off. **Settings → SEO Pro Stack** has **Se
 * **Magic login links**: one-time email links, safe from link scanners.
 * **Admin bar and dashboard access**: restrict by role; admins keep access.
 * **Turn off unused remote access**: XML-RPC, application passwords and exposed files.
+* **Minimum password length**: 12 characters for new passwords, on by default.
+* **Known vulnerabilities**: shows what the free WPVulnerability plugin finds.
 * **Maintenance mode**: a 503 page with revocable 24-hour bypass links.
 
 = Writing and publishing =
@@ -81,7 +83,7 @@ Safe features start on; others stay off. **Settings → SEO Pro Stack** has **Se
 * **Plugins menu**, **Plugin sizes**, **Clean up deleted plugins** and **Hosting needs**.
 * **Fixes for other plugins**: known bug workarounds.
 * **Agency**: order flow, client dashboard and examples.
-* **Discover**: themes, plugins, hosting and tools.
+* **Recommended**: themes, plugins, hosting and tools.
 
 = Affiliate disclosure =
 
