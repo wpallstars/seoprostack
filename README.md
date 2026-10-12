@@ -1614,6 +1614,10 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folder�
 
 ## Changelog
 
+### Unreleased
+
+- Fix: the Plugins screen warns, before Really Simple Security is deleted, when its **Disable "anyone can register"** is on while **Settings → General → Anyone can register** is still ticked underneath: that switch only hides WordPress's setting, so registration opened again once the plugin was gone. SEO Pro Stack leaves the setting for the site owner to untick. Single sites only (GitHub issue #727).
+
 ### 1.3.43
 
 - Fix: in **Dark** mode, the screen shown while the next admin screen loads (Preload pages) was light after a click on a screen that keeps its own look, such as SEO Pro Stats, flashing the content area white until the next screen arrived; it now takes the dark canvas there too. Rank Math's Status & Tools: System Status's rows, and the bars shown while they load, and Database Tools' rows are dark (GitHub issue #725).
