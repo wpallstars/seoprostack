@@ -109,8 +109,10 @@ again when the file changes; a screen spends at most 0.15 seconds making
 missing ones and leaves the rest to the end of the request. Filters:
 `seoprostack_admin_dark_fallback` (per screen) and
 `seoprostack_admin_dark_fallback_style` (per stylesheet). Not reached:
-inline `style` attributes, `<style>` blocks, colours set by script and
-stylesheets from other hosts; the contrast guard still lightens their
+inline `style` attributes, `<style>` blocks, colours set by script,
+stylesheets from other hosts, and screens whose script imports the other
+stylesheets into a cascade layer (Bit Flows, Bit Social), where the
+plugin's unlayered rules win; the contrast guard still lightens their
 unreadable text, and screens that need more get a hand-written section.
 
 `scripts/dark-audit.mjs` checks the result (TESTING.md → Dark mode audit).
