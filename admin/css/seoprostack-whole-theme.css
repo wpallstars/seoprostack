@@ -258,38 +258,6 @@ html.sps-dark :is(body, body [style*="--wpds-color"], body [style*="--wp-compone
 	}
 }
 
-/*
- * Light mode, on SEO Pro Stack's own screen only: the scheme's hue, at a
- * brightness that reads at 4.5:1. Its luminance is lowered to at most 0.15
- * (0.12 and 0.096 for the darker tones), keeping hue and saturation; darker
- * schemes' colours, such as Modern's, are under the cap and stay as they
- * are. Computed on body, where WordPress sets the scheme, and given back on
- * body's children, as a custom property cannot refer to itself.
- */
-html:not(.sps-dark) body.sps-own-screen {
-	--wpds-color-stroke-focus: var(--wp-admin-theme-color, #2271b1);
-}
-
-@supports (color: color(from red xyz-d65 calc(x * min(1, 0.15 / y)) min(y, 0.15) z)) {
-	html:not(.sps-dark) body.sps-own-screen {
-		--sps-scheme-fill: color(from var(--wp-admin-theme-color, #2271b1) xyz-d65 calc(x * min(1, 0.15 / y)) min(y, 0.15) calc(z * min(1, 0.15 / y)));
-		--sps-scheme-fill-10: color(from var(--wp-admin-theme-color-darker-10, #135e96) xyz-d65 calc(x * min(1, 0.12 / y)) min(y, 0.12) calc(z * min(1, 0.12 / y)));
-		--sps-scheme-fill-20: color(from var(--wp-admin-theme-color-darker-20, #0a4b78) xyz-d65 calc(x * min(1, 0.096 / y)) min(y, 0.096) calc(z * min(1, 0.096 / y)));
-		--wpds-color-stroke-focus: var(--sps-scheme-fill);
-	}
-
-	html:not(.sps-dark) body.sps-own-screen > * {
-		--wp-admin-theme-color: var(--sps-scheme-fill);
-		--wp-admin-theme-color-darker-10: var(--sps-scheme-fill-10);
-		--wp-admin-theme-color-darker-20: var(--sps-scheme-fill-20);
-	}
-}
-
-/* The classic schemes brighten links on hover and focus (3.3:1 on white); darken them instead. */
-:where(html:not(.sps-dark) body.sps-own-screen:is(.admin-color-light, .admin-color-blue, .admin-color-midnight, .admin-color-sunrise, .admin-color-ectoplasm, .admin-color-ocean, .admin-color-coffee) :is(#wpbody, .components-modal__frame)) a:is(:hover, :active, :focus) {
-	color: #005e8e;
-}
-
 /* The page --------------------------------------------------------------- */
 
 html.sps-dark :is(#wpwrap, #wpcontent, #wpbody, #wpbody-content) {
@@ -2849,37 +2817,6 @@ html.sps-dark :is(.rank-math-box footer, .module-listing .rank-math-box .status,
 	color: var(--sps-ui-text);
 	background: var(--sps-ui-raised);
 	border-color: var(--sps-ui-border);
-}
-
-/*
- * Status & Tools (status.css): System Status's rows (#f8f9fa titles, #2c3338
- * text, #50575e icons, #c3c4c7 lines) and the #f8f9fa bars, pulsing in
- * rgba(0,0,0,.11), shown while they load; Database Tools' #f8f9fa rows.
- */
-html.sps-dark :is(.rank-math-panel, .rank-math-panel .components-panel__body, .rank-math-tools-table.widefat, .rank-math-tools-table.widefat tr :is(th, td)) {
-	border-color: var(--sps-ui-border);
-}
-
-html.sps-dark :is(.rank-math-panel .components-panel__body > .components-panel__body-title, .rank-math-skeleton.rank-math-system-status .components-panel__body, .rank-math-tools-table.widefat tr:nth-child(odd)) {
-	background: var(--sps-ui-raised);
-}
-
-html.sps-dark .rank-math-panel .components-panel__body > .components-panel__body-title:hover {
-	background: var(--sps-ui-hover);
-}
-
-html.sps-dark :is(.rank-math-panel .components-panel__body-toggle.components-button, .rank-math-panel .components-panel__body-toggle.components-button:focus, .rank-math-status-table thead tr th) {
-	color: var(--sps-ui-text);
-}
-
-html.sps-dark .rank-math-panel .components-panel__body-toggle.components-button svg {
-	fill: var(--sps-ui-muted);
-}
-
-html.sps-dark .rank-math-skeleton.rank-math-system-status .copy-button-wrapper::after,
-html.sps-dark .rank-math-skeleton.rank-math-system-status .components-panel__body::before,
-html.sps-dark .rank-math-skeleton.rank-math-system-status .components-panel__body::after {
-	background: rgb(255 255 255 / 11%);
 }
 
 /* Setup wizard: its own page (no wp-admin header), with #fff and #f8f9fa panels. */
