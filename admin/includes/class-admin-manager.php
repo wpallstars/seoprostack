@@ -62,6 +62,8 @@ class SEOProStack_Admin_Manager {
      * Register hooks (once).
      */
     public static function init() {
+        require_once SEOPROSTACK_DIR . 'admin/includes/class-admin-theme.php';
+        SEOProStack_Admin_Theme::init();
         // After the plugin's own top-level menu (priority 10), so Settings
         // is the last item in it.
         add_action('admin_menu', array(__CLASS__, 'register_admin_menu'), 20);

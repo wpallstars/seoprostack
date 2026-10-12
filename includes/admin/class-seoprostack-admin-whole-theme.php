@@ -26,7 +26,7 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-final class SEOProStack_Admin_Theme {
+final class SEOProStack_Admin_Whole_Theme {
 
     /** This plugin's own copy of the choice, so it works alone. */
     const META = 'seoprostack_admin_theme';
@@ -37,14 +37,14 @@ final class SEOProStack_Admin_Theme {
     /** Plugins taking part in the shared colour mode (slug => true). */
     const PARTICIPANTS = 'wpallstars_admin_theme_participants';
 
-    const ACTION = 'seoprostack_admin_theme';
+    const ACTION = 'seoprostack_admin_whole_theme';
     const MODES  = array('light', 'dark', 'system');
 
     /** The admin bar item. */
     const NODE = 'seoprostack-colour-mode';
 
     /** The stylesheet's handle (and `<link>` ID, with `-css`). */
-    const STYLE = 'seoprostack-theme';
+    const STYLE = 'seoprostack-whole-theme';
 
     /**
      * Icons (24×24): sun, moon and a half-filled circle, as SEO Pro Stats'.
@@ -356,8 +356,8 @@ final class SEOProStack_Admin_Theme {
         if (!$toggle && (!$applies || 'light' === $mode)) {
             return;
         }
-        $css = 'admin/css/seoprostack-theme.css';
-        $js  = 'admin/js/seoprostack-theme.js';
+        $css = 'admin/css/seoprostack-whole-theme.css';
+        $js  = 'admin/js/seoprostack-whole-theme.js';
         $url = SEOPROSTACK_URL . $css . '?ver=' . filemtime(SEOPROSTACK_DIR . $css);
         if ($applies && ('light' !== $mode || self::own_screen())) {
             wp_enqueue_style(self::STYLE, SEOPROSTACK_URL . $css, array(), (string) filemtime(SEOPROSTACK_DIR . $css));
@@ -368,7 +368,7 @@ final class SEOProStack_Admin_Theme {
         }
         wp_enqueue_script(self::STYLE, SEOPROSTACK_URL . $js, array('wp-i18n', 'wp-a11y'), (string) filemtime(SEOPROSTACK_DIR . $js), true);
         wp_set_script_translations(self::STYLE, 'seoprostack');
-        wp_add_inline_script(self::STYLE, 'window.seoprostackTheme = ' . wp_json_encode(array(
+        wp_add_inline_script(self::STYLE, 'window.seoprostackWholeTheme = ' . wp_json_encode(array(
             'mode'    => $mode,
             'user'    => get_current_user_id(),
             'applies' => $applies,
@@ -428,7 +428,7 @@ final class SEOProStack_Admin_Theme {
             . 'if(m==="system"){s.removeItem("litespeed-dark-preference");}else{s.setItem("litespeed-dark-preference",m);}'
             . 'var b=JSON.parse(s.getItem("bit-social-config")||"{}")||{};b.isDarkTheme=d;s.setItem("bit-social-config",JSON.stringify(b));}catch(e){}}'
             . '})(document.documentElement,' . wp_json_encode($mode) . ',' . ($chosen ? 'true' : 'false') . ');';
-        return wp_get_inline_script_tag($script, array('id' => 'seoprostack-theme-mode'));
+        return wp_get_inline_script_tag($script, array('id' => 'seoprostack-whole-theme-mode'));
     }
 
     /**
@@ -451,7 +451,7 @@ final class SEOProStack_Admin_Theme {
         if (!is_admin() || did_action('admin_head') || !in_array($handle, $handles, true) || 'light' === self::mode() || !self::screen_applies()) {
             return $tag;
         }
-        $css = 'admin/css/seoprostack-theme.css';
+        $css = 'admin/css/seoprostack-whole-theme.css';
         $url = add_query_arg('ver', (string) filemtime(SEOPROSTACK_DIR . $css), SEOPROSTACK_URL . $css);
         // phpcs:ignore WordPress.WP.EnqueuedResources.NonEnqueuedStylesheet -- the screen prints only its own handles; this follows its stylesheet.
         return $tag . self::head_script() . '<link rel="stylesheet" id="' . esc_attr(self::STYLE) . '-css" href="' . esc_url($url) . '" media="all" />' . "\n";
