@@ -31,6 +31,7 @@ final class SEOProStack_Setup {
         'SEOProStack_Admin_Page_Fade',
         'SEOProStack_Admin_Access',
         'SEOProStack_Hardening',
+        'SEOProStack_Security_Headers',
         'SEOProStack_Developers',
         'SEOProStack_Admin_Menu',
         'SEOProStack_Widget_Control',
@@ -221,8 +222,14 @@ final class SEOProStack_Setup {
      *      scheme applies again. Where it was on before WordPress 7.0,
      *      people who never picked a scheme keep Modern
      *      (retire_admin_colors(), #678).
+     * v27: import Really Simple Security's switches while it is active (its
+     *      network option when network-active): HTTPS and security headers
+     *      (with Hostinger Tools' "Redirect to HTTPS"), and, where those
+     *      settings are not stored yet, its hardening into Turn off unused
+     *      remote access, Tidy the login screen, Tidy admin screens and
+     *      Remove WordPress extras (#698).
      */
-    const DB_VERSION = 26;
+    const DB_VERSION = 27;
 
     /**
      * Tab slugs renamed in 0.4.0, old => new. Settings that still use an
@@ -260,7 +267,6 @@ final class SEOProStack_Setup {
         require_once SEOPROSTACK_DIR . 'includes/class-seoprostack-disable-bloat.php';
         require_once SEOPROSTACK_DIR . 'includes/class-seoprostack-litespeed.php';
         require_once SEOPROSTACK_DIR . 'includes/class-seoprostack-wp-optimize.php';
-        require_once SEOPROSTACK_DIR . 'includes/class-seoprostack-really-simple-security.php';
         require_once SEOPROSTACK_DIR . 'includes/class-seoprostack-term-list.php';
         require_once SEOPROSTACK_DIR . 'includes/class-seoprostack-term-legacy.php';
         if (is_multisite()) {
@@ -283,7 +289,6 @@ final class SEOProStack_Setup {
         SEOProStack_Disable_Bloat::init();
         SEOProStack_Litespeed::init();
         SEOProStack_WP_Optimize::init();
-        SEOProStack_Really_Simple_Security::init();
         if (class_exists('SEOProStack_Network_Plugins', false)) {
             SEOProStack_Network_Plugins::init();
         }

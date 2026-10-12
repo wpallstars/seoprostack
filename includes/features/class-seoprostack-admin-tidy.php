@@ -7,7 +7,8 @@
  * and the theme and plugin file editors. Core hooks and constants only;
  * nothing is stored.
  *
- * Replaces part of Disable Bloat; its matching switches are imported once.
+ * Replaces part of Disable Bloat; its matching switches are imported once,
+ * and Really Simple Security's "Disable the built-in file editors".
  *
  * SPDX-License-Identifier: GPL-3.0-or-later
  * SPDX-FileCopyrightText: 2026 Marcus Quinn
@@ -76,7 +77,7 @@ class SEOProStack_Admin_Tidy extends SEOProStack_Feature {
      * @return array
      */
     public static function migrate(array $options, $from_version) {
-        $choices = SEOProStack_Disable_Bloat::choices(self::ITEMS_KEY);
+        $choices = array_values(array_unique(array_merge(SEOProStack_Disable_Bloat::choices(self::ITEMS_KEY), SEOProStack_Security_Headers::choices(self::ITEMS_KEY))));
         if ($choices) {
             $options = self::import_setting($options, self::KEY, true);
             $options = self::import_setting($options, self::ITEMS_KEY, $choices);
