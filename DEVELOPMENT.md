@@ -51,6 +51,37 @@ the branch you run it from is missing or has commits that are not pushed.
   Testing, step 4, on a free port), which no one else overwrites:
   `rsync -a --delete --delete-excluded --exclude-from=.distignore ./ "<site>/wp-content/plugins/{slug}/"`.
 
+### Checking screens in a browser
+
+`scripts/preview-browser.sh` signs a browser in to the preview site's admin
+and reads the debug log lines a check added. It needs no WP-CLI and no file
+reads outside the repository, so headless workers can use it too
+(`--help` for the options, such as `--site` and `--user`):
+
+```bash
+mark="$(scripts/preview-browser.sh log-mark)"  # the debug log's length now
+scripts/preview-browser.sh login               # one-hour session; prints the state file and admin URL
+# … check the screens with that state file (below) …
+scripts/preview-browser.sh logout "<state file>"
+scripts/preview-browser.sh log-since "$mark"   # entries added since, naming {slug} (--all: every entry)
+```
+
+The state file (mode 600, in `$TMPDIR`) is a Playwright `storageState`; the
+script never prints cookie values. Always log out when done: that ends the
+session and deletes the file.
+
+```js
+const context = await browser.newContext( { storageState: stateFile, ignoreHTTPSErrors: true } );
+const page = await context.newPage();
+await page.goto( adminUrl + 'options-general.php?page={slug}' );
+```
+
+It runs the site's WordPress with the local `php` and `memory_limit` 1024M,
+finds a LocalWP site's database socket itself (other hosts:
+`{PREFIX}_PREVIEW_PHP_ARGS`), and keeps its own PHP messages out of the
+debug log, so `log-since` shows only what the pages wrote. Other requests
+to the site in the meantime (other sessions, cron) also write to the log.
+
 ## Set up
 
 Needs PHP 7.4 or later, Composer 2, Node.js (syntax checks, and the build
@@ -242,11 +273,12 @@ repository. It needs no setup. Steps: `RELEASING.md` → GitHub release.
 ### Starter sync
 
 `.github/workflows/starter-sync.yml` runs every Monday (and from the
-Actions tab, **Run workflow**). It checks out the starter's default branch
-next to the plugin and runs the starter's `scripts/sync-core.sh --check`,
-so the newest check is used. When core files differ it opens one issue
-labelled `starter-sync`, or updates the open one, with the files and the
-steps; when they match it closes that issue. It needs no setup: the
+Actions tab, **Run workflow**). It checks out the starter's default branch,
+with its history, next to the plugin and runs the starter's
+`scripts/sync-core.sh --check`, so the newest check is used. When core
+files differ it opens one issue labelled `starter-sync`, or updates the
+open one, with the files, each file's class (below) and the steps; when
+they match it closes that issue. It needs no setup: the
 workflow's own token reads the public starter and writes the issue. To
 follow another starter (a fork), set the repository variable
 `STARTER_REPO` to its `owner/repo`. In the starter itself it does nothing.
@@ -256,9 +288,29 @@ gives its folder name):
 
 ```bash
 git -C ../<starter> pull
-scripts/sync-core.sh --check   # list what differs
+scripts/sync-core.sh --check   # list what differs, with each file's class
 scripts/sync-core.sh           # copy the starter's core files, renamed
 ```
+
+Core files flow both ways: starter changes out to every plugin, and what a
+plugin learns back into the starter. So a sync never replaces a core file
+it would lose work in. It compares each file that differs with every
+version in the starter's history (with the plugin's names and its own
+blocks), and `--check` puts its class under it:
+
+| Class | The plugin's file is | A sync |
+|---|---|---|
+| behind | a starter version `--ref` contains (default: the starter checkout's `HEAD`) | updates it |
+| missing | not there | adds it |
+| newer | a starter version `--ref` does not contain: later on `main`, or on another branch | stops: sync from a starter ref that contains it, the starter's `main` (what the weekly check uses) or a later tag. There is no option to go backwards. |
+| changed here | no starter version: the plugin changed it outside its `{css}-own` blocks | stops: take the change to the starter first (a pull request, or an issue there with the plugin's case), or move the plugin-only lines into `{css}-own` blocks; then run again with `--discard-local`, which replaces changed-here files only |
+
+While any file is newer or changed here, a sync writes nothing (exit 2)
+and lists them with what to do; every core file still syncs in one run,
+never a few, so a plugin never mixes core files from different starter
+versions. The classes need the starter's history: from a shallow clone
+`--check` marks such files "unknown (shallow starter clone)", and a sync
+stops until `git -C ../<starter> fetch --unshallow`.
 
 When a sync adds a core doc at the top of the repository (such as
 `STYLING.md`) and the aidevops commit hook rejects it as a new root file,

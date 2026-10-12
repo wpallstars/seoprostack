@@ -194,9 +194,9 @@ class SEOProStack_Network_Differences {
 
         $changed = 0;
         foreach ($ids as $id) {
-            $previous = SEOProStack_Settings::replace_site_values($id, $values);
-            if ($previous) {
-                SEOProStack_Network_Sites::remember($id, $previous);
+            // Also keeps the site's values from before, under the same lock
+            // (SEOProStack_Network_Sites::remember()).
+            if (SEOProStack_Settings::replace_site_values($id, $values)) {
                 $changed++;
             }
         }
