@@ -307,36 +307,87 @@ class SEOProStack_Hardening extends SEOProStack_Feature {
      * @return bool Whether anything was synced.
      */
     private static function block_sync($marker, $state, $targets, array $rules) {
-        global $is_apache, $is_nginx;
+        global $is_apache;
         $on      = null !== $targets;
         $targets = $on ? $targets : array();
         // Servers that do not read .htaccess files get no block. The server
         // is in the hash, so a site moved to another server is synced again.
         $write = ($on && !empty($is_apache)) ? $rules : array();
-        $want  = $on ? md5(implode("\n", $rules) . "\n" . implode("\n", $targets) . "\n" . ($write ? 'htaccess' : 'none')) : ''; // NOSONAR: a fingerprint to notice changes, not security; stored, so it stays md5.
+        $want  = $on ? self::block_hash($rules, $targets, $write) : '';
         $saved = (array) get_site_option($state, array());
-        $had   = isset($saved['hash']) ? $saved['hash'] : '';
-        if ($had === $want && (!isset($saved['status']) || 'unwritable' !== $saved['status'])) {
+        if (self::block_in_step($saved, $want)) {
             return false;
         }
         $old    = isset($saved['targets']) && is_array($saved['targets']) ? $saved['targets'] : array();
+        $status = self::block_write_all(array_unique(array_merge($old, $targets)), $targets, $write, $marker);
+        self::block_save($state, $on, array('hash' => $want, 'targets' => $targets, 'status' => $status), $write);
+        return true;
+    }
+
+    /**
+     * Fingerprint of a block's rules, targets and whether it is written.
+     *
+     * @param string[] $rules   Rules of the block.
+     * @param string[] $targets Files that need it.
+     * @param string[] $write   Rules to write; empty when the server reads no .htaccess.
+     * @return string
+     */
+    private static function block_hash(array $rules, array $targets, array $write) {
+        return md5(implode("\n", $rules) . "\n" . implode("\n", $targets) . "\n" . ($write ? 'htaccess' : 'none')); // NOSONAR: a fingerprint to notice changes, not security; stored, so it stays md5.
+    }
+
+    /**
+     * Whether the saved state already matches, and was written.
+     *
+     * @param array  $saved Saved state.
+     * @param string $want  Wanted hash; empty when the choice is off.
+     * @return bool
+     */
+    private static function block_in_step(array $saved, $want) {
+        $had = isset($saved['hash']) ? $saved['hash'] : '';
+        return $had === $want && (!isset($saved['status']) || 'unwritable' !== $saved['status']);
+    }
+
+    /**
+     * Write the block to the files that need it and remove it from the rest.
+     *
+     * @param string[] $files   Files that had or need the block.
+     * @param string[] $targets Files that need it.
+     * @param string[] $write   Rules to write.
+     * @param string   $marker  Block marker.
+     * @return string 'written', or 'unwritable' when a file could not be changed.
+     */
+    private static function block_write_all(array $files, array $targets, array $write, $marker) {
         $status = 'written';
-        foreach (array_unique(array_merge($old, $targets)) as $file) {
+        foreach ($files as $file) {
             if (!self::files_write($file, in_array($file, $targets, true) ? $write : array(), $marker)) {
                 $status = 'unwritable';
             }
         }
+        return $status;
+    }
+
+    /**
+     * Save how the sync went: forgotten once a block that is off is gone;
+     * otherwise kept, with the server's kind when nothing could be written.
+     *
+     * @param string   $state Site option name.
+     * @param bool     $on    Whether the choice is on.
+     * @param array    $saved Hash, targets and status.
+     * @param string[] $write Rules written.
+     */
+    private static function block_save($state, $on, array $saved, array $write) {
+        global $is_nginx;
         if (!$on) {
-            if ('written' === $status) {
+            if ('written' === $saved['status']) {
                 delete_site_option($state);
             }
-        } else {
-            if ('written' === $status && !$write) {
-                $status = !empty($is_nginx) ? 'nginx' : 'other';
-            }
-            update_site_option($state, array('hash' => $want, 'targets' => $targets, 'status' => $status));
+            return;
         }
-        return true;
+        if ('written' === $saved['status'] && !$write) {
+            $saved['status'] = !empty($is_nginx) ? 'nginx' : 'other';
+        }
+        update_site_option($state, $saved);
     }
 
     /**
@@ -407,16 +458,43 @@ class SEOProStack_Hardening extends SEOProStack_Feature {
             return true;
         }
         $contents = $exists ? (string) file_get_contents($file) : ''; // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents -- local file.
-        $quoted   = preg_quote($marker, '/');
-        $cleaned  = preg_replace('/# BEGIN ' . $quoted . '\r?\n.*?# END ' . $quoted . '[^\n]*(\n|$)\s*/s', '', $contents);
-        if (null === $cleaned) {
+        $new      = self::block_contents($contents, $rules, $marker);
+        if (null === $new) {
             return false;
         }
-        $block = $rules ? '# BEGIN ' . $marker . "\n" . implode("\n", $rules) . "\n# END " . $marker . "\n\n" : '';
-        $new   = $block . ltrim($cleaned, "\r\n");
         if ($new === $contents) {
             return true;
         }
+        return self::files_put($file, $new, $exists);
+    }
+
+    /**
+     * A file's contents with the block at the top, or without it.
+     *
+     * @param string   $contents Current contents.
+     * @param string[] $rules    Rules; empty removes the block.
+     * @param string   $marker   Block marker.
+     * @return string|null Null when the old block could not be matched.
+     */
+    private static function block_contents($contents, array $rules, $marker) {
+        $quoted  = preg_quote($marker, '/');
+        $cleaned = preg_replace('/# BEGIN ' . $quoted . '\r?\n.*?# END ' . $quoted . '[^\n]*(\n|$)\s*/s', '', $contents);
+        if (null === $cleaned) {
+            return null;
+        }
+        $block = $rules ? '# BEGIN ' . $marker . "\n" . implode("\n", $rules) . "\n# END " . $marker . "\n\n" : '';
+        return $block . ltrim($cleaned, "\r\n");
+    }
+
+    /**
+     * Save new .htaccess contents, deleting a file left empty.
+     *
+     * @param string $file   .htaccess path.
+     * @param string $new    New contents.
+     * @param bool   $exists Whether the file exists.
+     * @return bool Whether the file is as asked now.
+     */
+    private static function files_put($file, $new, $exists) {
         if (!($exists ? wp_is_writable($file) : wp_is_writable(dirname($file)))) {
             return false;
         }
@@ -854,19 +932,29 @@ class SEOProStack_Hardening extends SEOProStack_Feature {
         if (null !== $response || !$request instanceof WP_REST_Request) {
             return $response;
         }
-        $route = untrailingslashit((string) $request->get_route());
-        if (!preg_match('#^/wp/v2/users(/|$)#', $route . '/') || current_user_can('edit_posts')) {
-            return $response;
-        }
-        // Their own profile and application passwords.
-        if (preg_match('#^/wp/v2/users/(me|\d+)(/|$)#', $route . '/', $own) && ('me' === $own[1] || (int) $own[1] === get_current_user_id())) {
-            return $response;
-        }
         // Only reading: creating and changing users keep core's own checks.
-        if ('GET' !== $request->get_method() && 'HEAD' !== $request->get_method()) {
+        if (!in_array($request->get_method(), array('GET', 'HEAD'), true) || !self::rest_users_hidden(untrailingslashit((string) $request->get_route()) . '/')) {
             return $response;
         }
         return new WP_Error('rest_user_cannot_view', __('Sorry, you are not allowed to list users.', 'seoprostack'), array('status' => rest_authorization_required_code()));
+    }
+
+    /**
+     * Whether a users route is hidden from the current user: everything
+     * under /wp/v2/users but their own profile (and application passwords),
+     * for people who cannot edit posts.
+     *
+     * @param string $route Route with a trailing slash.
+     * @return bool
+     */
+    private static function rest_users_hidden($route) {
+        if (!preg_match('#^/wp/v2/users/#', $route) || current_user_can('edit_posts')) {
+            return false;
+        }
+        if (!preg_match('#^/wp/v2/users/(me|\d+)/#', $route, $own)) {
+            return true;
+        }
+        return 'me' !== $own[1] && (int) $own[1] !== get_current_user_id();
     }
 
     /**
