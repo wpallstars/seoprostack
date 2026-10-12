@@ -407,27 +407,37 @@ final class SEOProStack_Admin_Whole_Theme {
      * own choice.
      */
     public static function head() {
-        if (!self::screen_applies()) {
+        if (!is_user_logged_in()) {
             return;
         }
-        echo self::head_script(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- wp_get_inline_script_tag() output; the mode is one of MODES, JSON-encoded.
+        echo self::head_script(self::screen_applies()); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- wp_get_inline_script_tag() output; the mode is one of MODES, JSON-encoded.
     }
 
     /**
      * The <script> tag that sets the mode's classes (head()).
      *
+     * sps-mode-dark says the person's wp-admin is dark, on every screen,
+     * including those that keep their own look (screen_applies()): what
+     * shows while the next screen loads (SEOProStack_Preload_Pages) takes
+     * the dark canvas from it, as the next screen will be dark. Leaving SEO
+     * Pro Stats' screens showed it light (#725). The mode's own classes and
+     * the other plugins' modes only where the screen turns dark.
+     *
+     * @param bool $applies Whether this screen turns dark (screen_applies()).
      * @return string
      */
-    private static function head_script() {
+    private static function head_script($applies = true) {
         $mode   = self::mode();
         $chosen = 'light' !== $mode || self::chosen();
-        $script = '(function(r,m,c){var q=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)"),d=m==="dark"||(m==="system"&&!!q&&q.matches);'
+        $script = '(function(r,m,c,a){var q=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)"),d=m==="dark"||(m==="system"&&!!q&&q.matches);'
+            . 'if(d){r.classList.add("sps-mode-dark");}'
+            . 'if(!a){return;}'
             . 'r.classList.add("sps-theme-"+m);'
             . 'if(d){r.classList.add("sps-dark");}'
             . 'if(c){try{var s=localStorage;s.setItem("fluent_theme_mode",m);s.setItem("fs-theme",m==="system"?"system:"+(d?"dark":"light"):m);'
             . 'if(m==="system"){s.removeItem("litespeed-dark-preference");}else{s.setItem("litespeed-dark-preference",m);}'
             . 'var b=JSON.parse(s.getItem("bit-social-config")||"{}")||{};b.isDarkTheme=d;s.setItem("bit-social-config",JSON.stringify(b));}catch(e){}}'
-            . '})(document.documentElement,' . wp_json_encode($mode) . ',' . ($chosen ? 'true' : 'false') . ');';
+            . '})(document.documentElement,' . wp_json_encode($mode) . ',' . ($chosen ? 'true' : 'false') . ',' . ($applies ? 'true' : 'false') . ');';
         return wp_get_inline_script_tag($script, array('id' => 'seoprostack-whole-theme-mode'));
     }
 
