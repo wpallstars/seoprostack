@@ -18,7 +18,7 @@
  * - Login uses wp_set_auth_cookie() and fires `wp_login` and `login_redirect`
  *   like core, so audit, redirect and two-factor plugins that use `wp_login`
  *   keep working. People FluentAuth asks for an authenticator app or passkey
- *   get no link (device_factor_owed()): they log in with their password.
+ *   get no link (user_allowed()): they log in with their password.
  *
  * SPDX-License-Identifier: GPL-3.0-or-later
  * SPDX-FileCopyrightText: 2026 Marcus Quinn
@@ -614,8 +614,23 @@ class SEOProStack_Magic_Login extends SEOProStack_Feature {
         if (is_multisite() && is_user_spammy($user)) {
             $allowed = false;
         }
-        if ($allowed && self::device_factor_owed($user)) {
-            $allowed = false;
+
+        // No link for people FluentAuth asks for an authenticator app or
+        // passkey at login: their role must have one, or they set one up. A
+        // link sets the login cookie itself, which FluentAuth leaves alone,
+        // so it would skip that step; they log in with their password. An
+        // emailed code is not counted: the link already proves the mailbox,
+        // as FluentAuth's own login links treat it.
+        $requirement = '\FluentAuth\App\Services\TwoFa\DeviceRequirement';
+        if ($allowed && class_exists($requirement)) {
+            try {
+                foreach (array('isRequiredForUser', 'hasDeviceFactor') as $method) {
+                    $allowed = $allowed && !(is_callable(array($requirement, $method)) && call_user_func(array($requirement, $method), $user));
+                }
+            } catch (Throwable $e) {
+                // FluentAuth changed: refuse rather than risk skipping its step.
+                $allowed = false;
+            }
         }
 
         /**
@@ -625,35 +640,6 @@ class SEOProStack_Magic_Login extends SEOProStack_Feature {
          * @param WP_User $user    User.
          */
         return (bool) apply_filters('seoprostack_magic_login_allowed', $allowed, $user);
-    }
-
-    /**
-     * Whether FluentAuth asks this user for an authenticator app or passkey
-     * at login: its role must have one, or the user has set one up. A login
-     * link sets the login cookie itself, which FluentAuth leaves alone, so
-     * it would skip that step; such users log in with their password. An
-     * emailed code is not counted: the link already proves the mailbox, as
-     * FluentAuth's own login links treat it.
-     *
-     * @param WP_User $user User.
-     * @return bool
-     */
-    private static function device_factor_owed(WP_User $user) {
-        $requirement = '\FluentAuth\App\Services\TwoFa\DeviceRequirement';
-        if (!class_exists($requirement)) {
-            return false;
-        }
-        try {
-            foreach (array('isRequiredForUser', 'hasDeviceFactor') as $method) {
-                if (is_callable(array($requirement, $method)) && call_user_func(array($requirement, $method), $user)) {
-                    return true;
-                }
-            }
-        } catch (Throwable $e) {
-            // FluentAuth changed: refuse rather than risk skipping its step.
-            return true;
-        }
-        return false;
     }
 
     /**
