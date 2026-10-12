@@ -556,6 +556,33 @@ html.sps-dark #wpbody .privacy_requests tr.status-request-failed td.check-column
 	background-color: var(--sps-ui-raised);
 }
 
+/*
+ * Settings → Connectors (WordPress 7): styles its script injects, so the
+ * fallback does not reach them. White connector cards; the AI plugin
+ * callout's light pink gradient (#e7d4e4) under Dark's light text; AI
+ * Engine's banner above them (#f0f4ff, managed #e8f8ef).
+ */
+html.sps-dark .connectors-page .components-item {
+	background-color: var(--sps-ui-surface);
+	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark .connectors-page .ai-plugin-callout {
+	background-color: #3a2a39;
+	background-image: radial-gradient(ellipse 70% 120% at 18% 115%, rgb(202 158 198 / 22%) 0, rgb(202 158 198 / 0%) 60%), radial-gradient(ellipse 55% 110% at 92% -15%, rgb(208 175 217 / 18%) 0, rgb(208 175 217 / 0%) 65%);
+	color: var(--sps-ui-text);
+}
+
+html.sps-dark .mwai-wpai-banner {
+	background: var(--sps-ui-surface);
+	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark .mwai-wpai-banner.is-managed {
+	background: #1c3326;
+	border-color: #2e5a40;
+}
+
 html.sps-dark :is(#wpbody, .components-modal__frame) .widefat :is(td, th, thead td, thead th, tfoot td, tfoot th) {
 	color: var(--sps-ui-text);
 	border-color: var(--sps-ui-border);
