@@ -172,9 +172,11 @@ Off by default. One switch; SEO Pro Stack picks the values every site should hav
 - **Use HTTPS only for**: this site (`max-age` one year, the default), or this site and its subdomains, ready for browsers' preload list (two years, `includeSubDomains; preload`). Choose subdomains only when every subdomain has a certificate: browsers remember it.
 - **Leave out (to find a problem)**: the redirect, the frame headers, the HTTPS upgrade or the opener policy, one by one.
 
-Nothing is written to files, and nothing is stored but the settings. Headers that the web server, a CDN or a page cache add are not changed; a page cache keeps the headers it stored until it is cleared.
+Sending headers writes no files and stores only the settings. Headers that the web server, a CDN or a page cache add are not changed; a page cache keeps the headers it stored until it is cleared.
 
 Replaces Really Simple Security (free and Pro) in part, with the features that cover its basic hardening: [Turn off unused remote access](#turn-off-unused-remote-access-admin) (XML-RPC, application passwords, debug log, code execution in uploads, user enumeration), [Tidy the login screen](#tidy-the-login-screen-admin) (login feedback), [Tidy admin screens](#tidy-admin-screens-admin) (file editors) and [Remove WordPress extras](#remove-wordpress-extras-speed) (WordPress version). Its login protection (two-step login, passkeys, login attempts, event log, IP blocking) is [FluentAuth](https://wordpress.org/plugins/fluent-security/)'s, in Free Plugins → Admin. Settings version 27 imports its switches once while it is active (from its network option when it is network-active), and Hostinger Tools' “Redirect to HTTPS”, without changing their options: the switch goes on when it redirected or sent any of these headers, HSTS covers subdomains when it did, and a redirect it was told not to make (“No redirect”) or frames it allowed are left out. While it is active, the feature waits and the Plugins screen names what it still does here that SEO Pro Stack, as set up, does not (such as its login protection, password rules or vulnerability scanning) instead of saying it can go.
+
+After Really Simple Security is deactivated, **Tools → Site Health** checks its leftover auto-prepend blocks in `.htaccess` and `.user.ini`, its non-empty `wp-content/advanced-headers.php`, directory-indexing and uploads rules, and `rsssl_*` scheduled tasks. **Check and clear Really Simple Security leftovers** requires an administrator (a network administrator on multisite) and refuses while any of its free, Pro or Pro Multisite versions is active. It keeps its own headers stub for cached prepend paths, clears only its marked rules and scheduled tasks, and keeps its HTTPS redirect, `wp-config.php` and every plugin's settings. Files it cannot safely change remain for another check. On a network, Site Health checks this site and the main site; cleanup checks every site's activation lists first, then clears tasks in batches of 50 sites, with a button to continue between batches.
 
 ### Magic login links (Admin)
 
@@ -1608,6 +1610,10 @@ Deleting the plugin removes its settings (on multisite, every site's and the net
 Deactivating the plugin removes the WebP and AVIF rules from the uploads folder’s `.htaccess` (for every site when network-deactivated), the LiteSpeed background request rules from the site’s `.htaccess` (on multisite, when network-deactivated or deactivated on the main site) and the must-use file of Load plugins only where needed (on multisite, when network-deactivated).
 
 ## Changelog
+
+### Unreleased
+
+- Fix: **Tools → Site Health** finds and explicitly clears Really Simple Security's deactivation leftovers, including network-wide scheduled tasks and each site's uploads rules. Keeps its headers stub, HTTPS redirect, `wp-config.php` and plugin settings (GitHub issue #719).
 
 ### 1.3.42
 

@@ -431,10 +431,24 @@ class SEOProStack_Security_Headers extends SEOProStack_Feature {
     /**
      * Read the actual saved activation lists, not the request's skipped plugins.
      *
+     * @phpstan-impure Depends on the current blog after switch_to_blog().
      * @return bool
      */
     private static function rsssl_active() {
-        $plugins = (array) get_option('active_plugins', array());
+        // The loader's raw list belongs to the original site, not a switched
+        // subsite. Temporarily bypass only its known activation-list filter.
+        $filter   = array('SEOProStack_Plugin_Loader', 'filter_active');
+        $priority = has_filter('option_active_plugins', $filter);
+        if (false !== $priority) {
+            remove_filter('option_active_plugins', $filter, $priority);
+        }
+        try {
+            $plugins = (array) get_option('active_plugins', array());
+        } finally {
+            if (false !== $priority) {
+                add_filter('option_active_plugins', $filter, $priority);
+            }
+        }
         if (is_multisite()) {
             $plugins = array_merge($plugins, array_keys((array) get_site_option('active_sitewide_plugins', array())));
         }
@@ -511,11 +525,11 @@ class SEOProStack_Security_Headers extends SEOProStack_Feature {
         $found = array();
         foreach (self::leftover_blocks() as $file => $block) {
             $contents = self::leftover_contents($file);
-            if (false === $contents || false !== strpos($contents, $block[1] . $block[0])) {
+            if (false === $contents || self::block_leftover($contents, $block)) {
                 $found[] = $file . ': ' . $block[0];
             }
             if ('.htaccess' === basename($file) && '# BEGIN ' === $block[1]
-                && false !== strpos((string) $contents, '# BEGIN Really Simple Security Disable directory indexing')) {
+                && self::block_leftover((string) $contents, array('Really Simple Security Disable directory indexing', '# BEGIN ', '# END '))) {
                 $found[] = $file . ': Really Simple Security Disable directory indexing';
             }
         }
@@ -525,6 +539,23 @@ class SEOProStack_Security_Headers extends SEOProStack_Feature {
             $found[] = $file;
         }
         return $found;
+    }
+
+    /**
+     * Empty markers left by core are harmless; an incomplete block is not.
+     *
+     * @param string   $contents Local file contents.
+     * @param string[] $block    Marker definition.
+     * @return bool
+     */
+    private static function block_leftover($contents, array $block) {
+        $begin = $block[1] . $block[0];
+        if (false === strpos($contents, $begin)) {
+            return false;
+        }
+        // insert_with_markers() adds explanatory comments even with no rules.
+        $empty = '/^' . preg_quote($begin, '/') . '[\t ]*\r?\n(?:[\t ]*(?:#[^\r\n]*)?\r?\n)*' . preg_quote($block[2] . $block[0], '/') . '[\t ]*(?:\r?\n|$)/m';
+        return false !== strpos((string) preg_replace($empty, '', $contents), $begin);
     }
 
     /**
@@ -545,7 +576,7 @@ class SEOProStack_Security_Headers extends SEOProStack_Feature {
             $result['label'] = __('Really Simple Security is active; its files and tasks are left alone', 'seoprostack');
             return $result;
         }
-        $found = self::leftover_cron();
+        $found = array_merge(self::leftover_cron(), self::leftover_files());
         if (is_multisite()) {
             switch_to_blog(get_main_site_id());
         }
@@ -602,8 +633,13 @@ class SEOProStack_Security_Headers extends SEOProStack_Feature {
         if (false === strpos($contents, $begin)) {
             return true;
         }
-        $pattern = '/^' . preg_quote($begin, '/') . '[\t ]*\r?\n.*?^' . preg_quote($block[2] . $block[0], '/') . '[\t ]*(?:\r?\n|$)/ms';
-        if (!preg_match($pattern, $contents) || !wp_is_writable($file)) {
+        $end     = $block[2] . $block[0];
+        $pattern = '/^' . preg_quote($begin, '/') . '[\t ]*\r?\n(.*?)^' . preg_quote($end, '/') . '[\t ]*(?:\r?\n|$)/ms';
+        // Core's marker writer uses substring matches. Reject duplicates,
+        // prefix collisions and nested/malformed blocks before calling it.
+        if (1 !== substr_count($contents, $begin) || 1 !== substr_count($contents, $end)
+            || !preg_match($pattern, $contents, $matches) || !wp_is_writable($file)
+            || preg_match('/^(?:# ?BEGIN |#Begin |; BEGIN |# ?END |#End |; END )/m', $matches[1])) {
             return false;
         }
         if ('# BEGIN ' === $block[1]) {
@@ -626,7 +662,9 @@ class SEOProStack_Security_Headers extends SEOProStack_Feature {
     private static function clear_leftover_files() {
         $file = WP_CONTENT_DIR . '/advanced-headers.php';
         if (file_exists($file)) {
-            if (is_link($file) || !is_file($file) || !wp_is_writable($file)) {
+            $contents = self::leftover_contents($file);
+            if (false === $contents || is_link($file) || !is_file($file) || !wp_is_writable($file)
+                || !preg_match('/This file (?:is|was) created by Really Simple Security/', $contents)) {
                 return false;
             }
             // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_file_put_contents -- retain the replaced plugin's stub for cached prepend references.
@@ -645,6 +683,20 @@ class SEOProStack_Security_Headers extends SEOProStack_Feature {
     }
 
     /**
+     * Each subsite may have its own uploads rules as well as the shared ones.
+     *
+     * @return bool
+     */
+    private static function clear_site_uploads() {
+        foreach (self::leftover_blocks() as $file => $block) {
+            if ('#Begin ' === $block[1] && !self::clear_leftover_block($file, $block)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
      * Explicit cleanup. Network requests preflight then clean at most 50 sites.
      * A short-lived user/network-scoped cursor cannot be forged by POST fields.
      */
@@ -656,7 +708,7 @@ class SEOProStack_Security_Headers extends SEOProStack_Feature {
         if (!isset($_SERVER['REQUEST_METHOD']) || 'POST' !== $_SERVER['REQUEST_METHOD']) {
             wp_die(esc_html__('Use the cleanup button in Site Health.', 'seoprostack'), '', array('response' => 405));
         }
-        $key   = self::CLEANUP . '_' . get_current_user_id();
+        $key   = self::CLEANUP . '_' . get_current_blog_id() . '_' . get_current_user_id();
         $state = get_site_transient($key);
         $state = is_array($state) ? $state : array('phase' => 'check', 'offset' => 0);
         $sites = is_multisite() ? get_sites(array('network_id' => get_current_network_id(), 'fields' => 'ids', 'number' => 50, 'offset' => $state['offset'], 'orderby' => 'id', 'order' => 'ASC')) : array(get_current_blog_id());
@@ -668,6 +720,10 @@ class SEOProStack_Security_Headers extends SEOProStack_Feature {
                     wp_die(esc_html__('Really Simple Security is still active on a site. Deactivate all its versions before clearing leftovers.', 'seoprostack'));
                 }
                 if ('clean' === $state['phase'] || !is_multisite()) {
+                    if (!self::clear_site_uploads()) {
+                        delete_site_transient($key);
+                        wp_die(esc_html__('An uploads rules file could not be cleared. Check its permissions and marked blocks, then run the check again.', 'seoprostack'));
+                    }
                     foreach (self::leftover_cron() as $hook) {
                         if (false === wp_unschedule_hook($hook)) {
                             delete_site_transient($key);
@@ -684,7 +740,6 @@ class SEOProStack_Security_Headers extends SEOProStack_Feature {
             $state['offset'] += count($sites);
         } elseif ('check' === $state['phase'] && is_multisite()) {
             $state = array('phase' => 'clean', 'offset' => 0);
-            $more  = true;
         } else {
             switch_to_blog(is_multisite() ? get_main_site_id() : get_current_blog_id());
             try {
