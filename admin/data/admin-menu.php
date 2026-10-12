@@ -120,6 +120,9 @@ return array(
         'wp-map-block'                          => 'admin',
         'spectra'                               => 'admin',
         'bookly-cloud-menu'                     => 'admin',
+        // FluentAuth: login security and two-step login, which every
+        // administrator sets up, so not in Developers.
+        'fluent-auth'                           => 'admin',
 
         // Super Admin: developer tools, caching, security and site plumbing.
         'seoprostack'                           => 'super-admin',
@@ -234,6 +237,9 @@ return array(
         // Content.
         'tutor'                                 => 'content',
         'tutor-pro'                             => 'content',
+
+        // Administrators.
+        'fluent-security'                       => 'admin',
 
         // Super Admin.
         'seoprostack'                           => 'super-admin',

@@ -16,7 +16,9 @@
  * - Requests always get the same response whether or not the account exists,
  *   and are rate limited per IP address and per user.
  * - Login uses wp_set_auth_cookie() and fires `wp_login` and `login_redirect`
- *   like core, so two-factor, audit and redirect plugins keep working.
+ *   like core, so audit, redirect and two-factor plugins that use `wp_login`
+ *   keep working. People FluentAuth asks for an authenticator app or passkey
+ *   get no link (user_allowed()): they log in with their password.
  *
  * SPDX-License-Identifier: GPL-3.0-or-later
  * SPDX-FileCopyrightText: 2026 Marcus Quinn
@@ -611,6 +613,24 @@ class SEOProStack_Magic_Login extends SEOProStack_Feature {
         }
         if (is_multisite() && is_user_spammy($user)) {
             $allowed = false;
+        }
+
+        // No link for people FluentAuth asks for an authenticator app or
+        // passkey at login: their role must have one, or they set one up. A
+        // link sets the login cookie itself, which FluentAuth leaves alone,
+        // so it would skip that step; they log in with their password. An
+        // emailed code is not counted: the link already proves the mailbox,
+        // as FluentAuth's own login links treat it.
+        $requirement = '\FluentAuth\App\Services\TwoFa\DeviceRequirement';
+        if ($allowed && class_exists($requirement)) {
+            try {
+                foreach (array('isRequiredForUser', 'hasDeviceFactor') as $method) {
+                    $allowed = $allowed && !(is_callable(array($requirement, $method)) && call_user_func(array($requirement, $method), $user));
+                }
+            } catch (Throwable $e) {
+                // FluentAuth changed: refuse rather than risk skipping its step.
+                $allowed = false;
+            }
         }
 
         /**
