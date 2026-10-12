@@ -7360,7 +7360,7 @@ html.sps-dark #log-panel pre {
  * pale greys come from its palette (--evo_*). Its blue and yellow, the
  * coloured Support tiles, the News panel and its buttons keep their colours.
  */
-html.sps-dark body {
+html.sps-dark body.wp-core-ui {
 	--evo_border_c: var(--sps-ui-border);
 	--evo_linecolor_1: var(--sps-ui-border);
 	--evo_boxcolor_1: var(--sps-ui-raised);
