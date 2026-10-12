@@ -874,7 +874,33 @@ class SEOProStack_Security_Headers extends SEOProStack_Feature {
                 $extras[] = $name;
             }
         }
+        if (self::on($theirs, 'disable_anyone_can_register') && self::registration_ticked()) {
+            $extras[] = __('Blocks registration (WordPress\'s Anyone can register is still ticked in Settings → General)', 'seoprostack');
+        }
         return array_values(array_unique($extras));
+    }
+
+    /**
+     * Whether Settings → General → Anyone can register is ticked underneath
+     * Really Simple Security's "Disable anyone can register", which only
+     * filters the option (option_users_can_register) and leaves it stored,
+     * so registration opens again when the plugin goes. Single sites only:
+     * wp-signup.php follows the network's `registration` option, which it
+     * does not filter. Reads the stored value past that filter.
+     *
+     * @return bool
+     */
+    private static function registration_ticked() {
+        if (is_multisite()) {
+            return false;
+        }
+        $all = wp_load_alloptions();
+        if (array_key_exists('users_can_register', $all)) {
+            return (bool) $all['users_can_register'];
+        }
+        global $wpdb;
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- the stored value past Really Simple Security's option filter, on the Plugins screen only; not autoloaded here.
+        return (bool) $wpdb->get_var($wpdb->prepare("SELECT option_value FROM {$wpdb->options} WHERE option_name = %s", 'users_can_register'));
     }
 
     /**
@@ -897,9 +923,11 @@ class SEOProStack_Security_Headers extends SEOProStack_Feature {
 
     /**
      * Its switches SEO Pro Stack does not cover. Login protection is
-     * FluentAuth's (in Free Plugins → Admin). "Disable anyone can register"
-     * and "Rename admin user" need nothing in their place: WordPress keeps
-     * the setting and the name they leave.
+     * FluentAuth's (in Free Plugins → Admin). "Rename admin user" needs
+     * nothing in its place: WordPress keeps the name it leaves. "Disable
+     * anyone can register" only filters WordPress's setting, so extras()
+     * warns while that setting is still ticked underneath
+     * (registration_ticked()).
      *
      * @return array<string,string>
      */
