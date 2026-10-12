@@ -18,6 +18,15 @@
  * files. Advice only: an Options line in .htaccess can stop a whole Apache
  * site loading where the host does not allow it.
  *
+ * PHP in uploads: a marked block in the uploads folder's .htaccess denies
+ * PHP files there, so a script that got in through an upload cannot run;
+ * Nginx gets a rule to copy. Usernames: user lists in the REST API (for
+ * people who cannot edit posts, except their own /users/me), numeric
+ * ?author= addresses for visitors and core's users sitemap are turned off.
+ *
+ * Also imports Really Simple Security's matching switches, without
+ * replacing it (SEOProStack_Security_Headers does).
+ *
  * SPDX-License-Identifier: GPL-3.0-or-later
  * SPDX-FileCopyrightText: 2026 Marcus Quinn
  * Additional terms (GPL-3.0 section 7(b)): SEOPROSTACK-ATTRIBUTION.txt
@@ -62,6 +71,12 @@ class SEOProStack_Hardening extends SEOProStack_Feature {
     /** File names the block denies and the test looks for. */
     const FILES_PATTERN = '/^(error_log|php_errorlog|wp-config.+\.php)$|\.(log|sql|sql\.gz|bak)$/';
 
+    /** .htaccess marker of the PHP in uploads block. */
+    const UPLOADS_MARKER = 'SEO Pro Stack PHP in uploads';
+
+    /** Site option: what the PHP in uploads block holds, where, and how writing went. */
+    const UPLOADS_STATE = 'seoprostack_hardening_uploads';
+
     /**
      * Settings; the card and both choices are off by default.
      *
@@ -74,7 +89,7 @@ class SEOProStack_Hardening extends SEOProStack_Feature {
                 'default'     => false,
                 'tab'         => 'admin',
                 'label'       => __('Turn off unused remote access', 'seoprostack'),
-                'description' => __('Turn off XML-RPC or application passwords when this site does not use them, and block web access to log and backup files. Jetpack and some mobile apps need XML-RPC. Application passwords let apps connect to this site without your login password. Plugins and PHP write log files that can hold visitors’ messages, server paths and database queries; Tools → Site Health names any that anyone can download.', 'seoprostack'),
+                'description' => __('Turn off XML-RPC or application passwords when this site does not use them, block web access to log and backup files and PHP files in the uploads folder, and hide usernames from visitors. Jetpack and some mobile apps need XML-RPC. Application passwords let apps connect to this site without your login password. Plugins and PHP write log files that can hold visitors’ messages, server paths and database queries; Tools → Site Health names any that anyone can download.', 'seoprostack'),
                 'replaces'    => array('hostinger' => 'Hostinger Tools') + SEOProStack_Disable_Bloat::PLUGINS,
                 'reload'      => true,
             ),
@@ -99,6 +114,8 @@ class SEOProStack_Hardening extends SEOProStack_Feature {
             'xmlrpc'        => __('Turn off XML-RPC', 'seoprostack'),
             'app_passwords' => __('Turn off application passwords', 'seoprostack'),
             'files'         => __('Block web access to log and backup files', 'seoprostack'),
+            'uploads_php'   => __('Block PHP files in the uploads folder', 'seoprostack'),
+            'usernames'     => __('Hide usernames from visitors (REST API user lists, ?author= addresses and the users sitemap)', 'seoprostack'),
         );
     }
 
@@ -110,7 +127,7 @@ class SEOProStack_Hardening extends SEOProStack_Feature {
      * @return array
      */
     public static function migrate(array $options, $from_version) {
-        $choices = SEOProStack_Disable_Bloat::choices(self::ITEMS_KEY);
+        $choices = array_merge(SEOProStack_Disable_Bloat::choices(self::ITEMS_KEY), SEOProStack_Security_Headers::choices(self::ITEMS_KEY));
         if (isset(self::active_plugins()['hostinger'])) {
             $theirs = get_option('hostinger_tools', array());
             if (is_array($theirs)) {
@@ -152,6 +169,12 @@ class SEOProStack_Hardening extends SEOProStack_Feature {
         $items = array_flip((array) SEOProStack_Settings::get(self::ITEMS_KEY));
         if (isset($items['app_passwords'])) {
             add_filter('wp_is_application_passwords_available', '__return_false');
+        }
+        if (isset($items['usernames'])) {
+            add_filter('rest_request_before_callbacks', array(__CLASS__, 'rest_users'), 10, 3);
+            // Before redirect_canonical(), which sends ?author=1 to the author's address.
+            add_action('template_redirect', array(__CLASS__, 'author_query'), 1);
+            add_filter('wp_sitemaps_add_provider', array(__CLASS__, 'users_sitemap'), 10, 2);
         }
         if (isset($items['xmlrpc'])) {
             add_filter('xmlrpc_enabled', '__return_false');
@@ -263,37 +286,109 @@ class SEOProStack_Hardening extends SEOProStack_Feature {
         if (is_multisite() && !is_main_site()) {
             return;
         }
+        $on = self::files_on();
+        if (self::block_sync(self::FILES_MARKER, self::FILES_STATE, $on ? self::files_targets() : null, self::files_rules())) {
+            // What can be downloaded has changed.
+            delete_transient(self::EXPOSED);
+        }
+        $on = self::uploads_on();
+        self::block_sync(self::UPLOADS_MARKER, self::UPLOADS_STATE, $on ? self::uploads_targets() : null, self::uploads_rules());
+    }
+
+    /**
+     * Keep one marked block in step: write it to the target .htaccess files
+     * and remove it from those it left. Reads one site option when nothing
+     * changed; retries while a file cannot be written.
+     *
+     * @param string        $marker  Block marker.
+     * @param string        $state   Site option keeping hash, targets and status.
+     * @param string[]|null $targets Files that need it; null when the choice is off.
+     * @param string[]      $rules   Rules of the block.
+     * @return bool Whether anything was synced.
+     */
+    private static function block_sync($marker, $state, $targets, array $rules) {
         global $is_apache, $is_nginx;
-        $on      = self::files_on();
-        $targets = $on ? self::files_targets() : array();
+        $on      = null !== $targets;
+        $targets = $on ? $targets : array();
         // Servers that do not read .htaccess files get no block. The server
         // is in the hash, so a site moved to another server is synced again.
-        $rules = ($on && !empty($is_apache)) ? self::files_rules() : array();
-        $want  = $on ? md5(implode("\n", self::files_rules()) . "\n" . implode("\n", $targets) . "\n" . ($rules ? 'htaccess' : 'none')) : ''; // NOSONAR: a fingerprint to notice changes, not security; stored, so it stays md5.
-        $state = (array) get_site_option(self::FILES_STATE, array());
-        $had   = isset($state['hash']) ? $state['hash'] : '';
-        if ($had === $want && (!isset($state['status']) || 'unwritable' !== $state['status'])) {
-            return;
+        $write = ($on && !empty($is_apache)) ? $rules : array();
+        $want  = $on ? md5(implode("\n", $rules) . "\n" . implode("\n", $targets) . "\n" . ($write ? 'htaccess' : 'none')) : ''; // NOSONAR: a fingerprint to notice changes, not security; stored, so it stays md5.
+        $saved = (array) get_site_option($state, array());
+        $had   = isset($saved['hash']) ? $saved['hash'] : '';
+        if ($had === $want && (!isset($saved['status']) || 'unwritable' !== $saved['status'])) {
+            return false;
         }
-        $old    = isset($state['targets']) && is_array($state['targets']) ? $state['targets'] : array();
+        $old    = isset($saved['targets']) && is_array($saved['targets']) ? $saved['targets'] : array();
         $status = 'written';
         foreach (array_unique(array_merge($old, $targets)) as $file) {
-            if (!self::files_write($file, in_array($file, $targets, true) ? $rules : array())) {
+            if (!self::files_write($file, in_array($file, $targets, true) ? $write : array(), $marker)) {
                 $status = 'unwritable';
             }
         }
         if (!$on) {
             if ('written' === $status) {
-                delete_site_option(self::FILES_STATE);
+                delete_site_option($state);
             }
         } else {
-            if ('written' === $status && !$rules) {
+            if ('written' === $status && !$write) {
                 $status = !empty($is_nginx) ? 'nginx' : 'other';
             }
-            update_site_option(self::FILES_STATE, array('hash' => $want, 'targets' => $targets, 'status' => $status));
+            update_site_option($state, array('hash' => $want, 'targets' => $targets, 'status' => $status));
         }
-        // What can be downloaded has changed.
-        delete_transient(self::EXPOSED);
+        return true;
+    }
+
+    /**
+     * Whether PHP files in uploads are blocked (the switch only, as files_on()).
+     *
+     * @return bool
+     */
+    public static function uploads_on() {
+        return self::switched_on() && in_array('uploads_php', (array) SEOProStack_Settings::get(self::ITEMS_KEY), true);
+    }
+
+    /**
+     * Rules of the PHP in uploads block: every PHP extension a server may run.
+     *
+     * @return string[]
+     */
+    public static function uploads_rules() {
+        return array(
+            '<FilesMatch "\.(php[0-9]?|pht|phtml|phar)$">',
+            'Require all denied',
+            '</FilesMatch>',
+        );
+    }
+
+    /**
+     * The uploads folder's .htaccess (on multisite the main site's, which
+     * holds the other sites' folders).
+     *
+     * @return string[]
+     */
+    private static function uploads_targets() {
+        $uploads = wp_get_upload_dir();
+        if (!empty($uploads['error']) || empty($uploads['basedir']) || !is_dir($uploads['basedir'])) {
+            return array();
+        }
+        return array(trailingslashit(wp_normalize_path($uploads['basedir'])) . '.htaccess');
+    }
+
+    /**
+     * Nginx lines for PHP in uploads.
+     *
+     * @return string
+     */
+    public static function uploads_nginx_rules() {
+        $uploads = wp_get_upload_dir();
+        $path    = !empty($uploads['baseurl']) ? (string) wp_parse_url($uploads['baseurl'], PHP_URL_PATH) : '/wp-content/uploads';
+        return implode("\n", array(
+            '# In the server { } block, before the location for .php:',
+            'location ~* ^' . untrailingslashit($path) . '/.*\.(php[0-9]?|pht|phtml|phar)$ {',
+            '    deny all;',
+            '}',
+        ));
     }
 
     /**
@@ -301,22 +396,23 @@ class SEOProStack_Hardening extends SEOProStack_Feature {
      * fix went, ahead of other plugins' blocks), or remove it. A file left
      * empty by the removal is deleted: it was made for the block.
      *
-     * @param string   $file  .htaccess path.
-     * @param string[] $rules Rules; empty removes the block.
+     * @param string   $file   .htaccess path.
+     * @param string[] $rules  Rules; empty removes the block.
+     * @param string   $marker Block marker.
      * @return bool Whether the file is as asked now.
      */
-    private static function files_write($file, array $rules) {
+    private static function files_write($file, array $rules, $marker = self::FILES_MARKER) {
         $exists = is_file($file);
         if (!$rules && !$exists) {
             return true;
         }
         $contents = $exists ? (string) file_get_contents($file) : ''; // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents -- local file.
-        $quoted   = preg_quote(self::FILES_MARKER, '/');
+        $quoted   = preg_quote($marker, '/');
         $cleaned  = preg_replace('/# BEGIN ' . $quoted . '\r?\n.*?# END ' . $quoted . '[^\n]*(\n|$)\s*/s', '', $contents);
         if (null === $cleaned) {
             return false;
         }
-        $block = $rules ? '# BEGIN ' . self::FILES_MARKER . "\n" . implode("\n", $rules) . "\n# END " . self::FILES_MARKER . "\n\n" : '';
+        $block = $rules ? '# BEGIN ' . $marker . "\n" . implode("\n", $rules) . "\n# END " . $marker . "\n\n" : '';
         $new   = $block . ltrim($cleaned, "\r\n");
         if ($new === $contents) {
             return true;
@@ -340,11 +436,19 @@ class SEOProStack_Hardening extends SEOProStack_Feature {
      * @param array  $field Schema entry.
      */
     public static function panel($key, $field = array()) {
-        if (self::KEY !== $key || !self::files_on()) {
+        if (self::KEY !== $key) {
             return;
         }
         if (is_multisite() && !is_main_site()) {
-            echo '<div class="sps-panel-note"><p>' . esc_html__('Log and backup files are blocked for the whole network from the main site’s settings, which share its .htaccess files.', 'seoprostack') . '</p></div>';
+            if (self::files_on() || self::uploads_on()) {
+                echo '<div class="sps-panel-note"><p>' . esc_html__('Log and backup files and PHP files in uploads are blocked for the whole network from the main site’s settings, which share its .htaccess files.', 'seoprostack') . '</p></div>';
+            }
+            return;
+        }
+        if (self::uploads_on()) {
+            self::uploads_panel();
+        }
+        if (!self::files_on()) {
             return;
         }
         $state  = (array) get_site_option(self::FILES_STATE, array());
@@ -374,6 +478,36 @@ class SEOProStack_Hardening extends SEOProStack_Feature {
     }
 
     /**
+     * How the PHP in uploads block went, in the settings panel.
+     */
+    private static function uploads_panel() {
+        $state  = (array) get_site_option(self::UPLOADS_STATE, array());
+        $status = isset($state['status']) ? $state['status'] : '';
+        $files  = isset($state['targets']) && is_array($state['targets']) ? $state['targets'] : array();
+        echo '<div class="sps-panel-note">';
+        if ('nginx' === $status) {
+            echo '<p>' . esc_html__('Nginx does not read .htaccess files. To block PHP files in the uploads folder, add these lines to the site’s Nginx configuration and reload Nginx:', 'seoprostack') . '</p>';
+            echo '<pre class="sps-code">' . esc_html(self::uploads_nginx_rules()) . '</pre>';
+        } elseif ('other' === $status) {
+            echo '<p>' . esc_html__('This server does not read .htaccess files, so PHP files in the uploads folder are not blocked. Ask your host to stop PHP files running in the uploads folder.', 'seoprostack') . '</p>';
+        } elseif ('written' === $status && $files) {
+            echo '<p>' . esc_html(sprintf(
+                /* translators: %s: .htaccess file path */
+                __('PHP files in the uploads folder are blocked by rules in %s.', 'seoprostack'),
+                implode(', ', $files)
+            )) . '</p>';
+        } else {
+            echo '<p>' . esc_html(sprintf(
+                /* translators: %s: .htaccess file path */
+                __('This file could not be changed: %s. To block PHP files in the uploads folder, add these lines to the top of it:', 'seoprostack'),
+                $files ? implode(', ', $files) : __('the uploads folder’s .htaccess', 'seoprostack')
+            )) . '</p>';
+            echo '<pre class="sps-code">' . esc_html('# BEGIN ' . self::UPLOADS_MARKER . "\n" . implode("\n", self::uploads_rules()) . "\n# END " . self::UPLOADS_MARKER) . '</pre>';
+        }
+        echo '</div>';
+    }
+
+    /**
      * On the network screen (multisite): log and backup files are blocked
      * for every site from one place.
      *
@@ -383,7 +517,7 @@ class SEOProStack_Hardening extends SEOProStack_Feature {
         if (self::KEY !== $key) {
             return;
         }
-        echo '<div class="sps-panel-note"><p>' . esc_html__('The sites share the main site’s .htaccess files, so the main site’s settings block log and backup files for the whole network.', 'seoprostack') . '</p></div>';
+        echo '<div class="sps-panel-note"><p>' . esc_html__('The sites share the main site’s .htaccess files, so the main site’s settings block log and backup files and PHP files in uploads for the whole network.', 'seoprostack') . '</p></div>';
     }
 
     /**
@@ -405,6 +539,15 @@ class SEOProStack_Hardening extends SEOProStack_Feature {
         }
         if ($done) {
             delete_site_option(self::FILES_STATE);
+        }
+        $state   = (array) get_site_option(self::UPLOADS_STATE, array());
+        $targets = isset($state['targets']) && is_array($state['targets']) ? $state['targets'] : array();
+        $done    = true;
+        foreach (array_unique(array_merge($targets, self::uploads_targets())) as $file) {
+            $done = self::files_write($file, array(), self::UPLOADS_MARKER) && $done;
+        }
+        if ($done) {
+            delete_site_option(self::UPLOADS_STATE);
         }
     }
 
@@ -698,6 +841,62 @@ class SEOProStack_Hardening extends SEOProStack_Feature {
     }
 
     /**
+     * Turn REST API user lists and other people's profiles away from people
+     * who cannot edit posts (the editor lists authors for those who can).
+     * Everyone keeps /wp/v2/users/me.
+     *
+     * @param mixed           $response Response so far.
+     * @param array           $handler  Route handler.
+     * @param WP_REST_Request $request  Request.
+     * @return mixed
+     */
+    public static function rest_users($response, $handler, $request) {
+        if (null !== $response || !$request instanceof WP_REST_Request) {
+            return $response;
+        }
+        $route = untrailingslashit((string) $request->get_route());
+        if (!preg_match('#^/wp/v2/users(/|$)#', $route . '/') || current_user_can('edit_posts')) {
+            return $response;
+        }
+        // Their own profile and application passwords.
+        if (preg_match('#^/wp/v2/users/(me|\d+)(/|$)#', $route . '/', $own) && ('me' === $own[1] || (int) $own[1] === get_current_user_id())) {
+            return $response;
+        }
+        // Only reading: creating and changing users keep core's own checks.
+        if ('GET' !== $request->get_method() && 'HEAD' !== $request->get_method()) {
+            return $response;
+        }
+        return new WP_Error('rest_user_cannot_view', __('Sorry, you are not allowed to list users.', 'seoprostack'), array('status' => rest_authorization_required_code()));
+    }
+
+    /**
+     * A numeric ?author= address answers "not found" for visitors, instead
+     * of redirecting to the author's address, which holds their username.
+     */
+    public static function author_query() {
+        // phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- only compared.
+        if (is_user_logged_in() || !isset($_GET['author']) || !is_string($_GET['author']) || !preg_match('/\d/', wp_unslash($_GET['author']))) {
+            return;
+        }
+        global $wp_query;
+        $wp_query->set_404();
+        status_header(404);
+        nocache_headers();
+        remove_action('template_redirect', 'redirect_canonical');
+    }
+
+    /**
+     * Leave out core's users sitemap, which lists authors' addresses.
+     *
+     * @param WP_Sitemaps_Provider|false $provider Provider.
+     * @param string                     $name     Provider name.
+     * @return WP_Sitemaps_Provider|false
+     */
+    public static function users_sitemap($provider, $name) {
+        return 'users' === $name ? false : $provider;
+    }
+
+    /**
      * Drop only the pingback header.
      *
      * @param array $headers Response headers.
@@ -735,6 +934,10 @@ class SEOProStack_Hardening extends SEOProStack_Feature {
             'enable_llms_txt'  => __('Generate llms.txt', 'seoprostack'),
             'optin_mcp'        => __('Hostinger MCP connection', 'seoprostack'),
         );
+        // HTTPS and security headers sends http addresses to https.
+        if (SEOProStack_Security_Headers::redirect_on()) {
+            unset($other['force_https']);
+        }
         foreach ($other as $option => $name) {
             if (!empty($theirs[$option])) {
                 $extras[] = $name;

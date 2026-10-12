@@ -309,22 +309,6 @@ if (!defined('ABSPATH')) {
             ),
             'free_slug' => 'seo-by-rank-math'
         ),
-        'really-simple-ssl' => array(
-            'name' => 'Really Simple SSL Pro',
-            'description' => 'Advanced SSL management and security features.',
-            'button_group' => array(
-                array(
-                    'text' => 'Home Page',
-                    'url' => 'https://really-simple-ssl.com/',
-                    'primary' => true
-                ),
-                array(
-                    'text' => 'Pricing',
-                    'url' => 'https://really-simple-ssl.com/pro/'
-                )
-            ),
-            'free_slug' => 'really-simple-ssl'
-        ),
         'scalability-pro' => array(
             'name' => 'Scalability Pro',
             'description' => 'Advanced performance optimization and scaling tools.',

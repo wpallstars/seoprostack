@@ -145,6 +145,7 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 
 = Unreleased =
 * New: browser titles name the settings tab, including instant switches and Back, and the Tools → Links view.
+* New: HTTPS and security headers replaces Really Simple Security: HTTPS redirect and security headers, plus PHP blocked in uploads, hidden usernames and one login error message.
 
 = 1.3.40 =
 * New: Calls to other sites replaces HTTP Requests Manager (unfixed security flaw): marks slow calls; allow, limit to 3 seconds or block each plugin and site, with a record of choices.

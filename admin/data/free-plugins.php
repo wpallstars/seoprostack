@@ -60,6 +60,11 @@ if (!defined('ABSPATH')) {
 // Legacy WPManageNinja plugins NinjaDB, WP Faq Builder and Testimonials
 // Builder are not listed: last updated in 2017, 2018 and 2019 respectively
 // (WordPress.org checked 2026-10-03).
+// Really Simple Security (free and Pro) is not listed: HTTPS and security
+// headers replaces its HTTPS redirect and headers, and Turn off unused remote
+// access, Tidy the login screen, Tidy admin screens and Remove WordPress
+// extras its basic hardening; FluentAuth (fluent-security, under Admin) has
+// its login protection (GitHub issue #698).
 function seoprostack_get_free_plugins() {
     /**
      * Filter the recommended plugins by category. Slugs are WordPress.org
@@ -102,8 +107,7 @@ function seoprostack_get_free_plugins() {
         ),
         'compliance' => array(
             'complianz-gdpr',
-            'complianz-terms-conditions',
-            'really-simple-ssl'
+            'complianz-terms-conditions'
         ),
         'crm' => array(
             'fluent-boards',
