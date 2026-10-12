@@ -1362,6 +1362,7 @@ Plugins load where they are needed:
 
 - on their own screens: the admin pages they add, and the lists and editors of the post types and taxonomies they register;
 - on post, term and list screens where they add boxes, fields, blocks, editor features or Quick Edit fields, for that post type or taxonomy only;
+- in the post editor where they add scripts or styles, such as YellowPencil’s pencil button in the toolbar, whoever opened the editor while it was learned (the Dev tab still hides that button from people who are not developers);
 - on post, media, term and user lists where they add a column that shows, a filter, a view, a row link or a bulk action (such as Rank Math’s SEO columns and filters). A plugin whose columns are all removed, by Readable list columns or anything else, does not count for its columns;
 - on the Profile, Add user and Edit user screens where they show or save profile fields, or change roles and permissions;
 - on Tools and Media › Add New where they add tools or change the upload form;
@@ -1621,6 +1622,7 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folder�
 - Fix: the Plugins screen warns, before Really Simple Security is deleted, when its **Disable "anyone can register"** is on while **Settings → General → Anyone can register** is still ticked underneath: that switch only hides WordPress's setting, so registration opened again once the plugin was gone. SEO Pro Stack leaves the setting for the site owner to untick. Single sites only (GitHub issue #727).
 - Fix: on multisite, **Make every site the same** no longer loses a site's settings from before when that site applies the network's changes at the same moment, so the site still does the saving work for the copied settings on its next admin, cron or WP-CLI request (GitHub issue #731).
 - Developers: core files synced from WP Plugin Starter 2d8ea29 (1.0.36 and later): `SEOProStack_Settings::replace_site_values()` keeps a site's settings from before under its save lock and `SEOProStack_Network_Sites::sync()` reads and records `seoprostack_network_seen` under the same lock; tabs with the same `'menu'` share a second row of tabs; `scripts/sync-core.sh` classes each differing file; new `scripts/preview-browser.sh`; CI checks the ShellCheck runner's architecture only when installing (GitHub issues #731, #723).
+- Fix: [**Load plugins only where needed**](#load-plugins-only-where-needed-plugins) keeps loading, in the post editor, plugins that add to it only through scripts or styles, such as YellowPencil, whose pencil button was missing from the editor's toolbar once the editor was learned. The editor is learned the same whoever opens it, so the Dev tab hiding that button from people who are not developers does not drop it for developers (GitHub issue #706).
 
 ### 1.3.43
 
