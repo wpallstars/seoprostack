@@ -4,10 +4,13 @@
  *
  * The login screen shows the WordPress logo, linked to wordpress.org, and a
  * language menu. This links the logo to the site with the site's name, or
- * hides it, and hides the language menu. Core filters only; nothing is
- * stored.
+ * hides it, and hides the language menu. It can also give one message for a
+ * wrong username, email address or password, so the login screen does not
+ * tell anyone which usernames exist (error codes stay, for login limiters).
+ * Core filters only; nothing is stored.
  *
- * Replaces part of Disable Bloat; its matching switches are imported once.
+ * Replaces part of Disable Bloat; its matching switches are imported once,
+ * and Really Simple Security's "Prevent login feedback".
  *
  * SPDX-License-Identifier: GPL-3.0-or-later
  * SPDX-FileCopyrightText: 2026 Marcus Quinn
@@ -60,10 +63,11 @@ class SEOProStack_Login_Screen extends SEOProStack_Feature {
      */
     public static function item_options() {
         return array(
-            'logo_link'  => __('Logo links to your site', 'seoprostack'),
-            'logo_title' => __('Logo is named after your site (for screen readers)', 'seoprostack'),
-            'hide_logo'  => __('Hide the WordPress logo (the name stays for screen readers)', 'seoprostack'),
-            'language'   => __('Hide the language menu', 'seoprostack'),
+            'logo_link'    => __('Logo links to your site', 'seoprostack'),
+            'logo_title'   => __('Logo is named after your site (for screen readers)', 'seoprostack'),
+            'hide_logo'    => __('Hide the WordPress logo (the name stays for screen readers)', 'seoprostack'),
+            'language'     => __('Hide the language menu', 'seoprostack'),
+            'login_errors' => __('Same message for a wrong username, email address or password', 'seoprostack'),
         );
     }
 
@@ -75,7 +79,7 @@ class SEOProStack_Login_Screen extends SEOProStack_Feature {
      * @return array
      */
     public static function migrate(array $options, $from_version) {
-        $choices = SEOProStack_Disable_Bloat::choices(self::ITEMS_KEY);
+        $choices = array_values(array_unique(array_merge(SEOProStack_Disable_Bloat::choices(self::ITEMS_KEY), SEOProStack_Security_Headers::choices(self::ITEMS_KEY))));
         if ($choices) {
             $options = self::import_setting($options, self::KEY, true);
             $options = self::import_setting($options, self::ITEMS_KEY, $choices);
@@ -92,6 +96,10 @@ class SEOProStack_Login_Screen extends SEOProStack_Feature {
         }
         $items = array_flip((array) SEOProStack_Settings::get(self::ITEMS_KEY));
 
+        if (isset($items['login_errors'])) {
+            // After core's checks (20) and its spam check (99).
+            add_filter('authenticate', array(__CLASS__, 'login_error'), 100);
+        }
         if (isset($items['logo_link'])) {
             add_filter('login_headerurl', array(__CLASS__, 'logo_link'), 99);
         }
@@ -104,6 +112,30 @@ class SEOProStack_Login_Screen extends SEOProStack_Feature {
         if (isset($items['language'])) {
             add_filter('login_display_language_dropdown', '__return_false', 99);
         }
+    }
+
+    /**
+     * One message for an unknown username or email address and a wrong
+     * password. The error code stays, so login limiters still count it.
+     *
+     * @param WP_User|WP_Error|null $user Result so far.
+     * @return WP_User|WP_Error|null
+     */
+    public static function login_error($user) {
+        if (!is_wp_error($user)) {
+            return $user;
+        }
+        $code = $user->get_error_code();
+        if (!in_array($code, array('invalid_username', 'invalid_email', 'incorrect_password'), true)) {
+            return $user;
+        }
+        return new WP_Error($code, sprintf(
+            '<strong>%1$s</strong> %2$s <a href="%3$s">%4$s</a>',
+            esc_html__('Error:', 'seoprostack'),
+            esc_html__('The username, email address or password is not right.', 'seoprostack'),
+            esc_url(wp_lostpassword_url()),
+            esc_html__('Lost your password?', 'seoprostack')
+        ));
     }
 
     /**

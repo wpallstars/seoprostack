@@ -32,19 +32,15 @@ Use an isolated WordPress and MinIO container on the same Docker network, not th
 - [ ] Exercise oversized files: `wp_get_original_image_url()` must keep an unuploaded kept original local and give a confirmed original its own versioned URL. Test a refused PUT and recovery with `--retry-failed`, and multisite `sites/{id}` keys and independent switches. Check the panel, attachment details, safe errors and debug log; credentials must not appear in HTML, options, meta or CLI output. Uninstall clears jobs and records, leaving bucket objects.
 - [ ] Run `scripts/lint.sh`, `scripts/smoke-test.sh --wp 6.2 --php 7.4` and `scripts/smoke-test.sh`. Before release the maintainer repeats public query-string delivery against Cloudflare R2.
 
-## Really Simple Security redirect preset
+## HTTPS and security headers (replacing Really Simple Security)
 
-Use two fresh, isolated single-site Apache/LiteSpeed WordPress sites with Really Simple Security 9.8.3, trusted working HTTPS and an existing writable root `.htaccess`. Do not use the shared preview or live sites.
+Use a throwaway single site with a trusted HTTPS certificate, Really Simple Security (free, or Pro) active with its redirect, headers and hardening switches on, and FluentAuth installed; then a multisite with it network-active. Not the shared preview or live sites. Size PHP as DEVELOPMENT.md says.
 
-- [ ] Export fresh `rsssl_options`: activation stores nothing; compare after selecting **Redirect method → 301 .htaccess redirect (read instructions first)** in the plugin's own screen. Confirm only `redirect` enters the preset, with accurate labels/defaults.
-- [ ] Enable Plugin presets and use the Plugins-screen dialog; confirm Apply selected setting, Reset and Undo change the preference and dedicated **Really Simple Security Redirect** block together.
-- [ ] Run `wp --user=<administrator> seoprostack presets list`, `diff really-simple-ssl`, `apply really-simple-ssl --only=rsssl_options.redirect`, `reset really-simple-ssl` and `undo really-simple-ssl`. CLI needs a plugin-recognised server type; use its existing server override only for a verified test server.
-- [ ] A second Apply changes zero settings, keeps the undo snapshot and does not duplicate rules or probe HTTPS.
-- [ ] Change an unrelated security setting after Apply, then Undo: the newer unrelated setting and unrelated `.htaccess` blocks survive.
-- [ ] HTTP paths with query strings return 301 to the same HTTPS path/query. Certificate validation succeeds, redirects terminate and login/admin remain accessible.
-- [ ] Missing/inactive plugin, unsupported version/API/server, multisite, SSL disabled, unwritable/symlinked rule file and plugin-managed write lockout cause no preference/rule mutation. Explicit actions return an explanation.
-- [ ] Broken/untrusted HTTPS fails before mutation. A native rule-save failure returns an error, reports whether rollback completed and does not replace or consume the previous undo snapshot. Retry after resolving the native writer error.
-- [ ] Inspect the standard PHP/debug log for new SEO Pro Stack or affected-plugin diagnostics; run existing PHP lint, PHPCS, PHPStan and release preset metadata checks.
+- [ ] Update to settings version 27 while it is active: HTTPS and security headers, Turn off unused remote access (Block PHP files in the uploads folder, Hide usernames from visitors and the others it had on), Tidy the login screen's login message, Tidy admin screens' file editors and Remove WordPress extras' version are switched on, and `rsssl_options` is unchanged. Choices already saved stay. The cards wait; the Plugins screen names only what it still does (its login protection, FluentAuth's job).
+- [ ] Deactivate it. `curl -I http://…/path/?q=1` gives one 301 to `https://…/path/?q=1`; a POST, `/.well-known/acme-challenge/x` and WP-CLI are not redirected. Behind Cloudflare (Flexible or Full) and a proxy sending `X-Forwarded-Proto: https`, pages load without a loop.
+- [ ] `curl -I https://…` on a page, wp-admin, wp-login.php and a feed: HSTS (one year; two with `includeSubDomains; preload` when chosen), nosniff, `X-Frame-Options: SAMEORIGIN`, `Content-Security-Policy: upgrade-insecure-requests; frame-ancestors 'self'`, Referrer-Policy and Cross-Origin-Opener-Policy, with no X-Powered-By and no header twice. `/embed/` has no frame headers. Each Leave out choice removes its part; a site whose address is `http://` gets nothing.
+- [ ] `https://…/wp-content/uploads/test.php` gives 403 (Apache/LiteSpeed; copy the Nginx rule on Nginx); switching off removes the block. Logged out, `/wp-json/wp/v2/users`, `/wp-json/wp/v2/users/1` and `/?author=1` give 401, 401 and 404, and `/wp-sitemap.xml` has no users sitemap; an editor's author list in the block editor still works. A wrong username and a wrong password give the same message, and FluentAuth still counts and limits the attempts.
+- [ ] Inspect the debug log for new SEO Pro Stack, Really Simple Security or FluentAuth messages. Run `scripts/lint.sh`, `scripts/smoke-test.sh --wp 6.2 --php 7.4` and `scripts/smoke-test.sh`.
 
 ## Developer admins
 
