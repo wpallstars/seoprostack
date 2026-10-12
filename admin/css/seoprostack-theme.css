@@ -7213,6 +7213,167 @@ html.sps-dark .evo_support_box:not(.special, .twitter, .evo_troubleshoot) {
 	background-color: var(--sps-ui-raised);
 }
 
+/*
+ * SliceWP (admin.php?page=slicewp-*): #fff cards, settings sidebar, list
+ * tables, menus, tooltips and pop-ups outlined in pale blue (#c8d7e1),
+ * #f8f9fa and #f3f6f8 table heads and panels, #fff fields (set on
+ * body.slicewp-pagestyles) and secondary buttons (their #2e4453 text set
+ * important), and #2e4453 headings and tabs. The Add-ons banner keeps its
+ * picture; its blue buttons and the orange Upgrade button keep their colours.
+ */
+html.sps-dark :is(#slicewp-header, .slicewp-card, .slicewp-settings-sidebar, table.slicewp-wp-list-table, .slicewp-actions-dropdown, .slicewp-modal-frame, .slicewp-field-file-item, .slicewp-wrap-promo-reports .slicewp-promo-modal),
+html.sps-dark .slicewp-tooltip-wrapper .slicewp-tooltip-message {
+	color: var(--sps-ui-text);
+	background-color: var(--sps-ui-surface);
+	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark :is(.slicewp-card, table.slicewp-wp-list-table, .slicewp-field-file-item),
+html.sps-dark body.slicewp-pagestyles .postbox {
+	box-shadow: 0 0 0 1px var(--sps-ui-border);
+}
+
+html.sps-dark :is(.slicewp-card-header, .slicewp-card-footer, .slicewp-settings-sidebar-header, .slicewp-expandable-item .slicewp-expandable-item-panel, .slicewp-email-notification-setting-panel, .slicewp-email-notifications-header > div, .slicewp-card-table-full-width th, #slicewp-card-notifications .slicewp-card-inner > div),
+html.sps-dark .slicewp-wp-list-table :is(thead, tfoot) :is(th, td),
+html.sps-dark .slicewp-tooltip-wrapper hr {
+	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark .slicewp-settings-sidebar {
+	box-shadow: 1px 0 0 var(--sps-ui-border);
+}
+
+html.sps-dark .slicewp-actions-dropdown::before,
+html.sps-dark .slicewp-tooltip-wrapper .slicewp-tooltip-arrow {
+	border-bottom-color: var(--sps-ui-border);
+}
+
+/* Heads, footers, panels, chips and the active tab (#f8f9fa, #f3f6f8, #edf2f5, #e7edf1, a pale blue tint). */
+html.sps-dark :is(.slicewp-card-footer, .slicewp-card-table-full-width th, .slicewp-card-table-full-width .slicewp-card-table-row-footer td, .slicewp-expandable-item .slicewp-expandable-item-panel, .slicewp-email-notifications-header > div, .slicewp-email-notification-setting-panel, .slicewp-settings-email-description, .slicewp-settings-sidebar .slicewp-nav-tab.slicewp-active, .slicewp-field-currency-amount .slicewp-field-currency-symbol, .slicewp-field-link-disabled, .slicewp-progressbar, .slicewp-modal-affiliate-qr-code .slicewp-affiliate-details),
+html.sps-dark #slicewp-card-payout-methods :is(.slicewp-payout-method-icon, .slicewp-expandable-item-header .slicewp-payout-method-badge),
+html.sps-dark .slicewp-wp-list-table.slicewp_payouts .column-payments .slicewp-progressbar {
+	color: var(--sps-ui-text);
+	background-color: var(--sps-ui-raised);
+	border-color: var(--sps-ui-border);
+	box-shadow: none;
+}
+
+html.sps-dark .slicewp-settings-sidebar .slicewp-nav-tab:not(.slicewp-active):hover {
+	background-color: var(--sps-ui-hover);
+}
+
+html.sps-dark :is(.slicewp-nav-tab a, .slicewp-nav-tab.slicewp-active a, .slicewp-settings-sidebar .slicewp-nav-tab:not(.slicewp-active):hover a, .slicewp-settings-sidebar-header h1, .slicewp-settings-content-title, .slicewp-tooltip-wrapper:hover .slicewp-tooltip-icon, .slicewp-card-footer-actions a:hover),
+html.sps-dark #slicewp-card-payout-methods .slicewp-payout-method-icon svg {
+	color: var(--sps-ui-text);
+}
+
+html.sps-dark .slicewp-nav-tab.slicewp-active {
+	border-bottom-color: var(--sps-ui-text);
+}
+
+html.sps-dark :is(.slicewp-card-header-subheading, .slicewp-card-footer-actions a, .slicewp-card-add-on p, .slicewp-tooltip-wrapper .slicewp-tooltip-message, .slicewp-status-pill:not(.slicewp-status-paid, .slicewp-status-unpaid)) {
+	color: var(--sps-ui-muted);
+}
+
+html.sps-dark .slicewp-card-header .slicewp-card-actions .slicewp-button-info svg {
+	fill: var(--sps-ui-muted) !important;
+}
+
+/* Field notices: #edf2f5, or #a26c17, #239e57, #c0392b and #3498db text on tints of the same colours. */
+html.sps-dark .slicewp-field-notice {
+	color: var(--sps-ui-text);
+	background-color: var(--sps-ui-raised);
+}
+
+html.sps-dark .slicewp-field-notice.slicewp-field-notice-error {
+	color: var(--sps-ui-bad);
+	background-color: rgb(192 57 43 / 20%);
+}
+
+html.sps-dark .slicewp-field-notice.slicewp-field-notice-warning {
+	color: var(--sps-ui-warning);
+	background-color: rgb(243 156 18 / 16%);
+}
+
+html.sps-dark .slicewp-field-notice.slicewp-field-notice-success {
+	color: var(--sps-ui-good);
+	background-color: rgb(0 184 148 / 16%);
+}
+
+html.sps-dark .slicewp-field-notice.slicewp-field-notice-info {
+	color: var(--sps-ui-info);
+	background-color: rgb(52 152 219 / 16%);
+}
+
+/* Add-ons' icons: square pictures of a circle on white. */
+html.sps-dark .slicewp-card-add-on img {
+	border-radius: 50%;
+}
+
+/* Fields: WordPress's (above) lose to body.slicewp-pagestyles. */
+html.sps-dark body.slicewp-pagestyles :is(input[type="text"], input[type="search"], input[type="email"], input[type="url"], input[type="password"], input[type="number"], textarea, select),
+html.sps-dark .slicewp-setup .slicewp-setup-finished .slicewp-setup-newsletter > div .slicewp-setup-newsletter-form input[type="email"] {
+	color: var(--sps-ui-text);
+	background-color: var(--sps-ui-canvas);
+	border-color: var(--sps-ui-field-border);
+}
+
+html.sps-dark body.slicewp-pagestyles :is(input[type="text"], input[type="email"], input[type="url"], input[type="password"], input[type="number"], textarea):disabled {
+	color: var(--sps-ui-subtle);
+	background-color: var(--sps-ui-raised);
+}
+
+html.sps-dark body.slicewp-pagestyles .select2-container:not(.select2-container--open) .select2-selection {
+	border-color: var(--sps-ui-field-border) !important;
+}
+
+html.sps-dark body.slicewp-pagestyles .select2-container--disabled .select2-selection--single {
+	background-color: var(--sps-ui-raised) !important;
+	border-color: var(--sps-ui-border) !important;
+}
+
+html.sps-dark body .slicewp-select2-container .select2-search__field {
+	color: var(--sps-ui-text);
+	background: var(--sps-ui-canvas) !important;
+	border-color: var(--sps-ui-field-border) !important;
+}
+
+html.sps-dark body .slicewp-field-wrapper .select2-selection--multiple .select2-selection__choice {
+	color: var(--sps-ui-text);
+	background: var(--sps-ui-border) !important;
+}
+
+html.sps-dark body.slicewp-pagestyles .ui-autocomplete li:not(:hover) {
+	color: var(--sps-ui-text);
+	background-color: var(--sps-ui-surface) !important;
+}
+
+/* Secondary buttons, outlined in the accent as WordPress's are (above). */
+html.sps-dark :is(.slicewp-button-secondary, .slicewp-field-wrapper .wp-picker-container .wp-picker-input-wrap .button),
+html.sps-dark body.slicewp-pagestyles .search-box input[type="submit"] {
+	color: var(--sps-ui-accent) !important;
+	background: var(--sps-ui-surface);
+	border-color: var(--sps-ui-accent);
+}
+
+html.sps-dark :is(.slicewp-button-secondary, .slicewp-field-wrapper .wp-picker-container .wp-picker-input-wrap .button):is(:hover, :focus),
+html.sps-dark body.slicewp-pagestyles .search-box input[type="submit"]:is(:hover, :focus) {
+	color: var(--sps-ui-text) !important;
+	background: var(--sps-ui-raised);
+	border-color: var(--sps-ui-text);
+}
+
+html.sps-dark .slicewp-button-secondary.slicewp-disabled {
+	color: var(--sps-ui-subtle) !important;
+	background: var(--sps-ui-raised);
+	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark .slicewp-field-wrapper .wp-picker-container .wp-color-result.button span {
+	color: var(--sps-ui-text);
+	background: var(--sps-ui-surface);
+}
+
 /* SEO Pro Stack's additions to WordPress's screens -------------------------- */
 
 /* Plugins: sizes (class-seoprostack-plugin-sizes.php) and page cost (class-seoprostack-plugin-cost.php). */
