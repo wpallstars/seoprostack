@@ -30,9 +30,8 @@
  * Additional terms (GPL-3.0 section 7(b)): SEOPROSTACK-ATTRIBUTION.txt
  */
 import { readFileSync, writeFileSync, mkdirSync, existsSync, statSync } from 'node:fs';
-import { join } from 'node:path';
+import { dirname, join } from 'node:path';
 import { tmpdir } from 'node:os';
-import { execFileSync } from 'node:child_process';
 import { pathToFileURL } from 'node:url';
 
 const [cmd, ...rest] = process.argv.slice(2);
@@ -41,7 +40,10 @@ const flags = Object.fromEntries(rest.filter((a) => a.startsWith('--')).map((a) 
 	return [k, v === undefined ? true : v];
 }));
 const args = rest.filter((a) => !a.startsWith('--'));
-const BASE = (process.env.SPS_AUDIT_URL || '').replace(/\/+$/, '');
+let BASE = process.env.SPS_AUDIT_URL || '';
+while (BASE.endsWith('/')) {
+	BASE = BASE.slice(0, -1);
+}
 const STATE = process.env.SPS_AUDIT_STATE || join(tmpdir(), 'sps-dark-audit-state.json');
 
 function fail(message) {
@@ -55,11 +57,11 @@ async function playwright() {
 		const p = process.env.PLAYWRIGHT_PATH;
 		tries.push(existsSync(p) && statSync(p).isDirectory() ? join(p, 'index.js') : p);
 	}
-	try {
-		tries.push(join(execFileSync('npm', ['root', '-g'], { encoding: 'utf8' }).trim(), 'playwright', 'index.js'));
-	} catch {
-		// npm is not on the path.
-	}
+	// Global packages: of the Node.js running this (<prefix>/lib/node_modules, or <prefix>/node_modules on
+	// Windows), then Homebrew's and the usual Unix prefix. No PATH lookup.
+	const prefixes = [dirname(dirname(process.execPath)), '/opt/homebrew', '/usr/local'];
+	prefixes.forEach((p) => tries.push(join(p, 'lib', 'node_modules', 'playwright', 'index.js')));
+	tries.push(join(dirname(process.execPath), 'node_modules', 'playwright', 'index.js'));
 	for (const file of tries) {
 		if (existsSync(file)) {
 			const pw = await import(pathToFileURL(file).href);

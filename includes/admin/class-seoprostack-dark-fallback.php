@@ -268,7 +268,7 @@ final class SEOProStack_Dark_Fallback {
         $base   = dirname((string) wp_parse_url($href, PHP_URL_PATH));
         $canvas = self::canvas();
         // One copy per stylesheet and kind of screen (block editor or not), named for what it was made from.
-        $name   = substr(md5($file . '|' . (int) $canvas), 0, 12) . '-' . substr(md5(filemtime($file) . '|' . $size . '|' . $base . '|' . self::VERSION), 0, 8) . '.css';
+        $name   = substr(hash('sha256', $file . '|' . (int) $canvas), 0, 12) . '-' . substr(hash('sha256', filemtime($file) . '|' . $size . '|' . $base . '|' . self::VERSION), 0, 8) . '.css';
         $target = $folder['path'] . '/' . $name;
         if (!file_exists($target)) {
             if (self::$spent >= self::BUDGET) {
