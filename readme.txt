@@ -5,7 +5,7 @@ Tags: magic login, iframe, schedule posts, auto upload images, admin
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.3.41
+Stable tag: 1.3.42
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -143,11 +143,9 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 
 == Changelog ==
 
-= 1.3.41 =
-* New: HTTPS and security headers replaces Really Simple Security: HTTPS redirect and security headers, plus PHP blocked in uploads, hidden usernames and one login error message.
-* New: multisite network settings, which can apply each card to every site; super admins are developers on every site.
-* New: a Dev tab in the block editor for panels only site builders need (on by default).
-* New: browser titles name the settings tab and the Tools → Links view.
-* Change: the admin bar's More menu is text only.
+= 1.3.42 =
+* Fix: Dark mode covers the Customizer, Widgets, Menus and the screens of 25 more plugins, such as WooCommerce settings, Tutor LMS, Complianz, Code Snippets and WP-Optimize.
+* New: Bit Social and WP Sheet Editor's spreadsheet open in the colour mode chosen in the admin bar.
+* Fix: Dark mode's contrast fix measures text on WordPress 7's buttons correctly.
 
 Older: `changelog.txt`.

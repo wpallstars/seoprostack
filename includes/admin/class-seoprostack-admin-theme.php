@@ -62,8 +62,12 @@ final class SEOProStack_Admin_Theme {
     public static function init() {
         add_filter(self::PARTICIPANTS, array(__CLASS__, 'participate'));
         add_action('admin_enqueue_scripts', array(__CLASS__, 'enqueue'), 20);
+        add_action('admin_enqueue_scripts', array(__CLASS__, 'keep_style'), PHP_INT_MAX);
         // Before other plugins' own colour mode scripts (Fluent's run at 1).
         add_action('admin_head', array(__CLASS__, 'head'), 0);
+        // The Customizer prints its own page: no admin_head, and admin_enqueue_scripts only with its widgets.
+        add_action('customize_controls_enqueue_scripts', array(__CLASS__, 'enqueue'), 20);
+        add_action('customize_controls_print_styles', array(__CLASS__, 'head'), 0);
         add_filter('style_loader_tag', array(__CLASS__, 'standalone_tag'), 10, 2);
         add_filter('admin_body_class', array(__CLASS__, 'body_class'));
         add_action('admin_bar_init', array(__CLASS__, 'bar_init'));
@@ -75,6 +79,27 @@ final class SEOProStack_Admin_Theme {
         foreach (array('fluent_crm_asset_listed_slugs', 'fluent_boards/asset_listed_slugs', 'fluent_booking/asset_listed_slugs') as $hook) {
             add_filter($hook, array(__CLASS__, 'fluent_keep_pattern'));
         }
+        add_filter('vg_sheet_editor/js_data', array(__CLASS__, 'sheet_editor_mode'));
+    }
+
+    /**
+     * WP Sheet Editor's spreadsheet has its own dark mode, one setting for
+     * the whole site (Auto, which follows the computer, Light or Dark). For
+     * someone who has chosen a mode here, the spreadsheet opens in that mode
+     * instead (System as Auto), so it matches the rest of wp-admin; its
+     * setting is not changed. The script keeps the two in step on the
+     * screen (admin/js/seoprostack-theme.js).
+     *
+     * @param mixed $settings The spreadsheet's settings for its script.
+     * @return mixed
+     */
+    public static function sheet_editor_mode($settings) {
+        if (!is_array($settings) || !self::chosen() || !self::screen_applies()) {
+            return $settings;
+        }
+        $mode                   = self::mode();
+        $settings['color_mode'] = 'system' === $mode ? '' : $mode;
+        return $settings;
     }
 
     /**
@@ -188,7 +213,8 @@ final class SEOProStack_Admin_Theme {
 
     /**
      * Whether the current screen turns dark in Dark mode. Every admin
-     * screen does, unless a filter keeps one light.
+     * screen does but SEO Pro Stats' own and Tutor LMS's course builder,
+     * unless a filter keeps one light.
      *
      * @return bool
      */
@@ -197,7 +223,7 @@ final class SEOProStack_Admin_Theme {
             return false;
         }
         $screen = function_exists('get_current_screen') ? get_current_screen() : null;
-        $applies = !self::stats_screen($screen);
+        $applies = !self::stats_screen($screen) && !self::scripted_screen($screen);
         /**
          * Filter whether an admin screen turns dark in Dark mode, for
          * screens whose own design does not suit it. The colour mode icon
@@ -229,6 +255,28 @@ final class SEOProStack_Admin_Theme {
     }
 
     /**
+     * Whether Dark recolours the styles a screen's own script sets (Emotion,
+     * CSS in JS, under hashed class names the stylesheet cannot name; see
+     * admin/js/seoprostack-theme-scripted.js): Tutor LMS's screens.
+     *
+     * @return bool
+     */
+    private static function script_styles() {
+        global $plugin_page;
+        $screen = function_exists('get_current_screen') ? get_current_screen() : null;
+        $tutor  = defined('TUTOR_VERSION') && is_string($plugin_page) && 0 === strpos($plugin_page, 'tutor');
+        /**
+         * Filter whether Dark mode recolours the styles an admin screen's
+         * own script sets (Emotion's): light grounds, dark grey text and
+         * light lines take the dark palette's colours.
+         *
+         * @param bool           $recolours Whether it does. Default true on Tutor LMS's screens.
+         * @param WP_Screen|null $screen    The screen.
+         */
+        return (bool) apply_filters('seoprostack_admin_dark_script_styles', $tutor, $screen);
+    }
+
+    /**
      * Whether this is one of SEO Pro Stats' own screens (Statistics,
      * Settings). SEO Pro Stats styles those with its own colour mode, which
      * follows the same shared choice, so SEO Pro Stack's dark rules stay off
@@ -249,6 +297,23 @@ final class SEOProStack_Admin_Theme {
             $hooks[] = (string) call_user_func(array('SEOProStats_Admin_Manager', 'hook'));
         }
         return in_array($screen->id, $hooks, true);
+    }
+
+    /**
+     * Whether this is a screen drawn by script in colours fixed in its code,
+     * filling the window: Tutor LMS's course builder. Dark could reach only
+     * the parts made of WordPress's own fields and editor, leaving the rest
+     * light, so the screen keeps its own light look.
+     *
+     * @param WP_Screen|null $screen The screen.
+     * @return bool
+     */
+    private static function scripted_screen($screen) {
+        if (!$screen || !defined('TUTOR_VERSION')) {
+            return false;
+        }
+        $builder = '_page_create-course';
+        return substr($screen->id, -strlen($builder)) === $builder;
     }
 
     /**
@@ -273,11 +338,18 @@ final class SEOProStack_Admin_Theme {
     }
 
     /**
-     * The stylesheet and script. The stylesheet loads at once only when it
+     * The stylesheet and scripts. The stylesheet loads at once only when it
      * is needed (Dark, System, or SEO Pro Stack's own screen); otherwise the
-     * script loads it on the first switch to dark.
+     * script loads it on the first switch to dark. On screens styled by
+     * their own script, the script that recolours those styles loads in the
+     * <head> in every mode, before the screen draws, so Dark needs no
+     * redraw and nothing shows light first.
      */
     public static function enqueue() {
+        // Once a screen: the Customizer runs admin_enqueue_scripts too, for its widgets.
+        if (wp_script_is(self::STYLE, 'enqueued')) {
+            return;
+        }
         $toggle  = self::shows_toggle();
         $applies = self::screen_applies();
         $mode    = self::mode();
@@ -289,6 +361,10 @@ final class SEOProStack_Admin_Theme {
         $url = SEOPROSTACK_URL . $css . '?ver=' . filemtime(SEOPROSTACK_DIR . $css);
         if ($applies && ('light' !== $mode || self::own_screen())) {
             wp_enqueue_style(self::STYLE, SEOPROSTACK_URL . $css, array(), (string) filemtime(SEOPROSTACK_DIR . $css));
+        }
+        if ($applies && self::script_styles()) {
+            $scripted = 'admin/js/seoprostack-theme-scripted.js';
+            wp_enqueue_script(self::STYLE . '-scripted', SEOPROSTACK_URL . $scripted, array(), (string) filemtime(SEOPROSTACK_DIR . $scripted), false);
         }
         wp_enqueue_script(self::STYLE, SEOPROSTACK_URL . $js, array('wp-i18n', 'wp-a11y'), (string) filemtime(SEOPROSTACK_DIR . $js), true);
         wp_set_script_translations(self::STYLE, 'seoprostack');
@@ -307,14 +383,28 @@ final class SEOProStack_Admin_Theme {
     }
 
     /**
+     * Put the stylesheet back where another plugin has taken it off the
+     * page. Revive.so's screens keep only stylesheets named for it (at
+     * admin_enqueue_scripts, 100), which left Dark with no styles there.
+     * The stylesheet is registered only when enqueue() wants it, so Light
+     * stays as it was.
+     */
+    public static function keep_style() {
+        if (wp_style_is(self::STYLE, 'registered') && !wp_style_is(self::STYLE, 'enqueued')) {
+            wp_enqueue_style(self::STYLE);
+        }
+    }
+
+    /**
      * Set the mode's classes on <html> before anything is drawn.
      *
      * Once someone has chosen a mode (Light included, so a choice made in
      * another browser reaches this one), it also passes it to the Fluent
      * plugins' own colour mode (FluentCRM, Fluent Booking, FluentSMTP, Fluent
-     * Support...) and LiteSpeed Cache's, kept in the browser, before their
-     * own scripts read it, so their screens open in the same mode, without
-     * a flash. Light as the default, never chosen, leaves their own choice.
+     * Support...), LiteSpeed Cache's and Bit Social's, kept in the browser,
+     * before their own scripts read it, so their screens open in the same
+     * mode, without a flash. Light as the default, never chosen, leaves their
+     * own choice.
      */
     public static function head() {
         if (!self::screen_applies()) {
@@ -335,7 +425,8 @@ final class SEOProStack_Admin_Theme {
             . 'r.classList.add("sps-theme-"+m);'
             . 'if(d){r.classList.add("sps-dark");}'
             . 'if(c){try{var s=localStorage;s.setItem("fluent_theme_mode",m);s.setItem("fs-theme",m==="system"?"system:"+(d?"dark":"light"):m);'
-            . 'if(m==="system"){s.removeItem("litespeed-dark-preference");}else{s.setItem("litespeed-dark-preference",m);}}catch(e){}}'
+            . 'if(m==="system"){s.removeItem("litespeed-dark-preference");}else{s.setItem("litespeed-dark-preference",m);}'
+            . 'var b=JSON.parse(s.getItem("bit-social-config")||"{}")||{};b.isDarkTheme=d;s.setItem("bit-social-config",JSON.stringify(b));}catch(e){}}'
             . '})(document.documentElement,' . wp_json_encode($mode) . ',' . ($chosen ? 'true' : 'false') . ');';
         return wp_get_inline_script_tag($script, array('id' => 'seoprostack-theme-mode'));
     }

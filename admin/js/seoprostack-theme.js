@@ -98,14 +98,42 @@
 		var watcher = null;
 		var on = false;
 		var bgs = null;
+		var probe;
+		var probed = new Map();
 
+		/*
+		 * A computed colour as sRGB. Colours in other spaces (oklch, as the
+		 * Dark primary on WordPress's buttons, color-mix() results) are read
+		 * as the browser paints them, through a one-pixel canvas; taken as
+		 * transparent, the button's text was measured on what is behind the
+		 * button instead.
+		 */
 		function rgb(value) {
-			var m = /rgba?\(([^)]+)\)/.exec(value || '');
-			if (!m) {
-				return null;
+			var m = /^rgba?\(([^)]+)\)$/.exec(value || '');
+			if (m) {
+				var p = m[1].split(/[\s,/]+/).filter(Boolean).map(parseFloat);
+				return { r: p[0], g: p[1], b: p[2], a: p.length > 3 ? p[3] : 1 };
 			}
-			var p = m[1].split(/[\s,/]+/).filter(Boolean).map(parseFloat);
-			return { r: p[0], g: p[1], b: p[2], a: p.length > 3 ? p[3] : 1 };
+			if (!value || probed.has(value)) {
+				return value ? probed.get(value) : null;
+			}
+			if (probe === undefined) {
+				var canvas = document.createElement('canvas');
+				canvas.width = 1;
+				canvas.height = 1;
+				probe = canvas.getContext('2d', { willReadFrequently: true });
+			}
+			var out = null;
+			if (probe) {
+				probe.clearRect(0, 0, 1, 1);
+				probe.fillStyle = 'rgba(0, 0, 0, 0)';
+				probe.fillStyle = value;
+				probe.fillRect(0, 0, 1, 1);
+				var d = probe.getImageData(0, 0, 1, 1).data;
+				out = { r: d[0], g: d[1], b: d[2], a: d[3] / 255 };
+			}
+			probed.set(value, out);
+			return out;
 		}
 		function over(top, under) {
 			return { r: top.r * top.a + under.r * (1 - top.a), g: top.g * top.a + under.g * (1 - top.a), b: top.b * top.a + under.b * (1 - top.a), a: 1 };
@@ -197,9 +225,14 @@
 			var was = release(el);
 			var style = getComputedStyle(el);
 			var fg = rgb(style.color);
-			var bg = fg && fg.a > 0 ? behind(el) : null;
+			var size = parseFloat(style.fontSize);
+			/*
+			 * Text at size 0 is not drawn. WP-Optimize's status dots are
+			 * such text on a background of the text's own colour, so a new
+			 * colour turned the dot itself white or black.
+			 */
+			var bg = fg && fg.a > 0 && size > 0 ? behind(el) : null;
 			if (bg && !el.disabled && el.getAttribute('aria-disabled') !== 'true') {
-				var size = parseFloat(style.fontSize);
 				var need = size >= 24 || (size >= 18.6 && parseInt(style.fontWeight, 10) >= 700) ? 3 : 4.5;
 				var shown = fg.a < 1 ? over(fg, bg) : fg;
 				if (ratio(shown, bg) < need) {
@@ -341,7 +374,8 @@
 						}
 					});
 				});
-				watcher.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['class', 'aria-selected', 'aria-expanded', 'aria-checked'], characterData: false });
+				// Disabled text is not checked, so a control enabled later is checked then.
+				watcher.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['class', 'disabled', 'aria-disabled', 'aria-selected', 'aria-expanded', 'aria-checked'], characterData: false });
 				document.addEventListener('pointerover', hover, true);
 				document.addEventListener('focusin', hover, true);
 				document.addEventListener('pointerout', leave, true);
@@ -416,6 +450,67 @@
 		});
 	}
 
+	/*
+	 * Its init event comes after the frame's content styles have painted it
+	 * white, a flash in Dark. TinyMCE's PreInit comes before them; TinyMCE
+	 * loads after this script, and editors start once the page is parsed
+	 * (or later, as Fluent Forms' do), so it is hooked then.
+	 */
+	var mceHooked = false;
+	function hookMce() {
+		var mce = window.tinymce;
+		if (mceHooked || !mce || typeof mce.on !== 'function') {
+			return;
+		}
+		mceHooked = true;
+		mce.on('AddEditor', function (event) {
+			var editor = event && event.editor;
+			if (editor && typeof editor.on === 'function') {
+				editor.on('PreInit', function () {
+					mceFrame(editor);
+				});
+			}
+		});
+	}
+	hookMce();
+	document.addEventListener('readystatechange', hookMce);
+
+	/*
+	 * WP Sheet Editor's spreadsheet has its own dark mode (vgse-dark-mode on
+	 * <html>), which opens in this mode once one is chosen
+	 * (SEOProStack_Admin_Theme::sheet_editor_mode()). A change here switches
+	 * it too, and its own Dark mode switch (in its Settings menu) changes
+	 * this mode, so the two always match.
+	 */
+	function sheetEditor() {
+		var sheet = window.vgse_editor_settings;
+		return !!data.applies && !!sheet && !!sheet.is_backend && !!sheet.is_editor_page;
+	}
+	function sheetMode(nowDark) {
+		var box = document.getElementById('toggle_dark_mode');
+		root.classList.toggle('vgse-dark-mode', nowDark);
+		if (box) {
+			box.checked = nowDark;
+		}
+	}
+	document.addEventListener('sps-themechange', function (event) {
+		if (sheetEditor()) {
+			sheetMode(!!(event.detail && event.detail.dark));
+		}
+	});
+	document.addEventListener('change', function (event) {
+		var box = event.target;
+		if (!box || box.id !== 'toggle_dark_mode' || !sheetEditor()) {
+			return;
+		}
+		if (saving) {
+			// The last change is still being saved: the spreadsheet stays as the screen is.
+			sheetMode(dark);
+			return;
+		}
+		choose(box.checked ? 'dark' : 'light');
+	});
+
 	// Classes on <html>, the admin bar icon, its name and the menu's tick.
 	function paint(which) {
 		var nowDark = !!data.applies && isDark(which);
@@ -486,12 +581,14 @@
 
 	/*
 	 * Fluent plugins (FluentCRM, Fluent Booking, FluentSMTP, Fluent Boards,
-	 * Fluent Support...) and LiteSpeed Cache have their own light and dark
-	 * modes, kept in this browser. A choice made here is passed on, so their
-	 * screens open in the same mode from the next one on (the screen's
-	 * <head> does the same once a mode has been chosen, Light included).
+	 * Fluent Support...), LiteSpeed Cache and Bit Social have their own light
+	 * and dark modes, kept in this browser. A choice made here is passed on,
+	 * so their screens open in the same mode from the next one on (the
+	 * screen's <head> does the same once a mode has been chosen, Light
+	 * included).
 	 */
 	function shareMode(which) {
+		var bit;
 		try {
 			window.localStorage.setItem('fluent_theme_mode', which);
 			window.localStorage.setItem('fs-theme', which === 'system' ? 'system:' + (media && media.matches ? 'dark' : 'light') : which);
@@ -501,6 +598,10 @@
 			} else {
 				window.localStorage.setItem('litespeed-dark-preference', which);
 			}
+			// Bit Social keeps its mode with its other choices (its menu's width...).
+			bit = JSON.parse(window.localStorage.getItem('bit-social-config') || '{}') || {};
+			bit.isDarkTheme = isDark(which);
+			window.localStorage.setItem('bit-social-config', JSON.stringify(bit));
 		} catch (e) {
 			// Storage is off: their own choice stays.
 		}
@@ -657,6 +758,8 @@
 		var follow = function () {
 			if (mode === 'system') {
 				apply('system');
+				// Bit Social and Fluent's fs-theme keep the computer's mode itself, so they follow it too.
+				shareMode('system');
 			}
 		};
 		if (media.addEventListener) {

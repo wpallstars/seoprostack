@@ -11,7 +11,24 @@ bar and accent. System follows `prefers-color-scheme` live. The front end and
 the block editor's canvas keep the theme's colours. SEO Pro Stats' own
 screens are left to its own colour mode, which follows the same choice.
 Screens whose own design does not suit dark can stay light with the
-`seoprostack_admin_dark_screen` filter.
+`seoprostack_admin_dark_screen` filter; Tutor LMS's course builder, drawn by
+script in fixed colours, does so by default. The Customizer's controls pane
+is dark (it prints its own page, so the mode's classes are set from
+`customize_controls_print_styles`); its preview keeps the site's colours.
+
+Other plugins' screens get a section each in the stylesheet, every selector
+behind `html.sps-dark` and on the `--sps-ui-*` palette below. Brand-coloured
+buttons, badges, logos and status dots keep their colours; only white and
+grey surfaces, borders and dark text change. Plugins with a dark mode of
+their own (Fluent plugins, LiteSpeed Cache, Bit Social, WP Sheet Editor's
+spreadsheet) are not restyled: their mode is set to match from the head, so
+their own dark design shows (FluentCRM's white primary buttons included).
+Screens whose own script sets colours under hashed class names (Emotion, on
+Tutor LMS) are recoloured by `admin/js/seoprostack-theme-scripted.js` in the
+head (`seoprostack_admin_dark_script_styles`). Where a plugin dequeues other
+stylesheets (Revive.so, at `admin_enqueue_scripts` 100), the theme
+stylesheet is enqueued again at `PHP_INT_MAX`, only when it was registered
+for Dark.
 
 An icon in the admin bar (`seoprostack-colour-mode`, pinned just left of the
 account menu and right of the star) shows the mode: sun, moon or half-filled
