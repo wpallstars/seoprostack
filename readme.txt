@@ -5,7 +5,7 @@ Tags: magic login, iframe, schedule posts, auto upload images, admin
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.3.44
+Stable tag: 1.3.45
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -145,10 +145,8 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 
 == Changelog ==
 
-= 1.3.44 =
-* New: a Security tab, with Minimum password length (on by default: 12 characters for new passwords) and the findings of WPVulnerability.
-* Change: Theme, Free Plugins, Pro Plugins, Hosting and Tools are one Recommended tab with a second row of tabs.
-* Fix: the post editor keeps plugins that add to it only through scripts, such as YellowPencil's button.
-* Fix: multisite sites keep their earlier settings while taking the network's.
+= 1.3.45 =
+* New: Dark mode reaches every plugin's and theme's admin screens, through dark copies of their stylesheets; also Settings → Connectors, Export and Erase Personal Data, and Bit Flows and Bit Social.
+* Developers: core files synced from WP Plugin Starter 1.0.37, with scripts/deploy-sites.sh and a multisite smoke test.
 
 Older: `changelog.txt`.
