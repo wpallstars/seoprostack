@@ -1358,6 +1358,7 @@ Stored: the choices and times in `seoprostack_licence_calls` (not autoloaded, wr
 
 On by default. Works around bugs in other plugins that slow the site down or leave it broken, through those plugins’ own hooks. No other plugin’s settings are changed, so turning this off brings each bug back as it was (a file already deleted stays deleted). The one fix that writes a file is the LiteSpeed block in `.htaccess`, which is removed when this is turned off or SEO Pro Stack is deactivated. Turn it off if a fix causes a problem.
 
+- **GOTMLS (Anti-Malware)** (4.23.90): its post types use `do_not_allow` to deny reading and editing, but WordPress also records that as a post-specific capability. The admin bar's Add New menu then logs “When checking for the read_post capability, you must always check it against a specific post” on every admin screen. That invalid mapping is removed whenever any plugin registers a post type, keeping `do_not_allow` denied without the notice. GOTMLS's posts still cannot be read or edited.
 - **Lasso Lite (Simple URLs)**: version 159 saves lasso.link’s whole reply, `{"site_id": "…"}`, as its site ID instead of the ID inside it, then rejects what it saved. So on every admin request by an administrator, admin-ajax included, it asks lasso.link again (about 200–400 ms each on a test site), sending the site address, versions and support email. Its `lasso_lite_estimate_earning_site_id` filter now gets the ID from the saved reply. Lasso Lite then sends its install report once and stops asking; its other reports (each setup step once, and a weekly earnings estimate in the background) work as its makers intended.
 - **Tutor LMS Pro**: version 4.1.0’s updater reads the version, download address and tested WordPress version from any update reply with status 200, even one with empty details, as the “no update” reply of copies sold by GPL resellers is. Each update check then adds PHP warnings and deprecation notices to the debug log and WP-CLI output (ten when its plugin details are opened too). Such a reply, from the server or from a `pre_http_request` filter, is completed with the installed version and no download address, so Tutor LMS Pro sees no update, as the reply meant. Status stays 200 for its licence check before updating, and replies that offer an update are left alone.
 - **Tutor LMS Certificate Builder** (1.3.2): it ships the same updater as Tutor LMS Pro and registers as a free product, so every copy gets that empty “no update” reply, and each update check adds four PHP warnings (about `version`, `download_url`, `tested_wp_version` and `url`). Its reply is completed the same way.
@@ -1640,6 +1641,10 @@ Deleting the plugin removes its settings (on multisite, every site's and the net
 Deactivating the plugin removes the WebP and AVIF rules from the uploads folder’s `.htaccess` (for every site when network-deactivated), the LiteSpeed background request rules from the site’s `.htaccess` (on multisite, when network-deactivated or deactivated on the main site) and the must-use file of Load plugins only where needed (on multisite, when network-deactivated).
 
 ## Changelog
+
+### Unreleased
+
+- Fix: **Fixes for other plugins** stops GOTMLS (Anti-Malware) and plugins with the same invalid capability mapping from logging a `read_post` notice on every admin screen. `do_not_allow` and access to their protected posts stay denied (GitHub issue #744).
 
 ### 1.3.45
 
