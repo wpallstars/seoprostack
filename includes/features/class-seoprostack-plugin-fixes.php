@@ -171,6 +171,14 @@
  * as it is. Any real difference is still altered, and new tables are
  * created as written.
  *
+ * GOTMLS (Anti-Malware, checked with 4.23.90) uses do_not_allow for its
+ * post types' read_post and edit_post capabilities. WordPress then records
+ * do_not_allow as a meta capability, so checks without a post (the admin
+ * bar's Add New menu) log a read_post notice on every admin screen. That
+ * one mapping is removed after any post type is registered: do_not_allow
+ * stays WordPress's "nobody" capability, and the plugin's posts stay denied.
+ * Other plugins that make the same mapping are handled too.
+ *
  * @package SEOProStack
  */
 
@@ -623,6 +631,9 @@ class SEOProStack_Plugin_Fixes extends SEOProStack_Feature {
         if (array_key_exists(self::KEY, $stored) && !$stored[self::KEY]) {
             return;
         }
+        // Also catch post types registered before init, or before this plugin loaded.
+        add_action('registered_post_type', array(__CLASS__, 'keep_do_not_allow_primitive'));
+        self::keep_do_not_allow_primitive();
         // Tutor LMS Pro runs dbDelta() for its notifications table on
         // tutor_loaded, during plugins_loaded, before boot() on init.
         add_filter('dbdelta_create_queries', array(__CLASS__, 'dbdelta_same_choices'));
@@ -632,6 +643,14 @@ class SEOProStack_Plugin_Fixes extends SEOProStack_Feature {
             add_action('plugin_loaded', array(__CLASS__, 'kadence_pro_loaded'));
             add_action('network_plugin_loaded', array(__CLASS__, 'kadence_pro_loaded'));
         }
+    }
+
+    /**
+     * Keep WordPress's "nobody" capability out of the post type meta-cap map.
+     * Post types still deny reading and editing through their own capabilities.
+     */
+    public static function keep_do_not_allow_primitive() {
+        unset($GLOBALS['post_type_meta_caps']['do_not_allow']);
     }
 
     /**
