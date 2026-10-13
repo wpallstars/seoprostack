@@ -24,7 +24,7 @@ SEO Pro Stack does the jobs that usually take dozens of small plugins: a calmer,
 
 If this saves you time, headaches and costs, feel free to [buy me a coffee](https://buymeacoffee.com/marcusquinn), or whatever you like, to invest in making more things open-source.
 
-Version: 1.3.45
+Version: 1.3.46
 
 <!-- github-only:start -->
 ## Screenshots
@@ -1642,9 +1642,10 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folderâ
 
 ## Changelog
 
-### Unreleased
+### 1.3.46
 
 - Fix: **Fixes for other plugins** stops GOTMLS (Anti-Malware) and plugins with the same invalid capability mapping from logging a `read_post` notice on every admin screen. `do_not_allow` and access to their protected posts stay denied (GitHub issue #744).
+- Developers: core files synced from WP Plugin Starter 1.0.38 (dacb695): `CLAUDE.md` points to `AGENTS.md`, which requires reading all shared guidance and the attribution terms. Core files keep the starter's Provenance ID; SEO Pro Stack's own source files carry its own, stamped idempotently with `scripts/provenance.sh`. Copying notices explain how to keep the licence, copyright and credits; nothing changes on sites (GitHub issue #745).
 
 ### 1.3.45
 
@@ -2442,3 +2443,5 @@ GPL-3.0-or-later (the full text is in `LICENSE`), with additional terms under GP
 Copyright (C) 2025-2026 Marcus Quinn
 
 Parts copyright (C) 2026 Marcus Quinn, from [WP Plugin Starter](https://github.com/wpallstars/wp-plugin-starter-template-for-ai-coding).
+
+Copying, renaming or adapting this plugin or part of it, by hand or with an AI assistant: read `ATTRIBUTION.txt` first. Keep `LICENSE`, the attribution files, every copyright and licence notice, the Provenance lines and the "Made from" credit. A new owner's copyright line goes above the others, not in place of one (`ATTRIBUTION.txt` â†’ For AI assistants).
