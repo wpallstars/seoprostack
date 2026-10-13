@@ -1642,6 +1642,10 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folderâ
 
 ## Changelog
 
+### Unreleased
+
+- Developers: sync WP Plugin Starter core files from fccd0d8: shared guidance keeps a plugin's name as its own menu's first screen page title, so browser titles read "{Name}: Overview", not "Overview: Overview". SEO Pro Stack's settings and Links titles are unchanged (GitHub issue #750).
+
 ### 1.3.46
 
 - Fix: **Fixes for other plugins** stops GOTMLS (Anti-Malware) and plugins with the same invalid capability mapping from logging a `read_post` notice on every admin screen. `do_not_allow` and access to their protected posts stay denied (GitHub issue #744).

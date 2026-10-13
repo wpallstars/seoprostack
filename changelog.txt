@@ -2,6 +2,9 @@
 
 Every change to SEO Pro Stack. readme.txt lists the latest version in short.
 
+= Unreleased =
+* Developers: sync WP Plugin Starter core files from fccd0d8: shared guidance keeps a plugin's name as its own menu's first screen page title, so browser titles read "{Name}: Overview", not "Overview: Overview". SEO Pro Stack's settings and Links titles are unchanged (GitHub issue #750).
+
 = 1.3.46 =
 * Fix: Fixes for other plugins stops GOTMLS (Anti-Malware) and plugins with the same invalid capability mapping from logging a read_post notice on every admin screen. do_not_allow and access to their protected posts stay denied (GitHub issue #744).
 * Developers: core files synced from WP Plugin Starter 1.0.38 (dacb695): CLAUDE.md points to AGENTS.md, which requires reading all shared guidance and the attribution terms. Core files keep the starter's Provenance ID; SEO Pro Stack's own source files carry its own, stamped idempotently with scripts/provenance.sh. Copying notices explain how to keep the licence, copyright and credits; nothing changes on sites (GitHub issue #745).
