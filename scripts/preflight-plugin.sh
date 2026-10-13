@@ -6,6 +6,7 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Marcus Quinn
 # Additional terms (GPL-3.0 section 7(b)): SEOPROSTACK-ATTRIBUTION.txt
+# Provenance: wpas-5149fc42f5cbc37c. Copies, even of part, keep these lines.
 
 # Presets and starter data must never set the same setting: Add starter data
 # leaves stored settings alone and Apply preset overwrites them, so a shared

@@ -5,7 +5,7 @@ Tags: magic login, iframe, schedule posts, auto upload images, admin
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.3.45
+Stable tag: 1.3.46
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -145,8 +145,8 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 
 == Changelog ==
 
-= 1.3.45 =
-* New: Dark mode reaches every plugin's and theme's admin screens, through dark copies of their stylesheets; also Settings → Connectors, Export and Erase Personal Data, and Bit Flows and Bit Social.
-* Developers: core files synced from WP Plugin Starter 1.0.37, with scripts/deploy-sites.sh and a multisite smoke test.
+= 1.3.46 =
+* Fix: Fixes for other plugins stops invalid read_post capability notices from GOTMLS; protected posts stay denied.
+* Developers: WP Plugin Starter 1.0.38 guidance, CLAUDE.md pointer, provenance IDs and copying notices; licence and credits kept.
 
 Older: `changelog.txt`.
