@@ -3,6 +3,7 @@
 Every change to SEO Pro Stack. readme.txt lists the latest version in short.
 
 = Unreleased =
+* Change: WPVulnerability is for developers only. Organise the admin menu puts its settings in the Developers menu, and with Developer admins on, people who are not developers cannot open them and do not see its row on the Plugins screen or its known vulnerability counts on Plugins, Appearance → Themes and Dashboard → Updates. Tidy the dashboard shows its WPVulnerability Status box to developers only, below Site Health status. New counts key in seoprostack_admin_menu_catalog (GitHub issue #752).
 * Developers: sync WP Plugin Starter core files from fccd0d8: shared guidance keeps a plugin's name as its own menu's first screen page title, so browser titles read "{Name}: Overview", not "Overview: Overview". SEO Pro Stack's settings and Links titles are unchanged (GitHub issue #750).
 
 = 1.3.46 =

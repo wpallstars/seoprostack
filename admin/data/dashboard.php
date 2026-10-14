@@ -60,6 +60,7 @@ return array(
             'rank_math_dashboard_widget',
             'dashboard_right_now',
             'dashboard_site_health',
+            'wpvulnerability',                  // WPVulnerability Status, below Site Health.
             'mwai_advisor_widget',
         ),
     ),
@@ -77,6 +78,7 @@ return array(
     ),
     'developers'   => array(
         'dashboard_site_health',
+        'wpvulnerability',                  // WPVulnerability Status: known vulnerabilities.
         'mwai_advisor_widget',              // AI Engine Advisor.
     ),
     'start_hidden' => array(
