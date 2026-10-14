@@ -28,34 +28,7 @@ class SEOProStack_Health_CLI {
         // a persistent backend too, for the remainder of this audit process.
         global $wp_object_cache;
         // phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited -- Process-local read-only facade; never changes the site's cache backend.
-        $wp_object_cache = new class($wp_object_cache) {
-            /** @var object */
-            private $reader;
-
-            /** @param object $reader Existing site's cache. */
-            public function __construct($reader) {
-                $this->reader = $reader;
-            }
-
-            /** @param string $method Cache operation. @param array $args Arguments. @return mixed */
-            public function __call($method, $args) {
-                // Namespace/group metadata is process-local, not a backend write.
-                if (in_array($method, array('get', 'get_multiple', 'supports', 'switch_to_blog', 'add_global_groups', 'add_non_persistent_groups'), true) && is_callable(array($this->reader, $method))) {
-                    return call_user_func_array(array($this->reader, $method), $args);
-                }
-                return false; // Never forward add/set/delete/flush/incr or shutdown writes.
-            }
-
-            /** get() must pass the found flag by reference (a magic call cannot). */
-            public function get($key, $group = 'default', $force = false, &$found = null) {
-                $getter = array($this->reader, 'get');
-                if (is_callable($getter)) {
-                    return call_user_func_array($getter, array($key, $group, $force, &$found));
-                }
-                $found = false;
-                return false;
-            }
-        };
+        $wp_object_cache = new SEOProStack_Health_Cache($wp_object_cache);
         remove_action('init', array('SEOProStack_Settings', 'maybe_migrate'), 0);
         remove_action('wp_loaded', array('SEOProStack_Network_Sites', 'sync'));
         // Core moved spawning from wp_loaded to shutdown in newer versions.
@@ -117,53 +90,129 @@ class SEOProStack_Health_CLI {
         if (!class_exists('WP_Site_Health')) {
             require_once ABSPATH . 'wp-admin/includes/class-wp-site-health.php';
         }
+        $rows = self::results();
+        SEOProStack_Health_Output::render($format, $rows, SEOProStack_Health_Output::records());
+        WP_CLI::halt(self::failed($rows, $fail) ? 1 : 0);
+    }
+
+    /** Run the registered plugin tests, never core or other plugins' tests. @return array */
+    private static function results() {
         $registered = WP_Site_Health::get_tests();
         $rows       = array();
-        $failed     = false;
         foreach (array('direct' => 'test', 'async' => 'async_direct_test') as $group => $key) {
             foreach (isset($registered[$group]) ? $registered[$group] : array() as $id => $test) {
                 if (0 !== strpos((string) $id, 'seoprostack')) {
                     continue;
                 }
-                $result = array('status' => 'not_run', 'label' => isset($test['label']) ? $test['label'] : $id, 'description' => 'No callable is registered for this test.', 'actions' => '');
-                if (isset($test[$key]) && is_callable($test[$key])) {
-                    try {
-                        $answer = call_user_func($test[$key]);
-                        if (is_array($answer)) {
-                            $result = $answer;
-                        }
-                    } catch (Throwable $error) {
-                        // Do not expose exception messages: they can contain server paths.
-                        $result['description'] = 'The test could not run. Check the server diagnostics.';
-                    }
-                }
-                $row = array('id' => (string) $id, 'status' => '', 'label' => '', 'description' => '', 'actions' => '');
-                foreach (array_keys($row) as $field) {
-                    if ('id' === $field) {
-                        continue;
-                    }
-                    $row[$field] = self::text(isset($result[$field]) ? (string) $result[$field] : '');
-                }
-                $rows[] = $row;
-                $failed = $failed || ('' !== $fail && ('critical' === $row['status'] || ('recommended' === $fail && 'recommended' === $row['status'])));
+                $rows[] = self::run_test((string) $id, $test, $key);
             }
         }
+        return $rows;
+    }
+
+    /** @param string $id Test ID. @param array $test Registration. @param string $key Callable key. @return array */
+    private static function run_test($id, array $test, $key) {
+        $result = array('status' => 'not_run', 'label' => isset($test['label']) ? $test['label'] : $id, 'description' => 'No callable is registered for this test.', 'actions' => '');
+        if (isset($test[$key]) && is_callable($test[$key])) {
+            try {
+                $answer = call_user_func($test[$key]);
+                if (is_array($answer)) {
+                    $result = $answer;
+                }
+            } catch (Throwable $error) {
+                // Do not expose exception messages: they can contain server paths.
+                $result['description'] = 'The test could not run. Check the server diagnostics.';
+            }
+        }
+        return SEOProStack_Health_Output::row($id, $result);
+    }
+
+    /** @param array $rows Results. @param string $fail Requested threshold. @return bool */
+    private static function failed(array $rows, $fail) {
+        $statuses = array('critical' => array('critical'), 'recommended' => array('critical', 'recommended'));
+        if (!isset($statuses[$fail])) {
+            return false;
+        }
+        foreach ($rows as $row) {
+            if (in_array($row['status'], $statuses[$fail], true)) {
+                return true;
+            }
+        }
+        return false;
+    }
+}
+
+/** Process-local cache reader: reject backend writes, retain namespace metadata. */
+class SEOProStack_Health_Cache {
+    /** @var object */
+    private $reader;
+
+    /** @param object $reader Existing site's cache. */
+    public function __construct($reader) {
+        $this->reader = $reader;
+    }
+
+    /** @param string $method Cache operation. @param array $args Arguments. @return mixed */
+    public function __call($method, $args) {
+        if (in_array($method, array('get', 'get_multiple', 'supports', 'switch_to_blog', 'add_global_groups', 'add_non_persistent_groups'), true) && is_callable(array($this->reader, $method))) {
+            return call_user_func_array(array($this->reader, $method), $args);
+        }
+        return false; // Never forward add/set/delete/flush/incr or shutdown writes.
+    }
+
+    /** get() must pass the found flag by reference (a magic call cannot). */
+    public function get($key, $group = 'default', $force = false, &$found = null) {
+        $getter = array($this->reader, 'get');
+        if (is_callable($getter)) {
+            return call_user_func_array($getter, array($key, $group, $force, &$found));
+        }
+        $found = false;
+        return false;
+    }
+}
+
+/** Plain-text rendering and UTC web-record serialization, shared by both formats. */
+class SEOProStack_Health_Output {
+
+    /** @param string $id Test ID. @param array $result Site Health result. @return array */
+    public static function row($id, array $result) {
+        $row = array('status' => '', 'label' => '', 'description' => '', 'actions' => '');
+        foreach (array_keys($row) as $field) {
+            $row[$field] = self::text(isset($result[$field]) ? (string) $result[$field] : '');
+        }
+        return array('id' => $id) + $row;
+    }
+
+    /** Stored web records, with memory peaks named rather than positional. @return array */
+    public static function records() {
         $records = array();
         foreach (array('seoprostack_php_sapi', 'seoprostack_hosting_object_cache', 'seoprostack_hosting_memory', 'seoprostack_hosting_opcache') as $name) {
             $records[$name] = self::record(get_option($name, null));
         }
-        if (is_array($records['seoprostack_hosting_memory'])) {
-            foreach ($records['seoprostack_hosting_memory'] as $day => $kinds) {
-                if (!is_array($kinds)) {
-                    continue;
-                }
-                foreach ($kinds as $kind => $pair) {
-                    if (is_array($pair) && isset($pair[0], $pair[1])) {
-                        $records['seoprostack_hosting_memory'][$day][$kind] = array('peak' => $pair[0], 'limit' => $pair[1], 'time' => isset($pair[2]) ? gmdate('Y-m-d\TH:i:s\Z', (int) $pair[2]) : null);
-                    }
+        $records['seoprostack_hosting_memory'] = self::memory($records['seoprostack_hosting_memory']);
+        return $records;
+    }
+
+    /** @param mixed $stored Daily memory peak pairs. @return mixed */
+    private static function memory($stored) {
+        if (!is_array($stored)) {
+            return $stored;
+        }
+        foreach ($stored as $day => $kinds) {
+            if (!is_array($kinds)) {
+                continue;
+            }
+            foreach ($kinds as $kind => $pair) {
+                if (is_array($pair) && isset($pair[0], $pair[1])) {
+                    $stored[$day][$kind] = array('peak' => $pair[0], 'limit' => $pair[1], 'time' => isset($pair[2]) ? gmdate('Y-m-d\TH:i:s\Z', (int) $pair[2]) : null);
                 }
             }
         }
+        return $stored;
+    }
+
+    /** @param string $format Output format. @param array $rows Results. @param array $records Web records. */
+    public static function render($format, array $rows, array $records) {
         if ('json' === $format) {
             WP_CLI::line((string) wp_json_encode(array('tests' => $rows, 'records' => $records)));
         } else {
@@ -176,7 +225,6 @@ class SEOProStack_Health_CLI {
             WP_CLI::line('Web-request records (UTC; null means none recorded):');
             WP_CLI::line((string) wp_json_encode($records));
         }
-        WP_CLI::halt($failed ? 1 : 0);
     }
 
     /** @param string $html HTML text. @return string */
