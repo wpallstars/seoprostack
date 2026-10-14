@@ -145,6 +145,9 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 
 == Changelog ==
 
+= Unreleased =
+* New: wp seoprostack health: read-only Site Health results and stored web-PHP records, table/JSON and optional failure thresholds.
+
 = 1.3.47 =
 * Change: WPVulnerability is for developers only: its settings go in the Developers menu, its counts and Plugins row are hidden from other people with Developer admins on, and its Dashboard box shows below Site Health for developers.
 * Developers: WP Plugin Starter guidance synced from fccd0d8 (menu page titles).

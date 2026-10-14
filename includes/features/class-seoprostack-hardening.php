@@ -749,19 +749,24 @@ class SEOProStack_Hardening extends SEOProStack_Feature {
      * Files anyone can download, checked at most once a day with one HEAD
      * request each (at most MAX_REQUESTS). Never reads their contents.
      *
-     * @return array{files:array,checked:int,failed:int,more:int}
+     * @return array{files:array,checked:int,failed:int,more:int,recorded:bool}
      */
     public static function exposed() {
-        $cached = get_transient(self::EXPOSED);
+        $audit  = class_exists('SEOProStack_Health_CLI', false) && SEOProStack_Health_CLI::auditing();
+        $cached = $audit ? SEOProStack_Health_CLI::stored_transient(self::EXPOSED) : get_transient(self::EXPOSED);
         if (is_array($cached) && isset($cached['files']) && is_array($cached['files'])) {
             return array(
                 'files'   => $cached['files'],
                 'checked' => isset($cached['checked']) ? (int) $cached['checked'] : 0,
                 'failed'  => isset($cached['failed']) ? (int) $cached['failed'] : 0,
                 'more'    => isset($cached['more']) ? (int) $cached['more'] : 0,
+                'recorded' => true,
             );
         }
-        $result     = array('files' => array(), 'checked' => 0, 'failed' => 0, 'more' => 0);
+        $result     = array('files' => array(), 'checked' => 0, 'failed' => 0, 'more' => 0, 'recorded' => !$audit);
+        if ($audit) {
+            return $result; // No loopback request: it could cause writes on the web request.
+        }
         $candidates = self::candidates();
         $root       = wp_normalize_path(ABSPATH);
         foreach ($candidates as $path => $file) {
@@ -807,6 +812,11 @@ class SEOProStack_Hardening extends SEOProStack_Feature {
             'actions'     => '',
             'test'        => 'seoprostack_exposed_files',
         );
+        if (!$exposed['recorded']) {
+            $result['status'] = 'not_run';
+            $result['label'] = __('No web-request file probe is recorded yet', 'seoprostack');
+            $result['description'] .= '<p>' . esc_html__('Open Tools → Site Health once to record this web probe.', 'seoprostack') . '</p>';
+        }
         if ($exposed['files']) {
             $result['status'] = 'recommended';
             $result['label']  = _n('A log or backup file can be downloaded by anyone', 'Log or backup files can be downloaded by anyone', count($exposed['files']), 'seoprostack');
@@ -888,9 +898,13 @@ class SEOProStack_Hardening extends SEOProStack_Feature {
      * @return array{state:string,url:string} State on, off, failed or skipped.
      */
     public static function listing() {
-        $cached = get_transient(self::LISTING);
+        $audit  = class_exists('SEOProStack_Health_CLI', false) && SEOProStack_Health_CLI::auditing();
+        $cached = $audit ? SEOProStack_Health_CLI::stored_transient(self::LISTING) : get_transient(self::LISTING);
         if (is_array($cached) && isset($cached['state'], $cached['url'])) {
             return array('state' => (string) $cached['state'], 'url' => (string) $cached['url']);
+        }
+        if ($audit) {
+            return array('state' => 'unrecorded', 'url' => '');
         }
         $url    = self::listing_url();
         $result = array('state' => 'skipped', 'url' => $url);
@@ -950,6 +964,10 @@ class SEOProStack_Hardening extends SEOProStack_Feature {
         } elseif ('skipped' === $listing['state']) {
             $result['label']        = __('Directory listing was not checked', 'seoprostack');
             $result['description'] .= '<p>' . esc_html__('The uploads folder has an index file, so asking for it cannot show whether the server lists files.', 'seoprostack') . '</p>';
+        } elseif ('unrecorded' === $listing['state']) {
+            $result['status'] = 'not_run';
+            $result['label'] = __('No web-request directory listing probe is recorded yet', 'seoprostack');
+            $result['description'] .= '<p>' . esc_html__('Open Tools → Site Health once to record this web probe.', 'seoprostack') . '</p>';
         }
         return $result;
     }

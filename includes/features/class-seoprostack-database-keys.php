@@ -239,7 +239,8 @@ class SEOProStack_Database_Keys extends SEOProStack_Feature {
      *                           uses it; null when the search did not finish.
      */
     private static function prefix_plugin($prefix) {
-        $known = get_transient(self::OWNERS);
+        $audit = class_exists('SEOProStack_Health_CLI', false) && SEOProStack_Health_CLI::auditing();
+        $known = $audit ? SEOProStack_Health_CLI::stored_transient(self::OWNERS) : get_transient(self::OWNERS);
         $known = is_array($known) ? $known : array();
         if (array_key_exists($prefix, $known)) {
             return $known[$prefix];
@@ -277,7 +278,9 @@ class SEOProStack_Database_Keys extends SEOProStack_Feature {
             }
         }
         $known[$prefix] = $found;
-        set_transient(self::OWNERS, $known, DAY_IN_SECONDS);
+        if (!$audit) {
+            set_transient(self::OWNERS, $known, DAY_IN_SECONDS);
+        }
         return $found;
     }
 

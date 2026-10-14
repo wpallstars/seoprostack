@@ -288,6 +288,14 @@ final class SEOProStack_Setup {
      * Register the helpers' hooks, after the settings store's.
      */
     public static function init() {
+        if (defined('WP_CLI') && WP_CLI) {
+            require_once SEOPROSTACK_DIR . 'includes/class-seoprostack-health-cli.php';
+            WP_CLI::add_command('seoprostack health', 'SEOProStack_Health_CLI');
+            if (SEOProStack_Health_CLI::auditing()) {
+                SEOProStack_Health_CLI::prepare();
+                return;
+            }
+        }
         SEOProStack_Admin_Bar::init();
         SEOProStack_Disable_Bloat::init();
         SEOProStack_Litespeed::init();

@@ -74,6 +74,9 @@ class SEOProStack_Hosting_Needs extends SEOProStack_Feature {
     /** Non-autoloaded daily object-cache facts and a cross-request probe. */
     const OBJECT_CACHE = 'seoprostack_hosting_object_cache';
 
+    /** Non-autoloaded hourly web-PHP OPcache snapshot, without script paths. */
+    const OPCACHE = 'seoprostack_hosting_opcache';
+
     /** How PHP runs (php_sapi_name()) on web requests, for cron and WP-CLI. Not autoloaded. */
     const SAPI = 'seoprostack_php_sapi';
 
@@ -225,7 +228,7 @@ class SEOProStack_Hosting_Needs extends SEOProStack_Feature {
         if (isset($peaks[$day][$kind][0]) && $peak <= (int) $peaks[$day][$kind][0]) {
             return;
         }
-        $peaks[$day][$kind] = array($peak, (int) wp_convert_hr_to_bytes((string) ini_get('memory_limit')));
+        $peaks[$day][$kind] = array($peak, (int) wp_convert_hr_to_bytes((string) ini_get('memory_limit')), time());
         krsort($peaks);
         update_option(self::MEMORY, array_slice($peaks, 0, self::DAYS, true), true);
     }
@@ -574,13 +577,15 @@ class SEOProStack_Hosting_Needs extends SEOProStack_Feature {
                 $base['bytes']      += $bytes;
                 $base['files']      += $files;
             }
-            update_option(self::CODE, $base, false);
+            if ('' !== self::live_sapi()) {
+                update_option(self::CODE, $base, false);
+            }
         }
 
         $code              = array('bytes' => (int) $base['bytes'], 'files' => (int) $base['files'], 'missing' => 0);
         $code['installed'] = $code;
         if (class_exists('SEOProStack_Plugin_Sizes')) {
-            $plugins          = SEOProStack_Plugin_Sizes::php_code(self::active_files(), $budget);
+            $plugins          = SEOProStack_Plugin_Sizes::php_code(self::active_files(), '' === self::live_sapi() ? 0 : $budget);
             $code['bytes']   += $plugins['bytes'];
             $code['files']   += $plugins['files'];
             $code['missing']  = $plugins['missing'];
@@ -623,7 +628,8 @@ class SEOProStack_Hosting_Needs extends SEOProStack_Feature {
      *               cdn_probe (from cdn_probe()).
      */
     public static function facts() {
-        $facts = get_transient(self::FACTS);
+        $audit = class_exists('SEOProStack_Health_CLI', false) && SEOProStack_Health_CLI::auditing();
+        $facts = $audit ? SEOProStack_Health_CLI::stored_transient(self::FACTS) : get_transient(self::FACTS);
         if (is_array($facts) && isset($facts['db'], $facts['postmeta'], $facts['autoload'], $facts['autoload_count'], $facts['products'], $facts['cdn_probe'])) {
             $facts['object_cache'] = self::object_cache_facts();
             return $facts;
@@ -653,9 +659,11 @@ class SEOProStack_Hosting_Needs extends SEOProStack_Feature {
             'autoload'       => isset($autoload['bytes']) ? (int) $autoload['bytes'] : 0,
             'autoload_count' => isset($autoload['n']) ? (int) $autoload['n'] : 0,
             'products'       => $products && isset($products->publish) ? (int) $products->publish : 0,
-            'cdn_probe'      => self::cdn_probe(),
+            'cdn_probe'      => $audit ? array() : self::cdn_probe(),
         );
-        set_transient(self::FACTS, $facts, HOUR_IN_SECONDS);
+        if (!$audit) {
+            set_transient(self::FACTS, $facts, HOUR_IN_SECONDS);
+        }
         $facts['object_cache'] = self::object_cache_facts();
         return $facts;
     }
@@ -1539,6 +1547,16 @@ class SEOProStack_Hosting_Needs extends SEOProStack_Feature {
      * @return array
      */
     private static function assess_opcache(array $code) {
+        if ('' === self::live_sapi()) {
+            $stored = get_option(self::OPCACHE, array());
+            if (is_array($stored) && isset($stored['assessment'], $stored['checked']) && is_array($stored['assessment'])) {
+                $part = $stored['assessment'];
+                /* translators: %s: UTC time of the web request. */
+                $part['summary'] .= ' ' . sprintf(__('Web-request reading taken at %s.', 'seoprostack'), gmdate('Y-m-d\TH:i:s\Z', (int) $stored['checked']));
+                return $part;
+            }
+            return array('status' => 'unknown', 'unrecorded' => true, 'summary' => __('No web-request OPcache reading is recorded yet. Open Tools → Site Health once.', 'seoprostack'), 'ask' => array(), 'fields' => array());
+        }
         $enabled = extension_loaded('Zend OPcache') && filter_var(ini_get('opcache.enable'), FILTER_VALIDATE_BOOLEAN);
         $status  = null;
         if ($enabled && function_exists('opcache_get_status')) {
@@ -1578,14 +1596,14 @@ class SEOProStack_Hosting_Needs extends SEOProStack_Feature {
             ),
         );
         if (!$enabled) {
-            return array(
+            return self::remember_opcache(array(
                 'status'  => 'recommended',
                 'summary' => __('OPcache is off, so PHP compiles the site’s code again on every request. Ask your host to turn it on.', 'seoprostack'),
                 'ask'     => array('opcache.enable' => '1') + self::need_ask($need),
                 'fields'  => $fields,
                 'off'     => true,
                 'need'    => $need,
-            );
+            ), $status, $code);
         }
 
         $memory   = (int) ini_get('opcache.memory_consumption') * MB_IN_BYTES;
@@ -1712,14 +1730,35 @@ class SEOProStack_Hosting_Needs extends SEOProStack_Feature {
                 number_format_i18n($code['missing'])
             );
         }
-        return array(
+        return self::remember_opcache(array(
             'status'  => $state,
             'summary' => $summary,
             'ask'     => $ask,
             'fields'  => $fields,
             'private' => !$status,
             'need'    => $need,
-        );
+        ), $status, $code);
+    }
+
+    /**
+     * Keep web values in the database, at most hourly, for other PHP runtimes.
+     *
+     * @param array $part Assessment, including the measured compiled-code ratio.
+     * @param array|null $status OPcache status.
+     * @param array $code Measured code sizes.
+     * @return array
+     */
+    private static function remember_opcache(array $part, $status, array $code) {
+        $previous = get_option(self::OPCACHE, array());
+        if ('' !== self::live_sapi() && (!is_array($previous) || empty($previous['checked']) || time() - (int) $previous['checked'] >= HOUR_IN_SECONDS)) {
+            if (is_array($status)) {
+                // Preloading can also expose script paths; keep only the counters
+                // this assessment uses, never either script list.
+                $status = array_intersect_key($status, array_flip(array('opcache_enabled', 'cache_full', 'restart_pending', 'restart_in_progress', 'memory_usage', 'interned_strings_usage', 'opcache_statistics')));
+            }
+            update_option(self::OPCACHE, array('checked' => time(), 'status' => $status, 'code' => $code, 'assessment' => $part), false);
+        }
+        return $part;
     }
 
     /**
@@ -1803,12 +1842,14 @@ class SEOProStack_Hosting_Needs extends SEOProStack_Feature {
      */
     private static function assess_memory() {
         $kinds = self::kinds();
+        $web   = '' !== self::live_sapi();
         // The server's setting: WordPress raises this request's own limit in the admin.
-        $ini    = function_exists('ini_get_all') ? ini_get_all(null, true) : array();
-        $server = isset($ini['memory_limit']['global_value']) ? $ini['memory_limit']['global_value'] : ini_get('memory_limit');
+        $ini    = $web && function_exists('ini_get_all') ? ini_get_all(null, true) : array();
+        $latest = self::latest_memory();
+        $server = $web ? (isset($ini['memory_limit']['global_value']) ? $ini['memory_limit']['global_value'] : ini_get('memory_limit')) : ($latest ? (string) $latest['limit'] : '');
         $fields = array(
             'memory_limit' => array(
-                'label' => __('PHP memory limit set by the server', 'seoprostack'),
+                'label' => $web ? __('PHP memory limit set by the server', 'seoprostack') : __('PHP memory limit of the newest web peak', 'seoprostack'),
                 'value' => (string) $server,
             ),
         );
@@ -1816,7 +1857,8 @@ class SEOProStack_Hosting_Needs extends SEOProStack_Feature {
         if (!$peaks) {
             return array(
                 'status'  => 'unknown',
-                'summary' => __('Memory use is recorded from now on. Check again after the site has had some visits.', 'seoprostack'),
+                'summary' => __('No recent web-request memory peak is recorded yet. Check again after the site has had some visits.', 'seoprostack'),
+                'unrecorded' => true,
                 'ask'     => array(),
                 'fields'  => $fields,
                 'note'    => '',
@@ -1865,6 +1907,10 @@ class SEOProStack_Hosting_Needs extends SEOProStack_Feature {
             );
             $state = 'good';
         }
+        if (!$web && $latest) {
+            /* translators: %s: UTC time or date of the newest web memory peak. */
+            $summary .= ' ' . sprintf(__('Newest web peak recorded at %s.', 'seoprostack'), $latest['time']);
+        }
         return array(
             'status'  => $state,
             'summary' => $summary,
@@ -1872,6 +1918,30 @@ class SEOProStack_Hosting_Needs extends SEOProStack_Feature {
             'fields'  => $fields,
             'note'    => $near ? '' : self::high_limit_note((string) $server),
         );
+    }
+
+    /** Newest web peak's limit and UTC time (old records have only a date). @return array */
+    private static function latest_memory() {
+        $stored = get_option(self::MEMORY, array());
+        if (!is_array($stored)) {
+            return array();
+        }
+        krsort($stored);
+        foreach ($stored as $day => $kinds) {
+            if (!is_array($kinds)) {
+                continue;
+            }
+            $latest = array();
+            foreach ($kinds as $pair) {
+                if (is_array($pair) && isset($pair[0], $pair[1]) && (!$latest || (isset($pair[2]) && $pair[2] > $latest['checked']))) {
+                    $latest = array('limit' => (int) $pair[1], 'checked' => isset($pair[2]) ? (int) $pair[2] : 0, 'time' => isset($pair[2]) ? gmdate('Y-m-d\TH:i:s\Z', (int) $pair[2]) : (string) $day . ' (UTC date only)');
+                }
+            }
+            if ($latest) {
+                return $latest;
+            }
+        }
+        return array();
     }
 
     /**
@@ -2688,7 +2758,7 @@ class SEOProStack_Hosting_Needs extends SEOProStack_Feature {
         // WordPress 7.0 and later test whether OPcache is on; then this
         // only adds its size check, and leaves "off" to core.
         $core_checks_on = method_exists('WP_Site_Health', 'get_test_opcode_cache');
-        $enabled        = extension_loaded('Zend OPcache') && filter_var(ini_get('opcache.enable'), FILTER_VALIDATE_BOOLEAN);
+        $enabled        = '' === self::live_sapi() || (extension_loaded('Zend OPcache') && filter_var(ini_get('opcache.enable'), FILTER_VALIDATE_BOOLEAN));
         if ($enabled || !$core_checks_on) {
             $tests['async'][self::TEST] = array(
                 'label'             => __('OPcache size', 'seoprostack'),
@@ -2696,7 +2766,7 @@ class SEOProStack_Hosting_Needs extends SEOProStack_Feature {
                 'async_direct_test' => array(__CLASS__, 'test_opcache'),
             );
         }
-        if (self::peaks()) {
+        if (self::peaks() || '' === self::live_sapi()) {
             $tests['direct']['seoprostack_memory'] = array(
                 'label' => __('PHP memory', 'seoprostack'),
                 'test'  => array(__CLASS__, 'test_memory'),
@@ -2728,13 +2798,16 @@ class SEOProStack_Hosting_Needs extends SEOProStack_Feature {
      * @return array
      */
     public static function test_opcache() {
-        $part = self::assess_opcache(self::code(5));
+        $part = self::assess_opcache('' === self::live_sapi() ? array() : self::code(5));
         if (!empty($part['off'])) {
             $label = __('OPcache is off', 'seoprostack');
         } elseif ('recommended' === $part['status']) {
             $label = __('OPcache is too small for this site', 'seoprostack');
         } else {
             $label = __('OPcache has room for this site’s PHP code', 'seoprostack');
+        }
+        if ('unknown' === $part['status']) {
+            $label = __('OPcache could not be assessed', 'seoprostack');
         }
         $description = '<p>' . esc_html__('OPcache keeps compiled PHP code in memory, so PHP does not read and compile it again on every request. It needs room for the code your plugins and theme load.', 'seoprostack') . '</p>';
         if (!empty($part['private'])) {
@@ -2754,6 +2827,9 @@ class SEOProStack_Hosting_Needs extends SEOProStack_Feature {
         $label = 'recommended' === $part['status']
             ? __('Requests come close to the PHP memory limit', 'seoprostack')
             : __('PHP memory has room for this site', 'seoprostack');
+        if ('unknown' === $part['status']) {
+            $label = __('PHP memory could not be assessed', 'seoprostack');
+        }
         $description = '<p>' . esc_html__('Each request can use memory up to the PHP memory limit. SEO Pro Stack records the most memory a request used each day, for pages, the admin and the REST API with cron.', 'seoprostack') . '</p>';
         if ('' !== $part['note']) {
             $description .= '<p>' . esc_html($part['note']) . '</p>';
@@ -2781,7 +2857,7 @@ class SEOProStack_Hosting_Needs extends SEOProStack_Feature {
         }
         return array(
             'label'       => $label,
-            'status'      => 'recommended' === $part['status'] ? 'recommended' : 'good',
+            'status'      => !empty($part['unrecorded']) && '' === self::live_sapi() ? 'not_run' : ('recommended' === $part['status'] ? 'recommended' : 'good'),
             'badge'       => array(
                 'label' => __('Performance', 'seoprostack'),
                 'color' => 'blue',
