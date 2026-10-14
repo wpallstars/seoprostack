@@ -18,10 +18,10 @@
  *            are not developers while that plugin is placed in super-admin
  *            and Developer admins is on.
  * - counts:  plugin folder => functions that add counts to other menu
- *            entries on admin_menu (such as WPVulnerability's number of
- *            vulnerable plugins on Plugins), removed for people who are not
- *            developers while that plugin is placed in super-admin and
- *            Developer admins is on.
+ *            entries on admin_menu or network_admin_menu (such as
+ *            WPVulnerability's number of vulnerable plugins on Plugins),
+ *            removed for people who are not developers while that plugin is
+ *            placed in super-admin and Developer admins is on.
  *
  * A place is a section (top, content, communications, seo, shop,
  * admin-heading, admin, super-admin) or the address of another menu, to go
@@ -331,9 +331,10 @@ return array(
     ),
 
     // Counts that plugins add to other menu entries, by plugin folder: the
-    // functions that add them on admin_menu, removed for people who are not
-    // developers while the plugin is placed in Developers, so they see no
-    // numbers from a plugin whose report they cannot open.
+    // functions that add them on admin_menu (network_admin_menu in Network
+    // Admin), removed for people who are not developers while the plugin is
+    // placed in Developers, so they see no numbers from a plugin whose report
+    // they cannot open.
     'counts' => array(
         // Known vulnerabilities, on Plugins, Appearance → Themes and
         // Dashboard → Updates (single sites; on a network, in Network Admin).
