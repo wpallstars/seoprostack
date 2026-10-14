@@ -24,7 +24,7 @@ SEO Pro Stack does the jobs that usually take dozens of small plugins: a calmer,
 
 If this saves you time, headaches and costs, feel free to [buy me a coffee](https://buymeacoffee.com/marcusquinn), or whatever you like, to invest in making more things open-source.
 
-Version: 1.3.46
+Version: 1.3.47
 
 <!-- github-only:start -->
 ## Screenshots
@@ -1643,7 +1643,7 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folder�
 
 ## Changelog
 
-### Unreleased
+### 1.3.47
 
 - Change: WPVulnerability is for developers only. [Organise the admin menu](#organise-the-admin-menu-admin) puts its settings in the Developers menu, and with [Developer admins](#developer-admins-admin) on, people who are not developers cannot open them and do not see its row on the Plugins screen or its known vulnerability counts on Plugins, Appearance → Themes and Dashboard → Updates. [Tidy the dashboard](#tidy-the-dashboard-admin) shows its WPVulnerability Status box to developers only, below Site Health status. New `counts` key in `seoprostack_admin_menu_catalog` (GitHub issue #752).
 - Developers: sync WP Plugin Starter core files from fccd0d8: shared guidance keeps a plugin's name as its own menu's first screen page title, so browser titles read "{Name}: Overview", not "Overview: Overview". SEO Pro Stack's settings and Links titles are unchanged (GitHub issue #750).

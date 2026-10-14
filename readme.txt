@@ -5,7 +5,7 @@ Tags: magic login, iframe, schedule posts, auto upload images, admin
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.3.46
+Stable tag: 1.3.47
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -145,8 +145,8 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 
 == Changelog ==
 
-= 1.3.46 =
-* Fix: Fixes for other plugins stops invalid read_post capability notices from GOTMLS; protected posts stay denied.
-* Developers: WP Plugin Starter 1.0.38 guidance, CLAUDE.md pointer, provenance IDs and copying notices; licence and credits kept.
+= 1.3.47 =
+* Change: WPVulnerability is for developers only: its settings go in the Developers menu, its counts and Plugins row are hidden from other people with Developer admins on, and its Dashboard box shows below Site Health for developers.
+* Developers: WP Plugin Starter guidance synced from fccd0d8 (menu page titles).
 
 Older: `changelog.txt`.
