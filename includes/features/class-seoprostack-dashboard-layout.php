@@ -58,7 +58,7 @@ class SEOProStack_Dashboard_Layout extends SEOProStack_Feature {
                 'default'     => true,
                 'tab'         => 'admin',
                 'label'       => __('Tidy the dashboard', 'seoprostack'),
-                'description' => __('The same Dashboard on every site: writing and activity first, then forms and email, then visitors, SEO and the site. Hides the Welcome panel, WordPress news and plugin promotions. Site Health shows to developers only, statistics to people who can publish, and subscribers and customers see no boxes.', 'seoprostack'),
+                'description' => __('The same Dashboard on every site: writing and activity first, then forms and email, then visitors, SEO and the site. Hides the Welcome panel, WordPress news and plugin promotions. Site Health and WPVulnerability show to developers only, statistics to people who can publish, and subscribers and customers see no boxes.', 'seoprostack'),
             ),
             self::REARRANGE_KEY => array(
                 'type'        => 'bool',

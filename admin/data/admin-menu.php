@@ -17,6 +17,11 @@
  * - bar:     plugin folder => admin bar item IDs, removed for people who
  *            are not developers while that plugin is placed in super-admin
  *            and Developer admins is on.
+ * - counts:  plugin folder => functions that add counts to other menu
+ *            entries on admin_menu (such as WPVulnerability's number of
+ *            vulnerable plugins on Plugins), removed for people who are not
+ *            developers while that plugin is placed in super-admin and
+ *            Developer admins is on.
  *
  * A place is a section (top, content, communications, seo, shop,
  * admin-heading, admin, super-admin) or the address of another menu, to go
@@ -180,6 +185,8 @@ return array(
         'twentig'                               => 'super-admin',
         'aiowpsec'                              => 'super-admin',
         'Wordfence'                             => 'super-admin',
+        // WPVulnerability's report and email alerts: developers act on them.
+        'wpvulnerability-options'               => 'super-admin',
         'kadence_build_child_theme_config'      => 'super-admin',
         'editorskit-getting-started'            => 'super-admin',
         'menu_editor'                           => 'super-admin',
@@ -301,6 +308,7 @@ return array(
         'user-switching'                        => 'super-admin',
         'wordfence'                             => 'super-admin',
         'all-in-one-wp-security-and-firewall'   => 'super-admin',
+        'wpvulnerability'                       => 'super-admin',
         'kadence-build-child-defaults'          => 'super-admin',
         'admin-menu-editor'                     => 'super-admin',
         'admin-menu-editor-pro'                 => 'super-admin',
@@ -320,6 +328,20 @@ return array(
     'bar' => array(
         'waspthemes-yellow-pencil'              => array('yp'),
         'yellow-pencil-visual-theme-customizer' => array('yp'),
+    ),
+
+    // Counts that plugins add to other menu entries, by plugin folder: the
+    // functions that add them on admin_menu, removed for people who are not
+    // developers while the plugin is placed in Developers, so they see no
+    // numbers from a plugin whose report they cannot open.
+    'counts' => array(
+        // Known vulnerabilities, on Plugins, Appearance → Themes and
+        // Dashboard → Updates (single sites; on a network, in Network Admin).
+        'wpvulnerability' => array(
+            'wpvulnerability_counter_plugins',
+            'wpvulnerability_counter_themes',
+            'wpvulnerability_counter_core',
+        ),
     ),
 
     // Entries left out of the menu. Their pages still open, and keep the

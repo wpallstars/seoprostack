@@ -352,6 +352,8 @@ class SEOProStack_Admin_Menu extends SEOProStack_Feature {
                 // Before plugins' own admin_init redirects, which can send
                 // people on to a page (YellowPencil to its editor).
                 add_action('admin_init', array(__CLASS__, 'block_page'), 0);
+                // Before plugins add their counts to other entries (10).
+                add_action('admin_menu', array(__CLASS__, 'remove_menu_counts'), 0);
             }
         }
         if (is_admin() && SEOProStack_Settings::get(self::WRITERS_KEY)) {
@@ -442,7 +444,7 @@ class SEOProStack_Admin_Menu extends SEOProStack_Feature {
     /**
      * Known menus and plugins (see admin/data/admin-menu.php).
      *
-     * @return array{menus: array<string,string>, plugins: array<string,string>, hidden: array<string,bool>, bar: array<string,string[]>}
+     * @return array{menus: array<string,string>, plugins: array<string,string>, hidden: array<string,bool>, bar: array<string,string[]>, counts: array<string,string[]>}
      */
     public static function catalog() {
         static $catalog = null;
@@ -454,14 +456,17 @@ class SEOProStack_Admin_Menu extends SEOProStack_Feature {
              *
              * @param array $catalog `menus` (address => place), `plugins`
              *                       (plugin folder => place), `hidden`
-             *                       (addresses left out of the menu) and `bar`
-             *                       (plugin folder => admin bar item IDs
-             *                       removed for people who are not developers
-             *                       while it is in Developers). A place is a
-             *                       section key or another menu's address.
+             *                       (addresses left out of the menu), `bar`
+             *                       (plugin folder => admin bar item IDs) and
+             *                       `counts` (plugin folder => functions that
+             *                       add counts to other menu entries on
+             *                       admin_menu), both removed for people who
+             *                       are not developers while the plugin is in
+             *                       Developers. A place is a section key or
+             *                       another menu's address.
              */
             $catalog = (array) apply_filters('seoprostack_admin_menu_catalog', $data);
-            $catalog += array('menus' => array(), 'plugins' => array(), 'hidden' => array(), 'bar' => array());
+            $catalog += array('menus' => array(), 'plugins' => array(), 'hidden' => array(), 'bar' => array(), 'counts' => array());
             // A list of addresses, or address => true.
             $hidden = array();
             foreach ((array) $catalog['hidden'] as $k => $v) {
@@ -2065,6 +2070,28 @@ class SEOProStack_Admin_Menu extends SEOProStack_Feature {
             if (isset($developer[(string) $folder])) {
                 foreach ((array) $ids as $id) {
                     $wp_admin_bar->remove_node((string) $id);
+                }
+            }
+        }
+    }
+
+    /**
+     * Stop plugins placed in Developers adding counts to other menu entries
+     * (catalog `counts`), such as WPVulnerability's number of vulnerable
+     * plugins on Plugins, whose report is refused to people who are not
+     * developers. Runs first on admin_menu, before the plugins add them.
+     */
+    public static function remove_menu_counts() {
+        $developer = self::developer_plugins();
+        foreach ((array) self::catalog()['counts'] as $folder => $callbacks) {
+            if (!isset($developer[(string) $folder])) {
+                continue;
+            }
+            foreach ((array) $callbacks as $callback) {
+                $callback = (string) $callback;
+                $priority = has_action('admin_menu', $callback);
+                if (is_int($priority)) {
+                    remove_action('admin_menu', $callback, $priority);
                 }
             }
         }
