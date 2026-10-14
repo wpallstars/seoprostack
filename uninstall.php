@@ -109,6 +109,7 @@ function seoprostack_uninstall_site() {
     $options[] = 'seoprostack_hosting_writes';
     $options[] = 'seoprostack_hosting_object_cache';
     $options[] = 'seoprostack_hosting_object_cache_lock';
+    $options[] = 'seoprostack_hosting_opcache';
     // Plugin sizes: the last Measure page time. Its token and each page's
     // findings are seoprostack_cost_* transients, removed with the others below.
     $options[] = 'seoprostack_plugin_cost';

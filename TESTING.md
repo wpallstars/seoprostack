@@ -11,6 +11,42 @@ For every change, check the debug log afterwards. Load plugins only where
 needed skips plugins on some requests, so messages from a skipped plugin are
 SEO Pro Stack's to fix too.
 
+## Read-only health audits for several sites
+
+On each host, list a network's sites with `wp site list --field=url`, then run
+`wp --url=<url> seoprostack health --format=json` separately for each site.
+Do not loop through a network with `switch_to_blog()`: its plugins and hooks
+would still belong to the first site. Single installs need one run each.
+Keep host names, folders and output naming sites out of issues and commits.
+
+During an aidevops rollout, use `wp-fleet-helper.sh` with
+`--audit-argv '["seoprostack","health","--fail-on=critical"]' --audit-read-only`.
+A non-zero exit fails rollout verification. The command itself uses neither
+`shell_exec()` nor `proc_open()` and needs no `/dev/fd`.
+
+On disposable single-site and multisite sites (the images and setup from
+`scripts/smoke-test.sh` and `scripts/smoke-test.sh --multisite`):
+
+- Compare options before and after the command with
+  `wp eval 'global $wpdb; echo md5(serialize($wpdb->get_results("SELECT option_name, option_value FROM {$wpdb->options} ORDER BY option_name")));'`.
+  On a network also compare the whole `sitemeta` table and each site's options.
+  Repeat with no Hosting needs records, expired Hardening probes, an old
+  settings version and pending network settings. No audit applies saving work.
+- Compare the table with Site Health → Status. Open Site Health once on the
+  preview site, then inspect the OPcache and memory results: their values must
+  be web PHP's, with the recorded UTC time (older memory peaks have only a
+  date), even when WP-CLI uses a much higher memory limit or OPcache is off.
+  The OPcache option is not autoloaded, has no scripts list and is updated
+  at most hourly. Missing web readings say `not_run`, not “OPcache is off”.
+- Set `DISABLE_WP_CRON`, schedule a canary with
+  `wp cron event schedule seoprostack_health_canary '2 hours ago'`, and confirm
+  `seoprostack_cron` is critical and `--fail-on=critical` exits 1. Without
+  `--fail-on` it exits 0. `--fail-on=recommended` exits 1 for either severity.
+  Delete the canary afterwards: `wp cron event delete seoprostack_health_canary`.
+- Check valid JSON (`tests` and `records`), plain text, no `ABSPATH` in output,
+  no writes to options, transients, object cache, events or files, and the
+  debug log. Uninstall removes `seoprostack_hosting_opcache` on every site.
+
 ## Timing pages on a live site
 
 The smoke test measures queries on a fresh site. To measure a live site:
