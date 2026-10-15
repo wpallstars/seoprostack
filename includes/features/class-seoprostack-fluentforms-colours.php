@@ -41,7 +41,7 @@ class SEOProStack_Fluentforms_Colours extends SEOProStack_Feature {
 
     /** Register only on the front end with Fluent Forms and Kadence (or a child). */
     public static function boot() {
-        if (!self::enabled() || is_admin() || !defined('FLUENTFORM') || 'kadence' !== get_template()) {
+        if (!self::enabled() || is_admin() || !class_exists('FluentForm\App\Models\Form') || 'kadence' !== get_template()) {
             return;
         }
         add_action('wp_enqueue_scripts', array(__CLASS__, 'styles'), 100);
