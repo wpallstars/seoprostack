@@ -66,13 +66,16 @@ body :is(.fluentform, .frm-fluent-form) .ff-el-form-check-label {
 body :is(.fluentform, .frm-fluent-form) .ff-el-help-message {
     color: var(--global-palette5, #606266);
 }
-body :is(.fluentform, .frm-fluent-form) .ff-el-form-control {
+body :is(.fluentform, .frm-fluent-form) .ff-el-form-control,
+body :is(.fluentform, .frm-fluent-form) .ff-el-form-control:focus {
     background-color: var(--global-palette9, #fff);
     border-color: var(--global-palette7, #dadbdd);
     color: var(--global-palette4, #606266);
 }
 body :is(.fluentform, .frm-fluent-form) .ff-el-form-control::placeholder {
     color: var(--global-palette6, #909399);
+    /* Kadence's default palette 6 alone is only 4.02:1 on white. */
+    color: color-mix(in srgb, var(--global-palette6, #909399) 75%, var(--global-palette4, #606266));
     opacity: 1;
 }
 body :is(.fluentform, .frm-fluent-form) .ff-el-form-control:focus {
