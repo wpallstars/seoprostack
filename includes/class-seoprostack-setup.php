@@ -71,6 +71,7 @@ final class SEOProStack_Setup {
         'SEOProStack_Translatepress_Colours',
         'SEOProStack_Readabler_Colours',
         'SEOProStack_Wpgb_Colours',
+        'SEOProStack_Fluentforms_Colours',
         'SEOProStack_Auto_Upload',
         'SEOProStack_Paste_Media',
         'SEOProStack_Svg_Uploads',
