@@ -567,7 +567,7 @@ class SEOProStack_Avatar_Privacy extends SEOProStack_Feature {
             self::fs()->put_contents($index, "<?php\n// Silence is golden.\n", 0644);
         }
 
-        $editor = wp_get_image_editor($source);
+        $editor = self::picture_editor($source);
         if (is_wp_error($editor)) {
             return $editor;
         }
@@ -627,6 +627,25 @@ class SEOProStack_Avatar_Privacy extends SEOProStack_Feature {
     }
 
     /**
+     * Prefer GD for profile pictures, without sending supported uploads to Imagick.
+     *
+     * @param string $source Image path.
+     * @return WP_Image_Editor|WP_Error
+     */
+    private static function picture_editor($source) {
+        require_once ABSPATH . WPINC . '/class-wp-image-editor.php';
+        require_once ABSPATH . WPINC . '/class-wp-image-editor-gd.php';
+
+        $mime = (string) wp_get_image_mime($source);
+        if (WP_Image_Editor_GD::test(array('path' => $source, 'mime_type' => $mime)) && WP_Image_Editor_GD::supports_mime_type($mime)) {
+            $editor = new WP_Image_Editor_GD($source);
+            $loaded = $editor->load();
+            return is_wp_error($loaded) ? $loaded : $editor;
+        }
+        return wp_get_image_editor($source);
+    }
+
+    /**
      * Delete a picture's files.
      *
      * @param mixed $meta Our meta.
@@ -678,7 +697,7 @@ class SEOProStack_Avatar_Privacy extends SEOProStack_Feature {
 
         $html  = '<label for="seoprostack-avatar">' . esc_html__('Upload a picture:', 'seoprostack') . '</label> ';
         $html .= '<input type="file" id="seoprostack-avatar" name="seoprostack_avatar" accept="image/jpeg,image/png,image/gif,image/webp" /><br />';
-        $html .= esc_html__('JPEG, PNG, GIF or WebP. It is cropped to a square and stored on this site, not on Gravatar.', 'seoprostack');
+        $html .= esc_html__('JPEG, PNG, GIF or WebP, up to 5 MB (or the site’s lower upload limit), 25 megapixels and 8,000 pixels on either side. It is cropped to a square and stored on this site, not on Gravatar.', 'seoprostack');
         if (self::picture($user->ID)) {
             $html .= '<br /><label><input type="checkbox" name="seoprostack_avatar_remove" value="1" /> ' . esc_html__('Remove this picture', 'seoprostack') . '</label>';
         }
@@ -738,7 +757,7 @@ class SEOProStack_Avatar_Privacy extends SEOProStack_Feature {
             return new WP_Error('seoprostack_avatar_upload', __('The picture could not be uploaded.', 'seoprostack'));
         }
         $size = (int) filesize($tmp);
-        if ($size > wp_max_upload_size()) {
+        if ($size > min(5 * MB_IN_BYTES, wp_max_upload_size())) {
             return new WP_Error('seoprostack_avatar_upload', __('The picture is larger than the upload limit.', 'seoprostack'));
         }
         // No picture is this small; checking it would log a PHP notice on older WordPress.
@@ -753,6 +772,14 @@ class SEOProStack_Avatar_Privacy extends SEOProStack_Feature {
         ));
         if (empty($check['type'])) {
             return new WP_Error('seoprostack_avatar_type', __('Choose a JPEG, PNG, GIF or WebP picture.', 'seoprostack'));
+        }
+        // Read only the header before an image editor decodes untrusted pixels.
+        $dimensions = @getimagesize($tmp); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged -- malformed uploads must show a profile error, not a PHP warning.
+        if (false === $dimensions || $dimensions[0] < 1 || $dimensions[1] < 1) {
+            return new WP_Error('seoprostack_avatar_size', __('The picture could not be read.', 'seoprostack'));
+        }
+        if ($dimensions[0] > 8000 || $dimensions[1] > 8000 || $dimensions[0] * $dimensions[1] > 25000000) {
+            return new WP_Error('seoprostack_avatar_size', __('Choose a picture no larger than 25 megapixels and 8,000 pixels on either side.', 'seoprostack'));
         }
         return self::store_picture($user_id, $tmp);
     }
