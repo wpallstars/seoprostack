@@ -182,7 +182,14 @@ class SEOProStack_Image_Loading extends SEOProStack_Feature {
      * @return string
      */
     public static function content_image($image, $context = '') {
+        global $wp_current_filter;
+
         if (!is_string($image)) {
+            return $image;
+        }
+        // Query Loop Post Content blocks filter their images before the outer
+        // content does. Leave those for the outer pass, in final output order.
+        if ('the_content' === $context && count(array_keys((array) $wp_current_filter, 'the_content', true)) > 1) {
             return $image;
         }
         $tag = new WP_HTML_Tag_Processor($image);
@@ -193,18 +200,20 @@ class SEOProStack_Image_Loading extends SEOProStack_Feature {
         if ('high' === $priority) {
             self::$high_priority = true;
         }
-        $first = false;
         $eager = false;
         if ('the_content' === $context && is_main_query() && in_the_loop() && !is_feed()) {
             ++self::$pictures;
-            $first = 1 === self::$pictures;
             $eager = self::$pictures <= self::threshold();
         }
         if (($eager || self::excluded($image)) && 'lazy' === $tag->get_attribute('loading')) {
             $tag->remove_attribute('loading');
         }
+        // Match core's minimum area so an icon cannot take the LCP slot.
+        $area = (int) $tag->get_attribute('width') * (int) $tag->get_attribute('height');
+        // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- Reuse core's existing image-area threshold, not a plugin-owned hook.
+        $minimum = (int) apply_filters('wp_min_priority_img_pixels', 50000);
         // Respect explicit priorities and core's choice of an earlier LCP image.
-        if ($first && $eager && null === $priority && !self::$high_priority
+        if ($eager && $area >= $minimum && null === $priority && !self::$high_priority
             && (!function_exists('wp_high_priority_element_flag') || wp_high_priority_element_flag())) {
             $tag->set_attribute('fetchpriority', 'high');
             self::$high_priority = true;
