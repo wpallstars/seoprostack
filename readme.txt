@@ -58,7 +58,7 @@ Safe features start on; others stay off. **Settings → SEO Pro Stack** has **Se
 * **Resize large uploads**, **Replace media files** and **Watermark pictures**, keeping originals.
 * **SVG uploads**: cleaned, chosen roles only. **Dark mode image contrast** for logos.
 * **Website screenshots**: block and `[browser-shot]` shortcode.
-* **Avatars without Gravatar**: served locally.
+* **Avatars without Gravatar**: served locally. Profile pictures: JPEG, PNG, GIF or WebP up to 5 MB (or the site's lower limit), 25 megapixels and 8,000 pixels on either side.
 
 = Links and speed =
 
