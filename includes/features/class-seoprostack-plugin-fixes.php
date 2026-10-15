@@ -185,10 +185,11 @@
  * palette's colour, whichever palette was asked for: the filter is not told.
  * Kadence Pro's dark mode asks for its dark palette, so dark mode got the
  * light colours: the page stayed light and a dark mode logo (light artwork
- * on a transparent background) vanished on the white header. When the
- * theme's colour for a slot is not the active palette's (another palette
- * was asked for) and Kadence Blocks changed it, the theme's colour stays.
- * Reads of the active palette keep the token colours.
+ * on a transparent background) vanished on the white header. The palette
+ * asked for is read from the theme's palette_option() call; when it is not
+ * the active one and Kadence Blocks changed the colour, the theme's colour
+ * stays. A read from elsewhere is told by its colour. Reads of the active
+ * palette keep the token colours.
  *
  * @package SEOProStack
  */
@@ -683,7 +684,13 @@ class SEOProStack_Plugin_Fixes extends SEOProStack_Feature {
         if (null === $read || $read[0] !== $subkey || $read[1] === $value || !is_string($read[1]) || '' === $read[1]) {
             return $value;
         }
-        $active = self::kadence_active_palette();
+        list($name, $active) = self::kadence_active_palette();
+        $asked               = self::kadence_asked_palette();
+        if (null !== $asked) {
+            return '' === $asked || $asked === $name ? $value : $read[1];
+        }
+        // Not read through the theme's palette_option(): tell the palette
+        // by its colour. A colour both palettes share counts as the active one.
         if (!isset($active[$subkey])) {
             return $value;
         }
@@ -697,12 +704,33 @@ class SEOProStack_Plugin_Fixes extends SEOProStack_Feature {
     }
 
     /**
-     * The active Kadence palette's stored colours by slot (palette1 …
-     * palette15): the set the theme picks when none is asked for, through
-     * its own kadence_active_palette filter. Without a stored palette, the
-     * theme's defaults, as the theme and Kadence Blocks read them.
+     * The palette set the theme's palette_option() was asked for: its
+     * second argument, which the theme does not pass to the filter. '' when
+     * none was named (the active set), null when the read did not come
+     * through palette_option().
      *
-     * @return array<string, string>
+     * @return string|null
+     */
+    private static function kadence_asked_palette() {
+        // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_debug_backtrace -- only for a colour Kadence Blocks changed, up to a few dozen per page.
+        foreach (debug_backtrace(0, 8) as $frame) {
+            if (isset($frame['class']) && 'palette_option' === $frame['function'] && 0 === strpos($frame['class'], 'Kadence\\')) {
+                $set = isset($frame['args'][1]) ? $frame['args'][1] : null;
+                // As the theme does: an empty value means the active set.
+                return is_string($set) && !empty($set) ? $set : '';
+            }
+        }
+        return null;
+    }
+
+    /**
+     * The active Kadence palette: its name, the set the theme picks when
+     * none is asked for (through its own kadence_active_palette filter), and
+     * its stored colours by slot (palette1 … palette15). Without a stored
+     * palette, the theme's defaults, as the theme and Kadence Blocks read
+     * them.
+     *
+     * @return array{0:string,1:array<string, string>}
      */
     private static function kadence_active_palette() {
         $stored = get_option('kadence_global_palette');
@@ -723,7 +751,8 @@ class SEOProStack_Plugin_Fixes extends SEOProStack_Feature {
         }
         $sets = self::$kadence_active[$key];
         $set  = apply_filters('kadence_active_palette', isset($sets['']['active']) ? $sets['']['active'] : 'palette'); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- the Kadence theme's own filter, applied as the theme does.
-        return is_string($set) && '' !== $set && isset($sets[$set]) ? $sets[$set] : array();
+        $set  = is_string($set) ? $set : '';
+        return array($set, '' !== $set && isset($sets[$set]) ? $sets[$set] : array());
     }
 
     /**
