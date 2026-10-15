@@ -24,7 +24,7 @@ SEO Pro Stack does the jobs that usually take dozens of small plugins: a calmer,
 
 If this saves you time, headaches and costs, feel free to [buy me a coffee](https://buymeacoffee.com/marcusquinn), or whatever you like, to invest in making more things open-source.
 
-Version: 1.3.47
+Version: 1.3.48
 
 <!-- github-only:start -->
 ## Screenshots
@@ -1645,8 +1645,9 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folder�
 
 ## Changelog
 
-### Unreleased
+### 1.3.48
 
+- Security: profile pictures refuse uploads over 5 MB (or the site’s lower upload limit), 25 megapixels or 8,000 pixels on either side, before decoding. Pictures use GD when it supports their type, falling back to WordPress’s image editor otherwise (GitHub issue #761).
 - New: `wp seoprostack health` reads this site's SEO Pro Stack Site Health results and web-PHP records for fleet audits, with table or JSON output and optional failure thresholds. Hosting needs keeps an hourly OPcache snapshot in the database and timestamps new memory peaks; CLI results never use CLI PHP's OPcache or memory limit (GitHub issue #756).
 - Fix: with Kadence Blocks 3.8.0 or later, Kadence Pro’s dark mode stayed light and a dark mode logo vanished on the white header, because Kadence Blocks’ design tokens gave every palette read the active (light) palette’s colours. **Fixes for other plugins** keeps the theme’s colours when another palette, such as the dark one, is asked for; the light palette keeps the token colours (GitHub issue #763).
 
