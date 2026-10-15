@@ -5,7 +5,7 @@ Tags: magic login, iframe, schedule posts, auto upload images, admin
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.3.47
+Stable tag: 1.3.48
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -145,11 +145,9 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 
 == Changelog ==
 
-= Unreleased =
+= 1.3.48 =
+* Security: profile pictures refuse uploads over 5 MB (or the site's lower limit), 25 megapixels or 8,000 pixels on a side, before decoding; GD is used when it supports the type.
 * New: wp seoprostack health: read-only Site Health results and stored web-PHP records, table/JSON and optional failure thresholds.
-
-= 1.3.47 =
-* Change: WPVulnerability is for developers only: its settings go in the Developers menu, its counts and Plugins row are hidden from other people with Developer admins on, and its Dashboard box shows below Site Health for developers.
-* Developers: WP Plugin Starter guidance synced from fccd0d8 (menu page titles).
+* Fix: Kadence Pro's dark mode keeps its dark colours with Kadence Blocks 3.8.0 or later, instead of staying light and hiding a dark mode logo.
 
 Older: `changelog.txt`.
