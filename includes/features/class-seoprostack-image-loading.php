@@ -38,6 +38,12 @@ class SEOProStack_Image_Loading extends SEOProStack_Feature {
     /** Flying Images' example exclusion, left out of the import. */
     const FLYING_EXAMPLE = 'your-logo.png';
 
+    /** @var int Pictures encountered in the main loop's output this request. */
+    private static $pictures = 0;
+
+    /** @var bool Whether an image already has high fetch priority. */
+    private static $high_priority = false;
+
     /**
      * Settings.
      *
@@ -109,7 +115,7 @@ class SEOProStack_Image_Loading extends SEOProStack_Feature {
             return;
         }
         add_filter('wp_omit_loading_attr_threshold', array(__CLASS__, 'threshold'), 20);
-        add_filter('wp_content_img_tag', array(__CLASS__, 'content_image'), 20);
+        add_filter('wp_content_img_tag', array(__CLASS__, 'content_image'), 20, 2);
         add_filter('wp_get_attachment_image_attributes', array(__CLASS__, 'attachment_image'), 20);
         add_filter('wp_iframe_tag_add_loading_attr', array(__CLASS__, 'iframe'), 20, 2);
     }
@@ -168,17 +174,54 @@ class SEOProStack_Image_Loading extends SEOProStack_Feature {
     }
 
     /**
-     * Content pictures: drop loading="lazy" from excluded ones, whether core
-     * or the saved block added it.
+     * Process pictures in content order, after secondary-query blocks render.
+     * Core's main-query heuristics do not make those block pictures eager.
      *
-     * @param string $image HTML img tag.
+     * @param string $image   HTML img tag.
+     * @param string $context Content filter context.
      * @return string
      */
-    public static function content_image($image) {
-        if (!is_string($image) || false === strpos($image, 'loading=') || !self::excluded($image)) {
+    public static function content_image($image, $context = '') {
+        global $wp_current_filter;
+
+        if (!is_string($image)) {
             return $image;
         }
-        return (string) preg_replace('/\sloading=(["\'])lazy\1/i', '', $image);
+        // Query Loop Post Content blocks filter their images before the outer
+        // content does. Leave those for the outer pass, in final output order.
+        if ('the_content' === $context && count(array_keys((array) $wp_current_filter, 'the_content', true)) > 1) {
+            return $image;
+        }
+        $tag = new WP_HTML_Tag_Processor($image);
+        if (!$tag->next_tag(array('tag_name' => 'IMG'))) {
+            return $image;
+        }
+        $priority = $tag->get_attribute('fetchpriority');
+        if ('high' === $priority) {
+            self::$high_priority = true;
+        }
+        $eager = false;
+        if ('the_content' === $context && is_main_query() && in_the_loop() && !is_feed()) {
+            ++self::$pictures;
+            $eager = self::$pictures <= self::threshold();
+        }
+        if (($eager || self::excluded($image)) && 'lazy' === $tag->get_attribute('loading')) {
+            $tag->remove_attribute('loading');
+        }
+        // Match core's minimum area so an icon cannot take the LCP slot.
+        $area = (int) $tag->get_attribute('width') * (int) $tag->get_attribute('height');
+        // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- Reuse core's existing image-area threshold, not a plugin-owned hook.
+        $minimum = (int) apply_filters('wp_min_priority_img_pixels', 50000);
+        // Respect explicit priorities and core's choice of an earlier LCP image.
+        if ($eager && $area >= $minimum && null === $priority && !self::$high_priority
+            && (!function_exists('wp_high_priority_element_flag') || wp_high_priority_element_flag())) {
+            $tag->set_attribute('fetchpriority', 'high');
+            self::$high_priority = true;
+            if (function_exists('wp_high_priority_element_flag')) {
+                wp_high_priority_element_flag(false);
+            }
+        }
+        return $tag->get_updated_html();
     }
 
     /**
@@ -189,7 +232,18 @@ class SEOProStack_Image_Loading extends SEOProStack_Feature {
      * @return array
      */
     public static function attachment_image($attr) {
-        if (!is_array($attr) || !isset($attr['loading']) || 'lazy' !== $attr['loading']) {
+        if (!is_array($attr)) {
+            return $attr;
+        }
+        if (isset($attr['fetchpriority']) && 'high' === $attr['fetchpriority']) {
+            self::$high_priority = true;
+        }
+        // A featured image before the content shares its eager-image budget.
+        // Block attachments are counted later, in their final content order.
+        if (is_main_query() && in_the_loop() && !doing_filter('the_content') && !doing_filter('get_the_excerpt') && !is_feed()) {
+            ++self::$pictures;
+        }
+        if (!isset($attr['loading']) || 'lazy' !== $attr['loading']) {
             return $attr;
         }
         $text = '';
