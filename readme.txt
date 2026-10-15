@@ -49,6 +49,7 @@ Safe features start on; others stay off. **Settings → SEO Pro Stack** has **Se
 * **Restrict content** by membership or role. **Menu item visibility** by login or role.
 * **iFrame block**, **Link cards**, **Wikipedia previews**, **Word documents**, **Brand icons** and **Like, save and share**.
 * **Spectra block replacements**, **TranslatePress colours** and **Kadence query filters**.
+* **WP Grid Builder colours**: cards and facet inputs follow Kadence dark mode; light mode stays unchanged.
 
 = Media =
 
@@ -144,6 +145,9 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 3. The Read Me tab, showing the plugin's guide.
 
 == Changelog ==
+
+= Unreleased =
+* New: WP Grid Builder colours follows Kadence dark mode for cards and facet inputs, on by default; saved colours and light mode stay unchanged.
 
 = 1.3.48 =
 * Security: profile pictures refuse uploads over 5 MB (or the site's lower limit), 25 megapixels or 8,000 pixels on a side, before decoding; GD is used when it supports the type.
