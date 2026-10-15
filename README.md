@@ -969,6 +969,14 @@ When a visitor changes a filter (a checkbox, radio button or drop-down) in a Kad
 - With reduced motion set in the visitor’s system, the jump is instant instead of smooth.
 - The script is under 1 KB, printed inline in the footer, without jQuery or a file to download, and only on pages where a query loop (`kadence/query`) was drawn: in the content, a Kadence Element, a block template or a widget. Other pages get nothing. Nothing changes without Kadence Blocks Pro.
 
+### Kadence query filters accept term slugs (Content)
+
+Kadence Blocks Pro’s taxonomy filters put term IDs in the address (`?make=123`), so a readable link that names the term by its slug (`?make=bentley`), from a menu, a logo, a campaign or a filter plugin used before, shows no results. With this on, such a link goes on (a temporary 302 redirect) to the same address with the term’s ID, and the loop, its filters, page numbers and sorting work as if the visitor had chosen that term.
+
+- The argument is the filter’s **Slug** (set in the filter block) or its hash; several terms, split by commas, work too. Values that are already IDs, slugs of no term in that filter’s taxonomy, and every other argument are left as they are.
+- Runs after the site’s own redirects (`template_redirect`, priority 20), so code that handles the slug itself, such as sending links for a term with no posts somewhere else, still sees it.
+- Only on single posts and pages whose own content has a query loop (up to 10); loops in Kadence Elements or block templates are not looked up. Nothing changes without Kadence Blocks Pro.
+
 ### Copy linked images to Media Library (Media)
 
 When a post is saved, images linked from other sites are copied into the Media Library, resized, attached to the post, and the content is changed to serve the local copy.
@@ -1659,6 +1667,7 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folder�
 ### Unreleased
 
 - New, on by default: **WP Grid Builder colours** makes card surfaces, scheme text and facet inputs follow Kadence's dark palette, without changing light mode or saved WP Grid Builder settings (GitHub issue #767).
+- New, off by default: **Kadence query filters accept term slugs** (Content tab). A link naming a Kadence Blocks Pro query loop filter's term by its slug (`?make=bentley`) goes on to the same address with the term ID Kadence uses, instead of showing no results. Only on pages whose content has a query loop (GitHub issue #776).
 
 ### 1.3.48
 
