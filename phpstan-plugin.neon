@@ -5,16 +5,16 @@ parameters:
 	paths:
 		- blocks
 	ignoreErrors:
-		# WP-CLI and other plugins (Fluent, Freemius, WooCommerce, Kadence,
-		# LiteSpeed Cache) are not installed here. The code uses them only when
-		# they are loaded (defined('WP_CLI'), class_exists(), function_exists(),
-		# defined()).
+		# WP-CLI and other plugins and themes (Fluent, Freemius, WooCommerce,
+		# Kadence, LiteSpeed Cache) are not installed here. The code uses them
+		# only when they are loaded (defined('WP_CLI'), class_exists(),
+		# function_exists(), defined()).
 		-
 			identifiers:
 				- class.notFound
 				- function.notFound
 				- constant.notFound
-			message: '#(WP_CLI|Fluent[A-Za-z]*\\|fluentcrm_|fluentCrm|Freemius|WC_[A-Za-z_]+|KADENCE_[A-Z_]+|LiteSpeed\\)#'
+			message: '#(WP_CLI|Fluent[A-Za-z]*\\|fluentcrm_|fluentCrm|Freemius|WC_[A-Za-z_]+|KADENCE_[A-Z_]+|Kadence\\|LiteSpeed\\)#'
 		# The same plugins' methods, checked with method_exists() before use.
 		-
 			identifiers:
