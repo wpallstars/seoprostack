@@ -180,6 +180,17 @@
  * stays WordPress's "nobody" capability, and the plugin's posts stay denied.
  * Other plugins that make the same mapping are handled too.
  *
+ * Kadence Blocks 3.8.0's design tokens answer every read of a Kadence theme
+ * palette colour (the kadence_palette_option filter) with the active
+ * palette's colour, whichever palette was asked for: the filter is not told.
+ * Kadence Pro's dark mode asks for its dark palette, so dark mode got the
+ * light colours: the page stayed light and a dark mode logo (light artwork
+ * on a transparent background) vanished on the white header. The palette
+ * asked for is read from the theme's palette_option() call; when it is not
+ * the active one and Kadence Blocks changed the colour, the theme's colour
+ * stays. A read from elsewhere is told by its colour. Reads of the active
+ * palette keep the token colours.
+ *
  * @package SEOProStack
  */
 
@@ -249,6 +260,28 @@ class SEOProStack_Plugin_Fixes extends SEOProStack_Feature {
     /** Whether Kadence Pro's class map has been cleaned in this request. */
     private static $kadence_pro_cleaned = false;
 
+    /** First Kadence Blocks version whose design tokens answer every palette read with the active palette. */
+    const KADENCE_TOKENS_FROM = '3.8.0';
+
+    /** Kadence's palette complement marker (exactly this case): palette10 follows palette1. */
+    const KADENCE_COMPLEMENT = '#FfFfFf';
+
+    /**
+     * The theme's colour for the palette slot being read, before Kadence
+     * Blocks' filter: array(slot, colour), or null.
+     *
+     * @var array{0:string,1:mixed}|null
+     */
+    private static $kadence_read = null;
+
+    /**
+     * Kadence's palette sets (kadence_palette_sets()), decoded once per
+     * stored kadence_global_palette value (the key).
+     *
+     * @var array<string, array<string, array<string, string>>>
+     */
+    private static $kadence_active = array();
+
     /** WP Crontrol's notice about DISABLE_WP_CRON (its wp_admin_notice() id). */
     const CRONTROL_NOTICE = 'crontrol-status-notice';
 
@@ -287,7 +320,7 @@ class SEOProStack_Plugin_Fixes extends SEOProStack_Feature {
                 'default'     => true,
                 'tab'         => 'plugins',
                 'label'       => __('Fixes for other plugins', 'seoprostack'),
-                'description' => __('Works around bugs in other plugins that slow your site down, without changing their settings. Lasso Lite (Simple URLs) stops contacting its server on every admin screen. Deactivating Freesoul Deactivate Plugins or its PRO add-on deactivates both and removes the must-use file it leaves behind. Readabler no longer contacts its server on every Plugins screen load, or stops that screen with a critical error when it cannot. Tutor LMS Pro and Tutor LMS Certificate Builder stop adding warnings to the debug log when there is no update. Tutor LMS gets its order, cart and coupon tables on every site of a network. Tutor LMS Pro no longer makes the Plugins screen check every plugin for updates on each load. Comment Goblin no longer waits for its update server on every admin screen while that server fails. MainWP Child no longer prints its Branding "Global footer" text, unstyled, below every front-end page. On LiteSpeed servers, scheduled tasks (WordPress cron and Action Scheduler, used by WooCommerce and others) finish instead of stopping partway, through a few lines at the top of .htaccess. Kadence Pro no longer causes "Failed opening" warnings when other plugins load shared code. WP Crontrol says whether the server\'s cron job runs, instead of only that DISABLE_WP_CRON is set. On Hostinger, a server cron job no longer fills the error log with "invalid_schedule" errors for the Monarx security agent\'s tasks (mnx_versions_cron_event). Burst Statistics finishes its database upgrade instead of logging a database error every 5 minutes when its tables differ in collation. LiteSpeed Cache\'s crawler works in turns short enough for LiteSpeed hosts, instead of being stopped partway and waiting an hour. Tutor LMS Pro, and other plugins whose tables have a column of choices in capitals, no longer change their table on every request. Turn this off if a fix causes a problem.', 'seoprostack'),
+                'description' => __('Works around bugs in other plugins that slow your site down, without changing their settings. Lasso Lite (Simple URLs) stops contacting its server on every admin screen. Deactivating Freesoul Deactivate Plugins or its PRO add-on deactivates both and removes the must-use file it leaves behind. Readabler no longer contacts its server on every Plugins screen load, or stops that screen with a critical error when it cannot. Tutor LMS Pro and Tutor LMS Certificate Builder stop adding warnings to the debug log when there is no update. Tutor LMS gets its order, cart and coupon tables on every site of a network. Tutor LMS Pro no longer makes the Plugins screen check every plugin for updates on each load. Comment Goblin no longer waits for its update server on every admin screen while that server fails. MainWP Child no longer prints its Branding "Global footer" text, unstyled, below every front-end page. On LiteSpeed servers, scheduled tasks (WordPress cron and Action Scheduler, used by WooCommerce and others) finish instead of stopping partway, through a few lines at the top of .htaccess. Kadence Pro no longer causes "Failed opening" warnings when other plugins load shared code. WP Crontrol says whether the server\'s cron job runs, instead of only that DISABLE_WP_CRON is set. On Hostinger, a server cron job no longer fills the error log with "invalid_schedule" errors for the Monarx security agent\'s tasks (mnx_versions_cron_event). Burst Statistics finishes its database upgrade instead of logging a database error every 5 minutes when its tables differ in collation. LiteSpeed Cache\'s crawler works in turns short enough for LiteSpeed hosts, instead of being stopped partway and waiting an hour. Tutor LMS Pro, and other plugins whose tables have a column of choices in capitals, no longer change their table on every request. Kadence Pro\'s dark mode keeps its dark colours with Kadence Blocks 3.8.0 or later, instead of staying light and hiding a dark mode logo. Turn this off if a fix causes a problem.', 'seoprostack'),
             ),
         );
     }
@@ -329,6 +362,11 @@ class SEOProStack_Plugin_Fixes extends SEOProStack_Feature {
         add_action('wp_footer', array(__CLASS__, 'mainwp_no_front_end_footer'), 0);
         // Before WP Crontrol's status notice, which uses priority 20.
         add_action('crontrol/tab-header', array(__CLASS__, 'crontrol_status'), 19);
+        // Around Kadence Blocks' design token filter, which uses priority 10.
+        if (defined('KADENCE_BLOCKS_VERSION') && version_compare((string) KADENCE_BLOCKS_VERSION, self::KADENCE_TOKENS_FROM, '>=')) {
+            add_filter('kadence_palette_option', array(__CLASS__, 'kadence_palette_before'), 9, 2);
+            add_filter('kadence_palette_option', array(__CLASS__, 'kadence_palette_after'), 11, 2);
+        }
         // Now (init, priority 0): LiteSpeed Cache reads the constant when a
         // crawl starts and in its role simulation (init, priority 5).
         self::litespeed_crawler_duration();
@@ -616,6 +654,139 @@ class SEOProStack_Plugin_Fixes extends SEOProStack_Feature {
                 }
             }
         }
+    }
+
+    /**
+     * Note the theme's colour for a palette slot, before Kadence Blocks'
+     * design tokens replace it.
+     *
+     * @param mixed $value  Colour the theme read.
+     * @param mixed $subkey Slot, such as palette1.
+     * @return mixed Unchanged.
+     */
+    public static function kadence_palette_before($value, $subkey = '') {
+        self::$kadence_read = is_string($subkey) ? array($subkey, $value) : null;
+        return $value;
+    }
+
+    /**
+     * Give back the theme's colour when another palette than the active one
+     * was asked for (Kadence Pro's dark mode) and Kadence Blocks replaced it
+     * with the active palette's token colour.
+     *
+     * @param mixed $value  Colour after Kadence Blocks' filter.
+     * @param mixed $subkey Slot, such as palette1.
+     * @return mixed
+     */
+    public static function kadence_palette_after($value, $subkey = '') {
+        $read               = self::$kadence_read;
+        self::$kadence_read = null;
+        if (null === $read || $read[0] !== $subkey || $read[1] === $value || !is_string($read[1]) || '' === $read[1]) {
+            return $value;
+        }
+        list($name, $active) = self::kadence_active_palette();
+        $asked               = self::kadence_asked_palette();
+        if (null !== $asked) {
+            return '' === $asked || $asked === $name ? $value : $read[1];
+        }
+        // Not read through the theme's palette_option(): tell the palette
+        // by its colour. A colour both palettes share counts as the active one.
+        if (!isset($active[$subkey])) {
+            return $value;
+        }
+        $own = $active[$subkey];
+        if (self::KADENCE_COMPLEMENT === $own) {
+            // The theme gives the complement (not a hex colour) for the
+            // marker; a hex colour came from another palette.
+            return '#' === substr($read[1], 0, 1) ? $read[1] : $value;
+        }
+        return 0 === strcasecmp($own, $read[1]) ? $value : $read[1];
+    }
+
+    /**
+     * The palette set the theme's palette_option() was asked for: its
+     * second argument, which the theme does not pass to the filter. '' when
+     * none was named (the active set), null when the read did not come
+     * through palette_option().
+     *
+     * @return string|null
+     */
+    private static function kadence_asked_palette() {
+        // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_debug_backtrace -- only for a colour Kadence Blocks changed, up to a few dozen per page.
+        foreach (debug_backtrace(0, 8) as $frame) {
+            if (isset($frame['class']) && 'palette_option' === $frame['function'] && 0 === strpos($frame['class'], 'Kadence\\')) {
+                $set = isset($frame['args'][1]) ? $frame['args'][1] : null;
+                // As the theme does: an empty value means the active set.
+                return is_string($set) && !empty($set) ? $set : '';
+            }
+        }
+        return null;
+    }
+
+    /**
+     * The active Kadence palette: its name, the set the theme picks when
+     * none is asked for (through its own kadence_active_palette filter), and
+     * its stored colours by slot (palette1 … palette15). Without a stored
+     * palette, the theme's defaults, as the theme and Kadence Blocks read
+     * them.
+     *
+     * @return array{0:string,1:array<string, string>}
+     */
+    private static function kadence_active_palette() {
+        $stored = get_option('kadence_global_palette');
+        if (is_array($stored)) {
+            // A site may filter the option into the decoded array.
+            $stored = wp_json_encode($stored);
+        }
+        $key = is_string($stored) ? $stored : '';
+        if ('' === $key && function_exists('Kadence\kadence')) {
+            $theme = \Kadence\kadence();
+            if (is_object($theme) && is_callable(array($theme, 'get_default_palette'))) {
+                $defaults = call_user_func(array($theme, 'get_default_palette'));
+                $key      = is_string($defaults) ? $defaults : '';
+            }
+        }
+        if (!isset(self::$kadence_active[$key])) {
+            self::$kadence_active[$key] = self::kadence_palette_sets($key);
+        }
+        $sets = self::$kadence_active[$key];
+        $set  = apply_filters('kadence_active_palette', isset($sets['']['active']) ? $sets['']['active'] : 'palette'); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- the Kadence theme's own filter, applied as the theme does.
+        $set  = is_string($set) ? $set : '';
+        return array($set, '' !== $set && isset($sets[$set]) ? $sets[$set] : array());
+    }
+
+    /**
+     * Each palette set's colours by slot, from the stored
+     * kadence_global_palette value; the active set's name is under
+     * ['']['active'].
+     *
+     * @param string $stored Stored JSON.
+     * @return array<string, array<string, string>>
+     */
+    private static function kadence_palette_sets($stored) {
+        $palette = '' === $stored ? null : json_decode($stored, true);
+        $sets    = array('' => array('active' => 'palette'));
+        if (!is_array($palette)) {
+            return $sets;
+        }
+        foreach ($palette as $name => $items) {
+            if ('active' === $name) {
+                if (is_string($items) && '' !== $items) {
+                    $sets['']['active'] = $items;
+                }
+                continue;
+            }
+            if (!is_string($name) || '' === $name || !is_array($items)) {
+                continue;
+            }
+            $sets[$name] = array();
+            foreach ($items as $item) {
+                if (is_array($item) && isset($item['slug'], $item['color']) && is_string($item['slug']) && is_string($item['color'])) {
+                    $sets[$name][$item['slug']] = $item['color'];
+                }
+            }
+        }
+        return $sets;
     }
 
     /**
