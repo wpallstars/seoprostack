@@ -787,6 +787,10 @@ class SEOProStack_Nextgen_Images extends SEOProStack_Feature {
                 }
                 // Marked as tried first: if PHP stops on it, it is not tried
                 // again at the head of every batch.
+                $record = get_post_meta($id, self::META, true);
+                $record = is_array($record) ? $record : array();
+                $record['incomplete'] = true;
+                update_post_meta($id, self::META, $record);
                 update_post_meta($id, self::DONE, self::signature());
                 self::convert_attachment($id);
             }
@@ -794,6 +798,7 @@ class SEOProStack_Nextgen_Images extends SEOProStack_Feature {
         delete_transient(self::LOCK);
         if (!self::waiting(1)) {
             wp_clear_scheduled_hook(self::HOOK);
+            self::remove_compressx_block();
         }
     }
 
@@ -1150,36 +1155,221 @@ class SEOProStack_Nextgen_Images extends SEOProStack_Feature {
         if (!function_exists('insert_with_markers')) {
             require_once ABSPATH . 'wp-admin/includes/misc.php';
         }
-        return insert_with_markers($file, self::MARKER, $lines) ? 'written' : 'unwritable';
+        if (!insert_with_markers($file, self::MARKER, $lines)) {
+            return 'unwritable';
+        }
+        self::remove_compressx_block();
+        return 'written';
     }
 
     /**
      * Remove the block, markers included.
      *
-     * @param string $file .htaccess path.
+     * @param string $file   .htaccess path.
+     * @param string $marker Block marker.
      * @return bool Whether the file has no block now.
      */
-    public static function remove_block($file) {
+    public static function remove_block($file, $marker = self::MARKER) {
+        if (is_link($file)) {
+            return false;
+        }
         if (!is_file($file)) {
             return true;
         }
-        $contents = (string) file_get_contents($file); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents -- local file.
-        if (false === strpos($contents, '# BEGIN ' . self::MARKER)) {
-            return true;
-        }
-        $quoted  = preg_quote(self::MARKER, '/');
-        $cleaned = preg_replace('/(\r?\n)*# BEGIN ' . $quoted . '\r?\n.*?# END ' . $quoted . '[^\n]*(\n|$)/s', "\n", $contents);
-        if (null === $cleaned || !wp_is_writable($file)) {
+        if (!wp_is_writable($file)) {
             return false;
         }
-        $cleaned = ltrim($cleaned, "\r\n");
-        if ('' === trim($cleaned)) {
-            // Only our block was there; the file was made for it.
-            // wp_delete_file() returns nothing before WordPress 6.6, so check.
-            wp_delete_file($file);
-            return !file_exists($file);
+        // Coordinate the read and write with core's insert_with_markers().
+        $handle = fopen($file, 'r+'); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fopen -- locked local rules update, as core does.
+        if (false === $handle) {
+            return false;
         }
-        return false !== file_put_contents($file, $cleaned); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_file_put_contents -- same as insert_with_markers().
+        try {
+            if (!flock($handle, LOCK_EX)) {
+                return false;
+            }
+            $contents = stream_get_contents($handle);
+            if (false === $contents) {
+                return false;
+            }
+            if (false === strpos($contents, '# BEGIN ' . $marker)) {
+                return true;
+            }
+            $quoted  = preg_quote($marker, '/');
+            $cleaned = preg_replace('/^# BEGIN ' . $quoted . '\r?\n.*?^# END ' . $quoted . '\r?$(\n|$)/ms', '', $contents);
+            if (null === $cleaned || false !== strpos($cleaned, '# BEGIN ' . $marker) || false !== strpos($cleaned, '# END ' . $marker)) {
+                return false;
+            }
+            $cleaned = ltrim($cleaned, "\r\n");
+            // Keep the file even when empty: unlinking a locked file would
+            // let another writer lock a different inode at the same path.
+            if (!rewind($handle) || !ftruncate($handle, 0)) {
+                return false;
+            }
+            return strlen($cleaned) === fwrite($handle, $cleaned) && fflush($handle); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fwrite -- locked local rules update.
+        } finally {
+            flock($handle, LOCK_UN);
+            fclose($handle); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fclose -- close our local rules handle.
+        }
+    }
+
+    /**
+     * Whether every site has finished taking over the shared CompressX folder.
+     * Read activation lists afresh: active_plugins() caches the current site.
+     *
+     * @return bool
+     */
+    private static function compressx_cleanup_ready() {
+        $offset = 0;
+        do {
+            $ids = is_multisite() ? get_sites(array('fields' => 'ids', 'number' => 50, 'offset' => $offset)) : array(get_current_blog_id());
+            foreach ($ids as $id) {
+                if (is_multisite()) {
+                    switch_to_blog((int) $id);
+                }
+                try {
+                    $plugins = array_merge(self::stored_active_plugins(), array_keys((array) get_site_option('active_sitewide_plugins', array())));
+                    foreach ($plugins as $plugin) {
+                        if ('compressx' === dirname($plugin)) {
+                            return false;
+                        }
+                    }
+                    if (!self::switched_on() || !self::formats() || get_transient(self::LOCK) || self::waiting(1) || self::conversion_failed()) {
+                        return false;
+                    }
+                } finally {
+                    if (is_multisite()) {
+                        restore_current_blog();
+                    }
+                }
+            }
+            $offset += 50;
+        } while (is_multisite() && count($ids) === 50);
+        return true;
+    }
+
+    /**
+     * A tried attachment can be marked done even when an individual copy failed.
+     * Page the indexed metadata lookup; never delete potentially usable legacy
+     * copies merely because those failed attempts left the queue empty.
+     *
+     * @return bool
+     */
+    private static function conversion_failed() {
+        global $wpdb;
+        $after = 0;
+        do {
+            // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- indexed, paged cleanup preflight only.
+            $ids = $wpdb->get_col($wpdb->prepare("SELECT post_id FROM {$wpdb->postmeta} WHERE meta_key = %s AND post_id > %d ORDER BY post_id LIMIT 50", self::DONE, $after));
+            foreach ($ids as $id) {
+                $record = get_post_meta((int) $id, self::META, true);
+                if (!is_array($record) || !empty($record['incomplete'])) {
+                    return true;
+                }
+                foreach (isset($record['files']) && is_array($record['files']) ? $record['files'] : array() as $formats) {
+                    if (is_array($formats) && in_array(-1, $formats, true)) {
+                        return true;
+                    }
+                }
+                $after = (int) $id;
+            }
+        } while (count($ids) === 50);
+        return false;
+    }
+
+    /**
+     * Retire CompressX's rules only once conversion has finished everywhere.
+     *
+     * @return bool
+     */
+    private static function remove_compressx_block() {
+        $file = self::htaccess_path();
+        if (!$file || is_link($file) || (is_file($file) && !is_readable($file))) {
+            return false;
+        }
+        if (!is_file($file)) {
+            return true;
+        }
+        $contents = (string) file_get_contents($file); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents -- local rules preflight.
+        if (false === strpos($contents, '# BEGIN CompressX')) {
+            return true;
+        }
+        if (!self::compressx_cleanup_ready()) {
+            return false;
+        }
+        delete_transient(self::CHECK);
+        return self::remove_block($file, 'CompressX');
+    }
+
+    /**
+     * Inspect leftover files without following symbolic links. No visitor work.
+     *
+     * @return array{files:int,bytes:int}|WP_Error
+     */
+    private static function compressx_leftovers() {
+        $path = WP_CONTENT_DIR . '/compressx-nextgen';
+        $size = array('files' => 0, 'bytes' => 0);
+        if (!file_exists($path) && !is_link($path)) {
+            return $size;
+        }
+        if (is_link($path) || !is_dir($path)) {
+            return new WP_Error('nextgen_compressx_path', __('The CompressX folder is not a regular folder. No files were removed.', 'seoprostack'));
+        }
+        try {
+            $files = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($path, FilesystemIterator::SKIP_DOTS));
+            foreach ($files as $file) {
+                if ($file->isLink() || !$file->isFile()) {
+                    return new WP_Error('nextgen_compressx_link', __('The CompressX folder contains a link or a special file. No files were removed.', 'seoprostack'));
+                }
+                $size['files']++;
+                $size['bytes'] += $file->getSize();
+            }
+        } catch (UnexpectedValueException $error) {
+            return new WP_Error('nextgen_compressx_read', __('The CompressX folder could not be read. No files were removed.', 'seoprostack'));
+        }
+        return $size;
+    }
+
+    /**
+     * Explicit CLI cleanup: keep adopted copies beside the original pictures.
+     *
+     * @return true|WP_Error
+     */
+    private static function cleanup_compressx() {
+        if (!self::compressx_cleanup_ready()) {
+            return new WP_Error('nextgen_compressx_busy', __('Deactivate CompressX and finish conversion on every site first. No files were removed.', 'seoprostack'));
+        }
+        $size = self::compressx_leftovers();
+        if (is_wp_error($size)) {
+            return $size;
+        }
+        $file = self::htaccess_path();
+        if (!$file || is_link($file)) {
+            return new WP_Error('nextgen_compressx_rules_path', __('The uploads rules file is not a regular file. No files were removed.', 'seoprostack'));
+        }
+        // Install our rules before removing the old ones, including on sites
+        // whose conversion completed before this cleanup was available.
+        self::sync_rules();
+        $state = (array) get_site_option(self::RULES, array());
+        if (!isset($state['status']) || !in_array($state['status'], array('written', 'nginx'), true)) {
+            return new WP_Error('nextgen_compressx_serving', __('Replacement image rules could not be written. No files were removed.', 'seoprostack'));
+        }
+        if (!self::remove_compressx_block()) {
+            return new WP_Error('nextgen_compressx_rules', __('The CompressX rules could not be removed. No files were removed.', 'seoprostack'));
+        }
+        $path = WP_CONTENT_DIR . '/compressx-nextgen';
+        if (!is_dir($path)) {
+            return true;
+        }
+        // WP_Filesystem_Direct needs no credentials. The preflight above
+        // refuses symlinks, so recursive deletion cannot follow them outside.
+        require_once ABSPATH . 'wp-admin/includes/class-wp-filesystem-base.php';
+        require_once ABSPATH . 'wp-admin/includes/class-wp-filesystem-direct.php';
+        $filesystem = new WP_Filesystem_Direct(null);
+        if (!$filesystem->delete($path, true)) {
+            return new WP_Error('nextgen_compressx_delete', __('Some CompressX files could not be removed. Check folder permissions and run cleanup again.', 'seoprostack'));
+        }
+        return true;
     }
 
     /**
@@ -1247,6 +1437,14 @@ class SEOProStack_Nextgen_Images extends SEOProStack_Feature {
             self::schedule();
         }
         echo '<p>' . esc_html($text) . '</p>';
+
+        $leftovers = self::compressx_leftovers();
+        if (is_wp_error($leftovers)) {
+            echo '<p>' . esc_html($leftovers->get_error_message()) . '</p>';
+        } elseif ($leftovers['files']) {
+            /* translators: 1: number of leftover files, 2: their total size. */
+            echo '<p>' . esc_html(sprintf(__('CompressX leftovers: %1$s files (%2$s). After conversion finishes on every site and CompressX is deactivated, remove them with WP-CLI: wp seoprostack convert-images --cleanup-compressx. Adopted copies are kept.', 'seoprostack'), number_format_i18n($leftovers['files']), size_format($leftovers['bytes'], 1))) . '</p>';
+        }
 
         $state  = (array) get_site_option(self::RULES, array());
         $status = isset($state['status']) ? $state['status'] : '';
@@ -1408,6 +1606,10 @@ class SEOProStack_Nextgen_Images extends SEOProStack_Feature {
      * [--dry-run]
      * : Say how many pictures are waiting.
      *
+     * [--cleanup-compressx]
+     * : Delete CompressX leftovers after conversion finishes on every site.
+     * Combine with --dry-run to show their count and size without changes.
+     *
      * ## EXAMPLES
      *
      *     wp seoprostack convert-images
@@ -1417,6 +1619,26 @@ class SEOProStack_Nextgen_Images extends SEOProStack_Feature {
      * @param array $assoc Options.
      */
     public static function cli($args, $assoc) {
+        if (isset($assoc['cleanup-compressx'])) {
+            if (isset($assoc['force'])) {
+                WP_CLI::error('Run conversion with --force separately before cleanup.');
+            }
+            if (isset($assoc['dry-run'])) {
+                $size = self::compressx_leftovers();
+                if (is_wp_error($size)) {
+                    WP_CLI::error($size->get_error_message());
+                    return;
+                }
+                WP_CLI::success(sprintf('CompressX leftovers: %d files (%s). Nothing changed.', $size['files'], size_format($size['bytes'], 1)));
+                return;
+            }
+            $result = self::cleanup_compressx();
+            if (is_wp_error($result)) {
+                WP_CLI::error($result->get_error_message());
+            }
+            WP_CLI::success('CompressX leftovers removed. Adopted WebP and AVIF copies were kept.');
+            return;
+        }
         if (!self::formats()) {
             WP_CLI::error('No format to make: turn on WebP or AVIF copies, or check server support.');
         }
