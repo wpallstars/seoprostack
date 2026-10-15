@@ -181,6 +181,17 @@ Follow the site's theme, not the visitor's system colour preference. Use
 with `color-switch-light` and `color-switch-dark`; no script or separate
 dark icon is needed. Shared styling rules are in `STANDARDS.md`.
 
+WP Grid Builder colours is a default-on Content feature, restricted to active
+WP Grid Builder on Kadence (child themes included). Append colour overrides
+through WPGB's inline-style filter, so pages without its styles add nothing.
+Scope to `body.color-switch-dark`: light mode keeps the authored card design.
+Surfaces use palette 9, borders 7, primary scheme text 3/4, secondary text 5
+(not decorative palette 6), and accent text 1. Facet inputs, placeholders and
+combobox options use the same surface/text pair. Read variables at the element,
+never on `:root`. Leave layout, media images, animations and interactions alone;
+responsive breakpoints remain WPGB's. Palette choices still need a contrast
+check on the real grid; arbitrary site palettes cannot guarantee WCAG ratios.
+
 ## Settings panels
 
 A feature's Options panel shows its status and the choices people need.

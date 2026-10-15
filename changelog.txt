@@ -2,6 +2,9 @@
 
 Every change to SEO Pro Stack. readme.txt lists the latest version in short.
 
+= Unreleased =
+* New, on by default: WP Grid Builder colours (Content) makes card surfaces, scheme text and facet inputs follow Kadence's body-scoped dark palette. Light mode and saved WP Grid Builder settings stay unchanged. Only loads with active WP Grid Builder and Kadence, including child themes, where WP Grid Builder prints its styles (GitHub issue #767).
+
 = 1.3.48 =
 * Security: Profile pictures refuse uploads over 5 MB (or the site's lower upload limit), 25 megapixels or 8,000 pixels on either side before decoding. Pictures use GD when it supports their type, falling back to WordPress's image editor otherwise (GitHub issue #761).
 * New: wp seoprostack health reads SEO Pro Stack's own Site Health results and web-request records for the site --url names, with table or JSON output, plain-text descriptions/actions, UTC times and --fail-on=critical|recommended. It skips migrations and pending network saving work, never refreshes web probes and saves nothing. Hosting needs keeps an hourly non-autoloaded OPcache snapshot without script paths, and timestamps new memory peaks; CLI results use those web readings, not the command line's PHP values (GitHub issue #756).

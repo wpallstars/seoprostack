@@ -430,6 +430,17 @@ Gives Readabler's accessibility button and popup the site's palette colours, so 
 - Button: palette 5, palette 1 on hover, icon palette 9. Popup: background palette 9, text palette 4, switches and other controls palette 5, with their translucent shades mixed from it.
 - Each colour falls back to the one saved in Readabler, so a theme without Kadence's palette keeps Readabler's colours. Sizes, positions and Readabler's saved settings are not changed; it works with Readabler's **Late load** setting too. Turning it off restores Readabler's own colours on the next page load.
 
+### WP Grid Builder colours (Content)
+
+**On by default.** On Kadence (including child themes), cards and facet inputs
+follow the theme's body-scoped palette in dark mode. Light mode keeps WP Grid
+Builder's own design. Card surfaces use palette 9, borders 7, primary text 3/4,
+secondary scheme text 5 and accents 1. Palette 6 is not used for small text.
+The site's palette still needs accessible contrast, including accent colours.
+No scripts or saved WP Grid Builder settings change; turning this off restores
+its colours. No styles are added without active WP Grid Builder and Kadence,
+or on pages where WP Grid Builder does not print styles.
+
 ### Duplicate posts (Content)
 
 Adds **Duplicate** to post lists, the editor and the admin bar for the post types you choose. The copy is always a new draft; the original is never changed. Choose what else is copied: excerpt, author, featured image, terms, custom fields (including SEO settings), template, format, menu order, password and date.
@@ -1644,6 +1655,10 @@ Deleting the plugin removes its settings (on multisite, every site's and the net
 Deactivating the plugin removes the WebP and AVIF rules from the uploads folder’s `.htaccess` (for every site when network-deactivated), the LiteSpeed background request rules from the site’s `.htaccess` (on multisite, when network-deactivated or deactivated on the main site) and the must-use file of Load plugins only where needed (on multisite, when network-deactivated).
 
 ## Changelog
+
+### Unreleased
+
+- New, on by default: **WP Grid Builder colours** makes card surfaces, scheme text and facet inputs follow Kadence's dark palette, without changing light mode or saved WP Grid Builder settings (GitHub issue #767).
 
 ### 1.3.48
 
