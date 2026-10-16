@@ -14,7 +14,7 @@
  * nothing else changes and switching off needs no clean-up.
  *
  * Copies at their own addresses (GitHub issue #779) instead wraps pictures
- * in posts, pages, block widgets and attachment images (featured images,
+ * in posts, pages, rendered blocks and attachment images (featured images,
  * logos) in a <picture> tag naming the copies, and the rules only give the
  * copies their types. Every address then always sends one file, so CDNs
  * that ignore "Vary: Accept" can cache pictures without the private header.
@@ -153,7 +153,7 @@ class SEOProStack_Nextgen_Images extends SEOProStack_Feature {
                 'default'     => false,
                 'parent'      => self::KEY,
                 'label'       => __('Copies at their own addresses', 'seoprostack'),
-                'description' => __('Pages name each picture’s AVIF and WebP copy in a <picture> tag and the browser picks one, so every address always sends the same file and CDNs, Cloudflare’s free plan included, can cache every picture. Pictures in posts, pages, block widgets, featured images and logos; pictures set in CSS, such as backgrounds, stay in their original format. Check pages afterwards: theme styles written for a picture’s direct parent may need changing.', 'seoprostack'),
+                'description' => __('Pages name each picture’s AVIF and WebP copy in a <picture> tag and the browser picks one, so every address always sends the same file and CDNs, Cloudflare’s free plan included, can cache every picture. Pictures in posts, pages, block widgets, block templates, Kadence Elements, featured images and logos, including cover block images; pictures set in CSS stay in their original format. Check pages afterwards: theme styles written for a picture’s direct parent may need changing.', 'seoprostack'),
             ),
         );
     }
@@ -276,6 +276,9 @@ class SEOProStack_Nextgen_Images extends SEOProStack_Feature {
             add_filter('widget_block_content', array(__CLASS__, 'pictures'), 30);
             // Featured images, logos and other attachment images in templates.
             add_filter('wp_get_attachment_image', array(__CLASS__, 'pictures'), 30);
+            // Also blocks outside the_content: template parts and Kadence Elements.
+            // pictures() skips HTML without images and leaves existing pictures alone.
+            add_filter('render_block', array(__CLASS__, 'pictures'), 30);
         }
 
         if (is_admin()) {
