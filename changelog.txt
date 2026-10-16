@@ -2,6 +2,9 @@
 
 Every change to SEO Pro Stack. readme.txt lists the latest version in short.
 
+= 1.3.51 =
+* New: Kadence colour check says when the site's own CSS can change the colours it reports, since it reads only Kadence's settings. When it lists something on a site with rules in Additional CSS or a child theme's style.css, or YellowPencil with saved styles, Site Health names them and says to look at the page in light and dark mode before changing a colour. Plugins can name other sources with the seoprostack_kadence_custom_css filter, an array of names (GitHub issue #785).
+
 = 1.3.50 =
 * New: Copies at their own addresses (WebP and AVIF images, off by default) wraps pictures in post and page content, block widgets and attachment images (featured images, logos) in a <picture> tag with AVIF and WebP sources, for pictures in the uploads folder that have copies. The uploads rules then only add the copies' types, without the Accept rewrite, Vary: Accept or Cache-Control: private. Every address always sends one format, so CDNs that ignore Vary, such as Cloudflare's free plan, can cache every picture, and Keep pictures out of shared caches is not used. On multisite the shared rules keep choosing by Accept until every site using the feature has switched it on. Pictures set in CSS stay in their original format (GitHub issue #779).
 * Fix: Kadence colour check follows the element's style, as Kadence's CSS does. Social icons in the outline style (no background of their own) and brand-coloured ones (always, or the state "until hover" or "on hover" covers) are not checked. With the pill category style, the category colour is checked as the background behind Kadence's white text, with no fix offered for the white (GitHub issue #781).
