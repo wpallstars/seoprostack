@@ -148,6 +148,7 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 
 = Unreleased =
 * New: WP Grid Builder colours follows Kadence dark mode for cards and facet inputs, on by default; saved colours and light mode stay unchanged.
+* New: Kadence query filter links may name terms by slug (off by default).
 
 = 1.3.48 =
 * Security: profile pictures refuse uploads over 5 MB (or the site's lower limit), 25 megapixels or 8,000 pixels on a side, before decoding; GD is used when it supports the type.
