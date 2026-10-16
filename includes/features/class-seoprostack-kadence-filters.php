@@ -135,14 +135,16 @@ class SEOProStack_Kadence_Filters extends SEOProStack_Feature {
             if (count($ids) >= self::MAX_LOOPS) {
                 break;
             }
-            if ('kadence/query' === ($block['blockName'] ?? '') && !empty($block['attrs']['id'])) {
-                $ids[] = (int) $block['attrs']['id'];
+            // A loop repeated on the page counts once towards the limit.
+            $id = 'kadence/query' === ($block['blockName'] ?? '') ? (int) ($block['attrs']['id'] ?? 0) : 0;
+            if ($id > 0 && !in_array($id, $ids, true)) {
+                $ids[] = $id;
             }
             if (!empty($block['innerBlocks']) && is_array($block['innerBlocks'])) {
                 $ids = self::loop_ids($block['innerBlocks'], $ids);
             }
         }
-        return array_values(array_unique(array_filter($ids)));
+        return $ids;
     }
 
     /**
@@ -164,34 +166,64 @@ class SEOProStack_Kadence_Filters extends SEOProStack_Feature {
             return array();
         }
         $changes = array();
-        foreach ($loops as $loop) {
-            $facets = get_post_meta($loop, '_kad_query_facets', true);
-            if (!is_array($facets)) {
-                continue;
-            }
-            foreach ($facets as $facet) {
-                $attrs = is_array($facet) && isset($facet['attributes']) && is_string($facet['attributes'])
-                    ? json_decode($facet['attributes'], true) : null;
-                if (!is_array($attrs) || 'taxonomy' !== ($attrs['source'] ?? '') || empty($attrs['taxonomy'])
-                    || !is_string($attrs['taxonomy']) || !taxonomy_exists($attrs['taxonomy'])) {
+        foreach (self::taxonomy_filters($loops) as $filter) {
+            foreach ($filter['keys'] as $key) {
+                if (isset($changes[$key]) || !isset($args[$key]) || !is_string($args[$key])) {
                     continue;
                 }
-                $keys = array((string) ($facet['hash'] ?? ''));
-                if (!empty($attrs['slug']) && is_string($attrs['slug'])) {
-                    $keys[] = $attrs['slug'];
-                }
-                foreach ($keys as $key) {
-                    if ('' === $key || isset($changes[$key]) || !isset($args[$key]) || !is_string($args[$key])) {
-                        continue;
-                    }
-                    $value = self::term_ids_value($args[$key], $split, $attrs['taxonomy']);
-                    if (null !== $value) {
-                        $changes[$key] = $value;
-                    }
+                $value = self::term_ids_value($args[$key], $split, $filter['taxonomy']);
+                if (null !== $value) {
+                    $changes[$key] = $value;
                 }
             }
         }
         return $changes;
+    }
+
+    /**
+     * The taxonomy filters of query loops.
+     *
+     * @param int[] $loops Query loop post IDs.
+     * @return array<int,array{taxonomy:string,keys:string[]}>
+     */
+    private static function taxonomy_filters(array $loops) {
+        $filters = array();
+        foreach ($loops as $loop) {
+            $facets = get_post_meta($loop, '_kad_query_facets', true);
+            foreach (is_array($facets) ? $facets : array() as $facet) {
+                $filter = self::taxonomy_filter($facet);
+                if (null !== $filter) {
+                    $filters[] = $filter;
+                }
+            }
+        }
+        return $filters;
+    }
+
+    /**
+     * A filter's taxonomy and the request arguments that name it (its hash
+     * and its slug), when it is a taxonomy filter.
+     *
+     * @param mixed $facet One entry of a loop's _kad_query_facets meta.
+     * @return array{taxonomy:string,keys:string[]}|null
+     */
+    private static function taxonomy_filter($facet) {
+        $attrs = is_array($facet) && isset($facet['attributes']) && is_string($facet['attributes'])
+            ? json_decode($facet['attributes'], true) : null;
+        if (!is_array($attrs) || 'taxonomy' !== ($attrs['source'] ?? '')) {
+            return null;
+        }
+        $taxonomy = $attrs['taxonomy'] ?? '';
+        if (!is_string($taxonomy) || '' === $taxonomy || !taxonomy_exists($taxonomy)) {
+            return null;
+        }
+        $hash = $facet['hash'] ?? '';
+        $slug = $attrs['slug'] ?? '';
+        $keys = array_values(array_diff(
+            array(is_scalar($hash) ? (string) $hash : '', is_string($slug) ? $slug : ''),
+            array('')
+        ));
+        return $keys ? array('taxonomy' => $taxonomy, 'keys' => $keys) : null;
     }
 
     /**
