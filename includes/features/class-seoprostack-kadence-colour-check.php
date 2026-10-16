@@ -31,6 +31,11 @@
  * Kadence's white text, so that pair is checked instead, with no fix offered
  * for the white.
  *
+ * The check reads Kadence's settings only, so when it lists something on a
+ * site with CSS of its own (Additional CSS, YellowPencil, a child theme's
+ * rules), it names those and says to look at the page in both modes, since
+ * they can change the colours (GitHub issue #785).
+ *
  * SPDX-License-Identifier: GPL-3.0-or-later
  * SPDX-FileCopyrightText: 2026 Marcus Quinn
  * Additional terms (GPL-3.0 section 7(b)): SEOPROSTACK-ATTRIBUTION.txt
@@ -199,6 +204,14 @@ class SEOProStack_Kadence_Colour_Check extends SEOProStack_Feature {
                 }
             }
             $text .= '</ul>';
+            $own   = self::custom_css();
+            if ($own) {
+                $text .= '<p>' . esc_html(sprintf(
+                    /* translators: %s: where the site adds CSS, such as "Additional CSS and YellowPencil". */
+                    __('This check reads Kadence’s settings only. The site’s own CSS (%s) can change these colours, so look at the page in light and dark mode before you change one.', 'seoprostack'),
+                    wp_sprintf_l('%l', $own)
+                )) . '</p>';
+            }
             if ($can && count($links) > 1) {
                 array_unshift($links, self::link('all', __('Fix them all', 'seoprostack')));
             }
@@ -225,6 +238,61 @@ class SEOProStack_Kadence_Colour_Check extends SEOProStack_Feature {
             'actions'     => $links ? '<p>' . implode(' | ', $links) . '</p>' : '',
             'test'        => 'seoprostack_kadence_colours',
         );
+    }
+
+    /**
+     * Where the site adds CSS of its own, which can change the colours this
+     * check works out from Kadence's settings (GitHub issue #785): Additional
+     * CSS and a child theme's style.css with rules, YellowPencil with saved
+     * styles, and any a plugin names with the seoprostack_kadence_custom_css
+     * filter.
+     *
+     * @return string[] Names for people.
+     */
+    private static function custom_css() {
+        $sources = array();
+        if (self::has_rules(wp_get_custom_css())) {
+            $sources[] = __('Additional CSS', 'seoprostack');
+        }
+        if (defined('YP_VERSION') && self::yellow_pencil_css()) {
+            $sources[] = 'YellowPencil';
+        }
+        if (get_stylesheet() !== get_template()) {
+            $file = get_stylesheet_directory() . '/style.css';
+            // Rules, not only the header comment every child theme has.
+            if (is_readable($file) && self::has_rules((string) file_get_contents($file))) { // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents -- the child theme's local stylesheet.
+                $sources[] = __('the child theme’s style.css', 'seoprostack');
+            }
+        }
+        $sources = apply_filters('seoprostack_kadence_custom_css', $sources);
+        return array_values(array_unique(array_filter(is_array($sources) ? $sources : array(), 'is_string')));
+    }
+
+    /**
+     * Whether CSS has a rule once its comments are taken out.
+     *
+     * @param string $css CSS.
+     * @return bool
+     */
+    private static function has_rules($css) {
+        return false !== strpos((string) preg_replace('#/\*.*?\*/#s', '', $css), '{');
+    }
+
+    /**
+     * Whether YellowPencil has saved styles: for the whole site or a kind of
+     * page (wt_css, wt_home_css and the like), or for one post (_wt_css).
+     *
+     * @return bool
+     */
+    private static function yellow_pencil_css() {
+        global $wpdb;
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- another plugin's settings, read once when Site Health lists colours.
+        $option = $wpdb->get_var($wpdb->prepare("SELECT 1 FROM {$wpdb->options} WHERE option_name LIKE %s AND option_value <> '' LIMIT 1", $wpdb->esc_like('wt_') . '%' . $wpdb->esc_like('css')));
+        if ($option) {
+            return true;
+        }
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery, WordPress.DB.SlowDBQuery.slow_db_query_meta_key -- as above; one indexed key.
+        return (bool) $wpdb->get_var($wpdb->prepare("SELECT 1 FROM {$wpdb->postmeta} WHERE meta_key = %s AND meta_value <> '' LIMIT 1", '_wt_css'));
     }
 
     /**
