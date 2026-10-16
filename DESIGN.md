@@ -192,6 +192,12 @@ never on `:root`. Leave layout, media images, animations and interactions alone;
 responsive breakpoints remain WPGB's. Palette choices still need a contrast
 check on the real grid; arbitrary site palettes cannot guarantee WCAG ratios.
 
+Fluent Forms placeholders use the same palette 4 text as the input, at full
+opacity, against palette 9. Do not blend in decorative palette 6: the fallback
+blend falls below 4.5:1 on white. The unblended fallback `#606266` reaches
+6.11:1 on white, including browsers without `color-mix()` support. Check the
+site's actual light and dark palettes; custom colours still need verification.
+
 ## Settings panels
 
 A feature's Options panel shows its status and the choices people need.

@@ -73,9 +73,7 @@ body :is(.fluentform, .frm-fluent-form) .ff-el-form-control:focus {
     color: var(--global-palette4, #606266);
 }
 body :is(.fluentform, .frm-fluent-form) .ff-el-form-control::placeholder {
-    color: var(--global-palette6, #909399);
-    /* Kadence's default palette 6 alone is only 4.02:1 on white. */
-    color: color-mix(in srgb, var(--global-palette6, #909399) 75%, var(--global-palette4, #606266));
+    color: var(--global-palette4, #606266);
     opacity: 1;
 }
 body :is(.fluentform, .frm-fluent-form) .ff-el-form-control:focus {

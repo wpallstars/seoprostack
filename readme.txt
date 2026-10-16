@@ -148,6 +148,7 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 == Changelog ==
 
 = Unreleased =
+* Fix: Fluent Forms placeholders use the input's stronger text colour, including the fallback.
 * Fix: Copies at their own addresses also covers rendered block images outside post content, including covers, template parts and Kadence Elements. CSS backgrounds stay unchanged.
 
 = 1.3.52 =
