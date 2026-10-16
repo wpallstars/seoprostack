@@ -2,6 +2,10 @@
 
 Every change to SEO Pro Stack. readme.txt lists the latest version in short.
 
+= 1.3.50 =
+* New: Copies at their own addresses (WebP and AVIF images, off by default) wraps pictures in post and page content, block widgets and attachment images (featured images, logos) in a <picture> tag with AVIF and WebP sources, for pictures in the uploads folder that have copies. The uploads rules then only add the copies' types, without the Accept rewrite, Vary: Accept or Cache-Control: private. Every address always sends one format, so CDNs that ignore Vary, such as Cloudflare's free plan, can cache every picture, and Keep pictures out of shared caches is not used. On multisite the shared rules keep choosing by Accept until every site using the feature has switched it on. Pictures set in CSS stay in their original format (GitHub issue #779).
+* Fix: Kadence colour check follows the element's style, as Kadence's CSS does. Social icons in the outline style (no background of their own) and brand-coloured ones (always, or the state "until hover" or "on hover" covers) are not checked. With the pill category style, the category colour is checked as the background behind Kadence's white text, with no fix offered for the white (GitHub issue #781).
+
 = 1.3.49 =
 * New, on by default: Fluent Forms colours (Content) makes Fluent Forms labels, help text, inputs, placeholders and file-upload areas follow Kadence's light and dark palette, keeping focused colours. Fluent Forms' saved styles stay unchanged; nothing changes without Fluent Forms and Kadence (GitHub issue #771).
 * New: wp seoprostack convert-images --cleanup-compressx (with a read-only --dry-run) deletes CompressX's leftover files and rules after conversion to WebP and AVIF, keeping adopted sidecar images and unrelated rules; the image settings show the leftovers' count and size. It refuses while CompressX is active, a conversion is queued, running, failed or interrupted, or the leftovers include links or special files, and checks every site on multisite (GitHub issue #769).
