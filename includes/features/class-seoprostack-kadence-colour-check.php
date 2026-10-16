@@ -265,7 +265,9 @@ class SEOProStack_Kadence_Colour_Check extends SEOProStack_Feature {
             }
         }
         $sources = apply_filters('seoprostack_kadence_custom_css', $sources);
-        return array_values(array_unique(array_filter(is_array($sources) ? $sources : array(), 'is_string')));
+        return array_values(array_unique(array_filter(is_array($sources) ? $sources : array(), static function ($source) {
+            return is_string($source) && '' !== trim($source);
+        })));
     }
 
     /**
