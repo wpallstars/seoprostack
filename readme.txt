@@ -50,7 +50,7 @@ Safe features start on; others stay off. **Settings → SEO Pro Stack** has **Se
 * **iFrame block**, **Link cards**, **Wikipedia previews**, **Word documents**, **Brand icons** and **Like, save and share**.
 * **Spectra block replacements**, **TranslatePress colours** and **Kadence query filters**.
 * **WP Grid Builder colours**: cards and facet inputs follow Kadence dark mode; light mode stays unchanged.
-* **Kadence colour check**: Site Health finds Customizer colours that are hard to read in light or dark mode and switches them to the palette, with Restore.
+* **Kadence colour check**: Site Health finds Customizer colours hard to read in light or dark mode and moves them to the palette, with Restore.
 
 = Media =
 
@@ -148,10 +148,10 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 == Changelog ==
 
 = 1.3.49 =
-* New: Kadence colour check in Site Health finds Customizer colours hard to read in light or dark mode and switches them to the palette, with Restore.
-* New: WP Grid Builder and Fluent Forms colours follow Kadence dark mode, on by default; saved styles and light mode stay unchanged.
-* New: Kadence query filter links may name terms by slug (off by default).
-* New: wp seoprostack convert-images --cleanup-compressx removes CompressX leftovers after conversion.
-* Fix: the first large image from a Kadence Posts or Query Loop block loads straight away with high priority.
+* New: Kadence colour check (Site Health) fixes colours unreadable in light or dark mode.
+* New: WP Grid Builder and Fluent Forms follow Kadence dark mode.
+* New: Kadence query filters accept term slugs (off by default).
+* New: CompressX leftovers clean-up (WP-CLI).
+* Fix: early Kadence Posts and Query Loop images load at once.
 
 Older: `changelog.txt`.
