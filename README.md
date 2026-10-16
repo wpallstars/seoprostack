@@ -24,7 +24,7 @@ SEO Pro Stack does the jobs that usually take dozens of small plugins: a calmer,
 
 If this saves you time, headaches and costs, feel free to [buy me a coffee](https://buymeacoffee.com/marcusquinn), or whatever you like, to invest in making more things open-source.
 
-Version: 1.3.48
+Version: 1.3.49
 
 <!-- github-only:start -->
 ## Screenshots
@@ -1690,8 +1690,11 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folderâ
 
 ## Changelog
 
-### Unreleased
+### 1.3.49
 
+- New, on by default: **Fluent Forms colours** makes Fluent Forms labels, help text, inputs, placeholders and file-upload areas follow Kadence's light and dark palette, without changing Fluent Forms' saved styles (GitHub issue #771).
+- New: `wp seoprostack convert-images --cleanup-compressx` (with `--dry-run`) deletes CompressX's leftover files and rules after conversion, keeping adopted sidecar images and unrelated rules; it refuses while CompressX is active or a conversion is unfinished (GitHub issue #769).
+- Fix: **Image loading** loads the first content image from a secondary-query block, such as Kadence Posts or a Query Loop, straight away, with high fetch priority for the likely largest paint (GitHub issue #768).
 - New, on by default: **WP Grid Builder colours** makes card surfaces, scheme text and facet inputs follow Kadence's dark palette, without changing light mode or saved WP Grid Builder settings (GitHub issue #767).
 - New, off by default: **Kadence query filters accept term slugs** (Content tab). A link naming a Kadence Blocks Pro query loop filter's term by its slug (`?make=bentley`) goes on to the same address with the term ID Kadence uses, instead of showing no results. Only on pages whose content has a query loop (GitHub issue #776).
 - New, on by default: **Kadence colour check** (Site Health) lists Kadence Customizer text and background colours where one follows the palette and the other is fixed, and the pair is under WCAG AA contrast in light or dark mode, and offers to switch the fixed one to the nearest palette colour that reads in both. The fix keeps the old colours for Restore (GitHub issue #770).

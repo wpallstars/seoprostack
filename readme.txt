@@ -5,7 +5,7 @@ Tags: magic login, iframe, schedule posts, auto upload images, admin
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.3.48
+Stable tag: 1.3.49
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -147,13 +147,11 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 
 == Changelog ==
 
-= Unreleased =
-* New: WP Grid Builder colours follows Kadence dark mode for cards and facet inputs, on by default; saved colours and light mode stay unchanged.
+= 1.3.49 =
+* New: Kadence colour check in Site Health finds Customizer colours hard to read in light or dark mode and switches them to the palette, with Restore.
+* New: WP Grid Builder and Fluent Forms colours follow Kadence dark mode, on by default; saved styles and light mode stay unchanged.
 * New: Kadence query filter links may name terms by slug (off by default).
-
-= 1.3.48 =
-* Security: profile pictures refuse uploads over 5 MB (or the site's lower limit), 25 megapixels or 8,000 pixels on a side, before decoding; GD is used when it supports the type.
-* New: wp seoprostack health: read-only Site Health results and stored web-PHP records, table/JSON and optional failure thresholds.
-* Fix: Kadence Pro's dark mode keeps its dark colours with Kadence Blocks 3.8.0 or later, instead of staying light and hiding a dark mode logo.
+* New: wp seoprostack convert-images --cleanup-compressx removes CompressX leftovers after conversion.
+* Fix: the first large image from a Kadence Posts or Query Loop block loads straight away with high priority.
 
 Older: `changelog.txt`.
