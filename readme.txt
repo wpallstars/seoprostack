@@ -5,7 +5,7 @@ Tags: magic login, iframe, schedule posts, auto upload images, admin
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.3.49
+Stable tag: 1.3.50
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -147,11 +147,8 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 
 == Changelog ==
 
-= 1.3.49 =
-* New: Kadence colour check (Site Health) fixes colours unreadable in light or dark mode.
-* New: WP Grid Builder and Fluent Forms follow Kadence dark mode.
-* New: Kadence query filters accept term slugs (off by default).
-* New: CompressX leftovers clean-up (WP-CLI).
-* Fix: early Kadence Posts and Query Loop images load at once.
+= 1.3.50 =
+* New: WebP and AVIF copies in <picture> tags, cacheable by CDNs (off by default).
+* Fix: Kadence colour check follows social icon and category pill styles.
 
 Older: `changelog.txt`.

@@ -24,7 +24,7 @@ SEO Pro Stack does the jobs that usually take dozens of small plugins: a calmer,
 
 If this saves you time, headaches and costs, feel free to [buy me a coffee](https://buymeacoffee.com/marcusquinn), or whatever you like, to invest in making more things open-source.
 
-Version: 1.3.49
+Version: 1.3.50
 
 <!-- github-only:start -->
 ## Screenshots
@@ -1696,6 +1696,10 @@ Deleting the plugin removes its settings (on multisite, every site's and the net
 Deactivating the plugin removes the WebP and AVIF rules from the uploads folder’s `.htaccess` (for every site when network-deactivated), the LiteSpeed background request rules from the site’s `.htaccess` (on multisite, when network-deactivated or deactivated on the main site) and the must-use file of Load plugins only where needed (on multisite, when network-deactivated).
 
 ## Changelog
+
+### 1.3.50
+- New: **Copies at their own addresses** (WebP and AVIF images, off by default) lists each picture's AVIF and WebP copy in a `<picture>` tag instead of sending the copy at the original's address. Every address then always sends one format, so CDNs that ignore `Vary: Accept`, such as Cloudflare's free plan, can cache pictures without **Keep pictures out of shared caches** (GitHub issue #779).
+- Fix: **Kadence colour check** follows the element's style. Outline and brand-coloured social icons are no longer listed. Pill categories are checked as the pill colour behind Kadence's white text, with no fix offered for the white (GitHub issue #781).
 
 ### 1.3.49
 
