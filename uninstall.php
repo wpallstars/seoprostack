@@ -257,6 +257,10 @@ function seoprostack_uninstall_site() {
     delete_post_meta_by_key('_seoprostack_keep_colours');
     delete_option('seoprostack_keep_colours');
 
+    // Kadence colour check: the Customizer colours its fixes replaced. The
+    // fixed colours stay in the theme's settings.
+    delete_option('seoprostack_kadence_colours_backup');
+
     // Screenshots stay in the Media Library because posts may use them;
     // only the records that matched them to pages go.
     wp_unschedule_hook('seoprostack_screenshot');

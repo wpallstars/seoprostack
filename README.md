@@ -441,6 +441,32 @@ No scripts or saved WP Grid Builder settings change; turning this off restores
 its colours. No styles are added without active WP Grid Builder and Kadence,
 or on pages where WP Grid Builder does not print styles.
 
+### Kadence colour check (Content)
+
+**On by default.** A Site Health check for Kadence sites. Kadence's Customizer
+saves each colour as a palette colour (`palette3`) or a fixed one (`#f2f2f2`).
+Palette colours change with Kadence Pro's dark mode; fixed ones stay. Fixed text
+on a palette background, or palette text on a fixed background, then reads in
+one mode only: a light footer credit left from an older dark footer vanishes on
+a light background, or white button text sits on a pale tint in dark mode.
+
+- Lists each such pair whose contrast is below WCAG AA (4.5:1, or 3:1 for
+  buttons) in the light palette or Kadence Pro's dark palette, with both
+  values. Text is paired with the background of the same name
+  (`header_button_color` with `header_button_background`), and a footer row
+  without a background of its own with the footer's.
+- Offers, per colour or all at once, to switch the fixed colour to the palette
+  colour nearest to it that reads in both modes with everything it is paired
+  with. A grey, white or black stays one (usually palette 3 to 9) when one
+  passes, so text does not turn into an accent colour. Nothing changes until
+  you click.
+- A fix first keeps the colours it replaces; **Restore** in Site Health puts
+  them back. Clear the page cache afterwards if pages still show the old
+  colours.
+- Pairs of two fixed or two palette colours are left alone, and so is text
+  whose background is set elsewhere, such as header items. Nothing shows
+  without the Kadence theme (or a child theme of it).
+
 ### Duplicate posts (Content)
 
 Adds **Duplicate** to post lists, the editor and the admin bar for the post types you choose. The copy is always a new draft; the original is never changed. Choose what else is copied: excerpt, author, featured image, terms, custom fields (including SEO settings), template, format, menu order, password and date.
@@ -1658,7 +1684,7 @@ Read a setting with `SEOProStack_Settings::get( 'key' )`, never the option itsel
 
 Media in cloud storage's records, jobs and cached tests are removed on every site. Objects in the bucket are kept; deleting the plugin never contacts the storage service. Local addresses were kept in saved content, so posts keep working without it.
 
-Deleting the plugin removes its settings (on multisite, every site's and the network's) and cached data, the database keys Add database keys added, the profile pictures and generated avatars in `uploads/seoprostack-avatars/`, the WebP and AVIF copies of pictures, including copies left by pictures deleted while the plugin was inactive, and short links with their categories and click counts (Pretty Links’ and Lasso Lite’s own links are left alone), and the must-use files of Load plugins only where needed and of an unfinished Measure page time, the cached GitHub releases, and who hid lines of the Plugins screen notice about replaced plugins (and, from older versions, who dismissed the Git Updater notice), menu item visibility rules (Nav Menu Roles’ own rules stay), Restrict content’s rules on posts and terms (that content shows to everyone again; block rules stay in posts but do nothing), the hand order of terms and the old term addresses kept for redirects, when old post addresses were last used (the old addresses themselves are WordPress’s and keep redirecting), and the order flow's links on Fluent Forms entries and Fluent Boards tasks (the entries, tasks, conversations, contacts and example data stay: they are those plugins' data). Posts keep their hand order in core’s Order field. Imported media, Link card pictures and screenshots stay in the Media Library because your posts use them. Watermarked pictures stay marked, and their unmarked originals stay in the `uploads/seoprostack-originals-…` folder so they are not lost; delete that folder if you do not need them.
+Deleting the plugin removes its settings (on multisite, every site's and the network's) and cached data, the database keys Add database keys added, the profile pictures and generated avatars in `uploads/seoprostack-avatars/`, the WebP and AVIF copies of pictures, including copies left by pictures deleted while the plugin was inactive, and short links with their categories and click counts (Pretty Links’ and Lasso Lite’s own links are left alone), and the must-use files of Load plugins only where needed and of an unfinished Measure page time, the cached GitHub releases, and who hid lines of the Plugins screen notice about replaced plugins (and, from older versions, who dismissed the Git Updater notice), menu item visibility rules (Nav Menu Roles’ own rules stay), Restrict content’s rules on posts and terms (that content shows to everyone again; block rules stay in posts but do nothing), the hand order of terms and the old term addresses kept for redirects, when old post addresses were last used (the old addresses themselves are WordPress’s and keep redirecting), the Kadence colours kept for Kadence colour check's Restore (the theme keeps the palette colours it switched to), and the order flow's links on Fluent Forms entries and Fluent Boards tasks (the entries, tasks, conversations, contacts and example data stay: they are those plugins' data). Posts keep their hand order in core’s Order field. Imported media, Link card pictures and screenshots stay in the Media Library because your posts use them. Watermarked pictures stay marked, and their unmarked originals stay in the `uploads/seoprostack-originals-…` folder so they are not lost; delete that folder if you do not need them.
 
 Deactivating the plugin removes the WebP and AVIF rules from the uploads folder’s `.htaccess` (for every site when network-deactivated), the LiteSpeed background request rules from the site’s `.htaccess` (on multisite, when network-deactivated or deactivated on the main site) and the must-use file of Load plugins only where needed (on multisite, when network-deactivated).
 
@@ -1668,6 +1694,7 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folder�
 
 - New, on by default: **WP Grid Builder colours** makes card surfaces, scheme text and facet inputs follow Kadence's dark palette, without changing light mode or saved WP Grid Builder settings (GitHub issue #767).
 - New, off by default: **Kadence query filters accept term slugs** (Content tab). A link naming a Kadence Blocks Pro query loop filter's term by its slug (`?make=bentley`) goes on to the same address with the term ID Kadence uses, instead of showing no results. Only on pages whose content has a query loop (GitHub issue #776).
+- New, on by default: **Kadence colour check** (Site Health) lists Kadence Customizer text and background colours where one follows the palette and the other is fixed, and the pair is under WCAG AA contrast in light or dark mode, and offers to switch the fixed one to the nearest palette colour that reads in both. The fix keeps the old colours for Restore (GitHub issue #770).
 
 ### 1.3.48
 
