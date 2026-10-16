@@ -960,7 +960,11 @@ class SEOProStack_Nextgen_Images extends SEOProStack_Feature {
             return '';
         }
         $sizes = '' !== $sizes ? ' sizes="' . esc_attr($sizes) . '"' : '';
-        return '<source type="' . esc_attr($mime) . '" srcset="' . esc_attr(implode(', ', $list)) . '"' . $sizes . '>';
+        // Browsers give <source> no display: none of their own, so in a
+        // display: contents picture each one became an item of the parent's
+        // flex or grid layout and took a gap. Hiding them leaves only the
+        // <img>; the browser still picks among them.
+        return '<source type="' . esc_attr($mime) . '" srcset="' . esc_attr(implode(', ', $list)) . '"' . $sizes . ' style="display:none">';
     }
 
     /**
