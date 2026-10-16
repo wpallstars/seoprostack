@@ -1703,6 +1703,9 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folderâ
 
 ## Changelog
 
+### Unreleased
+- Fix: **Copies at their own addresses** also covers images in rendered blocks outside post content, including cover block images, block theme template parts and hook-placed Kadence Elements, through `render_block`. Existing `<picture>` tags are left alone; pictures set in CSS stay in their original format (GitHub issue #792).
+
 ### 1.3.52
 - Fix: **Copies at their own addresses** hides each `<source>` in the `<picture>` tag, so in flex and grid layouts, such as a Kadence header logo, the sources no longer take gaps and move the picture. The browser still picks among them (GitHub issue #789).
 
