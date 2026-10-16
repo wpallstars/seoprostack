@@ -462,8 +462,8 @@ a light background, or white button text sits on a pale tint in dark mode.
   style, the category colour is the pill's background behind Kadence's white
   text, so that pair is checked instead; no fix is offered for the white.
 - Reads Kadence's settings only. When it lists something on a site with CSS of
-  its own (Additional CSS, YellowPencil, or rules in a child theme's
-  `style.css`), it names them and says to look at the page in light and dark
+  its own (rules in Additional CSS or a child theme's `style.css`, or
+  YellowPencil with saved styles), it names them and says to look at the page in light and dark
   mode first, as that CSS can change the colours (#785). Plugins can name
   other sources with the `seoprostack_kadence_custom_css` filter (an array of
   names).
