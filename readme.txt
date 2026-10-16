@@ -147,6 +147,9 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 
 == Changelog ==
 
+= Unreleased =
+* Fix: Copies at their own addresses also covers rendered block images outside post content, including covers, template parts and Kadence Elements. CSS backgrounds stay unchanged.
+
 = 1.3.52 =
 * Fix: Copies at their own addresses no longer adds gaps beside pictures in flex and grid layouts, such as a header logo.
 
