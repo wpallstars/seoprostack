@@ -50,6 +50,7 @@ Safe features start on; others stay off. **Settings → SEO Pro Stack** has **Se
 * **iFrame block**, **Link cards**, **Wikipedia previews**, **Word documents**, **Brand icons** and **Like, save and share**.
 * **Spectra block replacements**, **TranslatePress colours** and **Kadence query filters**.
 * **WP Grid Builder colours**: cards and facet inputs follow Kadence dark mode; light mode stays unchanged.
+* **Kadence colour check**: Site Health finds Customizer colours that are hard to read in light or dark mode and switches them to the palette, with Restore.
 
 = Media =
 
