@@ -455,6 +455,12 @@ a light background, or white button text sits on a pale tint in dark mode.
   values. Text is paired with the background of the same name
   (`header_button_color` with `header_button_background`), and a footer row
   without a background of its own with the footer's.
+- Follows the element's style, as Kadence's CSS does (#781). Social icons in
+  the outline style have no background of their own, and brand-coloured ones
+  (always, or the normal or hover state with "until hover" and "on hover")
+  ignore the saved colours, so they are not checked. With the pill category
+  style, the category colour is the pill's background behind Kadence's white
+  text, so that pair is checked instead; no fix is offered for the white.
 - Offers, per colour or all at once, to switch the fixed colour to the palette
   colour nearest to it that reads in both modes with everything it is paired
   with. A grey, white or black stays one (usually palette 3 to 9) when one
