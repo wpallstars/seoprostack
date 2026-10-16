@@ -1704,6 +1704,7 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folderâ
 ## Changelog
 
 ### Unreleased
+- Fix: **Fluent Forms colours** uses the input's stronger text colour for placeholders, including the fallback, instead of a low-contrast blend (GitHub issue #801).
 - Fix: **Copies at their own addresses** also covers images in rendered blocks outside post content, including cover block images, block theme template parts and hook-placed Kadence Elements, through `render_block`. Existing `<picture>` tags are left alone; pictures set in CSS stay in their original format (GitHub issue #792).
 
 ### 1.3.52
