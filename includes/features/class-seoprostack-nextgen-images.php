@@ -920,33 +920,47 @@ class SEOProStack_Nextgen_Images extends SEOProStack_Feature {
                 $candidates[] = array($m[1], isset($m[2]) ? ' ' . $m[2] : '');
             }
         }
+        $sizes   = self::attribute($img, 'sizes');
         $sources = '';
         foreach (self::FORMATS as $format => $mime) {
-            if (!SEOProStack_Settings::get('nextgen_' . $format)) {
-                continue;
+            if (SEOProStack_Settings::get('nextgen_' . $format)) {
+                $sources .= self::source($candidates, $format, $mime, $sizes);
             }
-            $list   = array();
-            $copies = 0;
-            foreach ($candidates as $candidate) {
-                list($url, $descriptor) = $candidate;
-                $path = self::upload_path($url);
-                if ('' !== $path && is_file($path . '.' . $format)) {
-                    $url .= '.' . $format;
-                    ++$copies;
-                }
-                $list[] = $url . $descriptor;
-            }
-            if (!$copies) {
-                continue;
-            }
-            $sizes    = self::attribute($img, 'sizes');
-            $sources .= '<source type="' . esc_attr($mime) . '" srcset="' . esc_attr(implode(', ', $list)) . '"' . ('' !== $sizes ? ' sizes="' . esc_attr($sizes) . '"' : '') . '>';
         }
         if ('' === $sources) {
             return $img;
         }
         // display: contents lays the picture out as the <img> alone.
         return '<picture class="sps-picture" style="display:contents">' . $sources . $img . '</picture>';
+    }
+
+    /**
+     * A <source> for one format: each address with its copy where there is
+     * one, else the original. '' when no address has a copy.
+     *
+     * @param array[] $candidates Address and descriptor pairs.
+     * @param string  $format     avif or webp.
+     * @param string  $mime       Its MIME type.
+     * @param string  $sizes      The <img> tag's sizes, or ''.
+     * @return string
+     */
+    private static function source(array $candidates, $format, $mime, $sizes) {
+        $list   = array();
+        $copies = 0;
+        foreach ($candidates as $candidate) {
+            list($url, $descriptor) = $candidate;
+            $path = self::upload_path($url);
+            if ('' !== $path && is_file($path . '.' . $format)) {
+                $url .= '.' . $format;
+                ++$copies;
+            }
+            $list[] = $url . $descriptor;
+        }
+        if (!$copies) {
+            return '';
+        }
+        $sizes = '' !== $sizes ? ' sizes="' . esc_attr($sizes) . '"' : '';
+        return '<source type="' . esc_attr($mime) . '" srcset="' . esc_attr(implode(', ', $list)) . '"' . $sizes . '>';
     }
 
     /**
@@ -960,7 +974,8 @@ class SEOProStack_Nextgen_Images extends SEOProStack_Feature {
         if (!preg_match('/\s' . preg_quote($name, '/') . '\s*=\s*(?:"([^"]*)"|\'([^\']*)\'|([^\s>]+))/i', $tag, $m)) {
             return '';
         }
-        $value = isset($m[3]) ? $m[3] : (isset($m[2]) && '' !== $m[2] ? $m[2] : $m[1]);
+        // Double-quoted, single-quoted or bare: the last group that matched.
+        $value = (string) end($m);
         return trim(html_entity_decode($value, ENT_QUOTES, 'UTF-8'));
     }
 
@@ -1115,14 +1130,9 @@ class SEOProStack_Nextgen_Images extends SEOProStack_Feature {
         $uploads = self::main_uploads();
         $path    = $uploads ? $uploads['url'] : '/wp-content/uploads';
         if (self::picture_mode()) {
-            return implode("\n", array(
-                '# In the server { } block, before other image locations:',
-                'location ~* ^' . preg_quote($path, '#') . '/.+\.(jpe?g|png|webp)\.(avif|webp)$ {',
-                '    # Copies use this block instead of other image blocks, so copy',
-                '    # their lines here too (such as expires).',
-                '    types { image/avif avif; image/webp webp; }',
-                '}',
-            ));
+            // Copies take this block instead of other image blocks, so lines such as expires go here too.
+            return '# In the server { } block, before other image locations (copy their expires lines here):' . "\n"
+                . 'location ~* ^' . preg_quote($path, '#') . '/.+\.(jpe?g|png|webp)\.(avif|webp)$ { types { image/avif avif; image/webp webp; } }';
         }
         return implode("\n", array(
             '# In the http { } block:',
@@ -1195,21 +1205,30 @@ class SEOProStack_Nextgen_Images extends SEOProStack_Feature {
             // As core's own loopback requests (WP_Site_Health).
             'sslverify'   => apply_filters('https_local_ssl_verify', false), // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- core hook.
         ));
-        $code = (int) wp_remote_retrieve_response_code($response);
-        if (is_wp_error($response) || 200 !== $code) {
-            $result = 'unknown';
-        } else {
-            $type   = wp_remote_retrieve_header($response, 'content-type');
-            $type   = strtolower(is_array($type) ? (string) end($type) : $type);
-            if ($picture) {
-                $result = false !== strpos($type, $sample['type']) ? 'copy' : 'original';
-            } else {
-                // A WebP original only has an AVIF copy.
-                $result = (false !== strpos($type, 'image/avif') || false !== strpos($type, 'image/webp')) && false === strpos($type, $sample['type']) ? 'copy' : 'original';
-            }
-        }
+        $result = self::check_result($response, $sample['type'], $picture);
         set_transient(self::CHECK, array('rules' => $rules, 'result' => $result), 'copy' === $result ? WEEK_IN_SECONDS : 5 * MINUTE_IN_SECONDS);
         return $result;
+    }
+
+    /**
+     * What a rules check's answer was.
+     *
+     * @param array|WP_Error $response Response.
+     * @param string         $type     MIME type asked for: the original's, or the copy's at its own address.
+     * @param bool           $picture  Whether the copy was asked for at its own address.
+     * @return string copy, original or unknown.
+     */
+    private static function check_result($response, $type, $picture) {
+        if (is_wp_error($response) || 200 !== (int) wp_remote_retrieve_response_code($response)) {
+            return 'unknown';
+        }
+        $got = wp_remote_retrieve_header($response, 'content-type');
+        $got = strtolower(is_array($got) ? (string) end($got) : $got);
+        if ($picture) {
+            return false !== strpos($got, $type) ? 'copy' : 'original';
+        }
+        // A WebP original only has an AVIF copy.
+        return (false !== strpos($got, 'image/avif') || false !== strpos($got, 'image/webp')) && false === strpos($got, $type) ? 'copy' : 'original';
     }
 
     /**
@@ -1675,17 +1694,7 @@ class SEOProStack_Nextgen_Images extends SEOProStack_Feature {
         $status = isset($state['status']) ? $state['status'] : '';
         $sites  = isset($state['sites']) && is_array($state['sites']) ? $state['sites'] : array();
         if (self::picture_mode()) {
-            echo '<p>' . esc_html__('Pages name each picture’s copies in a <picture> tag, so every address always sends the same file and CDNs can cache pictures.', 'seoprostack') . '</p>';
-            if (self::is_nginx() || 'nginx' === $status) {
-                echo '<p>' . esc_html__('If Nginx sends AVIF copies with the wrong type, add these lines to the site’s Nginx configuration and reload Nginx. Lines added earlier that choose the copy by the Accept header are no longer needed.', 'seoprostack') . '</p>';
-                echo '<pre class="sps-code">' . esc_html(self::nginx_rules()) . '</pre>';
-            } elseif ($sites && !self::all_pictures($sites)) {
-                echo '<p>' . esc_html__('Other sites on the network still get copies at the originals’ addresses, so the shared rules in the uploads folder still choose by the Accept header.', 'seoprostack') . '</p>';
-            } elseif ('written' === $status && 'original' === self::check_rules($sites)) {
-                echo '<p>' . esc_html__('A test request for a copy did not come back as AVIF or WebP, so browsers may not show it.', 'seoprostack') . ' ' . esc_html(self::is_litespeed()
-                    ? __('LiteSpeed keeps .htaccess rules in memory: restart LiteSpeed in your hosting panel, or ask your host to. Checked again in a few minutes.', 'seoprostack')
-                    : __('Check that the server reads .htaccess files in the uploads folder and has mod_mime, or ask your host. Checked again in a few minutes.', 'seoprostack')) . '</p>';
-            }
+            self::picture_panel($status, $sites);
             echo '</div>';
             return;
         }
@@ -1697,13 +1706,7 @@ class SEOProStack_Nextgen_Images extends SEOProStack_Feature {
         } elseif ('written' === $status) {
             $check = self::check_rules(isset($state['sites']) && is_array($state['sites']) ? $state['sites'] : array());
             if ('original' === $check) {
-                echo '<p>' . esc_html__('The rules are in the uploads folder’s .htaccess file, but a test request for a converted picture got the original, so browsers are sent the originals.', 'seoprostack') . ' ';
-                if (self::is_litespeed()) {
-                    echo esc_html__('LiteSpeed keeps .htaccess rules in memory: restart LiteSpeed in your hosting panel, or ask your host to. Checked again in a few minutes.', 'seoprostack');
-                } else {
-                    echo esc_html__('Check that the server reads .htaccess files in the uploads folder and has mod_rewrite and mod_headers, or ask your host. Checked again in a few minutes.', 'seoprostack');
-                }
-                echo '</p>';
+                echo '<p>' . esc_html__('The rules are in the uploads folder’s .htaccess file, but a test request for a converted picture got the original, so browsers are sent the originals.', 'seoprostack') . ' ' . esc_html(self::retry_advice('mod_rewrite and mod_headers')) . '</p>';
             } elseif ('copy' === $check) {
                 echo '<p>' . esc_html__('Browsers get the copies through rules in the uploads folder’s .htaccess file. A test request got a copy.', 'seoprostack') . '</p>';
             } else {
@@ -1715,6 +1718,39 @@ class SEOProStack_Nextgen_Images extends SEOProStack_Feature {
             echo '<pre class="sps-code">' . esc_html('# BEGIN ' . self::MARKER . "\n" . implode("\n", self::rules_for($sites)) . "\n# END " . self::MARKER) . '</pre>';
         }
         echo '</div>';
+    }
+
+    /**
+     * How copies are sent, in the settings panel, with Copies at their own
+     * addresses on.
+     *
+     * @param string $status Rules status (written, nginx, unwritable, removed).
+     * @param array  $sites  Sites using the rules (site ID => flags).
+     */
+    private static function picture_panel($status, array $sites) {
+        echo '<p>' . esc_html__('Pages name each picture’s copies in a <picture> tag, so every address always sends the same file and CDNs can cache pictures.', 'seoprostack') . '</p>';
+        if (self::is_nginx() || 'nginx' === $status) {
+            echo '<p>' . esc_html__('If Nginx sends AVIF copies with the wrong type, add these lines to the site’s Nginx configuration and reload Nginx. Lines added earlier that choose the copy by the Accept header are no longer needed.', 'seoprostack') . '</p>';
+            echo '<pre class="sps-code">' . esc_html(self::nginx_rules()) . '</pre>';
+        } elseif ($sites && !self::all_pictures($sites)) {
+            echo '<p>' . esc_html__('Other sites on the network still get copies at the originals’ addresses, so the shared rules in the uploads folder still choose by the Accept header.', 'seoprostack') . '</p>';
+        } elseif ('written' === $status && 'original' === self::check_rules($sites)) {
+            echo '<p>' . esc_html__('A test request for a copy did not come back as AVIF or WebP, so browsers may not show it.', 'seoprostack') . ' ' . esc_html(self::retry_advice('mod_mime')) . '</p>';
+        }
+    }
+
+    /**
+     * What to do when a rules check fails.
+     *
+     * @param string $modules Apache modules the rules need.
+     * @return string
+     */
+    private static function retry_advice($modules) {
+        if (self::is_litespeed()) {
+            return __('LiteSpeed keeps .htaccess rules in memory: restart LiteSpeed in your hosting panel, or ask your host to. Checked again in a few minutes.', 'seoprostack');
+        }
+        /* translators: %s: Apache module names, such as mod_rewrite and mod_headers. */
+        return sprintf(__('Check that the server reads .htaccess files in the uploads folder and has %s, or ask your host. Checked again in a few minutes.', 'seoprostack'), $modules);
     }
 
     /**
