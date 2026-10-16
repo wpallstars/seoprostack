@@ -24,6 +24,13 @@
  * Text whose background is not saved with it, such as header items, which
  * sit in whichever row they were put in, is not checked.
  *
+ * Element styles change what a colour paints, as Kadence's CSS does (GitHub
+ * issue #781): social icons in the outline style have no background of
+ * their own and brand-coloured ones ignore the saved colours, so they are
+ * not checked; a pill category style paints the category colour behind
+ * Kadence's white text, so that pair is checked instead, with no fix offered
+ * for the white.
+ *
  * SPDX-License-Identifier: GPL-3.0-or-later
  * SPDX-FileCopyrightText: 2026 Marcus Quinn
  * Additional terms (GPL-3.0 section 7(b)): SEOPROSTACK-ATTRIBUTION.txt
@@ -248,13 +255,15 @@ class SEOProStack_Kadence_Colour_Check extends SEOProStack_Feature {
                 esc_html(number_format_i18n($pair['min'], 1))
             );
         }
-        $fix = null === $finding['slot']
+        $fix = !empty($finding['field']['locked'])
+            ? esc_html__('Kadence makes this text white; choose a pill colour in the Customizer that is dark in both modes.', 'seoprostack')
+            : (null === $finding['slot']
             ? esc_html__('No palette colour reads in both modes here; change it in the Customizer.', 'seoprostack')
             : esc_html(sprintf(
                 /* translators: %s: palette colour number. */
                 __('Palette %s reads in both.', 'seoprostack'),
                 substr($finding['slot'], 7)
-            ));
+            )));
         return implode('<br>', $parts) . '<br>' . $fix;
     }
 
@@ -265,6 +274,9 @@ class SEOProStack_Kadence_Colour_Check extends SEOProStack_Feature {
      * @return string
      */
     private static function label(array $field) {
+        if (isset($field['label']) && is_string($field['label'])) {
+            return $field['label'];
+        }
         $name  = ucfirst(trim(str_replace(array('_', '-'), ' ', $field['key'])));
         $state = end($field['path']);
         if ('hover' === $state) {
@@ -395,7 +407,8 @@ class SEOProStack_Kadence_Colour_Check extends SEOProStack_Feature {
             self::$findings[$id] = array(
                 'field' => $group['field'],
                 'pairs' => $group['pairs'],
-                'slot'  => self::best_slot($group['field'], $group['side'], $group['pairs']),
+                // Text Kadence sets itself (a category pill's white) is not a setting to change.
+                'slot'  => empty($group['field']['locked']) ? self::best_slot($group['field'], $group['side'], $group['pairs']) : null,
             );
         }
         return self::$findings;
@@ -435,6 +448,19 @@ class SEOProStack_Kadence_Colour_Check extends SEOProStack_Feature {
                 if (!isset($value[$state]) || !is_string($value[$state]) || '' === trim($value[$state])) {
                     continue;
                 }
+                $style = self::style($key, $m[1], $state);
+                if ('skip' === $style) {
+                    continue;
+                }
+                if ('pill' === $style) {
+                    // The colour is the pill's background; Kadence's own CSS makes its text white.
+                    $pairs[] = array(
+                        'text' => array('key' => $key, 'path' => array('pill'), 'value' => '#ffffff', 'locked' => true, 'label' => __('Category pill text (white, set by Kadence)', 'seoprostack')),
+                        'bg'   => array('key' => $key, 'path' => array($state), 'value' => trim($value[$state])),
+                        'min'  => self::TEXT_MIN,
+                    );
+                    continue;
+                }
                 $bg = self::background($m[1], $state);
                 if (null === $bg) {
                     continue;
@@ -447,6 +473,38 @@ class SEOProStack_Kadence_Colour_Check extends SEOProStack_Feature {
             }
         }
         return $pairs;
+    }
+
+    /**
+     * How an element's style changes what a text colour setting paints, as
+     * Kadence's styles component and CSS do:
+     *
+     * - Social icons (header, mobile header, footer): with brand colours
+     *   (always, untilhover for the normal state, onhover for hover) the
+     *   saved colours are not used; the outline style makes the button see
+     *   through, so the background setting is not painted and the icons sit
+     *   on the row, which is not known here. Both: skip.
+     * - Category colours (post title, archive items): the pill style paints
+     *   the colour as the background of white text: pill.
+     *
+     * @param string $key   Text setting.
+     * @param string $base  Its name before the ending (header_social).
+     * @param string $state State (color, hover, active).
+     * @return string skip, pill or '' (text on the named background).
+     */
+    private static function style($key, $base, $state) {
+        if (preg_match('/^(?:header|header_mobile|footer)_social$/', $base)) {
+            $brand = self::option($base . '_brand');
+            if ('always' === $brand || ('hover' === $state ? 'onhover' : 'untilhover') === $brand) {
+                return 'skip';
+            }
+            return 'outline' === self::option($base . '_style') ? 'skip' : '';
+        }
+        if (preg_match('/^(.+)_(title|archive_item)_category_color$/', $key, $m)) {
+            $elements = self::option($m[1] . ('title' === $m[2] ? '_title' : '_archive') . '_element_categories');
+            return is_array($elements) && isset($elements['style']) && 'pill' === $elements['style'] ? 'pill' : '';
+        }
+        return '';
     }
 
     /**
