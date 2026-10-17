@@ -143,7 +143,7 @@ final class SEOProStack_S3_Client {
         }
         $headers['Authorization'] = 'AWS4-HMAC-SHA256 Credential=' . $config['key_id'] . '/' . $scope . ', SignedHeaders=' . $signed . ', Signature=' . hash_hmac('sha256', $string, $signing);
         // phpcs:ignore WordPressVIPMinimum.Performance.RemoteRequestTimeout.timeout_timeout -- explicit probe or background batch, never a page view.
-        $response = wp_remote_request($parts['scheme'] . '://' . $host . $path, array('method' => $method, 'headers' => $headers, 'body' => $body, 'timeout' => 20, 'redirection' => 0));
+        $response = wp_remote_request($parts['scheme'] . '://' . $host . $path, array('method' => $method, 'headers' => $headers, 'body' => $body, 'timeout' => 20, 'redirection' => 0, 'limit_response_size' => 16 * MB_IN_BYTES + 1));
         if (is_wp_error($response)) {
             // Transport errors may contain the URL or sensitive server text.
             return new WP_Error('storage_transport', __('The storage service could not be reached.', 'seoprostack'));
