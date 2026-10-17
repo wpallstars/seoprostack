@@ -24,7 +24,7 @@ SEO Pro Stack does the jobs that usually take dozens of small plugins: a calmer,
 
 If this saves you time, headaches and costs, feel free to [buy me a coffee](https://buymeacoffee.com/marcusquinn), or whatever you like, to invest in making more things open-source.
 
-Version: 1.3.52
+Version: 1.3.53
 
 <!-- github-only:start -->
 ## Screenshots
@@ -1755,7 +1755,8 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folderâ
 
 ## Changelog
 
-### Unreleased
+### 1.3.53
+- New, off by default: **Remove local copies after upload** (Media in cloud storage) deletes an uploaded picture's local files once the bucket confirms each one, and `wp seoprostack media-storage restore` brings them back byte for byte; they also come back just in time for editing, size regeneration, WebP and AVIF conversion and watermarking, and in the background when removal or the feature is switched off (GitHub issue #809).
 - New, off by default: **Kadence query filters use term slugs in addresses** (Content tab, under Kadence query filters accept term slugs). Taxonomy filters put the term slug in the address (`?make=audi`) instead of its ID, and a link with the slug opens filtered, with the term selected and no redirect. Links with IDs still work (GitHub issue #803).
 - New: [HTTPS check](#https-check-security), on the Security tab and in Site Health, connects to the site's own address from the server and shows whether the certificate is trusted, matches the host and how many days it has left, the TLS version and cipher, whether TLS 1.0 and 1.1 are refused and whether HSTS is sent, with **Check now** and a link to the full report and grade on SSL Labs in a new tab. Nothing is sent to SSL Labs (GitHub issue #804).
 - Changed: more of Admin, Security and Plugins is on by default on new installs (GitHub issue #806): HTTPS and security headers, Turn off unused remote access (log and backup files, PHP files in the uploads folder and usernames; XML-RPC and application passwords stay on), Hide the admin bar, Block dashboard access, Hide dashboard widgets, Disable sidebar widgets, Tidy the login screen, Avatars without Gravatar, Plugin presets and Plugins menu in the admin bar. Sites already set up keep their saved settings. Watermark pictures, and features that need a choice first, stay off.
