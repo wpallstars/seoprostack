@@ -54,7 +54,8 @@ class SEOProStack_Admin_Access extends SEOProStack_Feature {
         return array(
             self::KEY => array(
                 'type'        => 'bool',
-                'default'     => false,
+                // On by default at the owner's request (#806): administrators and staff roles are never affected.
+                'default'     => true,
                 'tab'         => 'admin',
                 'label'       => __('Hide the admin bar', 'seoprostack'),
                 'description' => __('Hide the toolbar on the front end for roles that never need the admin, such as subscribers and customers. Administrators always keep it.', 'seoprostack'),
@@ -74,7 +75,8 @@ class SEOProStack_Admin_Access extends SEOProStack_Feature {
             ),
             self::DASHBOARD_KEY => array(
                 'type'        => 'bool',
-                'default'     => false,
+                // On by default at the owner's request (#806): only roles that cannot write posts.
+                'default'     => true,
                 'tab'         => 'admin',
                 'label'       => __('Block dashboard access', 'seoprostack'),
                 'description' => __('Send chosen roles to the site when they open wp-admin. Forms, uploads and other background requests keep working. Administrators are never blocked.', 'seoprostack'),

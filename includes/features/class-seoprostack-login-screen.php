@@ -41,7 +41,8 @@ class SEOProStack_Login_Screen extends SEOProStack_Feature {
         return array(
             self::KEY => array(
                 'type'        => 'bool',
-                'default'     => false,
+                // On by default at the owner's request (#806): the logo links to this site, not WordPress.org.
+                'default'     => true,
                 'tab'         => 'admin',
                 'label'       => __('Tidy the login screen', 'seoprostack'),
                 'description' => __('Link the logo on the login screen to your site instead of WordPress.org, or hide it, and hide the language menu.', 'seoprostack'),

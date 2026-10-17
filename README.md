@@ -67,11 +67,13 @@ At the top right of the screen, **Source code** opens the plugin’s [GitHub rep
 
 A new install starts with the features that are safe on every site switched on, so it is faster and tidier straight away, and leaves off those that need choices about the site or change its content, files, people or other plugins’ settings. On by default:
 
-- **Security:** Minimum password length (12 characters, for everyone, when they set a new password).
+- **Security:** Minimum password length (12 characters, for everyone, when they set a new password), HTTPS and security headers (nothing changes on an `http://` site) and Turn off unused remote access, with log and backup files, PHP files in the uploads folder and usernames blocked (XML-RPC and application passwords stay on, as Jetpack, mobile apps and integrations use them).
 - **Speed:** Recommended speed settings, Load pages before the click, Image loading, Remove WordPress extras, Lighter WooCommerce pages and Faster editor with Kadence Blocks (the last two do nothing without those plugins).
 - **Server:** Fewer Heartbeat requests, Clean the database weekly, Load large settings only where they are used (single sites) and Hosting needs.
-- **Plugins:** Load plugins only where needed, with **Also skip them for people who are logged in**, so it takes every chance to skip plugins once it has learned; Clean up deleted plugins, Plugin sizes and Fixes for other plugins.
-- **Admin and editor:** Organise the admin menu, More menu in the admin bar, Hide admin bar items (Comments and + New), Hide admin notices, Tidy admin screens, Correct update counts, Tidy the dashboard, Tidy WooCommerce admin, Readable list columns, Simpler block editor, Dev tab in the block editor, Notification emails (plugin and theme auto-update reports, unless an update failed), No fade between admin screens, Quiet Freemius prompts, Quiet Appsero prompts and Quiet Imagify suggestions.
+- **Plugins:** Load plugins only where needed, with **Also skip them for people who are logged in**, so it takes every chance to skip plugins once it has learned; Clean up deleted plugins, Plugin sizes, Fixes for other plugins, Plugin presets (each asks first) and Plugins menu in the admin bar.
+- **Admin and editor:** Organise the admin menu, More menu in the admin bar, Hide admin bar items (Comments and + New), Hide admin notices, Tidy admin screens, Correct update counts, Tidy the dashboard, Tidy WooCommerce admin, Readable list columns, Simpler block editor, Dev tab in the block editor, Notification emails (plugin and theme auto-update reports, unless an update failed), No fade between admin screens, Quiet Freemius prompts, Quiet Appsero prompts, Quiet Imagify suggestions, Hide the admin bar and Block dashboard access (for subscribers, customers and similar roles), Hide dashboard widgets (Welcome and WordPress Events and News), Disable sidebar widgets (Meta), Tidy the login screen and Avatars without Gravatar.
+
+Left off on Admin, Security, Speed and Plugins, as each needs a choice first: Developer admins (who the developers are), Magic login links (whether administrators may log in by email, which skips two-step login plugins that only check the password), Ask before licence checks (until someone answers, premium plugins' licence checks fail, which can switch off their paid features), Delay scripts until interaction (which scripts) and Delayed Google Analytics (the measurement ID). Watermark pictures (Media) changes uploaded pictures, so it is off too.
 
 Also offered on Server: **Faster page counts on long lists**, off by default, with exact totals counted separately from the page.
 
@@ -127,7 +129,7 @@ SEO Pro Stack replaces **61 plugins**, some of them in part, with free and Pro e
 | Short addresses for custom post types | Links | Remove CPT base |
 | Short links | Links | Pretty Links |
 | External link icons | Links | Link Whisper's icon only |
-| Internal linking tools | Links | Selected Link Whisper workflows, after per-site retirement checks |
+| Internal linking tools | Links | Link Whisper Premium and Link Whisper Free, in part: its keyword autolinking, URL replacement, related posts and link attribute rules are not replaced |
 | Maintenance mode | Maintenance | Hostinger Tools, in part |
 | Updates from GitHub (GitHub builds only) | Maintenance | Git Updater |
 | Plugins menu in the admin bar | Plugins | Plugin Toggle |
@@ -150,7 +152,7 @@ WordPress 7.0 fades from one wp-admin screen to the next, using the browser’s 
 
 ### Turn off unused remote access (Security)
 
-Off by default, with five independent choices, all unchecked:
+On by default, with five independent choices; the last three are ticked by default:
 
 - **Turn off XML-RPC**: direct requests to `xmlrpc.php` return HTTP 403, including unauthenticated methods such as pingbacks. Removes the `X-Pingback` response header and RSD discovery link. Jetpack and some mobile apps need XML-RPC; leave this unchecked if you use them.
 - **Turn off application passwords**: core stops accepting application passwords and hides their profile section and the Authorize application screen. Existing application passwords are not deleted; they work again when this choice is unchecked, if core allows them. Normal password login and the REST API stay available.
@@ -170,7 +172,7 @@ Uses core’s `xmlrpc_enabled`, `wp_headers`, `wp_is_application_passwords_avail
 
 ### HTTPS and security headers (Security)
 
-Off by default. One switch; SEO Pro Stack picks the values every site should have. It does nothing on a site whose address (Settings → General) starts with `http://`.
+On by default. One switch; SEO Pro Stack picks the values every site should have. It does nothing on a site whose address (Settings → General) starts with `http://`.
 
 - **HTTPS redirect**: `GET` and `HEAD` requests for an `http://` address get one 301 to the same address on `https://`, on the site's own host. Requests a proxy or Cloudflare received over HTTPS (`X-Forwarded-Proto`, `X-Forwarded-SSL`, `CF-Visitor`) count as HTTPS, so sites behind them are not sent round in circles. Form posts, WP-CLI, cron and `/.well-known/` (certificate checks) are never redirected. WordPress itself still needs to know about the proxy: with an `https` address it sends wp-admin and the login screen to https until `$_SERVER['HTTPS']` is on, which hosts and Really Simple Security set in `wp-config.php`. Deactivating Really Simple Security keeps the site on https and leaves its `.htaccess` redirect and `wp-config.php` line in place; only its choice to go back to http while deactivating tries to remove them.
 - **Security headers**, over HTTPS only: `Strict-Transport-Security` (browsers use HTTPS only), `X-Content-Type-Options: nosniff`, `X-Frame-Options: SAMEORIGIN` with `Content-Security-Policy: frame-ancestors 'self'` (other sites cannot show its pages in a frame), `Content-Security-Policy: upgrade-insecure-requests` (browsers load `http://` pictures and scripts over HTTPS, instead of a mixed content fixer rewriting each page), `Referrer-Policy: strict-origin-when-cross-origin` and `Cross-Origin-Opener-Policy: same-origin-allow-popups`; PHP's `X-Powered-By` is removed. On the site through `wp_headers`, in wp-admin through `admin_init` and on the login screen through `login_init`. A header of the same name that something else set is kept; a content security policy set elsewhere (WordPress sends `frame-ancestors 'self'` in wp-admin and on the login screen) gets only the directives it does not have, added to it on the site and in a second header in wp-admin and on the login screen, which browsers apply too. Embeds of the site's posts (`/embed/`) get no frame headers, so other sites can still show them as cards.
@@ -861,8 +863,15 @@ colour, including hover, focus and Kadence's live light/dark palette switch.
 ### Internal linking tools (Links)
 
 Off by default. Open **Tools → Links** after enabling **Internal linking tools**
-in the Links tab. It can run alongside Link Whisper while you compare the two
-on staging; it never deactivates another plugin or changes its settings.
+in the Links tab. It replaces Link Whisper Premium and Link Whisper Free in
+part, so it waits while either is active (the retirement checks stay
+available); it never deactivates another plugin or changes its settings. On the
+Plugins screen, Link Whisper's notice names what the retirement checks find it
+still does on this site (autolinking or URL replacement rules, custom target
+keywords, related posts, link attribute rules, internal link icons, or checks
+that could not be read), instead of saying it can go. Its insertion histories
+and click data are not named: they need no replacement. The checks are kept
+for 12 hours.
 
 - **Pages**: incoming, internal and external link counts, and orphan candidates.
   Uses Rank Math's link-counter report when its public API and tables are
@@ -1719,6 +1728,8 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folder�
 
 ### Unreleased
 - New: [HTTPS check](#https-check-security), on the Security tab and in Site Health, connects to the site's own address from the server and shows whether the certificate is trusted, matches the host and how many days it has left, the TLS version and cipher, whether TLS 1.0 and 1.1 are refused and whether HSTS is sent, with **Check now** and a link to the full report and grade on SSL Labs in a new tab. Nothing is sent to SSL Labs (GitHub issue #804).
+- Changed: more of Admin, Security and Plugins is on by default on new installs (GitHub issue #806): HTTPS and security headers, Turn off unused remote access (log and backup files, PHP files in the uploads folder and usernames; XML-RPC and application passwords stay on), Hide the admin bar, Block dashboard access, Hide dashboard widgets, Disable sidebar widgets, Tidy the login screen, Avatars without Gravatar, Plugin presets and Plugins menu in the admin bar. Sites already set up keep their saved settings. Watermark pictures, and features that need a choice first, stay off.
+- Changed: **Internal linking tools** replaces Link Whisper Premium and Link Whisper Free in part (GitHub issue #807). Their Plugins screen notice names what the retirement checks find Link Whisper still does on the site, such as autolinking rules, related posts or link attribute rules, instead of saying it can go; insertion histories and click data are not named. The tools wait while Link Whisper is active; the read-only retirement checks stay available.
 - Fix: **Fluent Forms colours** uses the input's stronger text colour for placeholders, including the fallback, instead of a low-contrast blend (GitHub issue #801).
 - Fix: **Copies at their own addresses** also covers images in rendered blocks outside post content, including cover block images, block theme template parts and hook-placed Kadence Elements, through `render_block`. Existing `<picture>` tags are left alone; pictures set in CSS stay in their original format (GitHub issue #792).
 
@@ -2532,7 +2543,7 @@ Where a feature replaces one of them, SEO Pro Stack imports the settings it can,
 | Ultimate 410 Gone Status Code | tiny web | [WordPress.org](https://wordpress.org/plugins/ultimate-410/) | 410 Gone for removed pages |
 | Remove CPT base | kubiq | [WordPress.org](https://wordpress.org/plugins/remove-cpt-base/) | Short addresses for custom post types |
 | Pretty Links | Blair Williams | [WordPress.org](https://wordpress.org/plugins/pretty-link/) | Short links |
-| Link Whisper | Link Whisper team | [website](https://linkwhisper.com/) (premium plugin) | External link icons and selected local linking workflows; per-site retirement checks required |
+| Link Whisper Premium, Link Whisper Free | Link Whisper team | [website](https://linkwhisper.com/) (premium plugin), [WordPress.org](https://wordpress.org/plugins/link-whisper/) | External link icons and Internal linking tools, in part; per-site retirement checks required |
 | Plugin Toggle | Cedaro | [WordPress.org](https://wordpress.org/plugins/plugin-toggle/), [GitHub](https://github.com/cedaro/plugin-toggle) | Plugins menu in the admin bar |
 | Fix ‘Plugin file does not exist’ Notices | WP All Stars | [GitHub](https://github.com/wpallstars/wp-fix-plugin-does-not-exist-notices) | Clean up deleted plugins |
 | Freesoul Deactivate Plugins (and PRO) | Jose Mortellaro | [WordPress.org](https://wordpress.org/plugins/freesoul-deactivate-plugins/), [GitHub](https://github.com/JoseMortellaro/freesoul-deactivate-plugins) | Load plugins only where needed |

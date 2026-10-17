@@ -65,9 +65,13 @@ this plugin's WordPress.org submission state: `LAUNCH.md`. Past changes:
   site, for speed, the server, plugin loading and a tidier admin (Load
   plugins only where needed with **Also skip them for people who are logged
   in**, so it takes every chance from the start), plus Updates from GitHub
-  (GitHub builds only). README.md → Features lists them. Features that need
-  choices about the site, or change its content, files, people or other
-  plugins' settings, stay off. A changed default reaches new installs
+  (GitHub builds only). Admin, security, speed and plugin features are on
+  wherever safe, so adding the plugin is an instant improvement (#806):
+  marked, reversible security blocks and hiding the admin from roles that
+  cannot write posts count as safe. README.md → Features lists them.
+  Features that need choices about the site first, or change its content
+  (Watermark pictures), people or other plugins' settings, stay off. A
+  changed default reaches new installs
   only, as the first migration stores every setting; a new setting's
   default reaches every site (#404).
 - The Server tab holds the database, server load, PHP memory and outbound

@@ -72,7 +72,8 @@ class SEOProStack_Avatar_Privacy extends SEOProStack_Feature {
         return array(
             self::KEY => array(
                 'type'        => 'bool',
-                'default'     => false,
+                // On by default at the owner's request (#806): visitors' browsers no longer contact Gravatar.
+                'default'     => true,
                 'tab'         => 'admin',
                 'label'       => __('Avatars without Gravatar', 'seoprostack'),
                 'description' => __('Show avatars from this site instead of Gravatar, so visitors’ browsers never contact Gravatar and email hashes are not published. People without a picture get a silhouette, a pattern or nothing, as chosen under Settings → Discussion.', 'seoprostack'),
