@@ -850,9 +850,7 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
         $name = self::JOB . 'verify_' . $id;
         $generation = get_post_meta($id, self::GENERATION, true);
         $fingerprint = hash('sha256', (string) wp_json_encode(array($saved['current']['signature'] ?? '', $saved['previous']['signature'] ?? '', $generation, $record, $removed)));
-        $progress = get_option($name, array());
-        $cursor = isset($progress['fingerprint'], $progress['cursor']) && $progress['fingerprint'] === $fingerprint ? (int) $progress['cursor'] : 0;
-        $checkpoint = array('fingerprint' => $fingerprint, 'cursor' => $cursor);
+        $checkpoint = self::cleanup_checkpoint($id, $fingerprint);
         $result = self::verify_cleanup_files($id, $record['files'], $checkpoint, $start);
         if (true !== $result) {
             return $result;
@@ -864,6 +862,19 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
         }
         self::clear_handover_error($id, $record);
         return true;
+    }
+
+    /**
+     * Reuse verification progress only while its inventory fingerprint matches.
+     *
+     * @param int $id Attachment ID.
+     * @param string $fingerprint Current inventory fingerprint.
+     * @return array Inventory fingerprint and verified cursor.
+     */
+    private static function cleanup_checkpoint($id, $fingerprint) {
+        $progress = get_option(self::JOB . 'verify_' . $id, array());
+        $cursor = isset($progress['fingerprint'], $progress['cursor']) && $progress['fingerprint'] === $fingerprint ? (int) $progress['cursor'] : 0;
+        return array('fingerprint' => $fingerprint, 'cursor' => $cursor);
     }
 
     /**
