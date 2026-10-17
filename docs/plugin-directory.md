@@ -26,5 +26,12 @@ Plugins and Pro Plugins (`admin/data/free-plugins.php`,
   commentgoblin.com server served a certificate for another name, so its
   site and update checks failed. Its fix in Fixes for other plugins and its
   admin menu group stay for sites that have it installed.
+- Do not recommend SSL Quality Checker (`ssl-quality-checker`) or copy how
+  it gets an SSL Labs grade: last updated in 2017 (tested up to WordPress
+  4.7), and the SSL Labs API terms (v2.2) forbid commercial use and use on a
+  public web site without Qualys's permission; even its relaxed terms for
+  hosts give full results only as links to its reports. HTTPS check runs its
+  own checks and links to the SSL Labs report (GitHub issue #804; checked
+  2026-10-17).
 - A plugin that a feature replaces leaves the list: see `AGENTS.md` →
   Features.

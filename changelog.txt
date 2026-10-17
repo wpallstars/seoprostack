@@ -3,6 +3,7 @@
 Every change to SEO Pro Stack. readme.txt lists the latest version in short.
 
 = Unreleased =
+* New: HTTPS check, on the Security tab and in Tools → Site Health, connects to the site's own address from the server, as a visitor does (behind Cloudflare, that is Cloudflare's certificate and settings), and shows whether the certificate is trusted, matches the host and how many days it has left (a warning under 14), the best TLS version and cipher, whether TLS 1.0 and 1.1 are refused (or that the server cannot tell) and whether the home page sends HSTS for six months or more. Check now runs it again; a link opens the full report and grade on SSL Labs in a new tab. It runs in Site Health and on Check now only, never on a visitor's page, keeps the last result (not autoloaded) and sends nothing to SSL Labs. Replaces Really Simple Security's SSL Labs status box (GitHub issue #804).
 * Fix: Fluent Forms colours uses the input's stronger text colour for placeholders, including the fallback, instead of a low-contrast blend (GitHub issue #801).
 * Fix: Copies at their own addresses also covers images in rendered blocks outside post content, including cover block images, block theme template parts and hook-placed Kadence Elements, through render_block. Existing <picture> tags are left alone; pictures set in CSS stay in their original format (GitHub issue #792).
 
