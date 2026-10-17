@@ -155,6 +155,11 @@ class SEOProStack_Https_Check extends SEOProStack_Feature {
             'peer_name'         => $host,
             'capture_peer_cert' => true,
         ));
+        if (!$conn['ok'] && preg_match('/unsupported protocol|wrong version number|protocol version/i', $conn['error'])
+            && 'recommended' === self::old_tls_item($host, $port)['status']) {
+            $result['items'][] = self::item('protocol', 'critical', __('The site accepts only TLS 1.0 or 1.1, which browsers no longer use: turn on TLS 1.2 and 1.3 in the server’s or CDN’s TLS settings.', 'seoprostack'));
+            return $result;
+        }
         if (!$conn['ok']) {
             $result['items'][] = self::item('certificate', 'unknown', sprintf(
                 /* translators: 1: host and port, 2: error message */
