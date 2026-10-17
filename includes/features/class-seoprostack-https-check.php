@@ -199,7 +199,7 @@ class SEOProStack_Https_Check extends SEOProStack_Feature {
         // keep them out of the log.
         set_error_handler( // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_set_error_handler -- restored straight after the connection.
             static function ($errno, $errstr) use (&$message) {
-                $message .= ('' === $message ? '' : ' ') . $errstr;
+                $message .= ('' === $message ? '' : "\n") . $errstr;
                 return true;
             }
         );
@@ -210,7 +210,7 @@ class SEOProStack_Https_Check extends SEOProStack_Feature {
         }
         if (!$socket) {
             // OpenSSL's reasons come as warnings; the error string has the socket's.
-            return array('ok' => false, 'error' => self::short_error(trim($message . ' ' . (string) $error)), 'cert' => null, 'crypto' => array());
+            return array('ok' => false, 'error' => self::short_error(trim($message . "\n" . (string) $error)), 'cert' => null, 'crypto' => array());
         }
         $meta   = stream_get_meta_data($socket);
         $params = stream_context_get_params($socket);
@@ -230,9 +230,12 @@ class SEOProStack_Https_Check extends SEOProStack_Feature {
      * @return string
      */
     private static function short_error($error) {
-        if (preg_match_all('/error:[0-9A-Fa-f]+:[^:]*:[^:]*:([^\s]+(?: [^\s:]+)*)/', $error, $matches)) {
-            return implode('; ', array_unique($matches[1]));
+        // OpenSSL 1.1 and 3: error:0A000086:SSL routines:[function]:reason.
+        if (preg_match_all('/error:[0-9A-Fa-f]+:[^:\n]*:[^:\n]*:([^\n]+)/', $error, $matches)) {
+            return implode('; ', array_unique(array_map('trim', $matches[1])));
         }
+        $lines = array_filter(array_map('trim', explode("\n", $error)));
+        $error = $lines ? (string) end($lines) : '';
         $error = trim(preg_replace('/^stream_socket_client\(\):\s*/', '', $error) ?? $error);
         return '' !== $error ? substr($error, 0, 200) : __('no answer', 'seoprostack');
     }
@@ -415,7 +418,9 @@ class SEOProStack_Https_Check extends SEOProStack_Feature {
     private static function hsts_item() {
         // The site's own home page, with a short timeout. Not
         // wp_safe_remote_head(): a site may resolve its own name locally.
-        $response = wp_remote_head(home_url('/'), array('timeout' => self::TIMEOUT, 'redirection' => 3));
+        // The certificate is checked above, so an untrusted one does not
+        // hide the header.
+        $response = wp_remote_head(home_url('/'), array('timeout' => self::TIMEOUT, 'redirection' => 3, 'sslverify' => false));
         if (is_wp_error($response)) {
             /* translators: %s: error message */
             return self::item('hsts', 'unknown', sprintf(__('The home page could not be loaded from this server to check HSTS (%s).', 'seoprostack'), $response->get_error_message()));
