@@ -191,6 +191,18 @@
  * stays. A read from elsewhere is told by its colour. Reads of the active
  * palette keep the token colours.
  *
+ * Kadence Pro's dark mode (checked with 1.2.6) flashed twice. Its switch
+ * swaps the body's color-switch-light/-dark class, so palette colours change
+ * at once, but elements with a CSS transition (social icons, buttons, menu
+ * links, the switch itself) faded from the old colours for 0.2-0.3 s: light
+ * icon squares on a dark bar. And page caches serve every visitor the same
+ * light page, which Kadence turns dark only once the page has loaded, so a
+ * visitor who chose dark saw each page light first. The saved choice (Kadence's
+ * own cookie, or the system setting when Kadence follows it) is now applied as
+ * the body opens, before anything is drawn, and transitions are off for the
+ * two frames in which the palette changes. The switch-style toggle still
+ * slides.
+ *
  * @package SEOProStack
  */
 
@@ -266,6 +278,12 @@ class SEOProStack_Plugin_Fixes extends SEOProStack_Feature {
     /** Kadence's palette complement marker (exactly this case): palette10 follows palette1. */
     const KADENCE_COMPLEMENT = '#FfFfFf';
 
+    /** Kadence Pro's dark mode script handle. */
+    const KADENCE_DARK_MODE = 'kadence-dark-mode';
+
+    /** Class on <html> while the palette changes: transitions are off. */
+    const KADENCE_SWITCHING = 'seoprostack-palette-switching';
+
     /**
      * The theme's colour for the palette slot being read, before Kadence
      * Blocks' filter: array(slot, colour), or null.
@@ -320,7 +338,7 @@ class SEOProStack_Plugin_Fixes extends SEOProStack_Feature {
                 'default'     => true,
                 'tab'         => 'plugins',
                 'label'       => __('Fixes for other plugins', 'seoprostack'),
-                'description' => __('Works around bugs in other plugins that slow your site down, without changing their settings. Lasso Lite (Simple URLs) stops contacting its server on every admin screen. Deactivating Freesoul Deactivate Plugins or its PRO add-on deactivates both and removes the must-use file it leaves behind. Readabler no longer contacts its server on every Plugins screen load, or stops that screen with a critical error when it cannot. Tutor LMS Pro and Tutor LMS Certificate Builder stop adding warnings to the debug log when there is no update. Tutor LMS gets its order, cart and coupon tables on every site of a network. Tutor LMS Pro no longer makes the Plugins screen check every plugin for updates on each load. Comment Goblin no longer waits for its update server on every admin screen while that server fails. MainWP Child no longer prints its Branding "Global footer" text, unstyled, below every front-end page. On LiteSpeed servers, scheduled tasks (WordPress cron and Action Scheduler, used by WooCommerce and others) finish instead of stopping partway, through a few lines at the top of .htaccess. Kadence Pro no longer causes "Failed opening" warnings when other plugins load shared code. WP Crontrol says whether the server\'s cron job runs, instead of only that DISABLE_WP_CRON is set. On Hostinger, a server cron job no longer fills the error log with "invalid_schedule" errors for the Monarx security agent\'s tasks (mnx_versions_cron_event). Burst Statistics finishes its database upgrade instead of logging a database error every 5 minutes when its tables differ in collation. LiteSpeed Cache\'s crawler works in turns short enough for LiteSpeed hosts, instead of being stopped partway and waiting an hour. Tutor LMS Pro, and other plugins whose tables have a column of choices in capitals, no longer change their table on every request. Kadence Pro\'s dark mode keeps its dark colours with Kadence Blocks 3.8.0 or later, instead of staying light and hiding a dark mode logo. Turn this off if a fix causes a problem.', 'seoprostack'),
+                'description' => __('Works around bugs in other plugins that slow your site down, without changing their settings. Lasso Lite (Simple URLs) stops contacting its server on every admin screen. Deactivating Freesoul Deactivate Plugins or its PRO add-on deactivates both and removes the must-use file it leaves behind. Readabler no longer contacts its server on every Plugins screen load, or stops that screen with a critical error when it cannot. Tutor LMS Pro and Tutor LMS Certificate Builder stop adding warnings to the debug log when there is no update. Tutor LMS gets its order, cart and coupon tables on every site of a network. Tutor LMS Pro no longer makes the Plugins screen check every plugin for updates on each load. Comment Goblin no longer waits for its update server on every admin screen while that server fails. MainWP Child no longer prints its Branding "Global footer" text, unstyled, below every front-end page. On LiteSpeed servers, scheduled tasks (WordPress cron and Action Scheduler, used by WooCommerce and others) finish instead of stopping partway, through a few lines at the top of .htaccess. Kadence Pro no longer causes "Failed opening" warnings when other plugins load shared code. WP Crontrol says whether the server\'s cron job runs, instead of only that DISABLE_WP_CRON is set. On Hostinger, a server cron job no longer fills the error log with "invalid_schedule" errors for the Monarx security agent\'s tasks (mnx_versions_cron_event). Burst Statistics finishes its database upgrade instead of logging a database error every 5 minutes when its tables differ in collation. LiteSpeed Cache\'s crawler works in turns short enough for LiteSpeed hosts, instead of being stopped partway and waiting an hour. Tutor LMS Pro, and other plugins whose tables have a column of choices in capitals, no longer change their table on every request. Kadence Pro\'s dark mode keeps its dark colours with Kadence Blocks 3.8.0 or later, instead of staying light and hiding a dark mode logo. Kadence Pro\'s dark mode switches without a flash: icons and buttons change colour with the page instead of fading from the old colours, and cached pages open in the visitor\'s chosen mode instead of light first. Turn this off if a fix causes a problem.', 'seoprostack'),
             ),
         );
     }
@@ -366,6 +384,10 @@ class SEOProStack_Plugin_Fixes extends SEOProStack_Feature {
         if (defined('KADENCE_BLOCKS_VERSION') && version_compare((string) KADENCE_BLOCKS_VERSION, self::KADENCE_TOKENS_FROM, '>=')) {
             add_filter('kadence_palette_option', array(__CLASS__, 'kadence_palette_before'), 9, 2);
             add_filter('kadence_palette_option', array(__CLASS__, 'kadence_palette_after'), 11, 2);
+        }
+        if (!is_admin()) {
+            // First thing in the body, before anything is drawn.
+            add_action('wp_body_open', array(__CLASS__, 'kadence_dark_mode_script'), 0);
         }
         // Now (init, priority 0): LiteSpeed Cache reads the constant when a
         // crawl starts and in its role simulation (init, priority 5).
@@ -787,6 +809,67 @@ class SEOProStack_Plugin_Fixes extends SEOProStack_Feature {
             }
         }
         return $sets;
+    }
+
+    /**
+     * Print, first in the body, the style that turns CSS transitions off
+     * while the palette changes (the switch-style toggle's knob keeps its
+     * slide), and the script that applies the visitor's saved palette before
+     * the page is drawn and holds transitions while the palette changes. The
+     * script decides as Kadence Pro's own init does (its cookie, then the
+     * system setting when Kadence follows it), so that init finds nothing
+     * left to change. Kadence Pro prints its own stylesheet as it enqueues
+     * it, so the style has its own handle.
+     */
+    public static function kadence_dark_mode_script() {
+        if (!wp_script_is(self::KADENCE_DARK_MODE, 'enqueued')) {
+            return;
+        }
+        $on = 'html.' . self::KADENCE_SWITCHING;
+        wp_register_style(self::KADENCE_SWITCHING, false, array(), SEOPROSTACK_VERSION);
+        wp_add_inline_style(
+            self::KADENCE_SWITCHING,
+            $on . ' *,' . $on . ' *::before,' . $on . ' *::after{transition:none!important}'
+            // The knob keeps its slide only for visitors who allow motion.
+            . '@media (prefers-reduced-motion:no-preference){' . $on . ' .kcps-style-switch button.kadence-color-palette-toggle::after{transition:transform .5s ease!important}}'
+        );
+        wp_print_styles(self::KADENCE_SWITCHING);
+        $script = <<<'JS'
+(function (d, c, k) {
+    var h = d.documentElement, b = d.body;
+    if (!b || !c) { return; }
+    function hold() {
+        h.classList.add(k);
+        requestAnimationFrame(function () { requestAnimationFrame(function () { h.classList.remove(k); }); });
+    }
+    // Capture phase: before Kadence's own listener on the toggle swaps the class.
+    d.addEventListener('click', function (e) {
+        if (e.target && e.target.closest && e.target.closest('.kadence-color-toggle')) { hold(); }
+    }, true);
+    var v = ('; ' + d.cookie).split('; ' + c.siteSlug + '-paletteCookie=');
+    v = 2 === v.length ? v.pop().split(';').shift() : '';
+    if ('dark' !== v && 'light' !== v) {
+        v = c.auto && window.matchMedia ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : '';
+    }
+    var from = 'dark' === v ? 'color-switch-light' : 'color-switch-dark';
+    if (!v || !b.classList.contains(from)) { return; }
+    h.classList.add(k);
+    b.classList.remove(from);
+    b.classList.add('color-switch-' + v);
+    if ('loading' === d.readyState) { d.addEventListener('DOMContentLoaded', hold); } else { hold(); }
+})(document, window.kadenceDarkModeConfig, %s);
+JS;
+        wp_print_inline_script_tag(
+            sprintf($script, wp_json_encode(self::KADENCE_SWITCHING)),
+            array(
+                'id'               => 'seoprostack-kadence-dark-mode',
+                // Run now, as written: not delayed, deferred or combined by
+                // LiteSpeed Cache, Flying Scripts or Cloudflare Rocket Loader.
+                'data-no-optimize' => '1',
+                'data-no-defer'    => '1',
+                'data-cfasync'     => 'false',
+            )
+        );
     }
 
     /**
