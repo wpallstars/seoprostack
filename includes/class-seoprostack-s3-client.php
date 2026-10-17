@@ -100,16 +100,24 @@ final class SEOProStack_S3_Client {
      * Inspect a bounded group before any local file is removed.
      *
      * @param string[] $keys Object keys.
+     * @param float $deadline Latest completion time, or zero for the usual timeout.
      * @return array Object keys mapped to object information or WP_Error.
      */
-    public function heads($keys) {
+    public function heads($keys, $deadline = 0) {
         $results = array();
         foreach (array_chunk($keys, 6) as $group) {
             $requests = array();
             foreach ($group as $key) {
                 $requests[$key] = $this->signed_request('HEAD', $key);
             }
-            foreach ($this->request_multiple($requests) as $key => $response) {
+            $remaining = $deadline ? $deadline - microtime(true) : 20;
+            if ($remaining <= 0) {
+                foreach ($group as $key) {
+                    $results[$key] = new WP_Error('storage_budget', __('The storage batch will continue on its next turn.', 'seoprostack'));
+                }
+                continue;
+            }
+            foreach ($this->request_multiple($requests, min(20, $remaining)) as $key => $response) {
                 $etag = is_wp_error($response) ? '' : wp_remote_retrieve_header($response, 'etag');
                 $results[$key] = is_wp_error($response) ? $response : array('status' => (int) wp_remote_retrieve_response_code($response), 'size' => (int) wp_remote_retrieve_header($response, 'content-length'), 'etag' => is_string($etag) ? $etag : '');
             }
@@ -122,9 +130,10 @@ final class SEOProStack_S3_Client {
      * Proxy-configured sites retain the WordPress HTTP API path.
      *
      * @param array $requests Signed request arrays or WP_Error values.
+     * @param float $timeout Most seconds for this group.
      * @return array WordPress-shaped responses or WP_Error values, by key.
      */
-    private function request_multiple($requests) {
+    private function request_multiple($requests, $timeout = 20) {
         $results = array();
         $parallel = array();
         $class = class_exists('WpOrg\\Requests\\Requests') ? 'WpOrg\\Requests\\Requests' : 'Requests';
@@ -134,7 +143,7 @@ final class SEOProStack_S3_Client {
                 $results[$key] = $request;
             } elseif ($proxy->is_enabled() || !class_exists($class)) {
                 // phpcs:ignore WordPressVIPMinimum.Performance.RemoteRequestTimeout.timeout_timeout -- background batch, never a page view.
-                $response = wp_remote_request($request['url'], array('method' => $request['type'], 'headers' => $request['headers'], 'body' => $request['data'], 'timeout' => 20, 'redirection' => 0, 'limit_response_size' => 16 * MB_IN_BYTES + 1));
+                $response = wp_remote_request($request['url'], array('method' => $request['type'], 'headers' => $request['headers'], 'body' => $request['data'], 'timeout' => $timeout, 'redirection' => 0, 'limit_response_size' => 16 * MB_IN_BYTES + 1));
                 $results[$key] = $this->checked_response($request['type'], $response);
             } elseif ((new WP_Http())->block_request($request['url'])) {
                 $results[$key] = new WP_Error('storage_transport', __('The storage service could not be reached.', 'seoprostack'));
@@ -147,7 +156,7 @@ final class SEOProStack_S3_Client {
         }
         try {
             // phpcs:ignore WordPressVIPMinimum.Performance.RemoteRequestTimeout.timeout_timeout -- background batch, never a page view.
-            $responses = $class::request_multiple($parallel, array('timeout' => 20, 'connect_timeout' => 10, 'follow_redirects' => false, 'redirects' => 0, 'data_format' => 'body', 'verify' => ABSPATH . WPINC . '/certificates/ca-bundle.crt', 'max_bytes' => 16 * MB_IN_BYTES + 1));
+            $responses = $class::request_multiple($parallel, array('timeout' => $timeout, 'connect_timeout' => min(10, $timeout), 'follow_redirects' => false, 'redirects' => 0, 'data_format' => 'body', 'verify' => ABSPATH . WPINC . '/certificates/ca-bundle.crt', 'max_bytes' => 16 * MB_IN_BYTES + 1));
         } catch (Throwable $error) {
             // Never persist exception messages: they can contain credentials.
             $responses = array();

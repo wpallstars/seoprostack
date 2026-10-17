@@ -1590,7 +1590,7 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
             return;
         }
         foreach ($removing ? self::removable($limit) : self::restorable($limit, PHP_INT_MAX, true) as $id) {
-            if (!self::more_time($start, $budget) || !self::local_step($id, $removing)) {
+            if (!self::more_time($start, $budget) || !self::local_step($id, $removing, $start + $budget)) {
                 return;
             }
         }
@@ -1627,12 +1627,16 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
      *
      * @param int $id Attachment ID.
      * @param bool $removing Remove (true) or bring back (false).
+     * @param float $deadline End of the reserved turn.
      * @return bool Whether the batch may go on.
      */
-    private static function local_step($id, $removing) {
-        $result = $removing ? self::remove_local($id) : self::restore_attachment($id);
+    private static function local_step($id, $removing, $deadline) {
+        $result = $removing ? self::remove_local($id, $deadline) : self::restore_attachment($id);
         if (!is_wp_error($result)) {
             return true;
+        }
+        if ('storage_budget' === $result->get_error_code()) {
+            return false;
         }
         /* translators: 1: attachment ID, 2: error message */
         update_option(self::ERROR, sprintf(__('Attachment %1$d: %2$s', 'seoprostack'), $id, $result->get_error_message()), false);
@@ -1704,9 +1708,10 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
      * originals, AVIF copies, oversized files) are never touched.
      *
      * @param int $id Attachment ID.
+     * @param float $deadline End of the reserved turn.
      * @return true|WP_Error WP_Error when the service could not confirm: try later.
      */
-    private static function remove_local($id) {
+    private static function remove_local($id, $deadline) {
         $config = self::config();
         $kept = 'kept:' . $config['signature'];
         self::fresh($id);
@@ -1724,7 +1729,10 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
             return true;
         }
         $client = self::client();
-        $heads = $client->heads(array_map('strval', array_keys($files)));
+        $heads = $client->heads(array_map('strval', array_keys($files)), $deadline);
+        if (microtime(true) >= $deadline) {
+            return new WP_Error('storage_budget', __('The storage batch will continue on its next turn.', 'seoprostack'));
+        }
         // Confirm the whole group before deletion, including a failure in its
         // last HEAD. Recheck each local digest again immediately before removal.
         foreach ($files as $key => $path) {
@@ -2553,6 +2561,16 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
         $start = null === $start ? microtime(true) : (float) $start;
         /** Filter concurrent file PUTs (1–6). @param int $concurrency Maximum in-flight files. */
         $concurrency = max(1, min(6, (int) apply_filters('seoprostack_media_storage_concurrency', 6)));
+        // Keep the whole group's payload within the former single-file memory
+        // allowance, including space for transport copies of those bytes.
+        $cap = self::size_cap();
+        $largest = 1;
+        foreach ($files as $info) {
+            if ($info['size'] <= $cap) {
+                $largest = max($largest, $info['size']);
+            }
+        }
+        $concurrency = max(1, min($concurrency, (int) ($cap / $largest)));
         foreach (array_chunk($files, $concurrency, true) as $group) {
             if (!self::more_time($start, self::BUDGET)) {
                 $job['next'] = time() + 60;
@@ -2578,7 +2596,11 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
                 }
             }
             // Every attempted key is durable before any request in this group.
-            update_post_meta($id, self::META, $pending);
+            $saved = update_post_meta($id, self::META, $pending);
+            if (!$saved && get_post_meta($id, self::META, true) !== $pending) {
+                // The retry was recorded before building this inventory.
+                return false;
+            }
             /** Filter the public object cache policy. @param string $policy Cache-Control. */
             $policy = (string) apply_filters('seoprostack_media_storage_cache_control', 'public, max-age=31536000, immutable');
             $results = self::client()->put_files($changed, $policy);
