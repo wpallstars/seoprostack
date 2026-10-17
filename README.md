@@ -867,9 +867,9 @@ in the Links tab. It replaces Link Whisper Premium and Link Whisper Free in
 part, so it waits while either is active (the retirement checks stay
 available); it never deactivates another plugin or changes its settings. On the
 Plugins screen, Link Whisper's notice names what the retirement checks find it
-still does on this site (autolinking or URL replacement rules, custom target
-keywords, related posts, link attribute rules, internal link icons, or checks
-that could not be read), instead of saying it can go. Its insertion histories
+still does on this site (keyword autolinking, URL replacement, custom target
+keywords, related posts, link attribute and domain rules or link icons, each
+marked when its check could not be read), instead of saying it can go. Its insertion histories
 and click data are not named: they need no replacement. The checks are kept
 for 12 hours.
 

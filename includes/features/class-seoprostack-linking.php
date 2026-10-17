@@ -400,13 +400,34 @@ class SEOProStack_Linking extends SEOProStack_Feature {
             $audit = SEOProStack_Link_Audit::collect();
             set_transient(self::RETIRE, $audit, 12 * HOUR_IN_SECONDS);
         }
+        $jobs = self::jobs();
         foreach ((array) $audit['findings'] as $finding) {
             $key = isset($finding['key']) ? (string) $finding['key'] : '';
-            if (!in_array($key, self::NOT_EXTRAS, true) && in_array($finding['status'], array('blocked', 'unknown'), true)) {
-                $extras[] = (string) $finding['item'];
+            if (in_array($key, self::NOT_EXTRAS, true) || !in_array($finding['status'], array('blocked', 'unknown'), true)) {
+                continue;
             }
+            $job = isset($jobs[$key]) ? $jobs[$key] : (string) $finding['item'];
+            /* translators: %s: a Link Whisper job, such as keyword autolinking */
+            $extras[] = 'unknown' === $finding['status'] ? sprintf(__('%s (could not be checked)', 'seoprostack'), $job) : $job;
         }
         return array_values(array_unique($extras));
+    }
+
+    /**
+     * The Link Whisper job behind each retirement check, as the Plugins
+     * screen names it.
+     *
+     * @return array<string,string> Check key => job.
+     */
+    private static function jobs() {
+        return array(
+            'wpil_keywords'   => __('keyword autolinking', 'seoprostack'),
+            'wpil_urls'       => __('URL replacement', 'seoprostack'),
+            'custom_keywords' => __('custom target keywords', 'seoprostack'),
+            'related_posts'   => __('related posts', 'seoprostack'),
+            'attributes'      => __('link attribute and domain rules', 'seoprostack'),
+            'icons'           => __('link icons', 'seoprostack'),
+        );
     }
 
     /** @param array $args Positional arguments. @param array $assoc Named arguments. */
