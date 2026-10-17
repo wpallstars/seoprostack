@@ -165,7 +165,7 @@ class SEOProStack_Nextgen_Images extends SEOProStack_Feature {
      * @return string
      */
     private static function avif_description() {
-        $text = __('Usually smaller than WebP, but slower to make. Needs WordPress 6.5 or later and server support.', 'seoprostack');
+        $text = __('Usually smaller than WebP, but slower to make. Needs WordPress 6.5 or later and server support. Media in cloud storage uploads these copies too and offers them in picture mode.', 'seoprostack');
         // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- screen check only.
         if (is_admin() && isset($_GET['page']) && 'seoprostack' === $_GET['page']) {
             $text .= ' ' . (self::can_make('avif')
@@ -965,8 +965,12 @@ class SEOProStack_Nextgen_Images extends SEOProStack_Feature {
         $copies = 0;
         foreach ($candidates as $candidate) {
             list($url, $descriptor) = $candidate;
+            $remote = class_exists('SEOProStack_Media_Storage') ? SEOProStack_Media_Storage::format_url($url, $format) : '';
             $path = self::upload_path($url);
-            if ('' !== $path && is_file($path . '.' . $format)) {
+            if ('' !== $remote) {
+                $url = $remote;
+                ++$copies;
+            } elseif ('' !== $path && is_file($path . '.' . $format)) {
                 $url .= '.' . $format;
                 ++$copies;
             }
