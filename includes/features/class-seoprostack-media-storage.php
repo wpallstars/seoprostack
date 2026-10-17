@@ -71,7 +71,7 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
             self::KEY => array(
                 'type' => 'bool', 'default' => false, 'tab' => 'media',
                 'label' => __('Media in cloud storage', 'seoprostack'),
-                'description' => __('Copy pictures to S3-compatible storage in the background and serve uploaded pictures from its public address. Files stay on this server too, unless Remove local copies after upload is on. Needs the SEOPROSTACK_MEDIA_STORAGE constants in wp-config.php. Purge page caches after switching on or off.', 'seoprostack'),
+                'description' => __('Copy pictures, sizes and registered WebP and AVIF copies to S3-compatible storage in the background and serve them from its public address. AVIF is offered in picture mode. Files stay on this server too, unless Remove local copies after upload is on. Needs the SEOPROSTACK_MEDIA_STORAGE constants in wp-config.php. Purge page caches after switching on or off.', 'seoprostack'),
                 // The constants, progress and Test connection (panel_status())
                 // show above the child setting.
                 'panel' => true,
@@ -1000,6 +1000,11 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
         return self::enabled() && !self::config()['missing'];
     }
 
+    /** @return string Completion marker for inventories including AVIF copies. */
+    private static function upload_marker() {
+        return self::config()['signature'] . ':avif';
+    }
+
     /**
      * The main site's uploads folder, read once per request: on a subsite
      * each read switches to the main site, too costly for every image address.
@@ -1019,7 +1024,9 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
      * @param int $id Attachment ID.
      */
     private static function forget($id) {
-        unset(self::$maps[get_current_blog_id() . ':' . (int) $id]);
+        foreach (array('', 'all', 'removed') as $mode) {
+            unset(self::$maps[get_current_blog_id() . ':' . (int) $id . ':' . $mode]);
+        }
     }
 
     /** Register local hooks even when off; remote work always checks ready(). */
@@ -1043,6 +1050,17 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
         }
         if (self::config()['missing']) {
             return;
+        }
+        if (self::ready() && (is_admin() || wp_doing_cron() || (defined('WP_CLI') && WP_CLI))) {
+            // Wake idle legacy installations once without changing their object
+            // ownership or invalidating the records still serving their pages.
+            $destinations = get_option(self::DESTINATIONS, array());
+            if (($destinations['inventory_version'] ?? '') !== self::upload_marker()) {
+                self::schedule();
+                $destinations['inventory_version'] = self::upload_marker();
+                update_option(self::DESTINATIONS, $destinations, false);
+                delete_transient(self::COUNTS);
+            }
         }
         add_filter('wp_insert_post_data', array(__CLASS__, 'save_local'), 5);
         // Files must be here before an editor or size generator reads them.
@@ -1409,7 +1427,7 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
         // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- bounded queue lookup, as waiting().
         return array_map('intval', $wpdb->get_col($wpdb->prepare(
             "SELECT p.ID FROM {$wpdb->posts} p INNER JOIN {$wpdb->postmeta} d ON d.post_id = p.ID AND d.meta_key = %s AND d.meta_value = %s INNER JOIN {$wpdb->postmeta} s ON s.post_id = p.ID AND s.meta_key = %s AND s.meta_value = 'uploaded' LEFT JOIN {$wpdb->postmeta} l ON l.post_id = p.ID AND l.meta_key = %s WHERE p.post_type = 'attachment' AND (l.meta_id IS NULL OR l.meta_value NOT IN (%s, %s)) ORDER BY p.ID DESC LIMIT %d",
-            self::DONE, $signature, self::STATE, self::LOCAL, $signature, 'kept:' . $signature, max(1, (int) $limit)
+            self::DONE, self::upload_marker(), self::STATE, self::LOCAL, $signature, 'kept:' . $signature, max(1, (int) $limit)
         )));
     }
 
@@ -1446,7 +1464,7 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
         // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- bounded queue lookup, matching the nextgen queue.
         return array_map('intval', $wpdb->get_col($wpdb->prepare(
             "SELECT p.ID FROM {$wpdb->posts} p LEFT JOIN {$wpdb->postmeta} m ON m.post_id = p.ID AND m.meta_key = %s AND m.meta_value = %s WHERE p.post_type = 'attachment' AND p.post_mime_type LIKE %s AND m.meta_id IS NULL ORDER BY p.ID DESC LIMIT %d",
-            self::DONE, self::config()['signature'], 'image/%', max(1, (int) $limit)
+            self::DONE, self::upload_marker(), 'image/%', max(1, (int) $limit)
         )));
     }
 
@@ -1613,7 +1631,7 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
             return null;
         }
         if (self::removing()) {
-            // WebP copies are made first, so they are uploaded before files go.
+            // WebP and AVIF copies are made first, before files go.
             return SEOProStack_Nextgen_Images::enabled() && SEOProStack_Nextgen_Images::waiting(1) ? null : true;
         }
         return self::restoring() ? false : null;
@@ -1705,7 +1723,7 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
      * file is still the uploaded one (size and SHA-256), the bucket answers
      * HTTP 200 with the recorded size, and nothing changed meanwhile.
      * Files the record does not list (Watermark pictures' unmarked
-     * originals, AVIF copies, oversized files) are never touched.
+     * originals, unregistered copies, oversized files) are never touched.
      *
      * @param int $id Attachment ID.
      * @param float $deadline End of the reserved turn.
@@ -1820,7 +1838,7 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
     private static function changed_meanwhile($id, $generation) {
         $signature = self::config()['signature'];
         self::fresh($id);
-        if (get_post_meta($id, self::DONE, true) !== $signature || get_post_meta($id, self::GENERATION, true) !== $generation) {
+        if (get_post_meta($id, self::DONE, true) !== self::upload_marker() || get_post_meta($id, self::GENERATION, true) !== $generation) {
             return true;
         }
         return get_post_meta($id, self::LOCAL, true) === 'kept:' . $signature;
@@ -1837,7 +1855,7 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
         $signature = self::config()['signature'];
         $record = get_post_meta($id, self::META, true);
         $complete = is_array($record) && !empty($record['files']) && 'uploaded' === $record['state'] && $record['signature'] === $signature;
-        return $complete && self::root() && get_post_meta($id, self::DONE, true) === $signature ? $record : null;
+        return $complete && self::root() && get_post_meta($id, self::DONE, true) === self::upload_marker() ? $record : null;
     }
 
     /**
@@ -1868,6 +1886,11 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
     private static function removal_files($record) {
         $files = array();
         foreach ($record['files'] as $key => $info) {
+            // A local source still needs its format copies for picture mode.
+            // Oversized sources may be absent even when their copies uploaded.
+            if (preg_match('/\.(?:jpe?g|png|webp)\.(?:webp|avif)$/i', (string) $key) && empty($record['files'][substr((string) $key, 0, -5)]['confirmed'])) {
+                continue;
+            }
             $path = self::removal_path((string) $key, $info);
             if ('' === $path) {
                 continue;
@@ -2405,7 +2428,7 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
     }
 
     /**
-     * Collect only attachment files and registered WebP copies, within uploads.
+     * Collect attachment files and registered WebP and AVIF copies, within uploads.
      *
      * @param int $id Attachment ID.
      * @return array<string,array>
@@ -2433,8 +2456,10 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
         $config = self::config();
         foreach (array_unique($names) as $name) {
             $paths = array(dirname($file) . '/' . $name);
-            if (!empty($nextgen['files'][$name]['webp']) && $nextgen['files'][$name]['webp'] > 0 && is_file($paths[0]) && is_file($paths[0] . '.webp') && filemtime($paths[0] . '.webp') >= filemtime($paths[0])) {
-                $paths[] = dirname($file) . '/' . $name . '.webp';
+            foreach (array('webp', 'avif') as $format) {
+                if (!empty($nextgen['files'][$name][$format]) && $nextgen['files'][$name][$format] > 0 && is_file($paths[0]) && is_file($paths[0] . '.' . $format) && filemtime($paths[0] . '.' . $format) >= filemtime($paths[0])) {
+                    $paths[] = dirname($file) . '/' . $name . '.' . $format;
+                }
             }
             foreach ($paths as $path) {
                 $real = realpath($path);
@@ -2447,6 +2472,10 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
                     continue;
                 }
                 $type = wp_check_filetype($path);
+                // WordPress before 6.5 does not recognise AVIF extensions.
+                if (substr($path, -5) === '.avif') {
+                    $type['type'] = 'image/avif';
+                }
                 if (empty($type['type']) || 0 !== strpos($type['type'], 'image/')) {
                     continue;
                 }
@@ -2473,8 +2502,7 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
         if (!self::removed($id) || self::removed_files($id)) {
             return false;
         }
-        $signature = self::config()['signature'];
-        update_post_meta($id, self::DONE, $signature);
+        update_post_meta($id, self::DONE, self::upload_marker());
         update_post_meta($id, self::STATE, 'failed');
         update_option(self::ERROR, __('Some pictures’ local files were removed while another storage connection was set. Set that connection again and run wp seoprostack media-storage restore --all.', 'seoprostack'), false);
         delete_transient(self::COUNTS);
@@ -2530,7 +2558,7 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
             // Only explicit adopt/migrate may replace an old inventory. Mark the
             // queue visited without changing the source record or its files.
             self::archive_inventory($id, $inventory);
-            update_post_meta($id, self::DONE, self::config()['signature']);
+            update_post_meta($id, self::DONE, self::upload_marker());
             return false;
         }
         if (!self::ready() || 0 !== strpos((string) get_post_mime_type($id), 'image/') || self::removed_elsewhere($id)) {
@@ -2542,7 +2570,7 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
         $old = self::own_inventory($id);
         $attempt = isset($old['attempts']) ? (int) $old['attempts'] + 1 : 1;
         // Tried first: even a fatal error moves the queue forward and retries later.
-        update_post_meta($id, self::DONE, $config['signature']);
+        update_post_meta($id, self::DONE, self::upload_marker());
         $job = array('kind' => 'retry', 'id' => $id, 'signature' => $config['signature'], 'next' => time() + HOUR_IN_SECONDS);
         update_option(self::JOB . 'retry_' . $id, $job, false);
         if (!self::restore_for_upload($id)) {
@@ -2649,7 +2677,7 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
             delete_option(self::JOB . 'retry_' . $id);
             return false;
         }
-        if (get_post_meta($id, self::DONE, true) !== $config['signature'] || get_post_meta($id, self::GENERATION, true) !== $generation) {
+        if (get_post_meta($id, self::DONE, true) !== self::upload_marker() || get_post_meta($id, self::GENERATION, true) !== $generation) {
             // A live edit needs another pass, not deletion of its confirmed files.
             return false;
         }
@@ -2750,7 +2778,8 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
         if (!is_array($record) || empty($record['files']) || 'uploaded' !== $record['state'] || $record['signature'] !== $signature) {
             return array();
         }
-        return get_post_meta($id, self::DONE, true) === $signature ? $record['files'] : array();
+        // Legacy inventories stay usable while the queue adds their AVIF files.
+        return in_array(get_post_meta($id, self::DONE, true), array($signature, self::upload_marker()), true) ? $record['files'] : array();
     }
 
     /**
@@ -2788,6 +2817,63 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
         }
         $map = self::map($id);
         return isset($map[$url]) ? $map[$url] : $url;
+    }
+
+    /**
+     * Resolve a format copy only from an exact, indexed bucket address.
+     * No HTTP requests or guessed suffixes: the map names confirmed objects
+     * and preserves each copy's own version, including after local removal.
+     *
+     * @param string $url Image address.
+     * @param string $format WebP or AVIF extension.
+     * @return string Copy address, or none.
+     */
+    public static function format_url($url, $format) {
+        if (!in_array($format, array('webp', 'avif'), true) || '' === self::serving()) {
+            return '';
+        }
+        $map = self::indexed_map($url);
+        foreach ($map as $local => $remote) {
+            if ($remote !== $url) {
+                continue;
+            }
+            // The default bucket address can already be a WebP sibling.
+            if (substr($local, -5) === '.webp' && isset($map[substr($local, 0, -5)]) && $map[substr($local, 0, -5)] === $url) {
+                $local = substr($local, 0, -5);
+            }
+            if (isset($map[$local . '.' . $format])) {
+                return $map[$local . '.' . $format];
+            }
+        }
+        return '';
+    }
+
+    /**
+     * Find the owning attachment's output map without scanning attachments.
+     *
+     * @param string $url Public image address.
+     * @return array<string,string> Candidate map; callers still match the exact URL.
+     */
+    private static function indexed_map($url) {
+        $config = self::config();
+        $destinations = get_option(self::DESTINATIONS, array());
+        $sources = array($config);
+        if (!empty($destinations['previous'])) {
+            $sources[] = $destinations['previous'];
+        }
+        foreach ($sources as $source) {
+            $base = $source['url'] . '/';
+            if (0 !== strpos($url, $base)) {
+                continue;
+            }
+            $key = rawurldecode(preg_replace('/\?v=[a-f0-9]+$/', '', substr($url, strlen($base))) ?? '');
+            $id = (int) get_option(self::URL_INDEX . hash('sha256', $source['signature'] . $key), 0);
+            if (!$id || !self::serves($id)) {
+                continue;
+            }
+            return self::map($id);
+        }
+        return array();
     }
 
     /**
@@ -3082,7 +3168,7 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
             return '';
         }
         $relative = $record['files'][$lookup]['relative'];
-        if (substr($relative, -5) === '.webp' && isset($record['files'][substr($lookup, 0, -5)])) {
+        if (in_array(substr($relative, -5), array('.webp', '.avif'), true) && isset($record['files'][substr($lookup, 0, -5)])) {
             $relative = substr($relative, 0, -5);
         }
         return $relative;
@@ -3120,7 +3206,7 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
         }
         $counts = array('uploaded' => 0, 'waiting' => 0, 'skipped' => 0, 'failed' => 0);
         // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- explicit status query, no visitor page.
-        $rows = $wpdb->get_results($wpdb->prepare("SELECT CASE WHEN p.post_mime_type NOT LIKE %s THEN 'skipped' WHEN d.meta_value = %s THEN COALESCE(m.meta_value, 'failed') ELSE 'waiting' END AS state, COUNT(*) AS total, SUM(COALESCE(s.meta_value, 0)) AS partial FROM {$wpdb->posts} p LEFT JOIN {$wpdb->postmeta} m ON p.ID = m.post_id AND m.meta_key = %s LEFT JOIN {$wpdb->postmeta} d ON p.ID = d.post_id AND d.meta_key = %s LEFT JOIN {$wpdb->postmeta} s ON p.ID = s.post_id AND s.meta_key = %s WHERE p.post_type = 'attachment' GROUP BY state", 'image/%', self::config()['signature'], self::STATE, self::DONE, self::SKIPPED));
+        $rows = $wpdb->get_results($wpdb->prepare("SELECT CASE WHEN p.post_mime_type NOT LIKE %s THEN 'skipped' WHEN d.meta_value = %s THEN COALESCE(m.meta_value, 'failed') ELSE 'waiting' END AS state, COUNT(*) AS total, SUM(COALESCE(s.meta_value, 0)) AS partial FROM {$wpdb->posts} p LEFT JOIN {$wpdb->postmeta} m ON p.ID = m.post_id AND m.meta_key = %s LEFT JOIN {$wpdb->postmeta} d ON p.ID = d.post_id AND d.meta_key = %s LEFT JOIN {$wpdb->postmeta} s ON p.ID = s.post_id AND s.meta_key = %s WHERE p.post_type = 'attachment' GROUP BY state", 'image/%', self::upload_marker(), self::STATE, self::DONE, self::SKIPPED));
         foreach ($rows as $row) {
             if (isset($counts[$row->state])) {
                 $counts[$row->state] = (int) $row->total;
@@ -3290,7 +3376,7 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
         }
         $record = get_post_meta($post->ID, self::META, true);
         $state = is_array($record) && isset($record['state']) ? $record['state'] : 'waiting';
-        if (get_post_meta($post->ID, self::DONE, true) !== self::config()['signature']) {
+        if (get_post_meta($post->ID, self::DONE, true) !== self::upload_marker()) {
             $state = 'waiting';
         }
         $labels = array('uploaded' => __('Uploaded; local files kept.', 'seoprostack'), 'waiting' => __('Waiting to upload.', 'seoprostack'), 'failed' => __('Upload failed; local files are served.', 'seoprostack'), 'skipped' => __('Kept on this server.', 'seoprostack'));

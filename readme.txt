@@ -57,7 +57,7 @@ Safe features start on; others stay off. **Settings → SEO Pro Stack** has **Se
 
 * **Copy linked images to Media Library** on save, and **Paste into the Media Library**.
 * **WebP and AVIF images**: smaller files at the same address.
-* **Media in cloud storage** (off): S3-compatible picture delivery; can remove local copies.
+* **Media in cloud storage** (off): uploads pictures, sizes, WebP and AVIF copies; can remove and restore local copies. Picture mode offers bucket AVIF sources.
 * **Resize large uploads**, **Replace media files** and **Watermark pictures**, keeping originals.
 * **SVG uploads**: cleaned, chosen roles only. **Dark mode image contrast** for logos.
 * **Website screenshots**: block and `[browser-shot]` shortcode.
@@ -149,6 +149,7 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 == Changelog ==
 
 = Unreleased =
+* New: Cloud media uploads, restores and serves AVIF copies; copies stay local when their source is not uploaded.
 * Changed: Concurrent cloud media uploads and checks, with reserved time for removing local copies.
 * New: Verified cloud media bucket handover with adopt, migrate, previous-destination fallback and explicit cleanup.
 * Fix: Cloud cleanup resumes verification, skips empty inventories, reads status in batches and preserves local image srcset.
