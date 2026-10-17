@@ -42,8 +42,7 @@ final class SEOProStack_S3_Client {
      * @return true|WP_Error
      */
     public function put_file($key, $path, $content_type, $cache_control, $digest = '') {
-        // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents, WordPress.PHP.NoSilencedErrors.Discouraged -- local file; concurrent deletion is handled as WP_Error below.
-        $body = @file_get_contents($path);
+        $body = $this->read_file($path);
         if (false === $body) {
             return new WP_Error('storage_read', __('The local picture could not be read.', 'seoprostack'));
         }
@@ -51,6 +50,18 @@ final class SEOProStack_S3_Client {
             return new WP_Error('storage_changed', __('The local picture changed while being copied. It will be retried.', 'seoprostack'));
         }
         return $this->put($key, $body, $content_type, $cache_control);
+    }
+
+    /**
+     * Read locally through core, which handles a concurrent deletion quietly.
+     *
+     * @param string $path Local file.
+     * @return string|false Bytes, or a failed read.
+     */
+    private function read_file($path) {
+        require_once ABSPATH . 'wp-admin/includes/class-wp-filesystem-base.php';
+        require_once ABSPATH . 'wp-admin/includes/class-wp-filesystem-direct.php';
+        return (new WP_Filesystem_Direct(null))->get_contents($path);
     }
 
     /**
@@ -79,8 +90,7 @@ final class SEOProStack_S3_Client {
         foreach (array_chunk($files, 6, true) as $group) {
             $requests = array();
             foreach ($group as $key => $info) {
-                // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents, WordPress.PHP.NoSilencedErrors.Discouraged -- local file; concurrent deletion becomes WP_Error.
-                $body = @file_get_contents($info['path']);
+                $body = $this->read_file($info['path']);
                 if (false === $body || empty($info['digest'])) {
                     $results[$key] = new WP_Error('storage_read', __('The local picture could not be read.', 'seoprostack'));
                 } elseif (!hash_equals($info['digest'], hash('sha256', $body))) {
@@ -118,8 +128,7 @@ final class SEOProStack_S3_Client {
                 continue;
             }
             foreach ($this->request_multiple($requests, min(20, $remaining)) as $key => $response) {
-                $etag = is_wp_error($response) ? '' : wp_remote_retrieve_header($response, 'etag');
-                $results[$key] = is_wp_error($response) ? $response : array('status' => (int) wp_remote_retrieve_response_code($response), 'size' => (int) wp_remote_retrieve_header($response, 'content-length'), 'etag' => is_string($etag) ? $etag : '');
+                $results[$key] = $this->head_info($response);
             }
         }
         return $results;
@@ -134,48 +143,80 @@ final class SEOProStack_S3_Client {
      * @return array WordPress-shaped responses or WP_Error values, by key.
      */
     private function request_multiple($requests, $timeout = 20) {
+        $class = class_exists('WpOrg\\Requests\\Requests') ? 'WpOrg\\Requests\\Requests' : 'Requests';
+        $batch = $this->prepare_parallel($requests, $class, $timeout);
+        if (!$batch['parallel']) {
+            return $batch['results'];
+        }
+        try {
+            // phpcs:ignore WordPressVIPMinimum.Performance.RemoteRequestTimeout.timeout_timeout -- background batch, never a page view.
+            $responses = $class::request_multiple($batch['parallel'], array('timeout' => $timeout, 'connect_timeout' => min(10, $timeout), 'follow_redirects' => false, 'redirects' => 0, 'data_format' => 'body', 'verify' => ABSPATH . WPINC . '/certificates/ca-bundle.crt', 'max_bytes' => 16 * MB_IN_BYTES + 1));
+        } catch (Throwable $error) {
+            // Never persist exception messages: they can contain credentials.
+            $responses = array();
+        }
+        foreach ($batch['parallel'] as $key => $request) {
+            $batch['results'][$key] = $this->multiple_response($request['type'], $responses[$key] ?? null);
+        }
+        return $batch['results'];
+    }
+
+    /**
+     * Separate allowed parallel requests from invalid or proxy-routed ones.
+     *
+     * @param array $requests Signed requests or errors.
+     * @param string $class Bundled Requests class.
+     * @param float $timeout Group timeout.
+     * @return array{results:array,parallel:array} Completed results and pending requests.
+     */
+    private function prepare_parallel($requests, $class, $timeout) {
         $results = array();
         $parallel = array();
-        $class = class_exists('WpOrg\\Requests\\Requests') ? 'WpOrg\\Requests\\Requests' : 'Requests';
-        $proxy = new WP_HTTP_Proxy();
+        $fallback = (new WP_HTTP_Proxy())->is_enabled() || !class_exists($class);
         $deadline = microtime(true) + $timeout;
         foreach ($requests as $key => $request) {
             if (is_wp_error($request)) {
                 $results[$key] = $request;
-            } elseif ($proxy->is_enabled() || !class_exists($class)) {
-                $remaining = $deadline - microtime(true);
-                if ($remaining <= 0) {
-                    $results[$key] = new WP_Error('storage_budget', __('The storage batch will continue on its next turn.', 'seoprostack'));
-                    continue;
-                }
-                // phpcs:ignore WordPressVIPMinimum.Performance.RemoteRequestTimeout.timeout_timeout -- background batch, never a page view.
-                $response = wp_remote_request($request['url'], array('method' => $request['type'], 'headers' => $request['headers'], 'body' => $request['data'], 'timeout' => $remaining, 'redirection' => 0, 'limit_response_size' => 16 * MB_IN_BYTES + 1));
-                $results[$key] = $this->checked_response($request['type'], $response);
+            } elseif ($fallback) {
+                $results[$key] = $this->fallback_request($request, $deadline);
             } elseif ((new WP_Http())->block_request($request['url'])) {
                 $results[$key] = new WP_Error('storage_transport', __('The storage service could not be reached.', 'seoprostack'));
             } else {
                 $parallel[$key] = $request;
             }
         }
-        if (!$parallel) {
-            return $results;
+        return array('results' => $results, 'parallel' => $parallel);
+    }
+
+    /**
+     * Keep sequential proxy requests inside the same group deadline.
+     *
+     * @param array $request Signed request.
+     * @param float $deadline End of group time.
+     * @return array|WP_Error Checked HTTP response.
+     */
+    private function fallback_request($request, $deadline) {
+        $remaining = $deadline - microtime(true);
+        if ($remaining <= 0) {
+            return new WP_Error('storage_budget', __('The storage batch will continue on its next turn.', 'seoprostack'));
         }
-        try {
-            // phpcs:ignore WordPressVIPMinimum.Performance.RemoteRequestTimeout.timeout_timeout -- background batch, never a page view.
-            $responses = $class::request_multiple($parallel, array('timeout' => $timeout, 'connect_timeout' => min(10, $timeout), 'follow_redirects' => false, 'redirects' => 0, 'data_format' => 'body', 'verify' => ABSPATH . WPINC . '/certificates/ca-bundle.crt', 'max_bytes' => 16 * MB_IN_BYTES + 1));
-        } catch (Throwable $error) {
-            // Never persist exception messages: they can contain credentials.
-            $responses = array();
+        // phpcs:ignore WordPressVIPMinimum.Performance.RemoteRequestTimeout.timeout_timeout -- background batch, never a page view.
+        $response = wp_remote_request($request['url'], array('method' => $request['type'], 'headers' => $request['headers'], 'body' => $request['data'], 'timeout' => $remaining, 'redirection' => 0, 'limit_response_size' => 16 * MB_IN_BYTES + 1));
+        return $this->checked_response($request['type'], $response);
+    }
+
+    /**
+     * Convert a bundled Requests result without retaining raw exceptions.
+     *
+     * @param string $method HTTP method.
+     * @param mixed $response Response or transport exception.
+     * @return array|WP_Error Checked WordPress-shaped result.
+     */
+    private function multiple_response($method, $response) {
+        if (!is_object($response) || !isset($response->status_code, $response->headers, $response->body)) {
+            return new WP_Error('storage_transport', __('The storage service could not be reached.', 'seoprostack'));
         }
-        foreach ($parallel as $key => $request) {
-            $response = isset($responses[$key]) ? $responses[$key] : null;
-            if (!is_object($response) || !isset($response->status_code, $response->headers, $response->body)) {
-                $results[$key] = new WP_Error('storage_transport', __('The storage service could not be reached.', 'seoprostack'));
-                continue;
-            }
-            $results[$key] = $this->checked_response($request['type'], array('response' => array('code' => (int) $response->status_code), 'headers' => $response->headers, 'body' => $response->body));
-        }
-        return $results;
+        return $this->checked_response($method, array('response' => array('code' => (int) $response->status_code), 'headers' => $response->headers, 'body' => $response->body));
     }
 
     /**
@@ -185,7 +226,16 @@ final class SEOProStack_S3_Client {
      * @return array{status:int,size:int,etag:string}|WP_Error
      */
     public function head($key) {
-        $response = $this->request('HEAD', $key);
+        return $this->head_info($this->request('HEAD', $key));
+    }
+
+    /**
+     * Read the same confirmation fields from single or concurrent HEADs.
+     *
+     * @param array|WP_Error $response Checked HTTP result.
+     * @return array{status:int,size:int,etag:string}|WP_Error Confirmation.
+     */
+    private function head_info($response) {
         if (is_wp_error($response)) {
             return $response;
         }
@@ -245,9 +295,9 @@ final class SEOProStack_S3_Client {
      */
     private function signed_request($method, $key, $body = '', $headers = array()) {
         $config = $this->config;
-        $parts  = wp_parse_url($config['endpoint']);
-        if (!is_array($parts) || empty($parts['host']) || empty($parts['scheme']) || !in_array($parts['scheme'], array('http', 'https'), true) || isset($parts['query']) || isset($parts['fragment']) || isset($parts['user']) || isset($parts['pass'])) {
-            return new WP_Error('storage_endpoint', __('Check the storage endpoint address.', 'seoprostack'));
+        $parts = $this->endpoint_parts();
+        if (is_wp_error($parts)) {
+            return $parts;
         }
         $host = $parts['host'] . (isset($parts['port']) ? ':' . $parts['port'] : '');
         $path = (isset($parts['path']) ? rtrim($parts['path'], '/') : '') . '/' . $config['bucket'] . '/' . $key;
@@ -273,6 +323,15 @@ final class SEOProStack_S3_Client {
         }
         $headers['Authorization'] = 'AWS4-HMAC-SHA256 Credential=' . $config['key_id'] . '/' . $scope . ', SignedHeaders=' . $signed . ', Signature=' . hash_hmac('sha256', $string, $signing);
         return array('url' => $parts['scheme'] . '://' . $host . $path, 'type' => $method, 'headers' => $headers, 'data' => $body);
+    }
+
+    /** @return array|WP_Error Parsed trusted endpoint, never URL credentials. */
+    private function endpoint_parts() {
+        $parts = wp_parse_url($this->config['endpoint']);
+        if (!is_array($parts) || empty($parts['host']) || empty($parts['scheme']) || !in_array($parts['scheme'], array('http', 'https'), true) || isset($parts['query']) || isset($parts['fragment']) || isset($parts['user']) || isset($parts['pass'])) {
+            return new WP_Error('storage_endpoint', __('Check the storage endpoint address.', 'seoprostack'));
+        }
+        return $parts;
     }
 
     /**
