@@ -152,6 +152,7 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 * Changed: Concurrent cloud media uploads and checks, with reserved time for removing local copies.
 * New: Verified cloud media bucket handover with adopt, migrate, previous-destination fallback and explicit cleanup.
 * Fix: Cloud cleanup resumes verification, skips empty inventories, reads status in batches and preserves local image srcset.
+* Fix: Kadence Pro's dark mode switches without icons fading from the old colours, and cached pages open in the chosen mode.
 
 = 1.3.53 =
 * New: Media in cloud storage can remove local copies after a confirmed upload, and bring them back.
