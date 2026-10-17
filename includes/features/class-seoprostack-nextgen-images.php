@@ -417,6 +417,11 @@ class SEOProStack_Nextgen_Images extends SEOProStack_Feature {
     public static function convert_attachment($attachment_id, $force = false) {
         $attachment_id = (int) $attachment_id;
         $signature     = self::signature();
+        // Media in cloud storage may have removed the local files: bring them back.
+        $restored      = class_exists('SEOProStack_Media_Storage') ? SEOProStack_Media_Storage::ensure_local($attachment_id) : true;
+        if (is_wp_error($restored)) {
+            return $restored;
+        }
         $file          = get_attached_file($attachment_id);
         $types         = self::source_types();
         $previous      = get_post_meta($attachment_id, self::META, true);

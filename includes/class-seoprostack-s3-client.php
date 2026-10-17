@@ -83,6 +83,17 @@ final class SEOProStack_S3_Client {
     }
 
     /**
+     * Read an object's bytes, signed, so a private bucket can bring files back.
+     *
+     * @param string $key Object key.
+     * @return string|WP_Error
+     */
+    public function get($key) {
+        $response = $this->request('GET', $key);
+        return is_wp_error($response) ? $response : (string) wp_remote_retrieve_body($response);
+    }
+
+    /**
      * Remove an object; absent objects count as done.
      *
      * @param string $key Object key.
@@ -146,6 +157,6 @@ final class SEOProStack_S3_Client {
         if (preg_match('/<Code>([A-Za-z0-9]{1,64})<\/Code>/', wp_remote_retrieve_body($response), $match)) {
             $code = str_replace(array($config['key_id'], $config['secret']), '[redacted]', $match[1]);
         }
-        return new WP_Error('storage_http', sprintf('Storage HTTP %d%s', $status, $code ? ' (' . $code . ')' : ''));
+        return new WP_Error('storage_http', sprintf('Storage HTTP %d%s', $status, $code ? ' (' . $code . ')' : ''), array('status' => (int) $status));
     }
 }

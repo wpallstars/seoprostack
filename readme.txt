@@ -57,7 +57,7 @@ Safe features start on; others stay off. **Settings → SEO Pro Stack** has **Se
 
 * **Copy linked images to Media Library** on save, and **Paste into the Media Library**.
 * **WebP and AVIF images**: smaller files at the same address.
-* **Media in cloud storage** (off): S3-compatible picture delivery; local files stay.
+* **Media in cloud storage** (off): S3-compatible picture delivery; can remove local copies.
 * **Resize large uploads**, **Replace media files** and **Watermark pictures**, keeping originals.
 * **SVG uploads**: cleaned, chosen roles only. **Dark mode image contrast** for logos.
 * **Website screenshots**: block and `[browser-shot]` shortcode.
@@ -122,7 +122,7 @@ Install from Plugins → Add New and activate. Set features in Settings → SEO 
 
 = What happens if I deactivate or delete the plugin? =
 
-Deactivation restores local image addresses, removes the must-use file and tries to remove marked `.htaccess` rules. Deletion removes settings, caches, profile pictures, WebP/AVIF copies, storage records and short links; imported media, watermarked originals and bucket objects stay.
+Deactivation restores local image addresses, removes the must-use file and tries to remove marked `.htaccess` rules. Deletion removes settings, caches, profile pictures, WebP/AVIF copies, storage records and short links; imported media, watermarked originals and bucket objects stay. Removed local copies? Run `wp seoprostack media-storage restore --all` first.
 
 = Does it work on multisite? =
 
@@ -149,6 +149,7 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 == Changelog ==
 
 = Unreleased =
+* New: Media in cloud storage can remove local copies after a confirmed upload, and bring them back.
 * New: Kadence query filters can use term slugs in addresses, without a redirect.
 * New: HTTPS check, in Site Health and on the Security tab.
 * Fix: Fluent Forms placeholders use the input's stronger text colour, including the fallback.

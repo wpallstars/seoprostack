@@ -313,6 +313,11 @@ class SEOProStack_Watermark_Images extends SEOProStack_Feature {
         if ($id <= 0) {
             return new WP_Error('watermark_none', $none);
         }
+        // The mark is read from its files, which Media in cloud storage may have removed.
+        $restored = class_exists('SEOProStack_Media_Storage') ? SEOProStack_Media_Storage::ensure_local($id) : true;
+        if (is_wp_error($restored)) {
+            return $restored;
+        }
 
         $file = get_attached_file($id);
         if (!$file || !is_file($file)) {
@@ -548,9 +553,19 @@ class SEOProStack_Watermark_Images extends SEOProStack_Feature {
      */
     public static function unmarkable($attachment_id, $read_file = true) {
         $attachment_id = (int) $attachment_id;
+        // Media in cloud storage may have removed the local files: bring
+        // them back to mark them; a Media Library row only lists them.
+        $stored        = class_exists('SEOProStack_Media_Storage') && SEOProStack_Media_Storage::removed($attachment_id);
+        if ($stored && $read_file) {
+            $restored = SEOProStack_Media_Storage::ensure_local($attachment_id);
+            if (is_wp_error($restored)) {
+                return $restored;
+            }
+            $stored = false;
+        }
         $file          = get_attached_file($attachment_id);
         $mime          = get_post_mime_type($attachment_id);
-        if (!$file || !is_file($file) || !in_array($mime, self::TYPES, true)) {
+        if (!$file || (!$stored && !is_file($file)) || !in_array($mime, self::TYPES, true)) {
             return new WP_Error('watermark_not_image', __('Not a picture that can be marked.', 'seoprostack'));
         }
         if (false !== stripos(wp_basename($file), 'nowatermark')) {
@@ -771,6 +786,12 @@ class SEOProStack_Watermark_Images extends SEOProStack_Feature {
         $record        = self::record($attachment_id);
         if (!$record) {
             return 'unmarked';
+        }
+        // record_current() reads the marked file, which Media in cloud
+        // storage may have removed: bring it back first.
+        $restored = class_exists('SEOProStack_Media_Storage') ? SEOProStack_Media_Storage::ensure_local($attachment_id) : true;
+        if (is_wp_error($restored)) {
+            return $restored;
         }
         $backup = self::backup_path($record);
         if (!$backup || !is_file($backup)) {
