@@ -1051,6 +1051,17 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
         if (self::config()['missing']) {
             return;
         }
+        if (self::ready() && (is_admin() || wp_doing_cron() || (defined('WP_CLI') && WP_CLI))) {
+            // Wake idle legacy installations once without changing their object
+            // ownership or invalidating the records still serving their pages.
+            $destinations = get_option(self::DESTINATIONS, array());
+            if (($destinations['inventory_version'] ?? '') !== self::upload_marker()) {
+                self::schedule();
+                $destinations['inventory_version'] = self::upload_marker();
+                update_option(self::DESTINATIONS, $destinations, false);
+                delete_transient(self::COUNTS);
+            }
+        }
         add_filter('wp_insert_post_data', array(__CLASS__, 'save_local'), 5);
         // Files must be here before an editor or size generator reads them.
         add_filter('load_image_to_edit_path', array(__CLASS__, 'edit_path'), 5, 3);
@@ -2486,7 +2497,6 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
         if (!self::removed($id) || self::removed_files($id)) {
             return false;
         }
-        $signature = self::config()['signature'];
         update_post_meta($id, self::DONE, self::upload_marker());
         update_post_meta($id, self::STATE, 'failed');
         update_option(self::ERROR, __('Some pictures’ local files were removed while another storage connection was set. Set that connection again and run wp seoprostack media-storage restore --all.', 'seoprostack'), false);
@@ -2817,6 +2827,29 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
         if (!in_array($format, array('webp', 'avif'), true) || '' === self::serving()) {
             return '';
         }
+        $map = self::indexed_map($url);
+        foreach ($map as $local => $remote) {
+            if ($remote !== $url) {
+                continue;
+            }
+            // The default bucket address can already be a WebP sibling.
+            if (substr($local, -5) === '.webp' && isset($map[substr($local, 0, -5)]) && $map[substr($local, 0, -5)] === $url) {
+                $local = substr($local, 0, -5);
+            }
+            if (isset($map[$local . '.' . $format])) {
+                return $map[$local . '.' . $format];
+            }
+        }
+        return '';
+    }
+
+    /**
+     * Find the owning attachment's output map without scanning attachments.
+     *
+     * @param string $url Public image address.
+     * @return array<string,string> Candidate map; callers still match the exact URL.
+     */
+    private static function indexed_map($url) {
         $config = self::config();
         $destinations = get_option(self::DESTINATIONS, array());
         $sources = array($config);
@@ -2833,21 +2866,9 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
             if (!$id || !self::serves($id)) {
                 continue;
             }
-            $map = self::map($id);
-            foreach ($map as $local => $remote) {
-                if ($remote !== $url) {
-                    continue;
-                }
-                // The default bucket address can already be a WebP sibling.
-                if (substr($local, -5) === '.webp' && isset($map[substr($local, 0, -5)]) && $map[substr($local, 0, -5)] === $url) {
-                    $local = substr($local, 0, -5);
-                }
-                if (isset($map[$local . '.' . $format])) {
-                    return $map[$local . '.' . $format];
-                }
-            }
+            return self::map($id);
         }
-        return '';
+        return array();
     }
 
     /**
