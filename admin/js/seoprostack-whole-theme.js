@@ -477,6 +477,48 @@
 	document.addEventListener('readystatechange', hookMce);
 
 	/*
+	 * A request WordPress stops with an error (wp_die()) prints its own
+	 * light page, without the admin's <head>. In a dialog's frame, such as
+	 * View details on the Plugins screen for a plugin WordPress.org does not
+	 * list ("Plugin not found."), that was a white box in Dark. Frames from
+	 * this site showing one are coloured from here.
+	 */
+	var DIE_ID = 'sps-die-dark';
+	var DIE_CSS = 'html.sps-dark{background:#101517}'
+		+ 'html.sps-dark body#error-page{color:#f0f0f1;background:#1d2327;border-color:#3c434a;box-shadow:none}'
+		+ 'html.sps-dark body#error-page :is(h1,h2,h3){color:#f0f0f1;border-color:#3c434a}'
+		+ 'html.sps-dark body#error-page a{color:#72aee6}'
+		+ 'html.sps-dark body#error-page a:is(:hover,:focus){color:#f0f0f1}'
+		+ 'html.sps-dark body#error-page .button{color:#f0f0f1;background:#2c3338;border-color:#8c8f94}';
+	function dieFrame(frame) {
+		var doc;
+		try {
+			doc = frame.contentDocument;
+		} catch (e) {
+			return;
+		}
+		if (!doc || !doc.body || doc.body.id !== 'error-page' || !doc.head) {
+			return;
+		}
+		if (!doc.getElementById(DIE_ID)) {
+			var style = doc.createElement('style');
+			style.id = DIE_ID;
+			style.textContent = DIE_CSS;
+			doc.head.appendChild(style);
+		}
+		doc.documentElement.classList.toggle('sps-dark', root.classList.contains('sps-dark'));
+	}
+	function dieAll() {
+		Array.prototype.forEach.call(document.querySelectorAll('iframe'), dieFrame);
+	}
+	// A frame's load event does not bubble, so it is caught on the way down.
+	document.addEventListener('load', function (event) {
+		if (event.target && event.target.tagName === 'IFRAME') {
+			dieFrame(event.target);
+		}
+	}, true);
+
+	/*
 	 * WP Sheet Editor's spreadsheet has its own dark mode (vgse-dark-mode on
 	 * <html>), which opens in this mode once one is chosen
 		 * (SEOProStack_Admin_Whole_Theme::sheet_editor_mode()). A change here switches
@@ -521,6 +563,7 @@
 			order.forEach(function (value) { root.classList.toggle('sps-theme-' + value, value === which); });
 			root.classList.toggle('sps-dark', nowDark);
 			mceAll();
+			dieAll();
 		}
 		if (top) {
 			var holder = top.querySelector('.ab-icon');

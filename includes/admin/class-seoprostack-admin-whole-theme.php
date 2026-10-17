@@ -339,13 +339,15 @@ final class SEOProStack_Admin_Whole_Theme {
 
     /**
      * Mark SEO Pro Stack's own screen, where Light mode also keeps the
-     * scheme's colour at a contrast that reads (the stylesheet).
+     * scheme's colour at a contrast that reads (the stylesheet). With a
+     * space after it too: Tutor LMS adds its class with none before, which
+     * made "sps-own-screentutor-lms".
      *
      * @param string $classes Space-separated classes.
      * @return string
      */
     public static function body_class($classes) {
-        return self::own_screen() ? $classes . ' sps-own-screen' : $classes;
+        return self::own_screen() ? $classes . ' sps-own-screen ' : $classes;
     }
 
     /**

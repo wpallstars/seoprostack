@@ -374,8 +374,12 @@ html.sps-dark #contextual-help-columns {
 	border-color: var(--sps-ui-border);
 }
 
-/* The select arrow, drawn light (WordPress draws it dark grey). */
-:where(html.sps-dark :is(#wpbody, .wp-customizer, .components-modal__frame, .media-modal, .ui-datepicker, .ac-edit-popper, .ac-modal)) select:not([multiple], .components-select-control__input):where(:not(.editor-styles-wrapper *)) {
+/*
+ * The select arrow, drawn light (WordPress draws it dark grey). Not on
+ * selects whose plugin clears WordPress's arrow and draws its own icon
+ * (Tutor LMS's course status), where it would repeat across the field.
+ */
+:where(html.sps-dark :is(#wpbody, .wp-customizer, .components-modal__frame, .media-modal, .ui-datepicker, .ac-edit-popper, .ac-modal)) select:not([multiple], .components-select-control__input, :where(.tutor-form-select-with-icon select)):where(:not(.editor-styles-wrapper *)) {
 	background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20width%3D%2220%22%20height%3D%2220%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cpath%20d%3D%22M5%206l5%205%205-5%202%201-7%207-7-7%202-1z%22%20fill%3D%22%23c3c4c7%22%2F%3E%3C%2Fsvg%3E");
 }
 
@@ -2362,6 +2366,173 @@ html.sps-dark #wpbody ul.ff_dashboard_stats li a {
 
 html.sps-dark #wpbody ul.ff_dashboard_stats li:hover a {
 	color: var(--sps-ui-text);
+}
+
+/*
+ * FluentCRM's Search contacts panel in the admin bar: its colours are
+ * custom properties on the menu item, with dark values only under
+ * .dark or .fluent_theme_dark, which wp-admin's screens do not have.
+ */
+html.sps-dark li#wp-admin-bar-fcrm_adminbar_search {
+	--fcrm-adminbar-search-bg: var(--sps-ui-surface);
+	--fcrm-adminbar-search-muted-bg: var(--sps-ui-canvas);
+	--fcrm-adminbar-search-subtle-bg: var(--sps-ui-raised);
+	--fcrm-adminbar-search-text: var(--sps-ui-text);
+	--fcrm-adminbar-search-secondary-text: var(--sps-ui-muted);
+	--fcrm-adminbar-search-muted-text: var(--sps-ui-subtle);
+	--fcrm-adminbar-search-inverse-text: var(--sps-ui-canvas);
+	--fcrm-adminbar-search-border: var(--sps-ui-border);
+	--fcrm-adminbar-search-secondary-border: var(--sps-ui-field-border);
+	--fcrm-adminbar-search-link: var(--sps-ui-accent);
+}
+
+/*
+ * Redux Framework's option panels, as plugins bundle it (Kadence Simple
+ * Social Share): a patterned #f1f1f1 frame, #ddd and #eee bars, a #fcfcfc
+ * panel, #f1f1f1 fields, and gradient sorter items, switch halves and
+ * accordion heads (set with !important). The header, its blue line and
+ * the selected switch halves keep their colours.
+ */
+html.sps-dark .redux-container {
+	background: var(--sps-ui-canvas);
+	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark .redux-container :is(#info_bar, #redux-footer, #redux-intro-text, .sticky-footer-fixed) {
+	color: var(--sps-ui-text);
+	background: var(--sps-ui-raised);
+	border-color: var(--sps-ui-border);
+	box-shadow: none;
+}
+
+html.sps-dark .redux-container .sticky-footer-fixed {
+	border-top-color: var(--sps-ui-border) !important;
+}
+
+/* Its script sets the footer's #eee inline, once it is back in place. */
+html.sps-dark .redux-container #redux-footer {
+	background: var(--sps-ui-raised) !important;
+}
+
+html.sps-dark .redux-main {
+	background: var(--sps-ui-surface);
+	border-left-color: var(--sps-ui-border);
+	box-shadow: none;
+}
+
+html.sps-dark .redux-main .form-table tr :is(th, td) {
+	color: var(--sps-ui-text);
+}
+
+html.sps-dark :is(.redux-main .form-table tr, .redux-container .redux-group-tab h3, .redux-container .redux-group-tab .redux-theme-data, .redux-sidebar .redux-group-menu li.divide, .redux-sidebar .redux-group-menu li a) {
+	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark :is(.redux_field_th span:first-child, .redux-main .showDefaults, .redux-container .redux-group-tab .redux-section-desc, .redux-container #redux-intro-text p, .redux-container .redux-container-sorter ul h3) {
+	color: var(--sps-ui-muted);
+}
+
+html.sps-dark .redux-sidebar .redux-group-menu li a {
+	color: var(--sps-ui-muted);
+}
+
+html.sps-dark .redux-sidebar .redux-group-menu li a:hover,
+html.sps-dark .redux-sidebar .redux-group-menu li a.custom-tab {
+	color: var(--sps-ui-text);
+	background: var(--sps-ui-raised);
+}
+
+html.sps-dark .redux-sidebar .redux-group-menu li:is(.active, .activeChild) a {
+	color: var(--sps-ui-text);
+	background: var(--sps-ui-surface);
+}
+
+html.sps-dark .redux-container-sorter ul {
+	background: var(--sps-ui-canvas);
+	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark .redux-container-sorter ul.filled {
+	background: var(--sps-ui-surface);
+}
+
+html.sps-dark .redux-container-sorter ul li {
+	color: var(--sps-ui-text);
+	background: var(--sps-ui-raised);
+	border-color: var(--sps-ui-border);
+	box-shadow: none;
+}
+
+html.sps-dark .redux-container-switch :is(.cb-enable, .cb-disable):not(.selected),
+html.sps-dark .redux-main .redux-slides-accordion-group h3 {
+	color: var(--sps-ui-muted);
+	background-color: var(--sps-ui-raised) !important;
+	background-image: none !important;
+	border-color: var(--sps-ui-border) !important;
+}
+
+html.sps-dark :is(.redux-main .redux-slides-accordion-group :is(input[type="text"], select, textarea), .redux-container-textarea textarea, .redux-container-text input, .redux-field-container .select2-container .select2-choice) {
+	color: var(--sps-ui-text);
+	background-color: var(--sps-ui-canvas);
+	border-color: var(--sps-ui-field-border);
+}
+
+html.sps-dark .redux-main :is(.input-append, .input-prepend) .add-on {
+	color: var(--sps-ui-muted);
+	text-shadow: none;
+	background-color: var(--sps-ui-raised);
+	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark .redux-container :is(.notice-green, .notice-blue, .notice-yellow, .notice-red, .redux-field-errors) {
+	text-shadow: none;
+	background-color: var(--sps-ui-raised);
+	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark .redux-container .notice-green {
+	color: var(--sps-ui-good);
+}
+
+html.sps-dark .redux-container .notice-blue {
+	color: var(--sps-ui-accent);
+}
+
+html.sps-dark .redux-container .notice-yellow {
+	color: var(--sps-ui-warning);
+}
+
+html.sps-dark .redux-container :is(.notice-red, .redux-field-errors) {
+	color: var(--sps-ui-bad);
+}
+
+/*
+ * Super Speedy Plugins (the Super Speedy menu and Scalability Pro): #fff
+ * boxes and tables set under .settings_page_scalabilitypro, which outrank
+ * the fallback, an inline #f8f8f8 note (Archive options), #eee result
+ * rows, and logos drawn in black type, turned light keeping their hue.
+ */
+html.sps-dark .settings_page_scalabilitypro :is(.dev-box, .form-table),
+html.sps-dark .wp-sp-container {
+	color: var(--sps-ui-text);
+	background-color: var(--sps-ui-surface);
+	box-shadow: 0 2px 0 var(--sps-ui-border);
+}
+
+html.sps-dark :is(.global-query-settings, .perfrow) {
+	background-color: var(--sps-ui-surface);
+}
+
+html.sps-dark .perfrow {
+	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark .perfrow:nth-child(odd) {
+	background-color: var(--sps-ui-raised);
+}
+
+html.sps-dark :is(.super-speedy-plugins-admin-header, .spro-page-head) img {
+	filter: invert(1) hue-rotate(180deg);
 }
 
 /*
@@ -5544,6 +5715,29 @@ html.sps-dark .tutor-visibility-control-role[style*="f7f7f7"] {
 	background-color: var(--sps-ui-raised) !important;
 }
 
+/*
+ * Courses: the status menus. The select is see-through over its tinted
+ * box and icons (an eye and an arrow), as in Light; the field colour hid
+ * them. Draft's box is #eff1f6.
+ */
+html.sps-dark .tutor-form-select-with-icon select {
+	background-color: transparent;
+}
+
+html.sps-dark .tutor-form-select-with-icon.select-default,
+html.sps-dark .tutor-form-select-with-icon.select-default select {
+	color: var(--sps-ui-muted);
+}
+
+html.sps-dark .tutor-form-select-with-icon.select-default {
+	background: var(--sps-ui-raised);
+}
+
+/* Courses, with none yet: the "Need help" half of the empty state, coloured inline (#f8f8f8). */
+html.sps-dark .tutor-divider-top[style*="f8f8f8"] {
+	background-color: var(--sps-ui-raised) !important;
+}
+
 /* Settings, License (Tutor LMS Pro): the card (#fff), its key (#f6f8fd), status and lines, and the licence notice. */
 html.sps-dark :is(.tutor-license-page-wrapper .tutor-license-card, .tutor-license-notice-left) {
 	background-color: var(--sps-ui-surface);
@@ -8210,129 +8404,11 @@ html.sps-dark .sps-licence :is(.sps-licence__host, .sps-licence__status, .sps-li
 	color: var(--sps-ui-muted);
 }
 
-/* SEO Pro Stack's own screens ---------------------------------------------- */
-
-html.sps-dark .sps-wrap {
-	--sps-accent: var(--sps-ui-accent);
-	--sps-accent-dark: var(--sps-ui-text);
-	--sps-text: var(--sps-ui-text);
-	--sps-muted: var(--sps-ui-muted);
-	--sps-border: var(--sps-ui-border);
-	--sps-surface: var(--sps-ui-surface);
-	--sps-subtle: var(--sps-ui-raised);
-	--sps-divider: var(--sps-ui-raised);
-	--sps-hover: var(--sps-ui-raised);
-	--sps-success: var(--sps-ui-good);
-	--sps-error: var(--sps-ui-bad);
-	--sps-shadow: 0 1px 2px rgb(0 0 0 / 40%);
-}
-
-/* The header's logo keeps the scheme's own fill behind its white star. */
-html.sps-dark .sps-header__logo {
-	background: var(--sps-ui-accent-fill);
-}
-
-html.sps-dark .sps-badge--success {
-	color: var(--sps-ui-good);
-	background: rgb(0 163 42 / 16%);
-	border-color: rgb(104 222 124 / 35%);
-}
-
-html.sps-dark .sps-setting.has-panel .sps-setting__header:hover {
-	background: var(--sps-ui-raised);
-}
-
-html.sps-dark :is(.sps-setting__panel, .sps-code) {
-	color: var(--sps-ui-text);
-	background: var(--sps-ui-canvas);
-}
-
-html.sps-dark .sps-replaces__active {
-	color: var(--sps-ui-warning);
-}
-
-html.sps-dark :is(.sps-panel-note, .sps-field + .sps-field, .sps-field + .sps-troubleshooting),
-html.sps-dark .sps-wrap .sps-readme h3 {
-	border-color: var(--sps-ui-raised);
-}
-
-html.sps-dark .sps-panel-note--warning {
-	color: var(--sps-ui-text);
-}
-
-html.sps-dark .sps-checkboxes.is-long {
-	border-color: var(--sps-ui-border);
-}
-
-html.sps-dark :is(.sps-media__preview, .sps-watermark-note__mark) {
-	background: repeating-conic-gradient(var(--sps-ui-raised) 0% 25%, var(--sps-ui-surface) 0% 50%) 0 0 / 16px 16px;
-}
-
-html.sps-dark .sps-switch__track {
-	background: var(--sps-ui-canvas);
-	border-color: var(--sps-ui-muted);
-}
-
-html.sps-dark .sps-switch__track::after {
-	background: var(--sps-ui-muted);
-}
-
-html.sps-dark .sps-switch__input:checked + .sps-switch__track {
-	background: var(--sps-ui-accent-fill);
-	border-color: var(--sps-ui-accent-fill);
-}
-
-html.sps-dark .sps-switch__input:checked + .sps-switch__track::after {
-	background: #fff;
-}
-
-html.sps-dark .sps-wrap .sps-plugins .plugin-card {
-	color: var(--sps-ui-text);
-	background: var(--sps-ui-surface);
-	border-color: var(--sps-ui-border);
-}
-
-html.sps-dark .sps-wrap .sps-plugins .plugin-card-bottom {
-	color: var(--sps-ui-muted);
-	background: var(--sps-ui-raised);
-	border-color: var(--sps-ui-border);
-}
-
-html.sps-dark .sps-wrap .sps-filter {
-	background: var(--sps-ui-surface);
-	border-color: var(--sps-ui-border);
-}
-
-/* Core gives every filter link a 4px #fff bottom border (blending into its
-   white bar) and the admin theme colour on hover, both wrong on dark. */
-html.sps-dark .sps-wrap .sps-filter .filter-links a {
-	color: var(--sps-ui-accent);
-	border-bottom-color: var(--sps-ui-surface);
-}
-
-html.sps-dark .sps-wrap .sps-filter .filter-links a:is(:hover, :focus) {
-	color: var(--sps-ui-text);
-}
-
-html.sps-dark .sps-wrap .sps-filter .filter-links a.current {
-	color: var(--sps-ui-text);
-	border-color: var(--sps-ui-accent);
-}
-
-html.sps-dark .sps-wrap .sps-removed-icon,
-html.sps-dark .sps-wrap .sps-go-pro::before {
-	color: var(--sps-ui-warning);
-}
-
-html.sps-dark .sps-wrap .sps-plugins .button.sps-uninstall {
-	color: var(--sps-ui-bad);
-	border-color: currentcolor;
-}
-
-html.sps-dark .sps-wrap .sps-plugins .button.sps-uninstall:is(:hover, :focus) {
-	color: var(--sps-ui-canvas);
-	background: var(--sps-ui-bad);
-}
+/*
+ * SEO Pro Stack's own screen takes its dark colours from
+ * seoprostack-theme.css and seoprostack-tabs.css: this stylesheet stays
+ * off it (SEOProStack_Admin_Theme::seoprostack_dark_screen()).
+ */
 
 /* Changing mode eases the colours, never with reduced motion. */
 @media (prefers-reduced-motion: no-preference) {
