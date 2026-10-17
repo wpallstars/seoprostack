@@ -324,6 +324,9 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
         self::fresh($id);
         $old = get_post_meta($id, self::META, true);
         $removed = self::fresh_removed($id);
+        if (is_array($old) && empty($old['files']) && !$removed) {
+            return 'skipped';
+        }
         if (!is_array($old) || empty($old['files'])) {
             return 'failed';
         }
@@ -640,30 +643,56 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
         $before = PHP_INT_MAX;
         do {
             $ids = self::inventory_ids(100, $before);
+            $records = self::handover_records($ids);
             foreach ($ids as $id) {
                 $before = $id;
-                self::count_handover_record($id, $counts);
+                self::count_handover_record($records[$id] ?? array(), $counts);
             }
         } while ($ids);
         return $counts;
     }
 
     /**
+     * Read only a bounded page of inventory values, without populating or evicting
+     * the whole library's post-meta cache. Serialized files need PHP comparisons.
+     *
+     * @param int[] $ids Attachment IDs.
+     * @return array<int,array>
+     */
+    private static function handover_records($ids) {
+        global $wpdb;
+        $records = array();
+        if (!$ids) {
+            return $records;
+        }
+        $in = implode(',', array_fill(0, count($ids), '%d'));
+        $args = array_merge($ids, array(self::META, self::REMOVED));
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber, WordPress.DB.SlowDBQuery.slow_db_query_meta_key -- bounded IDs and meta keys; $in contains one %d per ID, so the replacement count is dynamic.
+        $rows = $wpdb->get_results($wpdb->prepare("SELECT post_id, meta_key, meta_value FROM {$wpdb->postmeta} WHERE post_id IN ($in) AND meta_key IN (%s, %s)", $args));
+        foreach ($rows as $row) {
+            $records[(int) $row->post_id][$row->meta_key] = maybe_unserialize($row->meta_value);
+        }
+        return $records;
+    }
+
+    /**
      * Count an orphan removed record as pending, never as safe to forget.
      *
-     * @param int $id Attachment ID.
+     * @param array $values Stored inventories.
      * @param array $counts Counters.
      */
-    private static function count_handover_record($id, &$counts) {
-        $record = get_post_meta($id, self::META, true);
+    private static function count_handover_record($values, &$counts) {
+        $record = $values[self::META] ?? null;
+        $removed = $values[self::REMOVED] ?? null;
+        $removed = is_array($removed) && !empty($removed['files']) ? $removed : null;
         if (!is_array($record)) {
             ++$counts['pending'];
             return;
         }
-        if (empty($record['files'])) {
+        if (empty($record['files']) && !$removed) {
             return;
         }
-        if (self::adopted_record($record, self::fresh_removed($id))) {
+        if (self::adopted_record($record, $removed)) {
             ++$counts['adopted'];
         } else {
             ++$counts['pending'];
@@ -685,9 +714,11 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
             $item = isset($saved[$name]) ? $saved[$name] : array();
             $labels[] = $name . ': ' . ($item ? (wp_parse_url($item['endpoint'], PHP_URL_HOST) ?: 'unknown host') . ' / ' . ($item['bucket'] ?: 'unknown bucket') . ' / ' . $item['prefix'] : 'none');
         }
-        $counts = self::counts();
-        $needed = $counts['pending'] + $counts['missing'] + $counts['mismatched'];
-        $labels[] = $needed ? 'Previous destination is still needed.' : 'Previous destination is no longer needed by recorded pictures; verify pages before cleanup.';
+        if (self::ready() || self::restoring()) {
+            $counts = self::counts();
+            $needed = $counts['pending'] + $counts['missing'] + $counts['mismatched'];
+            $labels[] = $needed ? 'Previous destination is still needed.' : 'Previous destination is no longer needed by recorded pictures; verify pages before cleanup.';
+        }
         return $labels;
     }
 
@@ -729,6 +760,10 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
         if (is_wp_error($verified)) {
             return $verified;
         }
+        if (!$verified) {
+            WP_CLI::log('Verification paused at the time budget; repeat forget-previous with the same switches. No old objects were deleted.');
+            return null;
+        }
         $client = isset($assoc['delete-objects']) ? self::cleanup_client($saved['previous']) : null;
         if (is_wp_error($client)) {
             return $client;
@@ -752,7 +787,7 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
      * Verify the entire current inventory before any old object may be touched.
      *
      * @param float $start Lease start.
-     * @return true|WP_Error
+     * @return bool|WP_Error False pauses verification without deleting old objects.
      */
     private static function verify_cleanup($start) {
         $before = PHP_INT_MAX;
@@ -761,7 +796,7 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
             foreach ($ids as $id) {
                 $before = $id;
                 $result = self::verify_cleanup_record($id, $start);
-                if (is_wp_error($result)) {
+                if (true !== $result) {
                     return $result;
                 }
             }
@@ -774,22 +809,46 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
      *
      * @param int $id Attachment ID.
      * @param float $start Lease start.
-     * @return true|WP_Error
+     * @return bool|WP_Error False pauses at the last verified file.
      */
     private static function verify_cleanup_record($id, $start) {
+        self::fresh($id);
         $record = get_post_meta($id, self::META, true);
-        if (!is_array($record) || !self::adopted_record($record, self::fresh_removed($id))) {
+        $removed = self::fresh_removed($id);
+        if (is_array($record) && empty($record['files']) && !$removed) {
+            return true;
+        }
+        if (!is_array($record) || !self::adopted_record($record, $removed)) {
             return new WP_Error('storage_cleanup', 'Previous destination is still needed: adopt or migrate every record first.');
         }
+        $saved = get_option(self::DESTINATIONS, array());
+        // One non-autoloaded checkpoint per attachment, reused across handovers.
+        // Keep completed checkpoints while deletion pauses, or retries rehash them.
+        $name = self::JOB . 'verify_' . $id;
+        $generation = get_post_meta($id, self::GENERATION, true);
+        $fingerprint = hash('sha256', (string) wp_json_encode(array($saved['current']['signature'] ?? '', $saved['previous']['signature'] ?? '', $generation, $record, $removed)));
+        $progress = get_option($name, array());
+        $cursor = isset($progress['fingerprint'], $progress['cursor']) && $progress['fingerprint'] === $fingerprint ? (int) $progress['cursor'] : 0;
+        $index = 0;
         foreach ($record['files'] as $key => $info) {
+            if (++$index <= $cursor) {
+                continue;
+            }
             if (!self::more_time($start, 120)) {
-                return new WP_Error('storage_cleanup', 'Verification exceeded the safe lease budget; no old objects were deleted.');
+                return false;
             }
             $result = self::verify_object((string) $key, $info, true);
             if ('ok' !== $result) {
+                delete_option($name);
                 self::handover_error($id, $result, false);
                 return new WP_Error('storage_cleanup', 'A current object is missing or mismatched; previous destination was kept.');
             }
+            update_option($name, array('fingerprint' => $fingerprint, 'cursor' => $index), false);
+        }
+        self::fresh($id);
+        if (get_post_meta($id, self::GENERATION, true) !== $generation || get_post_meta($id, self::META, true) !== $record || self::fresh_removed($id) !== $removed) {
+            delete_option($name);
+            return false;
         }
         self::clear_handover_error($id, $record);
         return true;
@@ -1380,6 +1439,7 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
             self::queue_delete($record, array_map('strval', array_keys($record['files'])));
         }
         delete_option(self::JOB . 'retry_' . (int) $id);
+        delete_option(self::JOB . 'verify_' . (int) $id);
         self::forget($id);
         delete_transient(self::COUNTS);
     }
@@ -2758,6 +2818,10 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
      */
     public static function srcset_meta($meta, $size, $src) {
         if ('' === self::serving()) {
+            return $meta;
+        }
+        $uploads = wp_upload_dir(null, false);
+        if (0 === strpos((string) $src, trailingslashit($uploads['baseurl']))) {
             return $meta;
         }
         if (isset($meta['file']) && is_string($meta['file'])) {

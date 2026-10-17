@@ -150,6 +150,7 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 
 = Unreleased =
 * New: Verified cloud media bucket handover with adopt, migrate, previous-destination fallback and explicit cleanup.
+* Fix: Cloud cleanup resumes verification, skips empty inventories, reads status in batches and preserves local image srcset.
 
 = 1.3.53 =
 * New: Media in cloud storage can remove local copies after a confirmed upload, and bring them back.
