@@ -37,6 +37,7 @@ Safe features start on; others stay off. **Settings → SEO Pro Stack** has **Se
 * **Turn off unused remote access**: XML-RPC, application passwords and exposed files.
 * **Minimum password length**: 12 characters for new passwords, on by default.
 * **Known vulnerabilities**: shows what the free WPVulnerability plugin finds.
+* **HTTPS check**: certificate, TLS and HSTS in Site Health; SSL Labs link.
 * **Maintenance mode**: a 503 page with revocable 24-hour bypass links.
 
 = Writing and publishing =
@@ -148,6 +149,7 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 == Changelog ==
 
 = Unreleased =
+* New: HTTPS check, in Site Health and on the Security tab.
 * Fix: Fluent Forms placeholders use the input's stronger text colour, including the fallback.
 * Fix: Copies at their own addresses also covers rendered block images outside post content, including covers, template parts and Kadence Elements. CSS backgrounds stay unchanged.
 

@@ -40,7 +40,7 @@ class SEOProStack_Health_CLI {
     /** Register health hooks without booting unrelated features that save files or jobs. */
     public static function boot_tests() {
         remove_action('init', array('SEOProStack', 'boot_features'), 0);
-        foreach (array('SEOProStack_Hardening', 'SEOProStack_Database_Keys', 'SEOProStack_Database_Charset', 'SEOProStack_Snippets_Audit', 'SEOProStack_Security_Headers', 'SEOProStack_Hosting_Needs') as $class) {
+        foreach (array('SEOProStack_Hardening', 'SEOProStack_Database_Keys', 'SEOProStack_Database_Charset', 'SEOProStack_Snippets_Audit', 'SEOProStack_Security_Headers', 'SEOProStack_Https_Check', 'SEOProStack_Hosting_Needs') as $class) {
             $class::boot();
         }
     }

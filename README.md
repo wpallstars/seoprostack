@@ -183,6 +183,20 @@ Replaces Really Simple Security (free and Pro) in part, with the features that c
 
 After Really Simple Security is deactivated, **Tools → Site Health** checks its leftover auto-prepend blocks in `.htaccess` and `.user.ini`, its non-empty `wp-content/advanced-headers.php`, directory-indexing and uploads rules, and `rsssl_*` scheduled tasks. **Check and clear Really Simple Security leftovers** requires an administrator (a network administrator on multisite) and refuses while any of its free, Pro or Pro Multisite versions is active. It keeps its own headers stub for cached prepend paths, clears only its marked rules and scheduled tasks, and keeps its HTTPS redirect, `wp-config.php` and every plugin's settings. Files it cannot safely change remain for another check. On a network, Site Health checks this site and the main site; cleanup checks every site's activation lists first, then clears tasks in batches of 50 sites, with a button to continue between batches.
 
+### HTTPS check (Security)
+
+Always there, with no setting: it only reports. Below the Security tab's settings, for administrators, and in **Tools → Site Health**, on sites whose address starts with `https://`. SEO Pro Stack connects from the server to the site's own address, as a visitor does, and shows what SSL Labs' summary shows:
+
+- **Certificate**: whether it is trusted (checked against WordPress's list of trusted certificates, so an incomplete chain shows too), whether it names the site's host (wildcards included), who issued it and how many days it has left. Site Health marks it critical when it is expired, untrusted or for another name, and recommended with fewer than 14 days left.
+- **TLS version and cipher**: the best version the site connects with, and its cipher and key length. Critical below TLS 1.2; recommended below 128 bits.
+- **TLS 1.0 and 1.1**: whether the site refuses them (SSL Labs caps the grade at B when it accepts them; on Cloudflare, raise SSL/TLS → Edge Certificates → Minimum TLS Version to 1.2). When the server's own OpenSSL will not offer them, it says it cannot tell, rather than counting that as refused.
+- **HSTS**: whether the home page sends `Strict-Transport-Security`, and for how long. Recommended when it is missing ([HTTPS and security headers](#https-and-security-headers-security) sends it) or shorter than six months.
+- **Full report and grade on SSL Labs**: a link that opens `https://www.ssllabs.com/ssltest/analyze.html?d=` and the site's host in a new tab, for the grade, the full cipher list and the browsers it works with. Not for local hosts (`.local`, `.test`, `localhost`, IP addresses), which SSL Labs cannot reach.
+
+Behind Cloudflare or another proxy, the check sees the proxy's certificate and settings, which is what visitors get. It runs in Site Health's async test (and Site Health's weekly scheduled check) and when an administrator clicks **Check now**, never on a visitor's page; each connection waits at most 5 seconds. The last result is kept in the `seoprostack_https_check` option (not autoloaded) for the Security tab. `wp seoprostack health` runs it without keeping the result. Nothing is sent to SSL Labs: its API terms keep it for non-commercial tools, not public sites, so the grade is its own report, opened by whoever clicks.
+
+Replaces Really Simple Security's SSL Labs status box with checks the site runs itself, and a link for the grade.
+
 ### Minimum password length (Security)
 
 **On by default**, for everyone. Whenever someone sets a new password, it must be at least 12 characters long (8–64, under **Shortest password**). Only the length counts: no rules about symbols, numbers or capitals, so a phrase of ordinary words works and is easier to remember.
@@ -1704,6 +1718,7 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folder�
 ## Changelog
 
 ### Unreleased
+- New: [HTTPS check](#https-check-security), on the Security tab and in Site Health, connects to the site's own address from the server and shows whether the certificate is trusted, matches the host and how many days it has left, the TLS version and cipher, whether TLS 1.0 and 1.1 are refused and whether HSTS is sent, with **Check now** and a link to the full report and grade on SSL Labs in a new tab. Nothing is sent to SSL Labs (GitHub issue #804).
 - Fix: **Fluent Forms colours** uses the input's stronger text colour for placeholders, including the fallback, instead of a low-contrast blend (GitHub issue #801).
 - Fix: **Copies at their own addresses** also covers images in rendered blocks outside post content, including cover block images, block theme template parts and hook-placed Kadence Elements, through `render_block`. Existing `<picture>` tags are left alone; pictures set in CSS stay in their original format (GitHub issue #792).
 
@@ -2472,7 +2487,7 @@ Where a feature replaces one of them, SEO Pro Stack imports the settings it can,
 | Magic Login | HandyPlugins | [WordPress.org](https://wordpress.org/plugins/magic-login/), [GitHub](https://github.com/HandyPlugins/magic-login) | Magic login links, in part |
 | Widget Disable | required | [WordPress.org](https://wordpress.org/plugins/wp-widget-disable/), [GitHub](https://github.com/wearerequired/WP-Widget-Disable) | Dashboard and sidebar widgets |
 | Hostinger Tools | Hostinger | [WordPress.org](https://wordpress.org/plugins/hostinger/), [source (WordPress.org SVN)](https://plugins.svn.wordpress.org/hostinger/trunk/) | Turn off unused remote access (XML-RPC and application passwords), Maintenance mode, HTTPS and security headers (HTTPS redirect) |
-| Really Simple Security (and Pro) | Really Simple Plugins | [WordPress.org](https://wordpress.org/plugins/really-simple-ssl/), [source](https://github.com/Really-Simple-Plugins/really-simple-ssl), [website](https://really-simple-ssl.com) | HTTPS and security headers, Turn off unused remote access (PHP in uploads, usernames, XML-RPC, application passwords, log files), Tidy the login screen (login message), Tidy admin screens (file editors), Remove WordPress extras (version) |
+| Really Simple Security (and Pro) | Really Simple Plugins | [WordPress.org](https://wordpress.org/plugins/really-simple-ssl/), [source](https://github.com/Really-Simple-Plugins/really-simple-ssl), [website](https://really-simple-ssl.com) | HTTPS and security headers, HTTPS check (its SSL Labs status), Turn off unused remote access (PHP in uploads, usernames, XML-RPC, application passwords, log files), Tidy the login screen (login message), Tidy admin screens (file editors), Remove WordPress extras (version) |
 | Disable Bloat for WordPress & WooCommerce (and PRO) | Rock Solid | [WordPress.org](https://wordpress.org/plugins/disable-dashboard-for-woocommerce/), [website](https://disablebloat.com/) | Tidy admin screens, Tidy WooCommerce admin, Tidy the login screen, Simpler block editor, Limit post revisions, Remove WordPress extras, Fewer Heartbeat requests, Lighter WooCommerce pages, Turn off unused remote access (XML-RPC and application passwords) |
 | Manage Notification E-mails | 3D Virge | [WordPress.org](https://wordpress.org/plugins/manage-notification-emails/) | Notification emails |
 | Hide Admin Notices | PontetLabs | [WordPress.org](https://wordpress.org/plugins/hide-admin-notices/), [GitHub](https://github.com/jonpontet/hide-admin-notices) | Hide admin notices |

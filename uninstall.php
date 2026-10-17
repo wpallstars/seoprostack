@@ -118,6 +118,8 @@ function seoprostack_uninstall_site() {
     // requests, for WP-CLI.
     $options[] = 'seoprostack_litespeed_server';
     $options[] = 'seoprostack_php_sapi';
+    // HTTPS check: the last result, for the Security tab.
+    $options[] = 'seoprostack_https_check';
     // Ask before licence checks: choices and times. Kept answers are
     // seoprostack_lc_* transients, removed with the others below.
     $options[] = 'seoprostack_licence_calls';
