@@ -56,7 +56,8 @@ class SEOProStack_Plugin_Presets extends SEOProStack_Feature {
         return array(
             self::KEY => array(
                 'type'        => 'bool',
-                'default'     => false,
+                // On by default at the owner's request (#806): only acts when asked.
+                'default'     => true,
                 'tab'         => 'plugins',
                 'label'       => __('Plugin presets', 'seoprostack'),
                 'description' => __('On the Plugins screen, see whether a plugin’s settings match SEO Pro Stack’s choice, apply all or only the ones you tick, reset them to the plugin’s defaults or undo the last change. For FluentCRM and Fluent Boards, add example lists, tags, fields and boards to start from. Each asks first. Licence keys, API keys and passwords are never stored or changed.', 'seoprostack'),

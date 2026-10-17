@@ -79,7 +79,14 @@ class SEOProStack_Hardening extends SEOProStack_Feature {
     const UPLOADS_STATE = 'seoprostack_hardening_uploads';
 
     /**
-     * Settings; the card and both choices are off by default.
+     * Choices ticked by default: safe on any site. XML-RPC and application
+     * passwords stay unticked, as Jetpack, mobile apps and integrations use
+     * them.
+     */
+    const DEFAULT_ITEMS = array('files', 'uploads_php', 'usernames');
+
+    /**
+     * Settings; on by default with DEFAULT_ITEMS.
      *
      * @return array
      */
@@ -87,7 +94,8 @@ class SEOProStack_Hardening extends SEOProStack_Feature {
         return array(
             self::KEY => array(
                 'type'        => 'bool',
-                'default'     => false,
+                // On by default at the owner's request (#806), with DEFAULT_ITEMS.
+                'default'     => true,
                 'tab'         => 'security',
                 'label'       => __('Turn off unused remote access', 'seoprostack'),
                 'description' => __('Turn off XML-RPC or application passwords when this site does not use them, block web access to log and backup files and PHP files in the uploads folder, and hide usernames from visitors. Jetpack and some mobile apps need XML-RPC. Application passwords let apps connect to this site without your login password. Plugins and PHP write log files that can hold visitors’ messages, server paths and database queries; Tools → Site Health names any that anyone can download.', 'seoprostack'),
@@ -96,7 +104,7 @@ class SEOProStack_Hardening extends SEOProStack_Feature {
             ),
             self::ITEMS_KEY => array(
                 'type'        => 'multi',
-                'default'     => array(),
+                'default'     => self::DEFAULT_ITEMS,
                 'parent'      => self::KEY,
                 'label'       => __('Turn off', 'seoprostack'),
                 'options'     => array(__CLASS__, 'item_options'),
@@ -141,8 +149,9 @@ class SEOProStack_Hardening extends SEOProStack_Feature {
             }
         }
         if ($choices) {
+            // Added to the default choices, which a new install also gets.
             $options = self::import_setting($options, self::KEY, true);
-            $options = self::import_setting($options, self::ITEMS_KEY, array_values(array_unique($choices)));
+            $options = self::import_setting($options, self::ITEMS_KEY, array_values(array_unique(array_merge(self::DEFAULT_ITEMS, $choices))));
         }
         return $options;
     }

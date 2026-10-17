@@ -1,8 +1,10 @@
 <?php
 /**
  * Local linking tools, optional health checks and anonymous event counts.
- * Supplements Rank Math and remains available while Link Whisper is active,
- * so owners can compare on staging before deciding to retire it.
+ * Supplements Rank Math and replaces Link Whisper: while Link Whisper is
+ * active the tools wait, and the Plugins screen suggests retiring it, naming
+ * what its retirement checks find it still does here (extras()). The
+ * read-only retirement checks stay available either way.
  *
  * SPDX-License-Identifier: GPL-3.0-or-later
  * SPDX-FileCopyrightText: 2026 Marcus Quinn
@@ -21,10 +23,19 @@ class SEOProStack_Linking extends SEOProStack_Feature {
     const PAGE = 'seoprostack-links';
     const ACTION = 'seoprostack_link_action';
 
+    /** Plugins these tools replace, by folder. */
+    const REPLACES = array('link-whisper-premium' => 'Link Whisper Premium', 'link-whisper' => 'Link Whisper Free');
+
+    /** Transient: the retirement checks, for the Plugins screen. */
+    const RETIRE = 'seoprostack_link_retire';
+
+    /** Retirement check keys that are not jobs Link Whisper still does (history, and click data nobody needs). */
+    const NOT_EXTRAS = array('wpil_keyword_links', 'wpil_url_links', 'clicks', 'rendered');
+
     /** @return array */
     public static function settings() {
         return array(
-            self::KEY => array('type' => 'bool', 'default' => false, 'tab' => 'links', 'label' => __('Internal linking tools', 'seoprostack'), 'description' => __('Find local linking opportunities and orphan candidates under Tools → Links. Suggestions use page titles and Rank Math keywords, not a cloud service. Changes require your approval and can be undone.', 'seoprostack')),
+            self::KEY => array('type' => 'bool', 'default' => false, 'tab' => 'links', 'label' => __('Internal linking tools', 'seoprostack'), 'description' => __('Find local linking opportunities and orphan candidates under Tools → Links. Suggestions use page titles and Rank Math keywords, not a cloud service. Changes require your approval and can be undone.', 'seoprostack'), 'replaces' => self::REPLACES),
             'linking_health' => array('type' => 'bool', 'default' => false, 'parent' => self::KEY, 'label' => __('Check linked addresses in the background', 'seoprostack'), 'description' => __('Contact linked websites in small cached batches, never while a visitor waits. Query-bearing, login and API addresses are excluded. A failed request is not proof of a broken link.', 'seoprostack')),
             'linking_clicks' => array('type' => 'bool', 'default' => false, 'parent' => self::KEY, 'label' => __('Count link clicks', 'seoprostack'), 'description' => __('Optional anonymous daily event totals on published pages. No cookies, IP addresses, user IDs, query strings or unique-visitor tracking. Honour Do Not Track and Global Privacy Control. Keep up to 90 days. Review your consent requirements before enabling.', 'seoprostack')),
         );
@@ -48,12 +59,15 @@ class SEOProStack_Linking extends SEOProStack_Feature {
             add_action('admin_enqueue_scripts', array(__CLASS__, 'assets'));
             add_action('admin_post_' . self::ACTION, array(__CLASS__, 'handle'));
             add_action('seoprostack_setting_panel', array(__CLASS__, 'panel'), 10, 2);
+            // Replacement advice is needed even while the tools wait or are off.
+            add_filter('seoprostack_replaced_plugin_extras', array(__CLASS__, 'extras'), 10, 2);
         }
         if ($cli) {
             WP_CLI::add_command('seoprostack links audit', array(__CLASS__, 'cli_audit'));
             WP_CLI::add_command('seoprostack links index', array(__CLASS__, 'cli_index'));
         }
-        if (!self::switched_on()) {
+        // Waits while Link Whisper is active, which does this job.
+        if (!self::enabled()) {
             return;
         }
         add_action('admin_init', array(__CLASS__, 'initialize'));
@@ -77,7 +91,7 @@ class SEOProStack_Linking extends SEOProStack_Feature {
 
     /** @param array $old Previous settings. @param array $new New settings. */
     public static function settings_saved($old, $new) {
-        if (empty($new[self::KEY])) {
+        if (empty($new[self::KEY]) || self::replaced_active(self::KEY)) {
             wp_unschedule_hook(SEOProStack_Link_Index::CRON);
             return;
         }
@@ -175,7 +189,7 @@ class SEOProStack_Linking extends SEOProStack_Feature {
 
     /** Owner-approved actions only; no deactivation, deletion or third-party writes. */
     public static function handle() {
-        if (!current_user_can('manage_options') || !self::switched_on()) {
+        if (!current_user_can('manage_options') || !self::enabled()) {
             wp_die(esc_html__('You cannot change links here.', 'seoprostack'), '', array('response' => 403));
         }
         $operation = isset($_POST['operation']) ? sanitize_key(wp_unslash($_POST['operation'])) : '';
@@ -233,6 +247,8 @@ class SEOProStack_Linking extends SEOProStack_Feature {
             self::audit_panel();
         } elseif (!self::switched_on()) {
             echo '<p>' . esc_html__('Enable Internal linking tools in SEO Pro Stack → Links to use these tools. Retirement checks are read-only and remain available.', 'seoprostack') . '</p>';
+        } elseif (!self::enabled()) {
+            echo '<p>' . esc_html__('Link Whisper is still active, so it does this job and these tools wait until it is deactivated. Retirement checks are read-only and remain available.', 'seoprostack') . '</p>';
         } elseif ('suggestions' === $view) {
             self::suggestions_panel();
         } elseif ('health' === $view) {
@@ -355,11 +371,63 @@ class SEOProStack_Linking extends SEOProStack_Feature {
     /** Always a staging recommendation, never a blanket safety certificate. */
     private static function audit_panel() {
         $audit = SEOProStack_Link_Audit::collect();
+        // The Plugins screen reuses this answer.
+        set_transient(self::RETIRE, $audit, 12 * HOUR_IN_SECONDS);
         $statuses = array('clear' => __('No stored dependency found', 'seoprostack'), 'blocked' => __('Replacement needed', 'seoprostack'), 'review' => __('Owner review', 'seoprostack'), 'unknown' => __('Unknown schema or query failure', 'seoprostack'));
         echo '<h2>' . esc_html__('Link Whisper retirement checks', 'seoprostack') . '</h2><p>' . esc_html__('Read-only, point-in-time evidence for this site. It does not deactivate plugins, change third-party settings, delete data or prove rendered compatibility. Back up and validate on staging first.', 'seoprostack') . '</p><p><strong>' . esc_html('blocked' === $audit['result'] ? __('Unresolved dependencies or unknown checks remain.', 'seoprostack') : __('No checked blockers found. Staging validation and an explicit click-tracking decision are still required.', 'seoprostack')) . '</strong></p>';
         foreach ($audit['findings'] as $finding) {
             echo '<section class="sps-link-opportunity"><h3>' . esc_html($finding['item']) . '</h3><p><strong>' . esc_html($statuses[$finding['status']]) . '</strong>' . (null === $finding['count'] ? '' : ' — ' . esc_html((string) $finding['count'])) . '</p><p>' . esc_html($finding['note']) . '</p></section>';
         }
+    }
+
+    /**
+     * What Link Whisper still does on this site that these tools do not, for
+     * the Plugins screen's notice: the retirement checks' blocked or unknown
+     * findings, leaving out history and click data (no replacement needed).
+     * The checks count post content, so their answer is kept for 12 hours;
+     * core calls this only while Link Whisper is active.
+     *
+     * @param string[] $extras Plain names.
+     * @param string   $slug   Plugin folder.
+     * @return string[]
+     */
+    public static function extras($extras, $slug) {
+        if (!isset(self::REPLACES[$slug])) {
+            return $extras;
+        }
+        $audit = get_transient(self::RETIRE);
+        if (!is_array($audit) || empty($audit['findings'])) {
+            $audit = SEOProStack_Link_Audit::collect();
+            set_transient(self::RETIRE, $audit, 12 * HOUR_IN_SECONDS);
+        }
+        $jobs = self::jobs();
+        foreach ((array) $audit['findings'] as $finding) {
+            $key = isset($finding['key']) ? (string) $finding['key'] : '';
+            if (in_array($key, self::NOT_EXTRAS, true) || !in_array($finding['status'], array('blocked', 'unknown'), true)) {
+                continue;
+            }
+            $job = isset($jobs[$key]) ? $jobs[$key] : (string) $finding['item'];
+            /* translators: %s: a Link Whisper job, such as keyword autolinking */
+            $extras[] = 'unknown' === $finding['status'] ? sprintf(__('%s (could not be checked)', 'seoprostack'), $job) : $job;
+        }
+        return array_values(array_unique($extras));
+    }
+
+    /**
+     * The Link Whisper job behind each retirement check, as the Plugins
+     * screen names it.
+     *
+     * @return array<string,string> Check key => job.
+     */
+    private static function jobs() {
+        return array(
+            'wpil_keywords'   => __('keyword autolinking', 'seoprostack'),
+            'wpil_urls'       => __('URL replacement', 'seoprostack'),
+            'custom_keywords' => __('custom target keywords', 'seoprostack'),
+            'related_posts'   => __('related posts', 'seoprostack'),
+            'attributes'      => __('link attribute and domain rules', 'seoprostack'),
+            'icons'           => __('link icons', 'seoprostack'),
+        );
     }
 
     /** @param array $args Positional arguments. @param array $assoc Named arguments. */
@@ -377,6 +445,9 @@ class SEOProStack_Linking extends SEOProStack_Feature {
     public static function cli_index($args, $assoc) {
         if (!self::switched_on()) {
             WP_CLI::error('Enable Internal linking tools first.');
+        }
+        if (!self::enabled()) {
+            WP_CLI::error('Link Whisper is active, so Internal linking tools wait until it is deactivated.');
         }
         if (isset($assoc['batch'])) {
             SEOProStack_Link_Index::batch();

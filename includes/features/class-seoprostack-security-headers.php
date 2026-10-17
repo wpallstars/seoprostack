@@ -83,7 +83,7 @@ class SEOProStack_Security_Headers extends SEOProStack_Feature {
     const RSSSL_STUB = "<?php\n// This file was created by Really Simple Security\n// It is no longer used and safe to delete";
 
     /**
-     * Settings; off by default.
+     * Settings; on by default (nothing happens on an http site).
      *
      * @return array
      */
@@ -91,7 +91,8 @@ class SEOProStack_Security_Headers extends SEOProStack_Feature {
         return array(
             self::KEY => array(
                 'type'        => 'bool',
-                'default'     => false,
+                // On by default at the owner's request (#806): does nothing on an http site.
+                'default'     => true,
                 'tab'         => 'security',
                 'label'       => __('HTTPS and security headers', 'seoprostack'),
                 'description' => __('When the site address starts with https, send visitors who open an http address to the https one, and tell browsers to use HTTPS only, load http pictures and scripts over HTTPS, show the site in frames on this site only, and send less to other sites. Works behind Cloudflare and other proxies.', 'seoprostack'),

@@ -55,7 +55,8 @@ class SEOProStack_Plugin_Toggle extends SEOProStack_Feature {
         return array(
             self::KEY => array(
                 'type'        => 'bool',
-                'default'     => false,
+                // On by default at the owner's request (#806): only for people who can activate plugins, and asks first.
+                'default'     => true,
                 'tab'         => 'plugins',
                 'label'       => __('Plugins menu in the admin bar', 'seoprostack'),
                 'description' => __('Switch any plugin on or off from the admin bar, then return to the page you were on. You are asked to confirm first. Only shown to people who can activate plugins.', 'seoprostack'),
