@@ -228,7 +228,7 @@ function seoprostack_uninstall_site() {
     // bucket): README asks for `media-storage restore --all` first, and
     // its missing-file rule serves them from the bucket otherwise.
     wp_unschedule_hook('seoprostack_media_storage_batch');
-    foreach (array('_seoprostack_storage', '_seoprostack_storage_done', '_seoprostack_storage_state', '_seoprostack_storage_skipped', '_seoprostack_storage_generation', '_seoprostack_storage_removed', '_seoprostack_storage_local') as $meta_key) {
+    foreach (array('_seoprostack_storage', '_seoprostack_storage_done', '_seoprostack_storage_state', '_seoprostack_storage_skipped', '_seoprostack_storage_generation', '_seoprostack_storage_removed', '_seoprostack_storage_local', '_seoprostack_storage_stuck') as $meta_key) {
         delete_post_meta_by_key($meta_key);
     }
     foreach (array('seoprostack_storage_lock', 'seoprostack_storage_cursor', 'seoprostack_storage_error', 'seoprostack_storage_removed', 'seoprostack_storage_local_wait') as $option) {

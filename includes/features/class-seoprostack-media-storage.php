@@ -40,6 +40,10 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
     const FLAG = 'seoprostack_storage_removed';
     /** Removing and restoring pause until this time after the service failed. */
     const LOCAL_WAIT = 'seoprostack_storage_local_wait';
+    /** Background restore failed for this attachment alone: the signature it failed under. */
+    const STUCK = '_seoprostack_storage_stuck';
+    /** Restore errors that belong to one attachment: the batch moves past it. */
+    const STUCK_ERRORS = array('storage_signature', 'storage_memory', 'storage_restore_mismatch', 'storage_restore_record', 'storage_restore_missing');
     const BUDGET = 25;
 
     /** Local-address calls must bypass output filters. @var int */
@@ -357,9 +361,15 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
      * @return bool
      */
     private static function processing_files() {
-        if (self::cli_media() || wp_doing_cron() || in_array(true, self::$rest_sizes, true)) {
-            return true;
-        }
+        return self::cli_media() || wp_doing_cron() || in_array(true, self::$rest_sizes, true) || self::subsize_ajax();
+    }
+
+    /**
+     * Whether this is core's Ajax step that makes an upload's sizes.
+     *
+     * @return bool
+     */
+    private static function subsize_ajax() {
         // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- compared with a fixed action only; core checks the nonce.
         $action = isset($_REQUEST['action']) && is_string($_REQUEST['action']) ? sanitize_key(wp_unslash($_REQUEST['action'])) : '';
         return wp_doing_ajax() && 'media-create-image-subsizes' === $action;
@@ -540,14 +550,18 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
      * @phpstan-impure Reads the queue, which other requests change.
      * @param int $limit Most IDs.
      * @param int $before Only IDs below this one (paging).
+     * @param bool $pending Leave out attachments whose background restore
+     *                      failed on this connection (STUCK).
      * @return int[]
      */
-    private static function restorable($limit, $before = PHP_INT_MAX) {
+    private static function restorable($limit, $before = PHP_INT_MAX, $pending = false) {
         global $wpdb;
+        // STUCK holds a signature, never an empty string: '' leaves nothing out.
+        $stuck = $pending ? self::config()['signature'] : '';
         // phpcs:ignore WordPress.DB.DirectDatabaseQuery, WordPress.DB.SlowDBQuery.slow_db_query_meta_key -- bounded lookup through the meta_key index.
         return array_map('intval', $wpdb->get_col($wpdb->prepare(
-            "SELECT post_id FROM {$wpdb->postmeta} WHERE meta_key = %s AND post_id < %d ORDER BY post_id DESC LIMIT %d",
-            self::REMOVED, (int) $before, max(1, (int) $limit)
+            "SELECT r.post_id FROM {$wpdb->postmeta} r LEFT JOIN {$wpdb->postmeta} s ON s.post_id = r.post_id AND s.meta_key = %s AND s.meta_value = %s WHERE r.meta_key = %s AND r.post_id < %d AND s.meta_id IS NULL ORDER BY r.post_id DESC LIMIT %d",
+            self::STUCK, $stuck, self::REMOVED, (int) $before, max(1, (int) $limit)
         )));
     }
 
@@ -696,11 +710,12 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
         if (null === $removing) {
             return;
         }
-        foreach ($removing ? self::removable($limit) : self::restorable($limit) as $id) {
+        foreach ($removing ? self::removable($limit) : self::restorable($limit, PHP_INT_MAX, true) as $id) {
             if (!self::more_time($start, self::BUDGET) || !self::local_step($id, $removing)) {
                 return;
             }
         }
+        // Stuck pictures keep the flag: their files still show from the bucket.
         if (!$removing && !self::restorable(1)) {
             // Every file is back: addresses follow the switch again.
             delete_option(self::FLAG);
@@ -726,8 +741,10 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
     }
 
     /**
-     * Remove or restore one attachment's files; a service failure pauses
-     * this step for an hour and shows the error.
+     * Remove or restore one attachment's files. A restore error that
+     * belongs to this attachment alone marks it STUCK and the batch goes
+     * on; any other failure (service, credentials, uploads folder) pauses
+     * this step for an hour. Either way the error shows.
      *
      * @param int $id Attachment ID.
      * @param bool $removing Remove (true) or bring back (false).
@@ -738,7 +755,13 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
         if (!is_wp_error($result)) {
             return true;
         }
-        update_option(self::ERROR, $result->get_error_message(), false);
+        /* translators: 1: attachment ID, 2: error message */
+        update_option(self::ERROR, sprintf(__('Attachment %1$d: %2$s', 'seoprostack'), $id, $result->get_error_message()), false);
+        if (!$removing && in_array($result->get_error_code(), self::STUCK_ERRORS, true)) {
+            // Tried again by restore --all or --retry-failed, or under another connection.
+            update_post_meta($id, self::STUCK, self::config()['signature']);
+            return true;
+        }
         update_option(self::LOCAL_WAIT, time() + HOUR_IN_SECONDS, false);
         return false;
     }
@@ -756,7 +779,7 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
         if (self::removing()) {
             return (bool) self::removable(1);
         }
-        return self::restoring() && self::restorable(1);
+        return self::restoring() && self::restorable(1, PHP_INT_MAX, true);
     }
 
     /**
@@ -810,8 +833,7 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
         self::fresh($id);
         $generation = get_post_meta($id, self::GENERATION, true);
         $record = self::removal_record($id);
-        $removed = $record ? self::removed_record($id) : null;
-        if (!$record || null === $removed) {
+        if (!$record || null === self::removed_record($id)) {
             return true;
         }
         // Every local file is checked before any goes, so a picture is
@@ -829,14 +851,11 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
             if (true !== $confirmed) {
                 return self::removal_stopped($id, $confirmed);
             }
-            if (self::changed_meanwhile($id, $generation)) {
+            $entry = array('relative' => (string) $info['relative'], 'size' => (int) $info['size'], 'mtime' => (int) $info['mtime'], 'digest' => (string) $info['digest'], 'version' => (string) $info['version']);
+            if (!self::remove_file($id, (string) $key, $entry, $path, $generation)) {
+                self::forget($id);
                 return true;
             }
-            // Recorded before deleting, so the file is always brought back.
-            $removed['files'][$key] = array('relative' => (string) $info['relative'], 'size' => (int) $info['size'], 'mtime' => (int) $info['mtime'], 'digest' => (string) $info['digest'], 'version' => (string) $info['version']);
-            update_post_meta($id, self::REMOVED, $removed);
-            update_option(self::FLAG, 1, true);
-            self::delete_local($path);
         }
         update_post_meta($id, self::LOCAL, $config['signature']);
         self::forget($id);
@@ -845,9 +864,60 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
     }
 
     /**
+     * Delete one confirmed file, recorded first so it can always come back.
+     * File readers restore without the batch lease, so a restore may start
+     * meanwhile and drop this entry on seeing the file still here: after
+     * deleting, a started restore puts the entry back while the file is
+     * missing, and the next restore brings it back.
+     *
+     * @param int $id Attachment ID.
+     * @param string $key Object key.
+     * @param array $entry Removed file's record.
+     * @param string $path Local file (removal_path()).
+     * @param mixed $generation Generation when the record was read.
+     * @return bool Whether removal may go on to the next file.
+     */
+    private static function remove_file($id, $key, $entry, $path, $generation) {
+        if (self::changed_meanwhile($id, $generation) || !self::record_removed($id, $key, $entry)) {
+            return false;
+        }
+        update_option(self::FLAG, 1, true);
+        self::delete_local($path);
+        if (!self::changed_meanwhile($id, $generation)) {
+            return true;
+        }
+        clearstatcache();
+        if (!is_file($path)) {
+            self::record_removed($id, $key, $entry);
+        }
+        return false;
+    }
+
+    /**
+     * Add one file to the attachment's removed-files list as it is now, so
+     * entries another request dropped or added meanwhile are kept as they are.
+     *
+     * @param int $id Attachment ID.
+     * @param string $key Object key.
+     * @param array $entry Removed file's record.
+     * @return bool False when the list belongs to another connection.
+     */
+    private static function record_removed($id, $key, $entry) {
+        self::fresh($id);
+        $removed = self::removed_record($id);
+        if (null === $removed) {
+            return false;
+        }
+        $removed['files'][$key] = $entry;
+        update_post_meta($id, self::REMOVED, $removed);
+        return true;
+    }
+
+    /**
      * Last look before a file goes: an edit, a restore or a new upload since
      * the record was read keeps the files.
      *
+     * @phpstan-impure Reads meta that other requests change.
      * @param int $id Attachment ID.
      * @param mixed $generation Generation when the record was read.
      * @return bool
@@ -1050,14 +1120,19 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
      * keeps its files here until it changes, or until removal is switched
      * on again.
      *
+     * Runs without the batch lease (file readers call it), so a batch may
+     * remove one more file meanwhile: the list is read again after each
+     * file and only that file's entry goes, and passes repeat while new
+     * entries appear. Removal puts back an entry this dropped too early
+     * (remove_file()), so a missing file's entry is never lost.
+     *
      * @param int $id Attachment ID.
      * @return true|WP_Error
      */
     public static function restore_attachment($id) {
         $id = (int) $id;
-        self::fresh($id);
-        $removed = get_post_meta($id, self::REMOVED, true);
-        if (!is_array($removed) || empty($removed['files']) || !is_array($removed['files'])) {
+        $removed = self::fresh_removed($id);
+        if (!$removed) {
             return true;
         }
         $base = self::restore_base($removed);
@@ -1067,22 +1142,70 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
         // Removal must not take these files again while they are needed here.
         update_post_meta($id, self::LOCAL, 'kept:' . self::config()['signature']);
         $client = null;
-        foreach ($removed['files'] as $key => $info) {
+        for ($pass = 0; $removed && $pass < 3; ++$pass) {
+            $result = self::restore_files($id, $removed['files'], $base, $client);
+            if (is_wp_error($result)) {
+                return $result;
+            }
+            $removed = self::fresh_removed($id);
+        }
+        delete_post_meta($id, self::STUCK);
+        self::forget($id);
+        delete_transient(self::COUNTS);
+        return true;
+    }
+
+    /**
+     * An attachment's removed-files list, read past the object cache.
+     *
+     * @phpstan-impure Reads meta that other requests change.
+     * @param int $id Attachment ID.
+     * @return array|null Null when no file is removed.
+     */
+    private static function fresh_removed($id) {
+        self::fresh($id);
+        $removed = get_post_meta($id, self::REMOVED, true);
+        return is_array($removed) && !empty($removed['files']) && is_array($removed['files']) ? $removed : null;
+    }
+
+    /**
+     * Bring back the listed files; each one's entry goes once it is back,
+     * or once another file is already there (never overwritten).
+     *
+     * @param int $id Attachment ID.
+     * @param array<string,array> $files Removed files.
+     * @param array{dir:string,real:string} $base Main uploads folder (restore_base()).
+     * @param SEOProStack_S3_Client|null $client Client, made on first use.
+     * @return true|WP_Error
+     */
+    private static function restore_files($id, $files, $base, &$client) {
+        foreach ($files as $key => $info) {
             $result = self::restore_file((string) $key, $info, $base, $client);
             if (is_wp_error($result)) {
                 return $result;
             }
-            // Back, or another file already there (never overwritten): local now.
-            unset($removed['files'][$key]);
-            if ($removed['files']) {
-                update_post_meta($id, self::REMOVED, $removed);
-            } else {
-                delete_post_meta($id, self::REMOVED);
-            }
+            self::drop_removed($id, (string) $key);
         }
-        self::forget($id);
-        delete_transient(self::COUNTS);
         return true;
+    }
+
+    /**
+     * Take one file off the attachment's removed-files list, as it is now.
+     *
+     * @param int $id Attachment ID.
+     * @param string $key Object key.
+     */
+    private static function drop_removed($id, $key) {
+        $removed = self::fresh_removed($id);
+        if (!$removed) {
+            return;
+        }
+        unset($removed['files'][$key]);
+        if ($removed['files']) {
+            update_post_meta($id, self::REMOVED, $removed);
+        } else {
+            delete_post_meta($id, self::REMOVED);
+        }
     }
 
     /**
@@ -1166,12 +1289,27 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
         $client = $client ? $client : self::client();
         $body = $client->get($key);
         if (is_wp_error($body)) {
-            return $body;
+            return self::download_error($body);
         }
         if (strlen($body) !== (int) $info['size'] || !hash_equals((string) $info['digest'], hash('sha256', $body))) {
             return new WP_Error('storage_restore_mismatch', __('A stored picture did not match its record, so it was not brought back.', 'seoprostack'));
         }
         return $body;
+    }
+
+    /**
+     * A failed download's error: a missing object (HTTP 404) affects only
+     * this picture; anything else is the service's and stays as it is.
+     *
+     * @param WP_Error $error Client error.
+     * @return WP_Error
+     */
+    private static function download_error($error) {
+        $data = $error->get_error_data();
+        if (is_array($data) && isset($data['status']) && 404 === $data['status']) {
+            return new WP_Error('storage_restore_missing', __('A removed picture is missing from the bucket, so it was not brought back.', 'seoprostack'));
+        }
+        return $error;
     }
 
     /**
@@ -2124,6 +2262,11 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
         if (!self::restoring()) {
             return false;
         }
+        if (!self::restorable(1, PHP_INT_MAX, true)) {
+            // Only stuck pictures are left: say so instead of waiting on them.
+            echo '<p>' . esc_html__('Some removed files could not be brought back (see the error below), so those pictures still show from the bucket. Fix the cause, then run wp seoprostack media-storage restore --all.', 'seoprostack') . '</p>';
+            return false;
+        }
         echo '<p>' . esc_html__('Bringing removed files back in the background; until then, those pictures show from the bucket.', 'seoprostack') . '</p>';
         return true;
     }
@@ -2225,8 +2368,10 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
                 }
             } while ($names);
             delete_option(self::CURSOR);
-            // Local copies kept after a failed check are looked at again.
+            // Local copies kept after a failed check, and pictures whose
+            // restore failed, are looked at again.
             delete_metadata('post', 0, self::LOCAL, 'kept:' . self::config()['signature'], true);
+            delete_metadata('post', 0, self::STUCK, '', true);
             delete_option(self::LOCAL_WAIT);
             delete_transient(self::COUNTS);
         }
