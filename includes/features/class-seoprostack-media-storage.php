@@ -45,6 +45,8 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
     /** Restore errors that belong to one attachment: the batch moves past it. */
     const STUCK_ERRORS = array('storage_signature', 'storage_memory', 'storage_restore_mismatch', 'storage_restore_record', 'storage_restore_missing');
     const BUDGET = 25;
+    /** Safe destination descriptions and archived inventories share uninstall's job namespace. */
+    const DESTINATIONS = 'seoprostack_storage_job_destinations';
 
     /** Local-address calls must bypass output filters. @var int */
     private static $local = 0;
@@ -123,7 +125,404 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
         $config['missing'] = array_unique($config['missing']);
         $config['signature'] = hash('sha256', $config['endpoint'] . '\n' . $config['bucket'] . '\n' . $config['prefix']);
         self::$config = $config;
+        if (!$config['missing']) {
+            self::remember_destination($config);
+        }
         return $config;
+    }
+
+    /**
+     * Keep only public connection details. A third destination waits for cleanup;
+     * reverting to the previous constants swaps the two descriptions.
+     *
+     * @param array $config Valid current configuration.
+     */
+    private static function remember_destination($config) {
+        $saved = get_option(self::DESTINATIONS, array());
+        if (isset($saved['current']['signature']) && $saved['current']['signature'] === $config['signature']) {
+            return;
+        }
+        $current = array_intersect_key($config, array_flip(array('endpoint', 'region', 'bucket', 'prefix', 'url', 'signature')));
+        if (!empty($saved['previous']) && $saved['previous']['signature'] !== $config['signature']) {
+            return;
+        }
+        $previous = isset($saved['current']) ? $saved['current'] : array();
+        if (!$saved) {
+            // Upgrade recovery: old removed records kept their public URL and keys,
+            // but not the endpoint or bucket. Do not invent signing details.
+            foreach (self::inventory_ids(1) as $id) {
+                $record = get_post_meta($id, self::META, true);
+                $removed = get_post_meta($id, self::REMOVED, true);
+                if (is_array($record) && isset($record['signature']) && $record['signature'] !== $config['signature']) {
+                    $previous = array('signature' => $record['signature'], 'endpoint' => '', 'bucket' => '', 'prefix' => '', 'url' => is_array($removed) && isset($removed['url']) ? $removed['url'] : '');
+                    foreach (isset($record['files']) ? $record['files'] : array() as $key => $info) {
+                        if (!empty($info['relative']) && substr($key, -strlen($info['relative'])) === $info['relative']) {
+                            $previous['prefix'] = substr($key, 0, strlen($key) - strlen($info['relative']));
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+        update_option(self::DESTINATIONS, array('current' => $current, 'previous' => $previous), false);
+    }
+
+    /**
+     * Read one bounded page through the meta_key index.
+     *
+     * @param int $limit Most records.
+     * @param int $before Paging cursor.
+     * @return int[]
+     */
+    private static function inventory_ids($limit = 100, $before = PHP_INT_MAX) {
+        global $wpdb;
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery, WordPress.DB.SlowDBQuery.slow_db_query_meta_key -- bounded inventory lookup through meta_key.
+        return array_map('intval', $wpdb->get_col($wpdb->prepare("SELECT post_id FROM {$wpdb->postmeta} WHERE meta_key = %s AND post_id < %d ORDER BY post_id DESC LIMIT %d", self::META, $before, $limit)));
+    }
+
+    /**
+     * A durable old inventory, retained even after its attachment is relabelled.
+     *
+     * @param int $id Attachment ID.
+     * @param array $record Old inventory.
+     */
+    private static function archive_inventory($id, $record) {
+        if (isset($record['signature']) && !empty($record['files'])) {
+            $saved = get_option(self::DESTINATIONS, array());
+            $record['url'] = isset($record['url']) ? $record['url'] : (isset($saved['previous']['url']) ? $saved['previous']['url'] : '');
+            add_option(self::JOB . 'archive_' . $record['signature'] . '_' . (int) $id, $record, '', false);
+        }
+    }
+
+    /**
+     * Validate a path below uploads without trusting an old prefix.
+     *
+     * @param string $relative Recorded path.
+     * @return bool
+     */
+    private static function safe_relative($relative) {
+        return '' !== $relative && '/' !== $relative[0] && false === strpos($relative, '..') && false === strpos($relative, '\\') && !preg_match('/[\x00-\x1f:]/', $relative);
+    }
+
+    /**
+     * Fetch old public bytes without credentials, redirects or unbounded bodies.
+     *
+     * @param string $key Old object key.
+     * @param array $info Recorded file.
+     * @param array $source Public source description.
+     * @return string|WP_Error
+     */
+    private static function previous_bytes($key, $info, $source) {
+        if (empty($source['url']) || empty($info['digest']) || !isset($info['size']) || (int) $info['size'] > self::size_cap()) {
+            return new WP_Error('storage_restore_record', __('The previous public address or a bounded file record is missing.', 'seoprostack'));
+        }
+        $url = rtrim($source['url'], '/') . '/' . implode('/', array_map('rawurlencode', explode('/', $key)));
+        // phpcs:ignore WordPressVIPMinimum.Performance.RemoteRequestTimeout.timeout_timeout -- explicit CLI migration or restoration, never rendering.
+        $response = wp_safe_remote_get($url, array('timeout' => 20, 'redirection' => 0, 'limit_response_size' => (int) $info['size'] + 1));
+        if (is_wp_error($response) || 200 !== wp_remote_retrieve_response_code($response)) {
+            return new WP_Error('storage_restore_missing', __('A picture could not be read from the previous public address.', 'seoprostack'));
+        }
+        $body = wp_remote_retrieve_body($response);
+        return strlen($body) === (int) $info['size'] && hash_equals($info['digest'], hash('sha256', $body)) ? $body : new WP_Error('storage_restore_mismatch', __('A previous picture did not match its recorded size and SHA-256.', 'seoprostack'));
+    }
+
+    /**
+     * Current destination verification, optionally including the byte digest.
+     *
+     * @param string $key Destination key.
+     * @param array $info Recorded file.
+     * @param bool $hash Read and hash the object.
+     * @return string ok, missing, mismatched or failed.
+     */
+    private static function verify_object($key, $info, $hash) {
+        $client = self::client();
+        $head = $client->head($key);
+        if (is_wp_error($head)) {
+            $data = $head->get_error_data();
+            return is_array($data) && isset($data['status']) && 404 === $data['status'] ? 'missing' : 'failed';
+        }
+        if (200 !== $head['status'] || !isset($info['size']) || $head['size'] !== (int) $info['size']) {
+            return 'mismatched';
+        }
+        if ($hash && is_wp_error(self::download($key, $info, $client))) {
+            return 'mismatched';
+        }
+        return 'ok';
+    }
+
+    /**
+     * Verify or copy every object, then publish a whole attachment's new inventory.
+     * The lease excludes batch writers; generation and compare-and-swap exclude edits.
+     *
+     * @param int $id Attachment ID.
+     * @param bool $migrate Copy missing objects from the previous public address.
+     * @param bool $dry No writes or uploads.
+     * @param bool $hash Verify SHA-256 too.
+     * @param float $start Batch start.
+     * @return string Result counter name.
+     */
+    private static function handover_attachment($id, $migrate, $dry, $hash, $start) {
+        self::fresh($id);
+        $old = get_post_meta($id, self::META, true);
+        $removed = get_post_meta($id, self::REMOVED, true);
+        $config = self::config();
+        if (!is_array($old) || empty($old['files'])) {
+            return 'failed';
+        }
+        if ($old['signature'] === $config['signature'] && (!is_array($removed) || empty($removed['files']) || $removed['signature'] === $config['signature'])) {
+            return 'skipped';
+        }
+        $generation = get_post_meta($id, self::GENERATION, true);
+        $saved = get_option(self::DESTINATIONS, array());
+        if (empty($saved['current']) || $saved['current']['signature'] !== $config['signature'] || empty($saved['previous']) || $old['signature'] !== $saved['previous']['signature']) {
+            return 'failed';
+        }
+        $source = is_array($removed) && !empty($removed['url']) ? $removed : $saved['previous'];
+        $files = $old['files'] + (is_array($removed) && isset($removed['files']) ? $removed['files'] : array());
+        $record = $old;
+        $record['files'] = array();
+        foreach ($files as $key => $info) {
+            if (!self::more_time($start, self::BUDGET)) {
+                return 'deferred';
+            }
+            if (empty($info['confirmed']) || empty($info['digest']) || empty($info['relative']) || !self::safe_relative($info['relative'])) {
+                return 'mismatched';
+            }
+            $target = $config['prefix'] . $info['relative'];
+            $result = self::verify_object($target, $info, $hash || $migrate);
+            if ($migrate && 'ok' !== $result && !$dry) {
+                $body = self::previous_bytes((string) $key, $info, $source);
+                if (is_wp_error($body)) {
+                    return 'missing';
+                }
+                $type = wp_check_filetype($info['relative']);
+                $put = self::client()->put($target, $body, $type['type'] ?: 'application/octet-stream', 'public, max-age=31536000, immutable');
+                if (is_wp_error($put)) {
+                    return 'failed';
+                }
+                $result = self::verify_object($target, $info, true);
+            }
+            if ('ok' !== $result) {
+                return $result;
+            }
+            $record['files'][$target] = $info;
+        }
+        if ($dry) {
+            return 'adopted';
+        }
+        self::fresh($id);
+        if (!self::attachment_exists($id) || get_post_meta($id, self::GENERATION, true) !== $generation || get_post_meta($id, self::META, true) !== $old) {
+            return 'deferred';
+        }
+        self::archive_inventory($id, $old);
+        $record['signature'] = $config['signature'];
+        $record['url'] = $config['url'];
+        $record['state'] = 'uploaded';
+        unset($record['handover_error']);
+        if (!update_post_meta($id, self::META, $record, $old)) {
+            return 'deferred';
+        }
+        $gone = self::fresh_removed($id);
+        if ($gone && $gone['signature'] === $old['signature']) {
+            $new = $gone;
+            $new['signature'] = $config['signature'];
+            $new['url'] = $config['url'];
+            $new['files'] = array();
+            foreach ($gone['files'] as $info) {
+                $new['files'][$config['prefix'] . $info['relative']] = $info;
+            }
+            update_post_meta($id, self::REMOVED, $new, $gone);
+        }
+        update_post_meta($id, self::DONE, $config['signature']);
+        update_post_meta($id, self::STATE, 'uploaded');
+        update_post_meta($id, self::LOCAL, self::removed($id) ? $config['signature'] : 'kept:' . $config['signature']);
+        foreach (array_keys($record['files']) as $key) {
+            update_option(self::URL_INDEX . hash('sha256', $config['signature'] . $key), $id, false);
+            delete_option(self::delete_job_name($config['signature'], $key));
+        }
+        delete_option(self::JOB . 'retry_' . $id);
+        delete_post_meta($id, self::STUCK);
+        delete_transient(self::COUNTS);
+        self::$maps = array();
+        return 'adopted';
+    }
+
+    /**
+     * A bounded explicit handover batch, using the existing lease and time budget.
+     *
+     * @param array $assoc CLI switches.
+     * @param bool $migrate Copy before verification.
+     */
+    private static function cli_handover($assoc, $migrate) {
+        $limit = isset($assoc['limit']) ? max(1, min(1000, (int) $assoc['limit'])) : 10;
+        $one = isset($assoc['attachment']) ? self::cli_restore_target($assoc) : 0;
+        $counts = array('adopted' => 0, 'missing' => 0, 'mismatched' => 0, 'failed' => 0, 'deferred' => 0, 'skipped' => 0);
+        $dry = isset($assoc['dry-run']);
+        $start = microtime(true);
+        $before = PHP_INT_MAX;
+        $lease = self::cli_lease();
+        try {
+            do {
+                $ids = $one ? array($one) : self::inventory_ids(100, $before);
+                foreach ($ids as $id) {
+                    $before = $id;
+                    $result = self::handover_attachment($id, $migrate, $dry, isset($assoc['verify-hash']), $start);
+                    ++$counts[$result];
+                    if (!$dry && in_array($result, array('missing', 'mismatched', 'failed'), true)) {
+                        $record = get_post_meta($id, self::META, true);
+                        if (is_array($record)) {
+                            $record['handover_error'] = $result;
+                            update_post_meta($id, self::META, $record);
+                            delete_transient(self::COUNTS);
+                        }
+                    }
+                    if ('skipped' !== $result) {
+                        --$limit;
+                        WP_CLI::log($id . ': ' . $result);
+                    }
+                    if ($limit <= 0 || !self::more_time($start, self::BUDGET)) {
+                        break 2;
+                    }
+                }
+            } while (!$one && $ids);
+        } finally {
+            self::release($lease);
+        }
+        WP_CLI::log($dry ? 'Dry run: no objects or records changed.' : 'Handover batch finished; repeat to continue.');
+        foreach ($counts as $state => $count) {
+            WP_CLI::log($state . ': ' . $count);
+        }
+    }
+
+    /**
+     * Local status only: missing/mismatched are last explicit verification results.
+     * No network request is made while rendering the settings card.
+     *
+     * @return array<string,int>
+     */
+    private static function handover_counts() {
+        $counts = array('adopted' => 0, 'pending' => 0, 'missing' => 0, 'mismatched' => 0);
+        $before = PHP_INT_MAX;
+        do {
+            $ids = self::inventory_ids(100, $before);
+            foreach ($ids as $id) {
+                $before = $id;
+                $record = get_post_meta($id, self::META, true);
+                if (!is_array($record) || empty($record['files'])) {
+                    continue;
+                }
+                if ($record['signature'] === self::config()['signature']) {
+                    ++$counts['adopted'];
+                } else {
+                    ++$counts['pending'];
+                    if (isset($record['handover_error']) && in_array($record['handover_error'], array('missing', 'mismatched'), true)) {
+                        ++$counts[$record['handover_error']];
+                    }
+                }
+            }
+        } while ($ids);
+        return $counts;
+    }
+
+    /**
+     * Public status labels deliberately omit URLs, paths, signing region and keys.
+     *
+     * @return string[]
+     */
+    private static function destination_labels() {
+        $saved = get_option(self::DESTINATIONS, array());
+        $labels = array();
+        foreach (array('current', 'previous') as $name) {
+            $item = isset($saved[$name]) ? $saved[$name] : array();
+            $labels[] = $name . ': ' . ($item ? (wp_parse_url($item['endpoint'], PHP_URL_HOST) ?: 'unknown host') . ' / ' . ($item['bucket'] ?: 'unknown bucket') . ' / ' . $item['prefix'] : 'none');
+        }
+        $counts = self::counts();
+        $labels[] = $counts['pending'] ? 'Previous destination is still needed.' : 'Previous destination is no longer needed by recorded pictures; verify pages before cleanup.';
+        return $labels;
+    }
+
+    /**
+     * Explicit cleanup only, after rechecking all current records byte for byte.
+     * Old credentials are separate constants, never saved or sent to the new host.
+     *
+     * @param array $assoc CLI switches.
+     */
+    private static function cli_forget_previous($assoc) {
+        $lease = self::cli_lease();
+        try {
+            self::forget_previous($assoc);
+        } finally {
+            self::release($lease);
+        }
+    }
+
+    /**
+     * Cleanup implementation called under the batch lease.
+     *
+     * @param array $assoc CLI switches.
+     */
+    private static function forget_previous($assoc) {
+        $saved = get_option(self::DESTINATIONS, array());
+        if (empty($saved['previous'])) {
+            WP_CLI::success('No previous destination.');
+            return;
+        }
+        if ($saved['current']['signature'] !== self::config()['signature']) {
+            WP_CLI::error('A third destination cannot replace an unfinished handover. Restore the last connection first.');
+        }
+        $before = PHP_INT_MAX;
+        do {
+            $ids = self::inventory_ids(100, $before);
+            foreach ($ids as $id) {
+                $before = $id;
+                $record = get_post_meta($id, self::META, true);
+                $gone = self::fresh_removed($id);
+                if ($record['signature'] !== self::config()['signature'] || ($gone && $gone['signature'] !== self::config()['signature'])) {
+                    WP_CLI::error('Previous destination is still needed: adopt or migrate every record first.');
+                }
+                foreach ($record['files'] as $key => $info) {
+                    if ('ok' !== self::verify_object((string) $key, $info, true)) {
+                        WP_CLI::error('A current object is missing or mismatched; previous destination was kept.');
+                    }
+                }
+            }
+        } while ($ids);
+        $client = null;
+        if (isset($assoc['delete-objects'])) {
+            $old = $saved['previous'];
+            if (empty($old['endpoint']) || empty($old['bucket']) || !defined('SEOPROSTACK_MEDIA_STORAGE_PREVIOUS_KEY_ID') || !defined('SEOPROSTACK_MEDIA_STORAGE_PREVIOUS_SECRET')) {
+                WP_CLI::error('Set the previous key constants in wp-config.php, or delete old objects with your provider after forget-previous. An upgrade with unknown old endpoint/bucket must use the provider.');
+            }
+            require_once dirname(__DIR__) . '/class-seoprostack-s3-client.php';
+            $client = new SEOProStack_S3_Client($old['endpoint'], isset($old['region']) ? $old['region'] : 'auto', $old['bucket'], constant('SEOPROSTACK_MEDIA_STORAGE_PREVIOUS_KEY_ID'), constant('SEOPROSTACK_MEDIA_STORAGE_PREVIOUS_SECRET'));
+        }
+        $start = microtime(true);
+        $after = '';
+        do {
+            $names = self::jobs(100, $after, 'archive_' . $saved['previous']['signature'] . '_');
+            foreach ($names as $name) {
+                $after = $name;
+                $record = get_option($name);
+                foreach (array_keys($record['files']) as $key) {
+                    if (!self::more_time($start, self::BUDGET)) {
+                        WP_CLI::log('Cleanup paused at the time budget; repeat forget-previous with the same switches.');
+                        return;
+                    }
+                    if ($client) {
+                        $result = $client->delete((string) $key);
+                        if (is_wp_error($result)) {
+                            WP_CLI::error('Previous object deletion failed; inventory kept for retry.');
+                        }
+                    }
+                    unset($record['files'][$key]);
+                    update_option($name, $record, false);
+                }
+                delete_option($name);
+            }
+        } while ($names);
+        $saved['previous'] = array();
+        update_option(self::DESTINATIONS, $saved, false);
+        WP_CLI::success('Previous destination forgotten. Bucket and access keys are never deleted by this command.');
     }
 
     /** @return bool */
@@ -588,6 +987,11 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
      * @param string[] $keys Object keys.
      */
     private static function queue_delete($record, $keys) {
+        // Changing connections must never create a latent destructive job, even
+        // one that would only execute if the old constants were restored later.
+        if ($record['signature'] !== self::config()['signature']) {
+            return;
+        }
         foreach ($keys as $key) {
             $job = array('kind' => 'delete', 'key' => $key, 'signature' => $record['signature'], 'next' => 0);
             add_option(self::delete_job_name($record['signature'], $key), $job, '', false);
@@ -1220,12 +1624,12 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
         if ($config['missing']) {
             return new WP_Error('storage_config', __('Set the SEOPROSTACK_MEDIA_STORAGE constants to bring files back.', 'seoprostack'));
         }
-        if (!isset($removed['signature']) || $removed['signature'] !== $config['signature']) {
+        if (!isset($removed['signature']) || ($removed['signature'] !== $config['signature'] && empty($removed['url']))) {
             return new WP_Error('storage_signature', __('These files were removed while another storage connection was set. Set that connection again to bring them back.', 'seoprostack'));
         }
         $root = self::root();
         $real = $root ? realpath($root['dir']) : false;
-        return $root && $real ? array('dir' => $root['dir'], 'real' => $real) : new WP_Error('storage_uploads', __('The uploads folder could not be found.', 'seoprostack'));
+        return $root && $real ? array('dir' => $root['dir'], 'real' => $real, 'source' => $removed) : new WP_Error('storage_uploads', __('The uploads folder could not be found.', 'seoprostack'));
     }
 
     /**
@@ -1242,7 +1646,7 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
         if (true === $path || is_wp_error($path)) {
             return $path;
         }
-        $body = self::download($key, $info, $client);
+        $body = isset($base['source']) && $base['source']['signature'] !== self::config()['signature'] ? self::previous_bytes($key, $info, $base['source']) : self::download($key, $info, $client);
         if (is_wp_error($body)) {
             return $body;
         }
@@ -1259,7 +1663,9 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
      */
     private static function restore_target($key, $info, $base) {
         $relative = isset($info['relative']) ? (string) $info['relative'] : '';
-        if (!self::recorded_path($relative, $key) || !isset($info['size'], $info['digest'], $info['mtime'])) {
+        $source = isset($base['source']) ? $base['source'] : array();
+        $valid = isset($source['signature']) && $source['signature'] !== self::config()['signature'] ? self::safe_relative($relative) : self::recorded_path($relative, $key);
+        if (!$valid || !isset($info['size'], $info['digest'], $info['mtime'])) {
             return new WP_Error('storage_restore_record', __('A removed file’s record is not valid, so it was not brought back.', 'seoprostack'));
         }
         $path = $base['dir'] . '/' . $relative;
@@ -1484,15 +1890,8 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
                 ++$attempts;
                 continue;
             }
-            $result = self::client()->delete($job['key']);
-            if (is_wp_error($result)) {
-                $job['next'] = time() + HOUR_IN_SECONDS;
-                update_option($name, $job, false);
-                update_option(self::ERROR, $result->get_error_message(), false);
-            } else {
-                delete_option($name);
-                delete_option(self::URL_INDEX . hash('sha256', $job['signature'] . $job['key']));
-            }
+            // Retain legacy delete jobs without executing them. Only the explicit
+            // forget-previous --delete-objects command may delete stored media.
         }
         return $attempts;
     }
@@ -1605,7 +2004,7 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
             return array();
         }
         if (isset($old['signature']) && $old['signature'] !== self::config()['signature']) {
-            self::queue_delete($old, array_map('strval', array_keys(isset($old['files']) ? $old['files'] : array())));
+            self::archive_inventory($id, $old);
             return array();
         }
         return $old;
@@ -1636,6 +2035,14 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
      * @return bool Whether all eligible files were copied.
      */
     public static function upload_attachment($id, $start = null) {
+        $inventory = get_post_meta($id, self::META, true);
+        if (is_array($inventory) && !empty($inventory['files']) && isset($inventory['signature']) && $inventory['signature'] !== self::config()['signature']) {
+            // Only explicit adopt/migrate may replace an old inventory. Mark the
+            // queue visited without changing the source record or its files.
+            self::archive_inventory($id, $inventory);
+            update_post_meta($id, self::DONE, self::config()['signature']);
+            return false;
+        }
         if (!self::ready() || 0 !== strpos((string) get_post_mime_type($id), 'image/') || self::removed_elsewhere($id)) {
             return false;
         }
@@ -1651,7 +2058,7 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
         if (!self::restore_for_upload($id)) {
             return false;
         }
-        $record = array('signature' => $config['signature'], 'files' => array(), 'state' => 'failed', 'attempts' => $attempt, 'skipped' => 0);
+        $record = array('signature' => $config['signature'], 'url' => $config['url'], 'files' => array(), 'state' => 'failed', 'attempts' => $attempt, 'skipped' => 0);
         // Keep the previous inventory for deletion/recovery, but never serve a partial upload.
         $pending = $old ? $old : $record;
         $pending['state'] = 'failed';
@@ -1842,7 +2249,7 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
     private static function gone_files($id) {
         $url = self::config()['url'];
         $gone = self::removed_files($id);
-        if ($gone || 'all' !== self::serving()) {
+        if ($gone) {
             return array($gone, $url);
         }
         $removed = get_post_meta((int) $id, self::REMOVED, true);
@@ -1918,7 +2325,7 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
         }
         $map = array();
         foreach (self::named_attachments($text) as $id) {
-            if (self::removed_files($id)) {
+            if (self::removed($id)) {
                 $map += self::map($id);
             }
         }
@@ -1991,7 +2398,7 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
      * @return array
      */
     public static function srcset_meta($meta, $size, $src) {
-        if ('' === self::serving() || 0 !== strpos($src, self::config()['url'] . '/')) {
+        if ('' === self::serving()) {
             return $meta;
         }
         if (isset($meta['file']) && is_string($meta['file'])) {
@@ -2133,6 +2540,7 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
         }
         // phpcs:ignore WordPress.DB.DirectDatabaseQuery, WordPress.DB.SlowDBQuery.slow_db_query_meta_key -- explicit status query through the meta_key index.
         $counts['local copies removed'] = (int) $wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM {$wpdb->postmeta} WHERE meta_key = %s", self::REMOVED));
+        $counts += self::handover_counts();
         set_transient(self::COUNTS, array('signature' => self::config()['signature'], 'counts' => $counts), 5 * MINUTE_IN_SECONDS);
         return $counts;
     }
@@ -2210,6 +2618,9 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
             echo '<li><code>' . esc_html($name) . '</code>: ' . esc_html($status) . '</li>';
         }
         echo '</ul>';
+        foreach (self::destination_labels() as $label) {
+            echo '<p>' . esc_html($label) . '</p>';
+        }
         if (is_ssl() && 'https' !== wp_parse_url($config['url'], PHP_URL_SCHEME)) {
             echo '<p>' . esc_html__('Use an HTTPS public storage address to avoid mixed content.', 'seoprostack') . '</p>';
         }
@@ -2304,7 +2715,7 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
      * ## OPTIONS
      *
      * <action>
-     * : status, test, upload or restore.
+     * : status, test, upload, restore, adopt, migrate or forget-previous.
      *
      * [--limit=<n>]
      * : Most attachments to upload (default 10).
@@ -2318,6 +2729,15 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
      *
      * [--all]
      * : restore: bring back every removed file on this site.
+     *
+     * [--dry-run]
+     * : adopt/migrate: inspect without uploading or relabelling.
+     *
+     * [--verify-hash]
+     * : adopt: also GET each object and compare its SHA-256.
+     *
+     * [--delete-objects]
+     * : forget-previous: explicitly delete archived previous objects.
      *
      * @param string[] $args Positional arguments.
      * @param array $assoc Named arguments.
@@ -2335,6 +2755,14 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
         if (!self::ready()) {
             WP_CLI::error('Switch on Media in cloud storage and set its constants first.');
         }
+        if ('adopt' === $action || 'migrate' === $action) {
+            self::cli_handover($assoc, 'migrate' === $action);
+            return;
+        }
+        if ('forget-previous' === $action) {
+            self::cli_forget_previous($assoc);
+            return;
+        }
         if ('test' === $action) {
             $result = self::test_connection();
             if (is_wp_error($result)) {
@@ -2344,7 +2772,7 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
             return;
         }
         if ('upload' !== $action) {
-            WP_CLI::error('Use status, test, upload or restore.');
+            WP_CLI::error('Use status, test, upload, restore, adopt, migrate or forget-previous.');
         }
         $limit = isset($assoc['limit']) ? max(1, min(1000, (int) $assoc['limit'])) : 10;
         if (isset($assoc['retry-failed'])) {
@@ -2392,6 +2820,9 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
      */
     private static function cli_status() {
         WP_CLI::log(self::ready() ? 'Configured and on.' : 'Off or missing constants.');
+        foreach (self::destination_labels() as $label) {
+            WP_CLI::log($label);
+        }
         $missing = self::config()['missing'];
         if ($missing) {
             WP_CLI::log('Missing or invalid: ' . implode(', ', $missing));
