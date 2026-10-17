@@ -83,6 +83,17 @@ final class SEOProStack_S3_Client {
     }
 
     /**
+     * Read an object's bytes, signed, so a private bucket can bring files back.
+     *
+     * @param string $key Object key.
+     * @return string|WP_Error
+     */
+    public function get($key) {
+        $response = $this->request('GET', $key);
+        return is_wp_error($response) ? $response : (string) wp_remote_retrieve_body($response);
+    }
+
+    /**
      * Remove an object; absent objects count as done.
      *
      * @param string $key Object key.

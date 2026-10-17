@@ -380,7 +380,12 @@ class SEOProStack_Replace_Media extends SEOProStack_Feature {
         $new_file = $new['file'];
 
         // Delete the old file, its sizes and any edited copies, then put the
-        // new file in place.
+        // new file in place. Old files Media in cloud storage removed are
+        // forgotten, not brought back: they are being replaced, and its next
+        // upload deletes their objects.
+        if (class_exists('SEOProStack_Media_Storage')) {
+            SEOProStack_Media_Storage::forget_removed($attachment_id);
+        }
         wp_delete_attachment_files($attachment_id, $old_meta, is_array($old_backup) ? $old_backup : array(), $old_file);
         delete_post_meta($attachment_id, '_wp_attachment_backup_sizes');
         // (Resize large uploads may have saved a BMP as JPEG: keep that name.)
