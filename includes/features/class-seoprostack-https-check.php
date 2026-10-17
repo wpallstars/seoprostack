@@ -424,8 +424,9 @@ class SEOProStack_Https_Check extends SEOProStack_Feature {
         // The site's own home page, with a short timeout. Not
         // wp_safe_remote_head(): a site may resolve its own name locally.
         // The certificate is checked above, so an untrusted one does not
-        // hide the header.
-        $response = wp_remote_head(home_url('/'), array('timeout' => self::TIMEOUT, 'redirection' => 3, 'sslverify' => false));
+        // hide the header. No redirects: browsers keep HSTS for the host
+        // that sent it, and a redirect's own response counts.
+        $response = wp_remote_head(home_url('/'), array('timeout' => self::TIMEOUT, 'redirection' => 0, 'sslverify' => false));
         if (is_wp_error($response)) {
             /* translators: %s: error message */
             return self::item('hsts', 'unknown', sprintf(__('The home page could not be loaded from this server to check HSTS (%s).', 'seoprostack'), $response->get_error_message()));
