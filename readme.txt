@@ -148,6 +148,9 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 
 == Changelog ==
 
+= Unreleased =
+* New: Verified cloud media bucket handover with adopt, migrate, previous-destination fallback and explicit cleanup.
+
 = 1.3.53 =
 * New: Media in cloud storage can remove local copies after a confirmed upload, and bring them back.
 * New: Kadence query filters can use term slugs in addresses, without a redirect.
