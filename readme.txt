@@ -149,6 +149,7 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 == Changelog ==
 
 = Unreleased =
+* New: Kadence query filters can use term slugs in addresses, without a redirect.
 * New: HTTPS check, in Site Health and on the Security tab.
 * Fix: Fluent Forms placeholders use the input's stronger text colour, including the fallback.
 * Fix: Copies at their own addresses also covers rendered block images outside post content, including covers, template parts and Kadence Elements. CSS backgrounds stay unchanged.
