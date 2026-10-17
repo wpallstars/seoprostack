@@ -1038,6 +1038,13 @@ Kadence Blocks Pro’s taxonomy filters put term IDs in the address (`?make=123`
 - Runs after the site’s own redirects (`template_redirect`, priority 20), so code that handles the slug itself, such as sending links for a term with no posts somewhere else, still sees it.
 - Only on single posts and pages whose own content has a query loop (up to 10); loops in Kadence Elements or block templates are not looked up. Nothing changes without Kadence Blocks Pro.
 
+**Use term slugs in addresses** (off by default, under this setting) keeps the slug in the address instead, with no redirect:
+
+- Taxonomy filters (drop-downs, checkboxes and buttons) get term slugs as their values, so picking Audi puts `?make=audi` in the address, and a link with the slug opens with Audi selected.
+- Before Kadence runs a loop's query, on page load and on every filter change, slugs in its taxonomy filter arguments become the term IDs Kadence matches, so results, counts, hidden empty options, page numbers, sorting and search work as with IDs. The address and the rest of the page keep the slug.
+- Links and bookmarks with term IDs still work. A term whose slug is only digits keeps its ID, which would otherwise read as another term's ID.
+- Works for any query loop, including those in Kadence Elements and block templates, since Kadence draws every loop through its `kadence_query/query` REST route. Other filters (custom fields, price, WooCommerce attributes) are left as they are.
+
 ### Copy linked images to Media Library (Media)
 
 When a post is saved, images linked from other sites are copied into the Media Library, resized, attached to the post, and the content is changed to serve the local copy.
@@ -1727,6 +1734,7 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folder�
 ## Changelog
 
 ### Unreleased
+- New, off by default: **Kadence query filters use term slugs in addresses** (Content tab, under Kadence query filters accept term slugs). Taxonomy filters put the term slug in the address (`?make=audi`) instead of its ID, and a link with the slug opens filtered, with the term selected and no redirect. Links with IDs still work (GitHub issue #803).
 - New: [HTTPS check](#https-check-security), on the Security tab and in Site Health, connects to the site's own address from the server and shows whether the certificate is trusted, matches the host and how many days it has left, the TLS version and cipher, whether TLS 1.0 and 1.1 are refused and whether HSTS is sent, with **Check now** and a link to the full report and grade on SSL Labs in a new tab. Nothing is sent to SSL Labs (GitHub issue #804).
 - Changed: more of Admin, Security and Plugins is on by default on new installs (GitHub issue #806): HTTPS and security headers, Turn off unused remote access (log and backup files, PHP files in the uploads folder and usernames; XML-RPC and application passwords stay on), Hide the admin bar, Block dashboard access, Hide dashboard widgets, Disable sidebar widgets, Tidy the login screen, Avatars without Gravatar, Plugin presets and Plugins menu in the admin bar. Sites already set up keep their saved settings. Watermark pictures, and features that need a choice first, stay off.
 - Changed: **Internal linking tools** replaces Link Whisper Premium and Link Whisper Free in part (GitHub issue #807). Their Plugins screen notice names what the retirement checks find Link Whisper still does on the site, such as autolinking rules, related posts or link attribute rules, instead of saying it can go; insertion histories and click data are not named. The tools wait while Link Whisper is active; the read-only retirement checks stay available.

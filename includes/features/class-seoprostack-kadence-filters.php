@@ -20,6 +20,12 @@
  * whose content has a query loop, such a link is sent on (302) to the same
  * address with the term's ID.
  *
+ * Its child, Kadence query filters use term slugs in addresses, replaces the
+ * redirect: around Kadence's query loop REST route, which draws the results
+ * and filters on page load and on every change, slugs in the arguments
+ * become IDs for Kadence, and taxonomy filter options get slugs as values,
+ * so Kadence's own script puts slugs in the address.
+ *
  * SPDX-License-Identifier: GPL-3.0-or-later
  * SPDX-FileCopyrightText: 2026 Marcus Quinn
  * Additional terms (GPL-3.0 section 7(b)): SEOPROSTACK-ATTRIBUTION.txt
@@ -40,11 +46,24 @@ class SEOProStack_Kadence_Filters extends SEOProStack_Feature {
     /** Setting: links may name a taxonomy filter's term by its slug. */
     const SLUGS_KEY = 'kadence_filter_term_slugs';
 
+    /** Setting (child of SLUGS_KEY): taxonomy filters put term slugs in the address. */
+    const ADDRESS_KEY = 'kadence_filter_slug_addresses';
+
+    /** Kadence Blocks Pro's query loop route, for page loads and filter changes alike. */
+    const QUERY_ROUTE = '/wp/v2/kadence_query/query';
+
     /** Most query loops looked up on one page. */
     const MAX_LOOPS = 10;
 
     /** Whether a query loop was drawn on this page. @var bool */
     private static $seen = false;
+
+    /**
+     * Request arguments as they were before slugs became IDs, by REST request.
+     *
+     * @var array<int,array{get:array<string,mixed>,request:array<string,mixed>}>
+     */
+    private static $originals = array();
 
     /**
      * Settings.
@@ -77,6 +96,13 @@ class SEOProStack_Kadence_Filters extends SEOProStack_Feature {
                 'label'       => __('Kadence query filters accept term slugs', 'seoprostack'),
                 'description' => __('Links that name a category, tag or other term in a Kadence Blocks Pro query loop filter by its slug, such as ?make=bentley, show its results: the visitor goes on to the same address with the term ID that Kadence uses. Only on pages whose content has a query loop. Nothing changes if Kadence Blocks Pro is not active.', 'seoprostack'),
             ),
+            self::ADDRESS_KEY => array(
+                'type'        => 'bool',
+                'default'     => false,
+                'parent'      => self::SLUGS_KEY,
+                'label'       => __('Kadence query filters use term slugs in addresses', 'seoprostack'),
+                'description' => __('Taxonomy filters show the term slug in the address instead of its ID, such as ?make=bentley, when a visitor picks a term, and a link with the slug is shown without going on to the ID address. Links with term IDs still work. Loops in Kadence Elements and block templates included.', 'seoprostack'),
+            ),
         );
     }
 
@@ -92,10 +118,155 @@ class SEOProStack_Kadence_Filters extends SEOProStack_Feature {
             // After blocks that other footer hooks draw, such as Kadence Elements.
             add_action('wp_footer', array(__CLASS__, 'print_script'), 100);
         }
-        if (SEOProStack_Settings::get(self::SLUGS_KEY)) {
-            // After the site's own handlers at 10, which may still want the slug.
-            add_action('template_redirect', array(__CLASS__, 'term_slug_redirect'), 20);
+        if (!SEOProStack_Settings::get(self::SLUGS_KEY)) {
+            return;
         }
+        if (SEOProStack_Settings::get(self::ADDRESS_KEY)) {
+            // Kadence draws a loop's results and filters through its REST
+            // route, inside the page on load and by fetch on a change.
+            add_filter('rest_request_before_callbacks', array(__CLASS__, 'rest_term_ids'), 10, 3);
+            add_filter('rest_request_after_callbacks', array(__CLASS__, 'rest_term_slugs'), 10, 3);
+            return;
+        }
+        // After the site's own handlers at 10, which may still want the slug.
+        add_action('template_redirect', array(__CLASS__, 'term_slug_redirect'), 20);
+    }
+
+    /**
+     * Before Kadence's query loop route runs, change term slugs in its
+     * taxonomy filter arguments to the term IDs that Kadence matches.
+     *
+     * Kadence reads filter values from $_GET, both on the REST request a
+     * filter change sends and inside the page, where the loop's blocks run
+     * the route with the page's own arguments. The address keeps the slug.
+     *
+     * @since 1.3.53
+     * @param mixed           $response Result so far: null, or a response or error.
+     * @param mixed           $handler  Route handler.
+     * @param WP_REST_Request $request  Request.
+     * @return mixed Unchanged.
+     */
+    public static function rest_term_ids($response, $handler, $request) {
+        if (null !== $response || !self::is_query_request($request)) {
+            return $response;
+        }
+        $loop = (int) $request->get_param('ql_id');
+        // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- public filter arguments, read only; values are matched against term slugs.
+        $changes = $loop > 0 && !empty($_GET) ? self::term_ids_for_slugs(array($loop), wp_unslash($_GET)) : array();
+        if (!$changes) {
+            return $response;
+        }
+        $saved = array('get' => array(), 'request' => array());
+        // phpcs:disable WordPress.Security.NonceVerification.Recommended, WordPress.Security.ValidatedSanitizedInput -- raw values kept unchanged, only to put back after the route runs; every key is in $_GET (term_ids_for_slugs read it).
+        foreach ($changes as $key => $value) {
+            $saved['get'][$key] = $_GET[$key];
+            $_GET[$key]         = wp_slash($value);
+            if (isset($_REQUEST[$key])) {
+                $saved['request'][$key] = $_REQUEST[$key];
+                $_REQUEST[$key]         = wp_slash($value);
+            }
+        }
+        // phpcs:enable WordPress.Security.NonceVerification.Recommended, WordPress.Security.ValidatedSanitizedInput
+        $request->set_query_params(array_merge($request->get_query_params(), $changes));
+        self::$originals[spl_object_id($request)] = $saved;
+        return $response;
+    }
+
+    /**
+     * After Kadence's query loop route runs, put the request arguments back
+     * and give taxonomy filter options term slugs as values, so Kadence's
+     * script puts slugs in the address and selects the option a slug names.
+     *
+     * @since 1.3.53
+     * @param mixed           $response Route result.
+     * @param mixed           $handler  Route handler.
+     * @param WP_REST_Request $request  Request.
+     * @return mixed
+     */
+    public static function rest_term_slugs($response, $handler, $request) {
+        if (!self::is_query_request($request)) {
+            return $response;
+        }
+        $id = spl_object_id($request);
+        if (isset(self::$originals[$id])) {
+            foreach (self::$originals[$id]['get'] as $key => $value) {
+                $_GET[$key] = $value;
+            }
+            foreach (self::$originals[$id]['request'] as $key => $value) {
+                $_REQUEST[$key] = $value;
+            }
+            unset(self::$originals[$id]);
+        }
+        $loop = (int) $request->get_param('ql_id');
+        if ($loop <= 0 || !$response instanceof WP_REST_Response) {
+            return $response;
+        }
+        $data = $response->get_data();
+        if (!is_array($data) || empty($data['filters']) || !is_array($data['filters'])) {
+            return $response;
+        }
+        $changed = false;
+        foreach (self::taxonomy_filters(array($loop)) as $filter) {
+            $uid = $filter['uid'];
+            if ('' === $uid || !isset($data['filters'][$uid]) || !is_string($data['filters'][$uid])) {
+                continue;
+            }
+            $html = self::slug_values($data['filters'][$uid], $filter['taxonomy']);
+            if ($html !== $data['filters'][$uid]) {
+                $data['filters'][$uid] = $html;
+                $changed               = true;
+            }
+        }
+        if ($changed) {
+            $response->set_data($data);
+        }
+        return $response;
+    }
+
+    /**
+     * Whether a REST request is for Kadence's query loop route.
+     *
+     * @param mixed $request Request.
+     * @return bool
+     */
+    private static function is_query_request($request) {
+        return defined('KBP_VERSION') && $request instanceof WP_REST_Request
+            && self::QUERY_ROUTE === untrailingslashit($request->get_route());
+    }
+
+    /**
+     * Filter HTML with each option's term ID value (value="12" and
+     * data-value="12") changed to the term's slug. A slug of digits alone
+     * would read as an ID, so that term keeps its ID.
+     *
+     * @param string $html     A filter's options HTML from Kadence.
+     * @param string $taxonomy The filter's taxonomy.
+     * @return string
+     */
+    private static function slug_values($html, $taxonomy) {
+        $pattern = '/\b((?:data-)?value)="(\d+)"/';
+        if (!preg_match_all($pattern, $html, $matches)) {
+            return $html;
+        }
+        $slugs = get_terms(array(
+            'taxonomy'               => $taxonomy,
+            'include'                => array_values(array_unique(array_map('intval', $matches[2]))),
+            'hide_empty'             => false,
+            'fields'                 => 'id=>slug',
+            'update_term_meta_cache' => false,
+        ));
+        if (!is_array($slugs) || !$slugs) {
+            return $html;
+        }
+        $result = preg_replace_callback(
+            $pattern,
+            static function ($match) use ($slugs) {
+                $slug = isset($slugs[(int) $match[2]]) ? (string) $slugs[(int) $match[2]] : '';
+                return '' === $slug || ctype_digit($slug) ? $match[0] : $match[1] . '="' . esc_attr($slug) . '"';
+            },
+            $html
+        );
+        return is_string($result) ? $result : $html;
     }
 
     /**
@@ -184,7 +355,7 @@ class SEOProStack_Kadence_Filters extends SEOProStack_Feature {
      * The taxonomy filters of query loops.
      *
      * @param int[] $loops Query loop post IDs.
-     * @return array<int,array{taxonomy:string,keys:string[]}>
+     * @return array<int,array{taxonomy:string,keys:string[],uid:string}>
      */
     private static function taxonomy_filters(array $loops) {
         $filters = array();
@@ -201,11 +372,11 @@ class SEOProStack_Kadence_Filters extends SEOProStack_Feature {
     }
 
     /**
-     * A filter's taxonomy and the request arguments that name it (its hash
-     * and its slug), when it is a taxonomy filter.
+     * A filter's taxonomy, the request arguments that name it (its hash
+     * and its slug) and its block's unique ID, when it is a taxonomy filter.
      *
      * @param mixed $facet One entry of a loop's _kad_query_facets meta.
-     * @return array{taxonomy:string,keys:string[]}|null
+     * @return array{taxonomy:string,keys:string[],uid:string}|null
      */
     private static function taxonomy_filter($facet) {
         $attrs = is_array($facet) && isset($facet['attributes']) && is_string($facet['attributes'])
@@ -219,11 +390,16 @@ class SEOProStack_Kadence_Filters extends SEOProStack_Feature {
         }
         $hash = $facet['hash'] ?? '';
         $slug = $attrs['slug'] ?? '';
+        $uid  = $attrs['uniqueID'] ?? '';
         $keys = array_values(array_diff(
             array(is_scalar($hash) ? (string) $hash : '', is_string($slug) ? $slug : ''),
             array('')
         ));
-        return $keys ? array('taxonomy' => $taxonomy, 'keys' => $keys) : null;
+        return $keys ? array(
+            'taxonomy' => $taxonomy,
+            'keys'     => $keys,
+            'uid'      => is_scalar($uid) ? (string) $uid : '',
+        ) : null;
     }
 
     /**
