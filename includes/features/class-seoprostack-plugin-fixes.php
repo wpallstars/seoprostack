@@ -830,7 +830,8 @@ class SEOProStack_Plugin_Fixes extends SEOProStack_Feature {
         wp_add_inline_style(
             self::KADENCE_SWITCHING,
             $on . ' *,' . $on . ' *::before,' . $on . ' *::after{transition:none!important}'
-            . $on . ' .kcps-style-switch button.kadence-color-palette-toggle::after{transition:transform .5s ease!important}'
+            // The knob keeps its slide only for visitors who allow motion.
+            . '@media (prefers-reduced-motion:no-preference){' . $on . ' .kcps-style-switch button.kadence-color-palette-toggle::after{transition:transform .5s ease!important}}'
         );
         wp_print_styles(self::KADENCE_SWITCHING);
         $script = <<<'JS'
