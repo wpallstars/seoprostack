@@ -411,19 +411,27 @@ class SEOProStack_Nextgen_Images extends SEOProStack_Feature {
      * @param bool $force         Make them again even when up to date.
      * @return array|WP_Error Record: files => [name => [format => bytes]]
      *                        (0 = not smaller, -1 = failed), sources => [name => bytes].
+     *                        A skipped attachment's record says why instead:
+     *                        skipped => not_image or missing (no file).
      */
     public static function convert_attachment($attachment_id, $force = false) {
         $attachment_id = (int) $attachment_id;
         $signature     = self::signature();
         $file          = get_attached_file($attachment_id);
         $types         = self::source_types();
-        if (!$file || !is_file($file) || !in_array(get_post_mime_type($attachment_id), $types, true)) {
+        $previous      = get_post_meta($attachment_id, self::META, true);
+        $previous      = is_array($previous) ? $previous : array();
+        $source        = in_array(get_post_mime_type($attachment_id), $types, true);
+        if (!$file || !is_file($file) || !$source) {
+            // Skipped, not failed: conversion_failed() tells the two apart, so
+            // the CompressX cleanup is not blocked, and queues a missing file
+            // again once it is back. Copies made before are still listed.
+            unset($previous['incomplete']);
+            update_post_meta($attachment_id, self::META, array_merge(array('files' => array(), 'sources' => array()), $previous, array('skipped' => $source ? 'missing' : 'not_image')));
             update_post_meta($attachment_id, self::DONE, $signature);
             return new WP_Error('nextgen_not_image', __('Not a picture that gets WebP or AVIF copies.', 'seoprostack'));
         }
 
-        $previous = get_post_meta($attachment_id, self::META, true);
-        $previous = is_array($previous) ? $previous : array();
         $dir      = dirname($file);
         $record   = array('files' => array(), 'sources' => array(), 'quality' => array());
         // Formats whose copies were made with other quality settings: made
@@ -1471,6 +1479,20 @@ class SEOProStack_Nextgen_Images extends SEOProStack_Feature {
      * @return bool
      */
     private static function compressx_cleanup_ready() {
+        return '' === self::compressx_cleanup_blocker();
+    }
+
+    /**
+     * Why the shared CompressX folder cannot be retired yet, naming the site
+     * on a network: empty once every site has finished taking it over.
+     *
+     * @param string $mode What to do with pictures marked done whose file is
+     *                     back (record_state() "back"): queue (background
+     *                     batches convert them), convert (now, for the
+     *                     WP-CLI cleanup) or check (nothing, for --dry-run).
+     * @return string
+     */
+    private static function compressx_cleanup_blocker($mode = 'queue') {
         $offset = 0;
         do {
             $ids = is_multisite() ? get_sites(array('fields' => 'ids', 'number' => 50, 'offset' => $offset)) : array(get_current_blog_id());
@@ -1479,53 +1501,130 @@ class SEOProStack_Nextgen_Images extends SEOProStack_Feature {
                     switch_to_blog((int) $id);
                 }
                 try {
-                    $plugins = array_merge(self::stored_active_plugins(), array_keys((array) get_site_option('active_sitewide_plugins', array())));
-                    foreach ($plugins as $plugin) {
-                        if ('compressx' === dirname($plugin)) {
-                            return false;
-                        }
-                    }
-                    if (!self::switched_on() || !self::formats() || get_transient(self::LOCK) || self::waiting(1) || self::conversion_failed()) {
-                        return false;
-                    }
+                    $reason = self::site_cleanup_blocker($mode);
                 } finally {
                     if (is_multisite()) {
                         restore_current_blog();
                     }
                 }
+                if ('' !== $reason) {
+                    /* translators: 1: site ID, 2: why the cleanup cannot run there. */
+                    return is_multisite() ? sprintf(__('Site %1$d: %2$s', 'seoprostack'), (int) $id, $reason) : $reason;
+                }
             }
             $offset += 50;
         } while (is_multisite() && count($ids) === 50);
-        return true;
+        return '';
     }
 
     /**
-     * A tried attachment can be marked done even when an individual copy failed.
-     * Page the indexed metadata lookup; never delete potentially usable legacy
-     * copies merely because those failed attempts left the queue empty.
+     * Why the current site has not finished taking over the CompressX
+     * folder, or an empty string.
      *
-     * @return bool
+     * @param string $mode queue, convert or check (compressx_cleanup_blocker()).
+     * @return string
      */
-    private static function conversion_failed() {
+    private static function site_cleanup_blocker($mode) {
+        $plugins = array_merge(self::stored_active_plugins(), array_keys((array) get_site_option('active_sitewide_plugins', array())));
+        foreach ($plugins as $plugin) {
+            if ('compressx' === dirname($plugin)) {
+                return __('CompressX is still active. Deactivate it first.', 'seoprostack');
+            }
+        }
+        if (!self::switched_on() || !self::formats()) {
+            return __('WebP and AVIF images is off or makes no format here.', 'seoprostack');
+        }
+        if (get_transient(self::LOCK)) {
+            return __('A conversion batch is running. Try again in a few minutes.', 'seoprostack');
+        }
+        // Before the queue: this can queue again pictures whose file is back.
+        $failed = self::conversion_failed($mode);
+        if ($failed) {
+            /* translators: %s: attachment IDs, comma-separated. */
+            return sprintf(__('Copies of some pictures could not be made, or their conversion stopped (attachments %s). Make their copies again (Media → Library, Make WebP and AVIF copies), then run the cleanup again.', 'seoprostack'), implode(', ', $failed));
+        }
+        if (self::waiting(1)) {
+            $counts = self::counts();
+            $left   = max(1, $counts['total'] - $counts['done']);
+            /* translators: %d: number of pictures. */
+            return sprintf(_n('%d picture is waiting to be converted. Run wp seoprostack convert-images first.', '%d pictures are waiting to be converted. Run wp seoprostack convert-images first.', $left, 'seoprostack'), $left);
+        }
+        return '';
+    }
+
+    /**
+     * Attachments marked done whose copies failed or whose conversion
+     * stopped. A tried attachment can be marked done even when an individual
+     * copy failed. Page the indexed metadata lookup; never delete potentially
+     * usable legacy copies merely because those failed attempts left the
+     * queue empty.
+     *
+     * Skipped attachments (not a picture, or no file) are not failures. One
+     * skipped, or marked done without a record (older versions), whose file
+     * is a picture that exists now is not a failure either: it is queued
+     * again, or converted now (GitHub issue #787).
+     *
+     * @param string $mode queue, convert or check (compressx_cleanup_blocker()).
+     * @return int[] Up to ten attachment IDs.
+     */
+    private static function conversion_failed($mode = 'queue') {
         global $wpdb;
-        $after = 0;
+        $after  = 0;
+        $failed = array();
+        $queued = false;
         do {
             // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- indexed, paged cleanup preflight only.
             $ids = $wpdb->get_col($wpdb->prepare("SELECT post_id FROM {$wpdb->postmeta} WHERE meta_key = %s AND post_id > %d ORDER BY post_id LIMIT 50", self::DONE, $after));
             foreach ($ids as $id) {
-                $record = get_post_meta((int) $id, self::META, true);
-                if (!is_array($record) || !empty($record['incomplete'])) {
-                    return true;
+                $id     = (int) $id;
+                $after  = $id;
+                $record = get_post_meta($id, self::META, true);
+                $state  = self::record_state($id, $record);
+                if ('back' === $state && 'convert' === $mode) {
+                    $record = self::convert_attachment($id);
+                    $state  = is_wp_error($record) ? 'ok' : self::record_state($id, $record);
+                } elseif ('back' === $state && 'queue' === $mode) {
+                    delete_post_meta($id, self::DONE);
+                    $queued = true;
                 }
-                foreach (isset($record['files']) && is_array($record['files']) ? $record['files'] : array() as $formats) {
-                    if (is_array($formats) && in_array(-1, $formats, true)) {
-                        return true;
+                if ('failed' === $state) {
+                    $failed[] = $id;
+                    if (count($failed) >= 10) {
+                        break 2;
                     }
                 }
-                $after = (int) $id;
             }
         } while (count($ids) === 50);
-        return false;
+        if ($queued && self::enabled()) {
+            self::schedule();
+        }
+        return $failed;
+    }
+
+    /**
+     * How a done attachment's record counts for the CompressX cleanup.
+     *
+     * @param int   $id     Attachment ID.
+     * @param mixed $record Its record (self::META).
+     * @return string ok, failed, or back (skipped, but its picture file is
+     *                there now).
+     */
+    private static function record_state($id, $record) {
+        $skipped = !is_array($record) || !empty($record['skipped']);
+        if ($skipped || !empty($record['incomplete'])) {
+            $file   = get_attached_file($id);
+            $exists = $file && is_file($file) && in_array(get_post_mime_type($id), self::source_types(), true);
+            if (!$exists) {
+                return 'ok';
+            }
+            return $skipped ? 'back' : 'failed';
+        }
+        foreach (isset($record['files']) && is_array($record['files']) ? $record['files'] : array() as $formats) {
+            if (is_array($formats) && in_array(-1, $formats, true)) {
+                return 'failed';
+            }
+        }
+        return 'ok';
     }
 
     /**
@@ -1587,8 +1686,11 @@ class SEOProStack_Nextgen_Images extends SEOProStack_Feature {
      * @return true|WP_Error
      */
     private static function cleanup_compressx() {
-        if (!self::compressx_cleanup_ready()) {
-            return new WP_Error('nextgen_compressx_busy', __('Deactivate CompressX and finish conversion on every site first. No files were removed.', 'seoprostack'));
+        // Pictures skipped earlier whose file is back are converted first.
+        $blocker = self::compressx_cleanup_blocker('convert');
+        if ('' !== $blocker) {
+            /* translators: %s: why the cleanup cannot run yet. */
+            return new WP_Error('nextgen_compressx_busy', sprintf(__('%s No files were removed.', 'seoprostack'), $blocker));
         }
         $size = self::compressx_leftovers();
         if (is_wp_error($size)) {
@@ -1892,7 +1994,9 @@ class SEOProStack_Nextgen_Images extends SEOProStack_Feature {
      *
      * [--cleanup-compressx]
      * : Delete CompressX leftovers after conversion finishes on every site.
-     * Combine with --dry-run to show their count and size without changes.
+     * Pictures skipped earlier because their file was missing are converted
+     * first. When it cannot run, it says why. Combine with --dry-run to show
+     * the leftovers' count and size, and what would stop it, without changes.
      *
      * ## EXAMPLES
      *
@@ -1912,6 +2016,10 @@ class SEOProStack_Nextgen_Images extends SEOProStack_Feature {
                 if (is_wp_error($size)) {
                     WP_CLI::error($size->get_error_message());
                     return;
+                }
+                $blocker = self::compressx_cleanup_blocker('check');
+                if ('' !== $blocker) {
+                    WP_CLI::warning('The cleanup would stop: ' . $blocker);
                 }
                 WP_CLI::success(sprintf('CompressX leftovers: %d files (%s). Nothing changed.', $size['files'], size_format($size['bytes'], 1)));
                 return;
