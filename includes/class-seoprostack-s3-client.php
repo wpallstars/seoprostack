@@ -138,12 +138,18 @@ final class SEOProStack_S3_Client {
         $parallel = array();
         $class = class_exists('WpOrg\\Requests\\Requests') ? 'WpOrg\\Requests\\Requests' : 'Requests';
         $proxy = new WP_HTTP_Proxy();
+        $deadline = microtime(true) + $timeout;
         foreach ($requests as $key => $request) {
             if (is_wp_error($request)) {
                 $results[$key] = $request;
             } elseif ($proxy->is_enabled() || !class_exists($class)) {
+                $remaining = $deadline - microtime(true);
+                if ($remaining <= 0) {
+                    $results[$key] = new WP_Error('storage_budget', __('The storage batch will continue on its next turn.', 'seoprostack'));
+                    continue;
+                }
                 // phpcs:ignore WordPressVIPMinimum.Performance.RemoteRequestTimeout.timeout_timeout -- background batch, never a page view.
-                $response = wp_remote_request($request['url'], array('method' => $request['type'], 'headers' => $request['headers'], 'body' => $request['data'], 'timeout' => $timeout, 'redirection' => 0, 'limit_response_size' => 16 * MB_IN_BYTES + 1));
+                $response = wp_remote_request($request['url'], array('method' => $request['type'], 'headers' => $request['headers'], 'body' => $request['data'], 'timeout' => $remaining, 'redirection' => 0, 'limit_response_size' => 16 * MB_IN_BYTES + 1));
                 $results[$key] = $this->checked_response($request['type'], $response);
             } elseif ((new WP_Http())->block_request($request['url'])) {
                 $results[$key] = new WP_Error('storage_transport', __('The storage service could not be reached.', 'seoprostack'));
