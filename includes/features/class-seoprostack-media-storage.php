@@ -1545,8 +1545,10 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
         $limit = max(1, min(10, (int) $limit));
         $attempts = 0;
         try {
+            // Reserve the first half for local copies: a full upload queue must
+            // never consume their turn. Unused time remains available to uploads.
+            self::local_copies($start, $limit, (int) (self::BUDGET / 2));
             $attempts = $ready ? self::upload_batch($start, $limit) : 0;
-            self::local_copies($start, $limit);
         } finally {
             self::release($lease);
         }
@@ -1580,14 +1582,15 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
      *
      * @param float $start Batch start.
      * @param int $limit Most attachments.
+     * @param int $budget This step's share of the batch, in seconds.
      */
-    private static function local_copies($start, $limit) {
+    private static function local_copies($start, $limit, $budget = self::BUDGET) {
         $removing = self::local_mode();
         if (null === $removing) {
             return;
         }
         foreach ($removing ? self::removable($limit) : self::restorable($limit, PHP_INT_MAX, true) as $id) {
-            if (!self::more_time($start, self::BUDGET) || !self::local_step($id, $removing)) {
+            if (!self::more_time($start, $budget) || !self::local_step($id, $removing)) {
                 return;
             }
         }
@@ -1721,11 +1724,19 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
             return true;
         }
         $client = self::client();
+        $heads = $client->heads(array_map('strval', array_keys($files)));
+        // Confirm the whole group before deletion, including a failure in its
+        // last HEAD. Recheck each local digest again immediately before removal.
         foreach ($files as $key => $path) {
-            $info = $record['files'][$key];
-            $confirmed = self::confirm_removal($client, $key, $info, $path);
+            $confirmed = self::confirm_removal($heads[$key], $key, $record['files'][$key], $path);
             if (true !== $confirmed) {
                 return self::removal_stopped($id, $confirmed);
+            }
+        }
+        foreach ($files as $key => $path) {
+            $info = $record['files'][$key];
+            if (!self::digest_matches($path, (string) $info['digest'])) {
+                return self::removal_stopped($id, 'changed');
             }
             $entry = array('relative' => (string) $info['relative'], 'size' => (int) $info['size'], 'mtime' => (int) $info['mtime'], 'digest' => (string) $info['digest'], 'version' => (string) $info['version']);
             if (!self::remove_file($id, (string) $key, $entry, $path, $generation)) {
@@ -1934,17 +1945,16 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
      * Confirm one file may go: still the uploaded file, the bucket answers
      * HTTP 200 with the recorded size, and the public address serves objects.
      *
-     * @param SEOProStack_S3_Client $client Client.
+     * @param array|WP_Error $head Object confirmation.
      * @param string $key Object key.
      * @param array $info Recorded file.
      * @param string $path Local path.
      * @return true|string|WP_Error True; 'changed' or 'mismatch' to keep the files; WP_Error to try later.
      */
-    private static function confirm_removal($client, $key, $info, $path) {
+    private static function confirm_removal($head, $key, $info, $path) {
         if (!self::digest_matches($path, (string) $info['digest'])) {
             return 'changed';
         }
-        $head = $client->head($key);
         if (is_wp_error($head)) {
             return $head;
         }
@@ -2541,58 +2551,70 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
         clearstatcache();
         $files = self::files($id);
         $start = null === $start ? microtime(true) : (float) $start;
-        foreach ($files as $key => $info) {
+        /** Filter concurrent file PUTs (1–6). @param int $concurrency Maximum in-flight files. */
+        $concurrency = max(1, min(6, (int) apply_filters('seoprostack_media_storage_concurrency', 6)));
+        foreach (array_chunk($files, $concurrency, true) as $group) {
             if (!self::more_time($start, self::BUDGET)) {
                 $job['next'] = time() + 60;
                 update_option(self::JOB . 'retry_' . $id, $job, false);
                 return false;
             }
-            if ($info['size'] > self::size_cap()) {
-                ++$record['skipped'];
-                continue;
-            }
-            $previous = isset($old['files'][$key]) ? $old['files'][$key] : array();
-            $same = isset($old['signature']) && $old['signature'] === $config['signature'] && !empty($previous['confirmed']) && !empty($info['digest']) && isset($previous['digest']) && $previous['digest'] === $info['digest'];
-            if (!$same) {
-                // Persist the attempted key before PUT: deletion or a fatal error
-                // must not lose an object whose server accepted the request.
-                $attempted = $info;
-                unset($attempted['path'], $attempted['type']);
-                $attempted['confirmed'] = false;
-                $pending['files'][$key] = $attempted;
-                update_post_meta($id, self::META, $pending);
-                /** Filter the public object cache policy. @param string $policy Cache-Control. */
-                $policy = (string) apply_filters('seoprostack_media_storage_cache_control', 'public, max-age=31536000, immutable');
-                $result = $info['digest'] ? self::client()->put_file($key, $info['path'], $info['type'], $policy, $info['digest']) : new WP_Error('storage_read', __('The local picture could not be read.', 'seoprostack'));
-                if (is_wp_error($result)) {
-                    $pending['error'] = $result->get_error_message();
-                    if (self::attachment_exists($id)) {
-                        update_post_meta($id, self::META, $pending);
-                    } else {
-                        self::queue_delete($pending, array_map('strval', array_keys($pending['files'])));
-                        delete_option(self::JOB . 'retry_' . $id);
-                        return false;
-                    }
-                    update_option(self::ERROR, $pending['error'], false);
-                    $job['next'] = time() + ($attempt < 2 ? HOUR_IN_SECONDS : ($attempt < 3 ? 6 : 24) * HOUR_IN_SECONDS);
-                    update_option(self::JOB . 'retry_' . $id, $job, false);
-                    return false;
+            $changed = array();
+            foreach ($group as $key => $info) {
+                if ($info['size'] > self::size_cap()) {
+                    ++$record['skipped'];
+                    continue;
+                }
+                $previous = isset($old['files'][$key]) ? $old['files'][$key] : array();
+                $same = isset($old['signature']) && $old['signature'] === $config['signature'] && !empty($previous['confirmed']) && !empty($info['digest']) && isset($previous['digest']) && $previous['digest'] === $info['digest'];
+                if (!$same) {
+                    // Persist the attempted key before PUT: deletion or a fatal error
+                    // must not lose an object whose server accepted the request.
+                    $attempted = $info;
+                    unset($attempted['path'], $attempted['type']);
+                    $attempted['confirmed'] = false;
+                    $pending['files'][$key] = $attempted;
+                    $changed[$key] = $info;
                 }
             }
-            unset($info['path'], $info['type']);
-            $info['confirmed'] = true;
-            $record['files'][$key] = $info;
-            $pending['signature'] = $config['signature'];
-            $pending['files'][$key] = $info;
-            if (self::attachment_exists($id)) {
-                update_post_meta($id, self::META, $pending);
-            } else {
+            // Every attempted key is durable before any request in this group.
+            update_post_meta($id, self::META, $pending);
+            /** Filter the public object cache policy. @param string $policy Cache-Control. */
+            $policy = (string) apply_filters('seoprostack_media_storage_cache_control', 'public, max-age=31536000, immutable');
+            $results = self::client()->put_files($changed, $policy);
+            $error = null;
+            foreach ($group as $key => $info) {
+                if ($info['size'] > self::size_cap()) {
+                    continue;
+                }
+                if (isset($results[$key]) && is_wp_error($results[$key])) {
+                    $error = $results[$key];
+                    continue;
+                }
+                unset($info['path'], $info['type']);
+                $info['confirmed'] = true;
+                $record['files'][$key] = $info;
+                $pending['signature'] = $config['signature'];
+                $pending['files'][$key] = $info;
+                // A key brought back by an edit must not be removed by an old cleanup job.
+                delete_option(self::delete_job_name($config['signature'], $key));
+            }
+            // Record all successful peers even if another request failed, and
+            // retain every attempted key if deletion happened during the group.
+            if (!self::attachment_exists($id)) {
                 self::queue_delete($pending, array_map('strval', array_keys($pending['files'])));
                 delete_option(self::JOB . 'retry_' . $id);
                 return false;
             }
-            // A key brought back by an edit must not be removed by an old cleanup job.
-            delete_option(self::delete_job_name($config['signature'], $key));
+            update_post_meta($id, self::META, $pending);
+            if (is_wp_error($error)) {
+                $pending['error'] = $error->get_error_message();
+                update_post_meta($id, self::META, $pending);
+                update_option(self::ERROR, $pending['error'], false);
+                $job['next'] = time() + ($attempt < 2 ? HOUR_IN_SECONDS : ($attempt < 3 ? 6 : 24) * HOUR_IN_SECONDS);
+                update_option(self::JOB . 'retry_' . $id, $job, false);
+                return false;
+            }
         }
         $record['state'] = $record['files'] ? 'uploaded' : 'skipped';
         $record['attempts'] = 0;
