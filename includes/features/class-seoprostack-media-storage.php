@@ -161,19 +161,40 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
      */
     private static function recover_destination($signature) {
         $before = PHP_INT_MAX;
+        $candidate = array();
         do {
             $ids = self::inventory_ids(100, $before);
             foreach ($ids as $id) {
                 $before = $id;
-                $record = get_post_meta($id, self::META, true);
-                if (!is_array($record) || empty($record['signature']) || $record['signature'] === $signature) {
+                $record = self::recover_record_destination($id, $signature);
+                if (!$record) {
                     continue;
                 }
-                $removed = self::fresh_removed($id);
-                return array('signature' => $record['signature'], 'endpoint' => '', 'bucket' => '', 'prefix' => self::inventory_prefix($record['files'] ?? array()), 'url' => $removed['url'] ?? ($record['url'] ?? ''));
+                if (!$candidate) {
+                    $candidate = $record;
+                }
+                if ($record['signature'] === $candidate['signature'] && '' !== $record['url']) {
+                    return $record;
+                }
             }
         } while ($ids);
-        return array();
+        return $candidate;
+    }
+
+    /**
+     * Search past newer records with local files for an old removed record's URL.
+     *
+     * @param int $id Attachment ID.
+     * @param string $signature Current signature to exclude.
+     * @return array|null
+     */
+    private static function recover_record_destination($id, $signature) {
+        $record = get_post_meta($id, self::META, true);
+        if (!is_array($record) || empty($record['signature']) || $record['signature'] === $signature) {
+            return null;
+        }
+        $removed = self::fresh_removed($id);
+        return array('signature' => $record['signature'], 'endpoint' => '', 'bucket' => '', 'prefix' => self::inventory_prefix($record['files'] ?? array()), 'url' => $removed['url'] ?? ($record['url'] ?? ''));
     }
 
     /**
@@ -644,9 +665,9 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
         }
         if (self::adopted_record($record, self::fresh_removed($id))) {
             ++$counts['adopted'];
-            return;
+        } else {
+            ++$counts['pending'];
         }
-        ++$counts['pending'];
         if (isset($record['handover_error']) && in_array($record['handover_error'], array('missing', 'mismatched'), true)) {
             ++$counts[$record['handover_error']];
         }
@@ -665,7 +686,8 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
             $labels[] = $name . ': ' . ($item ? (wp_parse_url($item['endpoint'], PHP_URL_HOST) ?: 'unknown host') . ' / ' . ($item['bucket'] ?: 'unknown bucket') . ' / ' . $item['prefix'] : 'none');
         }
         $counts = self::counts();
-        $labels[] = $counts['pending'] ? 'Previous destination is still needed.' : 'Previous destination is no longer needed by recorded pictures; verify pages before cleanup.';
+        $needed = $counts['pending'] + $counts['missing'] + $counts['mismatched'];
+        $labels[] = $needed ? 'Previous destination is still needed.' : 'Previous destination is no longer needed by recorded pictures; verify pages before cleanup.';
         return $labels;
     }
 
@@ -763,11 +785,29 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
             if (!self::more_time($start, 120)) {
                 return new WP_Error('storage_cleanup', 'Verification exceeded the safe lease budget; no old objects were deleted.');
             }
-            if ('ok' !== self::verify_object((string) $key, $info, true)) {
+            $result = self::verify_object((string) $key, $info, true);
+            if ('ok' !== $result) {
+                self::handover_error($id, $result, false);
                 return new WP_Error('storage_cleanup', 'A current object is missing or mismatched; previous destination was kept.');
             }
         }
+        self::clear_handover_error($id, $record);
         return true;
+    }
+
+    /**
+     * Clear an old diagnostic only after a complete successful verification.
+     *
+     * @param int $id Attachment ID.
+     * @param array $old Verified inventory snapshot.
+     */
+    private static function clear_handover_error($id, $old) {
+        if (isset($old['handover_error'])) {
+            $record = $old;
+            unset($record['handover_error']);
+            update_post_meta($id, self::META, $record, $old);
+            delete_transient(self::COUNTS);
+        }
     }
 
     /**
@@ -2875,7 +2915,7 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
             if (0 !== strpos($key, $config['prefix'])) {
                 return '';
             }
-            $lookup = self::config()['prefix'] . substr($key, strlen($config['prefix']));
+            $lookup = self::inventory_prefix($record['files']) . substr($key, strlen($config['prefix']));
         }
         if (empty($record['files'][$lookup]['confirmed'])) {
             return '';
