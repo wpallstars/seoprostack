@@ -324,7 +324,7 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
         self::fresh($id);
         $old = get_post_meta($id, self::META, true);
         $removed = self::fresh_removed($id);
-        if (is_array($old) && empty($old['files']) && !$removed) {
+        if (self::empty_inventory($old, $removed)) {
             return 'skipped';
         }
         if (!is_array($old) || empty($old['files'])) {
@@ -349,6 +349,17 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
         $record = $old;
         $record['files'] = $files;
         return self::publish_handover($id, $old, $record, $generation, $source['signature']);
+    }
+
+    /**
+     * Whether an inventory has no current or removed files to hand over.
+     *
+     * @param mixed $record Inventory value.
+     * @param array|null $removed Removed inventory.
+     * @return bool
+     */
+    private static function empty_inventory($record, $removed) {
+        return is_array($record) && empty($record['files']) && !$removed;
     }
 
     /**
@@ -764,6 +775,18 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
             WP_CLI::log('Verification paused at the time budget; repeat forget-previous with the same switches. No old objects were deleted.');
             return null;
         }
+        return self::retire_previous($saved, $assoc, $start);
+    }
+
+    /**
+     * Retire the previous destination only after current inventory verification.
+     *
+     * @param array $saved Destination descriptions.
+     * @param array $assoc CLI switches.
+     * @param float $start Lease start.
+     * @return WP_Error|null Refusal, or no error.
+     */
+    private static function retire_previous($saved, $assoc, $start) {
         $client = isset($assoc['delete-objects']) ? self::cleanup_client($saved['previous']) : null;
         if (is_wp_error($client)) {
             return $client;
@@ -815,7 +838,7 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
         self::fresh($id);
         $record = get_post_meta($id, self::META, true);
         $removed = self::fresh_removed($id);
-        if (is_array($record) && empty($record['files']) && !$removed) {
+        if (self::empty_inventory($record, $removed)) {
             return true;
         }
         if (!is_array($record) || !self::adopted_record($record, $removed)) {
@@ -829,9 +852,34 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
         $fingerprint = hash('sha256', (string) wp_json_encode(array($saved['current']['signature'] ?? '', $saved['previous']['signature'] ?? '', $generation, $record, $removed)));
         $progress = get_option($name, array());
         $cursor = isset($progress['fingerprint'], $progress['cursor']) && $progress['fingerprint'] === $fingerprint ? (int) $progress['cursor'] : 0;
+        $checkpoint = array('fingerprint' => $fingerprint, 'cursor' => $cursor);
+        $result = self::verify_cleanup_files($id, $record['files'], $checkpoint, $start);
+        if (true !== $result) {
+            return $result;
+        }
+        self::fresh($id);
+        if (get_post_meta($id, self::GENERATION, true) !== $generation || get_post_meta($id, self::META, true) !== $record || self::fresh_removed($id) !== $removed) {
+            delete_option($name);
+            return false;
+        }
+        self::clear_handover_error($id, $record);
+        return true;
+    }
+
+    /**
+     * Resume byte verification at the checkpoint for an unchanged inventory.
+     *
+     * @param int $id Attachment ID.
+     * @param array $files Current inventory files.
+     * @param array $checkpoint Inventory fingerprint and verified cursor.
+     * @param float $start Lease start.
+     * @return bool|WP_Error False pauses at the last verified file.
+     */
+    private static function verify_cleanup_files($id, $files, $checkpoint, $start) {
+        $name = self::JOB . 'verify_' . $id;
         $index = 0;
-        foreach ($record['files'] as $key => $info) {
-            if (++$index <= $cursor) {
+        foreach ($files as $key => $info) {
+            if (++$index <= $checkpoint['cursor']) {
                 continue;
             }
             if (!self::more_time($start, 120)) {
@@ -843,14 +891,8 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
                 self::handover_error($id, $result, false);
                 return new WP_Error('storage_cleanup', 'A current object is missing or mismatched; previous destination was kept.');
             }
-            update_option($name, array('fingerprint' => $fingerprint, 'cursor' => $index), false);
+            update_option($name, array('fingerprint' => $checkpoint['fingerprint'], 'cursor' => $index), false);
         }
-        self::fresh($id);
-        if (get_post_meta($id, self::GENERATION, true) !== $generation || get_post_meta($id, self::META, true) !== $record || self::fresh_removed($id) !== $removed) {
-            delete_option($name);
-            return false;
-        }
-        self::clear_handover_error($id, $record);
         return true;
     }
 
