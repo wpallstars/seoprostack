@@ -1042,7 +1042,8 @@ Kadence Blocks Pro’s taxonomy filters put term IDs in the address (`?make=123`
 
 - Taxonomy filters (drop-downs, checkboxes and buttons) get term slugs as their values, so picking Audi puts `?make=audi` in the address, and a link with the slug opens with Audi selected.
 - Before Kadence runs a loop's query, on page load and on every filter change, slugs in its taxonomy filter arguments become the term IDs Kadence matches, so results, counts, hidden empty options, page numbers, sorting and search work as with IDs. The address and the rest of the page keep the slug.
-- Links and bookmarks with term IDs still work. A term whose slug is only digits keeps its ID, which would otherwise read as another term's ID.
+- Links and bookmarks with term IDs still filter the results, though the filter shows no term chosen until the visitor picks one. A term whose slug is only digits keeps its ID, which would otherwise read as another term's ID.
+- Pages a page cache stored before the switch keep their ID values until the cache is cleared.
 - Works for any query loop, including those in Kadence Elements and block templates, since Kadence draws every loop through its `kadence_query/query` REST route. Other filters (custom fields, price, WooCommerce attributes) are left as they are.
 
 ### Copy linked images to Media Library (Media)
