@@ -1886,6 +1886,11 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
     private static function removal_files($record) {
         $files = array();
         foreach ($record['files'] as $key => $info) {
+            // A local source still needs its format copies for picture mode.
+            // Oversized sources may be absent even when their copies uploaded.
+            if (preg_match('/\.(?:jpe?g|png|webp)\.(?:webp|avif)$/i', (string) $key) && empty($record['files'][substr((string) $key, 0, -5)]['confirmed'])) {
+                continue;
+            }
             $path = self::removal_path((string) $key, $info);
             if ('' === $path) {
                 continue;

@@ -1789,6 +1789,7 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folderâ
 ## Changelog
 
 ### Unreleased
+- New: Media in cloud storage uploads, restores and serves registered AVIF copies in picture mode, including existing cloud images. Copies stay local when their source is not a confirmed upload (GitHub issue #818).
 - Changed: Cloud media uploads and removal HEAD checks run in bounded concurrent groups; local copies get reserved batch time instead of waiting behind uploads (GitHub issue #819).
 - New: Verified cloud media bucket handover with `adopt`, `migrate`, previous-destination serving and restore, explicit cleanup, status counts and a handover procedure for people and agents (GitHub issue #816).
 - Fix: Cloud media cleanup resumes verification across batches and ignores empty inventories; status reads inventories in bounded bulk queries, and local images keep non-ASCII filenames in `srcset` metadata.
