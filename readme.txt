@@ -5,7 +5,7 @@ Tags: magic login, iframe, schedule posts, auto upload images, admin
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.3.52
+Stable tag: 1.3.53
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -148,15 +148,12 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 
 == Changelog ==
 
-= Unreleased =
+= 1.3.53 =
 * New: Media in cloud storage can remove local copies after a confirmed upload, and bring them back.
 * New: Kadence query filters can use term slugs in addresses, without a redirect.
 * New: HTTPS check, in Site Health and on the Security tab.
 * Fix: Fluent Forms placeholders use the input's stronger text colour, including the fallback.
 * Fix: CompressX cleanup is no longer blocked by missing files or non-picture attachments.
 * Fix: Copies at their own addresses also covers rendered block images outside post content, including covers, template parts and Kadence Elements. CSS backgrounds stay unchanged.
-
-= 1.3.52 =
-* Fix: Copies at their own addresses no longer adds gaps beside pictures in flex and grid layouts, such as a header logo.
 
 Older: `changelog.txt`.
