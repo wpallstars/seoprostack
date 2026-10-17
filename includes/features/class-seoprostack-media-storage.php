@@ -228,13 +228,23 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
         if (!isset(self::$serving[$blog])) {
             self::$serving[$blog] = array('ready' => self::ready(), 'removed' => (bool) get_option(self::FLAG));
         }
-        // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- context only, no mutation.
-        $edit = defined('REST_REQUEST') && REST_REQUEST && isset($_REQUEST['context']) && 'edit' === $_REQUEST['context'];
-        if (self::$serving[$blog]['ready'] && !is_admin() && !$edit && !in_array(true, self::$rest, true)) {
+        if (self::$serving[$blog]['ready'] && !self::editing()) {
             return 'all';
         }
         // Saved content still gets local addresses (save_local()).
         return self::$serving[$blog]['removed'] ? 'removed' : '';
+    }
+
+    /**
+     * Whether this request is wp-admin or an edit context, whose addresses
+     * can be saved back into content.
+     *
+     * @return bool
+     */
+    private static function editing() {
+        // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- context only, no mutation.
+        $edit = defined('REST_REQUEST') && REST_REQUEST && isset($_REQUEST['context']) && 'edit' === $_REQUEST['context'];
+        return $edit || is_admin() || in_array(true, self::$rest, true);
     }
 
     /**
@@ -355,16 +365,13 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
      * @return bool
      */
     private static function cli_media() {
-        if (!defined('WP_CLI') || !WP_CLI || !isset($GLOBALS['argv']) || !is_array($GLOBALS['argv'])) {
+        if (!defined('WP_CLI') || !WP_CLI) {
             return false;
         }
         // The command is the first argument after global options (--url=…) and aliases (@prod).
-        foreach (array_slice($GLOBALS['argv'], 1) as $arg) {
-            if (is_string($arg) && '' !== $arg && '-' !== $arg[0] && '@' !== $arg[0]) {
-                return 'media' === $arg;
-            }
-        }
-        return false;
+        $argv = isset($GLOBALS['argv']) ? (array) $GLOBALS['argv'] : array();
+        $words = preg_grep('/^[^-@]/', array_slice($argv, 1));
+        return is_array($words) && 'media' === reset($words);
     }
 
     /**
@@ -641,22 +648,32 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
         $limit = max(1, min(10, (int) $limit));
         $attempts = 0;
         try {
-            if ($ready) {
-                $attempts = self::process_jobs($start, $limit);
-                $ids = $attempts < $limit ? self::waiting($limit - $attempts) : array();
-                foreach ($ids as $id) {
-                    if (!self::more_time($start, self::BUDGET)) {
-                        break;
-                    }
-                    self::upload_attachment($id, $start);
-                    ++$attempts;
-                }
-            }
+            $attempts = $ready ? self::upload_batch($start, $limit) : 0;
             self::local_copies($start, $limit);
         } finally {
             self::release($lease);
         }
         self::reschedule();
+        return $attempts;
+    }
+
+    /**
+     * Run due jobs, then upload waiting attachments, newest first.
+     *
+     * @param float $start Batch start.
+     * @param int $limit Most upload attempts.
+     * @return int Upload attempts.
+     */
+    private static function upload_batch($start, $limit) {
+        $attempts = self::process_jobs($start, $limit);
+        $ids = $attempts < $limit ? self::waiting($limit - $attempts) : array();
+        foreach ($ids as $id) {
+            if (!self::more_time($start, self::BUDGET)) {
+                break;
+            }
+            self::upload_attachment($id, $start);
+            ++$attempts;
+        }
         return $attempts;
     }
 
@@ -668,25 +685,12 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
      * @param int $limit Most attachments.
      */
     private static function local_copies($start, $limit) {
-        if ((int) get_option(self::LOCAL_WAIT, 0) > time()) {
-            return;
-        }
-        $removing = self::removing();
-        if (!$removing && !self::restoring()) {
-            return;
-        }
-        // WebP copies are made first, so they are uploaded before files go.
-        if ($removing && SEOProStack_Nextgen_Images::enabled() && SEOProStack_Nextgen_Images::waiting(1)) {
+        $removing = self::local_mode();
+        if (null === $removing) {
             return;
         }
         foreach ($removing ? self::removable($limit) : self::restorable($limit) as $id) {
-            if (!self::more_time($start, self::BUDGET)) {
-                return;
-            }
-            $result = $removing ? self::remove_local($id) : self::restore_attachment($id);
-            if (is_wp_error($result)) {
-                update_option(self::ERROR, $result->get_error_message(), false);
-                update_option(self::LOCAL_WAIT, time() + HOUR_IN_SECONDS, false);
+            if (!self::more_time($start, self::BUDGET) || !self::local_step($id, $removing)) {
                 return;
             }
         }
@@ -696,6 +700,40 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
             self::$serving = array();
             self::$maps = array();
         }
+    }
+
+    /**
+     * What the local-copies step does now.
+     *
+     * @return bool|null True to remove, false to bring files back, null for neither.
+     */
+    private static function local_mode() {
+        if ((int) get_option(self::LOCAL_WAIT, 0) > time()) {
+            return null;
+        }
+        if (self::removing()) {
+            // WebP copies are made first, so they are uploaded before files go.
+            return SEOProStack_Nextgen_Images::enabled() && SEOProStack_Nextgen_Images::waiting(1) ? null : true;
+        }
+        return self::restoring() ? false : null;
+    }
+
+    /**
+     * Remove or restore one attachment's files; a service failure pauses
+     * this step for an hour and shows the error.
+     *
+     * @param int $id Attachment ID.
+     * @param bool $removing Remove (true) or bring back (false).
+     * @return bool Whether the batch may go on.
+     */
+    private static function local_step($id, $removing) {
+        $result = $removing ? self::remove_local($id) : self::restore_attachment($id);
+        if (!is_wp_error($result)) {
+            return true;
+        }
+        update_option(self::ERROR, $result->get_error_message(), false);
+        update_option(self::LOCAL_WAIT, time() + HOUR_IN_SECONDS, false);
+        return false;
     }
 
     /**
@@ -763,67 +801,26 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
         $config = self::config();
         $kept = 'kept:' . $config['signature'];
         self::fresh($id);
-        $record = get_post_meta($id, self::META, true);
         $generation = get_post_meta($id, self::GENERATION, true);
-        $root = self::root();
-        $base = $root ? realpath($root['dir']) : false;
-        if (!$base || !is_array($record) || empty($record['files']) || 'uploaded' !== $record['state'] || $record['signature'] !== $config['signature'] || get_post_meta($id, self::DONE, true) !== $config['signature']) {
+        $record = self::removal_record($id);
+        $removed = $record ? self::removed_record($id) : null;
+        if (!$record || null === $removed) {
             return true;
         }
-        $removed = get_post_meta($id, self::REMOVED, true);
-        if (is_array($removed) && !empty($removed['files']) && (!isset($removed['signature']) || $removed['signature'] !== $config['signature'])) {
-            // Files removed through another connection: only that one brings them back.
+        // Every local file is checked before any goes, so a picture is
+        // removed whole or kept whole.
+        $files = self::removal_files($record);
+        if (null === $files) {
+            // Changed since its upload: keep it; the change queues a new upload.
+            update_post_meta($id, self::LOCAL, $kept);
             return true;
-        }
-        if (!is_array($removed) || !isset($removed['files']) || !is_array($removed['files'])) {
-            $removed = array('files' => array());
-        }
-        // The public address too, so pages keep showing them after a connection change.
-        $removed['signature'] = $config['signature'];
-        $removed['url'] = $config['url'];
-        // Every local file is checked before any goes, so a picture is removed
-        // whole or kept whole.
-        $files = array();
-        foreach ($record['files'] as $key => $info) {
-            $relative = isset($info['relative']) ? (string) $info['relative'] : '';
-            $path = $root['dir'] . '/' . $relative;
-            clearstatcache();
-            $real = realpath($path);
-            if ('' === $relative || $config['prefix'] . $relative !== $key || false !== strpos($relative, '../') || false !== strpos($relative, 'seoprostack-originals-') || !$real || 0 !== strpos(wp_normalize_path($real), wp_normalize_path($base) . '/') || !is_file($path)) {
-                // Already removed, or not a file this feature may touch.
-                continue;
-            }
-            // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged -- a file changed or deleted meanwhile is kept or skipped below.
-            $digest = @hash_file('sha256', $path);
-            if (empty($info['confirmed']) || empty($info['digest']) || (int) filesize($path) !== (int) $info['size'] || !is_string($digest) || !hash_equals((string) $info['digest'], $digest)) {
-                // Changed since its upload: keep it; the change queues a new upload.
-                update_post_meta($id, self::LOCAL, $kept);
-                return true;
-            }
-            $files[$key] = array($relative, $path);
         }
         $client = self::client();
-        foreach ($files as $key => $local) {
-            list($relative, $path) = $local;
+        foreach ($files as $key => $path) {
             $info = $record['files'][$key];
-            // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged -- re-checked just before deleting: a file changed meanwhile is kept.
-            $digest = @hash_file('sha256', $path);
-            if (!is_string($digest) || !hash_equals((string) $info['digest'], $digest)) {
-                update_post_meta($id, self::LOCAL, $kept);
-                return true;
-            }
-            $head = $client->head($key);
-            if (is_wp_error($head)) {
-                return $head;
-            }
-            if (200 !== $head['status'] || (int) $info['size'] !== $head['size']) {
-                update_post_meta($id, self::LOCAL, $kept);
-                update_option(self::ERROR, __('A stored picture did not match its local file, so its local copies were kept.', 'seoprostack'), false);
-                return true;
-            }
-            $public = self::public_ok($key, (string) $info['version']);
-            if (is_wp_error($public)) {
-                return $public;
+            $confirmed = self::confirm_removal($client, $key, $info, $path);
+            if (true !== $confirmed) {
+                return self::removal_stopped($id, $confirmed);
             }
             // Last look: an edit, a restore or a new upload since the record
             // was read keeps the files.
@@ -832,16 +829,196 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
                 return true;
             }
             // Recorded before deleting, so the file is always brought back.
-            $removed['files'][$key] = array('relative' => $relative, 'size' => (int) $info['size'], 'mtime' => (int) $info['mtime'], 'digest' => (string) $info['digest'], 'version' => (string) $info['version']);
+            $removed['files'][$key] = array('relative' => (string) $info['relative'], 'size' => (int) $info['size'], 'mtime' => (int) $info['mtime'], 'digest' => (string) $info['digest'], 'version' => (string) $info['version']);
             update_post_meta($id, self::REMOVED, $removed);
             update_option(self::FLAG, 1, true);
-            // phpcs:ignore WordPress.WP.AlternativeFunctions.unlink_unlink, WordPress.PHP.NoSilencedErrors.Discouraged -- wp_delete_file() runs the wp_delete_file filter, where WebP and AVIF images deletes the file's copies (AVIF copies are not in the bucket); only this recorded file goes. A failure keeps the file, which restore then finds.
-            @unlink($path);
+            self::delete_local($path);
         }
         update_post_meta($id, self::LOCAL, $config['signature']);
         self::forget($id);
         delete_transient(self::COUNTS);
         return true;
+    }
+
+    /**
+     * The attachment's completed record on this connection, when its local
+     * copies may be looked at.
+     *
+     * @param int $id Attachment ID.
+     * @return array|null
+     */
+    private static function removal_record($id) {
+        $signature = self::config()['signature'];
+        $record = get_post_meta($id, self::META, true);
+        $complete = is_array($record) && !empty($record['files']) && 'uploaded' === $record['state'] && $record['signature'] === $signature;
+        return $complete && self::root() && get_post_meta($id, self::DONE, true) === $signature ? $record : null;
+    }
+
+    /**
+     * The removed-files list new removals join, stamped with this
+     * connection and its public address (so pages keep showing the files
+     * after a connection change).
+     *
+     * @param int $id Attachment ID.
+     * @return array|null Null when another connection removed files: only it brings them back.
+     */
+    private static function removed_record($id) {
+        $config = self::config();
+        $removed = get_post_meta($id, self::REMOVED, true);
+        $files = is_array($removed) && isset($removed['files']) && is_array($removed['files']) ? $removed['files'] : array();
+        if ($files && (!isset($removed['signature']) || $removed['signature'] !== $config['signature'])) {
+            return null;
+        }
+        return array('signature' => $config['signature'], 'url' => $config['url'], 'files' => $files);
+    }
+
+    /**
+     * Local files of a record that may be removed, each still the uploaded
+     * file. Files already gone, or not this feature's to touch, are left out.
+     *
+     * @param array $record Completed record.
+     * @return array<string,string>|null Key to path; null when a file changed since its upload.
+     */
+    private static function removal_files($record) {
+        $files = array();
+        foreach ($record['files'] as $key => $info) {
+            $path = self::removal_path((string) $key, $info);
+            if ('' === $path) {
+                continue;
+            }
+            if (!self::local_matches($path, $info)) {
+                return null;
+            }
+            $files[$key] = $path;
+        }
+        return $files;
+    }
+
+    /**
+     * A recorded file's local path, when it is here and this feature may
+     * delete it: the record's own key, inside the main uploads folder, and
+     * not in Watermark pictures' originals folder.
+     *
+     * @param string $key Object key.
+     * @param array $info Recorded file.
+     * @return string Path, or '' to leave it alone.
+     */
+    private static function removal_path($key, $info) {
+        $relative = isset($info['relative']) ? (string) $info['relative'] : '';
+        $root = self::root();
+        if (!$root || !self::recorded_path($relative, $key) || false !== strpos($relative, 'seoprostack-originals-')) {
+            return '';
+        }
+        $path = $root['dir'] . '/' . $relative;
+        clearstatcache();
+        return is_file($path) && self::within(realpath($path), realpath($root['dir'])) ? $path : '';
+    }
+
+    /**
+     * Whether a recorded relative path matches its object key and stays in
+     * the uploads folder.
+     *
+     * @param string $relative Path below the main uploads folder.
+     * @param string $key Object key.
+     * @return bool
+     */
+    private static function recorded_path($relative, $key) {
+        return '' !== $relative && self::config()['prefix'] . $relative === $key && false === strpos($relative, '..');
+    }
+
+    /**
+     * Whether a resolved path is inside a folder (or is the folder).
+     *
+     * @param string|false $real Resolved path.
+     * @param string|false $base Resolved folder.
+     * @return bool
+     */
+    private static function within($real, $base) {
+        return is_string($real) && is_string($base) && '' !== $base && 0 === strpos(wp_normalize_path($real) . '/', wp_normalize_path($base) . '/');
+    }
+
+    /**
+     * Whether a local file is still the confirmed upload: size and SHA-256.
+     *
+     * @param string $path Local path.
+     * @param array $info Recorded file.
+     * @return bool
+     */
+    private static function local_matches($path, $info) {
+        if (empty($info['confirmed']) || empty($info['digest']) || !isset($info['size']) || wp_filesize($path) !== (int) $info['size']) {
+            return false;
+        }
+        return self::digest_matches($path, (string) $info['digest']);
+    }
+
+    /**
+     * Whether a readable file has this SHA-256.
+     *
+     * @param string $path Local path.
+     * @param string $digest Expected SHA-256.
+     * @return bool
+     */
+    private static function digest_matches($path, $digest) {
+        $actual = is_readable($path) ? hash_file('sha256', $path) : false;
+        return is_string($actual) && hash_equals($digest, $actual);
+    }
+
+    /**
+     * Confirm one file may go: still the uploaded file, the bucket answers
+     * HTTP 200 with the recorded size, and the public address serves objects.
+     *
+     * @param SEOProStack_S3_Client $client Client.
+     * @param string $key Object key.
+     * @param array $info Recorded file.
+     * @param string $path Local path.
+     * @return true|string|WP_Error True; 'changed' or 'mismatch' to keep the files; WP_Error to try later.
+     */
+    private static function confirm_removal($client, $key, $info, $path) {
+        if (!self::digest_matches($path, (string) $info['digest'])) {
+            return 'changed';
+        }
+        $head = $client->head($key);
+        if (is_wp_error($head)) {
+            return $head;
+        }
+        if (200 !== $head['status'] || (int) $info['size'] !== $head['size']) {
+            return 'mismatch';
+        }
+        return self::public_ok($key, (string) $info['version']);
+    }
+
+    /**
+     * Stop removing an attachment's files: keep them for a mismatch or a
+     * change, or hand the service error to the batch.
+     *
+     * @param int $id Attachment ID.
+     * @param string|WP_Error $why confirm_removal()'s answer.
+     * @return true|WP_Error
+     */
+    private static function removal_stopped($id, $why) {
+        if (is_wp_error($why)) {
+            return $why;
+        }
+        update_post_meta($id, self::LOCAL, 'kept:' . self::config()['signature']);
+        if ('mismatch' === $why) {
+            update_option(self::ERROR, __('A stored picture did not match its local file, so its local copies were kept.', 'seoprostack'), false);
+        }
+        return true;
+    }
+
+    /**
+     * Delete one recorded, confirmed local file. Not wp_delete_file(): its
+     * filter is where WebP and AVIF images deletes a file's copies, and AVIF
+     * copies are not in the bucket. A failure keeps the file, which restore
+     * then finds.
+     *
+     * @param string $path Path from removal_path(), inside the uploads folder.
+     */
+    private static function delete_local($path) {
+        if (is_file($path)) {
+            // phpcs:ignore WordPress.WP.AlternativeFunctions.unlink_unlink -- see above; only this recorded file goes.
+            unlink($path); // nosemgrep: php.lang.security.unlink-use.unlink-use -- a recorded upload inside uploads (removal_path()), never request input.
+        }
     }
 
     /**
@@ -862,66 +1039,17 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
         if (!is_array($removed) || empty($removed['files']) || !is_array($removed['files'])) {
             return true;
         }
-        $config = self::config();
-        if ($config['missing']) {
-            return new WP_Error('storage_config', __('Set the SEOPROSTACK_MEDIA_STORAGE constants to bring files back.', 'seoprostack'));
-        }
-        if (!isset($removed['signature']) || $removed['signature'] !== $config['signature']) {
-            return new WP_Error('storage_signature', __('These files were removed while another storage connection was set. Set that connection again to bring them back.', 'seoprostack'));
-        }
-        $root = self::root();
-        $base = $root ? realpath($root['dir']) : false;
-        if (!$base) {
-            return new WP_Error('storage_uploads', __('The uploads folder could not be found.', 'seoprostack'));
+        $base = self::restore_base($removed);
+        if (is_wp_error($base)) {
+            return $base;
         }
         // Removal must not take these files again while they are needed here.
-        update_post_meta($id, self::LOCAL, 'kept:' . $config['signature']);
+        update_post_meta($id, self::LOCAL, 'kept:' . self::config()['signature']);
         $client = null;
         foreach ($removed['files'] as $key => $info) {
-            $relative = isset($info['relative']) ? (string) $info['relative'] : '';
-            $path = $root['dir'] . '/' . $relative;
-            if ('' === $relative || $config['prefix'] . $relative !== $key || false !== strpos($relative, '..') || !isset($info['size'], $info['digest'], $info['mtime'])) {
-                return new WP_Error('storage_restore_record', __('A removed file’s record is not valid, so it was not brought back.', 'seoprostack'));
-            }
-            clearstatcache();
-            if (!is_file($path)) {
-                $dir = dirname($path);
-                $real = wp_mkdir_p($dir) ? realpath($dir) : false;
-                if (!$real || 0 !== strpos(wp_normalize_path($real) . '/', wp_normalize_path($base) . '/')) {
-                    return new WP_Error('storage_write', __('A picture could not be written back to the uploads folder.', 'seoprostack'));
-                }
-                if ((int) $info['size'] > self::size_cap()) {
-                    return new WP_Error('storage_memory', __('A picture is too large to bring back with the PHP memory available.', 'seoprostack'));
-                }
-                $client = $client ? $client : self::client();
-                $body = $client->get((string) $key);
-                if (is_wp_error($body)) {
-                    return $body;
-                }
-                if (strlen($body) !== (int) $info['size'] || !hash_equals((string) $info['digest'], hash('sha256', $body))) {
-                    return new WP_Error('storage_restore_mismatch', __('A stored picture did not match its record, so it was not brought back.', 'seoprostack'));
-                }
-                $temp = $path . '.' . wp_generate_password(8, false, false) . '.tmp';
-                // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_file_put_contents, WordPress.PHP.NoSilencedErrors.Discouraged -- a temporary file beside the target, renamed into place; failure is handled.
-                $written = @file_put_contents($temp, $body);
-                clearstatcache();
-                // phpcs:ignore WordPress.WP.AlternativeFunctions.rename_rename, WordPress.PHP.NoSilencedErrors.Discouraged -- same folder; never over a file that appeared meanwhile.
-                if (strlen($body) !== $written || is_file($path) || !@rename($temp, $path)) {
-                    if (is_file($temp)) {
-                        // phpcs:ignore WordPress.WP.AlternativeFunctions.unlink_unlink, WordPress.PHP.NoSilencedErrors.Discouraged -- this request's own temporary file.
-                        @unlink($temp);
-                    }
-                    if (!is_file($path)) {
-                        return new WP_Error('storage_write', __('A picture could not be written back to the uploads folder.', 'seoprostack'));
-                    }
-                } else {
-                    // Permissions as wp_handle_upload() sets them, and the recorded time.
-                    $stat = stat($dir);
-                    // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_chmod, WordPress.PHP.NoSilencedErrors.Discouraged -- best effort, as core does.
-                    @chmod($path, $stat ? $stat['mode'] & 0000666 : 0644);
-                    // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_touch, WordPress.PHP.NoSilencedErrors.Discouraged -- best effort.
-                    @touch($path, (int) $info['mtime']);
-                }
+            $result = self::restore_file((string) $key, $info, $base, $client);
+            if (is_wp_error($result)) {
+                return $result;
             }
             // Back, or another file already there (never overwritten): local now.
             unset($removed['files'][$key]);
@@ -933,6 +1061,128 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
         }
         self::forget($id);
         delete_transient(self::COUNTS);
+        return true;
+    }
+
+    /**
+     * The main uploads folder files come back to, when this connection
+     * removed them.
+     *
+     * @param array $removed Removed-files list.
+     * @return array{dir:string,real:string}|WP_Error The folder and its resolved path.
+     */
+    private static function restore_base($removed) {
+        $config = self::config();
+        if ($config['missing']) {
+            return new WP_Error('storage_config', __('Set the SEOPROSTACK_MEDIA_STORAGE constants to bring files back.', 'seoprostack'));
+        }
+        if (!isset($removed['signature']) || $removed['signature'] !== $config['signature']) {
+            return new WP_Error('storage_signature', __('These files were removed while another storage connection was set. Set that connection again to bring them back.', 'seoprostack'));
+        }
+        $root = self::root();
+        $real = $root ? realpath($root['dir']) : false;
+        return $root && $real ? array('dir' => $root['dir'], 'real' => $real) : new WP_Error('storage_uploads', __('The uploads folder could not be found.', 'seoprostack'));
+    }
+
+    /**
+     * Bring back one removed file, unless a file is already there.
+     *
+     * @param string $key Object key.
+     * @param array $info Removed file's record.
+     * @param array{dir:string,real:string} $base Main uploads folder (restore_base()).
+     * @param SEOProStack_S3_Client|null $client Client, made on first use.
+     * @return true|WP_Error
+     */
+    private static function restore_file($key, $info, $base, &$client) {
+        $path = self::restore_target($key, $info, $base);
+        if (true === $path || is_wp_error($path)) {
+            return $path;
+        }
+        $body = self::download($key, $info, $client);
+        if (is_wp_error($body)) {
+            return $body;
+        }
+        return self::write_file($path, $body, (int) $info['mtime']);
+    }
+
+    /**
+     * Where a removed file comes back to.
+     *
+     * @param string $key Object key.
+     * @param array $info Removed file's record.
+     * @param array{dir:string,real:string} $base Main uploads folder (restore_base()).
+     * @return string|true|WP_Error Path; true when a file is already there.
+     */
+    private static function restore_target($key, $info, $base) {
+        $relative = isset($info['relative']) ? (string) $info['relative'] : '';
+        if (!self::recorded_path($relative, $key) || !isset($info['size'], $info['digest'], $info['mtime'])) {
+            return new WP_Error('storage_restore_record', __('A removed file’s record is not valid, so it was not brought back.', 'seoprostack'));
+        }
+        $path = $base['dir'] . '/' . $relative;
+        clearstatcache();
+        if (is_file($path)) {
+            return true;
+        }
+        $dir = dirname($path);
+        if (!wp_mkdir_p($dir) || !self::within(realpath($dir), $base['real'])) {
+            return new WP_Error('storage_write', __('A picture could not be written back to the uploads folder.', 'seoprostack'));
+        }
+        return $path;
+    }
+
+    /**
+     * Download a removed file with a signed GET, byte for byte as recorded.
+     *
+     * @param string $key Object key.
+     * @param array $info Removed file's record.
+     * @param SEOProStack_S3_Client|null $client Client, made on first use.
+     * @return string|WP_Error File contents.
+     */
+    private static function download($key, $info, &$client) {
+        if ((int) $info['size'] > self::size_cap()) {
+            return new WP_Error('storage_memory', __('A picture is too large to bring back with the PHP memory available.', 'seoprostack'));
+        }
+        $client = $client ? $client : self::client();
+        $body = $client->get($key);
+        if (is_wp_error($body)) {
+            return $body;
+        }
+        if (strlen($body) !== (int) $info['size'] || !hash_equals((string) $info['digest'], hash('sha256', $body))) {
+            return new WP_Error('storage_restore_mismatch', __('A stored picture did not match its record, so it was not brought back.', 'seoprostack'));
+        }
+        return $body;
+    }
+
+    /**
+     * Write a file through a temporary file beside it, renamed into place,
+     * never over a file that appeared meanwhile; then permissions as
+     * wp_handle_upload() sets them, and the recorded modified time (so WebP
+     * copies stay newer than their files).
+     *
+     * @param string $path Target inside the uploads folder.
+     * @param string $body Contents.
+     * @param int $mtime Modified time.
+     * @return true|WP_Error
+     */
+    private static function write_file($path, $body, $mtime) {
+        $temp = $path . '.' . wp_generate_password(8, false, false) . '.tmp';
+        // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_file_put_contents -- a temporary file beside the target; failure is handled below.
+        $written = file_put_contents($temp, $body);
+        clearstatcache();
+        // phpcs:ignore WordPress.WP.AlternativeFunctions.rename_rename -- same folder, so the file appears whole.
+        $moved = strlen($body) === $written && !is_file($path) && rename($temp, $path);
+        if (!$moved) {
+            if (is_file($temp)) {
+                // phpcs:ignore WordPress.WP.AlternativeFunctions.unlink_unlink -- this request's own temporary file.
+                unlink($temp); // nosemgrep: php.lang.security.unlink-use.unlink-use -- this request's own temporary file, never request input.
+            }
+            return is_file($path) ? true : new WP_Error('storage_write', __('A picture could not be written back to the uploads folder.', 'seoprostack'));
+        }
+        $stat = stat(dirname($path));
+        // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_chmod -- as wp_handle_upload() does.
+        chmod($path, $stat ? $stat['mode'] & 0000666 : 0644);
+        // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_touch -- the recorded modified time.
+        touch($path, $mtime);
         return true;
     }
 
@@ -1021,12 +1271,7 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
         if (count($values) > 500) {
             return time();
         }
-        $due = null;
-        // Removing or restoring paused after a failure: wake when it ends.
-        $wait = (int) get_option(self::LOCAL_WAIT, 0);
-        if ($wait > time() && (self::removing() || self::restoring())) {
-            $due = $wait;
-        }
+        $due = self::local_wake();
         foreach ($values as $value) {
             $job = maybe_unserialize($value);
             if (is_array($job) && isset($job['signature'], $job['next']) && $job['signature'] === $signature) {
@@ -1034,6 +1279,16 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
             }
         }
         return $due;
+    }
+
+    /**
+     * When removing or restoring, paused after a failure, may run again.
+     *
+     * @return int|null Timestamp; null when it is not paused.
+     */
+    private static function local_wake() {
+        $wait = (int) get_option(self::LOCAL_WAIT, 0);
+        return $wait > time() && (self::removing() || self::restoring()) ? $wait : null;
     }
 
     /**
@@ -1157,6 +1412,62 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
     }
 
     /**
+     * Whether another connection removed this attachment's local files. Its
+     * bucket objects are then their only copies: never delete or relabel
+     * them; restoring needs the old connection again.
+     *
+     * @param int $id Attachment ID.
+     * @return bool True when the upload must not run (marked failed).
+     */
+    private static function removed_elsewhere($id) {
+        if (!self::removed($id) || self::removed_files($id)) {
+            return false;
+        }
+        $signature = self::config()['signature'];
+        update_post_meta($id, self::DONE, $signature);
+        update_post_meta($id, self::STATE, 'failed');
+        update_option(self::ERROR, __('Some pictures’ local files were removed while another storage connection was set. Set that connection again and run wp seoprostack media-storage restore --all.', 'seoprostack'), false);
+        delete_transient(self::COUNTS);
+        return true;
+    }
+
+    /**
+     * The attachment's previous inventory on this connection. Another
+     * destination's is queued for deletion, never relabelled as this one.
+     *
+     * @param int $id Attachment ID.
+     * @return array Empty when there is none.
+     */
+    private static function own_inventory($id) {
+        $old = get_post_meta($id, self::META, true);
+        if (!is_array($old)) {
+            return array();
+        }
+        if (isset($old['signature']) && $old['signature'] !== self::config()['signature']) {
+            self::queue_delete($old, array_map('strval', array_keys(isset($old['files']) ? $old['files'] : array())));
+            return array();
+        }
+        return $old;
+    }
+
+    /**
+     * A changed picture is collected from local files: bring removed ones
+     * back first, or the new inventory would drop (and delete) their only
+     * copies. Pages keep their bucket addresses meanwhile.
+     *
+     * @param int $id Attachment ID.
+     * @return bool Whether the upload may go on.
+     */
+    private static function restore_for_upload($id) {
+        $restored = self::removed($id) ? self::restore_attachment($id) : true;
+        if (is_wp_error($restored)) {
+            update_option(self::ERROR, $restored->get_error_message(), false);
+            return false;
+        }
+        return true;
+    }
+
+    /**
      * Upload the whole attachment atomically; unchanged files make no request.
      *
      * @param int $id Attachment ID.
@@ -1164,43 +1475,20 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
      * @return bool Whether all eligible files were copied.
      */
     public static function upload_attachment($id, $start = null) {
-        if (!self::ready() || 0 !== strpos((string) get_post_mime_type($id), 'image/')) {
+        if (!self::ready() || 0 !== strpos((string) get_post_mime_type($id), 'image/') || self::removed_elsewhere($id)) {
             return false;
         }
         self::forget($id);
         $config = self::config();
         $generation = get_post_meta($id, self::GENERATION, true);
-        $old = get_post_meta($id, self::META, true);
-        $old = is_array($old) ? $old : array();
-        $removed = get_post_meta($id, self::REMOVED, true);
-        if (is_array($removed) && !empty($removed['files']) && (!isset($removed['signature']) || $removed['signature'] !== $config['signature'])) {
-            // The bucket objects are these files' only copies: never delete
-            // or relabel them. Restoring needs the old connection again.
-            update_post_meta($id, self::DONE, $config['signature']);
-            update_post_meta($id, self::STATE, 'failed');
-            update_option(self::ERROR, __('Some pictures’ local files were removed while another storage connection was set. Set that connection again and run wp seoprostack media-storage restore --all.', 'seoprostack'), false);
-            delete_transient(self::COUNTS);
-            return false;
-        }
-        if (isset($old['signature']) && $old['signature'] !== $config['signature']) {
-            // Never relabel another destination's inventory as this connection.
-            self::queue_delete($old, array_map('strval', array_keys(isset($old['files']) ? $old['files'] : array())));
-            $old = array();
-        }
+        $old = self::own_inventory($id);
         $attempt = isset($old['attempts']) ? (int) $old['attempts'] + 1 : 1;
         // Tried first: even a fatal error moves the queue forward and retries later.
         update_post_meta($id, self::DONE, $config['signature']);
         $job = array('kind' => 'retry', 'id' => $id, 'signature' => $config['signature'], 'next' => time() + HOUR_IN_SECONDS);
         update_option(self::JOB . 'retry_' . $id, $job, false);
-        if (self::removed($id)) {
-            // A changed picture is collected from local files: bring removed
-            // ones back first, or the new inventory would drop (and delete)
-            // their only copies. Pages keep their bucket addresses meanwhile.
-            $restored = self::restore_attachment($id);
-            if (is_wp_error($restored)) {
-                update_option(self::ERROR, $restored->get_error_message(), false);
-                return false;
-            }
+        if (!self::restore_for_upload($id)) {
+            return false;
         }
         $record = array('signature' => $config['signature'], 'files' => array(), 'state' => 'failed', 'attempts' => $attempt, 'skipped' => 0);
         // Keep the previous inventory for deletion/recovery, but never serve a partial upload.
@@ -1339,22 +1627,9 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
      * @return array<string,string>
      */
     private static function build_map($id) {
-        $record = get_post_meta($id, self::META, true);
         $config = self::config();
-        $complete = is_array($record) && !empty($record['files']) && 'uploaded' === $record['state'] && $record['signature'] === $config['signature'] && get_post_meta($id, self::DONE, true) === $config['signature'];
-        $gone = self::removed_files($id);
-        $gone_url = $config['url'];
-        if (!$gone && 'all' === self::serving()) {
-            // Removed through another connection: pages show them from the
-            // address they were removed under. Not wp-admin or editors, where
-            // saving can put back only this connection's addresses.
-            $removed = get_post_meta((int) $id, self::REMOVED, true);
-            if (is_array($removed) && !empty($removed['files']) && is_array($removed['files']) && !empty($removed['url']) && is_string($removed['url'])) {
-                $gone = $removed['files'];
-                $gone_url = untrailingslashit($removed['url']);
-            }
-        }
-        $files = $gone + ($complete ? $record['files'] : array());
+        list($gone, $gone_url) = self::gone_files($id);
+        $files = $gone + self::completed_files($id);
         if (!$files) {
             return array();
         }
@@ -1377,6 +1652,43 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
             $map[$encoded] = $map[$local];
         }
         return $map;
+    }
+
+    /**
+     * Files of a completed inventory on this connection.
+     *
+     * @param int $id Attachment ID.
+     * @return array<string,array> Empty when the inventory is not complete here.
+     */
+    private static function completed_files($id) {
+        $record = get_post_meta($id, self::META, true);
+        $signature = self::config()['signature'];
+        if (!is_array($record) || empty($record['files']) || 'uploaded' !== $record['state'] || $record['signature'] !== $signature) {
+            return array();
+        }
+        return get_post_meta($id, self::DONE, true) === $signature ? $record['files'] : array();
+    }
+
+    /**
+     * Removed files and the public address they show from. Files removed
+     * through another connection show on pages from the address they were
+     * removed under; not in wp-admin or editors, where saving can put back
+     * only this connection's addresses.
+     *
+     * @param int $id Attachment ID.
+     * @return array{0:array<string,array>,1:string} Files and public address.
+     */
+    private static function gone_files($id) {
+        $url = self::config()['url'];
+        $gone = self::removed_files($id);
+        if ($gone || 'all' !== self::serving()) {
+            return array($gone, $url);
+        }
+        $removed = get_post_meta((int) $id, self::REMOVED, true);
+        if (!is_array($removed) || empty($removed['files']) || !is_array($removed['files']) || empty($removed['url']) || !is_string($removed['url'])) {
+            return array(array(), $url);
+        }
+        return array($removed['files'], untrailingslashit($removed['url']));
     }
 
     /**
@@ -1440,16 +1752,27 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
      * @return string
      */
     public static function editor_text($text) {
-        if (!is_string($text) || '' === $text || !get_option(self::FLAG) || self::config()['missing'] || !preg_match_all('/(?:wp-image-|"id":)(\d+)/', $text, $found)) {
+        if (!is_string($text) || !get_option(self::FLAG) || self::config()['missing']) {
             return $text;
         }
         $map = array();
-        foreach (array_unique(array_map('intval', $found[1])) as $id) {
-            if ($id > 0 && self::removed_files($id)) {
+        foreach (self::named_attachments($text) as $id) {
+            if (self::removed_files($id)) {
                 $map += self::map($id);
             }
         }
         return $map ? strtr($text, $map) : $text;
+    }
+
+    /**
+     * Attachment IDs content names (wp-image-ID classes, "id":ID block attributes).
+     *
+     * @param string $text Content.
+     * @return int[]
+     */
+    private static function named_attachments($text) {
+        preg_match_all('/(?:wp-image-|"id":)(\d+)/', $text, $found);
+        return array_filter(array_unique(array_map('intval', $found[1])));
     }
 
     /**
@@ -1729,23 +2052,7 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
         if (is_ssl() && 'https' !== wp_parse_url($config['url'], PHP_URL_SCHEME)) {
             echo '<p>' . esc_html__('Use an HTTPS public storage address to avoid mixed content.', 'seoprostack') . '</p>';
         }
-        $removed = (bool) get_option(self::FLAG);
-        if ($removed && $config['missing']) {
-            echo '<p>' . esc_html__('Some pictures have no local files. Set the constants again, or add the missing-file rule from the read me, so they keep showing.', 'seoprostack') . '</p>';
-        }
-        if ($removed && self::restoring()) {
-            echo '<p>' . esc_html__('Bringing removed files back in the background; until then, those pictures show from the bucket.', 'seoprostack') . '</p>';
-        }
-        if (self::ready() || self::restoring()) {
-            $counts = self::counts();
-            foreach ($counts as $state => $count) {
-                echo '<p>' . esc_html($state . ': ' . number_format_i18n($count)) . '</p>';
-            }
-            if ($counts['waiting'] > 0 || ($removed && self::restoring())) {
-                // Recover a lost wake-up without waking an idle queue on every view.
-                self::schedule(60);
-            }
-        }
+        self::panel_queue($config);
         if (self::ready()) {
             $test = get_transient(self::TEST);
             if (is_array($test) && isset($test['connection'], $test['message']) && is_string($test['connection']) && hash_equals(self::test_id(), $test['connection'])) {
@@ -1758,6 +2065,33 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
             echo '<p>' . esc_html($error) . '</p>';
         }
         echo '</div>';
+    }
+
+    /**
+     * Panel notes about removed files, and the queue counts.
+     *
+     * @param array $config Connection settings (config()).
+     */
+    private static function panel_queue($config) {
+        $removed = (bool) get_option(self::FLAG);
+        $restoring = $removed && self::restoring();
+        if ($removed && $config['missing']) {
+            echo '<p>' . esc_html__('Some pictures have no local files. Set the constants again, or add the missing-file rule from the read me, so they keep showing.', 'seoprostack') . '</p>';
+        }
+        if ($restoring) {
+            echo '<p>' . esc_html__('Bringing removed files back in the background; until then, those pictures show from the bucket.', 'seoprostack') . '</p>';
+        }
+        if (!self::ready() && !self::restoring()) {
+            return;
+        }
+        $counts = self::counts();
+        foreach ($counts as $state => $count) {
+            echo '<p>' . esc_html($state . ': ' . number_format_i18n($count)) . '</p>';
+        }
+        if ($counts['waiting'] > 0 || $restoring) {
+            // Recover a lost wake-up without waking an idle queue on every view.
+            self::schedule(60);
+        }
     }
 
     /**
@@ -1812,16 +2146,7 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
     public static function cli($args, $assoc) {
         $action = isset($args[0]) ? $args[0] : 'status';
         if ('status' === $action) {
-            WP_CLI::log(self::ready() ? 'Configured and on.' : 'Off or missing constants.');
-            if (self::config()['missing']) {
-                WP_CLI::log('Missing or invalid: ' . implode(', ', self::config()['missing']));
-            } else {
-                WP_CLI::log(self::removing() ? 'Remove local copies after upload: on.' : 'Remove local copies after upload: off.');
-            }
-            foreach (self::counts() as $state => $count) {
-                WP_CLI::log($state . ': ' . $count);
-            }
-            WP_CLI::log((string) get_option(self::ERROR, ''));
+            self::cli_status();
             return;
         }
         if ('restore' === $action) {
@@ -1882,6 +2207,23 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
     }
 
     /**
+     * Print the connection, Remove local copies and the queue counts.
+     */
+    private static function cli_status() {
+        WP_CLI::log(self::ready() ? 'Configured and on.' : 'Off or missing constants.');
+        $missing = self::config()['missing'];
+        if ($missing) {
+            WP_CLI::log('Missing or invalid: ' . implode(', ', $missing));
+        } else {
+            WP_CLI::log(self::removing() ? 'Remove local copies after upload: on.' : 'Remove local copies after upload: off.');
+        }
+        foreach (self::counts() as $state => $count) {
+            WP_CLI::log($state . ': ' . $count);
+        }
+        WP_CLI::log((string) get_option(self::ERROR, ''));
+    }
+
+    /**
      * Bring removed files back now, holding the batch lease a page at a
      * time so a batch never removes a file while it comes back.
      *
@@ -1891,44 +2233,14 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
         if (self::config()['missing']) {
             WP_CLI::error('Set the SEOPROSTACK_MEDIA_STORAGE constants first: removed files come back from that bucket.');
         }
-        $one = 0;
-        if (isset($assoc['attachment'])) {
-            $one = (int) $assoc['attachment'];
-            if ($one <= 0 || 'attachment' !== get_post_type($one)) {
-                WP_CLI::error('No attachment with that ID.');
-            }
-        } elseif (!isset($assoc['all'])) {
-            WP_CLI::error('Use --attachment=<id> or --all.');
-        }
-        $restored = 0;
-        $failed = 0;
+        $one = self::cli_restore_target($assoc);
+        $counts = array('restored' => 0, 'failed' => 0);
         $before = PHP_INT_MAX;
         do {
             $ids = $one ? array($one) : self::restorable(20, $before);
-            $lease = '';
-            for ($try = 0; '' === $lease && $try < 30; ++$try) {
-                $lease = self::lease();
-                if ('' === $lease) {
-                    sleep(2);
-                }
-            }
-            if ('' === $lease) {
-                WP_CLI::error('A storage batch is still running. Try again in a few minutes.');
-            }
+            $lease = self::cli_lease();
             try {
-                foreach ($ids as $id) {
-                    $before = $id;
-                    if (!self::removed($id)) {
-                        continue;
-                    }
-                    $result = self::restore_attachment($id);
-                    if (is_wp_error($result)) {
-                        ++$failed;
-                        WP_CLI::warning(sprintf('%d: %s', $id, $result->get_error_message()));
-                    } else {
-                        ++$restored;
-                    }
-                }
+                $before = self::cli_restore_page($ids, $counts, $before);
             } finally {
                 self::release($lease);
             }
@@ -1939,10 +2251,72 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
         if (self::removing()) {
             WP_CLI::warning('Remove local copies after upload is on: restored pictures stay on this server until they change. Switch it off to keep every file here.');
         }
-        $message = sprintf('Brought back the files of %d attachment(s); %d failed.', $restored, $failed);
-        if ($failed) {
+        $message = sprintf('Brought back the files of %d attachment(s); %d failed.', $counts['restored'], $counts['failed']);
+        if ($counts['failed']) {
             WP_CLI::error($message);
         }
         WP_CLI::success($message);
+    }
+
+    /**
+     * Which attachment restore works on.
+     *
+     * @param array $assoc Named arguments.
+     * @return int Attachment ID; 0 for --all.
+     */
+    private static function cli_restore_target($assoc) {
+        if (!isset($assoc['attachment'])) {
+            if (!isset($assoc['all'])) {
+                WP_CLI::error('Use --attachment=<id> or --all.');
+            }
+            return 0;
+        }
+        $one = (int) $assoc['attachment'];
+        if ($one <= 0 || 'attachment' !== get_post_type($one)) {
+            WP_CLI::error('No attachment with that ID.');
+        }
+        return $one;
+    }
+
+    /**
+     * Take the batch lease, waiting up to a minute for a running batch.
+     *
+     * @return string Lease.
+     */
+    private static function cli_lease() {
+        for ($try = 0; $try < 30; ++$try) {
+            $lease = self::lease();
+            if ('' !== $lease) {
+                return $lease;
+            }
+            sleep(2);
+        }
+        WP_CLI::error('A storage batch is still running. Try again in a few minutes.');
+        return '';
+    }
+
+    /**
+     * Bring back one page of attachments' files.
+     *
+     * @param int[] $ids Attachment IDs, newest first.
+     * @param array{restored:int,failed:int} $counts Running counts.
+     * @param int $before Paging position.
+     * @return int Next paging position.
+     */
+    private static function cli_restore_page($ids, &$counts, $before) {
+        foreach ($ids as $id) {
+            $before = $id;
+            if (!self::removed($id)) {
+                continue;
+            }
+            $result = self::restore_attachment($id);
+            if (is_wp_error($result)) {
+                ++$counts['failed'];
+                WP_CLI::warning(sprintf('%d: %s', $id, $result->get_error_message()));
+            } else {
+                ++$counts['restored'];
+            }
+        }
+        return $before;
     }
 }
