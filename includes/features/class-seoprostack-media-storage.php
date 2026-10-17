@@ -1387,7 +1387,9 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
             return;
         }
         $due = self::next_due();
-        if (null === $due) {
+        // Removed files left while restoring, with nothing due: all stuck
+        // (local_step()), and the panel points to their error.
+        if (null === $due && !(self::restoring() && self::restorable(1))) {
             // Nothing waiting, retrying or left to delete: an old error no
             // longer applies, so the panel and status stop showing it.
             delete_option(self::ERROR);
