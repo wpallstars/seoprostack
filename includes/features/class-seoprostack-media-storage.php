@@ -344,18 +344,25 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
      * @return string|false
      */
     public static function original_path($path, $id) {
-        if (!self::removed($id)) {
-            return $path;
-        }
-        // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- compared with a fixed action only; core checks the nonce.
-        $action = isset($_REQUEST['action']) && is_string($_REQUEST['action']) ? sanitize_key(wp_unslash($_REQUEST['action'])) : '';
-        $processing = self::cli_media() || wp_doing_cron()
-            || in_array(true, self::$rest_sizes, true)
-            || (wp_doing_ajax() && 'media-create-image-subsizes' === $action);
-        if ($processing) {
+        if (self::removed($id) && self::processing_files()) {
             self::restore_attachment($id);
         }
         return $path;
+    }
+
+    /**
+     * Whether this request makes or changes image files: wp media commands,
+     * cron, REST requests that make sizes, and core's sub-size Ajax.
+     *
+     * @return bool
+     */
+    private static function processing_files() {
+        if (self::cli_media() || wp_doing_cron() || in_array(true, self::$rest_sizes, true)) {
+            return true;
+        }
+        // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- compared with a fixed action only; core checks the nonce.
+        $action = isset($_REQUEST['action']) && is_string($_REQUEST['action']) ? sanitize_key(wp_unslash($_REQUEST['action'])) : '';
+        return wp_doing_ajax() && 'media-create-image-subsizes' === $action;
     }
 
     /**
@@ -822,10 +829,7 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
             if (true !== $confirmed) {
                 return self::removal_stopped($id, $confirmed);
             }
-            // Last look: an edit, a restore or a new upload since the record
-            // was read keeps the files.
-            self::fresh($id);
-            if (get_post_meta($id, self::DONE, true) !== $config['signature'] || get_post_meta($id, self::GENERATION, true) !== $generation || get_post_meta($id, self::LOCAL, true) === $kept) {
+            if (self::changed_meanwhile($id, $generation)) {
                 return true;
             }
             // Recorded before deleting, so the file is always brought back.
@@ -838,6 +842,23 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
         self::forget($id);
         delete_transient(self::COUNTS);
         return true;
+    }
+
+    /**
+     * Last look before a file goes: an edit, a restore or a new upload since
+     * the record was read keeps the files.
+     *
+     * @param int $id Attachment ID.
+     * @param mixed $generation Generation when the record was read.
+     * @return bool
+     */
+    private static function changed_meanwhile($id, $generation) {
+        $signature = self::config()['signature'];
+        self::fresh($id);
+        if (get_post_meta($id, self::DONE, true) !== $signature || get_post_meta($id, self::GENERATION, true) !== $generation) {
+            return true;
+        }
+        return get_post_meta($id, self::LOCAL, true) === 'kept:' . $signature;
     }
 
     /**
@@ -2073,14 +2094,7 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
      * @param array $config Connection settings (config()).
      */
     private static function panel_queue($config) {
-        $removed = (bool) get_option(self::FLAG);
-        $restoring = $removed && self::restoring();
-        if ($removed && $config['missing']) {
-            echo '<p>' . esc_html__('Some pictures have no local files. Set the constants again, or add the missing-file rule from the read me, so they keep showing.', 'seoprostack') . '</p>';
-        }
-        if ($restoring) {
-            echo '<p>' . esc_html__('Bringing removed files back in the background; until then, those pictures show from the bucket.', 'seoprostack') . '</p>';
-        }
+        $restoring = self::panel_removed($config);
         if (!self::ready() && !self::restoring()) {
             return;
         }
@@ -2092,6 +2106,26 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
             // Recover a lost wake-up without waking an idle queue on every view.
             self::schedule(60);
         }
+    }
+
+    /**
+     * Panel notes about removed files.
+     *
+     * @param array $config Connection settings (config()).
+     * @return bool Whether removed files are coming back in the background.
+     */
+    private static function panel_removed($config) {
+        if (!get_option(self::FLAG)) {
+            return false;
+        }
+        if ($config['missing']) {
+            echo '<p>' . esc_html__('Some pictures have no local files. Set the constants again, or add the missing-file rule from the read me, so they keep showing.', 'seoprostack') . '</p>';
+        }
+        if (!self::restoring()) {
+            return false;
+        }
+        echo '<p>' . esc_html__('Bringing removed files back in the background; until then, those pictures show from the bucket.', 'seoprostack') . '</p>';
+        return true;
     }
 
     /**
