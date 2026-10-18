@@ -319,19 +319,19 @@
 
 	function clear(button) {
 		queue = queue.then(function () {
-		var before = state.saved;
-		state.saved = [];
-		changed();
-		if (!state.user) {
-			write(KEY_SAVED, []);
-			fillLists();
-			return;
-		}
-		return send('clear', {}).then(function () { write(KEY_SYNC, Date.now()); fillLists(); }, function () {
-			state.saved = before;
+			var before = state.saved;
+			state.saved = [];
 			changed();
-			button.textContent = t.failed;
-		});
+			if (!state.user) {
+				write(KEY_SAVED, []);
+				fillLists();
+				return;
+			}
+			return send('clear', {}).then(function () { write(KEY_SYNC, Date.now()); fillLists(); }, function () {
+				state.saved = before;
+				changed();
+				button.textContent = t.failed;
+			});
 		});
 	}
 

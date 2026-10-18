@@ -232,6 +232,15 @@
 	overflow-wrap: anywhere;
 }
 
+.sps-panel .sps-saved__list {
+	margin: 0;
+	padding: 0;
+}
+
+.sps-panel .sps-saved__link {
+	color: inherit;
+}
+
 .sps-panel input[type="checkbox"] {
 	width: 24px;
 	height: 24px;
