@@ -869,7 +869,7 @@ class SEOProStack_Post_Reactions extends SEOProStack_Feature {
                     );
                     $extra = apply_filters('seoprostack_saved_item', $item, $p, $list);
                     if (is_array($extra)) {
-                        $item['meta'] = array_map('sanitize_text_field', array_slice(array_filter(isset($extra['meta']) && is_array($extra['meta']) ? $extra['meta'] : array(), 'is_string'), 0, 3));
+                        $item['meta'] = array_values(array_map('sanitize_text_field', array_slice(array_filter(isset($extra['meta']) && is_array($extra['meta']) ? $extra['meta'] : array(), 'is_string'), 0, 3)));
                         $item['image'] = isset($extra['image']) && is_string($extra['image']) ? esc_url_raw($extra['image'], array('http', 'https')) : '';
                     }
                     $items[] = $item;
