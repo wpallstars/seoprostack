@@ -22,6 +22,12 @@ class SEOProStack_Integrity_Folders {
     /** Files and folders looked at in the uploads folder per check. */
     const MAX_UPLOAD_ENTRIES = 300000;
 
+    /** Uploaded PHP files up to this size are read whole and checked token by token. */
+    const SMALL_FILE = 2048;
+
+    /** Largest exit-guarded file (such as a plugin's log) read to the end; larger ones are reported. */
+    const MAX_GUARDED_FILE = 8388608;
+
     /**
      * PHP files in wp-admin/ and wp-includes/ that WordPress does not have.
      *
@@ -131,8 +137,10 @@ class SEOProStack_Integrity_Folders {
 
     /**
      * Whether an uploaded file is PHP: by extension, or a .cache file with
-     * PHP in it. Files with nothing but comments or exit (the "silence is
-     * golden" index.php plugins add) do not count.
+     * PHP in it. Files that cannot run code do not count: nothing but
+     * comments or exit (the "silence is golden" index.php plugins add), a
+     * "403 Forbidden" stub, or a log that exits on its first line
+     * (harmless()).
      *
      * @param string $file Path.
      * @param string $name File name.
@@ -147,22 +155,191 @@ class SEOProStack_Integrity_Folders {
     }
 
     /**
-     * Whether a small PHP file holds only comments, whitespace and exit.
+     * Whether an uploaded PHP file cannot run code: a small file holding only
+     * comments, whitespace and exit, or a "403 Forbidden" stub; or a file of
+     * any size up to MAX_GUARDED_FILE that exits on its first line and has no
+     * other PHP open tag (the logs Code Profiler Pro and MC4WP write).
      *
      * @param string $file Path.
      * @return bool
      */
     private static function harmless($file) {
         $size = filesize($file);
-        if (false === $size || $size > 2048 || !function_exists('token_get_all')) {
+        if (false === $size || $size > self::MAX_GUARDED_FILE || !function_exists('token_get_all')) {
             return false;
         }
-        foreach (token_get_all((string) file_get_contents($file)) as $token) { // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents -- a small local file, read, never run.
+        $head = (string) file_get_contents($file, false, null, 0, self::SMALL_FILE); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents -- a local file's start, read, never run.
+        if ($size <= self::SMALL_FILE && (self::only_quiet($head) || self::forbidden_stub($head))) {
+            return true;
+        }
+        $end = self::guard_end($head);
+        return null !== $end && !self::open_tag_after($file, $end);
+    }
+
+    /**
+     * Whether code holds only quiet tokens.
+     *
+     * @param string $code Code.
+     * @return bool
+     */
+    private static function only_quiet($code) {
+        foreach (token_get_all($code) as $token) {
             if (!self::quiet($token)) {
                 return false;
             }
         }
         return true;
+    }
+
+    /**
+     * Where an exit guard at the start of a file ends: quiet tokens, then
+     * exit with nothing, a number or a plain string in brackets, then a
+     * close tag.
+     *
+     * @param string $head The file's start.
+     * @return int|null Bytes up to the end of the close tag; null when the
+     *                  file does not start that way.
+     */
+    private static function guard_end($head) {
+        $offset = 0;
+        $exit   = false;
+        $prev   = null;
+        foreach (token_get_all($head) as $token) {
+            $offset += strlen(is_array($token) ? $token[1] : $token);
+            if (!$exit) {
+                if (!self::quiet($token)) {
+                    return null;
+                }
+                $exit = is_array($token) && T_EXIT === $token[0];
+                continue;
+            }
+            if (is_array($token) && T_CLOSE_TAG === $token[0]) {
+                return $offset;
+            }
+            if (!self::exit_token($token, $prev)) {
+                return null;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Whether a token after exit, before the close tag, only ends the exit:
+     * brackets straight after exit, a number or plain string in them, `;`,
+     * whitespace or a comment.
+     *
+     * @param array{0:int,1:string,2:int}|string $token Token.
+     * @param int|string|null                    $prev  The last token that was not whitespace or a comment.
+     * @return bool
+     */
+    private static function exit_token($token, &$prev) {
+        if (is_array($token) && in_array($token[0], array(T_WHITESPACE, T_COMMENT, T_DOC_COMMENT), true)) {
+            return true;
+        }
+        $ok   = '(' === $token ? null === $prev : (in_array($token, array(')', ';'), true) || (is_array($token) && (T_LNUMBER === $token[0] || self::plain($token))));
+        $prev = is_array($token) ? $token[0] : $token;
+        return $ok;
+    }
+
+    /**
+     * Whether a small file only sends headers and exits, as the
+     * "403 Forbidden" index.php some security plugins add: header() calls
+     * built from $_SERVER values and plain strings, then exit. Brackets may
+     * follow only header and exit, and square brackets only $_SERVER, so
+     * nothing else can be called.
+     *
+     * @param string $code Code.
+     * @return bool
+     */
+    private static function forbidden_stub($code) {
+        $exit = false;
+        $prev = null;
+        foreach (token_get_all($code) as $token) {
+            if (self::quiet($token) && !in_array($token, array('(', ')', ';'), true) && !(is_array($token) && T_EXIT === $token[0])) {
+                continue;
+            }
+            if (!self::stub_token($token, $prev)) {
+                return false;
+            }
+            $exit = $exit || (is_array($token) && T_EXIT === $token[0]);
+            $prev = is_array($token) ? (T_STRING === $token[0] ? strtolower($token[1]) : $token[0]) : $token;
+        }
+        return $exit;
+    }
+
+    /**
+     * Whether a token may appear in a "403 Forbidden" stub.
+     *
+     * @param array{0:int,1:string,2:int}|string $token Token.
+     * @param int|string|null                    $prev  The last token that was not whitespace or a comment
+     *                                                  (a function name in lower case).
+     * @return bool
+     */
+    private static function stub_token($token, $prev) {
+        if ('(' === $token) {
+            return 'header' === $prev || T_EXIT === $prev;
+        }
+        if ('[' === $token) {
+            return T_VARIABLE === $prev;
+        }
+        if (!is_array($token)) {
+            return in_array($token, array(']', ')', '.', ',', ';'), true);
+        }
+        switch ($token[0]) {
+            case T_EXIT:
+            case T_LNUMBER:
+                return true;
+            case T_STRING:
+                return 'header' === strtolower($token[1]);
+            case T_VARIABLE:
+                return '$_SERVER' === $token[1];
+            default:
+                return self::plain($token);
+        }
+    }
+
+    /**
+     * Whether a token is a string literal that cannot redirect or add
+     * markup when sent: no `<`, and no "location" or "refresh".
+     *
+     * @param array{0:int,1:string,2:int} $token Token.
+     * @return bool
+     */
+    private static function plain(array $token) {
+        return T_CONSTANT_ENCAPSED_STRING === $token[0]
+            && false === strpos($token[1], '<')
+            && !preg_match('/location|refresh/i', $token[1]);
+    }
+
+    /**
+     * Whether a file has `<?` anywhere after an offset (`<?php`, `<?=`, or
+     * `<?` where short_open_tag is on), read in parts, never all at once.
+     * Unreadable, or longer than MAX_GUARDED_FILE: counted as found.
+     *
+     * @param string $file   Path.
+     * @param int    $offset Where to start.
+     * @return bool
+     */
+    private static function open_tag_after($file, $offset) {
+        $handle = fopen($file, 'rb'); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fopen -- read in parts, never run.
+        if (false === $handle) {
+            return true;
+        }
+        $found = 0 !== fseek($handle, $offset);
+        $read  = $offset;
+        $carry = '';
+        while (!$found && !feof($handle)) {
+            $chunk = fread($handle, 65536); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fread
+            if (false === $chunk) {
+                $found = true;
+                break;
+            }
+            $read += strlen($chunk);
+            $found = $read > self::MAX_GUARDED_FILE || false !== strpos($carry . $chunk, '<?');
+            $carry = (string) substr($chunk, -1);
+        }
+        fclose($handle); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fclose
+        return $found;
     }
 
     /**

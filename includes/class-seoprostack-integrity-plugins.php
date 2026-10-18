@@ -19,6 +19,9 @@ if (!defined('ABSPATH')) {
 
 class SEOProStack_Integrity_Plugins {
 
+    /** Largest translation cache (name.l10n.php) read to check it. */
+    const MAX_L10N_FILE = 1048576;
+
     /**
      * Check plugins one at a time, from where the last part stopped.
      *
@@ -135,12 +138,63 @@ class SEOProStack_Integrity_Plugins {
             $md5 = isset($sums[$path]) ? SEOProStack_Integrity_Wporg::matches($plugin['base'] . '/' . $path, $sums[$path]) : '';
             if ('' !== $md5) {
                 $matched[$path] = array($meta[0], $meta[1], $md5);
-            } elseif (isset($sums[$path]) || SEOProStack_Integrity_Files::is_php($path)) {
+            } elseif (isset($sums[$path]) || (SEOProStack_Integrity_Files::is_php($path) && !self::translation_cache($plugin['base'] . '/' . $path))) {
                 SEOProStack_Integrity_Scan::found_path($state, 'wporg', $plugin['label'] . $path);
             }
         }
         ksort($matched);
         return $matched;
+    }
+
+    /**
+     * Whether a file not in the checksums is a translation cache, as
+     * WordPress 6.5 and later (WP_Translation_File_PHP) write next to a .mo
+     * file: name.l10n.php beside name.mo, under MAX_L10N_FILE, holding only
+     * `return` and arrays of literal strings and numbers. Brackets may follow
+     * only `array`, so nothing can be called.
+     *
+     * @param string $file Path.
+     * @return bool
+     */
+    private static function translation_cache($file) {
+        if ('.l10n.php' !== strtolower(substr($file, -9)) || !function_exists('token_get_all') || !is_file(substr($file, 0, -9) . '.mo')) {
+            return false;
+        }
+        $size = filesize($file);
+        if (false === $size || $size > self::MAX_L10N_FILE) {
+            return false;
+        }
+        $prev = null;
+        foreach (token_get_all((string) file_get_contents($file)) as $token) { // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents -- a local file, read, never run.
+            if (is_array($token) && in_array($token[0], array(T_WHITESPACE, T_COMMENT, T_DOC_COMMENT), true)) {
+                continue;
+            }
+            if (!self::translation_token($token, $prev)) {
+                return false;
+            }
+            $prev = is_array($token) ? $token[0] : $token;
+        }
+        return true;
+    }
+
+    /**
+     * Whether a token may appear in a translation cache.
+     *
+     * @param array{0:int,1:string,2:int}|string $token Token.
+     * @param int|string|null                    $prev  The last token that was not whitespace or a comment.
+     * @return bool
+     */
+    private static function translation_token($token, $prev) {
+        if ('(' === $token) {
+            return T_ARRAY === $prev;
+        }
+        if (!is_array($token)) {
+            return in_array($token, array('[', ']', ')', ',', '.', ';'), true);
+        }
+        if (T_OPEN_TAG === $token[0]) {
+            return null === $prev;
+        }
+        return in_array($token[0], array(T_RETURN, T_ARRAY, T_DOUBLE_ARROW, T_CONSTANT_ENCAPSED_STRING, T_LNUMBER), true);
     }
 
     /**
