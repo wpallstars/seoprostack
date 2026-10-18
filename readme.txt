@@ -150,6 +150,7 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 
 = Unreleased =
 * Fix: Image Copytrack's missing admin script runtime.
+* Fix: Tutor LMS's admin body classes no longer join the preceding plugin's.
 * Fix: Tutor LMS's course builder is dark in Dark mode.
 
 = 1.3.54 =
