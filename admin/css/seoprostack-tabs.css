@@ -735,3 +735,81 @@ html:not(.sps-dark) body.sps-own-screen {
 		border-block-end: 1px solid var(--sps-border);
 	}
 }
+
+/*
+ * Dark mode on SEO Pro Stack's own screen. The screen takes its palette
+ * from seoprostack-theme.css (a core file); the whole-admin stylesheet
+ * stays off it (SEOProStack_Admin_Theme::seoprostack_dark_screen()), so
+ * this screen's own parts are coloured here: the Free Plugins tab's
+ * filter bar and WordPress's plugin cards (#fff, #f6f7f7), the directory
+ * cards and the watermark note.
+ */
+html.sps-dark .sps-wrap {
+	--sps-divider: var(--sps-ui-raised);
+	--sps-hover: var(--sps-ui-raised);
+	--sps-shadow: 0 1px 2px rgb(0 0 0 / 40%);
+}
+
+html.sps-dark :is(.sps-media__preview, .sps-watermark-note__mark) {
+	background: repeating-conic-gradient(var(--sps-ui-raised) 0% 25%, var(--sps-ui-surface) 0% 50%) 0 0 / 16px 16px;
+}
+
+html.sps-dark .sps-link-card:hover {
+	border-color: var(--sps-ui-field-border);
+	box-shadow: 0 2px 8px rgb(0 0 0 / 40%);
+}
+
+html.sps-dark .sps-wrap .sps-filter,
+html.sps-dark .sps-wrap .sps-plugins .plugin-card {
+	color: var(--sps-ui-text);
+	background: var(--sps-ui-surface);
+	border-color: var(--sps-ui-border);
+	box-shadow: none;
+}
+
+html.sps-dark .sps-wrap .sps-plugins .plugin-card-bottom {
+	color: var(--sps-ui-muted);
+	background: var(--sps-ui-raised);
+	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark .sps-wrap .sps-plugins .sps-plugin-removed .plugin-card-bottom {
+	background: rgb(219 166 23 / 12%);
+}
+
+html.sps-dark .sps-wrap .sps-plugins .plugin-card :is(.desc, .authors, .column-description p) {
+	color: inherit;
+}
+
+/* Core gives every filter link a 4px #fff bottom border (blending into its
+   white bar) and the admin theme colour on hover, both wrong on dark. */
+html.sps-dark .sps-wrap .sps-filter .filter-links li > a {
+	color: var(--sps-ui-muted);
+	border-bottom-color: var(--sps-ui-surface);
+}
+
+html.sps-dark .sps-wrap .sps-filter .filter-links li > a:is(:hover, :focus) {
+	color: var(--sps-ui-text);
+}
+
+html.sps-dark .sps-wrap .sps-filter .filter-links li > a.current {
+	color: var(--sps-ui-text);
+	border-bottom-color: var(--sps-ui-accent);
+}
+
+html.sps-dark .sps-wrap .sps-removed-icon,
+html.sps-dark .sps-wrap .sps-go-pro::before {
+	color: var(--sps-ui-warning);
+}
+
+html.sps-dark .sps-wrap .sps-plugins .button.sps-uninstall {
+	color: var(--sps-ui-bad);
+	background: transparent;
+	border-color: currentcolor;
+}
+
+html.sps-dark .sps-wrap .sps-plugins .button.sps-uninstall:is(:hover, :focus) {
+	color: var(--sps-ui-canvas);
+	background: var(--sps-ui-bad);
+	border-color: var(--sps-ui-bad);
+}

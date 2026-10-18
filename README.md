@@ -1795,6 +1795,7 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folder�
 - New: Verified cloud media bucket handover with `adopt`, `migrate`, previous-destination serving and restore, explicit cleanup, status counts and a handover procedure for people and agents (GitHub issue #816).
 - Fix: Cloud media cleanup resumes verification across batches and ignores empty inventories; status reads inventories in bounded bulk queries, and local images keep non-ASCII filenames in `srcset` metadata.
 - Fix: Kadence Pro’s dark mode switches without a flash: icons, buttons and links change colour with the page instead of fading from the old colours, and cached pages open in the visitor’s chosen mode instead of light first (GitHub issue #822).
+- Fix: Dark mode in wp-admin covers SEO Pro Stack's Free Plugins cards, Redux option panels (Kadence Simple Social Share), Super Speedy and Scalability Pro, FluentCRM's Search contacts menu, Tutor LMS's course status menus and empty state, and errors inside dialogs such as View details (GitHub issue #824).
 
 ### 1.3.53
 - New, off by default: **Remove local copies after upload** (Media in cloud storage) deletes an uploaded picture's local files once the bucket confirms each one, and `wp seoprostack media-storage restore` brings them back byte for byte; they also come back just in time for editing, size regeneration, WebP and AVIF conversion and watermarking, and in the background when removal or the feature is switched off (GitHub issue #809).
