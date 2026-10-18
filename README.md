@@ -24,7 +24,7 @@ SEO Pro Stack does the jobs that usually take dozens of small plugins: a calmer,
 
 If this saves you time, headaches and costs, feel free to [buy me a coffee](https://buymeacoffee.com/marcusquinn), or whatever you like, to invest in making more things open-source.
 
-Version: 1.3.56
+Version: 1.3.57
 
 <!-- github-only:start -->
 ## Screenshots
@@ -1858,6 +1858,9 @@ Deleting the plugin removes its settings (on multisite, every site's and the net
 Deactivating the plugin removes the WebP and AVIF rules from the uploads folder’s `.htaccess` (for every site when network-deactivated), the LiteSpeed background request rules from the site’s `.htaccess` (on multisite, when network-deactivated or deactivated on the main site) and the must-use file of Load plugins only where needed (on multisite, when network-deactivated).
 
 ## Changelog
+
+### 1.3.57
+- New, off by default: **Known vulnerabilities from Wordfence Intelligence** (Security). With a free API key in `wp-config.php`, the site downloads Wordfence's vulnerability feed once a day and matches it on the server against every installed plugin, theme and the WordPress version, including premium plugins and malicious releases the free databases miss. Matches show in Known vulnerabilities and Site Health, linked to each record with the fixing version, and new matches are emailed once. Sites on one server sharing a key share one download through `SEOPROSTACK_WORDFENCE_FEED_DIR` (GitHub issue #837).
 
 ### 1.3.56
 - New, off by default: **File and account integrity checks** (Security) compare WordPress core files and WordPress.org plugins with WordPress.org's checksums, other plugins with a record kept at install or update, and look for PHP in uploads and new administrators, once a day as four Site Health tests. New findings are emailed once; nothing is changed (GitHub issue #836).
