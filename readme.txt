@@ -5,7 +5,7 @@ Tags: magic login, iframe, schedule posts, auto upload images, admin
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.3.57
+Stable tag: 1.3.58
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -21,7 +21,7 @@ Safe features start on; others stay off. **Settings → SEO Pro Stack** has **Se
 
 = A calmer, faster admin =
 
-* **Light, Dark or System**: per-person wp-admin colour mode, from the admin bar or settings header. Dark covers plugins' and themes' screens with stylesheet copies in uploads/seoprostack-dark, deleted on deactivation.
+* **Light, Dark or System**: per-person wp-admin colour mode. Dark covers plugins' and themes' screens with copies in uploads/seoprostack-dark, deleted on deactivation.
 * **Developer admins**: choose who manages plugins, themes, admins and site addresses.
 * **Organise the admin menu**: sections, role previews and contributor menus.
 * **Tidy the dashboard**, **Dashboard and sidebar widgets**, **Hide admin notices** and **More menu**.
@@ -38,7 +38,7 @@ Safe features start on; others stay off. **Settings → SEO Pro Stack** has **Se
 * **Minimum password length**: 12 characters for new passwords, on by default.
 * **Known vulnerabilities**: from the free WPVulnerability plugin, or Wordfence Intelligence (off).
 * **File and account integrity checks**: core and plugin files, uploaded PHP, new admins.
-* **HTTPS check**: certificate, TLS and HSTS in Site Health; SSL Labs link.
+* **HTTPS check**: certificate, TLS and HSTS in Site Health.
 * **Maintenance mode**: a 503 page with revocable 24-hour bypass links.
 
 = Writing and publishing =
@@ -50,7 +50,7 @@ Safe features start on; others stay off. **Settings → SEO Pro Stack** has **Se
 * **Custom fields to content**: ACF/SCF text to content and excerpts.
 * **Restrict content** by membership or role. **Menu item visibility** by login or role.
 * **iFrame block**, **Link cards**, **Wikipedia previews**, **Word documents**, **Brand icons** and **Like, save and share**.
-* **Shortlist and Saved panel**: separate Shortlist, Saved and Liked lists; header panel, blocks and shortcodes.
+* **Shortlist and Saved panel**: Shortlist, Saved and Liked lists.
 * **Spectra block replacements**, **TranslatePress colours** and **Kadence query filters**.
 * **WP Grid Builder colours**: cards and facets follow Kadence dark mode.
 * **Kadence colour check**: moves hard-to-read Customizer colours to the palette, with Restore.
@@ -59,11 +59,11 @@ Safe features start on; others stay off. **Settings → SEO Pro Stack** has **Se
 
 * **Copy linked images to Media Library** on save, and **Paste into the Media Library**.
 * **WebP and AVIF images**: smaller files at the same address.
-* **Media in cloud storage** (off): uploads pictures, sizes, WebP and AVIF copies; can remove and restore local copies. Picture mode uses bucket AVIF.
+* **Media in cloud storage** (off): uploads pictures and their copies; can remove and restore local copies.
 * **Resize large uploads**, **Replace media files** and **Watermark pictures**, keeping originals.
 * **SVG uploads**: cleaned, chosen roles only. **Dark mode image contrast** for logos.
 * **Website screenshots**: block and `[browser-shot]` shortcode.
-* **Avatars without Gravatar**: served locally; profile pictures up to 5 MB.
+* **Avatars without Gravatar**: served locally.
 
 = Links and speed =
 
@@ -99,7 +99,7 @@ The WordPress.org version has no affiliate links. In GitHub builds, some Discove
 * **S3-compatible storage**: opted-in batches send pictures and signed requests to your endpoint; tests send a probe. Visitors read pictures publicly. [Cloudflare terms](https://www.cloudflare.com/terms/), [privacy](https://www.cloudflare.com/policies/privacy/); [AWS terms](https://aws.amazon.com/serviceterms/), [privacy](https://aws.amazon.com/privacy/). Other providers' policies apply.
 * **WordPress.org** (api.wordpress.org): lists plugins and Kadence on their tabs. [Privacy](https://wordpress.org/about/privacy/).
 * **Wordfence Intelligence** (www.wordfence.com): opt-in daily feed download, sending only your API key. [Terms](https://www.wordfence.com/wordfence-intelligence-terms-and-conditions/), [privacy](https://www.wordfence.com/privacy-policy/).
-* **Google Analytics** (www.googletagmanager.com): when enabled with a measurement ID, browsers load gtag.js and send Google page views under its privacy policy. Logged-in users are excluded.
+* **Google Analytics** (www.googletagmanager.com): with a measurement ID, browsers load gtag.js and send page views to Google under its privacy policy; not for logged-in users.
 * **Screenshot services**: when enabled, your server sends page addresses for screenshots; visitors do not contact them.
 * **Thum.io** (image.thum.io), the default: see [Thum.io](https://www.thum.io/).
 * **Microlink** (api.microlink.io, or pro.microlink.io with a key): [terms](https://microlink.io/tos), [privacy policy](https://microlink.io/privacy).
@@ -113,7 +113,7 @@ Other chosen addresses: Copy linked images downloads linked images; Link cards d
 
 = Built with AI =
 
-Built with [aidevops](https://aidevops.sh), the developer's free, open-source AI harness. [Source](https://github.com/marcusquinn/aidevops). Ask it questions; it reads the plugin's docs and code.
+Built with [aidevops](https://aidevops.sh), the developer's free, open-source AI harness. [Source](https://github.com/marcusquinn/aidevops).
 
 Made from WP Plugin Starter (https://github.com/wpallstars/wp-plugin-starter-template-for-ai-coding).
 
@@ -151,10 +151,10 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 
 == Changelog ==
 
-= Unreleased =
-* New: Shortlist button, Saved panel and Liked list; extension hooks and API.
-
-= 1.3.57 =
-* New: Wordfence Intelligence vulnerability feed (off).
+= 1.3.58 =
+* New: Shortlist, Saved panel and Liked list.
+* Fix: Integrity checks skip files that cannot run code.
+* Fix: Wordfence feed needs 1,000 records.
+* Fix: Fluent Forms placeholders paler than text.
 
 Older: `changelog.txt`.
