@@ -23,6 +23,15 @@
 			return el(element.Fragment, null,
 				el(blockEditor.InspectorControls, null,
 					el(components.PanelBody, { title: __('Saved posts', 'seoprostack') },
+						el(components.SelectControl, {
+							label: __('List', 'seoprostack'), value: a.list || 'saved',
+							options: [
+								{ label: __('Saved', 'seoprostack'), value: 'saved' },
+								{ label: __('Liked', 'seoprostack'), value: 'liked' },
+								{ label: __('Shortlist', 'seoprostack'), value: 'shortlist' }
+							],
+							onChange: function (v) { set({ list: v }); }
+						}),
 						el(components.ToggleControl, { label: __('Show excerpts', 'seoprostack'), checked: a.showExcerpt, onChange: function (v) { set({ showExcerpt: v }); } }),
 						el(components.ToggleControl, { label: __('Show Remove buttons', 'seoprostack'), checked: a.showRemove, onChange: function (v) { set({ showRemove: v }); } }),
 						el(components.TextControl, {
@@ -41,7 +50,7 @@
 							a.showRemove ? el('button', { type: 'button', className: 'sps-reactions__button sps-saved__remove', disabled: true }, __('Remove', 'seoprostack')) : null
 						);
 					})),
-					el('p', { className: 'sps-saved__note' }, __('Each visitor sees the posts they saved.', 'seoprostack'))
+					el('p', { className: 'sps-saved__note' }, __('Each visitor sees their own selected list.', 'seoprostack'))
 				)
 			);
 		},

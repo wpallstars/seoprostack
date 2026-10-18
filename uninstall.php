@@ -318,6 +318,7 @@ function seoprostack_uninstall_site() {
     delete_post_meta_by_key('_seoprostack_likes');
     delete_metadata('user', 0, $wpdb->get_blog_prefix() . 'seoprostack_saved', '', true);
     delete_metadata('user', 0, $wpdb->get_blog_prefix() . 'seoprostack_liked', '', true);
+    delete_metadata('user', 0, $wpdb->get_blog_prefix() . 'seoprostack_shortlist', '', true);
 
     // Shareable preview links stop working; staged versions and duplicates
     // become ordinary drafts and posts.
