@@ -24,7 +24,7 @@ SEO Pro Stack does the jobs that usually take dozens of small plugins: a calmer,
 
 If this saves you time, headaches and costs, feel free to [buy me a coffee](https://buymeacoffee.com/marcusquinn), or whatever you like, to invest in making more things open-source.
 
-Version: 1.3.54
+Version: 1.3.55
 
 <!-- github-only:start -->
 ## Screenshots
@@ -1791,7 +1791,7 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folder�
 
 ## Changelog
 
-### Unreleased
+### 1.3.55
 - Fix: Image Copytrack's admin script loads its missing generator runtime first, preventing “regeneratorRuntime is not defined” on Add Plugins, View details and other admin screens (GitHub issue #829).
 - Fix: **Fixes for other plugins** keeps Tutor LMS's admin body classes separate from the preceding plugin's, so Tutor LMS and Secure Custom Fields styles apply (GitHub issue #828).
 - Fix: Tutor LMS's course builder is dark in Dark mode, with its steps, menus, lesson and quiz dialogs, logo and editor toolbar; it no longer keeps its own light look (GitHub issue #830).
