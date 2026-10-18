@@ -199,7 +199,8 @@ readable (about 5.5:1 on Kadence's light palette, 9:1 on its dark one) yet
 visibly lighter than typed text, so an empty field is not taken for a filled
 one. Never give placeholders the typed text's own colour. Do not start from
 decorative palette 6: alone it is 4.02:1 on white. Without `color-mix()`
-support the placeholder falls back to palette 4 (`#606266`: 6.11:1 on white).
+support the placeholder falls back to muted palette 5 (7.53:1 on Kadence's
+white; `#606266`, 6.11:1, without the palette).
 Check the site's actual light and dark palettes; custom colours still need
 verification.
 

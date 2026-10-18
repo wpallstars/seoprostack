@@ -74,7 +74,8 @@ body :is(.fluentform, .frm-fluent-form) .ff-el-form-control:focus {
 }
 body :is(.fluentform, .frm-fluent-form) .ff-el-form-control::placeholder,
 body :is(.fluentform, .frm-fluent-form) .choices__input::placeholder {
-    color: var(--global-palette4, #606266);
+    /* Without color-mix(): Kadence's muted text, 7.5:1 on its light palette. */
+    color: var(--global-palette5, #606266);
     /* The input's text faded towards the field, so a placeholder reads but is
        not taken for a value: about 5.5:1 on Kadence's light palette. */
     color: color-mix(in srgb, var(--global-palette4, #2d3748) 75%, var(--global-palette9, #fff));
