@@ -1047,8 +1047,8 @@ JS;
             foreach ($callbacks as $callback) {
                 $function = $callback['function'];
                 if (!is_array($function) || !isset($function[0], $function[1])
-                    || !$function[0] instanceof \TUTOR\Assets
-                    || 'add_identifier_class_to_body' !== $function[1]) {
+                    || !is_object($function[0]) || !is_a($function[0], 'TUTOR\Assets')
+                    || 'add_identifier_class_to_body' !== $function[1] || !is_callable($function)) {
                     continue;
                 }
                 remove_filter('admin_body_class', $function, $priority);
