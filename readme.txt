@@ -5,7 +5,7 @@ Tags: magic login, iframe, schedule posts, auto upload images, admin
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.3.56
+Stable tag: 1.3.57
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -21,7 +21,7 @@ Safe features start on; others stay off. **Settings → SEO Pro Stack** has **Se
 
 = A calmer, faster admin =
 
-* **Light, Dark or System**: per-person wp-admin colour mode, from the admin bar or settings header (network settings too). Dark covers plugins' and themes' screens with stylesheet copies in uploads/seoprostack-dark, deleted on deactivation.
+* **Light, Dark or System**: per-person wp-admin colour mode, from the admin bar or settings header. Dark covers plugins' and themes' screens with stylesheet copies in uploads/seoprostack-dark, deleted on deactivation.
 * **Developer admins**: choose who manages plugins, themes, admins and site addresses.
 * **Organise the admin menu**: sections, role previews and contributor menus.
 * **Tidy the dashboard**, **Dashboard and sidebar widgets**, **Hide admin notices** and **More menu**.
@@ -52,13 +52,13 @@ Safe features start on; others stay off. **Settings → SEO Pro Stack** has **Se
 * **iFrame block**, **Link cards**, **Wikipedia previews**, **Word documents**, **Brand icons** and **Like, save and share**.
 * **Spectra block replacements**, **TranslatePress colours** and **Kadence query filters**.
 * **WP Grid Builder colours**: cards and facets follow Kadence dark mode.
-* **Kadence colour check**: Site Health moves hard-to-read Customizer colours to the palette, with Restore.
+* **Kadence colour check**: moves hard-to-read Customizer colours to the palette, with Restore.
 
 = Media =
 
 * **Copy linked images to Media Library** on save, and **Paste into the Media Library**.
 * **WebP and AVIF images**: smaller files at the same address.
-* **Media in cloud storage** (off): uploads pictures, sizes, WebP and AVIF copies; can remove and restore local copies. Picture mode offers bucket AVIF sources.
+* **Media in cloud storage** (off): uploads pictures, sizes, WebP and AVIF copies; can remove and restore local copies. Picture mode uses bucket AVIF.
 * **Resize large uploads**, **Replace media files** and **Watermark pictures**, keeping originals.
 * **SVG uploads**: cleaned, chosen roles only. **Dark mode image contrast** for logos.
 * **Website screenshots**: block and `[browser-shot]` shortcode.
@@ -99,13 +99,13 @@ The WordPress.org version has no affiliate links. In GitHub builds, some Discove
 * **WordPress.org** (api.wordpress.org): lists plugins and Kadence on their tabs. [Privacy](https://wordpress.org/about/privacy/).
 * **Wordfence Intelligence** (www.wordfence.com): opt-in daily feed download, sending only your API key. [Terms](https://www.wordfence.com/wordfence-intelligence-terms-and-conditions/), [privacy](https://www.wordfence.com/privacy-policy/).
 * **Google Analytics** (www.googletagmanager.com): when enabled with a measurement ID, browsers load gtag.js and send Google page views under its privacy policy. Logged-in users are excluded.
-* **Screenshot services**: when enabled, your server sends page addresses to make screenshots; visitors do not contact them.
+* **Screenshot services**: when enabled, your server sends page addresses for screenshots; visitors do not contact them.
 * **Thum.io** (image.thum.io), the default: see [Thum.io](https://www.thum.io/).
 * **Microlink** (api.microlink.io, or pro.microlink.io with a key): [terms](https://microlink.io/tos), [privacy policy](https://microlink.io/privacy).
 * **ApiFlash** (api.apiflash.com): [terms](https://apiflash.com/terms_of_service), [privacy policy](https://apiflash.com/privacy_policy).
 * **Screenshot Machine** (api.screenshotmachine.com): [terms](https://www.screenshotmachine.com/termsandconditions.php), [privacy policy](https://www.screenshotmachine.com/privacypolicy.php).
 * **Wikipedia** (*.wikipedia.org): Wikipedia previews load in the visitor’s browser when opened. [Privacy policy](https://foundation.wikimedia.org/wiki/Policy:Privacy_policy).
-* **Linked websites**: opted-in health checks contact public addresses in cached background batches, without queries or visitor data; their privacy policies apply. Clicks stay on this site as daily totals for 90 days, without cookies or visitor IDs.
+* **Linked websites**: opted-in health checks contact public addresses in cached batches, without queries or visitor data; their privacy policies apply. Clicks stay on this site as daily totals for 90 days, without cookies or visitor IDs.
 * **GitHub** (github.com, api.github.com), GitHub builds only: checks named repositories up to twice daily for releases; no site data sent. [Privacy](https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement).
 
 Other chosen addresses: Copy linked images downloads linked images; Link cards downloads page pictures; iFrames load embedded pages. Short-link counts set a year-long cookie (`sps_link_` plus the link ID, holding “1”); totals only, no IP addresses. No other data is sent.
@@ -150,9 +150,7 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 
 == Changelog ==
 
-= 1.3.56 =
-* New: File and account integrity checks (off by default).
-* New: WPVulnerability preset, with daily email.
-* Fix: Known vulnerabilities skips components hidden in WPVulnerability.
+= 1.3.57 =
+* New: Wordfence Intelligence vulnerability feed (off).
 
 Older: `changelog.txt`.
