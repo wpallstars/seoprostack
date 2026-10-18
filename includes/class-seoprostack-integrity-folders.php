@@ -292,7 +292,7 @@ class SEOProStack_Integrity_Folders {
             return 'header' === $prev || T_EXIT === $prev;
         }
         if ('[' === $token) {
-            return T_VARIABLE === $prev;
+            return false; // Only straight after $_SERVER, above.
         }
         if (!is_array($token)) {
             return in_array($token, array(']', ')', '.', ',', ';'), true);
@@ -312,17 +312,18 @@ class SEOProStack_Integrity_Folders {
 
     /**
      * Whether a token is a string literal that cannot redirect or add
-     * markup when sent: no `<`, no "location" or "refresh", and no escapes
-     * in double quotes (such as "\x3c", which is `<`).
+     * markup when sent, even joined to others: only letters, digits, spaces
+     * and `. , ! ? _ / -`, in single or double quotes (an optional b
+     * prefix allowed). With no colon no header name can be formed (such
+     * as 'Loc' . 'ation: …'), and with no backslash, `<` or quote there is
+     * no escape or markup (such as "\x3c", which is `<`).
      *
      * @param array{0:int,1:string,2:int} $token Token.
      * @return bool
      */
     private static function plain(array $token) {
         return T_CONSTANT_ENCAPSED_STRING === $token[0]
-            && false === strpos($token[1], '<')
-            && ('"' !== $token[1][0] || false === strpos($token[1], '\\'))
-            && !preg_match('/location|refresh/i', $token[1]);
+            && 1 === preg_match('/^[bB]?(?:\'[A-Za-z0-9 .,!?_\/-]*\'|"[A-Za-z0-9 .,!?_\/-]*")$/', $token[1]);
     }
 
     /**
