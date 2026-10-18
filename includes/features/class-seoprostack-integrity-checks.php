@@ -813,7 +813,7 @@ class SEOProStack_Integrity_Checks extends SEOProStack_Feature {
             $files = $extra['plugins'];
         } elseif (!empty($extra['plugin'])) {
             $files = array($extra['plugin']);
-        } elseif ($upgrader instanceof Plugin_Upgrader) {
+        } elseif (is_object($upgrader) && method_exists($upgrader, 'plugin_info')) {
             $info  = $upgrader->plugin_info();
             $files = $info ? array($info) : array();
         }
