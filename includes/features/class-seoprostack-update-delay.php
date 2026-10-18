@@ -14,6 +14,8 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
+require_once dirname(__DIR__) . '/class-seoprostack-update-offers.php';
+
 class SEOProStack_Update_Delay extends SEOProStack_Feature {
 
     const KEY = 'update_delay';
@@ -57,8 +59,8 @@ class SEOProStack_Update_Delay extends SEOProStack_Feature {
         if (!self::enabled()) {
             return;
         }
-        add_action('set_site_transient_update_plugins', array(__CLASS__, 'record_plugins'));
-        add_action('set_site_transient_update_themes', array(__CLASS__, 'record_themes'));
+        add_action('set_site_transient_update_plugins', array('SEOProStack_Update_Offers', 'record_plugins'));
+        add_action('set_site_transient_update_themes', array('SEOProStack_Update_Offers', 'record_themes'));
         add_filter('auto_update_plugin', array(__CLASS__, 'filter_plugin'), PHP_INT_MAX, 2);
         add_filter('auto_update_theme', array(__CLASS__, 'filter_theme'), PHP_INT_MAX, 2);
         add_filter('plugin_auto_update_setting_html', array(__CLASS__, 'plugin_note'), 10, 3);
@@ -77,78 +79,6 @@ class SEOProStack_Update_Delay extends SEOProStack_Feature {
         return max(0, min(336, (int) SEOProStack_Settings::get('update_delay_hours')));
     }
 
-    /** @return array */
-    private static function records() {
-        $records = is_multisite() ? get_site_option(self::OPTION, array()) : get_option(self::OPTION, array());
-        return is_array($records) ? $records : array();
-    }
-
-    /** @param array $records First-seen times, separated by update type. */
-    private static function save($records) {
-        if (is_multisite()) {
-            update_site_option(self::OPTION, $records);
-        } else {
-            update_option(self::OPTION, $records, false);
-        }
-    }
-
-    /** @param mixed $value Update transient. */
-    public static function record_plugins($value) {
-        self::record('plugin', $value);
-    }
-
-    /** @param mixed $value Update transient. */
-    public static function record_themes($value) {
-        self::record('theme', $value);
-    }
-
-    /**
-     * Keep times stable across checks, pruning removed or installed releases.
-     * Plugin basenames (not vendor slugs) also identify private plugins reliably.
-     *
-     * @param string $type Plugin or theme.
-     * @param mixed  $value Update transient.
-     */
-    private static function record($type, $value) {
-        if (!is_object($value) || !isset($value->response) || !is_array($value->response)) {
-            return;
-        }
-        $installed = array();
-        if ('plugin' === $type) {
-            if (!function_exists('get_plugins')) {
-                require_once ABSPATH . 'wp-admin/includes/plugin.php';
-            }
-            foreach (get_plugins() as $slug => $data) {
-                $installed[$slug] = $data['Version'];
-            }
-        } else {
-            foreach (wp_get_themes() as $slug => $theme) {
-                $installed[$slug] = $theme->get('Version');
-            }
-        }
-        $records = self::records();
-        $times = isset($records[$type]) && is_array($records[$type]) ? $records[$type] : array();
-        foreach ($times as $key => $seen) {
-            $parts = explode('|', (string) $key, 2);
-            if (2 !== count($parts) || !isset($installed[$parts[0]]) || version_compare($installed[$parts[0]], $parts[1], '>=')) {
-                unset($times[$key]);
-            }
-        }
-        foreach ($value->response as $slug => $item) {
-            $item = (object) $item;
-            if (!isset($installed[$slug], $item->new_version) || !is_string($item->new_version)
-                || !version_compare($item->new_version, $installed[$slug], '>')) {
-                continue;
-            }
-            $key = $slug . '|' . $item->new_version;
-            if (!isset($times[$key]) || !is_int($times[$key]) || $times[$key] <= 0 || $times[$key] > time()) {
-                $times[$key] = time();
-            }
-        }
-        $records[$type] = $times;
-        self::save($records);
-    }
-
     /**
      * A missing/corrupt record starts a fresh hold, including cached offers from
      * before the feature was enabled. No release date supplied by a vendor is trusted.
@@ -158,22 +88,10 @@ class SEOProStack_Update_Delay extends SEOProStack_Feature {
      * @return int Hold deadline, or zero when not held.
      */
     private static function held_until($type, $item) {
-        if (self::bypass() || !is_object($item) || !isset($item->new_version, $item->$type)
-            || !is_string($item->new_version) || !is_string($item->$type)) {
+        if (self::bypass()) {
             return 0;
         }
-        $records = self::records();
-        $times = isset($records[$type]) && is_array($records[$type]) ? $records[$type] : array();
-        $key = $item->$type . '|' . $item->new_version;
-        $seen = $times[$key] ?? null;
-        if (!is_int($seen) || $seen <= 0 || $seen > time()) {
-            $seen = time();
-            $times[$key] = $seen;
-            $records[$type] = $times;
-            self::save($records);
-        }
-        $until = $seen + self::hours() * HOUR_IN_SECONDS;
-        return $until > time() ? $until : 0;
+        return SEOProStack_Update_Offers::deadline($type, $item, self::hours());
     }
 
     /**
@@ -234,11 +152,7 @@ class SEOProStack_Update_Delay extends SEOProStack_Feature {
             if (!current_user_can($transient)) {
                 continue;
             }
-            $updates = get_site_transient($transient);
-            if (!is_object($updates) || !isset($updates->response) || !is_array($updates->response)) {
-                continue;
-            }
-            foreach ($updates->response as $slug => $offer) {
+            foreach (SEOProStack_Update_Offers::response(get_site_transient($transient)) as $slug => $offer) {
                 $item = (object) $offer;
                 $item->$type = $slug;
                 $until = self::held_until($type, $item);
