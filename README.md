@@ -24,7 +24,7 @@ SEO Pro Stack does the jobs that usually take dozens of small plugins: a calmer,
 
 If this saves you time, headaches and costs, feel free to [buy me a coffee](https://buymeacoffee.com/marcusquinn), or whatever you like, to invest in making more things open-source.
 
-Version: 1.3.58
+Version: 1.3.59
 
 <!-- github-only:start -->
 ## Screenshots
@@ -1867,8 +1867,9 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folderâ
 
 ## Changelog
 
-### Unreleased
+### 1.3.59
 - Docs: Dark mode's coverage summary names Free Plugins cards and filters, Redux panels, Super Speedy and Scalability Pro, FluentCRM's Search contacts, Tutor LMS's status menus and empty state, and dialog errors (GitHub issue #856).
+- Docs: the 1.3.53 changelog records its **Kadence colour check** fix for blank custom CSS source names (GitHub issue #861).
 
 ### 1.3.58
 - New: **Like, save and share** has a separate 50-post **Shortlist**, an Add to shortlist block and shortcode, and a **Saved** panel with Shortlist, Saved and Liked tabs. Pages hold no personal list data; filters and a JavaScript API let other plugins extend the panel (GitHub issue #851).
