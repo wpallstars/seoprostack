@@ -37,7 +37,7 @@ Safe features start on; others stay off. **Settings → SEO Pro Stack** has **Se
 * **Turn off unused remote access**: XML-RPC, application passwords and exposed files.
 * **Minimum password length**: 12 characters for new passwords, on by default.
 * **Known vulnerabilities**: shows what the free WPVulnerability plugin finds.
-* **File and account integrity checks**: core and plugin checksums, uploaded PHP and new administrators, daily, in Site Health.
+* **File and account integrity checks**: core and plugin files, uploaded PHP, new admins.
 * **HTTPS check**: certificate, TLS and HSTS in Site Health; SSL Labs link.
 * **Maintenance mode**: a 503 page with revocable 24-hour bypass links.
 
