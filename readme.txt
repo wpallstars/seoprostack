@@ -97,7 +97,7 @@ The WordPress.org version has no affiliate links. In GitHub builds, some Discove
 
 * **S3-compatible storage**: opted-in batches send pictures and signed requests to your endpoint; tests send a probe. Visitors read pictures publicly. [Cloudflare terms](https://www.cloudflare.com/terms/), [privacy](https://www.cloudflare.com/policies/privacy/); [AWS terms](https://aws.amazon.com/serviceterms/), [privacy](https://aws.amazon.com/privacy/). Other providers' policies apply.
 * **WordPress.org** (api.wordpress.org): lists plugins and Kadence on their tabs. [Privacy](https://wordpress.org/about/privacy/).
-* **Wordfence Intelligence** (www.wordfence.com): opt-in daily feed download, sending only your API key. [Terms](https://www.wordfence.com/wordfence-intelligence-terms-and-conditions/).
+* **Wordfence Intelligence** (www.wordfence.com): opt-in daily feed download, sending only your API key. [Terms](https://www.wordfence.com/wordfence-intelligence-terms-and-conditions/), [privacy](https://www.wordfence.com/privacy-policy/).
 * **Google Analytics** (www.googletagmanager.com): when enabled with a measurement ID, browsers load gtag.js and send Google page views under its privacy policy. Logged-in users are excluded.
 * **Screenshot services**: when enabled, your server sends page addresses to make screenshots; visitors do not contact them.
 * **Thum.io** (image.thum.io), the default: see [Thum.io](https://www.thum.io/).
