@@ -19,7 +19,12 @@
 	var t = cfg.i18n;
 	var KEY_LIKED = 'seoprostack-liked-' + cfg.site;
 	var KEY_SAVED = 'seoprostack-saved-' + cfg.site;
-	var state = { user: false, nonce: '', liked: [], saved: [] };
+	var KEY_SHORTLIST = 'seoprostack-shortlist-' + cfg.site;
+	var KEY_SYNC = 'seoprostack-lists-sync-' + cfg.site;
+	var keys = { liked: KEY_LIKED, saved: KEY_SAVED, shortlist: KEY_SHORTLIST };
+	var state = { user: false, nonce: '', liked: [], saved: [], shortlist: [] };
+	var selected = [];
+	var queue = Promise.resolve();
 
 	function all(selector, root) {
 		return Array.prototype.slice.call((root || document).querySelectorAll(selector));
@@ -118,23 +123,52 @@
 
 	function showAll() {
 		all('[data-sps-reactions]').forEach(showGroup);
+		all('[data-sps-shortlist]').forEach(function (button) {
+			var on = has(state.shortlist, Number(button.getAttribute('data-sps-shortlist')));
+			button.setAttribute('aria-pressed', String(on));
+			button.querySelector('.sps-reactions__label').textContent = on ? t.shortlisted : t.shortlist;
+		});
+		all('[data-sps-shortlist-count]').forEach(function (node) {
+			node.textContent = format(state.shortlist.length);
+		});
 		all('[data-sps-saved-count]').forEach(function (node) {
 			node.textContent = format(state.saved.length);
 		});
 	}
 
-	function fillList(box) {
-		var data = { types: box.getAttribute('data-types') || '' };
-		if (!state.user) {
-			data.posts = state.saved.join(',');
+	function changed() {
+		selected = selected.filter(function (id) { return has(state.shortlist, id); });
+		showAll();
+		document.dispatchEvent(new CustomEvent('seoprostack:lists', { detail: {
+			user: state.user, liked: state.liked.slice(), saved: state.saved.slice(), shortlist: state.shortlist.slice()
+		} }));
+	}
+
+	function safeUrl(value) {
+		try {
+			var url = new window.URL(value, window.location.href);
+			return /^https?:$/.test(url.protocol) ? url.href : '';
+		} catch (e) {
+			return '';
 		}
-		var request = state.user || state.saved.length ? send('list', data) : Promise.resolve({ items: [] });
+	}
+
+	function fillList(box) {
+		var which = box.getAttribute('data-list') || 'saved';
+		var data = { which: which, types: box.getAttribute('data-types') || '' };
+		var revision = (box.spsRevision || 0) + 1;
+		box.spsRevision = revision;
+		if (!state.user) {
+			data.posts = state[which].join(',');
+		}
+		var request = state[which].length ? send('list', data) : Promise.resolve({ items: [] });
 		return request.then(function (res) {
+			if (box.spsRevision !== revision) { return; }
 			box.textContent = '';
 			if (!res.items.length) {
 				var empty = document.createElement('p');
 				empty.className = 'sps-saved__empty';
-				empty.textContent = box.getAttribute('data-empty') || t.none;
+				empty.textContent = box.getAttribute('data-empty') || (which === 'saved' ? t.none : t.emptyList);
 				box.appendChild(empty);
 				return;
 			}
@@ -143,11 +177,34 @@
 			res.items.forEach(function (item) {
 				var li = document.createElement('li');
 				li.className = 'sps-saved__item';
+				if (which === 'shortlist' && box.closest('[data-sps-panel]')) {
+					var check = document.createElement('input');
+					check.type = 'checkbox';
+					check.setAttribute('data-sps-select', item.id);
+					check.setAttribute('aria-label', item.title);
+					check.checked = has(selected, Number(item.id));
+					li.appendChild(check);
+				}
+				if (item.image && safeUrl(item.image)) {
+					var image = document.createElement('img');
+					image.src = safeUrl(item.image);
+					image.alt = '';
+					image.loading = 'lazy';
+					image.width = 64;
+					image.height = 64;
+					li.appendChild(image);
+				}
 				var a = document.createElement('a');
 				a.className = 'sps-saved__link';
-				a.href = item.url;
+				a.href = safeUrl(item.url);
 				a.textContent = item.title;
 				li.appendChild(a);
+				(item.meta || []).slice(0, 3).forEach(function (line) {
+					var meta = document.createElement('p');
+					meta.className = 'sps-saved__excerpt';
+					meta.textContent = line;
+					li.appendChild(meta);
+				});
 				if (box.getAttribute('data-excerpts') === '1' && item.excerpt) {
 					var p = document.createElement('p');
 					p.className = 'sps-saved__excerpt';
@@ -166,7 +223,7 @@
 			});
 			box.appendChild(list);
 		}, function () {
-			box.textContent = t.failed;
+			if (box.spsRevision === revision) { box.textContent = t.failed; }
 		});
 	}
 
@@ -176,44 +233,35 @@
 
 	/* ----- Changes ----- */
 
-	function like(group) {
-		var id = Number(group.getAttribute('data-sps-reactions'));
-		var on = !has(state.liked, id);
-		state.liked = on ? state.liked.concat([id]) : without(state.liked, id);
-		if (!state.user) {
-			write(KEY_LIKED, state.liked);
+	function toggle(which, id, on, group) {
+		if (!Object.prototype.hasOwnProperty.call(keys, which) || !Number.isInteger(Number(id)) || Number(id) < 1) {
+			return Promise.reject(new Error('invalid list or post'));
 		}
-		showAll();
-		send('like', { post: id, on: on ? '1' : '0' }).then(function (res) {
-			showCount(id, res.count);
-		}, function () {
-			state.liked = on ? without(state.liked, id) : state.liked.concat([id]);
-			if (!state.user) {
-				write(KEY_LIKED, state.liked);
-			}
-			showAll();
-			say(group, t.failed);
+		id = Number(id);
+		var task = queue.then(function () {
+			on = typeof on === 'boolean' ? on : !has(state[which], id);
+			if (has(state[which], id) === on) { return Promise.resolve(); }
+			var before = state[which].slice();
+			state[which] = (on ? without(before, id).concat([id]) : without(before, id)).slice(-(which === 'shortlist' ? cfg.shortlistMax : 500));
+			changed();
+			var action = { liked: 'like', saved: 'save', shortlist: 'shortlist' }[which];
+			var request = state.user || which === 'liked' ? send(action, { post: id, on: on ? '1' : '0' }) : Promise.resolve({});
+			return request.then(function (res) {
+				if (res[which]) { state[which] = res[which]; }
+				if (which === 'liked') { showCount(id, res.count); }
+				if (!state.user) { write(keys[which], state[which]); }
+				else { write(KEY_SYNC, Date.now() + ':' + window.performance.now()); }
+				changed();
+				fillLists();
+			}, function (error) {
+				state[which] = before;
+				changed();
+				say(group || document.querySelector('[data-sps-panel]') || document, t.failed);
+				throw error;
+			});
 		});
-	}
-
-	function setSaved(id, on, group) {
-		var before = state.saved;
-		state.saved = on ? without(state.saved, id).concat([id]) : without(state.saved, id);
-		showAll();
-		if (!state.user) {
-			write(KEY_SAVED, state.saved);
-			fillLists();
-			return;
-		}
-		send('save', { post: id, on: on ? '1' : '0' }).then(function (res) {
-			state.saved = res.saved;
-			showAll();
-			fillLists();
-		}, function () {
-			state.saved = before;
-			showAll();
-			say(group, t.failed);
-		});
+		queue = task.catch(function () {});
+		return task;
 	}
 
 	function copy(text) {
@@ -270,18 +318,20 @@
 	}
 
 	function clear(button) {
-		var before = state.saved;
-		state.saved = [];
-		showAll();
-		if (!state.user) {
-			write(KEY_SAVED, []);
-			fillLists();
-			return;
-		}
-		send('clear', {}).then(fillLists, function () {
-			state.saved = before;
-			showAll();
-			button.textContent = t.failed;
+		queue = queue.then(function () {
+			var before = state.saved;
+			state.saved = [];
+			changed();
+			if (!state.user) {
+				write(KEY_SAVED, []);
+				fillLists();
+				return Promise.resolve();
+			}
+			return send('clear', {}).then(function () { write(KEY_SYNC, Date.now()); fillLists(); }, function () {
+				state.saved = before;
+				changed();
+				button.textContent = t.failed;
+			});
 		});
 	}
 
@@ -292,18 +342,78 @@
 		}
 		var group = target.closest('[data-sps-reactions]');
 		if (target.hasAttribute('data-sps-like') && group) {
-			like(group);
+			toggle('liked', Number(group.getAttribute('data-sps-reactions')), undefined, group).catch(function () {});
 		} else if (target.hasAttribute('data-sps-save') && group) {
 			var id = Number(group.getAttribute('data-sps-reactions'));
-			setSaved(id, !has(state.saved, id), group);
+			toggle('saved', id, undefined, group).catch(function () {});
+		} else if (target.hasAttribute('data-sps-shortlist')) {
+			toggle('shortlist', Number(target.getAttribute('data-sps-shortlist')), undefined, target.parentElement).catch(function () {});
 		} else if (target.hasAttribute('data-sps-share')) {
 			share(target, group);
 		} else if (target.hasAttribute('data-sps-remove')) {
-			setSaved(Number(target.getAttribute('data-sps-remove')), false, null);
+			toggle(target.closest('[data-sps-saved]').getAttribute('data-list') || 'saved', Number(target.getAttribute('data-sps-remove')), false).catch(function () {});
 		} else if (target.hasAttribute('data-sps-clear')) {
 			clear(target);
 		}
 	});
+
+	document.addEventListener('click', function (event) {
+		var target = event.target.closest ? event.target.closest('button') : null;
+		if (!target) { return; }
+		if (target.hasAttribute('data-sps-panel-open')) {
+			var dialog = target.parentElement.querySelector('[data-sps-panel]');
+			if (dialog && dialog.showModal) { dialog.spsTrigger = target; dialog.showModal(); }
+		} else if (target.hasAttribute('data-sps-panel-close')) {
+			target.closest('dialog').close();
+		} else if (target.getAttribute('role') === 'tab' && target.closest('[data-sps-panel]')) {
+			activateTab(target);
+		}
+	});
+
+	function activateTab(tab) {
+		var dialog = tab.closest('[data-sps-panel]');
+		all('[role="tab"]', dialog).forEach(function (node) {
+			var active = node === tab;
+			node.setAttribute('aria-selected', String(active));
+			node.tabIndex = active ? 0 : -1;
+			document.getElementById(node.getAttribute('aria-controls')).hidden = !active;
+		});
+		tab.focus();
+	}
+
+	document.addEventListener('keydown', function (event) {
+		var tab = event.target;
+		if (tab.getAttribute('role') !== 'tab' || !tab.closest('[data-sps-panel]')) { return; }
+		var tabs = all('[role="tab"]', tab.parentElement);
+		var index = tabs.indexOf(tab);
+		if (event.key === 'ArrowRight') { index = (index + 1) % tabs.length; }
+		else if (event.key === 'ArrowLeft') { index = (index + tabs.length - 1) % tabs.length; }
+		else if (event.key === 'Home') { index = 0; }
+		else if (event.key === 'End') { index = tabs.length - 1; }
+		else { return; }
+		event.preventDefault();
+		activateTab(tabs[index]);
+	});
+
+	all('[data-sps-panel]').forEach(function (dialog) {
+		dialog.addEventListener('close', function () {
+			if (dialog.spsTrigger) { dialog.spsTrigger.focus(); }
+		});
+	});
+	document.addEventListener('change', function (event) {
+		var input = event.target;
+		if (!input.hasAttribute('data-sps-select')) { return; }
+		var id = Number(input.getAttribute('data-sps-select'));
+		selected = without(selected, id);
+		if (input.checked && has(state.shortlist, id)) { selected.push(id); }
+		all('[data-sps-select="' + id + '"]').forEach(function (node) { node.checked = input.checked; });
+	});
+
+	cfg.api = {
+		get: function (list) { return Object.prototype.hasOwnProperty.call(keys, list) ? state[list].slice() : []; },
+		toggle: toggle,
+		selected: function () { return selected.slice(); }
+	};
 
 	/* ----- Start ----- */
 
@@ -317,38 +427,45 @@
 
 	state.liked = read(KEY_LIKED);
 	state.saved = read(KEY_SAVED);
+	state.shortlist = read(KEY_SHORTLIST).slice(-cfg.shortlistMax);
 	showAll();
 
-	send('state', { posts: ids.join(',') }).then(function (res) {
-		Object.keys(res.counts || {}).forEach(function (id) {
-			showCount(id, res.counts[id]);
-		});
-		if (!res.user) {
-			fillLists();
-			return;
-		}
-		state.user = true;
-		state.nonce = res.nonce;
-		state.liked = res.liked;
-		state.saved = res.saved;
-		var local = read(KEY_SAVED);
-		if (!local.length) {
-			showAll();
-			fillLists();
-			return;
-		}
-		// Posts saved in this browser before logging in join the account.
-		send('merge', { posts: local.join(',') }).then(function (merged) {
-			state.saved = merged.saved;
-			write(KEY_SAVED, []);
-		}).then(function () {
-			showAll();
-			fillLists();
+	function loadState() {
+		return send('state', { posts: ids.join(',') }).then(function (res) {
+			Object.keys(res.counts || {}).forEach(function (id) {
+				showCount(id, res.counts[id]);
+			});
+			if (!res.user) {
+				state.user = false;
+				state.nonce = '';
+				Object.keys(keys).forEach(function (list) { state[list] = read(keys[list]).slice(-(list === 'shortlist' ? cfg.shortlistMax : 500)); });
+				changed();
+				fillLists();
+				return Promise.resolve();
+			}
+			state.user = true;
+			state.nonce = res.nonce;
+			return Promise.all(Object.keys(keys).map(function (list) {
+				state[list] = res[list] || [];
+				var local = read(keys[list]);
+				if (!local.length) { return Promise.resolve(); }
+				// Merging Liked must not increment already counted public totals.
+				return send('merge', { list: list, posts: local.join(',') }).then(function (merged) {
+					state[list] = merged[list];
+					write(keys[list], []);
+				}).catch(function () { say(document, t.failed); });
+			})).then(function () {
+				changed();
+				fillLists();
+			});
 		}, function () {
-			showAll();
+			changed();
 			fillLists();
 		});
-	}, function () {
-		fillLists();
+	}
+	queue = loadState();
+	window.addEventListener('storage', function (event) {
+		if (event.key !== null && event.key !== KEY_SYNC && Object.keys(keys).every(function (list) { return keys[list] !== event.key; })) { return; }
+		queue = queue.then(loadState);
 	});
 }(window.seoprostackReactions));

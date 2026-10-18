@@ -1,0 +1,14 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "seoprostack/shortlist-button",
+	"title": "Add to shortlist",
+	"category": "widgets",
+	"icon": "shortcode",
+	"description": "Add this post to the visitor’s current shortlist.",
+	"textdomain": "seoprostack",
+	"usesContext": [ "postId" ],
+	"supports": { "html": false, "spacing": { "margin": true } },
+	"editorScript": "file:./index.js",
+	"style": "seoprostack-post-reactions"
+}

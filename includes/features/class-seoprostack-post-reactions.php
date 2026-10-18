@@ -43,6 +43,9 @@ class SEOProStack_Post_Reactions extends SEOProStack_Feature {
     /** User option (per site): liked post IDs. */
     const LIKED = 'seoprostack_liked';
 
+    /** User option (per site): current shortlist. */
+    const SHORTLIST = 'seoprostack_shortlist';
+
     /** admin-ajax.php action. */
     const AJAX = 'seoprostack_reactions';
 
@@ -130,7 +133,7 @@ class SEOProStack_Post_Reactions extends SEOProStack_Feature {
         if ('' === $colour || !array_key_exists($colour, self::colour_options())) {
             return '';
         }
-        return '.sps-reactions,.sps-saved{--sps-reactions-colour:var(--global-' . $colour . ',currentColor)}';
+        return '.sps-reactions,.sps-saved,.sps-shortlist,.sps-panel-wrap{--sps-reactions-colour:var(--global-' . $colour . ',currentColor)}';
     }
 
     /**
@@ -234,6 +237,8 @@ class SEOProStack_Post_Reactions extends SEOProStack_Feature {
         }
         register_block_type(SEOPROSTACK_DIR . 'blocks/post-reactions', array('render_callback' => array(__CLASS__, 'render_block')));
         register_block_type(SEOPROSTACK_DIR . 'blocks/saved-posts', array('render_callback' => array(__CLASS__, 'render_saved_block')));
+        register_block_type(SEOPROSTACK_DIR . 'blocks/shortlist-button', array('render_callback' => array(__CLASS__, 'render_shortlist_block')));
+        register_block_type(SEOPROSTACK_DIR . 'blocks/saved-panel', array('render_callback' => array(__CLASS__, 'render_panel_block')));
     }
 
     /**
@@ -246,7 +251,11 @@ class SEOProStack_Post_Reactions extends SEOProStack_Feature {
             'ajaxUrl' => admin_url('admin-ajax.php'),
             'action'  => self::AJAX,
             'site'    => get_current_blog_id(),
+            'shortlistMax' => self::list_max(self::SHORTLIST),
             'i18n'    => array(
+                'shortlist' => __('Add to shortlist', 'seoprostack'),
+                'shortlisted' => __('On your shortlist', 'seoprostack'),
+                'emptyList' => __('Nothing here yet.', 'seoprostack'),
                 'like'     => __('Like', 'seoprostack'),
                 'liked'    => __('Liked', 'seoprostack'),
                 'save'     => __('Save', 'seoprostack'),
@@ -298,7 +307,7 @@ class SEOProStack_Post_Reactions extends SEOProStack_Feature {
      */
     public static function buttons($post_id, array $show = array(), $extra = '') {
         $post = get_post($post_id);
-        if (!$post || 'publish' !== $post->post_status || post_password_required($post)) {
+        if (!$post || !self::can_react($post->ID)) {
             return '';
         }
         $show = wp_parse_args($show, array('like' => true, 'save' => true, 'share' => true));
@@ -359,6 +368,7 @@ class SEOProStack_Post_Reactions extends SEOProStack_Feature {
      */
     public static function render_saved_block($attributes) {
         return self::saved_list(array(
+            'list'      => isset($attributes['list']) && in_array($attributes['list'], array('saved', 'liked', 'shortlist'), true) ? $attributes['list'] : 'saved',
             'empty'     => isset($attributes['emptyText']) ? (string) $attributes['emptyText'] : '',
             'excerpts'  => !empty($attributes['showExcerpt']),
             'buttons'   => !empty($attributes['showRemove']),
@@ -374,16 +384,77 @@ class SEOProStack_Post_Reactions extends SEOProStack_Feature {
      */
     private static function saved_list(array $args, $extra = '') {
         self::enqueue();
-        $args = wp_parse_args($args, array('empty' => '', 'excerpts' => false, 'buttons' => true, 'types' => ''));
+        $args = wp_parse_args($args, array('list' => 'saved', 'empty' => '', 'excerpts' => false, 'buttons' => true, 'types' => ''));
         if ('' === $extra) {
             $extra = 'class="sps-saved"';
         }
         return '<div ' . $extra . ' data-sps-saved'
+            . ' data-list="' . esc_attr($args['list']) . '"'
             . ' data-empty="' . esc_attr($args['empty']) . '"'
             . ' data-excerpts="' . ($args['excerpts'] ? '1' : '0') . '"'
             . ' data-buttons="' . ($args['buttons'] ? '1' : '0') . '"'
             . ' data-types="' . esc_attr($args['types']) . '"'
             . ' aria-live="polite"></div>';
+    }
+
+    /**
+     * A separate, deliberately placed shortlist button.
+     *
+     * @param int $post_id Post ID.
+     * @return string
+     */
+    public static function shortlist_button($post_id) {
+        if (!self::can_react($post_id)) {
+            return '';
+        }
+        self::enqueue();
+        return '<button type="button" class="sps-reactions__button sps-shortlist" data-sps-shortlist="' . (int) $post_id . '" aria-pressed="false">' . self::icon('bookmark') . '<span class="sps-reactions__label">' . esc_html__('Add to shortlist', 'seoprostack') . '</span></button><span class="sps-reactions__status" role="status"></span>';
+    }
+
+    /**
+     * Render the shortlist block in a post or Query loop.
+     *
+     * @param array $attributes Attributes.
+     * @param string $content Inner content.
+     * @param WP_Block|null $block Block.
+     * @return string
+     */
+    public static function render_shortlist_block($attributes, $content = '', $block = null) {
+        $id = $block && isset($block->context['postId']) ? (int) $block->context['postId'] : (int) get_the_ID();
+        return '<div ' . get_block_wrapper_attributes() . '>' . self::shortlist_button($id) . '</div>';
+    }
+
+    /**
+     * A cache-safe header trigger and native modal, with no personal data.
+     *
+     * @return string
+     */
+    public static function render_panel_block() {
+        self::enqueue();
+        $id = wp_unique_id('sps-panel-');
+        $html = '<div class="sps-panel-wrap"><button type="button" class="sps-reactions__button" data-sps-panel-open aria-haspopup="dialog" aria-controls="' . esc_attr($id) . '">' . self::icon('bookmark') . esc_html__('Shortlist', 'seoprostack') . '<span data-sps-shortlist-count></span></button>';
+        $html .= '<dialog class="sps-panel" data-sps-panel id="' . esc_attr($id) . '" aria-label="' . esc_attr__('Your lists', 'seoprostack') . '"><button type="button" class="sps-reactions__button" data-sps-panel-close autofocus>' . esc_html__('Close', 'seoprostack') . '</button><div role="tablist" aria-label="' . esc_attr__('Your lists', 'seoprostack') . '">';
+        $lists = array('shortlist' => __('Shortlist', 'seoprostack'), 'saved' => __('Saved', 'seoprostack'), 'liked' => __('Liked', 'seoprostack'));
+        foreach ($lists as $list => $label) {
+            $tab = $id . '-' . $list;
+            $html .= '<button type="button" class="sps-reactions__button" role="tab" id="' . esc_attr($tab) . '" aria-controls="' . esc_attr($tab . '-content') . '" aria-selected="' . ('shortlist' === $list ? 'true' : 'false') . '" tabindex="' . ('shortlist' === $list ? '0' : '-1') . '">' . esc_html($label) . '</button>';
+        }
+        $html .= '</div>';
+        foreach ($lists as $list => $label) {
+            $tab = $id . '-' . $list;
+            $html .= '<section role="tabpanel" tabindex="0" id="' . esc_attr($tab . '-content') . '" aria-labelledby="' . esc_attr($tab) . '"' . ('shortlist' === $list ? '' : ' hidden') . '>' . self::saved_list(array('list' => $list)) . '<div class="sps-panel__actions">' . wp_kses_post(apply_filters('seoprostack_saved_panel_actions', '', $list)) . '</div></section>';
+        }
+        return $html . '<p class="sps-reactions__status" role="status"></p></dialog></div>';
+    }
+
+    /**
+     * Shortlist shortcode.
+     *
+     * @param array|string $atts Attributes.
+     * @return string
+     */
+    public static function sc_shortlist($atts) {
+        return self::shortlist_button(self::sc_post((array) $atts));
     }
 
     /**
@@ -419,6 +490,8 @@ class SEOProStack_Post_Reactions extends SEOProStack_Feature {
      */
     public static function register_shortcodes() {
         $map = array(
+            'seoprostack_shortlist_button' => 'sc_shortlist',
+            'seoprostack_saved_panel' => 'render_panel_block',
             'favorite_button'        => 'sc_button',
             'favorite_count'         => 'sc_count',
             'user_favorites'         => 'sc_list',
@@ -561,7 +634,7 @@ class SEOProStack_Post_Reactions extends SEOProStack_Feature {
      */
     public static function user_list($user_id, $which) {
         $list = get_user_option($which, $user_id);
-        if (false === $list) {
+        if (false === $list && self::SHORTLIST !== $which) {
             $list = self::favorites_of($user_id);
         }
         return array_values(array_unique(array_filter(array_map('absint', is_array($list) ? $list : array()))));
@@ -605,8 +678,18 @@ class SEOProStack_Post_Reactions extends SEOProStack_Feature {
      * @param int[]  $ids     Post IDs.
      */
     private static function set_user_list($user_id, $which, array $ids) {
-        $ids = array_slice(array_values(array_unique(array_filter(array_map('absint', $ids)))), -self::MAX_SAVED);
+        $ids = array_slice(array_values(array_unique(array_filter(array_map('absint', $ids)))), -self::list_max($which));
         update_user_option($user_id, $which, $ids);
+    }
+
+    /**
+     * Maximum size of a list; shortlist is intentionally smaller.
+     *
+     * @param string $which User option.
+     * @return int
+     */
+    private static function list_max($which) {
+        return self::SHORTLIST === $which ? max(1, min(self::MAX_SAVED, (int) apply_filters('seoprostack_shortlist_max', 50))) : self::MAX_SAVED;
     }
 
     /**
@@ -630,7 +713,7 @@ class SEOProStack_Post_Reactions extends SEOProStack_Feature {
      */
     private static function can_react($post_id) {
         $post = get_post($post_id);
-        return $post && 'publish' === $post->post_status && !post_password_required($post) && is_post_type_viewable($post->post_type);
+        return $post && 'publish' === $post->post_status && '' === $post->post_password && is_post_type_viewable($post->post_type);
     }
 
     /**
@@ -670,7 +753,17 @@ class SEOProStack_Post_Reactions extends SEOProStack_Feature {
         $ids  = isset($_POST['posts']) ? array_slice(array_filter(array_map('absint', explode(',', sanitize_text_field(wp_unslash($_POST['posts']))))), 0, self::MAX_SAVED) : array();
         $post = isset($_POST['post']) ? absint($_POST['post']) : 0;
         $on   = isset($_POST['on']) && '1' === $_POST['on'];
+        $list = isset($_POST['list']) ? sanitize_key(wp_unslash($_POST['list'])) : 'saved';
+        if ('list' === $do && isset($_POST['which'])) {
+            $list = sanitize_key(wp_unslash($_POST['which']));
+        }
         // phpcs:enable
+
+        $options = array('saved' => self::SAVED, 'liked' => self::LIKED, 'shortlist' => self::SHORTLIST);
+        if (!isset($options[$list])) {
+            wp_send_json_error(null, 400);
+        }
+        $which = 'shortlist' === $do ? self::SHORTLIST : $options[$list];
 
         if ($user && 'state' !== $do && !check_ajax_referer(self::AJAX, 'nonce', false)) {
             wp_send_json_error(array('message' => 'nonce'), 403);
@@ -690,6 +783,7 @@ class SEOProStack_Post_Reactions extends SEOProStack_Feature {
                     $data['nonce'] = wp_create_nonce(self::AJAX);
                     $data['liked'] = self::user_list($user, self::LIKED);
                     $data['saved'] = self::user_list($user, self::SAVED);
+                    $data['shortlist'] = self::user_list($user, self::SHORTLIST);
                 }
                 nocache_headers();
                 wp_send_json_success($data);
@@ -703,6 +797,9 @@ class SEOProStack_Post_Reactions extends SEOProStack_Feature {
                     $liked = self::user_list($user, self::LIKED);
                     $has   = in_array($post, $liked, true);
                     if ($has !== $on) {
+                        if (!$on && self::rate_limited()) {
+                            wp_send_json_error(null, 429);
+                        }
                         self::set_user_list($user, self::LIKED, $on ? array_merge($liked, array($post)) : array_diff($liked, array($post)));
                         self::add_like($post, $on ? 1 : -1);
                     }
@@ -716,16 +813,19 @@ class SEOProStack_Post_Reactions extends SEOProStack_Feature {
                 break;
 
             case 'save':
+            case 'shortlist':
                 if (!$user) {
                     wp_send_json_error(null, 401);
                 }
                 if ($on && !self::can_react($post)) {
                     wp_send_json_error(null, 404);
                 }
-                $saved = self::user_list($user, self::SAVED);
+                $which = 'shortlist' === $do ? self::SHORTLIST : self::SAVED;
+                $list = 'shortlist' === $do ? 'shortlist' : 'saved';
+                $saved = self::user_list($user, $which);
                 $saved = $on ? array_merge(array_diff($saved, array($post)), array($post)) : array_diff($saved, array($post));
-                self::set_user_list($user, self::SAVED, $saved);
-                wp_send_json_success(array('saved' => self::user_list($user, self::SAVED)));
+                self::set_user_list($user, $which, $saved);
+                wp_send_json_success(array($list => self::user_list($user, $which)));
                 break;
 
             case 'merge':
@@ -733,27 +833,27 @@ class SEOProStack_Post_Reactions extends SEOProStack_Feature {
                 if (!$user) {
                     wp_send_json_error(null, 401);
                 }
-                $saved = self::user_list($user, self::SAVED);
+                $saved = self::user_list($user, $which);
                 foreach ($ids as $id) {
                     if (!in_array($id, $saved, true) && self::can_react($id)) {
                         $saved[] = $id;
                     }
                 }
-                self::set_user_list($user, self::SAVED, $saved);
-                wp_send_json_success(array('saved' => self::user_list($user, self::SAVED)));
+                self::set_user_list($user, $which, $saved);
+                wp_send_json_success(array($list => self::user_list($user, $which)));
                 break;
 
             case 'clear':
                 if (!$user) {
                     wp_send_json_error(null, 401);
                 }
-                self::set_user_list($user, self::SAVED, array());
-                wp_send_json_success(array('saved' => array()));
+                self::set_user_list($user, $which, array());
+                wp_send_json_success(array($list => array()));
                 break;
 
             case 'list':
                 // Titles and links for saved posts (visitors send their own IDs).
-                $source = $user ? self::user_list($user, self::SAVED) : $ids;
+                $source = $user ? self::user_list($user, $which) : array_slice($ids, -self::list_max($which));
                 $types  = isset($_POST['types']) ? array_filter(array_map('sanitize_key', explode(',', sanitize_text_field(wp_unslash($_POST['types']))))) : array(); // phpcs:ignore WordPress.Security.NonceVerification.Missing -- read-only.
                 $items  = array();
                 foreach (array_reverse($source) as $id) {
@@ -764,12 +864,18 @@ class SEOProStack_Post_Reactions extends SEOProStack_Feature {
                     if (!$p instanceof WP_Post || ($types && !in_array($p->post_type, $types, true))) {
                         continue;
                     }
-                    $items[] = array(
+                    $item = array(
                         'id'      => $p->ID,
                         'title'   => wp_strip_all_tags(get_the_title($p)),
                         'url'     => get_permalink($p),
                         'excerpt' => wp_strip_all_tags(get_the_excerpt($p)),
                     );
+                    $extra = apply_filters('seoprostack_saved_item', $item, $p, $list);
+                    if (is_array($extra)) {
+                        $item['meta'] = array_values(array_map('sanitize_text_field', array_slice(array_filter(isset($extra['meta']) && is_array($extra['meta']) ? $extra['meta'] : array(), 'is_string'), 0, 3)));
+                        $item['image'] = isset($extra['image']) && is_string($extra['image']) ? esc_url_raw($extra['image'], array('http', 'https')) : '';
+                    }
+                    $items[] = $item;
                 }
                 nocache_headers();
                 wp_send_json_success(array('items' => $items));

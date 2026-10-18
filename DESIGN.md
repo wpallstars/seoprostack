@@ -266,3 +266,18 @@ button; unsupported content gets a manual-edit message. Explain incomplete scans
 approximate click events and unknown retirement checks without implying safety.
 Health checks and click counts are independent off-by-default choices. Never
 make a retirement report into a deactivation button or consent claim.
+
+## Shortlist and saved panel
+
+Keep Like and Save as the existing small pill buttons. The separate shortlist
+button is a 48px-minimum call to action with a modest 6px radius, full width at
+600px and below; it is placed explicitly, never appended automatically.
+The header's bookmark trigger counts only Shortlist. Its native modal dialog
+is a right-hand sheet up to 30rem wide, full width below 600px, with a wrapping
+horizontal tab row and no slide animation. Use the existing reactions colour
+setting and Kadence palette 3/9 on the sheet itself, not on `:root`, so body
+palette switches reach the top-layer dialog. Keep 44px Remove targets, 24px
+checkboxes, visible focus, and wrapping titles/meta. Native dialog modality
+owns Escape/focus trapping; Close returns focus to its own trigger. Tabs use
+roving focus, Left/Right, Home and End. Reference: `assets/post-reactions.css`
+and `SEOProStack_Post_Reactions::render_panel_block()`.

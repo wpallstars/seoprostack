@@ -50,6 +50,7 @@ Safe features start on; others stay off. **Settings → SEO Pro Stack** has **Se
 * **Custom fields to content**: ACF/SCF text to content and excerpts.
 * **Restrict content** by membership or role. **Menu item visibility** by login or role.
 * **iFrame block**, **Link cards**, **Wikipedia previews**, **Word documents**, **Brand icons** and **Like, save and share**.
+* **Shortlist and Saved panel**: separate Shortlist, Saved and Liked lists; header panel, blocks and shortcodes.
 * **Spectra block replacements**, **TranslatePress colours** and **Kadence query filters**.
 * **WP Grid Builder colours**: cards and facets follow Kadence dark mode.
 * **Kadence colour check**: moves hard-to-read Customizer colours to the palette, with Restore.
@@ -149,6 +150,9 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 3. The Read Me tab, showing the plugin's guide.
 
 == Changelog ==
+
+= Unreleased =
+* New: Shortlist button, Saved panel and Liked list; extension hooks and API.
 
 = 1.3.57 =
 * New: Wordfence Intelligence vulnerability feed (off).

@@ -1,0 +1,13 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "seoprostack/saved-panel",
+	"title": "Saved panel",
+	"category": "widgets",
+	"icon": "book-alt",
+	"description": "A header button opening the visitor’s Shortlist, Saved and Liked lists.",
+	"textdomain": "seoprostack",
+	"supports": { "html": false },
+	"editorScript": "file:./index.js",
+	"style": "seoprostack-post-reactions"
+}
