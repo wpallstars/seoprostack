@@ -144,7 +144,7 @@ class SEOProStack_Update_Delay extends SEOProStack_Feature {
     /** Show held releases on the core Updates screen without changing its controls. */
     public static function updates_notice() {
         $screen = get_current_screen();
-        if (!$screen || 'update-core' !== $screen->base || self::bypass()) {
+        if (!$screen || !in_array($screen->base, array('update-core', 'update-core-network'), true) || self::bypass()) {
             return;
         }
         $notes = array();
