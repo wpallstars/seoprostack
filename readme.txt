@@ -151,6 +151,9 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 
 == Changelog ==
 
+= Unreleased =
+* Docs: Dark mode coverage summary updated.
+
 = 1.3.58 =
 * New: Shortlist, Saved panel and Liked list.
 * Fix: Integrity checks skip files that cannot run code.
