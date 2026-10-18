@@ -24,7 +24,7 @@ SEO Pro Stack does the jobs that usually take dozens of small plugins: a calmer,
 
 If this saves you time, headaches and costs, feel free to [buy me a coffee](https://buymeacoffee.com/marcusquinn), or whatever you like, to invest in making more things open-source.
 
-Version: 1.3.55
+Version: 1.3.56
 
 <!-- github-only:start -->
 ## Screenshots
@@ -1826,7 +1826,8 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folderâ
 
 ## Changelog
 
-### Unreleased
+### 1.3.56
+- New, off by default: **File and account integrity checks** (Security) compare WordPress core files and WordPress.org plugins with WordPress.org's checksums, other plugins with a record kept at install or update, and look for PHP in uploads and new administrators, once a day as four Site Health tests. New findings are emailed once; nothing is changed (GitHub issue #836).
 - New in GitHub builds, off by default: **Delay automatic updates** (Security) holds WordPress automatic plugin and theme updates for 72 hours (0â€“336), with a local-only **Update canary**. Manual and remotely pushed updates stay available (GitHub issue #835).
 - New: a **WPVulnerability** preset sends its email daily and hides server software that managed hosts update. **Known vulnerabilities** (Security) no longer counts software hidden in WPVulnerability (GitHub issue #840).
 

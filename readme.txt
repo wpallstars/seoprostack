@@ -5,7 +5,7 @@ Tags: magic login, iframe, schedule posts, auto upload images, admin
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.3.55
+Stable tag: 1.3.56
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -21,7 +21,7 @@ Safe features start on; others stay off. **Settings → SEO Pro Stack** has **Se
 
 = A calmer, faster admin =
 
-* **Light, Dark or System**: per-person wp-admin colour mode, from the admin bar or settings header (network settings too). Dark reaches every plugin's and theme's screens: dark copies of their stylesheets, kept in uploads/seoprostack-dark and deleted on deactivation.
+* **Light, Dark or System**: per-person wp-admin colour mode, from the admin bar or settings header (network settings too). Dark covers plugins' and themes' screens with dark stylesheet copies in uploads/seoprostack-dark, deleted on deactivation.
 * **Developer admins**: choose who manages plugins, themes, admins and site addresses.
 * **Organise the admin menu**: sections, role previews and contributor menus.
 * **Tidy the dashboard**, **Dashboard and sidebar widgets**, **Hide admin notices** and **More menu**.
@@ -51,8 +51,8 @@ Safe features start on; others stay off. **Settings → SEO Pro Stack** has **Se
 * **Restrict content** by membership or role. **Menu item visibility** by login or role.
 * **iFrame block**, **Link cards**, **Wikipedia previews**, **Word documents**, **Brand icons** and **Like, save and share**.
 * **Spectra block replacements**, **TranslatePress colours** and **Kadence query filters**.
-* **WP Grid Builder colours**: cards and facet inputs follow Kadence dark mode; light mode stays unchanged.
-* **Kadence colour check**: Site Health finds Customizer colours hard to read in light or dark mode and moves them to the palette, with Restore.
+* **WP Grid Builder colours**: cards and facets follow Kadence dark mode.
+* **Kadence colour check**: Site Health moves hard-to-read Customizer colours to the palette, with Restore.
 
 = Media =
 
@@ -62,7 +62,7 @@ Safe features start on; others stay off. **Settings → SEO Pro Stack** has **Se
 * **Resize large uploads**, **Replace media files** and **Watermark pictures**, keeping originals.
 * **SVG uploads**: cleaned, chosen roles only. **Dark mode image contrast** for logos.
 * **Website screenshots**: block and `[browser-shot]` shortcode.
-* **Avatars without Gravatar**: served locally. Profile pictures: JPEG, PNG, GIF or WebP up to 5 MB (or the site's lower limit), 25 megapixels and 8,000 pixels on either side.
+* **Avatars without Gravatar**: served locally; profile pictures up to 5 MB.
 
 = Links and speed =
 
@@ -149,9 +149,9 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 
 == Changelog ==
 
-= 1.3.55 =
-* Fix: Image Copytrack's missing admin script runtime.
-* Fix: Tutor LMS's admin body classes no longer join the preceding plugin's.
-* Fix: Tutor LMS's course builder is dark in Dark mode.
+= 1.3.56 =
+* New: File and account integrity checks (off by default).
+* New: WPVulnerability preset, with daily email.
+* Fix: Known vulnerabilities skips components hidden in WPVulnerability.
 
 Older: `changelog.txt`.
