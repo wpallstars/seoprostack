@@ -24,7 +24,7 @@ SEO Pro Stack does the jobs that usually take dozens of small plugins: a calmer,
 
 If this saves you time, headaches and costs, feel free to [buy me a coffee](https://buymeacoffee.com/marcusquinn), or whatever you like, to invest in making more things open-source.
 
-Version: 1.3.53
+Version: 1.3.54
 
 <!-- github-only:start -->
 ## Screenshots
@@ -1789,7 +1789,7 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folderâ
 
 ## Changelog
 
-### Unreleased
+### 1.3.54
 - New: Media in cloud storage uploads, restores and serves registered AVIF copies in picture mode, including existing cloud images. Copies stay local when their source is not a confirmed upload (GitHub issue #818).
 - Changed: Cloud media uploads and removal HEAD checks run in bounded concurrent groups; local copies get reserved batch time instead of waiting behind uploads (GitHub issue #819).
 - New: Verified cloud media bucket handover with `adopt`, `migrate`, previous-destination serving and restore, explicit cleanup, status counts and a handover procedure for people and agents (GitHub issue #816).

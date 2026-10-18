@@ -5,7 +5,7 @@ Tags: magic login, iframe, schedule posts, auto upload images, admin
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.3.53
+Stable tag: 1.3.54
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -148,20 +148,12 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 
 == Changelog ==
 
-= Unreleased =
-* New: Cloud media uploads, restores and serves AVIF copies; copies stay local when their source is not uploaded.
-* Changed: Concurrent cloud media uploads and checks, with reserved time for removing local copies.
-* New: Verified cloud media bucket handover with adopt, migrate, previous-destination fallback and explicit cleanup.
-* Fix: Cloud cleanup resumes verification, skips empty inventories, reads status in batches and preserves local image srcset.
-* Fix: Kadence Pro's dark mode switches without icons fading from the old colours, and cached pages open in the chosen mode.
-* Fix: Admin dark mode covers Redux panels, Super Speedy, FluentCRM's contact search, Tutor LMS and dialog errors.
-
-= 1.3.53 =
-* New: Media in cloud storage can remove local copies after a confirmed upload, and bring them back.
-* New: Kadence query filters can use term slugs in addresses, without a redirect.
-* New: HTTPS check, in Site Health and on the Security tab.
-* Fix: Fluent Forms placeholders use the input's stronger text colour, including the fallback.
-* Fix: CompressX cleanup is no longer blocked by missing files or non-picture attachments.
-* Fix: Copies at their own addresses also covers rendered block images outside post content, including covers, template parts and Kadence Elements. CSS backgrounds stay unchanged.
+= 1.3.54 =
+* New: Cloud media serves AVIF copies too.
+* New: Verified cloud media bucket handover.
+* Changed: Faster, concurrent cloud media uploads.
+* Fix: Cloud cleanup resumes verification across batches.
+* Fix: Kadence Pro's dark mode switches without a flash.
+* Fix: Admin dark mode covers more plugins' screens.
 
 Older: `changelog.txt`.
