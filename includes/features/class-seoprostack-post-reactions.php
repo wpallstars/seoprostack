@@ -307,7 +307,7 @@ class SEOProStack_Post_Reactions extends SEOProStack_Feature {
      */
     public static function buttons($post_id, array $show = array(), $extra = '') {
         $post = get_post($post_id);
-        if (!$post || 'publish' !== $post->post_status || post_password_required($post)) {
+        if (!$post || !self::can_react($post->ID)) {
             return '';
         }
         $show = wp_parse_args($show, array('like' => true, 'save' => true, 'share' => true));
@@ -797,6 +797,9 @@ class SEOProStack_Post_Reactions extends SEOProStack_Feature {
                     $liked = self::user_list($user, self::LIKED);
                     $has   = in_array($post, $liked, true);
                     if ($has !== $on) {
+                        if (!$on && self::rate_limited()) {
+                            wp_send_json_error(null, 429);
+                        }
                         self::set_user_list($user, self::LIKED, $on ? array_merge($liked, array($post)) : array_diff($liked, array($post)));
                         self::add_like($post, $on ? 1 : -1);
                     }
