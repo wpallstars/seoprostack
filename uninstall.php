@@ -121,6 +121,18 @@ function seoprostack_uninstall_site() {
     $options[] = 'seoprostack_php_sapi';
     // HTTPS check: the last result, for the Security tab.
     $options[] = 'seoprostack_https_check';
+    // File and account integrity checks: the last results, the check in
+    // progress, administrators seen and the lock. Per-plugin records
+    // (seoprostack_integrity_p_*) are removed below; cached checksums are
+    // seoprostack_integrity_* transients, removed with the others.
+    $options[] = 'seoprostack_integrity_results';
+    $options[] = 'seoprostack_integrity_state';
+    $options[] = 'seoprostack_integrity_admins';
+    $options[] = 'seoprostack_integrity_lock';
+    wp_unschedule_hook('seoprostack_integrity_checks');
+    wp_unschedule_hook('seoprostack_integrity_more');
+    // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- one-off cleanup of the per-plugin records.
+    $wpdb->query($wpdb->prepare("DELETE FROM {$wpdb->options} WHERE option_name LIKE %s", $wpdb->esc_like('seoprostack_integrity_p_') . '%'));
     // Ask before licence checks: choices and times. Kept answers are
     // seoprostack_lc_* transients, removed with the others below.
     $options[] = 'seoprostack_licence_calls';

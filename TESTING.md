@@ -53,6 +53,43 @@ log mark first; inspect new messages afterwards.
   `seoprostack_update_first_seen`; rolling back or switching off simply stops
   holding updates. Run `scripts/lint.sh phpstan` and `scripts/lint.sh`.
 
+## File and account integrity checks
+
+Use a disposable LocalWP site (the shared preview only for read-only runs),
+with at least one plugin from WordPress.org and one premium or GitHub plugin.
+Record the debug log mark first.
+
+- [ ] Switch the feature on and open wp-admin once: `wp cron event list`
+  shows `seoprostack_integrity_checks` daily at 04:00 and
+  `seoprostack_integrity_more` a minute away. Run
+  `wp cron event run seoprostack_integrity_more` until
+  `seoprostack_integrity_state` is gone; all four `seoprostack_integrity_*`
+  tests in `wp seoprostack health` are `good`. None of the options autoload.
+- [ ] Add an empty `wp-includes/class-wp-cache-util.php`, a
+  `wp-content/uploads/x.cache` containing `<?php`, a new administrator, and a
+  one-byte change to a file of the premium plugin. Run
+  `wp cron event run seoprostack_integrity_checks`: Site Health and
+  `wp seoprostack health` show four `critical` findings, by path or user
+  name, and one email arrives (check the mail log). Run it again: no second
+  email.
+- [ ] A one-byte change to a WordPress.org plugin's file is a `critical`
+  finding under Plugins from WordPress.org; an `index.php` in uploads holding
+  only `<?php // Silence is golden.` is not a finding.
+- [ ] Undo the changes and run again: all `good`, no email. Note the options'
+  values, run `wp seoprostack health`, and confirm it started nothing (no
+  `seoprostack_integrity_state`) and changed no option.
+- [ ] Update the premium plugin through Plugins or `wp plugin update`: its
+  changed files are not reported at the next check.
+- [ ] On a site with more than 20,000 files in plugins and uploads, the first
+  run stops after about 20 seconds with `seoprostack_integrity_state` saved,
+  and `seoprostack_integrity_more` finishes the rest.
+- [ ] Add `uploads/x.cache` to `seoprostack_integrity_ignore` in a must-use
+  plugin: that finding goes at the next check.
+- [ ] Block `downloads.wordpress.org` (or go offline): affected tests say they
+  could not check, not that files changed.
+- [ ] Switch off: both events are removed. Uninstall removes the
+  `seoprostack_integrity_*` options and transients. Run `scripts/lint.sh`.
+
 ## Read-only health audits for several sites
 
 On each host, list a network's sites with `wp site list --field=url`, then run
