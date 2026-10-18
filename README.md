@@ -1901,6 +1901,7 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folderâ
 - Fix: `wp seoprostack convert-images --cleanup-compressx` no longer refuses forever because of pictures skipped during conversion (a missing file, or not a picture): they are recorded as skipped, not failed, and one whose file is back is converted again first. When the cleanup cannot run, it says why, with the IDs of any attachments whose copies failed; `--dry-run` says so too (GitHub issue #787).
 - Fix: **Fluent Forms colours** uses the input's stronger text colour for placeholders, including the fallback, instead of a low-contrast blend (GitHub issue #801).
 - Fix: **Copies at their own addresses** also covers images in rendered blocks outside post content, including cover block images, block theme template parts and hook-placed Kadence Elements, through `render_block`. Existing `<picture>` tags are left alone; pictures set in CSS stay in their original format (GitHub issue #792).
+- Fix: **Kadence colour check** ignores empty and whitespace-only custom CSS source names in its warning (GitHub issue #799).
 
 ### 1.3.52
 - Fix: **Copies at their own addresses** hides each `<source>` in the `<picture>` tag, so in flex and grid layouts, such as a Kadence header logo, the sources no longer take gaps and move the picture. The browser still picks among them (GitHub issue #789).
