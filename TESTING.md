@@ -13,11 +13,15 @@ SEO Pro Stack's to fix too.
 
 ## Delay automatic updates
 
-Use a disposable LocalWP site, then a disposable multisite. Do not update or
+Use the GitHub build on a disposable LocalWP site, then a disposable multisite. Do not update or
 uninstall plugins on the shared preview just to test the hold. Use an older
 version of a small plugin and theme with an update available. Record the debug
 log mark first; inspect new messages afterwards.
 
+- [ ] Build both zips and run `scripts/plugin-check.sh`: the WordPress.org zip
+  has neither the update-delay feature nor its update-offers helper. Activate
+  that build and confirm it has no hold settings or update-delay hooks, even
+  with saved hold settings from a GitHub build. The GitHub build retains both.
 - [ ] The Security setting starts off, hours start at 72 and accept 0–336.
   Turn it on, choose 1 hour, leave Update canary off, and check for updates.
   `wp eval 'var_dump(apply_filters("auto_update_plugin", true, (object) array("plugin" => "<file>", "new_version" => "<v>", "slug" => "<slug>")));'`

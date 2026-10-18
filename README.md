@@ -212,7 +212,7 @@ Uses core's `user_profile_update_errors`, `validate_password_reset`, `rest_reque
 
 ### Delay automatic updates (Security)
 
-**Off by default.** Holds WordPress's own automatic plugin and theme updates for **72 hours** after each version is first offered to this site. Choose 0–336 hours (0 stops the hold). Security releases wait too: a compromised release can claim to be a security fix. The hold gives vendors, scanners and early adopters time to spot problems; it does not scan downloads or guarantee they are safe.
+**GitHub builds only; off by default.** The WordPress.org build leaves this feature out because it alters WordPress update routines. Holds WordPress's own automatic plugin and theme updates for **72 hours** after each version is first offered to this site. Choose 0–336 hours (0 stops the hold). Security releases wait too: a compromised release can claim to be a security fix. The hold gives vendors, scanners and early adopters time to spot problems; it does not scan downloads or guarantee they are safe.
 
 - **Update canary** appears only on a local site (`wp_get_environment_type() === 'local'`, as on LocalWP). Turn it on there to take automatic updates without waiting. Development, staging and production sites always ignore that saved choice, even after copying a local database.
 - The Plugins list and Dashboard → Updates show the hold deadline in the site's timezone. Manual updates stay available. WP-CLI and updates pushed by MainWP or other remote dashboards are not held.
@@ -1803,7 +1803,7 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folder�
 ## Changelog
 
 ### Unreleased
-- New, off by default: **Delay automatic updates** (Security) holds WordPress automatic plugin and theme updates for 72 hours (0–336), with a local-only **Update canary**. Manual and remotely pushed updates stay available (GitHub issue #835).
+- New in GitHub builds, off by default: **Delay automatic updates** (Security) holds WordPress automatic plugin and theme updates for 72 hours (0–336), with a local-only **Update canary**. Manual and remotely pushed updates stay available (GitHub issue #835).
 
 ### 1.3.55
 - Fix: Image Copytrack's admin script loads its missing generator runtime first, preventing “regeneratorRuntime is not defined” on Add Plugins, View details and other admin screens (GitHub issue #829).
