@@ -24,7 +24,7 @@ SEO Pro Stack does the jobs that usually take dozens of small plugins: a calmer,
 
 If this saves you time, headaches and costs, feel free to [buy me a coffee](https://buymeacoffee.com/marcusquinn), or whatever you like, to invest in making more things open-source.
 
-Version: 1.3.57
+Version: 1.3.58
 
 <!-- github-only:start -->
 ## Screenshots
@@ -1865,6 +1865,12 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folder‚
 
 ## Changelog
 
+### 1.3.58
+- New: **Like, save and share** has a separate 50-post **Shortlist**, an Add to shortlist block and shortcode, and a **Saved** panel with Shortlist, Saved and Liked tabs. Pages hold no personal list data; filters and a JavaScript API let other plugins extend the panel (GitHub issue #851).
+- Fix: **File and account integrity checks** no longer report files that cannot run code: upload-folder logs that exit on their first line (Code Profiler Pro, MC4WP), "403 Forbidden" `index.php` stubs, and WordPress's `.l10n.php` translation caches beside their `.mo` files (GitHub issue #853).
+- Fix: **Known vulnerabilities from Wordfence Intelligence** accepts a download only with at least 1,000 records, so a reply that closes early keeps the last matches instead of replacing them with none (GitHub issue #854).
+- Fix: **Fluent Forms colours** shows placeholders lighter than typed text, so an empty field no longer looks filled in, still at least 4.5:1 on Kadence's palettes; a multi-select's search box matches (GitHub issue #844).
+
 ### 1.3.57
 - New, off by default: **Known vulnerabilities from Wordfence Intelligence** (Security). With a free API key in `wp-config.php`, the site downloads Wordfence's vulnerability feed once a day and matches it on the server against every installed plugin, theme and the WordPress version, including premium plugins and malicious releases the free databases miss. Matches show in Known vulnerabilities and Site Health, linked to each record with the fixing version, and new matches are emailed once. Sites on one server sharing a key share one download through `SEOPROSTACK_WORDFENCE_FEED_DIR` (GitHub issue #837).
 
@@ -1872,7 +1878,6 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folder‚
 - New, off by default: **File and account integrity checks** (Security) compare WordPress core files and WordPress.org plugins with WordPress.org's checksums, other plugins with a record kept at install or update, and look for PHP in uploads and new administrators, once a day as four Site Health tests. New findings are emailed once; nothing is changed (GitHub issue #836).
 - New in GitHub builds, off by default: **Delay automatic updates** (Security) holds WordPress automatic plugin and theme updates for 72 hours (0‚Äì336), with a local-only **Update canary**. Manual and remotely pushed updates stay available (GitHub issue #835).
 - New: a **WPVulnerability** preset sends its email daily and hides server software that managed hosts update. **Known vulnerabilities** (Security) no longer counts software hidden in WPVulnerability (GitHub issue #840).
-- Fix: **Fluent Forms colours** shows placeholders lighter than typed text, so an empty field no longer looks filled in, still at least 4.5:1 on Kadence's palettes; a multi-select's search box matches (GitHub issue #844).
 
 ### 1.3.55
 - Fix: Image Copytrack's admin script loads its missing generator runtime first, preventing ‚ÄúregeneratorRuntime is not defined‚Äù on Add Plugins, View details and other admin screens (GitHub issue #829).
