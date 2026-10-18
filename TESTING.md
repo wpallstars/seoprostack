@@ -90,6 +90,39 @@ Record the debug log mark first.
 - [ ] Switch off: both events are removed. Uninstall removes the
   `seoprostack_integrity_*` options and transients. Run `scripts/lint.sh`.
 
+## Known vulnerabilities from Wordfence Intelligence
+
+Wordfence allows an API key few downloads, so do not download the feed
+repeatedly while testing: download it once, put it in a shared feed folder
+and let the sites use that copy. Never print or log the key. Use a disposable
+site with an old version of a plugin Wordfence lists (such as We're Open!
+1.37) and record the debug log mark first.
+
+- [ ] With the feature on and no `SEOPROSTACK_WORDFENCE_API_KEY`, the
+  Known vulnerabilities section, the panel under the setting and Site Health
+  say how to add the key; `wp cron event list` shows no
+  `seoprostack_vulnerability_feed*` event.
+- [ ] Add the key and `SEOPROSTACK_WORDFENCE_FEED_DIR`, and copy a feed
+  downloaded in the last 20 hours into that folder as
+  `seoprostack-wordfence-feed.json`. Open wp-admin once: the daily event and
+  `seoprostack_vulnerability_feed_more` a minute away are listed. Run
+  `wp cron event run seoprostack_vulnerability_feed_more` until
+  `seoprostack_vulnerability_feed_state` is gone: no request went to
+  wordfence.com (it used the shared copy), the section, the panel and
+  `wp seoprostack health` list the plugin with a link to its record and the
+  fixed version, the Wordfence Intelligence credit and Defiant's notice and
+  licence show, and one email arrived with the same. Run the daily event:
+  no second email. Neither option autoloads; the check's own copy is gone.
+- [ ] Update the plugin and run the daily event: the test is `good`.
+- [ ] Write a timestamp an hour ahead to `seoprostack-wordfence-feed.paused`
+  and make the shared feed older than 20 hours (`touch -d`): the next run
+  sends no request and says the sites wait until then.
+- [ ] A truncated or HTML file as the shared feed fails with "not Wordfence's
+  vulnerability feed" and keeps the last matches.
+- [ ] Switch off: both events go. Uninstall removes the
+  `seoprostack_vulnerability_feed_*` options and leaves the shared folder.
+  Run `scripts/lint.sh`.
+
 ## Read-only health audits for several sites
 
 On each host, list a network's sites with `wp site list --field=url`, then run

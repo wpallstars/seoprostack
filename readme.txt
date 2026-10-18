@@ -21,7 +21,7 @@ Safe features start on; others stay off. **Settings → SEO Pro Stack** has **Se
 
 = A calmer, faster admin =
 
-* **Light, Dark or System**: per-person wp-admin colour mode, from the admin bar or settings header (network settings too). Dark covers plugins' and themes' screens with dark stylesheet copies in uploads/seoprostack-dark, deleted on deactivation.
+* **Light, Dark or System**: per-person wp-admin colour mode, from the admin bar or settings header (network settings too). Dark covers plugins' and themes' screens with stylesheet copies in uploads/seoprostack-dark, deleted on deactivation.
 * **Developer admins**: choose who manages plugins, themes, admins and site addresses.
 * **Organise the admin menu**: sections, role previews and contributor menus.
 * **Tidy the dashboard**, **Dashboard and sidebar widgets**, **Hide admin notices** and **More menu**.
@@ -36,7 +36,7 @@ Safe features start on; others stay off. **Settings → SEO Pro Stack** has **Se
 * **Admin bar and dashboard access**: restrict by role; admins keep access.
 * **Turn off unused remote access**: XML-RPC, application passwords and exposed files.
 * **Minimum password length**: 12 characters for new passwords, on by default.
-* **Known vulnerabilities**: shows what the free WPVulnerability plugin finds.
+* **Known vulnerabilities**: from the free WPVulnerability plugin, or Wordfence Intelligence (off).
 * **File and account integrity checks**: core and plugin files, uploaded PHP, new admins.
 * **HTTPS check**: certificate, TLS and HSTS in Site Health; SSL Labs link.
 * **Maintenance mode**: a 503 page with revocable 24-hour bypass links.
@@ -79,7 +79,7 @@ Safe features start on; others stay off. **Settings → SEO Pro Stack** has **Se
 * **Faster page counts on long lists** (off): exact page numbers.
 * **Database key cleanup** with restore SQL. **Add database keys** (off): faster lookups.
 * **Database character set**: opt-in utf8mb4 conversion for emoji.
-* **Load plugins only where needed**: skips unused plugins; learns from anonymous, cookie-free public GET requests.
+* **Load plugins only where needed**: skips unused plugins, learned from anonymous public requests.
 
 = Plugins and set-up =
 
@@ -95,8 +95,9 @@ The WordPress.org version has no affiliate links. In GitHub builds, some Discove
 
 = External services =
 
-* **S3-compatible storage**: opted-in background batches send pictures and signed requests to your endpoint; tests send a probe. Visitors read uploaded pictures publicly. [Cloudflare terms](https://www.cloudflare.com/terms/), [privacy](https://www.cloudflare.com/policies/privacy/); [AWS terms](https://aws.amazon.com/serviceterms/), [privacy](https://aws.amazon.com/privacy/). Other providers' policies apply.
+* **S3-compatible storage**: opted-in batches send pictures and signed requests to your endpoint; tests send a probe. Visitors read pictures publicly. [Cloudflare terms](https://www.cloudflare.com/terms/), [privacy](https://www.cloudflare.com/policies/privacy/); [AWS terms](https://aws.amazon.com/serviceterms/), [privacy](https://aws.amazon.com/privacy/). Other providers' policies apply.
 * **WordPress.org** (api.wordpress.org): lists plugins and Kadence on their tabs. [Privacy](https://wordpress.org/about/privacy/).
+* **Wordfence Intelligence** (www.wordfence.com): opt-in daily feed download, sending only your API key. [Terms](https://www.wordfence.com/wordfence-intelligence-terms-and-conditions/), [privacy](https://www.wordfence.com/privacy-policy/).
 * **Google Analytics** (www.googletagmanager.com): when enabled with a measurement ID, browsers load gtag.js and send Google page views under its privacy policy. Logged-in users are excluded.
 * **Screenshot services**: when enabled, your server sends page addresses to make screenshots; visitors do not contact them.
 * **Thum.io** (image.thum.io), the default: see [Thum.io](https://www.thum.io/).
@@ -104,7 +105,7 @@ The WordPress.org version has no affiliate links. In GitHub builds, some Discove
 * **ApiFlash** (api.apiflash.com): [terms](https://apiflash.com/terms_of_service), [privacy policy](https://apiflash.com/privacy_policy).
 * **Screenshot Machine** (api.screenshotmachine.com): [terms](https://www.screenshotmachine.com/termsandconditions.php), [privacy policy](https://www.screenshotmachine.com/privacypolicy.php).
 * **Wikipedia** (*.wikipedia.org): Wikipedia previews load in the visitor’s browser when opened. [Privacy policy](https://foundation.wikimedia.org/wiki/Policy:Privacy_policy).
-* **Linked websites**: opted-in health checks contact public addresses in cached background batches, without queries or visitor data; their privacy policies apply. Clicks stay on this site as daily totals for 90 days, without cookies or visitor IDs. Review consent and server logs.
+* **Linked websites**: opted-in health checks contact public addresses in cached background batches, without queries or visitor data; their privacy policies apply. Clicks stay on this site as daily totals for 90 days, without cookies or visitor IDs.
 * **GitHub** (github.com, api.github.com), GitHub builds only: checks named repositories up to twice daily for releases; no site data sent. [Privacy](https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement).
 
 Other chosen addresses: Copy linked images downloads linked images; Link cards downloads page pictures; iFrames load embedded pages. Short-link counts set a year-long cookie (`sps_link_` plus the link ID, holding “1”); totals only, no IP addresses. No other data is sent.

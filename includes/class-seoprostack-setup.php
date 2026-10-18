@@ -36,6 +36,7 @@ final class SEOProStack_Setup {
         'SEOProStack_Min_Pass',
         'SEOProStack_Hardening',
         'SEOProStack_Vulnerability_Report',
+        'SEOProStack_Vulnerability_Feed',
         'SEOProStack_Integrity_Checks',
         'SEOProStack_Developers',
         'SEOProStack_Admin_Menu',
