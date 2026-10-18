@@ -1806,6 +1806,7 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folder�
 ### Unreleased
 - New in GitHub builds, off by default: **Delay automatic updates** (Security) holds WordPress automatic plugin and theme updates for 72 hours (0–336), with a local-only **Update canary**. Manual and remotely pushed updates stay available (GitHub issue #835).
 - New: a **WPVulnerability** preset sends its email daily and hides server software that managed hosts update. **Known vulnerabilities** (Security) no longer counts software hidden in WPVulnerability (GitHub issue #840).
+- Fix: **Fluent Forms colours** shows placeholders lighter than typed text, so an empty field no longer looks filled in, still at least 4.5:1 on Kadence's palettes; a multi-select's search box matches (GitHub issue #844).
 
 ### 1.3.55
 - Fix: Image Copytrack's admin script loads its missing generator runtime first, preventing “regeneratorRuntime is not defined” on Add Plugins, View details and other admin screens (GitHub issue #829).
