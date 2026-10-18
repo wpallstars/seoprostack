@@ -168,8 +168,9 @@ class SEOProStack_Integrity_Folders {
         if (false === $size || $size > self::MAX_GUARDED_FILE || !function_exists('token_get_all')) {
             return false;
         }
-        $head = (string) file_get_contents($file, false, null, 0, self::SMALL_FILE); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents -- a local file's start, read, never run.
-        if ($size <= self::SMALL_FILE && (self::only_quiet($head) || self::forbidden_stub($head))) {
+        // One byte more than a small file, so a file that grew since filesize() is not taken as small.
+        $head = (string) file_get_contents($file, false, null, 0, self::SMALL_FILE + 1); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents -- a local file's start, read, never run.
+        if (strlen($head) <= self::SMALL_FILE && (self::only_quiet($head) || self::forbidden_stub($head))) {
             return true;
         }
         $end = self::guard_end($head);
@@ -262,20 +263,31 @@ class SEOProStack_Integrity_Folders {
                 return false;
             }
             $exit = $exit || (is_array($token) && T_EXIT === $token[0]);
-            $prev = is_array($token) ? (T_STRING === $token[0] ? strtolower($token[1]) : $token[0]) : $token;
+            $prev = '[' === $prev ? 'key' : (is_array($token) ? (T_STRING === $token[0] ? strtolower($token[1]) : $token[0]) : $token);
         }
         return $exit;
     }
 
     /**
-     * Whether a token may appear in a "403 Forbidden" stub.
+     * Whether a token may appear in a "403 Forbidden" stub. $_SERVER may
+     * be read only as $_SERVER['SERVER_PROTOCOL']: other keys, such as
+     * QUERY_STRING, come from the request and could send a redirect.
      *
      * @param array{0:int,1:string,2:int}|string $token Token.
      * @param int|string|null                    $prev  The last token that was not whitespace or a comment
-     *                                                  (a function name in lower case).
+     *                                                  (a function name in lower case; 'key' after $_SERVER's key).
      * @return bool
      */
     private static function stub_token($token, $prev) {
+        if (T_VARIABLE === $prev) {
+            return '[' === $token;
+        }
+        if ('[' === $prev) {
+            return is_array($token) && T_CONSTANT_ENCAPSED_STRING === $token[0] && 'SERVER_PROTOCOL' === trim($token[1], '\'"');
+        }
+        if ('key' === $prev) {
+            return ']' === $token;
+        }
         if ('(' === $token) {
             return 'header' === $prev || T_EXIT === $prev;
         }
@@ -300,7 +312,8 @@ class SEOProStack_Integrity_Folders {
 
     /**
      * Whether a token is a string literal that cannot redirect or add
-     * markup when sent: no `<`, and no "location" or "refresh".
+     * markup when sent: no `<`, no "location" or "refresh", and no escapes
+     * in double quotes (such as "\x3c", which is `<`).
      *
      * @param array{0:int,1:string,2:int} $token Token.
      * @return bool
@@ -308,6 +321,7 @@ class SEOProStack_Integrity_Folders {
     private static function plain(array $token) {
         return T_CONSTANT_ENCAPSED_STRING === $token[0]
             && false === strpos($token[1], '<')
+            && ('"' !== $token[1][0] || false === strpos($token[1], '\\'))
             && !preg_match('/location|refresh/i', $token[1]);
     }
 
