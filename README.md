@@ -225,7 +225,7 @@ Uses `set_site_transient_update_plugins`, `set_site_transient_update_themes`, `a
 
 Below the Security tab's settings, for administrators. SEO Pro Stack does not check for vulnerabilities itself: [WPVulnerability](https://wordpress.org/plugins/wpvulnerability/) (free, in Free Plugins → Admin) checks WordPress, the plugins, the themes and the server's software (PHP, the web server, the database, ImageMagick, curl and others) against the WPVulnerability Database, which needs no account and, its makers say, keeps nothing about the site. It lists what it finds in Tools → Site Health, on the Plugins and Themes screens and in a dashboard widget, and emails the site's administration email address weekly (its settings change that).
 
-- With WPVulnerability active, the section shows how many of each have known vulnerabilities at its last check, or that it found none, with links to Site Health and its settings (Settings → WPVulnerability, or the Developers menu with Organise the admin menu).
+- With WPVulnerability active, the section shows how many of each have known vulnerabilities at its last check, or that it found none, with links to Site Health and its settings (Settings → WPVulnerability, or the Developers menu with Organise the admin menu). Software hidden in WPVulnerability (its Analysis settings, or a `WPVULNERABILITY_HIDE_*` constant) is not counted, and the section says so; the WPVulnerability [preset](#plugin-presets-plugins) hides server software that managed hosts update and sends its email daily.
 - Without it, the section says what it does, with a button to install it, or to activate it when it is installed.
 - WPVulnerability is for developers: [Organise the admin menu](#organise-the-admin-menu-admin) puts its settings in the Developers menu, and with [Developer admins](#developer-admins-admin) on, people who are not developers cannot open them and do not see its row on the Plugins screen or its counts on Plugins, Appearance → Themes and Dashboard → Updates. [Tidy the dashboard](#tidy-the-dashboard-admin) shows its WPVulnerability Status box to developers only, below Site Health status.
 
@@ -1375,6 +1375,7 @@ Presets so far:
 | Simple CAPTCHA with Cloudflare Turnstile | Login, registration, lost password, comment and Fluent Forms protected; widget follows light or dark mode and shows only when needed. |
 | Tutor LMS | Student profile pages private; course reviews wait for approval; courses written in the block editor; a quiz is submitted when its time runs out; courses complete when every lesson, quiz and assignment is done, and can be retaken. |
 | WooCommerce | No usage data, remote error logs, marketplace suggestions or Order attribution tracking; Deferred emails on so checkout does not wait for the mail server. |
+| WPVulnerability | Vulnerability email daily instead of weekly; server software that managed hosts update (Apache, nginx, MariaDB, MySQL, ImageMagick, curl, Memcached, Redis, SQLite) hidden, so daily emails are not about things the site owner cannot fix. WordPress, plugins, themes and PHP stay checked. Single sites only; its notes give the WP-CLI commands for a network. |
 | WP-Optimize and WP-Optimize Premium | On servers other than LiteSpeed, the page cache on (WP-Optimize's own defaults: pages kept 24 hours, not for logged-in people); no caching menu in the admin bar; images, minification and cleanup schedules unchanged (see below). |
 
 WooCommerce's **Deferred emails** sends order emails through Action Scheduler after checkout. It needs WP-Cron or a server cron. If order emails arrive late or not at all, check **WooCommerce → Status → Scheduled Actions**, group `woocommerce-emails`, for pending or failed `woocommerce_send_queued_transactional_email` actions, and turn **Deferred emails** off in **WooCommerce → Settings → Advanced → Features**. Applying the preset is optional; Reset puts this setting back to Off and Undo restores its previous value.
@@ -1804,6 +1805,7 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folder�
 
 ### Unreleased
 - New in GitHub builds, off by default: **Delay automatic updates** (Security) holds WordPress automatic plugin and theme updates for 72 hours (0–336), with a local-only **Update canary**. Manual and remotely pushed updates stay available (GitHub issue #835).
+- New: a **WPVulnerability** preset sends its email daily and hides server software that managed hosts update. **Known vulnerabilities** (Security) no longer counts software hidden in WPVulnerability (GitHub issue #840).
 
 ### 1.3.55
 - Fix: Image Copytrack's admin script loads its missing generator runtime first, preventing “regeneratorRuntime is not defined” on Add Plugins, View details and other admin screens (GitHub issue #829).

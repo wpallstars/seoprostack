@@ -67,6 +67,13 @@ Owner's decisions for single presets:
   (#577): Readabler bottom left, AI Engine's chatbot bubble bottom right,
   as the owner set them on a live site. Colours, chatbot names, instructions
   and models stay each site's own.
+- WPVulnerability emails daily and hides server software that managed hosts
+  update (#840): Apache, nginx, MariaDB, MySQL, ImageMagick, curl, Memcached,
+  Redis and SQLite. Its database refreshes every 12 hours, so weekly emails
+  delayed alerts by up to six days, and it emails on every finding, so daily
+  emails were noise without hiding what the owner cannot fix. Single sites
+  only: WPVulnerability keeps network settings in site options, which presets
+  do not write; the notes give the WP-CLI commands instead.
 
 ## Starter data
 
