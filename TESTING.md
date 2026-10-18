@@ -118,7 +118,9 @@ site with an old version of a plugin Wordfence lists (such as We're Open!
   and make the shared feed older than 20 hours (`touch -d`): the next run
   sends no request and says the sites wait until then.
 - [ ] A truncated or HTML file as the shared feed fails with "not Wordfence's
-  vulnerability feed" and keeps the last matches.
+  vulnerability feed" and keeps the last matches. So does a 2 MB `{}`
+  (`{`, 2 MB of spaces, `}`) or a well-formed object of fewer than 1,000
+  records (#854).
 - [ ] Switch off: both events go. Uninstall removes the
   `seoprostack_vulnerability_feed_*` options and leaves the shared folder.
   Run `scripts/lint.sh`.
