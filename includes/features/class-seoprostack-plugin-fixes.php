@@ -203,6 +203,12 @@
  * two frames in which the palette changes. The switch-style toggle still
  * slides.
  *
+ * Image Copytrack 1.2.4's vendor script uses regeneratorRuntime but declares
+ * only wp-element and wp-i18n as dependencies. On screens where no other
+ * plugin loads the runtime first, including Add Plugins and View details,
+ * it throws "regeneratorRuntime is not defined". Its registered vendor
+ * handle now depends on WordPress's regenerator-runtime too.
+ *
  * @package SEOProStack
  */
 
@@ -409,6 +415,23 @@ class SEOProStack_Plugin_Fixes extends SEOProStack_Feature {
         if (is_admin()) {
             add_action('admin_init', array(__CLASS__, 'burst_collation_dashboard'), 0);
             add_action('admin_init', array(__CLASS__, 'burst_collation_stop'), PHP_INT_MAX);
+            // After Copytrack registers its scripts at priority 10, before printing.
+            add_action('admin_enqueue_scripts', array(__CLASS__, 'copytrack_runtime'), 100);
+        }
+    }
+
+    /**
+     * Supply Copytrack's missing generator runtime dependency wherever its
+     * vendor handle is registered. Do not enqueue either script on its own.
+     */
+    public static function copytrack_runtime() {
+        $scripts = wp_scripts();
+        $handle  = 'mct_image_copytrack-vendor';
+        if (!isset($scripts->registered[$handle]) || !wp_script_is('regenerator-runtime', 'registered')) {
+            return;
+        }
+        if (!in_array('regenerator-runtime', $scripts->registered[$handle]->deps, true)) {
+            $scripts->registered[$handle]->deps[] = 'regenerator-runtime';
         }
     }
 
