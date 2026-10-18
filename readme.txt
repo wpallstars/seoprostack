@@ -5,7 +5,7 @@ Tags: magic login, iframe, schedule posts, auto upload images, admin
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.3.53
+Stable tag: 1.3.54
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -149,11 +149,11 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 == Changelog ==
 
 = 1.3.54 =
-* New: Cloud media uploads, restores and serves AVIF copies; copies stay local when their source is not uploaded.
-* Changed: Concurrent cloud media uploads and checks, with reserved time for removing local copies.
-* New: Verified cloud media bucket handover with adopt, migrate, previous-destination fallback and explicit cleanup.
-* Fix: Cloud cleanup resumes verification, skips empty inventories, reads status in batches and preserves local image srcset.
-* Fix: Kadence Pro's dark mode switches without icons fading from the old colours, and cached pages open in the chosen mode.
-* Fix: Admin dark mode covers Redux panels, Super Speedy, FluentCRM's contact search, Tutor LMS and dialog errors.
+* New: Cloud media serves AVIF copies too.
+* New: Verified cloud media bucket handover.
+* Changed: Faster, concurrent cloud media uploads.
+* Fix: Cloud cleanup resumes verification across batches.
+* Fix: Kadence Pro's dark mode switches without a flash.
+* Fix: Admin dark mode covers more plugins' screens.
 
 Older: `changelog.txt`.
