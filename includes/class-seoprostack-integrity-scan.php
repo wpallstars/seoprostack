@@ -180,6 +180,13 @@ class SEOProStack_Integrity_Scan {
              * matched against the path as shown in the finding:
              * `wp-includes/…`, `plugins/{folder}/…`, `uploads/…`.
              *
+             * Not needed for files that cannot run code, which the checks
+             * already skip: uploaded logs that exit on their first line and
+             * have no other `<?` (Code Profiler Pro, MC4WP), "403 Forbidden"
+             * index.php stubs, and translation caches (name.l10n.php beside
+             * name.mo) in plugins from WordPress.org. Do not add broad
+             * patterns for them.
+             *
              * @param array<int,string> $patterns Patterns.
              */
             $patterns     = apply_filters('seoprostack_integrity_ignore', array());

@@ -4,6 +4,7 @@ Every change to SEO Pro Stack. readme.txt lists the latest version in short.
 
 = Unreleased =
 * New: Like, save and share has a separate 50-post Shortlist, an Add to shortlist block and shortcode, a Saved panel with keyboard tabs for Shortlist, Saved and Liked, and a List control on Saved posts. Browser lists merge after login; pages contain no personal list data. Item/action filters and a JavaScript lists event and API let other plugins extend the panel without adding messaging here (GitHub issue #851).
+* Fix: File and account integrity checks no longer report, as critical, three kinds of file that cannot run code: logs in the uploads folder that exit on their first line and hold no other PHP open tag (Code Profiler Pro's log.php, MC4WP's debug-log.php; read in parts, up to 8 MB), "403 Forbidden" index.php stubs that only send a header and exit, and translation caches (name.l10n.php beside name.mo, WordPress 6.5 and later) in plugins from WordPress.org that hold only literal strings and numbers. The same file with any later <? or <?=, any other call, or no .mo beside it is still reported (GitHub issue #853).
 * Fix: Known vulnerabilities from Wordfence Intelligence accepts a download only when it holds at least 1,000 records (the feed has over 40,000), counted across every part of the check. A reply of 1 MB or more that closed early, such as {} padded with whitespace, passed before and replaced the last matches with none; now it fails and keeps them. A check started on 1.3.57 reads its copy again from the start (GitHub issue #854).
 
 = 1.3.57 =

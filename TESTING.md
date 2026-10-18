@@ -75,6 +75,23 @@ Record the debug log mark first.
 - [ ] A one-byte change to a WordPress.org plugin's file is a `critical`
   finding under Plugins from WordPress.org; an `index.php` in uploads holding
   only `<?php // Silence is golden.` is not a finding.
+- [ ] Files that cannot run code (#853). Create these, then run
+  `wp cron event run seoprostack_integrity_checks`:
+
+  | File | Contents | Reported |
+  |------|----------|----------|
+  | `uploads/a/log.php` | `<?php exit; ?>` and 10 KB of text | no |
+  | `uploads/b/log.php` | the same, plus `<?php echo 1;` at the end | yes |
+  | `uploads/c/log.php` | the same as `a`, with `<?= 1 ?>` in the middle | yes |
+  | `uploads/index.php` | `<?php header($_SERVER['SERVER_PROTOCOL'] . ' 403 Forbidden'); die('403 Forbidden');` | no |
+  | `uploads/d/index.php` | the same, plus `include $_GET['f'];` | yes |
+  | a WordPress.org plugin's `languages/x-en_US.l10n.php` | `<?php return ['messages'=>['a'=>'b']];`, next to `x-en_US.mo` | no |
+  | the same plugin's `languages/y-en_US.l10n.php` | `<?php system('id');`, next to `y-en_US.mo` | yes |
+  | the same plugin's `languages/z-en_US.l10n.php` | a clean `return [...]`, with no `.mo` | yes |
+
+  The `#836` findings above (an extra `wp-includes` PHP file, a `.cache`
+  file with PHP, a new administrator, a changed premium-plugin file) are
+  still `critical` in the same run.
 - [ ] Undo the changes and run again: all `good`, no email. Note the options'
   values, run `wp seoprostack health`, and confirm it started nothing (no
   `seoprostack_integrity_state`) and changed no option.
