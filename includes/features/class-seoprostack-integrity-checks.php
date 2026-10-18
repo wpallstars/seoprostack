@@ -60,6 +60,9 @@ class SEOProStack_Integrity_Checks extends SEOProStack_Feature {
     /** Per-plugin record of file sizes, times and hashes, + md5(plugin file). */
     const RECORD = 'seoprostack_integrity_p_';
 
+    /** The Hello Dolly WordPress ships, checked with core. */
+    const HELLO = 'wp-content/plugins/hello.php';
+
     /** Transient: WordPress.org's core checksums for this version. */
     const CORE_SUMS = 'seoprostack_integrity_core';
 
@@ -103,7 +106,7 @@ class SEOProStack_Integrity_Checks extends SEOProStack_Feature {
                 'default'     => true,
                 'parent'      => self::KEY,
                 'label'       => __('Email new findings', 'seoprostack'),
-                'description' => __('Email the site’s administration address once whenever the findings change, naming files and user names only.', 'seoprostack'),
+                'description' => __('Email the site’s administration address when a check finds something new, naming files and user names only.', 'seoprostack'),
             ),
         );
     }
@@ -295,23 +298,37 @@ class SEOProStack_Integrity_Checks extends SEOProStack_Feature {
         foreach (array_keys(self::checks()) as $check) {
             $found[$check] = isset($state['found'][$check]) ? array_values((array) $state['found'][$check]) : array();
         }
-        $any     = (bool) array_filter($found);
-        $sig     = $any ? md5((string) wp_json_encode($found)) : '';
-        $emailed = isset($before['emailed']) ? (string) $before['emailed'] : '';
-        if (!$any) {
-            $emailed = '';
-        } elseif ($sig !== $emailed && (!SEOProStack_Settings::get(self::EMAIL_KEY) || self::email($found))) {
-            // Switched off, Site Health tells; a failed email is tried again next time.
-            $emailed = $sig;
+        // Email only when a finding is new since the last email: not when
+        // findings go. One that goes and comes back is new again.
+        $keys     = self::finding_keys($found);
+        $notified = isset($before['notified']) ? (array) $before['notified'] : array();
+        if (array_diff($keys, $notified) && SEOProStack_Settings::get(self::EMAIL_KEY) && !self::email($found)) {
+            $keys = $notified; // Try again next time.
         }
         update_option(self::RESULTS, array(
             'time'      => time(),
             'started'   => (int) $state['started'],
             'found'     => $found,
             'unchecked' => (array) $state['unchecked'],
-            'emailed'   => $emailed,
+            'notified'  => $keys,
             'records'   => $records,
         ), false);
+    }
+
+    /**
+     * A short key for each finding, to tell new ones.
+     *
+     * @param array<string,array<int,mixed>> $found Findings.
+     * @return array<int,string>
+     */
+    private static function finding_keys(array $found) {
+        $keys = array();
+        foreach ($found as $check => $items) {
+            foreach ($items as $item) {
+                $keys[] = md5($check . '|' . (is_array($item) && isset($item['user']) ? 'user:' . $item['user'] : (string) $item));
+            }
+        }
+        return $keys;
     }
 
     /**
@@ -382,7 +399,8 @@ class SEOProStack_Integrity_Checks extends SEOProStack_Feature {
         }
         $kept = array();
         foreach ($sums as $path => $md5) {
-            if (0 !== strpos((string) $path, 'wp-content/') && self::is_code((string) $path)) {
+            // Of wp-content, only the Hello Dolly WordPress ships (hello.php), as WP-CLI does.
+            if ((0 !== strpos((string) $path, 'wp-content/') || self::HELLO === $path) && self::is_code((string) $path)) {
                 $kept[(string) $path] = array_values(array_map('strval', (array) $md5));
             }
         }
@@ -422,7 +440,7 @@ class SEOProStack_Integrity_Checks extends SEOProStack_Feature {
                 $state['pos'] = $i;
                 return false;
             }
-            $file = ABSPATH . $paths[$i];
+            $file = self::HELLO === $paths[$i] ? untrailingslashit(WP_PLUGIN_DIR) . '/hello.php' : ABSPATH . $paths[$i];
             if (!is_file($file)) {
                 continue; // Removed files are not tampering.
             }
@@ -494,6 +512,9 @@ class SEOProStack_Integrity_Checks extends SEOProStack_Feature {
                 return false;
             }
             $file                = (string) $files[$i];
+            if ('hello.php' === $file) {
+                continue; // WordPress's own copy: checked with core.
+            }
             $state['records'][] = self::RECORD . md5($file);
             self::check_plugin($state, $file, $plugins[$file], $updates);
         }
@@ -752,7 +773,7 @@ class SEOProStack_Integrity_Checks extends SEOProStack_Feature {
             return null;
         }
         $url      = 'https://downloads.wordpress.org/plugin-checksums/' . rawurlencode($slug) . '/' . rawurlencode($version) . '.json';
-        $response = wp_remote_get($url, array('timeout' => 10));
+        $response = wp_remote_get($url, array('timeout' => 10)); // phpcs:ignore WordPressVIPMinimum.Performance.RemoteRequestTimeout -- cron only, at most once a week per plugin version; a large plugin's list can take seconds.
         if (is_wp_error($response)) {
             return false;
         }

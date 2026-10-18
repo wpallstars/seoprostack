@@ -73,7 +73,7 @@ A new install starts with the features that are safe on every site switched on, 
 - **Plugins:** Load plugins only where needed, with **Also skip them for people who are logged in**, so it takes every chance to skip plugins once it has learned; Clean up deleted plugins, Plugin sizes, Fixes for other plugins, Plugin presets (each asks first) and Plugins menu in the admin bar.
 - **Admin and editor:** Organise the admin menu, More menu in the admin bar, Hide admin bar items (Comments and + New), Hide admin notices, Tidy admin screens, Correct update counts, Tidy the dashboard, Tidy WooCommerce admin, Readable list columns, Simpler block editor, Dev tab in the block editor, Notification emails (plugin and theme auto-update reports, unless an update failed), No fade between admin screens, Quiet Freemius prompts, Quiet Appsero prompts, Quiet Imagify suggestions, Hide the admin bar and Block dashboard access (for subscribers, customers and similar roles), Hide dashboard widgets (Welcome and WordPress Events and News), Disable sidebar widgets (Meta), Tidy the login screen and Avatars without Gravatar.
 
-Left off on Admin, Security, Speed and Plugins, as each needs a choice first: Developer admins (who the developers are), Magic login links (whether administrators may log in by email, which skips two-step login plugins that only check the password), Ask before licence checks (until someone answers, premium plugins' licence checks fail, which can switch off their paid features), Delay scripts until interaction (which scripts) and Delayed Google Analytics (the measurement ID). Watermark pictures (Media) changes uploaded pictures, so it is off too.
+Left off on Admin, Security, Speed and Plugins, as each needs a choice first: Developer admins (who the developers are), Magic login links (whether administrators may log in by email, which skips two-step login plugins that only check the password), Ask before licence checks (until someone answers, premium plugins' licence checks fail, which can switch off their paid features), Delay scripts until interaction (which scripts), Delayed Google Analytics (the measurement ID) and File and account integrity checks (a daily check that asks WordPress.org for checksums and emails the administration address). Watermark pictures (Media) changes uploaded pictures, so it is off too.
 
 Also offered on Server: **Faster page counts on long lists**, off by default, with exact totals counted separately from the page.
 
@@ -220,6 +220,29 @@ Uses core's `user_profile_update_errors`, `validate_password_reset`, `rest_reque
 - First-seen times use `time()` and plugin basenames or theme stylesheets plus versions, separated by update type. They are kept in one non-autoloaded `seoprostack_update_first_seen` option (a network option on multisite). Removed items and versions now installed are pruned on update checks. Missing or corrupt records start a fresh hold, not an early update. Uninstall removes the record.
 
 Uses `set_site_transient_update_plugins`, `set_site_transient_update_themes`, `auto_update_plugin` and `auto_update_theme`; never filters `upgrader_pre_install` or changes the shared GitHub updater.
+
+### File and account integrity checks (Security)
+
+**Off by default.** Once a day (from 4am site time, and a minute after switching on), the site checks itself, read-only, in parts of at most 20 seconds; a part that runs out of time continues a minute later. On a network the main site runs it once for all sites, and only its Site Health shows the results. Four checks, each a test under Security in **Tools → Site Health** and in `wp seoprostack health`:
+
+1. **WordPress core files**: WordPress's code files (`.php`, `.js`, `.htaccess`) against the checksums WordPress.org publishes for this version (`get_core_checksums()`), and `.php` files in `wp-admin/` and `wp-includes/` that WordPress does not have, where malware can pose as a core file (such as `wp-includes/class-wp-cache-util.php` in the Rank Math SEO PRO 3.0.123 incident). Removed files are not reported.
+2. **Plugins from WordPress.org**: their code files against the checksums WP-CLI's `wp plugin verify-checksums` uses (`https://downloads.wordpress.org/plugin-checksums/{slug}/{version}.json`), with `.php` files the release does not have. Only plugins that WordPress.org's own update check lists (a `w.org/plugins/` ID) are compared, so a premium or GitHub plugin of the same name never is; a version with no checksums is treated as below.
+3. **Other plugins** (premium, GitHub-hosted, SEO Pro Stack itself): their code files against the sizes, times and SHA-1 hashes recorded when each was installed or updated through WordPress (`upgrader_process_complete`, including `wp plugin install` and `wp plugin update`) or first seen. Changed files and new `.php` files are reported. A version that changes outside WordPress's updater (Git or FTP) makes a new record silently, and so does a harmful update through the updater: checks 1, 2 and 4 still find what its payload changes.
+4. **Uploaded PHP and new administrators**: PHP files (`.php`, `.phtml`, `.phar` and similar) anywhere in the uploads folder, and `.cache` files with PHP in them; small files with only comments or `exit` (the empty `index.php` many plugins add) do not count. Administrators (and super admins on a network) first seen in the last 7 days, added or given the role, by user name; the first check records those already there.
+
+A finding is **critical**, listed by path or user name only; a check that could not run in full (WordPress.org did not answer within 10 seconds, too many files) is recommended and says so rather than reporting changes. Before the first check finishes, and when the last one is more than three days old (WP-Cron not running), the tests are recommended too. With **Email new findings** on (the default), the administration email address gets one email when a check finds something new (not when findings go; one that comes back is new again), naming files and user names, never their contents. A failed email is tried again at the next check.
+
+Nothing is ever changed, quarantined or deleted: undo what you do not recognise yourself. For files known to change, the `seoprostack_integrity_ignore` filter takes `fnmatch()` patterns matched against the path as the finding shows it:
+
+```php
+add_filter('seoprostack_integrity_ignore', function ($patterns) {
+    $patterns[] = 'plugins/example-plugin/cache/*';
+    $patterns[] = 'uploads/example-forms/*.php';
+    return $patterns;
+});
+```
+
+Unchanged files (same size and time as when they last matched) are not hashed again, and WordPress.org's checksums are fetched only when a file needs them, then kept for a week (`seoprostack_integrity_*` transients). Results are kept in `seoprostack_integrity_results`, the check in progress in `seoprostack_integrity_state`, administrators seen in `seoprostack_integrity_admins` and each plugin's record in a `seoprostack_integrity_p_{md5 of plugin file}` option, none autoloaded. `wp seoprostack health` reads the last results and starts no check. Uninstall removes them all and the scheduled events. Comparing the same plugin version across several sites is fleet work for aidevops, not this feature.
 
 ### Known vulnerabilities (Security)
 
