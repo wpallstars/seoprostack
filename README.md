@@ -210,6 +210,17 @@ Replaces Really Simple Security's SSL Labs status box with checks the site runs 
 
 Uses core's `user_profile_update_errors`, `validate_password_reset`, `rest_request_before_callbacks` (the users endpoints, answering 400 before anything is saved) and `password_hint` hooks, and WooCommerce's `woocommerce_save_account_details_errors` and `woocommerce_registration_errors`. Stores nothing but the settings.
 
+### Delay automatic updates (Security)
+
+**GitHub builds only; off by default.** The WordPress.org build leaves this feature out because it alters WordPress update routines. Holds WordPress's own automatic plugin and theme updates for **72 hours** after each version is first offered to this site. Choose 0–336 hours (0 stops the hold). Security releases wait too: a compromised release can claim to be a security fix. The hold gives vendors, scanners and early adopters time to spot problems; it does not scan downloads or guarantee they are safe.
+
+- **Update canary** appears only on a local site (`wp_get_environment_type() === 'local'`, as on LocalWP). Turn it on there to take automatic updates without waiting. Development, staging and production sites always ignore that saved choice, even after copying a local database.
+- The Plugins list and Dashboard → Updates show the hold deadline in the site's timezone. Manual updates stay available. WP-CLI and updates pushed by MainWP or other remote dashboards are not held.
+- Never enables an automatic update that WordPress, the site or another filter has disabled. Switching the feature off restores the previous behaviour.
+- First-seen times use `time()` and plugin basenames or theme stylesheets plus versions, separated by update type. They are kept in one non-autoloaded `seoprostack_update_first_seen` option (a network option on multisite). Removed items and versions now installed are pruned on update checks. Missing or corrupt records start a fresh hold, not an early update. Uninstall removes the record.
+
+Uses `set_site_transient_update_plugins`, `set_site_transient_update_themes`, `auto_update_plugin` and `auto_update_theme`; never filters `upgrader_pre_install` or changes the shared GitHub updater.
+
 ### Known vulnerabilities (Security)
 
 Below the Security tab's settings, for administrators. SEO Pro Stack does not check for vulnerabilities itself: [WPVulnerability](https://wordpress.org/plugins/wpvulnerability/) (free, in Free Plugins → Admin) checks WordPress, the plugins, the themes and the server's software (PHP, the web server, the database, ImageMagick, curl and others) against the WPVulnerability Database, which needs no account and, its makers say, keeps nothing about the site. It lists what it finds in Tools → Site Health, on the Plugins and Themes screens and in a dashboard widget, and emails the site's administration email address weekly (its settings change that).
@@ -1790,6 +1801,9 @@ Deleting the plugin removes its settings (on multisite, every site's and the net
 Deactivating the plugin removes the WebP and AVIF rules from the uploads folder’s `.htaccess` (for every site when network-deactivated), the LiteSpeed background request rules from the site’s `.htaccess` (on multisite, when network-deactivated or deactivated on the main site) and the must-use file of Load plugins only where needed (on multisite, when network-deactivated).
 
 ## Changelog
+
+### Unreleased
+- New in GitHub builds, off by default: **Delay automatic updates** (Security) holds WordPress automatic plugin and theme updates for 72 hours (0–336), with a local-only **Update canary**. Manual and remotely pushed updates stay available (GitHub issue #835).
 
 ### 1.3.55
 - Fix: Image Copytrack's admin script loads its missing generator runtime first, preventing “regeneratorRuntime is not defined” on Add Plugins, View details and other admin screens (GitHub issue #829).

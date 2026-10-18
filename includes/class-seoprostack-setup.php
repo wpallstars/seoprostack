@@ -137,10 +137,12 @@ final class SEOProStack_Setup {
     /**
      * Features that some builds leave out, loaded only when their file is
      * present. The WordPress.org build drops GitHub updates: plugins hosted
-     * there may not install or update code from anywhere else.
+     * there may not install or update code from anywhere else. It also drops
+     * the update hold, which alters WordPress update routines.
      */
     const OPTIONAL_FEATURES = array(
         'SEOProStack_Github_Updates',
+        'SEOProStack_Update_Delay',
     );
 
     /**

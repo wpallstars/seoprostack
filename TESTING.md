@@ -11,6 +11,48 @@ For every change, check the debug log afterwards. Load plugins only where
 needed skips plugins on some requests, so messages from a skipped plugin are
 SEO Pro Stack's to fix too.
 
+## Delay automatic updates
+
+Use the GitHub build on a disposable LocalWP site, then a disposable multisite. Do not update or
+uninstall plugins on the shared preview just to test the hold. Use an older
+version of a small plugin and theme with an update available. Record the debug
+log mark first; inspect new messages afterwards.
+
+- [ ] Build both zips and run `scripts/plugin-check.sh`: the WordPress.org zip
+  has neither the update-delay feature nor its update-offers helper. Activate
+  that build and confirm it has no hold settings or update-delay hooks, even
+  with saved hold settings from a GitHub build. The GitHub build retains both.
+- [ ] The Security setting starts off, hours start at 72 and accept 0–336.
+  Turn it on, choose 1 hour, leave Update canary off, and check for updates.
+  `wp eval 'var_dump(apply_filters("auto_update_plugin", true, (object) array("plugin" => "<file>", "new_version" => "<v>", "slug" => "<slug>")));'`
+  returns `false`. Use the actual plugin basename and offered version. Repeat
+  with `auto_update_theme` and `theme` set to the theme stylesheet.
+- [ ] Repeat update checks: `seoprostack_update_first_seen` keeps the original
+  timestamp for that version. It does not autoload. On multisite the option
+  is network-wide (`get_site_option`), not in each site's options.
+- [ ] On this disposable site only, move the matching `plugin` or `theme`
+  record (`<file>|<v>` or `<stylesheet>|<v>`) back more than an hour. The
+  filter returns its original value (`true`, `false` or `null`), never
+  turns a disabled update on, and the note disappears. A new version starts
+  a new hold. Missing, corrupt or future timestamps start a fresh hold.
+- [ ] Set 72 hours and verify recent releases stay held; set 0 and verify no
+  hold. Turn the feature off and verify its filters are absent on a new
+  request. With Remove WordPress extras' plugin/theme automatic updates
+  disabled, WordPress's global disable filters still win.
+- [ ] Turn Update canary on locally: no hold. On separate requests with
+  `WP_ENVIRONMENT_TYPE` set to `development`, `staging` and `production`,
+  verify the same saved value has no effect and the canary field is absent.
+- [ ] Plugins and Dashboard → Updates show a readable hold deadline in the
+  site's timezone. Check network Updates too. Manual updates from both screens
+  and `wp plugin update <slug>` / `wp theme update <stylesheet>` still work.
+  No `upgrader_pre_install` hook is added. MainWP updates remain outside scope.
+- [ ] After installing an offered version, the next transient write prunes
+  its record. Removing a plugin/theme prunes all its versions, without
+  removing other installed items' records. Plugin and theme names cannot collide.
+- [ ] Uninstall on disposable single-site and multisite removes
+  `seoprostack_update_first_seen`; rolling back or switching off simply stops
+  holding updates. Run `scripts/lint.sh phpstan` and `scripts/lint.sh`.
+
 ## Read-only health audits for several sites
 
 On each host, list a network's sites with `wp site list --field=url`, then run

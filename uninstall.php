@@ -51,6 +51,7 @@ function seoprostack_uninstall_site() {
         // The settings save lock, if a save stopped before releasing it.
         'seoprostack_options_lock',
         'seoprostack_db_version',
+        'seoprostack_update_first_seen',
         // Multisite: the network changes this site last ran its saving work
         // for, and the network option's save lock (main site only), if a
         // save stopped.
@@ -426,6 +427,7 @@ if (is_multisite()) {
     }
     // The network screen's settings (SEOProStack_Network_Settings).
     delete_site_option('seoprostack_network');
+    delete_site_option('seoprostack_update_first_seen');
 } else {
     seoprostack_uninstall_site();
 }

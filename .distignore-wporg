@@ -6,4 +6,7 @@
 # (GitHub Plugin URI, Primary Branch, Release Asset) from seoprostack.php.
 /includes/github-updater/
 /includes/features/class-seoprostack-github-updates.php
+# WordPress.org plugins must not alter WordPress update routines.
+/includes/features/class-seoprostack-update-delay.php
+/includes/class-seoprostack-update-offers.php
 # Keep README.md: the admin Read Me tab shows it (admin/data/readme.php).
