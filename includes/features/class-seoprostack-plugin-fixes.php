@@ -374,6 +374,9 @@ class SEOProStack_Plugin_Fixes extends SEOProStack_Feature {
         add_action('admin_init', array(__CLASS__, 'tutor_repair_tables'), 5);
         // Before Tutor LMS Pro's closure, which uses priority 10.
         add_action('current_screen', array(__CLASS__, 'tutor_pro_no_forced_check'), 0);
+        if (is_admin()) {
+            add_action('current_screen', array(__CLASS__, 'tutor_admin_body_classes'), 0);
+        }
         add_filter('pre_http_request', array(__CLASS__, 'cg_skip_failed'), 10, 3);
         add_action('http_api_debug', array(__CLASS__, 'cg_note_failure'), 10, 5);
         // Before MainWP Child's callback, which uses priority 15.
@@ -1003,6 +1006,32 @@ JS;
                 if ($scope && self::TUTOR_PRO_UPDATER === $scope->getName()) {
                     remove_action('current_screen', $callback['function'], $priority);
                 }
+            }
+        }
+    }
+
+    /**
+     * Separate Tutor LMS's admin body classes from the preceding plugin's.
+     * Tutor 4.1.3 appends its first class without a space. Wrap its callback
+     * itself: an earlier filter at the same priority can remove a separator.
+     */
+    public static function tutor_admin_body_classes() {
+        global $wp_filter;
+        if (!isset($wp_filter['admin_body_class'])) {
+            return;
+        }
+        foreach ($wp_filter['admin_body_class']->callbacks as $priority => $callbacks) {
+            foreach ($callbacks as $callback) {
+                $function = $callback['function'];
+                if (!is_array($function) || !isset($function[0], $function[1])
+                    || !$function[0] instanceof \TUTOR\Assets
+                    || 'add_identifier_class_to_body' !== $function[1]) {
+                    continue;
+                }
+                remove_filter('admin_body_class', $function, $priority);
+                add_filter('admin_body_class', static function ($classes) use ($function) {
+                    return call_user_func($function, is_string($classes) ? rtrim($classes) . ' ' : $classes);
+                }, $priority);
             }
         }
     }

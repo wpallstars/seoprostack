@@ -3,6 +3,7 @@
 Every change to SEO Pro Stack. readme.txt lists the latest version in short.
 
 = Unreleased =
+* Fix: Fixes for other plugins separates Tutor LMS's admin body classes from the preceding plugin's. Tutor added tutor-lms without a space, giving acf-browser-chrometutor-lms after Secure Custom Fields, so neither plugin's styles matched. Its callback now receives a separating space even after filters at the same priority; Tutor inactive or skipped is left alone (GitHub issue #828).
 * Fix: Tutor LMS's course builder (Courses → Add New, or Edit) is dark in Dark mode. It was kept light because its script draws it in fixed colours; those are now recoloured as on Tutor LMS's other screens, covering the Basics, Curriculum and Additional steps, the Update menu and the lesson and quiz dialogs. The Tutor LMS logo and the Gutenberg icon by "Edit with", drawn in black, follow the text colour, and the editor toolbar, which Tutor's own TinyMCE skin forces white, is dark. Light is unchanged (GitHub issue #830).
 
 = 1.3.54 =
