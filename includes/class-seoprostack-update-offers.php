@@ -46,6 +46,7 @@ class SEOProStack_Update_Offers {
     /**
      * @param mixed $seen Stored timestamp.
      * @return bool
+     * @phpstan-assert-if-true int $seen
      */
     private static function valid_time($seen) {
         return is_int($seen) && $seen > 0 && $seen <= time();
