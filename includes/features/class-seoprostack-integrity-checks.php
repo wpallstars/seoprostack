@@ -325,7 +325,7 @@ class SEOProStack_Integrity_Checks extends SEOProStack_Feature {
         $keys = array();
         foreach ($found as $check => $items) {
             foreach ($items as $item) {
-                $keys[] = md5($check . '|' . (is_array($item) && isset($item['user']) ? 'user:' . $item['user'] : (string) $item));
+                $keys[] = md5($check . '|' . (is_array($item) && isset($item['user']) ? 'user:' . $item['user'] : (string) $item)); // NOSONAR: a key to notice new findings, not security.
             }
         }
         return $keys;
@@ -515,7 +515,7 @@ class SEOProStack_Integrity_Checks extends SEOProStack_Feature {
             if ('hello.php' === $file) {
                 continue; // WordPress's own copy: checked with core.
             }
-            $state['records'][] = self::RECORD . md5($file);
+            $state['records'][] = self::RECORD . md5($file); // NOSONAR: an option name, not security.
             self::check_plugin($state, $file, $plugins[$file], $updates);
         }
         return true;
@@ -540,7 +540,7 @@ class SEOProStack_Integrity_Checks extends SEOProStack_Feature {
             return;
         }
         $version = isset($data['Version']) ? (string) $data['Version'] : '';
-        $option  = self::RECORD . md5($file);
+        $option  = self::RECORD . md5($file); // NOSONAR: an option name, not security.
         $record  = get_option($option);
         $slug    = self::wporg_slug($file, $data, $updates);
         if ('' !== $slug) {
@@ -764,7 +764,7 @@ class SEOProStack_Integrity_Checks extends SEOProStack_Feature {
      * @return array<string,array<int,string>>|false|null
      */
     private static function plugin_sums($slug, $version) {
-        $key    = self::PLUGIN_SUMS . md5($slug . '|' . $version);
+        $key    = self::PLUGIN_SUMS . md5($slug . '|' . $version); // NOSONAR: a cache or lock key, not security.
         $cached = get_transient($key);
         if (is_array($cached)) {
             return $cached;
@@ -824,7 +824,7 @@ class SEOProStack_Integrity_Checks extends SEOProStack_Feature {
         $start   = microtime(true);
         foreach ($files as $file) {
             $file   = (string) $file;
-            $option = self::RECORD . md5($file);
+            $option = self::RECORD . md5($file); // NOSONAR: an option name, not security.
             $path   = untrailingslashit(WP_PLUGIN_DIR) . '/' . $file;
             // Out of time, or not a local record: the next check makes it.
             if (!is_file($path) || !self::more_time($start, 10)) {
