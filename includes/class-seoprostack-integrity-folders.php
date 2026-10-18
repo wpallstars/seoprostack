@@ -169,7 +169,10 @@ class SEOProStack_Integrity_Folders {
             return false;
         }
         // One byte more than a small file, so a file that grew since filesize() is not taken as small.
-        $head = (string) file_get_contents($file, false, null, 0, self::SMALL_FILE + 1); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents -- a local file's start, read, never run.
+        $head = file_get_contents($file, false, null, 0, self::SMALL_FILE + 1); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents -- a local file's start, read, never run.
+        if (false === $head) {
+            return false; // Unreadable here (such as another user's 0600 file) but perhaps not to the web server: report it.
+        }
         if (strlen($head) <= self::SMALL_FILE && (self::only_quiet($head) || self::forbidden_stub($head))) {
             return true;
         }

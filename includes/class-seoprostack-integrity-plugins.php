@@ -164,8 +164,12 @@ class SEOProStack_Integrity_Plugins {
         if (false === $size || $size > self::MAX_L10N_FILE) {
             return false;
         }
+        $code = file_get_contents($file); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents -- a local file, read, never run.
+        if (false === $code || '' === trim($code)) {
+            return false; // Unreadable, or empty: not a cache WordPress wrote.
+        }
         $prev = null;
-        foreach (token_get_all((string) file_get_contents($file)) as $token) { // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents -- a local file, read, never run.
+        foreach (token_get_all($code) as $token) {
             if (is_array($token) && in_array($token[0], array(T_WHITESPACE, T_COMMENT, T_DOC_COMMENT), true)) {
                 continue;
             }
