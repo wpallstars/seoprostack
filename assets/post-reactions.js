@@ -240,7 +240,7 @@
 		id = Number(id);
 		var task = queue.then(function () {
 			on = typeof on === 'boolean' ? on : !has(state[which], id);
-			if (has(state[which], id) === on) { return; }
+			if (has(state[which], id) === on) { return Promise.resolve(); }
 			var before = state[which].slice();
 			state[which] = (on ? without(before, id).concat([id]) : without(before, id)).slice(-(which === 'shortlist' ? cfg.shortlistMax : 500));
 			changed();
@@ -250,7 +250,7 @@
 				if (res[which]) { state[which] = res[which]; }
 				if (which === 'liked') { showCount(id, res.count); }
 				if (!state.user) { write(keys[which], state[which]); }
-				else { write(KEY_SYNC, Date.now() + ':' + Math.random()); }
+				else { write(KEY_SYNC, Date.now() + ':' + window.performance.now()); }
 				changed();
 				fillLists();
 			}, function (error) {
@@ -325,7 +325,7 @@
 			if (!state.user) {
 				write(KEY_SAVED, []);
 				fillLists();
-				return;
+				return Promise.resolve();
 			}
 			return send('clear', {}).then(function () { write(KEY_SYNC, Date.now()); fillLists(); }, function () {
 				state.saved = before;
@@ -354,7 +354,13 @@
 			toggle(target.closest('[data-sps-saved]').getAttribute('data-list') || 'saved', Number(target.getAttribute('data-sps-remove')), false).catch(function () {});
 		} else if (target.hasAttribute('data-sps-clear')) {
 			clear(target);
-		} else if (target.hasAttribute('data-sps-panel-open')) {
+		}
+	});
+
+	document.addEventListener('click', function (event) {
+		var target = event.target.closest ? event.target.closest('button') : null;
+		if (!target) { return; }
+		if (target.hasAttribute('data-sps-panel-open')) {
 			var dialog = target.parentElement.querySelector('[data-sps-panel]');
 			if (dialog && dialog.showModal) { dialog.spsTrigger = target; dialog.showModal(); }
 		} else if (target.hasAttribute('data-sps-panel-close')) {
@@ -425,37 +431,37 @@
 	showAll();
 
 	function loadState() {
-	return send('state', { posts: ids.join(',') }).then(function (res) {
-		Object.keys(res.counts || {}).forEach(function (id) {
-			showCount(id, res.counts[id]);
-		});
-		if (!res.user) {
-			state.user = false;
-			state.nonce = '';
-			Object.keys(keys).forEach(function (list) { state[list] = read(keys[list]).slice(-(list === 'shortlist' ? cfg.shortlistMax : 500)); });
+		return send('state', { posts: ids.join(',') }).then(function (res) {
+			Object.keys(res.counts || {}).forEach(function (id) {
+				showCount(id, res.counts[id]);
+			});
+			if (!res.user) {
+				state.user = false;
+				state.nonce = '';
+				Object.keys(keys).forEach(function (list) { state[list] = read(keys[list]).slice(-(list === 'shortlist' ? cfg.shortlistMax : 500)); });
+				changed();
+				fillLists();
+				return Promise.resolve();
+			}
+			state.user = true;
+			state.nonce = res.nonce;
+			return Promise.all(Object.keys(keys).map(function (list) {
+				state[list] = res[list] || [];
+				var local = read(keys[list]);
+				if (!local.length) { return Promise.resolve(); }
+				// Merging Liked must not increment already counted public totals.
+				return send('merge', { list: list, posts: local.join(',') }).then(function (merged) {
+					state[list] = merged[list];
+					write(keys[list], []);
+				}).catch(function () { say(document, t.failed); });
+			})).then(function () {
+				changed();
+				fillLists();
+			});
+		}, function () {
 			changed();
 			fillLists();
-			return;
-		}
-		state.user = true;
-		state.nonce = res.nonce;
-		return Promise.all(Object.keys(keys).map(function (list) {
-			state[list] = res[list] || [];
-			var local = read(keys[list]);
-			if (!local.length) { return Promise.resolve(); }
-			// Merging Liked must not increment already counted public totals.
-			return send('merge', { list: list, posts: local.join(',') }).then(function (merged) {
-				state[list] = merged[list];
-				write(keys[list], []);
-			}).catch(function () { say(document, t.failed); });
-		})).then(function () {
-			changed();
-			fillLists();
 		});
-	}, function () {
-		changed();
-		fillLists();
-	});
 	}
 	queue = loadState();
 	window.addEventListener('storage', function (event) {
