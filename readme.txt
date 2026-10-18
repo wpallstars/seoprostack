@@ -148,6 +148,9 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 
 == Changelog ==
 
+= Unreleased =
+* Fix: Tutor LMS's course builder is dark in Dark mode.
+
 = 1.3.54 =
 * New: Cloud media serves AVIF copies too.
 * New: Verified cloud media bucket handover.

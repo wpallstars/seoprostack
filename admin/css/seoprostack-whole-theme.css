@@ -5526,9 +5526,9 @@ html.sps-dark body[class*="page_mdp_"] .mdp-now-used {
  * and text colours). Its React parts (Add-ons, coupons, the e-commerce
  * settings, import and export) set their colours from script, under hashed
  * class names: admin/js/seoprostack-theme-scripted.js recolours those
- * (SEOProStack_Admin_Theme::script_styles()). Its course builder is drawn
- * that way too, filling the window, and is kept light
- * (SEOProStack_Admin_Theme::screen_applies()).
+ * (SEOProStack_Admin_Theme::script_styles()), on the course builder too
+ * (page=create-course), which the script draws whole; its leftovers are
+ * under "Course builder" below.
  */
 html.sps-dark body.wp-admin {
 	--tutor-body-color: var(--sps-ui-text);
@@ -5759,6 +5759,19 @@ html.sps-dark body.tutor-backend .tutor-license-notice {
 
 html.sps-dark .tutor-license-page-wrapper .tutor-license-info .tutor-license-info-item-value {
 	color: var(--sps-ui-text);
+}
+
+/*
+ * Course builder: the script recolours its Emotion styles; left over are the
+ * Tutor LMS logo and the Gutenberg icon by "Edit with", drawn in #000, and
+ * the editor toolbar, which Tutor's own TinyMCE skin sets #fff !important.
+ */
+html.sps-dark #tutor-course-builder svg path[fill="#000"] {
+	fill: currentcolor;
+}
+
+html.sps-dark #tutor-course-builder .mce-toolbar-grp {
+	background: var(--sps-ui-raised) !important;
 }
 
 /*

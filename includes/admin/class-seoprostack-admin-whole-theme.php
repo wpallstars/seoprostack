@@ -214,8 +214,7 @@ final class SEOProStack_Admin_Whole_Theme {
 
     /**
      * Whether the current screen turns dark in Dark mode. Every admin
-     * screen does but SEO Pro Stats' own and Tutor LMS's course builder,
-     * unless a filter keeps one light.
+     * screen does but SEO Pro Stats' own, unless a filter keeps one light.
      *
      * @return bool
      */
@@ -224,7 +223,7 @@ final class SEOProStack_Admin_Whole_Theme {
             return false;
         }
         $screen = function_exists('get_current_screen') ? get_current_screen() : null;
-        $applies = !self::stats_screen($screen) && !self::scripted_screen($screen);
+        $applies = !self::stats_screen($screen);
         /**
          * Filter whether an admin screen turns dark in Dark mode, for
          * screens whose own design does not suit it. The colour mode icon
@@ -268,14 +267,15 @@ final class SEOProStack_Admin_Whole_Theme {
     /**
      * Whether Dark recolours the styles a screen's own script sets (Emotion,
      * CSS in JS, under hashed class names the stylesheet cannot name; see
-     * admin/js/seoprostack-theme-scripted.js): Tutor LMS's screens.
+     * admin/js/seoprostack-theme-scripted.js): Tutor LMS's screens, and its
+     * course builder (page=create-course), which the script draws whole.
      *
      * @return bool
      */
     private static function script_styles() {
         global $plugin_page;
         $screen = function_exists('get_current_screen') ? get_current_screen() : null;
-        $tutor  = defined('TUTOR_VERSION') && is_string($plugin_page) && 0 === strpos($plugin_page, 'tutor');
+        $tutor  = defined('TUTOR_VERSION') && is_string($plugin_page) && (0 === strpos($plugin_page, 'tutor') || 'create-course' === $plugin_page);
         /**
          * Filter whether Dark mode recolours the styles an admin screen's
          * own script sets (Emotion's): light grounds, dark grey text and
@@ -308,23 +308,6 @@ final class SEOProStack_Admin_Whole_Theme {
             $hooks[] = (string) call_user_func(array('SEOProStats_Admin_Manager', 'hook'));
         }
         return in_array($screen->id, $hooks, true);
-    }
-
-    /**
-     * Whether this is a screen drawn by script in colours fixed in its code,
-     * filling the window: Tutor LMS's course builder. Dark could reach only
-     * the parts made of WordPress's own fields and editor, leaving the rest
-     * light, so the screen keeps its own light look.
-     *
-     * @param WP_Screen|null $screen The screen.
-     * @return bool
-     */
-    private static function scripted_screen($screen) {
-        if (!$screen || !defined('TUTOR_VERSION')) {
-            return false;
-        }
-        $builder = '_page_create-course';
-        return substr($screen->id, -strlen($builder)) === $builder;
     }
 
     /**

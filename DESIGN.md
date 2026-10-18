@@ -11,8 +11,9 @@ bar and accent. System follows `prefers-color-scheme` live. The front end and
 the block editor's canvas keep the theme's colours. SEO Pro Stats' own
 screens are left to its own colour mode, which follows the same choice.
 Screens whose own design does not suit dark can stay light with the
-`seoprostack_admin_dark_screen` filter; Tutor LMS's course builder, drawn by
-script in fixed colours, does so by default. The Customizer's controls pane
+`seoprostack_admin_dark_screen` filter. Tutor LMS's course builder, drawn by
+script in fixed colours, is dark through the same recolouring as Tutor's
+other screens (GitHub issue #830). The Customizer's controls pane
 is dark (it prints its own page, so the mode's classes are set from
 `customize_controls_print_styles`); its preview keeps the site's colours.
 
