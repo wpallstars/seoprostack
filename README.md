@@ -73,7 +73,7 @@ A new install starts with the features that are safe on every site switched on, 
 - **Plugins:** Load plugins only where needed, with **Also skip them for people who are logged in**, so it takes every chance to skip plugins once it has learned; Clean up deleted plugins, Plugin sizes, Fixes for other plugins, Plugin presets (each asks first) and Plugins menu in the admin bar.
 - **Admin and editor:** Organise the admin menu, More menu in the admin bar, Hide admin bar items (Comments and + New), Hide admin notices, Tidy admin screens, Correct update counts, Tidy the dashboard, Tidy WooCommerce admin, Readable list columns, Simpler block editor, Dev tab in the block editor, Notification emails (plugin and theme auto-update reports, unless an update failed), No fade between admin screens, Quiet Freemius prompts, Quiet Appsero prompts, Quiet Imagify suggestions, Hide the admin bar and Block dashboard access (for subscribers, customers and similar roles), Hide dashboard widgets (Welcome and WordPress Events and News), Disable sidebar widgets (Meta), Tidy the login screen and Avatars without Gravatar.
 
-Left off on Admin, Security, Speed and Plugins, as each needs a choice first: Developer admins (who the developers are), Magic login links (whether administrators may log in by email, which skips two-step login plugins that only check the password), Ask before licence checks (until someone answers, premium plugins' licence checks fail, which can switch off their paid features), Delay scripts until interaction (which scripts), Delayed Google Analytics (the measurement ID) and File and account integrity checks (a daily check that asks WordPress.org for checksums and emails the administration address). Watermark pictures (Media) changes uploaded pictures, so it is off too.
+Left off on Admin, Security, Speed and Plugins, as each needs a choice first: Developer admins (who the developers are), Magic login links (whether administrators may log in by email, which skips two-step login plugins that only check the password), Ask before licence checks (until someone answers, premium plugins' licence checks fail, which can switch off their paid features), Delay scripts until interaction (which scripts), Delayed Google Analytics (the measurement ID), File and account integrity checks (a daily check that asks WordPress.org for checksums and emails the administration address) and Known vulnerabilities from Wordfence Intelligence (an API key, and a shared folder for sites sharing one). Watermark pictures (Media) changes uploaded pictures, so it is off too.
 
 Also offered on Server: **Faster page counts on long lists**, off by default, with exact totals counted separately from the page.
 
@@ -253,6 +253,39 @@ Below the Security tab's settings, for administrators. SEO Pro Stack does not ch
 - WPVulnerability is for developers: [Organise the admin menu](#organise-the-admin-menu-admin) puts its settings in the Developers menu, and with [Developer admins](#developer-admins-admin) on, people who are not developers cannot open them and do not see its row on the Plugins screen or its counts on Plugins, Appearance → Themes and Dashboard → Updates. [Tidy the dashboard](#tidy-the-dashboard-admin) shows its WPVulnerability Status box to developers only, below Site Health status.
 
 It reads the counts WPVulnerability keeps (`wpvulnerability-{core,plugins,themes,php,…}-vulnerable` options; site options on multisite) on the settings screen only, and sends nothing.
+
+### Known vulnerabilities from Wordfence Intelligence (Security)
+
+**Off by default.** A second source for [Known vulnerabilities](#known-vulnerabilities-security), beside WPVulnerability: [Wordfence Intelligence](https://www.wordfence.com/threat-intel/)'s free vulnerability feed, which often lists premium plugins and malicious releases first (such as Rank Math SEO PRO 3.0.123's embedded malicious code, which WPVulnerability did not list). Once a day, at a time of day that differs from site to site, and a minute after switching on, the site (the main site, on a network) downloads the Scanner feed (about 80 MB) and matches it on the server against every installed plugin and theme, active or not, and the WordPress version. The request carries only the API key: no site address, no plugin list.
+
+1. Create a free API key in your wordfence.com account (**Integrations**) and add it to `wp-config.php`. It is read from there only, never saved in the database or shown:
+
+   ```php
+   define( 'SEOPROSTACK_WORDFENCE_API_KEY', 'your-key' );
+   ```
+
+2. **Sites sharing a key** (several sites on one server): Wordfence allows a key few downloads (a second download minutes after the first is refused with HTTP 429), so give every site the same folder, outside the web root. The first site to need the feed downloads it there under a lock; the others use that copy while it is under 20 hours old. After a refusal, every site waits as long as Wordfence asks, or an hour:
+
+   ```php
+   define( 'SEOPROSTACK_WORDFENCE_FEED_DIR', '/path/to/wordfence-feed' );
+   ```
+
+   Without it, each site downloads to PHP's temporary folder. A site on its own server needs only the key.
+
+3. Switch on **Known vulnerabilities from Wordfence Intelligence** (Security).
+
+Matches show in the Known vulnerabilities section, under the setting and as a **critical** test in **Tools → Site Health** (and `wp seoprostack health`), each linked to its Wordfence record with the installed version and the lowest version with a fix, or that there is none yet. Informational records are skipped. Wherever matches show, so do the copyright notice and licence of each holder (Defiant, MITRE), as the feed's licence asks. With **Email new matches** on (the default), the administration email address gets one email when a check finds a match it has not emailed about, with the same links and notices. A failed download (HTTP 429 or another error) keeps the last matches, says so and is tried again up to three times a day; a refused key is not retried until the next day.
+
+The feed is read a record at a time, in parts of at most 20 seconds, so it never has to fit in PHP's memory (decoded whole it needs over 300 MB); on PHP 7.4 a full read takes under a second and about 6 MB. Plugins and themes are matched by folder name; for a premium plugin whose folder differs from Wordfence's slug, the `seoprostack_vulnerability_feed_slugs` filter maps it:
+
+```php
+add_filter('seoprostack_vulnerability_feed_slugs', function ($slugs) {
+    $slugs['plugin']['example-pro-folder'] = 'example-pro';
+    return $slugs;
+});
+```
+
+Results are kept in `seoprostack_vulnerability_feed_results` and the check in progress in `seoprostack_vulnerability_feed_state`, neither autoloaded. Each check reads its own copy of the feed, deleted when it finishes. `wp seoprostack health` reads the last results and starts no check. Uninstall removes the options, the scheduled events and the check's copy; a shared feed folder is left for the other sites.
 
 ### Magic login links (Admin)
 

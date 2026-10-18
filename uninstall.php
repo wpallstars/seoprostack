@@ -133,6 +133,17 @@ function seoprostack_uninstall_site() {
     wp_unschedule_hook('seoprostack_integrity_more');
     // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- one-off cleanup of the per-plugin records.
     $wpdb->query($wpdb->prepare("DELETE FROM {$wpdb->options} WHERE option_name LIKE %s", $wpdb->esc_like('seoprostack_integrity_p_') . '%'));
+    // Known vulnerabilities from Wordfence Intelligence: the last results,
+    // the check in progress (with its downloaded feed) and the lock.
+    $wfi_state = get_option('seoprostack_vulnerability_feed_state');
+    if (is_array($wfi_state) && !empty($wfi_state['file']) && is_string($wfi_state['file']) && 0 === strpos(basename($wfi_state['file']), 'seoprostack-wfi-') && is_file($wfi_state['file'])) {
+        wp_delete_file($wfi_state['file']);
+    }
+    $options[] = 'seoprostack_vulnerability_feed_results';
+    $options[] = 'seoprostack_vulnerability_feed_state';
+    $options[] = 'seoprostack_vulnerability_feed_lock';
+    wp_unschedule_hook('seoprostack_vulnerability_feed');
+    wp_unschedule_hook('seoprostack_vulnerability_feed_more');
     // Ask before licence checks: choices and times. Kept answers are
     // seoprostack_lc_* transients, removed with the others below.
     $options[] = 'seoprostack_licence_calls';
