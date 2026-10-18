@@ -5,7 +5,7 @@ Tags: magic login, iframe, schedule posts, auto upload images, admin
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.3.54
+Stable tag: 1.3.55
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -148,17 +148,9 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 
 == Changelog ==
 
-= Unreleased =
+= 1.3.55 =
 * Fix: Image Copytrack's missing admin script runtime.
 * Fix: Tutor LMS's admin body classes no longer join the preceding plugin's.
 * Fix: Tutor LMS's course builder is dark in Dark mode.
-
-= 1.3.54 =
-* New: Cloud media serves AVIF copies too.
-* New: Verified cloud media bucket handover.
-* Changed: Faster, concurrent cloud media uploads.
-* Fix: Cloud cleanup resumes verification across batches.
-* Fix: Kadence Pro's dark mode switches without a flash.
-* Fix: Admin dark mode covers more plugins' screens.
 
 Older: `changelog.txt`.
