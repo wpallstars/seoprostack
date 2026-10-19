@@ -1868,7 +1868,7 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folderâ
 ## Changelog
 
 ### Unreleased
-- Developers: sync all 78 starter core files with WP Plugin Starter `2f9dff4`, including shared admin styling and navigation, GitHub updater fixes, public CSS class checks and disposable Docker test-site helpers (GitHub issue #867).
+- Developers: sync all 78 starter core files with WP Plugin Starter `4a88f7a`, including shared admin styling and navigation, GitHub updater fixes, public CSS class checks, disposable Docker test-site helpers, and a deploy check that no longer misses new PHP log lines when another log shrinks (GitHub issue #867).
 
 ### 1.3.59
 - Docs: Dark mode's coverage summary names Free Plugins cards and filters, Redux panels, Super Speedy and Scalability Pro, FluentCRM's Search contacts, Tutor LMS's status menus and empty state, and dialog errors (GitHub issue #856).
