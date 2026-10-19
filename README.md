@@ -7,7 +7,7 @@
 [![CI](https://github.com/wpallstars/seoprostack/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/wpallstars/seoprostack/actions/workflows/ci.yml)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=wpallstars_seoprostack&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=wpallstars_seoprostack)
 [![License: GPL v3 or later](https://img.shields.io/badge/License-GPL%20v3%20or%20later-blue.svg)](LICENSE)
-[![Latest release](https://img.shields.io/github/v/release/wpallstars/seoprostack)](https://github.com/wpallstars/seoprostack/releases)
+[![Latest release](https://img.shields.io/badge/release-v1.3.59-blue.svg)](https://github.com/wpallstars/seoprostack/releases)
 
 [![Requires WordPress](https://img.shields.io/badge/WordPress-6.2%2B-21759B.svg?logo=wordpress)](readme.txt)
 [![Tested up to](https://img.shields.io/badge/tested%20up%20to-7.1-21759B.svg?logo=wordpress)](readme.txt)
@@ -1866,6 +1866,9 @@ Deleting the plugin removes its settings (on multisite, every site's and the net
 Deactivating the plugin removes the WebP and AVIF rules from the uploads folder’s `.htaccess` (for every site when network-deactivated), the LiteSpeed background request rules from the site’s `.htaccess` (on multisite, when network-deactivated or deactivated on the main site) and the must-use file of Load plugins only where needed (on multisite, when network-deactivated).
 
 ## Changelog
+
+### Unreleased
+- Developers: sync all 78 starter core files with WP Plugin Starter `4a88f7a`, including shared admin styling and navigation, GitHub updater fixes, public CSS class checks, disposable Docker test-site helpers, and a deploy check that no longer misses new PHP log lines when another log shrinks (GitHub issue #867).
 
 ### 1.3.59
 - Docs: Dark mode's coverage summary names Free Plugins cards and filters, Redux panels, Super Speedy and Scalability Pro, FluentCRM's Search contacts, Tutor LMS's status menus and empty state, and dialog errors (GitHub issue #856).

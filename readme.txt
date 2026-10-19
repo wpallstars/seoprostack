@@ -151,6 +151,9 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 
 == Changelog ==
 
+= Unreleased =
+* Developers: sync shared starter core, admin styles, updater and test-site tools (GitHub issue #867).
+
 = 1.3.59 =
 * Docs: Dark mode coverage and 1.3.53 notes.
 

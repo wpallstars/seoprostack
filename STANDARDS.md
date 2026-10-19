@@ -57,6 +57,10 @@ How changes are made and checked: `DEVELOPMENT.md`. Releases: `RELEASING.md`.
 - `boot()` returns early unless `self::enabled()`. Features are **off by
   default**; the plugin's `AGENTS.md` lists any the owner asked to be on.
   Turning another feature on by default needs the owner's say.
+- Feature output at the top of a setting's options panel (site or network)
+  may use `{css}-panel-note` and its `{css}-panel-note--warning` modifier,
+  and settings tabs the settings components: public core classes
+  (`STYLING.md` → Classes a plugin may use).
 - A changed default is only sure to reach new installs: each migration and
   any save on the settings screen store every setting, defaults included
   (`set()` writes them all back), and a stored setting keeps its value. A
@@ -93,7 +97,8 @@ How changes are made and checked: `DEVELOPMENT.md`. Releases: `RELEASING.md`.
   tools leave it alone: `scripts/readme-badges.sh` writes it
   (`scripts/rename-plugin.sh` for a new repository). Three rows, one blank
   line between them: status (CI, SonarCloud, Codacy, CodeFactor, OpenSSF
-  Scorecard, licence, latest release); requirements from `readme.txt`
+  Scorecard, licence, release from `readme.txt`'s `Stable tag:`, which
+  also shows for a private repository); requirements from `readme.txt`
   (Requires WordPress, Tested up to, Requires PHP) and size (the facts in
   `docs/metrics/` that `.github/workflows/repo-metrics.yml` keeps up to
   date); then the languages chart alone. Add a service's badge
@@ -169,7 +174,7 @@ How changes are made and checked: `DEVELOPMENT.md`. Releases: `RELEASING.md`.
   me a coffee**); leave one out for no button, and keep labels short so they
   fit one row. The plugin's own screens show the same header
   (`{Prefix}_Admin_Manager::enqueue_header()`, `render_header()`) and their
-  sections as the same tabs (`.{css}-nav`, `.{css}-nav__tab`, `is-active`).
+  sections as the same tabs (`{Prefix}_Admin_Page::sections_nav()`).
   Settings tabs in one group (between dividers) switch without a reload; a
   `{prefix}_admin_tabs` tab joins with `'preload' => true` once it is cheap
   to draw and its script works with its panel hidden. The browser title
@@ -579,6 +584,11 @@ Styling rules are in `STYLING.md`; read it before changing styles:
 
 - Admin screens: spacing and forms (React forms and modals in wp-admin).
 - Front-end styling and dark mode (the Kadence Pro dark mode switcher).
+- Classes a plugin may use: the public core classes in
+  `scripts/core-public-classes.txt` (page shell, settings components,
+  panel notes, `{css}-dark`) in markup, never restyled; the plugin's own
+  components under `{css}-<screen>-*` or `{css}-app-*`; other core classes
+  are internal. Release preflight warns on internal classes and restyling.
 
 ## Testing
 

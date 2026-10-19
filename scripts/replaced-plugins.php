@@ -29,7 +29,7 @@
 // Replaced plugins that are not on WordPress.org but have GitHub releases.
 const GITHUB_SOURCES = array('git-updater' => 'afragen/git-updater');
 // The name is quoted for the pattern: a renamed plugin's may hold ( . + etc.
-define('README_LINE', '/^' . preg_quote('SEO Pro Stack', '/') . ' replaces \*\*(\d+) plugins\*\*.*$/m');
+define('README_LINE', '/^' . preg_quote('SEO Pro Stack', '/') . ' replaces \*\*(\d+) plugins?\*\*.*$/m');
 
 /**
  * Stop with a message.
@@ -281,7 +281,9 @@ function fetch($url, $head = false) {
     if ($head) {
         $args = array_merge($args, array('-o', '/dev/null', '-w', '%{http_code} %{size_download}'));
     }
-    $cmd = 'curl ' . implode(' ', array_map('escapeshellarg', $args)) . ' ' . escapeshellarg($url);
+    // Development CLI only (.distignore excludes scripts/). Every argument is
+    // shell-quoted; -- also prevents a URL from being read as a curl option.
+    $cmd = 'curl ' . implode(' ', array_map('escapeshellarg', $args)) . ' -- ' . escapeshellarg($url);
     exec($cmd, $lines, $status);
     if (0 !== $status) {
         return null;
@@ -422,6 +424,8 @@ foreach ($reader->plugins as $slug => $name) {
 }
 
 $out = sys_get_temp_dir() . '/seoprostack-replaced-' . getmypid();
+// Development CLI: the caller selects a trusted checkout to build, not web input.
+// The executable and flags are fixed; both variable paths are shell-quoted.
 exec('cd ' . escapeshellarg($dir) . ' && scripts/build-release.sh --ref HEAD --out ' . escapeshellarg($out) . ' --quiet', $zips, $status);
 if (0 !== $status || empty($zips[0]) || !is_file($zips[0])) {
     fail('scripts/build-release.sh failed');
@@ -431,12 +435,20 @@ array_map('unlink', glob($out . '/*.zip'));
 @rmdir($out);
 
 $line = sprintf(
-    'SEO Pro Stack replaces **%d plugins**, some of them in part, with free and Pro editions counted separately. The %d that can be downloaded come to %s zipped; SEO Pro Stack is %s.',
+    'SEO Pro Stack replaces **%d %s**%s.',
     $count,
-    $sized,
-    size_label($total),
-    size_label($ours)
+    1 === $count ? 'plugin' : 'plugins',
+    1 === $count ? '' : ', some of them in part, with free and Pro editions counted separately'
 );
+if ($sized > 0) {
+    $line .= sprintf(
+        ' The %s that can be downloaded %s %s zipped; SEO Pro Stack is %s.',
+        1 === $sized ? 'one' : $sized,
+        1 === $sized ? 'is' : 'come to',
+        size_label($total),
+        size_label($ours)
+    );
+}
 printf("%d plugins; %d downloadable, %s; SEO Pro Stack %s\n", $count, $sized, size_label($total), size_label($ours));
 if ($no_size) {
     echo 'Not downloadable (Pro or closed): ' . implode(', ', $no_size) . "\n";

@@ -5,8 +5,9 @@
  * The header, the tab navigation, the tab panels and the browser title of
  * the settings screen (SEOProStack_Admin_Manager::render_settings_page()). The
  * plugin's own screens show the header through
- * SEOProStack_Admin_Manager::render_header(), and name their section in the
- * browser title with title_section().
+ * SEOProStack_Admin_Manager::render_header(), their sections as tabs with
+ * sections_nav(), and name their section in the browser title with
+ * title_section().
  *
  * SPDX-License-Identifier: GPL-3.0-or-later
  * SPDX-FileCopyrightText: 2026 Marcus Quinn
@@ -247,6 +248,40 @@ class SEOProStack_Admin_Page {
     }
 
     /**
+     * Render the sections of one of the plugin's own screens as the settings
+     * screen's tabs (SEOProStack_Admin_Manager::render_header()): a
+     * `sps-nav` of `sps-nav__tab` links, the one shown `is-active` with
+     * aria-current="page". Each link loads its section's page; name the
+     * section shown in the browser title with title_section().
+     *
+     * @param array<string,array{label:string,url:string}> $sections Sections in order, by slug: each its label (plain text) and URL.
+     * @param string                                       $current  Slug of the section shown.
+     * @param string                                       $label    The navigation's accessible name; empty for "SEO Pro Stack sections".
+     */
+    public static function sections_nav(array $sections, $current, $label = '') {
+        $label = '' === (string) $label ? __('SEO Pro Stack sections', 'seoprostack') : (string) $label;
+        ?>
+        <nav class="sps-nav" aria-label="<?php echo esc_attr($label); ?>">
+            <?php foreach ($sections as $slug => $section) : ?>
+                <?php
+                $shown = (string) $slug === (string) $current;
+                $text  = isset($section['label']) ? (string) $section['label'] : '';
+                $url   = isset($section['url']) ? (string) $section['url'] : '';
+                if ('' === $text || '' === $url) {
+                    continue;
+                }
+                ?>
+                <a href="<?php echo esc_url($url); ?>"
+                   class="sps-nav__tab<?php echo $shown ? ' is-active' : ''; ?>"
+                   <?php echo $shown ? 'aria-current="page"' : ''; ?>>
+                    <?php echo esc_html($text); ?>
+                </a>
+            <?php endforeach; ?>
+        </nav>
+        <?php
+    }
+
+    /**
      * Tabs with the given 'menu' name, in navigation order.
      *
      * @param array  $tabs Tabs.
@@ -273,7 +308,7 @@ class SEOProStack_Admin_Page {
     private static function nav_group($label, array $tabs, $active, array $page_tabs) {
         $menus = array();
         ?>
-        <div class="sps-nav__group" role="group" aria-label="<?php echo esc_attr($label); ?>">
+        <div class="sps-nav__group" role="group" aria-label="<?php echo esc_attr($label); ?>"> <?php // NOSONAR: a labelled group of navigation links, not a fieldset of form controls (S6819). ?>
             <?php foreach ($tabs as $slug => $tab) : ?>
                 <?php
                 $slug    = (string) $slug;
@@ -286,17 +321,34 @@ class SEOProStack_Admin_Page {
                     $menus[$menu] = true;
                     $members      = array_map('strval', array_keys(self::menu_tabs($tabs, $menu)));
                 }
-                $current = in_array($active, $members, true);
+                self::nav_link($slug, $tab, $menu, $members, $active, $page_tabs);
                 ?>
-                <a href="<?php echo esc_url(SEOProStack_Admin_Manager::tab_url($slug)); ?>"
-                   class="sps-nav__tab<?php echo $current ? ' is-active' : ''; ?>"
-                   <?php echo '' === $menu && in_array($slug, $page_tabs, true) ? 'data-sps-tab="' . esc_attr($slug) . '"' : ''; ?>
-                   <?php echo '' !== $menu ? 'data-sps-tabs="' . esc_attr(implode(' ', $members)) . '"' : ''; ?>
-                   <?php echo $current ? 'aria-current="' . ('' === $menu ? 'page' : 'true') . '"' : ''; ?>>
-                    <?php echo esc_html('' === $menu ? $tab['label'] : $menu); ?>
-                </a>
             <?php endforeach; ?>
         </div>
+        <?php
+    }
+
+    /**
+     * Render a navigation link after the group's menu deduplication.
+     *
+     * @param string   $slug      First tab slug.
+     * @param array    $tab       First tab.
+     * @param string   $menu      Menu label, or empty for a single tab.
+     * @param string[] $members   Tabs represented by this link.
+     * @param string   $active    Active tab slug.
+     * @param string[] $page_tabs Tabs drawn on the page.
+     */
+    private static function nav_link($slug, array $tab, $menu, array $members, $active, array $page_tabs) {
+        $current      = in_array($active, $members, true);
+        $aria_current = '' === $menu ? 'page' : 'true';
+        ?>
+        <a href="<?php echo esc_url(SEOProStack_Admin_Manager::tab_url($slug)); ?>"
+           class="sps-nav__tab<?php echo $current ? ' is-active' : ''; ?>"
+           <?php echo '' === $menu && in_array($slug, $page_tabs, true) ? 'data-sps-tab="' . esc_attr($slug) . '"' : ''; ?>
+           <?php echo '' !== $menu ? 'data-sps-tabs="' . esc_attr(implode(' ', $members)) . '"' : ''; ?>
+           <?php echo $current ? 'aria-current="' . esc_attr($aria_current) . '"' : ''; ?>>
+            <?php echo esc_html('' === $menu ? $tab['label'] : $menu); ?>
+        </a>
         <?php
     }
 
