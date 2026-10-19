@@ -7,7 +7,7 @@
 [![CI](https://github.com/wpallstars/seoprostack/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/wpallstars/seoprostack/actions/workflows/ci.yml)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=wpallstars_seoprostack&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=wpallstars_seoprostack)
 [![License: GPL v3 or later](https://img.shields.io/badge/License-GPL%20v3%20or%20later-blue.svg)](LICENSE)
-[![Latest release](https://img.shields.io/badge/release-v1.3.59-blue.svg)](https://github.com/wpallstars/seoprostack/releases)
+[![Latest release](https://img.shields.io/badge/release-v1.3.60-blue.svg)](https://github.com/wpallstars/seoprostack/releases)
 
 [![Requires WordPress](https://img.shields.io/badge/WordPress-6.2%2B-21759B.svg?logo=wordpress)](readme.txt)
 [![Tested up to](https://img.shields.io/badge/tested%20up%20to-7.1-21759B.svg?logo=wordpress)](readme.txt)
@@ -24,7 +24,7 @@ SEO Pro Stack does the jobs that usually take dozens of small plugins: a calmer,
 
 If this saves you time, headaches and costs, feel free to [buy me a coffee](https://buymeacoffee.com/marcusquinn), or whatever you like, to invest in making more things open-source.
 
-Version: 1.3.59
+Version: 1.3.60
 
 <!-- github-only:start -->
 ## Screenshots
@@ -1867,7 +1867,7 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folderâ
 
 ## Changelog
 
-### Unreleased
+### 1.3.60
 - Fix: Watermark pictures removes the watermark from a picture when it becomes the site icon, the site logo or Kadence's mobile logo, or gets a Customizer context, in either order of upload and choice: the kept original is put back and its sizes made again. Mobile logos are never marked, and a Customizer crop is made from the chosen picture's kept original, so the cropped copy is clean while the chosen picture stays marked. Without a kept original the picture is left as it is, with a server log line and a one-time admin notice. Works while the feature is off too (GitHub issue #869).
 - Developers: sync all 78 starter core files with WP Plugin Starter `4a88f7a`, including shared admin styling and navigation, GitHub updater fixes, public CSS class checks, disposable Docker test-site helpers, and a deploy check that no longer misses new PHP log lines when another log shrinks (GitHub issue #867).
 
