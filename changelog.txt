@@ -3,6 +3,7 @@
 Every change to SEO Pro Stack. readme.txt lists the latest version in short.
 
 = Unreleased =
+* Fix: Watermark pictures removes the watermark from a picture when it becomes the site icon, the site logo (classic or block theme) or Kadence's mobile logo, or gets a Customizer context, whichever comes first, the upload or the choice: the kept original is put back and its sizes made again, as Remove watermark does. Mobile logos are never marked. A Customizer crop (site icon or logo) is made from a clean copy of the chosen picture's kept original, at the size the crop box was drawn on, so the cropped copy is clean and the chosen picture stays marked. When no unmarked original was kept, the picture is left as it is, the server log says why and admins see a notice once. It works while Watermark pictures is off too. A site icon imported and set with WP-CLI kept the mark in browser tabs before (GitHub issue #869).
 * Developers: sync all 78 starter core files with WP Plugin Starter 4a88f7a, including shared admin styling and navigation, GitHub updater fixes, public CSS class checks, disposable Docker test-site helpers, and a deploy check that no longer misses new PHP log lines when another log shrinks (GitHub issue #867).
 
 = 1.3.59 =

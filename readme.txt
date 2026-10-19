@@ -152,6 +152,7 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 == Changelog ==
 
 = Unreleased =
+* Fix: a watermarked picture loses its watermark when it becomes the site icon or a logo, including Kadence's mobile logo and Customizer crops (GitHub issue #869).
 * Developers: sync shared starter core, admin styles, updater and test-site tools (GitHub issue #867).
 
 = 1.3.59 =
