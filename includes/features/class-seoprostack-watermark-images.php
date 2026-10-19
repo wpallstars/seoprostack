@@ -253,9 +253,16 @@ class SEOProStack_Watermark_Images extends SEOProStack_Feature {
         // Also when switched off: kept originals must not outlive their
         // pictures, and watermarks can still be removed.
         add_action('delete_attachment', array(__CLASS__, 'forget'));
+        foreach (array('site_icon', 'site_logo', 'theme_mods_' . get_option('stylesheet')) as $option) {
+            add_action('update_option_' . $option, array(__CLASS__, 'site_image_option_updated'), 10, 3);
+            add_action('add_option_' . $option, array(__CLASS__, 'site_image_option_added'), 10, 2);
+        }
+        add_action('added_post_meta', array(__CLASS__, 'site_image_context'), 10, 4);
+        add_action('updated_post_meta', array(__CLASS__, 'site_image_context'), 10, 4);
         // Also when switched off, so watermarks can still be removed.
         add_action(self::HOOK, array(__CLASS__, 'run_batch'));
         if (is_admin()) {
+            add_action('admin_notices', array(__CLASS__, 'site_image_notice'));
             add_action('load-upload.php', array(__CLASS__, 'library_hooks'));
             add_action('admin_post_' . self::ACTION, array(__CLASS__, 'handle_one'));
             add_action('admin_post_' . self::JOB_ACTION, array(__CLASS__, 'handle_job'));
@@ -273,6 +280,89 @@ class SEOProStack_Watermark_Images extends SEOProStack_Feature {
         add_filter('rest_request_before_callbacks', array(__CLASS__, 'note_client_processing'), 10, 3);
         // After Resize large uploads (90), which may delete the original.
         add_filter('wp_generate_attachment_metadata', array(__CLASS__, 'after_generate'), 95, 3);
+    }
+
+    /**
+     * Restore newly assigned site images after their option has been saved.
+     * Theme-mod options also cover direct option writes, without acting on
+     * unsaved Customizer previews or changing a theme-mod filter's value.
+     *
+     * @param mixed  $old_value Previous option value.
+     * @param mixed  $value     Saved option value.
+     * @param string $option    Option name.
+     */
+    public static function site_image_option_updated($old_value, $value, $option) {
+        if (in_array($option, array('site_icon', 'site_logo'), true)) {
+            self::restore_site_image((int) $value);
+            return;
+        }
+        if (!is_array($value)) {
+            return;
+        }
+        foreach (array('custom_logo', 'mobile_logo') as $key) {
+            if (!empty($value[$key]) && (!is_array($old_value) || !isset($old_value[$key]) || $value[$key] !== $old_value[$key])) {
+                self::restore_site_image((int) $value[$key]);
+            }
+        }
+    }
+
+    /**
+     * First assignments use add_option(), not update_option()'s update hook.
+     *
+     * @param string $option Option name.
+     * @param mixed  $value  Saved option value.
+     */
+    public static function site_image_option_added($option, $value) {
+        self::site_image_option_updated(null, $value, $option);
+    }
+
+    /**
+     * An uploaded attachment can receive its Customizer context later.
+     *
+     * @param int    $meta_id       Meta row ID.
+     * @param int    $attachment_id Attachment ID.
+     * @param string $key           Meta key.
+     * @param mixed  $value         Saved context.
+     */
+    public static function site_image_context($meta_id, $attachment_id, $key, $value) {
+        if ('_wp_attachment_context' === $key && is_scalar($value) && '' !== (string) $value) {
+            self::restore_site_image((int) $attachment_id);
+        }
+    }
+
+    /**
+     * Restore only the assigned attachment, preserving it on any failure.
+     *
+     * @param int $attachment_id Site image attachment ID.
+     */
+    private static function restore_site_image($attachment_id) {
+        if ($attachment_id <= 0 || self::$lock || !self::record($attachment_id)) {
+            return;
+        }
+        $result = self::remove($attachment_id);
+        if (!is_wp_error($result)) {
+            return;
+        }
+        /* translators: 1: attachment ID, 2: reason the watermark could not be removed */
+        $message = sprintf(__('SEO Pro Stack could not remove the watermark from site picture #%1$d: %2$s Upload an unmarked picture to replace it.', 'seoprostack'), $attachment_id, $result->get_error_message());
+        // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log -- a failed automatic restoration must be visible in the server log.
+        error_log('SEO Pro Stack watermark [' . $result->get_error_code() . '] attachment ' . $attachment_id . ': ' . $result->get_error_message());
+        set_transient('seoprostack_watermark_error_site_image', $message, DAY_IN_SECONDS);
+    }
+
+    /**
+     * Show automatic restoration failures once, including WP-CLI assignments.
+     */
+    public static function site_image_notice() {
+        if (!current_user_can('manage_options')) {
+            return;
+        }
+        $key     = 'seoprostack_watermark_error_site_image';
+        $message = get_transient($key);
+        if ($message) {
+            delete_transient($key);
+            printf('<div class="notice notice-warning is-dismissible"><p>%s</p></div>', esc_html((string) $message));
+        }
     }
 
     /**
@@ -575,7 +665,7 @@ class SEOProStack_Watermark_Images extends SEOProStack_Feature {
         if ('' !== (string) get_post_meta($attachment_id, '_wp_attachment_context', true)) {
             return new WP_Error('watermark_site_image', __('Site icons, logos and headers are not marked.', 'seoprostack'));
         }
-        if (in_array($attachment_id, array((int) get_option('site_icon'), (int) get_theme_mod('custom_logo'), (int) get_option('site_logo'), (int) SEOProStack_Settings::get('watermark_images_image')), true)) {
+        if (in_array($attachment_id, array((int) get_option('site_icon'), (int) get_theme_mod('custom_logo'), (int) get_theme_mod('mobile_logo'), (int) get_option('site_logo'), (int) SEOProStack_Settings::get('watermark_images_image')), true)) {
             return new WP_Error('watermark_is_mark', __('This picture is the watermark or site icon.', 'seoprostack'));
         }
         if (get_post_meta($attachment_id, '_ew_applied_watermarks', true)) {
