@@ -263,6 +263,8 @@ class SEOProStack_Watermark_Images extends SEOProStack_Feature {
         add_action(self::HOOK, array(__CLASS__, 'run_batch'));
         if (is_admin()) {
             add_action('admin_notices', array(__CLASS__, 'site_image_notice'));
+            // Before WordPress's own handler (priority 1) crops the file.
+            add_action('wp_ajax_crop-image', array(__CLASS__, 'site_image_crop'), 0);
             add_action('load-upload.php', array(__CLASS__, 'library_hooks'));
             add_action('admin_post_' . self::ACTION, array(__CLASS__, 'handle_one'));
             add_action('admin_post_' . self::JOB_ACTION, array(__CLASS__, 'handle_job'));
@@ -328,6 +330,27 @@ class SEOProStack_Watermark_Images extends SEOProStack_Feature {
         if ('_wp_attachment_context' === $key && is_scalar($value) && '' !== (string) $value) {
             self::restore_site_image((int) $attachment_id);
         }
+    }
+
+    /**
+     * The Customizer crops a site icon or logo into a new attachment from
+     * the chosen picture's file, so a marked picture would pass its mark to
+     * the cropped copy, which then has no record to remove it from. Put the
+     * chosen picture's kept original back first: it is becoming a site
+     * picture. Same checks as WordPress's handler, which runs next.
+     */
+    public static function site_image_crop() {
+        // phpcs:disable WordPress.Security.NonceVerification.Missing -- the nonce is checked below, before anything changes.
+        $attachment_id = isset($_POST['id']) ? absint($_POST['id']) : 0;
+        $context       = isset($_POST['context']) ? sanitize_key(wp_unslash($_POST['context'])) : '';
+        // phpcs:enable
+        if (!$attachment_id || '' === $context || !self::record($attachment_id)) {
+            return;
+        }
+        if (!current_user_can('edit_post', $attachment_id) || !check_ajax_referer('image_editor-' . $attachment_id, 'nonce', false)) {
+            return;
+        }
+        self::restore_site_image($attachment_id);
     }
 
     /**
