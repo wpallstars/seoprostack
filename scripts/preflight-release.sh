@@ -800,6 +800,132 @@ check_core_files() {
 	return 0
 }
 
+# The public core classes (scripts/core-public-classes.txt at the release
+# ref), one per line. Without the file (a plugin synced before it), the two
+# panel-note classes, the feature API before it, are public.
+core_public_classes() {
+	local sha="$1"
+	local file="$sha:scripts/core-public-classes.txt"
+	local list line
+	if ! list="$(git show "$file" 2>/dev/null)"; then
+		printf '%s\n' "${PLUGIN_CSS}-panel-note" "${PLUGIN_CSS}-panel-note--warning"
+		return 0
+	fi
+	while IFS= read -r line; do
+		line="${line%%#*}"
+		line="${line//[[:space:]]/}"
+		[[ -n "$line" ]] || continue
+		# A copy not renamed yet keeps the starter's prefix.
+		[[ "$line" != "w""ps-"* ]] || line="$PLUGIN_CSS-${line#w""ps-}"
+		printf '%s\n' "$line"
+	done <<<"$list"
+	return 0
+}
+
+# Core stylesheets are a library: plugin-own code may use their public
+# classes (core_public_classes()) in markup, never restyle any core class,
+# and leaves internal ones alone, which a starter sync can change. Read the
+# manifest, the list and sources at the release ref, not from the checkout
+# running this check.
+check_core_class_names() {
+	local sha="$1"
+	section "Core class names"
+	local manifest path stylesheet classes="" public matches location class kind name problems=0
+	local exclusions=(':(exclude,glob)assets/build/**' ':(exclude,glob)**/vendor/**' ':(exclude,glob)**/node_modules/**')
+	if ! manifest="$(git show "$sha:scripts/core-files.txt")" 2>/dev/null; then
+		warn "scripts/core-files.txt missing: core class names were not checked"
+		return 0
+	fi
+	while IFS= read -r path; do
+		path="${path%"${path##*[![:space:]]}"}"
+		# Older manifests retain the starter's prefix; newer syncs rename it.
+		path="${path//wpstart""er/$PLUGIN_PREFIX}"
+		case "$path" in
+		"" | \#*) continue ;;
+		*/) exclusions+=(":(exclude)$path**") ;;
+		*) exclusions+=(":(exclude,literal)$path") ;;
+		esac
+		case "$path" in
+		*.css | */)
+			while IFS= read -r stylesheet; do
+				stylesheet=":(literal)$stylesheet"
+				classes+="$(git grep -h -o -E "\\.${PLUGIN_CSS}-[a-z0-9_-]+" "$sha" -- "$stylesheet" || true)"$'\n'
+			done < <(git ls-tree -r --name-only "$sha" -- "$path" | grep '\.css$' || true)
+			;;
+		*) : ;; # Other core files have no stylesheet classes to collect.
+		esac
+	done <<<"$manifest"
+	classes="$(printf '%s\n' "$classes" | sed -e '/^$/d' -e 's/^\.//' | sort -u)"
+	public="$(core_public_classes "$sha")"
+	if [[ -z "$classes" ]]; then
+		warn "no core block classes found: core class names were not checked"
+		return 0
+	fi
+	# Git finds candidate lines; Perl checks whole class tokens. In CSS, a
+	# selector restyles a core class (public or not, elements included)
+	# when its last compound selector has it, and reuses an internal block
+	# when any part has it: .{css}-dark .{css}-app-card is fine. Elsewhere,
+	# literal class/className attributes, className expressions,
+	# classList.add calls and selector strings reuse an internal block.
+	# This is advisory, not a parser for dynamically assembled class names.
+	matches="$(git grep -n -I -F -f <(printf '%s\n' "$classes") "$sha" -- '*.php' '*.js' '*.jsx' '*.ts' '*.tsx' '*.css' "${exclusions[@]}" | CORE_CLASSES="$classes" PUBLIC_CLASSES="$public" perl -ne '
+		BEGIN {
+			@classes = split /\n/, $ENV{CORE_CLASSES};
+			%public = map { $_ => 1 } split /\n/, $ENV{PUBLIC_CLASSES};
+		}
+		next unless s/^[^:]+:(?<file>.*?):(?<number>[0-9]+)://;
+		my ($file, $location, $line, %seen) = ($+{file}, qq{$+{file}:$+{number}}, $_);
+		my $report = sub { print qq{$location $_[0] $_[1]\n} unless $seen{$_[0]}++; };
+		my $internal = sub { !$public{$_[0]} && $_[0] !~ /__/ };
+		if ($file =~ /\.css\z/) {
+			# Only selectors: the part before {, or a line of a selector list.
+			(my $text = $line) =~ s{/\*.*?\*/}{}g;
+			if ($text !~ s/\{.*//s) {
+				next if $text =~ /[;}]\s*\z/;
+			}
+			# Drop :is(), :not() and other arguments first, so their commas
+			# do not split the list and their classes are not the subject.
+			(my $flat = $text) =~ s/\s+\z//;
+			1 while $flat =~ s/\([^()]*\)//g;
+			my @subjects = map { (my $s = $_) =~ s/\s+\z//; $s =~ s/^.*[\s>+~]//s; $s } split /,/, $flat;
+			for my $class (@classes) {
+				my $match = qr/\.\Q$class\E(?![a-zA-Z0-9_-])/;
+				if (grep { $_ =~ $match } @subjects) {
+					$report->($class, q{restyles});
+				} elsif ($internal->($class) && $text =~ $match) {
+					$report->($class, q{reuses});
+				}
+			}
+			next;
+		}
+		my @attributes = $line =~ /\bclass(?:Name)?\s*=\s*\{?\s*[\x22\x27`]([^\x22\x27`]*?)[\x22\x27`]/g;
+		my @contexts = $line =~ /\bclassName\s*=\s*\{([^}]*)\}/g;
+		push @contexts, $line =~ /\bclassList\s*\.\s*add\s*\(([^)]*)\)/g;
+		for my $context (@contexts) {
+			while ($context =~ /([\x22\x27`])(?<literal>(?:\\.|(?!\1)[^\\])*)\1/g) {
+				push @attributes, $+{literal};
+			}
+		}
+		for my $class (grep { $internal->($_) } @classes) {
+			my $selector = $line =~ /\.\Q$class\E(?![a-zA-Z0-9_-])/;
+			my $attribute = grep { /(?<!\S)\Q$class\E(?!\S)/ } @attributes;
+			$report->($class, q{reuses}) if $selector || $attribute;
+		}
+	' || true)"
+	while read -r location class kind; do
+		[[ -n "$location" ]] || continue
+		name="${class#"$PLUGIN_CSS"-}"
+		if [[ "$kind" == "restyles" ]]; then
+			warn "$location restyles core class .$class: give the plugin's own component a plugin-own name such as .${PLUGIN_CSS}-<screen>-$name, and leave .$class as core styles it"
+		else
+			warn "$location reuses internal core class .$class (not in scripts/core-public-classes.txt): use a plugin-own name such as .${PLUGIN_CSS}-<screen>-$name"
+		fi
+		problems=1
+	done <<<"$matches"
+	[[ "$problems" -eq 1 ]] || ok "plugin-own source uses only public core classes and restyles none"
+	return 0
+}
+
 # AGENTS.md stays a short map (STANDARDS.md → Agent docs): under
 # AGENTS_MD_MAX_LINES lines, it names each shared guidance file agents must
 # read (AGENTS_MD_READS), CLAUDE.md points to it, a plugin's is its own (not
@@ -1182,6 +1308,17 @@ check_git() {
 	else
 		note "no tag v$version yet"
 	fi
+	local message
+	message="$(git log -1 --format=%B "$sha")"
+	if printf '%s\n' "$message" | grep -Ei '\[(skip ci|ci skip|no ci|skip actions|actions skip)\]' >/dev/null ||
+		git log -1 --format='%(trailers:only,unfold)' "$sha" | grep -Ei '^skip-checks:[[:space:]]*true[[:space:]]*$' >/dev/null; then
+		message="$ref is a CI-skipping commit: a tag on it does not start the Release workflow; tag the release PR's merge commit instead"
+		if [[ "$tag_sha" = "$sha" ]]; then
+			err "$message"
+		else
+			warn "$message"
+		fi
+	fi
 	local main_sha
 	if main_sha="$(git rev-parse --verify --quiet "refs/remotes/origin/main^{commit}")"; then
 		if git merge-base --is-ancestor "$sha" "$main_sha"; then ok "$ref is on origin/main"; else note "$ref is not on origin/main yet; release only from main"; fi
@@ -1254,6 +1391,7 @@ main() {
 	if [[ -f "$SCRIPT_DIR/sync-core.sh" ]]; then
 		check_core_files
 	fi
+	check_core_class_names "$sha"
 	check_agent_docs "$sha"
 	check_starter_leftovers "$sha" "$plugin_header" "$readme"
 	check_credits "$sha"

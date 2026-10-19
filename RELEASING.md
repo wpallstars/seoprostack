@@ -9,7 +9,7 @@ Releases on GitHub and the WordPress.org submission need the owner's say.
 None of the scripts below tags, publishes or commits anything, and only
 `scripts/deploy-sites.sh --apply` changes a site outside Docker. The
 Release workflow (`.github/workflows/release.yml`) publishes a GitHub release
-only when someone pushes a version tag.
+only when someone pushes a version tag or manually runs it for an existing tag.
 
 ## Scripts
 
@@ -19,7 +19,25 @@ only when someone pushes a version tag.
 | `scripts/preflight-release.sh [--ref REF] [--strict] [--offline] [--no-docker]` | Checks versions, headers, readme, both zips (layout, development files, PHP 7.4 and JS syntax, updater code), remote assets, presets and starter data where the plugin has them, and the Git tag. Errors stop a release; `--strict` also fails on warnings, for a WordPress.org submission. `--no-docker` lints PHP with the local `php` instead of PHP 7.4 in Docker. |
 | `scripts/plugin-check.sh [--ref REF] [--zip FILE]` | Runs Plugin Check on both zips in a disposable WordPress in Docker, then removes it. |
 | `scripts/update-test.sh [--from X.Y.Z] [--to X.Y.Z] [--wp VERSION] [--php VERSION] [--keep-log FILE]` | After a release: installs the previous GitHub release (default: the one before the newest) on a disposable WordPress in Docker and checks that it is offered the new one from its asset (WP-CLI, **Check again** on the Updates screen, the Plugins screen), that the update installs and the plugin stays active, and that `debug.log` stays empty. Then removes the site. Reads releases with `gh`. |
-| `scripts/deploy-sites.sh --host SSH_HOST --tag vX.Y.Z [--parent PATTERN] [--skip NAME]... [--apply]` | After the update test: installs the release's zip, checked against GitHub's SHA-256 and its provenance bundle, on every install on one SSH host that already has the plugin (default `'~/domains/*/public_html'`). Without `--apply` it only lists them, with their version and whether each is a multisite network. With `--apply`: a backup of each plugin folder, `wp plugin install --force` (activation kept), one full load for the settings upgrade, and one line per install; fails on a version not reached, new `error_log` or `debug.log` lines or a failed home page, with the restore command. The remote part is `scripts/lib/deploy-remote.sh`. |
+| `scripts/deploy-sites.sh --host SSH_HOST --tag vX.Y.Z [--parent PATTERN] [--skip NAME]... [--apply]` | After the update test: installs the release's zip, checked against GitHub's SHA-256 and its provenance bundle, on every install on one SSH host that already has the plugin (default `'~/domains/*/public_html'`). Without `--apply` it only lists them, with their version and whether each is a multisite network. With `--apply`: a backup of each plugin folder, `wp plugin install --force` (activation kept), a full load for each site's settings upgrade, a purge of each site's page cache (LiteSpeed Cache, when its WP-CLI command is there) and a home fetch with a unique query string. Networks skip archived, deleted and spam sites and print one indented line per site, after the install line. `cache=` lists the response's cache headers; `WARN cached` means a cache ignored query strings, so PHP did not run for that fetch. Fails on a version not reached, new lines in the site's PHP logs (`WP_DEBUG_LOG`, including a custom path, and PHP's `error_log`) or any failed site, with the restore command. The remote part is `scripts/lib/deploy-remote.sh`. |
+
+The deploy runner snapshots the **stored**, unfiltered activation lists and
+their counts before the install and the settings-upgrade load, then requires
+exactly the intended difference (none: `install --force` keeps activation).
+On multisite it checks every blog and the network activation list too. A
+WP-CLI error (including `Error establishing a database connection` even with
+exit zero), an invalid snapshot or an unexpected difference prints FAIL and
+stops that install; the host run continues with the others. On a healthy
+readable single site, a strict-subset wipe is restored with an atomic
+compare-and-swap and rechecked, but the install still fails. Extra entries,
+concurrent changes and network state are **never** overwritten
+automatically: review the diff and restore command instead. A plugin's own
+fleet script can source `scripts/lib/deploy-remote.sh` with
+`DEPLOY_LIBRARY_ONLY=1` and wrap each change in `active_guard` for the same
+checks.
+
+<!-- sps-own:start -->
+<!-- sps-own:end -->
 
 The two builds of each version:
 
@@ -49,7 +67,8 @@ expected in the GitHub zip too.
 
 1. In a pull request, set the version in `{slug}.php` (`Version:` and
    `{PREFIX}_VERSION`), `readme.txt` (`Stable tag:`) and `README.md` (the
-   `Version:` line under the intro, which GitHub shows as written), rename the
+   `Version:` line under the intro, which GitHub shows as written), run
+   `scripts/readme-badges.sh` (the release badge shows `Stable tag:`), rename the
    changelog's Unreleased section to the version in `readme.txt`,
    `changelog.txt` and `README.md`, and add an upgrade notice if people need
    to act. `readme.txt` keeps only the newest version, in short, and must stay
@@ -64,11 +83,16 @@ expected in the GitHub zip too.
 
    ```bash
    git fetch origin
-   scripts/preflight-release.sh --ref origin/main   # no errors before tagging
-   git tag -a vX.Y.Z origin/main -m "{Name} X.Y.Z"
+   release_commit="$(gh pr view N --json mergeCommit --jq .mergeCommit.oid)"   # N is the release PR
+   scripts/preflight-release.sh --ref "$release_commit"   # no errors before tagging
+   git tag -a vX.Y.Z "$release_commit" -m "{Name} X.Y.Z"
    git push origin vX.Y.Z
    gh run watch   # choose the Release run for vX.Y.Z
    ```
+
+   Tag the release PR's merge commit, not the latest `origin/main`: metrics
+   commits use `[skip ci]`, which stops tag-triggered workflows, and touch only
+   `docs/metrics/`, which is not in the zips.
 
    The tag starts the Release workflow (`.github/workflows/release.yml`).
    It checks the tag is on `main`, runs the preflight on it, builds the zips
@@ -87,7 +111,8 @@ expected in the GitHub zip too.
    `scripts/build-release.sh --ref vX.Y.Z`, then
    `gh release create vX.Y.Z dist/{slug}-X.Y.Z.zip --verify-tag --title "{Name} X.Y.Z" --notes-file <notes>`.
    Running the workflow again later (Actions → the failed run → **Re-run
-   jobs**) replaces that zip with its signed build.
+   jobs**, or Actions → **Release** → **Run workflow**, with `tag` set to
+   `vX.Y.Z` if no run started) replaces that zip with its signed build.
 
    Sites with the shared updater see the release when they next check.
    Sites still on Git Updater are offered the `Version:` on `main` before the
@@ -103,18 +128,48 @@ expected in the GitHub zip too.
 
    ```bash
    scripts/deploy-sites.sh --host <ssh-host> --tag vX.Y.Z            # lists the installs; changes nothing
-   scripts/deploy-sites.sh --host <ssh-host> --tag vX.Y.Z --apply    # installs, then one line per install
+   scripts/deploy-sites.sh --host <ssh-host> --tag vX.Y.Z --web-error-log <path> --apply    # installs, then one line per install
    ```
 
-   Only installs that already have the plugin are touched. Each line gives
+   Only installs that already have the plugin are touched. Each install line gives
    the old and new version, the status (`active-network` on a network
-   activation), the home page's HTTP code and the log lines gained; a
+   activation), `purged=N/SITES` (the sites whose page cache was purged), the
+   main home page's HTTP code, `cache=` (the final response's
+   `x-litespeed-cache`, `x-cache` and `cf-cache-status` headers, or `none`) and
+   the log lines gained. Networks add `sites=PASSED/TOTAL` and one indented
+   `site` line per site, with its status, `purged=yes`, `no` or `failed`, home
+   code, cache headers and result.
+   Every site that is not archived, deleted or spam gets a guarded full load
+   for its settings upgrade, a page cache purge and a home fetch with a query
+   string unique to that fetch. The purge matters: WordPress versions the
+   plugin's CSS and JS by `?ver=`, and a cached page keeps pointing at the old
+   version, so without it visitors get the old files until the page cache
+   expires. It runs `wp litespeed-purge all` on a single site and
+   `wp --url=<site> litespeed-purge blog <id>` on each network site (`all`
+   would empty every site's cache each time) when
+   `wp cli has-command litespeed-purge` finds LiteSpeed Cache (also when it is
+   network-activated); other page caches are not purged, so purge them by
+   hand. `wp cache flush` is not enough: it empties the object cache, not the
+   pages. `WARN purge failed` means the purge command failed, so visitors may
+   still get the old files. `WARN cached` means a cache answered anyway (it
+   ignores query strings), so PHP did not run for that fetch. Both warn
+   rather than fail.
+   A failed load, status read or home (5xx or no answer) fails the install;
+   4xx is reported only. All sites are checked even after one fails. A
    failed install prints its restore command and the backup folder
    (`~/.{slug}-deploy/` on the host). `--parent` names the WordPress
    folders on hosts with another layout, and `--skip` leaves an install
    out. It never uses `wp plugin update`: behind an HTTP request limiter,
    WP-CLI's update check can report the plugin already up to date. Host
    names, folders and backups stay out of the repository and its issues.
+   `--apply` requires `--web-error-log PATH`: verify the active web PHP
+   `error_log` destination in the host's PHP-FPM/CGI or Apache configuration
+   (including `.user.ini` overrides), not WP-CLI's CLI configuration. The
+   path is absolute on the host, or relative to each WordPress folder;
+   deploy separately with `--parent`/`--skip` when sites use different paths.
+   Only file destinations are supported, not syslog or stderr. This path,
+   the CLI PHP destination, `WP_DEBUG_LOG` and the two default paths are
+   checked, including files first created during installation.
    With aidevops, `wp-fleet-helper.sh` (plan, backup, deploy, verify and
    report across hosts, with a reviewed plan) is the alternative.
 

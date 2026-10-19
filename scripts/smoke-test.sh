@@ -44,6 +44,8 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 readonly SCRIPT_DIR
 # shellcheck source=scripts/lib/plugin.sh disable=SC1091 # followed only with -x
 . "$SCRIPT_DIR/lib/plugin.sh"
+# shellcheck source=scripts/lib/docker-wordpress.sh disable=SC1091
+. "$SCRIPT_DIR/lib/docker-wordpress.sh"
 
 # Set in main() from the plugin's main file.
 SLUG=""
@@ -122,11 +124,6 @@ cleanup() {
 	return 0
 }
 
-random_password() {
-	LC_ALL=C tr -dc 'A-Za-z0-9' </dev/urandom | head -c 24
-	return 0
-}
-
 # wp-cli in the disposable site; the zip is mounted at /zips.
 wp_cli() {
 	docker run --rm --network "$NAME" -v "$NAME-wp:/var/www/html" -v "$TMP_DIR/zips:/zips:ro" \
@@ -134,8 +131,30 @@ wp_cli() {
 	return $?
 }
 
+# Match docker run's default: keep cached images, retry only missing pulls.
+pull_image() {
+	local image="$1"
+	local attempt
+	if docker image inspect "$image" >/dev/null 2>&1; then
+		return 0
+	fi
+	for attempt in 1 2 3; do
+		if docker pull "$image"; then
+			return 0
+		fi
+		if [[ "$attempt" -lt 3 ]]; then
+			printf 'Pull failed for %s (attempt %s/3); retrying in 20 seconds.\n' "$image" "$attempt" >&2
+			sleep 20
+		fi
+	done
+	return 1
+}
+
 start_site() {
 	printf 'Starting a disposable WordPress %s on PHP %s (%s)...\n' "$WP_VERSION" "$PHP_VERSION" "$NAME"
+	pull_image "$DB_IMAGE" || die "could not pull $DB_IMAGE after 3 attempts"
+	pull_image "wordpress:cli-php$PHP_VERSION" || die "could not pull the WP-CLI image after 3 attempts"
+	pull_image "wordpress:php$PHP_VERSION-apache" || die "could not pull the Apache image after 3 attempts"
 	STARTED=1
 	DB_PASSWORD="$(random_password)"
 	ADMIN_PASSWORD="$(random_password)"
@@ -143,17 +162,7 @@ start_site() {
 	docker volume create "$NAME-wp" >/dev/null
 	docker run -d --name "$NAME-db" --network "$NAME" \
 		-e MARIADB_ROOT_PASSWORD="$DB_PASSWORD" -e MARIADB_DATABASE=wordpress "$DB_IMAGE" >/dev/null
-	docker run --rm -v "$NAME-wp:/var/www/html" --user 0:0 "wordpress:cli-php$PHP_VERSION" chown 33:33 /var/www/html
-
-	local waited=0
-	until docker exec "$NAME-db" mariadb-admin ping -h127.0.0.1 -uroot -p"$DB_PASSWORD" --silent >/dev/null 2>&1; do
-		[[ "$waited" -lt 90 ]] || die "the database did not start"
-		sleep 2
-		waited=$((waited + 2))
-	done
-
-	# Core first, so the web image finds WordPress and does not copy its own.
-	wp_cli core download --version="$WP_VERSION" --quiet
+	docker_prepare_core
 	docker run -d --name "$NAME-web" --network "$NAME" -v "$NAME-wp:/var/www/html" \
 		-p 127.0.0.1::80 "wordpress:php$PHP_VERSION-apache" >/dev/null
 	# Plain HTTP on purpose: a throwaway site that only listens on 127.0.0.1.
@@ -166,10 +175,7 @@ start_site() {
 	fi
 
 	wp_cli config create --dbname=wordpress --dbuser=root --dbpass="$DB_PASSWORD" --dbhost="$NAME-db" --skip-check --quiet
-	wp_cli config set WP_DEBUG true --raw --quiet
-	wp_cli config set WP_DEBUG_LOG true --raw --quiet
-	wp_cli config set WP_DEBUG_DISPLAY false --raw --quiet
-	wp_cli config set DISABLE_WP_CRON true --raw --quiet
+	docker_debug_config
 	if [[ "$MULTISITE" -eq 1 ]]; then
 		start_network
 	else
@@ -198,23 +204,9 @@ start_network() {
 	# The main site's structure, as WordPress saved it: /blog/%postname%/.
 	POST_BASE="$(wp_cli option get permalink_structure --url="$BASE_URL/")" || die "could not read the main site's permalinks"
 	POST_BASE="${POST_BASE%/%postname%/}"
-	# Apache's backreferences ($1, $2), kept out of the shell's sight.
-	local ref='$'
-	write_htaccess "# BEGIN WordPress Multisite" "RewriteEngine On" "RewriteBase /" \
-		"RewriteRule ^index\.php$ - [L]" "RewriteRule ^([_0-9a-zA-Z-]+/)?wp-admin$ ${ref}1wp-admin/ [R=301,L]" \
-		"RewriteCond %{REQUEST_FILENAME} -f [OR]" "RewriteCond %{REQUEST_FILENAME} -d" "RewriteRule ^ - [L]" \
-		"RewriteRule ^([_0-9a-zA-Z-]+/)?(wp-(content|admin|includes).*) ${ref}2 [L]" \
-		"RewriteRule ^([_0-9a-zA-Z-]+/)?(.*\.php)$ ${ref}2 [L]" "RewriteRule . index.php [L]" \
-		"# END WordPress Multisite"
+	docker_network_rewrites
 	add_network_setting || die "could not add the network check's setting"
 	return 0
-}
-
-# Core's rewrite rules, one argument per line: WP-CLI cannot see Apache's
-# mod_rewrite, so it does not write them.
-write_htaccess() {
-	printf '%s\n' "$@" | docker exec -i -u www-data "$NAME-web" sh -c 'cat >/var/www/html/.htaccess'
-	return $?
 }
 
 # A must-use plugin adding a bool setting, smoke_network, so the network
@@ -537,7 +529,8 @@ check_debug_log() {
 		fail "debug.log does not work: the canary notice is missing"
 		return 0
 	fi
-	log="$(printf '%s\n' "$log" | grep -v 'smoke-test canary' || true)"
+	# WP-CLI's bundled dependencies can log their own PHP deprecations.
+	log="$(printf '%s\n' "$log" | grep -v 'smoke-test canary' | grep -v -F 'phar:///usr/local/bin/wp/' || true)"
 	if [[ -n "$log" ]]; then
 		printf '\ndebug.log:\n%s\n' "$log"
 		fail "PHP messages in debug.log"

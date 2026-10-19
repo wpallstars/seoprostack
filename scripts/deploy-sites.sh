@@ -13,6 +13,8 @@
 #                      public_html, htdocs, html, public, www or web folder,
 #                      else the folder's own name) or its full path. Repeatable.
 #   --wp-cli COMMAND   WP-CLI on the host (default: wp).
+#   --web-error-log PATH  Verified web PHP log file, required for --apply;
+#                      absolute, or relative to each WordPress folder.
 #   --dry-run          List the installs found, with their version and whether
 #                      each is a multisite network, and change nothing (the
 #                      default).
@@ -25,12 +27,18 @@
 # and checked again there. Then, for each install that already has
 # wp-content/plugins/{slug}/{slug}.php (the plugin is never added anywhere):
 # a tar backup of the plugin folder, wp plugin install --force (activation
-# and network activation are kept), one full WordPress load so the plugin's
-# settings upgrade runs, and one line: old -> new version, status, the home
-# page's HTTP code and the lines error_log and wp-content/debug.log gained.
-# Exits 1 when any install did not reach the version, logged new lines or its
-# home page failed, and prints each restore command. Host names, folders and
-# backups stay out of the repository: they are only arguments.
+# and network activation are kept), then per site a full load for its
+# settings upgrade, a page cache purge (LiteSpeed Cache, when its WP-CLI
+# command is there) so pages stop pointing at the old CSS and JS, and a home
+# fetch. Networks skip archived, deleted and spam sites and print one
+# indented line per site. Each fetch uses a unique query string; cache= lists
+# the response's cache headers. WARN cached means a cache ignored query
+# strings, so PHP did not run for that fetch; WARN purge failed means
+# visitors may still get the old CSS and JS. Each install line gives old ->
+# new version, status, purged=N/SITES, home HTTP code, cache headers and new
+# log lines; networks add sites=PASSED/TOTAL. Exits 1 on a failed site, a
+# version not reached or new log lines, with the restore command. Host names,
+# folders and backups stay out of the repository: they are only arguments.
 #
 # Needs gh (signed in to read a private repository), ssh, and bash, WP-CLI,
 # tar and curl on the host. aidevops users can use wp-fleet-helper.sh instead
@@ -58,6 +66,7 @@ VERSION=""
 # shellcheck disable=SC2088 # The host expands the ~, not this shell.
 PARENT='~/domains/*/public_html'
 WP_CLI="wp"
+WEB_ERROR_LOG=""
 APPLY=0
 SKIPS=()
 TMP_DIR=""
@@ -71,7 +80,8 @@ die() {
 }
 
 usage() {
-	sed -n '2,37p' "$0" | sed 's/^# \{0,1\}//'
+	# The comment block under the first line, up to the first blank line.
+	awk 'NR == 1 { next } /^$/ { exit } { sub(/^# ?/, ""); print }' "$0"
 	return 0
 }
 
@@ -114,7 +124,7 @@ parse_args() {
 		local arg="$1"
 		local value="${2:-}"
 		case "$arg" in
-		--host | --tag | --parent | --skip | --wp-cli)
+		--host | --tag | --parent | --skip | --wp-cli | --web-error-log)
 			[[ $# -ge 2 ]] || die "$arg needs a value"
 			case "$arg" in
 			--host) HOST="$value" ;;
@@ -122,6 +132,7 @@ parse_args() {
 			--parent) PARENT="$value" ;;
 			--skip) SKIPS+=("$value") ;;
 			--wp-cli) WP_CLI="$value" ;;
+			--web-error-log) WEB_ERROR_LOG="$value" ;;
 			*) ;; # The outer pattern lists every option that takes a value.
 			esac
 			shift
@@ -141,6 +152,10 @@ parse_args() {
 	[[ "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]] || die "--tag must be vX.Y.Z, not '$TAG'"
 	VERSION="${TAG#v}"
 	[[ -n "$PARENT" ]] || die "--parent cannot be empty"
+	if [[ "$APPLY" -eq 1 ]]; then
+		[[ -n "$WEB_ERROR_LOG" && "$WEB_ERROR_LOG" != "syslog" ]] ||
+			die "--apply requires --web-error-log PATH (the verified web PHP log file, not syslog)"
+	fi
 	return 0
 }
 
@@ -200,7 +215,7 @@ apply() {
 	remote "umask 077; cat >$(remote_words "$dir/deploy-remote.sh")" <"$REMOTE_PART" || die "cannot copy the remote part to $HOST"
 	remote "chmod 600 $(remote_words "$dir/$SLUG-$VERSION.zip" "$dir/deploy-remote.sh")" || die "cannot set the files' mode on $HOST"
 	printf '\nInstalling %s on %s (folder %s):\n' "$TAG" "$HOST" "$dir"
-	command="$(remote_words env "DEPLOY_WP_CLI=$WP_CLI" bash "$dir/deploy-remote.sh" apply "$SLUG" "$PARENT" \
+	command="$(remote_words env "DEPLOY_WP_CLI=$WP_CLI" "DEPLOY_WEB_ERROR_LOG=$WEB_ERROR_LOG" bash "$dir/deploy-remote.sh" apply "$SLUG" "$PARENT" \
 		"$VERSION" "$dir/$SLUG-$VERSION.zip" "$SHA" "$dir/backups" ${SKIPS[@]+"${SKIPS[@]}"})"
 	remote "$command" || status=$?
 	if [[ "$status" -ne 0 ]]; then
