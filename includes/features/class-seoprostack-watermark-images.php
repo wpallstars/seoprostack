@@ -88,6 +88,20 @@ class SEOProStack_Watermark_Images extends SEOProStack_Feature {
     private static $finalizing = false;
 
     /**
+     * During a Customizer crop of a marked picture: its ID (0 otherwise).
+     *
+     * @var int
+     */
+    private static $crop_id = 0;
+
+    /**
+     * The clean copy WordPress crops instead of that picture's file.
+     *
+     * @var string
+     */
+    private static $crop_path = '';
+
+    /**
      * Settings.
      *
      * @return array
@@ -334,13 +348,15 @@ class SEOProStack_Watermark_Images extends SEOProStack_Feature {
 
     /**
      * The Customizer crops a site icon or logo into a new attachment from
-     * the chosen picture's file, so a marked picture would pass its mark to
-     * the cropped copy, which then has no record to remove it from. Put the
-     * chosen picture's kept original back first: it is becoming a site
-     * picture. Same checks as WordPress's handler, which runs next.
+     * the chosen picture's file (wp_ajax_crop_image(), which runs next), so
+     * a marked picture would pass its mark to the cropped copy, which has no
+     * record to remove it from. Crop from a clean copy of the kept original
+     * instead, at the size of the attached file the crop box was drawn on;
+     * the chosen picture itself stays marked. Same checks as WordPress's
+     * handler, before anything is read.
      */
     public static function site_image_crop() {
-        // phpcs:disable WordPress.Security.NonceVerification.Missing -- the nonce is checked below, before anything changes.
+        // phpcs:disable WordPress.Security.NonceVerification.Missing -- the nonce is checked below, before anything is read.
         $attachment_id = isset($_POST['id']) ? absint($_POST['id']) : 0;
         $context       = isset($_POST['context']) ? sanitize_key(wp_unslash($_POST['context'])) : '';
         // phpcs:enable
@@ -350,7 +366,126 @@ class SEOProStack_Watermark_Images extends SEOProStack_Feature {
         if (!current_user_can('edit_post', $attachment_id) || !check_ajax_referer('image_editor-' . $attachment_id, 'nonce', false)) {
             return;
         }
-        self::restore_site_image($attachment_id);
+        $clean = self::crop_source($attachment_id);
+        if (is_wp_error($clean)) {
+            self::site_image_failed($attachment_id, $clean);
+            return;
+        }
+        self::$crop_id   = $attachment_id;
+        self::$crop_path = $clean;
+        register_shutdown_function(array(__CLASS__, 'crop_cleanup'), dirname($clean));
+        add_filter('get_attached_file', array(__CLASS__, 'crop_attached_file'), 99, 2);
+        add_filter('wp_create_file_in_uploads', array(__CLASS__, 'crop_file_in_uploads'), 1, 2);
+    }
+
+    /**
+     * A clean copy of a marked picture's attached file, from its kept
+     * original, in a new temporary folder under the file's own name.
+     *
+     * @param int $attachment_id Attachment ID.
+     * @return string|WP_Error Path of the copy.
+     */
+    private static function crop_source($attachment_id) {
+        $record   = self::record($attachment_id);
+        $restored = class_exists('SEOProStack_Media_Storage') ? SEOProStack_Media_Storage::ensure_local($attachment_id) : true;
+        if (is_wp_error($restored)) {
+            return $restored;
+        }
+        $backup = self::backup_path($record);
+        if (!$backup || !is_file($backup)) {
+            return new WP_Error('watermark_no_original', __('No unmarked original was kept for this picture.', 'seoprostack'));
+        }
+        if (!self::record_current($attachment_id, $record)) {
+            return new WP_Error('watermark_changed', __('This picture was edited or replaced after it was marked, so the kept original is out of date.', 'seoprostack'));
+        }
+        $file = (string) get_attached_file($attachment_id);
+        $dir  = trailingslashit(get_temp_dir()) . 'seoprostack-crop-' . strtolower(wp_generate_password(12, false));
+        if (!wp_mkdir_p($dir)) {
+            return new WP_Error('watermark_crop', __('A clean copy for cropping could not be made.', 'seoprostack'));
+        }
+        $copy   = $dir . '/' . wp_basename($file);
+        $size   = wp_getimagesize($file);
+        $editor = $size ? wp_get_image_editor($backup) : null;
+        if ($editor && !is_wp_error($editor)) {
+            // The kept original may be the one WordPress kept before scaling
+            // or rotating the attached file: make it the attached file's size.
+            $rotated = $editor->maybe_exif_rotate();
+            $now     = $editor->get_size();
+            $same    = (int) $now['width'] === (int) $size[0] && (int) $now['height'] === (int) $size[1];
+            if ($same && true !== $rotated) {
+                // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged -- failure is handled.
+                $done = @copy($backup, $copy);
+            } else {
+                $resized = $same ? true : $editor->resize((int) $size[0], (int) $size[1], true);
+                $done    = !is_wp_error($resized) && !is_wp_error($editor->save($copy));
+            }
+            if ($done && is_file($copy)) {
+                return $copy;
+            }
+        }
+        self::crop_cleanup($dir);
+        return new WP_Error('watermark_crop', __('A clean copy for cropping could not be made.', 'seoprostack'));
+    }
+
+    /**
+     * While WordPress crops: the chosen picture's file is the clean copy.
+     *
+     * @param string $file          Attached file.
+     * @param int    $attachment_id Attachment ID.
+     * @return string
+     */
+    public static function crop_attached_file($file, $attachment_id) {
+        return self::$crop_id && (int) $attachment_id === self::$crop_id ? self::$crop_path : $file;
+    }
+
+    /**
+     * The cropped file was saved beside the clean copy: move it beside the
+     * chosen picture, where WordPress would have saved it, and stop
+     * pointing at the copy.
+     *
+     * @param string $cropped       Cropped file.
+     * @param int    $attachment_id Chosen picture's ID.
+     * @return string
+     */
+    public static function crop_file_in_uploads($cropped, $attachment_id) {
+        if (!self::$crop_id || (int) $attachment_id !== self::$crop_id) {
+            return $cropped;
+        }
+        $copy            = self::$crop_path;
+        self::$crop_id   = 0;
+        self::$crop_path = '';
+        remove_filter('get_attached_file', array(__CLASS__, 'crop_attached_file'), 99);
+        $file = get_attached_file($attachment_id);
+        if (!$file || !is_string($cropped) || dirname($cropped) !== dirname($copy) || !is_file($cropped)) {
+            return $cropped;
+        }
+        $dir    = dirname($file);
+        $target = $dir . '/' . wp_unique_filename($dir, wp_basename($cropped));
+        // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged -- failure is handled.
+        if (!@copy($cropped, $target)) {
+            return $cropped;
+        }
+        self::crop_cleanup(dirname($copy));
+        return $target;
+    }
+
+    /**
+     * Delete a temporary crop folder and its files.
+     *
+     * @param string $dir Folder made by crop_source().
+     */
+    public static function crop_cleanup($dir) {
+        if (0 !== strpos(wp_basename($dir), 'seoprostack-crop-') || !is_dir($dir)) {
+            return;
+        }
+        $paths = glob($dir . '/*');
+        foreach (is_array($paths) ? $paths : array() as $path) {
+            if (is_file($path)) {
+                wp_delete_file($path);
+            }
+        }
+        // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged, WordPress.WP.AlternativeFunctions.file_system_operations_rmdir -- an empty temporary folder.
+        @rmdir($dir);
     }
 
     /**
@@ -363,13 +498,22 @@ class SEOProStack_Watermark_Images extends SEOProStack_Feature {
             return;
         }
         $result = self::remove($attachment_id);
-        if (!is_wp_error($result)) {
-            return;
+        if (is_wp_error($result)) {
+            self::site_image_failed($attachment_id, $result);
         }
+    }
+
+    /**
+     * Log a site picture that keeps its watermark, and tell admins once.
+     *
+     * @param int      $attachment_id Attachment ID.
+     * @param WP_Error $error         Why.
+     */
+    private static function site_image_failed($attachment_id, WP_Error $error) {
         /* translators: 1: attachment ID, 2: reason the watermark could not be removed */
-        $message = sprintf(__('SEO Pro Stack could not remove the watermark from site picture #%1$d: %2$s Upload an unmarked picture to replace it.', 'seoprostack'), $attachment_id, $result->get_error_message());
+        $message = sprintf(__('SEO Pro Stack could not remove the watermark from site picture #%1$d: %2$s Upload an unmarked picture to replace it.', 'seoprostack'), $attachment_id, $error->get_error_message());
         // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log -- a failed automatic restoration must be visible in the server log.
-        error_log('SEO Pro Stack watermark [' . $result->get_error_code() . '] attachment ' . $attachment_id . ': ' . $result->get_error_message());
+        error_log('SEO Pro Stack watermark [' . $error->get_error_code() . '] attachment ' . $attachment_id . ': ' . $error->get_error_message());
         set_transient('seoprostack_watermark_error_site_image', $message, DAY_IN_SECONDS);
     }
 
