@@ -5,7 +5,7 @@ Tags: magic login, iframe, schedule posts, auto upload images, admin
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.3.59
+Stable tag: 1.3.60
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -151,11 +151,8 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 
 == Changelog ==
 
-= Unreleased =
-* Fix: a watermarked picture loses its watermark when it becomes the site icon or a logo, including Kadence's mobile logo and Customizer crops (GitHub issue #869).
-* Developers: sync shared starter core, admin styles, updater and test-site tools (GitHub issue #867).
-
-= 1.3.59 =
-* Docs: Dark mode coverage and 1.3.53 notes.
+= 1.3.60 =
+* Fix: site icons and logos lose the watermark.
+* Developers: starter core and test-site tools.
 
 Older: `changelog.txt`.
