@@ -84,7 +84,11 @@ class SEOProStack_Theme_Manager {
             ));
 
             if (is_wp_error($theme_data)) {
-                wp_send_json_error(array('message' => $theme_data->get_error_message()), 502);
+                // 200, not 502: proxies such as Cloudflare replace a 502's body with their own page, which hid the reason.
+                wp_send_json_error(array('message' => SEOProStack_Plugin_Manager::api_failure(
+                    __('Theme information could not be retrieved from WordPress.org.', 'seoprostack'),
+                    SEOProStack_Plugin_Manager::api_reason($theme_data)
+                )));
             }
             set_transient(self::CACHE_KEY, $theme_data, 12 * HOUR_IN_SECONDS);
         }

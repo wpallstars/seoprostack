@@ -43,7 +43,7 @@ if (!defined('ABSPATH')) {
 final class SEOProStack_Dark_Fallback {
 
     /** The generator's version: a change makes every copy again. */
-    const VERSION = '2';
+    const VERSION = '3';
 
     /** Folder in uploads for the copies. */
     const DIR = 'seoprostack-dark';
@@ -116,8 +116,8 @@ final class SEOProStack_Dark_Fallback {
     /** One declaration: property and value (brackets and quotes kept whole). */
     const DECLARATION = '/(?<prop>-{0,2}[A-Za-z][\w-]*)\s*:\s*(?<val>(?:[^;()"\']++|(?<p>\((?:[^()"\']++|"[^"]*"|\'[^\']*\'|(?&p))*\))|"[^"]*"|\'[^\']*\')*)/';
 
-    /** Colours in a value: hex, rgb(), hsl(), oklch() and the names above. */
-    const COLOUR = '/#(?:[0-9a-fA-F]{8}|[0-9a-fA-F]{6}|[0-9a-fA-F]{3,4})(?![0-9a-zA-Z])|\b(?:rgba?|hsla?|oklch)\([^()]*\)|(?<![\w#-])(?:white|whitesmoke|snow|ghostwhite|aliceblue|ivory|linen|floralwhite|seashell|honeydew|mintcream|azure|lavender|lavenderblush|beige|oldlace|cornsilk|lightyellow|lemonchiffon|mistyrose|antiquewhite|papayawhip|blanchedalmond|gainsboro|lightgr[ae]y|silver|darkgr[ae]y|gr[ae]y|dimgr[ae]y|black)(?![\w-])/i';
+    /** Colours in a value: hex, rgb(), hsl(), oklch() (with Tailwind's opacity var() inside) and the names above. */
+    const COLOUR = '/#(?:[0-9a-fA-F]{8}|[0-9a-fA-F]{6}|[0-9a-fA-F]{3,4})(?![0-9a-zA-Z])|\b(?:rgba?|hsla?|oklch)\((?:[^()]|var\([^()]*\))*\)|(?<![\w#-])(?:white|whitesmoke|snow|ghostwhite|aliceblue|ivory|linen|floralwhite|seashell|honeydew|mintcream|azure|lavender|lavenderblush|beige|oldlace|cornsilk|lightyellow|lemonchiffon|mistyrose|antiquewhite|papayawhip|blanchedalmond|gainsboro|lightgr[ae]y|silver|darkgr[ae]y|gr[ae]y|dimgr[ae]y|black)(?![\w-])/i';
 
     /** Whether this request gets copies (null until asked). */
     private static $on = null;
@@ -780,6 +780,11 @@ final class SEOProStack_Dark_Fallback {
      */
     private static function parse($value) {
         $value = strtolower(trim($value));
+        // Tailwind's `rgb(255 255 255 / var(--tw-bg-opacity, 1))`: the opacity its fallback, or 1.
+        $value = (string) preg_replace_callback('/var\(\s*--[\w-]*opacity\s*(?:,\s*([\d.]+%?)\s*)?\)/', function ($m) {
+            // An unmatched trailing group is left out of $m, and a matched one is never empty.
+            return isset($m[1]) ? $m[1] : '1';
+        }, $value);
         if (isset(self::NAMED[$value])) {
             $value = '#' . self::NAMED[$value];
         }

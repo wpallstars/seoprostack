@@ -35,6 +35,9 @@ class SEOProStack_Plugin_Manager {
     /** Category slug for the list of every recommended plugin. */
     const ALL = 'all';
 
+    /** Why the last WordPress.org request in fetch_plugins() failed, if one did. */
+    private static $api_error = '';
+
     /**
      * Register hooks.
      */
@@ -136,7 +139,8 @@ class SEOProStack_Plugin_Manager {
         }
 
         if (!$plugins) {
-            wp_send_json_error(array('message' => __('Plugin information could not be retrieved from WordPress.org.', 'seoprostack')), 502);
+            // 200, not 502: proxies such as Cloudflare replace a 502's body with their own page, which hid the reason.
+            wp_send_json_error(array('message' => self::api_failure(__('Plugin information could not be retrieved from WordPress.org.', 'seoprostack'), self::$api_error)));
         }
 
         $html = 'rows' === $view ? self::generate_plugin_rows($plugins, $category) : self::generate_plugin_cards($plugins);
@@ -247,6 +251,37 @@ class SEOProStack_Plugin_Manager {
     }
 
     /**
+     * The underlying reason a plugins_api() or themes_api() call failed, as
+     * plain text: both wrap the HTTP error in a general message and keep the
+     * request's own message (such as a site blocking outbound requests) in
+     * the error's data.
+     *
+     * @param WP_Error $error The API's error.
+     * @return string
+     */
+    public static function api_reason($error) {
+        $data   = $error->get_error_data();
+        $reason = is_string($data) && '' !== trim($data) ? $data : $error->get_error_message();
+        return trim(wp_strip_all_tags($reason));
+    }
+
+    /**
+     * A failure message for the Free Plugins and Theme tabs, with the reason
+     * when there is one.
+     *
+     * @param string $message What failed.
+     * @param string $reason  Why, from api_reason(), or ''.
+     * @return string
+     */
+    public static function api_failure($message, $reason) {
+        if ('' === $reason) {
+            return $message;
+        }
+        /* translators: 1: what failed, 2: the reason the site gave. */
+        return sprintf(__('%1$s Reason: %2$s', 'seoprostack'), $message, $reason);
+    }
+
+    /**
      * Recommended plugins that are not on WordPress.org.
      *
      * @return array<string,array> Slug => name, description, author, url
@@ -321,6 +356,9 @@ class SEOProStack_Plugin_Manager {
                 $plugins[] = self::removed_stub($slug, array());
             } else {
                 $complete = false;
+                if (is_wp_error($info)) {
+                    self::$api_error = self::api_reason($info);
+                }
             }
         }
 

@@ -29,6 +29,11 @@
 	var speak = cfg.api.speak;
 	var errorMessage = cfg.api.errorMessage;
 
+	// A handled failure (success: false) with the server's reason, if it gave one.
+	var failureMessage = function (response, fallback) {
+		return response && response.data && response.data.message ? String(response.data.message) : fallback;
+	};
+
 	/* ------------------------------------------------------------------ */
 	/* Directory filter (Pro / Hosting / Tools)                            */
 	/* ------------------------------------------------------------------ */
@@ -170,7 +175,7 @@
 					if (response && response.success) {
 						$list.html(response.data.html);
 					} else {
-						$list.html(Plugins.notice(i18n.loadFailed));
+						$list.html(Plugins.notice(failureMessage(response, i18n.loadFailed)));
 					}
 				})
 				.fail(function (xhr, status) {
@@ -220,7 +225,7 @@
 						return;
 					}
 					if (!response || !response.success) {
-						failed(i18n.loadFailed);
+						failed(failureMessage(response, i18n.loadFailed));
 						return;
 					}
 					$group.append(response.data.html);
@@ -780,7 +785,7 @@
 
 			post('seoprostack_get_themes', {})
 				.done(function (response) {
-					$theme.html(response && response.success ? response.data.html : Plugins.notice(i18n.loadFailed));
+					$theme.html(response && response.success ? response.data.html : Plugins.notice(failureMessage(response, i18n.loadFailed)));
 					// A blocked screenshot leaves the plain panel, not a broken image.
 					$theme.find('.sps-theme-card__media img').each(function () {
 						var img = this;

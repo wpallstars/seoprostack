@@ -508,13 +508,50 @@
 		}
 		doc.documentElement.classList.toggle('sps-dark', root.classList.contains('sps-dark'));
 	}
+	/*
+	 * Kadence Conversions' editor: a pop-up, slide-in or banner shows over
+	 * the page, so the editor's canvas around it is not content, yet stays
+	 * the theme's white (Kadence's --kad-editor-content-bg). In Dark it is
+	 * the canvas colour, with the title light. A class of its own on the
+	 * frame's <html>, not sps-dark, so the admin's dark rules stay out of
+	 * the content.
+	 */
+	var CANVAS_ID = 'sps-conversion-dark';
+	var CANVAS_CSS = 'html.sps-dark-canvas body.editor-styles-wrapper{--kad-editor-content-bg:#101517;--kad-editor-body-bg:#101517;background:#101517}'
+		// The title box: Kadence's stripes (palette 8) and title colour (palette 3), for it alone.
+		+ 'html.sps-dark-canvas .editor-visual-editor__post-title-wrapper{--global-palette8:#1d2327;--global-palette3:#f0f0f1}';
+	function canvasFrame(frame) {
+		var doc;
+		if (frame.name !== 'editor-canvas' || !document.body || !document.body.classList.contains('post-type-kadence_conversions')) {
+			return;
+		}
+		try {
+			doc = frame.contentDocument;
+		} catch (e) {
+			return;
+		}
+		if (!doc || !doc.head) {
+			return;
+		}
+		if (!doc.getElementById(CANVAS_ID)) {
+			var style = doc.createElement('style');
+			style.id = CANVAS_ID;
+			style.textContent = CANVAS_CSS;
+			doc.head.appendChild(style);
+		}
+		doc.documentElement.classList.toggle('sps-dark-canvas', root.classList.contains('sps-dark'));
+	}
 	function dieAll() {
-		Array.prototype.forEach.call(document.querySelectorAll('iframe'), dieFrame);
+		Array.prototype.forEach.call(document.querySelectorAll('iframe'), function (frame) {
+			dieFrame(frame);
+			canvasFrame(frame);
+		});
 	}
 	// A frame's load event does not bubble, so it is caught on the way down.
 	document.addEventListener('load', function (event) {
 		if (event.target && event.target.tagName === 'IFRAME') {
 			dieFrame(event.target);
+			canvasFrame(event.target);
 		}
 	}, true);
 

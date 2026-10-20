@@ -151,6 +151,10 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 
 == Changelog ==
 
+= Unreleased =
+* Fix: more screens in Dark mode (Kadence, Ninja Tables, Fluent, block editor, Media).
+* Fix: Recommended lists say why WordPress.org could not be reached.
+
 = 1.3.60 =
 * Fix: site icons and logos lose the watermark.
 * Developers: starter core and test-site tools.
