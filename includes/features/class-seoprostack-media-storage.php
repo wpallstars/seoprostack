@@ -2606,11 +2606,13 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
                 return false;
             }
             $changed = array();
+            $eligible = array();
             foreach ($group as $key => $info) {
                 if ($info['size'] > self::size_cap()) {
                     ++$record['skipped'];
                     continue;
                 }
+                $eligible[$key] = true;
                 $previous = isset($old['files'][$key]) ? $old['files'][$key] : array();
                 $same = isset($old['signature']) && $old['signature'] === $config['signature'] && !empty($previous['confirmed']) && !empty($info['digest']) && isset($previous['digest']) && $previous['digest'] === $info['digest'];
                 if (!$same) {
@@ -2634,11 +2636,15 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
             $results = self::client()->put_files($changed, $policy);
             $error = null;
             foreach ($group as $key => $info) {
-                if ($info['size'] > self::size_cap()) {
+                // Transport allocations must not change eligibility after PUT.
+                if (!isset($eligible[$key])) {
                     continue;
                 }
                 if (isset($results[$key]) && is_wp_error($results[$key])) {
-                    $error = $results[$key];
+                    // A short budget deferral must not hide a real peer failure.
+                    if (!is_wp_error($error) || 'storage_budget' !== $results[$key]->get_error_code()) {
+                        $error = $results[$key];
+                    }
                     continue;
                 }
                 unset($info['path'], $info['type']);
@@ -2658,6 +2664,17 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
             }
             update_post_meta($id, self::META, $pending);
             if (is_wp_error($error)) {
+                if ('storage_budget' === $error->get_error_code()) {
+                    $pending['attempts'] = isset($old['attempts']) ? (int) $old['attempts'] : 0;
+                    // This turn did not fail; keep only a failure from an earlier turn.
+                    $pending['state'] = isset($old['state']) && 'failed' === $old['state'] ? 'failed' : 'waiting';
+                    update_post_meta($id, self::META, $pending);
+                    update_post_meta($id, self::STATE, $pending['state']);
+                    delete_transient(self::COUNTS);
+                    $job['next'] = time() + 60;
+                    update_option(self::JOB . 'retry_' . $id, $job, false);
+                    return false;
+                }
                 $pending['error'] = $error->get_error_message();
                 update_post_meta($id, self::META, $pending);
                 update_option(self::ERROR, $pending['error'], false);
