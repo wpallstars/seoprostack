@@ -8,7 +8,7 @@ own screen only, the scheme colour's brightness is capped (Accent, below).
 Dark gives every admin screen the WordPress admin greys below, while the
 admin colour scheme (Modern, Default, Sunrise...) keeps its admin menu, admin
 bar and accent. System follows `prefers-color-scheme` live. The front end and
-the block editor's canvas keep the theme's colours. SEO Pro Stats' own
+the block editor's canvas keep the theme's colours. SEO Pro Analytics' own
 screens are left to its own colour mode, which follows the same choice.
 Screens whose own design does not suit dark can stay light with the
 `seoprostack_admin_dark_screen` filter. Tutor LMS's course builder, drawn by
@@ -43,7 +43,7 @@ Without the script, the links save through `admin-post.php` and come back. It
 shows in wp-admin only, not on the site or in the network admin, to people
 for whom `wpallstars_admin_theme_participants` is not empty.
 
-The choice is shared with SEO Pro Stats (wpallstars/seoprostats#251): user meta
+The choice is shared with SEO Pro Analytics (wpallstars/seoproanalytics#251): user meta
 `wpallstars_admin_theme` is read first, then `seoprostack_admin_theme`, then
 Light; both are saved with a nonce and `read` capability. A saved change is
 sent as `wpallstars-admin-theme` (`{ mode, source }`) on `document`, and the
@@ -119,7 +119,7 @@ unreadable text, and screens that need more get a hand-written section.
 `scripts/dark-audit.mjs` checks the result (TESTING.md → Dark mode audit).
 Measured when it was added (GitHub issue #712), on the shared preview site
 with every recommended plugin: 272 admin menu screens, 266 of them dark
-(the other 6 keep their own look on purpose, such as SEO Pro Stats and
+(the other 6 keep their own look on purpose, such as SEO Pro Analytics and
 Tutor LMS's course builder). Without the fallback: 227 light surfaces, 218
 of them not brand colours, 19 full-width. With it: 32 (86% fewer), 23 not
 brand colours, none full-width; text below AA went from 24 to 19. What is
@@ -131,7 +131,8 @@ and tiles; brand-coloured badges (EventON, Complianz) keep their colours.
 ### Accent
 
 The accent follows the person's admin colour scheme (Profile → Admin Color
-Scheme), as on SEO Pro Stats' screens (its issues #228 and #239). WordPress
+Scheme), as on SEO Pro Analytics' screens (wpallstars/seoproanalytics#228 and
+wpallstars/seoproanalytics#239). WordPress
 sets the scheme's `--wp-admin-theme-color` on `body` (`body.admin-color-*`),
 so the accent tokens sit on `body` too: on `html` they would resolve to the
 default blue, whatever the scheme. A live change of the body class recolours
@@ -164,7 +165,7 @@ Every wpallstars plugin's banner and icon share one picture: the stack of
 tiles under the arc of five stars, on the navy background with red and cream
 stripes. Each plugin varies only the tiles' colours and the picture on the
 top tile (WP Plugin Starter: all red with the WordPress Plugins icon; SEO Pro
-Stats: all red with rising bars). SEO Pro Stack's banner
+Analytics: all red with rising bars). SEO Pro Stack's banner
 (`.wordpress-org/banner.svg`) and icon (`.wordpress-org/icon.svg`) have red,
 cream and blue tiles, blue stars and a blue glow, and a gold lightning bolt
 (for speed) laid flat and slightly raised on the top tile. Keep the stack;

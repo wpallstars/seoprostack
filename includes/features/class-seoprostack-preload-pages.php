@@ -336,7 +336,7 @@ class SEOProStack_Preload_Pages extends SEOProStack_Feature {
             . "{$shell},{$shell} body{background:#f0f0f1!important}"
             // Dark mode (SEOProStack_Admin_Whole_Theme): its canvas and text,
             // also when leaving a screen that keeps its own look (sps-mode-dark
-            // without sps-dark, such as SEO Pro Stats'), as the next one is dark.
+            // without sps-dark, such as SEO Pro Analytics'), as the next one is dark.
             . "html:is(.sps-dark,.sps-mode-dark).sps-nav-shell,html:is(.sps-dark,.sps-mode-dark).sps-nav-shell body{background:var(--sps-ui-canvas,#101517)!important}"
             . 'html:is(.sps-dark,.sps-mode-dark) #sps-nav-wait{color:var(--sps-ui-text,#f0f0f1)}'
             . "{$shell} #wpwrap,{$shell} #wpcontent,{$shell} #wpbody,{$shell} #wpbody-content{background:transparent!important}"
