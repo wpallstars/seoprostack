@@ -47,6 +47,13 @@ class SEOProStack_Post_Reactions extends SEOProStack_Feature {
     /** User option (per site): liked post IDs. */
     const LIKED = 'seoprostack_liked';
 
+    /**
+     * User option (per site): liked post IDs joined from a browser at log in
+     * without counting them (set_liked() leaves their totals alone when they
+     * leave Liked: the server cannot tell the browser counted them).
+     */
+    const UNCOUNTED = 'seoprostack_liked_uncounted';
+
     /** User option (per site): current shortlist. */
     const SHORTLIST = 'seoprostack_shortlist';
 
@@ -868,32 +875,63 @@ class SEOProStack_Post_Reactions extends SEOProStack_Feature {
      * @param bool  $on      Like (true) or unlike (false).
      */
     private static function set_liked($user_id, array $posts, $on) {
-        $liked = self::user_list($user_id, self::LIKED);
+        $liked     = self::user_list($user_id, self::LIKED);
+        $uncounted = self::uncounted($user_id);
+        $marked    = $uncounted;
         foreach ($posts as $id) {
             if (in_array($id, $liked, true) === $on || ($on && !self::can_react($id))) {
                 continue;
             }
             $liked = $on ? array_merge($liked, array($id)) : array_values(array_diff($liked, array($id)));
+            if (in_array($id, $uncounted, true)) {
+                $uncounted = array_values(array_diff($uncounted, array($id)));
+                // Joined without counting (join_liked()): its total stays.
+                if (!$on) {
+                    continue;
+                }
+            }
             self::add_like($id, $on ? 1 : -1);
         }
         self::set_user_list($user_id, self::LIKED, $liked);
+        if ($uncounted !== $marked) {
+            update_user_option($user_id, self::UNCOUNTED, $uncounted);
+        }
     }
 
     /**
      * Add posts to Liked without counting them: likes made in a browser
-     * before logging in were counted then.
+     * before logging in were counted then. They are marked (self::UNCOUNTED),
+     * so taking them off Liked later does not lower their totals: the request
+     * names them, and the server cannot tell this browser counted them.
      *
      * @param int   $user_id User ID.
      * @param int[] $posts   Post IDs.
      */
     private static function join_liked($user_id, array $posts) {
-        $liked = self::user_list($user_id, self::LIKED);
+        $liked  = self::user_list($user_id, self::LIKED);
+        $joined = array();
         foreach ($posts as $id) {
             if (!in_array($id, $liked, true) && self::can_react($id)) {
-                $liked[] = $id;
+                $liked[]  = $id;
+                $joined[] = $id;
             }
         }
         self::set_user_list($user_id, self::LIKED, $liked);
+        if ($joined) {
+            $kept = self::user_list($user_id, self::LIKED);
+            update_user_option($user_id, self::UNCOUNTED, array_values(array_intersect(array_unique(array_merge(self::uncounted($user_id), $joined)), $kept)));
+        }
+    }
+
+    /**
+     * Liked posts joined without counting them (join_liked()).
+     *
+     * @param int $user_id User ID.
+     * @return int[]
+     */
+    private static function uncounted($user_id) {
+        $ids = get_user_option(self::UNCOUNTED, $user_id);
+        return is_array($ids) ? array_values(array_unique(array_filter(array_map('absint', $ids)))) : array();
     }
 
     /**
