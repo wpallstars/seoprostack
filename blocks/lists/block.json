@@ -1,0 +1,14 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "seoprostack/lists",
+	"title": "Your lists",
+	"category": "widgets",
+	"icon": "list-view",
+	"description": "Every list the visitor keeps (Liked and their named lists), with select all, Move to, Remove, and New, Rename and Delete list.",
+	"keywords": ["shortlist", "saved", "liked", "favourites", "bookmarks"],
+	"textdomain": "seoprostack",
+	"supports": { "html": false, "align": ["wide", "full"] },
+	"editorScript": "file:./index.js",
+	"style": "seoprostack-post-reactions"
+}
