@@ -1868,7 +1868,7 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folder�
 ## Changelog
 
 ### Unreleased
-- Fix: Dark mode covers more screens: Fluent Boards' onboarding, Media Library's grid, YellowPencil's buttons, Secure Custom Fields' first group, the Users tooltip, Kadence's Style Library, icon picker, swatches, Customizer pane notices and Conversions editor canvas, block editor gaps, Rank Math's widget logo and Content AI button, and Ninja Tables Pro. Fluent top bars no longer flash white while loading, FluentCRM's settings clear the wider menu, and the dark fallback reads Tailwind's `rgb(… / var(--tw-*-opacity))` colours (GitHub issue #874).
+- Fix: Dark mode covers more screens: Fluent Boards' onboarding, Media Library's grid, YellowPencil's buttons, Secure Custom Fields' Seamless groups (no box, as in Light), the Users tooltip, Kadence's Style Library, icon picker, swatches, Customizer pane notices and Conversions editor canvas, block editor gaps, Rank Math's widget logo and Content AI button, and Ninja Tables Pro. Fluent top bars no longer flash white while loading, FluentCRM's settings clear the wider menu, and the dark fallback reads Tailwind's `rgb(… / var(--tw-*-opacity))` colours (GitHub issue #874).
 - Fix: Developers → Calls to other sites columns no longer wrap a word per line (GitHub issue #874).
 - Fix: Recommended → Theme and Free Plugins say why WordPress.org could not be reached, such as the site blocking outbound requests (GitHub issue #874).
 

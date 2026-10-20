@@ -627,6 +627,19 @@ final class SEOProStack_Dark_Fallback {
         if (!$colour) {
             return null;
         }
+        $new = self::map_colour($group, $prop, $colour);
+        return null === $new ? null : self::keep_opacity($value, $new);
+    }
+
+    /**
+     * One colour's dark value, for map().
+     *
+     * @param string                                 $group  Property group.
+     * @param string                                 $prop   Property.
+     * @param array{0:float,1:float,2:float,3:float} $colour Colour.
+     * @return string|null
+     */
+    private static function map_colour($group, $prop, array $colour) {
         if ('color' === $group) {
             return self::text($colour);
         }
@@ -674,7 +687,7 @@ final class SEOProStack_Dark_Fallback {
                 return $m[0];
             }
             $changed = true;
-            return $new;
+            return self::keep_opacity($m[0], $new);
         }, $value);
         return $changed && is_string($out) ? $out : null;
     }
@@ -770,6 +783,25 @@ final class SEOProStack_Dark_Fallback {
     private static function rgb(array $rgb, $alpha) {
         $rgb = array_map('round', array_slice($rgb, 0, 3));
         return $alpha >= 0.99 ? sprintf('rgb(%d,%d,%d)', $rgb[0], $rgb[1], $rgb[2]) : sprintf('rgba(%d,%d,%d,%s)', $rgb[0], $rgb[1], $rgb[2], round($alpha, 3));
+    }
+
+    /**
+     * A colour that took its opacity from a variable (Tailwind's
+     * `rgb(255 255 255 / var(--tw-bg-opacity, 1))`, set to 0.4 by
+     * `bg-opacity-40`) keeps it: the dark colour, mixed with transparent by
+     * the same variable. parse() reads the fallback, which is only a guess.
+     * Only with Tailwind's fallback, 1 or none: another is already in the
+     * dark value's opacity, and would count twice.
+     *
+     * @param string $original The colour as written.
+     * @param string $new      Its dark value.
+     * @return string
+     */
+    private static function keep_opacity($original, $new) {
+        if (!preg_match('/var\(\s*(--[\w-]*opacity)\s*(?:,\s*1\s*)?\)/i', $original, $m)) {
+            return $new;
+        }
+        return sprintf('color-mix(in srgb,%s calc(var(%s,1) * 100%%),transparent)', $new, $m[1]);
     }
 
     /**
