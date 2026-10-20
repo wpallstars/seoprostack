@@ -151,6 +151,10 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 
 == Changelog ==
 
+= Unreleased =
+* Fix: more admin Dark mode coverage.
+* Fix: Recommended lists show why they failed.
+
 = 1.3.60 =
 * Fix: site icons and logos lose the watermark.
 * Developers: starter core and test-site tools.

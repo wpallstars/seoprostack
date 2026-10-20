@@ -821,6 +821,12 @@ class SEOProStack_Outbound_Calls extends SEOProStack_Feature {
         <style>
             /* Relative, so the screen reader labels in it (absolutely placed) scroll with it, not the page. */
             .sps-calls__scroll { position: relative; overflow-x: auto; max-width: 100%; }
+            /* A long last path breaks anywhere, so Site does not take the width Calls and Time need. */
+            .sps-calls td:nth-child(2) { min-width: 12em; max-width: 24em; overflow-wrap: anywhere; }
+            .sps-calls td:nth-child(2) code { word-break: break-all; }
+            .sps-calls :is(th, td):nth-child(3) { min-width: 9em; }
+            .sps-calls :is(th, td):nth-child(4) { min-width: 14em; }
+            .sps-calls :is(th, td):nth-child(7) { white-space: nowrap; }
             .sps-calls__slow { color: #b32d2e; font-weight: 600; }
             .sps-calls__choose { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; }
             .sps-calls__by { display: block; margin-top: 4px; color: #646970; }

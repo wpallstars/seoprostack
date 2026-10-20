@@ -71,6 +71,7 @@ final class SEOProStack_Admin_Whole_Theme {
         add_action('customize_controls_print_styles', array(__CLASS__, 'head'), 0);
         add_filter('style_loader_tag', array(__CLASS__, 'standalone_tag'), 10, 2);
         add_filter('admin_body_class', array(__CLASS__, 'body_class'));
+        add_action('in_admin_header', array(__CLASS__, 'fluent_dark_early'), 0);
         add_action('admin_bar_init', array(__CLASS__, 'bar_init'));
         add_action('wp_ajax_' . self::ACTION, array(__CLASS__, 'save'));
         // The admin bar's links, when the script has not loaded.
@@ -331,6 +332,25 @@ final class SEOProStack_Admin_Whole_Theme {
      */
     public static function body_class($classes) {
         return self::own_screen() ? $classes . ' sps-own-screen ' : $classes;
+    }
+
+    /**
+     * FluentCRM's and Fluent Boards' screens draw their top bar with the
+     * page, but mark the body dark (their own classes) only when their
+     * script runs, at the end: the bar showed white while the screen loaded.
+     * Marked here, at the top of the page, when the screen is dark (the
+     * <head> script's class, so System follows the computer too). Their
+     * script keeps the mode it reads, which is the same (head_script()).
+     */
+    public static function fluent_dark_early() {
+        $screen = function_exists('get_current_screen') ? get_current_screen() : null;
+        if (!$screen || false === strpos((string) $screen->id, 'fluent') || 'light' === self::mode() || !self::screen_applies()) {
+            return;
+        }
+        $script = '(function(r,b){if(!b||!r.classList.contains("sps-dark")){return;}'
+            . 'b.classList.add("fluent_theme_dark","fluent_boards_theme_dark","fbs-dark");b.classList.remove("fbs-light");'
+            . 'r.classList.add("fluent_boards_theme_dark","fbs-dark");})(document.documentElement,document.body);';
+        echo wp_get_inline_script_tag($script, array('id' => 'seoprostack-fluent-dark')); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- wp_get_inline_script_tag() output of a fixed script.
     }
 
     /**

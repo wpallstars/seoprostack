@@ -1253,10 +1253,24 @@ html.sps-dark :is(.attachment-preview, .attachment .thumbnail, .wp-core-ui .atta
 	box-shadow: inset 0 0 15px rgb(0 0 0 / 40%), inset 0 0 0 1px rgb(0 0 0 / 30%);
 }
 
-html.sps-dark .attachment :is(.filename, .title) {
+html.sps-dark .attachment :is(.filename, .title),
+html.sps-dark .wp-core-ui .attachment:not(:has(.filename))::after {
 	color: var(--sps-ui-text);
 	background: rgb(16 21 23 / 85%);
 	box-shadow: inset 0 0 0 1px rgb(255 255 255 / 10%);
+}
+
+/* The list and grid switch: the chosen view's icon (#1e1e1e in the Modern scheme, #2271b1 in Default). */
+html.sps-dark .view-switch a.current::before {
+	color: var(--sps-ui-text);
+}
+
+html.sps-dark .view-switch a:not(.current)::before {
+	color: var(--sps-ui-subtle);
+}
+
+html.sps-dark .view-switch a:is(:hover, :focus)::before {
+	color: var(--sps-ui-accent);
 }
 
 html.sps-dark :is(.attachment-info, .attachment-details .setting, .media-sidebar .setting) :is(.name, .description, span, .filename, .uploaded, .file-size, .dimensions) {
@@ -1359,6 +1373,15 @@ html.sps-dark :is(.components-card__header, .components-card__footer, .component
 
 html.sps-dark .components-popover__content {
 	box-shadow: 0 0 0 1px var(--sps-ui-border), 0 6px 18px rgb(0 0 0 / 45%);
+}
+
+/*
+ * Unstyled popovers stay clear, as in Light: the block editor's line and
+ * plus between blocks, and the frames around a selected block.
+ */
+html.sps-dark .is-unstyled .components-popover__content {
+	background: none;
+	box-shadow: none;
 }
 
 html.sps-dark .components-popover__arrow :is(.components-popover__triangle-bg) {
@@ -1588,6 +1611,40 @@ html.sps-dark :is(.interface-interface-skeleton__header, .interface-interface-sk
 	border-color: var(--sps-ui-border);
 }
 
+/* The Block tab with nothing selected: "No block selected." on #fff. */
+html.sps-dark .block-editor-block-inspector__no-blocks {
+	color: var(--sps-ui-muted);
+	background: var(--sps-ui-surface);
+}
+
+/* The code editor's page (#fff) around its fields, and its heading. */
+html.sps-dark .editor-text-editor {
+	color: var(--sps-ui-text);
+	background-color: var(--sps-ui-canvas);
+}
+
+/* Preferences → Blocks: each group's heading row, sticky over the list (#fff). */
+html.sps-dark .block-editor-block-manager__category-title {
+	color: var(--sps-ui-text);
+	background-color: var(--sps-ui-surface);
+}
+
+/* A nested block's toolbar: the button that selects its parent (#fff, #1e1e1e line, four classes deep). */
+html.sps-dark .components-popover.block-editor-block-list__block-popover .block-editor-block-parent-selector .block-editor-block-parent-selector__button {
+	color: var(--sps-ui-text);
+	background-color: var(--sps-ui-surface);
+	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark .block-editor-block-contextual-toolbar .block-editor-block-parent-selector::after {
+	background-color: var(--sps-ui-muted);
+}
+
+/* Kadence's own parent selector in its blocks' settings: a pale hover. */
+html.sps-dark .kadence-blocks-block-parent-selector .kadence-blocks-block-parent-selector__button.components-button:hover {
+	background: var(--sps-ui-hover);
+}
+
 html.sps-dark :is(.editor-document-bar, .editor-document-bar__command) {
 	background-color: var(--sps-ui-raised);
 }
@@ -1610,10 +1667,24 @@ html.sps-dark :is(.block-editor-block-breadcrumb__current, .block-editor-block-b
 	color: var(--sps-ui-text);
 }
 
-/* Panels' open and close arrows (#1e1e1e). */
-html.sps-dark .components-panel__arrow {
+/* Panels' open and close arrows (#1e1e1e, three classes deep). */
+html.sps-dark .components-panel__arrow,
+html.sps-dark .components-panel__body-toggle.components-button .components-panel__arrow {
 	color: var(--sps-ui-muted);
 	fill: currentcolor;
+}
+
+/*
+ * Block icons in the inserter, the block card and the toolbar: core's
+ * follow the text (#1e1e1e); Kadence's are filled with --kadence-color
+ * (#0058b0, dark blue), made the lighter accent here.
+ */
+html.sps-dark :is(.block-editor-block-types-list__item-icon, .block-editor-block-card .block-editor-block-icon, .block-editor-block-toolbar .block-editor-block-icon, .block-editor-list-view-leaf .block-editor-block-icon, .block-editor-inserter__panel-header) {
+	--kadence-color: var(--sps-ui-accent);
+}
+
+html.sps-dark .block-editor-block-types-list__item-icon {
+	color: var(--sps-ui-text);
 }
 
 html.sps-dark .block-editor-block-types-list__item:is(:hover, :focus) {
@@ -1714,6 +1785,7 @@ html.sps-dark .wp-customizer #customize-controls #customize-theme-controls .cust
 html.sps-dark .wp-customizer #customize-theme-controls .control-panel-themes > .accordion-section-title,
 html.sps-dark .wp-customizer #customize-controls .customize-info :is(.accordion-section-title, .customize-panel-description, .customize-section-description),
 html.sps-dark .wp-customizer #customize-controls .no-widget-areas-rendered-notice,
+html.sps-dark .wp-customizer #customize-theme-controls .customize-pane-child > li.notice,
 html.sps-dark .wp-customizer #customize-controls .panel-meta.customize-info .accordion-section-title:hover,
 html.sps-dark .wp-customizer #customize-controls .cannot-expand:hover .accordion-section-title,
 html.sps-dark .wp-customizer #customize-outer-theme-controls .customize-info .customize-section-description,
@@ -1885,6 +1957,16 @@ html.sps-dark .wp-customizer :is(.kadence-builder-item, .kadence-builder-item-st
 	color: var(--sps-ui-text);
 	background: var(--sps-ui-raised);
 	border-color: var(--sps-ui-border);
+}
+
+/*
+ * Colour swatches: a #ddd checkerboard (for see-through colours) under
+ * the whole button shows through its clear 1px border as a dotted ring
+ * on a dark panel. It stays under the colour; the ring is a solid line.
+ */
+html.sps-dark .components-button.kadence-color-icon-indicate {
+	border-color: var(--sps-ui-field-border);
+	background-clip: padding-box;
 }
 
 html.sps-dark .wp-customizer .kadence-builder-item-start button.kadence-builder-item:hover {
@@ -2157,6 +2239,45 @@ html.sps-dark :is(p, span).cmb2-metabox-description {
 
 /* Other plugins ------------------------------------------------------------- */
 
+/* Kadence Blocks: the icon picker's field (Select Icon: #fff, its arrow box #f8f9fb). */
+html.sps-dark .kadence-icon-picker-link.kadence-icon-picker-selection-toggle {
+	color: var(--sps-ui-text);
+	background: var(--sps-ui-canvas);
+	border-color: var(--sps-ui-field-border);
+}
+
+html.sps-dark .kadence-icon-picker-link.kadence-icon-picker-selection-toggle .kadence-icon-picker-selection-arrow {
+	background: var(--sps-ui-raised);
+	border-left-color: var(--sps-ui-field-border);
+}
+
+html.sps-dark .kadence-icon-picker-link.kadence-icon-picker-selection-toggle:hover .kadence-icon-picker-selection-arrow {
+	background: var(--sps-ui-hover);
+}
+
+/* Kadence Blocks → Style Library: a full-screen app drawn from its own --kb-sl-color-* tokens (white surface, grey scale for text and lines). */
+html.sps-dark :is(.kadence-blocks-style-library-root, body.kadence-blocks-style-library-page) {
+	--kb-sl-color-gray-50: var(--sps-ui-raised);
+	--kb-sl-color-gray-100: var(--sps-ui-raised);
+	--kb-sl-color-gray-200: var(--sps-ui-border);
+	--kb-sl-color-gray-300: var(--sps-ui-border);
+	--kb-sl-color-gray-400: var(--sps-ui-field-border);
+	--kb-sl-color-gray-600: var(--sps-ui-field-border);
+	--kb-sl-color-gray-700: var(--sps-ui-subtle);
+	--kb-sl-color-gray-800: var(--sps-ui-text);
+	--kb-sl-color-gray-900: var(--sps-ui-text);
+	--kb-sl-color-surface: var(--sps-ui-surface);
+	--kb-sl-color-border: var(--sps-ui-border);
+	--kb-sl-color-scrim: rgb(16 21 23 / 70%);
+	--kb-sl-color-alert-red-dark: var(--sps-ui-bad);
+}
+
+/* The grid/list switch's pressed button: #1a202c icon on #edf2f7. */
+html.sps-dark .kadence-blocks-style-library__swatch-view-toggle-button--pressed {
+	color: var(--sps-ui-text);
+	background: var(--sps-ui-raised);
+}
+
 /* Kadence Blocks: the Design Library button in the editor's toolbar (#1e1e1e outline). */
 html.sps-dark .kadence-toolbar-design-library .kb-toolbar-prebuilt-button {
 	color: var(--sps-ui-text);
@@ -2384,6 +2505,87 @@ html.sps-dark li#wp-admin-bar-fcrm_adminbar_search {
 	--fcrm-adminbar-search-border: var(--sps-ui-border);
 	--fcrm-adminbar-search-secondary-border: var(--sps-ui-field-border);
 	--fcrm-adminbar-search-link: var(--sps-ui-accent);
+}
+
+/*
+ * Fluent Boards' first-run set-up: a #fff card and step form, a #fafafa
+ * step heading, #eee buttons and dark text, outside its own dark theme.
+ * The blue banner, the Next button and the current step keep their
+ * colours. Its rules are five to seven classes deep, so these repeat them.
+ */
+html.sps-dark .fbs-onboarding,
+html.sps-dark .fbs-onboarding .fbs-onboarding-board-create .fbs-onboarding-step .fbs-onboarding-step-form {
+	color: var(--sps-ui-text);
+	background: var(--sps-ui-surface);
+	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark .fbs-onboarding .fbs-onboarding-board-create .fbs-onboarding-step .fbs-onboarding-step-banner {
+	background: var(--sps-ui-raised);
+	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark .fbs-onboarding .fbs-onboarding-board-create h2,
+html.sps-dark .fbs-onboarding .fbs-onboarding-board-create .fbs-onboarding-step :is(.fbs-onboarding-step-banner .fbs-onboarding-step-banner-text, .fbs-onboarding-step-form .fbs-onboarding-step-form-label) {
+	color: var(--sps-ui-text);
+}
+
+html.sps-dark .fbs-onboarding .fbs-onboarding-board-create .fbs-onboarding-board-create-steps .fbs-onboarding-board-create-step :is(.fbs-onboarding-board-create-step-name:not(.fbs-active-step-text), .fbs-onboarding-board-create-step-number:not(.fbs-active-step-number)) {
+	color: var(--sps-ui-subtle);
+	border-color: var(--sps-ui-field-border);
+}
+
+/* The current step's name is --fbs-primary-text, a grey that reads as unselected here. */
+html.sps-dark .fbs-onboarding .fbs-onboarding-board-create .fbs-onboarding-board-create-steps .fbs-onboarding-board-create-step .fbs-active-step-text {
+	color: var(--sps-ui-text);
+}
+
+html.sps-dark .fbs-onboarding-step-form-action .fbs-step-action-skip-step,
+html.sps-dark .fbs-onboarding-feature-list li {
+	color: var(--sps-ui-muted);
+}
+
+html.sps-dark .fbs-onboarding .fbs-onboarding-board-create .fbs-onboarding-step .fbs-onboarding-step-form :is(.fbs-onboarding-step-form-input .fbs-delete-onboarding-stage, .fbs-onboarding-stage-add-action .el-button:is(.fbs-add-stage, .fbs-add), .fbs-onboarding-step-form-action .fbs-step-action-go-back) {
+	color: var(--sps-ui-text);
+	background: var(--sps-ui-raised);
+	border-color: var(--sps-ui-field-border);
+}
+
+html.sps-dark .fbs-onboarding .fbs-onboarding-board-create .fbs-onboarding-step .fbs-onboarding-step-form :is(.fbs-onboarding-step-form-input .fbs-delete-onboarding-stage, .fbs-onboarding-stage-add-action .el-button.fbs-add-stage):is(:hover, :focus) {
+	color: var(--sps-ui-text);
+	background: var(--sps-ui-canvas);
+}
+
+html.sps-dark .fbs-onboarding .fbs-onboarding-learn-more a {
+	color: var(--sps-ui-accent);
+}
+
+/*
+ * YellowPencil's Edit Page button (side column) and block editor toolbar
+ * button keep their #f9cd6d yellow, so their text and icon stay dark on it.
+ */
+html.sps-dark :is(a, button).wyp-btn,
+html.sps-dark :is(a, button).wyp-btn:is(:hover, :focus, :active),
+html.sps-dark :is(a, button).wyp-btn .dashicons {
+	color: #1d2327 !important;
+}
+
+html.sps-dark button.wyp-btn:is(:hover, :active) {
+	box-shadow: inset 0 0 0 1px #efc569, inset 0 0 0 2px #fff, 0 1px 1px #efc569 !important;
+}
+
+/*
+ * Users → WordPress.com account column (Jetpack's connection package):
+ * a #3c434a [?] and a #f6f7f7 tooltip, in a style tag of its own.
+ */
+html.sps-dark th.manage-column .jetpack-connection-tooltip-icon::after {
+	color: var(--sps-ui-muted);
+}
+
+html.sps-dark .jetpack-connection-tooltip {
+	color: var(--sps-ui-text);
+	background: var(--sps-ui-raised);
+	box-shadow: 0 0 0 1px var(--sps-ui-border), 5px 10px 10px rgb(0 0 0 / 30%);
 }
 
 /*
@@ -3166,6 +3368,11 @@ html.sps-dark .rank-math-wizard .logo img {
 	filter: invert(1) hue-rotate(180deg);
 }
 
+/* The dashboard widget's logo: an SVG with no fill (black), beside the title. */
+html.sps-dark #rank_math_dashboard_widget .hndle .rank-math-icon svg {
+	fill: currentcolor;
+}
+
 /* The editor toolbar's SEO and Content AI scores: pale fills of their status colour, tinted dark here (Rank Math's selectors use seven classes). */
 html.sps-dark .editor-editor-interface .interface-pinned-items button.components-button[aria-label] .rank-math-toolbar-score {
 	color: var(--sps-ui-text);
@@ -3207,6 +3414,11 @@ html.sps-dark .editor-editor-interface .interface-pinned-items button.components
 	color: #5fd6ae;
 	background: rgb(36 150 113 / 20%);
 	border-color: #249671;
+}
+
+/* Content AI while its panel is open keeps Rank Math's solid status fill, so its icon stays dark like its number. */
+html.sps-dark .editor-editor-interface .interface-pinned-items button.components-button.is-pressed[aria-label] .rank-math-toolbar-score.content-ai-score {
+	color: #1d2327;
 }
 
 /* The SEO score on list screens, in the same tints (Rank Math: #dedede, #fce5e2, #fdf0c4 and #4ab147 fills). */
@@ -4084,6 +4296,15 @@ html.sps-dark .acf-fields.-sidebar.-left:not(.seamless > *)::before {
 html.sps-dark :is(.acf-fields > .acf-field, .acf-field[data-width] + .acf-field[data-width], .acf-box :is(.title, .footer), .acf-thead, .acf-field.acf-accordion .acf-accordion-content > .acf-fields, #wpbody .acf-table > :is(tbody, thead) > tr > :is(td, th)),
 html.sps-dark .seamless > .acf-fields.-sidebar::before {
 	border-color: var(--sps-ui-border);
+}
+
+/*
+ * A field group set to Seamless has no box in Light: its fields sit on the
+ * page, flush with the title. The meta box colour above gave it a box
+ * with no inner space, unlike the other (boxed) groups.
+ */
+html.sps-dark #wpbody .acf-postbox.seamless {
+	background: transparent;
 }
 
 html.sps-dark :is(.acf-box h2, .acf-thead, .acf-fields > .acf-tab-wrap .acf-tab-group li a:hover) {
@@ -7118,6 +7339,138 @@ html.sps-dark .toplevel_page_advanced_db_cleaner :is(#adbc-plugin-root, #headles
 
 html.sps-dark .toplevel_page_advanced_db_cleaner :is(#adbc-plugin-root, #headlessui-portal-root) :where(.hover\:shadow-gray-400:hover) {
 	--tw-shadow-color: rgb(0 0 0 / 60%);
+}
+
+/*
+ * Ninja Tables (admin.php?page=ninja_tables and its #/ screens): its script
+ * writes its stylesheets into <style> blocks, which the dark fallback cannot
+ * reach and which load after it. Element Plus draws from --el-* colours on
+ * :root (set here on the body, so its pop-ups follow); Ninja Tables' own
+ * parts are #fff (the top bar, the review notice, Help, Tailwind's bg-white)
+ * with #e1e4ea and #e5e7eb lines.
+ */
+html.sps-dark body.toplevel_page_ninja_tables {
+	--el-bg-color: var(--sps-ui-surface);
+	--el-bg-color-page: var(--sps-ui-canvas);
+	--el-bg-color-overlay: var(--sps-ui-surface);
+	--el-text-color-primary: var(--sps-ui-text);
+	--el-text-color-regular: var(--sps-ui-text);
+	--el-text-color-secondary: var(--sps-ui-muted);
+	--el-text-color-placeholder: var(--sps-ui-subtle);
+	--el-text-color-disabled: #787c82;
+	--el-border-color: var(--sps-ui-border);
+	--el-border-color-light: var(--sps-ui-border);
+	--el-border-color-lighter: var(--sps-ui-border);
+	--el-border-color-extra-light: var(--sps-ui-raised);
+	--el-border-color-dark: var(--sps-ui-field-border);
+	--el-border-color-darker: var(--sps-ui-field-border);
+	--el-fill-color: var(--sps-ui-raised);
+	--el-fill-color-light: var(--sps-ui-raised);
+	--el-fill-color-lighter: #242b30;
+	--el-fill-color-extra-light: #242b30;
+	--el-fill-color-dark: var(--sps-ui-border);
+	--el-fill-color-darker: var(--sps-ui-border);
+	--el-fill-color-blank: var(--sps-ui-canvas);
+	--el-mask-color: rgb(16 21 23 / 80%);
+	--el-mask-color-extra-light: rgb(16 21 23 / 30%);
+	--el-disabled-bg-color: var(--sps-ui-raised);
+	--el-disabled-border-color: var(--sps-ui-border);
+}
+
+html.sps-dark body.toplevel_page_ninja_tables :is(.ninja_main_nav, .nt_review_notice, .ninja-tables-help, .ninja-table-aside .el-aside, .el-main, .bg-white) {
+	background-color: var(--sps-ui-surface);
+}
+
+/* Text: .el-main's #000 (labels, checkboxes) and #0e121b headings and copy. */
+html.sps-dark body.toplevel_page_ninja_tables :is(.el-main, .text-\[\#0E121B\], .nt-form-label, .nt-modal-subtitle) {
+	color: var(--sps-ui-text);
+}
+
+html.sps-dark body.toplevel_page_ninja_tables :is(.ninja_main_nav, .nt_review_notice, .border-gray-200, .border-\[\#E1E4EA\]) {
+	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark body.toplevel_page_ninja_tables .bg-\[\#F5F7FA\] {
+	background-color: #242b30;
+}
+
+/* The top bar's menu (#fff, #525866 items, the current one #0e121b on #f5f7fa) and its "Pro" (#6e6e6e). */
+html.sps-dark body.toplevel_page_ninja_tables .ninja_main_nav .el-menu {
+	background-color: transparent;
+}
+
+html.sps-dark body.toplevel_page_ninja_tables .ninja_main_nav :is(.ninja_main_nav_right .el-menu.el-menu--horizontal .el-menu-item, .pro) {
+	color: var(--sps-ui-muted);
+}
+
+html.sps-dark body.toplevel_page_ninja_tables .ninja_main_nav .ninja_main_nav_right .el-menu.el-menu--horizontal .el-menu-item:is(.is-active, :hover, :focus) {
+	color: var(--sps-ui-text) !important;
+	background-color: var(--sps-ui-raised);
+}
+
+/* Tools and Settings' side menu: #fff, #525866 items, #fff on hover; a disabled button #e9ecef. */
+html.sps-dark body.toplevel_page_ninja_tables .ninja-table-aside aside .el-menu {
+	background-color: transparent;
+}
+
+html.sps-dark body.toplevel_page_ninja_tables .ninja-table-aside aside .el-menu-item {
+	color: var(--sps-ui-muted);
+}
+
+html.sps-dark body.toplevel_page_ninja_tables .ninja-button.ninja-button--secondary:not(.ninja-button--disabled) {
+	color: var(--sps-ui-text);
+	background-color: var(--sps-ui-raised);
+	border-color: var(--sps-ui-field-border);
+}
+
+html.sps-dark body.toplevel_page_ninja_tables .ninja-button.ninja-button--disabled {
+	color: var(--sps-ui-subtle);
+	background-color: var(--sps-ui-raised);
+	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark body.toplevel_page_ninja_tables .ninja-table-aside aside .el-menu-item:is(:hover, .is-active) {
+	color: var(--sps-ui-text);
+	background-color: var(--sps-ui-raised);
+}
+
+/* Links (#335cff), Remind Me Later and other #525866 text. */
+html.sps-dark body.toplevel_page_ninja_tables .nt-link {
+	color: var(--sps-ui-accent);
+}
+
+html.sps-dark body.toplevel_page_ninja_tables :is(.nt_review_notice .remind-me-later, .text-\[\#525866\]) {
+	color: var(--sps-ui-muted);
+}
+
+/* Tailwind's text greys (#030712 to #6b7280). */
+html.sps-dark body.toplevel_page_ninja_tables :is(.text-gray-950, .text-gray-900, .text-gray-800) {
+	color: var(--sps-ui-text);
+}
+
+html.sps-dark body.toplevel_page_ninja_tables :is(.text-gray-700, .text-gray-600) {
+	color: var(--sps-ui-muted);
+}
+
+html.sps-dark body.toplevel_page_ninja_tables .text-gray-500 {
+	color: var(--sps-ui-subtle);
+}
+
+/* Help: Get Support's green and Leave a Review's red pastel buttons and icons, as tints of their colour. */
+html.sps-dark body.toplevel_page_ninja_tables .bg-\[\#E0FAEC\] {
+	background-color: rgb(31 193 107 / 15%);
+}
+
+html.sps-dark body.toplevel_page_ninja_tables .bg-\[\#C2F5DA\] {
+	background-color: rgb(31 193 107 / 22%);
+}
+
+html.sps-dark body.toplevel_page_ninja_tables .bg-\[\#FFEBEC\] {
+	background-color: rgb(251 55 72 / 15%);
+}
+
+html.sps-dark body.toplevel_page_ninja_tables .bg-\[\#FFEFEE\] {
+	background-color: rgb(251 55 72 / 22%);
 }
 
 /*

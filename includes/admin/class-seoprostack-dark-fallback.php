@@ -43,7 +43,7 @@ if (!defined('ABSPATH')) {
 final class SEOProStack_Dark_Fallback {
 
     /** The generator's version: a change makes every copy again. */
-    const VERSION = '2';
+    const VERSION = '3';
 
     /** Folder in uploads for the copies. */
     const DIR = 'seoprostack-dark';
@@ -116,8 +116,8 @@ final class SEOProStack_Dark_Fallback {
     /** One declaration: property and value (brackets and quotes kept whole). */
     const DECLARATION = '/(?<prop>-{0,2}[A-Za-z][\w-]*)\s*:\s*(?<val>(?:[^;()"\']++|(?<p>\((?:[^()"\']++|"[^"]*"|\'[^\']*\'|(?&p))*\))|"[^"]*"|\'[^\']*\')*)/';
 
-    /** Colours in a value: hex, rgb(), hsl(), oklch() and the names above. */
-    const COLOUR = '/#(?:[0-9a-fA-F]{8}|[0-9a-fA-F]{6}|[0-9a-fA-F]{3,4})(?![0-9a-zA-Z])|\b(?:rgba?|hsla?|oklch)\([^()]*\)|(?<![\w#-])(?:white|whitesmoke|snow|ghostwhite|aliceblue|ivory|linen|floralwhite|seashell|honeydew|mintcream|azure|lavender|lavenderblush|beige|oldlace|cornsilk|lightyellow|lemonchiffon|mistyrose|antiquewhite|papayawhip|blanchedalmond|gainsboro|lightgr[ae]y|silver|darkgr[ae]y|gr[ae]y|dimgr[ae]y|black)(?![\w-])/i';
+    /** Colours in a value: hex, rgb(), hsl(), oklch() (with Tailwind's opacity var() inside) and the names above. */
+    const COLOUR = '/#(?:[0-9a-fA-F]{8}|[0-9a-fA-F]{6}|[0-9a-fA-F]{3,4})(?![0-9a-zA-Z])|\b(?:rgba?|hsla?|oklch)\((?:[^()]|var\([^()]*\))*\)|(?<![\w#-])(?:white|whitesmoke|snow|ghostwhite|aliceblue|ivory|linen|floralwhite|seashell|honeydew|mintcream|azure|lavender|lavenderblush|beige|oldlace|cornsilk|lightyellow|lemonchiffon|mistyrose|antiquewhite|papayawhip|blanchedalmond|gainsboro|lightgr[ae]y|silver|darkgr[ae]y|gr[ae]y|dimgr[ae]y|black)(?![\w-])/i';
 
     /** Whether this request gets copies (null until asked). */
     private static $on = null;
@@ -627,6 +627,19 @@ final class SEOProStack_Dark_Fallback {
         if (!$colour) {
             return null;
         }
+        $new = self::map_colour($group, $prop, $colour);
+        return null === $new ? null : self::keep_opacity($value, $new);
+    }
+
+    /**
+     * One colour's dark value, for map().
+     *
+     * @param string                                 $group  Property group.
+     * @param string                                 $prop   Property.
+     * @param array{0:float,1:float,2:float,3:float} $colour Colour.
+     * @return string|null
+     */
+    private static function map_colour($group, $prop, array $colour) {
         if ('color' === $group) {
             return self::text($colour);
         }
@@ -674,7 +687,7 @@ final class SEOProStack_Dark_Fallback {
                 return $m[0];
             }
             $changed = true;
-            return $new;
+            return self::keep_opacity($m[0], $new);
         }, $value);
         return $changed && is_string($out) ? $out : null;
     }
@@ -773,6 +786,25 @@ final class SEOProStack_Dark_Fallback {
     }
 
     /**
+     * A colour that took its opacity from a variable (Tailwind's
+     * `rgb(255 255 255 / var(--tw-bg-opacity, 1))`, set to 0.4 by
+     * `bg-opacity-40`) keeps it: the dark colour, mixed with transparent by
+     * the same variable. parse() reads the fallback, which is only a guess.
+     * Only with Tailwind's fallback, 1 or none: another is already in the
+     * dark value's opacity, and would count twice.
+     *
+     * @param string $original The colour as written.
+     * @param string $new      Its dark value.
+     * @return string
+     */
+    private static function keep_opacity($original, $new) {
+        if (!preg_match('/var\(\s*(--[\w-]*opacity)\s*(?:,\s*1\s*)?\)/i', $original, $m)) {
+            return $new;
+        }
+        return sprintf('color-mix(in srgb,%s calc(var(%s,1) * 100%%),transparent)', $new, $m[1]);
+    }
+
+    /**
      * Parse one colour (the whole value): hex, rgb(), hsl() or a name above.
      *
      * @param string $value Colour.
@@ -780,6 +812,11 @@ final class SEOProStack_Dark_Fallback {
      */
     private static function parse($value) {
         $value = strtolower(trim($value));
+        // Tailwind's `rgb(255 255 255 / var(--tw-bg-opacity, 1))`: the opacity its fallback, or 1.
+        $value = (string) preg_replace_callback('/var\(\s*--[\w-]*opacity\s*(?:,\s*([\d.]+%?)\s*)?\)/', function ($m) {
+            // An unmatched trailing group is left out of $m, and a matched one is never empty.
+            return isset($m[1]) ? $m[1] : '1';
+        }, $value);
         if (isset(self::NAMED[$value])) {
             $value = '#' . self::NAMED[$value];
         }

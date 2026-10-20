@@ -329,6 +329,24 @@ body.sps-menu-measure #adminmenu .wp-submenu li.sps-menu-has-sub > ul.sps-menu-f
 		box-sizing: border-box !important;
 		width: calc(100% - var(--sps-menu-width, 160px) - var(--sps-fit-gap, 0px)) !important;
 	}
+
+	/*
+	 * FluentCRM's settings: its top bar turns fixed, and its side list is
+	 * placed inside a full-window layer, after the page has loaded, so the
+	 * script above does not see them. The content clears the side list
+	 * (272px, or 78px collapsed).
+	 */
+	body.sps-menu-fit:not(.folded, .is-fullscreen-mode):has(.fluentcrm-app.is-settings-page) :is(.fcrm_topbar, .fcrm_settings_sidebar) {
+		inset-inline-start: var(--sps-menu-width, 160px);
+	}
+
+	body.sps-menu-fit:not(.folded, .is-fullscreen-mode) .fluentcrm-app.is-settings-page .fcrm_settings_inner {
+		padding-inline-start: calc(var(--sps-menu-width, 160px) + 272px);
+	}
+
+	body.sps-menu-fit:not(.folded, .is-fullscreen-mode) .fluentcrm-app.is-settings-page .fcrm_settings_inner.is-collapsed {
+		padding-inline-start: calc(var(--sps-menu-width, 160px) + 78px);
+	}
 }
 
 /* Phones: no room to the side; the current page's list still shows. */
