@@ -151,6 +151,9 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 
 == Changelog ==
 
+= Unreleased =
+* Fix: SEO Pro Analytics keeps its own colour mode and avoids duplicate WP-Cron advice; SEO Pro Stats remains supported.
+
 = 1.3.61 =
 * Fix: more admin Dark mode coverage (Kadence, Ninja Tables, Fluent, block editor, Media).
 * Fix: Recommended lists say why WordPress.org could not be reached.

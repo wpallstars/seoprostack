@@ -9,7 +9,8 @@
  * System follows the computer's setting, live.
  *
  * The choice is shared with every wpallstars plugin that has a dark mode
- * (SEO Pro Stats): one user meta, `wpallstars_admin_theme`, which each reads
+ * (SEO Pro Analytics, formerly SEO Pro Stats): one user meta,
+ * `wpallstars_admin_theme`, which each reads
  * first, then its own (`seoprostack_admin_theme`), then Light. A change
  * made here or in another plugin's control is sent on `document` as the
  * `wpallstars-admin-theme` event, so every control on the screen follows.
@@ -48,7 +49,7 @@ final class SEOProStack_Admin_Whole_Theme {
     const STYLE = 'seoprostack-whole-theme';
 
     /**
-     * Icons (24×24): sun, moon and a half-filled circle, as SEO Pro Stats'.
+     * Icons (24×24): sun, moon and a half-filled circle, as SEO Pro Analytics'.
      */
     const ICONS = array(
         'light'  => 'M12 7.75a4.25 4.25 0 1 0 0 8.5 4.25 4.25 0 0 0 0-8.5zM11.25 2h1.5v3h-1.5zm0 17h1.5v3h-1.5zM2 11.25h3v1.5H2zm17 0h3v1.5h-3zM4.4 5.46 5.46 4.4l2.12 2.12-1.06 1.06zm12.02 12.02 1.06-1.06 2.12 2.12-1.06 1.06zM4.4 18.54l2.12-2.12 1.06 1.06-2.12 2.12zM16.42 6.52l2.12-2.12 1.06 1.06-2.12 2.12z',
@@ -215,7 +216,7 @@ final class SEOProStack_Admin_Whole_Theme {
 
     /**
      * Whether the current screen turns dark in Dark mode. Every admin
-     * screen does but SEO Pro Stats' own, unless a filter keeps one light.
+     * screen does but SEO Pro Analytics' own, unless a filter keeps one light.
      *
      * @return bool
      */
@@ -289,8 +290,9 @@ final class SEOProStack_Admin_Whole_Theme {
     }
 
     /**
-     * Whether this is one of SEO Pro Stats' own screens (Statistics,
-     * Settings). SEO Pro Stats styles those with its own colour mode, which
+     * Whether this is one of SEO Pro Analytics' own screens (Statistics,
+     * Settings), including its former name, SEO Pro Stats. It styles those
+     * with its own colour mode, which
      * follows the same shared choice, so SEO Pro Stack's dark rules stay off
      * them and the two never mix.
      *
@@ -302,6 +304,12 @@ final class SEOProStack_Admin_Whole_Theme {
             return false;
         }
         $hooks = array();
+        if (class_exists('SEOProAnalytics_Dashboard', false) && defined('SEOProAnalytics_Dashboard::HOOK')) {
+            $hooks[] = (string) constant('SEOProAnalytics_Dashboard::HOOK');
+        }
+        if (class_exists('SEOProAnalytics_Admin_Manager', false) && is_callable(array('SEOProAnalytics_Admin_Manager', 'hook'))) {
+            $hooks[] = (string) call_user_func(array('SEOProAnalytics_Admin_Manager', 'hook'));
+        }
         if (class_exists('SEOProStats_Dashboard', false) && defined('SEOProStats_Dashboard::HOOK')) {
             $hooks[] = (string) constant('SEOProStats_Dashboard::HOOK');
         }

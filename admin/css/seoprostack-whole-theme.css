@@ -11,7 +11,7 @@
  * --wp-admin-theme-color on body, where WordPress sets it, never fixed here.
  *
  * The palette is WordPress's admin greys, defined once (--sps-ui-*), the
- * same as SEO Pro Stats' (wpallstars/seoprostats#219). WordPress
+ * same as SEO Pro Analytics' (wpallstars/seoproanalytics#219). WordPress
  * components' theme variables (--wp-components-color-*) and design tokens
  * (--wpds-*) take their dark values from it; classic admin styles, which
  * paint fixed light colours, get the same values below. Broad element rules
