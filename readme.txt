@@ -5,7 +5,7 @@ Tags: magic login, iframe, schedule posts, auto upload images, admin
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.3.60
+Stable tag: 1.3.61
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -151,12 +151,8 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 
 == Changelog ==
 
-= Unreleased =
-* Fix: more admin Dark mode coverage.
-* Fix: Recommended lists show why they failed.
-
-= 1.3.60 =
-* Fix: site icons and logos lose the watermark.
-* Developers: starter core and test-site tools.
+= 1.3.61 =
+* Fix: more admin Dark mode coverage (Kadence, Ninja Tables, Fluent, block editor, Media).
+* Fix: Recommended lists say why WordPress.org could not be reached.
 
 Older: `changelog.txt`.
