@@ -1871,6 +1871,9 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folderâ
 
 ## Changelog
 
+### Unreleased
+- Fix: **Media in cloud storage** keeps successful uploads in its inventory when transport memory use changes the file-size allowance. A transfer group that runs out of time retries after one minute without counting a failed attempt or reporting a new error; successful files stay confirmed (GitHub issue #886).
+
 ### 1.3.63
 - New: **Like, save and share** has named lists. Liked is the default list; Save and Add to shortlist add to it and open **Save to list** to tick other lists or make a new one. A new **Your lists** block, and the Saved panel, show every list with select all, Move to, Remove, New, Rename and Delete list, and an actions slot for other plugins (`seoprostack_lists_actions`). Visitors' lists stay in their browser, with Log in and register links, and join their account when they log in. The Shortlist and Saved lists from before become named lists; their options, filters, blocks, shortcodes and JavaScript API keep working (GitHub issue #878).
 
