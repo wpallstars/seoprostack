@@ -2,7 +2,7 @@
 
 Every change to SEO Pro Stack. readme.txt lists the latest version in short.
 
-= Unreleased =
+= 1.3.62 =
 * Fix: SEO Pro Analytics (SEO Pro Stats' new name) keeps its own colour mode on its screens, and Hosting needs hides its matching WP-Cron advice, as with SEO Pro Stats. Sites still using SEO Pro Stats keep the same behaviour (GitHub issue #880).
 
 = 1.3.61 =
