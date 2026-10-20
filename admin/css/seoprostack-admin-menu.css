@@ -336,15 +336,15 @@ body.sps-menu-measure #adminmenu .wp-submenu li.sps-menu-has-sub > ul.sps-menu-f
 	 * script above does not see them. The content clears the side list
 	 * (272px, or 78px collapsed).
 	 */
-	body.sps-menu-fit:not(.folded):not(.is-fullscreen-mode):has(.fluentcrm-app.is-settings-page) :is(.fcrm_topbar, .fcrm_settings_sidebar) {
+	body.sps-menu-fit:not(.folded, .is-fullscreen-mode):has(.fluentcrm-app.is-settings-page) :is(.fcrm_topbar, .fcrm_settings_sidebar) {
 		left: var(--sps-menu-width, 160px);
 	}
 
-	body.sps-menu-fit:not(.folded):not(.is-fullscreen-mode) .fluentcrm-app.is-settings-page .fcrm_settings_inner {
+	body.sps-menu-fit:not(.folded, .is-fullscreen-mode) .fluentcrm-app.is-settings-page .fcrm_settings_inner {
 		padding-left: calc(var(--sps-menu-width, 160px) + 272px);
 	}
 
-	body.sps-menu-fit:not(.folded):not(.is-fullscreen-mode) .fluentcrm-app.is-settings-page .fcrm_settings_inner.is-collapsed {
+	body.sps-menu-fit:not(.folded, .is-fullscreen-mode) .fluentcrm-app.is-settings-page .fcrm_settings_inner.is-collapsed {
 		padding-left: calc(var(--sps-menu-width, 160px) + 78px);
 	}
 }

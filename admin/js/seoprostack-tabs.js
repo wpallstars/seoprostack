@@ -175,7 +175,7 @@
 					if (response && response.success) {
 						$list.html(response.data.html);
 					} else {
-						$list.html(Plugins.notice(failureMessage(response, i18n.loadFailed)));
+						$list.empty().append(Plugins.notice(failureMessage(response, i18n.loadFailed)));
 					}
 				})
 				.fail(function (xhr, status) {
@@ -785,7 +785,11 @@
 
 			post('seoprostack_get_themes', {})
 				.done(function (response) {
-					$theme.html(response && response.success ? response.data.html : Plugins.notice(failureMessage(response, i18n.loadFailed)));
+					if (response && response.success) {
+						$theme.html(response.data.html);
+					} else {
+						$theme.empty().append(Plugins.notice(failureMessage(response, i18n.loadFailed)));
+					}
 					// A blocked screenshot leaves the plain panel, not a broken image.
 					$theme.find('.sps-theme-card__media img').each(function () {
 						var img = this;
