@@ -191,9 +191,6 @@ class SEOProStack_Hosting_Needs extends SEOProStack_Feature {
         if (self::needs_server_cron()) {
             add_action('load-index.php', array(__CLASS__, 'cron_screen'));
             add_action('load-plugins.php', array(__CLASS__, 'cron_screen'));
-            // SEO Pro Analytics (formerly SEO Pro Stats 1.4.2+) gives the same advice on its own screens.
-            add_filter('seoproanalytics_schedule_notice', '__return_false');
-            add_filter('seoprostats_schedule_notice', '__return_false');
         }
     }
 
@@ -2691,6 +2688,9 @@ class SEOProStack_Hosting_Needs extends SEOProStack_Feature {
             return;
         }
         add_action(is_network_admin() ? 'network_admin_notices' : 'admin_notices', array(__CLASS__, 'cron_notice'));
+        // Hide matching Analytics/Stats advice only where this notice replaces it.
+        add_filter('seoproanalytics_schedule_notice', '__return_false');
+        add_filter('seoprostats_schedule_notice', '__return_false');
     }
 
     /**

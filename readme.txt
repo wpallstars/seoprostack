@@ -151,6 +151,9 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 
 == Changelog ==
 
+= Unreleased =
+* Fix: keep Analytics/Stats cron advice outside Dashboard and Plugins, where Hosting needs replaces it.
+
 = 1.3.63 =
 * New: named lists, a Save to list chooser and a Your lists block.
 
