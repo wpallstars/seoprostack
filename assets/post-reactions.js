@@ -16,7 +16,7 @@
 (function (cfg) {
 	'use strict';
 
-	if (!cfg || !window.fetch || !document.querySelector) {
+	if (!cfg || !window.fetch || !document.querySelector || !window.crypto || !window.crypto.getRandomValues) {
 		return;
 	}
 
@@ -114,7 +114,13 @@
 		var next = 0;
 		String(template).split(/(%\d\$s|%s)/).forEach(function (part) {
 			var numbered = /^%(\d)\$s$/.exec(part);
-			var node = numbered ? nodes[Number(numbered[1]) - 1] : (part === '%s' ? nodes[next++] : null);
+			var node = null;
+			if (numbered) {
+				node = nodes[Number(numbered[1]) - 1];
+			} else if (part === '%s') {
+				node = nodes[next];
+				next += 1;
+			}
 			if (node) {
 				out.appendChild(node);
 			} else if (part && !numbered && part !== '%s') {
@@ -230,14 +236,22 @@
 		return seen.length;
 	}
 
-	function newId() {
+	// Random letters and digits, for list IDs and the other tabs' sync mark.
+	function token(length) {
 		var chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
+		var bytes = new window.Uint8Array(length);
+		window.crypto.getRandomValues(bytes);
+		var out = '';
+		for (var i = 0; i < length; i++) {
+			out += chars.charAt(bytes[i] % chars.length);
+		}
+		return out;
+	}
+
+	function newId() {
 		var id;
 		do {
-			id = 'l-';
-			for (var i = 0; i < 8; i++) {
-				id += chars.charAt(Math.floor(Math.random() * chars.length));
-			}
+			id = 'l-' + token(8);
 		} while (find(id));
 		return id;
 	}
@@ -382,7 +396,7 @@
 	function saved(res) {
 		if (state.user) {
 			apply(res);
-			write(KEY_SYNC, String(Date.now()) + ':' + Math.random());
+			write(KEY_SYNC, String(Date.now()) + ':' + token(8));
 		} else {
 			writeLocal();
 		}
@@ -692,14 +706,19 @@
 		});
 		var revision = (box.spsRevision || 0) + 1;
 		box.spsRevision = revision;
-		var request = missing.length ? send('list', { which: which, types: types, posts: missing.join(',') }).then(function (res) {
+		// Posts the server does not return (deleted, private) are remembered as gone.
+		function remember(res) {
 			missing.forEach(function (id) {
 				cache[types + ':' + id] = null;
 			});
 			(res.items || []).forEach(function (item) {
 				cache[types + ':' + Number(item.id)] = item;
 			});
-		}) : Promise.resolve();
+		}
+		var request = Promise.resolve();
+		if (missing.length) {
+			request = send('list', { which: which, types: types, posts: missing.join(',') }).then(remember);
+		}
 		return request.then(function () {
 			if (box.spsRevision !== revision) {
 				return;
@@ -965,34 +984,43 @@
 		}).catch(noop);
 	}
 
-	function boxClick(box, target) {
+	// Move selected to, or Remove selected.
+	function bulkClicked(box, moving) {
+		if (!box.spsSelected.length) {
+			say(box, t.selectFirst);
+			return;
+		}
+		var select = box.querySelector('[data-sps-move-to]');
+		bulk(moving ? 'move' : 'remove', box.spsActive, box.spsSelected.slice(), moving && select ? select.value : '', box).then(function (n) {
+			say(box, (moving ? t.moved : t.removed).replace('%d', format(n)));
+		}).catch(noop);
+	}
+
+	// Delete list: never Liked, and only once confirmed.
+	function deleteClicked(box) {
 		var list = listInfo(box.spsActive);
+		if (!list || list.id === LIKED || !window.confirm(t.confirmDelete.replace('%s', list.name))) { // eslint-disable-line no-alert
+			return;
+		}
+		deleteList(list.id, box).then(function () {
+			selectTab(box, LIKED);
+		}).catch(noop);
+	}
+
+	function boxClick(box, target) {
 		if (target.hasAttribute('data-sps-tab')) {
 			selectTab(box, target.getAttribute('data-sps-tab'));
-		} else if (target.hasAttribute('data-sps-new-list')) {
-			naming(box, box.spsNaming === 'new' ? '' : 'new');
-		} else if (target.hasAttribute('data-sps-rename')) {
-			naming(box, box.spsNaming === 'rename' ? '' : 'rename');
+		} else if (target.hasAttribute('data-sps-new-list') || target.hasAttribute('data-sps-rename')) {
+			var mode = target.hasAttribute('data-sps-rename') ? 'rename' : 'new';
+			naming(box, box.spsNaming === mode ? '' : mode);
 		} else if (target.hasAttribute('data-sps-name-cancel')) {
 			var was = box.spsNaming;
 			naming(box, '');
 			focusIn(box, was === 'rename' ? '[data-sps-rename]' : '[data-sps-new-list]');
 		} else if (target.hasAttribute('data-sps-move') || target.hasAttribute('data-sps-remove-selected')) {
-			if (!box.spsSelected.length) {
-				say(box, t.selectFirst);
-				return;
-			}
-			var moving = target.hasAttribute('data-sps-move');
-			var select = box.querySelector('[data-sps-move-to]');
-			bulk(moving ? 'move' : 'remove', box.spsActive, box.spsSelected.slice(), moving && select ? select.value : '', box).then(function (n) {
-				say(box, (moving ? t.moved : t.removed).replace('%d', format(n)));
-			}).catch(noop);
-		} else if (target.hasAttribute('data-sps-delete') && list && list.id !== LIKED) {
-			if (window.confirm(t.confirmDelete.replace('%s', list.name))) { // eslint-disable-line no-alert
-				deleteList(list.id, box).then(function () {
-					selectTab(box, LIKED);
-				}).catch(noop);
-			}
+			bulkClicked(box, target.hasAttribute('data-sps-move'));
+		} else if (target.hasAttribute('data-sps-delete')) {
+			deleteClicked(box);
 		}
 	}
 
@@ -1193,17 +1221,9 @@
 		}, true);
 	});
 
-	document.addEventListener('click', function (event) {
-		if (event.target && event.target.tagName === 'DIALOG' && (event.target.hasAttribute('data-sps-panel') || event.target === chooser)) {
-			closeOnBackdrop(event.target, event);
-			return;
-		}
-		var target = event.target && event.target.closest ? event.target.closest('button') : null;
-		if (!target) {
-			return;
-		}
+	// Like, Save, Add to shortlist and Share. True when the button was one.
+	function reactionClick(target) {
 		var group = target.closest('[data-sps-reactions]');
-		var box = target.closest('[data-sps-lists]');
 		if (target.hasAttribute('data-sps-like') && group) {
 			setOn(LIKED, Number(group.getAttribute('data-sps-reactions')), undefined, group).catch(noop);
 		} else if (target.hasAttribute('data-sps-save') && group) {
@@ -1212,7 +1232,15 @@
 			saveClicked(Number(target.getAttribute('data-sps-shortlist')), target, target.parentElement);
 		} else if (target.hasAttribute('data-sps-share')) {
 			share(target, group);
-		} else if (target.hasAttribute('data-sps-remove')) {
+		} else {
+			return false;
+		}
+		return true;
+	}
+
+	// A saved list's Remove and Clear, and the panel's open and close.
+	function listClick(target) {
+		if (target.hasAttribute('data-sps-remove')) {
 			var holder = target.closest('[data-sps-saved]');
 			setOn(holder.getAttribute('data-list') || 'saved', Number(target.getAttribute('data-sps-remove')), false, holder.parentElement).catch(noop);
 		} else if (target.hasAttribute('data-sps-clear')) {
@@ -1227,7 +1255,23 @@
 			}
 		} else if (target.hasAttribute('data-sps-panel-close') || target.hasAttribute('data-sps-chooser-close')) {
 			target.closest('dialog').close();
-		} else if (box) {
+		} else {
+			return false;
+		}
+		return true;
+	}
+
+	document.addEventListener('click', function (event) {
+		if (event.target && event.target.tagName === 'DIALOG' && (event.target.hasAttribute('data-sps-panel') || event.target === chooser)) {
+			closeOnBackdrop(event.target, event);
+			return;
+		}
+		var target = event.target && event.target.closest ? event.target.closest('button') : null;
+		if (!target || reactionClick(target) || listClick(target)) {
+			return;
+		}
+		var box = target.closest('[data-sps-lists]');
+		if (box) {
 			boxClick(box, target);
 		}
 	});
