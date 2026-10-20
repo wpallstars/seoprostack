@@ -7,7 +7,7 @@
 [![CI](https://github.com/wpallstars/seoprostack/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/wpallstars/seoprostack/actions/workflows/ci.yml)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=wpallstars_seoprostack&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=wpallstars_seoprostack)
 [![License: GPL v3 or later](https://img.shields.io/badge/License-GPL%20v3%20or%20later-blue.svg)](LICENSE)
-[![Latest release](https://img.shields.io/badge/release-v1.3.60-blue.svg)](https://github.com/wpallstars/seoprostack/releases)
+[![Latest release](https://img.shields.io/badge/release-v1.3.61-blue.svg)](https://github.com/wpallstars/seoprostack/releases)
 
 [![Requires WordPress](https://img.shields.io/badge/WordPress-6.2%2B-21759B.svg?logo=wordpress)](readme.txt)
 [![Tested up to](https://img.shields.io/badge/tested%20up%20to-7.1-21759B.svg?logo=wordpress)](readme.txt)
@@ -24,7 +24,7 @@ SEO Pro Stack does the jobs that usually take dozens of small plugins: a calmer,
 
 If this saves you time, headaches and costs, feel free to [buy me a coffee](https://buymeacoffee.com/marcusquinn), or whatever you like, to invest in making more things open-source.
 
-Version: 1.3.60
+Version: 1.3.61
 
 <!-- github-only:start -->
 ## Screenshots
@@ -1867,7 +1867,7 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folder�
 
 ## Changelog
 
-### Unreleased
+### 1.3.61
 - Fix: Dark mode covers more screens: Fluent Boards' onboarding, Media Library's grid, YellowPencil's buttons, Secure Custom Fields' Seamless groups (no box, as in Light), the Users tooltip, Kadence's Style Library, icon picker, swatches, Customizer pane notices and Conversions editor canvas, block editor gaps, Rank Math's widget logo and Content AI button, and Ninja Tables Pro. Fluent top bars no longer flash white while loading, FluentCRM's settings clear the wider menu, and the dark fallback reads Tailwind's `rgb(… / var(--tw-*-opacity))` colours (GitHub issue #874).
 - Fix: Developers → Calls to other sites columns no longer wrap a word per line (GitHub issue #874).
 - Fix: Recommended → Theme and Free Plugins say why WordPress.org could not be reached, such as the site blocking outbound requests (GitHub issue #874).
