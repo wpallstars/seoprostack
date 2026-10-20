@@ -2666,7 +2666,11 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
             if (is_wp_error($error)) {
                 if ('storage_budget' === $error->get_error_code()) {
                     $pending['attempts'] = isset($old['attempts']) ? (int) $old['attempts'] : 0;
+                    // This turn did not fail; keep only a failure from an earlier turn.
+                    $pending['state'] = isset($old['state']) && 'failed' === $old['state'] ? 'failed' : 'waiting';
                     update_post_meta($id, self::META, $pending);
+                    update_post_meta($id, self::STATE, $pending['state']);
+                    delete_transient(self::COUNTS);
                     $job['next'] = time() + 60;
                     update_option(self::JOB . 'retry_' . $id, $job, false);
                     return false;
