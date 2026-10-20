@@ -13,7 +13,7 @@
 		edit: function () {
 			return el('div', editor.useBlockProps({ className: 'sps-panel-wrap' }),
 				el('button', { type: 'button', className: 'sps-reactions__button', disabled: true }, i18n.__('Shortlist', 'seoprostack')),
-				el('p', null, i18n.__('Opens Shortlist, Saved and Liked lists on the site.', 'seoprostack')));
+				el('p', null, i18n.__('Opens the visitor’s lists: Liked and the lists they name.', 'seoprostack')));
 		},
 		save: function () { return null; }
 	});

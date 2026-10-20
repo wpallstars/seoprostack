@@ -5,7 +5,7 @@ Tags: magic login, iframe, schedule posts, auto upload images, admin
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.3.62
+Stable tag: 1.3.63
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -50,7 +50,7 @@ Safe features start on; others stay off. **Settings → SEO Pro Stack** has **Se
 * **Custom fields to content**: ACF/SCF text to content and excerpts.
 * **Restrict content** by membership or role. **Menu item visibility** by login or role.
 * **iFrame block**, **Link cards**, **Wikipedia previews**, **Word documents**, **Brand icons** and **Like, save and share**.
-* **Shortlist and Saved panel**: Shortlist, Saved and Liked lists.
+* **Named lists and Saved panel**: Liked and own lists.
 * **Spectra block replacements**, **TranslatePress colours** and **Kadence query filters**.
 * **WP Grid Builder colours**: cards and facets follow Kadence dark mode.
 * **Kadence colour check**: moves hard-to-read Customizer colours to the palette, with Restore.
@@ -151,7 +151,7 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 
 == Changelog ==
 
-= 1.3.62 =
-* Fix: SEO Pro Analytics keeps its own colour mode and avoids duplicate WP-Cron advice; SEO Pro Stats remains supported.
+= 1.3.63 =
+* New: named lists, a Save to list chooser and a Your lists block.
 
 Older: `changelog.txt`.

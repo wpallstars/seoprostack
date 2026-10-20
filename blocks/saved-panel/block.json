@@ -5,7 +5,7 @@
 	"title": "Saved panel",
 	"category": "widgets",
 	"icon": "book-alt",
-	"description": "A header button opening the visitor’s Shortlist, Saved and Liked lists.",
+	"description": "A header button opening the visitor’s lists: Liked and the lists they name.",
 	"textdomain": "seoprostack",
 	"supports": { "html": false },
 	"editorScript": "file:./index.js",
