@@ -152,7 +152,7 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 == Changelog ==
 
 = Unreleased =
-* Fix: cloud media keeps successful uploads recorded and retries time-limited transfers after one minute without counting a failure.
+* Fix: cloud media keeps successful uploads recorded. Groups with only time-budget (storage_budget) errors retry after one minute without counting a failed attempt or reporting a new error; groups with a real failure keep normal retry back-off.
 
 = 1.3.63 =
 * New: named lists, a Save to list chooser and a Your lists block.
