@@ -191,7 +191,8 @@ class SEOProStack_Hosting_Needs extends SEOProStack_Feature {
         if (self::needs_server_cron()) {
             add_action('load-index.php', array(__CLASS__, 'cron_screen'));
             add_action('load-plugins.php', array(__CLASS__, 'cron_screen'));
-            // SEO Pro Stats 1.4.2+ gives the same advice on its own screens.
+            // SEO Pro Analytics (formerly SEO Pro Stats 1.4.2+) gives the same advice on its own screens.
+            add_filter('seoproanalytics_schedule_notice', '__return_false');
             add_filter('seoprostats_schedule_notice', '__return_false');
         }
     }
