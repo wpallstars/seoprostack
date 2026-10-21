@@ -1004,6 +1004,19 @@ class SEOProStack_Post_Reactions extends SEOProStack_Feature {
     }
 
     /**
+     * Plain text for the lists' JSON, which post-reactions.js writes with
+     * textContent: tags stripped and entities decoded. get_the_title() is
+     * texturized (&#8211;, &#8217;) and term names are stored encoded
+     * (Windows &amp; Doors), which would otherwise show as typed.
+     *
+     * @param string $html Title, excerpt or detail.
+     * @return string
+     */
+    private static function plain_text($html) {
+        return trim(html_entity_decode(wp_strip_all_tags((string) $html), ENT_QUOTES | ENT_HTML5, 'UTF-8'));
+    }
+
+    /**
      * Too many like changes from this address in the last hour? Only a
      * salted hash of the address is kept, for an hour.
      *
@@ -1416,13 +1429,21 @@ class SEOProStack_Post_Reactions extends SEOProStack_Feature {
                     }
                     $item = array(
                         'id'      => $p->ID,
-                        'title'   => wp_strip_all_tags(get_the_title($p)),
+                        'title'   => self::plain_text(get_the_title($p)),
                         'url'     => get_permalink($p),
-                        'excerpt' => wp_strip_all_tags(get_the_excerpt($p)),
+                        'excerpt' => self::plain_text(get_the_excerpt($p)),
                     );
                     $extra = apply_filters('seoprostack_saved_item', $item, $p, $list);
                     if (is_array($extra)) {
-                        $item['meta'] = array_values(array_map('sanitize_text_field', array_slice(array_filter(isset($extra['meta']) && is_array($extra['meta']) ? $extra['meta'] : array(), 'is_string'), 0, 3)));
+                        $meta = array_slice(array_filter(isset($extra['meta']) && is_array($extra['meta']) ? $extra['meta'] : array(), 'is_string'), 0, 3);
+                        $item['meta'] = array_values(
+                            array_map(
+                                static function ($text) {
+                                    return self::plain_text(sanitize_text_field($text));
+                                },
+                                $meta
+                            )
+                        );
                         $item['image'] = isset($extra['image']) && is_string($extra['image']) ? esc_url_raw($extra['image'], array('http', 'https')) : '';
                     }
                     $items[] = $item;
