@@ -650,6 +650,8 @@ final class SEOProStack_Setup {
                 'render'     => array('SEOProStack_Free_Plugins_Manager', 'display_tab_content'),
                 // On multisite only super admins can install plugins.
                 'capability' => 'install_plugins',
+                // The whole screen: more cards per row, a wider list.
+                'wide'       => true,
             ),
             'pro' => array(
                 'label'   => __('Pro Plugins', 'seoprostack'),

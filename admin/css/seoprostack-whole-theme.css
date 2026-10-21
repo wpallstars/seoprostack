@@ -8779,7 +8779,7 @@ html.sps-dark .sps-licence :is(.sps-licence__host, .sps-licence__status, .sps-li
 /* Changing mode eases the colours, never with reduced motion. */
 @media (prefers-reduced-motion: no-preference) {
 	html.sps-theme-ready body,
-	html.sps-theme-ready :is(#wpwrap, #wpcontent, .postbox, .card, .widefat, .notice, .sps-header, .sps-nav, .sps-card, .components-card) {
+	html.sps-theme-ready :is(#wpwrap, #wpcontent, .postbox, .card, .widefat, .notice, .components-card) {
 		transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
 	}
 }
