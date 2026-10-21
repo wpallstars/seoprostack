@@ -747,6 +747,11 @@
 		// "Message selected"): one node, kept while the box redraws, shown
 		// in the toolbar before More actions while the open list has posts.
 		box.spsPrimary = box.querySelector('[data-sps-lists-actions]');
+		// Taken out of the server markup at once: toolbar() puts it back only
+		// while the open list has posts, so an empty first list shows none.
+		if (box.spsPrimary && box.spsPrimary.parentNode) {
+			box.spsPrimary.parentNode.removeChild(box.spsPrimary);
+		}
 	}
 
 	function trimSelection(box) {
