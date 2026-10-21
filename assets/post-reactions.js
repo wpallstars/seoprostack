@@ -394,6 +394,7 @@
 
 	// Keep a change: the server's lists, or this browser's.
 	function saved(res) {
+		showTallies(res);
 		if (state.user) {
 			apply(res);
 			write(KEY_SYNC, String(Date.now()) + ':' + token(8));
@@ -419,6 +420,7 @@
 			return done.then(function () {
 				return send('like', { post: id, on: on ? '1' : '0' }).then(function (res) {
 					showCount(id, res.count);
+					showTallies(res);
 				}, noop);
 			});
 		}, Promise.resolve());
@@ -584,23 +586,21 @@
 		all('[data-sps-reactions="' + id + '"] [data-sps-count], [data-sps-total="' + id + '"]').forEach(function (node) {
 			node.textContent = format(count);
 		});
-		showTally(id, 'likes', count);
 	}
 
-	function showListed(id, count) {
-		showTally(id, 'listed', count);
-	}
-
-	// "12 Likes · 3 Shortlists" (tallies()): one total in it.
-	function showTally(id, which, count) {
-		var n = Number(count);
-		if (count === undefined || !isFinite(n)) {
-			return;
-		}
-		var many = which === 'likes' ? t.likesMany : t.listedMany;
-		var one = which === 'likes' ? t.likesOne : t.listedOne;
-		all('[data-sps-tallies="' + id + '"] [data-sps-tally="' + which + '"]').forEach(function (node) {
-			node.textContent = (n === 1 ? one : many).replace('%s', format(n));
+	// "12 Likes · 3 Shortlists" (tallies()): the server's words, as only
+	// it knows the language's plural forms.
+	function showTallies(res) {
+		var tallies = res && res.tallies && typeof res.tallies === 'object' ? res.tallies : {};
+		Object.keys(tallies).forEach(function (id) {
+			['likes', 'listed'].forEach(function (which) {
+				if (typeof tallies[id][which] !== 'string') {
+					return;
+				}
+				all('[data-sps-tallies="' + Number(id) + '"] [data-sps-tally="' + which + '"]').forEach(function (node) {
+					node.textContent = tallies[id][which];
+				});
+			});
 		});
 	}
 
@@ -619,22 +619,22 @@
 		return out;
 	}
 
-	// After a change of the person's own: posts that joined their first
-	// named list, or left their last, change the public shortlist totals.
-	// Best effort, after the change itself, so it never holds it up.
+	// After a visitor's own change: posts that joined their first named
+	// list, or left their last, change the public shortlist totals, in one
+	// request each way (the server counts logged-in people's). Best effort,
+	// after the change itself, so it never holds it up.
 	function tallyFrom(before) {
+		if (state.user) {
+			return;
+		}
 		var was = listedIn(before.lists);
 		var now = listedIn(state.lists);
-		var changes = minus(now, was).map(function (id) {
-			return { id: id, on: true };
-		}).concat(minus(was, now).map(function (id) {
-			return { id: id, on: false };
-		}));
-		changes.reduce(function (done, change) {
+		[[minus(now, was), '1'], [minus(was, now), '0']].reduce(function (done, change) {
+			if (!change[0].length) {
+				return done;
+			}
 			return done.then(function () {
-				return send('listed', { post: change.id, on: change.on ? '1' : '0' }).then(function (res) {
-					showListed(change.id, res.listed);
-				}, noop);
+				return send('listed', { posts: change[0].join(','), on: change[1] }).then(showTallies, noop);
 			});
 		}, Promise.resolve());
 	}
@@ -705,9 +705,7 @@
 			Object.keys(res.counts || {}).forEach(function (id) {
 				showCount(id, res.counts[id]);
 			});
-			Object.keys(res.listed || {}).forEach(function (id) {
-				showListed(id, res.listed[id]);
-			});
+			showTallies(res);
 		}, noop);
 	}
 
@@ -1568,9 +1566,7 @@
 			Object.keys(res.counts || {}).forEach(function (id) {
 				showCount(id, res.counts[id]);
 			});
-			Object.keys(res.listed || {}).forEach(function (id) {
-				showListed(id, res.listed[id]);
-			});
+			showTallies(res);
 			var stored = readLocal();
 			if (!res.user) {
 				state.user = false;

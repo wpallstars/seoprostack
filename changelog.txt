@@ -3,7 +3,7 @@
 Every change to SEO Pro Stack. readme.txt lists the latest version in short.
 
 = 1.3.66 =
-* New: Like, save and share keeps a shortlist total for each post: how many people have it on one of their named lists (Liked is not one). Browsers report a post joining their first named list or leaving their last, rate-limited like likes, as visitors' lists stay in their browser. SEOProStack_Post_Reactions::tallies( $post_id ) prints "12 Likes · 3 Shortlists", which the script keeps current on cached pages, and buttons() takes 'icons' => true for icon-only buttons (the words kept for screen readers, the like total left to tallies()) (GitHub issue #893).
+* New: Like, save and share keeps a shortlist total for each post: how many people have it on one of their named lists (Liked is not one). The server counts logged-in people's lists as they change, starting from the lists they already had (counted once a site). Visitors' lists stay in their browser, which reports posts joining its first named list or leaving its last in one rate-limited request each way, however many posts a change covers; their lists from before 1.3.66 are not counted. SEOProStack_Post_Reactions::tallies( $post_id ) prints "12 Likes · 3 Shortlists", which the script keeps current on cached pages with the server's words (so plural forms follow the site's language), and buttons() takes 'icons' => true for icon-only buttons (the words kept for screen readers, the like total left to tallies()) (GitHub issue #893).
 * Fix: Your lists shows each post's tick box under Select all, its photo beside it and its lines under its title, whatever list indent and paragraph spacing the theme sets (GitHub issue #893).
 
 = 1.3.65 =

@@ -43,11 +43,23 @@ class SEOProStack_Post_Reactions extends SEOProStack_Feature {
 
     /**
      * Post meta: shortlist total, how many people have the post on one of
-     * their named lists (not Liked). Browsers report when a post joins their
-     * first list or leaves their last (do=listed), as visitors' lists stay
-     * in the browser; rate-limited like likes.
+     * their named lists (not Liked). Logged-in people's lists are counted
+     * on the server as they change (set_lists()), from the lists they had
+     * when this total started (seed_listed()). Visitors' lists stay in
+     * their browser, which reports posts joining its first named list or
+     * leaving its last (do=listed, one rate-limited request a change).
      */
     const LISTED = '_seoprostack_listed';
+
+    /** Site option: logged-in people's lists have been counted into LISTED. */
+    const LISTED_SEEDED = 'seoprostack_listed_seeded';
+
+    /**
+     * Posts whose totals this request changed, for the answer's tallies.
+     *
+     * @var int[]
+     */
+    private static $touched = array();
 
     /** User option (per site): saved post IDs. */
     const SAVED = 'seoprostack_saved';
@@ -239,6 +251,7 @@ class SEOProStack_Post_Reactions extends SEOProStack_Feature {
         add_filter('the_content', array(__CLASS__, 'after_content'), 20);
         add_action('wp_ajax_' . self::AJAX, array(__CLASS__, 'ajax'));
         add_action('wp_ajax_nopriv_' . self::AJAX, array(__CLASS__, 'ajax'));
+        add_action('init', array(__CLASS__, 'seed_listed'), 30);
         // After the theme adds its sections.
         add_action('customize_register', array(__CLASS__, 'customize_register'), 20);
     }
@@ -323,14 +336,6 @@ class SEOProStack_Post_Reactions extends SEOProStack_Feature {
                 'emptyList' => __('Nothing here yet.', 'seoprostack'),
                 'like'     => __('Like', 'seoprostack'),
                 'liked'    => __('Liked', 'seoprostack'),
-                /* translators: %s: number of likes (one). */
-                'likesOne' => _n('%s Like', '%s Likes', 1, 'seoprostack'),
-                /* translators: %s: number of likes. */
-                'likesMany' => _n('%s Like', '%s Likes', 2, 'seoprostack'),
-                /* translators: %s: number of people who shortlisted it (one). */
-                'listedOne' => _n('%s Shortlist', '%s Shortlists', 1, 'seoprostack'),
-                /* translators: %s: number of people who shortlisted it. */
-                'listedMany' => _n('%s Shortlist', '%s Shortlists', 2, 'seoprostack'),
                 'save'     => __('Save', 'seoprostack'),
                 'saved'    => __('Saved', 'seoprostack'),
                 'copied'   => __('Link copied', 'seoprostack'),
@@ -865,6 +870,7 @@ class SEOProStack_Post_Reactions extends SEOProStack_Feature {
     private static function add_like($post_id, $delta) {
         $count = max(0, self::likes($post_id) + $delta);
         update_post_meta($post_id, self::LIKES, $count);
+        self::$touched[] = (int) $post_id;
         return $count;
     }
 
@@ -888,7 +894,102 @@ class SEOProStack_Post_Reactions extends SEOProStack_Feature {
     private static function add_listed($post_id, $delta) {
         $count = max(0, self::listed($post_id) + $delta);
         update_post_meta($post_id, self::LISTED, $count);
+        self::$touched[] = (int) $post_id;
         return $count;
+    }
+
+    /**
+     * Posts on at least one of these named lists.
+     *
+     * @param array $lists Named lists.
+     * @return int[]
+     */
+    private static function listed_in(array $lists) {
+        $ids = array();
+        foreach ($lists as $list) {
+            foreach (isset($list['posts']) && is_array($list['posts']) ? $list['posts'] : array() as $id) {
+                $ids[(int) $id] = true;
+            }
+        }
+        return array_keys($ids);
+    }
+
+    /**
+     * Store a logged-in person's named lists, and change the shortlist
+     * totals of posts that joined their first list or left their last.
+     *
+     * @param int   $user_id User ID.
+     * @param array $lists   Lists.
+     * @param bool  $count   False when the change is already counted (lists
+     *                       from this person's browser, which reported its
+     *                       own changes).
+     * @return array The lists as stored.
+     */
+    private static function set_lists($user_id, array $lists, $count = true) {
+        $before = self::listed_in(SEOProStack_Reaction_Lists::get($user_id));
+        $stored = SEOProStack_Reaction_Lists::set($user_id, $lists);
+        if ($count) {
+            $after = self::listed_in($stored);
+            foreach (array_diff($after, $before) as $id) {
+                self::add_listed($id, 1);
+            }
+            foreach (array_diff($before, $after) as $id) {
+                self::add_listed($id, -1);
+            }
+        }
+        return $stored;
+    }
+
+    /**
+     * Once a site: count logged-in people's lists from before shortlist
+     * totals into them, so taking a post off later never undercounts.
+     * (Visitors' older lists are in their browsers, out of reach.)
+     */
+    public static function seed_listed() {
+        // add_option() fails when the row exists, so of two requests at
+        // once only one counts.
+        if (false !== get_option(self::LISTED_SEEDED, false) || !add_option(self::LISTED_SEEDED, (string) time(), '', 'yes')) {
+            return;
+        }
+        global $wpdb;
+        $prefix = $wpdb->get_blog_prefix();
+        $keys   = array($prefix . SEOProStack_Reaction_Lists::OPTION);
+        foreach (SEOProStack_Reaction_Lists::legacy() as $option) {
+            $keys[] = $prefix . $option;
+        }
+        $query = array('relation' => 'OR');
+        foreach ($keys as $key) {
+            $query[] = array('key' => $key, 'compare' => 'EXISTS');
+        }
+        $totals = array();
+        foreach (get_users(array('blog_id' => 0, 'fields' => 'ID', 'number' => 10000, 'meta_query' => $query)) as $user_id) { // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query -- once a site.
+            foreach (self::listed_in(SEOProStack_Reaction_Lists::get((int) $user_id)) as $id) {
+                $totals[$id] = (isset($totals[$id]) ? $totals[$id] : 0) + 1;
+            }
+        }
+        foreach ($totals as $id => $n) {
+            update_post_meta($id, self::LISTED, self::listed($id) + $n);
+        }
+    }
+
+    /**
+     * "12 Likes" and "3 Shortlists" for each post, in the site's language
+     * (the script cannot pick plural forms itself).
+     *
+     * @param int[] $ids Post IDs.
+     * @return object Post ID => {likes, listed}.
+     */
+    private static function tallies_for(array $ids) {
+        $out = array();
+        foreach (array_unique(array_map('intval', $ids)) as $id) {
+            if ($id > 0 && self::can_react($id)) {
+                $out[$id] = array(
+                    'likes'  => self::tally_text('likes', self::likes($id)),
+                    'listed' => self::tally_text('listed', self::listed($id)),
+                );
+            }
+        }
+        return (object) $out;
     }
 
     /**
@@ -1038,7 +1139,7 @@ class SEOProStack_Post_Reactions extends SEOProStack_Feature {
      * @param array $extra   More to send.
      */
     private static function send_lists($user_id, array $extra = array()) {
-        wp_send_json_success(array_merge(self::lists_payload($user_id), $extra));
+        wp_send_json_success(array_merge(self::lists_payload($user_id), array('tallies' => self::tallies_for(self::$touched)), $extra));
     }
 
     /**
@@ -1088,14 +1189,12 @@ class SEOProStack_Post_Reactions extends SEOProStack_Feature {
         switch ($do) {
             case 'state':
                 $counts = array();
-                $listed = array();
                 foreach (array_slice($ids, 0, 100) as $id) {
                     if (self::can_react($id)) {
                         $counts[$id] = self::likes($id);
-                        $listed[$id] = self::listed($id);
                     }
                 }
-                $data = array('counts' => (object) $counts, 'listed' => (object) $listed, 'user' => false);
+                $data = array('counts' => (object) $counts, 'tallies' => self::tallies_for(array_keys($counts)), 'user' => false);
                 if ($user) {
                     $data = array_merge($data, self::lists_payload($user), array('user' => true, 'nonce' => wp_create_nonce(self::AJAX)));
                 }
@@ -1120,19 +1219,28 @@ class SEOProStack_Post_Reactions extends SEOProStack_Feature {
                     wp_send_json_error(null, 429);
                 }
                 self::add_like($post, $on ? 1 : -1);
-                wp_send_json_success(array('count' => self::likes($post)));
+                wp_send_json_success(array('count' => self::likes($post), 'tallies' => self::tallies_for(array($post))));
                 break;
 
             case 'listed':
-                // A post joined this browser's first named list, or left its
-                // last: the public shortlist total only.
-                if (!self::can_react($post)) {
+                // A visitor's posts that joined their browser's first named
+                // list (on), or left its last: the public shortlist totals
+                // only, one request (and one of the rate limit) a change.
+                // Logged-in people's lists are counted on the server.
+                if ($user) {
+                    wp_send_json_error(null, 400);
+                }
+                $posts = array_values(array_filter($ids ? $ids : array($post), $allowed));
+                if (!$posts) {
                     wp_send_json_error(null, 404);
                 }
                 if (self::rate_limited()) {
                     wp_send_json_error(null, 429);
                 }
-                wp_send_json_success(array('listed' => self::add_listed($post, $on ? 1 : -1)));
+                foreach ($posts as $id) {
+                    self::add_listed($id, $on ? 1 : -1);
+                }
+                wp_send_json_success(array('tallies' => self::tallies_for($posts)));
                 break;
 
             case 'save':
@@ -1149,7 +1257,7 @@ class SEOProStack_Post_Reactions extends SEOProStack_Feature {
                     if (null === $lists) {
                         wp_send_json_error(null, 404);
                     }
-                    SEOProStack_Reaction_Lists::set($user, $lists);
+                    self::set_lists($user, $lists);
                 }
                 self::send_lists($user, array('count' => self::likes($post)));
                 break;
@@ -1172,7 +1280,7 @@ class SEOProStack_Post_Reactions extends SEOProStack_Feature {
                 if ($post && self::can_react($post)) {
                     $lists = (array) SEOProStack_Reaction_Lists::change($lists, $id, array($post), true);
                 }
-                SEOProStack_Reaction_Lists::set($user, $lists);
+                self::set_lists($user, $lists);
                 self::send_lists($user, array('id' => $id));
                 break;
 
@@ -1187,7 +1295,7 @@ class SEOProStack_Post_Reactions extends SEOProStack_Feature {
                     wp_send_json_error(array('message' => 'exists'), 409);
                 }
                 $lists[$index]['name'] = $name;
-                SEOProStack_Reaction_Lists::set($user, $lists);
+                self::set_lists($user, $lists);
                 self::send_lists($user);
                 break;
 
@@ -1198,7 +1306,7 @@ class SEOProStack_Post_Reactions extends SEOProStack_Feature {
                     wp_send_json_error(null, 404);
                 }
                 array_splice($lists, $index, 1);
-                SEOProStack_Reaction_Lists::set($user, $lists);
+                self::set_lists($user, $lists);
                 self::send_lists($user);
                 break;
 
@@ -1232,7 +1340,7 @@ class SEOProStack_Post_Reactions extends SEOProStack_Feature {
                 } else {
                     $lists = (array) SEOProStack_Reaction_Lists::change($lists, $list, $posts, false);
                 }
-                SEOProStack_Reaction_Lists::set($user, $lists);
+                self::set_lists($user, $lists);
                 self::send_lists($user, array('changed' => count($posts)));
                 break;
 
@@ -1246,7 +1354,7 @@ class SEOProStack_Post_Reactions extends SEOProStack_Feature {
                     }
                     self::set_liked($user, $ids, false);
                 } else {
-                    SEOProStack_Reaction_Lists::set($user, (array) SEOProStack_Reaction_Lists::change(SEOProStack_Reaction_Lists::get($user), $list, $ids, false));
+                    self::set_lists($user, (array) SEOProStack_Reaction_Lists::change(SEOProStack_Reaction_Lists::get($user), $list, $ids, false));
                 }
                 self::send_lists($user);
                 break;
@@ -1269,7 +1377,7 @@ class SEOProStack_Post_Reactions extends SEOProStack_Feature {
                     $named = array(array('id' => $list, 'name' => $names[$list], 'posts' => $ids));
                 }
                 if ($named) {
-                    SEOProStack_Reaction_Lists::set($user, SEOProStack_Reaction_Lists::merge(SEOProStack_Reaction_Lists::get($user), $named, $allowed));
+                    self::set_lists($user, SEOProStack_Reaction_Lists::merge(SEOProStack_Reaction_Lists::get($user), $named, $allowed), false);
                 }
                 self::send_lists($user);
                 break;
@@ -1280,7 +1388,7 @@ class SEOProStack_Post_Reactions extends SEOProStack_Feature {
                 $index = SEOProStack_Reaction_Lists::index($lists, 'saved');
                 if ($index >= 0) {
                     $lists[$index]['posts'] = array();
-                    SEOProStack_Reaction_Lists::set($user, $lists);
+                    self::set_lists($user, $lists);
                 }
                 self::send_lists($user);
                 break;
