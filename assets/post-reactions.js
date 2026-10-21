@@ -742,6 +742,11 @@
 		box.spsNaming = '';
 		box.spsNameValue = '';
 		box.spsMoveTo = '';
+		box.spsMenu = false;
+		// Actions other plugins add (seoprostack_lists_actions, such as
+		// "Message selected"): one node, kept while the box redraws, shown
+		// in the toolbar before More actions while the open list has posts.
+		box.spsPrimary = box.querySelector('[data-sps-lists-actions]');
 	}
 
 	function trimSelection(box) {
@@ -811,8 +816,12 @@
 		return form;
 	}
 
+	// The toolbar: Select all, then the actions other plugins add, then More
+	// actions, a disclosure holding Move, Remove, Rename and Delete, so one
+	// main action stays in view.
 	function toolbar(box, list) {
 		var bar = el('div', 'sps-lists__toolbar');
+		var menuItems = [];
 		if (list.posts.length) {
 			var allLabel = el('label', 'sps-lists__all');
 			var allBox = el('input');
@@ -844,19 +853,64 @@
 				var pick = el('span', 'sps-lists__pick');
 				pick.append(select, button('', t.move, { 'data-sps-move': '', 'data-sps-key': 'move' }));
 				move.append(caption, pick);
-				bar.appendChild(move);
+				menuItems.push(move);
 			}
-			bar.appendChild(button('', t.removeSelected, { 'data-sps-remove-selected': '', 'data-sps-key': 'remove' }));
+			menuItems.push(button('sps-lists__menu-item', t.removeSelected, { 'data-sps-remove-selected': '', 'data-sps-key': 'remove' }));
 		}
 		if (list.id !== LIKED) {
-			var manage = el('span', 'sps-lists__manage');
-			manage.append(
-				button('', t.rename, { 'data-sps-rename': '', 'data-sps-key': 'rename', 'aria-expanded': String(box.spsNaming === 'rename') }),
-				button('', t.deleteList, { 'data-sps-delete': '', 'data-sps-key': 'delete' })
+			menuItems.push(
+				button('sps-lists__menu-item', t.renameList, { 'data-sps-rename': '', 'data-sps-key': 'rename', 'aria-expanded': String(box.spsNaming === 'rename') }),
+				button('sps-lists__menu-item', t.deleteList, { 'data-sps-delete': '', 'data-sps-key': 'delete' })
 			);
-			bar.appendChild(manage);
+		}
+		var end = el('span', 'sps-lists__end');
+		if (box.spsPrimary && list.posts.length) {
+			end.appendChild(box.spsPrimary);
+		}
+		if (menuItems.length) {
+			var menuId = box.spsId + '-menu';
+			var more = button('sps-lists__more', '', {
+				'aria-expanded': String(box.spsMenu),
+				'aria-controls': menuId,
+				'aria-label': t.moreActions,
+				title: t.moreActions,
+				'data-sps-more': '',
+				'data-sps-key': 'more'
+			});
+			var dots = el('span', '', '\u22EF');
+			dots.setAttribute('aria-hidden', 'true');
+			more.appendChild(dots);
+			var menu = el('div', 'sps-lists__menu');
+			menu.id = menuId;
+			menu.hidden = !box.spsMenu;
+			menu.setAttribute('data-sps-menu', '');
+			menuItems.forEach(function (item) {
+				menu.appendChild(item);
+			});
+			end.append(more, menu);
+		}
+		if (end.childNodes.length) {
+			bar.appendChild(end);
 		}
 		return bar;
+	}
+
+	// Open or close a box's More actions in place (no redraw, so a click
+	// that closes it still reaches its target); focus moves into it, or
+	// back to its button.
+	function setMenu(box, open, focus) {
+		box.spsMenu = open;
+		var menu = box.querySelector('[data-sps-menu]');
+		var more = box.querySelector('[data-sps-more]');
+		if (menu) {
+			menu.hidden = !open;
+		}
+		if (more) {
+			more.setAttribute('aria-expanded', String(open));
+		}
+		if (focus) {
+			focusIn(box, open ? '[data-sps-menu] select, [data-sps-menu] button' : '[data-sps-more]');
+		}
 	}
 
 	function renderBox(box) {
@@ -918,9 +972,8 @@
 				ui.appendChild(visitorNote());
 			}
 		});
-		var actions = box.querySelector('[data-sps-lists-actions]');
-		if (actions) {
-			actions.setAttribute('data-list', active);
+		if (box.spsPrimary) {
+			box.spsPrimary.setAttribute('data-list', active);
 		}
 		fillList(items);
 	}
@@ -986,18 +1039,21 @@
 
 	// Move selected to, or Remove selected.
 	function bulkClicked(box, moving) {
+		var select = box.querySelector('[data-sps-move-to]');
+		var to = moving && select ? select.value : '';
+		setMenu(box, false, true);
 		if (!box.spsSelected.length) {
 			say(box, t.selectFirst);
 			return;
 		}
-		var select = box.querySelector('[data-sps-move-to]');
-		bulk(moving ? 'move' : 'remove', box.spsActive, box.spsSelected.slice(), moving && select ? select.value : '', box).then(function (n) {
+		bulk(moving ? 'move' : 'remove', box.spsActive, box.spsSelected.slice(), to, box).then(function (n) {
 			say(box, (moving ? t.moved : t.removed).replace('%d', format(n)));
 		}).catch(noop);
 	}
 
 	// Delete list: never Liked, and only once confirmed.
 	function deleteClicked(box) {
+		setMenu(box, false, true);
 		var list = listInfo(box.spsActive);
 		if (!list || list.id === LIKED || !window.confirm(t.confirmDelete.replace('%s', list.name))) { // eslint-disable-line no-alert
 			return;
@@ -1008,15 +1064,20 @@
 	}
 
 	function boxClick(box, target) {
-		if (target.hasAttribute('data-sps-tab')) {
+		if (target.hasAttribute('data-sps-more')) {
+			setMenu(box, !box.spsMenu, true);
+		} else if (target.hasAttribute('data-sps-tab')) {
+			box.spsMenu = false;
 			selectTab(box, target.getAttribute('data-sps-tab'));
 		} else if (target.hasAttribute('data-sps-new-list') || target.hasAttribute('data-sps-rename')) {
 			var mode = target.hasAttribute('data-sps-rename') ? 'rename' : 'new';
+			box.spsMenu = false;
 			naming(box, box.spsNaming === mode ? '' : mode);
 		} else if (target.hasAttribute('data-sps-name-cancel')) {
 			var was = box.spsNaming;
 			naming(box, '');
-			focusIn(box, was === 'rename' ? '[data-sps-rename]' : '[data-sps-new-list]');
+			// Rename is in More actions, which closed when it opened the form.
+			focusIn(box, was === 'rename' ? '[data-sps-more]' : '[data-sps-new-list]');
 		} else if (target.hasAttribute('data-sps-move') || target.hasAttribute('data-sps-remove-selected')) {
 			bulkClicked(box, target.hasAttribute('data-sps-move'));
 		} else if (target.hasAttribute('data-sps-delete')) {
@@ -1261,7 +1322,21 @@
 		return true;
 	}
 
+	// A click anywhere outside an open More actions (and its button) closes it.
+	function closeMenus(node) {
+		all('[data-sps-lists]').forEach(function (box) {
+			if (!box.spsMenu || !box.spsId) {
+				return;
+			}
+			var keep = node && node.closest ? node.closest('[data-sps-menu], [data-sps-more]') : null;
+			if (!keep || !box.contains(keep)) {
+				setMenu(box, false, false);
+			}
+		});
+	}
+
 	document.addEventListener('click', function (event) {
+		closeMenus(event.target);
 		if (event.target && event.target.tagName === 'DIALOG' && (event.target.hasAttribute('data-sps-panel') || event.target === chooser)) {
 			closeOnBackdrop(event.target, event);
 			return;
@@ -1278,6 +1353,14 @@
 
 	document.addEventListener('keydown', function (event) {
 		var tab = event.target;
+		// Escape closes More actions, back on its button; inside a dialog
+		// it does not also close the dialog.
+		var menuBox = event.key === 'Escape' && tab && tab.closest ? tab.closest('[data-sps-lists]') : null;
+		if (menuBox && menuBox.spsMenu) {
+			event.preventDefault();
+			setMenu(menuBox, false, true);
+			return;
+		}
 		if (!tab.getAttribute || tab.getAttribute('role') !== 'tab' || !tab.hasAttribute('data-sps-tab')) {
 			return;
 		}
