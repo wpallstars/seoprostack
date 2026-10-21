@@ -7,7 +7,7 @@
 [![CI](https://github.com/wpallstars/seoprostack/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/wpallstars/seoprostack/actions/workflows/ci.yml)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=wpallstars_seoprostack&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=wpallstars_seoprostack)
 [![License: GPL v3 or later](https://img.shields.io/badge/License-GPL%20v3%20or%20later-blue.svg)](LICENSE)
-[![Latest release](https://img.shields.io/badge/release-v1.3.64-blue.svg)](https://github.com/wpallstars/seoprostack/releases)
+[![Latest release](https://img.shields.io/badge/release-v1.3.65-blue.svg)](https://github.com/wpallstars/seoprostack/releases)
 
 [![Requires WordPress](https://img.shields.io/badge/WordPress-6.2%2B-21759B.svg?logo=wordpress)](readme.txt)
 [![Tested up to](https://img.shields.io/badge/tested%20up%20to-7.1-21759B.svg?logo=wordpress)](readme.txt)
@@ -24,7 +24,7 @@ SEO Pro Stack does the jobs that usually take dozens of small plugins: a calmer,
 
 If this saves you time, headaches and costs, feel free to [buy me a coffee](https://buymeacoffee.com/marcusquinn), or whatever you like, to invest in making more things open-source.
 
-Version: 1.3.64
+Version: 1.3.65
 
 <!-- github-only:start -->
 ## Screenshots
@@ -1057,7 +1057,7 @@ Like, Save and Share buttons, as on social media, and named lists: **Liked**, th
 
 - **Like, save and share** block: Like (a heart and the total), Save (a bookmark) and Share. Each button can be turned off in the block settings. The same three buttons go after the content of the post types chosen in the setting, on the post's own page, unless the block or `[favorite_button]` is already in it.
 - Saving: Save or Add to shortlist on a post that is on no list adds it to Liked (and counts the like) and opens **Save to list**, a native dialog with Liked ticked and the person's other lists below. Ticking a list adds the post and unticking takes it off; **New list** makes a list with the post on it. On a post already kept, the button opens the dialog. Like still only likes. Without native dialogs (very old browsers), Save toggles Liked.
-- **Your lists** block: every list as a tab with its count; select all; **Move selected to** another list; **Remove selected**; **New list**, and **Rename** and **Delete list** for every list but Liked; an empty-list line; and the actions other plugins add. Arrow keys, Home and End change tabs. Use it on a page such as `/shortlist/`.
+- **Your lists** block: every list as a tab with its count; select all; **New list**; an empty-list line; and, in the toolbar, the actions other plugins add (shown while the open list has posts) next to **More actions** (⋯): **Move selected to** another list, **Remove selected**, and **Rename** and **Delete list** for every list but Liked. Arrow keys, Home and End change tabs. Use it on a page such as `/shortlist/`.
 - **Saved panel** block or `[seoprostack_saved_panel]`: a header button with the count of posts on any list opens a native side dialog with the same lists, selection, bulk actions and plugin actions. Escape, Close or a click outside returns focus to the trigger. The panel is full width on phones and follows the theme's palette.
 - **Saved posts** block: one list's posts, newest first, as links, with optional excerpts and Remove buttons and your own text for an empty list. Its **List** control chooses Saved (the default for existing blocks), Liked or Shortlist. Favorites' `[user_favorites]` still shows Saved.
 - **Add to shortlist** block, `[seoprostack_shortlist_button post_id="123"]` or `SEOProStack_Post_Reactions::shortlist_button($post_id)`: a separate, larger Save button for a current job, with “On your shortlist” as its pressed state (the post is on a list). It is never added after content automatically.
@@ -1872,10 +1872,13 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folder�
 
 ## Changelog
 
+### 1.3.65
+- Developers: core files from WP Plugin Starter 1.0.41 (GH#532). `sps-code` and `sps-main--wide` are public core classes; Free Plugins uses the whole screen with the tab's `'wide' => true` instead of restyling `.sps-main`, and the plugin's dark rules no longer restyle `.sps-wrap` or animate the internal `.sps-header`. Release preflight (Core class names) is clean (GitHub issue #873).
+
 ### 1.3.64
 - Fix: Hosting needs hides SEO Pro Analytics and SEO Pro Stats' matching WP-Cron advice only on Dashboard and Plugins, for administrators who get its replacement notice. Their advice stays available on other screens (GitHub issue #884).
 - Fix: **Media in cloud storage** keeps successful uploads in its inventory when transport memory use changes the file-size allowance. A group with only time-budget (`storage_budget`) errors retries after one minute without counting a failed attempt or reporting a new error; successful files stay confirmed. A group with a real failure keeps the normal retry back-off (GitHub issue #886).
-- Developers: core files from WP Plugin Starter (GH#532). `sps-code` and `sps-main--wide` are public core classes; Free Plugins uses the whole screen with the tab's `'wide' => true` instead of restyling `.sps-main`, and the plugin's dark rules no longer restyle `.sps-wrap` or animate the internal `.sps-header`. Release preflight (Core class names) is clean (GitHub issue #873).
+- Change: the toolbar of **Your lists** shows one main action. Actions other plugins add (`seoprostack_lists_actions`, such as Message selected) sit next to **More actions** (⋯), which opens Move selected to, Remove selected, Rename list and Delete list; Escape or a click outside closes it (GitHub issue #890).
 
 ### 1.3.63
 - New: **Like, save and share** has named lists. Liked is the default list; Save and Add to shortlist add to it and open **Save to list** to tick other lists or make a new one. A new **Your lists** block, and the Saved panel, show every list with select all, Move to, Remove, New, Rename and Delete list, and an actions slot for other plugins (`seoprostack_lists_actions`). Visitors' lists stay in their browser, with Log in and register links, and join their account when they log in. The Shortlist and Saved lists from before become named lists; their options, filters, blocks, shortcodes and JavaScript API keep working (GitHub issue #878).

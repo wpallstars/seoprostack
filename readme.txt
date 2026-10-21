@@ -5,7 +5,7 @@ Tags: magic login, iframe, schedule posts, auto upload images, admin
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.3.64
+Stable tag: 1.3.65
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -151,9 +151,7 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 
 == Changelog ==
 
-= 1.3.64 =
-* Fix: keep Analytics/Stats cron advice outside Dashboard and Plugins, where Hosting needs replaces it.
-* Fix: cloud media keeps successful uploads recorded. Groups with only time-budget (storage_budget) errors retry after one minute without counting a failed attempt or reporting a new error; groups with a real failure keep normal retry back-off.
-* Developers: core files from WP Plugin Starter 1.0.41; no core class restyles.
+= 1.3.65 =
+* Developers: core files from WP Plugin Starter 1.0.41; Free Plugins keeps the whole screen with the new wide tab option, and the plugin no longer restyles core classes.
 
 Older: `changelog.txt`.
