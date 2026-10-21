@@ -44,12 +44,6 @@ html:not(.sps-dark) body.sps-own-screen {
 	color: #005e8e;
 }
 
-/* Free Plugins uses the whole screen: more cards per row, a wider list. */
-.sps-main.sps-tab-recommended {
-	max-width: none;
-}
-
-
 /* Agency tab: example data, below the settings. */
 .sps-examples {
 	display: grid;
@@ -742,14 +736,9 @@ html:not(.sps-dark) body.sps-own-screen {
  * stays off it (SEOProStack_Admin_Theme::seoprostack_dark_screen()), so
  * this screen's own parts are coloured here: the Free Plugins tab's
  * filter bar and WordPress's plugin cards (#fff, #f6f7f7), the directory
- * cards and the watermark note.
+ * cards and the watermark note. Its tokens (--sps-shadow and the rest)
+ * are seoprostack-theme.css's.
  */
-html.sps-dark .sps-wrap {
-	--sps-divider: var(--sps-ui-raised);
-	--sps-hover: var(--sps-ui-raised);
-	--sps-shadow: 0 1px 2px rgb(0 0 0 / 40%);
-}
-
 html.sps-dark :is(.sps-media__preview, .sps-watermark-note__mark) {
 	background: repeating-conic-gradient(var(--sps-ui-raised) 0% 25%, var(--sps-ui-surface) 0% 50%) 0 0 / 16px 16px;
 }

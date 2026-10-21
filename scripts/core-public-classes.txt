@@ -18,6 +18,8 @@
 # Page shell of the plugin's own screens (render_header(), sections_nav()).
 sps-wrap
 sps-main
+# A tab or screen that needs the whole width (a tab: 'wide' => true).
+sps-main--wide
 sps-nav
 sps-nav__group
 sps-nav__tab
@@ -43,7 +45,10 @@ sps-setting__desc
 # Feature output at the top of a setting's options panel.
 sps-panel-note
 sps-panel-note--warning
+# A block of code to copy, such as server rules: <pre class="sps-code">.
+sps-code
 
 # Colour mode: set on <html> by the header's Light / Dark / System button.
-# Use it only as an ancestor: html.sps-dark .sps-<screen>-card.
+# Use it as an ancestor: html.sps-dark .sps-<screen>-card. On <html> alone
+# it takes only a dark palette: custom properties, color-scheme, background.
 sps-dark

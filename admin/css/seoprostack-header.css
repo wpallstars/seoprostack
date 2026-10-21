@@ -325,6 +325,11 @@
 	padding: 24px;
 }
 
+/* A tab ('wide' => true) or screen that uses the whole width, such as a grid of cards. */
+.sps-main--wide {
+	max-width: none;
+}
+
 /* Tabs drawn on the page but not shown. */
 .sps-main[hidden] {
 	display: none;
