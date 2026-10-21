@@ -236,6 +236,62 @@
 	font-size: 1.25em;
 }
 
+/* Your lists in a modal (from links to the Your lists page): centred, about
+   a reading column wide, full screen on phones (below). */
+.sps-panel--modal {
+	inset: 0;
+	width: min(52rem, 100% - 32px);
+	height: auto;
+	max-height: min(90dvh, 100% - 32px);
+	margin: auto;
+	padding: 0 clamp(20px, 4vw, 40px) clamp(20px, 4vw, 32px);
+	border: 0;
+	border-radius: var(--spd-radius, 16px);
+	box-shadow: 0 24px 64px rgb(0 0 0 / 28%);
+}
+
+.sps-panel__head {
+	position: sticky;
+	inset-block-start: 0;
+	z-index: 30;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 16px;
+	margin-inline: calc(-1 * clamp(20px, 4vw, 40px));
+	padding: clamp(16px, 3vw, 24px) clamp(20px, 4vw, 40px) 8px;
+	background: inherit;
+}
+
+.sps-panel--modal .sps-panel__title {
+	margin: 0;
+	font-size: clamp(1.4em, 3vw, 1.8em);
+}
+
+.sps-panel__close {
+	display: inline-grid;
+	flex: none;
+	place-items: center;
+	width: 44px;
+	height: 44px;
+	padding: 0;
+	border: 0;
+	border-radius: 50%;
+	background: transparent;
+	color: inherit;
+	cursor: pointer;
+}
+
+.sps-panel__close:hover,
+.sps-panel__close:focus-visible {
+	background: rgb(127 127 127 / 18%);
+	color: inherit;
+}
+
+html:has(.sps-panel--modal[open]) {
+	overflow: hidden;
+}
+
 /* Your lists: in the panel and the Your lists block. */
 
 .sps-lists__bar {
@@ -603,6 +659,20 @@
 	.sps-panel {
 		width: 100%;
 		padding: 16px;
+	}
+
+	.sps-panel--modal {
+		width: 100%;
+		height: 100%;
+		height: 100dvh;
+		max-height: 100%;
+		padding-top: 0;
+		border-radius: 0;
+	}
+
+	.sps-panel--modal .sps-panel__head {
+		margin-inline: -16px;
+		padding-inline: 16px;
 	}
 
 	.sps-chooser {

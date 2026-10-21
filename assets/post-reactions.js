@@ -836,28 +836,71 @@
 		});
 	}
 
+	// The login page, coming back here after.
+	function loginHref() {
+		try {
+			var url = new window.URL(cfg.loginUrl, window.location.href);
+			if (!url.searchParams.has('redirect_to')) {
+				url.searchParams.set('redirect_to', window.location.href);
+			}
+			return safeUrl(url.href);
+		} catch (e) {
+			return safeUrl(cfg.loginUrl);
+		}
+	}
+
+	// The theme's login modal (Kadence Pro's account drawer, or the
+	// `seoprostack_lists_login_trigger` selector's button): the one shown,
+	// else any (the mobile header's works on wide screens too).
+	function loginTrigger() {
+		var found = cfg.loginTrigger ? all(cfg.loginTrigger) : [];
+		var shown = found.filter(function (node) {
+			return node.getClientRects().length;
+		});
+		return shown[0] || found[0] || null;
+	}
+
+	// Ask a visitor to log in: our dialogs close (they would cover the
+	// theme's modal), then its modal opens, or the login page.
+	function askLogin() {
+		var trigger = loginTrigger();
+		if (!trigger && !cfg.loginUrl) {
+			return false;
+		}
+		all('dialog[open]').forEach(function (dialog) {
+			if (dialog.hasAttribute('data-sps-panel') || dialog === chooser) {
+				dialog.close();
+			}
+		});
+		if (trigger) {
+			trigger.click();
+		} else {
+			window.location.assign(loginHref());
+		}
+		return true;
+	}
+
+	// Not logged in. Until the state arrives, WordPress's body class says.
+	function isVisitor() {
+		return ready ? !state.user : !document.body.classList.contains('logged-in');
+	}
+
 	function visitorNote() {
 		var note = el('p', 'sps-lists__note');
-		var login = cfg.loginUrl ? el('a', 'sps-lists__link', t.logIn) : null;
+		var login = cfg.loginUrl || loginTrigger() ? el('a', 'sps-lists__link', t.logIn) : null;
 		var register = cfg.registerUrl ? el('a', 'sps-lists__link', t.register) : null;
 		if (login) {
-			try {
-				var url = new window.URL(cfg.loginUrl, window.location.href);
-				if (!url.searchParams.has('redirect_to')) {
-					url.searchParams.set('redirect_to', window.location.href);
-				}
-				login.href = safeUrl(url.href);
-			} catch (e) {
-				login.href = safeUrl(cfg.loginUrl);
-			}
+			login.href = cfg.loginUrl ? loginHref() : '#';
+			login.setAttribute('data-sps-login', '');
 		}
 		if (register) {
 			register.href = safeUrl(cfg.registerUrl);
 		}
+		var gate = cfg.loginRequired;
 		if (login && register) {
-			note.appendChild(compose(t.visitorNote, [login, register]));
+			note.appendChild(compose(gate ? t.loginNote : t.visitorNote, [login, register]));
 		} else if (login) {
-			note.appendChild(compose(t.visitorNoteLogin, [login]));
+			note.appendChild(compose(gate ? t.loginNoteLogin : t.visitorNoteLogin, [login]));
 		} else {
 			note.textContent = t.visitorOnly;
 		}
@@ -1357,6 +1400,11 @@
 	// Like, Save, Add to shortlist and Share. True when the button was one.
 	function reactionClick(target) {
 		var group = target.closest('[data-sps-reactions]');
+		var keeps = target.hasAttribute('data-sps-like') || target.hasAttribute('data-sps-save') || target.hasAttribute('data-sps-shortlist');
+		// Log in to like and save (a setting): Share still works for all.
+		if (keeps && cfg.loginRequired && isVisitor() && askLogin()) {
+			return true;
+		}
 		if (target.hasAttribute('data-sps-like') && group) {
 			setOn(LIKED, Number(group.getAttribute('data-sps-reactions')), undefined, group).catch(noop);
 		} else if (target.hasAttribute('data-sps-save') && group) {
@@ -1407,10 +1455,47 @@
 		});
 	}
 
+	// The same page, ignoring the query and a trailing slash.
+	function samePage(a, b) {
+		try {
+			var x = new window.URL(a, window.location.href);
+			var y = new window.URL(b, window.location.href);
+			return x.origin === y.origin && x.pathname.replace(/\/+$/, '') === y.pathname.replace(/\/+$/, '');
+		} catch (e) {
+			return false;
+		}
+	}
+
+	// Links: Log in (the theme's modal, where there is one), and links to
+	// the Your lists page, which open the lists modal from other pages. A
+	// new tab or window (modifier keys) keeps the link.
+	function linkClick(link, event) {
+		if (event.defaultPrevented || event.button || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) {
+			return false;
+		}
+		if (link.hasAttribute('data-sps-login') && loginTrigger()) {
+			event.preventDefault();
+			askLogin();
+			return true;
+		}
+		var modal = cfg.listsUrl ? document.querySelector('[data-sps-lists-modal]') : null;
+		if (!modal || !modal.showModal || modal.open || !samePage(link.href, cfg.listsUrl) || samePage(window.location.href, cfg.listsUrl)) {
+			return false;
+		}
+		event.preventDefault();
+		modal.spsTrigger = link;
+		modal.showModal();
+		return true;
+	}
+
 	document.addEventListener('click', function (event) {
 		closeMenus(event.target);
 		if (event.target && event.target.tagName === 'DIALOG' && (event.target.hasAttribute('data-sps-panel') || event.target === chooser)) {
 			closeOnBackdrop(event.target, event);
+			return;
+		}
+		var link = event.target && event.target.closest ? event.target.closest('a[href]') : null;
+		if (link && linkClick(link, event)) {
 			return;
 		}
 		var target = event.target && event.target.closest ? event.target.closest('button') : null;
