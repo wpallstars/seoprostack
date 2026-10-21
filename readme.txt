@@ -5,7 +5,7 @@ Tags: magic login, iframe, schedule posts, auto upload images, admin
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.3.65
+Stable tag: 1.3.66
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -151,7 +151,7 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 
 == Changelog ==
 
-= 1.3.65 =
-* Developers: core files from WP Plugin Starter 1.0.41; Free Plugins keeps the whole screen with the new wide tab option, and the plugin no longer restyles core classes.
+= 1.3.66 =
+* New: Like, save and share has icon-only buttons and a "12 Likes · 3 Shortlists" line for plugins and themes; Your lists rows line up under Select all.
 
 Older: `changelog.txt`.

@@ -449,6 +449,9 @@
 					showCount(postId, res.count);
 				}
 				saved(res);
+				if (listId !== LIKED) {
+					tallyFrom(before);
+				}
 			}, failed(before, where));
 		});
 	}
@@ -482,6 +485,7 @@
 				if (state.user && (from === LIKED || to === LIKED)) {
 					refreshCounts();
 				}
+				tallyFrom(before);
 				return posts.length;
 			}, failed(before, where));
 		});
@@ -494,11 +498,13 @@
 				say(where, tooManyText());
 				return Promise.reject(new Error('too_many'));
 			}
+			var before = snapshot();
 			if (state.user) {
 				return send('create', { name: name, post: postId || '' }).then(function (res) {
 					saved(res);
+					tallyFrom(before);
 					return String(res.id || '');
-				}, failed(snapshot(), where));
+				}, failed(before, where));
 			}
 			var id = existing ? existing.id : newId();
 			if (!existing) {
@@ -508,6 +514,7 @@
 				localChange(id, [postId], true);
 			}
 			saved(null);
+			tallyFrom(before);
 			return Promise.resolve(id);
 		});
 	}
@@ -544,7 +551,10 @@
 				return each !== list;
 			});
 			changed();
-			return remote('delete', { list: id }).then(saved, failed(before, where));
+			return remote('delete', { list: id }).then(function (res) {
+				saved(res);
+				tallyFrom(before);
+			}, failed(before, where));
 		});
 	}
 
@@ -558,7 +568,10 @@
 			var before = snapshot();
 			list.posts = [];
 			changed();
-			return remote('clear', {}).then(saved, failed(before, where));
+			return remote('clear', {}).then(function (res) {
+				saved(res);
+				tallyFrom(before);
+			}, failed(before, where));
 		});
 	}
 
@@ -571,6 +584,59 @@
 		all('[data-sps-reactions="' + id + '"] [data-sps-count], [data-sps-total="' + id + '"]').forEach(function (node) {
 			node.textContent = format(count);
 		});
+		showTally(id, 'likes', count);
+	}
+
+	function showListed(id, count) {
+		showTally(id, 'listed', count);
+	}
+
+	// "12 Likes · 3 Shortlists" (tallies()): one total in it.
+	function showTally(id, which, count) {
+		var n = Number(count);
+		if (count === undefined || !isFinite(n)) {
+			return;
+		}
+		var many = which === 'likes' ? t.likesMany : t.listedMany;
+		var one = which === 'likes' ? t.likesOne : t.listedOne;
+		all('[data-sps-tallies="' + id + '"] [data-sps-tally="' + which + '"]').forEach(function (node) {
+			node.textContent = (n === 1 ? one : many).replace('%s', format(n));
+		});
+	}
+
+	/* ----- Shortlist totals ----- */
+
+	// Posts on at least one named list (Liked is not a shortlist).
+	function listedIn(lists) {
+		var out = [];
+		lists.forEach(function (list) {
+			list.posts.forEach(function (id) {
+				if (!has(out, id)) {
+					out.push(id);
+				}
+			});
+		});
+		return out;
+	}
+
+	// After a change of the person's own: posts that joined their first
+	// named list, or left their last, change the public shortlist totals.
+	// Best effort, after the change itself, so it never holds it up.
+	function tallyFrom(before) {
+		var was = listedIn(before.lists);
+		var now = listedIn(state.lists);
+		var changes = minus(now, was).map(function (id) {
+			return { id: id, on: true };
+		}).concat(minus(was, now).map(function (id) {
+			return { id: id, on: false };
+		}));
+		changes.reduce(function (done, change) {
+			return done.then(function () {
+				return send('listed', { post: change.id, on: change.on ? '1' : '0' }).then(function (res) {
+					showListed(change.id, res.listed);
+				}, noop);
+			});
+		}, Promise.resolve());
 	}
 
 	function label(node, text) {
@@ -638,6 +704,9 @@
 		send('state', { posts: pageIds.join(',') }).then(function (res) {
 			Object.keys(res.counts || {}).forEach(function (id) {
 				showCount(id, res.counts[id]);
+			});
+			Object.keys(res.listed || {}).forEach(function (id) {
+				showListed(id, res.listed[id]);
 			});
 		}, noop);
 	}
@@ -1476,8 +1545,8 @@
 	/* ----- Start ----- */
 
 	var pageIds = [];
-	all('[data-sps-reactions], [data-sps-total]').forEach(function (node) {
-		var id = Number(node.getAttribute('data-sps-reactions') || node.getAttribute('data-sps-total'));
+	all('[data-sps-reactions], [data-sps-total], [data-sps-tallies]').forEach(function (node) {
+		var id = Number(node.getAttribute('data-sps-reactions') || node.getAttribute('data-sps-total') || node.getAttribute('data-sps-tallies'));
 		if (id && !has(pageIds, id)) {
 			pageIds.push(id);
 		}
@@ -1498,6 +1567,9 @@
 		return send('state', { posts: pageIds.join(',') }).then(function (res) {
 			Object.keys(res.counts || {}).forEach(function (id) {
 				showCount(id, res.counts[id]);
+			});
+			Object.keys(res.listed || {}).forEach(function (id) {
+				showListed(id, res.listed[id]);
 			});
 			var stored = readLocal();
 			if (!res.user) {

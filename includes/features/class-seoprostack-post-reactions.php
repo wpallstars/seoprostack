@@ -41,6 +41,14 @@ class SEOProStack_Post_Reactions extends SEOProStack_Feature {
     /** Post meta: like total. */
     const LIKES = '_seoprostack_likes';
 
+    /**
+     * Post meta: shortlist total, how many people have the post on one of
+     * their named lists (not Liked). Browsers report when a post joins their
+     * first list or leaves their last (do=listed), as visitors' lists stay
+     * in the browser; rate-limited like likes.
+     */
+    const LISTED = '_seoprostack_listed';
+
     /** User option (per site): saved post IDs. */
     const SAVED = 'seoprostack_saved';
 
@@ -315,6 +323,14 @@ class SEOProStack_Post_Reactions extends SEOProStack_Feature {
                 'emptyList' => __('Nothing here yet.', 'seoprostack'),
                 'like'     => __('Like', 'seoprostack'),
                 'liked'    => __('Liked', 'seoprostack'),
+                /* translators: %s: number of likes (one). */
+                'likesOne' => _n('%s Like', '%s Likes', 1, 'seoprostack'),
+                /* translators: %s: number of likes. */
+                'likesMany' => _n('%s Like', '%s Likes', 2, 'seoprostack'),
+                /* translators: %s: number of people who shortlisted it (one). */
+                'listedOne' => _n('%s Shortlist', '%s Shortlists', 1, 'seoprostack'),
+                /* translators: %s: number of people who shortlisted it. */
+                'listedMany' => _n('%s Shortlist', '%s Shortlists', 2, 'seoprostack'),
                 'save'     => __('Save', 'seoprostack'),
                 'saved'    => __('Saved', 'seoprostack'),
                 'copied'   => __('Link copied', 'seoprostack'),
@@ -381,7 +397,9 @@ class SEOProStack_Post_Reactions extends SEOProStack_Feature {
      * The buttons for one post.
      *
      * @param int   $post_id Post ID.
-     * @param array $show    like, save, share => bool.
+     * @param array $show    like, save, share => bool; icons => true for
+     *                       icon-only buttons (the words stay for screen
+     *                       readers; the like total is hidden: tallies()).
      * @param string $extra  Extra wrapper attributes (already escaped HTML), or ''.
      * @return string
      */
@@ -390,7 +408,7 @@ class SEOProStack_Post_Reactions extends SEOProStack_Feature {
         if (!$post || !self::can_react($post->ID)) {
             return '';
         }
-        $show = wp_parse_args($show, array('like' => true, 'save' => true, 'share' => true));
+        $show = wp_parse_args($show, array('like' => true, 'save' => true, 'share' => true, 'icons' => false));
         self::enqueue();
         $count = self::likes($post->ID);
         $html  = '';
@@ -398,7 +416,7 @@ class SEOProStack_Post_Reactions extends SEOProStack_Feature {
             $html .= '<button type="button" class="sps-reactions__button sps-reactions__like" data-sps-like aria-pressed="false">'
                 . self::icon('heart')
                 . '<span class="sps-reactions__label">' . esc_html__('Like', 'seoprostack') . '</span>'
-                . '<span class="sps-reactions__count" data-sps-count>' . esc_html(number_format_i18n($count)) . '</span>'
+                . ($show['icons'] ? '' : '<span class="sps-reactions__count" data-sps-count>' . esc_html(number_format_i18n($count)) . '</span>')
                 . '</button>';
         }
         if ($show['save']) {
@@ -417,9 +435,46 @@ class SEOProStack_Post_Reactions extends SEOProStack_Feature {
             return '';
         }
         if ('' === $extra) {
-            $extra = 'class="sps-reactions"';
+            $extra = 'class="sps-reactions' . ($show['icons'] ? ' sps-reactions--icons' : '') . '"';
         }
         return '<div ' . $extra . ' data-sps-reactions="' . (int) $post->ID . '" role="group" aria-label="' . esc_attr__('Like, save and share', 'seoprostack') . '">' . $html . '<span class="sps-reactions__status" role="status" aria-live="polite"></span></div>';
+    }
+
+    /**
+     * A post's totals as one line: "12 Likes · 3 Shortlists". Printed with
+     * the stored totals; the script keeps them current, so cached pages
+     * catch up.
+     *
+     * @param int $post_id Post ID.
+     * @return string HTML; '' when the post cannot be liked or saved.
+     */
+    public static function tallies($post_id) {
+        $post_id = (int) $post_id;
+        if (!self::can_react($post_id)) {
+            return '';
+        }
+        self::enqueue();
+        return '<p class="sps-tallies" data-sps-tallies="' . $post_id . '">'
+            . '<span class="sps-tallies__likes" data-sps-tally="likes">' . esc_html(self::tally_text('likes', self::likes($post_id))) . '</span>'
+            . '<span class="sps-tallies__sep" aria-hidden="true"> · </span>'
+            . '<span class="sps-tallies__listed" data-sps-tally="listed">' . esc_html(self::tally_text('listed', self::listed($post_id))) . '</span>'
+            . '</p>';
+    }
+
+    /**
+     * "1 Like", "12 Likes", "1 Shortlist", "3 Shortlists".
+     *
+     * @param string $which likes or listed.
+     * @param int    $n     Total.
+     * @return string
+     */
+    private static function tally_text($which, $n) {
+        $n = max(0, (int) $n);
+        /* translators: %s: number of likes. */
+        $likes = _n('%s Like', '%s Likes', $n, 'seoprostack');
+        /* translators: %s: number of people who shortlisted it. */
+        $listed = _n('%s Shortlist', '%s Shortlists', $n, 'seoprostack');
+        return sprintf('likes' === $which ? $likes : $listed, number_format_i18n($n));
     }
 
     /**
@@ -814,6 +869,29 @@ class SEOProStack_Post_Reactions extends SEOProStack_Feature {
     }
 
     /**
+     * Shortlist total: how many people have the post on a named list.
+     *
+     * @param int $post_id Post ID.
+     * @return int
+     */
+    public static function listed($post_id) {
+        return max(0, (int) get_post_meta($post_id, self::LISTED, true));
+    }
+
+    /**
+     * Change a shortlist total.
+     *
+     * @param int $post_id Post ID.
+     * @param int $delta   +1 or -1.
+     * @return int New total.
+     */
+    private static function add_listed($post_id, $delta) {
+        $count = max(0, self::listed($post_id) + $delta);
+        update_post_meta($post_id, self::LISTED, $count);
+        return $count;
+    }
+
+    /**
      * Whether a post can be liked or saved by the current visitor.
      *
      * @param int $post_id Post ID.
@@ -970,8 +1048,9 @@ class SEOProStack_Post_Reactions extends SEOProStack_Feature {
      *
      * Logged-in people's changes need the nonce from the state call (the
      * page may be cached, so it is never printed in the page). Visitors have
-     * nothing on the server but like totals: their lists are in their
-     * browser, and only state, like and list are theirs to use.
+     * nothing on the server but like and shortlist totals: their lists are
+     * in their browser, and only state, like, listed and list are theirs to
+     * use.
      */
     public static function ajax() {
         // phpcs:disable WordPress.Security.NonceVerification.Missing -- checked below for logged-in changes; visitors' requests change only rate-limited totals.
@@ -999,7 +1078,7 @@ class SEOProStack_Post_Reactions extends SEOProStack_Feature {
         if ($user && 'state' !== $do && !check_ajax_referer(self::AJAX, 'nonce', false)) {
             wp_send_json_error(array('message' => 'nonce'), 403);
         }
-        if (!$user && !in_array($do, array('state', 'like', 'list'), true)) {
+        if (!$user && !in_array($do, array('state', 'like', 'listed', 'list'), true)) {
             wp_send_json_error(null, 401);
         }
         $allowed = static function ($id) {
@@ -1009,12 +1088,14 @@ class SEOProStack_Post_Reactions extends SEOProStack_Feature {
         switch ($do) {
             case 'state':
                 $counts = array();
+                $listed = array();
                 foreach (array_slice($ids, 0, 100) as $id) {
                     if (self::can_react($id)) {
                         $counts[$id] = self::likes($id);
+                        $listed[$id] = self::listed($id);
                     }
                 }
-                $data = array('counts' => (object) $counts, 'user' => false);
+                $data = array('counts' => (object) $counts, 'listed' => (object) $listed, 'user' => false);
                 if ($user) {
                     $data = array_merge($data, self::lists_payload($user), array('user' => true, 'nonce' => wp_create_nonce(self::AJAX)));
                 }
@@ -1040,6 +1121,18 @@ class SEOProStack_Post_Reactions extends SEOProStack_Feature {
                 }
                 self::add_like($post, $on ? 1 : -1);
                 wp_send_json_success(array('count' => self::likes($post)));
+                break;
+
+            case 'listed':
+                // A post joined this browser's first named list, or left its
+                // last: the public shortlist total only.
+                if (!self::can_react($post)) {
+                    wp_send_json_error(null, 404);
+                }
+                if (self::rate_limited()) {
+                    wp_send_json_error(null, 429);
+                }
+                wp_send_json_success(array('listed' => self::add_listed($post, $on ? 1 : -1)));
                 break;
 
             case 'save':

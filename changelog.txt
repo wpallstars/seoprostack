@@ -2,6 +2,10 @@
 
 Every change to SEO Pro Stack. readme.txt lists the latest version in short.
 
+= 1.3.66 =
+* New: Like, save and share keeps a shortlist total for each post: how many people have it on one of their named lists (Liked is not one). Browsers report a post joining their first named list or leaving their last, rate-limited like likes, as visitors' lists stay in their browser. SEOProStack_Post_Reactions::tallies( $post_id ) prints "12 Likes · 3 Shortlists", which the script keeps current on cached pages, and buttons() takes 'icons' => true for icon-only buttons (the words kept for screen readers, the like total left to tallies()) (GitHub issue #893).
+* Fix: Your lists shows each post's tick box under Select all, its photo beside it and its lines under its title, whatever list indent and paragraph spacing the theme sets (GitHub issue #893).
+
 = 1.3.65 =
 * Developers: core files from WP Plugin Starter 1.0.41 (GH#532): sps-code (the server rules Hardening and Next-gen images print) and sps-main--wide are public core classes, and Free Plugins uses the whole screen through the tab's 'wide' => true instead of restyling .sps-main. The plugin's dark rules no longer restyle .sps-wrap or animate the internal .sps-header, and release preflight (Core class names) no longer warns on the whole-admin dark palette or on class names in comments (GitHub issue #873).
 
