@@ -292,6 +292,7 @@ class SEOProStack_Post_Reactions extends SEOProStack_Feature {
                 'moveTo' => __('Move selected to', 'seoprostack'),
                 'move' => __('Move', 'seoprostack'),
                 'removeSelected' => __('Remove selected', 'seoprostack'),
+                'moreActions' => __('More actions', 'seoprostack'),
                 'selectFirst' => __('Select at least one first.', 'seoprostack'),
                 /* translators: %d: how many posts. */
                 'moved' => __('Moved %d.', 'seoprostack'),

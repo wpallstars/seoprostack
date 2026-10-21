@@ -280,6 +280,71 @@
 	margin-inline-start: auto;
 }
 
+/* The toolbar's right: other plugins' actions ("Message selected"), then
+   More actions, whose list opens under it. */
+.sps-lists__toolbar {
+	position: relative;
+}
+
+.sps-lists__end {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 8px;
+	margin-inline-start: auto;
+}
+
+.sps-lists__end > .sps-lists__actions {
+	display: contents;
+}
+
+.sps-lists__more {
+	min-width: 44px;
+	justify-content: center;
+	font-size: 1.25em;
+	font-weight: 700;
+	line-height: 1;
+}
+
+.sps-lists__menu {
+	position: absolute;
+	inset-block-start: calc(100% + 4px);
+	inset-inline-end: 0;
+	z-index: 20;
+	display: grid;
+	gap: 4px;
+	min-width: min(18rem, 100%);
+	padding: 8px;
+	border: 1px solid rgb(127 127 127 / 30%);
+	border-radius: 8px;
+	background: var(--global-palette9, Canvas);
+	color: var(--global-palette3, CanvasText);
+	box-shadow: 0 16px 40px rgb(0 0 0 / 18%);
+}
+
+.sps-lists__menu[hidden] {
+	display: none;
+}
+
+.sps-lists__menu .sps-lists__row {
+	display: grid;
+	gap: 4px;
+	padding: 4px 4px 8px;
+	border-bottom: 1px solid rgb(127 127 127 / 20%);
+}
+
+.sps-lists__menu .sps-lists__pick select {
+	flex: 1 1 auto;
+	max-width: none;
+}
+
+.sps-lists__menu-item {
+	justify-content: flex-start;
+	width: 100%;
+	border-color: transparent;
+	text-align: start;
+}
+
 .sps-lists__all {
 	display: inline-flex;
 	align-items: center;
