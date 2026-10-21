@@ -131,6 +131,32 @@
 	display: none;
 }
 
+/* Icon-only buttons (buttons() with icons): a square, its word kept for
+   screen readers. */
+.sps-reactions--icons .sps-reactions__button {
+	justify-content: center;
+	min-width: 44px;
+	min-height: 44px;
+	padding: 0.5em;
+}
+
+.sps-reactions--icons .sps-reactions__label {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	overflow: hidden;
+	clip-path: inset(50%);
+	white-space: nowrap;
+}
+
+/* "12 Likes · 3 Shortlists" (tallies()). */
+.sps-tallies {
+	margin: 0;
+	font-size: 0.9em;
+	font-variant-numeric: tabular-nums;
+	opacity: 0.85;
+}
+
 /* Saved posts */
 
 .sps-saved__list {
@@ -407,6 +433,61 @@
 
 .sps-lists .sps-saved__item {
 	overflow-wrap: anywhere;
+}
+
+/* A list's posts: tick box, photo, then the title over its lines, each on
+   its own column, so tick boxes line up under "Select all" and the lines
+   start under the title. Element and class in the selectors: themes indent
+   lists and space paragraphs in content (Kadence: .single-content ul, p),
+   which pushed the rows right of "Select all" and set each line apart. */
+.sps-lists ul.sps-saved__list {
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.sps-lists ul.sps-saved__list > li.sps-saved__item {
+	display: grid;
+	grid-template-columns: auto auto minmax(0, 1fr) auto;
+	align-items: center;
+	gap: 0.15em 0;
+	margin: 0;
+}
+
+.sps-lists .sps-saved__item > .sps-saved__select,
+.sps-lists .sps-saved__item > img,
+.sps-lists .sps-saved__item > .sps-saved__remove {
+	grid-row: 1 / span 4;
+}
+
+.sps-lists .sps-saved__item > .sps-saved__select {
+	grid-column: 1;
+	margin-inline-end: 16px;
+}
+
+.sps-lists .sps-saved__item > img {
+	grid-column: 2;
+	margin-inline-end: 16px;
+}
+
+.sps-lists .sps-saved__item > .sps-saved__link,
+.sps-lists .sps-saved__item > p.sps-saved__excerpt {
+	grid-column: 3;
+	margin: 0;
+}
+
+.sps-lists .sps-saved__item > .sps-saved__link {
+	align-self: end;
+}
+
+.sps-lists .sps-saved__item > p.sps-saved__excerpt {
+	align-self: start;
+	line-height: 1.45;
+}
+
+.sps-lists .sps-saved__item > .sps-saved__remove {
+	grid-column: 4;
+	margin-inline-start: 16px;
 }
 
 .sps-lists .sps-saved__link {

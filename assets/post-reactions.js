@@ -394,6 +394,7 @@
 
 	// Keep a change: the server's lists, or this browser's.
 	function saved(res) {
+		showTallies(res);
 		if (state.user) {
 			apply(res);
 			write(KEY_SYNC, String(Date.now()) + ':' + token(8));
@@ -419,6 +420,7 @@
 			return done.then(function () {
 				return send('like', { post: id, on: on ? '1' : '0' }).then(function (res) {
 					showCount(id, res.count);
+					showTallies(res);
 				}, noop);
 			});
 		}, Promise.resolve());
@@ -449,6 +451,9 @@
 					showCount(postId, res.count);
 				}
 				saved(res);
+				if (listId !== LIKED) {
+					tallyFrom(before);
+				}
 			}, failed(before, where));
 		});
 	}
@@ -482,6 +487,7 @@
 				if (state.user && (from === LIKED || to === LIKED)) {
 					refreshCounts();
 				}
+				tallyFrom(before);
 				return posts.length;
 			}, failed(before, where));
 		});
@@ -494,11 +500,13 @@
 				say(where, tooManyText());
 				return Promise.reject(new Error('too_many'));
 			}
+			var before = snapshot();
 			if (state.user) {
 				return send('create', { name: name, post: postId || '' }).then(function (res) {
 					saved(res);
+					tallyFrom(before);
 					return String(res.id || '');
-				}, failed(snapshot(), where));
+				}, failed(before, where));
 			}
 			var id = existing ? existing.id : newId();
 			if (!existing) {
@@ -508,6 +516,7 @@
 				localChange(id, [postId], true);
 			}
 			saved(null);
+			tallyFrom(before);
 			return Promise.resolve(id);
 		});
 	}
@@ -544,7 +553,10 @@
 				return each !== list;
 			});
 			changed();
-			return remote('delete', { list: id }).then(saved, failed(before, where));
+			return remote('delete', { list: id }).then(function (res) {
+				saved(res);
+				tallyFrom(before);
+			}, failed(before, where));
 		});
 	}
 
@@ -558,7 +570,10 @@
 			var before = snapshot();
 			list.posts = [];
 			changed();
-			return remote('clear', {}).then(saved, failed(before, where));
+			return remote('clear', {}).then(function (res) {
+				saved(res);
+				tallyFrom(before);
+			}, failed(before, where));
 		});
 	}
 
@@ -571,6 +586,57 @@
 		all('[data-sps-reactions="' + id + '"] [data-sps-count], [data-sps-total="' + id + '"]').forEach(function (node) {
 			node.textContent = format(count);
 		});
+	}
+
+	// "12 Likes · 3 Shortlists" (tallies()): the server's words, as only
+	// it knows the language's plural forms.
+	function showTallies(res) {
+		var tallies = res && res.tallies && typeof res.tallies === 'object' ? res.tallies : {};
+		Object.keys(tallies).forEach(function (id) {
+			['likes', 'listed'].forEach(function (which) {
+				if (typeof tallies[id][which] !== 'string') {
+					return;
+				}
+				all('[data-sps-tallies="' + Number(id) + '"] [data-sps-tally="' + which + '"]').forEach(function (node) {
+					node.textContent = tallies[id][which];
+				});
+			});
+		});
+	}
+
+	/* ----- Shortlist totals ----- */
+
+	// Posts on at least one named list (Liked is not a shortlist).
+	function listedIn(lists) {
+		var out = [];
+		lists.forEach(function (list) {
+			list.posts.forEach(function (id) {
+				if (!has(out, id)) {
+					out.push(id);
+				}
+			});
+		});
+		return out;
+	}
+
+	// After a visitor's own change: posts that joined their first named
+	// list, or left their last, change the public shortlist totals, in one
+	// request each way (the server counts logged-in people's). Best effort,
+	// after the change itself, so it never holds it up.
+	function tallyFrom(before) {
+		if (state.user) {
+			return;
+		}
+		var was = listedIn(before.lists);
+		var now = listedIn(state.lists);
+		[[minus(now, was), '1'], [minus(was, now), '0']].reduce(function (done, change) {
+			if (!change[0].length) {
+				return done;
+			}
+			return done.then(function () {
+				return send('listed', { posts: change[0].join(','), on: change[1] }).then(showTallies, noop);
+			});
+		}, Promise.resolve());
 	}
 
 	function label(node, text) {
@@ -639,6 +705,7 @@
 			Object.keys(res.counts || {}).forEach(function (id) {
 				showCount(id, res.counts[id]);
 			});
+			showTallies(res);
 		}, noop);
 	}
 
@@ -1476,8 +1543,8 @@
 	/* ----- Start ----- */
 
 	var pageIds = [];
-	all('[data-sps-reactions], [data-sps-total]').forEach(function (node) {
-		var id = Number(node.getAttribute('data-sps-reactions') || node.getAttribute('data-sps-total'));
+	all('[data-sps-reactions], [data-sps-total], [data-sps-tallies]').forEach(function (node) {
+		var id = Number(node.getAttribute('data-sps-reactions') || node.getAttribute('data-sps-total') || node.getAttribute('data-sps-tallies'));
 		if (id && !has(pageIds, id)) {
 			pageIds.push(id);
 		}
@@ -1499,6 +1566,7 @@
 			Object.keys(res.counts || {}).forEach(function (id) {
 				showCount(id, res.counts[id]);
 			});
+			showTallies(res);
 			var stored = readLocal();
 			if (!res.user) {
 				state.user = false;
