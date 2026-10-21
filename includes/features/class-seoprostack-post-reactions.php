@@ -948,7 +948,7 @@ class SEOProStack_Post_Reactions extends SEOProStack_Feature {
     public static function seed_listed() {
         // add_option() fails when the row exists, so of two requests at
         // once only one counts.
-        if (false !== get_option(self::LISTED_SEEDED, false) || !add_option(self::LISTED_SEEDED, (string) time(), '', 'yes')) {
+        if (false !== get_option(self::LISTED_SEEDED, false) || !add_option(self::LISTED_SEEDED, (string) time(), '', true)) {
             return;
         }
         global $wpdb;
