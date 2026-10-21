@@ -7,7 +7,7 @@
 [![CI](https://github.com/wpallstars/seoprostack/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/wpallstars/seoprostack/actions/workflows/ci.yml)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=wpallstars_seoprostack&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=wpallstars_seoprostack)
 [![License: GPL v3 or later](https://img.shields.io/badge/License-GPL%20v3%20or%20later-blue.svg)](LICENSE)
-[![Latest release](https://img.shields.io/badge/release-v1.3.63-blue.svg)](https://github.com/wpallstars/seoprostack/releases)
+[![Latest release](https://img.shields.io/badge/release-v1.3.64-blue.svg)](https://github.com/wpallstars/seoprostack/releases)
 
 [![Requires WordPress](https://img.shields.io/badge/WordPress-6.2%2B-21759B.svg?logo=wordpress)](readme.txt)
 [![Tested up to](https://img.shields.io/badge/tested%20up%20to-7.1-21759B.svg?logo=wordpress)](readme.txt)
@@ -24,7 +24,7 @@ SEO Pro Stack does the jobs that usually take dozens of small plugins: a calmer,
 
 If this saves you time, headaches and costs, feel free to [buy me a coffee](https://buymeacoffee.com/marcusquinn), or whatever you like, to invest in making more things open-source.
 
-Version: 1.3.63
+Version: 1.3.64
 
 <!-- github-only:start -->
 ## Screenshots
@@ -1872,7 +1872,7 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folderâ
 
 ## Changelog
 
-### Unreleased
+### 1.3.64
 - Fix: Hosting needs hides SEO Pro Analytics and SEO Pro Stats' matching WP-Cron advice only on Dashboard and Plugins, for administrators who get its replacement notice. Their advice stays available on other screens (GitHub issue #884).
 - Fix: **Media in cloud storage** keeps successful uploads in its inventory when transport memory use changes the file-size allowance. A group with only time-budget (`storage_budget`) errors retries after one minute without counting a failed attempt or reporting a new error; successful files stay confirmed. A group with a real failure keeps the normal retry back-off (GitHub issue #886).
 - Developers: core files from WP Plugin Starter (GH#532). `sps-code` and `sps-main--wide` are public core classes; Free Plugins uses the whole screen with the tab's `'wide' => true` instead of restyling `.sps-main`, and the plugin's dark rules no longer restyle `.sps-wrap` or animate the internal `.sps-header`. Release preflight (Core class names) is clean (GitHub issue #873).
