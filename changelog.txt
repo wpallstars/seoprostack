@@ -2,7 +2,7 @@
 
 Every change to SEO Pro Stack. readme.txt lists the latest version in short.
 
-= Unreleased =
+= 1.3.64 =
 * Fix: Hosting needs hides SEO Pro Analytics and SEO Pro Stats' matching WP-Cron advice only on the Dashboard and Plugins screens, for administrators who get its replacement notice. Their advice stays available on their own screens and everywhere else (GitHub issue #884).
 * Fix: Media in cloud storage keeps successful uploads in its inventory when transport memory use changes the file-size allowance. A group with only time-budget (storage_budget) errors retries after one minute without counting a failed attempt or reporting a new error; successful files stay confirmed. A group with a real failure keeps the normal retry back-off (GitHub issue #886).
 * Change: The toolbar of Your lists shows one main action. Actions other plugins add (seoprostack_lists_actions, such as Message selected) sit next to the More actions (⋯) button, which opens Move selected to, Remove selected, Rename list and Delete list. Escape or a click outside closes it (GitHub issue #890).
