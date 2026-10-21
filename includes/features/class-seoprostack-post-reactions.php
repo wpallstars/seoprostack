@@ -33,6 +33,7 @@ if (!defined('ABSPATH')) {
 }
 
 require_once dirname(__DIR__) . '/class-seoprostack-reaction-lists.php';
+require_once dirname(__DIR__) . '/class-seoprostack-reaction-access.php';
 
 class SEOProStack_Post_Reactions extends SEOProStack_Feature {
 
@@ -86,6 +87,15 @@ class SEOProStack_Post_Reactions extends SEOProStack_Feature {
     /** Setting: Kadence palette colour for the buttons ('' = text colour). */
     const COLOUR = 'post_reactions_colour';
 
+    /** Setting: visitors log in to like and save. */
+    const LOGIN = 'post_reactions_login';
+
+    /** Setting: links to the Your lists page open the lists in a modal. */
+    const MODAL = 'post_reactions_lists_modal';
+
+    /** Setting: a Your lists tab in WooCommerce's My Account. */
+    const ACCOUNT = 'post_reactions_account_tab';
+
     /** Most posts kept in one saved list. */
     const MAX_SAVED = 500;
 
@@ -122,6 +132,27 @@ class SEOProStack_Post_Reactions extends SEOProStack_Feature {
                 'label'       => __('Button colour', 'seoprostack'),
                 'description' => __('A colour from the Kadence theme’s palette, so it follows its dark mode. Also in Customize → Colors & Fonts → Colors. Other themes use the text colour.', 'seoprostack'),
                 'options'     => array(__CLASS__, 'colour_options'),
+            ),
+            self::LOGIN => array(
+                'type'        => 'bool',
+                'default'     => false,
+                'parent'      => self::KEY,
+                'label'       => __('Log in to like and save', 'seoprostack'),
+                'description' => __('A visitor who presses Like, Save or Add to shortlist is asked to log in: the theme’s login modal opens (Kadence Pro’s header account item), or else the login page, which returns them to the page. Share still works for everyone. Off: visitors’ likes and lists stay in their browser until they log in.', 'seoprostack'),
+            ),
+            self::MODAL => array(
+                'type'        => 'bool',
+                'default'     => false,
+                'parent'      => self::KEY,
+                'label'       => __('Open Your lists in a modal', 'seoprostack'),
+                'description' => __('Links to the page holding the Your lists block, such as a header Shortlist button, open the lists in a modal over the page (full screen on phones). The page still opens on its own.', 'seoprostack'),
+            ),
+            self::ACCOUNT => array(
+                'type'        => 'bool',
+                'default'     => false,
+                'parent'      => self::KEY,
+                'label'       => __('Your lists in WooCommerce My Account', 'seoprostack'),
+                'description' => __('A tab in My Account with every list and what is on it, named like the Your lists page.', 'seoprostack'),
             ),
         );
     }
@@ -254,6 +285,7 @@ class SEOProStack_Post_Reactions extends SEOProStack_Feature {
         add_action('init', array(__CLASS__, 'seed_listed'), 30);
         // After the theme adds its sections.
         add_action('customize_register', array(__CLASS__, 'customize_register'), 20);
+        SEOProStack_Reaction_Access::boot((bool) SEOProStack_Settings::get(self::MODAL), (bool) SEOProStack_Settings::get(self::ACCOUNT));
     }
 
     /**
@@ -290,6 +322,11 @@ class SEOProStack_Post_Reactions extends SEOProStack_Feature {
             'nameMax' => SEOProStack_Reaction_Lists::NAME_MAX,
             'loginUrl' => $account['login'],
             'registerUrl' => $account['register'],
+            'loginRequired' => (bool) SEOProStack_Settings::get(self::LOGIN),
+            // Filter: `seoprostack_lists_login_trigger`, the selector of the
+            // theme's button that opens its login modal ('' for none).
+            'loginTrigger' => (string) apply_filters('seoprostack_lists_login_trigger', '.header-account-button[data-toggle-target]'),
+            'listsUrl' => SEOProStack_Settings::get(self::MODAL) ? SEOProStack_Reaction_Access::page_url() : '',
             'i18n'    => array(
                 'likedList' => __('Liked', 'seoprostack'),
                 'savedList' => __('Saved', 'seoprostack'),
@@ -326,6 +363,10 @@ class SEOProStack_Post_Reactions extends SEOProStack_Feature {
                 /* translators: %s: "Log in" link. */
                 'visitorNoteLogin' => __('Your lists are kept in this browser. %s to keep them on any device.', 'seoprostack'),
                 'visitorOnly' => __('Your lists are kept in this browser.', 'seoprostack'),
+                /* translators: 1: "Log in" link, 2: "register" link. */
+                'loginNote' => __('%1$s or %2$s to like and save.', 'seoprostack'),
+                /* translators: %s: "Log in" link. */
+                'loginNoteLogin' => __('%s to like and save.', 'seoprostack'),
                 'nameTaken' => __('You already have a list with that name.', 'seoprostack'),
                 /* translators: %s: list name. */
                 'removedFrom' => __('Removed from %s.', 'seoprostack'),
@@ -589,16 +630,26 @@ class SEOProStack_Post_Reactions extends SEOProStack_Feature {
     }
 
     /**
+     * Every list, for the lists modal and My Account (escaped HTML).
+     *
+     * @param string $context modal or account.
+     * @return string
+     */
+    public static function lists_markup($context) {
+        return self::lists_box((string) $context);
+    }
+
+    /**
      * Every list, with tabs, selection, bulk Move and Remove, and the
      * actions other plugins add. Printed empty: the script fills it, so the
      * page may be cached.
      *
-     * Actions: `seoprostack_lists_actions` (HTML, and `panel` or `block`),
-     * after `seoprostack_saved_panel_actions` (HTML, `shortlist`), which
-     * runs once here for plugins written for the earlier panel. Return
-     * static HTML, never personal data.
+     * Actions: `seoprostack_lists_actions` (HTML, and `panel`, `block`,
+     * `modal` or `account`), after `seoprostack_saved_panel_actions` (HTML,
+     * `shortlist`), which runs once here for plugins written for the
+     * earlier panel. Return static HTML, never personal data.
      *
-     * @param string $context panel or block.
+     * @param string $context panel, block, modal or account.
      * @param string $extra   Wrapper attributes (escaped), or ''.
      * @return string
      */
