@@ -151,6 +151,9 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 
 == Changelog ==
 
+= Unreleased =
+* Fix: Dark mode for update progress.
+
 = 1.3.69 =
 * New: Developer admins says why pasted embed code (scripts, forms) is removed, and leaves none of it on the page as text.
 
