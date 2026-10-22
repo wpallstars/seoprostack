@@ -53,10 +53,11 @@ final class SEOProStack_Editor_Settings {
      *            (an OAuth reply, a reconnect link): refused.
      */
     const RULES = array(
-        // Payments, Integration (MaxMind licence key), REST API keys and
+        // Payments (and payment plugins' own pages: PayPal by Payment
+        // Plugins), Integration (MaxMind licence key), REST API keys and
         // webhooks, Status (logs, tools) and Extensions are administrators'.
         'woocommerce'    => array(
-            'admin' => '~^(wc-status|wc-addons)$|^wc-settings/(checkout|integration|advanced/(keys|webhooks))(/|$)|^wc-admin#/(payments|extensions|marketplace)~',
+            'admin' => '~^(wc-status|wc-addons|wc-ppcp-main)$|^wc-settings/(checkout|integration|advanced/(keys|webhooks))(/|$)|^wc-admin#/(payments|extensions|marketplace)~',
             'read'  => '~^wc-settings$~',
             'all'   => '~^/wc/v[0-9]+/(payment_gateways|system_status|webhooks|settings/(checkout|integration|advanced))|^/wc-admin/settings/payments~',
             'write' => '~^/wc/v[0-9]+/(settings|taxes|shipping|shipping_methods)(/|$)|^/wc-admin/settings~',
