@@ -559,8 +559,9 @@ class SEOProStack_Editor_Access extends SEOProStack_Feature {
             return;
         }
         // fluentsmtp_urgent: FluentSMTP's screen removes every other notice.
+        // sps-keep: it stays on the page, not behind the megaphone.
         printf(
-            '<div class="notice notice-info fluentsmtp_urgent"><p>%s</p></div>',
+            '<div class="notice notice-info fluentsmtp_urgent sps-keep"><p>%s</p></div>',
             esc_html__('You can see FluentSMTP’s connections and email logs, and resend failed emails. If something here needs changing, please ask an administrator: settings you change here are not saved.', 'seoprostack')
         );
     }
