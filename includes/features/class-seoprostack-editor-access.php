@@ -44,46 +44,14 @@ class SEOProStack_Editor_Access extends SEOProStack_Feature {
      * manage_options.
      */
     const PLUGINS = array(
-        'woocommerce'    => array(
-            'name'  => 'WooCommerce',
-            'dirs'  => array(),
-            'pages' => array(),
-        ),
-        'rank-math'      => array(
-            'name'  => 'Rank Math',
-            'dirs'  => array('seo-by-rank-math', 'seo-by-rank-math-pro'),
-            'pages' => array('rank-math'),
-        ),
-        'tutor'          => array(
-            'name'  => 'Tutor LMS',
-            'dirs'  => array('tutor', 'tutor-pro'),
-            'pages' => array('tutor'),
-        ),
-        'fluent-crm'     => array(
-            'name'  => 'FluentCRM',
-            'dirs'  => array('fluent-crm', 'fluentcampaign-pro'),
-            'pages' => array('fluentcrm'),
-        ),
-        'fluent-support' => array(
-            'name'  => 'Fluent Support',
-            'dirs'  => array('fluent-support', 'fluent-support-pro'),
-            'pages' => array('fluent-support'),
-        ),
-        'fluent-booking' => array(
-            'name'  => 'Fluent Booking',
-            'dirs'  => array('fluent-booking', 'fluent-booking-pro'),
-            'pages' => array('fluent-booking'),
-        ),
-        'fluent-boards'  => array(
-            'name'  => 'Fluent Boards',
-            'dirs'  => array('fluent-boards', 'fluent-boards-pro'),
-            'pages' => array('fluent-boards'),
-        ),
-        'fluent-smtp'    => array(
-            'name'  => 'FluentSMTP',
-            'dirs'  => array('fluent-smtp'),
-            'pages' => array('fluent-mail'),
-        ),
+        'woocommerce'    => array('name' => 'WooCommerce', 'dirs' => array(), 'pages' => array()),
+        'rank-math'      => array('name' => 'Rank Math', 'dirs' => array('seo-by-rank-math', 'seo-by-rank-math-pro'), 'pages' => array('rank-math')),
+        'tutor'          => array('name' => 'Tutor LMS', 'dirs' => array('tutor', 'tutor-pro'), 'pages' => array('tutor')),
+        'fluent-crm'     => array('name' => 'FluentCRM', 'dirs' => array('fluent-crm', 'fluentcampaign-pro'), 'pages' => array('fluentcrm')),
+        'fluent-support' => array('name' => 'Fluent Support', 'dirs' => array('fluent-support', 'fluent-support-pro'), 'pages' => array('fluent-support')),
+        'fluent-booking' => array('name' => 'Fluent Booking', 'dirs' => array('fluent-booking', 'fluent-booking-pro'), 'pages' => array('fluent-booking')),
+        'fluent-boards'  => array('name' => 'Fluent Boards', 'dirs' => array('fluent-boards', 'fluent-boards-pro'), 'pages' => array('fluent-boards')),
+        'fluent-smtp'    => array('name' => 'FluentSMTP', 'dirs' => array('fluent-smtp'), 'pages' => array('fluent-mail')),
     );
 
     /** WooCommerce's own capabilities, as WC_Install gives shop managers. */
@@ -197,27 +165,38 @@ class SEOProStack_Editor_Access extends SEOProStack_Feature {
      *
      * @param array   $allcaps Capabilities the user has.
      * @param array   $caps    Primitive capabilities asked for.
-     * @param array   $args    Capability check arguments.
+     * @param array   $args    Capability check arguments (not needed).
      * @param WP_User $user    User.
      * @return array
      */
     public static function grant($allcaps, $caps, $args, $user) {
+        unset($args);
         if (!is_array($allcaps) || !is_array($caps) || !$caps || !empty($allcaps['manage_options']) || !self::covers($user)) {
             return $allcaps;
         }
         $chosen = self::chosen();
         foreach ($caps as $cap) {
             $cap = (string) $cap;
-            if (!empty($allcaps[$cap])) {
-                continue;
-            }
-            if (self::plugin_cap($cap, $chosen)) {
-                $allcaps[$cap] = true;
-            } elseif (('manage_options' === $cap || 'administrator' === $cap) && self::asked_by_chosen()) {
+            if (empty($allcaps[$cap]) && self::grants($cap, $chosen)) {
                 $allcaps[$cap] = true;
             }
         }
         return $allcaps;
+    }
+
+    /**
+     * Whether a capability the person lacks is given: a chosen plugin's own,
+     * or manage_options or the administrator role when a chosen plugin asks.
+     *
+     * @param string              $cap    Capability.
+     * @param array<string,array> $chosen Chosen plugins.
+     * @return bool
+     */
+    private static function grants($cap, array $chosen) {
+        if (self::plugin_cap($cap, $chosen)) {
+            return true;
+        }
+        return ('manage_options' === $cap || 'administrator' === $cap) && self::asked_by_chosen();
     }
 
     /**
@@ -363,27 +342,31 @@ class SEOProStack_Editor_Access extends SEOProStack_Feature {
         if (!self::covers(wp_get_current_user())) {
             return;
         }
-        foreach (is_array($menu) ? $menu : array() as $position => $item) {
-            if (is_array($item) && isset($item[1], $item[2])) {
-                $menu[$position][1] = self::menu_capability($item[1], $item[2]); // phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited -- changing who can open an entry.
-            }
+        if (is_array($menu)) {
+            $menu = self::open_entries($menu); // phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited -- changing who can open an entry.
         }
         foreach (is_array($submenu) ? $submenu : array() as $parent => $items) {
-            $changed = false;
-            foreach ((array) $items as $position => $item) {
-                if (!is_array($item) || !isset($item[1], $item[2])) {
-                    continue;
-                }
-                $cap = self::menu_capability($item[1], $item[2]);
-                if ($cap !== $item[1]) {
-                    $submenu[$parent][$position][1] = $cap; // phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited -- as above.
-                    $changed = true;
-                }
-            }
-            if ($changed) {
+            $opened = self::open_entries((array) $items);
+            if ($opened !== $items) {
+                $submenu[$parent] = $opened; // phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited -- as above.
                 self::drop_parent_link((string) $parent);
             }
         }
+    }
+
+    /**
+     * Menu entries with the chosen plugins' admin-only capability changed.
+     *
+     * @param array $items Menu entries.
+     * @return array
+     */
+    private static function open_entries(array $items) {
+        foreach ($items as $position => $item) {
+            if (is_array($item) && isset($item[1], $item[2])) {
+                $items[$position][1] = self::menu_capability($item[1], $item[2]);
+            }
+        }
+        return $items;
     }
 
     /**
