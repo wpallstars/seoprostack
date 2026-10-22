@@ -58,6 +58,12 @@ class SEOProStack_Editor_Access extends SEOProStack_Feature {
         'fluent-smtp'    => array('name' => 'FluentSMTP', 'dirs' => array('fluent-smtp'), 'pages' => array('fluent-mail')),
     );
 
+    /**
+     * The plugin list 1.3.70 offered, before Fluent Forms. Any settings save
+     * stores every setting, so sites that saved one store this list.
+     */
+    const PLUGINS_1370 = array('woocommerce', 'rank-math', 'tutor', 'fluent-crm', 'fluent-support', 'fluent-booking', 'fluent-boards', 'fluent-smtp');
+
     /** WooCommerce's own capabilities, as WC_Install gives shop managers. */
     const WOO_CAPS = array('manage_woocommerce', 'create_customers', 'view_woocommerce_reports');
 
@@ -154,6 +160,26 @@ class SEOProStack_Editor_Access extends SEOProStack_Feature {
                 'options'     => $plugins,
             ),
         );
+    }
+
+    /**
+     * Add Fluent Forms where 1.3.70's whole list is stored (settings
+     * version 28). A list someone shortened is left as it is.
+     *
+     * @param array $options      Stored settings.
+     * @param int   $from_version Previous settings version.
+     * @return array
+     */
+    public static function migrate(array $options, $from_version) {
+        $key = 'editor_access_plugins';
+        if ((int) $from_version >= 28 || !isset($options[$key]) || !is_array($options[$key])) {
+            return $options;
+        }
+        $stored = array_map('strval', $options[$key]);
+        if (!array_diff(self::PLUGINS_1370, $stored) && !in_array('fluent-forms', $stored, true)) {
+            $options[$key][] = 'fluent-forms';
+        }
+        return $options;
     }
 
     /**
