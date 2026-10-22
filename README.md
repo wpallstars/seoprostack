@@ -7,7 +7,7 @@
 [![CI](https://github.com/wpallstars/seoprostack/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/wpallstars/seoprostack/actions/workflows/ci.yml)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=wpallstars_seoprostack&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=wpallstars_seoprostack)
 [![License: GPL v3 or later](https://img.shields.io/badge/License-GPL%20v3%20or%20later-blue.svg)](LICENSE)
-[![Latest release](https://img.shields.io/badge/release-v1.3.68-blue.svg)](https://github.com/wpallstars/seoprostack/releases)
+[![Latest release](https://img.shields.io/badge/release-v1.3.69-blue.svg)](https://github.com/wpallstars/seoprostack/releases)
 
 [![Requires WordPress](https://img.shields.io/badge/WordPress-6.2%2B-21759B.svg?logo=wordpress)](readme.txt)
 [![Tested up to](https://img.shields.io/badge/tested%20up%20to-7.1-21759B.svg?logo=wordpress)](readme.txt)
@@ -24,7 +24,7 @@ SEO Pro Stack does the jobs that usually take dozens of small plugins: a calmer,
 
 If this saves you time, headaches and costs, feel free to [buy me a coffee](https://buymeacoffee.com/marcusquinn), or whatever you like, to invest in making more things open-source.
 
-Version: 1.3.68
+Version: 1.3.69
 
 <!-- github-only:start -->
 ## Screenshots
@@ -324,7 +324,7 @@ Off by default. For sites where you build or look after the site and a client al
   - **Change the site’s addresses and administration email**: the WordPress Address and Site Address (a typo takes the whole site down) and the administration email, which gets fatal error and recovery mode emails. Shown read-only in Settings → General, with a note; the rest of the screen still saves.
   - **Change permalinks and search engine visibility**: Settings → Permalinks is read-only and refuses saving (this also covers other plugins’ address bases on that screen), and “Discourage search engines” in Settings → Reading is read-only. Both can wreck a site’s search rankings.
   - **Update WordPress, plugins, themes and translations**: for sites where you test updates first. Update checks and automatic updates are left alone.
-  - **Add unfiltered HTML, such as scripts, to content**: everyone else’s content is filtered as for authors, so pasted scripts and some embeds are removed.
+  - **Add unfiltered HTML, such as scripts, to content**: everyone else’s content is filtered as for authors, so pasted scripts and some embeds are removed. Scripts, styles and noscript parts go with what is inside them, so their code never shows on the page as text. People are told why: in the block editor, a warning as soon as a Custom HTML, Classic or Shortcode block holds embed code the filter removes (such as a script, style, form or input), and again after saving, until the code is gone; after other saves (classic editor, Quick Edit), the same message on the next admin screen. It asks them to use the plugins and blocks the site already has, or to ask a developer.
 - With [Organise the admin menu](#organise-the-admin-menu-admin), people who are not developers also do not see the Developers menu or the developer plugins placed in it, and its **Preview the admin as** › **Client administrator** shows what a client administrator gets.
 - Capabilities are taken away with core’s `map_meta_cap` filter and `editable_roles`; core settings are left out of `allowed_options` and kept with `pre_update_option_{option}`, so other paths (such as the REST API) cannot change them either. The `seoprostack_is_developer` filter decides who is a developer.
 - Until 0.13.0 the developer list and the code and administrator limits were Organise the admin menu’s **Client safeguards**. Sites where the menu was organised with them on get Developer admins switched on with those two limits and the same developers.
@@ -1871,6 +1871,10 @@ Deleting the plugin removes its settings (on multisite, every site's and the net
 Deactivating the plugin removes the WebP and AVIF rules from the uploads folder’s `.htaccess` (for every site when network-deactivated), the LiteSpeed background request rules from the site’s `.htaccess` (on multisite, when network-deactivated or deactivated on the main site) and the must-use file of Load plugins only where needed (on multisite, when network-deactivated).
 
 ## Changelog
+
+### 1.3.69
+- New: **Developer admins** → **Add unfiltered HTML…** tells people who are not developers why their embed code goes: a block editor warning as soon as a Custom HTML, Classic or Shortcode block holds a script, style, form or other embed code the content filter removes, and again after saving; after other saves, on the next admin screen. It points them to the site's own plugins and blocks, or a developer (GitHub issue #899).
+- Fix: with that limit, scripts, styles and noscript parts are removed with what is inside them, so their code no longer shows on the page as text (GitHub issue #899).
 
 ### 1.3.68
 - New: **Like, save and share** → **Log in to like and save** (`post_reactions_login`): a visitor's Like, Save or Add to shortlist opens the theme's login modal (Kadence Pro's header account item; filter `seoprostack_lists_login_trigger` for another theme's button) or else the login page, returning to the page. Share still works for everyone (GitHub issue #897).

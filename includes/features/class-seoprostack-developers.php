@@ -23,7 +23,11 @@
  *             email, which gets fatal error and recovery mode emails;
  * - search:   permalinks and search engine visibility;
  * - updates:  update WordPress, plugins, themes and translations;
- * - html:     unfiltered HTML, such as scripts, in content.
+ * - html:     unfiltered HTML, such as scripts, in content. Scripts,
+ *             styles and noscript parts are removed with what is inside
+ *             them, so their code does not show on the page as text, and
+ *             people are told why: in the block editor as soon as a block
+ *             holds embed code, elsewhere after saving.
  *
  * Always, while on: SEO Pro Stack's settings, its admin bar star and its
  * row on the Plugins screen are only for developers, and nobody else can
@@ -92,6 +96,19 @@ class SEOProStack_Developers extends SEOProStack_Feature {
             'tag_base'            => '',
         ),
     );
+
+    /**
+     * Tags of third-party embed code. Those core's content filter removes
+     * (it keeps some, such as iframe, when a plugin allows them) are what
+     * people are warned about.
+     */
+    const EMBED_TAGS = array('script', 'style', 'noscript', 'iframe', 'frame', 'frameset', 'object', 'embed', 'applet', 'form', 'input', 'select', 'link', 'meta', 'base');
+
+    /** Elements removed with their contents, so their code does not show as text. */
+    const CODE_ELEMENTS = array('script', 'style', 'noscript');
+
+    /** Block editor script handle, and the transient (with the user ID) for the notice after saving. */
+    const EMBED_HANDLE = 'seoprostack-embed-notice';
 
     /** Settings screens with fields only developers can change => choice. */
     const SCREENS = array(
@@ -284,6 +301,12 @@ class SEOProStack_Developers extends SEOProStack_Feature {
             foreach (array_keys($names) as $name) {
                 add_filter('pre_update_option_' . $name, array(__CLASS__, 'keep_option'), 10, 3);
             }
+        }
+        if (isset($limits['html'])) {
+            // Before core's content filter (wp_filter_post_kses, priority 10).
+            add_filter('content_save_pre', array(__CLASS__, 'remove_embed_code'), 9);
+            add_action('enqueue_block_editor_assets', array(__CLASS__, 'embed_notice_script'));
+            add_action('admin_notices', array(__CLASS__, 'embed_notice'));
         }
 
         if (!is_admin() || !class_exists('SEOProStack_Admin_Manager')) {
@@ -517,6 +540,101 @@ class SEOProStack_Developers extends SEOProStack_Feature {
      */
     public static function keep_option($value, $old_value, $option = '') {
         return self::limited() ? $old_value : $value;
+    }
+
+    /**
+     * Whether the current person's content is filtered because of the html
+     * limit: they are limited, and core's content filter runs for them.
+     *
+     * @return bool
+     */
+    private static function filters_html() {
+        return self::limits('html') && self::limited() && false !== has_filter('content_save_pre', 'wp_filter_post_kses');
+    }
+
+    /**
+     * Embed tags core's content filter removes.
+     *
+     * @return string[]
+     */
+    private static function removed_embed_tags() {
+        $allowed = wp_kses_allowed_html('post');
+        return array_values(array_filter(self::EMBED_TAGS, function ($tag) use ($allowed) {
+            return !isset($allowed[$tag]);
+        }));
+    }
+
+    /**
+     * The message for people whose embed code is removed.
+     *
+     * @return string
+     */
+    private static function embed_message() {
+        return __('It seems you are trying to embed third-party code in the website. It may include scripts and cookies, and is not styled by the theme or integrated with the existing plugins and database, so only developers can add it and it is removed when you save. Please check the plugins and blocks already offered that may do what you need, or contact a site developer to discuss.', 'seoprostack');
+    }
+
+    /**
+     * Before core's content filter: remove scripts, styles and noscript
+     * parts with what is inside them (the filter removes only their tags,
+     * which leaves their code on the page as text), and remember to say why
+     * on the next admin screen. The block editor says so itself, so saves
+     * through the REST API are not remembered.
+     *
+     * @param mixed $content Post content (slashed).
+     * @return mixed
+     */
+    public static function remove_embed_code($content) {
+        if (!is_string($content) || false === stripos($content, '<') || !self::filters_html()) {
+            return $content;
+        }
+        $tags = self::removed_embed_tags();
+        if (!$tags || !preg_match('#<(?:' . implode('|', $tags) . ')\b#i', $content)) {
+            return $content;
+        }
+        $clean = preg_replace('#<(' . implode('|', self::CODE_ELEMENTS) . ')\b[^>]*>.*?</\1\s*>#is', '', $content);
+        if (null !== $clean) {
+            $content = $clean;
+        }
+        if (!defined('REST_REQUEST') || !REST_REQUEST) {
+            set_transient(self::EMBED_HANDLE . '-' . get_current_user_id(), 1, 10 * MINUTE_IN_SECONDS);
+        }
+        return $content;
+    }
+
+    /**
+     * After a save that removed embed code (not in the block editor): say
+     * why, once.
+     */
+    public static function embed_notice() {
+        if (!is_user_logged_in()) {
+            return;
+        }
+        $key = self::EMBED_HANDLE . '-' . get_current_user_id();
+        if (!get_transient($key)) {
+            return;
+        }
+        delete_transient($key);
+        echo '<div class="notice notice-warning is-dismissible"><p>' . esc_html(self::embed_message()) . '</p></div>';
+    }
+
+    /**
+     * Block editor: warn as soon as a Custom HTML, Classic or Shortcode
+     * block holds embed code that would be removed, and again after saving.
+     */
+    public static function embed_notice_script() {
+        if (!self::filters_html()) {
+            return;
+        }
+        $tags = self::removed_embed_tags();
+        if (!$tags) {
+            return;
+        }
+        wp_register_script(self::EMBED_HANDLE, SEOPROSTACK_URL . 'admin/js/seoprostack-embed-notice.js', array('wp-blocks', 'wp-data', 'wp-dom-ready'), SEOPROSTACK_VERSION, true);
+        wp_add_inline_script(self::EMBED_HANDLE, 'window.seoprostackEmbedNotice = ' . wp_json_encode(array(
+            'tags'    => $tags,
+            'message' => self::embed_message(),
+        )) . ';', 'before');
+        wp_enqueue_script(self::EMBED_HANDLE);
     }
 
     /**

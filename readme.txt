@@ -5,7 +5,7 @@ Tags: magic login, iframe, schedule posts, auto upload images, admin
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.3.68
+Stable tag: 1.3.69
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -151,7 +151,7 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 
 == Changelog ==
 
-= 1.3.68 =
-* New: Like, save and share settings to ask visitors to log in to like and save (the theme's login modal opens), to open Your lists in a modal from links to its page, and to add a Your lists tab to WooCommerce My Account.
+= 1.3.69 =
+* New: Developer admins says why pasted embed code (scripts, forms) is removed, and leaves none of it on the page as text.
 
 Older: `changelog.txt`.
