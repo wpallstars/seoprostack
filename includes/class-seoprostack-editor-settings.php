@@ -126,6 +126,8 @@ final class SEOProStack_Editor_Settings {
         add_action('wp_loaded', array(__CLASS__, 'refuse_admin'), 1);
         add_filter('rest_pre_dispatch', array(__CLASS__, 'refuse_rest'), 10, 3);
         add_action('admin_menu', array(__CLASS__, 'menu'), PHP_INT_MAX);
+        // After SEOProStack_Editor_Access::menu_capability().
+        add_filter('seoprostack_restored_menu_capability', array(__CLASS__, 'restored_capability'), 20, 2);
         add_action('admin_footer', array(__CLASS__, 'notice'));
     }
 
@@ -325,6 +327,18 @@ final class SEOProStack_Editor_Settings {
     }
 
     /**
+     * Leave the administrators' screens out of the entries Load plugins
+     * only where needed puts back on screens that skip their plugin.
+     *
+     * @param mixed $cap  Capability the entry asks for.
+     * @param mixed $slug Entry address.
+     * @return mixed
+     */
+    public static function restored_capability($cap, $slug) {
+        return is_string($slug) && self::applies() && self::admin_entry($slug) ? 'do_not_allow' : $cap;
+    }
+
+    /**
      * Whether a menu entry opens a screen for administrators only. Entries
      * are page slugs, or addresses such as
      * admin.php?page=wc-settings&tab=checkout or wc-admin&path=/payments.
@@ -352,8 +366,10 @@ final class SEOProStack_Editor_Settings {
     /**
      * On the read-only settings screens, say that changes are for an
      * administrator. Printed by script, at the top of the screen: the
-     * Fluent plugins' apps hide admin notices and show their settings at an
-     * address part (#/settings) the server does not see.
+     * Fluent plugins' apps remove admin notices when they start, and show
+     * their settings at an address part (#/settings) the server does not
+     * see. The note is put back if removed, and shown over styles that hide
+     * notices.
      */
     public static function notice() {
         // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- which screen this is.
@@ -372,13 +388,15 @@ final class SEOProStack_Editor_Settings {
         if (null === $hash) {
             return;
         }
-        $script = '(function(){var re=new RegExp(%1$s),text=%2$s,box=null;'
+        $script = '(function(){var re=new RegExp(%1$s),text=%2$s,at=document.getElementById("wpbody-content"),box=null;'
+            . 'if(!at){return;}'
             . 'function show(){var on=re.test(location.hash);'
-            . 'if(on&&!box){box=document.createElement("div");box.className="notice notice-info sps-keep sps-ask-admin";'
+            . 'if(on&&(!box||!box.isConnected)){box=document.createElement("div");box.className="notice notice-info sps-keep sps-ask-admin";'
             . 'box.style.margin="12px 20px 12px 0";var p=document.createElement("p");p.textContent=text;box.appendChild(p);'
-            . 'var at=document.getElementById("wpbody-content");if(at){at.insertBefore(box,at.firstChild);}}'
-            . 'if(box){box.hidden=!on;}}'
-            . 'show();window.addEventListener("hashchange",show);})();';
+            . 'at.insertBefore(box,at.firstChild);}'
+            . 'if(box){box.hidden=!on;box.style.setProperty("display",on?"block":"none","important");}}'
+            . 'show();window.addEventListener("hashchange",show);'
+            . 'new MutationObserver(function(){if(box&&!box.isConnected&&re.test(location.hash)){show();}}).observe(at,{childList:true});})();';
         wp_print_inline_script_tag(sprintf(
             $script,
             wp_json_encode($hash),
