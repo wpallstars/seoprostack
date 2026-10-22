@@ -39,12 +39,13 @@
     }
 
     function hasTag(text) {
-        var match;
         TAG.lastIndex = 0;
-        while ((match = TAG.exec(text)) !== null) {
+        var match = TAG.exec(text);
+        while (match !== null) {
             if (tags[match[1].toLowerCase()]) {
                 return true;
             }
+            match = TAG.exec(text);
         }
         return false;
     }
