@@ -20,6 +20,10 @@
  * people only, including the entries Load plugins only where needed puts
  * back on screens that skip them.
  *
+ * The plugins' settings are read-only for these people, or for
+ * administrators only where they show passwords and keys: see
+ * SEOProStack_Editor_Settings.
+ *
  * SPDX-License-Identifier: GPL-3.0-or-later
  * SPDX-FileCopyrightText: 2026 Marcus Quinn
  * Additional terms (GPL-3.0 section 7(b)): SEOPROSTACK-ATTRIBUTION.txt
@@ -32,6 +36,8 @@
 if (!defined('ABSPATH')) {
     exit;
 }
+
+require_once SEOPROSTACK_DIR . 'includes/class-seoprostack-editor-settings.php';
 
 class SEOProStack_Editor_Access extends SEOProStack_Feature {
 
@@ -141,7 +147,7 @@ class SEOProStack_Editor_Access extends SEOProStack_Feature {
                 'default'     => true,
                 'tab'         => 'admin',
                 'label'       => __('Editors use the business plugins', 'seoprostack'),
-                'description' => __('Let editors use WooCommerce as shop managers do, Fluent Forms’ forms and entries, and Rank Math, Tutor LMS and the other Fluent plugins as administrators do. They can see FluentSMTP and its email logs; changing its settings asks them to ask an administrator. WordPress’s own settings, plugins, themes and users stay for administrators. Nothing is stored: switch it off and editors have only what their role gives.', 'seoprostack'),
+                'description' => __('Let editors use WooCommerce as shop managers do, Fluent Forms’ forms and entries, and Rank Math, Tutor LMS and the other Fluent plugins as administrators do. They can see these plugins’ settings, FluentSMTP and its email logs, but changing settings asks them to ask an administrator; settings that show passwords or keys stay for administrators. WordPress’s own settings, plugins, themes and users stay for administrators. Nothing is stored: switch it off and editors have only what their role gives.', 'seoprostack'),
             ),
             'editor_access_roles'   => array(
                 'type'        => 'multi',
@@ -156,7 +162,7 @@ class SEOProStack_Editor_Access extends SEOProStack_Feature {
                 'default'     => array_keys($plugins),
                 'parent'      => self::KEY,
                 'label'       => __('Plugins', 'seoprostack'),
-                'description' => __('In WooCommerce the roles above can do what shop managers can. In Fluent Forms, work with forms, entries and payments, but not its settings. In FluentSMTP, see its dashboard and email logs and resend failed emails, but not change its settings. In the others, what administrators can, except install add-ons and, in Rank Math, change who can do what.', 'seoprostack'),
+                'description' => __('In WooCommerce the roles above can do what shop managers can. In Fluent Forms, work with forms, entries and payments, but not its settings. In FluentSMTP, see its dashboard and email logs and resend failed emails, but not change its settings. In the others, what administrators can, except install add-ons, change settings and, in Rank Math, change who can do what.', 'seoprostack'),
                 'options'     => $plugins,
             ),
         );
@@ -202,6 +208,56 @@ class SEOProStack_Editor_Access extends SEOProStack_Feature {
             add_action('admin_init', array(__CLASS__, 'smtp_refuse_writes'), 1);
             add_action('admin_notices', array(__CLASS__, 'smtp_notice'));
         }
+        SEOProStack_Editor_Settings::boot($chosen);
+    }
+
+    /**
+     * Give the capabilities before init, called as SEO Pro Stack loads.
+     * Rank Math sets up its modules on after_setup_theme, and its Analytics
+     * and other modules check the person's capabilities then: on init they
+     * would not appear. boot() adds the same filter again, which WordPress
+     * keeps once.
+     */
+    public static function early() {
+        if (self::setting(self::KEY) && self::chosen()) {
+            add_filter('user_has_cap', array(__CLASS__, 'grant'), 10, 4);
+        }
+    }
+
+    /**
+     * One of this feature's settings. Before init it is read from the
+     * stored option, with the network's value when it applies one, as
+     * SEOProStack_Plugin_Fixes::early() does: SEOProStack_Settings::get()
+     * builds the settings schema, whose labels are translated, and
+     * translations must not load before init.
+     *
+     * @param string $key Setting key.
+     * @return mixed
+     */
+    private static function setting($key) {
+        if (did_action('init')) {
+            return SEOProStack_Settings::get($key);
+        }
+        $stored = get_option(SEOProStack_Settings::OPTION, array());
+        $stored = array_merge(is_array($stored) ? $stored : array(), SEOProStack_Network_Settings::enforced());
+        if (array_key_exists($key, $stored)) {
+            return $stored[$key];
+        }
+        $defaults = array(
+            self::KEY               => true,
+            'editor_access_roles'   => array('editor'),
+            'editor_access_plugins' => array_keys(self::PLUGINS),
+        );
+        return isset($defaults[$key]) ? $defaults[$key] : null;
+    }
+
+    /**
+     * Whether the current person is one this feature covers.
+     *
+     * @return bool
+     */
+    public static function covers_current() {
+        return self::covers(wp_get_current_user());
     }
 
     /**
@@ -210,7 +266,7 @@ class SEOProStack_Editor_Access extends SEOProStack_Feature {
      * @return array<string,array>
      */
     private static function chosen() {
-        $keys = array_map('strval', (array) SEOProStack_Settings::get('editor_access_plugins'));
+        $keys = array_map('strval', (array) self::setting('editor_access_plugins'));
         $key  = implode(',', $keys);
         if (!isset(self::$chosen[$key])) {
             self::$chosen   = array($key => array_intersect_key(self::PLUGINS, array_flip($keys)));
@@ -231,7 +287,7 @@ class SEOProStack_Editor_Access extends SEOProStack_Feature {
         if (!$user instanceof WP_User || !$user->exists() || !empty($user->allcaps['manage_options'])) {
             return false;
         }
-        $roles = (array) SEOProStack_Settings::get('editor_access_roles');
+        $roles = (array) self::setting('editor_access_roles');
         return (bool) array_intersect((array) $user->roles, array_map('strval', $roles));
     }
 

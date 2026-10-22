@@ -317,6 +317,7 @@ final class SEOProStack_Setup {
 
         // Fixes that cannot wait for the features' boot on init.
         SEOProStack_Plugin_Fixes::early();
+        SEOProStack_Editor_Access::early();
 
         // "Load plugins only where needed" may skip plugins on a request;
         // they still count as active, and saved choices that belong to them
