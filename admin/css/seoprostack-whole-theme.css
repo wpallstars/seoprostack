@@ -270,9 +270,11 @@ html.sps-dark :is(#wpwrap, #wpcontent, #wpbody, #wpbody-content) {
  * and code rules below and the field rules never reach the block editor's
  * canvas (.editor-styles-wrapper) where it is not in a frame of its own
  * (widget areas, in Widgets and the Customizer): it keeps the theme's
- * colours, as in the post editor.
+ * colours, as in the post editor. Admin screens in a frame (body.iframe:
+ * the updater's progress in Dashboard → Updates, Plugin details) have no
+ * #wpbody, so they are named too.
  */
-:where(html.sps-dark :is(#wpbody, .wp-customizer, .components-modal__frame, .media-modal, [id="TB_window"], .notification-dialog)) :is(h1, h2, h3, h4, h5, h6):where(:not(.editor-styles-wrapper *)) {
+:where(html.sps-dark :is(#wpbody, body.iframe, .wp-customizer, .components-modal__frame, .media-modal, [id="TB_window"], .notification-dialog)) :is(h1, h2, h3, h4, h5, h6):where(:not(.editor-styles-wrapper *)) {
 	color: var(--sps-ui-text);
 }
 
@@ -281,12 +283,12 @@ html.sps-dark #wpbody :is(#dashboard-widgets, #poststuff, #nav-menu-meta, #col-l
 	color: var(--sps-ui-text);
 }
 
-:where(html.sps-dark :is(#wpbody, #wpfooter, .wp-customizer, .components-modal__frame, .media-modal, [id="TB_window"], .wp-pointer, .notification-dialog)) a:where(:not(.editor-styles-wrapper *)) {
+:where(html.sps-dark :is(#wpbody, #wpfooter, body.iframe, .wp-customizer, .components-modal__frame, .media-modal, [id="TB_window"], .wp-pointer, .notification-dialog)) a:where(:not(.editor-styles-wrapper *)) {
 	color: var(--sps-ui-accent);
 }
 
 /* WordPress darkens links on hover and focus (#135e96, #043959). */
-:where(html.sps-dark :is(#wpbody, #wpfooter, .wp-customizer, .components-modal__frame, .media-modal, [id="TB_window"], .wp-pointer, .notification-dialog)) a:where(:not(.editor-styles-wrapper *)):is(:hover, :active, :focus) {
+:where(html.sps-dark :is(#wpbody, #wpfooter, body.iframe, .wp-customizer, .components-modal__frame, .media-modal, [id="TB_window"], .wp-pointer, .notification-dialog)) a:where(:not(.editor-styles-wrapper *)):is(:hover, :active, :focus) {
 	color: var(--sps-ui-text);
 }
 
@@ -477,27 +479,28 @@ html.sps-dark #wpbody :is(.submitdelete, .row-actions .delete a, .row-actions .t
 
 /* Notices ---------------------------------------------------------------- */
 
-html.sps-dark :is(#wpbody, #sps-notices-wrap, .media-modal) :is(.notice, div.updated, div.error, .update-nag, .update-message) {
+/* body.iframe: the updater's progress (Dashboard → Updates) is in a frame, with no #wpbody. */
+html.sps-dark :is(#wpbody, body.iframe, #sps-notices-wrap, .media-modal) :is(.notice, div.updated, div.error, .update-nag, .update-message) {
 	color: var(--sps-ui-text);
 	background: var(--sps-ui-surface);
 	box-shadow: none;
 }
 
 /* WordPress paints notice text #1e1e1e and links in darker tones of the scheme. */
-html.sps-dark :is(#wpbody, #sps-notices-wrap) :is(.notice, div.updated, div.error, .update-nag) :is(p, .notice-title, li, h2, h3, strong) {
+html.sps-dark :is(#wpbody, body.iframe, #sps-notices-wrap) :is(.notice, div.updated, div.error, .update-nag) :is(p, .notice-title, li, h2, h3, strong) {
 	color: inherit;
 }
 
 /* Primary buttons keep their white label on the scheme's fill (WooCommerce's Get system report). */
-html.sps-dark :is(#wpbody, #sps-notices-wrap) :is(.notice, div.updated, div.error, .update-nag, .update-message) a:not(.button-primary) {
+html.sps-dark :is(#wpbody, body.iframe, #sps-notices-wrap) :is(.notice, div.updated, div.error, .update-nag, .update-message) a:not(.button-primary) {
 	color: var(--sps-ui-accent);
 }
 
-html.sps-dark :is(#wpbody, #sps-notices-wrap) :is(.notice, div.updated, div.error, .update-nag, .update-message) a:not(.button-primary):is(:hover, :active, :focus) {
+html.sps-dark :is(#wpbody, body.iframe, #sps-notices-wrap) :is(.notice, div.updated, div.error, .update-nag, .update-message) a:not(.button-primary):is(:hover, :active, :focus) {
 	color: var(--sps-ui-text);
 }
 
-html.sps-dark :is(#wpbody, #sps-notices-wrap) .notice-dismiss::before {
+html.sps-dark :is(#wpbody, body.iframe, #sps-notices-wrap) .notice-dismiss::before {
 	color: var(--sps-ui-muted);
 }
 

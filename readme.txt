@@ -154,5 +154,6 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 
 = 1.3.70 =
 * New: Editors use the business plugins (on): editors get WooCommerce as shop managers do, and Rank Math, Tutor LMS and the Fluent plugins as administrators do, without WordPress's own settings.
+* Fix: Dark mode for update progress.
 
 Older: `changelog.txt`.
