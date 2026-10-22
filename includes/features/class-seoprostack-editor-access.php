@@ -334,12 +334,70 @@ class SEOProStack_Editor_Access extends SEOProStack_Feature {
             }
         }
         foreach (is_array($submenu) ? $submenu : array() as $parent => $items) {
+            $closed = null;
             foreach ((array) $items as $position => $item) {
-                if (is_array($item) && isset($item[1], $item[2])) {
-                    $submenu[$parent][$position][1] = self::menu_capability($item[1], $item[2]); // phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited -- as above.
+                if (!is_array($item) || !isset($item[1], $item[2])) {
+                    continue;
+                }
+                $cap = self::menu_capability($item[1], $item[2]);
+                if ($cap === $item[1]) {
+                    continue;
+                }
+                $submenu[$parent][$position][1] = $cap; // phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited -- as above.
+                if (null === $closed) {
+                    $closed = !self::can_open((string) $parent);
+                }
+                if ($closed) {
+                    self::alias_page((string) $item[2], (string) $parent);
                 }
             }
         }
+    }
+
+    /**
+     * Whether the current person can open a top-level menu entry. Entries
+     * that are not in the menu count as open.
+     *
+     * @param string $parent Top-level entry address.
+     * @return bool
+     */
+    private static function can_open($parent) {
+        global $menu;
+        foreach (is_array($menu) ? $menu : array() as $item) {
+            if (is_array($item) && isset($item[1], $item[2]) && $item[2] === $parent) {
+                return current_user_can((string) $item[1]);
+            }
+        }
+        return true;
+    }
+
+    /**
+     * Let a page under a menu the person cannot open (such as FluentSMTP
+     * under Settings) open. Core then moves the menu's remaining pages
+     * under the first of them and looks for the page as admin_page_{slug},
+     * which the plugin never registered, so it refuses the page. Register
+     * that name and run the plugin's own page and load hooks for it.
+     *
+     * @param string $slug   Page slug.
+     * @param string $parent Menu it was added to.
+     */
+    private static function alias_page($slug, $parent) {
+        global $_registered_pages;
+        if (false !== strpos($slug, '.php') || false !== strpos($slug, '#')) {
+            return;
+        }
+        $hook  = get_plugin_page_hookname($slug, $parent);
+        $alias = 'admin_page_' . $slug;
+        if ($hook === $alias || empty($_registered_pages[$hook]) || !empty($_registered_pages[$alias])) {
+            return;
+        }
+        $_registered_pages[$alias] = true; // phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited -- registering the page under the name core looks for.
+        add_action($alias, function () use ($hook) {
+            do_action($hook); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.DynamicHooknameFound -- the plugin's own page hook.
+        });
+        add_action('load-' . $alias, function () use ($hook) {
+            do_action('load-' . $hook); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- core's load hook for the plugin's page.
+        });
     }
 
     /**
