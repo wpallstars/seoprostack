@@ -153,6 +153,6 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 == Changelog ==
 
 = 1.3.72 =
-* Change: editors see the business plugins' settings but cannot change them; settings with passwords or keys stay for administrators. Editors see Rank Math's Analytics.
+* Change: editors see plugin settings read-only; ones with keys stay for administrators. Rank Math Analytics shows.
 
 Older: `changelog.txt`.
