@@ -5,7 +5,7 @@ Tags: magic login, iframe, schedule posts, auto upload images, admin
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.3.69
+Stable tag: 1.3.70
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -34,6 +34,7 @@ Safe features start on; others stay off. **Settings → SEO Pro Stack** has **Se
 
 * **Magic login links**: one-time email links, safe from link scanners.
 * **Admin bar and dashboard access**: restrict by role; admins keep access.
+* **Editors use the business plugins**: WooCommerce, Rank Math, Tutor LMS and Fluent plugins for editors.
 * **Turn off unused remote access**: XML-RPC, application passwords and exposed files.
 * **Minimum password length**: 12 characters for new passwords, on by default.
 * **Known vulnerabilities**: from the free WPVulnerability plugin, or Wordfence Intelligence (off).
@@ -151,7 +152,7 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 
 == Changelog ==
 
-= 1.3.69 =
-* New: Developer admins says why pasted embed code (scripts, forms) is removed, and leaves none of it on the page as text.
+= 1.3.70 =
+* New: Editors use the business plugins (on): editors get WooCommerce as shop managers do, and Rank Math, Tutor LMS and the Fluent plugins as administrators do, without WordPress's own settings.
 
 Older: `changelog.txt`.

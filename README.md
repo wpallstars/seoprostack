@@ -24,7 +24,7 @@ SEO Pro Stack does the jobs that usually take dozens of small plugins: a calmer,
 
 If this saves you time, headaches and costs, feel free to [buy me a coffee](https://buymeacoffee.com/marcusquinn), or whatever you like, to invest in making more things open-source.
 
-Version: 1.3.69
+Version: 1.3.70
 
 <!-- github-only:start -->
 ## Screenshots
@@ -73,7 +73,7 @@ A new install starts with the features that are safe on every site switched on, 
 - **Speed:** Recommended speed settings, Load pages before the click, Image loading, Remove WordPress extras, Lighter WooCommerce pages and Faster editor with Kadence Blocks (the last two do nothing without those plugins).
 - **Server:** Fewer Heartbeat requests, Clean the database weekly, Load large settings only where they are used (single sites) and Hosting needs.
 - **Plugins:** Load plugins only where needed, with **Also skip them for people who are logged in**, so it takes every chance to skip plugins once it has learned; Clean up deleted plugins, Plugin sizes, Fixes for other plugins, Plugin presets (each asks first) and Plugins menu in the admin bar.
-- **Admin and editor:** Organise the admin menu, More menu in the admin bar, Hide admin bar items (Comments and + New), Hide admin notices, Tidy admin screens, Correct update counts, Tidy the dashboard, Tidy WooCommerce admin, Readable list columns, Simpler block editor, Dev tab in the block editor, Notification emails (plugin and theme auto-update reports, unless an update failed), No fade between admin screens, Quiet Freemius prompts, Quiet Appsero prompts, Quiet Imagify suggestions, Hide the admin bar and Block dashboard access (for subscribers, customers and similar roles), Hide dashboard widgets (Welcome and WordPress Events and News), Disable sidebar widgets (Meta), Tidy the login screen and Avatars without Gravatar.
+- **Admin and editor:** Organise the admin menu, More menu in the admin bar, Hide admin bar items (Comments and + New), Hide admin notices, Tidy admin screens, Correct update counts, Tidy the dashboard, Tidy WooCommerce admin, Readable list columns, Simpler block editor, Dev tab in the block editor, Notification emails (plugin and theme auto-update reports, unless an update failed), No fade between admin screens, Quiet Freemius prompts, Quiet Appsero prompts, Quiet Imagify suggestions, Hide the admin bar and Block dashboard access (for subscribers, customers and similar roles), Editors use the business plugins, Hide dashboard widgets (Welcome and WordPress Events and News), Disable sidebar widgets (Meta), Tidy the login screen and Avatars without Gravatar.
 
 Left off on Admin, Security, Speed and Plugins, as each needs a choice first: Developer admins (who the developers are), Magic login links (whether administrators may log in by email, which skips two-step login plugins that only check the password), Ask before licence checks (until someone answers, premium plugins' licence checks fail, which can switch off their paid features), Delay scripts until interaction (which scripts), Delayed Google Analytics (the measurement ID), File and account integrity checks (a daily check that asks WordPress.org for checksums and emails the administration address) and Known vulnerabilities from Wordfence Intelligence (an API key, and a shared folder for sites sharing one). Watermark pictures (Media) changes uploaded pictures, so it is off too.
 
@@ -309,6 +309,18 @@ Adds “Email me a login link” to the login screen, next to “Lost your passw
 - **Block dashboard access** for chosen roles: opening wp-admin sends them to the home page or a page you choose, such as `/my-account/`. AJAX, uploads and other background requests keep working. With WooCommerce active and no page chosen, its My Account page is filled in.
 - Both lists start with every role that can neither manage options nor write posts (subscribers, customers and similar roles from plugins). Roles that plugins add later are ticked in both lists unless they can write posts, so staff roles such as Shop manager are never locked out. The roles seen so far are kept in the `seoprostack_access_roles` option.
 - People who can manage options are never affected, so roles that can (such as Administrator) are not offered.
+
+### Editors use the business plugins (Admin)
+
+On by default, at the owner's request. Editors (or the roles you choose) use the plugins that run the business, not only the content:
+
+- **WooCommerce**: what shop managers can do (`manage_woocommerce`, reports, products, orders and coupons). Users stay for administrators, and WooCommerce's own checks for administrators are not answered yes.
+- **Rank Math**: every Rank Math capability but its Role Manager, so editors can change Rank Math's settings, sitemaps, redirections and the like, but not who can do what.
+- **Tutor LMS**, **FluentCRM**, **Fluent Support**, **Fluent Booking**, **Fluent Boards** and **FluentSMTP**: what administrators can do in them, with their menus. Their add-on, upgrade and licence pages stay for administrators.
+- **Plugins** lists them, all ticked; untick any the roles should not get.
+- How: capabilities are added at run time with `user_has_cap`, so nothing is stored and switching the feature off takes them back. Most of these plugins treat anyone who can `manage_options` as their administrator (Tutor LMS also asks for the administrator role); editors are answered yes only when the file asking is one of a ticked plugin's, or core is registering that plugin's admin page. WordPress's own Settings, Plugins, Themes and Users screens, every other plugin and SEO Pro Stack still get no. Those plugins' menu entries that ask for `manage_options` ask for `read` instead, for these roles only, including the entries [Load plugins only where needed](#load-plugins-only-where-needed-plugins) puts back (filter `seoprostack_restored_menu_capability`).
+- Records the plugins keep for the people who use them stay when the feature is switched off, such as a Fluent Support agent, without permissions: Fluent Support makes one the first time someone it treats as an administrator opens it.
+- People who can manage options are never affected, so roles that can are not offered.
 
 ### Developer admins (Admin)
 
@@ -1871,6 +1883,9 @@ Deleting the plugin removes its settings (on multisite, every site's and the net
 Deactivating the plugin removes the WebP and AVIF rules from the uploads folder’s `.htaccess` (for every site when network-deactivated), the LiteSpeed background request rules from the site’s `.htaccess` (on multisite, when network-deactivated or deactivated on the main site) and the must-use file of Load plugins only where needed (on multisite, when network-deactivated).
 
 ## Changelog
+
+### 1.3.70
+- New, on by default: **Editors use the business plugins** (Admin). Editors get WooCommerce as shop managers do, every Rank Math capability but its Role Manager, and what administrators can do in Tutor LMS, FluentCRM, Fluent Support, Fluent Booking, Fluent Boards and FluentSMTP, with their menus. Nothing is stored: capabilities are added at run time, and `manage_options` only when one of those plugins' own files asks, so WordPress's own settings, plugins, themes and users stay for administrators. **Roles** (editors) and **Plugins** (all) choose who and what. New filter `seoprostack_restored_menu_capability` for the menu entries Load plugins only where needed puts back (GitHub issue #903).
 
 ### 1.3.69
 - New: **Developer admins** → **Add unfiltered HTML…** tells people who are not developers why their embed code goes: a block editor warning as soon as a Custom HTML, Classic or Shortcode block holds a script, style, form or other embed code the content filter removes, and again after saving; after other saves, on the next admin screen. It points them to the site's own plugins and blocks, or a developer (GitHub issue #899).

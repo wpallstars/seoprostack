@@ -3190,6 +3190,18 @@ class SEOProStack_Plugin_Loading extends SEOProStack_Feature {
             if (isset($item[1]) && is_string($item[1]) && isset($granted[$item[1]]) && !$can($item[1])) {
                 $item[1] = 'manage_options';
             }
+            if (isset($item[1], $item[2]) && is_string($item[1])) {
+                /**
+                 * Filter the capability a put-back menu entry asks of the
+                 * current person, as features that open other plugins'
+                 * pages to more roles change it when the plugin loads.
+                 *
+                 * @param string $cap  Capability, from an administrator's menu.
+                 * @param string $slug Entry address.
+                 */
+                $cap     = apply_filters('seoprostack_restored_menu_capability', $item[1], (string) $item[2]);
+                $item[1] = is_string($cap) && '' !== $cap ? $cap : $item[1];
+            }
             return $item;
         };
         // The copy is an administrator's menu. Core checks access when an
