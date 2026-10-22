@@ -19,10 +19,16 @@
     // attribute: WordPress 7.1 moved the Custom HTML block's out of
     // `content`.
     var BLOCKS = { 'core/html': true, 'core/freeform': true, 'core/shortcode': true };
-    var pattern = new RegExp('<(?:' + cfg.tags.join('|') + ')\\b', 'i');
+    // Opening tags; each name is looked up in the tags removed.
+    var TAG = /<([a-z][a-z0-9]*)\b/gi;
+    var tags = {};
     var lastBlocks = null;
     var found = false;
     var saving = false;
+
+    cfg.tags.forEach(function (tag) {
+        tags[String(tag).toLowerCase()] = true;
+    });
 
     function html(block) {
         try {
@@ -32,10 +38,21 @@
         }
     }
 
+    function hasTag(text) {
+        var match;
+        TAG.lastIndex = 0;
+        while ((match = TAG.exec(text)) !== null) {
+            if (tags[match[1].toLowerCase()]) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     function hasEmbed(blocks) {
         for (var i = 0; i < blocks.length; i++) {
             var block = blocks[i];
-            if (BLOCKS[block.name] && pattern.test(html(block))) {
+            if (BLOCKS[block.name] && hasTag(html(block))) {
                 return true;
             }
             if (block.innerBlocks && block.innerBlocks.length && hasEmbed(block.innerBlocks)) {
