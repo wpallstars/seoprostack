@@ -591,7 +591,9 @@ class SEOProStack_Developers extends SEOProStack_Feature {
         if (!$tags || !preg_match('#<(?:' . implode('|', $tags) . ')\b#i', $content)) {
             return $content;
         }
-        $clean = preg_replace('#<(' . implode('|', self::CODE_ELEMENTS) . ')\b[^>]*>.*?</\1\s*>#is', '', $content);
+        // Only those the filter removes: a plugin may allow one.
+        $code = array_intersect(self::CODE_ELEMENTS, $tags);
+        $clean = $code ? preg_replace('#<(' . implode('|', $code) . ')\b[^>]*>.*?</\1\s*>#is', '', $content) : null;
         if (null !== $clean) {
             $content = $clean;
         }

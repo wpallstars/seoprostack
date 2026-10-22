@@ -71,35 +71,39 @@
         wp.data.dispatch('core/notices').removeNotice(NOTICE);
     }
 
+    function check() {
+        var blockEditor = wp.data.select('core/block-editor');
+        var editor = wp.data.select('core/editor');
+        if (!blockEditor || !editor) {
+            return;
+        }
+        // State first: the notices below run this listener again.
+        var change = '';
+        var blocks = blockEditor.getBlocks();
+        if (blocks !== lastBlocks) {
+            lastBlocks = blocks;
+            var now = hasEmbed(blocks);
+            if (now !== found) {
+                change = now ? 'show' : 'hide';
+            }
+            found = now;
+        }
+        var isSaving = editor.isSavingPost() && !editor.isAutosavingPost();
+        var saved = saving && !isSaving;
+        saving = isSaving;
+        if (saved && found) {
+            change = 'show';
+        }
+        if ('show' === change) {
+            show();
+        } else if ('hide' === change) {
+            hide();
+        }
+    }
+
     wp.domReady(function () {
-        wp.data.subscribe(function () {
-            var blockEditor = wp.data.select('core/block-editor');
-            var editor = wp.data.select('core/editor');
-            if (!blockEditor || !editor) {
-                return;
-            }
-            // State first: the notices below run this listener again.
-            var change = '';
-            var blocks = blockEditor.getBlocks();
-            if (blocks !== lastBlocks) {
-                lastBlocks = blocks;
-                var now = hasEmbed(blocks);
-                if (now !== found) {
-                    change = now ? 'show' : 'hide';
-                }
-                found = now;
-            }
-            var isSaving = editor.isSavingPost() && !editor.isAutosavingPost();
-            var saved = saving && !isSaving;
-            saving = isSaving;
-            if (saved && found) {
-                change = 'show';
-            }
-            if ('show' === change) {
-                show();
-            } else if ('hide' === change) {
-                hide();
-            }
-        });
+        wp.data.subscribe(check);
+        // Content already loaded, before any change.
+        check();
     });
 })(window.wp, window.seoprostackEmbedNotice);
