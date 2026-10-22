@@ -827,6 +827,7 @@ class SEOProStack_Admin_Menu extends SEOProStack_Feature {
         $out_sub  = is_array($submenu) ? $submenu : array();
         $entries  = array();
         $top      = array();
+        $caps     = array();
         $writer   = self::is_writer();
         // Core renames a menu to its first entry; places may use the old name.
         $renamed  = array_flip(array_map('strval', (array) $_wp_real_parent_file));
@@ -853,7 +854,8 @@ class SEOProStack_Admin_Menu extends SEOProStack_Feature {
                 // Top-level entries go into sections only.
                 $place = self::fallback_section($slug, $parents);
             }
-            $top[$slug] = $place;
+            $top[$slug]  = $place;
+            $caps[$slug] = isset($item[1]) ? (string) $item[1] : '';
             if (($writer && self::writer_hides_menu($slug, $item, $out_sub)) || self::is_hidden($slug, '', $item)) {
                 $entries[] = array('slug' => $slug, 'section' => $place, 'top' => true, 'hidden' => true);
                 continue;
@@ -877,6 +879,12 @@ class SEOProStack_Admin_Menu extends SEOProStack_Feature {
             }
             $own    = $top[$parent];
             $first  = true;
+            // A WordPress menu the person cannot open (Settings, for an
+            // editor who may open FluentSMTP's page under it) stays only for
+            // its plugin pages: core moves a menu to its first page only for
+            // pages added before admin_menu. Its first entry is then a page
+            // like the others and goes to its place.
+            $closed = isset(self::CORE_PARENTS[$parent]) && '' !== $caps[$parent] && !current_user_can($caps[$parent]);
             foreach ((array) $items as $position => $item) {
                 if (!is_array($item) || !isset($item[2])) {
                     continue;
@@ -889,7 +897,7 @@ class SEOProStack_Admin_Menu extends SEOProStack_Feature {
                     $entries[] = array('slug' => $slug, 'section' => $own, 'from' => $parent, 'hidden' => true);
                     continue;
                 }
-                $place    = $is_first || $slug === $parent ? '' : self::place($slug, $parent);
+                $place    = ($is_first && !$closed) || $slug === $parent ? '' : self::place($slug, $parent);
 
                 if ('' === $place || $place === $parent || $place === $own || (!isset($sections[$place]) && !isset($top[$place]))) {
                     $entries[] = array('slug' => $slug, 'section' => $own, 'from' => $parent, 'first' => $is_first);

@@ -240,8 +240,10 @@ final class SEOProStack_Setup {
      *      settings are not stored yet, its hardening into Turn off unused
      *      remote access, Tidy the login screen, Tidy admin screens and
      *      Remove WordPress extras (#698).
+     * v28: Editors use the business plugins: add Fluent Forms where 1.3.70's
+     *      whole plugin list is stored (#905).
      */
-    const DB_VERSION = 27;
+    const DB_VERSION = 28;
 
     /**
      * Tab slugs renamed in 0.4.0, old => new. Settings that still use an
