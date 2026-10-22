@@ -167,7 +167,7 @@ final class SEOProStack_Editor_Settings {
             }
             return;
         }
-        $page = isset($_GET['page']) ? sanitize_text_field(wp_unslash((string) $_GET['page'])) : '';
+        $page = self::page($_GET);
         if ('' === $page) {
             return;
         }
@@ -189,7 +189,21 @@ final class SEOProStack_Editor_Settings {
     }
 
     /**
-     * The tab, section and admin app address (path) of a screen.
+     * The page slug of a screen, read as WordPress reads it (admin.php
+     * passes it through plugin_basename(), so page=//wc-status opens
+     * wc-status).
+     *
+     * @param array $args Query arguments (slashed, as in $_GET).
+     * @return string
+     */
+    private static function page(array $args) {
+        return isset($args['page']) && is_string($args['page']) ? plugin_basename(sanitize_text_field(wp_unslash($args['page']))) : '';
+    }
+
+    /**
+     * The tab, section and admin app address (path) of a screen. Tab and
+     * section are read as WooCommerce reads them (sanitize_title(), so
+     * tab=Checkout opens the checkout tab).
      *
      * @param array $args Query arguments (slashed, as in $_GET).
      * @return array<string,string>
@@ -197,7 +211,8 @@ final class SEOProStack_Editor_Settings {
     private static function screen_args(array $args) {
         $screen = array();
         foreach (array('tab', 'section', 'path') as $key) {
-            $screen[$key] = isset($args[$key]) && is_string($args[$key]) ? sanitize_text_field(wp_unslash($args[$key])) : '';
+            $value        = isset($args[$key]) && is_string($args[$key]) ? sanitize_text_field(wp_unslash($args[$key])) : '';
+            $screen[$key] = 'path' === $key ? $value : sanitize_title($value);
         }
         return $screen;
     }
@@ -257,7 +272,9 @@ final class SEOProStack_Editor_Settings {
      */
     private static function matches($kind, $subject) {
         foreach (self::$rules as $rule) {
-            if (isset($rule[$kind]) && preg_match($rule[$kind], $subject)) {
+            // Case-insensitive, as WordPress matches REST routes: refusing
+            // more spellings than a plugin answers is harmless.
+            if (isset($rule[$kind]) && preg_match($rule[$kind] . 'i', $subject)) {
                 return true;
             }
         }
@@ -360,8 +377,9 @@ final class SEOProStack_Editor_Settings {
         } else {
             $args['page'] = $slug;
         }
-        $page = isset($args['page']) && is_string($args['page']) ? $args['page'] : '';
-        return '' !== $page && false === strpos($page, '.php') && self::admin_only($page, self::screen_args(wp_slash($args)));
+        $args = wp_slash($args);
+        $page = self::page($args);
+        return '' !== $page && false === strpos($page, '.php') && self::admin_only($page, self::screen_args($args));
     }
 
     /**
@@ -374,7 +392,7 @@ final class SEOProStack_Editor_Settings {
      */
     public static function notice() {
         // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- which screen this is.
-        $page = isset($_GET['page']) ? sanitize_text_field(wp_unslash((string) $_GET['page'])) : '';
+        $page = self::page($_GET);
         if ('' === $page || !self::applies()) {
             return;
         }
