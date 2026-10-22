@@ -3,8 +3,11 @@
  * Editors use the site's business plugins.
  *
  * Lets chosen roles (editors by default) use WooCommerce as shop managers
- * do, and Rank Math, Tutor LMS, FluentCRM, Fluent Support, Fluent Booking,
- * Fluent Boards and FluentSMTP as administrators do. Nothing is stored:
+ * do, Fluent Forms' forms, entries and payments (not its settings), and
+ * Rank Math, Tutor LMS, FluentCRM, Fluent Support, Fluent Booking and
+ * Fluent Boards as administrators do. FluentSMTP they can see (dashboard,
+ * email logs, connections with their secrets masked by FluentSMTP) but not
+ * change: a save asks them to ask an administrator. Nothing is stored:
  * capabilities are added at run time with user_has_cap, so switching the
  * feature off, or taking someone out of the role, takes them back.
  *
@@ -39,15 +42,16 @@ class SEOProStack_Editor_Access extends SEOProStack_Feature {
 
     /**
      * Plugins covered: folders (with their Pro add-ons) and the start of
-     * their admin page slugs. WooCommerce gets only its own capabilities, as
-     * shop managers have, so no folders: its code is never answered yes to
-     * manage_options.
+     * their admin page slugs. WooCommerce and Fluent Forms get only their
+     * own capabilities, as their own roles have, so no folders: their code
+     * is never answered yes to manage_options.
      */
     const PLUGINS = array(
         'woocommerce'    => array('name' => 'WooCommerce', 'dirs' => array(), 'pages' => array()),
         'rank-math'      => array('name' => 'Rank Math', 'dirs' => array('seo-by-rank-math', 'seo-by-rank-math-pro'), 'pages' => array('rank-math')),
         'tutor'          => array('name' => 'Tutor LMS', 'dirs' => array('tutor', 'tutor-pro'), 'pages' => array('tutor')),
         'fluent-crm'     => array('name' => 'FluentCRM', 'dirs' => array('fluent-crm', 'fluentcampaign-pro'), 'pages' => array('fluentcrm')),
+        'fluent-forms'   => array('name' => 'Fluent Forms', 'dirs' => array(), 'pages' => array()),
         'fluent-support' => array('name' => 'Fluent Support', 'dirs' => array('fluent-support', 'fluent-support-pro'), 'pages' => array('fluent-support')),
         'fluent-booking' => array('name' => 'Fluent Booking', 'dirs' => array('fluent-booking', 'fluent-booking-pro'), 'pages' => array('fluent-booking')),
         'fluent-boards'  => array('name' => 'Fluent Boards', 'dirs' => array('fluent-boards', 'fluent-boards-pro'), 'pages' => array('fluent-boards')),
@@ -56,6 +60,47 @@ class SEOProStack_Editor_Access extends SEOProStack_Feature {
 
     /** WooCommerce's own capabilities, as WC_Install gives shop managers. */
     const WOO_CAPS = array('manage_woocommerce', 'create_customers', 'view_woocommerce_reports');
+
+    /**
+     * Fluent Forms' permissions (FluentForm\App\Modules\Acl\Acl): forms,
+     * entries and payments. Not fluentform_settings_manager (global
+     * settings, integrations with their API keys, import and export) or
+     * fluentform_full_access.
+     */
+    const FORMS_CAPS = array(
+        'fluentform_dashboard_access',
+        'fluentform_forms_manager',
+        'fluentform_entries_viewer',
+        'fluentform_manage_entries',
+        'fluentform_view_payments',
+        'fluentform_manage_payments',
+    );
+
+    /**
+     * Fluent Forms' pages and the permission each needs. For administrators
+     * Fluent Forms registers them with manage_options or its settings
+     * permission, and Load plugins only where needed puts back an
+     * administrator's menu on screens that skip Fluent Forms; for the chosen
+     * roles these entries ask for this instead. Its settings, tools and
+     * integrations pages are not listed.
+     */
+    const FORMS_PAGES = array(
+        'fluent_forms'                 => 'fluentform_dashboard_access',
+        'fluent_forms_docs'            => 'fluentform_dashboard_access',
+        'fluent_forms#add=1'           => 'fluentform_forms_manager',
+        'fluent_forms_all_entries'     => 'fluentform_entries_viewer',
+        'fluent_forms_reports'         => 'fluentform_entries_viewer',
+        'fluent_forms_payment_entries' => 'fluentform_view_payments',
+    );
+
+    /** FluentSMTP's AJAX actions start with this (its FLUENTMAIL constant). */
+    const SMTP_WRITE = 'fluentmail-post-';
+
+    /**
+     * FluentSMTP's AJAX writes the chosen roles may still make: resending
+     * failed emails from the logs, a test email, hiding its newsletter offer.
+     */
+    const SMTP_ALLOWED = array('logs/retry', 'logs/retry-bulk', 'settings/test', 'settings/subscribe-dismiss');
 
     /** Menu entries left for administrators: they install or buy plugins. */
     const NOT_PAGES = '/add-?ons|upgrade|get-pro|licen[cs]e|go-pro|extensions|marketplace/i';
@@ -90,7 +135,7 @@ class SEOProStack_Editor_Access extends SEOProStack_Feature {
                 'default'     => true,
                 'tab'         => 'admin',
                 'label'       => __('Editors use the business plugins', 'seoprostack'),
-                'description' => __('Let editors use WooCommerce as shop managers do, and Rank Math, Tutor LMS and the Fluent plugins as administrators do. WordPress’s own settings, plugins, themes and users stay for administrators. Nothing is stored: switch it off and editors have only what their role gives.', 'seoprostack'),
+                'description' => __('Let editors use WooCommerce as shop managers do, Fluent Forms’ forms and entries, and Rank Math, Tutor LMS and the other Fluent plugins as administrators do. They can see FluentSMTP and its email logs; changing its settings asks them to ask an administrator. WordPress’s own settings, plugins, themes and users stay for administrators. Nothing is stored: switch it off and editors have only what their role gives.', 'seoprostack'),
             ),
             'editor_access_roles'   => array(
                 'type'        => 'multi',
@@ -105,7 +150,7 @@ class SEOProStack_Editor_Access extends SEOProStack_Feature {
                 'default'     => array_keys($plugins),
                 'parent'      => self::KEY,
                 'label'       => __('Plugins', 'seoprostack'),
-                'description' => __('In WooCommerce the roles above can do what shop managers can. In the others, what administrators can, except install add-ons and, in Rank Math, change who can do what.', 'seoprostack'),
+                'description' => __('In WooCommerce the roles above can do what shop managers can. In Fluent Forms, work with forms, entries and payments, but not its settings. In FluentSMTP, see its dashboard and email logs and resend failed emails, but not change its settings. In the others, what administrators can, except install add-ons and, in Rank Math, change who can do what.', 'seoprostack'),
                 'options'     => $plugins,
             ),
         );
@@ -122,6 +167,15 @@ class SEOProStack_Editor_Access extends SEOProStack_Feature {
         add_filter('rest_prepare_user', array(__CLASS__, 'rest_user'), 10, 2);
         add_action('admin_menu', array(__CLASS__, 'menu'), PHP_INT_MAX - 1);
         add_filter('seoprostack_restored_menu_capability', array(__CLASS__, 'menu_capability'), 10, 2);
+        $chosen = self::chosen();
+        if (isset($chosen['fluent-forms'])) {
+            add_filter('fluentform/current_user_permissions', array(__CLASS__, 'forms_permissions'));
+        }
+        if (isset($chosen['fluent-smtp'])) {
+            // Before admin-ajax.php runs FluentSMTP's handler.
+            add_action('admin_init', array(__CLASS__, 'smtp_refuse_writes'), 1);
+            add_action('admin_notices', array(__CLASS__, 'smtp_notice'));
+        }
     }
 
     /**
@@ -248,7 +302,28 @@ class SEOProStack_Editor_Access extends SEOProStack_Feature {
         if (isset($chosen['rank-math']) && 0 === strpos($cap, 'rank_math_') && 'rank_math_role_manager' !== $cap) {
             return true;
         }
+        if (isset($chosen['fluent-forms']) && in_array($cap, self::FORMS_CAPS, true)) {
+            return true;
+        }
         return isset($chosen['tutor']) && (bool) preg_match('/(^|_)tutor(_|$)/', $cap);
+    }
+
+    /**
+     * Fluent Forms' list of the current person's permissions, which its
+     * admin app reads to show screens and buttons. It is made from the
+     * stored capabilities, not user_has_cap's answer, so the added ones are
+     * put in here. Only for the current person: the filter is not told whose
+     * list it is, and only Fluent Forms' managers screen lists other people,
+     * which these roles cannot open.
+     *
+     * @param mixed $permissions Permissions.
+     * @return mixed
+     */
+    public static function forms_permissions($permissions) {
+        if (!is_array($permissions) || !self::covers(wp_get_current_user())) {
+            return $permissions;
+        }
+        return array_values(array_unique(array_merge($permissions, self::FORMS_CAPS)));
     }
 
     /**
@@ -389,13 +464,18 @@ class SEOProStack_Editor_Access extends SEOProStack_Feature {
 
     /**
      * Capability a menu entry asks of the current person: read instead of
-     * manage_options for the chosen plugins' pages.
+     * manage_options for the chosen plugins' pages, and for Fluent Forms'
+     * pages the permission each needs instead of its settings permission.
      *
      * @param mixed $cap  Capability the entry asks for.
      * @param mixed $slug Entry address.
      * @return mixed
      */
     public static function menu_capability($cap, $slug) {
+        if (('manage_options' === $cap || 'fluentform_settings_manager' === $cap) && is_string($slug) && isset(self::FORMS_PAGES[$slug])) {
+            $chosen = self::chosen();
+            return isset($chosen['fluent-forms']) && self::covers(wp_get_current_user()) ? self::FORMS_PAGES[$slug] : $cap;
+        }
         if (('manage_options' !== $cap && 'administrator' !== $cap) || !is_string($slug) || '' === $slug
             || false !== strpos($slug, '://') || preg_match(self::NOT_PAGES, $slug)
             || !self::covers(wp_get_current_user())) {
@@ -409,5 +489,61 @@ class SEOProStack_Editor_Access extends SEOProStack_Feature {
             }
         }
         return $cap;
+    }
+
+    /* --------------------------------------------------------------------- */
+    /* FluentSMTP: see, not change                                            */
+    /* --------------------------------------------------------------------- */
+
+    /**
+     * Refuse FluentSMTP's settings changes from the chosen roles, before its
+     * AJAX handler runs (admin-ajax.php runs admin_init first). Reading its
+     * dashboard, settings and email logs stays open: FluentSMTP masks the
+     * connections' passwords and keys itself. Resending failed emails and
+     * test emails stay open too. Also refuses the Slack sign-up return,
+     * which saves a connection when the screen opens.
+     */
+    public static function smtp_refuse_writes() {
+        if (!self::covers(wp_get_current_user())) {
+            return;
+        }
+        // phpcs:disable WordPress.Security.NonceVerification -- only refuses; FluentSMTP checks its own nonce on what it lets through.
+        if (wp_doing_ajax()) {
+            $action = isset($_REQUEST['action']) ? sanitize_text_field(wp_unslash((string) $_REQUEST['action'])) : '';
+            if (0 !== strpos($action, self::SMTP_WRITE) || in_array(substr($action, strlen(self::SMTP_WRITE)), self::SMTP_ALLOWED, true)) {
+                return;
+            }
+            wp_send_json_error(array('message' => self::smtp_message()), 403);
+        }
+        $page = isset($_GET['page']) ? sanitize_key(wp_unslash((string) $_GET['page'])) : '';
+        if ('fluent-mail' === $page && isset($_REQUEST['sub_action'])) {
+            wp_die(esc_html(self::smtp_message()), '', array('response' => 403, 'back_link' => true));
+        }
+        // phpcs:enable
+    }
+
+    /**
+     * On FluentSMTP's screen, tell the chosen roles they can look but that
+     * changes are for an administrator.
+     */
+    public static function smtp_notice() {
+        // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- which screen this is.
+        $page = isset($_GET['page']) ? sanitize_key(wp_unslash((string) $_GET['page'])) : '';
+        if ('fluent-mail' !== $page || !self::covers(wp_get_current_user())) {
+            return;
+        }
+        printf(
+            '<div class="notice notice-info"><p>%s</p></div>',
+            esc_html__('You can see FluentSMTP’s connections and email logs, and resend failed emails. If something here needs changing, please ask an administrator: settings you change here are not saved.', 'seoprostack')
+        );
+    }
+
+    /**
+     * Message for a refused FluentSMTP change.
+     *
+     * @return string
+     */
+    private static function smtp_message() {
+        return __('Only an administrator can change FluentSMTP’s settings. If you think something needs updating, please ask one.', 'seoprostack');
     }
 }

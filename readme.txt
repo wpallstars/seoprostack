@@ -152,8 +152,7 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 
 == Changelog ==
 
-= 1.3.70 =
-* New: editors use WooCommerce, Rank Math, Tutor LMS and Fluent plugins (on).
-* Fix: Dark mode for update progress.
+= 1.3.71 =
+* New: editors use Fluent Forms, and see FluentSMTP's email logs.
 
 Older: `changelog.txt`.
