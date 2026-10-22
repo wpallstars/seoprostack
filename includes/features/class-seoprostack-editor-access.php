@@ -151,6 +151,7 @@ class SEOProStack_Editor_Access extends SEOProStack_Feature {
             return;
         }
         add_filter('user_has_cap', array(__CLASS__, 'grant'), 10, 4);
+        add_filter('rest_prepare_user', array(__CLASS__, 'rest_user'), 10, 2);
         add_action('admin_menu', array(__CLASS__, 'menu'), PHP_INT_MAX - 1);
         add_filter('seoprostack_restored_menu_capability', array(__CLASS__, 'menu_capability'), 10, 2);
     }
@@ -217,6 +218,40 @@ class SEOProStack_Editor_Access extends SEOProStack_Feature {
             }
         }
         return $allcaps;
+    }
+
+    /**
+     * Show the added capabilities in the person's own REST user record.
+     * The record lists the stored capabilities, not user_has_cap's answer,
+     * and WooCommerce's admin app (Home, Analytics) reads it to decide
+     * whether a page may open. manage_options is never listed.
+     *
+     * @param WP_REST_Response $response Response.
+     * @param WP_User          $user     User.
+     * @return WP_REST_Response
+     */
+    public static function rest_user($response, $user) {
+        if (!$response instanceof WP_REST_Response || !$user instanceof WP_User
+            || get_current_user_id() !== $user->ID || !self::covers($user)) {
+            return $response;
+        }
+        $data = $response->get_data();
+        if (!is_array($data) || !isset($data['capabilities'])) {
+            return $response;
+        }
+        $caps   = (array) $data['capabilities'];
+        $chosen = self::chosen();
+        foreach (array('shop_manager', 'administrator') as $name) {
+            $role = get_role($name);
+            foreach ($role ? array_keys(array_filter((array) $role->capabilities)) : array() as $cap) {
+                if (empty($caps[$cap]) && self::plugin_cap((string) $cap, $chosen)) {
+                    $caps[$cap] = true;
+                }
+            }
+        }
+        $data['capabilities'] = (object) $caps;
+        $response->set_data($data);
+        return $response;
     }
 
     /**
