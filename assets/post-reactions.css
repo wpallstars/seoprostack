@@ -282,10 +282,26 @@
 	cursor: pointer;
 }
 
+/* A modal focuses its close button when it opens. Themes colour a focused
+   button as a primary button (Kadence: button:focus), which showed a filled
+   button in the wrong colours until the visitor clicked elsewhere: keep it
+   plain, with a focus ring only for keyboard focus. */
+.sps-panel__close:focus {
+	border: 0;
+	background: transparent;
+	box-shadow: none;
+	color: inherit;
+}
+
 .sps-panel__close:hover,
 .sps-panel__close:focus-visible {
 	background: rgb(127 127 127 / 18%);
 	color: inherit;
+}
+
+.sps-panel__close:focus-visible {
+	outline: 2px solid currentcolor;
+	outline-offset: 2px;
 }
 
 html:has(.sps-panel--modal[open]) {
