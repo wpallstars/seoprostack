@@ -7,7 +7,7 @@
 [![CI](https://github.com/wpallstars/seoprostack/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/wpallstars/seoprostack/actions/workflows/ci.yml)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=wpallstars_seoprostack&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=wpallstars_seoprostack)
 [![License: GPL v3 or later](https://img.shields.io/badge/License-GPL%20v3%20or%20later-blue.svg)](LICENSE)
-[![Latest release](https://img.shields.io/badge/release-v1.3.71-blue.svg)](https://github.com/wpallstars/seoprostack/releases)
+[![Latest release](https://img.shields.io/badge/release-v1.3.72-blue.svg)](https://github.com/wpallstars/seoprostack/releases)
 
 [![Requires WordPress](https://img.shields.io/badge/WordPress-6.2%2B-21759B.svg?logo=wordpress)](readme.txt)
 [![Tested up to](https://img.shields.io/badge/tested%20up%20to-7.1-21759B.svg?logo=wordpress)](readme.txt)
@@ -24,7 +24,7 @@ SEO Pro Stack does the jobs that usually take dozens of small plugins: a calmer,
 
 If this saves you time, headaches and costs, feel free to [buy me a coffee](https://buymeacoffee.com/marcusquinn), or whatever you like, to invest in making more things open-source.
 
-Version: 1.3.71
+Version: 1.3.72
 
 <!-- github-only:start -->
 ## Screenshots
@@ -314,11 +314,17 @@ Adds “Email me a login link” to the login screen, next to “Lost your passw
 
 On by default, at the owner's request. Editors (or the roles you choose) use the plugins that run the business, not only the content:
 
-- **WooCommerce**: what shop managers can do (`manage_woocommerce`, reports, products, orders and coupons). Users stay for administrators, and WooCommerce's own checks for administrators are not answered yes.
-- **Rank Math**: every Rank Math capability but its Role Manager, so editors can change Rank Math's settings, sitemaps, redirections and the like, but not who can do what.
+- **WooCommerce**: what shop managers can do (`manage_woocommerce`, reports, products, orders and coupons), but its settings are read-only (below). Users stay for administrators, and WooCommerce's own checks for administrators are not answered yes.
+- **Rank Math**: every Rank Math capability but its Role Manager, so editors use its sitemaps, redirections, Analytics and the like, but not who can do what. Its settings are read-only (below).
 - **Fluent Forms**: its own permissions for forms, entries, reports and payments (`fluentform_dashboard_access`, `fluentform_forms_manager`, `fluentform_entries_viewer`, `fluentform_manage_entries`, `fluentform_view_payments`, `fluentform_manage_payments`), as a Fluent Forms manager given those has. Its Global Settings, Tools and Integrations, which hold API keys and import and export, stay for administrators.
 - **FluentSMTP**: see its dashboard, connections and email logs, resend failed emails and send a test email, but not change its settings. FluentSMTP masks the connections' passwords and keys itself. Its screen says to ask an administrator if something needs changing, and a change they try anyway is refused with the same message. It shows in the menu where [Organise the admin menu](#organise-the-admin-menu-admin) puts it (Communications).
-- **Tutor LMS**, **FluentCRM**, **Fluent Support**, **Fluent Booking** and **Fluent Boards**: what administrators can do in them, with their menus. Their add-on, upgrade and licence pages stay for administrators.
+- **Tutor LMS**, **FluentCRM**, **Fluent Support**, **Fluent Booking** and **Fluent Boards**: what administrators can do in them, with their menus, but not change their settings (below). Their add-on, upgrade and licence pages stay for administrators.
+- **Settings, read-only**: these roles can see the plugins' settings, to know what is set, but not change them. The settings screens say so and ask them to ask an administrator if something needs updating; every save is refused on the server with the same message (REST routes, AJAX and admin-post actions, forms posted to the screen, and links that act when opened, such as Rank Math's Google reconnect). Settings screens that show passwords, API keys or licence keys, and tools that export settings or change a plugin's set-up, stay for administrators: they are left out of the menu and refused if opened. Each plugin was checked for this:
+  - WooCommerce: General, Products, Shipping, Tax, Accounts, Emails and Advanced's page settings are read-only (shipping zones, classes and tax rates included). Payments, Integration (the MaxMind licence key), Advanced's REST API keys and webhooks, Status (logs and tools) and Extensions are for administrators.
+  - Rank Math: General Settings, Titles & Meta, Sitemap and Instant Indexing are read-only, with Analytics open to use; Titles & Meta is for administrators once its Facebook app secret or Google Maps API key is filled in, and Sitemap once its YouTube API key (Pro) is. Status & Tools, the setup wizard and registration are for administrators, as are its AI abilities that change settings.
+  - Tutor LMS: Settings (payment gateway credentials and API keys), Tools and Add-ons are for administrators.
+  - FluentCRM, Fluent Support, Fluent Booking and Fluent Boards: settings are read-only inside their apps; the parts that return keys or licences (FluentCRM's bounce handlers, REST API keys, integrations, webhooks, SMS and licence; Fluent Support's integrations, mailbox email settings and licence; Fluent Booking's payment methods, Zoom, integrations and licence; Fluent Boards' storage, webhooks and licence) answer only administrators.
+  - Fluent Forms' settings stay for administrators, as above. SEO Pro Stack's own settings and WordPress's Settings screens stay for administrators too.
 - **Plugins** lists them, all ticked; untick any the roles should not get.
 - How: capabilities are added at run time with `user_has_cap`, so nothing is stored and switching the feature off takes them back. Most of these plugins treat anyone who can `manage_options` as their administrator (Tutor LMS also asks for the administrator role); editors are answered yes only when the file asking is one of a ticked plugin's, or core is registering that plugin's admin page. WordPress's own Settings, Plugins, Themes and Users screens, every other plugin and SEO Pro Stack still get no. Those plugins' menu entries that ask for `manage_options` ask for `read` instead, for these roles only, including the entries [Load plugins only where needed](#load-plugins-only-where-needed-plugins) puts back (filter `seoprostack_restored_menu_capability`). FluentSMTP's page is under Settings, which these roles cannot open; with Organise the admin menu it moves to Communications for them, as WordPress menus they cannot open keep only their plugin pages, and those go to their places. Their own REST user record (`/wp/v2/users/me`) lists the added capabilities, never `manage_options`, as WooCommerce's Home and Analytics read it.
 - Records the plugins keep for the people who use them stay when the feature is switched off, such as a Fluent Support agent, without permissions: Fluent Support makes one the first time someone it treats as an administrator opens it.
@@ -1885,6 +1891,10 @@ Deleting the plugin removes its settings (on multisite, every site's and the net
 Deactivating the plugin removes the WebP and AVIF rules from the uploads folder’s `.htaccess` (for every site when network-deactivated), the LiteSpeed background request rules from the site’s `.htaccess` (on multisite, when network-deactivated or deactivated on the main site) and the must-use file of Load plugins only where needed (on multisite, when network-deactivated).
 
 ## Changelog
+
+### 1.3.72
+- Change: **Editors use the business plugins**: editors see the settings of WooCommerce, Rank Math, FluentCRM, Fluent Support, Fluent Booking and Fluent Boards, but cannot change them. The settings screens ask them to ask an administrator if something needs updating, and every save is refused on the server with that message. Settings screens with passwords, API keys or licence keys (WooCommerce Payments, Integration, REST API keys and webhooks; Tutor LMS's settings; the Fluent plugins' integrations and licences), and tools that export settings or change a plugin's set-up, stay for administrators (GitHub issue #907).
+- Fix: editors see **Rank Math's Analytics**: Rank Math sets up its modules before SEO Pro Stack gave editors its capabilities, so Analytics left itself out (GitHub issue #907).
 
 ### 1.3.71
 - New: **Editors use the business plugins** covers **Fluent Forms**: editors work with forms, entries, reports and payments through Fluent Forms' own permissions, not its Global Settings, Tools or Integrations. Sites that kept the default list of plugins get it; a list someone changed is kept (GitHub issue #905).
