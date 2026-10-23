@@ -188,7 +188,10 @@ WP Grid Builder on Kadence (child themes included). Append colour overrides
 through WPGB's inline-style filter, so pages without its styles add nothing.
 Scope to `body.color-switch-dark`: light mode keeps the authored card design.
 Surfaces use palette 9, borders 7, primary scheme text 3/4, secondary text 5
-(not decorative palette 6), and accent text 1. Facet inputs, placeholders and
+(not decorative palette 6), and accent text 1. Card builder CSS reads WPGB's
+`--wpgb-*-scheme-*` variables, so redefine those on the card's
+`.wpgb-scheme-dark` areas too (not light-scheme areas, overlays or facets,
+where the accent is a fill under white). Facet inputs, placeholders and
 combobox options use the same surface/text pair. Read variables at the element,
 never on `:root`. Leave layout, media images, animations and interactions alone;
 responsive breakpoints remain WPGB's. Palette choices still need a contrast

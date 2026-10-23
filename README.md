@@ -7,7 +7,7 @@
 [![CI](https://github.com/wpallstars/seoprostack/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/wpallstars/seoprostack/actions/workflows/ci.yml)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=wpallstars_seoprostack&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=wpallstars_seoprostack)
 [![License: GPL v3 or later](https://img.shields.io/badge/License-GPL%20v3%20or%20later-blue.svg)](LICENSE)
-[![Latest release](https://img.shields.io/badge/release-v1.3.72-blue.svg)](https://github.com/wpallstars/seoprostack/releases)
+[![Latest release](https://img.shields.io/badge/release-v1.3.73-blue.svg)](https://github.com/wpallstars/seoprostack/releases)
 
 [![Requires WordPress](https://img.shields.io/badge/WordPress-6.2%2B-21759B.svg?logo=wordpress)](readme.txt)
 [![Tested up to](https://img.shields.io/badge/tested%20up%20to-7.1-21759B.svg?logo=wordpress)](readme.txt)
@@ -24,7 +24,7 @@ SEO Pro Stack does the jobs that usually take dozens of small plugins: a calmer,
 
 If this saves you time, headaches and costs, feel free to [buy me a coffee](https://buymeacoffee.com/marcusquinn), or whatever you like, to invest in making more things open-source.
 
-Version: 1.3.72
+Version: 1.3.73
 
 <!-- github-only:start -->
 ## Screenshots
@@ -541,6 +541,8 @@ Gives Readabler's accessibility button and popup the site's palette colours, so 
 follow the theme's body-scoped palette in dark mode. Light mode keeps WP Grid
 Builder's own design. Card surfaces use palette 9, borders 7, primary text 3/4,
 secondary scheme text 5 and accents 1. Palette 6 is not used for small text.
+In the card's dark-text areas, text coloured in the card builder from WP Grid
+Builder's colour settings (scheme and accent colours) switches too.
 The site's palette still needs accessible contrast, including accent colours.
 No scripts or saved WP Grid Builder settings change; turning this off restores
 its colours. No styles are added without active WP Grid Builder and Kadence,
@@ -1891,6 +1893,9 @@ Deleting the plugin removes its settings (on multisite, every site's and the net
 Deactivating the plugin removes the WebP and AVIF rules from the uploads folder’s `.htaccess` (for every site when network-deactivated), the LiteSpeed background request rules from the site’s `.htaccess` (on multisite, when network-deactivated or deactivated on the main site) and the must-use file of Load plugins only where needed (on multisite, when network-deactivated).
 
 ## Changelog
+
+### 1.3.73
+- Fix: **WP Grid Builder colours**: in dark mode, card titles and labels styled in WP Grid Builder's card builder show in light text on the dark card; they stayed dark grey and dark green, as the card builder colours them through WP Grid Builder's colour settings, which the dark styles did not change (GitHub issue #909).
 
 ### 1.3.72
 - Change: **Editors use the business plugins**: editors see the settings of WooCommerce, Rank Math, FluentCRM, Fluent Support, Fluent Booking and Fluent Boards, but cannot change them. The settings screens ask them to ask an administrator if something needs updating, and every save is refused on the server with that message. Settings screens with passwords, API keys or licence keys (WooCommerce Payments, Integration, REST API keys and webhooks; Tutor LMS's settings; the Fluent plugins' integrations and licences), and tools that export settings or change a plugin's set-up, stay for administrators (GitHub issue #907).

@@ -62,6 +62,18 @@ body.color-switch-dark .wp-grid-builder .wpgb-card .wpgb-card-body {
     border-color: var(--global-palette7, #444);
     color: var(--global-palette4, #eee);
 }
+/* Card builder CSS colours blocks with WPGB's variables, not the classes
+   below: dark-scheme text now sits on the dark card, so light it. Only
+   dark-scheme areas, so media overlays and facet controls keep the accent. */
+body.color-switch-dark .wp-grid-builder .wpgb-card .wpgb-scheme-dark {
+    --wpgb-dark-scheme-1: var(--global-palette3, #fff);
+    --wpgb-dark-scheme-2: var(--global-palette5, #ccc);
+    --wpgb-dark-scheme-3: var(--global-palette5, #ccc);
+    --wpgb-color-scheme-1: var(--global-palette3, #fff);
+    --wpgb-color-scheme-2: var(--global-palette5, #ccc);
+    --wpgb-color-scheme-3: var(--global-palette5, #ccc);
+    --wpgb-accent-scheme-1: var(--global-palette1, #8ab4f8);
+}
 body.color-switch-dark .wp-grid-builder [class*="wpgb-scheme-"] .wpgb-idle-scheme-1,
 body.color-switch-dark .wp-grid-builder [class*="wpgb-scheme-"] [class^="wpgb-block-"].wpgb-hover-scheme-1:hover {
     color: var(--global-palette3, #fff);

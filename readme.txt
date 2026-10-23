@@ -5,7 +5,7 @@ Tags: magic login, iframe, schedule posts, auto upload images, admin
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.3.72
+Stable tag: 1.3.73
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -152,7 +152,7 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 
 == Changelog ==
 
-= 1.3.72 =
-* Change: editors see plugin settings read-only; ones with keys stay for administrators. Rank Math Analytics shows.
+= 1.3.73 =
+* Fix: WP Grid Builder colours: in dark mode, card builder titles and labels show in light text on dark cards.
 
 Older: `changelog.txt`.
