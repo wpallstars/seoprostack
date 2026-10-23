@@ -541,8 +541,8 @@ Gives Readabler's accessibility button and popup the site's palette colours, so 
 follow the theme's body-scoped palette in dark mode. Light mode keeps WP Grid
 Builder's own design. Card surfaces use palette 9, borders 7, primary text 3/4,
 secondary scheme text 5 and accents 1. Palette 6 is not used for small text.
-Text the card builder colours with WP Grid Builder's colour settings switches
-too, in the card's dark-text areas.
+In the card's dark-text areas, text coloured in the card builder from WP Grid
+Builder's colour settings (scheme and accent colours) switches too.
 The site's palette still needs accessible contrast, including accent colours.
 No scripts or saved WP Grid Builder settings change; turning this off restores
 its colours. No styles are added without active WP Grid Builder and Kadence,
