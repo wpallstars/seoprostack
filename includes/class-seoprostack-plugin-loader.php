@@ -102,7 +102,7 @@ final class SEOProStack_Plugin_Loader {
     const UPDATES_FULL = 'seoprostack_plugin_updates_full';
 
     /** Map format; a change makes SEO Pro Stack learn again. */
-    const MAP_VERSION = 11;
+    const MAP_VERSION = 12;
 
     /** SEO Pro Stack's own settings page (Settings > SEO Pro Stack). */
     const SETTINGS_PAGE = 'seoprostack';
@@ -2066,8 +2066,12 @@ final class SEOProStack_Plugin_Loader {
      * users, products and terms): the framework registers every sheet's
      * page, but a sheet only works when the plugin it belongs to loads too.
      * A copy counts when another plugin has the same file, at the same place
-     * in its folder, declaring the same class or function. Files at the top
-     * of a plugin's folder and Freemius (see plugin_for_sdk()) do not count.
+     * in its folder, declaring the same class or function in the same
+     * namespace. Files at the top of a plugin's folder and Freemius (see
+     * plugin_for_sdk()) do not count. Plugins built on one starter can share
+     * a file's path and class name with their own namespaces (Fluent Boards,
+     * Fluent Booking, FluentSMTP and FluentAuth each have
+     * app/Hooks/Handlers/AdminMenuHandler.php): that is not shared code.
      *
      * @param mixed $callback Callback.
      * @return string[] Plugin files, without the one the code was loaded from.
@@ -2093,12 +2097,13 @@ final class SEOProStack_Plugin_Loader {
             return array();
         }
         static $seen = array();
-        $file = $reflection->getFileName();
-        $own  = $file ? self::plugin_for_file($file) : '';
+        $file      = $reflection->getFileName();
+        $own       = $file ? self::plugin_for_file($file) : '';
+        $namespace = $reflection->getNamespaceName();
         if ('' === $own || false === strpos($own, '/')) {
             return array();
         }
-        $key = $file . '|' . $declares;
+        $key = $file . '|' . $namespace . '|' . $declares;
         if (isset($seen[$key])) {
             return $seen[$key];
         }
@@ -2114,11 +2119,44 @@ final class SEOProStack_Plugin_Loader {
                 continue;
             }
             $copy = $dir . substr($plugin, 0, strpos($plugin, '/')) . '/' . $relative;
-            if (is_readable($copy) && preg_match('/\b' . $declares . '\b/i', (string) file_get_contents($copy))) { // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents -- a local plugin file.
+            $code = is_readable($copy) ? (string) file_get_contents($copy) : ''; // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents -- a local plugin file.
+            if ('' !== $code && self::declares_in_namespace($code, $declares, $namespace)) {
                 $shared[] = $plugin;
             }
         }
         return $seen[$key] = $shared;
+    }
+
+    /**
+     * Whether PHP code declares a class or function inside a namespace (the
+     * empty namespace is global code). Each declaration counts only within
+     * its own namespace block, so a file with several namespaces matches
+     * only the one the declaration is in. PHP compares namespaces without
+     * regard to case.
+     *
+     * @param string $code      PHP code.
+     * @param string $declares  Regular expression for the declaration.
+     * @param string $namespace Namespace, without a leading backslash.
+     * @return bool
+     */
+    private static function declares_in_namespace($code, $declares, $namespace) {
+        preg_match_all('/^\s*namespace(?:\s+([A-Za-z0-9_\\\\]+))?\s*[;{]/m', $code, $found, PREG_SET_ORDER | PREG_OFFSET_CAPTURE);
+        $blocks = array();
+        $name   = '';
+        $start  = 0;
+        foreach ($found as $match) {
+            $blocks[] = array($name, substr($code, $start, $match[0][1] - $start));
+            $name     = isset($match[1]) && -1 !== $match[1][1] ? strtolower($match[1][0]) : '';
+            $start    = $match[0][1] + strlen($match[0][0]);
+        }
+        $blocks[] = array($name, substr($code, $start));
+        $want     = strtolower($namespace);
+        foreach ($blocks as $block) {
+            if ($want === $block[0] && preg_match('/\b' . $declares . '\b/i', $block[1])) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
