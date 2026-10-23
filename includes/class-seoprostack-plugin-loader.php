@@ -2120,7 +2120,7 @@ final class SEOProStack_Plugin_Loader {
             }
             $copy = $dir . substr($plugin, 0, strpos($plugin, '/')) . '/' . $relative;
             $code = is_readable($copy) ? (string) file_get_contents($copy) : ''; // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents -- a local plugin file.
-            if ('' !== $code && preg_match('/\b' . $declares . '\b/i', $code) && self::in_namespace($code, $namespace)) {
+            if ('' !== $code && self::declares_in_namespace($code, $declares, $namespace)) {
                 $shared[] = $plugin;
             }
         }
@@ -2128,21 +2128,35 @@ final class SEOProStack_Plugin_Loader {
     }
 
     /**
-     * Whether PHP code declares a namespace, or declares none when the
-     * namespace is empty (global code). PHP compares namespaces without
+     * Whether PHP code declares a class or function inside a namespace (the
+     * empty namespace is global code). Each declaration counts only within
+     * its own namespace block, so a file with several namespaces matches
+     * only the one the declaration is in. PHP compares namespaces without
      * regard to case.
      *
      * @param string $code      PHP code.
+     * @param string $declares  Regular expression for the declaration.
      * @param string $namespace Namespace, without a leading backslash.
      * @return bool
      */
-    private static function in_namespace($code, $namespace) {
-        preg_match_all('/^\s*namespace\s+([A-Za-z0-9_\\\\]+)\s*[;{]/m', $code, $found);
-        $declared = array_map('strtolower', $found[1]);
-        if ('' === $namespace) {
-            return !$declared;
+    private static function declares_in_namespace($code, $declares, $namespace) {
+        preg_match_all('/^\s*namespace(?:\s+([A-Za-z0-9_\\\\]+))?\s*[;{]/m', $code, $found, PREG_SET_ORDER | PREG_OFFSET_CAPTURE);
+        $blocks = array();
+        $name   = '';
+        $start  = 0;
+        foreach ($found as $match) {
+            $blocks[] = array($name, substr($code, $start, $match[0][1] - $start));
+            $name     = isset($match[1]) && -1 !== $match[1][1] ? strtolower($match[1][0]) : '';
+            $start    = $match[0][1] + strlen($match[0][0]);
         }
-        return in_array(strtolower($namespace), $declared, true);
+        $blocks[] = array($name, substr($code, $start));
+        $want     = strtolower($namespace);
+        foreach ($blocks as $block) {
+            if ($want === $block[0] && preg_match('/\b' . $declares . '\b/i', $block[1])) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
