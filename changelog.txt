@@ -2,6 +2,9 @@
 
 Every change to SEO Pro Stack. readme.txt lists the latest version in short.
 
+= 1.3.74 =
+* Fix: panels: a modal panel focuses its close button when it opens, and themes style a focused button as a primary button (Kadence: `button:focus`), so the close button showed filled, in the wrong colours, until the visitor clicked elsewhere. `.sps-panel__close:focus` stays plain (no border, background or shadow, inherited colour); keyboard focus (`:focus-visible`) shows a 2px outline (GitHub issue #911).
+
 = 1.3.73 =
 * Fix: WP Grid Builder colours: in dark mode, the dark-scheme areas of cards (`.wpgb-card .wpgb-scheme-dark`) take light values for WP Grid Builder's colour variables: `--wpgb-dark-scheme-1` and `--wpgb-color-scheme-1` palette 3, schemes 2 and 3 palette 5, `--wpgb-accent-scheme-1` palette 1. Card builder CSS colours blocks with these variables (`.wpgb-card-N .wpgb-block-N { color: var(--wpgb-color-scheme-1) }`), not the `wpgb-idle-*` classes the dark styles recoloured, so titles stayed `#262626` and term labels the grid's accent on the dark card. Light-scheme areas, media overlays and facet controls keep their colours (GitHub issue #909).
 
