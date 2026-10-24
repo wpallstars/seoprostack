@@ -13,6 +13,13 @@
  * as off, so every editor opens without them; Help still opens the guide
  * for that visit. The rest use core hooks. Nothing is stored.
  *
+ * The post editor's top bar is tidier too (TOP_BAR_KEY): other plugins'
+ * panels start unpinned (UNPINNED, read as unpinned until the person pins
+ * them), YellowPencil's button is left out, and an eye button opens the
+ * page in the same tab, beside core's View button that opens a new tab.
+ * With Kadence Blocks, core blocks it has its own version of leave the
+ * inserter (KADENCE_KEY, KADENCE_BLOCKS).
+ *
  * The editors also open faster: the site details they ask for are built
  * without describing every REST route first (see index_without_routes()).
  *
@@ -37,6 +44,51 @@ class SEOProStack_Editor_Tidy extends SEOProStack_Feature {
 
     /** What to turn off. */
     const ITEMS_KEY = 'editor_tidy_items';
+
+    /** The post editor's top bar. */
+    const TOP_BAR_KEY = 'editor_tidy_top_bar';
+
+    /** Kadence blocks in place of core's in the inserter. */
+    const KADENCE_KEY = 'editor_tidy_kadence';
+
+    /** Script handle. */
+    const HANDLE = 'seoprostack-editor-tidy';
+
+    /**
+     * Other plugins' sidebar panels that start unpinned from the top bar:
+     * the pinned item (plugin name/sidebar name) => panel.
+     */
+    const UNPINNED = array(
+        'kadence-control/kadence-controls'                         => 'Kadence Blocks Controls',
+        'rank-math-content-ai/seo-by-rank-math-content-ai-sidebar' => 'Content AI',
+        'daexthrmal-hreflang-manager/hreflang-manager-lite-sidebar' => 'Hreflang Manager',
+    );
+
+    /**
+     * Core blocks that leave the inserter while Kadence Blocks (or Pro)
+     * has its own version: core block => Kadence block. Not the paragraph,
+     * which is what typing makes.
+     */
+    const KADENCE_BLOCKS = array(
+        'core/heading'      => 'kadence/advancedheading',
+        'core/list'         => 'kadence/iconlist',
+        'core/image'        => 'kadence/image',
+        'core/gallery'      => 'kadence/advancedgallery',
+        'core/buttons'      => 'kadence/advancedbtn',
+        'core/columns'      => 'kadence/rowlayout',
+        'core/cover'        => 'kadence/rowlayout',
+        'core/group'        => 'kadence/column',
+        'core/spacer'       => 'kadence/spacer',
+        'core/separator'    => 'kadence/spacer',
+        'core/accordion'    => 'kadence/accordion',
+        'core/tabs'         => 'kadence/tabs',
+        'core/table'        => 'kadence/table',
+        'core/icon'         => 'kadence/icon',
+        'core/search'       => 'kadence/search',
+        'core/navigation'   => 'kadence/navigation',
+        'core/latest-posts' => 'kadence/posts',
+        'core/query'        => 'kadence/query',
+    );
 
     /** Editor preferences per choice: [scope, name]. */
     const PREFERENCES = array(
@@ -67,7 +119,7 @@ class SEOProStack_Editor_Tidy extends SEOProStack_Feature {
                 'default'     => true,
                 'tab'         => 'content',
                 'label'       => __('Simpler block editor', 'seoprostack'),
-                'description' => __('Turn off parts of the block editor most people never use, such as the welcome guide and the block directory, and open it faster. Applies to everyone.', 'seoprostack'),
+                'description' => __('Turn off parts of the block editor most people never use, such as the welcome guide and the block directory, tidy its top bar, offer Kadence’s blocks first, and open it faster. Applies to everyone.', 'seoprostack'),
                 'replaces'    => SEOProStack_Disable_Bloat::PLUGINS,
             ),
             self::ITEMS_KEY => array(
@@ -77,6 +129,34 @@ class SEOProStack_Editor_Tidy extends SEOProStack_Feature {
                 'label'       => __('Turn off', 'seoprostack'),
                 'options'     => array(__CLASS__, 'item_options'),
             ),
+            self::TOP_BAR_KEY => array(
+                'type'        => 'multi',
+                'default'     => array('view_here', 'unpin_panels', 'yellowpencil'),
+                'parent'      => self::KEY,
+                'label'       => __('Top bar', 'seoprostack'),
+                'options'     => array(__CLASS__, 'top_bar_options'),
+            ),
+            self::KADENCE_KEY => array(
+                'type'        => 'bool',
+                'default'     => true,
+                'parent'      => self::KEY,
+                'label'       => __('Kadence blocks first', 'seoprostack'),
+                'description' => __('Core blocks that Kadence Blocks has its own version of, such as Heading, List, Image, Buttons and Columns, leave the inserter, so Kadence’s is the one offered. Pasting, transforms and patterns still use the core blocks, and pages keep them. Nothing changes without Kadence Blocks.', 'seoprostack'),
+            ),
+        );
+    }
+
+    /**
+     * Top bar choices.
+     *
+     * @return array<string,string>
+     */
+    public static function top_bar_options() {
+        return array(
+            'view_here'    => __('An eye button that opens the page in this tab, beside the View button that opens a new tab', 'seoprostack'),
+            /* translators: %s: panel names, such as Kadence Blocks Controls, Content AI. */
+            'unpin_panels' => sprintf(__('Other plugins’ panels start unpinned: %s (open one from Options → Panels and pin it to keep it there)', 'seoprostack'), implode(', ', self::UNPINNED)),
+            'yellowpencil' => __('No YellowPencil button (YellowPencil stays in the admin bar on the site)', 'seoprostack'),
         );
     }
 
@@ -139,6 +219,26 @@ class SEOProStack_Editor_Tidy extends SEOProStack_Feature {
         }
         if ((isset($items['welcome_guide']) || isset($items['fullscreen'])) && is_admin()) {
             add_filter('get_user_metadata', array(__CLASS__, 'preferences'), 10, 4);
+        }
+        $top_bar = array_flip((array) SEOProStack_Settings::get(self::TOP_BAR_KEY));
+        if (isset($top_bar['unpin_panels']) && is_admin()) {
+            // After preferences() above, which answers first.
+            add_filter('get_user_metadata', array(__CLASS__, 'unpinned'), 11, 4);
+        }
+        if (isset($top_bar['unpin_panels'])) {
+            // The editor saves its preferences through the REST API.
+            add_filter('update_user_metadata', array(__CLASS__, 'save_pins'), 10, 4);
+            add_filter('add_user_metadata', array(__CLASS__, 'save_pins'), 10, 4);
+        }
+        if ((isset($items['welcome_guide']) || isset($items['fullscreen']) || isset($top_bar['unpin_panels'])) && is_admin()) {
+            self::reload_preferences();
+        }
+        if (isset($top_bar['yellowpencil']) && is_admin()) {
+            // After YellowPencil enqueues its script (priority 10).
+            add_action('admin_enqueue_scripts', array(__CLASS__, 'no_yellowpencil'), 100);
+        }
+        if ((isset($top_bar['view_here']) || isset($top_bar['yellowpencil']) || SEOProStack_Settings::get(self::KADENCE_KEY)) && is_admin()) {
+            add_action('enqueue_block_editor_assets', array(__CLASS__, 'block_editor'));
         }
         // Not a choice: the answer is the same, only quicker.
         add_filter('rest_dispatch_request', array(__CLASS__, 'index_without_routes'), PHP_INT_MAX, 3);
@@ -237,5 +337,228 @@ class SEOProStack_Editor_Tidy extends SEOProStack_Feature {
         }
         // A list of values: get_metadata() returns its first for a single value.
         return array($stored);
+    }
+
+    /**
+     * Read the current person's editor preferences with other plugins'
+     * panels (UNPINNED) unpinned, unless that person chose for one.
+     *
+     * Only unset items are read as unpinned: pinning a panel saves it as
+     * pinned, which then stays. Runs after preferences(), on its answer.
+     *
+     * @param mixed  $value    Value from an earlier filter, or null.
+     * @param int    $user_id  User ID.
+     * @param string $meta_key Meta key.
+     * @param bool   $single   Whether one value was asked for.
+     * @return mixed
+     */
+    public static function unpinned($value, $user_id, $meta_key, $single) {
+        global $wpdb;
+        if ($wpdb->get_blog_prefix() . 'persisted_preferences' !== $meta_key || (int) $user_id !== get_current_user_id() || !$user_id) {
+            return $value;
+        }
+        if (null === $value) {
+            remove_filter('get_user_metadata', array(__CLASS__, 'unpinned'), 11);
+            $value = array(get_user_meta($user_id, $meta_key, true));
+            add_filter('get_user_metadata', array(__CLASS__, 'unpinned'), 11, 4);
+        }
+        $stored = is_array($value) && isset($value[0]) && is_array($value[0]) ? $value[0] : array();
+
+        $scope  = self::pins_scope();
+        $pinned = isset($stored[$scope]['pinnedItems']) && is_array($stored[$scope]['pinnedItems']) ? $stored[$scope]['pinnedItems'] : array();
+        foreach (array_keys(self::UNPINNED) as $item) {
+            if (!isset($pinned[$item])) {
+                $pinned[$item] = false;
+            }
+        }
+        if (!isset($stored[$scope]) || !is_array($stored[$scope])) {
+            $stored[$scope] = array();
+        }
+        $stored[$scope]['pinnedItems'] = $pinned;
+        return array($stored);
+    }
+
+    /**
+     * Preference scope of the post editor's pinned items: WordPress 6.6
+     * moved them to core; before, the editor kept them in core/edit-post.
+     *
+     * @return string
+     */
+    private static function pins_scope() {
+        return version_compare(get_bloginfo('version'), '6.6', '>=') ? 'core' : 'core/edit-post';
+    }
+
+    /**
+     * Save editor preferences without the unpinned values unpinned() added.
+     *
+     * The editor saves all its preferences whenever one changes, so the
+     * values read as unpinned would be saved too. A panel saved as
+     * unpinned that had no saved value can only be one of those (pinning
+     * saves it as pinned first), so it is left out; one the person had
+     * pinned and then unpinned stays.
+     *
+     * @param mixed  $check    Answer from an earlier filter, or null.
+     * @param int    $user_id  User ID.
+     * @param string $meta_key Meta key.
+     * @param mixed  $value    Value to save.
+     * @return mixed Null to save as usual; whether the value was saved.
+     */
+    public static function save_pins($check, $user_id, $meta_key, $value) {
+        global $wpdb;
+        $scope = self::pins_scope();
+        if (null !== $check || $wpdb->get_blog_prefix() . 'persisted_preferences' !== $meta_key || !isset($value[$scope]['pinnedItems']) || !is_array($value[$scope]['pinnedItems'])) {
+            return $check;
+        }
+        $stored = self::stored_preferences((int) $user_id, $meta_key);
+        $before = isset($stored[$scope]['pinnedItems']) && is_array($stored[$scope]['pinnedItems']) ? $stored[$scope]['pinnedItems'] : array();
+        $pins   = $value[$scope]['pinnedItems'];
+        foreach (array_keys(self::UNPINNED) as $item) {
+            if (array_key_exists($item, $pins) && false === $pins[$item] && !array_key_exists($item, $before)) {
+                unset($pins[$item]);
+            }
+        }
+        if ($pins === $value[$scope]['pinnedItems']) {
+            return $check;
+        }
+        $value[$scope]['pinnedItems'] = $pins;
+
+        remove_filter('update_user_metadata', array(__CLASS__, 'save_pins'), 10);
+        remove_filter('add_user_metadata', array(__CLASS__, 'save_pins'), 10);
+        $saved = update_user_meta($user_id, $meta_key, $value);
+        add_filter('update_user_metadata', array(__CLASS__, 'save_pins'), 10, 4);
+        add_filter('add_user_metadata', array(__CLASS__, 'save_pins'), 10, 4);
+
+        // False also means it was already saved that way.
+        return false !== $saved || self::stored_preferences((int) $user_id, $meta_key) === $value;
+    }
+
+    /**
+     * A person's saved editor preferences, without the read filters above.
+     *
+     * @param int    $user_id  User ID.
+     * @param string $meta_key Meta key.
+     * @return array
+     */
+    private static function stored_preferences($user_id, $meta_key) {
+        $cache = update_meta_cache('user', array($user_id));
+        $value = is_array($cache) && isset($cache[$user_id][$meta_key][0]) ? maybe_unserialize($cache[$user_id][$meta_key][0]) : array();
+        return is_array($value) ? $value : array();
+    }
+
+    /**
+     * Read the editor preferences again for core's `wp-preferences` script
+     * when it was set up before these filters were added.
+     *
+     * Core reads them when the script list is first made
+     * (`wp_default_scripts`). A plugin that registers a script before
+     * `init` makes it earlier than boot(), so the filters above came too
+     * late for it. Only the `serverData` value of core's script is
+     * replaced.
+     */
+    private static function reload_preferences() {
+        global $wpdb;
+        if (!did_action('wp_default_scripts') || !get_current_user_id()) {
+            // Core has not read them yet: it will, through the filters.
+            return;
+        }
+        $scripts = wp_scripts();
+        $after   = $scripts->get_data('wp-preferences', 'after');
+        if (!is_array($after)) {
+            return;
+        }
+        $data = wp_json_encode(get_user_meta(get_current_user_id(), $wpdb->get_blog_prefix() . 'persisted_preferences', true), JSON_HEX_TAG | JSON_UNESCAPED_SLASHES);
+        if (false === $data) {
+            return;
+        }
+        foreach ($after as $i => $code) {
+            if (is_string($code) && false !== strpos($code, 'var serverData = ')) {
+                // JSON has no line breaks, so the value ends at the line's ";".
+                $code = preg_replace_callback('/var serverData = [^\n]*?;(?=\s*var userId)/', function () use ($data) {
+                    return 'var serverData = ' . $data . ';';
+                }, $code, 1);
+                if (is_string($code)) {
+                    $after[$i] = $code;
+                }
+            }
+        }
+        $scripts->add_data('wp-preferences', 'after', $after);
+    }
+
+    /**
+     * Whether the current screen is the post editor.
+     *
+     * @return bool
+     */
+    private static function post_editor() {
+        $screen = function_exists('get_current_screen') ? get_current_screen() : null;
+        return $screen && 'post' === $screen->base && $screen->is_block_editor();
+    }
+
+    /**
+     * Core blocks to leave out of the inserter: those whose Kadence block is
+     * registered and not switched off in Kadence's settings.
+     *
+     * @return array<string,string> Core block => Kadence block.
+     */
+    public static function kadence_blocks() {
+        if (!SEOProStack_Settings::get(self::KADENCE_KEY) || !class_exists('WP_Block_Type_Registry')) {
+            return array();
+        }
+        $registry = WP_Block_Type_Registry::get_instance();
+        // Blocks switched off on Kadence's Blocks screen; its editor script
+        // unregisters them.
+        $off    = (array) get_option('kt_blocks_unregistered_blocks', array());
+        $blocks = array();
+        foreach (self::KADENCE_BLOCKS as $core => $kadence) {
+            if ($registry->is_registered($kadence) && !in_array($kadence, $off, true)) {
+                $blocks[$core] = $kadence;
+            }
+        }
+        return $blocks;
+    }
+
+    /**
+     * Post editor: the eye button, Kadence blocks first, and a rule hiding
+     * YellowPencil's button should its script load anyway.
+     */
+    public static function block_editor() {
+        if (!self::post_editor()) {
+            return;
+        }
+        $top_bar = (array) SEOProStack_Settings::get(self::TOP_BAR_KEY);
+        if (in_array('yellowpencil', $top_bar, true)) {
+            wp_register_style(self::HANDLE, false, array(), SEOPROSTACK_VERSION);
+            wp_enqueue_style(self::HANDLE);
+            wp_add_inline_style(self::HANDLE, SEOProStack_Editor_Dev_Tab::TOOLBAR_BUTTONS . '{display:none!important}');
+        }
+        $kadence   = self::kadence_blocks();
+        $view_here = in_array('view_here', $top_bar, true);
+        if (!$kadence && !$view_here) {
+            return;
+        }
+        wp_register_script(self::HANDLE, SEOPROSTACK_URL . 'admin/js/seoprostack-editor-tidy.js', array('wp-blocks', 'wp-components', 'wp-data', 'wp-dom-ready', 'wp-element', 'wp-hooks'), SEOPROSTACK_VERSION, true);
+        wp_add_inline_script(self::HANDLE, 'window.seoprostackEditorTidy = ' . wp_json_encode(array(
+            'kadence'  => $kadence ? $kadence : null,
+            /* translators: %s: the post type's View label, such as View Page. */
+            'viewHere' => $view_here ? __('%s in this tab', 'seoprostack') : '',
+            'viewPost' => __('View post', 'seoprostack'),
+        )) . ';', 'before');
+        wp_enqueue_script(self::HANDLE);
+    }
+
+    /**
+     * Leave YellowPencil's toolbar script out of the block editor, for
+     * everyone (Dev tab in the block editor does it for people who are not
+     * developers).
+     *
+     * @param string $hook Admin screen.
+     */
+    public static function no_yellowpencil($hook) {
+        if (('post.php' !== $hook && 'post-new.php' !== $hook) || !self::post_editor()) {
+            return;
+        }
+        foreach (array_keys(SEOProStack_Editor_Dev_Tab::TOOLBAR_SCRIPTS) as $handle) {
+            wp_dequeue_script($handle);
+        }
     }
 }

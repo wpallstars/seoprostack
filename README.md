@@ -7,7 +7,7 @@
 [![CI](https://github.com/wpallstars/seoprostack/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/wpallstars/seoprostack/actions/workflows/ci.yml)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=wpallstars_seoprostack&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=wpallstars_seoprostack)
 [![License: GPL v3 or later](https://img.shields.io/badge/License-GPL%20v3%20or%20later-blue.svg)](LICENSE)
-[![Latest release](https://img.shields.io/badge/release-v1.3.75-blue.svg)](https://github.com/wpallstars/seoprostack/releases)
+[![Latest release](https://img.shields.io/badge/release-v1.3.76-blue.svg)](https://github.com/wpallstars/seoprostack/releases)
 
 [![Requires WordPress](https://img.shields.io/badge/WordPress-6.2%2B-21759B.svg?logo=wordpress)](readme.txt)
 [![Tested up to](https://img.shields.io/badge/tested%20up%20to-7.1-21759B.svg?logo=wordpress)](readme.txt)
@@ -24,7 +24,7 @@ SEO Pro Stack does the jobs that usually take dozens of small plugins: a calmer,
 
 If this saves you time, headaches and costs, feel free to [buy me a coffee](https://buymeacoffee.com/marcusquinn), or whatever you like, to invest in making more things open-source.
 
-Version: 1.3.75
+Version: 1.3.76
 
 <!-- github-only:start -->
 ## Screenshots
@@ -722,6 +722,11 @@ Turns off parts of the block editor most people never use, for everyone.
 - **Template editor** in the post editor, for classic themes only (block themes need it).
 - **Fullscreen mode**: the post editor opens with the admin menu, read as off the same way as the welcome guides.
 - **Block widget editor**: Appearance → Widgets and the Customizer use the classic widgets screen (`use_widgets_block_editor`, as the Classic Widgets plugin does). Block themes have no widgets screen.
+- **Top bar** of the post editor (all ticked by default):
+  - **View in this tab**: an eye button just left of core’s **View** button (which opens the published page in a new tab) opens the same address in this tab. It shows once the post is published, and follows **Show button text labels**.
+  - **Other plugins’ panels start unpinned**: Kadence Blocks Controls, Content AI (Rank Math) and Hreflang Manager no longer put their icons in the top bar. Pinned icons are the `core` → `pinnedItems` editor preference, which core reads as pinned while unset; SEO Pro Stack reads these as unpinned until the person pins one (Options → Panels opens it; its pin button keeps it), which is saved and then stays. Nothing is stored: the editor saves all its preferences whenever one changes, and the values read as unpinned are left out then (`update_user_metadata`), unless the person had pinned that panel before and unpinned it. Add or remove panels in `SEOProStack_Editor_Tidy::UNPINNED` (plugin name/sidebar name).
+  - **No YellowPencil button**: YellowPencil’s pencil button, which opens its editor for the whole site’s styles, leaves the editor for everyone (Dev tab in the block editor already does this for people who are not developers). YellowPencil stays in the admin bar on the site.
+- **Kadence blocks first** (on by default, with Kadence Blocks): in the post editor, core blocks that Kadence Blocks or Kadence Blocks Pro has its own version of leave the inserter, so the Kadence block is the one offered: Heading → Advanced Text, List → Icon List, Image → Advanced Image, Gallery → Advanced Gallery, Buttons → Advanced Button, Columns and Cover → Row Layout, Group → Section, Spacer and Separator → Spacer / Divider, Accordion, Tabs, Table → Table (Adv), Icon, Search → Search (Adv), Navigation → Navigation (Adv), Latest Posts → Posts and Query Loop → Query (Pro). Paragraph stays: it is what typing makes. Only pairs whose Kadence block is there and not switched off on Kadence’s Blocks screen count. The core blocks leave the inserter only (`supports.inserter`); they stay allowed, so pasting, transforms, duplicates, Word documents in the editor and patterns that use them still work, and existing pages keep them. Preferences → Blocks is not used for this: core disallows the blocks hidden there, which breaks all of those. The site editor keeps every core block.
 - Replaces part of Disable Bloat: its matching switches are imported once while it is active.
 - **Opens faster**, whatever is ticked: every block editor asks the REST API index for a few site details as it opens (`/?_fields=…`), and core describes every route of every plugin before dropping what was not asked for. When `_fields` leaves `routes` out, the route list reads as empty while the index is built (`rest_dispatch_request`, `rest_endpoints`) and is back before other plugins see the index (`rest_index`). The answer is the same; on a test site with 80 plugins and 1,953 routes it took 8 ms instead of 60.
 
@@ -1893,6 +1898,11 @@ Deleting the plugin removes its settings (on multisite, every site's and the net
 Deactivating the plugin removes the WebP and AVIF rules from the uploads folder’s `.htaccess` (for every site when network-deactivated), the LiteSpeed background request rules from the site’s `.htaccess` (on multisite, when network-deactivated or deactivated on the main site) and the must-use file of Load plugins only where needed (on multisite, when network-deactivated).
 
 ## Changelog
+
+### 1.3.76
+- New, on by default: **Simpler block editor** tidies the post editor’s top bar. An eye button just left of **View** opens the published page in this tab (View opens a new tab); Kadence Blocks Controls, Content AI and Hreflang Manager start unpinned, until each person pins them again from Options → Panels; and YellowPencil’s pencil button leaves the editor for everyone. Each is a **Top bar** choice (GitHub issue #917).
+- New, on by default: **Kadence blocks first** (Simpler block editor). With Kadence Blocks, the post editor’s inserter offers Kadence’s block where it has its own version of a core block (Advanced Text for Heading, Icon List for List, Advanced Image, Advanced Gallery, Advanced Button, Row Layout for Columns and Cover, Section for Group, Spacer / Divider, Accordion, Tabs, Table, Icon, Search, Navigation, Posts and, with Pro, Query). The core blocks only leave the inserter: pasting, transforms, patterns and existing pages still use them (GitHub issue #917).
+- Fix: **Simpler block editor**: welcome guides and fullscreen mode stay off on sites where a plugin sets up its scripts early; WordPress had read the editor preferences before SEO Pro Stack could (GitHub issue #917).
 
 ### 1.3.75
 - Fix: **Load plugins only where needed**: Fluent Boards and Fluent Booking stay in the admin menu on screens that do not load them (for editors, the Dashboard, Posts and Media). Their menu entries were treated as also belonging to FluentSMTP, which has a file of the same name, so they were left out wherever FluentSMTP loaded. Sites learn their screens again once after updating (GitHub issue #913).

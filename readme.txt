@@ -5,7 +5,7 @@ Tags: magic login, iframe, schedule posts, auto upload images, admin
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.3.75
+Stable tag: 1.3.76
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -152,7 +152,7 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 
 == Changelog ==
 
-= 1.3.75 =
-* Fix: with Load plugins only where needed, Fluent Boards and Fluent Booking stay in the admin menu on screens that do not load them.
+= 1.3.76 =
+* New: a tidier editor top bar (view in this tab, panels unpinned, no YellowPencil button) and Kadence blocks first in the inserter.
 
 Older: `changelog.txt`.
