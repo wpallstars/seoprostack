@@ -832,7 +832,9 @@ class SEOProStack_Editor_Tidy extends SEOProStack_Feature {
         }
         if ($outline) {
             // The script's outline, while it lists headings, replaces core's.
-            $css .= '.sps-outline-host:has(>.sps-outline)~:is(.editor-document-outline,.document-outline){display:none!important}';
+            $css .= '.sps-outline-host:has(>.sps-outline)~:is(.editor-document-outline,.document-outline){display:none!important}'
+                // As core's outline in the Document overview (a child of its container there).
+                . '.sps-outline-host{display:contents}.sps-outline-host>.sps-outline{height:100%;overflow:auto;padding:16px;box-sizing:border-box}';
         }
         if ('' !== $css) {
             wp_register_style(self::HANDLE, false, array(), SEOPROSTACK_VERSION);
