@@ -94,8 +94,9 @@
                     className: 'document-outline__button',
                     'aria-disabled': props.disabled,
                     onClick: function (event) {
+                        // Selecting the block scrolls to it; keep the address unchanged.
+                        event.preventDefault();
                         if (props.disabled) {
-                            event.preventDefault();
                             return;
                         }
                         if (props.onSelect) {

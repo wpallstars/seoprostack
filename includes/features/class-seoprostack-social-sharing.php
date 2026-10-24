@@ -484,7 +484,7 @@ class SEOProStack_Social_Sharing extends SEOProStack_Feature {
             // One palette colour for every brand; the outline style uses it for the ring and logo too.
             $css .= '.sps-share a{--sps-share-brand:var(--global-' . $colour . ',currentColor)!important}'
                 . '.sps-share--filled a.sps-share--mono{background:var(--sps-share-brand)}'
-                . '.sps-share--filled a svg{fill:' . self::logo_on($colour) . '}'
+                . '.sps-share--filled a svg,.sps-share--filled a.sps-share--mono svg{fill:' . self::logo_on($colour) . '}'
                 . '.sps-share--outline a{color:var(--sps-share-brand)}'
                 . '.sps-share--outline a:hover,.sps-share--outline a:focus-visible,.sps-share--outline a.sps-share--mono:hover,.sps-share--outline a.sps-share--mono:focus-visible{background:var(--sps-share-brand);border-color:var(--sps-share-brand)}'
                 . '.sps-share--outline a:hover svg,.sps-share--outline a:focus-visible svg{fill:' . self::logo_on($colour) . '!important}';
@@ -631,7 +631,8 @@ class SEOProStack_Social_Sharing extends SEOProStack_Feature {
             return;
         }
         $types = (array) SEOProStack_Settings::get('social_sharing_types');
-        wp_enqueue_script(self::EDITOR, SEOPROSTACK_URL . 'admin/js/seoprostack-social-sharing.js', array('wp-plugins', 'wp-element', 'wp-components', 'wp-data', 'wp-editor', 'wp-i18n'), SEOPROSTACK_VERSION, true);
+        // wp-edit-post: before WordPress 6.6, PluginPostStatusInfo is only there.
+        wp_enqueue_script(self::EDITOR, SEOPROSTACK_URL . 'admin/js/seoprostack-social-sharing.js', array('wp-plugins', 'wp-element', 'wp-components', 'wp-data', 'wp-editor', 'wp-edit-post', 'wp-i18n'), SEOPROSTACK_VERSION, true);
         wp_localize_script(self::EDITOR, 'seoprostackSocialSharing', array(
             'meta'    => self::META,
             'label'   => __('Share buttons', 'seoprostack'),
