@@ -285,3 +285,16 @@ checkboxes, visible focus, and wrapping titles/meta. Native dialog modality
 owns Escape/focus trapping; Close returns focus to its own trigger. Tabs use
 roving focus, Left/Right, Home and End. Reference: `assets/post-reactions.css`
 and `SEOProStack_Post_Reactions::render_panel_block()`.
+
+## Social sharing buttons
+
+Round share links, 32px (normal) or 48px (large), 8px apart, left aligned,
+with optional text before them; the logo fills half the circle. Filled: the
+brand colour behind a white logo; Outline: a 1px ring and logo in the text
+colour, filled with the brand colour on hover and focus. Black and white logos
+(X) and Email take the text colour, with a palette 9 logo when filled, so they
+invert in Kadence dark mode. A chosen palette colour replaces every brand
+colour; the logo on it is white on accents and notices, palette 9 on text
+colours (3 to 6) and palette 3 on backgrounds (7 to 9). Tooltips use palette
+3 on palette 9, from the link's accessible name. Reference:
+`SEOProStack_Social_Sharing::css()`.

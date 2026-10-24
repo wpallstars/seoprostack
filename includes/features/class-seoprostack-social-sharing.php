@@ -397,10 +397,26 @@ class SEOProStack_Social_Sharing extends SEOProStack_Feature {
     }
 
     /**
+     * Whether Kadence Simple Share is loaded on this request. It keeps
+     * showing its own buttons and editor panel until it is deactivated, so
+     * pages never get two rows of buttons and two controls never save the
+     * same choice; these take over, with its imported settings, once it is
+     * gone (or skipped on a request by Load plugins only where needed).
+     *
+     * @return bool
+     */
+    private static function replaced_loaded() {
+        return class_exists('Kadence_Simple_Share', false);
+    }
+
+    /**
      * The style (and, for pop-ups, the script) on pages that show the
      * buttons or use the shortcode.
      */
     public static function enqueue() {
+        if (self::replaced_loaded()) {
+            return;
+        }
         $post = self::current();
         if (!$post) {
             $post = is_singular() ? get_queried_object() : null;
@@ -504,7 +520,7 @@ class SEOProStack_Social_Sharing extends SEOProStack_Feature {
      * @return string
      */
     public static function content($content) {
-        if (!in_the_loop() || !is_main_query() || doing_filter('get_the_excerpt')) {
+        if (self::replaced_loaded() || !in_the_loop() || !is_main_query() || doing_filter('get_the_excerpt')) {
             return $content;
         }
         $post = self::current();
@@ -521,7 +537,7 @@ class SEOProStack_Social_Sharing extends SEOProStack_Feature {
      * The buttons in WooCommerce's sharing place on a product page.
      */
     public static function product() {
-        $post = self::current();
+        $post = self::replaced_loaded() ? null : self::current();
         if ($post && 'product' === $post->post_type) {
             echo self::buttons($post, 'woocommerce'); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped in buttons().
         }
@@ -611,7 +627,7 @@ class SEOProStack_Social_Sharing extends SEOProStack_Feature {
     public static function editor() {
         $screen = function_exists('get_current_screen') ? get_current_screen() : null;
         // The meta is in the REST API only for types with custom fields.
-        if (!$screen || empty($screen->post_type) || !is_post_type_viewable($screen->post_type) || !post_type_supports($screen->post_type, 'custom-fields')) {
+        if (self::replaced_loaded() || !$screen || empty($screen->post_type) || !is_post_type_viewable($screen->post_type) || !post_type_supports($screen->post_type, 'custom-fields')) {
             return;
         }
         $types = (array) SEOProStack_Settings::get('social_sharing_types');
