@@ -225,6 +225,11 @@ class SEOProStack_Editor_Tidy extends SEOProStack_Feature {
             // After preferences() above, which answers first.
             add_filter('get_user_metadata', array(__CLASS__, 'unpinned'), 11, 4);
         }
+        if (isset($top_bar['unpin_panels'])) {
+            // The editor saves its preferences through the REST API.
+            add_filter('update_user_metadata', array(__CLASS__, 'save_pins'), 10, 4);
+            add_filter('add_user_metadata', array(__CLASS__, 'save_pins'), 10, 4);
+        }
         if ((isset($items['welcome_guide']) || isset($items['fullscreen']) || isset($top_bar['unpin_panels'])) && is_admin()) {
             self::reload_preferences();
         }
@@ -359,9 +364,7 @@ class SEOProStack_Editor_Tidy extends SEOProStack_Feature {
         }
         $stored = is_array($value) && isset($value[0]) && is_array($value[0]) ? $value[0] : array();
 
-        // WordPress 6.6 moved the post editor's pinned items to the core
-        // scope; before, the editor read them from core/edit-post.
-        $scope  = version_compare(get_bloginfo('version'), '6.6', '>=') ? 'core' : 'core/edit-post';
+        $scope  = self::pins_scope();
         $pinned = isset($stored[$scope]['pinnedItems']) && is_array($stored[$scope]['pinnedItems']) ? $stored[$scope]['pinnedItems'] : array();
         foreach (array_keys(self::UNPINNED) as $item) {
             if (!isset($pinned[$item])) {
@@ -373,6 +376,73 @@ class SEOProStack_Editor_Tidy extends SEOProStack_Feature {
         }
         $stored[$scope]['pinnedItems'] = $pinned;
         return array($stored);
+    }
+
+    /**
+     * Preference scope of the post editor's pinned items: WordPress 6.6
+     * moved them to core; before, the editor kept them in core/edit-post.
+     *
+     * @return string
+     */
+    private static function pins_scope() {
+        return version_compare(get_bloginfo('version'), '6.6', '>=') ? 'core' : 'core/edit-post';
+    }
+
+    /**
+     * Save editor preferences without the unpinned values unpinned() added.
+     *
+     * The editor saves all its preferences whenever one changes, so the
+     * values read as unpinned would be saved too. A panel saved as
+     * unpinned that had no saved value can only be one of those (pinning
+     * saves it as pinned first), so it is left out; one the person had
+     * pinned and then unpinned stays.
+     *
+     * @param mixed  $check    Answer from an earlier filter, or null.
+     * @param int    $user_id  User ID.
+     * @param string $meta_key Meta key.
+     * @param mixed  $value    Value to save.
+     * @return mixed Null to save as usual; whether the value was saved.
+     */
+    public static function save_pins($check, $user_id, $meta_key, $value) {
+        global $wpdb;
+        $scope = self::pins_scope();
+        if (null !== $check || $wpdb->get_blog_prefix() . 'persisted_preferences' !== $meta_key || !isset($value[$scope]['pinnedItems']) || !is_array($value[$scope]['pinnedItems'])) {
+            return $check;
+        }
+        $stored = self::stored_preferences((int) $user_id, $meta_key);
+        $before = isset($stored[$scope]['pinnedItems']) && is_array($stored[$scope]['pinnedItems']) ? $stored[$scope]['pinnedItems'] : array();
+        $pins   = $value[$scope]['pinnedItems'];
+        foreach (array_keys(self::UNPINNED) as $item) {
+            if (array_key_exists($item, $pins) && false === $pins[$item] && !array_key_exists($item, $before)) {
+                unset($pins[$item]);
+            }
+        }
+        if ($pins === $value[$scope]['pinnedItems']) {
+            return $check;
+        }
+        $value[$scope]['pinnedItems'] = $pins;
+
+        remove_filter('update_user_metadata', array(__CLASS__, 'save_pins'), 10);
+        remove_filter('add_user_metadata', array(__CLASS__, 'save_pins'), 10);
+        $saved = update_user_meta($user_id, $meta_key, $value);
+        add_filter('update_user_metadata', array(__CLASS__, 'save_pins'), 10, 4);
+        add_filter('add_user_metadata', array(__CLASS__, 'save_pins'), 10, 4);
+
+        // False also means it was already saved that way.
+        return false !== $saved || self::stored_preferences((int) $user_id, $meta_key) === $value;
+    }
+
+    /**
+     * A person's saved editor preferences, without the read filters above.
+     *
+     * @param int    $user_id  User ID.
+     * @param string $meta_key Meta key.
+     * @return array
+     */
+    private static function stored_preferences($user_id, $meta_key) {
+        $cache = update_meta_cache('user', array($user_id));
+        $value = is_array($cache) && isset($cache[$user_id][$meta_key][0]) ? maybe_unserialize($cache[$user_id][$meta_key][0]) : array();
+        return is_array($value) ? $value : array();
     }
 
     /**
