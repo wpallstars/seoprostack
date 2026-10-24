@@ -241,11 +241,22 @@ class SEOProStack_Editor_Tidy extends SEOProStack_Feature {
     private static function unpin_saved() {
         global $wpdb;
         $key = $wpdb->get_blog_prefix() . 'persisted_preferences';
+        // Only rows with pinned items, read as stored (not through the
+        // get_user_metadata filter), each user's first row as WordPress
+        // reads it, without loading every user's other metadata.
         // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- one-off step in the settings upgrade.
-        $users = $wpdb->get_col($wpdb->prepare("SELECT DISTINCT user_id FROM {$wpdb->usermeta} WHERE meta_key = %s", $key));
-        foreach ((array) $users as $user_id) {
-            $user_id = (int) $user_id;
-            $prefs   = self::stored_preferences($user_id, $key);
+        $rows = $wpdb->get_results($wpdb->prepare("SELECT user_id, meta_value FROM {$wpdb->usermeta} WHERE meta_key = %s AND meta_value LIKE %s ORDER BY umeta_id ASC", $key, '%' . $wpdb->esc_like('pinnedItems') . '%'));
+        $seen = array();
+        foreach ((array) $rows as $row) {
+            $user_id = (int) $row->user_id;
+            if (isset($seen[$user_id])) {
+                continue;
+            }
+            $seen[$user_id] = true;
+            $prefs          = maybe_unserialize($row->meta_value);
+            if (!is_array($prefs)) {
+                continue;
+            }
             $changed = false;
             // Pinned items moved from core/edit-post to core in WordPress 6.6.
             foreach (array('core', 'core/edit-post') as $scope) {
