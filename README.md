@@ -1926,7 +1926,7 @@ Deactivating the plugin removes the WebP and AVIF rules from the uploads folderâ
 - New: **Your lists in WooCommerce My Account** (`post_reactions_account_tab`): a My Account tab, before Log out, with every list (GitHub issue #897).
 
 ### 1.3.67
-- Fix: **Your lists** shows names, excerpts and details with dashes, apostrophes and ampersands as written, not as HTML codes such as `&#8211;`; the lists' data is plain text, so SEO Pro Directory's "Message selected" shows the same (GitHub issue #895).
+- Fix: **Your lists** show names, excerpts and details with dashes, apostrophes and ampersands as written, not as HTML codes such as `&#8211;`; the lists' data is plain text, so SEO Pro Directory's "Message selected" shows the same (GitHub issue #895).
 
 ### 1.3.66
 - New: **Like, save and share** keeps a shortlist total for each post: how many people have it on one of their named lists (Liked is not one). The server counts logged-in people's lists, from those they already had; visitors' browsers report posts joining their first named list or leaving their last in one rate-limited request each way (their lists from before 1.3.66 are not counted). `SEOProStack_Post_Reactions::tallies( $post_id )` prints "12 Likes Â· 3 Shortlists", kept current on cached pages, and `buttons()` takes `'icons' => true` for icon-only buttons (GitHub issue #893).
