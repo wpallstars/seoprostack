@@ -62,6 +62,8 @@ class SEOProStack_Editor_Dev_Tab extends SEOProStack_Feature {
     const ROWS = array(
         // SEO Pro Stack: Change post type.
         array('class' => 'seoprostack-post-type', 'title' => '', 'domain' => ''),
+        // SEO Pro Stack: Social sharing's Share buttons.
+        array('class' => 'seoprostack-share-control', 'title' => '', 'domain' => ''),
         // Rank Math.
         array('class' => '', 'title' => 'Lock Modified Date', 'domain' => 'seo-by-rank-math'),
     );

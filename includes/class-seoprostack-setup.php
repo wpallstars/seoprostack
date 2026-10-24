@@ -93,6 +93,7 @@ final class SEOProStack_Setup {
         'SEOProStack_Wikipedia_Previews',
         'SEOProStack_Word_Import',
         'SEOProStack_Post_Reactions',
+        'SEOProStack_Social_Sharing',
         'SEOProStack_Brand_Icons',
         'SEOProStack_Spectra_Blocks',
         'SEOProStack_Term_Displays',
