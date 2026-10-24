@@ -468,10 +468,33 @@ class SEOProStack_Social_Sharing extends SEOProStack_Feature {
             // One palette colour for every brand; the outline style uses it for the ring and logo too.
             $css .= '.sps-share a{--sps-share-brand:var(--global-' . $colour . ',currentColor)!important}'
                 . '.sps-share--filled a.sps-share--mono{background:var(--sps-share-brand)}'
-                . '.sps-share--filled a svg{fill:var(--global-palette9,#fff)}'
-                . '.sps-share--outline a{color:var(--sps-share-brand)}';
+                . '.sps-share--filled a svg{fill:' . self::logo_on($colour) . '}'
+                . '.sps-share--outline a{color:var(--sps-share-brand)}'
+                . '.sps-share--outline a:hover,.sps-share--outline a:focus-visible,.sps-share--outline a.sps-share--mono:hover,.sps-share--outline a.sps-share--mono:focus-visible{background:var(--sps-share-brand);border-color:var(--sps-share-brand)}'
+                . '.sps-share--outline a:hover svg,.sps-share--outline a:focus-visible svg{fill:' . self::logo_on($colour) . '!important}';
         }
         return $css;
+    }
+
+    /**
+     * The logo colour on a filled button of a palette colour, so it
+     * contrasts in Kadence's light and dark modes: text colours (3 to 6)
+     * swap with the background, so the logo takes the background; on
+     * background colours (7 to 9) it takes the strongest text; accents and
+     * notices keep their colour in both modes, so the logo is white.
+     *
+     * @param string $colour Palette key, such as palette1.
+     * @return string CSS colour.
+     */
+    private static function logo_on($colour) {
+        $n = (int) substr($colour, 7);
+        if ($n >= 3 && $n <= 6) {
+            return 'var(--global-palette9,#fff)';
+        }
+        if ($n >= 7 && $n <= 9) {
+            return 'var(--global-palette3,#1a202c)';
+        }
+        return '#fff';
     }
 
     /**
@@ -548,7 +571,8 @@ class SEOProStack_Social_Sharing extends SEOProStack_Feature {
                 : sprintf(__('Share on %s', 'seoprostack'), $name);
             $mail  = 0 === strpos($href, 'mailto:');
 
-            $links .= '<a class="sps-share__' . esc_attr($key) . ($mono ? ' sps-share--mono' : '') . '" href="' . esc_url($href, array('https', 'mailto')) . '"'
+            // sps-no-external-icon: no External link icon after the logo.
+            $links .= '<a class="sps-share__' . esc_attr($key) . ' sps-no-external-icon' . ($mono ? ' sps-share--mono' : '') . '" href="' . esc_url($href, array('https', 'mailto')) . '"'
                 . ($mono ? '' : ' style="--sps-share-brand:' . esc_attr($color) . '"')
                 . ' aria-label="' . esc_attr($label) . '"'
                 . ($mail ? '' : ' target="_blank" rel="noopener nofollow"' . ($popup ? ' data-sps-popup' : ''))
