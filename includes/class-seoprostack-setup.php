@@ -244,8 +244,11 @@ final class SEOProStack_Setup {
      *      whole plugin list is stored (#905).
      * v29: Simpler block editor unpins other plugins' panels once for
      *      people who had them pinned (#919).
+     * v30: the same, once, for Hreflang Manager (the full plugin's panel,
+     *      missed in v29), and Kadence Simple Share's settings are imported
+     *      into Social sharing (#921).
      */
-    const DB_VERSION = 29;
+    const DB_VERSION = 30;
 
     /**
      * Tab slugs renamed in 0.4.0, old => new. Settings that still use an

@@ -42,10 +42,8 @@
 
     function current(select) {
         var editor = select('core/editor');
-        var type = editor && select('core') ? select('core').getPostType(editor.getCurrentPostType()) : null;
         return {
-            permalink: editor && editor.isCurrentPostPublished() ? editor.getPermalink() : '',
-            label: type && type.labels && type.labels.view_item ? type.labels.view_item : cfg.viewPost
+            permalink: editor && editor.isCurrentPostPublished() ? editor.getPermalink() : ''
         };
     }
 
@@ -57,7 +55,7 @@
         return el(wp.components.Button, {
             className: 'sps-view-here',
             icon: eye,
-            label: cfg.viewHere.replace('%s', post.label),
+            label: cfg.viewHere,
             href: post.permalink,
             size: 'compact'
         });
