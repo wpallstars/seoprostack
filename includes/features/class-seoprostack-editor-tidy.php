@@ -71,8 +71,14 @@ class SEOProStack_Editor_Tidy extends SEOProStack_Feature {
     const KADENCE_DEFAULTS = 'kadence_blocks_config_blocks';
     const KADENCE_SWITCH   = 'adv_text_is_default_editor_block';
 
-    /** Settings version that unpinned UNPINNED once for everyone. */
-    const UNPIN_VERSION = 29;
+    /**
+     * Settings versions that unpinned panels once for everyone: version =>
+     * the UNPINNED items it added (null for all of them then).
+     */
+    const UNPIN_VERSIONS = array(
+        29 => null,
+        30 => array('dahm-hreflang-manager/hreflang-manager-sidebar'),
+    );
 
     /** Script handle. */
     const HANDLE = 'seoprostack-editor-tidy';
@@ -85,6 +91,8 @@ class SEOProStack_Editor_Tidy extends SEOProStack_Feature {
         'kadence-control/kadence-controls'                         => 'Kadence Blocks Controls',
         'rank-math-content-ai/seo-by-rank-math-content-ai-sidebar' => 'Content AI',
         'daexthrmal-hreflang-manager/hreflang-manager-lite-sidebar' => 'Hreflang Manager',
+        // The full (non-Lite) plugin's panel.
+        'dahm-hreflang-manager/hreflang-manager-sidebar'            => 'Hreflang Manager',
     );
 
     /**
@@ -164,7 +172,7 @@ class SEOProStack_Editor_Tidy extends SEOProStack_Feature {
                 'default'     => true,
                 'parent'      => self::KEY,
                 'label'       => __('Kadence blocks first', 'seoprostack'),
-                'description' => __('Core blocks that Kadence Blocks has its own version of, such as Heading, List, Image, Buttons and Columns, leave the inserter, so Kadence’s is the one offered. Pasting, transforms and patterns still use the core blocks, and pages keep them. Nothing changes without Kadence Blocks.', 'seoprostack'),
+                'description' => __('Core blocks that Kadence Blocks has its own version of, such as Heading, List, Image, Buttons and Columns, leave the inserter, so Kadence’s is the one offered. Pasting, transforms and patterns still use the core blocks, and pages keep them. Document overview → Outline lists Kadence’s Advanced Text headings too. Nothing changes without Kadence Blocks.', 'seoprostack'),
             ),
             self::KADENCE_TEXT_KEY => array(
                 'type'        => 'bool',
@@ -185,7 +193,7 @@ class SEOProStack_Editor_Tidy extends SEOProStack_Feature {
         return array(
             'view_here'    => __('An eye button that opens the page in this tab, beside the View button that opens a new tab', 'seoprostack'),
             /* translators: %s: panel names, such as Kadence Blocks Controls, Content AI. */
-            'unpin_panels' => sprintf(__('Other plugins’ panels start unpinned: %s (open one from Options → Panels and pin it to keep it there)', 'seoprostack'), implode(', ', self::UNPINNED)),
+            'unpin_panels' => sprintf(__('Other plugins’ panels start unpinned: %s (open one from Options → Panels and pin it to keep it there)', 'seoprostack'), implode(', ', array_unique(self::UNPINNED))),
             'yellowpencil' => __('No YellowPencil button (YellowPencil stays in the admin bar on the site)', 'seoprostack'),
         );
     }
@@ -208,7 +216,7 @@ class SEOProStack_Editor_Tidy extends SEOProStack_Feature {
 
     /**
      * Import Disable Bloat's matching switches, and unpin other plugins'
-     * panels once for people who had them pinned (settings version 29).
+     * panels once for people who had them pinned (UNPIN_VERSIONS).
      *
      * @param array $options      Stored settings.
      * @param int   $from_version Previous settings version.
@@ -222,8 +230,19 @@ class SEOProStack_Editor_Tidy extends SEOProStack_Feature {
         }
         $on      = !array_key_exists(self::KEY, $options) || !empty($options[self::KEY]);
         $top_bar = array_key_exists(self::TOP_BAR_KEY, $options) ? (array) $options[self::TOP_BAR_KEY] : array('unpin_panels');
-        if ((int) $from_version < self::UNPIN_VERSION && $on && in_array('unpin_panels', $top_bar, true)) {
-            self::unpin_saved();
+        if (!$on || !in_array('unpin_panels', $top_bar, true)) {
+            return $options;
+        }
+        // Only the items added since the site's version, so a panel pinned
+        // again after an earlier step stays pinned.
+        $items = array();
+        foreach (self::UNPIN_VERSIONS as $version => $added) {
+            if ((int) $from_version < $version) {
+                $items = array_merge($items, null === $added ? array_keys(self::UNPINNED) : $added);
+            }
+        }
+        if ($items) {
+            self::unpin_saved(array_unique($items));
         }
         return $options;
     }
@@ -237,8 +256,10 @@ class SEOProStack_Editor_Tidy extends SEOProStack_Feature {
      * for people who had used the editor. Once, here, they are saved as
      * unpinned; pinning one again afterwards stays. Other preferences are
      * left as they are.
+     *
+     * @param string[] $items Pinned items to unpin (from UNPINNED).
      */
-    private static function unpin_saved() {
+    private static function unpin_saved(array $items) {
         global $wpdb;
         $key = $wpdb->get_blog_prefix() . 'persisted_preferences';
         // Only rows with pinned items, read as stored (not through the
@@ -260,7 +281,7 @@ class SEOProStack_Editor_Tidy extends SEOProStack_Feature {
             $changed = false;
             // Pinned items moved from core/edit-post to core in WordPress 6.6.
             foreach (array('core', 'core/edit-post') as $scope) {
-                foreach (array_keys(self::UNPINNED) as $item) {
+                foreach ($items as $item) {
                     if (isset($prefs[$scope]['pinnedItems'][$item]) && true === $prefs[$scope]['pinnedItems'][$item]) {
                         $prefs[$scope]['pinnedItems'][$item] = false;
                         $changed                              = true;
@@ -319,6 +340,10 @@ class SEOProStack_Editor_Tidy extends SEOProStack_Feature {
         if (isset($top_bar['yellowpencil']) && is_admin()) {
             // After YellowPencil enqueues its script (priority 10).
             add_action('admin_enqueue_scripts', array(__CLASS__, 'no_yellowpencil'), 100);
+        }
+        if (isset($top_bar['view_here'])) {
+            // The editor reads post types from the REST API (edit context).
+            add_filter('rest_prepare_post_type', array(__CLASS__, 'view_label'), 10, 3);
         }
         if ((isset($top_bar['view_here']) || isset($top_bar['yellowpencil']) || SEOProStack_Settings::get(self::KADENCE_KEY)) && is_admin()) {
             add_action('enqueue_block_editor_assets', array(__CLASS__, 'block_editor'));
@@ -788,32 +813,76 @@ class SEOProStack_Editor_Tidy extends SEOProStack_Feature {
     }
 
     /**
-     * Post editor: the eye button, Kadence blocks first, and a rule hiding
-     * YellowPencil's button should its script load anyway.
+     * Post editor: the eye button, Kadence blocks first with Advanced Text
+     * headings in the outline, and a rule hiding YellowPencil's button
+     * should its script load anyway.
      */
     public static function block_editor() {
         if (!self::post_editor()) {
             return;
         }
-        $top_bar = (array) SEOProStack_Settings::get(self::TOP_BAR_KEY);
-        if (in_array('yellowpencil', $top_bar, true)) {
-            wp_register_style(self::HANDLE, false, array(), SEOPROSTACK_VERSION);
-            wp_enqueue_style(self::HANDLE);
-            wp_add_inline_style(self::HANDLE, SEOProStack_Editor_Dev_Tab::TOOLBAR_BUTTONS . '{display:none!important}');
-        }
+        $top_bar   = (array) SEOProStack_Settings::get(self::TOP_BAR_KEY);
         $kadence   = self::kadence_blocks();
         $view_here = in_array('view_here', $top_bar, true);
+        // Advanced Text (Kadence's heading) is offered for Heading.
+        $outline = isset($kadence['core/heading']);
+        $css     = '';
+        if (in_array('yellowpencil', $top_bar, true)) {
+            $css .= SEOProStack_Editor_Dev_Tab::TOOLBAR_BUTTONS . '{display:none!important}';
+        }
+        if ($outline) {
+            // The script's outline, while it lists headings, replaces core's.
+            $css .= '.sps-outline-host:has(>.sps-outline)~:is(.editor-document-outline,.document-outline){display:none!important}'
+                // As core's outline in the Document overview (a child of its container there).
+                . '.sps-outline-host{display:contents}.sps-outline-host>.sps-outline{height:100%;overflow:auto;padding:16px;box-sizing:border-box}';
+        }
+        if ('' !== $css) {
+            wp_register_style(self::HANDLE, false, array(), SEOPROSTACK_VERSION);
+            wp_enqueue_style(self::HANDLE);
+            wp_add_inline_style(self::HANDLE, $css);
+        }
         if (!$kadence && !$view_here) {
             return;
         }
-        wp_register_script(self::HANDLE, SEOPROSTACK_URL . 'admin/js/seoprostack-editor-tidy.js', array('wp-blocks', 'wp-components', 'wp-data', 'wp-dom-ready', 'wp-element', 'wp-hooks'), SEOPROSTACK_VERSION, true);
+        // The View label as registered: view_label() changes the editor's.
+        $screen = get_current_screen();
+        $type   = $screen && $screen->post_type ? get_post_type_object($screen->post_type) : null;
+        $label  = $type && !empty($type->labels->view_item) ? $type->labels->view_item : __('View post', 'seoprostack');
+        wp_register_script(self::HANDLE, SEOPROSTACK_URL . 'admin/js/seoprostack-editor-tidy.js', array('wp-blocks', 'wp-components', 'wp-data', 'wp-dom-ready', 'wp-element', 'wp-hooks', 'wp-i18n', 'wp-rich-text'), SEOPROSTACK_VERSION, true);
         wp_add_inline_script(self::HANDLE, 'window.seoprostackEditorTidy = ' . wp_json_encode(array(
             'kadence'  => $kadence ? $kadence : null,
+            'outline'  => $outline,
             /* translators: %s: the post type's View label, such as View Page. */
-            'viewHere' => $view_here ? __('%s in this tab', 'seoprostack') : '',
-            'viewPost' => __('View post', 'seoprostack'),
+            'viewHere' => $view_here ? sprintf(__('%s in this tab', 'seoprostack'), $label) : '',
         )) . ';', 'before');
         wp_enqueue_script(self::HANDLE);
+    }
+
+    /**
+     * In the editor, the View label (View Page) reads "View Page in a new
+     * tab", beside the eye button's "View Page in this tab". The editor
+     * uses it only for links that open a new tab: the top bar's View
+     * button, the "Page updated" notice and the published panel.
+     *
+     * @param WP_REST_Response $response  Post type in the REST API.
+     * @param WP_Post_Type     $post_type Post type.
+     * @param WP_REST_Request  $request   Request.
+     * @return WP_REST_Response
+     */
+    public static function view_label($response, $post_type, $request) {
+        if (!$response instanceof WP_REST_Response || !$request instanceof WP_REST_Request || 'edit' !== $request['context']) {
+            return $response;
+        }
+        $data = $response->get_data();
+        if (!isset($data['labels']) || !is_object($data['labels']) || empty($data['labels']->view_item) || !is_string($data['labels']->view_item)) {
+            return $response;
+        }
+        $labels = clone $data['labels'];
+        /* translators: %s: the post type's View label, such as View Page. */
+        $labels->view_item = sprintf(__('%s in a new tab', 'seoprostack'), $labels->view_item);
+        $data['labels']    = $labels;
+        $response->set_data($data);
+        return $response;
     }
 
     /**
