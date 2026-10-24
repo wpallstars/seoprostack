@@ -7,7 +7,7 @@
 [![CI](https://github.com/wpallstars/seoprostack/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/wpallstars/seoprostack/actions/workflows/ci.yml)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=wpallstars_seoprostack&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=wpallstars_seoprostack)
 [![License: GPL v3 or later](https://img.shields.io/badge/License-GPL%20v3%20or%20later-blue.svg)](LICENSE)
-[![Latest release](https://img.shields.io/badge/release-v1.3.77-blue.svg)](https://github.com/wpallstars/seoprostack/releases)
+[![Latest release](https://img.shields.io/badge/release-v1.3.78-blue.svg)](https://github.com/wpallstars/seoprostack/releases)
 
 [![Requires WordPress](https://img.shields.io/badge/WordPress-6.2%2B-21759B.svg?logo=wordpress)](readme.txt)
 [![Tested up to](https://img.shields.io/badge/tested%20up%20to-7.1-21759B.svg?logo=wordpress)](readme.txt)
@@ -24,7 +24,7 @@ SEO Pro Stack does the jobs that usually take dozens of small plugins: a calmer,
 
 If this saves you time, headaches and costs, feel free to [buy me a coffee](https://buymeacoffee.com/marcusquinn), or whatever you like, to invest in making more things open-source.
 
-Version: 1.3.77
+Version: 1.3.78
 
 <!-- github-only:start -->
 ## Screenshots
@@ -1916,6 +1916,14 @@ Deleting the plugin removes its settings (on multisite, every site's and the net
 Deactivating the plugin removes the WebP and AVIF rules from the uploads folder’s `.htaccess` (for every site when network-deactivated), the LiteSpeed background request rules from the site’s `.htaccess` (on multisite, when network-deactivated or deactivated on the main site) and the must-use file of Load plugins only where needed (on multisite, when network-deactivated).
 
 ## Changelog
+
+### 1.3.78
+- New: **Social sharing** (Content), replacing Kadence Simple Share: Facebook, X, LinkedIn, Pinterest, Reddit, WhatsApp and Email buttons with SEO Pro Stack's brand icons, filled or outlined, in brand colours or a Kadence palette colour that follows dark mode. Its settings and per-post choices carry over; while Kadence Simple Share is active it keeps showing its own buttons, and these take over once it is deactivated (GitHub issue #921).
+- New: core's **View** button in the block editor is named **View Page in a new tab**, beside the eye button that opens the page in this tab (GitHub issue #921).
+- New: Document overview → **Outline** lists Kadence's Advanced Text headings, so it works on pages built with Kadence (GitHub issue #921).
+- New: **Post type**, **Share buttons** and Rank Math's **Lock Modified Date** move to the top of the editor's **Dev** tab, which no longer scrolls sideways (GitHub issue #921).
+- Fix: Hreflang Manager's full version is unpinned from the editor's top bar too, once for people who had it pinned (GitHub issue #921).
+- Fix: **Dark** admin: image pickers in block settings, Kadence colour swatches, the pressed Document overview button, Rank Math's score button while open, and the Compare revisions screen (GitHub issue #921).
 
 ### 1.3.77
 - Fix: **Simpler block editor**: Kadence Blocks Controls, Content AI and Hreflang Manager are unpinned from the top bar for people who already had them pinned; 1.3.76 only changed it for people who had never saved a choice. It happens once; pinning one again stays (GitHub issue #919).
