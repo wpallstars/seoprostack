@@ -155,5 +155,6 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 = 1.3.76 =
 * New: Simpler block editor tidies the post editor's top bar: an eye button opens the page in the same tab, other plugins' panels start unpinned, and YellowPencil's button is left out.
 * New: Kadence blocks first: with Kadence Blocks, the inserter offers Kadence's block where it has its own version of a core block.
+* Fix: Simpler block editor keeps welcome guides and fullscreen mode off on sites where a plugin sets up its scripts early.
 
 Older: `changelog.txt`.
