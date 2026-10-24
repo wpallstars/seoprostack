@@ -7,7 +7,7 @@
 [![CI](https://github.com/wpallstars/seoprostack/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/wpallstars/seoprostack/actions/workflows/ci.yml)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=wpallstars_seoprostack&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=wpallstars_seoprostack)
 [![License: GPL v3 or later](https://img.shields.io/badge/License-GPL%20v3%20or%20later-blue.svg)](LICENSE)
-[![Latest release](https://img.shields.io/badge/release-v1.3.76-blue.svg)](https://github.com/wpallstars/seoprostack/releases)
+[![Latest release](https://img.shields.io/badge/release-v1.3.77-blue.svg)](https://github.com/wpallstars/seoprostack/releases)
 
 [![Requires WordPress](https://img.shields.io/badge/WordPress-6.2%2B-21759B.svg?logo=wordpress)](readme.txt)
 [![Tested up to](https://img.shields.io/badge/tested%20up%20to-7.1-21759B.svg?logo=wordpress)](readme.txt)
@@ -24,7 +24,7 @@ SEO Pro Stack does the jobs that usually take dozens of small plugins: a calmer,
 
 If this saves you time, headaches and costs, feel free to [buy me a coffee](https://buymeacoffee.com/marcusquinn), or whatever you like, to invest in making more things open-source.
 
-Version: 1.3.76
+Version: 1.3.77
 
 <!-- github-only:start -->
 ## Screenshots
@@ -724,9 +724,10 @@ Turns off parts of the block editor most people never use, for everyone.
 - **Block widget editor**: Appearance → Widgets and the Customizer use the classic widgets screen (`use_widgets_block_editor`, as the Classic Widgets plugin does). Block themes have no widgets screen.
 - **Top bar** of the post editor (all ticked by default):
   - **View in this tab**: an eye button just left of core’s **View** button (which opens the published page in a new tab) opens the same address in this tab. It shows once the post is published, and follows **Show button text labels**.
-  - **Other plugins’ panels start unpinned**: Kadence Blocks Controls, Content AI (Rank Math) and Hreflang Manager no longer put their icons in the top bar. Pinned icons are the `core` → `pinnedItems` editor preference, which core reads as pinned while unset; SEO Pro Stack reads these as unpinned until the person pins one (Options → Panels opens it; its pin button keeps it), which is saved and then stays. Nothing is stored: the editor saves all its preferences whenever one changes, and the values read as unpinned are left out then (`update_user_metadata`), unless the person had pinned that panel before and unpinned it. Add or remove panels in `SEOProStack_Editor_Tidy::UNPINNED` (plugin name/sidebar name).
+  - **Other plugins’ panels start unpinned**: Kadence Blocks Controls, Content AI (Rank Math) and Hreflang Manager no longer put their icons in the top bar. Pinned icons are the `core` → `pinnedItems` editor preference, which core reads as pinned while unset; SEO Pro Stack reads these as unpinned until the person pins one (Options → Panels opens it; its pin button keeps it), which is saved and then stays. Nothing is stored: the editor saves all its preferences whenever one changes, and the values read as unpinned are left out then (`update_user_metadata`), unless the person had pinned that panel before and unpinned it. Panels many people had already saved as pinned (often only because the plugin pinned them when first opened) were unpinned once, for everyone on the site, by settings version 29 (1.3.77, `SEOProStack_Editor_Tidy::unpin_saved()`); pinning one again afterwards stays. Add or remove panels in `SEOProStack_Editor_Tidy::UNPINNED` (plugin name/sidebar name).
   - **No YellowPencil button**: YellowPencil’s pencil button, which opens its editor for the whole site’s styles, leaves the editor for everyone (Dev tab in the block editor already does this for people who are not developers). YellowPencil stays in the admin bar on the site.
 - **Kadence blocks first** (on by default, with Kadence Blocks): in the post editor, core blocks that Kadence Blocks or Kadence Blocks Pro has its own version of leave the inserter, so the Kadence block is the one offered: Heading → Advanced Text, List → Icon List, Image → Advanced Image, Gallery → Advanced Gallery, Buttons → Advanced Button, Columns and Cover → Row Layout, Group → Section, Spacer and Separator → Spacer / Divider, Accordion, Tabs, Table → Table (Adv), Icon, Search → Search (Adv), Navigation → Navigation (Adv), Latest Posts → Posts and Query Loop → Query (Pro). Paragraph stays: it is what typing makes. Only pairs whose Kadence block is there and not switched off on Kadence’s Blocks screen count. The core blocks leave the inserter only (`supports.inserter`); they stay allowed, so pasting, transforms, duplicates, Word documents in the editor and patterns that use them still work, and existing pages keep them. Preferences → Blocks is not used for this: core disallows the blocks hidden there, which breaks all of those. The site editor keeps every core block.
+- **Advanced Text for new lines** (on by default, with Kadence Blocks): pressing Enter, or clicking the “Type / to choose a block” line, makes Kadence’s Advanced Text as a paragraph instead of core’s Paragraph. This is Kadence’s own **Set Advanced Text as default block** switch (Kadence Blocks Controls → Default Editor Block), read as on in the post editor while the site has not saved it (`option_kadence_blocks_settings`, and Advanced Text’s HTML tag read as `p` in `kadence_blocks_config_blocks`, as that switch saves it). Turning the switch off in Kadence wins and stays. Nothing is stored: Kadence’s panel saves every setting it was given, so the values read as on are left out when it saves (`pre_update_option_…`) unless the site had saved them itself. Not when Advanced Text is switched off on Kadence’s Blocks screen.
 - Replaces part of Disable Bloat: its matching switches are imported once while it is active.
 - **Opens faster**, whatever is ticked: every block editor asks the REST API index for a few site details as it opens (`/?_fields=…`), and core describes every route of every plugin before dropping what was not asked for. When `_fields` leaves `routes` out, the route list reads as empty while the index is built (`rest_dispatch_request`, `rest_endpoints`) and is back before other plugins see the index (`rest_index`). The answer is the same; on a test site with 80 plugins and 1,953 routes it took 8 ms instead of 60.
 
@@ -1789,6 +1790,8 @@ Releasing on GitHub:
 2. Straight away, tag that commit `vX.Y.Z` and publish a GitHub release with `seoprostack-X.Y.Z.zip` attached. `scripts/build-release.sh --ref vX.Y.Z` builds it (and the WordPress.org zip) from the tag with `.distignore` applied, everything inside a `seoprostack/` folder; `scripts/preflight-release.sh` and `scripts/plugin-check.sh` check them first. Sites pick the latest release whose tag is a plain version number and the asset whose name starts with `seoprostack`, so never attach the WordPress.org zip. Full steps: `RELEASING.md`; SEO Pro Stack's WordPress.org checklist: `LAUNCH.md`.
 3. Sites offer the update when they next check (within 12 hours, or at once with **Check again** on the Updates screen).
 
+After an update, each site's page cache is purged once, on its first request that loads the new version (`includes/class-seoprostack-page-cache.php`, on `wp_loaded`), so visitors get pages with the new version's HTML, CSS and JS rather than cached pages from the old one. It works however the update was installed (Updates screen, automatic updates, WP-CLI, a zip) and goes through the cache plugin's own code: LiteSpeed Cache's `litespeed_purge_all` action, and WP-Optimize's page cache purge when its page cache is on. A cache plugin that Load plugins only where needed skipped on that request is purged on the next request that loads it. The version purged for is kept in `seoprostack_page_cache_purged`. Other page caches can purge on `seoprostack_page_cache_purge`.
+
 Mark test builds as pre-releases on GitHub (or tag them with letters, such as `v1.2.0-rc1`): sites never offer those. Do not add an `Update URI` header: WordPress.org rejects it, and Plugin Check reports it as an updater. Sites that still use Git Updater compare the `Version:` header on `main` instead, so keep pre-release versions out of `main` too, and publish the release in the same sitting as the version merge.
 
 ### Maintenance mode (Maintenance)
@@ -1884,6 +1887,7 @@ Actions:
 - `seoprostack_agency_update_message`: the plain-text reply that tells a client their order moved stage (message, Fluent Boards task, new stage, order details: `service`, `entry`, `form`, `ticket`, `user`, `email`, `name`).
 - `seoprostack_post_type_switched`: a post’s type changed (post ID, new type, old type).
 - `seoprostack_hand_ordered`: items were reordered by hand (`post` or `term`, post type or taxonomy, IDs whose place changed). Use it to purge caches.
+- `seoprostack_page_cache_purge`: SEO Pro Stack was updated and has purged the page caches it knows (new version), once per site; purge yours here.
 - `seoprostack_term_merged`: a term was merged into another (`WP_Term` that took over, the deleted `WP_Term`).
 - `seoprostack_terms_moved`: terms moved to another taxonomy (term IDs, new taxonomy, old taxonomy).
 
@@ -1898,6 +1902,11 @@ Deleting the plugin removes its settings (on multisite, every site's and the net
 Deactivating the plugin removes the WebP and AVIF rules from the uploads folder’s `.htaccess` (for every site when network-deactivated), the LiteSpeed background request rules from the site’s `.htaccess` (on multisite, when network-deactivated or deactivated on the main site) and the must-use file of Load plugins only where needed (on multisite, when network-deactivated).
 
 ## Changelog
+
+### 1.3.77
+- Fix: **Simpler block editor**: Kadence Blocks Controls, Content AI and Hreflang Manager are unpinned from the top bar for people who already had them pinned; 1.3.76 only changed it for people who had never saved a choice. It happens once; pinning one again stays (GitHub issue #919).
+- New, on by default: **Advanced Text for new lines** (Simpler block editor). With Kadence Blocks, Enter makes Kadence’s Advanced Text as a paragraph instead of core’s Paragraph, through Kadence’s own **Set Advanced Text as default block** switch, read as on unless the site turned it off (GitHub issue #919).
+- New: after an update, each site’s page cache (LiteSpeed Cache, WP-Optimize) is purged once, so visitors get the new version’s pages and files, however the update was installed (GitHub issue #919).
 
 ### 1.3.76
 - New, on by default: **Simpler block editor** tidies the post editor’s top bar. An eye button just left of **View** opens the published page in this tab (View opens a new tab); Kadence Blocks Controls, Content AI and Hreflang Manager start unpinned, until each person pins them again from Options → Panels; and YellowPencil’s pencil button leaves the editor for everyone. Each is a **Top bar** choice (GitHub issue #917).
