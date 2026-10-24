@@ -242,8 +242,10 @@ final class SEOProStack_Setup {
      *      Remove WordPress extras (#698).
      * v28: Editors use the business plugins: add Fluent Forms where 1.3.70's
      *      whole plugin list is stored (#905).
+     * v29: Simpler block editor unpins other plugins' panels once for
+     *      people who had them pinned (#919).
      */
-    const DB_VERSION = 28;
+    const DB_VERSION = 29;
 
     /**
      * Tab slugs renamed in 0.4.0, old => new. Settings that still use an
@@ -281,6 +283,7 @@ final class SEOProStack_Setup {
         require_once SEOPROSTACK_DIR . 'includes/class-seoprostack-disable-bloat.php';
         require_once SEOPROSTACK_DIR . 'includes/class-seoprostack-litespeed.php';
         require_once SEOPROSTACK_DIR . 'includes/class-seoprostack-wp-optimize.php';
+        require_once SEOPROSTACK_DIR . 'includes/class-seoprostack-page-cache.php';
         require_once SEOPROSTACK_DIR . 'includes/class-seoprostack-term-list.php';
         require_once SEOPROSTACK_DIR . 'includes/class-seoprostack-term-legacy.php';
         if (is_multisite()) {
@@ -311,6 +314,7 @@ final class SEOProStack_Setup {
         SEOProStack_Disable_Bloat::init();
         SEOProStack_Litespeed::init();
         SEOProStack_WP_Optimize::init();
+        SEOProStack_Page_Cache::init();
         if (class_exists('SEOProStack_Network_Plugins', false)) {
             SEOProStack_Network_Plugins::init();
         }

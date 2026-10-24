@@ -15,10 +15,14 @@
  *
  * The post editor's top bar is tidier too (TOP_BAR_KEY): other plugins'
  * panels start unpinned (UNPINNED, read as unpinned until the person pins
- * them), YellowPencil's button is left out, and an eye button opens the
+ * them; settings version 29 unpinned them once for people who had them
+ * pinned), YellowPencil's button is left out, and an eye button opens the
  * page in the same tab, beside core's View button that opens a new tab.
  * With Kadence Blocks, core blocks it has its own version of leave the
- * inserter (KADENCE_KEY, KADENCE_BLOCKS).
+ * inserter (KADENCE_KEY, KADENCE_BLOCKS), and new lines are Kadence's
+ * Advanced Text (KADENCE_TEXT_KEY): Kadence's own "Set Advanced Text as
+ * default block" switch is read as on in the post editor, unless the site
+ * turned it off in Kadence, and never stored by SEO Pro Stack.
  *
  * The editors also open faster: the site details they ask for are built
  * without describing every REST route first (see index_without_routes()).
@@ -50,6 +54,25 @@ class SEOProStack_Editor_Tidy extends SEOProStack_Feature {
 
     /** Kadence blocks in place of core's in the inserter. */
     const KADENCE_KEY = 'editor_tidy_kadence';
+
+    /** Kadence's Advanced Text for new lines. */
+    const KADENCE_TEXT_KEY = 'editor_tidy_kadence_text';
+
+    /** Kadence's Advanced Text block. */
+    const KADENCE_TEXT = 'kadence/advancedheading';
+
+    /**
+     * Kadence Blocks' own options for it, both JSON strings: its settings,
+     * with the "Set Advanced Text as default block" switch (SWITCH), and
+     * its block defaults, where that switch makes Advanced Text a paragraph
+     * (htmlTag "p").
+     */
+    const KADENCE_SETTINGS = 'kadence_blocks_settings';
+    const KADENCE_DEFAULTS = 'kadence_blocks_config_blocks';
+    const KADENCE_SWITCH   = 'adv_text_is_default_editor_block';
+
+    /** Settings version that unpinned UNPINNED once for everyone. */
+    const UNPIN_VERSION = 29;
 
     /** Script handle. */
     const HANDLE = 'seoprostack-editor-tidy';
@@ -143,6 +166,13 @@ class SEOProStack_Editor_Tidy extends SEOProStack_Feature {
                 'label'       => __('Kadence blocks first', 'seoprostack'),
                 'description' => __('Core blocks that Kadence Blocks has its own version of, such as Heading, List, Image, Buttons and Columns, leave the inserter, so Kadence’s is the one offered. Pasting, transforms and patterns still use the core blocks, and pages keep them. Nothing changes without Kadence Blocks.', 'seoprostack'),
             ),
+            self::KADENCE_TEXT_KEY => array(
+                'type'        => 'bool',
+                'default'     => true,
+                'parent'      => self::KEY,
+                'label'       => __('Advanced Text for new lines', 'seoprostack'),
+                'description' => __('New lines in the post editor are Kadence’s Advanced Text, as a paragraph, in place of core’s Paragraph: Kadence’s own “Set Advanced Text as default block” switch (Kadence Blocks Controls → Default Editor Block) reads as on. Turning that switch off in Kadence wins. Nothing is stored, and nothing changes without Kadence Blocks.', 'seoprostack'),
+            ),
         );
     }
 
@@ -177,7 +207,8 @@ class SEOProStack_Editor_Tidy extends SEOProStack_Feature {
     }
 
     /**
-     * Import Disable Bloat's matching switches.
+     * Import Disable Bloat's matching switches, and unpin other plugins'
+     * panels once for people who had them pinned (settings version 29).
      *
      * @param array $options      Stored settings.
      * @param int   $from_version Previous settings version.
@@ -189,7 +220,48 @@ class SEOProStack_Editor_Tidy extends SEOProStack_Feature {
             $options = self::import_setting($options, self::KEY, true);
             $options = self::import_setting($options, self::ITEMS_KEY, $choices);
         }
+        $on      = !array_key_exists(self::KEY, $options) || !empty($options[self::KEY]);
+        $top_bar = array_key_exists(self::TOP_BAR_KEY, $options) ? (array) $options[self::TOP_BAR_KEY] : array('unpin_panels');
+        if ((int) $from_version < self::UNPIN_VERSION && $on && in_array('unpin_panels', $top_bar, true)) {
+            self::unpin_saved();
+        }
         return $options;
+    }
+
+    /**
+     * Unpin other plugins' panels (UNPINNED) for this site's people who
+     * have them saved as pinned.
+     *
+     * 1.3.76 only read them as unpinned for people with no saved choice,
+     * but the panels were often saved as pinned already, so nothing changed
+     * for people who had used the editor. Once, here, they are saved as
+     * unpinned; pinning one again afterwards stays. Other preferences are
+     * left as they are.
+     */
+    private static function unpin_saved() {
+        global $wpdb;
+        $key = $wpdb->get_blog_prefix() . 'persisted_preferences';
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- one-off step in the settings upgrade.
+        $users = $wpdb->get_col($wpdb->prepare("SELECT DISTINCT user_id FROM {$wpdb->usermeta} WHERE meta_key = %s", $key));
+        foreach ((array) $users as $user_id) {
+            $user_id = (int) $user_id;
+            $prefs   = self::stored_preferences($user_id, $key);
+            $changed = false;
+            // Pinned items moved from core/edit-post to core in WordPress 6.6.
+            foreach (array('core', 'core/edit-post') as $scope) {
+                foreach (array_keys(self::UNPINNED) as $item) {
+                    if (isset($prefs[$scope]['pinnedItems'][$item]) && true === $prefs[$scope]['pinnedItems'][$item]) {
+                        $prefs[$scope]['pinnedItems'][$item] = false;
+                        $changed                              = true;
+                    }
+                }
+            }
+            if ($changed) {
+                // As the editor saves it, so this copy is the newest.
+                $prefs['_modified'] = gmdate('Y-m-d\TH:i:s.000\Z');
+                update_user_meta($user_id, $key, $prefs);
+            }
+        }
     }
 
     /**
@@ -239,6 +311,14 @@ class SEOProStack_Editor_Tidy extends SEOProStack_Feature {
         }
         if ((isset($top_bar['view_here']) || isset($top_bar['yellowpencil']) || SEOProStack_Settings::get(self::KADENCE_KEY)) && is_admin()) {
             add_action('enqueue_block_editor_assets', array(__CLASS__, 'block_editor'));
+        }
+        if (SEOProStack_Settings::get(self::KADENCE_TEXT_KEY)) {
+            if (is_admin()) {
+                add_action('current_screen', array(__CLASS__, 'kadence_text_screen'));
+            }
+            // Kadence saves both options through the REST API.
+            add_filter('pre_update_option_' . self::KADENCE_SETTINGS, array(__CLASS__, 'save_kadence_settings'), 10, 2);
+            add_filter('pre_update_option_' . self::KADENCE_DEFAULTS, array(__CLASS__, 'save_kadence_defaults'), 10, 2);
         }
         // Not a choice: the answer is the same, only quicker.
         add_filter('rest_dispatch_request', array(__CLASS__, 'index_without_routes'), PHP_INT_MAX, 3);
@@ -515,6 +595,185 @@ class SEOProStack_Editor_Tidy extends SEOProStack_Feature {
             }
         }
         return $blocks;
+    }
+
+    /**
+     * Post editor: read Kadence's "Set Advanced Text as default block"
+     * switch as on, while Advanced Text is registered and not switched off
+     * in Kadence's settings.
+     *
+     * Kadence prints both options into the editor (kadence_blocks_params),
+     * where its switch makes Advanced Text the default block, the block
+     * Enter and the "Type / to choose a block" line make, and keeps it
+     * Advanced Text on the next line.
+     *
+     * @param WP_Screen $screen Current screen.
+     */
+    public static function kadence_text_screen($screen) {
+        if (!$screen instanceof WP_Screen || 'post' !== $screen->base || !class_exists('WP_Block_Type_Registry') || !WP_Block_Type_Registry::get_instance()->is_registered(self::KADENCE_TEXT)) {
+            return;
+        }
+        if (in_array(self::KADENCE_TEXT, (array) get_option('kt_blocks_unregistered_blocks', array()), true)) {
+            return;
+        }
+        foreach (array(self::KADENCE_SETTINGS => 'kadence_settings', self::KADENCE_DEFAULTS => 'kadence_defaults') as $option => $method) {
+            add_filter('option_' . $option, array(__CLASS__, $method));
+            add_filter('default_option_' . $option, array(__CLASS__, $method));
+        }
+    }
+
+    /**
+     * Kadence's settings with its Advanced Text switch on, unless the site
+     * saved it (off) in Kadence.
+     *
+     * @param mixed $value Stored value: a JSON string, or '' when unset.
+     * @return mixed
+     */
+    public static function kadence_settings($value) {
+        $settings = self::json_option($value);
+        if (null === $settings || !self::post_editor() || array_key_exists(self::KADENCE_SWITCH, $settings)) {
+            return $value;
+        }
+        $settings[self::KADENCE_SWITCH] = true;
+        return self::json_value($value, $settings);
+    }
+
+    /**
+     * Kadence's block defaults with Advanced Text as a paragraph, as its
+     * switch saves them, while the switch reads as on and the site saved no
+     * HTML tag of its own for Advanced Text.
+     *
+     * @param mixed $value Stored value: a JSON string, or '' when unset.
+     * @return mixed
+     */
+    public static function kadence_defaults($value) {
+        $defaults = self::json_option($value);
+        if (null === $defaults || !self::post_editor()) {
+            return $value;
+        }
+        $settings = self::json_option(get_option(self::KADENCE_SETTINGS));
+        if (empty($settings[self::KADENCE_SWITCH])) {
+            return $value;
+        }
+        $block = isset($defaults[self::KADENCE_TEXT]) && is_array($defaults[self::KADENCE_TEXT]) ? $defaults[self::KADENCE_TEXT] : array();
+        if (array_key_exists('htmlTag', $block)) {
+            return $value;
+        }
+        $block['htmlTag']             = 'p';
+        $defaults[self::KADENCE_TEXT] = $block;
+        return self::json_value($value, $defaults);
+    }
+
+    /**
+     * Save Kadence's settings without the switch kadence_settings() read
+     * as on: Kadence's editor panel saves every setting it was given, so
+     * saving any other would store it. A switch the site had saved before
+     * is saved as Kadence sends it.
+     *
+     * @param mixed $value     Value to save.
+     * @param mixed $old_value Value before.
+     * @return mixed
+     */
+    public static function save_kadence_settings($value, $old_value) {
+        $settings = self::json_option($value);
+        if (null === $settings || true !== ($settings[self::KADENCE_SWITCH] ?? null)) {
+            return $value;
+        }
+        $before = self::json_option(self::stored_option(self::KADENCE_SETTINGS));
+        if (null === $before || array_key_exists(self::KADENCE_SWITCH, $before)) {
+            return $value;
+        }
+        unset($settings[self::KADENCE_SWITCH]);
+        return self::json_value($value, $settings);
+    }
+
+    /**
+     * Save Kadence's block defaults without the paragraph tag
+     * kadence_defaults() added, while the site has not saved Kadence's
+     * switch itself (Kadence saves the switch, then the tag).
+     *
+     * @param mixed $value     Value to save.
+     * @param mixed $old_value Value before.
+     * @return mixed
+     */
+    public static function save_kadence_defaults($value, $old_value) {
+        $defaults = self::json_option($value);
+        if (null === $defaults || 'p' !== ($defaults[self::KADENCE_TEXT]['htmlTag'] ?? null)) {
+            return $value;
+        }
+        $settings = self::json_option(self::stored_option(self::KADENCE_SETTINGS));
+        $before   = self::json_option(self::stored_option(self::KADENCE_DEFAULTS));
+        if (null === $settings || null === $before || array_key_exists(self::KADENCE_SWITCH, $settings) || isset($before[self::KADENCE_TEXT]['htmlTag'])) {
+            return $value;
+        }
+        unset($defaults[self::KADENCE_TEXT]['htmlTag']);
+        if (!$defaults[self::KADENCE_TEXT]) {
+            unset($defaults[self::KADENCE_TEXT]);
+        }
+        return self::json_value($value, $defaults);
+    }
+
+    /**
+     * An option as stored, without kadence_settings() and
+     * kadence_defaults().
+     *
+     * @param string $option Option name.
+     * @return mixed
+     */
+    private static function stored_option($option) {
+        $method = self::KADENCE_SETTINGS === $option ? 'kadence_settings' : 'kadence_defaults';
+        $hooks  = array();
+        foreach (array('option_', 'default_option_') as $prefix) {
+            if (false !== has_filter($prefix . $option, array(__CLASS__, $method))) {
+                remove_filter($prefix . $option, array(__CLASS__, $method));
+                $hooks[] = $prefix . $option;
+            }
+        }
+        $value = get_option($option, '');
+        foreach ($hooks as $hook) {
+            add_filter($hook, array(__CLASS__, $method));
+        }
+        return $value;
+    }
+
+    /**
+     * One of Kadence's JSON options as an array.
+     *
+     * @param mixed $value Option value.
+     * @return array|null Null when it is not JSON with named keys.
+     */
+    private static function json_option($value) {
+        if (is_array($value)) {
+            return $value;
+        }
+        if (null === $value || false === $value || '' === $value) {
+            return array();
+        }
+        if (!is_string($value)) {
+            return null;
+        }
+        $data = json_decode($value, true);
+        return is_array($data) ? $data : null;
+    }
+
+    /**
+     * An array back in the option's form: JSON, as Kadence saves it, or an
+     * array when it was one; '' (Kadence's unset value) when empty, as
+     * Kadence would read an empty JSON list as a list.
+     *
+     * @param mixed $original Option value it came from.
+     * @param array $data     New value.
+     * @return mixed
+     */
+    private static function json_value($original, array $data) {
+        if (is_array($original)) {
+            return $data;
+        }
+        if (!$data) {
+            return '';
+        }
+        $json = wp_json_encode($data, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+        return false === $json ? $original : $json;
     }
 
     /**
