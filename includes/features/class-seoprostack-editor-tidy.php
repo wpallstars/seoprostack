@@ -225,6 +225,9 @@ class SEOProStack_Editor_Tidy extends SEOProStack_Feature {
             // After preferences() above, which answers first.
             add_filter('get_user_metadata', array(__CLASS__, 'unpinned'), 11, 4);
         }
+        if ((isset($items['welcome_guide']) || isset($items['fullscreen']) || isset($top_bar['unpin_panels'])) && is_admin()) {
+            self::reload_preferences();
+        }
         if (isset($top_bar['yellowpencil']) && is_admin()) {
             // After YellowPencil enqueues its script (priority 10).
             add_action('admin_enqueue_scripts', array(__CLASS__, 'no_yellowpencil'), 100);
@@ -370,6 +373,45 @@ class SEOProStack_Editor_Tidy extends SEOProStack_Feature {
         }
         $stored[$scope]['pinnedItems'] = $pinned;
         return array($stored);
+    }
+
+    /**
+     * Read the editor preferences again for core's `wp-preferences` script
+     * when it was set up before these filters were added.
+     *
+     * Core reads them when the script list is first made
+     * (`wp_default_scripts`). A plugin that registers a script before
+     * `init` makes it earlier than boot(), so the filters above came too
+     * late for it. Only the `serverData` value of core's script is
+     * replaced.
+     */
+    private static function reload_preferences() {
+        global $wpdb;
+        if (!did_action('wp_default_scripts') || !get_current_user_id()) {
+            // Core has not read them yet: it will, through the filters.
+            return;
+        }
+        $scripts = wp_scripts();
+        $after   = $scripts->get_data('wp-preferences', 'after');
+        if (!is_array($after)) {
+            return;
+        }
+        $data = wp_json_encode(get_user_meta(get_current_user_id(), $wpdb->get_blog_prefix() . 'persisted_preferences', true), JSON_HEX_TAG | JSON_UNESCAPED_SLASHES);
+        if (false === $data) {
+            return;
+        }
+        foreach ($after as $i => $code) {
+            if (is_string($code) && false !== strpos($code, 'var serverData = ')) {
+                // JSON has no line breaks, so the value ends at the line's ";".
+                $code = preg_replace_callback('/var serverData = [^\n]*?;(?=\s*var userId)/', function () use ($data) {
+                    return 'var serverData = ' . $data . ';';
+                }, $code, 1);
+                if (is_string($code)) {
+                    $after[$i] = $code;
+                }
+            }
+        }
+        $scripts->add_data('wp-preferences', 'after', $after);
     }
 
     /**
