@@ -1047,6 +1047,82 @@ html.sps-dark #wpbody input.bulk-select-switcher:focus + .bulk-select-button-lab
 	border-color: var(--sps-ui-accent);
 }
 
+/* Revisions ----------------------------------------------------------------- */
+
+/* Compare revisions (revision.php): white bars and diff (revisions.css), pale red and green lines, a white slider. */
+html.sps-dark #wpbody :is(.revisions-meta, .revisions-diff, .revisions.pinned .revisions-controls, .revisions-tooltip, .revisions-tooltip-arrow > span) {
+	color: var(--sps-ui-text);
+	background-color: var(--sps-ui-surface);
+	border-color: var(--sps-ui-border);
+	box-shadow: 0 0 0 1px var(--sps-ui-border);
+}
+
+html.sps-dark #wpbody .revisions-diff :is(h3, table.diff th) {
+	color: var(--sps-ui-text);
+}
+
+html.sps-dark #wpbody .revisions-controls .author-card .date {
+	color: var(--sps-ui-subtle);
+}
+
+html.sps-dark #wpbody .revisions-controls .author-card.autosave {
+	color: var(--sps-ui-bad);
+}
+
+html.sps-dark #wpbody table.diff td {
+	color: var(--sps-ui-text);
+}
+
+html.sps-dark #wpbody table.diff .diff-deletedline {
+	background-color: rgb(214 54 56 / 16%);
+}
+
+html.sps-dark #wpbody table.diff .diff-deletedline del {
+	color: #fff;
+	background-color: rgb(214 54 56 / 55%);
+}
+
+html.sps-dark #wpbody table.diff .diff-addedline {
+	background-color: rgb(0 163 42 / 16%);
+}
+
+html.sps-dark #wpbody table.diff .diff-addedline ins {
+	color: #fff;
+	background-color: rgb(0 163 42 / 55%);
+}
+
+html.sps-dark #wpbody :is(.revisions-tickmarks, .wp-slider.ui-slider) {
+	background-color: var(--sps-ui-canvas);
+	border-color: var(--sps-ui-border);
+}
+
+html.sps-dark #wpbody .revisions-tickmarks > div {
+	border-left-color: var(--sps-ui-field-border);
+}
+
+html.sps-dark #wpbody .wp-slider .ui-slider-handle {
+	background: var(--sps-ui-raised);
+	border-color: var(--sps-ui-field-border);
+	box-shadow: none;
+}
+
+html.sps-dark #wpbody .wp-slider .ui-slider-handle:is(:hover, :active, :focus, .ui-state-hover, .ui-state-active, .ui-state-focus) {
+	background: var(--sps-ui-raised);
+	border-color: var(--sps-ui-text);
+}
+
+html.sps-dark #wpbody .wp-slider .ui-slider-handle:focus {
+	box-shadow: 0 0 0 var(--wp-admin-border-width-focus, 1.5px) var(--sps-ui-accent);
+}
+
+html.sps-dark #wpbody .wp-slider .ui-slider-handle::before {
+	color: var(--sps-ui-muted);
+}
+
+html.sps-dark #wpbody .wp-slider .ui-slider-handle:is(:hover, .ui-state-hover)::before {
+	color: var(--sps-ui-text);
+}
+
 /* Code editors -------------------------------------------------------------- */
 
 /*
@@ -1756,6 +1832,28 @@ html.sps-dark .wp-block[data-type="core/widget-area"] .components-panel__body > 
 	background: var(--sps-ui-surface);
 }
 
+/* The header's Document overview (List View) button, pressed: #1e1e1e behind the dark label colour pressed buttons get here (five classes deep). */
+html.sps-dark .editor-document-tools .editor-document-tools__left > .components-button.has-icon.is-pressed:not(:disabled, [aria-disabled="true"]) {
+	color: var(--sps-ui-surface);
+	background: var(--sps-ui-text);
+}
+
+/*
+ * Colour palettes' swatches: a grey checked pattern behind each (for see-through colours) and a rgb(0 0 0 / 20%) ring,
+ * which blur the edge on dark: a solid ring and no pattern here.
+ */
+html.sps-dark .components-circular-option-picker__option-wrapper::before {
+	background: none;
+}
+
+html.sps-dark .components-circular-option-picker__option::after {
+	box-shadow: inset 0 0 0 1px var(--sps-ui-field-border);
+}
+
+html.sps-dark .component-color-indicator {
+	box-shadow: inset 0 0 0 1px var(--sps-ui-field-border);
+}
+
 /* Widgets' Add block button, pressed (#1e1e1e): filled with the text colour, as pressed buttons are elsewhere. */
 html.sps-dark .blocks-widgets-container .edit-widgets-header-toolbar > .components-button.has-icon.is-pressed {
 	background: var(--sps-ui-text);
@@ -2256,6 +2354,31 @@ html.sps-dark .kadence-icon-picker-link.kadence-icon-picker-selection-toggle .ka
 
 html.sps-dark .kadence-icon-picker-link.kadence-icon-picker-selection-toggle:hover .kadence-icon-picker-selection-arrow {
 	background: var(--sps-ui-hover);
+}
+
+/* Kadence Blocks: colour swatches, a ring of rgb(0 0 0 / 10%) that barely shows on dark; a solid ring here. */
+html.sps-dark .kb-color-swatch {
+	border: 1px solid var(--sps-ui-field-border);
+}
+
+html.sps-dark .kadence-blocks-style-library__color-picker-swatch {
+	box-shadow: inset 0 0 0 1px var(--sps-ui-field-border);
+}
+
+/* Image pickers in block settings (Kadence's Background Image, core's media placeholders): #fff boxes, #1e1e1e text. */
+html.sps-dark :is(.block-editor-block-inspector, .interface-complementary-area) .components-placeholder {
+	color: var(--sps-ui-text);
+	background-color: var(--sps-ui-canvas);
+	box-shadow: inset 0 0 0 1px var(--sps-ui-border);
+	outline-color: var(--sps-ui-border);
+}
+
+html.sps-dark :is(.block-editor-block-inspector, .interface-complementary-area) .components-placeholder :is(.components-placeholder__label, .components-placeholder__instructions, .components-placeholder__fieldset) {
+	color: var(--sps-ui-text);
+}
+
+html.sps-dark :is(.block-editor-block-inspector, .interface-complementary-area) .components-placeholder .components-button.is-primary:not(:hover, :focus) {
+	background-color: var(--sps-ui-raised);
 }
 
 /* Kadence Blocks → Style Library: a full-screen app drawn from its own --kb-sl-color-* tokens (white surface, grey scale for text and lines). */
@@ -3419,8 +3542,8 @@ html.sps-dark .editor-editor-interface .interface-pinned-items button.components
 	border-color: #249671;
 }
 
-/* Content AI while its panel is open keeps Rank Math's solid status fill, so its icon stays dark like its number. */
-html.sps-dark .editor-editor-interface .interface-pinned-items button.components-button.is-pressed[aria-label] .rank-math-toolbar-score.content-ai-score {
+/* The SEO and Content AI scores while their panel is open keep Rank Math's solid status fill, so the icon stays dark like the number. */
+html.sps-dark .editor-editor-interface .interface-pinned-items button.components-button.is-pressed[aria-label] .rank-math-toolbar-score {
 	color: #1d2327;
 }
 

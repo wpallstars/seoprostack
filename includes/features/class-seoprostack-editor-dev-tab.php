@@ -55,6 +55,18 @@ class SEOProStack_Editor_Dev_Tab extends SEOProStack_Feature {
     );
 
     /**
+     * Rows of the Post tab's summary (PluginPostStatusInfo) moved to the
+     * top of the Dev tab, in this order. Each is found by its class, or by
+     * its label as it shows (English, and translated with `domain`).
+     */
+    const ROWS = array(
+        // SEO Pro Stack: Change post type.
+        array('class' => 'seoprostack-post-type', 'title' => '', 'domain' => ''),
+        // Rank Math.
+        array('class' => '', 'title' => 'Lock Modified Date', 'domain' => 'seo-by-rank-math'),
+    );
+
+    /**
      * Scripts that add developer tools' buttons to the block editor's
      * toolbar: handle => tool. Left out for people who are not developers.
      */
@@ -78,7 +90,7 @@ class SEOProStack_Editor_Dev_Tab extends SEOProStack_Feature {
                 'default'     => true,
                 'tab'         => 'content',
                 'label'       => __('Dev tab in the block editor', 'seoprostack'),
-                'description' => __('Move developer panels (LiteSpeed, Complianz’s Cookiebanner, Readabler, Simple Share Control and Webmentions) from the editor’s Post tab to a Dev tab beside Block that only developers see (Developer admins). Everyone else sees neither, nor YellowPencil’s toolbar button.', 'seoprostack'),
+                'description' => __('Move developer panels (LiteSpeed, Complianz’s Cookiebanner, Readabler, Simple Share Control and Webmentions) from the editor’s Post tab to a Dev tab beside Block that only developers see (Developer admins), with Post type and Rank Math’s Lock Modified Date at the top. Everyone else sees none of them, nor YellowPencil’s toolbar button.', 'seoprostack'),
             ),
         );
     }
@@ -146,21 +158,16 @@ class SEOProStack_Editor_Dev_Tab extends SEOProStack_Feature {
         }
         $panels    = self::panels();
         $developer = SEOProStack_Developers::is_developer();
-        if (!$panels && $developer) {
-            return;
-        }
 
         wp_register_style(self::HANDLE, false, array(), SEOPROSTACK_VERSION);
         wp_enqueue_style(self::HANDLE);
         wp_add_inline_style(self::HANDLE, self::css($developer));
-        if (!$panels) {
-            return;
-        }
 
         wp_register_script(self::HANDLE, SEOPROSTACK_URL . 'admin/js/seoprostack-editor-dev-tab.js', array('wp-data', 'wp-dom-ready', 'wp-i18n'), SEOPROSTACK_VERSION, true);
         wp_add_inline_script(self::HANDLE, 'window.seoprostackEditorDevTab = ' . wp_json_encode(array(
             'developer' => $developer,
             'panels'    => $panels,
+            'rows'      => self::ROWS,
             'label'     => _x('Dev', 'block editor sidebar tab', 'seoprostack'),
         )) . ';', 'before');
         wp_enqueue_script(self::HANDLE);
@@ -181,6 +188,11 @@ class SEOProStack_Editor_Dev_Tab extends SEOProStack_Feature {
         return $css
             . '.sps-dev-view{display:flex;flex-direction:column}'
             . '.sps-dev-view .sps-dev-panel:not(.is-hidden){display:block!important}'
+            // No sideways scrolling from a meta box a pixel or two too wide (Kadence Simple Share's).
+            . '.sps-dev-view .sps-dev-panel{min-width:0;max-width:100%;box-sizing:border-box;overflow-x:clip}'
+            // Rows of the summary, out of their padded panel.
+            . '.sps-dev-view .sps-dev-row{padding:12px 16px}'
+            . '.sps-dev-view .sps-dev-row-last{padding-bottom:16px;border-bottom:1px solid var(--sps-ui-border,#e0e0e0)}'
             . '.sps-dev-view .sps-dev-flat{display:contents!important}'
             . '.sps-dev-view>:not(.sps-dev-panel):not(.sps-dev-flat),.sps-dev-view .sps-dev-flat>:not(.sps-dev-panel):not(.sps-dev-flat){display:none!important}'
             // The tab line under Dev while it is open (the script sets where).

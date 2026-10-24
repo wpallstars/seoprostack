@@ -1,8 +1,8 @@
 /**
  * Dev tab in the block editor: a Dev tab after the Post and Block tabs of
  * the settings sidebar, for developers, holding the panels listed in
- * window.seoprostackEditorDevTab.panels in A–Z order. For everyone else
- * those panels are hidden and there is no tab.
+ * window.seoprostackEditorDevTab.panels in A–Z order, after the summary
+ * rows in .rows. For everyone else those are hidden and there is no tab.
  *
  * The panels stay where WordPress renders them, so meta boxes stay inside
  * their form and still save: the Dev tab is the Post tab showing only
@@ -62,9 +62,39 @@
         return text(panel.querySelector('.hndle, .components-panel__body-title'));
     }
 
-    /** Developer panels in the page: meta boxes (wherever their form is) and sidebar panels. */
-    function findPanels() {
+    /** A summary row's label: its control's, or its own text. */
+    function rowLabel(row) {
+        return text(row.querySelector('label, .components-base-control__label')) || text(row);
+    }
+
+    /** Summary rows for the top of the Dev tab, in cfg.rows order. */
+    function findRows() {
         var found = [];
+        var rows = document.querySelectorAll('.editor-sidebar .components-panel__row, .edit-post-sidebar .components-panel__row');
+        (cfg.rows || []).forEach(function (want) {
+            var title = want.title ? want.title.toLowerCase() : '';
+            var translated = title && want.domain && wp.i18n ? wp.i18n.__(want.title, want.domain).toLowerCase() : '';
+            for (var i = 0; i < rows.length; i++) {
+                var row = rows[i];
+                var label = title ? rowLabel(row).toLowerCase() : '';
+                if ((want['class'] && row.classList.contains(want['class'])) || (title && (label === title || label === translated))) {
+                    if (found.indexOf(row) === -1) {
+                        found.push(row);
+                    }
+                    break;
+                }
+            }
+        });
+        return found;
+    }
+
+    /** Developer panels in the page: summary rows first, meta boxes (wherever their form is) and sidebar panels. */
+    function findPanels() {
+        var found = findRows();
+        found.forEach(function (row, index) {
+            row.classList.add('sps-dev-row');
+            row.classList.toggle('sps-dev-row-last', index === found.length - 1);
+        });
         function add(el) {
             if (el && found.indexOf(el) === -1) {
                 found.push(el);
@@ -143,13 +173,19 @@
         });
     }
 
-    /** Show only the developer panels in the Post tab's panel, flat and A–Z. */
+    /** Show only the developer panels in the Post tab's panel, flat: the summary rows, then the panels A–Z. */
     function showView(view, panels) {
         var inside = panels.filter(function (el) {
             return view.contains(el);
+        });
+        var rows = inside.filter(function (el) {
+            return el.classList.contains('sps-dev-row');
+        });
+        inside = rows.concat(inside.filter(function (el) {
+            return !el.classList.contains('sps-dev-row');
         }).sort(function (a, b) {
             return titleOf(a).localeCompare(titleOf(b), undefined, { sensitivity: 'base' });
-        });
+        }));
         view.classList.add('sps-dev-view');
         inside.forEach(function (el, index) {
             el.style.order = String(index);

@@ -172,7 +172,7 @@ class SEOProStack_Editor_Tidy extends SEOProStack_Feature {
                 'default'     => true,
                 'parent'      => self::KEY,
                 'label'       => __('Kadence blocks first', 'seoprostack'),
-                'description' => __('Core blocks that Kadence Blocks has its own version of, such as Heading, List, Image, Buttons and Columns, leave the inserter, so Kadence’s is the one offered. Pasting, transforms and patterns still use the core blocks, and pages keep them. Nothing changes without Kadence Blocks.', 'seoprostack'),
+                'description' => __('Core blocks that Kadence Blocks has its own version of, such as Heading, List, Image, Buttons and Columns, leave the inserter, so Kadence’s is the one offered. Pasting, transforms and patterns still use the core blocks, and pages keep them. Document overview → Outline lists Kadence’s Advanced Text headings too. Nothing changes without Kadence Blocks.', 'seoprostack'),
             ),
             self::KADENCE_TEXT_KEY => array(
                 'type'        => 'bool',
@@ -813,21 +813,32 @@ class SEOProStack_Editor_Tidy extends SEOProStack_Feature {
     }
 
     /**
-     * Post editor: the eye button, Kadence blocks first, and a rule hiding
-     * YellowPencil's button should its script load anyway.
+     * Post editor: the eye button, Kadence blocks first with Advanced Text
+     * headings in the outline, and a rule hiding YellowPencil's button
+     * should its script load anyway.
      */
     public static function block_editor() {
         if (!self::post_editor()) {
             return;
         }
-        $top_bar = (array) SEOProStack_Settings::get(self::TOP_BAR_KEY);
-        if (in_array('yellowpencil', $top_bar, true)) {
-            wp_register_style(self::HANDLE, false, array(), SEOPROSTACK_VERSION);
-            wp_enqueue_style(self::HANDLE);
-            wp_add_inline_style(self::HANDLE, SEOProStack_Editor_Dev_Tab::TOOLBAR_BUTTONS . '{display:none!important}');
-        }
+        $top_bar   = (array) SEOProStack_Settings::get(self::TOP_BAR_KEY);
         $kadence   = self::kadence_blocks();
         $view_here = in_array('view_here', $top_bar, true);
+        // Advanced Text (Kadence's heading) is offered for Heading.
+        $outline = isset($kadence['core/heading']);
+        $css     = '';
+        if (in_array('yellowpencil', $top_bar, true)) {
+            $css .= SEOProStack_Editor_Dev_Tab::TOOLBAR_BUTTONS . '{display:none!important}';
+        }
+        if ($outline) {
+            // The script's outline, while it lists headings, replaces core's.
+            $css .= '.sps-outline-host:has(>.sps-outline)~:is(.editor-document-outline,.document-outline){display:none!important}';
+        }
+        if ('' !== $css) {
+            wp_register_style(self::HANDLE, false, array(), SEOPROSTACK_VERSION);
+            wp_enqueue_style(self::HANDLE);
+            wp_add_inline_style(self::HANDLE, $css);
+        }
         if (!$kadence && !$view_here) {
             return;
         }
@@ -835,9 +846,10 @@ class SEOProStack_Editor_Tidy extends SEOProStack_Feature {
         $screen = get_current_screen();
         $type   = $screen && $screen->post_type ? get_post_type_object($screen->post_type) : null;
         $label  = $type && !empty($type->labels->view_item) ? $type->labels->view_item : __('View post', 'seoprostack');
-        wp_register_script(self::HANDLE, SEOPROSTACK_URL . 'admin/js/seoprostack-editor-tidy.js', array('wp-blocks', 'wp-components', 'wp-data', 'wp-dom-ready', 'wp-element', 'wp-hooks'), SEOPROSTACK_VERSION, true);
+        wp_register_script(self::HANDLE, SEOPROSTACK_URL . 'admin/js/seoprostack-editor-tidy.js', array('wp-blocks', 'wp-components', 'wp-data', 'wp-dom-ready', 'wp-element', 'wp-hooks', 'wp-i18n', 'wp-rich-text'), SEOPROSTACK_VERSION, true);
         wp_add_inline_script(self::HANDLE, 'window.seoprostackEditorTidy = ' . wp_json_encode(array(
             'kadence'  => $kadence ? $kadence : null,
+            'outline'  => $outline,
             /* translators: %s: the post type's View label, such as View Page. */
             'viewHere' => $view_here ? sprintf(__('%s in this tab', 'seoprostack'), $label) : '',
         )) . ';', 'before');
