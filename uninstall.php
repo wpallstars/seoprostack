@@ -178,6 +178,8 @@ function seoprostack_uninstall_site() {
     $options[] = 'seoprostack_admin_counts';
     // Recommended speed settings: changes made from the plan.
     $options[] = 'seoprostack_speed_plan';
+    // Page caches purged after an update: the version they were purged for.
+    $options[] = 'seoprostack_page_cache_purged';
     // Linking caches and anonymous daily click totals. Approved links are
     // ordinary post content and remain; Link Whisper and Rank Math stay untouched.
     $options[] = 'seoprostack_link_index';
