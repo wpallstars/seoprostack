@@ -577,6 +577,56 @@
 	color: var(--sps-muted);
 }
 
+/* An ordered list (a multi field's `ordered` key): one row each, with a
+   handle to drag or move with the arrow keys. */
+.sps-checkboxes[data-sps-ordered] {
+	flex-direction: column;
+	align-items: flex-start;
+	gap: 2px;
+}
+
+.sps-checkbox-row {
+	display: flex;
+	align-items: center;
+	gap: 2px;
+}
+
+.sps-wrap .sps-checkbox__handle {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 28px;
+	height: 28px;
+	padding: 0;
+	color: var(--sps-muted);
+	background: transparent;
+	border: 0;
+	border-radius: 4px;
+	cursor: grab;
+}
+
+.sps-wrap .sps-checkbox__handle:hover {
+	color: var(--sps-accent);
+	background: var(--sps-subtle);
+}
+
+.sps-wrap .sps-checkbox__handle:focus-visible {
+	outline: none;
+	box-shadow: var(--sps-focus);
+}
+
+.sps-checkbox-row.ui-sortable-helper {
+	background: var(--sps-subtle);
+	border-radius: 4px;
+	cursor: grabbing;
+}
+
+.sps-ordered-help {
+	margin: 6px 0 0;
+	font-size: 12px;
+	color: var(--sps-muted);
+}
+
 /* Read Me ------------------------------------------------------------ */
 
 .sps-readme {
