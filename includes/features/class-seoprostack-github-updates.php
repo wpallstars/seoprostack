@@ -186,11 +186,12 @@ class SEOProStack_Github_Updates extends SEOProStack_Feature {
      */
     public static function only_github_theme($update, $item) {
         unset($update);
+        $themes = array('WPAllStars_GitHub_Theme_Updater', 'themes');
         if (!is_object($item) || !isset($item->theme) || !is_string($item->theme)
-            || !is_callable(array('WPAllStars_GitHub_Theme_Updater', 'themes'))) {
+            || !is_callable($themes)) {
             return false;
         }
-        $served = WPAllStars_GitHub_Theme_Updater::themes();
+        $served = call_user_func($themes);
         return isset($served[$item->theme]);
     }
 
