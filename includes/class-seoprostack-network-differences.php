@@ -160,7 +160,7 @@ class SEOProStack_Network_Differences {
     private static function card_differs(array $keys, array $options, array $defaults) {
         foreach ($keys as $key) {
             $own = array_key_exists($key, $options) ? $options[$key] : $defaults[$key];
-            if (!SEOProStack_Settings::same($own, SEOProStack_Network_Settings::value($key))) {
+            if (!SEOProStack_Settings::same($own, SEOProStack_Network_Settings::value($key), (string) $key)) {
                 return true;
             }
         }

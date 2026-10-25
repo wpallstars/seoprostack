@@ -248,8 +248,10 @@ final class SEOProStack_Setup {
      * v30: the same, once, for Hreflang Manager (the full plugin's panel,
      *      missed in v29), and Kadence Simple Share's settings are imported
      *      into Social sharing (#921).
+     * v31: Social sharing takes Kadence Simple Share's network order where
+     *      v30 imported its networks in Social sharing's order (#923).
      */
-    const DB_VERSION = 30;
+    const DB_VERSION = 31;
 
     /**
      * Tab slugs renamed in 0.4.0, old => new. Settings that still use an

@@ -151,6 +151,8 @@ class SEOProStack_Settings {
      * - options:     value => label array, or a callable returning one (select, multi)
      * - open:        multi only; also keep key-like values that are not (yet)
      *                in options, e.g. post types or widgets registered later
+     * - ordered:     multi only; true to keep the chosen values in the order
+     *                given, which the panel lets people drag to change
      * - replaces:    top-level only; plugin slug => name this setting replaces
      * - panel:       top-level only; true to show the Options panel even with
      *                no visible child settings, for a feature that renders its
@@ -317,19 +319,24 @@ class SEOProStack_Settings {
     }
 
     /**
-     * Whether two setting values are the same: lists in any order, switches
-     * as true or false, anything else as text.
+     * Whether two setting values are the same: lists in any order (in order
+     * for an `ordered` field, whose order is part of its value), switches as
+     * true or false, anything else as text.
      *
-     * @param mixed $a Value.
-     * @param mixed $b Value.
+     * @param mixed  $a   Value.
+     * @param mixed  $b   Value.
+     * @param string $key Setting key, so an ordered field compares in order.
      * @return bool
      */
-    public static function same($a, $b) {
+    public static function same($a, $b, $key = '') {
         if (is_array($a) || is_array($b)) {
-            $a = array_map('strval', array_filter((array) $a, 'is_scalar'));
-            $b = array_map('strval', array_filter((array) $b, 'is_scalar'));
-            sort($a);
-            sort($b);
+            $a = array_values(array_map('strval', array_filter((array) $a, 'is_scalar')));
+            $b = array_values(array_map('strval', array_filter((array) $b, 'is_scalar')));
+            $schema = '' === $key ? array() : self::schema();
+            if (empty($schema[$key]['ordered'])) {
+                sort($a);
+                sort($b);
+            }
             return $a === $b;
         }
         if (is_bool($a) || is_bool($b)) {
@@ -437,7 +444,7 @@ class SEOProStack_Settings {
             $previous = array();
             foreach ($values as $key => $value) {
                 $was = array_key_exists($key, $stored) ? $stored[$key] : ($defaults[$key] ?? null);
-                if (!self::same($was, $value)) {
+                if (!self::same($was, $value, (string) $key)) {
                     $previous[$key] = $was;
                     $stored[$key]   = $value;
                 }
@@ -787,8 +794,9 @@ class SEOProStack_Settings {
 
     /**
      * Sanitize a multi field: its options that are chosen, in the options'
-     * order; open lists also keep other identifiers. Locked values are
-     * always chosen, so they are not stored (locked_values()).
+     * order (ordered fields: in the order given); open lists also keep
+     * other identifiers. Locked values are always chosen, so they are not
+     * stored (locked_values()).
      *
      * @param mixed $value Raw value: an array or a comma separated list.
      * @param array $field Schema entry.
@@ -800,16 +808,25 @@ class SEOProStack_Settings {
         if (!empty($field['locked'])) {
             $values = array_diff($values, self::locked_values($field));
         }
-        // Keep the options' order so stored values are stable.
-        $known = array_values(array_intersect(array_map('strval', array_keys(self::options_for($field))), $values));
-        if (empty($field['open'])) {
-            return $known;
-        }
+        $keys = array_map('strval', array_keys(self::options_for($field)));
         // Open lists also keep identifiers that are not registered right now
         // (class names may contain namespace separators).
-        $extra = array_filter(array_diff($values, $known), function ($item) {
+        $open = empty($field['open']) ? null : static function ($item) {
             return strlen($item) <= 200 && (bool) preg_match('/^[A-Za-z0-9_\\\\-]+$/', $item);
-        });
+        };
+        if (!empty($field['ordered'])) {
+            // The chosen order, open identifiers where they were given.
+            $kept = array_filter($values, static function ($item) use ($keys, $open) {
+                return in_array($item, $keys, true) || ($open && $open($item));
+            });
+            return array_values(array_unique($kept));
+        }
+        // Keep the options' order so stored values are stable.
+        $known = array_values(array_intersect($keys, $values));
+        if (!$open) {
+            return $known;
+        }
+        $extra = array_filter(array_diff($values, $known), $open);
         return array_values(array_unique(array_merge($known, $extra)));
     }
 
