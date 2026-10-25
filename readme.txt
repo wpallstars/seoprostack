@@ -5,7 +5,7 @@ Tags: magic login, iframe, schedule posts, auto upload images, admin
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.3.83
+Stable tag: 1.3.84
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -155,12 +155,8 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 
 == Changelog ==
 
-= Unreleased =
-* New: Optional private bucket for kept watermark originals, checked restoration and deletion retries (#943).
-* Fix: Independent private-original retries, idle completed inventories and fresh watermark records after replacement.
-* New: Avatars without Gravatar turns Show Avatars on, copies authors' Gravatar pictures once and stops Kadence Pro's Local Gravatars re-downloading them (#945).
-
-= 1.3.83 =
-* New: Social sharing: own platforms, per-type places, 2px rings.
+= 1.3.84 =
+* New: Avatars: Show Avatars on, authors' Gravatar pictures copied once, no Kadence Local Gravatars re-downloads (#945).
+* New: Optional private bucket for watermark originals (#943).
 
 Older: `changelog.txt`.
