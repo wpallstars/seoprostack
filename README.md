@@ -7,7 +7,7 @@
 [![CI](https://github.com/wpallstars/seoprostack/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/wpallstars/seoprostack/actions/workflows/ci.yml)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=wpallstars_seoprostack&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=wpallstars_seoprostack)
 [![License: GPL v3 or later](https://img.shields.io/badge/License-GPL%20v3%20or%20later-blue.svg)](LICENSE)
-[![Latest release](https://img.shields.io/badge/release-v1.3.80-blue.svg)](https://github.com/wpallstars/seoprostack/releases)
+[![Latest release](https://img.shields.io/badge/release-v1.3.81-blue.svg)](https://github.com/wpallstars/seoprostack/releases)
 
 [![Requires WordPress](https://img.shields.io/badge/WordPress-6.2%2B-21759B.svg?logo=wordpress)](readme.txt)
 [![Tested up to](https://img.shields.io/badge/tested%20up%20to-7.1-21759B.svg?logo=wordpress)](readme.txt)
@@ -24,7 +24,7 @@ SEO Pro Stack does the jobs that usually take dozens of small plugins: a calmer,
 
 If this saves you time, headaches and costs, feel free to [buy me a coffee](https://buymeacoffee.com/marcusquinn), or whatever you like, to invest in making more things open-source.
 
-Version: 1.3.80
+Version: 1.3.81
 
 <!-- github-only:start -->
 ## Screenshots
@@ -1109,13 +1109,14 @@ Like, Save and Share buttons, as on social media, and named lists: **Liked**, th
 
 ### Social sharing (Content)
 
-Share buttons for **Facebook**, **X**, **LinkedIn**, **Pinterest**, **Reddit**, **WhatsApp** and **Email**, before or after the content of the post types chosen, on each post's own page, and on WooCommerce products in WooCommerce's sharing place (under Add to cart). **Off by default**, as it adds to pages; it switches on with Kadence Simple Share's settings while that plugin is active. While Kadence Simple Share is still loaded, it keeps showing its own buttons and editor panel and these stay out of the way, so pages never get two rows of buttons; deactivate it and these take over with the same settings and per-post choices.
+Share buttons for **Facebook**, **X**, **LinkedIn**, **Pinterest**, **Reddit**, **WhatsApp** and **Email**, and **Copy page link**, before or after the content of the post types chosen, on each post's own page, and on WooCommerce products in WooCommerce's sharing place (under Add to cart). **Off by default**, as it adds to pages; it switches on with Kadence Simple Share's settings while that plugin is active. While Kadence Simple Share is still loaded, it keeps showing its own buttons and editor panel and these stay out of the way, so pages never get two rows of buttons; deactivate it and these take over with the same settings and per-post choices.
 
 - **Share on**: the networks, in the order they show. Drag the handles beside them (or focus a handle and press the up or down arrow key) to change the order.
+- **Copy page link** (a chain link) copies the page's address, for pasting into a chat or anywhere else, and says “Link copied” for two seconds, above the button even with tooltips off or on a touch screen, and to screen readers. It is a link to the page itself, so it still works, as a link, without JavaScript, and a click with Ctrl, Cmd or Shift opens the page as usual. On a site without HTTPS, where browsers keep the Clipboard API back, it copies the older way. On by default for new sites, after Facebook and X; settings version 32 adds it after the networks already chosen, so untick it there if it is not wanted.
 - Logos come from [Brand icons](#brand-icons-content), drawn into the page as SVG in round buttons: the letter or symbol alone (Facebook's f, LinkedIn's in, Pinterest's p, Reddit's alien), as Kadence Simple Share drew them, since the round button is already the badge. **Filled circles** (the brand's colour behind a white logo) or **Outlined circles, filled on hover**, at **Normal** (32 px) or **Large** (48 px) size, with optional text before them (“Share via:”).
-- **Colour**: brand colours, or one colour from the Kadence theme's palette for every button, so they follow its dark mode. X's black logo and Email always take the text colour, so they stay visible in dark mode; the logo on a palette colour is chosen to contrast in both modes.
+- **Colour**: brand colours, or one colour from the Kadence theme's palette for every button, so they follow its dark mode. X's black logo, Email and Copy page link always take the text colour, so they stay visible in dark mode; outlined, they fill with the text colour on hover, with the logo in the background colour. The logo on a palette colour is chosen to contrast in both modes.
 - **Tooltips** above or below each button (“Share on Facebook”), or none; the same words name each link for screen readers.
-- **Open sharing in** a small pop-up window (a few lines of inline script, only on pages with the buttons; a blocked pop-up opens a new tab instead) or a new tab. Email opens the visitor's mail app.
+- **Open sharing in** a small pop-up window (a few lines of inline script, only on pages with the buttons; a blocked pop-up opens a new tab instead) or a new tab. Email opens the visitor's mail app. Copy page link adds a few lines more, only when it is chosen.
 - Each post can show or hide them: **Share buttons** (Default, Show or Hide) in the editor's summary, moved to the top of the [Dev tab](#dev-tab-in-the-block-editor-content) for developers. The choice is the `_kt_share_control` post meta Kadence Simple Share used, so its per-post choices carry on.
 - Speed and privacy: one small inline style, only on pages with the buttons. No icon font, no files, no counts and no request to another site until someone shares. Share addresses are the networks' plain share links, with `rel="nofollow"`.
 - Replaces Kadence Simple Share (not on WordPress.org), with the options its sites use: networks, style, size, text before, before or after the content, post types (posts, pages, products), tooltip place and pop-up or new tab. Its settings (`kt_share`) are imported once while it is active (settings version 30), with its network order (settings version 31 put it back where 1.3.78 had imported the same networks in this feature's order): its Twitter is X, styles 1 and 2 become Filled and 3 to 5 Outline, and its fixed side and bottom bars, and both places, go after the content. Its fixed bars, transparent background, alignment, excerpt buttons, mobile place, own tooltip words, Pinterest featured image and XING, Tumblr, VK, StumbleUpon and Digg are not offered: none was used on the 28 sites checked (all left aligned, mobile following desktop, default tooltip words). Its `[kadence_simple_share]` shortcode keeps working once it is deactivated, and the buttons are not added again where it is used. Kadence Simple Share's settings are never changed.
@@ -1918,6 +1919,10 @@ Deleting the plugin removes its settings (on multisite, every site's and the net
 Deactivating the plugin removes the WebP and AVIF rules from the uploads folder’s `.htaccess` (for every site when network-deactivated), the LiteSpeed background request rules from the site’s `.htaccess` (on multisite, when network-deactivated or deactivated on the main site) and the must-use file of Load plugins only where needed (on multisite, when network-deactivated).
 
 ## Changelog
+
+### 1.3.81
+- New: **Social sharing** has a **Copy page link** button (a chain link) that copies the page's address and says “Link copied”. On by default for new sites; sites already using Social sharing get it after their chosen networks, so untick it under **Share on** if it is not wanted (GitHub issue #931).
+- Fix: **Social sharing**, **Outlined circles, filled on hover**: in light mode, X's and Email's buttons turned blank on hover (a white logo on a white circle). They now fill with the text colour, with the logo in the background colour, in light and dark mode (GitHub issue #931).
 
 ### 1.3.80
 - Fix: **Image loading** keeps cache plugins' JavaScript lazy loading, such as LiteSpeed Cache's **Lazy Load Images**, off the site logo and the pictures that load straight away. For visitors who are not logged in, the logo no longer flashes as they move between pages, and the largest picture at the top no longer waits for that script. The site logo now always loads straight away too (GitHub issue #925).
