@@ -71,7 +71,7 @@ class SEOProStack_Email_Protection extends SEOProStack_Feature {
         if (false === strpos($html, '@') && false === strpos($html, '&') && false === stripos($html, 'mailto:')) {
             return $html;
         }
-        $matched = preg_match_all('~<!--[\s\S]*?(?:-->|$)|<(script|style|textarea|title|noscript)(?=[\s/>])(?:[^>"\']|"[^"]*"|\'[^\']*\')*>[\s\S]*?(?:</\1(?=[\s/>])(?:[^>"\']|"[^"]*"|\'[^\']*\')*>|$)|<(?:[^>"\']|"[^"]*"|\'[^\']*\')*>~i', $html, $parts, PREG_OFFSET_CAPTURE);
+        $matched = preg_match_all('~<!--[\s\S]*?(?:-->|$)|<(script|style|textarea|title|noscript)(?=[\x09\x0A\x0C\x0D />])(?:[^>"\']|"[^"]*"|\'[^\']*\')*>[\s\S]*?(?:</\1(?=[\x09\x0A\x0C\x0D />])(?:[^>"\']|"[^"]*"|\'[^\']*\')*>|$)|<(?:[^>"\']|"[^"]*"|\'[^\']*\')*>~i', $html, $parts, PREG_OFFSET_CAPTURE);
         if (false === $matched) {
             return $html;
         }
