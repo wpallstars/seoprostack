@@ -1931,12 +1931,13 @@ class SEOProStack_Watermark_Images extends SEOProStack_Feature {
             $parts[] = sprintf(_n('%d more is changed in the background; progress is on the settings card.', '%d more are changed in the background; progress is on the settings card.', $get('sps_wm_queued'), 'seoprostack'), $get('sps_wm_queued'));
         }
         $type = $get('sps_wm_failed') || $get('sps_wm_left') ? 'warning' : 'success';
-        printf('<div class="notice notice-%1$s is-dismissible"><p>%2$s</p></div>', esc_attr($type), esc_html(implode(' ', $parts)));
+        printf('<div class="notice notice-%1$s is-dismissible"><p>%2$s</p>', esc_attr($type), esc_html(implode(' ', $parts)));
         if ($retry && current_user_can('manage_options') && current_user_can('upload_files')) {
             echo '<form method="post" action="' . esc_url(admin_url('admin-post.php')) . '"><input type="hidden" name="action" value="' . esc_attr(self::JOB_ACTION) . '" />';
             wp_nonce_field(self::JOB_ACTION);
             echo '<p><button type="submit" name="op" value="retry_selection" class="button">' . esc_html__('Try these again', 'seoprostack') . '</button></p></form>';
         }
+        echo '</div>';
     }
 
     /**
