@@ -140,6 +140,8 @@ Random, hashed links work once for an hour. Password-step two-factor checks are 
 
 From where you installed it. GitHub gets new versions first; WordPress.org 30 days on, security fixes at once.
 
+GitHub builds report host background-update blocks in settings and Site Health. The optional **Keep GitHub auto-updates on when the host turns background updates off** is off by default. When on, only plugins and themes served by the shared GitHub updaters can auto-update; core and all other plugins and themes cannot. Translation filters, WordPress safety checks and update holds stay in place. Switching off restores the host's choice.
+
 = Where do I get help? =
 
 Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpallstars/seoprostack/issues).

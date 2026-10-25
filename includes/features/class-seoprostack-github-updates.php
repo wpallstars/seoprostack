@@ -18,6 +18,11 @@
  * - "Auto-update plugins from GitHub", on by default: WordPress auto-updates
  *   the plugins the updater serves (`auto_update_plugin`). This file is in
  *   GitHub builds only, as the update rule in STANDARDS.md asks.
+ * - Reports host background-update blocks in settings and Site Health.
+ * - An off-by-default opt-in bypasses automatic_updater_disabled for GitHub
+ *   packages only: core and non-served plugins/themes cannot auto-update.
+ *   Translation filters are untouched; file-modification and VCS safeguards
+ *   and the later Delay automatic updates holds still apply.
  * - SEOPROSTACK_GITHUB_TOKEN and the `seoprostack_github_token` and
  *   `seoprostack_github_plugins` filters, from before the updater was
  *   shared, still work.
@@ -43,6 +48,10 @@ class SEOProStack_Github_Updates extends SEOProStack_Feature {
     const KEY   = 'github_updates';
     const EARLY = 'github_early_updates';
     const AUTO  = 'github_auto_updates';
+    const KEEP  = 'github_keep_auto_updates';
+
+    /** @var bool Read the host policy without our opt-in masking it. */
+    private static $checking_host = false;
 
     /**
      * Settings.
@@ -78,6 +87,13 @@ class SEOProStack_Github_Updates extends SEOProStack_Feature {
                 'label'       => __('Auto-update plugins from GitHub', 'seoprostack'),
                 'description' => __('WordPress installs new GitHub releases of these plugins by itself, as it does for plugins with auto-updates on. Other plugins keep their own auto-update choice. Switch off to choose per plugin on the Plugins screen.', 'seoprostack'),
             ),
+            self::KEEP => array(
+                'type'        => 'bool',
+                'default'     => false,
+                'parent'      => self::AUTO,
+                'label'       => __('Keep GitHub auto-updates on when the host turns background updates off', 'seoprostack'),
+                'description' => __('Let WordPress auto-update plugins served by the shared GitHub updater and themes served by the shared GitHub theme updater, despite the host’s background-update switch. While on, core and all other plugins and themes cannot auto-update through WordPress. Translation filters and update holds stay in place. Switching off restores the host’s choice.', 'seoprostack'),
+            ),
         );
     }
 
@@ -102,6 +118,18 @@ class SEOProStack_Github_Updates extends SEOProStack_Feature {
         }
         if (SEOProStack_Settings::get(self::AUTO)) {
             add_filter('auto_update_plugin', array(__CLASS__, 'auto_update'), 10, 2);
+            add_filter('site_status_tests', array(__CLASS__, 'tests'), 100);
+            add_action('seoprostack_setting_panel', array(__CLASS__, 'panel'));
+            add_action('seoprostack_network_setting_panel', array(__CLASS__, 'panel'));
+            if (SEOProStack_Settings::get(self::KEEP)) {
+                // Leave PHP_INT_MAX to the update-delay safety vetoes.
+                add_filter('automatic_updater_disabled', array(__CLASS__, 'updater_disabled'), PHP_INT_MAX - 1);
+                add_filter('auto_update_plugin', array(__CLASS__, 'only_github_plugin'), PHP_INT_MAX - 1, 2);
+                add_filter('auto_update_theme', array(__CLASS__, 'only_github_theme'), PHP_INT_MAX - 1, 2);
+                foreach (array('auto_update_core', 'allow_minor_auto_core_updates', 'allow_major_auto_core_updates', 'allow_dev_auto_core_updates') as $hook) {
+                    add_filter($hook, '__return_false', PHP_INT_MAX - 1);
+                }
+            }
         }
         add_filter('wpallstars_github_token', array(__CLASS__, 'token'), 5, 2);
         add_filter('wpallstars_github_plugins', array(__CLASS__, 'plugins'), 5);
@@ -114,7 +142,7 @@ class SEOProStack_Github_Updates extends SEOProStack_Feature {
      * `auto_update_plugins` option is never written, so switching this off
      * brings each plugin's own choice back. WordPress's own off switches
      * (AUTOMATIC_UPDATER_DISABLED, automatic_updater_disabled) and plugins
-     * filtering later still win.
+     * filtering later still win, unless the separate host override is chosen.
      *
      * @param mixed $update Whether to auto-update, so far.
      * @param mixed $item   The update offer (or, on the Plugins screen, the
@@ -129,6 +157,134 @@ class SEOProStack_Github_Updates extends SEOProStack_Feature {
         }
         $served = WPAllStars_GitHub_Updater::plugins();
         return isset($served[$item->plugin]) ? true : $update;
+    }
+
+    /**
+     * Override only core's filterable switch, not its file/VCS safeguards.
+     *
+     * @param bool $disabled Host's decision.
+     * @return bool
+     */
+    public static function updater_disabled($disabled) {
+        return self::$checking_host ? $disabled : false;
+    }
+
+    /**
+     * @param mixed $update Earlier decision.
+     * @param mixed $item Plugin offer.
+     * @return bool
+     */
+    public static function only_github_plugin($update, $item) {
+        unset($update);
+        return (bool) self::auto_update(false, $item);
+    }
+
+    /**
+     * @param mixed $update Earlier decision.
+     * @param mixed $item Theme offer.
+     * @return bool
+     */
+    public static function only_github_theme($update, $item) {
+        unset($update);
+        if (!is_object($item) || !isset($item->theme) || !is_string($item->theme)
+            || !is_callable(array('WPAllStars_GitHub_Theme_Updater', 'themes'))) {
+            return false;
+        }
+        $served = WPAllStars_GitHub_Theme_Updater::themes();
+        return isset($served[$item->theme]);
+    }
+
+    /**
+     * Check lazily on settings/Site Health, never on public requests.
+     *
+     * @return string Plain text; empty when the host allows background updates.
+     */
+    private static function host_notice() {
+        if (!class_exists('WP_Automatic_Updater')) {
+            require_once ABSPATH . 'wp-admin/includes/class-wp-automatic-updater.php';
+        }
+        self::$checking_host = true;
+        try {
+            $disabled = (new WP_Automatic_Updater())->is_disabled();
+        } finally {
+            self::$checking_host = false;
+        }
+        if (!$disabled && wp_is_auto_update_enabled_for_type('plugin')) {
+            return '';
+        }
+        $sources = array();
+        if (defined('AUTOMATIC_UPDATER_DISABLED') && AUTOMATIC_UPDATER_DISABLED) {
+            $sources[] = 'AUTOMATIC_UPDATER_DISABLED';
+        }
+        global $wp_filter;
+        foreach (array('automatic_updater_disabled', 'plugins_auto_update_enabled') as $hook) {
+            if (!isset($wp_filter[$hook])) {
+                continue;
+            }
+            foreach ($wp_filter[$hook]->callbacks as $callbacks) {
+                foreach ($callbacks as $entry) {
+                    $callback = $entry['function'];
+                    if (is_array($callback)) {
+                        $class = is_object($callback[0]) ? get_class($callback[0]) : $callback[0];
+                        if (__CLASS__ === $class) {
+                            continue;
+                        }
+                        $sources[] = $class . '::' . $callback[1];
+                    } else {
+                        $sources[] = is_string($callback) ? $callback : __('Anonymous callback', 'seoprostack');
+                    }
+                }
+            }
+        }
+        $message = __('The host or a WordPress setting turns background updates off. GitHub releases will not install automatically unless the host override below is enabled and WordPress’s other update requirements are met.', 'seoprostack');
+        if ($sources) {
+            /* translators: %s: constant and registered filter callback names. */
+            $message .= ' ' . sprintf(__('Background-update controls: %s.', 'seoprostack'), implode(', ', array_unique($sources)));
+        }
+        return $message;
+    }
+
+    /**
+     * @param string $key Setting key.
+     */
+    public static function panel($key) {
+        if (self::AUTO !== $key) {
+            return;
+        }
+        $notice = self::host_notice();
+        if ('' !== $notice) {
+            echo '<div class="sps-panel-note sps-panel-note--warning"><p>' . esc_html($notice) . '</p></div>';
+        }
+    }
+
+    /**
+     * @param array $tests Site Health tests.
+     * @return array
+     */
+    public static function tests($tests) {
+        $tests['direct']['seoprostack-github-auto-updates'] = array(
+            'label' => __('GitHub background updates', 'seoprostack'),
+            'test'  => array(__CLASS__, 'test'),
+        );
+        return $tests;
+    }
+
+    /** @return array */
+    public static function test() {
+        $notice = self::host_notice();
+        $blocked = (new WP_Automatic_Updater())->is_disabled() || !wp_is_auto_update_enabled_for_type('plugin');
+        $message = $notice ?: __('WordPress allows background updates. GitHub updates still follow WordPress’s update requirements and any update holds.', 'seoprostack');
+        if (SEOProStack_Settings::get(self::KEEP)) {
+            $message .= ' ' . __('The GitHub-only host override is on. Core and non-GitHub plugins and themes are excluded; update holds still apply.', 'seoprostack');
+        }
+        return array(
+            'label'       => $blocked ? __('GitHub background updates are blocked', 'seoprostack') : __('GitHub background updates are allowed', 'seoprostack'),
+            'status'      => $blocked ? 'recommended' : 'good',
+            'badge'       => array('label' => __('Security', 'seoprostack'), 'color' => 'blue'),
+            'description' => '<p>' . esc_html($message) . '</p>',
+            'actions'     => '',
+            'test'        => 'seoprostack-github-auto-updates',
+        );
     }
 
     /**
