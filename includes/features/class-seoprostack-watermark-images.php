@@ -47,6 +47,9 @@ class SEOProStack_Watermark_Images extends SEOProStack_Feature {
     /** Seconds a bulk action or background batch part may run. */
     const BUDGET = 20;
 
+    /** Most failed picture IDs kept for a notice and retry. */
+    const FAILED_LIMIT = 100;
+
     /** Option: the background batch in progress, or the last one. */
     const JOB = 'seoprostack_watermark_job';
 
@@ -1396,11 +1399,12 @@ class SEOProStack_Watermark_Images extends SEOProStack_Feature {
      *
      * @param int[]  $ids Attachment IDs.
      * @param string $op  add or remove.
-     * @return array<string,int> Counts for the notice.
+     * @return array Counts and failed picture IDs for the notice.
      */
     private static function run(array $ids, $op) {
         $start  = microtime(true);
         $counts = array_fill_keys(self::COUNTS, 0);
+        $counts['sps_wm_failed_ids'] = array();
         $error  = '';
         $ids    = array_values($ids);
         foreach ($ids as $i => $id) {
@@ -1418,7 +1422,7 @@ class SEOProStack_Watermark_Images extends SEOProStack_Feature {
             $error = self::apply($id, $op, $counts, $error);
         }
         if ($error) {
-            set_transient('seoprostack_watermark_error_' . get_current_user_id(), $error, 5 * MINUTE_IN_SECONDS);
+            set_transient('seoprostack_watermark_error_' . get_current_user_id(), array('error' => $error, 'op' => $op, 'counts' => $counts), 5 * MINUTE_IN_SECONDS);
         }
         return $counts;
     }
@@ -1428,7 +1432,7 @@ class SEOProStack_Watermark_Images extends SEOProStack_Feature {
      *
      * @param int                $id     Attachment ID.
      * @param string             $op     add, again or remove.
-     * @param array<string,int>  $counts Counts, keyed as COUNTS.
+     * @param array              $counts Counts and capped failed picture IDs.
      * @param string             $error  First error message so far.
      * @return string First error message so far.
      */
@@ -1445,6 +1449,9 @@ class SEOProStack_Watermark_Images extends SEOProStack_Feature {
                 return $error;
             }
             $counts['sps_wm_failed']++;
+            if (count($counts['sps_wm_failed_ids'] ?? array()) < self::FAILED_LIMIT && !in_array($id, $counts['sps_wm_failed_ids'] ?? array(), true)) {
+                $counts['sps_wm_failed_ids'][] = $id;
+            }
             return $error ? $error : $status->get_error_message();
         }
         if ('added' === $status) {
@@ -1468,7 +1475,8 @@ class SEOProStack_Watermark_Images extends SEOProStack_Feature {
      *
      * @return array Empty when none: op (add, again, remove), ids (pictures
      *               chosen; null for the whole library), last (last ID
-     *               looked at), total, done, counts, error, ended.
+     *               looked at), total, done, counts (including the first
+     *               FAILED_LIMIT sps_wm_failed_ids), error, ended.
      */
     public static function job() {
         $job = get_option(self::JOB);
@@ -1510,7 +1518,7 @@ class SEOProStack_Watermark_Images extends SEOProStack_Feature {
             'last'    => 0,
             'total'   => $total,
             'done'    => 0,
-            'counts'  => array_fill_keys(self::COUNTS, 0),
+            'counts'  => array_merge(array_fill_keys(self::COUNTS, 0), array('sps_wm_failed_ids' => array())),
             'error'   => '',
             'started' => time(),
             'ended'   => 0,
@@ -1709,6 +1717,19 @@ class SEOProStack_Watermark_Images extends SEOProStack_Feature {
         $op = isset($_POST['op']) ? sanitize_key(wp_unslash($_POST['op'])) : '';
         if ('stop' === $op) {
             self::stop();
+        } elseif ('retry' === $op || 'retry_selection' === $op) {
+            $key = 'seoprostack_watermark_error_' . get_current_user_id();
+            $job = 'retry' === $op ? self::job() : get_transient($key);
+            // Retry only server-recorded failures, never IDs supplied by a request.
+            if (is_array($job) && ('retry_selection' === $op || !empty($job['ended'])) && isset($job['op']) && in_array($job['op'], array('add', 'again', 'remove'), true) && ('remove' === $job['op'] || self::enabled())) {
+                $ids = array_values(array_filter(array_map('absint', $job['counts']['sps_wm_failed_ids'] ?? array()), function ($id) {
+                    return $id && current_user_can('edit_post', $id);
+                }));
+                // An empty selection must never become a whole-library batch.
+                if ($ids && self::start($job['op'], $ids) && 'retry_selection' === $op) {
+                    delete_transient($key);
+                }
+            }
         } elseif ('remove' === $op || (in_array($op, array('add', 'again'), true) && self::enabled())) {
             self::start($op);
         }
@@ -1734,6 +1755,7 @@ class SEOProStack_Watermark_Images extends SEOProStack_Feature {
         wp_send_json_success(array(
             'text'    => $job ? self::progress_text($job) : '',
             'running' => $job && empty($job['ended']),
+            'retry'   => $job && !empty($job['ended']) && !empty($job['counts']['sps_wm_failed_ids']),
         ));
     }
 
@@ -1777,11 +1799,31 @@ class SEOProStack_Watermark_Images extends SEOProStack_Feature {
         if ($counts['sps_wm_failed']) {
             /* translators: %s: number of pictures */
             $parts[] = sprintf(_n('%s could not be changed.', '%s could not be changed.', $counts['sps_wm_failed'], 'seoprostack'), number_format_i18n($counts['sps_wm_failed']));
+            $parts[] = self::failed_text($counts);
         }
         if (!empty($job['error'])) {
             $parts[] = (string) $job['error'];
         }
         return implode(' ', $parts);
+    }
+
+    /**
+     * Identify the recorded failures and make the retention limit explicit.
+     *
+     * @param array $counts Counts and failed picture IDs.
+     * @return string
+     */
+    private static function failed_text(array $counts) {
+        $ids = $counts['sps_wm_failed_ids'] ?? array();
+        if (!$ids) {
+            return '';
+        }
+        /* translators: %s: comma-separated attachment IDs, at most 100 */
+        $text = sprintf(__('Failed picture IDs: %s.', 'seoprostack'), implode(', ', array_map('absint', $ids)));
+        if ($counts['sps_wm_failed'] > count($ids)) {
+            $text .= ' ' . __('Only the first 100 failed pictures are listed and available to retry here.', 'seoprostack');
+        }
+        return $text;
     }
 
     /**
@@ -1803,6 +1845,7 @@ class SEOProStack_Watermark_Images extends SEOProStack_Feature {
         if ($running) {
             echo '<p class="sps-watermark-batch__stop"><button type="submit" name="op" value="stop" class="button">' . esc_html__('Stop', 'seoprostack') . '</button></p>';
         }
+        echo '<p class="sps-watermark-batch__retry"' . (!$running && !empty($job['counts']['sps_wm_failed_ids']) ? '' : ' hidden') . '><button type="submit" name="op" value="retry" class="button">' . esc_html__('Try these again', 'seoprostack') . '</button></p>';
         // While a batch runs, the buttons it makes useful are ready for when
         // it ends, so the open panel does not need reloading.
         $buttons = array();
@@ -1829,7 +1872,7 @@ class SEOProStack_Watermark_Images extends SEOProStack_Feature {
             // Progress every few seconds while the batch runs.
             $url = add_query_arg(array('action' => 'seoprostack_watermark_progress', '_ajax_nonce' => wp_create_nonce(self::JOB_ACTION)), admin_url('admin-ajax.php'));
             printf(
-                '<script>(function(){var u=%s,f=document.querySelector(".sps-watermark-batch");if(!f){return;}var p=f.querySelector(".sps-watermark-batch__progress"),s=f.querySelector(".sps-watermark-batch__stop"),b=f.querySelector(".sps-watermark-batch__start");function t(){fetch(u,{credentials:"same-origin"}).then(function(r){return r.json();}).then(function(r){if(!r||!r.success){return;}if(p){p.textContent=r.data.text;}if(r.data.running){setTimeout(t,5000);return;}if(s){s.hidden=true;}if(b){b.hidden=false;}}).catch(function(){setTimeout(t,15000);});}setTimeout(t,5000);})();</script>',
+                '<script>(function(){var u=%s,f=document.querySelector(".sps-watermark-batch");if(!f){return;}var p=f.querySelector(".sps-watermark-batch__progress"),s=f.querySelector(".sps-watermark-batch__stop"),b=f.querySelector(".sps-watermark-batch__start"),a=f.querySelector(".sps-watermark-batch__retry");function t(){fetch(u,{credentials:"same-origin"}).then(function(r){return r.json();}).then(function(r){if(!r||!r.success){return;}if(p){p.textContent=r.data.text;}if(r.data.running){setTimeout(t,5000);return;}if(s){s.hidden=true;}if(b){b.hidden=false;}if(a){a.hidden=!r.data.retry;}}).catch(function(){setTimeout(t,15000);});}setTimeout(t,5000);})();</script>',
                 wp_json_encode($url)
             );
         }
@@ -1847,6 +1890,7 @@ class SEOProStack_Watermark_Images extends SEOProStack_Feature {
             return isset($_GET[$key]) ? absint(wp_unslash($_GET[$key])) : 0; // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- display only.
         };
         $parts    = array();
+        $retry    = false;
         $removing = $get('sps_wm_removed') || $get('sps_wm_unmarked');
         if ($get('sps_wm_added') || !$removing) {
             /* translators: %d: number of pictures */
@@ -1869,9 +1913,13 @@ class SEOProStack_Watermark_Images extends SEOProStack_Feature {
             $parts[] = sprintf(_n('%d could not be changed.', '%d could not be changed.', $get('sps_wm_failed'), 'seoprostack'), $get('sps_wm_failed'));
             $key   = 'seoprostack_watermark_error_' . get_current_user_id();
             $error = get_transient($key);
+            if (is_array($error)) {
+                $parts[] = self::failed_text($error['counts']);
+                $retry   = !empty($error['counts']['sps_wm_failed_ids']) && !self::running();
+                $error   = $error['error'];
+            }
             if ($error) {
                 $parts[] = (string) $error;
-                delete_transient($key);
             }
         }
         if ($get('sps_wm_left')) {
@@ -1883,7 +1931,13 @@ class SEOProStack_Watermark_Images extends SEOProStack_Feature {
             $parts[] = sprintf(_n('%d more is changed in the background; progress is on the settings card.', '%d more are changed in the background; progress is on the settings card.', $get('sps_wm_queued'), 'seoprostack'), $get('sps_wm_queued'));
         }
         $type = $get('sps_wm_failed') || $get('sps_wm_left') ? 'warning' : 'success';
-        printf('<div class="notice notice-%1$s is-dismissible"><p>%2$s</p></div>', esc_attr($type), esc_html(implode(' ', $parts)));
+        printf('<div class="notice notice-%1$s is-dismissible"><p>%2$s</p>', esc_attr($type), esc_html(implode(' ', $parts)));
+        if ($retry && current_user_can('manage_options') && current_user_can('upload_files')) {
+            echo '<form method="post" action="' . esc_url(admin_url('admin-post.php')) . '"><input type="hidden" name="action" value="' . esc_attr(self::JOB_ACTION) . '" />';
+            wp_nonce_field(self::JOB_ACTION);
+            echo '<p><button type="submit" name="op" value="retry_selection" class="button">' . esc_html__('Try these again', 'seoprostack') . '</button></p></form>';
+        }
+        echo '</div>';
     }
 
     /**
@@ -1893,7 +1947,7 @@ class SEOProStack_Watermark_Images extends SEOProStack_Feature {
      * @return string[]
      */
     public static function removable_query_args($args) {
-        return array_merge($args, self::COUNTS);
+        return array_merge($args, self::COUNTS, array('sps_wm_failed_ids'));
     }
 
     /**
@@ -1976,6 +2030,7 @@ class SEOProStack_Watermark_Images extends SEOProStack_Feature {
             }
         }
         $counts = array('added' => 0, 'removed' => 0, 'skipped' => 0, 'failed' => 0);
+        $failed = array();
         $last   = 0;
         global $wpdb;
         do {
@@ -2002,6 +2057,9 @@ class SEOProStack_Watermark_Images extends SEOProStack_Feature {
                 $status = $remove ? self::remove($last) : self::add($last);
                 if (is_wp_error($status)) {
                     $counts['failed']++;
+                    if (count($failed) < self::FAILED_LIMIT) {
+                        $failed[] = $last;
+                    }
                     WP_CLI::warning(sprintf('%d: %s', $last, $status->get_error_message()));
                 } elseif (isset($counts[$status])) {
                     $counts[$status]++;
@@ -2017,6 +2075,9 @@ class SEOProStack_Watermark_Images extends SEOProStack_Feature {
             return;
         }
         WP_CLI::success(sprintf('%d marked, %d unmarked, %d left alone, %d failed.', $counts['added'], $counts['removed'], $counts['skipped'], $counts['failed']));
+        if ($failed) {
+            WP_CLI::log(self::failed_text(array('sps_wm_failed' => $counts['failed'], 'sps_wm_failed_ids' => $failed)));
+        }
     }
 
     /* --------------------------------------------------------------------- */
