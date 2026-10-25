@@ -71,7 +71,7 @@ class SEOProStack_Email_Protection extends SEOProStack_Feature {
         if (false === strpos($html, '@') && false === strpos($html, '&') && false === stripos($html, 'mailto:')) {
             return $html;
         }
-        $matched = preg_match_all('~<!--[\s\S]*?(?:-->|$)|<(script|style|textarea|title|noscript)\b(?:[^>"\']|"[^"]*"|\'[^\']*\')*>[\s\S]*?(?:</\1\s*>|$)|<(?:[^>"\']|"[^"]*"|\'[^\']*\')*>~i', $html, $parts, PREG_OFFSET_CAPTURE);
+        $matched = preg_match_all('~<!--[\s\S]*?(?:-->|$)|<(script|style|textarea|title|noscript)(?=[\s/>])(?:[^>"\']|"[^"]*"|\'[^\']*\')*>[\s\S]*?(?:</\1(?=[\s/>])(?:[^>"\']|"[^"]*"|\'[^\']*\')*>|$)|<(?:[^>"\']|"[^"]*"|\'[^\']*\')*>~i', $html, $parts, PREG_OFFSET_CAPTURE);
         if (false === $matched) {
             return $html;
         }
@@ -124,12 +124,23 @@ class SEOProStack_Email_Protection extends SEOProStack_Feature {
         $output = '';
         $offset = 0;
         foreach ($matches[0] as $match) {
-            $output .= esc_html(substr($decoded, $offset, $match[1] - $offset));
+            $output .= self::escape_text(substr($decoded, $offset, $match[1] - $offset));
             $output .= '<span class="sps-email" data-sps-e="' . esc_attr(self::encode($match[0])) . '"></span><noscript>'
                 . esc_html__('Email address hidden, enable JavaScript.', 'seoprostack') . '</noscript>';
             $offset = $match[1] + strlen($match[0]);
         }
-        return $output . esc_html(substr($decoded, $offset));
+        return $output . self::escape_text(substr($decoded, $offset));
+    }
+
+    /**
+     * Escape already-decoded text, including literal entity-like strings.
+     * esc_html() alone does not double-encode an ampersand in "&copy;".
+     *
+     * @param string $text Decoded text segment.
+     * @return string
+     */
+    private static function escape_text($text) {
+        return esc_html(str_replace('&', '&amp;', $text));
     }
 
     /**
