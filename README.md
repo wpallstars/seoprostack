@@ -7,7 +7,7 @@
 [![CI](https://github.com/wpallstars/seoprostack/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/wpallstars/seoprostack/actions/workflows/ci.yml)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=wpallstars_seoprostack&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=wpallstars_seoprostack)
 [![License: GPL v3 or later](https://img.shields.io/badge/License-GPL%20v3%20or%20later-blue.svg)](LICENSE)
-[![Latest release](https://img.shields.io/badge/release-v1.3.79-blue.svg)](https://github.com/wpallstars/seoprostack/releases)
+[![Latest release](https://img.shields.io/badge/release-v1.3.80-blue.svg)](https://github.com/wpallstars/seoprostack/releases)
 
 [![Requires WordPress](https://img.shields.io/badge/WordPress-6.2%2B-21759B.svg?logo=wordpress)](readme.txt)
 [![Tested up to](https://img.shields.io/badge/tested%20up%20to-7.1-21759B.svg?logo=wordpress)](readme.txt)
@@ -24,7 +24,7 @@ SEO Pro Stack does the jobs that usually take dozens of small plugins: a calmer,
 
 If this saves you time, headaches and costs, feel free to [buy me a coffee](https://buymeacoffee.com/marcusquinn), or whatever you like, to invest in making more things open-source.
 
-Version: 1.3.79
+Version: 1.3.80
 
 <!-- github-only:start -->
 ## Screenshots
@@ -778,8 +778,9 @@ Adds Google Analytics 4 (standard gtag.js) with your measurement ID, loaded afte
 WordPress already lazy-loads pictures and iframes with the browser’s own `loading="lazy"`, and loads the first three pictures of a post or page straight away. This tunes that through core’s filters, so pages are never rewritten and nothing is added for the browser to run.
 
 - **Load straight away**: how many pictures at the top of a post or page load without waiting (0–20; 3, WordPress’s default; `wp_omit_loading_attr_threshold`). WordPress counts a featured image shown above the content as the first.
-- **Never lazy-load pictures containing**: one line per text to find in a picture’s tag (its address, class or other attributes), such as a logo’s file name or a slider’s class. Pictures and iframes with the `skip-lazy` or `no-lazy` class, or a `data-skip-lazy` or `data-no-lazy` attribute, always load straight away. Applies to content pictures (including `loading="lazy"` saved in blocks, through `wp_content_img_tag`), pictures shown with `wp_get_attachment_image()` such as featured images, and content iframes. Developers can change the list with the `seoprostack_image_loading_exclude` filter.
+- **Never lazy-load pictures containing**: one line per text to find in a picture’s tag (its address, class or other attributes), such as a logo’s file name or a slider’s class. The site logo (core’s `custom-logo` class, which Kadence and most themes keep, including Kadence’s mobile logo), and pictures and iframes with the `skip-lazy` or `no-lazy` class, or a `data-skip-lazy` or `data-no-lazy` attribute, always load straight away. Applies to content pictures (including `loading="lazy"` saved in blocks, through `wp_content_img_tag`), pictures shown with `wp_get_attachment_image()` such as featured images, and content iframes. Developers can change the list with the `seoprostack_image_loading_exclude` filter.
 - Replaces Flying Images’ lazy loading, in part: its exclusions are imported once (settings version 21, leaving out its example `your-logo.png`), and the feature switches on where its lazy loading was on. It waits while Flying Images is active. Not replaced: its free CDN through Statically with compression and WebP on the fly (use [WebP and AVIF images](#webp-and-avif-images-media), or a CDN such as Cloudflare or QUIC.cloud set up by its own plugin), its own `srcset` for pictures outside the Media Library (WordPress adds `srcset` to Media Library pictures), and its JavaScript lazy loading with a placeholder and of background pictures, which rewrites every page.
+- **Cache plugins’ lazy loading**: pictures that load straight away (the logo, the first pictures, pictures with high fetch priority and those on the list) also get `data-no-lazy="1"`. Cache plugins that lazy-load by rewriting the page with JavaScript, such as LiteSpeed Cache’s **Lazy Load Images** and WP Rocket, leave pictures with it alone. Without it they put a placeholder in place of even the logo on every page for visitors who are not logged in, so the logo flashes as they move between pages, and the largest picture at the top waits for their script. Pictures further down are still theirs to lazy-load.
 - Logged-in visitors are treated the same. The settings live in the main settings option and are removed on uninstall.
 
 ### Remove WordPress extras (Speed)
@@ -1917,6 +1918,9 @@ Deleting the plugin removes its settings (on multisite, every site's and the net
 Deactivating the plugin removes the WebP and AVIF rules from the uploads folder’s `.htaccess` (for every site when network-deactivated), the LiteSpeed background request rules from the site’s `.htaccess` (on multisite, when network-deactivated or deactivated on the main site) and the must-use file of Load plugins only where needed (on multisite, when network-deactivated).
 
 ## Changelog
+
+### 1.3.80
+- Fix: **Image loading** keeps cache plugins' JavaScript lazy loading, such as LiteSpeed Cache's **Lazy Load Images**, off the site logo and the pictures that load straight away. For visitors who are not logged in, the logo no longer flashes as they move between pages, and the largest picture at the top no longer waits for that script. The site logo now always loads straight away too (GitHub issue #925).
 
 ### 1.3.79
 - Fix: **Social sharing** keeps the order of the networks: Kadence Simple Share's order is imported, sites that updated to 1.3.78 get it back, and **Share on** has handles to drag the networks into any order (or move them with the arrow keys). The buttons show the letter or symbol alone (Facebook's f, LinkedIn's in), as Kadence Simple Share did, instead of logos that are badges themselves (GitHub issue #923).

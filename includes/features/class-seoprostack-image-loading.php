@@ -8,10 +8,18 @@
  * - how many pictures at the top of the page load straight away
  *   (`wp_omit_loading_attr_threshold`);
  * - pictures and iframes that always load straight away, such as a logo or
- *   a slider that lazy loading breaks: the skip-lazy and no-lazy classes,
- *   a data-skip-lazy or data-no-lazy attribute, loading="eager", and any
- *   text from a list (`wp_content_img_tag`, `wp_get_attachment_image_attributes`,
+ *   a slider that lazy loading breaks: site logos (the custom-logo class),
+ *   the skip-lazy and no-lazy classes, a data-skip-lazy or data-no-lazy
+ *   attribute, loading="eager", and any text from a list
+ *   (`wp_content_img_tag`, `wp_get_attachment_image_attributes`,
  *   `wp_iframe_tag_add_loading_attr`).
+ *
+ * Pictures that load straight away (logos, high fetch priority, the first
+ * pictures, the list) also get data-no-lazy="1". Cache plugins that lazy-load
+ * by rewriting the page with JavaScript, such as LiteSpeed Cache and
+ * WP Rocket, skip pictures with it. Without it they swap even the logo for a
+ * placeholder on every page, so it flashes as visitors move between pages
+ * (GH#925).
  *
  * Replaces Flying Images' lazy loading, in part: its exclusions are imported
  * once. Its CDN, compression, WebP and responsive images are not replaced
@@ -38,6 +46,9 @@ class SEOProStack_Image_Loading extends SEOProStack_Feature {
     /** Flying Images' example exclusion, left out of the import. */
     const FLYING_EXAMPLE = 'your-logo.png';
 
+    /** Attribute that page-rewriting lazy loaders skip. */
+    const NO_LAZY = 'data-no-lazy';
+
     /** @var int Pictures encountered in the main loop's output this request. */
     private static $pictures = 0;
 
@@ -56,7 +67,7 @@ class SEOProStack_Image_Loading extends SEOProStack_Feature {
                 'default'     => true,
                 'tab'         => 'speed',
                 'label'       => __('Image loading', 'seoprostack'),
-                'description' => __('Choose which pictures load straight away and which wait until the visitor scrolls near them. Uses the browser’s own lazy loading that WordPress adds, so pages are not rewritten.', 'seoprostack'),
+                'description' => __('Choose which pictures load straight away and which wait until the visitor scrolls near them. Uses the browser’s own lazy loading that WordPress adds, so pages are not rewritten. Pictures that load straight away, including the logo, are also kept from cache plugins’ lazy loading, such as LiteSpeed Cache’s, so they do not flash as visitors move between pages.', 'seoprostack'),
                 'replaces'    => array('nazy-load' => 'Flying Images'),
             ),
             'image_loading_eager' => array(
@@ -75,7 +86,7 @@ class SEOProStack_Image_Loading extends SEOProStack_Feature {
                 'rows'        => 4,
                 'parent'      => self::KEY,
                 'label'       => __('Never lazy-load pictures containing', 'seoprostack'),
-                'description' => __('One per line: text in the picture’s address, class or other attributes, such as logo.png or a slider’s class. Pictures with the skip-lazy or no-lazy class, or a data-skip-lazy attribute, always load straight away.', 'seoprostack'),
+                'description' => __('One per line: text in the picture’s address, class or other attributes, such as logo.png or a slider’s class. The site logo, and pictures with the skip-lazy or no-lazy class, or a data-skip-lazy attribute, always load straight away.', 'seoprostack'),
             ),
         );
     }
@@ -137,7 +148,8 @@ class SEOProStack_Image_Loading extends SEOProStack_Feature {
     public static function keywords() {
         static $keywords = null;
         if (null === $keywords) {
-            $keywords = array('skip-lazy', 'no-lazy', 'data-skip-lazy', 'data-no-lazy');
+            // custom-logo: core's logo class, kept by Kadence and most themes.
+            $keywords = array('skip-lazy', 'no-lazy', 'data-skip-lazy', 'data-no-lazy', 'custom-logo');
             foreach (preg_split('/\r?\n/', (string) SEOProStack_Settings::get('image_loading_exclude'), -1, PREG_SPLIT_NO_EMPTY) ?: array() as $line) {
                 $line = trim($line);
                 if ('' !== $line) {
@@ -205,7 +217,8 @@ class SEOProStack_Image_Loading extends SEOProStack_Feature {
             ++self::$pictures;
             $eager = self::$pictures <= self::threshold();
         }
-        if (($eager || self::excluded($image)) && 'lazy' === $tag->get_attribute('loading')) {
+        $excluded = self::excluded($image);
+        if (($eager || $excluded) && 'lazy' === $tag->get_attribute('loading')) {
             $tag->remove_attribute('loading');
         }
         // Match core's minimum area so an icon cannot take the LCP slot.
@@ -216,10 +229,14 @@ class SEOProStack_Image_Loading extends SEOProStack_Feature {
         if ($eager && $area >= $minimum && null === $priority && !self::$high_priority
             && (!function_exists('wp_high_priority_element_flag') || wp_high_priority_element_flag())) {
             $tag->set_attribute('fetchpriority', 'high');
+            $priority            = 'high';
             self::$high_priority = true;
             if (function_exists('wp_high_priority_element_flag')) {
                 wp_high_priority_element_flag(false);
             }
+        }
+        if ($eager || $excluded || 'high' === $priority) {
+            $tag->set_attribute(self::NO_LAZY, '1');
         }
         return $tag->get_updated_html();
     }
@@ -235,7 +252,8 @@ class SEOProStack_Image_Loading extends SEOProStack_Feature {
         if (!is_array($attr)) {
             return $attr;
         }
-        if (isset($attr['fetchpriority']) && 'high' === $attr['fetchpriority']) {
+        $high = isset($attr['fetchpriority']) && 'high' === $attr['fetchpriority'];
+        if ($high) {
             self::$high_priority = true;
         }
         // A featured image before the content shares its eager-image budget.
@@ -243,15 +261,18 @@ class SEOProStack_Image_Loading extends SEOProStack_Feature {
         if (is_main_query() && in_the_loop() && !doing_filter('the_content') && !doing_filter('get_the_excerpt') && !is_feed()) {
             ++self::$pictures;
         }
-        if (!isset($attr['loading']) || 'lazy' !== $attr['loading']) {
-            return $attr;
-        }
         $text = '';
         foreach ($attr as $name => $value) {
             $text .= ' ' . $name . '="' . (is_scalar($value) ? (string) $value : '') . '"';
         }
-        if (self::excluded($text)) {
+        $excluded = self::excluded($text);
+        if ($excluded && isset($attr['loading']) && 'lazy' === $attr['loading']) {
             unset($attr['loading']);
+        }
+        // Logos and pictures that load first: keep page-rewriting lazy
+        // loaders (LiteSpeed Cache, WP Rocket) off them too.
+        if ($excluded || $high) {
+            $attr[self::NO_LAZY] = '1';
         }
         return $attr;
     }
