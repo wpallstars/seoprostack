@@ -1129,7 +1129,9 @@ class SEOProStack_Watermark_Images extends SEOProStack_Feature {
         $record = self::record($attachment_id);
         if ($record) {
             $deleted = self::delete_backup($record);
-            if (is_wp_error($deleted)) {
+            // A durable tombstone owns other deletion failures. Keeping stale
+            // attachment meta would make replacement files reuse its inventory.
+            if (is_wp_error($deleted) && 'storage_original_record' === $deleted->get_error_code()) {
                 $record['original_delete_failed'] = true;
                 update_post_meta((int) $attachment_id, self::META, $record);
                 return;

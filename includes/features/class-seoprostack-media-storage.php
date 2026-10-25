@@ -1372,7 +1372,7 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
      * @param int $delay Seconds.
      */
     public static function schedule($delay = 0) {
-        if (!self::ready() && !self::restoring() && !self::jobs(1, '', 'original_')) {
+        if (!self::ready() && !self::restoring() && !self::original_jobs_due()) {
             return;
         }
         $when = time() + max(0, (int) $delay);
@@ -1519,6 +1519,7 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
             self::queue_delete($record, array_map('strval', array_keys($record['files'])));
         }
         delete_option(self::JOB . 'retry_' . (int) $id);
+        delete_option(self::JOB . 'retry_original_' . (int) $id);
         delete_option(self::JOB . 'verify_' . (int) $id);
         self::forget($id);
         delete_transient(self::COUNTS);
@@ -1556,7 +1557,7 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
     public static function run_batch($limit = 10) {
         $ready = self::ready();
         // Switched off, the batch only brings removed files back.
-        if (!$ready && !self::restoring() && !self::jobs(1, '', 'original_')) {
+        if (!$ready && !self::restoring() && !self::original_jobs_due()) {
             return 0;
         }
         self::schedule(60);
@@ -1575,7 +1576,9 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
             // Reserve the first half for local copies: a full upload queue must
             // never consume their turn. Unused time remains available to uploads.
             self::local_copies($start, $limit, (int) (self::BUDGET / 2));
-            self::original_jobs($limit, $start);
+            if (self::original_jobs_due()) {
+                self::original_jobs($limit, $start);
+            }
             $attempts = $ready ? self::upload_batch($start, $limit) : 0;
         } finally {
             self::release($lease);
@@ -2364,7 +2367,7 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
             return time();
         }
         $due = self::local_wake();
-        if (self::jobs(1, '', 'original_')) {
+        if (self::original_jobs_due()) {
             $due = null === $due ? time() + HOUR_IN_SECONDS : min($due, time() + HOUR_IN_SECONDS);
         }
         foreach ($values as $value) {
@@ -2407,6 +2410,14 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
             $job = get_option($name);
             update_option(self::CURSOR, $name, false);
             if (!is_array($job) || $job['signature'] !== $config['signature'] || $job['next'] > time()) {
+                continue;
+            }
+            if ('original_retry' === $job['kind']) {
+                if ($attempts >= $limit) {
+                    continue;
+                }
+                self::retry_original((int) $job['id']);
+                ++$attempts;
                 continue;
             }
             if ('retry' === $job['kind']) {
@@ -2709,10 +2720,13 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
         // Insert only: a concurrent deletion tombstone and an explicit keep
         // marker are monotonic and must never be overwritten by an uploader.
         // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- atomic insert; add_option can upsert a concurrent tombstone.
-        $wpdb->query($wpdb->prepare("INSERT IGNORE INTO {$wpdb->options} (option_name, option_value, autoload) VALUES (%s, %s, 'no')", $name, maybe_serialize($job)));
+        $inserted = $wpdb->query($wpdb->prepare("INSERT IGNORE INTO {$wpdb->options} (option_name, option_value, autoload) VALUES (%s, %s, 'no')", $name, maybe_serialize($job)));
         wp_cache_delete($name, 'options');
         wp_cache_delete('notoptions', 'options');
         $saved = get_option($name);
+        if (1 === $inserted) {
+            update_option(self::JOB . 'originalcursor', '', false);
+        }
         self::schedule();
         return is_array($saved) && empty($saved['delete']) && ($saved['record']['digest'] ?? '') === $record['digest'];
     }
@@ -2751,7 +2765,8 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
 
     /** @return bool Whether a bounded inventory traversal remains. */
     private static function original_jobs_due() {
-        return self::jobs(1, '', 'original_') && get_option(self::JOB . 'originalcursor', '') !== '~';
+        $config = self::config();
+        return !$config['missing'] && '' !== $config['originals_bucket'] && !$config['originals_error'] && self::jobs(1, '', 'original_') && get_option(self::JOB . 'originalcursor', '') !== '~';
     }
 
     /**
@@ -2763,9 +2778,12 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
     private static function original_jobs($limit, $start) {
         $cursor = (string) get_option(self::JOB . 'originalcursor', '');
         $mode = self::removing() ? 'remove' : 'restore';
-        if ($mode !== get_option(self::JOB . 'originalmode') || '~' === $cursor) {
+        if ($mode !== get_option(self::JOB . 'originalmode')) {
             $cursor = '';
             update_option(self::JOB . 'originalmode', $mode, false);
+        }
+        if ('~' === $cursor) {
+            return;
         }
         $names = self::jobs($limit, $cursor, 'original_');
         $complete = true;
@@ -2775,6 +2793,7 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
                 break;
             }
             $job = get_option($name);
+            $previous = $cursor;
             $cursor = $name;
             if (!is_array($job) || empty($job['record'])) {
                 continue;
@@ -2795,9 +2814,39 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
             }
             if (is_wp_error($result)) {
                 update_option(self::ERROR, $result->get_error_message(), false);
+                $complete = false;
+                $cursor = $previous;
+                break;
             }
         }
         update_option(self::JOB . 'originalcursor', $complete && count($names) < $limit ? '~' : $cursor, false);
+    }
+
+    /**
+     * Retry private uploads independently of confirmed public inventories.
+     *
+     * @param int $id Attachment ID.
+     */
+    private static function retry_original($id) {
+        $name = self::JOB . 'retry_original_' . $id;
+        if (!self::attachment_exists($id)) {
+            delete_option($name);
+            return;
+        }
+        // Persist before I/O so even an interrupted private upload retries alone.
+        update_option($name, array('kind' => 'original_retry', 'id' => $id, 'signature' => self::config()['signature'], 'next' => time() + HOUR_IN_SECONDS), false);
+        $result = self::upload_original($id);
+        $record = SEOProStack_Watermark_Images::record($id);
+        if (!empty($record['backup']) && '' !== self::config()['originals_bucket']) {
+            $updated = $record;
+            $updated['original_state'] = is_wp_error($result) ? 'failed' : 'uploaded';
+            self::save_original_record($id, $record, $updated);
+        }
+        if (is_wp_error($result)) {
+            update_option(self::ERROR, $result->get_error_message(), false);
+        } else {
+            delete_option($name);
+        }
     }
 
     /** @return array<string,int> CLI-only paged counts through the meta_key index. */
@@ -3111,17 +3160,7 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
             update_option(self::JOB . 'retry_' . $id, $job, false);
             return false;
         }
-        $original = self::upload_original($id);
-        $watermark = SEOProStack_Watermark_Images::record($id);
-        if (!empty($watermark['backup']) && '' !== self::config()['originals_bucket']) {
-            $updated = $watermark;
-            $updated['original_state'] = is_wp_error($original) ? 'failed' : 'uploaded';
-            update_post_meta($id, SEOProStack_Watermark_Images::META, $updated, $watermark);
-        }
-        if (is_wp_error($original)) {
-            update_option(self::ERROR, $original->get_error_message(), false);
-            return false;
-        }
+        self::retry_original($id);
         $record['state'] = $record['files'] ? 'uploaded' : 'skipped';
         $record['attempts'] = 0;
         if (!$files) {
@@ -3919,6 +3958,9 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
                 $job = get_option($name);
                 if (is_array($job) && 'retry' === $job['kind'] && $job['signature'] === self::config()['signature']) {
                     self::queue((int) $job['id']);
+                } elseif (is_array($job) && 'original_retry' === $job['kind'] && $job['signature'] === self::config()['signature']) {
+                    $job['next'] = 0;
+                    update_option($name, $job, false);
                 }
             }
             // This connection's failed remote deletions are due now, too, so

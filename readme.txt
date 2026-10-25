@@ -156,6 +156,7 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 
 = Unreleased =
 * New: Optional private bucket for kept watermark originals, checked restoration and deletion retries (#943).
+* Fix: Independent private-original retries, idle completed inventories and fresh watermark records after replacement.
 
 = 1.3.83 =
 * New: Social sharing: own platforms, per-type places, 2px rings.
