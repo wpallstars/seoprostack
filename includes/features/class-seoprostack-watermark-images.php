@@ -1855,7 +1855,7 @@ class SEOProStack_Watermark_Images extends SEOProStack_Feature {
             $buttons['add'] = __('Mark every picture', 'seoprostack');
         }
         if ($can && $marked) {
-            $buttons['again'] = __('Mark again with these settings', 'seoprostack');
+            $buttons['again'] = __('Mark again only marked pictures', 'seoprostack');
         }
         if ($marked) {
             $buttons['remove'] = __('Remove every watermark', 'seoprostack');
@@ -2002,6 +2002,9 @@ class SEOProStack_Watermark_Images extends SEOProStack_Feature {
      * [--remove]
      * : Remove watermarks, putting the kept originals back.
      *
+     * [--marked-only]
+     * : Mark again only pictures with a watermark record and a kept original. Ignored with --remove.
+     *
      * [--dry-run]
      * : List the pictures that would change.
      *
@@ -2009,6 +2012,8 @@ class SEOProStack_Watermark_Images extends SEOProStack_Feature {
      *
      *     wp seoprostack watermark-images --dry-run
      *     wp seoprostack watermark-images
+     *     wp seoprostack watermark-images --marked-only --dry-run
+     *     wp seoprostack watermark-images --marked-only
      *     wp seoprostack watermark-images --remove
      *
      * Pictures already marked are marked again from their kept originals,
@@ -2018,8 +2023,9 @@ class SEOProStack_Watermark_Images extends SEOProStack_Feature {
      * @param array $assoc Options.
      */
     public static function cli($args, $assoc) {
-        $remove = !empty($assoc['remove']);
-        $dry    = !empty($assoc['dry-run']);
+        $remove      = !empty($assoc['remove']);
+        $marked_only = !$remove && !empty($assoc['marked-only']);
+        $dry         = !empty($assoc['dry-run']);
         if (!$remove && !self::enabled()) {
             WP_CLI::error('Watermark pictures is off, or waiting for Easy Watermark to be deactivated.');
         }
@@ -2044,6 +2050,16 @@ class SEOProStack_Watermark_Images extends SEOProStack_Feature {
                 $last = (int) $id;
                 if ($remove ? !self::record($last) : (bool) self::unmarkable($last)) {
                     continue;
+                }
+                if ($marked_only) {
+                    $record = self::record($last);
+                    if (!$record) {
+                        continue;
+                    }
+                    if ('' === $record['backup']) {
+                        $counts['skipped']++;
+                        continue;
+                    }
                 }
                 if ($dry) {
                     $meta = wp_get_attachment_metadata($last);
