@@ -2048,9 +2048,6 @@ class SEOProStack_Watermark_Images extends SEOProStack_Feature {
             ));
             foreach ($ids as $id) {
                 $last = (int) $id;
-                if ($remove ? !self::record($last) : (bool) self::unmarkable($last)) {
-                    continue;
-                }
                 if ($marked_only) {
                     $record = self::record($last);
                     if (!$record) {
@@ -2060,6 +2057,9 @@ class SEOProStack_Watermark_Images extends SEOProStack_Feature {
                         $counts['skipped']++;
                         continue;
                     }
+                }
+                if ($remove ? !self::record($last) : (bool) self::unmarkable($last)) {
+                    continue;
                 }
                 if ($dry) {
                     $meta = wp_get_attachment_metadata($last);
