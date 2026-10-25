@@ -54,8 +54,7 @@ class SEOProStack_Email_Protection extends SEOProStack_Feature {
      * @return string
      */
     public static function protect($html) {
-        if (is_admin() || is_feed() || wp_doing_ajax() || wp_is_json_request()
-            || (defined('REST_REQUEST') && REST_REQUEST) || doing_filter('wp_mail')) {
+        if (self::plain_context()) {
             return $html;
         }
         /**
@@ -83,6 +82,16 @@ class SEOProStack_Email_Protection extends SEOProStack_Feature {
             $offset = $part[1] + strlen($part[0]);
         }
         return $output . self::protect_text(substr($html, $offset));
+    }
+
+    /**
+     * These responses cannot safely rely on a browser's footer decoder.
+     *
+     * @return bool
+     */
+    private static function plain_context() {
+        return is_admin() || is_feed() || wp_doing_ajax() || wp_is_json_request()
+            || (defined('REST_REQUEST') && REST_REQUEST) || doing_filter('wp_mail');
     }
 
     /**
