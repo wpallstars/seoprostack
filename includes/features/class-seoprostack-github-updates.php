@@ -213,6 +213,17 @@ class SEOProStack_Github_Updates extends SEOProStack_Feature {
         if (!$disabled && wp_is_auto_update_enabled_for_type('plugin')) {
             return '';
         }
+        $sources = self::host_controls();
+        $message = __('The host or a WordPress setting turns background updates off. GitHub releases will not install automatically unless the host override below is enabled and WordPress’s other update requirements are met.', 'seoprostack');
+        if ($sources) {
+            /* translators: %s: constant and registered filter callback names. */
+            $message .= ' ' . sprintf(__('Background-update controls: %s.', 'seoprostack'), implode(', ', $sources));
+        }
+        return $message;
+    }
+
+    /** @return string[] Registered controls, not individual attribution of a block. */
+    private static function host_controls() {
         $sources = array();
         if (defined('AUTOMATIC_UPDATER_DISABLED') && AUTOMATIC_UPDATER_DISABLED) {
             $sources[] = 'AUTOMATIC_UPDATER_DISABLED';
@@ -224,25 +235,25 @@ class SEOProStack_Github_Updates extends SEOProStack_Feature {
             }
             foreach ($wp_filter[$hook]->callbacks as $callbacks) {
                 foreach ($callbacks as $entry) {
-                    $callback = $entry['function'];
-                    if (is_array($callback)) {
-                        $class = is_object($callback[0]) ? get_class($callback[0]) : $callback[0];
-                        if (__CLASS__ === $class) {
-                            continue;
-                        }
-                        $sources[] = $class . '::' . $callback[1];
-                    } else {
-                        $sources[] = is_string($callback) ? $callback : __('Anonymous callback', 'seoprostack');
-                    }
+                    $sources[] = self::control_name($entry['function']);
                 }
             }
         }
-        $message = __('The host or a WordPress setting turns background updates off. GitHub releases will not install automatically unless the host override below is enabled and WordPress’s other update requirements are met.', 'seoprostack');
-        if ($sources) {
-            /* translators: %s: constant and registered filter callback names. */
-            $message .= ' ' . sprintf(__('Background-update controls: %s.', 'seoprostack'), implode(', ', array_unique($sources)));
+        return array_values(array_unique(array_filter($sources)));
+    }
+
+    /**
+     * Names only: never show file paths or callback arguments.
+     *
+     * @param callable $callback Registered callback.
+     * @return string Empty for our own override.
+     */
+    private static function control_name($callback) {
+        if (!is_array($callback)) {
+            return is_string($callback) ? $callback : __('Anonymous callback', 'seoprostack');
         }
-        return $message;
+        $class = is_object($callback[0]) ? get_class($callback[0]) : $callback[0];
+        return __CLASS__ === $class ? '' : $class . '::' . $callback[1];
     }
 
     /**
