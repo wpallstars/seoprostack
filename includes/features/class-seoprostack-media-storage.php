@@ -64,6 +64,8 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
     private static $public = false;
     /** Output address maps per site and attachment for this request. @var array<string,array<string,string>> */
     private static $maps = array();
+    /** Original leases held until the reader finishes this request. @var array<string,string> */
+    private static $original_leases = array();
 
     /** @return array<string,array> */
     public static function settings() {
@@ -94,11 +96,11 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
             return self::$config;
         }
         $config = array('missing' => array());
-        foreach (array('endpoint', 'region', 'bucket', 'key_id', 'secret', 'url', 'prefix') as $key) {
+        foreach (array('endpoint', 'region', 'bucket', 'key_id', 'secret', 'url', 'prefix', 'originals_bucket') as $key) {
             $name = 'SEOPROSTACK_MEDIA_STORAGE_' . strtoupper($key);
             $value = defined($name) ? constant($name) : '';
             $config[$key] = is_string($value) ? $value : '';
-            if ('' === $config[$key] && !in_array($key, array('region', 'prefix'), true)) {
+            if ('' === $config[$key] && !in_array($key, array('region', 'prefix', 'originals_bucket'), true)) {
                 $config['missing'][] = $name;
             }
         }
@@ -123,6 +125,10 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
             $config['missing'][] = 'SEOPROSTACK_MEDIA_STORAGE_PREFIX / BUCKET / REGION / KEY_ID';
         }
         $config['missing'] = array_unique($config['missing']);
+        $config['originals_error'] = '';
+        if ('' !== $config['originals_bucket'] && ($config['originals_bucket'] === $config['bucket'] || !preg_match('/^[a-z0-9][a-z0-9.-]{1,61}[a-z0-9]$/', $config['originals_bucket']))) {
+            $config['originals_error'] = __('The originals bucket must be a valid, separate private bucket, not the public media bucket.', 'seoprostack');
+        }
         $config['signature'] = hash('sha256', $config['endpoint'] . '\n' . $config['bucket'] . '\n' . $config['prefix']);
         self::$config = $config;
         if (!$config['missing'] && (is_admin() || wp_doing_cron() || (defined('WP_CLI') && WP_CLI))) {
@@ -1002,7 +1008,8 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
 
     /** @return string Completion marker for inventories including AVIF copies. */
     private static function upload_marker() {
-        return self::config()['signature'] . ':avif';
+        $config = self::config();
+        return $config['signature'] . ':avif' . ('' !== $config['originals_bucket'] ? ':originals:' . hash('sha256', $config['originals_bucket']) : '');
     }
 
     /**
@@ -1365,7 +1372,7 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
      * @param int $delay Seconds.
      */
     public static function schedule($delay = 0) {
-        if (!self::ready() && !self::restoring()) {
+        if (!self::ready() && !self::restoring() && !self::jobs(1, '', 'original_')) {
             return;
         }
         $when = time() + max(0, (int) $delay);
@@ -1391,13 +1398,15 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
         }
         self::$serving = array();
         self::$maps = array();
+        update_option(self::JOB . 'originalcursor', '', false);
+        update_option(self::JOB . 'originalkeep', wp_generate_uuid4(), false);
         if (self::REMOVE === $key && $value && !self::config()['missing']) {
             // Switched on again: files kept here earlier may go now.
             delete_metadata('post', 0, self::LOCAL, 'kept:' . self::config()['signature'], true);
             delete_option(self::LOCAL_WAIT);
             delete_transient(self::COUNTS);
         }
-        if (self::ready() || self::restoring()) {
+        if (self::ready() || self::restoring() || self::jobs(1, '', 'original_')) {
             self::schedule();
         } else {
             wp_clear_scheduled_hook(self::HOOK);
@@ -1547,7 +1556,7 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
     public static function run_batch($limit = 10) {
         $ready = self::ready();
         // Switched off, the batch only brings removed files back.
-        if (!$ready && !self::restoring()) {
+        if (!$ready && !self::restoring() && !self::jobs(1, '', 'original_')) {
             return 0;
         }
         self::schedule(60);
@@ -1566,6 +1575,7 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
             // Reserve the first half for local copies: a full upload queue must
             // never consume their turn. Unused time remains available to uploads.
             self::local_copies($start, $limit, (int) (self::BUDGET / 2));
+            self::original_jobs($limit, $start);
             $attempts = $ready ? self::upload_batch($start, $limit) : 0;
         } finally {
             self::release($lease);
@@ -2272,29 +2282,31 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
      * over. The value is the expiry and a value unique to this batch, so a
      * batch deletes only the lease it read or holds.
      *
+     * @param string $name Lock option name.
      * @return string The lease this batch holds; empty when another batch runs.
      */
-    private static function lease() {
+    private static function lease($name = self::LOCK) {
         global $wpdb;
         // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- read past the options cache: the lease changes under it.
-        $held = (string) $wpdb->get_var($wpdb->prepare("SELECT option_value FROM {$wpdb->options} WHERE option_name = %s", self::LOCK));
+        $held = (string) $wpdb->get_var($wpdb->prepare("SELECT option_value FROM {$wpdb->options} WHERE option_name = %s", $name));
         if ('' !== $held && (int) strtok($held, ' ') < time()) {
-            self::release($held);
+            self::release($held, $name);
         }
         $value = (time() + 300) . ' ' . wp_generate_uuid4();
         // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- an atomic insert is the lease; the options API cannot do it.
-        return $wpdb->query($wpdb->prepare("INSERT IGNORE INTO {$wpdb->options} (option_name, option_value, autoload) VALUES (%s, %s, 'no')", self::LOCK, $value)) ? $value : '';
+        return $wpdb->query($wpdb->prepare("INSERT IGNORE INTO {$wpdb->options} (option_name, option_value, autoload) VALUES (%s, %s, 'no')", $name, $value)) ? $value : '';
     }
 
     /**
      * Delete the batch lease if it still has the given value.
      *
      * @param string $value Lease value.
+     * @param string $name Lock option name.
      */
-    private static function release($value) {
+    private static function release($value, $name = self::LOCK) {
         global $wpdb;
         // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- compare-and-delete; the lease row is never cached (see lease()).
-        $wpdb->query($wpdb->prepare("DELETE FROM {$wpdb->options} WHERE option_name = %s AND option_value = %s", self::LOCK, $value));
+        $wpdb->query($wpdb->prepare("DELETE FROM {$wpdb->options} WHERE option_name = %s AND option_value = %s", $name, $value));
     }
 
     /**
@@ -2332,7 +2344,7 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
      * @return bool
      */
     private static function due_now() {
-        return (self::ready() && self::waiting(1)) || self::local_due();
+        return (self::ready() && self::waiting(1)) || self::local_due() || self::original_jobs_due();
     }
 
     /**
@@ -2352,6 +2364,9 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
             return time();
         }
         $due = self::local_wake();
+        if (self::jobs(1, '', 'original_')) {
+            $due = null === $due ? time() + HOUR_IN_SECONDS : min($due, time() + HOUR_IN_SECONDS);
+        }
         foreach ($values as $value) {
             $job = maybe_unserialize($value);
             if (is_array($job) && isset($job['signature'], $job['next']) && $job['signature'] === $signature) {
@@ -2414,6 +2429,414 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
         require_once dirname(__DIR__) . '/class-seoprostack-s3-client.php';
         $config = self::config();
         return new SEOProStack_S3_Client($config['endpoint'], $config['region'], $config['bucket'], $config['key_id'], $config['secret']);
+    }
+
+    /** @return string Identity of the private destination, never credentials. */
+    private static function original_signature() {
+        $config = self::config();
+        return hash('sha256', $config['endpoint'] . '\n' . $config['originals_bucket']);
+    }
+
+    /**
+     * Serialize readers, uploads and deletion for the lifetime of a request.
+     *
+     * @param array $record Watermark record.
+     * @return true|WP_Error
+     */
+    private static function original_lock($record) {
+        $name = self::JOB . 'originaluse_' . hash('sha256', (string) get_current_blog_id() . ($record['backup'] ?? ''));
+        if (isset(self::$original_leases[$name])) {
+            return true;
+        }
+        $lease = self::lease($name);
+        if ('' === $lease) {
+            return new WP_Error('storage_original_busy', __('The kept original is in use by another request. Try again shortly.', 'seoprostack'));
+        }
+        self::$original_leases[$name] = $lease;
+        $blog = get_current_blog_id();
+        register_shutdown_function(static function () use ($record, $lease, $name, $blog) {
+            $switched = get_current_blog_id() !== $blog;
+            if ($switched) {
+                switch_to_blog($blog);
+            }
+            try {
+                self::finish_original($record);
+                self::release($lease, $name);
+                unset(self::$original_leases[$name]);
+            } finally {
+                if ($switched) {
+                    restore_current_blog();
+                }
+            }
+        });
+        return true;
+    }
+
+    /**
+     * Never read or delete an original through a changed or public destination.
+     *
+     * @param array $record Watermark record, optionally already remote.
+     * @return SEOProStack_S3_Client|WP_Error
+     */
+    private static function original_client($record) {
+        $config = self::config();
+        if ($config['missing'] || '' === $config['originals_bucket'] || $config['originals_error'] || (!empty($record['original_signature']) && $record['original_signature'] !== self::original_signature())) {
+            return new WP_Error('storage_original_config', __('Set the original private bucket connection again before using its kept originals. It must not be the public media bucket.', 'seoprostack'));
+        }
+        require_once dirname(__DIR__) . '/class-seoprostack-s3-client.php';
+        return new SEOProStack_S3_Client($config['endpoint'], $config['region'], $config['originals_bucket'], $config['key_id'], $config['secret']);
+    }
+
+    /**
+     * Resolve only a watermark backup inside this site's protected folder.
+     *
+     * @param array $record Watermark record.
+     * @return string|WP_Error
+     */
+    private static function kept_original_path($record) {
+        $relative = $record['backup'] ?? '';
+        $uploads = wp_get_upload_dir();
+        if (!is_string($relative) || !preg_match('#^seoprostack-originals-[a-z0-9]{16}/#', $relative) || !self::safe_relative($relative) || empty($uploads['basedir']) || !empty($uploads['error'])) {
+            return new WP_Error('storage_original_path', __('The kept original’s path is not valid.', 'seoprostack'));
+        }
+        $base = realpath($uploads['basedir']);
+        $path = trailingslashit($uploads['basedir']) . $relative;
+        $parent = dirname($path);
+        // Do not recreate a missing protection folder without its deny rules.
+        $protected = trailingslashit($uploads['basedir']) . strtok($relative, '/');
+        if (!$base || !is_file($protected . '/.htaccess') || !wp_mkdir_p($parent) || !self::within(realpath($parent), $base) || is_link($path)) {
+            return new WP_Error('storage_original_path', __('The protected originals folder is not available.', 'seoprostack'));
+        }
+        return $path;
+    }
+
+    /**
+     * Bring back only the recorded bytes, without touching a mismatched file.
+     *
+     * @param array $record Watermark record.
+     * @return true|WP_Error
+     */
+    public static function ensure_original_local($record) {
+        if (empty($record['remote'])) {
+            return true;
+        }
+        $locked = self::original_lock($record);
+        if (is_wp_error($locked)) {
+            return $locked;
+        }
+        $path = self::kept_original_path($record);
+        if (is_wp_error($path)) {
+            return $path;
+        }
+        if (!isset($record['size'], $record['digest'], $record['mtime']) || !is_string($record['digest']) || !preg_match('/^[a-f0-9]{64}$/', $record['digest'])) {
+            return new WP_Error('storage_restore_record', __('The kept original’s record is incomplete.', 'seoprostack'));
+        }
+        if (is_file($path)) {
+            return self::original_matches($path, $record) ? true : new WP_Error('storage_restore_mismatch', __('The local original does not match its record; it was left unchanged.', 'seoprostack'));
+        }
+        $client = self::original_client($record);
+        if (is_wp_error($client)) {
+            return $client;
+        }
+        $body = self::download($record['backup'], $record, $client);
+        if (is_wp_error($body)) {
+            return $body;
+        }
+        $written = self::write_file($path, $body, (int) $record['mtime']);
+        if (is_wp_error($written)) {
+            return $written;
+        }
+        return self::original_matches($path, $record) ? true : new WP_Error('storage_restore_mismatch', __('The restored original does not match its record.', 'seoprostack'));
+    }
+
+    /**
+     * @param string $path Local original.
+     * @param array $record Watermark record.
+     * @return bool
+     */
+    private static function original_matches($path, $record) {
+        clearstatcache();
+        return is_file($path) && isset($record['size'], $record['digest']) && (int) filesize($path) === (int) $record['size'] && hash_file('sha256', $path) === $record['digest'];
+    }
+
+    /**
+     * Upload separately, after public files. No original enters the URL inventory.
+     *
+     * @param int $id Attachment ID.
+     * @return true|WP_Error
+     */
+    private static function upload_original($id) {
+        $record = SEOProStack_Watermark_Images::record($id);
+        if (empty($record['backup']) || ('' === self::config()['originals_bucket'] && empty($record['remote']))) {
+            return true;
+        }
+        if (!empty($record['original_delete_failed'])) {
+            return new WP_Error('storage_original_delete', __('Retry the kept original’s failed deletion before marking this picture again.', 'seoprostack'));
+        }
+        $locked = self::original_lock($record);
+        if (is_wp_error($locked)) {
+            return $locked;
+        }
+        $client = self::original_client($record);
+        $path = self::kept_original_path($record);
+        if (is_wp_error($client) || is_wp_error($path)) {
+            return is_wp_error($client) ? $client : $path;
+        }
+        if (empty($record['remote'])) {
+            if (!is_file($path) || filesize($path) > self::size_cap()) {
+                return new WP_Error('storage_original_read', __('The kept original is missing or too large to upload safely.', 'seoprostack'));
+            }
+            $before = $record;
+            $record['size'] = (int) filesize($path);
+            $record['mtime'] = (int) filemtime($path);
+            $record['digest'] = hash_file('sha256', $path);
+            $record['original_signature'] = self::original_signature();
+            $record['original_attachment'] = (int) $id;
+            $record['original_state'] = 'failed';
+            // Retain ownership even when PUT succeeds but the response is lost.
+            $record['original_attempted'] = true;
+            if (!self::save_original_record($id, $before, $record)) {
+                return new WP_Error('storage_original_record', __('The kept original’s record could not be saved.', 'seoprostack'));
+            }
+            $result = $client->put_file($record['backup'], $path, 'application/octet-stream', 'private, no-store', (string) $record['digest']);
+            if (is_wp_error($result)) {
+                return $result;
+            }
+            // Signed GET checks the actual bytes, not just a successful PUT.
+            $body = self::download($record['backup'], $record, $client);
+            if (is_wp_error($body)) {
+                return $body;
+            }
+            unset($body);
+            self::fresh($id);
+            if (!self::original_record_is($id, $record)) {
+                self::delete_original($record);
+                return new WP_Error('storage_changed', __('The picture changed during its original’s upload; it will be retried.', 'seoprostack'));
+            }
+            $before = $record;
+            $record['remote'] = true;
+            $record['original_state'] = 'uploaded';
+            if (!self::save_original_record($id, $before, $record) || !self::attachment_exists($id)) {
+                self::delete_original($record);
+                return new WP_Error('storage_original_record', __('The kept original’s upload could not be recorded; its local copy was kept.', 'seoprostack'));
+            }
+        }
+        if (!self::remember_original($id, $record)) {
+            return new WP_Error('storage_original_record', __('The original has a pending deletion or its recovery inventory could not be saved; its local copy was kept.', 'seoprostack'));
+        }
+        return self::finish_original($record);
+    }
+
+    /**
+     * Read through after a write or remote I/O; another request may have edited it.
+     *
+     * @phpstan-impure
+     * @param int $id Attachment ID.
+     * @param array $record Expected watermark record.
+     * @return bool
+     */
+    private static function original_record_is($id, $record) {
+        self::fresh($id);
+        return get_post_meta($id, SEOProStack_Watermark_Images::META, true) === $record;
+    }
+
+    /**
+     * Compare-and-update only an existing record: never resurrect deleted meta
+     * or overwrite a concurrent forget/replace after network I/O.
+     *
+     * @param int $id Attachment ID.
+     * @param array $before Expected record.
+     * @param array $after Updated record.
+     * @return bool
+     */
+    private static function save_original_record($id, $before, $after) {
+        global $wpdb;
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- atomic compare-and-update; update_post_meta inserts when a concurrent deletion removes the row.
+        $saved = $wpdb->query($wpdb->prepare("UPDATE {$wpdb->postmeta} SET meta_value = %s WHERE post_id = %d AND meta_key = %s AND CAST(meta_value AS BINARY) = %s", maybe_serialize($after), $id, SEOProStack_Watermark_Images::META, maybe_serialize($before)));
+        return false !== $saved && self::original_record_is($id, $after);
+    }
+
+    /**
+     * Reclaim a fetched original only after use, and only after remote confirmation.
+     *
+     * @param array $record Watermark record.
+     * @return true|WP_Error
+     */
+    public static function finish_original($record) {
+        if (empty($record['remote']) || !self::removing()) {
+            return true;
+        }
+        $inventory = get_option(self::JOB . 'original_' . hash('sha256', $record['original_signature'] . $record['backup']), array());
+        if (isset($inventory['keep']) && $inventory['keep'] === get_option(self::JOB . 'originalkeep', 'initial')) {
+            return true;
+        }
+        $locked = self::original_lock($record);
+        if (is_wp_error($locked)) {
+            return $locked;
+        }
+        $path = self::kept_original_path($record);
+        if (is_wp_error($path) || !is_file($path)) {
+            return is_wp_error($path) ? $path : true;
+        }
+        $client = self::original_client($record);
+        if (is_wp_error($client)) {
+            return $client;
+        }
+        $body = self::download($record['backup'], $record, $client);
+        if (is_wp_error($body)) {
+            return $body;
+        }
+        unset($body);
+        if (!self::original_matches($path, $record)) {
+            return new WP_Error('storage_restore_mismatch', __('The kept original could not be confirmed; its local copy was kept.', 'seoprostack'));
+        }
+        self::delete_local($path);
+        clearstatcache();
+        return !is_file($path) ? true : new WP_Error('storage_original_delete', __('The local original could not be removed.', 'seoprostack'));
+    }
+
+    /**
+     * Keep a recovery inventory outside attachment meta, which core deletes.
+     *
+     * @param int $id Attachment ID.
+     * @param array $record Watermark record.
+     * @return bool
+     */
+    private static function remember_original($id, $record) {
+        global $wpdb;
+        $name = self::JOB . 'original_' . hash('sha256', $record['original_signature'] . $record['backup']);
+        $job = array('id' => $id, 'record' => $record, 'delete' => false);
+        // Insert only: a concurrent deletion tombstone and an explicit keep
+        // marker are monotonic and must never be overwritten by an uploader.
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- atomic insert; add_option can upsert a concurrent tombstone.
+        $wpdb->query($wpdb->prepare("INSERT IGNORE INTO {$wpdb->options} (option_name, option_value, autoload) VALUES (%s, %s, 'no')", $name, maybe_serialize($job)));
+        wp_cache_delete($name, 'options');
+        wp_cache_delete('notoptions', 'options');
+        $saved = get_option($name);
+        self::schedule();
+        return is_array($saved) && empty($saved['delete']) && ($saved['record']['digest'] ?? '') === $record['digest'];
+    }
+
+    /**
+     * Persist deletion before attempting it: a deleted attachment cannot lose it.
+     *
+     * @param array $record Watermark record.
+     * @return true|WP_Error
+     */
+    public static function delete_original($record) {
+        if (empty($record['remote']) && empty($record['original_attempted'])) {
+            return true;
+        }
+        $name = self::JOB . 'original_' . hash('sha256', $record['original_signature'] . $record['backup']);
+        update_option($name, array('id' => 0, 'record' => $record, 'delete' => true), false);
+        update_option(self::JOB . 'originalcursor', '', false);
+        self::schedule();
+        if (get_option($name) !== array('id' => 0, 'record' => $record, 'delete' => true)) {
+            return new WP_Error('storage_original_record', __('The kept original’s deletion could not be recorded.', 'seoprostack'));
+        }
+        $locked = self::original_lock($record);
+        if (is_wp_error($locked)) {
+            return $locked;
+        }
+        $client = self::original_client($record);
+        if (is_wp_error($client)) {
+            return $client;
+        }
+        $result = $client->delete($record['backup']);
+        if (!is_wp_error($result)) {
+            delete_option($name);
+        }
+        return $result;
+    }
+
+    /** @return bool Whether a bounded inventory traversal remains. */
+    private static function original_jobs_due() {
+        return self::jobs(1, '', 'original_') && get_option(self::JOB . 'originalcursor', '') !== '~';
+    }
+
+    /**
+     * Revisit private inventories on setting changes, and retry orphan deletions.
+     *
+     * @param int $limit Most originals in this turn.
+     * @param float $start Batch start time.
+     */
+    private static function original_jobs($limit, $start) {
+        $cursor = (string) get_option(self::JOB . 'originalcursor', '');
+        $mode = self::removing() ? 'remove' : 'restore';
+        if ($mode !== get_option(self::JOB . 'originalmode') || '~' === $cursor) {
+            $cursor = '';
+            update_option(self::JOB . 'originalmode', $mode, false);
+        }
+        $names = self::jobs($limit, $cursor, 'original_');
+        $complete = true;
+        foreach ($names as $name) {
+            if (!self::more_time($start, self::BUDGET)) {
+                $complete = false;
+                break;
+            }
+            $job = get_option($name);
+            $cursor = $name;
+            if (!is_array($job) || empty($job['record'])) {
+                continue;
+            }
+            $record = $job['record'];
+            if (!empty($job['delete'])) {
+                $result = self::delete_original($record);
+                $id = (int) ($record['original_attachment'] ?? 0);
+                $current = SEOProStack_Watermark_Images::record($id);
+                if (!is_wp_error($result) && !empty($current['original_delete_failed']) && $current['backup'] === $record['backup']) {
+                    SEOProStack_Watermark_Images::forget($id);
+                }
+            } elseif (($current = SEOProStack_Watermark_Images::record((int) $job['id'])) && ($current['backup'] ?? '') === $record['backup'] && ($current['digest'] ?? '') === $record['digest'] && !empty($current['remote'])) {
+                $result = self::removing() ? self::finish_original($record) : self::ensure_original_local($record);
+            } else {
+                // Never remove a file for a changed attachment's old inventory.
+                continue;
+            }
+            if (is_wp_error($result)) {
+                update_option(self::ERROR, $result->get_error_message(), false);
+            }
+        }
+        update_option(self::JOB . 'originalcursor', $complete && count($names) < $limit ? '~' : $cursor, false);
+    }
+
+    /** @return array<string,int> CLI-only paged counts through the meta_key index. */
+    private static function original_counts() {
+        global $wpdb;
+        $counts = array('uploaded' => 0, 'waiting' => 0, 'failed' => 0, 'local removed' => 0);
+        $before = PHP_INT_MAX;
+        do {
+            // phpcs:ignore WordPress.DB.DirectDatabaseQuery, WordPress.DB.SlowDBQuery.slow_db_query_meta_key -- bounded CLI inventory through meta_key.
+            $ids = $wpdb->get_col($wpdb->prepare("SELECT post_id FROM {$wpdb->postmeta} WHERE meta_key = %s AND post_id < %d ORDER BY post_id DESC LIMIT 100", SEOProStack_Watermark_Images::META, $before));
+            foreach ($ids as $id) {
+                $before = (int) $id;
+                $record = SEOProStack_Watermark_Images::record($before);
+                if (empty($record['backup'])) {
+                    continue;
+                }
+                $state = !empty($record['original_delete_failed']) || ($record['original_state'] ?? '') === 'failed' ? 'failed' : (!empty($record['remote']) ? 'uploaded' : 'waiting');
+                ++$counts[$state];
+                $path = self::kept_original_path($record);
+                if (!empty($record['remote']) && !is_wp_error($path) && !is_file($path)) {
+                    ++$counts['local removed'];
+                }
+            }
+        } while ($ids);
+        $after = '';
+        do {
+            $names = self::jobs(100, $after, 'original_');
+            foreach ($names as $name) {
+                $after = $name;
+                $job = get_option($name);
+                if (is_array($job) && !empty($job['delete'])) {
+                    $record = SEOProStack_Watermark_Images::record((int) ($job['record']['original_attachment'] ?? 0));
+                    if (empty($record['original_delete_failed'])) {
+                        ++$counts['failed'];
+                    }
+                }
+            }
+        } while ($names);
+        return $counts;
     }
 
     /**
@@ -2682,6 +3105,22 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
                 update_option(self::JOB . 'retry_' . $id, $job, false);
                 return false;
             }
+        }
+        if (!self::more_time($start, self::BUDGET)) {
+            $job['next'] = time() + 60;
+            update_option(self::JOB . 'retry_' . $id, $job, false);
+            return false;
+        }
+        $original = self::upload_original($id);
+        $watermark = SEOProStack_Watermark_Images::record($id);
+        if (!empty($watermark['backup']) && '' !== self::config()['originals_bucket']) {
+            $updated = $watermark;
+            $updated['original_state'] = is_wp_error($original) ? 'failed' : 'uploaded';
+            update_post_meta($id, SEOProStack_Watermark_Images::META, $updated, $watermark);
+        }
+        if (is_wp_error($original)) {
+            update_option(self::ERROR, $original->get_error_message(), false);
+            return false;
         }
         $record['state'] = $record['files'] ? 'uploaded' : 'skipped';
         $record['attempts'] = 0;
@@ -3306,6 +3745,9 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
         $config = self::config();
         echo '<div class="sps-panel-note">';
         echo '<p>' . esc_html($config['missing'] ? __('Missing or invalid constants: ', 'seoprostack') . implode(', ', $config['missing']) : __('The connection constants are set.', 'seoprostack')) . '</p>';
+        if ($config['originals_error']) {
+            echo '<p>' . esc_html($config['originals_error']) . '</p>';
+        }
         echo '<ul>';
         foreach (array('ENDPOINT', 'REGION', 'BUCKET', 'KEY_ID', 'SECRET', 'URL', 'PREFIX') as $suffix) {
             $name = 'SEOPROSTACK_MEDIA_STORAGE_' . $suffix;
@@ -3472,6 +3914,7 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
         }
         $limit = isset($assoc['limit']) ? max(1, min(1000, (int) $assoc['limit'])) : 10;
         if (isset($assoc['retry-failed'])) {
+            update_option(self::JOB . 'originalcursor', '', false);
             foreach (self::jobs($limit, '', 'retry_') as $name) {
                 $job = get_option($name);
                 if (is_array($job) && 'retry' === $job['kind'] && $job['signature'] === self::config()['signature']) {
@@ -3528,6 +3971,12 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
         foreach (self::counts() as $state => $count) {
             WP_CLI::log($state . ': ' . $count);
         }
+        $config = self::config();
+        WP_CLI::log('Originals bucket: ' . ($config['originals_bucket'] ?: 'not configured (originals stay local)'));
+        WP_CLI::log($config['originals_error']);
+        foreach (self::original_counts() as $state => $count) {
+            WP_CLI::log('originals ' . $state . ': ' . $count);
+        }
         WP_CLI::log((string) get_option(self::ERROR, ''));
     }
 
@@ -3553,6 +4002,7 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
                 self::release($lease);
             }
         } while (!$one && $ids);
+        self::cli_restore_originals($one, $counts);
         if (!self::restorable(1)) {
             delete_option(self::FLAG);
         }
@@ -3564,6 +4014,39 @@ class SEOProStack_Media_Storage extends SEOProStack_Feature {
             WP_CLI::error($message);
         }
         WP_CLI::success($message);
+    }
+
+    /**
+     * Explicit restore also keeps private originals here until settings change.
+     *
+     * @param int $one Attachment ID, or zero for all.
+     * @param array{restored:int,failed:int} $counts Running counts.
+     */
+    private static function cli_restore_originals($one, &$counts) {
+        $after = '';
+        do {
+            $names = self::jobs(20, $after, 'original_');
+            foreach ($names as $name) {
+                $after = $name;
+                $job = get_option($name);
+                if (!is_array($job) || !empty($job['delete']) || ($one && (int) $job['id'] !== $one)) {
+                    continue;
+                }
+                $record = SEOProStack_Watermark_Images::record((int) $job['id']);
+                if (empty($record['remote']) || $record['backup'] !== $job['record']['backup']) {
+                    continue;
+                }
+                $job['keep'] = get_option(self::JOB . 'originalkeep', 'initial');
+                update_option($name, $job, false);
+                $result = self::ensure_original_local($record);
+                if (is_wp_error($result)) {
+                    ++$counts['failed'];
+                    WP_CLI::warning($result->get_error_message());
+                } else {
+                    ++$counts['restored'];
+                }
+            }
+        } while ($names);
     }
 
     /**

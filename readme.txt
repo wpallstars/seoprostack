@@ -60,7 +60,7 @@ Safe features start on. Find them in **Settings → SEO Pro Stack**. Replacement
 
 * **Copy linked images to Media Library** on save, and **Paste into the Media Library**.
 * **WebP and AVIF images**: smaller files at the same address.
-* **Media in cloud storage** (off): uploads pictures and their copies; can remove and restore local copies.
+* **Media in cloud storage** (off): uploads pictures and their copies; can remove and restore local copies, with a separate private bucket for watermark originals.
 * **Resize large uploads**, **Replace media files** and **Watermark pictures**, keeping originals.
 * **SVG uploads**: cleaned, chosen roles only. **Dark mode image contrast** for logos.
 * **Website screenshots**: block and `[browser-shot]` shortcode.
@@ -97,7 +97,7 @@ WordPress.org builds have no affiliate links. GitHub Discover links may earn a c
 
 = External services =
 
-* **S3-compatible storage**: opted-in batches send pictures and signed requests to your endpoint; tests send a probe. Visitors read pictures publicly. [Cloudflare terms](https://www.cloudflare.com/terms/), [privacy](https://www.cloudflare.com/policies/privacy/); [AWS terms](https://aws.amazon.com/serviceterms/), [privacy](https://aws.amazon.com/privacy/). Other providers' policies apply.
+* **S3-compatible storage**: opted-in batches send pictures and signed requests to your endpoint; tests send a probe. Visitors read marked pictures publicly. Optional SEOPROSTACK_MEDIA_STORAGE_ORIGINALS_BUCKET keeps unmarked originals in a separate bucket: disable all public access (no r2.dev URL or custom domain). The plugin cannot detect public access. [Cloudflare terms](https://www.cloudflare.com/terms/), [privacy](https://www.cloudflare.com/policies/privacy/); [AWS terms](https://aws.amazon.com/serviceterms/), [privacy](https://aws.amazon.com/privacy/). Other providers' policies apply.
 * **WordPress.org** (api.wordpress.org): lists plugins and Kadence on their tabs. [Privacy](https://wordpress.org/about/privacy/).
 * **Wordfence Intelligence** (www.wordfence.com): opt-in daily feed download, sending only your API key. [Terms](https://www.wordfence.com/wordfence-intelligence-terms-and-conditions/), [privacy](https://www.wordfence.com/privacy-policy/).
 * **Google Analytics** (www.googletagmanager.com): with a measurement ID, browsers load gtag.js and send page views to Google under its privacy policy; not for logged-in users.
@@ -153,6 +153,9 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 3. The Read Me tab, showing the plugin's guide.
 
 == Changelog ==
+
+= Unreleased =
+* New: Optional private bucket for kept watermark originals, checked restoration and deletion retries (#943).
 
 = 1.3.83 =
 * New: Social sharing: own platforms, per-type places, 2px rings.
