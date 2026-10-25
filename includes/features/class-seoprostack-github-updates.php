@@ -290,7 +290,7 @@ class SEOProStack_Github_Updates extends SEOProStack_Feature {
     /** @return array */
     public static function test() {
         $notice = self::host_notice();
-        $blocked = (new WP_Automatic_Updater())->is_disabled() || !wp_is_auto_update_enabled_for_type('plugin');
+        $blocked = '' !== $notice;
         $message = $notice ?: __('WordPress allows background updates. GitHub updates still follow WordPress’s update requirements and any update holds.', 'seoprostack');
         if (SEOProStack_Settings::get(self::KEEP)) {
             $message .= ' ' . __('The GitHub-only host override is on. Core and non-GitHub plugins and themes are excluded; update holds still apply.', 'seoprostack');
