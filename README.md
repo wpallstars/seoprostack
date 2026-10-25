@@ -985,7 +985,12 @@ hidden element.
   Modal blocks. Other links to IDs on the page still scroll there, and clicks
   with a modifier key, links to other pages and links that open a new tab are
   left alone. Developers can add selectors for other kinds of modal with the
-  `seoprostack_modal_links_selectors` filter.
+  `seoprostack_modal_links_selectors` filter; one the browser cannot read is
+  skipped on its own.
+- A `<dialog>` and a Kadence Modal block open without an opener of their own.
+  Other kinds (`role="dialog"`, `aria-modal="true"` or a filter's selector)
+  open only through their opener on the page: without one, the link scrolls to
+  them as before and an address with their ID leaves them closed.
 - Links that open a modal get `aria-haspopup="dialog"` and `aria-controls`.
 - One small script (`assets/modal-links.js`) in the footer of front-end pages.
   Nothing is stored and pages are not rewritten.

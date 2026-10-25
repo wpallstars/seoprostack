@@ -39,8 +39,21 @@
     }
 
     var cfg = w.seoprostackModalLinks || {};
+    // A filtered selector the browser cannot read is dropped on its own, so
+    // it does not stop the built-in ones from matching.
+    var extra = (Array.isArray(cfg.selectors) ? cfg.selectors : []).filter(function (selector) {
+        if ('string' !== typeof selector || !selector) {
+            return false;
+        }
+        try {
+            d.createDocumentFragment().querySelector(selector);
+            return true;
+        } catch (e) {
+            return false;
+        }
+    });
     var MODALS = ['dialog', '[role="dialog"]', '[role="alertdialog"]', '[aria-modal="true"]', '.popup-drawer', '.kadence-block-pro-modal']
-        .concat(Array.isArray(cfg.selectors) ? cfg.selectors : [])
+        .concat(extra)
         .join(',');
     // Links whose own code opens what they point at.
     var OWNED = '[data-toggle-target],[data-modal-open],[data-micromodal-trigger],.modal-trigger';
@@ -68,12 +81,7 @@
             return null;
         }
         var el = d.getElementById(id);
-        try {
-            return el && el.matches(MODALS) ? el : null;
-        } catch (e) {
-            // A selector from the filter that the browser cannot read.
-            return null;
-        }
+        return el && el.matches(MODALS) ? el : null;
     }
 
     /** The modal a link opens, or null. */

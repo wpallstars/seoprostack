@@ -69,6 +69,8 @@ this plugin's WordPress.org submission state: `LAUNCH.md`. Past changes:
   wherever safe, so adding the plugin is an instant improvement (#806):
   marked, reversible security blocks and hiding the admin from roles that
   cannot write posts count as safe. README.md → Features lists them.
+  Modal links is on at the owner's request (#929): it changes only links to
+  the ID of a modal or drawer, which before jumped to a hidden element.
   Features that need choices about the site first, or change its content
   (Watermark pictures), people or other plugins' settings, stay off. A
   changed default reaches new installs
