@@ -140,7 +140,7 @@ Random, hashed links work once for an hour. Password-step two-factor checks are 
 
 From where you installed it. GitHub gets new versions first; WordPress.org 30 days on, security fixes at once.
 
-GitHub builds report host update blocks in settings and Site Health. An opt-in, off by default, allows only GitHub-served plugin and theme auto-updates, keeping safety checks and holds. See the Read Me tab.
+GitHub builds report host blocks in settings and Site Health. An opt-in allows GitHub-only auto-updates; safety checks and holds still apply. Default: off.
 
 = Where do I get help? =
 
