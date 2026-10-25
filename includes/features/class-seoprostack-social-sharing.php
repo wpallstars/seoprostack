@@ -3,12 +3,12 @@
  * Social sharing.
  *
  * Share links (Facebook, X, LinkedIn, Pinterest, Reddit, WhatsApp and
- * Email) before or after the content of chosen post types and on
- * WooCommerce products, drawn with the Brand icons set as inline SVG in
- * round buttons that take the brand colours or a Kadence palette colour,
- * so they follow its light and dark modes. A small inline style, and an
- * inline script only for pop-up windows: no files, no tracking and no
- * request to another site until someone shares.
+ * Email) and Copy page link before or after the content of chosen post
+ * types and on WooCommerce products, drawn with the Brand icons set as
+ * inline SVG in round buttons that take the brand colours or a Kadence
+ * palette colour, so they follow its light and dark modes. A small inline
+ * style, and an inline script only for pop-up windows and copying: no
+ * files, no tracking and no request to another site until someone shares.
  *
  * Replaces Kadence Simple Share with the options its sites use. Its
  * settings (`kt_share`) are imported once, its per-post choice
@@ -60,14 +60,14 @@ class SEOProStack_Social_Sharing extends SEOProStack_Feature {
                 'default'     => false,
                 'tab'         => 'content',
                 'label'       => __('Social sharing', 'seoprostack'),
-                'description' => __('Share buttons for Facebook, X, LinkedIn, Pinterest, Reddit, WhatsApp and Email before or after the content of the post types below, and on WooCommerce products. Brand icons in round buttons, in the brand colours or a colour from the Kadence palette, so they follow its dark mode. No tracking, no files and nothing from other sites until someone shares.', 'seoprostack'),
+                'description' => __('Share buttons for Facebook, X, LinkedIn, Pinterest, Reddit, WhatsApp and Email, and Copy page link, before or after the content of the post types below, and on WooCommerce products. Brand icons in round buttons, in the brand colours or a colour from the Kadence palette, so they follow its dark mode. No tracking, no files and nothing from other sites until someone shares.', 'seoprostack'),
                 'replaces'    => self::REPLACES,
             ),
             'social_sharing_networks' => array(
                 'type'    => 'multi',
                 // In the chosen order, as Kadence Simple Share kept it.
                 'ordered' => true,
-                'default' => array('facebook', 'x'),
+                'default' => array('facebook', 'x', 'copy'),
                 'parent'  => self::KEY,
                 'label'   => __('Share on', 'seoprostack'),
                 'options' => array(__CLASS__, 'network_options'),
@@ -107,7 +107,7 @@ class SEOProStack_Social_Sharing extends SEOProStack_Feature {
                 'default'     => '',
                 'parent'      => self::KEY,
                 'label'       => __('Colour', 'seoprostack'),
-                'description' => __('Brand colours, or one colour from the Kadence theme’s palette so the buttons follow its dark mode. Black and white logos (X) and Email always take the text colour.', 'seoprostack'),
+                'description' => __('Brand colours, or one colour from the Kadence theme’s palette so the buttons follow its dark mode. Black and white logos (X), Email and Copy page link always take the text colour.', 'seoprostack'),
                 'options'     => array(__CLASS__, 'colour_options'),
             ),
             'social_sharing_text' => array(
@@ -140,8 +140,9 @@ class SEOProStack_Social_Sharing extends SEOProStack_Feature {
      * and {title}, already encoded; {media} for Pinterest's picture. The
      * marks are the letter or symbol alone (Font Awesome's), as Kadence
      * Simple Share drew them, since the round button is already the
-     * badge; Simple Icons' own are badges themselves. Email has no brand
-     * icon.
+     * badge; Simple Icons' own are badges themselves. Email and Copy page
+     * link have no brand icon; Copy page link's address is the page's own
+     * ({link}), so it still opens the page without the script.
      *
      * @return array<string,array{0:string,1:string,2:string,3:string}>
      */
@@ -154,6 +155,7 @@ class SEOProStack_Social_Sharing extends SEOProStack_Feature {
             'reddit'    => array('Reddit', 'reddit', 'https://reddit.com/submit?url={url}&title={title}', 'redditalien'),
             'whatsapp'  => array('WhatsApp', 'whatsapp', 'https://wa.me/?text={title}%20{url}', 'whatsapp'),
             'email'     => array(__('Email', 'seoprostack'), '', 'mailto:?subject={title}&body={url}', ''),
+            'copy'      => array(__('Copy page link', 'seoprostack'), '', '{link}', ''),
         );
     }
 
@@ -245,7 +247,8 @@ class SEOProStack_Social_Sharing extends SEOProStack_Feature {
     /**
      * Switch on while Kadence Simple Share is active, with its settings.
      * Settings version 31 also takes its network order where 1.3.78
-     * imported its networks in this feature's order (keep_order()).
+     * imported its networks in this feature's order (keep_order()), and
+     * version 32 adds Copy page link after the stored networks.
      *
      * @param array $options      Stored settings.
      * @param int   $from_version Previous settings version.
@@ -254,6 +257,9 @@ class SEOProStack_Social_Sharing extends SEOProStack_Feature {
     public static function migrate(array $options, $from_version) {
         if ((int) $from_version < 31) {
             $options = self::keep_order($options);
+        }
+        if ((int) $from_version < 32 && !empty($options['social_sharing_networks']) && is_array($options['social_sharing_networks']) && !in_array('copy', $options['social_sharing_networks'], true)) {
+            $options['social_sharing_networks'][] = 'copy';
         }
         if (!isset(self::active_plugins()['kadence-simple-share'])) {
             return $options;
@@ -470,13 +476,25 @@ class SEOProStack_Social_Sharing extends SEOProStack_Feature {
             wp_add_inline_style(self::HANDLE, self::css());
         }
         wp_enqueue_style(self::HANDLE);
-        if ('popup' !== SEOProStack_Settings::get('social_sharing_window')) {
+        $popup = 'popup' === SEOProStack_Settings::get('social_sharing_window');
+        $copy  = in_array('copy', (array) SEOProStack_Settings::get('social_sharing_networks'), true);
+        if (!$popup && !$copy) {
             return;
         }
         if (!wp_script_is(self::HANDLE, 'registered')) {
             wp_register_script(self::HANDLE, false, array(), SEOPROSTACK_VERSION, true);
             // Share addresses open in a small window; Email and modified clicks go as normal.
-            wp_add_inline_script(self::HANDLE, 'document.addEventListener("click",function(e){var a=e.target.closest&&e.target.closest("a[data-sps-popup]");if(!a||e.ctrlKey||e.metaKey||e.shiftKey||e.altKey||e.button){return;}var w=600,h=520,p=window.open(a.href,"sps-share","width="+w+",height="+h+",left="+Math.max(0,(screen.width-w)/2)+",top="+Math.max(0,(screen.height-h)/2));if(p){p.opener=null;e.preventDefault();}});');
+            $js = $popup ? 'document.addEventListener("click",function(e){var a=e.target.closest&&e.target.closest("a[data-sps-popup]");if(!a||e.ctrlKey||e.metaKey||e.shiftKey||e.altKey||e.button){return;}var w=600,h=520,p=window.open(a.href,"sps-share","width="+w+",height="+h+",left="+Math.max(0,(screen.width-w)/2)+",top="+Math.max(0,(screen.height-h)/2));if(p){p.opener=null;e.preventDefault();}});' : '';
+            if ($copy) {
+                // Copy page link copies the page's address and says so for two seconds (tooltip and
+                // status for screen readers); without the Clipboard API (plain http) it selects a hidden
+                // copy, and as a last resort shows the address to copy. Modified clicks open the page.
+                $js .= 'document.addEventListener("click",function(e){var a=e.target.closest&&e.target.closest("a[data-sps-copy]");if(!a||e.ctrlKey||e.metaKey||e.shiftKey||e.altKey||e.button){return;}e.preventDefault();var u=a.href,s=a.parentNode.querySelector(".sps-share__status"),said=a.getAttribute("data-sps-copied");a.spsLabel=a.spsLabel||a.getAttribute("aria-label");'
+                    . 'function done(){a.setAttribute("aria-label",said);a.classList.add("sps-share--copied");if(s){s.textContent=said;}clearTimeout(a.spsTimer);a.spsTimer=setTimeout(function(){a.setAttribute("aria-label",a.spsLabel);a.classList.remove("sps-share--copied");if(s){s.textContent="";}},2000);}'
+                    . 'function old(){var t=document.createElement("textarea"),ok=false;t.value=u;t.setAttribute("readonly","");t.style.position="fixed";t.style.opacity="0";document.body.appendChild(t);t.select();try{ok=document.execCommand("copy");}catch(x){}document.body.removeChild(t);if(ok){done();}else{window.prompt(a.spsLabel,u);}}'
+                    . 'if(navigator.clipboard&&window.isSecureContext){navigator.clipboard.writeText(u).then(done,old);}else{old();}});';
+            }
+            wp_add_inline_script(self::HANDLE, $js);
         }
         wp_enqueue_script(self::HANDLE);
     }
@@ -505,14 +523,16 @@ class SEOProStack_Social_Sharing extends SEOProStack_Feature {
             // Outline: the text colour (or the chosen one), filled with the brand colour on hover.
             . '.sps-share--outline a{background:transparent;color:inherit;border:1px solid currentColor}'
             . '.sps-share--outline a:hover,.sps-share--outline a:focus-visible{background:var(--sps-share-brand);border-color:var(--sps-share-brand);color:#fff}'
-            . '.sps-share--outline a.sps-share--mono:hover,.sps-share--outline a.sps-share--mono:focus-visible{background:currentColor;border-color:currentColor}'
+            // Black and white logos fill with the text colour, so the logo takes palette9 as in the filled style.
+            . '.sps-share--outline a.sps-share--mono:hover,.sps-share--outline a.sps-share--mono:focus-visible{background:currentColor;border-color:currentColor;color:inherit}'
             . '.sps-share--outline a.sps-share--mono:hover svg,.sps-share--outline a.sps-share--mono:focus-visible svg{fill:var(--global-palette9,#fff)}'
             . '.sps-share a:focus-visible{outline:2px solid currentColor;outline-offset:2px}'
-            // Tooltips from the link's name.
-            . '.sps-share[data-tip] a::after{content:attr(aria-label);position:absolute;left:50%;transform:translateX(-50%);z-index:10;padding:4px 8px;border-radius:4px;background:var(--global-palette3,#1a202c);color:var(--global-palette9,#fff);font-size:12px;line-height:1.4;white-space:nowrap;pointer-events:none;opacity:0;visibility:hidden;transition:opacity .15s}'
-            . '.sps-share[data-tip=top] a::after{bottom:calc(100% + 6px)}'
+            // Tooltips from the link's name. "Link copied" shows even without tooltips or a pointer.
+            . '.sps-share[data-tip] a::after,.sps-share a[data-sps-copy]::after{content:attr(aria-label);position:absolute;left:50%;transform:translateX(-50%);z-index:10;padding:4px 8px;border-radius:4px;background:var(--global-palette3,#1a202c);color:var(--global-palette9,#fff);font-size:12px;line-height:1.4;white-space:nowrap;pointer-events:none;opacity:0;visibility:hidden;transition:opacity .15s}'
+            . '.sps-share[data-tip=top] a::after,.sps-share:not([data-tip]) a[data-sps-copy]::after{bottom:calc(100% + 6px)}'
             . '.sps-share[data-tip=bottom] a::after{top:calc(100% + 6px)}'
-            . '.sps-share[data-tip] a:hover::after,.sps-share[data-tip] a:focus-visible::after{opacity:1;visibility:visible}'
+            . '.sps-share[data-tip] a:hover::after,.sps-share[data-tip] a:focus-visible::after,.sps-share a.sps-share--copied::after{opacity:1;visibility:visible}'
+            . '.sps-share__status{position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}'
             . '@media (prefers-reduced-motion:reduce){.sps-share a,.sps-share a::after{transition:none}}';
         if ('' !== $colour && array_key_exists($colour, self::colour_options())) {
             // One palette colour for every brand; the outline style uses it for the ring and logo too.
@@ -595,14 +615,15 @@ class SEOProStack_Social_Sharing extends SEOProStack_Feature {
 
         $title = html_entity_decode(wp_strip_all_tags(get_the_title($post)), ENT_QUOTES, 'UTF-8');
         $media = has_post_thumbnail($post) ? (string) wp_get_attachment_image_url((int) get_post_thumbnail_id($post), 'full') : '';
-        $codes = array('{url}' => rawurlencode($url), '{title}' => rawurlencode($title), '{media}' => rawurlencode($media));
+        $codes = array('{url}' => rawurlencode($url), '{title}' => rawurlencode($title), '{media}' => rawurlencode($media), '{link}' => $url);
         $style = 'outline' === SEOProStack_Settings::get('social_sharing_style') ? 'outline' : 'filled';
         $size  = 'large' === SEOProStack_Settings::get('social_sharing_size') ? 'large' : 'normal';
         $tip   = (string) SEOProStack_Settings::get('social_sharing_tooltip');
         $popup = 'popup' === SEOProStack_Settings::get('social_sharing_window');
         $text  = trim((string) SEOProStack_Settings::get('social_sharing_text'));
 
-        $links = '';
+        $links  = '';
+        $copies = false;
         foreach ($chosen as $key) {
             if (!isset($all[$key])) {
                 continue;
@@ -618,18 +639,31 @@ class SEOProStack_Social_Sharing extends SEOProStack_Feature {
             $icon  = '' !== $mark ? SEOProStack_Brand_Icons::icon($mark) : null;
             $icon  = $icon ? $icon : $brand;
             $mono  = 'currentColor' === $color;
-            $label = 'email' === $key
-                ? __('Share by email', 'seoprostack')
+            $copy  = 'copy' === $key;
+            if ($copy) {
+                $label = __('Copy page link', 'seoprostack');
+            } elseif ('email' === $key) {
+                $label = __('Share by email', 'seoprostack');
+            } else {
                 /* translators: %s: a social network, such as Facebook. */
-                : sprintf(__('Share on %s', 'seoprostack'), $name);
-            $mail  = 0 === strpos($href, 'mailto:');
+                $label = sprintf(__('Share on %s', 'seoprostack'), $name);
+            }
+            $mail    = 0 === strpos($href, 'mailto:');
+            $copies  = $copies || $copy;
+            $attrs   = ' target="_blank" rel="noopener nofollow"' . ($popup ? ' data-sps-popup' : '');
+            if ($mail) {
+                $attrs = '';
+            } elseif ($copy) {
+                // The page itself, so it still opens (or can be copied from the menu) without the script.
+                $attrs = ' data-sps-copy data-sps-copied="' . esc_attr__('Link copied', 'seoprostack') . '"';
+            }
 
             // sps-no-external-icon: no External link icon after the logo.
-            $links .= '<a class="sps-share__' . esc_attr($key) . ' sps-no-external-icon' . ($mono ? ' sps-share--mono' : '') . '" href="' . esc_url($href, array('https', 'mailto')) . '"'
+            $links .= '<a class="sps-share__' . esc_attr($key) . ' sps-no-external-icon' . ($mono ? ' sps-share--mono' : '') . '" href="' . esc_url($href, array('http', 'https', 'mailto')) . '"'
                 . ($mono ? '' : ' style="--sps-share-brand:' . esc_attr($color) . '"')
                 . ' aria-label="' . esc_attr($label) . '"'
-                . ($mail ? '' : ' target="_blank" rel="noopener nofollow"' . ($popup ? ' data-sps-popup' : ''))
-                . '>' . self::svg($icon) . '</a>';
+                . $attrs
+                . '>' . self::svg($icon, $copy ? 'link' : 'email') . '</a>';
         }
         if ('' === $links) {
             return '';
@@ -637,17 +671,24 @@ class SEOProStack_Social_Sharing extends SEOProStack_Feature {
         $class = 'sps-share sps-share--' . $style . ' sps-share--' . sanitize_html_class($where) . ('large' === $size ? ' sps-share--large' : '');
         return '<div class="' . esc_attr($class) . '"' . (in_array($tip, array('top', 'bottom'), true) ? ' data-tip="' . esc_attr($tip) . '"' : '') . ' role="group" aria-label="' . esc_attr__('Share', 'seoprostack') . '">'
             . ('' !== $text ? '<span class="sps-share__text">' . esc_html($text) . '</span>' : '')
-            . $links . '</div>';
+            . $links
+            . ($copies ? '<span class="sps-share__status" role="status"></span>' : '')
+            . '</div>';
     }
 
     /**
-     * An icon as SVG (an envelope without a brand icon), hidden from screen
-     * readers: the link has the name.
+     * An icon as SVG, hidden from screen readers: the link has the name.
+     * Without a brand icon: an envelope (Email) or a chain link (Copy page
+     * link), both drawn for this plugin.
      *
-     * @param array|null $icon Icon from SEOProStack_Brand_Icons::icon().
+     * @param array|null $icon     Icon from SEOProStack_Brand_Icons::icon().
+     * @param string     $fallback email or link, without a brand icon.
      * @return string
      */
-    private static function svg($icon) {
+    private static function svg($icon, $fallback = 'email') {
+        if (!$icon && 'link' === $fallback) {
+            return '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M10 7H7a5 5 0 0 0 0 10h3v-2H7a3 3 0 0 1 0-6h3zm4 0h3a5 5 0 0 1 0 10h-3v-2h3a3 3 0 0 0 0-6h-3zm-6 4h8v2H8z"/></svg>';
+        }
         if (!$icon) {
             return '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M2 5.5A1.5 1.5 0 0 1 3.5 4h17A1.5 1.5 0 0 1 22 5.5v13a1.5 1.5 0 0 1-1.5 1.5h-17A1.5 1.5 0 0 1 2 18.5zm2.2.5L12 12.1 19.8 6zM20 7.9l-7.4 5.8a1 1 0 0 1-1.2 0L4 7.9V18h16z"/></svg>';
         }

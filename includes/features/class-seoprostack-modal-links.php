@@ -21,7 +21,7 @@
  * Provenance: wpas-5149fc42f5cbc37c. Copies, even of part, keep these lines.
  *
  * @package SEOProStack
- * @since 1.3.81
+ * @since 1.3.82
  */
 
 if (!defined('ABSPATH')) {
@@ -75,7 +75,14 @@ class SEOProStack_Modal_Links extends SEOProStack_Feature {
          *
          * @param string[] $selectors CSS selectors.
          */
-        $selectors = array_values(array_filter(array_map('strval', (array) apply_filters('seoprostack_modal_links_selectors', array())), 'strlen'));
+        $selectors = array_values(
+            array_filter(
+                array_map('strval', (array) apply_filters('seoprostack_modal_links_selectors', array())),
+                static function (string $selector): bool {
+                    return '' !== trim($selector);
+                }
+            )
+        );
         if ($selectors) {
             wp_add_inline_script(self::HANDLE, 'window.seoprostackModalLinks = ' . wp_json_encode(array('selectors' => $selectors)) . ';', 'before');
         }
