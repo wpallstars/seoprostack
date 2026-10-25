@@ -65,6 +65,8 @@ class SEOProStack_Social_Sharing extends SEOProStack_Feature {
             ),
             'social_sharing_networks' => array(
                 'type'    => 'multi',
+                // In the chosen order, as Kadence Simple Share kept it.
+                'ordered' => true,
                 'default' => array('facebook', 'x'),
                 'parent'  => self::KEY,
                 'label'   => __('Share on', 'seoprostack'),
@@ -133,21 +135,25 @@ class SEOProStack_Social_Sharing extends SEOProStack_Feature {
     }
 
     /**
-     * Networks: key => [name, Brand icons slug, share address pattern].
-     * Addresses take {url} and {title}, already encoded; {media} for
-     * Pinterest's picture. Email has no brand icon.
+     * Networks: key => [name, Brand icons slug (its colour), share address
+     * pattern, Brand icons slug of the mark drawn]. Addresses take {url}
+     * and {title}, already encoded; {media} for Pinterest's picture. The
+     * marks are the letter or symbol alone (Font Awesome's), as Kadence
+     * Simple Share drew them, since the round button is already the
+     * badge; Simple Icons' own are badges themselves. Email has no brand
+     * icon.
      *
-     * @return array<string,array{0:string,1:string,2:string}>
+     * @return array<string,array{0:string,1:string,2:string,3:string}>
      */
     private static function networks() {
         return array(
-            'facebook'  => array('Facebook', 'facebook', 'https://www.facebook.com/sharer.php?u={url}'),
-            'x'         => array('X', 'x', 'https://twitter.com/intent/tweet?url={url}&text={title}'),
-            'linkedin'  => array('LinkedIn', 'linkedin', 'https://www.linkedin.com/shareArticle?mini=true&url={url}'),
-            'pinterest' => array('Pinterest', 'pinterest', 'https://pinterest.com/pin/create/bookmarklet/?is_video=false&url={url}&media={media}&description={title}'),
-            'reddit'    => array('Reddit', 'reddit', 'https://reddit.com/submit?url={url}&title={title}'),
-            'whatsapp'  => array('WhatsApp', 'whatsapp', 'https://wa.me/?text={title}%20{url}'),
-            'email'     => array(__('Email', 'seoprostack'), '', 'mailto:?subject={title}&body={url}'),
+            'facebook'  => array('Facebook', 'facebook', 'https://www.facebook.com/sharer.php?u={url}', 'facebookf'),
+            'x'         => array('X', 'x', 'https://twitter.com/intent/tweet?url={url}&text={title}', 'xtwitter'),
+            'linkedin'  => array('LinkedIn', 'linkedin', 'https://www.linkedin.com/shareArticle?mini=true&url={url}', 'linkedinin'),
+            'pinterest' => array('Pinterest', 'pinterest', 'https://pinterest.com/pin/create/bookmarklet/?is_video=false&url={url}&media={media}&description={title}', 'pinterestp'),
+            'reddit'    => array('Reddit', 'reddit', 'https://reddit.com/submit?url={url}&title={title}', 'redditalien'),
+            'whatsapp'  => array('WhatsApp', 'whatsapp', 'https://wa.me/?text={title}%20{url}', 'whatsapp'),
+            'email'     => array(__('Email', 'seoprostack'), '', 'mailto:?subject={title}&body={url}', ''),
         );
     }
 
@@ -238,12 +244,17 @@ class SEOProStack_Social_Sharing extends SEOProStack_Feature {
 
     /**
      * Switch on while Kadence Simple Share is active, with its settings.
+     * Settings version 31 also takes its network order where 1.3.78
+     * imported its networks in this feature's order (keep_order()).
      *
      * @param array $options      Stored settings.
      * @param int   $from_version Previous settings version.
      * @return array
      */
     public static function migrate(array $options, $from_version) {
+        if ((int) $from_version < 31) {
+            $options = self::keep_order($options);
+        }
         if (!isset(self::active_plugins()['kadence-simple-share'])) {
             return $options;
         }
@@ -254,6 +265,28 @@ class SEOProStack_Social_Sharing extends SEOProStack_Feature {
         }
         foreach (self::import_values($kt) as $key => $value) {
             $options = self::import_setting($options, $key, $value);
+        }
+        return $options;
+    }
+
+    /**
+     * Put stored networks in Kadence Simple Share's order when they are
+     * the same networks as its settings (still there after it is
+     * deactivated), as 1.3.78 stored them in this feature's order. A
+     * different choice was made here, so it is left alone.
+     *
+     * @param array $options Stored settings.
+     * @return array
+     */
+    private static function keep_order(array $options) {
+        $kt = get_option('kt_share');
+        if (empty($options['social_sharing_networks']) || !is_array($options['social_sharing_networks']) || !is_array($kt)) {
+            return $options;
+        }
+        $theirs = self::import_values($kt)['social_sharing_networks'];
+        $ours   = array_map('strval', $options['social_sharing_networks']);
+        if (is_array($theirs) && count($theirs) === count($ours) && !array_diff($theirs, $ours)) {
+            $options['social_sharing_networks'] = $theirs;
         }
         return $options;
     }
@@ -276,7 +309,8 @@ class SEOProStack_Social_Sharing extends SEOProStack_Feature {
                 $network    = 'twitter' === $network ? 'x' : (string) $network;
                 $networks[] = $network;
             }
-            $networks = array_values(array_intersect($networks, array_keys(self::networks())));
+            // In its order (array_intersect() keeps the first array's).
+            $networks = array_values(array_unique(array_intersect($networks, array_keys(self::networks()))));
         }
 
         $types = array();
@@ -573,13 +607,16 @@ class SEOProStack_Social_Sharing extends SEOProStack_Feature {
             if (!isset($all[$key])) {
                 continue;
             }
-            list($name, $slug, $pattern) = $all[$key];
+            list($name, $slug, $pattern, $mark) = $all[$key];
             $href = strtr($pattern, $codes);
             if ('pinterest' === $key && '' === $media) {
                 $href = str_replace('&media=', '', $href);
             }
-            $icon  = '' !== $slug ? SEOProStack_Brand_Icons::icon($slug) : null;
-            $color = $icon ? SEOProStack_Brand_Icons::brand_color($icon['hex']) : 'currentColor';
+            $brand = '' !== $slug ? SEOProStack_Brand_Icons::icon($slug) : null;
+            $color = $brand ? SEOProStack_Brand_Icons::brand_color($brand['hex']) : 'currentColor';
+            // The mark alone, or the brand's own icon if the mark is missing.
+            $icon  = '' !== $mark ? SEOProStack_Brand_Icons::icon($mark) : null;
+            $icon  = $icon ? $icon : $brand;
             $mono  = 'currentColor' === $color;
             $label = 'email' === $key
                 ? __('Share by email', 'seoprostack')

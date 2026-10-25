@@ -370,7 +370,8 @@ class SEOProStack_Admin_Manager {
         self::enqueue_header();
         wp_enqueue_style('seoprostack-admin', SEOPROSTACK_URL . self::CSS_FILE, array('seoprostack-header'), self::asset_version(self::CSS_FILE));
 
-        $deps = array('jquery', 'wp-a11y', 'wp-i18n');
+        // jquery-ui-sortable: ordered checkbox lists (the `ordered` setting key).
+        $deps = array('jquery', 'jquery-ui-sortable', 'wp-a11y', 'wp-i18n');
         foreach ($page_tabs as $page_tab) {
             /**
              * Filter the admin script's dependencies; enqueue what a tab
