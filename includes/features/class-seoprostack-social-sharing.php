@@ -2,13 +2,15 @@
 /**
  * Social sharing.
  *
- * Share links (Facebook, X, LinkedIn, Pinterest, Reddit, WhatsApp and
- * Email) and Copy page link before or after the content of chosen post
- * types and on WooCommerce products, drawn with the Brand icons set as
- * inline SVG in round buttons that take the brand colours or a Kadence
- * palette colour, so they follow its light and dark modes. A small inline
- * style, and an inline script only for pop-up windows and copying: no
- * files, no tracking and no request to another site until someone shares.
+ * Share links (Facebook, X, LinkedIn, Pinterest, Reddit, WhatsApp, Email
+ * and the site's own platforms) and Copy page link before, after or
+ * before and after the content of chosen post types (each type may have
+ * its own place) and on WooCommerce products, drawn with the Brand icons
+ * set as inline SVG in round buttons that take the brand colours or a
+ * Kadence palette colour, so they follow its light and dark modes. A small
+ * inline style, and an inline script only for pop-up windows and copying:
+ * no files, no tracking and no request to another site until someone
+ * shares.
  *
  * Replaces Kadence Simple Share with the options its sites use. Its
  * settings (`kt_share`) are imported once, its per-post choice
@@ -48,6 +50,31 @@ class SEOProStack_Social_Sharing extends SEOProStack_Feature {
     /** Kadence Simple Share's shortcode. */
     const SHORTCODE = 'kadence_simple_share';
 
+    /** Setting: the site's own platforms, one a line. */
+    const CUSTOM = 'social_sharing_custom';
+
+    /** Setting: each post type's own place (before-{type}, after-{type}). */
+    const TYPE_PLACES = 'social_sharing_type_places';
+
+    /**
+     * Defaults before 1.3.83 that settings version 33 replaces with the
+     * current ones where Social sharing is off (migrate()).
+     */
+    const OLD_DEFAULTS = array(
+        'social_sharing_networks' => array('facebook', 'x', 'copy'),
+        'social_sharing_types'    => array('post'),
+        'social_sharing_style'    => 'filled',
+        'social_sharing_size'     => 'normal',
+    );
+
+    /**
+     * Your own platforms added by the save being made (settings_changed()),
+     * for setting_saved() to tick under Share on.
+     *
+     * @var string[]
+     */
+    private static $added = array();
+
     /**
      * Settings.
      *
@@ -60,44 +87,67 @@ class SEOProStack_Social_Sharing extends SEOProStack_Feature {
                 'default'     => false,
                 'tab'         => 'content',
                 'label'       => __('Social sharing', 'seoprostack'),
-                'description' => __('Share buttons for Facebook, X, LinkedIn, Pinterest, Reddit, WhatsApp and Email, and Copy page link, before or after the content of the post types below, and on WooCommerce products. Brand icons in round buttons, in the brand colours or a colour from the Kadence palette, so they follow its dark mode. No tracking, no files and nothing from other sites until someone shares.', 'seoprostack'),
+                'description' => __('Share buttons for Facebook, X, LinkedIn, Pinterest, Reddit, WhatsApp, Email and platforms of your own, and Copy page link, before or after (or both) the content of the post types below, and on WooCommerce products. Brand icons in round buttons, in the brand colours or a colour from the Kadence palette, so they follow its dark mode. No tracking, no files and nothing from other sites until someone shares.', 'seoprostack'),
                 'replaces'    => self::REPLACES,
             ),
             'social_sharing_networks' => array(
                 'type'    => 'multi',
                 // In the chosen order, as Kadence Simple Share kept it.
                 'ordered' => true,
-                'default' => array('facebook', 'x', 'copy'),
+                'default' => array('facebook', 'x', 'linkedin', 'whatsapp', 'reddit', 'pinterest', 'email', 'copy'),
                 'parent'  => self::KEY,
                 'label'   => __('Share on', 'seoprostack'),
                 'options' => array(__CLASS__, 'network_options'),
             ),
+            self::CUSTOM => array(
+                'type'        => 'lines',
+                'default'     => '',
+                'parent'      => self::KEY,
+                'label'       => __('Your own platforms', 'seoprostack'),
+                'description' => __('One a line: a name, a Brand icon (a brand’s name; leave it out to use the name’s icon) and the platform’s share address, with {url} where the page’s address goes and {title} for its title, separated by |. Reload the page after saving: each new one is ticked at the end of Share on, to move or untick there.', 'seoprostack'),
+                'placeholder' => __('Name | Brand icon | https://… share address with {url} and {title}', 'seoprostack'),
+                'reload'      => true,
+            ),
             'social_sharing_types' => array(
                 'type'    => 'multi',
                 'open'    => true,
-                'default' => array('post'),
+                // Questions and Businesses: SEO Pro Directory's types.
+                'default' => array('post', 'spd_question', 'product', 'business'),
                 'parent'  => self::KEY,
                 'label'   => __('Show on', 'seoprostack'),
                 'description' => __('Products show them in WooCommerce’s sharing place, under Add to cart. Each post can also show or hide them (Share buttons, in the editor’s Dev tab).', 'seoprostack'),
                 'options' => array('SEOProStack_Duplicate_Posts', 'post_type_options'),
+                // Place on each post type lists these.
+                'reload'  => true,
             ),
             'social_sharing_place' => array(
-                'type'    => 'select',
-                'default' => 'after',
-                'parent'  => self::KEY,
-                'label'   => __('Place', 'seoprostack'),
-                'options' => array(__CLASS__, 'place_options'),
+                'type'        => 'select',
+                'default'     => 'after',
+                'parent'      => self::KEY,
+                'label'       => __('Place', 'seoprostack'),
+                'description' => __('For every post type above, unless it has its own place below.', 'seoprostack'),
+                'options'     => array(__CLASS__, 'place_options'),
+            ),
+            self::TYPE_PLACES => array(
+                'type'        => 'multi',
+                // Keeps the choices of types whose plugin is not loaded.
+                'open'        => true,
+                'default'     => array(),
+                'parent'      => self::KEY,
+                'label'       => __('Place on each post type', 'seoprostack'),
+                'description' => __('Optional. Tick before, after or both for a post type to put its buttons there instead of the Place above. Lists the post types under Show on, other than products, once the page is reloaded.', 'seoprostack'),
+                'options'     => array(__CLASS__, 'type_place_options'),
             ),
             'social_sharing_style' => array(
                 'type'    => 'select',
-                'default' => 'filled',
+                'default' => 'outline',
                 'parent'  => self::KEY,
                 'label'   => __('Style', 'seoprostack'),
                 'options' => array(__CLASS__, 'style_options'),
             ),
             'social_sharing_size' => array(
                 'type'    => 'select',
-                'default' => 'normal',
+                'default' => 'large',
                 'parent'  => self::KEY,
                 'label'   => __('Size', 'seoprostack'),
                 'options' => array(__CLASS__, 'size_options'),
@@ -160,13 +210,63 @@ class SEOProStack_Social_Sharing extends SEOProStack_Feature {
     }
 
     /**
-     * Network choices, in the order they show.
+     * The site's own platforms (Your own platforms), in the networks()
+     * shape, keyed custom-{name}. Each line is "name | Brand icon |
+     * address" or "name | address" (the icon found from the name); the
+     * address must be http(s). Lines without one, and repeated names, are
+     * skipped. The brand found gives the colour and the mark; without one,
+     * the button shows a share symbol in the text colour.
+     *
+     * @param mixed $lines The setting's value; null to read it.
+     * @return array<string,array{0:string,1:string,2:string,3:string}>
+     */
+    private static function custom_networks($lines = null) {
+        if (null === $lines) {
+            $lines = self::setting(self::CUSTOM);
+        }
+        $networks = array();
+        foreach (preg_split('/[\r\n]+/', is_scalar($lines) ? (string) $lines : '') ?: array() as $line) {
+            $parts = array_map('trim', explode('|', $line, 3));
+            if (count($parts) < 2) {
+                continue;
+            }
+            $name    = $parts[0];
+            $icon    = 3 === count($parts) ? $parts[1] : '';
+            $address = 3 === count($parts) ? $parts[2] : $parts[1];
+            if ('' === $name || !preg_match('#^https?://\S+$#i', $address)) {
+                continue;
+            }
+            $id  = sanitize_key(str_replace(' ', '-', remove_accents($name)));
+            // Names in other scripts (such as 微博) have no Latin key.
+            $key = 'custom-' . ('' !== $id ? $id : substr(md5($name), 0, 8)); // NOSONAR: a key for a name, not security.
+            if (isset($networks[$key])) {
+                continue;
+            }
+            $networks[$key] = array($name, SEOProStack_Brand_Icons::find('' !== $icon ? $icon : $name), $address, '');
+        }
+        return $networks;
+    }
+
+    /**
+     * A setting as the screen being shown sets it: the network's value on
+     * the network screen (multisite), else this site's.
+     *
+     * @param string $key Setting key.
+     * @return mixed
+     */
+    private static function setting($key) {
+        return is_network_admin() ? SEOProStack_Network_Settings::value($key) : SEOProStack_Settings::get($key);
+    }
+
+    /**
+     * Network choices, in the order they show: the built-in ones, then the
+     * site's own platforms.
      *
      * @return array<string,string>
      */
     public static function network_options() {
         $options = array();
-        foreach (self::networks() as $key => $network) {
+        foreach (self::networks() + self::custom_networks() as $key => $network) {
             $options[$key] = $network[0];
         }
         return $options;
@@ -181,7 +281,57 @@ class SEOProStack_Social_Sharing extends SEOProStack_Feature {
         return array(
             'before' => __('Before the content', 'seoprostack'),
             'after'  => __('After the content', 'seoprostack'),
+            'both'   => __('Before and after the content', 'seoprostack'),
         );
+    }
+
+    /**
+     * Place on each post type: before and after for each registered type
+     * under Show on, other than products (WooCommerce's sharing place),
+     * and each type with a place chosen, so it can be unticked. The field
+     * is open, so a type's choices are kept while its plugin is not loaded.
+     *
+     * @return array<string,string> before-{type} or after-{type} => label.
+     */
+    public static function type_place_options() {
+        $types = (array) self::setting('social_sharing_types');
+        foreach ((array) self::setting(self::TYPE_PLACES) as $value) {
+            $types[] = preg_replace('/^(?:before|after)-/', '', is_scalar($value) ? (string) $value : '');
+        }
+        $options = array();
+        foreach (array_unique(array_map('strval', array_filter($types, 'is_scalar'))) as $type) {
+            $object = '' !== $type && 'product' !== $type ? get_post_type_object($type) : null;
+            if (!$object) {
+                continue;
+            }
+            $name = (string) $object->labels->name;
+            /* translators: %s: a post type, such as Posts. */
+            $options['before-' . $type] = sprintf(__('%s: before the content', 'seoprostack'), $name);
+            /* translators: %s: a post type, such as Posts. */
+            $options['after-' . $type] = sprintf(__('%s: after the content', 'seoprostack'), $name);
+        }
+        return $options;
+    }
+
+    /**
+     * Where a post type shows the buttons: its own place (Place on each
+     * post type), else Place.
+     *
+     * @param string $type Post type.
+     * @return string[] before, after or both, in that order.
+     */
+    public static function places($type) {
+        $own = array();
+        foreach (array('before', 'after') as $place) {
+            if (in_array($place . '-' . $type, (array) SEOProStack_Settings::get(self::TYPE_PLACES), true)) {
+                $own[] = $place;
+            }
+        }
+        if ($own) {
+            return $own;
+        }
+        $place = (string) SEOProStack_Settings::get('social_sharing_place');
+        return 'both' === $place ? array('before', 'after') : array('before' === $place ? 'before' : 'after');
     }
 
     /**
@@ -247,8 +397,9 @@ class SEOProStack_Social_Sharing extends SEOProStack_Feature {
     /**
      * Switch on while Kadence Simple Share is active, with its settings.
      * Settings version 31 also takes its network order where 1.3.78
-     * imported its networks in this feature's order (keep_order()), and
-     * version 32 adds Copy page link after the stored networks.
+     * imported its networks in this feature's order (keep_order()),
+     * version 32 adds Copy page link after the stored networks, and
+     * version 33 gives sites where it is off the new defaults (new_defaults()).
      *
      * @param array $options      Stored settings.
      * @param int   $from_version Previous settings version.
@@ -260,6 +411,9 @@ class SEOProStack_Social_Sharing extends SEOProStack_Feature {
         }
         if ((int) $from_version < 32 && !empty($options['social_sharing_networks']) && is_array($options['social_sharing_networks']) && !in_array('copy', $options['social_sharing_networks'], true)) {
             $options['social_sharing_networks'][] = 'copy';
+        }
+        if ((int) $from_version > 0 && (int) $from_version < 33) {
+            $options = self::new_defaults($options);
         }
         if (!isset(self::active_plugins()['kadence-simple-share'])) {
             return $options;
@@ -293,6 +447,27 @@ class SEOProStack_Social_Sharing extends SEOProStack_Feature {
         $ours   = array_map('strval', $options['social_sharing_networks']);
         if (is_array($theirs) && count($theirs) === count($ours) && !array_diff($theirs, $ours)) {
             $options['social_sharing_networks'] = $theirs;
+        }
+        return $options;
+    }
+
+    /**
+     * Where Social sharing is off, settings still at 1.3.82's defaults
+     * (OLD_DEFAULTS) take the new ones, so switching it on starts with
+     * them. Sites using it, or with a choice of their own, keep theirs.
+     *
+     * @param array $options Stored settings.
+     * @return array
+     */
+    private static function new_defaults(array $options) {
+        if (!empty($options[self::KEY])) {
+            return $options;
+        }
+        $settings = self::settings();
+        foreach (self::OLD_DEFAULTS as $key => $old) {
+            if (isset($options[$key]) && $old === (is_array($old) ? array_map('strval', (array) $options[$key]) : (string) $options[$key])) {
+                $options[$key] = $settings[$key]['default'];
+            }
         }
         return $options;
     }
@@ -332,8 +507,8 @@ class SEOProStack_Social_Sharing extends SEOProStack_Feature {
         return array(
             'social_sharing_networks' => $networks,
             'social_sharing_types'    => $types,
-            // Before stays before; after, both and the fixed bars go after.
-            'social_sharing_place'    => isset($kt['sharing_location']) && 'before' === $kt['sharing_location'] ? 'before' : 'after',
+            // Before and both stay; after and the fixed bars go after.
+            'social_sharing_place'    => isset($kt['sharing_location']) && in_array($kt['sharing_location'], array('before', 'both'), true) ? (string) $kt['sharing_location'] : 'after',
             // Its styles 3 to 5 are outlines; 1 and 2 are filled.
             'social_sharing_style'    => in_array($style, array('style_03', 'style_04', 'style_05'), true) ? 'outline' : 'filled',
             'social_sharing_size'     => isset($kt['sharing_size']) && 'large' === $kt['sharing_size'] ? 'large' : 'normal',
@@ -357,6 +532,43 @@ class SEOProStack_Social_Sharing extends SEOProStack_Feature {
         add_filter('the_content', array(__CLASS__, 'content'), 100);
         add_action('woocommerce_share', array(__CLASS__, 'product'));
         add_action('enqueue_block_editor_assets', array(__CLASS__, 'editor'));
+        add_action('seoprostack_settings_changed', array(__CLASS__, 'settings_changed'), 10, 2);
+        add_action('seoprostack_setting_saved', array(__CLASS__, 'setting_saved'));
+    }
+
+    /**
+     * Note the platforms a save adds to Your own platforms.
+     *
+     * @param array $old Settings before.
+     * @param array $new Settings after.
+     */
+    public static function settings_changed($old, $new) {
+        $before      = self::custom_networks(isset($old[self::CUSTOM]) ? $old[self::CUSTOM] : '');
+        $after       = self::custom_networks(isset($new[self::CUSTOM]) ? $new[self::CUSTOM] : '');
+        self::$added = array_values(array_diff(array_keys($after), array_keys($before)));
+    }
+
+    /**
+     * After Your own platforms is saved, once its save has finished (its
+     * lock is released): tick the platforms just added, at the end of Share
+     * on, and drop those taken off the list (the sanitizer keeps only
+     * networks there are).
+     *
+     * @param string $key Setting saved.
+     */
+    public static function setting_saved($key) {
+        $added       = self::$added;
+        self::$added = array();
+        if (self::CUSTOM !== $key) {
+            return;
+        }
+        $chosen = array_values(array_map('strval', (array) SEOProStack_Settings::get('social_sharing_networks')));
+        $known  = array_map('strval', array_keys(self::network_options()));
+        // In the chosen order, then the new ones (array_intersect() keeps the first array's order).
+        $kept = array_values(array_intersect(array_unique(array_merge($chosen, $added)), $known));
+        if ($kept !== $chosen) {
+            SEOProStack_Settings::set('social_sharing_networks', $kept);
+        }
     }
 
     /**
@@ -508,12 +720,17 @@ class SEOProStack_Social_Sharing extends SEOProStack_Feature {
      */
     private static function css() {
         $colour = (string) SEOProStack_Settings::get('social_sharing_colour');
-        $css    = '.sps-share{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:0 0 var(--global-md-spacing,1.5rem);clear:both}'
+        // Normal (32px) buttons are 12px apart, each with a 44px touch target (::before)
+        // that reaches half the gap, so a finger finds one without touching the next.
+        $css    = '.sps-share{display:flex;flex-wrap:wrap;align-items:center;gap:12px;margin:0 0 var(--global-md-spacing,1.5rem);clear:both}'
+            . '.sps-share--large{gap:8px}'
             . '.sps-share--after{margin:var(--global-md-spacing,1.5rem) 0 0}'
             . '.sps-share--woocommerce{margin:1em 0 0}'
             . '.sps-share__text{margin-inline-end:4px}'
             . '.sps-share a{--sps-share-size:32px;position:relative;display:inline-flex;align-items:center;justify-content:center;box-sizing:border-box;width:var(--sps-share-size);height:var(--sps-share-size);border-radius:50%;text-decoration:none;line-height:0;transition:background-color .2s,color .2s,border-color .2s,opacity .2s}'
+            . '.sps-share a::before{content:"";position:absolute;top:-6px;right:-6px;bottom:-6px;left:-6px;border-radius:50%}'
             . '.sps-share--large a{--sps-share-size:48px}'
+            . '.sps-share--large a::before{content:none}'
             . '.sps-share a svg{width:50%;height:50%;fill:currentColor}'
             // Filled: the colour behind a white logo; black and white logos and Email invert the text colour.
             . '.sps-share--filled a{background:var(--sps-share-brand);color:#fff;border:0}'
@@ -521,7 +738,8 @@ class SEOProStack_Social_Sharing extends SEOProStack_Feature {
             . '.sps-share--filled a.sps-share--mono svg{fill:var(--global-palette9,#fff)}'
             . '.sps-share--filled a:hover,.sps-share--filled a:focus-visible{opacity:.85}'
             // Outline: the text colour (or the chosen one), filled with the brand colour on hover.
-            . '.sps-share--outline a{background:transparent;color:inherit;border:1px solid currentColor}'
+            // 2px: a 1px ring looks uneven on some screens, thicker at the top, bottom and sides.
+            . '.sps-share--outline a{background:transparent;color:inherit;border:2px solid currentColor}'
             . '.sps-share--outline a:hover,.sps-share--outline a:focus-visible{background:var(--sps-share-brand);border-color:var(--sps-share-brand);color:#fff}'
             // Black and white logos fill with the text colour, so the logo takes palette9 as in the filled style.
             . '.sps-share--outline a.sps-share--mono:hover,.sps-share--outline a.sps-share--mono:focus-visible{background:currentColor;border-color:currentColor;color:inherit}'
@@ -568,7 +786,8 @@ class SEOProStack_Social_Sharing extends SEOProStack_Feature {
     }
 
     /**
-     * The buttons before or after the post's content, on its own page.
+     * The buttons before, after or before and after the post's content, on
+     * its own page, where its post type puts them (places()).
      *
      * @param string $content Content.
      * @return string
@@ -582,9 +801,11 @@ class SEOProStack_Social_Sharing extends SEOProStack_Feature {
         if (!$post || get_the_ID() !== $post->ID || 'product' === $post->post_type || has_shortcode($post->post_content, self::SHORTCODE)) {
             return $content;
         }
-        $place = 'before' === SEOProStack_Settings::get('social_sharing_place') ? 'before' : 'after';
-        $html  = self::buttons($post, $place);
-        return 'before' === $place ? $html . $content : $content . $html;
+        foreach (self::places($post->post_type) as $place) {
+            $html    = self::buttons($post, $place);
+            $content = 'before' === $place ? $html . $content : $content . $html;
+        }
+        return $content;
     }
 
     /**
@@ -606,7 +827,7 @@ class SEOProStack_Social_Sharing extends SEOProStack_Feature {
      */
     public static function buttons(WP_Post $post, $where = 'after') {
         $chosen = (array) SEOProStack_Settings::get('social_sharing_networks');
-        $all    = self::networks();
+        $all    = self::networks() + self::custom_networks(SEOProStack_Settings::get(self::CUSTOM));
         $url    = (string) get_permalink($post);
         if (!$chosen || '' === $url) {
             return '';
@@ -663,7 +884,7 @@ class SEOProStack_Social_Sharing extends SEOProStack_Feature {
                 . ($mono ? '' : ' style="--sps-share-brand:' . esc_attr($color) . '"')
                 . ' aria-label="' . esc_attr($label) . '"'
                 . $attrs
-                . '>' . self::svg($icon, $copy ? 'link' : 'email') . '</a>';
+                . '>' . self::svg($icon, $copy ? 'link' : ('email' === $key ? 'email' : 'share')) . '</a>';
         }
         if ('' === $links) {
             return '';
@@ -678,16 +899,21 @@ class SEOProStack_Social_Sharing extends SEOProStack_Feature {
 
     /**
      * An icon as SVG, hidden from screen readers: the link has the name.
-     * Without a brand icon: an envelope (Email) or a chain link (Copy page
-     * link), both drawn for this plugin.
+     * Without a brand icon: an envelope (Email), a chain link (Copy page
+     * link) or three joined dots (your own platforms), all drawn for this
+     * plugin.
      *
      * @param array|null $icon     Icon from SEOProStack_Brand_Icons::icon().
-     * @param string     $fallback email or link, without a brand icon.
+     * @param string     $fallback email, link or share, without a brand icon.
      * @return string
      */
     private static function svg($icon, $fallback = 'email') {
         if (!$icon && 'link' === $fallback) {
             return '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M10 7H7a5 5 0 0 0 0 10h3v-2H7a3 3 0 0 1 0-6h3zm4 0h3a5 5 0 0 1 0 10h-3v-2h3a3 3 0 0 0 0-6h-3zm-6 4h8v2H8z"/></svg>';
+        }
+        if (!$icon && 'share' === $fallback) {
+            // Separate paths, so where the dots and lines overlap stays filled.
+            return '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M15 5a3 3 0 1 0 6 0 3 3 0 1 0-6 0z"/><path d="M3 12a3 3 0 1 0 6 0 3 3 0 1 0-6 0z"/><path d="M15 19a3 3 0 1 0 6 0 3 3 0 1 0-6 0z"/><path d="M6.5 12.86 18.5 5.86 17.5 4.14 5.5 11.14z"/><path d="M5.5 12.86 17.5 19.86 18.5 18.14 6.5 11.14z"/></svg>';
         }
         if (!$icon) {
             return '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M2 5.5A1.5 1.5 0 0 1 3.5 4h17A1.5 1.5 0 0 1 22 5.5v13a1.5 1.5 0 0 1-1.5 1.5h-17A1.5 1.5 0 0 1 2 18.5zm2.2.5L12 12.1 19.8 6zM20 7.9l-7.4 5.8a1 1 0 0 1-1.2 0L4 7.9V18h16z"/></svg>';

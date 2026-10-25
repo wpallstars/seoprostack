@@ -252,8 +252,10 @@ final class SEOProStack_Setup {
      * v31: Social sharing takes Kadence Simple Share's network order where
      *      v30 imported its networks in Social sharing's order (#923).
      * v32: Social sharing adds Copy page link after the stored networks (#931).
+     * v33: where Social sharing is off, its networks, post types, style and
+     *      size still at 1.3.82's defaults take the new ones (#938).
      */
-    const DB_VERSION = 32;
+    const DB_VERSION = 33;
 
     /**
      * Tab slugs renamed in 0.4.0, old => new. Settings that still use an
