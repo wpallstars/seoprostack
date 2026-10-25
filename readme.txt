@@ -37,7 +37,7 @@ Safe features start on; others stay off. **Settings → SEO Pro Stack** has **Se
 * **Editors use the business plugins**: WooCommerce, Rank Math, Tutor LMS, Fluent.
 * **Turn off unused remote access**: XML-RPC, application passwords and exposed files.
 * **Minimum password length**: 12 characters for new passwords, on by default.
-* **Email protection** (on): hides rendered addresses from HTML scrapers; visitors need JavaScript.
+* **Email protection** (on): hides addresses from HTML scrapers; needs JavaScript.
 * **Known vulnerabilities**: from the free WPVulnerability plugin, or Wordfence Intelligence (off).
 * **File and account integrity checks**: core and plugin files, uploaded PHP, new admins.
 * **HTTPS check**: certificate, TLS and HSTS in Site Health.
@@ -127,7 +127,7 @@ Install from Plugins → Add New and activate. Set features in Settings → SEO 
 
 = What happens if I deactivate or delete the plugin? =
 
-Deactivation restores local image addresses, removes the must-use file and tries to remove marked `.htaccess` rules. Deletion removes settings, caches, profile pictures, WebP/AVIF copies, storage records and short links; imported media, watermarked originals and bucket objects stay. Removed local copies? Run `wp seoprostack media-storage restore --all` first.
+Deactivation restores image addresses and removes the loader and marked server rules. Deletion clears settings and generated data, not imported media, originals or bucket objects. Removed local copies? First run `wp seoprostack media-storage restore --all`. Details: Read Me.
 
 = Does it work on multisite? =
 
@@ -154,12 +154,12 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 == Changelog ==
 
 = Unreleased =
-* New: Email protection for content, widgets, blocks and menus, independent of hosting.
+* New: Email protection for content, widgets, blocks and menus.
 
 = 1.3.81 =
 * New: Social sharing has a Copy page link button. Fix: outlined X and Email buttons no longer turn blank on hover in light mode.
 
 = 1.3.80 =
-* Fix: Image loading keeps cache plugins' lazy loading off the logo, so it no longer flashes between pages.
+* Fix: Image loading keeps cache plugins from lazy-loading logos.
 
 Older: `changelog.txt`.
