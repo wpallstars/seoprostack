@@ -154,9 +154,9 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 == Changelog ==
 
 = Unreleased =
-* New: Email protection for content, widgets, blocks and menus.
+* New: Email protection.
 
 = 1.3.81 =
-* New: Social sharing has a Copy page link button. Fix: outlined X and Email buttons no longer turn blank on hover in light mode.
+* New: Social sharing Copy page link. Fix: outlined X/Email hover.
 
 Older: `changelog.txt`.
