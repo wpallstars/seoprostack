@@ -5,7 +5,7 @@ Tags: magic login, iframe, schedule posts, auto upload images, admin
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.3.81
+Stable tag: 1.3.82
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -71,7 +71,7 @@ Safe features start on; others stay off. **Settings → SEO Pro Stack** has **Se
 * **Rank Math defaults**: keywords from titles and pillar warnings.
 * **Short links** with click counts and **410 Gone** for removed pages.
 * **Short addresses for custom post types**.
-* **External link icons**: script-free, replacing Link Whisper's icon only.
+* **External link icons**: script-free, replacing Link Whisper's icon only. **Modal links** open drawers and modals.
 * **Internal linking tools** (off): suggestions, undo and Link Whisper checks.
 * **Recommended speed settings**, **Load pages before the click**, **Delay scripts until interaction**, **Delayed Google Analytics** and faster Kadence Blocks editing.
 * **Ask before licence checks**. **Calls to other sites** (off): monitor, limit or block.
@@ -152,7 +152,7 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 
 == Changelog ==
 
-= 1.3.81 =
-* New: Social sharing has a Copy page link button. Fix: outlined X and Email buttons no longer turn blank on hover in light mode.
+= 1.3.82 =
+* New: Modal links: a link to #login-drawer or another modal's ID opens it.
 
 Older: `changelog.txt`.

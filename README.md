@@ -7,7 +7,7 @@
 [![CI](https://github.com/wpallstars/seoprostack/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/wpallstars/seoprostack/actions/workflows/ci.yml)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=wpallstars_seoprostack&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=wpallstars_seoprostack)
 [![License: GPL v3 or later](https://img.shields.io/badge/License-GPL%20v3%20or%20later-blue.svg)](LICENSE)
-[![Latest release](https://img.shields.io/badge/release-v1.3.81-blue.svg)](https://github.com/wpallstars/seoprostack/releases)
+[![Latest release](https://img.shields.io/badge/release-v1.3.82-blue.svg)](https://github.com/wpallstars/seoprostack/releases)
 
 [![Requires WordPress](https://img.shields.io/badge/WordPress-6.2%2B-21759B.svg?logo=wordpress)](readme.txt)
 [![Tested up to](https://img.shields.io/badge/tested%20up%20to-7.1-21759B.svg?logo=wordpress)](readme.txt)
@@ -24,7 +24,7 @@ SEO Pro Stack does the jobs that usually take dozens of small plugins: a calmer,
 
 If this saves you time, headaches and costs, feel free to [buy me a coffee](https://buymeacoffee.com/marcusquinn), or whatever you like, to invest in making more things open-source.
 
-Version: 1.3.81
+Version: 1.3.82
 
 <!-- github-only:start -->
 ## Screenshots
@@ -959,6 +959,41 @@ colour, including hover, focus and Kadence's live light/dark palette switch.
   recommend removing Link Whisper. Its embedded icons take precedence;
   turn its icon off to use this one, and deactivate it only if its other
   tools are not needed. No Link Whisper settings are imported or changed.
+
+### Modal links (Links)
+
+On by default. A link to the ID of a modal or drawer on the page opens it, so
+any text, button or image link made in the block editor can open the login box
+(`#login-drawer`), search (`#search-drawer`), the mobile menu
+(`#mobile-drawer`), the cart (`#cart-drawer`), a Kadence Modal block (by the
+anchor set on the block) or a `<dialog>`. Without it, Kadence opens its drawers
+only from its own header buttons, and its Modal block only from links that had
+the `modal-trigger` class when the page loaded, so such a link only jumped to a
+hidden element.
+
+- The modal's own opener on the page is used where there is one (Kadence's
+  `data-toggle-target`, `data-modal-open`, `data-micromodal-trigger` or
+  `aria-controls`), so the code that owns it opens it with its focus handling
+  and scroll lock. Otherwise a Kadence Modal block opens with MicroModal and
+  Kadence's settings, and a `<dialog>` gets a cancelable
+  `seoprostack:open-modal` event first, so the plugin that owns it can prepare
+  and open it, then `showModal()`.
+- A page loaded with such an address (`/page/#login-drawer`) opens it too, and
+  one already open is left as it is.
+- Only modals and drawers are opened: `<dialog>`, `role="dialog"` or
+  `aria-modal="true"` elements, Kadence drawers (`.popup-drawer`) and Kadence
+  Modal blocks. Other links to IDs on the page still scroll there, and clicks
+  with a modifier key, links to other pages and links that open a new tab are
+  left alone. Developers can add selectors for other kinds of modal with the
+  `seoprostack_modal_links_selectors` filter; one the browser cannot read is
+  skipped on its own.
+- A `<dialog>` and a Kadence Modal block open without an opener of their own.
+  Other kinds (`role="dialog"`, `aria-modal="true"` or a filter's selector)
+  open only through their opener on the page: without one, the link scrolls to
+  them as before and an address with their ID leaves them closed.
+- Links that open a modal get `aria-haspopup="dialog"` and `aria-controls`.
+- One small script (`assets/modal-links.js`) in the footer of front-end pages.
+  Nothing is stored and pages are not rewritten.
 
 ### Internal linking tools (Links)
 
@@ -1919,6 +1954,9 @@ Deleting the plugin removes its settings (on multisite, every site's and the net
 Deactivating the plugin removes the WebP and AVIF rules from the uploads folder’s `.htaccess` (for every site when network-deactivated), the LiteSpeed background request rules from the site’s `.htaccess` (on multisite, when network-deactivated or deactivated on the main site) and the must-use file of Load plugins only where needed (on multisite, when network-deactivated).
 
 ## Changelog
+
+### 1.3.82
+- New, on by default: **Modal links** (Links tab). A link to the ID of a modal or drawer on the page opens it, so any text, button or image link can open the login box (`#login-drawer`), search, the mobile menu, a Kadence Modal block or a dialog, also when a page is loaded with that address. Other links to IDs on the page still scroll there (GitHub issue #929).
 
 ### 1.3.81
 - New: **Social sharing** has a **Copy page link** button (a chain link) that copies the page's address and says “Link copied”. On by default for new sites; sites already using Social sharing get it after their chosen networks, so untick it under **Share on** if it is not wanted (GitHub issue #931).
