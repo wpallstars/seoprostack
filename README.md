@@ -69,7 +69,7 @@ At the top right of the screen, **Source code** opens the plugin’s [GitHub rep
 
 A new install starts with the features that are safe on every site switched on, so it is faster and tidier straight away, and leaves off those that need choices about the site or change its content, files, people or other plugins’ settings. On by default:
 
-- **Security:** Minimum password length (12 characters, for everyone, when they set a new password), HTTPS and security headers (nothing changes on an `http://` site) and Turn off unused remote access, with log and backup files, PHP files in the uploads folder and usernames blocked (XML-RPC and application passwords stay on, as Jetpack, mobile apps and integrations use them).
+- **Security:** Email protection, Minimum password length (12 characters, for everyone, when they set a new password), HTTPS and security headers (nothing changes on an `http://` site) and Turn off unused remote access, with log and backup files, PHP files in the uploads folder and usernames blocked (XML-RPC and application passwords stay on, as Jetpack, mobile apps and integrations use them).
 - **Speed:** Recommended speed settings, Load pages before the click, Image loading, Remove WordPress extras, Lighter WooCommerce pages and Faster editor with Kadence Blocks (the last two do nothing without those plugins).
 - **Server:** Fewer Heartbeat requests, Clean the database weekly, Load large settings only where they are used (single sites) and Hosting needs.
 - **Plugins:** Load plugins only where needed, with **Also skip them for people who are logged in**, so it takes every chance to skip plugins once it has learned; Clean up deleted plugins, Plugin sizes, Fixes for other plugins, Plugin presets (each asks first) and Plugins menu in the admin bar.
@@ -142,6 +142,14 @@ SEO Pro Stack replaces **64 plugins**, some of them in part, with free and Pro e
 These plugins showed what sites need. [Credits](#credits) thanks their makers and links to each one.
 
 Also available, off by default: **Count terms and comments in the background** on the Server tab, for imports, bulk edits and shops, and **Remember admin counts**, for large sites without a persistent object cache.
+
+### Email protection (Security)
+
+**On by default.** Email addresses in rendered content, blocks, text widgets and menus become encoded placeholders in the HTML, including email links. A small deferred script, loaded only when needed, restores their readable text and clickable links, keeping link classes, inner markup and mailto queries. Works on any host, with or without Cloudflare email obfuscation.
+
+Visitors need JavaScript to read protected addresses; without it they see “Email address hidden, enable JavaScript.” This deters scrapers that only read HTML, not bots that run JavaScript. It is obfuscation, not encryption or a guarantee against spam.
+
+Stored content, outgoing email, feeds, REST/JSON responses and admin screens are unchanged. Scripts (including JSON-LD), styles, textareas, input values and attributes other than mailto hrefs are left alone. Addresses hardcoded in templates outside these WordPress output filters are not covered. Turn the setting off to show plain addresses, or return true from `seoprostack_email_protection_skip` (`bool $skip, string $html`) for a context such as a print or export view. Clear page caches after changing the setting.
 
 ### No fade between admin screens (Admin)
 
@@ -1919,6 +1927,10 @@ Deleting the plugin removes its settings (on multisite, every site's and the net
 Deactivating the plugin removes the WebP and AVIF rules from the uploads folder’s `.htaccess` (for every site when network-deactivated), the LiteSpeed background request rules from the site’s `.htaccess` (on multisite, when network-deactivated or deactivated on the main site) and the must-use file of Load plugins only where needed (on multisite, when network-deactivated).
 
 ## Changelog
+
+### Unreleased
+
+- New: Email protection (Security, on by default) hides addresses in rendered content, widgets, blocks and menus from HTML-only scrapers. A deferred script restores text and mail links; no Cloudflare dependency. Feeds, REST, form values and stored content stay unchanged (#927).
 
 ### 1.3.81
 - New: **Social sharing** has a **Copy page link** button (a chain link) that copies the page's address and says “Link copied”. On by default for new sites; sites already using Social sharing get it after their chosen networks, so untick it under **Share on** if it is not wanted (GitHub issue #931).
