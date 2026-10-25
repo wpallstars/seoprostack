@@ -159,7 +159,4 @@ Use **Support** in Settings → SEO Pro Stack or [GitHub](https://github.com/wpa
 = 1.3.81 =
 * New: Social sharing has a Copy page link button. Fix: outlined X and Email buttons no longer turn blank on hover in light mode.
 
-= 1.3.80 =
-* Fix: Image loading keeps cache plugins from lazy-loading logos.
-
 Older: `changelog.txt`.
